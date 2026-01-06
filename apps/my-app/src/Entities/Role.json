@@ -1,0 +1,28 @@
+{
+  "name": "Role",
+  "type": "object",
+  "description": "Roles del sistema para autorización",
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "Nombre del rol (admin, manager, technician, cashier, viewer)"
+    },
+    "description": {
+      "type": "string",
+      "description": "Descripción del rol"
+    },
+    "is_system": {
+      "type": "boolean",
+      "default": false,
+      "description": "Si es un rol del sistema (no editable/eliminable)"
+    },
+    "active": {
+      "type": "boolean",
+      "default": true,
+      "description": "Si el rol está activo"
+    }
+  },
+  "required": [
+    "name"
+  ]
+}

@@ -1,0 +1,63 @@
+{
+  "name": "Expense",
+  "type": "object",
+  "properties": {
+    "title": {
+      "type": "string",
+      "description": "Expense title/description"
+    },
+    "amount": {
+      "type": "number",
+      "description": "Expense amount"
+    },
+    "type": {
+      "type": "string",
+      "enum": [
+        "income",
+        "outcome"
+      ],
+      "default": "outcome",
+      "description": "Whether this is income or outcome"
+    },
+    "currency": {
+      "type": "string",
+      "enum": [
+        "USD",
+        "EUR",
+        "GBP",
+        "ILS",
+        "CAD",
+        "AUD"
+      ],
+      "default": "USD",
+      "description": "Currency"
+    },
+    "date": {
+      "type": "string",
+      "format": "date",
+      "description": "Date of expense"
+    },
+    "client_id": {
+      "type": "string",
+      "description": "Associated client ID (empty if personal expense)"
+    },
+    "is_personal": {
+      "type": "boolean",
+      "default": true,
+      "description": "Whether this is a personal expense or client expense"
+    },
+    "receipt_url": {
+      "type": "string",
+      "description": "URL to receipt image"
+    },
+    "notes": {
+      "type": "string",
+      "description": "Additional notes"
+    }
+  },
+  "required": [
+    "title",
+    "amount",
+    "date"
+  ]
+}

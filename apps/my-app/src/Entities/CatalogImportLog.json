@@ -1,0 +1,88 @@
+{
+  "name": "CatalogImportLog",
+  "type": "object",
+  "properties": {
+    "file_name": {
+      "type": "string",
+      "description": "Nombre del archivo importado"
+    },
+    "file_hash": {
+      "type": "string",
+      "description": "Hash MD5 del archivo"
+    },
+    "import_type": {
+      "type": "string",
+      "enum": [
+        "csv",
+        "json"
+      ],
+      "description": "Tipo de importación"
+    },
+    "mode": {
+      "type": "string",
+      "enum": [
+        "merge",
+        "replace"
+      ],
+      "description": "Modo de importación"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "completed",
+        "partial",
+        "failed"
+      ],
+      "description": "Estado de la importación"
+    },
+    "summary": {
+      "type": "object",
+      "properties": {
+        "total_rows": {
+          "type": "number"
+        },
+        "created": {
+          "type": "number"
+        },
+        "updated": {
+          "type": "number"
+        },
+        "skipped": {
+          "type": "number"
+        },
+        "errors": {
+          "type": "number"
+        }
+      },
+      "description": "Resumen de la importación"
+    },
+    "errors": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "row": {
+            "type": "number"
+          },
+          "field": {
+            "type": "string"
+          },
+          "message": {
+            "type": "string"
+          }
+        }
+      },
+      "description": "Lista de errores encontrados"
+    },
+    "imported_by": {
+      "type": "string",
+      "description": "Usuario que realizó la importación"
+    }
+  },
+  "required": [
+    "file_name",
+    "import_type",
+    "status",
+    "summary"
+  ]
+}

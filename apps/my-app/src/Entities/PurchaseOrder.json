@@ -1,0 +1,164 @@
+{
+  "name": "PurchaseOrder",
+  "type": "object",
+  "description": "Órdenes de compra a proveedores con líneas de items",
+  "properties": {
+    "po_number": {
+      "type": "string",
+      "description": "Número de orden de compra (auto-generado)"
+    },
+    "supplier_id": {
+      "type": "string",
+      "description": "ID del proveedor"
+    },
+    "supplier_name": {
+      "type": "string",
+      "description": "Nombre del proveedor (cache)"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "draft",
+        "ordered",
+        "received",
+        "cancelled"
+      ],
+      "default": "draft",
+      "description": "Estado de la orden"
+    },
+    "order_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Fecha de la orden"
+    },
+    "expected_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Fecha esperada de entrega"
+    },
+    "received_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Fecha real de recepción"
+    },
+    "line_items": {
+      "type": "array",
+      "description": "Líneas de items de la orden",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "inventory_item_id": {
+            "type": "string",
+            "description": "ID del item de inventario"
+          },
+          "product_name": {
+            "type": "string",
+            "description": "Nombre del producto (cache)"
+          },
+          "description": {
+            "type": "string",
+            "description": "Descripción del item"
+          },
+          "quantity": {
+            "type": "number",
+            "minimum": 0,
+            "description": "Cantidad ordenada"
+          },
+          "unit_cost": {
+            "type": "number",
+            "minimum": 0,
+            "description": "Costo unitario"
+          },
+          "tax_rate": {
+            "type": "number",
+            "default": 0,
+            "description": "Tasa de impuesto"
+          },
+          "tax_amount": {
+            "type": "number",
+            "default": 0,
+            "description": "Monto de impuesto"
+          },
+          "line_total": {
+            "type": "number",
+            "minimum": 0,
+            "description": "Total de la línea (qty * unit_cost + tax)"
+          },
+          "linked_work_order_id": {
+            "type": "string",
+            "description": "ID de Work Order asociado (opcional)"
+          },
+          "linked_work_order_number": {
+            "type": "string",
+            "description": "Número de WO (cache)"
+          },
+          "external_link": {
+            "type": "string",
+            "description": "URL del producto en el sitio del proveedor"
+          }
+        }
+      }
+    },
+    "subtotal": {
+      "type": "number",
+      "default": 0,
+      "minimum": 0,
+      "description": "Subtotal sin impuestos"
+    },
+    "tax_amount": {
+      "type": "number",
+      "default": 0,
+      "minimum": 0,
+      "description": "Monto total de impuestos"
+    },
+    "shipping_cost": {
+      "type": "number",
+      "default": 0,
+      "minimum": 0,
+      "description": "Costo de envío"
+    },
+    "total_amount": {
+      "type": "number",
+      "default": 0,
+      "minimum": 0,
+      "description": "Total de la orden"
+    },
+    "currency": {
+      "type": "string",
+      "default": "USD",
+      "description": "Moneda"
+    },
+    "notes": {
+      "type": "string",
+      "description": "Notas de la orden"
+    },
+    "tracking_number": {
+      "type": "string",
+      "description": "Número de seguimiento"
+    },
+    "created_by": {
+      "type": "string",
+      "description": "Usuario que creó la orden"
+    },
+    "created_by_name": {
+      "type": "string",
+      "description": "Nombre del usuario que creó"
+    },
+    "received_by": {
+      "type": "string",
+      "description": "Usuario que recibió la orden"
+    },
+    "received_by_name": {
+      "type": "string",
+      "description": "Nombre del usuario que recibió"
+    }
+  },
+  "required": [
+    "po_number",
+    "supplier_id",
+    "order_date"
+  ]
+}

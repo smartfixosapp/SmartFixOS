@@ -1,0 +1,54 @@
+{
+  "name": "Event",
+  "type": "object",
+  "properties": {
+    "title": {
+      "type": "string",
+      "description": "Event title"
+    },
+    "description": {
+      "type": "string",
+      "description": "Event description"
+    },
+    "date": {
+      "type": "string",
+      "format": "date",
+      "description": "Event date"
+    },
+    "time": {
+      "type": "string",
+      "description": "Event time"
+    },
+    "location": {
+      "type": "string",
+      "description": "Event location"
+    },
+    "client_id": {
+      "type": "string",
+      "description": "Associated client ID (empty if personal event)"
+    },
+    "is_personal": {
+      "type": "boolean",
+      "default": true,
+      "description": "Whether this is a personal event or client event"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "upcoming",
+        "completed",
+        "cancelled"
+      ],
+      "default": "upcoming",
+      "description": "Event status"
+    },
+    "notes": {
+      "type": "string",
+      "description": "Additional notes"
+    }
+  },
+  "required": [
+    "title",
+    "date"
+  ]
+}

@@ -1,0 +1,98 @@
+{
+  "name": "Invoice",
+  "type": "object",
+  "description": "Facturas agrupadas para empresas con múltiples órdenes",
+  "properties": {
+    "invoice_number": {
+      "type": "string",
+      "description": "Número único de factura"
+    },
+    "company_name": {
+      "type": "string",
+      "description": "Nombre de la empresa"
+    },
+    "company_tax_id": {
+      "type": "string",
+      "description": "RUT o ID fiscal de la empresa"
+    },
+    "billing_address": {
+      "type": "string",
+      "description": "Dirección de facturación"
+    },
+    "work_order_ids": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "IDs de las órdenes incluidas"
+    },
+    "work_order_numbers": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Números de órdenes para referencia"
+    },
+    "subtotal": {
+      "type": "number",
+      "minimum": 0,
+      "description": "Subtotal antes de impuestos"
+    },
+    "tax_rate": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 1,
+      "default": 0.115,
+      "description": "Tasa de impuesto aplicada"
+    },
+    "tax_amount": {
+      "type": "number",
+      "minimum": 0,
+      "description": "Monto de impuestos"
+    },
+    "total": {
+      "type": "number",
+      "minimum": 0,
+      "description": "Total con impuestos"
+    },
+    "pdf_url": {
+      "type": "string",
+      "description": "URL del PDF generado"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "draft",
+        "sent",
+        "paid",
+        "cancelled"
+      ],
+      "default": "draft",
+      "description": "Estado de la factura"
+    },
+    "notes": {
+      "type": "string",
+      "description": "Notas adicionales"
+    },
+    "due_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Fecha de vencimiento"
+    },
+    "paid_date": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Fecha de pago"
+    },
+    "created_by": {
+      "type": "string",
+      "description": "Usuario que creó la factura"
+    }
+  },
+  "required": [
+    "company_name",
+    "work_order_ids",
+    "subtotal",
+    "total"
+  ]
+}

@@ -1,0 +1,96 @@
+{
+  "name": "OneTimeExpense",
+  "type": "object",
+  "description": "Gastos únicos o metas financieras (compras especiales, herramientas, equipos)",
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "Nombre del gasto o meta"
+    },
+    "description": {
+      "type": "string",
+      "description": "Descripción del gasto"
+    },
+    "category": {
+      "type": "string",
+      "enum": [
+        "tool",
+        "equipment",
+        "renovation",
+        "emergency",
+        "investment",
+        "other"
+      ],
+      "default": "tool",
+      "description": "Categoría del gasto"
+    },
+    "target_amount": {
+      "type": "number",
+      "minimum": 0,
+      "description": "Monto objetivo o costo total"
+    },
+    "saved_amount": {
+      "type": "number",
+      "default": 0,
+      "minimum": 0,
+      "description": "Monto ahorrado hasta ahora"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "planning",
+        "saving",
+        "ready",
+        "purchased",
+        "cancelled"
+      ],
+      "default": "planning",
+      "description": "Estado del gasto"
+    },
+    "priority": {
+      "type": "string",
+      "enum": [
+        "low",
+        "medium",
+        "high",
+        "urgent"
+      ],
+      "default": "medium",
+      "description": "Prioridad"
+    },
+    "target_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Fecha objetivo de compra"
+    },
+    "purchased_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Fecha de compra real"
+    },
+    "vendor": {
+      "type": "string",
+      "description": "Proveedor o tienda"
+    },
+    "notes": {
+      "type": "string",
+      "description": "Notas adicionales"
+    },
+    "payment_method": {
+      "type": "string",
+      "description": "Método de pago utilizado"
+    },
+    "invoice_url": {
+      "type": "string",
+      "description": "URL de la factura o recibo"
+    },
+    "created_by_name": {
+      "type": "string",
+      "description": "Nombre de quien creó"
+    }
+  },
+  "required": [
+    "name",
+    "target_amount"
+  ]
+}

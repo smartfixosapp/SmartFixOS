@@ -1,0 +1,77 @@
+{
+  "name": "TechnicianMetrics",
+  "type": "object",
+  "description": "Registro histórico de métricas de técnicos por período",
+  "properties": {
+    "technician_id": {
+      "type": "string",
+      "description": "ID del perfil de técnico"
+    },
+    "period_start": {
+      "type": "string",
+      "format": "date",
+      "description": "Inicio del período"
+    },
+    "period_end": {
+      "type": "string",
+      "format": "date",
+      "description": "Fin del período"
+    },
+    "jobs_completed": {
+      "type": "number",
+      "default": 0
+    },
+    "jobs_in_progress": {
+      "type": "number",
+      "default": 0
+    },
+    "avg_completion_time_hours": {
+      "type": "number",
+      "default": 0
+    },
+    "customer_ratings": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "order_id": {
+            "type": "string"
+          },
+          "rating": {
+            "type": "number",
+            "minimum": 1,
+            "maximum": 5
+          },
+          "feedback": {
+            "type": "string"
+          },
+          "date": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      }
+    },
+    "avg_rating": {
+      "type": "number",
+      "default": 0
+    },
+    "revenue_generated": {
+      "type": "number",
+      "default": 0
+    },
+    "success_rate": {
+      "type": "number",
+      "default": 0
+    },
+    "on_time_rate": {
+      "type": "number",
+      "default": 0
+    }
+  },
+  "required": [
+    "technician_id",
+    "period_start",
+    "period_end"
+  ]
+}

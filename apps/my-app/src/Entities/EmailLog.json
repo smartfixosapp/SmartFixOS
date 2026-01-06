@@ -1,0 +1,53 @@
+{
+  "name": "EmailLog",
+  "type": "object",
+  "description": "Registro de emails enviados por el sistema",
+  "properties": {
+    "from_name": {
+      "type": "string",
+      "description": "Nombre del remitente"
+    },
+    "to_email": {
+      "type": "string",
+      "format": "email",
+      "description": "Email destinatario"
+    },
+    "subject": {
+      "type": "string",
+      "description": "Asunto del email"
+    },
+    "body_html": {
+      "type": "string",
+      "description": "Cuerpo HTML del email"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "pending",
+        "sent",
+        "failed",
+        "bounced"
+      ],
+      "default": "pending",
+      "description": "Estado de entrega"
+    },
+    "error_message": {
+      "type": "string",
+      "description": "Mensaje de error si falla"
+    },
+    "sent_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Fecha de envío exitoso"
+    },
+    "metadata": {
+      "type": "object",
+      "description": "Metadata adicional (order_id, user_id, etc)",
+      "additionalProperties": true
+    }
+  },
+  "required": [
+    "to_email",
+    "subject"
+  ]
+}

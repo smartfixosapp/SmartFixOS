@@ -1,0 +1,116 @@
+{
+  "name": "Recharge",
+  "type": "object",
+  "description": "Recargas de celular prepagadas",
+  "properties": {
+    "recharge_number": {
+      "type": "string",
+      "description": "Número único de recarga"
+    },
+    "phone_number": {
+      "type": "string",
+      "pattern": "^[0-9+()\\-\\s]{6,}$",
+      "description": "Número de teléfono a recargar (REQUERIDO)"
+    },
+    "carrier": {
+      "type": "string",
+      "enum": [
+        "Claro",
+        "T-Mobile",
+        "AT&T",
+        "Liberty",
+        "Boost",
+        "Cricket",
+        "Metro",
+        "Simple Mobile",
+        "Ultra Mobile",
+        "H2O",
+        "Otra"
+      ],
+      "description": "Compañía telefónica"
+    },
+    "carrier_custom": {
+      "type": "string",
+      "description": "Nombre de compañía personalizada si selecciona 'Otra'"
+    },
+    "amount": {
+      "type": "number",
+      "minimum": 0,
+      "description": "Monto de la recarga"
+    },
+    "commission": {
+      "type": "number",
+      "default": 0,
+      "minimum": 0,
+      "description": "Comisión ganada por la recarga"
+    },
+    "customer_name": {
+      "type": "string",
+      "description": "Nombre del cliente (OPCIONAL)"
+    },
+    "customer_id": {
+      "type": "string",
+      "description": "ID del cliente si está registrado"
+    },
+    "payment_method": {
+      "type": "string",
+      "enum": [
+        "cash",
+        "card",
+        "ath_movil",
+        "transfer"
+      ],
+      "default": "cash",
+      "description": "Método de pago"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "completed",
+        "failed",
+        "refunded"
+      ],
+      "default": "completed",
+      "description": "Estado de la recarga"
+    },
+    "confirmation_code": {
+      "type": "string",
+      "description": "Código de confirmación de la recarga"
+    },
+    "sale_id": {
+      "type": "string",
+      "description": "ID de la venta en el POS"
+    },
+    "sale_number": {
+      "type": "string",
+      "description": "Número de venta para referencia"
+    },
+    "employee_id": {
+      "type": "string",
+      "description": "ID del empleado que procesó"
+    },
+    "employee_name": {
+      "type": "string",
+      "description": "Nombre del empleado"
+    },
+    "notes": {
+      "type": "string",
+      "description": "Notas adicionales"
+    },
+    "refund_reason": {
+      "type": "string",
+      "description": "Razón de reembolso si aplica"
+    },
+    "refunded_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Fecha de reembolso"
+    }
+  },
+  "required": [
+    "phone_number",
+    "carrier",
+    "amount",
+    "payment_method"
+  ]
+}

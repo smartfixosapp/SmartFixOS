@@ -1,0 +1,76 @@
+{
+  "name": "TenantMembership",
+  "type": "object",
+  "description": "Relación usuario-tenant con roles",
+  "properties": {
+    "tenant_id": {
+      "type": "string",
+      "description": "ID del tenant"
+    },
+    "user_id": {
+      "type": "string",
+      "description": "ID del usuario"
+    },
+    "user_email": {
+      "type": "string",
+      "format": "email",
+      "description": "Email del usuario (cache)"
+    },
+    "user_name": {
+      "type": "string",
+      "description": "Nombre del usuario (cache)"
+    },
+    "role_id": {
+      "type": "string",
+      "description": "ID del rol en el tenant"
+    },
+    "role_name": {
+      "type": "string",
+      "description": "Nombre del rol (cache)"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "pending",
+        "active",
+        "suspended"
+      ],
+      "default": "pending",
+      "description": "Estado de la membresía"
+    },
+    "invited_by": {
+      "type": "string",
+      "description": "Email de quien invitó"
+    },
+    "invited_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Fecha de invitación"
+    },
+    "accepted_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Fecha de aceptación"
+    },
+    "permissions_override": {
+      "type": "array",
+      "description": "Permisos adicionales o negados específicos",
+      "items": {
+        "type": "object",
+        "properties": {
+          "permission": {
+            "type": "string"
+          },
+          "granted": {
+            "type": "boolean"
+          }
+        }
+      }
+    }
+  },
+  "required": [
+    "tenant_id",
+    "user_email",
+    "role_id"
+  ]
+}

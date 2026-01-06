@@ -1,0 +1,19 @@
+{
+  "name": "RolePermission",
+  "type": "object",
+  "description": "Relación entre roles y permisos",
+  "properties": {
+    "role_id": {
+      "type": "string",
+      "description": "ID del rol"
+    },
+    "permission_code": {
+      "type": "string",
+      "description": "Código del permiso"
+    }
+  },
+  "required": [
+    "role_id",
+    "permission_code"
+  ]
+}

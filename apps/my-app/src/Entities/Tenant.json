@@ -1,0 +1,127 @@
+{
+  "name": "Tenant",
+  "type": "object",
+  "description": "Organizaciones/Empresas en el sistema multi-tenant",
+  "properties": {
+    "name": {
+      "type": "string",
+      "minLength": 2,
+      "description": "Nombre de la organización"
+    },
+    "slug": {
+      "type": "string",
+      "pattern": "^[a-z0-9-]+$",
+      "description": "Identificador único (URL-friendly)"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "active",
+        "suspended",
+        "trial"
+      ],
+      "default": "trial",
+      "description": "Estado del tenant"
+    },
+    "plan": {
+      "type": "string",
+      "enum": [
+        "free",
+        "basic",
+        "professional",
+        "enterprise"
+      ],
+      "default": "trial",
+      "description": "Plan de suscripción"
+    },
+    "settings": {
+      "type": "object",
+      "description": "Configuración del tenant",
+      "properties": {
+        "business_name": {
+          "type": "string"
+        },
+        "contact_email": {
+          "type": "string",
+          "format": "email"
+        },
+        "contact_phone": {
+          "type": "string"
+        },
+        "timezone": {
+          "type": "string",
+          "default": "America/Puerto_Rico"
+        },
+        "currency": {
+          "type": "string",
+          "default": "USD"
+        },
+        "language": {
+          "type": "string",
+          "default": "es"
+        },
+        "tax_rate": {
+          "type": "number",
+          "default": 11.5
+        }
+      }
+    },
+    "features": {
+      "type": "object",
+      "description": "Features habilitados por plan",
+      "properties": {
+        "max_users": {
+          "type": "number",
+          "default": 5
+        },
+        "max_orders": {
+          "type": "number",
+          "default": 100
+        },
+        "multi_location": {
+          "type": "boolean",
+          "default": false
+        },
+        "advanced_reports": {
+          "type": "boolean",
+          "default": false
+        },
+        "api_access": {
+          "type": "boolean",
+          "default": false
+        }
+      }
+    },
+    "subscription": {
+      "type": "object",
+      "properties": {
+        "start_date": {
+          "type": "string",
+          "format": "date"
+        },
+        "end_date": {
+          "type": "string",
+          "format": "date"
+        },
+        "trial_ends": {
+          "type": "string",
+          "format": "date"
+        }
+      }
+    },
+    "owner_id": {
+      "type": "string",
+      "description": "ID del usuario propietario"
+    },
+    "owner_email": {
+      "type": "string",
+      "format": "email",
+      "description": "Email del propietario"
+    }
+  },
+  "required": [
+    "name",
+    "slug",
+    "owner_email"
+  ]
+}

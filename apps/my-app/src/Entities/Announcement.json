@@ -1,0 +1,94 @@
+{
+  "name": "Announcement",
+  "type": "object",
+  "description": "Anuncios y notas enviadas al equipo",
+  "properties": {
+    "title": {
+      "type": "string",
+      "description": "Título del anuncio"
+    },
+    "message": {
+      "type": "string",
+      "description": "Contenido del mensaje"
+    },
+    "sent_to": {
+      "type": "string",
+      "enum": [
+        "all",
+        "specific"
+      ],
+      "description": "Audiencia del mensaje"
+    },
+    "recipients": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "user_id": {
+            "type": "string"
+          },
+          "user_name": {
+            "type": "string"
+          },
+          "read": {
+            "type": "boolean",
+            "default": false
+          },
+          "read_at": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "description": "Lista de destinatarios si es específico"
+    },
+    "sent_by": {
+      "type": "string",
+      "description": "ID del usuario que envió"
+    },
+    "sent_by_name": {
+      "type": "string",
+      "description": "Nombre del usuario que envió"
+    },
+    "sent_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Fecha y hora de envío"
+    },
+    "type": {
+      "type": "string",
+      "enum": [
+        "note",
+        "offer",
+        "alert",
+        "announcement"
+      ],
+      "default": "note",
+      "description": "Tipo de anuncio"
+    },
+    "priority": {
+      "type": "string",
+      "enum": [
+        "low",
+        "normal",
+        "high"
+      ],
+      "default": "normal"
+    },
+    "expires_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Fecha de expiración (para ofertas)"
+    },
+    "active": {
+      "type": "boolean",
+      "default": true,
+      "description": "Si el anuncio está activo"
+    }
+  },
+  "required": [
+    "message",
+    "sent_by",
+    "sent_by_name"
+  ]
+}

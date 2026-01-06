@@ -1,0 +1,40 @@
+{
+  "name": "SystemConfig",
+  "type": "object",
+  "properties": {
+    "key": {
+      "type": "string",
+      "description": "Clave de configuración única"
+    },
+    "value": {
+      "type": "string",
+      "description": "Valor de la configuración (JSON string)"
+    },
+    "category": {
+      "type": "string",
+      "enum": [
+        "general",
+        "tax",
+        "receipt",
+        "permissions",
+        "numbering",
+        "repair_status",
+        "email",
+        "notifications",
+        "inventory",
+        "branding",
+        "security"
+      ],
+      "description": "Categoría de configuración"
+    },
+    "description": {
+      "type": "string",
+      "description": "Descripción de la configuración"
+    }
+  },
+  "required": [
+    "key",
+    "value",
+    "category"
+  ]
+}

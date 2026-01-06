@@ -1,0 +1,74 @@
+{
+  "name": "EmployeePayment",
+  "type": "object",
+  "description": "Registro de pagos realizados a empleados",
+  "properties": {
+    "employee_id": {
+      "type": "string",
+      "description": "ID del empleado"
+    },
+    "employee_name": {
+      "type": "string",
+      "description": "Nombre del empleado"
+    },
+    "employee_code": {
+      "type": "string",
+      "description": "Código del empleado"
+    },
+    "amount": {
+      "type": "number",
+      "minimum": 0,
+      "description": "Monto del pago"
+    },
+    "payment_type": {
+      "type": "string",
+      "enum": [
+        "salary",
+        "bonus",
+        "commission",
+        "advance",
+        "other"
+      ],
+      "default": "salary",
+      "description": "Tipo de pago"
+    },
+    "payment_method": {
+      "type": "string",
+      "enum": [
+        "cash",
+        "transfer",
+        "check"
+      ],
+      "default": "cash",
+      "description": "Método de pago"
+    },
+    "period_start": {
+      "type": "string",
+      "format": "date",
+      "description": "Inicio del periodo"
+    },
+    "period_end": {
+      "type": "string",
+      "format": "date",
+      "description": "Fin del periodo"
+    },
+    "notes": {
+      "type": "string",
+      "description": "Notas adicionales"
+    },
+    "paid_by": {
+      "type": "string",
+      "description": "Usuario que realizó el pago"
+    },
+    "paid_by_name": {
+      "type": "string",
+      "description": "Nombre de quien realizó el pago"
+    }
+  },
+  "required": [
+    "employee_id",
+    "employee_name",
+    "amount",
+    "payment_type"
+  ]
+}

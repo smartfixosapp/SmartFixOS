@@ -1,0 +1,66 @@
+{
+  "name": "FileUpload",
+  "type": "object",
+  "description": "Registro de archivos subidos al sistema",
+  "properties": {
+    "file_name": {
+      "type": "string",
+      "description": "Nombre original del archivo"
+    },
+    "file_url": {
+      "type": "string",
+      "description": "URL pública del archivo"
+    },
+    "file_size": {
+      "type": "number",
+      "description": "Tamaño en bytes"
+    },
+    "mime_type": {
+      "type": "string",
+      "description": "Tipo MIME del archivo"
+    },
+    "bucket": {
+      "type": "string",
+      "default": "public/device-photos",
+      "description": "Bucket de almacenamiento"
+    },
+    "uploaded_by": {
+      "type": "string",
+      "description": "Usuario que subió el archivo"
+    },
+    "uploaded_by_role": {
+      "type": "string",
+      "description": "Rol del usuario al momento de subir"
+    },
+    "related_entity_type": {
+      "type": "string",
+      "enum": [
+        "order",
+        "product",
+        "customer",
+        "user",
+        "general"
+      ],
+      "description": "Tipo de entidad relacionada"
+    },
+    "related_entity_id": {
+      "type": "string",
+      "description": "ID de la entidad relacionada"
+    },
+    "metadata": {
+      "type": "object",
+      "description": "Metadata adicional del archivo",
+      "additionalProperties": true
+    },
+    "version": {
+      "type": "string",
+      "description": "Timestamp de versión"
+    }
+  },
+  "required": [
+    "file_name",
+    "file_url",
+    "file_size",
+    "uploaded_by"
+  ]
+}

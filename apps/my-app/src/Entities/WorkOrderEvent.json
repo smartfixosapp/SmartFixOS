@@ -1,0 +1,74 @@
+{
+  "name": "WorkOrderEvent",
+  "type": "object",
+  "properties": {
+    "order_id": {
+      "type": "string",
+      "description": "ID de la orden relacionada"
+    },
+    "order_number": {
+      "type": "string",
+      "description": "Número de orden para referencia"
+    },
+    "event_type": {
+      "type": "string",
+      "enum": [
+        "create",
+        "status_change",
+        "note_added",
+        "media_uploaded",
+        "item_added",
+        "item_removed",
+        "item_updated",
+        "field_updated",
+        "payment",
+        "email_sent",
+        "message_sent",
+        "call_logged",
+        "checklist_updated"
+      ],
+      "description": "Tipo de evento de auditoría"
+    },
+    "description": {
+      "type": "string",
+      "description": "Descripción legible del evento"
+    },
+    "user_id": {
+      "type": "string",
+      "description": "ID del usuario que realizó la acción"
+    },
+    "user_name": {
+      "type": "string",
+      "description": "Nombre del usuario"
+    },
+    "user_role": {
+      "type": "string",
+      "description": "Rol del usuario"
+    },
+    "metadata": {
+      "type": "object",
+      "description": "Datos adicionales del evento (ej. antes/después, nombre de archivo, etc.)",
+      "properties": {
+        "checklist_type": {
+          "type": "string",
+          "enum": [
+            "reception",
+            "delivery"
+          ]
+        }
+      },
+      "additionalProperties": true
+    },
+    "is_private": {
+      "type": "boolean",
+      "default": false,
+      "description": "Si el evento es solo para uso interno (no visible para el cliente)"
+    }
+  },
+  "required": [
+    "order_id",
+    "event_type",
+    "description",
+    "user_name"
+  ]
+}

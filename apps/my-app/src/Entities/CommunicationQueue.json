@@ -1,0 +1,59 @@
+{
+  "name": "CommunicationQueue",
+  "type": "object",
+  "description": "Cola de comunicaciones para notificaciones in-app y mensajes dirigidos",
+  "properties": {
+    "type": {
+      "type": "string",
+      "enum": [
+        "in_app",
+        "notification",
+        "email"
+      ],
+      "description": "Tipo de comunicación"
+    },
+    "user_id": {
+      "type": "string",
+      "description": "ID del usuario destinatario"
+    },
+    "subject": {
+      "type": "string",
+      "description": "Asunto del mensaje"
+    },
+    "body_html": {
+      "type": "string",
+      "description": "Cuerpo del mensaje en HTML"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "pending",
+        "sent",
+        "read",
+        "failed"
+      ],
+      "default": "pending",
+      "description": "Estado de la comunicación"
+    },
+    "meta": {
+      "type": "object",
+      "description": "Metadatos adicionales (order_id, notification_type, etc.)",
+      "additionalProperties": true
+    },
+    "sent_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Fecha de envío"
+    },
+    "read_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Fecha de lectura"
+    }
+  },
+  "required": [
+    "type",
+    "user_id",
+    "body_html"
+  ]
+}

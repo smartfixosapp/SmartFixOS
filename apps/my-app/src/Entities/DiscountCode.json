@@ -1,0 +1,61 @@
+{
+  "name": "DiscountCode",
+  "type": "object",
+  "description": "Códigos de descuento para el POS",
+  "properties": {
+    "code": {
+      "type": "string",
+      "description": "Código único del descuento"
+    },
+    "type": {
+      "type": "string",
+      "enum": [
+        "percentage",
+        "fixed"
+      ],
+      "description": "Tipo de descuento: porcentaje o cantidad fija"
+    },
+    "value": {
+      "type": "number",
+      "description": "Valor del descuento (% o $)"
+    },
+    "description": {
+      "type": "string",
+      "description": "Descripción del código"
+    },
+    "valid_from": {
+      "type": "string",
+      "format": "date",
+      "description": "Fecha de inicio de validez"
+    },
+    "valid_until": {
+      "type": "string",
+      "format": "date",
+      "description": "Fecha de expiración"
+    },
+    "usage_limit": {
+      "type": "number",
+      "description": "Límite de usos totales"
+    },
+    "times_used": {
+      "type": "number",
+      "default": 0,
+      "description": "Veces que se ha usado"
+    },
+    "min_purchase": {
+      "type": "number",
+      "default": 0,
+      "description": "Compra mínima requerida"
+    },
+    "active": {
+      "type": "boolean",
+      "default": true,
+      "description": "Si el código está activo"
+    }
+  },
+  "required": [
+    "code",
+    "type",
+    "value"
+  ]
+}

@@ -1,0 +1,63 @@
+{
+  "name": "Service",
+  "type": "object",
+  "properties": {
+    "code": {
+      "type": "string",
+      "description": "Código del servicio"
+    },
+    "name": {
+      "type": "string",
+      "description": "Nombre del servicio"
+    },
+    "description": {
+      "type": "string",
+      "description": "Descripción del servicio"
+    },
+    "category": {
+      "type": "string",
+      "enum": [
+        "screen_repair",
+        "battery_replacement",
+        "water_damage",
+        "software",
+        "data_recovery",
+        "other"
+      ],
+      "description": "Categoría del servicio"
+    },
+    "price": {
+      "type": "number",
+      "description": "Precio del servicio"
+    },
+    "duration_minutes": {
+      "type": "number",
+      "default": 60,
+      "description": "Duración estimada en minutos"
+    },
+    "compatibility": {
+      "type": "string",
+      "description": "Modelos compatibles separados por coma"
+    },
+    "compatibility_scope": {
+      "type": "string",
+      "enum": [
+        "specific",
+        "family",
+        "generic"
+      ],
+      "default": "generic",
+      "description": "Ámbito de compatibilidad"
+    },
+    "active": {
+      "type": "boolean",
+      "default": true,
+      "description": "Si el servicio está activo"
+    }
+  },
+  "required": [
+    "code",
+    "name",
+    "price"
+  ]
+}

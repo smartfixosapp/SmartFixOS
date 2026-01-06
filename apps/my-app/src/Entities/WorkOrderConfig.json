@@ -1,0 +1,203 @@
+{
+  "name": "WorkOrderConfig",
+  "type": "object",
+  "properties": {
+    "key": {
+      "type": "string",
+      "description": "Clave única de configuración"
+    },
+    "steps_enabled": {
+      "type": "object",
+      "description": "Pasos habilitados en el wizard",
+      "properties": {
+        "device": {
+          "type": "boolean",
+          "default": true
+        },
+        "model": {
+          "type": "boolean",
+          "default": true
+        },
+        "problem": {
+          "type": "boolean",
+          "default": true
+        },
+        "customer": {
+          "type": "boolean",
+          "default": true
+        },
+        "comments": {
+          "type": "boolean",
+          "default": true
+        },
+        "media": {
+          "type": "boolean",
+          "default": true
+        },
+        "signature": {
+          "type": "boolean",
+          "default": true
+        },
+        "terms": {
+          "type": "boolean",
+          "default": true
+        }
+      }
+    },
+    "steps_order": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Orden de los pasos",
+      "default": [
+        "device",
+        "model",
+        "problem",
+        "customer",
+        "comments",
+        "media",
+        "signature",
+        "terms"
+      ]
+    },
+    "customer_fields": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "label": {
+            "type": "string"
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "text",
+              "email",
+              "tel",
+              "textarea"
+            ]
+          },
+          "required": {
+            "type": "boolean"
+          },
+          "visible": {
+            "type": "boolean"
+          }
+        }
+      },
+      "description": "Campos personalizados del cliente"
+    },
+    "signature_config": {
+      "type": "object",
+      "properties": {
+        "required": {
+          "type": "boolean",
+          "default": true
+        },
+        "multiple": {
+          "type": "boolean",
+          "default": false
+        },
+        "legal_text": {
+          "type": "string"
+        }
+      },
+      "description": "Configuración de firma"
+    },
+    "media_config": {
+      "type": "object",
+      "properties": {
+        "max_files": {
+          "type": "number",
+          "default": 10
+        },
+        "max_size_mb": {
+          "type": "number",
+          "default": 10
+        },
+        "required": {
+          "type": "boolean",
+          "default": false
+        },
+        "allow_video": {
+          "type": "boolean",
+          "default": true
+        }
+      },
+      "description": "Configuración de archivos multimedia"
+    },
+    "terms_text": {
+      "type": "object",
+      "properties": {
+        "es": {
+          "type": "string"
+        },
+        "en": {
+          "type": "string"
+        }
+      },
+      "description": "Texto de términos y condiciones"
+    },
+    "email_template": {
+      "type": "object",
+      "properties": {
+        "subject": {
+          "type": "object",
+          "properties": {
+            "es": {
+              "type": "string"
+            },
+            "en": {
+              "type": "string"
+            }
+          }
+        },
+        "body": {
+          "type": "object",
+          "properties": {
+            "es": {
+              "type": "string"
+            },
+            "en": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "description": "Plantilla de email"
+    },
+    "pdf_config": {
+      "type": "object",
+      "properties": {
+        "header_color": {
+          "type": "string",
+          "default": "#FF0000"
+        },
+        "font_family": {
+          "type": "string",
+          "default": "Arial"
+        },
+        "include_photos": {
+          "type": "boolean",
+          "default": true
+        },
+        "include_signature": {
+          "type": "boolean",
+          "default": true
+        },
+        "include_terms": {
+          "type": "boolean",
+          "default": true
+        }
+      },
+      "description": "Configuración del PDF"
+    }
+  },
+  "required": [
+    "key"
+  ]
+}

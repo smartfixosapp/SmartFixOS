@@ -1,0 +1,61 @@
+{
+  "name": "CustomerPortalToken",
+  "type": "object",
+  "description": "Tokens de acceso temporal para portal de clientes",
+  "properties": {
+    "order_id": {
+      "type": "string",
+      "description": "ID de la orden asociada"
+    },
+    "token": {
+      "type": "string",
+      "description": "Token único base64 para acceso"
+    },
+    "expires_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Fecha de expiración del token (null = nunca expira)"
+    },
+    "last_accessed_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Última vez que se usó el token"
+    },
+    "access_count": {
+      "type": "number",
+      "default": 0,
+      "description": "Cantidad de veces que se ha accedido con este token"
+    },
+    "revoked": {
+      "type": "boolean",
+      "default": false,
+      "description": "Si el token fue revocado manualmente"
+    },
+    "revoked_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Fecha de revocación"
+    },
+    "revoked_by": {
+      "type": "string",
+      "description": "Usuario que revocó el token"
+    },
+    "ip_address": {
+      "type": "string",
+      "description": "IP desde donde se creó el token"
+    },
+    "user_agent": {
+      "type": "string",
+      "description": "User agent del navegador"
+    },
+    "metadata": {
+      "type": "object",
+      "description": "Metadata adicional del token",
+      "additionalProperties": true
+    }
+  },
+  "required": [
+    "order_id",
+    "token"
+  ]
+}

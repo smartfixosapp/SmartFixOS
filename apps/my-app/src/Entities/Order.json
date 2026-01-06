@@ -1,0 +1,546 @@
+{
+  "name": "Order",
+  "type": "object",
+  "description": "Órdenes de trabajo con validaciones estrictas de estado y datos requeridos",
+  "properties": {
+    "order_number": {
+      "type": "string",
+      "minLength": 3,
+      "description": "Número único de orden"
+    },
+    "created_date": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Fecha de creación"
+    },
+    "updated_date": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Última actualización"
+    },
+    "store_id": {
+      "type": "string",
+      "description": "Sucursal/tienda asociada"
+    },
+    "customer_id": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Referencia al cliente (REQUERIDO)"
+    },
+    "customer_name": {
+      "type": "string",
+      "minLength": 2,
+      "description": "Nombre del cliente (cache)"
+    },
+    "customer_phone": {
+      "type": "string",
+      "pattern": "^[0-9+()\\-\\s]{6,}$",
+      "description": "Teléfono del cliente"
+    },
+    "customer_email": {
+      "type": "string",
+      "format": "email",
+      "description": "Email del cliente"
+    },
+    "customer_additional_phones": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "pattern": "^[0-9+()\\-\\s]{6,}$"
+      },
+      "description": "Otros teléfonos"
+    },
+    "device_type": {
+      "type": "string",
+      "minLength": 2,
+      "description": "Tipo de equipo (categoría)"
+    },
+    "device_brand": {
+      "type": "string",
+      "description": "Marca"
+    },
+    "device_subcategory": {
+      "type": "string",
+      "description": "Subcategoría"
+    },
+    "device_family": {
+      "type": "string",
+      "description": "Familia del dispositivo"
+    },
+    "device_model": {
+      "type": "string",
+      "description": "Modelo"
+    },
+    "device_color": {
+      "type": "string",
+      "description": "Color del equipo"
+    },
+    "device_serial": {
+      "type": "string",
+      "description": "IMEI/Serial"
+    },
+    "initial_problem": {
+      "type": "string",
+      "description": "Problema reportado"
+    },
+    "device_photos": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "URLs de fotos (legacy)"
+    },
+    "photos_metadata": {
+      "type": "array",
+      "description": "Metadatos de fotos",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "type": {
+            "type": "string"
+          },
+          "mime": {
+            "type": "string"
+          },
+          "filename": {
+            "type": "string"
+          },
+          "publicUrl": {
+            "type": "string"
+          },
+          "thumbUrl": {
+            "type": "string"
+          },
+          "uploaded_by": {
+            "type": "string"
+          },
+          "uploaded_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "notes": {
+            "type": "string"
+          },
+          "visible_to_customer": {
+            "type": "boolean",
+            "default": false
+          }
+        }
+      }
+    },
+    "device_security": {
+      "type": "object",
+      "description": "Datos de acceso",
+      "properties": {
+        "device_pin": {
+          "type": "string",
+          "maxLength": 16
+        },
+        "device_password": {
+          "type": "string",
+          "maxLength": 128
+        },
+        "pattern_vector": {
+          "type": "string",
+          "pattern": "^pattern:[0-9](?:-[0-9])*$",
+          "description": "Patrón de Android en formato: pattern:0-1-4-7"
+        },
+        "pattern_image": {
+          "type": "string"
+        },
+        "security_notes": {
+          "type": "string",
+          "maxLength": 500
+        },
+        "last_updated_by": {
+          "type": "string"
+        },
+        "last_updated_at": {
+          "type": "string",
+          "format": "date-time"
+        }
+      }
+    },
+    "known_issues": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Problemas conocidos (legacy)"
+    },
+    "repair_tasks": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "pending",
+              "in_progress",
+              "completed"
+            ]
+          },
+          "cost": {
+            "type": "number",
+            "minimum": 0
+          }
+        }
+      }
+    },
+    "labor_cost": {
+      "type": "number",
+      "default": 0,
+      "minimum": 0,
+      "description": "Mano de obra"
+    },
+    "parts_needed": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "product",
+              "service"
+            ]
+          },
+          "name": {
+            "type": "string"
+          },
+          "quantity": {
+            "type": "number",
+            "default": 1,
+            "minimum": 0
+          },
+          "price": {
+            "type": "number",
+            "minimum": 0
+          }
+        }
+      }
+    },
+    "order_items": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": true
+      }
+    },
+    "currency": {
+      "type": "string",
+      "default": "USD"
+    },
+    "tax_rate": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 1,
+      "default": 0.115
+    },
+    "cost_estimate": {
+      "type": "number",
+      "minimum": 0
+    },
+    "amount_paid": {
+      "type": "number",
+      "default": 0,
+      "minimum": 0
+    },
+    "balance_due": {
+      "type": "number",
+      "minimum": 0
+    },
+    "paid": {
+      "type": "boolean",
+      "default": false
+    },
+    "deposit_amount": {
+      "type": "number",
+      "default": 0,
+      "minimum": 0
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "intake",
+        "diagnosing",
+        "awaiting_approval",
+        "waiting_parts",
+        "in_progress",
+        "ready_for_pickup",
+        "picked_up",
+        "completed"
+      ],
+      "default": "intake",
+      "description": "Estado de la orden (solo valores permitidos)"
+    },
+    "status_note": {
+      "type": "string"
+    },
+    "status_note_visible_to_customer": {
+      "type": "boolean",
+      "default": false
+    },
+    "status_metadata": {
+      "type": "object",
+      "description": "Metadatos específicos del estado",
+      "additionalProperties": true
+    },
+    "status_history": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string"
+          },
+          "timestamp": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "changed_by": {
+            "type": "string"
+          },
+          "note": {
+            "type": "string"
+          },
+          "visible_to_customer": {
+            "type": "boolean",
+            "default": false
+          }
+        }
+      }
+    },
+    "priority": {
+      "type": "string",
+      "enum": [
+        "normal",
+        "high",
+        "urgent"
+      ],
+      "default": "normal"
+    },
+    "progress_percentage": {
+      "type": "number",
+      "default": 0,
+      "minimum": 0,
+      "maximum": 100
+    },
+    "estimated_completion": {
+      "type": "string",
+      "format": "date"
+    },
+    "checklist_items": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "label": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "ok",
+              "damaged",
+              "not_tested"
+            ],
+            "default": "not_tested"
+          },
+          "notes": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "checklist_notes": {
+      "type": "string"
+    },
+    "comments": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "text": {
+            "type": "string"
+          },
+          "author": {
+            "type": "string"
+          },
+          "timestamp": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "internal": {
+            "type": "boolean",
+            "default": false
+          },
+          "attachments": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    },
+    "customer_signature": {
+      "type": "string"
+    },
+    "customer_signature_meta": {
+      "type": "object",
+      "properties": {
+        "signed_by": {
+          "type": "string"
+        },
+        "signed_ip": {
+          "type": "string"
+        },
+        "signed_at": {
+          "type": "string",
+          "format": "date-time"
+        }
+      }
+    },
+    "terms_accepted": {
+      "type": "boolean",
+      "default": false
+    },
+    "terms_accepted_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "terms_version": {
+      "type": "string"
+    },
+    "wo_to_sale_id": {
+      "type": "string"
+    },
+    "can_reopen": {
+      "type": "boolean",
+      "default": false
+    },
+    "deleted": {
+      "type": "boolean",
+      "default": false
+    },
+    "deleted_by": {
+      "type": "string"
+    },
+    "deleted_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "created_by": {
+      "type": "string"
+    },
+    "created_by_name": {
+      "type": "string"
+    },
+    "created_by_role": {
+      "type": "string"
+    },
+    "assigned_to": {
+      "type": "string"
+    },
+    "assigned_to_name": {
+      "type": "string"
+    },
+    "tags": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "company_id": {
+      "type": "string"
+    },
+    "company_name": {
+      "type": "string"
+    },
+    "po_number": {
+      "type": "string"
+    },
+    "net_terms": {
+      "type": "string",
+      "enum": [
+        "NET-15",
+        "NET-30",
+        "NET-45",
+        "NET-60",
+        "CUSTOM"
+      ],
+      "default": "NET-30"
+    },
+    "tax_exempt": {
+      "type": "boolean",
+      "default": false
+    },
+    "sla_level": {
+      "type": "string"
+    },
+    "logistics": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "type": "string",
+          "enum": [
+            "pickup",
+            "delivery"
+          ]
+        },
+        "window": {
+          "type": "string"
+        },
+        "address": {
+          "type": "string"
+        },
+        "notes": {
+          "type": "string"
+        }
+      }
+    },
+    "account_summary": {
+      "type": "object",
+      "properties": {
+        "credit_limit": {
+          "type": "number",
+          "minimum": 0
+        },
+        "credit_used": {
+          "type": "number",
+          "minimum": 0
+        },
+        "on_hold": {
+          "type": "boolean",
+          "default": false
+        }
+      }
+    }
+  },
+  "required": [
+    "customer_id",
+    "customer_name",
+    "customer_phone",
+    "device_type"
+  ]
+}

@@ -1,0 +1,28 @@
+{
+  "name": "UserRole",
+  "type": "object",
+  "description": "Relación entre usuarios y roles",
+  "properties": {
+    "user_id": {
+      "type": "string",
+      "description": "ID del usuario"
+    },
+    "role_id": {
+      "type": "string",
+      "description": "ID del rol"
+    },
+    "assigned_by": {
+      "type": "string",
+      "description": "ID del usuario que asignó el rol"
+    },
+    "assigned_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Fecha de asignación"
+    }
+  },
+  "required": [
+    "user_id",
+    "role_id"
+  ]
+}

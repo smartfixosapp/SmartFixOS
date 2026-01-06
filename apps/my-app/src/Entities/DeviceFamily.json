@@ -1,0 +1,34 @@
+{
+  "name": "DeviceFamily",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "Nombre de la familia (MacBook Pro, Galaxy S, ThinkPad, etc.)"
+    },
+    "brand_id": {
+      "type": "string",
+      "description": "ID de la marca"
+    },
+    "icon_url": {
+      "type": "string",
+      "description": "URL del ícono"
+    },
+    "icon_svg": {
+      "type": "string",
+      "description": "SVG generado automáticamente"
+    },
+    "active": {
+      "type": "boolean",
+      "default": true
+    },
+    "order": {
+      "type": "number",
+      "description": "Orden de visualización"
+    }
+  },
+  "required": [
+    "name",
+    "brand_id"
+  ]
+}

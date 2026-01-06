@@ -1,0 +1,46 @@
+{
+  "name": "TenantRole",
+  "type": "object",
+  "description": "Roles dentro de un tenant específico",
+  "properties": {
+    "tenant_id": {
+      "type": "string",
+      "description": "ID del tenant"
+    },
+    "name": {
+      "type": "string",
+      "description": "Nombre del rol (Admin, Manager, User, etc.)"
+    },
+    "slug": {
+      "type": "string",
+      "pattern": "^[a-z0-9_]+$",
+      "description": "Identificador del rol"
+    },
+    "description": {
+      "type": "string",
+      "description": "Descripción del rol"
+    },
+    "is_system": {
+      "type": "boolean",
+      "default": false,
+      "description": "Si es un rol del sistema (no editable)"
+    },
+    "permissions": {
+      "type": "array",
+      "description": "Array de permisos asignados",
+      "items": {
+        "type": "string"
+      }
+    },
+    "level": {
+      "type": "number",
+      "default": 0,
+      "description": "Nivel jerárquico (mayor = más privilegios)"
+    }
+  },
+  "required": [
+    "tenant_id",
+    "name",
+    "slug"
+  ]
+}

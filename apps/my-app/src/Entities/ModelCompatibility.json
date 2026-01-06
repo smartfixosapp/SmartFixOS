@@ -1,0 +1,61 @@
+{
+  "name": "ModelCompatibility",
+  "type": "object",
+  "properties": {
+    "model_id": {
+      "type": "string",
+      "description": "ID del modelo de dispositivo"
+    },
+    "model_name": {
+      "type": "string",
+      "description": "Nombre del modelo para referencia"
+    },
+    "family_id": {
+      "type": "string",
+      "description": "ID de la familia"
+    },
+    "suggested_items": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "product",
+              "service"
+            ]
+          },
+          "item_id": {
+            "type": "string"
+          },
+          "item_name": {
+            "type": "string"
+          },
+          "default_quantity": {
+            "type": "number",
+            "default": 1
+          },
+          "problem_type": {
+            "type": "string",
+            "description": "Tipo de problema al que aplica"
+          }
+        }
+      },
+      "description": "Items sugeridos (piezas y servicios)"
+    },
+    "preload_by_default": {
+      "type": "boolean",
+      "default": true,
+      "description": "Si se pre-cargan automáticamente"
+    },
+    "active": {
+      "type": "boolean",
+      "default": true
+    }
+  },
+  "required": [
+    "model_id",
+    "model_name"
+  ]
+}

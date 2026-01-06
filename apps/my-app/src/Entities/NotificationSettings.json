@@ -1,0 +1,98 @@
+{
+  "name": "NotificationSettings",
+  "type": "object",
+  "description": "Configuración de notificaciones por usuario",
+  "properties": {
+    "user_id": {
+      "type": "string",
+      "description": "ID del usuario"
+    },
+    "email_notifications": {
+      "type": "object",
+      "properties": {
+        "enabled": {
+          "type": "boolean",
+          "default": true
+        },
+        "order_created": {
+          "type": "boolean",
+          "default": true
+        },
+        "order_status_changed": {
+          "type": "boolean",
+          "default": true
+        },
+        "payment_received": {
+          "type": "boolean",
+          "default": true
+        },
+        "low_stock": {
+          "type": "boolean",
+          "default": true
+        },
+        "daily_summary": {
+          "type": "boolean",
+          "default": false
+        }
+      }
+    },
+    "push_notifications": {
+      "type": "object",
+      "properties": {
+        "enabled": {
+          "type": "boolean",
+          "default": true
+        },
+        "order_created": {
+          "type": "boolean",
+          "default": true
+        },
+        "order_status_changed": {
+          "type": "boolean",
+          "default": true
+        },
+        "payment_received": {
+          "type": "boolean",
+          "default": true
+        },
+        "low_stock": {
+          "type": "boolean",
+          "default": true
+        },
+        "urgent_orders": {
+          "type": "boolean",
+          "default": true
+        }
+      }
+    },
+    "sms_notifications": {
+      "type": "object",
+      "properties": {
+        "enabled": {
+          "type": "boolean",
+          "default": false
+        },
+        "urgent_only": {
+          "type": "boolean",
+          "default": true
+        }
+      }
+    },
+    "in_app_notifications": {
+      "type": "object",
+      "properties": {
+        "enabled": {
+          "type": "boolean",
+          "default": true
+        },
+        "sound": {
+          "type": "boolean",
+          "default": true
+        }
+      }
+    }
+  },
+  "required": [
+    "user_id"
+  ]
+}

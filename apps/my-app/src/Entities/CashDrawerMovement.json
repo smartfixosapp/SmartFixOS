@@ -1,0 +1,98 @@
+{
+  "name": "CashDrawerMovement",
+  "type": "object",
+  "properties": {
+    "drawer_id": {
+      "type": "string",
+      "description": "ID del turno de caja"
+    },
+    "type": {
+      "type": "string",
+      "enum": [
+        "opening",
+        "sale",
+        "expense",
+        "deposit",
+        "withdrawal",
+        "closing"
+      ],
+      "description": "Tipo de movimiento"
+    },
+    "amount": {
+      "type": "number",
+      "description": "Monto del movimiento"
+    },
+    "description": {
+      "type": "string",
+      "description": "Descripción del movimiento"
+    },
+    "reference": {
+      "type": "string",
+      "description": "Referencia (orden, recibo, etc)"
+    },
+    "employee": {
+      "type": "string",
+      "description": "Empleado que realizó el movimiento"
+    },
+    "denominations": {
+      "type": "object",
+      "description": "Conteo por denominación",
+      "properties": {
+        "bills_100": {
+          "type": "number",
+          "default": 0
+        },
+        "bills_50": {
+          "type": "number",
+          "default": 0
+        },
+        "bills_20": {
+          "type": "number",
+          "default": 0
+        },
+        "bills_10": {
+          "type": "number",
+          "default": 0
+        },
+        "bills_5": {
+          "type": "number",
+          "default": 0
+        },
+        "bills_1": {
+          "type": "number",
+          "default": 0
+        },
+        "coins_1": {
+          "type": "number",
+          "default": 0
+        },
+        "coins_050": {
+          "type": "number",
+          "default": 0
+        },
+        "coins_025": {
+          "type": "number",
+          "default": 0
+        },
+        "coins_010": {
+          "type": "number",
+          "default": 0
+        },
+        "coins_005": {
+          "type": "number",
+          "default": 0
+        },
+        "coins_001": {
+          "type": "number",
+          "default": 0
+        }
+      }
+    }
+  },
+  "required": [
+    "drawer_id",
+    "type",
+    "amount",
+    "employee"
+  ]
+}

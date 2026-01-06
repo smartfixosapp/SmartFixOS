@@ -1,0 +1,40 @@
+# FastAPI and web server
+fastapi==0.115.0
+uvicorn[standard]==0.30.6
+python-dotenv==1.0.1
+
+# HTTP client
+requests>=2.31.0
+
+# OpenAI client
+openai==1.52.2
+
+# OCR Libraries (Core)
+pytesseract==0.3.13
+easyocr==1.7.1
+pdf2image==1.17.0
+
+# Image processing
+opencv-python==4.6.0.66
+numpy==1.26.4
+Pillow>=10.0.0
+
+# External API clients (Optional - for difficult OCR cases)
+# Uncomment and configure credentials if needed:
+# google-cloud-vision==3.7.4
+# boto3>=1.28.0  # For AWS Textract
+# azure-cognitiveservices-vision-computervision>=0.9.0  # For Azure Vision
+
+# Optional advanced OCR engines (uncomment if needed):
+# paddleocr>=2.7.0
+# transformers>=4.30.0  # For TrOCR model
+
+# Note: pdf2image requires poppler-utils system package:
+#   macOS: brew install poppler
+#   Ubuntu/Debian: sudo apt-get install poppler-utils
+#   Windows: Download from https://github.com/oschwartz10612/poppler-windows/releases
+
+# Note: pytesseract requires Tesseract OCR system package:
+#   macOS: brew install tesseract
+#   Ubuntu/Debian: sudo apt-get install tesseract-ocr
+#   Windows: Download from https://github.com/UB-Mannheim/tesseract/wiki

@@ -1,0 +1,44 @@
+{
+  "name": "Permission",
+  "type": "object",
+  "description": "Permisos disponibles en la plataforma",
+  "properties": {
+    "key": {
+      "type": "string",
+      "pattern": "^[a-z0-9_.]+$",
+      "description": "Clave única del permiso (ej: orders.create)"
+    },
+    "name": {
+      "type": "string",
+      "description": "Nombre legible"
+    },
+    "description": {
+      "type": "string",
+      "description": "Descripción del permiso"
+    },
+    "category": {
+      "type": "string",
+      "enum": [
+        "orders",
+        "customers",
+        "inventory",
+        "financial",
+        "users",
+        "settings",
+        "reports",
+        "pos"
+      ],
+      "description": "Categoría del permiso"
+    },
+    "is_system": {
+      "type": "boolean",
+      "default": false,
+      "description": "Si es un permiso del sistema"
+    }
+  },
+  "required": [
+    "key",
+    "name",
+    "category"
+  ]
+}

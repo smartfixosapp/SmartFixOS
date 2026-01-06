@@ -1,0 +1,120 @@
+{
+  "name": "Notification",
+  "type": "object",
+  "description": "Notificaciones para usuarios del sistema",
+  "properties": {
+    "user_id": {
+      "type": "string",
+      "description": "ID del usuario destinatario"
+    },
+    "title": {
+      "type": "string",
+      "description": "Título de la notificación"
+    },
+    "message": {
+      "type": "string",
+      "description": "Mensaje de la notificación"
+    },
+    "type": {
+      "type": "string",
+      "enum": [
+        "info",
+        "success",
+        "warning",
+        "error",
+        "order_update",
+        "payment",
+        "inventory",
+        "system",
+        "low_stock",
+        "pending_order",
+        "inactive_customer"
+      ],
+      "default": "info",
+      "description": "Tipo de notificación"
+    },
+    "priority": {
+      "type": "string",
+      "enum": [
+        "low",
+        "normal",
+        "high",
+        "urgent"
+      ],
+      "default": "normal",
+      "description": "Prioridad de la notificación"
+    },
+    "is_read": {
+      "type": "boolean",
+      "default": false,
+      "description": "Si la notificación ha sido leída"
+    },
+    "read_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Fecha de lectura"
+    },
+    "related_entity_type": {
+      "type": "string",
+      "description": "Tipo de entidad relacionada (Order, Product, etc)"
+    },
+    "related_entity_id": {
+      "type": "string",
+      "description": "ID de la entidad relacionada"
+    },
+    "rule_id": {
+      "type": "string",
+      "description": "ID de la regla que generó esta notificación"
+    },
+    "actions": {
+      "type": "array",
+      "description": "Acciones rápidas disponibles",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "label": {
+            "type": "string"
+          },
+          "action_type": {
+            "type": "string",
+            "enum": [
+              "navigate",
+              "update_entity",
+              "create_entity",
+              "call_function",
+              "dismiss"
+            ]
+          },
+          "action_data": {
+            "type": "object",
+            "additionalProperties": true
+          },
+          "style": {
+            "type": "string",
+            "enum": [
+              "primary",
+              "secondary",
+              "success",
+              "warning",
+              "danger"
+            ]
+          }
+        }
+      }
+    },
+    "metadata": {
+      "type": "object",
+      "description": "Metadata adicional",
+      "additionalProperties": true
+    }
+  },
+  "required": [
+    "user_id",
+    "title",
+    "message",
+    "type"
+  ]
+}

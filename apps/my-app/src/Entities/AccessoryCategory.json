@@ -1,0 +1,32 @@
+{
+  "name": "AccessoryCategory",
+  "type": "object",
+  "description": "Categorías de accesorios",
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "Nombre de la categoría"
+    },
+    "slug": {
+      "type": "string",
+      "description": "ID único (cables, covers, protectores, etc)"
+    },
+    "icon_name": {
+      "type": "string",
+      "description": "Nombre del ícono"
+    },
+    "active": {
+      "type": "boolean",
+      "default": true,
+      "description": "Si está activa"
+    },
+    "order": {
+      "type": "number",
+      "description": "Orden de visualización"
+    }
+  },
+  "required": [
+    "name",
+    "slug"
+  ]
+}

@@ -1,0 +1,78 @@
+{
+  "name": "FixedExpense",
+  "type": "object",
+  "description": "Gastos fijos basados en porcentaje de utilidad diaria",
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "Nombre del gasto fijo"
+    },
+    "category": {
+      "type": "string",
+      "enum": [
+        "rent",
+        "utilities",
+        "payroll",
+        "inventory",
+        "marketing",
+        "insurance",
+        "maintenance",
+        "savings",
+        "taxes",
+        "other"
+      ],
+      "default": "other",
+      "description": "Categoría del gasto"
+    },
+    "percentage": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 100,
+      "description": "Porcentaje de la ganancia diaria a apartar"
+    },
+    "frequency": {
+      "type": "string",
+      "enum": [
+        "daily",
+        "weekly",
+        "biweekly",
+        "monthly",
+        "quarterly",
+        "yearly"
+      ],
+      "default": "monthly",
+      "description": "Frecuencia de pago"
+    },
+    "due_day": {
+      "type": "number",
+      "minimum": 1,
+      "maximum": 31,
+      "description": "Día de vencimiento (para frecuencia mensual, ej: 5 = día 5 de cada mes)"
+    },
+    "priority": {
+      "type": "number",
+      "minimum": 1,
+      "maximum": 10,
+      "default": 5,
+      "description": "Prioridad del gasto (1 = más importante)"
+    },
+    "icon": {
+      "type": "string",
+      "description": "Emoji o ícono del gasto"
+    },
+    "notes": {
+      "type": "string",
+      "description": "Notas adicionales"
+    },
+    "active": {
+      "type": "boolean",
+      "default": true,
+      "description": "Si el gasto está activo"
+    }
+  },
+  "required": [
+    "name",
+    "percentage",
+    "frequency"
+  ]
+}

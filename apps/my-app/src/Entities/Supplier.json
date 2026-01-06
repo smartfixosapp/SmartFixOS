@@ -1,0 +1,83 @@
+{
+  "name": "Supplier",
+  "type": "object",
+  "description": "Proveedores de productos e inventario",
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "Nombre del proveedor"
+    },
+    "contact_name": {
+      "type": "string",
+      "description": "Nombre del contacto principal"
+    },
+    "email": {
+      "type": "string",
+      "format": "email",
+      "description": "Email de contacto"
+    },
+    "phone": {
+      "type": "string",
+      "description": "Teléfono de contacto"
+    },
+    "address": {
+      "type": "string",
+      "description": "Dirección del proveedor"
+    },
+    "website": {
+      "type": "string",
+      "description": "Sitio web del proveedor"
+    },
+    "payment_terms": {
+      "type": "string",
+      "enum": [
+        "NET-15",
+        "NET-30",
+        "NET-45",
+        "NET-60",
+        "COD",
+        "Prepaid"
+      ],
+      "default": "NET-30",
+      "description": "Términos de pago"
+    },
+    "currency": {
+      "type": "string",
+      "default": "USD",
+      "description": "Moneda de transacciones"
+    },
+    "tax_id": {
+      "type": "string",
+      "description": "RUT o ID fiscal del proveedor"
+    },
+    "notes": {
+      "type": "string",
+      "description": "Notas adicionales"
+    },
+    "active": {
+      "type": "boolean",
+      "default": true,
+      "description": "Si el proveedor está activo"
+    },
+    "rating": {
+      "type": "number",
+      "minimum": 1,
+      "maximum": 5,
+      "description": "Calificación del proveedor"
+    },
+    "total_orders": {
+      "type": "number",
+      "default": 0,
+      "description": "Total de órdenes realizadas"
+    },
+    "total_spent": {
+      "type": "number",
+      "default": 0,
+      "description": "Total gastado con este proveedor"
+    }
+  },
+  "required": [
+    "name",
+    "phone"
+  ]
+}

@@ -1,0 +1,79 @@
+{
+  "name": "UserNotificationSettings",
+  "type": "object",
+  "description": "Configuración de notificaciones por usuario",
+  "properties": {
+    "user_id": {
+      "type": "string",
+      "description": "ID del usuario"
+    },
+    "receive_new_order_notifications": {
+      "type": "boolean",
+      "default": true,
+      "description": "Recibir notificaciones de nuevas órdenes"
+    },
+    "receive_status_change_notifications": {
+      "type": "boolean",
+      "default": true,
+      "description": "Recibir notificaciones de cambios de estado"
+    },
+    "receive_low_stock_notifications": {
+      "type": "boolean",
+      "default": true,
+      "description": "Recibir alertas de stock bajo"
+    },
+    "receive_order_ready_notifications": {
+      "type": "boolean",
+      "default": true,
+      "description": "Notificar cuando una orden esté lista"
+    },
+    "receive_payment_notifications": {
+      "type": "boolean",
+      "default": true,
+      "description": "Notificar cuando se reciba un pago"
+    },
+    "receive_urgent_notifications": {
+      "type": "boolean",
+      "default": true,
+      "description": "Notificar órdenes urgentes"
+    },
+    "receive_assignment_notifications": {
+      "type": "boolean",
+      "default": true,
+      "description": "Notificar cuando se le asigne una orden"
+    },
+    "channel_web_push": {
+      "type": "boolean",
+      "default": true,
+      "description": "Recibir notificaciones push del navegador"
+    },
+    "channel_in_app": {
+      "type": "boolean",
+      "default": true,
+      "description": "Mostrar notificaciones in-app"
+    },
+    "web_push_subscription": {
+      "type": "object",
+      "description": "Subscription object del navegador para web push",
+      "additionalProperties": true
+    },
+    "device_info": {
+      "type": "object",
+      "description": "Información del dispositivo",
+      "properties": {
+        "browser": {
+          "type": "string"
+        },
+        "platform": {
+          "type": "string"
+        },
+        "device_id": {
+          "type": "string"
+        }
+      }
+    }
+  },
+  "required": [
+    "user_id"
+  ]
+}

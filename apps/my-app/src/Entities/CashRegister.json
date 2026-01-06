@@ -1,0 +1,91 @@
+{
+  "name": "CashRegister",
+  "type": "object",
+  "description": "Registro de caja con validación estricta de estados",
+  "properties": {
+    "date": {
+      "type": "string",
+      "format": "date",
+      "description": "Fecha del día de operación"
+    },
+    "opening_balance": {
+      "type": "number",
+      "minimum": 0,
+      "description": "Monto inicial de caja"
+    },
+    "closing_balance": {
+      "type": "number",
+      "minimum": 0,
+      "description": "Monto final contado"
+    },
+    "total_revenue": {
+      "type": "number",
+      "default": 0,
+      "minimum": 0,
+      "description": "Ingresos totales del día"
+    },
+    "total_expenses": {
+      "type": "number",
+      "default": 0,
+      "minimum": 0,
+      "description": "Gastos totales del día"
+    },
+    "net_profit": {
+      "type": "number",
+      "default": 0,
+      "description": "Utilidad neta (puede ser negativa)"
+    },
+    "estimated_tax": {
+      "type": "number",
+      "default": 0,
+      "minimum": 0,
+      "description": "IVU estimado (11.5%)"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "open",
+        "closed"
+      ],
+      "default": "open",
+      "description": "Estado de la caja (solo open o closed)"
+    },
+    "needs_recount": {
+      "type": "boolean",
+      "default": false,
+      "description": "Si necesita reconteo"
+    },
+    "recount_reason": {
+      "type": "string",
+      "description": "Razón del reconteo"
+    },
+    "count_snapshot": {
+      "type": "object",
+      "description": "Snapshot del primer conteo",
+      "additionalProperties": true
+    },
+    "final_count": {
+      "type": "object",
+      "description": "Conteo final válido",
+      "additionalProperties": true
+    },
+    "opened_by": {
+      "type": "string",
+      "description": "Empleado que abrió"
+    },
+    "closed_by": {
+      "type": "string",
+      "description": "Empleado que cerró"
+    },
+    "last_movement_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Última transacción"
+    }
+  },
+  "required": [
+    "date",
+    "opening_balance",
+    "status"
+  ]
+}

@@ -1,0 +1,72 @@
+{
+  "name": "InventoryMovement",
+  "type": "object",
+  "properties": {
+    "product_id": {
+      "type": "string",
+      "description": "ID del producto"
+    },
+    "product_name": {
+      "type": "string",
+      "description": "Nombre del producto"
+    },
+    "movement_type": {
+      "type": "string",
+      "enum": [
+        "sale",
+        "order_add",
+        "order_remove",
+        "void_return",
+        "adjustment",
+        "purchase",
+        "initial"
+      ],
+      "description": "Tipo de movimiento"
+    },
+    "quantity": {
+      "type": "number",
+      "description": "Cantidad (positivo = entrada, negativo = salida)"
+    },
+    "previous_stock": {
+      "type": "number",
+      "description": "Stock anterior"
+    },
+    "new_stock": {
+      "type": "number",
+      "description": "Stock nuevo"
+    },
+    "reference_type": {
+      "type": "string",
+      "enum": [
+        "order",
+        "sale",
+        "adjustment",
+        "purchase"
+      ],
+      "description": "Tipo de referencia"
+    },
+    "reference_id": {
+      "type": "string",
+      "description": "ID de referencia (orden, venta, etc)"
+    },
+    "reference_number": {
+      "type": "string",
+      "description": "Número de referencia legible"
+    },
+    "notes": {
+      "type": "string",
+      "description": "Notas del movimiento"
+    },
+    "performed_by": {
+      "type": "string",
+      "description": "Usuario que realizó el movimiento"
+    }
+  },
+  "required": [
+    "product_id",
+    "movement_type",
+    "quantity",
+    "previous_stock",
+    "new_stock"
+  ]
+}

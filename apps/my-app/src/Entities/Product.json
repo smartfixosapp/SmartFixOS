@@ -1,0 +1,224 @@
+{
+  "name": "Product",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "Nombre del producto"
+    },
+    "tipo_principal": {
+      "type": "string",
+      "enum": [
+        "dispositivos",
+        "accesorios"
+      ],
+      "default": "dispositivos",
+      "description": "Categoría principal: Dispositivos o Accesorios"
+    },
+    "subcategoria": {
+      "type": "string",
+      "enum": [
+        "dispositivo_completo",
+        "piezas_servicios",
+        "cables",
+        "covers",
+        "protectores",
+        "otros_accesorios"
+      ],
+      "description": "Subcategoría del producto"
+    },
+    "device_imei": {
+      "type": "string",
+      "description": "IMEI del dispositivo completo (solo para dispositivos completos)"
+    },
+    "device_condition": {
+      "type": "string",
+      "enum": [
+        "nuevo",
+        "como_nuevo",
+        "excelente",
+        "bueno",
+        "aceptable"
+      ],
+      "description": "Condición del dispositivo completo"
+    },
+    "device_storage": {
+      "type": "string",
+      "description": "Almacenamiento del dispositivo (ej: 64GB, 128GB, 256GB)"
+    },
+    "device_color": {
+      "type": "string",
+      "description": "Color del dispositivo completo"
+    },
+    "device_carrier": {
+      "type": "string",
+      "description": "Carrier/Operadora (Unlocked, AT&T, T-Mobile, etc.)"
+    },
+    "device_battery_health": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 100,
+      "description": "Salud de batería en porcentaje"
+    },
+    "device_warranty": {
+      "type": "boolean",
+      "default": false,
+      "description": "Si tiene garantía"
+    },
+    "device_warranty_months": {
+      "type": "number",
+      "description": "Meses de garantía"
+    },
+    "description": {
+      "type": "string",
+      "description": "Descripción del producto"
+    },
+    "type": {
+      "type": "string",
+      "enum": [
+        "product",
+        "service"
+      ],
+      "default": "product",
+      "description": "Tipo: producto o servicio"
+    },
+    "category": {
+      "type": "string",
+      "enum": [
+        "screen",
+        "battery",
+        "charger",
+        "cable",
+        "case",
+        "diagnostic",
+        "other"
+      ],
+      "description": "Categoría del producto"
+    },
+    "price": {
+      "type": "number",
+      "description": "Precio de venta"
+    },
+    "cost": {
+      "type": "number",
+      "description": "Costo del producto"
+    },
+    "stock": {
+      "type": "number",
+      "default": 0,
+      "description": "Cantidad en inventario"
+    },
+    "min_stock": {
+      "type": "number",
+      "default": 5,
+      "description": "Stock mínimo para alerta"
+    },
+    "taxable": {
+      "type": "boolean",
+      "default": true,
+      "description": "Si aplica impuestos"
+    },
+    "is_serialized": {
+      "type": "boolean",
+      "default": false,
+      "description": "Si el item es serializado"
+    },
+    "compatibility_models": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Array de modelos compatibles exactos"
+    },
+    "compatible_families": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Familias compatibles (ej: iPhone, Galaxy S)"
+    },
+    "compatible_brands": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Marcas compatibles (ej: Apple, Samsung)"
+    },
+    "tags": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Tags para búsqueda (pantalla, batería, etc)"
+    },
+    "active": {
+      "type": "boolean",
+      "default": true,
+      "description": "Si el producto está activo"
+    },
+    "image_url": {
+      "type": "string",
+      "description": "URL de imagen del producto"
+    },
+    "sku": {
+      "type": "string",
+      "description": "SKU del producto"
+    },
+    "barcode": {
+      "type": "string",
+      "description": "Código de barras"
+    },
+    "discount_percentage": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 100,
+      "default": 0,
+      "description": "Porcentaje de descuento activo"
+    },
+    "discount_active": {
+      "type": "boolean",
+      "default": false,
+      "description": "Si el descuento está activo"
+    },
+    "discount_end_date": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Fecha de fin del descuento"
+    },
+    "discount_label": {
+      "type": "string",
+      "description": "Etiqueta de la oferta (ej: Black Friday, Liquidación)"
+    },
+    "supplier_id": {
+      "type": "string",
+      "description": "ID del proveedor"
+    },
+    "supplier_name": {
+      "type": "string",
+      "description": "Nombre del proveedor (cache)"
+    },
+    "device_category": {
+      "type": "string",
+      "description": "Categoría de dispositivo (iPhone, iPad, etc)"
+    },
+    "part_type": {
+      "type": "string",
+      "description": "Tipo de pieza (pantalla, batería, servicio, etc)"
+    },
+    "low_stock_notified": {
+      "type": "boolean",
+      "default": false,
+      "description": "Si ya se notificó stock bajo"
+    },
+    "last_stock_alert": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Última vez que se alertó stock bajo"
+    }
+  },
+  "required": [
+    "name",
+    "price",
+    "cost"
+  ]
+}

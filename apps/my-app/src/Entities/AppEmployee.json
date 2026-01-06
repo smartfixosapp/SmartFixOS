@@ -1,0 +1,148 @@
+{
+  "name": "AppEmployee",
+  "type": "object",
+  "description": "Empleados del sistema - gestión independiente",
+  "properties": {
+    "full_name": {
+      "type": "string",
+      "minLength": 2,
+      "description": "Nombre completo del empleado"
+    },
+    "email": {
+      "type": "string",
+      "format": "email",
+      "description": "Email del empleado"
+    },
+    "phone": {
+      "type": "string",
+      "pattern": "^[0-9+()\\-\\s]{6,}$",
+      "description": "Teléfono del empleado"
+    },
+    "employee_code": {
+      "type": "string",
+      "description": "Código único del empleado"
+    },
+    "pin": {
+      "type": "string",
+      "pattern": "^[0-9]{4}$",
+      "description": "PIN de 4 dígitos para acceso"
+    },
+    "position": {
+      "type": "string",
+      "description": "Cargo o posición"
+    },
+    "role": {
+      "type": "string",
+      "enum": [
+        "admin",
+        "manager",
+        "technician",
+        "cashier"
+      ],
+      "default": "technician",
+      "description": "Rol en el sistema"
+    },
+    "hourly_rate": {
+      "type": "number",
+      "minimum": 0,
+      "default": 0,
+      "description": "Salario por hora"
+    },
+    "active": {
+      "type": "boolean",
+      "default": true,
+      "description": "Si el empleado está activo"
+    },
+    "permissions": {
+      "type": "object",
+      "description": "Permisos específicos del empleado",
+      "properties": {
+        "create_orders": {
+          "type": "boolean",
+          "default": true
+        },
+        "process_sales": {
+          "type": "boolean",
+          "default": true
+        },
+        "view_reports": {
+          "type": "boolean",
+          "default": false
+        },
+        "view_financials": {
+          "type": "boolean",
+          "default": false
+        },
+        "manage_inventory": {
+          "type": "boolean",
+          "default": false
+        },
+        "manage_employees": {
+          "type": "boolean",
+          "default": false
+        },
+        "manage_cash_drawer": {
+          "type": "boolean",
+          "default": false
+        },
+        "apply_discounts": {
+          "type": "boolean",
+          "default": false
+        },
+        "process_refunds": {
+          "type": "boolean",
+          "default": false
+        },
+        "edit_time_entries": {
+          "type": "boolean",
+          "default": false
+        }
+      }
+    },
+    "hire_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Fecha de contratación"
+    },
+    "notes": {
+      "type": "string",
+      "description": "Notas sobre el empleado"
+    },
+    "store_branch": {
+      "type": "string",
+      "description": "Sucursal o tienda donde trabaja"
+    },
+    "store_phone": {
+      "type": "string",
+      "description": "Teléfono de la tienda"
+    },
+    "portal_access_enabled": {
+      "type": "boolean",
+      "default": false,
+      "description": "Si el empleado puede acceder al portal"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "pending",
+        "active",
+        "inactive"
+      ],
+      "default": "pending",
+      "description": "Estado del empleado"
+    },
+    "activation_token": {
+      "type": "string",
+      "description": "Token para activar cuenta"
+    },
+    "activation_expires_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Expiración del token de activación"
+    }
+  },
+  "required": [
+    "full_name",
+    "email"
+  ]
+}
