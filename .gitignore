@@ -1,0 +1,42 @@
+# Environment files — NEVER commit these
+.env
+.env.*
+!.env.*.example
+!.env.production.example
+
+# Dependencies
+node_modules/
+.pnpm-store/
+
+# Build output
+dist/
+dist-ssr/
+build/
+
+# Logs
+*.log
+logs/
+
+# OS / editor
+.DS_Store
+.vscode/*
+!.vscode/extensions.json
+.idea/
+*.suo
+*.sw?
+.claude/
+
+# Certificates / keys
+*.pem
+*.key
+*.crt
+
+# Deno cache
+.deno/
+
+# Docker
+.dockerenv
+
+# Temp / PID files
+/tmp/*.pid
+*.pid

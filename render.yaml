@@ -1,0 +1,36 @@
+services:
+  - type: web
+    name: smartfixos-api
+    runtime: docker
+    dockerfilePath: apps/Smart/Dockerfile.render
+    plan: starter          # $7/mo — always-on (no sleep). Use "free" for testing.
+    region: ohio           # us-east-1, close to Supabase aws-1-us-east-1
+    healthCheckPath: /
+    envVars:
+      - key: FUNCTIONS_PORT
+        value: 8686
+      - key: DB_SCHEMA
+        value: public
+      - key: DB_BACKEND
+        value: supabase_cloud
+      - key: FN_TRIGGER_CRON_INTERVAL
+        value: "120"
+      - key: RUN_MIGRATIONS
+        value: "false"
+      # ── Set these in Render dashboard (sensitive) ──────────────
+      - key: VITE_SUPABASE_URL
+        sync: false
+      - key: VITE_SUPABASE_ANON_KEY
+        sync: false
+      - key: VITE_SUPABASE_SERVICE_ROLE_KEY
+        sync: false
+      - key: RESEND_API_KEY
+        sync: false
+      - key: FROM_EMAIL
+        value: noreply@smartfixos.com
+      - key: FROM_NAME
+        value: SmartFixOS
+      - key: CRON_SECRET
+        generateValue: true   # Render generates a random secret
+      - key: VITE_FUNCTION_URL
+        sync: false           # Set to this service's own URL after first deploy
