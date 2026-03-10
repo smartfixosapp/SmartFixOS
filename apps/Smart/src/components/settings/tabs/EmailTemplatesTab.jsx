@@ -385,7 +385,7 @@ export default function EmailTemplatesTab() {
 
     setSendingTest(true);
     try {
-      const logoToUse = editingTemplate.logo_url || businessInfo.logo_url;
+      const logoToUse = businessInfo.logo_url;
       const warrantyText = editingTemplate.custom_warranty || (
       editingTemplate.warranty_type === 'sales' ? businessInfo.warranty_sales : businessInfo.warranty_repairs);
       const hoursText = editingTemplate.custom_hours || null;
@@ -416,7 +416,7 @@ export default function EmailTemplatesTab() {
 
     const eventInfo = EVENT_TYPES[editingTemplate.event_type];
     const alertColor = eventInfo?.alertColor || { bg: "#F9FAFB", border: "#6B7280", title: "#374151", text: "#1F2937" };
-    const logoToUse = logoUrlOverride || editingTemplate.logo_url || businessInfo.logo_url;
+    const logoToUse = logoUrlOverride || businessInfo.logo_url;
     const warrantyText = warrantyTextOverride || editingTemplate.custom_warranty || (
     editingTemplate.warranty_type === 'sales' ? businessInfo.warranty_sales : businessInfo.warranty_repairs);
 
@@ -770,54 +770,22 @@ export default function EmailTemplatesTab() {
 
               <div className="h-px bg-white/10" />
 
-              {/* Logo Upload */}
-              <div className="space-y-3">
-                <label className="text-white/70 text-sm font-semibold">Logo Personalizado (opcional)</label>
-                {editingTemplate?.logo_url &&
-                <div className="p-4 bg-black/40 rounded-xl border border-white/10 text-center">
+              {/* Logo — unificado desde Branding */}
+              <div className="space-y-2">
+                <label className="text-white/70 text-sm font-semibold">Logo</label>
+                <div className="flex items-start gap-3 p-4 bg-white/5 rounded-xl border border-white/10">
+                  <span className="text-2xl mt-0.5">🏪</span>
+                  <div>
+                    <p className="text-white text-sm font-semibold">Logo unificado de la tienda</p>
+                    <p className="text-white/50 text-xs mt-1">El logo se toma automáticamente desde <strong className="text-white/70">Configuración → Branding</strong>. Aplica igual a todas las plantillas de email.</p>
+                    {businessInfo.logo_url &&
                     <img
-                    src={editingTemplate.logo_url}
-                    alt="Logo"
-                    className="max-w-[200px] max-h-[100px] object-contain bg-white/5 rounded-lg p-2 mx-auto" />
-
-                    <Button
-                    onClick={() => setEditingTemplate({ ...editingTemplate, logo_url: "" })}
-                    variant="ghost"
-                    size="sm"
-                    className="text-red-400 hover:bg-red-500/10 mt-2">
-
-                      <Trash2 className="w-3 h-3 mr-1" />
-                      Eliminar
-                    </Button>
+                      src={businessInfo.logo_url}
+                      alt="Logo actual"
+                      className="mt-3 max-h-[50px] max-w-[160px] object-contain bg-white/10 rounded-lg p-2" />
+                    }
                   </div>
-                }
-                <Button
-                  onClick={() => document.getElementById('template-logo-upload').click()}
-                  disabled={uploadingLogo}
-                  className="w-full bg-white text-black hover:bg-gray-100 border-0">
-
-                  {uploadingLogo ?
-                  <Loader2 className="w-4 h-4 mr-2 animate-spin" /> :
-
-                  <Upload className="w-4 h-4 mr-2" />
-                  }
-                  {editingTemplate?.logo_url ? "Cambiar Logo" : "Subir Logo"}
-                </Button>
-                <input
-                  id="template-logo-upload"
-                  type="file"
-                  accept="image/*"
-                  onChange={(e) => {
-                    const file = e.target.files?.[0];
-                    handleLogoUpload(file);
-                    e.target.value = "";
-                  }}
-                  className="hidden" />
-
-                <p className="text-xs text-gray-400">
-                  Tamaño máximo: 2MB | Dimensiones máximas: 1024x1024px<br />
-                  Se ajustará automáticamente al email
-                </p>
+                </div>
               </div>
 
               <div className="h-px bg-white/10" />

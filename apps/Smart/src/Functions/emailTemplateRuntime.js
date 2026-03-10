@@ -81,7 +81,8 @@ export async function sendTemplatedEmailWithBase44(base44, { event_type, order_d
 
   const businessInfo = businessConfigs?.[0]?.payload || {};
   const branding = brandingConfigs?.[0]?.payload || {};
-  const logoUrl = template.logo_url || branding.logo_url || DEFAULT_LOGO_URL;
+  // Logo unificado: usa solo el logo de Branding (no por plantilla)
+  const logoUrl = branding.logo_url || DEFAULT_LOGO_URL;
   const alertColor = getAlertColorForStatus(event_type);
   const variables = buildVariables(order_data);
 
@@ -93,6 +94,47 @@ export async function sendTemplatedEmailWithBase44(base44, { event_type, order_d
       </ol>
     </div>
   ` : "";
+
+  // Horario de Recogida — usa custom_hours de la plantilla o el horario del negocio
+  const hoursHTML = (() => {
+    if (!template.show_hours) return "";
+    if (template.custom_hours) {
+      return `
+    <div style="background: #ECFDF5; border-radius: 16px; padding: 28px; margin: 35px 0; text-align: center; border: 2px solid #10B981;">
+      <p style="font-size: 20px; font-weight: 800; color: #065F46; margin: 0 0 16px 0;">🕐 Horario de Recogida</p>
+      <p style="color: #047857; font-size: 16px; font-weight: 600; margin: 0; line-height: 1.6; white-space: pre-line;">${template.custom_hours}</p>
+    </div>
+  `;
+    }
+    const days = [
+      { key: "hours_monday", label: "Lunes" },
+      { key: "hours_tuesday", label: "Martes" },
+      { key: "hours_wednesday", label: "Miércoles" },
+      { key: "hours_thursday", label: "Jueves" },
+      { key: "hours_friday", label: "Viernes" },
+      { key: "hours_saturday", label: "Sábado" },
+      { key: "hours_sunday", label: "Domingo" }
+    ];
+    const hasSpecificHours = days.some((d) => businessInfo[d.key]);
+    if (!hasSpecificHours) {
+      return `
+    <div style="background: #ECFDF5; border-radius: 16px; padding: 28px; margin: 35px 0; text-align: center; border: 2px solid #10B981;">
+      <p style="font-size: 20px; font-weight: 800; color: #065F46; margin: 0 0 16px 0;">🕐 Horario de Recogida</p>
+      <p style="color: #047857; font-size: 18px; font-weight: 700; margin: 0;">${businessInfo.hours_weekdays || "9:00 AM - 5:00 PM"}</p>
+    </div>
+  `;
+    }
+    const hoursLines = days
+      .filter((d) => businessInfo[d.key])
+      .map((d) => `<div style="display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid rgba(5,150,105,0.1);"><span style="font-weight: 600; color: #047857;">${d.label}:</span><span style="color: #065F46;">${businessInfo[d.key]}</span></div>`)
+      .join("");
+    return `
+    <div style="background: #ECFDF5; border-radius: 16px; padding: 28px; margin: 35px 0; border: 2px solid #10B981;">
+      <p style="font-size: 20px; font-weight: 800; color: #065F46; margin: 0 0 20px 0; text-align: center;">🕐 Horario de Recogida</p>
+      <div style="max-width: 400px; margin: 0 auto;">${hoursLines}</div>
+    </div>
+  `;
+  })();
 
   const warrantyText = template.custom_warranty || (template.warranty_type === "sales" ? branding.warranty_sales : branding.warranty_repairs);
   const warrantyHTML = template.show_warranty && warrantyText ? `
@@ -130,7 +172,11 @@ export async function sendTemplatedEmailWithBase44(base44, { event_type, order_d
     </div>
   `;
 
-  const checklistHTML = template.show_checklist && order_data.checklist_items?.length ? `
+  // Condiciones Verificadas — siempre se muestra si show_checklist está activado
+  const checklistHTML = (() => {
+    if (!template.show_checklist) return "";
+    if (order_data.checklist_items?.length) {
+      return `
     <div style="background: #F0F9FF; border-radius: 16px; padding: 28px; margin: 35px 0; border: 2px solid #0EA5E9;">
       <p style="font-size: 20px; font-weight: 800; color: #075985; margin: 0 0 20px 0; text-align: center;">✅ Condiciones Verificadas</p>
       <div style="background: white; border-radius: 12px; padding: 20px;">
@@ -144,8 +190,18 @@ export async function sendTemplatedEmailWithBase44(base44, { event_type, order_d
           }).join("")}
         </div>
       </div>
+      <p style="color: #0369A1; font-size: 13px; text-align: center; margin: 16px 0 0 0; font-style: italic;">* Verificación realizada al recibir tu equipo</p>
     </div>
-  ` : "";
+  `;
+    }
+    // Sección genérica cuando la orden no tiene items específicos
+    return `
+    <div style="background: #F0F9FF; border-radius: 16px; padding: 28px; margin: 35px 0; border: 2px solid #0EA5E9;">
+      <p style="font-size: 20px; font-weight: 800; color: #075985; margin: 0 0 16px 0; text-align: center;">✅ Condiciones Verificadas</p>
+      <p style="color: #0369A1; font-size: 14px; text-align: center; margin: 0; font-style: italic;">Las condiciones del equipo han sido verificadas por nuestro equipo técnico al momento de la recepción.</p>
+    </div>
+  `;
+  })();
 
   const photosHTML = template.show_photos && order_data.photos_metadata?.length ? `
     <div style="background: #F5F3FF; border-radius: 16px; padding: 28px; margin: 35px 0; border: 2px solid #A78BFA;">
@@ -181,7 +237,7 @@ export async function sendTemplatedEmailWithBase44(base44, { event_type, order_d
             ${variables.order_number ? `<div style="margin-bottom: 24px;"><p style="color: #6B7280; font-size: 12px; font-weight: 700; margin: 0 0 6px 0;">ORDEN</p><p style="color: #111827; font-size: 24px; font-weight: 800; margin: 0;">${variables.order_number}</p></div>` : ""}
             ${variables.device_info ? `<div><p style="color: #6B7280; font-size: 12px; font-weight: 700; margin: 0 0 6px 0;">EQUIPO</p><p style="color: #111827; font-size: 18px; font-weight: 600; margin: 0;">${variables.device_info}</p></div>` : ""}
           </div>
-          ${nextStepsHTML}${checklistHTML}${photosHTML}${warrantyHTML}${reviewHTML}
+          ${nextStepsHTML}${hoursHTML}${checklistHTML}${photosHTML}${warrantyHTML}${reviewHTML}
           ${template.main_message ? `<p style="color: #374151; line-height: 1.8; font-size: 16px; margin: 20px 0;">${interpolate(template.main_message, variables)}</p>` : ""}
           ${contactHTML}
           <div style="margin-top: 50px; padding-top: 30px; border-top: 2px solid #E5E7EB; text-align: center;">
