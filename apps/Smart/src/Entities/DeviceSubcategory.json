@@ -1,0 +1,34 @@
+{
+  "name": "DeviceSubcategory",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "Nombre de la subcategor\u00eda (Laptop, Desktop, Smartphone, Tablet, SmartWatch, etc.)"
+    },
+    "brand_id": {
+      "type": "string",
+      "description": "ID de la marca a la que pertenece"
+    },
+    "icon": {
+      "type": "string",
+      "description": "\u00cdcono o emoji"
+    },
+    "icon_url": {
+      "type": "string",
+      "description": "URL del \u00edcono"
+    },
+    "active": {
+      "type": "boolean",
+      "default": true
+    },
+    "order": {
+      "type": "number",
+      "description": "Orden de visualizaci\u00f3n"
+    }
+  },
+  "required": [
+    "name",
+    "brand_id"
+  ]
+}

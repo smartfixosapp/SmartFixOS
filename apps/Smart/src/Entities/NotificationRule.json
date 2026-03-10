@@ -1,0 +1,156 @@
+{
+  "name": "NotificationRule",
+  "type": "object",
+  "description": "Reglas personalizadas para disparar notificaciones autom\u00e1ticas",
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "Nombre de la regla"
+    },
+    "description": {
+      "type": "string",
+      "description": "Descripci\u00f3n de la regla"
+    },
+    "trigger_type": {
+      "type": "string",
+      "enum": [
+        "low_stock",
+        "pending_order",
+        "inactive_customer",
+        "order_deadline",
+        "payment_due",
+        "employee_schedule",
+        "custom_condition"
+      ],
+      "description": "Tipo de disparador"
+    },
+    "conditions": {
+      "type": "object",
+      "description": "Condiciones para disparar la notificaci\u00f3n",
+      "properties": {
+        "threshold": {
+          "type": "number",
+          "description": "Umbral num\u00e9rico (ej: d\u00edas, cantidad)"
+        },
+        "entity_type": {
+          "type": "string",
+          "description": "Tipo de entidad (Product, Order, Customer)"
+        },
+        "field": {
+          "type": "string",
+          "description": "Campo a evaluar"
+        },
+        "operator": {
+          "type": "string",
+          "enum": [
+            "less_than",
+            "greater_than",
+            "equals",
+            "not_equals",
+            "contains"
+          ],
+          "description": "Operador de comparaci\u00f3n"
+        },
+        "value": {
+          "type": "string",
+          "description": "Valor a comparar"
+        }
+      }
+    },
+    "notification_config": {
+      "type": "object",
+      "description": "Configuraci\u00f3n de la notificaci\u00f3n",
+      "properties": {
+        "title": {
+          "type": "string"
+        },
+        "message": {
+          "type": "string"
+        },
+        "priority": {
+          "type": "string",
+          "enum": [
+            "low",
+            "normal",
+            "high",
+            "urgent"
+          ]
+        },
+        "actions": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "label": {
+                "type": "string"
+              },
+              "action_type": {
+                "type": "string",
+                "enum": [
+                  "navigate",
+                  "update_entity",
+                  "create_entity",
+                  "call_function"
+                ]
+              },
+              "action_data": {
+                "type": "object"
+              }
+            }
+          }
+        }
+      }
+    },
+    "target_roles": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Roles que recibir\u00e1n la notificaci\u00f3n"
+    },
+    "target_users": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "IDs de usuarios espec\u00edficos"
+    },
+    "frequency": {
+      "type": "string",
+      "enum": [
+        "once",
+        "daily",
+        "weekly",
+        "continuous"
+      ],
+      "default": "once",
+      "description": "Frecuencia de evaluaci\u00f3n"
+    },
+    "last_triggered": {
+      "type": "string",
+      "format": "date-time",
+      "description": "\u00daltima vez que se dispar\u00f3"
+    },
+    "next_evaluation": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Pr\u00f3xima evaluaci\u00f3n programada"
+    },
+    "active": {
+      "type": "boolean",
+      "default": true,
+      "description": "Si la regla est\u00e1 activa"
+    },
+    "trigger_count": {
+      "type": "number",
+      "default": 0,
+      "description": "Veces que se ha disparado"
+    }
+  },
+  "required": [
+    "name",
+    "trigger_type",
+    "conditions",
+    "notification_config"
+  ]
+}

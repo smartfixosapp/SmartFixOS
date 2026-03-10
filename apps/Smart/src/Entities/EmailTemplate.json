@@ -1,0 +1,188 @@
+{
+  "name": "EmailTemplate",
+  "type": "object",
+  "description": "Plantillas de email con dise\u00f1o visual del sistema",
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "Nombre de la plantilla"
+    },
+    "event_type": {
+      "type": "string",
+      "enum": [
+        "intake",
+        "diagnosing",
+        "awaiting_approval",
+        "waiting_parts",
+        "pending_order",
+        "in_progress",
+        "part_arrived_waiting_device",
+        "reparacion_externa",
+        "ready_for_pickup",
+        "pickup_reminder_15",
+        "pickup_reminder_3",
+        "picked_up",
+        "delivered",
+        "cancelled",
+        "warranty",
+        "warranty_check_15",
+        "warranty_expired",
+        "payment_received",
+        "deposit_received",
+        "sale_completed",
+        "refund_processed"
+      ],
+      "description": "Tipo de evento que dispara el email"
+    },
+    "logo_url": {
+      "type": "string",
+      "description": "URL del logo personalizado para esta plantilla"
+    },
+    "header_title": {
+      "type": "string",
+      "description": "T\u00edtulo principal del header (ej: \u00a1Tu Equipo Est\u00e1 Listo!)"
+    },
+    "header_subtitle": {
+      "type": "string",
+      "description": "Subt\u00edtulo del header (ej: Actualizaci\u00f3n de tu orden)"
+    },
+    "alert_title": {
+      "type": "string",
+      "description": "T\u00edtulo del cuadro de alerta principal"
+    },
+    "alert_message": {
+      "type": "string",
+      "description": "Mensaje del cuadro de alerta"
+    },
+    "main_message": {
+      "type": "string",
+      "description": "Mensaje principal del cuerpo"
+    },
+    "show_next_steps": {
+      "type": "boolean",
+      "default": false,
+      "description": "Mostrar secci\u00f3n de pr\u00f3ximos pasos"
+    },
+    "next_steps_items": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Lista de pr\u00f3ximos pasos"
+    },
+    "show_hours": {
+      "type": "boolean",
+      "default": false,
+      "description": "Mostrar horario de recogida"
+    },
+    "custom_hours": {
+      "type": "string",
+      "description": "Horario personalizado para esta plantilla"
+    },
+    "show_warranty": {
+      "type": "boolean",
+      "default": false,
+      "description": "Mostrar informaci\u00f3n de garant\u00eda"
+    },
+    "warranty_type": {
+      "type": "string",
+      "enum": [
+        "sales",
+        "repairs"
+      ],
+      "description": "Tipo de garant\u00eda a mostrar (ventas o reparaciones)"
+    },
+    "custom_warranty": {
+      "type": "string",
+      "description": "Texto de garant\u00eda personalizado para esta plantilla"
+    },
+    "show_review_request": {
+      "type": "boolean",
+      "default": false,
+      "description": "Mostrar solicitud de rese\u00f1a"
+    },
+    "review_link": {
+      "type": "string",
+      "description": "Link personalizado para rese\u00f1as (Google, Yelp, etc)"
+    },
+    "show_checklist": {
+      "type": "boolean",
+      "default": false,
+      "description": "Mostrar checklist de condiciones verificadas"
+    },
+    "show_photos": {
+      "type": "boolean",
+      "default": false,
+      "description": "Mostrar fotos de la orden"
+    },
+    "show_phone_contact": {
+      "type": "boolean",
+      "default": true,
+      "description": "Mostrar bot\u00f3n de contacto telef\u00f3nico"
+    },
+    "custom_phone": {
+      "type": "string",
+      "description": "N\u00famero de tel\u00e9fono personalizado para esta plantilla"
+    },
+    "show_whatsapp_contact": {
+      "type": "boolean",
+      "default": true,
+      "description": "Mostrar bot\u00f3n de contacto WhatsApp"
+    },
+    "custom_whatsapp": {
+      "type": "string",
+      "description": "N\u00famero de WhatsApp personalizado para esta plantilla"
+    },
+    "custom_sections": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "title": {
+            "type": "string"
+          },
+          "content": {
+            "type": "string"
+          },
+          "style": {
+            "type": "string",
+            "enum": [
+              "info",
+              "warning",
+              "success",
+              "danger"
+            ]
+          }
+        }
+      },
+      "description": "Secciones personalizadas adicionales"
+    },
+    "enabled": {
+      "type": "boolean",
+      "default": true,
+      "description": "Si la plantilla est\u00e1 activa"
+    },
+    "send_to": {
+      "type": "string",
+      "enum": [
+        "customer",
+        "admin",
+        "both"
+      ],
+      "default": "customer",
+      "description": "A qui\u00e9n se env\u00eda el email"
+    },
+    "is_default": {
+      "type": "boolean",
+      "default": false,
+      "description": "Si es la plantilla por defecto para este estado"
+    }
+  },
+  "required": [
+    "name",
+    "event_type",
+    "header_title",
+    "alert_title",
+    "alert_message"
+  ]
+}

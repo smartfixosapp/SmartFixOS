@@ -1,0 +1,51 @@
+{
+  "name": "SequenceCounter",
+  "type": "object",
+  "description": "Contadores de secuencias para autogeneraci\u00f3n de n\u00fameros \u00fanicos",
+  "properties": {
+    "sequence_type": {
+      "type": "string",
+      "enum": [
+        "order",
+        "sale",
+        "invoice",
+        "purchase_order",
+        "refund"
+      ],
+      "description": "Tipo de secuencia"
+    },
+    "period_type": {
+      "type": "string",
+      "enum": [
+        "daily",
+        "monthly",
+        "yearly"
+      ],
+      "default": "daily",
+      "description": "Tipo de periodo para el contador"
+    },
+    "period_key": {
+      "type": "string",
+      "description": "Clave del periodo (ej: 2025-01-16, 2025-01, 2025)"
+    },
+    "current_count": {
+      "type": "number",
+      "default": 0,
+      "description": "Contador actual para este periodo"
+    },
+    "last_number": {
+      "type": "string",
+      "description": "\u00daltimo n\u00famero generado"
+    },
+    "last_incremented_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "\u00daltima vez que se increment\u00f3"
+    }
+  },
+  "required": [
+    "sequence_type",
+    "period_type",
+    "period_key"
+  ]
+}

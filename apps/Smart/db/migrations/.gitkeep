@@ -1,0 +1,16 @@
+# This directory contains database migrations for this app.
+# Migrations are SQL files that run sequentially.
+# 
+# Naming convention: 001_description.sql, 002_description.sql, etc.
+#
+# Example migration (001_create_tables.sql):
+# 
+#   CREATE TABLE IF NOT EXISTS products (
+#       id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
+#       created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+#       name TEXT NOT NULL,
+#       price DECIMAL(10, 2)
+#   );
+#
+# In multi-tenant mode (staging/prod), tables are created in the app's schema.
+# The auth.users table is shared across all apps via a view.

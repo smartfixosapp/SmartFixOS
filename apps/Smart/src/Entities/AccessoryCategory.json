@@ -1,0 +1,32 @@
+{
+  "name": "AccessoryCategory",
+  "type": "object",
+  "description": "Categor\u00edas de accesorios",
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "Nombre de la categor\u00eda"
+    },
+    "slug": {
+      "type": "string",
+      "description": "ID \u00fanico (cables, covers, protectores, etc)"
+    },
+    "icon_name": {
+      "type": "string",
+      "description": "Nombre del \u00edcono"
+    },
+    "active": {
+      "type": "boolean",
+      "default": true,
+      "description": "Si est\u00e1 activa"
+    },
+    "order": {
+      "type": "number",
+      "description": "Orden de visualizaci\u00f3n"
+    }
+  },
+  "required": [
+    "name",
+    "slug"
+  ]
+}

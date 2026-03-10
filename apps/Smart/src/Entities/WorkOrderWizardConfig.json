@@ -1,0 +1,166 @@
+{
+  "name": "WorkOrderWizardConfig",
+  "type": "object",
+  "description": "Configuraci\u00f3n del asistente de creaci\u00f3n de \u00f3rdenes de trabajo",
+  "properties": {
+    "steps_enabled": {
+      "type": "object",
+      "description": "Pasos habilitados en el wizard",
+      "properties": {
+        "customer": {
+          "type": "boolean",
+          "default": true
+        },
+        "device": {
+          "type": "boolean",
+          "default": true
+        },
+        "problem": {
+          "type": "boolean",
+          "default": true
+        },
+        "security": {
+          "type": "boolean",
+          "default": true
+        },
+        "checklist": {
+          "type": "boolean",
+          "default": true
+        },
+        "summary": {
+          "type": "boolean",
+          "default": true
+        }
+      }
+    },
+    "steps_order": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Orden de los pasos en el wizard"
+    },
+    "customer_search_enabled": {
+      "type": "boolean",
+      "default": true,
+      "description": "Permitir b\u00fasqueda de clientes existentes"
+    },
+    "customer_fields_required": {
+      "type": "object",
+      "description": "Campos de cliente requeridos",
+      "properties": {
+        "name": {
+          "type": "boolean",
+          "default": true
+        },
+        "last_name": {
+          "type": "boolean",
+          "default": false
+        },
+        "phone": {
+          "type": "boolean",
+          "default": true
+        },
+        "email": {
+          "type": "boolean",
+          "default": false
+        }
+      }
+    },
+    "device_auto_family": {
+      "type": "boolean",
+      "default": true,
+      "description": "Inferir familia autom\u00e1ticamente del modelo"
+    },
+    "problem_presets": {
+      "type": "array",
+      "description": "Presets de problemas comunes",
+      "items": {
+        "type": "object",
+        "properties": {
+          "label": {
+            "type": "string"
+          },
+          "text": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "media_config": {
+      "type": "object",
+      "description": "Configuraci\u00f3n de fotos/videos",
+      "properties": {
+        "max_files": {
+          "type": "number",
+          "default": 10
+        },
+        "max_size_mb": {
+          "type": "number",
+          "default": 10
+        },
+        "required": {
+          "type": "boolean",
+          "default": false
+        },
+        "allow_video": {
+          "type": "boolean",
+          "default": true
+        },
+        "camera_first": {
+          "type": "boolean",
+          "default": true
+        }
+      }
+    },
+    "security_config": {
+      "type": "object",
+      "description": "Configuraci\u00f3n de seguridad del dispositivo",
+      "properties": {
+        "pin_required": {
+          "type": "boolean",
+          "default": false
+        },
+        "password_required": {
+          "type": "boolean",
+          "default": false
+        },
+        "pattern_enabled": {
+          "type": "boolean",
+          "default": true
+        },
+        "encrypt_data": {
+          "type": "boolean",
+          "default": true
+        }
+      }
+    },
+    "auto_send_email": {
+      "type": "boolean",
+      "default": true,
+      "description": "Enviar email autom\u00e1tico al crear orden"
+    },
+    "default_status": {
+      "type": "string",
+      "enum": [
+        "intake",
+        "diagnosing",
+        "awaiting_approval",
+        "in_progress"
+      ],
+      "default": "intake",
+      "description": "Estado inicial de nuevas \u00f3rdenes"
+    },
+    "auto_assign": {
+      "type": "boolean",
+      "default": false,
+      "description": "Auto-asignar al creador de la orden"
+    },
+    "active": {
+      "type": "boolean",
+      "default": true,
+      "description": "Si la configuraci\u00f3n est\u00e1 activa"
+    }
+  },
+  "required": []
+}

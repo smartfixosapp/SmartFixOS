@@ -1,0 +1,134 @@
+{
+  "name": "Transaction",
+  "type": "object",
+  "properties": {
+    "order_id": {
+      "type": "string",
+      "description": "Related order ID"
+    },
+    "order_number": {
+      "type": "string",
+      "description": "Order number for quick reference"
+    },
+    "type": {
+      "type": "string",
+      "enum": [
+        "revenue",
+        "expense",
+        "refund"
+      ],
+      "description": "Transaction type"
+    },
+    "amount": {
+      "type": "number",
+      "description": "Transaction amount"
+    },
+    "description": {
+      "type": "string",
+      "description": "Transaction description"
+    },
+    "category": {
+      "type": "string",
+      "enum": [
+        "repair_payment",
+        "parts",
+        "supplies",
+        "other_expense",
+        "refund"
+      ],
+      "description": "Transaction category"
+    },
+    "payment_method": {
+      "type": "string",
+      "enum": [
+        "cash",
+        "card",
+        "transfer",
+        "ath_movil"
+      ],
+      "description": "Payment method"
+    },
+    "recorded_by": {
+      "type": "string",
+      "description": "Employee who recorded the transaction"
+    },
+    "refund_metadata": {
+      "type": "object",
+      "description": "Metadata for refund transactions",
+      "properties": {
+        "refund_number": {
+          "type": "string",
+          "description": "Unique refund number (REF-R01, REF-R02, etc.)"
+        },
+        "refund_reason": {
+          "type": "string",
+          "enum": [
+            "theft",
+            "error",
+            "return",
+            "cancelation",
+            "other"
+          ],
+          "description": "Reason for refund"
+        },
+        "refund_method": {
+          "type": "string",
+          "enum": [
+            "cash",
+            "ath_movil",
+            "card"
+          ],
+          "description": "Refund method"
+        },
+        "refund_note": {
+          "type": "string",
+          "description": "Additional notes"
+        },
+        "refund_status": {
+          "type": "string",
+          "enum": [
+            "completed",
+            "pending_manual"
+          ],
+          "description": "Status (pending_manual for card without Stripe)"
+        },
+        "original_amount_paid": {
+          "type": "number",
+          "description": "Amount paid before refund"
+        },
+        "approved_by": {
+          "type": "string",
+          "description": "User who approved refund"
+        },
+        "approved_at": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Timestamp of approval"
+        }
+      }
+    },
+    "is_deleted": {
+      "type": "boolean",
+      "default": false,
+      "description": "Soft delete flag"
+    },
+    "deleted_by": {
+      "type": "string",
+      "description": "User who deleted this transaction"
+    },
+    "deleted_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Timestamp when deleted"
+    },
+    "delete_reason": {
+      "type": "string",
+      "description": "Reason for deletion (error, duplicate, system_reset, etc.)"
+    }
+  },
+  "required": [
+    "type",
+    "amount",
+    "category"
+  ]
+}

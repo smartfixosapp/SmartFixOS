@@ -1,0 +1,113 @@
+{
+  "name": "Subscription",
+  "type": "object",
+  "description": "Historial de suscripciones y pagos de tiendas",
+  "properties": {
+    "tenant_id": {
+      "type": "string",
+      "description": "ID del tenant (tienda)"
+    },
+    "tenant_name": {
+      "type": "string",
+      "description": "Nombre de la tienda (cache)"
+    },
+    "plan": {
+      "type": "string",
+      "enum": [
+        "smartfixos",
+        "pro",
+        "enterprise"
+      ],
+      "default": "smartfixos",
+      "description": "Plan de suscripci\u00f3n"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "active",
+        "past_due",
+        "cancelled",
+        "paused"
+      ],
+      "default": "active",
+      "description": "Estado de la suscripci\u00f3n"
+    },
+    "amount": {
+      "type": "number",
+      "description": "Monto mensual en USD"
+    },
+    "billing_cycle_start": {
+      "type": "string",
+      "format": "date",
+      "description": "Inicio del ciclo actual"
+    },
+    "billing_cycle_end": {
+      "type": "string",
+      "format": "date",
+      "description": "Fin del ciclo actual"
+    },
+    "next_billing_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Pr\u00f3xima fecha de cobro"
+    },
+    "payment_method": {
+      "type": "string",
+      "enum": [
+        "stripe",
+        "paypal",
+        "manual",
+        "transfer"
+      ],
+      "description": "M\u00e9todo de pago"
+    },
+    "last_payment_date": {
+      "type": "string",
+      "format": "date-time",
+      "description": "\u00daltimo pago realizado"
+    },
+    "last_payment_amount": {
+      "type": "number",
+      "description": "Monto del \u00faltimo pago"
+    },
+    "last_payment_status": {
+      "type": "string",
+      "enum": [
+        "succeeded",
+        "failed",
+        "pending"
+      ],
+      "description": "Estado del \u00faltimo intento de pago"
+    },
+    "failed_payment_attempts": {
+      "type": "number",
+      "default": 0,
+      "description": "Intentos fallidos consecutivos"
+    },
+    "trial_end_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Fin del per\u00edodo de prueba (si aplica)"
+    },
+    "cancellation_date": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Fecha de cancelaci\u00f3n"
+    },
+    "cancellation_reason": {
+      "type": "string",
+      "description": "Raz\u00f3n de la cancelaci\u00f3n"
+    },
+    "metadata": {
+      "type": "object",
+      "description": "Datos adicionales (invoice IDs, etc)",
+      "additionalProperties": true
+    }
+  },
+  "required": [
+    "tenant_id",
+    "plan",
+    "status",
+    "amount"
+  ]
+}

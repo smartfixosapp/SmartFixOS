@@ -1,0 +1,32 @@
+{
+  "name": "PartType",
+  "type": "object",
+  "description": "Tipos de piezas y servicios para el inventario",
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "Nombre del tipo (pantalla, bater\u00eda, etc)"
+    },
+    "slug": {
+      "type": "string",
+      "description": "ID \u00fanico (pantalla, bateria, accesorio, servicio)"
+    },
+    "icon_name": {
+      "type": "string",
+      "description": "Nombre del \u00edcono de lucide-react"
+    },
+    "active": {
+      "type": "boolean",
+      "default": true,
+      "description": "Si est\u00e1 activo"
+    },
+    "order": {
+      "type": "number",
+      "description": "Orden de visualizaci\u00f3n"
+    }
+  },
+  "required": [
+    "name",
+    "slug"
+  ]
+}

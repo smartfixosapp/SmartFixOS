@@ -1,0 +1,214 @@
+{
+  "name": "Customer",
+  "type": "object",
+  "description": "Clientes del sistema con validaci\u00f3n de contacto obligatorio y soporte B2B",
+  "properties": {
+    "customer_number": {
+      "type": "string",
+      "description": "N\u00famero \u00fanico del cliente (CLT-01, CLT-02, etc.)"
+    },
+    "name": {
+      "type": "string",
+      "minLength": 2,
+      "description": "Nombre completo del cliente"
+    },
+    "phone": {
+      "type": "string",
+      "pattern": "^[0-9+()\\-\\s]{6,}$",
+      "description": "Tel\u00e9fono principal del cliente"
+    },
+    "additional_phones": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "pattern": "^[0-9+()\\-\\s]{6,}$"
+      },
+      "description": "Tel\u00e9fonos adicionales"
+    },
+    "email": {
+      "type": "string",
+      "format": "email",
+      "description": "Email del cliente"
+    },
+    "additional_contact_info": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "phone",
+              "email",
+              "other"
+            ]
+          },
+          "value": {
+            "type": "string"
+          },
+          "label": {
+            "type": "string"
+          }
+        }
+      },
+      "description": "Informaci\u00f3n de contacto adicional din\u00e1mica"
+    },
+    "notes": {
+      "type": "string",
+      "description": "Notas adicionales"
+    },
+    "total_orders": {
+      "type": "number",
+      "default": 0,
+      "minimum": 0,
+      "description": "Total de \u00f3rdenes del cliente"
+    },
+    "loyalty_points": {
+      "type": "number",
+      "default": 0,
+      "minimum": 0,
+      "description": "Puntos de fidelizaci\u00f3n"
+    },
+    "loyalty_tier": {
+      "type": "string",
+      "enum": [
+        "bronze",
+        "silver",
+        "gold",
+        "platinum"
+      ],
+      "default": "bronze",
+      "description": "Nivel de fidelizaci\u00f3n"
+    },
+    "total_spent": {
+      "type": "number",
+      "default": 0,
+      "minimum": 0,
+      "description": "Total gastado hist\u00f3ricamente"
+    },
+    "next_appointment": {
+      "type": "object",
+      "description": "Pr\u00f3xima cita programada",
+      "properties": {
+        "date": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "service_type": {
+          "type": "string"
+        },
+        "recurring": {
+          "type": "boolean",
+          "default": false
+        },
+        "frequency": {
+          "type": "string",
+          "enum": [
+            "weekly",
+            "biweekly",
+            "monthly",
+            "quarterly"
+          ]
+        }
+      }
+    },
+    "is_b2b": {
+      "type": "boolean",
+      "default": false,
+      "description": "Cliente empresarial (B2B)"
+    },
+    "company_name": {
+      "type": "string",
+      "description": "Nombre de la empresa (solo B2B)"
+    },
+    "company_tax_id": {
+      "type": "string",
+      "description": "RUT/Tax ID de la empresa (OPCIONAL)"
+    },
+    "billing_contact_person": {
+      "type": "string",
+      "description": "Persona de contacto para facturaci\u00f3n (B2B)"
+    },
+    "billing_address": {
+      "type": "string",
+      "description": "Direcci\u00f3n de facturaci\u00f3n (B2B)"
+    },
+    "payment_terms": {
+      "type": "string",
+      "enum": [
+        "NET-15",
+        "NET-30",
+        "NET-45",
+        "NET-60",
+        "Prepaid"
+      ],
+      "default": "NET-30",
+      "description": "T\u00e9rminos de pago (B2B)"
+    },
+    "credit_limit": {
+      "type": "number",
+      "minimum": 0,
+      "description": "L\u00edmite de cr\u00e9dito (B2B)"
+    },
+    "b2b_contacts": {
+      "type": "array",
+      "description": "M\u00faltiples contactos de la empresa B2B",
+      "items": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Nombre del contacto"
+          },
+          "role": {
+            "type": "string",
+            "description": "Cargo o rol (CEO, CFO, IT Manager, etc.)"
+          },
+          "phone": {
+            "type": "string",
+            "description": "Tel\u00e9fono del contacto"
+          },
+          "email": {
+            "type": "string",
+            "format": "email",
+            "description": "Email del contacto"
+          },
+          "is_primary": {
+            "type": "boolean",
+            "default": false,
+            "description": "Si es contacto principal"
+          },
+          "notifications_enabled": {
+            "type": "boolean",
+            "default": true,
+            "description": "Recibe notificaciones"
+          }
+        }
+      }
+    },
+    "portal_access_token": {
+      "type": "string",
+      "description": "Token \u00fanico para acceso al portal B2B"
+    },
+    "portal_access_enabled": {
+      "type": "boolean",
+      "default": false,
+      "description": "Si tiene acceso habilitado al portal"
+    }
+  },
+  "required": [
+    "name"
+  ],
+  "anyOf": [
+    {
+      "required": [
+        "phone"
+      ]
+    },
+    {
+      "required": [
+        "email"
+      ]
+    }
+  ]
+}

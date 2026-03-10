@@ -1,0 +1,59 @@
+{
+  "name": "Appointment",
+  "type": "object",
+  "properties": {
+    "title": {
+      "type": "string",
+      "description": "Title of the appointment"
+    },
+    "customer_id": {
+      "type": "string",
+      "description": "ID of the customer"
+    },
+    "customer_name": {
+      "type": "string",
+      "description": "Name of the customer"
+    },
+    "start_time": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Start time of the appointment"
+    },
+    "end_time": {
+      "type": "string",
+      "format": "date-time",
+      "description": "End time of the appointment"
+    },
+    "type": {
+      "type": "string",
+      "enum": [
+        "repair_intake",
+        "pickup",
+        "consultation",
+        "other"
+      ],
+      "default": "repair_intake",
+      "description": "Type of appointment"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "scheduled",
+        "completed",
+        "cancelled",
+        "no_show"
+      ],
+      "default": "scheduled",
+      "description": "Status of the appointment"
+    },
+    "notes": {
+      "type": "string",
+      "description": "Additional notes"
+    }
+  },
+  "required": [
+    "title",
+    "start_time",
+    "customer_name"
+  ]
+}

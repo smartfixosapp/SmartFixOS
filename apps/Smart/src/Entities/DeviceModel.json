@@ -1,0 +1,80 @@
+{
+  "name": "DeviceModel",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "Nombre del modelo"
+    },
+    "brand_id": {
+      "type": "string",
+      "description": "ID de la marca"
+    },
+    "brand": {
+      "type": "string",
+      "description": "Nombre de la marca (para b\u00fasqueda r\u00e1pida)"
+    },
+    "category_id": {
+      "type": "string",
+      "description": "ID de la categor\u00eda principal"
+    },
+    "subcategory_id": {
+      "type": "string",
+      "description": "ID de la subcategor\u00eda"
+    },
+    "family_id": {
+      "type": "string",
+      "description": "ID de la familia"
+    },
+    "alias": {
+      "type": "string",
+      "description": "Alias o nombre corto"
+    },
+    "icon_url": {
+      "type": "string",
+      "description": "URL del \u00edcono del modelo"
+    },
+    "icon_svg": {
+      "type": "string",
+      "description": "SVG generado autom\u00e1ticamente"
+    },
+    "common_problems": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Problemas comunes"
+    },
+    "suggested_parts": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "problem": {
+            "type": "string"
+          },
+          "parts": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "description": "Piezas sugeridas por problema"
+    },
+    "active": {
+      "type": "boolean",
+      "default": true
+    },
+    "order": {
+      "type": "number",
+      "description": "Orden de visualizaci\u00f3n"
+    }
+  },
+  "required": [
+    "name",
+    "brand_id",
+    "family_id"
+  ]
+}

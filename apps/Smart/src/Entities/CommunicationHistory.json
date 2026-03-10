@@ -1,0 +1,109 @@
+{
+  "name": "CommunicationHistory",
+  "type": "object",
+  "description": "Historial de comunicaciones con clientes",
+  "properties": {
+    "customer_id": {
+      "type": "string",
+      "description": "ID del cliente"
+    },
+    "customer_name": {
+      "type": "string",
+      "description": "Nombre del cliente (cache)"
+    },
+    "type": {
+      "type": "string",
+      "enum": [
+        "call",
+        "email",
+        "sms",
+        "whatsapp",
+        "in_person",
+        "note"
+      ],
+      "description": "Tipo de comunicaci\u00f3n"
+    },
+    "direction": {
+      "type": "string",
+      "enum": [
+        "inbound",
+        "outbound"
+      ],
+      "description": "Direcci\u00f3n de la comunicaci\u00f3n"
+    },
+    "subject": {
+      "type": "string",
+      "description": "Asunto o resumen"
+    },
+    "content": {
+      "type": "string",
+      "description": "Contenido del mensaje"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "pending",
+        "in_progress",
+        "completed",
+        "follow_up_needed"
+      ],
+      "default": "completed",
+      "description": "Estado de la comunicaci\u00f3n"
+    },
+    "duration_minutes": {
+      "type": "number",
+      "description": "Duraci\u00f3n en minutos (para llamadas)"
+    },
+    "contact_method": {
+      "type": "string",
+      "description": "M\u00e9todo de contacto utilizado (tel\u00e9fono, email, etc)"
+    },
+    "next_follow_up": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Fecha de pr\u00f3ximo seguimiento"
+    },
+    "notes": {
+      "type": "string",
+      "description": "Notas internas"
+    },
+    "user_id": {
+      "type": "string",
+      "description": "ID del usuario que registr\u00f3"
+    },
+    "user_name": {
+      "type": "string",
+      "description": "Nombre del usuario (cache)"
+    },
+    "attachments": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "url": {
+            "type": "string"
+          },
+          "type": {
+            "type": "string"
+          }
+        }
+      },
+      "description": "Archivos adjuntos"
+    },
+    "tags": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Etiquetas para clasificar"
+    }
+  },
+  "required": [
+    "customer_id",
+    "type",
+    "subject"
+  ]
+}

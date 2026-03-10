@@ -1,0 +1,65 @@
+{
+  "name": "MaintenanceReminder",
+  "type": "object",
+  "properties": {
+    "customer_id": {
+      "type": "string",
+      "description": "ID del cliente"
+    },
+    "customer_name": {
+      "type": "string",
+      "description": "Nombre del cliente"
+    },
+    "customer_email": {
+      "type": "string",
+      "format": "email",
+      "description": "Email del cliente"
+    },
+    "customer_phone": {
+      "type": "string",
+      "description": "Tel\u00e9fono del cliente"
+    },
+    "device_model": {
+      "type": "string",
+      "description": "Modelo del dispositivo (ej: PS5, MacBook Pro)"
+    },
+    "service_name": {
+      "type": "string",
+      "description": "Nombre del servicio realizado (ej: Cambio de Pasta T\u00e9rmica)"
+    },
+    "last_service_date": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Fecha del \u00faltimo servicio"
+    },
+    "due_date": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Fecha pr\u00f3xima de mantenimiento"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "pending",
+        "sent",
+        "booked",
+        "cancelled"
+      ],
+      "default": "pending",
+      "description": "Estado del recordatorio"
+    },
+    "source_order_id": {
+      "type": "string",
+      "description": "ID de la orden original"
+    },
+    "notes": {
+      "type": "string",
+      "description": "Notas internas"
+    }
+  },
+  "required": [
+    "customer_id",
+    "service_name",
+    "due_date"
+  ]
+}

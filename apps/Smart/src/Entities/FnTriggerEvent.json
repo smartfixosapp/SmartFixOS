@@ -1,0 +1,15 @@
+{
+  "name": "FnTriggerEvent",
+  "type": "object",
+  "description": "Queue of table events for fn-trigger rules. Filled by Postgres trigger; consumed by processFnTriggerEvents (Supabase only).",
+  "properties": {
+    "id": { "type": "string" },
+    "created_at": { "type": "string", "format": "date-time" },
+    "table_name": { "type": "string" },
+    "event_type": { "type": "string", "enum": ["insert", "update", "delete"] },
+    "new_record": { "type": "object" },
+    "old_record": { "type": "object" },
+    "processed_at": { "type": "string", "format": "date-time" },
+    "error": { "type": "string" }
+  }
+}

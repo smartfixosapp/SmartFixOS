@@ -1,0 +1,35 @@
+{
+  "name": "Brand",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "Nombre de la marca"
+    },
+    "category_id": {
+      "type": "string",
+      "description": "ID de la categor\u00eda a la que pertenece"
+    },
+    "icon_url": {
+      "type": "string",
+      "description": "URL del \u00edcono/logo de la marca"
+    },
+    "icon_svg": {
+      "type": "string",
+      "description": "SVG del \u00edcono si es vectorial"
+    },
+    "active": {
+      "type": "boolean",
+      "default": true,
+      "description": "Si est\u00e1 activa"
+    },
+    "order": {
+      "type": "number",
+      "description": "Orden de visualizaci\u00f3n"
+    }
+  },
+  "required": [
+    "name",
+    "category_id"
+  ]
+}

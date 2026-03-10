@@ -1,0 +1,62 @@
+{
+  "name": "ExternalLink",
+  "type": "object",
+  "description": "Enlaces externos configurables (IMEI checkers, proveedores, etc.)",
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "Nombre del servicio/link"
+    },
+    "url": {
+      "type": "string",
+      "description": "URL del servicio"
+    },
+    "description": {
+      "type": "string",
+      "description": "Descripci\u00f3n del servicio"
+    },
+    "category": {
+      "type": "string",
+      "enum": [
+        "imei_check",
+        "unlock_service",
+        "parts_supplier",
+        "tools",
+        "other"
+      ],
+      "default": "other",
+      "description": "Categor\u00eda del link"
+    },
+    "icon": {
+      "type": "string",
+      "description": "Emoji o \u00edcono"
+    },
+    "color": {
+      "type": "string",
+      "description": "Color para el badge"
+    },
+    "active": {
+      "type": "boolean",
+      "default": true,
+      "description": "Si el link est\u00e1 activo"
+    },
+    "order": {
+      "type": "number",
+      "description": "Orden de visualizaci\u00f3n"
+    },
+    "opens_in": {
+      "type": "string",
+      "enum": [
+        "new_tab",
+        "same_tab",
+        "popup"
+      ],
+      "default": "new_tab"
+    }
+  },
+  "required": [
+    "name",
+    "url",
+    "category"
+  ]
+}

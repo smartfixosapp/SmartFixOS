@@ -1,0 +1,56 @@
+{
+  "name": "PersonalNote",
+  "type": "object",
+  "properties": {
+    "title": {
+      "type": "string",
+      "description": "T\u00edtulo de la nota"
+    },
+    "description": {
+      "type": "string",
+      "description": "Contenido de la nota"
+    },
+    "type": {
+      "type": "string",
+      "enum": [
+        "note",
+        "reminder"
+      ],
+      "default": "note",
+      "description": "Tipo de nota"
+    },
+    "client_name": {
+      "type": "string",
+      "description": "Nombre del cliente (opcional)"
+    },
+    "ticket_number": {
+      "type": "string",
+      "description": "N\u00famero de boleto/orden (opcional)"
+    },
+    "reminder_date": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Fecha del recordatorio"
+    },
+    "assigned_to": {
+      "type": "string",
+      "description": "ID del usuario asignado"
+    },
+    "assigned_to_name": {
+      "type": "string",
+      "description": "Nombre del usuario asignado"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "pending",
+        "completed"
+      ],
+      "default": "pending",
+      "description": "Estado de la nota"
+    }
+  },
+  "required": [
+    "title"
+  ]
+}

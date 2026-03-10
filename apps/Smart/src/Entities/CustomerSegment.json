@@ -1,0 +1,89 @@
+{
+  "name": "CustomerSegment",
+  "type": "object",
+  "description": "Segmentos de clientes para CRM avanzado",
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "Nombre del segmento"
+    },
+    "description": {
+      "type": "string",
+      "description": "Descripci\u00f3n del segmento"
+    },
+    "type": {
+      "type": "string",
+      "enum": [
+        "behavior",
+        "value",
+        "location",
+        "service",
+        "loyalty",
+        "custom"
+      ],
+      "description": "Tipo de segmento"
+    },
+    "criteria": {
+      "type": "object",
+      "description": "Criterios din\u00e1micos",
+      "properties": {
+        "min_orders": {
+          "type": "number"
+        },
+        "max_orders": {
+          "type": "number"
+        },
+        "min_spent": {
+          "type": "number"
+        },
+        "max_spent": {
+          "type": "number"
+        },
+        "min_loyalty_points": {
+          "type": "number"
+        },
+        "loyalty_tier": {
+          "type": "string"
+        },
+        "last_order_days": {
+          "type": "number"
+        },
+        "country": {
+          "type": "string"
+        },
+        "service_type": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "custom_field": {
+          "type": "string"
+        }
+      }
+    },
+    "member_count": {
+      "type": "number",
+      "default": 0,
+      "description": "Cantidad de clientes en el segmento"
+    },
+    "color": {
+      "type": "string",
+      "description": "Color para visualizaci\u00f3n"
+    },
+    "active": {
+      "type": "boolean",
+      "default": true,
+      "description": "Si el segmento est\u00e1 activo"
+    },
+    "last_updated": {
+      "type": "string",
+      "format": "date-time",
+      "description": "\u00daltima actualizaci\u00f3n"
+    }
+  },
+  "required": [
+    "name",
+    "type"
+  ]
+}

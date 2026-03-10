@@ -1,0 +1,30 @@
+{
+  "name": "DeviceCategory",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "Nombre de la categor\u00eda"
+    },
+    "icon": {
+      "type": "string",
+      "description": "\u00cdcono o emoji"
+    },
+    "icon_url": {
+      "type": "string",
+      "description": "URL del \u00edcono SVG/PNG"
+    },
+    "active": {
+      "type": "boolean",
+      "default": true,
+      "description": "Si est\u00e1 activa"
+    },
+    "order": {
+      "type": "number",
+      "description": "Orden de visualizaci\u00f3n"
+    }
+  },
+  "required": [
+    "name"
+  ]
+}

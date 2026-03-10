@@ -1,0 +1,37 @@
+{
+  "name": "TimeEntry",
+  "type": "object",
+  "properties": {
+    "employee_id": {
+      "type": "string",
+      "description": "ID del empleado"
+    },
+    "employee_name": {
+      "type": "string",
+      "description": "Nombre del empleado"
+    },
+    "clock_in": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Hora de entrada"
+    },
+    "clock_out": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Hora de salida"
+    },
+    "total_hours": {
+      "type": "number",
+      "description": "Total de horas trabajadas"
+    },
+    "notes": {
+      "type": "string",
+      "description": "Notas del ponche"
+    }
+  },
+  "required": [
+    "employee_id",
+    "employee_name",
+    "clock_in"
+  ]
+}

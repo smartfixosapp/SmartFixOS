@@ -1,0 +1,1589 @@
+import React, { useState, useEffect } from "react";
+import { dataClient } from "@/components/api/dataClient";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
+import { Card } from "@/components/ui/card";
+import { toast } from "sonner";
+import {
+  Building2, Globe, Palette, DollarSign, Bell, Shield, Database,
+  Save, Loader2, Check, ChevronRight, Sparkles, Settings as SettingsIcon,
+  Users, ClipboardList, Package, Receipt, Clock, Mail,
+  Smartphone, FileText, CreditCard, Wallet, UserCircle, Plus, Edit2, Trash2,
+  X, Eye, EyeOff, Wrench, CheckSquare, Camera, Key, Lock, Search,
+  Fingerprint, ShieldCheck, ShieldAlert, History, Download, AlertCircle,
+  Briefcase, ShoppingCart, BarChart3, TrendingDown, Activity, GripVertical,
+  Layout, Grid, Zap, ExternalLink, ChevronDown, Upload
+} from "lucide-react";
+import { useI18n } from "@/components/utils/i18n";
+import ImportExportTab from "@/components/settings/ImportExportTab";
+import WizardConfigPanel from "@/components/settings/WizardConfigPanel";
+import DeviceCatalogManager from "@/components/settings/DeviceCatalogManager";
+import { WarrantySalesModal, WarrantyRepairsModal } from "@/components/settings/WarrantyConfigModals";
+import EmailTemplatesTab from "@/components/settings/tabs/EmailTemplatesTab";
+import { useNavigate } from "react-router-dom";
+import { createPageUrl } from "@/components/utils/helpers";
+import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
+
+export default function SettingsPage() {
+  const { t, language, setLanguage } = useI18n();
+  const navigate = useNavigate();
+  const [loading, setLoading] = useState(false);
+  const [activeSection, setActiveSection] = useState(null);
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const section = params.get("section");
+    if (section) {
+      setActiveSection(section);
+    }
+  }, []);
+
+  // General config
+  const [appConfig, setAppConfig] = useState({
+    business_name: "911 SmartFix",
+    slogan: "Tu taller de confianza",
+    business_phone: "",
+    business_whatsapp: "",
+    business_email: "",
+    business_address: "",
+    business_maps_link: "",
+    business_hours: {
+      monday: { open: "09:00", close: "18:00", closed: false },
+      tuesday: { open: "09:00", close: "18:00", closed: false },
+      wednesday: { open: "09:00", close: "18:00", closed: false },
+      thursday: { open: "09:00", close: "18:00", closed: false },
+      friday: { open: "09:00", close: "18:00", closed: false },
+      saturday: { open: "09:00", close: "14:00", closed: false },
+      sunday: { open: "09:00", close: "18:00", closed: true }
+    },
+    tax_rate: 11.5,
+    currency: "USD",
+    timezone: "America/Puerto_Rico",
+    language: "es",
+    google_review_link: "",
+    access_request_email: "smartfixosapp@gmail.com"
+  });
+
+  // Business branding config
+  const [businessBranding, setBusinessBranding] = useState({
+    logo_url: "",
+    store_name: "",
+    terms_sales: "",
+    terms_workorders: ""
+  });
+
+  const [uploadingLogo, setUploadingLogo] = useState(false);
+  const [showWarrantySalesModal, setShowWarrantySalesModal] = useState(false);
+  const [showWarrantyRepairsModal, setShowWarrantyRepairsModal] = useState(false);
+
+  const [theme, setTheme] = useState("dark");
+  const [paymentMethods, setPaymentMethods] = useState({
+    cash: true,
+    card: true,
+    ath_movil: true,
+    bank_transfer: false,
+    check: false
+  });
+  const [customPaymentMethods, setCustomPaymentMethods] = useState([]);
+  const [newCustomMethod, setNewCustomMethod] = useState("");
+
+  // =========================
+  // 👇 NUEVO: Enlaces Útiles
+  // =========================
+  const [usefulLinks, setUsefulLinks] = useState([]); // 👈
+  const [newUsefulLink, setNewUsefulLink] = useState({ name: "", url: "" }); // 👈
+  
+  // Dashboard Buttons Config
+  const [dashboardButtons, setDashboardButtons] = useState([]);
+  const [showCreateCustom, setShowCreateCustom] = useState(false);
+  const [customButton, setCustomButton] = useState({
+    label: "",
+    icon: "ExternalLink",
+    gradient: "from-cyan-600 to-blue-600",
+    action: "",
+    type: "navigate"
+  });
+
+  // Admin Panel Buttons Config
+  const [adminPanelButtons, setAdminPanelButtons] = useState([]);
+  const [showCreateAdminButton, setShowCreateAdminButton] = useState(false);
+  const [customAdminButton, setCustomAdminButton] = useState({
+    label: "",
+    icon: "Shield",
+    gradient: "from-cyan-600 to-blue-600",
+    action: "",
+    type: "navigate",
+    view: ""
+  });
+  const LOCAL_DASHBOARD_BUTTONS_KEY = "smartfix_dashboard_buttons_local";
+
+  const readLocalDashboardButtons = () => {
+    try {
+      const raw = localStorage.getItem(LOCAL_DASHBOARD_BUTTONS_KEY);
+      const parsed = raw ? JSON.parse(raw) : [];
+      return Array.isArray(parsed) ? parsed : [];
+    } catch {
+      return [];
+    }
+  };
+
+  const writeLocalDashboardButtons = (buttons) => {
+    try {
+      localStorage.setItem(LOCAL_DASHBOARD_BUTTONS_KEY, JSON.stringify(buttons || []));
+    } catch {
+      // no-op
+    }
+  };
+
+  const ADMIN_CORE_DASHBOARD_BUTTONS = [
+    { id: "new_order", label: "Nueva Orden", icon: "ClipboardList", gradient: "from-blue-500 to-cyan-600", action: "showWorkOrderWizard", type: "modal", enabled: true },
+    { id: "orders", label: "Órdenes", icon: "ClipboardList", gradient: "from-purple-500 to-pink-600", action: "Orders", type: "navigate", enabled: true },
+    { id: "pos", label: "POS", icon: "Wallet", gradient: "from-green-600 to-emerald-700", action: "POS", type: "navigate", enabled: true },
+    { id: "customers", label: "Clientes", icon: "Users", gradient: "from-blue-600 to-indigo-700", action: "Customers", type: "navigate", enabled: true },
+    { id: "inventory", label: "Inventario", icon: "Package", gradient: "from-teal-500 to-cyan-600", action: "Inventory", type: "navigate", enabled: true },
+    { id: "financial", label: "Finanzas", icon: "Wallet", gradient: "from-emerald-600 to-green-700", action: "Financial", type: "navigate", enabled: true },
+    { id: "reports", label: "Reportes", icon: "BarChart3", gradient: "from-blue-600 to-indigo-700", action: "Reports", type: "navigate", enabled: true },
+    { id: "recharges", label: "Recargas", icon: "Zap", gradient: "from-amber-500 to-yellow-600", action: "Recharges", type: "navigate", enabled: true },
+    { id: "technicians", label: "Técnicos", icon: "Wrench", gradient: "from-cyan-500 to-blue-600", action: "Technicians", type: "navigate", enabled: true },
+    { id: "notifications", label: "Notificaciones", icon: "Bell", gradient: "from-orange-500 to-red-600", action: "Notifications", type: "navigate", enabled: true },
+    { id: "users", label: "Panel Administrativo", icon: "Users", gradient: "from-pink-500 to-rose-600", action: "UsersManagement", type: "navigate", enabled: true },
+    { id: "database", label: "Base de Datos", icon: "SettingsIcon", gradient: "from-cyan-600 to-blue-600", action: "Settings", type: "navigate", enabled: true }
+  ];
+
+  const mergeAdminDashboardButtons = (savedButtons = []) => {
+    const savedMap = new Map((savedButtons || []).map((b) => [b.id, b]));
+    const customButtons = (savedButtons || []).filter(
+      (b) => !ADMIN_CORE_DASHBOARD_BUTTONS.some((d) => d.id === b.id)
+    );
+
+    const mergedDefaults = ADMIN_CORE_DASHBOARD_BUTTONS.map((defaults, idx) => {
+      const saved = savedMap.get(defaults.id) || {};
+      return {
+        ...saved,
+        ...defaults,
+        order: Number.isFinite(saved.order) ? saved.order : idx,
+        enabled: saved.enabled !== undefined ? saved.enabled : true
+      };
+    });
+
+    return [...mergedDefaults, ...customButtons]
+      .sort((a, b) => (a.order ?? 0) - (b.order ?? 0))
+      .map((b, idx) => ({ ...b, order: idx }));
+  };
+
+
+
+  useEffect(() => {
+    loadAllSettings();
+  }, []);
+
+  useEffect(() => {
+    if (activeSection === "dashboard_buttons" && dashboardButtons.length === 0) {
+      loadDashboardButtons();
+    }
+  }, [activeSection, dashboardButtons.length]);
+
+
+
+  const loadAllSettings = async () => {
+    try {
+      const [configRes, themeRes, pmRes, linksRes, buttonsRes, adminButtonsRes, brandingRes] = await Promise.all([
+        dataClient.entities.AppSettings.filter({ slug: "app-main-settings" }).catch(() => []),
+        dataClient.entities.AppSettings.filter({ slug: "app-theme" }).catch(() => []),
+        dataClient.entities.AppSettings.filter({ slug: "payment-methods" }).catch(() => []),
+        dataClient.entities.AppSettings.filter({ slug: "useful-links" }).catch(() => []),
+        dataClient.entities.AppSettings.filter({ slug: "dashboard-buttons" }).catch(() => []),
+        dataClient.entities.AppSettings.filter({ slug: "admin-panel-buttons" }).catch(() => []),
+        dataClient.entities.AppSettings.filter({ slug: "business-branding" }).catch(() => [])
+      ]);
+
+      if (configRes?.length) {
+         const loaded = configRes[0].payload;
+         setAppConfig({ 
+           ...appConfig, 
+           ...loaded,
+           business_hours: loaded.business_hours || appConfig.business_hours
+         });
+       }
+      if (themeRes?.length) {
+        setTheme(themeRes[0].payload?.theme || "dark");
+      }
+      if (pmRes?.length) {
+        const saved = pmRes[0].payload;
+        setPaymentMethods({ ...paymentMethods, ...saved });
+        setCustomPaymentMethods(saved.custom_methods || []);
+      }
+
+      // =========================
+      // 👇 NUEVO: cargar enlaces
+      // =========================
+      if (linksRes?.length) {
+        const payload = linksRes[0].payload;
+        setUsefulLinks(Array.isArray(payload) ? payload : (payload?.links || []));
+      }
+      
+      // Cargar botones del dashboard
+      if (buttonsRes?.length) {
+        const savedButtons = buttonsRes[0].payload?.buttons || [];
+        const merged = mergeAdminDashboardButtons(savedButtons);
+        setDashboardButtons(merged);
+        writeLocalDashboardButtons(merged);
+      } else {
+        const localButtons = readLocalDashboardButtons();
+        const merged = mergeAdminDashboardButtons(localButtons);
+        setDashboardButtons(merged);
+      }
+
+      // Cargar botones del panel administrativo
+      if (adminButtonsRes?.length) {
+        const savedAdminButtons = adminButtonsRes[0].payload?.buttons || [];
+        setAdminPanelButtons(savedAdminButtons);
+      } else {
+        // Botones por defecto del panel administrativo
+           const initialAdminButtons = [
+             { id: "users", label: "Panel Administrativo", icon: "Shield", gradient: "from-cyan-600 to-blue-600", view: "users", enabled: true, order: 0 },
+             { id: "time", label: "Control de Tiempo", icon: "Clock", gradient: "from-emerald-600 to-green-600", view: "time", enabled: true, order: 1 },
+             { id: "payment_methods", label: "Métodos de Pago", icon: "CreditCard", gradient: "from-green-600 to-emerald-600", view: "payment_methods", enabled: true, order: 2 },
+             { id: "business_info", label: "Info del Negocio", icon: "Building2", gradient: "from-orange-600 to-amber-600", view: "business_info", enabled: true, order: 3 },
+             { id: "financial", label: "Finanzas", icon: "Wallet", gradient: "from-purple-600 to-violet-600", type: "navigate", action: "Financial", enabled: true, order: 4 },
+             { id: "reports", label: "Reportes", icon: "BarChart3", gradient: "from-indigo-600 to-blue-600", type: "navigate", action: "Reports", enabled: true, order: 5 }
+        ];
+        setAdminPanelButtons(initialAdminButtons);
+      }
+
+      // Cargar branding
+      if (brandingRes?.length) {
+        setBusinessBranding({ ...businessBranding, ...brandingRes[0].payload });
+      }
+    } catch (error) {
+      console.error("Error loading settings:", error);
+    }
+  };
+
+
+
+  const saveAppConfig = async () => {
+    setLoading(true);
+    try {
+      const configs = await dataClient.entities.AppSettings.filter({ slug: "app-main-settings" });
+      if (configs?.length) {
+        await dataClient.entities.AppSettings.update(configs[0].id, { payload: appConfig });
+      } else {
+        await dataClient.entities.AppSettings.create({
+          slug: "app-main-settings",
+          payload: appConfig,
+          description: "Configuración principal"
+        });
+      }
+      
+      if (appConfig.language !== language) {
+        await setLanguage(appConfig.language);
+        toast.success("✅ Idioma actualizado");
+        setTimeout(() => window.location.reload(), 1500);
+      } else {
+        toast.success("✅ Configuración guardada");
+      }
+    } catch (error) {
+      toast.error("Error al guardar");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleThemeChange = async (newTheme) => {
+    setTheme(newTheme);
+    setLoading(true);
+    try {
+      const configs = await dataClient.entities.AppSettings.filter({ slug: "app-theme" });
+      if (configs?.length) {
+        await dataClient.entities.AppSettings.update(configs[0].id, { payload: { theme: newTheme } });
+      } else {
+        await dataClient.entities.AppSettings.create({
+          slug: "app-theme",
+          payload: { theme: newTheme },
+          description: "Tema de la aplicación"
+        });
+      }
+      toast.success(`✅ Tema ${newTheme === "light" ? "claro" : "oscuro"} aplicado`);
+      setTimeout(() => window.location.reload(), 1000);
+    } catch (error) {
+      toast.error("Error al guardar tema");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const savePaymentMethods = async () => {
+    setLoading(true);
+    try {
+      const payload = {
+        ...paymentMethods,
+        custom_methods: customPaymentMethods
+      };
+      const configs = await dataClient.entities.AppSettings.filter({ slug: "payment-methods" });
+      if (configs?.length) {
+        await dataClient.entities.AppSettings.update(configs[0].id, { payload });
+      } else {
+        await dataClient.entities.AppSettings.create({
+          slug: "payment-methods",
+          payload,
+          description: "Métodos de pago"
+        });
+      }
+      toast.success("✅ Métodos de pago actualizados");
+    } catch (error) {
+      toast.error("Error al guardar");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const addCustomMethod = () => {
+    const name = newCustomMethod.trim();
+    if (!name) {
+      toast.error("Escribe el nombre del método");
+      return;
+    }
+    if (customPaymentMethods.some(m => m.toLowerCase() === name.toLowerCase())) {
+      toast.error("Este método ya existe");
+      return;
+    }
+    setCustomPaymentMethods([...customPaymentMethods, name]);
+    setNewCustomMethod("");
+    toast.success(`✅ ${name} añadido`);
+  };
+
+  const removeCustomMethod = (index) => {
+    setCustomPaymentMethods(customPaymentMethods.filter((_, i) => i !== index));
+  };
+
+  const saveWizardConfig = async () => {
+    setLoading(true);
+    try {
+      if (wizardConfig?.id) {
+        await dataClient.entities.WorkOrderWizardConfig.update(wizardConfig.id, wizardConfig);
+      } else {
+        await dataClient.entities.WorkOrderWizardConfig.create(wizardConfig);
+      }
+      toast.success("✅ Wizard configurado");
+      loadWizardConfig();
+    } catch (error) {
+      toast.error("Error al guardar");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const saveEmailConfig = async () => {
+    setLoading(true);
+    try {
+      const configs = await dataClient.entities.AppSettings.filter({ slug: "email-config" });
+      if (configs?.length) {
+        await dataClient.entities.AppSettings.update(configs[0].id, { payload: emailConfig });
+      } else {
+        await dataClient.entities.AppSettings.create({
+          slug: "email-config",
+          payload: emailConfig,
+          description: "Configuración de email"
+        });
+      }
+      toast.success("✅ Configuración de email guardada");
+    } catch (error) {
+      toast.error("Error al guardar");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSaveUser = async () => {
+    if (!editingUser.full_name || !editingUser.email || !editingUser.pin || !editingUser.employee_code || !editingUser.phone || !editingUser.position) {
+      toast.error("Completa todos los campos obligatorios");
+      return;
+    }
+    if (editingUser.pin.length !== 4 || !/^\d{4}$/.test(editingUser.pin)) {
+      toast.error("PIN debe ser 4 dígitos");
+      return;
+    }
+
+    setLoading(true);
+    try {
+      if (editingUser.id) {
+        await dataClient.entities.AppEmployee.update(editingUser.id, editingUser);
+        toast.success("✅ Empleado actualizado");
+      } else {
+        await dataClient.entities.AppEmployee.create(editingUser);
+        toast.success("✅ Empleado creado");
+      }
+      setEditingUser(null);
+      loadUsers();
+    } catch (error) {
+      toast.error("Error al guardar empleado");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleDeleteUser = async (user) => {
+    if (user.role === "admin") {
+      const adminCount = users.filter((u) => u.role === "admin" && u.id !== user.id).length;
+      if (adminCount === 0) {
+        toast.error("❌ No puedes eliminar el último admin");
+        return;
+      }
+    }
+
+    if (!confirm(`¿Eliminar a "${user.full_name}"?`)) return;
+
+    setLoading(true);
+    try {
+      await dataClient.entities.AppEmployee.delete(user.id);
+      toast.success("✅ Empleado eliminado");
+      loadUsers();
+    } catch (error) {
+      toast.error("Error al eliminar");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // =========================
+  // 👇 NUEVO: helpers enlaces
+  // =========================
+  const addUsefulLink = () => { // 👈
+    const name = (newUsefulLink?.name || "").trim(); // 👈
+    const url = (newUsefulLink?.url || "").trim(); // 👈
+    if (!name || !url) { // 👈
+      toast.error("Completa nombre y URL"); // 👈
+      return; // 👈
+    } // 👈
+    setUsefulLinks([...usefulLinks, { name, url }]); // 👈
+    setNewUsefulLink({ name: "", url: "" }); // 👈
+    toast.success("✅ Enlace añadido"); // 👈
+  }; // 👈
+
+  const removeUsefulLink = (index) => { // 👈
+    setUsefulLinks(usefulLinks.filter((_, i) => i !== index)); // 👈
+  }; // 👈
+
+  const updateUsefulLink = (index, patch) => { // 👈
+    setUsefulLinks(usefulLinks.map((l, i) => i === index ? { ...l, ...patch } : l)); // 👈
+  }; // 👈
+
+  const saveUsefulLinks = async () => {
+    setLoading(true);
+    try {
+      const configs = await dataClient.entities.AppSettings.filter({ slug: "useful-links" });
+      const payload = { links: usefulLinks };
+      if (configs?.length) {
+        await dataClient.entities.AppSettings.update(configs[0].id, { payload });
+      } else {
+        await dataClient.entities.AppSettings.create({
+          slug: "useful-links",
+          payload,
+          description: "Enlaces útiles"
+        });
+      }
+      toast.success("✅ Enlaces guardados");
+    } catch (error) {
+      console.error("Error saving links:", error);
+      toast.error("Error al guardar enlaces");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Dashboard Buttons Helpers
+  const ICON_OPTIONS = [
+    { value: "Shield", label: "Escudo", component: Shield },
+    { value: "Clock", label: "Reloj", component: Clock },
+    { value: "Building2", label: "Edificio", component: Building2 },
+    { value: "CreditCard", label: "Tarjeta", component: CreditCard },
+    { value: "ClipboardList", label: "Clipboard", component: ClipboardList },
+    { value: "Wrench", label: "Herramienta", component: Wrench },
+    { value: "Smartphone", label: "Teléfono", component: Smartphone },
+    { value: "Zap", label: "Rayo", component: Zap },
+    { value: "Package", label: "Paquete", component: Package },
+    { value: "Wallet", label: "Billetera", component: Wallet },
+    { value: "BarChart3", label: "Gráfica", component: BarChart3 },
+    { value: "ExternalLink", label: "Enlace", component: ExternalLink },
+    { value: "Users", label: "Usuarios", component: Users },
+    { value: "FileText", label: "Archivo", component: FileText },
+    { value: "ShoppingCart", label: "Carrito", component: ShoppingCart }
+  ];
+
+  const GRADIENT_OPTIONS = [
+    { value: "from-purple-500 to-pink-600", label: "Morado-Rosa" },
+    { value: "from-orange-500 to-red-600", label: "Naranja-Rojo" },
+    { value: "from-indigo-500 to-purple-600", label: "Índigo-Morado" },
+    { value: "from-amber-500 to-yellow-600", label: "Ámbar-Amarillo" },
+    { value: "from-teal-500 to-cyan-600", label: "Verde-Cian" },
+    { value: "from-green-600 to-emerald-700", label: "Verde-Esmeralda" },
+    { value: "from-blue-600 to-indigo-700", label: "Azul-Índigo" },
+    { value: "from-cyan-600 to-blue-600", label: "Cian-Azul" }
+  ];
+
+  const loadDashboardButtons = async () => {
+    try {
+      const configs = await dataClient.entities.AppSettings.filter({ slug: "dashboard-buttons" });
+      const savedButtons = configs?.[0]?.payload?.buttons || [];
+      const merged = mergeAdminDashboardButtons(savedButtons);
+      setDashboardButtons(merged.length ? merged : mergeAdminDashboardButtons([]));
+      writeLocalDashboardButtons(merged);
+    } catch (error) {
+      console.error("Error loading dashboard buttons:", error);
+      const localButtons = readLocalDashboardButtons();
+      const merged = mergeAdminDashboardButtons(localButtons);
+      setDashboardButtons(merged.length ? merged : mergeAdminDashboardButtons([]));
+    }
+  };
+
+  const handleToggleButton = (buttonId) => {
+    setDashboardButtons(dashboardButtons.map(btn => 
+      btn.id === buttonId ? { ...btn, enabled: !btn.enabled } : btn
+    ));
+  };
+
+  const handleDeleteButton = (buttonId) => {
+    if (confirm("¿Eliminar este botón del dashboard?")) {
+      setDashboardButtons(dashboardButtons.filter(btn => btn.id !== buttonId));
+      toast.success("✅ Botón eliminado");
+    }
+  };
+
+  const handleDragEnd = (result) => {
+    if (!result.destination) return;
+
+    const items = Array.from(dashboardButtons);
+    const [reorderedItem] = items.splice(result.source.index, 1);
+    items.splice(result.destination.index, 0, reorderedItem);
+
+    const updatedButtons = items.map((btn, idx) => ({
+      ...btn,
+      order: idx
+    }));
+
+    setDashboardButtons(updatedButtons);
+  };
+
+  const saveDashboardButtons = async () => {
+    setLoading(true);
+    try {
+      const configs = await dataClient.entities.AppSettings.filter({ slug: "dashboard-buttons" });
+      
+      const payload = {
+        buttons: dashboardButtons.map(btn => ({
+          id: btn.id,
+          label: btn.label,
+          icon: btn.icon,
+          gradient: btn.gradient,
+          action: btn.action || btn.page,
+          type: btn.type || "navigate",
+          page: btn.page,
+          enabled: btn.enabled,
+          order: btn.order
+        }))
+      };
+
+      if (configs?.length) {
+        await dataClient.entities.AppSettings.update(configs[0].id, { payload });
+      } else {
+        await dataClient.entities.AppSettings.create({
+          slug: "dashboard-buttons",
+          payload
+        });
+      }
+
+      writeLocalDashboardButtons(payload.buttons || []);
+      toast.success("✅ Configuración guardada");
+      window.dispatchEvent(new CustomEvent('dashboard-buttons-updated'));
+    } catch (error) {
+      console.error("Error saving dashboard buttons:", error);
+      const fallbackButtons = dashboardButtons.map(btn => ({
+        id: btn.id,
+        label: btn.label,
+        icon: btn.icon,
+        gradient: btn.gradient,
+        action: btn.action || btn.page,
+        type: btn.type || "navigate",
+        page: btn.page,
+        enabled: btn.enabled,
+        order: btn.order
+      }));
+      writeLocalDashboardButtons(fallbackButtons);
+      window.dispatchEvent(new CustomEvent('dashboard-buttons-updated'));
+      toast.warning("Sin conexión. Configuración guardada localmente.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const saveAdminPanelButtons = async () => {
+    setLoading(true);
+    try {
+      const configs = await dataClient.entities.AppSettings.filter({ slug: "admin-panel-buttons" });
+      
+      const payload = {
+        buttons: adminPanelButtons.map(btn => ({
+          id: btn.id,
+          label: btn.label,
+          icon: btn.icon,
+          gradient: btn.gradient,
+          view: btn.view,
+          action: btn.action,
+          type: btn.type || "view",
+          enabled: btn.enabled,
+          order: btn.order
+        }))
+      };
+
+      if (configs?.length) {
+        await dataClient.entities.AppSettings.update(configs[0].id, { payload });
+      } else {
+        await dataClient.entities.AppSettings.create({
+          slug: "admin-panel-buttons",
+          payload
+        });
+      }
+
+      toast.success("✅ Panel Administrativo configurado");
+      window.dispatchEvent(new CustomEvent('admin-panel-buttons-updated'));
+    } catch (error) {
+      console.error("Error saving admin panel buttons:", error);
+      toast.error("Error al guardar configuración");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleToggleAdminButton = (buttonId) => {
+    setAdminPanelButtons(adminPanelButtons.map(btn => 
+      btn.id === buttonId ? { ...btn, enabled: !btn.enabled } : btn
+    ));
+  };
+
+  const handleDeleteAdminButton = (buttonId) => {
+    if (confirm("¿Eliminar este botón del Panel Administrativo?")) {
+      setAdminPanelButtons(adminPanelButtons.filter(btn => btn.id !== buttonId));
+      toast.success("✅ Botón eliminado");
+    }
+  };
+
+  const handleDragEndAdmin = (result) => {
+    if (!result.destination) return;
+
+    const items = Array.from(adminPanelButtons);
+    const [reorderedItem] = items.splice(result.source.index, 1);
+    items.splice(result.destination.index, 0, reorderedItem);
+
+    const updatedButtons = items.map((btn, idx) => ({
+      ...btn,
+      order: idx
+    }));
+
+    setAdminPanelButtons(updatedButtons);
+  };
+
+  const handleLogoUpload = async (file) => {
+    if (!file) return;
+    
+    setUploadingLogo(true);
+    try {
+      const { file_url } = await base44.integrations.Core.UploadFile({ file });
+      setBusinessBranding({ ...businessBranding, logo_url: file_url });
+      toast.success("Logo subido correctamente");
+    } catch (error) {
+      console.error("Error uploading logo:", error);
+      toast.error("Error al subir logo");
+    } finally {
+      setUploadingLogo(false);
+    }
+  };
+
+  const saveBusinessBranding = async () => {
+    setLoading(true);
+    try {
+      const configs = await dataClient.entities.AppSettings.filter({ slug: "business-branding" });
+      const payload = businessBranding;
+      
+      if (configs?.length) {
+        await dataClient.entities.AppSettings.update(configs[0].id, { payload });
+      } else {
+        await dataClient.entities.AppSettings.create({
+          slug: "business-branding",
+          payload,
+          description: "Logo y términos del negocio"
+        });
+      }
+      
+      toast.success("✅ Información guardada");
+    } catch (error) {
+      console.error("Error saving branding:", error);
+      toast.error("Error al guardar");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const addCustomAdminButton = () => {
+    if (!customAdminButton.label) {
+      toast.error("El nombre del botón es obligatorio");
+      return;
+    }
+
+    const newButton = {
+      id: `custom_${Date.now()}`,
+      label: customAdminButton.label,
+      icon: customAdminButton.icon,
+      gradient: customAdminButton.gradient,
+      type: customAdminButton.type,
+      view: customAdminButton.type === "view" ? customAdminButton.view : undefined,
+      action: customAdminButton.type === "navigate" ? customAdminButton.action : customAdminButton.type === "external" ? customAdminButton.action : undefined,
+      enabled: true,
+      order: adminPanelButtons.length
+    };
+
+    setAdminPanelButtons([...adminPanelButtons, newButton]);
+    setCustomAdminButton({ label: "", icon: "Shield", gradient: "from-cyan-600 to-blue-600", action: "", type: "navigate", view: "" });
+    setShowCreateAdminButton(false);
+    toast.success("✅ Botón personalizado creado");
+  };
+
+  const sections = [
+    {
+      id: "business_info",
+      icon: Building2,
+      title: "Info del Negocio",
+      description: "Logo, contacto y horarios",
+      color: "from-orange-600 to-amber-600",
+      shadowColor: "rgba(251,146,60,0.4)"
+    },
+    {
+      id: "admin_panel",
+      icon: Shield,
+      title: "Panel Administrativo",
+      description: "Empleados y permisos",
+      color: "from-cyan-600 to-blue-600",
+      shadowColor: "rgba(6,182,212,0.4)",
+      isNavigation: true,
+      navigateTo: "UsersManagement"
+    },
+    {
+      id: "regional",
+      icon: Globe,
+      title: "Regional y Fiscal",
+      description: "Idioma, moneda, impuestos",
+      color: "from-blue-600 to-indigo-600",
+      shadowColor: "rgba(59,130,246,0.4)"
+    },
+    {
+      id: "email_templates",
+      icon: Mail,
+      title: "Plantillas Email",
+      description: "Notificaciones automáticas",
+      color: "from-emerald-600 to-green-600",
+      shadowColor: "rgba(16,185,129,0.4)"
+    },
+    {
+      id: "wizard",
+      icon: ClipboardList,
+      title: "Wizard de Órdenes",
+      description: "Configurar nueva orden",
+      color: "from-violet-600 to-purple-600",
+      shadowColor: "rgba(139,92,246,0.4)"
+    },
+    {
+      id: "dashboard_buttons",
+      icon: Sparkles,
+      title: "Configurar Dashboard",
+      description: "Personalizar botones principales",
+      color: "from-purple-600 to-pink-600",
+      shadowColor: "rgba(168,85,247,0.4)"
+    },
+    {
+      id: "inventory",
+      icon: Package,
+      title: "Inventario",
+      description: "Gestión de productos y stock",
+      color: "from-teal-500 to-cyan-600",
+      shadowColor: "rgba(20,184,166,0.4)",
+      isNavigation: true,
+      navigateTo: "Inventory"
+    }
+  ];
+
+
+
+  if (activeSection) {
+    const section = sections.find(s => s.id === activeSection);
+    const Icon = section?.icon || SettingsIcon;
+
+    return (
+      <div
+        className="min-h-screen bg-black/90 backdrop-blur-3xl theme-light:bg-gray-50 p-4 sm:p-6 relative"
+        style={{ paddingTop: "calc(env(safe-area-inset-top, 0px) + 10px)" }}
+      >
+        {/* Fondos animados flotantes */}
+        <div className="fixed -top-40 -right-40 w-96 h-96 bg-gradient-to-br from-purple-500/10 to-pink-500/10 rounded-full blur-[120px] animate-pulse pointer-events-none" />
+        <div className="fixed -bottom-40 -left-40 w-96 h-96 bg-gradient-to-br from-blue-500/10 to-cyan-500/10 rounded-full blur-[120px] animate-pulse delay-1000 pointer-events-none" />
+        
+        <div className="max-w-5xl mx-auto">
+          {/* Section Header Sequoia Style */}
+          <div className="mb-8">
+            <button
+              onClick={() => setActiveSection(null)}
+              className="flex items-center gap-3 text-white/60 hover:text-white transition-all duration-300 mb-6 text-sm font-bold group"
+            >
+              <div className="w-10 h-10 rounded-full bg-gradient-to-br from-white/10 to-white/5 group-hover:from-white/15 group-hover:to-white/10 border border-white/10 flex items-center justify-center transition-all active:scale-95 shadow-lg">
+                <ChevronRight className="w-5 h-5 rotate-180" />
+              </div>
+              Volver
+            </button>
+            
+            <div className="flex items-center gap-6">
+              <div className={`w-20 h-20 rounded-[26px] bg-gradient-to-br ${section.color} flex items-center justify-center shadow-2xl transform hover:scale-105 hover:rotate-3 transition-all duration-300`}>
+                <Icon className="w-10 h-10 text-white" strokeWidth={2.5} />
+              </div>
+              <div>
+                <h1 className="text-4xl font-black text-white tracking-tighter mb-2">{section.title}</h1>
+                <p className="text-white/60 text-lg font-bold">{section.description}</p>
+              </div>
+            </div>
+          </div>
+
+          {/* REGIONAL (SEQUOIA STYLE) */}
+          {activeSection === "regional" && (
+            <div className="space-y-6">
+              <div className="bg-gradient-to-br from-white/10 to-white/5 border border-white/10 rounded-[28px] p-7 space-y-6 backdrop-blur-xl shadow-2xl relative overflow-hidden">
+                <div className="absolute -right-20 -top-20 w-48 h-48 bg-gradient-to-br from-blue-500/20 to-cyan-500/10 rounded-full blur-[80px]" />
+                <div className="space-y-2">
+                  <label className="text-white/60 text-sm font-semibold ml-1">Idioma del Sistema</label>
+                  <div className="relative">
+                    <select 
+                      value={appConfig.language} 
+                      onChange={(e) => setAppConfig({...appConfig, language: e.target.value})} 
+                      className="w-full bg-white/5 hover:bg-white/10 border border-white/5 hover:border-white/10 rounded-2xl px-4 py-3.5 text-white appearance-none outline-none focus:ring-2 focus:ring-blue-500/50 transition-all"
+                    >
+                      <option value="es" className="bg-gray-900">🇪🇸 Español</option>
+                      <option value="en" className="bg-gray-900">🇺🇸 English</option>
+                      <option value="zh" className="bg-gray-900">🇨🇳 中文</option>
+                      <option value="de" className="bg-gray-900">🇩🇪 Deutsch</option>
+                      <option value="fr" className="bg-gray-900">🇫🇷 Français</option>
+                    </select>
+                    <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-white/40 pointer-events-none" />
+                  </div>
+                  <p className="text-xs text-orange-400/80 font-medium ml-1 mt-1 flex items-center gap-1">
+                    <AlertCircle className="w-3 h-3" /> Requiere recargar la página
+                  </p>
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-white/60 text-sm font-semibold ml-1">IVU / Impuesto (%)</label>
+                  <Input 
+                    type="number" 
+                    step="0.1" 
+                    value={appConfig.tax_rate} 
+                    onChange={(e) => setAppConfig({...appConfig, tax_rate: parseFloat(e.target.value)})} 
+                    className="bg-white/5 border-white/5 rounded-2xl h-12 text-white text-lg font-bold px-4 focus:bg-white/10 transition-all" 
+                  />
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <label className="text-white/60 text-sm font-semibold ml-1">Moneda</label>
+                    <div className="relative">
+                      <select 
+                        value={appConfig.currency} 
+                        onChange={(e) => setAppConfig({...appConfig, currency: e.target.value})} 
+                        className="w-full bg-white/5 border border-white/5 rounded-2xl px-4 py-3.5 text-white appearance-none outline-none focus:ring-2 focus:ring-blue-500/50"
+                      >
+                        <option value="USD" className="bg-gray-900">USD ($)</option>
+                        <option value="EUR" className="bg-gray-900">EUR (€)</option>
+                        <option value="GBP" className="bg-gray-900">GBP (£)</option>
+                        <option value="MXN" className="bg-gray-900">MXN ($)</option>
+                        <option value="CNY" className="bg-gray-900">CNY (¥)</option>
+                      </select>
+                      <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-white/40 pointer-events-none" />
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <label className="text-white/60 text-sm font-semibold ml-1">Zona Horaria</label>
+                    <div className="relative">
+                      <select 
+                        value={appConfig.timezone} 
+                        onChange={(e) => setAppConfig({...appConfig, timezone: e.target.value})} 
+                        className="w-full bg-white/5 border border-white/5 rounded-2xl px-4 py-3.5 text-white appearance-none outline-none focus:ring-2 focus:ring-blue-500/50"
+                      >
+                        <option value="America/Puerto_Rico" className="bg-gray-900">Puerto Rico</option>
+                        <option value="America/New_York" className="bg-gray-900">New York</option>
+                        <option value="America/Los_Angeles" className="bg-gray-900">Los Angeles</option>
+                        <option value="Europe/Madrid" className="bg-gray-900">Madrid</option>
+                        <option value="Asia/Tokyo" className="bg-gray-900">Tokyo</option>
+                      </select>
+                      <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-white/40 pointer-events-none" />
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <Button 
+                onClick={saveAppConfig} 
+                disabled={loading} 
+                className="w-full bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 text-white rounded-[20px] h-14 text-lg font-black shadow-[0_0_30px_rgba(59,130,246,0.4)] active:scale-95 transition-all duration-300"
+              >
+                {loading ? <Loader2 className="w-5 h-5 mr-2 animate-spin" /> : "Guardar Cambios"}
+              </Button>
+            </div>
+          )}
+
+
+
+          {/* BUSINESS INFO */}
+          {activeSection === "business_info" && (
+            <div className="space-y-6">
+              {/* Logo Section */}
+              <div className="bg-gradient-to-br from-white/10 to-white/5 border border-white/10 rounded-[28px] p-7 backdrop-blur-xl shadow-2xl relative overflow-hidden">
+                <div className="absolute -right-20 -top-20 w-48 h-48 bg-gradient-to-br from-cyan-500/20 to-blue-500/10 rounded-full blur-[80px]" />
+                <div className="flex items-start gap-5 mb-7 relative z-10">
+                  <div className="w-12 h-12 rounded-full bg-gradient-to-br from-cyan-400 to-blue-500 flex items-center justify-center shrink-0 shadow-xl">
+                    <Building2 className="w-6 h-6 text-white" strokeWidth={2.5} />
+                  </div>
+                  <div>
+                    <h2 className="text-2xl font-black text-white tracking-tight">Logo de la Tienda</h2>
+                    <p className="text-white/60 text-sm mt-2 leading-relaxed font-semibold">
+                      Este logo aparecerá en todos los recibos y documentos
+                    </p>
+                  </div>
+                </div>
+
+                <div className="space-y-5 relative z-10">
+                  {businessBranding.logo_url && (
+                    <div className="p-6 bg-black/40 rounded-2xl border border-white/10 text-center">
+                      <p className="text-white/60 text-sm font-semibold mb-4">Logo Actual</p>
+                      <div className="relative inline-block">
+                        <img 
+                          src={businessBranding.logo_url} 
+                          alt="Logo actual" 
+                          className="max-w-[300px] max-h-[150px] object-contain bg-white/5 rounded-xl border border-white/10 p-4 mx-auto"
+                        />
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => setBusinessBranding({ ...businessBranding, logo_url: "" })}
+                          className="absolute -top-2 -right-2 text-red-400 hover:text-red-300 hover:bg-red-500/10 bg-black/80 rounded-full"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </Button>
+                      </div>
+                    </div>
+                  )}
+
+                  <div className="space-y-3">
+                    <label className="text-white/60 text-sm font-semibold ml-1">
+                      {businessBranding.logo_url ? "Cambiar Logo" : "Subir Logo"}
+                    </label>
+                    <Button
+                      onClick={() => document.getElementById('logo-upload-input').click()}
+                      disabled={uploadingLogo}
+                      className="w-full bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-600 hover:to-blue-600 text-white rounded-xl h-14 font-bold"
+                    >
+                      {uploadingLogo ? (
+                        <>
+                          <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+                          Subiendo...
+                        </>
+                      ) : (
+                        <>
+                          <Upload className="w-5 h-5 mr-2" />
+                          Seleccionar Imagen
+                        </>
+                      )}
+                    </Button>
+                    <input
+                      id="logo-upload-input"
+                      type="file"
+                      accept="image/png,image/jpeg,image/jpg"
+                      onChange={(e) => handleLogoUpload(e.target.files[0])}
+                      className="hidden"
+                    />
+                    <p className="text-xs text-gray-400 ml-1 text-center">Formatos: PNG, JPG • Tamaño recomendado: 500x200px</p>
+                  </div>
+
+                  <div className="space-y-2">
+                    <label className="text-white/60 text-sm font-semibold ml-1">Nombre de la Tienda</label>
+                    <Input
+                      value={appConfig.business_name}
+                      onChange={(e) => setAppConfig({ ...appConfig, business_name: e.target.value })}
+                      placeholder="Ej: 911 SmartFix"
+                      className="bg-white/5 border-white/10 text-white rounded-xl h-12"
+                    />
+                    <p className="text-xs text-gray-400 ml-1">Este nombre aparecerá en los recibos PDF y emails</p>
+                  </div>
+
+                </div>
+              </div>
+
+              {/* Contact Information */}
+              <div className="bg-gradient-to-br from-white/10 to-white/5 border border-white/10 rounded-[28px] p-7 backdrop-blur-xl shadow-2xl relative overflow-hidden">
+                <div className="absolute -right-20 -top-20 w-48 h-48 bg-gradient-to-br from-blue-500/20 to-purple-500/10 rounded-full blur-[80px]" />
+                <div className="flex items-start gap-5 mb-7 relative z-10">
+                  <div className="w-12 h-12 rounded-full bg-gradient-to-br from-blue-400 to-purple-500 flex items-center justify-center shrink-0 shadow-xl">
+                    <Smartphone className="w-6 h-6 text-white" strokeWidth={2.5} />
+                  </div>
+                  <div>
+                    <h2 className="text-2xl font-black text-white tracking-tight">Información de Contacto</h2>
+                    <p className="text-white/60 text-sm mt-2 leading-relaxed font-semibold">
+                      Datos que aparecerán en recibos y comunicaciones
+                    </p>
+                  </div>
+                </div>
+
+                <div className="space-y-5 relative z-10">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <label className="text-white/60 text-sm font-semibold ml-1">Teléfono del Negocio</label>
+                      <Input
+                        value={appConfig.business_phone}
+                        onChange={(e) => setAppConfig({ ...appConfig, business_phone: e.target.value })}
+                        placeholder="(787) 123-4567"
+                        className="bg-white/5 border-white/10 text-white rounded-xl h-12"
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <label className="text-white/60 text-sm font-semibold ml-1">WhatsApp</label>
+                      <Input
+                        value={appConfig.business_whatsapp}
+                        onChange={(e) => setAppConfig({ ...appConfig, business_whatsapp: e.target.value })}
+                        placeholder="(787) 123-4567"
+                        className="bg-white/5 border-white/10 text-white rounded-xl h-12"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <label className="text-white/60 text-sm font-semibold ml-1">Email del Negocio</label>
+                    <Input
+                      value={appConfig.business_email}
+                      onChange={(e) => setAppConfig({ ...appConfig, business_email: e.target.value })}
+                      placeholder="info@smartfix.com"
+                      className="bg-white/5 border-white/10 text-white rounded-xl h-12"
+                    />
+                    <p className="text-xs text-gray-400 ml-1">Email principal de contacto</p>
+                  </div>
+
+                  <div className="space-y-2">
+                    <label className="text-white/60 text-sm font-semibold ml-1">Dirección Física</label>
+                    <Input
+                      value={appConfig.business_address}
+                      onChange={(e) => setAppConfig({ ...appConfig, business_address: e.target.value })}
+                      placeholder="Calle Principal #123, San Juan, PR"
+                      className="bg-white/5 border-white/10 text-white rounded-xl h-12"
+                    />
+                    <p className="text-xs text-gray-400 ml-1">Dirección pública del negocio para recibos y contacto</p>
+                  </div>
+
+                  <div className="space-y-4">
+                    <label className="text-white/60 text-sm font-semibold ml-1">Horarios por Día</label>
+                    {['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'].map((day) => {
+                      const dayLabel = { monday: 'Lunes', tuesday: 'Martes', wednesday: 'Miércoles', thursday: 'Jueves', friday: 'Viernes', saturday: 'Sábado', sunday: 'Domingo' }[day];
+                      const hours = appConfig.business_hours[day];
+                      return (
+                        <div key={day} className="flex items-center gap-3 p-3 bg-white/5 rounded-xl border border-white/10">
+                          <div className="flex-1">
+                            <p className="text-white font-semibold text-sm">{dayLabel}</p>
+                          </div>
+                          {!hours.closed ? (
+                            <div className="flex items-center gap-2">
+                              <input 
+                                type="time" 
+                                value={hours.open}
+                                onChange={(e) => setAppConfig({
+                                  ...appConfig, 
+                                  business_hours: {...appConfig.business_hours, [day]: {...hours, open: e.target.value}}
+                                })}
+                                className="bg-white/5 border-white/10 text-white rounded-lg px-2 py-2 text-sm"
+                              />
+                              <span className="text-white/50">-</span>
+                              <input 
+                                type="time" 
+                                value={hours.close}
+                                onChange={(e) => setAppConfig({
+                                  ...appConfig, 
+                                  business_hours: {...appConfig.business_hours, [day]: {...hours, close: e.target.value}}
+                                })}
+                                className="bg-white/5 border-white/10 text-white rounded-lg px-2 py-2 text-sm"
+                              />
+                            </div>
+                          ) : (
+                            <p className="text-red-400 text-sm font-semibold">Cerrado</p>
+                          )}
+                          <button
+                            onClick={() => setAppConfig({
+                              ...appConfig,
+                              business_hours: {...appConfig.business_hours, [day]: {...hours, closed: !hours.closed}}
+                            })}
+                            className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+                              hours.closed 
+                                ? 'bg-white/5 border border-white/10 text-white/60 hover:bg-white/10' 
+                                : 'bg-red-500/20 border border-red-500/30 text-red-400'
+                            }`}
+                          >
+                            {hours.closed ? 'Abrir' : 'Cerrar'}
+                          </button>
+                        </div>
+                      );
+                    })}
+                  </div>
+
+                  <div className="space-y-2">
+                    <label className="text-white/60 text-sm font-semibold ml-1 flex items-center gap-2">
+                      <ExternalLink className="w-4 h-4 text-cyan-400" />
+                      Link de Google Reviews
+                    </label>
+                    <Input
+                      value={appConfig.google_review_link}
+                      onChange={(e) => setAppConfig({ ...appConfig, google_review_link: e.target.value })}
+                      placeholder="https://g.page/r/..."
+                      className="bg-white/5 border-white/10 text-white rounded-xl h-12"
+                    />
+                    <p className="text-xs text-gray-400 ml-1">Los clientes podrán acceder a este link desde su recibo para dejar una reseña</p>
+                  </div>
+
+                  <div className="space-y-2">
+                    <label className="text-white/60 text-sm font-semibold ml-1 flex items-center gap-2">
+                      <Mail className="w-4 h-4 text-cyan-400" />
+                      Email para Solicitudes de Acceso
+                    </label>
+                    <Input
+                      value={appConfig.access_request_email}
+                      onChange={(e) => setAppConfig({ ...appConfig, access_request_email: e.target.value })}
+                      placeholder="smartfixosapp@gmail.com"
+                      className="bg-white/5 border-white/10 text-white rounded-xl h-12"
+                    />
+                    <p className="text-xs text-gray-400 ml-1">Uso interno: aquí llegan las solicitudes de nuevos empleados</p>
+                  </div>
+
+                  <div className="h-px bg-gradient-to-r from-transparent via-white/20 to-transparent mt-6" />
+
+                  <div className="mt-6">
+                    <label className="text-white/60 text-sm font-semibold ml-1 block mb-4">Configurar Términos y Garantías</label>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      <button
+                        onClick={() => setShowWarrantySalesModal(true)}
+                        className="flex items-center gap-3 p-4 rounded-xl bg-emerald-600/10 border border-emerald-500/30 hover:border-emerald-500/60 text-left transition-all group"
+                      >
+                        <div className="w-10 h-10 rounded-lg bg-emerald-500/20 flex items-center justify-center text-emerald-400 group-hover:scale-110 transition-transform">
+                          <Shield className="w-5 h-5" />
+                        </div>
+                        <div className="flex-1">
+                          <p className="text-white font-bold text-sm">Garantía por Venta</p>
+                          <p className="text-xs text-gray-400">
+                            {businessBranding.warranty_sales ? "Configurado ✓" : "No configurado"}
+                          </p>
+                        </div>
+                      </button>
+
+                      <button
+                        onClick={() => setShowWarrantyRepairsModal(true)}
+                        className="flex items-center gap-3 p-4 rounded-xl bg-blue-600/10 border border-blue-500/30 hover:border-blue-500/60 text-left transition-all group"
+                      >
+                        <div className="w-10 h-10 rounded-lg bg-blue-500/20 flex items-center justify-center text-blue-400 group-hover:scale-110 transition-transform">
+                          <Shield className="w-5 h-5" />
+                        </div>
+                        <div className="flex-1">
+                          <p className="text-white font-bold text-sm">Garantía por Reparación</p>
+                          <p className="text-xs text-gray-400">
+                            {businessBranding.warranty_repairs ? "Configurado ✓" : "No configurado"}
+                          </p>
+                        </div>
+                      </button>
+                    </div>
+                  </div>
+                  </div>
+                  </div>
+
+
+
+              <Button 
+                onClick={() => {
+                  saveBusinessBranding();
+                  saveAppConfig();
+                }} 
+                disabled={loading} 
+                className="w-full bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-600 hover:to-blue-600 text-white rounded-[20px] h-14 text-lg font-black shadow-[0_0_30px_rgba(6,182,212,0.4)] active:scale-95 transition-all duration-300"
+              >
+                {loading ? <Loader2 className="w-5 h-5 mr-2 animate-spin" /> : <><Check className="w-5 h-5 mr-2" />Guardar Configuración</>}
+              </Button>
+
+              {/* Modales de Garantías */}
+              <WarrantySalesModal
+                isOpen={showWarrantySalesModal}
+                onClose={() => setShowWarrantySalesModal(false)}
+                currentText={businessBranding.warranty_sales}
+                onSave={(data) => setBusinessBranding({ ...businessBranding, warranty_sales: data })}
+              />
+
+              <WarrantyRepairsModal
+                isOpen={showWarrantyRepairsModal}
+                onClose={() => setShowWarrantyRepairsModal(false)}
+                currentText={businessBranding.warranty_repairs}
+                onSave={(text) => setBusinessBranding({ ...businessBranding, warranty_repairs: text })}
+              />
+            </div>
+          )}
+
+          {/* WIZARD */}
+          {activeSection === "wizard" && <WizardConfigPanel />}
+
+          {/* EMAIL TEMPLATES */}
+          {activeSection === "email_templates" && <EmailTemplatesTab />}
+
+
+
+          {/* DASHBOARD BUTTONS (SEQUOIA STYLE) */}
+          {activeSection === "dashboard_buttons" && (
+            <div className="space-y-6">
+              <div className="bg-gradient-to-br from-white/10 to-white/5 border border-white/10 rounded-[28px] p-7 backdrop-blur-xl shadow-2xl relative overflow-hidden">
+                <div className="absolute -right-20 -bottom-20 w-48 h-48 bg-gradient-to-br from-purple-500/20 to-pink-500/10 rounded-full blur-[80px]" />
+                <div className="flex items-start gap-5 mb-7 relative z-10">
+                  <div className="w-12 h-12 rounded-full bg-gradient-to-br from-blue-400 to-cyan-500 flex items-center justify-center shrink-0 shadow-xl">
+                    <Grid className="w-6 h-6 text-white" strokeWidth={2.5} />
+                  </div>
+                  <div>
+                    <h2 className="text-2xl font-black text-white tracking-tight">Personalización de Pantalla</h2>
+                    <p className="text-white/60 text-sm mt-2 leading-relaxed font-semibold">
+                      Organiza y personaliza los accesos directos de tu pantalla principal. Arrastra para reordenar.
+                    </p>
+                  </div>
+                </div>
+
+                <DragDropContext onDragEnd={handleDragEnd}>
+                  <Droppable droppableId="buttons">
+                    {(provided) => (
+                      <div
+                        {...provided.droppableProps}
+                        ref={provided.innerRef}
+                        className="space-y-3"
+                      >
+                        {dashboardButtons.map((button, index) => {
+                          const IconComponent = typeof button.icon === 'string' 
+                            ? ICON_OPTIONS.find(i => i.value === button.icon)?.component || ExternalLink
+                            : button.icon;
+                          
+                          return (
+                            <Draggable key={button.id} draggableId={button.id} index={index}>
+                              {(provided, snapshot) => (
+                                <div
+                                  ref={provided.innerRef}
+                                  {...provided.draggableProps}
+                                  className={`relative overflow-hidden rounded-[20px] border transition-all duration-500 ${
+                                    snapshot.isDragging
+                                      ? "border-cyan-500/50 bg-gradient-to-br from-cyan-500/20 to-blue-500/10 shadow-[0_20px_60px_rgba(6,182,212,0.4)] scale-105 z-50"
+                                      : "border-white/10 bg-gradient-to-br from-white/8 to-white/5 hover:from-white/12 hover:to-white/8"
+                                  }`}
+                                >
+                                  <div className="flex items-center gap-4 p-4">
+                                    <div
+                                      {...provided.dragHandleProps}
+                                      className="cursor-grab active:cursor-grabbing p-2 hover:bg-white/5 rounded-lg transition-colors"
+                                    >
+                                      <GripVertical className="w-5 h-5 text-white/30" />
+                                    </div>
+
+                                    <div className={`w-14 h-14 rounded-[18px] bg-gradient-to-br ${button.gradient} flex items-center justify-center shadow-xl flex-shrink-0 transform transition-transform duration-300 ${snapshot.isDragging ? 'scale-110' : ''}`}>
+                                      <IconComponent className="w-7 h-7 text-white" strokeWidth={2.5} />
+                                    </div>
+
+                                    <div className="flex-1 min-w-0">
+                                      <p className="text-white font-black text-lg truncate">{button.label}</p>
+                                      <p className="text-white/50 text-xs mt-1 truncate font-semibold">
+                                        {button.page || button.action}
+                                      </p>
+                                    </div>
+
+                                    <div className="flex items-center gap-2">
+                                      <Button
+                                        onClick={() => handleDeleteButton(button.id)}
+                                        variant="ghost"
+                                        size="icon"
+                                        className="text-white/20 hover:text-red-400 hover:bg-red-500/10 rounded-full"
+                                      >
+                                        <Trash2 className="w-4 h-4" />
+                                      </Button>
+
+                                      <button
+                                        onClick={() => handleToggleButton(button.id)}
+                                        className={`w-12 h-7 rounded-full transition-colors relative flex items-center px-1 ${
+                                          button.enabled ? "bg-green-500" : "bg-white/10"
+                                        }`}
+                                      >
+                                        <div className={`w-5 h-5 rounded-full bg-white shadow-sm transition-transform ${
+                                          button.enabled ? "translate-x-5" : "translate-x-0"
+                                        }`} />
+                                      </button>
+                                    </div>
+                                  </div>
+                                </div>
+                              )}
+                            </Draggable>
+                          );
+                        })}
+                        {provided.placeholder}
+                      </div>
+                    )}
+                  </Droppable>
+                </DragDropContext>
+
+                <div className="mt-6 pt-6 border-t border-white/5">
+                  <Button
+                    onClick={() => setShowCreateCustom(true)}
+                    className="w-full bg-white/5 hover:bg-white/10 text-white border border-white/5 rounded-2xl h-12 font-semibold transition-all"
+                  >
+                    <Plus className="w-5 h-5 mr-2" />
+                    Añadir Acceso Directo
+                  </Button>
+                </div>
+              </div>
+
+              {showCreateCustom && (
+                <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-xl flex items-center justify-center p-4">
+                  <div className="bg-gradient-to-br from-[#1c1c1e] to-black/90 border border-white/20 p-8 rounded-[36px] max-w-md w-full shadow-2xl relative overflow-hidden">
+                    <div className="absolute -top-20 -right-20 w-40 h-40 bg-gradient-to-br from-cyan-500/20 to-blue-500/10 rounded-full blur-[80px]" />
+                    <h3 className="text-3xl font-black text-white mb-7 tracking-tight relative z-10">Nuevo Acceso</h3>
+                    <div className="space-y-5">
+                      <div className="space-y-2">
+                        <label className="text-white/60 text-xs font-bold uppercase tracking-wider ml-1">Nombre</label>
+                        <Input
+                          value={customButton.label}
+                          onChange={(e) => setCustomButton({...customButton, label: e.target.value})}
+                          placeholder="Ej: Reportes Externos"
+                          className="bg-white/5 border-transparent rounded-xl h-12 text-white placeholder-white/20 focus:bg-white/10"
+                        />
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                          <label className="text-white/60 text-xs font-bold uppercase tracking-wider ml-1">Icono</label>
+                          <select
+                            value={customButton.icon}
+                            onChange={(e) => setCustomButton({...customButton, icon: e.target.value})}
+                            className="w-full bg-white/5 border-transparent rounded-xl h-12 text-white px-3 outline-none focus:bg-white/10"
+                          >
+                            {ICON_OPTIONS.map(opt => (
+                              <option key={opt.value} value={opt.value} className="bg-[#1c1c1e]">{opt.label}</option>
+                            ))}
+                          </select>
+                        </div>
+                        <div className="space-y-2">
+                          <label className="text-white/60 text-xs font-bold uppercase tracking-wider ml-1">Color</label>
+                          <select
+                            value={customButton.gradient}
+                            onChange={(e) => setCustomButton({...customButton, gradient: e.target.value})}
+                            className="w-full bg-white/5 border-transparent rounded-xl h-12 text-white px-3 outline-none focus:bg-white/10"
+                          >
+                            {GRADIENT_OPTIONS.map(opt => (
+                              <option key={opt.value} value={opt.value} className="bg-[#1c1c1e]">{opt.label}</option>
+                            ))}
+                          </select>
+                        </div>
+                      </div>
+
+                      <div className="space-y-3">
+                        <label className="text-white/60 text-xs font-bold uppercase tracking-wider ml-1">Tipo de Destino</label>
+                        
+                        {/* Botones de radio */}
+                        <div className="flex gap-3">
+                          <button
+                            type="button"
+                            onClick={() => setCustomButton({...customButton, type: 'navigate', action: ''})}
+                            className={`flex-1 p-3 rounded-xl border-2 transition-all ${
+                              customButton.type === 'navigate'
+                                ? 'bg-cyan-500/20 border-cyan-500/60 text-white'
+                                : 'bg-white/5 border-white/10 text-white/60 hover:bg-white/10'
+                            }`}
+                          >
+                            <p className="font-bold text-sm">🔗 Ruta Interna</p>
+                            <p className="text-xs opacity-70">Página del sistema</p>
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setCustomButton({...customButton, type: 'external', action: ''})}
+                            className={`flex-1 p-3 rounded-xl border-2 transition-all ${
+                              customButton.type === 'external'
+                                ? 'bg-emerald-500/20 border-emerald-500/60 text-white'
+                                : 'bg-white/5 border-white/10 text-white/60 hover:bg-white/10'
+                            }`}
+                          >
+                            <p className="font-bold text-sm">🌐 URL Externa</p>
+                            <p className="text-xs opacity-70">Link externo</p>
+                          </button>
+                        </div>
+
+                        {/* Input según tipo seleccionado */}
+                        {customButton.type === 'navigate' ? (
+                          <div className="space-y-2">
+                            <label className="text-white/60 text-xs font-bold ml-1">Selecciona la página</label>
+                            <select
+                              value={customButton.action}
+                              onChange={(e) => setCustomButton({...customButton, action: e.target.value})}
+                              className="w-full bg-white/5 border-transparent rounded-xl h-12 text-white px-3 outline-none focus:bg-white/10"
+                            >
+                              <option value="" className="bg-[#1c1c1e]">-- Selecciona una página --</option>
+                              <option value="Dashboard" className="bg-[#1c1c1e]">📊 Dashboard</option>
+                              <option value="Orders" className="bg-[#1c1c1e]">📋 Órdenes</option>
+                              <option value="Customers" className="bg-[#1c1c1e]">👥 Clientes</option>
+                              <option value="Inventory" className="bg-[#1c1c1e]">📦 Inventario</option>
+                              <option value="POS" className="bg-[#1c1c1e]">🛒 Punto de Venta</option>
+                              <option value="Financial" className="bg-[#1c1c1e]">💰 Finanzas</option>
+                              <option value="Reports" className="bg-[#1c1c1e]">📈 Reportes</option>
+                              <option value="Recharges" className="bg-[#1c1c1e]">⚡ Recargas</option>
+                              <option value="Notifications" className="bg-[#1c1c1e]">🔔 Notificaciones</option>
+                              <option value="Technicians" className="bg-[#1c1c1e]">🔧 Técnicos</option>
+                              <option value="Settings" className="bg-[#1c1c1e]">⚙️ Configuración</option>
+                              <option value="UsersManagement" className="bg-[#1c1c1e]">👤 Usuarios</option>
+                              <option value="TimeTracking" className="bg-[#1c1c1e]">⏱️ Control de Tiempo</option>
+                              <option value="CashHistory" className="bg-[#1c1c1e]">💵 Historial de Caja</option>
+                            </select>
+                          </div>
+                        ) : (
+                          <div className="space-y-2">
+                            <label className="text-white/60 text-xs font-bold ml-1">URL Externa</label>
+                            <Input
+                              value={customButton.action}
+                              onChange={(e) => setCustomButton({...customButton, action: e.target.value})}
+                              placeholder="https://ejemplo.com"
+                              className="bg-white/5 border-transparent rounded-xl h-12 text-white placeholder-white/20 focus:bg-white/10"
+                            />
+                          </div>
+                        )}
+                      </div>
+
+                      <div className="flex gap-4 pt-4 relative z-10">
+                        <Button
+                          onClick={() => setShowCreateCustom(false)}
+                          className="flex-1 bg-white/5 hover:bg-white/10 border border-white/10 text-white rounded-[16px] h-14 font-bold active:scale-95 transition-all"
+                        >
+                          Cancelar
+                        </Button>
+                        <Button
+                          onClick={() => {
+                            if (!customButton.label || !customButton.action) return toast.error("Faltan datos");
+                            const newButton = {
+                              id: `custom_${Date.now()}`,
+                              label: customButton.label,
+                              icon: customButton.icon,
+                              gradient: customButton.gradient,
+                              type: customButton.type,
+                              action: customButton.action,
+                              enabled: true,
+                              order: dashboardButtons.length
+                            };
+                            setDashboardButtons([...dashboardButtons, newButton]);
+                            setCustomButton({ label: "", icon: "ExternalLink", gradient: "from-cyan-600 to-blue-600", action: "", type: "navigate" });
+                            setShowCreateCustom(false);
+                            toast.success("Creado");
+                          }}
+                          className="flex-1 bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 text-white rounded-[16px] h-14 font-black shadow-[0_0_25px_rgba(59,130,246,0.4)] active:scale-95 transition-all duration-300"
+                        >
+                          Crear
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              <Button 
+                onClick={saveDashboardButtons} 
+                disabled={loading} 
+                className="w-full bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white rounded-[20px] h-14 text-lg font-black shadow-[0_0_30px_rgba(168,85,247,0.4)] transition-all duration-300 active:scale-95"
+              >
+                {loading ? <Loader2 className="w-5 h-5 mr-2 animate-spin" /> : "Guardar Configuración"}
+              </Button>
+            </div>
+          )}
+
+
+
+
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div
+      className="min-h-screen bg-black/90 backdrop-blur-3xl theme-light:bg-gray-50 p-4 sm:p-6 relative"
+      style={{ paddingTop: "calc(env(safe-area-inset-top, 0px) + 10px)" }}
+    >
+      {/* Fondos animados flotantes estilo macOS Sequoia */}
+      <div className="fixed -top-60 -right-60 w-[500px] h-[500px] bg-gradient-to-br from-purple-500/15 to-pink-500/10 rounded-full blur-[140px] animate-pulse pointer-events-none" />
+      <div className="fixed -bottom-60 -left-60 w-[500px] h-[500px] bg-gradient-to-br from-blue-500/15 to-cyan-500/10 rounded-full blur-[140px] animate-pulse delay-1000 pointer-events-none" />
+      
+      <div className="max-w-7xl mx-auto">
+        {/* Hero Header iOS Style - Icon Focused */}
+        <div className="flex items-center justify-center sm:justify-start gap-4 sm:gap-6 mb-8">
+          <div className="w-20 h-20 sm:w-28 sm:h-28 rounded-[28px] bg-gradient-to-br from-cyan-500 to-blue-600 flex items-center justify-center shadow-2xl border border-white/20 backdrop-blur-md transform hover:scale-105 transition-transform duration-500">
+            <SettingsIcon className="w-10 h-10 sm:w-14 sm:h-14 text-white" strokeWidth={2.5} />
+          </div>
+          <div className="flex-1 hidden sm:block">
+            <h1 className="text-3xl sm:text-5xl font-black text-white tracking-tighter mb-2">
+              Configuración
+            </h1>
+            <p className="text-white/70 text-base sm:text-xl font-semibold">
+              Personaliza tu experiencia SmartFixOS
+            </p>
+          </div>
+        </div>
+
+        {/* Settings Grid iOS Style - Icon Buttons */}
+        <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-4 sm:gap-6">
+          {sections.map((section) => {
+            const Icon = section.icon;
+            return (
+              <button
+                key={section.id}
+                onClick={() => {
+                  if (section.isNavigation) {
+                    navigate(createPageUrl(section.navigateTo));
+                  } else {
+                    setActiveSection(section.id);
+                  }
+                }}
+                className="group relative flex flex-col items-center text-center transition-all duration-300 active:scale-95"
+              >
+                <div className={`w-16 h-16 sm:w-20 sm:h-20 rounded-[22px] flex items-center justify-center mb-3 shadow-2xl bg-gradient-to-br ${section.color} group-hover:scale-110 transition-all duration-300 border border-white/10`}>
+                  <Icon className="w-8 h-8 sm:w-10 sm:h-10 text-white" strokeWidth={2.5} />
+                </div>
+                
+                <p className="text-white/80 group-hover:text-white font-bold text-xs sm:text-sm leading-tight transition-colors max-w-[90px]">
+                  {section.title}
+                </p>
+              </button>
+            );
+          })}
+        </div>
+
+        {/* Info Footer Sequoia Style */}
+        <div className="mt-8 bg-gradient-to-br from-cyan-500/10 to-blue-500/10 border border-cyan-500/20 rounded-[28px] p-7 backdrop-blur-xl shadow-xl relative overflow-hidden">
+          <div className="absolute -right-12 -bottom-12 w-32 h-32 bg-gradient-to-br from-cyan-400/20 to-blue-500/20 rounded-full blur-3xl" />
+          <div className="flex items-start gap-5 relative z-10">
+            <div className="w-12 h-12 rounded-full bg-gradient-to-br from-cyan-400 to-blue-500 flex items-center justify-center flex-shrink-0 shadow-xl">
+              <Sparkles className="w-6 h-6 text-white" strokeWidth={2.5} />
+            </div>
+            <div className="flex-1">
+              <h4 className="text-white font-black text-lg mb-2 tracking-tight">Configuración en Tiempo Real</h4>
+              <p className="text-white/60 text-sm leading-relaxed font-medium">
+                Los cambios se sincronizan instantáneamente en todos los dispositivos conectados.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+
+    </div>
+  );
+}

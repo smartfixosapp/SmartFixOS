@@ -1,0 +1,19 @@
+# Dockerfile for Render — Deno Functions Server ONLY
+# Lighter than the full Dockerfile (no Python, no Node/pnpm build)
+
+FROM denoland/deno:2.3.1
+
+WORKDIR /app
+
+# Copy only what the Deno server needs
+COPY lib/ /app/lib/
+COPY apps/Smart/src/Functions/ /app/apps/Smart/src/Functions/
+COPY apps/Smart/src/Entities/ /app/apps/Smart/src/Entities/
+
+# Cache dependencies (optional but speeds up cold starts)
+RUN cd /app/apps/Smart/src/Functions && \
+    deno cache --allow-ffi --allow-net --allow-env --allow-read server.js || true
+
+# Render sets PORT env var; our server reads FUNCTIONS_PORT
+# Use a simple entrypoint that maps PORT → FUNCTIONS_PORT
+CMD ["sh", "-c", "export FUNCTIONS_PORT=${PORT:-8686} && cd /app/apps/Smart/src/Functions && deno run --allow-ffi --allow-net --allow-env --allow-read server.js"]

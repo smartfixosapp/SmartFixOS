@@ -1,0 +1,69 @@
+{
+  "name": "Service",
+  "type": "object",
+  "properties": {
+    "code": {
+      "type": "string",
+      "description": "C\u00f3digo del servicio"
+    },
+    "name": {
+      "type": "string",
+      "description": "Nombre del servicio"
+    },
+    "description": {
+      "type": "string",
+      "description": "Descripci\u00f3n del servicio"
+    },
+    "category": {
+      "type": "string",
+      "enum": [
+        "screen_repair",
+        "battery_replacement",
+        "water_damage",
+        "software",
+        "data_recovery",
+        "maintenance",
+        "other"
+      ],
+      "description": "Categor\u00eda del servicio"
+    },
+    "price": {
+      "type": "number",
+      "description": "Precio del servicio"
+    },
+    "duration_minutes": {
+      "type": "number",
+      "default": 60,
+      "description": "Duraci\u00f3n estimada en minutos"
+    },
+    "compatibility": {
+      "type": "string",
+      "description": "Modelos compatibles separados por coma"
+    },
+    "compatibility_scope": {
+      "type": "string",
+      "enum": [
+        "specific",
+        "family",
+        "generic"
+      ],
+      "default": "generic",
+      "description": "\u00c1mbito de compatibilidad"
+    },
+    "active": {
+      "type": "boolean",
+      "default": true,
+      "description": "Si el servicio est\u00e1 activo"
+    },
+    "maintenance_interval": {
+      "type": "number",
+      "minimum": 0,
+      "description": "Intervalo de mantenimiento en meses (0 = sin recordatorio)"
+    }
+  },
+  "required": [
+    "code",
+    "name",
+    "price"
+  ]
+}
