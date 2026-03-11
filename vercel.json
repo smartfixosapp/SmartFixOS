@@ -1,5 +1,5 @@
 {
-  "buildCommand": "pnpm --filter './apps/Smart' build",
+  "buildCommand": "pnpm --filter 'smart-fix-copy-copy-6d4cf555' build",
   "outputDirectory": "apps/Smart/dist",
   "installCommand": "pnpm install",
   "framework": null,
