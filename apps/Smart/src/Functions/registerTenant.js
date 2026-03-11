@@ -86,7 +86,7 @@ export async function registerTenantHandler(req) {
       currency: 'USD',
       status: 'active',
       plan: 'smartfixos',
-      monthly_cost: 65,
+      monthly_cost: 55,
       subscription_status: 'active',
       trial_period_days: 15,
       trial_end_date: trialEndStr,
@@ -207,7 +207,7 @@ export async function registerTenantHandler(req) {
         </div>
         <div style="display:flex;justify-content:space-between;margin-bottom:12px;">
           <span style="color:#9ca3af;">Plan</span>
-          <span style="color:#ffffff;font-weight:600;">SmartFixOS — $65/mes</span>
+          <span style="color:#34d399;font-weight:600;">15 días Trial Gratis ✓</span>
         </div>
         <div style="display:flex;justify-content:space-between;margin-bottom:12px;">
           <span style="color:#9ca3af;">Trial gratuito hasta</span>
