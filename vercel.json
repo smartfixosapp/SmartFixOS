@@ -1,6 +1,6 @@
 {
-  "buildCommand": "cd apps/Smart && pnpm install && pnpm build",
-  "outputDirectory": "apps/Smart/dist",
+  "buildCommand": "pnpm build",
+  "outputDirectory": "dist",
   "installCommand": "pnpm install",
   "framework": null,
   "rewrites": [
