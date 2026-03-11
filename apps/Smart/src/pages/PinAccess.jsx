@@ -10,10 +10,13 @@ import { triggerRealtimeNotification, NOTIFICATION_TYPES } from "@/components/no
 import { ensureAdminBootstrap } from "@/components/utils/adminBootstrap";
 import { getUserPermissions } from "@/components/utils/rolePermissions";
 import RequestAccessModal from "../components/auth/RequestAccessModal";
+import { registerTenant } from "@/api/functions";
 
 export default function PinAccess() {
   const MASTER_PIN = "3407";
-  const MASTER_OWNER_EMAIL = "911smartfix@gmail.com";
+  const MASTER_OWNER_EMAIL  = "911smartfix@gmail.com";
+  const SUPER_ADMIN_EMAIL   = "smartfixosapp@gmail.com";   // SaaS owner — va al panel de plataforma
+  const SUPER_SESSION_KEY   = "smartfix_saas_session";
   const LOCAL_USERS_STORAGE_KEY = "smartfix_local_users";
   const STORE_EMAIL_KEY = "smartfix_store_email";
   const DEFAULT_STORE_EMAIL = "911smartfix@gmail.com";
@@ -64,6 +67,8 @@ export default function PinAccess() {
   const [showRequestAccess, setShowRequestAccess] = useState(false);
   const [showBypass, setShowBypass] = useState(false);
   const [showSignup, setShowSignup] = useState(false);
+  const [signupStep, setSignupStep] = useState("form"); // 'form' | 'success'
+  const [signupResult, setSignupResult] = useState(null);
   const [storePassword, setStorePassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [sendingReset, setSendingReset] = useState(false);
@@ -71,10 +76,32 @@ export default function PinAccess() {
   const [formData, setFormData] = useState({
     full_name: "",
     email: "",
+    password: "",
     phone: "",
     business_name: ""
   });
+  const [showSignupPassword, setShowSignupPassword] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+
+  // ── Auto-save / Auto-login ────────────────────────────────────────────────
+  const SAVED_CREDS_KEY = "smartfix_saved_creds";
+  const [storeAuthenticated, setStoreAuthenticated] = useState(false);
+  const [isAutoLogging, setIsAutoLogging] = useState(false);
+  const [slideDir, setSlideDir] = useState(1); // 1 = adelante, -1 = atrás
+
+  const loadSavedCreds = () => {
+    try {
+      const raw = localStorage.getItem(SAVED_CREDS_KEY);
+      return raw ? JSON.parse(atob(raw)) : null;
+    } catch { return null; }
+  };
+  const saveCreds = (email, pwd) => {
+    try { localStorage.setItem(SAVED_CREDS_KEY, btoa(JSON.stringify({ email, pwd }))); } catch {}
+  };
+  const clearSavedCreds = () => localStorage.removeItem(SAVED_CREDS_KEY);
+
+  // PIN pad numbers (definido aquí para que los early returns lo puedan usar)
+  const numbers = [[1, 2, 3], [4, 5, 6], [7, 8, 9], [null, 0, "⌫"]];
 
   const getMasterFallbackUser = () => ({
     id: "__master__",
@@ -131,40 +158,38 @@ export default function PinAccess() {
       });
   };
 
-  const handleStoreContinue = async () => {
-    const trimmedEmail = storeEmail.trim();
-    if (!trimmedEmail) {
-      toast.error("Ingresa el email de la cuenta");
-      return;
-    }
-    if (!storePassword) {
-      toast.error("Ingresa tu contraseña");
-      return;
-    }
-
+  // Core auth — acepta email/password directamente (usado también por auto-login)
+  const performStoreAuth = async (email, password) => {
     setUsersLoading(true);
     setMasterValidated(false);
     setError("");
     setPin("");
     try {
-      // Fase 3: Autenticar con Supabase Auth
-      const { error: authError } = await supabase.auth.signInWithPassword({
-        email: trimmedEmail,
-        password: storePassword,
-      });
-
+      const { error: authError } = await supabase.auth.signInWithPassword({ email, password });
       if (authError) {
         toast.error("Email o contraseña incorrecta");
-        setUsersLoading(false);
-        return;
+        clearSavedCreds();
+        return false;
       }
 
-      localStorage.setItem(STORE_EMAIL_KEY, trimmedEmail);
+      // ── Super Admin: desviar al panel de plataforma ──────────────────────
+      if (email.trim().toLowerCase() === SUPER_ADMIN_EMAIL.toLowerCase()) {
+        const superSession = {
+          email,
+          role: "saas_owner",
+          loginTime: new Date().toISOString(),
+        };
+        localStorage.setItem(SUPER_SESSION_KEY, JSON.stringify(superSession));
+        saveCreds(email, password);
+        navigate("/SuperAdmin", { replace: true });
+        return true;
+      }
 
-      // Fase 4: resolve tenant_id from the admin user's DB record
+      localStorage.setItem(STORE_EMAIL_KEY, email);
+
       let resolvedTenantId = null;
       try {
-        const adminUsers = await dataClient.entities.User.filter({ email: trimmedEmail });
+        const adminUsers = await dataClient.entities.User.filter({ email });
         resolvedTenantId = adminUsers?.[0]?.tenant_id || null;
         if (resolvedTenantId) {
           setTenantId(resolvedTenantId);
@@ -175,6 +200,40 @@ export default function PinAccess() {
         console.warn("Could not resolve tenant_id:", e.message);
       }
 
+      // ── Verificar que el tenant no esté suspendido (via supabase directo) ──
+      if (resolvedTenantId) {
+        try {
+          const { data: tenantRecord } = await supabase
+            .from("tenant")
+            .select("status")
+            .eq("id", resolvedTenantId)
+            .single();
+          if (tenantRecord?.status === "suspended" || tenantRecord?.status === "cancelled") {
+            toast.error("⛔ Esta cuenta está suspendida. Contacta a soporte en smartfixos.com", { duration: 6000 });
+            await supabase.auth.signOut();
+            clearSavedCreds();
+            return false;
+          }
+        } catch (e) {
+          // Si falla la query, intentar con la tabla "Tenant" en minúsculas alternativa
+          try {
+            const { data: t2 } = await supabase
+              .from("Tenant")
+              .select("status")
+              .eq("id", resolvedTenantId)
+              .single();
+            if (t2?.status === "suspended" || t2?.status === "cancelled") {
+              toast.error("⛔ Esta cuenta está suspendida. Contacta a soporte en smartfixos.com", { duration: 6000 });
+              await supabase.auth.signOut();
+              clearSavedCreds();
+              return false;
+            }
+          } catch {
+            console.warn("No se pudo verificar estado del tenant:", e.message);
+          }
+        }
+      }
+
       const users = await getMergedActiveUsers(resolvedTenantId);
       if (!users.length) {
         const fallbackMaster = getMasterFallbackUser();
@@ -182,17 +241,29 @@ export default function PinAccess() {
         setSelectedUser(fallbackMaster);
         setStep("pin");
         toast.warning("No hay empleados registrados. Usa Admin Maestro para configurar.");
-        return;
+      } else {
+        setAvailableUsers(users);
+        setSelectedUser(null);
+        setStep("user");
       }
-      setAvailableUsers(users);
-      setSelectedUser(null);
-      setStep("user");
+
+      saveCreds(email, password);
+      setStoreAuthenticated(true);
+      return true;
     } catch (e) {
       console.error("Error en login:", e);
       toast.error("Error al conectar. Verifica tu conexión.");
+      return false;
     } finally {
       setUsersLoading(false);
     }
+  };
+
+  const handleStoreContinue = async () => {
+    const trimmedEmail = storeEmail.trim();
+    if (!trimmedEmail) { toast.error("Ingresa el email de la cuenta"); return; }
+    if (!storePassword)  { toast.error("Ingresa tu contraseña"); return; }
+    await performStoreAuth(trimmedEmail, storePassword);
   };
 
   const handleForgotPassword = async () => {
@@ -216,6 +287,7 @@ export default function PinAccess() {
   };
 
   const handleSelectUser = (user) => {
+    setSlideDir(1);
     setSelectedUser(user);
     setPin("");
     setError("");
@@ -340,12 +412,59 @@ export default function PinAccess() {
         setStep("store");
       }
 
-      // 1. Verificar sesión activa
+      // 0a. Mostrar mensaje si fue expulsado por suspensión
+      const kickReason = sessionStorage.getItem("smartfix_kicked_reason");
+      if (kickReason) {
+        sessionStorage.removeItem("smartfix_kicked_reason");
+        const msg = kickReason === "cancelled"
+          ? "Tu suscripción fue cancelada. Contacta soporte para reactivar."
+          : "Tu cuenta ha sido suspendida. Contacta soporte en smartfixos.com";
+        setTimeout(() => toast.error("⛔ " + msg, { duration: 8000 }), 500);
+      }
+
+      // 0b. Verificar sesión Super Admin guardada
+      const superRaw = localStorage.getItem(SUPER_SESSION_KEY);
+      if (superRaw) {
+        try {
+          const superSess = JSON.parse(superRaw);
+          if (superSess?.role === "saas_owner") {
+            navigate("/SuperAdmin", { replace: true });
+            return;
+          }
+        } catch {
+          localStorage.removeItem(SUPER_SESSION_KEY);
+        }
+      }
+
+      // 1. Verificar sesión activa — con check de suspensión antes de redirigir
       const session = localStorage.getItem("employee_session");
       if (session) {
         try {
           const parsed = JSON.parse(session);
           if (parsed && parsed.id) {
+            // Verificar que el tenant NO esté suspendido antes de dejar entrar
+            const sessionTenantId = parsed.tenant_id || localStorage.getItem("smartfix_tenant_id");
+            if (sessionTenantId) {
+              try {
+                const { data: tenantCheck } = await supabase
+                  .from("tenant")
+                  .select("status")
+                  .eq("id", sessionTenantId)
+                  .single();
+                if (tenantCheck?.status === "suspended" || tenantCheck?.status === "cancelled") {
+                  console.log("⛔ Sesión existente bloqueada — tenant suspendido");
+                  localStorage.removeItem("employee_session");
+                  sessionStorage.removeItem("911-session");
+                  clearSavedCreds();
+                  localStorage.removeItem("smartfix_tenant_id");
+                  setTimeout(() => toast.error("⛔ Esta cuenta está suspendida. Contacta soporte en smartfixos.com", { duration: 8000 }), 300);
+                  // No redirigir — mostrar PinAccess con el mensaje
+                  setCheckingUsers(false);
+                  setIsReady(true);
+                  return;
+                }
+              } catch { /* Si falla la query, dejar pasar */ }
+            }
             console.log("✅ PinAccess: Sesión detectada, redirigiendo a Dashboard");
             navigate("/Dashboard", { replace: true });
             return;
@@ -357,17 +476,29 @@ export default function PinAccess() {
         }
       }
 
-      // 2. Verificar si hay usuarios en el sistema (primera vez)
-      try {
-        const users = await dataClient.entities.User.filter({ active: true });
-        console.log("🎉 Modo Bypass Habilitado");
-        setShowBypass(true);
-      } catch (error) {
-        console.error("Error checking users:", error);
-        setShowBypass(true); // Fallback en error
+      // 2. Auto-login con credenciales guardadas
+      const saved = loadSavedCreds();
+      if (saved?.email && saved?.pwd) {
+        console.log("🔑 Auto-login:", saved.email);
+        setIsAutoLogging(true);
+        setStoreEmail(saved.email);
+        setStorePassword(saved.pwd);
+        const ok = await performStoreAuth(saved.email, saved.pwd);
+        setIsAutoLogging(false);
+        setCheckingUsers(false);
+        setIsReady(true);
+        if (!ok) console.warn("Auto-login falló — mostrando formulario");
+        return;
       }
 
-      console.log("✅ PinAccess: No hay sesión, mostrando página de acceso");
+      // 3. Verificar usuarios (para bypass detection)
+      try {
+        await dataClient.entities.User.filter({ active: true });
+        setShowBypass(true);
+      } catch {
+        setShowBypass(true);
+      }
+
       setCheckingUsers(false);
       setIsReady(true);
     })();
@@ -427,6 +558,29 @@ export default function PinAccess() {
           navigator.vibrate([100, 50, 100, 50, 100]);
         }
         return;
+      }
+
+      // ── 2ª verificación de suspensión justo antes de completar login ────────
+      if (!isMasterUser) {
+        const savedTenantId = localStorage.getItem("smartfix_tenant_id");
+        if (savedTenantId) {
+          try {
+            const { data: tenantCheck } = await supabase
+              .from("tenant")
+              .select("status")
+              .eq("id", savedTenantId)
+              .single();
+            if (tenantCheck?.status === "suspended" || tenantCheck?.status === "cancelled") {
+              toast.error("⛔ Esta cuenta está suspendida. Contacta a soporte en smartfixos.com", { duration: 6000 });
+              clearSavedCreds();
+              await supabase.auth.signOut();
+              setPin("");
+              setStep("store");
+              setStoreAuthenticated(false);
+              return;
+            }
+          } catch { /* si falla, dejar pasar — Layout.jsx tiene el tercer chequeo */ }
+        }
       }
 
       const session = !isMasterUser ? buildSessionFromUser(selectedUser) : {
@@ -491,29 +645,251 @@ export default function PinAccess() {
           <p className="text-gray-400">Cargando...</p>
         </div>
       </div>);
+  }
 
+  // ── Auto-login cargando ───────────────────────────────────────────────────
+  if (isAutoLogging) {
+    return (
+      <div className="pinaccess-fullscreen-container">
+        <div className="text-center">
+          <img
+            src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/68f767a3d5fce1486d4cf555/e9bc537e2_DynamicsmartfixosLogowithGearandDevice.png"
+            alt="SmartFixOS"
+            className="h-16 w-auto object-contain mx-auto mb-8 drop-shadow-[0_4px_16px_rgba(0,168,232,0.8)]"
+          />
+          <div className="animate-spin rounded-full h-10 w-10 border-4 border-cyan-500 border-t-transparent mx-auto mb-4"></div>
+          <p className="text-gray-400 text-sm">Conectando tu tienda...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // ── Kiosk full-screen: user grid + PIN con slide horizontal ───────────────
+  if (storeAuthenticated && (step === "user" || step === "pin")) {
+    const hSlide = {
+      enter: (d) => ({ x: d > 0 ? "100%" : "-100%", opacity: 0 }),
+      center: { x: 0, opacity: 1, transition: { duration: 0.3, ease: [0.25, 0.46, 0.45, 0.94] } },
+      exit:  (d) => ({ x: d < 0 ? "100%" : "-100%", opacity: 0, transition: { duration: 0.22, ease: [0.55, 0, 1, 0.45] } }),
+    };
+
+    return (
+      <div className="pinaccess-fullscreen-container overflow-hidden">
+        {/* Fondo decorativo */}
+        <div className="absolute inset-0 overflow-hidden pointer-events-none">
+          <div className="absolute top-0 left-1/4 w-96 h-96 bg-cyan-500/10 rounded-full blur-[120px] animate-pulse" />
+          <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-emerald-500/10 rounded-full blur-[120px] animate-pulse delay-1000" />
+        </div>
+
+        {/* Barra superior */}
+        <div
+          className="absolute top-0 left-0 right-0 z-20 flex items-center justify-between px-5 py-3 bg-black/50 backdrop-blur-md border-b border-white/5"
+          style={{ paddingTop: "max(env(safe-area-inset-top), 12px)" }}
+        >
+          <div className="flex items-center gap-3">
+            <img
+              src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/68f767a3d5fce1486d4cf555/e9bc537e2_DynamicsmartfixosLogowithGearandDevice.png"
+              alt="SmartFixOS"
+              className="h-7 w-auto object-contain"
+            />
+            <span className="text-xs text-gray-600 hidden sm:block truncate max-w-[200px]">{storeEmail}</span>
+          </div>
+          <button
+            onClick={() => {
+              clearSavedCreds();
+              setStoreAuthenticated(false);
+              setStep("store");
+              setAvailableUsers([]);
+              setSelectedUser(null);
+              setPin("");
+              setError("");
+              setStorePassword("");
+            }}
+            className="text-xs text-gray-500 hover:text-cyan-400 transition-colors px-3 py-1.5 rounded-full border border-white/10 hover:border-cyan-500/30 active:scale-95"
+          >
+            Cambiar cuenta
+          </button>
+        </div>
+
+        {/* Panel deslizante */}
+        <div className="absolute inset-0" style={{ paddingTop: "52px" }}>
+          <AnimatePresence mode="wait" custom={slideDir}>
+
+            {/* ─── Grilla de usuarios ─── */}
+            {step === "user" && (
+              <motion.div
+                key="user-panel"
+                custom={slideDir}
+                variants={hSlide}
+                initial="enter"
+                animate="center"
+                exit="exit"
+                className="absolute inset-0 overflow-y-auto"
+              >
+                <div className="min-h-full flex flex-col items-center justify-center p-4 sm:p-8">
+                  <div className="w-full max-w-lg">
+                    <h2 className="text-2xl sm:text-3xl font-black text-white mb-1 text-center">¿Quién eres?</h2>
+                    <p className="text-gray-500 text-sm text-center mb-8">Selecciona tu perfil para continuar</p>
+                    <motion.div
+                      className="grid grid-cols-2 sm:grid-cols-3 gap-4"
+                      initial="hidden"
+                      animate="show"
+                      variants={{ hidden: {}, show: { transition: { staggerChildren: 0.07 } } }}
+                    >
+                      {availableUsers.map((user) => (
+                        <motion.button
+                          key={user.id}
+                          onClick={() => handleSelectUser(user)}
+                          variants={{ hidden: { opacity: 0, y: 16, scale: 0.95 }, show: { opacity: 1, y: 0, scale: 1 } }}
+                          whileHover={{ scale: 1.04, y: -3 }}
+                          whileTap={{ scale: 0.96 }}
+                          className="rounded-2xl border border-white/10 bg-white/5 hover:bg-white/10 hover:border-cyan-500/40 p-5 flex flex-col items-center gap-3 min-h-[140px] transition-all shadow-lg hover:shadow-cyan-500/10"
+                        >
+                          <div className="w-14 h-14 rounded-full bg-gradient-to-br from-cyan-500 to-emerald-500 flex items-center justify-center font-black text-white text-xl shadow-lg shadow-cyan-500/25">
+                            {(user.full_name || user.email || "?")[0].toUpperCase()}
+                          </div>
+                          <p className="text-white font-bold text-sm leading-tight text-center">
+                            {user.full_name || user.email || "Usuario"}
+                          </p>
+                          {(user.position || user.role) && (
+                            <span className="text-xs text-gray-500 capitalize">{user.position || user.role}</span>
+                          )}
+                        </motion.button>
+                      ))}
+                    </motion.div>
+                  </div>
+                </div>
+              </motion.div>
+            )}
+
+            {/* ─── PIN pad ─── */}
+            {step === "pin" && selectedUser && (
+              <motion.div
+                key="pin-panel"
+                custom={slideDir}
+                variants={hSlide}
+                initial="enter"
+                animate="center"
+                exit="exit"
+                className="absolute inset-0 overflow-y-auto"
+              >
+                <div className="min-h-full flex flex-col items-center justify-center p-4 sm:p-6">
+                  <div className="w-full max-w-xs">
+
+                    {/* Botón volver */}
+                    <button
+                      onClick={() => { setSlideDir(-1); setStep("user"); setPin(""); setError(""); }}
+                      className="flex items-center gap-2 text-gray-500 hover:text-white mb-8 transition-colors text-sm active:scale-95"
+                    >
+                      <ArrowLeft className="w-4 h-4" /> Seleccionar otro usuario
+                    </button>
+
+                    {/* Avatar + nombre */}
+                    <div className="text-center mb-8">
+                      <div className="w-20 h-20 rounded-full bg-gradient-to-br from-cyan-500 to-emerald-500 flex items-center justify-center font-black text-white text-3xl mx-auto mb-4 shadow-[0_0_40px_rgba(6,182,212,0.4)]">
+                        {(selectedUser.full_name || selectedUser.email || "?")[0].toUpperCase()}
+                      </div>
+                      <h2 className="text-2xl font-black text-white">{selectedUser.full_name || selectedUser.email}</h2>
+                      <p className="text-gray-500 text-sm mt-1">Ingresa tu PIN de 4 dígitos</p>
+                    </div>
+
+                    {/* Indicadores PIN */}
+                    <div className="flex justify-center gap-5 mb-8">
+                      {[0, 1, 2, 3].map((i) => (
+                        <div key={i} className={`w-4 h-4 rounded-full border-2 transition-all duration-300 ${pin.length > i ? "bg-white border-white shadow-[0_0_10px_rgba(255,255,255,0.8)] scale-110" : "bg-transparent border-white/30"}`} />
+                      ))}
+                    </div>
+
+                    {error && <p className="text-red-400 text-sm font-medium text-center mb-4 animate-pulse">{error}</p>}
+
+                    {/* Teclado numérico */}
+                    <div className="space-y-3">
+                      {numbers.map((row, ri) => (
+                        <div key={ri} className="grid grid-cols-3 gap-3">
+                          {row.map((num, ci) => {
+                            if (num === null) return <div key={`e${ci}`} />;
+                            if (num === "⌫") return (
+                              <button key="bs" onClick={handleBackspace} disabled={pin.length === 0 || loading}
+                                className="h-16 w-full rounded-2xl bg-red-500/20 border border-red-500/30 hover:bg-red-500/30 flex items-center justify-center transition-all active:scale-95 disabled:opacity-30 shadow-lg">
+                                <Delete className="w-6 h-6 text-red-300" />
+                              </button>
+                            );
+                            return (
+                              <button key={num} onClick={() => handleNumberClick(String(num))} disabled={loading || pin.length >= 4}
+                                className="h-16 w-full rounded-2xl bg-white/10 border border-white/10 hover:bg-cyan-500/20 hover:border-cyan-500/40 text-white text-2xl font-semibold transition-all active:scale-95 disabled:opacity-30 shadow-lg hover:shadow-cyan-500/20">
+                                {num}
+                              </button>
+                            );
+                          })}
+                        </div>
+                      ))}
+                    </div>
+
+                    {loading && <p className="text-cyan-400 font-bold text-center mt-6 animate-pulse">⚡ Validando...</p>}
+                  </div>
+                </div>
+              </motion.div>
+            )}
+
+          </AnimatePresence>
+        </div>
+
+        {/* Burst de éxito */}
+        <AnimatePresence>
+          {showSuccessBurst && (
+            <motion.div
+              initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+              className="absolute inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-md"
+            >
+              <motion.div
+                initial={{ scale: 0.7 }} animate={{ scale: 1, transition: { type: "spring", stiffness: 200 } }}
+                className="text-center"
+              >
+                <div className="w-24 h-24 rounded-full bg-gradient-to-br from-cyan-500 to-emerald-500 flex items-center justify-center mx-auto mb-4 shadow-[0_0_60px_rgba(6,182,212,0.6)]">
+                  <Check className="w-12 h-12 text-white" />
+                </div>
+                <p className="text-white text-2xl font-black">¡Bienvenido!</p>
+              </motion.div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
+    );
   }
 
   const handleSignup = async (e) => {
     e.preventDefault();
 
-    if (!formData.full_name || !formData.email) {
-      toast.error("Nombre y email son obligatorios");
+    if (!formData.full_name || !formData.email || !formData.business_name) {
+      toast.error("Nombre, email y nombre del negocio son obligatorios");
+      return;
+    }
+    if (!formData.password || formData.password.length < 6) {
+      toast.error("La contraseña debe tener al menos 6 caracteres");
       return;
     }
 
     setSubmitting(true);
     try {
-      toast.success("¡Solicitud enviada! Te contactaremos pronto.", {
-        duration: 5000,
-        description: "Gracias por tu interés en SmartFixOS"
+      const result = await registerTenant({
+        ownerName: formData.full_name,
+        email: formData.email,
+        password: formData.password,
+        phone: formData.phone,
+        businessName: formData.business_name,
+        country: 'US'
       });
 
-      setFormData({ full_name: "", email: "", phone: "", business_name: "" });
-      setShowSignup(false);
+      const data = result?.data ?? result;
+      if (data?.success) {
+        setSignupResult(data);
+        setSignupStep("success");
+      } else {
+        const msg = data?.error || "Error al crear la cuenta";
+        toast.error(msg.includes("ya tiene una cuenta") ? msg : "Error al crear la cuenta. Intenta nuevamente.");
+      }
     } catch (error) {
-      console.error("Error:", error);
-      toast.error("Error al enviar solicitud");
+      console.error("Signup error:", error);
+      toast.error("Error al crear la cuenta. Intenta nuevamente.");
     } finally {
       setSubmitting(false);
     }
@@ -778,84 +1154,88 @@ export default function PinAccess() {
 
           </div>
 
-          {/* Pricing Details Section */}
+          {/* Pricing Section — 3 planes */}
           <div className="mt-16 mb-12">
-            <h2 className="text-3xl sm:text-4xl font-bold text-white text-center mb-12">
-              Incluido en <span className="bg-gradient-to-r from-cyan-400 to-emerald-400 bg-clip-text text-transparent">$65/mes</span>
+            <h2 className="text-3xl sm:text-4xl font-bold text-white text-center mb-3">
+              Planes y <span className="bg-gradient-to-r from-cyan-400 to-emerald-400 bg-clip-text text-transparent">Precios</span>
             </h2>
+            <p className="text-center text-gray-400 text-sm mb-10">Sin contratos. Cancela cuando quieras. 15 días de prueba gratis.</p>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-              <div className="flex items-start gap-3 bg-white/5 border border-white/10 rounded-lg p-4">
-                <CheckCircle className="w-5 h-5 text-cyan-400 mt-0.5 flex-shrink-0" />
-                <div>
-                  <h4 className="font-semibold text-white text-sm">Gestión ilimitada de órdenes</h4>
-                  <p className="text-xs text-gray-400 mt-1">Sin límites de trabajo por mes</p>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
+
+              {/* ── Basic ── */}
+              <div className="relative flex flex-col bg-white/[0.03] border border-white/10 rounded-2xl p-6 hover:border-white/20 transition-all">
+                <p className="text-xs font-bold text-gray-500 uppercase tracking-widest mb-3">Basic</p>
+                <div className="flex items-end gap-1 mb-1">
+                  <span className="text-4xl font-black text-white">$55</span>
+                  <span className="text-gray-500 text-sm mb-1">/mes</span>
                 </div>
+                <p className="text-xs text-gray-500 mb-5">1 usuario · Para talleres individuales</p>
+                <ul className="space-y-2 flex-1">
+                  {["Órdenes de reparación ilimitadas","Clientes y historial","Inventario","POS integrado","Panel financiero","Soporte por email"].map(f => (
+                    <li key={f} className="flex items-center gap-2 text-xs text-gray-300">
+                      <CheckCircle className="w-3.5 h-3.5 text-cyan-400 flex-shrink-0" /> {f}
+                    </li>
+                  ))}
+                </ul>
+                <button
+                  onClick={() => setShowSignup(true)}
+                  className="mt-6 w-full py-2.5 rounded-xl border border-white/15 text-white text-sm font-semibold hover:bg-white/10 transition-all"
+                >
+                  Empezar gratis →
+                </button>
               </div>
 
-              <div className="flex items-start gap-3 bg-white/5 border border-white/10 rounded-lg p-4">
-                <CheckCircle className="w-5 h-5 text-emerald-400 mt-0.5 flex-shrink-0" />
-                <div>
-                  <h4 className="font-semibold text-white text-sm">Base de datos de clientes</h4>
-                  <p className="text-xs text-gray-400 mt-1">Historial completo y contacto directo</p>
+              {/* ── Pro — featured ── */}
+              <div className="relative flex flex-col bg-gradient-to-b from-cyan-950/60 to-blue-950/60 border-2 border-cyan-500/50 rounded-2xl p-6 shadow-[0_0_40px_rgba(6,182,212,0.15)] hover:shadow-[0_0_60px_rgba(6,182,212,0.25)] transition-all">
+                <div className="absolute -top-3 left-1/2 -translate-x-1/2">
+                  <span className="bg-gradient-to-r from-cyan-400 to-blue-500 text-black text-[11px] font-black px-3 py-1 rounded-full uppercase tracking-wider">
+                    Más popular
+                  </span>
                 </div>
+                <p className="text-xs font-bold text-cyan-400 uppercase tracking-widest mb-3">Pro</p>
+                <div className="flex items-end gap-1 mb-1">
+                  <span className="text-4xl font-black text-white">$85</span>
+                  <span className="text-gray-400 text-sm mb-1">/mes</span>
+                </div>
+                <p className="text-xs text-gray-400 mb-5">Hasta 3 usuarios · Para equipos pequeños</p>
+                <ul className="space-y-2 flex-1">
+                  {["Todo lo del plan Basic","Hasta 3 técnicos","Control de tiempo (ponche)","Galería de fotos por orden","Descuentos y códigos promo","Soporte prioritario"].map(f => (
+                    <li key={f} className="flex items-center gap-2 text-xs text-gray-200">
+                      <CheckCircle className="w-3.5 h-3.5 text-cyan-400 flex-shrink-0" /> {f}
+                    </li>
+                  ))}
+                </ul>
+                <button
+                  onClick={() => setShowSignup(true)}
+                  className="mt-6 w-full py-2.5 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 text-white text-sm font-bold hover:opacity-90 transition-all shadow-lg"
+                >
+                  Empezar gratis →
+                </button>
               </div>
 
-              <div className="flex items-start gap-3 bg-white/5 border border-white/10 rounded-lg p-4">
-                <CheckCircle className="w-5 h-5 text-lime-400 mt-0.5 flex-shrink-0" />
-                <div>
-                  <h4 className="font-semibold text-white text-sm">Inventario completo</h4>
-                  <p className="text-xs text-gray-400 mt-1">Gestión de piezas y stock</p>
+              {/* ── Enterprise ── */}
+              <div className="relative flex flex-col bg-gradient-to-b from-purple-950/40 to-black border border-purple-500/30 rounded-2xl p-6 hover:border-purple-400/50 transition-all">
+                <p className="text-xs font-bold text-purple-400 uppercase tracking-widest mb-3">Enterprise</p>
+                <div className="flex items-end gap-1 mb-1">
+                  <span className="text-3xl font-black text-white">Consultoría</span>
                 </div>
+                <p className="text-xs text-gray-500 mb-5">Usuarios ilimitados · Cadenas y franquicias</p>
+                <ul className="space-y-2 flex-1">
+                  {["Todo lo del plan Pro","Usuarios y locales ilimitados","Multi-sede centralizada","Integraciones personalizadas","Onboarding dedicado","SLA garantizado · Soporte 24/7"].map(f => (
+                    <li key={f} className="flex items-center gap-2 text-xs text-gray-300">
+                      <CheckCircle className="w-3.5 h-3.5 text-purple-400 flex-shrink-0" /> {f}
+                    </li>
+                  ))}
+                </ul>
+                <a
+                  href="mailto:smartfixosapp@gmail.com?subject=Enterprise%20SmartFixOS"
+                  className="mt-6 block text-center w-full py-2.5 rounded-xl border border-purple-500/40 text-purple-300 text-sm font-semibold hover:bg-purple-500/10 transition-all"
+                >
+                  Contactar ventas →
+                </a>
               </div>
 
-              <div className="flex items-start gap-3 bg-white/5 border border-white/10 rounded-lg p-4">
-                <CheckCircle className="w-5 h-5 text-blue-400 mt-0.5 flex-shrink-0" />
-                <div>
-                  <h4 className="font-semibold text-white text-sm">Sistema POS integrado</h4>
-                  <p className="text-xs text-gray-400 mt-1">Ventas rápidas y facturación</p>
-                </div>
-              </div>
-
-              <div className="flex items-start gap-3 bg-white/5 border border-white/10 rounded-lg p-4">
-                <CheckCircle className="w-5 h-5 text-purple-400 mt-0.5 flex-shrink-0" />
-                <div>
-                  <h4 className="font-semibold text-white text-sm">Panel financiero</h4>
-                  <p className="text-xs text-gray-400 mt-1">Reportes de ganancias e impuestos</p>
-                </div>
-              </div>
-
-              <div className="flex items-start gap-3 bg-white/5 border border-white/10 rounded-lg p-4">
-                <CheckCircle className="w-5 h-5 text-orange-400 mt-0.5 flex-shrink-0" />
-                <div>
-                  <h4 className="font-semibold text-white text-sm">Control de empleados</h4>
-                  <p className="text-xs text-gray-400 mt-1">Ponche, asignación y métricas</p>
-                </div>
-              </div>
-
-              <div className="flex items-start gap-3 bg-white/5 border border-white/10 rounded-lg p-4">
-                <CheckCircle className="w-5 h-5 text-indigo-400 mt-0.5 flex-shrink-0" />
-                <div>
-                  <h4 className="font-semibold text-white text-sm">Galería de fotos</h4>
-                  <p className="text-xs text-gray-400 mt-1">Evidencia de trabajos realizados</p>
-                </div>
-              </div>
-
-              <div className="flex items-start gap-3 bg-white/5 border border-white/10 rounded-lg p-4">
-                <CheckCircle className="w-5 h-5 text-yellow-400 mt-0.5 flex-shrink-0" />
-                <div>
-                  <h4 className="font-semibold text-white text-sm">Enlaces de reviews</h4>
-                  <p className="text-xs text-gray-400 mt-1">Genera reseñas fácilmente</p>
-                </div>
-              </div>
-
-              <div className="flex items-start gap-3 bg-white/5 border border-white/10 rounded-lg p-4">
-                <CheckCircle className="w-5 h-5 text-red-400 mt-0.5 flex-shrink-0" />
-                <div>
-                  <h4 className="font-semibold text-white text-sm">Soporte y actualizaciones</h4>
-                  <p className="text-xs text-gray-400 mt-1">Mejoras continuas sin costo adicional</p>
-                </div>
-              </div>
             </div>
           </div>
 
@@ -883,116 +1263,185 @@ export default function PinAccess() {
         </div>
 
         {/* Signup Modal */}
-        {showSignup &&
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
+        {showSignup && (
+          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
             <div className="relative w-full max-w-md">
               <div className="bg-gradient-to-br from-slate-900 to-black border-2 border-cyan-500/30 p-8 rounded-3xl">
-                <div className="text-center mb-6">
-                  <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-cyan-500 to-emerald-500 flex items-center justify-center mx-auto mb-4 shadow-[0_0_40px_rgba(6,182,212,0.5)]">
-                    <UserPlus className="w-8 h-8 text-white" />
-                  </div>
-                  <h2 className="text-2xl font-black text-white mb-2">Solicitar Acceso</h2>
-                  <p className="text-gray-400 text-sm">
-                    Completa el formulario y nos pondremos en contacto contigo
-                  </p>
-                </div>
 
-                <form onSubmit={handleSignup} className="space-y-4">
-                  <div>
-                    <label className="text-white mb-2 flex items-center gap-2 text-sm font-semibold">
-                      <UserPlus className="w-4 h-4 text-cyan-400" />
-                      Nombre Completo *
-                    </label>
-                    <input
-                    value={formData.full_name}
-                    onChange={(e) => setFormData({ ...formData, full_name: e.target.value })}
-                    placeholder="Tu nombre"
-                    className="w-full bg-black/40 border border-cyan-500/30 text-white h-12 rounded-xl px-4 focus:outline-none focus:ring-2 focus:ring-cyan-500/50"
-                    required />
-
-                  </div>
-
-                  <div>
-                    <label className="text-white mb-2 flex items-center gap-2 text-sm font-semibold">
-                      <Mail className="w-4 h-4 text-cyan-400" />
-                      Email *
-                    </label>
-                    <input
-                    type="email"
-                    value={formData.email}
-                    onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                    placeholder="tu@email.com"
-                    className="w-full bg-black/40 border border-cyan-500/30 text-white h-12 rounded-xl px-4 focus:outline-none focus:ring-2 focus:ring-cyan-500/50"
-                    required />
-
-                  </div>
-
-                  <div>
-                    <label className="text-white mb-2 flex items-center gap-2 text-sm font-semibold">
-                      <Phone className="w-4 h-4 text-cyan-400" />
-                      Teléfono
-                    </label>
-                    <input
-                    type="tel"
-                    value={formData.phone}
-                    onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                    placeholder="787-123-4567"
-                    className="w-full bg-black/40 border border-cyan-500/30 text-white h-12 rounded-xl px-4 focus:outline-none focus:ring-2 focus:ring-cyan-500/50" />
-
-                  </div>
-
-                  <div>
-                    <label className="text-white mb-2 flex items-center gap-2 text-sm font-semibold">
-                      <Building2 className="w-4 h-4 text-cyan-400" />
-                      Nombre del Negocio
-                    </label>
-                    <input
-                    value={formData.business_name}
-                    onChange={(e) => setFormData({ ...formData, business_name: e.target.value })}
-                    placeholder="Mi Taller de Reparación"
-                    className="w-full bg-black/40 border border-cyan-500/30 text-white h-12 rounded-xl px-4 focus:outline-none focus:ring-2 focus:ring-cyan-500/50" />
-
-                  </div>
-
-                  <div className="bg-cyan-500/10 border border-cyan-500/30 rounded-xl p-4">
-                    <p className="text-sm text-cyan-300 flex items-start gap-2">
-                      <CheckCircle className="w-4 h-4 mt-0.5 flex-shrink-0" />
-                      <span>Te contactaremos en las próximas 24-48 horas para configurar tu cuenta</span>
+                {signupStep === "success" ? (
+                  /* Pantalla de éxito */
+                  <div className="text-center">
+                    <div className="w-20 h-20 rounded-full bg-gradient-to-br from-emerald-500 to-cyan-500 flex items-center justify-center mx-auto mb-6 shadow-[0_0_50px_rgba(16,185,129,0.4)]">
+                      <CheckCircle className="w-10 h-10 text-white" />
+                    </div>
+                    <h2 className="text-2xl font-black text-white mb-2">¡Cuenta creada!</h2>
+                    <p className="text-gray-400 text-sm mb-6">
+                      Tu negocio <span className="text-white font-semibold">{signupResult?.tenantName}</span> está listo
                     </p>
-                  </div>
 
-                  <div className="flex gap-3 pt-4">
+                    <div className="bg-cyan-500/10 border border-cyan-500/30 rounded-2xl p-5 mb-6 text-left space-y-3">
+                      <div className="flex items-start gap-3">
+                        <Mail className="w-4 h-4 text-cyan-400 mt-0.5 flex-shrink-0" />
+                        <div>
+                          <p className="text-white font-semibold text-sm">Revisa tu email</p>
+                          <p className="text-gray-400 text-xs">Tu PIN de acceso fue enviado a <span className="text-cyan-300">{formData.email}</span></p>
+                        </div>
+                      </div>
+                      <div className="flex items-start gap-3">
+                        <KeyRound className="w-4 h-4 text-emerald-400 mt-0.5 flex-shrink-0" />
+                        <div>
+                          <p className="text-white font-semibold text-sm">Ingresa con tu PIN</p>
+                          <p className="text-gray-400 text-xs">Usa el PIN del email para acceder al sistema</p>
+                        </div>
+                      </div>
+                      <div className="flex items-start gap-3">
+                        <Sparkles className="w-4 h-4 text-yellow-400 mt-0.5 flex-shrink-0" />
+                        <div>
+                          <p className="text-white font-semibold text-sm">15 días gratis</p>
+                          <p className="text-gray-400 text-xs">Trial activo hasta el {new Date(signupResult?.trialEndDate).toLocaleDateString('es', { day: 'numeric', month: 'long' })}</p>
+                        </div>
+                      </div>
+                    </div>
+
                     <Button
-                    type="button"
-                    variant="outline" className="bg-background text-zinc-900 px-4 py-2 text-sm font-semibold rounded-full inline-flex items-center justify-center gap-2 whitespace-nowrap transition-all duration-200 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 border shadow-sm hover:text-accent-foreground flex-1 border-white/20 hover:bg-white/10 h-12"
-
-                    onClick={() => setShowSignup(false)}
-                    disabled={submitting}>
-
-                      Cancelar
-                    </Button>
-                    <Button
-                    type="submit"
-                    className="flex-1 bg-gradient-to-r from-cyan-600 to-emerald-600 hover:from-cyan-500 hover:to-emerald-500 font-bold h-12"
-                    disabled={submitting}>
-
-                      {submitting ? "Enviando..." : "Enviar Solicitud"}
+                      onClick={() => {
+                        setShowSignup(false);
+                        setSignupStep("form");
+                        setFormData({ full_name: "", email: "", phone: "", business_name: "" });
+                        setSignupResult(null);
+                        setStep("store");
+                      }}
+                      className="w-full h-12 bg-gradient-to-r from-cyan-600 to-emerald-600 hover:from-cyan-500 hover:to-emerald-500 font-bold"
+                    >
+                      Ingresar con mi PIN →
                     </Button>
                   </div>
-                </form>
+                ) : (
+                  /* Formulario de registro */
+                  <>
+                    <div className="text-center mb-6">
+                      <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-cyan-500 to-emerald-500 flex items-center justify-center mx-auto mb-4 shadow-[0_0_40px_rgba(6,182,212,0.5)]">
+                        <UserPlus className="w-8 h-8 text-white" />
+                      </div>
+                      <h2 className="text-2xl font-black text-white mb-1">Crea tu cuenta gratis</h2>
+                      <p className="text-gray-400 text-sm">15 días de prueba · Sin tarjeta de crédito</p>
+                    </div>
+
+                    <form onSubmit={handleSignup} className="space-y-4">
+                      <div>
+                        <label className="text-white mb-2 flex items-center gap-2 text-sm font-semibold">
+                          <UserPlus className="w-4 h-4 text-cyan-400" />
+                          Tu nombre completo *
+                        </label>
+                        <input
+                          value={formData.full_name}
+                          onChange={(e) => setFormData({ ...formData, full_name: e.target.value })}
+                          placeholder="Tu nombre"
+                          className="w-full bg-black/40 border border-cyan-500/30 text-white h-12 rounded-xl px-4 focus:outline-none focus:ring-2 focus:ring-cyan-500/50"
+                          required
+                        />
+                      </div>
+
+                      <div>
+                        <label className="text-white mb-2 flex items-center gap-2 text-sm font-semibold">
+                          <Building2 className="w-4 h-4 text-cyan-400" />
+                          Nombre del negocio *
+                        </label>
+                        <input
+                          value={formData.business_name}
+                          onChange={(e) => setFormData({ ...formData, business_name: e.target.value })}
+                          placeholder="Mi Taller de Reparación"
+                          className="w-full bg-black/40 border border-cyan-500/30 text-white h-12 rounded-xl px-4 focus:outline-none focus:ring-2 focus:ring-cyan-500/50"
+                          required
+                        />
+                      </div>
+
+                      <div>
+                        <label className="text-white mb-2 flex items-center gap-2 text-sm font-semibold">
+                          <Mail className="w-4 h-4 text-cyan-400" />
+                          Email *
+                        </label>
+                        <input
+                          type="email"
+                          value={formData.email}
+                          onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                          placeholder="tu@email.com"
+                          className="w-full bg-black/40 border border-cyan-500/30 text-white h-12 rounded-xl px-4 focus:outline-none focus:ring-2 focus:ring-cyan-500/50"
+                          required
+                        />
+                      </div>
+
+                      <div>
+                        <label className="text-white mb-2 flex items-center gap-2 text-sm font-semibold">
+                          <KeyRound className="w-4 h-4 text-cyan-400" />
+                          Contraseña *
+                        </label>
+                        <div className="relative">
+                          <input
+                            type={showSignupPassword ? "text" : "password"}
+                            value={formData.password}
+                            onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                            placeholder="Mínimo 6 caracteres"
+                            className="w-full bg-black/40 border border-cyan-500/30 text-white h-12 rounded-xl px-4 pr-12 focus:outline-none focus:ring-2 focus:ring-cyan-500/50"
+                            required
+                          />
+                          <button type="button" onClick={() => setShowSignupPassword(!showSignupPassword)}
+                            className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white">
+                            {showSignupPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                          </button>
+                        </div>
+                      </div>
+
+                      <div>
+                        <label className="text-white mb-2 flex items-center gap-2 text-sm font-semibold">
+                          <Phone className="w-4 h-4 text-cyan-400" />
+                          Teléfono
+                        </label>
+                        <input
+                          type="tel"
+                          value={formData.phone}
+                          onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                          placeholder="787-123-4567"
+                          className="w-full bg-black/40 border border-cyan-500/30 text-white h-12 rounded-xl px-4 focus:outline-none focus:ring-2 focus:ring-cyan-500/50"
+                        />
+                      </div>
+
+                      <div className="bg-emerald-500/10 border border-emerald-500/30 rounded-xl p-4">
+                        <p className="text-sm text-emerald-300 flex items-start gap-2">
+                          <CheckCircle className="w-4 h-4 mt-0.5 flex-shrink-0" />
+                          <span>Tu cuenta estará lista en segundos. Recibirás tu PIN de acceso por email.</span>
+                        </p>
+                      </div>
+
+                      <div className="flex gap-3 pt-2">
+                        <Button
+                          type="button"
+                          variant="outline"
+                          className="flex-1 border-white/20 text-white hover:bg-white/10 h-12"
+                          onClick={() => setShowSignup(false)}
+                          disabled={submitting}
+                        >
+                          Cancelar
+                        </Button>
+                        <Button
+                          type="submit"
+                          className="flex-1 bg-gradient-to-r from-cyan-600 to-emerald-600 hover:from-cyan-500 hover:to-emerald-500 font-bold h-12"
+                          disabled={submitting}
+                        >
+                          {submitting ? "Creando cuenta..." : "Crear cuenta gratis"}
+                        </Button>
+                      </div>
+                    </form>
+                  </>
+                )}
               </div>
             </div>
           </div>
-        }
+        )}
       </div>);
 
   }
 
-  const numbers = [
-  [1, 2, 3],
-  [4, 5, 6],
-  [7, 8, 9],
-  [null, 0, "⌫"]];
 
 
   return (
@@ -1126,50 +1575,6 @@ export default function PinAccess() {
                 </button>
               </div>
 
-              <div className="mt-4">
-                <button
-                  onClick={() => setMasterAccessOpen((v) => !v)}
-                  className="text-xs text-cyan-300 hover:text-cyan-200 underline underline-offset-2"
-                >
-                  {masterAccessOpen ? "Ocultar acceso maestro" : "Acceso maestro (emergencia)"}
-                </button>
-              </div>
-
-              <AnimatePresence>
-                {masterAccessOpen && (
-                  <motion.div
-                    initial={{ opacity: 0, y: 8 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -8 }}
-                    className="mt-3 rounded-2xl border border-amber-400/30 bg-amber-500/5 p-4"
-                  >
-                    <p className="text-amber-200 text-xs mb-3">Dueño/Superadmin: valida email + PIN maestro para entrar como cualquier usuario.</p>
-                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
-                      <input
-                        value={masterEmail}
-                        onChange={(e) => setMasterEmail(e.target.value)}
-                        placeholder="owner@email.com"
-                        type="email"
-                        className="sm:col-span-2 bg-black/40 border border-amber-400/30 text-white h-11 rounded-lg px-3 focus:outline-none focus:ring-2 focus:ring-amber-400/30"
-                      />
-                      <input
-                        value={masterPin}
-                        onChange={(e) => setMasterPin(e.target.value.replace(/\D/g, "").slice(0, 4))}
-                        placeholder="PIN"
-                        inputMode="numeric"
-                        className="bg-black/40 border border-amber-400/30 text-white h-11 rounded-lg px-3 focus:outline-none focus:ring-2 focus:ring-amber-400/30"
-                      />
-                    </div>
-                    <Button
-                      onClick={handleMasterValidate}
-                      disabled={masterLoading}
-                      className="mt-3 h-10 bg-amber-500/20 hover:bg-amber-500/30 border border-amber-400/40 text-amber-100"
-                    >
-                      {masterLoading ? "Validando..." : "Validar acceso maestro"}
-                    </Button>
-                  </motion.div>
-                )}
-              </AnimatePresence>
             </motion.div>
 
             <AnimatePresence>
@@ -1183,11 +1588,7 @@ export default function PinAccess() {
                   className="bg-black/35 border border-white/15 rounded-3xl p-5 sm:p-6 backdrop-blur-xl"
                 >
                   <h2 className="text-xl font-black text-white mb-2">2. Selecciona usuario</h2>
-                  <p className="text-gray-300 text-sm mb-4">
-                    {masterValidated
-                      ? "Modo maestro activo: puedes entrar como cualquier usuario."
-                      : "Elige tu perfil para continuar al pinpad."}
-                  </p>
+                  <p className="text-gray-300 text-sm mb-4">Elige tu perfil para continuar al pinpad.</p>
                   <motion.div
                     className="grid grid-cols-2 sm:grid-cols-3 gap-4"
                     initial="hidden"
@@ -1218,17 +1619,6 @@ export default function PinAccess() {
                             <p className="text-white font-bold text-base sm:text-lg leading-tight">
                               {user.full_name || user.email || "Usuario"}
                             </p>
-                            {masterValidated && (
-                              <span
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  handleMasterLoginAs(user);
-                                }}
-                                className="text-[11px] px-2 py-1 rounded-full border border-amber-400/40 text-amber-200 bg-amber-500/10"
-                              >
-                                Entrar como
-                              </span>
-                            )}
                           </div>
                         </motion.button>
                       );

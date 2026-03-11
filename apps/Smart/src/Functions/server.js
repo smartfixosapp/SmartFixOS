@@ -25,6 +25,10 @@ import { sendVerificationEmailHandler } from './sendVerificationEmail.js';
 import { verifyAndCreateAdminHandler } from './verifyAndCreateAdmin.js';
 import { createFirstAdminHandler } from './createFirstAdmin.js';
 import { createStripeCheckoutHandler } from './createStripeCheckout.js';
+import { createStripeSubscriptionHandler } from './createStripeSubscription.js';
+import { stripeWebhookHandler } from './stripeWebhook.js';
+import { registerTenantHandler } from './registerTenant.js';
+import { manageTenantHandler } from './manageTenant.js';
 import { notifyCashRegisterHandler } from './notifyCashRegister.js';
 import { handleOrderStatusChangeHandler } from './handleOrderStatusChange.js';
 import { notifyPickupReminderHandler } from './notifyPickupReminder.js';
@@ -58,7 +62,8 @@ const unwrappedRoutes = new Set([
   '/extract_file',
   '/ai/invoke',
   '/ai/generate-image',
-  '/sendEmailInternal'
+  '/sendEmailInternal',
+  '/stripeWebhook'  // Stripe espera respuesta directa sin wrapper
 ]);
 
 // Route handlers
@@ -88,6 +93,10 @@ const routes = {
   '/verifyAndCreateAdmin': verifyAndCreateAdminHandler,
   '/createFirstAdmin': createFirstAdminHandler,
   '/createStripeCheckout': createStripeCheckoutHandler,
+  '/createStripeSubscription': createStripeSubscriptionHandler,
+  '/stripeWebhook': stripeWebhookHandler,
+  '/registerTenant': registerTenantHandler,
+  '/manageTenant': manageTenantHandler,
   '/notifyCashRegister': notifyCashRegisterHandler,
   '/handleOrderStatusChange': handleOrderStatusChangeHandler,
   '/notifyPickupReminder': notifyPickupReminderHandler,
@@ -220,6 +229,9 @@ console.log(`   🔧 /verifyAndCreateAdmin: http://localhost:$${port}/verifyAndC
 console.log(`   🔧 /webmanifest: http://localhost:$${port}/webmanifest` );
 console.log(`   🔧 /createFirstAdmin: http://localhost:$${port}/createFirstAdmin` );
 console.log(`   🔧 /createStripeCheckout: http://localhost:$${port}/createStripeCheckout` );
+console.log(`   🔧 /createStripeSubscription: http://localhost:$${port}/createStripeSubscription` );
+console.log(`   🔧 /stripeWebhook: http://localhost:$${port}/stripeWebhook` );
+console.log(`   🔧 /registerTenant: http://localhost:$${port}/registerTenant` );
 console.log(`   🔧 /notifyCashRegister: http://localhost:$${port}/notifyCashRegister` );
 console.log(`   🔧 /populateInventory: http://localhost:$${port}/populateInventory` );
 console.log(`   🔧 /handleOrderStatusChange: http://localhost:$${port}/handleOrderStatusChange` );

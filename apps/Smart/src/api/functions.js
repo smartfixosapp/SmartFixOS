@@ -21,6 +21,9 @@ const functionPaths = {
   "webmanifest": "/webmanifest",
   "createFirstAdmin": "/createFirstAdmin",
   "createStripeCheckout": "/createStripeCheckout",
+  "createStripeSubscription": "/createStripeSubscription",
+  "registerTenant": "/registerTenant",
+  "manageTenant": "/manageTenant",
   "notifyCashRegister": "/notifyCashRegister",
   "populateInventory": "/populateInventory",
   "handleOrderStatusChange": "/handleOrderStatusChange",
@@ -69,6 +72,9 @@ export const verifyAndCreateAdmin = functionsClient.functions.verifyAndCreateAdm
 export const webmanifest = functionsClient.functions.webmanifest;
 export const createFirstAdmin = functionsClient.functions.createFirstAdmin;
 export const createStripeCheckout = functionsClient.functions.createStripeCheckout;
+export const createStripeSubscription = functionsClient.functions.createStripeSubscription;
+export const registerTenant = functionsClient.functions.registerTenant;
+export const manageTenant = functionsClient.functions.manageTenant;
 export const notifyCashRegister = functionsClient.functions.notifyCashRegister;
 export const populateInventory = functionsClient.functions.populateInventory;
 export const handleOrderStatusChange = functionsClient.functions.handleOrderStatusChange;

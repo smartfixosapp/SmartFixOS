@@ -1,95 +1,65 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { CreditCard, Loader2, CheckCircle, AlertCircle } from "lucide-react";
+import { CreditCard, Loader2, CheckCircle, ShieldCheck, ExternalLink } from "lucide-react";
 import { toast } from "sonner";
+import { createStripeSubscription } from "@/api/functions";
 
-export default function PaymentActivationScreen({ 
-  tenantId, 
-  tenantName, 
-  onPaymentSuccess, 
+export default function PaymentActivationScreen({
+  tenantId,
+  tenantName,
+  onPaymentSuccess,
   onPaymentError,
-  onCancel 
+  onCancel
 }) {
   const [loading, setLoading] = useState(false);
-  const [paymentError, setPaymentError] = useState(null);
-  const [cardInfo, setCardInfo] = useState({
-    cardNumber: "",
-    cardExpiry: "",
-    cardCvc: "",
-    cardName: ""
-  });
+  const [error, setError] = useState(null);
 
-  const handlePayment = async () => {
-    // Validaciones básicas
-    if (!cardInfo.cardNumber || cardInfo.cardNumber.length < 13) {
-      setPaymentError("Número de tarjeta inválido");
-      return;
+  // Detectar retorno exitoso desde Stripe Checkout
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get("payment_success") === "true") {
+      // Limpiar params de la URL
+      const url = new URL(window.location.href);
+      url.searchParams.delete("payment_success");
+      url.searchParams.delete("session_id");
+      window.history.replaceState({}, "", url.toString());
+      toast.success("¡Plan activado exitosamente!");
+      onPaymentSuccess?.();
     }
-    if (!cardInfo.cardExpiry || !cardInfo.cardExpiry.includes("/")) {
-      setPaymentError("Fecha de expiración inválida (MM/AA)");
-      return;
+    if (params.get("payment_cancelled") === "true") {
+      const url = new URL(window.location.href);
+      url.searchParams.delete("payment_cancelled");
+      window.history.replaceState({}, "", url.toString());
+      setError("Pago cancelado. Puedes intentarlo de nuevo cuando quieras.");
     }
-    if (!cardInfo.cardCvc || cardInfo.cardCvc.length < 3) {
-      setPaymentError("CVC inválido");
-      return;
-    }
-    if (!cardInfo.cardName) {
-      setPaymentError("Nombre del titular obligatorio");
-      return;
-    }
+  }, []);
 
+  const handleCheckout = async () => {
     setLoading(true);
-    setPaymentError(null);
-
+    setError(null);
     try {
-      // En producción, esto se integraría con Stripe
-      // Por ahora, simulamos el pago
-      const response = await fetch("/.netlify/functions/processPayment", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          tenantId,
-          planPrice: 65,
-          cardNumber: cardInfo.cardNumber.slice(-4), // Solo últimos 4 dígitos
-          cardName: cardInfo.cardName
-        })
+      const origin = window.location.origin;
+      const result = await createStripeSubscription({
+        tenantId,
+        successUrl: `${origin}/?payment_success=true&session_id={CHECKOUT_SESSION_ID}`,
+        cancelUrl: `${origin}/?payment_cancelled=true`
       });
 
-      const data = await response.json();
-
-      if (data.success) {
-        toast.success("¡Plan activado exitosamente!");
-        setTimeout(() => onPaymentSuccess(), 1500);
-      } else {
-        setPaymentError(data.error || "Error al procesar el pago");
-        onPaymentError?.(data.error);
+      const data = result?.data ?? result;
+      if (!data?.url) {
+        throw new Error(data?.error || "No se recibió la URL de pago");
       }
-    } catch (error) {
-      console.error("Payment error:", error);
-      setPaymentError("Error al procesar el pago. Intenta nuevamente.");
-      onPaymentError?.(error.message);
-    } finally {
+
+      // Redirigir a Stripe Checkout
+      window.location.href = data.url;
+
+    } catch (err) {
+      console.error("Checkout error:", err);
+      const msg = err.message || "Error al iniciar el pago. Intenta nuevamente.";
+      setError(msg);
+      onPaymentError?.(msg);
       setLoading(false);
     }
-  };
-
-  const handleCardNumberChange = (e) => {
-    const value = e.target.value.replace(/\D/g, "").slice(0, 16);
-    setCardInfo({ ...cardInfo, cardNumber: value });
-  };
-
-  const handleExpiryChange = (e) => {
-    let value = e.target.value.replace(/\D/g, "").slice(0, 4);
-    if (value.length >= 2) {
-      value = value.slice(0, 2) + "/" + value.slice(2);
-    }
-    setCardInfo({ ...cardInfo, cardExpiry: value });
-  };
-
-  const handleCvcChange = (e) => {
-    const value = e.target.value.replace(/\D/g, "").slice(0, 4);
-    setCardInfo({ ...cardInfo, cardCvc: value });
   };
 
   return (
@@ -101,10 +71,11 @@ export default function PaymentActivationScreen({
             <CreditCard className="w-10 h-10 text-white" />
           </div>
           <h1 className="text-3xl font-black text-white mb-2">Activa tu plan SmartFixOS</h1>
+          <p className="text-gray-400 text-sm">Pago seguro procesado por Stripe</p>
         </div>
 
-        {/* Resumen */}
-        <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-3xl p-8 mb-8">
+        {/* Resumen del plan */}
+        <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-3xl p-8 mb-6">
           <div className="space-y-4 mb-6 pb-6 border-b border-white/10">
             <div className="flex justify-between items-center">
               <span className="text-gray-400">Plan</span>
@@ -116,73 +87,41 @@ export default function PaymentActivationScreen({
             </div>
             <div className="flex justify-between items-center">
               <span className="text-gray-400">Precio mensual</span>
-              <span className="text-xl font-black text-emerald-400">$65.00</span>
+              <span className="text-xl font-black text-emerald-400">$65.00 USD</span>
             </div>
           </div>
 
-          {/* Formulario */}
-          <div className="space-y-4">
-            {paymentError && (
-              <div className="bg-red-500/10 border border-red-500/30 rounded-xl p-4 flex gap-3">
-                <AlertCircle className="w-5 h-5 text-red-500 flex-shrink-0 mt-0.5" />
-                <div>
-                  <p className="text-red-300 text-sm font-semibold">Error en el pago</p>
-                  <p className="text-red-200/80 text-sm">{paymentError}</p>
-                </div>
+          {/* Beneficios */}
+          <div className="space-y-2">
+            {[
+              "Órdenes y reparaciones ilimitadas",
+              "POS y gestión de caja",
+              "Inventario y proveedores",
+              "Reportes y análisis",
+              "Soporte por email"
+            ].map((benefit) => (
+              <div key={benefit} className="flex items-center gap-2">
+                <CheckCircle className="w-4 h-4 text-emerald-400 flex-shrink-0" />
+                <span className="text-gray-300 text-sm">{benefit}</span>
               </div>
-            )}
+            ))}
+          </div>
 
+          {error && (
+            <div className="mt-4 bg-red-500/10 border border-red-500/30 rounded-xl p-3">
+              <p className="text-red-300 text-sm">{error}</p>
+            </div>
+          )}
+        </div>
+
+        {/* Seguridad */}
+        <div className="bg-cyan-500/10 border border-cyan-500/20 rounded-2xl p-4 mb-6">
+          <div className="flex items-start gap-3">
+            <ShieldCheck className="w-5 h-5 text-cyan-400 flex-shrink-0 mt-0.5" />
             <div>
-              <label className="text-xs text-gray-400 mb-2 block font-semibold">Titular de la tarjeta</label>
-              <Input
-                value={cardInfo.cardName}
-                onChange={(e) => setCardInfo({ ...cardInfo, cardName: e.target.value })}
-                placeholder="Nombre completo"
-                className="bg-black/40 border-cyan-500/20 text-white placeholder:text-gray-600 h-11"
-                disabled={loading}
-              />
-            </div>
-
-            <div>
-              <label className="text-xs text-gray-400 mb-2 block font-semibold">Número de tarjeta</label>
-              <Input
-                value={cardInfo.cardNumber}
-                onChange={handleCardNumberChange}
-                placeholder="1234 5678 9012 3456"
-                className="bg-black/40 border-cyan-500/20 text-white placeholder:text-gray-600 h-11 font-mono"
-                disabled={loading}
-              />
-              <p className="text-xs text-gray-500 mt-1">Se procesa de forma segura con Stripe</p>
-            </div>
-
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <label className="text-xs text-gray-400 mb-2 block font-semibold">Vencimiento</label>
-                <Input
-                  value={cardInfo.cardExpiry}
-                  onChange={handleExpiryChange}
-                  placeholder="MM/AA"
-                  className="bg-black/40 border-cyan-500/20 text-white placeholder:text-gray-600 h-11 font-mono"
-                  disabled={loading}
-                />
-              </div>
-              <div>
-                <label className="text-xs text-gray-400 mb-2 block font-semibold">CVC</label>
-                <Input
-                  value={cardInfo.cardCvc}
-                  onChange={handleCvcChange}
-                  placeholder="123"
-                  className="bg-black/40 border-cyan-500/20 text-white placeholder:text-gray-600 h-11 font-mono"
-                  disabled={loading}
-                  type="password"
-                />
-              </div>
-            </div>
-
-            <div className="bg-cyan-500/10 border border-cyan-500/30 rounded-xl p-3 mt-4">
-              <p className="text-xs text-cyan-300 flex items-start gap-2">
-                <CheckCircle className="w-4 h-4 flex-shrink-0 mt-0.5" />
-                Tu información de pago es procesada de forma segura.
+              <p className="text-cyan-300 text-sm font-semibold">Pago 100% seguro con Stripe</p>
+              <p className="text-cyan-400/70 text-xs mt-0.5">
+                Serás redirigido a la página de Stripe para ingresar tus datos de pago de forma segura. Nunca almacenamos tu información de tarjeta.
               </p>
             </div>
           </div>
@@ -191,19 +130,19 @@ export default function PaymentActivationScreen({
         {/* Botones */}
         <div className="space-y-3">
           <Button
-            onClick={handlePayment}
-            disabled={loading || !cardInfo.cardNumber || !cardInfo.cardExpiry || !cardInfo.cardCvc || !cardInfo.cardName}
+            onClick={handleCheckout}
+            disabled={loading}
             className="w-full h-14 bg-gradient-to-r from-cyan-600 to-emerald-600 hover:from-cyan-500 hover:to-emerald-500 text-white font-bold text-lg shadow-[0_0_60px_rgba(6,182,212,0.3)]"
           >
             {loading ? (
               <>
                 <Loader2 className="w-5 h-5 mr-2 animate-spin" />
-                Procesando pago...
+                Redirigiendo a Stripe...
               </>
             ) : (
               <>
-                <CreditCard className="w-5 h-5 mr-2" />
-                Confirmar y activar plan
+                <ExternalLink className="w-5 h-5 mr-2" />
+                Pagar con Stripe
               </>
             )}
           </Button>
@@ -217,9 +156,8 @@ export default function PaymentActivationScreen({
           </Button>
         </div>
 
-        {/* Footer */}
         <p className="text-center text-xs text-gray-500 mt-6">
-          Se cobrará $65.00 mensuales. Puedes cancelar en cualquier momento.
+          Se cobrará $65.00 USD/mes. Puedes cancelar en cualquier momento.
         </p>
       </div>
     </div>

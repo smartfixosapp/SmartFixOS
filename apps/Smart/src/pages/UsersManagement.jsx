@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { dataClient } from "@/components/api/dataClient";
+import { supabase } from "../../../../lib/supabase-client.js";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -7,7 +8,7 @@ import {
   Shield, Edit, Trash2, Search, UserPlus, 
   Mail, Phone, Code, Lock, Eye, EyeOff, 
   Calendar, Activity, X, Check, DollarSign,
-  Users, Zap, Star, AlertCircle, Clock,
+  Users, Zap, AlertCircle, Clock,
   Building2, CreditCard, Wallet, BarChart3,
   Smartphone, FileText, Plus, Loader2, Sparkles,
   ExternalLink, Package
@@ -25,10 +26,9 @@ import { useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/components/utils/helpers";
 
 const ROLES = [
-  { value: "admin", label: "Administrador", color: "from-cyan-600 to-blue-600", icon: Shield, badge: "bg-cyan-500" },
-  { value: "manager", label: "Manager", color: "from-purple-600 to-purple-800", icon: Star, badge: "bg-purple-500" },
-  { value: "technician", label: "Técnico", color: "from-blue-600 to-blue-800", icon: Activity, badge: "bg-blue-500" },
-  { value: "cashier", label: "Cajero", color: "from-green-600 to-green-800", icon: DollarSign, badge: "bg-green-500" },
+  { value: "admin",      label: "Administrador", color: "from-cyan-600 to-blue-600",   icon: Shield,     badge: "bg-cyan-500"  },
+  { value: "technician", label: "Técnico",        color: "from-blue-600 to-blue-800",   icon: Activity,   badge: "bg-blue-500"  },
+  { value: "cashier",    label: "Cajero",          color: "from-green-600 to-green-800", icon: DollarSign, badge: "bg-green-500" },
 ];
 
 const ADMIN_CORE_PANEL_BUTTONS = [
@@ -278,6 +278,41 @@ export default function UsersManagement() {
   };
 
   const handleCreateUser = async (userData) => {
+    // ── Verificar límite de usuarios del plan ────────────────────────────────
+    try {
+      const tenantId = localStorage.getItem("smartfix_tenant_id");
+      if (tenantId) {
+        // Obtener plan del tenant
+        const { data: tenantData } = await supabase
+          .from("tenant")
+          .select("plan, metadata")
+          .eq("id", tenantId)
+          .single();
+
+        const maxUsers = tenantData?.metadata?.max_users ?? 999;
+
+        if (maxUsers < 999) {
+          // Contar usuarios activos actuales
+          const currentUsers = await dataClient.entities.User.filter({ active: true });
+          const currentCount = (currentUsers || []).length;
+
+          if (currentCount >= maxUsers) {
+            const planLabels = { 1: "Basic (1 usuario)", 3: "Pro (3 usuarios)" };
+            const currentPlan = planLabels[maxUsers] || `tu plan actual`;
+            const nextStep = maxUsers === 1 ? "Pro ($65/mo)" : maxUsers === 3 ? "Enterprise ($99/mo)" : "un plan superior";
+            toast.error(
+              `⚠️ Límite alcanzado: ${currentPlan} solo permite ${maxUsers} usuario${maxUsers === 1 ? "" : "s"}. Contacta al soporte para subir a ${nextStep}.`,
+              { duration: 8000 }
+            );
+            return;
+          }
+        }
+      }
+    } catch (limitErr) {
+      console.warn("No se pudo verificar límite del plan:", limitErr.message);
+      // No bloquear — si falla la verificación, dejar pasar
+    }
+
     try {
       let existing = [];
       try {

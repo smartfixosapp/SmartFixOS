@@ -24,7 +24,7 @@ export function TenantProvider({ children }) {
       }
       
       // Verificar si es super admin
-      const superAdmin = user.email === "admin@smartfixos.com" || user.role === "super_admin" || user.position === "superadmin";
+      const superAdmin = user.email === "admin@smartfixos.com" || user.email === "911smartfix@gmail.com" || user.role === "super_admin" || user.position === "superadmin";
       setIsSuperAdmin(superAdmin);
 
       if (superAdmin) {

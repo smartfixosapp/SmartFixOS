@@ -4,6 +4,7 @@ import { createPageUrl } from "@/components/utils/helpers";
 import { Toaster } from "sonner";
 // 👈 MIGRACIÓN: Usar dataClient unificado
 import { dataClient } from "@/components/api/dataClient";
+import { supabase } from "../../../../lib/supabase-client.js";
 import { useVirtualKeyboard } from "@/components/utils/KeyboardAwareLayout";
 import { I18nProvider } from "@/components/utils/i18n";
 import { TenantProvider } from "@/components/utils/tenantContext";
@@ -139,6 +140,47 @@ export default function Layout({ children }) {
   }, [isPinAccess, isWelcome, isSetupPage]);
 
 
+
+  // 🔐 Vigilar estado del tenant — expulsar si es suspendido mientras está adentro
+  useEffect(() => {
+    if (!user || isPinAccess || isWelcome || isSetupPage) return;
+    const tenantId = localStorage.getItem("smartfix_tenant_id");
+    if (!tenantId) return;
+
+    let alive = true;
+
+    const checkTenantStatus = async () => {
+      try {
+        // Usar supabase directo — dataClient.entities.Tenant no existe en el adaptador
+        const { data: t } = await supabase
+          .from("tenant")
+          .select("status")
+          .eq("id", tenantId)
+          .single();
+        if (!alive) return;
+        if (t && (t.status === "suspended" || t.status === "cancelled")) {
+          // Limpiar sesión y sacar al usuario
+          localStorage.removeItem("employee_session");
+          localStorage.removeItem("smartfix_saved_creds");
+          localStorage.removeItem("smartfix_tenant_id");
+          sessionStorage.removeItem("911-session");
+          // Mostrar mensaje antes de redirigir
+          if (typeof window !== "undefined") {
+            sessionStorage.setItem("smartfix_kicked_reason",
+              t.status === "cancelled" ? "cancelled" : "suspended"
+            );
+            window.location.href = "/PinAccess";
+          }
+        }
+      } catch {
+        // Error de red — no expulsar, solo ignorar
+      }
+    };
+
+    checkTenantStatus(); // Verificación inmediata al cargar
+    const interval = setInterval(checkTenantStatus, 2 * 60 * 1000); // Cada 2 minutos
+    return () => { alive = false; clearInterval(interval); };
+  }, [user, isPinAccess, isWelcome, isSetupPage]);
 
   // ✅ Load theme on mount
   useEffect(() => {

@@ -2,6 +2,7 @@
 import React from 'react';
 import Layout from "./Layout.jsx";
 import Activate from "./Activate";
+import SuperAdmin from "./SuperAdmin";
 import AdminDashboard from "./AdminDashboard";
 import AuditLog from "./AuditLog";
 import CashHistory from "./CashHistory";
@@ -152,8 +153,8 @@ function ProtectedRoutes() {
 function LayoutWrapper({ children, currentPageName }) {
 const location = useLocation();
 
-// /returnlogin should NOT go through Layout to avoid auth redirect loop
-if (location.pathname === '/returnlogin') {
+// /returnlogin y /SuperAdmin son standalone (sin Layout)
+if (location.pathname === '/returnlogin' || location.pathname === '/SuperAdmin') {
     return <>{children}</>;
 }
 
@@ -168,6 +169,8 @@ function PagesContent() {
     return (
         <LayoutWrapper currentPageName={currentPage}>
         <Routes>
+    {/* Ruta pública standalone — no necesita AuthGate */}
+    <Route path="/SuperAdmin" element={<SuperAdmin />} />
     <Route path="/returnlogin" element={<ReturnLogin />} />
 
     <Route path="/*" element={<ProtectedRoutes />} />

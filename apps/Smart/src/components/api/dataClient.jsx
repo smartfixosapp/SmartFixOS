@@ -46,7 +46,13 @@ function getTenantId() {
  */
 function tenantScoped(entity) {
   return {
-    ...entity,
+    // Pass-throughs explícitos para métodos que no llevan filtro tenant
+    // (los métodos están en el prototype del entity, no en sus propias props,
+    //  por eso el spread ...entity no los incluye confiablemente)
+    get:    (id)           => entity.get(id),
+    update: (id, data)     => entity.update(id, data),
+    delete: (id)           => entity.delete(id),
+    // Métodos que SÍ inyectan tenant_id
     list(order, limit) {
       const tid = getTenantId();
       if (tid) return entity.filter({ tenant_id: tid }, order, limit);
@@ -122,6 +128,23 @@ const base44Adapter = {
       create: (data) => base44.entities.DeviceModel.create(data),
       update: (id, data) => base44.entities.DeviceModel.update(id, data),
       delete: (id) => base44.entities.DeviceModel.delete(id),
+    },
+    // Tenant — acceso global (no scoped, Tenant ES el tenant root)
+    Tenant: {
+      list:   (order, limit) => base44.entities.Tenant.list(order, limit),
+      filter: (q, order)     => base44.entities.Tenant.filter(q, order),
+      get:    (id)           => base44.entities.Tenant.get(id),
+      update: (id, data)     => base44.entities.Tenant.update(id, data),
+      delete: (id)           => base44.entities.Tenant.delete(id),
+    },
+    // AppEmployee — acceso global para queries de superadmin, etc.
+    AppEmployee: {
+      list:   (order, limit) => base44.entities.AppEmployee.list(order, limit),
+      filter: (q, order)     => base44.entities.AppEmployee.filter(q, order),
+      get:    (id)           => base44.entities.AppEmployee.get(id),
+      create: (data)         => base44.entities.AppEmployee.create(data),
+      update: (id, data)     => base44.entities.AppEmployee.update(id, data),
+      delete: (id)           => base44.entities.AppEmployee.delete(id),
     },
     // AppSettings y SystemConfig se acceden por slug; no filtrar por tenant_id
     // para evitar romper registros existentes sin tenant_id asignado.
