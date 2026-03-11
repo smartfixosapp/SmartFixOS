@@ -17,94 +17,91 @@ const MOCK_ADMIN_USER = {
   is_mock: true
 };
 
+// ─── Fase 5b: Multi-tenant injection ─────────────────────────────────────────
+// Lee el tenant_id de la sesión activa (guardado en PinAccess al hacer login).
+// Devuelve null si el usuario aún no está autenticado.
+function getTenantId() {
+  try {
+    const raw = localStorage.getItem("employee_session") || sessionStorage.getItem("911-session");
+    if (raw) {
+      const session = JSON.parse(raw);
+      if (session?.tenant_id) return session.tenant_id;
+    }
+    // Fallback: clave directa (guardada por PinAccess durante resolución de admin)
+    return localStorage.getItem("smartfix_tenant_id") || null;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Envuelve una entidad del SDK para inyectar tenant_id automáticamente en:
+ *   - list()   → convierte en filter({ tenant_id }) cuando hay sesión
+ *   - filter() → agrega tenant_id al objeto de condiciones
+ *   - create() → agrega tenant_id al objeto de datos
+ * get / update / delete no cambian (operan por id, no necesitan filtro de tenant).
+ *
+ * Si no hay tenant_id en sesión (ej: primera vez, setup inicial) las operaciones
+ * pasan sin cambios para mantener compatibilidad con el modo single-tenant.
+ */
+function tenantScoped(entity) {
+  return {
+    ...entity,
+    list(order, limit) {
+      const tid = getTenantId();
+      if (tid) return entity.filter({ tenant_id: tid }, order, limit);
+      return entity.list(order, limit);
+    },
+    filter(q = {}, order, limit) {
+      const tid = getTenantId();
+      if (tid) return entity.filter({ ...q, tenant_id: tid }, order, limit);
+      return entity.filter(q, order, limit);
+    },
+    create(data) {
+      const tid = getTenantId();
+      if (tid && !data?.tenant_id) return entity.create({ ...data, tenant_id: tid });
+      return entity.create(data);
+    },
+  };
+}
+
 // 👈 MIGRACIÓN: Adaptador Base44 (1:1 con API actual)
 const base44Adapter = {
   entities: {
-    Customer: {
-      list: (order, limit) => base44.entities.Customer.list(order, limit),
-      get: (id) => base44.entities.Customer.get(id),
-      filter: (q, order) => base44.entities.Customer.filter(q, order),
-      create: (data) => base44.entities.Customer.create(data),
-      update: (id, data) => base44.entities.Customer.update(id, data),
-      delete: (id) => base44.entities.Customer.delete(id),
-    },
-    Order: {
-      list: (order, limit) => base44.entities.Order.list(order, limit),
-      get: (id) => base44.entities.Order.get(id),
-      filter: (q, order) => base44.entities.Order.filter(q, order),
-      create: (data) => base44.entities.Order.create(data),
-      update: (id, data) => base44.entities.Order.update(id, data),
-      delete: (id) => base44.entities.Order.delete(id),
-    },
-    WorkOrderEvent: {
-      list: (order, limit) => base44.entities.WorkOrderEvent.list(order, limit),
-      get: (id) => base44.entities.WorkOrderEvent.get(id),
-      filter: (q, order) => base44.entities.WorkOrderEvent.filter(q, order),
-      create: (data) => base44.entities.WorkOrderEvent.create(data),
-      update: (id, data) => base44.entities.WorkOrderEvent.update(id, data),
-    },
-    Sale: {
-      list: (order, limit) => base44.entities.Sale.list(order, limit),
-      get: (id) => base44.entities.Sale.get(id),
-      filter: (q, order) => base44.entities.Sale.filter(q, order),
-      create: (data) => base44.entities.Sale.create(data),
-      update: (id, data) => base44.entities.Sale.update(id, data),
-    },
-    Transaction: {
-      list: (order, limit) => base44.entities.Transaction.list(order, limit),
-      get: (id) => base44.entities.Transaction.get(id),
-      filter: (q, order) => base44.entities.Transaction.filter(q, order),
-      create: (data) => base44.entities.Transaction.create(data),
-      update: (id, data) => base44.entities.Transaction.update(id, data),
-    },
-    CashRegister: {
-      list: (order, limit) => base44.entities.CashRegister.list(order, limit),
-      get: (id) => base44.entities.CashRegister.get(id),
-      filter: (q, order) => base44.entities.CashRegister.filter(q, order),
-      create: (data) => base44.entities.CashRegister.create(data),
-      update: (id, data) => base44.entities.CashRegister.update(id, data),
-    },
-    CashDrawerMovement: {
-      list: (order, limit) => base44.entities.CashDrawerMovement.list(order, limit),
-      get: (id) => base44.entities.CashDrawerMovement.get(id),
-      filter: (q, order) => base44.entities.CashDrawerMovement.filter(q, order),
-      create: (data) => base44.entities.CashDrawerMovement.create(data),
-      update: (id, data) => base44.entities.CashDrawerMovement.update(id, data),
-    },
-    Product: {
-      list: (order, limit) => base44.entities.Product.list(order, limit),
-      get: (id) => base44.entities.Product.get(id),
-      filter: (q, order) => base44.entities.Product.filter(q, order),
-      create: (data) => base44.entities.Product.create(data),
-      update: (id, data) => base44.entities.Product.update(id, data),
-    },
-    Service: {
-      list: (order, limit) => base44.entities.Service.list(order, limit),
-      get: (id) => base44.entities.Service.get(id),
-      filter: (q, order) => base44.entities.Service.filter(q, order),
-      create: (data) => base44.entities.Service.create(data),
-      update: (id, data) => base44.entities.Service.update(id, data),
-    },
-    InventoryMovement: {
-      list: (order, limit) => base44.entities.InventoryMovement.list(order, limit),
-      filter: (q, order) => base44.entities.InventoryMovement.filter(q, order),
-      create: (data) => base44.entities.InventoryMovement.create(data),
-    },
-    User: {
-      list: (order, limit) => base44.entities.User.list(order, limit),
-      get: (id) => base44.entities.User.get(id),
-      filter: (q, order) => base44.entities.User.filter(q, order),
-      create: (data) => base44.entities.User.create(data),
-      update: (id, data) => base44.entities.User.update(id, data),
-      delete: (id) => base44.entities.User.delete(id),
-    },
-    Notification: {
-      list: (order, limit) => base44.entities.Notification.list(order, limit),
-      filter: (q, order) => base44.entities.Notification.filter(q, order),
-      create: (data) => base44.entities.Notification.create(data),
-      update: (id, data) => base44.entities.Notification.update(id, data),
-      delete: (id) => base44.entities.Notification.delete(id),
-    },
+    // ── Entidades con tenant_id (inyección automática) ──────────────────────
+    Customer:            tenantScoped({ ...base44.entities.Customer }),
+    Order:               tenantScoped({ ...base44.entities.Order }),
+    WorkOrderEvent:      tenantScoped({ ...base44.entities.WorkOrderEvent }),
+    Sale:                tenantScoped({ ...base44.entities.Sale }),
+    Transaction:         tenantScoped({ ...base44.entities.Transaction }),
+    CashRegister:        tenantScoped({ ...base44.entities.CashRegister }),
+    CashDrawerMovement:  tenantScoped({ ...base44.entities.CashDrawerMovement }),
+    Product:             tenantScoped({ ...base44.entities.Product }),
+    Service:             tenantScoped({ ...base44.entities.Service }),
+    InventoryMovement:   tenantScoped({ ...base44.entities.InventoryMovement }),
+    User:                tenantScoped({ ...base44.entities.User }),
+    Notification:        tenantScoped({ ...base44.entities.Notification }),
+    ExternalLink:        tenantScoped({ ...base44.entities.ExternalLink }),
+    TimeEntry:           tenantScoped({ ...base44.entities.TimeEntry }),
+    AuditLog:            tenantScoped({ ...base44.entities.AuditLog }),
+    WorkOrderWizardConfig: tenantScoped({ ...base44.entities.WorkOrderWizardConfig }),
+    DiscountCode:        tenantScoped({ ...base44.entities.DiscountCode }),
+    CustomerPortalToken: tenantScoped({ ...base44.entities.CustomerPortalToken }),
+    Announcement:        tenantScoped({ ...base44.entities.Announcement }),
+    SequenceCounter:     tenantScoped({ ...base44.entities.SequenceCounter }),
+    Invoice:             tenantScoped({ ...base44.entities.Invoice }),
+    PersonalNote:        tenantScoped({ ...base44.entities.PersonalNote }),
+    OneTimeExpense:      tenantScoped({ ...base44.entities.OneTimeExpense }),
+    Recharge:            tenantScoped({ ...base44.entities.Recharge }),
+    FixedExpense:        tenantScoped({ ...base44.entities.FixedExpense }),
+    NotificationRule:    tenantScoped({ ...base44.entities.NotificationRule }),
+    TechnicianProfile:   tenantScoped({ ...base44.entities.TechnicianProfile }),
+    PurchaseOrder:       tenantScoped({ ...base44.entities.PurchaseOrder }),
+    EmployeePayment:     tenantScoped({ ...base44.entities.EmployeePayment }),
+    KeyValue:            tenantScoped({ ...base44.entities.KeyValue }),
+
+    // ── Entidades globales / catálogo (sin tenant_id) ────────────────────────
+    // device_category, brand, device_model no tienen columna tenant_id en la DB.
     DeviceCategory: {
       list: (order, limit) => base44.entities.DeviceCategory.list(order, limit),
       filter: (q, order) => base44.entities.DeviceCategory.filter(q, order),
@@ -126,6 +123,8 @@ const base44Adapter = {
       update: (id, data) => base44.entities.DeviceModel.update(id, data),
       delete: (id) => base44.entities.DeviceModel.delete(id),
     },
+    // AppSettings y SystemConfig se acceden por slug; no filtrar por tenant_id
+    // para evitar romper registros existentes sin tenant_id asignado.
     AppSettings: {
       list: (order, limit) => base44.entities.AppSettings.list(order, limit),
       filter: (q, order) => base44.entities.AppSettings.filter(q, order),
@@ -137,90 +136,7 @@ const base44Adapter = {
       create: (data) => base44.entities.SystemConfig.create(data),
       update: (id, data) => base44.entities.SystemConfig.update(id, data),
     },
-    ExternalLink: {
-      list: (order, limit) => base44.entities.ExternalLink.list(order, limit),
-      filter: (q, order) => base44.entities.ExternalLink.filter(q, order),
-      create: (data) => base44.entities.ExternalLink.create(data),
-      update: (id, data) => base44.entities.ExternalLink.update(id, data),
-      delete: (id) => base44.entities.ExternalLink.delete(id),
-    },
-    TimeEntry: {
-      list: (order, limit) => base44.entities.TimeEntry.list(order, limit),
-      filter: (q, order) => base44.entities.TimeEntry.filter(q, order),
-      create: (data) => base44.entities.TimeEntry.create(data),
-      update: (id, data) => base44.entities.TimeEntry.update(id, data),
-    },
-    AuditLog: {
-      create: (data) => base44.entities.AuditLog.create(data),
-      filter: (q, order) => base44.entities.AuditLog.filter(q, order),
-    },
-    WorkOrderWizardConfig: {
-      list: (order, limit) => base44.entities.WorkOrderWizardConfig.list(order, limit),
-      update: (id, data) => base44.entities.WorkOrderWizardConfig.update(id, data),
-      create: (data) => base44.entities.WorkOrderWizardConfig.create(data),
-    },
-    DiscountCode: {
-      filter: (q, order) => base44.entities.DiscountCode.filter(q, order),
-      update: (id, data) => base44.entities.DiscountCode.update(id, data),
-    },
-    CustomerPortalToken: {
-      filter: (q, order) => base44.entities.CustomerPortalToken.filter(q, order),
-      create: (data) => base44.entities.CustomerPortalToken.create(data),
-      update: (id, data) => base44.entities.CustomerPortalToken.update(id, data),
-    },
-    Announcement: {
-      list: (order, limit) => base44.entities.Announcement.list(order, limit),
-      create: (data) => base44.entities.Announcement.create(data),
-      update: (id, data) => base44.entities.Announcement.update(id, data),
-    },
-    SequenceCounter: {
-      filter: (q, order) => base44.entities.SequenceCounter.filter(q, order),
-      create: (data) => base44.entities.SequenceCounter.create(data),
-      update: (id, data) => base44.entities.SequenceCounter.update(id, data),
-    },
-    Invoice: {
-      list: (order, limit) => base44.entities.Invoice.list(order, limit),
-      filter: (q, order) => base44.entities.Invoice.filter(q, order),
-      create: (data) => base44.entities.Invoice.create(data),
-      update: (id, data) => base44.entities.Invoice.update(id, data),
-      delete: (id) => base44.entities.Invoice.delete(id),
-    },
-    PersonalNote: {
-      list: (order, limit) => base44.entities.PersonalNote.list(order, limit),
-      filter: (q, order) => base44.entities.PersonalNote.filter(q, order),
-      create: (data) => base44.entities.PersonalNote.create(data),
-      update: (id, data) => base44.entities.PersonalNote.update(id, data),
-      delete: (id) => base44.entities.PersonalNote.delete(id),
-    },
-    OneTimeExpense: {
-      list: (order, limit) => base44.entities.OneTimeExpense.list(order, limit),
-      filter: (q, order) => base44.entities.OneTimeExpense.filter(q, order),
-      create: (data) => base44.entities.OneTimeExpense.create(data),
-      update: (id, data) => base44.entities.OneTimeExpense.update(id, data),
-      delete: (id) => base44.entities.OneTimeExpense.delete(id),
-    },
-    Recharge: {
-      list: (order, limit) => base44.entities.Recharge.list(order, limit),
-      filter: (q, order) => base44.entities.Recharge.filter(q, order),
-      create: (data) => base44.entities.Recharge.create(data),
-      update: (id, data) => base44.entities.Recharge.update(id, data),
-      delete: (id) => base44.entities.Recharge.delete(id),
-    },
-    FixedExpense: {
-      list: (order, limit) => base44.entities.FixedExpense.list(order, limit),
-      filter: (q, order) => base44.entities.FixedExpense.filter(q, order),
-      create: (data) => base44.entities.FixedExpense.create(data),
-      update: (id, data) => base44.entities.FixedExpense.update(id, data),
-      delete: (id) => base44.entities.FixedExpense.delete(id),
-    },
-    NotificationRule: {
-      list: (order, limit) => base44.entities.NotificationRule.list(order, limit),
-      filter: (q, order) => base44.entities.NotificationRule.filter(q, order),
-      create: (data) => base44.entities.NotificationRule.create(data),
-      update: (id, data) => base44.entities.NotificationRule.update(id, data),
-      delete: (id) => base44.entities.NotificationRule.delete(id),
-    },
-    },
+  },
   auth: {
     me: async () => {
       try {

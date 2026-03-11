@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState, useCallback } from "react";
 import { base44 } from "@/api/base44Client";
+import { dataClient } from "@/components/api/dataClient";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
@@ -156,7 +157,7 @@ function EditPunchModal({ open, onClose, punch, onSaved }) {
       await base44.entities.TimeEntry.update(punch.id, body);
       // Auditoría (si existe AuditLog; sino, KeyValue de respaldo)
       try {
-        await base44.entities.AuditLog.create({
+        await dataClient.entities.AuditLog.create({
           scope: "punch_edit",
           ref_id: punch.id,
           user: punch.employee_name,
@@ -172,7 +173,7 @@ function EditPunchModal({ open, onClose, punch, onSaved }) {
         });
       } catch {
         try {
-          await base44.entities.KeyValue.create({
+          await dataClient.entities.KeyValue.create({
             scope: "audit_punch_edit",
             value_json: {
               punch_id: punch.id,
@@ -285,7 +286,7 @@ export default function Punches() {
   /* ---------- cargar usuarios activos ---------- */
   const loadActiveUsers = useCallback(async () => {
     try {
-      const payload = await base44.entities.TimeEntry.filter(
+      const payload = await dataClient.entities.TimeEntry.filter(
         { clock_out: null },
         "-clock_in",
         50
@@ -322,7 +323,7 @@ export default function Punches() {
   /* ---------- cargar empleados ---------- */
   const loadEmployees = useCallback(async () => {
     try {
-      const list = await base44.entities.User.filter({ active: true });
+      const list = await dataClient.entities.User.filter({ active: true });
       const formatted = list.map((u) => ({
         id: u.id,
         full_name: u.full_name,
@@ -343,7 +344,7 @@ export default function Punches() {
   const loadEntries = useCallback(async () => {
     setLoading(true);
     try {
-      const remotePayload = await base44.entities.TimeEntry.filter({}, "-clock_in", 500);
+      const remotePayload = await dataClient.entities.TimeEntry.filter({}, "-clock_in", 500);
       const remoteEntries = normalizeTimeEntryList(remotePayload);
       const localEntries = readLocalTimeEntries();
       const mergedEntries = mergeTimeEntries(remoteEntries, localEntries);
@@ -501,7 +502,7 @@ export default function Punches() {
     if (!selectedEmployeeForPayment) return;
     
     try {
-      await base44.entities.EmployeePayment.create({
+      await dataClient.entities.EmployeePayment.create({
         employee_id: selectedEmployeeForPayment.id,
         employee_name: selectedEmployeeForPayment.name,
         employee_code: employees.find(e => e.id === selectedEmployeeForPayment.id)?.employee_code || "",

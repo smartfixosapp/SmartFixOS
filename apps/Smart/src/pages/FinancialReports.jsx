@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
+import { dataClient } from "@/components/api/dataClient";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -54,8 +55,8 @@ export default function FinancialReportsPage() {
       end.setHours(23, 59, 59, 999);
 
       const [sales, transactions] = await Promise.all([
-        base44.entities.Sale.list("-created_date", 1000),
-        base44.entities.Transaction.list("-created_date", 1000)
+        dataClient.entities.Sale.list("-created_date", 1000),
+        dataClient.entities.Transaction.list("-created_date", 1000)
       ]);
 
       const filterByDate = (item) => {

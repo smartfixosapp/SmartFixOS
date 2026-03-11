@@ -651,3 +651,79 @@ if (base44?.entities?.Order) {
 // Global offline-safe wrapper for catalog entities
 wrapCatalogEntity(base44?.entities?.Product, LOCAL_PRODUCTS_KEY);
 wrapCatalogEntity(base44?.entities?.Service, LOCAL_SERVICES_KEY);
+
+// ─── Fase 5b: Tenant-scoped injection ────────────────────────────────────────
+// Envuelve entity methods para inyectar tenant_id automáticamente.
+// Se aplica DESPUÉS de todos los wrappers offline, por lo que la inyección
+// cubre tanto las rutas remotas como los fallbacks locales.
+//
+// Lógica de seguridad:
+//   • Si no hay tenant_id en sesión → pasa sin cambios (modo single-tenant).
+//   • list()   → se convierte en filter({ tenant_id }) para filtrar en la DB.
+//   • filter() → merge de tenant_id en las condiciones.
+//   • create() → agrega tenant_id al payload (solo si no viene ya).
+//   • get / update / delete → sin cambios (operan por id).
+function getTenantIdFromSession() {
+  if (typeof window === "undefined") return null;
+  try {
+    const raw = localStorage.getItem("employee_session") || sessionStorage.getItem("911-session");
+    if (raw) {
+      const session = JSON.parse(raw);
+      if (session?.tenant_id) return session.tenant_id;
+    }
+    return localStorage.getItem("smartfix_tenant_id") || null;
+  } catch {
+    return null;
+  }
+}
+
+function applyTenantScope(entity) {
+  if (!entity) return;
+  const origList   = entity.list?.bind(entity);
+  const origFilter = entity.filter?.bind(entity);
+  const origCreate = entity.create?.bind(entity);
+
+  if (origList) {
+    entity.list = async (order, limit, ...rest) => {
+      const tid = getTenantIdFromSession();
+      if (tid) return entity.filter({ tenant_id: tid }, order, limit, ...rest);
+      return origList(order, limit, ...rest);
+    };
+  }
+  if (origFilter) {
+    entity.filter = async (q = {}, order, limit, ...rest) => {
+      const tid = getTenantIdFromSession();
+      if (tid) return origFilter({ ...q, tenant_id: tid }, order, limit, ...rest);
+      return origFilter(q, order, limit, ...rest);
+    };
+  }
+  if (origCreate) {
+    entity.create = async (data) => {
+      const tid = getTenantIdFromSession();
+      if (tid && !data?.tenant_id) return origCreate({ ...data, tenant_id: tid });
+      return origCreate(data);
+    };
+  }
+}
+
+// Entidades con columna tenant_id en la DB (ver 008_tenant_isolation.sql).
+// DeviceCategory, Brand, DeviceModel, DeviceFamily, DeviceSubcategory, Tenant,
+// TenantMembership, TenantRole, Subscription, AppSettings, SystemConfig son
+// globales/catálogo — no se les inyecta tenant_id.
+const TENANT_SCOPED_ENTITIES = [
+  "Customer", "Order", "WorkOrderEvent", "Sale", "Transaction",
+  "CashRegister", "CashDrawerMovement", "Product", "Service",
+  "InventoryMovement", "User", "Notification", "ExternalLink",
+  "TimeEntry", "AuditLog", "WorkOrderWizardConfig", "WorkOrderConfig",
+  "DiscountCode", "CustomerPortalToken", "Announcement", "SequenceCounter",
+  "Invoice", "PersonalNote", "OneTimeExpense", "Recharge", "FixedExpense",
+  "NotificationRule", "TechnicianProfile", "TechnicianMetrics", "Supplier",
+  "PurchaseOrder", "AppEmployee", "BiometricCredential", "CustomerSegment",
+  "Appointment", "KeyValue", "CommunicationHistory", "CommunicationQueue",
+  "MaintenanceReminder", "FileUpload", "EmailTemplate", "EmailLog",
+  "NotificationSettings",
+];
+
+for (const name of TENANT_SCOPED_ENTITIES) {
+  applyTenantScope(base44?.entities?.[name]);
+}

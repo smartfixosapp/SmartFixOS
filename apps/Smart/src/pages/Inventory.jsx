@@ -3,6 +3,7 @@
 
 import React, { useState, useEffect, useMemo, useRef } from "react";
 import { base44 } from "@/api/base44Client";
+import { dataClient } from "@/components/api/dataClient";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -831,10 +832,10 @@ export default function Inventory() {
   const loadInventory = async () => {
     try {
       const [pRes, poRes, supRes, woRes, catRes, ptRes, accRes] = await Promise.allSettled([
-      base44.entities.Product?.filter?.({ active: true }, "-created_date", 500).catch(() => []),
-      base44.entities.PurchaseOrder?.list?.("-created_date", 100).catch(() => []),
+      dataClient.entities.Product?.filter?.({ active: true }, "-created_date", 500).catch(() => []),
+      dataClient.entities.PurchaseOrder?.list?.("-created_date", 100).catch(() => []),
       loadSuppliersSafe().catch(() => []),
-      base44.entities.Order?.filter?.({ deleted: false }, "-created_date", 100).catch(() => []),
+      dataClient.entities.Order?.filter?.({ deleted: false }, "-created_date", 100).catch(() => []),
       base44.entities.DeviceCategory?.list?.().catch(() => []),
       base44.entities.PartType?.list?.().catch(() => []),
       base44.entities.AccessoryCategory?.list?.().catch(() => [])]
@@ -1000,7 +1001,7 @@ export default function Inventory() {
         const minStock = Number(payload.min_stock || 5);
 
         if (newStock <= minStock && (oldStock === null || oldStock > minStock)) {
-          const admins = await base44.entities.User.list();
+          const admins = await dataClient.entities.User.list();
           const eligibleUsers = (admins || []).filter((u) => u.role === "admin" || u.role === "manager");
 
           for (const targetUser of eligibleUsers) {
@@ -1029,7 +1030,7 @@ export default function Inventory() {
         await loadInventory();
       } else {
         console.log("➕ Creando nueva pieza:", payload);
-        const created = await base44.entities.Product.create(payload);
+        const created = await dataClient.entities.Product.create(payload);
         const newItem = created && created.id ? created : {
           ...payload,
           id: `local-product-${Date.now()}`,
@@ -1129,7 +1130,7 @@ export default function Inventory() {
         return;
       }
 
-      await base44.entities.Product.delete(item.id);
+      await dataClient.entities.Product.delete(item.id);
       setItems((prev) => prev.filter((x) => x.id !== item.id));
       toast.success("Eliminado");
     } catch (err) {
@@ -1151,7 +1152,7 @@ export default function Inventory() {
       const fileUrl = r.file_url || r.url;
       if (fileUrl) {
         await base44.entities.PurchaseOrder.update(poId, { attachment_url: fileUrl });
-        const po = await base44.entities.PurchaseOrder.list("-created_date", 100);
+        const po = await dataClient.entities.PurchaseOrder.list("-created_date", 100);
         setPoList(po || []);
         toast.success("PDF adjuntado");
       }

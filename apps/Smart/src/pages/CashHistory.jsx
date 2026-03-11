@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useMemo } from "react";
 import { base44 } from "@/api/base44Client";
+import { dataClient } from "@/components/api/dataClient";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -33,7 +34,7 @@ export default function CashHistory() {
     setLoading(true);
     try {
       // Fetch registers (limit to 500 for now, could be paginated)
-      const data = await base44.entities.CashRegister.list("-date", 500);
+      const data = await dataClient.entities.CashRegister.list("-date", 500);
       setRegisters(data || []);
     } catch (error) {
       console.error("Error loading registers:", error);

@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useMemo } from "react";
 import { base44 } from "@/api/base44Client";
+import { dataClient } from "@/components/api/dataClient";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -94,12 +95,12 @@ export default function Reports() {
 
     try {
       const [salesData, ordersData, productsData, timeData, transactionsData, cashData] = await Promise.allSettled([
-      base44.entities.Sale.list("-created_date", 500).catch(() => []),
-      base44.entities.Order.list("-created_date", 500).catch(() => []),
-      base44.entities.Product.list("-created_date", 500).catch(() => []),
-      base44.entities.TimeEntry.list("-created_date", 500).catch(() => []),
-      base44.entities.Transaction.list("-created_date", 500).catch(() => []),
-      base44.entities.CashRegister.list("-date", 100).catch(() => [])]
+      dataClient.entities.Sale.list("-created_date", 500).catch(() => []),
+      dataClient.entities.Order.list("-created_date", 500).catch(() => []),
+      dataClient.entities.Product.list("-created_date", 500).catch(() => []),
+      dataClient.entities.TimeEntry.list("-created_date", 500).catch(() => []),
+      dataClient.entities.Transaction.list("-created_date", 500).catch(() => []),
+      dataClient.entities.CashRegister.list("-date", 100).catch(() => [])]
       );
 
       setSales(salesData.status === "fulfilled" ? salesData.value || [] : []);

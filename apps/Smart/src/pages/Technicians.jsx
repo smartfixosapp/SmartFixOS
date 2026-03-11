@@ -1,6 +1,7 @@
 
 import React, { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
+import { dataClient } from "@/components/api/dataClient";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -54,9 +55,9 @@ export default function Technicians() {
     try {
       setLoading(true);
       const [techProfiles, allUsers, orders] = await Promise.all([
-        base44.entities.TechnicianProfile.list(),
-        base44.entities.User.filter({ active: true }),
-        base44.entities.Order.list("-updated_date", 500)
+        dataClient.entities.TechnicianProfile.list(),
+        dataClient.entities.User.filter({ active: true }),
+        dataClient.entities.Order.list("-updated_date", 500)
       ]);
 
       // Calcular métricas en tiempo real
