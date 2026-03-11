@@ -157,7 +157,8 @@ export default function BrandingTab({ user }) {
       if (!result?.file_url) throw new Error("No se recibió URL del archivo");
       setData((prev) => ({ ...prev, logo_url: result.file_url }));
     } catch (e) {
-      alert("Error al subir logo: " + e.message);
+      console.error("Error al subir logo:", e);
+      alert("Error al subir logo: " + (e?.message || JSON.stringify(e)));
     } finally {
       setUploading(false);
     }
