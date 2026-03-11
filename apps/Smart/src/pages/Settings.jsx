@@ -689,7 +689,8 @@ export default function SettingsPage() {
     
     setUploadingLogo(true);
     try {
-      const { file_url } = await base44.integrations.Core.UploadFile({ file });
+      const result = await dataClient.files.upload(file);
+      const file_url = result?.file_url || result?.url || result?.public_url || "";
       setBusinessBranding({ ...businessBranding, logo_url: file_url });
       toast.success("Logo subido correctamente");
     } catch (error) {

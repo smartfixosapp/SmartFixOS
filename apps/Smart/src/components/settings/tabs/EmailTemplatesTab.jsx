@@ -116,6 +116,7 @@ export default function EmailTemplatesTab() {
   const [showEditor, setShowEditor] = useState(false);
   const [showPreview, setShowPreview] = useState(false);
   const [businessInfo, setBusinessInfo] = useState({});
+  const [brandingRecordId, setBrandingRecordId] = useState(null);
   const [uploadingLogo, setUploadingLogo] = useState(false);
   const [sendingTest, setSendingTest] = useState(false);
   const [testEmail, setTestEmail] = useState("");
@@ -188,8 +189,10 @@ export default function EmailTemplatesTab() {
       );
 
       const config = configRes?.[0]?.payload || {};
-      const branding = brandingRes?.[0]?.payload || {};
+      const brandingRecord = brandingRes?.[0] || null;
+      const branding = brandingRecord?.payload || {};
 
+      setBrandingRecordId(brandingRecord?.id || null);
       setBusinessInfo({
         business_name: config.business_name || "SmartFixOS",
         phone: config.business_phone || "",
@@ -368,7 +371,27 @@ export default function EmailTemplatesTab() {
         toast.success("Logo subido correctamente");
       }
 
-      setEditingTemplate((current) => current ? { ...current, logo_url: uploadedUrl } : current);
+      // Guardar en business-branding para que aplique a todas las plantillas
+      try {
+        if (brandingRecordId) {
+          const existing = await base44.entities.AppSettings.filter({ slug: "business-branding" });
+          const rec = existing?.[0];
+          if (rec) {
+            await base44.entities.AppSettings.update(rec.id, {
+              payload: { ...rec.payload, logo_url: uploadedUrl }
+            });
+          }
+        } else {
+          await base44.entities.AppSettings.create({
+            slug: "business-branding",
+            payload: { logo_url: uploadedUrl }
+          });
+        }
+      } catch (saveError) {
+        console.warn("No se pudo guardar logo en Branding:", saveError);
+      }
+
+      setBusinessInfo((prev) => ({ ...prev, logo_url: uploadedUrl }));
     } catch (error) {
       console.error("Error uploading email template logo:", error);
       toast.error(error?.message ? `Error al subir logo: ${error.message}` : "Error al subir logo");
@@ -774,16 +797,32 @@ export default function EmailTemplatesTab() {
               <div className="space-y-2">
                 <label className="text-white/70 text-sm font-semibold">Logo</label>
                 <div className="flex items-start gap-3 p-4 bg-white/5 rounded-xl border border-white/10">
-                  <span className="text-2xl mt-0.5">🏪</span>
-                  <div>
+                  {businessInfo.logo_url
+                    ? <img src={businessInfo.logo_url} alt="Logo actual" className="max-h-[50px] max-w-[140px] object-contain bg-white/10 rounded-lg p-2 shrink-0" />
+                    : <span className="text-2xl mt-0.5 shrink-0">🏪</span>
+                  }
+                  <div className="flex-1 min-w-0">
                     <p className="text-white text-sm font-semibold">Logo unificado de la tienda</p>
-                    <p className="text-white/50 text-xs mt-1">El logo se toma automáticamente desde <strong className="text-white/70">Configuración → Branding</strong>. Aplica igual a todas las plantillas de email.</p>
-                    {businessInfo.logo_url &&
-                    <img
-                      src={businessInfo.logo_url}
-                      alt="Logo actual"
-                      className="mt-3 max-h-[50px] max-w-[160px] object-contain bg-white/10 rounded-lg p-2" />
-                    }
+                    <p className="text-white/50 text-xs mt-1">Aplica a todas las plantillas. También editable en <strong className="text-white/70">Branding</strong>.</p>
+                    <input
+                      type="file"
+                      accept="image/png,image/jpeg,image/jpg,image/webp,image/gif,image/svg+xml"
+                      id="email-template-logo-input"
+                      className="hidden"
+                      onChange={(e) => {
+                        const f = e.target.files?.[0];
+                        if (f) handleLogoUpload(f);
+                        e.target.value = "";
+                      }}
+                    />
+                    <button
+                      type="button"
+                      disabled={uploadingLogo}
+                      onClick={() => document.getElementById("email-template-logo-input").click()}
+                      className="mt-3 px-3 py-1.5 rounded-lg bg-white/10 hover:bg-white/20 text-white text-xs font-medium transition-colors disabled:opacity-50"
+                    >
+                      {uploadingLogo ? "Subiendo..." : "Cambiar logo"}
+                    </button>
                   </div>
                 </div>
               </div>
