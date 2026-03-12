@@ -205,6 +205,14 @@ const isDev = Deno.env.get("DENO_ENV") !== "production";
     }
   }
 
+  // Health check (Render requires 2xx on healthCheckPath)
+  if (path === '/' || path === '/health') {
+    return new Response(JSON.stringify({ status: 'ok', service: 'SmartFixOS Functions' }), {
+      status: 200,
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    });
+  }
+
   // 404 for unknown routes
   return new Response(
     JSON.stringify({ data:{ error: `Route ${path} not found` }}), 
