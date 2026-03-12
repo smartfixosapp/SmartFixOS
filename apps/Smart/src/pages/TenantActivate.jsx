@@ -8,9 +8,7 @@ import {
   DollarSign, Wrench, Users, Package, BarChart3,
   AlertTriangle, Timer, Star, Bell, Loader2, CheckCircle2, XCircle
 } from "lucide-react";
-import { supabase } from "../../../../lib/supabase-client.js";
-
-// ── All DB operations go through Vercel serverless endpoints (server-side service role key) ──
+// ── All DB/Storage operations go through Vercel serverless endpoints (server-side service role key) ──
 
 // ── Dashboard widgets config ──────────────────────────────────────────────────
 const DASHBOARD_WIDGETS = [
@@ -164,19 +162,29 @@ export default function TenantActivate() {
     return true;
   };
 
-  // ── Logo upload ─────────────────────────────────────────────────────────────
+  // ── Logo upload — via /api/upload-logo (server-side base64, bypasses Storage RLS) ──
   const handleLogoUpload = async (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
     if (file.size > 2 * 1024 * 1024) { toast.error('El logo debe ser menor a 2MB'); return; }
     setLogoUploading(true);
     try {
-      const ext = file.name.split('.').pop();
-      const path = `logos/${tenantId || 'unknown'}-${Date.now()}.${ext}`;
-      const { error } = await supabase.storage.from('uploads').upload(path, file, { upsert: true });
-      if (error) throw error;
-      const { data: { publicUrl } } = supabase.storage.from('uploads').getPublicUrl(path);
-      setLogoUrl(publicUrl);
+      // Read file as base64
+      const base64 = await new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result);
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+      });
+      const ext = file.name.split('.').pop() || 'png';
+      const res = await fetch('/api/upload-logo', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ base64, tenantId: tenantId || 'unknown', ext, mimeType: file.type }),
+      });
+      const data = await res.json();
+      if (!data.success) throw new Error(data.error || 'Upload failed');
+      setLogoUrl(data.url);
       toast.success('Logo subido correctamente');
     } catch (e) {
       toast.error('Error al subir el logo: ' + e.message);
