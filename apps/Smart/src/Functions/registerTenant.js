@@ -250,19 +250,32 @@ export async function registerTenantHandler(req) {
 </html>`;
 
     try {
-      const functionsUrl = Deno.env.get('VITE_FUNCTION_URL') || 'http://localhost:8686';
-      await fetch(`${functionsUrl}/sendEmailInternal`, {
+      const resendApiKey = Deno.env.get('RESEND_API_KEY');
+      if (!resendApiKey) throw new Error('RESEND_API_KEY no configurado');
+
+      const fromEmail = Deno.env.get('FROM_EMAIL') || 'noreply@smartfixos.com';
+      const fromName  = Deno.env.get('FROM_NAME')  || 'SmartFixOS';
+
+      const resendRes = await fetch('https://api.resend.com/emails', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Authorization': `Bearer ${resendApiKey}`,
+          'Content-Type': 'application/json',
+        },
         body: JSON.stringify({
-          to: email,
+          from: `${fromName} <${fromEmail}>`,
+          to: [email],
           subject: `¡Bienvenido a SmartFixOS! Tu PIN es ${pin}`,
-          body: emailBody,
-          from_name: 'SmartFixOS',
-          from_email: Deno.env.get('FROM_EMAIL') || 'noreply@smartfixos.com'
-        })
+          html: emailBody,
+        }),
       });
-      console.log(`✅ Email de bienvenida enviado a ${email}`);
+
+      if (!resendRes.ok) {
+        const errText = await resendRes.text();
+        throw new Error(`Resend ${resendRes.status}: ${errText}`);
+      }
+      const resendData = await resendRes.json();
+      console.log(`✅ Email de bienvenida enviado a ${email} — id: ${resendData.id}`);
     } catch (emailErr) {
       console.warn('Welcome email failed (non-critical):', emailErr.message);
     }
