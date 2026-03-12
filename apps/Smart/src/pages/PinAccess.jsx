@@ -164,6 +164,8 @@ export default function PinAccess() {
     setMasterValidated(false);
     setError("");
     setPin("");
+    // Limpiar tenant_id viejo para que no contamine las queries de este login
+    localStorage.removeItem("smartfix_tenant_id");
     try {
       const { error: authError } = await supabase.auth.signInWithPassword({ email, password });
       if (authError) {
@@ -189,8 +191,25 @@ export default function PinAccess() {
 
       let resolvedTenantId = null;
       try {
-        const adminUsers = await dataClient.entities.User.filter({ email });
-        resolvedTenantId = adminUsers?.[0]?.tenant_id || null;
+        // Usar supabase directo para evitar que tenantScoped() inyecte el tenant_id viejo
+        const { data: userRows } = await supabase
+          .from("users")
+          .select("tenant_id")
+          .eq("email", email)
+          .not("tenant_id", "is", null)
+          .limit(1);
+        resolvedTenantId = userRows?.[0]?.tenant_id || null;
+
+        // Fallback: buscar en app_employee si users no tiene registro
+        if (!resolvedTenantId) {
+          const { data: empRows } = await supabase
+            .from("app_employee")
+            .select("tenant_id")
+            .eq("email", email)
+            .limit(1);
+          resolvedTenantId = empRows?.[0]?.tenant_id || null;
+        }
+
         if (resolvedTenantId) {
           setTenantId(resolvedTenantId);
           localStorage.setItem("smartfix_tenant_id", resolvedTenantId);
