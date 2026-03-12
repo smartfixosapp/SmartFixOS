@@ -4,7 +4,8 @@ import { motion, AnimatePresence } from "framer-motion";
 import {
   Building2, Phone, Mail, MapPin, CheckCircle2, Wrench, KeyRound,
   Eye, EyeOff, Upload, Clock, Shield, Users, Zap, ChevronRight,
-  ChevronLeft, Star, Camera, MessageSquare, Globe, Hash, Sparkles
+  ChevronLeft, Star, Camera, MessageSquare, Globe, Hash, Sparkles,
+  LayoutDashboard, DollarSign, Package, BarChart3, Timer, Bell, Check
 } from "lucide-react";
 import toast from "react-hot-toast";
 
@@ -38,10 +39,22 @@ const PLAN_INFO = {
 };
 
 const STEPS = [
-  { id: 1, label: "Identidad",  icon: Building2 },
-  { id: 2, label: "Contacto",   icon: MapPin    },
-  { id: 3, label: "Políticas",  icon: Shield    },
-  { id: 4, label: "Tu cuenta",  icon: Star      },
+  { id: 1, label: "Identidad",  icon: Building2        },
+  { id: 2, label: "Contacto",   icon: MapPin           },
+  { id: 3, label: "Políticas",  icon: Shield           },
+  { id: 4, label: "Dashboard",  icon: LayoutDashboard  },
+  { id: 5, label: "Tu cuenta",  icon: Star             },
+];
+
+const DASHBOARD_WIDGETS = [
+  { key: "revenue_today",   label: "Ingresos del día",           icon: DollarSign, desc: "Ventas y pagos de hoy"          },
+  { key: "active_orders",   label: "Órdenes activas",            icon: Wrench,     desc: "Reparaciones en progreso"       },
+  { key: "total_customers", label: "Clientes totales",           icon: Users,      desc: "Base de clientes"               },
+  { key: "inventory_value", label: "Valor del inventario",       icon: Package,    desc: "Stock en dinero"                },
+  { key: "avg_repair_time", label: "Tiempo prom. reparación",    icon: Timer,      desc: "Eficiencia del taller"          },
+  { key: "top_technicians", label: "Técnicos top",               icon: Star,       desc: "Rendimiento del equipo"         },
+  { key: "revenue_chart",   label: "Gráfica de ingresos",        icon: BarChart3,  desc: "Evolución por período"          },
+  { key: "overdue_orders",  label: "Órdenes vencidas / urgentes",icon: Bell,       desc: "Alertas que necesitan atención" },
 ];
 
 export default function FirstTimeSetupWizard({ onComplete }) {
@@ -53,6 +66,10 @@ export default function FirstTimeSetupWizard({ onComplete }) {
   const [tenantInfo, setTenantInfo]     = useState(null);
   const [usedSlots, setUsedSlots]       = useState(1);
   const logoInputRef = useRef();
+
+  const [dashWidgets, setDashWidgets] = useState(() =>
+    Object.fromEntries(DASHBOARD_WIDGETS.map(w => [w.key, true]))
+  );
 
   const [form, setForm] = useState({
     // Paso 1 — Identidad
@@ -164,6 +181,20 @@ export default function FirstTimeSetupWizard({ onComplete }) {
         await supabase.from("system_config").insert({
           key: "settings.branding", value: JSON.stringify(branding),
           category: "general", description: "Configuración del taller", tenant_id: tenantId,
+        });
+      }
+
+      // Guardar widgets del dashboard
+      const { data: existingWidgets } = await supabase
+        .from("system_config").select("id")
+        .eq("key", "settings.dashboard_widgets").eq("tenant_id", tenantId).limit(1);
+
+      if (existingWidgets?.length) {
+        await supabase.from("system_config").update({ value: JSON.stringify(dashWidgets) }).eq("id", existingWidgets[0].id);
+      } else {
+        await supabase.from("system_config").insert({
+          key: "settings.dashboard_widgets", value: JSON.stringify(dashWidgets),
+          category: "general", description: "Widgets habilitados en el dashboard", tenant_id: tenantId,
         });
       }
 
@@ -489,8 +520,47 @@ export default function FirstTimeSetupWizard({ onComplete }) {
                 </div>
               )}
 
-              {/* ── PASO 4: Tu cuenta ── */}
+              {/* ── PASO 4: Dashboard Widgets ── */}
               {step === 4 && (
+                <div>
+                  <SectionCard icon={LayoutDashboard} title="¿Qué quieres ver en tu Dashboard?" color="cyan">
+                    <p className="text-white/40 text-xs mb-4">Activa los indicadores que quieres ver al entrar al sistema. Puedes cambiarlos después.</p>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                      {DASHBOARD_WIDGETS.map(w => {
+                        const Icon = w.icon;
+                        const enabled = dashWidgets[w.key];
+                        return (
+                          <button key={w.key}
+                            type="button"
+                            onClick={() => setDashWidgets(prev => ({ ...prev, [w.key]: !prev[w.key] }))}
+                            className={`flex items-center gap-3 p-3 rounded-xl border transition-all text-left ${
+                              enabled
+                                ? 'bg-cyan-500/10 border-cyan-500/30 text-white'
+                                : 'bg-white/[0.02] border-white/10 text-white/40 hover:bg-white/5'
+                            }`}
+                          >
+                            <div className={`p-1.5 rounded-lg flex-shrink-0 ${enabled ? 'bg-cyan-500/20' : 'bg-white/5'}`}>
+                              <Icon className={`w-3.5 h-3.5 ${enabled ? 'text-cyan-400' : 'text-white/30'}`} />
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <p className="text-xs font-semibold leading-tight truncate">{w.label}</p>
+                              <p className="text-[10px] text-white/30 mt-0.5">{w.desc}</p>
+                            </div>
+                            <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center flex-shrink-0 ${
+                              enabled ? 'bg-cyan-500 border-cyan-500' : 'border-white/20'
+                            }`}>
+                              {enabled && <Check className="w-2.5 h-2.5 text-white" />}
+                            </div>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </SectionCard>
+                </div>
+              )}
+
+              {/* ── PASO 5: Tu cuenta ── */}
+              {step === 5 && (
                 <div>
                   {/* Plan actual */}
                   <SectionCard icon={Zap} title="Tu plan actual" color={planData.color}>
@@ -605,7 +675,7 @@ export default function FirstTimeSetupWizard({ onComplete }) {
                 <ChevronLeft className="w-4 h-4" /> Anterior
               </button>
             )}
-            {step < 4 ? (
+            {step < STEPS.length ? (
               <button
                 onClick={() => {
                   if (step === 1 && !form.business_name.trim()) {

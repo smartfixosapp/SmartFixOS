@@ -60,11 +60,12 @@ export default function Layout({ children }) {
   );
 
   // ✅ Detectar si estamos en Setup/Trial
-  const isSetupPage = useMemo(() => 
-    location.pathname === "/Setup" || 
-    location.pathname === "/InitialSetup" || 
+  const isSetupPage = useMemo(() =>
+    location.pathname === "/Setup" ||
+    location.pathname === "/InitialSetup" ||
     location.pathname === "/VerifySetup" ||
-    location.pathname === "/Activate",
+    location.pathname === "/Activate" ||
+    location.pathname === "/TenantActivate",
     [location.pathname]
   );
 

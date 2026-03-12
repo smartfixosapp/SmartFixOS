@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { dataClient } from "@/components/api/dataClient";
 import { Button } from "@/components/ui/button";
 import { Lock, ArrowLeft, Delete, Check, ExternalLink, Shield, Zap, UserPlus, Smartphone, Box, Receipt, Users, BarChart3, Globe, Sparkles, MessageCircle, Clock, Database, Cloud, Mail, Building2, CheckCircle, Star, Phone, Wrench, Camera, Eye, EyeOff, KeyRound } from "lucide-react";
@@ -43,6 +43,7 @@ export default function PinAccess() {
     can_manage_catalog: true
   };
   const navigate = useNavigate();
+  const location = useLocation();
   const [step, setStep] = useState("welcome");
   const [pin, setPin] = useState("");
   const [storeEmail, setStoreEmail] = useState(
@@ -515,7 +516,13 @@ export default function PinAccess() {
         setStep("store");
       }
 
-      // 0a. Mostrar mensaje si fue expulsado por suspensión
+      // 0a. Mostrar toast si viene de activación exitosa
+      if (location.state?.activated) {
+        toast.success("¡Cuenta activada! Ingresa con tu email y el PIN que creaste", { duration: 5000 });
+        navigate(location.pathname, { replace: true, state: {} });
+      }
+
+      // 0b. Mostrar mensaje si fue expulsado por suspensión
       const kickReason = sessionStorage.getItem("smartfix_kicked_reason");
       if (kickReason) {
         sessionStorage.removeItem("smartfix_kicked_reason");
@@ -1540,9 +1547,9 @@ export default function PinAccess() {
                     <div className="w-20 h-20 rounded-full bg-gradient-to-br from-emerald-500 to-cyan-500 flex items-center justify-center mx-auto mb-6 shadow-[0_0_50px_rgba(16,185,129,0.4)]">
                       <CheckCircle className="w-10 h-10 text-white" />
                     </div>
-                    <h2 className="text-2xl font-black text-white mb-2">¡Cuenta creada!</h2>
+                    <h2 className="text-2xl font-black text-white mb-2">¡Registro exitoso!</h2>
                     <p className="text-gray-400 text-sm mb-6">
-                      Tu negocio <span className="text-white font-semibold">{signupResult?.tenantName}</span> está listo
+                      Tu negocio <span className="text-white font-semibold">{signupResult?.tenantName}</span> fue creado
                     </p>
 
                     <div className="bg-cyan-500/10 border border-cyan-500/30 rounded-2xl p-5 mb-6 text-left space-y-3">
@@ -1550,21 +1557,21 @@ export default function PinAccess() {
                         <Mail className="w-4 h-4 text-cyan-400 mt-0.5 flex-shrink-0" />
                         <div>
                           <p className="text-white font-semibold text-sm">Revisa tu email</p>
-                          <p className="text-gray-400 text-xs">Tu PIN de acceso fue enviado a <span className="text-cyan-300">{formData.email}</span></p>
+                          <p className="text-gray-400 text-xs">Enviamos un link de activación a <span className="text-cyan-300">{formData.email}</span></p>
                         </div>
                       </div>
                       <div className="flex items-start gap-3">
                         <KeyRound className="w-4 h-4 text-emerald-400 mt-0.5 flex-shrink-0" />
                         <div>
-                          <p className="text-white font-semibold text-sm">Ingresa con tu PIN</p>
-                          <p className="text-gray-400 text-xs">Usa el PIN del email para acceder al sistema</p>
+                          <p className="text-white font-semibold text-sm">Activa tu cuenta y elige tu PIN</p>
+                          <p className="text-gray-400 text-xs">El link te llevará a configurar tu taller y crear tu PIN de acceso</p>
                         </div>
                       </div>
                       <div className="flex items-start gap-3">
                         <Sparkles className="w-4 h-4 text-yellow-400 mt-0.5 flex-shrink-0" />
                         <div>
                           <p className="text-white font-semibold text-sm">15 días gratis</p>
-                          <p className="text-gray-400 text-xs">Trial activo hasta el {new Date(signupResult?.trialEndDate).toLocaleDateString('es', { day: 'numeric', month: 'long' })}</p>
+                          <p className="text-gray-400 text-xs">Trial activo hasta el {signupResult?.trialEndDate ? new Date(signupResult.trialEndDate).toLocaleDateString('es', { day: 'numeric', month: 'long' }) : '...'}</p>
                         </div>
                       </div>
                     </div>
@@ -1579,7 +1586,7 @@ export default function PinAccess() {
                       }}
                       className="w-full h-12 bg-gradient-to-r from-cyan-600 to-emerald-600 hover:from-cyan-500 hover:to-emerald-500 font-bold"
                     >
-                      Ingresar con mi PIN →
+                      Entendido, revisar email →
                     </Button>
                   </div>
                 ) : (

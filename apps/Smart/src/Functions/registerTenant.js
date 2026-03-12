@@ -1,18 +1,18 @@
 /**
- * registerTenant — Onboarding SaaS self-service (Fase 7)
+ * registerTenant — Onboarding SaaS self-service (Fase 7 v2)
  *
  * USA ÚNICAMENTE fetch directo al REST API de Supabase.
  * SIN imports de npm (evita fallos de descarga en Render/Deno).
  *
  * Flujo:
  *   1. Validar email único en tabla tenant
- *   2. Generar PIN criptográfico de 4 dígitos
+ *   2. Generar token de activación (UUID, 24h)
  *   3. Crear registro en tabla tenant (trial 15 días)
  *   4. Crear Supabase Auth user (REST /auth/v1/admin/users)
- *   5. Upsert en tabla users
- *   6. Crear registro en tabla app_employee (admin)
+ *   5. Upsert en tabla users (sin PIN todavía)
+ *   6. Crear registro en tabla app_employee (status:pending, sin PIN)
  *   7. Pre-poblar system_config con branding inicial
- *   8. Enviar email de bienvenida con PIN (Resend)
+ *   8. Enviar email con LINK de activación (no PIN)
  */
 
 function getSb() {
@@ -27,8 +27,6 @@ const SB_HEADERS = (key) => ({
   'apikey': key,
   'Authorization': `Bearer ${key}`,
 });
-
-// ── REST helpers ──────────────────────────────────────────────────────────────
 
 async function sbSelect(table, filters, { url, key }) {
   const q = Object.entries(filters).map(([k, v]) => `${k}=eq.${encodeURIComponent(v)}`).join('&');
@@ -63,8 +61,6 @@ async function sbUpsert(table, data, { url, key }) {
   return text ? JSON.parse(text) : null;
 }
 
-// ── Auth Admin helper ─────────────────────────────────────────────────────────
-
 async function authCreateUser(email, password, fullName, { url, key }) {
   const res = await fetch(`${url}/auth/v1/admin/users`, {
     method: 'POST',
@@ -72,7 +68,6 @@ async function authCreateUser(email, password, fullName, { url, key }) {
     body: JSON.stringify({ email, password, email_confirm: true, user_metadata: { full_name: fullName } }),
   });
   const data = await res.json();
-  // 422 = user already exists
   if (!res.ok && res.status !== 422) return { error: data };
   return { data };
 }
@@ -85,8 +80,6 @@ async function authFindUserByEmail(email, { url, key }) {
   const data = await res.json();
   return (data?.users || []).find(u => u.email === email) || null;
 }
-
-// ── Handler ───────────────────────────────────────────────────────────────────
 
 export async function registerTenantHandler(req) {
   console.log("🦕 registerTenant called");
@@ -106,7 +99,6 @@ export async function registerTenantHandler(req) {
     const body = await req.json().catch(() => ({}));
     const { ownerName, email, password, phone, businessName, country, plan: rawPlan } = body;
 
-    // Validaciones básicas
     if (!ownerName || !email || !password) {
       return Response.json({ success: false, error: 'Nombre, email y contraseña son requeridos' }, { status: 400 });
     }
@@ -114,7 +106,6 @@ export async function registerTenantHandler(req) {
       return Response.json({ success: false, error: 'Email inválido' }, { status: 400 });
     }
 
-    // Mapear 'basic' → 'smartfixos' (el CHECK de la tabla solo acepta estos valores)
     const planMap = { basic: 'smartfixos', pro: 'pro', enterprise: 'enterprise' };
     const plan = planMap[rawPlan] || 'smartfixos';
     const PLANS = {
@@ -130,10 +121,9 @@ export async function registerTenantHandler(req) {
       return Response.json({ success: false, error: 'Este email ya tiene una cuenta registrada' }, { status: 409 });
     }
 
-    // 2. PIN criptográfico de 4 dígitos
-    const arr = new Uint32Array(1);
-    crypto.getRandomValues(arr);
-    const pin = String(1000 + (arr[0] % 9000));
+    // 2. Token de activación (24h)
+    const activationToken = crypto.randomUUID();
+    const activationExpiry = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString();
 
     // Fechas
     const now = new Date();
@@ -154,7 +144,7 @@ export async function registerTenantHandler(req) {
       status: 'active',
       plan,
       monthly_cost: planCfg.monthly_cost,
-      subscription_status: 'active',   // 'trial' no está en el CHECK — trial se gestiona via trial_end_date
+      subscription_status: 'active',
       trial_period_days: 15,
       trial_end_date: trialEndStr,
       admin_name: ownerName,
@@ -169,7 +159,6 @@ export async function registerTenantHandler(req) {
     try {
       const { data: authData, error: authErr } = await authCreateUser(email, password, ownerName, sb);
       if (authErr) {
-        // Ya existe — buscarlo
         const found = await authFindUserByEmail(email, sb);
         if (found) authUserId = found.id;
         console.log('ℹ️ Auth user ya existía:', authUserId);
@@ -181,30 +170,38 @@ export async function registerTenantHandler(req) {
       console.warn('Auth user (non-critical):', e.message);
     }
 
-    // 5. Upsert tabla users
+    // 5. Upsert tabla users (sin PIN — se establece en activación)
     if (authUserId) {
       try {
-        await sbUpsert('users', { id: authUserId, email, full_name: ownerName, role: 'admin', tenant_id: tenant.id, pin }, sb);
+        await sbUpsert('users', {
+          id: authUserId,
+          email,
+          full_name: ownerName,
+          role: 'admin',
+          tenant_id: tenant.id,
+          active: false,
+        }, sb);
         console.log(`✅ users upsert OK`);
       } catch (e) {
         console.warn('users upsert (non-critical):', e.message);
       }
     }
 
-    // 6. Crear app_employee (primer admin)
-    // Nota: app_employee NO tiene columna auth_id — solo users la tiene
+    // 6. Crear app_employee (status: pending, sin PIN — se establece en activación)
     const employee = await sbInsert('app_employee', {
       full_name: ownerName,
       email,
       phone: phone || '',
-      pin,
+      pin: null,
       role: 'admin',
-      status: 'active',
-      active: true,
+      status: 'pending',
+      active: false,
       tenant_id: tenant.id,
       hire_date: now.toISOString().split('T')[0],
+      activation_token: activationToken,
+      activation_expires_at: activationExpiry,
     }, sb);
-    console.log(`✅ app_employee creado: ${employee.id}`);
+    console.log(`✅ app_employee creado: ${employee.id} (pendiente activación)`);
 
     // 7. system_config branding inicial
     try {
@@ -224,8 +221,9 @@ export async function registerTenantHandler(req) {
       console.warn('system_config (non-critical):', e.message);
     }
 
-    // 8. Email de bienvenida
-    const appUrl = Deno.env.get('VITE_APP_URL') || 'https://smart-fix-os-smart.vercel.app/Welcome';
+    // 8. Email de activación con LINK (no PIN)
+    const appUrl = Deno.env.get('VITE_APP_URL') || 'https://smart-fix-os-smart.vercel.app';
+    const activationUrl = `${appUrl}/TenantActivate?token=${activationToken}&email=${encodeURIComponent(email)}`;
     const logoUrl = 'https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/68f767a3d5fce1486d4cf555/e9bc537e2_DynamicsmartfixosLogowithGearandDevice.png';
     const formattedEnd = trialEndDate.toLocaleDateString('es', { day: 'numeric', month: 'long', year: 'numeric' });
 
@@ -233,6 +231,7 @@ export async function registerTenantHandler(req) {
       const resendKey = Deno.env.get('RESEND_API_KEY');
       if (!resendKey) throw new Error('RESEND_API_KEY no configurado');
       const from = `${Deno.env.get('FROM_NAME') || 'SmartFixOS'} <${Deno.env.get('FROM_EMAIL') || 'noreply@smartfixos.com'}>`;
+
       const html = `<!DOCTYPE html><html><head><meta charset="UTF-8"></head>
 <body style="margin:0;padding:0;background:#0a0a0a;font-family:'Segoe UI',Arial,sans-serif;color:#e5e7eb;">
 <div style="max-width:600px;margin:0 auto;padding:40px 20px;">
@@ -241,33 +240,36 @@ export async function registerTenantHandler(req) {
   </div>
   <div style="background:linear-gradient(135deg,#0c1a2e,#0a1520);border:1px solid #1e3a5f;border-radius:20px;padding:40px;margin-bottom:24px;">
     <h1 style="color:#fff;font-size:28px;font-weight:800;margin:0 0 8px;text-align:center;">¡Bienvenido a SmartFixOS!</h1>
-    <p style="color:#9ca3af;text-align:center;margin:0 0 32px;font-size:16px;">Tu cuenta para <strong style="color:#e5e7eb;">${tenantName}</strong> está lista</p>
+    <p style="color:#9ca3af;text-align:center;margin:0 0 32px;font-size:16px;">Tu cuenta para <strong style="color:#e5e7eb;">${tenantName}</strong> fue creada ✅</p>
     <div style="background:linear-gradient(135deg,#0e4f6e,#065f46);border:2px solid #06b6d4;border-radius:16px;padding:32px;text-align:center;margin-bottom:32px;">
-      <p style="color:#67e8f9;font-size:13px;font-weight:700;letter-spacing:3px;text-transform:uppercase;margin:0 0 12px;">Tu PIN de Acceso</p>
-      <div style="font-size:56px;font-weight:900;letter-spacing:16px;color:#fff;font-family:monospace;line-height:1;">${pin}</div>
-      <p style="color:#a7f3d0;font-size:12px;margin:16px 0 0;">Usa este PIN para ingresar al sistema</p>
+      <p style="color:#67e8f9;font-size:13px;font-weight:700;letter-spacing:3px;text-transform:uppercase;margin:0 0 20px;">Último paso: activa tu cuenta</p>
+      <p style="color:#d1d5db;font-size:14px;margin:0 0 24px;line-height:1.6;">Haz clic para configurar tu taller y elegir tu PIN de acceso</p>
+      <a href="${activationUrl}" style="display:inline-block;background:linear-gradient(135deg,#0891b2,#059669);color:#fff;font-weight:800;font-size:18px;padding:18px 48px;border-radius:50px;text-decoration:none;">Activar mi cuenta →</a>
+      <p style="color:#a7f3d0;font-size:12px;margin:20px 0 0;">⚠️ Este link expira en 24 horas</p>
     </div>
     <div style="border-top:1px solid #1e3a5f;padding-top:24px;">
       <div style="display:flex;justify-content:space-between;margin-bottom:12px;">
         <span style="color:#9ca3af;">Negocio</span><span style="color:#fff;font-weight:600;">${tenantName}</span>
+      </div>
+      <div style="display:flex;justify-content:space-between;margin-bottom:12px;">
+        <span style="color:#9ca3af;">Plan</span><span style="color:#fff;font-weight:600;">${planCfg.label} — ${planCfg.max_users === 9999 ? 'usuarios ilimitados' : planCfg.max_users + ' usuario(s)'}</span>
       </div>
       <div style="display:flex;justify-content:space-between;">
         <span style="color:#9ca3af;">Trial gratuito hasta</span><span style="color:#34d399;font-weight:700;">${formattedEnd}</span>
       </div>
     </div>
   </div>
-  <div style="text-align:center;margin-bottom:24px;">
-    <a href="${appUrl}" style="display:inline-block;background:linear-gradient(135deg,#0891b2,#059669);color:#fff;font-weight:700;font-size:16px;padding:16px 40px;border-radius:50px;text-decoration:none;">Ingresar ahora →</a>
-  </div>
   <div style="background:#111827;border:1px solid #1f2937;border-radius:16px;padding:24px;margin-bottom:24px;">
-    <p style="color:#9ca3af;font-size:13px;font-weight:700;letter-spacing:2px;text-transform:uppercase;margin:0 0 16px;">Cómo ingresar</p>
-    <ol style="color:#d1d5db;font-size:14px;line-height:1.8;padding-left:20px;margin:0;">
-      <li>Ve a <a href="${appUrl}" style="color:#22d3ee;">${appUrl}</a></li>
-      <li>Ingresa tu PIN: <strong style="color:#fff;font-family:monospace;">${pin}</strong></li>
-      <li>¡Listo! Puedes cambiar tu PIN desde Configuración → Mi Perfil</li>
+    <p style="color:#9ca3af;font-size:13px;font-weight:700;letter-spacing:2px;text-transform:uppercase;margin:0 0 16px;">¿Qué pasa al activar?</p>
+    <ol style="color:#d1d5db;font-size:14px;line-height:2.2;padding-left:20px;margin:0;">
+      <li>Configuras el nombre y logo de tu taller</li>
+      <li>Eliges qué información ver en tu dashboard</li>
+      <li>Creas tu PIN de acceso personal (tú lo eliges)</li>
+      <li>¡Entras directo a tu sistema!</li>
     </ol>
   </div>
   <div style="text-align:center;">
+    <p style="color:#4b5563;font-size:13px;margin:0 0 8px;">¿No creaste esta cuenta? Ignora este mensaje.</p>
     <p style="color:#4b5563;font-size:13px;margin:0 0 8px;">¿Preguntas? <a href="mailto:smartfixosapp@gmail.com" style="color:#22d3ee;">smartfixosapp@gmail.com</a></p>
     <p style="color:#374151;font-size:12px;margin:0;">SmartFixOS — Hecho en Puerto Rico 🇵🇷</p>
   </div>
@@ -276,21 +278,26 @@ export async function registerTenantHandler(req) {
       const emailRes = await fetch('https://api.resend.com/emails', {
         method: 'POST',
         headers: { 'Authorization': `Bearer ${resendKey}`, 'Content-Type': 'application/json' },
-        body: JSON.stringify({ from, to: [email], subject: `¡Bienvenido a SmartFixOS! Tu PIN es ${pin}`, html }),
+        body: JSON.stringify({ from, to: [email], subject: `¡Activa tu cuenta SmartFixOS, ${ownerName}!`, html }),
       });
       if (!emailRes.ok) throw new Error(`Resend ${emailRes.status}: ${await emailRes.text()}`);
       const r = await emailRes.json();
-      console.log(`✅ Email enviado a ${email} — id: ${r.id}`);
+      console.log(`✅ Email de activación enviado a ${email} — id: ${r.id}`);
     } catch (e) {
       console.warn('Email (non-critical):', e.message);
     }
 
-    return Response.json({ success: true, tenantId: tenant.id, tenantName, trialEndDate: trialEndStr, trialDays: 15 });
+    return Response.json({
+      success: true,
+      tenantId: tenant.id,
+      tenantName,
+      trialEndDate: trialEndStr,
+      trialDays: 15,
+    });
 
   } catch (error) {
     const msg = error?.message || String(error);
     console.error('❌ registerTenant error:', msg);
-    // Devolver mensaje específico para facilitar diagnóstico
     return Response.json({ success: false, error: `Error interno: ${msg}` }, { status: 500 });
   }
 }

@@ -30,6 +30,7 @@ import Technicians from "./Technicians";
 import TenantManagement from "./TenantManagement";
 import TimeTracking from "./TimeTracking";
 import UsersManagement from "./UsersManagement";
+import TenantActivate from "./TenantActivate";
 import VerifySetup from "./VerifySetup";
 import Welcome from "./Welcome";
 
@@ -171,6 +172,7 @@ function PagesContent() {
         <Routes>
     {/* Ruta pública standalone — no necesita AuthGate */}
     <Route path="/SuperAdmin" element={<SuperAdmin />} />
+    <Route path="/TenantActivate" element={<TenantActivate />} />
     <Route path="/returnlogin" element={<ReturnLogin />} />
 
     <Route path="/*" element={<ProtectedRoutes />} />

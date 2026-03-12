@@ -10,6 +10,7 @@ const PUBLIC_PATHS = new Set([
   "/InitialSetup",
   "/VerifySetup",
   "/Activate",
+  "/TenantActivate",
   "/returnlogin",
 ]);
 
