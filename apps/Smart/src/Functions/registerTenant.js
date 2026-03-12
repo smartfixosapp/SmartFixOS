@@ -192,6 +192,7 @@ export async function registerTenantHandler(req) {
     }
 
     // 6. Crear app_employee (primer admin)
+    // Nota: app_employee NO tiene columna auth_id — solo users la tiene
     const employee = await sbInsert('app_employee', {
       full_name: ownerName,
       email,
@@ -201,7 +202,6 @@ export async function registerTenantHandler(req) {
       status: 'active',
       active: true,
       tenant_id: tenant.id,
-      auth_id: authUserId || null,
       hire_date: now.toISOString().split('T')[0],
     }, sb);
     console.log(`✅ app_employee creado: ${employee.id}`);
@@ -288,7 +288,9 @@ export async function registerTenantHandler(req) {
     return Response.json({ success: true, tenantId: tenant.id, tenantName, trialEndDate: trialEndStr, trialDays: 15 });
 
   } catch (error) {
-    console.error('registerTenant error:', error);
-    return Response.json({ success: false, error: error.message }, { status: 500 });
+    const msg = error?.message || String(error);
+    console.error('❌ registerTenant error:', msg);
+    // Devolver mensaje específico para facilitar diagnóstico
+    return Response.json({ success: false, error: `Error interno: ${msg}` }, { status: 500 });
   }
 }
