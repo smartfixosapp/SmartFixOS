@@ -261,11 +261,13 @@ export default async function handler(req, res) {
 
   try {
     // ── Fetch templates and settings in parallel ──────────────────────────────
+    // NOTE: app_settings is a GLOBAL table (no tenant_id column) — query by slug only.
+    //       email_template IS tenant-scoped — filter by tenant_id.
     const [configRows, legacyRows, businessRows, brandingRows] = await Promise.all([
-      sbQuery('app_settings', { 'slug': `eq.${EMAIL_TEMPLATES_SLUG}`, 'tenant_id': `eq.${tenant_id}`, 'select': '*' }),
+      sbQuery('app_settings', { 'slug': `eq.${EMAIL_TEMPLATES_SLUG}`, 'select': '*' }),
       sbQuery('email_template', { 'event_type': `eq.${event_type}`, 'enabled': 'eq.true', 'tenant_id': `eq.${tenant_id}`, 'select': '*' }),
-      sbQuery('app_settings', { 'slug': `eq.app-main-settings`, 'tenant_id': `eq.${tenant_id}`, 'select': '*' }),
-      sbQuery('app_settings', { 'slug': `eq.business-branding`, 'tenant_id': `eq.${tenant_id}`, 'select': '*' }),
+      sbQuery('app_settings', { 'slug': `eq.app-main-settings`, 'select': '*' }),
+      sbQuery('app_settings', { 'slug': `eq.business-branding`, 'select': '*' }),
     ]);
 
     // Configured templates (from email-templates-config setting) or legacy table
