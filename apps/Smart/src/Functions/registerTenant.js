@@ -160,6 +160,54 @@ export async function registerTenantHandler(req) {
 
     console.log(`✅ Employee admin creado: ${employee.id} (PIN: ${pin})`);
 
+    // 6b. Pre-poblar SystemConfig con nombre del negocio para que el dashboard lo muestre
+    try {
+      const brandingValue = JSON.stringify({
+        business_name: businessName,
+        phone: phone || '',
+        email,
+        logo_url: '',
+        primary_color: '#0891b2',
+        secondary_color: '#000000',
+        address: '',
+        timezone: 'America/Puerto_Rico',
+        tax_rate: 0.115,
+        currency: 'USD',
+        date_format: 'MM/dd/yyyy',
+      });
+      await supabaseAdmin.from('system_config').upsert({
+        key: 'settings.branding',
+        value: brandingValue,
+        category: 'general',
+        description: 'Configuración de branding y negocio',
+        tenant_id: tenant.id,
+      }, { onConflict: 'key,tenant_id' }).catch(() =>
+        // Si no tiene tenant_id unique, insertar sin conflict
+        supabaseAdmin.from('system_config').insert({
+          key: 'settings.branding',
+          value: brandingValue,
+          category: 'general',
+          description: 'Configuración de branding y negocio',
+          tenant_id: tenant.id,
+        })
+      );
+      // También poblar AppSettings para UserMenuModal
+      await supabaseAdmin.from('app_settings').upsert({
+        slug: 'app-main-settings',
+        payload: { business_name: businessName, business_phone: phone || '', business_email: email },
+        tenant_id: tenant.id,
+      }, { onConflict: 'slug,tenant_id' }).catch(() =>
+        supabaseAdmin.from('app_settings').insert({
+          slug: 'app-main-settings',
+          payload: { business_name: businessName, business_phone: phone || '', business_email: email },
+          tenant_id: tenant.id,
+        })
+      );
+      console.log(`✅ SystemConfig + AppSettings pre-poblados para ${businessName}`);
+    } catch (configErr) {
+      console.warn('Could not pre-populate SystemConfig (non-critical):', configErr.message);
+    }
+
     // 7. Enviar email de bienvenida con PIN
     const appUrl = Deno.env.get('VITE_APP_URL') || 'https://app.smartfixos.com';
     const logoUrl = 'https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/68f767a3d5fce1486d4cf555/e9bc537e2_DynamicsmartfixosLogowithGearandDevice.png';

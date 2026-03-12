@@ -59,6 +59,9 @@ export default function PinAccess() {
   const [loading, setLoading] = useState(false);
   const [showSuccessBurst, setShowSuccessBurst] = useState(false);
   const [error, setError] = useState("");
+  const [otpInput, setOtpInput] = useState("");
+  const [otpLoading, setOtpLoading] = useState(false);
+  const [trustDevice, setTrustDevice] = useState(true);
   const hasCheckedSession = useRef(false);
   const usersSectionRef = useRef(null);
   const pinSectionRef = useRef(null);
@@ -174,17 +177,57 @@ export default function PinAccess() {
         return false;
       }
 
-      // ── Super Admin: desviar al panel de plataforma ──────────────────────
+      // ── Super Admin: verificar OTP o trusted device ──────────────────────
       if (email.trim().toLowerCase() === SUPER_ADMIN_EMAIL.toLowerCase()) {
-        const superSession = {
-          email,
-          role: "saas_owner",
-          loginTime: new Date().toISOString(),
-        };
-        localStorage.setItem(SUPER_SESSION_KEY, JSON.stringify(superSession));
         saveCreds(email, password);
-        navigate("/SuperAdmin", { replace: true });
-        return true;
+
+        // Verificar si el dispositivo ya fue aprobado (token válido ≤ 30 días)
+        try {
+          const trusted = JSON.parse(localStorage.getItem("sa_trusted_device") || "null");
+          if (trusted?.token && trusted?.expiry && Date.now() < trusted.expiry) {
+            const superSession = { email, role: "saas_owner", loginTime: new Date().toISOString() };
+            localStorage.setItem(SUPER_SESSION_KEY, JSON.stringify(superSession));
+            navigate("/SuperAdmin", { replace: true });
+            return true;
+          }
+        } catch { /* fallback to OTP */ }
+
+        // Dispositivo no confiable → generar y enviar OTP
+        const otp = String(Math.floor(100000 + Math.random() * 900000));
+        const otpExpiry = Date.now() + 5 * 60 * 1000; // 5 minutos
+        sessionStorage.setItem("sa_otp", otp);
+        sessionStorage.setItem("sa_otp_expiry", String(otpExpiry));
+
+        // Enviar OTP por email via Resend a través del servidor de funciones
+        try {
+          const fnUrl = import.meta.env.VITE_FUNCTION_URL || "http://localhost:8686";
+          await fetch(`${fnUrl}/sendEmailInternal`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              to: SUPER_ADMIN_EMAIL,
+              subject: `SmartFixOS — Código de acceso: ${otp}`,
+              body: `<div style="font-family:Arial,sans-serif;background:#0a0a0a;color:#e5e7eb;padding:40px;max-width:500px;margin:0 auto;border-radius:16px;">
+                <h2 style="color:#22d3ee;margin-bottom:8px;">🔐 Código de Verificación</h2>
+                <p style="color:#9ca3af;">Panel de Administración SmartFixOS</p>
+                <div style="background:#0e4f6e;border:2px solid #06b6d4;border-radius:12px;padding:28px;text-align:center;margin:28px 0;">
+                  <p style="color:#67e8f9;font-size:12px;letter-spacing:3px;margin:0 0 12px;">TU CÓDIGO DE ACCESO</p>
+                  <div style="font-size:48px;font-weight:900;letter-spacing:14px;color:#fff;font-family:monospace;">${otp}</div>
+                  <p style="color:#a7f3d0;font-size:12px;margin:12px 0 0;">Expira en 5 minutos</p>
+                </div>
+                <p style="color:#6b7280;font-size:13px;">Si no fuiste tú, ignora este mensaje.</p>
+              </div>`,
+              from_name: "SmartFixOS Security",
+              from_email: "noreply@smartfixos.com",
+            }),
+          });
+        } catch (emailErr) {
+          console.warn("OTP email failed:", emailErr.message);
+        }
+
+        setStep("otp");
+        toast.success("📧 Código enviado a tu email", { duration: 4000 });
+        return "otp"; // señal especial
       }
 
       localStorage.setItem(STORE_EMAIL_KEY, email);
@@ -534,6 +577,51 @@ export default function PinAccess() {
     }
   };
 
+  // ── OTP Verify ────────────────────────────────────────────────────────────
+  const handleOtpVerify = async () => {
+    setOtpLoading(true);
+    try {
+      const storedOtp   = sessionStorage.getItem("sa_otp");
+      const storedExpiry = Number(sessionStorage.getItem("sa_otp_expiry") || 0);
+
+      if (Date.now() > storedExpiry) {
+        toast.error("El código expiró. Vuelve a iniciar sesión.", { duration: 5000 });
+        sessionStorage.removeItem("sa_otp");
+        sessionStorage.removeItem("sa_otp_expiry");
+        setStep("store");
+        setOtpInput("");
+        return;
+      }
+
+      if (otpInput.trim() !== storedOtp) {
+        toast.error("Código incorrecto. Inténtalo de nuevo.");
+        setOtpInput("");
+        return;
+      }
+
+      // OTP correcto ✅
+      sessionStorage.removeItem("sa_otp");
+      sessionStorage.removeItem("sa_otp_expiry");
+
+      if (trustDevice) {
+        localStorage.setItem("sa_trusted_device", JSON.stringify({
+          token: crypto.randomUUID(),
+          expiry: Date.now() + 30 * 24 * 60 * 60 * 1000, // 30 días
+        }));
+      }
+
+      const superSession = {
+        email: SUPER_ADMIN_EMAIL,
+        role: "saas_owner",
+        loginTime: new Date().toISOString(),
+      };
+      localStorage.setItem(SUPER_SESSION_KEY, JSON.stringify(superSession));
+      navigate("/SuperAdmin", { replace: true });
+    } finally {
+      setOtpLoading(false);
+    }
+  };
+
   const handleBackspace = () => {
     setPin(pin.slice(0, -1));
     setError("");
@@ -664,6 +752,79 @@ export default function PinAccess() {
           <p className="text-gray-400">Cargando...</p>
         </div>
       </div>);
+  }
+
+  // ── OTP SuperAdmin ────────────────────────────────────────────────────────
+  if (step === "otp") {
+    return (
+      <div className="pinaccess-fullscreen-container">
+        <div className="w-full max-w-sm mx-auto px-6">
+          {/* Logo */}
+          <div className="text-center mb-8">
+            <img
+              src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/68f767a3d5fce1486d4cf555/e9bc537e2_DynamicsmartfixosLogowithGearandDevice.png"
+              alt="SmartFixOS" className="h-12 w-auto object-contain mx-auto mb-5 drop-shadow-[0_4px_16px_rgba(0,168,232,0.7)]"
+            />
+            <div className="w-16 h-16 rounded-2xl bg-gradient-to-tr from-cyan-500/20 to-blue-600/20 border border-cyan-500/30 flex items-center justify-center mx-auto mb-4">
+              <Shield className="w-8 h-8 text-cyan-400" />
+            </div>
+            <h2 className="text-xl font-bold text-white">Verificación de seguridad</h2>
+            <p className="text-sm text-white/50 mt-2">
+              Enviamos un código de 6 dígitos a<br/>
+              <span className="text-cyan-400 font-medium">{SUPER_ADMIN_EMAIL}</span>
+            </p>
+          </div>
+
+          {/* OTP Input */}
+          <div className="bg-white/5 border border-white/10 rounded-2xl p-6 mb-5">
+            <label className="text-xs text-white/50 uppercase tracking-widest mb-3 block">Código de verificación</label>
+            <input
+              type="text"
+              inputMode="numeric"
+              maxLength={6}
+              value={otpInput}
+              onChange={e => setOtpInput(e.target.value.replace(/\D/g, "").slice(0, 6))}
+              onKeyDown={e => e.key === "Enter" && otpInput.length === 6 && handleOtpVerify()}
+              placeholder="000000"
+              className="w-full bg-transparent border-b-2 border-cyan-500/40 focus:border-cyan-400 outline-none text-center text-4xl font-mono font-bold text-white tracking-[0.4em] pb-2 placeholder:text-white/20 transition-colors"
+              autoFocus
+            />
+          </div>
+
+          {/* Trust device */}
+          <label className="flex items-center gap-3 cursor-pointer mb-6 px-1">
+            <div
+              onClick={() => setTrustDevice(t => !t)}
+              className={`w-11 h-6 rounded-full transition-colors relative ${trustDevice ? "bg-cyan-600" : "bg-white/10"}`}
+            >
+              <div className={`absolute top-0.5 w-5 h-5 rounded-full bg-white shadow transition-transform ${trustDevice ? "translate-x-5" : "translate-x-0.5"}`} />
+            </div>
+            <span className="text-sm text-white/70">Recordar este dispositivo por 30 días</span>
+          </label>
+
+          {/* Verify button */}
+          <button
+            onClick={handleOtpVerify}
+            disabled={otpInput.length !== 6 || otpLoading}
+            className="w-full py-4 rounded-2xl bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 disabled:opacity-40 disabled:cursor-not-allowed text-white font-bold text-base transition-all"
+          >
+            {otpLoading ? (
+              <span className="flex items-center justify-center gap-2">
+                <span className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                Verificando...
+              </span>
+            ) : "Verificar y entrar →"}
+          </button>
+
+          <button
+            onClick={() => { setStep("store"); setOtpInput(""); }}
+            className="w-full mt-3 py-3 text-sm text-white/40 hover:text-white/70 transition-colors"
+          >
+            ← Volver al login
+          </button>
+        </div>
+      </div>
+    );
   }
 
   // ── Auto-login cargando ───────────────────────────────────────────────────

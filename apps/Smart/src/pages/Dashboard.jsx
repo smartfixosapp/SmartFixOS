@@ -6,6 +6,7 @@ import React, {
   useRef
 } from "react";
 import { dataClient } from "@/components/api/dataClient";
+import { supabase } from "../../../../lib/supabase-client.js";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -43,6 +44,7 @@ import { debounce, catalogCache } from "@/components/utils/dataCache";
 import { DashboardCardSkeleton } from "@/components/ui/loading-skeleton";
 
 import WorkOrderWizard from "../components/workorder/WorkOrderWizard";
+import FirstTimeSetupWizard, { isSetupComplete } from "../components/onboarding/FirstTimeSetupWizard";
 import MobileMoreMenu from "../components/dashboard/MobileMoreMenu";
 import { useDeviceDetection } from "../components/utils/useDeviceDetection";
 import {
@@ -220,6 +222,8 @@ export default function Dashboard() {
   const [dashboardButtons, setDashboardButtons] = useState([]);
   const [showMoreMenu, setShowMoreMenu] = useState(false);
   const [showDailyTransactions, setShowDailyTransactions] = useState(false);
+  const [businessName, setBusinessName] = useState("");
+  const [showSetupWizard, setShowSetupWizard] = useState(false);
 
   const readLocalDashboardButtons = useCallback(() => {
     try {
@@ -279,6 +283,40 @@ export default function Dashboard() {
       navigate(createPageUrl("PinAccess"));
     }
   }, [session, navigate]);
+
+  // Cargar nombre del negocio y mostrar wizard si es primer inicio
+  useEffect(() => {
+    const loadBusinessName = async () => {
+      const tenantId = localStorage.getItem("smartfix_tenant_id");
+      if (!tenantId) return; // Super admin u otro caso — no mostrar wizard
+      let foundName = "";
+      try {
+        const { data: rows } = await supabase
+          .from("system_config")
+          .select("value")
+          .eq("key", "settings.branding")
+          .eq("tenant_id", tenantId)
+          .limit(1);
+        if (rows?.length) {
+          const parsed = typeof rows[0].value === "string"
+            ? JSON.parse(rows[0].value)
+            : rows[0].value;
+          if (parsed?.business_name) foundName = parsed.business_name;
+        }
+      } catch { /* fallback */ }
+      // Fallback: nombre del tenant
+      if (!foundName) {
+        try {
+          const { data: t } = await supabase.from("tenant").select("name").eq("id", tenantId).single();
+          if (t?.name) foundName = t.name;
+        } catch { /* silent */ }
+      }
+      if (foundName) setBusinessName(foundName);
+      // Mostrar wizard si es primer inicio (sin setup guardado)
+      if (!isSetupComplete()) setShowSetupWizard(true);
+    };
+    loadBusinessName();
+  }, []);
 
   // Monitoreo caja registradora
   useEffect(() => {
@@ -671,6 +709,24 @@ export default function Dashboard() {
     <div className="min-h-screen pb-20 md:pb-6">
       <Toast toast={toast} onClose={() => setToast(null)} />
 
+      {/* Wizard primer inicio — solo para tenants nuevos */}
+      {showSetupWizard && (
+        <FirstTimeSetupWizard
+          onComplete={() => {
+            setShowSetupWizard(false);
+            // Recargar nombre actualizado
+            const tid = localStorage.getItem("smartfix_tenant_id");
+            if (tid) supabase.from("system_config").select("value").eq("key","settings.branding").eq("tenant_id",tid).limit(1)
+              .then(({ data }) => {
+                if (data?.length) {
+                  const p = typeof data[0].value === "string" ? JSON.parse(data[0].value) : data[0].value;
+                  if (p?.business_name) setBusinessName(p.business_name);
+                }
+              });
+          }}
+        />
+      )}
+
       <div className="px-2 sm:px-3 md:px-6 lg:px-8 xl:px-12 2xl:px-16 pt-[calc(env(safe-area-inset-top,0px)+10px)] sm:pt-[calc(env(safe-area-inset-top,0px)+14px)] md:pt-6 lg:pt-8 pb-6">
         <div className="max-w-[2560px] mx-auto space-y-3 sm:space-y-4 md:space-y-6 lg:space-y-8">
           
@@ -688,7 +744,7 @@ export default function Dashboard() {
                   </div>
                   <div className="flex flex-col">
                     <span className="text-xs lg:text-sm xl:text-base font-medium text-white/90 leading-none">{session?.userName || 'Usuario'}</span>
-                    <span className="text-[10px] lg:text-xs text-white/45 leading-none mt-1 font-medium tracking-wide">911 Smart Fix</span>
+                    <span className="text-[10px] lg:text-xs text-white/45 leading-none mt-1 font-medium tracking-wide">{businessName || session?.storeName || "SmartFixOS"}</span>
                   </div>
                 </div>
 
