@@ -3,6 +3,7 @@
 .env.*
 !.env.*.example
 !.env.production.example
+!apps/Smart/.env.production
 
 # Dependencies
 node_modules/
