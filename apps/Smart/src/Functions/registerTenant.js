@@ -26,14 +26,23 @@ export async function registerTenantHandler(req) {
       });
     }
 
-    const { ownerName, email, password, phone, businessName, country } = await req.json();
+    const { ownerName, email, password, phone, businessName, country, plan: rawPlan } = await req.json();
 
-    if (!ownerName || !email || !businessName || !password) {
+    if (!ownerName || !email || !password) {
       return Response.json({
         success: false,
-        error: 'Nombre, email, contraseña y nombre del negocio son requeridos'
+        error: 'Nombre, email y contraseña son requeridos'
       }, { status: 400 });
     }
+
+    // Plan + límites de usuarios
+    const plan = ['basic','pro','enterprise'].includes(rawPlan) ? rawPlan : 'basic';
+    const PLAN_CONFIG = {
+      basic:      { max_users: 1,    monthly_cost: 55,  label: 'Basic'      },
+      pro:        { max_users: 3,    monthly_cost: 85,  label: 'Pro'        },
+      enterprise: { max_users: 9999, monthly_cost: 0,   label: 'Enterprise' },
+    };
+    const planConfig = PLAN_CONFIG[plan];
 
     // Email básico válido
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
@@ -77,22 +86,28 @@ export async function registerTenantHandler(req) {
       .replace(/^-|-$/g, '') + '-' + Date.now();
 
     // 4. Crear Tenant
+    const tenantName = businessName || ownerName; // wizard lo actualizará después
     const tenant = await base44.asServiceRole.entities.Tenant.create({
-      name: businessName,
+      name: tenantName,
       slug,
       email,
-      password_hash: crypto.randomUUID(), // no se usa — acceso por PIN
+      password_hash: crypto.randomUUID(),
       country: country || 'US',
       currency: 'USD',
       status: 'active',
-      plan: 'smartfixos',
-      monthly_cost: 55,
-      subscription_status: 'active',
+      plan,
+      monthly_cost: planConfig.monthly_cost,
+      subscription_status: 'trial',
       trial_period_days: 15,
       trial_end_date: trialEndStr,
       admin_name: ownerName,
       admin_phone: phone || '',
       timezone: 'America/Puerto_Rico',
+      metadata: {
+        max_users: planConfig.max_users,
+        plan_label: planConfig.label,
+        setup_complete: false,
+      },
     });
 
     console.log(`✅ Tenant creado: ${tenant.id} (${businessName})`);
@@ -209,7 +224,7 @@ export async function registerTenantHandler(req) {
     }
 
     // 7. Enviar email de bienvenida con PIN
-    const appUrl = Deno.env.get('VITE_APP_URL') || 'https://app.smartfixos.com';
+    const appUrl = Deno.env.get('VITE_APP_URL') || 'https://smart-fix-os-smart.vercel.app/Welcome';
     const logoUrl = 'https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/68f767a3d5fce1486d4cf555/e9bc537e2_DynamicsmartfixosLogowithGearandDevice.png';
     const formattedTrialEnd = trialEndDate.toLocaleDateString('es', { day: 'numeric', month: 'long', year: 'numeric' });
 

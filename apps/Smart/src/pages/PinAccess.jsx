@@ -80,8 +80,7 @@ export default function PinAccess() {
     full_name: "",
     email: "",
     password: "",
-    phone: "",
-    business_name: ""
+    plan: "basic"   // basic | pro | enterprise
   });
   const [showSignupPassword, setShowSignupPassword] = useState(false);
   const [submitting, setSubmitting] = useState(false);
@@ -1039,12 +1038,16 @@ export default function PinAccess() {
   const handleSignup = async (e) => {
     e.preventDefault();
 
-    if (!formData.full_name || !formData.email || !formData.business_name) {
-      toast.error("Nombre, email y nombre del negocio son obligatorios");
+    if (!formData.full_name || !formData.email) {
+      toast.error("Nombre y email son obligatorios");
       return;
     }
     if (!formData.password || formData.password.length < 6) {
       toast.error("La contraseña debe tener al menos 6 caracteres");
+      return;
+    }
+    if (formData.plan === "enterprise") {
+      window.location.href = "mailto:smartfixosapp@gmail.com?subject=Consulta%20Enterprise";
       return;
     }
 
@@ -1054,8 +1057,8 @@ export default function PinAccess() {
         ownerName: formData.full_name,
         email: formData.email,
         password: formData.password,
-        phone: formData.phone,
-        businessName: formData.business_name,
+        businessName: formData.full_name, // temporal — wizard lo actualiza
+        plan: formData.plan,
         country: 'US'
       });
 
@@ -1487,7 +1490,7 @@ export default function PinAccess() {
                       onClick={() => {
                         setShowSignup(false);
                         setSignupStep("form");
-                        setFormData({ full_name: "", email: "", phone: "", business_name: "" });
+                        setFormData({ full_name: "", email: "", password: "", plan: "basic" });
                         setSignupResult(null);
                         setStep("store");
                       }}
@@ -1508,63 +1511,42 @@ export default function PinAccess() {
                     </div>
 
                     <form onSubmit={handleSignup} className="space-y-4">
+
+                      {/* Nombre */}
                       <div>
                         <label className="text-white mb-2 flex items-center gap-2 text-sm font-semibold">
-                          <UserPlus className="w-4 h-4 text-cyan-400" />
-                          Tu nombre completo *
+                          <UserPlus className="w-4 h-4 text-cyan-400" /> Tu nombre completo *
                         </label>
-                        <input
-                          value={formData.full_name}
+                        <input value={formData.full_name}
                           onChange={(e) => setFormData({ ...formData, full_name: e.target.value })}
                           placeholder="Tu nombre"
                           className="w-full bg-black/40 border border-cyan-500/30 text-white h-12 rounded-xl px-4 focus:outline-none focus:ring-2 focus:ring-cyan-500/50"
-                          required
-                        />
+                          required />
                       </div>
 
+                      {/* Email */}
                       <div>
                         <label className="text-white mb-2 flex items-center gap-2 text-sm font-semibold">
-                          <Building2 className="w-4 h-4 text-cyan-400" />
-                          Nombre del negocio *
+                          <Mail className="w-4 h-4 text-cyan-400" /> Email *
                         </label>
-                        <input
-                          value={formData.business_name}
-                          onChange={(e) => setFormData({ ...formData, business_name: e.target.value })}
-                          placeholder="Mi Taller de Reparación"
-                          className="w-full bg-black/40 border border-cyan-500/30 text-white h-12 rounded-xl px-4 focus:outline-none focus:ring-2 focus:ring-cyan-500/50"
-                          required
-                        />
-                      </div>
-
-                      <div>
-                        <label className="text-white mb-2 flex items-center gap-2 text-sm font-semibold">
-                          <Mail className="w-4 h-4 text-cyan-400" />
-                          Email *
-                        </label>
-                        <input
-                          type="email"
-                          value={formData.email}
+                        <input type="email" value={formData.email}
                           onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                           placeholder="tu@email.com"
                           className="w-full bg-black/40 border border-cyan-500/30 text-white h-12 rounded-xl px-4 focus:outline-none focus:ring-2 focus:ring-cyan-500/50"
-                          required
-                        />
+                          required />
                       </div>
 
+                      {/* Contraseña */}
                       <div>
                         <label className="text-white mb-2 flex items-center gap-2 text-sm font-semibold">
-                          <KeyRound className="w-4 h-4 text-cyan-400" />
-                          Contraseña *
+                          <KeyRound className="w-4 h-4 text-cyan-400" /> Contraseña *
                         </label>
                         <div className="relative">
-                          <input
-                            type={showSignupPassword ? "text" : "password"}
-                            value={formData.password}
+                          <input type={showSignupPassword ? "text" : "password"} value={formData.password}
                             onChange={(e) => setFormData({ ...formData, password: e.target.value })}
                             placeholder="Mínimo 6 caracteres"
                             className="w-full bg-black/40 border border-cyan-500/30 text-white h-12 rounded-xl px-4 pr-12 focus:outline-none focus:ring-2 focus:ring-cyan-500/50"
-                            required
-                          />
+                            required />
                           <button type="button" onClick={() => setShowSignupPassword(!showSignupPassword)}
                             className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white">
                             {showSignupPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
@@ -1572,43 +1554,52 @@ export default function PinAccess() {
                         </div>
                       </div>
 
+                      {/* Plan selector */}
                       <div>
-                        <label className="text-white mb-2 flex items-center gap-2 text-sm font-semibold">
-                          <Phone className="w-4 h-4 text-cyan-400" />
-                          Teléfono
+                        <label className="text-white mb-3 flex items-center gap-2 text-sm font-semibold">
+                          <Zap className="w-4 h-4 text-cyan-400" /> Selecciona tu plan
                         </label>
-                        <input
-                          type="tel"
-                          value={formData.phone}
-                          onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                          placeholder="787-123-4567"
-                          className="w-full bg-black/40 border border-cyan-500/30 text-white h-12 rounded-xl px-4 focus:outline-none focus:ring-2 focus:ring-cyan-500/50"
-                        />
+                        <div className="grid grid-cols-3 gap-2">
+                          {[
+                            { id: "basic",      label: "Basic",      price: "$55",         sub: "1 usuario",     color: "cyan"    },
+                            { id: "pro",        label: "Pro",         price: "$85",         sub: "3 usuarios",    color: "emerald", popular: true },
+                            { id: "enterprise", label: "Enterprise",  price: "Consultoría", sub: "Ilimitado",     color: "purple"  },
+                          ].map(p => (
+                            <button key={p.id} type="button"
+                              onClick={() => setFormData({ ...formData, plan: p.id })}
+                              className={`relative rounded-xl border-2 p-3 text-center transition-all ${
+                                formData.plan === p.id
+                                  ? p.color === "cyan"    ? "border-cyan-500 bg-cyan-500/15"
+                                  : p.color === "emerald" ? "border-emerald-500 bg-emerald-500/15"
+                                  :                        "border-purple-500 bg-purple-500/15"
+                                  : "border-white/10 bg-white/5 hover:border-white/20"
+                              }`}>
+                              {p.popular && <span className="absolute -top-2.5 left-1/2 -translate-x-1/2 text-[9px] font-bold bg-emerald-500 text-white px-2 py-0.5 rounded-full whitespace-nowrap">POPULAR</span>}
+                              <div className={`text-xs font-bold mb-0.5 ${formData.plan === p.id ? (p.color === "cyan" ? "text-cyan-400" : p.color === "emerald" ? "text-emerald-400" : "text-purple-400") : "text-white/70"}`}>{p.label}</div>
+                              <div className="text-white font-black text-sm leading-none">{p.price}</div>
+                              <div className="text-white/40 text-[10px] mt-0.5">{p.sub}</div>
+                            </button>
+                          ))}
+                        </div>
                       </div>
 
-                      <div className="bg-emerald-500/10 border border-emerald-500/30 rounded-xl p-4">
+                      <div className="bg-emerald-500/10 border border-emerald-500/30 rounded-xl p-3">
                         <p className="text-sm text-emerald-300 flex items-start gap-2">
                           <CheckCircle className="w-4 h-4 mt-0.5 flex-shrink-0" />
-                          <span>Tu cuenta estará lista en segundos. Recibirás tu PIN de acceso por email.</span>
+                          <span>Tu PIN de acceso llegará a tu email. Al entrar completas los datos del taller.</span>
                         </p>
                       </div>
 
-                      <div className="flex gap-3 pt-2">
-                        <Button
-                          type="button"
-                          variant="outline"
+                      <div className="flex gap-3 pt-1">
+                        <Button type="button" variant="outline"
                           className="flex-1 border-white/20 text-white hover:bg-white/10 h-12"
-                          onClick={() => setShowSignup(false)}
-                          disabled={submitting}
-                        >
+                          onClick={() => setShowSignup(false)} disabled={submitting}>
                           Cancelar
                         </Button>
-                        <Button
-                          type="submit"
+                        <Button type="submit"
                           className="flex-1 bg-gradient-to-r from-cyan-600 to-emerald-600 hover:from-cyan-500 hover:to-emerald-500 font-bold h-12"
-                          disabled={submitting}
-                        >
-                          {submitting ? "Creando cuenta..." : "Crear cuenta gratis"}
+                          disabled={submitting}>
+                          {submitting ? "Creando cuenta..." : formData.plan === "enterprise" ? "Contactar ventas →" : "Crear cuenta gratis"}
                         </Button>
                       </div>
                     </form>
