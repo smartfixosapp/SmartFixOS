@@ -48,6 +48,8 @@ import { deleteTransactionHandler } from './deleteTransaction.js';
 import { deleteOrderHandler } from './deleteOrder.js';
 import { resetTransactionsHandler } from './resetTransactions.js';
 import { sendTemplatedEmailHandler } from './sendTemplatedEmail.js';
+import { sendAdminOtpHandler } from './sendAdminOtp.js';
+import { verifyAdminOtpHandler } from './verifyAdminOtp.js';
 import { setRequestAuthToken, clearRequestAuthToken } from '../../../../lib/unified-custom-sdk-supabase.js';
 
 // CORS headers
@@ -96,6 +98,8 @@ const routes = {
   '/createStripeSubscription': createStripeSubscriptionHandler,
   '/stripeWebhook': stripeWebhookHandler,
   '/registerTenant': registerTenantHandler,
+  '/sendAdminOtp': sendAdminOtpHandler,
+  '/verifyAdminOtp': verifyAdminOtpHandler,
   '/manageTenant': manageTenantHandler,
   '/notifyCashRegister': notifyCashRegisterHandler,
   '/handleOrderStatusChange': handleOrderStatusChangeHandler,

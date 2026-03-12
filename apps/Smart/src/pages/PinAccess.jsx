@@ -62,6 +62,9 @@ export default function PinAccess() {
   const [otpInput, setOtpInput] = useState("");
   const [otpLoading, setOtpLoading] = useState(false);
   const [trustDevice, setTrustDevice] = useState(true);
+  const [adminPin, setAdminPin] = useState("");
+  const [showAdminPin, setShowAdminPin] = useState(false);
+  const [otpSessionId, setOtpSessionId] = useState(null);
   const hasCheckedSession = useRef(false);
   const usersSectionRef = useRef(null);
   const pinSectionRef = useRef(null);
@@ -328,7 +331,7 @@ export default function PinAccess() {
     await performStoreAuth(trimmedEmail, storePassword);
   };
 
-  // SuperAdmin: enviar OTP sin requerir contraseña
+  // SuperAdmin: enviar OTP vía servidor (seguro, sin contraseña)
   const handleSendAdminOtpDirect = async () => {
     setUsersLoading(true);
     try {
@@ -340,35 +343,27 @@ export default function PinAccess() {
         navigate("/SuperAdmin", { replace: true });
         return;
       }
-      // Generar OTP y enviarlo por email
-      const otp = String(Math.floor(100000 + Math.random() * 900000));
-      const otpExpiry = Date.now() + 5 * 60 * 1000;
-      sessionStorage.setItem("sa_otp", otp);
-      sessionStorage.setItem("sa_otp_expiry", String(otpExpiry));
+      // Pedir al servidor que genere y envíe el OTP (criptográficamente seguro)
       const fnUrl = import.meta.env.VITE_FUNCTION_URL || "http://localhost:8686";
-      await fetch(`${fnUrl}/sendEmail`, {
+      const res = await fetch(`${fnUrl}/sendAdminOtp`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          to: SUPER_ADMIN_EMAIL,
-          subject: `SmartFixOS — Código de acceso: ${otp}`,
-          body: `<div style="font-family:Arial,sans-serif;background:#0a0a0a;color:#e5e7eb;padding:40px;max-width:500px;margin:0 auto;border-radius:16px;">
-            <h2 style="color:#22d3ee;margin-bottom:8px;">🔐 Código de Verificación</h2>
-            <p style="color:#9ca3af;">Panel de Administración SmartFixOS</p>
-            <div style="background:#0e4f6e;border:2px solid #06b6d4;border-radius:12px;padding:28px;text-align:center;margin:28px 0;">
-              <p style="color:#67e8f9;font-size:12px;letter-spacing:3px;margin:0 0 12px;">TU CÓDIGO DE ACCESO</p>
-              <div style="font-size:48px;font-weight:900;letter-spacing:14px;color:#fff;font-family:monospace;">${otp}</div>
-              <p style="color:#a7f3d0;font-size:12px;margin:12px 0 0;">Expira en 5 minutos</p>
-            </div>
-            <p style="color:#6b7280;font-size:13px;">Si no fuiste tú, ignora este mensaje.</p>
-          </div>`,
-        }),
+        body: JSON.stringify({ email: SUPER_ADMIN_EMAIL }),
       });
+      const data = await res.json();
+      if (!data.success) {
+        toast.error(data.error || "No se pudo enviar el código.");
+        return;
+      }
+      // Guardar sessionId para la verificación
+      setOtpSessionId(data.sessionId || null);
+      setOtpInput("");
+      setAdminPin("");
       setStep("otp");
       toast.success("📧 Código enviado a tu email", { duration: 4000 });
     } catch (err) {
       console.error("OTP send error:", err);
-      toast.error("No se pudo enviar el código. Intenta nuevamente.");
+      toast.error("Error de conexión. Verifica tu internet e intenta nuevamente.");
     } finally {
       setUsersLoading(false);
     }
@@ -623,39 +618,44 @@ export default function PinAccess() {
     }
   };
 
-  // ── OTP Verify ────────────────────────────────────────────────────────────
+  // ── OTP Verify (server-side: OTP hash + PIN secreto) ─────────────────────
   const handleOtpVerify = async () => {
+    if (!otpInput || otpInput.length !== 6) {
+      toast.error("Ingresa el código de 6 dígitos");
+      return;
+    }
+    if (!adminPin || adminPin.length < 4) {
+      toast.error("Ingresa tu PIN secreto de administrador");
+      return;
+    }
     setOtpLoading(true);
     try {
-      const storedOtp   = sessionStorage.getItem("sa_otp");
-      const storedExpiry = Number(sessionStorage.getItem("sa_otp_expiry") || 0);
+      const fnUrl = import.meta.env.VITE_FUNCTION_URL || "http://localhost:8686";
+      const res = await fetch(`${fnUrl}/verifyAdminOtp`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          sessionId: otpSessionId,
+          otp: otpInput.trim(),
+          adminPin: adminPin.trim(),
+        }),
+      });
+      const data = await res.json();
 
-      if (Date.now() > storedExpiry) {
-        toast.error("El código expiró. Vuelve a iniciar sesión.", { duration: 5000 });
-        sessionStorage.removeItem("sa_otp");
-        sessionStorage.removeItem("sa_otp_expiry");
-        setStep("store");
+      if (!data.success) {
+        toast.error(data.error || "Verificación fallida.");
         setOtpInput("");
+        // No limpiar adminPin para no obligar al usuario a reescribirlo en caso de OTP incorrecto
         return;
       }
 
-      if (otpInput.trim() !== storedOtp) {
-        toast.error("Código incorrecto. Inténtalo de nuevo.");
-        setOtpInput("");
-        return;
-      }
-
-      // OTP correcto ✅
-      sessionStorage.removeItem("sa_otp");
-      sessionStorage.removeItem("sa_otp_expiry");
-
+      // ✅ Verificado — guardar sesión y navegar
       if (trustDevice) {
         localStorage.setItem("sa_trusted_device", JSON.stringify({
           token: crypto.randomUUID(),
           expiry: Date.now() + 30 * 24 * 60 * 60 * 1000, // 30 días
         }));
       }
-
       const superSession = {
         email: SUPER_ADMIN_EMAIL,
         role: "saas_owner",
@@ -663,6 +663,9 @@ export default function PinAccess() {
       };
       localStorage.setItem(SUPER_SESSION_KEY, JSON.stringify(superSession));
       navigate("/SuperAdmin", { replace: true });
+    } catch (err) {
+      console.error("OTP verify error:", err);
+      toast.error("Error de conexión. Intenta nuevamente.");
     } finally {
       setOtpLoading(false);
     }
@@ -837,8 +840,33 @@ export default function PinAccess() {
             />
           </div>
 
+          {/* PIN secreto de administrador */}
+          <div className="bg-white/5 border border-white/10 rounded-2xl p-5 mb-4">
+            <label className="text-xs text-white/50 uppercase tracking-widest mb-3 block">
+              PIN secreto de administrador
+            </label>
+            <div className="relative">
+              <input
+                type={showAdminPin ? "text" : "password"}
+                value={adminPin}
+                onChange={e => setAdminPin(e.target.value)}
+                onKeyDown={e => e.key === "Enter" && otpInput.length === 6 && adminPin.length >= 4 && handleOtpVerify()}
+                placeholder="Tu PIN secreto"
+                className="w-full bg-transparent border-b-2 border-cyan-500/40 focus:border-cyan-400 outline-none text-white text-lg font-mono pb-2 pr-10 placeholder:text-white/20 transition-colors"
+              />
+              <button
+                type="button"
+                onClick={() => setShowAdminPin(v => !v)}
+                className="absolute right-0 top-0 text-gray-400 hover:text-white transition-colors"
+              >
+                {showAdminPin ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+              </button>
+            </div>
+            <p className="text-xs text-white/30 mt-2">Este PIN lo configuraste en los ajustes del servidor (ADMIN_SECRET_PIN)</p>
+          </div>
+
           {/* Trust device */}
-          <label className="flex items-center gap-3 cursor-pointer mb-6 px-1">
+          <label className="flex items-center gap-3 cursor-pointer mb-5 px-1">
             <div
               onClick={() => setTrustDevice(t => !t)}
               className={`w-11 h-6 rounded-full transition-colors relative ${trustDevice ? "bg-cyan-600" : "bg-white/10"}`}
@@ -851,7 +879,7 @@ export default function PinAccess() {
           {/* Verify button */}
           <button
             onClick={handleOtpVerify}
-            disabled={otpInput.length !== 6 || otpLoading}
+            disabled={otpInput.length !== 6 || adminPin.length < 4 || otpLoading}
             className="w-full py-4 rounded-2xl bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 disabled:opacity-40 disabled:cursor-not-allowed text-white font-bold text-base transition-all"
           >
             {otpLoading ? (
@@ -859,11 +887,11 @@ export default function PinAccess() {
                 <span className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
                 Verificando...
               </span>
-            ) : "Verificar y entrar →"}
+            ) : "🔐 Verificar y entrar →"}
           </button>
 
           <button
-            onClick={() => { setStep("store"); setOtpInput(""); }}
+            onClick={() => { setStep("store"); setOtpInput(""); setAdminPin(""); setOtpSessionId(null); }}
             className="w-full mt-3 py-3 text-sm text-white/40 hover:text-white/70 transition-colors"
           >
             ← Volver al login
