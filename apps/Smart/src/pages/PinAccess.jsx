@@ -10,7 +10,7 @@ import { triggerRealtimeNotification, NOTIFICATION_TYPES } from "@/components/no
 import { ensureAdminBootstrap } from "@/components/utils/adminBootstrap";
 import { getUserPermissions } from "@/components/utils/rolePermissions";
 import RequestAccessModal from "../components/auth/RequestAccessModal";
-import { registerTenant } from "@/api/functions";
+// registerTenant now handled by /api/register (Vercel serverless)
 
 export default function PinAccess() {
   const MASTER_PIN = "3407";
@@ -1136,16 +1136,19 @@ export default function PinAccess() {
     setSubmitting(true);
     try {
       const fullName = `${formData.first_name} ${formData.last_name}`.trim();
-      const result = await registerTenant({
-        ownerName: fullName,
-        email: formData.email,
-        password: formData.password,
-        businessName: fullName, // temporal — wizard lo actualiza después
-        plan: formData.plan,
-        country: 'US'
+      const res = await fetch('/api/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          ownerName: fullName,
+          email: formData.email,
+          password: formData.password,
+          businessName: fullName, // temporal — wizard lo actualiza después
+          plan: formData.plan,
+          country: 'US',
+        }),
       });
-
-      const data = result?.data ?? result;
+      const data = await res.json();
       if (data?.success) {
         setSignupResult(data);
         setSignupStep("success");
