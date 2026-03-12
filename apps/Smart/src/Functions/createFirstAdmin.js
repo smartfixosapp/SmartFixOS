@@ -1,13 +1,17 @@
 import { createClientFromRequest } from '../../../../lib/unified-custom-sdk-supabase.js';
-import { createClient } from "npm:@supabase/supabase-js@2";
 
-// Supabase Admin client (service role) para crear auth users
-function getSupabaseAdmin() {
-  const supabaseUrl = Deno.env.get('VITE_SUPABASE_URL');
-  const serviceRoleKey = Deno.env.get('VITE_SUPABASE_SERVICE_ROLE_KEY');
-  return createClient(supabaseUrl, serviceRoleKey, {
-    auth: { autoRefreshToken: false, persistSession: false }
+// Supabase Auth Admin — REST directo (sin npm:@supabase/supabase-js)
+async function authAdminCreateUser(email, password, fullName) {
+  const url = Deno.env.get('VITE_SUPABASE_URL');
+  const key = Deno.env.get('VITE_SUPABASE_SERVICE_ROLE_KEY');
+  const res = await fetch(`${url}/auth/v1/admin/users`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'apikey': key, 'Authorization': `Bearer ${key}` },
+    body: JSON.stringify({ email, password, email_confirm: true, user_metadata: { full_name: fullName, role: 'admin' } }),
   });
+  const data = await res.json();
+  if (!res.ok) return { error: data };
+  return { data };
 }
 
 export async function createFirstAdminHandler(req) {
@@ -99,20 +103,15 @@ export async function createFirstAdminHandler(req) {
     }
 
     // Crear usuario en Supabase Auth (para login con email+password)
-    const supabaseAdmin = getSupabaseAdmin();
-    const { data: authData, error: authError } = await supabaseAdmin.auth.admin.createUser({
-        email,
-        password,
-        email_confirm: true, // Confirmar email automáticamente
-        user_metadata: { full_name, role: 'admin' }
-    });
+    const { data: authData, error: authError } = await authAdminCreateUser(email, password, full_name);
 
-    if (authError && !authError.message?.includes('already registered')) {
+    if (authError && !authError.message?.includes('already registered') && !authError.msg?.includes('already')) {
         console.error('Error creating auth user:', authError);
-        return Response.json({ error: `Error en Supabase Auth: ${authError.message}` }, { status: 500 });
+        return Response.json({ error: `Error en Supabase Auth: ${authError.message || JSON.stringify(authError)}` }, { status: 500 });
     }
 
-    console.log("✅ Supabase Auth user created:", authData?.user?.id || "already existed");
+    const authUserId = authData?.user?.id || authData?.id || null;
+    console.log("✅ Supabase Auth user created:", authUserId || "already existed");
 
     // ---------------------------------------------------------
     // Crear registro Tenant (la "tienda/negocio" SaaS)
@@ -144,7 +143,7 @@ export async function createFirstAdminHandler(req) {
         role: "admin",
         active: true,
         hourly_rate: 0,
-        auth_id: authData?.user?.id || null,
+        auth_id: authUserId || null,
         tenant_id: tenantId || null
     });
 
