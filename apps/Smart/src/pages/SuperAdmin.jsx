@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { base44 } from "@/api/base44Client";
-import { manageTenant } from "@/api/functions";
 import { supabase } from "../../../../lib/supabase-client.js";
 import { toast } from "sonner";
 import { motion, AnimatePresence } from "framer-motion";
@@ -9,7 +8,8 @@ import {
   Shield, Building2, CheckCircle, XCircle, Clock, DollarSign,
   Search, RefreshCw, LogOut, AlertTriangle, TrendingUp,
   Users, Mail, Calendar, ChevronDown, ChevronRight, Eye,
-  PlayCircle, PauseCircle, Trash2, BarChart3, Activity, Power
+  PlayCircle, PauseCircle, Trash2, BarChart3, Activity, Power,
+  Pencil, KeyRound, X, Save
 } from "lucide-react";
 
 const SUPER_SESSION_KEY = "smartfix_saas_session";
@@ -46,6 +46,9 @@ export default function SuperAdmin() {
   const [tab,        setTab]          = useState("tenants"); // tenants | metrics
   const [tenantUsers,        setTenantUsers]        = useState({}); // { [tenantId]: [] }
   const [tenantUsersLoading, setTenantUsersLoading] = useState({}); // { [tenantId]: bool }
+  const [confirmDelete,      setConfirmDelete]      = useState(null); // tenantId to confirm delete
+  const [editTenant,         setEditTenant]         = useState(null); // { id, name, email } being edited
+  const [editForm,           setEditForm]           = useState({ name: "", email: "" });
 
   // ── Auth guard ─────────────────────────────────────────────────────────────
   useEffect(() => {
@@ -103,17 +106,17 @@ export default function SuperAdmin() {
   const doAction = async (tenantId, action, extra = {}) => {
     setActionId(tenantId + action);
     try {
-      const res  = await manageTenant({ tenantId, action, ...extra });
-      const data = res?.data ?? res;
+      const res = await fetch('/api/manage-tenant', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ tenantId, action, ...extra }),
+      });
+      const data = await res.json();
       if (data?.success) {
         toast.success(data.message || "✅ Hecho");
         await loadTenants();
-        // refresh users cache for this tenant if it was loaded
-        if (action === "suspend" || action === "reactivate") {
-          setExpanded(null);
-        }
+        if (action === "suspend" || action === "reactivate") setExpanded(null);
         if (action === "set_plan") {
-          // invalidate user cache so re-expand reloads
           setTenantUsers(prev => { const n = { ...prev }; delete n[tenantId]; return n; });
         }
       } else {
@@ -121,6 +124,79 @@ export default function SuperAdmin() {
       }
     } catch (e) {
       toast.error(e.message || "Error");
+    } finally {
+      setActionId(null);
+    }
+  };
+
+  const doDelete = async (tenantId) => {
+    setActionId(tenantId + "delete");
+    try {
+      const res = await fetch('/api/delete-tenant', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ tenantId }),
+      });
+      const data = await res.json();
+      if (data?.success) {
+        toast.success(data.message || "🗑️ Tienda eliminada");
+        setConfirmDelete(null);
+        setExpanded(null);
+        setTenantUsers(prev => { const n = { ...prev }; delete n[tenantId]; return n; });
+        await loadTenants();
+      } else {
+        toast.error(data?.error || "Error al eliminar");
+      }
+    } catch (e) {
+      toast.error(e.message || "Error");
+    } finally {
+      setActionId(null);
+    }
+  };
+
+  const openEdit = (tenant) => {
+    setEditForm({ name: tenant.name || "", email: tenant.email || "" });
+    setEditTenant(tenant);
+  };
+
+  const doEditSave = async () => {
+    if (!editTenant) return;
+    setActionId(editTenant.id + "edit");
+    try {
+      const res = await fetch('/api/manage-tenant', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ tenantId: editTenant.id, action: 'edit', name: editForm.name, email: editForm.email }),
+      });
+      const data = await res.json();
+      if (data?.success) {
+        toast.success(data.message || "✅ Guardado");
+        setEditTenant(null);
+        await loadTenants();
+      } else {
+        toast.error(data?.error || "Error al guardar");
+      }
+    } catch (e) {
+      toast.error(e.message || "Error");
+    } finally {
+      setActionId(null);
+    }
+  };
+
+  const doResetPassword = async (email) => {
+    if (!email) return toast.error("No hay email para este tenant");
+    setActionId("reset" + email);
+    try {
+      const res = await fetch('/api/manage-tenant', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ tenantId: editTenant?.id || "na", action: 'reset_password', email }),
+      });
+      const data = await res.json();
+      if (data?.success) toast.success(data.message);
+      else toast.error(data?.error || "Error al enviar");
+    } catch (e) {
+      toast.error(e.message);
     } finally {
       setActionId(null);
     }
@@ -162,6 +238,121 @@ export default function SuperAdmin() {
   // ── Render ────────────────────────────────────────────────────────────────
   return (
     <div className="min-h-screen bg-[#030303] text-white font-sans">
+
+      {/* ── Edit Tenant Modal ── */}
+      <AnimatePresence>
+        {editTenant && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm"
+            onClick={e => { if (e.target === e.currentTarget) setEditTenant(null); }}
+          >
+            <motion.div
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.95, opacity: 0 }}
+              className="bg-[#111] border border-white/10 rounded-2xl p-6 w-full max-w-md shadow-2xl space-y-5"
+            >
+              <div className="flex items-center justify-between">
+                <h2 className="text-lg font-bold text-white flex items-center gap-2">
+                  <Pencil className="w-4 h-4 text-purple-400" /> Editar Tienda
+                </h2>
+                <button onClick={() => setEditTenant(null)} className="text-gray-500 hover:text-white transition-colors">
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+
+              <div className="space-y-3">
+                <div>
+                  <label className="block text-xs text-gray-400 mb-1 font-semibold">Nombre del negocio</label>
+                  <input
+                    value={editForm.name}
+                    onChange={e => setEditForm(f => ({ ...f, name: e.target.value }))}
+                    className="w-full bg-white/[0.05] border border-white/10 text-white text-sm rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500/40"
+                    placeholder="Nombre del negocio"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs text-gray-400 mb-1 font-semibold">Email del dueño</label>
+                  <input
+                    value={editForm.email}
+                    onChange={e => setEditForm(f => ({ ...f, email: e.target.value }))}
+                    type="email"
+                    className="w-full bg-white/[0.05] border border-white/10 text-white text-sm rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500/40"
+                    placeholder="email@ejemplo.com"
+                  />
+                </div>
+              </div>
+
+              <div className="flex items-center gap-2 pt-1">
+                <button
+                  onClick={doEditSave}
+                  disabled={!!actionId}
+                  className="flex items-center gap-2 px-4 py-2 rounded-xl bg-purple-600 hover:bg-purple-500 text-white text-sm font-bold transition-all disabled:opacity-50"
+                >
+                  <Save className="w-3.5 h-3.5" /> Guardar cambios
+                </button>
+                <button
+                  onClick={() => doResetPassword(editForm.email || editTenant?.email)}
+                  disabled={!!actionId}
+                  className="flex items-center gap-2 px-4 py-2 rounded-xl bg-yellow-500/10 border border-yellow-500/30 text-yellow-300 text-sm font-semibold hover:bg-yellow-500/20 transition-all disabled:opacity-50"
+                >
+                  <KeyRound className="w-3.5 h-3.5" /> Enviar reset de contraseña
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* ── Delete Confirmation Modal ── */}
+      <AnimatePresence>
+        {confirmDelete && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm"
+          >
+            <motion.div
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.95, opacity: 0 }}
+              className="bg-[#111] border border-red-500/30 rounded-2xl p-6 w-full max-w-sm shadow-2xl space-y-4"
+            >
+              <div className="flex items-start gap-3">
+                <div className="w-10 h-10 rounded-xl bg-red-500/20 flex items-center justify-center flex-shrink-0">
+                  <Trash2 className="w-5 h-5 text-red-400" />
+                </div>
+                <div>
+                  <h2 className="text-base font-bold text-white">¿Eliminar esta tienda?</h2>
+                  <p className="text-sm text-gray-400 mt-1">
+                    Esta acción es <strong className="text-red-400">permanente e irreversible</strong>. Se eliminarán todos los datos, usuarios, órdenes y configuración.
+                  </p>
+                </div>
+              </div>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => doDelete(confirmDelete)}
+                  disabled={!!actionId}
+                  className="flex-1 py-2.5 rounded-xl bg-red-600 hover:bg-red-500 text-white text-sm font-bold transition-all disabled:opacity-50 flex items-center justify-center gap-2"
+                >
+                  {actionId?.includes("delete") ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : <Trash2 className="w-3.5 h-3.5" />}
+                  Sí, eliminar permanentemente
+                </button>
+                <button
+                  onClick={() => setConfirmDelete(null)}
+                  className="px-4 py-2.5 rounded-xl border border-white/10 text-gray-400 hover:text-white text-sm font-semibold transition-all"
+                >
+                  Cancelar
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* ── Top bar ── */}
       <header className="sticky top-0 z-30 border-b border-white/[0.06] bg-black/70 backdrop-blur-2xl">
@@ -361,6 +552,25 @@ export default function SuperAdmin() {
                                 >
                                   <Clock className="w-3.5 h-3.5" /> +15 días trial
                                 </button>
+
+                                {/* Edit */}
+                                <button
+                                  onClick={() => openEdit(tenant)}
+                                  disabled={!!busy}
+                                  className="flex items-center gap-1.5 text-xs px-3 py-2 rounded-xl bg-purple-500/10 border border-purple-500/30 text-purple-300 hover:bg-purple-500/20 transition-all disabled:opacity-50"
+                                >
+                                  <Pencil className="w-3.5 h-3.5" /> Editar
+                                </button>
+
+                                {/* Delete */}
+                                <button
+                                  onClick={() => setConfirmDelete(tenant.id)}
+                                  disabled={!!busy}
+                                  className="flex items-center gap-1.5 text-xs px-3 py-2 rounded-xl bg-red-900/20 border border-red-700/30 text-red-400 hover:bg-red-900/40 transition-all disabled:opacity-50"
+                                >
+                                  <Trash2 className="w-3.5 h-3.5" /> Eliminar
+                                </button>
+
                                 {busy && <RefreshCw className="w-3.5 h-3.5 animate-spin text-gray-400 self-center ml-1" />}
                               </div>
 
