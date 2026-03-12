@@ -79,14 +79,16 @@ export async function registerTenantHandler(req) {
     trialEndDate.setDate(trialEndDate.getDate() + 15);
     const trialEndStr = trialEndDate.toISOString().split('T')[0];
 
+    // Nombre del negocio — wizard lo completará después si no viene
+    const tenantName = (businessName || ownerName || 'Mi Taller').trim();
+
     // Crear slug del negocio
-    const slug = businessName
+    const slug = tenantName
       .toLowerCase()
       .replace(/[^a-z0-9]+/g, '-')
       .replace(/^-|-$/g, '') + '-' + Date.now();
 
     // 4. Crear Tenant
-    const tenantName = businessName || ownerName; // wizard lo actualizará después
     const tenant = await base44.asServiceRole.entities.Tenant.create({
       name: tenantName,
       slug,
@@ -110,7 +112,7 @@ export async function registerTenantHandler(req) {
       },
     });
 
-    console.log(`✅ Tenant creado: ${tenant.id} (${businessName})`);
+    console.log(`✅ Tenant creado: ${tenant.id} (${tenantName})`);
 
     // 5. Crear Supabase Auth user (o actualizar si ya existe)
     let authUserId = null;
@@ -178,7 +180,7 @@ export async function registerTenantHandler(req) {
     // 6b. Pre-poblar SystemConfig con nombre del negocio para que el dashboard lo muestre
     try {
       const brandingValue = JSON.stringify({
-        business_name: businessName,
+        business_name: tenantName,
         phone: phone || '',
         email,
         logo_url: '',
@@ -209,16 +211,16 @@ export async function registerTenantHandler(req) {
       // También poblar AppSettings para UserMenuModal
       await supabaseAdmin.from('app_settings').upsert({
         slug: 'app-main-settings',
-        payload: { business_name: businessName, business_phone: phone || '', business_email: email },
+        payload: { business_name: tenantName, business_phone: phone || '', business_email: email },
         tenant_id: tenant.id,
       }, { onConflict: 'slug,tenant_id' }).catch(() =>
         supabaseAdmin.from('app_settings').insert({
           slug: 'app-main-settings',
-          payload: { business_name: businessName, business_phone: phone || '', business_email: email },
+          payload: { business_name: tenantName, business_phone: phone || '', business_email: email },
           tenant_id: tenant.id,
         })
       );
-      console.log(`✅ SystemConfig + AppSettings pre-poblados para ${businessName}`);
+      console.log(`✅ SystemConfig + AppSettings pre-poblados para ${tenantName}`);
     } catch (configErr) {
       console.warn('Could not pre-populate SystemConfig (non-critical):', configErr.message);
     }
@@ -246,7 +248,7 @@ export async function registerTenantHandler(req) {
         ¡Bienvenido a SmartFixOS!
       </h1>
       <p style="color:#9ca3af;text-align:center;margin:0 0 32px;font-size:16px;">
-        Tu cuenta para <strong style="color:#e5e7eb;">${businessName}</strong> está lista
+        Tu cuenta para <strong style="color:#e5e7eb;">${tenantName}</strong> está lista
       </p>
 
       <!-- PIN Box -->
@@ -266,7 +268,7 @@ export async function registerTenantHandler(req) {
       <div style="border-top:1px solid #1e3a5f;padding-top:24px;space-y:12px;">
         <div style="display:flex;justify-content:space-between;margin-bottom:12px;">
           <span style="color:#9ca3af;">Negocio</span>
-          <span style="color:#ffffff;font-weight:600;">${businessName}</span>
+          <span style="color:#ffffff;font-weight:600;">${tenantName}</span>
         </div>
         <div style="display:flex;justify-content:space-between;margin-bottom:12px;">
           <span style="color:#9ca3af;">Plan</span>
@@ -351,14 +353,14 @@ export async function registerTenantHandler(req) {
         entity_id: tenant.id,
         entity_number: slug,
         severity: 'info',
-        metadata: { email, businessName, trialEndDate: trialEndStr }
+        metadata: { email, tenantName, trialEndDate: trialEndStr }
       });
     } catch (_) { /* non-critical */ }
 
     return Response.json({
       success: true,
       tenantId: tenant.id,
-      tenantName: businessName,
+      tenantName,
       trialEndDate: trialEndStr,
       trialDays: 15
     });
