@@ -114,9 +114,11 @@ export async function registerTenantHandler(req) {
       return Response.json({ success: false, error: 'Email inválido' }, { status: 400 });
     }
 
-    const plan = ['basic', 'pro', 'enterprise'].includes(rawPlan) ? rawPlan : 'basic';
+    // Mapear 'basic' → 'smartfixos' (el CHECK de la tabla solo acepta estos valores)
+    const planMap = { basic: 'smartfixos', pro: 'pro', enterprise: 'enterprise' };
+    const plan = planMap[rawPlan] || 'smartfixos';
     const PLANS = {
-      basic:      { max_users: 1,    monthly_cost: 55,  label: 'Basic'      },
+      smartfixos: { max_users: 1,    monthly_cost: 55,  label: 'Basic'      },
       pro:        { max_users: 3,    monthly_cost: 85,  label: 'Pro'        },
       enterprise: { max_users: 9999, monthly_cost: 0,   label: 'Enterprise' },
     };
@@ -152,13 +154,13 @@ export async function registerTenantHandler(req) {
       status: 'active',
       plan,
       monthly_cost: planCfg.monthly_cost,
-      subscription_status: 'trial',
+      subscription_status: 'active',   // 'trial' no está en el CHECK — trial se gestiona via trial_end_date
       trial_period_days: 15,
       trial_end_date: trialEndStr,
       admin_name: ownerName,
       admin_phone: phone || '',
       timezone: 'America/Puerto_Rico',
-      metadata: JSON.stringify({ max_users: planCfg.max_users, plan_label: planCfg.label, setup_complete: false }),
+      metadata: { max_users: planCfg.max_users, plan_label: planCfg.label, setup_complete: false },
     }, sb);
     console.log(`✅ Tenant creado: ${tenant.id} (${tenantName})`);
 
