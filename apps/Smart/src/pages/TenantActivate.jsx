@@ -10,50 +10,7 @@ import {
 } from "lucide-react";
 import { supabase } from "../../../../lib/supabase-client.js";
 
-// ── Supabase REST helpers (sin SDK npm) ───────────────────────────────────────
-const SB_URL   = import.meta.env.VITE_SUPABASE_URL;
-const SB_KEY   = import.meta.env.VITE_SUPABASE_SERVICE_ROLE_KEY || import.meta.env.VITE_SUPABASE_ANON_KEY;
-
-const sbHeaders = {
-  'Content-Type': 'application/json',
-  'apikey': SB_KEY,
-  'Authorization': `Bearer ${SB_KEY}`,
-};
-
-async function sbGet(table, filters = {}, select = '*') {
-  const q = Object.entries(filters)
-    .map(([k, v]) => `${k}=eq.${encodeURIComponent(v)}`)
-    .join('&');
-  const res = await fetch(`${SB_URL}/rest/v1/${table}?${q}&select=${select}`, { headers: sbHeaders });
-  const text = await res.text();
-  if (!res.ok) throw new Error(`GET ${table}: ${res.status} ${text}`);
-  return JSON.parse(text);
-}
-
-async function sbPatch(table, filters, data) {
-  const q = Object.entries(filters)
-    .map(([k, v]) => `${k}=eq.${encodeURIComponent(v)}`)
-    .join('&');
-  const res = await fetch(`${SB_URL}/rest/v1/${table}?${q}`, {
-    method: 'PATCH',
-    headers: { ...sbHeaders, 'Prefer': 'return=representation' },
-    body: JSON.stringify(data),
-  });
-  const text = await res.text();
-  if (!res.ok) throw new Error(`PATCH ${table}: ${res.status} ${text}`);
-  return text ? JSON.parse(text) : null;
-}
-
-async function sbPost(table, data) {
-  const res = await fetch(`${SB_URL}/rest/v1/${table}`, {
-    method: 'POST',
-    headers: { ...sbHeaders, 'Prefer': 'resolution=merge-duplicates,return=representation' },
-    body: JSON.stringify(data),
-  });
-  const text = await res.text();
-  if (!res.ok) throw new Error(`POST ${table}: ${res.status} ${text}`);
-  return text ? JSON.parse(text) : null;
-}
+// ── All DB operations go through Vercel serverless endpoints (server-side service role key) ──
 
 // ── Dashboard widgets config ──────────────────────────────────────────────────
 const DASHBOARD_WIDGETS = [
@@ -138,35 +95,17 @@ export default function TenantActivate() {
 
   const validateToken = async () => {
     try {
-      const rows = await sbGet('app_employee', { activation_token: token },
-        'id,tenant_id,email,full_name,activation_expires_at,status');
-      if (!rows.length) { setStatus('invalid'); return; }
+      const res = await fetch(`/api/validate-token?token=${encodeURIComponent(token)}`);
+      const data = await res.json();
 
-      const emp = rows[0];
-      // Check expiry
-      if (emp.activation_expires_at && new Date(emp.activation_expires_at) < new Date()) {
-        setStatus('invalid'); return;
-      }
-      // Already activated
-      if (emp.status === 'active') {
-        setStatus('done'); return;
-      }
+      if (data.alreadyActive) { setStatus('done'); return; }
+      if (!data.valid) { setStatus('invalid'); return; }
 
-      setEmployeeId(emp.id);
-      setTenantId(emp.tenant_id);
-      setTenantEmail(emp.email || emailParam || '');
-
-      // Pre-fill business name from tenant
-      if (emp.tenant_id) {
-        try {
-          const tenantRows = await sbGet('tenant', { id: emp.tenant_id }, 'name,admin_phone,email');
-          if (tenantRows.length) {
-            setBusinessName(tenantRows[0].name || '');
-            setPhone(tenantRows[0].admin_phone || '');
-          }
-        } catch { /* non-critical */ }
-      }
-
+      setEmployeeId(data.employeeId);
+      setTenantId(data.tenantId);
+      setTenantEmail(data.email || emailParam || '');
+      setBusinessName(data.tenantName || '');
+      setPhone(data.adminPhone || '');
       setStatus('valid');
     } catch (e) {
       console.error('Token validation error:', e);
@@ -252,71 +191,28 @@ export default function TenantActivate() {
 
     setStatus('saving');
     try {
-      // 1. Upsert branding config
-      await sbPost('system_config', {
-        key: 'settings.branding',
-        value: JSON.stringify({
-          business_name: businessName,
-          slogan,
-          logo_url: logoUrl,
-          primary_color: primaryColor,
-          secondary_color: '#000000',
-          phone,
-          whatsapp,
+      const res = await fetch('/api/activate-complete', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          token,
+          employeeId,
+          tenantId,
           email: tenantEmail,
-          address, city, state, zip,
-          website,
-          timezone: 'America/Puerto_Rico',
-          tax_rate: 0.115,
-          currency: 'USD',
-          date_format: 'MM/dd/yyyy',
-          warranty_days: warrantyDays,
-          max_retention_days: retentionDays,
-          receipt_note: receiptNote,
-          schedule,
+          // Step 1
+          businessName, slogan, logoUrl, primaryColor,
+          // Step 2
+          phone, whatsapp, address, city, state, zip, website,
+          // Step 3
+          warrantyDays, retentionDays, receiptNote, schedule,
+          // Step 4
+          widgets,
+          // Step 5
+          pin,
         }),
-        category: 'general',
-        description: 'Configuración de branding y negocio',
-        tenant_id: tenantId,
       });
-
-      // 2. Dashboard widgets config
-      await sbPost('system_config', {
-        key: 'settings.dashboard_widgets',
-        value: JSON.stringify(widgets),
-        category: 'general',
-        description: 'Widgets del dashboard habilitados',
-        tenant_id: tenantId,
-      });
-
-      // 3. Activate app_employee — set PIN, clear token
-      await sbPatch('app_employee', { id: employeeId }, {
-        pin,
-        status: 'active',
-        active: true,
-        activation_token: null,
-        activation_expires_at: null,
-      });
-
-      // 4. Update users table with PIN
-      if (tenantEmail) {
-        try {
-          await sbPatch('users', { email: tenantEmail }, { pin, active: true });
-        } catch { /* non-critical */ }
-      }
-
-      // 5. Mark tenant setup_complete
-      if (tenantId) {
-        try {
-          // Get current metadata first
-          const tenantRows = await sbGet('tenant', { id: tenantId }, 'metadata');
-          const currentMeta = tenantRows[0]?.metadata || {};
-          await sbPatch('tenant', { id: tenantId }, {
-            name: businessName,
-            metadata: { ...currentMeta, setup_complete: true },
-          });
-        } catch { /* non-critical */ }
-      }
+      const data = await res.json();
+      if (!data.success) throw new Error(data.error || 'Error al activar');
 
       console.log('✅ Activación completada');
       setStatus('done');
