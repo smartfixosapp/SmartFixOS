@@ -39,6 +39,9 @@ export default function TenantActivate() {
   const token = searchParams.get('token');
   const emailParam = searchParams.get('email');
 
+  // Dev/test shortcut — visible when ?skip=1 or running in dev mode
+  const skipMode = searchParams.get('skip') === '1' || import.meta.env.DEV;
+
   const [status, setStatus] = useState('validating'); // validating | valid | invalid | saving | done
   const [employeeId, setEmployeeId] = useState(null);
   const [tenantId, setTenantId] = useState(null);
@@ -84,6 +87,31 @@ export default function TenantActivate() {
   const [pinError, setPinError] = useState('');
 
   const numbers = [[1,2,3],[4,5,6],[7,8,9],[null,0,'⌫']];
+
+  // ── Dev shortcut: fill all steps with dummy data and jump to PIN ────────────
+  const fillTestData = () => {
+    setBusinessName(prev => prev || 'Taller Test Dev');
+    setSlogan('Reparamos todo rápido');
+    setPrimaryColor('#0891b2');
+    setPhone('787-555-0001');
+    setWhatsapp('787-555-0001');
+    setAddress('Calle Test #1');
+    setCity('San Juan');
+    setState('PR');
+    setZip('00901');
+    setWebsite('https://testaller.com');
+    setWarrantyDays(90);
+    setRetentionDays(30);
+    setReceiptNote('No nos hacemos responsables por equipos dejados más de 30 días.');
+    setWidgets(Object.fromEntries(DASHBOARD_WIDGETS.map(w => [w.key, true])));
+    setDir(1);
+    setStep(4);
+    setPinStep('set');
+    setPin('');
+    setConfirmPin('');
+    setPinError('');
+    toast.success('⚡ Datos de prueba cargados — ahora elige tu PIN');
+  };
 
   // ── Validate token on mount ───────────────────────────────────────────────
   useEffect(() => {
@@ -318,6 +346,15 @@ export default function TenantActivate() {
           />
           <h1 className="text-2xl font-extrabold text-white">Configura tu taller</h1>
           <p className="text-gray-400 text-sm mt-1">Paso {step + 1} de {TOTAL_STEPS}</p>
+          {skipMode && (
+            <button
+              onClick={fillTestData}
+              className="mt-3 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-yellow-500/10 border border-yellow-500/30 text-yellow-400 text-xs font-semibold hover:bg-yellow-500/20 transition-colors"
+              title="Solo visible en modo desarrollo o ?skip=1"
+            >
+              ⚡ Saltar al PIN (modo prueba)
+            </button>
+          )}
         </div>
 
         {/* Progress bar */}
