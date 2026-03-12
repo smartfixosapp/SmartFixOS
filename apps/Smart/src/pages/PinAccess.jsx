@@ -77,7 +77,8 @@ export default function PinAccess() {
   const [sendingReset, setSendingReset] = useState(false);
   const [tenantId, setTenantId] = useState(null);
   const [formData, setFormData] = useState({
-    full_name: "",
+    first_name: "",
+    last_name: "",
     email: "",
     password: "",
     plan: "basic"   // basic | pro | enterprise
@@ -325,6 +326,52 @@ export default function PinAccess() {
     if (!trimmedEmail) { toast.error("Ingresa el email de la cuenta"); return; }
     if (!storePassword)  { toast.error("Ingresa tu contraseña"); return; }
     await performStoreAuth(trimmedEmail, storePassword);
+  };
+
+  // SuperAdmin: enviar OTP sin requerir contraseña
+  const handleSendAdminOtpDirect = async () => {
+    setUsersLoading(true);
+    try {
+      // ¿Dispositivo ya confiable?
+      const trusted = JSON.parse(localStorage.getItem("sa_trusted_device") || "null");
+      if (trusted?.token && trusted?.expiry && Date.now() < trusted.expiry) {
+        const superSession = { email: SUPER_ADMIN_EMAIL, role: "saas_owner", loginTime: new Date().toISOString() };
+        localStorage.setItem(SUPER_SESSION_KEY, JSON.stringify(superSession));
+        navigate("/SuperAdmin", { replace: true });
+        return;
+      }
+      // Generar OTP y enviarlo por email
+      const otp = String(Math.floor(100000 + Math.random() * 900000));
+      const otpExpiry = Date.now() + 5 * 60 * 1000;
+      sessionStorage.setItem("sa_otp", otp);
+      sessionStorage.setItem("sa_otp_expiry", String(otpExpiry));
+      const fnUrl = import.meta.env.VITE_FUNCTION_URL || "http://localhost:8686";
+      await fetch(`${fnUrl}/sendEmail`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          to: SUPER_ADMIN_EMAIL,
+          subject: `SmartFixOS — Código de acceso: ${otp}`,
+          body: `<div style="font-family:Arial,sans-serif;background:#0a0a0a;color:#e5e7eb;padding:40px;max-width:500px;margin:0 auto;border-radius:16px;">
+            <h2 style="color:#22d3ee;margin-bottom:8px;">🔐 Código de Verificación</h2>
+            <p style="color:#9ca3af;">Panel de Administración SmartFixOS</p>
+            <div style="background:#0e4f6e;border:2px solid #06b6d4;border-radius:12px;padding:28px;text-align:center;margin:28px 0;">
+              <p style="color:#67e8f9;font-size:12px;letter-spacing:3px;margin:0 0 12px;">TU CÓDIGO DE ACCESO</p>
+              <div style="font-size:48px;font-weight:900;letter-spacing:14px;color:#fff;font-family:monospace;">${otp}</div>
+              <p style="color:#a7f3d0;font-size:12px;margin:12px 0 0;">Expira en 5 minutos</p>
+            </div>
+            <p style="color:#6b7280;font-size:13px;">Si no fuiste tú, ignora este mensaje.</p>
+          </div>`,
+        }),
+      });
+      setStep("otp");
+      toast.success("📧 Código enviado a tu email", { duration: 4000 });
+    } catch (err) {
+      console.error("OTP send error:", err);
+      toast.error("No se pudo enviar el código. Intenta nuevamente.");
+    } finally {
+      setUsersLoading(false);
+    }
   };
 
   const handleForgotPassword = async () => {
@@ -1038,7 +1085,7 @@ export default function PinAccess() {
   const handleSignup = async (e) => {
     e.preventDefault();
 
-    if (!formData.full_name || !formData.email) {
+    if (!formData.first_name || !formData.email) {
       toast.error("Nombre y email son obligatorios");
       return;
     }
@@ -1053,11 +1100,12 @@ export default function PinAccess() {
 
     setSubmitting(true);
     try {
+      const fullName = `${formData.first_name} ${formData.last_name}`.trim();
       const result = await registerTenant({
-        ownerName: formData.full_name,
+        ownerName: fullName,
         email: formData.email,
         password: formData.password,
-        businessName: formData.full_name, // temporal — wizard lo actualiza
+        businessName: fullName, // temporal — wizard lo actualiza después
         plan: formData.plan,
         country: 'US'
       });
@@ -1434,8 +1482,14 @@ export default function PinAccess() {
             </p>
           </div>
 
-          <div className="mt-12 text-center">
-            <div className="flex justify-center gap-6 text-xs text-gray-500">
+          <div className="mt-12 text-center space-y-3">
+            <p className="text-sm text-gray-400">
+              ¿Necesitas ayuda? Escríbenos a{" "}
+              <a href="mailto:smartfixosapp@gmail.com" className="text-cyan-400 hover:text-cyan-300 transition-colors font-medium">
+                smartfixosapp@gmail.com
+              </a>
+            </p>
+            <div className="flex justify-center gap-6 text-xs text-gray-600">
               <span>SmartFixOS © 2026</span>
               <span>•</span>
               <span>v3.5.0 (Build 2026)</span>
@@ -1513,16 +1567,22 @@ export default function PinAccess() {
 
                     <form onSubmit={handleSignup} className="space-y-4">
 
-                      {/* Nombre */}
+                      {/* Nombre + Apellido */}
                       <div>
                         <label className="text-white mb-2 flex items-center gap-2 text-sm font-semibold">
-                          <UserPlus className="w-4 h-4 text-cyan-400" /> Tu nombre completo *
+                          <UserPlus className="w-4 h-4 text-cyan-400" /> Nombre y Apellido *
                         </label>
-                        <input value={formData.full_name}
-                          onChange={(e) => setFormData({ ...formData, full_name: e.target.value })}
-                          placeholder="Tu nombre"
-                          className="w-full bg-black/40 border border-cyan-500/30 text-white h-12 rounded-xl px-4 focus:outline-none focus:ring-2 focus:ring-cyan-500/50"
-                          required />
+                        <div className="grid grid-cols-2 gap-2">
+                          <input value={formData.first_name}
+                            onChange={(e) => setFormData({ ...formData, first_name: e.target.value })}
+                            placeholder="Nombre"
+                            className="w-full bg-black/40 border border-cyan-500/30 text-white h-12 rounded-xl px-4 focus:outline-none focus:ring-2 focus:ring-cyan-500/50"
+                            required />
+                          <input value={formData.last_name}
+                            onChange={(e) => setFormData({ ...formData, last_name: e.target.value })}
+                            placeholder="Apellido"
+                            className="w-full bg-black/40 border border-cyan-500/30 text-white h-12 rounded-xl px-4 focus:outline-none focus:ring-2 focus:ring-cyan-500/50" />
+                        </div>
                       </div>
 
                       {/* Email */}
@@ -1593,7 +1653,7 @@ export default function PinAccess() {
 
                       <div className="flex gap-3 pt-1">
                         <Button type="button" variant="outline"
-                          className="flex-1 border-white/20 text-white hover:bg-white/10 h-12"
+                          className="flex-1 border-gray-300 bg-white text-gray-900 hover:bg-gray-100 h-12"
                           onClick={() => setShowSignup(false)} disabled={submitting}>
                           Cancelar
                         </Button>
@@ -1710,41 +1770,66 @@ export default function PinAccess() {
                   placeholder="tu@email.com"
                   className="w-full bg-black/40 border border-cyan-500/30 text-white h-12 rounded-xl px-4 focus:outline-none focus:ring-2 focus:ring-cyan-500/50"
                   type="email"
-                  onKeyDown={(e) => e.key === "Enter" && document.getElementById("store-password-input")?.focus()}
+                  onKeyDown={(e) => {
+                    const isSA = storeEmail.trim().toLowerCase() === SUPER_ADMIN_EMAIL.toLowerCase();
+                    if (e.key === "Enter") isSA ? handleSendAdminOtpDirect() : document.getElementById("store-password-input")?.focus();
+                  }}
                 />
-                <div className="relative">
-                  <input
-                    id="store-password-input"
-                    value={storePassword}
-                    onChange={(e) => setStorePassword(e.target.value)}
-                    placeholder="Contraseña"
-                    type={showPassword ? "text" : "password"}
-                    className="w-full bg-black/40 border border-cyan-500/30 text-white h-12 rounded-xl px-4 pr-12 focus:outline-none focus:ring-2 focus:ring-cyan-500/50"
-                    onKeyDown={(e) => e.key === "Enter" && handleStoreContinue()}
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white transition-colors"
-                  >
-                    {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
-                  </button>
-                </div>
-                <Button
-                  onClick={handleStoreContinue}
-                  disabled={usersLoading}
-                  className="w-full bg-gradient-to-r from-cyan-600 to-emerald-600 hover:from-cyan-500 hover:to-emerald-500 font-bold h-12"
-                >
-                  {usersLoading ? "Verificando..." : "Iniciar Sesión →"}
-                </Button>
-                <button
-                  type="button"
-                  onClick={handleForgotPassword}
-                  disabled={sendingReset}
-                  className="w-full text-xs text-gray-500 hover:text-cyan-400 transition-colors py-1"
-                >
-                  {sendingReset ? "Enviando..." : "¿Olvidaste la contraseña? Enviar enlace de recuperación"}
-                </button>
+                {storeEmail.trim().toLowerCase() === SUPER_ADMIN_EMAIL.toLowerCase() ? (
+                  /* ── SuperAdmin: sin contraseña, solo OTP ── */
+                  <>
+                    <div className="flex items-center gap-3 bg-cyan-500/10 border border-cyan-500/30 rounded-xl px-4 py-3">
+                      <Shield className="w-5 h-5 text-cyan-400 flex-shrink-0" />
+                      <p className="text-cyan-300 text-sm">
+                        Panel de administración — recibirás un código de 6 dígitos en tu email.
+                      </p>
+                    </div>
+                    <Button
+                      onClick={handleSendAdminOtpDirect}
+                      disabled={usersLoading}
+                      className="w-full bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 font-bold h-12"
+                    >
+                      {usersLoading ? "Enviando código..." : "📧 Enviar código de acceso"}
+                    </Button>
+                  </>
+                ) : (
+                  /* ── Tenant normal: email + contraseña ── */
+                  <>
+                    <div className="relative">
+                      <input
+                        id="store-password-input"
+                        value={storePassword}
+                        onChange={(e) => setStorePassword(e.target.value)}
+                        placeholder="Contraseña"
+                        type={showPassword ? "text" : "password"}
+                        className="w-full bg-black/40 border border-cyan-500/30 text-white h-12 rounded-xl px-4 pr-12 focus:outline-none focus:ring-2 focus:ring-cyan-500/50"
+                        onKeyDown={(e) => e.key === "Enter" && handleStoreContinue()}
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowPassword(!showPassword)}
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white transition-colors"
+                      >
+                        {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                      </button>
+                    </div>
+                    <Button
+                      onClick={handleStoreContinue}
+                      disabled={usersLoading}
+                      className="w-full bg-gradient-to-r from-cyan-600 to-emerald-600 hover:from-cyan-500 hover:to-emerald-500 font-bold h-12"
+                    >
+                      {usersLoading ? "Verificando..." : "Iniciar Sesión →"}
+                    </Button>
+                    <button
+                      type="button"
+                      onClick={handleForgotPassword}
+                      disabled={sendingReset}
+                      className="w-full text-xs text-gray-500 hover:text-cyan-400 transition-colors py-1"
+                    >
+                      {sendingReset ? "Enviando..." : "¿Olvidaste la contraseña? Enviar enlace de recuperación"}
+                    </button>
+                  </>
+                )}
               </div>
 
             </motion.div>
