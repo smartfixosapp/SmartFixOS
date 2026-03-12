@@ -70,6 +70,57 @@ async function authFindUserByEmail(email) {
   return (data?.users || []).find(u => u.email === email) || null;
 }
 
+async function sbDelete(table, filters) {
+  const q = Object.entries(filters).map(([k, v]) => `${k}=eq.${encodeURIComponent(v)}`).join('&');
+  await fetch(`${SB_URL}/rest/v1/${table}?${q}`, {
+    method: 'DELETE',
+    headers: sbHeaders,
+  });
+}
+
+/**
+ * Limpia TODOS los registros de un email no activado:
+ * system_config, app_employee, users (tabla), tenant
+ * También elimina el Supabase Auth user si existe
+ */
+async function cleanupPendingAccount(email) {
+  console.log(`🧹 Limpiando cuenta pendiente: ${email}`);
+
+  // Buscar tenant para obtener tenant_id
+  const tenants = await sbSelect('tenant', { email }, 'id');
+  const tenantId = tenants[0]?.id;
+
+  // Borrar system_config por tenant_id
+  if (tenantId) {
+    await sbDelete('system_config', { tenant_id: tenantId });
+  }
+
+  // Borrar app_employee
+  await sbDelete('app_employee', { email });
+
+  // Borrar users (tabla pública)
+  await sbDelete('users', { email });
+
+  // Borrar tenant
+  await sbDelete('tenant', { email });
+
+  // Borrar Supabase Auth user
+  try {
+    const authUser = await authFindUserByEmail(email);
+    if (authUser?.id) {
+      await fetch(`${SB_URL}/auth/v1/admin/users/${authUser.id}`, {
+        method: 'DELETE',
+        headers: { 'apikey': SB_KEY, 'Authorization': `Bearer ${SB_KEY}` },
+      });
+      console.log(`🗑️ Auth user eliminado: ${authUser.id}`);
+    }
+  } catch (e) {
+    console.warn('Auth delete (non-critical):', e.message);
+  }
+
+  console.log(`✅ Cuenta pendiente limpiada: ${email}`);
+}
+
 export default async function handler(req, res) {
   // CORS
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -103,10 +154,17 @@ export default async function handler(req, res) {
     };
     const planCfg = PLANS[plan];
 
-    // 1. Email único
-    const existing = await sbSelect('tenant', { email });
+    // 1. Email único — si existe pero nunca activó, limpiar y permitir re-registro
+    const existing = await sbSelect('tenant', { email }, 'id,metadata');
     if (existing.length > 0) {
-      return res.status(409).json({ success: false, error: 'Este email ya tiene una cuenta registrada' });
+      const meta = existing[0]?.metadata || {};
+      const isActivated = meta.setup_complete === true;
+      if (isActivated) {
+        return res.status(409).json({ success: false, error: 'Este email ya tiene una cuenta activa. ¿Olvidaste tu PIN? Contáctanos.' });
+      }
+      // Cuenta existe pero nunca completó activación → limpiar automáticamente
+      await cleanupPendingAccount(email);
+      console.log(`♻️ Re-registro permitido para ${email} (cuenta anterior sin activar)`);
     }
 
     // 2. Token de activación (24h)
