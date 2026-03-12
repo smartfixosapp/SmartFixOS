@@ -183,6 +183,24 @@ export default function SuperAdmin() {
     }
   };
 
+  const doSeedTemplates = async (tenantId) => {
+    setActionId(tenantId + "seed");
+    try {
+      const res = await fetch('/api/seed-email-templates', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ tenantId }),
+      });
+      const data = await res.json();
+      if (data?.success) toast.success(data.message || "✅ Plantillas sembradas");
+      else toast.error(data?.error || "Error al sembrar plantillas");
+    } catch (e) {
+      toast.error(e.message || "Error");
+    } finally {
+      setActionId(null);
+    }
+  };
+
   const doResetPassword = async (email) => {
     if (!email) return toast.error("No hay email para este tenant");
     setActionId("reset" + email);
@@ -560,6 +578,16 @@ export default function SuperAdmin() {
                                   className="flex items-center gap-1.5 text-xs px-3 py-2 rounded-xl bg-purple-500/10 border border-purple-500/30 text-purple-300 hover:bg-purple-500/20 transition-all disabled:opacity-50"
                                 >
                                   <Pencil className="w-3.5 h-3.5" /> Editar
+                                </button>
+
+                                {/* Seed email templates */}
+                                <button
+                                  onClick={() => doSeedTemplates(tenant.id)}
+                                  disabled={!!busy}
+                                  title="Sembrar plantillas de email por defecto"
+                                  className="flex items-center gap-1.5 text-xs px-3 py-2 rounded-xl bg-teal-500/10 border border-teal-500/30 text-teal-300 hover:bg-teal-500/20 transition-all disabled:opacity-50"
+                                >
+                                  <Mail className="w-3.5 h-3.5" /> Plantillas
                                 </button>
 
                                 {/* Delete */}
