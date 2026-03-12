@@ -65,7 +65,10 @@ const unwrappedRoutes = new Set([
   '/ai/invoke',
   '/ai/generate-image',
   '/sendEmailInternal',
-  '/stripeWebhook'  // Stripe espera respuesta directa sin wrapper
+  '/stripeWebhook',     // Stripe espera respuesta directa sin wrapper
+  '/registerTenant',    // Maneja su propio JSON — el wrapper rompe el error handling del SDK
+  '/sendAdminOtp',      // Mismo motivo
+  '/verifyAdminOtp',    // Mismo motivo
 ]);
 
 // Route handlers
