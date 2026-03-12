@@ -1068,11 +1068,12 @@ export default function PinAccess() {
         setSignupStep("success");
       } else {
         const msg = data?.error || "Error al crear la cuenta";
-        toast.error(msg.includes("ya tiene una cuenta") ? msg : "Error al crear la cuenta. Intenta nuevamente.");
+        toast.error(msg);
+        console.error("Signup backend error:", msg, data);
       }
     } catch (error) {
       console.error("Signup error:", error);
-      toast.error("Error al crear la cuenta. Intenta nuevamente.");
+      toast.error(error?.message || "Error de conexión. Verifica tu internet e intenta de nuevo.");
     } finally {
       setSubmitting(false);
     }
