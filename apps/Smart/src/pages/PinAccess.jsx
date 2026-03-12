@@ -344,9 +344,8 @@ export default function PinAccess() {
         navigate("/SuperAdmin", { replace: true });
         return;
       }
-      // Pedir al servidor que genere y envíe el OTP (criptográficamente seguro)
-      const fnUrl = import.meta.env.VITE_FUNCTION_URL || "http://localhost:8686";
-      const res = await fetch(`${fnUrl}/sendAdminOtp`, {
+      // Pedir al servidor que genere y envíe el OTP (Vercel endpoint)
+      const res = await fetch(`/api/send-admin-otp`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email: SUPER_ADMIN_EMAIL }),
@@ -637,8 +636,7 @@ export default function PinAccess() {
     }
     setOtpLoading(true);
     try {
-      const fnUrl = import.meta.env.VITE_FUNCTION_URL || "http://localhost:8686";
-      const res = await fetch(`${fnUrl}/verifyAdminOtp`, {
+      const res = await fetch(`/api/verify-admin-otp`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
