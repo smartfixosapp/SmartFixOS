@@ -3,9 +3,10 @@ services:
     name: smartfixos-api
     runtime: docker
     dockerfilePath: apps/Smart/Dockerfile.render
+    autoDeploy: true
     plan: starter          # $7/mo — always-on (no sleep). Use "free" for testing.
     region: ohio           # us-east-1, close to Supabase aws-1-us-east-1
-    healthCheckPath: /
+    healthCheckPath: /health
     envVars:
       - key: FUNCTIONS_PORT
         value: 8686
