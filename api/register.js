@@ -4,7 +4,9 @@
  * Runtime: Node.js 18 (Vercel default)
  */
 
-const SB_URL = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL;
+// SB_URL is not secret (already in browser bundle) — hardcode as fallback
+const SB_URL = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL || 'https://idntuvtabecwubzswpwi.supabase.co';
+// SB_KEY must be set in Vercel dashboard as SUPABASE_SERVICE_ROLE_KEY
 const SB_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.VITE_SUPABASE_SERVICE_ROLE_KEY;
 const RESEND_KEY = process.env.RESEND_API_KEY;
 const FROM_EMAIL = process.env.FROM_EMAIL || 'noreply@smartfixos.com';
@@ -76,6 +78,11 @@ export default async function handler(req, res) {
 
   if (req.method === 'OPTIONS') return res.status(200).end();
   if (req.method !== 'POST') return res.status(405).json({ success: false, error: 'Method not allowed' });
+
+  if (!SB_KEY) {
+    console.error('SUPABASE_SERVICE_ROLE_KEY not set in Vercel environment variables');
+    return res.status(500).json({ success: false, error: 'Server misconfiguration: missing service key. Add SUPABASE_SERVICE_ROLE_KEY in Vercel dashboard.' });
+  }
 
   try {
     const { ownerName, email, password, phone, businessName, country, plan: rawPlan } = req.body || {};
