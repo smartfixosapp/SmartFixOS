@@ -105,8 +105,8 @@ export default function FirstTimeSetupWizard({ onComplete }) {
       if (!tenantId) return;
       const { data: tenant } = await supabase.from("tenant").select("*").eq("id", tenantId).single();
       setTenantInfo(tenant);
-      // Precargar nombre si existe
-      if (tenant?.name) set("business_name", tenant.name);
+      // Precargar nombre solo si el usuario aún no escribió nada (evita quitar el foco)
+      if (tenant?.name) setForm(f => ({ ...f, business_name: f.business_name || tenant.name }));
       // Contar usuarios activos
       const { count } = await supabase.from("app_employee").select("id", { count: "exact", head: true }).eq("tenant_id", tenantId);
       setUsedSlots(count || 1);

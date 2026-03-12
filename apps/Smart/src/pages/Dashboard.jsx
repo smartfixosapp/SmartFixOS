@@ -312,8 +312,19 @@ export default function Dashboard() {
         } catch { /* silent */ }
       }
       if (foundName) setBusinessName(foundName);
-      // Mostrar wizard si es primer inicio (sin setup guardado)
-      if (!isSetupComplete()) setShowSetupWizard(true);
+      // Mostrar wizard solo si no está completo en localStorage ni en BD
+      if (!isSetupComplete()) {
+        try {
+          const { data: tMeta } = await supabase.from("tenant").select("metadata").eq("id", tenantId).single();
+          if (tMeta?.metadata?.setup_complete === true) {
+            localStorage.setItem("smartfix_setup_complete", "true"); // sincronizar
+          } else {
+            setShowSetupWizard(true);
+          }
+        } catch {
+          setShowSetupWizard(true);
+        }
+      }
     };
     loadBusinessName();
   }, []);
