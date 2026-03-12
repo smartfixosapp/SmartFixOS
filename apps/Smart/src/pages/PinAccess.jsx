@@ -1682,7 +1682,7 @@ export default function PinAccess() {
                       <div className="bg-emerald-500/10 border border-emerald-500/30 rounded-xl p-3">
                         <p className="text-sm text-emerald-300 flex items-start gap-2">
                           <CheckCircle className="w-4 h-4 mt-0.5 flex-shrink-0" />
-                          <span>Tu PIN de acceso llegará a tu email. Al entrar completas los datos del taller.</span>
+                          <span>Recibirás un link por email para activar tu cuenta y elegir tu PIN de acceso.</span>
                         </p>
                       </div>
 
