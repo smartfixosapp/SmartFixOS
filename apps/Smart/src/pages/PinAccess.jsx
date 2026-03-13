@@ -188,10 +188,47 @@ export default function PinAccess() {
   const getMergedActiveUsers = async (tId = null) => {
     let remoteUsers = [];
     try {
-      // Fase 4: filter by tenant_id if available (multi-tenant isolation)
-      const filterCriteria = { active: true };
-      if (tId) filterCriteria.tenant_id = tId;
-      remoteUsers = await dataClient.entities.User.filter(filterCriteria);
+      let usersQuery = supabase
+        .from("users")
+        .select("id, email, full_name, role, position, employee_code, pin, active, permissions, tenant_id, auth_id")
+        .eq("active", true);
+      if (tId) usersQuery = usersQuery.eq("tenant_id", tId);
+
+      let employeesQuery = supabase
+        .from("app_employee")
+        .select("id, email, full_name, role, position, employee_code, pin, active, permissions, tenant_id")
+        .eq("active", true);
+      if (tId) employeesQuery = employeesQuery.eq("tenant_id", tId);
+
+      const [{ data: userRows, error: userError }, { data: employeeRows, error: employeeError }] = await Promise.all([
+        usersQuery,
+        employeesQuery,
+      ]);
+
+      if (userError) throw userError;
+      if (employeeError) throw employeeError;
+
+      const mergedRemote = [...(userRows || [])];
+      for (const employee of employeeRows || []) {
+        const existing = mergedRemote.find(
+          (user) => user.id === employee.id || String(user.email || "").toLowerCase() === String(employee.email || "").toLowerCase()
+        );
+
+        if (existing) {
+          Object.assign(existing, {
+            position: existing.position || employee.position,
+            employee_code: existing.employee_code || employee.employee_code,
+            pin: existing.pin || employee.pin,
+            permissions: existing.permissions || employee.permissions,
+            tenant_id: existing.tenant_id || employee.tenant_id,
+          });
+          continue;
+        }
+
+        mergedRemote.push(employee);
+      }
+
+      remoteUsers = mergedRemote;
     } catch (e) {
       console.warn("No se pudieron cargar usuarios remotos, usando respaldo local.", e);
     }
@@ -724,7 +761,7 @@ export default function PinAccess() {
 
       // 3. Verificar usuarios (para bypass detection)
       try {
-        await dataClient.entities.User.filter({ active: true });
+        await supabase.from("users").select("id", { head: true, count: "exact" }).limit(1);
         setShowBypass(true);
       } catch {
         setShowBypass(true);
