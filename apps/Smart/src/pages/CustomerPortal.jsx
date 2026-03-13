@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { base44 } from "@/api/base44Client";
+import appClient from "@/api/appClient";
 import { useParams } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -55,7 +55,7 @@ export default function CustomerPortal() {
     setLoading(true);
     try {
       // Validate token (simple validation)
-      const orders = await base44.entities.Order.filter({ id: orderId });
+      const orders = await appClient.entities.Order.filter({ id: orderId });
       
       if (orders.length === 0) {
         setError("Orden no encontrada");

@@ -5,7 +5,7 @@
  * sin necesidad de crear una cuenta o autenticarse.
  */
 
-import { base44 } from "@/api/base44Client";
+import appClient from "@/api/appClient";
 
 /**
  * Genera un token único base64 para acceso al portal
@@ -33,7 +33,7 @@ export async function generatePortalToken(orderId, expiresInDays = null) {
     }
 
     // ✅ GUARDAR TOKEN EN BASE DE DATOS
-    const tokenRecord = await base44.entities.CustomerPortalToken.create({
+    const tokenRecord = await appClient.entities.CustomerPortalToken.create({
       order_id: orderId,
       token: token,
       expires_at: expiresAt,
@@ -75,7 +75,7 @@ export async function getOrderByToken(token) {
   try {
     console.log('🔍 Validando token de portal...');
 
-    const result = await base44.functions.invoke('getPortalOrder', {
+    const result = await appClient.functions.invoke('getPortalOrder', {
       token: token
     });
 
@@ -103,9 +103,9 @@ export async function revokePortalToken(tokenId, reason = '') {
   try {
     console.log('🚫 Revocando token:', tokenId);
 
-    const user = await base44.auth.me();
+    const user = await appClient.auth.me();
 
-    await base44.entities.CustomerPortalToken.update(tokenId, {
+    await appClient.entities.CustomerPortalToken.update(tokenId, {
       revoked: true,
       revoked_at: new Date().toISOString(),
       revoked_by: user?.email || 'system',

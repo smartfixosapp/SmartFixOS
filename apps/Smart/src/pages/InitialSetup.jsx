@@ -67,8 +67,8 @@ export default function InitialSetup() {
       });
 
       // Enviar email de verificación
-      const { base44 } = await import("@/api/base44Client");
-      await base44.functions.invoke('sendVerificationEmail', {
+      const { appClient } = await import("@/api/appClient");
+      await appClient.functions.invoke('sendVerificationEmail', {
         email: formData.email,
         full_name: formData.full_name,
         token: token

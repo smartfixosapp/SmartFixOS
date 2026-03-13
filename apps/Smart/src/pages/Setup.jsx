@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Shield, User, Mail, Lock, Check, Sparkles, Eye, EyeOff, KeyRound } from "lucide-react";
-import { base44 } from "@/api/base44Client";
+import appClient from "@/api/appClient";
 import { toast } from "sonner";
 
 export default function Setup() {
@@ -59,7 +59,7 @@ export default function Setup() {
     setLoading(true);
     try {
       // Use backend function to bypass permission checks for the first user
-      const response = await base44.functions.invoke('createFirstAdmin', {
+      const response = await appClient.functions.invoke('createFirstAdmin', {
         full_name: formData.full_name,
         email: formData.email,
         password: formData.password,

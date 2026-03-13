@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
-import { base44 } from "@/api/base44Client";
+import appClient from "@/api/appClient";
 import { supabase } from "../../../../lib/supabase-client.js";
 import { toast } from "sonner";
 import { motion, AnimatePresence } from "framer-motion";
@@ -68,7 +68,7 @@ export default function SuperAdmin() {
   const loadTenants = async () => {
     setLoading(true);
     try {
-      const data = await base44.entities.Tenant.list("-created_date", 500);
+      const data = await appClient.entities.Tenant.list("-created_date", 500);
       setTenants(data || []);
     } catch (e) {
       toast.error("Error cargando tiendas: " + e.message);

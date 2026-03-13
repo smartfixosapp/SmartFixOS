@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { base44 } from "@/api/base44Client";
+import appClient from "@/api/appClient";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -17,26 +17,26 @@ export default function SubscriptionManagement() {
   // 📊 Fetch Tenants
   const { data: tenants = [] } = useQuery({
     queryKey: ["tenants-subscriptions"],
-    queryFn: () => base44.entities.Tenant.list("-created_date", 100),
+    queryFn: () => appClient.entities.Tenant.list("-created_date", 100),
   });
 
   // 💳 Fetch Subscriptions
   const { data: subscriptions = [] } = useQuery({
     queryKey: ["subscriptions-details"],
-    queryFn: () => base44.entities.Subscription.filter({}, "-created_date"),
+    queryFn: () => appClient.entities.Subscription.filter({}, "-created_date"),
   });
 
   // Cancel Subscription Mutation
   const cancelMutation = useMutation({
     mutationFn: async ({ tenantId, reason }) => {
-      const tenant = await base44.entities.Tenant.get(tenantId);
-      await base44.entities.Tenant.update(tenantId, {
+      const tenant = await appClient.entities.Tenant.get(tenantId);
+      await appClient.entities.Tenant.update(tenantId, {
         subscription_status: "cancelled",
         status: "suspended",
       });
 
       // Create cancellation log
-      await base44.entities.Subscription.create({
+      await appClient.entities.Subscription.create({
         tenant_id: tenantId,
         tenant_name: tenant.name,
         plan: tenant.plan,
@@ -47,7 +47,7 @@ export default function SubscriptionManagement() {
       });
 
       // Send cancellation email
-      await base44.integrations.Core.SendEmail({
+      await appClient.integrations.Core.SendEmail({
         to: tenant.email,
         subject: "Suscripción cancelada en SmartFixOS",
         body: `

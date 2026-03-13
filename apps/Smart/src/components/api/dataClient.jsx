@@ -3,7 +3,7 @@
 // Capa de abstracción sobre Base44 (hoy) y Neon (futuro)
 // ============================================
 
-import { base44 } from "@/api/base44Client";
+import appClient from "@/api/appClient";
 
 // 🛡️ MODO STANDALONE / EXPORT-SAFE
 // Usuario simulado para garantizar acceso administrativo fuera del entorno Base44
@@ -72,99 +72,99 @@ function tenantScoped(entity) {
 }
 
 // 👈 MIGRACIÓN: Adaptador Base44 (1:1 con API actual)
-const base44Adapter = {
+const appClientAdapter = {
   entities: {
     // ── Entidades con tenant_id (inyección automática) ──────────────────────
-    Customer:            tenantScoped({ ...base44.entities.Customer }),
-    Order:               tenantScoped({ ...base44.entities.Order }),
-    WorkOrderEvent:      tenantScoped({ ...base44.entities.WorkOrderEvent }),
-    Sale:                tenantScoped({ ...base44.entities.Sale }),
-    Transaction:         tenantScoped({ ...base44.entities.Transaction }),
-    CashRegister:        tenantScoped({ ...base44.entities.CashRegister }),
-    CashDrawerMovement:  tenantScoped({ ...base44.entities.CashDrawerMovement }),
-    Product:             tenantScoped({ ...base44.entities.Product }),
-    Service:             tenantScoped({ ...base44.entities.Service }),
-    InventoryMovement:   tenantScoped({ ...base44.entities.InventoryMovement }),
-    User:                tenantScoped({ ...base44.entities.User }),
-    Notification:        tenantScoped({ ...base44.entities.Notification }),
-    ExternalLink:        tenantScoped({ ...base44.entities.ExternalLink }),
-    TimeEntry:           tenantScoped({ ...base44.entities.TimeEntry }),
-    AuditLog:            tenantScoped({ ...base44.entities.AuditLog }),
-    WorkOrderWizardConfig: tenantScoped({ ...base44.entities.WorkOrderWizardConfig }),
-    DiscountCode:        tenantScoped({ ...base44.entities.DiscountCode }),
-    CustomerPortalToken: tenantScoped({ ...base44.entities.CustomerPortalToken }),
-    Announcement:        tenantScoped({ ...base44.entities.Announcement }),
-    SequenceCounter:     tenantScoped({ ...base44.entities.SequenceCounter }),
-    Invoice:             tenantScoped({ ...base44.entities.Invoice }),
-    PersonalNote:        tenantScoped({ ...base44.entities.PersonalNote }),
-    OneTimeExpense:      tenantScoped({ ...base44.entities.OneTimeExpense }),
-    Recharge:            tenantScoped({ ...base44.entities.Recharge }),
-    FixedExpense:        tenantScoped({ ...base44.entities.FixedExpense }),
-    NotificationRule:    tenantScoped({ ...base44.entities.NotificationRule }),
-    TechnicianProfile:   tenantScoped({ ...base44.entities.TechnicianProfile }),
-    PurchaseOrder:       tenantScoped({ ...base44.entities.PurchaseOrder }),
-    EmployeePayment:     tenantScoped({ ...base44.entities.EmployeePayment }),
-    KeyValue:            tenantScoped({ ...base44.entities.KeyValue }),
+    Customer:            tenantScoped({ ...appClient.entities.Customer }),
+    Order:               tenantScoped({ ...appClient.entities.Order }),
+    WorkOrderEvent:      tenantScoped({ ...appClient.entities.WorkOrderEvent }),
+    Sale:                tenantScoped({ ...appClient.entities.Sale }),
+    Transaction:         tenantScoped({ ...appClient.entities.Transaction }),
+    CashRegister:        tenantScoped({ ...appClient.entities.CashRegister }),
+    CashDrawerMovement:  tenantScoped({ ...appClient.entities.CashDrawerMovement }),
+    Product:             tenantScoped({ ...appClient.entities.Product }),
+    Service:             tenantScoped({ ...appClient.entities.Service }),
+    InventoryMovement:   tenantScoped({ ...appClient.entities.InventoryMovement }),
+    User:                tenantScoped({ ...appClient.entities.User }),
+    Notification:        tenantScoped({ ...appClient.entities.Notification }),
+    ExternalLink:        tenantScoped({ ...appClient.entities.ExternalLink }),
+    TimeEntry:           tenantScoped({ ...appClient.entities.TimeEntry }),
+    AuditLog:            tenantScoped({ ...appClient.entities.AuditLog }),
+    WorkOrderWizardConfig: tenantScoped({ ...appClient.entities.WorkOrderWizardConfig }),
+    DiscountCode:        tenantScoped({ ...appClient.entities.DiscountCode }),
+    CustomerPortalToken: tenantScoped({ ...appClient.entities.CustomerPortalToken }),
+    Announcement:        tenantScoped({ ...appClient.entities.Announcement }),
+    SequenceCounter:     tenantScoped({ ...appClient.entities.SequenceCounter }),
+    Invoice:             tenantScoped({ ...appClient.entities.Invoice }),
+    PersonalNote:        tenantScoped({ ...appClient.entities.PersonalNote }),
+    OneTimeExpense:      tenantScoped({ ...appClient.entities.OneTimeExpense }),
+    Recharge:            tenantScoped({ ...appClient.entities.Recharge }),
+    FixedExpense:        tenantScoped({ ...appClient.entities.FixedExpense }),
+    NotificationRule:    tenantScoped({ ...appClient.entities.NotificationRule }),
+    TechnicianProfile:   tenantScoped({ ...appClient.entities.TechnicianProfile }),
+    PurchaseOrder:       tenantScoped({ ...appClient.entities.PurchaseOrder }),
+    EmployeePayment:     tenantScoped({ ...appClient.entities.EmployeePayment }),
+    KeyValue:            tenantScoped({ ...appClient.entities.KeyValue }),
 
     // ── Entidades globales / catálogo (sin tenant_id) ────────────────────────
     // device_category, brand, device_model no tienen columna tenant_id en la DB.
     DeviceCategory: {
-      list: (order, limit) => base44.entities.DeviceCategory.list(order, limit),
-      filter: (q, order) => base44.entities.DeviceCategory.filter(q, order),
-      create: (data) => base44.entities.DeviceCategory.create(data),
-      update: (id, data) => base44.entities.DeviceCategory.update(id, data),
-      delete: (id) => base44.entities.DeviceCategory.delete(id),
+      list: (order, limit) => appClient.entities.DeviceCategory.list(order, limit),
+      filter: (q, order) => appClient.entities.DeviceCategory.filter(q, order),
+      create: (data) => appClient.entities.DeviceCategory.create(data),
+      update: (id, data) => appClient.entities.DeviceCategory.update(id, data),
+      delete: (id) => appClient.entities.DeviceCategory.delete(id),
     },
     Brand: {
-      list: (order, limit) => base44.entities.Brand.list(order, limit),
-      filter: (q, order) => base44.entities.Brand.filter(q, order),
-      create: (data) => base44.entities.Brand.create(data),
-      update: (id, data) => base44.entities.Brand.update(id, data),
-      delete: (id) => base44.entities.Brand.delete(id),
+      list: (order, limit) => appClient.entities.Brand.list(order, limit),
+      filter: (q, order) => appClient.entities.Brand.filter(q, order),
+      create: (data) => appClient.entities.Brand.create(data),
+      update: (id, data) => appClient.entities.Brand.update(id, data),
+      delete: (id) => appClient.entities.Brand.delete(id),
     },
     DeviceModel: {
-      list: (order, limit) => base44.entities.DeviceModel.list(order, limit),
-      filter: (q, order) => base44.entities.DeviceModel.filter(q, order),
-      create: (data) => base44.entities.DeviceModel.create(data),
-      update: (id, data) => base44.entities.DeviceModel.update(id, data),
-      delete: (id) => base44.entities.DeviceModel.delete(id),
+      list: (order, limit) => appClient.entities.DeviceModel.list(order, limit),
+      filter: (q, order) => appClient.entities.DeviceModel.filter(q, order),
+      create: (data) => appClient.entities.DeviceModel.create(data),
+      update: (id, data) => appClient.entities.DeviceModel.update(id, data),
+      delete: (id) => appClient.entities.DeviceModel.delete(id),
     },
     // Tenant — acceso global (no scoped, Tenant ES el tenant root)
     Tenant: {
-      list:   (order, limit) => base44.entities.Tenant.list(order, limit),
-      filter: (q, order)     => base44.entities.Tenant.filter(q, order),
-      get:    (id)           => base44.entities.Tenant.get(id),
-      update: (id, data)     => base44.entities.Tenant.update(id, data),
-      delete: (id)           => base44.entities.Tenant.delete(id),
+      list:   (order, limit) => appClient.entities.Tenant.list(order, limit),
+      filter: (q, order)     => appClient.entities.Tenant.filter(q, order),
+      get:    (id)           => appClient.entities.Tenant.get(id),
+      update: (id, data)     => appClient.entities.Tenant.update(id, data),
+      delete: (id)           => appClient.entities.Tenant.delete(id),
     },
     // AppEmployee — acceso global para queries de superadmin, etc.
     AppEmployee: {
-      list:   (order, limit) => base44.entities.AppEmployee.list(order, limit),
-      filter: (q, order)     => base44.entities.AppEmployee.filter(q, order),
-      get:    (id)           => base44.entities.AppEmployee.get(id),
-      create: (data)         => base44.entities.AppEmployee.create(data),
-      update: (id, data)     => base44.entities.AppEmployee.update(id, data),
-      delete: (id)           => base44.entities.AppEmployee.delete(id),
+      list:   (order, limit) => appClient.entities.AppEmployee.list(order, limit),
+      filter: (q, order)     => appClient.entities.AppEmployee.filter(q, order),
+      get:    (id)           => appClient.entities.AppEmployee.get(id),
+      create: (data)         => appClient.entities.AppEmployee.create(data),
+      update: (id, data)     => appClient.entities.AppEmployee.update(id, data),
+      delete: (id)           => appClient.entities.AppEmployee.delete(id),
     },
     // AppSettings y SystemConfig se acceden por slug; no filtrar por tenant_id
     // para evitar romper registros existentes sin tenant_id asignado.
     AppSettings: {
-      list: (order, limit) => base44.entities.AppSettings.list(order, limit),
-      filter: (q, order) => base44.entities.AppSettings.filter(q, order),
-      create: (data) => base44.entities.AppSettings.create(data),
-      update: (id, data) => base44.entities.AppSettings.update(id, data),
+      list: (order, limit) => appClient.entities.AppSettings.list(order, limit),
+      filter: (q, order) => appClient.entities.AppSettings.filter(q, order),
+      create: (data) => appClient.entities.AppSettings.create(data),
+      update: (id, data) => appClient.entities.AppSettings.update(id, data),
     },
     SystemConfig: {
-      filter: (q, order) => base44.entities.SystemConfig.filter(q, order),
-      create: (data) => base44.entities.SystemConfig.create(data),
-      update: (id, data) => base44.entities.SystemConfig.update(id, data),
+      filter: (q, order) => appClient.entities.SystemConfig.filter(q, order),
+      create: (data) => appClient.entities.SystemConfig.create(data),
+      update: (id, data) => appClient.entities.SystemConfig.update(id, data),
     },
   },
   auth: {
     me: async () => {
       try {
         // 🔐 SOLO autenticación real Base44 - SIN MOCK
-        const user = await base44.auth.me();
+        const user = await appClient.auth.me();
         if (!user) {
           console.warn("⚠️ Auth: No authenticated. Retornando null.");
           return null;
@@ -177,7 +177,7 @@ const base44Adapter = {
     },
     updateMe: async (data) => {
       try {
-        return await base44.auth.updateMe(data);
+        return await appClient.auth.updateMe(data);
       } catch (e) {
         console.warn("⚠️ UpdateMe falló (Posible modo standalone)", e);
         return { ...MOCK_ADMIN_USER, ...data };
@@ -185,7 +185,7 @@ const base44Adapter = {
     },
     redirectToLogin: (nextUrl) => {
       try {
-        return base44.auth.redirectToLogin?.(nextUrl);
+        return appClient.auth.redirectToLogin?.(nextUrl);
       } catch (e) {
         console.warn("⚠️ RedirectLogin ignorado en modo standalone");
         window.location.href = "/"; // Fallback simple
@@ -193,7 +193,7 @@ const base44Adapter = {
     },
     logout: (redirectUrl) => {
       try {
-        return base44.auth.logout?.(redirectUrl);
+        return appClient.auth.logout?.(redirectUrl);
       } catch (e) {
         console.warn("⚠️ Logout ignorado en modo standalone");
         window.location.reload();
@@ -201,19 +201,19 @@ const base44Adapter = {
     },
   },
   mail: {
-    send: (payload) => base44.integrations?.Core?.SendEmail
-      ? base44.integrations.Core.SendEmail(payload)
+    send: (payload) => appClient.integrations?.Core?.SendEmail
+      ? appClient.integrations.Core.SendEmail(payload)
       : Promise.reject(new Error("Email integration not available")),
   },
   files: {
-    upload: (file) => base44.integrations?.Core?.UploadFile
-      ? base44.integrations.Core.UploadFile({ file })
+    upload: (file) => appClient.integrations?.Core?.UploadFile
+      ? appClient.integrations.Core.UploadFile({ file })
       : Promise.reject(new Error("Upload integration not available")),
   },
 };
 
 // 👈 MIGRACIÓN: Export único para toda la app
-export const dataClient = base44Adapter;
+export const dataClient = appClientAdapter;
 
 // 👈 MIGRACIÓN: Helper para debugging
 export const getActiveBackend = () => "supabase";

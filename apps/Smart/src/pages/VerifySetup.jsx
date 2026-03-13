@@ -31,8 +31,8 @@ export default function VerifySetup() {
       }
 
       try {
-        const { base44 } = await import("@/api/base44Client");
-        const tokenRecords = await base44.entities.SystemConfig.filter({
+        const { appClient } = await import("@/api/appClient");
+        const tokenRecords = await appClient.entities.SystemConfig.filter({
           key: `verification_token_${token}`,
           category: 'setup'
         });
@@ -70,8 +70,8 @@ export default function VerifySetup() {
   const handleFinish = async () => {
     setLoading(true);
     try {
-      const { base44 } = await import("@/api/base44Client");
-      const response = await base44.functions.invoke('verifyAndCreateAdmin', {
+      const { appClient } = await import("@/api/appClient");
+      const response = await appClient.functions.invoke('verifyAndCreateAdmin', {
         token: token,
         pin: formData.pin,
         business_name: formData.business_name,

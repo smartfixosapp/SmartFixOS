@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { base44 } from "@/api/base44Client";
+import appClient from "@/api/appClient";
 import { useQuery } from "@tanstack/react-query";
 import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell } from "recharts";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -14,13 +14,13 @@ export default function AdminDashboard() {
   // 📊 Fetch Tenants
   const { data: tenants = [] } = useQuery({
     queryKey: ["tenants"],
-    queryFn: () => base44.entities.Tenant.list("-created_date", 100),
+    queryFn: () => appClient.entities.Tenant.list("-created_date", 100),
   });
 
   // 💰 Fetch Subscriptions
   const { data: subscriptions = [] } = useQuery({
     queryKey: ["subscriptions"],
-    queryFn: () => base44.entities.Subscription.filter({}, "-created_date"),
+    queryFn: () => appClient.entities.Subscription.filter({}, "-created_date"),
   });
 
   // 📈 Calculate Metrics
