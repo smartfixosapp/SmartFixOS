@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useMemo, useCallback, useRef } from "react";
 import { dataClient } from "@/components/api/dataClient";
+import { supabase } from "../../../../lib/supabase-client.js";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -84,6 +85,23 @@ function showGlobalGateToast(message) {
     ),
     { duration: 4200 }
   );
+}
+
+async function fetchTenantOrders() {
+  const tenantId = localStorage.getItem("smartfix_tenant_id") || null;
+  let query = supabase
+    .from("order")
+    .select("*")
+    .order("created_date", { ascending: false })
+    .limit(600);
+
+  if (tenantId) {
+    query = query.eq("tenant_id", tenantId);
+  }
+
+  const { data, error } = await query;
+  if (error) throw error;
+  return Array.isArray(data) ? data : [];
 }
 
 const OrderCard = React.memo(function OrderCard({ order, onClick, onEditDevice }) {
@@ -369,14 +387,7 @@ export default function OrdersPage() {
     let remoteOrders = [];
     let remoteFailed = false;
     try {
-      try {
-        const data = await dataClient.entities.Order.list("-created_date", 500);
-        remoteOrders = Array.isArray(data) ? data : [];
-      } catch (listError) {
-        console.warn("[Orders] list() falló. Intentando filter() fallback...", listError);
-        const fallback = await dataClient.entities.Order.filter({}, "-created_date");
-        remoteOrders = Array.isArray(fallback) ? fallback : [];
-      }
+      remoteOrders = await fetchTenantOrders();
       remoteOrders.forEach((order) => upsertLocalOrder(order));
       console.log("[Orders] Órdenes remotas cargadas:", remoteOrders.length);
       ordersErrorToastShownRef.current = false;
@@ -478,8 +489,7 @@ export default function OrdersPage() {
     const blockingStatuses = new Set(["intake"]);
     let remoteOrders = [];
     try {
-      const data = await dataClient.entities.Order.list("-created_date", 600);
-      remoteOrders = Array.isArray(data) ? data : [];
+      remoteOrders = await fetchTenantOrders();
     } catch {
       remoteOrders = [];
     }
