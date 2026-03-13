@@ -347,21 +347,20 @@ async function persistOrderLinks(order, links, options = {}) {
 }
 
 export async function loadOrderLinks(order) {
-  const { order: freshOrder, links, commentLinks } = await readRawLinks(order);
-
-  const canonicalLinks = dedupeLinks(commentLinks);
-  const needsMigration =
-    links.length !== canonicalLinks.length ||
-    (Array.isArray(freshOrder?.parts_links) ? freshOrder.parts_links.length : 0) !== links.length ||
-    (Array.isArray(freshOrder?.status_metadata?.links_registry) ? freshOrder.status_metadata.links_registry.length : 0) !== links.length;
-
-  if (freshOrder?.id && needsMigration) {
-    const persisted = await persistOrderLinks(freshOrder, links, { syncItems: false });
-    return persisted;
+  try {
+    const { order: freshOrder, links } = await readRawLinks(order);
+    writeLocalLinks(freshOrder?.id, links);
+    return { order: freshOrder, links };
+  } catch (error) {
+    console.warn("loadOrderLinks fallback:", error);
+    const fallbackLinks = readLocalLinks(order?.id)
+      .map(parseLinkFromLegacyEntry)
+      .filter(Boolean);
+    return {
+      order: order || null,
+      links: dedupeLinks(fallbackLinks),
+    };
   }
-
-  writeLocalLinks(freshOrder?.id, links);
-  return { order: freshOrder, links };
 }
 
 export async function saveOrderLink({ order, partName, url, price, user }) {
