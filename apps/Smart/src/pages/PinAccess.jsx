@@ -215,6 +215,8 @@ export default function PinAccess() {
 
   // Core auth — acepta email/password directamente (usado también por auto-login)
   const performStoreAuth = async (email, password) => {
+    const normalizedEmail = String(email || "").trim().toLowerCase();
+    const isMasterOwnerLogin = normalizedEmail === MASTER_OWNER_EMAIL.toLowerCase();
     setUsersLoading(true);
     setMasterValidated(false);
     setError("");
@@ -230,7 +232,7 @@ export default function PinAccess() {
       }
 
       // ── Super Admin: verificar OTP o trusted device ──────────────────────
-      if (email.trim().toLowerCase() === SUPER_ADMIN_EMAIL.toLowerCase()) {
+      if (normalizedEmail === SUPER_ADMIN_EMAIL.toLowerCase()) {
         saveCreds(email, password);
 
         // Verificar si el dispositivo ya fue aprobado (token válido ≤ 30 días)
@@ -350,11 +352,22 @@ export default function PinAccess() {
 
       const users = await getMergedActiveUsers(resolvedTenantId);
       if (!users.length) {
-        const fallbackMaster = getMasterFallbackUser();
-        setAvailableUsers([fallbackMaster]);
-        setSelectedUser(fallbackMaster);
-        setStep("pin");
-        toast.warning("No hay empleados registrados. Usa Admin Maestro para configurar.");
+        if (isMasterOwnerLogin) {
+          const fallbackMaster = getMasterFallbackUser();
+          setAvailableUsers([fallbackMaster]);
+          setSelectedUser(fallbackMaster);
+          setStep("pin");
+          toast.warning("No hay empleados registrados. Usa Admin Maestro para configurar.");
+        } else {
+          setAvailableUsers([]);
+          setSelectedUser(null);
+          setStoreAuthenticated(false);
+          clearSavedCreds();
+          await supabase.auth.signOut();
+          toast.error("Esta cuenta no tiene usuarios configurados para entrar.");
+          setStep("store");
+          return false;
+        }
       } else {
         setAvailableUsers(users);
         setSelectedUser(null);
