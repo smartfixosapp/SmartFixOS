@@ -1,3 +1,5 @@
+import { ensureResendConfigured, sendResendEmail } from '../lib/server/resend.js';
+
 /**
  * POST /api/send-email
  * Sends a templated order email using tenant email templates and branding.
@@ -18,7 +20,6 @@
 
 const SB_URL = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL || 'https://idntuvtabecwubzswpwi.supabase.co';
 const SB_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
-const RESEND_KEY = process.env.RESEND_API_KEY;
 const FROM_EMAIL = process.env.FROM_EMAIL || 'noreply@smartfixos.com';
 
 const DEFAULT_LOGO_URL = "https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/68f767a3d5fce1486d4cf555/e9bc537e2_DynamicsmartfixosLogowithGearandDevice.png";
@@ -330,7 +331,11 @@ export default async function handler(req, res) {
   if (!event_type) return res.status(400).json({ success: false, error: 'event_type es requerido' });
   if (!tenant_id)  return res.status(400).json({ success: false, error: 'tenant_id es requerido' });
   if (!SB_KEY)     return res.status(500).json({ success: false, error: 'Server misconfiguration' });
-  if (!RESEND_KEY) return res.status(500).json({ success: false, error: 'Email service not configured' });
+  try {
+    ensureResendConfigured();
+  } catch (error) {
+    return res.status(500).json({ success: false, error: error.message });
+  }
 
   try {
     // ── Fetch templates and settings in parallel ──────────────────────────────
@@ -410,24 +415,19 @@ export default async function handler(req, res) {
     // ── Send via Resend ───────────────────────────────────────────────────────
     const results = [];
     for (const recipient of recipients) {
-      const emailRes = await fetch('https://api.resend.com/emails', {
-        method: 'POST',
-        headers: { 'Authorization': `Bearer ${RESEND_KEY}`, 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          from: `SmartFixOS <${FROM_EMAIL}>`,
-          to: [recipient],
+      try {
+        await sendResendEmail({
+          to: recipient,
           subject,
           html: emailHTML,
-        }),
-      });
-
-      if (emailRes.ok) {
+          fromName: 'SmartFixOS',
+          fromEmail: FROM_EMAIL,
+        });
         results.push({ recipient, success: true });
         console.log(`✅ Email sent to ${recipient} (event: ${event_type}, tenant: ${tenant_id})`);
-      } else {
-        const err = await emailRes.text().catch(() => emailRes.status);
-        console.error(`❌ Resend error for ${recipient}:`, err);
-        results.push({ recipient, success: false, error: String(err) });
+      } catch (error) {
+        console.error(`❌ Resend error for ${recipient}:`, error.message);
+        results.push({ recipient, success: false, error: String(error.message) });
       }
     }
 

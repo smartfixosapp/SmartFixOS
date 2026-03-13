@@ -13,9 +13,10 @@
  * Body: { tenantId, action, ...extra }
  */
 
+import { ensureResendConfigured, sendResendEmail } from '../lib/server/resend.js';
+
 const SB_URL = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL || 'https://idntuvtabecwubzswpwi.supabase.co';
 const SB_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
-const RESEND_KEY = process.env.RESEND_API_KEY;
 const FROM_EMAIL = process.env.FROM_EMAIL || 'noreply@smartfixos.com';
 
 function sbH() {
@@ -112,7 +113,7 @@ export default async function handler(req, res) {
     if (action === 'reset_password') {
       const email = extra.email?.trim().toLowerCase();
       if (!email) return res.status(400).json({ success: false, error: 'email es requerido' });
-      if (!RESEND_KEY) return res.status(500).json({ success: false, error: 'Email service not configured' });
+      ensureResendConfigured();
 
       // Generate Supabase recovery link
       const linkRes = await fetch(`${SB_URL}/auth/v1/admin/generate_link`, {
@@ -159,22 +160,13 @@ export default async function handler(req, res) {
   </div>
 </div>`;
 
-      const emailRes = await fetch('https://api.resend.com/emails', {
-        method: 'POST',
-        headers: { 'Authorization': `Bearer ${RESEND_KEY}`, 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          from: `SmartFixOS <${FROM_EMAIL}>`,
-          to: [email],
-          subject: '🔑 Restablece tu contraseña de SmartFixOS',
-          html: emailHtml,
-        }),
+      await sendResendEmail({
+        to: email,
+        subject: '🔑 Restablece tu contraseña de SmartFixOS',
+        html: emailHtml,
+        fromName: 'SmartFixOS',
+        fromEmail: FROM_EMAIL,
       });
-
-      if (!emailRes.ok) {
-        const err = await emailRes.text();
-        console.error('Resend error:', err);
-        return res.status(500).json({ success: false, error: 'Error al enviar el email' });
-      }
 
       return res.status(200).json({ success: true, message: `📧 Enlace de restablecimiento enviado a ${email}` });
     }

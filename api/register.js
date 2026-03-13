@@ -1,3 +1,5 @@
+import { sendResendEmail } from '../lib/server/resend.js';
+
 /**
  * Vercel Serverless Function — /api/register
  * Handles new tenant registration (replaces Render/Deno registerTenant)
@@ -8,7 +10,6 @@
 const SB_URL = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL || 'https://idntuvtabecwubzswpwi.supabase.co';
 // SB_KEY must be set in Vercel dashboard as SUPABASE_SERVICE_ROLE_KEY
 const SB_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
-const RESEND_KEY = process.env.RESEND_API_KEY;
 const FROM_EMAIL = process.env.FROM_EMAIL || 'noreply@smartfixos.com';
 const FROM_NAME = process.env.FROM_NAME || 'SmartFixOS';
 const APP_URL = process.env.APP_URL || 'https://smart-fix-os.vercel.app';
@@ -235,8 +236,7 @@ export default async function handler(req, res) {
     const logoUrl = 'https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/68f767a3d5fce1486d4cf555/e9bc537e2_DynamicsmartfixosLogowithGearandDevice.png';
     const formattedEnd = trialEndDate.toLocaleDateString('es', { day: 'numeric', month: 'long', year: 'numeric' });
 
-    if (RESEND_KEY) {
-      try {
+    try {
         const html = `<!DOCTYPE html><html><head><meta charset="UTF-8"></head>
 <body style="margin:0;padding:0;background:#0a0a0a;font-family:'Segoe UI',Arial,sans-serif;color:#e5e7eb;">
 <div style="max-width:600px;margin:0 auto;padding:40px 20px;">
@@ -262,14 +262,15 @@ export default async function handler(req, res) {
   </div>
 </div></body></html>`;
 
-        await fetch('https://api.resend.com/emails', {
-          method: 'POST',
-          headers: { 'Authorization': `Bearer ${RESEND_KEY}`, 'Content-Type': 'application/json' },
-          body: JSON.stringify({ from: `${FROM_NAME} <${FROM_EMAIL}>`, to: [email], subject: `¡Activa tu cuenta SmartFixOS, ${ownerName}!`, html }),
+        await sendResendEmail({
+          to: email,
+          subject: `¡Activa tu cuenta SmartFixOS, ${ownerName}!`,
+          html,
+          fromName: FROM_NAME,
+          fromEmail: FROM_EMAIL,
         });
         console.log(`✅ Email enviado a ${email}`);
       } catch (e) { console.warn('Email:', e.message); }
-    }
 
     return res.status(200).json({
       success: true,

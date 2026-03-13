@@ -296,37 +296,25 @@ export default function PinAccess() {
           }
         } catch { /* fallback to OTP */ }
 
-        // Dispositivo no confiable → generar y enviar OTP
-        const otp = String(Math.floor(100000 + Math.random() * 900000));
-        const otpExpiry = Date.now() + 5 * 60 * 1000; // 5 minutos
-        sessionStorage.setItem("sa_otp", otp);
-        sessionStorage.setItem("sa_otp_expiry", String(otpExpiry));
-
-        // Enviar OTP por email via Resend a través del servidor de funciones
+        // Dispositivo no confiable → generar y enviar OTP desde el servidor
         try {
-          const fnUrl = import.meta.env.VITE_FUNCTION_URL || "https://smartfixos-api.onrender.com";
-          await fetch(`${fnUrl}/sendEmailInternal`, {
+          const otpRes = await fetch(`/api/admin-otp`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
-              to: SUPER_ADMIN_EMAIL,
-              subject: `SmartFixOS — Código de acceso: ${otp}`,
-              body: `<div style="font-family:Arial,sans-serif;background:#0a0a0a;color:#e5e7eb;padding:40px;max-width:500px;margin:0 auto;border-radius:16px;">
-                <h2 style="color:#22d3ee;margin-bottom:8px;">🔐 Código de Verificación</h2>
-                <p style="color:#9ca3af;">Panel de Administración SmartFixOS</p>
-                <div style="background:#0e4f6e;border:2px solid #06b6d4;border-radius:12px;padding:28px;text-align:center;margin:28px 0;">
-                  <p style="color:#67e8f9;font-size:12px;letter-spacing:3px;margin:0 0 12px;">TU CÓDIGO DE ACCESO</p>
-                  <div style="font-size:48px;font-weight:900;letter-spacing:14px;color:#fff;font-family:monospace;">${otp}</div>
-                  <p style="color:#a7f3d0;font-size:12px;margin:12px 0 0;">Expira en 5 minutos</p>
-                </div>
-                <p style="color:#6b7280;font-size:13px;">Si no fuiste tú, ignora este mensaje.</p>
-              </div>`,
-              from_name: "SmartFixOS Security",
-              from_email: "noreply@smartfixos.com",
+              action: "send",
+              email: SUPER_ADMIN_EMAIL,
             }),
           });
+          const otpData = await otpRes.json().catch(() => ({}));
+          if (!otpData.success) {
+            throw new Error(otpData.error || "No se pudo enviar el código");
+          }
+          setOtpSessionId(otpData.sessionId || null);
         } catch (emailErr) {
           console.warn("OTP email failed:", emailErr.message);
+          toast.error("No se pudo enviar el código de acceso");
+          return false;
         }
 
         setStep("otp");

@@ -1,6 +1,7 @@
+import { sendResendEmail } from '../lib/server/resend.js';
+
 const SB_URL = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL || 'https://idntuvtabecwubzswpwi.supabase.co';
 const SB_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
-const RESEND_KEY = process.env.RESEND_API_KEY;
 const FROM_EMAIL = process.env.FROM_EMAIL || 'noreply@smartfixos.com';
 const DEFAULT_LOGO_URL = "https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/68f767a3d5fce1486d4cf555/e9bc537e2_DynamicsmartfixosLogowithGearandDevice.png";
 
@@ -76,7 +77,7 @@ function formatMoney(value) {
 }
 
 async function sendCashRegisterEmail({ type, tenantId, drawer, performedBy, difference = null, expectedCash = null }) {
-  if (!RESEND_KEY || !tenantId) return;
+  if (!tenantId) return;
 
   const [tenant, mainSettings, brandingSettings] = await Promise.all([
     sbGet('tenant', `id=eq.${encodeURIComponent(tenantId)}`, 'id,name,email'),
@@ -129,24 +130,13 @@ async function sendCashRegisterEmail({ type, tenantId, drawer, performedBy, diff
     </div>
   </div>`;
 
-  const emailRes = await fetch('https://api.resend.com/emails', {
-    method: 'POST',
-    headers: {
-      'Authorization': `Bearer ${RESEND_KEY}`,
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      from: `SmartFixOS <${FROM_EMAIL}>`,
-      to: [ownerEmail],
-      subject,
-      html,
-    }),
+  await sendResendEmail({
+    to: ownerEmail,
+    subject,
+    html,
+    fromName: 'SmartFixOS',
+    fromEmail: FROM_EMAIL,
   });
-
-  if (!emailRes.ok) {
-    const err = await emailRes.text().catch(() => emailRes.status);
-    throw new Error(`EMAIL cash-register: ${err}`);
-  }
 }
 
 async function handleOpen(req, res, body) {

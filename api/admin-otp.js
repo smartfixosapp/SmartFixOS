@@ -1,8 +1,8 @@
 import { createHash, randomUUID } from 'crypto';
+import { ensureResendConfigured, sendResendEmail } from '../lib/server/resend.js';
 
 const SB_URL = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL || 'https://idntuvtabecwubzswpwi.supabase.co';
 const SB_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
-const RESEND_KEY = process.env.RESEND_API_KEY;
 const FROM_EMAIL = process.env.FROM_EMAIL || 'noreply@smartfixos.com';
 const SUPER_ADMIN_EMAIL = process.env.SUPER_ADMIN_EMAIL || 'smartfixosapp@gmail.com';
 const sbH = { 'Content-Type': 'application/json', 'apikey': SB_KEY, 'Authorization': `Bearer ${SB_KEY}` };
@@ -25,9 +25,7 @@ async function sendOtp(req, res, body) {
     return res.status(200).json({ success: true, message: 'Si el email es válido, recibirás un código.' });
   }
 
-  if (!RESEND_KEY) {
-    return res.status(500).json({ success: false, error: 'Email service not configured' });
-  }
+  ensureResendConfigured();
 
   const otp = String(Math.floor(100000 + Math.random() * 900000));
   const sessionId = randomUUID();
@@ -69,22 +67,13 @@ async function sendOtp(req, res, body) {
   <p style="color:#4b5563;font-size:12px;text-align:center;margin-top:20px;">IP: ${ip}</p>
 </div>`;
 
-  const emailRes = await fetch('https://api.resend.com/emails', {
-    method: 'POST',
-    headers: { 'Authorization': `Bearer ${RESEND_KEY}`, 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      from: `SmartFixOS Security <${FROM_EMAIL}>`,
-      to: [SUPER_ADMIN_EMAIL],
-      subject: `🔐 Código de acceso: ${otp} — Panel SuperAdmin`,
-      html: emailHtml,
-    }),
+  await sendResendEmail({
+    to: SUPER_ADMIN_EMAIL,
+    subject: `🔐 Código de acceso: ${otp} — Panel SuperAdmin`,
+    html: emailHtml,
+    fromName: 'SmartFixOS Security',
+    fromEmail: FROM_EMAIL,
   });
-
-  if (!emailRes.ok) {
-    const err = await emailRes.text();
-    console.error('Resend error:', err);
-    return res.status(500).json({ success: false, error: 'Error al enviar el código.' });
-  }
 
   return res.status(200).json({ success: true, sessionId });
 }

@@ -13,9 +13,10 @@
  * }
  */
 
+import { ensureResendConfigured, sendResendEmail } from '../lib/server/resend.js';
+
 const SB_URL = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL || 'https://idntuvtabecwubzswpwi.supabase.co';
 const SB_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
-const RESEND_KEY = process.env.RESEND_API_KEY;
 const FROM_EMAIL = process.env.FROM_EMAIL || 'noreply@smartfixos.com';
 const DEFAULT_LOGO_URL = "https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/68f767a3d5fce1486d4cf555/e9bc537e2_DynamicsmartfixosLogowithGearandDevice.png";
 
@@ -214,7 +215,11 @@ export default async function handler(req, res) {
   if (!punch_type)   return res.status(400).json({ success: false, error: 'punch_type es requerido' });
   if (!timestamp)    return res.status(400).json({ success: false, error: 'timestamp es requerido' });
   if (!SB_KEY)       return res.status(500).json({ success: false, error: 'Server misconfiguration' });
-  if (!RESEND_KEY)   return res.status(500).json({ success: false, error: 'Email service not configured' });
+  try {
+    ensureResendConfigured();
+  } catch (error) {
+    return res.status(500).json({ success: false, error: error.message });
+  }
 
   try {
     // ── Fetch tenant email + business info in parallel ──────────────────────
@@ -253,28 +258,15 @@ export default async function handler(req, res) {
     });
 
     // ── Send via Resend ─────────────────────────────────────────────────────
-    const emailRes = await fetch('https://api.resend.com/emails', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${RESEND_KEY}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        from:    `SmartFixOS <${FROM_EMAIL}>`,
-        to:      [ownerEmail],
-        subject,
-        html,
-      }),
+    await sendResendEmail({
+      to: ownerEmail,
+      subject,
+      html,
+      fromName: 'SmartFixOS',
+      fromEmail: FROM_EMAIL,
     });
-
-    if (emailRes.ok) {
-      console.log(`✅ Punch notification sent to ${ownerEmail} (${punch_type}, tenant: ${tenant_id})`);
-      return res.status(200).json({ success: true, recipient: ownerEmail });
-    } else {
-      const err = await emailRes.text().catch(() => emailRes.status);
-      console.error('Resend error:', err);
-      return res.status(200).json({ success: false, error: String(err) });
-    }
+    console.log(`✅ Punch notification sent to ${ownerEmail} (${punch_type}, tenant: ${tenant_id})`);
+    return res.status(200).json({ success: true, recipient: ownerEmail });
 
   } catch (e) {
     console.error('send-punch-notification error:', e.message);
