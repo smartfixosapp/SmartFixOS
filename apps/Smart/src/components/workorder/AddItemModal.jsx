@@ -129,18 +129,33 @@ export default function AddItemModal({
     setSearch("");
     setShowCart(false);
 
+    // Init cart desde props (rápido, cubre el caso donde ya están actualizados)
     const sourceItems = isDraftOrder ? initialItems : order?.order_items;
     const normalizedCart = Array.isArray(sourceItems)
       ? sourceItems.map((i) => normalizeCartItem(i))
       : [];
     setCartItems(normalizedCart);
 
-    void loadInventory();
+    if (!isDraftOrder && order?.id) {
+      // Fetch fresco desde DB para resolver race condition: el parent puede no haber
+      // terminado su handleRefresh cuando el modal abre, así que leemos nosotros directamente.
+      dataClient?.entities?.Order?.get(order.id)
+        .then((freshOrder) => {
+          if (Array.isArray(freshOrder?.order_items) && freshOrder.order_items.length > 0) {
+            setCartItems(freshOrder.order_items.map((i) => normalizeCartItem(i)));
+          }
+          // Pasar los order_items frescos para que la inyección al catálogo también funcione
+          void loadInventory(freshOrder?.order_items);
+        })
+        .catch(() => { void loadInventory(); }); // fallback: inventario sin inyección fresca
+    } else {
+      void loadInventory();
+    }
     // Cargamos una sola vez por apertura para evitar bucles de "loading" con props inestables.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open]);
 
-  const loadInventory = async () => {
+  const loadInventory = async (freshOrderItems) => {
     const cachedProducts = catalogCache.get("pos-active-products") || [];
     const cachedServices = catalogCache.get("pos-active-services") || [];
 
@@ -189,9 +204,11 @@ export default function AddItemModal({
     } finally {
       let merged = uniqueByKey([...products, ...services]);
 
-      // If catalog is empty, inject link-synced items from order_items as virtual catalog entries
+      // Si el catálogo está vacío, inyectar items de order_items como entradas virtuales
+      // Usa freshOrderItems (de DB) si disponible, de lo contrario usa el prop
       if (merged.length === 0 && !isDraftOrder) {
-        const linkedItems = (Array.isArray(order?.order_items) ? order.order_items : [])
+        const baseItems = Array.isArray(freshOrderItems) ? freshOrderItems : (Array.isArray(order?.order_items) ? order.order_items : []);
+        const linkedItems = baseItems
           .filter((item) => item?.link_ref_id || item?.is_manual || item?.source === "manual")
           .map((item) => normalizeInventoryItem({
             id: item.id || item.link_ref_id,
