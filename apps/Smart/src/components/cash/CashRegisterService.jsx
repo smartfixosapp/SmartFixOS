@@ -1,4 +1,3 @@
-import appClient from "@/api/appClient";
 import { dataClient } from "@/components/api/dataClient";
 
 const LOCAL_DRAWER_KEY = "smartfix_local_open_drawer";
@@ -187,18 +186,6 @@ export async function openCashRegister(denominations, user) {
   notifyListeners();
   window.dispatchEvent(new CustomEvent("drawer-opened", { detail: { drawer } }));
 
-  if (!drawer?.is_local) {
-    appClient.functions.invoke("notifyCashRegister", {
-      type: "opening",
-      drawerData: drawer,
-      performedBy: user
-    }).catch((error) => {
-      if (!isLikelyTransportError(error)) {
-        console.error("Error notifying cash register opening:", error);
-      }
-    });
-  }
-
   return drawer;
 }
 
@@ -322,13 +309,6 @@ export async function closeCashRegister(drawer, denominations, user, summaryOver
     // Disparar evento global
     window.dispatchEvent(new CustomEvent("drawer-closed", { detail: { drawer_id: drawer.id } }));
 
-    // 🔔 Notificar admin
-    appClient.functions.invoke("notifyCashRegister", { 
-      type: "closing", 
-      drawerData: { ...drawer, closing_balance: countedTotal, total_revenue: totalRevenue, final_count: { difference, expectedCash } }, 
-      performedBy: user 
-    }).catch(console.error);
-    
     return { success: true, difference };
   } catch (error) {
     if ((isLikelyTransportError(error) || String(error?.message || "").toLowerCase().includes("serverless function")) && (drawer?.is_local || String(drawer?.id || "").startsWith("local-drawer-"))) {

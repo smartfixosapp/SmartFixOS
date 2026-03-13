@@ -1,5 +1,8 @@
 const SB_URL = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL || 'https://idntuvtabecwubzswpwi.supabase.co';
 const SB_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
+const RESEND_KEY = process.env.RESEND_API_KEY;
+const FROM_EMAIL = process.env.FROM_EMAIL || 'noreply@smartfixos.com';
+const DEFAULT_LOGO_URL = "https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/68f767a3d5fce1486d4cf555/e9bc537e2_DynamicsmartfixosLogowithGearandDevice.png";
 
 function sbH(prefer = 'return=representation') {
   return {
@@ -37,6 +40,11 @@ async function sbSelect(table, filter, select = '*') {
   return res.json();
 }
 
+async function sbGet(table, filter, select = '*') {
+  const rows = await sbSelect(table, filter, select).catch(() => []);
+  return Array.isArray(rows) && rows.length > 0 ? rows[0] : null;
+}
+
 async function sbInsert(table, body) {
   const res = await fetch(`${SB_URL}/rest/v1/${table}`, {
     method: 'POST',
@@ -61,6 +69,84 @@ async function sbPatch(table, filter, body) {
     throw new Error(`PATCH ${table}: ${text}`);
   }
   return res.json();
+}
+
+function formatMoney(value) {
+  return Number(value || 0).toFixed(2);
+}
+
+async function sendCashRegisterEmail({ type, tenantId, drawer, performedBy, difference = null, expectedCash = null }) {
+  if (!RESEND_KEY || !tenantId) return;
+
+  const [tenant, mainSettings, brandingSettings] = await Promise.all([
+    sbGet('tenant', `id=eq.${encodeURIComponent(tenantId)}`, 'id,name,email'),
+    sbGet('app_settings', `slug=eq.app-main-settings`, 'payload'),
+    sbGet('app_settings', `slug=eq.business-branding`, 'payload'),
+  ]).catch(() => [null, null, null]);
+
+  const ownerEmail = tenant?.email;
+  if (!ownerEmail) return;
+
+  const businessName = mainSettings?.payload?.business_name || tenant?.name || 'SmartFixOS';
+  const logoUrl = brandingSettings?.payload?.logo_url || DEFAULT_LOGO_URL;
+  const isOpening = type === 'opening';
+  const subject = isOpening
+    ? `🔓 Caja abierta — ${businessName}`
+    : `🔒 Caja cerrada — ${businessName}`;
+  const actionText = isOpening ? 'abrió' : 'cerró';
+  const performedName = performedBy?.full_name || performedBy?.userName || performedBy?.email || 'Sistema';
+
+  const detailsHtml = isOpening
+    ? `
+      <div style="background:#F0FDF4;border:2px solid #10B981;border-radius:16px;padding:20px;margin:24px 0;">
+        <p style="margin:0 0 8px;color:#065F46;font-size:18px;font-weight:800;">Apertura de caja</p>
+        <p style="margin:0;color:#047857;font-size:15px;">Monto inicial: <strong>$${formatMoney(drawer?.opening_balance)}</strong></p>
+      </div>
+    `
+    : `
+      <div style="background:#FEF2F2;border:2px solid #EF4444;border-radius:16px;padding:20px;margin:24px 0;">
+        <p style="margin:0 0 8px;color:#991B1B;font-size:18px;font-weight:800;">Cierre de caja</p>
+        <p style="margin:0;color:#7F1D1D;font-size:15px;">Total contado: <strong>$${formatMoney(drawer?.closing_balance)}</strong></p>
+        <p style="margin:8px 0 0;color:#7F1D1D;font-size:15px;">Efectivo esperado: <strong>$${formatMoney(expectedCash)}</strong></p>
+        <p style="margin:8px 0 0;color:#7F1D1D;font-size:15px;">Diferencia: <strong>$${formatMoney(difference)}</strong></p>
+      </div>
+    `;
+
+  const html = `
+  <div style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;max-width:560px;margin:0 auto;background:#fff;border-radius:20px;overflow:hidden;border:1px solid #E5E7EB;">
+    <div style="background:${isOpening ? 'linear-gradient(135deg,#10B981 0%,#059669 100%)' : 'linear-gradient(135deg,#EF4444 0%,#DC2626 100%)'};padding:32px;text-align:center;">
+      <img src="${logoUrl}" alt="${businessName}" style="height:56px;width:auto;margin:0 auto 16px;display:block;" />
+      <h1 style="margin:0;color:white;font-size:26px;font-weight:800;">${isOpening ? '🔓 Caja Abierta' : '🔒 Caja Cerrada'}</h1>
+    </div>
+    <div style="padding:28px;">
+      <p style="margin:0;color:#111827;font-size:16px;line-height:1.7;">
+        El usuario <strong>${performedName}</strong> ${actionText} la caja el ${new Date().toLocaleString('es-PR')}.
+      </p>
+      ${detailsHtml}
+      <p style="margin:0;color:#6B7280;font-size:13px;line-height:1.6;">
+        Notificación automática de SmartFixOS.
+      </p>
+    </div>
+  </div>`;
+
+  const emailRes = await fetch('https://api.resend.com/emails', {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${RESEND_KEY}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      from: `SmartFixOS <${FROM_EMAIL}>`,
+      to: [ownerEmail],
+      subject,
+      html,
+    }),
+  });
+
+  if (!emailRes.ok) {
+    const err = await emailRes.text().catch(() => emailRes.status);
+    throw new Error(`EMAIL cash-register: ${err}`);
+  }
 }
 
 async function handleOpen(req, res, body) {
@@ -104,6 +190,17 @@ async function handleOpen(req, res, body) {
     });
   } catch (movementError) {
     console.warn('cash-register open movement warning:', movementError.message);
+  }
+
+  try {
+    await sendCashRegisterEmail({
+      type: 'opening',
+      tenantId,
+      drawer,
+      performedBy: user,
+    });
+  } catch (emailError) {
+    console.warn('cash-register open email warning:', emailError.message);
   }
 
   return res.status(200).json({ success: true, drawer });
@@ -154,6 +251,19 @@ async function handleClose(req, res, body) {
     });
   } catch (movementError) {
     console.warn('cash-register close movement warning:', movementError.message);
+  }
+
+  try {
+    await sendCashRegisterEmail({
+      type: 'closing',
+      tenantId,
+      drawer,
+      performedBy: user,
+      difference,
+      expectedCash,
+    });
+  } catch (emailError) {
+    console.warn('cash-register close email warning:', emailError.message);
   }
 
   return res.status(200).json({ success: true, drawer, difference });
