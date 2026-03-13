@@ -45,6 +45,10 @@ const ADMIN_CORE_PANEL_BUTTONS = [
 
 const LOCAL_USERS_STORAGE_KEY = "smartfix_local_users";
 
+function getCurrentTenantId() {
+  return localStorage.getItem("smartfix_tenant_id") || null;
+}
+
 function readLocalUsers() {
   try {
     const raw = localStorage.getItem(LOCAL_USERS_STORAGE_KEY);
@@ -80,6 +84,53 @@ function mergeUsers(remoteUsers = [], localUsers = []) {
     if (!byId.has(user.id)) byId.set(user.id, user);
   }
   return Array.from(byId.values());
+}
+
+async function fetchTenantUsers() {
+  const tenantId = getCurrentTenantId();
+
+  let usersQuery = supabase
+    .from("users")
+    .select("id, email, full_name, role, position, employee_code, pin, phone, active, permissions, tenant_id, created_at, updated_at")
+    .eq("active", true);
+  if (tenantId) usersQuery = usersQuery.eq("tenant_id", tenantId);
+
+  let employeesQuery = supabase
+    .from("app_employee")
+    .select("id, email, full_name, role, position, employee_code, pin, phone, active, permissions, tenant_id, created_at, updated_at")
+    .eq("active", true);
+  if (tenantId) employeesQuery = employeesQuery.eq("tenant_id", tenantId);
+
+  const [{ data: userRows, error: usersError }, { data: employeeRows, error: employeesError }] = await Promise.all([
+    usersQuery,
+    employeesQuery,
+  ]);
+
+  if (usersError) throw usersError;
+  if (employeesError) throw employeesError;
+
+  const merged = [...(userRows || [])];
+  for (const employee of employeeRows || []) {
+    const existing = merged.find(
+      (user) => user.id === employee.id || String(user.email || "").toLowerCase() === String(employee.email || "").toLowerCase()
+    );
+
+    if (existing) {
+      Object.assign(existing, {
+        position: existing.position || employee.position,
+        employee_code: existing.employee_code || employee.employee_code,
+        pin: existing.pin || employee.pin,
+        phone: existing.phone || employee.phone,
+        permissions: existing.permissions || employee.permissions,
+        tenant_id: existing.tenant_id || employee.tenant_id,
+      });
+      continue;
+    }
+
+    merged.push(employee);
+  }
+
+  return merged;
 }
 
 function mergeAdminPanelButtons(savedButtons = []) {
@@ -260,7 +311,7 @@ export default function UsersManagement() {
   const loadUsers = async () => {
     setLoading(true);
     try {
-      const allUsers = await dataClient.entities.User.list("-created_date");
+      const allUsers = await fetchTenantUsers();
       const localUsers = readLocalUsers();
       setUsers(mergeUsers(allUsers || [], localUsers));
     } catch (error) {
@@ -293,7 +344,7 @@ export default function UsersManagement() {
 
         if (maxUsers < 999) {
           // Contar usuarios activos actuales
-          const currentUsers = await dataClient.entities.User.filter({ active: true });
+          const currentUsers = await fetchTenantUsers();
           const currentCount = (currentUsers || []).length;
 
           if (currentCount >= maxUsers) {
