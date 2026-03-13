@@ -7,6 +7,26 @@ import { toast } from "sonner";
 
 const LOCAL_TIME_ENTRIES_KEY = "local_time_entries";
 
+// ── Punch notification (fire-and-forget — never blocks the UI) ────────────────
+function sendPunchNotification({ punch_type, employee_name, employee_role, timestamp, clock_in_time }) {
+  try {
+    let tenant_id = null;
+    const raw = localStorage.getItem("employee_session") || sessionStorage.getItem("911-session");
+    if (raw) {
+      const s = JSON.parse(raw);
+      tenant_id = s?.tenant_id || s?.user?.tenant_id || null;
+    }
+    if (!tenant_id) return; // no tenant context — skip silently
+    fetch('/api/send-punch-notification', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ tenant_id, punch_type, employee_name, employee_role, timestamp, clock_in_time }),
+    }).catch(() => {}); // ignore errors — notification is best-effort
+  } catch {
+    // ignore
+  }
+}
+
 const readLocalEntries = () => {
   try {
     const raw = localStorage.getItem(LOCAL_TIME_ENTRIES_KEY);
@@ -67,14 +87,15 @@ export default function PunchButton({ userId, userName, onPunchStatusChange }) {
   const resolveIdentity = async () => {
     const directId = String(userId || "").trim();
     const directName = String(userName || "").trim();
-    if (directId) return { id: directId, name: directName || "Empleado" };
+    if (directId) return { id: directId, name: directName || "Empleado", role: "" };
 
     try {
       const raw = localStorage.getItem("employee_session");
       const parsed = raw ? JSON.parse(raw) : null;
       const sid = String(parsed?.userId || parsed?.id || "").trim();
       const sname = String(parsed?.userName || parsed?.full_name || parsed?.email || "").trim();
-      if (sid) return { id: sid, name: sname || "Empleado" };
+      const srole = String(parsed?.userRole || parsed?.role || "").trim();
+      if (sid) return { id: sid, name: sname || "Empleado", role: srole };
     } catch {
       // ignore
     }
@@ -83,12 +104,13 @@ export default function PunchButton({ userId, userName, onPunchStatusChange }) {
       const me = await base44.auth.me();
       const aid = String(me?.id || "").trim();
       const aname = String(me?.full_name || me?.email || "").trim();
-      if (aid) return { id: aid, name: aname || "Empleado" };
+      const arole = String(me?.role || "").trim();
+      if (aid) return { id: aid, name: aname || "Empleado", role: arole };
     } catch {
       // ignore
     }
 
-    return { id: "", name: directName || "Empleado" };
+    return { id: "", name: directName || "Empleado", role: "" };
   };
 
   useEffect(() => {
@@ -150,22 +172,32 @@ export default function PunchButton({ userId, userName, onPunchStatusChange }) {
 
       if (punchStatus) {
         // Clock out
+        const clockOutTime = new Date().toISOString();
         if (String(punchStatus.id || "").startsWith("local-time-")) {
           closeLocalEntry(punchStatus.id);
         } else {
           await base44.entities.TimeEntry.update(punchStatus.id, {
-            clock_out: new Date().toISOString()
+            clock_out: clockOutTime
           });
         }
         sessionStorage.removeItem("timeEntryId");
         setPunchStatus(null);
         onPunchStatusChange?.(null);
+        // Notify owner — fire-and-forget
+        sendPunchNotification({
+          punch_type: 'out',
+          employee_name: identity.name,
+          employee_role: identity.role,
+          timestamp: clockOutTime,
+          clock_in_time: punchStatus.clock_in || null,
+        });
       } else {
         // Clock in
+        const clockInTime = new Date().toISOString();
         const payload = {
           employee_id: identity.id,
           employee_name: identity.name,
-          clock_in: new Date().toISOString()
+          clock_in: clockInTime
         };
         let newEntry;
         try {
@@ -180,6 +212,13 @@ export default function PunchButton({ userId, userName, onPunchStatusChange }) {
         sessionStorage.setItem("timeEntryId", String(newEntry?.id || ""));
         setPunchStatus(newEntry);
         onPunchStatusChange?.(newEntry);
+        // Notify owner — fire-and-forget
+        sendPunchNotification({
+          punch_type: 'in',
+          employee_name: identity.name,
+          employee_role: identity.role,
+          timestamp: clockInTime,
+        });
       }
 
       window.dispatchEvent(new Event("force-refresh"));
