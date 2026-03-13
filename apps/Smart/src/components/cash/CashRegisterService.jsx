@@ -1,4 +1,5 @@
 import appClient from "@/api/appClient";
+import { dataClient } from "@/components/api/dataClient";
 
 const LOCAL_DRAWER_KEY = "smartfix_local_open_drawer";
 
@@ -65,7 +66,7 @@ export function subscribeToCashRegister(callback) {
 export async function checkCashRegisterStatus() {
   const localDrawer = readLocalDrawer();
   try {
-    const openDrawers = await appClient.entities.CashRegister.filter({ status: "open" });
+    const openDrawers = await dataClient.entities.CashRegister.filter({ status: "open" });
 
     const remoteIsOpen = openDrawers && openDrawers.length > 0;
     const remoteDrawer = remoteIsOpen ? openDrawers[0] : null;
@@ -122,7 +123,7 @@ export async function openCashRegister(denominations, user) {
 
   let existing = [];
   try {
-    existing = await appClient.entities.CashRegister.filter({ status: "open" });
+    existing = await dataClient.entities.CashRegister.filter({ status: "open" });
   } catch (error) {
     if (!isLikelyTransportError(error)) {
       console.error("Error checking existing open drawer:", error);
@@ -135,7 +136,7 @@ export async function openCashRegister(denominations, user) {
 
   let drawer = null;
   try {
-    drawer = await appClient.entities.CashRegister.create({
+    drawer = await dataClient.entities.CashRegister.create({
       date: new Date().toISOString().split('T')[0],
       opening_balance: total,
       status: "open",
@@ -163,7 +164,7 @@ export async function openCashRegister(denominations, user) {
 
   if (!drawer?.is_local) {
     try {
-      await appClient.entities.CashDrawerMovement.create({
+      await dataClient.entities.CashDrawerMovement.create({
         drawer_id: drawer.id,
         type: "opening",
         amount: total,
@@ -252,7 +253,7 @@ export async function closeCashRegister(drawer, denominations, user, summaryOver
     } else {
         // Lógica original de cálculo
         const drawerOpenDate = new Date(drawer.created_date);
-        const sales = await appClient.entities.Sale.filter({}, "-created_date", 1000);
+        const sales = await dataClient.entities.Sale.filter({}, "-created_date", 1000);
         
         const salesInDrawer = sales.filter(s => {
           if (s.voided) return false;
@@ -292,7 +293,7 @@ export async function closeCashRegister(drawer, denominations, user, summaryOver
     }
 
     // Actualizar registro de caja
-    await appClient.entities.CashRegister.update(drawer.id, {
+    await dataClient.entities.CashRegister.update(drawer.id, {
       status: "closed",
       closing_balance: countedTotal,
       total_revenue: totalRevenue,
@@ -308,7 +309,7 @@ export async function closeCashRegister(drawer, denominations, user, summaryOver
     });
 
     // Crear movimiento de cierre
-    await appClient.entities.CashDrawerMovement.create({
+    await dataClient.entities.CashDrawerMovement.create({
       drawer_id: drawer.id,
       type: "closing",
       amount: countedTotal,
