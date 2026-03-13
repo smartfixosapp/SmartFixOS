@@ -181,11 +181,14 @@ function dedupeTechnicians(list = []) {
   for (const tech of list) {
     if (!tech) continue;
 
+    const normalizedName = String(tech.full_name || tech.name || "")
+      .trim()
+      .toLowerCase();
     const dedupeKey =
       String(tech.auth_id || "").trim().toLowerCase() ||
-      String(tech.email || "").trim().toLowerCase() ||
       String(tech.employee_code || "").trim().toLowerCase() ||
-      String(tech.full_name || tech.name || "").trim().toLowerCase() ||
+      normalizedName ||
+      String(tech.email || "").trim().toLowerCase() ||
       String(tech.id || "").trim().toLowerCase();
 
     if (!dedupeKey || seen.has(dedupeKey)) continue;
