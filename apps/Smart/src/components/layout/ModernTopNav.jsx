@@ -17,6 +17,11 @@ export default function ModernTopNav() {
   const location = useLocation();
   const [activeTab, setActiveTab] = useState("home");
 
+  const hardNavigate = (path) => {
+    if (location.pathname === path) return;
+    window.location.assign(path);
+  };
+
   const navItems = [
     { 
       id: "orders", 
@@ -76,7 +81,7 @@ export default function ModernTopNav() {
             return (
               <button
                 key={item.id}
-                onClick={() => navigate(item.path, { replace: true })}
+                onClick={() => hardNavigate(item.path)}
                 className={cn(
                   "relative flex flex-col items-center justify-center w-14 h-14 transition-all duration-300 z-10"
                 )}

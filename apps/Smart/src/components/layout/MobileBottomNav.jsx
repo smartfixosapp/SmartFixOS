@@ -49,6 +49,12 @@ export default function MobileBottomNav() {
   }, [location.pathname]);
 
   const handleTabClick = (tab) => {
+    if (location.pathname === tab.path) {
+      navigate(tab.path);
+      tabHistory[tab.id] = [tab.path];
+      return;
+    }
+
     if (tab.id === activeTab) {
       // Si el tab ya está activo, navegar a su raíz
       navigate(tab.path);
@@ -56,7 +62,7 @@ export default function MobileBottomNav() {
     } else {
       // Restaurar la última ruta del tab
       const lastRoute = tabHistory[tab.id][tabHistory[tab.id].length - 1] || tab.path;
-      navigate(lastRoute);
+      window.location.assign(lastRoute);
     }
   };
 

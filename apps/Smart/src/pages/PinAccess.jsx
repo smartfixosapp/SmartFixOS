@@ -19,6 +19,7 @@ export default function PinAccess() {
   const SUPER_SESSION_KEY   = "smartfix_saas_session";
   const LOCAL_USERS_STORAGE_KEY = "smartfix_local_users";
   const STORE_EMAIL_KEY = "smartfix_store_email";
+  const BIOMETRIC_LOGIN_KEY = "smartfix_biometric_login";
   const DEFAULT_STORE_EMAIL = "911smartfix@gmail.com";
   const ADMIN_PERMISSIONS = {
     can_view_orders: true,
@@ -89,6 +90,9 @@ export default function PinAccess() {
   });
   const [showSignupPassword, setShowSignupPassword] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [biometricSupported, setBiometricSupported] = useState(false);
+  const [biometricProfile, setBiometricProfile] = useState(null);
+  const [biometricLoading, setBiometricLoading] = useState(false);
 
   // ── Auto-save / Auto-login ────────────────────────────────────────────────
   const SAVED_CREDS_KEY = "smartfix_saved_creds";
@@ -106,6 +110,44 @@ export default function PinAccess() {
     try { localStorage.setItem(SAVED_CREDS_KEY, btoa(JSON.stringify({ email, pwd }))); } catch {}
   };
   const clearSavedCreds = () => localStorage.removeItem(SAVED_CREDS_KEY);
+
+  const arrayBufferToBase64 = (buffer) => {
+    const bytes = new Uint8Array(buffer);
+    let binary = "";
+    for (const byte of bytes) binary += String.fromCharCode(byte);
+    return btoa(binary);
+  };
+
+  const base64ToUint8Array = (value) => {
+    const binary = atob(value);
+    return Uint8Array.from(binary, (char) => char.charCodeAt(0));
+  };
+
+  const createChallenge = () => {
+    const challenge = new Uint8Array(32);
+    crypto.getRandomValues(challenge);
+    return challenge;
+  };
+
+  const loadBiometricProfile = () => {
+    try {
+      const raw = localStorage.getItem(BIOMETRIC_LOGIN_KEY);
+      const parsed = raw ? JSON.parse(raw) : null;
+      return parsed?.credentialId ? parsed : null;
+    } catch {
+      return null;
+    }
+  };
+
+  const saveBiometricProfile = (profile) => {
+    localStorage.setItem(BIOMETRIC_LOGIN_KEY, JSON.stringify(profile));
+    setBiometricProfile(profile);
+  };
+
+  const clearBiometricProfile = () => {
+    localStorage.removeItem(BIOMETRIC_LOGIN_KEY);
+    setBiometricProfile(null);
+  };
 
   // PIN pad numbers (definido aquí para que los early returns lo puedan usar)
   const numbers = [[1, 2, 3], [4, 5, 6], [7, 8, 9], [null, 0, "⌫"]];
@@ -136,6 +178,12 @@ export default function PinAccess() {
     const validRoles = ["admin", "manager", "technician", "cashier", "service", "user"];
     return validRoles.includes(role) ? role : "user";
   };
+
+  const isBiometricAvailableForSelectedUser =
+    biometricSupported &&
+    selectedUser &&
+    biometricProfile?.userId === selectedUser.id &&
+    (!biometricProfile?.tenantId || biometricProfile?.tenantId === (selectedUser.tenant_id || tenantId || null));
 
   const getMergedActiveUsers = async (tId = null) => {
     let remoteUsers = [];
@@ -423,6 +471,141 @@ export default function PinAccess() {
     };
   };
 
+  const canUseBiometricLogin = async () => {
+    if (!window.PublicKeyCredential?.isUserVerifyingPlatformAuthenticatorAvailable) return false;
+    try {
+      return await window.PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable();
+    } catch {
+      return false;
+    }
+  };
+
+  const handleEnableBiometric = async () => {
+    if (!selectedUser) {
+      toast.error("Selecciona un usuario primero");
+      return;
+    }
+
+    if (pin.length !== 4) {
+      toast.error("Ingresa tu PIN antes de activar la huella");
+      return;
+    }
+
+    const isValidPin = String(selectedUser?.pin || "") === pin;
+    if (!isValidPin) {
+      setError("PIN incorrecto");
+      toast.error("PIN incorrecto");
+      setPin("");
+      return;
+    }
+
+    setBiometricLoading(true);
+    try {
+      const credential = await navigator.credentials.create({
+        publicKey: {
+          challenge: createChallenge(),
+          rp: { name: "SmartFixOS", id: window.location.hostname },
+          user: {
+            id: new TextEncoder().encode(`smartfix:${selectedUser.id}`),
+            name: selectedUser.email || selectedUser.full_name || selectedUser.id,
+            displayName: selectedUser.full_name || selectedUser.email || "Usuario",
+          },
+          pubKeyCredParams: [
+            { type: "public-key", alg: -7 },
+            { type: "public-key", alg: -257 },
+          ],
+          authenticatorSelection: {
+            authenticatorAttachment: "platform",
+            userVerification: "required",
+            residentKey: "preferred",
+          },
+          timeout: 60000,
+          attestation: "none",
+        },
+      });
+
+      if (!credential?.rawId) {
+        throw new Error("No se pudo crear la credencial biométrica");
+      }
+
+      const session = buildSessionFromUser(selectedUser);
+      saveBiometricProfile({
+        version: 1,
+        credentialId: arrayBufferToBase64(credential.rawId),
+        userId: selectedUser.id,
+        tenantId: session.tenant_id || null,
+        session,
+        userLabel: selectedUser.full_name || selectedUser.email || "Usuario",
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      });
+
+      toast.success("Huella activada en este dispositivo");
+      await completeLogin(session);
+    } catch (error) {
+      console.error("Biometric setup error:", error);
+      if (error?.name === "NotAllowedError") {
+        toast.error("Activación biométrica cancelada");
+      } else {
+        toast.error(error?.message || "No se pudo activar la huella");
+      }
+    } finally {
+      setBiometricLoading(false);
+    }
+  };
+
+  const handleBiometricLogin = async () => {
+    if (!isBiometricAvailableForSelectedUser || !biometricProfile?.credentialId) return;
+
+    setBiometricLoading(true);
+    setError("");
+    try {
+      const assertion = await navigator.credentials.get({
+        publicKey: {
+          challenge: createChallenge(),
+          allowCredentials: [
+            {
+              id: base64ToUint8Array(biometricProfile.credentialId),
+              type: "public-key",
+            },
+          ],
+          userVerification: "required",
+          timeout: 60000,
+        },
+      });
+
+      if (!assertion?.rawId) {
+        throw new Error("No se pudo validar la huella");
+      }
+
+      const rawId = arrayBufferToBase64(assertion.rawId);
+      if (rawId !== biometricProfile.credentialId) {
+        throw new Error("Credencial biométrica inválida");
+      }
+
+      const session = biometricProfile.session;
+      if (!session?.id) {
+        throw new Error("No se encontró una sesión biométrica válida");
+      }
+
+      saveBiometricProfile({
+        ...biometricProfile,
+        updatedAt: new Date().toISOString(),
+      });
+
+      await completeLogin(session);
+    } catch (error) {
+      console.error("Biometric login error:", error);
+      if (error?.name === "NotAllowedError") {
+        toast.error("Autenticación biométrica cancelada");
+      } else {
+        toast.error(error?.message || "No se pudo entrar con huella");
+      }
+    } finally {
+      setBiometricLoading(false);
+    }
+  };
+
   const completeLogin = async (session) => {
     localStorage.setItem("employee_session", JSON.stringify(session));
     sessionStorage.setItem("911-session", JSON.stringify(session));
@@ -612,6 +795,11 @@ export default function PinAccess() {
       setIsReady(true);
     })();
   }, [navigate]);
+
+  useEffect(() => {
+    canUseBiometricLogin().then(setBiometricSupported).catch(() => setBiometricSupported(false));
+    setBiometricProfile(loadBiometricProfile());
+  }, []);
 
   const handleNumberClick = (num) => {
     if (pin.length < 4) {
@@ -1084,6 +1272,35 @@ export default function PinAccess() {
                     </div>
 
                     {loading && <p className="text-cyan-400 font-bold text-center mt-6 animate-pulse">⚡ Validando...</p>}
+
+                    {biometricSupported && !isBiometricAvailableForSelectedUser && selectedUser?.id !== "__master__" && (
+                      <button
+                        onClick={handleEnableBiometric}
+                        disabled={loading || biometricLoading}
+                        className="w-full mt-4 h-12 rounded-2xl border border-cyan-500/30 bg-cyan-500/10 hover:bg-cyan-500/15 text-cyan-300 font-semibold transition-all active:scale-95 disabled:opacity-40"
+                      >
+                        {biometricLoading ? "Activando huella..." : "Activar huella en este dispositivo"}
+                      </button>
+                    )}
+
+                    {isBiometricAvailableForSelectedUser && (
+                      <>
+                        <button
+                          onClick={handleBiometricLogin}
+                          disabled={loading || biometricLoading}
+                          className="w-full mt-4 h-12 rounded-2xl border border-emerald-500/30 bg-emerald-500/10 hover:bg-emerald-500/15 text-emerald-300 font-semibold transition-all active:scale-95 disabled:opacity-40"
+                        >
+                          {biometricLoading ? "Validando huella..." : `Entrar con huella`}
+                        </button>
+                        <button
+                          onClick={clearBiometricProfile}
+                          disabled={loading || biometricLoading}
+                          className="w-full mt-2 text-xs text-white/45 hover:text-white/70 transition-colors"
+                        >
+                          Quitar huella de este dispositivo
+                        </button>
+                      </>
+                    )}
                   </div>
                 </div>
               </motion.div>
