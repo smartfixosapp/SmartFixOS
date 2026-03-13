@@ -293,7 +293,17 @@ async function readRawLinks(order) {
       .filter(Boolean);
   } catch {}
 
-  const links = dedupeLinks([...commentLinks, ...partsLinks, ...itemsLinks, ...statusLinks, ...localLinks, ...eventLinks]);
+  // Filter out links that were explicitly deleted (tracked in status_metadata.deleted_link_ids)
+  const deletedIds = new Set(
+    Array.isArray(freshOrder?.status_metadata?.deleted_link_ids)
+      ? freshOrder.status_metadata.deleted_link_ids
+      : []
+  );
+  const filteredEventLinks = deletedIds.size > 0
+    ? eventLinks.filter((l) => !deletedIds.has(l.id))
+    : eventLinks;
+
+  const links = dedupeLinks([...commentLinks, ...partsLinks, ...itemsLinks, ...statusLinks, ...localLinks, ...filteredEventLinks]);
   return { order: freshOrder, links, commentLinks };
 }
 
@@ -305,12 +315,19 @@ async function persistOrderLinks(order, links, options = {}) {
     ? freshOrder.status_metadata
     : {};
 
+  // Preserve existing deleted_link_ids so they survive future saves
+  const existingDeletedIds = Array.isArray(statusMeta.deleted_link_ids) ? statusMeta.deleted_link_ids : [];
+  // Also add any from options (set by deleteOrderLink)
+  const newDeletedIds = Array.isArray(options.addDeletedIds) ? options.addDeletedIds : [];
+  const deletedLinkIds = [...new Set([...existingDeletedIds, ...newDeletedIds])];
+
   const updatePayload = {
     comments,
     parts_links: buildLegacyRegistry(normalizedLinks),
     status_metadata: {
       ...statusMeta,
       links_registry: buildLegacyRegistry(normalizedLinks),
+      ...(deletedLinkIds.length > 0 ? { deleted_link_ids: deletedLinkIds } : {}),
     },
   };
 
@@ -389,5 +406,5 @@ export async function deleteOrderLink({ order, linkId }) {
   if (!order?.id || !linkId) return loadOrderLinks(order);
   const { order: freshOrder, links } = await readRawLinks(order);
   const remaining = links.filter((link) => link.id !== linkId);
-  return persistOrderLinks(freshOrder, remaining, { syncItems: true });
+  return persistOrderLinks(freshOrder, remaining, { syncItems: true, addDeletedIds: [linkId] });
 }

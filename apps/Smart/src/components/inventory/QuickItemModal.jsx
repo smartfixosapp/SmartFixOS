@@ -7,13 +7,17 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Wrench, DollarSign, FileText } from "lucide-react";
 import { toast } from "sonner";
+import { dataClient } from "@/components/api/dataClient";
+import { catalogCache } from "@/components/utils/dataCache";
 
 export default function QuickItemModal({ open, onClose, onItemCreated }) {
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [price, setPrice] = useState("");
+  const [saving, setSaving] = useState(false);
 
-  const handleSave = () => {
+  const handleSave = async () => {
+    if (saving) return;
     if (!name.trim()) {
       toast.error("El nombre es requerido");
       return;
@@ -23,8 +27,7 @@ export default function QuickItemModal({ open, onClose, onItemCreated }) {
       return;
     }
 
-    // Crear objeto del item temporal (NO se guarda en DB ni localStorage)
-    const tempItem = {
+    const itemData = {
       __kind: "manual",
       type: "service",
       name: name.trim(),
@@ -35,11 +38,34 @@ export default function QuickItemModal({ open, onClose, onItemCreated }) {
       is_manual: true
     };
 
-    toast.success(`✅ Item añadido: ${tempItem.name}`);
+    setSaving(true);
+    // Persistir en el catálogo (Product table) para que aparezca en búsquedas futuras
+    try {
+      const created = await dataClient.entities.Product.create({
+        name: itemData.name,
+        description: itemData.description,
+        price: itemData.price,
+        type: "service",
+        active: true,
+        stock: 0,
+      });
+      // Invalidar caché para que AddItemModal recargue el catálogo
+      catalogCache.invalidate("pos-active-products");
+      catalogCache.invalidate("pos-active-services");
+      // Usar el ID real si está disponible
+      if (created?.id) itemData.id = created.id;
+    } catch (err) {
+      // Si falla guardar en catálogo, continuamos de todos modos (el item se añade al carrito)
+      console.warn("[QuickItemModal] No se pudo guardar en catálogo:", err);
+    } finally {
+      setSaving(false);
+    }
+
+    toast.success(`✅ Item añadido: ${itemData.name}`);
 
     // Llamar callback para añadir al carrito
     if (onItemCreated) {
-      onItemCreated(tempItem);
+      onItemCreated(itemData);
     }
 
     // Limpiar y cerrar
@@ -145,9 +171,9 @@ export default function QuickItemModal({ open, onClose, onItemCreated }) {
             </Button>
             <Button
               onClick={handleSave}
+              disabled={saving}
               className="flex-1 bg-gradient-to-r from-cyan-500 to-emerald-500 hover:from-cyan-600 hover:to-emerald-600 text-white font-semibold h-12">
-
-              Guardar
+              {saving ? "Guardando..." : "Guardar"}
             </Button>
           </div>
         </div>

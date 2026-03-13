@@ -1937,12 +1937,9 @@ export default function WorkOrderPanel({ orderId, onClose, onUpdate, onDelete, p
       }
 
       if (nextId === "waiting_parts") {
-        // Solo mostrar modal si falta información previa (ubicación o detalles de pieza)
-        const hasPartInfo = order.parts_supplier || order.parts_tracking || order.part_name || order.parts_carrier;
-        if (!order.device_location || !hasPartInfo) {
-          setPartsModalOpen(true);
-          return;
-        }
+        // Siempre mostrar modal para confirmar/actualizar info de piezas
+        setPartsModalOpen(true);
+        return;
       }
 
       if (nextId === "reparacion_externa") {

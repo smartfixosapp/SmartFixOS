@@ -187,7 +187,24 @@ export default function AddItemModal({
         toast.error("Inventario no disponible ahora. Puedes continuar con + Manual.");
       }
     } finally {
-      const merged = uniqueByKey([...products, ...services]);
+      let merged = uniqueByKey([...products, ...services]);
+
+      // If catalog is empty, inject link-synced items from order_items as virtual catalog entries
+      if (merged.length === 0 && !isDraftOrder) {
+        const linkedItems = (Array.isArray(order?.order_items) ? order.order_items : [])
+          .filter((item) => item?.link_ref_id || item?.is_manual || item?.source === "manual")
+          .map((item) => normalizeInventoryItem({
+            id: item.id || item.link_ref_id,
+            name: item.name,
+            price: item.price,
+            type: item.type || "product",
+            part_type: item.part_type || "",
+            sku: item.sku || "",
+            _linked: true,
+          }, "product"));
+        merged = uniqueByKey(linkedItems);
+      }
+
       setInventoryItems(merged);
       setLoading(false);
     }

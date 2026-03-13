@@ -182,6 +182,7 @@ export default function Dashboard() {
 
   const sessionRef = useRef(session);
   const [loading, setLoading] = useState(false);
+  const [loadingButtons, setLoadingButtons] = useState(true);
 
   const [drawerOpen, setDrawerOpen] = useState(
     () => getCachedStatus().isOpen
@@ -495,6 +496,7 @@ export default function Dashboard() {
   }, [loadFreshData]);
 
   const loadDashboardButtons = useCallback(async (useCache = true) => {
+    setLoadingButtons(true);
     try {
       const currentRole = sessionRef.current?.userRole || sessionRef.current?.role;
       const isAdminSession = currentRole === "admin" || currentRole === "manager";
@@ -526,6 +528,8 @@ export default function Dashboard() {
       const localButtons = readLocalDashboardButtons();
       const source = isAdminSession ? mergeAdminDashboardButtons(localButtons) : localButtons;
       setDashboardButtons(source.filter((b) => b?.enabled !== false).sort((a, b) => (a.order ?? 0) - (b.order ?? 0)));
+    } finally {
+      setLoadingButtons(false);
     }
   }, [readLocalDashboardButtons, writeLocalDashboardButtons]);
 
@@ -995,7 +999,7 @@ export default function Dashboard() {
             </div>
 
             {/* Botones de acción móvil estilo macOS Sequoia */}
-            {loading && dashboardButtons.length === 0 ? (
+            {(loading || loadingButtons) && dashboardButtons.length === 0 ? (
               <div className="grid grid-cols-2 gap-2 sm:gap-3 px-2 sm:px-1">
                 {[1, 2, 3, 4].map(i => <DashboardCardSkeleton key={i} />)}
               </div>

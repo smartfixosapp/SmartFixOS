@@ -306,18 +306,11 @@ export default function PunchButton({ userId, userName, onPunchStatusChange }) {
 
           <div className="mt-4 space-y-3">
             <label className="block text-xs font-semibold uppercase tracking-widest text-white/40">
-              Hora
+              Hora registrada
             </label>
-            <input
-              type="time"
-              value={pendingTime}
-              onChange={(e) => setPendingTime(e.target.value)}
-              onKeyDown={(e) => e.stopPropagation()}
-              className="w-full h-12 px-4 rounded-xl bg-black/40 border border-white/15 text-white text-lg font-bold text-center focus:outline-none focus:border-emerald-400/50"
-            />
-            <p className="text-[11px] text-white/35 text-center">
-              Ajusta si la hora no es correcta
-            </p>
+            <div className="w-full h-12 px-4 rounded-xl bg-black/20 border border-white/10 text-white text-lg font-bold flex items-center justify-center select-none">
+              {pendingTime}
+            </div>
           </div>
 
           <div className="mt-5 flex gap-2">
