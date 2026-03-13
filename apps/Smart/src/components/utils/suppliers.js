@@ -1,4 +1,4 @@
-import { base44 } from "@/api/base44Client";
+import appClient from "@/api/appClient";
 import { dataClient } from "@/components/api/dataClient";
 
 const SUPPLIERS_CACHE_KEY = "smartfix_suppliers_cache";
@@ -71,9 +71,9 @@ function normalizeSupplierRecord(record = {}) {
 
 async function loadSuppliersFromPurchaseOrders() {
   const fetchers = [
-    () => base44.entities.PurchaseOrder?.list?.("-created_date", 300),
-    () => base44.entities.PurchaseOrder?.list?.(),
-    () => base44.entities.PurchaseOrder?.filter?.({}, "-created_date", 300),
+    () => appClient.entities.PurchaseOrder?.list?.("-created_date", 300),
+    () => appClient.entities.PurchaseOrder?.list?.(),
+    () => appClient.entities.PurchaseOrder?.filter?.({}, "-created_date", 300),
     () => dataClient.entities.PurchaseOrder?.list?.("-created_date", 300),
     () => dataClient.entities.PurchaseOrder?.list?.(),
     () => dataClient.entities.PurchaseOrder?.filter?.({}, "-created_date", 300)
@@ -112,8 +112,8 @@ async function loadSuppliersFromProductsAndOrders() {
   const virtual = [];
 
   const productFetchers = [
-    () => base44.entities.Product?.list?.("-created_date", 500),
-    () => base44.entities.Product?.filter?.({}, "-created_date", 500),
+    () => appClient.entities.Product?.list?.("-created_date", 500),
+    () => appClient.entities.Product?.filter?.({}, "-created_date", 500),
     () => dataClient.entities.Product?.list?.("-created_date", 500),
     () => dataClient.entities.Product?.filter?.({}, "-created_date", 500)
   ];
@@ -134,8 +134,8 @@ async function loadSuppliersFromProductsAndOrders() {
   }
 
   const orderFetchers = [
-    () => base44.entities.Order?.list?.("-created_date", 500),
-    () => base44.entities.Order?.filter?.({ deleted: false }, "-created_date", 500),
+    () => appClient.entities.Order?.list?.("-created_date", 500),
+    () => appClient.entities.Order?.filter?.({ deleted: false }, "-created_date", 500),
     () => dataClient.entities.Order?.list?.("-created_date", 500),
     () => dataClient.entities.Order?.filter?.({ deleted: false }, "-created_date", 500)
   ];
@@ -159,10 +159,10 @@ async function loadSuppliersFromProductsAndOrders() {
 export async function loadSuppliersSafe() {
   const cached = dedupeSuppliers(readCachedSuppliers());
   const attempts = [
-    () => base44.entities.Supplier?.list?.("-created_date"),
-    () => base44.entities.Supplier?.list?.(),
-    () => base44.entities.Supplier?.filter?.({}, "-created_date"),
-    () => base44.entities.Supplier?.filter?.({}),
+    () => appClient.entities.Supplier?.list?.("-created_date"),
+    () => appClient.entities.Supplier?.list?.(),
+    () => appClient.entities.Supplier?.filter?.({}, "-created_date"),
+    () => appClient.entities.Supplier?.filter?.({}),
     () => dataClient.entities.Supplier?.list?.("-created_date"),
     () => dataClient.entities.Supplier?.list?.(),
     () => dataClient.entities.Supplier?.filter?.({}, "-created_date"),

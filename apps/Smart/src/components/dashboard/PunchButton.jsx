@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { base44 } from "@/api/base44Client";
+import appClient from "@/api/appClient";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Clock, LogIn, LogOut } from "lucide-react";
@@ -118,7 +118,7 @@ export default function PunchButton({ userId, userName, onPunchStatusChange }) {
     }
 
     try {
-      const me = await base44.auth.me();
+      const me = await appClient.auth.me();
       const aid = String(me?.id || "").trim();
       const aname = String(me?.full_name || me?.email || "").trim();
       const arole = String(me?.role || "").trim();
@@ -146,7 +146,7 @@ export default function PunchButton({ userId, userName, onPunchStatusChange }) {
       if (timeEntryId) {
         const rawEntry = timeEntryId.startsWith("local-time-") ?
         findLocalOpenEntry(identity.id) :
-        await base44.entities.TimeEntry.get(timeEntryId).catch(() => null);
+        await appClient.entities.TimeEntry.get(timeEntryId).catch(() => null);
         const entry = normalizeTimeEntry(rawEntry);
         if (entry && !entry.clock_out) {
           setPunchStatus(entry);
@@ -156,7 +156,7 @@ export default function PunchButton({ userId, userName, onPunchStatusChange }) {
 
       let openEntries = [];
       try {
-        const payload = await base44.entities.TimeEntry.filter({
+        const payload = await appClient.entities.TimeEntry.filter({
           employee_id: identity.id,
           clock_out: null
         });
@@ -198,7 +198,7 @@ export default function PunchButton({ userId, userName, onPunchStatusChange }) {
         if (String(punchStatus.id || "").startsWith("local-time-")) {
           closeLocalEntry(punchStatus.id);
         } else {
-          await base44.entities.TimeEntry.update(punchStatus.id, {
+          await appClient.entities.TimeEntry.update(punchStatus.id, {
             clock_out: clockOutTime
           });
         }
@@ -223,7 +223,7 @@ export default function PunchButton({ userId, userName, onPunchStatusChange }) {
         };
         let newEntry;
         try {
-          const createdPayload = await base44.entities.TimeEntry.create(payload);
+          const createdPayload = await appClient.entities.TimeEntry.create(payload);
           newEntry = normalizeTimeEntry(createdPayload);
           if (!newEntry?.id) throw new Error("TIMEENTRY_CREATE_INVALID_RESPONSE");
         } catch (error) {

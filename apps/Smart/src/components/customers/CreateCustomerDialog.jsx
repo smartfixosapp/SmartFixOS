@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { base44 } from "@/api/base44Client";
+import appClient from "@/api/appClient";
 import { generateCustomerNumber } from "@/components/utils/sequenceHelpers";
 import {
   Dialog,
@@ -77,13 +77,13 @@ export default function CreateCustomerDialog({ open, onClose, onSuccess, custome
       let createdCustomer = null;
       if (customer) {
         // Update existing
-        await base44.entities.Customer.update(customer.id, {
+        await appClient.entities.Customer.update(customer.id, {
           ...formData,
         });
         
         // Actualizar TODAS las órdenes del cliente (por ID o por nombre/teléfono)
-        const ordersByCustomerId = await base44.entities.Order.filter({ customer_id: customer.id });
-        const ordersByPhone = await base44.entities.Order.filter({ customer_phone: customer.phone });
+        const ordersByCustomerId = await appClient.entities.Order.filter({ customer_id: customer.id });
+        const ordersByPhone = await appClient.entities.Order.filter({ customer_phone: customer.phone });
         
         // Combinar y eliminar duplicados
         const allOrders = [...ordersByCustomerId];
@@ -96,7 +96,7 @@ export default function CreateCustomerDialog({ open, onClose, onSuccess, custome
         console.log(`🔄 Actualizando ${allOrders.length} órdenes del cliente...`);
         
         for (const order of allOrders) {
-          await base44.entities.Order.update(order.id, {
+          await appClient.entities.Order.update(order.id, {
             customer_id: customer.id, // Asegurar que tenga el ID
             customer_name: formData.name,
             customer_phone: formData.phone,
@@ -109,7 +109,7 @@ export default function CreateCustomerDialog({ open, onClose, onSuccess, custome
       } else {
         // Create new
         const customerNumber = await generateCustomerNumber();
-        createdCustomer = await base44.entities.Customer.create({
+        createdCustomer = await appClient.entities.Customer.create({
           ...formData,
           customer_number: customerNumber,
           total_orders: 0,
@@ -138,7 +138,7 @@ export default function CreateCustomerDialog({ open, onClose, onSuccess, custome
         // Send welcome email if email provided (only for new customers)
         if (formData.email) {
             try {
-              await base44.integrations.Core.SendEmail({
+              await appClient.integrations.Core.SendEmail({
                 to: formData.email,
                 subject: "Bienvenido a SmartFixOS",
                 body: `

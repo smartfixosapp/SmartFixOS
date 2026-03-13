@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { base44 } from "@/api/base44Client";
+import appClient from "@/api/appClient";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -86,13 +86,13 @@ export default function SuppliersDialog({ open, onClose }) {
     setLoading(true);
     try {
       if (editingSupplier) {
-        const updatedPayload = await base44.entities.Supplier.update(editingSupplier.id, formData);
+        const updatedPayload = await appClient.entities.Supplier.update(editingSupplier.id, formData);
         const updated = toLocalSupplier(normalizeEntity(updatedPayload) || { ...editingSupplier, ...formData, id: editingSupplier.id });
         setSuppliers((prev) => prev.map((s) => (s.id === editingSupplier.id ? { ...s, ...updated } : s)));
         upsertSupplierInCache(updated);
         toast.success("✅ Proveedor actualizado");
       } else {
-        const createdPayload = await base44.entities.Supplier.create(formData);
+        const createdPayload = await appClient.entities.Supplier.create(formData);
         const created = toLocalSupplier(normalizeEntity(createdPayload) || formData);
         setSuppliers((prev) => [created, ...prev.filter((s) => String(s.id) !== String(created.id))]);
         upsertSupplierInCache(created);
@@ -131,7 +131,7 @@ export default function SuppliersDialog({ open, onClose }) {
 
     setLoading(true);
     try {
-      await base44.entities.Supplier.delete(supplier.id);
+      await appClient.entities.Supplier.delete(supplier.id);
       removeSupplierFromCache(supplier.id);
       toast.success("✅ Proveedor eliminado");
       await loadSuppliers();

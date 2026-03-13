@@ -1,4 +1,4 @@
-import { base44 } from "@/api/base44Client";
+import appClient from "@/api/appClient";
 
 export const createPageUrl = (pageName) => {
   const cleanName = pageName.replace(/\.(js|jsx)$/, '');
@@ -33,7 +33,7 @@ export const makeCall = (phone) => {
 
 export const sendEmail = async (to, subject, body, attachments = []) => {
   try {
-    await base44.integrations.Core.SendEmail({
+    await appClient.integrations.Core.SendEmail({
       to,
       subject,
       body
