@@ -136,13 +136,17 @@ export async function openCashRegister(denominations, user) {
 
   let drawer = null;
   try {
-    drawer = await dataClient.entities.CashRegister.create({
-      date: new Date().toISOString().split('T')[0],
-      opening_balance: total,
-      status: "open",
-      opened_by: user?.full_name || user?.email || "Sistema",
-      final_count: { denominations, total }
+    const tenantId = localStorage.getItem("smartfix_tenant_id") || null;
+    const response = await fetch("/api/open-cash-register", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ denominations, user, tenantId }),
     });
+    const payload = await response.json().catch(() => ({}));
+    if (!response.ok || !payload?.success) {
+      throw new Error(payload?.error || "Error al abrir caja");
+    }
+    drawer = payload.drawer;
   } catch (error) {
     if (!isLikelyTransportError(error)) {
       console.error("Error opening cash register:", error);
@@ -163,20 +167,7 @@ export async function openCashRegister(denominations, user) {
   }
 
   if (!drawer?.is_local) {
-    try {
-      await dataClient.entities.CashDrawerMovement.create({
-        drawer_id: drawer.id,
-        type: "opening",
-        amount: total,
-        description: `Apertura de caja - $${total.toFixed(2)}`,
-        employee: user?.full_name || user?.email || "Sistema",
-        denominations
-      });
-    } catch (error) {
-      if (!isLikelyTransportError(error)) {
-        console.error("Error creating opening movement:", error);
-      }
-    }
+    // movement is created server-side with service role
   }
 
   // Guardamos espejo local para que el estado no se pierda entre vistas/recargas.
@@ -292,31 +283,27 @@ export async function closeCashRegister(drawer, denominations, user, summaryOver
         difference = countedTotal - expectedCash;
     }
 
-    // Actualizar registro de caja
-    await dataClient.entities.CashRegister.update(drawer.id, {
-      status: "closed",
-      closing_balance: countedTotal,
-      total_revenue: totalRevenue,
-      net_profit: totalRevenue,
-      closed_by: user?.full_name || user?.email || "Sistema",
-      final_count: { 
-          denominations, 
-          total: countedTotal, 
-          expectedCash, 
-          difference,
-          overrides: summaryOverrides // Guardamos si hubo overrides para auditoría
-      }
+    const tenantId = localStorage.getItem("smartfix_tenant_id") || null;
+    const response = await fetch("/api/close-cash-register", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        drawerId: drawer.id,
+        denominations,
+        user,
+        tenantId,
+        summary: {
+          ...(summaryOverrides || {}),
+          totalRevenue,
+          totalCash,
+          expectedCash,
+        },
+      }),
     });
-
-    // Crear movimiento de cierre
-    await dataClient.entities.CashDrawerMovement.create({
-      drawer_id: drawer.id,
-      type: "closing",
-      amount: countedTotal,
-      description: `Cierre de caja - $${countedTotal.toFixed(2)} (Diferencia: $${difference.toFixed(2)})`,
-      employee: user?.full_name || user?.email || "Sistema",
-      denominations
-    });
+    const payload = await response.json().catch(() => ({}));
+    if (!response.ok || !payload?.success) {
+      throw new Error(payload?.error || "Error al cerrar caja");
+    }
 
     // Limpiar estado local al cerrar caja remota.
     writeLocalDrawer(null);
