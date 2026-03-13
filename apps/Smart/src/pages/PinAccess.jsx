@@ -93,7 +93,6 @@ export default function PinAccess() {
   const [biometricSupported, setBiometricSupported] = useState(false);
   const [biometricProfile, setBiometricProfile] = useState(null);
   const [biometricLoading, setBiometricLoading] = useState(false);
-  const [pendingBiometricSession, setPendingBiometricSession] = useState(null);
 
   // ── Auto-save / Auto-login ────────────────────────────────────────────────
   const SAVED_CREDS_KEY = "smartfix_saved_creds";
@@ -443,7 +442,6 @@ export default function PinAccess() {
     setSelectedUser(user);
     setPin("");
     setError("");
-    setPendingBiometricSession(null);
     setStep("pin");
   };
 
@@ -479,68 +477,6 @@ export default function PinAccess() {
       return await window.PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable();
     } catch {
       return false;
-    }
-  };
-
-  const handleEnableBiometric = async () => {
-    if (!selectedUser) {
-      toast.error("Selecciona un usuario primero");
-      return;
-    }
-
-    setBiometricLoading(true);
-    try {
-      const credential = await navigator.credentials.create({
-        publicKey: {
-          challenge: createChallenge(),
-          rp: { name: "SmartFixOS", id: window.location.hostname },
-          user: {
-            id: new TextEncoder().encode(`smartfix:${selectedUser.id}`),
-            name: selectedUser.email || selectedUser.full_name || selectedUser.id,
-            displayName: selectedUser.full_name || selectedUser.email || "Usuario",
-          },
-          pubKeyCredParams: [
-            { type: "public-key", alg: -7 },
-            { type: "public-key", alg: -257 },
-          ],
-          authenticatorSelection: {
-            authenticatorAttachment: "platform",
-            userVerification: "required",
-            residentKey: "preferred",
-          },
-          timeout: 60000,
-          attestation: "none",
-        },
-      });
-
-      if (!credential?.rawId) {
-        throw new Error("No se pudo crear la credencial biométrica");
-      }
-
-      const session = pendingBiometricSession || buildSessionFromUser(selectedUser);
-      saveBiometricProfile({
-        version: 1,
-        credentialId: arrayBufferToBase64(credential.rawId),
-        userId: selectedUser.id,
-        tenantId: session.tenant_id || null,
-        session,
-        userLabel: selectedUser.full_name || selectedUser.email || "Usuario",
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-      });
-
-      toast.success("Huella activada en este dispositivo");
-      setPendingBiometricSession(null);
-      await completeLogin(session);
-    } catch (error) {
-      console.error("Biometric setup error:", error);
-      if (error?.name === "NotAllowedError") {
-        toast.error("Activación biométrica cancelada");
-      } else {
-        toast.error(error?.message || "No se pudo activar la huella");
-      }
-    } finally {
-      setBiometricLoading(false);
     }
   };
 
@@ -583,7 +519,6 @@ export default function PinAccess() {
         updatedAt: new Date().toISOString(),
       });
 
-      setPendingBiometricSession(null);
       await completeLogin(session);
     } catch (error) {
       console.error("Biometric login error:", error);
@@ -939,15 +874,6 @@ export default function PinAccess() {
         loginTime: new Date().toISOString()
       };
 
-      if (!isMasterUser && biometricSupported && !isBiometricAvailableForSelectedUser) {
-        setPendingBiometricSession(session);
-        setPin("");
-        setError("");
-        setSlideDir(1);
-        setStep("biometric-offer");
-        return;
-      }
-
       await completeLogin(session);
 
     } catch (error) {
@@ -1291,65 +1217,6 @@ export default function PinAccess() {
                         </button>
                       </>
                     )}
-                  </div>
-                </div>
-              </motion.div>
-            )}
-
-            {step === "biometric-offer" && selectedUser && pendingBiometricSession && (
-              <motion.div
-                key="biometric-offer-panel"
-                custom={slideDir}
-                variants={hSlide}
-                initial="enter"
-                animate="center"
-                exit="exit"
-                className="absolute inset-0 overflow-y-auto"
-              >
-                <div className="min-h-full flex flex-col items-center justify-center p-4 sm:p-6">
-                  <div className="w-full max-w-sm rounded-[28px] border border-white/10 bg-white/5 backdrop-blur-xl p-6 sm:p-7 shadow-2xl">
-                    <button
-                      onClick={() => {
-                        setSlideDir(-1);
-                        setPendingBiometricSession(null);
-                        setStep("pin");
-                      }}
-                      className="flex items-center gap-2 text-gray-500 hover:text-white mb-6 transition-colors text-sm active:scale-95"
-                    >
-                      <ArrowLeft className="w-4 h-4" /> Volver al PIN
-                    </button>
-
-                    <div className="text-center mb-6">
-                      <div className="w-20 h-20 rounded-full bg-gradient-to-br from-cyan-500 to-emerald-500 flex items-center justify-center font-black text-white text-3xl mx-auto mb-4 shadow-[0_0_40px_rgba(6,182,212,0.4)]">
-                        {(selectedUser.full_name || selectedUser.email || "?")[0].toUpperCase()}
-                      </div>
-                      <h2 className="text-2xl font-black text-white">PIN correcto</h2>
-                      <p className="text-gray-400 text-sm mt-2">
-                        Puedes activar la huella para entrar más rápido la próxima vez.
-                      </p>
-                    </div>
-
-                    <div className="space-y-3">
-                      <button
-                        onClick={handleEnableBiometric}
-                        disabled={biometricLoading}
-                        className="w-full h-12 rounded-2xl border border-cyan-500/30 bg-cyan-500/10 hover:bg-cyan-500/15 text-cyan-300 font-semibold transition-all active:scale-95 disabled:opacity-40"
-                      >
-                        {biometricLoading ? "Activando huella..." : "Activar huella y entrar"}
-                      </button>
-
-                      <button
-                        onClick={async () => {
-                          const session = pendingBiometricSession;
-                          setPendingBiometricSession(null);
-                          await completeLogin(session);
-                        }}
-                        disabled={biometricLoading}
-                        className="w-full h-12 rounded-2xl border border-white/10 bg-white/5 hover:bg-white/10 text-white font-semibold transition-all active:scale-95 disabled:opacity-40"
-                      >
-                        Entrar sin huella
-                      </button>
-                    </div>
                   </div>
                 </div>
               </motion.div>
