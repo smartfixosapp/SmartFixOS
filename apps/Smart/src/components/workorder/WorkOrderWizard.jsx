@@ -174,6 +174,28 @@ function dedupeById(list = []) {
   return out;
 }
 
+function dedupeTechnicians(list = []) {
+  const seen = new Set();
+  const out = [];
+
+  for (const tech of list) {
+    if (!tech) continue;
+
+    const dedupeKey =
+      String(tech.auth_id || "").trim().toLowerCase() ||
+      String(tech.email || "").trim().toLowerCase() ||
+      String(tech.employee_code || "").trim().toLowerCase() ||
+      String(tech.full_name || tech.name || "").trim().toLowerCase() ||
+      String(tech.id || "").trim().toLowerCase();
+
+    if (!dedupeKey || seen.has(dedupeKey)) continue;
+    seen.add(dedupeKey);
+    out.push(tech);
+  }
+
+  return out;
+}
+
 const normalizedText = (value = "") => String(value).trim().toLowerCase();
 
 const getCategoryVisual = (category) => {
@@ -573,10 +595,20 @@ export default function WorkOrderWizard({ open, onClose, onSuccess, preloadedCus
         });
       }
 
-      const mergedTechs = [...techs, ...fallbackTechs];
+      const mergedTechs = dedupeTechnicians([...techs, ...fallbackTechs]);
       const mergedAvailableIds = new Set([
         ...availableIds,
-        ...fallbackTechs.map((t) => t.id)
+        ...mergedTechs
+          .filter((tech) => {
+            const keys = [
+              String(tech?.id || "").trim().toLowerCase(),
+              String(tech?.email || "").trim().toLowerCase(),
+              String(tech?.employee_code || "").trim().toLowerCase(),
+              String(tech?.full_name || "").trim().toLowerCase()
+            ].filter(Boolean);
+            return keys.some((key) => openKeys.has(key));
+          })
+          .map((tech) => tech.id)
       ]);
 
       setTechnicians(mergedTechs);
@@ -1124,6 +1156,7 @@ export default function WorkOrderWizard({ open, onClose, onSuccess, preloadedCus
   };
 
   const createOrder = async () => {
+    let createdOrder = null;
     const fullName = isB2B 
       ? companyName 
       : `${customerName} ${customerLastName}`.trim();
@@ -1393,6 +1426,7 @@ export default function WorkOrderWizard({ open, onClose, onSuccess, preloadedCus
       };
 
       const newOrder = await base44.entities.Order.create(orderData);
+      createdOrder = newOrder;
       upsertLocalOrder(newOrder);
 
       if (quickOrderMode) {
@@ -1480,6 +1514,10 @@ export default function WorkOrderWizard({ open, onClose, onSuccess, preloadedCus
 
       return newOrder;
     } catch (err) {
+      if (createdOrder && /invalid api key/i.test(String(err?.message || ""))) {
+        console.warn("Ignoring non-blocking error after order creation:", err);
+        return createdOrder;
+      }
       throw err;
     }
   };
