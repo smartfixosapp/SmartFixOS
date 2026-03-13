@@ -1,4 +1,4 @@
-import { base44 } from "@/api/base44Client";
+import appClient from "@/api/appClient";
 
 const LOCAL_DRAWER_KEY = "smartfix_local_open_drawer";
 
@@ -65,7 +65,7 @@ export function subscribeToCashRegister(callback) {
 export async function checkCashRegisterStatus() {
   const localDrawer = readLocalDrawer();
   try {
-    const openDrawers = await base44.entities.CashRegister.filter({ status: "open" });
+    const openDrawers = await appClient.entities.CashRegister.filter({ status: "open" });
 
     const remoteIsOpen = openDrawers && openDrawers.length > 0;
     const remoteDrawer = remoteIsOpen ? openDrawers[0] : null;
@@ -122,7 +122,7 @@ export async function openCashRegister(denominations, user) {
 
   let existing = [];
   try {
-    existing = await base44.entities.CashRegister.filter({ status: "open" });
+    existing = await appClient.entities.CashRegister.filter({ status: "open" });
   } catch (error) {
     if (!isLikelyTransportError(error)) {
       console.error("Error checking existing open drawer:", error);
@@ -135,7 +135,7 @@ export async function openCashRegister(denominations, user) {
 
   let drawer = null;
   try {
-    drawer = await base44.entities.CashRegister.create({
+    drawer = await appClient.entities.CashRegister.create({
       date: new Date().toISOString().split('T')[0],
       opening_balance: total,
       status: "open",
@@ -163,7 +163,7 @@ export async function openCashRegister(denominations, user) {
 
   if (!drawer?.is_local) {
     try {
-      await base44.entities.CashDrawerMovement.create({
+      await appClient.entities.CashDrawerMovement.create({
         drawer_id: drawer.id,
         type: "opening",
         amount: total,
@@ -195,7 +195,7 @@ export async function openCashRegister(denominations, user) {
   window.dispatchEvent(new CustomEvent("drawer-opened", { detail: { drawer } }));
 
   if (!drawer?.is_local) {
-    base44.functions.invoke("notifyCashRegister", {
+    appClient.functions.invoke("notifyCashRegister", {
       type: "opening",
       drawerData: drawer,
       performedBy: user
@@ -252,7 +252,7 @@ export async function closeCashRegister(drawer, denominations, user, summaryOver
     } else {
         // Lógica original de cálculo
         const drawerOpenDate = new Date(drawer.created_date);
-        const sales = await base44.entities.Sale.filter({}, "-created_date", 1000);
+        const sales = await appClient.entities.Sale.filter({}, "-created_date", 1000);
         
         const salesInDrawer = sales.filter(s => {
           if (s.voided) return false;
@@ -292,7 +292,7 @@ export async function closeCashRegister(drawer, denominations, user, summaryOver
     }
 
     // Actualizar registro de caja
-    await base44.entities.CashRegister.update(drawer.id, {
+    await appClient.entities.CashRegister.update(drawer.id, {
       status: "closed",
       closing_balance: countedTotal,
       total_revenue: totalRevenue,
@@ -308,7 +308,7 @@ export async function closeCashRegister(drawer, denominations, user, summaryOver
     });
 
     // Crear movimiento de cierre
-    await base44.entities.CashDrawerMovement.create({
+    await appClient.entities.CashDrawerMovement.create({
       drawer_id: drawer.id,
       type: "closing",
       amount: countedTotal,
@@ -333,7 +333,7 @@ export async function closeCashRegister(drawer, denominations, user, summaryOver
     window.dispatchEvent(new CustomEvent("drawer-closed", { detail: { drawer_id: drawer.id } }));
 
     // 🔔 Notificar admin
-    base44.functions.invoke("notifyCashRegister", { 
+    appClient.functions.invoke("notifyCashRegister", { 
       type: "closing", 
       drawerData: { ...drawer, closing_balance: countedTotal, total_revenue: totalRevenue, final_count: { difference, expectedCash } }, 
       performedBy: user 

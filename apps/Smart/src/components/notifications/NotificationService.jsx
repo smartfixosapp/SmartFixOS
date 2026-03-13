@@ -1,4 +1,4 @@
-import { base44 } from "@/api/base44Client";
+import appClient from "@/api/appClient";
 
 /**
  * Servicio centralizado para crear y enviar notificaciones
@@ -37,7 +37,7 @@ class NotificationService {
     metadata = {}
   }) {
     try {
-      const notification = await base44.entities.Notification.create({
+      const notification = await appClient.entities.Notification.create({
         user_id: userId,
         user_email: userEmail,
         type,
@@ -79,7 +79,7 @@ class NotificationService {
     try {
       console.log('🔔 [NotificationService] Notificando nueva orden:', orderId);
 
-      const result = await base44.functions.invoke('notifyNewOrder', {
+      const result = await appClient.functions.invoke('notifyNewOrder', {
         order_id: orderId
       });
 
@@ -101,7 +101,7 @@ class NotificationService {
    */
   static async sendWebPush(userId, notification) {
     try {
-      const settings = await base44.entities.UserNotificationSettings.filter({ user_id: userId });
+      const settings = await appClient.entities.UserNotificationSettings.filter({ user_id: userId });
       
       if (!settings?.length) return;
       
@@ -165,7 +165,7 @@ class NotificationService {
    */
   static async markAsRead(notificationId) {
     try {
-      await base44.entities.Notification.update(notificationId, {
+      await appClient.entities.Notification.update(notificationId, {
         is_read: true,
         read_at: new Date().toISOString()
       });

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { base44 } from "@/api/base44Client";
+import appClient from "@/api/appClient";
 import {
   Dialog,
   DialogContent,
@@ -162,7 +162,7 @@ export default function UserMenuModal({ open, onClose, user }) {
     try {
       const uid = getUserId();
       if (uid) {
-        const fullUser = await base44.entities.User.get(uid);
+        const fullUser = await appClient.entities.User.get(uid);
         setCurrentUser(fullUser);
       } else {
         setCurrentUser(user);
@@ -185,7 +185,7 @@ export default function UserMenuModal({ open, onClose, user }) {
       if (timeEntryId) {
         const rawEntry = timeEntryId.startsWith("local-time-") ?
         findLocalOpenEntry(uid) :
-        await base44.entities.TimeEntry.get(timeEntryId).catch(() => null);
+        await appClient.entities.TimeEntry.get(timeEntryId).catch(() => null);
         const entry = normalizeTimeEntry(rawEntry);
         if (entry && !entry.clock_out) {
           setPunchStatus(entry);
@@ -195,7 +195,7 @@ export default function UserMenuModal({ open, onClose, user }) {
 
       let openEntries = [];
       try {
-        const payload = await base44.entities.TimeEntry.filter({
+        const payload = await appClient.entities.TimeEntry.filter({
           employee_id: uid,
           clock_out: null
         });
@@ -221,7 +221,7 @@ export default function UserMenuModal({ open, onClose, user }) {
     try {
       const uid = getUserId();
       if (!uid) return;
-      const settings = await base44.entities.UserNotificationSettings.filter({ user_id: uid });
+      const settings = await appClient.entities.UserNotificationSettings.filter({ user_id: uid });
       
       if (settings?.length) {
         setNotificationSettings(settings[0]);
@@ -240,7 +240,7 @@ export default function UserMenuModal({ open, onClose, user }) {
           channel_in_app: true
         };
         
-        const created = await base44.entities.UserNotificationSettings.create(defaultSettings);
+        const created = await appClient.entities.UserNotificationSettings.create(defaultSettings);
         setNotificationSettings(created);
       }
     } catch (error) {
@@ -263,7 +263,7 @@ export default function UserMenuModal({ open, onClose, user }) {
         if (String(punchStatus.id || "").startsWith("local-time-")) {
           closeLocalEntry(punchStatus.id);
         } else {
-          await base44.entities.TimeEntry.update(punchStatus.id, {
+          await appClient.entities.TimeEntry.update(punchStatus.id, {
             clock_out: new Date().toISOString()
           });
         }
@@ -278,7 +278,7 @@ export default function UserMenuModal({ open, onClose, user }) {
         };
         let newEntry;
         try {
-          const createdPayload = await base44.entities.TimeEntry.create(payload);
+          const createdPayload = await appClient.entities.TimeEntry.create(payload);
           newEntry = normalizeTimeEntry(createdPayload);
           if (!newEntry?.id) throw new Error("TIMEENTRY_CREATE_INVALID_RESPONSE");
         } catch (error) {
@@ -306,7 +306,7 @@ export default function UserMenuModal({ open, onClose, user }) {
         if (String(punchStatus.id || "").startsWith("local-time-")) {
           closeLocalEntry(punchStatus.id);
         } else {
-          await base44.entities.TimeEntry.update(punchStatus.id, {
+          await appClient.entities.TimeEntry.update(punchStatus.id, {
             clock_out: new Date().toISOString()
           });
         }
@@ -345,7 +345,7 @@ export default function UserMenuModal({ open, onClose, user }) {
         [key]: !notificationSettings[key]
       };
 
-      await base44.entities.UserNotificationSettings.update(notificationSettings.id, updated);
+      await appClient.entities.UserNotificationSettings.update(notificationSettings.id, updated);
       setNotificationSettings(updated);
     } catch (error) {
       console.error("Error updating notification settings:", error);
@@ -365,17 +365,17 @@ export default function UserMenuModal({ open, onClose, user }) {
 
   const loadSettings = async () => {
     try {
-      const configs = await base44.entities.AppSettings.filter({ slug: "app-main-settings" });
+      const configs = await appClient.entities.AppSettings.filter({ slug: "app-main-settings" });
       if (configs?.length) {
         setAppConfig({ ...appConfig, ...configs[0].payload });
       }
       
-      const themeConfigs = await base44.entities.AppSettings.filter({ slug: "app-theme" });
+      const themeConfigs = await appClient.entities.AppSettings.filter({ slug: "app-theme" });
       if (themeConfigs?.length) {
         setTheme(themeConfigs[0].payload?.theme || "dark");
       }
       
-      const pmConfigs = await base44.entities.AppSettings.filter({ slug: "payment-methods" });
+      const pmConfigs = await appClient.entities.AppSettings.filter({ slug: "payment-methods" });
       if (pmConfigs?.length) {
         setPaymentMethods({ ...paymentMethods, ...pmConfigs[0].payload });
       }
@@ -387,11 +387,11 @@ export default function UserMenuModal({ open, onClose, user }) {
   const saveAppConfig = async () => {
     setLoading(true);
     try {
-      const configs = await base44.entities.AppSettings.filter({ slug: "app-main-settings" });
+      const configs = await appClient.entities.AppSettings.filter({ slug: "app-main-settings" });
       if (configs?.length) {
-        await base44.entities.AppSettings.update(configs[0].id, { payload: appConfig });
+        await appClient.entities.AppSettings.update(configs[0].id, { payload: appConfig });
       } else {
-        await base44.entities.AppSettings.create({
+        await appClient.entities.AppSettings.create({
           slug: "app-main-settings",
           payload: appConfig,
           description: "Configuración principal"
@@ -408,11 +408,11 @@ export default function UserMenuModal({ open, onClose, user }) {
   const handleThemeChange = async (newTheme) => {
     setTheme(newTheme);
     try {
-      const configs = await base44.entities.AppSettings.filter({ slug: "app-theme" });
+      const configs = await appClient.entities.AppSettings.filter({ slug: "app-theme" });
       if (configs?.length) {
-        await base44.entities.AppSettings.update(configs[0].id, { payload: { theme: newTheme } });
+        await appClient.entities.AppSettings.update(configs[0].id, { payload: { theme: newTheme } });
       } else {
-        await base44.entities.AppSettings.create({
+        await appClient.entities.AppSettings.create({
           slug: "app-theme",
           payload: { theme: newTheme },
           description: "Tema de la aplicación"
@@ -428,11 +428,11 @@ export default function UserMenuModal({ open, onClose, user }) {
   const savePaymentMethods = async () => {
     setLoading(true);
     try {
-      const configs = await base44.entities.AppSettings.filter({ slug: "payment-methods" });
+      const configs = await appClient.entities.AppSettings.filter({ slug: "payment-methods" });
       if (configs?.length) {
-        await base44.entities.AppSettings.update(configs[0].id, { payload: paymentMethods });
+        await appClient.entities.AppSettings.update(configs[0].id, { payload: paymentMethods });
       } else {
-        await base44.entities.AppSettings.create({
+        await appClient.entities.AppSettings.create({
           slug: "payment-methods",
           payload: paymentMethods,
           description: "Métodos de pago"

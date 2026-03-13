@@ -4,7 +4,7 @@
  * Numeración continua y perpetua
  */
 
-import { base44 } from "@/api/base44Client";
+import appClient from "@/api/appClient";
 
 function isFunctionNotAvailableError(error) {
   const msg = String(error?.message || error || "").toLowerCase();
@@ -34,7 +34,7 @@ function formatSimpleOrderNumber(num) {
 async function generateLocalCustomerNumberFallback() {
   // 1) Intentar calcular desde clientes existentes para evitar duplicados.
   try {
-    const customers = await base44.entities.Customer.list("-created_date", 1000);
+    const customers = await appClient.entities.Customer.list("-created_date", 1000);
     const maxUsed = (customers || []).reduce((max, c) => {
       const raw = String(c?.customer_number || "");
       const match = raw.match(/^CLT-(\d+)$/i);
@@ -120,7 +120,7 @@ export async function generateOrderNumber() {
  */
 export async function generateSaleNumber() {
   try {
-    const response = await base44.functions.invoke('generateSequenceNumber', {
+    const response = await appClient.functions.invoke('generateSequenceNumber', {
       sequence_type: 'sale'
     });
     const data = response.data || response;
@@ -138,7 +138,7 @@ export async function generateSaleNumber() {
  */
 export async function generateRechargeNumber() {
   try {
-    const response = await base44.functions.invoke('generateSequenceNumber', {
+    const response = await appClient.functions.invoke('generateSequenceNumber', {
       sequence_type: 'recharge'
     });
     const data = response.data || response;
@@ -156,7 +156,7 @@ export async function generateRechargeNumber() {
  */
 export async function generateUnlockNumber() {
   try {
-    const response = await base44.functions.invoke('generateSequenceNumber', {
+    const response = await appClient.functions.invoke('generateSequenceNumber', {
       sequence_type: 'unlock'
     });
     const data = response.data || response;
@@ -174,7 +174,7 @@ export async function generateUnlockNumber() {
  */
 export async function generateCustomerNumber() {
   try {
-    const response = await base44.functions.invoke('generateSequenceNumber', {
+    const response = await appClient.functions.invoke('generateSequenceNumber', {
       sequence_type: 'customer'
     });
     const data = response.data || response;

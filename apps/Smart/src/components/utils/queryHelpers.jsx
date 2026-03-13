@@ -21,7 +21,7 @@ import { getValidatedLimit } from './databaseOptimization';
  * @returns {Promise<Array>} Órdenes
  */
 export async function getOrders(filters = {}, limit = 50, skip = 0) {
-  const { base44 } = await import('@/api/base44Client');
+  const { appClient } = await import('@/api/appClient');
   
   const validatedLimit = getValidatedLimit('Order', limit, 'list');
   
@@ -31,7 +31,7 @@ export async function getOrders(filters = {}, limit = 50, skip = 0) {
     ...filters
   };
 
-  return await base44.entities.Order.filter(
+  return await appClient.entities.Order.filter(
     finalFilters,
     '-created_date',  // Ordenar por más reciente primero
     validatedLimit,
@@ -46,11 +46,11 @@ export async function getOrders(filters = {}, limit = 50, skip = 0) {
  * @returns {Promise<Array>} Órdenes recientes
  */
 export async function getRecentOrders(limit = 20) {
-  const { base44 } = await import('@/api/base44Client');
+  const { appClient } = await import('@/api/appClient');
   
   const validatedLimit = getValidatedLimit('Order', limit, 'dashboard');
   
-  return await base44.entities.Order.filter(
+  return await appClient.entities.Order.filter(
     { deleted: false },
     '-created_date',
     validatedLimit
@@ -65,11 +65,11 @@ export async function getRecentOrders(limit = 20) {
  * @returns {Promise<Array>} Órdenes
  */
 export async function getOrdersByStatus(status, limit = 50) {
-  const { base44 } = await import('@/api/base44Client');
+  const { appClient } = await import('@/api/appClient');
   
   const validatedLimit = getValidatedLimit('Order', limit);
   
-  return await base44.entities.Order.filter(
+  return await appClient.entities.Order.filter(
     { status, deleted: false },
     '-created_date',
     validatedLimit
@@ -85,7 +85,7 @@ export async function getOrdersByStatus(status, limit = 50) {
  * @returns {Promise<Array>} Ventas
  */
 export async function getSales(filters = {}, limit = 50, skip = 0) {
-  const { base44 } = await import('@/api/base44Client');
+  const { appClient } = await import('@/api/appClient');
   
   const validatedLimit = getValidatedLimit('Sale', limit, 'list');
   
@@ -95,7 +95,7 @@ export async function getSales(filters = {}, limit = 50, skip = 0) {
     ...filters
   };
 
-  return await base44.entities.Sale.filter(
+  return await appClient.entities.Sale.filter(
     finalFilters,
     '-created_date',
     validatedLimit,
@@ -111,7 +111,7 @@ export async function getSales(filters = {}, limit = 50, skip = 0) {
  * @returns {Promise<Array>} Ventas del día
  */
 export async function getSalesByDate(date, limit = 500) {
-  const { base44 } = await import('@/api/base44Client');
+  const { appClient } = await import('@/api/appClient');
   const { startOfDay, endOfDay } = await import('date-fns');
   
   const validatedLimit = getValidatedLimit('Sale', limit, 'report');
@@ -119,7 +119,7 @@ export async function getSalesByDate(date, limit = 500) {
   const start = startOfDay(new Date(date));
   const end = endOfDay(new Date(date));
 
-  const allSales = await base44.entities.Sale.filter(
+  const allSales = await appClient.entities.Sale.filter(
     { voided: false },
     '-created_date',
     validatedLimit
@@ -140,11 +140,11 @@ export async function getSalesByDate(date, limit = 500) {
  * @returns {Promise<Array>} Transacciones
  */
 export async function getTransactions(filters = {}, limit = 100) {
-  const { base44 } = await import('@/api/base44Client');
+  const { appClient } = await import('@/api/appClient');
   
   const validatedLimit = getValidatedLimit('Transaction', limit);
   
-  return await base44.entities.Transaction.filter(
+  return await appClient.entities.Transaction.filter(
     filters,
     '-created_date',
     validatedLimit
@@ -159,12 +159,12 @@ export async function getTransactions(filters = {}, limit = 100) {
  * @returns {Promise<Array>} Clientes
  */
 export async function searchCustomers(searchTerm = '', limit = 20) {
-  const { base44 } = await import('@/api/base44Client');
+  const { appClient } = await import('@/api/appClient');
   
   const validatedLimit = getValidatedLimit('Customer', limit, 'search');
   
   // Obtener todos los clientes (Base44 no soporta búsqueda de texto completo)
-  const allCustomers = await base44.entities.Customer.list('name', validatedLimit * 2);
+  const allCustomers = await appClient.entities.Customer.list('name', validatedLimit * 2);
   
   if (!searchTerm) {
     return allCustomers.slice(0, validatedLimit);
@@ -188,11 +188,11 @@ export async function searchCustomers(searchTerm = '', limit = 20) {
  * @returns {Promise<Array>} Productos activos
  */
 export async function getActiveProducts(limit = 50) {
-  const { base44 } = await import('@/api/base44Client');
+  const { appClient } = await import('@/api/appClient');
   
   const validatedLimit = getValidatedLimit('Product', limit);
   
-  return await base44.entities.Product.filter(
+  return await appClient.entities.Product.filter(
     { active: true },
     'name',
     validatedLimit
@@ -206,12 +206,12 @@ export async function getActiveProducts(limit = 50) {
  * @returns {Promise<Array>} Productos con stock bajo
  */
 export async function getLowStockProducts(limit = 50) {
-  const { base44 } = await import('@/api/base44Client');
+  const { appClient } = await import('@/api/appClient');
   
   const validatedLimit = getValidatedLimit('Product', limit);
   
   // Obtener productos activos
-  const products = await base44.entities.Product.filter(
+  const products = await appClient.entities.Product.filter(
     { active: true },
     'stock',
     validatedLimit * 2

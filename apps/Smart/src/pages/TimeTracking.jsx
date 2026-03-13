@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState, useCallback } from "react";
-import { base44 } from "@/api/base44Client";
+import appClient from "@/api/appClient";
 import { dataClient } from "@/components/api/dataClient";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -154,7 +154,7 @@ function EditPunchModal({ open, onClose, punch, onSaved }) {
     setSaving(true);
     setError("");
     try {
-      await base44.entities.TimeEntry.update(punch.id, body);
+      await appClient.entities.TimeEntry.update(punch.id, body);
       // Auditoría (si existe AuditLog; sino, KeyValue de respaldo)
       try {
         await dataClient.entities.AuditLog.create({

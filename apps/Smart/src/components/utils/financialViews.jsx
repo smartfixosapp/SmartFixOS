@@ -5,7 +5,7 @@
  * Incluye caching opcional para mejorar performance.
  */
 
-import { base44 } from "@/api/base44Client";
+import appClient from "@/api/appClient";
 import { format, startOfDay, endOfDay, startOfMonth, endOfMonth, startOfYear, endOfYear, subDays } from "date-fns";
 
 // Cache en memoria para evitar llamadas repetidas
@@ -38,7 +38,7 @@ export async function getRevenueByMethod(dateFrom, dateTo, useCache = true) {
   try {
     console.log(`📊 [getRevenueByMethod] Consultando: ${from} a ${to}`);
     
-    const result = await base44.functions.invoke('getRevenueByMethod', {
+    const result = await appClient.functions.invoke('getRevenueByMethod', {
       date_from: from,
       date_to: to
     });
@@ -86,7 +86,7 @@ export async function getExpensesByCategory(dateFrom, dateTo, useCache = true) {
   try {
     console.log(`💸 [getExpensesByCategory] Consultando: ${from} a ${to}`);
     
-    const result = await base44.functions.invoke('getExpensesByCategory', {
+    const result = await appClient.functions.invoke('getExpensesByCategory', {
       date_from: from,
       date_to: to
     });
@@ -135,7 +135,7 @@ export async function getKPIs(dateFrom, dateTo, comparePrevious = false, useCach
   try {
     console.log(`📈 [getKPIs] Consultando: ${from} a ${to}`);
     
-    const result = await base44.functions.invoke('getKPIs', {
+    const result = await appClient.functions.invoke('getKPIs', {
       date_from: from,
       date_to: to,
       compare_previous: comparePrevious
