@@ -812,29 +812,37 @@ export default function WorkOrderWizard({
 
       /* 7) Eventos */
       if ((formData.comments || "").trim()) {
+        try {
+          await base44.entities.WorkOrderEvent.create({
+            order_id: order.id,
+            order_number: orderNumber,
+            event_type: "note",
+            description: formData.comments.trim(),
+            user_id: user?.id || null,
+            user_name: user?.full_name || user?.email || "Sistema",
+            user_role: user?.role || "system",
+            metadata: { for_customer: true },
+          });
+        } catch (eventErr) {
+          console.warn("[Wizard] Error creating note event:", eventErr);
+        }
+      }
+
+      try {
         await base44.entities.WorkOrderEvent.create({
           order_id: order.id,
           order_number: orderNumber,
-          event_type: "note",
-          description: formData.comments.trim(),
+          event_type: "create",
+          description: `Orden creada por ${
+            user?.full_name || user?.email || "Sistema"
+          }. Datos y adjuntos sincronizados desde el wizard.`,
           user_id: user?.id || null,
           user_name: user?.full_name || user?.email || "Sistema",
           user_role: user?.role || "system",
-          metadata: { for_customer: true },
         });
+      } catch (eventErr) {
+        console.warn("[Wizard] Error creating create event:", eventErr);
       }
-
-      await base44.entities.WorkOrderEvent.create({
-        order_id: order.id,
-        order_number: orderNumber,
-        event_type: "create",
-        description: `Orden creada por ${
-          user?.full_name || user?.email || "Sistema"
-        }. Datos y adjuntos sincronizados desde el wizard.`,
-        user_id: user?.id || null,
-        user_name: user?.full_name || user?.email || "Sistema",
-        user_role: user?.role || "system",
-      });
 
       /* 8) Reset y callback */
       setFormData(INITIAL_FORM_DATA);

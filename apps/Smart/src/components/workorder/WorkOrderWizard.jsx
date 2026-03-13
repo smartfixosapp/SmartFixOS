@@ -1471,8 +1471,12 @@ export default function WorkOrderWizard({ open, onClose, onSuccess, preloadedCus
       }
 
       // 8. Eventos
-      window.dispatchEvent(new CustomEvent('workorder-created', { detail: { order: newOrder } }));
-      window.dispatchEvent(new Event('force-refresh'));
+      try {
+        window.dispatchEvent(new CustomEvent('workorder-created', { detail: { order: newOrder } }));
+        window.dispatchEvent(new Event('force-refresh'));
+      } catch (eventErr) {
+        console.warn("Error dispatching workorder events:", eventErr);
+      }
 
       return newOrder;
     } catch (err) {
