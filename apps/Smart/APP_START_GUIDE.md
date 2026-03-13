@@ -105,7 +105,7 @@ SUPABASE_DB_PASSWORD=your_password
 # Supabase Configuration
 VITE_SUPABASE_URL=https://your-project.supabase.co
 VITE_SUPABASE_ANON_KEY=your_anon_key
-VITE_SUPABASE_SERVICE_ROLE_KEY=your_service_role_key
+SUPABASE_SERVICE_ROLE_KEY=your_service_role_key
 
 # OpenAI (for backend)
 OPENAI_API_KEY=your_openai_key

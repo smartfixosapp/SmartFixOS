@@ -5,7 +5,7 @@
 import { createHash } from 'crypto';
 
 const SB_URL = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL || 'https://idntuvtabecwubzswpwi.supabase.co';
-const SB_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.VITE_SUPABASE_SERVICE_ROLE_KEY;
+const SB_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
 const sbH = { 'Content-Type': 'application/json', 'apikey': SB_KEY, 'Authorization': `Bearer ${SB_KEY}` };
 
 function hashOtp(otp, salt) {

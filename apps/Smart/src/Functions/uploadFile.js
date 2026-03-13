@@ -101,7 +101,7 @@ export async function uploadFileHandler(req) {
     try {
       // ✅ SUBIR ARCHIVO DIRECTO A SUPABASE STORAGE
       const supabaseUrl = (Deno.env.get('VITE_SUPABASE_URL') || 'http://localhost:8000').replace(/\/$/, '');
-      const serviceRoleKey = Deno.env.get('VITE_SUPABASE_SERVICE_ROLE_KEY');
+      const serviceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') || Deno.env.get('SERVICE_ROLE_KEY');
 
       const ext = (file_name || 'upload').split('.').pop().toLowerCase() || 'bin';
       const storagePath = `${Date.now()}_${Math.random().toString(36).slice(2, 8)}.${ext}`;

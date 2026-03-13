@@ -3,7 +3,7 @@ import { createClientFromRequest } from '../../../../lib/unified-custom-sdk-supa
 // Supabase Auth Admin — REST directo (sin npm:@supabase/supabase-js)
 async function authAdminCreateUser(email, password, fullName) {
   const url = Deno.env.get('VITE_SUPABASE_URL');
-  const key = Deno.env.get('VITE_SUPABASE_SERVICE_ROLE_KEY');
+  const key = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') || Deno.env.get('SERVICE_ROLE_KEY');
   const res = await fetch(`${url}/auth/v1/admin/users`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', 'apikey': key, 'Authorization': `Bearer ${key}` },

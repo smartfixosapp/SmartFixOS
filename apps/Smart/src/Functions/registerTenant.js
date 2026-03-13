@@ -17,7 +17,7 @@
 
 function getSb() {
   const url = Deno.env.get('VITE_SUPABASE_URL') || Deno.env.get('SUPABASE_URL');
-  const key = Deno.env.get('VITE_SUPABASE_SERVICE_ROLE_KEY') || Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') || Deno.env.get('SERVICE_ROLE_KEY');
+  const key = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') || Deno.env.get('SERVICE_ROLE_KEY');
   if (!url || !key) throw new Error('Supabase env vars not configured');
   return { url, key };
 }

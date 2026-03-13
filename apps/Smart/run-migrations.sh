@@ -112,7 +112,7 @@ else
         SUPABASE_DB_PASSWORD="${SUPABASE_DB_PASSWORD:-${DB_PASSWORD:-${POSTGRES_PASSWORD}}}"
         
         # If we have Supabase URL but not a direct connection, try to construct from service role key
-        if [ -n "${VITE_SUPABASE_URL}" ] && [ -n "${VITE_SUPABASE_SERVICE_ROLE_KEY}" ]; then
+        if [ -n "${VITE_SUPABASE_URL}" ] && [ -n "${SUPABASE_SERVICE_ROLE_KEY}" ]; then
             # Extract host from Supabase URL (remove https:// and path)
             SUPABASE_HOST="${VITE_SUPABASE_URL#*://}"
             SUPABASE_HOST="${SUPABASE_HOST%%/*}"

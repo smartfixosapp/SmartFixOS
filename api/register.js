@@ -7,7 +7,7 @@
 // SB_URL is not secret (already in browser bundle) — hardcode as fallback
 const SB_URL = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL || 'https://idntuvtabecwubzswpwi.supabase.co';
 // SB_KEY must be set in Vercel dashboard as SUPABASE_SERVICE_ROLE_KEY
-const SB_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.VITE_SUPABASE_SERVICE_ROLE_KEY;
+const SB_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
 const RESEND_KEY = process.env.RESEND_API_KEY;
 const FROM_EMAIL = process.env.FROM_EMAIL || 'noreply@smartfixos.com';
 const FROM_NAME = process.env.FROM_NAME || 'SmartFixOS';
