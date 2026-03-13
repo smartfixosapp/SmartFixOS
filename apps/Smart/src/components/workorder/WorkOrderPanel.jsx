@@ -571,7 +571,8 @@ function WaitingPartsModal({ open, onClose, onSave, initialData, order }) {
   return (
     <Dialog open={open} onOpenChange={(v) => { if (!v) onClose?.(); }}>
       <DialogContent
-        className="w-full max-w-md bg-[#111114] border border-white/10 rounded-2xl p-6 max-h-[90vh] overflow-y-auto theme-light:bg-white theme-light:border-gray-200"
+        className="w-full max-w-md border border-white/10 rounded-2xl p-6 max-h-[90vh] overflow-y-auto theme-light:border-gray-200"
+        style={{ background: '#111114' }}
         onKeyDown={(e) => e.stopPropagation()}
       >
         <DialogHeader className="mb-2">

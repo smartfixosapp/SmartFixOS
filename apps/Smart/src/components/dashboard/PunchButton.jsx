@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Clock, LogIn, LogOut } from "lucide-react";
 import { toast } from "sonner";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
 const LOCAL_TIME_ENTRIES_KEY = "local_time_entries";
 
@@ -80,9 +81,25 @@ const normalizeTimeEntryList = (payload) => {
   return single ? [single] : [];
 };
 
+// ── Helpers for local time picker ─────────────────────────────────────────────
+function getLocalTimeHHMM() {
+  const now = new Date();
+  return `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+}
+
+function timeHHMMtoISO(timeStr) {
+  if (!timeStr) return new Date().toISOString();
+  const [hh, mm] = timeStr.split(':').map(Number);
+  const d = new Date();
+  d.setHours(hh, mm, 0, 0);
+  return d.toISOString();
+}
+
 export default function PunchButton({ userId, userName, onPunchStatusChange }) {
   const [punchStatus, setPunchStatus] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const [pendingTime, setPendingTime] = useState("");
 
   const resolveIdentity = async () => {
     const directId = String(userId || "").trim();
@@ -161,7 +178,12 @@ export default function PunchButton({ userId, userName, onPunchStatusChange }) {
     }
   };
 
-  const handlePunchToggle = async () => {
+  const handlePunchClick = () => {
+    setPendingTime(getLocalTimeHHMM());
+    setConfirmOpen(true);
+  };
+
+  const handlePunchToggle = async (customTimeISO) => {
     setLoading(true);
     try {
       const identity = await resolveIdentity();
@@ -172,7 +194,7 @@ export default function PunchButton({ userId, userName, onPunchStatusChange }) {
 
       if (punchStatus) {
         // Clock out
-        const clockOutTime = new Date().toISOString();
+        const clockOutTime = customTimeISO || new Date().toISOString();
         if (String(punchStatus.id || "").startsWith("local-time-")) {
           closeLocalEntry(punchStatus.id);
         } else {
@@ -193,7 +215,7 @@ export default function PunchButton({ userId, userName, onPunchStatusChange }) {
         });
       } else {
         // Clock in
-        const clockInTime = new Date().toISOString();
+        const clockInTime = customTimeISO || new Date().toISOString();
         const payload = {
           employee_id: identity.id,
           employee_name: identity.name,
@@ -230,38 +252,98 @@ export default function PunchButton({ userId, userName, onPunchStatusChange }) {
     }
   };
 
+  const isClockingOut = !!punchStatus;
+
   return (
-    <Button
-      onClick={handlePunchToggle}
-      disabled={loading}
-      className={`relative overflow-hidden h-12 px-4 rounded-full border shadow-[0_10px_22px_rgba(0,0,0,0.14)] active:scale-95 transition-all flex items-center gap-2 backdrop-blur-xl ${
-      punchStatus ?
-      "bg-[linear-gradient(180deg,rgba(132,204,22,0.82),rgba(77,124,15,0.78))] border-lime-300/18 hover:border-lime-300/26" :
-      "bg-[linear-gradient(180deg,rgba(16,185,129,0.82),rgba(5,150,105,0.78))] border-emerald-300/18 hover:border-emerald-300/26"}`
-      }>
+    <>
+      {/* ── Punch Button ── */}
+      <Button
+        onClick={handlePunchClick}
+        disabled={loading}
+        className={`relative overflow-hidden h-12 px-4 rounded-full border shadow-[0_10px_22px_rgba(0,0,0,0.14)] active:scale-95 transition-all flex items-center gap-2 backdrop-blur-xl ${
+          punchStatus
+            ? "bg-[linear-gradient(180deg,rgba(132,204,22,0.82),rgba(77,124,15,0.78))] border-lime-300/18 hover:border-lime-300/26"
+            : "bg-[linear-gradient(180deg,rgba(16,185,129,0.82),rgba(5,150,105,0.78))] border-emerald-300/18 hover:border-emerald-300/26"
+        }`}
+      >
+        <div className="bg-gradient-to-t rounded-full absolute inset-0 from-white/0 to-white/10" />
+        {loading ? (
+          <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin relative z-10" />
+        ) : (
+          <>
+            {punchStatus ? (
+              <>
+                <LogOut className="w-5 h-5 relative z-10" />
+                <div className="relative z-10 flex flex-col items-start">
+                  <span className="text-sm font-bold leading-tight">Cerrar</span>
+                  <span className="text-[9px] opacity-80">Turno activo</span>
+                </div>
+                <div className="w-2 h-2 rounded-full bg-white animate-pulse absolute top-2 right-2 z-10" />
+              </>
+            ) : (
+              <>
+                <LogIn className="w-5 h-5 relative z-10" />
+                <span className="text-sm font-bold relative z-10">Ponche</span>
+              </>
+            )}
+          </>
+        )}
+      </Button>
 
-      <div className="bg-gradient-to-t rounded-full absolute inset-0 from-white/0 to-white/10" />
-      {loading ?
-      <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin relative z-10" /> :
+      {/* ── Confirm Dialog with time picker ── */}
+      <Dialog open={confirmOpen} onOpenChange={(v) => { if (!v) setConfirmOpen(false); }}>
+        <DialogContent
+          style={{ background: '#0f1117' }}
+          className="max-w-xs border border-white/10 rounded-2xl p-6"
+          onKeyDown={(e) => e.stopPropagation()}
+        >
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-white text-base">
+              <Clock className="w-4 h-4 text-emerald-400" />
+              {isClockingOut ? "Registrar salida" : "Registrar entrada"}
+            </DialogTitle>
+          </DialogHeader>
 
-      <>
-          {punchStatus ?
-        <>
-              <LogOut className="w-5 h-5 relative z-10" />
-              <div className="relative z-10 flex flex-col items-start">
-                <span className="text-sm font-bold leading-tight">Cerrar</span>
-                <span className="text-[9px] opacity-80">Turno activo</span>
-              </div>
-              <div className="w-2 h-2 rounded-full bg-white animate-pulse absolute top-2 right-2 z-10" />
-            </> :
+          <div className="mt-4 space-y-3">
+            <label className="block text-xs font-semibold uppercase tracking-widest text-white/40">
+              Hora
+            </label>
+            <input
+              type="time"
+              value={pendingTime}
+              onChange={(e) => setPendingTime(e.target.value)}
+              onKeyDown={(e) => e.stopPropagation()}
+              className="w-full h-12 px-4 rounded-xl bg-black/40 border border-white/15 text-white text-lg font-bold text-center focus:outline-none focus:border-emerald-400/50"
+            />
+            <p className="text-[11px] text-white/35 text-center">
+              Ajusta si la hora no es correcta
+            </p>
+          </div>
 
-        <>
-              <LogIn className="w-5 h-5 relative z-10" />
-              <span className="text-sm font-bold relative z-10">Ponche</span>
-            </>
-        }
-        </>
-      }
-    </Button>);
-
+          <div className="mt-5 flex gap-2">
+            <Button
+              variant="ghost"
+              className="flex-1 h-10 rounded-xl text-white/60 hover:text-white hover:bg-white/5"
+              onClick={() => setConfirmOpen(false)}
+            >
+              Cancelar
+            </Button>
+            <Button
+              className={`flex-1 h-10 rounded-xl font-bold ${
+                isClockingOut
+                  ? "bg-amber-500 hover:bg-amber-400 text-black"
+                  : "bg-emerald-500 hover:bg-emerald-400 text-black"
+              }`}
+              onClick={() => {
+                setConfirmOpen(false);
+                handlePunchToggle(timeHHMMtoISO(pendingTime));
+              }}
+            >
+              {isClockingOut ? "Registrar salida" : "Registrar entrada"}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+    </>
+  );
 }

@@ -45,16 +45,16 @@ const ROLE_LABELS = {
 };
 
 // ── Format helpers ─────────────────────────────────────────────────────────────
-function formatTime(iso) {
+function formatTime(iso, tz = 'America/Puerto_Rico') {
   if (!iso) return '—';
   const d = new Date(iso);
-  return d.toLocaleTimeString('es-PR', { hour: '2-digit', minute: '2-digit', hour12: true });
+  return d.toLocaleTimeString('es-PR', { hour: '2-digit', minute: '2-digit', hour12: true, timeZone: tz });
 }
 
-function formatDate(iso) {
+function formatDate(iso, tz = 'America/Puerto_Rico') {
   if (!iso) return '—';
   const d = new Date(iso);
-  return d.toLocaleDateString('es-PR', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+  return d.toLocaleDateString('es-PR', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', timeZone: tz });
 }
 
 function calcHours(clockIn, clockOut) {

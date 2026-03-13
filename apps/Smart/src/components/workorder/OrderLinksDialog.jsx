@@ -215,20 +215,28 @@ export default function OrderLinksDialog({
             )}
 
             {links.map((link) => (
-              <a
+              <div
                 key={link.id}
-                href={link.url}
-                target="_blank"
-                rel="noopener noreferrer"
                 className={`group flex flex-col items-stretch gap-3 rounded-[18px] border border-white/10 bg-black/20 p-3 ${styles.hover} hover:bg-white/5 sm:flex-row sm:items-center sm:justify-between`}
               >
                 <div className="min-w-0 flex-1">
                   <p className="truncate text-sm font-bold text-white">{link.partName}</p>
-                  <p className={`break-all text-xs ${styles.link} group-hover:underline sm:truncate`}>{link.url}</p>
                 </div>
                 <div className="flex items-center justify-between gap-3 border-t border-white/10 pt-3 sm:justify-end sm:border-t-0 sm:pl-3 sm:pt-0">
                   <span className="text-sm font-semibold text-emerald-300">${Number(link.price || 0).toFixed(2)}</span>
                   <div className="flex items-center gap-2">
+                    {link.url && (
+                      <a
+                        href={link.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className={`inline-flex items-center gap-1.5 rounded-lg border border-white/15 bg-white/5 px-3 py-1.5 text-xs font-semibold ${styles.link} hover:bg-white/10 transition-colors`}
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        <ExternalLink className="h-3 w-3" />
+                        Link
+                      </a>
+                    )}
                     <Button
                       type="button"
                       variant="ghost"
@@ -241,10 +249,9 @@ export default function OrderLinksDialog({
                     >
                       <Trash2 className="h-4 w-4" />
                     </Button>
-                    <ExternalLink className={`h-4 w-4 ${styles.link}`} />
                   </div>
                 </div>
-              </a>
+              </div>
             ))}
           </div>
         </div>
