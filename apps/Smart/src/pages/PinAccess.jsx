@@ -261,11 +261,24 @@ export default function PinAccess() {
     // Limpiar tenant_id viejo para que no contamine las queries de este login
     localStorage.removeItem("smartfix_tenant_id");
     try {
-      const { error: authError } = await supabase.auth.signInWithPassword({ email, password });
+      const { data: authData, error: authError } = await supabase.auth.signInWithPassword({ email, password });
       if (authError) {
         toast.error("Email o contraseña incorrecta");
         clearSavedCreds();
         return false;
+      }
+
+      const authUserId = authData?.user?.id || null;
+      if (authUserId) {
+        try {
+          await supabase
+            .from("users")
+            .update({ auth_id: authUserId })
+            .eq("email", email)
+            .is("auth_id", null);
+        } catch (authIdError) {
+          console.warn("No se pudo sincronizar auth_id del usuario:", authIdError?.message || authIdError);
+        }
       }
 
       // ── Super Admin: verificar OTP o trusted device ──────────────────────
