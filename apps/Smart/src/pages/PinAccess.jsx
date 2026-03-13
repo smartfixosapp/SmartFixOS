@@ -456,10 +456,10 @@ export default function PinAccess() {
         return;
       }
       // Pedir al servidor que genere y envíe el OTP (Vercel endpoint)
-      const res = await fetch(`/api/send-admin-otp`, {
+      const res = await fetch(`/api/admin-otp`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: SUPER_ADMIN_EMAIL }),
+        body: JSON.stringify({ action: "send", email: SUPER_ADMIN_EMAIL }),
       });
       const data = await res.json();
       if (!data.success) {
@@ -813,10 +813,11 @@ export default function PinAccess() {
     }
     setOtpLoading(true);
     try {
-      const res = await fetch(`/api/verify-admin-otp`, {
+      const res = await fetch(`/api/admin-otp`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
+          action: "verify",
           sessionId: otpSessionId,
           otp: otpInput.trim(),
           adminPin: adminPin.trim(),

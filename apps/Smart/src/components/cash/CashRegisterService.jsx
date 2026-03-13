@@ -137,10 +137,10 @@ export async function openCashRegister(denominations, user) {
   let drawer = null;
   try {
     const tenantId = localStorage.getItem("smartfix_tenant_id") || null;
-    const response = await fetch("/api/open-cash-register", {
+    const response = await fetch("/api/cash-register", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ denominations, user, tenantId }),
+      body: JSON.stringify({ action: "open", denominations, user, tenantId }),
     });
     const payload = await response.json().catch(() => ({}));
     if (!response.ok || !payload?.success) {
@@ -148,7 +148,8 @@ export async function openCashRegister(denominations, user) {
     }
     drawer = payload.drawer;
   } catch (error) {
-    if (!isLikelyTransportError(error)) {
+    const msg = String(error?.message || error || "").toLowerCase();
+    if (msg.includes("ya existe una caja abierta")) {
       console.error("Error opening cash register:", error);
       throw error;
     }
@@ -284,10 +285,11 @@ export async function closeCashRegister(drawer, denominations, user, summaryOver
     }
 
     const tenantId = localStorage.getItem("smartfix_tenant_id") || null;
-    const response = await fetch("/api/close-cash-register", {
+    const response = await fetch("/api/cash-register", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
+        action: "close",
         drawerId: drawer.id,
         denominations,
         user,
@@ -329,7 +331,7 @@ export async function closeCashRegister(drawer, denominations, user, summaryOver
     
     return { success: true, difference };
   } catch (error) {
-    if (isLikelyTransportError(error) && (drawer?.is_local || String(drawer?.id || "").startsWith("local-drawer-"))) {
+    if ((isLikelyTransportError(error) || String(error?.message || "").toLowerCase().includes("serverless function")) && (drawer?.is_local || String(drawer?.id || "").startsWith("local-drawer-"))) {
       writeLocalDrawer(null);
       cashRegisterCache = {
         isOpen: false,
