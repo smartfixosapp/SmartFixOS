@@ -1,8 +1,10 @@
-import React, { createContext, useContext, useState } from "react";
+import React, { createContext, useContext, useEffect, useState } from "react";
+import { useLocation } from "react-router-dom";
 
 const PanelContext = createContext();
 
 export function PanelProvider({ children }) {
+  const location = useLocation();
   const [openPanels, setOpenPanels] = useState(new Set());
 
   const registerPanel = (panelId) => {
@@ -16,6 +18,11 @@ export function PanelProvider({ children }) {
       return next;
     });
   };
+
+  useEffect(() => {
+    // Si cambiamos de pantalla, limpiar paneles colgados para no bloquear la navegación.
+    setOpenPanels(new Set());
+  }, [location.pathname]);
 
   const hasPanelsOpen = openPanels.size > 0;
 
