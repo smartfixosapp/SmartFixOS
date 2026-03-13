@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Badge } from "@/components/ui/badge";
-import { ShoppingCart, Package } from "lucide-react";
+import { ShoppingCart, Package, Link as LinkIcon, ExternalLink } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import AddItemModal from "@/components/workorder/AddItemModal";
 import WorkOrderUnifiedHub from "@/components/workorder/WorkOrderUnifiedHub";
@@ -109,6 +109,63 @@ export default function PendingOrderStage({ order, onUpdate, user }) {
           </div>
         </div>
       </section>
+
+      {/* ── Auto-created items from links ─────────────────────────────────── */}
+      {(() => {
+        const items = Array.isArray(order?.order_items) ? order.order_items : [];
+        if (items.length === 0) return null;
+        const subtotal = items.reduce((s, it) => s + Number(it.total || Number(it.price || 0) * Number(it.qty || 1)), 0);
+        return (
+          <div className="bg-white/5 backdrop-blur-xl border border-yellow-500/15 rounded-[24px] overflow-hidden shadow-lg">
+            <div className="p-5 border-b border-white/10 bg-yellow-500/5">
+              <div className="flex items-center justify-between">
+                <h3 className="text-white font-bold flex items-center gap-2">
+                  <ShoppingCart className="w-5 h-5 text-yellow-400" />
+                  Piezas y Servicios
+                  <span className="text-xs text-yellow-300/70 font-normal ml-1">({items.length} item{items.length !== 1 ? 's' : ''})</span>
+                </h3>
+                <Button
+                  size="sm"
+                  onClick={() => setShowCatalog(true)}
+                  className="h-8 bg-yellow-500 hover:bg-yellow-400 text-black rounded-xl font-bold text-xs px-3"
+                >
+                  + Añadir
+                </Button>
+              </div>
+            </div>
+            <div className="divide-y divide-white/5">
+              {items.map((item, idx) => (
+                <div key={idx} className="flex items-center justify-between px-5 py-3 hover:bg-white/[0.03] transition-colors">
+                  <div className="min-w-0 flex-1">
+                    <p className="text-white text-sm font-semibold truncate">{item.name}</p>
+                    <div className="flex items-center gap-2 mt-0.5">
+                      <span className="text-[11px] text-gray-400">${Number(item.price || 0).toFixed(2)} c/u · x{item.qty || 1}</span>
+                      {item.link_url && (
+                        <a
+                          href={item.link_url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          onClick={(e) => e.stopPropagation()}
+                          className="inline-flex items-center gap-1 text-[10px] text-yellow-300/70 hover:text-yellow-300 transition-colors"
+                        >
+                          <LinkIcon className="w-2.5 h-2.5" /> ver link
+                        </a>
+                      )}
+                    </div>
+                  </div>
+                  <span className="text-yellow-300 font-bold text-sm ml-4">
+                    ${Number(item.total || Number(item.price || 0) * Number(item.qty || 1)).toFixed(2)}
+                  </span>
+                </div>
+              ))}
+            </div>
+            <div className="px-5 py-3 border-t border-white/10 bg-black/20 flex justify-between items-center">
+              <span className="text-xs text-gray-400 font-medium">Subtotal (sin IVU)</span>
+              <span className="text-white font-bold text-base">${subtotal.toFixed(2)}</span>
+            </div>
+          </div>
+        );
+      })()}
 
       {/* Modules Grid */}
       <WorkOrderUnifiedHub order={order} onUpdate={onUpdate} accent="amber" title="Centro de Historial" subtitle="Compras, links, seguridad, fotos y notas agrupadas en un mismo centro." />
