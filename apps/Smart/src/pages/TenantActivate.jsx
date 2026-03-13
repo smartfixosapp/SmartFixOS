@@ -181,6 +181,38 @@ export default function TenantActivate() {
     setPinError('');
   };
 
+  useEffect(() => {
+    if (step !== 4 || status === 'saving') return;
+
+    const handleKeyDown = (event) => {
+      if (event.metaKey || event.ctrlKey || event.altKey) return;
+
+      if (/^\d$/.test(event.key)) {
+        event.preventDefault();
+        handlePinNumber(event.key);
+        return;
+      }
+
+      if (event.key === 'Backspace') {
+        event.preventDefault();
+        handlePinBackspace();
+        return;
+      }
+
+      if (event.key === 'Enter') {
+        event.preventDefault();
+        if (pinStep === 'set') {
+          if (pin.length === 4) goNext();
+        } else if (confirmPin.length === 4) {
+          handleActivate();
+        }
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [step, status, pinStep, pin, confirmPin]);
+
   const validateConfirmPin = (value = confirmPin) => {
     if (value !== pin) {
       setPinError('Los PINs no coinciden. Intenta de nuevo.');
