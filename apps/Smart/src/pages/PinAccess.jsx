@@ -252,7 +252,7 @@ export default function PinAccess() {
 
         // Enviar OTP por email via Resend a través del servidor de funciones
         try {
-          const fnUrl = import.meta.env.VITE_FUNCTION_URL || "http://localhost:8686";
+          const fnUrl = import.meta.env.VITE_FUNCTION_URL || "https://smartfixos-api.onrender.com";
           await fetch(`${fnUrl}/sendEmailInternal`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
