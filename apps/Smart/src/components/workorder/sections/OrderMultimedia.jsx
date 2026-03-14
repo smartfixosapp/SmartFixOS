@@ -9,23 +9,23 @@ import { getOrderStageContext, logWorkOrderPhotoEvent } from "@/components/worko
 
 const PHOTO_STAGE_OPTIONS = [
   { id: "intake", label: "Recepcion" },
-  { id: "diagnosis", label: "Diagnostico" },
-  { id: "repair", label: "En reparacion" },
-  { id: "ready_for_delivery", label: "Listo para entrega" },
+  { id: "diagnosing", label: "Diagnostico" },
+  { id: "in_progress", label: "En reparacion" },
+  { id: "ready_for_pickup", label: "Listo para entrega" },
   { id: "delivered", label: "Entrega" }
 ];
 
 function resolveDefaultPhotoStage(order) {
   const { stageId, stageLabel } = getOrderStageContext(order);
   if (stageId === "intake") return { id: "intake", label: "Recepcion" };
-  if (stageId === "diagnosis" || stageId === "pending_order" || stageId === "waiting_parts") {
-    return { id: "diagnosis", label: "Diagnostico" };
+  if (stageId === "diagnosing" || stageId === "pending_order" || stageId === "waiting_parts") {
+    return { id: "diagnosing", label: "Diagnostico" };
   }
-  if (stageId === "repair" || stageId === "external_repair") {
-    return { id: "repair", label: "En reparacion" };
+  if (stageId === "in_progress" || stageId === "reparacion_externa") {
+    return { id: "in_progress", label: "En reparacion" };
   }
   if (stageId === "ready_for_pickup" || stageId === "delivered" || stageId === "completed") {
-    return { id: "ready_for_delivery", label: "Listo para entrega" };
+    return { id: "ready_for_pickup", label: "Listo para entrega" };
   }
   return { id: stageId || "general", label: stageLabel || "General" };
 }
