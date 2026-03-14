@@ -6,8 +6,6 @@ import AddItemModal from "@/components/workorder/AddItemModal";
 import WorkOrderUnifiedHub from "@/components/workorder/WorkOrderUnifiedHub";
 import OrderLinksDialog from "@/components/workorder/OrderLinksDialog";
 import { loadOrderLinks } from "@/components/workorder/utils/orderLinksStore";
-import { base44 } from "@/api/base44Client";
-import { toast } from "sonner";
 
 export default function PendingOrderStage({ order, onUpdate, user }) {
   const [activeModal, setActiveModal] = useState(null);
@@ -36,44 +34,7 @@ export default function PendingOrderStage({ order, onUpdate, user }) {
       ...(order || {}),
       ...(payload || {}),
     };
-
-    if (String(order?.status || "").trim().toLowerCase() !== "pending_order") {
-      onUpdate?.(mergedOrder);
-      return;
-    }
-
-    try {
-      const now = new Date().toISOString();
-      const nextHistory = [
-        ...(Array.isArray(order?.status_history) ? order.status_history : []),
-        {
-          status: "waiting_parts",
-          timestamp: now,
-          changed_by: "Sistema",
-          note: "Transición automática desde catálogo de piezas",
-          visible_to_customer: false,
-        },
-      ];
-
-      await base44.entities.Order.update(order.id, {
-        status: "waiting_parts",
-        updated_date: now,
-        status_history: nextHistory,
-      });
-
-      onUpdate?.({
-        ...mergedOrder,
-        status: "waiting_parts",
-        updated_date: now,
-        status_history: nextHistory,
-      });
-
-      toast.success("✅ Estado cambiado a 'Esperando Piezas'");
-    } catch (error) {
-      console.error("Error auto-advancing pending_order -> waiting_parts:", error);
-      onUpdate?.(mergedOrder);
-      toast.warning("Piezas guardadas, pero el estado sigue en 'Pendiente a Ordenar'");
-    }
+    onUpdate?.(mergedOrder);
   };
 
   return (
