@@ -52,6 +52,13 @@ function linkFingerprint(link) {
   ].join("|");
 }
 
+function linkSignature(link) {
+  return [
+    String(link?.partName || "").trim().toLowerCase(),
+    String(link?.url || "").trim().toLowerCase(),
+  ].join("|");
+}
+
 function normalizeLink(input = {}) {
   const partName = String(input.partName || input.part || input.name || "").trim();
   const url = String(input.url || input.link || input.href || "").trim();
@@ -299,11 +306,28 @@ async function readRawLinks(order) {
       ? freshOrder.status_metadata.deleted_link_ids
       : []
   );
-  const filteredEventLinks = deletedIds.size > 0
-    ? eventLinks.filter((l) => !deletedIds.has(l.id))
-    : eventLinks;
+  const deletedSignatures = new Set(
+    Array.isArray(freshOrder?.status_metadata?.deleted_link_signatures)
+      ? freshOrder.status_metadata.deleted_link_signatures
+      : []
+  );
 
-  const links = dedupeLinks([...commentLinks, ...partsLinks, ...itemsLinks, ...statusLinks, ...localLinks, ...filteredEventLinks]);
+  const filterDeleted = (entries = []) =>
+    entries.filter((link) => {
+      if (!link) return false;
+      if (deletedIds.has(link.id)) return false;
+      if (deletedSignatures.has(linkSignature(link))) return false;
+      return true;
+    });
+
+  const links = dedupeLinks([
+    ...filterDeleted(commentLinks),
+    ...filterDeleted(partsLinks),
+    ...filterDeleted(itemsLinks),
+    ...filterDeleted(statusLinks),
+    ...filterDeleted(localLinks),
+    ...filterDeleted(eventLinks),
+  ]);
   return { order: freshOrder, links, commentLinks };
 }
 
@@ -317,9 +341,15 @@ async function persistOrderLinks(order, links, options = {}) {
 
   // Preserve existing deleted_link_ids so they survive future saves
   const existingDeletedIds = Array.isArray(statusMeta.deleted_link_ids) ? statusMeta.deleted_link_ids : [];
+  const existingDeletedSignatures = Array.isArray(statusMeta.deleted_link_signatures) ? statusMeta.deleted_link_signatures : [];
   // Also add any from options (set by deleteOrderLink)
   const newDeletedIds = Array.isArray(options.addDeletedIds) ? options.addDeletedIds : [];
+  const newDeletedSignatures = Array.isArray(options.addDeletedSignatures) ? options.addDeletedSignatures : [];
   const deletedLinkIds = [...new Set([...existingDeletedIds, ...newDeletedIds])];
+  const deletedLinkSignatures = [...new Set([...existingDeletedSignatures, ...newDeletedSignatures])];
+
+  const activeLinkSignatures = new Set(normalizedLinks.map((link) => linkSignature(link)));
+  const filteredDeletedSignatures = deletedLinkSignatures.filter((signature) => !activeLinkSignatures.has(signature));
 
   const updatePayload = {
     comments,
@@ -328,6 +358,7 @@ async function persistOrderLinks(order, links, options = {}) {
       ...statusMeta,
       links_registry: buildLegacyRegistry(normalizedLinks),
       ...(deletedLinkIds.length > 0 ? { deleted_link_ids: deletedLinkIds } : {}),
+      ...(filteredDeletedSignatures.length > 0 ? { deleted_link_signatures: filteredDeletedSignatures } : {}),
     },
   };
 
@@ -389,7 +420,10 @@ export async function saveOrderLink({ order, partName, url, price, user }) {
 
   const { order: freshOrder, links } = await readRawLinks(order);
   const merged = dedupeLinks([{ ...normalized, id: createLinkId(normalized.partName) }, ...links]);
-  const persisted = await persistOrderLinks(freshOrder, merged, { syncItems: true });
+  const persisted = await persistOrderLinks(freshOrder, merged, {
+    syncItems: true,
+    addDeletedSignatures: [],
+  });
 
   if (persisted?.synced !== false) {
     try {
@@ -418,6 +452,16 @@ export async function saveOrderLink({ order, partName, url, price, user }) {
 export async function deleteOrderLink({ order, linkId }) {
   if (!order?.id || !linkId) return loadOrderLinks(order);
   const { order: freshOrder, links } = await readRawLinks(order);
-  const remaining = links.filter((link) => link.id !== linkId);
-  return persistOrderLinks(freshOrder, remaining, { syncItems: true, addDeletedIds: [linkId] });
+  const targetLink = links.find((link) => link.id === linkId);
+  const targetSignature = targetLink ? linkSignature(targetLink) : null;
+  const remaining = links.filter((link) => {
+    if (link.id === linkId) return false;
+    if (targetSignature && linkSignature(link) === targetSignature) return false;
+    return true;
+  });
+  return persistOrderLinks(freshOrder, remaining, {
+    syncItems: true,
+    addDeletedIds: [linkId],
+    addDeletedSignatures: targetSignature ? [targetSignature] : [],
+  });
 }
