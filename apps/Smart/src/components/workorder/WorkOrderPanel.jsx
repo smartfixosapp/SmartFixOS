@@ -488,7 +488,7 @@ function WaitingPartsModal({ open, onClose, onSave, initialData, order }) {
   // Reset form solo cuando se abre con initialData
   useEffect(() => {
     if (!open) return;
-    
+
     setFormData({
       supplier: initialData?.supplier || "",
       tracking: "",
@@ -499,7 +499,12 @@ function WaitingPartsModal({ open, onClose, onSave, initialData, order }) {
     setLinkNames(Array.isArray(initialData?.linkNames) ? initialData.linkNames : []);
     setLinkSummary(initialData?.linkSummary || "");
     setErr("");
-  }, [open, initialData]);
+  }, [
+    open,
+    initialData?.supplier,
+    initialData?.partName,
+    initialData?.linkSummary
+  ]);
 
   useEffect(() => {
     if (!open || !order?.id) return;
