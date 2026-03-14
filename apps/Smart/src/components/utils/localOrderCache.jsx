@@ -2,6 +2,22 @@ const LOCAL_ORDERS_KEY = "smartfix_local_orders";
 const LOCAL_ORDER_SEQ_KEY = "smartfix_local_seq_order";
 const LOCAL_ORDER_REBASE_ONCE_KEY = "smartfix_local_orders_rebased_v1";
 
+const STATUS_PRIORITY = {
+  intake: 10,
+  diagnosing: 20,
+  pending_order: 30,
+  waiting_parts: 40,
+  part_arrived_waiting_device: 50,
+  reparacion_externa: 60,
+  in_progress: 70,
+  ready_for_pickup: 80,
+  picked_up: 90,
+  delivered: 100,
+  completed: 110,
+  warranty: 120,
+  cancelled: 130,
+};
+
 function safeParseArray(value) {
   try {
     const parsed = JSON.parse(value || "[]");
@@ -119,6 +135,73 @@ function normalizeOrder(order) {
   };
 }
 
+function toTimestamp(value) {
+  if (!value) return 0;
+  const ts = new Date(value).getTime();
+  return Number.isFinite(ts) ? ts : 0;
+}
+
+function normalizeStatus(status) {
+  return String(status || "").trim().toLowerCase();
+}
+
+function getStatusPriority(order) {
+  return STATUS_PRIORITY[normalizeStatus(order?.status)] || 0;
+}
+
+function getDataCompleteness(order) {
+  if (!order || typeof order !== "object") return 0;
+  return [
+    order.customer_name,
+    order.customer_phone,
+    order.device_brand,
+    order.device_model,
+    order.assigned_to,
+    order.assigned_to_name,
+    order.status_note,
+    order.status_history,
+    order.status_metadata,
+    order.order_items,
+    order.updated_date,
+    order.created_date,
+  ].reduce((score, value) => {
+    if (Array.isArray(value)) return score + (value.length ? 1 : 0);
+    if (value && typeof value === "object") return score + (Object.keys(value).length ? 1 : 0);
+    return score + (value ? 1 : 0);
+  }, 0);
+}
+
+function preferOrderVersion(currentOrder, candidateOrder) {
+  if (!currentOrder) return candidateOrder;
+  if (!candidateOrder) return currentOrder;
+
+  const currentUpdated = toTimestamp(currentOrder.updated_date);
+  const candidateUpdated = toTimestamp(candidateOrder.updated_date);
+  if (candidateUpdated !== currentUpdated) {
+    return candidateUpdated > currentUpdated ? candidateOrder : currentOrder;
+  }
+
+  const currentCreated = toTimestamp(currentOrder.created_date);
+  const candidateCreated = toTimestamp(candidateOrder.created_date);
+  if (candidateCreated !== currentCreated) {
+    return candidateCreated > currentCreated ? candidateOrder : currentOrder;
+  }
+
+  const currentStatusPriority = getStatusPriority(currentOrder);
+  const candidateStatusPriority = getStatusPriority(candidateOrder);
+  if (candidateStatusPriority !== currentStatusPriority) {
+    return candidateStatusPriority > currentStatusPriority ? candidateOrder : currentOrder;
+  }
+
+  const currentCompleteness = getDataCompleteness(currentOrder);
+  const candidateCompleteness = getDataCompleteness(candidateOrder);
+  if (candidateCompleteness !== currentCompleteness) {
+    return candidateCompleteness > currentCompleteness ? candidateOrder : currentOrder;
+  }
+
+  return currentOrder;
+}
+
 export function getLocalOrders() {
   try {
     return migrateLocalOrderStore()
@@ -137,7 +220,8 @@ export function upsertLocalOrder(order) {
     (incoming?.id && String(o?.id) === String(incoming.id)) ||
     (canonicalIncomingNumber && String(o?.order_number) === String(canonicalIncomingNumber))
   );
-  const normalized = normalizeOrder({ ...(existing || {}), ...(incoming || {}) });
+  const mergedInput = { ...(existing || {}), ...(incoming || {}) };
+  const normalized = normalizeOrder(preferOrderVersion(existing, normalizeOrder(mergedInput)));
   if (!normalized) return;
 
   const merged = [
@@ -161,7 +245,7 @@ export function mergeOrders(remoteOrders = [], localOrders = []) {
     if (!normalized) return;
     const canonicalNumber = canonicalOrderNumber(normalized.order_number);
     const key = canonicalNumber || normalized.id;
-    map.set(key, { ...(map.get(key) || {}), ...normalized });
+    map.set(key, preferOrderVersion(map.get(key), normalized));
   });
 
   return Array.from(map.values()).sort((a, b) => {

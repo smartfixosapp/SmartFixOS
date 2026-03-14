@@ -415,10 +415,8 @@ export default function OrdersPage() {
 
   const handleOrderUpdated = useCallback((updatedOrder) => {
     if (updatedOrder) {
-      // Actualización optimista: actualizar solo la orden modificada
-      setOrders(prevOrders => 
-        prevOrders.map(o => o.id === updatedOrder.id ? { ...o, ...updatedOrder } : o)
-      );
+      upsertLocalOrder(updatedOrder);
+      setOrders((prevOrders) => mergeOrders([updatedOrder], prevOrders || []));
     } else {
       // Fallback: refrescar si no hay datos
       setRefreshTick((t) => t + 1);
