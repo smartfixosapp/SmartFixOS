@@ -7,6 +7,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { dataClient } from "@/components/api/dataClient";
 import { base44 } from "@/api/base44Client";
 import { catalogCache } from "@/components/utils/dataCache";
+import { supabase } from "../../../../../lib/supabase-client.js";
 import { toast } from "sonner";
 import QuickItemModal from "../inventory/QuickItemModal";
 import {
@@ -38,6 +39,19 @@ function withTimeout(promise, ms = 5000) {
 function toNum(value, fallback = 0) {
   const n = Number(value);
   return Number.isFinite(n) ? n : fallback;
+}
+
+function getTenantId() {
+  try {
+    const raw = localStorage.getItem("employee_session") || sessionStorage.getItem("911-session");
+    if (raw) {
+      const session = JSON.parse(raw);
+      if (session?.tenant_id) return session.tenant_id;
+    }
+    return localStorage.getItem("smartfix_tenant_id") || null;
+  } catch {
+    return localStorage.getItem("smartfix_tenant_id") || null;
+  }
 }
 
 function normalizeInventoryItem(raw = {}, fallbackType = "product") {
@@ -438,7 +452,26 @@ export default function AddItemModal({
         await dataClient.entities.Order.update(order.id, updatePayload);
       } catch (primaryError) {
         console.warn("[AddItemModal] dataClient update failed, trying base44 fallback:", primaryError);
-        await base44.entities.Order.update(order.id, updatePayload);
+        try {
+          await base44.entities.Order.update(order.id, updatePayload);
+        } catch (secondaryError) {
+          console.warn("[AddItemModal] base44 update failed, trying direct supabase fallback:", secondaryError);
+          let query = supabase
+            .from("order")
+            .update({
+              ...updatePayload,
+              updated_date: new Date().toISOString(),
+            })
+            .eq("id", order.id);
+
+          const tenantId = getTenantId();
+          if (tenantId) {
+            query = query.eq("tenant_id", tenantId);
+          }
+
+          const { error: directError } = await query.select("id").maybeSingle();
+          if (directError) throw directError;
+        }
       }
 
       toast.success("Items de la orden actualizados");
