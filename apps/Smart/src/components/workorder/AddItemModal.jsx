@@ -144,13 +144,19 @@ function uniqueByKey(items = []) {
   const seen = new Set();
   const out = [];
   for (const it of items) {
-    const key = [
-      String(it?.link_ref_id || "").trim().toLowerCase(),
-      String(it?.id || "").trim().toLowerCase(),
-      String(it?.sku || "").trim().toLowerCase(),
-      String(it?.name || "").trim().toLowerCase(),
-      String(toNum(it?.price, 0).toFixed(2)),
-    ].join("|");
+    const linkRef = String(it?.link_ref_id || "").trim().toLowerCase();
+    const sku = String(it?.sku || "").trim().toLowerCase();
+    const name = String(it?.name || "").trim().toLowerCase();
+    const price = String(toNum(it?.price, 0).toFixed(2));
+    const type = String(it?.type || it?.__kind || "").trim().toLowerCase();
+    const id = String(it?.id || "").trim().toLowerCase();
+
+    const key = linkRef
+      ? `link|${linkRef}`
+      : sku
+      ? `sku|${type}|${sku}|${price}`
+      : `item|${type}|${name}|${price}|${id}`;
+
     if (!key || seen.has(key)) continue;
     seen.add(key);
     out.push(it);
@@ -199,7 +205,7 @@ export default function AddItemModal({
 
     // Init cart desde props (rápido, cubre el caso donde ya están actualizados)
     const normalizedCart = Array.isArray(liveSourceItems)
-      ? liveSourceItems.map((i) => normalizeCartItem(i))
+      ? uniqueByKey(liveSourceItems.map((i) => normalizeCartItem(i)))
       : [];
     setCartItems(normalizedCart);
 
@@ -210,7 +216,7 @@ export default function AddItemModal({
         .then((freshOrder) => {
           const propItems = Array.isArray(liveSourceItems) ? liveSourceItems : [];
           const freshItems = Array.isArray(freshOrder?.order_items) ? freshOrder.order_items : [];
-          const mergedOrderItems = [...propItems, ...freshItems];
+          const mergedOrderItems = uniqueByKey([...propItems, ...freshItems]);
 
           if (mergedOrderItems.length > 0) {
             setCartItems(mergedOrderItems.map((i) => normalizeCartItem(i)));
