@@ -356,37 +356,42 @@ export default function WarrantyStage({ order, onUpdate }) {
         </section>
       </div>
 
-      <section className="overflow-hidden rounded-[28px] border border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.05),rgba(255,255,255,0.02))] shadow-[0_18px_50px_rgba(0,0,0,0.28)]">
-        <div className="border-b border-white/10 bg-white/5 p-5">
-          <div className="flex items-center justify-between gap-3">
-            <div>
-              <h3 className="flex items-center gap-2 text-white font-bold">
-                <ShoppingCart className="w-5 h-5 text-cyan-400" />
-                Piezas y Servicios
-              </h3>
-              <p className="mt-1 text-sm text-white/45">
-                Úsalo solo si la garantía requiere piezas nuevas, cargos parciales o trazabilidad económica.
-              </p>
+      <section className="relative overflow-hidden rounded-[30px] border border-amber-500/15 bg-[radial-gradient(circle_at_top_left,rgba(245,158,11,0.10),transparent_24%),radial-gradient(circle_at_bottom_right,rgba(34,211,238,0.10),transparent_28%),linear-gradient(180deg,rgba(24,24,27,0.98),rgba(10,10,12,0.98))] shadow-[0_22px_70px_rgba(0,0,0,0.35)]">
+        <div className="absolute inset-0 bg-[linear-gradient(120deg,transparent,rgba(255,255,255,0.025),transparent)]" />
+        <div className="relative z-10 border-b border-white/10 px-6 py-5">
+          <div className="flex items-start justify-between gap-4">
+            <div className="flex items-start gap-4">
+              <div className="flex h-12 w-12 items-center justify-center rounded-2xl border border-cyan-400/20 bg-cyan-500/15 shadow-[0_10px_30px_rgba(34,211,238,0.12)]">
+                <ShoppingCart className="h-5 w-5 text-cyan-300" />
+              </div>
+              <div>
+                <p className="text-[11px] font-semibold uppercase tracking-[0.28em] text-white/35">Cobertura y extras</p>
+                <h3 className="mt-1 text-2xl font-black tracking-tight text-white">Piezas y Servicios</h3>
+                <p className="mt-2 max-w-2xl text-sm leading-relaxed text-white/55">
+                  Úsalo solo si la garantía requiere piezas nuevas, cargos parciales o una trazabilidad económica más precisa.
+                </p>
+              </div>
             </div>
             <Button
               size="sm"
               onClick={() => setShowCatalog(true)}
-              className="h-9 rounded-xl bg-cyan-600 text-white shadow-lg shadow-cyan-950/20 hover:bg-cyan-500"
+              className="h-10 rounded-2xl bg-cyan-500/90 px-4 text-sm font-bold text-slate-950 shadow-lg shadow-cyan-950/20 hover:bg-cyan-400"
             >
-              <Plus className="w-4 h-4 mr-1" />
+              <Plus className="mr-2 h-4 w-4" />
               Añadir
             </Button>
           </div>
         </div>
 
-        <div className="p-6">
+        <div className="relative z-10 p-6">
           {itemCount === 0 ? (
-            <div className="rounded-2xl border-2 border-dashed border-white/10 bg-black/20 px-6 py-12 text-center">
-              <ShoppingCart className="mx-auto mb-3 h-10 w-10 text-white/25" />
-              <p className="text-sm font-medium text-white/55">No hay extras registrados en esta garantía.</p>
+            <div className="rounded-[24px] border border-dashed border-white/10 bg-black/20 px-6 py-14 text-center">
+              <ShoppingCart className="mx-auto mb-4 h-12 w-12 text-white/20" />
+              <p className="text-base font-semibold text-white/55">No hay extras registrados en esta garantía.</p>
+              <p className="mt-2 text-sm text-white/35">Si algo no queda cubierto o requiere trazabilidad adicional, añádelo desde aquí.</p>
             </div>
           ) : (
-            <div className="overflow-hidden rounded-2xl border border-white/10 bg-black/20">
+            <div className="overflow-hidden rounded-[24px] border border-white/10 bg-black/20">
               <div className="divide-y divide-white/5">
                 {items.map((item, idx) => {
                   const qty = Number(item?.qty || item?.quantity || 1);
@@ -396,32 +401,37 @@ export default function WarrantyStage({ order, onUpdate }) {
                   const itemTotal = lineTotal - lineTotal * (discount / 100);
 
                   return (
-                    <div key={`${item?.id || item?.name || "item"}-${idx}`} className="p-4 hover:bg-white/5 transition-colors">
+                    <div key={`${item?.id || item?.name || "item"}-${idx}`} className="px-6 py-5 transition-colors hover:bg-white/[0.03]">
                       <div className="flex items-start justify-between gap-4">
                         <div className="min-w-0 flex-1">
-                          <p className="truncate text-sm font-bold text-white">{item?.name || "Item"}</p>
-                          <div className="mt-1.5 flex flex-wrap gap-2">
-                            <Badge variant="outline" className="border-white/10 bg-white/5 px-2 py-0.5 text-[10px] text-gray-400">
+                          <p className="truncate text-xl font-black tracking-tight text-white">{item?.name || "Item"}</p>
+                          <p className="mt-2 text-sm text-white/45">
+                            {item?.type === "service" ? "Servicio agregado a cobertura de garantía." : "Producto agregado a cobertura de garantía."}
+                          </p>
+                          <div className="mt-4 flex flex-wrap gap-2">
+                            <Badge variant="outline" className="rounded-full border-white/10 bg-white/5 px-3 py-1 text-[11px] text-gray-300">
                               ${price.toFixed(2)} c/u
                             </Badge>
-                            <Badge variant="outline" className="border-white/10 bg-white/5 px-2 py-0.5 text-[10px] text-gray-400">
+                            <Badge variant="outline" className="rounded-full border-white/10 bg-white/5 px-3 py-1 text-[11px] text-gray-300">
                               {item?.type === "service" ? "Servicio" : "Producto"}
                             </Badge>
                             {discount > 0 && (
-                              <Badge className="border-orange-500/30 bg-orange-500/20 px-2 py-0.5 text-[10px] text-orange-300">
+                              <Badge className="rounded-full border-orange-500/30 bg-orange-500/20 px-3 py-1 text-[11px] text-orange-300">
                                 -{discount}% desc.
                               </Badge>
                             )}
                             {item?.taxable === false && (
-                              <Badge className="border-violet-500/30 bg-violet-500/20 px-2 py-0.5 text-[10px] text-violet-300">
+                              <Badge className="rounded-full border-violet-500/30 bg-violet-500/20 px-3 py-1 text-[11px] text-violet-300">
                                 Sin IVU
                               </Badge>
                             )}
                           </div>
                         </div>
                         <div className="pl-4 text-right">
-                          <span className="text-xs font-medium text-white/45">x{qty}</span>
-                          <p className="mt-1 text-lg font-bold text-emerald-300">${itemTotal.toFixed(2)}</p>
+                          <div className="inline-flex items-center rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs font-semibold text-white/70">
+                            x{qty}
+                          </div>
+                          <p className="mt-3 text-3xl font-black tracking-tight text-emerald-300">${itemTotal.toFixed(2)}</p>
                         </div>
                       </div>
                     </div>
@@ -429,69 +439,85 @@ export default function WarrantyStage({ order, onUpdate }) {
                 })}
               </div>
 
-              <div className="space-y-3 border-t border-white/10 bg-black/40 p-5">
-                <div className="flex items-center justify-between text-sm">
-                  <span className="font-medium text-gray-400">Subtotal</span>
-                  <span className="font-bold text-white">${totals.subtotal.toFixed(2)}</span>
-                </div>
-                <div className="flex items-center justify-between text-sm">
-                  <span className="font-medium text-gray-400">IVU (11.5%)</span>
-                  <span className="font-bold text-white">${totals.tax.toFixed(2)}</span>
-                </div>
-                <div className="flex items-center justify-between border-t border-white/5 pt-3">
-                  <span className="text-sm font-bold text-gray-300">Total</span>
-                  <span className="text-2xl font-bold text-white">${totals.total.toFixed(2)}</span>
-                </div>
-
-                {totalPaid > 0 && (
-                  <>
-                    <div className="flex items-center justify-between pt-1 text-xs">
-                      <span className="font-medium text-gray-400">Pagado / Depósito</span>
-                      <span className="font-bold text-emerald-400">-${totalPaid.toFixed(2)}</span>
+              <div className="grid gap-4 border-t border-white/10 bg-black/35 p-5 lg:grid-cols-[1fr_360px]">
+                <div className="space-y-3">
+                  <div className="rounded-[20px] border border-white/8 bg-black/20 px-5 py-4">
+                    <div className="flex items-center justify-between text-sm">
+                      <span className="font-medium text-gray-400">Subtotal</span>
+                      <span className="text-xl font-black tracking-tight text-white">${totals.subtotal.toFixed(2)}</span>
                     </div>
-                    <div className="flex items-center justify-between border-t border-white/5 pt-3">
-                      <span className="text-base font-bold text-white">Balance pendiente</span>
-                      <span className={`text-2xl font-bold ${totals.balanceDue <= 0.01 ? "text-emerald-500" : "text-white"}`}>
-                        ${totals.balanceDue.toFixed(2)}
-                      </span>
-                    </div>
-                  </>
-                )}
-
-                {totals.balanceDue > 0.01 ? (
-                  <div className="grid grid-cols-1 gap-4 pt-5 md:grid-cols-2">
-                    <Button
-                      variant="outline"
-                      className="h-12 rounded-xl border-emerald-500/30 text-emerald-300 hover:bg-emerald-500/10"
-                      onClick={() => {
-                        window.dispatchEvent(new Event("close-workorder-panel"));
-                        navigate(`/POS?workOrderId=${o.id}&mode=deposit`);
-                      }}
-                    >
-                      <Wallet className="mr-2 h-5 w-5" />
-                      Depósito
-                    </Button>
-                    <Button
-                      className="h-12 rounded-xl bg-emerald-600 text-white shadow-lg shadow-emerald-900/20 hover:bg-emerald-500"
-                      onClick={() => {
-                        window.dispatchEvent(new Event("close-workorder-panel"));
-                        navigate(`/POS?workOrderId=${o.id}&mode=full`);
-                      }}
-                    >
-                      <DollarSign className="mr-2 h-5 w-5" />
-                      Cobrar Restante
-                    </Button>
                   </div>
-                ) : (
-                  <div className="pt-5">
-                    <div className="w-full rounded-xl border border-emerald-500/20 bg-emerald-500/10 p-4 text-center">
+                  <div className="rounded-[20px] border border-white/8 bg-black/20 px-5 py-4">
+                    <div className="flex items-center justify-between text-sm">
+                      <span className="font-medium text-gray-400">IVU (11.5%)</span>
+                      <span className="text-xl font-black tracking-tight text-white">${totals.tax.toFixed(2)}</span>
+                    </div>
+                  </div>
+                  <div className="rounded-[20px] border border-emerald-500/15 bg-emerald-500/10 px-5 py-4">
+                    <div className="flex items-center justify-between">
+                      <span className="text-base font-bold text-white">Total</span>
+                      <span className="text-3xl font-black tracking-tight text-white">${totals.total.toFixed(2)}</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="rounded-[24px] border border-amber-500/15 bg-[linear-gradient(180deg,rgba(245,158,11,0.08),rgba(0,0,0,0.18))] p-5">
+                  <p className="text-[11px] font-semibold uppercase tracking-[0.28em] text-white/35">Acciones de cobro</p>
+                  <h4 className="mt-2 text-2xl font-black tracking-tight text-white">
+                    {totals.balanceDue > 0.01 ? "Cerrar diferencia de garantía" : "Sin cobro adicional"}
+                  </h4>
+                  <p className="mt-2 text-sm leading-relaxed text-white/55">
+                    {totals.balanceDue > 0.01
+                      ? "Si el reclamo no cubre todo, puedes registrar depósito o cobrar el restante sin salir de la orden."
+                      : "La garantía no dejó balance adicional pendiente. Puedes continuar sin fricción comercial."}
+                  </p>
+                  {totalPaid > 0 && (
+                    <div className="mt-4 rounded-[18px] border border-emerald-500/15 bg-emerald-500/10 px-4 py-3">
+                      <div className="flex items-center justify-between text-sm">
+                        <span className="font-medium text-emerald-100/80">Pagado / Depósito</span>
+                        <span className="font-bold text-emerald-300">-${totalPaid.toFixed(2)}</span>
+                      </div>
+                      <div className="mt-3 flex items-center justify-between border-t border-emerald-400/10 pt-3">
+                        <span className="font-semibold text-white">Balance pendiente</span>
+                        <span className={`text-2xl font-black tracking-tight ${totals.balanceDue <= 0.01 ? "text-emerald-300" : "text-white"}`}>
+                          ${totals.balanceDue.toFixed(2)}
+                        </span>
+                      </div>
+                    </div>
+                  )}
+                  {totals.balanceDue > 0.01 ? (
+                    <div className="mt-5 grid grid-cols-1 gap-4">
+                      <Button
+                        variant="outline"
+                        className="h-12 rounded-2xl border-emerald-500/30 text-emerald-300 hover:bg-emerald-500/10"
+                        onClick={() => {
+                          window.dispatchEvent(new Event("close-workorder-panel"));
+                          navigate(`/POS?workOrderId=${o.id}&mode=deposit`);
+                        }}
+                      >
+                        <Wallet className="mr-2 h-5 w-5" />
+                        Depósito
+                      </Button>
+                      <Button
+                        className="h-12 rounded-2xl bg-emerald-600 text-white shadow-lg shadow-emerald-900/20 hover:bg-emerald-500"
+                        onClick={() => {
+                          window.dispatchEvent(new Event("close-workorder-panel"));
+                          navigate(`/POS?workOrderId=${o.id}&mode=full`);
+                        }}
+                      >
+                        <DollarSign className="mr-2 h-5 w-5" />
+                        Cobrar Restante
+                      </Button>
+                    </div>
+                  ) : (
+                    <div className="mt-5 rounded-[18px] border border-emerald-500/20 bg-emerald-500/10 p-4 text-center">
                       <p className="flex items-center justify-center gap-2 text-lg font-bold text-emerald-400">
                         <BadgeCheck className="h-5 w-5" />
                         Sin cobro adicional pendiente
                       </p>
                     </div>
-                  </div>
-                )}
+                  )}
+                </div>
               </div>
             </div>
           )}

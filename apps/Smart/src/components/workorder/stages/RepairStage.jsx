@@ -183,49 +183,56 @@ export default function RepairStage({ order, onUpdate }) {
               </div>
             </div>
 
-            <div className="rounded-[26px] border border-amber-400/15 bg-[linear-gradient(180deg,rgba(245,158,11,0.08),rgba(0,0,0,0.18))] p-4 backdrop-blur-md">
-              <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-                <div className="min-w-0">
-                  <div className="flex items-center gap-2">
-                    <Package2 className="h-4 w-4 text-amber-300" />
-                    <p className="text-[11px] font-semibold uppercase tracking-[0.28em] text-white/35">Soporte de reparación</p>
+            <section className="relative overflow-hidden rounded-[28px] border border-amber-500/15 bg-[radial-gradient(circle_at_top_left,rgba(245,158,11,0.12),transparent_24%),radial-gradient(circle_at_bottom_right,rgba(34,211,238,0.10),transparent_28%),linear-gradient(180deg,rgba(24,24,27,0.98),rgba(10,10,12,0.98))] shadow-[0_18px_50px_rgba(0,0,0,0.28)]">
+              <div className="absolute inset-0 bg-[linear-gradient(120deg,transparent,rgba(255,255,255,0.025),transparent)]" />
+              <div className="relative z-10 border-b border-white/10 px-5 py-4">
+                <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+                  <div className="flex items-start gap-4">
+                    <div className="flex h-12 w-12 items-center justify-center rounded-2xl border border-amber-400/20 bg-amber-500/15 shadow-[0_10px_30px_rgba(245,158,11,0.12)]">
+                      <ShoppingCart className="h-5 w-5 text-amber-300" />
+                    </div>
+                    <div className="min-w-0">
+                      <p className="text-[11px] font-semibold uppercase tracking-[0.28em] text-white/35">Soporte de reparación</p>
+                      <h3 className="mt-1 text-2xl font-black tracking-tight text-white">Piezas y Servicios</h3>
+                      <p className="mt-2 max-w-2xl text-sm leading-relaxed text-white/55">
+                        {itemCount > 0
+                          ? `${itemCount} item${itemCount === 1 ? "" : "s"} registrado${itemCount === 1 ? "" : "s"} · $${itemTotal.toFixed(2)} estimado`
+                          : "Sin piezas registradas todavía. Añade solo lo que impacta esta reparación."}
+                      </p>
+                    </div>
                   </div>
-                  <h3 className="mt-1 text-lg font-black tracking-tight text-white">Piezas y servicios</h3>
-                  <p className="mt-1 text-sm text-white/55">
-                    {itemCount > 0
-                      ? `${itemCount} item${itemCount === 1 ? "" : "s"} registrado${itemCount === 1 ? "" : "s"} · $${itemTotal.toFixed(2)} estimado`
-                      : "Sin piezas registradas todavía. Añade solo lo que impacta esta reparación."}
-                  </p>
+                  <Button
+                    type="button"
+                    onClick={() => setShowCatalog(true)}
+                    className="h-10 rounded-2xl bg-gradient-to-r from-amber-500 to-orange-500 px-5 font-bold text-slate-950 shadow-[0_12px_30px_rgba(245,158,11,0.22)] hover:from-amber-400 hover:to-orange-400"
+                  >
+                    <Plus className="mr-2 h-4 w-4" />
+                    Añadir
+                  </Button>
                 </div>
-                <Button
-                  type="button"
-                  onClick={() => setShowCatalog(true)}
-                  className="rounded-2xl bg-amber-500/90 px-5 text-slate-950 shadow-lg shadow-amber-950/20 hover:bg-amber-400"
-                >
-                  <Plus className="mr-2 h-4 w-4" />
-                  Añadir piezas
-                </Button>
               </div>
 
               {itemPreview.length > 0 && (
-                <div className="mt-4 flex flex-wrap gap-2">
-                  {itemPreview.map((item, index) => (
-                    <div
-                      key={`${item?.id || item?.name || "item"}-${index}`}
-                      className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-black/25 px-3 py-1.5 text-xs text-white/80"
-                    >
-                      <ReceiptText className="h-3.5 w-3.5 text-amber-300" />
-                      <span className="max-w-[220px] truncate">{item?.name || "Item"}</span>
-                    </div>
-                  ))}
-                  {itemCount > itemPreview.length && (
-                    <div className="inline-flex items-center rounded-full border border-white/10 bg-black/25 px-3 py-1.5 text-xs text-white/60">
-                      +{itemCount - itemPreview.length} más
-                    </div>
-                  )}
+                <div className="relative z-10 px-5 py-4">
+                  <div className="flex flex-wrap gap-2">
+                    {itemPreview.map((item, index) => (
+                      <div
+                        key={`${item?.id || item?.name || "item"}-${index}`}
+                        className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-black/25 px-3 py-1.5 text-xs text-white/80"
+                      >
+                        <ReceiptText className="h-3.5 w-3.5 text-amber-300" />
+                        <span className="max-w-[220px] truncate">{item?.name || "Item"}</span>
+                      </div>
+                    ))}
+                    {itemCount > itemPreview.length && (
+                      <div className="inline-flex items-center rounded-full border border-white/10 bg-black/25 px-3 py-1.5 text-xs text-white/60">
+                        +{itemCount - itemPreview.length} más
+                      </div>
+                    )}
+                  </div>
                 </div>
               )}
-            </div>
+            </section>
           </div>
         </div>
       </section>

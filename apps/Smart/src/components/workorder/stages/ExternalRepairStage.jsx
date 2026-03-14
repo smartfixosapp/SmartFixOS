@@ -58,27 +58,32 @@ export default function ExternalRepairStage({ order, onUpdate }) {
             </div>
           </div>
 
-          <div className="rounded-[26px] border border-fuchsia-400/15 bg-black/25 p-5 backdrop-blur-md">
-            <div className="flex items-start gap-3">
-              <div className="flex h-12 w-12 items-center justify-center rounded-2xl border border-fuchsia-400/20 bg-fuchsia-500/15">
-                <ExternalLink className="h-5 w-5 text-fuchsia-300" />
-              </div>
-              <div>
-                <p className="text-[11px] font-semibold uppercase tracking-[0.28em] text-white/35">Accion rapida</p>
-                <h3 className="mt-1 text-xl font-black tracking-tight text-white">Preparar costos</h3>
-                <p className="mt-2 text-sm leading-relaxed text-white/55">
-                  Añade piezas y servicios relacionados al trabajo externo para mantener la cotización y el cierre alineados.
-                </p>
+          <section className="relative overflow-hidden rounded-[28px] border border-fuchsia-500/15 bg-[radial-gradient(circle_at_top_left,rgba(217,70,239,0.12),transparent_24%),radial-gradient(circle_at_bottom_right,rgba(34,211,238,0.10),transparent_28%),linear-gradient(180deg,rgba(24,24,27,0.98),rgba(10,10,12,0.98))] shadow-[0_18px_50px_rgba(0,0,0,0.28)]">
+            <div className="absolute inset-0 bg-[linear-gradient(120deg,transparent,rgba(255,255,255,0.025),transparent)]" />
+            <div className="relative z-10 border-b border-white/10 px-5 py-4">
+              <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+                <div className="flex items-start gap-4">
+                  <div className="flex h-12 w-12 items-center justify-center rounded-2xl border border-cyan-400/20 bg-cyan-500/15 shadow-[0_10px_30px_rgba(34,211,238,0.12)]">
+                    <ShoppingCart className="h-5 w-5 text-cyan-300" />
+                  </div>
+                  <div>
+                    <p className="text-[11px] font-semibold uppercase tracking-[0.28em] text-white/35">Cobro y trazabilidad</p>
+                    <h3 className="mt-1 text-2xl font-black tracking-tight text-white">Piezas y Servicios</h3>
+                    <p className="mt-2 max-w-2xl text-sm leading-relaxed text-white/55">
+                      Añade piezas y servicios relacionados al trabajo externo para mantener la cotización y el cierre alineados.
+                    </p>
+                  </div>
+                </div>
                 <Button
                   onClick={() => setShowCatalog(true)}
-                  className="mt-4 rounded-2xl border-0 bg-fuchsia-600 px-5 text-white shadow-lg shadow-fuchsia-950/25 hover:bg-fuchsia-500"
+                  className="h-10 rounded-2xl bg-gradient-to-r from-cyan-500 to-fuchsia-500 px-5 font-bold text-slate-950 shadow-[0_12px_30px_rgba(34,211,238,0.2)] hover:from-cyan-400 hover:to-fuchsia-400"
                 >
                   <ShoppingCart className="mr-2 h-4 w-4" />
                   Piezas y Servicios
                 </Button>
               </div>
             </div>
-          </div>
+          </section>
         </div>
       </section>
 

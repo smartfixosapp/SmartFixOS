@@ -160,28 +160,31 @@ export default function IntakeStage({ order, onUpdate }) {
         </div>
       </section>
 
-      <section className="relative overflow-hidden rounded-[28px] border border-blue-500/20 bg-[linear-gradient(90deg,rgba(37,99,235,0.12),rgba(139,92,246,0.08))] p-5 shadow-[0_18px_50px_rgba(0,0,0,0.28)]">
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_right,rgba(255,255,255,0.08),transparent_35%)] pointer-events-none" />
-        <div className="relative z-10 flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-          <div className="flex items-start gap-4">
-            <div className="flex h-12 w-12 items-center justify-center rounded-2xl border border-blue-400/25 bg-blue-500/15">
-              <AlertTriangle className="h-5 w-5 text-blue-400" />
+      <section className="relative overflow-hidden rounded-[30px] border border-cyan-500/15 bg-[radial-gradient(circle_at_top_left,rgba(34,211,238,0.12),transparent_26%),radial-gradient(circle_at_bottom_right,rgba(59,130,246,0.12),transparent_30%),linear-gradient(180deg,rgba(24,24,27,0.98),rgba(10,10,12,0.98))] shadow-[0_22px_70px_rgba(0,0,0,0.35)]">
+        <div className="absolute inset-0 bg-[linear-gradient(120deg,transparent,rgba(255,255,255,0.025),transparent)]" />
+        <div className="relative z-10 border-b border-white/10 px-6 py-5">
+          <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+            <div className="flex items-start gap-4">
+              <div className="flex h-12 w-12 items-center justify-center rounded-2xl border border-cyan-400/20 bg-cyan-500/15 shadow-[0_10px_30px_rgba(34,211,238,0.12)]">
+                <ShoppingCart className="h-5 w-5 text-cyan-300" />
+              </div>
+              <div>
+                <p className="text-[11px] font-semibold uppercase tracking-[0.28em] text-white/35">Recepción y presupuesto</p>
+                <h3 className="mt-1 text-2xl font-black tracking-tight text-white">Piezas y Servicios</h3>
+                <p className="mt-2 max-w-2xl text-sm leading-relaxed text-white/55">
+                  Si en recepción ya sabes qué hace falta, registra aquí piezas o servicios sin salir del flujo inicial.
+                </p>
+              </div>
             </div>
-            <div>
-              <h4 className="text-xl font-black tracking-tight text-white">Recepción del Equipo</h4>
-              <p className="text-sm font-medium text-white/55">
-                Verifica estado físico, funcional y prepara la orden con piezas o servicios si hace falta.
-              </p>
-            </div>
-          </div>
 
-          <Button
-            onClick={() => setShowCatalog(true)}
-            className="flex h-11 items-center whitespace-nowrap rounded-2xl border border-white/15 bg-white px-5 font-bold text-purple-700 shadow-lg transition-all hover:scale-[1.03] hover:bg-white/95 active:scale-95"
-          >
-            <ShoppingCart className="mr-2 h-4 w-4 flex-shrink-0" />
-            <span>Piezas y Servicios</span>
-          </Button>
+            <Button
+              onClick={() => setShowCatalog(true)}
+              className="h-10 rounded-2xl bg-gradient-to-r from-cyan-500 to-blue-500 px-5 font-bold text-slate-950 shadow-[0_12px_30px_rgba(34,211,238,0.22)] hover:from-cyan-400 hover:to-blue-400"
+            >
+              <ShoppingCart className="mr-2 h-4 w-4" />
+              Piezas y Servicios
+            </Button>
+          </div>
         </div>
       </section>
 

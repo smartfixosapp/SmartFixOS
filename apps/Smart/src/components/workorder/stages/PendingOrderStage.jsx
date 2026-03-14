@@ -124,54 +124,112 @@ export default function PendingOrderStage({ order, onUpdate, user }) {
         if (items.length === 0) return null;
         const subtotal = items.reduce((s, it) => s + Number(it.total || Number(it.price || 0) * Number(it.qty || 1)), 0);
         return (
-          <div className="bg-white/5 backdrop-blur-xl border border-yellow-500/15 rounded-[24px] overflow-hidden shadow-lg">
-            <div className="p-5 border-b border-white/10 bg-yellow-500/5">
-              <div className="flex items-center justify-between">
-                <h3 className="text-white font-bold flex items-center gap-2">
-                  <ShoppingCart className="w-5 h-5 text-yellow-400" />
-                  Piezas y Servicios
-                  <span className="text-xs text-yellow-300/70 font-normal ml-1">({items.length} item{items.length !== 1 ? 's' : ''})</span>
-                </h3>
-                <Button
-                  size="sm"
-                  onClick={() => setShowCatalog(true)}
-                  className="h-8 bg-yellow-500 hover:bg-yellow-400 text-black rounded-xl font-bold text-xs px-3"
-                >
-                  + Añadir
-                </Button>
+          <section className="relative overflow-hidden rounded-[30px] border border-yellow-500/15 bg-[radial-gradient(circle_at_top_left,rgba(250,204,21,0.10),transparent_24%),radial-gradient(circle_at_bottom_right,rgba(249,115,22,0.10),transparent_28%),linear-gradient(180deg,rgba(24,24,27,0.98),rgba(10,10,12,0.98))] shadow-[0_22px_70px_rgba(0,0,0,0.35)]">
+            <div className="absolute inset-0 bg-[linear-gradient(120deg,transparent,rgba(255,255,255,0.025),transparent)]" />
+            <div className="relative z-10 border-b border-white/10 px-6 py-5">
+              <div className="flex items-start justify-between gap-4">
+                <div className="flex items-start gap-4">
+                  <div className="flex h-12 w-12 items-center justify-center rounded-2xl border border-yellow-400/20 bg-yellow-500/15 shadow-[0_10px_30px_rgba(250,204,21,0.12)]">
+                    <ShoppingCart className="h-5 w-5 text-yellow-300" />
+                  </div>
+                  <div>
+                    <p className="text-[11px] font-semibold uppercase tracking-[0.28em] text-white/35">Cotización operativa</p>
+                    <h3 className="mt-1 text-2xl font-black tracking-tight text-white">Piezas y Servicios</h3>
+                    <p className="mt-2 max-w-2xl text-sm leading-relaxed text-white/55">
+                      Conserva aquí la lista viva de compra para que el pedido, el costo y los links queden alineados antes de avanzar la orden.
+                    </p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-3">
+                  <div className="inline-flex items-center rounded-full border border-yellow-400/20 bg-yellow-500/10 px-3 py-1 text-xs font-semibold text-yellow-200">
+                    {items.length} item{items.length !== 1 ? "s" : ""}
+                  </div>
+                  <Button
+                    size="sm"
+                    onClick={() => setShowCatalog(true)}
+                    className="h-10 rounded-2xl border-0 bg-yellow-500 px-4 text-sm font-bold text-black shadow-lg shadow-yellow-950/20 hover:bg-yellow-400"
+                  >
+                    <Plus className="mr-2 h-4 w-4" />
+                    Añadir
+                  </Button>
+                </div>
               </div>
             </div>
-            <div className="divide-y divide-white/5">
-              {items.map((item, idx) => (
-                <div key={idx} className="flex items-center justify-between px-5 py-3 hover:bg-white/[0.03] transition-colors">
-                  <div className="min-w-0 flex-1">
-                    <p className="text-white text-sm font-semibold truncate">{item.name}</p>
-                    <div className="flex items-center gap-2 mt-0.5">
-                      <span className="text-[11px] text-gray-400">${Number(item.price || 0).toFixed(2)} c/u · x{item.qty || 1}</span>
-                      {item.link_url && (
-                        <a
-                          href={item.link_url}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          onClick={(e) => e.stopPropagation()}
-                          className="inline-flex items-center gap-1 text-[10px] text-yellow-300/70 hover:text-yellow-300 transition-colors"
-                        >
-                          <LinkIcon className="w-2.5 h-2.5" /> ver link
-                        </a>
-                      )}
+
+            <div className="relative z-10 p-6">
+              <div className="overflow-hidden rounded-[24px] border border-white/10 bg-black/20">
+                <div className="divide-y divide-white/5">
+                  {items.map((item, idx) => (
+                    <div key={idx} className="px-6 py-5 transition-colors hover:bg-white/[0.03]">
+                      <div className="flex items-start justify-between gap-4">
+                        <div className="min-w-0 flex-1">
+                          <p className="truncate text-xl font-black tracking-tight text-white">{item.name}</p>
+                          <p className="mt-2 text-sm text-white/45">
+                            {item.type === "service" ? "Servicio agregado para orden de compra." : "Producto agregado para orden de compra."}
+                          </p>
+                          <div className="mt-4 flex flex-wrap gap-2">
+                            <Badge variant="outline" className="rounded-full border-white/10 bg-white/5 px-3 py-1 text-[11px] text-gray-300">
+                              ${Number(item.price || 0).toFixed(2)} c/u
+                            </Badge>
+                            <Badge variant="outline" className="rounded-full border-white/10 bg-white/5 px-3 py-1 text-[11px] text-gray-300">
+                              {item.type === "service" ? "Servicio" : "Producto"}
+                            </Badge>
+                            {item.link_url && (
+                              <a
+                                href={item.link_url}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                onClick={(e) => e.stopPropagation()}
+                                className="inline-flex items-center gap-1 rounded-full border border-yellow-500/20 bg-yellow-500/10 px-3 py-1 text-[11px] font-semibold text-yellow-200 transition-colors hover:bg-yellow-500/15"
+                              >
+                                <LinkIcon className="h-3.5 w-3.5" />
+                                Ver link
+                              </a>
+                            )}
+                          </div>
+                        </div>
+
+                        <div className="pl-4 text-right">
+                          <div className="inline-flex items-center rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs font-semibold text-white/70">
+                            x{item.qty || 1}
+                          </div>
+                          <p className="mt-3 text-3xl font-black tracking-tight text-yellow-300">
+                            ${Number(item.total || Number(item.price || 0) * Number(item.qty || 1)).toFixed(2)}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                <div className="grid gap-4 border-t border-white/10 bg-black/35 p-5 lg:grid-cols-[1fr_360px]">
+                  <div className="space-y-3">
+                    <div className="rounded-[20px] border border-white/8 bg-black/20 px-5 py-4">
+                      <div className="flex items-center justify-between text-sm">
+                        <span className="font-medium text-gray-400">Subtotal (sin IVU)</span>
+                        <span className="text-2xl font-black tracking-tight text-white">${subtotal.toFixed(2)}</span>
+                      </div>
                     </div>
                   </div>
-                  <span className="text-yellow-300 font-bold text-sm ml-4">
-                    ${Number(item.total || Number(item.price || 0) * Number(item.qty || 1)).toFixed(2)}
-                  </span>
+
+                  <div className="rounded-[24px] border border-yellow-500/15 bg-[linear-gradient(180deg,rgba(250,204,21,0.08),rgba(0,0,0,0.18))] p-5">
+                    <p className="text-[11px] font-semibold uppercase tracking-[0.28em] text-white/35">Acción rápida</p>
+                    <h4 className="mt-2 text-2xl font-black tracking-tight text-white">Sigue cotizando</h4>
+                    <p className="mt-2 text-sm leading-relaxed text-white/55">
+                      Añade más artículos, compara links y mantén el costo de compra consolidado antes de pasar a la siguiente etapa.
+                    </p>
+                    <Button
+                      onClick={() => setShowCatalog(true)}
+                      className="mt-5 h-12 w-full rounded-2xl bg-yellow-500 text-base font-bold text-black shadow-lg shadow-yellow-950/20 hover:bg-yellow-400"
+                    >
+                      <ShoppingCart className="mr-2 h-5 w-5" />
+                      Piezas y Servicios
+                    </Button>
+                  </div>
                 </div>
-              ))}
+              </div>
             </div>
-            <div className="px-5 py-3 border-t border-white/10 bg-black/20 flex justify-between items-center">
-              <span className="text-xs text-gray-400 font-medium">Subtotal (sin IVU)</span>
-              <span className="text-white font-bold text-base">${subtotal.toFixed(2)}</span>
-            </div>
-          </div>
+          </section>
         );
       })()}
 

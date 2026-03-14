@@ -435,27 +435,32 @@ export default function DiagnosingStage({ order, onUpdate, user }) {
             </div>
           </div>
 
-          <div className="rounded-[26px] border border-purple-400/15 bg-black/25 p-5 backdrop-blur-md">
-            <div className="flex flex-col gap-4 sm:flex-row sm:items-start">
-              <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border border-purple-400/20 bg-purple-500/15">
-                <Microscope className="h-5 w-5 text-purple-300" />
-              </div>
-              <div className="min-w-0 flex-1">
-                <p className="text-[11px] font-semibold uppercase tracking-[0.28em] text-white/35">Acción rápida</p>
-                <h3 className="mt-1 text-xl font-black tracking-tight text-white">Preparar propuesta</h3>
-                <p className="mt-2 text-sm leading-relaxed text-white/55">
-                  Añade piezas o servicios sugeridos para que la cotización salga lista desde esta misma etapa.
-                </p>
+          <section className="relative overflow-hidden rounded-[28px] border border-purple-500/15 bg-[radial-gradient(circle_at_top_left,rgba(168,85,247,0.12),transparent_24%),radial-gradient(circle_at_bottom_right,rgba(99,102,241,0.10),transparent_28%),linear-gradient(180deg,rgba(24,24,27,0.98),rgba(10,10,12,0.98))] shadow-[0_18px_50px_rgba(0,0,0,0.28)]">
+            <div className="absolute inset-0 bg-[linear-gradient(120deg,transparent,rgba(255,255,255,0.025),transparent)]" />
+            <div className="relative z-10 border-b border-white/10 px-5 py-4">
+              <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+                <div className="flex items-start gap-4">
+                  <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border border-purple-400/20 bg-purple-500/15 shadow-[0_10px_30px_rgba(168,85,247,0.12)]">
+                    <ShoppingCart className="h-5 w-5 text-purple-300" />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <p className="text-[11px] font-semibold uppercase tracking-[0.28em] text-white/35">Acción rápida</p>
+                    <h3 className="mt-1 text-2xl font-black tracking-tight text-white">Piezas y Servicios</h3>
+                    <p className="mt-2 max-w-2xl text-sm leading-relaxed text-white/55">
+                      Añade piezas o servicios sugeridos para que la cotización salga lista desde esta misma etapa.
+                    </p>
+                  </div>
+                </div>
                 <Button
                   onClick={() => setShowCatalog(true)}
-                  className="mt-4 h-10 w-full rounded-2xl border-0 bg-purple-600 px-5 font-semibold text-white shadow-lg shadow-purple-900/20 transition-all hover:bg-purple-500 active:scale-95 sm:w-auto sm:hover:scale-105"
+                  className="h-10 rounded-2xl bg-gradient-to-r from-purple-600 to-indigo-500 px-5 font-bold text-white shadow-[0_12px_30px_rgba(124,58,237,0.24)] hover:from-purple-500 hover:to-indigo-400"
                 >
-                  <ShoppingCart className="w-4 h-4 mr-2" />
+                  <ShoppingCart className="mr-2 h-4 w-4" />
                   Piezas y Servicios
                 </Button>
               </div>
             </div>
-          </div>
+          </section>
         </div>
       </section>
 
