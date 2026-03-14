@@ -100,7 +100,7 @@ export default function OrderMultimedia({ order, onUpdate }) {
 
   async function handleUpload(e) {
     const files = Array.from(e.target.files || []).filter((file) => file.type?.startsWith("image/"));
-    if (!files.length) return;
+    if (!files.length || !o?.id) return;
 
     setUploading(true);
     try {
@@ -112,32 +112,46 @@ export default function OrderMultimedia({ order, onUpdate }) {
       const stage = PHOTO_STAGE_OPTIONS.find((option) => option.id === selectedStage) || resolveDefaultPhotoStage(order);
       const newItems = [];
       for (const file of files) {
-        const { file_url } = await base44.integrations.Core.UploadFile({ file });
-        newItems.push({
-          id: `${Date.now()}-${file.name}`,
-          type: "image",
-          mime: file.type || "image/jpeg",
-          filename: file.name,
-          publicUrl: file_url,
-          thumbUrl: file_url,
-          stage_id: stage.id,
-          stage_label: stage.label,
-          captured_at: new Date().toISOString(),
-          captured_by: me?.full_name || me?.email || "Sistema"
-        });
+        try {
+          const { file_url } = await base44.integrations.Core.UploadFile({ file });
+          const versionedUrl = `${file_url}${file_url.includes("?") ? "&" : "?"}v=${Date.now()}`;
+          newItems.push({
+            id: `${Date.now()}-${file.name}`,
+            type: "image",
+            mime: file.type || "image/jpeg",
+            filename: file.name,
+            publicUrl: versionedUrl,
+            thumbUrl: versionedUrl,
+            stage_id: stage.id,
+            stage_label: stage.label,
+            captured_at: new Date().toISOString(),
+            captured_by: me?.full_name || me?.email || "Sistema"
+          });
+        } catch (uploadError) {
+          console.error("Error uploading evidence file:", uploadError);
+        }
+      }
+
+      if (!newItems.length) {
+        throw new Error("No se pudo subir ninguna imagen");
       }
 
       const next = [...photos, ...newItems];
       await base44.entities.Order.update(o.id, { photos_metadata: next });
-      
-      await logWorkOrderPhotoEvent({
-        order: o,
-        count: newItems.length,
-        source: "order_multimedia"
-      });
 
       onUpdate?.();
-      toast.success("Archivos subidos correctamente");
+
+      try {
+        await logWorkOrderPhotoEvent({
+          order: o,
+          count: newItems.length,
+          source: "order_multimedia"
+        });
+      } catch (eventError) {
+        console.warn("Photo event logging skipped:", eventError);
+      }
+
+      toast.success(`${newItems.length} archivo(s) subido(s) correctamente`);
     } catch (err) {
       console.error(err);
       toast.error("Error al subir archivos");
