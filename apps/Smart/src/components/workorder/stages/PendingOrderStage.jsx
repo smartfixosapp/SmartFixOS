@@ -29,6 +29,51 @@ export default function PendingOrderStage({ order, onUpdate, user }) {
     }
   };
 
+  const handleCatalogRemoteSaved = async (payload) => {
+    const mergedOrder = {
+      ...(order || {}),
+      ...(payload || {}),
+    };
+
+    if (String(order?.status || "").trim().toLowerCase() !== "pending_order") {
+      onUpdate?.(mergedOrder);
+      return;
+    }
+
+    try {
+      const now = new Date().toISOString();
+      const nextHistory = [
+        ...(Array.isArray(order?.status_history) ? order.status_history : []),
+        {
+          status: "waiting_parts",
+          timestamp: now,
+          changed_by: "Sistema",
+          note: "Transición automática desde catálogo de piezas",
+          visible_to_customer: false,
+        },
+      ];
+
+      await base44.entities.Order.update(order.id, {
+        status: "waiting_parts",
+        updated_date: now,
+        status_history: nextHistory,
+      });
+
+      onUpdate?.({
+        ...mergedOrder,
+        status: "waiting_parts",
+        updated_date: now,
+        status_history: nextHistory,
+      });
+
+      toast.success("✅ Estado cambiado a 'Esperando Piezas'");
+    } catch (error) {
+      console.error("Error auto-advancing pending_order -> waiting_parts:", error);
+      onUpdate?.(mergedOrder);
+      toast.warning("Piezas guardadas, pero el estado sigue en 'Pendiente a Ordenar'");
+    }
+  };
+
   return (
     <div className="space-y-6">
       <section className="relative overflow-hidden rounded-[30px] border border-yellow-500/15 bg-[radial-gradient(circle_at_top_left,rgba(250,204,21,0.16),transparent_28%),radial-gradient(circle_at_bottom_right,rgba(249,115,22,0.14),transparent_30%),linear-gradient(135deg,rgba(34,24,8,0.98),rgba(22,16,10,0.96))] p-5 shadow-[0_22px_70px_rgba(0,0,0,0.35)] sm:p-6">
@@ -176,6 +221,7 @@ export default function PendingOrderStage({ order, onUpdate, user }) {
         onClose={() => setShowCatalog(false)} 
         order={order}
         onUpdate={onUpdate}
+        onRemoteSaved={handleCatalogRemoteSaved}
       />
       <OrderLinksDialog
         order={order}

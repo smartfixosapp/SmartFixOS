@@ -164,6 +164,7 @@ export default function AddItemModal({
   onSave,
   order,
   onUpdate,
+  onRemoteSaved,
   draftMode = false,
   initialItems = [],
   onApplyItems,
@@ -480,6 +481,11 @@ export default function AddItemModal({
           if (directError) throw directError;
         }
       }
+
+      await onRemoteSaved?.({
+        id: order.id,
+        ...localUpdatePayload,
+      });
 
       toast.success("Items de la orden actualizados");
     } catch (error) {
