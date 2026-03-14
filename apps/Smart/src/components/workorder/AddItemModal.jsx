@@ -428,27 +428,16 @@ export default function AddItemModal({
         return;
       }
 
-      await dataClient.entities.Order.update(order.id, updatePayload);
-
-      toast.success("Items de la orden actualizados");
+      // Actualización optimista: el usuario no debe quedar bloqueado por una sync remota.
       onSave?.(normalized);
       onUpdate?.({ id: order.id, ...updatePayload });
       onClose?.();
+
+      await dataClient.entities.Order.update(order.id, updatePayload);
+
+      toast.success("Items de la orden actualizados");
     } catch (error) {
       console.error("[AddItemModal] saveToOrder error:", error);
-      const normalized = cartItems.map((raw) => ({
-        ...normalizeCartItem(raw),
-        qty: toNum(raw?.qty ?? raw?.quantity, 1),
-      }));
-      onSave?.(normalized);
-      onUpdate?.({
-        id: order?.id,
-        order_items: normalized,
-        subtotal: totals.subtotal,
-        tax_amount: totals.tax,
-        total: totals.total,
-      });
-      onClose?.();
       toast.warning("Orden guardada localmente. Falta sincronizarla.");
     } finally {
       setSaving(false);
