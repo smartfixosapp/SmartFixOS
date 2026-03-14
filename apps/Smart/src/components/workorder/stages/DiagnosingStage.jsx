@@ -542,6 +542,7 @@ export default function DiagnosingStage({ order, onUpdate, user }) {
           setOpenCatalogFromLink(false);
         }} 
         order={effectiveOrder}
+        initialItems={Array.isArray(effectiveOrder?.order_items) ? effectiveOrder.order_items : []}
         onUpdate={onUpdate}
         autoOpenCart={openCatalogFromLink}
       />

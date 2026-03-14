@@ -165,6 +165,15 @@ export default function AddItemModal({
   const [saving, setSaving] = useState(false);
 
   const isDraftOrder = draftMode || !order?.id;
+  const liveSourceItems = useMemo(() => {
+    if (isDraftOrder) {
+      return Array.isArray(initialItems) ? initialItems : [];
+    }
+    if (Array.isArray(order?.order_items) && order.order_items.length > 0) {
+      return order.order_items;
+    }
+    return Array.isArray(initialItems) ? initialItems : [];
+  }, [initialItems, isDraftOrder, order?.order_items]);
 
   useEffect(() => {
     if (!open) return;
@@ -173,9 +182,8 @@ export default function AddItemModal({
     setShowCart(Boolean(autoOpenCart));
 
     // Init cart desde props (rápido, cubre el caso donde ya están actualizados)
-    const sourceItems = isDraftOrder ? initialItems : order?.order_items;
-    const normalizedCart = Array.isArray(sourceItems)
-      ? sourceItems.map((i) => normalizeCartItem(i))
+    const normalizedCart = Array.isArray(liveSourceItems)
+      ? liveSourceItems.map((i) => normalizeCartItem(i))
       : [];
     setCartItems(normalizedCart);
 
@@ -184,7 +192,7 @@ export default function AddItemModal({
       // terminado su handleRefresh cuando el modal abre, así que leemos nosotros directamente.
       dataClient?.entities?.Order?.get(order.id)
         .then((freshOrder) => {
-          const propItems = Array.isArray(order?.order_items) ? order.order_items : [];
+          const propItems = Array.isArray(liveSourceItems) ? liveSourceItems : [];
           const freshItems = Array.isArray(freshOrder?.order_items) ? freshOrder.order_items : [];
           const mergedOrderItems = [...propItems, ...freshItems];
 
@@ -196,14 +204,24 @@ export default function AddItemModal({
           void loadInventory(mergedOrderItems);
         })
         .catch(() => {
-          void loadInventory(Array.isArray(order?.order_items) ? order.order_items : undefined);
+          void loadInventory(Array.isArray(liveSourceItems) ? liveSourceItems : undefined);
         }); // fallback: inventario sin inyección fresca
     } else {
       void loadInventory();
     }
     // Cargamos una sola vez por apertura para evitar bucles de "loading" con props inestables.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [open]);
+  }, [open, autoOpenCart, liveSourceItems, isDraftOrder, order?.id]);
+
+  useEffect(() => {
+    if (!open) return;
+    if (!Array.isArray(liveSourceItems) || liveSourceItems.length === 0) return;
+
+    setCartItems((prev) => {
+      const next = liveSourceItems.map((item) => normalizeCartItem(item));
+      return uniqueByKey(next).map((item) => normalizeCartItem(item));
+    });
+  }, [open, liveSourceItems]);
 
   const loadInventory = async (freshOrderItems) => {
     const cachedProducts = catalogCache.get("pos-active-products") || [];
