@@ -238,6 +238,18 @@ function dedupeTechnicians(list = []) {
   return out;
 }
 
+function isRestrictedSuperAdmin(user) {
+  const role = String(user?.position || user?.role || "").trim().toLowerCase();
+  const name = String(user?.full_name || user?.name || "").trim().toLowerCase();
+  const email = String(user?.email || "").trim().toLowerCase();
+  return (
+    role === "superadmin" ||
+    role === "super admin" ||
+    name.includes("super admin") ||
+    email.includes("superadmin")
+  );
+}
+
 const normalizedText = (value = "") => String(value).trim().toLowerCase();
 
 const getCategoryVisual = (category) => {
@@ -579,11 +591,11 @@ export default function WorkOrderWizard({ open, onClose, onSuccess, preloadedCus
 
       const isTechRole = (emp) => {
         const role = String(emp?.position || emp?.role || "").toLowerCase().trim();
-        return role === "technician" || role === "técnico" || role === "admin" || role === "manager" || role === "superadmin" || role === "administrador";
+        return role === "technician" || role === "técnico" || role === "admin" || role === "manager" || role === "administrador";
       };
 
       const techs = allEmployees
-        .filter((u) => u && u.status !== "inactive" && isTechRole(u))
+        .filter((u) => u && u.status !== "inactive" && !isRestrictedSuperAdmin(u) && isTechRole(u))
         .map((u) => ({
           ...u,
           role: u.position || u.role || "technician",

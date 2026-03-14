@@ -23,6 +23,9 @@ export default function AssignmentStep({ formData, updateFormData, currentUser }
       const techs = (allUsers || []).filter(u => {
         if (!u.active) return false;
         const role = (u.role || "").toLowerCase();
+        const name = (u.full_name || u.name || "").toLowerCase();
+        const email = (u.email || "").toLowerCase();
+        if (role === "superadmin" || role === "super admin" || name.includes("super admin") || email.includes("superadmin")) return false;
         return role === "technician" || role === "técnico" || role === "admin" || role === "administrador" || role === "administrator" || role === "manager";
       });
       

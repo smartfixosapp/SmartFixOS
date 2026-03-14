@@ -369,8 +369,20 @@ export default function QuickOrderModal({ open, onClose, onSuccess }) {
       map((p) => p.employee_id);
 
       const techs = (allUsers || []).filter((u) =>
-      (u.role === "technician" || u.role === "admin" || u.role === "superadmin") &&
-      clockedInIds.includes(u.id)
+      {
+      const role = String(u?.role || "").trim().toLowerCase();
+      const name = String(u?.full_name || u?.name || "").trim().toLowerCase();
+      const email = String(u?.email || "").trim().toLowerCase();
+      const isRestrictedSuperAdmin =
+      role === "superadmin" ||
+      role === "super admin" ||
+      name.includes("super admin") ||
+      email.includes("superadmin");
+
+      return !isRestrictedSuperAdmin &&
+      (role === "technician" || role === "admin") &&
+      clockedInIds.includes(u.id);
+      }
       );
       setTechnicians(techs);
     } catch (e) {
