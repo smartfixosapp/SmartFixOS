@@ -95,6 +95,54 @@ const extractEmailPhotoUrls = (orderLike = {}, fallback = []) => {
   return Array.from(new Set([...fromMetadata, ...fromAttachments, ...fromFallback]));
 };
 
+async function sendAdminNewOrderEmail({ recipients, orderNumber, customerName, deviceInfo, orderId }) {
+  const emails = Array.from(
+    new Set(
+      (recipients || [])
+        .map((user) => String(user?.email || "").trim())
+        .filter(Boolean)
+    )
+  );
+
+  if (emails.length === 0) return;
+
+  const safeCustomer = customerName || "Cliente";
+  const safeDevice = deviceInfo || "Equipo";
+  const safeOrder = orderNumber || "Nueva orden";
+  const actionUrl = `/Orders?order=${orderId}`;
+
+  const html = `
+    <div style="font-family:Arial,sans-serif;max-width:640px;margin:0 auto;padding:24px;background:#0b1220;color:#e5eefc;">
+      <div style="background:linear-gradient(135deg,#06b6d4,#10b981);padding:24px;border-radius:16px;">
+        <h1 style="margin:0;font-size:28px;color:#ffffff;">Nueva orden ${safeOrder}</h1>
+        <p style="margin:10px 0 0;color:#eaffff;font-size:16px;">Se registró una nueva orden en SmartFixOS.</p>
+      </div>
+      <div style="background:#111827;border:1px solid #1f2937;border-radius:16px;padding:24px;margin-top:20px;">
+        <p style="margin:0 0 12px;font-size:15px;"><strong>Cliente:</strong> ${safeCustomer}</p>
+        <p style="margin:0 0 12px;font-size:15px;"><strong>Equipo:</strong> ${safeDevice}</p>
+        <p style="margin:0 0 20px;font-size:15px;"><strong>Orden:</strong> ${safeOrder}</p>
+        <a href="${actionUrl}" style="display:inline-block;padding:12px 20px;border-radius:10px;background:#22c55e;color:#052e16;text-decoration:none;font-weight:700;">Ver orden</a>
+      </div>
+    </div>
+  `;
+
+  const response = await fetch("/api/send-raw-email", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      to: emails,
+      subject: `Nueva orden ${safeOrder} - ${safeCustomer}`,
+      body: html,
+      from_name: "SmartFixOS",
+    }),
+  });
+
+  const result = await response.json().catch(() => ({}));
+  if (!response.ok || result?.success === false) {
+    throw new Error(result?.error || "No se pudo enviar email de nueva orden");
+  }
+}
+
 const CHECKLIST_ITEMS = [
 { key: "screen_broken", label: "Pantalla rota / rajada", icon: "💔", category: "Pantalla" },
 { key: "screen_no_image", label: "Pantalla sin imagen", icon: "📺", category: "Pantalla" },
@@ -780,6 +828,14 @@ export default function QuickOrderModal({ open, onClose, onSuccess }) {
             priority: "normal"
           });
         }
+
+        await sendAdminNewOrderEmail({
+          recipients: eligible,
+          orderNumber: newOrder.order_number,
+          customerName: fullName,
+          deviceInfo: `${deviceBrand?.name || ""} ${deviceModel}`.trim(),
+          orderId: newOrder.id,
+        });
       } catch (err) {
         console.error("Error sending notifications:", err);
       }
