@@ -389,7 +389,37 @@ export default function AddItemModal({
     if (saving) return;
     setSaving(true);
     try {
-      const normalized = cartItems.map((item) => serializeOrderItem(item));
+      const normalized = cartItems.map((raw) => {
+        const item = normalizeCartItem(raw);
+        return {
+          id: item.id,
+          name: item.name,
+          price: toNum(item.price, 0),
+          qty: toNum(item.qty, 1),
+          type: item.type,
+          __kind: item.__kind || item.type,
+          __source_id: item.__source_id || item.id,
+          from_inventory: item.from_inventory === true,
+          stock: toNum(item.stock, 0),
+          sku: item.sku || "",
+          discount_percentage: toNum(item.discount_percentage, 0),
+          taxable: item.taxable !== false,
+          source: item.source || (item.from_inventory ? "inventory" : "manual"),
+          is_manual: item.is_manual === true,
+          ...(item.link_ref_id ? { link_ref_id: item.link_ref_id } : {}),
+          ...(item.link_url ? { link_url: item.link_url } : {}),
+          ...(item.part_type ? { part_type: item.part_type } : {}),
+          ...(item.tipo_principal ? { tipo_principal: item.tipo_principal } : {}),
+          ...(item.category ? { category: item.category } : {}),
+        };
+      });
+
+      const updatePayload = {
+        order_items: normalized,
+        subtotal: totals.subtotal,
+        tax_amount: totals.tax,
+        total: totals.total,
+      };
 
       if (isDraftOrder) {
         onApplyItems?.(normalized);
@@ -398,20 +428,28 @@ export default function AddItemModal({
         return;
       }
 
-      await dataClient.entities.Order.update(order.id, {
+      await dataClient.entities.Order.update(order.id, updatePayload);
+
+      toast.success("Items de la orden actualizados");
+      onSave?.(normalized);
+      onUpdate?.({ id: order.id, ...updatePayload });
+      onClose?.();
+    } catch (error) {
+      console.error("[AddItemModal] saveToOrder error:", error);
+      const normalized = cartItems.map((raw) => ({
+        ...normalizeCartItem(raw),
+        qty: toNum(raw?.qty ?? raw?.quantity, 1),
+      }));
+      onSave?.(normalized);
+      onUpdate?.({
+        id: order?.id,
         order_items: normalized,
         subtotal: totals.subtotal,
         tax_amount: totals.tax,
         total: totals.total,
       });
-
-      toast.success("Items de la orden actualizados");
-      onSave?.(normalized);
-      onUpdate?.();
       onClose?.();
-    } catch (error) {
-      console.error("[AddItemModal] saveToOrder error:", error);
-      toast.error("No se pudo guardar la orden");
+      toast.warning("Orden guardada localmente. Falta sincronizarla.");
     } finally {
       setSaving(false);
     }
