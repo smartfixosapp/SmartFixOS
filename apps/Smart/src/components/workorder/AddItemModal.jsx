@@ -432,12 +432,15 @@ export default function AddItemModal({
       const currentPaid = Number(order?.total_paid || order?.amount_paid || 0);
       const balanceDue = Math.max(0, totals.total - currentPaid);
 
-      const updatePayload = {
+      const remoteUpdatePayload = {
         order_items: normalized,
-        total: totals.total,
         cost_estimate: totals.total,
         balance_due: balanceDue,
         tax_rate: IVU_RATE,
+      };
+      const localUpdatePayload = {
+        ...remoteUpdatePayload,
+        total: totals.total,
       };
 
       if (isDraftOrder) {
@@ -449,21 +452,21 @@ export default function AddItemModal({
 
       // Actualización optimista: el usuario no debe quedar bloqueado por una sync remota.
       onSave?.(normalized);
-      onUpdate?.({ id: order.id, ...updatePayload });
+      onUpdate?.({ id: order.id, ...localUpdatePayload });
       onClose?.();
 
       try {
-        await dataClient.entities.Order.update(order.id, updatePayload);
+        await dataClient.entities.Order.update(order.id, remoteUpdatePayload);
       } catch (primaryError) {
         console.warn("[AddItemModal] dataClient update failed, trying base44 fallback:", primaryError);
         try {
-          await base44.entities.Order.update(order.id, updatePayload);
+          await base44.entities.Order.update(order.id, remoteUpdatePayload);
         } catch (secondaryError) {
           console.warn("[AddItemModal] base44 update failed, trying direct supabase fallback:", secondaryError);
           let query = supabase
             .from("order")
             .update({
-              ...updatePayload,
+              ...remoteUpdatePayload,
               updated_date: new Date().toISOString(),
             })
             .eq("id", order.id);
