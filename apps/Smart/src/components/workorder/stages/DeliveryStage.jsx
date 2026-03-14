@@ -82,10 +82,10 @@ export default function DeliveryStage({ order, onUpdate, user }) {
 
       await base44.entities.Order.update(o.id, {
         order_items: itemsWithTotal,
-        total: newTotal,
         cost_estimate: newTotal,
         balance_due: newBalance,
-        tax_rate: 0.115
+        tax_rate: 0.115,
+        updated_date: new Date().toISOString(),
       });
 
       setItems(itemsWithTotal);
