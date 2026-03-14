@@ -608,10 +608,13 @@ function WaitingPartsModal({ open, onClose, onSave, initialData, order }) {
               </div>
               <div className="space-y-2">
                 {["taller", "cliente"].map(loc => (
-                  <div
+                  <button
                     key={loc}
-                    onClick={(e) => { e.stopPropagation(); updateField("deviceLocation", loc); }}
-                    className={`flex items-center gap-3 p-3 rounded-lg border-2 cursor-pointer transition-all ${
+                    type="button"
+                    onClick={(e) => { e.preventDefault(); e.stopPropagation(); updateField("deviceLocation", loc); }}
+                    onMouseDown={(e) => { e.preventDefault(); e.stopPropagation(); }}
+                    onTouchStart={(e) => { e.stopPropagation(); }}
+                    className={`w-full flex items-center gap-3 p-3 rounded-lg border-2 cursor-pointer transition-all text-left ${
                       formData.deviceLocation === loc
                         ? loc === "taller"
                           ? "bg-cyan-600/30 border-cyan-500/60"
@@ -636,7 +639,7 @@ function WaitingPartsModal({ open, onClose, onSave, initialData, order }) {
                         {loc === "taller" ? "El equipo permanece aquí" : "El cliente se lo llevó"}
                       </p>
                     </div>
-                  </div>
+                  </button>
                 ))}
               </div>
             </div>
@@ -1616,9 +1619,10 @@ export default function WorkOrderPanel({ orderId, onClose, onUpdate, onDelete, p
         e.stopPropagation();
       }
     };
+    if (partsModalOpen) return undefined;
     window.addEventListener("keydown", onKey, { capture: true });
     return () => window.removeEventListener("keydown", onKey, { capture: true });
-  }, []);
+  }, [partsModalOpen]);
 
   // ✅ Escuchar evento para cerrar el panel desde AddItemModal
   useEffect(() => {
@@ -2066,6 +2070,16 @@ export default function WorkOrderPanel({ orderId, onClose, onUpdate, onDelete, p
         console.log("[ChangeStatus] Actualizando orden en DB...");
         await base44.entities.Order.update(order.id, updateData);
 
+        const optimisticOrder = {
+          ...(order || {}),
+          status: nextId,
+          updated_date: updateData.updated_date,
+          status_note: updateData.status_note,
+          status_note_visible_to_customer: updateData.status_note_visible_to_customer,
+          status_history: updateData.status_history,
+          ...(updateData.status_metadata && { status_metadata: updateData.status_metadata })
+        };
+
         setStatus(nextId);
         setOrder((prevOrder) => ({
           ...prevOrder,
@@ -2076,6 +2090,7 @@ export default function WorkOrderPanel({ orderId, onClose, onUpdate, onDelete, p
           status_history: updateData.status_history,
           ...(updateData.status_metadata && { status_metadata: updateData.status_metadata })
         }));
+        onUpdate?.(optimisticOrder);
 
         console.log("[ChangeStatus] Creando evento...");
         await base44.entities.WorkOrderEvent.create({
