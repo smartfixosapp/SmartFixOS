@@ -15,6 +15,21 @@ import WorkOrderTimeline from "@/components/orders/workorder/WorkOrderTimeline";
 import WorkOrderUnifiedHub from "@/components/workorder/WorkOrderUnifiedHub";
 import AddItemModal from "@/components/workorder/AddItemModal";
 import { base44 } from "@/api/base44Client";
+import { dataClient } from "@/components/api/dataClient";
+import { supabase } from "../../../../../../lib/supabase-client.js";
+
+function getTenantId() {
+  try {
+    const raw = localStorage.getItem("employee_session") || sessionStorage.getItem("911-session");
+    if (raw) {
+      const session = JSON.parse(raw);
+      if (session?.tenant_id) return session.tenant_id;
+    }
+    return localStorage.getItem("smartfix_tenant_id") || null;
+  } catch {
+    return localStorage.getItem("smartfix_tenant_id") || null;
+  }
+}
 
 export default function DeliveryStage({ order, onUpdate, user }) {
   const o = order || {};
@@ -80,21 +95,64 @@ export default function DeliveryStage({ order, onUpdate, user }) {
       const currentPaid = Number(o.total_paid || o.amount_paid || 0);
       const newBalance = Math.max(0, newTotal - currentPaid);
 
-      await base44.entities.Order.update(o.id, {
+      const remoteUpdatePayload = {
         order_items: itemsWithTotal,
         cost_estimate: newTotal,
         balance_due: newBalance,
         tax_rate: 0.115,
         updated_date: new Date().toISOString(),
-      });
+      };
+
+      const localUpdatePayload = {
+        ...remoteUpdatePayload,
+        total: newTotal,
+      };
+
+      let savedRemotely = false;
+      let lastError = null;
+
+      try {
+        await dataClient.entities.Order.update(o.id, remoteUpdatePayload);
+        savedRemotely = true;
+      } catch (primaryError) {
+        console.warn("[DeliveryStage] dataClient update failed, trying base44 fallback:", primaryError);
+        lastError = primaryError;
+        try {
+          await base44.entities.Order.update(o.id, remoteUpdatePayload);
+          savedRemotely = true;
+        } catch (secondaryError) {
+          console.warn("[DeliveryStage] base44 update failed, trying direct supabase fallback:", secondaryError);
+          lastError = secondaryError;
+          let query = supabase
+            .from("order")
+            .update(remoteUpdatePayload)
+            .eq("id", o.id);
+
+          const tenantId = getTenantId();
+          if (tenantId) {
+            query = query.eq("tenant_id", tenantId);
+          }
+
+          const { error: directError } = await query.select("id").maybeSingle();
+          if (directError) {
+            lastError = directError;
+          } else {
+            savedRemotely = true;
+          }
+        }
+      }
+
+      if (!savedRemotely && lastError) {
+        throw lastError;
+      }
 
       setItems(itemsWithTotal);
-      onUpdate?.();
+      await onUpdate?.({ id: o.id, ...localUpdatePayload });
       setIsEditing(false);
       toast.success("Orden actualizada");
     } catch (e) {
-      console.error(e);
-      toast.error("Error al guardar");
+      console.error("[DeliveryStage] persist error:", e);
+      toast.error(e?.message ? `Error al guardar: ${e.message}` : "Error al guardar");
     } finally {
       setSaving(false);
     }
