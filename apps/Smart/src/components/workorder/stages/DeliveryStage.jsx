@@ -184,14 +184,22 @@ export default function DeliveryStage({ order, onUpdate, user }) {
         </div>
       </section>
 
-      {/* Unified Module: Items - Apple Style */}
-      <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-[24px] overflow-hidden shadow-lg">
-        <div className="p-5 border-b border-white/10 bg-white/5">
-          <div className="flex items-center justify-between">
-            <h3 className="text-white font-bold flex items-center gap-2">
-              <ShoppingCart className="w-5 h-5 text-emerald-400" />
-              Piezas y Servicios
-            </h3>
+      <div className="relative overflow-hidden rounded-[30px] border border-emerald-400/15 bg-[radial-gradient(circle_at_top_left,rgba(16,185,129,0.10),transparent_24%),radial-gradient(circle_at_bottom_right,rgba(6,182,212,0.10),transparent_28%),linear-gradient(180deg,rgba(24,24,27,0.98),rgba(10,10,12,0.98))] shadow-[0_22px_70px_rgba(0,0,0,0.35)]">
+        <div className="absolute inset-0 bg-[linear-gradient(120deg,transparent,rgba(255,255,255,0.025),transparent)]" />
+        <div className="relative z-10 border-b border-white/10 px-6 py-5">
+          <div className="flex items-start justify-between gap-4">
+            <div className="flex items-start gap-4">
+              <div className="flex h-12 w-12 items-center justify-center rounded-2xl border border-emerald-400/20 bg-emerald-500/15 shadow-[0_10px_30px_rgba(16,185,129,0.12)]">
+                <ShoppingCart className="h-5 w-5 text-emerald-300" />
+              </div>
+              <div>
+                <p className="text-[11px] font-semibold uppercase tracking-[0.28em] text-white/35">Cobro y cierre</p>
+                <h3 className="mt-1 text-2xl font-black tracking-tight text-white">Piezas y Servicios</h3>
+                <p className="mt-2 max-w-2xl text-sm leading-relaxed text-white/55">
+                  Revisa la cotización final, confirma impuestos y cobra el balance restante sin salir de la orden.
+                </p>
+              </div>
+            </div>
             <div className="flex gap-3">
               {items.length > 0 && (
                 <Button
@@ -199,7 +207,7 @@ export default function DeliveryStage({ order, onUpdate, user }) {
                   variant="outline"
                   onClick={() => isEditing ? persist(items) : setIsEditing(true)}
                   disabled={saving}
-                  className="h-9 border-white/10 bg-white/5 hover:bg-white/10 text-white rounded-xl font-medium"
+                  className="h-10 rounded-2xl border-white/10 bg-white/5 px-4 text-white hover:bg-white/10"
                 >
                   {isEditing ? <Check className="w-4 h-4 mr-1" /> : null}
                   {isEditing ? "Guardar" : "Editar"}
@@ -209,21 +217,25 @@ export default function DeliveryStage({ order, onUpdate, user }) {
                 size="sm"
                 onClick={() => setShowAddItemModal(true)}
                 disabled={saving}
-                className="h-9 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl font-bold shadow-lg shadow-emerald-900/20"
+                className="h-10 rounded-2xl bg-gradient-to-r from-emerald-500 to-teal-500 px-5 font-bold text-white shadow-[0_12px_30px_rgba(16,185,129,0.25)] hover:from-emerald-400 hover:to-teal-400"
               >
                 <Plus className="w-4 h-4 mr-1" /> Añadir
               </Button>
             </div>
           </div>
         </div>
-        <div className="p-6">
+        <div className="relative z-10 p-6">
           {/* Items List */}
           {items.length === 0 ? (
-            <div className="text-center py-12 border-2 border-dashed border-white/10 rounded-2xl bg-black/20">
-              <p className="text-gray-500 text-sm font-medium">No hay items en esta orden</p>
+            <div className="rounded-[24px] border border-dashed border-white/10 bg-black/20 px-6 py-14 text-center">
+              <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl border border-white/10 bg-white/5">
+                <ShoppingCart className="h-6 w-6 text-white/35" />
+              </div>
+              <p className="text-sm font-semibold text-white/70">No hay items en esta orden</p>
+              <p className="mt-2 text-xs text-white/40">Añade piezas o servicios para preparar el cobro final.</p>
             </div>
           ) : (
-            <div className="bg-black/20 border border-white/10 rounded-2xl overflow-hidden">
+            <div className="overflow-hidden rounded-[26px] border border-white/10 bg-black/25 shadow-[inset_0_1px_0_rgba(255,255,255,0.03)]">
               <div className="divide-y divide-white/5">
                 {items.map((item, idx) => {
                   const basePrice = Number(item.price || 0);
@@ -231,35 +243,42 @@ export default function DeliveryStage({ order, onUpdate, user }) {
                   const itemSubtotal = calculateItemSubtotal(item);
 
                   return (
-                    <div key={idx} className="p-4 hover:bg-white/5 transition-colors">
+                    <div key={idx} className="p-5 transition-colors hover:bg-white/[0.04]">
                       <div className="flex items-start justify-between gap-4">
                         <div className="min-w-0 flex-1">
-                        <p className="text-white text-sm font-bold truncate">{item.name}</p>
-                        <div className="flex gap-2 mt-1.5 flex-wrap">
-                          <Badge variant="outline" className="text-[10px] border-white/10 text-gray-400 bg-white/5 px-2 py-0.5 rounded-md">
+                        <div className="flex items-start justify-between gap-3">
+                          <div className="min-w-0">
+                            <p className="truncate text-base font-bold text-white">{item.name}</p>
+                            <p className="mt-1 text-xs text-white/35">
+                              {item.type === 'service' ? 'Servicio agregado a la entrega' : 'Producto agregado a la entrega'}
+                            </p>
+                          </div>
+                        </div>
+                        <div className="mt-3 flex flex-wrap gap-2">
+                          <Badge variant="outline" className="rounded-full border-white/10 bg-white/5 px-2.5 py-1 text-[10px] text-gray-300">
                             ${basePrice.toFixed(2)} c/u
                           </Badge>
-                          <Badge variant="outline" className="text-[10px] border-white/10 text-gray-400 bg-white/5 px-2 py-0.5 rounded-md">
+                          <Badge variant="outline" className="rounded-full border-white/10 bg-white/5 px-2.5 py-1 text-[10px] text-gray-300">
                             {item.type === 'service' ? 'Servicio' : 'Producto'}
                           </Badge>
                           {itemDiscountPercent > 0 && (
-                            <Badge className="text-[10px] bg-orange-500/20 text-orange-400 border-orange-500/30 px-2 py-0.5 rounded-md">
+                            <Badge className="rounded-full border-orange-500/30 bg-orange-500/20 px-2.5 py-1 text-[10px] text-orange-300">
                               -{itemDiscountPercent}% desc.
                             </Badge>
                           )}
                           {item.taxable === false && (
-                            <Badge className="text-[10px] bg-purple-500/20 text-purple-400 border-purple-500/30 px-2 py-0.5 rounded-md">
+                            <Badge className="rounded-full border-purple-500/30 bg-purple-500/20 px-2.5 py-1 text-[10px] text-purple-300">
                               Sin IVU
                             </Badge>
                           )}
                         </div>
 
                         {isEditing && (
-                          <div className="mt-3 space-y-3">
+                          <div className="mt-4 space-y-3 rounded-2xl border border-white/5 bg-black/20 p-4">
                             <div className="flex items-center gap-3 flex-wrap">
                               <div className="flex items-center gap-2">
                                 <Label className="text-xs text-gray-400 min-w-[80px]">Descuento %:</Label>
-                                <div className="flex items-center gap-1 bg-black/40 rounded-lg border border-white/10 p-0.5">
+                                <div className="flex items-center gap-1 rounded-xl border border-white/10 bg-black/40 p-0.5">
                                   <Button 
                                     size="icon" 
                                     variant="ghost" 
@@ -306,19 +325,21 @@ export default function DeliveryStage({ order, onUpdate, user }) {
                         <div className="flex items-center gap-4 pl-4">
                         {isEditing ? (
                           <>
-                            <div className="flex items-center gap-1 bg-black/40 rounded-lg border border-white/10 p-0.5">
+                            <div className="flex items-center gap-1 rounded-xl border border-white/10 bg-black/40 p-0.5">
                               <Button size="icon" variant="ghost" className="h-8 w-8 hover:bg-white/10 hover:text-white rounded-md" onClick={() => setQty(idx, item.qty - 1)}><Minus className="w-3 h-3" /></Button>
                               <span className="text-white text-sm w-8 text-center font-bold">{item.qty}</span>
                               <Button size="icon" variant="ghost" className="h-8 w-8 hover:bg-white/10 hover:text-white rounded-md" onClick={() => setQty(idx, item.qty + 1)}><Plus className="w-3 h-3" /></Button>
                             </div>
-                            <Button size="icon" variant="ghost" className="h-9 w-9 text-red-400 hover:text-red-300 hover:bg-red-500/10 rounded-lg" onClick={() => removeLine(idx)}>
+                            <Button size="icon" variant="ghost" className="h-10 w-10 rounded-xl text-red-400 hover:bg-red-500/10 hover:text-red-300" onClick={() => removeLine(idx)}>
                               <Trash2 className="w-4 h-4" />
                             </Button>
                           </>
                         ) : (
                           <>
-                            <span className="text-gray-400 text-xs font-medium">x{item.qty}</span>
-                            <span className="text-emerald-400 font-bold text-sm min-w-[80px] text-right">
+                            <div className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs font-semibold text-white/60">
+                              x{item.qty}
+                            </div>
+                            <span className="min-w-[92px] text-right text-base font-black text-emerald-300">
                               ${itemSubtotal.toFixed(2)}
                             </span>
                           </>
@@ -330,41 +351,50 @@ export default function DeliveryStage({ order, onUpdate, user }) {
                 })}
               </div>
               
-              <div className="bg-black/40 p-5 space-y-3 border-t border-white/10">
+              <div className="grid gap-5 border-t border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.02),rgba(255,255,255,0))] p-5 lg:grid-cols-[1fr_320px]">
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between rounded-2xl border border-white/5 bg-black/20 px-4 py-3 text-sm">
+                    <span className="font-medium text-gray-400">Subtotal</span>
+                    <span className="font-bold text-white">${itemsSubtotal.toFixed(2)}</span>
+                  </div>
+                  <div className="flex items-center justify-between rounded-2xl border border-white/5 bg-black/20 px-4 py-3 text-sm">
+                    <span className="font-medium text-gray-400">IVU (11.5%)</span>
+                    <span className="font-bold text-white">${taxAmount.toFixed(2)}</span>
+                  </div>
+                  <div className="flex items-center justify-between rounded-2xl border border-emerald-500/20 bg-emerald-500/10 px-4 py-4">
+                    <span className="text-sm font-bold text-emerald-100">Total</span>
+                    <span className="text-2xl font-black text-white">${total.toFixed(2)}</span>
+                  </div>
 
-                <div className="flex justify-between items-center text-sm">
-                  <span className="text-gray-400 font-medium">Subtotal</span>
-                  <span className="text-white font-bold">${itemsSubtotal.toFixed(2)}</span>
-                </div>
-                <div className="flex justify-between items-center text-sm">
-                  <span className="text-gray-400 font-medium">IVU (11.5%)</span>
-                  <span className="text-white font-bold">${taxAmount.toFixed(2)}</span>
-                </div>
-                <div className="flex justify-between items-center pt-3 border-t border-white/5">
-                  <span className="text-gray-300 text-sm font-bold">Total</span>
-                  <span className="text-white font-bold text-xl">${total.toFixed(2)}</span>
+                  {amountPaid > 0 && (
+                    <>
+                      <div className="flex items-center justify-between rounded-2xl border border-white/5 bg-black/20 px-4 py-3 text-sm">
+                        <span className="font-medium text-gray-400">Pagado / Depósito</span>
+                        <span className="font-bold text-emerald-400">-${amountPaid.toFixed(2)}</span>
+                      </div>
+                      <div className="flex items-center justify-between rounded-2xl border border-white/5 bg-black/20 px-4 py-4">
+                        <span className="text-base font-bold text-white">Balance Pendiente</span>
+                        <span className={`text-2xl font-black ${balanceDue <= 0.01 ? 'text-emerald-400' : 'text-white'}`}>
+                          ${balanceDue.toFixed(2)}
+                        </span>
+                      </div>
+                    </>
+                  )}
                 </div>
 
-                {amountPaid > 0 && (
-                  <>
-                    <div className="flex justify-between items-center pt-1 text-xs">
-                      <span className="text-gray-400 font-medium">Pagado / Depósito</span>
-                      <span className="text-emerald-400 font-bold">-${amountPaid.toFixed(2)}</span>
-                    </div>
-                    <div className="flex justify-between items-center pt-3 border-t border-white/5">
-                      <span className="text-white font-bold text-base">Balance Pendiente</span>
-                      <span className={`font-bold text-2xl ${balanceDue <= 0.01 ? 'text-emerald-500' : 'text-white'}`}>
-                        ${balanceDue.toFixed(2)}
-                      </span>
-                    </div>
-                  </>
-                )}
-                
                 {balanceDue > 0.01 ? (
-                  <div className="pt-5 grid grid-cols-2 gap-4">
+                  <div className="flex flex-col justify-between rounded-[24px] border border-white/10 bg-black/25 p-5">
+                    <div>
+                      <p className="text-[11px] font-semibold uppercase tracking-[0.28em] text-white/35">Acciones de cobro</p>
+                      <h4 className="mt-2 text-xl font-black tracking-tight text-white">Cierra el balance de la orden</h4>
+                      <p className="mt-2 text-sm leading-relaxed text-white/50">
+                        Registra un depósito adicional o cobra el restante completo desde POS.
+                      </p>
+                    </div>
+                    <div className="mt-6 grid grid-cols-1 gap-3">
                     <Button 
                       variant="outline"
-                      className="border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/10 h-12 rounded-xl text-base font-bold"
+                      className="h-12 rounded-2xl border-emerald-500/30 bg-white text-base font-bold text-emerald-500 hover:bg-emerald-50"
                       onClick={() => {
                         // ✅ Cerrar panel antes de navegar al POS
                         window.dispatchEvent(new Event('close-workorder-panel'));
@@ -375,7 +405,7 @@ export default function DeliveryStage({ order, onUpdate, user }) {
                       Depósito
                     </Button>
                     <Button 
-                      className="bg-emerald-600 hover:bg-emerald-500 text-white h-12 rounded-xl text-base font-bold shadow-lg shadow-emerald-900/20"
+                      className="h-12 rounded-2xl bg-gradient-to-r from-emerald-500 to-teal-500 text-base font-bold text-white shadow-[0_14px_30px_rgba(16,185,129,0.22)] hover:from-emerald-400 hover:to-teal-400"
                       onClick={() => {
                         // ✅ Cerrar panel antes de navegar al POS
                         window.dispatchEvent(new Event('close-workorder-panel'));
@@ -386,14 +416,16 @@ export default function DeliveryStage({ order, onUpdate, user }) {
                       Cobrar Restante
                     </Button>
                   </div>
+                  </div>
                 ) : (
-                   <div className="pt-5">
-                      <div className="w-full bg-emerald-500/10 border border-emerald-500/20 rounded-xl p-4 text-center">
-                          <p className="text-emerald-400 font-bold flex items-center justify-center gap-2 text-lg">
+                   <div className="flex flex-col justify-center rounded-[24px] border border-emerald-500/20 bg-emerald-500/10 p-5 text-center">
+                          <p className="flex items-center justify-center gap-2 text-lg font-bold text-emerald-400">
                               <Check className="w-6 h-6" /> Orden Saldada
                           </p>
+                          <p className="mt-2 text-sm text-emerald-200/70">
+                            No queda balance pendiente. La orden está lista para entrega o cierre.
+                          </p>
                       </div>
-                   </div>
                 )}
               </div>
             </div>
