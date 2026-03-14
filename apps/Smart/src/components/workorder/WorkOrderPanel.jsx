@@ -570,8 +570,12 @@ function WaitingPartsModal({ open, onClose, onSave, initialData, order }) {
 
   if (!open) return null;
 
-  return (
-    <div className="fixed inset-0 z-[100000]">
+  return createPortal(
+    <div
+      className="fixed inset-0 z-[100000]"
+      onMouseDown={(e) => e.stopPropagation()}
+      onTouchStart={(e) => e.stopPropagation()}
+    >
       <div className="absolute inset-0 bg-black/80 backdrop-blur-md" onClick={onClose} />
       <div className="absolute inset-0 flex items-center justify-center p-4 overflow-y-auto">
         <div
@@ -608,12 +612,9 @@ function WaitingPartsModal({ open, onClose, onSave, initialData, order }) {
               </div>
               <div className="space-y-2">
                 {["taller", "cliente"].map(loc => (
-                  <button
+                  <label
                     key={loc}
-                    type="button"
-                    onClick={(e) => { e.preventDefault(); e.stopPropagation(); updateField("deviceLocation", loc); }}
-                    onMouseDown={(e) => { e.preventDefault(); e.stopPropagation(); }}
-                    onTouchStart={(e) => { e.stopPropagation(); }}
+                    onClick={(e) => e.stopPropagation()}
                     className={`w-full flex items-center gap-3 p-3 rounded-lg border-2 cursor-pointer transition-all text-left ${
                       formData.deviceLocation === loc
                         ? loc === "taller"
@@ -622,6 +623,14 @@ function WaitingPartsModal({ open, onClose, onSave, initialData, order }) {
                         : "bg-black/20 border-white/10 hover:border-white/30"
                     }`}
                   >
+                    <input
+                      type="radio"
+                      name="deviceLocation"
+                      value={loc}
+                      checked={formData.deviceLocation === loc}
+                      onChange={() => updateField("deviceLocation", loc)}
+                      className="sr-only"
+                    />
                     <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${
                       formData.deviceLocation === loc
                         ? loc === "taller"
@@ -639,7 +648,7 @@ function WaitingPartsModal({ open, onClose, onSave, initialData, order }) {
                         {loc === "taller" ? "El equipo permanece aquí" : "El cliente se lo llevó"}
                       </p>
                     </div>
-                  </button>
+                  </label>
                 ))}
               </div>
             </div>
@@ -747,7 +756,8 @@ function WaitingPartsModal({ open, onClose, onSave, initialData, order }) {
           </div>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }
 
