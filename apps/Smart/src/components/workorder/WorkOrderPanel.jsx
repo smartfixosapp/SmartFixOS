@@ -568,166 +568,183 @@ function WaitingPartsModal({ open, onClose, onSave, initialData, order }) {
     setFormData(prev => ({ ...prev, [field]: value }));
   };
 
+  if (!open) return null;
+
   return (
-    <Dialog open={open} onOpenChange={(v) => { if (!v) onClose?.(); }}>
-      <DialogContent
-        className="w-full max-w-md border border-white/10 rounded-2xl p-6 max-h-[90vh] overflow-y-auto theme-light:border-gray-200"
-        style={{ background: '#111114' }}
-        onKeyDown={(e) => e.stopPropagation()}
-      >
-        <DialogHeader className="mb-2">
-          <DialogTitle className="flex items-center gap-2 text-white theme-light:text-gray-900">
-            <PackageOpen className="w-5 h-5 text-red-400" />
-            Esperando piezas
-          </DialogTitle>
-        </DialogHeader>
-        <p className="text-xs text-gray-400 mb-4 theme-light:text-gray-600">Registra información sobre las piezas necesarias.</p>
-
-        <div className="space-y-4">
-          {/* Ubicación del equipo */}
-          <div className="bg-amber-600/10 border-2 border-amber-500/40 rounded-xl p-4 theme-light:bg-amber-50 theme-light:border-amber-300">
-            <div className="text-xs text-amber-300 mb-3 font-bold flex items-center gap-2 theme-light:text-amber-800">
-              <AlertCircle className="w-4 h-4" />
-              ¿Dónde está el equipo? *
+    <div className="fixed inset-0 z-[100000]">
+      <div className="absolute inset-0 bg-black/80 backdrop-blur-md" onClick={onClose} />
+      <div className="absolute inset-0 flex items-center justify-center p-4 overflow-y-auto">
+        <div
+          className="w-full max-w-md border border-white/10 rounded-2xl p-6 max-h-[90vh] overflow-y-auto shadow-[0_30px_100px_rgba(0,0,0,0.55)] theme-light:border-gray-200"
+          style={{ background: "#111114" }}
+          onClick={(e) => e.stopPropagation()}
+          onKeyDown={(e) => e.stopPropagation()}
+        >
+          <div className="mb-2 flex items-center justify-between gap-3">
+            <div>
+              <h3 className="flex items-center gap-2 text-lg font-bold text-white theme-light:text-gray-900">
+                <PackageOpen className="w-5 h-5 text-red-400" />
+                Esperando piezas
+              </h3>
+              <p className="mt-1 text-xs text-gray-400 theme-light:text-gray-600">
+                Registra información sobre las piezas necesarias.
+              </p>
             </div>
-            <div className="space-y-2">
-              {["taller", "cliente"].map(loc => (
-                <div
-                  key={loc}
-                  onClick={(e) => { e.stopPropagation(); updateField("deviceLocation", loc); }}
-                  className={`flex items-center gap-3 p-3 rounded-lg border-2 cursor-pointer transition-all ${
-                    formData.deviceLocation === loc
-                      ? loc === "taller"
-                        ? "bg-cyan-600/30 border-cyan-500/60"
-                        : "bg-emerald-600/30 border-emerald-500/60"
-                      : "bg-black/20 border-white/10 hover:border-white/30"
-                  }`}
-                >
-                  <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${
-                    formData.deviceLocation === loc
-                      ? loc === "taller"
-                        ? "border-cyan-500 bg-cyan-500"
-                        : "border-emerald-500 bg-emerald-500"
-                      : "border-gray-500"
-                  }`}>
-                    {formData.deviceLocation === loc && <div className="w-2 h-2 rounded-full bg-white" />}
-                  </div>
-                  <div className="flex-1">
-                    <span className="text-white font-semibold text-sm theme-light:text-gray-900">
-                      {loc === "taller" ? "🏢 En el taller" : "👤 Lo tiene el cliente"}
-                    </span>
-                    <p className="text-xs text-gray-400 theme-light:text-gray-600">
-                      {loc === "taller" ? "El equipo permanece aquí" : "El cliente se lo llevó"}
-                    </p>
-                  </div>
-                </div>
-              ))}
-            </div>
+            <button
+              type="button"
+              onClick={onClose}
+              className="h-10 w-10 rounded-xl bg-white/5 text-white/70 hover:bg-white/10 hover:text-white"
+            >
+              <X className="mx-auto h-5 w-5" />
+            </button>
           </div>
 
-          {/* Nombre de pieza */}
-          <div>
-            <label className="text-xs text-gray-300 mb-2 block font-medium theme-light:text-gray-700">Nombre de la(s) Pieza(s) *</label>
-            <input
-              type="text"
-              value={formData.partName}
-              onChange={(e) => updateField("partName", e.target.value)}
-              onKeyDown={(e) => e.stopPropagation()}
-              placeholder="Ej. Pantalla LCD, Batería..."
-              className="w-full h-10 px-3 rounded-md bg-black/40 border border-white/15 text-white text-sm theme-light:bg-white theme-light:border-gray-300 theme-light:text-gray-900"
-            />
-            {linkSummary && (
-              <div className="mt-2 space-y-2">
-                <p className="text-[11px] text-cyan-300 theme-light:text-cyan-700">
-                  Detectado desde links: {linkSummary}
-                </p>
-                {linkNames.length > 1 && (
-                  <div className="flex flex-wrap gap-1.5">
-                    {linkNames.map((name) => (
-                      <button
-                        key={name}
-                        type="button"
-                        onClick={(e) => { e.stopPropagation(); updateField("partName", name); }}
-                        className="rounded-full border border-cyan-500/30 bg-cyan-500/10 px-2.5 py-1 text-[11px] font-medium text-cyan-200 hover:bg-cyan-500/20 theme-light:text-cyan-700"
-                      >
-                        {name}
-                      </button>
-                    ))}
+          <div className="space-y-4">
+            {/* Ubicación del equipo */}
+            <div className="bg-amber-600/10 border-2 border-amber-500/40 rounded-xl p-4 theme-light:bg-amber-50 theme-light:border-amber-300">
+              <div className="text-xs text-amber-300 mb-3 font-bold flex items-center gap-2 theme-light:text-amber-800">
+                <AlertCircle className="w-4 h-4" />
+                ¿Dónde está el equipo? *
+              </div>
+              <div className="space-y-2">
+                {["taller", "cliente"].map(loc => (
+                  <div
+                    key={loc}
+                    onClick={(e) => { e.stopPropagation(); updateField("deviceLocation", loc); }}
+                    className={`flex items-center gap-3 p-3 rounded-lg border-2 cursor-pointer transition-all ${
+                      formData.deviceLocation === loc
+                        ? loc === "taller"
+                          ? "bg-cyan-600/30 border-cyan-500/60"
+                          : "bg-emerald-600/30 border-emerald-500/60"
+                        : "bg-black/20 border-white/10 hover:border-white/30"
+                    }`}
+                  >
+                    <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${
+                      formData.deviceLocation === loc
+                        ? loc === "taller"
+                          ? "border-cyan-500 bg-cyan-500"
+                          : "border-emerald-500 bg-emerald-500"
+                        : "border-gray-500"
+                    }`}>
+                      {formData.deviceLocation === loc && <div className="w-2 h-2 rounded-full bg-white" />}
+                    </div>
+                    <div className="flex-1">
+                      <span className="text-white font-semibold text-sm theme-light:text-gray-900">
+                        {loc === "taller" ? "🏢 En el taller" : "👤 Lo tiene el cliente"}
+                      </span>
+                      <p className="text-xs text-gray-400 theme-light:text-gray-600">
+                        {loc === "taller" ? "El equipo permanece aquí" : "El cliente se lo llevó"}
+                      </p>
+                    </div>
                   </div>
-                )}
-              </div>
-            )}
-          </div>
-
-          {/* Suplidor */}
-          <div>
-            <label className="text-xs text-gray-300 mb-2 block font-medium theme-light:text-gray-700">Suplidor *</label>
-            {loadingSuppliers ? (
-              <div className="flex items-center justify-center h-10 bg-black/40 rounded-md border border-white/15">
-                <Loader2 className="w-4 h-4 animate-spin text-white/60" />
-              </div>
-            ) : (
-              <select
-                value={formData.supplier}
-                onChange={(e) => updateField("supplier", e.target.value)}
-                onKeyDown={(e) => e.stopPropagation()}
-                className="w-full h-10 px-3 rounded-md bg-black/40 border border-white/15 text-white text-sm theme-light:bg-white theme-light:border-gray-300 theme-light:text-gray-900"
-              >
-                <option value="">Seleccionar suplidor...</option>
-                {suppliers.map((s) => (
-                  <option key={s.id} value={s.name}>
-                    {s.name}
-                  </option>
                 ))}
-              </select>
-            )}
-          </div>
-
-          {/* Carrier y Tracking */}
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <label className="text-xs text-gray-300 mb-2 block theme-light:text-gray-700">Compañía de envío</label>
-              <select
-                value={formData.carrier}
-                onChange={(e) => updateField("carrier", e.target.value)}
-                onKeyDown={(e) => e.stopPropagation()}
-                className="w-full h-10 px-3 rounded-md bg-black/40 border border-white/15 text-white text-sm theme-light:bg-white theme-light:border-gray-300 theme-light:text-gray-900"
-              >
-                <option value="">Seleccionar...</option>
-                <option value="USPS">USPS</option>
-                <option value="FedEx">FedEx</option>
-                <option value="UPS">UPS</option>
-                <option value="DHL">DHL</option>
-                <option value="Amazon">Amazon</option>
-                <option value="Otro">Otro</option>
-              </select>
+              </div>
             </div>
+
+            {/* Nombre de pieza */}
             <div>
-              <label className="text-xs text-gray-300 mb-2 block theme-light:text-gray-700">Tracking</label>
+              <label className="text-xs text-gray-300 mb-2 block font-medium theme-light:text-gray-700">Nombre de la(s) Pieza(s) *</label>
               <input
                 type="text"
-                value={formData.tracking}
-                onChange={(e) => updateField("tracking", e.target.value)}
+                value={formData.partName}
+                onChange={(e) => updateField("partName", e.target.value)}
                 onKeyDown={(e) => e.stopPropagation()}
-                placeholder="1Z999AA..."
+                placeholder="Ej. Pantalla LCD, Batería..."
                 className="w-full h-10 px-3 rounded-md bg-black/40 border border-white/15 text-white text-sm theme-light:bg-white theme-light:border-gray-300 theme-light:text-gray-900"
               />
+              {linkSummary && (
+                <div className="mt-2 space-y-2">
+                  <p className="text-[11px] text-cyan-300 theme-light:text-cyan-700">
+                    Detectado desde links: {linkSummary}
+                  </p>
+                  {linkNames.length > 1 && (
+                    <div className="flex flex-wrap gap-1.5">
+                      {linkNames.map((name) => (
+                        <button
+                          key={name}
+                          type="button"
+                          onClick={(e) => { e.stopPropagation(); updateField("partName", name); }}
+                          className="rounded-full border border-cyan-500/30 bg-cyan-500/10 px-2.5 py-1 text-[11px] font-medium text-cyan-200 hover:bg-cyan-500/20 theme-light:text-cyan-700"
+                        >
+                          {name}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+
+            {/* Suplidor */}
+            <div>
+              <label className="text-xs text-gray-300 mb-2 block font-medium theme-light:text-gray-700">Suplidor *</label>
+              {loadingSuppliers ? (
+                <div className="flex items-center justify-center h-10 bg-black/40 rounded-md border border-white/15">
+                  <Loader2 className="w-4 h-4 animate-spin text-white/60" />
+                </div>
+              ) : (
+                <select
+                  value={formData.supplier}
+                  onChange={(e) => updateField("supplier", e.target.value)}
+                  onKeyDown={(e) => e.stopPropagation()}
+                  className="w-full h-10 px-3 rounded-md bg-black/40 border border-white/15 text-white text-sm theme-light:bg-white theme-light:border-gray-300 theme-light:text-gray-900"
+                >
+                  <option value="">Seleccionar suplidor...</option>
+                  {suppliers.map((s) => (
+                    <option key={s.id} value={s.name}>
+                      {s.name}
+                    </option>
+                  ))}
+                </select>
+              )}
+            </div>
+
+            {/* Carrier y Tracking */}
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="text-xs text-gray-300 mb-2 block theme-light:text-gray-700">Compañía de envío</label>
+                <select
+                  value={formData.carrier}
+                  onChange={(e) => updateField("carrier", e.target.value)}
+                  onKeyDown={(e) => e.stopPropagation()}
+                  className="w-full h-10 px-3 rounded-md bg-black/40 border border-white/15 text-white text-sm theme-light:bg-white theme-light:border-gray-300 theme-light:text-gray-900"
+                >
+                  <option value="">Seleccionar...</option>
+                  <option value="USPS">USPS</option>
+                  <option value="FedEx">FedEx</option>
+                  <option value="UPS">UPS</option>
+                  <option value="DHL">DHL</option>
+                  <option value="Amazon">Amazon</option>
+                  <option value="Otro">Otro</option>
+                </select>
+              </div>
+              <div>
+                <label className="text-xs text-gray-300 mb-2 block theme-light:text-gray-700">Tracking</label>
+                <input
+                  type="text"
+                  value={formData.tracking}
+                  onChange={(e) => updateField("tracking", e.target.value)}
+                  onKeyDown={(e) => e.stopPropagation()}
+                  placeholder="1Z999AA..."
+                  className="w-full h-10 px-3 rounded-md bg-black/40 border border-white/15 text-white text-sm theme-light:bg-white theme-light:border-gray-300 theme-light:text-gray-900"
+                />
+              </div>
             </div>
           </div>
-        </div>
 
-        {err && <div className="mt-3 text-xs text-amber-300 theme-light:text-amber-700">{err}</div>}
+          {err && <div className="mt-3 text-xs text-amber-300 theme-light:text-amber-700">{err}</div>}
 
-        <div className="mt-6 flex justify-end gap-2">
-          <Button className="h-9 px-4 bg-white text-black hover:bg-white/90" onClick={onClose}>
-            Cancelar
-          </Button>
-          <Button className="h-9 px-4 bg-gradient-to-r from-cyan-600 to-emerald-600 hover:from-cyan-700 hover:to-emerald-700" onClick={handleSubmit}>
-            Guardar
-          </Button>
+          <div className="mt-6 flex justify-end gap-2">
+            <Button className="h-9 px-4 bg-white text-black hover:bg-white/90" onClick={onClose}>
+              Cancelar
+            </Button>
+            <Button className="h-9 px-4 bg-gradient-to-r from-cyan-600 to-emerald-600 hover:from-cyan-700 hover:to-emerald-700" onClick={handleSubmit}>
+              Guardar
+            </Button>
+          </div>
         </div>
-      </DialogContent>
-    </Dialog>
+      </div>
+    </div>
   );
 }
 
