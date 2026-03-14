@@ -174,26 +174,65 @@ function dedupeById(list = []) {
   return out;
 }
 
+function simplifyPersonName(value = "") {
+  const parts = String(value)
+    .trim()
+    .toLowerCase()
+    .split(/\s+/)
+    .filter(Boolean);
+  if (parts.length === 0) return "";
+  if (parts.length === 1) return parts[0];
+  return `${parts[0]} ${parts[parts.length - 1]}`;
+}
+
+function sameTechnician(a, b) {
+  if (!a || !b) return false;
+
+  const leftAuth = String(a.auth_id || "").trim().toLowerCase();
+  const rightAuth = String(b.auth_id || "").trim().toLowerCase();
+  if (leftAuth && rightAuth && leftAuth === rightAuth) return true;
+
+  const leftEmail = String(a.email || "").trim().toLowerCase();
+  const rightEmail = String(b.email || "").trim().toLowerCase();
+  if (leftEmail && rightEmail && leftEmail === rightEmail) return true;
+
+  const leftCode = String(a.employee_code || "").trim().toLowerCase();
+  const rightCode = String(b.employee_code || "").trim().toLowerCase();
+  if (leftCode && rightCode && leftCode === rightCode) return true;
+
+  const leftName = simplifyPersonName(a.full_name || a.name || "");
+  const rightName = simplifyPersonName(b.full_name || b.name || "");
+  if (leftName && rightName && leftName === rightName) return true;
+
+  return false;
+}
+
+function pickPreferredTechnician(current, incoming) {
+  const currentScore =
+    (current?.auth_id ? 4 : 0) +
+    (current?.email ? 3 : 0) +
+    (current?.employee_code ? 2 : 0) +
+    (current?._fallback_from_punch ? 0 : 1);
+  const incomingScore =
+    (incoming?.auth_id ? 4 : 0) +
+    (incoming?.email ? 3 : 0) +
+    (incoming?.employee_code ? 2 : 0) +
+    (incoming?._fallback_from_punch ? 0 : 1);
+
+  return incomingScore > currentScore ? incoming : current;
+}
+
 function dedupeTechnicians(list = []) {
-  const seen = new Set();
   const out = [];
 
   for (const tech of list) {
     if (!tech) continue;
-
-    const normalizedName = String(tech.full_name || tech.name || "")
-      .trim()
-      .toLowerCase();
-    const dedupeKey =
-      String(tech.auth_id || "").trim().toLowerCase() ||
-      String(tech.employee_code || "").trim().toLowerCase() ||
-      normalizedName ||
-      String(tech.email || "").trim().toLowerCase() ||
-      String(tech.id || "").trim().toLowerCase();
-
-    if (!dedupeKey || seen.has(dedupeKey)) continue;
-    seen.add(dedupeKey);
-    out.push(tech);
+    const existingIndex = out.findIndex((existing) => sameTechnician(existing, tech));
+    if (existingIndex === -1) {
+      out.push(tech);
+      continue;
+    }
+    out[existingIndex] = pickPreferredTechnician(out[existingIndex], tech);
   }
 
   return out;
@@ -327,6 +366,9 @@ export default function WorkOrderWizard({ open, onClose, onSuccess, preloadedCus
   const [customerLastName, setCustomerLastName] = useState("");
   const [customerPhone, setCustomerPhone] = useState("");
   const [customerEmail, setCustomerEmail] = useState("");
+  const [customerAltPhone, setCustomerAltPhone] = useState("");
+  const [customerAltEmail, setCustomerAltEmail] = useState("");
+  const [showAdditionalContact, setShowAdditionalContact] = useState(false);
   const [customerId, setCustomerId] = useState(null);
   const [isB2B, setIsB2B] = useState(false);
   const [companyName, setCompanyName] = useState("");
@@ -409,6 +451,8 @@ export default function WorkOrderWizard({ open, onClose, onSuccess, preloadedCus
         setCustomerLastName(last);
         setCustomerPhone(preloadedCustomer.phone || "");
         setCustomerEmail(preloadedCustomer.email || "");
+        setCustomerAltPhone("");
+        setCustomerAltEmail("");
       }
     } else {
       resetForm();
@@ -937,6 +981,8 @@ export default function WorkOrderWizard({ open, onClose, onSuccess, preloadedCus
       setBillingContact(customer.billing_contact_person || "");
       setCustomerPhone(customer.phone || "");
       setCustomerEmail(customer.email || "");
+      setCustomerAltPhone("");
+      setCustomerAltEmail("");
       setCustomerName("");
       setCustomerLastName("");
     } else {
@@ -949,6 +995,8 @@ export default function WorkOrderWizard({ open, onClose, onSuccess, preloadedCus
       setCustomerLastName(last);
       setCustomerPhone(customer.phone || "");
       setCustomerEmail(customer.email || "");
+      setCustomerAltPhone("");
+      setCustomerAltEmail("");
       setCompanyName("");
       setCompanyTaxId("");
       setBillingContact("");
@@ -993,6 +1041,9 @@ export default function WorkOrderWizard({ open, onClose, onSuccess, preloadedCus
     setCustomerLastName("");
     setCustomerPhone("");
     setCustomerEmail("");
+    setCustomerAltPhone("");
+    setCustomerAltEmail("");
+    setShowAdditionalContact(false);
     setCustomerId(null);
     setIsB2B(false);
     setCompanyName("");
@@ -1424,7 +1475,11 @@ export default function WorkOrderWizard({ open, onClose, onSuccess, preloadedCus
         status_metadata: {
           quick_order: quickOrderMode,
           flow_type: quickOrderMode ? "quick_repair" : "standard",
-          created_from: quickOrderMode ? "work_order_wizard_quick" : "work_order_wizard"
+          created_from: quickOrderMode ? "work_order_wizard_quick" : "work_order_wizard",
+          additional_contact: {
+            phone: customerAltPhone || "",
+            email: customerAltEmail || "",
+          },
         }
       };
 
@@ -1883,6 +1938,38 @@ export default function WorkOrderWizard({ open, onClose, onSuccess, preloadedCus
                     />
                   </div>
                 </div>
+                <div className="flex justify-end">
+                  <button
+                    type="button"
+                    onClick={() => setShowAdditionalContact((prev) => !prev)}
+                    className="text-xs font-semibold text-cyan-300 hover:text-cyan-200"
+                  >
+                    {showAdditionalContact ? "Ocultar contacto adicional" : "+ Añadir contacto adicional"}
+                  </button>
+                </div>
+                {showAdditionalContact && (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div>
+                      <label className="text-xs text-gray-300 mb-1 block">Teléfono adicional</label>
+                      <input
+                        value={customerAltPhone}
+                        onChange={(e) => setCustomerAltPhone(e.target.value)}
+                        placeholder="787-555-0456"
+                        className="w-full bg-black/30 border border-white/10 rounded-lg px-3 py-2 text-white text-sm"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-xs text-gray-300 mb-1 block">Email adicional</label>
+                      <input
+                        type="email"
+                        value={customerAltEmail}
+                        onChange={(e) => setCustomerAltEmail(e.target.value)}
+                        placeholder="otro@email.com"
+                        className="w-full bg-black/30 border border-white/10 rounded-lg px-3 py-2 text-white text-sm"
+                      />
+                    </div>
+                  </div>
+                )}
               </div>
             )}
           </div>
