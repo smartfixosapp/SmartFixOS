@@ -46,6 +46,25 @@ export default function SuppliersDialog({ open, onClose }) {
     return null;
   };
 
+  const buildSupplierPayload = (source = {}) => {
+    const cleaned = {
+      name: String(source.name || "").trim(),
+      contact_name: String(source.contact_name || "").trim(),
+      phone: String(source.phone || "").trim(),
+      email: String(source.email || "").trim(),
+      website: String(source.website || "").trim(),
+      address: String(source.address || "").trim(),
+      notes: String(source.notes || "").trim(),
+      active: source.active !== false,
+      payment_terms: "NET-30",
+      currency: "USD",
+    };
+
+    return Object.fromEntries(
+      Object.entries(cleaned).filter(([, value]) => value !== "")
+    );
+  };
+
   const toLocalSupplier = (source) => ({
     id: source?.id || `local-supplier-${Date.now()}`,
     name: source?.name || formData.name.trim(),
@@ -82,17 +101,22 @@ export default function SuppliersDialog({ open, onClose }) {
       toast.error("El nombre del proveedor es requerido");
       return;
     }
+    if (!formData.phone?.trim()) {
+      toast.error("El teléfono del proveedor es requerido");
+      return;
+    }
 
     setLoading(true);
     try {
+      const payload = buildSupplierPayload(formData);
       if (editingSupplier) {
-        const updatedPayload = await appClient.entities.Supplier.update(editingSupplier.id, formData);
+        const updatedPayload = await appClient.entities.Supplier.update(editingSupplier.id, payload);
         const updated = toLocalSupplier(normalizeEntity(updatedPayload) || { ...editingSupplier, ...formData, id: editingSupplier.id });
         setSuppliers((prev) => prev.map((s) => (s.id === editingSupplier.id ? { ...s, ...updated } : s)));
         upsertSupplierInCache(updated);
         toast.success("✅ Proveedor actualizado");
       } else {
-        const createdPayload = await appClient.entities.Supplier.create(formData);
+        const createdPayload = await appClient.entities.Supplier.create(payload);
         const created = toLocalSupplier(normalizeEntity(createdPayload) || formData);
         setSuppliers((prev) => [created, ...prev.filter((s) => String(s.id) !== String(created.id))]);
         upsertSupplierInCache(created);
@@ -104,7 +128,7 @@ export default function SuppliersDialog({ open, onClose }) {
       resetForm();
     } catch (error) {
       console.error("Error saving supplier:", error);
-      toast.error("Error al guardar proveedor");
+      toast.error(error?.message || "Error al guardar proveedor");
     } finally {
       setLoading(false);
     }
