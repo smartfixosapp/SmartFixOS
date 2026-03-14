@@ -18,10 +18,25 @@ export default function DiagnosingStage({ order, onUpdate, user }) {
   const [sendingQuote, setSendingQuote] = useState(false);
   const [events, setEvents] = useState([]);
   const [links, setLinks] = useState([]);
+  const [linkOrderPreview, setLinkOrderPreview] = useState(null);
+  const [openCatalogFromLink, setOpenCatalogFromLink] = useState(false);
+
+  const effectiveOrder = linkOrderPreview?.id === order?.id
+    ? {
+        ...order,
+        ...linkOrderPreview,
+        order_items: Array.isArray(linkOrderPreview?.order_items) ? linkOrderPreview.order_items : order?.order_items,
+      }
+    : order;
 
   useEffect(() => {
     loadEvents();
     loadLinks();
+  }, [order?.id]);
+
+  useEffect(() => {
+    setLinkOrderPreview(null);
+    setOpenCatalogFromLink(false);
   }, [order?.id]);
 
   const loadEvents = async () => {
@@ -498,11 +513,18 @@ export default function DiagnosingStage({ order, onUpdate, user }) {
       )}
 
       <OrderLinksDialog
-        order={order}
+        order={effectiveOrder}
         user={user}
         onUpdate={() => {
           loadLinks();
           onUpdate?.();
+        }}
+        onLinkSaved={(nextOrder) => {
+          if (nextOrder?.id === order?.id) {
+            setLinkOrderPreview(nextOrder);
+            setOpenCatalogFromLink(true);
+            setShowCatalog(true);
+          }
         }}
         open={activeModal === "links"}
         onOpenChange={(open) => setActiveModal(open ? "links" : null)}
@@ -515,9 +537,13 @@ export default function DiagnosingStage({ order, onUpdate, user }) {
 
       <AddItemModal 
         open={showCatalog} 
-        onClose={() => setShowCatalog(false)} 
-        order={order}
+        onClose={() => {
+          setShowCatalog(false);
+          setOpenCatalogFromLink(false);
+        }} 
+        order={effectiveOrder}
         onUpdate={onUpdate}
+        autoOpenCart={openCatalogFromLink}
       />
       
     </div>

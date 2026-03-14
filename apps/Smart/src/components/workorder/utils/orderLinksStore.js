@@ -1,4 +1,5 @@
 import { base44 } from "@/api/base44Client";
+import { dataClient } from "@/components/api/dataClient";
 
 const COMMENT_PREFIX = "[[LINK_V2]]";
 const LOCAL_STORAGE_PREFIX = "wo_links_v2_";
@@ -261,7 +262,7 @@ function buildTotals(order, orderItems) {
 async function readRawLinks(order) {
   if (!order?.id) return { order: order || null, links: [] };
 
-  const freshOrder = await base44.entities.Order.get(order.id).catch(() => order);
+  const freshOrder = await dataClient.entities.Order.get(order.id).catch(() => order);
 
   const commentLinks = (Array.isArray(freshOrder?.comments) ? freshOrder.comments : [])
     .map(parseLinkFromComment)
@@ -294,7 +295,7 @@ async function readRawLinks(order) {
 
   let eventLinks = [];
   try {
-    const events = await base44.entities.WorkOrderEvent.filter({ order_id: freshOrder.id }, "-created_date", 300);
+    const events = await dataClient.entities.WorkOrderEvent.filter({ order_id: freshOrder.id }, "-created_date", 300);
     eventLinks = (Array.isArray(events) ? events : [])
       .map(parseLinkFromEvent)
       .filter(Boolean);
@@ -332,7 +333,7 @@ async function readRawLinks(order) {
 }
 
 async function persistOrderLinks(order, links, options = {}) {
-  const freshOrder = order?.id ? await base44.entities.Order.get(order.id).catch(() => order) : order;
+  const freshOrder = order?.id ? await dataClient.entities.Order.get(order.id).catch(() => order) : order;
   const normalizedLinks = dedupeLinks(links);
   const comments = buildCommentsArray(normalizedLinks, freshOrder?.comments || []);
   const statusMeta = freshOrder?.status_metadata && typeof freshOrder.status_metadata === "object"
@@ -374,7 +375,7 @@ async function persistOrderLinks(order, links, options = {}) {
 
   writeLocalLinks(freshOrder.id, normalizedLinks);
   try {
-    const updatedOrder = await base44.entities.Order.update(freshOrder.id, updatePayload);
+    const updatedOrder = await dataClient.entities.Order.update(freshOrder.id, updatePayload);
     return { order: updatedOrder, links: normalizedLinks, synced: true };
   } catch (error) {
     console.warn("persistOrderLinks fallback to local cache:", error);
@@ -418,35 +419,54 @@ export async function saveOrderLink({ order, partName, url, price, user }) {
     throw new Error("invalid_link_payload");
   }
 
-  const { order: freshOrder, links } = await readRawLinks(order);
-  const merged = dedupeLinks([{ ...normalized, id: createLinkId(normalized.partName) }, ...links]);
-  const persisted = await persistOrderLinks(freshOrder, merged, {
-    syncItems: true,
-    addDeletedSignatures: [],
-  });
-
-  if (persisted?.synced !== false) {
-    try {
-    const me = await base44.auth.me().catch(() => null);
-    await base44.entities.WorkOrderEvent.create({
-      order_id: freshOrder.id,
-      order_number: freshOrder.order_number,
-      event_type: "note_added",
-      description: `🔗 Link para ${normalized.partName}: ${normalized.url} | Precio: $${sanitizePrice(normalized.price).toFixed(2)}`,
-      user_name: user?.full_name || me?.full_name || me?.email || "Sistema",
-      user_id: user?.id || me?.id || null,
-      metadata: {
-        entry_kind: "link_added",
-        is_link: true,
-        partName: normalized.partName,
-        link: normalized.url,
-        price: sanitizePrice(normalized.price),
-      },
+  try {
+    const { order: freshOrder, links } = await readRawLinks(order);
+    const merged = dedupeLinks([{ ...normalized, id: createLinkId(normalized.partName) }, ...links]);
+    const persisted = await persistOrderLinks(freshOrder, merged, {
+      syncItems: true,
+      addDeletedSignatures: [],
     });
-    } catch {}
-  }
 
-  return persisted;
+    if (persisted?.synced !== false) {
+      try {
+        const me = await base44.auth.me().catch(() => null);
+        await dataClient.entities.WorkOrderEvent.create({
+          order_id: freshOrder.id,
+          order_number: freshOrder.order_number,
+          event_type: "note_added",
+          description: `🔗 Link para ${normalized.partName}: ${normalized.url} | Precio: $${sanitizePrice(normalized.price).toFixed(2)}`,
+          user_name: user?.full_name || me?.full_name || me?.email || "Sistema",
+          user_id: user?.id || me?.id || null,
+          metadata: {
+            entry_kind: "link_added",
+            is_link: true,
+            partName: normalized.partName,
+            link: normalized.url,
+            price: sanitizePrice(normalized.price),
+          },
+        });
+      } catch {}
+    }
+
+    return persisted;
+  } catch (error) {
+    console.warn("saveOrderLink fallback to local order cache:", error);
+    const fallbackOrder = order || {};
+    const localLinks = readLocalLinks(fallbackOrder?.id)
+      .map(parseLinkFromLegacyEntry)
+      .filter(Boolean);
+    const merged = dedupeLinks([{ ...normalized, id: createLinkId(normalized.partName) }, ...localLinks]);
+    const fallbackItems = syncOrderItems(fallbackOrder?.order_items || [], merged);
+    writeLocalLinks(fallbackOrder?.id, merged);
+    return {
+      order: {
+        ...fallbackOrder,
+        order_items: fallbackItems,
+      },
+      links: merged,
+      synced: false,
+    };
+  }
 }
 
 export async function deleteOrderLink({ order, linkId }) {

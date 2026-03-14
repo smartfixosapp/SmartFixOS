@@ -110,6 +110,7 @@ export default function AddItemModal({
   draftMode = false,
   initialItems = [],
   onApplyItems,
+  autoOpenCart = false,
 }) {
   const [activeCategory, setActiveCategory] = useState("all");
   const [search, setSearch] = useState("");
@@ -127,7 +128,7 @@ export default function AddItemModal({
     if (!open) return;
     setActiveCategory("all");
     setSearch("");
-    setShowCart(false);
+    setShowCart(Boolean(autoOpenCart));
 
     // Init cart desde props (rápido, cubre el caso donde ya están actualizados)
     const sourceItems = isDraftOrder ? initialItems : order?.order_items;
@@ -204,9 +205,9 @@ export default function AddItemModal({
     } finally {
       let merged = uniqueByKey([...products, ...services]);
 
-      // Si el catálogo está vacío, inyectar items de order_items como entradas virtuales
-      // Usa freshOrderItems (de DB) si disponible, de lo contrario usa el prop
-      if (merged.length === 0 && !isDraftOrder) {
+      // Inyectar links/manuales de order_items como entradas virtuales para que
+      // aparezcan siempre en el catálogo, aunque haya inventario cargado.
+      if (!isDraftOrder) {
         const baseItems = Array.isArray(freshOrderItems) ? freshOrderItems : (Array.isArray(order?.order_items) ? order.order_items : []);
         const linkedItems = baseItems
           .filter((item) => item?.link_ref_id || item?.is_manual || item?.source === "manual")
@@ -219,7 +220,7 @@ export default function AddItemModal({
             sku: item.sku || "",
             _linked: true,
           }, "product"));
-        merged = uniqueByKey(linkedItems);
+        merged = uniqueByKey([...linkedItems, ...merged]);
       }
 
       setInventoryItems(merged);

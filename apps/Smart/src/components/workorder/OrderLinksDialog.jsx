@@ -38,6 +38,7 @@ export default function OrderLinksDialog({
   title = "Ver y Añadir Links",
   subtitle = "Links de piezas",
   onLinksChange,
+  onLinkSaved,
 }) {
   const styles = ACCENT_STYLES[accent] || ACCENT_STYLES.cyan;
   const [links, setLinks] = useState([]);
@@ -101,6 +102,7 @@ export default function OrderLinksDialog({
       const nextLinks = Array.isArray(result?.links) ? result.links : [];
       setLinks(nextLinks);
       onLinksChange?.(nextLinks);
+      onLinkSaved?.(result?.order || null);
       setPartName("");
       setUrl("");
       setPrice("");
