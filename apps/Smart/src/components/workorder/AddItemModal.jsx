@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { dataClient } from "@/components/api/dataClient";
+import { base44 } from "@/api/base44Client";
 import { catalogCache } from "@/components/utils/dataCache";
 import { toast } from "sonner";
 import QuickItemModal from "../inventory/QuickItemModal";
@@ -433,7 +434,12 @@ export default function AddItemModal({
       onUpdate?.({ id: order.id, ...updatePayload });
       onClose?.();
 
-      await dataClient.entities.Order.update(order.id, updatePayload);
+      try {
+        await dataClient.entities.Order.update(order.id, updatePayload);
+      } catch (primaryError) {
+        console.warn("[AddItemModal] dataClient update failed, trying base44 fallback:", primaryError);
+        await base44.entities.Order.update(order.id, updatePayload);
+      }
 
       toast.success("Items de la orden actualizados");
     } catch (error) {
