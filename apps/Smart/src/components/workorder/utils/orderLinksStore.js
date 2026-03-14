@@ -341,9 +341,21 @@ async function persistOrderLinks(order, links, options = {}) {
     updatePayload.tax_rate = totals.taxRate;
   }
 
-  const updatedOrder = await base44.entities.Order.update(freshOrder.id, updatePayload);
   writeLocalLinks(freshOrder.id, normalizedLinks);
-  return { order: updatedOrder, links: normalizedLinks };
+  try {
+    const updatedOrder = await base44.entities.Order.update(freshOrder.id, updatePayload);
+    return { order: updatedOrder, links: normalizedLinks, synced: true };
+  } catch (error) {
+    console.warn("persistOrderLinks fallback to local cache:", error);
+    return {
+      order: {
+        ...(freshOrder || {}),
+        ...updatePayload,
+      },
+      links: normalizedLinks,
+      synced: false,
+    };
+  }
 }
 
 export async function loadOrderLinks(order) {
@@ -379,7 +391,8 @@ export async function saveOrderLink({ order, partName, url, price, user }) {
   const merged = dedupeLinks([{ ...normalized, id: createLinkId(normalized.partName) }, ...links]);
   const persisted = await persistOrderLinks(freshOrder, merged, { syncItems: true });
 
-  try {
+  if (persisted?.synced !== false) {
+    try {
     const me = await base44.auth.me().catch(() => null);
     await base44.entities.WorkOrderEvent.create({
       order_id: freshOrder.id,
@@ -396,7 +409,8 @@ export async function saveOrderLink({ order, partName, url, price, user }) {
         price: sanitizePrice(normalized.price),
       },
     });
-  } catch {}
+    } catch {}
+  }
 
   return persisted;
 }
