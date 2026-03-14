@@ -52,6 +52,10 @@ function normalizeInventoryItem(raw = {}, fallbackType = "product") {
     tipo_principal: raw.tipo_principal || "",
     category: raw.category || "",
     type,
+    source: raw.source || null,
+    is_manual: raw.is_manual === true,
+    link_ref_id: raw.link_ref_id || null,
+    link_url: raw.link_url || "",
   };
 }
 
@@ -67,10 +71,47 @@ function normalizeCartItem(raw = {}) {
     from_inventory: raw.from_inventory === true,
     sku: raw.sku || "",
     stock: toNum(raw.stock, 0),
+    source: raw.source || null,
+    is_manual: raw.is_manual === true,
+    link_ref_id: raw.link_ref_id || null,
+    link_url: raw.link_url || "",
+    part_type: raw.part_type || "",
+    tipo_principal: raw.tipo_principal || "",
+    category: raw.category || "",
     price: toNum(raw.price, 0),
     qty,
     discount_percentage: discount,
     taxable: raw.taxable !== false,
+  };
+}
+
+function serializeOrderItem(raw = {}) {
+  const item = normalizeCartItem(raw);
+  const total = Number(
+    (
+      (toNum(item.price, 0) * toNum(item.qty, 1)) *
+      (1 - toNum(item.discount_percentage, 0) / 100)
+    ).toFixed(2)
+  );
+
+  return {
+    id: item.id,
+    name: item.name,
+    type: item.type,
+    source: item.source || (item.from_inventory ? "inventory" : "manual"),
+    is_manual: item.is_manual === true,
+    sku: item.sku || "",
+    stock: toNum(item.stock, 0),
+    price: toNum(item.price, 0),
+    qty: toNum(item.qty, 1),
+    discount_percentage: toNum(item.discount_percentage, 0),
+    taxable: item.taxable !== false,
+    total,
+    ...(item.link_ref_id ? { link_ref_id: item.link_ref_id } : {}),
+    ...(item.link_url ? { link_url: item.link_url } : {}),
+    ...(item.part_type ? { part_type: item.part_type } : {}),
+    ...(item.tipo_principal ? { tipo_principal: item.tipo_principal } : {}),
+    ...(item.category ? { category: item.category } : {}),
   };
 }
 
@@ -218,6 +259,10 @@ export default function AddItemModal({
             type: item.type || "product",
             part_type: item.part_type || "",
             sku: item.sku || "",
+            source: item.source || "manual",
+            is_manual: item.is_manual === true,
+            link_ref_id: item.link_ref_id || item.id || null,
+            link_url: item.link_url || "",
             _linked: true,
           }, "product"));
         merged = uniqueByKey([...linkedItems, ...merged]);
@@ -318,7 +363,7 @@ export default function AddItemModal({
     if (saving) return;
     setSaving(true);
     try {
-      const normalized = cartItems.map((item) => normalizeCartItem(item));
+      const normalized = cartItems.map((item) => serializeOrderItem(item));
 
       if (isDraftOrder) {
         onApplyItems?.(normalized);
