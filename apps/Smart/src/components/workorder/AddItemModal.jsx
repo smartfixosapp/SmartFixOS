@@ -429,11 +429,15 @@ export default function AddItemModal({
         };
       });
 
+      const currentPaid = Number(order?.total_paid || order?.amount_paid || 0);
+      const balanceDue = Math.max(0, totals.total - currentPaid);
+
       const updatePayload = {
         order_items: normalized,
-        subtotal: totals.subtotal,
-        tax_amount: totals.tax,
         total: totals.total,
+        cost_estimate: totals.total,
+        balance_due: balanceDue,
+        tax_rate: IVU_RATE,
       };
 
       if (isDraftOrder) {
