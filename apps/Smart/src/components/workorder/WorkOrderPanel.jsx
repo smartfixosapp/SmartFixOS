@@ -571,18 +571,13 @@ function WaitingPartsModal({ open, onClose, onSave, initialData, order }) {
   if (!open) return null;
 
   return createPortal(
-    <div
-      className="fixed inset-0 z-[100000]"
-      onMouseDown={(e) => e.stopPropagation()}
-      onTouchStart={(e) => e.stopPropagation()}
-    >
+    <div className="fixed inset-0 z-[100000]">
       <div className="absolute inset-0 bg-black/80 backdrop-blur-md" onClick={onClose} />
-      <div className="absolute inset-0 flex items-center justify-center p-4 overflow-y-auto">
+      <div className="absolute inset-0 flex items-center justify-center p-4 overflow-y-auto pointer-events-none">
         <div
-          className="w-full max-w-md border border-white/10 rounded-2xl p-6 max-h-[90vh] overflow-y-auto shadow-[0_30px_100px_rgba(0,0,0,0.55)] theme-light:border-gray-200"
+          className="pointer-events-auto w-full max-w-md border border-white/10 rounded-2xl p-6 max-h-[90vh] overflow-y-auto shadow-[0_30px_100px_rgba(0,0,0,0.55)] theme-light:border-gray-200"
           style={{ background: "#111114" }}
           onClick={(e) => e.stopPropagation()}
-          onKeyDown={(e) => e.stopPropagation()}
         >
           <div className="mb-2 flex items-center justify-between gap-3">
             <div>
@@ -612,9 +607,10 @@ function WaitingPartsModal({ open, onClose, onSave, initialData, order }) {
               </div>
               <div className="space-y-2">
                 {["taller", "cliente"].map(loc => (
-                  <label
+                  <button
                     key={loc}
-                    onClick={(e) => e.stopPropagation()}
+                    type="button"
+                    onClick={() => updateField("deviceLocation", loc)}
                     className={`w-full flex items-center gap-3 p-3 rounded-lg border-2 cursor-pointer transition-all text-left ${
                       formData.deviceLocation === loc
                         ? loc === "taller"
@@ -623,14 +619,6 @@ function WaitingPartsModal({ open, onClose, onSave, initialData, order }) {
                         : "bg-black/20 border-white/10 hover:border-white/30"
                     }`}
                   >
-                    <input
-                      type="radio"
-                      name="deviceLocation"
-                      value={loc}
-                      checked={formData.deviceLocation === loc}
-                      onChange={() => updateField("deviceLocation", loc)}
-                      className="sr-only"
-                    />
                     <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${
                       formData.deviceLocation === loc
                         ? loc === "taller"
@@ -648,7 +636,7 @@ function WaitingPartsModal({ open, onClose, onSave, initialData, order }) {
                         {loc === "taller" ? "El equipo permanece aquí" : "El cliente se lo llevó"}
                       </p>
                     </div>
-                  </label>
+                  </button>
                 ))}
               </div>
             </div>
@@ -660,7 +648,6 @@ function WaitingPartsModal({ open, onClose, onSave, initialData, order }) {
                 type="text"
                 value={formData.partName}
                 onChange={(e) => updateField("partName", e.target.value)}
-                onKeyDown={(e) => e.stopPropagation()}
                 placeholder="Ej. Pantalla LCD, Batería..."
                 className="w-full h-10 px-3 rounded-md bg-black/40 border border-white/15 text-white text-sm theme-light:bg-white theme-light:border-gray-300 theme-light:text-gray-900"
               />
@@ -675,7 +662,7 @@ function WaitingPartsModal({ open, onClose, onSave, initialData, order }) {
                         <button
                           key={name}
                           type="button"
-                          onClick={(e) => { e.stopPropagation(); updateField("partName", name); }}
+                          onClick={() => updateField("partName", name)}
                           className="rounded-full border border-cyan-500/30 bg-cyan-500/10 px-2.5 py-1 text-[11px] font-medium text-cyan-200 hover:bg-cyan-500/20 theme-light:text-cyan-700"
                         >
                           {name}
@@ -698,7 +685,6 @@ function WaitingPartsModal({ open, onClose, onSave, initialData, order }) {
                 <select
                   value={formData.supplier}
                   onChange={(e) => updateField("supplier", e.target.value)}
-                  onKeyDown={(e) => e.stopPropagation()}
                   className="w-full h-10 px-3 rounded-md bg-black/40 border border-white/15 text-white text-sm theme-light:bg-white theme-light:border-gray-300 theme-light:text-gray-900"
                 >
                   <option value="">Seleccionar suplidor...</option>
@@ -718,7 +704,6 @@ function WaitingPartsModal({ open, onClose, onSave, initialData, order }) {
                 <select
                   value={formData.carrier}
                   onChange={(e) => updateField("carrier", e.target.value)}
-                  onKeyDown={(e) => e.stopPropagation()}
                   className="w-full h-10 px-3 rounded-md bg-black/40 border border-white/15 text-white text-sm theme-light:bg-white theme-light:border-gray-300 theme-light:text-gray-900"
                 >
                   <option value="">Seleccionar...</option>
@@ -736,7 +721,6 @@ function WaitingPartsModal({ open, onClose, onSave, initialData, order }) {
                   type="text"
                   value={formData.tracking}
                   onChange={(e) => updateField("tracking", e.target.value)}
-                  onKeyDown={(e) => e.stopPropagation()}
                   placeholder="1Z999AA..."
                   className="w-full h-10 px-3 rounded-md bg-black/40 border border-white/15 text-white text-sm theme-light:bg-white theme-light:border-gray-300 theme-light:text-gray-900"
                 />
