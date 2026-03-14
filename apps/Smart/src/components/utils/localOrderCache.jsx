@@ -159,7 +159,9 @@ export function mergeOrders(remoteOrders = [], localOrders = []) {
   [...localOrders, ...remoteOrders].forEach((order) => {
     const normalized = normalizeOrder(order);
     if (!normalized) return;
-    map.set(normalized.id, { ...(map.get(normalized.id) || {}), ...normalized });
+    const canonicalNumber = canonicalOrderNumber(normalized.order_number);
+    const key = canonicalNumber || normalized.id;
+    map.set(key, { ...(map.get(key) || {}), ...normalized });
   });
 
   return Array.from(map.values()).sort((a, b) => {
