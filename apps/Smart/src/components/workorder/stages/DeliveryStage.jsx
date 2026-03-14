@@ -17,6 +17,7 @@ import AddItemModal from "@/components/workorder/AddItemModal";
 import { base44 } from "@/api/base44Client";
 import { dataClient } from "@/components/api/dataClient";
 import { supabase } from "../../../../../../lib/supabase-client.js";
+import { createPageUrl } from "@/components/utils/helpers";
 
 function getTenantId() {
   try {
@@ -456,7 +457,9 @@ export default function DeliveryStage({ order, onUpdate, user }) {
                       onClick={() => {
                         // ✅ Cerrar panel antes de navegar al POS
                         window.dispatchEvent(new Event('close-workorder-panel'));
-                        navigate(`/POS?workOrderId=${o.id}&mode=deposit`);
+                        navigate(createPageUrl(`POS?workOrderId=${o.id}&balance=${balanceDue}&mode=deposit`), {
+                          state: { fromDashboard: true, paymentMode: "deposit" }
+                        });
                       }}
                     >
                       <Wallet className="w-5 h-5 mr-2" />
@@ -467,7 +470,9 @@ export default function DeliveryStage({ order, onUpdate, user }) {
                       onClick={() => {
                         // ✅ Cerrar panel antes de navegar al POS
                         window.dispatchEvent(new Event('close-workorder-panel'));
-                        navigate(`/POS?workOrderId=${o.id}&mode=full`);
+                        navigate(createPageUrl(`POS?workOrderId=${o.id}&balance=${balanceDue}&mode=full`), {
+                          state: { fromDashboard: true, paymentMode: "full" }
+                        });
                       }}
                     >
                       <DollarSign className="w-5 h-5 mr-2" />

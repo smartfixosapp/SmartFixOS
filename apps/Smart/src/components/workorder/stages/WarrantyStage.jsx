@@ -20,6 +20,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import AddItemModal from "@/components/workorder/AddItemModal";
 import WorkOrderUnifiedHub from "@/components/workorder/WorkOrderUnifiedHub";
+import { createPageUrl } from "@/components/utils/helpers";
 
 export default function WarrantyStage({ order, onUpdate }) {
   const o = order || {};
@@ -492,7 +493,9 @@ export default function WarrantyStage({ order, onUpdate }) {
                         className="h-12 rounded-2xl border-emerald-500/30 text-emerald-300 hover:bg-emerald-500/10"
                         onClick={() => {
                           window.dispatchEvent(new Event("close-workorder-panel"));
-                          navigate(`/POS?workOrderId=${o.id}&mode=deposit`);
+                          navigate(createPageUrl(`POS?workOrderId=${o.id}&balance=${totals.balanceDue}&mode=deposit`), {
+                            state: { fromDashboard: true, paymentMode: "deposit" }
+                          });
                         }}
                       >
                         <Wallet className="mr-2 h-5 w-5" />
@@ -502,7 +505,9 @@ export default function WarrantyStage({ order, onUpdate }) {
                         className="h-12 rounded-2xl bg-emerald-600 text-white shadow-lg shadow-emerald-900/20 hover:bg-emerald-500"
                         onClick={() => {
                           window.dispatchEvent(new Event("close-workorder-panel"));
-                          navigate(`/POS?workOrderId=${o.id}&mode=full`);
+                          navigate(createPageUrl(`POS?workOrderId=${o.id}&balance=${totals.balanceDue}&mode=full`), {
+                            state: { fromDashboard: true, paymentMode: "full" }
+                          });
                         }}
                       >
                         <DollarSign className="mr-2 h-5 w-5" />

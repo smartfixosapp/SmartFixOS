@@ -18,6 +18,7 @@ import { base44 } from "@/api/base44Client";
 import { loadSuppliersSafe } from "@/components/utils/suppliers";
 import WorkOrderUnifiedHub from "@/components/workorder/WorkOrderUnifiedHub";
 import { loadOrderLinks } from "@/components/workorder/utils/orderLinksStore";
+import { createPageUrl } from "@/components/utils/helpers";
 
 export default function WaitingPartsStage({ order, onUpdate }) {
   const o = order || {};
@@ -690,7 +691,9 @@ export default function WaitingPartsStage({ order, onUpdate }) {
                         className="h-12 rounded-2xl border-emerald-500/30 text-emerald-300 hover:bg-emerald-500/10"
                         onClick={() => {
                           window.dispatchEvent(new Event('close-workorder-panel'));
-                          navigate(`/POS?workOrderId=${o.id}&mode=deposit`);
+                          navigate(createPageUrl(`POS?workOrderId=${o.id}&balance=${balanceDue}&mode=deposit`), {
+                            state: { fromDashboard: true, paymentMode: "deposit" }
+                          });
                         }}
                       >
                         Depósito
@@ -699,7 +702,9 @@ export default function WaitingPartsStage({ order, onUpdate }) {
                         className="h-12 rounded-2xl bg-emerald-600 text-white shadow-lg shadow-emerald-900/20 hover:bg-emerald-500"
                         onClick={() => {
                           window.dispatchEvent(new Event('close-workorder-panel'));
-                          navigate(`/POS?workOrderId=${o.id}&mode=full`);
+                          navigate(createPageUrl(`POS?workOrderId=${o.id}&balance=${balanceDue}&mode=full`), {
+                            state: { fromDashboard: true, paymentMode: "full" }
+                          });
                         }}
                       >
                         Cobrar Restante
