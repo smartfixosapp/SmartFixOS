@@ -130,6 +130,7 @@ function uniqueByKey(items = []) {
   const out = [];
   for (const it of items) {
     const key = [
+      String(it?.link_ref_id || "").trim().toLowerCase(),
       String(it?.id || "").trim().toLowerCase(),
       String(it?.sku || "").trim().toLowerCase(),
       String(it?.name || "").trim().toLowerCase(),
@@ -183,13 +184,20 @@ export default function AddItemModal({
       // terminado su handleRefresh cuando el modal abre, así que leemos nosotros directamente.
       dataClient?.entities?.Order?.get(order.id)
         .then((freshOrder) => {
-          if (Array.isArray(freshOrder?.order_items) && freshOrder.order_items.length > 0) {
-            setCartItems(freshOrder.order_items.map((i) => normalizeCartItem(i)));
+          const propItems = Array.isArray(order?.order_items) ? order.order_items : [];
+          const freshItems = Array.isArray(freshOrder?.order_items) ? freshOrder.order_items : [];
+          const mergedOrderItems = [...propItems, ...freshItems];
+
+          if (mergedOrderItems.length > 0) {
+            setCartItems(mergedOrderItems.map((i) => normalizeCartItem(i)));
           }
-          // Pasar los order_items frescos para que la inyección al catálogo también funcione
-          void loadInventory(freshOrder?.order_items);
+
+          // Mantener el preview local de links recién agregados aunque la base todavía no refleje el cambio.
+          void loadInventory(mergedOrderItems);
         })
-        .catch(() => { void loadInventory(); }); // fallback: inventario sin inyección fresca
+        .catch(() => {
+          void loadInventory(Array.isArray(order?.order_items) ? order.order_items : undefined);
+        }); // fallback: inventario sin inyección fresca
     } else {
       void loadInventory();
     }
