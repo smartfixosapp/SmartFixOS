@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
-import { Activity, User, Send, ImagePlus, Camera } from "lucide-react";
+import { Activity, User, Send, ImagePlus, Camera, Sparkles, Clock3 } from "lucide-react";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import GalleryModal from "@/components/common/GalleryModal";
@@ -280,11 +280,16 @@ export default function WorkOrderTimeline({ order, onUpdate }) {
   };
 
   return (
-    <Card className="bg-gradient-to-br from-[#2B2B2B] to-black border-cyan-900/30">
-      <CardHeader className="border-b border-cyan-900/30">
-        <CardTitle className="text-xl font-bold text-white flex items-center gap-2">
-          <Activity className="w-5 h-5 text-cyan-400" />
-          Historial & Comentarios
+    <Card className="overflow-hidden rounded-[28px] border border-cyan-500/15 bg-[radial-gradient(circle_at_top_left,rgba(34,211,238,0.10),transparent_24%),radial-gradient(circle_at_bottom_right,rgba(8,145,178,0.08),transparent_28%),linear-gradient(180deg,rgba(28,28,30,0.98),rgba(10,10,12,0.98))] shadow-[0_18px_50px_rgba(0,0,0,0.28)]">
+      <CardHeader className="border-b border-white/10 bg-gradient-to-r from-cyan-500/10 to-transparent px-6 py-5">
+        <CardTitle className="flex items-center gap-3 text-2xl font-black tracking-tight text-white">
+          <div className="flex h-12 w-12 items-center justify-center rounded-2xl border border-cyan-400/20 bg-cyan-500/15 shadow-[0_10px_30px_rgba(34,211,238,0.12)]">
+            <Sparkles className="h-5 w-5 text-cyan-300" />
+          </div>
+          <div>
+            <p className="text-[11px] font-semibold uppercase tracking-[0.28em] text-white/35">Linea de tiempo</p>
+            <span>Historial & Comentarios</span>
+          </div>
         </CardTitle>
         <input
           ref={fileInputRef}
@@ -297,12 +302,12 @@ export default function WorkOrderTimeline({ order, onUpdate }) {
         />
       </CardHeader>
 
-      <CardContent className="p-4 space-y-4">
+      <CardContent className="space-y-5 p-5">
         {(order?.initial_problem || order?.comments) && (
-          <div className="rounded-xl border border-orange-500/20 bg-orange-500/5 p-4">
+          <div className="rounded-[22px] border border-orange-500/20 bg-[linear-gradient(135deg,rgba(249,115,22,0.10),rgba(255,255,255,0.02))] p-5 shadow-[inset_0_1px_0_rgba(255,255,255,0.02)]">
             <div className="mb-2 flex items-center justify-between gap-3">
               <p className="text-xs font-bold uppercase tracking-[0.24em] text-orange-200/70">Problema reportado</p>
-              <Badge className="rounded-full border-white/10 bg-white/5 text-white/70">Recepción</Badge>
+              <Badge className="rounded-full border-white/10 bg-white/5 px-3 py-1 text-white/70">Recepción</Badge>
             </div>
             <p className="whitespace-pre-wrap text-sm leading-relaxed text-white/80">
               {order?.initial_problem || order?.comments || "Sin descripción del problema."}
@@ -311,23 +316,32 @@ export default function WorkOrderTimeline({ order, onUpdate }) {
         )}
 
         {/* Composer */}
-        <div className="rounded-xl border border-white/10 bg-black/30 p-3">
+        <div className="rounded-[24px] border border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.03),rgba(255,255,255,0.01))] p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.03)]">
+          <div className="mb-3 flex items-center justify-between gap-3">
+            <div>
+              <p className="text-[11px] font-semibold uppercase tracking-[0.28em] text-white/35">Nuevo comentario</p>
+              <p className="mt-1 text-sm text-white/50">Registra acuerdos, hallazgos y contexto importante sin salir de la orden.</p>
+            </div>
+            <div className="hidden rounded-full border border-white/10 bg-white/5 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.24em] text-white/45 sm:block">
+              Enter para enviar
+            </div>
+          </div>
           <Textarea
             value={text}
             onChange={(e) => setText(e.target.value)}
             onKeyDown={onKeyDown}
             placeholder="Escribe un comentario… (Enter para enviar, Shift+Enter para nueva línea)"
-            className="bg-black/40 border-gray-700 text-white min-h-[72px]"
+            className="min-h-[88px] rounded-[18px] border-white/10 bg-black/35 text-white placeholder:text-white/28"
           />
 
-          <div className="mt-2 flex items-center justify-between gap-2">
+          <div className="mt-4 flex items-center justify-between gap-2">
             {/* Cola de subida */}
             {uploadQueue.length > 0 && (
               <div className="flex items-center gap-2 overflow-x-auto max-w-[65%]">
                 {uploadQueue.map(item => (
                   <div
                     key={item.id}
-                    className="relative w-12 h-12 rounded-md overflow-hidden border border-white/15 bg-black/50"
+                    className="relative h-12 w-12 overflow-hidden rounded-xl border border-white/15 bg-black/50"
                     title={item.name}
                   >
                     {item.previewUrl ? (
@@ -351,7 +365,11 @@ export default function WorkOrderTimeline({ order, onUpdate }) {
             )}
 
             <div className="ml-auto">
-              <Button onClick={sendNote} disabled={busySend || !text.trim()} className="h-8">
+              <Button
+                onClick={sendNote}
+                disabled={busySend || !text.trim()}
+                className="h-11 rounded-2xl bg-gradient-to-r from-cyan-500 to-sky-500 px-5 font-bold text-slate-950 shadow-[0_12px_30px_rgba(34,211,238,0.22)] hover:from-cyan-400 hover:to-sky-400"
+              >
                 <Send className="w-4 h-4 mr-2" />
                 {busySend ? "Enviando…" : "Enviar"}
               </Button>
@@ -367,7 +385,7 @@ export default function WorkOrderTimeline({ order, onUpdate }) {
         ) : (
           <div className="space-y-3 max-h-[300px] overflow-y-auto app-scroll">
             {((order?.checklist_items?.length || 0) > 0 || (order?.device_condition_map?.length || 0) > 0) && (
-              <div className="rounded-lg border border-cyan-500/20 bg-cyan-500/5 p-4">
+              <div className="rounded-[22px] border border-cyan-500/20 bg-cyan-500/5 p-4">
                 <div className="mb-3 flex items-center justify-between gap-3">
                   <div>
                     <p className="text-xs font-bold uppercase tracking-[0.24em] text-cyan-200/65">Recepción inicial</p>
@@ -407,14 +425,14 @@ export default function WorkOrderTimeline({ order, onUpdate }) {
               const filename = event?.metadata?.filename || null;
 
               return (
-                <div key={event.id || idx} className="rounded-lg border border-white/10 bg-black/20 p-3">
+                <div key={event.id || idx} className="rounded-[22px] border border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.02),rgba(255,255,255,0.01))] p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.03)] transition-colors hover:bg-white/[0.035]">
                   <div className="flex items-start justify-between gap-3">
                     <div className="flex items-start gap-2 text-white/80">
-                      <span className="w-8 h-8 rounded-full bg-white/10 grid place-items-center shrink-0">
-                        <Activity className="w-4 h-4" />
+                      <span className="grid h-10 w-10 shrink-0 place-items-center rounded-2xl border border-white/10 bg-white/5">
+                        <Activity className="h-4 w-4 text-cyan-300" />
                       </span>
                       <div className="min-w-0">
-                        <p className="text-sm text-white break-words">
+                        <p className="break-words text-[17px] font-bold text-white">
                           {!isAttachment ? (
                             linkify(event.description || "")
                           ) : (
@@ -426,7 +444,7 @@ export default function WorkOrderTimeline({ order, onUpdate }) {
                                     <img
                                       src={url}
                                       alt={filename || "foto"}
-                                      className="max-h-48 rounded-md border border-white/10 mt-1 cursor-zoom-in"
+                                      className="mt-2 max-h-48 cursor-zoom-in rounded-xl border border-white/10"
                                       onClick={() => openLightboxWith(url)}
                                     />
                                   ) : (
@@ -445,7 +463,7 @@ export default function WorkOrderTimeline({ order, onUpdate }) {
                           )}
                         </p>
 
-                        <div className="mt-1 flex items-center gap-2 text-[11px] text-white/50">
+                        <div className="mt-2 flex flex-wrap items-center gap-2 text-[11px] text-white/50">
                           <span className="flex items-center gap-1">
                             <User className="w-3 h-3" /> {event.user_name}
                           </span>
@@ -454,7 +472,8 @@ export default function WorkOrderTimeline({ order, onUpdate }) {
                               {event.user_role}
                             </Badge>
                           )}
-                          <span>
+                          <span className="inline-flex items-center gap-1">
+                            <Clock3 className="h-3 w-3" />
                             {event.created_date
                               ? format(new Date(event.created_date), "dd MMM yyyy HH:mm", { locale: es })
                               : ""}
