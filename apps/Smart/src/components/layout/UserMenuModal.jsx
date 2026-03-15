@@ -160,13 +160,16 @@ const createRemoteTimeEntry = async (payload) => {
 
   let lastError = null;
   for (let index = 0; index < attempts.length; index += 1) {
-    const { data, error } = await supabase
+    const currentPayload = attempts[index];
+    const { error } = await supabase
       .from("time_entry")
-      .insert(attempts[index])
-      .select("*")
-      .single();
+      .insert(currentPayload);
 
-    if (!error) return normalizeTimeEntry(data);
+    if (!error) {
+      const createdEntry = await fetchRemoteOpenEntry(currentPayload.employee_id);
+      if (createdEntry) return createdEntry;
+      throw new Error("TIMEENTRY_CREATE_NOT_VISIBLE");
+    }
 
     lastError = error;
     const message = String(error?.message || "");
