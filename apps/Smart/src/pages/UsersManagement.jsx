@@ -148,6 +148,7 @@ function mergeUsers(remoteUsers = [], localUsers = []) {
       merged[existingIndex] = {
         ...candidate,
         ...merged[existingIndex],
+        entity_source: merged[existingIndex]?.entity_source || candidate.entity_source,
         position: merged[existingIndex]?.position || candidate.position,
         employee_code: merged[existingIndex]?.employee_code || candidate.employee_code,
         pin: merged[existingIndex]?.pin || candidate.pin,
@@ -191,7 +192,10 @@ async function fetchTenantUsers() {
   if (usersError) throw usersError;
   if (employeesError) throw employeesError;
 
-  return mergeUsers(userRows || [], employeeRows || []);
+  const normalizedUsers = (userRows || []).map((user) => ({ ...user, entity_source: "users" }));
+  const normalizedEmployees = (employeeRows || []).map((employee) => ({ ...employee, entity_source: "app_employee" }));
+
+  return mergeUsers(normalizedUsers, normalizedEmployees);
 }
 
 function mergeAdminPanelButtons(savedButtons = []) {
@@ -439,22 +443,22 @@ export default function UsersManagement() {
     }
 
     try {
-      let existing = [];
-      try {
-        existing = await dataClient.entities.User.filter({
-          employee_code: userData.employee_code
-        });
-      } catch (filterError) {
-        console.warn("No se pudo validar duplicado remoto, continuando con validación local.", filterError);
-      }
-
+      const existing = await fetchTenantUsers().catch(() => []);
       const localUsers = readLocalUsers();
+      const normalizedEmployeeCode = String(userData.employee_code || "").trim().toLowerCase();
+      const normalizedEmail = String(userData.email || "").trim().toLowerCase();
+      const existsRemoteDuplicate = (existing || []).some((u) =>
+        String(u.employee_code || "").trim().toLowerCase() === normalizedEmployeeCode ||
+        (normalizedEmail && String(u.email || "").trim().toLowerCase() === normalizedEmail)
+      );
       const existsLocalCode = localUsers.some(
-        (u) => String(u.employee_code || "") === String(userData.employee_code || "")
+        (u) =>
+          String(u.employee_code || "").trim().toLowerCase() === normalizedEmployeeCode ||
+          (normalizedEmail && String(u.email || "").trim().toLowerCase() === normalizedEmail)
       );
 
-      if (existing?.length || existsLocalCode) {
-        toast.error("Ya existe un usuario con ese código");
+      if (existsRemoteDuplicate || existsLocalCode) {
+        toast.error("Ya existe un usuario con ese código o email");
         return;
       }
 
@@ -474,13 +478,18 @@ export default function UsersManagement() {
 
       let newUser = null;
       try {
-        newUser = await dataClient.entities.User.create(cleanData);
+        newUser = await dataClient.entities.AppEmployee.create({
+          ...cleanData,
+          status: "active",
+          portal_access_enabled: true
+        });
       } catch (createError) {
         if (!isLikelyNetworkError(createError)) throw createError;
 
         const localUser = {
           id: `local-user-${Date.now()}`,
           ...cleanData,
+          entity_source: "local",
           created_date: new Date().toISOString(),
           updated_date: new Date().toISOString()
         };
@@ -496,6 +505,7 @@ export default function UsersManagement() {
         const localUser = {
           id: `local-user-${Date.now()}`,
           ...cleanData,
+          entity_source: "local",
           created_date: new Date().toISOString(),
           updated_date: new Date().toISOString()
         };
@@ -551,6 +561,8 @@ export default function UsersManagement() {
           u.id === userId ? { ...u, ...cleanData, updated_date: new Date().toISOString() } : u
         );
         writeLocalUsers(updatedLocalUsers);
+      } else if (editingUser?.entity_source === "app_employee") {
+        await dataClient.entities.AppEmployee.update(userId, cleanData);
       } else {
         await dataClient.entities.User.update(userId, cleanData);
       }
@@ -581,6 +593,8 @@ export default function UsersManagement() {
       if (isLocalUserId(user.id)) {
         const localUsers = readLocalUsers().filter((u) => u.id !== user.id);
         writeLocalUsers(localUsers);
+      } else if (user.entity_source === "app_employee") {
+        await dataClient.entities.AppEmployee.delete(user.id);
       } else {
         await dataClient.entities.User.delete(user.id);
         await dataClient.entities.AuditLog.create({
@@ -618,6 +632,8 @@ export default function UsersManagement() {
           u.id === user.id ? { ...u, active: newActiveState, updated_date: new Date().toISOString() } : u
         );
         writeLocalUsers(updatedLocalUsers);
+      } else if (user.entity_source === "app_employee") {
+        await dataClient.entities.AppEmployee.update(user.id, { active: newActiveState });
       } else if (currentUser?.id === user.id) {
         await dataClient.auth.updateMe({ active: newActiveState });
       } else {
