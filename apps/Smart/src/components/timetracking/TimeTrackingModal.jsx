@@ -467,7 +467,7 @@ function PaymentModal({ open, onClose, employee, onConfirm }) {
                 }>
 
                   <span className="text-lg">{method.icon}</span>
-                  <span className="text-xs font-medium">{method.label.replace(/[^a-zA-Z\s]/g, '')}</span>
+                  <span className="text-xs font-medium">{method.label}</span>
                   {paymentMethod === method.value && <Check className="w-4 h-4 ml-auto text-emerald-400" />}
                 </button>
               )}
