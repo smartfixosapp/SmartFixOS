@@ -7,7 +7,7 @@ import { supabase } from "../../../../lib/supabase-client.js";
 import { toast } from "sonner";
 import { motion, AnimatePresence } from "framer-motion";
 import { triggerRealtimeNotification, NOTIFICATION_TYPES } from "@/components/notifications/RealtimeNotifications";
-import { ensureAdminBootstrap } from "@/components/utils/adminBootstrap";
+import { ensureAdminBootstrap, ensureTenantAdminUser } from "@/components/utils/adminBootstrap";
 import { getUserPermissions } from "@/components/utils/rolePermissions";
 import RequestAccessModal from "../components/auth/RequestAccessModal";
 // registerTenant now handled by /api/register (Vercel serverless)
@@ -424,6 +424,15 @@ export default function PinAccess() {
       // ── Verificar que el tenant no esté suspendido (via supabase directo) ──
       if (resolvedTenantId) {
         try {
+          await ensureTenantAdminUser(supabase, resolvedTenantId, {
+            id: authUserId,
+            auth_id: authUserId,
+            email,
+            userEmail: email,
+            userName: authData?.user?.user_metadata?.full_name || email,
+            full_name: authData?.user?.user_metadata?.full_name || email,
+          });
+
           const { data: tenantRecord } = await supabase
             .from("tenant")
             .select("status")

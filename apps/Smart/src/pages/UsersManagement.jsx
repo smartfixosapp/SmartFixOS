@@ -24,6 +24,7 @@ import TimeTrackingModal from "../components/timetracking/TimeTrackingModal";
 import TermsModalsManager from "../components/settings/TermsModalsManager";
 import { useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/components/utils/helpers";
+import { ensureTenantAdminUser } from "@/components/utils/adminBootstrap";
 
 const ROLES = [
   { value: "admin",      label: "Administrador", color: "from-cyan-600 to-blue-600",   icon: Shield,     badge: "bg-cyan-500"  },
@@ -371,6 +372,19 @@ export default function UsersManagement() {
   const loadUsers = async () => {
     setLoading(true);
     try {
+      const tenantId = getCurrentTenantId();
+      if (tenantId) {
+        const rawSession =
+          sessionStorage.getItem("911-session") ||
+          localStorage.getItem("employee_session");
+        let parsedSession = null;
+        try {
+          parsedSession = rawSession ? JSON.parse(rawSession) : null;
+        } catch {}
+
+        await ensureTenantAdminUser(supabase, tenantId, parsedSession);
+      }
+
       const allUsers = await fetchTenantUsers();
       const localUsers = readLocalUsers();
       setUsers(mergeUsers(allUsers || [], localUsers));

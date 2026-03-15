@@ -86,3 +86,110 @@ export async function ensureAdminBootstrap(base44) {
   }
 }
 
+export async function ensureTenantAdminUser(supabase, tenantId, fallbackSession = null) {
+  if (!supabase || !tenantId) return null;
+
+  let authUser = null;
+  try {
+    const { data, error } = await supabase.auth.getUser();
+    if (error) throw error;
+    authUser = data?.user || null;
+  } catch (error) {
+    console.warn("Admin bootstrap: no se pudo leer auth user.", error);
+  }
+
+  const fallbackEmail = String(
+    authUser?.email ||
+    fallbackSession?.email ||
+    fallbackSession?.userEmail ||
+    ""
+  ).trim().toLowerCase();
+
+  if (!fallbackEmail) return null;
+
+  const fallbackName = String(
+    authUser?.user_metadata?.full_name ||
+    fallbackSession?.full_name ||
+    fallbackSession?.userName ||
+    fallbackEmail
+  ).trim();
+
+  const fallbackAuthId = authUser?.id || fallbackSession?.auth_id || fallbackSession?.id || null;
+
+  const basePayload = {
+    tenant_id: tenantId,
+    email: fallbackEmail,
+    full_name: fallbackName,
+    role: "admin",
+    position: "admin",
+    active: true,
+    auth_id: fallbackAuthId,
+  };
+
+  try {
+    const { data: existingByAuth, error: authLookupError } = fallbackAuthId
+      ? await supabase
+          .from("users")
+          .select("id, tenant_id, email, full_name, role, position, active, auth_id")
+          .eq("auth_id", fallbackAuthId)
+          .eq("tenant_id", tenantId)
+          .limit(1)
+      : { data: [], error: null };
+
+    if (authLookupError) throw authLookupError;
+
+    const existingAuthUser = existingByAuth?.[0] || null;
+    if (existingAuthUser) {
+      const patch = {};
+      if (!existingAuthUser.email) patch.email = fallbackEmail;
+      if (!existingAuthUser.full_name) patch.full_name = fallbackName;
+      if (existingAuthUser.role !== "admin") patch.role = "admin";
+      if (existingAuthUser.position !== "admin") patch.position = "admin";
+      if (existingAuthUser.active === false) patch.active = true;
+      if (!existingAuthUser.auth_id && fallbackAuthId) patch.auth_id = fallbackAuthId;
+
+      if (Object.keys(patch).length) {
+        const { error: updateError } = await supabase.from("users").update(patch).eq("id", existingAuthUser.id);
+        if (updateError) throw updateError;
+      }
+      return { ...existingAuthUser, ...patch };
+    }
+
+    const { data: existingByEmail, error: emailLookupError } = await supabase
+      .from("users")
+      .select("id, tenant_id, email, full_name, role, position, active, auth_id")
+      .eq("tenant_id", tenantId)
+      .eq("email", fallbackEmail)
+      .limit(1);
+
+    if (emailLookupError) throw emailLookupError;
+
+    const existingEmailUser = existingByEmail?.[0] || null;
+    if (existingEmailUser) {
+      const patch = {
+        role: "admin",
+        position: "admin",
+        active: true,
+      };
+      if (!existingEmailUser.full_name) patch.full_name = fallbackName;
+      if (!existingEmailUser.auth_id && fallbackAuthId) patch.auth_id = fallbackAuthId;
+
+      const { error: updateError } = await supabase.from("users").update(patch).eq("id", existingEmailUser.id);
+      if (updateError) throw updateError;
+      return { ...existingEmailUser, ...patch };
+    }
+
+    const insertPayload = fallbackAuthId ? { ...basePayload, id: fallbackAuthId } : basePayload;
+    const { data: createdRows, error: createError } = await supabase
+      .from("users")
+      .insert(insertPayload)
+      .select("id, tenant_id, email, full_name, role, position, active, auth_id")
+      .limit(1);
+
+    if (createError) throw createError;
+    return createdRows?.[0] || insertPayload;
+  } catch (error) {
+    console.warn("Admin bootstrap: no se pudo asegurar admin del tenant.", error);
+    return null;
+  }
+}
