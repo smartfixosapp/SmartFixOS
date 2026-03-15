@@ -48,6 +48,68 @@ function getCurrentTenantId() {
   return null;
 }
 
+function getSessionCandidates() {
+  return [
+    sessionStorage.getItem("911-session"),
+    localStorage.getItem("employee_session"),
+    localStorage.getItem("smartfix_session")
+  ];
+}
+
+function readSessionIdentity() {
+  for (const raw of getSessionCandidates()) {
+    try {
+      const parsed = raw ? JSON.parse(raw) : null;
+      if (!parsed) continue;
+      const email = parsed?.email || parsed?.userEmail || parsed?.user?.email || null;
+      const authId = parsed?.auth_id || parsed?.authId || parsed?.id || parsed?.userId || null;
+      if (email || authId) {
+        return {
+          email: String(email || "").trim().toLowerCase() || null,
+          authId: authId || null,
+        };
+      }
+    } catch {}
+  }
+  return { email: null, authId: null };
+}
+
+async function resolveTenantIdFromSession() {
+  const { email, authId } = readSessionIdentity();
+
+  if (authId) {
+    const { data: authUsers } = await supabase
+      .from("users")
+      .select("tenant_id")
+      .eq("auth_id", authId)
+      .not("tenant_id", "is", null)
+      .limit(1);
+    const authTenantId = authUsers?.[0]?.tenant_id || null;
+    if (authTenantId) return authTenantId;
+  }
+
+  if (email) {
+    const [{ data: userRows }, { data: employeeRows }] = await Promise.all([
+      supabase
+        .from("users")
+        .select("tenant_id")
+        .eq("email", email)
+        .not("tenant_id", "is", null)
+        .limit(1),
+      supabase
+        .from("app_employee")
+        .select("tenant_id")
+        .eq("email", email)
+        .not("tenant_id", "is", null)
+        .limit(1)
+    ]);
+
+    return userRows?.[0]?.tenant_id || employeeRows?.[0]?.tenant_id || null;
+  }
+
+  return null;
+}
+
 async function insertSupabaseRecordWithTenantRetry(table, payload) {
   const attempts = [payload];
   if (payload?.tenant_id) {
@@ -979,27 +1041,42 @@ export default function TimeTrackingModal({ open, onClose, session }) {
   /* ---------- cargar empleados ---------- */
   const loadEmployees = useCallback(async () => {
     try {
-      const tenantId = getCurrentTenantId();
+      let tenantId = getCurrentTenantId();
+      const runQueries = async (currentTenantId) => {
+        let usersQuery = supabase
+          .from("users")
+          .select("id, email, full_name, role, position, employee_code, hourly_rate, active, tenant_id, auth_id")
+          .eq("active", true);
+        if (currentTenantId) usersQuery = usersQuery.eq("tenant_id", currentTenantId);
 
-      let usersQuery = supabase
-        .from("users")
-        .select("id, email, full_name, role, position, employee_code, hourly_rate, active, tenant_id, auth_id")
-        .eq("active", true);
-      if (tenantId) usersQuery = usersQuery.eq("tenant_id", tenantId);
+        let employeesQuery = supabase
+          .from("app_employee")
+          .select("id, email, full_name, role, position, employee_code, hourly_rate, active, tenant_id")
+          .eq("active", true);
+        if (currentTenantId) employeesQuery = employeesQuery.eq("tenant_id", currentTenantId);
 
-      let employeesQuery = supabase
-        .from("app_employee")
-        .select("id, email, full_name, role, position, employee_code, hourly_rate, active, tenant_id")
-        .eq("active", true);
-      if (tenantId) employeesQuery = employeesQuery.eq("tenant_id", tenantId);
+        const [{ data: userRows, error: usersError }, { data: employeeRows, error: employeesError }] = await Promise.all([
+          usersQuery,
+          employeesQuery,
+        ]);
 
-      const [{ data: userRows, error: usersError }, { data: employeeRows, error: employeesError }] = await Promise.all([
-        usersQuery,
-        employeesQuery,
-      ]);
+        if (usersError) throw usersError;
+        if (employeesError) throw employeesError;
 
-      if (usersError) throw usersError;
-      if (employeesError) throw employeesError;
+        return { userRows: userRows || [], employeeRows: employeeRows || [] };
+      };
+
+      let { userRows, employeeRows } = await runQueries(tenantId);
+
+      if ((!userRows.length && !employeeRows.length) && tenantId) {
+        const resolvedTenantId = await resolveTenantIdFromSession().catch(() => null);
+        if (resolvedTenantId && String(resolvedTenantId) !== String(tenantId)) {
+          localStorage.setItem("smartfix_tenant_id", resolvedTenantId);
+          localStorage.setItem("current_tenant_id", resolvedTenantId);
+          tenantId = resolvedTenantId;
+          ({ userRows, employeeRows } = await runQueries(tenantId));
+        }
+      }
 
       const merged = mergeEmployees(userRows || [], employeeRows || []);
       const formatted = merged.map((u) => ({
