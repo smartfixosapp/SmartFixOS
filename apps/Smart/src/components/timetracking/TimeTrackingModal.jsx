@@ -510,10 +510,16 @@ function PaymentModal({ open, onClose, employee, onConfirm }) {
 }
 
 /* ====================== Modal de Detalle de Empleado ====================== */
-function EmployeeDetailModal({ open, onClose, employee, entries, formatHM, formatHMS, allEntries, employees, from, to, setSelectedEmployee, setFrom, setTo, loadEntries, onPayment }) {
-  const [activeTab, setActiveTab] = React.useState("ponches");
+function EmployeeDetailModal({ open, onClose, employee, entries, formatHM, formatHMS, allEntries, employees, from, to, setSelectedEmployee, setFrom, setTo, loadEntries, onPayment, initialTab = "ponches" }) {
+  const [activeTab, setActiveTab] = React.useState(initialTab);
   const [paymentHistory, setPaymentHistory] = React.useState([]);
   const [loadingHistory, setLoadingHistory] = React.useState(false);
+
+  React.useEffect(() => {
+    if (open) {
+      setActiveTab(initialTab);
+    }
+  }, [open, initialTab]);
 
   React.useEffect(() => {
     if (open && activeTab === "pagos" && employee?.id) {
@@ -929,6 +935,8 @@ export default function TimeTrackingModal({ open, onClose, session }) {
   const [paymentModalOpen, setPaymentModalOpen] = useState(false);
   const [selectedEmployeeForPayment, setSelectedEmployeeForPayment] = useState(null);
   const [paidEmployees, setPaidEmployees] = useState(new Set());
+  const [detailModalOpen, setDetailModalOpen] = useState(false);
+  const [detailModalTab, setDetailModalTab] = useState("ponches");
 
   /* ---------- cargar usuarios activos ---------- */
   const loadActiveUsers = useCallback(async () => {
@@ -1370,6 +1378,7 @@ export default function TimeTrackingModal({ open, onClose, session }) {
   if (!open) return null;
 
   return (
+    <>
     <div className="fixed inset-0 z-[9999] bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
       <div className="w-full max-w-7xl overflow-y-auto rounded-[28px] border border-cyan-500/30 bg-[linear-gradient(180deg,rgba(15,23,42,0.98),rgba(2,6,23,0.98))] text-white shadow-[0_30px_120px_rgba(0,0,0,0.55)] max-h-[95vh]">
         <div className="sticky top-0 z-10 flex items-center justify-between border-b border-white/8 bg-slate-950/90 px-6 py-4 backdrop-blur-sm">
@@ -1389,35 +1398,10 @@ export default function TimeTrackingModal({ open, onClose, session }) {
 
         <div className="p-6 space-y-6">
           <div className="rounded-[26px] border border-white/8 bg-white/[0.03] p-5">
-            <div className="flex flex-col gap-4 xl:flex-row xl:items-end xl:justify-between">
               <div>
                 <p className="text-[11px] font-bold uppercase tracking-[0.28em] text-cyan-300/75">Periodo</p>
                 <h3 className="mt-2 text-2xl font-black tracking-tight text-white">{rangeLabel}</h3>
                 <p className="mt-1 text-sm text-slate-400">Vista operativa conectada al flujo real de ponches y al cálculo de nómina.</p>
-              </div>
-              <div className="flex flex-col gap-3 xl:items-end">
-                <div className="flex flex-wrap items-center gap-2">
-                  <div className="flex overflow-hidden rounded-xl border border-white/10 bg-black/30">
-                    <button onClick={setToday} className="px-3 py-2 text-sm text-slate-200 hover:bg-white/5">Hoy</button>
-                    <button onClick={setThisWeek} className="border-l border-white/10 px-3 py-2 text-sm text-slate-200 hover:bg-white/5">Semana</button>
-                    <button onClick={setThisMonth} className="border-l border-white/10 px-3 py-2 text-sm text-slate-200 hover:bg-white/5">Mes</button>
-                  </div>
-                </div>
-                <div className="flex flex-wrap items-center gap-2">
-                  <input
-                    type="date"
-                    value={startOfDay(from).toISOString().slice(0, 10)}
-                    onChange={(e) => setFrom(new Date(e.target.value))}
-                    className="h-10 rounded-xl border border-white/10 bg-black/30 px-3 text-sm text-white"
-                  />
-                  <span className="text-slate-500">→</span>
-                  <input
-                    type="date"
-                    value={startOfDay(to).toISOString().slice(0, 10)}
-                    onChange={(e) => setTo(new Date(e.target.value))}
-                    className="h-10 rounded-xl border border-white/10 bg-black/30 px-3 text-sm text-white"
-                  />
-                </div>
               </div>
             </div>
 
@@ -1588,10 +1572,17 @@ export default function TimeTrackingModal({ open, onClose, session }) {
                         >
                           Procesar pago
                         </Button>
+                        <Button
+                          onClick={() => {
+                            setDetailModalTab("pagos");
+                            setDetailModalOpen(true);
+                          }}
+                          variant="outline"
+                          className="w-full justify-start border-white/10 bg-black/20 text-white hover:bg-white/5"
+                        >
+                          Historial
+                        </Button>
                       </div>
-                      <p className="mt-4 text-xs text-slate-500">
-                        El pago usa la tarifa por hora guardada en el perfil del usuario y las jornadas cerradas o abiertas del rango.
-                      </p>
                     </div>
                   </div>
 
@@ -1644,30 +1635,53 @@ export default function TimeTrackingModal({ open, onClose, session }) {
             </div>
           </div>
 
-        </div>
       </div>
+    </div>
 
-      {/* Modal edición */}
       <EditPunchModal
         open={editOpen}
         onClose={() => setEditOpen(false)}
         punch={editRow}
-        onSaved={loadEntries} />
+        onSaved={loadEntries}
+      />
 
+      {paymentModalOpen && selectedEmployeeForPayment ? (
+        <PaymentModal
+          open={paymentModalOpen}
+          onClose={() => {
+            setPaymentModalOpen(false);
+            setSelectedEmployeeForPayment(null);
+          }}
+          employee={selectedEmployeeForPayment}
+          onConfirm={processPayment}
+        />
+      ) : null}
 
-      {/* Modal de pago */}
-      {paymentModalOpen && selectedEmployeeForPayment &&
-      <PaymentModal
-        open={paymentModalOpen}
-        onClose={() => {
-          setPaymentModalOpen(false);
-          setSelectedEmployeeForPayment(null);
-        }}
-        employee={selectedEmployeeForPayment}
-        onConfirm={processPayment} />
-
-      }
-
-    </div>);
+      {detailModalOpen && focusedEmployee ? (
+        <EmployeeDetailModal
+          open={detailModalOpen}
+          onClose={() => setDetailModalOpen(false)}
+          employee={focusedEmployee}
+          entries={focusedEntries}
+          formatHM={formatHM}
+          formatHMS={formatHMS}
+          allEntries={focusedEntries}
+          employees={employeeDirectory.map((employee) => ({
+            id: employee.id,
+            full_name: employee.name,
+            hourly_rate: employee.rate
+          }))}
+          from={from}
+          to={to}
+          setSelectedEmployee={setSelectedEmployee}
+          setFrom={setFrom}
+          setTo={setTo}
+          loadEntries={loadEntries}
+          onPayment={handlePayment}
+          initialTab={detailModalTab}
+        />
+      ) : null}
+    </>
+  );
 
 }
