@@ -109,11 +109,28 @@ export default function Activate() {
             employee_code: employee.employee_code,
             pin: pin,
             phone: employee.phone,
-            active: true
+            active: true,
+            tenant_id: employee.tenant_id,
+            hourly_rate: employee.hourly_rate ?? 0,
+            permissions: employee.permissions || {},
+          });
+        } else {
+          await dataClient.entities.User.update(existingUsers[0].id, {
+            full_name: employee.full_name,
+            role: employee.role || existingUsers[0].role || "user",
+            position: employee.position || existingUsers[0].position || "",
+            employee_code: employee.employee_code || existingUsers[0].employee_code,
+            pin: pin,
+            phone: employee.phone || existingUsers[0].phone,
+            active: true,
+            tenant_id: employee.tenant_id || existingUsers[0].tenant_id,
+            hourly_rate: employee.hourly_rate ?? existingUsers[0].hourly_rate ?? 0,
+            permissions: employee.permissions || existingUsers[0].permissions || {},
           });
         }
       } catch (userError) {
-        console.log("User creation skipped or failed:", userError);
+        console.error("User creation failed during activation:", userError);
+        toast.error("La cuenta se activó, pero faltó crear el perfil interno. Reintentando no debería ser necesario; revisa Gestión de Usuarios.");
       }
 
       setSuccess(true);
