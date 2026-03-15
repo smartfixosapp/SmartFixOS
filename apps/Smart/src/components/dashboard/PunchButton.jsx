@@ -124,6 +124,50 @@ function getTenantIdFromSession() {
   }
 }
 
+async function fetchRemoteOpenEntry(employeeId) {
+  const { data, error } = await supabase
+    .from("time_entry")
+    .select("*")
+    .eq("employee_id", employeeId)
+    .is("clock_out", null)
+    .order("clock_in", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  if (error) throw error;
+  return normalizeTimeEntry(data);
+}
+
+async function createRemoteTimeEntry(payload) {
+  const attempts = [payload];
+  if (payload?.tenant_id) {
+    const { tenant_id, ...withoutTenant } = payload;
+    attempts.push(withoutTenant);
+  }
+
+  let lastError = null;
+  for (let index = 0; index < attempts.length; index += 1) {
+    const { data, error } = await supabase
+      .from("time_entry")
+      .insert(attempts[index])
+      .select("*")
+      .single();
+
+    if (!error) return normalizeTimeEntry(data);
+
+    lastError = error;
+    const message = String(error?.message || "");
+    const retryable =
+      index === 0 &&
+      payload?.tenant_id &&
+      (error?.code === "42501" || /row-level security|policy/i.test(message));
+
+    if (!retryable) break;
+  }
+
+  throw lastError || new Error("TIMEENTRY_CREATE_FAILED");
+}
+
 export default function PunchButton({ userId, userName, onPunchStatusChange }) {
   const [punchStatus, setPunchStatus] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -191,8 +235,17 @@ export default function PunchButton({ userId, userName, onPunchStatusChange }) {
         });
         openEntries = normalizeTimeEntryList(payload);
       } catch {
-        const localOpen = findLocalOpenEntry(identity.id);
-        openEntries = localOpen ? [localOpen] : [];
+        openEntries = [];
+      }
+
+      if (openEntries.length === 0) {
+        try {
+          const directOpen = await fetchRemoteOpenEntry(identity.id);
+          openEntries = directOpen ? [directOpen] : [];
+        } catch {
+          const localOpen = findLocalOpenEntry(identity.id);
+          openEntries = localOpen ? [localOpen] : [];
+        }
       }
 
       if (openEntries?.length > 0) {
@@ -258,13 +311,7 @@ export default function PunchButton({ userId, userName, onPunchStatusChange }) {
         };
         let newEntry;
         try {
-          const { data, error } = await supabase
-            .from("time_entry")
-            .insert(payload)
-            .select("*")
-            .single();
-          if (error) throw error;
-          newEntry = normalizeTimeEntry(data);
+          newEntry = await createRemoteTimeEntry(payload);
           if (!newEntry?.id) throw new Error("TIMEENTRY_CREATE_INVALID_RESPONSE");
         } catch (error) {
           console.error("Punch create remote failed:", error);

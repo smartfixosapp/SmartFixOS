@@ -233,7 +233,7 @@ export default function AddItemModal({
     }
     // Cargamos una sola vez por apertura para evitar bucles de "loading" con props inestables.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [open, autoOpenCart, liveSourceItems, isDraftOrder, order?.id]);
+  }, [open, autoOpenCart, isDraftOrder, order?.id]);
 
   useEffect(() => {
     if (!open) return;
@@ -283,6 +283,41 @@ export default function AddItemModal({
 
       if (normalizedDbProducts.length > 0) products = normalizedDbProducts;
       if (normalizedDbServices.length > 0) services = normalizedDbServices;
+
+      if (products.length === 0 && services.length === 0) {
+        const [directProducts, directServices] = await Promise.all([
+          supabase
+            .from("product")
+            .select("id, name, sku, price, stock, part_type, tipo_principal, category, type")
+            .eq("active", true)
+            .order("updated_at", { ascending: false })
+            .limit(500),
+          supabase
+            .from("service")
+            .select("id, code, name, description, category, price, active")
+            .eq("active", true)
+            .order("updated_at", { ascending: false })
+            .limit(500)
+        ]);
+
+        if (!directProducts.error && Array.isArray(directProducts.data) && directProducts.data.length > 0) {
+          products = directProducts.data.map((p) => normalizeInventoryItem(p, "product"));
+        }
+
+        if (!directServices.error && Array.isArray(directServices.data) && directServices.data.length > 0) {
+          services = directServices.data.map((s) =>
+            normalizeInventoryItem(
+              {
+                ...s,
+                sku: s.code || "",
+                type: "service",
+                part_type: "service"
+              },
+              "service"
+            )
+          );
+        }
+      }
 
       catalogCache.set("pos-active-products", products, 60 * 1000);
       catalogCache.set("pos-active-services", services, 60 * 1000);

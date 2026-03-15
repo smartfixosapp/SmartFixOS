@@ -85,6 +85,17 @@ function readLocalTimeEntries() {
   }
 }
 
+async function fetchRemoteTimeEntriesDirect(limit = 500) {
+  const { data, error } = await supabase
+    .from("time_entry")
+    .select("*")
+    .order("clock_in", { ascending: false })
+    .limit(limit);
+
+  if (error) throw error;
+  return normalizeTimeEntryList(data);
+}
+
 function normalizeTimeEntry(payload) {
   if (!payload) return null;
   if (payload.id || payload.employee_id || payload.clock_in) return payload;
@@ -908,12 +919,18 @@ export default function TimeTrackingModal({ open, onClose, session }) {
   const loadActiveUsers = useCallback(async () => {
     try {
       const payload = await dataClient.entities.TimeEntry.filter({ clock_out: null }, "-clock_in", 50);
-      const recentEntries = normalizeTimeEntryList(payload);
-      const mergedOpenEntries = mergeTimeEntries(recentEntries, []);
+      const sdkEntries = normalizeTimeEntryList(payload);
+      const directEntries = (await fetchRemoteTimeEntriesDirect(50)).filter((entry) => !entry?.clock_out);
+      const recentEntries = mergeTimeEntries(sdkEntries, directEntries);
+      const allowedEmployeeIds = new Set(
+        employees.filter((emp) => emp.id !== "all").map((emp) => String(emp.id))
+      );
       const now = Date.now();
-      const active = mergedOpenEntries.filter((e) => {
+      const active = recentEntries.filter((e) => {
         const clockIn = new Date(e.clock_in).getTime();
-        return now - clockIn < 24 * 3600000 && !isSystemUserLike(e);
+        const allowed =
+          allowedEmployeeIds.size === 0 || allowedEmployeeIds.has(String(e.employee_id || ""));
+        return allowed && now - clockIn < 24 * 3600000 && !isSystemUserLike(e);
       });
       setActiveUsers(active);
     } catch (e) {
@@ -926,7 +943,7 @@ export default function TimeTrackingModal({ open, onClose, session }) {
       });
       setActiveUsers(active);
     }
-  }, []);
+  }, [employees]);
 
   useEffect(() => {
     if (open && (session?.userRole === "admin" || session?.userRole === "manager")) {
@@ -987,11 +1004,18 @@ export default function TimeTrackingModal({ open, onClose, session }) {
     setLoading(true);
     try {
       const remotePayload = await dataClient.entities.TimeEntry.filter({}, "-clock_in", 500);
-      const remoteEntries = normalizeTimeEntryList(remotePayload);
-      const mergedEntries = mergeTimeEntries(remoteEntries, []);
+      const sdkEntries = normalizeTimeEntryList(remotePayload);
+      const directEntries = await fetchRemoteTimeEntriesDirect(500);
+      const mergedEntries = mergeTimeEntries(sdkEntries, directEntries);
+      const allowedEmployeeIds = new Set(
+        employees.filter((emp) => emp.id !== "all").map((emp) => String(emp.id))
+      );
+      const tenantEntries = allowedEmployeeIds.size > 0
+        ? mergedEntries.filter((entry) => allowedEmployeeIds.has(String(entry?.employee_id || "")))
+        : mergedEntries;
       const filteredByEmployee = selectedEmployee === "all"
-        ? mergedEntries
-        : mergedEntries.filter((t) => String(t?.employee_id || "") === String(selectedEmployee));
+        ? tenantEntries
+        : tenantEntries.filter((t) => String(t?.employee_id || "") === String(selectedEmployee));
       const filteredByOpen = onlyOpen ? filteredByEmployee.filter((t) => !t?.clock_out) : filteredByEmployee;
       const inRange = filteredByOpen.filter((t) => {
         const ci = new Date(t.clock_in);
@@ -1014,7 +1038,7 @@ export default function TimeTrackingModal({ open, onClose, session }) {
     } finally {
       setLoading(false);
     }
-  }, [selectedEmployee, onlyOpen, from, to]);
+  }, [selectedEmployee, onlyOpen, from, to, employees]);
 
   useEffect(() => {
     if (open) loadEntries();
@@ -1251,7 +1275,12 @@ export default function TimeTrackingModal({ open, onClose, session }) {
 
       // Eliminar los time entries del periodo ya pagado
       for (const entry of entriesInPeriod) {
-        await dataClient.entities.TimeEntry.delete(entry.id);
+        try {
+          await dataClient.entities.TimeEntry.delete(entry.id);
+        } catch {
+          const { error } = await supabase.from("time_entry").delete().eq("id", entry.id);
+          if (error) throw error;
+        }
       }
 
       // ✅ 4. Marcar como pagado en el estado local

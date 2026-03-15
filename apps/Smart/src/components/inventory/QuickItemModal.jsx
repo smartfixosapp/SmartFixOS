@@ -9,6 +9,7 @@ import { Wrench, DollarSign, FileText } from "lucide-react";
 import { toast } from "sonner";
 import { dataClient } from "@/components/api/dataClient";
 import { catalogCache } from "@/components/utils/dataCache";
+import { supabase } from "../../../../../lib/supabase-client.js";
 
 export default function QuickItemModal({ open, onClose, onItemCreated }) {
   const [name, setName] = useState("");
@@ -41,14 +42,38 @@ export default function QuickItemModal({ open, onClose, onItemCreated }) {
     setSaving(true);
     // Persistir en el catálogo (Product table) para que aparezca en búsquedas futuras
     try {
-      const created = await dataClient.entities.Product.create({
-        name: itemData.name,
-        description: itemData.description,
-        price: itemData.price,
-        type: "service",
-        active: true,
-        stock: 0,
-      });
+      let created = null;
+      try {
+        created = await dataClient.entities.Product.create({
+          name: itemData.name,
+          description: itemData.description,
+          price: itemData.price,
+          type: "service",
+          active: true,
+          stock: 0,
+          cost: 0,
+          category: "other",
+        });
+      } catch (primaryError) {
+        console.warn("[QuickItemModal] dataClient create failed, trying direct supabase fallback:", primaryError);
+        const { data, error } = await supabase
+          .from("product")
+          .insert({
+            name: itemData.name,
+            description: itemData.description,
+            price: itemData.price,
+            type: "service",
+            active: true,
+            stock: 0,
+            cost: 0,
+            category: "other",
+          })
+          .select("id, name, description, price, type, stock, category")
+          .single();
+
+        if (error) throw error;
+        created = data;
+      }
       // Invalidar caché para que AddItemModal recargue el catálogo
       catalogCache.invalidate("pos-active-products");
       catalogCache.invalidate("pos-active-services");

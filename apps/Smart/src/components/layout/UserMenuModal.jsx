@@ -137,6 +137,50 @@ const normalizeTimeEntryList = (payload) => {
   return single ? [single] : [];
 };
 
+const fetchRemoteOpenEntry = async (employeeId) => {
+  const { data, error } = await supabase
+    .from("time_entry")
+    .select("*")
+    .eq("employee_id", employeeId)
+    .is("clock_out", null)
+    .order("clock_in", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  if (error) throw error;
+  return normalizeTimeEntry(data);
+};
+
+const createRemoteTimeEntry = async (payload) => {
+  const attempts = [payload];
+  if (payload?.tenant_id) {
+    const { tenant_id, ...withoutTenant } = payload;
+    attempts.push(withoutTenant);
+  }
+
+  let lastError = null;
+  for (let index = 0; index < attempts.length; index += 1) {
+    const { data, error } = await supabase
+      .from("time_entry")
+      .insert(attempts[index])
+      .select("*")
+      .single();
+
+    if (!error) return normalizeTimeEntry(data);
+
+    lastError = error;
+    const message = String(error?.message || "");
+    const retryable =
+      index === 0 &&
+      payload?.tenant_id &&
+      (error?.code === "42501" || /row-level security|policy/i.test(message));
+
+    if (!retryable) break;
+  }
+
+  throw lastError || new Error("TIMEENTRY_CREATE_FAILED");
+};
+
 function formatPunchDateTime(value) {
   if (!value) return "--";
   return new Date(value).toLocaleString("es-PR", {
@@ -369,8 +413,17 @@ export default function UserMenuModal({ open, onClose, user }) {
         });
         openEntries = normalizeTimeEntryList(payload);
       } catch {
-        const localOpen = findLocalOpenEntry(uid);
-        openEntries = localOpen ? [localOpen] : [];
+        openEntries = [];
+      }
+
+      if (openEntries.length === 0) {
+        try {
+          const directOpen = await fetchRemoteOpenEntry(uid);
+          openEntries = directOpen ? [directOpen] : [];
+        } catch {
+          const localOpen = findLocalOpenEntry(uid);
+          openEntries = localOpen ? [localOpen] : [];
+        }
       }
 
       if (openEntries?.length > 0) {
@@ -453,13 +506,7 @@ export default function UserMenuModal({ open, onClose, user }) {
         };
         let newEntry;
         try {
-          const { data, error } = await supabase
-            .from("time_entry")
-            .insert(payload)
-            .select("*")
-            .single();
-          if (error) throw error;
-          newEntry = normalizeTimeEntry(data);
+          newEntry = await createRemoteTimeEntry(payload);
           if (!newEntry?.id) throw new Error("TIMEENTRY_CREATE_INVALID_RESPONSE");
         } catch (error) {
           console.error("UserMenu punch create remote failed:", error);
