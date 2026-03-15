@@ -252,8 +252,37 @@ export function normalizeStatusId(rawStatus) {
   return found ? found.id : normalized;
 }
 
+function readLatestStatusHistoryEntry(statusHistory) {
+  if (!Array.isArray(statusHistory) || statusHistory.length === 0) return null;
+  const candidates = statusHistory
+    .filter((entry) => entry && typeof entry === "object" && entry.status)
+    .sort((a, b) => {
+      const at = new Date(a.timestamp || a.created_date || 0).getTime();
+      const bt = new Date(b.timestamp || b.created_date || 0).getTime();
+      return bt - at;
+    });
+  return candidates[0] || null;
+}
+
+export function getEffectiveOrderStatus(orderOrStatus) {
+  if (!orderOrStatus || typeof orderOrStatus !== "object") {
+    return normalizeStatusId(orderOrStatus);
+  }
+
+  const latestHistory = readLatestStatusHistoryEntry(orderOrStatus.status_history);
+  if (latestHistory?.status) {
+    return normalizeStatusId(latestHistory.status);
+  }
+
+  if (orderOrStatus.status_metadata?.kind) {
+    return normalizeStatusId(orderOrStatus.status_metadata.kind);
+  }
+
+  return normalizeStatusId(orderOrStatus.status);
+}
+
 export function getStatusConfig(rawStatus) {
-  const id = normalizeStatusId(rawStatus);
+  const id = getEffectiveOrderStatus(rawStatus);
   return ORDER_STATUSES.find(s => s.id === id) || ORDER_STATUSES[0];
 }
 
