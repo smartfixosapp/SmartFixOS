@@ -126,6 +126,15 @@ export default function SuperAdmin() {
   const [tenantUsersLoading, setTenantUsersLoading] = useState({}); // { [tenantId]: bool }
   const [confirmDelete,      setConfirmDelete]      = useState(null); // tenantId to confirm delete
   const [editTenant,         setEditTenant]         = useState(null); // { id, name, email } being edited
+  const [editTenantUser,     setEditTenantUser]     = useState(null);
+  const [editTenantUserForm, setEditTenantUserForm] = useState({
+    full_name: "",
+    email: "",
+    phone: "",
+    role: "technician",
+    pin: "",
+    active: true,
+  });
   const [editForm,           setEditForm]           = useState({
     name: "",
     email: "",
@@ -221,7 +230,8 @@ export default function SuperAdmin() {
       if (usersError) throw usersError;
       if (employeesError) throw employeesError;
 
-      const ownerFallback = tenantRecord?.email ? [{
+      const shouldAddOwnerFallback = !userRows?.length && !employeeRows?.length;
+      const ownerFallback = shouldAddOwnerFallback && tenantRecord?.email ? [{
         id: `tenant-owner:${tenantId}`,
         full_name: tenantRecord.admin_name || tenantRecord.name || "Dueño",
         email: tenantRecord.email,
@@ -242,6 +252,122 @@ export default function SuperAdmin() {
       setTenantUsersLoading(prev => ({ ...prev, [tenantId]: false }));
     }
   }, [tenantUsers, tenants]);
+
+  const openEditTenantUser = (tenantId, user) => {
+    setEditTenantUser({ ...user, tenantId });
+    setEditTenantUserForm({
+      full_name: user.full_name || "",
+      email: user.email || "",
+      phone: user.phone || "",
+      role: user.role || user.position || "technician",
+      pin: user.pin || "",
+      active: user.active !== false && user.status !== "inactive",
+    });
+  };
+
+  const saveTenantUser = async () => {
+    if (!editTenantUser) return;
+
+    const tenantId = editTenantUser.tenantId;
+    setActionId(`${tenantId}-${editTenantUser.id}-save`);
+    try {
+      const payload = {
+        full_name: editTenantUserForm.full_name.trim(),
+        email: editTenantUserForm.email.trim(),
+        phone: editTenantUserForm.phone.trim(),
+        role: editTenantUserForm.role,
+        position: editTenantUserForm.role,
+        pin: editTenantUserForm.pin.trim(),
+        active: !!editTenantUserForm.active,
+        status: editTenantUserForm.active ? "active" : "inactive",
+      };
+
+      if (editTenantUser.entity_source === "app_employee") {
+        const { error } = await supabase.from("app_employee").update(payload).eq("id", editTenantUser.id);
+        if (error) throw error;
+      } else if (editTenantUser.entity_source === "users") {
+        const { error } = await supabase.from("users").update(payload).eq("id", editTenantUser.id);
+        if (error) throw error;
+      } else {
+        throw new Error("Ese registro no se puede editar desde aquí");
+      }
+
+      toast.success("Usuario actualizado");
+      setEditTenantUser(null);
+      setTenantUsers((prev) => {
+        const next = { ...prev };
+        delete next[tenantId];
+        return next;
+      });
+      await loadTenantUsers(tenantId);
+    } catch (error) {
+      toast.error(error.message || "No se pudo actualizar el usuario");
+    } finally {
+      setActionId(null);
+    }
+  };
+
+  const toggleTenantUser = async (tenantId, user) => {
+    setActionId(`${tenantId}-${user.id}-toggle`);
+    try {
+      const nextActive = !(user.active !== false && user.status !== "inactive");
+      const payload = {
+        active: nextActive,
+        status: nextActive ? "active" : "inactive",
+      };
+
+      if (user.entity_source === "app_employee") {
+        const { error } = await supabase.from("app_employee").update(payload).eq("id", user.id);
+        if (error) throw error;
+      } else if (user.entity_source === "users") {
+        const { error } = await supabase.from("users").update(payload).eq("id", user.id);
+        if (error) throw error;
+      } else {
+        throw new Error("Ese registro no se puede editar desde aquí");
+      }
+
+      toast.success(nextActive ? "Usuario activado" : "Usuario desactivado");
+      setTenantUsers((prev) => {
+        const next = { ...prev };
+        delete next[tenantId];
+        return next;
+      });
+      await loadTenantUsers(tenantId);
+    } catch (error) {
+      toast.error(error.message || "No se pudo cambiar el estado");
+    } finally {
+      setActionId(null);
+    }
+  };
+
+  const deleteTenantUser = async (tenantId, user) => {
+    if (!confirm(`¿Eliminar a ${user.full_name || user.email}? Esta acción no se puede deshacer.`)) return;
+
+    setActionId(`${tenantId}-${user.id}-delete`);
+    try {
+      if (user.entity_source === "app_employee") {
+        const { error } = await supabase.from("app_employee").delete().eq("id", user.id);
+        if (error) throw error;
+      } else if (user.entity_source === "users") {
+        const { error } = await supabase.from("users").delete().eq("id", user.id);
+        if (error) throw error;
+      } else {
+        throw new Error("Ese registro no se puede borrar desde aquí");
+      }
+
+      toast.success("Usuario eliminado");
+      setTenantUsers((prev) => {
+        const next = { ...prev };
+        delete next[tenantId];
+        return next;
+      });
+      await loadTenantUsers(tenantId);
+    } catch (error) {
+      toast.error(error.message || "No se pudo eliminar el usuario");
+    } finally {
+      setActionId(null);
+    }
+  };
 
   const toggleExpanded = useCallback((tenantId) => {
     const opening = expanded !== tenantId;
@@ -628,6 +754,108 @@ export default function SuperAdmin() {
         )}
       </AnimatePresence>
 
+      <AnimatePresence>
+        {editTenantUser && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm"
+            onClick={(e) => { if (e.target === e.currentTarget) setEditTenantUser(null); }}
+          >
+            <motion.div
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.95, opacity: 0 }}
+              className="bg-[#111] border border-white/10 rounded-2xl p-6 w-full max-w-xl shadow-2xl space-y-5"
+            >
+              <div className="flex items-center justify-between">
+                <h2 className="text-lg font-bold text-white flex items-center gap-2">
+                  <Users className="w-4 h-4 text-cyan-400" /> Editar Usuario
+                </h2>
+                <button onClick={() => setEditTenantUser(null)} className="text-gray-500 hover:text-white transition-colors">
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs text-gray-400 mb-1 font-semibold">Nombre completo</label>
+                  <input
+                    value={editTenantUserForm.full_name}
+                    onChange={(e) => setEditTenantUserForm((f) => ({ ...f, full_name: e.target.value }))}
+                    className="w-full bg-white/[0.05] border border-white/10 text-white text-sm rounded-xl px-3 py-2"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs text-gray-400 mb-1 font-semibold">Email</label>
+                  <input
+                    value={editTenantUserForm.email}
+                    onChange={(e) => setEditTenantUserForm((f) => ({ ...f, email: e.target.value }))}
+                    className="w-full bg-white/[0.05] border border-white/10 text-white text-sm rounded-xl px-3 py-2"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs text-gray-400 mb-1 font-semibold">Teléfono</label>
+                  <input
+                    value={editTenantUserForm.phone}
+                    onChange={(e) => setEditTenantUserForm((f) => ({ ...f, phone: e.target.value }))}
+                    className="w-full bg-white/[0.05] border border-white/10 text-white text-sm rounded-xl px-3 py-2"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs text-gray-400 mb-1 font-semibold">Rol</label>
+                  <select
+                    value={editTenantUserForm.role}
+                    onChange={(e) => setEditTenantUserForm((f) => ({ ...f, role: e.target.value }))}
+                    className="w-full bg-white/[0.05] border border-white/10 text-white text-sm rounded-xl px-3 py-2"
+                  >
+                    {["admin", "manager", "technician", "cashier"].map((role) => (
+                      <option key={role} value={role} className="bg-[#111]">{role}</option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-xs text-gray-400 mb-1 font-semibold">PIN</label>
+                  <input
+                    value={editTenantUserForm.pin}
+                    onChange={(e) => setEditTenantUserForm((f) => ({ ...f, pin: e.target.value.replace(/\D/g, "").slice(0, 4) }))}
+                    className="w-full bg-white/[0.05] border border-white/10 text-white text-sm rounded-xl px-3 py-2"
+                    placeholder="1234"
+                  />
+                </div>
+                <div className="flex items-end">
+                  <label className="flex items-center gap-2 text-sm text-gray-300">
+                    <input
+                      type="checkbox"
+                      checked={!!editTenantUserForm.active}
+                      onChange={(e) => setEditTenantUserForm((f) => ({ ...f, active: e.target.checked }))}
+                    />
+                    Usuario activo
+                  </label>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-2 pt-1">
+                <button
+                  onClick={saveTenantUser}
+                  disabled={!!actionId}
+                  className="flex items-center gap-2 px-4 py-2 rounded-xl bg-cyan-600 hover:bg-cyan-500 text-white text-sm font-bold transition-all disabled:opacity-50"
+                >
+                  <Save className="w-3.5 h-3.5" /> Guardar usuario
+                </button>
+                <button
+                  onClick={() => setEditTenantUser(null)}
+                  className="px-4 py-2 rounded-xl border border-white/10 text-gray-400 hover:text-white text-sm font-semibold transition-all"
+                >
+                  Cancelar
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       {/* ── Delete Confirmation Modal ── */}
       <AnimatePresence>
         {confirmDelete && (
@@ -970,7 +1198,8 @@ export default function SuperAdmin() {
                                       const roleColor = emp.role === "admin" ? "text-purple-300 bg-purple-500/10 border-purple-500/20"
                                         : emp.role === "manager" ? "text-blue-300 bg-blue-500/10 border-blue-500/20"
                                         : "text-gray-400 bg-white/5 border-white/10";
-                                      const isActive = emp.status === "active";
+                                      const isActive = emp.active !== false && emp.status !== "inactive";
+                                      const canManageUser = emp.entity_source === "users" || emp.entity_source === "app_employee";
                                       return (
                                         <div key={emp.id} className="flex items-center gap-3 bg-black/20 rounded-xl px-3 py-2">
                                           {/* Avatar */}
@@ -995,6 +1224,31 @@ export default function SuperAdmin() {
                                             <span className="text-[11px] text-gray-500 capitalize">{emp.status || "active"}</span>
                                             <div className={`w-2 h-2 rounded-full ${isActive ? "bg-green-400" : "bg-gray-600"}`} title={emp.status} />
                                           </div>
+                                          {canManageUser && (
+                                            <div className="flex items-center gap-1 flex-shrink-0">
+                                              <button
+                                                onClick={() => openEditTenantUser(tenant.id, emp)}
+                                                className="p-1.5 rounded-lg text-cyan-300 hover:bg-cyan-500/10 transition-all"
+                                                title="Editar usuario"
+                                              >
+                                                <Pencil className="w-3.5 h-3.5" />
+                                              </button>
+                                              <button
+                                                onClick={() => toggleTenantUser(tenant.id, emp)}
+                                                className={`p-1.5 rounded-lg transition-all ${isActive ? "text-yellow-300 hover:bg-yellow-500/10" : "text-green-300 hover:bg-green-500/10"}`}
+                                                title={isActive ? "Desactivar usuario" : "Activar usuario"}
+                                              >
+                                                <Power className="w-3.5 h-3.5" />
+                                              </button>
+                                              <button
+                                                onClick={() => deleteTenantUser(tenant.id, emp)}
+                                                className="p-1.5 rounded-lg text-red-300 hover:bg-red-500/10 transition-all"
+                                                title="Eliminar usuario"
+                                              >
+                                                <Trash2 className="w-3.5 h-3.5" />
+                                              </button>
+                                            </div>
+                                          )}
                                         </div>
                                       );
                                     })}
