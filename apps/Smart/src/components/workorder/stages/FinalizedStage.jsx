@@ -1,4 +1,5 @@
-import React, { useMemo } from "react";
+import React, { useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   CheckCircle2,
   PartyPopper,
@@ -10,13 +11,20 @@ import {
   Clock3,
   BadgeCheck,
   ClipboardList,
-  Wrench
+  Wrench,
+  ShoppingCart,
+  Plus
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import WorkOrderUnifiedHub from "@/components/workorder/WorkOrderUnifiedHub";
+import AddItemModal from "@/components/workorder/AddItemModal";
+import { Button } from "@/components/ui/button";
+import { createPageUrl } from "@/components/utils/helpers";
 
 export default function FinalizedStage({ order, onUpdate }) {
   const o = order || {};
+  const navigate = useNavigate();
+  const [showCatalog, setShowCatalog] = useState(false);
   const items = Array.isArray(o.order_items) ? o.order_items : [];
   const status = String(o.status || "").toLowerCase();
   const isCompleted = status === "completed";
@@ -44,7 +52,7 @@ export default function FinalizedStage({ order, onUpdate }) {
     const paid = Number(o?.total_paid || o?.amount_paid || 0);
     const balance = Math.max(0, total - paid);
 
-    return { total, paid, balance };
+    return { subtotal, tax, total, paid, balance };
   }, [items, o?.total_paid, o?.amount_paid]);
 
   const headerCopy = isCompleted
@@ -230,7 +238,7 @@ export default function FinalizedStage({ order, onUpdate }) {
                 <div>
                   <p className="font-bold text-white">Totales finales</p>
                   <p className="mt-1 text-sm leading-relaxed text-white/65">
-                    Total de la orden: ${totals.total.toFixed(2)}. Pagado: ${totals.paid.toFixed(2)}. Balance: ${totals.balance.toFixed(2)}.
+                    Subtotal: ${totals.subtotal.toFixed(2)}. IVU: ${totals.tax.toFixed(2)}. Pagado: ${totals.paid.toFixed(2)}. Balance: ${totals.balance.toFixed(2)}.
                   </p>
                 </div>
               </div>
@@ -267,12 +275,174 @@ export default function FinalizedStage({ order, onUpdate }) {
         </section>
       </div>
 
+      <section className="relative overflow-hidden rounded-[30px] border border-emerald-500/15 bg-[radial-gradient(circle_at_top_left,rgba(16,185,129,0.10),transparent_24%),radial-gradient(circle_at_bottom_right,rgba(6,182,212,0.10),transparent_28%),linear-gradient(180deg,rgba(24,24,27,0.98),rgba(10,10,12,0.98))] shadow-[0_22px_70px_rgba(0,0,0,0.35)]">
+        <div className="absolute inset-0 bg-[linear-gradient(120deg,transparent,rgba(255,255,255,0.025),transparent)]" />
+        <div className="relative z-10 border-b border-white/10 px-6 py-5">
+          <div className="flex items-start justify-between gap-4">
+            <div className="flex items-start gap-4">
+              <div className="flex h-12 w-12 items-center justify-center rounded-2xl border border-emerald-400/20 bg-emerald-500/15 shadow-[0_10px_30px_rgba(16,185,129,0.12)]">
+                <ShoppingCart className="h-5 w-5 text-emerald-300" />
+              </div>
+              <div>
+                <p className="text-[11px] font-semibold uppercase tracking-[0.28em] text-white/35">Cierre económico</p>
+                <h3 className="mt-1 text-2xl font-black tracking-tight text-white">Piezas y Servicios</h3>
+                <p className="mt-2 max-w-2xl text-sm leading-relaxed text-white/55">
+                  Mantén visible el detalle final de piezas, servicios y balance sin importar si la orden ya fue entregada o completada.
+                </p>
+              </div>
+            </div>
+            <div className="flex gap-3">
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => setShowCatalog(true)}
+                className="h-10 rounded-2xl border-white/10 bg-white/5 px-4 text-white hover:bg-white/10"
+              >
+                Editar
+              </Button>
+              <Button
+                size="sm"
+                onClick={() => setShowCatalog(true)}
+                className="h-10 rounded-2xl bg-gradient-to-r from-emerald-500 to-teal-500 px-5 font-bold text-white shadow-[0_12px_30px_rgba(16,185,129,0.25)] hover:from-emerald-400 hover:to-teal-400"
+              >
+                <Plus className="mr-2 h-4 w-4" />
+                Añadir
+              </Button>
+            </div>
+          </div>
+        </div>
+
+        <div className="relative z-10 p-6">
+          {items.length === 0 ? (
+            <div className="rounded-[24px] border border-dashed border-white/10 bg-black/20 px-6 py-14 text-center">
+              <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl border border-white/10 bg-white/5">
+                <ShoppingCart className="h-6 w-6 text-white/35" />
+              </div>
+              <p className="text-sm font-semibold text-white/70">No hay items en esta orden</p>
+              <p className="mt-2 text-xs text-white/40">Añade piezas o servicios si hace falta ajustar el cierre final.</p>
+            </div>
+          ) : (
+            <div className="overflow-hidden rounded-[26px] border border-white/10 bg-black/25 shadow-[inset_0_1px_0_rgba(255,255,255,0.03)]">
+              <div className="divide-y divide-white/5">
+                {items.map((item, idx) => {
+                  const qty = Number(item?.qty || item?.quantity || 1);
+                  const price = Number(item?.price || 0);
+                  const discount = Number(item?.discount_percentage || 0);
+                  const lineTotal = (price * qty) - (price * qty * (discount / 100));
+                  return (
+                    <div key={`${item?.id || item?.name || "item"}-${idx}`} className="p-5 transition-colors hover:bg-white/[0.04]">
+                      <div className="flex items-start justify-between gap-4">
+                        <div className="min-w-0 flex-1">
+                          <p className="truncate text-base font-bold text-white">{item?.name || "Item"}</p>
+                          <p className="mt-1 text-xs text-white/35">
+                            {item?.type === "service" ? "Servicio agregado al cierre." : "Producto agregado al cierre."}
+                          </p>
+                          <div className="mt-3 flex flex-wrap gap-2">
+                            <Badge variant="outline" className="rounded-full border-white/10 bg-white/5 px-2.5 py-1 text-[10px] text-gray-300">
+                              ${price.toFixed(2)} c/u
+                            </Badge>
+                            <Badge variant="outline" className="rounded-full border-white/10 bg-white/5 px-2.5 py-1 text-[10px] text-gray-300">
+                              {item?.type === "service" ? "Servicio" : "Producto"}
+                            </Badge>
+                            {item?.taxable === false && (
+                              <Badge className="rounded-full border-purple-500/30 bg-purple-500/20 px-2.5 py-1 text-[10px] text-purple-300">
+                                Sin IVU
+                              </Badge>
+                            )}
+                          </div>
+                        </div>
+                        <div className="pl-4 text-right">
+                          <div className="inline-flex items-center rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs font-semibold text-white/70">
+                            x{qty}
+                          </div>
+                          <p className="mt-3 text-3xl font-black tracking-tight text-emerald-300">${lineTotal.toFixed(2)}</p>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+
+              <div className="grid gap-4 border-t border-white/10 bg-black/35 p-5 lg:grid-cols-[1fr_360px]">
+                <div className="space-y-3">
+                  <div className="rounded-[20px] border border-white/8 bg-black/20 px-5 py-4">
+                    <div className="flex items-center justify-between text-sm">
+                      <span className="font-medium text-gray-400">Subtotal</span>
+                      <span className="text-xl font-black tracking-tight text-white">${(totals.total - (items.filter((item) => item?.taxable !== false).reduce((sum, item) => {
+                        const qty = Number(item?.qty || item?.quantity || 1);
+                        const price = Number(item?.price || 0);
+                        const discount = Number(item?.discount_percentage || 0);
+                        const line = price * qty;
+                        return sum + (line - line * (discount / 100));
+                      }, 0) * 0.115)).toFixed(2)}</span>
+                    </div>
+                  </div>
+                  <div className="rounded-[20px] border border-white/8 bg-black/20 px-5 py-4">
+                    <div className="flex items-center justify-between text-sm">
+                      <span className="font-medium text-gray-400">Total</span>
+                      <span className="text-xl font-black tracking-tight text-white">${totals.total.toFixed(2)}</span>
+                    </div>
+                  </div>
+                  <div className="rounded-[20px] border border-emerald-500/15 bg-emerald-500/10 px-5 py-4">
+                    <div className="flex items-center justify-between">
+                      <span className="text-base font-bold text-white">Balance</span>
+                      <span className="text-3xl font-black tracking-tight text-white">${totals.balance.toFixed(2)}</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="rounded-[24px] border border-emerald-500/15 bg-[linear-gradient(180deg,rgba(16,185,129,0.08),rgba(0,0,0,0.18))] p-5">
+                  <p className="text-[11px] font-semibold uppercase tracking-[0.28em] text-white/35">Acciones de cobro</p>
+                  <h4 className="mt-2 text-2xl font-black tracking-tight text-white">
+                    {totals.balance > 0.01 ? "Cierra el balance de la orden" : "Orden saldada"}
+                  </h4>
+                  <p className="mt-2 text-sm leading-relaxed text-white/55">
+                    Registra un depósito adicional o cobra el restante completo desde POS sin salir del cierre final.
+                  </p>
+                  {totals.balance > 0.01 ? (
+                    <div className="mt-5 grid grid-cols-1 gap-4">
+                      <Button
+                        variant="outline"
+                        className="h-12 rounded-2xl border-emerald-500/30 text-emerald-300 hover:bg-emerald-500/10"
+                        onClick={() => navigate(createPageUrl(`POS?workOrderId=${o.id}&balance=${totals.balance}&mode=deposit`), {
+                          state: { fromDashboard: true, paymentMode: "deposit", workOrder: o, balanceDue: totals.balance, openPaymentImmediately: true }
+                        })}
+                      >
+                        Depósito
+                      </Button>
+                      <Button
+                        className="h-12 rounded-2xl bg-emerald-600 text-white shadow-lg shadow-emerald-900/20 hover:bg-emerald-500"
+                        onClick={() => navigate(createPageUrl(`POS?workOrderId=${o.id}&balance=${totals.balance}&mode=full`), {
+                          state: { fromDashboard: true, paymentMode: "full", workOrder: o, balanceDue: totals.balance, openPaymentImmediately: true }
+                        })}
+                      >
+                        Cobrar Restante
+                      </Button>
+                    </div>
+                  ) : (
+                    <div className="mt-5 rounded-[18px] border border-emerald-500/20 bg-emerald-500/10 p-4 text-center">
+                      <p className="text-lg font-bold text-emerald-400">Orden Saldada</p>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+      </section>
+
       <WorkOrderUnifiedHub
         order={order}
         onUpdate={onUpdate}
         accent="emerald"
         title="Centro de Historial"
         subtitle="Actividad, fotos, seguridad y referencia final de la orden entregada."
+      />
+      <AddItemModal
+        open={showCatalog}
+        onClose={() => setShowCatalog(false)}
+        order={o}
+        onUpdate={onUpdate}
       />
     </div>
   );

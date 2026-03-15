@@ -12,7 +12,7 @@ import {
   ClipboardList, Shield, MessageSquare, Link, Loader2, Download, Grid3x3, Lock, FileText, Hash, Share2, Wallet, CreditCard } from
 "lucide-react";
 import OrderPhotosGallery from "../orders/OrderPhotosGallery";
-import { ORDER_STATUSES, getStatusConfig, normalizeStatusId } from "@/components/utils/statusRegistry";
+import { ORDER_STATUSES, getStatusConfig, normalizeStatusId, getEffectiveOrderStatus } from "@/components/utils/statusRegistry";
 import NotificationService from "../notifications/NotificationService";
 import { useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/components/utils/helpers";
@@ -43,7 +43,7 @@ import WaitingPartsStage from "./stages/WaitingPartsStage.jsx";
 import PartArrivedStage from "./stages/PartArrivedStage.jsx";
 import ExternalRepairStage from "./stages/ExternalRepairStage";
 import WarrantyStage from "./stages/WarrantyStage";
-import { getLocalOrders, removeLocalOrder } from "@/components/utils/localOrderCache";
+import { getLocalOrders, getUnsyncedLocalOrders, mergeOrders, removeLocalOrder } from "@/components/utils/localOrderCache";
 import { logWorkOrderPhotoEvent } from "@/components/workorder/utils/auditEvents";
 import { loadSuppliersSafe } from "@/components/utils/suppliers";
 import { loadOrderLinks } from "@/components/workorder/utils/orderLinksStore";
@@ -1695,19 +1695,12 @@ export default function WorkOrderPanel({ orderId, onClose, onUpdate, onDelete, p
             recentOrders = [];
           }
 
-          const mergedAll = [...(recentOrders || []), ...(getLocalOrders() || [])];
-          const unique = new Map();
-          for (const ord of mergedAll) {
-            const key = String(ord?.id || ord?.order_number || Math.random());
-            if (!unique.has(key)) unique.set(key, ord);
-          }
-
-          const blockers = Array.from(unique.values()).filter((ord) => {
+          const blockers = mergeOrders(recentOrders || [], getUnsyncedLocalOrders(recentOrders || [])).filter((ord) => {
             if (!ord || String(ord.id || "") === String(data.id || "")) return false;
             if (ord?.status_metadata?.quick_order === true) return false;
             const seq = extractOrderSequence(ord.order_number);
             if (seq <= 0 || seq >= currentSeq) return false;
-            const st = normalizeStatusId(ord.status || "intake");
+            const st = getEffectiveOrderStatus(ord);
             return blockingStatuses.has(st);
           });
 
@@ -1724,7 +1717,7 @@ export default function WorkOrderPanel({ orderId, onClose, onUpdate, onDelete, p
         }
 
         setOrder(data);
-        setStatus(normalizeStatusId(data.status || "intake"));
+        setStatus(getEffectiveOrderStatus(data));
         setLoading(false);
 
       } catch (e) {
@@ -1759,7 +1752,7 @@ export default function WorkOrderPanel({ orderId, onClose, onUpdate, onDelete, p
         if (fresh && fresh.updated_date !== order?.updated_date) {
           console.log("[WO] Auto-refresh detectó cambios");
           setOrder(fresh);
-          setStatus(normalizeStatusId(fresh.status || "intake"));
+          setStatus(getEffectiveOrderStatus(fresh));
           clearEventCache(orderId);
           loadEventsCallback(true);
         }
@@ -1945,7 +1938,7 @@ export default function WorkOrderPanel({ orderId, onClose, onUpdate, onDelete, p
   async function changeStatus(newStatusRaw, statusNote = "", metadata = {}, skipModalCheck = false) {
     if (!order?.id) return;
     const nextId = normalizeStatusId(newStatusRaw);
-    const prevStatusId = normalizeStatusId(order.status || status || "intake");
+    const prevStatusId = getEffectiveOrderStatus(order || { status });
 
     console.log("[ChangeStatus] Iniciando cambio:", prevStatusId, "→", nextId);
 

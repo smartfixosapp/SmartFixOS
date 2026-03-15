@@ -494,7 +494,7 @@ export default function WarrantyStage({ order, onUpdate }) {
                         onClick={() => {
                           window.dispatchEvent(new Event("close-workorder-panel"));
                           navigate(createPageUrl(`POS?workOrderId=${o.id}&balance=${totals.balanceDue}&mode=deposit`), {
-                            state: { fromDashboard: true, paymentMode: "deposit" }
+                            state: { fromDashboard: true, paymentMode: "deposit", workOrder: o, balanceDue: totals.balanceDue, openPaymentImmediately: true }
                           });
                         }}
                       >
@@ -506,7 +506,7 @@ export default function WarrantyStage({ order, onUpdate }) {
                         onClick={() => {
                           window.dispatchEvent(new Event("close-workorder-panel"));
                           navigate(createPageUrl(`POS?workOrderId=${o.id}&balance=${totals.balanceDue}&mode=full`), {
-                            state: { fromDashboard: true, paymentMode: "full" }
+                            state: { fromDashboard: true, paymentMode: "full", workOrder: o, balanceDue: totals.balanceDue, openPaymentImmediately: true }
                           });
                         }}
                       >

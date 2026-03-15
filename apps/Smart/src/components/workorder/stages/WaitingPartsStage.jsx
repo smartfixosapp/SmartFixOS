@@ -692,7 +692,7 @@ export default function WaitingPartsStage({ order, onUpdate }) {
                         onClick={() => {
                           window.dispatchEvent(new Event('close-workorder-panel'));
                           navigate(createPageUrl(`POS?workOrderId=${o.id}&balance=${balanceDue}&mode=deposit`), {
-                            state: { fromDashboard: true, paymentMode: "deposit" }
+                            state: { fromDashboard: true, paymentMode: "deposit", workOrder: o, balanceDue, openPaymentImmediately: true }
                           });
                         }}
                       >
@@ -703,7 +703,7 @@ export default function WaitingPartsStage({ order, onUpdate }) {
                         onClick={() => {
                           window.dispatchEvent(new Event('close-workorder-panel'));
                           navigate(createPageUrl(`POS?workOrderId=${o.id}&balance=${balanceDue}&mode=full`), {
-                            state: { fromDashboard: true, paymentMode: "full" }
+                            state: { fromDashboard: true, paymentMode: "full", workOrder: o, balanceDue, openPaymentImmediately: true }
                           });
                         }}
                       >

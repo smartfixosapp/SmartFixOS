@@ -4,6 +4,7 @@
 
 import React, { useState, useEffect, useMemo } from "react";
 import { dataClient } from "@/components/api/dataClient";
+import { getLocalOrders, getUnsyncedLocalOrders, mergeOrders } from "@/components/utils/localOrderCache";
 import { useNavigate, useLocation } from "react-router-dom";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -14,7 +15,7 @@ import { es } from "date-fns/locale";
 import { toast } from "sonner";
 import { useI18n } from "@/components/utils/i18n";
 import { createPageUrl } from "@/components/utils/helpers";
-import { getStatusConfig, normalizeStatusId, ORDER_STATUSES } from "@/components/utils/statusRegistry";
+import { getEffectiveOrderStatus, getStatusConfig, normalizeStatusId, ORDER_STATUSES } from "@/components/utils/statusRegistry";
 import WorkOrderPanel from "../components/workorder/WorkOrderPanel";
 import WorkOrderPanelErrorBoundary from "../components/workorder/WorkOrderPanelErrorBoundary";
 
@@ -66,9 +67,11 @@ export default function OrdersMobile() {
     setLoading(true);
     try {
       const list = await dataClient.entities.Order.list("-updated_date", 200);
-      setOrders(list || []);
+      const remoteOrders = Array.isArray(list) ? list : [];
+      setOrders(mergeOrders(remoteOrders, getUnsyncedLocalOrders(remoteOrders)));
     } catch (err) {
       console.error("Error loading orders:", err);
+      setOrders(getLocalOrders());
     } finally {
       setLoading(false);
     }
@@ -79,7 +82,7 @@ export default function OrdersMobile() {
 
     // Filtrar por estado
     if (selectedStatus) {
-      result = result.filter(o => normalizeStatusId(o.status) === selectedStatus);
+      result = result.filter(o => getEffectiveOrderStatus(o) === selectedStatus);
     }
 
     // Filtrar por búsqueda
@@ -127,16 +130,17 @@ export default function OrdersMobile() {
       let remoteOrders = [];
       try {
         const list = await dataClient.entities.Order.list("-created_date", 600);
-        remoteOrders = Array.isArray(list) ? list : [];
+        const normalizedRemoteOrders = Array.isArray(list) ? list : [];
+        remoteOrders = mergeOrders(normalizedRemoteOrders, getUnsyncedLocalOrders(normalizedRemoteOrders));
       } catch {
-        remoteOrders = orders || [];
+        remoteOrders = mergeOrders(orders || [], getUnsyncedLocalOrders(orders || []));
       }
 
       const blockers = (remoteOrders || []).filter((ord) => {
         if (!ord || String(ord.id || "") === String(target.id || "")) return false;
         const seq = extractOrderSequence(ord.order_number);
         if (seq <= 0 || seq >= currentSeq) return false;
-        const st = normalizeStatusId(ord.status || "intake");
+        const st = getEffectiveOrderStatus(ord);
         return blockingStatuses.has(st);
       });
 
@@ -192,7 +196,7 @@ export default function OrdersMobile() {
           </button>
           
           {activeStatuses.map(status => {
-            const count = orders.filter(o => normalizeStatusId(o.status) === status.id).length;
+            const count = orders.filter(o => getEffectiveOrderStatus(o) === status.id).length;
             const isSelected = selectedStatus === status.id;
             
             return (
@@ -273,7 +277,7 @@ export default function OrdersMobile() {
               <h3 className="text-sm text-gray-400 font-semibold mb-2 px-1">{dateKey}</h3>
               <div className="space-y-2">
                 {dateOrders.map(order => {
-                  const statusConfig = getStatusConfig(order.status);
+                  const statusConfig = getStatusConfig(getEffectiveOrderStatus(order));
                   
 	                  return (
 	                    <div

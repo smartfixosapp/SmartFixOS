@@ -1,5 +1,7 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { dataClient } from "@/components/api/dataClient";
+import { supabase } from "../../../../lib/supabase-client.js";
+import { useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ShoppingCart, Search, Plus, Minus, Trash2, User, AlertCircle, Loader2, Zap } from "lucide-react";
@@ -95,6 +97,7 @@ function toCurrencyNumber(value) {
 }
 
 export default function POSDesktop() {
+  const location = useLocation();
   const [products, setProducts] = useState([]);
   const [services, setServices] = useState([]);
   const [cart, setCart] = useState([]);
@@ -131,6 +134,33 @@ export default function POSDesktop() {
   const urlParams = new URLSearchParams(window.location.search);
   const workOrderId = urlParams.get("workOrderId");
   const urlPaymentMode = urlParams.get("mode") || "full";
+  const routeStateOrder = location.state?.workOrder || null;
+  const routePaymentMode = location.state?.paymentMode || null;
+
+  const hydrateWorkOrder = useCallback(async (order) => {
+    if (!order?.id) return;
+    const paid = Number(order.total_paid || order.amount_paid || 0);
+    setTotalPaid(paid);
+    setSelectedOrder(order);
+    setPaymentMode(routePaymentMode || urlPaymentMode);
+    const orderItems = Array.isArray(order.order_items) ? order.order_items : [];
+    setCart(orderItems.map((item) => ({
+      id: item.id || `temp-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
+      name: item.name,
+      price: toCurrencyNumber(item.price),
+      quantity: item.qty || item.quantity || 1,
+      type: item.type || "product",
+      taxable: item.taxable !== false
+    })));
+    if (order.customer_id) {
+      try {
+        const customer = await dataClient.entities.Customer.get(order.customer_id);
+        setSelectedCustomer(customer);
+      } catch (e) {
+        console.error("Error loading customer:", e);
+      }
+    }
+  }, [routePaymentMode, urlPaymentMode]);
 
   useEffect(() => {
     setActiveCategory("all");
@@ -153,10 +183,48 @@ export default function POSDesktop() {
   }, [workOrderId]);
 
   useEffect(() => {
-    if (workOrderId && urlPaymentMode === "deposit" && selectedOrder) {
+    if (routeStateOrder?.id && (!workOrderId || routeStateOrder.id === workOrderId)) {
+      hydrateWorkOrder(routeStateOrder);
+    }
+  }, [routeStateOrder, workOrderId, hydrateWorkOrder]);
+
+  useEffect(() => {
+    if (workOrderId && selectedOrder) {
       setShowPaymentModal(true);
     }
   }, [workOrderId, selectedOrder]);
+
+  const fetchWorkOrderById = useCallback(async (orderId) => {
+    if (!orderId) return null;
+
+    try {
+      const order = await dataClient.entities.Order.get(orderId);
+      if (order?.id) return order;
+    } catch (error) {
+      console.warn("[POSDesktop] dataClient get failed:", error);
+    }
+
+    try {
+      const tenantId = localStorage.getItem("smartfix_tenant_id") || null;
+      let query = supabase
+        .from("order")
+        .select("*")
+        .eq("id", orderId)
+        .limit(1);
+
+      if (tenantId) {
+        query = query.eq("tenant_id", tenantId);
+      }
+
+      const { data, error } = await query.maybeSingle();
+      if (error) throw error;
+      if (data?.id) return data;
+    } catch (error) {
+      console.warn("[POSDesktop] supabase fallback failed:", error);
+    }
+
+    return null;
+  }, []);
 
   const checkCashDrawerStatus = async () => {
     setLoadingDrawer(true);
@@ -268,29 +336,11 @@ export default function POSDesktop() {
   const loadWorkOrder = async () => {
     if (!workOrderId) return;
     try {
-      const order = await dataClient.entities.Order.get(workOrderId);
+      const order = await fetchWorkOrderById(workOrderId);
       if (order) {
-        const paid = Number(order.total_paid || order.amount_paid || 0);
-        setTotalPaid(paid);
-        setSelectedOrder(order);
-        setPaymentMode(urlPaymentMode);
-        const orderItems = order.order_items || [];
-        setCart(orderItems.map((item) => ({
-          id: item.id || `temp-${Date.now()}`,
-          name: item.name,
-          price: toCurrencyNumber(item.price),
-          quantity: item.qty || item.quantity || 1,
-          type: item.type || "product",
-          taxable: item.taxable !== false
-        })));
-        if (order.customer_id) {
-          try {
-            const customer = await dataClient.entities.Customer.get(order.customer_id);
-            setSelectedCustomer(customer);
-          } catch (e) {
-            console.error("Error loading customer:", e);
-          }
-        }
+        await hydrateWorkOrder(order);
+      } else {
+        toast.error("No se encontró la orden para cobrar");
       }
     } catch (error) {
       console.error("Error loading work order:", error);
