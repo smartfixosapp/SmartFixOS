@@ -2038,16 +2038,14 @@ export default function WorkOrderPanel({ orderId, onClose, onUpdate, onDelete, p
           status_note_visible_to_customer: false
         };
 
-        if (metadata && Object.keys(metadata).length > 0) {
-          const prevStatusMeta = order?.status_metadata && typeof order.status_metadata === "object"
-            ? order.status_metadata
-            : {};
-          updateData.status_metadata = {
-            ...prevStatusMeta,
-            kind: nextId,
-            ...metadata
-          };
-        }
+        const prevStatusMeta = order?.status_metadata && typeof order.status_metadata === "object"
+          ? order.status_metadata
+          : {};
+        updateData.status_metadata = {
+          ...prevStatusMeta,
+          kind: nextId,
+          ...(metadata && typeof metadata === "object" ? metadata : {})
+        };
 
         const history = order.status_history || [];
         history.push({
