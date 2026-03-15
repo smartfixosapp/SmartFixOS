@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import appClient from "@/api/appClient";
+import { dataClient } from "@/components/api/dataClient";
 import {
   Dialog,
   DialogContent,
@@ -102,6 +103,13 @@ const closeLocalEntry = (entryId) => {
   writeLocalEntries(updated);
   return updated.find((entry) => entry?.id === entryId) || null;
 };
+
+function calculateWorkedHours(clockInISO, clockOutISO) {
+  const start = clockInISO ? new Date(clockInISO).getTime() : 0;
+  const end = clockOutISO ? new Date(clockOutISO).getTime() : Date.now();
+  const millis = Math.max(0, end - start);
+  return Math.round((millis / 3600000) * 100) / 100;
+}
 
 const normalizeTimeEntry = (payload) => {
   if (!payload) return null;
@@ -322,7 +330,7 @@ export default function UserMenuModal({ open, onClose, user }) {
       if (timeEntryId) {
         const rawEntry = timeEntryId.startsWith("local-time-") ?
         findLocalOpenEntry(uid) :
-        await appClient.entities.TimeEntry.get(timeEntryId).catch(() => null);
+        await dataClient.entities.TimeEntry.get(timeEntryId).catch(() => null);
         const entry = normalizeTimeEntry(rawEntry);
         if (entry && !entry.clock_out) {
           setPunchStatus(entry);
@@ -332,7 +340,7 @@ export default function UserMenuModal({ open, onClose, user }) {
 
       let openEntries = [];
       try {
-        const payload = await appClient.entities.TimeEntry.filter({
+        const payload = await dataClient.entities.TimeEntry.filter({
           employee_id: uid,
           clock_out: null
         });
@@ -400,8 +408,10 @@ export default function UserMenuModal({ open, onClose, user }) {
         if (String(punchStatus.id || "").startsWith("local-time-")) {
           closeLocalEntry(punchStatus.id);
         } else {
-          await appClient.entities.TimeEntry.update(punchStatus.id, {
-            clock_out: new Date().toISOString()
+          const clockOutTime = new Date().toISOString();
+          await dataClient.entities.TimeEntry.update(punchStatus.id, {
+            clock_out: clockOutTime,
+            total_hours: calculateWorkedHours(punchStatus.clock_in, clockOutTime)
           });
         }
         sessionStorage.removeItem("timeEntryId");
@@ -415,7 +425,7 @@ export default function UserMenuModal({ open, onClose, user }) {
         };
         let newEntry;
         try {
-          const createdPayload = await appClient.entities.TimeEntry.create(payload);
+          const createdPayload = await dataClient.entities.TimeEntry.create(payload);
           newEntry = normalizeTimeEntry(createdPayload);
           if (!newEntry?.id) throw new Error("TIMEENTRY_CREATE_INVALID_RESPONSE");
         } catch (error) {
@@ -443,8 +453,10 @@ export default function UserMenuModal({ open, onClose, user }) {
         if (String(punchStatus.id || "").startsWith("local-time-")) {
           closeLocalEntry(punchStatus.id);
         } else {
-          await appClient.entities.TimeEntry.update(punchStatus.id, {
-            clock_out: new Date().toISOString()
+          const clockOutTime = new Date().toISOString();
+          await dataClient.entities.TimeEntry.update(punchStatus.id, {
+            clock_out: clockOutTime,
+            total_hours: calculateWorkedHours(punchStatus.clock_in, clockOutTime)
           });
         }
         sessionStorage.removeItem("timeEntryId");
@@ -625,7 +637,14 @@ export default function UserMenuModal({ open, onClose, user }) {
             
             {punchStatus && (
               <p className="text-xs text-gray-400 mb-3 theme-light:text-gray-600">
-                Entrada: {new Date(punchStatus.clock_in).toLocaleString()}
+                Entrada: {new Date(punchStatus.clock_in).toLocaleString("es-PR", {
+                  year: "numeric",
+                  month: "short",
+                  day: "numeric",
+                  hour: "2-digit",
+                  minute: "2-digit",
+                  hour12: false
+                })}
               </p>
             )}
 

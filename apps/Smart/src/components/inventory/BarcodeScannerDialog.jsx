@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import { base44 } from "@/api/base44Client";
+import { dataClient } from "@/components/api/dataClient";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -53,7 +54,7 @@ export default function BarcodeScannerDialog({ open, onClose, onSuccess, mode = 
 
     try {
       // Buscar producto por SKU o código de barras
-      const products = await base44.entities.Product.filter({ sku: code.trim() });
+      const products = await dataClient.entities.Product.filter({ sku: code.trim() });
 
       if (!products || products.length === 0) {
         setError(`No se encontró producto con código: ${code}`);
@@ -116,12 +117,12 @@ export default function BarcodeScannerDialog({ open, onClose, onSuccess, mode = 
       const newStock = Math.max(0, currentStock + change);
 
       // Actualizar stock
-      await base44.entities.Product.update(product.id, {
+      await dataClient.entities.Product.update(product.id, {
         stock: newStock
       });
 
       // Registrar movimiento
-      await base44.entities.InventoryMovement.create({
+      await dataClient.entities.InventoryMovement.create({
         product_id: product.id,
         product_name: product.name,
         movement_type: mode === "add" ? "purchase" : "adjustment",

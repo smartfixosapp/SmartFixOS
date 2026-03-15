@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState, useCallback } from "react";
 import { base44 } from "@/api/base44Client";
+import { dataClient } from "@/components/api/dataClient";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
@@ -100,9 +101,41 @@ const endOfWeekSaturday = (d) => {
 };
 const fmt = (d) =>
 new Date(d).toLocaleString("es-PR", {
-  dateStyle: "medium",
-  timeStyle: "short"
+  year: "numeric",
+  month: "short",
+  day: "numeric",
+  hour: "2-digit",
+  minute: "2-digit",
+  hour12: false
 });
+
+const SYSTEM_USER_EMAILS = new Set([
+  "admin@smartfixos.com",
+  "911smartfix@gmail.com",
+  "smartfixosapp@gmail.com"
+]);
+
+function isSystemUserLike(candidate) {
+  const fullName = String(candidate?.full_name || candidate?.employee_name || candidate?.name || "").trim().toLowerCase();
+  const role = String(candidate?.role || "").trim().toLowerCase();
+  const email = String(candidate?.email || "").trim().toLowerCase();
+
+  if (SYSTEM_USER_EMAILS.has(email)) return true;
+  if (role === "super_admin" || role === "saas_owner" || role === "superadmin") return true;
+  if (fullName.includes("smartfixos")) return true;
+  if (fullName.includes("super admin")) return true;
+  return false;
+}
+
+function getWorkedMillis(entry) {
+  if (!entry) return 0;
+  if (typeof entry.total_hours === "number" && Number.isFinite(entry.total_hours) && entry.clock_out) {
+    return Math.max(0, entry.total_hours * 3600000);
+  }
+  const start = entry.clock_in ? new Date(entry.clock_in).getTime() : 0;
+  const end = entry.clock_out ? new Date(entry.clock_out).getTime() : Date.now();
+  return Math.max(0, end - start);
+}
 
 /* ====================== Modal edición ====================== */
 function EditPunchModal({ open, onClose, punch, onSaved }) {
@@ -797,14 +830,14 @@ export default function TimeTrackingModal({ open, onClose, session }) {
   /* ---------- cargar usuarios activos ---------- */
   const loadActiveUsers = useCallback(async () => {
     try {
-      const payload = await base44.entities.TimeEntry.filter({ clock_out: null }, "-clock_in", 50);
+      const payload = await dataClient.entities.TimeEntry.filter({ clock_out: null }, "-clock_in", 50);
       const recentEntries = normalizeTimeEntryList(payload);
       const localOpenEntries = readLocalTimeEntries().filter((e) => e && !e.clock_out);
       const mergedOpenEntries = mergeTimeEntries(recentEntries, localOpenEntries);
       const now = Date.now();
       const active = mergedOpenEntries.filter((e) => {
         const clockIn = new Date(e.clock_in).getTime();
-        return now - clockIn < 24 * 3600000;
+        return now - clockIn < 24 * 3600000 && !isSystemUserLike(e);
       });
       setActiveUsers(active);
     } catch (e) {
@@ -813,7 +846,7 @@ export default function TimeTrackingModal({ open, onClose, session }) {
       const localOpenEntries = readLocalTimeEntries().filter((entry) => entry && !entry.clock_out);
       const active = localOpenEntries.filter((entry) => {
         const clockIn = new Date(entry.clock_in).getTime();
-        return now - clockIn < 24 * 3600000;
+        return now - clockIn < 24 * 3600000 && !isSystemUserLike(entry);
       });
       setActiveUsers(active);
     }
@@ -830,16 +863,17 @@ export default function TimeTrackingModal({ open, onClose, session }) {
   /* ---------- cargar empleados ---------- */
   const loadEmployees = useCallback(async () => {
     try {
-      const list = await base44.entities.User.filter({ active: true });
-      const formatted = list.map((u) => ({
+      const list = await dataClient.entities.User.filter({ active: true });
+      const formatted = list.filter((u) => !isSystemUserLike(u)).map((u) => ({
         id: u.id,
         full_name: u.full_name,
         role: u.role,
-        hourly_rate: u.hourly_rate || 0
+        hourly_rate: u.hourly_rate || 0,
+        email: u.email || ""
       }));
       setEmployees([{ id: "all", full_name: "Todos", hourly_rate: 0 }, ...formatted]);
     } catch {
-      setEmployees([{ id: "all", full_name: "Todos", hourly_rate: 0 }, ...readLocalFallbackEmployees()]);
+      setEmployees([{ id: "all", full_name: "Todos", hourly_rate: 0 }, ...readLocalFallbackEmployees().filter((u) => !isSystemUserLike(u))]);
     }
   }, []);
 
@@ -851,9 +885,9 @@ export default function TimeTrackingModal({ open, onClose, session }) {
   const loadEntries = useCallback(async () => {
     setLoading(true);
     try {
-      const remotePayload = await base44.entities.TimeEntry.filter({}, "-clock_in", 500);
+      const remotePayload = await dataClient.entities.TimeEntry.filter({}, "-clock_in", 500);
       const remoteEntries = normalizeTimeEntryList(remotePayload);
-      const localEntries = readLocalTimeEntries();
+      const localEntries = readLocalTimeEntries().filter((entry) => !isSystemUserLike(entry));
       const mergedEntries = mergeTimeEntries(remoteEntries, localEntries);
       const filteredByEmployee = selectedEmployee === "all"
         ? mergedEntries
@@ -861,20 +895,20 @@ export default function TimeTrackingModal({ open, onClose, session }) {
       const filteredByOpen = onlyOpen ? filteredByEmployee.filter((t) => !t?.clock_out) : filteredByEmployee;
       const inRange = filteredByOpen.filter((t) => {
         const ci = new Date(t.clock_in);
-        return ci >= startOfDay(from) && ci <= endOfDay(to);
+        return ci >= startOfDay(from) && ci <= endOfDay(to) && !isSystemUserLike(t);
       });
 
       setEntries(inRange);
     } catch (e) {
       console.error(e);
-      const localEntries = readLocalTimeEntries();
+      const localEntries = readLocalTimeEntries().filter((entry) => !isSystemUserLike(entry));
       const filteredByEmployee = selectedEmployee === "all"
         ? localEntries
         : localEntries.filter((t) => String(t?.employee_id || "") === String(selectedEmployee));
       const filteredByOpen = onlyOpen ? filteredByEmployee.filter((t) => !t?.clock_out) : filteredByEmployee;
       const inRange = filteredByOpen.filter((t) => {
         const ci = new Date(t.clock_in);
-        return ci >= startOfDay(from) && ci <= endOfDay(to);
+        return ci >= startOfDay(from) && ci <= endOfDay(to) && !isSystemUserLike(t);
       });
       setEntries(inRange);
     } finally {
@@ -895,9 +929,7 @@ export default function TimeTrackingModal({ open, onClose, session }) {
   /* ---------- helpers ---------- */
   const totalMillis = (list) =>
   list.reduce((acc, t) => {
-    const start = t.clock_in ? new Date(t.clock_in).getTime() : 0;
-    const end = t.clock_out ? new Date(t.clock_out).getTime() : Date.now();
-    return acc + Math.max(0, end - start);
+    return acc + getWorkedMillis(t);
   }, 0);
 
   const formatHM = (ms) => {
@@ -976,6 +1008,62 @@ export default function TimeTrackingModal({ open, onClose, session }) {
   }, [entries, employees, paidEmployees, nowTick]);
 
   const filteredTotalMillis = useMemo(() => totalMillis(entries), [entries, nowTick]);
+  const rangeLabel = useMemo(() => {
+    return `${from.toLocaleDateString("es-PR", {
+      month: "short",
+      day: "numeric",
+      year: "numeric"
+    })} - ${to.toLocaleDateString("es-PR", {
+      month: "short",
+      day: "numeric",
+      year: "numeric"
+    })}`;
+  }, [from, to]);
+
+  const employeeSummaries = useMemo(() => {
+    return employees
+      .filter((emp) => emp.id !== "all")
+      .map((emp) => {
+        const empEntries = entries.filter((entry) => String(entry.employee_id || "") === String(emp.id));
+        const activeEntry = activeUsers.find((entry) => String(entry.employee_id || "") === String(emp.id)) || null;
+        const millis = totalMillis(empEntries);
+        const hours = millis / 3600000;
+        const rate = Number(emp.hourly_rate || 0);
+        const projectedPay = hours * rate;
+        const shifts = empEntries.length;
+        const lastEntry = empEntries[0] || null;
+
+        return {
+          id: emp.id,
+          name: emp.full_name,
+          role: emp.role,
+          rate,
+          hours,
+          millis,
+          projectedPay,
+          shifts,
+          activeEntry,
+          lastEntry,
+          isPaid: paidEmployees.has(emp.id)
+        };
+      })
+      .filter((emp) => emp.shifts > 0 || emp.activeEntry || Number(emp.rate || 0) > 0)
+      .sort((a, b) => {
+        if (a.activeEntry && !b.activeEntry) return -1;
+        if (b.activeEntry && !a.activeEntry) return 1;
+        return b.projectedPay - a.projectedPay;
+      });
+  }, [employees, entries, activeUsers, paidEmployees, nowTick]);
+
+  const payrollProjection = useMemo(() => {
+    return employeeSummaries.reduce((sum, emp) => sum + emp.projectedPay, 0);
+  }, [employeeSummaries]);
+
+  const recentEntryRows = useMemo(() => {
+    return [...entries]
+      .sort((a, b) => new Date(b.clock_in || 0).getTime() - new Date(a.clock_in || 0).getTime())
+      .slice(0, 18);
+  }, [entries]);
 
   const setToday = () => {
     const d = new Date();
@@ -1051,7 +1139,7 @@ export default function TimeTrackingModal({ open, onClose, session }) {
 
       // ✅ 3. RESETEAR las horas trabajadas del empleado en el periodo
       // Obtener todos los time entries del empleado en el periodo de pago
-      const employeeEntries = await base44.entities.TimeEntry.filter({
+      const employeeEntries = await dataClient.entities.TimeEntry.filter({
         employee_id: selectedEmployeeForPayment.id
       });
 
@@ -1063,7 +1151,7 @@ export default function TimeTrackingModal({ open, onClose, session }) {
 
       // Eliminar los time entries del periodo ya pagado
       for (const entry of entriesInPeriod) {
-        await base44.entities.TimeEntry.delete(entry.id);
+        await dataClient.entities.TimeEntry.delete(entry.id);
       }
 
       // ✅ 4. Marcar como pagado en el estado local
@@ -1106,102 +1194,140 @@ export default function TimeTrackingModal({ open, onClose, session }) {
         </div>
 
         <div className="p-6 space-y-6">
-          {/* Todos los Empleados */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {/* Usuarios Activos */}
-            {activeUsers.length > 0 &&
-            <div className="bg-gradient-to-r from-green-950/40 to-emerald-950/40 border border-green-500/30 rounded-xl p-4">
-                <h4 className="text-green-400 text-lg font-bold flex items-center gap-2 mb-3">
-                  <TrendingUp className="w-5 h-5" />
-                  Activos Ahora ({activeUsers.length})
-                </h4>
-                <div className="flex flex-wrap gap-2">
-                  {activeUsers.map((entry) =>
-                <button
-                  key={entry.id}
-                  onClick={() => {
-                    setSelectedEmployeeDetail({
-                      id: entry.employee_id,
-                      name: entry.employee_name,
-                      currentEntry: entry
-                    });
-                  }}
-                  className="px-4 py-2 bg-green-500/20 hover:bg-green-500/30 border border-green-500/40 rounded-lg text-green-300 text-sm font-semibold transition-all flex items-center gap-2">
-
-                      <span className="w-2 h-2 rounded-full bg-green-400 animate-pulse" />
-                      {entry.employee_name}
-                    </button>
-                )}
+          <div className="rounded-[28px] border border-cyan-500/20 bg-[radial-gradient(circle_at_top_left,rgba(34,211,238,0.14),transparent_35%),radial-gradient(circle_at_top_right,rgba(16,185,129,0.14),transparent_28%),rgba(2,6,23,0.92)] p-5 sm:p-6 shadow-[0_24px_80px_rgba(0,0,0,0.45)]">
+            <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+              <div>
+                <p className="text-[11px] font-bold uppercase tracking-[0.28em] text-cyan-300/75">Resumen del Periodo</p>
+                <h3 className="mt-2 text-2xl font-black tracking-tight text-white">{rangeLabel}</h3>
+                <p className="mt-1 text-sm text-slate-400">Horas trabajadas, jornadas y pago proyectado usando la tarifa por hora guardada en cada usuario.</p>
+              </div>
+              <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+                <div className="rounded-2xl border border-cyan-400/20 bg-cyan-500/8 px-4 py-3">
+                  <p className="text-[11px] uppercase tracking-[0.2em] text-cyan-200/70">Equipo</p>
+                  <p className="mt-2 text-2xl font-black text-cyan-300">{employeeSummaries.length}</p>
+                </div>
+                <div className="rounded-2xl border border-emerald-400/20 bg-emerald-500/8 px-4 py-3">
+                  <p className="text-[11px] uppercase tracking-[0.2em] text-emerald-200/70">Activos</p>
+                  <p className="mt-2 text-2xl font-black text-emerald-300">{activeUsers.length}</p>
+                </div>
+                <div className="rounded-2xl border border-fuchsia-400/20 bg-fuchsia-500/8 px-4 py-3">
+                  <p className="text-[11px] uppercase tracking-[0.2em] text-fuchsia-200/70">Horas</p>
+                  <p className="mt-2 text-2xl font-black text-fuchsia-300">{formatHM(filteredTotalMillis)}</p>
+                </div>
+                <div className="rounded-2xl border border-amber-400/20 bg-amber-500/8 px-4 py-3">
+                  <p className="text-[11px] uppercase tracking-[0.2em] text-amber-200/70">Nómina</p>
+                  <p className="mt-2 text-2xl font-black text-amber-300">${payrollProjection.toFixed(2)}</p>
                 </div>
               </div>
-            }
+            </div>
+          </div>
 
-            {/* Todos los Empleados */}
-            <div className="bg-gradient-to-r from-cyan-950/40 to-blue-950/40 border border-cyan-500/30 rounded-xl p-4">
-              <h4 className="text-cyan-400 text-lg font-bold flex items-center gap-2 mb-3">
-                <Clock className="w-5 h-5" />
-                Todos los Empleados ({employees.filter((e) => e.id !== "all").length})
+          {activeUsers.length > 0 && (
+            <div className="rounded-[24px] border border-emerald-500/25 bg-gradient-to-r from-emerald-950/40 to-green-950/30 p-4 sm:p-5">
+              <h4 className="flex items-center gap-2 text-lg font-bold text-emerald-300">
+                <TrendingUp className="h-5 w-5" />
+                Activos Ahora ({activeUsers.length})
               </h4>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-                {employees.filter((e) => e.id !== "all").map((emp) => {
-                  const isActive = activeUsers.some((a) => a.employee_id === emp.id);
-                  const activeEntry = activeUsers.find((a) => a.employee_id === emp.id);
-                  const empEntries = entries.filter((e) => e.employee_id === emp.id);
-                  const totalHours = formatHM(totalMillis(empEntries));
-
-                  return (
-                    <button
-                      key={emp.id}
-                      onClick={() => {
-                        setSelectedEmployeeDetail({
-                          id: emp.id,
-                          name: emp.full_name,
-                          currentEntry: activeEntry || null
-                        });
-                      }}
-                      className={`p-4 border rounded-xl text-left transition-all hover:scale-105 ${
-                      isActive ?
-                      'bg-green-500/10 hover:bg-green-500/20 border-green-500/40' :
-                      'bg-cyan-500/5 hover:bg-cyan-500/10 border-cyan-500/20'}`
-                      }>
-
-                      <div className="flex items-start justify-between mb-2">
-                        <div className="flex items-center gap-2">
-                          <span className={`w-3 h-3 rounded-full ${isActive ? 'bg-green-400 animate-pulse' : 'bg-gray-500'}`} />
-                          <span className={`font-bold ${isActive ? 'text-green-300' : 'text-cyan-300'}`}>
-                            {emp.full_name}
-                          </span>
-                        </div>
-                      </div>
-                      
-                      {isActive && activeEntry &&
-                      <div className="text-xs text-green-400 mb-2 flex items-center gap-1">
-                          <Clock className="w-3 h-3" />
-                          Entró: {new Date(activeEntry.clock_in).toLocaleTimeString('es-PR', { hour: '2-digit', minute: '2-digit' })}
-                        </div>
-                      }
-                      
-                      <div className="grid grid-cols-2 gap-2 text-xs">
-                        <div>
-                          <p className="text-gray-400">Ponches</p>
-                          <p className="text-white font-bold">{empEntries.length}</p>
-                        </div>
-                        <div>
-                          <p className="text-gray-400">Horas</p>
-                          <p className="text-white font-bold">{totalHours}</p>
-                        </div>
-                      </div>
-                      
-                      {emp.hourly_rate > 0 &&
-                      <div className="mt-2 pt-2 border-t border-white/10">
-                          <p className="text-xs text-gray-400">Tarifa</p>
-                          <p className="text-emerald-400 font-bold">${emp.hourly_rate}/hr</p>
-                        </div>
-                      }
-                    </button>);
-
-                })}
+              <div className="mt-4 flex flex-wrap gap-2">
+                {activeUsers.map((entry) => (
+                  <button
+                    key={entry.id}
+                    onClick={() => {
+                      setSelectedEmployeeDetail({
+                        id: entry.employee_id,
+                        name: entry.employee_name,
+                        currentEntry: entry
+                      });
+                    }}
+                    className="inline-flex items-center gap-2 rounded-full border border-emerald-400/25 bg-emerald-500/12 px-4 py-2 text-sm font-semibold text-emerald-200 transition hover:border-emerald-300/40 hover:bg-emerald-500/18"
+                  >
+                    <span className="h-2.5 w-2.5 rounded-full bg-emerald-400 animate-pulse" />
+                    <span>{entry.employee_name}</span>
+                    <span className="text-emerald-200/70">
+                      {new Date(entry.clock_in).toLocaleTimeString("es-PR", { hour: "2-digit", minute: "2-digit", hour12: false })}
+                    </span>
+                  </button>
+                ))}
               </div>
+            </div>
+          )}
+
+          <div className="rounded-[24px] border border-white/10 bg-black/35 p-4 sm:p-5">
+            <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+              <div>
+                <h4 className="text-lg font-bold text-white">Equipo y Nómina</h4>
+                <p className="text-sm text-slate-400">Cada tarjeta resume horas del rango, últimos horarios y el pago calculado.</p>
+              </div>
+              <div className="text-sm text-slate-500">Tarifa tomada del campo `Tarifa por Hora ($)` del usuario.</div>
+            </div>
+
+            <div className="mt-5 grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
+              {employeeSummaries.map((emp) => (
+                <button
+                  key={emp.id}
+                  onClick={() => {
+                    setSelectedEmployeeDetail({
+                      id: emp.id,
+                      name: emp.name,
+                      currentEntry: emp.activeEntry || null
+                    });
+                  }}
+                  className={`group rounded-[24px] border p-5 text-left transition hover:-translate-y-1 hover:shadow-[0_20px_50px_rgba(0,0,0,0.3)] ${
+                    emp.activeEntry
+                      ? "border-emerald-400/30 bg-gradient-to-br from-emerald-500/10 via-slate-950 to-slate-950"
+                      : "border-cyan-400/18 bg-gradient-to-br from-cyan-500/8 via-slate-950 to-slate-950"
+                  }`}
+                >
+                  <div className="flex items-start justify-between gap-3">
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <span className={`h-2.5 w-2.5 rounded-full ${emp.activeEntry ? "bg-emerald-400 animate-pulse" : "bg-slate-500"}`} />
+                        <p className="text-lg font-black tracking-tight text-white">{emp.name}</p>
+                      </div>
+                      <p className="mt-1 text-xs uppercase tracking-[0.18em] text-slate-400">{emp.role || "empleado"}</p>
+                    </div>
+                    {emp.isPaid ? (
+                      <span className="rounded-full border border-emerald-400/30 bg-emerald-500/12 px-3 py-1 text-[11px] font-bold uppercase tracking-[0.18em] text-emerald-300">Pagado</span>
+                    ) : (
+                      <span className="rounded-full border border-amber-400/30 bg-amber-500/12 px-3 py-1 text-[11px] font-bold uppercase tracking-[0.18em] text-amber-300">Pendiente</span>
+                    )}
+                  </div>
+
+                  <div className="mt-4 grid grid-cols-3 gap-3">
+                    <div className="rounded-2xl border border-white/8 bg-white/[0.03] p-3">
+                      <p className="text-[11px] uppercase tracking-[0.18em] text-slate-500">Jornadas</p>
+                      <p className="mt-2 text-xl font-black text-white">{emp.shifts}</p>
+                    </div>
+                    <div className="rounded-2xl border border-white/8 bg-white/[0.03] p-3">
+                      <p className="text-[11px] uppercase tracking-[0.18em] text-slate-500">Horas</p>
+                      <p className="mt-2 text-xl font-black text-fuchsia-300">{formatHM(emp.millis)}</p>
+                    </div>
+                    <div className="rounded-2xl border border-white/8 bg-white/[0.03] p-3">
+                      <p className="text-[11px] uppercase tracking-[0.18em] text-slate-500">Tarifa</p>
+                      <p className="mt-2 text-xl font-black text-emerald-300">{emp.rate > 0 ? `$${emp.rate}` : "--"}</p>
+                    </div>
+                  </div>
+
+                  <div className="mt-4 rounded-2xl border border-amber-400/15 bg-amber-500/[0.06] p-4">
+                    <p className="text-[11px] uppercase tracking-[0.22em] text-amber-200/70">Pago Proyectado</p>
+                    <p className="mt-2 text-3xl font-black tracking-tight text-amber-300">${emp.projectedPay.toFixed(2)}</p>
+                    <p className="mt-1 text-xs text-slate-400">
+                      {emp.rate > 0 ? `${emp.hours.toFixed(2)}h x $${emp.rate.toFixed(2)}` : "Configura tarifa por hora para calcular nómina."}
+                    </p>
+                  </div>
+
+                  <div className="mt-4 grid gap-2 text-sm text-slate-300">
+                    <div className="flex items-center justify-between rounded-2xl border border-white/8 bg-white/[0.03] px-4 py-3">
+                      <span className="text-slate-400">Última entrada</span>
+                      <span className="font-semibold text-white">{emp.lastEntry?.clock_in ? fmt(emp.lastEntry.clock_in) : "Sin registro"}</span>
+                    </div>
+                    <div className="flex items-center justify-between rounded-2xl border border-white/8 bg-white/[0.03] px-4 py-3">
+                      <span className="text-slate-400">Última salida</span>
+                      <span className="font-semibold text-white">{emp.lastEntry?.clock_out ? fmt(emp.lastEntry.clock_out) : emp.activeEntry ? "Turno abierto" : "Sin salida"}</span>
+                    </div>
+                  </div>
+                </button>
+              ))}
             </div>
           </div>
 
@@ -1315,6 +1441,66 @@ export default function TimeTrackingModal({ open, onClose, session }) {
               <p className="text-3xl font-bold text-red-400">
                 {formatHM(filteredTotalMillis)}
               </p>
+            </div>
+          </div>
+
+          <div className="rounded-[24px] border border-white/10 bg-black/35 p-4 sm:p-5">
+            <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+              <div>
+                <h4 className="text-lg font-bold text-white">Jornadas del Rango</h4>
+                <p className="text-sm text-slate-400">Entradas y salidas reales del periodo seleccionado, con duración calculada automáticamente.</p>
+              </div>
+              <div className="text-sm text-slate-500">{recentEntryRows.length} registros visibles</div>
+            </div>
+
+            <div className="mt-5 overflow-x-auto">
+              <table className="w-full min-w-[760px] text-sm">
+                <thead className="text-left text-[11px] uppercase tracking-[0.18em] text-slate-500">
+                  <tr>
+                    <th className="pb-3 pr-4">Empleado</th>
+                    <th className="pb-3 pr-4">Entrada</th>
+                    <th className="pb-3 pr-4">Salida</th>
+                    <th className="pb-3 pr-4">Duración</th>
+                    <th className="pb-3 pr-4">Estado</th>
+                    <th className="pb-3 text-right">Costo</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {recentEntryRows.map((entry) => {
+                    const employee = employees.find((emp) => String(emp.id) === String(entry.employee_id));
+                    const rate = Number(employee?.hourly_rate || 0);
+                    const millis = getWorkedMillis(entry);
+                    const cost = (millis / 3600000) * rate;
+                    const isOpen = !entry.clock_out;
+
+                    return (
+                      <tr key={entry.id} className="border-t border-white/6 text-slate-200">
+                        <td className="py-3 pr-4 font-semibold text-white">{entry.employee_name || employee?.full_name || "Empleado"}</td>
+                        <td className="py-3 pr-4">{entry.clock_in ? fmt(entry.clock_in) : "--"}</td>
+                        <td className="py-3 pr-4">{entry.clock_out ? fmt(entry.clock_out) : "--"}</td>
+                        <td className="py-3 pr-4 font-semibold text-fuchsia-300">{formatHM(millis)}</td>
+                        <td className="py-3 pr-4">
+                          <span className={`inline-flex rounded-full border px-2.5 py-1 text-[11px] font-bold uppercase tracking-[0.18em] ${
+                            isOpen
+                              ? "border-emerald-400/30 bg-emerald-500/10 text-emerald-300"
+                              : "border-slate-400/20 bg-slate-500/10 text-slate-300"
+                          }`}>
+                            {isOpen ? "Abierto" : "Cerrado"}
+                          </span>
+                        </td>
+                        <td className="py-3 text-right font-bold text-amber-300">{rate > 0 ? `$${cost.toFixed(2)}` : "--"}</td>
+                      </tr>
+                    );
+                  })}
+                  {!recentEntryRows.length && (
+                    <tr>
+                      <td colSpan={6} className="py-10 text-center text-slate-500">
+                        No hay jornadas en el rango seleccionado.
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
             </div>
           </div>
 

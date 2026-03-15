@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { base44 } from "@/api/base44Client";
+import { dataClient } from "@/components/api/dataClient";
 import { toast } from "sonner";
 import { Camera, Trash2, Package, DollarSign, AlertCircle, QrCode } from "lucide-react";
 import { useQueryClient } from "@tanstack/react-query";
@@ -126,9 +126,9 @@ export default function ProductFormDialog({ open, onClose, product = null, onSuc
 
       // Ejecutar mutación real en segundo plano
       if (product) {
-        await base44.entities.Product.update(product.id, data);
+        await dataClient.entities.Product.update(product.id, data);
       } else {
-        const created = await base44.entities.Product.create(data);
+        const created = await dataClient.entities.Product.create(data);
         
         // Reemplazar el ID temporal con el ID real
         queryClient.setQueryData(['products'], (oldData) => {

@@ -995,7 +995,7 @@ export default function Inventory() {
 
       if (payload.id) {
         console.log("✏️ Actualizando pieza:", payload.id, payload);
-        await base44.entities.Product.update(payload.id, payload);
+        await dataClient.entities.Product.update(payload.id, payload);
 
         const newStock = Number(payload.stock || 0);
         const minStock = Number(payload.min_stock || 5);

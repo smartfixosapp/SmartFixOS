@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import appClient from "@/api/appClient";
+import { dataClient } from "@/components/api/dataClient";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Clock, LogIn, LogOut } from "lucide-react";
@@ -95,6 +96,13 @@ function timeHHMMtoISO(timeStr) {
   return d.toISOString();
 }
 
+function calculateWorkedHours(clockInISO, clockOutISO) {
+  const start = clockInISO ? new Date(clockInISO).getTime() : 0;
+  const end = clockOutISO ? new Date(clockOutISO).getTime() : Date.now();
+  const millis = Math.max(0, end - start);
+  return Math.round((millis / 3600000) * 100) / 100;
+}
+
 export default function PunchButton({ userId, userName, onPunchStatusChange }) {
   const [punchStatus, setPunchStatus] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -146,7 +154,7 @@ export default function PunchButton({ userId, userName, onPunchStatusChange }) {
       if (timeEntryId) {
         const rawEntry = timeEntryId.startsWith("local-time-") ?
         findLocalOpenEntry(identity.id) :
-        await appClient.entities.TimeEntry.get(timeEntryId).catch(() => null);
+        await dataClient.entities.TimeEntry.get(timeEntryId).catch(() => null);
         const entry = normalizeTimeEntry(rawEntry);
         if (entry && !entry.clock_out) {
           setPunchStatus(entry);
@@ -156,7 +164,7 @@ export default function PunchButton({ userId, userName, onPunchStatusChange }) {
 
       let openEntries = [];
       try {
-        const payload = await appClient.entities.TimeEntry.filter({
+        const payload = await dataClient.entities.TimeEntry.filter({
           employee_id: identity.id,
           clock_out: null
         });
@@ -198,8 +206,9 @@ export default function PunchButton({ userId, userName, onPunchStatusChange }) {
         if (String(punchStatus.id || "").startsWith("local-time-")) {
           closeLocalEntry(punchStatus.id);
         } else {
-          await appClient.entities.TimeEntry.update(punchStatus.id, {
-            clock_out: clockOutTime
+          await dataClient.entities.TimeEntry.update(punchStatus.id, {
+            clock_out: clockOutTime,
+            total_hours: calculateWorkedHours(punchStatus.clock_in, clockOutTime)
           });
         }
         sessionStorage.removeItem("timeEntryId");
@@ -223,7 +232,7 @@ export default function PunchButton({ userId, userName, onPunchStatusChange }) {
         };
         let newEntry;
         try {
-          const createdPayload = await appClient.entities.TimeEntry.create(payload);
+          const createdPayload = await dataClient.entities.TimeEntry.create(payload);
           newEntry = normalizeTimeEntry(createdPayload);
           if (!newEntry?.id) throw new Error("TIMEENTRY_CREATE_INVALID_RESPONSE");
         } catch (error) {
