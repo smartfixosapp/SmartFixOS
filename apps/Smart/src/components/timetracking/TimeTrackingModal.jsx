@@ -48,6 +48,31 @@ function getCurrentTenantId() {
   return null;
 }
 
+async function insertSupabaseRecordWithTenantRetry(table, payload) {
+  const attempts = [payload];
+  if (payload?.tenant_id) {
+    const { tenant_id, ...withoutTenant } = payload;
+    attempts.push(withoutTenant);
+  }
+
+  let lastError = null;
+  for (let index = 0; index < attempts.length; index += 1) {
+    const { error } = await supabase.from(table).insert(attempts[index]);
+    if (!error) return;
+
+    lastError = error;
+    const message = String(error?.message || "");
+    const retryable =
+      index === 0 &&
+      payload?.tenant_id &&
+      (error?.code === "42501" || /row-level security|policy/i.test(message));
+
+    if (!retryable) break;
+  }
+
+  throw lastError || new Error(`${table.toUpperCase()}_INSERT_FAILED`);
+}
+
 function readLocalFallbackEmployees() {
   try {
     const raw = localStorage.getItem(LOCAL_USERS_STORAGE_KEY);
@@ -1229,30 +1254,38 @@ export default function TimeTrackingModal({ open, onClose, session }) {
     try {
       const paymentAmount = parseFloat(amount);
       const currentUser = await base44.auth.me();
+      const tenantId = getCurrentTenantId();
+      const normalizedPaymentMethod =
+        paymentMethod === "ath_movil" ? "transfer" : paymentMethod;
+      const normalizedNotes = paymentMethod === "ath_movil"
+        ? [notes, "Método real: ATH Móvil"].filter(Boolean).join(" | ")
+        : notes;
 
       // ✅ 1. Crear registro de pago al empleado
-      await base44.entities.EmployeePayment.create({
+      await insertSupabaseRecordWithTenantRetry("employee_payment", {
         employee_id: selectedEmployeeForPayment.id,
         employee_name: selectedEmployeeForPayment.name,
         employee_code: employees.find((e) => e.id === selectedEmployeeForPayment.id)?.employee_code || "",
         amount: paymentAmount,
         payment_type: type,
-        payment_method: paymentMethod,
+        payment_method: normalizedPaymentMethod,
         period_start: from.toISOString(),
         period_end: to.toISOString(),
-        notes: notes,
+        notes: normalizedNotes,
         paid_by: currentUser?.id || session?.userId,
-        paid_by_name: currentUser?.full_name || session?.userName
+        paid_by_name: currentUser?.full_name || session?.userName,
+        tenant_id: tenantId
       });
 
       // ✅ 2. Registrar como gasto (expense) en transacciones
-      await base44.entities.Transaction.create({
+      await insertSupabaseRecordWithTenantRetry("transaction", {
         type: "expense",
         amount: -Math.abs(paymentAmount),
-        category: "payroll",
+        category: "other_expense",
         description: `Pago de nómina - ${selectedEmployeeForPayment.name} (${type}) [${paymentMethod}]`,
         payment_method: paymentMethod,
-        recorded_by: currentUser?.full_name || session?.userName || "Sistema"
+        recorded_by: currentUser?.full_name || session?.userName || "Sistema",
+        tenant_id: tenantId
       });
 
       // ✅ 3. RESETEAR las horas trabajadas del empleado en el periodo
