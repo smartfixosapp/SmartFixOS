@@ -113,6 +113,14 @@ function isLikelyNetworkError(error) {
   );
 }
 
+function getPlanUserLimitFromKey(plan) {
+  const normalized = String(plan || "").trim().toLowerCase();
+  if (normalized === "smartfixos" || normalized === "basic") return 1;
+  if (normalized === "pro") return 3;
+  if (normalized === "enterprise") return 999;
+  return null;
+}
+
 function isSystemUserLike(candidate) {
   const fullName = String(candidate?.full_name || candidate?.name || "").trim().toLowerCase();
   const role = String(candidate?.role || candidate?.position || "").trim().toLowerCase();
@@ -411,24 +419,41 @@ export default function UsersManagement() {
     try {
       const tenantId = localStorage.getItem("smartfix_tenant_id");
       if (tenantId) {
-        // Obtener plan del tenant
         const { data: tenantData } = await supabase
           .from("tenant")
           .select("plan, metadata")
           .eq("id", tenantId)
           .single();
 
-        const maxUsers = tenantData?.metadata?.max_users ?? 999;
+        let subscriptionPlan = null;
+        try {
+          const { data: subscriptionData } = await supabase
+            .from("subscription")
+            .select("plan, status")
+            .eq("tenant_id", tenantId)
+            .eq("status", "active")
+            .order("created_at", { ascending: false })
+            .limit(1);
+          subscriptionPlan = subscriptionData?.[0]?.plan || null;
+        } catch {}
+
+        const metadataLimit = Number(tenantData?.metadata?.max_users || 0) || null;
+        const tenantPlanLimit = getPlanUserLimitFromKey(tenantData?.plan);
+        const subscriptionPlanLimit = getPlanUserLimitFromKey(subscriptionPlan);
+        const maxUsers = Math.max(
+          metadataLimit || 0,
+          tenantPlanLimit || 0,
+          subscriptionPlanLimit || 0
+        ) || 999;
 
         if (maxUsers < 999) {
-          // Contar usuarios activos actuales
           const currentUsers = await fetchTenantUsers();
           const currentCount = (currentUsers || []).length;
 
           if (currentCount >= maxUsers) {
             const planLabels = { 1: "Basic (1 usuario)", 3: "Pro (3 usuarios)" };
             const currentPlan = planLabels[maxUsers] || `tu plan actual`;
-            const nextStep = maxUsers === 1 ? "Pro ($65/mo)" : maxUsers === 3 ? "Enterprise ($99/mo)" : "un plan superior";
+            const nextStep = maxUsers === 1 ? "Pro ($85/mo)" : maxUsers === 3 ? "Enterprise" : "un plan superior";
             toast.error(
               `⚠️ Límite alcanzado: ${currentPlan} solo permite ${maxUsers} usuario${maxUsers === 1 ? "" : "s"}. Contacta al soporte para subir a ${nextStep}.`,
               { duration: 8000 }
@@ -445,46 +470,44 @@ export default function UsersManagement() {
     try {
       const existing = await fetchTenantUsers().catch(() => []);
       const localUsers = readLocalUsers();
-      const normalizedEmployeeCode = String(userData.employee_code || "").trim().toLowerCase();
       const normalizedEmail = String(userData.email || "").trim().toLowerCase();
       const existsRemoteDuplicate = (existing || []).some((u) =>
-        String(u.employee_code || "").trim().toLowerCase() === normalizedEmployeeCode ||
-        (normalizedEmail && String(u.email || "").trim().toLowerCase() === normalizedEmail)
+        normalizedEmail && String(u.email || "").trim().toLowerCase() === normalizedEmail
       );
       const existsLocalCode = localUsers.some(
-        (u) =>
-          String(u.employee_code || "").trim().toLowerCase() === normalizedEmployeeCode ||
-          (normalizedEmail && String(u.email || "").trim().toLowerCase() === normalizedEmail)
+        (u) => normalizedEmail && String(u.email || "").trim().toLowerCase() === normalizedEmail
       );
 
       if (existsRemoteDuplicate || existsLocalCode) {
-        toast.error("Ya existe un usuario con ese código o email");
+        toast.error("Ya existe un usuario con ese email");
         return;
       }
 
-      // Preparar datos - role solo acepta 'admin' o 'user'
+      const token = `${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
+      const expiresAt = new Date(Date.now() + 48 * 60 * 60 * 1000).toISOString();
+
       const cleanData = {
         full_name: userData.full_name,
         email: userData.email,
         phone: userData.phone || "",
-        role: userData.customRole === 'admin' ? 'admin' : 'user',
-        position: userData.customRole, // Guardar el rol real aquí
+        role: userData.customRole,
+        position: userData.customRole,
         employee_code: userData.employee_code,
         pin: userData.pin,
         hourly_rate: parseFloat(userData.hourly_rate) || 0,
         tenant_id: getCurrentTenantId(),
-        active: userData.active !== false
+        active: true,
+        status: "pending",
+        portal_access_enabled: false,
+        activation_token: token,
+        activation_expires_at: expiresAt
       };
 
       let newUser = null;
       try {
         const { data: createdRows, error: createError } = await supabase
           .from("app_employee")
-          .insert({
-            ...cleanData,
-            status: "active",
-            portal_access_enabled: true
-          })
+          .insert(cleanData)
           .select("*")
           .limit(1);
 
@@ -535,7 +558,17 @@ export default function UsersManagement() {
         }).catch(() => {}); // Ignorar errores del log
       }
 
-      toast.success("✅ Usuario creado exitosamente");
+      if (newUser?.email && !isLocalUserId(newUser.id)) {
+        try {
+          await sendApprovalEmail(newUser, token);
+          toast.success("✅ Usuario creado e invitación enviada");
+        } catch (mailError) {
+          console.error("Error sending invite email:", mailError);
+          toast.warning("Usuario creado, pero no se pudo enviar la invitación por email");
+        }
+      } else {
+        toast.success("✅ Usuario creado exitosamente");
+      }
 
       setShowCreateModal(false);
       await loadUsers();
@@ -552,7 +585,7 @@ export default function UsersManagement() {
         full_name: userData.full_name,
         email: userData.email,
         phone: userData.phone || "",
-        role: userData.customRole === 'admin' ? 'admin' : 'user',
+        role: userData.customRole,
         position: userData.customRole,
         hourly_rate: parseFloat(userData.hourly_rate) || 0,
         active: userData.active !== false
@@ -730,8 +763,8 @@ export default function UsersManagement() {
               <polyline points="20 6 9 17 4 12"></polyline>
             </svg>
           </div>
-          <h1 style="color: white; font-size: 28px; margin: 0; font-weight: 600; letter-spacing: -0.5px;">Solicitud Aprobada</h1>
-          <p style="color: rgba(255,255,255,0.9); margin: 10px 0 0 0; font-size: 16px;">Bienvenido a SmartFixOS</p>
+          <h1 style="color: white; font-size: 28px; margin: 0; font-weight: 600; letter-spacing: -0.5px;">Invitación de Acceso</h1>
+          <p style="color: rgba(255,255,255,0.9); margin: 10px 0 0 0; font-size: 16px;">Tu cuenta fue creada en SmartFixOS</p>
         </div>
 
         <!-- Contenido principal -->
@@ -739,7 +772,7 @@ export default function UsersManagement() {
           <h2 style="color: #1f2937; font-size: 22px; margin: 0 0 15px 0; font-weight: 600;">¡Hola ${employee.full_name}! 👋</h2>
           
           <p style="color: #4b5563; font-size: 16px; line-height: 1.6; margin: 0 0 25px 0;">
-            Nos complace informarte que tu solicitud de acceso al sistema <strong>ha sido aprobada</strong> por el administrador el día <strong>${approvalDate}</strong>.
+            El administrador creó tu acceso al sistema el día <strong>${approvalDate}</strong>. Para entrar, primero debes activar tu cuenta y definir tu propio PIN.
           </p>
 
           <!-- Resumen de información -->
@@ -769,7 +802,7 @@ export default function UsersManagement() {
                 <td style="padding: 8px 0; color: #1f2937; font-size: 14px; font-weight: 500;">${employee.employee_code}</td>
               </tr>
               <tr>
-                <td style="padding: 8px 0; color: #6b7280; font-size: 14px;">Fecha de Aprobación:</td>
+                <td style="padding: 8px 0; color: #6b7280; font-size: 14px;">Fecha de Invitación:</td>
                 <td style="padding: 8px 0; color: #10b981; font-size: 14px; font-weight: 600;">${approvalDate}</td>
               </tr>
             </table>
@@ -835,7 +868,7 @@ export default function UsersManagement() {
     await dataClient.mail.send({
       to: employee.email,
       from_name: "SmartFixOS - Sistema de Gestión",
-      subject: "✅ Tu solicitud ha sido aprobada - Activa tu cuenta",
+      subject: "✅ Activación de tu cuenta en SmartFixOS",
       body: emailBody
     });
   };

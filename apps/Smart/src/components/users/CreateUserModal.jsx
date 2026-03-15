@@ -5,14 +5,23 @@ import { Input } from "@/components/ui/input";
 import { X, Check, Eye, EyeOff, Zap } from "lucide-react";
 import { toast } from "sonner";
 
+function generateEmployeeCode() {
+  return `EMP${Date.now().toString().slice(-6)}`;
+}
+
+function generatePin() {
+  return String(Math.floor(Math.random() * 9000) + 1000);
+}
+
 export default function CreateUserModal({ onClose, onCreate, roles }) {
   const [formData, setFormData] = useState({
-    full_name: "",
+    first_name: "",
+    last_name: "",
     email: "",
     phone: "",
     role: "technician",
-    employee_code: `EMP${String(Math.floor(Math.random() * 9000) + 1000)}`,
-    pin: "",
+    employee_code: generateEmployeeCode(),
+    generated_pin: generatePin(),
     hourly_rate: "",
     active: true,
     permissions: {
@@ -28,43 +37,39 @@ export default function CreateUserModal({ onClose, onCreate, roles }) {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
-    if (!formData.full_name?.trim()) {
+
+    if (!formData.first_name?.trim()) {
       toast.error("El nombre es requerido");
       return;
     }
-    if (!formData.employee_code?.trim()) {
-      toast.error("El código de empleado es requerido");
+    if (!formData.last_name?.trim()) {
+      toast.error("El apellido es requerido");
       return;
     }
-    if (!formData.pin?.trim() || formData.pin.length < 4) {
-      toast.error("El PIN debe tener al menos 4 dígitos");
-      return;
-    }
-    if (!/^\d+$/.test(formData.pin)) {
-      toast.error("El PIN solo puede contener números");
+    if (!formData.email?.trim()) {
+      toast.error("El email es requerido");
       return;
     }
 
     setSaving(true);
-    
+
     const userData = {
-      full_name: formData.full_name,
-      email: formData.email || `${formData.employee_code}@smartfix.local`,
+      full_name: `${formData.first_name.trim()} ${formData.last_name.trim()}`.trim(),
+      first_name: formData.first_name.trim(),
+      last_name: formData.last_name.trim(),
+      email: formData.email.trim(),
       phone: formData.phone || "",
-      customRole: formData.role, // Pasar el rol personalizado
+      customRole: formData.role,
       employee_code: formData.employee_code,
-      pin: formData.pin,
+      pin: formData.generated_pin,
       hourly_rate: formData.hourly_rate,
-      active: formData.active
+      active: formData.active,
+      send_invite: true
     };
 
     await onCreate(userData);
     setSaving(false);
   };
-
-  const selectedRole = roles.find(r => r.value === formData.role) || roles[2];
-  const RoleIcon = selectedRole.icon;
 
   return (
     <Dialog open={true} onOpenChange={onClose}>
@@ -91,57 +96,50 @@ export default function CreateUserModal({ onClose, onCreate, roles }) {
             <h3 className="text-lg font-bold text-cyan-400 theme-light:text-gray-900">Información Básica</h3>
             
             <div>
-              <label className="text-xs text-cyan-300/60 mb-2 block theme-light:text-gray-600">Nombre Completo *</label>
-              <Input
-                value={formData.full_name}
-                onChange={(e) => setFormData({...formData, full_name: e.target.value})}
-                className="bg-slate-900/60 border-cyan-500/20 text-white h-12 rounded-xl theme-light:bg-white theme-light:border-gray-300"
-                placeholder="Juan Pérez"
-              />
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="text-xs text-cyan-300/60 mb-2 block theme-light:text-gray-600">Nombre *</label>
+                  <Input
+                    value={formData.first_name}
+                    onChange={(e) => setFormData({...formData, first_name: e.target.value})}
+                    className="bg-slate-900/60 border-cyan-500/20 text-white h-12 rounded-xl theme-light:bg-white theme-light:border-gray-300"
+                    placeholder="Aida"
+                  />
+                </div>
+                <div>
+                  <label className="text-xs text-cyan-300/60 mb-2 block theme-light:text-gray-600">Apellido *</label>
+                  <Input
+                    value={formData.last_name}
+                    onChange={(e) => setFormData({...formData, last_name: e.target.value})}
+                    className="bg-slate-900/60 border-cyan-500/20 text-white h-12 rounded-xl theme-light:bg-white theme-light:border-gray-300"
+                    placeholder="Torres"
+                  />
+                </div>
+              </div>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-               <div className="sm:col-span-1">
-                 <label className="text-xs text-cyan-300/60 mb-2 block theme-light:text-gray-600">Código *</label>
-                 <div className="relative">
-                   <Input
-                     value={formData.employee_code}
-                     onChange={(e) => setFormData({...formData, employee_code: e.target.value.toUpperCase()})}
-                     className="bg-slate-900/60 border-cyan-500/20 text-white h-10 rounded-lg font-mono text-sm pr-20 theme-light:bg-white theme-light:border-gray-300"
-                     placeholder="EMP01"
-                     readOnly
-                   />
-                   <Button
-                     type="button"
-                     size="sm"
-                     onClick={() => setFormData({...formData, employee_code: `EMP${String(Math.floor(Math.random() * 9000) + 1000)}`})}
-                     className="absolute right-1 top-1/2 -translate-y-1/2 h-8 bg-cyan-600/20 hover:bg-cyan-600/40 text-cyan-300 text-xs px-2"
-                   >
-                     <Zap className="w-3 h-3" />
-                   </Button>
-                 </div>
-               </div>
-               <div className="sm:col-span-2">
-                 <label className="text-xs text-cyan-300/60 mb-2 block theme-light:text-gray-600">Teléfono</label>
-                 <Input
-                   value={formData.phone}
-                   onChange={(e) => setFormData({...formData, phone: e.target.value})}
-                   className="bg-slate-900/60 border-cyan-500/20 text-white h-10 rounded-lg theme-light:bg-white theme-light:border-gray-300"
-                   placeholder="(787) 123-4567"
-                 />
-               </div>
-             </div>
-
-            <div>
-              <label className="text-xs text-cyan-300/60 mb-2 block theme-light:text-gray-600">Email</label>
-              <Input
-                type="email"
-                value={formData.email}
-                onChange={(e) => setFormData({...formData, email: e.target.value})}
-                className="bg-slate-900/60 border-cyan-500/20 text-white h-12 rounded-xl theme-light:bg-white theme-light:border-gray-300"
-                placeholder="usuario@smartfix.com"
-              />
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label className="text-xs text-cyan-300/60 mb-2 block theme-light:text-gray-600">Teléfono</label>
+                <Input
+                  value={formData.phone}
+                  onChange={(e) => setFormData({...formData, phone: e.target.value})}
+                  className="bg-slate-900/60 border-cyan-500/20 text-white h-10 rounded-lg theme-light:bg-white theme-light:border-gray-300"
+                  placeholder="(787) 123-4567"
+                />
+              </div>
+              <div>
+                <label className="text-xs text-cyan-300/60 mb-2 block theme-light:text-gray-600">Email *</label>
+                <Input
+                  type="email"
+                  value={formData.email}
+                  onChange={(e) => setFormData({...formData, email: e.target.value})}
+                  className="bg-slate-900/60 border-cyan-500/20 text-white h-10 rounded-lg theme-light:bg-white theme-light:border-gray-300"
+                  placeholder="usuario@smartfix.com"
+                />
+              </div>
             </div>
+
           </div>
 
           {/* Rol */}
@@ -174,15 +172,12 @@ export default function CreateUserModal({ onClose, onCreate, roles }) {
             <h3 className="text-lg font-bold text-cyan-400 theme-light:text-gray-900">Seguridad</h3>
             
             <div>
-              <label className="text-xs text-cyan-300/60 mb-2 block theme-light:text-gray-600">PIN de Acceso * (4 dígitos)</label>
+              <label className="text-xs text-cyan-300/60 mb-2 block theme-light:text-gray-600">PIN temporal generado</label>
               <div className="relative">
                 <Input
                   type={showPin ? "text" : "password"}
-                  value={formData.pin}
-                  onChange={(e) => {
-                    const val = e.target.value.replace(/\D/g, '').slice(0, 4);
-                    setFormData({...formData, pin: val});
-                  }}
+                  value={formData.generated_pin}
+                  readOnly
                   className="bg-slate-900/60 border-cyan-500/20 text-white h-12 rounded-xl font-mono text-xl pr-12 theme-light:bg-white theme-light:border-gray-300"
                   placeholder="1234"
                   maxLength={4}
@@ -194,6 +189,20 @@ export default function CreateUserModal({ onClose, onCreate, roles }) {
                 >
                   {showPin ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                 </button>
+              </div>
+              <div className="mt-2 flex items-center justify-between gap-3">
+                <p className="text-xs text-cyan-300/60 theme-light:text-gray-600">
+                  Se enviará invitación por email. El empleado podrá cambiar este PIN al activar su cuenta.
+                </p>
+                <Button
+                  type="button"
+                  size="sm"
+                  onClick={() => setFormData({...formData, generated_pin: generatePin(), employee_code: generateEmployeeCode()})}
+                  className="bg-cyan-600/20 hover:bg-cyan-600/40 text-cyan-300 text-xs px-2"
+                >
+                  <Zap className="w-3 h-3 mr-1" />
+                  Regenerar
+                </Button>
               </div>
             </div>
 
@@ -230,12 +239,12 @@ export default function CreateUserModal({ onClose, onCreate, roles }) {
               {saving ? (
                 <>
                   <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin mr-2" />
-                  Creando...
+                  Enviando...
                 </>
               ) : (
                 <>
                   <Check className="w-5 h-5 mr-2" />
-                  Crear Usuario
+                  Enviar invitación
                 </>
               )}
             </Button>
