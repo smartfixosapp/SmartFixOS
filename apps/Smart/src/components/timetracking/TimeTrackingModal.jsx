@@ -1183,12 +1183,6 @@ export default function TimeTrackingModal({ open, onClose, session }) {
     return employeeSummaries.reduce((sum, emp) => sum + emp.projectedPay, 0);
   }, [employeeSummaries]);
 
-  const recentEntryRows = useMemo(() => {
-    return [...entries]
-      .sort((a, b) => new Date(b.clock_in || 0).getTime() - new Date(a.clock_in || 0).getTime())
-      .slice(0, 18);
-  }, [entries]);
-
   const setToday = () => {
     const d = new Date();
     setFrom(startOfDay(d));
@@ -1635,82 +1629,6 @@ export default function TimeTrackingModal({ open, onClose, session }) {
                   Selecciona un empleado para ver detalle.
                 </div>
               )}
-            </div>
-          </div>
-
-          <div className="rounded-[24px] border border-white/8 bg-white/[0.03] p-4 sm:p-5">
-            <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
-              <div>
-                <h4 className="text-lg font-bold text-white">Jornadas del Rango</h4>
-                <p className="text-sm text-slate-400">Historial limpio de entrada, salida, duración y costo calculado.</p>
-              </div>
-              <div className="text-sm text-slate-500">{recentEntryRows.length} registros visibles</div>
-            </div>
-
-            <div className="mt-5 overflow-x-auto">
-              <table className="w-full min-w-[820px] text-sm">
-                <thead className="text-left text-[11px] uppercase tracking-[0.18em] text-slate-500">
-                  <tr>
-                    <th className="pb-3 pr-4">Empleado</th>
-                    <th className="pb-3 pr-4">Entrada</th>
-                    <th className="pb-3 pr-4">Salida</th>
-                    <th className="pb-3 pr-4">Duración</th>
-                    <th className="pb-3 pr-4">Estado</th>
-                    <th className="pb-3 pr-4 text-right">Costo</th>
-                    {canEditPunch && <th className="pb-3 text-right">Acción</th>}
-                  </tr>
-                </thead>
-                <tbody>
-                  {recentEntryRows.map((entry) => {
-                    const employee = employees.find((emp) => String(emp.id) === String(entry.employee_id));
-                    const rate = Number(employee?.hourly_rate || 0);
-                    const millis = getWorkedMillis(entry);
-                    const cost = (millis / 3600000) * rate;
-                    const isOpen = !entry.clock_out;
-
-                    return (
-                      <tr key={entry.id} className="border-t border-white/6 text-slate-200">
-                        <td className="py-3 pr-4 font-semibold text-white">{entry.employee_name || employee?.full_name || "Empleado"}</td>
-                        <td className="py-3 pr-4">{entry.clock_in ? fmt(entry.clock_in) : "--"}</td>
-                        <td className="py-3 pr-4">{entry.clock_out ? fmt(entry.clock_out) : "--"}</td>
-                        <td className="py-3 pr-4 font-semibold text-fuchsia-300">{formatHM(millis)}</td>
-                        <td className="py-3 pr-4">
-                          <span className={`inline-flex rounded-full border px-2.5 py-1 text-[11px] font-bold uppercase tracking-[0.18em] ${
-                            isOpen
-                              ? "border-emerald-400/30 bg-emerald-500/10 text-emerald-300"
-                              : "border-slate-400/20 bg-slate-500/10 text-slate-300"
-                          }`}>
-                            {isOpen ? "Abierto" : "Cerrado"}
-                          </span>
-                        </td>
-                        <td className="py-3 pr-4 text-right font-bold text-amber-300">{rate > 0 ? `$${cost.toFixed(2)}` : "--"}</td>
-                        {canEditPunch && (
-                          <td className="py-3 text-right">
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              onClick={() => {
-                                setEditRow(entry);
-                                setEditOpen(true);
-                              }}
-                              className="border-white/10 bg-white/[0.03] text-white hover:bg-white/[0.06]"
-                            >
-                              Editar
-                            </Button>
-                          </td>
-                        )}
-                      </tr>
-                    );
-                  })}
-                  {!recentEntryRows.length && (
-                    <tr>
-                      <td colSpan={canEditPunch ? 7 : 6} className="py-10 text-center text-slate-500">
-                        No hay jornadas en el rango seleccionado.
-                      </td>
-                    </tr>
-                  )}
-                </tbody>
-              </table>
             </div>
           </div>
 
