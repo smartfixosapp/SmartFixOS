@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Badge } from "@/components/ui/badge";
-import { ShoppingCart, Package, Link as LinkIcon, ExternalLink } from "lucide-react";
+import { ShoppingCart, Package, Link as LinkIcon, ExternalLink, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import AddItemModal from "@/components/workorder/AddItemModal";
 import WorkOrderUnifiedHub from "@/components/workorder/WorkOrderUnifiedHub";
