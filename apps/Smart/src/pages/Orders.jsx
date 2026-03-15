@@ -14,7 +14,7 @@ import {
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
-import { ORDER_STATUSES, getStatusConfig, normalizeStatusId } from "@/components/utils/statusRegistry";
+import { ORDER_STATUSES, getEffectiveOrderStatus, getStatusConfig, normalizeStatusId } from "@/components/utils/statusRegistry";
 import WorkOrderPanel from "../components/workorder/WorkOrderPanel";
 import WorkOrderPanelErrorBoundary from "../components/workorder/WorkOrderPanelErrorBoundary";
 import WorkOrderWizard from "../components/workorder/WorkOrderWizard";
@@ -29,7 +29,7 @@ import CountdownBadge from "@/components/orders/CountdownBadge";
 import RechargesPanel from "@/components/recharges/RechargesPanel";
 import UnlocksPanel from "@/components/unlocks/UnlocksPanel";
 import EditDeviceModal from "@/components/orders/EditDeviceModal";
-import { getLocalOrders, mergeOrders, upsertLocalOrder } from "@/components/utils/localOrderCache";
+import { getLocalOrders, getUnsyncedLocalOrders, mergeOrders, upsertLocalOrder } from "@/components/utils/localOrderCache";
 
 const DEVICE_ICONS = {
   phone: Smartphone,
@@ -88,7 +88,25 @@ function showGlobalGateToast(message) {
 }
 
 async function fetchTenantOrders() {
-  const tenantId = localStorage.getItem("smartfix_tenant_id") || null;
+  let tenantId = null;
+  try {
+    const rawSession =
+      localStorage.getItem("employee_session") ||
+      sessionStorage.getItem("911-session");
+    if (rawSession) {
+      const session = JSON.parse(rawSession);
+      tenantId = session?.tenant_id || null;
+    }
+  } catch {
+    tenantId = null;
+  }
+
+  tenantId =
+    tenantId ||
+    localStorage.getItem("smartfix_tenant_id") ||
+    localStorage.getItem("current_tenant_id") ||
+    null;
+
   let query = supabase
     .from("order")
     .select("*")
@@ -112,7 +130,8 @@ const OrderCard = React.memo(function OrderCard({ order, onClick, onEditDevice }
   
   const deviceType = resolveDeviceType(order);
   const DeviceIcon = DEVICE_ICONS[deviceType] || Box;
-  const statusConfig = getStatusConfig(order.status || "intake");
+  const effectiveStatus = getEffectiveOrderStatus(order);
+  const statusConfig = getStatusConfig(effectiveStatus);
   const isB2B = order.company_id || order.company_name;
 
   const deviceInfo = [
@@ -151,7 +170,7 @@ const OrderCard = React.memo(function OrderCard({ order, onClick, onEditDevice }
       <div className="absolute inset-0 bg-gradient-to-br from-white/10 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
 
       {/* Badge de Garantía */}
-       {(order.status === "warranty" || (order.status === "ready_for_pickup" && order.warranty_countdown?.days_remaining > 0)) && (
+       {(effectiveStatus === "warranty" || (effectiveStatus === "ready_for_pickup" && order.warranty_countdown?.days_remaining > 0)) && (
          <div className="absolute top-3 right-3 z-20 bg-gradient-to-r from-amber-500 to-orange-500 px-3 py-1.5 rounded-full flex items-center gap-1.5 shadow-lg">
            <Shield className="w-4 h-4 text-white" />
            <span className="text-xs font-bold text-white">Garantía</span>
@@ -395,8 +414,7 @@ export default function OrdersPage() {
       remoteFailed = true;
       console.error("Error cargando órdenes:", error);
     } finally {
-      const localOrders = getLocalOrders();
-      const merged = mergeOrders(remoteOrders, localOrders);
+      const merged = mergeOrders(remoteOrders, getUnsyncedLocalOrders(remoteOrders));
       setOrders(merged);
       if (remoteFailed) {
         if (!ordersErrorToastShownRef.current) {
@@ -442,14 +460,14 @@ export default function OrdersPage() {
     if (selectedStatus === "active") {
       // Mostrar todo lo no cerrado como "activo" para no ocultar estados válidos
       const closedStatuses = ["picked_up", "completed", "cancelled", "delivered"];
-      result = result.filter((o) => !closedStatuses.includes(normalizeStatusId(o.status)));
+      result = result.filter((o) => !closedStatuses.includes(getEffectiveOrderStatus(o)));
     } else if (selectedStatus === "closed") {
       // Nuevo filtro "Cerrados" (sin warranty)
       const closedStatuses = ["picked_up", "completed", "cancelled", "delivered"];
-      result = result.filter((o) => closedStatuses.includes(normalizeStatusId(o.status)));
+      result = result.filter((o) => closedStatuses.includes(getEffectiveOrderStatus(o)));
     } else if (selectedStatus) {
       // Filtro por estado específico
-      result = result.filter((o) => normalizeStatusId(o.status) === selectedStatus);
+      result = result.filter((o) => getEffectiveOrderStatus(o) === selectedStatus);
     }
 
     // Filtrar por búsqueda
@@ -492,13 +510,13 @@ export default function OrdersPage() {
       remoteOrders = [];
     }
 
-    const merged = mergeOrders(remoteOrders, getLocalOrders());
+    const merged = mergeOrders(remoteOrders, getUnsyncedLocalOrders(remoteOrders));
     const blockers = (merged || []).filter((ord) => {
       if (!ord || String(ord.id || "") === String(targetOrder.id || "")) return false;
       const seq = extractOrderSequence(ord.order_number);
       if (seq <= 0 || seq >= currentSeq) return false;
-      const st = normalizeStatusId(ord.status || "intake");
-      return blockingStatuses.has(st);
+        const st = getEffectiveOrderStatus(ord);
+        return blockingStatuses.has(st);
     });
 
     if (blockers.length > 0) {
@@ -519,24 +537,24 @@ export default function OrdersPage() {
     const counts = {};
     ORDER_STATUSES.filter((s) => s.isActive).forEach((s) => {
       counts[s.id] = orders.filter((o) =>
-      !o.deleted && normalizeStatusId(o.status) === s.id
+      !o.deleted && getEffectiveOrderStatus(o) === s.id
       ).length;
     });
 
     // Contar cerrados (sin warranty)
     const closedStatuses = ["picked_up", "completed", "cancelled", "delivered"];
     counts["closed"] = orders.filter((o) =>
-    !o.deleted && closedStatuses.includes(normalizeStatusId(o.status))
+    !o.deleted && closedStatuses.includes(getEffectiveOrderStatus(o))
     ).length;
 
     // Contar garantías
     counts["warranty"] = orders.filter((o) =>
-    !o.deleted && normalizeStatusId(o.status) === "warranty"
+    !o.deleted && getEffectiveOrderStatus(o) === "warranty"
     ).length;
 
     // Contar activos (Todos - incluye warranty)
     counts["active"] = orders.filter((o) =>
-    !o.deleted && !closedStatuses.includes(normalizeStatusId(o.status))
+    !o.deleted && !closedStatuses.includes(getEffectiveOrderStatus(o))
     ).length;
 
     return counts;

@@ -1,3 +1,5 @@
+import { getEffectiveOrderStatus } from "@/components/utils/statusRegistry";
+
 const LOCAL_ORDERS_KEY = "smartfix_local_orders";
 const LOCAL_ORDER_SEQ_KEY = "smartfix_local_seq_order";
 const LOCAL_ORDER_REBASE_ONCE_KEY = "smartfix_local_orders_rebased_v1";
@@ -24,6 +26,26 @@ function safeParseArray(value) {
     return Array.isArray(parsed) ? parsed : [];
   } catch {
     return [];
+  }
+}
+
+function getActiveTenantId() {
+  try {
+    const rawSession =
+      localStorage.getItem("employee_session") ||
+      sessionStorage.getItem("911-session");
+    if (rawSession) {
+      const session = JSON.parse(rawSession);
+      if (session?.tenant_id) return String(session.tenant_id);
+    }
+
+    return (
+      localStorage.getItem("smartfix_tenant_id") ||
+      localStorage.getItem("current_tenant_id") ||
+      null
+    );
+  } catch {
+    return localStorage.getItem("smartfix_tenant_id") || localStorage.getItem("current_tenant_id") || null;
   }
 }
 
@@ -119,6 +141,7 @@ function nextLocalOrderNumber(existingOrders = []) {
 function normalizeOrder(order) {
   if (!order || typeof order !== "object") return null;
   const existing = migrateLocalOrderStore();
+  const activeTenantId = getActiveTenantId();
   const derivedId =
     order.id ||
     (order.order_number ? `local-order-${String(order.order_number)}` : null) ||
@@ -128,8 +151,9 @@ function normalizeOrder(order) {
   return {
     ...order,
     id: derivedId,
+    tenant_id: order.tenant_id || activeTenantId || null,
     created_date: order.created_date || new Date().toISOString(),
-    status: order.status || "pending",
+    status: getEffectiveOrderStatus(order),
     customer_name: order.customer_name || order.customer?.name || "Cliente",
     order_number: canonical || fallbackNumber || order.order_number || null,
   };
@@ -146,7 +170,7 @@ function normalizeStatus(status) {
 }
 
 function getStatusPriority(order) {
-  return STATUS_PRIORITY[normalizeStatus(order?.status)] || 0;
+  return STATUS_PRIORITY[normalizeStatus(getEffectiveOrderStatus(order))] || 0;
 }
 
 function getDataCompleteness(order) {
@@ -204,16 +228,43 @@ function preferOrderVersion(currentOrder, candidateOrder) {
 
 export function getLocalOrders() {
   try {
+    const activeTenantId = getActiveTenantId();
     return migrateLocalOrderStore()
       .map(normalizeOrder)
+      .filter((order) => {
+        if (!order) return false;
+        if (!activeTenantId) return !order.tenant_id;
+        return String(order.tenant_id || "") === String(activeTenantId);
+      })
       .filter(Boolean);
   } catch {
     return [];
   }
 }
 
+export function getUnsyncedLocalOrders(remoteOrders = []) {
+  const remoteList = Array.isArray(remoteOrders) ? remoteOrders.map(normalizeOrder).filter(Boolean) : [];
+  const remoteIds = new Set(remoteList.map((order) => String(order?.id || "")));
+  const remoteNumbers = new Set(
+    remoteList
+      .map((order) => toCanonicalOrderNumber(order))
+      .filter(Boolean)
+      .map((value) => String(value))
+  );
+
+  return getLocalOrders().filter((order) => {
+    const orderId = String(order?.id || "");
+    const orderNumber = toCanonicalOrderNumber(order);
+    return !remoteIds.has(orderId) && !(orderNumber && remoteNumbers.has(String(orderNumber)));
+  });
+}
+
 export function upsertLocalOrder(order) {
-  const incoming = order || {};
+  const activeTenantId = getActiveTenantId();
+  const incoming = {
+    ...(order || {}),
+    tenant_id: order?.tenant_id || activeTenantId || null,
+  };
   const current = getLocalOrders();
   const canonicalIncomingNumber = canonicalOrderNumber(incoming.order_number) || incoming.order_number;
   const existing = current.find((o) =>
