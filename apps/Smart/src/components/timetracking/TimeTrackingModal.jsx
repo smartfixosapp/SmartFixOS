@@ -1248,7 +1248,7 @@ export default function TimeTrackingModal({ open, onClose, session }) {
       // ✅ 2. Registrar como gasto (expense) en transacciones
       await base44.entities.Transaction.create({
         type: "expense",
-        amount: paymentAmount,
+        amount: -Math.abs(paymentAmount),
         category: "payroll",
         description: `Pago de nómina - ${selectedEmployeeForPayment.name} (${type}) [${paymentMethod}]`,
         payment_method: paymentMethod,

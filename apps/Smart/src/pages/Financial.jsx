@@ -115,6 +115,8 @@ const serializeFixedExpenseNotes = (notesText, fixedAmount) => {
   return cleanNotes;
 };
 
+const getExpenseMagnitude = (amount) => Math.abs(Number(amount || 0));
+
 const LOCAL_FIXED_EXPENSES_KEY = "smartfix_local_fixed_expenses";
 
 const readLocalFixedExpenses = () => {
@@ -286,7 +288,7 @@ export default function Financial() {
           const closeInTime = Number.isFinite(movementDate) && Number.isFinite(txDate) && Math.abs(movementDate - txDate) <= 2 * 60 * 1000;
           return (
             closeInTime &&
-            Number(tx.amount || 0) === Number(movementExpense.amount || 0) &&
+            getExpenseMagnitude(tx.amount) === getExpenseMagnitude(movementExpense.amount) &&
             normalizeText(tx.description) === normalizeText(movementExpense.description)
           );
         });
@@ -406,7 +408,7 @@ export default function Financial() {
   });
 
   const totalRevenue = revenueTransactions.reduce((sum, t) => sum + (t.amount || 0), 0);
-  const totalExpenses = filteredExpenses.reduce((sum, e) => sum + (e.amount || 0), 0);
+  const totalExpenses = filteredExpenses.reduce((sum, e) => sum + getExpenseMagnitude(e.amount), 0);
   const netProfit = totalRevenue - totalExpenses;
 
   const todayStart = startOfDay(new Date());
@@ -426,7 +428,7 @@ export default function Financial() {
       if (!entryDate) return false;
       return isWithinInterval(new Date(entryDate), { start: todayStart, end: todayEnd });
     } catch { return false; }
-  }).reduce((sum, e) => sum + (e.amount || 0), 0);
+  }).reduce((sum, e) => sum + getExpenseMagnitude(e.amount), 0);
 
   const todayNetProfit = todayRevenue - todayExpenses;
 
@@ -1159,7 +1161,7 @@ export default function Financial() {
                             </p>
                           </div>
                           <div className="flex items-center gap-2">
-                            <p className="text-red-400 font-bold text-lg sm:text-xl theme-light:text-red-600 whitespace-nowrap">${(e.amount || 0).toFixed(2)}</p>
+                            <p className="text-red-400 font-bold text-lg sm:text-xl theme-light:text-red-600 whitespace-nowrap">-${getExpenseMagnitude(e.amount).toFixed(2)}</p>
                             {e._source === "transaction" ? (
                               <>
                                 <Button
