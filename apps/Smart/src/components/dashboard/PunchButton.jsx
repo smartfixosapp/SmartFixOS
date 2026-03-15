@@ -88,6 +88,16 @@ function getLocalTimeHHMM() {
   return `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
 }
 
+function formatTime12h(timeStr) {
+  if (!timeStr || !timeStr.includes(":")) return timeStr || "--:--";
+  const [rawHour, rawMinute] = timeStr.split(":").map(Number);
+  const hour = Number.isFinite(rawHour) ? rawHour : 0;
+  const minute = Number.isFinite(rawMinute) ? rawMinute : 0;
+  const period = hour >= 12 ? "PM" : "AM";
+  const normalizedHour = hour % 12 || 12;
+  return `${normalizedHour}:${String(minute).padStart(2, "0")} ${period}`;
+}
+
 function timeHHMMtoISO(timeStr) {
   if (!timeStr) return new Date().toISOString();
   const [hh, mm] = timeStr.split(':').map(Number);
@@ -318,7 +328,7 @@ export default function PunchButton({ userId, userName, onPunchStatusChange }) {
               Hora registrada
             </label>
             <div className="w-full h-12 px-4 rounded-xl bg-black/20 border border-white/10 text-white text-lg font-bold flex items-center justify-center select-none">
-              {pendingTime}
+              {formatTime12h(pendingTime)}
             </div>
           </div>
 

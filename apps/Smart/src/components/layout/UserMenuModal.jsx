@@ -126,6 +126,18 @@ const normalizeTimeEntryList = (payload) => {
   return single ? [single] : [];
 };
 
+function formatPunchDateTime(value) {
+  if (!value) return "--";
+  return new Date(value).toLocaleString("es-PR", {
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+    hour12: true
+  });
+}
+
 export default function UserMenuModal({ open, onClose, user }) {
   const navigate = useNavigate();
   const [punchStatus, setPunchStatus] = useState(null);
@@ -637,14 +649,7 @@ export default function UserMenuModal({ open, onClose, user }) {
             
             {punchStatus && (
               <p className="text-xs text-gray-400 mb-3 theme-light:text-gray-600">
-                Entrada: {new Date(punchStatus.clock_in).toLocaleString("es-PR", {
-                  year: "numeric",
-                  month: "short",
-                  day: "numeric",
-                  hour: "2-digit",
-                  minute: "2-digit",
-                  hour12: false
-                })}
+                Entrada: {formatPunchDateTime(punchStatus.clock_in)}
               </p>
             )}
 
