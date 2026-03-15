@@ -1,6 +1,24 @@
 import { createClientFromRequest } from '../../../../lib/unified-custom-sdk-supabase.js';
 import Stripe from 'npm:stripe@14.19.0';
 
+const PLAN_MAP = {
+  smartfixos: { max_users: 1, monthly_cost: 55, label: 'Basic' },
+  basic: { max_users: 1, monthly_cost: 55, label: 'Basic' },
+  pro: { max_users: 3, monthly_cost: 85, label: 'Pro' },
+  enterprise: { max_users: 999, monthly_cost: 0, label: 'Enterprise' },
+};
+
+function normalizePlan(plan) {
+  const normalized = String(plan || '').trim().toLowerCase();
+  if (normalized === 'basic') return 'smartfixos';
+  return normalized;
+}
+
+async function getLatestSubscription(base44, tenantId) {
+  const rows = await base44.asServiceRole.entities.Subscription.filter({ tenant_id: tenantId }, '-created_date', 10);
+  return (rows || [])[0] || null;
+}
+
 /**
  * Gestión de tenants por Super Admin.
  * Acciones: suspend | reactivate | delete
@@ -36,13 +54,14 @@ export async function manageTenantHandler(req) {
       return Response.json({ success: false, error: 'Acceso denegado' }, { status: 403 });
     }
 
-    const { tenantId, action, reason, plan } = await req.json();
+    const payload = await req.json();
+    const { tenantId, action, reason, plan } = payload;
 
     if (!tenantId || !action) {
       return Response.json({ success: false, error: 'tenantId y action son requeridos' }, { status: 400 });
     }
 
-    if (!['suspend', 'reactivate', 'delete', 'extend_trial', 'set_plan'].includes(action)) {
+    if (!['suspend', 'reactivate', 'delete', 'extend_trial', 'set_plan', 'edit', 'reset_password'].includes(action)) {
       return Response.json({ success: false, error: 'Acción inválida' }, { status: 400 });
     }
 
@@ -134,18 +153,147 @@ export async function manageTenantHandler(req) {
     // SET_PLAN — cambia plan y límite de usuarios
     // ─────────────────────────────────────────────
     if (action === 'set_plan') {
-      const planMap = { basic: { max_users: 1, monthly_cost: 55 }, pro: { max_users: 3, monthly_cost: 85 }, enterprise: { max_users: 999, monthly_cost: 0 } };
-      const planData = planMap[plan];
+      const normalizedPlan = normalizePlan(plan);
+      const planData = PLAN_MAP[normalizedPlan];
       if (!planData) return Response.json({ success: false, error: 'Plan inválido. Usa: basic, pro, enterprise' }, { status: 400 });
 
+      const trialEndDate = tenant.trial_end_date || null;
       await base44.asServiceRole.entities.Tenant.update(tenantId, {
-        plan,
+        plan: normalizedPlan,
         monthly_cost: planData.monthly_cost,
-        metadata: { ...(tenant.metadata || {}), max_users: planData.max_users, plan_updated_at: new Date().toISOString(), plan_updated_by: user.email }
+        subscription_status: 'active',
+        metadata: {
+          ...(tenant.metadata || {}),
+          max_users: planData.max_users,
+          plan_updated_at: new Date().toISOString(),
+          plan_updated_by: user.email
+        }
       });
 
-      console.log(`📋 Plan "${plan}" asignado a tenant ${tenantId}`);
-      return Response.json({ success: true, message: `Plan "${plan}" asignado a "${tenant.name}" (máx ${planData.max_users} usuarios)` });
+      const currentSubscription = await getLatestSubscription(base44, tenantId);
+      const subscriptionPayload = {
+        tenant_id: tenantId,
+        tenant_name: tenant.name || '',
+        plan: normalizedPlan,
+        status: 'active',
+        amount: planData.monthly_cost,
+        payment_method: currentSubscription?.payment_method || 'manual',
+        trial_end_date: trialEndDate,
+        metadata: {
+          ...(currentSubscription?.metadata || {}),
+          max_users: planData.max_users,
+          updated_from_super_admin: true,
+          updated_by: user.email,
+        }
+      };
+
+      if (currentSubscription?.id) {
+        await base44.asServiceRole.entities.Subscription.update(currentSubscription.id, subscriptionPayload);
+      } else {
+        await base44.asServiceRole.entities.Subscription.create(subscriptionPayload);
+      }
+
+      console.log(`📋 Plan "${normalizedPlan}" asignado a tenant ${tenantId}`);
+      return Response.json({ success: true, message: `Plan "${planData.label}" asignado a "${tenant.name}" (máx ${planData.max_users} usuarios)` });
+    }
+
+    // ─────────────────────────────────────────────
+    // EDIT — actualiza datos operativos de la tienda
+    // ─────────────────────────────────────────────
+    if (action === 'edit') {
+      const nextPlan = normalizePlan(payload.plan || tenant.plan);
+      const selectedPlan = PLAN_MAP[nextPlan] || PLAN_MAP.smartfixos;
+      const nextMaxUsers = Number(payload.max_users || tenant?.metadata?.max_users || selectedPlan.max_users) || selectedPlan.max_users;
+      const nextMonthlyCost = Number(payload.monthly_cost ?? tenant.monthly_cost ?? selectedPlan.monthly_cost);
+      const nextTrialEndDate = payload.trial_end_date || tenant.trial_end_date || null;
+
+      const tenantUpdate = {
+        name: payload.name?.trim() || tenant.name,
+        email: payload.email?.trim() || tenant.email,
+        admin_name: payload.admin_name?.trim() || tenant.admin_name || '',
+        admin_phone: payload.admin_phone?.trim() || tenant.admin_phone || '',
+        country: payload.country?.trim() || tenant.country || '',
+        currency: payload.currency?.trim() || tenant.currency || 'USD',
+        timezone: payload.timezone?.trim() || tenant.timezone || 'America/Puerto_Rico',
+        address: payload.address?.trim() || tenant.address || '',
+        plan: nextPlan,
+        status: payload.status || tenant.status || 'active',
+        subscription_status: payload.subscription_status || tenant.subscription_status || 'active',
+        monthly_cost: Number.isFinite(nextMonthlyCost) ? nextMonthlyCost : tenant.monthly_cost,
+        trial_end_date: nextTrialEndDate,
+        metadata: {
+          ...(tenant.metadata || {}),
+          max_users: nextMaxUsers,
+          edited_at: new Date().toISOString(),
+          edited_by: user.email,
+        }
+      };
+
+      await base44.asServiceRole.entities.Tenant.update(tenantId, tenantUpdate);
+
+      const currentSubscription = await getLatestSubscription(base44, tenantId);
+      const subscriptionPayload = {
+        tenant_id: tenantId,
+        tenant_name: tenantUpdate.name,
+        plan: nextPlan,
+        status: tenantUpdate.subscription_status,
+        amount: tenantUpdate.monthly_cost,
+        payment_method: currentSubscription?.payment_method || tenant.payment_method || 'manual',
+        trial_end_date: nextTrialEndDate,
+        next_billing_date: payload.next_billing_date || currentSubscription?.next_billing_date || tenant.next_billing_date || null,
+        metadata: {
+          ...(currentSubscription?.metadata || {}),
+          max_users: nextMaxUsers,
+          edited_from_super_admin: true,
+          edited_by: user.email,
+        }
+      };
+
+      if (currentSubscription?.id) {
+        await base44.asServiceRole.entities.Subscription.update(currentSubscription.id, subscriptionPayload);
+      } else {
+        await base44.asServiceRole.entities.Subscription.create(subscriptionPayload);
+      }
+
+      return Response.json({ success: true, message: `Tienda "${tenantUpdate.name}" actualizada` });
+    }
+
+    // ─────────────────────────────────────────────
+    // RESET_PASSWORD — envía email de recuperación
+    // ─────────────────────────────────────────────
+    if (action === 'reset_password') {
+      const email = String(payload.email || tenant.email || '').trim().toLowerCase();
+      if (!email) {
+        return Response.json({ success: false, error: 'No hay email para resetear contraseña' }, { status: 400 });
+      }
+
+      const SUPABASE_URL = Deno.env.get('VITE_SUPABASE_URL') || Deno.env.get('SUPABASE_URL');
+      const SUPABASE_ANON_KEY = Deno.env.get('VITE_SUPABASE_ANON_KEY') || Deno.env.get('SUPABASE_ANON_KEY');
+      const APP_URL = Deno.env.get('VITE_APP_URL') || 'https://smart-fix-os-smart.vercel.app';
+
+      if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
+        return Response.json({ success: false, error: 'Faltan variables de Supabase para enviar reset' }, { status: 500 });
+      }
+
+      const response = await fetch(`${SUPABASE_URL}/auth/v1/recover`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          apikey: SUPABASE_ANON_KEY,
+        },
+        body: JSON.stringify({
+          email,
+          gotrue_meta_security: {},
+          redirect_to: `${APP_URL}/PinAccess`,
+        }),
+      });
+
+      if (!response.ok) {
+        const text = await response.text();
+        return Response.json({ success: false, error: text || 'No se pudo enviar reset' }, { status: 500 });
+      }
+
+      return Response.json({ success: true, message: `Reset enviado a ${email}` });
     }
 
     // ─────────────────────────────────────────────

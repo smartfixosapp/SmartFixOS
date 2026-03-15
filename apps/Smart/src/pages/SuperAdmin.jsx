@@ -14,16 +14,94 @@ import {
 
 const SUPER_SESSION_KEY = "smartfix_saas_session";
 const SUPER_ADMIN_EMAIL  = "smartfixosapp@gmail.com";
+const PLAN_OPTIONS = [
+  { key: "smartfixos", label: "Basic", sub: "1 usuario · $55/mo", maxUsers: 1, monthlyCost: 55, color: "from-slate-500 to-slate-600" },
+  { key: "pro", label: "Pro", sub: "3 usuarios · $85/mo", maxUsers: 3, monthlyCost: 85, color: "from-blue-500 to-indigo-600" },
+  { key: "enterprise", label: "Enterprise", sub: "Ilimitado · Consultoría", maxUsers: 999, monthlyCost: 0, color: "from-purple-500 to-pink-600" },
+];
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
+function normalizePlan(plan) {
+  const normalized = String(plan || "").trim().toLowerCase();
+  if (normalized === "basic") return "smartfixos";
+  return normalized;
+}
+
+function getPlanConfig(plan) {
+  const normalized = normalizePlan(plan);
+  return PLAN_OPTIONS.find((option) => option.key === normalized) || PLAN_OPTIONS[0];
+}
+
+function getTenantMaxUsers(tenant) {
+  const metadataLimit = Number(tenant?.metadata?.max_users || tenant?.effective_max_users || 0) || 0;
+  const planLimit = getPlanConfig(tenant?.effective_plan || tenant?.plan).maxUsers || 0;
+  return Math.max(metadataLimit, planLimit);
+}
+
+function getUserIdentityKeys(user) {
+  const keys = [];
+  if (user?.id) keys.push(`id:${String(user.id).toLowerCase()}`);
+  if (user?.auth_id) keys.push(`auth:${String(user.auth_id).toLowerCase()}`);
+  if (user?.email) keys.push(`email:${String(user.email).trim().toLowerCase()}`);
+  if (user?.employee_code) keys.push(`code:${String(user.employee_code).trim().toLowerCase()}`);
+  return keys;
+}
+
+function isSystemUserLike(candidate) {
+  const fullName = String(candidate?.full_name || "").trim().toLowerCase();
+  const role = String(candidate?.role || candidate?.position || "").trim().toLowerCase();
+  const email = String(candidate?.email || "").trim().toLowerCase();
+
+  if (email === SUPER_ADMIN_EMAIL) return true;
+  if (role === "super_admin" || role === "saas_owner" || role === "superadmin") return true;
+  if (fullName.includes("smartfixos") || fullName.includes("super admin")) return true;
+  return false;
+}
+
+function mergeTenantUsers(userRows = [], employeeRows = []) {
+  const merged = [];
+  const keyToIndex = new Map();
+
+  for (const candidate of [...userRows, ...employeeRows]) {
+    if (!candidate || candidate.active === false || isSystemUserLike(candidate)) continue;
+
+    const keys = getUserIdentityKeys(candidate);
+    const existingIndex = keys.map((key) => keyToIndex.get(key)).find((idx) => Number.isInteger(idx));
+
+    if (Number.isInteger(existingIndex)) {
+      merged[existingIndex] = {
+        ...candidate,
+        ...merged[existingIndex],
+        entity_source: merged[existingIndex]?.entity_source || candidate.entity_source,
+        auth_id: merged[existingIndex]?.auth_id || candidate.auth_id,
+        pin: merged[existingIndex]?.pin || candidate.pin,
+        phone: merged[existingIndex]?.phone || candidate.phone,
+        employee_code: merged[existingIndex]?.employee_code || candidate.employee_code,
+        hourly_rate: merged[existingIndex]?.hourly_rate ?? candidate.hourly_rate,
+      };
+      getUserIdentityKeys(merged[existingIndex]).forEach((key) => keyToIndex.set(key, existingIndex));
+      continue;
+    }
+
+    const nextIndex = merged.length;
+    merged.push(candidate);
+    keys.forEach((key) => keyToIndex.set(key, nextIndex));
+  }
+
+  return merged.sort((a, b) =>
+    String(a?.full_name || a?.email || "").localeCompare(String(b?.full_name || b?.email || ""), "es")
+  );
+}
+
 function getStatusBadge(tenant) {
-  const sub = tenant.subscription_status;
+  const sub = tenant.effective_subscription_status || tenant.subscription_status;
+  const trialDate = tenant.effective_trial_end_date || tenant.trial_end_date;
   if (tenant.status === "suspended")
     return { label: "Suspendida", cls: "bg-red-500/20 text-red-300 border-red-500/30" };
   if (tenant.status === "cancelled")
     return { label: "Cancelada",  cls: "bg-gray-500/20 text-gray-400 border-gray-500/30" };
-  const trialLeft = tenant.trial_end_date
-    ? Math.ceil((new Date(tenant.trial_end_date) - new Date()) / 86400000)
+  const trialLeft = trialDate
+    ? Math.ceil((new Date(trialDate) - new Date()) / 86400000)
     : null;
   if (trialLeft !== null && trialLeft > 0)
     return { label: `Trial (${trialLeft}d)`, cls: "bg-yellow-500/20 text-yellow-300 border-yellow-500/30" };
@@ -48,7 +126,22 @@ export default function SuperAdmin() {
   const [tenantUsersLoading, setTenantUsersLoading] = useState({}); // { [tenantId]: bool }
   const [confirmDelete,      setConfirmDelete]      = useState(null); // tenantId to confirm delete
   const [editTenant,         setEditTenant]         = useState(null); // { id, name, email } being edited
-  const [editForm,           setEditForm]           = useState({ name: "", email: "" });
+  const [editForm,           setEditForm]           = useState({
+    name: "",
+    email: "",
+    admin_name: "",
+    admin_phone: "",
+    country: "",
+    currency: "USD",
+    timezone: "America/Puerto_Rico",
+    address: "",
+    plan: "smartfixos",
+    status: "active",
+    subscription_status: "active",
+    trial_end_date: "",
+    monthly_cost: 55,
+    max_users: 1,
+  });
 
   // ── Auth guard ─────────────────────────────────────────────────────────────
   useEffect(() => {
@@ -68,8 +161,37 @@ export default function SuperAdmin() {
   const loadTenants = async () => {
     setLoading(true);
     try {
-      const data = await appClient.entities.Tenant.list("-created_date", 500);
-      setTenants(data || []);
+      const [tenantRows, subscriptionRows] = await Promise.all([
+        appClient.entities.Tenant.list("-created_date", 500),
+        supabase
+          .from("subscription")
+          .select("id, tenant_id, plan, status, amount, trial_end_date, next_billing_date, created_at")
+          .order("created_at", { ascending: false }),
+      ]);
+
+      const subscriptionsByTenant = new Map();
+      for (const row of subscriptionRows?.data || []) {
+        if (!row?.tenant_id || subscriptionsByTenant.has(row.tenant_id)) continue;
+        subscriptionsByTenant.set(row.tenant_id, row);
+      }
+
+      const normalizedTenants = (tenantRows || []).map((tenant) => {
+        const latestSubscription = subscriptionsByTenant.get(tenant.id) || null;
+        const effectivePlan = normalizePlan(latestSubscription?.plan || tenant.plan);
+        const planConfig = getPlanConfig(effectivePlan);
+        const metadataLimit = Number(tenant?.metadata?.max_users || 0) || 0;
+        return {
+          ...tenant,
+          latest_subscription: latestSubscription,
+          effective_plan: effectivePlan,
+          effective_subscription_status: latestSubscription?.status || tenant.subscription_status,
+          effective_monthly_cost: Number(latestSubscription?.amount ?? tenant.monthly_cost ?? planConfig.monthlyCost) || planConfig.monthlyCost,
+          effective_trial_end_date: latestSubscription?.trial_end_date || tenant.trial_end_date || null,
+          effective_max_users: Math.max(metadataLimit, planConfig.maxUsers || 0),
+        };
+      });
+
+      setTenants(normalizedTenants);
     } catch (e) {
       toast.error("Error cargando tiendas: " + e.message);
     } finally {
@@ -82,20 +204,44 @@ export default function SuperAdmin() {
     if (tenantUsers[tenantId]) return; // already loaded
     setTenantUsersLoading(prev => ({ ...prev, [tenantId]: true }));
     try {
-      const { data, error } = await supabase
-        .from("app_employee")
-        .select("id, full_name, email, role, status, pin, position")
-        .eq("tenant_id", tenantId)
-        .order("full_name");
-      if (error) throw error;
-      setTenantUsers(prev => ({ ...prev, [tenantId]: data || [] }));
+      const tenantRecord = tenants.find((candidate) => candidate.id === tenantId);
+      const [{ data: userRows, error: usersError }, { data: employeeRows, error: employeesError }] = await Promise.all([
+        supabase
+          .from("users")
+          .select("id, auth_id, full_name, email, role, status, pin, position, phone, employee_code, hourly_rate, active")
+          .eq("tenant_id", tenantId)
+          .order("full_name"),
+        supabase
+          .from("app_employee")
+          .select("id, full_name, email, role, status, pin, position, phone, employee_code, hourly_rate, active")
+          .eq("tenant_id", tenantId)
+          .order("full_name"),
+      ]);
+
+      if (usersError) throw usersError;
+      if (employeesError) throw employeesError;
+
+      const ownerFallback = tenantRecord?.email ? [{
+        id: `tenant-owner:${tenantId}`,
+        full_name: tenantRecord.admin_name || tenantRecord.name || "Dueño",
+        email: tenantRecord.email,
+        role: "admin",
+        status: tenantRecord.status === "suspended" ? "inactive" : "active",
+        entity_source: "tenant_owner",
+      }] : [];
+
+      const mergedUsers = mergeTenantUsers(
+        [...(userRows || []).map((user) => ({ ...user, entity_source: "users" })), ...ownerFallback],
+        (employeeRows || []).map((employee) => ({ ...employee, entity_source: "app_employee" })),
+      );
+      setTenantUsers(prev => ({ ...prev, [tenantId]: mergedUsers }));
     } catch (e) {
       console.warn("loadTenantUsers error:", e.message);
       setTenantUsers(prev => ({ ...prev, [tenantId]: [] }));
     } finally {
       setTenantUsersLoading(prev => ({ ...prev, [tenantId]: false }));
     }
-  }, [tenantUsers]);
+  }, [tenantUsers, tenants]);
 
   const toggleExpanded = useCallback((tenantId) => {
     const opening = expanded !== tenantId;
@@ -155,7 +301,22 @@ export default function SuperAdmin() {
   };
 
   const openEdit = (tenant) => {
-    setEditForm({ name: tenant.name || "", email: tenant.email || "" });
+    setEditForm({
+      name: tenant.name || "",
+      email: tenant.email || "",
+      admin_name: tenant.admin_name || "",
+      admin_phone: tenant.admin_phone || "",
+      country: tenant.country || "",
+      currency: tenant.currency || "USD",
+      timezone: tenant.timezone || "America/Puerto_Rico",
+      address: tenant.address || "",
+      plan: normalizePlan(tenant.effective_plan || tenant.plan || "smartfixos"),
+      status: tenant.status || "active",
+      subscription_status: tenant.effective_subscription_status || tenant.subscription_status || "active",
+      trial_end_date: tenant.effective_trial_end_date || tenant.trial_end_date || "",
+      monthly_cost: tenant.effective_monthly_cost ?? tenant.monthly_cost ?? getPlanConfig(tenant.effective_plan || tenant.plan).monthlyCost,
+      max_users: getTenantMaxUsers(tenant) || getPlanConfig(tenant.effective_plan || tenant.plan).maxUsers,
+    });
     setEditTenant(tenant);
   };
 
@@ -166,7 +327,7 @@ export default function SuperAdmin() {
       const res = await fetch('/api/manage-tenant', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ tenantId: editTenant.id, action: 'edit', name: editForm.name, email: editForm.email }),
+        body: JSON.stringify({ tenantId: editTenant.id, action: 'edit', ...editForm }),
       });
       const data = await res.json();
       if (data?.success) {
@@ -229,10 +390,10 @@ export default function SuperAdmin() {
   // ── Metrics ───────────────────────────────────────────────────────────────
   const metrics = React.useMemo(() => {
     const active    = tenants.filter(t => t.status === "active");
-    const onTrial   = active.filter(t => t.trial_end_date && new Date(t.trial_end_date) > new Date());
-    const paying    = active.filter(t => t.subscription_status === "active");
+    const onTrial   = active.filter(t => (t.effective_trial_end_date || t.trial_end_date) && new Date(t.effective_trial_end_date || t.trial_end_date) > new Date());
+    const paying    = active.filter(t => (t.effective_subscription_status || t.subscription_status) === "active");
     const suspended = tenants.filter(t => t.status === "suspended" || t.status === "cancelled");
-    const overdue   = active.filter(t => t.trial_end_date && new Date(t.trial_end_date) < new Date() && t.subscription_status !== "active");
+    const overdue   = active.filter(t => (t.effective_trial_end_date || t.trial_end_date) && new Date(t.effective_trial_end_date || t.trial_end_date) < new Date() && (t.effective_subscription_status || t.subscription_status) !== "active");
     return {
       total:     tenants.length,
       active:    active.length,
@@ -240,7 +401,7 @@ export default function SuperAdmin() {
       paying:    paying.length,
       suspended: suspended.length,
       overdue:   overdue.length,
-      mrr:       paying.reduce((sum, t) => sum + (t.monthly_cost || 55), 0),
+      mrr:       paying.reduce((sum, t) => sum + (Number(t.effective_monthly_cost ?? t.monthly_cost) || 55), 0),
     };
   }, [tenants]);
 
@@ -271,7 +432,7 @@ export default function SuperAdmin() {
               initial={{ scale: 0.95, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.95, opacity: 0 }}
-              className="bg-[#111] border border-white/10 rounded-2xl p-6 w-full max-w-md shadow-2xl space-y-5"
+              className="bg-[#111] border border-white/10 rounded-2xl p-6 w-full max-w-3xl shadow-2xl space-y-5"
             >
               <div className="flex items-center justify-between">
                 <h2 className="text-lg font-bold text-white flex items-center gap-2">
@@ -282,7 +443,7 @@ export default function SuperAdmin() {
                 </button>
               </div>
 
-              <div className="space-y-3">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                 <div>
                   <label className="block text-xs text-gray-400 mb-1 font-semibold">Nombre del negocio</label>
                   <input
@@ -301,6 +462,148 @@ export default function SuperAdmin() {
                     className="w-full bg-white/[0.05] border border-white/10 text-white text-sm rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500/40"
                     placeholder="email@ejemplo.com"
                   />
+                </div>
+                <div>
+                  <label className="block text-xs text-gray-400 mb-1 font-semibold">Nombre del contacto</label>
+                  <input
+                    value={editForm.admin_name}
+                    onChange={e => setEditForm(f => ({ ...f, admin_name: e.target.value }))}
+                    className="w-full bg-white/[0.05] border border-white/10 text-white text-sm rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500/40"
+                    placeholder="Dueño o encargado"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs text-gray-400 mb-1 font-semibold">Teléfono del contacto</label>
+                  <input
+                    value={editForm.admin_phone}
+                    onChange={e => setEditForm(f => ({ ...f, admin_phone: e.target.value }))}
+                    className="w-full bg-white/[0.05] border border-white/10 text-white text-sm rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500/40"
+                    placeholder="7875551234"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs text-gray-400 mb-1 font-semibold">País</label>
+                  <input
+                    value={editForm.country}
+                    onChange={e => setEditForm(f => ({ ...f, country: e.target.value }))}
+                    className="w-full bg-white/[0.05] border border-white/10 text-white text-sm rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500/40"
+                    placeholder="Puerto Rico"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs text-gray-400 mb-1 font-semibold">Moneda</label>
+                  <select
+                    value={editForm.currency}
+                    onChange={e => setEditForm(f => ({ ...f, currency: e.target.value }))}
+                    className="w-full bg-white/[0.05] border border-white/10 text-white text-sm rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500/40"
+                  >
+                    {["USD", "EUR", "MXN", "COP", "ARS", "BRL"].map((currency) => (
+                      <option key={currency} value={currency} className="bg-[#111]">{currency}</option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-xs text-gray-400 mb-1 font-semibold">Zona horaria</label>
+                  <input
+                    value={editForm.timezone}
+                    onChange={e => setEditForm(f => ({ ...f, timezone: e.target.value }))}
+                    className="w-full bg-white/[0.05] border border-white/10 text-white text-sm rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500/40"
+                    placeholder="America/Puerto_Rico"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs text-gray-400 mb-1 font-semibold">Dirección</label>
+                  <input
+                    value={editForm.address}
+                    onChange={e => setEditForm(f => ({ ...f, address: e.target.value }))}
+                    className="w-full bg-white/[0.05] border border-white/10 text-white text-sm rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500/40"
+                    placeholder="Dirección del negocio"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs text-gray-400 mb-1 font-semibold">Plan</label>
+                  <select
+                    value={editForm.plan}
+                    onChange={e => {
+                      const config = getPlanConfig(e.target.value);
+                      setEditForm(f => ({
+                        ...f,
+                        plan: e.target.value,
+                        max_users: config.maxUsers,
+                        monthly_cost: config.monthlyCost,
+                      }));
+                    }}
+                    className="w-full bg-white/[0.05] border border-white/10 text-white text-sm rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500/40"
+                  >
+                    {PLAN_OPTIONS.map((plan) => (
+                      <option key={plan.key} value={plan.key} className="bg-[#111]">{plan.label}</option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-xs text-gray-400 mb-1 font-semibold">Estado tienda</label>
+                  <select
+                    value={editForm.status}
+                    onChange={e => setEditForm(f => ({ ...f, status: e.target.value }))}
+                    className="w-full bg-white/[0.05] border border-white/10 text-white text-sm rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500/40"
+                  >
+                    {["pending", "active", "suspended", "cancelled"].map((status) => (
+                      <option key={status} value={status} className="bg-[#111]">{status}</option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-xs text-gray-400 mb-1 font-semibold">Estado suscripción</label>
+                  <select
+                    value={editForm.subscription_status}
+                    onChange={e => setEditForm(f => ({ ...f, subscription_status: e.target.value }))}
+                    className="w-full bg-white/[0.05] border border-white/10 text-white text-sm rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500/40"
+                  >
+                    {["active", "past_due", "cancelled", "paused"].map((status) => (
+                      <option key={status} value={status} className="bg-[#111]">{status}</option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-xs text-gray-400 mb-1 font-semibold">Trial hasta</label>
+                  <input
+                    value={editForm.trial_end_date ? String(editForm.trial_end_date).slice(0, 10) : ""}
+                    onChange={e => setEditForm(f => ({ ...f, trial_end_date: e.target.value }))}
+                    type="date"
+                    className="w-full bg-white/[0.05] border border-white/10 text-white text-sm rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500/40"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs text-gray-400 mb-1 font-semibold">Costo mensual</label>
+                  <input
+                    value={editForm.monthly_cost}
+                    onChange={e => setEditForm(f => ({ ...f, monthly_cost: Number(e.target.value || 0) }))}
+                    type="number"
+                    min="0"
+                    step="1"
+                    className="w-full bg-white/[0.05] border border-white/10 text-white text-sm rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500/40"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs text-gray-400 mb-1 font-semibold">Límite de usuarios</label>
+                  <input
+                    value={editForm.max_users}
+                    onChange={e => setEditForm(f => ({ ...f, max_users: Number(e.target.value || 0) }))}
+                    type="number"
+                    min="1"
+                    step="1"
+                    className="w-full bg-white/[0.05] border border-white/10 text-white text-sm rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500/40"
+                  />
+                </div>
+              </div>
+
+              <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-4 text-sm text-gray-300">
+                <p className="font-semibold text-white mb-2">Opciones recomendadas por tienda</p>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-xs text-gray-400">
+                  <p>1. Contacto del dueño y teléfono para soporte y facturación.</p>
+                  <p>2. Plan, costo y límite de usuarios para que el acceso respete la suscripción real.</p>
+                  <p>3. País, moneda y zona horaria para que reportes, cobros y fechas salgan correctos.</p>
+                  <p>4. Trial, estado y plantillas de email para onboarding y operación de cada tienda.</p>
                 </div>
               </div>
 
@@ -535,8 +838,9 @@ export default function SuperAdmin() {
                               <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
                                 {[
                                   { label: "Slug",       value: tenant.slug || "—" },
-                                  { label: "Plan",       value: tenant.plan || "—" },
-                                  { label: "Trial hasta",value: tenant.trial_end_date ? new Date(tenant.trial_end_date).toLocaleDateString("es") : "—" },
+                                  { label: "Plan",       value: getPlanConfig(tenant.effective_plan || tenant.plan).label },
+                                  { label: "Límite",     value: `${getTenantMaxUsers(tenant) || 0} usuario${getTenantMaxUsers(tenant) === 1 ? "" : "s"}` },
+                                  { label: "Trial hasta",value: (tenant.effective_trial_end_date || tenant.trial_end_date) ? new Date(tenant.effective_trial_end_date || tenant.trial_end_date).toLocaleDateString("es") : "—" },
                                   { label: "ID",         value: tenant.id?.slice(0, 8) + "…" },
                                 ].map(d => (
                                   <div key={d.label} className="bg-black/30 rounded-xl p-3">
@@ -584,10 +888,10 @@ export default function SuperAdmin() {
                                 <button
                                   onClick={() => doSeedTemplates(tenant.id)}
                                   disabled={!!busy}
-                                  title="Sembrar plantillas de email por defecto"
+                                  title="Crear las plantillas base de email para esta tienda"
                                   className="flex items-center gap-1.5 text-xs px-3 py-2 rounded-xl bg-teal-500/10 border border-teal-500/30 text-teal-300 hover:bg-teal-500/20 transition-all disabled:opacity-50"
                                 >
-                                  <Mail className="w-3.5 h-3.5" /> Plantillas
+                                  <Mail className="w-3.5 h-3.5" /> Sembrar plantillas
                                 </button>
 
                                 {/* Delete */}
@@ -607,11 +911,9 @@ export default function SuperAdmin() {
                                 <p className="text-[11px] text-gray-500 font-semibold uppercase tracking-widest mb-2">Cambiar Plan</p>
                                 <div className="flex flex-wrap gap-2">
                                   {[
-                                    { key: "basic",      label: "Basic",      sub: "1 usuario · $55/mo",    color: "from-slate-500 to-slate-600"  },
-                                    { key: "pro",        label: "Pro",        sub: "3 usuarios · $85/mo",   color: "from-blue-500 to-indigo-600"   },
-                                    { key: "enterprise", label: "Enterprise", sub: "Ilimitado · Consultoría", color: "from-purple-500 to-pink-600"   },
+                                    ...PLAN_OPTIONS,
                                   ].map(p => {
-                                    const isCurrent = tenant.plan === p.key;
+                                    const isCurrent = normalizePlan(tenant.effective_plan || tenant.plan) === p.key;
                                     return (
                                       <button
                                         key={p.key}
@@ -637,6 +939,11 @@ export default function SuperAdmin() {
                               <div>
                                 <p className="text-[11px] text-gray-500 font-semibold uppercase tracking-widest mb-2 flex items-center gap-1.5">
                                   <Users className="w-3.5 h-3.5" /> Usuarios de esta tienda
+                                  {Array.isArray(tenantUsers[tenant.id]) && (
+                                    <span className="text-[10px] text-gray-600 normal-case tracking-normal">
+                                      ({tenantUsers[tenant.id].length}/{getTenantMaxUsers(tenant) || "∞"})
+                                    </span>
+                                  )}
                                   <button
                                     onClick={() => {
                                       setTenantUsers(prev => { const n = { ...prev }; delete n[tenant.id]; return n; });
@@ -684,7 +991,10 @@ export default function SuperAdmin() {
                                             {emp.role || "user"}
                                           </span>
                                           {/* Status dot */}
-                                          <div className={`w-2 h-2 rounded-full flex-shrink-0 ${isActive ? "bg-green-400" : "bg-gray-600"}`} title={emp.status} />
+                                          <div className="flex items-center gap-2 flex-shrink-0">
+                                            <span className="text-[11px] text-gray-500 capitalize">{emp.status || "active"}</span>
+                                            <div className={`w-2 h-2 rounded-full ${isActive ? "bg-green-400" : "bg-gray-600"}`} title={emp.status} />
+                                          </div>
                                         </div>
                                       );
                                     })}
