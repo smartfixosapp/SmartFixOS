@@ -1530,7 +1530,7 @@ export default function TimeTrackingModal({ open, onClose, session }) {
                       {focusedEmployee.isPaid ? (
                         <span className="rounded-full border border-emerald-400/25 bg-emerald-500/10 px-3 py-2 text-xs font-bold uppercase tracking-[0.18em] text-emerald-300">Pagado</span>
                       ) : (
-                        <span className="rounded-full border border-amber-400/25 bg-amber-500/10 px-3 py-2 text-xs font-bold uppercase tracking-[0.18em] text-amber-300">Pendiente</span>
+                        <span className="rounded-full border border-amber-400/25 bg-amber-500/10 px-3 py-2 text-xs font-bold uppercase tracking-[0.18em] text-amber-300">Por pagar</span>
                       )}
                       {focusedEmployee.activeEntry && (
                         <span className="rounded-full border border-emerald-400/25 bg-emerald-500/10 px-3 py-2 text-xs font-bold uppercase tracking-[0.18em] text-emerald-300">En turno</span>
