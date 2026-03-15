@@ -30,6 +30,7 @@ import ManageCategoriesDialog from "../components/inventory/ManageCategoriesDial
 import InventoryReports from "../components/inventory/InventoryReports";
 import { catalogCache } from "@/components/utils/dataCache";
 import { loadSuppliersSafe } from "@/components/utils/suppliers";
+import { supabase } from "../../../../lib/supabase-client.js";
 
 const RECENT_CREATED_PRODUCTS_KEY = "smartfix_recent_created_products";
 
@@ -61,6 +62,45 @@ function dedupeById(list = []) {
     out.push(item);
   }
   return out;
+}
+
+function mapPartTypeToProductCategory(partType) {
+  switch (partType) {
+    case "pantalla":
+      return "screen";
+    case "bateria":
+      return "battery";
+    case "cargador":
+      return "charger";
+    case "cable":
+      return "cable";
+    case "cover":
+    case "funda":
+      return "case";
+    case "diagnostic":
+    case "diagnostico":
+      return "diagnostic";
+    default:
+      return "other";
+  }
+}
+
+function normalizeProductPayload(payload) {
+  const isService =
+    payload?.tipo_principal === "servicios" ||
+    payload?.part_type === "servicio" ||
+    payload?.part_type === "diagnostic" ||
+    payload?.category === "diagnostic";
+
+  return {
+    ...payload,
+    type: isService ? "service" : "product",
+    category: mapPartTypeToProductCategory(payload?.part_type),
+    tipo_principal: payload?.tipo_principal === "servicios" ? "dispositivos" : (payload?.tipo_principal || "dispositivos"),
+    subcategoria: payload?.subcategoria === "servicio" ? "piezas_servicios" : (payload?.subcategoria || "piezas_servicios"),
+    supplier_id: payload?.supplier_id || "",
+    supplier_name: payload?.supplier_name || "",
+  };
 }
 
 
@@ -991,11 +1031,22 @@ export default function Inventory() {
 
   const handleSaveItem = async (payload, savedCategory, savedPartType) => {
     try {
+      const normalizedPayload = normalizeProductPayload(payload);
       const oldStock = payload.id ? items.find((i) => i.id === payload.id)?.stock : null;
 
       if (payload.id) {
-        console.log("✏️ Actualizando pieza:", payload.id, payload);
-        await dataClient.entities.Product.update(payload.id, payload);
+        console.log("✏️ Actualizando pieza:", payload.id, normalizedPayload);
+        try {
+          await dataClient.entities.Product.update(payload.id, normalizedPayload);
+        } catch (primaryError) {
+          console.warn("[Inventory] Product.update failed, trying direct supabase fallback:", primaryError);
+          const { error } = await supabase
+            .from("product")
+            .update(normalizedPayload)
+            .eq("id", payload.id);
+
+          if (error) throw error;
+        }
 
         const newStock = Number(payload.stock || 0);
         const minStock = Number(payload.min_stock || 5);
@@ -1029,10 +1080,23 @@ export default function Inventory() {
         // Recargar inventario
         await loadInventory();
       } else {
-        console.log("➕ Creando nueva pieza:", payload);
-        const created = await dataClient.entities.Product.create(payload);
+        console.log("➕ Creando nueva pieza:", normalizedPayload);
+        let created = null;
+        try {
+          created = await dataClient.entities.Product.create(normalizedPayload);
+        } catch (primaryError) {
+          console.warn("[Inventory] Product.create failed, trying direct supabase fallback:", primaryError);
+          const { data, error } = await supabase
+            .from("product")
+            .insert(normalizedPayload)
+            .select("*")
+            .single();
+
+          if (error) throw error;
+          created = data;
+        }
         const newItem = created && created.id ? created : {
-          ...payload,
+          ...normalizedPayload,
           id: `local-product-${Date.now()}`,
           created_date: new Date().toISOString(),
           updated_date: new Date().toISOString(),
@@ -1050,11 +1114,11 @@ export default function Inventory() {
 
         // Cambiar a la categoría principal correcta para que sí se vea el item recién creado.
         const nextMainCategory =
-          payload.tipo_principal === "accesorios"
+          normalizedPayload.tipo_principal === "accesorios"
             ? "accesorios"
-            : payload.tipo_principal === "servicios" || savedPartType === "servicio"
+            : normalizedPayload.type === "service" || savedPartType === "servicio"
               ? "servicios"
-              : payload.subcategoria === "dispositivo_completo"
+              : normalizedPayload.subcategoria === "dispositivo_completo"
                 ? "dispositivos"
                 : "piezas";
         setMainCategory(nextMainCategory);
@@ -1090,9 +1154,9 @@ export default function Inventory() {
         const posProducts = catalogCache.get("pos-active-products") || [];
         const posServices = catalogCache.get("pos-active-services") || [];
         const isServiceLike =
-          payload.tipo_principal === "servicios" ||
+          normalizedPayload.type === "service" ||
           savedPartType === "servicio" ||
-          payload.part_type === "servicio";
+          normalizedPayload.part_type === "servicio";
         if (isServiceLike) {
           catalogCache.set(
             "pos-active-services",
@@ -1115,7 +1179,7 @@ export default function Inventory() {
       toast.success(payload.id ? "✅ Actualizado" : "✅ Pieza creada");
     } catch (err) {
       console.error("❌ Error:", err);
-      toast.error("No se pudo guardar");
+      toast.error(err?.message || "No se pudo guardar");
     }
   };
 
