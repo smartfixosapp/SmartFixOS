@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import appClient from "@/api/appClient";
 import { dataClient } from "@/components/api/dataClient";
+import { supabase } from "../../../../../lib/supabase-client.js";
 import {
   Dialog,
   DialogContent,
@@ -109,6 +110,16 @@ function calculateWorkedHours(clockInISO, clockOutISO) {
   const end = clockOutISO ? new Date(clockOutISO).getTime() : Date.now();
   const millis = Math.max(0, end - start);
   return Math.round((millis / 3600000) * 100) / 100;
+}
+
+function getTenantIdFromSession() {
+  try {
+    const raw = localStorage.getItem("employee_session") || sessionStorage.getItem("911-session");
+    const parsed = raw ? JSON.parse(raw) : null;
+    return parsed?.tenant_id || parsed?.user?.tenant_id || localStorage.getItem("smartfix_tenant_id") || null;
+  } catch {
+    return localStorage.getItem("smartfix_tenant_id") || null;
+  }
 }
 
 const normalizeTimeEntry = (payload) => {
@@ -421,10 +432,14 @@ export default function UserMenuModal({ open, onClose, user }) {
           closeLocalEntry(punchStatus.id);
         } else {
           const clockOutTime = new Date().toISOString();
-          await dataClient.entities.TimeEntry.update(punchStatus.id, {
-            clock_out: clockOutTime,
-            total_hours: calculateWorkedHours(punchStatus.clock_in, clockOutTime)
-          });
+          const { error } = await supabase
+            .from("time_entry")
+            .update({
+              clock_out: clockOutTime,
+              total_hours: calculateWorkedHours(punchStatus.clock_in, clockOutTime)
+            })
+            .eq("id", punchStatus.id);
+          if (error) throw error;
         }
         sessionStorage.removeItem("timeEntryId");
         setPunchStatus(null);
@@ -433,17 +448,23 @@ export default function UserMenuModal({ open, onClose, user }) {
         const payload = {
           employee_id: uid,
           employee_name: uname || "Empleado",
-          clock_in: new Date().toISOString()
+          clock_in: new Date().toISOString(),
+          tenant_id: getTenantIdFromSession()
         };
         let newEntry;
         try {
-          const createdPayload = await dataClient.entities.TimeEntry.create(payload);
-          newEntry = normalizeTimeEntry(createdPayload);
+          const { data, error } = await supabase
+            .from("time_entry")
+            .insert(payload)
+            .select("*")
+            .single();
+          if (error) throw error;
+          newEntry = normalizeTimeEntry(data);
           if (!newEntry?.id) throw new Error("TIMEENTRY_CREATE_INVALID_RESPONSE");
         } catch (error) {
-          console.warn("UserMenu punch create fallback local:", error);
-          newEntry = createLocalEntry(payload);
-          alert("Ponche guardado localmente");
+          console.error("UserMenu punch create remote failed:", error);
+          alert("No se pudo guardar el ponche en la nube");
+          return;
         }
         sessionStorage.setItem("timeEntryId", String(newEntry?.id || ""));
         setPunchStatus(newEntry);
@@ -466,10 +487,14 @@ export default function UserMenuModal({ open, onClose, user }) {
           closeLocalEntry(punchStatus.id);
         } else {
           const clockOutTime = new Date().toISOString();
-          await dataClient.entities.TimeEntry.update(punchStatus.id, {
-            clock_out: clockOutTime,
-            total_hours: calculateWorkedHours(punchStatus.clock_in, clockOutTime)
-          });
+          const { error } = await supabase
+            .from("time_entry")
+            .update({
+              clock_out: clockOutTime,
+              total_hours: calculateWorkedHours(punchStatus.clock_in, clockOutTime)
+            })
+            .eq("id", punchStatus.id);
+          if (error) throw error;
         }
         sessionStorage.removeItem("timeEntryId");
       } catch (error) {

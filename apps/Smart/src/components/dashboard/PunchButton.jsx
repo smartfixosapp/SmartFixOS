@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import appClient from "@/api/appClient";
 import { dataClient } from "@/components/api/dataClient";
+import { supabase } from "../../../../../lib/supabase-client.js";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Clock, LogIn, LogOut } from "lucide-react";
@@ -113,6 +114,16 @@ function calculateWorkedHours(clockInISO, clockOutISO) {
   return Math.round((millis / 3600000) * 100) / 100;
 }
 
+function getTenantIdFromSession() {
+  try {
+    const raw = localStorage.getItem("employee_session") || sessionStorage.getItem("911-session");
+    const parsed = raw ? JSON.parse(raw) : null;
+    return parsed?.tenant_id || parsed?.user?.tenant_id || localStorage.getItem("smartfix_tenant_id") || null;
+  } catch {
+    return localStorage.getItem("smartfix_tenant_id") || null;
+  }
+}
+
 export default function PunchButton({ userId, userName, onPunchStatusChange }) {
   const [punchStatus, setPunchStatus] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -216,10 +227,14 @@ export default function PunchButton({ userId, userName, onPunchStatusChange }) {
         if (String(punchStatus.id || "").startsWith("local-time-")) {
           closeLocalEntry(punchStatus.id);
         } else {
-          await dataClient.entities.TimeEntry.update(punchStatus.id, {
-            clock_out: clockOutTime,
-            total_hours: calculateWorkedHours(punchStatus.clock_in, clockOutTime)
-          });
+          const { error } = await supabase
+            .from("time_entry")
+            .update({
+              clock_out: clockOutTime,
+              total_hours: calculateWorkedHours(punchStatus.clock_in, clockOutTime)
+            })
+            .eq("id", punchStatus.id);
+          if (error) throw error;
         }
         sessionStorage.removeItem("timeEntryId");
         setPunchStatus(null);
@@ -238,17 +253,23 @@ export default function PunchButton({ userId, userName, onPunchStatusChange }) {
         const payload = {
           employee_id: identity.id,
           employee_name: identity.name,
-          clock_in: clockInTime
+          clock_in: clockInTime,
+          tenant_id: getTenantIdFromSession()
         };
         let newEntry;
         try {
-          const createdPayload = await dataClient.entities.TimeEntry.create(payload);
-          newEntry = normalizeTimeEntry(createdPayload);
+          const { data, error } = await supabase
+            .from("time_entry")
+            .insert(payload)
+            .select("*")
+            .single();
+          if (error) throw error;
+          newEntry = normalizeTimeEntry(data);
           if (!newEntry?.id) throw new Error("TIMEENTRY_CREATE_INVALID_RESPONSE");
         } catch (error) {
-          console.warn("Punch create fallback local:", error);
-          newEntry = createLocalEntry(payload);
-          toast.info("Ponche guardado localmente");
+          console.error("Punch create remote failed:", error);
+          toast.error("No se pudo guardar el ponche en la nube");
+          return;
         }
         sessionStorage.setItem("timeEntryId", String(newEntry?.id || ""));
         setPunchStatus(newEntry);

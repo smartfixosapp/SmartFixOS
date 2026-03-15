@@ -910,8 +910,7 @@ export default function TimeTrackingModal({ open, onClose, session }) {
     try {
       const payload = await dataClient.entities.TimeEntry.filter({ clock_out: null }, "-clock_in", 50);
       const recentEntries = normalizeTimeEntryList(payload);
-      const localOpenEntries = readLocalTimeEntries().filter((e) => e && !e.clock_out);
-      const mergedOpenEntries = mergeTimeEntries(recentEntries, localOpenEntries);
+      const mergedOpenEntries = mergeTimeEntries(recentEntries, []);
       const now = Date.now();
       const active = mergedOpenEntries.filter((e) => {
         const clockIn = new Date(e.clock_in).getTime();
@@ -990,8 +989,7 @@ export default function TimeTrackingModal({ open, onClose, session }) {
     try {
       const remotePayload = await dataClient.entities.TimeEntry.filter({}, "-clock_in", 500);
       const remoteEntries = normalizeTimeEntryList(remotePayload);
-      const localEntries = readLocalTimeEntries().filter((entry) => !isSystemUserLike(entry));
-      const mergedEntries = mergeTimeEntries(remoteEntries, localEntries);
+      const mergedEntries = mergeTimeEntries(remoteEntries, []);
       const filteredByEmployee = selectedEmployee === "all"
         ? mergedEntries
         : mergedEntries.filter((t) => String(t?.employee_id || "") === String(selectedEmployee));
