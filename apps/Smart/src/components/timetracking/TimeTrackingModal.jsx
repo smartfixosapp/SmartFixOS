@@ -397,8 +397,8 @@ function PaymentModal({ open, onClose, employee, onConfirm }) {
 
   const paymentMethods = [
   { value: "cash", label: "💵 Efectivo", icon: "💵" },
-  { value: "transfer", label: "🏦 Depósito Directo", icon: "🏦" },
-  { value: "ath_movil", label: "📱 ATH Móvil", icon: "📱" },
+  { value: "transfer", label: "🏦 Dep\u00F3sito Directo", icon: "🏦" },
+  { value: "ath_movil", label: "📱 ATH M\u00F3vil", icon: "📱" },
   { value: "check", label: "📝 Cheque", icon: "📝" }];
 
 
@@ -1258,7 +1258,7 @@ export default function TimeTrackingModal({ open, onClose, session }) {
       const normalizedPaymentMethod =
         paymentMethod === "ath_movil" ? "transfer" : paymentMethod;
       const normalizedNotes = paymentMethod === "ath_movil"
-        ? [notes, "Método real: ATH Móvil"].filter(Boolean).join(" | ")
+        ? [notes, "M\u00E9todo real: ATH M\u00F3vil"].filter(Boolean).join(" | ")
         : notes;
 
       // ✅ 1. Crear registro de pago al empleado
