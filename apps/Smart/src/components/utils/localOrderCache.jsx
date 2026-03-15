@@ -199,12 +199,6 @@ function preferOrderVersion(currentOrder, candidateOrder) {
   if (!currentOrder) return candidateOrder;
   if (!candidateOrder) return currentOrder;
 
-  const currentStatusPriority = getStatusPriority(currentOrder);
-  const candidateStatusPriority = getStatusPriority(candidateOrder);
-  if (candidateStatusPriority !== currentStatusPriority) {
-    return candidateStatusPriority > currentStatusPriority ? candidateOrder : currentOrder;
-  }
-
   const currentUpdated = toTimestamp(currentOrder.updated_date);
   const candidateUpdated = toTimestamp(candidateOrder.updated_date);
   if (candidateUpdated !== currentUpdated) {
@@ -215,6 +209,12 @@ function preferOrderVersion(currentOrder, candidateOrder) {
   const candidateCreated = toTimestamp(candidateOrder.created_date);
   if (candidateCreated !== currentCreated) {
     return candidateCreated > currentCreated ? candidateOrder : currentOrder;
+  }
+
+  const currentStatusPriority = getStatusPriority(currentOrder);
+  const candidateStatusPriority = getStatusPriority(candidateOrder);
+  if (candidateStatusPriority !== currentStatusPriority) {
+    return candidateStatusPriority > currentStatusPriority ? candidateOrder : currentOrder;
   }
 
   const currentCompleteness = getDataCompleteness(currentOrder);

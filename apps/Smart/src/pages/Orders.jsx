@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useMemo, useCallback, useRef } from "react";
 import { dataClient } from "@/components/api/dataClient";
-import { supabase } from "../../../../lib/supabase-client.js";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -88,38 +87,8 @@ function showGlobalGateToast(message) {
 }
 
 async function fetchTenantOrders() {
-  let tenantId = null;
-  try {
-    const rawSession =
-      localStorage.getItem("employee_session") ||
-      sessionStorage.getItem("911-session");
-    if (rawSession) {
-      const session = JSON.parse(rawSession);
-      tenantId = session?.tenant_id || null;
-    }
-  } catch {
-    tenantId = null;
-  }
-
-  tenantId =
-    tenantId ||
-    localStorage.getItem("smartfix_tenant_id") ||
-    localStorage.getItem("current_tenant_id") ||
-    null;
-
-  let query = supabase
-    .from("order")
-    .select("*")
-    .order("created_date", { ascending: false })
-    .limit(600);
-
-  if (tenantId) {
-    query = query.eq("tenant_id", tenantId);
-  }
-
-  const { data, error } = await query;
-  if (error) throw error;
-  return Array.isArray(data) ? data : [];
+  const list = await dataClient.entities.Order.list("-created_date", 600);
+  return Array.isArray(list) ? list : [];
 }
 
 const OrderCard = React.memo(function OrderCard({ order, onClick, onEditDevice }) {
