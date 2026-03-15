@@ -55,6 +55,7 @@ export default function CreateUserModal({ onClose, onCreate, roles }) {
       customRole: formData.role, // Pasar el rol personalizado
       employee_code: formData.employee_code,
       pin: formData.pin,
+      hourly_rate: formData.hourly_rate,
       active: formData.active
     };
 

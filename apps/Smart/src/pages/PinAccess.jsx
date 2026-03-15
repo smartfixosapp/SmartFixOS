@@ -18,6 +18,11 @@ export default function PinAccess() {
   const SUPER_ADMIN_EMAIL   = "smartfixosapp@gmail.com";   // SaaS owner — va al panel de plataforma
   const SUPER_SESSION_KEY   = "smartfix_saas_session";
   const LOCAL_USERS_STORAGE_KEY = "smartfix_local_users";
+  const SYSTEM_USER_EMAILS = new Set([
+    "admin@smartfixos.com",
+    "911smartfix@gmail.com",
+    "smartfixosapp@gmail.com"
+  ]);
   const STORE_EMAIL_KEY = "smartfix_store_email";
   const BIOMETRIC_LOGIN_KEY = "smartfix_biometric_login";
   const DEFAULT_STORE_EMAIL = "911smartfix@gmail.com";
@@ -166,10 +171,42 @@ export default function PinAccess() {
     try {
       const raw = localStorage.getItem(LOCAL_USERS_STORAGE_KEY);
       const parsed = raw ? JSON.parse(raw) : [];
-      return Array.isArray(parsed) ? parsed : [];
+      if (!Array.isArray(parsed)) return [];
+
+      const effectiveTenantId =
+        tenantId ||
+        localStorage.getItem("smartfix_tenant_id") ||
+        localStorage.getItem("current_tenant_id");
+
+      return parsed.filter((user) => {
+        if (!user || user.active === false) return false;
+        if (!effectiveTenantId) return true;
+        return !user.tenant_id || String(user.tenant_id) === String(effectiveTenantId);
+      });
     } catch {
       return [];
     }
+  };
+
+  const isSystemUserLike = (candidate) => {
+    const fullName = String(candidate?.full_name || candidate?.name || "").trim().toLowerCase();
+    const role = String(candidate?.role || candidate?.position || "").trim().toLowerCase();
+    const email = String(candidate?.email || "").trim().toLowerCase();
+
+    if (SYSTEM_USER_EMAILS.has(email)) return true;
+    if (role === "super_admin" || role === "saas_owner" || role === "superadmin") return true;
+    if (fullName.includes("smartfixos")) return true;
+    if (fullName.includes("super admin")) return true;
+    return false;
+  };
+
+  const getUserIdentityKeys = (user) => {
+    const keys = [];
+    if (user?.id) keys.push(`id:${String(user.id).toLowerCase()}`);
+    if (user?.auth_id) keys.push(`auth:${String(user.auth_id).toLowerCase()}`);
+    if (user?.email) keys.push(`email:${String(user.email).trim().toLowerCase()}`);
+    if (user?.employee_code) keys.push(`code:${String(user.employee_code).trim().toLowerCase()}`);
+    return keys;
   };
 
   const normalizeRole = (user) => {
@@ -208,24 +245,31 @@ export default function PinAccess() {
       if (userError) throw userError;
       if (employeeError) throw employeeError;
 
-      const mergedRemote = [...(userRows || [])];
-      for (const employee of employeeRows || []) {
-        const existing = mergedRemote.find(
-          (user) => user.id === employee.id || String(user.email || "").toLowerCase() === String(employee.email || "").toLowerCase()
-        );
+      const mergedRemote = [];
+      const keyToIndex = new Map();
+      for (const candidate of [...(userRows || []), ...(employeeRows || [])]) {
+        if (!candidate || candidate.active === false || isSystemUserLike(candidate)) continue;
 
-        if (existing) {
-          Object.assign(existing, {
-            position: existing.position || employee.position,
-            employee_code: existing.employee_code || employee.employee_code,
-            pin: existing.pin || employee.pin,
-            permissions: existing.permissions || employee.permissions,
-            tenant_id: existing.tenant_id || employee.tenant_id,
-          });
+        const keys = getUserIdentityKeys(candidate);
+        const existingIndex = keys.map((key) => keyToIndex.get(key)).find((idx) => Number.isInteger(idx));
+
+        if (Number.isInteger(existingIndex)) {
+          mergedRemote[existingIndex] = {
+            ...candidate,
+            ...mergedRemote[existingIndex],
+            position: mergedRemote[existingIndex]?.position || candidate.position,
+            employee_code: mergedRemote[existingIndex]?.employee_code || candidate.employee_code,
+            pin: mergedRemote[existingIndex]?.pin || candidate.pin,
+            permissions: mergedRemote[existingIndex]?.permissions || candidate.permissions,
+            tenant_id: mergedRemote[existingIndex]?.tenant_id || candidate.tenant_id,
+          };
+          getUserIdentityKeys(mergedRemote[existingIndex]).forEach((key) => keyToIndex.set(key, existingIndex));
           continue;
         }
 
-        mergedRemote.push(employee);
+        const nextIndex = mergedRemote.length;
+        mergedRemote.push(candidate);
+        keys.forEach((key) => keyToIndex.set(key, nextIndex));
       }
 
       remoteUsers = mergedRemote;
@@ -233,10 +277,33 @@ export default function PinAccess() {
       console.warn("No se pudieron cargar usuarios remotos, usando respaldo local.", e);
     }
 
-    const localUsers = readLocalUsers().filter((u) => u.active !== false);
-    const mergedUsers = [...(remoteUsers || [])];
-    for (const localUser of localUsers) {
-      if (!mergedUsers.some((u) => u.id === localUser.id)) mergedUsers.push(localUser);
+    const localUsers = readLocalUsers().filter((u) => !isSystemUserLike(u));
+    const mergedUsers = [];
+    const keyToIndex = new Map();
+
+    for (const candidate of [...(remoteUsers || []), ...localUsers]) {
+      if (!candidate || candidate.active === false || isSystemUserLike(candidate)) continue;
+
+      const keys = getUserIdentityKeys(candidate);
+      const existingIndex = keys.map((key) => keyToIndex.get(key)).find((idx) => Number.isInteger(idx));
+
+      if (Number.isInteger(existingIndex)) {
+        mergedUsers[existingIndex] = {
+          ...candidate,
+          ...mergedUsers[existingIndex],
+          position: mergedUsers[existingIndex]?.position || candidate.position,
+          employee_code: mergedUsers[existingIndex]?.employee_code || candidate.employee_code,
+          pin: mergedUsers[existingIndex]?.pin || candidate.pin,
+          permissions: mergedUsers[existingIndex]?.permissions || candidate.permissions,
+          tenant_id: mergedUsers[existingIndex]?.tenant_id || candidate.tenant_id,
+        };
+        getUserIdentityKeys(mergedUsers[existingIndex]).forEach((key) => keyToIndex.set(key, existingIndex));
+        continue;
+      }
+
+      const nextIndex = mergedUsers.length;
+      mergedUsers.push(candidate);
+      keys.forEach((key) => keyToIndex.set(key, nextIndex));
     }
 
     return mergedUsers

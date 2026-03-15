@@ -44,16 +44,51 @@ const ADMIN_CORE_PANEL_BUTTONS = [
 ];
 
 const LOCAL_USERS_STORAGE_KEY = "smartfix_local_users";
+const SYSTEM_USER_EMAILS = new Set([
+  "admin@smartfixos.com",
+  "911smartfix@gmail.com",
+  "smartfixosapp@gmail.com"
+]);
 
 function getCurrentTenantId() {
-  return localStorage.getItem("smartfix_tenant_id") || null;
+  const fromStorage =
+    localStorage.getItem("smartfix_tenant_id") ||
+    localStorage.getItem("current_tenant_id");
+  if (fromStorage) return fromStorage;
+
+  const sessionCandidates = [
+    sessionStorage.getItem("911-session"),
+    localStorage.getItem("employee_session"),
+    localStorage.getItem("smartfix_session")
+  ];
+
+  for (const raw of sessionCandidates) {
+    try {
+      const parsed = raw ? JSON.parse(raw) : null;
+      const tenantId =
+        parsed?.tenant_id ||
+        parsed?.tenantId ||
+        parsed?.user?.tenant_id ||
+        parsed?.session?.tenant_id;
+      if (tenantId) return tenantId;
+    } catch {}
+  }
+
+  return null;
 }
 
 function readLocalUsers() {
   try {
     const raw = localStorage.getItem(LOCAL_USERS_STORAGE_KEY);
     const parsed = raw ? JSON.parse(raw) : [];
-    return Array.isArray(parsed) ? parsed : [];
+    if (!Array.isArray(parsed)) return [];
+
+    const tenantId = getCurrentTenantId();
+    return parsed.filter((user) => {
+      if (!user || user.active === false) return false;
+      if (!tenantId) return true;
+      return !user.tenant_id || String(user.tenant_id) === String(tenantId);
+    });
   } catch {
     return [];
   }
@@ -77,13 +112,59 @@ function isLikelyNetworkError(error) {
   );
 }
 
+function isSystemUserLike(candidate) {
+  const fullName = String(candidate?.full_name || candidate?.name || "").trim().toLowerCase();
+  const role = String(candidate?.role || candidate?.position || "").trim().toLowerCase();
+  const email = String(candidate?.email || "").trim().toLowerCase();
+
+  if (SYSTEM_USER_EMAILS.has(email)) return true;
+  if (role === "super_admin" || role === "saas_owner" || role === "superadmin") return true;
+  if (fullName.includes("smartfixos")) return true;
+  if (fullName.includes("super admin")) return true;
+  return false;
+}
+
+function getUserIdentityKeys(user) {
+  const keys = [];
+  if (user?.id) keys.push(`id:${String(user.id).toLowerCase()}`);
+  if (user?.auth_id) keys.push(`auth:${String(user.auth_id).toLowerCase()}`);
+  if (user?.email) keys.push(`email:${String(user.email).trim().toLowerCase()}`);
+  if (user?.employee_code) keys.push(`code:${String(user.employee_code).trim().toLowerCase()}`);
+  return keys;
+}
+
 function mergeUsers(remoteUsers = [], localUsers = []) {
-  const byId = new Map();
-  for (const user of remoteUsers || []) byId.set(user.id, user);
-  for (const user of localUsers || []) {
-    if (!byId.has(user.id)) byId.set(user.id, user);
+  const merged = [];
+  const keyToIndex = new Map();
+
+  for (const candidate of [...(remoteUsers || []), ...(localUsers || [])]) {
+    if (!candidate || candidate.active === false || isSystemUserLike(candidate)) continue;
+
+    const keys = getUserIdentityKeys(candidate);
+    const existingIndex = keys.map((key) => keyToIndex.get(key)).find((idx) => Number.isInteger(idx));
+
+    if (Number.isInteger(existingIndex)) {
+      merged[existingIndex] = {
+        ...candidate,
+        ...merged[existingIndex],
+        position: merged[existingIndex]?.position || candidate.position,
+        employee_code: merged[existingIndex]?.employee_code || candidate.employee_code,
+        pin: merged[existingIndex]?.pin || candidate.pin,
+        phone: merged[existingIndex]?.phone || candidate.phone,
+        hourly_rate: merged[existingIndex]?.hourly_rate ?? candidate.hourly_rate,
+        permissions: merged[existingIndex]?.permissions || candidate.permissions,
+        tenant_id: merged[existingIndex]?.tenant_id || candidate.tenant_id,
+      };
+      getUserIdentityKeys(merged[existingIndex]).forEach((key) => keyToIndex.set(key, existingIndex));
+      continue;
+    }
+
+    const nextIndex = merged.length;
+    merged.push(candidate);
+    keys.forEach((key) => keyToIndex.set(key, nextIndex));
   }
-  return Array.from(byId.values());
+
+  return merged;
 }
 
 async function fetchTenantUsers() {
@@ -91,13 +172,13 @@ async function fetchTenantUsers() {
 
   let usersQuery = supabase
     .from("users")
-    .select("id, email, full_name, role, position, employee_code, pin, phone, active, permissions, tenant_id, created_at, updated_at")
+    .select("id, email, full_name, role, position, employee_code, pin, phone, hourly_rate, active, permissions, tenant_id, auth_id, created_at, updated_at")
     .eq("active", true);
   if (tenantId) usersQuery = usersQuery.eq("tenant_id", tenantId);
 
   let employeesQuery = supabase
     .from("app_employee")
-    .select("id, email, full_name, role, position, employee_code, pin, phone, active, permissions, tenant_id, created_at, updated_at")
+    .select("id, email, full_name, role, position, employee_code, pin, phone, hourly_rate, active, permissions, tenant_id, auth_id, created_at, updated_at")
     .eq("active", true);
   if (tenantId) employeesQuery = employeesQuery.eq("tenant_id", tenantId);
 
@@ -109,28 +190,7 @@ async function fetchTenantUsers() {
   if (usersError) throw usersError;
   if (employeesError) throw employeesError;
 
-  const merged = [...(userRows || [])];
-  for (const employee of employeeRows || []) {
-    const existing = merged.find(
-      (user) => user.id === employee.id || String(user.email || "").toLowerCase() === String(employee.email || "").toLowerCase()
-    );
-
-    if (existing) {
-      Object.assign(existing, {
-        position: existing.position || employee.position,
-        employee_code: existing.employee_code || employee.employee_code,
-        pin: existing.pin || employee.pin,
-        phone: existing.phone || employee.phone,
-        permissions: existing.permissions || employee.permissions,
-        tenant_id: existing.tenant_id || employee.tenant_id,
-      });
-      continue;
-    }
-
-    merged.push(employee);
-  }
-
-  return merged;
+  return mergeUsers(userRows || [], employeeRows || []);
 }
 
 function mergeAdminPanelButtons(savedButtons = []) {
@@ -393,6 +453,8 @@ export default function UsersManagement() {
         position: userData.customRole, // Guardar el rol real aquí
         employee_code: userData.employee_code,
         pin: userData.pin,
+        hourly_rate: parseFloat(userData.hourly_rate) || 0,
+        tenant_id: getCurrentTenantId(),
         active: userData.active !== false
       };
 
