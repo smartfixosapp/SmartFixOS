@@ -510,7 +510,7 @@ function PaymentModal({ open, onClose, employee, onConfirm }) {
 }
 
 /* ====================== Modal de Detalle de Empleado ====================== */
-function EmployeeDetailModal({ open, onClose, employee, entries, formatHM, formatHMS, allEntries, employees, from, to, onlyOpen, setSelectedEmployee, setFrom, setTo, setOnlyOpen, loadEntries, onPayment }) {
+function EmployeeDetailModal({ open, onClose, employee, entries, formatHM, formatHMS, allEntries, employees, from, to, setSelectedEmployee, setFrom, setTo, loadEntries, onPayment }) {
   const [activeTab, setActiveTab] = React.useState("ponches");
   const [paymentHistory, setPaymentHistory] = React.useState([]);
   const [loadingHistory, setLoadingHistory] = React.useState(false);
@@ -699,15 +699,6 @@ function EmployeeDetailModal({ open, onClose, employee, entries, formatHM, forma
                     </div>
                   </div>
 
-                  <label className="inline-flex items-center gap-2 text-sm text-gray-300">
-                    <input
-                    type="checkbox"
-                    className="accent-cyan-600"
-                    checked={onlyOpen}
-                    onChange={(e) => {setOnlyOpen(e.target.checked);setTimeout(loadEntries, 100);}} />
-
-                    Mostrar solo abiertos
-                  </label>
                 </div>
               </div>
 
@@ -927,7 +918,6 @@ export default function TimeTrackingModal({ open, onClose, session }) {
 
   const [from, setFrom] = useState(startOfWeekSunday(new Date()));
   const [to, setTo] = useState(endOfWeekSaturday(new Date()));
-  const [onlyOpen, setOnlyOpen] = useState(false);
 
   const [entries, setEntries] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -1041,8 +1031,7 @@ export default function TimeTrackingModal({ open, onClose, session }) {
       const filteredByEmployee = selectedEmployee === "all"
         ? tenantEntries
         : tenantEntries.filter((t) => String(t?.employee_id || "") === String(selectedEmployee));
-      const filteredByOpen = onlyOpen ? filteredByEmployee.filter((t) => !t?.clock_out) : filteredByEmployee;
-      const inRange = filteredByOpen.filter((t) => {
+      const inRange = filteredByEmployee.filter((t) => {
         const ci = new Date(t.clock_in);
         return ci >= startOfDay(from) && ci <= endOfDay(to) && !isSystemUserLike(t);
       });
@@ -1054,8 +1043,7 @@ export default function TimeTrackingModal({ open, onClose, session }) {
       const filteredByEmployee = selectedEmployee === "all"
         ? localEntries
         : localEntries.filter((t) => String(t?.employee_id || "") === String(selectedEmployee));
-      const filteredByOpen = onlyOpen ? filteredByEmployee.filter((t) => !t?.clock_out) : filteredByEmployee;
-      const inRange = filteredByOpen.filter((t) => {
+      const inRange = filteredByEmployee.filter((t) => {
         const ci = new Date(t.clock_in);
         return ci >= startOfDay(from) && ci <= endOfDay(to) && !isSystemUserLike(t);
       });
@@ -1063,7 +1051,7 @@ export default function TimeTrackingModal({ open, onClose, session }) {
     } finally {
       setLoading(false);
     }
-  }, [selectedEmployee, onlyOpen, from, to, employees]);
+  }, [selectedEmployee, from, to, employees]);
 
   useEffect(() => {
     if (open) loadEntries();
@@ -1429,15 +1417,6 @@ export default function TimeTrackingModal({ open, onClose, session }) {
                     onChange={(e) => setTo(new Date(e.target.value))}
                     className="h-10 rounded-xl border border-white/10 bg-black/30 px-3 text-sm text-white"
                   />
-                  <label className="inline-flex items-center gap-2 rounded-xl border border-white/10 bg-black/30 px-3 py-2 text-sm text-slate-300">
-                    <input
-                      type="checkbox"
-                      className="accent-cyan-500"
-                      checked={onlyOpen}
-                      onChange={(e) => setOnlyOpen(e.target.checked)}
-                    />
-                    Solo abiertos
-                  </label>
                 </div>
               </div>
             </div>
