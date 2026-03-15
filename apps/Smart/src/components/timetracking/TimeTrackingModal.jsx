@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState, useCallback } from "react";
 import { base44 } from "@/api/base44Client";
 import { dataClient } from "@/components/api/dataClient";
+import { supabase } from "../../../../../lib/supabase-client.js";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
@@ -20,18 +21,53 @@ import {
 const LOCAL_USERS_STORAGE_KEY = "smartfix_local_users";
 const LOCAL_TIME_ENTRIES_KEY = "local_time_entries";
 
+function getCurrentTenantId() {
+  const fromStorage =
+    localStorage.getItem("smartfix_tenant_id") ||
+    localStorage.getItem("current_tenant_id");
+  if (fromStorage) return fromStorage;
+
+  const sessionCandidates = [
+    sessionStorage.getItem("911-session"),
+    localStorage.getItem("employee_session"),
+    localStorage.getItem("smartfix_session")
+  ];
+
+  for (const raw of sessionCandidates) {
+    try {
+      const parsed = raw ? JSON.parse(raw) : null;
+      const tenantId =
+        parsed?.tenant_id ||
+        parsed?.tenantId ||
+        parsed?.user?.tenant_id ||
+        parsed?.session?.tenant_id;
+      if (tenantId) return tenantId;
+    } catch {}
+  }
+
+  return null;
+}
+
 function readLocalFallbackEmployees() {
   try {
     const raw = localStorage.getItem(LOCAL_USERS_STORAGE_KEY);
     const parsed = raw ? JSON.parse(raw) : [];
     if (!Array.isArray(parsed)) return [];
+    const tenantId = getCurrentTenantId();
     return parsed
-      .filter((u) => u && u.active !== false)
+      .filter((u) => {
+        if (!u || u.active === false) return false;
+        if (!tenantId) return true;
+        return !u.tenant_id || String(u.tenant_id) === String(tenantId);
+      })
       .map((u) => ({
         id: u.id,
         full_name: u.full_name || u.email || "Usuario",
         role: u.role || u.position || "user",
-        hourly_rate: u.hourly_rate || 0
+        hourly_rate: u.hourly_rate || 0,
+        email: u.email || "",
+        employee_code: u.employee_code || "",
+        auth_id: u.auth_id || ""
       }))
       .filter((u) => u.id);
   } catch {
@@ -125,6 +161,48 @@ function isSystemUserLike(candidate) {
   if (fullName.includes("smartfixos")) return true;
   if (fullName.includes("super admin")) return true;
   return false;
+}
+
+function getUserIdentityKeys(user) {
+  const keys = [];
+  if (user?.id) keys.push(`id:${String(user.id).toLowerCase()}`);
+  if (user?.auth_id) keys.push(`auth:${String(user.auth_id).toLowerCase()}`);
+  if (user?.email) keys.push(`email:${String(user.email).trim().toLowerCase()}`);
+  if (user?.employee_code) keys.push(`code:${String(user.employee_code).trim().toLowerCase()}`);
+  return keys;
+}
+
+function mergeEmployees(remoteUsers = [], localUsers = []) {
+  const merged = [];
+  const keyToIndex = new Map();
+
+  for (const candidate of [...(remoteUsers || []), ...(localUsers || [])]) {
+    if (!candidate || candidate.active === false || isSystemUserLike(candidate)) continue;
+
+    const keys = getUserIdentityKeys(candidate);
+    const existingIndex = keys.map((key) => keyToIndex.get(key)).find((idx) => Number.isInteger(idx));
+
+    if (Number.isInteger(existingIndex)) {
+      merged[existingIndex] = {
+        ...candidate,
+        ...merged[existingIndex],
+        full_name: merged[existingIndex]?.full_name || candidate.full_name,
+        role: merged[existingIndex]?.role || candidate.role || candidate.position,
+        hourly_rate: merged[existingIndex]?.hourly_rate ?? candidate.hourly_rate,
+        email: merged[existingIndex]?.email || candidate.email,
+        employee_code: merged[existingIndex]?.employee_code || candidate.employee_code,
+        tenant_id: merged[existingIndex]?.tenant_id || candidate.tenant_id,
+      };
+      getUserIdentityKeys(merged[existingIndex]).forEach((key) => keyToIndex.set(key, existingIndex));
+      continue;
+    }
+
+    const nextIndex = merged.length;
+    merged.push(candidate);
+    keys.forEach((key) => keyToIndex.set(key, nextIndex));
+  }
+
+  return merged;
 }
 
 function getWorkedMillis(entry) {
@@ -863,17 +941,42 @@ export default function TimeTrackingModal({ open, onClose, session }) {
   /* ---------- cargar empleados ---------- */
   const loadEmployees = useCallback(async () => {
     try {
-      const list = await dataClient.entities.User.filter({ active: true });
-      const formatted = list.filter((u) => !isSystemUserLike(u)).map((u) => ({
+      const tenantId = getCurrentTenantId();
+
+      let usersQuery = supabase
+        .from("users")
+        .select("id, email, full_name, role, position, employee_code, hourly_rate, active, tenant_id, auth_id")
+        .eq("active", true);
+      if (tenantId) usersQuery = usersQuery.eq("tenant_id", tenantId);
+
+      let employeesQuery = supabase
+        .from("app_employee")
+        .select("id, email, full_name, role, position, employee_code, hourly_rate, active, tenant_id")
+        .eq("active", true);
+      if (tenantId) employeesQuery = employeesQuery.eq("tenant_id", tenantId);
+
+      const [{ data: userRows, error: usersError }, { data: employeeRows, error: employeesError }] = await Promise.all([
+        usersQuery,
+        employeesQuery,
+      ]);
+
+      if (usersError) throw usersError;
+      if (employeesError) throw employeesError;
+
+      const merged = mergeEmployees(userRows || [], employeeRows || []);
+      const formatted = merged.map((u) => ({
         id: u.id,
-        full_name: u.full_name,
-        role: u.role,
+        full_name: u.full_name || u.email || "Usuario",
+        role: u.position || u.role || "user",
         hourly_rate: u.hourly_rate || 0,
-        email: u.email || ""
+        email: u.email || "",
+        employee_code: u.employee_code || "",
+        auth_id: u.auth_id || "",
       }));
       setEmployees([{ id: "all", full_name: "Todos", hourly_rate: 0 }, ...formatted]);
-    } catch {
-      setEmployees([{ id: "all", full_name: "Todos", hourly_rate: 0 }, ...readLocalFallbackEmployees().filter((u) => !isSystemUserLike(u))]);
+    } catch (error) {
+      console.error("Error loading employees for time tracking:", error);
+      setEmployees([{ id: "all", full_name: "Todos", hourly_rate: 0 }, ...mergeEmployees([], readLocalFallbackEmployees())]);
     }
   }, []);
 

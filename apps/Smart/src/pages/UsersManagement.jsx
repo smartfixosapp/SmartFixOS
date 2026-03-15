@@ -178,7 +178,7 @@ async function fetchTenantUsers() {
 
   let employeesQuery = supabase
     .from("app_employee")
-    .select("id, email, full_name, role, position, employee_code, pin, phone, hourly_rate, active, permissions, tenant_id, auth_id, created_at, updated_at")
+    .select("id, email, full_name, role, position, employee_code, pin, phone, hourly_rate, active, permissions, tenant_id, created_at, updated_at")
     .eq("active", true);
   if (tenantId) employeesQuery = employeesQuery.eq("tenant_id", tenantId);
 
