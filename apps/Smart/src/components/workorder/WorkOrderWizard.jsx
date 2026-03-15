@@ -130,14 +130,15 @@ function buildLocalCustomer(data, existingId = null) {
 function readLocalDeviceCatalog() {
   try {
     const raw = localStorage.getItem(LOCAL_DEVICE_CATALOG_KEY);
-    const parsed = raw ? JSON.parse(raw) : { categories: [], brands: [], models: [] };
+    const parsed = raw ? JSON.parse(raw) : { categories: [], brands: [], families: [], models: [] };
     return {
       categories: Array.isArray(parsed?.categories) ? parsed.categories : [],
       brands: Array.isArray(parsed?.brands) ? parsed.brands : [],
+      families: Array.isArray(parsed?.families) ? parsed.families : [],
       models: Array.isArray(parsed?.models) ? parsed.models : []
     };
   } catch {
-    return { categories: [], brands: [], models: [] };
+    return { categories: [], brands: [], families: [], models: [] };
   }
 }
 
@@ -160,7 +161,7 @@ function writeLocalDeviceCatalog(catalog) {
   }
 }
 
-function upsertLocalDeviceCatalogEntry({ categoryName, brandName, modelName }) {
+function upsertLocalDeviceCatalogEntry({ categoryName, brandName, familyName, modelName }) {
   const current = readLocalDeviceCatalog();
   let category = current.categories.find((item) => normalizedText(item?.name) === normalizedText(categoryName));
   if (!category) {
@@ -190,9 +191,26 @@ function upsertLocalDeviceCatalogEntry({ categoryName, brandName, modelName }) {
     current.brands.unshift(brand);
   }
 
+  let family = current.families.find(
+    (item) =>
+      item?.brand_id === brand.id &&
+      normalizedText(item?.name) === normalizedText(familyName)
+  );
+  if (!family) {
+    family = {
+      id: `local-device-family-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+      name: familyName,
+      brand_id: brand.id,
+      active: true,
+      order: current.families.filter((item) => item?.brand_id === brand.id).length + 1
+    };
+    current.families.unshift(family);
+  }
+
   let model = current.models.find(
     (item) =>
       item?.brand_id === brand.id &&
+      item?.family_id === family.id &&
       normalizedText(item?.name) === normalizedText(modelName)
   );
   if (!model) {
@@ -200,14 +218,16 @@ function upsertLocalDeviceCatalogEntry({ categoryName, brandName, modelName }) {
       id: `local-device-model-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
       name: modelName,
       brand_id: brand.id,
+      family_id: family.id,
+      family: family.name,
       active: true,
-      order: current.models.filter((item) => item?.brand_id === brand.id).length + 1
+      order: current.models.filter((item) => item?.brand_id === brand.id && item?.family_id === family.id).length + 1
     };
     current.models.unshift(model);
   }
 
   writeLocalDeviceCatalog(current);
-  return { category, brand, model };
+  return { category, brand, family, model };
 }
 
 function dedupeById(list = []) {
@@ -468,16 +488,21 @@ export default function WorkOrderWizard({ open, onClose, onSuccess, preloadedCus
   // Catálogos
   const [types, setTypes] = useState([]);
   const [brands, setBrands] = useState([]);
+  const [families, setFamilies] = useState([]);
   const [models, setModels] = useState([]);
   const [showDeviceCatalogModal, setShowDeviceCatalogModal] = useState(false);
   const [deviceCatalogCategory, setDeviceCatalogCategory] = useState("");
   const [deviceCatalogBrand, setDeviceCatalogBrand] = useState("");
+  const [deviceCatalogFamily, setDeviceCatalogFamily] = useState("");
   const [deviceCatalogModel, setDeviceCatalogModel] = useState("");
   const [deviceCatalogBrands, setDeviceCatalogBrands] = useState([]);
+  const [deviceCatalogFamilies, setDeviceCatalogFamilies] = useState([]);
   const [deviceCatalogModels, setDeviceCatalogModels] = useState([]);
   const [showManualDeviceCatalogBrand, setShowManualDeviceCatalogBrand] = useState(false);
+  const [showManualDeviceCatalogFamily, setShowManualDeviceCatalogFamily] = useState(false);
   const [showManualDeviceCatalogModel, setShowManualDeviceCatalogModel] = useState(false);
   const [loadingDeviceCatalogBrands, setLoadingDeviceCatalogBrands] = useState(false);
+  const [loadingDeviceCatalogFamilies, setLoadingDeviceCatalogFamilies] = useState(false);
   const [loadingDeviceCatalogModels, setLoadingDeviceCatalogModels] = useState(false);
   
   // Búsqueda
@@ -521,21 +546,33 @@ export default function WorkOrderWizard({ open, onClose, onSuccess, preloadedCus
 
   useEffect(() => {
     if (deviceType) loadBrands();
-    else { setBrands([]); setModels([]); }
+    else { setBrands([]); setFamilies([]); setModels([]); }
   }, [deviceType]);
 
   useEffect(() => {
-    if (deviceBrand) loadModels();
-    else setModels([]);
+    if (deviceBrand) loadFamilies();
+    else {
+      setFamilies([]);
+      setModels([]);
+      setDeviceFamily("");
+    }
   }, [deviceBrand]);
+
+  useEffect(() => {
+    if (deviceBrand && deviceFamily) loadModels();
+    else setModels([]);
+  }, [deviceBrand, deviceFamily]);
 
   useEffect(() => {
     if (!showDeviceCatalogModal) {
       setDeviceCatalogBrands([]);
+      setDeviceCatalogFamilies([]);
       setDeviceCatalogModels([]);
       setShowManualDeviceCatalogBrand(false);
+      setShowManualDeviceCatalogFamily(false);
       setShowManualDeviceCatalogModel(false);
       setLoadingDeviceCatalogBrands(false);
+      setLoadingDeviceCatalogFamilies(false);
       setLoadingDeviceCatalogModels(false);
       return;
     }
@@ -544,8 +581,13 @@ export default function WorkOrderWizard({ open, onClose, onSuccess, preloadedCus
 
   useEffect(() => {
     if (!showDeviceCatalogModal) return;
-    loadDeviceCatalogModelsForModal(deviceCatalogCategory, deviceCatalogBrand);
+    loadDeviceCatalogFamiliesForModal(deviceCatalogCategory, deviceCatalogBrand);
   }, [showDeviceCatalogModal, deviceCatalogCategory, deviceCatalogBrand]);
+
+  useEffect(() => {
+    if (!showDeviceCatalogModal) return;
+    loadDeviceCatalogModelsForModal(deviceCatalogCategory, deviceCatalogBrand, deviceCatalogFamily);
+  }, [showDeviceCatalogModal, deviceCatalogCategory, deviceCatalogBrand, deviceCatalogFamily]);
 
   useEffect(() => {
     if (deviceModel) {
@@ -826,27 +868,86 @@ export default function WorkOrderWizard({ open, onClose, onSuccess, preloadedCus
     }
   };
 
+  const loadFamilies = async () => {
+    const localCatalog = readLocalDeviceCatalog();
+    try {
+      const cacheKey = `families_${deviceBrand?.id}`;
+      const cached = catalogCache.get(cacheKey);
+      if (cached) {
+        const localFamilies = (localCatalog.families || []).filter((item) => item?.brand_id === deviceBrand?.id);
+        setFamilies(dedupeById([...(localFamilies || []), ...(cached || [])]));
+        return;
+      }
+
+      const remoteFamilies = await base44.entities.DeviceFamily.filter({
+        brand_id: deviceBrand?.id,
+        active: true
+      }, "order");
+      const localFamilies = (localCatalog.families || []).filter((item) => item?.brand_id === deviceBrand?.id);
+      const merged = dedupeById([...(localFamilies || []), ...(remoteFamilies || [])]);
+      catalogCache.set(cacheKey, merged);
+      setFamilies(merged);
+    } catch {
+      const localFamilies = (localCatalog.families || []).filter((item) => item?.brand_id === deviceBrand?.id);
+      setFamilies(localFamilies);
+    }
+  };
+
   const loadModels = async () => {
     const localCatalog = readLocalDeviceCatalog();
     try {
-      const cacheKey = `models_${deviceBrand?.id}`;
+      const selectedFamilyName = String(deviceFamily || "").trim();
+      const selectedFamilyRecord = families.find((item) => normalizedText(item?.name) === normalizedText(selectedFamilyName));
+      const cacheKey = `models_${deviceBrand?.id}_${selectedFamilyRecord?.id || selectedFamilyName}`;
       const cached = catalogCache.get(cacheKey);
       if (cached) {
-        const localModels = (localCatalog.models || []).filter((item) => item?.brand_id === deviceBrand?.id);
+        const localModels = (localCatalog.models || []).filter((item) =>
+          item?.brand_id === deviceBrand?.id &&
+          (
+            item?.family_id === selectedFamilyRecord?.id ||
+            normalizedText(item?.family) === normalizedText(selectedFamilyName)
+          )
+        );
         setModels(dedupeById([...(localModels || []), ...(cached || [])]));
         return;
       }
 
-      const familiesByBrand = await base44.entities.DeviceFamily.filter({
+      const remoteModelsByBrand = await base44.entities.DeviceModel.filter({
         brand_id: deviceBrand?.id,
         active: true
       }, "order");
-      const localModels = (localCatalog.models || []).filter((item) => item?.brand_id === deviceBrand?.id);
-      const merged = dedupeById([...(localModels || []), ...(familiesByBrand || [])]);
+
+      const familyMatchedRemoteModels = (remoteModelsByBrand || []).filter((item) => {
+        const explicitFamilyId = item?.family_id;
+        const explicitFamilyName = item?.family || item?.device_family;
+        const inferred = inferFamily(deviceType, deviceBrand?.name || deviceBrand, item?.name);
+
+        if (selectedFamilyRecord?.id && explicitFamilyId === selectedFamilyRecord.id) return true;
+        if (explicitFamilyName && normalizedText(explicitFamilyName) === normalizedText(selectedFamilyName)) return true;
+        if (!explicitFamilyId && !explicitFamilyName && inferred && normalizedText(inferred) === normalizedText(selectedFamilyName)) return true;
+        return false;
+      });
+
+      const localModels = (localCatalog.models || []).filter((item) =>
+        item?.brand_id === deviceBrand?.id &&
+        (
+          item?.family_id === selectedFamilyRecord?.id ||
+          normalizedText(item?.family) === normalizedText(selectedFamilyName)
+        )
+      );
+      const merged = dedupeById([...(localModels || []), ...familyMatchedRemoteModels]);
       catalogCache.set(cacheKey, merged);
       setModels(merged);
     } catch {
-      const localModels = (localCatalog.models || []).filter((item) => item?.brand_id === deviceBrand?.id);
+      const selectedFamilyName = String(deviceFamily || "").trim();
+      const selectedFamilyRecord = families.find((item) => normalizedText(item?.name) === normalizedText(selectedFamilyName));
+      const localModels = (localCatalog.models || []).filter((item) =>
+        item?.brand_id === deviceBrand?.id &&
+        (
+          item?.family_id === selectedFamilyRecord?.id ||
+          normalizedText(item?.family) === normalizedText(selectedFamilyName)
+        )
+      );
       setModels(localModels);
     }
   };
@@ -925,10 +1026,77 @@ export default function WorkOrderWizard({ open, onClose, onSuccess, preloadedCus
     }
   };
 
-  const loadDeviceCatalogModelsForModal = async (categoryName, brandName) => {
+  const loadDeviceCatalogFamiliesForModal = async (categoryName, brandName) => {
     const categoryQuery = categoryName.trim();
     const brandQuery = brandName.trim();
     if (!categoryQuery || !brandQuery) {
+      setDeviceCatalogFamilies([]);
+      setLoadingDeviceCatalogFamilies(false);
+      return;
+    }
+
+    setLoadingDeviceCatalogFamilies(true);
+    const localCatalog = readLocalDeviceCatalog();
+    const localCategoryIds = (localCatalog.categories || [])
+      .filter((item) => normalizedText(item?.name) === normalizedText(categoryQuery))
+      .map((item) => item.id);
+
+    const localBrandIds = (localCatalog.brands || [])
+      .filter(
+        (item) =>
+          localCategoryIds.includes(item?.category_id) &&
+          normalizedText(item?.name) === normalizedText(brandQuery)
+      )
+      .map((item) => item.id);
+
+    const localFamilies = (localCatalog.families || []).filter((item) =>
+      localBrandIds.includes(item?.brand_id)
+    );
+
+    try {
+      const remoteCategories = await base44.entities.DeviceCategory.filter({
+        name: categoryQuery,
+        active: true
+      }).catch(() => []);
+      const remoteCategoryIds = (remoteCategories || []).map((item) => item?.id).filter(Boolean);
+
+      const remoteBrandsByCategory = await Promise.all(
+        remoteCategoryIds.map((categoryId) =>
+          base44.entities.Brand.filter({ category_id: categoryId, active: true }, "order").catch(() => [])
+        )
+      );
+
+      const remoteBrandIds = remoteBrandsByCategory
+        .flat()
+        .filter((item) => normalizedText(item?.name) === normalizedText(brandQuery))
+        .map((item) => item.id);
+
+      const brandIds = Array.from(new Set([...localBrandIds, ...remoteBrandIds]));
+      if (brandIds.length === 0) {
+        setDeviceCatalogFamilies(dedupeById(localFamilies));
+        setLoadingDeviceCatalogFamilies(false);
+        return;
+      }
+
+      const remoteFamiliesByBrand = await Promise.all(
+        brandIds.map((brandId) =>
+          base44.entities.DeviceFamily.filter({ brand_id: brandId, active: true }, "order").catch(() => [])
+        )
+      );
+
+      setDeviceCatalogFamilies(dedupeById([...(localFamilies || []), ...remoteFamiliesByBrand.flat()]));
+    } catch {
+      setDeviceCatalogFamilies(dedupeById(localFamilies));
+    } finally {
+      setLoadingDeviceCatalogFamilies(false);
+    }
+  };
+
+  const loadDeviceCatalogModelsForModal = async (categoryName, brandName, familyName) => {
+    const categoryQuery = categoryName.trim();
+    const brandQuery = brandName.trim();
+    const familyQuery = familyName.trim();
+    if (!categoryQuery || !brandQuery || !familyQuery) {
       setDeviceCatalogModels([]);
       setLoadingDeviceCatalogModels(false);
       return;
@@ -948,8 +1116,17 @@ export default function WorkOrderWizard({ open, onClose, onSuccess, preloadedCus
       )
       .map((item) => item.id);
 
+    const localFamilyIds = (localCatalog.families || [])
+      .filter(
+        (item) =>
+          localBrandIds.includes(item?.brand_id) &&
+          normalizedText(item?.name) === normalizedText(familyQuery)
+      )
+      .map((item) => item.id);
+
     const localModels = (localCatalog.models || []).filter((item) =>
-      localBrandIds.includes(item?.brand_id)
+      localBrandIds.includes(item?.brand_id) &&
+      (localFamilyIds.includes(item?.family_id) || normalizedText(item?.family) === normalizedText(familyQuery))
     );
 
     try {
@@ -978,13 +1155,30 @@ export default function WorkOrderWizard({ open, onClose, onSuccess, preloadedCus
         return;
       }
 
-      const remoteModelsByBrand = await Promise.all(
+      const remoteFamiliesByBrand = await Promise.all(
         brandIds.map((brandId) =>
           base44.entities.DeviceFamily.filter({ brand_id: brandId, active: true }, "order").catch(() => [])
         )
       );
 
-      const nextModels = dedupeById([...(localModels || []), ...remoteModelsByBrand.flat()]);
+      const remoteFamilyIds = remoteFamiliesByBrand
+        .flat()
+        .filter((item) => normalizedText(item?.name) === normalizedText(familyQuery))
+        .map((item) => item.id);
+
+      const remoteModelsByBrand = await Promise.all(
+        brandIds.map((brandId) =>
+          base44.entities.DeviceModel.filter({ brand_id: brandId, active: true }, "order").catch(() => [])
+        )
+      );
+
+      const matchedRemoteModels = remoteModelsByBrand.flat().filter((item) => {
+        if (remoteFamilyIds.includes(item?.family_id)) return true;
+        if (normalizedText(item?.family || item?.device_family) === normalizedText(familyQuery)) return true;
+        return false;
+      });
+
+      const nextModels = dedupeById([...(localModels || []), ...matchedRemoteModels]);
       setDeviceCatalogModels(nextModels);
     } catch {
       const nextModels = dedupeById(localModels);
@@ -1167,30 +1361,33 @@ export default function WorkOrderWizard({ open, onClose, onSuccess, preloadedCus
   const handleSaveDeviceCatalogEntry = async () => {
     const categoryName = deviceCatalogCategory.trim();
     const brandName = deviceCatalogBrand.trim();
+    const familyName = deviceCatalogFamily.trim();
     const modelName = deviceCatalogModel.trim();
 
-    if (!categoryName || !brandName || !modelName) {
-      toast.error("Completa categoría, marca y modelo");
+    if (!categoryName || !brandName || !familyName || !modelName) {
+      toast.error("Completa categoría, marca, línea y modelo");
       return;
     }
 
     const localEntry = upsertLocalDeviceCatalogEntry({
       categoryName,
       brandName,
+      familyName,
       modelName
     });
     catalogCache.delete?.("device_categories");
     catalogCache.delete?.(`brands_${categoryName}`);
-    catalogCache.delete?.(`models_${localEntry.brand.id}`);
+    catalogCache.delete?.(`families_${localEntry.brand.id}`);
+    catalogCache.delete?.(`models_${localEntry.brand.id}_${localEntry.family.id}`);
     await loadTypes();
     setDeviceType(localEntry.category.name);
     setDeviceBrand(localEntry.brand);
+    setDeviceFamily(localEntry.family.name);
     setDeviceModel(localEntry.model.name);
-    const inferredFamily = inferFamily(localEntry.category.name, localEntry.brand, localEntry.model.name);
-    if (inferredFamily) setDeviceFamily(inferredFamily);
     setShowDeviceCatalogModal(false);
     setDeviceCatalogCategory("");
     setDeviceCatalogBrand("");
+    setDeviceCatalogFamily("");
     setDeviceCatalogModel("");
     toast.success("Dispositivo guardado");
 
@@ -1243,26 +1440,60 @@ export default function WorkOrderWizard({ open, onClose, onSuccess, preloadedCus
         throw new Error("No se pudo confirmar la marca guardada");
       }
 
-      const existingModels = await base44.entities.DeviceFamily.filter({
+      let familyRecord = null;
+      const existingFamilies = await base44.entities.DeviceFamily.filter({
+        brand_id: brandRecord.id,
+        active: true
+      }).catch(() => []);
+
+      familyRecord =
+        (existingFamilies || []).find(
+          (item) => normalizedText(item?.name) === normalizedText(familyName)
+        ) || null;
+
+      if (!familyRecord) {
+        await base44.entities.DeviceFamily.create({
+          name: familyName,
+          brand_id: brandRecord.id,
+          active: true,
+          order: (existingFamilies || []).length + 1
+        });
+        familyRecord =
+          (await base44.entities.DeviceFamily.filter({ brand_id: brandRecord.id, active: true }).catch(() => []))
+            ?.find((item) => normalizedText(item?.name) === normalizedText(familyName)) ||
+          null;
+      }
+
+      const existingModels = await base44.entities.DeviceModel.filter({
         brand_id: brandRecord.id,
         active: true
       }).catch(() => []);
       const matchingModel = (existingModels || []).find(
         (item) => normalizedText(item?.name) === normalizedText(modelName)
+          && (
+            item?.family_id === familyRecord?.id ||
+            normalizedText(item?.family || item?.device_family) === normalizedText(familyName)
+          )
       );
 
       if (!matchingModel) {
-        await base44.entities.DeviceFamily.create({
+        await base44.entities.DeviceModel.create({
           name: modelName,
           brand_id: brandRecord.id,
+          family_id: familyRecord?.id || null,
+          family: familyName,
           active: true,
-          order: (existingModels || []).length + 1
+          order: (existingModels || []).filter((item) =>
+            item?.family_id === familyRecord?.id ||
+            normalizedText(item?.family || item?.device_family) === normalizedText(familyName)
+          ).length + 1
         });
       }
 
       catalogCache.delete?.("device_categories");
       catalogCache.delete?.(`brands_${categoryRecord.name}`);
-      catalogCache.delete?.(`models_${brandRecord.id}`);
+      catalogCache.delete?.(`families_${brandRecord.id}`);
+      catalogCache.delete?.(`models_${brandRecord.id}_${familyRecord?.id || familyName}`);
     } catch (error) {
       console.error("Error saving device catalog entry:", error);
       console.warn("Device catalog remote sync failed, conservando guardado local.");
@@ -2216,6 +2447,7 @@ export default function WorkOrderWizard({ open, onClose, onSuccess, preloadedCus
                         type="button"
                         onClick={() => {
                           setDeviceBrand(b);
+                          setDeviceFamily("");
                           setDeviceModel("");
                         }}
                         className={`px-4 py-2 rounded-[14px] text-sm border-2 transition-all duration-300 font-bold ${
@@ -2232,14 +2464,48 @@ export default function WorkOrderWizard({ open, onClose, onSuccess, preloadedCus
               </div>
             )}
 
-            {/* Modelo */}
+            {/* Familia */}
             {deviceBrand && (
               <div className="relative z-10">
                 <div className="mb-3">
-                  <label className="text-sm text-white/70 font-semibold">Modelo *</label>
+                  <label className="text-sm text-white/70 font-semibold">Línea *</label>
                   <p className="text-xs text-white/45 mt-1">
-                    Si no aparece en la lista, agrégalo desde el botón `+`.
+                    Ejemplo: iPhone, iPhone Pro, Galaxy S, Galaxy A, iPad Pro.
                   </p>
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  {families.map(f => (
+                    <button
+                      key={f.id}
+                      type="button"
+                      onClick={() => {
+                        setDeviceFamily(f.name);
+                        setDeviceModel("");
+                      }}
+                      className={`px-4 py-2 rounded-[14px] text-sm border-2 transition-all duration-300 font-bold ${
+                        deviceFamily === f.name
+                          ? "bg-gradient-to-r from-cyan-500 to-blue-500 border-cyan-400 text-white shadow-[0_0_20px_rgba(34,211,238,0.35)] scale-105"
+                          : "bg-black/20 border-white/10 text-gray-400 hover:bg-white/5 active:scale-95"
+                      }`}
+                    >
+                      {f.name}
+                    </button>
+                  ))}
+                </div>
+                {families.length === 0 && (
+                  <div className="mt-3 rounded-lg border border-white/10 bg-black/20 px-3 py-2 text-xs text-white/45">
+                    No hay líneas guardadas para esta marca. Usa el botón `+` para añadir una.
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Modelo */}
+            {deviceBrand && deviceFamily && (
+              <div className="relative z-10">
+                <div className="mb-3">
+                  <label className="text-sm text-white/70 font-semibold">Modelo *</label>
+                  <p className="text-xs text-white/45 mt-1">Si no aparece en la lista, agrégalo desde el botón `+`.</p>
                 </div>
                 <div className="flex flex-wrap gap-2">
                   {models.map(m => (
@@ -2248,8 +2514,6 @@ export default function WorkOrderWizard({ open, onClose, onSuccess, preloadedCus
                       type="button"
                       onClick={() => {
                         setDeviceModel(m.name);
-                        const fam = inferFamily(deviceType, deviceBrand, m.name);
-                        if (fam) setDeviceFamily(fam);
                       }}
                       className={`px-4 py-2 rounded-[14px] text-sm border-2 transition-all duration-300 font-bold ${
                         deviceModel === m.name
@@ -2263,7 +2527,7 @@ export default function WorkOrderWizard({ open, onClose, onSuccess, preloadedCus
                 </div>
                 {models.length === 0 && (
                   <div className="mt-3 rounded-lg border border-white/10 bg-black/20 px-3 py-2 text-xs text-white/45">
-                    No hay modelos guardados para esta marca. Usa el botón `+` para añadir uno.
+                    No hay modelos guardados para esta línea. Usa el botón `+` para añadir uno.
                   </div>
                 )}
               </div>
@@ -2701,7 +2965,7 @@ export default function WorkOrderWizard({ open, onClose, onSuccess, preloadedCus
                 </div>
                 <div>
                   <h3 className="text-lg font-black">Nuevo dispositivo</h3>
-                  <p className="text-xs text-white/55">Crea categoría, marca y modelo en un solo paso</p>
+                  <p className="text-xs text-white/55">Crea categoría, marca, línea y modelo en un solo paso</p>
                 </div>
               </div>
               <button
@@ -2718,16 +2982,19 @@ export default function WorkOrderWizard({ open, onClose, onSuccess, preloadedCus
                 <label className="text-sm text-white/70 mb-2 block">Categoría</label>
                 <input
                   value={deviceCatalogCategory}
-                  onChange={(e) => {
-                    const nextCategory = e.target.value;
-                    setLoadingDeviceCatalogBrands(Boolean(nextCategory.trim()));
-                    setLoadingDeviceCatalogModels(false);
-                    setDeviceCatalogCategory(e.target.value);
-                    setDeviceCatalogBrand("");
-                    setDeviceCatalogModel("");
-                    setShowManualDeviceCatalogBrand(false);
-                    setShowManualDeviceCatalogModel(false);
-                  }}
+                    onChange={(e) => {
+                      const nextCategory = e.target.value;
+                      setLoadingDeviceCatalogBrands(Boolean(nextCategory.trim()));
+                      setLoadingDeviceCatalogFamilies(false);
+                      setLoadingDeviceCatalogModels(false);
+                      setDeviceCatalogCategory(e.target.value);
+                      setDeviceCatalogBrand("");
+                      setDeviceCatalogFamily("");
+                      setDeviceCatalogModel("");
+                      setShowManualDeviceCatalogBrand(false);
+                      setShowManualDeviceCatalogFamily(false);
+                      setShowManualDeviceCatalogModel(false);
+                    }}
                   placeholder="Ej: Laptop, Tablet, Celular"
                   className="w-full bg-white/5 border border-white/20 rounded-xl px-4 py-3 text-white"
                 />
@@ -2741,11 +3008,14 @@ export default function WorkOrderWizard({ open, onClose, onSuccess, preloadedCus
                           type="button"
                           onClick={() => {
                             setLoadingDeviceCatalogBrands(true);
+                            setLoadingDeviceCatalogFamilies(false);
                             setLoadingDeviceCatalogModels(false);
                             setDeviceCatalogCategory(type.name);
                             setDeviceCatalogBrand("");
+                            setDeviceCatalogFamily("");
                             setDeviceCatalogModel("");
                             setShowManualDeviceCatalogBrand(false);
+                            setShowManualDeviceCatalogFamily(false);
                             setShowManualDeviceCatalogModel(false);
                           }}
                           className={`px-3 py-1.5 rounded-full border text-xs transition-all ${
@@ -2772,9 +3042,12 @@ export default function WorkOrderWizard({ open, onClose, onSuccess, preloadedCus
                     value={deviceCatalogBrand}
                     onChange={(e) => {
                       const nextBrand = e.target.value;
-                      setLoadingDeviceCatalogModels(Boolean(deviceCatalogCategory.trim() && nextBrand.trim()));
+                      setLoadingDeviceCatalogFamilies(Boolean(deviceCatalogCategory.trim() && nextBrand.trim()));
+                      setLoadingDeviceCatalogModels(false);
                       setDeviceCatalogBrand(e.target.value);
+                      setDeviceCatalogFamily("");
                       setDeviceCatalogModel("");
+                      setShowManualDeviceCatalogFamily(false);
                       setShowManualDeviceCatalogModel(false);
                     }}
                     placeholder="Ej: Apple, HP, Samsung"
@@ -2803,10 +3076,13 @@ export default function WorkOrderWizard({ open, onClose, onSuccess, preloadedCus
                           key={brand.id}
                           type="button"
                           onClick={() => {
-                            setLoadingDeviceCatalogModels(true);
+                            setLoadingDeviceCatalogFamilies(true);
+                            setLoadingDeviceCatalogModels(false);
                             setDeviceCatalogBrand(brand.name);
+                            setDeviceCatalogFamily("");
                             setDeviceCatalogModel("");
                             setShowManualDeviceCatalogBrand(false);
+                            setShowManualDeviceCatalogFamily(false);
                             setShowManualDeviceCatalogModel(false);
                           }}
                           className={`px-3 py-1.5 rounded-full border text-xs transition-all ${
@@ -2816,6 +3092,67 @@ export default function WorkOrderWizard({ open, onClose, onSuccess, preloadedCus
                           }`}
                         >
                           {brand.name}
+                        </button>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+              <div>
+                <label className="text-sm text-white/70 mb-2 block">Línea / familia</label>
+                {loadingDeviceCatalogFamilies && deviceCatalogFamilies.length === 0 ? (
+                  <div className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white/45">
+                    Cargando líneas...
+                  </div>
+                ) : (showManualDeviceCatalogFamily || deviceCatalogFamilies.length === 0) ? (
+                  <input
+                    value={deviceCatalogFamily}
+                    onChange={(e) => {
+                      const nextFamily = e.target.value;
+                      setLoadingDeviceCatalogModels(Boolean(deviceCatalogCategory.trim() && deviceCatalogBrand.trim() && nextFamily.trim()));
+                      setDeviceCatalogFamily(nextFamily);
+                      setDeviceCatalogModel("");
+                      setShowManualDeviceCatalogModel(false);
+                    }}
+                    placeholder="Ej: iPhone Pro, iPhone, Galaxy S"
+                    className="w-full bg-white/5 border border-white/20 rounded-xl px-4 py-3 text-white"
+                  />
+                ) : (
+                  <div className="flex items-center justify-between gap-3 rounded-xl border border-white/10 bg-white/5 px-4 py-3">
+                    <span className="text-sm text-white/55">
+                      {deviceCatalogFamily ? `Línea elegida: ${deviceCatalogFamily}` : "Selecciona una línea o crea una nueva"}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => setShowManualDeviceCatalogFamily(true)}
+                      className="text-xs font-semibold text-violet-300 hover:text-violet-200"
+                    >
+                      Nueva línea
+                    </button>
+                  </div>
+                )}
+                {deviceCatalogFamilies.length > 0 && (
+                  <div className="mt-3 flex flex-wrap gap-2">
+                    {deviceCatalogFamilies.map((family) => {
+                      const active = normalizedText(deviceCatalogFamily) === normalizedText(family?.name);
+                      return (
+                        <button
+                          key={family.id}
+                          type="button"
+                          onClick={() => {
+                            setLoadingDeviceCatalogModels(true);
+                            setDeviceCatalogFamily(family.name);
+                            setDeviceCatalogModel("");
+                            setShowManualDeviceCatalogFamily(false);
+                            setShowManualDeviceCatalogModel(false);
+                          }}
+                          className={`px-3 py-1.5 rounded-full border text-xs transition-all ${
+                            active
+                              ? "bg-violet-500/20 border-violet-400/60 text-violet-200"
+                              : "bg-white/5 border-white/10 text-white/70 hover:bg-white/10"
+                          }`}
+                        >
+                          {family.name}
                         </button>
                       );
                     })}
