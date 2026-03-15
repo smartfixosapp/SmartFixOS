@@ -478,11 +478,19 @@ export default function UsersManagement() {
 
       let newUser = null;
       try {
-        newUser = await dataClient.entities.AppEmployee.create({
-          ...cleanData,
-          status: "active",
-          portal_access_enabled: true
-        });
+        const { data: createdRows, error: createError } = await supabase
+          .from("app_employee")
+          .insert({
+            ...cleanData,
+            status: "active",
+            portal_access_enabled: true
+          })
+          .select("*")
+          .limit(1);
+
+        if (createError) throw createError;
+        newUser = createdRows?.[0] || null;
+        if (newUser) newUser.entity_source = "app_employee";
       } catch (createError) {
         if (!isLikelyNetworkError(createError)) throw createError;
 
@@ -562,7 +570,11 @@ export default function UsersManagement() {
         );
         writeLocalUsers(updatedLocalUsers);
       } else if (editingUser?.entity_source === "app_employee") {
-        await dataClient.entities.AppEmployee.update(userId, cleanData);
+        const { error: updateError } = await supabase
+          .from("app_employee")
+          .update(cleanData)
+          .eq("id", userId);
+        if (updateError) throw updateError;
       } else {
         await dataClient.entities.User.update(userId, cleanData);
       }
@@ -594,7 +606,11 @@ export default function UsersManagement() {
         const localUsers = readLocalUsers().filter((u) => u.id !== user.id);
         writeLocalUsers(localUsers);
       } else if (user.entity_source === "app_employee") {
-        await dataClient.entities.AppEmployee.delete(user.id);
+        const { error: deleteError } = await supabase
+          .from("app_employee")
+          .delete()
+          .eq("id", user.id);
+        if (deleteError) throw deleteError;
       } else {
         await dataClient.entities.User.delete(user.id);
         await dataClient.entities.AuditLog.create({
@@ -633,7 +649,11 @@ export default function UsersManagement() {
         );
         writeLocalUsers(updatedLocalUsers);
       } else if (user.entity_source === "app_employee") {
-        await dataClient.entities.AppEmployee.update(user.id, { active: newActiveState });
+        const { error: updateError } = await supabase
+          .from("app_employee")
+          .update({ active: newActiveState })
+          .eq("id", user.id);
+        if (updateError) throw updateError;
       } else if (currentUser?.id === user.id) {
         await dataClient.auth.updateMe({ active: newActiveState });
       } else {
