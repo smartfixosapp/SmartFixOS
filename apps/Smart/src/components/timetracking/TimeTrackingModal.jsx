@@ -902,7 +902,6 @@ export default function TimeTrackingModal({ open, onClose, session }) {
   const [activeUsers, setActiveUsers] = useState([]);
   const [paymentModalOpen, setPaymentModalOpen] = useState(false);
   const [selectedEmployeeForPayment, setSelectedEmployeeForPayment] = useState(null);
-  const [selectedEmployeeDetail, setSelectedEmployeeDetail] = useState(null);
   const [paidEmployees, setPaidEmployees] = useState(new Set());
 
   /* ---------- cargar usuarios activos ---------- */
@@ -1305,7 +1304,7 @@ export default function TimeTrackingModal({ open, onClose, session }) {
   const focusedEmployeeId =
     selectedEmployee !== "all"
       ? String(selectedEmployee)
-      : String(selectedEmployeeDetail?.id || employeeDirectory[0]?.id || "");
+      : String(employeeDirectory[0]?.id || "");
 
   const focusedEmployee = useMemo(
     () => employeeDirectory.find((emp) => String(emp.id) === focusedEmployeeId) || null,
@@ -1354,15 +1353,6 @@ export default function TimeTrackingModal({ open, onClose, session }) {
               </div>
               <div className="flex flex-col gap-3 xl:items-end">
                 <div className="flex flex-wrap items-center gap-2">
-                  <select
-                    value={selectedEmployee}
-                    onChange={(e) => setSelectedEmployee(e.target.value)}
-                    className="h-10 rounded-xl border border-white/10 bg-black/30 px-3 text-sm text-white outline-none"
-                  >
-                    {employees.map((u) => (
-                      <option key={u.id} value={u.id}>{u.full_name}</option>
-                    ))}
-                  </select>
                   <div className="flex overflow-hidden rounded-xl border border-white/10 bg-black/30">
                     <button onClick={setToday} className="px-3 py-2 text-sm text-slate-200 hover:bg-white/5">Hoy</button>
                     <button onClick={setThisWeek} className="border-l border-white/10 px-3 py-2 text-sm text-slate-200 hover:bg-white/5">Semana</button>
@@ -1557,19 +1547,6 @@ export default function TimeTrackingModal({ open, onClose, session }) {
                       <h5 className="text-sm font-bold uppercase tracking-[0.18em] text-slate-400">Acciones</h5>
                       <div className="mt-4 space-y-2">
                         <Button
-                          onClick={() => {
-                            setSelectedEmployeeDetail({
-                              id: focusedEmployee.id,
-                              name: focusedEmployee.name,
-                              currentEntry: focusedEmployee.activeEntry || null
-                            });
-                          }}
-                          variant="outline"
-                          className="w-full justify-start border-white/10 bg-white/[0.03] text-white hover:bg-white/[0.06]"
-                        >
-                          Ver detalle completo
-                        </Button>
-                        <Button
                           onClick={() => focusedPayment && handlePayment(focusedPayment)}
                           disabled={!focusedPayment || focusedPayment.hours === 0 || focusedEmployee.isPaid}
                           className="w-full justify-start bg-emerald-600 text-white hover:bg-emerald-500 disabled:opacity-40"
@@ -1631,39 +1608,6 @@ export default function TimeTrackingModal({ open, onClose, session }) {
               )}
             </div>
           </div>
-
-          {selectedEmployeeDetail &&
-            <EmployeeDetailModal
-              open={!!selectedEmployeeDetail}
-              onClose={() => setSelectedEmployeeDetail(null)}
-              employee={selectedEmployeeDetail}
-              entries={entries.filter((e) => e.employee_id === selectedEmployeeDetail.id)}
-              formatHM={formatHM}
-              formatHMS={formatHMS}
-              allEntries={entries.filter((e) => e.employee_id === selectedEmployeeDetail.id)}
-              employees={employees}
-              from={from}
-              to={to}
-              onlyOpen={onlyOpen}
-              setSelectedEmployee={(id) => {
-                setSelectedEmployee(String(id));
-                const emp = employees.find((e) => e.id === id);
-                const empEntry = activeUsers.find((a) => a.employee_id === id);
-                if (emp) {
-                  setSelectedEmployeeDetail({
-                    id: emp.id,
-                    name: emp.full_name,
-                    currentEntry: empEntry || null
-                  });
-                }
-              }}
-              setFrom={setFrom}
-              setTo={setTo}
-              setOnlyOpen={setOnlyOpen}
-              loadEntries={loadEntries}
-              onPayment={handlePayment}
-            />
-          }
 
           <div className="rounded-[24px] border border-white/8 bg-white/[0.03] p-4 sm:p-5">
             <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
@@ -1741,68 +1685,6 @@ export default function TimeTrackingModal({ open, onClose, session }) {
             </div>
           </div>
 
-          {employeePayments.length > 0 &&
-            <div className="rounded-[24px] border border-emerald-500/20 bg-emerald-500/[0.05] p-4">
-              <h3 className="mb-2 flex items-center gap-2 text-xl font-bold text-emerald-300">
-                <DollarSign className="w-6 h-6" />
-                Pagos Calculados
-              </h3>
-              <p className="mb-4 text-sm text-slate-400">Solo empleados con horas y tarifa disponible en el periodo.</p>
-              
-              <div className="overflow-x-auto">
-                <table className="w-full text-sm">
-                  <thead className="text-emerald-400/80">
-                    <tr className="text-left">
-                      <th className="py-2 pr-4">Empleado</th>
-                      <th className="py-2 pr-4 text-right">Horas</th>
-                      <th className="py-2 pr-4 text-right">Tarifa/Hora</th>
-                      <th className="py-2 pr-4 text-right">Pago Total</th>
-                      <th className="py-2 text-center">Acción</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {employeePayments.map((emp) =>
-                  <tr key={emp.id} className="border-t border-emerald-500/10 hover:bg-emerald-500/5 transition-colors">
-                        <td className="text-slate-50 pr-4 py-3 font-medium">{emp.name}</td>
-                        <td className="text-slate-50 pr-4 py-3 text-right font-mono">{emp.hours.toFixed(2)}h</td>
-                        <td className="text-slate-50 pr-4 py-3 text-right font-mono">${emp.rate.toFixed(2)}</td>
-                        <td className="text-emerald-400 pr-4 py-3 text-right font-bold text-lg">${emp.payment.toFixed(2)}</td>
-                        <td className="py-3 text-center">
-                          <Button
-                        onClick={() => handlePayment(emp)}
-                        size="sm"
-                        disabled={paidEmployees.has(emp.id) || emp.hours === 0}
-                        className="bg-gradient-to-r from-emerald-600 to-green-600 hover:from-emerald-700 hover:to-green-700 text-white disabled:opacity-50 disabled:cursor-not-allowed">
-
-                            {paidEmployees.has(emp.id) ?
-                        <>
-                                <Check className="w-4 h-4 mr-1" />
-                                Pagado
-                              </> :
-                        emp.hours === 0 ?
-                        "Sin Horas" :
-
-                        <>
-                                <DollarSign className="w-4 h-4 mr-1" />
-                                Pagar
-                              </>
-                        }
-                          </Button>
-                        </td>
-                      </tr>
-                  )}
-                    <tr className="border-t-2 border-emerald-500/30">
-                      <td className="text-emerald-400 pr-4 py-3 font-bold" colSpan={3}>TOTAL A PAGAR</td>
-                      <td className="text-emerald-400 py-3 text-right font-black text-xl">
-                        ${employeePayments.reduce((sum, e) => sum + e.payment, 0).toFixed(2)}
-                      </td>
-                      <td></td>
-                    </tr>
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          }
         </div>
       </div>
 

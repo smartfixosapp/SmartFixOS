@@ -102,24 +102,27 @@ function readSessionSync() {
 }
 
 const ADMIN_CORE_DASHBOARD_BUTTONS = [
-  { id: "new_order", label: "Nueva Orden TEST-V2", icon: "ClipboardList", gradient: "from-blue-500 to-cyan-600", action: "showWorkOrderWizard", type: "modal", enabled: true },
+  { id: "new_order", label: "Nueva Orden", icon: "ClipboardList", gradient: "from-blue-500 to-cyan-600", action: "showWorkOrderWizard", type: "modal", enabled: true },
   { id: "orders", label: "Órdenes", icon: "ClipboardList", gradient: "from-purple-500 to-pink-600", action: "Orders", type: "navigate", enabled: true },
-  { id: "pos", label: "POS", icon: "Wallet", gradient: "from-green-600 to-emerald-700", action: "POS", type: "navigate", enabled: true },
-  { id: "customers", label: "Clientes", icon: "Users", gradient: "from-blue-600 to-indigo-700", action: "Customers", type: "navigate", enabled: true },
   { id: "inventory", label: "Inventario", icon: "Package", gradient: "from-teal-500 to-cyan-600", action: "Inventory", type: "navigate", enabled: true },
   { id: "financial", label: "Finanzas", icon: "Wallet", gradient: "from-emerald-600 to-green-700", action: "Financial", type: "navigate", enabled: true },
-  { id: "reports", label: "Reportes", icon: "BarChart3", gradient: "from-blue-600 to-indigo-700", action: "Reports", type: "navigate", enabled: true },
-  { id: "recharges", label: "Recargas", icon: "Zap", gradient: "from-amber-500 to-yellow-600", action: "Recharges", type: "navigate", enabled: true },
-  { id: "technicians", label: "Técnicos", icon: "Wrench", gradient: "from-cyan-500 to-blue-600", action: "Technicians", type: "navigate", enabled: true },
-  { id: "notifications", label: "Notificaciones", icon: "Bell", gradient: "from-orange-500 to-red-600", action: "Notifications", type: "navigate", enabled: true },
-  { id: "users", label: "Panel Administrativo", icon: "Users", gradient: "from-pink-500 to-rose-600", action: "UsersManagement", type: "navigate", enabled: true },
-  { id: "database", label: "Base de Datos", icon: "SettingsIcon", gradient: "from-cyan-600 to-blue-600", action: "Settings", type: "navigate", enabled: true }
 ];
+
+const LEGACY_DASHBOARD_DEFAULT_IDS = new Set([
+  "pos",
+  "customers",
+  "reports",
+  "recharges",
+  "technicians",
+  "notifications",
+  "users",
+  "database"
+]);
 
 function mergeAdminDashboardButtons(savedButtons = []) {
   const savedMap = new Map((savedButtons || []).map((b) => [b.id, b]));
   const customButtons = (savedButtons || []).filter(
-    (b) => !ADMIN_CORE_DASHBOARD_BUTTONS.some((d) => d.id === b.id)
+    (b) => !ADMIN_CORE_DASHBOARD_BUTTONS.some((d) => d.id === b.id) && !LEGACY_DASHBOARD_DEFAULT_IDS.has(b?.id)
   );
 
   const mergedDefaults = ADMIN_CORE_DASHBOARD_BUTTONS.map((defaults, idx) => {
@@ -313,6 +316,23 @@ export default function Dashboard() {
         } catch { /* silent */ }
       }
       if (foundName) setBusinessName(foundName);
+      if (foundName) {
+        setSession((prev) => prev ? { ...prev, storeName: foundName } : prev);
+        try {
+          const localRaw = localStorage.getItem("employee_session");
+          if (localRaw) {
+            const parsed = JSON.parse(localRaw);
+            localStorage.setItem("employee_session", JSON.stringify({ ...parsed, storeName: foundName }));
+          }
+        } catch {}
+        try {
+          const sessionRaw = sessionStorage.getItem("911-session");
+          if (sessionRaw) {
+            const parsed = JSON.parse(sessionRaw);
+            sessionStorage.setItem("911-session", JSON.stringify({ ...parsed, storeName: foundName }));
+          }
+        } catch {}
+      }
       // Mostrar wizard solo si no está completo en localStorage ni en BD
       if (!isSetupComplete()) {
         try {
