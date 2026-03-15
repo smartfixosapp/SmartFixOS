@@ -1,11 +1,28 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { dataClient } from "@/components/api/dataClient";
+import { supabase } from "../../../../lib/supabase-client.js";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { CheckCircle, XCircle, Loader2, Shield, Lock } from "lucide-react";
 import { toast } from "sonner";
+
+const LOCAL_USERS_STORAGE_KEY = "smartfix_local_users";
+
+function readLocalUsers() {
+  try {
+    const raw = localStorage.getItem(LOCAL_USERS_STORAGE_KEY);
+    const parsed = raw ? JSON.parse(raw) : [];
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    return [];
+  }
+}
+
+function writeLocalUsers(users) {
+  localStorage.setItem(LOCAL_USERS_STORAGE_KEY, JSON.stringify(users || []));
+}
 
 export default function Activate() {
   const navigate = useNavigate();
@@ -97,41 +114,85 @@ export default function Activate() {
         activation_expires_at: null
       });
 
-      // Crear usuario en User si no existe
+      const tenantId = employee.tenant_id || localStorage.getItem("smartfix_tenant_id") || null;
+      if (tenantId) {
+        localStorage.setItem("smartfix_tenant_id", tenantId);
+        localStorage.setItem("current_tenant_id", tenantId);
+      }
+
+      const activatedProfile = {
+        id: employee.id,
+        email: employee.email,
+        full_name: employee.full_name,
+        role: employee.role || "user",
+        position: employee.position || employee.role || "user",
+        employee_code: employee.employee_code || "",
+        pin,
+        phone: employee.phone || "",
+        hourly_rate: employee.hourly_rate ?? 0,
+        active: true,
+        status: "active",
+        portal_access_enabled: true,
+        tenant_id: tenantId,
+        permissions: employee.permissions || {},
+      };
+
       try {
-        const existingUsers = await dataClient.entities.User.filter({ email: employee.email });
+        const { data: existingUsers, error: lookupError } = await supabase
+          .from("users")
+          .select("id, tenant_id, email, full_name, role, position, employee_code, pin, phone, active, hourly_rate, permissions")
+          .eq("email", employee.email)
+          .limit(1);
+
+        if (lookupError) throw lookupError;
+
         if (!existingUsers || existingUsers.length === 0) {
-          await dataClient.entities.User.create({
-            email: employee.email,
-            full_name: employee.full_name,
-            role: employee.role || "user",
-            position: employee.position || "",
-            employee_code: employee.employee_code,
-            pin: pin,
-            phone: employee.phone,
+          const insertPayload = {
+            email: activatedProfile.email,
+            full_name: activatedProfile.full_name,
+            role: activatedProfile.role,
+            position: activatedProfile.position,
+            employee_code: activatedProfile.employee_code,
+            pin: activatedProfile.pin,
+            phone: activatedProfile.phone,
             active: true,
-            tenant_id: employee.tenant_id,
-            hourly_rate: employee.hourly_rate ?? 0,
-            permissions: employee.permissions || {},
-          });
+            tenant_id: activatedProfile.tenant_id,
+            hourly_rate: activatedProfile.hourly_rate,
+            permissions: activatedProfile.permissions,
+          };
+          const { error: insertError } = await supabase.from("users").insert(insertPayload);
+          if (insertError) throw insertError;
         } else {
-          await dataClient.entities.User.update(existingUsers[0].id, {
-            full_name: employee.full_name,
-            role: employee.role || existingUsers[0].role || "user",
-            position: employee.position || existingUsers[0].position || "",
-            employee_code: employee.employee_code || existingUsers[0].employee_code,
-            pin: pin,
-            phone: employee.phone || existingUsers[0].phone,
+          const currentUser = existingUsers[0];
+          const updatePayload = {
+            full_name: activatedProfile.full_name,
+            role: employee.role || currentUser.role || "user",
+            position: employee.position || currentUser.position || employee.role || "user",
+            employee_code: employee.employee_code || currentUser.employee_code || "",
+            pin,
+            phone: employee.phone || currentUser.phone || "",
             active: true,
-            tenant_id: employee.tenant_id || existingUsers[0].tenant_id,
-            hourly_rate: employee.hourly_rate ?? existingUsers[0].hourly_rate ?? 0,
-            permissions: employee.permissions || existingUsers[0].permissions || {},
-          });
+            tenant_id: tenantId || currentUser.tenant_id || null,
+            hourly_rate: employee.hourly_rate ?? currentUser.hourly_rate ?? 0,
+            permissions: employee.permissions || currentUser.permissions || {},
+          };
+          const { error: updateError } = await supabase
+            .from("users")
+            .update(updatePayload)
+            .eq("id", currentUser.id);
+          if (updateError) throw updateError;
         }
       } catch (userError) {
         console.error("User creation failed during activation:", userError);
-        toast.error("La cuenta se activó, pero faltó crear el perfil interno. Reintentando no debería ser necesario; revisa Gestión de Usuarios.");
+        toast.error("La cuenta se activó, pero faltó sincronizar el perfil interno en la nube.");
       }
+
+      const localUsers = readLocalUsers();
+      const dedupedUsers = localUsers.filter(
+        (candidate) =>
+          String(candidate.email || "").trim().toLowerCase() !== String(activatedProfile.email || "").trim().toLowerCase()
+      );
+      writeLocalUsers([...dedupedUsers, activatedProfile]);
 
       setSuccess(true);
       toast.success("¡Cuenta activada exitosamente!");

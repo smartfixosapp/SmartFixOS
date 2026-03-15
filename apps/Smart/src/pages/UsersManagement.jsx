@@ -564,6 +564,15 @@ export default function UsersManagement() {
       const token = `${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
       const expiresAt = new Date(Date.now() + 48 * 60 * 60 * 1000).toISOString();
 
+      const resolvedTenantId = getCurrentTenantId() || await resolveTenantIdFromSession().catch(() => null);
+      if (!resolvedTenantId) {
+        toast.error("No se pudo identificar la tienda para este usuario. Vuelve a entrar e intenta otra vez.");
+        return;
+      }
+
+      localStorage.setItem("smartfix_tenant_id", resolvedTenantId);
+      localStorage.setItem("current_tenant_id", resolvedTenantId);
+
       const cleanData = {
         full_name: userData.full_name,
         email: userData.email,
@@ -573,7 +582,7 @@ export default function UsersManagement() {
         employee_code: userData.employee_code,
         pin: userData.pin,
         hourly_rate: parseFloat(userData.hourly_rate) || 0,
-        tenant_id: getCurrentTenantId(),
+        tenant_id: resolvedTenantId,
         active: true,
         status: "pending",
         portal_access_enabled: false,
