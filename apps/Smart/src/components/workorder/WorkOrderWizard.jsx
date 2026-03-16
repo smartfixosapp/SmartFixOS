@@ -93,6 +93,49 @@ async function sendAdminNewOrderEmail({ recipients, orderNumber, customerName, d
   }
 }
 
+async function sendTechnicianAssignmentEmail({ recipient, orderNumber, customerName, deviceInfo, orderId }) {
+  const email = String(recipient?.email || "").trim();
+  if (!email) return;
+
+  const safeTech = recipient?.full_name || recipient?.name || email;
+  const safeCustomer = customerName || "Cliente";
+  const safeDevice = deviceInfo || "Equipo";
+  const safeOrder = orderNumber || "Nueva orden";
+  const actionUrl = `/Orders?order=${orderId}`;
+
+  const html = `
+    <div style="font-family:Arial,sans-serif;max-width:640px;margin:0 auto;padding:24px;background:#0b1220;color:#e5eefc;">
+      <div style="background:linear-gradient(135deg,#8b5cf6,#06b6d4);padding:24px;border-radius:16px;">
+        <h1 style="margin:0;font-size:28px;color:#ffffff;">Trabajo asignado ${safeOrder}</h1>
+        <p style="margin:10px 0 0;color:#eaffff;font-size:16px;">Se te asignó una nueva orden en SmartFixOS.</p>
+      </div>
+      <div style="background:#111827;border:1px solid #1f2937;border-radius:16px;padding:24px;margin-top:20px;">
+        <p style="margin:0 0 12px;font-size:15px;"><strong>Técnico:</strong> ${safeTech}</p>
+        <p style="margin:0 0 12px;font-size:15px;"><strong>Cliente:</strong> ${safeCustomer}</p>
+        <p style="margin:0 0 12px;font-size:15px;"><strong>Equipo:</strong> ${safeDevice}</p>
+        <p style="margin:0 0 20px;font-size:15px;"><strong>Orden:</strong> ${safeOrder}</p>
+        <a href="${actionUrl}" style="display:inline-block;padding:12px 20px;border-radius:10px;background:#22c55e;color:#052e16;text-decoration:none;font-weight:700;">Abrir orden</a>
+      </div>
+    </div>
+  `;
+
+  const response = await fetch("/api/send-raw-email", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      to: [email],
+      subject: `Trabajo asignado ${safeOrder} - ${safeCustomer}`,
+      body: html,
+      from_name: "SmartFixOS",
+    }),
+  });
+
+  const result = await response.json().catch(() => ({}));
+  if (!response.ok || result?.success === false) {
+    throw new Error(result?.error || "No se pudo enviar email de asignación");
+  }
+}
+
 const LOCAL_CUSTOMERS_KEY = "smartfix_local_customers";
 const LOCAL_DEVICE_CATALOG_KEY = "smartfix_local_device_catalog";
 const LOCAL_TIME_ENTRIES_KEY = "local_time_entries";
@@ -750,7 +793,6 @@ export default function WorkOrderWizard({ open, onClose, onSuccess, preloadedCus
   const [loading, setLoading] = useState(false);
   const [user, setUser] = useState(null);
   const [technicians, setTechnicians] = useState([]);
-  const [availableTechnicianIds, setAvailableTechnicianIds] = useState(new Set());
   
   // Cliente
   const [customerName, setCustomerName] = useState("");
@@ -1110,20 +1152,12 @@ export default function WorkOrderWizard({ open, onClose, onSuccess, preloadedCus
         }
       };
 
-      const [appEmployeesPayload, usersPayload, openPunchesPayload, allPunchesPayload] = await Promise.all([
+      const [appEmployeesPayload, usersPayload] = await Promise.all([
         safeFilter("AppEmployee", {}, undefined, 1000),
         safeFilter("User", { active: true }, undefined, 1000),
-        safeFilter("TimeEntry", { clock_out: null }, "-clock_in", 200),
-        safeFilter("TimeEntry", {}, "-clock_in", 500),
       ]);
 
       const allEmployees = [...(Array.isArray(appEmployeesPayload) ? appEmployeesPayload : []), ...(Array.isArray(usersPayload) ? usersPayload : [])];
-      const serverOpenPunches = [
-        ...(Array.isArray(openPunchesPayload) ? openPunchesPayload : []),
-        ...(Array.isArray(allPunchesPayload) ? allPunchesPayload : []).filter((p) => p && !p.clock_out),
-      ];
-      const localEntries = readLocalTimeEntries();
-      const allPunches = [...serverOpenPunches, ...localEntries];
 
       const isTechRole = (emp) => {
         const role = String(emp?.position || emp?.role || "").toLowerCase().trim();
@@ -1137,88 +1171,9 @@ export default function WorkOrderWizard({ open, onClose, onSuccess, preloadedCus
           role: u.position || u.role || "technician",
           full_name: u.full_name || u.name || u.email || "Tecnico",
         }));
-      const dedupedServerTechs = dedupeTechnicians(techs);
-
-      const employeeLatestPunch = new Map();
-      const getPunchKeys = (entry) => {
-        const keys = [];
-        const idKey = String(entry?.employee_id || "").trim().toLowerCase();
-        const nameKey = String(entry?.employee_name || "").trim().toLowerCase();
-        const emailKey = String(entry?.employee_email || "").trim().toLowerCase();
-        if (idKey) keys.push(idKey);
-        if (nameKey) keys.push(nameKey);
-        if (emailKey) keys.push(emailKey);
-        return keys;
-      };
-
-      for (const punch of allPunches) {
-        if (!punch) continue;
-        const ts = new Date(punch?.clock_in || punch?.created_date || 0).getTime() || 0;
-        const keys = getPunchKeys(punch);
-        for (const key of keys) {
-          const prev = employeeLatestPunch.get(key);
-          const prevTs = new Date(prev?.clock_in || prev?.created_date || 0).getTime() || 0;
-          if (!prev || ts >= prevTs) {
-            employeeLatestPunch.set(key, punch);
-          }
-        }
-      }
-
-      const openPunches = Array.from(employeeLatestPunch.values()).filter((p) => p && !p.clock_out);
-      const openKeys = new Set();
-      for (const p of openPunches) {
-        for (const key of getPunchKeys(p)) openKeys.add(key);
-      }
-
-      // Fallback: si existen ponches abiertos sin match contra AppEmployee,
-      // mostrarlos como técnicos temporales para no dejar la UI en 0.
-      const fallbackTechs = [];
-      for (const p of openPunches) {
-        const pid = String(p?.employee_id || "").trim();
-        const pname = String(p?.employee_name || "").trim();
-        if (!pid && !pname) continue;
-
-        const alreadyExists = dedupedServerTechs.some((tech) => {
-          const keys = [
-            String(tech?.id || "").trim().toLowerCase(),
-            String(tech?.email || "").trim().toLowerCase(),
-            String(tech?.employee_code || "").trim().toLowerCase(),
-            String(tech?.full_name || "").trim().toLowerCase()
-          ].filter(Boolean);
-          const targetKeys = [pid.toLowerCase(), pname.toLowerCase()].filter(Boolean);
-          return targetKeys.some((k) => keys.includes(k));
-        });
-        if (alreadyExists) continue;
-
-        fallbackTechs.push({
-          id: pid || `punch-${pname.toLowerCase().replace(/\s+/g, "-")}`,
-          full_name: pname || pid,
-          email: "",
-          role: "technician",
-          _fallback_from_punch: true
-        });
-      }
-
-      const mergedTechs = dedupeTechnicians([...dedupedServerTechs, ...fallbackTechs]);
-      const mergedAvailableIds = new Set(
-        mergedTechs
-          .filter((tech) => {
-            const keys = [
-              String(tech?.id || "").trim().toLowerCase(),
-              String(tech?.email || "").trim().toLowerCase(),
-              String(tech?.employee_code || "").trim().toLowerCase(),
-              String(tech?.full_name || "").trim().toLowerCase()
-            ].filter(Boolean);
-            return keys.some((key) => openKeys.has(key));
-          })
-          .map((tech) => tech.id)
-      );
-
-      setTechnicians(mergedTechs);
-      setAvailableTechnicianIds(mergedAvailableIds);
+      setTechnicians(dedupeTechnicians(techs));
     } catch {
       setTechnicians([]);
-      setAvailableTechnicianIds(new Set());
     }
   };
 
@@ -1242,16 +1197,6 @@ export default function WorkOrderWizard({ open, onClose, onSuccess, preloadedCus
     }, 8000);
     return () => clearInterval(iv);
   }, [open]);
-
-  const availableTechnicians = useMemo(
-    () => technicians.filter((tech) => availableTechnicianIds.has(tech.id)),
-    [technicians, availableTechnicianIds]
-  );
-
-  const unavailableTechnicians = useMemo(
-    () => technicians.filter((tech) => !availableTechnicianIds.has(tech.id)),
-    [technicians, availableTechnicianIds]
-  );
 
   const loadTypes = async () => {
     const localCatalog = readLocalDeviceCatalog();
@@ -1560,8 +1505,34 @@ export default function WorkOrderWizard({ open, onClose, onSuccess, preloadedCus
       const familyLower = normalizedText(deviceFamily);
       const brandLower = normalizedText(deviceBrand?.name);
       const typeLower = normalizedText(deviceType);
+      const normalizedTypeKey = normalizedNameKey(deviceType);
+
+      const aliasForType = () => {
+        if (normalizedTypeKey.includes("tablet")) return ["tablet", "ipad"];
+        if (
+          normalizedTypeKey.includes("laptop") ||
+          normalizedTypeKey.includes("pc") ||
+          normalizedTypeKey.includes("desktop") ||
+          normalizedTypeKey.includes("computadora")
+        ) {
+          return ["laptop", "pc", "desktop", "computadora", "computer"];
+        }
+        if (normalizedTypeKey.includes("watch") || normalizedTypeKey.includes("reloj")) return ["watch", "reloj"];
+        return ["smartphone", "phone", "celular", "mobile"];
+      };
 
       const deviceCategoryMatch = (product) => {
+        if (!normalizedTypeKey) return true;
+        const exactFields = [
+          product?.device_category,
+          product?.category,
+          product?.part_type,
+          product?.tipo_principal,
+          product?.subcategoria
+        ].map((value) => normalizedNameKey(value));
+
+        if (exactFields.includes(normalizedTypeKey)) return true;
+
         const haystack = [
           product?.device_category,
           product?.category,
@@ -1573,29 +1544,8 @@ export default function WorkOrderWizard({ open, onClose, onSuccess, preloadedCus
           .filter(Boolean)
           .join(" ")
           .toLowerCase();
-        if (!typeLower) return true;
-        if (typeLower.includes("tablet")) return haystack.includes("tablet") || haystack.includes("ipad");
-        if (
-          typeLower.includes("laptop") ||
-          typeLower.includes("pc") ||
-          typeLower.includes("desktop") ||
-          typeLower.includes("computadora")
-        ) {
-          return (
-            haystack.includes("laptop") ||
-            haystack.includes("pc") ||
-            haystack.includes("desktop") ||
-            haystack.includes("computadora")
-          );
-        }
-        if (typeLower.includes("accesorio")) return haystack.includes("accesorio");
-        return (
-          haystack.includes("phone") ||
-          haystack.includes("iphone") ||
-          haystack.includes("galaxy") ||
-          haystack.includes("celular") ||
-          haystack.includes("smartphone")
-        );
+
+        return aliasForType().some((alias) => haystack.includes(alias));
       };
 
       const filtered = allProducts.filter(p => {
@@ -1603,18 +1553,47 @@ export default function WorkOrderWizard({ open, onClose, onSuccess, preloadedCus
         const compatModels = Array.isArray(p.compatibility_models) ? p.compatibility_models : [];
         const compatFamilies = Array.isArray(p.compatible_families) ? p.compatible_families : [];
         const compatBrands = Array.isArray(p.compatible_brands) ? p.compatible_brands : [];
-        const hasCompatMatch = compatModels.some(m => normalizedText(m).includes(modelLower));
-        const hasFamilyMatch = familyLower && compatFamilies.some(f => normalizedText(f).includes(familyLower));
-        const hasBrandMatch = brandLower && compatBrands.some(b => normalizedText(b).includes(brandLower));
+        const hasModelCompatExact = compatModels.some(m => normalizedText(m) === modelLower);
+        const hasModelCompatLoose = compatModels.some(m => normalizedText(m).includes(modelLower));
+        const hasFamilyMatch = familyLower && compatFamilies.some(f => normalizedText(f) === familyLower || normalizedText(f).includes(familyLower));
+        const hasBrandMatch = brandLower && compatBrands.some(b => normalizedText(b) === brandLower || normalizedText(b).includes(brandLower));
+        const nameHasExactModel = nameLower.includes(modelLower);
+        const nameHasFamily = familyLower && nameLower.includes(familyLower);
+        const nameHasBrand = brandLower && nameLower.includes(brandLower);
+        const typeExactInProduct =
+          normalizedNameKey(p?.device_category) === normalizedTypeKey ||
+          normalizedNameKey(p?.category) === normalizedTypeKey ||
+          normalizedNameKey(p?.part_type) === normalizedTypeKey ||
+          normalizedNameKey(p?.tipo_principal) === normalizedTypeKey;
         const nameMatch =
-          nameLower.includes(modelLower) ||
-          (familyLower && nameLower.includes(familyLower)) ||
-          (brandLower && nameLower.includes(brandLower));
+          nameHasExactModel ||
+          nameHasFamily ||
+          nameHasBrand;
 
-        return deviceCategoryMatch(p) && (nameMatch || hasCompatMatch || hasFamilyMatch || hasBrandMatch);
+        const categoryMatched = deviceCategoryMatch(p) || typeExactInProduct;
+        const strongMatch = hasModelCompatExact || nameHasExactModel;
+        const mediumMatch = hasModelCompatLoose || hasFamilyMatch || hasBrandMatch || nameMatch;
+
+        return categoryMatched && (strongMatch || mediumMatch);
       });
-      
-      setSuggestedProducts(filtered.slice(0, 8));
+
+      const ranked = filtered.sort((a, b) => {
+        const score = (product) => {
+          const nameLower = normalizedText(product.name || "");
+          const compatModels = Array.isArray(product.compatibility_models) ? product.compatibility_models : [];
+          let value = 0;
+          if (normalizedNameKey(product?.device_category) === normalizedTypeKey) value += 20;
+          if (normalizedNameKey(product?.category) === normalizedTypeKey) value += 20;
+          if (compatModels.some((m) => normalizedText(m) === modelLower)) value += 100;
+          if (nameLower.includes(modelLower)) value += 80;
+          if (familyLower && nameLower.includes(familyLower)) value += 30;
+          if (brandLower && nameLower.includes(brandLower)) value += 15;
+          return value;
+        };
+        return score(b) - score(a);
+      });
+
+      setSuggestedProducts(ranked.slice(0, 8));
     } catch {
       setSuggestedProducts([]);
     }
@@ -2738,6 +2717,33 @@ export default function WorkOrderWizard({ open, onClose, onSuccess, preloadedCus
           deviceInfo: `${brandName} ${deviceModel}`.trim(),
           orderId: newOrder.id,
         });
+
+        if (assignedTo?.id) {
+          await NotificationService.createNotification({
+            userId: assignedTo.id,
+            userEmail: assignedTo.email,
+            type: "assignment",
+            title: `Se te asignó la orden #${newOrder.order_number}`,
+            body: `${fullName} - ${brandName} ${deviceModel}`,
+            relatedEntityType: "order",
+            relatedEntityId: newOrder.id,
+            relatedEntityNumber: newOrder.order_number,
+            actionUrl: `/Orders?order=${newOrder.id}`,
+            actionLabel: "Abrir orden",
+            priority: "high",
+            metadata: {
+              assigned_by: user?.full_name || user?.email || "System"
+            }
+          });
+
+          await sendTechnicianAssignmentEmail({
+            recipient: assignedTo,
+            orderNumber: newOrder.order_number,
+            customerName: fullName,
+            deviceInfo: `${brandName} ${deviceModel}`.trim(),
+            orderId: newOrder.id,
+          });
+        }
       } catch (err) {
         console.error("Error notifications:", err);
       }
@@ -3164,7 +3170,7 @@ export default function WorkOrderWizard({ open, onClose, onSuccess, preloadedCus
               </div>
               Técnico (opcional)
             </h3>
-            
+
             <div className="space-y-3">
               <button
                 onClick={() => setAssignedTo(null)}
@@ -3179,16 +3185,16 @@ export default function WorkOrderWizard({ open, onClose, onSuccess, preloadedCus
 
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
-                  <p className="text-[11px] uppercase tracking-[0.2em] text-emerald-300/80">Disponibles</p>
-                  <span className="text-[10px] text-white/45">{availableTechnicians.length}</span>
+                  <p className="text-[11px] uppercase tracking-[0.2em] text-emerald-300/80">Técnicos</p>
+                  <span className="text-[10px] text-white/45">{technicians.length}</span>
                 </div>
                 <div className="grid grid-cols-1 gap-2">
-                  {availableTechnicians.length === 0 && (
+                  {technicians.length === 0 && (
                     <div className="rounded-lg border border-white/10 bg-black/20 px-3 py-2 text-xs text-white/45">
-                      No hay técnicos ponchados ahora mismo
+                      No hay técnicos disponibles para asignar ahora mismo
                     </div>
                   )}
-                  {availableTechnicians.map((tech) => (
+                  {technicians.map((tech) => (
                     <button
                       key={tech.id}
                       onClick={() => setAssignedTo(tech)}
@@ -3204,38 +3210,9 @@ export default function WorkOrderWizard({ open, onClose, onSuccess, preloadedCus
                         </div>
                         <span className="truncate">{tech.full_name || tech.email}</span>
                       </div>
-                      <span className="text-[10px] text-emerald-200">Activo</span>
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                <div className="flex items-center justify-between">
-                  <p className="text-[11px] uppercase tracking-[0.2em] text-amber-300/80">No disponibles</p>
-                  <span className="text-[10px] text-white/45">{unavailableTechnicians.length}</span>
-                </div>
-                <div className="grid grid-cols-1 gap-2">
-                  {unavailableTechnicians.map((tech) => (
-                    <button
-                      key={tech.id}
-                      onClick={() => {
-                        setAssignedTo(tech);
-                        toast.info(`${tech.full_name || tech.email} no está ponchado ahora mismo.`);
-                      }}
-                      className={`px-3 py-2 rounded-lg text-xs border transition-all flex items-center gap-2 justify-between ${
-                        assignedTo?.id === tech.id
-                          ? "bg-gradient-to-r from-amber-600 to-orange-600 border-amber-400 text-white"
-                          : "bg-black/20 border-white/10 text-gray-300 hover:bg-white/5"
-                      }`}
-                    >
-                      <div className="flex items-center gap-2 min-w-0">
-                        <div className="w-5 h-5 rounded-full bg-white/10 flex items-center justify-center text-white text-[10px] font-bold">
-                          {(tech.full_name || tech.email || "?")[0].toUpperCase()}
-                        </div>
-                        <span className="truncate">{tech.full_name || tech.email}</span>
-                      </div>
-                      <span className="text-[10px] text-amber-200">No activo</span>
+                      <span className="text-[10px] text-emerald-200 capitalize">
+                        {String(tech.role || tech.position || "technician").replace("_", " ")}
+                      </span>
                     </button>
                   ))}
                 </div>
