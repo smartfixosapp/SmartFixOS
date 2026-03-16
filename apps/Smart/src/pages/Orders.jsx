@@ -337,7 +337,9 @@ export default function OrdersPage() {
         setOrders((prev) => mergeOrders([updatedOrder], prev || []));
         setSelectedOrder((prev) => {
           if (!prev) return prev;
-          return String(prev?.id || "") === String(updatedOrder.id) ? updatedOrder : prev;
+          return String(prev?.id || "") === String(updatedOrder.id)
+            ? { ...prev, ...updatedOrder }
+            : prev;
         });
       }
     };

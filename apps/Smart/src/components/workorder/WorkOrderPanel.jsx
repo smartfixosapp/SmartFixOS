@@ -217,6 +217,11 @@ function findLocalOrder(orderId) {
   ) || null;
 }
 
+function mergeOrderSnapshot(remoteOrder, localOrder) {
+  if (remoteOrder && localOrder) return { ...remoteOrder, ...localOrder };
+  return remoteOrder || localOrder || null;
+}
+
 function extractOrderSequence(orderNumber) {
   const raw = String(orderNumber || "").trim();
   const match = raw.match(/^WO-(\d+)$/i);
@@ -1069,8 +1074,11 @@ function OrderItemsSection({ order, onUpdated, clearEventCache, loadEventsCallba
   const tax = taxableAmount * taxRate;
   const total = subtotal + tax;
 
-  const totalPaid = Number(o.total_paid || o.amount_paid || o.deposit_amount || 0);
-  const balance = Math.max(0, total - totalPaid);
+  const totalPaid = Number(o.amount_paid ?? o.total_paid ?? o.deposit_amount ?? 0);
+  const balance =
+    o.balance_due != null
+      ? Math.max(0, Number(o.balance_due || 0))
+      : Math.max(0, total - totalPaid);
   const isPaid = balance <= 0.01;
 
   const handleDepositoClick = () => {
@@ -1200,6 +1208,7 @@ function OrderItemsSection({ order, onUpdated, clearEventCache, loadEventsCallba
         <div className="grid grid-cols-2 gap-3">
           <Button
             onClick={handleDepositoClick}
+            disabled={isPaid}
             className="h-12 bg-gradient-to-r from-emerald-600 to-green-600 hover:from-emerald-700 hover:to-green-700 flex flex-col items-center justify-center gap-1"
           >
             <div className="flex items-center gap-2">
@@ -1351,8 +1360,11 @@ export default function WorkOrderPanel({ orderId, onClose, onUpdate, onDelete, p
   const handleCobrarClick = useCallback(() => {
     if (!order) return;
     const total = Number(order.total || 0);
-    const totalPaid = Number(order.total_paid || order.amount_paid || 0);
-    const balance = Math.max(0, total - totalPaid);
+    const totalPaid = Number(order.amount_paid ?? order.total_paid ?? 0);
+    const balance =
+      order.balance_due != null
+        ? Math.max(0, Number(order.balance_due || 0))
+        : Math.max(0, total - totalPaid);
 
     // Default behavior for header button: go to POS for full payment
     navigate(createPageUrl(`POS?workOrderId=${order.id}&balance=${balance}&mode=full`), { state: { fromDashboard: true, paymentMode: "full", workOrder: order, balanceDue: balance, openPaymentImmediately: true } });
@@ -1365,7 +1377,7 @@ export default function WorkOrderPanel({ orderId, onClose, onUpdate, onDelete, p
       const updatedOrder = event?.detail?.order;
       if (!updatedOrder?.id) return;
       if (String(updatedOrder.id) !== String(orderId)) return;
-      setOrder(updatedOrder);
+        setOrder((prev) => ({ ...(prev || {}), ...updatedOrder }));
     };
 
     window.addEventListener("sale-completed", handleSaleCompleted);
@@ -1502,9 +1514,10 @@ export default function WorkOrderPanel({ orderId, onClose, onUpdate, onDelete, p
     setLoading(true);
     setLoadError(null);
     try {
-      const data = await base44.entities.Order.get(orderId);
-      setOrder(data);
-      setStatus(normalizeStatusId(data.status || "intake"));
+      const remoteOrder = await base44.entities.Order.get(orderId);
+      const mergedOrder = mergeOrderSnapshot(remoteOrder, findLocalOrder(orderId));
+      setOrder(mergedOrder);
+      setStatus(normalizeStatusId(mergedOrder?.status || remoteOrder?.status || "intake"));
       clearEventCache(orderId);
       await loadEventsCallback(true);
       onUpdate?.();
@@ -1545,7 +1558,7 @@ export default function WorkOrderPanel({ orderId, onClose, onUpdate, onDelete, p
         // Recargar la orden desde la DB
         try {
           const freshOrder = await base44.entities.Order.get(eventOrderId);
-          setOrder(freshOrder);
+          setOrder(mergeOrderSnapshot(freshOrder, findLocalOrder(eventOrderId)));
           clearEventCache(eventOrderId);
           await loadEventsCallback(true);
           onUpdate?.();
@@ -1677,9 +1690,7 @@ export default function WorkOrderPanel({ orderId, onClose, onUpdate, onDelete, p
         } catch (e) {
           console.error("[WorkOrderPanel] Error fetching order:", e.message || e);
         }
-        if (!data) {
-          data = findLocalOrder(orderId);
-        }
+        data = mergeOrderSnapshot(data, findLocalOrder(orderId));
 
         if (!mounted) return;
 
@@ -1978,9 +1989,12 @@ export default function WorkOrderPanel({ orderId, onClose, onUpdate, onDelete, p
 
     // ✅ VERIFICACIÓN DE BALANCE PARA ESTADO "delivered"
     if (nextId === "delivered") {
-      const total = Number(order.total || order.cost_estimate || 0); // Prioritize 'total' if available, then 'cost_estimate'
-      const totalPaid = Number(order.total_paid || order.amount_paid || 0);
-      const balance = Math.max(0, total - totalPaid);
+      const total = Number(order.total || order.cost_estimate || 0);
+      const totalPaid = Number(order.amount_paid ?? order.total_paid ?? 0);
+      const balance =
+        order.balance_due != null
+          ? Math.max(0, Number(order.balance_due || 0))
+          : Math.max(0, total - totalPaid);
 
       console.log("[ChangeStatus] Verificando balance para 'delivered' status:", { total, totalPaid, balance });
 

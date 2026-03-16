@@ -502,11 +502,13 @@ export default function Punches() {
     if (!selectedEmployeeForPayment) return;
     
     try {
+      const paymentAmount = parseFloat(amount);
+      const me = await base44.auth.me().catch(() => null);
       await dataClient.entities.EmployeePayment.create({
         employee_id: selectedEmployeeForPayment.id,
         employee_name: selectedEmployeeForPayment.name,
         employee_code: employees.find(e => e.id === selectedEmployeeForPayment.id)?.employee_code || "",
-        amount: parseFloat(amount),
+        amount: paymentAmount,
         payment_type: type,
         payment_method: "transfer",
         period_start: from.toISOString(),
@@ -515,13 +517,23 @@ export default function Punches() {
         paid_by: session?.userId,
         paid_by_name: session?.userName
       });
+
+      await dataClient.entities.Transaction.create({
+        type: "expense",
+        amount: Math.abs(paymentAmount),
+        category: "payroll",
+        description: `Pago de nómina - ${selectedEmployeeForPayment.name} (${type}) [transfer]`,
+        payment_method: "transfer",
+        recorded_by: me?.full_name || me?.email || session?.userName || "Sistema"
+      });
       
       setPaymentModalOpen(false);
       setSelectedEmployeeForPayment(null);
       loadEntries();
+      window.dispatchEvent(new Event("expense-created"));
     } catch (e) {
       console.error("Error processing payment:", e);
-      alert("Error al procesar el pago");
+      alert(`Error al procesar el pago${e?.message ? `: ${e.message}` : ""}`);
     }
   };
 

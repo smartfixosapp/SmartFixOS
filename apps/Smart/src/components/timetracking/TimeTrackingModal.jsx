@@ -135,6 +135,11 @@ async function insertSupabaseRecordWithTenantRetry(table, payload) {
   throw lastError || new Error(`${table.toUpperCase()}_INSERT_FAILED`);
 }
 
+function normalizeExpenseCategory(category) {
+  const validCategories = new Set(["other_expense", "parts", "payroll", "repair_payment", "supplies", "refund"]);
+  return validCategories.has(category) ? category : "other_expense";
+}
+
 function readLocalFallbackEmployees() {
   try {
     const raw = localStorage.getItem(LOCAL_USERS_STORAGE_KEY);
@@ -1335,7 +1340,7 @@ export default function TimeTrackingModal({ open, onClose, session }) {
         : notes;
 
       // ✅ 1. Crear registro de pago al empleado
-      await insertSupabaseRecordWithTenantRetry("employee_payment", {
+      const employeePaymentPayload = {
         employee_id: selectedEmployeeForPayment.id,
         employee_name: selectedEmployeeForPayment.name,
         employee_code: employees.find((e) => e.id === selectedEmployeeForPayment.id)?.employee_code || "",
@@ -1348,18 +1353,30 @@ export default function TimeTrackingModal({ open, onClose, session }) {
         paid_by: currentUser?.id || session?.userId,
         paid_by_name: currentUser?.full_name || session?.userName,
         tenant_id: tenantId
-      });
+      };
+
+      try {
+        await dataClient.entities.EmployeePayment.create(employeePaymentPayload);
+      } catch {
+        await insertSupabaseRecordWithTenantRetry("employee_payment", employeePaymentPayload);
+      }
 
       // ✅ 2. Registrar como gasto (expense) en transacciones
-      await insertSupabaseRecordWithTenantRetry("transaction", {
+      const transactionPayload = {
         type: "expense",
-        amount: -Math.abs(paymentAmount),
-        category: "other_expense",
+        amount: Math.abs(paymentAmount),
+        category: normalizeExpenseCategory("payroll"),
         description: `Pago de nómina - ${selectedEmployeeForPayment.name} (${type}) [${paymentMethod}]`,
-        payment_method: paymentMethod,
+        payment_method: normalizedPaymentMethod,
         recorded_by: currentUser?.full_name || session?.userName || "Sistema",
         tenant_id: tenantId
-      });
+      };
+
+      try {
+        await dataClient.entities.Transaction.create(transactionPayload);
+      } catch {
+        await insertSupabaseRecordWithTenantRetry("transaction", transactionPayload);
+      }
 
       // ✅ 3. RESETEAR las horas trabajadas del empleado en el periodo
       // Obtener todos los time entries del empleado en el periodo de pago
@@ -1397,7 +1414,7 @@ export default function TimeTrackingModal({ open, onClose, session }) {
 
     } catch (e) {
       console.error("Error processing payment:", e);
-      alert("Error al procesar el pago");
+      alert(`Error al procesar el pago${e?.message ? `: ${e.message}` : ""}`);
     }
   };
 
