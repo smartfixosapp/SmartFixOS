@@ -28,10 +28,11 @@ export async function recordSaleAndTransactions({ sale, transactions = [] }) {
     tenantId && !tx?.tenant_id ? { ...tx, tenant_id: tenantId } : tx
   );
 
-  const response = await fetch("/api/record-sale", {
+  const response = await fetch("/api/cash-register", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
+      action: "record_sale",
       sale: salePayload,
       transactions: transactionPayloads,
     }),

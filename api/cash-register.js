@@ -259,6 +259,29 @@ async function handleClose(req, res, body) {
   return res.status(200).json({ success: true, drawer, difference });
 }
 
+async function handleRecordSale(req, res, body) {
+  const { sale, transactions = [] } = body || {};
+
+  if (!sale || !Array.isArray(sale.items) || sale.items.length === 0) {
+    return res.status(400).json({ success: false, error: 'Payload de venta inválido' });
+  }
+
+  const createdSaleRows = await sbInsert('sale', sale);
+  const createdSale = Array.isArray(createdSaleRows) ? createdSaleRows[0] : createdSaleRows;
+
+  const createdTransactions = [];
+  for (const tx of transactions) {
+    const createdTxRows = await sbInsert('transaction', tx);
+    createdTransactions.push(Array.isArray(createdTxRows) ? createdTxRows[0] : createdTxRows);
+  }
+
+  return res.status(200).json({
+    success: true,
+    sale: createdSale,
+    transactions: createdTransactions,
+  });
+}
+
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
@@ -275,6 +298,7 @@ export default async function handler(req, res) {
     const action = String(body?.action || '').toLowerCase();
     if (action === 'open') return await handleOpen(req, res, body);
     if (action === 'close') return await handleClose(req, res, body);
+    if (action === 'record_sale') return await handleRecordSale(req, res, body);
     return res.status(400).json({ success: false, error: 'Acción inválida' });
   } catch (error) {
     console.error('cash-register error:', error.message);
