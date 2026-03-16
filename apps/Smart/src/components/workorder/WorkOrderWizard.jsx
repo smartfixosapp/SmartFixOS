@@ -3585,6 +3585,7 @@ export default function WorkOrderWizard({ open, onClose, onSuccess, preloadedCus
                   )}
                 </Droppable>
                 )}
+              </div>
               <div>
                 <label className="text-sm text-white/70 mb-2 block">Marca</label>
                 {loadingDeviceCatalogBrands && deviceCatalogBrands.length === 0 ? (
@@ -3682,6 +3683,7 @@ export default function WorkOrderWizard({ open, onClose, onSuccess, preloadedCus
                   )}
                 </Droppable>
                 )}
+              </div>
               <div>
                 <label className="text-sm text-white/70 mb-2 block">Línea / familia</label>
                 {loadingDeviceCatalogFamilies && deviceCatalogFamilies.length === 0 ? (
@@ -3773,6 +3775,7 @@ export default function WorkOrderWizard({ open, onClose, onSuccess, preloadedCus
                   )}
                 </Droppable>
                 )}
+              </div>
               <div>
                 <label className="text-sm text-white/70 mb-2 block">Modelo</label>
                 {loadingDeviceCatalogModels && deviceCatalogModels.length === 0 ? (
@@ -3870,6 +3873,7 @@ export default function WorkOrderWizard({ open, onClose, onSuccess, preloadedCus
                     </p>
                   )}
                 </div>
+              </div>
               </div>
             </DragDropContext>
             <div className="px-6 pb-6 flex gap-3">
