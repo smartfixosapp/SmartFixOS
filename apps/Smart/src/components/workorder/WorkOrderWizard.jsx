@@ -194,6 +194,7 @@ function readLocalTimeEntries() {
 function writeLocalDeviceCatalog(catalog) {
   try {
     localStorage.setItem(LOCAL_DEVICE_CATALOG_KEY, JSON.stringify(normalizeLocalDeviceCatalog(catalog)));
+    window.dispatchEvent(new CustomEvent("smartfix:device-catalog-updated"));
   } catch {
     // no-op
   }

@@ -4,10 +4,318 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
+import { catalogCache } from "@/components/utils/dataCache";
 import { toast } from "sonner";
 import { ChevronDown, Laptop, Plus, Smartphone, Trash2, Wrench } from "lucide-react";
 
 const normalized = (value) => String(value || "").trim().toLowerCase();
+const normalizedNameKey = (value = "") =>
+  String(value)
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/\s+/g, " ")
+    .trim()
+    .toLowerCase();
+const LOCAL_DEVICE_CATALOG_KEY = "smartfix_local_device_catalog";
+const DEVICE_CATALOG_UPDATED_EVENT = "smartfix:device-catalog-updated";
+
+function isLocalCatalogId(id) {
+  return String(id || "").startsWith("local-device-");
+}
+
+function getCatalogOrderValue(item) {
+  const value = Number(item?.order);
+  return Number.isFinite(value) ? value : Number.MAX_SAFE_INTEGER;
+}
+
+function isPreferredCatalogEntry(next, current) {
+  const nextActive = next?.active !== false;
+  const currentActive = current?.active !== false;
+  if (nextActive !== currentActive) return nextActive;
+
+  const nextRemote = !isLocalCatalogId(next?.id);
+  const currentRemote = !isLocalCatalogId(current?.id);
+  if (nextRemote !== currentRemote) return nextRemote;
+
+  const nextOrder = getCatalogOrderValue(next);
+  const currentOrder = getCatalogOrderValue(current);
+  if (nextOrder !== currentOrder) return nextOrder < currentOrder;
+
+  return String(next?.id || "") < String(current?.id || "");
+}
+
+function dedupeCatalogEntries(list = [], keyBuilder = (item) => item?.id) {
+  const out = [];
+  const keyToIndex = new Map();
+
+  for (const item of list) {
+    if (!item) continue;
+    const key = keyBuilder(item);
+    if (!key) continue;
+
+    const existingIndex = keyToIndex.get(key);
+    if (existingIndex === undefined) {
+      keyToIndex.set(key, out.length);
+      out.push(item);
+      continue;
+    }
+
+    if (isPreferredCatalogEntry(item, out[existingIndex])) {
+      out[existingIndex] = item;
+    }
+  }
+
+  return out.sort((a, b) => {
+    const orderDiff = getCatalogOrderValue(a) - getCatalogOrderValue(b);
+    if (orderDiff !== 0) return orderDiff;
+    return normalizedNameKey(a?.name).localeCompare(normalizedNameKey(b?.name));
+  });
+}
+
+function dispatchDeviceCatalogUpdated() {
+  window.dispatchEvent(new CustomEvent(DEVICE_CATALOG_UPDATED_EVENT));
+}
+
+function normalizeLocalDeviceCatalog(catalog = {}) {
+  const input = {
+    categories: Array.isArray(catalog?.categories) ? catalog.categories : [],
+    brands: Array.isArray(catalog?.brands) ? catalog.brands : [],
+    families: Array.isArray(catalog?.families) ? catalog.families : [],
+    models: Array.isArray(catalog?.models) ? catalog.models : []
+  };
+
+  const categories = [];
+  const categoryMap = new Map();
+  const categoryIdMap = new Map();
+  for (const category of dedupeCatalogEntries(input.categories, (item) => normalizedNameKey(item?.name))) {
+    const key = normalizedNameKey(category?.name);
+    if (!key) continue;
+    const canonical = categoryMap.get(key) || {
+      ...category,
+      name: String(category?.name || "").trim()
+    };
+    if (!categoryMap.has(key)) {
+      categoryMap.set(key, canonical);
+      categories.push(canonical);
+    }
+    if (category?.id) categoryIdMap.set(category.id, canonical.id);
+  }
+  categories.forEach((item, index) => {
+    item.order = index + 1;
+  });
+
+  const brands = [];
+  const brandMap = new Map();
+  const brandIdMap = new Map();
+  for (const brand of dedupeCatalogEntries(input.brands, (item) => {
+    const scopedCategoryId = categoryIdMap.get(item?.category_id) || item?.category_id || "";
+    return `${scopedCategoryId}::${normalizedNameKey(item?.name)}`;
+  })) {
+    const canonicalCategoryId = categoryIdMap.get(brand?.category_id) || brand?.category_id || "";
+    const key = `${canonicalCategoryId}::${normalizedNameKey(brand?.name)}`;
+    if (!normalizedNameKey(brand?.name)) continue;
+    const canonical = brandMap.get(key) || {
+      ...brand,
+      name: String(brand?.name || "").trim(),
+      category_id: canonicalCategoryId || null
+    };
+    if (!brandMap.has(key)) {
+      brandMap.set(key, canonical);
+      brands.push(canonical);
+    }
+    if (brand?.id) brandIdMap.set(brand.id, canonical.id);
+  }
+  brands.forEach((item, index) => {
+    item.order = index + 1;
+  });
+
+  const families = [];
+  const familyMap = new Map();
+  const familyIdMap = new Map();
+  for (const family of dedupeCatalogEntries(input.families, (item) => {
+    const scopedBrandId = brandIdMap.get(item?.brand_id) || item?.brand_id || "";
+    return `${scopedBrandId}::${normalizedNameKey(item?.name)}`;
+  })) {
+    const canonicalBrandId = brandIdMap.get(family?.brand_id) || family?.brand_id || "";
+    const key = `${canonicalBrandId}::${normalizedNameKey(family?.name)}`;
+    if (!normalizedNameKey(family?.name)) continue;
+    const canonical = familyMap.get(key) || {
+      ...family,
+      name: String(family?.name || "").trim(),
+      brand_id: canonicalBrandId || null
+    };
+    if (!familyMap.has(key)) {
+      familyMap.set(key, canonical);
+      families.push(canonical);
+    }
+    if (family?.id) familyIdMap.set(family.id, canonical.id);
+  }
+  families.forEach((item, index) => {
+    item.order = index + 1;
+  });
+
+  const familyNameById = new Map(families.map((item) => [item.id, item.name]));
+  const models = [];
+  const modelMap = new Map();
+  for (const model of dedupeCatalogEntries(input.models, (item) => {
+    const scopedBrandId = brandIdMap.get(item?.brand_id) || item?.brand_id || "";
+    const scopedFamilyId = familyIdMap.get(item?.family_id) || item?.family_id || normalizedNameKey(item?.family);
+    return `${scopedBrandId}::${scopedFamilyId}::${normalizedNameKey(item?.name)}`;
+  })) {
+    const canonicalBrandId = brandIdMap.get(model?.brand_id) || model?.brand_id || "";
+    const canonicalFamilyId = familyIdMap.get(model?.family_id) || model?.family_id || null;
+    const canonicalFamilyName = canonicalFamilyId
+      ? familyNameById.get(canonicalFamilyId) || model?.family || ""
+      : model?.family || "";
+    const key = `${canonicalBrandId}::${canonicalFamilyId || normalizedNameKey(canonicalFamilyName)}::${normalizedNameKey(model?.name)}`;
+    if (!normalizedNameKey(model?.name) || modelMap.has(key)) continue;
+    modelMap.set(key, true);
+    models.push({
+      ...model,
+      name: String(model?.name || "").trim(),
+      brand_id: canonicalBrandId || null,
+      family_id: canonicalFamilyId,
+      family: canonicalFamilyName ? String(canonicalFamilyName).trim() : ""
+    });
+  }
+  models.forEach((item, index) => {
+    item.order = index + 1;
+  });
+
+  return { categories, brands, families, models };
+}
+
+function readLocalDeviceCatalog() {
+  try {
+    const raw = localStorage.getItem(LOCAL_DEVICE_CATALOG_KEY);
+    const parsed = raw ? JSON.parse(raw) : { categories: [], brands: [], families: [], models: [] };
+    const normalizedCatalog = normalizeLocalDeviceCatalog(parsed);
+    if (JSON.stringify(parsed) !== JSON.stringify(normalizedCatalog)) {
+      localStorage.setItem(LOCAL_DEVICE_CATALOG_KEY, JSON.stringify(normalizedCatalog));
+    }
+    return normalizedCatalog;
+  } catch {
+    return { categories: [], brands: [], families: [], models: [] };
+  }
+}
+
+function writeLocalDeviceCatalog(catalog) {
+  const normalizedCatalog = normalizeLocalDeviceCatalog(catalog);
+  localStorage.setItem(LOCAL_DEVICE_CATALOG_KEY, JSON.stringify(normalizedCatalog));
+  dispatchDeviceCatalogUpdated();
+}
+
+function ensureLocalCategory(catalog, name) {
+  let category = catalog.categories.find((item) => normalizedNameKey(item?.name) === normalizedNameKey(name));
+  if (!category) {
+    category = {
+      id: `local-device-category-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+      name,
+      active: true,
+      order: catalog.categories.length + 1
+    };
+    catalog.categories.unshift(category);
+  }
+  return category;
+}
+
+function ensureLocalBrand(catalog, categoryName, brandName) {
+  const category = ensureLocalCategory(catalog, categoryName);
+  let brand = catalog.brands.find(
+    (item) =>
+      item?.category_id === category.id &&
+      normalizedNameKey(item?.name) === normalizedNameKey(brandName)
+  );
+  if (!brand) {
+    brand = {
+      id: `local-device-brand-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+      name: brandName,
+      category_id: category.id,
+      active: true,
+      order: catalog.brands.filter((item) => item?.category_id === category.id).length + 1
+    };
+    catalog.brands.unshift(brand);
+  }
+  return { category, brand };
+}
+
+function ensureLocalFamily(catalog, categoryName, brandName, familyName) {
+  const { category, brand } = ensureLocalBrand(catalog, categoryName, brandName);
+  let family = catalog.families.find(
+    (item) =>
+      item?.brand_id === brand.id &&
+      normalizedNameKey(item?.name) === normalizedNameKey(familyName)
+  );
+  if (!family) {
+    family = {
+      id: `local-device-family-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+      name: familyName,
+      brand_id: brand.id,
+      active: true,
+      order: catalog.families.filter((item) => item?.brand_id === brand.id).length + 1
+    };
+    catalog.families.unshift(family);
+  }
+  return { category, brand, family };
+}
+
+function removeLocalCatalogEntry(level, entry, context = {}) {
+  const catalog = readLocalDeviceCatalog();
+  const nameKey = normalizedNameKey(entry?.name);
+  const categoryKey = normalizedNameKey(context?.categoryName);
+  const brandKey = normalizedNameKey(context?.brandName);
+  const familyKey = normalizedNameKey(context?.familyName);
+
+  if (level === "category") {
+    const categoriesToRemove = catalog.categories.filter((item) => normalizedNameKey(item?.name) === nameKey);
+    const categoryIds = new Set(categoriesToRemove.map((item) => item.id));
+    const brandsToRemove = catalog.brands.filter((item) => categoryIds.has(item?.category_id));
+    const brandIds = new Set(brandsToRemove.map((item) => item.id));
+    const familiesToRemove = catalog.families.filter((item) => brandIds.has(item?.brand_id));
+    const familyIds = new Set(familiesToRemove.map((item) => item.id));
+    catalog.categories = catalog.categories.filter((item) => normalizedNameKey(item?.name) !== nameKey);
+    catalog.brands = catalog.brands.filter((item) => !categoryIds.has(item?.category_id));
+    catalog.families = catalog.families.filter((item) => !brandIds.has(item?.brand_id));
+    catalog.models = catalog.models.filter((item) => !brandIds.has(item?.brand_id) && !familyIds.has(item?.family_id));
+  } else if (level === "brand") {
+    const categoryIds = new Set(
+      catalog.categories
+        .filter((item) => normalizedNameKey(item?.name) === categoryKey)
+        .map((item) => item.id)
+    );
+    const brandsToRemove = catalog.brands.filter(
+      (item) => categoryIds.has(item?.category_id) && normalizedNameKey(item?.name) === nameKey
+    );
+    const brandIds = new Set(brandsToRemove.map((item) => item.id));
+    const familiesToRemove = catalog.families.filter((item) => brandIds.has(item?.brand_id));
+    const familyIds = new Set(familiesToRemove.map((item) => item.id));
+    catalog.brands = catalog.brands.filter((item) => !brandIds.has(item?.id));
+    catalog.families = catalog.families.filter((item) => !brandIds.has(item?.brand_id));
+    catalog.models = catalog.models.filter((item) => !brandIds.has(item?.brand_id) && !familyIds.has(item?.family_id));
+  } else if (level === "family") {
+    const brandIds = new Set(
+      catalog.brands
+        .filter((item) => normalizedNameKey(item?.name) === brandKey)
+        .map((item) => item.id)
+    );
+    const familiesToRemove = catalog.families.filter(
+      (item) => brandIds.has(item?.brand_id) && normalizedNameKey(item?.name) === nameKey
+    );
+    const familyIds = new Set(familiesToRemove.map((item) => item.id));
+    catalog.families = catalog.families.filter((item) => !familyIds.has(item?.id));
+    catalog.models = catalog.models.filter((item) => !familyIds.has(item?.family_id) && normalizedNameKey(item?.family) !== nameKey);
+  } else if (level === "model") {
+    catalog.models = catalog.models.filter(
+      (item) =>
+        !(
+          normalizedNameKey(item?.name) === nameKey &&
+          normalizedNameKey(item?.family) === familyKey
+        )
+    );
+  }
+
+  writeLocalDeviceCatalog(catalog);
+}
 
 function inferFamilyName(brandName, modelName, currentFamilyName = "") {
   const brand = normalized(brandName);
@@ -101,22 +409,46 @@ export default function DeviceCatalogManager() {
 
   useEffect(() => {
     loadAll();
+    const reloadCatalog = () => loadAll();
+    window.addEventListener(DEVICE_CATALOG_UPDATED_EVENT, reloadCatalog);
+    window.addEventListener("storage", reloadCatalog);
+    return () => {
+      window.removeEventListener(DEVICE_CATALOG_UPDATED_EVENT, reloadCatalog);
+      window.removeEventListener("storage", reloadCatalog);
+    };
   }, []);
 
   const loadAll = async () => {
     setLoading(true);
     try {
       const [cats, brds, fams, mods] = await Promise.all([
-        base44.entities.DeviceCategory.filter({}, "order"),
-        base44.entities.Brand.filter({}, "order"),
-        base44.entities.DeviceFamily.filter({}, "order"),
-        base44.entities.DeviceModel.filter({}, "order"),
+        base44.entities.DeviceCategory.filter({ active: true }, "order").catch(() => []),
+        base44.entities.Brand.filter({ active: true }, "order").catch(() => []),
+        base44.entities.DeviceFamily.filter({ active: true }, "order").catch(() => []),
+        base44.entities.DeviceModel.filter({ active: true }, "order").catch(() => []),
       ]);
+      const localCatalog = readLocalDeviceCatalog();
+      const mergedCategories = dedupeCatalogEntries(
+        [...(localCatalog.categories || []), ...(cats || [])],
+        (item) => normalizedNameKey(item?.name)
+      );
+      const mergedBrands = dedupeCatalogEntries(
+        [...(localCatalog.brands || []), ...(brds || [])],
+        (item) => `${normalizedNameKey(item?.category_id || "")}::${normalizedNameKey(item?.name)}::${normalizedNameKey(item?.category || "")}`
+      );
+      const mergedFamilies = dedupeCatalogEntries(
+        [...(localCatalog.families || []), ...(fams || [])],
+        (item) => `${normalizedNameKey(item?.brand_id || "")}::${normalizedNameKey(item?.name)}`
+      );
+      const mergedModels = dedupeCatalogEntries(
+        [...(localCatalog.models || []), ...(mods || [])],
+        (item) => `${normalizedNameKey(item?.brand_id || "")}::${normalizedNameKey(item?.family_id || item?.family || "")}::${normalizedNameKey(item?.name)}`
+      );
 
-      setCategories(cats || []);
-      setBrands(brds || []);
-      setFamilies(fams || []);
-      setModels(mods || []);
+      setCategories(mergedCategories);
+      setBrands(mergedBrands);
+      setFamilies(mergedFamilies);
+      setModels(mergedModels);
     } catch (error) {
       console.error("[DeviceCatalogManager] Error cargando catálogo:", error);
       toast.error("Error cargando catálogo");
@@ -126,26 +458,60 @@ export default function DeviceCatalogManager() {
   };
 
   const selectedCategoryBrands = useMemo(
-    () => (selectedCategory ? brands.filter((brand) => brand.category_id === selectedCategory.id) : []),
-    [brands, selectedCategory]
+    () => {
+      if (!selectedCategory) return [];
+      const selectedCategoryKey = normalizedNameKey(selectedCategory.name);
+      const categoryIds = categories
+        .filter((category) => normalizedNameKey(category.name) === selectedCategoryKey)
+        .map((category) => category.id);
+      return dedupeCatalogEntries(
+        brands.filter(
+          (brand) =>
+            categoryIds.includes(brand.category_id) ||
+            normalizedNameKey(brand.category) === selectedCategoryKey
+        ),
+        (item) => `${selectedCategoryKey}::${normalizedNameKey(item?.name)}`
+      );
+    },
+    [brands, categories, selectedCategory]
   );
 
   const selectedBrandFamilies = useMemo(
-    () => (selectedBrand ? families.filter((family) => family.brand_id === selectedBrand.id) : []),
-    [families, selectedBrand]
+    () => {
+      if (!selectedBrand || !selectedCategory) return [];
+      const selectedBrandKey = normalizedNameKey(selectedBrand.name);
+      const brandIds = selectedCategoryBrands
+        .filter((brand) => normalizedNameKey(brand.name) === selectedBrandKey)
+        .map((brand) => brand.id);
+      return dedupeCatalogEntries(
+        families.filter((family) => brandIds.includes(family.brand_id)),
+        (item) => `${selectedBrandKey}::${normalizedNameKey(item?.name)}`
+      );
+    },
+    [families, selectedBrand, selectedCategory, selectedCategoryBrands]
   );
 
   const selectedFamilyModels = useMemo(
-    () => (
-      selectedFamily
-        ? models.filter(
-            (model) =>
-              model.family_id === selectedFamily.id ||
-              normalized(model.family) === normalized(selectedFamily.name)
-          )
-        : []
-    ),
-    [models, selectedFamily]
+    () => {
+      if (!selectedFamily || !selectedBrand) return [];
+      const selectedBrandKey = normalizedNameKey(selectedBrand.name);
+      const selectedFamilyKey = normalizedNameKey(selectedFamily.name);
+      const brandIds = selectedCategoryBrands
+        .filter((brand) => normalizedNameKey(brand.name) === selectedBrandKey)
+        .map((brand) => brand.id);
+      const familyIds = selectedBrandFamilies
+        .filter((family) => normalizedNameKey(family.name) === selectedFamilyKey)
+        .map((family) => family.id);
+      return dedupeCatalogEntries(
+        models.filter(
+          (model) =>
+            brandIds.includes(model.brand_id) &&
+            (familyIds.includes(model.family_id) || normalizedNameKey(model.family) === selectedFamilyKey)
+        ),
+        (item) => `${selectedFamilyKey}::${normalizedNameKey(item?.name)}`
+      );
+    },
+    [models, selectedBrand, selectedFamily, selectedCategoryBrands, selectedBrandFamilies]
   );
 
   const createCategory = async () => {
@@ -158,11 +524,27 @@ export default function DeviceCatalogManager() {
 
     setCreating(true);
     try {
-      await base44.entities.DeviceCategory.create({
-        name,
-        active: true,
-        order: categories.length + 1,
-      });
+      const localCatalog = readLocalDeviceCatalog();
+      if (!localCatalog.categories.some((item) => normalizedNameKey(item?.name) === normalizedNameKey(name))) {
+        localCatalog.categories.unshift({
+          id: `local-device-category-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+          name,
+          active: true,
+          order: localCatalog.categories.length + 1
+        });
+        writeLocalDeviceCatalog(localCatalog);
+      }
+
+      const existingRemote = await base44.entities.DeviceCategory.filter({ active: true }, "order").catch(() => []);
+      const remoteMatch = (existingRemote || []).find((item) => normalizedNameKey(item?.name) === normalizedNameKey(name));
+      if (!remoteMatch) {
+        await base44.entities.DeviceCategory.create({
+          name,
+          active: true,
+          order: (existingRemote || []).length + 1,
+        });
+      }
+      catalogCache.delete?.("device_categories");
       toast.success("Categoría creada");
       setNewItemName("");
       await loadAll();
@@ -189,12 +571,32 @@ export default function DeviceCatalogManager() {
 
     setCreating(true);
     try {
-      await base44.entities.Brand.create({
-        name,
-        category_id: selectedCategory.id,
-        active: true,
-        order: selectedCategoryBrands.length + 1,
-      });
+      const localCatalog = readLocalDeviceCatalog();
+      ensureLocalBrand(localCatalog, selectedCategory.name, name);
+      writeLocalDeviceCatalog(localCatalog);
+
+      const relatedCategories = await base44.entities.DeviceCategory.filter({ active: true }, "order").catch(() => []);
+      const remoteCategories = relatedCategories.filter(
+        (item) => normalizedNameKey(item?.name) === normalizedNameKey(selectedCategory.name)
+      );
+      let remoteBrandFound = false;
+      for (const category of remoteCategories) {
+        const remoteBrands = await base44.entities.Brand.filter({ category_id: category.id, active: true }, "order").catch(() => []);
+        if (remoteBrands.some((item) => normalizedNameKey(item?.name) === normalizedNameKey(name))) {
+          remoteBrandFound = true;
+          break;
+        }
+      }
+      if (!remoteBrandFound && remoteCategories[0]?.id) {
+        await base44.entities.Brand.create({
+          name,
+          category_id: remoteCategories[0].id,
+          active: true,
+          order: selectedCategoryBrands.length + 1,
+        });
+      }
+      catalogCache.delete?.("device_categories");
+      catalogCache.delete?.(`brands_${selectedCategory.name}`);
       toast.success("Marca creada");
       setNewItemName("");
       await loadAll();
@@ -221,12 +623,31 @@ export default function DeviceCatalogManager() {
 
     setCreating(true);
     try {
-      await base44.entities.DeviceFamily.create({
-        name,
-        brand_id: selectedBrand.id,
-        active: true,
-        order: selectedBrandFamilies.length + 1,
-      });
+      const localCatalog = readLocalDeviceCatalog();
+      ensureLocalFamily(localCatalog, selectedCategory?.name || "", selectedBrand.name, name);
+      writeLocalDeviceCatalog(localCatalog);
+
+      const remoteBrands = await base44.entities.Brand.filter({ active: true }, "order").catch(() => []);
+      const matchingRemoteBrands = remoteBrands.filter(
+        (item) => normalizedNameKey(item?.name) === normalizedNameKey(selectedBrand.name)
+      );
+      let remoteFamilyFound = false;
+      for (const brand of matchingRemoteBrands) {
+        const remoteFamilies = await base44.entities.DeviceFamily.filter({ brand_id: brand.id, active: true }, "order").catch(() => []);
+        if (remoteFamilies.some((item) => normalizedNameKey(item?.name) === normalizedNameKey(name))) {
+          remoteFamilyFound = true;
+          break;
+        }
+      }
+      if (!remoteFamilyFound && matchingRemoteBrands[0]?.id) {
+        await base44.entities.DeviceFamily.create({
+          name,
+          brand_id: matchingRemoteBrands[0].id,
+          active: true,
+          order: selectedBrandFamilies.length + 1,
+        });
+      }
+      catalogCache.delete?.(`families_${selectedBrand.id}`);
       toast.success("Familia creada");
       setNewItemName("");
       await loadAll();
@@ -253,16 +674,70 @@ export default function DeviceCatalogManager() {
 
     setCreating(true);
     try {
-      await base44.entities.DeviceModel.create({
-        name,
-        brand_id: selectedBrand.id,
-        brand: selectedBrand.name,
-        category_id: selectedCategory?.id,
-        family_id: selectedFamily.id,
-        family: selectedFamily.name,
-        active: true,
-        order: selectedFamilyModels.length + 1,
-      });
+      const localCatalog = readLocalDeviceCatalog();
+      const { family, brand } = ensureLocalFamily(
+        localCatalog,
+        selectedCategory?.name || "",
+        selectedBrand.name,
+        selectedFamily.name
+      );
+      const exists = localCatalog.models.some(
+        (item) =>
+          item?.brand_id === brand.id &&
+          (item?.family_id === family.id || normalizedNameKey(item?.family) === normalizedNameKey(family.name)) &&
+          normalizedNameKey(item?.name) === normalizedNameKey(name)
+      );
+      if (!exists) {
+        localCatalog.models.unshift({
+          id: `local-device-model-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+          name,
+          brand_id: brand.id,
+          family_id: family.id,
+          family: family.name,
+          active: true,
+          order: localCatalog.models.filter((item) => item?.family_id === family.id).length + 1
+        });
+      }
+      writeLocalDeviceCatalog(localCatalog);
+
+      const remoteBrands = await base44.entities.Brand.filter({ active: true }, "order").catch(() => []);
+      const matchingRemoteBrands = remoteBrands.filter(
+        (item) => normalizedNameKey(item?.name) === normalizedNameKey(selectedBrand.name)
+      );
+      let remoteModelFound = false;
+      let targetBrand = null;
+      let targetFamily = null;
+      for (const brand of matchingRemoteBrands) {
+        const remoteFamilies = await base44.entities.DeviceFamily.filter({ brand_id: brand.id, active: true }, "order").catch(() => []);
+        const family = remoteFamilies.find((item) => normalizedNameKey(item?.name) === normalizedNameKey(selectedFamily.name));
+        if (!family) continue;
+        targetBrand = brand;
+        targetFamily = family;
+        const remoteModels = await base44.entities.DeviceModel.filter({ brand_id: brand.id, active: true }, "order").catch(() => []);
+        if (
+          remoteModels.some(
+            (item) =>
+              normalizedNameKey(item?.name) === normalizedNameKey(name) &&
+              (item?.family_id === family.id || normalizedNameKey(item?.family) === normalizedNameKey(family.name))
+          )
+        ) {
+          remoteModelFound = true;
+          break;
+        }
+      }
+      if (!remoteModelFound && targetBrand?.id) {
+        await base44.entities.DeviceModel.create({
+          name,
+          brand_id: targetBrand.id,
+          brand: targetBrand.name,
+          category_id: targetBrand.category_id || selectedCategory?.id,
+          family_id: targetFamily?.id || null,
+          family: targetFamily?.name || selectedFamily.name,
+          active: true,
+          order: selectedFamilyModels.length + 1,
+        });
+      }
+      catalogCache.delete?.(`models_${selectedBrand.id}_${selectedFamily.id}`);
       toast.success("Modelo creado");
       setNewItemName("");
       await loadAll();
@@ -278,7 +753,39 @@ export default function DeviceCatalogManager() {
     if (!window.confirm(`¿Eliminar ${label}?`)) return;
 
     try {
-      await base44.entities[entityName].delete(id);
+      const levelMap = {
+        DeviceCategory: "category",
+        Brand: "brand",
+        DeviceFamily: "family",
+        DeviceModel: "model"
+      };
+      const level = levelMap[entityName];
+      const currentEntry =
+        entityName === "DeviceCategory"
+          ? categories.find((item) => item.id === id)
+          : entityName === "Brand"
+            ? brands.find((item) => item.id === id)
+            : entityName === "DeviceFamily"
+              ? families.find((item) => item.id === id)
+              : models.find((item) => item.id === id);
+
+      if (currentEntry && level) {
+        removeLocalCatalogEntry(level, currentEntry, {
+          categoryName: selectedCategory?.name || currentEntry?.category,
+          brandName: selectedBrand?.name || currentEntry?.brand,
+          familyName: selectedFamily?.name || currentEntry?.family
+        });
+      }
+
+      if (!isLocalCatalogId(id)) {
+        await base44.entities[entityName].delete(id);
+      }
+      catalogCache.delete?.("device_categories");
+      if (selectedCategory?.name) catalogCache.delete?.(`brands_${selectedCategory.name}`);
+      if (selectedBrand?.id) catalogCache.delete?.(`families_${selectedBrand.id}`);
+      if (selectedBrand?.id && selectedFamily?.id) {
+        catalogCache.delete?.(`models_${selectedBrand.id}_${selectedFamily.id}`);
+      }
       toast.success("Eliminado");
 
       if (entityName === "DeviceCategory" && selectedCategory?.id === id) {
