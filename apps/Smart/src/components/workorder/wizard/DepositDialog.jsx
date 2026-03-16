@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useMemo } from "react";
 import { base44 } from "@/api/base44Client";
+import { dataClient } from "@/components/api/dataClient";
 import {
   Dialog,
   DialogContent,
@@ -138,7 +139,7 @@ export default function DepositDialog({ open, onClose, order, onSuccess, isCreat
       });
 
       // 2. Crear Transacción Financiera
-      await base44.entities.Transaction.create({
+      await dataClient.entities.Transaction.create({
         order_id: order.id,
         order_number: order.order_number,
         type: "revenue",
@@ -151,7 +152,7 @@ export default function DepositDialog({ open, onClose, order, onSuccess, isCreat
 
       // 3. Crear Registro de Venta (Sale) para KPI y Recibo
       const saleNumber = `DEP-${Date.now().toString().slice(-6)}`;
-      await base44.entities.Sale.create({
+      const createdSale = await dataClient.entities.Sale.create({
         sale_number: saleNumber,
         customer_id: order.customer_id,
         customer_name: order.customer_name,
@@ -173,6 +174,7 @@ export default function DepositDialog({ open, onClose, order, onSuccess, isCreat
         order_id: order.id,
         order_number: order.order_number,
         is_deposit: true, // Flag útil
+        payment_mode: "deposit",
         notes: notes || `Depósito a cuenta`
       });
 
@@ -245,6 +247,19 @@ export default function DepositDialog({ open, onClose, order, onSuccess, isCreat
       }
 
       toast.success("Depósito registrado correctamente");
+      try {
+        window.dispatchEvent(new CustomEvent("sale-completed", {
+          detail: {
+            sale: createdSale,
+            orderId: order.id,
+            amountPaid: depositAmount,
+            paymentMode: "deposit"
+          }
+        }));
+        window.dispatchEvent(new Event("force-refresh"));
+      } catch (refreshError) {
+        console.warn("Financial refresh events failed:", refreshError);
+      }
       onSuccess?.();
       onClose();
 

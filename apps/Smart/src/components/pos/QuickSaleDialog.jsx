@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { base44 } from "@/api/base44Client";
+import { dataClient } from "@/components/api/dataClient";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -128,6 +129,7 @@ export default function QuickSaleDialog({ open, onClose, onSuccess }) {
         type,
         name: item.name,
         price: Number(item.price || 0),
+        cost: Number(item.cost || 0),
         quantity: 1,
         discount: 0,
         note: "",
@@ -218,13 +220,25 @@ export default function QuickSaleDialog({ open, onClose, onSuccess }) {
     try {
       const user = await base44.auth.me().catch(() => ({}));
 
+      const normalizedItems = cartItems.map((item) => {
+        const qty = Number(item.quantity || 0);
+        const lineTotal = Number(item.total || 0);
+        const lineCost = Number(item.line_cost || (item.cost || 0) * qty);
+        return {
+          ...item,
+          cost: Number(item.cost || 0),
+          line_cost: lineCost,
+          line_profit: lineTotal - lineCost
+        };
+      });
+
       const saleData = {
         sale_number: `S-${Date.now()}`,
         date: new Date().toISOString().split("T")[0],
         time: format(new Date(), "HH:mm:ss"),
         customer_id: selectedCustomer?.id || null,
         customer_name: selectedCustomer?.name || "Cliente General",
-        items: cartItems,
+        items: normalizedItems,
         subtotal,
         tax,
         discount,
@@ -237,16 +251,16 @@ export default function QuickSaleDialog({ open, onClose, onSuccess }) {
         notes: ""
       };
 
-      const sale = await base44.entities.Sale.create(saleData);
+      const sale = await dataClient.entities.Sale.create(saleData);
 
       for (const item of cartItems) {
         if (item.type === "product") {
           const product = products.find(p => p.id === item.id);
           if (product) {
             const newStock = Math.max(0, Number(product.stock || 0) - item.quantity);
-            await base44.entities.Product.update(item.id, { stock: newStock });
+            await dataClient.entities.Product.update(item.id, { stock: newStock });
 
-            await base44.entities.InventoryMovement.create({
+            await dataClient.entities.InventoryMovement.create({
               product_id: item.id,
               product_name: item.name,
               movement_type: "sale",
@@ -273,16 +287,29 @@ export default function QuickSaleDialog({ open, onClose, onSuccess }) {
         performed_by: user?.full_name || "Sistema"
       };
 
-      await base44.entities.CashDrawerMovement.create(drawerMovement);
+      await dataClient.entities.CashDrawerMovement.create(drawerMovement);
 
-      const registers = await base44.entities.CashRegister.filter({ status: "open" });
+      const registers = await dataClient.entities.CashRegister.filter({ status: "open" });
       if (registers && registers.length > 0) {
         const register = registers[0];
-        await base44.entities.CashRegister.update(register.id, {
+        await dataClient.entities.CashRegister.update(register.id, {
           current_cash: (register.current_cash || 0) + (paymentData.method === "cash" ? total : 0),
           total_sales: (register.total_sales || 0) + total,
           transaction_count: (register.transaction_count || 0) + 1
         });
+      }
+
+      try {
+        window.dispatchEvent(new CustomEvent("sale-completed", {
+          detail: {
+            sale,
+            amountPaid: paymentData.amountPaid,
+            paymentMode: "full"
+          }
+        }));
+        window.dispatchEvent(new Event("force-refresh"));
+      } catch (refreshError) {
+        console.warn("Financial refresh events failed:", refreshError);
       }
 
       if (onSuccess) {

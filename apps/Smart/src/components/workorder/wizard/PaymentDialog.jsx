@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { base44 } from "@/api/base44Client";
+import { dataClient } from "@/components/api/dataClient";
 import {
   Dialog,
   DialogContent,
@@ -106,7 +107,7 @@ export default function PaymentDialog({ open, onClose, order, onSuccess, isCreat
       });
 
       // Create transaction
-      await base44.entities.Transaction.create({
+      await dataClient.entities.Transaction.create({
         order_id: order.id,
         order_number: order.order_number,
         type: "revenue",
@@ -119,7 +120,7 @@ export default function PaymentDialog({ open, onClose, order, onSuccess, isCreat
 
       // Create Sale record for KPI (unified revenue tracking)
       const saleNumber = `WO-PAY-${Date.now().toString().slice(-8)}`;
-      await base44.entities.Sale.create({
+      const createdSale = await dataClient.entities.Sale.create({
         sale_number: saleNumber,
         customer_id: order.customer_id,
         customer_name: order.customer_name,
@@ -150,6 +151,7 @@ export default function PaymentDialog({ open, onClose, order, onSuccess, isCreat
         order_id: order.id,
         order_number: order.order_number,
         voided: false,
+        payment_mode: "full",
         notes: `Pago de Work Order ${order.order_number}`
       });
 
@@ -249,6 +251,19 @@ export default function PaymentDialog({ open, onClose, order, onSuccess, isCreat
       setNotes("");
       
       toast.success(`Pago procesado. Recibo: ${saleNumber}. Balance: $${balanceDue.toFixed(2)}`);
+      try {
+        window.dispatchEvent(new CustomEvent("sale-completed", {
+          detail: {
+            sale: createdSale,
+            orderId: order.id,
+            amountPaid: paymentAmount,
+            paymentMode: "full"
+          }
+        }));
+        window.dispatchEvent(new Event("force-refresh"));
+      } catch (refreshError) {
+        console.warn("Financial refresh events failed:", refreshError);
+      }
       
       onSuccess();
       onClose();

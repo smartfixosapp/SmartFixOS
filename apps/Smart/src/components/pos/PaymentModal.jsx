@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { base44 } from "@/api/base44Client";
+import { dataClient } from "@/components/api/dataClient";
 import NotificationService from "../notifications/NotificationService";
 import { DollarSign, CreditCard, Smartphone, MoreHorizontal } from "lucide-react";
 import { useDeviceDetection } from "../utils/useDeviceDetection";
@@ -196,7 +197,7 @@ export default function PaymentModal({ open, onClose, subtotal, items = [], work
           });
 
           try {
-            await base44.entities.Transaction.create({
+            await dataClient.entities.Transaction.create({
               order_id: workOrderId,
               order_number: currentOrder.order_number,
               type: "revenue",
@@ -285,7 +286,24 @@ export default function PaymentModal({ open, onClose, subtotal, items = [], work
         }
       }
 
-      await base44.entities.Sale.create(saleData);
+      const createdSale = await dataClient.entities.Sale.create({
+        ...saleData,
+        payment_mode: paymentMode,
+        is_deposit: paymentMode === "deposit"
+      });
+      try {
+        window.dispatchEvent(new CustomEvent("sale-completed", {
+          detail: {
+            sale: createdSale,
+            orderId: workOrderId,
+            amountPaid: finalAmount,
+            paymentMode
+          }
+        }));
+        window.dispatchEvent(new Event("force-refresh"));
+      } catch (refreshError) {
+        console.warn("Financial refresh events failed:", refreshError);
+      }
       
       onSuccess?.({ change, amountPaid: finalAmount, total, balance: newBalance, order: currentOrder });
       

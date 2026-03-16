@@ -148,6 +148,7 @@ export default function POSDesktop() {
       id: item.id || `temp-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
       name: item.name,
       price: toCurrencyNumber(item.price),
+      cost: toCurrencyNumber(item.line_cost != null ? Number(item.line_cost) / Math.max(1, Number(item.qty || item.quantity || 1)) : item.cost),
       quantity: item.qty || item.quantity || 1,
       type: item.type || "product",
       taxable: item.taxable !== false
@@ -362,6 +363,7 @@ export default function POSDesktop() {
         id: item.id,
         name: item.name,
         price: finalPrice,
+        cost: toCurrencyNumber(item.cost),
         quantity: 1,
         type,
         stock: item.stock,
@@ -402,7 +404,26 @@ export default function POSDesktop() {
   const taxableSubtotal = safeCart.reduce((sum, item) => sum + (item.taxable !== false ? Number(item.price || 0) * Number(item.quantity || 0) : 0), 0);
   const tax = taxEnabled ? taxableSubtotal * taxRate : 0;
   const total = subtotal + tax;
-  const orderBalance = selectedOrder ? Math.max(0, parseFloat(((selectedOrder.cost_estimate || 0) - totalPaid).toFixed(2))) : 0;
+  const orderTotal = selectedOrder
+    ? toCurrencyNumber(
+        selectedOrder.total ??
+        selectedOrder.grand_total ??
+        selectedOrder.total_amount ??
+        selectedOrder.cost_estimate
+      )
+    : 0;
+  const orderBalance = selectedOrder
+    ? Math.max(
+        0,
+        parseFloat(
+          toCurrencyNumber(
+            selectedOrder.balance_due != null
+              ? selectedOrder.balance_due
+              : (orderTotal - totalPaid)
+          ).toFixed(2)
+        )
+      )
+    : 0;
   const effectiveTotal = selectedOrder ? (paymentMode === "deposit" ? Math.min(parseFloat(depositAmount) || 0, orderBalance) : orderBalance) : total;
   const mixedCash = parseFloat(splitCashAmount) || 0;
   const mixedAth = parseFloat(splitAthAmount) || 0;
@@ -487,7 +508,10 @@ export default function POSDesktop() {
         quantity: item.quantity,
         price: toCurrencyNumber(item.price),
         total: toCurrencyNumber(item.price) * toCurrencyNumber(item.quantity),
-        taxable: item.taxable
+        taxable: item.taxable,
+        cost: toCurrencyNumber(item.cost),
+        line_cost: toCurrencyNumber(item.cost) * toCurrencyNumber(item.quantity),
+        line_profit: (toCurrencyNumber(item.price) - toCurrencyNumber(item.cost)) * toCurrencyNumber(item.quantity)
       }));
 
       const saleData = {
@@ -509,7 +533,9 @@ export default function POSDesktop() {
           ath_movil_phone: paymentMethod === "ath_movil" || paymentMethod === "mixed" ? athMovilPhone : null,
           ath_movil_name: paymentMethod === "ath_movil" || paymentMethod === "mixed" ? athMovilName : null
         },
-        employee: me?.full_name || "Sistema"
+        employee: me?.full_name || "Sistema",
+        payment_mode: paymentMode,
+        is_deposit: paymentMode === "deposit"
       };
 
       let sale = null;
@@ -548,13 +574,14 @@ export default function POSDesktop() {
 
       if (selectedOrder) {
         const newTotalPaid = totalPaid + amountPaid;
-        const newBalance = Math.max(0, (selectedOrder.cost_estimate || 0) - newTotalPaid);
-        const oldBalance = selectedOrder.balance_due || 0;
+        const oldBalance = orderBalance;
+        const newBalance = Math.max(0, oldBalance - amountPaid);
         try {
           await dataClient.entities.Order.update(selectedOrder.id, { 
             total_paid: newTotalPaid,
             amount_paid: newTotalPaid,
             balance_due: newBalance,
+            balance: newBalance,
             paid: newBalance <= 0.01
           });
         } catch (orderUpdateError) {
@@ -584,6 +611,19 @@ export default function POSDesktop() {
       }
 
       toast.success(`✅ Venta procesada - ${saleNumber}`);
+      try {
+        window.dispatchEvent(new CustomEvent("sale-completed", {
+          detail: {
+            sale,
+            orderId: selectedOrder?.id || null,
+            amountPaid,
+            paymentMode
+          }
+        }));
+        window.dispatchEvent(new Event("force-refresh"));
+      } catch (refreshError) {
+        console.warn("Financial refresh events failed:", refreshError);
+      }
       setShowPaymentModal(false);
       clearCart();
 
