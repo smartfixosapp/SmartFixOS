@@ -242,6 +242,40 @@ function dedupeById(list = []) {
   return out;
 }
 
+function dedupeCatalogEntries(list = [], keyBuilder = (item) => item?.id) {
+  const out = [];
+  const keyToIndex = new Map();
+
+  for (const item of list) {
+    if (!item) continue;
+    const key = keyBuilder(item);
+    if (!key) continue;
+
+    const existingIndex = keyToIndex.get(key);
+    if (existingIndex === undefined) {
+      keyToIndex.set(key, out.length);
+      out.push(item);
+      continue;
+    }
+
+    const current = out[existingIndex];
+    const currentScore =
+      (current?.active ? 2 : 0) +
+      (current?.id ? 1 : 0) +
+      (current?.order !== undefined ? 1 : 0);
+    const nextScore =
+      (item?.active ? 2 : 0) +
+      (item?.id ? 1 : 0) +
+      (item?.order !== undefined ? 1 : 0);
+
+    if (nextScore > currentScore) {
+      out[existingIndex] = item;
+    }
+  }
+
+  return out;
+}
+
 function simplifyPersonName(value = "") {
   const parts = String(value)
     .trim()
@@ -271,6 +305,22 @@ function sameTechnician(a, b) {
   const leftName = simplifyPersonName(a.full_name || a.name || "");
   const rightName = simplifyPersonName(b.full_name || b.name || "");
   if (leftName && rightName && leftName === rightName) return true;
+
+  const leftFull = String(a.full_name || a.name || "").trim().toLowerCase();
+  const rightFull = String(b.full_name || b.name || "").trim().toLowerCase();
+  if (leftFull && rightFull) {
+    const leftTokens = leftFull.split(/\s+/).filter(Boolean);
+    const rightTokens = rightFull.split(/\s+/).filter(Boolean);
+    const smaller = leftTokens.length <= rightTokens.length ? leftTokens : rightTokens;
+    const larger = leftTokens.length > rightTokens.length ? leftTokens : rightTokens;
+    if (smaller.length && smaller.every((token) => larger.includes(token))) {
+      const leftRole = String(a.position || a.role || "").trim().toLowerCase();
+      const rightRole = String(b.position || b.role || "").trim().toLowerCase();
+      if (leftRole === rightRole || (!leftRole && !rightRole) || leftRole === "admin" || rightRole === "admin") {
+        return true;
+      }
+    }
+  }
 
   return false;
 }
@@ -804,16 +854,26 @@ export default function WorkOrderWizard({ open, onClose, onSuccess, preloadedCus
     try {
       const cached = catalogCache.get('device_categories');
       if (cached) {
-        setTypes(dedupeById([...(localCatalog.categories || []), ...(cached || [])]));
+        setTypes(
+          dedupeCatalogEntries(
+            [...(localCatalog.categories || []), ...(cached || [])],
+            (item) => normalizedText(item?.name)
+          )
+        );
         return;
       }
 
       const data = await base44.entities.DeviceCategory.filter({active: true}, "order");
-      const merged = dedupeById([...(localCatalog.categories || []), ...(data || [])]);
+      const merged = dedupeCatalogEntries(
+        [...(localCatalog.categories || []), ...(data || [])],
+        (item) => normalizedText(item?.name)
+      );
       catalogCache.set('device_categories', merged);
       setTypes(merged);
     } catch {
-      setTypes(localCatalog.categories || []);
+      setTypes(
+        dedupeCatalogEntries(localCatalog.categories || [], (item) => normalizedText(item?.name))
+      );
     }
   };
 
@@ -829,7 +889,12 @@ export default function WorkOrderWizard({ open, onClose, onSuccess, preloadedCus
         const localBrands = localCategory
           ? (localCatalog.brands || []).filter((item) => item?.category_id === localCategory.id)
           : [];
-        setBrands(dedupeById([...(localBrands || []), ...(cached || [])]));
+        setBrands(
+          dedupeCatalogEntries(
+            [...(localBrands || []), ...(cached || [])],
+            (item) => `${item?.category_id || ""}::${normalizedText(item?.name)}`
+          )
+        );
         return;
       }
 
@@ -845,7 +910,10 @@ export default function WorkOrderWizard({ open, onClose, onSuccess, preloadedCus
         const localBrands = localCategory
           ? (localCatalog.brands || []).filter((item) => item?.category_id === localCategory.id)
           : [];
-        const merged = dedupeById([...(localBrands || []), ...(brandsByCategory || [])]);
+        const merged = dedupeCatalogEntries(
+          [...(localBrands || []), ...(brandsByCategory || [])],
+          (item) => `${item?.category_id || ""}::${normalizedText(item?.name)}`
+        );
         catalogCache.set(cacheKey, merged);
         setBrands(merged);
       } else {
@@ -855,7 +923,9 @@ export default function WorkOrderWizard({ open, onClose, onSuccess, preloadedCus
         const localBrands = localCategory
           ? (localCatalog.brands || []).filter((item) => item?.category_id === localCategory.id)
           : [];
-        setBrands(localBrands);
+        setBrands(
+          dedupeCatalogEntries(localBrands, (item) => `${item?.category_id || ""}::${normalizedText(item?.name)}`)
+        );
       }
     } catch {
       const localCategory = (localCatalog.categories || []).find(
@@ -864,7 +934,9 @@ export default function WorkOrderWizard({ open, onClose, onSuccess, preloadedCus
       const localBrands = localCategory
         ? (localCatalog.brands || []).filter((item) => item?.category_id === localCategory.id)
         : [];
-      setBrands(localBrands);
+      setBrands(
+        dedupeCatalogEntries(localBrands, (item) => `${item?.category_id || ""}::${normalizedText(item?.name)}`)
+      );
     }
   };
 
@@ -875,7 +947,12 @@ export default function WorkOrderWizard({ open, onClose, onSuccess, preloadedCus
       const cached = catalogCache.get(cacheKey);
       if (cached) {
         const localFamilies = (localCatalog.families || []).filter((item) => item?.brand_id === deviceBrand?.id);
-        setFamilies(dedupeById([...(localFamilies || []), ...(cached || [])]));
+        setFamilies(
+          dedupeCatalogEntries(
+            [...(localFamilies || []), ...(cached || [])],
+            (item) => `${item?.brand_id || ""}::${normalizedText(item?.name)}`
+          )
+        );
         return;
       }
 
@@ -884,12 +961,17 @@ export default function WorkOrderWizard({ open, onClose, onSuccess, preloadedCus
         active: true
       }, "order");
       const localFamilies = (localCatalog.families || []).filter((item) => item?.brand_id === deviceBrand?.id);
-      const merged = dedupeById([...(localFamilies || []), ...(remoteFamilies || [])]);
+      const merged = dedupeCatalogEntries(
+        [...(localFamilies || []), ...(remoteFamilies || [])],
+        (item) => `${item?.brand_id || ""}::${normalizedText(item?.name)}`
+      );
       catalogCache.set(cacheKey, merged);
       setFamilies(merged);
     } catch {
       const localFamilies = (localCatalog.families || []).filter((item) => item?.brand_id === deviceBrand?.id);
-      setFamilies(localFamilies);
+      setFamilies(
+        dedupeCatalogEntries(localFamilies, (item) => `${item?.brand_id || ""}::${normalizedText(item?.name)}`)
+      );
     }
   };
 
@@ -908,7 +990,13 @@ export default function WorkOrderWizard({ open, onClose, onSuccess, preloadedCus
             normalizedText(item?.family) === normalizedText(selectedFamilyName)
           )
         );
-        setModels(dedupeById([...(localModels || []), ...(cached || [])]));
+        setModels(
+          dedupeCatalogEntries(
+            [...(localModels || []), ...(cached || [])],
+            (item) =>
+              `${item?.brand_id || ""}::${item?.family_id || normalizedText(item?.family)}::${normalizedText(item?.name)}`
+          )
+        );
         return;
       }
 
@@ -935,7 +1023,11 @@ export default function WorkOrderWizard({ open, onClose, onSuccess, preloadedCus
           normalizedText(item?.family) === normalizedText(selectedFamilyName)
         )
       );
-      const merged = dedupeById([...(localModels || []), ...familyMatchedRemoteModels]);
+      const merged = dedupeCatalogEntries(
+        [...(localModels || []), ...familyMatchedRemoteModels],
+        (item) =>
+          `${item?.brand_id || ""}::${item?.family_id || normalizedText(item?.family)}::${normalizedText(item?.name)}`
+      );
       catalogCache.set(cacheKey, merged);
       setModels(merged);
     } catch {
@@ -948,7 +1040,13 @@ export default function WorkOrderWizard({ open, onClose, onSuccess, preloadedCus
           normalizedText(item?.family) === normalizedText(selectedFamilyName)
         )
       );
-      setModels(localModels);
+      setModels(
+        dedupeCatalogEntries(
+          localModels,
+          (item) =>
+            `${item?.brand_id || ""}::${item?.family_id || normalizedText(item?.family)}::${normalizedText(item?.name)}`
+        )
+      );
     }
   };
 
@@ -1004,7 +1102,10 @@ export default function WorkOrderWizard({ open, onClose, onSuccess, preloadedCus
       );
 
       if (categoryIds.length === 0) {
-        const nextBrands = dedupeById(localBrands);
+        const nextBrands = dedupeCatalogEntries(
+          localBrands,
+          (item) => `${item?.category_id || ""}::${normalizedText(item?.name)}`
+        );
         setDeviceCatalogBrands(nextBrands);
         setLoadingDeviceCatalogBrands(false);
         return;
@@ -1016,10 +1117,16 @@ export default function WorkOrderWizard({ open, onClose, onSuccess, preloadedCus
         )
       );
 
-      const nextBrands = dedupeById([...(localBrands || []), ...remoteBrandsByCategory.flat()]);
+      const nextBrands = dedupeCatalogEntries(
+        [...(localBrands || []), ...remoteBrandsByCategory.flat()],
+        (item) => `${item?.category_id || ""}::${normalizedText(item?.name)}`
+      );
       setDeviceCatalogBrands(nextBrands);
     } catch {
-      const nextBrands = dedupeById(localBrands);
+      const nextBrands = dedupeCatalogEntries(
+        localBrands,
+        (item) => `${item?.category_id || ""}::${normalizedText(item?.name)}`
+      );
       setDeviceCatalogBrands(nextBrands);
     } finally {
       setLoadingDeviceCatalogBrands(false);
@@ -1073,7 +1180,9 @@ export default function WorkOrderWizard({ open, onClose, onSuccess, preloadedCus
 
       const brandIds = Array.from(new Set([...localBrandIds, ...remoteBrandIds]));
       if (brandIds.length === 0) {
-        setDeviceCatalogFamilies(dedupeById(localFamilies));
+        setDeviceCatalogFamilies(
+          dedupeCatalogEntries(localFamilies, (item) => `${item?.brand_id || ""}::${normalizedText(item?.name)}`)
+        );
         setLoadingDeviceCatalogFamilies(false);
         return;
       }
@@ -1084,9 +1193,16 @@ export default function WorkOrderWizard({ open, onClose, onSuccess, preloadedCus
         )
       );
 
-      setDeviceCatalogFamilies(dedupeById([...(localFamilies || []), ...remoteFamiliesByBrand.flat()]));
+      setDeviceCatalogFamilies(
+        dedupeCatalogEntries(
+          [...(localFamilies || []), ...remoteFamiliesByBrand.flat()],
+          (item) => `${item?.brand_id || ""}::${normalizedText(item?.name)}`
+        )
+      );
     } catch {
-      setDeviceCatalogFamilies(dedupeById(localFamilies));
+      setDeviceCatalogFamilies(
+        dedupeCatalogEntries(localFamilies, (item) => `${item?.brand_id || ""}::${normalizedText(item?.name)}`)
+      );
     } finally {
       setLoadingDeviceCatalogFamilies(false);
     }
@@ -1149,7 +1265,11 @@ export default function WorkOrderWizard({ open, onClose, onSuccess, preloadedCus
 
       const brandIds = Array.from(new Set([...localBrandIds, ...remoteBrandIds]));
       if (brandIds.length === 0) {
-        const nextModels = dedupeById(localModels);
+        const nextModels = dedupeCatalogEntries(
+          localModels,
+          (item) =>
+            `${item?.brand_id || ""}::${item?.family_id || normalizedText(item?.family)}::${normalizedText(item?.name)}`
+        );
         setDeviceCatalogModels(nextModels);
         setLoadingDeviceCatalogModels(false);
         return;
@@ -1178,10 +1298,18 @@ export default function WorkOrderWizard({ open, onClose, onSuccess, preloadedCus
         return false;
       });
 
-      const nextModels = dedupeById([...(localModels || []), ...matchedRemoteModels]);
+      const nextModels = dedupeCatalogEntries(
+        [...(localModels || []), ...matchedRemoteModels],
+        (item) =>
+          `${item?.brand_id || ""}::${item?.family_id || normalizedText(item?.family)}::${normalizedText(item?.name)}`
+      );
       setDeviceCatalogModels(nextModels);
     } catch {
-      const nextModels = dedupeById(localModels);
+      const nextModels = dedupeCatalogEntries(
+        localModels,
+        (item) =>
+          `${item?.brand_id || ""}::${item?.family_id || normalizedText(item?.family)}::${normalizedText(item?.name)}`
+      );
       setDeviceCatalogModels(nextModels);
     } finally {
       setLoadingDeviceCatalogModels(false);
