@@ -26,11 +26,23 @@ function getTenantId() {
     if (raw) {
       const session = JSON.parse(raw);
       if (session?.tenant_id) return session.tenant_id;
+      if (session?.user?.tenant_id) return session.user.tenant_id;
+      if (session?.session?.tenant_id) return session.session.tenant_id;
     }
     // Fallback: clave directa (guardada por PinAccess durante resolución de admin)
-    return localStorage.getItem("smartfix_tenant_id") || null;
+    return (
+      localStorage.getItem("smartfix_tenant_id") ||
+      localStorage.getItem("current_tenant_id") ||
+      sessionStorage.getItem("current_tenant_id") ||
+      null
+    );
   } catch {
-    return null;
+    return (
+      localStorage.getItem("smartfix_tenant_id") ||
+      localStorage.getItem("current_tenant_id") ||
+      sessionStorage.getItem("current_tenant_id") ||
+      null
+    );
   }
 }
 
