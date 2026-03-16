@@ -547,19 +547,25 @@ export default function DeviceCatalogManager() {
         writeLocalDeviceCatalog(localCatalog);
       }
 
-      const existingRemote = await base44.entities.DeviceCategory.filter({ active: true }, "order").catch(() => []);
-      const remoteMatch = (existingRemote || []).find((item) => normalizedNameKey(item?.name) === normalizedNameKey(name));
-      if (!remoteMatch) {
-        await base44.entities.DeviceCategory.create({
-          name,
-          active: true,
-          order: (existingRemote || []).length + 1,
-        });
-      }
       catalogCache.delete?.("device_categories");
       toast.success("Categoría creada");
       setNewItemName("");
       await loadAll();
+
+      try {
+        const existingRemote = await base44.entities.DeviceCategory.filter({ active: true }, "order").catch(() => []);
+        const remoteMatch = (existingRemote || []).find((item) => normalizedNameKey(item?.name) === normalizedNameKey(name));
+        if (!remoteMatch) {
+          await base44.entities.DeviceCategory.create({
+            name,
+            active: true,
+            order: (existingRemote || []).length + 1,
+          });
+        }
+        catalogCache.delete?.("device_categories");
+      } catch (syncError) {
+        console.warn("[DeviceCatalogManager] Sync remoto de categoría falló:", syncError);
+      }
     } catch (error) {
       console.error("[DeviceCatalogManager] Error creando categoría:", error);
       toast.error("No se pudo crear la categoría");
@@ -587,31 +593,38 @@ export default function DeviceCatalogManager() {
       ensureLocalBrand(localCatalog, selectedCategory.name, name);
       writeLocalDeviceCatalog(localCatalog);
 
-      const relatedCategories = await base44.entities.DeviceCategory.filter({ active: true }, "order").catch(() => []);
-      const remoteCategories = relatedCategories.filter(
-        (item) => normalizedNameKey(item?.name) === normalizedNameKey(selectedCategory.name)
-      );
-      let remoteBrandFound = false;
-      for (const category of remoteCategories) {
-        const remoteBrands = await base44.entities.Brand.filter({ category_id: category.id, active: true }, "order").catch(() => []);
-        if (remoteBrands.some((item) => normalizedNameKey(item?.name) === normalizedNameKey(name))) {
-          remoteBrandFound = true;
-          break;
-        }
-      }
-      if (!remoteBrandFound && remoteCategories[0]?.id) {
-        await base44.entities.Brand.create({
-          name,
-          category_id: remoteCategories[0].id,
-          active: true,
-          order: selectedCategoryBrands.length + 1,
-        });
-      }
       catalogCache.delete?.("device_categories");
       catalogCache.delete?.(`brands_${selectedCategory.name}`);
       toast.success("Marca creada");
       setNewItemName("");
       await loadAll();
+
+      try {
+        const relatedCategories = await base44.entities.DeviceCategory.filter({ active: true }, "order").catch(() => []);
+        const remoteCategories = relatedCategories.filter(
+          (item) => normalizedNameKey(item?.name) === normalizedNameKey(selectedCategory.name)
+        );
+        let remoteBrandFound = false;
+        for (const category of remoteCategories) {
+          const remoteBrands = await base44.entities.Brand.filter({ category_id: category.id, active: true }, "order").catch(() => []);
+          if (remoteBrands.some((item) => normalizedNameKey(item?.name) === normalizedNameKey(name))) {
+            remoteBrandFound = true;
+            break;
+          }
+        }
+        if (!remoteBrandFound && remoteCategories[0]?.id) {
+          await base44.entities.Brand.create({
+            name,
+            category_id: remoteCategories[0].id,
+            active: true,
+            order: selectedCategoryBrands.length + 1,
+          });
+        }
+        catalogCache.delete?.("device_categories");
+        catalogCache.delete?.(`brands_${selectedCategory.name}`);
+      } catch (syncError) {
+        console.warn("[DeviceCatalogManager] Sync remoto de marca falló:", syncError);
+      }
     } catch (error) {
       console.error("[DeviceCatalogManager] Error creando marca:", error);
       toast.error("No se pudo crear la marca");
@@ -639,30 +652,36 @@ export default function DeviceCatalogManager() {
       ensureLocalFamily(localCatalog, selectedCategory?.name || "", selectedBrand.name, name);
       writeLocalDeviceCatalog(localCatalog);
 
-      const remoteBrands = await base44.entities.Brand.filter({ active: true }, "order").catch(() => []);
-      const matchingRemoteBrands = remoteBrands.filter(
-        (item) => normalizedNameKey(item?.name) === normalizedNameKey(selectedBrand.name)
-      );
-      let remoteFamilyFound = false;
-      for (const brand of matchingRemoteBrands) {
-        const remoteFamilies = await base44.entities.DeviceFamily.filter({ brand_id: brand.id, active: true }, "order").catch(() => []);
-        if (remoteFamilies.some((item) => normalizedNameKey(item?.name) === normalizedNameKey(name))) {
-          remoteFamilyFound = true;
-          break;
-        }
-      }
-      if (!remoteFamilyFound && matchingRemoteBrands[0]?.id) {
-        await base44.entities.DeviceFamily.create({
-          name,
-          brand_id: matchingRemoteBrands[0].id,
-          active: true,
-          order: selectedBrandFamilies.length + 1,
-        });
-      }
       catalogCache.delete?.(`families_${selectedBrand.id}`);
       toast.success("Familia creada");
       setNewItemName("");
       await loadAll();
+
+      try {
+        const remoteBrands = await base44.entities.Brand.filter({ active: true }, "order").catch(() => []);
+        const matchingRemoteBrands = remoteBrands.filter(
+          (item) => normalizedNameKey(item?.name) === normalizedNameKey(selectedBrand.name)
+        );
+        let remoteFamilyFound = false;
+        for (const brand of matchingRemoteBrands) {
+          const remoteFamilies = await base44.entities.DeviceFamily.filter({ brand_id: brand.id, active: true }, "order").catch(() => []);
+          if (remoteFamilies.some((item) => normalizedNameKey(item?.name) === normalizedNameKey(name))) {
+            remoteFamilyFound = true;
+            break;
+          }
+        }
+        if (!remoteFamilyFound && matchingRemoteBrands[0]?.id) {
+          await base44.entities.DeviceFamily.create({
+            name,
+            brand_id: matchingRemoteBrands[0].id,
+            active: true,
+            order: selectedBrandFamilies.length + 1,
+          });
+        }
+        catalogCache.delete?.(`families_${selectedBrand.id}`);
+      } catch (syncError) {
+        console.warn("[DeviceCatalogManager] Sync remoto de familia falló:", syncError);
+      }
     } catch (error) {
       console.error("[DeviceCatalogManager] Error creando familia:", error);
       toast.error("No se pudo crear la familia");
@@ -712,47 +731,53 @@ export default function DeviceCatalogManager() {
       }
       writeLocalDeviceCatalog(localCatalog);
 
-      const remoteBrands = await base44.entities.Brand.filter({ active: true }, "order").catch(() => []);
-      const matchingRemoteBrands = remoteBrands.filter(
-        (item) => normalizedNameKey(item?.name) === normalizedNameKey(selectedBrand.name)
-      );
-      let remoteModelFound = false;
-      let targetBrand = null;
-      let targetFamily = null;
-      for (const brand of matchingRemoteBrands) {
-        const remoteFamilies = await base44.entities.DeviceFamily.filter({ brand_id: brand.id, active: true }, "order").catch(() => []);
-        const family = remoteFamilies.find((item) => normalizedNameKey(item?.name) === normalizedNameKey(selectedFamily.name));
-        if (!family) continue;
-        targetBrand = brand;
-        targetFamily = family;
-        const remoteModels = await base44.entities.DeviceModel.filter({ brand_id: brand.id, active: true }, "order").catch(() => []);
-        if (
-          remoteModels.some(
-            (item) =>
-              normalizedNameKey(item?.name) === normalizedNameKey(name) &&
-              (item?.family_id === family.id || normalizedNameKey(item?.family) === normalizedNameKey(family.name))
-          )
-        ) {
-          remoteModelFound = true;
-          break;
-        }
-      }
-      if (!remoteModelFound && targetBrand?.id) {
-        await base44.entities.DeviceModel.create({
-          name,
-          brand_id: targetBrand.id,
-          brand: targetBrand.name,
-          category_id: targetBrand.category_id || selectedCategory?.id,
-          family_id: targetFamily?.id || null,
-          family: targetFamily?.name || selectedFamily.name,
-          active: true,
-          order: selectedFamilyModels.length + 1,
-        });
-      }
       catalogCache.delete?.(`models_${selectedBrand.id}_${selectedFamily.id}`);
       toast.success("Modelo creado");
       setNewItemName("");
       await loadAll();
+
+      try {
+        const remoteBrands = await base44.entities.Brand.filter({ active: true }, "order").catch(() => []);
+        const matchingRemoteBrands = remoteBrands.filter(
+          (item) => normalizedNameKey(item?.name) === normalizedNameKey(selectedBrand.name)
+        );
+        let remoteModelFound = false;
+        let targetBrand = null;
+        let targetFamily = null;
+        for (const brand of matchingRemoteBrands) {
+          const remoteFamilies = await base44.entities.DeviceFamily.filter({ brand_id: brand.id, active: true }, "order").catch(() => []);
+          const family = remoteFamilies.find((item) => normalizedNameKey(item?.name) === normalizedNameKey(selectedFamily.name));
+          if (!family) continue;
+          targetBrand = brand;
+          targetFamily = family;
+          const remoteModels = await base44.entities.DeviceModel.filter({ brand_id: brand.id, active: true }, "order").catch(() => []);
+          if (
+            remoteModels.some(
+              (item) =>
+                normalizedNameKey(item?.name) === normalizedNameKey(name) &&
+                (item?.family_id === family.id || normalizedNameKey(item?.family) === normalizedNameKey(family.name))
+            )
+          ) {
+            remoteModelFound = true;
+            break;
+          }
+        }
+        if (!remoteModelFound && targetBrand?.id) {
+          await base44.entities.DeviceModel.create({
+            name,
+            brand_id: targetBrand.id,
+            brand: targetBrand.name,
+            category_id: targetBrand.category_id || selectedCategory?.id,
+            family_id: targetFamily?.id || null,
+            family: targetFamily?.name || selectedFamily.name,
+            active: true,
+            order: selectedFamilyModels.length + 1,
+          });
+        }
+        catalogCache.delete?.(`models_${selectedBrand.id}_${selectedFamily.id}`);
+      } catch (syncError) {
+        console.warn("[DeviceCatalogManager] Sync remoto de modelo falló:", syncError);
+      }
     } catch (error) {
       console.error("[DeviceCatalogManager] Error creando modelo:", error);
       toast.error("No se pudo crear el modelo");
