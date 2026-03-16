@@ -526,6 +526,63 @@ export default function DeviceCatalogManager() {
     [rawModels, selectedBrand, selectedFamily, selectedCategoryBrands, selectedBrandFamilies]
   );
 
+  const countBrandsForCategory = (categoryName) => {
+    const categoryKey = normalizedNameKey(categoryName);
+    const categoryIds = rawCategories
+      .filter((item) => normalizedNameKey(item?.name) === categoryKey)
+      .map((item) => item.id);
+    return dedupeCatalogEntries(
+      rawBrands.filter(
+        (item) =>
+          categoryIds.includes(item?.category_id) ||
+          normalizedNameKey(item?.category) === categoryKey
+      ),
+      (item) => `${categoryKey}::${normalizedNameKey(item?.name)}`
+    ).length;
+  };
+
+  const countFamiliesForBrand = (categoryName, brandName) => {
+    const categoryKey = normalizedNameKey(categoryName);
+    const brandKey = normalizedNameKey(brandName);
+    const categoryIds = rawCategories
+      .filter((item) => normalizedNameKey(item?.name) === categoryKey)
+      .map((item) => item.id);
+    const brandIds = rawBrands
+      .filter(
+        (item) =>
+          normalizedNameKey(item?.name) === brandKey &&
+          (categoryIds.includes(item?.category_id) || normalizedNameKey(item?.category) === categoryKey)
+      )
+      .map((item) => item.id);
+    return dedupeCatalogEntries(
+      rawFamilies.filter((item) => brandIds.includes(item?.brand_id)),
+      (item) => `${brandKey}::${normalizedNameKey(item?.name)}`
+    ).length;
+  };
+
+  const countModelsForFamily = (brandName, familyName) => {
+    const brandKey = normalizedNameKey(brandName);
+    const familyKey = normalizedNameKey(familyName);
+    const brandIds = rawBrands
+      .filter((item) => normalizedNameKey(item?.name) === brandKey)
+      .map((item) => item.id);
+    const familyIds = rawFamilies
+      .filter(
+        (item) =>
+          brandIds.includes(item?.brand_id) &&
+          normalizedNameKey(item?.name) === familyKey
+      )
+      .map((item) => item.id);
+    return dedupeCatalogEntries(
+      rawModels.filter(
+        (item) =>
+          brandIds.includes(item?.brand_id) &&
+          (familyIds.includes(item?.family_id) || normalizedNameKey(item?.family) === familyKey)
+      ),
+      (item) => `${familyKey}::${normalizedNameKey(item?.name)}`
+    ).length;
+  };
+
   const createCategory = async () => {
     const name = newItemName.trim();
     if (!name || creating) return;
@@ -1123,11 +1180,11 @@ export default function DeviceCatalogManager() {
               const isBrand = selectedCategory && !selectedBrand;
               const isFamily = selectedBrand && !selectedFamily;
               const nextCount = isCategory
-                ? selectedCategoryBrands.filter((brand) => normalizedNameKey(brand.name) === normalizedNameKey(item.name)).length
+                ? countBrandsForCategory(item.name)
                 : isBrand
-                  ? selectedBrandFamilies.filter((family) => normalizedNameKey(family.name) === normalizedNameKey(item.name)).length
+                  ? countFamiliesForBrand(selectedCategory?.name || "", item.name)
                   : isFamily
-                    ? selectedFamilyModels.filter((model) => normalizedNameKey(model.family) === normalizedNameKey(item.name)).length
+                    ? countModelsForFamily(selectedBrand?.name || "", item.name)
                     : 0;
               const isLeaf = Boolean(selectedFamily);
               const palette = isCategory

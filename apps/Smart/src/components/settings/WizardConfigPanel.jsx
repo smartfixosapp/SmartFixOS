@@ -61,6 +61,39 @@ const STEP_ICONS = {
   summary: ClipboardList
 };
 
+function buildWizardConfigPayload(config = {}) {
+  return {
+    steps_enabled: config.steps_enabled || DEFAULT_CONFIG.steps_enabled,
+    steps_order: Array.isArray(config.steps_order) ? config.steps_order : DEFAULT_CONFIG.steps_order,
+    customer_search_enabled: config.customer_search_enabled ?? true,
+    customer_fields_required: config.customer_fields_required || {
+      name: true,
+      last_name: false,
+      phone: true,
+      email: false
+    },
+    device_auto_family: config.device_auto_family ?? true,
+    problem_presets: Array.isArray(config.problem_presets) ? config.problem_presets : DEFAULT_CONFIG.problem_presets,
+    media_config: {
+      max_files: Number(config.media_config?.max_files ?? DEFAULT_CONFIG.media_config.max_files),
+      max_size_mb: Number(config.media_config?.max_size_mb ?? DEFAULT_CONFIG.media_config.max_size_mb),
+      required: config.media_config?.required ?? DEFAULT_CONFIG.media_config.required,
+      allow_video: config.media_config?.allow_video ?? DEFAULT_CONFIG.media_config.allow_video,
+      camera_first: config.media_config?.camera_first ?? true
+    },
+    security_config: {
+      pin_required: config.security_config?.pin_required ?? false,
+      password_required: config.security_config?.password_required ?? false,
+      pattern_enabled: config.security_config?.pattern_enabled ?? true,
+      encrypt_data: config.security_config?.encrypt_data ?? true
+    },
+    auto_send_email: config.auto_send_email ?? true,
+    default_status: config.default_status || "intake",
+    auto_assign: config.auto_assign ?? false,
+    active: config.active ?? true
+  };
+}
+
 export default function WizardConfigPanel() {
   const [config, setConfig] = useState(DEFAULT_CONFIG);
   const [loading, setLoading] = useState(false);
@@ -86,13 +119,19 @@ export default function WizardConfigPanel() {
   };
 
   const saveConfig = async () => {
+    if (activeTab === "catalog") {
+      toast.success("El catálogo se guarda automáticamente al crear, editar o eliminar.");
+      return;
+    }
+
     setLoading(true);
     try {
+      const payload = buildWizardConfigPayload(config);
       const configs = await base44.entities.WorkOrderWizardConfig.list();
       if (configs?.length) {
-        await base44.entities.WorkOrderWizardConfig.update(configs[0].id, config);
+        await base44.entities.WorkOrderWizardConfig.update(configs[0].id, payload);
       } else {
-        await base44.entities.WorkOrderWizardConfig.create(config);
+        await base44.entities.WorkOrderWizardConfig.create(payload);
       }
       toast.success("✅ Configuración del wizard guardada");
     } catch (error) {
@@ -349,7 +388,7 @@ export default function WizardConfigPanel() {
         ) : (
           <>
             <Save className="w-5 h-5 mr-2" />
-            Guardar Configuración
+            {activeTab === "catalog" ? "Catálogo con guardado automático" : "Guardar Configuración"}
           </>
         )}
       </Button>
