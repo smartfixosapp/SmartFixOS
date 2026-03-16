@@ -19,6 +19,7 @@ import { createPageUrl } from "@/components/utils/helpers";
 import { SendEmail } from "@/api/integrations";
 import { recordSaleAndTransactions, resolveActiveTenantId } from "@/components/financial/recordSale";
 import { upsertLocalOrder } from "@/components/utils/localOrderCache";
+import { upsertLocalSale, upsertLocalTransactions } from "@/components/utils/localFinancialCache";
 
 export default function DepositDialog({ open, onClose, order, onSuccess, isCreating = false, onDepositData }) {
   const { isDesktop, isMobile, isTablet } = useDeviceDetection();
@@ -246,6 +247,12 @@ export default function DepositDialog({ open, onClose, order, onSuccess, isCreat
         }
       }
 
+      if (updatedOrder?.id) upsertLocalOrder(updatedOrder);
+      if (createdSale?.id) upsertLocalSale(createdSale);
+      if (Array.isArray(createdTransactions) && createdTransactions.length) {
+        upsertLocalTransactions(createdTransactions);
+      }
+
       toast.success("Depósito registrado correctamente");
       try {
         window.dispatchEvent(new CustomEvent("sale-completed", {
@@ -463,4 +470,3 @@ export default function DepositDialog({ open, onClose, order, onSuccess, isCreat
     </Dialog>
   );
 }
-      if (updatedOrder?.id) upsertLocalOrder(updatedOrder);

@@ -3,6 +3,7 @@ import { dataClient } from "@/components/api/dataClient";
 import { CalendarClock, ChevronRight, DollarSign, PiggyBank, TrendingUp } from "lucide-react";
 import { endOfDay, format, isWithinInterval, startOfDay } from "date-fns";
 import { es } from "date-fns/locale";
+import { mergeSales, mergeTransactions, upsertLocalSale, upsertLocalTransactions } from "@/components/utils/localFinancialCache";
 
 const getFrequencyDivisor = (frequency) => {
   const divisors = {
@@ -107,8 +108,8 @@ export default function FinancialOverviewWidget({ compact = false, onClick }) {
         const sig = `${String(item?.name || "").trim().toLowerCase()}|${item?.category || ""}|${item?.frequency || ""}|${item?.due_day || ""}`;
         return arr.findIndex((x) => `${String(x?.name || "").trim().toLowerCase()}|${x?.category || ""}|${x?.frequency || ""}|${x?.due_day || ""}` === sig) === idx;
       });
-      setSales((salesData || []).filter((s) => !s?.voided));
-      setTransactions(transactionsData || []);
+      setSales(mergeSales((salesData || []).filter((s) => !s?.voided)));
+      setTransactions(mergeTransactions(transactionsData || []));
       setFixedExpenses(dedupedFixed.filter((f) => f?.active !== false));
     } catch (error) {
       console.error("Error loading financial overview:", error);
@@ -123,6 +124,8 @@ export default function FinancialOverviewWidget({ compact = false, onClick }) {
     const handleSaleCompleted = (event) => {
       const sale = event?.detail?.sale;
       const txs = Array.isArray(event?.detail?.transactions) ? event.detail.transactions : [];
+      if (sale?.id) upsertLocalSale(sale);
+      if (txs.length) upsertLocalTransactions(txs);
       if (sale) {
         setSales((prev) => [sale, ...(prev || []).filter((row) => String(row?.id || "") !== String(sale?.id || ""))]);
       }

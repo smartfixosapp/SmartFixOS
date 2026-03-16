@@ -16,7 +16,8 @@ import OpenDrawerDialog from "../components/cash/OpenDrawerDialog";
 import { recordSaleAndTransactions, resolveActiveTenantId } from "@/components/financial/recordSale";
 import { AuditService } from "@/components/utils/auditService";
 import { catalogCache } from "@/components/utils/dataCache";
-import { upsertLocalOrder } from "@/components/utils/localOrderCache";
+import { getLocalOrders, upsertLocalOrder } from "@/components/utils/localOrderCache";
+import { upsertLocalSale, upsertLocalTransactions } from "@/components/utils/localFinancialCache";
 import {
   getCachedStatus,
   subscribeToCashRegister,
@@ -202,6 +203,11 @@ export default function POSMobile() {
 
   const fetchWorkOrderById = useCallback(async (orderId) => {
     if (!orderId) return null;
+
+    try {
+      const localOrder = getLocalOrders().find((order) => String(order?.id || "") === String(orderId));
+      if (localOrder?.id) return localOrder;
+    } catch {}
 
     try {
       const order = await dataClient.entities.Order.get(orderId);
@@ -609,6 +615,8 @@ export default function POSMobile() {
       if (updatedOrder?.id) {
         upsertLocalOrder(updatedOrder);
       }
+      if (sale?.id) upsertLocalSale(sale);
+      if (createdTransactions.length) upsertLocalTransactions(createdTransactions);
 
       toast.success(`✅ Venta procesada - ${saleNumber}`);
       try {

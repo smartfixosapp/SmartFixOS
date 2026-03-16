@@ -23,6 +23,7 @@ import { toast } from "sonner";
 import { SendEmail } from "@/api/integrations";
 import { recordSaleAndTransactions, resolveActiveTenantId } from "@/components/financial/recordSale";
 import { upsertLocalOrder } from "@/components/utils/localOrderCache";
+import { upsertLocalSale, upsertLocalTransactions } from "@/components/utils/localFinancialCache";
 
 export default function PaymentDialog({ open, onClose, order, onSuccess, isCreating = false, onPaymentData }) {
   const [amount, setAmount] = useState("");
@@ -249,6 +250,12 @@ export default function PaymentDialog({ open, onClose, order, onSuccess, isCreat
         console.error("Error creating audit log:", auditError);
       }
 
+      if (updatedOrder?.id) upsertLocalOrder(updatedOrder);
+      if (createdSale?.id) upsertLocalSale(createdSale);
+      if (Array.isArray(createdTransactions) && createdTransactions.length) {
+        upsertLocalTransactions(createdTransactions);
+      }
+
       setAmount("");
       setPaymentMethod("cash");
       setNotes("");
@@ -367,4 +374,3 @@ export default function PaymentDialog({ open, onClose, order, onSuccess, isCreat
     </Dialog>
   );
 }
-      if (updatedOrder?.id) upsertLocalOrder(updatedOrder);

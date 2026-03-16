@@ -76,6 +76,44 @@ function formatMoney(value) {
   return Number(value || 0).toFixed(2);
 }
 
+function normalizeOrderUpdateChanges(changes = {}) {
+  if (!changes || typeof changes !== 'object') return {};
+
+  const normalized = { ...changes };
+
+  if (normalized.total_paid != null && normalized.amount_paid == null) {
+    normalized.amount_paid = normalized.total_paid;
+  }
+  if (normalized.balance != null && normalized.balance_due == null) {
+    normalized.balance_due = normalized.balance;
+  }
+
+  delete normalized.total_paid;
+  delete normalized.balance;
+
+  const allowedKeys = new Set([
+    'amount_paid',
+    'balance_due',
+    'paid',
+    'deposit_amount',
+    'total',
+    'subtotal',
+    'tax_amount',
+    'discount_amount',
+    'discount_type',
+    'discount_value',
+    'pos_discount_value',
+    'pos_discount_type',
+    'pos_discount_applied_total',
+    'tenant_id',
+    'updated_date',
+  ]);
+
+  return Object.fromEntries(
+    Object.entries(normalized).filter(([key]) => allowedKeys.has(key))
+  );
+}
+
 async function sendCashRegisterEmail({ type, tenantId, drawer, performedBy, difference = null, expectedCash = null }) {
   if (!tenantId) return;
 
@@ -277,10 +315,11 @@ async function handleRecordSale(req, res, body) {
 
   let updatedOrder = null;
   if (orderUpdate?.id && orderUpdate?.changes && typeof orderUpdate.changes === 'object') {
+    const safeChanges = normalizeOrderUpdateChanges(orderUpdate.changes);
     const updatedOrderRows = await sbPatch(
       'order',
       `id=eq.${encodeURIComponent(orderUpdate.id)}`,
-      orderUpdate.changes
+      safeChanges
     );
     updatedOrder = Array.isArray(updatedOrderRows) ? updatedOrderRows[0] : updatedOrderRows;
   }

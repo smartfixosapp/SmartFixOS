@@ -29,6 +29,7 @@ import {
   subscribeToCashRegister,
   checkCashRegisterStatus
 } from "@/components/cash/CashRegisterService";
+import { mergeSales, mergeTransactions, upsertLocalSale, upsertLocalTransactions } from "@/components/utils/localFinancialCache";
 
 const StatCard = ({ title, value, icon: Icon, color, onClick }) => (
   <Card 
@@ -194,6 +195,8 @@ export default function Financial() {
     const handleSaleCompleted = (event) => {
       const sale = event?.detail?.sale;
       const txs = Array.isArray(event?.detail?.transactions) ? event.detail.transactions : [];
+      if (sale?.id) upsertLocalSale(sale);
+      if (txs.length) upsertLocalTransactions(txs);
       if (sale) {
         setSales((prev) => [sale, ...(prev || []).filter((row) => String(row?.id || "") !== String(sale?.id || ""))]);
       }
@@ -322,8 +325,8 @@ export default function Financial() {
         return bDate - aDate;
       });
 
-      setSales(validSales);
-      setTransactions(transactionsData || []);
+      setSales(mergeSales(validSales));
+      setTransactions(mergeTransactions(transactionsData || []));
       setExpenses(mergedExpenses);
       setFixedExpenses((prev) => {
         const incoming = fixedExpensesData || [];

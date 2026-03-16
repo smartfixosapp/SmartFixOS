@@ -8,6 +8,7 @@ import { base44 } from "@/api/base44Client";
 import NotificationService from "../notifications/NotificationService";
 import { recordSaleAndTransactions, resolveActiveTenantId } from "@/components/financial/recordSale";
 import { upsertLocalOrder } from "@/components/utils/localOrderCache";
+import { upsertLocalSale, upsertLocalTransactions } from "@/components/utils/localFinancialCache";
 import { DollarSign, CreditCard, Smartphone, MoreHorizontal } from "lucide-react";
 import { useDeviceDetection } from "../utils/useDeviceDetection";
 
@@ -296,6 +297,8 @@ export default function PaymentModal({ open, onClose, subtotal, items = [], work
       });
       try {
         if (updatedOrder?.id) upsertLocalOrder(updatedOrder);
+        if (createdSale?.id) upsertLocalSale(createdSale);
+        if (Array.isArray(createdTransactions) && createdTransactions.length) upsertLocalTransactions(createdTransactions);
         window.dispatchEvent(new CustomEvent("sale-completed", {
           detail: {
             sale: createdSale,
