@@ -262,7 +262,6 @@ export default function PaymentModal({ open, onClose, subtotal, items = [], work
         id: workOrderId,
         changes: {
           total: Number(currentOrder.total || 0),
-          total_paid: newTotalPaid,
           amount_paid: newTotalPaid,
           balance_due: newBalance,
           paid: newBalance <= 0.01,

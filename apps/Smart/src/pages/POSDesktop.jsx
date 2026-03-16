@@ -564,7 +564,6 @@ export default function POSDesktop() {
           orderUpdate: selectedOrder ? {
             id: selectedOrder.id,
             changes: {
-              total_paid: newTotalPaid,
               amount_paid: newTotalPaid,
               balance_due: newBalance,
               paid: newBalance <= 0.01,
