@@ -151,7 +151,6 @@ export default function PaymentDialog({ open, onClose, order, onSuccess, isCreat
         order_id: order.id,
         order_number: order.order_number,
         voided: false,
-        payment_mode: "full",
         notes: `Pago de Work Order ${order.order_number}`
       });
 

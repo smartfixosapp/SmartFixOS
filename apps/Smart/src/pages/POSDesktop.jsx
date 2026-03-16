@@ -534,8 +534,8 @@ export default function POSDesktop() {
           ath_movil_name: paymentMethod === "ath_movil" || paymentMethod === "mixed" ? athMovilName : null
         },
         employee: me?.full_name || "Sistema",
-        payment_mode: paymentMode,
-        is_deposit: paymentMode === "deposit"
+        deposit_credit: paymentMode === "deposit" ? amountPaid : 0,
+        notes: paymentMode === "deposit" ? "Depósito registrado desde POS" : undefined
       };
 
       let sale = null;

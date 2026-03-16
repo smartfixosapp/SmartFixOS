@@ -173,8 +173,7 @@ export default function DepositDialog({ open, onClose, order, onSuccess, isCreat
         employee: user?.full_name || user?.email,
         order_id: order.id,
         order_number: order.order_number,
-        is_deposit: true, // Flag útil
-        payment_mode: "deposit",
+        deposit_credit: depositAmount,
         notes: notes || `Depósito a cuenta`
       });
 

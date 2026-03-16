@@ -288,8 +288,10 @@ export default function PaymentModal({ open, onClose, subtotal, items = [], work
 
       const createdSale = await dataClient.entities.Sale.create({
         ...saleData,
-        payment_mode: paymentMode,
-        is_deposit: paymentMode === "deposit"
+        deposit_credit: paymentMode === "deposit" ? finalAmount : 0,
+        notes: paymentMode === "deposit"
+          ? `Depósito registrado desde POS${saleData.notes ? ` | ${saleData.notes}` : ""}`
+          : saleData.notes
       });
       try {
         window.dispatchEvent(new CustomEvent("sale-completed", {
