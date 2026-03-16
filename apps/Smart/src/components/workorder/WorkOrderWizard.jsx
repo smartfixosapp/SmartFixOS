@@ -3501,7 +3501,7 @@ export default function WorkOrderWizard({ open, onClose, onSuccess, preloadedCus
             </div>
 
             <DragDropContext onDragEnd={handleDragEndCatalog}>
-            <div className="px-6 py-5 space-y-5">
+              <div className="px-6 py-5 space-y-5">
               <div>
                 <label className="text-sm text-white/70 mb-2 block">Categoría</label>
                 <input
@@ -3580,6 +3580,7 @@ export default function WorkOrderWizard({ open, onClose, onSuccess, preloadedCus
                               </div>
                             )}
                           </Draggable>
+                        </div>
                       );
                     })}
                     {provided.placeholder}
@@ -3679,6 +3680,7 @@ export default function WorkOrderWizard({ open, onClose, onSuccess, preloadedCus
                               </div>
                             )}
                           </Draggable>
+                        </div>
                       );
                     })}
                     {provided.placeholder}
@@ -3772,6 +3774,7 @@ export default function WorkOrderWizard({ open, onClose, onSuccess, preloadedCus
                               </div>
                             )}
                           </Draggable>
+                        </div>
                       );
                     })}
                     {provided.placeholder}
@@ -3866,6 +3869,7 @@ export default function WorkOrderWizard({ open, onClose, onSuccess, preloadedCus
                                 </div>
                               )}
                             </Draggable>
+                          </div>
                         );
                       })}
                       {provided.placeholder}
@@ -3879,9 +3883,7 @@ export default function WorkOrderWizard({ open, onClose, onSuccess, preloadedCus
                   )}
                 </div>
               </div>
-            </div>
-
-                      </DragDropContext>
+            </DragDropContext>
             <div className="px-6 pb-6 flex gap-3">
               <button
                 type="button"
