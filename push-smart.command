@@ -9,20 +9,17 @@ echo "Repo: $SCRIPT_DIR"
 
 if ! git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
   echo "Error: esta carpeta no es un repositorio git."
-  read -r "?Presiona Enter para cerrar..."
   exit 1
 fi
 
 BRANCH="$(git rev-parse --abbrev-ref HEAD)"
 if [[ "$BRANCH" == "HEAD" ]]; then
   echo "Error: estás en detached HEAD. Cambia a una rama antes de hacer push."
-  read -r "?Presiona Enter para cerrar..."
   exit 1
 fi
 
 if [[ -z "$(git status --porcelain)" ]]; then
   echo "No hay cambios para subir."
-  read -r "?Presiona Enter para cerrar..."
   exit 0
 fi
 
@@ -49,4 +46,3 @@ git push origin "$BRANCH"
 
 echo ""
 echo "Listo. Push completado en $BRANCH."
-read -r "?Presiona Enter para cerrar..."

@@ -25,3 +25,4 @@ git commit -m "chore: auto push $(date '+%Y-%m-%d %H:%M:%S')" >/dev/null 2>&1 ||
 git push origin "$BRANCH"
 
 osascript -e "display notification \"Push completado en rama $BRANCH\" with title \"Push SmartFixOS\""
+exit 0

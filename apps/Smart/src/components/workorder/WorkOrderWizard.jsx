@@ -1,6 +1,7 @@
 // === WorkOrderWizard.jsx — VERSIÓN PÁGINA ÚNICA (Mobile Optimized) ===
 import React, { useState, useEffect, useRef, useMemo } from "react";
 import { createPortal } from "react-dom";
+import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
 import * as DialogPrimitive from "@radix-ui/react-dialog";
 import { base44 } from "@/api/base44Client";
 import { sendTemplatedEmail } from "@/api/functions";
@@ -556,6 +557,33 @@ const mapDraftCartItemToWizardItem = (item, index) => ({
   is_manual: item.is_manual === true
 });
 
+
+function reorderLocalCatalogItems(level, newOrderedList) {
+  try {
+    const current = readLocalDeviceCatalog();
+    if (level === "categories") {
+      const remaining = current.categories.filter(c => !newOrderedList.find(n => n.id === c.id));
+      current.categories = [...newOrderedList, ...remaining];
+      current.categories.forEach((c, idx) => c.order = idx + 1);
+    } else if (level === "brands") {
+       const remaining = current.brands.filter(c => !newOrderedList.find(n => n.id === c.id));
+      current.brands = [...newOrderedList, ...remaining];
+      current.brands.forEach((c, idx) => c.order = idx + 1);
+    } else if (level === "families") {
+       const remaining = current.families.filter(c => !newOrderedList.find(n => n.id === c.id));
+      current.families = [...newOrderedList, ...remaining];
+      current.families.forEach((c, idx) => c.order = idx + 1);
+    } else if (level === "models") {
+       const remaining = current.models.filter(c => !newOrderedList.find(n => n.id === c.id));
+      current.models = [...newOrderedList, ...remaining];
+      current.models.forEach((c, idx) => c.order = idx + 1);
+    }
+    writeLocalDeviceCatalog(current);
+  } catch (err) {
+    console.error("Error reordering catalog:", err);
+  }
+}
+
 export default function WorkOrderWizard({ open, onClose, onSuccess, preloadedCustomer }) {
   const [loading, setLoading] = useState(false);
   const [user, setUser] = useState(null);
@@ -628,6 +656,41 @@ export default function WorkOrderWizard({ open, onClose, onSuccess, preloadedCus
   // Búsqueda
   const [customerSearchQuery, setCustomerSearchQuery] = useState("");
   const [customerResults, setCustomerResults] = useState([]);
+
+  const handleDragEndCatalog = (result) => {
+    if (!result.destination) return;
+    const { source, destination, droppableId } = result;
+    if (source.index === destination.index) return;
+    
+    // We update local state, modify order, and persist to local storage.
+    let reordered = [];
+    if (droppableId === "catalog-categories") {
+      const items = Array.from(types);
+      const [moved] = items.splice(source.index, 1);
+      items.splice(destination.index, 0, moved);
+      setTypes(items);
+      reorderLocalCatalogItems("categories", items);
+    } else if (droppableId === "catalog-brands") {
+      const items = Array.from(deviceCatalogBrands);
+      const [moved] = items.splice(source.index, 1);
+      items.splice(destination.index, 0, moved);
+      setDeviceCatalogBrands(items);
+      reorderLocalCatalogItems("brands", items);
+    } else if (droppableId === "catalog-families") {
+      const items = Array.from(deviceCatalogFamilies);
+      const [moved] = items.splice(source.index, 1);
+      items.splice(destination.index, 0, moved);
+      setDeviceCatalogFamilies(items);
+      reorderLocalCatalogItems("families", items);
+    } else if (droppableId === "catalog-models") {
+      const items = Array.from(deviceCatalogModels);
+      const [moved] = items.splice(source.index, 1);
+      items.splice(destination.index, 0, moved);
+      setDeviceCatalogModels(items);
+      reorderLocalCatalogItems("models", items);
+    }
+  };
+
   
   const fileInputRef = useRef(null);
   const cameraInputRef = useRef(null);
@@ -3437,6 +3500,7 @@ export default function WorkOrderWizard({ open, onClose, onSuccess, preloadedCus
               </button>
             </div>
 
+            <DragDropContext onDragEnd={handleDragEndCatalog}>
             <div className="px-6 py-5 space-y-5">
               <div>
                 <label className="text-sm text-white/70 mb-2 block">Categoría</label>
@@ -3459,18 +3523,26 @@ export default function WorkOrderWizard({ open, onClose, onSuccess, preloadedCus
                   className="w-full bg-white/5 border border-white/20 rounded-xl px-4 py-3 text-white"
                 />
                 {types.length > 0 && (
-                  <div className="mt-3 flex flex-wrap gap-2">
-                    {types.slice(0, 20).map((type) => {
+                  <Droppable droppableId="catalog-categories" direction="horizontal">
+                  {(provided) => (
+                    <div
+                      className="mt-3 flex flex-wrap gap-2"
+                      ref={provided.innerRef}
+                      {...provided.droppableProps}
+                    >
+                    {types.slice(0, 20).map((type, index) => {
                       const active = normalizedText(deviceCatalogCategory) === normalizedText(type?.name);
                       return (
                         <div
-                          key={type.id}
-                          className={`inline-flex items-center gap-1 rounded-full border pr-1 pl-2 py-1 transition-all ${
-                            active
-                              ? "bg-cyan-500/20 border-cyan-400/60 text-cyan-200"
-                              : "bg-white/5 border-white/10 text-white/70"
-                          }`}
-                        >
+                          key={type.id}>
+                          <Draggable draggableId={type.id || "cat-"+index} index={index}>
+                            {(provided) => (
+                              <div
+                                ref={provided.innerRef}
+                                {...provided.draggableProps}
+                                {...provided.dragHandleProps}
+                                className={`inline-flex items-center gap-1 rounded-full border pr-1 pl-2 py-1 transition-all ${active ? "bg-cyan-500/20 border-cyan-400/60 text-cyan-200" : "bg-white/5 border-white/10 text-white/70"}`}
+                              >
                           <button
                             type="button"
                             onClick={() => {
@@ -3505,12 +3577,16 @@ export default function WorkOrderWizard({ open, onClose, onSuccess, preloadedCus
                           >
                             <Trash2 className="w-3 h-3" />
                           </button>
-                        </div>
+                              </div>
+                            )}
+                          </Draggable>
                       );
                     })}
-                  </div>
+                    {provided.placeholder}
+                    </div>
+                  )}
+                </Droppable>
                 )}
-              </div>
               <div>
                 <label className="text-sm text-white/70 mb-2 block">Marca</label>
                 {loadingDeviceCatalogBrands && deviceCatalogBrands.length === 0 ? (
@@ -3548,18 +3624,26 @@ export default function WorkOrderWizard({ open, onClose, onSuccess, preloadedCus
                   </div>
                 )}
                 {deviceCatalogBrands.length > 0 && (
-                  <div className="mt-3 flex flex-wrap gap-2">
-                    {deviceCatalogBrands.map((brand) => {
+                <Droppable droppableId="catalog-brands" direction="horizontal">
+                  {(provided) => (
+                    <div
+                      className="mt-3 flex flex-wrap gap-2"
+                      ref={provided.innerRef}
+                      {...provided.droppableProps}
+                    >
+                    {deviceCatalogBrands.map((brand, index) => {
                       const active = normalizedText(deviceCatalogBrand) === normalizedText(brand?.name);
                       return (
                         <div
-                          key={brand.id}
-                          className={`inline-flex items-center gap-1 rounded-full border pr-1 pl-2 py-1 transition-all ${
-                            active
-                              ? "bg-purple-500/20 border-purple-400/60 text-purple-200"
-                              : "bg-white/5 border-white/10 text-white/70"
-                          }`}
-                        >
+                          key={brand.id}>
+                          <Draggable draggableId={brand.id || "br-"+index} index={index}>
+                            {(provided) => (
+                              <div
+                                ref={provided.innerRef}
+                                {...provided.draggableProps}
+                                {...provided.dragHandleProps}
+                                className={`inline-flex items-center gap-1 rounded-full border pr-1 pl-2 py-1 transition-all ${active ? "bg-purple-500/20 border-purple-400/60 text-purple-200" : "bg-white/5 border-white/10 text-white/70"}`}
+                              >
                           <button
                             type="button"
                             onClick={() => {
@@ -3592,12 +3676,16 @@ export default function WorkOrderWizard({ open, onClose, onSuccess, preloadedCus
                           >
                             <Trash2 className="w-3 h-3" />
                           </button>
-                        </div>
+                              </div>
+                            )}
+                          </Draggable>
                       );
                     })}
-                  </div>
+                    {provided.placeholder}
+                    </div>
+                  )}
+                </Droppable>
                 )}
-              </div>
               <div>
                 <label className="text-sm text-white/70 mb-2 block">Línea / familia</label>
                 {loadingDeviceCatalogFamilies && deviceCatalogFamilies.length === 0 ? (
@@ -3632,18 +3720,26 @@ export default function WorkOrderWizard({ open, onClose, onSuccess, preloadedCus
                   </div>
                 )}
                 {deviceCatalogFamilies.length > 0 && (
-                  <div className="mt-3 flex flex-wrap gap-2">
-                    {deviceCatalogFamilies.map((family) => {
+                <Droppable droppableId="catalog-families" direction="horizontal">
+                  {(provided) => (
+                    <div
+                      className="mt-3 flex flex-wrap gap-2"
+                      ref={provided.innerRef}
+                      {...provided.droppableProps}
+                    >
+                    {deviceCatalogFamilies.map((family, index) => {
                       const active = normalizedText(deviceCatalogFamily) === normalizedText(family?.name);
                       return (
                         <div
-                          key={family.id}
-                          className={`inline-flex items-center gap-1 rounded-full border pr-1 pl-2 py-1 transition-all ${
-                            active
-                              ? "bg-violet-500/20 border-violet-400/60 text-violet-200"
-                              : "bg-white/5 border-white/10 text-white/70"
-                          }`}
-                        >
+                          key={family.id}>
+                          <Draggable draggableId={family.id || "fa-"+index} index={index}>
+                            {(provided) => (
+                              <div
+                                ref={provided.innerRef}
+                                {...provided.draggableProps}
+                                {...provided.dragHandleProps}
+                                className={`inline-flex items-center gap-1 rounded-full border pr-1 pl-2 py-1 transition-all ${active ? "bg-violet-500/20 border-violet-400/60 text-violet-200" : "bg-white/5 border-white/10 text-white/70"}`}
+                              >
                           <button
                             type="button"
                             onClick={() => {
@@ -3673,12 +3769,16 @@ export default function WorkOrderWizard({ open, onClose, onSuccess, preloadedCus
                           >
                             <Trash2 className="w-3 h-3" />
                           </button>
-                        </div>
+                              </div>
+                            )}
+                          </Draggable>
                       );
                     })}
-                  </div>
+                    {provided.placeholder}
+                    </div>
+                  )}
+                </Droppable>
                 )}
-              </div>
               <div>
                 <label className="text-sm text-white/70 mb-2 block">Modelo</label>
                 {loadingDeviceCatalogModels && deviceCatalogModels.length === 0 ? (
@@ -3717,18 +3817,26 @@ export default function WorkOrderWizard({ open, onClose, onSuccess, preloadedCus
                     <span className="text-[11px] text-white/40">{deviceCatalogModels.length}</span>
                   </div>
                   {deviceCatalogModels.length > 0 ? (
-                    <div className="flex flex-wrap gap-2 max-h-36 overflow-y-auto pr-1">
-                      {deviceCatalogModels.map((model) => {
+                    <Droppable droppableId="catalog-models" direction="horizontal">
+                      {(provided) => (
+                        <div
+                          className="flex flex-wrap gap-2 max-h-36 overflow-y-auto pr-1"
+                          ref={provided.innerRef}
+                          {...provided.droppableProps}
+                        >
+                      {deviceCatalogModels.map((model, index) => {
                         const active = normalizedText(deviceCatalogModel) === normalizedText(model?.name);
                         return (
                           <div
-                            key={model.id}
-                            className={`inline-flex items-center gap-1 rounded-full border pr-1 pl-2 py-1 transition-all ${
-                              active
-                                ? "bg-emerald-500/20 border-emerald-400/60 text-emerald-200"
-                                : "bg-black/30 border-white/10 text-white/70"
-                            }`}
-                          >
+                            key={model.id}>
+                            <Draggable draggableId={model.id || "mo-"+index} index={index}>
+                              {(provided) => (
+                                <div
+                                  ref={provided.innerRef}
+                                  {...provided.draggableProps}
+                                  {...provided.dragHandleProps}
+                                  className={`inline-flex items-center gap-1 rounded-full border pr-1 pl-2 py-1 transition-all ${active ? "bg-emerald-500/20 border-emerald-400/60 text-emerald-200" : "bg-black/30 border-white/10 text-white/70"}`}
+                                >
                             <button
                               type="button"
                               onClick={() => {
@@ -3755,10 +3863,15 @@ export default function WorkOrderWizard({ open, onClose, onSuccess, preloadedCus
                             >
                               <Trash2 className="w-3 h-3" />
                             </button>
-                          </div>
+                                </div>
+                              )}
+                            </Draggable>
                         );
                       })}
-                    </div>
+                      {provided.placeholder}
+                      </div>
+                    )}
+                  </Droppable>
                   ) : (
                     <p className="text-sm text-white/45">
                       Selecciona categoría y marca para ver los modelos que ya guardaste.
@@ -3768,6 +3881,7 @@ export default function WorkOrderWizard({ open, onClose, onSuccess, preloadedCus
               </div>
             </div>
 
+                      </DragDropContext>
             <div className="px-6 pb-6 flex gap-3">
               <button
                 type="button"
