@@ -195,6 +195,20 @@ export default function AddItemModal({
   const [saving, setSaving] = useState(false);
 
   const isDraftOrder = draftMode || !order?.id;
+
+  // Enter key applies & saves when cart is visible and has items
+  useEffect(() => {
+    if (!open) return;
+    const handleKeyDown = (e) => {
+      if (e.key === "Enter" && showCart && cartItems.length > 0 && !saving) {
+        e.preventDefault();
+        saveToOrder();
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open, showCart, cartItems.length, saving]);
   const liveSourceItems = useMemo(() => {
     if (isDraftOrder) {
       return Array.isArray(initialItems) ? initialItems : [];
@@ -496,6 +510,8 @@ export default function AddItemModal({
         }),
       ];
     });
+    // Auto-show cart when adding an item
+    setShowCart(true);
   };
 
   const changeQty = (idx, delta) => {

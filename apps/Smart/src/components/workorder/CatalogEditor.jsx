@@ -4,11 +4,12 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { base44 } from "@/api/base44Client";
-import { GripVertical, Plus, Trash2, Edit2, ChevronUp, ChevronDown, Save } from "lucide-react";
+import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
+import { GripVertical, Plus, Trash2, Edit2, Save } from "lucide-react";
 
 /**
  * Editor de catálogos de dispositivos: marcas, modelos, tipos
- * Permite añadir, editar, eliminar y REORDENAR elementos
+ * Permite añadir, editar, eliminar y REORDENAR elementos con drag & drop
  */
 export default function CatalogEditor({ open, onClose, onSuccess }) {
   const [tab, setTab] = useState("brands"); // brands, models, categories
@@ -35,14 +36,13 @@ export default function CatalogEditor({ open, onClose, onSuccess }) {
       } else if (tab === "categories") {
         data = await base44.entities.DeviceCategory.list("order", 100);
       }
-      
-      // Ordenar por campo 'order' si existe
+
       const sorted = (data || []).sort((a, b) => {
-        const orderA = typeof a.order === 'number' ? a.order : 999;
-        const orderB = typeof b.order === 'number' ? b.order : 999;
+        const orderA = typeof a.order === "number" ? a.order : 999;
+        const orderB = typeof b.order === "number" ? b.order : 999;
         return orderA - orderB;
       });
-      
+
       setItems(sorted);
     } catch (error) {
       console.error("Error loading catalog items:", error);
@@ -59,11 +59,11 @@ export default function CatalogEditor({ open, onClose, onSuccess }) {
     }
 
     try {
-      const maxOrder = Math.max(...items.map(i => i.order || 0), 0);
+      const maxOrder = Math.max(...items.map((i) => i.order || 0), 0);
       const newItem = {
         name: newItemName.trim(),
         active: true,
-        order: maxOrder + 1
+        order: maxOrder + 1,
       };
 
       if (tab === "brands") {
@@ -130,55 +130,39 @@ export default function CatalogEditor({ open, onClose, onSuccess }) {
     }
   };
 
-  const handleMoveUp = async (index) => {
-    if (index === 0) return;
-
-    const newItems = [...items];
-    const temp = newItems[index];
-    newItems[index] = newItems[index - 1];
-    newItems[index - 1] = temp;
-
-    // Actualizar el orden en la base de datos
-    await saveOrder(newItems);
-  };
-
-  const handleMoveDown = async (index) => {
-    if (index === items.length - 1) return;
-
-    const newItems = [...items];
-    const temp = newItems[index];
-    newItems[index] = newItems[index + 1];
-    newItems[index + 1] = temp;
-
-    // Actualizar el orden en la base de datos
-    await saveOrder(newItems);
-  };
-
   const saveOrder = async (orderedItems) => {
     try {
-      // Asignar nuevos índices de orden
-      const updates = orderedItems.map((item, idx) => ({
-        id: item.id,
-        order: idx
-      }));
-
-      // Actualizar cada item con su nuevo orden
-      for (const update of updates) {
+      for (let idx = 0; idx < orderedItems.length; idx++) {
+        const item = orderedItems[idx];
         if (tab === "brands") {
-          await base44.entities.Brand.update(update.id, { order: update.order });
+          await base44.entities.Brand.update(item.id, { order: idx });
         } else if (tab === "models") {
-          await base44.entities.DeviceModel.update(update.id, { order: update.order });
+          await base44.entities.DeviceModel.update(item.id, { order: idx });
         } else if (tab === "categories") {
-          await base44.entities.DeviceCategory.update(update.id, { order: update.order });
+          await base44.entities.DeviceCategory.update(item.id, { order: idx });
         }
       }
-
-      await loadItems();
       onSuccess?.();
     } catch (error) {
       console.error("Error saving order:", error);
       alert("Error al guardar el orden");
+      await loadItems(); // reload on error to restore original
     }
+  };
+
+  const handleDragEnd = (result) => {
+    if (!result.destination) return;
+    const from = result.source.index;
+    const to = result.destination.index;
+    if (from === to) return;
+
+    const reordered = [...items];
+    const [moved] = reordered.splice(from, 1);
+    reordered.splice(to, 0, moved);
+
+    // Optimistic update
+    setItems(reordered);
+    saveOrder(reordered);
   };
 
   const getTabLabel = () => {
@@ -225,7 +209,7 @@ export default function CatalogEditor({ open, onClose, onSuccess }) {
             <p className="text-sm text-blue-200">
               💡 <strong>Editando: {getTabLabel()}</strong>
               <br />
-              Usa las flechas ↑ ↓ para cambiar el orden de visualización en el Wizard.
+              Arrastra el ícono <GripVertical className="inline w-3.5 h-3.5" /> para cambiar el orden de visualización en el Wizard.
             </p>
           </div>
 
@@ -236,7 +220,7 @@ export default function CatalogEditor({ open, onClose, onSuccess }) {
               <Input
                 value={newItemName}
                 onChange={(e) => setNewItemName(e.target.value)}
-                placeholder={`Nombre de la ${tab === 'brands' ? 'marca' : tab === 'models' ? 'modelo' : 'categoría'}...`}
+                placeholder={`Nombre de la ${tab === "brands" ? "marca" : tab === "models" ? "modelo" : "categoría"}...`}
                 className="bg-black/40 border-white/15 text-white flex-1"
                 onKeyDown={(e) => {
                   if (e.key === "Enter") {
@@ -252,7 +236,7 @@ export default function CatalogEditor({ open, onClose, onSuccess }) {
             </div>
           </div>
 
-          {/* Lista de items */}
+          {/* Lista de items con drag & drop */}
           <div className="space-y-2">
             <Label className="text-gray-300 font-medium">
               {getTabLabel()} actuales ({items.length}):
@@ -263,88 +247,94 @@ export default function CatalogEditor({ open, onClose, onSuccess }) {
             ) : items.length === 0 ? (
               <div className="text-center py-8 text-gray-500">Sin elementos</div>
             ) : (
-              <div className="space-y-1">
-                {items.map((item, index) => (
-                  <div
-                    key={item.id}
-                    className="flex items-center gap-2 p-3 bg-white/5 border border-white/10 rounded-lg hover:border-red-600/30 transition-colors">
-                    
-                    {/* Icono drag (visual) */}
-                    <GripVertical className="w-4 h-4 text-gray-500 flex-shrink-0" />
+              <DragDropContext onDragEnd={handleDragEnd}>
+                <Droppable droppableId="catalog-list">
+                  {(provided) => (
+                    <div
+                      {...provided.droppableProps}
+                      ref={provided.innerRef}
+                      className="space-y-1"
+                    >
+                      {items.map((item, index) => (
+                        <Draggable key={item.id} draggableId={String(item.id)} index={index}>
+                          {(provided, snapshot) => (
+                            <div
+                              ref={provided.innerRef}
+                              {...provided.draggableProps}
+                              className={`flex items-center gap-2 p-3 border rounded-lg transition-colors ${
+                                snapshot.isDragging
+                                  ? "bg-red-600/20 border-red-500/50 shadow-lg"
+                                  : "bg-white/5 border-white/10 hover:border-red-600/30"
+                              }`}
+                            >
+                              {/* Drag handle */}
+                              <div
+                                {...provided.dragHandleProps}
+                                className="cursor-grab active:cursor-grabbing text-gray-400 hover:text-white flex-shrink-0"
+                                title="Arrastra para reordenar"
+                              >
+                                <GripVertical className="w-4 h-4" />
+                              </div>
 
-                    {/* Nombre (editable) */}
-                    {editingId === item.id ? (
-                      <Input
-                        value={editValue}
-                        onChange={(e) => setEditValue(e.target.value)}
-                        className="bg-black/40 border-white/15 text-white flex-1"
-                        autoFocus
-                        onKeyDown={(e) => {
-                          if (e.key === "Enter") {
-                            e.preventDefault();
-                            handleEdit(item.id, editValue);
-                          }
-                          if (e.key === "Escape") {
-                            setEditingId(null);
-                            setEditValue("");
-                          }
-                        }}
-                      />
-                    ) : (
-                      <span className="text-white flex-1 truncate">{item.name}</span>
-                    )}
+                              {/* Nombre (editable) */}
+                              {editingId === item.id ? (
+                                <Input
+                                  value={editValue}
+                                  onChange={(e) => setEditValue(e.target.value)}
+                                  className="bg-black/40 border-white/15 text-white flex-1"
+                                  autoFocus
+                                  onKeyDown={(e) => {
+                                    if (e.key === "Enter") {
+                                      e.preventDefault();
+                                      handleEdit(item.id, editValue);
+                                    }
+                                    if (e.key === "Escape") {
+                                      setEditingId(null);
+                                      setEditValue("");
+                                    }
+                                  }}
+                                />
+                              ) : (
+                                <span className="text-white flex-1 truncate">{item.name}</span>
+                              )}
 
-                    {/* Botones de orden */}
-                    <div className="flex items-center gap-1">
-                      <Button
-                        size="icon"
-                        variant="ghost"
-                        onClick={() => handleMoveUp(index)}
-                        disabled={index === 0}
-                        className="h-8 w-8 text-gray-400 hover:text-white disabled:opacity-30">
-                        <ChevronUp className="w-4 h-4" />
-                      </Button>
-                      <Button
-                        size="icon"
-                        variant="ghost"
-                        onClick={() => handleMoveDown(index)}
-                        disabled={index === items.length - 1}
-                        className="h-8 w-8 text-gray-400 hover:text-white disabled:opacity-30">
-                        <ChevronDown className="w-4 h-4" />
-                      </Button>
+                              {/* Botones de acción */}
+                              {editingId === item.id ? (
+                                <Button
+                                  size="icon"
+                                  onClick={() => handleEdit(item.id, editValue)}
+                                  className="h-8 w-8 bg-green-600 hover:bg-green-700">
+                                  <Save className="w-4 h-4" />
+                                </Button>
+                              ) : (
+                                <Button
+                                  size="icon"
+                                  variant="ghost"
+                                  onClick={() => {
+                                    setEditingId(item.id);
+                                    setEditValue(item.name);
+                                  }}
+                                  className="h-8 w-8 text-gray-400 hover:text-white">
+                                  <Edit2 className="w-4 h-4" />
+                                </Button>
+                              )}
+
+                              <Button
+                                size="icon"
+                                variant="ghost"
+                                onClick={() => handleDelete(item.id)}
+                                className="h-8 w-8 text-red-400 hover:text-red-300">
+                                <Trash2 className="w-4 h-4" />
+                              </Button>
+                            </div>
+                          )}
+                        </Draggable>
+                      ))}
+                      {provided.placeholder}
                     </div>
-
-                    {/* Botones de acción */}
-                    {editingId === item.id ? (
-                      <Button
-                        size="icon"
-                        onClick={() => handleEdit(item.id, editValue)}
-                        className="h-8 w-8 bg-green-600 hover:bg-green-700">
-                        <Save className="w-4 h-4" />
-                      </Button>
-                    ) : (
-                      <Button
-                        size="icon"
-                        variant="ghost"
-                        onClick={() => {
-                          setEditingId(item.id);
-                          setEditValue(item.name);
-                        }}
-                        className="h-8 w-8 text-gray-400 hover:text-white">
-                        <Edit2 className="w-4 h-4" />
-                      </Button>
-                    )}
-
-                    <Button
-                      size="icon"
-                      variant="ghost"
-                      onClick={() => handleDelete(item.id)}
-                      className="h-8 w-8 text-red-400 hover:text-red-300">
-                      <Trash2 className="w-4 h-4" />
-                    </Button>
-                  </div>
-                ))}
-              </div>
+                  )}
+                </Droppable>
+              </DragDropContext>
             )}
           </div>
         </div>
