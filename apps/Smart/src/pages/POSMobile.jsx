@@ -537,6 +537,9 @@ export default function POSMobile() {
 
       const tenantId = resolveActiveTenantId();
       let sale = null;
+      const newTotalPaid = selectedOrder ? totalPaid + amountPaid : null;
+      const oldBalance = selectedOrder ? orderBalance : null;
+      const newBalance = selectedOrder ? Math.max(0, oldBalance - amountPaid) : null;
       try {
         const result = await recordSaleAndTransactions({
           sale: {
@@ -554,6 +557,16 @@ export default function POSMobile() {
             recorded_by: me?.full_name || "Sistema",
             tenant_id: tenantId,
           })),
+          orderUpdate: selectedOrder ? {
+            id: selectedOrder.id,
+            changes: {
+              total_paid: newTotalPaid,
+              amount_paid: newTotalPaid,
+              balance_due: newBalance,
+              balance: newBalance,
+              paid: newBalance <= 0.01,
+            },
+          } : null,
         });
         sale = result.sale;
       } catch (saleError) {
@@ -568,21 +581,6 @@ export default function POSMobile() {
       }
 
       if (selectedOrder) {
-        const newTotalPaid = totalPaid + amountPaid;
-        const oldBalance = orderBalance;
-        const newBalance = Math.max(0, oldBalance - amountPaid);
-        try {
-          await dataClient.entities.Order.update(selectedOrder.id, { 
-            total_paid: newTotalPaid,
-            amount_paid: newTotalPaid,
-            balance_due: newBalance,
-            balance: newBalance,
-            paid: newBalance <= 0.01
-          });
-        } catch (orderUpdateError) {
-          console.warn("Order payment update failed:", orderUpdateError);
-          toast.warning("Venta creada, pero no se pudo actualizar el balance de la orden");
-        }
         try {
           await AuditService.logPayment(paymentMode, "Order", selectedOrder.id, selectedOrder.order_number, amountPaid, paymentMethod, { old_balance: oldBalance, new_balance: newBalance });
         } catch (auditPaymentError) {

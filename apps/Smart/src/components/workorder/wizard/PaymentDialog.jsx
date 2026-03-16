@@ -99,14 +99,6 @@ export default function PaymentDialog({ open, onClose, order, onSuccess, isCreat
 
       const balanceDue = Math.max(0, totalWithTax - newTotalPaid);
 
-      // Update order - NO CAMBIAR ESTADO
-      await base44.entities.Order.update(order.id, {
-        amount_paid: newTotalPaid,
-        balance_due: balanceDue,
-        paid: balanceDue === 0
-        // ✅ Sin tocar 'status' - mantiene estado actual
-      });
-
       const saleNumber = `WO-PAY-${Date.now().toString().slice(-8)}`;
       const tenantId = resolveActiveTenantId();
       const { sale: createdSale } = await recordSaleAndTransactions({
@@ -141,7 +133,7 @@ export default function PaymentDialog({ open, onClose, order, onSuccess, isCreat
         order_id: order.id,
         order_number: order.order_number,
         voided: false,
-        notes: `Pago de Work Order ${order.order_number}`
+        notes: `Pago de Work Order ${order.order_number}`,
         tenant_id: tenantId,
         },
         transactions: [{
@@ -155,6 +147,14 @@ export default function PaymentDialog({ open, onClose, order, onSuccess, isCreat
           recorded_by: user?.full_name || user?.email,
           tenant_id: tenantId,
         }],
+        orderUpdate: {
+          id: order.id,
+          changes: {
+            amount_paid: newTotalPaid,
+            balance_due: balanceDue,
+            paid: balanceDue === 0,
+          },
+        },
       });
 
       // Create work order event

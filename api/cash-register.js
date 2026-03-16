@@ -260,7 +260,7 @@ async function handleClose(req, res, body) {
 }
 
 async function handleRecordSale(req, res, body) {
-  const { sale, transactions = [] } = body || {};
+  const { sale, transactions = [], orderUpdate = null } = body || {};
 
   if (!sale || !Array.isArray(sale.items) || sale.items.length === 0) {
     return res.status(400).json({ success: false, error: 'Payload de venta inválido' });
@@ -275,10 +275,21 @@ async function handleRecordSale(req, res, body) {
     createdTransactions.push(Array.isArray(createdTxRows) ? createdTxRows[0] : createdTxRows);
   }
 
+  let updatedOrder = null;
+  if (orderUpdate?.id && orderUpdate?.changes && typeof orderUpdate.changes === 'object') {
+    const updatedOrderRows = await sbPatch(
+      'order',
+      `id=eq.${encodeURIComponent(orderUpdate.id)}`,
+      orderUpdate.changes
+    );
+    updatedOrder = Array.isArray(updatedOrderRows) ? updatedOrderRows[0] : updatedOrderRows;
+  }
+
   return res.status(200).json({
     success: true,
     sale: createdSale,
     transactions: createdTransactions,
+    order: updatedOrder,
   });
 }
 

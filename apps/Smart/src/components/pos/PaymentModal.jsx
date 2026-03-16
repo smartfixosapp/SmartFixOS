@@ -151,6 +151,7 @@ export default function PaymentModal({ open, onClose, subtotal, items = [], work
       }
 
       let newBalance = 0;
+      let newTotalPaid = 0;
       let currentOrder = null;
       
       if (workOrderId) {
@@ -158,7 +159,7 @@ export default function PaymentModal({ open, onClose, subtotal, items = [], work
           currentOrder = await base44.entities.Order.get(workOrderId);
           const orderTotal = Number(currentOrder.total || 0);
           const currentPaid = Number(currentOrder.total_paid || currentOrder.amount_paid || 0);
-          const newTotalPaid = currentPaid + finalAmount;
+          newTotalPaid = currentPaid + finalAmount;
           newBalance = Math.max(0, orderTotal - newTotalPaid);
           
           const updateData = {
@@ -272,6 +273,17 @@ export default function PaymentModal({ open, onClose, subtotal, items = [], work
       }
 
       const tenantId = resolveActiveTenantId();
+      const orderUpdate = workOrderId && currentOrder ? {
+        id: workOrderId,
+        changes: {
+          total_paid: newTotalPaid,
+          amount_paid: newTotalPaid,
+          balance_due: newBalance,
+          balance: newBalance,
+          paid: newBalance <= 0.01,
+        },
+      } : null;
+
       const { sale: createdSale } = await recordSaleAndTransactions({
         sale: {
         ...saleData,
@@ -292,6 +304,7 @@ export default function PaymentModal({ open, onClose, subtotal, items = [], work
           recorded_by: me?.full_name || me?.email || "Sistema",
           tenant_id: tenantId,
         }] : [],
+        orderUpdate,
       });
       try {
         window.dispatchEvent(new CustomEvent("sale-completed", {

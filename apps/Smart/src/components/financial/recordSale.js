@@ -21,12 +21,21 @@ export function resolveActiveTenantId() {
   );
 }
 
-export async function recordSaleAndTransactions({ sale, transactions = [] }) {
+export async function recordSaleAndTransactions({ sale, transactions = [], orderUpdate = null }) {
   const tenantId = sale?.tenant_id || resolveActiveTenantId();
   const salePayload = tenantId ? { ...sale, tenant_id: tenantId } : { ...sale };
   const transactionPayloads = (transactions || []).map((tx) =>
     tenantId && !tx?.tenant_id ? { ...tx, tenant_id: tenantId } : tx
   );
+  const orderUpdatePayload =
+    orderUpdate?.id && orderUpdate?.changes
+      ? {
+          id: orderUpdate.id,
+          changes: tenantId && !orderUpdate.changes?.tenant_id
+            ? { ...orderUpdate.changes, tenant_id: tenantId }
+            : orderUpdate.changes,
+        }
+      : null;
 
   const response = await fetch("/api/cash-register", {
     method: "POST",
@@ -35,6 +44,7 @@ export async function recordSaleAndTransactions({ sale, transactions = [] }) {
       action: "record_sale",
       sale: salePayload,
       transactions: transactionPayloads,
+      orderUpdate: orderUpdatePayload,
     }),
   });
 
@@ -46,5 +56,6 @@ export async function recordSaleAndTransactions({ sale, transactions = [] }) {
   return {
     sale: payload.sale,
     transactions: Array.isArray(payload.transactions) ? payload.transactions : [],
+    order: payload.order || null,
   };
 }

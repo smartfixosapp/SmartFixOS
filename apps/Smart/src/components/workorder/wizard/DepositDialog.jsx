@@ -128,18 +128,6 @@ export default function DepositDialog({ open, onClose, order, onSuccess, isCreat
       const newTotalPaid = amountPaid + depositAmount;
       const newBalance = Math.max(0, orderTotal - newTotalPaid);
       
-      // 1. Actualizar Orden
-      await base44.entities.Order.update(order.id, {
-        amount_paid: newTotalPaid,
-        deposit_amount: (order.deposit_amount || 0) + depositAmount,
-        balance_due: newBalance,
-        // Si el balance llega a 0, ¿cambiamos estado? 
-        // En depósitos parciales NO solemos cambiar estado automáticamente a menos que sea Full Payment.
-        // Pero si salda la cuenta, podríamos. Por seguridad, mantenemos estado o movemos a 'ready_for_pickup' si está listo.
-        // Aquí solo actualizamos montos.
-      });
-
-      // 2. Crear Transacción Financiera
       const saleNumber = `DEP-${Date.now().toString().slice(-6)}`;
       const tenantId = resolveActiveTenantId();
       const { sale: createdSale } = await recordSaleAndTransactions({
@@ -165,7 +153,7 @@ export default function DepositDialog({ open, onClose, order, onSuccess, isCreat
         order_id: order.id,
         order_number: order.order_number,
         deposit_credit: depositAmount,
-        notes: notes || `Depósito a cuenta`
+        notes: notes || `Depósito a cuenta`,
         tenant_id: tenantId,
         },
         transactions: [{
@@ -179,6 +167,14 @@ export default function DepositDialog({ open, onClose, order, onSuccess, isCreat
           recorded_by: user?.full_name || user?.email,
           tenant_id: tenantId,
         }],
+        orderUpdate: {
+          id: order.id,
+          changes: {
+            amount_paid: newTotalPaid,
+            deposit_amount: (order.deposit_amount || 0) + depositAmount,
+            balance_due: newBalance,
+          },
+        },
       });
 
       // 4. Registrar Evento en Historial
