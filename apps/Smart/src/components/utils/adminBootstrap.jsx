@@ -24,6 +24,31 @@ const ADMIN_PANEL_DEFAULTS = [
   { id: "database", label: "Base de Datos", icon: "FileText", gradient: "from-slate-600 to-slate-800", action: "Settings", type: "navigate", enabled: true }
 ];
 
+const DEFAULT_SMARTPHONE_CATALOG = {
+  category: "SmartPhone",
+  brands: [
+    {
+      name: "Apple",
+      families: {
+        "iPhone": ["iPhone 11", "iPhone 12", "iPhone 13", "iPhone 14", "iPhone 15", "iPhone 16", "iPhone 17"],
+        "iPhone Plus": ["iPhone 14 Plus", "iPhone 15 Plus", "iPhone 16 Plus", "iPhone 17 Plus"],
+        "iPhone Pro": ["iPhone 11 Pro", "iPhone 12 Pro", "iPhone 13 Pro", "iPhone 14 Pro", "iPhone 15 Pro", "iPhone 16 Pro", "iPhone 17 Pro"],
+        "iPhone Pro Max": ["iPhone 11 Pro Max", "iPhone 12 Pro Max", "iPhone 13 Pro Max", "iPhone 14 Pro Max", "iPhone 15 Pro Max", "iPhone 16 Pro Max", "iPhone 17 Pro Max"],
+      }
+    },
+    {
+      name: "Samsung",
+      families: {
+        "Galaxy A": ["Galaxy A14", "Galaxy A15", "Galaxy A25", "Galaxy A35", "Galaxy A54", "Galaxy A55"],
+        "Galaxy S": ["Galaxy S21", "Galaxy S22", "Galaxy S23", "Galaxy S24", "Galaxy S24 Ultra", "Galaxy S25", "Galaxy S25 Ultra"],
+        "Galaxy Z": ["Galaxy Z Flip 5", "Galaxy Z Flip 6", "Galaxy Z Fold 5", "Galaxy Z Fold 6"],
+      }
+    },
+    { name: "LG", families: {} },
+    { name: "Motorola", families: {} },
+  ]
+};
+
 function mergeDefaults(savedButtons = [], defaults = []) {
   const savedMap = new Map((savedButtons || []).map((b) => [b.id, b]));
   const custom = (savedButtons || []).filter(
@@ -54,6 +79,75 @@ async function upsertAppSetting(base44, slug, payload, description) {
   }
 }
 
+async function ensureDefaultDeviceCatalog(base44) {
+  const [categories, brands, families, models] = await Promise.all([
+    base44.entities.DeviceCategory.filter({}, "order"),
+    base44.entities.Brand.filter({}, "order"),
+    base44.entities.DeviceFamily.filter({}, "order"),
+    base44.entities.DeviceModel.filter({}, "order"),
+  ]);
+
+  const findByName = (rows, name, extraCheck = () => true) =>
+    (rows || []).find((row) => String(row?.name || "").trim().toLowerCase() === String(name || "").trim().toLowerCase() && extraCheck(row));
+
+  let smartphoneCategory = findByName(categories, DEFAULT_SMARTPHONE_CATALOG.category);
+  if (!smartphoneCategory) {
+    smartphoneCategory = await base44.entities.DeviceCategory.create({
+      name: DEFAULT_SMARTPHONE_CATALOG.category,
+      active: true,
+      order: (categories || []).length + 1,
+    });
+    categories.push(smartphoneCategory);
+  }
+
+  for (const brandSeed of DEFAULT_SMARTPHONE_CATALOG.brands) {
+    let brand = findByName(brands, brandSeed.name, (row) => row.category_id === smartphoneCategory.id);
+    if (!brand) {
+      brand = await base44.entities.Brand.create({
+        name: brandSeed.name,
+        category_id: smartphoneCategory.id,
+        active: true,
+        order: brands.filter((row) => row.category_id === smartphoneCategory.id).length + 1,
+      });
+      brands.push(brand);
+    }
+
+    for (const [familyName, familyModels] of Object.entries(brandSeed.families || {})) {
+      let family = findByName(families, familyName, (row) => row.brand_id === brand.id);
+      if (!family) {
+        family = await base44.entities.DeviceFamily.create({
+          name: familyName,
+          brand_id: brand.id,
+          active: true,
+          order: families.filter((row) => row.brand_id === brand.id).length + 1,
+        });
+        families.push(family);
+      }
+
+      for (const modelName of familyModels) {
+        const existingModel = findByName(
+          models,
+          modelName,
+          (row) => row.brand_id === brand.id && row.family_id === family.id
+        );
+        if (existingModel) continue;
+
+        const createdModel = await base44.entities.DeviceModel.create({
+          name: modelName,
+          brand_id: brand.id,
+          brand: brand.name,
+          category_id: smartphoneCategory.id,
+          family_id: family.id,
+          family: family.name,
+          active: true,
+          order: models.filter((row) => row.family_id === family.id).length + 1,
+        });
+        models.push(createdModel);
+      }
+    }
+  }
+}
+
 export async function ensureAdminBootstrap(base44) {
   try {
     const [dashRows, adminRows] = await Promise.all([
@@ -81,6 +175,8 @@ export async function ensureAdminBootstrap(base44) {
         "Botones del panel administrativo (bootstrap admin)"
       )
     ]);
+
+    await ensureDefaultDeviceCatalog(base44);
   } catch (error) {
     console.warn("Admin bootstrap: no se pudo persistir configuración.", error);
   }
