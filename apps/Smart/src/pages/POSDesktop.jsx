@@ -12,6 +12,7 @@ import CustomerSelector from "../components/pos/CustomerSelector";
 import CheckoutModalDesktop from "../components/pos/CheckoutModalDesktop";
 import RechargeDialog from "../components/pos/RechargeDialog";
 import OpenDrawerDialog from "../components/cash/OpenDrawerDialog";
+import { recordSaleAndTransactions, resolveActiveTenantId } from "@/components/financial/recordSale";
 import { AuditService } from "@/components/utils/auditService";
 import { catalogCache } from "@/components/utils/dataCache";
 import { createPageUrl } from "@/components/utils/helpers";
@@ -538,9 +539,27 @@ export default function POSDesktop() {
         notes: paymentMode === "deposit" ? "Depósito registrado desde POS" : undefined
       };
 
+      const tenantId = resolveActiveTenantId();
       let sale = null;
       try {
-        sale = await dataClient.entities.Sale.create(saleData);
+        const result = await recordSaleAndTransactions({
+          sale: {
+            ...saleData,
+            tenant_id: tenantId,
+          },
+          transactions: paymentMethods.map((methodDetail) => ({
+            order_id: selectedOrder?.id || null,
+            order_number: selectedOrder?.order_number || null,
+            type: "revenue",
+            amount: Number(methodDetail.amount || 0),
+            description: `Venta ${saleNumber}${paymentMode === "deposit" ? " (depósito)" : ""}`,
+            category: selectedOrder || saleItems.some(i => i.type === "service") ? "repair_payment" : "parts",
+            payment_method: methodDetail.method,
+            recorded_by: me?.full_name || "Sistema",
+            tenant_id: tenantId,
+          })),
+        });
+        sale = result.sale;
       } catch (saleError) {
         const details = saleError?.details ? ` (${saleError.details})` : "";
         throw new Error(`${saleError?.message || "No se pudo crear la venta"}${details}`);
@@ -550,26 +569,6 @@ export default function POSDesktop() {
         await AuditService.logCreate("Sale", sale.id, saleNumber, saleData);
       } catch (auditError) {
         console.warn("Audit log (sale create) failed:", auditError);
-      }
-
-      // Registrar ingresos para Finanzas (ingresos por método de pago)
-      try {
-        const txCategory = selectedOrder || saleItems.some(i => i.type === "service") ? "repair_payment" : "parts";
-        for (const methodDetail of paymentMethods) {
-          await dataClient.entities.Transaction.create({
-            order_id: selectedOrder?.id || null,
-            order_number: selectedOrder?.order_number || null,
-            type: "revenue",
-            amount: Number(methodDetail.amount || 0),
-            description: `Venta ${saleNumber}${paymentMode === "deposit" ? " (depósito)" : ""}`,
-            category: txCategory,
-            payment_method: methodDetail.method,
-            recorded_by: me?.full_name || "Sistema"
-          });
-        }
-      } catch (revenueTxError) {
-        console.warn("Revenue transaction create failed:", revenueTxError);
-        toast.warning("Venta creada, pero no se pudo registrar el ingreso en Finanzas");
       }
 
       if (selectedOrder) {

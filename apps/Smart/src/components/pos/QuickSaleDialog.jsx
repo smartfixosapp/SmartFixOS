@@ -25,6 +25,7 @@ import { format } from "date-fns";
 import PaymentModal from "./PaymentModal";
 import CustomerSelector from "./CustomerSelector";
 import StockWarningBadge, { canAddToCart } from "./StockWarningBadge";
+import { recordSaleAndTransactions, resolveActiveTenantId } from "@/components/financial/recordSale";
 
 export default function QuickSaleDialog({ open, onClose, onSuccess }) {
   const [products, setProducts] = useState([]);
@@ -251,7 +252,22 @@ export default function QuickSaleDialog({ open, onClose, onSuccess }) {
         notes: ""
       };
 
-      const sale = await dataClient.entities.Sale.create(saleData);
+      const tenantId = resolveActiveTenantId();
+      const { sale } = await recordSaleAndTransactions({
+        sale: {
+          ...saleData,
+          tenant_id: tenantId,
+        },
+        transactions: [{
+          type: "revenue",
+          amount: Number(paymentData.amountPaid || total),
+          description: `Venta ${saleData.sale_number}`,
+          category: normalizedItems.some((item) => item.type === "service") ? "repair_payment" : "parts",
+          payment_method: paymentData.method,
+          recorded_by: user?.full_name || "Sistema",
+          tenant_id: tenantId,
+        }],
+      });
 
       for (const item of cartItems) {
         if (item.type === "product") {

@@ -17,6 +17,7 @@ import { useDeviceDetection } from "@/components/utils/useDeviceDetection";
 import { useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/components/utils/helpers";
 import { SendEmail } from "@/api/integrations";
+import { recordSaleAndTransactions, resolveActiveTenantId } from "@/components/financial/recordSale";
 
 export default function DepositDialog({ open, onClose, order, onSuccess, isCreating = false, onDepositData }) {
   const { isDesktop, isMobile, isTablet } = useDeviceDetection();
@@ -139,20 +140,10 @@ export default function DepositDialog({ open, onClose, order, onSuccess, isCreat
       });
 
       // 2. Crear Transacción Financiera
-      await dataClient.entities.Transaction.create({
-        order_id: order.id,
-        order_number: order.order_number,
-        type: "revenue",
-        amount: depositAmount,
-        description: `Depósito - Orden ${order.order_number}${notes ? ` - ${notes}` : ''}`,
-        category: "repair_payment",
-        payment_method: paymentMethod,
-        recorded_by: user?.full_name || user?.email
-      });
-
-      // 3. Crear Registro de Venta (Sale) para KPI y Recibo
       const saleNumber = `DEP-${Date.now().toString().slice(-6)}`;
-      const createdSale = await dataClient.entities.Sale.create({
+      const tenantId = resolveActiveTenantId();
+      const { sale: createdSale } = await recordSaleAndTransactions({
+        sale: {
         sale_number: saleNumber,
         customer_id: order.customer_id,
         customer_name: order.customer_name,
@@ -175,6 +166,19 @@ export default function DepositDialog({ open, onClose, order, onSuccess, isCreat
         order_number: order.order_number,
         deposit_credit: depositAmount,
         notes: notes || `Depósito a cuenta`
+        tenant_id: tenantId,
+        },
+        transactions: [{
+          order_id: order.id,
+          order_number: order.order_number,
+          type: "revenue",
+          amount: depositAmount,
+          description: `Depósito - Orden ${order.order_number}${notes ? ` - ${notes}` : ''}`,
+          category: "repair_payment",
+          payment_method: paymentMethod,
+          recorded_by: user?.full_name || user?.email,
+          tenant_id: tenantId,
+        }],
       });
 
       // 4. Registrar Evento en Historial
