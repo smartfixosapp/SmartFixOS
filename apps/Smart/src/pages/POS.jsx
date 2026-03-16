@@ -43,18 +43,17 @@ class POSErrorBoundary extends React.Component {
 }
 
 export default function POS() {
-  const [isMobile, setIsMobile] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isMobile, setIsMobile] = useState(() => {
+    if (typeof window === "undefined") return false;
+    return window.innerWidth < 768;
+  });
 
   useEffect(() => {
     const checkMobile = () => setIsMobile(window.innerWidth < 768);
     checkMobile();
-    setIsLoading(false);
     window.addEventListener("resize", checkMobile);
     return () => window.removeEventListener("resize", checkMobile);
   }, []);
-
-  if (isLoading) return null;
 
   return (
     <POSErrorBoundary>

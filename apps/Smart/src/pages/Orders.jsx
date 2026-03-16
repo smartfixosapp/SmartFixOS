@@ -321,6 +321,10 @@ export default function OrdersPage() {
       if (updatedOrder?.id) {
         upsertLocalOrder(updatedOrder);
         setOrders((prev) => mergeOrders([updatedOrder], prev || []));
+        setSelectedOrder((prev) => {
+          if (!prev) return prev;
+          return String(prev?.id || "") === String(updatedOrder.id) ? updatedOrder : prev;
+        });
       }
     };
 
