@@ -3533,54 +3533,51 @@ export default function WorkOrderWizard({ open, onClose, onSuccess, preloadedCus
                     {types.slice(0, 20).map((type, index) => {
                       const active = normalizedText(deviceCatalogCategory) === normalizedText(type?.name);
                       return (
-                        <div
-                          key={type.id}>
-                          <Draggable draggableId={type.id || "cat-"+index} index={index}>
-                            {(provided) => (
-                              <div
-                                ref={provided.innerRef}
-                                {...provided.draggableProps}
-                                {...provided.dragHandleProps}
-                                className={`inline-flex items-center gap-1 rounded-full border pr-1 pl-2 py-1 transition-all ${active ? "bg-cyan-500/20 border-cyan-400/60 text-cyan-200" : "bg-white/5 border-white/10 text-white/70"}`}
+                        <Draggable key={type.id || "cat-"+index} draggableId={type.id || "cat-"+index} index={index}>
+                          {(provided) => (
+                            <div
+                              ref={provided.innerRef}
+                              {...provided.draggableProps}
+                              {...provided.dragHandleProps}
+                              className={`inline-flex items-center gap-1 rounded-full border pr-1 pl-2 py-1 transition-all ${active ? "bg-cyan-500/20 border-cyan-400/60 text-cyan-200" : "bg-white/5 border-white/10 text-white/70"}`}
+                            >
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setLoadingDeviceCatalogBrands(true);
+                                  setLoadingDeviceCatalogFamilies(false);
+                                  setLoadingDeviceCatalogModels(false);
+                                  setDeviceCatalogCategory(type.name);
+                                  setDeviceCatalogBrand("");
+                                  setDeviceCatalogFamily("");
+                                  setDeviceCatalogModel("");
+                                  setShowManualDeviceCatalogBrand(false);
+                                  setShowManualDeviceCatalogFamily(false);
+                                  setShowManualDeviceCatalogModel(false);
+                                }}
+                                className="text-xs"
                               >
-                          <button
-                            type="button"
-                            onClick={() => {
-                              setLoadingDeviceCatalogBrands(true);
-                              setLoadingDeviceCatalogFamilies(false);
-                              setLoadingDeviceCatalogModels(false);
-                              setDeviceCatalogCategory(type.name);
-                              setDeviceCatalogBrand("");
-                              setDeviceCatalogFamily("");
-                              setDeviceCatalogModel("");
-                              setShowManualDeviceCatalogBrand(false);
-                              setShowManualDeviceCatalogFamily(false);
-                              setShowManualDeviceCatalogModel(false);
-                            }}
-                            className="text-xs"
-                          >
-                            {type.icon ? `${type.icon} ` : ""}{type.name}
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => handleEditCatalogEntry({ level: "category", entry: type })}
-                            className="p-1 rounded-full hover:bg-white/10"
-                            title="Editar categoría"
-                          >
-                            <Pencil className="w-3 h-3" />
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => handleDeleteCatalogEntry({ level: "category", entry: type })}
-                            className="p-1 rounded-full hover:bg-red-500/20 text-red-200"
-                            title="Eliminar categoría"
-                          >
-                            <Trash2 className="w-3 h-3" />
-                          </button>
-                              </div>
-                            )}
-                          </Draggable>
-                        </div>
+                                {type.icon ? `${type.icon} ` : ""}{type.name}
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => handleEditCatalogEntry({ level: "category", entry: type })}
+                                className="p-1 rounded-full hover:bg-white/10"
+                                title="Editar categoría"
+                              >
+                                <Pencil className="w-3 h-3" />
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => handleDeleteCatalogEntry({ level: "category", entry: type })}
+                                className="p-1 rounded-full hover:bg-red-500/20 text-red-200"
+                                title="Eliminar categoría"
+                              >
+                                <Trash2 className="w-3 h-3" />
+                              </button>
+                            </div>
+                          )}
+                        </Draggable>
                       );
                     })}
                     {provided.placeholder}
@@ -3635,52 +3632,49 @@ export default function WorkOrderWizard({ open, onClose, onSuccess, preloadedCus
                     {deviceCatalogBrands.map((brand, index) => {
                       const active = normalizedText(deviceCatalogBrand) === normalizedText(brand?.name);
                       return (
-                        <div
-                          key={brand.id}>
-                          <Draggable draggableId={brand.id || "br-"+index} index={index}>
-                            {(provided) => (
-                              <div
-                                ref={provided.innerRef}
-                                {...provided.draggableProps}
-                                {...provided.dragHandleProps}
-                                className={`inline-flex items-center gap-1 rounded-full border pr-1 pl-2 py-1 transition-all ${active ? "bg-purple-500/20 border-purple-400/60 text-purple-200" : "bg-white/5 border-white/10 text-white/70"}`}
+                        <Draggable key={brand.id || "br-"+index} draggableId={brand.id || "br-"+index} index={index}>
+                          {(provided) => (
+                            <div
+                              ref={provided.innerRef}
+                              {...provided.draggableProps}
+                              {...provided.dragHandleProps}
+                              className={`inline-flex items-center gap-1 rounded-full border pr-1 pl-2 py-1 transition-all ${active ? "bg-purple-500/20 border-purple-400/60 text-purple-200" : "bg-white/5 border-white/10 text-white/70"}`}
+                            >
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setLoadingDeviceCatalogFamilies(true);
+                                  setLoadingDeviceCatalogModels(false);
+                                  setDeviceCatalogBrand(brand.name);
+                                  setDeviceCatalogFamily("");
+                                  setDeviceCatalogModel("");
+                                  setShowManualDeviceCatalogBrand(false);
+                                  setShowManualDeviceCatalogFamily(false);
+                                  setShowManualDeviceCatalogModel(false);
+                                }}
+                                className="text-xs"
                               >
-                          <button
-                            type="button"
-                            onClick={() => {
-                              setLoadingDeviceCatalogFamilies(true);
-                              setLoadingDeviceCatalogModels(false);
-                              setDeviceCatalogBrand(brand.name);
-                              setDeviceCatalogFamily("");
-                              setDeviceCatalogModel("");
-                              setShowManualDeviceCatalogBrand(false);
-                              setShowManualDeviceCatalogFamily(false);
-                              setShowManualDeviceCatalogModel(false);
-                            }}
-                            className="text-xs"
-                          >
-                            {brand.name}
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => handleEditCatalogEntry({ level: "brand", entry: brand })}
-                            className="p-1 rounded-full hover:bg-white/10"
-                            title="Editar marca"
-                          >
-                            <Pencil className="w-3 h-3" />
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => handleDeleteCatalogEntry({ level: "brand", entry: brand })}
-                            className="p-1 rounded-full hover:bg-red-500/20 text-red-200"
-                            title="Eliminar marca"
-                          >
-                            <Trash2 className="w-3 h-3" />
-                          </button>
-                              </div>
-                            )}
-                          </Draggable>
-                        </div>
+                                {brand.name}
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => handleEditCatalogEntry({ level: "brand", entry: brand })}
+                                className="p-1 rounded-full hover:bg-white/10"
+                                title="Editar marca"
+                              >
+                                <Pencil className="w-3 h-3" />
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => handleDeleteCatalogEntry({ level: "brand", entry: brand })}
+                                className="p-1 rounded-full hover:bg-red-500/20 text-red-200"
+                                title="Eliminar marca"
+                              >
+                                <Trash2 className="w-3 h-3" />
+                              </button>
+                            </div>
+                          )}
+                        </Draggable>
                       );
                     })}
                     {provided.placeholder}
@@ -3732,49 +3726,46 @@ export default function WorkOrderWizard({ open, onClose, onSuccess, preloadedCus
                     {deviceCatalogFamilies.map((family, index) => {
                       const active = normalizedText(deviceCatalogFamily) === normalizedText(family?.name);
                       return (
-                        <div
-                          key={family.id}>
-                          <Draggable draggableId={family.id || "fa-"+index} index={index}>
-                            {(provided) => (
-                              <div
-                                ref={provided.innerRef}
-                                {...provided.draggableProps}
-                                {...provided.dragHandleProps}
-                                className={`inline-flex items-center gap-1 rounded-full border pr-1 pl-2 py-1 transition-all ${active ? "bg-violet-500/20 border-violet-400/60 text-violet-200" : "bg-white/5 border-white/10 text-white/70"}`}
+                        <Draggable key={family.id || "fa-"+index} draggableId={family.id || "fa-"+index} index={index}>
+                          {(provided) => (
+                            <div
+                              ref={provided.innerRef}
+                              {...provided.draggableProps}
+                              {...provided.dragHandleProps}
+                              className={`inline-flex items-center gap-1 rounded-full border pr-1 pl-2 py-1 transition-all ${active ? "bg-violet-500/20 border-violet-400/60 text-violet-200" : "bg-white/5 border-white/10 text-white/70"}`}
+                            >
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setLoadingDeviceCatalogModels(true);
+                                  setDeviceCatalogFamily(family.name);
+                                  setDeviceCatalogModel("");
+                                  setShowManualDeviceCatalogFamily(false);
+                                  setShowManualDeviceCatalogModel(false);
+                                }}
+                                className="text-xs"
                               >
-                          <button
-                            type="button"
-                            onClick={() => {
-                              setLoadingDeviceCatalogModels(true);
-                              setDeviceCatalogFamily(family.name);
-                              setDeviceCatalogModel("");
-                              setShowManualDeviceCatalogFamily(false);
-                              setShowManualDeviceCatalogModel(false);
-                            }}
-                            className="text-xs"
-                          >
-                            {family.name}
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => handleEditCatalogEntry({ level: "family", entry: family })}
-                            className="p-1 rounded-full hover:bg-white/10"
-                            title="Editar línea"
-                          >
-                            <Pencil className="w-3 h-3" />
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => handleDeleteCatalogEntry({ level: "family", entry: family })}
-                            className="p-1 rounded-full hover:bg-red-500/20 text-red-200"
-                            title="Eliminar línea"
-                          >
-                            <Trash2 className="w-3 h-3" />
-                          </button>
-                              </div>
-                            )}
-                          </Draggable>
-                        </div>
+                                {family.name}
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => handleEditCatalogEntry({ level: "family", entry: family })}
+                                className="p-1 rounded-full hover:bg-white/10"
+                                title="Editar línea"
+                              >
+                                <Pencil className="w-3 h-3" />
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => handleDeleteCatalogEntry({ level: "family", entry: family })}
+                                className="p-1 rounded-full hover:bg-red-500/20 text-red-200"
+                                title="Eliminar línea"
+                              >
+                                <Trash2 className="w-3 h-3" />
+                              </button>
+                            </div>
+                          )}
+                        </Draggable>
                       );
                     })}
                     {provided.placeholder}
@@ -3830,46 +3821,43 @@ export default function WorkOrderWizard({ open, onClose, onSuccess, preloadedCus
                       {deviceCatalogModels.map((model, index) => {
                         const active = normalizedText(deviceCatalogModel) === normalizedText(model?.name);
                         return (
-                          <div
-                            key={model.id}>
-                            <Draggable draggableId={model.id || "mo-"+index} index={index}>
-                              {(provided) => (
-                                <div
-                                  ref={provided.innerRef}
-                                  {...provided.draggableProps}
-                                  {...provided.dragHandleProps}
-                                  className={`inline-flex items-center gap-1 rounded-full border pr-1 pl-2 py-1 transition-all ${active ? "bg-emerald-500/20 border-emerald-400/60 text-emerald-200" : "bg-black/30 border-white/10 text-white/70"}`}
+                          <Draggable key={model.id || "mo-"+index} draggableId={model.id || "mo-"+index} index={index}>
+                            {(provided) => (
+                              <div
+                                ref={provided.innerRef}
+                                {...provided.draggableProps}
+                                {...provided.dragHandleProps}
+                                className={`inline-flex items-center gap-1 rounded-full border pr-1 pl-2 py-1 transition-all ${active ? "bg-emerald-500/20 border-emerald-400/60 text-emerald-200" : "bg-black/30 border-white/10 text-white/70"}`}
+                              >
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    setDeviceCatalogModel(model.name);
+                                    setShowManualDeviceCatalogModel(false);
+                                  }}
+                                  className="text-xs"
                                 >
-                            <button
-                              type="button"
-                              onClick={() => {
-                                setDeviceCatalogModel(model.name);
-                                setShowManualDeviceCatalogModel(false);
-                              }}
-                              className="text-xs"
-                            >
-                              {model.name}
-                            </button>
-                            <button
-                              type="button"
-                              onClick={() => handleEditCatalogEntry({ level: "model", entry: model })}
-                              className="p-1 rounded-full hover:bg-white/10"
-                              title="Editar modelo"
-                            >
-                              <Pencil className="w-3 h-3" />
-                            </button>
-                            <button
-                              type="button"
-                              onClick={() => handleDeleteCatalogEntry({ level: "model", entry: model })}
-                              className="p-1 rounded-full hover:bg-red-500/20 text-red-200"
-                              title="Eliminar modelo"
-                            >
-                              <Trash2 className="w-3 h-3" />
-                            </button>
-                                </div>
-                              )}
-                            </Draggable>
-                          </div>
+                                  {model.name}
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => handleEditCatalogEntry({ level: "model", entry: model })}
+                                  className="p-1 rounded-full hover:bg-white/10"
+                                  title="Editar modelo"
+                                >
+                                  <Pencil className="w-3 h-3" />
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => handleDeleteCatalogEntry({ level: "model", entry: model })}
+                                  className="p-1 rounded-full hover:bg-red-500/20 text-red-200"
+                                  title="Eliminar modelo"
+                                >
+                                  <Trash2 className="w-3 h-3" />
+                                </button>
+                              </div>
+                            )}
+                          </Draggable>
                         );
                       })}
                       {provided.placeholder}
