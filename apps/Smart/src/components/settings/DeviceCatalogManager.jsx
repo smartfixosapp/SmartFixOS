@@ -411,6 +411,42 @@ export default function DeviceCatalogManager() {
 
   const [newItemName, setNewItemName] = useState("");
 
+  const getCategoryIdsByName = (categoryName) => {
+    const categoryKey = normalizedNameKey(categoryName);
+    return rawCategories
+      .filter((item) => normalizedNameKey(item?.name) === categoryKey)
+      .map((item) => item.id);
+  };
+
+  const getBrandIdsByContext = (categoryName, brandName) => {
+    const categoryKey = normalizedNameKey(categoryName);
+    const brandKey = normalizedNameKey(brandName);
+    const categoryIds = getCategoryIdsByName(categoryName);
+    return rawBrands
+      .filter(
+        (item) =>
+          normalizedNameKey(item?.name) === brandKey &&
+          (
+            categoryIds.includes(item?.category_id) ||
+            normalizedNameKey(item?.category) === categoryKey ||
+            !categoryKey
+          )
+      )
+      .map((item) => item.id);
+  };
+
+  const getFamilyIdsByContext = (categoryName, brandName, familyName) => {
+    const familyKey = normalizedNameKey(familyName);
+    const brandIds = getBrandIdsByContext(categoryName, brandName);
+    return rawFamilies
+      .filter(
+        (item) =>
+          brandIds.includes(item?.brand_id) &&
+          normalizedNameKey(item?.name) === familyKey
+      )
+      .map((item) => item.id);
+  };
+
   useEffect(() => {
     loadAll();
     const reloadCatalog = () => loadAll();
@@ -492,15 +528,13 @@ export default function DeviceCatalogManager() {
     () => {
       if (!selectedBrand || !selectedCategory) return [];
       const selectedBrandKey = normalizedNameKey(selectedBrand.name);
-      const brandIds = selectedCategoryBrands
-        .filter((brand) => normalizedNameKey(brand.name) === selectedBrandKey)
-        .map((brand) => brand.id);
+      const brandIds = getBrandIdsByContext(selectedCategory.name, selectedBrand.name);
       return dedupeCatalogEntries(
         rawFamilies.filter((family) => brandIds.includes(family.brand_id)),
         (item) => `${selectedBrandKey}::${normalizedNameKey(item?.name)}`
       );
     },
-    [rawFamilies, selectedBrand, selectedCategory, selectedCategoryBrands]
+    [rawFamilies, rawBrands, rawCategories, selectedBrand, selectedCategory]
   );
 
   const selectedFamilyModels = useMemo(
@@ -508,12 +542,8 @@ export default function DeviceCatalogManager() {
       if (!selectedFamily || !selectedBrand) return [];
       const selectedBrandKey = normalizedNameKey(selectedBrand.name);
       const selectedFamilyKey = normalizedNameKey(selectedFamily.name);
-      const brandIds = selectedCategoryBrands
-        .filter((brand) => normalizedNameKey(brand.name) === selectedBrandKey)
-        .map((brand) => brand.id);
-      const familyIds = selectedBrandFamilies
-        .filter((family) => normalizedNameKey(family.name) === selectedFamilyKey)
-        .map((family) => family.id);
+      const brandIds = getBrandIdsByContext(selectedCategory?.name || "", selectedBrand.name);
+      const familyIds = getFamilyIdsByContext(selectedCategory?.name || "", selectedBrand.name, selectedFamily.name);
       return dedupeCatalogEntries(
         rawModels.filter(
           (model) =>
@@ -523,14 +553,12 @@ export default function DeviceCatalogManager() {
         (item) => `${selectedFamilyKey}::${normalizedNameKey(item?.name)}`
       );
     },
-    [rawModels, selectedBrand, selectedFamily, selectedCategoryBrands, selectedBrandFamilies]
+    [rawModels, rawBrands, rawFamilies, rawCategories, selectedBrand, selectedFamily, selectedCategory]
   );
 
   const countBrandsForCategory = (categoryName) => {
     const categoryKey = normalizedNameKey(categoryName);
-    const categoryIds = rawCategories
-      .filter((item) => normalizedNameKey(item?.name) === categoryKey)
-      .map((item) => item.id);
+    const categoryIds = getCategoryIdsByName(categoryName);
     return dedupeCatalogEntries(
       rawBrands.filter(
         (item) =>
@@ -542,18 +570,8 @@ export default function DeviceCatalogManager() {
   };
 
   const countFamiliesForBrand = (categoryName, brandName) => {
-    const categoryKey = normalizedNameKey(categoryName);
     const brandKey = normalizedNameKey(brandName);
-    const categoryIds = rawCategories
-      .filter((item) => normalizedNameKey(item?.name) === categoryKey)
-      .map((item) => item.id);
-    const brandIds = rawBrands
-      .filter(
-        (item) =>
-          normalizedNameKey(item?.name) === brandKey &&
-          (categoryIds.includes(item?.category_id) || normalizedNameKey(item?.category) === categoryKey)
-      )
-      .map((item) => item.id);
+    const brandIds = getBrandIdsByContext(categoryName, brandName);
     return dedupeCatalogEntries(
       rawFamilies.filter((item) => brandIds.includes(item?.brand_id)),
       (item) => `${brandKey}::${normalizedNameKey(item?.name)}`
@@ -561,18 +579,9 @@ export default function DeviceCatalogManager() {
   };
 
   const countModelsForFamily = (brandName, familyName) => {
-    const brandKey = normalizedNameKey(brandName);
     const familyKey = normalizedNameKey(familyName);
-    const brandIds = rawBrands
-      .filter((item) => normalizedNameKey(item?.name) === brandKey)
-      .map((item) => item.id);
-    const familyIds = rawFamilies
-      .filter(
-        (item) =>
-          brandIds.includes(item?.brand_id) &&
-          normalizedNameKey(item?.name) === familyKey
-      )
-      .map((item) => item.id);
+    const brandIds = getBrandIdsByContext(selectedCategory?.name || "", brandName);
+    const familyIds = getFamilyIdsByContext(selectedCategory?.name || "", brandName, familyName);
     return dedupeCatalogEntries(
       rawModels.filter(
         (item) =>
@@ -1211,7 +1220,7 @@ export default function DeviceCatalogManager() {
                         setSelectedFamily(item);
                       }
                     }}
-                    className={`min-w-[220px] rounded-[22px] border bg-gradient-to-br ${palette} px-5 py-4 text-left transition-all hover:scale-[1.02] hover:border-white/30`}
+                    className={`min-w-[220px] rounded-[22px] border bg-gradient-to-br ${palette} px-5 py-4 pr-14 text-left transition-all hover:scale-[1.02] hover:border-white/30`}
                   >
                     <div className="flex items-start justify-between gap-4">
                       <div>
@@ -1238,7 +1247,7 @@ export default function DeviceCatalogManager() {
                         `${!selectedCategory ? "la categoría" : !selectedBrand ? "la marca" : !selectedFamily ? "la familia" : "el modelo"} ${item.name}`
                       )
                     }
-                    className="absolute right-3 top-3 rounded-full border border-red-400/20 bg-red-500/15 p-2 text-red-200 opacity-0 transition-opacity hover:bg-red-500/25 group-hover:opacity-100"
+                    className="absolute right-3 bottom-3 rounded-full border border-red-400/20 bg-red-500/15 p-2 text-red-200 opacity-0 transition-opacity hover:bg-red-500/25 group-hover:opacity-100"
                     title="Eliminar"
                   >
                     <Trash2 className="h-3.5 w-3.5" />
