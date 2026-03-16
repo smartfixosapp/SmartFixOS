@@ -1371,12 +1371,12 @@ export default function DeviceCatalogManager() {
           </div>
         ) : (
           <DragDropContext onDragEnd={handleCatalogDragEnd}>
-            <Droppable droppableId="advanced-catalog-items" direction="horizontal">
+            <Droppable droppableId="advanced-catalog-items" direction="vertical">
               {(provided) => (
                 <div
                   ref={provided.innerRef}
                   {...provided.droppableProps}
-                  className="flex flex-wrap gap-3"
+                  className="space-y-3"
                 >
                   {currentItems.map((item, index) => {
                     const isCategory = !selectedCategory;
@@ -1420,7 +1420,7 @@ export default function DeviceCatalogManager() {
                                   setSelectedFamily(item);
                                 }
                               }}
-                              className={`min-w-[220px] rounded-[22px] border bg-gradient-to-br ${palette} px-5 py-4 pr-24 pl-11 text-left transition-all hover:scale-[1.02] hover:border-white/30`}
+                              className={`w-full rounded-[22px] border bg-gradient-to-br ${palette} px-5 py-4 pr-24 pl-11 text-left transition-all hover:border-white/30`}
                             >
                               <div
                                 {...dragProvided.dragHandleProps}
@@ -1449,7 +1449,7 @@ export default function DeviceCatalogManager() {
                               <button
                                 type="button"
                                 onClick={() => handleEditCurrentItem(item)}
-                                className="rounded-full border border-white/10 bg-white/10 p-2 text-white/80 hover:bg-white/20"
+                                className="rounded-full border border-white/10 bg-white/10 p-2 text-white/80 opacity-0 transition-opacity hover:bg-white/20 group-hover:opacity-100"
                                 title="Editar"
                               >
                                 <Pencil className="h-3.5 w-3.5" />
@@ -1463,7 +1463,7 @@ export default function DeviceCatalogManager() {
                                     `${!selectedCategory ? "la categoría" : !selectedBrand ? "la marca" : !selectedFamily ? "la familia" : "el modelo"} ${item.name}`
                                   )
                                 }
-                                className="rounded-full border border-red-400/20 bg-red-500/15 p-2 text-red-200 hover:bg-red-500/25"
+                                className="rounded-full border border-red-400/20 bg-red-500/15 p-2 text-red-200 opacity-0 transition-opacity hover:bg-red-500/25 group-hover:opacity-100"
                                 title="Eliminar"
                               >
                                 <Trash2 className="h-3.5 w-3.5" />
