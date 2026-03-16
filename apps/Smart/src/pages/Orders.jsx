@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useMemo, useCallback, useRef } from "react";
 import { dataClient } from "@/components/api/dataClient";
+import { useLocation, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -239,6 +240,8 @@ const OrderCard = React.memo(function OrderCard({ order, onClick, onEditDevice }
 });
 
 export default function OrdersPage() {
+  const location = useLocation();
+  const navigate = useNavigate();
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
@@ -258,11 +261,22 @@ export default function OrdersPage() {
   const containerRef = useRef(null);
   const ordersLoadInFlightRef = useRef(false);
   const ordersErrorToastShownRef = useRef(false);
+  const pendingOpenOrderIdRef = useRef(null);
 
   const openQuickOrderModal = useCallback(() => {
     setShowQuickModal(true);
     setShowStatusDropdown(false);
   }, []);
+
+  useEffect(() => {
+    try {
+      const params = new URLSearchParams(location.search);
+      const openOrderId = params.get("openOrderId");
+      pendingOpenOrderIdRef.current = openOrderId || null;
+    } catch {
+      pendingOpenOrderIdRef.current = null;
+    }
+  }, [location.search]);
 
   useEffect(() => {
     loadOrders();
@@ -398,6 +412,23 @@ export default function OrdersPage() {
     } finally {
       const merged = mergeOrders(remoteOrders, getUnsyncedLocalOrders(remoteOrders));
       setOrders(merged);
+      if (pendingOpenOrderIdRef.current) {
+        const targetOrder = merged.find((order) => String(order?.id || "") === String(pendingOpenOrderIdRef.current));
+        if (targetOrder) {
+          setSelectedOrder(targetOrder);
+          pendingOpenOrderIdRef.current = null;
+          try {
+            const params = new URLSearchParams(location.search);
+            params.delete("openOrderId");
+            navigate({
+              pathname: location.pathname,
+              search: params.toString() ? `?${params.toString()}` : "",
+            }, { replace: true });
+          } catch {
+            // no-op
+          }
+        }
+      }
       if (remoteFailed) {
         if (!ordersErrorToastShownRef.current) {
           if (merged.length > 0) {

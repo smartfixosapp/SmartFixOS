@@ -1360,6 +1360,18 @@ export default function WorkOrderPanel({ orderId, onClose, onUpdate, onDelete, p
 
   const [showSecurityBeforePayment, setShowSecurityBeforePayment] = useState(false);
 
+  useEffect(() => {
+    const handleSaleCompleted = (event) => {
+      const updatedOrder = event?.detail?.order;
+      if (!updatedOrder?.id) return;
+      if (String(updatedOrder.id) !== String(orderId)) return;
+      setOrder(updatedOrder);
+    };
+
+    window.addEventListener("sale-completed", handleSaleCompleted);
+    return () => window.removeEventListener("sale-completed", handleSaleCompleted);
+  }, [orderId]);
+
   const loadEventsCallback = useCallback(async (forceRefresh = false) => {
     if (!order?.id) return;
 

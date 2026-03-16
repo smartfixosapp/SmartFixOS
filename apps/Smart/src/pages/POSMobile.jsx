@@ -637,9 +637,11 @@ export default function POSMobile() {
       setShowPaymentModal(false);
       clearCart();
 
-      // Redirigir a órdenes después de completar el pago
+      // Volver directo al boleto si este cobro vino desde una orden
       if (selectedOrder) {
-        setTimeout(() => window.location.assign(createPageUrl("Orders")), 500);
+        setTimeout(() => {
+          window.location.assign(createPageUrl(`Orders?openOrderId=${selectedOrder.id}`));
+        }, 350);
       } else {
         setTimeout(() => {
           try {
