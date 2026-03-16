@@ -66,6 +66,10 @@ function normalizeInventoryItem(raw = {}, fallbackType = "product") {
     part_type: raw.part_type || "",
     tipo_principal: raw.tipo_principal || "",
     category: raw.category || "",
+    compatibility_models: Array.isArray(raw.compatibility_models) ? raw.compatibility_models : [],
+    compatible_families: Array.isArray(raw.compatible_families) ? raw.compatible_families : [],
+    compatible_brands: Array.isArray(raw.compatible_brands) ? raw.compatible_brands : [],
+    device_category: raw.device_category || "",
     type,
     source: raw.source || null,
     is_manual: raw.is_manual === true,
@@ -175,6 +179,10 @@ export default function AddItemModal({
   initialItems = [],
   onApplyItems,
   autoOpenCart = false,
+  deviceType = "",
+  deviceBrand = "",
+  deviceFamily = "",
+  deviceModel = "",
 }) {
   const [activeCategory, setActiveCategory] = useState("all");
   const [search, setSearch] = useState("");
@@ -370,8 +378,75 @@ export default function AddItemModal({
       );
     }
 
+    const typeKey = String(deviceType || "").trim().toLowerCase();
+    const brandKey = String(deviceBrand || "").trim().toLowerCase();
+    const familyKey = String(deviceFamily || "").trim().toLowerCase();
+    const modelKey = String(deviceModel || "").trim().toLowerCase();
+
+    const categoryMatchesDevice = (item) => {
+      if (!typeKey) return true;
+      const haystack = [
+        item?.device_category,
+        item?.category,
+        item?.part_type,
+        item?.tipo_principal,
+        item?.name
+      ]
+        .filter(Boolean)
+        .join(" ")
+        .toLowerCase();
+
+      if (typeKey.includes("tablet")) return haystack.includes("tablet") || haystack.includes("ipad");
+      if (
+        typeKey.includes("laptop") ||
+        typeKey.includes("pc") ||
+        typeKey.includes("desktop") ||
+        typeKey.includes("computadora")
+      ) {
+        return haystack.includes("laptop") || haystack.includes("pc") || haystack.includes("desktop") || haystack.includes("computadora");
+      }
+      if (typeKey.includes("accesorio")) return haystack.includes("accesorio");
+      return (
+        haystack.includes("phone") ||
+        haystack.includes("iphone") ||
+        haystack.includes("galaxy") ||
+        haystack.includes("celular") ||
+        haystack.includes("smartphone")
+      );
+    };
+
+    const matchesSpecificDevice = (item) => {
+      if (!modelKey && !familyKey && !brandKey) return true;
+      const name = String(item?.name || "").toLowerCase();
+      const compatModels = Array.isArray(item?.compatibility_models) ? item.compatibility_models : [];
+      const compatFamilies = Array.isArray(item?.compatible_families) ? item.compatible_families : [];
+      const compatBrands = Array.isArray(item?.compatible_brands) ? item.compatible_brands : [];
+
+      const modelMatch = modelKey
+        ? name.includes(modelKey) || compatModels.some((m) => String(m || "").toLowerCase().includes(modelKey))
+        : false;
+      const familyMatch = familyKey
+        ? name.includes(familyKey) || compatFamilies.some((f) => String(f || "").toLowerCase().includes(familyKey))
+        : false;
+      const brandMatch = brandKey
+        ? name.includes(brandKey) || compatBrands.some((b) => String(b || "").toLowerCase().includes(brandKey))
+        : false;
+
+      return modelMatch || familyMatch || brandMatch;
+    };
+
+    if (typeKey || modelKey || familyKey || brandKey) {
+      const byCategory = base.filter((item) => categoryMatchesDevice(item));
+      if (modelKey || familyKey || brandKey) {
+        const strictMatches = byCategory.filter((item) => matchesSpecificDevice(item));
+        base = strictMatches.length > 0 ? strictMatches : byCategory;
+      } else {
+        base = byCategory;
+      }
+    }
+
     return base;
-  }, [inventoryItems, activeCategory, search]);
+  }, [inventoryItems, activeCategory, search, deviceType, deviceBrand, deviceFamily, deviceModel]);
 
   const categoryCounts = useMemo(() => {
     const all = inventoryItems.length;

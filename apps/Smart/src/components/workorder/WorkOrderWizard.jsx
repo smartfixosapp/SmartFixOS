@@ -9,7 +9,7 @@ import AddItemModal from "./AddItemModal";
 import {
   User, Smartphone, Wrench, Shield, CheckSquare, Plus,
   X, Mail, Loader2, Camera, Check, Search, Eye, Grid3X3, Users, Save,
-  Laptop, Tablet, Monitor, Watch, Gamepad2, Zap
+  Laptop, Tablet, Monitor, Watch, Gamepad2, Zap, Pencil, Trash2
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
@@ -96,6 +96,33 @@ const LOCAL_CUSTOMERS_KEY = "smartfix_local_customers";
 const LOCAL_DEVICE_CATALOG_KEY = "smartfix_local_device_catalog";
 const LOCAL_TIME_ENTRIES_KEY = "local_time_entries";
 
+function getCurrentTenantId() {
+  const fromStorage =
+    localStorage.getItem("smartfix_tenant_id") ||
+    localStorage.getItem("current_tenant_id");
+  if (fromStorage) return String(fromStorage);
+
+  const sessionCandidates = [
+    sessionStorage.getItem("911-session"),
+    localStorage.getItem("employee_session"),
+    localStorage.getItem("smartfix_session")
+  ];
+
+  for (const raw of sessionCandidates) {
+    try {
+      const parsed = raw ? JSON.parse(raw) : null;
+      const tenantId =
+        parsed?.tenant_id ||
+        parsed?.tenantId ||
+        parsed?.user?.tenant_id ||
+        parsed?.session?.tenant_id;
+      if (tenantId) return String(tenantId);
+    } catch {}
+  }
+
+  return null;
+}
+
 function readLocalCustomers() {
   try {
     const raw = localStorage.getItem(LOCAL_CUSTOMERS_KEY);
@@ -142,12 +169,18 @@ function readLocalDeviceCatalog() {
   }
 }
 
-function readLocalOpenPunches() {
+function readLocalTimeEntries() {
   try {
     const raw = localStorage.getItem(LOCAL_TIME_ENTRIES_KEY);
     const parsed = raw ? JSON.parse(raw) : [];
     const list = Array.isArray(parsed) ? parsed : [];
-    return list.filter((entry) => entry && !entry.clock_out);
+    const tenantId = getCurrentTenantId();
+    return list.filter((entry) => {
+      if (!entry) return false;
+      if (!tenantId) return true;
+      const entryTenant = entry?.tenant_id || entry?.tenantId || null;
+      return !entryTenant || String(entryTenant) === String(tenantId);
+    });
   } catch {
     return [];
   }
@@ -369,6 +402,13 @@ function isRestrictedSuperAdmin(user) {
 }
 
 const normalizedText = (value = "") => String(value).trim().toLowerCase();
+const normalizedNameKey = (value = "") =>
+  String(value)
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/\s+/g, " ")
+    .trim()
+    .toLowerCase();
 
 const getCategoryVisual = (category) => {
   const name = normalizedText(category?.name);
@@ -396,30 +436,61 @@ const getCategoryVisual = (category) => {
   return { emoji: "🔧", Icon: Wrench };
 };
 
-const CHECKLIST_ITEMS = [
-  { key: "screen_broken", label: "Pantalla rota / rajada", icon: "💔", category: "Pantalla" },
-  { key: "screen_no_image", label: "Pantalla sin imagen", icon: "📺", category: "Pantalla" },
-  { key: "screen_lines", label: "Líneas en pantalla", icon: "📉", category: "Pantalla" },
-  { key: "touch_not_working", label: "Touch no responde", icon: "👆", category: "Touch" },
-  { key: "touch_ghost", label: "Touch fantasma", icon: "👻", category: "Touch" },
-  { key: "battery_drains", label: "Batería se descarga rápido", icon: "🔋", category: "Batería" },
-  { key: "battery_no_charge", label: "No carga", icon: "⚠️", category: "Batería" },
-  { key: "battery_swollen", label: "Batería inflada", icon: "🎈", category: "Batería" },
-  { key: "port_damaged", label: "Puerto dañado", icon: "🔌", category: "Carga" },
-  { key: "port_dirty", label: "Puerto sucio", icon: "🧹", category: "Carga" },
-  { key: "no_power", label: "No enciende", icon: "⚫", category: "Encendido" },
-  { key: "random_shutdown", label: "Se apaga solo", icon: "🔄", category: "Encendido" },
-  { key: "boot_loop", label: "Bootloop", icon: "🔁", category: "Encendido" },
-  { key: "no_sound", label: "Sin sonido", icon: "🔇", category: "Audio" },
-  { key: "mic_not_working", label: "Micrófono no funciona", icon: "🎤", category: "Audio" },
-  { key: "rear_camera_issue", label: "Cámara trasera no funciona", icon: "📷", category: "Cámaras" },
-  { key: "front_camera_issue", label: "Cámara frontal no funciona", icon: "🤳", category: "Cámaras" },
-  { key: "wifi_not_working", label: "WiFi no conecta", icon: "📶", category: "Conectividad" },
-  { key: "bluetooth_issue", label: "Bluetooth no funciona", icon: "🔵", category: "Conectividad" },
-  { key: "signal_issue", label: "Sin señal", icon: "📵", category: "Conectividad" },
-  { key: "water_damage", label: "Daño por líquido", icon: "💧", category: "Físico" },
-  { key: "housing_damage", label: "Carcasa dañada", icon: "🔨", category: "Físico" }
-];
+const CHECKLIST_LIBRARY = {
+  celulares: [
+    { key: "screen_broken", label: "Pantalla rota / rajada", icon: "💔" },
+    { key: "screen_no_image", label: "Pantalla sin imagen", icon: "📺" },
+    { key: "touch_not_working", label: "Touch no responde", icon: "👆" },
+    { key: "battery_no_charge", label: "No carga", icon: "🔋" },
+    { key: "port_damaged", label: "Puerto dañado", icon: "🔌" },
+    { key: "rear_camera_issue", label: "Cámara trasera con falla", icon: "📷" },
+    { key: "signal_issue", label: "Sin señal", icon: "📵" },
+    { key: "water_damage", label: "Daño por líquido", icon: "💧" }
+  ],
+  tabletas: [
+    { key: "tablet_screen_broken", label: "Pantalla rota", icon: "💔" },
+    { key: "tablet_touch_fail", label: "Touch con falla", icon: "👆" },
+    { key: "tablet_no_charge", label: "No carga", icon: "🔋" },
+    { key: "tablet_port_fail", label: "Puerto dañado", icon: "🔌" },
+    { key: "tablet_wifi_fail", label: "WiFi no conecta", icon: "📶" },
+    { key: "tablet_audio_fail", label: "Audio / micrófono con falla", icon: "🔇" }
+  ],
+  computadoras: [
+    { key: "pc_no_power", label: "No enciende", icon: "⚫" },
+    { key: "pc_slow", label: "Rendimiento lento", icon: "🐢" },
+    { key: "pc_disk_fail", label: "Disco con errores", icon: "💽" },
+    { key: "pc_ram_fail", label: "Memoria RAM con falla", icon: "🧠" },
+    { key: "pc_overheat", label: "Sobrecalentamiento", icon: "🌡️" },
+    { key: "pc_keyboard_fail", label: "Teclado / trackpad con falla", icon: "⌨️" },
+    { key: "pc_display_fail", label: "Pantalla / video con falla", icon: "🖥️" }
+  ],
+  accesorios: [
+    { key: "acc_not_detected", label: "No lo detecta el sistema", icon: "❌" },
+    { key: "acc_damaged_connector", label: "Conector dañado", icon: "🔌" },
+    { key: "acc_physical_damage", label: "Daño físico", icon: "🔨" },
+    { key: "acc_intermittent", label: "Falla intermitente", icon: "⚠️" },
+    { key: "acc_liquid_damage", label: "Daño por líquido", icon: "💧" }
+  ]
+};
+
+function resolveChecklistTemplate(deviceType = "") {
+  const type = normalizedText(deviceType);
+  if (
+    type.includes("laptop") ||
+    type.includes("pc") ||
+    type.includes("torre") ||
+    type.includes("desktop") ||
+    type.includes("computadora")
+  ) return "computadoras";
+  if (type.includes("tablet") || type.includes("ipad")) return "tabletas";
+  if (
+    type.includes("accesorio") ||
+    type.includes("disco") ||
+    type.includes("ssd") ||
+    type.includes("hdd")
+  ) return "accesorios";
+  return "celulares";
+}
 
 const inferFamily = (typeName, brandName, modelName) => {
   const t = (typeName || "").toLowerCase();
@@ -532,7 +603,6 @@ export default function WorkOrderWizard({ open, onClose, onSuccess, preloadedCus
   
   // Checklist
   const [checklist, setChecklist] = useState([]);
-  const [checklistBubbleOpen, setChecklistBubbleOpen] = useState(false);
   const [checklistQuickText, setChecklistQuickText] = useState("");
   
   // Catálogos
@@ -569,6 +639,31 @@ export default function WorkOrderWizard({ open, onClose, onSuccess, preloadedCus
   const [orderItems, setOrderItems] = useState([]);
   const [showAddItemModal, setShowAddItemModal] = useState(false);
   const [suggestedProducts, setSuggestedProducts] = useState([]);
+  const checklistTemplateKey = useMemo(() => resolveChecklistTemplate(deviceType), [deviceType]);
+  const checklistTemplateItems = useMemo(
+    () => CHECKLIST_LIBRARY[checklistTemplateKey] || CHECKLIST_LIBRARY.celulares,
+    [checklistTemplateKey]
+  );
+  const uniqueCatalogTypes = useMemo(
+    () => dedupeCatalogEntries(types, (item) => normalizedNameKey(item?.name)),
+    [types]
+  );
+  const uniqueCatalogBrands = useMemo(
+    () => dedupeCatalogEntries(deviceCatalogBrands, (item) => normalizedNameKey(item?.name)),
+    [deviceCatalogBrands]
+  );
+  const uniqueCatalogFamilies = useMemo(
+    () => dedupeCatalogEntries(deviceCatalogFamilies, (item) => normalizedNameKey(item?.name)),
+    [deviceCatalogFamilies]
+  );
+  const uniqueCatalogModels = useMemo(
+    () =>
+      dedupeCatalogEntries(
+        deviceCatalogModels,
+        (item) => `${normalizedNameKey(item?.family || item?.family_id || "")}::${normalizedNameKey(item?.name)}`
+      ),
+    [deviceCatalogModels]
+  );
 
   useEffect(() => {
     if (open) {
@@ -726,8 +821,8 @@ export default function WorkOrderWizard({ open, onClose, onSuccess, preloadedCus
         ...(Array.isArray(openPunchesPayload) ? openPunchesPayload : []),
         ...(Array.isArray(allPunchesPayload) ? allPunchesPayload : []).filter((p) => p && !p.clock_out),
       ];
-      const localOpenPunches = readLocalOpenPunches();
-      const allPunches = [...serverOpenPunches, ...localOpenPunches];
+      const localEntries = readLocalTimeEntries();
+      const allPunches = [...serverOpenPunches, ...localEntries];
 
       const isTechRole = (emp) => {
         const role = String(emp?.position || emp?.role || "").toLowerCase().trim();
@@ -743,13 +838,35 @@ export default function WorkOrderWizard({ open, onClose, onSuccess, preloadedCus
         }));
       const dedupedServerTechs = dedupeTechnicians(techs);
 
-      const openPunches = allPunches.filter((p) => p && !p.clock_out);
+      const employeeLatestPunch = new Map();
+      const getPunchKeys = (entry) => {
+        const keys = [];
+        const idKey = String(entry?.employee_id || "").trim().toLowerCase();
+        const nameKey = String(entry?.employee_name || "").trim().toLowerCase();
+        const emailKey = String(entry?.employee_email || "").trim().toLowerCase();
+        if (idKey) keys.push(idKey);
+        if (nameKey) keys.push(nameKey);
+        if (emailKey) keys.push(emailKey);
+        return keys;
+      };
+
+      for (const punch of allPunches) {
+        if (!punch) continue;
+        const ts = new Date(punch?.clock_in || punch?.created_date || 0).getTime() || 0;
+        const keys = getPunchKeys(punch);
+        for (const key of keys) {
+          const prev = employeeLatestPunch.get(key);
+          const prevTs = new Date(prev?.clock_in || prev?.created_date || 0).getTime() || 0;
+          if (!prev || ts >= prevTs) {
+            employeeLatestPunch.set(key, punch);
+          }
+        }
+      }
+
+      const openPunches = Array.from(employeeLatestPunch.values()).filter((p) => p && !p.clock_out);
       const openKeys = new Set();
       for (const p of openPunches) {
-        const employeeId = String(p?.employee_id || "").trim().toLowerCase();
-        const employeeName = String(p?.employee_name || "").trim().toLowerCase();
-        if (employeeId) openKeys.add(employeeId);
-        if (employeeName) openKeys.add(employeeName);
+        for (const key of getPunchKeys(p)) openKeys.add(key);
       }
 
       // Fallback: si existen ponches abiertos sin match contra AppEmployee,
@@ -1044,14 +1161,62 @@ export default function WorkOrderWizard({ open, onClose, onSuccess, preloadedCus
 
     try {
       const allProducts = await base44.entities.Product.filter({ active: true }, undefined, 200);
-      const modelLower = deviceModel.toLowerCase();
-      
+      const modelLower = normalizedText(deviceModel);
+      const familyLower = normalizedText(deviceFamily);
+      const brandLower = normalizedText(deviceBrand?.name);
+      const typeLower = normalizedText(deviceType);
+
+      const deviceCategoryMatch = (product) => {
+        const haystack = [
+          product?.device_category,
+          product?.category,
+          product?.part_type,
+          product?.tipo_principal,
+          product?.subcategoria,
+          product?.name
+        ]
+          .filter(Boolean)
+          .join(" ")
+          .toLowerCase();
+        if (!typeLower) return true;
+        if (typeLower.includes("tablet")) return haystack.includes("tablet") || haystack.includes("ipad");
+        if (
+          typeLower.includes("laptop") ||
+          typeLower.includes("pc") ||
+          typeLower.includes("desktop") ||
+          typeLower.includes("computadora")
+        ) {
+          return (
+            haystack.includes("laptop") ||
+            haystack.includes("pc") ||
+            haystack.includes("desktop") ||
+            haystack.includes("computadora")
+          );
+        }
+        if (typeLower.includes("accesorio")) return haystack.includes("accesorio");
+        return (
+          haystack.includes("phone") ||
+          haystack.includes("iphone") ||
+          haystack.includes("galaxy") ||
+          haystack.includes("celular") ||
+          haystack.includes("smartphone")
+        );
+      };
+
       const filtered = allProducts.filter(p => {
-        const nameLower = (p.name || "").toLowerCase();
+        const nameLower = normalizedText(p.name || "");
         const compatModels = Array.isArray(p.compatibility_models) ? p.compatibility_models : [];
-        const hasCompatMatch = compatModels.some(m => (m || "").toLowerCase().includes(modelLower));
-        
-        return nameLower.includes(modelLower) || hasCompatMatch;
+        const compatFamilies = Array.isArray(p.compatible_families) ? p.compatible_families : [];
+        const compatBrands = Array.isArray(p.compatible_brands) ? p.compatible_brands : [];
+        const hasCompatMatch = compatModels.some(m => normalizedText(m).includes(modelLower));
+        const hasFamilyMatch = familyLower && compatFamilies.some(f => normalizedText(f).includes(familyLower));
+        const hasBrandMatch = brandLower && compatBrands.some(b => normalizedText(b).includes(brandLower));
+        const nameMatch =
+          nameLower.includes(modelLower) ||
+          (familyLower && nameLower.includes(familyLower)) ||
+          (brandLower && nameLower.includes(brandLower));
+
+        return deviceCategoryMatch(p) && (nameMatch || hasCompatMatch || hasFamilyMatch || hasBrandMatch);
       });
       
       setSuggestedProducts(filtered.slice(0, 8));
@@ -1384,12 +1549,13 @@ export default function WorkOrderWizard({ open, onClose, onSuccess, preloadedCus
   };
 
   const toggleChecklistItem = (key, label) => {
-    const existingIndex = checklist.findIndex(item => item.id === key);
-    if (existingIndex >= 0) {
-      setChecklist(checklist.filter((_, idx) => idx !== existingIndex));
-    } else {
-      setChecklist([...checklist, { id: key, label, status: "not_tested" }]);
-    }
+    setChecklist((prev) => {
+      const existingIndex = prev.findIndex((item) => item.id === key);
+      if (existingIndex >= 0) {
+        return prev.filter((_, idx) => idx !== existingIndex);
+      }
+      return [...prev, { id: key, label, status: "not_tested" }];
+    });
   };
 
   const addQuickChecklistItem = () => {
@@ -1430,7 +1596,6 @@ export default function WorkOrderWizard({ open, onClose, onSuccess, preloadedCus
     setDevicePassword("");
     setSecurityPattern(null);
     setChecklist([]);
-    setChecklistBubbleOpen(false);
     setChecklistQuickText("");
     setCustomerSearchQuery("");
     setCustomerResults([]);
@@ -1611,6 +1776,176 @@ export default function WorkOrderWizard({ open, onClose, onSuccess, preloadedCus
     } catch (error) {
       console.error("Error saving device catalog entry:", error);
       console.warn("Device catalog remote sync failed, conservando guardado local.");
+    }
+  };
+
+  const updateLocalCatalogEntryName = ({ level, entry, nextName }) => {
+    const cleanName = String(nextName || "").trim();
+    if (!cleanName) return false;
+    const catalog = readLocalDeviceCatalog();
+    let changed = false;
+    const levelKeyById = {
+      category: "categories",
+      brand: "brands",
+      family: "families",
+      model: "models"
+    };
+    const levelKey = levelKeyById[level];
+    if (!levelKey) return false;
+
+    catalog[levelKey] = (catalog[levelKey] || []).map((item) => {
+      if (String(item?.id || "") !== String(entry?.id || "")) return item;
+      changed = true;
+      return { ...item, name: cleanName };
+    });
+
+    if (changed) writeLocalDeviceCatalog(catalog);
+    return changed;
+  };
+
+  const removeLocalCatalogEntry = ({ level, entry }) => {
+    const catalog = readLocalDeviceCatalog();
+    const targetId = String(entry?.id || "");
+    if (!targetId) return false;
+    let changed = false;
+
+    if (level === "model") {
+      const size = catalog.models.length;
+      catalog.models = catalog.models.filter((item) => String(item?.id || "") !== targetId);
+      changed = changed || size !== catalog.models.length;
+    }
+
+    if (level === "family") {
+      const modelsSize = catalog.models.length;
+      const familiesSize = catalog.families.length;
+      catalog.models = catalog.models.filter((item) => String(item?.family_id || "") !== targetId);
+      catalog.families = catalog.families.filter((item) => String(item?.id || "") !== targetId);
+      changed = changed || modelsSize !== catalog.models.length || familiesSize !== catalog.families.length;
+    }
+
+    if (level === "brand") {
+      const familyIds = new Set(
+        catalog.families
+          .filter((item) => String(item?.brand_id || "") === targetId)
+          .map((item) => String(item?.id || ""))
+      );
+      const modelsSize = catalog.models.length;
+      const familiesSize = catalog.families.length;
+      const brandsSize = catalog.brands.length;
+      catalog.models = catalog.models.filter(
+        (item) =>
+          String(item?.brand_id || "") !== targetId &&
+          !familyIds.has(String(item?.family_id || ""))
+      );
+      catalog.families = catalog.families.filter((item) => String(item?.brand_id || "") !== targetId);
+      catalog.brands = catalog.brands.filter((item) => String(item?.id || "") !== targetId);
+      changed = changed ||
+        modelsSize !== catalog.models.length ||
+        familiesSize !== catalog.families.length ||
+        brandsSize !== catalog.brands.length;
+    }
+
+    if (level === "category") {
+      const brandIds = new Set(
+        catalog.brands
+          .filter((item) => String(item?.category_id || "") === targetId)
+          .map((item) => String(item?.id || ""))
+      );
+      const familyIds = new Set(
+        catalog.families
+          .filter((item) => brandIds.has(String(item?.brand_id || "")))
+          .map((item) => String(item?.id || ""))
+      );
+      const modelsSize = catalog.models.length;
+      const familiesSize = catalog.families.length;
+      const brandsSize = catalog.brands.length;
+      const categoriesSize = catalog.categories.length;
+      catalog.models = catalog.models.filter(
+        (item) =>
+          !brandIds.has(String(item?.brand_id || "")) &&
+          !familyIds.has(String(item?.family_id || ""))
+      );
+      catalog.families = catalog.families.filter((item) => !brandIds.has(String(item?.brand_id || "")));
+      catalog.brands = catalog.brands.filter((item) => String(item?.category_id || "") !== targetId);
+      catalog.categories = catalog.categories.filter((item) => String(item?.id || "") !== targetId);
+      changed = changed ||
+        modelsSize !== catalog.models.length ||
+        familiesSize !== catalog.families.length ||
+        brandsSize !== catalog.brands.length ||
+        categoriesSize !== catalog.categories.length;
+    }
+
+    if (changed) writeLocalDeviceCatalog(catalog);
+    return changed;
+  };
+
+  const handleEditCatalogEntry = async ({ level, entry }) => {
+    const currentName = String(entry?.name || "").trim();
+    if (!currentName) return;
+    const nextName = window.prompt(`Nuevo nombre para ${currentName}`, currentName);
+    const cleanName = String(nextName || "").trim();
+    if (!cleanName || cleanName === currentName) return;
+
+    try {
+      if (String(entry?.id || "").startsWith("local-")) {
+        const changed = updateLocalCatalogEntryName({ level, entry, nextName: cleanName });
+        if (!changed) throw new Error("No se pudo editar localmente");
+      } else {
+        if (level === "category") await base44.entities.DeviceCategory.update(entry.id, { name: cleanName });
+        if (level === "brand") await base44.entities.Brand.update(entry.id, { name: cleanName });
+        if (level === "family") await base44.entities.DeviceFamily.update(entry.id, { name: cleanName });
+        if (level === "model") await base44.entities.DeviceModel.update(entry.id, { name: cleanName });
+      }
+
+      await loadTypes();
+      await loadDeviceCatalogBrandsForModal(deviceCatalogCategory);
+      await loadDeviceCatalogFamiliesForModal(deviceCatalogCategory, deviceCatalogBrand);
+      await loadDeviceCatalogModelsForModal(deviceCatalogCategory, deviceCatalogBrand, deviceCatalogFamily);
+      toast.success("Elemento actualizado");
+    } catch (error) {
+      console.error("Error editing device catalog entry:", error);
+      toast.error("No se pudo actualizar");
+    }
+  };
+
+  const handleDeleteCatalogEntry = async ({ level, entry }) => {
+    const currentName = String(entry?.name || "").trim();
+    if (!currentName) return;
+    const confirmed = window.confirm(`¿Eliminar "${currentName}"?`);
+    if (!confirmed) return;
+
+    try {
+      if (String(entry?.id || "").startsWith("local-")) {
+        const removed = removeLocalCatalogEntry({ level, entry });
+        if (!removed) throw new Error("No se pudo eliminar localmente");
+      } else {
+        if (level === "model") await base44.entities.DeviceModel.delete(entry.id);
+        if (level === "family") await base44.entities.DeviceFamily.delete(entry.id);
+        if (level === "brand") await base44.entities.Brand.delete(entry.id);
+        if (level === "category") await base44.entities.DeviceCategory.delete(entry.id);
+      }
+
+      if (normalizedNameKey(deviceCatalogBrand) === normalizedNameKey(currentName) && level === "brand") {
+        setDeviceCatalogBrand("");
+        setDeviceCatalogFamily("");
+        setDeviceCatalogModel("");
+      }
+      if (normalizedNameKey(deviceCatalogFamily) === normalizedNameKey(currentName) && level === "family") {
+        setDeviceCatalogFamily("");
+        setDeviceCatalogModel("");
+      }
+      if (normalizedNameKey(deviceCatalogModel) === normalizedNameKey(currentName) && level === "model") {
+        setDeviceCatalogModel("");
+      }
+
+      await loadTypes();
+      await loadDeviceCatalogBrandsForModal(deviceCatalogCategory);
+      await loadDeviceCatalogFamiliesForModal(deviceCatalogCategory, deviceCatalogBrand);
+      await loadDeviceCatalogModelsForModal(deviceCatalogCategory, deviceCatalogBrand, deviceCatalogFamily);
+      toast.success("Elemento eliminado");
+    } catch (error) {
+      console.error("Error deleting device catalog entry:", error);
+      toast.error("No se pudo eliminar (puede estar en uso)");
     }
   };
 
@@ -2845,58 +3180,69 @@ export default function WorkOrderWizard({ open, onClose, onSuccess, preloadedCus
               Checklist de Recepción
             </h3>
 
-            <div className="flex items-center justify-between gap-3">
-              <button
-                type="button"
-                onClick={() => setChecklistBubbleOpen((v) => !v)}
-                className="inline-flex items-center gap-2 rounded-full border border-green-400/40 bg-green-500/10 px-3 py-1.5 text-xs font-semibold text-green-200 hover:bg-green-500/20"
-              >
-                <CheckSquare className="w-3.5 h-3.5" />
-                Checklist rápido
-              </button>
+            <div className="flex items-center justify-between gap-3 flex-wrap">
+              <div className="inline-flex items-center rounded-full border border-green-500/30 bg-black/30 p-1">
+                {[
+                  { key: "celulares", label: "Celulares" },
+                  { key: "tabletas", label: "Tabletas" },
+                  { key: "computadoras", label: "Computadoras" },
+                  { key: "accesorios", label: "Accesorios" }
+                ].map((opt) => {
+                  const active = checklistTemplateKey === opt.key;
+                  return (
+                    <span
+                      key={opt.key}
+                      className={`px-3 py-1 rounded-full text-[11px] font-semibold ${
+                        active ? "bg-green-500/25 text-green-100" : "text-green-200/60"
+                      }`}
+                    >
+                      {opt.label}
+                    </span>
+                  );
+                })}
+              </div>
               <span className="text-[11px] text-green-200/80">
                 {checklist.length} marcado{checklist.length === 1 ? "" : "s"}
               </span>
             </div>
 
-            {checklistBubbleOpen && (
-              <div className="rounded-xl border border-green-500/25 bg-black/30 p-3 space-y-3">
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 lg:max-h-[260px] lg:overflow-y-auto pr-1">
-                  {CHECKLIST_ITEMS.map(item => {
-                    const isSelected = checklist.some(c => c.id === item.key);
-                    return (
-                      <button
-                        key={item.key}
-                        onClick={() => toggleChecklistItem(item.key, item.label)}
-                        className={`px-3 py-2 rounded-lg text-xs border transition-all text-left ${
-                          isSelected
-                            ? "bg-gradient-to-r from-green-600 to-emerald-600 border-green-400 text-white"
-                            : "bg-black/20 border-white/10 text-gray-400 hover:bg-white/5"
-                        }`}
-                      >
-                        <span>{item.icon}</span> {item.label}
-                      </button>
-                    );
-                  })}
-                </div>
-
-                <div className="flex gap-2">
-                  <input
-                    value={checklistQuickText}
-                    onChange={(e) => setChecklistQuickText(e.target.value)}
-                    onBlur={addQuickChecklistItem}
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter") {
-                        e.preventDefault();
-                        addQuickChecklistItem();
-                      }
-                    }}
-                    placeholder="Añadir condición manual y Enter..."
-                    className="w-full bg-black/30 border border-white/10 rounded-lg px-3 py-2 text-white text-xs"
-                  />
-                </div>
+            <div className="rounded-xl border border-green-500/25 bg-black/30 p-3 space-y-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 lg:max-h-[260px] lg:overflow-y-auto pr-1">
+                {checklistTemplateItems.map((item) => {
+                  const isSelected = checklist.some((c) => c.id === item.key);
+                  return (
+                    <button
+                      key={item.key}
+                      type="button"
+                      onClick={() => toggleChecklistItem(item.key, item.label)}
+                      className={`px-3 py-2 rounded-lg text-xs border transition-all text-left ${
+                        isSelected
+                          ? "bg-gradient-to-r from-green-600 to-emerald-600 border-green-400 text-white"
+                          : "bg-black/20 border-white/10 text-gray-300 hover:bg-white/5"
+                      }`}
+                    >
+                      <span>{item.icon}</span> {item.label}
+                    </button>
+                  );
+                })}
               </div>
-            )}
+
+              <div className="flex gap-2">
+                <input
+                  value={checklistQuickText}
+                  onChange={(e) => setChecklistQuickText(e.target.value)}
+                  onBlur={addQuickChecklistItem}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                      e.preventDefault();
+                      addQuickChecklistItem();
+                    }
+                  }}
+                  placeholder="Añadir condición manual y Enter..."
+                  className="w-full bg-black/30 border border-white/10 rounded-lg px-3 py-2 text-white text-xs"
+                />
+              </div>
+            </div>
             
             {checklist.length > 0 && (
               <div className="bg-green-600/10 border border-green-500/30 rounded-lg p-2 text-center">
@@ -3066,6 +3412,10 @@ export default function WorkOrderWizard({ open, onClose, onSuccess, preloadedCus
           order={{ order_items: draftOrderItems }}
           initialItems={draftOrderItems}
           onApplyItems={applyDraftOrderItems}
+          deviceType={deviceType}
+          deviceBrand={deviceBrand?.name || ""}
+          deviceFamily={deviceFamily}
+          deviceModel={deviceModel}
         />
       ), document.body)}
 
@@ -3112,34 +3462,54 @@ export default function WorkOrderWizard({ open, onClose, onSuccess, preloadedCus
                   placeholder="Ej: Laptop, Tablet, Celular"
                   className="w-full bg-white/5 border border-white/20 rounded-xl px-4 py-3 text-white"
                 />
-                {types.length > 0 && (
+                {uniqueCatalogTypes.length > 0 && (
                   <div className="mt-3 flex flex-wrap gap-2">
-                    {types.slice(0, 10).map((type) => {
+                    {uniqueCatalogTypes.slice(0, 10).map((type) => {
                       const active = normalizedText(deviceCatalogCategory) === normalizedText(type?.name);
                       return (
-                        <button
+                        <div
                           key={type.id}
-                          type="button"
-                          onClick={() => {
-                            setLoadingDeviceCatalogBrands(true);
-                            setLoadingDeviceCatalogFamilies(false);
-                            setLoadingDeviceCatalogModels(false);
-                            setDeviceCatalogCategory(type.name);
-                            setDeviceCatalogBrand("");
-                            setDeviceCatalogFamily("");
-                            setDeviceCatalogModel("");
-                            setShowManualDeviceCatalogBrand(false);
-                            setShowManualDeviceCatalogFamily(false);
-                            setShowManualDeviceCatalogModel(false);
-                          }}
-                          className={`px-3 py-1.5 rounded-full border text-xs transition-all ${
+                          className={`inline-flex items-center gap-1 rounded-full border pr-1 pl-2 py-1 transition-all ${
                             active
                               ? "bg-cyan-500/20 border-cyan-400/60 text-cyan-200"
-                              : "bg-white/5 border-white/10 text-white/70 hover:bg-white/10"
+                              : "bg-white/5 border-white/10 text-white/70"
                           }`}
                         >
-                          {type.icon ? `${type.icon} ` : ""}{type.name}
-                        </button>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setLoadingDeviceCatalogBrands(true);
+                              setLoadingDeviceCatalogFamilies(false);
+                              setLoadingDeviceCatalogModels(false);
+                              setDeviceCatalogCategory(type.name);
+                              setDeviceCatalogBrand("");
+                              setDeviceCatalogFamily("");
+                              setDeviceCatalogModel("");
+                              setShowManualDeviceCatalogBrand(false);
+                              setShowManualDeviceCatalogFamily(false);
+                              setShowManualDeviceCatalogModel(false);
+                            }}
+                            className="text-xs"
+                          >
+                            {type.icon ? `${type.icon} ` : ""}{type.name}
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => handleEditCatalogEntry({ level: "category", entry: type })}
+                            className="p-1 rounded-full hover:bg-white/10"
+                            title="Editar categoría"
+                          >
+                            <Pencil className="w-3 h-3" />
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => handleDeleteCatalogEntry({ level: "category", entry: type })}
+                            className="p-1 rounded-full hover:bg-red-500/20 text-red-200"
+                            title="Eliminar categoría"
+                          >
+                            <Trash2 className="w-3 h-3" />
+                          </button>
+                        </div>
                       );
                     })}
                   </div>
@@ -3181,32 +3551,52 @@ export default function WorkOrderWizard({ open, onClose, onSuccess, preloadedCus
                     </button>
                   </div>
                 )}
-                {deviceCatalogBrands.length > 0 && (
+                {uniqueCatalogBrands.length > 0 && (
                   <div className="mt-3 flex flex-wrap gap-2">
-                    {deviceCatalogBrands.map((brand) => {
+                    {uniqueCatalogBrands.map((brand) => {
                       const active = normalizedText(deviceCatalogBrand) === normalizedText(brand?.name);
                       return (
-                        <button
+                        <div
                           key={brand.id}
-                          type="button"
-                          onClick={() => {
-                            setLoadingDeviceCatalogFamilies(true);
-                            setLoadingDeviceCatalogModels(false);
-                            setDeviceCatalogBrand(brand.name);
-                            setDeviceCatalogFamily("");
-                            setDeviceCatalogModel("");
-                            setShowManualDeviceCatalogBrand(false);
-                            setShowManualDeviceCatalogFamily(false);
-                            setShowManualDeviceCatalogModel(false);
-                          }}
-                          className={`px-3 py-1.5 rounded-full border text-xs transition-all ${
+                          className={`inline-flex items-center gap-1 rounded-full border pr-1 pl-2 py-1 transition-all ${
                             active
                               ? "bg-purple-500/20 border-purple-400/60 text-purple-200"
-                              : "bg-white/5 border-white/10 text-white/70 hover:bg-white/10"
+                              : "bg-white/5 border-white/10 text-white/70"
                           }`}
                         >
-                          {brand.name}
-                        </button>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setLoadingDeviceCatalogFamilies(true);
+                              setLoadingDeviceCatalogModels(false);
+                              setDeviceCatalogBrand(brand.name);
+                              setDeviceCatalogFamily("");
+                              setDeviceCatalogModel("");
+                              setShowManualDeviceCatalogBrand(false);
+                              setShowManualDeviceCatalogFamily(false);
+                              setShowManualDeviceCatalogModel(false);
+                            }}
+                            className="text-xs"
+                          >
+                            {brand.name}
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => handleEditCatalogEntry({ level: "brand", entry: brand })}
+                            className="p-1 rounded-full hover:bg-white/10"
+                            title="Editar marca"
+                          >
+                            <Pencil className="w-3 h-3" />
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => handleDeleteCatalogEntry({ level: "brand", entry: brand })}
+                            className="p-1 rounded-full hover:bg-red-500/20 text-red-200"
+                            title="Eliminar marca"
+                          >
+                            <Trash2 className="w-3 h-3" />
+                          </button>
+                        </div>
                       );
                     })}
                   </div>
@@ -3245,29 +3635,49 @@ export default function WorkOrderWizard({ open, onClose, onSuccess, preloadedCus
                     </button>
                   </div>
                 )}
-                {deviceCatalogFamilies.length > 0 && (
+                {uniqueCatalogFamilies.length > 0 && (
                   <div className="mt-3 flex flex-wrap gap-2">
-                    {deviceCatalogFamilies.map((family) => {
+                    {uniqueCatalogFamilies.map((family) => {
                       const active = normalizedText(deviceCatalogFamily) === normalizedText(family?.name);
                       return (
-                        <button
+                        <div
                           key={family.id}
-                          type="button"
-                          onClick={() => {
-                            setLoadingDeviceCatalogModels(true);
-                            setDeviceCatalogFamily(family.name);
-                            setDeviceCatalogModel("");
-                            setShowManualDeviceCatalogFamily(false);
-                            setShowManualDeviceCatalogModel(false);
-                          }}
-                          className={`px-3 py-1.5 rounded-full border text-xs transition-all ${
+                          className={`inline-flex items-center gap-1 rounded-full border pr-1 pl-2 py-1 transition-all ${
                             active
                               ? "bg-violet-500/20 border-violet-400/60 text-violet-200"
-                              : "bg-white/5 border-white/10 text-white/70 hover:bg-white/10"
+                              : "bg-white/5 border-white/10 text-white/70"
                           }`}
                         >
-                          {family.name}
-                        </button>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setLoadingDeviceCatalogModels(true);
+                              setDeviceCatalogFamily(family.name);
+                              setDeviceCatalogModel("");
+                              setShowManualDeviceCatalogFamily(false);
+                              setShowManualDeviceCatalogModel(false);
+                            }}
+                            className="text-xs"
+                          >
+                            {family.name}
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => handleEditCatalogEntry({ level: "family", entry: family })}
+                            className="p-1 rounded-full hover:bg-white/10"
+                            title="Editar línea"
+                          >
+                            <Pencil className="w-3 h-3" />
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => handleDeleteCatalogEntry({ level: "family", entry: family })}
+                            className="p-1 rounded-full hover:bg-red-500/20 text-red-200"
+                            title="Eliminar línea"
+                          >
+                            <Trash2 className="w-3 h-3" />
+                          </button>
+                        </div>
                       );
                     })}
                   </div>
@@ -3308,28 +3718,48 @@ export default function WorkOrderWizard({ open, onClose, onSuccess, preloadedCus
                     <p className="text-xs font-semibold uppercase tracking-[0.2em] text-white/45">
                       Modelos existentes
                     </p>
-                    <span className="text-[11px] text-white/40">{deviceCatalogModels.length}</span>
+                    <span className="text-[11px] text-white/40">{uniqueCatalogModels.length}</span>
                   </div>
-                  {deviceCatalogModels.length > 0 ? (
+                  {uniqueCatalogModels.length > 0 ? (
                     <div className="flex flex-wrap gap-2 max-h-36 overflow-y-auto pr-1">
-                      {deviceCatalogModels.map((model) => {
+                      {uniqueCatalogModels.map((model) => {
                         const active = normalizedText(deviceCatalogModel) === normalizedText(model?.name);
                         return (
-                          <button
+                          <div
                             key={model.id}
-                            type="button"
-                            onClick={() => {
-                              setDeviceCatalogModel(model.name);
-                              setShowManualDeviceCatalogModel(false);
-                            }}
-                            className={`px-3 py-1.5 rounded-full border text-xs transition-all ${
+                            className={`inline-flex items-center gap-1 rounded-full border pr-1 pl-2 py-1 transition-all ${
                               active
                                 ? "bg-emerald-500/20 border-emerald-400/60 text-emerald-200"
-                                : "bg-black/30 border-white/10 text-white/70 hover:bg-white/10"
+                                : "bg-black/30 border-white/10 text-white/70"
                             }`}
                           >
-                            {model.name}
-                          </button>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setDeviceCatalogModel(model.name);
+                                setShowManualDeviceCatalogModel(false);
+                              }}
+                              className="text-xs"
+                            >
+                              {model.name}
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => handleEditCatalogEntry({ level: "model", entry: model })}
+                              className="p-1 rounded-full hover:bg-white/10"
+                              title="Editar modelo"
+                            >
+                              <Pencil className="w-3 h-3" />
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => handleDeleteCatalogEntry({ level: "model", entry: model })}
+                              className="p-1 rounded-full hover:bg-red-500/20 text-red-200"
+                              title="Eliminar modelo"
+                            >
+                              <Trash2 className="w-3 h-3" />
+                            </button>
+                          </div>
                         );
                       })}
                     </div>
