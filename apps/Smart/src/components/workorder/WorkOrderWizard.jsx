@@ -644,25 +644,21 @@ export default function WorkOrderWizard({ open, onClose, onSuccess, preloadedCus
     () => CHECKLIST_LIBRARY[checklistTemplateKey] || CHECKLIST_LIBRARY.celulares,
     [checklistTemplateKey]
   );
-  const uniqueCatalogTypes = useMemo(
-    () => dedupeCatalogEntries(types, (item) => normalizedNameKey(item?.name)),
-    [types]
+  const uniqueBrands = useMemo(
+    () => dedupeCatalogEntries(brands, (item) => normalizedNameKey(item?.name)),
+    [brands]
   );
-  const uniqueCatalogBrands = useMemo(
-    () => dedupeCatalogEntries(deviceCatalogBrands, (item) => normalizedNameKey(item?.name)),
-    [deviceCatalogBrands]
+  const uniqueFamilies = useMemo(
+    () => dedupeCatalogEntries(families, (item) => normalizedNameKey(item?.name)),
+    [families]
   );
-  const uniqueCatalogFamilies = useMemo(
-    () => dedupeCatalogEntries(deviceCatalogFamilies, (item) => normalizedNameKey(item?.name)),
-    [deviceCatalogFamilies]
-  );
-  const uniqueCatalogModels = useMemo(
+  const uniqueModels = useMemo(
     () =>
       dedupeCatalogEntries(
-        deviceCatalogModels,
+        models,
         (item) => `${normalizedNameKey(item?.family || item?.family_id || "")}::${normalizedNameKey(item?.name)}`
       ),
-    [deviceCatalogModels]
+    [models]
   );
 
   useEffect(() => {
@@ -960,7 +956,7 @@ export default function WorkOrderWizard({ open, onClose, onSuccess, preloadedCus
         setTypes(
           dedupeCatalogEntries(
             [...(localCatalog.categories || []), ...(cached || [])],
-            (item) => normalizedText(item?.name)
+            (item) => normalizedNameKey(item?.name)
           )
         );
         return;
@@ -969,13 +965,13 @@ export default function WorkOrderWizard({ open, onClose, onSuccess, preloadedCus
       const data = await base44.entities.DeviceCategory.filter({active: true}, "order");
       const merged = dedupeCatalogEntries(
         [...(localCatalog.categories || []), ...(data || [])],
-        (item) => normalizedText(item?.name)
+        (item) => normalizedNameKey(item?.name)
       );
       catalogCache.set('device_categories', merged);
       setTypes(merged);
     } catch {
       setTypes(
-        dedupeCatalogEntries(localCatalog.categories || [], (item) => normalizedText(item?.name))
+        dedupeCatalogEntries(localCatalog.categories || [], (item) => normalizedNameKey(item?.name))
       );
     }
   };
@@ -995,7 +991,7 @@ export default function WorkOrderWizard({ open, onClose, onSuccess, preloadedCus
         setBrands(
           dedupeCatalogEntries(
             [...(localBrands || []), ...(cached || [])],
-            (item) => `${item?.category_id || ""}::${normalizedText(item?.name)}`
+            (item) => normalizedNameKey(item?.name)
           )
         );
         return;
@@ -1015,7 +1011,7 @@ export default function WorkOrderWizard({ open, onClose, onSuccess, preloadedCus
           : [];
         const merged = dedupeCatalogEntries(
           [...(localBrands || []), ...(brandsByCategory || [])],
-          (item) => `${item?.category_id || ""}::${normalizedText(item?.name)}`
+          (item) => normalizedNameKey(item?.name)
         );
         catalogCache.set(cacheKey, merged);
         setBrands(merged);
@@ -1027,7 +1023,7 @@ export default function WorkOrderWizard({ open, onClose, onSuccess, preloadedCus
           ? (localCatalog.brands || []).filter((item) => item?.category_id === localCategory.id)
           : [];
         setBrands(
-          dedupeCatalogEntries(localBrands, (item) => `${item?.category_id || ""}::${normalizedText(item?.name)}`)
+          dedupeCatalogEntries(localBrands, (item) => normalizedNameKey(item?.name))
         );
       }
     } catch {
@@ -1038,7 +1034,7 @@ export default function WorkOrderWizard({ open, onClose, onSuccess, preloadedCus
         ? (localCatalog.brands || []).filter((item) => item?.category_id === localCategory.id)
         : [];
       setBrands(
-        dedupeCatalogEntries(localBrands, (item) => `${item?.category_id || ""}::${normalizedText(item?.name)}`)
+        dedupeCatalogEntries(localBrands, (item) => normalizedNameKey(item?.name))
       );
     }
   };
@@ -1053,7 +1049,7 @@ export default function WorkOrderWizard({ open, onClose, onSuccess, preloadedCus
         setFamilies(
           dedupeCatalogEntries(
             [...(localFamilies || []), ...(cached || [])],
-            (item) => `${item?.brand_id || ""}::${normalizedText(item?.name)}`
+            (item) => normalizedNameKey(item?.name)
           )
         );
         return;
@@ -1066,14 +1062,14 @@ export default function WorkOrderWizard({ open, onClose, onSuccess, preloadedCus
       const localFamilies = (localCatalog.families || []).filter((item) => item?.brand_id === deviceBrand?.id);
       const merged = dedupeCatalogEntries(
         [...(localFamilies || []), ...(remoteFamilies || [])],
-        (item) => `${item?.brand_id || ""}::${normalizedText(item?.name)}`
+        (item) => normalizedNameKey(item?.name)
       );
       catalogCache.set(cacheKey, merged);
       setFamilies(merged);
     } catch {
       const localFamilies = (localCatalog.families || []).filter((item) => item?.brand_id === deviceBrand?.id);
       setFamilies(
-        dedupeCatalogEntries(localFamilies, (item) => `${item?.brand_id || ""}::${normalizedText(item?.name)}`)
+        dedupeCatalogEntries(localFamilies, (item) => normalizedNameKey(item?.name))
       );
     }
   };
@@ -1082,7 +1078,7 @@ export default function WorkOrderWizard({ open, onClose, onSuccess, preloadedCus
     const localCatalog = readLocalDeviceCatalog();
     try {
       const selectedFamilyName = String(deviceFamily || "").trim();
-      const selectedFamilyRecord = families.find((item) => normalizedText(item?.name) === normalizedText(selectedFamilyName));
+      const selectedFamilyRecord = families.find((item) => normalizedNameKey(item?.name) === normalizedNameKey(selectedFamilyName));
       const cacheKey = `models_${deviceBrand?.id}_${selectedFamilyRecord?.id || selectedFamilyName}`;
       const cached = catalogCache.get(cacheKey);
       if (cached) {
@@ -1097,7 +1093,7 @@ export default function WorkOrderWizard({ open, onClose, onSuccess, preloadedCus
           dedupeCatalogEntries(
             [...(localModels || []), ...(cached || [])],
             (item) =>
-              `${item?.brand_id || ""}::${item?.family_id || normalizedText(item?.family)}::${normalizedText(item?.name)}`
+              `${normalizedNameKey(item?.family || item?.device_family || item?.family_id || "")}::${normalizedNameKey(item?.name)}`
           )
         );
         return;
@@ -1129,13 +1125,13 @@ export default function WorkOrderWizard({ open, onClose, onSuccess, preloadedCus
       const merged = dedupeCatalogEntries(
         [...(localModels || []), ...familyMatchedRemoteModels],
         (item) =>
-          `${item?.brand_id || ""}::${item?.family_id || normalizedText(item?.family)}::${normalizedText(item?.name)}`
+          `${normalizedNameKey(item?.family || item?.device_family || item?.family_id || "")}::${normalizedNameKey(item?.name)}`
       );
       catalogCache.set(cacheKey, merged);
       setModels(merged);
     } catch {
       const selectedFamilyName = String(deviceFamily || "").trim();
-      const selectedFamilyRecord = families.find((item) => normalizedText(item?.name) === normalizedText(selectedFamilyName));
+      const selectedFamilyRecord = families.find((item) => normalizedNameKey(item?.name) === normalizedNameKey(selectedFamilyName));
       const localModels = (localCatalog.models || []).filter((item) =>
         item?.brand_id === deviceBrand?.id &&
         (
@@ -1147,7 +1143,7 @@ export default function WorkOrderWizard({ open, onClose, onSuccess, preloadedCus
         dedupeCatalogEntries(
           localModels,
           (item) =>
-            `${item?.brand_id || ""}::${item?.family_id || normalizedText(item?.family)}::${normalizedText(item?.name)}`
+            `${normalizedNameKey(item?.family || item?.device_family || item?.family_id || "")}::${normalizedNameKey(item?.name)}`
         )
       );
     }
@@ -2885,7 +2881,7 @@ export default function WorkOrderWizard({ open, onClose, onSuccess, preloadedCus
                 <label className="text-sm text-white/70 mb-3 block font-semibold">Marca *</label>
                 <div className="flex flex-wrap gap-2">
                   <AnimatePresence mode="popLayout">
-                    {brands.map(b => (
+                    {uniqueBrands.map(b => (
                       <motion.button
                         key={b.id}
                         initial={{ opacity: 0, scale: 0.8 }}
@@ -2900,7 +2896,7 @@ export default function WorkOrderWizard({ open, onClose, onSuccess, preloadedCus
                           setDeviceModel("");
                         }}
                         className={`px-4 py-2 rounded-[14px] text-sm border-2 transition-all duration-300 font-bold ${
-                          deviceBrand?.id === b.id
+                          normalizedNameKey(deviceBrand?.name || "") === normalizedNameKey(b?.name || "")
                             ? "bg-gradient-to-r from-emerald-500 to-green-500 border-emerald-400 text-white shadow-[0_0_20px_rgba(16,185,129,0.4)] scale-105"
                             : "bg-black/20 border-white/10 text-gray-400 hover:bg-white/5"
                         }`}
@@ -2923,7 +2919,7 @@ export default function WorkOrderWizard({ open, onClose, onSuccess, preloadedCus
                   </p>
                 </div>
                 <div className="flex flex-wrap gap-2">
-                  {families.map(f => (
+                  {uniqueFamilies.map(f => (
                     <button
                       key={f.id}
                       type="button"
@@ -2932,7 +2928,7 @@ export default function WorkOrderWizard({ open, onClose, onSuccess, preloadedCus
                         setDeviceModel("");
                       }}
                       className={`px-4 py-2 rounded-[14px] text-sm border-2 transition-all duration-300 font-bold ${
-                        deviceFamily === f.name
+                        normalizedNameKey(deviceFamily) === normalizedNameKey(f?.name || "")
                           ? "bg-gradient-to-r from-cyan-500 to-blue-500 border-cyan-400 text-white shadow-[0_0_20px_rgba(34,211,238,0.35)] scale-105"
                           : "bg-black/20 border-white/10 text-gray-400 hover:bg-white/5 active:scale-95"
                       }`}
@@ -2941,7 +2937,7 @@ export default function WorkOrderWizard({ open, onClose, onSuccess, preloadedCus
                     </button>
                   ))}
                 </div>
-                {families.length === 0 && (
+                {uniqueFamilies.length === 0 && (
                   <div className="mt-3 rounded-lg border border-white/10 bg-black/20 px-3 py-2 text-xs text-white/45">
                     No hay líneas guardadas para esta marca. Usa el botón `+` para añadir una.
                   </div>
@@ -2957,7 +2953,7 @@ export default function WorkOrderWizard({ open, onClose, onSuccess, preloadedCus
                   <p className="text-xs text-white/45 mt-1">Si no aparece en la lista, agrégalo desde el botón `+`.</p>
                 </div>
                 <div className="flex flex-wrap gap-2">
-                  {models.map(m => (
+                  {uniqueModels.map(m => (
                     <button
                       key={m.id}
                       type="button"
@@ -2965,7 +2961,7 @@ export default function WorkOrderWizard({ open, onClose, onSuccess, preloadedCus
                         setDeviceModel(m.name);
                       }}
                       className={`px-4 py-2 rounded-[14px] text-sm border-2 transition-all duration-300 font-bold ${
-                        deviceModel === m.name
+                        normalizedNameKey(deviceModel) === normalizedNameKey(m?.name || "")
                           ? "bg-gradient-to-r from-purple-500 to-pink-500 border-purple-400 text-white shadow-[0_0_20px_rgba(168,85,247,0.4)] scale-105"
                           : "bg-black/20 border-white/10 text-gray-400 hover:bg-white/5 active:scale-95"
                       }`}
@@ -2974,7 +2970,7 @@ export default function WorkOrderWizard({ open, onClose, onSuccess, preloadedCus
                     </button>
                   ))}
                 </div>
-                {models.length === 0 && (
+                {uniqueModels.length === 0 && (
                   <div className="mt-3 rounded-lg border border-white/10 bg-black/20 px-3 py-2 text-xs text-white/45">
                     No hay modelos guardados para esta línea. Usa el botón `+` para añadir uno.
                   </div>
@@ -3462,9 +3458,9 @@ export default function WorkOrderWizard({ open, onClose, onSuccess, preloadedCus
                   placeholder="Ej: Laptop, Tablet, Celular"
                   className="w-full bg-white/5 border border-white/20 rounded-xl px-4 py-3 text-white"
                 />
-                {uniqueCatalogTypes.length > 0 && (
+                {types.length > 0 && (
                   <div className="mt-3 flex flex-wrap gap-2">
-                    {uniqueCatalogTypes.slice(0, 10).map((type) => {
+                    {types.slice(0, 20).map((type) => {
                       const active = normalizedText(deviceCatalogCategory) === normalizedText(type?.name);
                       return (
                         <div
@@ -3551,9 +3547,9 @@ export default function WorkOrderWizard({ open, onClose, onSuccess, preloadedCus
                     </button>
                   </div>
                 )}
-                {uniqueCatalogBrands.length > 0 && (
+                {deviceCatalogBrands.length > 0 && (
                   <div className="mt-3 flex flex-wrap gap-2">
-                    {uniqueCatalogBrands.map((brand) => {
+                    {deviceCatalogBrands.map((brand) => {
                       const active = normalizedText(deviceCatalogBrand) === normalizedText(brand?.name);
                       return (
                         <div
@@ -3635,9 +3631,9 @@ export default function WorkOrderWizard({ open, onClose, onSuccess, preloadedCus
                     </button>
                   </div>
                 )}
-                {uniqueCatalogFamilies.length > 0 && (
+                {deviceCatalogFamilies.length > 0 && (
                   <div className="mt-3 flex flex-wrap gap-2">
-                    {uniqueCatalogFamilies.map((family) => {
+                    {deviceCatalogFamilies.map((family) => {
                       const active = normalizedText(deviceCatalogFamily) === normalizedText(family?.name);
                       return (
                         <div
@@ -3718,11 +3714,11 @@ export default function WorkOrderWizard({ open, onClose, onSuccess, preloadedCus
                     <p className="text-xs font-semibold uppercase tracking-[0.2em] text-white/45">
                       Modelos existentes
                     </p>
-                    <span className="text-[11px] text-white/40">{uniqueCatalogModels.length}</span>
+                    <span className="text-[11px] text-white/40">{deviceCatalogModels.length}</span>
                   </div>
-                  {uniqueCatalogModels.length > 0 ? (
+                  {deviceCatalogModels.length > 0 ? (
                     <div className="flex flex-wrap gap-2 max-h-36 overflow-y-auto pr-1">
-                      {uniqueCatalogModels.map((model) => {
+                      {deviceCatalogModels.map((model) => {
                         const active = normalizedText(deviceCatalogModel) === normalizedText(model?.name);
                         return (
                           <div
