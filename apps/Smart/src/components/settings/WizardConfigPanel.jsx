@@ -8,21 +8,10 @@ import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
 import DeviceCatalogManager from "@/components/settings/DeviceCatalogManager";
 import {
-  Save, Loader2, Plus, Trash2, GripVertical, User, Smartphone, 
-  Wrench, Shield, CheckSquare, ClipboardList, AlertCircle, Eye, EyeOff
+  Save, Loader2, User, Smartphone, AlertCircle
 } from "lucide-react";
-
 const DEFAULT_CONFIG = {
   key: "default",
-  steps_enabled: {
-    customer: true,
-    device: true,
-    problem: true,
-    security: true,
-    checklist: true,
-    summary: true
-  },
-  steps_order: ["customer", "device", "problem", "security", "checklist", "summary"],
   problem_presets: [
     { label: "Pantalla", text: "Pantalla rota / touch no responde" },
     { label: "Batería", text: "Batería se descarga rápido / se apaga" },
@@ -52,19 +41,17 @@ const DEFAULT_CONFIG = {
   terms_required: true
 };
 
-const STEP_ICONS = {
-  customer: User,
-  device: Smartphone,
-  problem: Wrench,
-  security: Shield,
-  checklist: CheckSquare,
-  summary: ClipboardList
-};
-
 function buildWizardConfigPayload(config = {}) {
   return {
-    steps_enabled: config.steps_enabled || DEFAULT_CONFIG.steps_enabled,
-    steps_order: Array.isArray(config.steps_order) ? config.steps_order : DEFAULT_CONFIG.steps_order,
+    steps_enabled: {
+      customer: true,
+      device: true,
+      problem: true,
+      security: true,
+      checklist: true,
+      summary: true
+    },
+    steps_order: ["customer", "device", "problem", "security", "checklist", "summary"],
     customer_search_enabled: config.customer_search_enabled ?? true,
     customer_fields_required: config.customer_fields_required || {
       name: true,
@@ -98,7 +85,12 @@ export default function WizardConfigPanel() {
   const [config, setConfig] = useState(DEFAULT_CONFIG);
   const [loading, setLoading] = useState(false);
   const [loadingData, setLoadingData] = useState(true);
-  const [activeTab, setActiveTab] = useState("steps");
+  const [activeTab, setActiveTab] = useState(() => {
+    if (typeof window === "undefined") return "catalog";
+    const params = new URLSearchParams(window.location.search);
+    const requestedTab = params.get("tab");
+    return requestedTab === "customer" || requestedTab === "catalog" ? requestedTab : "catalog";
+  });
 
   useEffect(() => {
     loadConfig();
@@ -197,7 +189,6 @@ export default function WizardConfigPanel() {
   }
 
   const tabs = [
-    { id: "steps", label: "Pasos", icon: ClipboardList },
     { id: "customer", label: "Cliente", icon: User },
     { id: "catalog", label: "Catálogo", icon: Smartphone }
   ];
@@ -230,7 +221,6 @@ export default function WizardConfigPanel() {
                 {tab.label}
               </h3>
               <p className="text-xs text-gray-400">
-                {tab.id === "steps" && "Activar/desactivar pasos"}
                 {tab.id === "customer" && "Campos del cliente"}
                 {tab.id === "catalog" && "Tipos, marcas, modelos"}
               </p>
@@ -238,67 +228,6 @@ export default function WizardConfigPanel() {
           );
         })}
       </div>
-
-      {/* PASOS */}
-      {activeTab === "steps" && (
-        <div className="space-y-4">
-          <Card className="bg-black/40 border border-cyan-500/20 p-6">
-            <h3 className="text-white font-bold mb-4 flex items-center gap-2">
-              <ClipboardList className="w-5 h-5 text-cyan-400" />
-              Pasos del Wizard
-            </h3>
-            <p className="text-xs text-gray-400 mb-4">
-              Activa o desactiva los pasos que se mostrarán al crear una orden
-            </p>
-            <div className="space-y-3">
-              {config.steps_order.map((stepKey) => {
-                const Icon = STEP_ICONS[stepKey];
-                const stepLabels = {
-                  customer: "Cliente",
-                  device: "Dispositivo",
-                  problem: "Problema",
-                  security: "Seguridad",
-                  checklist: "Checklist",
-                  summary: "Resumen"
-                };
-                return (
-                  <div
-                    key={stepKey}
-                    className="flex items-center justify-between p-4 bg-black/30 border border-white/10 rounded-xl"
-                  >
-                    <div className="flex items-center gap-3">
-                      <GripVertical className="w-4 h-4 text-gray-500" />
-                      {Icon && <Icon className="w-5 h-5 text-cyan-400" />}
-                      <span className="text-white font-medium">{stepLabels[stepKey]}</span>
-                    </div>
-                    <Switch
-                      checked={config.steps_enabled[stepKey]}
-                      onCheckedChange={(checked) => {
-                        if (stepKey === "customer" || stepKey === "device" || stepKey === "summary") {
-                          toast.error("Este paso es obligatorio");
-                          return;
-                        }
-                        setConfig({
-                          ...config,
-                          steps_enabled: {
-                            ...config.steps_enabled,
-                            [stepKey]: checked
-                          }
-                        });
-                      }}
-                    />
-                  </div>
-                );
-              })}
-            </div>
-            <div className="mt-4 bg-blue-600/10 border border-blue-500/20 rounded-lg p-3">
-              <p className="text-blue-300 text-xs">
-                💡 Los pasos Cliente, Dispositivo y Resumen son obligatorios y no se pueden desactivar
-              </p>
-            </div>
-          </Card>
-        </div>
-      )}
 
       {/* CAMPOS DE CLIENTE */}
       {activeTab === "customer" && (

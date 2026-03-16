@@ -811,6 +811,7 @@ export default function WorkOrderWizard({ open, onClose, onSuccess, preloadedCus
   const [showManualDeviceCatalogBrand, setShowManualDeviceCatalogBrand] = useState(false);
   const [showManualDeviceCatalogFamily, setShowManualDeviceCatalogFamily] = useState(false);
   const [showManualDeviceCatalogModel, setShowManualDeviceCatalogModel] = useState(false);
+  const [temporaryDeviceInput, setTemporaryDeviceInput] = useState("");
   const [loadingDeviceCatalogBrands, setLoadingDeviceCatalogBrands] = useState(false);
   const [loadingDeviceCatalogFamilies, setLoadingDeviceCatalogFamilies] = useState(false);
   const [loadingDeviceCatalogModels, setLoadingDeviceCatalogModels] = useState(false);
@@ -889,6 +890,52 @@ export default function WorkOrderWizard({ open, onClose, onSuccess, preloadedCus
       ),
     [models]
   );
+
+  const resolveTemporaryDeviceType = (value) => {
+    const text = normalizedNameKey(value);
+    const matchType = (keywords = []) =>
+      types.find((type) => {
+        const typeKey = normalizedNameKey(type?.name);
+        return keywords.some((keyword) => text.includes(keyword) && typeKey.includes(keyword));
+      });
+
+    return (
+      matchType(["tablet", "ipad"])?.name ||
+      matchType(["monitor", "desktop", "pc", "computadora", "laptop"])?.name ||
+      matchType(["watch", "reloj"])?.name ||
+      matchType(["console", "playstation", "xbox", "switch"])?.name ||
+      matchType(["phone", "smartphone", "celular", "iphone", "galaxy"])?.name ||
+      deviceType ||
+      types[0]?.name ||
+      "Equipo"
+    );
+  };
+
+  const handleApplyTemporaryDevice = () => {
+    const rawValue = String(temporaryDeviceInput || "").trim();
+    if (!rawValue) {
+      toast.error("Escribe el equipo temporal");
+      return;
+    }
+
+    const tokens = rawValue.split(/\s+/).filter(Boolean);
+    const inferredBrand =
+      tokens.length > 1
+        ? tokens[tokens.length - 1]
+        : tokens[0] || "Genérico";
+    const inferredType = resolveTemporaryDeviceType(rawValue);
+
+    setDeviceType(inferredType);
+    setDeviceBrand({
+      id: `temp-brand-${Date.now()}`,
+      name: inferredBrand,
+      temporary: true
+    });
+    setDeviceFamily("Temporal");
+    setDeviceModel(rawValue);
+    setTemporaryDeviceInput("");
+    toast.success("Equipo temporal aplicado");
+  };
 
   useEffect(() => {
     if (open) {
@@ -3208,19 +3255,10 @@ export default function WorkOrderWizard({ open, onClose, onSuccess, preloadedCus
               </h3>
               <button
                 type="button"
-                onClick={() => {
-                  setDeviceCatalogCategory(deviceType || "");
-                  setDeviceCatalogBrand(deviceBrand?.name || "");
-                  setDeviceCatalogModel(deviceModel || "");
-                  setShowManualDeviceCatalogBrand(false);
-                  setShowManualDeviceCatalogModel(false);
-                  setLoadingDeviceCatalogBrands(Boolean(deviceType));
-                  setLoadingDeviceCatalogModels(Boolean(deviceType && deviceBrand?.name));
-                  setShowDeviceCatalogModal(true);
-                }}
-                className="w-9 h-9 rounded-full border border-purple-400/40 bg-purple-500/15 text-white flex items-center justify-center hover:bg-purple-500/25 transition-all"
+                onClick={() => window.location.assign("/Settings?section=wizard&tab=catalog")}
+                className="rounded-full border border-purple-400/40 bg-purple-500/15 px-3 py-2 text-xs font-semibold text-white hover:bg-purple-500/25 transition-all"
               >
-                <Plus className="w-4 h-4" />
+                Gestión avanzada
               </button>
             </div>
 
@@ -3260,6 +3298,42 @@ export default function WorkOrderWizard({ open, onClose, onSuccess, preloadedCus
                     </motion.button>
                   ))}
                 </AnimatePresence>
+              </div>
+            </div>
+
+            <div className="relative z-10 rounded-2xl border border-dashed border-white/10 bg-black/20 p-3">
+              <div className="flex items-start justify-between gap-3 mb-3">
+                <div>
+                  <p className="text-xs font-semibold uppercase tracking-[0.18em] text-white/45">Alta rápida temporal</p>
+                  <p className="mt-1 text-xs text-white/45">
+                    Para equipos de una sola vez. Ej: Disco duro Seagate, Computadora HP, Monitor LG.
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => window.location.assign("/Settings?section=wizard&tab=catalog")}
+                  className="text-xs font-semibold text-cyan-300 hover:text-cyan-200"
+                >
+                  Gestión avanzada
+                </button>
+              </div>
+              <div className="flex flex-col sm:flex-row gap-2">
+                <input
+                  value={temporaryDeviceInput}
+                  onChange={(e) => setTemporaryDeviceInput(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") handleApplyTemporaryDevice();
+                  }}
+                  placeholder="Escribe el equipo temporal"
+                  className="flex-1 bg-black/30 border border-white/10 rounded-lg px-3 py-2 text-white text-sm"
+                />
+                <button
+                  type="button"
+                  onClick={handleApplyTemporaryDevice}
+                  className="px-4 py-2 rounded-lg bg-white/10 border border-white/10 text-white text-sm font-semibold hover:bg-white/15 transition-all"
+                >
+                  Usar temporal
+                </button>
               </div>
             </div>
 
@@ -3360,7 +3434,7 @@ export default function WorkOrderWizard({ open, onClose, onSuccess, preloadedCus
                 </div>
                 {uniqueModels.length === 0 && (
                   <div className="mt-3 rounded-lg border border-white/10 bg-black/20 px-3 py-2 text-xs text-white/45">
-                    No hay modelos guardados para esta línea. Usa el botón `+` para añadir uno.
+                    No hay modelos guardados para esta línea. Usa alta rápida temporal o entra a gestión avanzada.
                   </div>
                 )}
               </div>

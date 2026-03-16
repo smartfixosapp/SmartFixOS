@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
+import { DragDropContext, Draggable, Droppable } from "@hello-pangea/dnd";
 import { base44 } from "@/api/base44Client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -6,7 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { catalogCache } from "@/components/utils/dataCache";
 import { toast } from "sonner";
-import { ChevronDown, Laptop, Plus, Smartphone, Trash2, Wrench } from "lucide-react";
+import { ChevronDown, GripVertical, Pencil, Plus, Smartphone, Trash2, Wrench } from "lucide-react";
 
 const normalized = (value) => String(value || "").trim().toLowerCase();
 const normalizedNameKey = (value = "") =>
@@ -311,6 +312,128 @@ function removeLocalCatalogEntry(level, entry, context = {}) {
           normalizedNameKey(item?.name) === nameKey &&
           normalizedNameKey(item?.family) === familyKey
         )
+    );
+  }
+
+  writeLocalDeviceCatalog(catalog);
+}
+
+function updateLocalCatalogEntryName(level, entry, nextName, context = {}) {
+  const catalog = readLocalDeviceCatalog();
+  const currentNameKey = normalizedNameKey(entry?.name);
+  const nextNameKey = normalizedNameKey(nextName);
+  const categoryKey = normalizedNameKey(context?.categoryName);
+  const brandKey = normalizedNameKey(context?.brandName);
+  const familyKey = normalizedNameKey(context?.familyName);
+  let changed = false;
+
+  if (level === "category") {
+    catalog.categories = catalog.categories.map((item) => {
+      if (normalizedNameKey(item?.name) !== currentNameKey) return item;
+      changed = true;
+      return { ...item, name: nextName };
+    });
+  }
+
+  if (level === "brand") {
+    const categoryIds = new Set(
+      catalog.categories
+        .filter((item) => normalizedNameKey(item?.name) === categoryKey)
+        .map((item) => item.id)
+    );
+    catalog.brands = catalog.brands.map((item) => {
+      if (!categoryIds.has(item?.category_id) || normalizedNameKey(item?.name) !== currentNameKey) return item;
+      changed = true;
+      return { ...item, name: nextName };
+    });
+  }
+
+  if (level === "family") {
+    const brandIds = new Set(
+      catalog.brands
+        .filter((item) => normalizedNameKey(item?.name) === brandKey)
+        .map((item) => item.id)
+    );
+    catalog.families = catalog.families.map((item) => {
+      if (!brandIds.has(item?.brand_id) || normalizedNameKey(item?.name) !== currentNameKey) return item;
+      changed = true;
+      return { ...item, name: nextName };
+    });
+    catalog.models = catalog.models.map((item) => {
+      if (normalizedNameKey(item?.family) !== currentNameKey) return item;
+      changed = true;
+      return { ...item, family: nextName };
+    });
+  }
+
+  if (level === "model") {
+    catalog.models = catalog.models.map((item) => {
+      const sameFamily = !familyKey || normalizedNameKey(item?.family) === familyKey;
+      if (!sameFamily || normalizedNameKey(item?.name) !== currentNameKey) return item;
+      changed = true;
+      return { ...item, name: nextName };
+    });
+  }
+
+  if (!changed || !nextNameKey) return false;
+  writeLocalDeviceCatalog(catalog);
+  return true;
+}
+
+function reorderLocalCatalogEntries(level, orderedItems, context = {}) {
+  const catalog = readLocalDeviceCatalog();
+  const categoryKey = normalizedNameKey(context?.categoryName);
+  const brandKey = normalizedNameKey(context?.brandName);
+  const familyKey = normalizedNameKey(context?.familyName);
+  const orderMap = new Map(orderedItems.map((item, index) => [normalizedNameKey(item?.name), index + 1]));
+
+  const applyOrder = (item, match) => {
+    if (!match) return item;
+    const nextOrder = orderMap.get(normalizedNameKey(item?.name));
+    if (!nextOrder) return item;
+    return { ...item, order: nextOrder };
+  };
+
+  if (level === "category") {
+    catalog.categories = catalog.categories.map((item) =>
+      applyOrder(item, orderMap.has(normalizedNameKey(item?.name)))
+    );
+  }
+
+  if (level === "brand") {
+    const categoryIds = new Set(
+      catalog.categories
+        .filter((item) => normalizedNameKey(item?.name) === categoryKey)
+        .map((item) => item.id)
+    );
+    catalog.brands = catalog.brands.map((item) =>
+      applyOrder(
+        item,
+        categoryIds.has(item?.category_id) && orderMap.has(normalizedNameKey(item?.name))
+      )
+    );
+  }
+
+  if (level === "family") {
+    const brandIds = new Set(
+      catalog.brands
+        .filter((item) => normalizedNameKey(item?.name) === brandKey)
+        .map((item) => item.id)
+    );
+    catalog.families = catalog.families.map((item) =>
+      applyOrder(
+        item,
+        brandIds.has(item?.brand_id) && orderMap.has(normalizedNameKey(item?.name))
+      )
+    );
+  }
+
+  if (level === "model") {
+    catalog.models = catalog.models.map((item) =>
+      applyOrder(
+        item,
+        normalizedNameKey(item?.family) === familyKey && orderMap.has(normalizedNameKey(item?.name))
+      )
     );
   }
 
@@ -911,6 +1034,70 @@ export default function DeviceCatalogManager() {
     }
   };
 
+  const handleEditCurrentItem = async (item) => {
+    const level = !selectedCategory ? "category" : !selectedBrand ? "brand" : !selectedFamily ? "family" : "model";
+    const currentName = String(item?.name || "").trim();
+    if (!currentName) return;
+    const nextName = window.prompt(`Nuevo nombre para ${currentName}`, currentName);
+    const cleanName = String(nextName || "").trim();
+    if (!cleanName || cleanName === currentName) return;
+
+    try {
+      if (isLocalCatalogId(item?.id)) {
+        const changed = updateLocalCatalogEntryName(level, item, cleanName, {
+          categoryName: selectedCategory?.name || "",
+          brandName: selectedBrand?.name || "",
+          familyName: selectedFamily?.name || ""
+        });
+        if (!changed) throw new Error("No se pudo editar localmente");
+      } else {
+        if (level === "category") await base44.entities.DeviceCategory.update(item.id, { name: cleanName });
+        if (level === "brand") await base44.entities.Brand.update(item.id, { name: cleanName });
+        if (level === "family") await base44.entities.DeviceFamily.update(item.id, { name: cleanName });
+        if (level === "model") await base44.entities.DeviceModel.update(item.id, { name: cleanName });
+      }
+
+      await loadAll();
+      toast.success("Elemento actualizado");
+    } catch (error) {
+      console.error("[DeviceCatalogManager] Error editando elemento:", error);
+      toast.error("No se pudo actualizar");
+    }
+  };
+
+  const handleCatalogDragEnd = async (result) => {
+    const { destination, source } = result;
+    if (!destination || destination.index === source.index) return;
+
+    const level = !selectedCategory ? "category" : !selectedBrand ? "brand" : !selectedFamily ? "family" : "model";
+    const entityName = level === "category" ? "DeviceCategory" : level === "brand" ? "Brand" : level === "family" ? "DeviceFamily" : "DeviceModel";
+    const items = Array.from(currentItems);
+    const [moved] = items.splice(source.index, 1);
+    items.splice(destination.index, 0, moved);
+
+    try {
+      reorderLocalCatalogEntries(level, items, {
+        categoryName: selectedCategory?.name || "",
+        brandName: selectedBrand?.name || "",
+        familyName: selectedFamily?.name || ""
+      });
+
+      await Promise.all(
+        items.map((item, index) => {
+          if (isLocalCatalogId(item?.id)) return Promise.resolve();
+          return base44.entities[entityName].update(item.id, { order: index + 1 }).catch((error) => {
+            console.warn(`[DeviceCatalogManager] No se pudo reordenar ${entityName}:`, error);
+          });
+        })
+      );
+
+      await loadAll();
+    } catch (error) {
+      console.error("[DeviceCatalogManager] Error reordenando catálogo:", error);
+      toast.error("No se pudo reorganizar");
+    }
+  };
+
   const normalizeFamilies = async () => {
     if (normalizing) return;
     setNormalizing(true);
@@ -1183,79 +1370,115 @@ export default function DeviceCatalogManager() {
             No hay elementos en este nivel todavía.
           </div>
         ) : (
-          <div className="flex flex-wrap gap-3">
-            {currentItems.map((item) => {
-              const isCategory = !selectedCategory;
-              const isBrand = selectedCategory && !selectedBrand;
-              const isFamily = selectedBrand && !selectedFamily;
-              const nextCount = isCategory
-                ? countBrandsForCategory(item.name)
-                : isBrand
-                  ? countFamiliesForBrand(selectedCategory?.name || "", item.name)
-                  : isFamily
-                    ? countModelsForFamily(selectedBrand?.name || "", item.name)
-                    : 0;
-              const isLeaf = Boolean(selectedFamily);
-              const palette = isCategory
-                ? "from-cyan-500/20 to-emerald-500/20 border-cyan-400/30"
-                : isBrand
-                  ? "from-purple-500/20 to-pink-500/20 border-purple-400/30"
-                  : isFamily
-                    ? "from-emerald-500/20 to-green-500/20 border-emerald-400/30"
-                    : "from-sky-500/20 to-blue-500/20 border-sky-400/30";
+          <DragDropContext onDragEnd={handleCatalogDragEnd}>
+            <Droppable droppableId="advanced-catalog-items" direction="horizontal">
+              {(provided) => (
+                <div
+                  ref={provided.innerRef}
+                  {...provided.droppableProps}
+                  className="flex flex-wrap gap-3"
+                >
+                  {currentItems.map((item, index) => {
+                    const isCategory = !selectedCategory;
+                    const isBrand = selectedCategory && !selectedBrand;
+                    const isFamily = selectedBrand && !selectedFamily;
+                    const nextCount = isCategory
+                      ? countBrandsForCategory(item.name)
+                      : isBrand
+                        ? countFamiliesForBrand(selectedCategory?.name || "", item.name)
+                        : isFamily
+                          ? countModelsForFamily(selectedBrand?.name || "", item.name)
+                          : 0;
+                    const isLeaf = Boolean(selectedFamily);
+                    const palette = isCategory
+                      ? "from-cyan-500/20 to-emerald-500/20 border-cyan-400/30"
+                      : isBrand
+                        ? "from-purple-500/20 to-pink-500/20 border-purple-400/30"
+                        : isFamily
+                          ? "from-emerald-500/20 to-green-500/20 border-emerald-400/30"
+                          : "from-sky-500/20 to-blue-500/20 border-sky-400/30";
 
-              return (
-                <div key={item.id || item.name} className="group relative">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      if (isCategory) {
-                        setSelectedCategory(item);
-                        setSelectedBrand(null);
-                        setSelectedFamily(null);
-                      } else if (isBrand) {
-                        setSelectedBrand(item);
-                        setSelectedFamily(null);
-                      } else if (isFamily) {
-                        setSelectedFamily(item);
-                      }
-                    }}
-                    className={`min-w-[220px] rounded-[22px] border bg-gradient-to-br ${palette} px-5 py-4 pr-14 text-left transition-all hover:scale-[1.02] hover:border-white/30`}
-                  >
-                    <div className="flex items-start justify-between gap-4">
-                      <div>
-                        <p className="text-lg font-black text-white">{item.name}</p>
-                        <p className="mt-2 text-sm text-white/55">
-                          {isLeaf
-                            ? "Modelo disponible en el módulo principal"
-                            : `${nextCount} ${isCategory ? "marcas" : isBrand ? "líneas" : "modelos"}`}
-                        </p>
-                      </div>
-                      {!isLeaf && (
-                        <span className="rounded-xl border border-white/10 bg-black/30 px-3 py-1 text-xs font-bold text-white/75">
-                          {nextCount}
-                        </span>
-                      )}
-                    </div>
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() =>
-                      deleteEntity(
-                        !selectedCategory ? "DeviceCategory" : !selectedBrand ? "Brand" : !selectedFamily ? "DeviceFamily" : "DeviceModel",
-                        item.id,
-                        `${!selectedCategory ? "la categoría" : !selectedBrand ? "la marca" : !selectedFamily ? "la familia" : "el modelo"} ${item.name}`
-                      )
-                    }
-                    className="absolute right-3 bottom-3 rounded-full border border-red-400/20 bg-red-500/15 p-2 text-red-200 opacity-0 transition-opacity hover:bg-red-500/25 group-hover:opacity-100"
-                    title="Eliminar"
-                  >
-                    <Trash2 className="h-3.5 w-3.5" />
-                  </button>
+                    return (
+                      <Draggable key={item.id || item.name} draggableId={String(item.id || item.name)} index={index}>
+                        {(dragProvided) => (
+                          <div
+                            ref={dragProvided.innerRef}
+                            {...dragProvided.draggableProps}
+                            className="group relative"
+                          >
+                            <button
+                              type="button"
+                              onClick={() => {
+                                if (isCategory) {
+                                  setSelectedCategory(item);
+                                  setSelectedBrand(null);
+                                  setSelectedFamily(null);
+                                } else if (isBrand) {
+                                  setSelectedBrand(item);
+                                  setSelectedFamily(null);
+                                } else if (isFamily) {
+                                  setSelectedFamily(item);
+                                }
+                              }}
+                              className={`min-w-[220px] rounded-[22px] border bg-gradient-to-br ${palette} px-5 py-4 pr-24 pl-11 text-left transition-all hover:scale-[1.02] hover:border-white/30`}
+                            >
+                              <div
+                                {...dragProvided.dragHandleProps}
+                                className="absolute left-3 top-3 flex h-7 w-7 items-center justify-center rounded-full border border-white/10 bg-black/25 text-white/45 transition-colors hover:text-white/80"
+                                title="Mantén y arrastra para reorganizar"
+                              >
+                                <GripVertical className="h-3.5 w-3.5" />
+                              </div>
+                              <div className="flex items-start justify-between gap-4">
+                                <div>
+                                  <p className="text-lg font-black text-white">{item.name}</p>
+                                  <p className="mt-2 text-sm text-white/55">
+                                    {isLeaf
+                                      ? "Modelo disponible en el módulo principal"
+                                      : `${nextCount} ${isCategory ? "marcas" : isBrand ? "líneas" : "modelos"}`}
+                                  </p>
+                                </div>
+                                {!isLeaf && (
+                                  <span className="rounded-xl border border-white/10 bg-black/30 px-3 py-1 text-xs font-bold text-white/75">
+                                    {nextCount}
+                                  </span>
+                                )}
+                              </div>
+                            </button>
+                            <div className="absolute right-3 bottom-3 flex items-center gap-2 opacity-0 transition-opacity group-hover:opacity-100">
+                              <button
+                                type="button"
+                                onClick={() => handleEditCurrentItem(item)}
+                                className="rounded-full border border-white/10 bg-white/10 p-2 text-white/80 hover:bg-white/20"
+                                title="Editar"
+                              >
+                                <Pencil className="h-3.5 w-3.5" />
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() =>
+                                  deleteEntity(
+                                    !selectedCategory ? "DeviceCategory" : !selectedBrand ? "Brand" : !selectedFamily ? "DeviceFamily" : "DeviceModel",
+                                    item.id,
+                                    `${!selectedCategory ? "la categoría" : !selectedBrand ? "la marca" : !selectedFamily ? "la familia" : "el modelo"} ${item.name}`
+                                  )
+                                }
+                                className="rounded-full border border-red-400/20 bg-red-500/15 p-2 text-red-200 hover:bg-red-500/25"
+                                title="Eliminar"
+                              >
+                                <Trash2 className="h-3.5 w-3.5" />
+                              </button>
+                            </div>
+                          </div>
+                        )}
+                      </Draggable>
+                    );
+                  })}
+                  {provided.placeholder}
                 </div>
-              );
-            })}
-          </div>
+              )}
+            </Droppable>
+          </DragDropContext>
         )}
       </div>
     </div>
