@@ -161,21 +161,6 @@ export default function PaymentModal({ open, onClose, subtotal, items = [], work
           const currentPaid = Number(currentOrder.total_paid || currentOrder.amount_paid || 0);
           newTotalPaid = currentPaid + finalAmount;
           newBalance = Math.max(0, orderTotal - newTotalPaid);
-          
-          const updateData = {
-            total: orderTotal,
-            total_paid: newTotalPaid,
-            amount_paid: newTotalPaid,
-            balance_due: newBalance,
-            balance: newBalance,
-            paid: newBalance <= 0.01,
-            pos_discount_value: parseFloat(discountValue) || 0,
-            pos_discount_type: discountType,
-            pos_discount_applied_total: discountAmount
-          };
-
-          // ✅ NO cambiar estado de la orden al cobrar - solo registrar pago
-          await base44.entities.Order.update(workOrderId, updateData);
 
           await base44.entities.WorkOrderEvent.create({
             order_id: workOrderId,
@@ -276,10 +261,14 @@ export default function PaymentModal({ open, onClose, subtotal, items = [], work
       const orderUpdate = workOrderId && currentOrder ? {
         id: workOrderId,
         changes: {
+          total: Number(currentOrder.total || 0),
           total_paid: newTotalPaid,
           amount_paid: newTotalPaid,
           balance_due: newBalance,
           paid: newBalance <= 0.01,
+          pos_discount_value: parseFloat(discountValue) || 0,
+          pos_discount_type: discountType,
+          pos_discount_applied_total: discountAmount,
         },
       } : null;
 
