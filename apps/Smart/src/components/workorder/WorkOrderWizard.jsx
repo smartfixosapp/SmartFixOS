@@ -966,6 +966,34 @@ export default function WorkOrderWizard({ open, onClose, onSuccess, preloadedCus
   }, [deviceModel]);
 
   useEffect(() => {
+    const handleCatalogRefresh = () => {
+      catalogCache.delete?.("device_categories");
+      if (deviceType) catalogCache.delete?.(`brands_${normalizedNameKey(deviceType)}`);
+      if (deviceType && deviceBrand) {
+        catalogCache.delete?.(
+          `families_${normalizedNameKey(deviceType)}_${normalizedNameKey(deviceBrand?.name || deviceBrand || "")}`
+        );
+      }
+      if (deviceType && deviceBrand && deviceFamily) {
+        catalogCache.delete?.(
+          `models_${normalizedNameKey(deviceType)}_${normalizedNameKey(deviceBrand?.name || deviceBrand || "")}_${normalizedNameKey(deviceFamily)}`
+        );
+      }
+      loadTypes();
+      if (deviceType) loadBrands();
+      if (deviceBrand) loadFamilies();
+      if (deviceBrand && deviceFamily) loadModels();
+    };
+
+    window.addEventListener("smartfix:device-catalog-updated", handleCatalogRefresh);
+    window.addEventListener("storage", handleCatalogRefresh);
+    return () => {
+      window.removeEventListener("smartfix:device-catalog-updated", handleCatalogRefresh);
+      window.removeEventListener("storage", handleCatalogRefresh);
+    };
+  }, [deviceType, deviceBrand, deviceFamily]);
+
+  useEffect(() => {
     const updateDeviceMode = () => {
       if (typeof window === "undefined") return;
       const width = window.innerWidth;
@@ -1207,16 +1235,17 @@ export default function WorkOrderWizard({ open, onClose, onSuccess, preloadedCus
 
   const loadBrands = async () => {
     const localCatalog = readLocalDeviceCatalog();
+    const categoryNameKey = normalizedNameKey(deviceType);
+    const localCategoryIds = (localCatalog.categories || [])
+      .filter((item) => normalizedNameKey(item?.name) === categoryNameKey)
+      .map((item) => item.id);
     try {
-      const cacheKey = `brands_${deviceType}`;
+      const cacheKey = `brands_${categoryNameKey}`;
       const cached = catalogCache.get(cacheKey);
       if (cached) {
-        const localCategory = (localCatalog.categories || []).find(
-          (item) => normalizedText(item?.name) === normalizedText(deviceType)
+        const localBrands = (localCatalog.brands || []).filter((item) =>
+          localCategoryIds.includes(item?.category_id)
         );
-        const localBrands = localCategory
-          ? (localCatalog.brands || []).filter((item) => item?.category_id === localCategory.id)
-          : [];
         setBrands(
           dedupeCatalogEntries(
             [...(localBrands || []), ...(cached || [])],
@@ -1227,41 +1256,37 @@ export default function WorkOrderWizard({ open, onClose, onSuccess, preloadedCus
       }
 
       const categories = await base44.entities.DeviceCategory.filter({ name: deviceType, active: true });
-      if (categories?.length) {
-        const brandsByCategory = await base44.entities.Brand.filter({
-          category_id: categories[0].id,
-          active: true
-        }, "order");
-        const localCategory = (localCatalog.categories || []).find(
-          (item) => normalizedText(item?.name) === normalizedText(deviceType)
+      const remoteCategoryIds = (categories || []).map((item) => item?.id).filter(Boolean);
+      if (remoteCategoryIds.length > 0 || localCategoryIds.length > 0) {
+        const brandsByCategory = await Promise.all(
+          remoteCategoryIds.map((categoryId) =>
+            base44.entities.Brand.filter({
+              category_id: categoryId,
+              active: true
+            }, "order").catch(() => [])
+          )
         );
-        const localBrands = localCategory
-          ? (localCatalog.brands || []).filter((item) => item?.category_id === localCategory.id)
-          : [];
+        const localBrands = (localCatalog.brands || []).filter((item) =>
+          localCategoryIds.includes(item?.category_id)
+        );
         const merged = dedupeCatalogEntries(
-          [...(localBrands || []), ...(brandsByCategory || [])],
+          [...(localBrands || []), ...brandsByCategory.flat()],
           (item) => normalizedNameKey(item?.name)
         );
         catalogCache.set(cacheKey, merged);
         setBrands(merged);
       } else {
-        const localCategory = (localCatalog.categories || []).find(
-          (item) => normalizedText(item?.name) === normalizedText(deviceType)
+        const localBrands = (localCatalog.brands || []).filter((item) =>
+          localCategoryIds.includes(item?.category_id)
         );
-        const localBrands = localCategory
-          ? (localCatalog.brands || []).filter((item) => item?.category_id === localCategory.id)
-          : [];
         setBrands(
           dedupeCatalogEntries(localBrands, (item) => normalizedNameKey(item?.name))
         );
       }
     } catch {
-      const localCategory = (localCatalog.categories || []).find(
-        (item) => normalizedText(item?.name) === normalizedText(deviceType)
+      const localBrands = (localCatalog.brands || []).filter((item) =>
+        localCategoryIds.includes(item?.category_id)
       );
-      const localBrands = localCategory
-        ? (localCatalog.brands || []).filter((item) => item?.category_id === localCategory.id)
-        : [];
       setBrands(
         dedupeCatalogEntries(localBrands, (item) => normalizedNameKey(item?.name))
       );
@@ -1270,11 +1295,23 @@ export default function WorkOrderWizard({ open, onClose, onSuccess, preloadedCus
 
   const loadFamilies = async () => {
     const localCatalog = readLocalDeviceCatalog();
+    const brandNameKey = normalizedNameKey(deviceBrand?.name || deviceBrand || "");
+    const categoryNameKey = normalizedNameKey(deviceType || "");
+    const localCategoryIds = (localCatalog.categories || [])
+      .filter((item) => normalizedNameKey(item?.name) === categoryNameKey)
+      .map((item) => item.id);
+    const localBrandIds = (localCatalog.brands || [])
+      .filter(
+        (item) =>
+          normalizedNameKey(item?.name) === brandNameKey &&
+          (localCategoryIds.includes(item?.category_id) || !categoryNameKey)
+      )
+      .map((item) => item.id);
     try {
-      const cacheKey = `families_${deviceBrand?.id}`;
+      const cacheKey = `families_${categoryNameKey}_${brandNameKey}`;
       const cached = catalogCache.get(cacheKey);
       if (cached) {
-        const localFamilies = (localCatalog.families || []).filter((item) => item?.brand_id === deviceBrand?.id);
+        const localFamilies = (localCatalog.families || []).filter((item) => localBrandIds.includes(item?.brand_id));
         setFamilies(
           dedupeCatalogEntries(
             [...(localFamilies || []), ...(cached || [])],
@@ -1284,19 +1321,41 @@ export default function WorkOrderWizard({ open, onClose, onSuccess, preloadedCus
         return;
       }
 
-      const remoteFamilies = await base44.entities.DeviceFamily.filter({
-        brand_id: deviceBrand?.id,
-        active: true
-      }, "order");
-      const localFamilies = (localCatalog.families || []).filter((item) => item?.brand_id === deviceBrand?.id);
+      const remoteCategories = categoryNameKey
+        ? await base44.entities.DeviceCategory.filter({ name: deviceType, active: true }).catch(() => [])
+        : [];
+      const remoteCategoryIds = (remoteCategories || []).map((item) => item?.id).filter(Boolean);
+      const remoteBrands = await base44.entities.Brand.filter({ active: true }, "order").catch(() => []);
+      const remoteBrandIds = (remoteBrands || [])
+        .filter(
+          (item) =>
+            normalizedNameKey(item?.name) === brandNameKey &&
+            (
+              !categoryNameKey ||
+              remoteCategoryIds.includes(item?.category_id) ||
+              normalizedNameKey(item?.category) === categoryNameKey
+            )
+        )
+        .map((item) => item.id);
+      if (deviceBrand?.id) remoteBrandIds.unshift(deviceBrand.id);
+      const allBrandIds = Array.from(new Set([...localBrandIds, ...remoteBrandIds].filter(Boolean)));
+      const remoteFamiliesByBrand = await Promise.all(
+        allBrandIds.map((brandId) =>
+          base44.entities.DeviceFamily.filter({
+            brand_id: brandId,
+            active: true
+          }, "order").catch(() => [])
+        )
+      );
+      const localFamilies = (localCatalog.families || []).filter((item) => localBrandIds.includes(item?.brand_id));
       const merged = dedupeCatalogEntries(
-        [...(localFamilies || []), ...(remoteFamilies || [])],
+        [...(localFamilies || []), ...remoteFamiliesByBrand.flat()],
         (item) => normalizedNameKey(item?.name)
       );
       catalogCache.set(cacheKey, merged);
       setFamilies(merged);
     } catch {
-      const localFamilies = (localCatalog.families || []).filter((item) => item?.brand_id === deviceBrand?.id);
+      const localFamilies = (localCatalog.families || []).filter((item) => localBrandIds.includes(item?.brand_id));
       setFamilies(
         dedupeCatalogEntries(localFamilies, (item) => normalizedNameKey(item?.name))
       );
@@ -1308,12 +1367,32 @@ export default function WorkOrderWizard({ open, onClose, onSuccess, preloadedCus
     try {
       const selectedFamilyName = String(deviceFamily || "").trim();
       const selectedFamilyRecord = families.find((item) => normalizedNameKey(item?.name) === normalizedNameKey(selectedFamilyName));
-      const cacheKey = `models_${deviceBrand?.id}_${selectedFamilyRecord?.id || selectedFamilyName}`;
+      const brandNameKey = normalizedNameKey(deviceBrand?.name || deviceBrand || "");
+      const categoryNameKey = normalizedNameKey(deviceType || "");
+      const localCategoryIds = (localCatalog.categories || [])
+        .filter((item) => normalizedNameKey(item?.name) === categoryNameKey)
+        .map((item) => item.id);
+      const localBrandIds = (localCatalog.brands || [])
+        .filter(
+          (item) =>
+            normalizedNameKey(item?.name) === brandNameKey &&
+            (localCategoryIds.includes(item?.category_id) || !categoryNameKey)
+        )
+        .map((item) => item.id);
+      const localFamilyIds = (localCatalog.families || [])
+        .filter(
+          (item) =>
+            localBrandIds.includes(item?.brand_id) &&
+            normalizedNameKey(item?.name) === normalizedNameKey(selectedFamilyName)
+        )
+        .map((item) => item.id);
+      const cacheKey = `models_${categoryNameKey}_${brandNameKey}_${normalizedNameKey(selectedFamilyName)}`;
       const cached = catalogCache.get(cacheKey);
       if (cached) {
         const localModels = (localCatalog.models || []).filter((item) =>
-          item?.brand_id === deviceBrand?.id &&
+          localBrandIds.includes(item?.brand_id) &&
           (
+            localFamilyIds.includes(item?.family_id) ||
             item?.family_id === selectedFamilyRecord?.id ||
             normalizedText(item?.family) === normalizedText(selectedFamilyName)
           )
@@ -1328,12 +1407,34 @@ export default function WorkOrderWizard({ open, onClose, onSuccess, preloadedCus
         return;
       }
 
-      const remoteModelsByBrand = await base44.entities.DeviceModel.filter({
-        brand_id: deviceBrand?.id,
-        active: true
-      }, "order");
+      const remoteCategories = categoryNameKey
+        ? await base44.entities.DeviceCategory.filter({ name: deviceType, active: true }).catch(() => [])
+        : [];
+      const remoteCategoryIds = (remoteCategories || []).map((item) => item?.id).filter(Boolean);
+      const remoteBrands = await base44.entities.Brand.filter({ active: true }, "order").catch(() => []);
+      const remoteBrandIds = (remoteBrands || [])
+        .filter(
+          (item) =>
+            normalizedNameKey(item?.name) === brandNameKey &&
+            (
+              !categoryNameKey ||
+              remoteCategoryIds.includes(item?.category_id) ||
+              normalizedNameKey(item?.category) === categoryNameKey
+            )
+        )
+        .map((item) => item.id);
+      if (deviceBrand?.id) remoteBrandIds.unshift(deviceBrand.id);
+      const allBrandIds = Array.from(new Set([...localBrandIds, ...remoteBrandIds].filter(Boolean)));
+      const remoteModelsByBrand = await Promise.all(
+        allBrandIds.map((brandId) =>
+          base44.entities.DeviceModel.filter({
+            brand_id: brandId,
+            active: true
+          }, "order").catch(() => [])
+        )
+      );
 
-      const familyMatchedRemoteModels = (remoteModelsByBrand || []).filter((item) => {
+      const familyMatchedRemoteModels = remoteModelsByBrand.flat().filter((item) => {
         const explicitFamilyId = item?.family_id;
         const explicitFamilyName = item?.family || item?.device_family;
         const inferred = inferFamily(deviceType, deviceBrand?.name || deviceBrand, item?.name);
@@ -1345,8 +1446,9 @@ export default function WorkOrderWizard({ open, onClose, onSuccess, preloadedCus
       });
 
       const localModels = (localCatalog.models || []).filter((item) =>
-        item?.brand_id === deviceBrand?.id &&
+        localBrandIds.includes(item?.brand_id) &&
         (
+          localFamilyIds.includes(item?.family_id) ||
           item?.family_id === selectedFamilyRecord?.id ||
           normalizedText(item?.family) === normalizedText(selectedFamilyName)
         )
@@ -1361,9 +1463,29 @@ export default function WorkOrderWizard({ open, onClose, onSuccess, preloadedCus
     } catch {
       const selectedFamilyName = String(deviceFamily || "").trim();
       const selectedFamilyRecord = families.find((item) => normalizedNameKey(item?.name) === normalizedNameKey(selectedFamilyName));
+      const brandNameKey = normalizedNameKey(deviceBrand?.name || deviceBrand || "");
+      const categoryNameKey = normalizedNameKey(deviceType || "");
+      const localCategoryIds = (localCatalog.categories || [])
+        .filter((item) => normalizedNameKey(item?.name) === categoryNameKey)
+        .map((item) => item.id);
+      const localBrandIds = (localCatalog.brands || [])
+        .filter(
+          (item) =>
+            normalizedNameKey(item?.name) === brandNameKey &&
+            (localCategoryIds.includes(item?.category_id) || !categoryNameKey)
+        )
+        .map((item) => item.id);
+      const localFamilyIds = (localCatalog.families || [])
+        .filter(
+          (item) =>
+            localBrandIds.includes(item?.brand_id) &&
+            normalizedNameKey(item?.name) === normalizedNameKey(selectedFamilyName)
+        )
+        .map((item) => item.id);
       const localModels = (localCatalog.models || []).filter((item) =>
-        item?.brand_id === deviceBrand?.id &&
+        localBrandIds.includes(item?.brand_id) &&
         (
+          localFamilyIds.includes(item?.family_id) ||
           item?.family_id === selectedFamilyRecord?.id ||
           normalizedText(item?.family) === normalizedText(selectedFamilyName)
         )
