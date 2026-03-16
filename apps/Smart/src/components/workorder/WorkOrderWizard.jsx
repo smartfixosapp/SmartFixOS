@@ -1050,10 +1050,12 @@ export default function WorkOrderWizard({ open, onClose, onSuccess, preloadedCus
   }, [showDeviceCatalogModal, deviceCatalogCategory, deviceCatalogBrand, deviceCatalogFamily]);
 
   useEffect(() => {
-    if (deviceModel) {
+    if (deviceType || deviceBrand || deviceFamily || deviceModel) {
       loadSuggestedProducts();
+    } else {
+      setSuggestedProducts([]);
     }
-  }, [deviceModel]);
+  }, [deviceType, deviceBrand, deviceFamily, deviceModel]);
 
   useEffect(() => {
     const handleCatalogRefresh = () => {
@@ -1494,17 +1496,16 @@ export default function WorkOrderWizard({ open, onClose, onSuccess, preloadedCus
   };
 
   const loadSuggestedProducts = async () => {
-    if (!deviceModel) {
+    if (!deviceType && !deviceBrand && !deviceFamily && !deviceModel) {
       setSuggestedProducts([]);
       return;
     }
 
     try {
-      const allProducts = await base44.entities.Product.filter({ active: true }, undefined, 200);
+      const allProducts = await base44.entities.Product.filter({ active: true }, undefined, 500);
       const modelLower = normalizedText(deviceModel);
       const familyLower = normalizedText(deviceFamily);
       const brandLower = normalizedText(deviceBrand?.name);
-      const typeLower = normalizedText(deviceType);
       const normalizedTypeKey = normalizedNameKey(deviceType);
 
       const aliasForType = () => {
@@ -1565,6 +1566,13 @@ export default function WorkOrderWizard({ open, onClose, onSuccess, preloadedCus
           normalizedNameKey(p?.category) === normalizedTypeKey ||
           normalizedNameKey(p?.part_type) === normalizedTypeKey ||
           normalizedNameKey(p?.tipo_principal) === normalizedTypeKey;
+        const looksLikeService =
+          normalizedNameKey(p?.part_type) === "servicio" ||
+          normalizedNameKey(p?.part_type) === "service" ||
+          normalizedNameKey(p?.part_type) === "diagnostic" ||
+          normalizedNameKey(p?.category) === "diagnostic" ||
+          nameLower.includes("diagnostic") ||
+          nameLower.includes("diagnostico");
         const nameMatch =
           nameHasExactModel ||
           nameHasFamily ||
@@ -1573,8 +1581,9 @@ export default function WorkOrderWizard({ open, onClose, onSuccess, preloadedCus
         const categoryMatched = deviceCategoryMatch(p) || typeExactInProduct;
         const strongMatch = hasModelCompatExact || nameHasExactModel;
         const mediumMatch = hasModelCompatLoose || hasFamilyMatch || hasBrandMatch || nameMatch;
+        const typeOnlyServiceMatch = categoryMatched && looksLikeService;
 
-        return categoryMatched && (strongMatch || mediumMatch);
+        return categoryMatched && (strongMatch || mediumMatch || typeOnlyServiceMatch);
       });
 
       const ranked = filtered.sort((a, b) => {
@@ -1584,6 +1593,13 @@ export default function WorkOrderWizard({ open, onClose, onSuccess, preloadedCus
           let value = 0;
           if (normalizedNameKey(product?.device_category) === normalizedTypeKey) value += 20;
           if (normalizedNameKey(product?.category) === normalizedTypeKey) value += 20;
+          if (
+            normalizedNameKey(product?.part_type) === "servicio" ||
+            normalizedNameKey(product?.part_type) === "service" ||
+            normalizedNameKey(product?.part_type) === "diagnostic" ||
+            nameLower.includes("diagnostic") ||
+            nameLower.includes("diagnostico")
+          ) value += 25;
           if (compatModels.some((m) => normalizedText(m) === modelLower)) value += 100;
           if (nameLower.includes(modelLower)) value += 80;
           if (familyLower && nameLower.includes(familyLower)) value += 30;
@@ -3460,7 +3476,7 @@ export default function WorkOrderWizard({ open, onClose, onSuccess, preloadedCus
                 <div className="w-8 h-8 rounded-full bg-gradient-to-br from-lime-400 to-emerald-500 flex items-center justify-center shadow-lg">
                   <Wrench className="w-4 h-4 text-white" strokeWidth={2.5} />
                 </div>
-                Piezas y Servicios {quickOrderMode ? "(requerido)" : "(opcional)"}
+                Piezas y Servicios
               </h3>
               <Button
                 type="button"
@@ -3482,9 +3498,11 @@ export default function WorkOrderWizard({ open, onClose, onSuccess, preloadedCus
             )}
 
             {/* Sugerencias de piezas */}
-            {deviceModel && suggestedProducts.length > 0 && (
+            {(deviceType || deviceModel) && suggestedProducts.length > 0 && (
               <div className="space-y-2">
-                <p className="text-xs text-gray-400 uppercase">💡 Sugerencias para {deviceModel}</p>
+                <p className="text-xs text-gray-400 uppercase">
+                  💡 Sugerencias {deviceModel ? `para ${deviceModel}` : `para ${deviceType}`}
+                </p>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                   {suggestedProducts.slice(0, 4).map(product => {
                     const isAdded = orderItems.some(i => i.id === product.id && i.type === "product");
@@ -3508,6 +3526,11 @@ export default function WorkOrderWizard({ open, onClose, onSuccess, preloadedCus
                     );
                   })}
                 </div>
+              </div>
+            )}
+            {(deviceType || deviceModel) && suggestedProducts.length === 0 && (
+              <div className="rounded-lg border border-white/10 bg-black/20 px-3 py-2 text-xs text-white/45">
+                No encontré sugerencias todavía para este equipo.
               </div>
             )}
 
