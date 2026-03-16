@@ -21,6 +21,7 @@ import {
 import { DollarSign, CreditCard, Smartphone } from "lucide-react";
 import { toast } from "sonner";
 import { SendEmail } from "@/api/integrations";
+import { recordSaleAndTransactions, resolveActiveTenantId } from "@/components/financial/recordSale";
 
 export default function PaymentDialog({ open, onClose, order, onSuccess, isCreating = false, onPaymentData }) {
   const [amount, setAmount] = useState("");
@@ -106,21 +107,10 @@ export default function PaymentDialog({ open, onClose, order, onSuccess, isCreat
         // ✅ Sin tocar 'status' - mantiene estado actual
       });
 
-      // Create transaction
-      await dataClient.entities.Transaction.create({
-        order_id: order.id,
-        order_number: order.order_number,
-        type: "revenue",
-        amount: paymentAmount,
-        description: `Pago recibido - Orden ${order.order_number}${notes ? ` - ${notes}` : ''}`,
-        category: "repair_payment",
-        payment_method: paymentMethod,
-        recorded_by: user?.full_name || user?.email
-      });
-
-      // Create Sale record for KPI (unified revenue tracking)
       const saleNumber = `WO-PAY-${Date.now().toString().slice(-8)}`;
-      const createdSale = await dataClient.entities.Sale.create({
+      const tenantId = resolveActiveTenantId();
+      const { sale: createdSale } = await recordSaleAndTransactions({
+        sale: {
         sale_number: saleNumber,
         customer_id: order.customer_id,
         customer_name: order.customer_name,
@@ -152,6 +142,19 @@ export default function PaymentDialog({ open, onClose, order, onSuccess, isCreat
         order_number: order.order_number,
         voided: false,
         notes: `Pago de Work Order ${order.order_number}`
+        tenant_id: tenantId,
+        },
+        transactions: [{
+          order_id: order.id,
+          order_number: order.order_number,
+          type: "revenue",
+          amount: paymentAmount,
+          description: `Pago recibido - Orden ${order.order_number}${notes ? ` - ${notes}` : ''}`,
+          category: "repair_payment",
+          payment_method: paymentMethod,
+          recorded_by: user?.full_name || user?.email,
+          tenant_id: tenantId,
+        }],
       });
 
       // Create work order event

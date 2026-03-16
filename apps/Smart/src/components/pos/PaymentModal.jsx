@@ -5,8 +5,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { base44 } from "@/api/base44Client";
-import { dataClient } from "@/components/api/dataClient";
 import NotificationService from "../notifications/NotificationService";
+import { recordSaleAndTransactions, resolveActiveTenantId } from "@/components/financial/recordSale";
 import { DollarSign, CreditCard, Smartphone, MoreHorizontal } from "lucide-react";
 import { useDeviceDetection } from "../utils/useDeviceDetection";
 
@@ -196,21 +196,6 @@ export default function PaymentModal({ open, onClose, subtotal, items = [], work
             }
           });
 
-          try {
-            await dataClient.entities.Transaction.create({
-              order_id: workOrderId,
-              order_number: currentOrder.order_number,
-              type: "revenue",
-              amount: finalAmount,
-              description: `${paymentMode === "deposit" ? "Depósito" : "Pago"} ${paymentMethod} - Orden ${currentOrder.order_number}`,
-              category: "repair_payment",
-              payment_method: paymentMethod,
-              recorded_by: me?.full_name || me?.email || "Sistema"
-            });
-          } catch (txError) {
-            console.warn("Could not create transaction:", txError);
-          }
-
           // ✅ Enviar recibo por email
           if (currentOrder.customer_email) {
             try {
@@ -286,12 +271,27 @@ export default function PaymentModal({ open, onClose, subtotal, items = [], work
         }
       }
 
-      const createdSale = await dataClient.entities.Sale.create({
+      const tenantId = resolveActiveTenantId();
+      const { sale: createdSale } = await recordSaleAndTransactions({
+        sale: {
         ...saleData,
+        tenant_id: tenantId,
         deposit_credit: paymentMode === "deposit" ? finalAmount : 0,
         notes: paymentMode === "deposit"
           ? `Depósito registrado desde POS${saleData.notes ? ` | ${saleData.notes}` : ""}`
           : saleData.notes
+        },
+        transactions: workOrderId && currentOrder ? [{
+          order_id: workOrderId,
+          order_number: currentOrder.order_number,
+          type: "revenue",
+          amount: finalAmount,
+          description: `${paymentMode === "deposit" ? "Depósito" : "Pago"} ${paymentMethod} - Orden ${currentOrder.order_number}`,
+          category: "repair_payment",
+          payment_method: paymentMethod,
+          recorded_by: me?.full_name || me?.email || "Sistema",
+          tenant_id: tenantId,
+        }] : [],
       });
       try {
         window.dispatchEvent(new CustomEvent("sale-completed", {
