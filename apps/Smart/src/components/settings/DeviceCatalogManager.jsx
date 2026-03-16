@@ -397,6 +397,10 @@ export default function DeviceCatalogManager() {
   const [brands, setBrands] = useState([]);
   const [families, setFamilies] = useState([]);
   const [models, setModels] = useState([]);
+  const [rawCategories, setRawCategories] = useState([]);
+  const [rawBrands, setRawBrands] = useState([]);
+  const [rawFamilies, setRawFamilies] = useState([]);
+  const [rawModels, setRawModels] = useState([]);
   const [loading, setLoading] = useState(false);
   const [creating, setCreating] = useState(false);
   const [normalizing, setNormalizing] = useState(false);
@@ -428,23 +432,31 @@ export default function DeviceCatalogManager() {
         base44.entities.DeviceModel.filter({ active: true }, "order").catch(() => []),
       ]);
       const localCatalog = readLocalDeviceCatalog();
+      const allCategories = [...(localCatalog.categories || []), ...(cats || [])];
+      const allBrands = [...(localCatalog.brands || []), ...(brds || [])];
+      const allFamilies = [...(localCatalog.families || []), ...(fams || [])];
+      const allModels = [...(localCatalog.models || []), ...(mods || [])];
       const mergedCategories = dedupeCatalogEntries(
-        [...(localCatalog.categories || []), ...(cats || [])],
+        allCategories,
         (item) => normalizedNameKey(item?.name)
       );
       const mergedBrands = dedupeCatalogEntries(
-        [...(localCatalog.brands || []), ...(brds || [])],
+        allBrands,
         (item) => `${normalizedNameKey(item?.category_id || "")}::${normalizedNameKey(item?.name)}::${normalizedNameKey(item?.category || "")}`
       );
       const mergedFamilies = dedupeCatalogEntries(
-        [...(localCatalog.families || []), ...(fams || [])],
+        allFamilies,
         (item) => `${normalizedNameKey(item?.brand_id || "")}::${normalizedNameKey(item?.name)}`
       );
       const mergedModels = dedupeCatalogEntries(
-        [...(localCatalog.models || []), ...(mods || [])],
+        allModels,
         (item) => `${normalizedNameKey(item?.brand_id || "")}::${normalizedNameKey(item?.family_id || item?.family || "")}::${normalizedNameKey(item?.name)}`
       );
 
+      setRawCategories(allCategories);
+      setRawBrands(allBrands);
+      setRawFamilies(allFamilies);
+      setRawModels(allModels);
       setCategories(mergedCategories);
       setBrands(mergedBrands);
       setFamilies(mergedFamilies);
@@ -461,11 +473,11 @@ export default function DeviceCatalogManager() {
     () => {
       if (!selectedCategory) return [];
       const selectedCategoryKey = normalizedNameKey(selectedCategory.name);
-      const categoryIds = categories
+      const categoryIds = rawCategories
         .filter((category) => normalizedNameKey(category.name) === selectedCategoryKey)
         .map((category) => category.id);
       return dedupeCatalogEntries(
-        brands.filter(
+        rawBrands.filter(
           (brand) =>
             categoryIds.includes(brand.category_id) ||
             normalizedNameKey(brand.category) === selectedCategoryKey
@@ -473,7 +485,7 @@ export default function DeviceCatalogManager() {
         (item) => `${selectedCategoryKey}::${normalizedNameKey(item?.name)}`
       );
     },
-    [brands, categories, selectedCategory]
+    [rawBrands, rawCategories, selectedCategory]
   );
 
   const selectedBrandFamilies = useMemo(
@@ -484,11 +496,11 @@ export default function DeviceCatalogManager() {
         .filter((brand) => normalizedNameKey(brand.name) === selectedBrandKey)
         .map((brand) => brand.id);
       return dedupeCatalogEntries(
-        families.filter((family) => brandIds.includes(family.brand_id)),
+        rawFamilies.filter((family) => brandIds.includes(family.brand_id)),
         (item) => `${selectedBrandKey}::${normalizedNameKey(item?.name)}`
       );
     },
-    [families, selectedBrand, selectedCategory, selectedCategoryBrands]
+    [rawFamilies, selectedBrand, selectedCategory, selectedCategoryBrands]
   );
 
   const selectedFamilyModels = useMemo(
@@ -503,7 +515,7 @@ export default function DeviceCatalogManager() {
         .filter((family) => normalizedNameKey(family.name) === selectedFamilyKey)
         .map((family) => family.id);
       return dedupeCatalogEntries(
-        models.filter(
+        rawModels.filter(
           (model) =>
             brandIds.includes(model.brand_id) &&
             (familyIds.includes(model.family_id) || normalizedNameKey(model.family) === selectedFamilyKey)
@@ -511,7 +523,7 @@ export default function DeviceCatalogManager() {
         (item) => `${selectedFamilyKey}::${normalizedNameKey(item?.name)}`
       );
     },
-    [models, selectedBrand, selectedFamily, selectedCategoryBrands, selectedBrandFamilies]
+    [rawModels, selectedBrand, selectedFamily, selectedCategoryBrands, selectedBrandFamilies]
   );
 
   const createCategory = async () => {
