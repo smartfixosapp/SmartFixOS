@@ -18,6 +18,7 @@ import { useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/components/utils/helpers";
 import { SendEmail } from "@/api/integrations";
 import { recordSaleAndTransactions, resolveActiveTenantId } from "@/components/financial/recordSale";
+import { upsertLocalOrder } from "@/components/utils/localOrderCache";
 
 export default function DepositDialog({ open, onClose, order, onSuccess, isCreating = false, onDepositData }) {
   const { isDesktop, isMobile, isTablet } = useDeviceDetection();
@@ -130,7 +131,7 @@ export default function DepositDialog({ open, onClose, order, onSuccess, isCreat
       
       const saleNumber = `DEP-${Date.now().toString().slice(-6)}`;
       const tenantId = resolveActiveTenantId();
-      const { sale: createdSale } = await recordSaleAndTransactions({
+      const { sale: createdSale, transactions: createdTransactions, order: updatedOrder } = await recordSaleAndTransactions({
         sale: {
         sale_number: saleNumber,
         customer_id: order.customer_id,
@@ -250,6 +251,8 @@ export default function DepositDialog({ open, onClose, order, onSuccess, isCreat
         window.dispatchEvent(new CustomEvent("sale-completed", {
           detail: {
             sale: createdSale,
+            order: updatedOrder,
+            transactions: createdTransactions,
             orderId: order.id,
             amountPaid: depositAmount,
             paymentMode: "deposit"
@@ -460,3 +463,4 @@ export default function DepositDialog({ open, onClose, order, onSuccess, isCreat
     </Dialog>
   );
 }
+      if (updatedOrder?.id) upsertLocalOrder(updatedOrder);

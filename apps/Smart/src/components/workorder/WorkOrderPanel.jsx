@@ -1077,7 +1077,7 @@ function OrderItemsSection({ order, onUpdated, clearEventCache, loadEventsCallba
     // ✅ Cerrar panel antes de navegar al POS
     if (onClose) onClose();
     navigate(createPageUrl(`POS?workOrderId=${o.id}&balance=${balance}&mode=deposit`), {
-      state: { fromDashboard: true, paymentMode: "deposit" }
+      state: { fromDashboard: true, paymentMode: "deposit", workOrder: o, balanceDue: balance, openPaymentImmediately: true }
     });
   };
 
@@ -1085,7 +1085,7 @@ function OrderItemsSection({ order, onUpdated, clearEventCache, loadEventsCallba
     // ✅ Cerrar panel antes de navegar al POS
     if (onClose) onClose();
     navigate(createPageUrl(`POS?workOrderId=${o.id}&balance=${balance}&mode=full`), {
-      state: { fromDashboard: true, paymentMode: "full" }
+      state: { fromDashboard: true, paymentMode: "full", workOrder: o, balanceDue: balance, openPaymentImmediately: true }
     });
   };
 
@@ -1355,7 +1355,7 @@ export default function WorkOrderPanel({ orderId, onClose, onUpdate, onDelete, p
     const balance = Math.max(0, total - totalPaid);
 
     // Default behavior for header button: go to POS for full payment
-    navigate(createPageUrl(`POS?workOrderId=${order.id}&balance=${balance}&mode=full`), { state: { fromDashboard: true, paymentMode: "full" } });
+    navigate(createPageUrl(`POS?workOrderId=${order.id}&balance=${balance}&mode=full`), { state: { fromDashboard: true, paymentMode: "full", workOrder: order, balanceDue: balance, openPaymentImmediately: true } });
   }, [order, navigate]);
 
   const [showSecurityBeforePayment, setShowSecurityBeforePayment] = useState(false);

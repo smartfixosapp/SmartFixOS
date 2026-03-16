@@ -120,12 +120,31 @@ export default function FinancialOverviewWidget({ compact = false, onClick }) {
   useEffect(() => {
     loadData();
     const refresh = () => setTimeout(loadData, 400);
-    window.addEventListener("sale-completed", refresh);
+    const handleSaleCompleted = (event) => {
+      const sale = event?.detail?.sale;
+      const txs = Array.isArray(event?.detail?.transactions) ? event.detail.transactions : [];
+      if (sale) {
+        setSales((prev) => [sale, ...(prev || []).filter((row) => String(row?.id || "") !== String(sale?.id || ""))]);
+      }
+      if (txs.length) {
+        setTransactions((prev) => {
+          const existing = Array.isArray(prev) ? prev : [];
+          const next = [...existing];
+          for (const tx of txs) {
+            if (!tx?.id || next.some((row) => String(row?.id || "") === String(tx.id))) continue;
+            next.unshift(tx);
+          }
+          return next;
+        });
+      }
+      refresh();
+    };
+    window.addEventListener("sale-completed", handleSaleCompleted);
     window.addEventListener("expense-created", refresh);
     window.addEventListener("fixed-expenses-updated", refresh);
     window.addEventListener("force-refresh", refresh);
     return () => {
-      window.removeEventListener("sale-completed", refresh);
+      window.removeEventListener("sale-completed", handleSaleCompleted);
       window.removeEventListener("expense-created", refresh);
       window.removeEventListener("fixed-expenses-updated", refresh);
       window.removeEventListener("force-refresh", refresh);

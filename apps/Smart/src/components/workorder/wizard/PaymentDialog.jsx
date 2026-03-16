@@ -22,6 +22,7 @@ import { DollarSign, CreditCard, Smartphone } from "lucide-react";
 import { toast } from "sonner";
 import { SendEmail } from "@/api/integrations";
 import { recordSaleAndTransactions, resolveActiveTenantId } from "@/components/financial/recordSale";
+import { upsertLocalOrder } from "@/components/utils/localOrderCache";
 
 export default function PaymentDialog({ open, onClose, order, onSuccess, isCreating = false, onPaymentData }) {
   const [amount, setAmount] = useState("");
@@ -101,7 +102,7 @@ export default function PaymentDialog({ open, onClose, order, onSuccess, isCreat
 
       const saleNumber = `WO-PAY-${Date.now().toString().slice(-8)}`;
       const tenantId = resolveActiveTenantId();
-      const { sale: createdSale } = await recordSaleAndTransactions({
+      const { sale: createdSale, transactions: createdTransactions, order: updatedOrder } = await recordSaleAndTransactions({
         sale: {
         sale_number: saleNumber,
         customer_id: order.customer_id,
@@ -257,6 +258,8 @@ export default function PaymentDialog({ open, onClose, order, onSuccess, isCreat
         window.dispatchEvent(new CustomEvent("sale-completed", {
           detail: {
             sale: createdSale,
+            order: updatedOrder,
+            transactions: createdTransactions,
             orderId: order.id,
             amountPaid: paymentAmount,
             paymentMode: "full"
@@ -364,3 +367,4 @@ export default function PaymentDialog({ open, onClose, order, onSuccess, isCreat
     </Dialog>
   );
 }
+      if (updatedOrder?.id) upsertLocalOrder(updatedOrder);

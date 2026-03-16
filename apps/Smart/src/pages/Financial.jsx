@@ -191,6 +191,25 @@ export default function Financial() {
         loadData();
       }
     };
+    const handleSaleCompleted = (event) => {
+      const sale = event?.detail?.sale;
+      const txs = Array.isArray(event?.detail?.transactions) ? event.detail.transactions : [];
+      if (sale) {
+        setSales((prev) => [sale, ...(prev || []).filter((row) => String(row?.id || "") !== String(sale?.id || ""))]);
+      }
+      if (txs.length) {
+        setTransactions((prev) => {
+          const existing = Array.isArray(prev) ? prev : [];
+          const next = [...existing];
+          for (const tx of txs) {
+            if (!tx?.id || next.some((row) => String(row?.id || "") === String(tx.id))) continue;
+            next.unshift(tx);
+          }
+          return next;
+        });
+      }
+      handleRefresh();
+    };
 
     const handleExpenseCreated = (event) => {
       const rawExpense = event?.detail;
@@ -220,14 +239,14 @@ export default function Financial() {
       setActiveTab("expenses");
     };
     
-    window.addEventListener("sale-completed", handleRefresh);
+    window.addEventListener("sale-completed", handleSaleCompleted);
     window.addEventListener("drawer-closed", handleRefresh);
     window.addEventListener("drawer-opened", handleRefresh);
     window.addEventListener("expense-created", handleExpenseCreated);
 
     return () => {
       unsubscribeCash();
-      window.removeEventListener("sale-completed", handleRefresh);
+      window.removeEventListener("sale-completed", handleSaleCompleted);
       window.removeEventListener("drawer-closed", handleRefresh);
       window.removeEventListener("drawer-opened", handleRefresh);
       window.removeEventListener("expense-created", handleExpenseCreated);

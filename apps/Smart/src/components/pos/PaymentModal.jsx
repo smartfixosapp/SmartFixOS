@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label";
 import { base44 } from "@/api/base44Client";
 import NotificationService from "../notifications/NotificationService";
 import { recordSaleAndTransactions, resolveActiveTenantId } from "@/components/financial/recordSale";
+import { upsertLocalOrder } from "@/components/utils/localOrderCache";
 import { DollarSign, CreditCard, Smartphone, MoreHorizontal } from "lucide-react";
 import { useDeviceDetection } from "../utils/useDeviceDetection";
 
@@ -271,7 +272,7 @@ export default function PaymentModal({ open, onClose, subtotal, items = [], work
         },
       } : null;
 
-      const { sale: createdSale } = await recordSaleAndTransactions({
+      const { sale: createdSale, transactions: createdTransactions, order: updatedOrder } = await recordSaleAndTransactions({
         sale: {
         ...saleData,
         tenant_id: tenantId,
@@ -294,9 +295,12 @@ export default function PaymentModal({ open, onClose, subtotal, items = [], work
         orderUpdate,
       });
       try {
+        if (updatedOrder?.id) upsertLocalOrder(updatedOrder);
         window.dispatchEvent(new CustomEvent("sale-completed", {
           detail: {
             sale: createdSale,
+            order: updatedOrder,
+            transactions: createdTransactions,
             orderId: workOrderId,
             amountPaid: finalAmount,
             paymentMode

@@ -16,6 +16,7 @@ import OpenDrawerDialog from "../components/cash/OpenDrawerDialog";
 import { recordSaleAndTransactions, resolveActiveTenantId } from "@/components/financial/recordSale";
 import { AuditService } from "@/components/utils/auditService";
 import { catalogCache } from "@/components/utils/dataCache";
+import { upsertLocalOrder } from "@/components/utils/localOrderCache";
 import {
   getCachedStatus,
   subscribeToCashRegister,
@@ -537,6 +538,8 @@ export default function POSMobile() {
 
       const tenantId = resolveActiveTenantId();
       let sale = null;
+      let updatedOrder = null;
+      let createdTransactions = [];
       const newTotalPaid = selectedOrder ? totalPaid + amountPaid : null;
       const oldBalance = selectedOrder ? orderBalance : null;
       const newBalance = selectedOrder ? Math.max(0, oldBalance - amountPaid) : null;
@@ -567,6 +570,8 @@ export default function POSMobile() {
           } : null,
         });
         sale = result.sale;
+        updatedOrder = result.order || null;
+        createdTransactions = Array.isArray(result.transactions) ? result.transactions : [];
       } catch (saleError) {
         const details = saleError?.details ? ` (${saleError.details})` : "";
         throw new Error(`${saleError?.message || "No se pudo crear la venta"}${details}`);
@@ -601,11 +606,17 @@ export default function POSMobile() {
         }
       }
 
+      if (updatedOrder?.id) {
+        upsertLocalOrder(updatedOrder);
+      }
+
       toast.success(`✅ Venta procesada - ${saleNumber}`);
       try {
         window.dispatchEvent(new CustomEvent("sale-completed", {
           detail: {
             sale,
+            order: updatedOrder,
+            transactions: createdTransactions,
             orderId: selectedOrder?.id || null,
             amountPaid,
             paymentMode

@@ -316,15 +316,24 @@ export default function OrdersPage() {
         return sameId || sameNumber ? null : prev;
       });
     };
+    const handleSaleCompleted = (event) => {
+      const updatedOrder = event?.detail?.order;
+      if (updatedOrder?.id) {
+        upsertLocalOrder(updatedOrder);
+        setOrders((prev) => mergeOrders([updatedOrder], prev || []));
+      }
+    };
 
     window.addEventListener("force-refresh", handleRefresh);
     window.addEventListener("workorder-created", handleWorkorderCreated);
     window.addEventListener("workorder-deleted", handleWorkorderDeleted);
+    window.addEventListener("sale-completed", handleSaleCompleted);
 
     return () => {
       window.removeEventListener("force-refresh", handleRefresh);
       window.removeEventListener("workorder-created", handleWorkorderCreated);
       window.removeEventListener("workorder-deleted", handleWorkorderDeleted);
+      window.removeEventListener("sale-completed", handleSaleCompleted);
     };
   }, [refreshTick]);
 
