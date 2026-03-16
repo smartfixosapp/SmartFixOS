@@ -741,6 +741,7 @@ export default function WorkOrderWizard({ open, onClose, onSuccess, preloadedCus
           role: u.position || u.role || "technician",
           full_name: u.full_name || u.name || u.email || "Tecnico",
         }));
+      const dedupedServerTechs = dedupeTechnicians(techs);
 
       const openPunches = allPunches.filter((p) => p && !p.clock_out);
       const openKeys = new Set();
@@ -751,20 +752,6 @@ export default function WorkOrderWizard({ open, onClose, onSuccess, preloadedCus
         if (employeeName) openKeys.add(employeeName);
       }
 
-      const availableIds = new Set(
-        techs
-          .filter((tech) => {
-            const keys = [
-              String(tech?.id || "").trim().toLowerCase(),
-              String(tech?.email || "").trim().toLowerCase(),
-              String(tech?.employee_code || "").trim().toLowerCase(),
-              String(tech?.full_name || "").trim().toLowerCase()
-            ].filter(Boolean);
-            return keys.some((key) => openKeys.has(key));
-          })
-          .map((tech) => tech.id)
-      );
-
       // Fallback: si existen ponches abiertos sin match contra AppEmployee,
       // mostrarlos como técnicos temporales para no dejar la UI en 0.
       const fallbackTechs = [];
@@ -773,7 +760,7 @@ export default function WorkOrderWizard({ open, onClose, onSuccess, preloadedCus
         const pname = String(p?.employee_name || "").trim();
         if (!pid && !pname) continue;
 
-        const alreadyExists = techs.some((tech) => {
+        const alreadyExists = dedupedServerTechs.some((tech) => {
           const keys = [
             String(tech?.id || "").trim().toLowerCase(),
             String(tech?.email || "").trim().toLowerCase(),
@@ -794,10 +781,9 @@ export default function WorkOrderWizard({ open, onClose, onSuccess, preloadedCus
         });
       }
 
-      const mergedTechs = dedupeTechnicians([...techs, ...fallbackTechs]);
-      const mergedAvailableIds = new Set([
-        ...availableIds,
-        ...mergedTechs
+      const mergedTechs = dedupeTechnicians([...dedupedServerTechs, ...fallbackTechs]);
+      const mergedAvailableIds = new Set(
+        mergedTechs
           .filter((tech) => {
             const keys = [
               String(tech?.id || "").trim().toLowerCase(),
@@ -808,7 +794,7 @@ export default function WorkOrderWizard({ open, onClose, onSuccess, preloadedCus
             return keys.some((key) => openKeys.has(key));
           })
           .map((tech) => tech.id)
-      ]);
+      );
 
       setTechnicians(mergedTechs);
       setAvailableTechnicianIds(mergedAvailableIds);
