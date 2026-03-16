@@ -112,7 +112,13 @@ export default function WorkOrderProgress({ order, onUpdate, user }) {
       });
 
       if (newStatus === "completed") {
-        nav(createPageUrl(`POS?workOrderId=${order.id}`), { state: { fromDashboard: true } });
+        nav(createPageUrl(`POS?workOrderId=${order.id}`), {
+          state: {
+            fromDashboard: true,
+            workOrder: order,
+            openPaymentImmediately: true,
+          }
+        });
       }
 
       onUpdate?.({});

@@ -1996,7 +1996,15 @@ export default function WorkOrderPanel({ orderId, onClose, onUpdate, onDelete, p
         return new Promise((resolve) => {
           document.getElementById('goPOS').onclick = () => {
             document.body.removeChild(alertDiv);
-            window.location.href = createPageUrl(`POS?workOrderId=${order.id}&balance=${balance}&mode=full`);
+            navigate(createPageUrl(`POS?workOrderId=${order.id}&balance=${balance}&mode=full`), {
+              state: {
+                fromDashboard: true,
+                paymentMode: "full",
+                workOrder: order,
+                balanceDue: balance,
+                openPaymentImmediately: true,
+              }
+            });
             resolve();
           };
 

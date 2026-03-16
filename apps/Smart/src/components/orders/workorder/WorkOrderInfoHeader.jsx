@@ -187,7 +187,13 @@ export default function WorkOrderPanel({ order, onUpdate, onClose, onDelete }) {
   }, [order?.id, order?.assigned_to, order?.assigned_to_name]);
 
   const handleGoToPOS = () => {
-    nav(createPageUrl(`POS?workOrderId=${order.id}`), { state: { fromDashboard: true } });
+    nav(createPageUrl(`POS?workOrderId=${order.id}`), {
+      state: {
+        fromDashboard: true,
+        workOrder: order,
+        openPaymentImmediately: true,
+      }
+    });
   };
 
   const handleChildUpdate = async (data) => {
