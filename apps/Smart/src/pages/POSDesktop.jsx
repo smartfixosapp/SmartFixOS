@@ -567,7 +567,6 @@ export default function POSDesktop() {
               total_paid: newTotalPaid,
               amount_paid: newTotalPaid,
               balance_due: newBalance,
-              balance: newBalance,
               paid: newBalance <= 0.01,
             },
           } : null,
