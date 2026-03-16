@@ -914,6 +914,74 @@ export default function DeviceCatalogManager() {
         ? createFamily
         : createModel;
 
+  const breadcrumbItems = [
+    {
+      key: "root",
+      label: "Tipo de dispositivo",
+      onClick: () => {
+        setSelectedCategory(null);
+        setSelectedBrand(null);
+        setSelectedFamily(null);
+      }
+    },
+    ...(selectedCategory
+      ? [
+          {
+            key: `category-${selectedCategory.name}`,
+            label: selectedCategory.name,
+            onClick: () => {
+              setSelectedBrand(null);
+              setSelectedFamily(null);
+            }
+          }
+        ]
+      : []),
+    ...(selectedBrand
+      ? [
+          {
+            key: `brand-${selectedBrand.name}`,
+            label: selectedBrand.name,
+            onClick: () => {
+              setSelectedFamily(null);
+            }
+          }
+        ]
+      : []),
+    ...(selectedFamily
+      ? [
+          {
+            key: `family-${selectedFamily.name}`,
+            label: selectedFamily.name,
+            onClick: () => {}
+          }
+        ]
+      : [])
+  ];
+
+  const currentItems = !selectedCategory
+    ? categories
+    : !selectedBrand
+      ? selectedCategoryBrands
+      : !selectedFamily
+        ? selectedBrandFamilies
+        : selectedFamilyModels;
+
+  const sectionTitle = !selectedCategory
+    ? "Categorías disponibles"
+    : !selectedBrand
+      ? `Marcas de ${selectedCategory.name}`
+      : !selectedFamily
+        ? `Líneas de ${selectedBrand.name}`
+        : `Modelos de ${selectedFamily.name}`;
+
+  const sectionDescription = !selectedCategory
+    ? "Mismo catálogo que usa el wizard principal. Selecciona una categoría para administrar su contenido."
+    : !selectedBrand
+      ? "Selecciona una marca para ver y organizar sus líneas."
+      : !selectedFamily
+        ? "Selecciona una línea para ver y organizar los modelos específicos."
+        : "Aquí administras los modelos exactos que verá el módulo principal.";
+
   if (loading) {
     return (
       <div className="flex items-center justify-center py-16">
@@ -927,73 +995,59 @@ export default function DeviceCatalogManager() {
 
   return (
     <div className="space-y-6">
-      <div className="bg-black/40 border border-cyan-500/20 rounded-xl p-4 theme-light:bg-white theme-light:border-gray-200">
-        <div className="flex items-center justify-between gap-3 flex-wrap">
-          <div className="flex items-center gap-2 flex-wrap text-sm">
-            <button
-              onClick={() => {
-                setSelectedCategory(null);
-                setSelectedBrand(null);
-                setSelectedFamily(null);
-              }}
-              className="text-cyan-400 hover:text-cyan-300 font-medium"
-            >
-              Tipo de dispositivo
-            </button>
-            {selectedCategory && (
-              <>
-                <ChevronDown className="w-4 h-4 text-gray-500 rotate-[-90deg]" />
-                <button
-                  onClick={() => {
-                    setSelectedBrand(null);
-                    setSelectedFamily(null);
-                  }}
-                  className="text-cyan-400 hover:text-cyan-300 font-medium"
-                >
-                  {selectedCategory.name}
-                </button>
-              </>
-            )}
-            {selectedBrand && (
-              <>
-                <ChevronDown className="w-4 h-4 text-gray-500 rotate-[-90deg]" />
-                <button
-                  onClick={() => {
-                    setSelectedFamily(null);
-                  }}
-                  className="text-cyan-400 hover:text-cyan-300 font-medium"
-                >
-                  {selectedBrand.name}
-                </button>
-              </>
-            )}
-            {selectedFamily && (
-              <>
-                <ChevronDown className="w-4 h-4 text-gray-500 rotate-[-90deg]" />
-                <span className="text-white font-medium theme-light:text-gray-900">
-                  {selectedFamily.name}
-                </span>
-              </>
-            )}
+      <div className="rounded-[28px] border border-cyan-500/20 bg-gradient-to-br from-[#07131d] via-black to-[#08171a] p-6 shadow-[0_20px_80px_rgba(0,0,0,0.35)]">
+        <div className="flex items-start justify-between gap-4 flex-wrap">
+          <div className="space-y-3">
+            <div className="flex items-center gap-3">
+              <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-cyan-500 to-emerald-500 shadow-[0_10px_30px_rgba(6,182,212,0.35)]">
+                <Smartphone className="h-7 w-7 text-white" />
+              </div>
+              <div>
+                <h3 className="text-2xl font-black text-white">Catálogo conectado</h3>
+                <p className="text-sm text-white/50">
+                  El mismo catálogo del módulo principal, pero con edición avanzada.
+                </p>
+              </div>
+            </div>
+
+            <div className="flex flex-wrap items-center gap-2 text-sm">
+              {breadcrumbItems.map((item, index) => (
+                <React.Fragment key={item.key}>
+                  {index > 0 && <ChevronDown className="h-4 w-4 rotate-[-90deg] text-white/30" />}
+                  <button
+                    type="button"
+                    onClick={item.onClick}
+                    className="font-semibold text-cyan-300 transition-colors hover:text-cyan-200"
+                  >
+                    {item.label}
+                  </button>
+                </React.Fragment>
+              ))}
+            </div>
           </div>
 
           <Button
             onClick={normalizeFamilies}
             disabled={normalizing || !models.length}
             variant="outline"
-            className="border-amber-500/40 text-amber-300 hover:bg-amber-500/10"
+            className="border-amber-500/40 bg-amber-500/10 text-amber-300 hover:bg-amber-500/15"
           >
-            <Wrench className="w-4 h-4 mr-2" />
+            <Wrench className="mr-2 h-4 w-4" />
             {normalizing ? "Normalizando..." : "Normalizar familias"}
           </Button>
         </div>
       </div>
 
-      <Card className="bg-black/40 border border-cyan-500/20 p-6 theme-light:bg-white theme-light:border-gray-200">
-        <h3 className="text-white font-bold mb-4 flex items-center gap-2 theme-light:text-gray-900">
-          <Plus className="w-5 h-5 text-cyan-400" />
-          {creatorTitle}
-        </h3>
+      <div className="rounded-[28px] border border-white/10 bg-black/40 p-6 shadow-[0_20px_60px_rgba(0,0,0,0.3)]">
+        <div className="mb-4 flex items-center gap-3">
+          <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-gradient-to-br from-cyan-500/20 to-emerald-500/20 text-cyan-300">
+            <Plus className="h-5 w-5" />
+          </div>
+          <div>
+            <h3 className="text-xl font-black text-white">{creatorTitle}</h3>
+            <p className="text-sm text-white/45">Crea contenido en el nivel que tienes abierto.</p>
+          </div>
+        </div>
 
         <div className="flex gap-2">
           <Input
@@ -1001,159 +1055,106 @@ export default function DeviceCatalogManager() {
             onChange={(event) => setNewItemName(event.target.value)}
             onKeyDown={(event) => event.key === "Enter" && creatorAction()}
             placeholder={creatorPlaceholder}
-            className="flex-1 bg-black/30 border-white/10 text-white theme-light:bg-white theme-light:border-gray-300"
+            className="flex-1 border-white/10 bg-black/30 text-white theme-light:border-gray-300 theme-light:bg-white"
           />
           <Button onClick={creatorAction} className="bg-gradient-to-r from-cyan-600 to-emerald-600">
-            <Plus className="w-4 h-4 mr-2" />
+            <Plus className="mr-2 h-4 w-4" />
             Crear
           </Button>
         </div>
-      </Card>
+      </div>
 
-      {!selectedCategory && (
-        <Card className="bg-black/40 border border-cyan-500/20 p-6 theme-light:bg-white theme-light:border-gray-200">
-          <h3 className="text-white font-bold mb-4 flex items-center gap-2 theme-light:text-gray-900">
-            <Smartphone className="w-5 h-5 text-cyan-400" />
-            Tipos de dispositivo
-          </h3>
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-            {categories.map((category) => {
-              const categoryBrands = brands.filter((brand) => brand.category_id === category.id);
+      <div className="rounded-[28px] border border-white/10 bg-gradient-to-br from-[#141625] to-black p-6 shadow-[0_24px_80px_rgba(0,0,0,0.35)]">
+        <div className="mb-4 flex items-start justify-between gap-4">
+          <div>
+            <h3 className="text-xl font-black text-white">{sectionTitle}</h3>
+            <p className="mt-1 text-sm text-white/45">{sectionDescription}</p>
+          </div>
+          <Badge className="border border-cyan-500/20 bg-cyan-500/10 text-cyan-200">
+            {currentItems.length}
+          </Badge>
+        </div>
+
+        {currentItems.length === 0 ? (
+          <div className="rounded-2xl border border-white/10 bg-black/30 px-4 py-5 text-sm text-white/45">
+            No hay elementos en este nivel todavía.
+          </div>
+        ) : (
+          <div className="flex flex-wrap gap-3">
+            {currentItems.map((item) => {
+              const isCategory = !selectedCategory;
+              const isBrand = selectedCategory && !selectedBrand;
+              const isFamily = selectedBrand && !selectedFamily;
+              const nextCount = isCategory
+                ? selectedCategoryBrands.filter((brand) => normalizedNameKey(brand.name) === normalizedNameKey(item.name)).length
+                : isBrand
+                  ? selectedBrandFamilies.filter((family) => normalizedNameKey(family.name) === normalizedNameKey(item.name)).length
+                  : isFamily
+                    ? selectedFamilyModels.filter((model) => normalizedNameKey(model.family) === normalizedNameKey(item.name)).length
+                    : 0;
+              const isLeaf = Boolean(selectedFamily);
+              const palette = isCategory
+                ? "from-cyan-500/20 to-emerald-500/20 border-cyan-400/30"
+                : isBrand
+                  ? "from-purple-500/20 to-pink-500/20 border-purple-400/30"
+                  : isFamily
+                    ? "from-emerald-500/20 to-green-500/20 border-emerald-400/30"
+                    : "from-sky-500/20 to-blue-500/20 border-sky-400/30";
+
               return (
-                <div key={category.id} className="relative group">
+                <div key={item.id || item.name} className="group relative">
                   <button
-                    onClick={() => setSelectedCategory(category)}
-                    className="w-full bg-gradient-to-br from-cyan-600/10 to-emerald-600/10 border border-cyan-500/20 rounded-xl p-4 hover:from-cyan-600/20 hover:to-emerald-600/20 transition-all text-left theme-light:bg-cyan-50 theme-light:border-cyan-300"
+                    type="button"
+                    onClick={() => {
+                      if (isCategory) {
+                        setSelectedCategory(item);
+                        setSelectedBrand(null);
+                        setSelectedFamily(null);
+                      } else if (isBrand) {
+                        setSelectedBrand(item);
+                        setSelectedFamily(null);
+                      } else if (isFamily) {
+                        setSelectedFamily(item);
+                      }
+                    }}
+                    className={`min-w-[220px] rounded-[22px] border bg-gradient-to-br ${palette} px-5 py-4 text-left transition-all hover:scale-[1.02] hover:border-white/30`}
                   >
-                    <div className="flex items-center justify-between mb-2">
-                      <span className="text-white font-bold theme-light:text-gray-900">{category.name}</span>
-                      <Badge className="bg-cyan-600/20 text-cyan-300 text-xs">{categoryBrands.length}</Badge>
+                    <div className="flex items-start justify-between gap-4">
+                      <div>
+                        <p className="text-lg font-black text-white">{item.name}</p>
+                        <p className="mt-2 text-sm text-white/55">
+                          {isLeaf
+                            ? "Modelo disponible en el módulo principal"
+                            : `${nextCount} ${isCategory ? "marcas" : isBrand ? "líneas" : "modelos"}`}
+                        </p>
+                      </div>
+                      {!isLeaf && (
+                        <span className="rounded-xl border border-white/10 bg-black/30 px-3 py-1 text-xs font-bold text-white/75">
+                          {nextCount}
+                        </span>
+                      )}
                     </div>
-                    <p className="text-xs text-gray-400 theme-light:text-gray-600">
-                      {categoryBrands.length} marcas
-                    </p>
                   </button>
                   <button
-                    onClick={() => deleteEntity("DeviceCategory", category.id, `la categoría ${category.name}`)}
-                    className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity bg-red-600 hover:bg-red-700 rounded-lg p-1.5"
+                    type="button"
+                    onClick={() =>
+                      deleteEntity(
+                        !selectedCategory ? "DeviceCategory" : !selectedBrand ? "Brand" : !selectedFamily ? "DeviceFamily" : "DeviceModel",
+                        item.id,
+                        `${!selectedCategory ? "la categoría" : !selectedBrand ? "la marca" : !selectedFamily ? "la familia" : "el modelo"} ${item.name}`
+                      )
+                    }
+                    className="absolute right-3 top-3 rounded-full border border-red-400/20 bg-red-500/15 p-2 text-red-200 opacity-0 transition-opacity hover:bg-red-500/25 group-hover:opacity-100"
+                    title="Eliminar"
                   >
-                    <Trash2 className="w-3 h-3 text-white" />
+                    <Trash2 className="h-3.5 w-3.5" />
                   </button>
                 </div>
               );
             })}
           </div>
-        </Card>
-      )}
-
-      {selectedCategory && !selectedBrand && (
-        <Card className="bg-black/40 border border-cyan-500/20 p-6 theme-light:bg-white theme-light:border-gray-200">
-          <h3 className="text-white font-bold mb-4 flex items-center gap-2 theme-light:text-gray-900">
-            <Smartphone className="w-5 h-5 text-cyan-400" />
-            Marcas de {selectedCategory.name}
-          </h3>
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-            {selectedCategoryBrands.map((brand) => {
-              const brandFamilies = families.filter((family) => family.brand_id === brand.id);
-              const brandModels = models.filter((model) => model.brand_id === brand.id);
-              return (
-                <div key={brand.id} className="relative group">
-                  <button
-                    onClick={() => setSelectedBrand(brand)}
-                    className="w-full bg-gradient-to-br from-purple-600/10 to-pink-600/10 border border-purple-500/20 rounded-xl p-4 hover:from-purple-600/20 hover:to-pink-600/20 transition-all text-left theme-light:bg-purple-50 theme-light:border-purple-300"
-                  >
-                    <div className="flex items-center justify-between mb-2">
-                      <span className="text-white font-bold theme-light:text-gray-900">{brand.name}</span>
-                      <Badge className="bg-purple-600/20 text-purple-300 text-xs">{brandFamilies.length}</Badge>
-                    </div>
-                    <p className="text-xs text-gray-400 theme-light:text-gray-600">
-                      {brandFamilies.length} familias · {brandModels.length} modelos
-                    </p>
-                  </button>
-                  <button
-                    onClick={() => deleteEntity("Brand", brand.id, `la marca ${brand.name}`)}
-                    className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity bg-red-600 hover:bg-red-700 rounded-lg p-1.5"
-                  >
-                    <Trash2 className="w-3 h-3 text-white" />
-                  </button>
-                </div>
-              );
-            })}
-          </div>
-        </Card>
-      )}
-
-      {selectedBrand && !selectedFamily && (
-        <Card className="bg-black/40 border border-cyan-500/20 p-6 theme-light:bg-white theme-light:border-gray-200">
-          <h3 className="text-white font-bold mb-4 flex items-center gap-2 theme-light:text-gray-900">
-            <Laptop className="w-5 h-5 text-cyan-400" />
-            Familias de {selectedBrand.name}
-          </h3>
-          <p className="text-xs text-gray-400 mb-4 theme-light:text-gray-600">
-            Organiza primero la lÍnea del equipo. Ejemplos: iPhone Pro, iPhone Pro Max, Galaxy S, iPad Air.
-          </p>
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-            {selectedBrandFamilies.map((family) => {
-              const familyModels = models.filter(
-                (model) =>
-                  model.family_id === family.id ||
-                  normalized(model.family) === normalized(family.name)
-              );
-              return (
-                <div key={family.id} className="relative group">
-                  <button
-                    onClick={() => setSelectedFamily(family)}
-                    className="w-full bg-gradient-to-br from-emerald-600/10 to-green-600/10 border border-emerald-500/20 rounded-xl p-4 hover:from-emerald-600/20 hover:to-green-600/20 transition-all text-left theme-light:bg-emerald-50 theme-light:border-emerald-300"
-                  >
-                    <div className="flex items-center justify-between mb-2">
-                      <span className="text-white font-bold theme-light:text-gray-900">{family.name}</span>
-                      <Badge className="bg-emerald-600/20 text-emerald-300 text-xs">{familyModels.length}</Badge>
-                    </div>
-                    <p className="text-xs text-gray-400 theme-light:text-gray-600">
-                      {familyModels.length} modelos
-                    </p>
-                  </button>
-                  <button
-                    onClick={() => deleteEntity("DeviceFamily", family.id, `la familia ${family.name}`)}
-                    className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity bg-red-600 hover:bg-red-700 rounded-lg p-1.5"
-                  >
-                    <Trash2 className="w-3 h-3 text-white" />
-                  </button>
-                </div>
-              );
-            })}
-          </div>
-        </Card>
-      )}
-
-      {selectedFamily && (
-        <Card className="bg-black/40 border border-cyan-500/20 p-6 theme-light:bg-white theme-light:border-gray-200">
-          <h3 className="text-white font-bold mb-4 flex items-center gap-2 theme-light:text-gray-900">
-            <Laptop className="w-5 h-5 text-cyan-400" />
-            Modelos de {selectedFamily.name}
-          </h3>
-          <p className="text-xs text-gray-400 mb-4 theme-light:text-gray-600">
-            Aquí van solo los modelos específicos. Ejemplos: iPhone 15 Pro, iPhone 16 Pro, iPhone 17 Pro.
-          </p>
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-            {selectedFamilyModels.map((model) => (
-              <div key={model.id} className="relative group">
-                <div className="w-full bg-gradient-to-br from-cyan-600/10 to-blue-600/10 border border-cyan-500/20 rounded-xl p-4 theme-light:bg-cyan-50 theme-light:border-cyan-300">
-                  <div className="flex items-center justify-between">
-                    <span className="text-white font-bold theme-light:text-gray-900">{model.name}</span>
-                  </div>
-                </div>
-                <button
-                  onClick={() => deleteEntity("DeviceModel", model.id, `el modelo ${model.name}`)}
-                  className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity bg-red-600 hover:bg-red-700 rounded-lg p-1.5"
-                >
-                  <Trash2 className="w-3 h-3 text-white" />
-                </button>
-              </div>
-            ))}
-          </div>
-        </Card>
-      )}
+        )}
+      </div>
     </div>
   );
 }
