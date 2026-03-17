@@ -16,6 +16,7 @@ import { es } from "date-fns/locale";
 import OpenDrawerDialog from "../components/cash/OpenDrawerDialog";
 import CloseDrawerDialog from "../components/cash/CloseDrawerDialog";
 import ExpenseDialog from "../components/financial/ExpenseDialog";
+import TimeTrackingModal from "../components/timetracking/TimeTrackingModal";
 import AlertasWidget from "../components/financial/AlertasWidget";
 import ReportesFinancieros from "../components/financial/ReportesFinancieros";
 import EnhancedReports from "../components/financial/EnhancedReports";
@@ -173,6 +174,7 @@ export default function Financial() {
   const [showCloseDrawer, setShowCloseDrawer] = useState(false);
   const [showExpenseDialog, setShowExpenseDialog] = useState(false);
   const [expenseDefaultCategory, setExpenseDefaultCategory] = useState(null);
+  const [showTimeTrackingModal, setShowTimeTrackingModal] = useState(false);
   const [activeTab, setActiveTab] = useState("sales");
   const [fixedExpenses, setFixedExpenses] = useState([]);
   const [showFixedExpenseDialog, setShowFixedExpenseDialog] = useState(false);
@@ -962,7 +964,7 @@ export default function Financial() {
           <div className="h-8 w-[1px] bg-white/10 mx-2 hidden md:block" />
 
           <Button 
-            onClick={() => { setExpenseDefaultCategory("payroll"); setShowExpenseDialog(true); }} 
+            onClick={() => setShowTimeTrackingModal(true)} 
             className="rounded-2xl bg-gradient-to-r from-teal-600 to-emerald-600 hover:from-teal-500 hover:to-emerald-500 text-white h-12 px-6 shadow-lg shadow-teal-900/20 transition-all active:scale-95 group"
           >
             <Wallet className="w-4 h-4 mr-2" />
@@ -1370,6 +1372,16 @@ export default function Financial() {
       {showOpenDrawer && <OpenDrawerDialog open={showOpenDrawer} onClose={() => setShowOpenDrawer(false)} onSuccess={handleActionSuccess} />}
       {showCloseDrawer && <CloseDrawerDialog open={showCloseDrawer} onClose={() => setShowCloseDrawer(false)} onSuccess={handleActionSuccess} drawer={currentDrawer} />}
       {showExpenseDialog && <ExpenseDialog open={showExpenseDialog} onClose={() => setShowExpenseDialog(false)} onSuccess={handleActionSuccess} drawer={currentDrawer} defaultCategory={expenseDefaultCategory} />}
+      {showTimeTrackingModal && (
+        <TimeTrackingModal
+          open={showTimeTrackingModal}
+          onClose={() => {
+            setShowTimeTrackingModal(false);
+            loadData();
+          }}
+          session={null}
+        />
+      )}
       {showEditExpenseDialog && (
         <EditExpenseDialog
           open={showEditExpenseDialog}
