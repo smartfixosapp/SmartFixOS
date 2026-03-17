@@ -497,6 +497,9 @@ export default function POSMobile() {
       const amountPaid = paymentMode === "deposit" ? parseFloat(depositAmount) : 
                          (paymentMethod === "cash" ? parseFloat(cashReceived) :
                          paymentMethod === "mixed" ? mixedTotal : effectiveTotal);
+                         
+      const amountPaidOnOrder = selectedOrder ? Math.min(amountPaid, selectedOrder.balance_due != null ? selectedOrder.balance_due : (orderTotal - totalPaid)) : 0;
+      
       const saleNumber = `S-${new Date().toISOString().split('T')[0]}-${Math.floor(Math.random() * 9000 + 1000)}`;
       const paymentMethods = paymentMethod === "mixed" ?
         [
@@ -546,9 +549,9 @@ export default function POSMobile() {
       let sale = null;
       let updatedOrder = null;
       let createdTransactions = [];
-      const newTotalPaid = selectedOrder ? totalPaid + amountPaid : null;
+      const newTotalPaid = selectedOrder ? totalPaid + amountPaidOnOrder : null;
       const oldBalance = selectedOrder ? orderBalance : null;
-      const newBalance = selectedOrder ? Math.max(0, oldBalance - amountPaid) : null;
+      const newBalance = selectedOrder ? Math.max(0, oldBalance - amountPaidOnOrder) : null;
       try {
         const result = await recordSaleAndTransactions({
           sale: {

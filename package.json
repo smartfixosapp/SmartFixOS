@@ -5,7 +5,8 @@
   "scripts": {
     "dev": "concurrently -n web,admin -c auto \"pnpm --filter @apps/web dev\" \"pnpm --filter @apps/admin dev\"",
     "build": "pnpm -r build",
-    "install:all": "pnpm -r install"
+    "install:all": "pnpm -r install",
+    "deploy:vercel": "git add . && git commit -m \"Deploy to Vercel via SmartFixOS\" && git push origin main"
   },
   "dependencies": {
     "@base44/sdk": "^0.1.2",
