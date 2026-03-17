@@ -6,7 +6,7 @@ import { base44 } from "@/api/base44Client";
 import WorkOrderUnifiedHub from "@/components/workorder/WorkOrderUnifiedHub";
 import AddItemModal from "@/components/workorder/AddItemModal";
 
-export default function PartArrivedStage({ order, onUpdate, onOrderItemsUpdate }) {
+export default function PartArrivedStage({ order, onUpdate, onOrderItemsUpdate, onRemoteSaved }) {
   const o = order || {};
   const [activeModal, setActiveModal] = useState(null);
   const [links, setLinks] = useState([]);
@@ -312,7 +312,7 @@ export default function PartArrivedStage({ order, onUpdate, onOrderItemsUpdate }
         onClose={() => setShowCatalog(false)}
         order={o}
         onSave={onOrderItemsUpdate}
-        onUpdate={onUpdate}
+        onRemoteSaved={onRemoteSaved}
       />
     </div>
   );

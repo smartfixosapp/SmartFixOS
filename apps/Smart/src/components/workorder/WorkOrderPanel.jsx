@@ -1565,7 +1565,9 @@ export default function WorkOrderPanel({ orderId, onClose, onUpdate, onDelete, p
     }
   }, [orderId, loadEventsCallback, onUpdate]);
 
-  // ✅ Shared callback for all stages: optimistic merge of catalog items + background refresh
+  // ✅ Shared callback for all stages: optimistic merge of catalog items only.
+  // Do NOT call handleRefresh() here — the DB save is still in flight at this point.
+  // handleRefresh() is wired to onRemoteSaved so it fires AFTER the DB save completes.
   const handleOrderItemsSaved = useCallback((newItems) => {
     setOrder((prev) => {
       if (!prev) return prev;
@@ -1584,9 +1586,9 @@ export default function WorkOrderPanel({ orderId, onClose, onUpdate, onDelete, p
         balance_due: Math.max(0, total - paid),
       };
     });
-    // Background DB sync
-    handleRefresh();
-  }, [handleRefresh]);
+    // NOTE: NO handleRefresh() here — that would race with the in-flight DB save
+    // and overwrite the optimistic state with stale data.
+  }, []);
 
   const handleSecuritySavedBeforePayment = useCallback(async () => {
     setShowSecurityBeforePayment(false);
@@ -2900,8 +2902,9 @@ export default function WorkOrderPanel({ orderId, onClose, onUpdate, onDelete, p
                   {(status === "intake" || status === "waiting_order") && (
                     <IntakeStage
                       order={o}
-                      onUpdate={async () => { await clearEventCache(o.id); await loadEventsCallback(true); await handleRefresh(); onUpdate?.(); }}
+                      onUpdate={async () => { await clearEventCache(o.id); await loadEventsCallback(true); onUpdate?.(); }}
                       onOrderItemsUpdate={handleOrderItemsSaved}
+                      onRemoteSaved={handleRefresh}
                     />
                   )}
                   {status === "diagnosing" && (
@@ -2916,8 +2919,9 @@ export default function WorkOrderPanel({ orderId, onClose, onUpdate, onDelete, p
                   {status === "part_arrived_waiting_device" && (
                     <PartArrivedStage
                       order={o}
-                      onUpdate={async () => { await clearEventCache(o.id); await loadEventsCallback(true); await handleRefresh(); onUpdate?.(); }}
+                      onUpdate={async () => { await clearEventCache(o.id); await loadEventsCallback(true); onUpdate?.(); }}
                       onOrderItemsUpdate={handleOrderItemsSaved}
+                      onRemoteSaved={handleRefresh}
                     />
                   )}
                   {status === "reparacion_externa" && (

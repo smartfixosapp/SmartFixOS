@@ -7,7 +7,7 @@ import { logWorkOrderContactEvent } from "@/components/workorder/utils/auditEven
 import WorkOrderUnifiedHub from "@/components/workorder/WorkOrderUnifiedHub";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 
-export default function IntakeStage({ order, onUpdate, onOrderItemsUpdate }) {
+export default function IntakeStage({ order, onUpdate, onOrderItemsUpdate, onRemoteSaved }) {
   const o = order || {};
   const [showCatalog, setShowCatalog] = useState(false);
   const [previewPhoto, setPreviewPhoto] = useState(null);
@@ -290,8 +290,8 @@ export default function IntakeStage({ order, onUpdate, onOrderItemsUpdate }) {
           onOrderItemsUpdate?.(newItems);
           setShowCatalog(false);
         }}
+        onRemoteSaved={onRemoteSaved}
         order={o}
-        onUpdate={onUpdate}
       />
 
       <Dialog open={Boolean(previewPhoto)} onOpenChange={(open) => !open && setPreviewPhoto(null)}>
