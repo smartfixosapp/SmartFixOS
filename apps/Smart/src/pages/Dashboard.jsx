@@ -933,22 +933,23 @@ export default function Dashboard() {
                       <button
                         key={btn.id}
                         onClick={handleClick}
-                        className="group relative bg-white/[0.045] hover:bg-white/[0.06] backdrop-blur-xl border border-white/10 rounded-[24px] lg:rounded-[28px] xl:rounded-[30px] 2xl:rounded-[32px] px-4 py-4 lg:px-5 lg:py-5 xl:px-6 xl:py-6 2xl:px-6 2xl:py-6 flex flex-col items-start justify-between aspect-[1.02/1] transition-all duration-200 hover:border-white/14 active:scale-95 shadow-[0_12px_28px_rgba(0,0,0,0.18)]"
+                        className="group relative bg-white/5 hover:bg-white/10 backdrop-blur-3xl border border-white/10 rounded-[32px] px-5 py-5 sm:px-6 sm:py-6 flex flex-col items-start justify-between aspect-[1.02/1] transition-all duration-500 hover:border-white/20 active:scale-95 shadow-[0_16px_36px_rgba(0,0,0,0.22)] hover:shadow-[0_24px_48px_rgba(0,0,0,0.3)] overflow-hidden"
                       >
-                        <div className="flex justify-between w-full items-start gap-3">
-                            <div className={`w-11 h-11 sm:w-12 sm:h-12 lg:w-12 lg:h-12 xl:w-14 xl:h-14 2xl:w-14 2xl:h-14 rounded-[16px] sm:rounded-[18px] lg:rounded-[18px] xl:rounded-[20px] 2xl:rounded-[20px] bg-gradient-to-br ${getIconGradient(btn.label)} flex items-center justify-center shadow-[0_8px_18px_rgba(0,0,0,0.18)] mb-2 text-white`}>
-                              <IconComponent className="w-4 h-4 sm:w-5 sm:h-5 lg:w-5 lg:h-5 xl:w-6 xl:h-6 2xl:w-6 2xl:h-6" strokeWidth={2.5} />
+                        <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
+                        
+                        <div className="flex justify-between w-full items-start gap-4 relative z-10">
+                            <div className={`w-14 h-14 sm:w-16 sm:h-16 rounded-[20px] bg-gradient-to-br ${getIconGradient(btn.label)} flex items-center justify-center shadow-lg mb-3 text-white transition-transform duration-500 group-hover:scale-110 group-hover:rotate-3`}>
+                              <IconComponent className="w-6 h-6 sm:w-7 sm:h-7" strokeWidth={2.5} />
                             </div>
                             {count !== null && (
-                                <span className="inline-flex items-center justify-center min-w-8 h-8 px-2 rounded-full border border-white/10 bg-black/18 text-sm lg:text-sm xl:text-base font-black text-white/88 tracking-tight">{count}</span>
+                                <span className="inline-flex items-center justify-center min-w-[36px] h-9 px-3 rounded-full border border-white/10 bg-black/40 backdrop-blur-md text-sm sm:text-base font-black text-white tracking-tight shadow-inner">{count}</span>
                             )}
                         </div>
-                        <div className="flex flex-col items-start gap-1">
-                          <span className="text-xs sm:text-sm lg:text-base xl:text-lg font-bold text-white/95 leading-tight text-left tracking-tight">
+                        <div className="flex flex-col items-start gap-1.5 relative z-10 mt-auto">
+                          <span className="text-sm sm:text-base lg:text-lg font-black text-white leading-tight text-left tracking-tight group-hover:text-white/90 transition-colors">
                             {btn.label}
                           </span>
                         </div>
-                        <div className="absolute inset-0 rounded-[24px] lg:rounded-[28px] xl:rounded-[30px] bg-gradient-to-b from-white/[0.05] to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none" />
                       </button>
                     );
                   })}
@@ -1103,25 +1104,25 @@ export default function Dashboard() {
                     <button
                       key={btn.id}
                       onClick={handleClick}
-                      className="group relative bg-[linear-gradient(180deg,rgba(255,255,255,0.12),rgba(255,255,255,0.05))] backdrop-blur-2xl border border-white/10 rounded-[22px] p-4 sm:p-5 flex flex-col items-start justify-between min-h-[118px] xs:min-h-[124px] sm:h-[126px] active:scale-95 transition-all duration-300 shadow-[0_16px_36px_rgba(0,0,0,0.22)] hover:border-white/16 hover:-translate-y-0.5 touch-manipulation"
+                      className="group relative bg-white/5 hover:bg-white/10 backdrop-blur-3xl border border-white/10 rounded-[28px] p-5 flex flex-col items-start justify-between min-h-[140px] active:scale-95 transition-all duration-500 shadow-2xl hover:shadow-[0_20px_40px_rgba(0,0,0,0.3)] hover:border-white/20 hover:-translate-y-1 overflow-hidden touch-manipulation"
                     >
-                      <div className="flex justify-between w-full items-start gap-3">
-                        <div className={`w-10 h-10 sm:w-11 sm:h-11 rounded-[15px] sm:rounded-[18px] bg-gradient-to-br ${getIconGradient(btn.label)} flex items-center justify-center shadow-[0_10px_22px_rgba(0,0,0,0.22)] mb-1.5 sm:mb-2 text-white transition-transform duration-300 group-hover:scale-[1.04]`}>
-                            <IconComponent className="w-5 h-5 sm:w-5.5 sm:h-5.5" strokeWidth={2.5} />
+                      <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
+                      <div className="flex justify-between w-full items-start gap-3 relative z-10">
+                        <div className={`w-12 h-12 rounded-[18px] bg-gradient-to-br ${getIconGradient(btn.label)} flex items-center justify-center shadow-lg mb-2 text-white transition-transform duration-500 group-hover:scale-110 group-hover:rotate-3`}>
+                            <IconComponent className="w-6 h-6" strokeWidth={2.5} />
                         </div>
                         {count !== null && (
-                            <span className="inline-flex items-center justify-center min-w-7 h-7 px-2 rounded-full border border-white/12 bg-black/20 text-sm sm:text-base font-black text-white/90 tracking-tight">{count}</span>
+                            <span className="inline-flex items-center justify-center min-w-[32px] h-8 px-2.5 rounded-full border border-white/10 bg-black/40 backdrop-blur-md text-sm font-black text-white tracking-tight shadow-inner">{count}</span>
                         )}
                       </div>
-                      <div className="flex flex-col items-start gap-1">
-                        <span className="text-[11px] sm:text-xs font-black text-white/95 leading-tight text-left tracking-tight">
+                      <div className="flex flex-col items-start gap-1 relative z-10 mt-auto">
+                        <span className="text-sm font-black text-white leading-tight text-left tracking-tight group-hover:text-white/90 transition-colors">
                           {btn.label}
                         </span>
-                        <span className="text-[9px] sm:text-[10px] uppercase tracking-[0.16em] text-white/42 font-medium">
+                        <span className="text-[10px] uppercase tracking-[0.2em] text-white/40 font-bold">
                           Subapp
                         </span>
                       </div>
-                      <div className="absolute inset-0 rounded-[22px] bg-gradient-to-br from-white/10 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
                     </button>
                   );
                 })}
@@ -1311,10 +1312,13 @@ export default function Dashboard() {
             <div className="absolute -top-20 -left-20 w-60 h-60 lg:w-80 lg:h-80 bg-purple-500/20 rounded-full blur-[100px] animate-pulse" />
             <CardContent className="p-4 sm:p-6 lg:p-8 xl:p-10 flex flex-col max-h-[600px] lg:max-h-[700px] xl:max-h-[800px]">
               {/* HEADER STICKY */}
-              <div className="sticky top-0 z-10 bg-gradient-to-br from-purple-600/10 via-blue-600/10 to-cyan-600/10 backdrop-blur-3xl pb-4 lg:pb-6 space-y-4 lg:space-y-6 -mx-6 lg:-mx-8 xl:-mx-10 px-6 lg:px-8 xl:px-10 -mt-6 lg:-mt-8 xl:-mt-10 pt-6 lg:pt-8 xl:pt-10">
+              <div className="sticky top-0 z-10 bg-black/20 backdrop-blur-3xl pb-4 lg:pb-6 space-y-4 lg:space-y-6 -mx-6 lg:-mx-8 xl:-mx-10 px-6 lg:px-8 xl:px-10 -mt-6 lg:-mt-8 xl:-mt-10 pt-6 lg:pt-8 xl:pt-10 border-b border-white/5">
                 <div className="flex items-center justify-between mb-2">
-                  <h3 className="text-white/90 font-bold text-lg lg:text-xl xl:text-2xl flex items-center gap-2 lg:gap-3">
-                    <ClipboardList className="w-5 h-5 lg:w-6 lg:h-6 xl:w-7 xl:h-7 text-blue-500" /> {t('orders')}
+                  <h3 className="text-white text-lg lg:text-xl xl:text-2xl font-black flex items-center gap-3 tracking-tight">
+                    <div className="w-10 h-10 rounded-xl bg-blue-500/10 flex items-center justify-center border border-blue-500/20">
+                      <ClipboardList className="w-5 h-5 text-blue-400" />
+                    </div>
+                    {t('orders')}
                   </h3>
                 </div>
 
@@ -1417,19 +1421,24 @@ export default function Dashboard() {
           </Card>
 
           {/* === LISTA DE PRECIOS - OCULTA EN MÓVIL === */}
-          <Card className="hidden md:block bg-gradient-to-br from-emerald-600/10 via-teal-600/10 to-cyan-600/10 backdrop-blur-3xl border border-emerald-500/20 rounded-[32px] lg:rounded-[40px] xl:rounded-[48px] shadow-2xl relative overflow-hidden">
-            <div className="absolute inset-0 bg-gradient-to-br from-white/10 via-transparent to-transparent pointer-events-none" />
-            <div className="absolute -bottom-20 -right-20 w-60 h-60 lg:w-80 lg:h-80 bg-emerald-500/20 rounded-full blur-[100px] animate-pulse delay-1000" />
-            <CardContent className="p-4 sm:p-6 lg:p-8 xl:p-10 space-y-4 lg:space-y-6">
-              <h3 className="text-white font-bold text-lg lg:text-xl xl:text-2xl flex items-center gap-2 lg:gap-3">💰 {t('priceList')}</h3>
-              <div className="relative">
+          <Card className="hidden md:block bg-white/5 backdrop-blur-3xl border border-emerald-500/20 rounded-[32px] lg:rounded-[40px] xl:rounded-[48px] shadow-2xl relative overflow-hidden">
+            <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/5 via-teal-500/5 to-cyan-500/5 pointer-events-none" />
+            <div className="absolute -bottom-20 -right-20 w-60 h-60 lg:w-80 lg:h-80 bg-emerald-500/10 rounded-full blur-[100px] animate-pulse delay-1000" />
+            <CardContent className="p-4 sm:p-6 lg:p-8 xl:p-10 space-y-4 lg:space-y-6 relative z-10">
+              <h3 className="text-white text-lg lg:text-xl xl:text-2xl font-black flex items-center gap-3 tracking-tight">
+                <div className="w-10 h-10 rounded-xl bg-emerald-500/10 flex items-center justify-center border border-emerald-500/20">
+                  <PiggyBank className="w-5 h-5 text-emerald-400" />
+                </div>
+                {t('priceList')}
+              </h3>
+              <div className="relative group">
                 <input 
                   value={priceSearch} 
                   onChange={(e) => setPriceSearch(e.target.value)} 
                   placeholder={t('searchProducts')} 
-                  className="bg-black/20 border border-cyan-500/20 pl-8 lg:pl-10 xl:pl-12 pr-2 lg:pr-3 rounded-md lg:rounded-xl h-10 lg:h-12 xl:h-14 text-sm lg:text-base xl:text-lg text-slate-50 w-full outline-none focus:ring-2 focus:ring-cyan-500/60" 
+                  className="bg-black/40 border border-emerald-500/20 pl-10 lg:pl-12 xl:pl-14 pr-4 rounded-xl lg:rounded-2xl h-12 lg:h-14 xl:h-16 text-sm lg:text-base xl:text-lg text-white w-full outline-none focus:ring-2 focus:ring-emerald-500/50 font-medium transition-all" 
                 />
-                <Search className="w-4 h-4 lg:w-5 lg:h-5 xl:w-6 xl:h-6 text-gray-200/60 absolute left-2.5 lg:left-3 xl:left-4 top-1/2 -translate-y-1/2" />
+                <Search className="w-5 h-5 text-gray-400 group-focus-within:text-emerald-400 absolute left-4 top-1/2 -translate-y-1/2 transition-colors" />
               </div>
 
               {priceSearch && filteredPriceList.length > 0 && (

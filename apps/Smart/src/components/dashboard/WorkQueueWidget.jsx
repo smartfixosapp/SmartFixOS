@@ -10,10 +10,14 @@ import {
   AlertCircle,
   ChevronRight,
   Zap,
-  TrendingUp
+  TrendingUp,
+  ArrowRight
 } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { createPageUrl } from "@/components/utils/helpers";
 
 export default function WorkQueueWidget({ onSelectOrder, recentOrders = [] }) {
+  const navigate = useNavigate();
   const [queueStats, setQueueStats] = useState({
     in_progress: 0,
     waiting_parts: 0,
@@ -78,24 +82,25 @@ export default function WorkQueueWidget({ onSelectOrder, recentOrders = [] }) {
     .slice(0, 3);
 
   return (
-    <Card className="bg-gradient-to-br from-indigo-600/10 via-purple-600/10 to-pink-600/10 backdrop-blur-3xl border border-indigo-500/20 rounded-[24px] shadow-xl relative overflow-hidden">
-      <div className="absolute -right-12 -top-12 w-32 h-32 bg-indigo-500/20 rounded-full blur-3xl animate-pulse" />
-      <div className="absolute -left-12 -bottom-12 w-32 h-32 bg-purple-500/20 rounded-full blur-3xl animate-pulse delay-1000" />
+    <Card className="bg-white/5 backdrop-blur-3xl border border-white/10 rounded-[32px] shadow-2xl relative overflow-hidden group">
+      <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/5 via-purple-500/5 to-pink-500/5 pointer-events-none" />
+      <div className="absolute -right-12 -top-12 w-40 h-40 bg-indigo-500/10 rounded-full blur-[60px] group-hover:bg-indigo-500/20 transition-all duration-700" />
+      <div className="absolute -left-12 -bottom-12 w-40 h-40 bg-purple-500/10 rounded-full blur-[60px] group-hover:bg-purple-500/20 transition-all duration-700 delay-150" />
       
       <CardHeader className="pb-3 relative z-10">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-indigo-400 to-purple-500 flex items-center justify-center shadow-lg">
-              <ListChecks className="w-5 h-5 text-white" />
+            <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center shadow-lg shadow-indigo-500/20">
+              <ListChecks className="w-6 h-6 text-white" />
             </div>
             <div>
-              <CardTitle className="text-white text-lg">Cola de Trabajo</CardTitle>
-              <p className="text-xs text-white/60 mt-0.5">
+              <CardTitle className="text-white text-xl font-black tracking-tight">Cola de Trabajo</CardTitle>
+              <p className="text-[10px] text-white/40 uppercase tracking-widest font-bold mt-0.5">
                 {queueStats.total} órdenes activas
               </p>
             </div>
           </div>
-          <div className="text-3xl font-black text-white/90">{queueStats.total}</div>
+          <div className="text-4xl font-black text-white/90 tracking-tighter">{queueStats.total}</div>
         </div>
       </CardHeader>
 
@@ -108,13 +113,13 @@ export default function WorkQueueWidget({ onSelectOrder, recentOrders = [] }) {
           ].map((item) => {
             const Icon = item.icon;
             return (
-              <div key={item.label} className="bg-white/5 border border-white/10 rounded-lg p-2 flex items-center gap-2">
-                <div className={`w-6 h-6 rounded bg-gradient-to-br ${item.color} flex items-center justify-center shrink-0`}>
-                  <Icon className="w-3 h-3 text-white" />
+              <div key={item.label} className="bg-white/5 hover:bg-white/10 border border-white/5 hover:border-white/10 rounded-2xl p-3 flex items-center gap-3 transition-colors">
+                <div className={`w-8 h-8 rounded-xl bg-gradient-to-br ${item.color} flex items-center justify-center shrink-0 shadow-lg`}>
+                  <Icon className="w-4 h-4 text-white" />
                 </div>
                 <div className="min-w-0">
-                  <p className="text-[10px] text-white/60 truncate">{item.label}</p>
-                  <p className="text-sm font-bold text-white">{item.value}</p>
+                  <p className="text-[10px] text-white/50 uppercase tracking-widest font-bold truncate">{item.label}</p>
+                  <p className="text-xl font-black text-white tracking-tight">{item.value}</p>
                 </div>
               </div>
             );
@@ -125,23 +130,36 @@ export default function WorkQueueWidget({ onSelectOrder, recentOrders = [] }) {
         {queueStats.oldest && (
           <button
             onClick={() => onSelectOrder && onSelectOrder(queueStats.oldest.id)}
-            className="w-full bg-gradient-to-r from-amber-500/20 to-red-500/20 border border-amber-500/30 hover:border-amber-500/60 rounded-lg p-3 flex items-center gap-2 transition-all active:scale-95"
+            className="w-full bg-amber-500/5 hover:bg-amber-500/10 border border-amber-500/20 hover:border-amber-500/40 rounded-2xl p-4 flex items-center gap-4 transition-all active:scale-95 group"
           >
-            <TrendingUp className="w-4 h-4 text-amber-400 shrink-0" />
-            <div className="text-left flex-1">
-              <p className="text-xs text-white/70">Orden más antigua</p>
-              <p className="text-sm font-bold text-white">{getOldestTime()} • #{queueStats.oldest.order_number}</p>
+            <div className="w-10 h-10 rounded-xl bg-amber-500/10 flex items-center justify-center shrink-0">
+              <TrendingUp className="w-5 h-5 text-amber-400 group-hover:scale-110 transition-transform" />
             </div>
-            <ChevronRight className="w-4 h-4 text-amber-400" />
+            <div className="text-left flex-1">
+              <p className="text-[10px] text-amber-400/60 uppercase tracking-widest font-black">Orden más antigua</p>
+              <p className="text-white font-bold tracking-tight">{getOldestTime()} <span className="text-white/30">•</span> #{queueStats.oldest.order_number}</p>
+            </div>
+            <ChevronRight className="w-5 h-5 text-amber-400/50 group-hover:text-amber-400 transition-colors" />
           </button>
         )}
+
+        {/* ⭐️ LINK AL MÓDULO DE ÓRDENES */}
+        <Button
+          onClick={() => navigate(createPageUrl("Orders"))}
+          className="w-full bg-white/5 hover:bg-white/10 border border-white/10 text-white h-12 rounded-2xl font-bold transition-all mt-2 group"
+        >
+          Ver todas las órdenes
+          <ArrowRight className="w-4 h-4 ml-2 text-white/50 group-hover:text-white group-hover:translate-x-1 transition-all" />
+        </Button>
 
 
 
         {queueStats.total === 0 && (
-          <div className="text-center py-6">
-            <ListChecks className="w-8 h-8 mx-auto text-white/20 mb-2" />
-            <p className="text-xs text-white/40">No hay órdenes activas</p>
+          <div className="text-center py-8">
+            <div className="w-16 h-16 rounded-full bg-white/5 flex items-center justify-center mx-auto mb-4">
+              <ListChecks className="w-8 h-8 text-white/20" />
+            </div>
+            <p className="text-sm font-bold text-white/40 uppercase tracking-widest">No hay órdenes activas</p>
           </div>
         )}
       </CardContent>
