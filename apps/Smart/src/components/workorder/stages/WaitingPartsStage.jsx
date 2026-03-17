@@ -6,7 +6,6 @@ import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import AddItemModal from "@/components/workorder/AddItemModal";
 import WorkOrderTimeline from "@/components/orders/workorder/WorkOrderTimeline";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
@@ -19,8 +18,9 @@ import { loadSuppliersSafe } from "@/components/utils/suppliers";
 import WorkOrderUnifiedHub from "@/components/workorder/WorkOrderUnifiedHub";
 import { loadOrderLinks } from "@/components/workorder/utils/orderLinksStore";
 import { createPageUrl } from "@/components/utils/helpers";
+import SharedItemsSection from "@/components/workorder/SharedItemsSection";
 
-export default function WaitingPartsStage({ order, onUpdate }) {
+export default function WaitingPartsStage({ order, onUpdate, onOrderItemsUpdate, onRemoteSaved }) {
   const o = order || {};
   const navigate = useNavigate();
   const location = o.device_location || "taller"; // taller | cliente
@@ -454,282 +454,16 @@ export default function WaitingPartsStage({ order, onUpdate }) {
         </div>
       )}
 
-      {/* Piezas y Servicios Module */}
-      <section className="relative overflow-hidden rounded-[30px] border border-orange-500/15 bg-[radial-gradient(circle_at_top_left,rgba(249,115,22,0.10),transparent_24%),radial-gradient(circle_at_bottom_right,rgba(20,184,166,0.10),transparent_28%),linear-gradient(180deg,rgba(24,24,27,0.98),rgba(10,10,12,0.98))] shadow-[0_22px_70px_rgba(0,0,0,0.35)]">
-        <div className="absolute inset-0 bg-[linear-gradient(120deg,transparent,rgba(255,255,255,0.025),transparent)]" />
-        <div className="relative z-10 border-b border-white/10 px-6 py-5">
-          <div className="flex items-start justify-between gap-4">
-            <div className="flex items-start gap-4">
-              <div className="flex h-12 w-12 items-center justify-center rounded-2xl border border-cyan-400/20 bg-cyan-500/15 shadow-[0_10px_30px_rgba(34,211,238,0.12)]">
-                <ShoppingCart className="h-5 w-5 text-cyan-300" />
-              </div>
-              <div>
-                <p className="text-[11px] font-semibold uppercase tracking-[0.28em] text-white/35">Compra y costo</p>
-                <h3 className="mt-1 text-2xl font-black tracking-tight text-white">Piezas y Servicios</h3>
-                <p className="mt-2 max-w-2xl text-sm leading-relaxed text-white/55">
-                  Mantén aquí la lista final de repuestos y servicios mientras el pedido está en tránsito, con edición rápida y total visible.
-                </p>
-              </div>
-            </div>
-            <div className="flex gap-3">
-              {items.length > 0 && (
-                <Button
-                  size="sm"
-                  variant="outline"
-                  onClick={() => isEditingItems ? persistItems() : setIsEditingItems(true)}
-                  disabled={saving}
-                  className="h-10 rounded-2xl border-white/10 bg-white/5 px-4 text-sm font-medium text-white hover:bg-white/10"
-                >
-                  {isEditingItems ? <Check className="mr-2 h-4 w-4" /> : <Pencil className="mr-2 h-4 w-4" />}
-                  {isEditingItems ? "Guardar" : "Editar"}
-                </Button>
-              )}
-              <Button
-                size="sm"
-                onClick={() => setShowAddItemModal(true)}
-                disabled={saving}
-                className="h-10 rounded-2xl bg-gradient-to-r from-cyan-600 to-emerald-600 px-4 text-sm font-bold text-white shadow-lg shadow-cyan-950/20 hover:from-cyan-700 hover:to-emerald-700"
-              >
-                <Plus className="mr-2 h-4 w-4" />
-                Añadir
-              </Button>
-            </div>
-          </div>
-        </div>
-        
-        <div className="relative z-10 p-6">
-          {items.length === 0 ? (
-            <div className="rounded-[24px] border border-dashed border-white/10 bg-black/20 px-6 py-14 text-center">
-              <ShoppingCart className="mx-auto mb-4 h-12 w-12 text-white/20" />
-              <p className="text-base font-semibold text-white/55">No hay items en esta orden.</p>
-              <p className="mt-2 text-sm text-white/35">Añade las piezas o servicios que quedan pendientes de llegada y mantén el total visible.</p>
-              <Button 
-                onClick={() => setShowAddItemModal(true)}
-                variant="outline"
-                className="mt-5 rounded-2xl border-cyan-500/30 px-4 text-cyan-300 hover:bg-cyan-500/10"
-              >
-                <Plus className="mr-2 h-4 w-4" />
-                Añadir Item
-              </Button>
-            </div>
-          ) : (
-            <div className="overflow-hidden rounded-[24px] border border-white/10 bg-black/20">
-              <div className="divide-y divide-white/5">
-                {items.map((item, idx) => (
-                  <div key={idx} className="px-6 py-5 transition-colors hover:bg-white/[0.03]">
-                    <div className="flex items-start justify-between gap-4">
-                      <div className="min-w-0 flex-1">
-                        <p className="truncate text-xl font-black tracking-tight text-white">{item.name}</p>
-                        <p className="mt-2 text-sm text-white/45">
-                          {item.type === 'service' ? 'Servicio incluido mientras la orden espera repuestos.' : 'Producto incluido mientras la orden espera repuestos.'}
-                        </p>
-                        <div className="mt-4 flex flex-wrap gap-2">
-                          <Badge variant="outline" className="rounded-full border-white/10 bg-white/5 px-3 py-1 text-[11px] text-gray-300">
-                            ${Number(item.price).toFixed(2)} c/u
-                          </Badge>
-                          <Badge variant="outline" className="rounded-full border-white/10 bg-white/5 px-3 py-1 text-[11px] text-gray-300">
-                            {item.type === 'service' ? 'Servicio' : 'Producto'}
-                          </Badge>
-                          {item.discount_percentage > 0 && (
-                            <Badge className="rounded-full border-orange-500/30 bg-orange-500/20 px-3 py-1 text-[11px] text-orange-300">
-                              -{item.discount_percentage}% desc.
-                            </Badge>
-                          )}
-                          {!item.taxable && (
-                            <Badge className="rounded-full border-purple-500/30 bg-purple-500/20 px-3 py-1 text-[11px] text-purple-300">
-                              Sin IVU
-                            </Badge>
-                          )}
-                        </div>
-
-                        {isEditingItems && (
-                          <div className="mt-4 space-y-3">
-                            <div className="flex flex-wrap items-center gap-3">
-                              <div className="flex items-center gap-2">
-                                <Label className="min-w-[80px] text-xs text-gray-400">Descuento %:</Label>
-                                <div className="flex items-center gap-1 rounded-xl border border-white/10 bg-black/40 p-1">
-                                  <Button 
-                                    size="icon" 
-                                    variant="ghost" 
-                                    className="h-7 w-7 rounded-md hover:bg-white/10 hover:text-white" 
-                                    onClick={() => setDiscount(idx, (item.discount_percentage || 0) - 5)}
-                                  >
-                                    <Minus className="h-3 w-3" />
-                                  </Button>
-                                  <Input 
-                                    type="number"
-                                    value={item.discount_percentage || 0}
-                                    onChange={(e) => setDiscount(idx, e.target.value)}
-                                    className="h-7 w-16 border-0 bg-transparent text-center text-sm text-white"
-                                    min="0"
-                                    max="100"
-                                  />
-                                  <Button 
-                                    size="icon" 
-                                    variant="ghost" 
-                                    className="h-7 w-7 rounded-md hover:bg-white/10 hover:text-white" 
-                                    onClick={() => setDiscount(idx, (item.discount_percentage || 0) + 5)}
-                                  >
-                                    <Plus className="h-3 w-3" />
-                                  </Button>
-                                </div>
-                              </div>
-                              
-                              <div className="ml-0 flex items-center gap-2 sm:ml-4">
-                                <Switch 
-                                  id={`tax-${idx}`}
-                                  checked={item.taxable}
-                                  onCheckedChange={() => toggleTaxable(idx)}
-                                  className="data-[state=checked]:bg-emerald-500"
-                                />
-                                <Label htmlFor={`tax-${idx}`} className="cursor-pointer text-xs text-gray-400">
-                                  Aplicar IVU
-                                </Label>
-                              </div>
-                            </div>
-                          </div>
-                        )}
-                      </div>
-                      
-                      <div className="flex items-center gap-4 pl-4">
-                        {isEditingItems ? (
-                          <>
-                            <div className="flex items-center gap-1 rounded-xl border border-white/10 bg-black/40 p-1">
-                              <Button 
-                                size="icon" 
-                                variant="ghost" 
-                                className="h-8 w-8 rounded-md hover:bg-white/10 hover:text-white" 
-                                onClick={() => setQty(idx, item.qty - 1)}
-                              >
-                                <Minus className="h-3 w-3" />
-                              </Button>
-                              <span className="w-8 text-center text-sm font-bold text-white">{item.qty}</span>
-                              <Button 
-                                size="icon" 
-                                variant="ghost" 
-                                className="h-8 w-8 rounded-md hover:bg-white/10 hover:text-white" 
-                                onClick={() => setQty(idx, item.qty + 1)}
-                              >
-                                <Plus className="h-3 w-3" />
-                              </Button>
-                            </div>
-                            <Button 
-                              size="icon" 
-                              variant="ghost" 
-                              className="h-9 w-9 rounded-lg text-red-400 hover:bg-red-500/10 hover:text-red-300" 
-                              onClick={() => removeLine(idx)}
-                            >
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
-                          </>
-                        ) : (
-                          <div className="text-right">
-                            <div className="inline-flex items-center rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs font-semibold text-white/70">
-                              x{item.qty}
-                            </div>
-                            <p className="mt-3 text-3xl font-black tracking-tight text-emerald-300">
-                              ${calculateItemSubtotal(item).toFixed(2)}
-                            </p>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-              
-              <div className="grid gap-4 border-t border-white/10 bg-black/35 p-5 lg:grid-cols-[1fr_360px]">
-                <div className="space-y-3">
-                  <div className="rounded-[20px] border border-white/8 bg-black/20 px-5 py-4">
-                    <div className="flex items-center justify-between text-sm">
-                      <span className="font-medium text-gray-400">Subtotal</span>
-                      <span className="text-xl font-black tracking-tight text-white">${itemsSubtotal.toFixed(2)}</span>
-                    </div>
-                  </div>
-                  <div className="rounded-[20px] border border-white/8 bg-black/20 px-5 py-4">
-                    <div className="flex items-center justify-between text-sm">
-                      <span className="font-medium text-gray-400">IVU (11.5%)</span>
-                      <span className="text-xl font-black tracking-tight text-white">${taxAmount.toFixed(2)}</span>
-                    </div>
-                  </div>
-                  <div className="rounded-[20px] border border-emerald-500/15 bg-emerald-500/10 px-5 py-4">
-                    <div className="flex items-center justify-between">
-                      <span className="text-base font-bold text-white">Total</span>
-                      <span className="text-3xl font-black tracking-tight text-white">${total.toFixed(2)}</span>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="rounded-[24px] border border-orange-500/15 bg-[linear-gradient(180deg,rgba(249,115,22,0.08),rgba(0,0,0,0.18))] p-5">
-                  <p className="text-[11px] font-semibold uppercase tracking-[0.28em] text-white/35">Acciones de cobro</p>
-                  <h4 className="mt-2 text-2xl font-black tracking-tight text-white">
-                    {balanceDue > 0.01 ? "Cierra el pedido pendiente" : "Orden saldada"}
-                  </h4>
-                  <p className="mt-2 text-sm leading-relaxed text-white/55">
-                    {balanceDue > 0.01
-                      ? "Si el repuesto ya impacta el total, puedes registrar depósito o cobrar el restante sin salir del flujo."
-                      : "No hay cobro adicional pendiente. La orden ya está lista en términos económicos."}
-                  </p>
-                  {amountPaid > 0 && (
-                    <div className="mt-4 rounded-[18px] border border-emerald-500/15 bg-emerald-500/10 px-4 py-3">
-                      <div className="flex items-center justify-between text-sm">
-                        <span className="font-medium text-emerald-100/80">Pagado / Depósito</span>
-                        <span className="font-bold text-emerald-300">-${amountPaid.toFixed(2)}</span>
-                      </div>
-                      <div className="mt-3 flex items-center justify-between border-t border-emerald-400/10 pt-3">
-                        <span className="font-semibold text-white">Balance pendiente</span>
-                        <span className={`text-2xl font-black tracking-tight ${balanceDue <= 0.01 ? 'text-emerald-300' : 'text-white'}`}>
-                          ${balanceDue.toFixed(2)}
-                        </span>
-                      </div>
-                    </div>
-                  )}
-                  {balanceDue > 0.01 ? (
-                    <div className="mt-5 grid grid-cols-1 gap-4">
-                      <Button
-                        variant="outline"
-                        className="h-12 rounded-2xl border-emerald-500/30 text-emerald-300 hover:bg-emerald-500/10"
-                        onClick={() => {
-                          window.dispatchEvent(new Event('close-workorder-panel'));
-                          navigate(createPageUrl(`POS?workOrderId=${o.id}&balance=${balanceDue}&mode=deposit`), {
-                            state: { fromDashboard: true, paymentMode: "deposit", workOrder: o, balanceDue, openPaymentImmediately: true }
-                          });
-                        }}
-                      >
-                        Depósito
-                      </Button>
-                      <Button
-                        className="h-12 rounded-2xl bg-emerald-600 text-white shadow-lg shadow-emerald-900/20 hover:bg-emerald-500"
-                        onClick={() => {
-                          window.dispatchEvent(new Event('close-workorder-panel'));
-                          navigate(createPageUrl(`POS?workOrderId=${o.id}&balance=${balanceDue}&mode=full`), {
-                            state: { fromDashboard: true, paymentMode: "full", workOrder: o, balanceDue, openPaymentImmediately: true }
-                          });
-                        }}
-                      >
-                        Cobrar Restante
-                      </Button>
-                    </div>
-                  ) : (
-                    <div className="mt-5 rounded-[18px] border border-emerald-500/20 bg-emerald-500/10 p-4 text-center">
-                      <p className="text-lg font-bold text-emerald-400">Orden Saldada</p>
-                    </div>
-                  )}
-                </div>
-              </div>
-            </div>
-          )}
-        </div>
-      </section>
-
-      <WorkOrderUnifiedHub order={order} onUpdate={onUpdate} accent="amber" title="Centro de Historial" subtitle="Pedido, fotos, seguridad y notas operativas consolidadas en una sola pieza." />
-
-      <AddItemModal
-        open={showAddItemModal}
-        onClose={() => setShowAddItemModal(false)}
+      <SharedItemsSection
         order={o}
         onUpdate={onUpdate}
+        onOrderItemsUpdate={onOrderItemsUpdate}
+        onRemoteSaved={onRemoteSaved}
+        accentColor="orange"
+        subtitle="Mantén aquí la lista final de repuestos y servicios mientras el pedido está en tránsito."
       />
+
+      <WorkOrderUnifiedHub order={order} onUpdate={onUpdate} accent="amber" title="Centro de Historial" subtitle="Pedido, fotos, seguridad y notas operativas consolidadas en una sola pieza." />
 
       <Dialog open={activeModal === 'notes'} onOpenChange={() => setActiveModal(null)}>
         <DialogContent className="max-w-3xl bg-gradient-to-br from-[#0a0a0a] to-black border border-white/10 p-0 z-[9999] overflow-hidden shadow-2xl">

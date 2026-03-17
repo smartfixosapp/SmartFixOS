@@ -2922,13 +2922,37 @@ export default function WorkOrderPanel({ orderId, onClose, onUpdate, onDelete, p
                     />
                   )}
                   {status === "diagnosing" && (
-                    <DiagnosingStage order={o} onUpdate={async () => { await clearEventCache(o.id); await loadEventsCallback(true); await handleRefresh(); onUpdate?.(); }} />
+                    <DiagnosingStage
+                      order={o}
+                      onUpdate={async () => { await clearEventCache(o.id); await loadEventsCallback(true); await handleRefresh(); onUpdate?.(); }}
+                      onOrderItemsUpdate={handleOrderItemsSaved}
+                      onRemoteSaved={async () => {
+                        await new Promise((r) => setTimeout(r, 1500));
+                        await handleRefresh();
+                      }}
+                    />
                   )}
                   {status === "pending_order" && (
-                    <PendingOrderStage order={o} onUpdate={async () => { await clearEventCache(o.id); await loadEventsCallback(true); await handleRefresh(); onUpdate?.(); }} />
+                    <PendingOrderStage
+                      order={o}
+                      onUpdate={async () => { await clearEventCache(o.id); await loadEventsCallback(true); await handleRefresh(); onUpdate?.(); }}
+                      onOrderItemsUpdate={handleOrderItemsSaved}
+                      onRemoteSaved={async () => {
+                        await new Promise((r) => setTimeout(r, 1500));
+                        await handleRefresh();
+                      }}
+                    />
                   )}
                   {status === "waiting_parts" && (
-                    <WaitingPartsStage order={o} onUpdate={async () => { await clearEventCache(o.id); await loadEventsCallback(true); await handleRefresh(); onUpdate?.(); }} />
+                    <WaitingPartsStage
+                      order={o}
+                      onUpdate={async () => { await clearEventCache(o.id); await loadEventsCallback(true); await handleRefresh(); onUpdate?.(); }}
+                      onOrderItemsUpdate={handleOrderItemsSaved}
+                      onRemoteSaved={async () => {
+                        await new Promise((r) => setTimeout(r, 1500));
+                        await handleRefresh();
+                      }}
+                    />
                   )}
                   {status === "part_arrived_waiting_device" && (
                     <PartArrivedStage
