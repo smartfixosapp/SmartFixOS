@@ -37,7 +37,8 @@ export default function CheckoutModalDesktop({
   workOrderId,
   discountAmount,
   quickDepositAmounts,
-  quickCashAmounts
+  quickCashAmounts,
+  orderTotal
 }) {
   if (!open) return null;
 
@@ -98,18 +99,20 @@ export default function CheckoutModalDesktop({
                   <span>IVU (11.5%)</span>
                   <span>${tax.toFixed(2)}</span>
                 </div>
-                <div className="flex justify-between text-xl font-bold text-cyan-400 pt-2 border-t border-white/5">
-                  <span>Total</span>
-                  <span>${(Number(finalTotal) || 0).toFixed(2)}</span>
+                <div className={`flex justify-between font-bold pt-2 border-t border-white/5 ${workOrderId ? 'text-lg text-zinc-300' : 'text-xl text-cyan-400'}`}>
+                  <span>{workOrderId ? "Total de la Orden" : "Total"}</span>
+                  <span>${(Number(workOrderId ? orderTotal : finalTotal) || 0).toFixed(2)}</span>
                 </div>
 
-                {workOrderId && totalPaid > 0 && (
+                {workOrderId && (
                   <>
-                    <div className="flex justify-between text-sm text-blue-400 pt-2 border-t border-white/5">
-                      <span>Ya Pagado</span>
-                      <span className="font-bold">-${(Number(totalPaid) || 0).toFixed(2)}</span>
-                    </div>
-                    <div className="flex justify-between text-lg font-bold text-yellow-400 pt-1">
+                    {totalPaid > 0 && (
+                      <div className="flex justify-between text-sm text-blue-400 pt-1">
+                        <span>Ya Pagado</span>
+                        <span className="font-bold">-${(Number(totalPaid) || 0).toFixed(2)}</span>
+                      </div>
+                    )}
+                    <div className="flex justify-between text-xl font-bold text-yellow-500 pt-2 mt-2 border-t border-dashed border-white/10">
                       <span>Balance Pendiente</span>
                       <span>${(Number(finalTotal) || 0).toFixed(2)}</span>
                     </div>

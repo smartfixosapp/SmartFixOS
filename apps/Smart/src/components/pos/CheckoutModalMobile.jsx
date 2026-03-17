@@ -37,7 +37,8 @@ export default function CheckoutModalMobile({
   workOrderId,
   discountAmount,
   quickDepositAmounts,
-  quickCashAmounts
+  quickCashAmounts,
+  orderTotal
 }) {
   if (!open) return null;
 
@@ -65,12 +66,13 @@ export default function CheckoutModalMobile({
           <div className="flex-1 border-r border-white/10 p-5 space-y-4 overflow-y-auto">
             {/* Resumen de compra */}
             <div className="bg-gradient-to-br from-blue-500/20 to-blue-600/10 rounded-2xl p-4 border border-blue-500/30">
-              <p className="text-xs text-blue-300 mb-2 font-semibold">TOTAL A PAGAR</p>
-              <div className="text-3xl font-black text-white mb-3">${(Number(finalTotal) || 0).toFixed(2)}</div>
+              <p className="text-xs text-blue-300 mb-1 font-semibold">{workOrderId ? "TOTAL DE LA ORDEN" : "TOTAL A PAGAR"}</p>
+              <div className="text-2xl font-black text-white mb-2">${(Number(workOrderId ? orderTotal : finalTotal) || 0).toFixed(2)}</div>
 
-              {workOrderId && totalPaid > 0 && (
-                <div className="text-sm text-yellow-300 mb-2">
-                  <p>Ya pagado: ${(Number(totalPaid) || 0).toFixed(2)}</p>
+              {workOrderId && (
+                <div className="text-xs space-y-1 mb-2">
+                  {totalPaid > 0 && <p className="text-yellow-300 font-medium">Ya pagado: ${(Number(totalPaid) || 0).toFixed(2)}</p>}
+                  <p className="text-white font-black text-lg border-t border-blue-500/20 pt-1">Balance: ${(Number(finalTotal) || 0).toFixed(2)}</p>
                 </div>
               )}
 

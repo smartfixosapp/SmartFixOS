@@ -965,6 +965,7 @@ export default function POSDesktop() {
           workOrderId={selectedOrder?.id}
           totalPaid={totalPaid}
           orderBalance={orderBalance}
+          orderTotal={orderTotal}
         />
       )}
 

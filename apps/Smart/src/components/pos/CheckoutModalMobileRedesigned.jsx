@@ -30,9 +30,8 @@ export default function CheckoutModalMobileRedesigned({
   onConfirmPayment,
   enabledPaymentMethods,
   paymentMode,
-  totalPaid,
-  workOrderId,
-  discountAmount
+  discountAmount,
+  orderTotal
 }) {
   const [showCartDetails, setShowCartDetails] = useState(false);
   
@@ -100,14 +99,26 @@ export default function CheckoutModalMobileRedesigned({
               </div>
               
               <div className="border-t border-cyan-500/20 pt-3 flex justify-between items-center">
-                <span className="text-cyan-400 font-bold text-lg">Total</span>
-                <span className="text-cyan-400 font-bold text-2xl">${(Number(effectiveTotal) || 0).toFixed(2)}</span>
+                <span className={`font-bold ${workOrderId ? 'text-gray-400 text-sm' : 'text-cyan-400 text-lg'}`}>
+                  {workOrderId ? "Total Orden" : "Total"}
+                </span>
+                <span className={`font-bold ${workOrderId ? 'text-white text-lg' : 'text-cyan-400 text-2xl'}`}>
+                  ${(Number(workOrderId ? orderTotal : effectiveTotal) || 0).toFixed(2)}
+                </span>
               </div>
 
-              {totalPaid > 0 && (
-                <div className="border-t border-cyan-500/20 pt-3 flex justify-between items-center">
-                  <span className="text-blue-400 text-sm">Pagado</span>
-                  <span className="text-blue-400 font-bold">${(Number(totalPaid) || 0).toFixed(2)}</span>
+              {workOrderId && (
+                <div className="space-y-2 pt-2 border-t border-dashed border-cyan-500/10">
+                  {totalPaid > 0 && (
+                    <div className="flex justify-between items-center text-xs">
+                      <span className="text-blue-400">Ya Pagado</span>
+                      <span className="text-blue-400 font-bold">-${(Number(totalPaid) || 0).toFixed(2)}</span>
+                    </div>
+                  )}
+                  <div className="flex justify-between items-center">
+                    <span className="text-cyan-400 font-bold">A Cobrar</span>
+                    <span className="text-cyan-400 font-black text-2xl">${(Number(effectiveTotal) || 0).toFixed(2)}</span>
+                  </div>
                 </div>
               )}
             </div>

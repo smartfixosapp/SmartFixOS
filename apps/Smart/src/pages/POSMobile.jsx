@@ -914,7 +914,7 @@ export default function POSMobile() {
           paymentMode={paymentMode}
           workOrderId={selectedOrder?.id}
           totalPaid={totalPaid}
-          orderBalance={orderBalance}
+          orderTotal={orderTotal}
           quickDepositAmounts={[50, 100, 150]}
           quickCashAmounts={[20, 50, 100]}
           />
