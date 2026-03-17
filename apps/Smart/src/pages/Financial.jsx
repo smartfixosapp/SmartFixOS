@@ -30,6 +30,7 @@ import {
   checkCashRegisterStatus
 } from "@/components/cash/CashRegisterService";
 import { mergeSales, mergeTransactions, upsertLocalSale, upsertLocalTransactions } from "@/components/utils/localFinancialCache";
+import ErrorBoundary from "@/components/utils/ErrorBoundary";
 
 const StatCard = ({ title, value, icon: Icon, color, onClick, subtitle }) => (
   <div 
@@ -832,7 +833,7 @@ export default function Financial() {
           </div>
         </div>
 
-        <AlertasWidget />
+        <ErrorBoundary><AlertasWidget /></ErrorBoundary>
 
         {loadError && (
           <Card className="bg-red-950/40 border-red-500/40">
@@ -1103,7 +1104,7 @@ export default function Financial() {
           </TabsContent>
 
           <TabsContent value="allocations" className="space-y-6">
-            <OneTimeExpensesWidget />
+            <ErrorBoundary><OneTimeExpensesWidget /></ErrorBoundary>
 
             <div className="relative overflow-hidden bg-gradient-to-br from-indigo-500/10 to-cyan-500/10 border border-white/10 rounded-[32px] p-8 shadow-xl">
               <div className="absolute -right-10 -top-10 w-40 h-40 bg-indigo-500/10 rounded-full blur-[60px]" />
@@ -1316,11 +1317,13 @@ export default function Financial() {
               </div>
 
               {reportsView === "enhanced" ? (
-                <EnhancedReports
-                  dateFilter={dateFilter}
-                  customStartDate={customStartDate}
-                  customEndDate={customEndDate}
-                />
+                <ErrorBoundary>
+                  <EnhancedReports
+                    dateFilter={dateFilter}
+                    customStartDate={customStartDate}
+                    customEndDate={customEndDate}
+                  />
+                </ErrorBoundary>
               ) : (
                 <ReportesFinancieros />
               )}

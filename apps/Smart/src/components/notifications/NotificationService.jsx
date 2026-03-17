@@ -1,4 +1,5 @@
 import appClient from "@/api/appClient";
+import { base44 } from "@/api/base44Client";
 
 /**
  * Servicio centralizado para crear y enviar notificaciones

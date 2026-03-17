@@ -496,13 +496,32 @@ export default function EnhancedReports({ dateFilter, customStartDate, customEnd
       <div className="relative overflow-hidden bg-white/5 backdrop-blur-3xl border border-white/10 rounded-[40px] p-8 shadow-2xl group">
         <div className="absolute -right-20 -top-20 w-80 h-80 bg-cyan-600/10 rounded-full blur-[100px]" />
         
-        <div className="relative flex items-center gap-4 mb-10">
-          <div className="w-14 h-14 rounded-2xl bg-cyan-500/10 flex items-center justify-center border border-cyan-500/20">
-            <BarChart3 className="w-7 h-7 text-cyan-400" />
+        <div className="relative flex flex-col md:flex-row md:items-center justify-between gap-6 mb-10">
+          <div className="flex items-center gap-4">
+            <div className="w-14 h-14 rounded-2xl bg-cyan-500/10 flex items-center justify-center border border-cyan-500/20">
+              <BarChart3 className="w-7 h-7 text-cyan-400" />
+            </div>
+            <div>
+              <h3 className="text-2xl font-black text-white tracking-tight">Resumen de Inteligencia</h3>
+              <p className="text-xs text-white/30 font-bold uppercase tracking-[0.2em]">Visión General del Rendimiento</p>
+            </div>
           </div>
-          <div>
-            <h3 className="text-2xl font-black text-white tracking-tight">Resumen de Inteligencia</h3>
-            <p className="text-xs text-white/30 font-bold uppercase tracking-[0.2em]">Visión General del Rendimiento</p>
+          
+          <div className="flex gap-3">
+            <Button
+              variant="outline"
+              onClick={exportToPDF}
+              className="bg-white/5 border-white/10 text-white hover:bg-cyan-500/20 hover:text-cyan-400 hover:border-cyan-500/30 rounded-xl font-bold uppercase tracking-widest text-[10px] h-10 px-4 transition-all"
+            >
+              <FileText className="w-4 h-4 mr-2" /> PDF
+            </Button>
+            <Button
+              variant="outline"
+              onClick={exportToExcel}
+              className="bg-white/5 border-white/10 text-white hover:bg-emerald-500/20 hover:text-emerald-400 hover:border-emerald-500/30 rounded-xl font-bold uppercase tracking-widest text-[10px] h-10 px-4 transition-all"
+            >
+              <Download className="w-4 h-4 mr-2" /> Excel
+            </Button>
           </div>
         </div>
 

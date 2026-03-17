@@ -274,9 +274,9 @@ export default function OneTimeExpensesWidget() {
                         <span className="text-[10px] font-black text-white/40 uppercase tracking-widest">{Math.round(progress)}% Completado</span>
                         <span className="text-xs font-bold text-amber-400 tracking-tight">Faltan ${remaining.toFixed(2)}</span>
                       </div>
-                      <div className="h-3 bg-black/40 rounded-full overflow-hidden border border-white/5">
+                      <div className="h-3 bg-black/40 rounded-full overflow-hidden border border-white/5 relative">
                         <div 
-                          className="h-full bg-gradient-to-r from-amber-600 to-emerald-500 transition-all duration-1000"
+                          className="absolute top-0 left-0 h-full bg-gradient-to-r from-amber-600 to-emerald-500 transition-all duration-1000 shadow-[0_0_15px_rgba(16,185,129,0.4)]"
                           style={{ width: `${Math.min(100, progress)}%` }}
                         />
                       </div>
