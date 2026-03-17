@@ -10,7 +10,7 @@ import { Label } from "@/components/ui/label";
 import { Progress } from "@/components/ui/progress";
 import {
   Target, Plus, DollarSign, Calendar, Edit2, Trash2,
-  CheckCircle2, TrendingUp, Package
+  CheckCircle2, TrendingUp, Package, RefreshCw
 } from "lucide-react";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
@@ -183,34 +183,43 @@ export default function OneTimeExpensesWidget() {
 
   return (
     <>
-      <div className="bg-gradient-to-br from-amber-600/20 to-orange-600/20 border-2 border-amber-500/40 rounded-2xl p-4 theme-light:bg-gradient-to-br theme-light:from-amber-50 theme-light:to-orange-50 theme-light:border-amber-300">
-        <div className="flex items-center justify-between mb-4">
-          <div className="flex items-center gap-3">
-            <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-amber-500 to-orange-600 flex items-center justify-center shadow-lg">
-              <Target className="w-7 h-7 text-white" />
+      <div className="relative overflow-hidden bg-white/5 backdrop-blur-2xl border border-white/10 rounded-[40px] p-8 shadow-2xl group">
+        <div className="absolute -right-20 -top-20 w-80 h-80 bg-orange-600/10 rounded-full blur-[100px] group-hover:bg-orange-600/20 transition-all duration-700" />
+        
+        <div className="relative flex flex-col md:flex-row md:items-center justify-between gap-8 mb-8">
+          <div className="flex items-center gap-6">
+            <div className="w-16 h-16 rounded-3xl bg-gradient-to-br from-amber-500 to-orange-600 flex items-center justify-center shadow-2xl shadow-orange-500/20 transform -rotate-3 hover:rotate-0 transition-transform duration-500">
+              <Target className="w-8 h-8 text-white" />
             </div>
             <div>
-              <h3 className="text-white font-bold text-lg theme-light:text-gray-900">🎯 Metas y Compras</h3>
-              <p className="text-amber-300 text-xs theme-light:text-amber-700">Gastos únicos o inversiones</p>
+              <h3 className="text-2xl font-black text-white tracking-tighter mb-1">Metas & Inversiones</h3>
+              <div className="flex items-center gap-2">
+                <span className="w-2 h-2 rounded-full bg-amber-500 animate-pulse" />
+                <p className="text-xs text-white/40 font-bold uppercase tracking-[0.2em]">Adquisiciones Planeadas</p>
+              </div>
             </div>
           </div>
           <Button
-            size="sm"
+            size="lg"
             onClick={() => { resetForm(); setShowDialog(true); }}
-            className="bg-gradient-to-r from-amber-600 to-orange-600 h-9"
+            className="rounded-2xl bg-white/5 border border-white/10 hover:bg-white/10 text-white h-12 px-6 transition-all active:scale-95 font-bold"
           >
-            <Plus className="w-4 h-4 mr-1" />
-            Nueva
+            <Plus className="w-5 h-5 mr-2 text-amber-500" />
+            Nueva Meta
           </Button>
         </div>
 
-        <div className="space-y-3 max-h-[400px] overflow-y-auto">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-h-[600px] overflow-y-auto pr-2 custom-scrollbar">
           {loading ? (
-            <p className="text-gray-400 text-center py-4">Cargando...</p>
+            <div className="md:col-span-2 py-20 text-center">
+              <RefreshCw className="w-12 h-12 animate-spin mx-auto mb-4 text-amber-500/50" />
+              <p className="text-white/40 font-bold uppercase tracking-[0.2em] text-xs">Sincronizando Metas...</p>
+            </div>
           ) : expenses.length === 0 ? (
-            <div className="text-center py-8">
-              <Target className="w-12 h-12 text-gray-600 mx-auto mb-2 opacity-30" />
-              <p className="text-gray-500 text-sm">No hay metas creadas</p>
+            <div className="md:col-span-2 py-20 text-center bg-white/5 border border-white/10 border-dashed rounded-[32px]">
+              <Target className="w-16 h-16 text-white/10 mx-auto mb-4" />
+              <p className="text-xl font-black text-white/40 tracking-tight">Sin Metas Activas</p>
+              <p className="text-sm text-white/20">Tu visionario está descansando. ¡Crea una nueva meta!</p>
             </div>
           ) : (
             expenses.map((expense) => {
@@ -220,66 +229,66 @@ export default function OneTimeExpensesWidget() {
               return (
                 <div
                   key={expense.id}
-                  className="bg-black/30 border border-amber-500/20 rounded-xl p-4 theme-light:bg-white theme-light:border-gray-200"
+                  className="group relative overflow-hidden bg-white/5 border border-white/10 rounded-[32px] p-6 hover:border-white/20 transition-all duration-300"
                 >
-                  <div className="flex items-start justify-between gap-2 mb-3">
-                    <div className="flex items-center gap-2 flex-1 min-w-0">
-                      <span className="text-2xl">{getCategoryIcon(expense.category)}</span>
+                  <div className="flex items-start justify-between mb-6">
+                    <div className="flex items-center gap-4">
+                      <div className="w-14 h-14 rounded-2xl bg-black/40 border border-white/5 flex items-center justify-center text-3xl shadow-inner group-hover:scale-110 transition-transform duration-500">
+                        {getCategoryIcon(expense.category)}
+                      </div>
                       <div className="min-w-0">
-                        <p className="text-white font-bold truncate theme-light:text-gray-900">{expense.name}</p>
-                        <p className="text-xs text-gray-400 theme-light:text-gray-600">{expense.vendor || "Sin proveedor"}</p>
+                        <h4 className="text-white font-black tracking-tight text-lg">{expense.name}</h4>
+                        <div className="flex items-center gap-2">
+                          <span className="text-[10px] font-black text-amber-400/70 border border-amber-400/20 px-2 py-0.5 rounded-lg uppercase tracking-widest">{expense.category}</span>
+                          <span className="text-[10px] text-white/30 font-bold uppercase tracking-widest">{expense.vendor || "Directo"}</span>
+                        </div>
                       </div>
                     </div>
-                    <div className="flex items-center gap-1">
-                      <Button
-                        size="icon"
-                        variant="ghost"
-                        onClick={() => handleEdit(expense)}
-                        className="h-7 w-7 text-cyan-400 hover:bg-cyan-600/20"
-                      >
-                        <Edit2 className="w-3.5 h-3.5" />
+                    <div className="flex items-center gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <Button size="icon" onClick={() => handleEdit(expense)} className="w-9 h-9 rounded-xl bg-white/5 hover:bg-cyan-500/20 text-white/40 hover:text-cyan-400">
+                        <Edit2 className="w-4 h-4" />
                       </Button>
-                      <Button
-                        size="icon"
-                        variant="ghost"
-                        onClick={() => handleMarkPurchased(expense.id)}
-                        className="h-7 w-7 text-emerald-400 hover:bg-emerald-600/20"
-                      >
-                        <CheckCircle2 className="w-3.5 h-3.5" />
+                      <Button size="icon" onClick={() => handleMarkPurchased(expense.id)} className="w-9 h-9 rounded-xl bg-white/5 hover:bg-emerald-500/20 text-white/40 hover:text-emerald-400">
+                        <CheckCircle2 className="w-4 h-4" />
                       </Button>
-                      <Button
-                        size="icon"
-                        variant="ghost"
-                        onClick={() => handleDelete(expense.id)}
-                        className="h-7 w-7 text-red-400 hover:bg-red-600/20"
-                      >
-                        <Trash2 className="w-3.5 h-3.5" />
+                      <Button size="icon" onClick={() => handleDelete(expense.id)} className="w-9 h-9 rounded-xl bg-white/5 hover:bg-red-500/20 text-white/40 hover:text-red-400">
+                        <Trash2 className="w-4 h-4" />
                       </Button>
                     </div>
                   </div>
 
-                  <div className="space-y-2">
-                    <div className="flex justify-between text-sm">
-                      <span className="text-gray-400 theme-light:text-gray-600">Meta</span>
-                      <span className="text-white font-bold theme-light:text-gray-900">${expense.target_amount.toFixed(2)}</span>
-                    </div>
-                    <div className="flex justify-between text-sm">
-                      <span className="text-emerald-400 theme-light:text-emerald-700">Ahorrado</span>
-                      <span className="text-emerald-400 font-bold theme-light:text-emerald-700">${expense.saved_amount.toFixed(2)}</span>
-                    </div>
-                    <div className="flex justify-between text-sm">
-                      <span className="text-amber-400 theme-light:text-amber-700">Falta</span>
-                      <span className="text-amber-400 font-bold theme-light:text-amber-700">${remaining.toFixed(2)}</span>
+                  <div className="space-y-6">
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="p-4 bg-white/[0.03] rounded-2xl border border-white/5">
+                        <p className="text-[10px] font-black text-white/30 uppercase tracking-widest mb-1">Objetivo Fijo</p>
+                        <p className="text-xl font-black text-white">${expense.target_amount.toFixed(2)}</p>
+                      </div>
+                      <div className="p-4 bg-emerald-500/5 rounded-2xl border border-emerald-500/10">
+                        <p className="text-[10px] font-black text-emerald-400/50 uppercase tracking-widest mb-1">Recaudado</p>
+                        <p className="text-xl font-black text-emerald-400">${expense.saved_amount.toFixed(2)}</p>
+                      </div>
                     </div>
 
-                    <Progress value={progress} className="h-2 bg-black/40 theme-light:bg-gray-200" />
-                    <p className="text-xs text-center text-gray-500 theme-light:text-gray-600">{Math.round(progress)}% completado</p>
+                    <div className="space-y-2">
+                      <div className="flex justify-between items-center px-1">
+                        <span className="text-[10px] font-black text-white/40 uppercase tracking-widest">{Math.round(progress)}% Completado</span>
+                        <span className="text-xs font-bold text-amber-400 tracking-tight">Faltan ${remaining.toFixed(2)}</span>
+                      </div>
+                      <div className="h-3 bg-black/40 rounded-full overflow-hidden border border-white/5">
+                        <div 
+                          className="h-full bg-gradient-to-r from-amber-600 to-emerald-500 transition-all duration-1000"
+                          style={{ width: `${Math.min(100, progress)}%` }}
+                        />
+                      </div>
+                    </div>
 
                     {expense.target_date && (
-                      <Badge className="bg-cyan-600/20 text-cyan-300 border-cyan-600/30 text-xs">
-                        <Calendar className="w-3 h-3 mr-1" />
-                        {format(new Date(expense.target_date), "dd MMM yyyy", { locale: es })}
-                      </Badge>
+                      <div className="flex items-center gap-2 px-3 py-1.5 bg-white/5 border border-white/5 rounded-xl w-fit">
+                        <Calendar className="w-3.5 h-3.5 text-white/40" />
+                        <span className="text-[10px] font-black text-white/50 uppercase tracking-widest">
+                          Meta: {format(new Date(expense.target_date), "dd MMMM", { locale: es })}
+                        </span>
+                      </div>
                     )}
                   </div>
                 </div>
@@ -290,136 +299,121 @@ export default function OneTimeExpensesWidget() {
       </div>
 
       <Dialog open={showDialog} onOpenChange={resetForm}>
-        <DialogContent className="bg-gradient-to-br from-[#2B2B2B] to-black border-amber-500/30 max-w-2xl max-h-[90vh] overflow-y-auto theme-light:bg-white">
-          <DialogHeader>
-            <DialogTitle className="text-white flex items-center gap-2 theme-light:text-gray-900">
-              <Target className="w-6 h-6 text-amber-400" />
-              {editingExpense ? "Editar Meta" : "Nueva Meta"}
-            </DialogTitle>
-          </DialogHeader>
+        <DialogContent className="max-w-[95vw] sm:max-w-2xl bg-[#0A0A0A]/95 backdrop-blur-3xl border border-white/10 rounded-[32px] shadow-2xl p-0 overflow-hidden">
+          <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-amber-600 to-orange-600" />
+          
+          <div className="p-8 sm:p-10">
+            <DialogHeader className="mb-8">
+              <div className="flex items-center gap-4">
+                <div className="w-12 h-12 rounded-2xl bg-amber-500/10 flex items-center justify-center border border-amber-500/20">
+                  <Target className="w-6 h-6 text-amber-400" />
+                </div>
+                <DialogTitle className="text-2xl font-black text-white tracking-tight text-left">
+                  {editingExpense ? "Actualizar Meta" : "Forjar Nueva Meta"}
+                </DialogTitle>
+              </div>
+            </DialogHeader>
 
-          <div className="space-y-4">
-            <div>
-              <Label className="text-gray-300 theme-light:text-gray-700">Nombre *</Label>
-              <Input
-                value={formData.name}
-                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                placeholder="Ej: Soldador nuevo, Computadora, Vitrina..."
-                className="bg-black/40 border-amber-500/20 text-white theme-light:bg-white theme-light:text-gray-900"
-              />
-            </div>
-
-            <div>
-              <Label className="text-gray-300 theme-light:text-gray-700">Descripción</Label>
-              <Textarea
-                value={formData.description}
-                onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                placeholder="Detalles de la meta..."
-                className="bg-black/40 border-amber-500/20 text-white theme-light:bg-white theme-light:text-gray-900"
-              />
-            </div>
-
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <Label className="text-gray-300 theme-light:text-gray-700">Categoría</Label>
-                <select
-                  value={formData.category}
-                  onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-                  className="w-full h-10 bg-black/40 border border-amber-500/20 rounded-md px-3 text-white theme-light:bg-white theme-light:text-gray-900"
-                >
-                  <option value="tool">Herramienta</option>
-                  <option value="equipment">Equipo</option>
-                  <option value="renovation">Renovación</option>
-                  <option value="emergency">Emergencia</option>
-                  <option value="investment">Inversión</option>
-                  <option value="other">Otro</option>
-                </select>
+            <div className="space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="space-y-2">
+                  <label className="text-[10px] font-black text-white/40 uppercase tracking-widest ml-1">Proyecto / Logro</label>
+                  <Input 
+                    value={formData.name} 
+                    onChange={(e) => setFormData({ ...formData, name: e.target.value })} 
+                    placeholder="Ej. Nueva Estación de Soldado" 
+                    className="bg-white/5 border-white/10 text-white h-12 rounded-2xl px-5 focus:border-amber-500/50 font-bold" 
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-[10px] font-black text-white/40 uppercase tracking-widest ml-1">Proveedor / Link</label>
+                  <Input 
+                    value={formData.vendor} 
+                    onChange={(e) => setFormData({ ...formData, vendor: e.target.value })} 
+                    placeholder="Ej. Amazon, Home Depot..." 
+                    className="bg-white/5 border-white/10 text-white h-12 rounded-2xl px-5 focus:border-amber-500/50 font-bold" 
+                  />
+                </div>
               </div>
 
-              <div>
-                <Label className="text-gray-300 theme-light:text-gray-700">Prioridad</Label>
-                <select
-                  value={formData.priority}
-                  onChange={(e) => setFormData({ ...formData, priority: e.target.value })}
-                  className="w-full h-10 bg-black/40 border border-amber-500/20 rounded-md px-3 text-white theme-light:bg-white theme-light:text-gray-900"
-                >
-                  <option value="low">Baja</option>
-                  <option value="medium">Media</option>
-                  <option value="high">Alta</option>
-                  <option value="urgent">Urgente</option>
-                </select>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <Label className="text-gray-300 theme-light:text-gray-700">Costo Total *</Label>
-                <Input
-                  type="number"
-                  step="0.01"
-                  value={formData.target_amount}
-                  onChange={(e) => setFormData({ ...formData, target_amount: e.target.value })}
-                  placeholder="0.00"
-                  className="bg-black/40 border-amber-500/20 text-white theme-light:bg-white theme-light:text-gray-900"
+              <div className="space-y-2">
+                <label className="text-[10px] font-black text-white/40 uppercase tracking-widest ml-1">Misión y Propósito</label>
+                <Textarea 
+                  value={formData.description} 
+                  onChange={(e) => setFormData({ ...formData, description: e.target.value })} 
+                  placeholder="Describe por qué esta meta es importante para el taller..." 
+                  className="bg-white/5 border-white/10 text-white min-h-[100px] rounded-2xl p-5 focus:border-amber-500/50 font-medium resize-none" 
                 />
               </div>
 
-              <div>
-                <Label className="text-gray-300 theme-light:text-gray-700">Ahorrado</Label>
-                <Input
-                  type="number"
-                  step="0.01"
-                  value={formData.saved_amount}
-                  onChange={(e) => setFormData({ ...formData, saved_amount: e.target.value })}
-                  placeholder="0.00"
-                  className="bg-black/40 border-amber-500/20 text-white theme-light:bg-white theme-light:text-gray-900"
-                />
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                {Object.entries({
+                  tool: "🔧 Herram.",
+                  equipment: "⚙️ Equipo",
+                  renovation: "🏗️ Local",
+                  emergency: "🚨 Emer.",
+                  investment: "💼 Inves.",
+                  other: "📦 Otro"
+                }).map(([val, label]) => (
+                  <button 
+                    key={val} 
+                    onClick={() => setFormData({ ...formData, category: val })}
+                    className={`py-3 rounded-2xl border transition-all text-[10px] font-black uppercase tracking-tight ${
+                      formData.category === val 
+                        ? "bg-amber-500/20 border-amber-500/40 text-amber-400" 
+                        : "bg-white/5 border-white/5 text-white/40 hover:border-white/20"
+                    }`}
+                  >
+                    {label}
+                  </button>
+                ))}
+              </div>
+
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-6">
+                <div className="space-y-2">
+                  <label className="text-[10px] font-black text-white/40 uppercase tracking-widest ml-1">Presupuesto ($)</label>
+                  <Input 
+                    type="number" 
+                    value={formData.target_amount} 
+                    onChange={(e) => setFormData({ ...formData, target_amount: e.target.value })} 
+                    placeholder="0.00" 
+                    className="bg-white/5 border-white/10 text-white h-12 rounded-2xl px-5 focus:border-amber-500/50 font-bold" 
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-[10px] font-black text-white/40 uppercase tracking-widest ml-1">Capital Actual ($)</label>
+                  <Input 
+                    type="number" 
+                    value={formData.saved_amount} 
+                    onChange={(e) => setFormData({ ...formData, saved_amount: e.target.value })} 
+                    placeholder="0.00" 
+                    className="bg-white/5 border-white/10 text-white h-12 rounded-2xl px-5 focus:border-emerald-500/50 font-bold" 
+                  />
+                </div>
+                <div className="space-y-2 md:col-span-1 col-span-2">
+                  <label className="text-[10px] font-black text-white/40 uppercase tracking-widest ml-1">Fecha Límite</label>
+                  <Input 
+                    type="date" 
+                    value={formData.target_date} 
+                    onChange={(e) => setFormData({ ...formData, target_date: e.target.value })} 
+                    className="bg-white/5 border-white/10 text-white h-12 rounded-2xl px-5 focus:border-cyan-500/50 font-bold" 
+                  />
+                </div>
               </div>
             </div>
 
-            <div>
-              <Label className="text-gray-300 theme-light:text-gray-700">Fecha objetivo (opcional)</Label>
-              <Input
-                type="date"
-                value={formData.target_date}
-                onChange={(e) => setFormData({ ...formData, target_date: e.target.value })}
-                className="bg-black/40 border-amber-500/20 text-white theme-light:bg-white theme-light:text-gray-900"
-              />
-            </div>
-
-            <div>
-              <Label className="text-gray-300 theme-light:text-gray-700">Proveedor (opcional)</Label>
-              <Input
-                value={formData.vendor}
-                onChange={(e) => setFormData({ ...formData, vendor: e.target.value })}
-                placeholder="Ej: Amazon, Home Depot, Grainger..."
-                className="bg-black/40 border-amber-500/20 text-white theme-light:bg-white theme-light:text-gray-900"
-              />
-            </div>
-
-            <div>
-              <Label className="text-gray-300 theme-light:text-gray-700">Notas</Label>
-              <Textarea
-                value={formData.notes}
-                onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-                placeholder="Notas adicionales..."
-                className="bg-black/40 border-amber-500/20 text-white theme-light:bg-white theme-light:text-gray-900"
-              />
-            </div>
-
-            <div className="flex gap-2 pt-4">
-              <Button
-                variant="outline"
-                onClick={resetForm}
-                className="flex-1 border-white/15"
+            <div className="flex gap-4 pt-8">
+              <Button 
+                onClick={resetForm} 
+                className="flex-1 bg-white/5 border border-white/10 hover:bg-white/10 text-white h-14 rounded-2xl font-black uppercase tracking-widest active:scale-95 transition-all"
               >
-                Cancelar
+                Suspender
               </Button>
-              <Button
-                onClick={handleSave}
-                className="flex-1 bg-gradient-to-r from-amber-600 to-orange-600"
+              <Button 
+                onClick={handleSave} 
+                className="flex-1 bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-500 hover:to-orange-500 text-white h-14 rounded-2xl font-black uppercase tracking-widest shadow-xl shadow-orange-900/20 active:scale-95 transition-all"
               >
-                {editingExpense ? "Actualizar" : "Guardar"}
+                {editingExpense ? "Actualizar Plan" : "Iniciar Proyecto"}
               </Button>
             </div>
           </div>

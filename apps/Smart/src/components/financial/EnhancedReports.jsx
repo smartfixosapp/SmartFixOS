@@ -475,125 +475,173 @@ export default function EnhancedReports({ dateFilter, customStartDate, customEnd
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center py-12">
+      <div className="flex flex-col items-center justify-center py-32 space-y-6">
+        <div className="relative">
+          <div className="w-20 h-20 border-4 border-cyan-500/20 rounded-full" />
+          <div className="absolute top-0 w-20 h-20 border-4 border-cyan-500 border-t-transparent rounded-full animate-spin" />
+          <PieChart className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-8 h-8 text-cyan-400" />
+        </div>
         <div className="text-center">
-          <div className="w-16 h-16 border-4 border-cyan-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-gray-400">Cargando reporte...</p>
+          <p className="text-xl font-black text-white tracking-tighter mb-2">Compilando Inteligencia Financiera</p>
+          <p className="text-sm text-white/30 uppercase tracking-[0.2em] font-bold">Analizando flujos de caja y distribución...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="space-y-4 pt-6">
-
+    <div className="space-y-10 pt-8 animate-in fade-in slide-in-from-bottom-4 duration-1000">
+      
       {/* 📊 RESUMEN EJECUTIVO */}
-      <Card className="bg-gradient-to-br from-cyan-600/20 to-emerald-600/20 border-2 border-cyan-500/40 theme-light:bg-white">
-        <CardHeader>
-          <CardTitle className="text-white flex items-center gap-2 theme-light:text-gray-900">
-            <BarChart3 className="w-5 h-5 text-cyan-400" />
-            Resumen Ejecutivo
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-3">
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-            <div className="bg-black/30 rounded-xl p-4 border border-emerald-500/30 theme-light:bg-emerald-50">
-              <p className="text-xs text-emerald-300 mb-1 theme-light:text-emerald-700">💵 Ingresos Brutos</p>
-              <p className="text-2xl font-black text-emerald-400 theme-light:text-emerald-600">${totalGrossRevenue.toFixed(2)}</p>
-            </div>
-            <div className="bg-black/30 rounded-xl p-4 border border-cyan-500/30 theme-light:bg-cyan-50">
-              <p className="text-xs text-cyan-300 mb-1 theme-light:text-cyan-700">💰 Ingresos Netos</p>
-              <p className="text-2xl font-black text-cyan-400 theme-light:text-cyan-600">${totalNetRevenue.toFixed(2)}</p>
-            </div>
-            <div className="bg-black/30 rounded-xl p-4 border border-blue-500/30 theme-light:bg-blue-50">
-              <p className="text-xs text-blue-300 mb-1 theme-light:text-blue-700">🧾 IVU Recaudado</p>
-              <p className="text-2xl font-black text-blue-400 theme-light:text-blue-600">${totalTaxCollected.toFixed(2)}</p>
+      <div className="relative overflow-hidden bg-white/5 backdrop-blur-3xl border border-white/10 rounded-[40px] p-8 shadow-2xl group">
+        <div className="absolute -right-20 -top-20 w-80 h-80 bg-cyan-600/10 rounded-full blur-[100px]" />
+        
+        <div className="relative flex items-center gap-4 mb-10">
+          <div className="w-14 h-14 rounded-2xl bg-cyan-500/10 flex items-center justify-center border border-cyan-500/20">
+            <BarChart3 className="w-7 h-7 text-cyan-400" />
+          </div>
+          <div>
+            <h3 className="text-2xl font-black text-white tracking-tight">Resumen de Inteligencia</h3>
+            <p className="text-xs text-white/30 font-bold uppercase tracking-[0.2em]">Visión General del Rendimiento</p>
+          </div>
+        </div>
+
+        <div className="relative grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {/* Main Net Profit Card */}
+          <div className={`lg:col-span-3 p-8 rounded-[32px] border transition-all duration-500 ${netProfit >= 0 ? 'bg-emerald-500/5 border-emerald-500/20 shadow-lg shadow-emerald-500/5' : 'bg-red-500/5 border-red-500/20 shadow-lg shadow-red-500/5'}`}>
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+              <div>
+                <p className={`text-xs font-black uppercase tracking-[0.3em] mb-2 ${netProfit >= 0 ? 'text-emerald-400/60' : 'text-red-400/60'}`}>Utilidad Neta del Período</p>
+                <h4 className={`text-6xl font-black tracking-tighter ${netProfit >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
+                  ${netProfit.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                </h4>
+              </div>
+              <div className="flex gap-4">
+                <div className="text-right">
+                  <p className="text-[10px] font-black text-white/30 uppercase tracking-widest mb-1">Transacciones</p>
+                  <p className="text-2xl font-black text-white">{filteredSales.length + filteredRecharges.length}</p>
+                </div>
+                <div className="w-px h-12 bg-white/10 mx-2 self-center" />
+                <div className="text-right">
+                  <p className="text-[10px] font-black text-white/30 uppercase tracking-widest mb-1">Efectividad</p>
+                  <p className="text-2xl font-black text-cyan-400">{totalNetRevenue > 0 ? Math.round((netProfit / totalNetRevenue) * 100) : 0}%</p>
+                </div>
+              </div>
             </div>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-            <div className="bg-black/30 rounded-xl p-4 border border-red-500/30 theme-light:bg-red-50">
-              <p className="text-xs text-red-300 mb-1 theme-light:text-red-700">💸 Total Gastos</p>
-              <p className="text-2xl font-black text-red-400 theme-light:text-red-600">${totalExpenses.toFixed(2)}</p>
+          {[
+            { label: 'Ingresos Brutos', value: totalGrossRevenue, color: 'emerald', icon: DollarSign, sub: 'Ventas + Comisiones' },
+            { label: 'Ingresos Netos', value: totalNetRevenue, color: 'cyan', icon: TrendingUp, sub: 'Excluyendo Impuestos' },
+            { label: 'IVU Recaudado', value: totalTaxCollected, color: 'blue', icon: Receipt, sub: 'Retención Gubernamental' },
+            { label: 'Total Gastos', value: totalExpenses, color: 'red', icon: TrendingDown, sub: 'Operativos + Fijos' },
+            { label: 'Ticket Promedio', value: filteredSales.length > 0 ? totalGrossRevenue / filteredSales.length : 0, color: 'amber', icon: Package, sub: 'Por Pedido' },
+            { label: 'Impacto Gastos', value: totalGrossRevenue > 0 ? (totalExpenses / totalGrossRevenue) * 100 : 0, color: 'purple', icon: Target, isPercent: true, sub: 'Sobre Ingresos' }
+          ].map((item, idx) => (
+            <div key={idx} className="bg-white/[0.03] border border-white/5 rounded-[32px] p-6 hover:bg-white/[0.05] hover:border-white/10 transition-all duration-300">
+              <div className="flex items-center gap-3 mb-4">
+                <div className={`w-10 h-10 rounded-xl bg-${item.color}-500/10 flex items-center justify-center border border-${item.color}-500/20`}>
+                  <item.icon className={`w-5 h-5 text-${item.color}-400`} />
+                </div>
+                <div>
+                  <p className="text-[10px] font-black text-white/30 uppercase tracking-widest">{item.label}</p>
+                  <p className="text-[9px] text-white/10 font-bold uppercase">{item.sub}</p>
+                </div>
+              </div>
+              <p className="text-3xl font-black text-white tracking-tight">
+                {item.isPercent ? '' : '$'}{item.value.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}{item.isPercent ? '%' : ''}
+              </p>
             </div>
-            <div className={`bg-black/30 rounded-xl p-4 border theme-light:bg-purple-50 ${netProfit >= 0 ? 'border-purple-500/30' : 'border-red-500/30'}`}>
-              <p className={`text-xs mb-1 theme-light:text-purple-700 ${netProfit >= 0 ? 'text-purple-300' : 'text-red-300'}`}>✨ Utilidad Neta</p>
-              <p className={`text-2xl font-black ${netProfit >= 0 ? 'text-purple-400 theme-light:text-purple-600' : 'text-red-400 theme-light:text-red-600'}`}>${netProfit.toFixed(2)}</p>
+          ))}
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        {/* 💳 INGRESOS POR MÉTODO DE PAGO */}
+        <div className="relative overflow-hidden bg-white/5 backdrop-blur-3xl border border-white/10 rounded-[40px] p-8 shadow-2xl">
+          <div className="flex items-center gap-4 mb-8">
+            <div className="w-12 h-12 rounded-2xl bg-emerald-500/10 flex items-center justify-center border border-emerald-500/20">
+              <CreditCard className="w-6 h-6 text-emerald-400" />
             </div>
-            <div className="bg-black/30 rounded-xl p-4 border border-gray-500/30 theme-light:bg-gray-50">
-              <p className="text-xs text-gray-300 mb-1 theme-light:text-gray-700">📊 Transacciones</p>
-              <p className="text-2xl font-black text-white theme-light:text-gray-900">{filteredSales.length + filteredRecharges.length}</p>
+            <div>
+              <h3 className="text-xl font-black text-white tracking-tight">Fuentes de Ingreso</h3>
+              <p className="text-xs text-white/30 font-bold uppercase tracking-widest">Distribución de Cobros</p>
             </div>
           </div>
-        </CardContent>
-      </Card>
 
-      {/* 💳 INGRESOS POR MÉTODO DE PAGO */}
-      <Card className="bg-gradient-to-br from-[#2B2B2B] to-black border-cyan-500/20 theme-light:bg-white">
-        <CardHeader>
-          <CardTitle className="text-white flex items-center gap-2 theme-light:text-gray-900">
-            <CreditCard className="w-5 h-5 text-emerald-400" />
-            Ingresos por Método de Pago
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             {Object.entries(revenueByPaymentMethod).map(([method, data]) => {
               const icons = { cash: Wallet, card: CreditCard, ath_movil: Landmark, transfer: DollarSign, mixed: Receipt };
               const labels = { cash: 'Efectivo', card: 'Tarjeta', ath_movil: 'ATH Móvil', transfer: 'Transferencia', mixed: 'Mixto' };
               const Icon = icons[method];
               
               return (
-                <div key={method} className="bg-black/30 rounded-xl p-3 border border-emerald-500/20 theme-light:bg-gray-50">
-                  <div className="flex items-center gap-2 mb-2">
-                    <Icon className="w-4 h-4 text-emerald-400 theme-light:text-emerald-600" />
-                    <p className="text-xs text-gray-300 theme-light:text-gray-700">{labels[method]}</p>
+                <div key={method} className="bg-white/[0.03] p-5 rounded-3xl border border-white/5 group hover:bg-emerald-500/5 hover:border-emerald-500/10 transition-all">
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="flex items-center gap-3">
+                      <div className="w-8 h-8 rounded-lg bg-black/40 flex items-center justify-center border border-white/5">
+                        <Icon className="w-4 h-4 text-emerald-400" />
+                      </div>
+                      <p className="text-[10px] font-black text-white/40 uppercase tracking-widest">{labels[method]}</p>
+                    </div>
+                    <span className="text-[10px] font-black text-white/20">{data.count} ops</span>
                   </div>
-                  <p className="text-lg font-black text-emerald-400 theme-light:text-emerald-600">${data.amount.toFixed(2)}</p>
-                  <p className="text-xs text-gray-500">{data.count} trans.</p>
+                  <p className="text-2xl font-black text-white">${data.amount.toLocaleString(undefined, { minimumFractionDigits: 2 })}</p>
+                  <div className="mt-2 h-1 bg-white/5 rounded-full overflow-hidden">
+                    <div 
+                      className="h-full bg-emerald-500/50 shadow-[0_0_8px_rgba(16,185,129,0.5)]" 
+                      style={{ width: `${totalGrossRevenue > 0 ? (data.amount / totalGrossRevenue) * 100 : 0}%` }}
+                    />
+                  </div>
                 </div>
               );
             })}
           </div>
-        </CardContent>
-      </Card>
+        </div>
 
-      {/* 💸 GASTOS POR CATEGORÍA */}
-      <Card className="bg-gradient-to-br from-[#2B2B2B] to-black border-red-500/20 theme-light:bg-white">
-        <CardHeader>
-          <CardTitle className="text-white flex items-center gap-2 theme-light:text-gray-900">
-            <PieChart className="w-5 h-5 text-red-400" />
-            Gastos por Categoría
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-3">
+        {/* 💸 GASTOS POR CATEGORÍA DETALLADOS */}
+        <div className="relative overflow-hidden bg-white/5 backdrop-blur-3xl border border-white/10 rounded-[40px] p-8 shadow-2xl">
+          <div className="flex items-center gap-4 mb-8">
+            <div className="w-12 h-12 rounded-2xl bg-red-500/10 flex items-center justify-center border border-red-500/20">
+              <PieChart className="w-6 h-6 text-red-400" />
+            </div>
+            <div>
+              <h3 className="text-xl font-black text-white tracking-tight">Análisis de Egresos</h3>
+              <p className="text-xs text-white/30 font-bold uppercase tracking-widest">Distribución de Gastos</p>
+            </div>
+          </div>
+
+          <div className="space-y-4">
             {Object.entries(expensesByCategory).map(([key, cat]) => (
-              <div key={key} className="bg-black/30 rounded-xl p-4 border border-red-500/10 theme-light:bg-gray-50">
+              <div key={key} className="bg-white/[0.03] p-5 rounded-3xl border border-white/5 hover:bg-red-500/5 hover:border-red-500/10 transition-all">
                 <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-lg bg-red-600/20 flex items-center justify-center text-2xl">
+                  <div className="flex items-center gap-4">
+                    <div className="w-12 h-12 rounded-2xl bg-black/40 flex items-center justify-center text-2xl border border-white/5 shadow-inner">
                       {cat.icon}
                     </div>
                     <div>
-                      <p className="text-white font-semibold theme-light:text-gray-900">{cat.label}</p>
-                      <p className="text-xs text-gray-400 theme-light:text-gray-600">{cat.items.length} registros</p>
+                      <p className="text-sm font-black text-white uppercase tracking-tight">{cat.label}</p>
+                      <p className="text-[10px] text-white/40 font-bold uppercase tracking-widest">{cat.items.length} Entradas</p>
                     </div>
                   </div>
-                  <p className="text-xl font-black text-red-400 theme-light:text-red-600">${cat.total.toFixed(2)}</p>
+                  <div className="text-right">
+                    <p className="text-2xl font-black text-red-400">${cat.total.toLocaleString(undefined, { minimumFractionDigits: 2 })}</p>
+                    <p className="text-[10px] font-black text-white/20 uppercase tracking-widest">
+                      {totalExpenses > 0 ? Math.round((cat.total / totalExpenses) * 100) : 0}% del total
+                    </p>
+                  </div>
+                </div>
+                <div className="mt-4 h-1.5 bg-white/5 rounded-full overflow-hidden">
+                  <div 
+                    className="h-full bg-red-500 shadow-[0_0_10px_rgba(239,68,68,0.5)]" 
+                    style={{ width: `${totalExpenses > 0 ? (cat.total / totalExpenses) * 100 : 0}%` }}
+                  />
                 </div>
               </div>
             ))}
           </div>
-
-          <div className="mt-4 pt-4 border-t border-red-500/20">
-            <div className="flex justify-between items-center">
-              <p className="text-white font-bold theme-light:text-gray-900">Total Gastos</p>
-              <p className="text-2xl font-black text-red-400 theme-light:text-red-600">${totalExpenses.toFixed(2)}</p>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
     </div>
   );
 }

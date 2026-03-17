@@ -31,34 +31,47 @@ import {
 } from "@/components/cash/CashRegisterService";
 import { mergeSales, mergeTransactions, upsertLocalSale, upsertLocalTransactions } from "@/components/utils/localFinancialCache";
 
-const StatCard = ({ title, value, icon: Icon, color, onClick }) => (
-  <Card 
+const StatCard = ({ title, value, icon: Icon, color, onClick, subtitle }) => (
+  <div 
     onClick={onClick}
-    className={`bg-gradient-to-br from-[#2B2B2B] to-black border-cyan-500/20 hover:shadow-lg hover:shadow-cyan-600/20 transition-all theme-light:bg-white theme-light:border-gray-200 ${onClick ? 'cursor-pointer hover:scale-105 active:scale-95' : ''}`}>
-    <CardContent className="p-3 sm:p-4 lg:pt-6">
-      <div className="flex flex-col sm:flex-row justify-between items-start gap-2 sm:gap-0">
-        <div className="flex-1 w-full">
-          <p className="text-[10px] sm:text-xs lg:text-sm font-medium text-gray-400 uppercase tracking-wide theme-light:text-gray-600">{title}</p>
-          <p className={`text-xl sm:text-2xl lg:text-3xl font-bold mt-1 sm:mt-2 ${
-            color === 'green' ? 'text-emerald-400 theme-light:text-emerald-600' :
-            color === 'red' ? 'text-red-400 theme-light:text-red-600' :
-            color === 'blue' ? 'text-cyan-400 theme-light:text-cyan-600' : 'text-white theme-light:text-gray-900'
-          }`}>{value}</p>
-        </div>
-        <div className={`p-2 sm:p-2.5 lg:p-3 rounded-lg sm:rounded-xl border ${
-          color === 'green' ? 'bg-emerald-600/20 border-emerald-500/30 theme-light:bg-emerald-100' :
-          color === 'red' ? 'bg-red-600/20 border-red-500/30 theme-light:bg-red-100' :
-          color === 'blue' ? 'bg-cyan-600/20 border-cyan-500/30 theme-light:bg-cyan-100' : 'bg-gray-600/20 border-gray-500/30'
+    className={`relative overflow-hidden p-6 rounded-[28px] border transition-all duration-300 group ${
+      onClick ? 'cursor-pointer hover:scale-[1.02] active:scale-[0.98]' : ''
+    } ${
+      color === 'green' ? 'bg-emerald-500/10 border-emerald-500/20 hover:border-emerald-500/40 shadow-[0_8px_32px_rgba(16,185,129,0.1)]' :
+      color === 'red' ? 'bg-red-500/10 border-red-500/20 hover:border-red-500/40 shadow-[0_8px_32px_rgba(239,68,68,0.1)]' :
+      color === 'blue' ? 'bg-cyan-500/10 border-cyan-500/20 hover:border-cyan-500/40 shadow-[0_8px_32px_rgba(6,182,212,0.1)]' : 
+      'bg-white/5 border-white/10 hover:border-white/20 shadow-[0_8px_32px_rgba(0,0,0,0.2)]'
+    } backdrop-blur-xl`}
+  >
+    {/* Glow effect */}
+    <div className={`absolute -right-4 -top-4 w-24 h-24 rounded-full blur-[40px] opacity-20 transition-opacity group-hover:opacity-40 ${
+      color === 'green' ? 'bg-emerald-400' :
+      color === 'red' ? 'bg-red-400' :
+      color === 'blue' ? 'bg-cyan-400' : 'bg-white'
+    }`} />
+
+    <div className="relative flex justify-between items-start">
+      <div className="space-y-1">
+        <p className="text-[10px] font-black uppercase tracking-[0.2em] text-white/40">{title}</p>
+        <h3 className={`text-2xl sm:text-3xl font-black tracking-tight ${
+          color === 'green' ? 'text-emerald-400' :
+          color === 'red' ? 'text-red-400' :
+          color === 'blue' ? 'text-cyan-400' : 'text-white'
         }`}>
-          <Icon className={`w-4 h-4 sm:w-5 sm:h-5 lg:w-6 lg:h-6 ${
-            color === 'green' ? 'text-emerald-400 theme-light:text-emerald-600' :
-            color === 'red' ? 'text-red-400 theme-light:text-red-600' :
-            color === 'blue' ? 'text-cyan-400 theme-light:text-cyan-600' : 'text-gray-400'
-          }`} />
-        </div>
+          {value}
+        </h3>
+        {subtitle && <p className="text-[10px] text-white/30 font-medium">{subtitle}</p>}
       </div>
-    </CardContent>
-  </Card>
+      <div className={`p-3 rounded-2xl border transition-colors duration-300 ${
+        color === 'green' ? 'bg-emerald-500/20 border-emerald-500/30 text-emerald-400 group-hover:bg-emerald-500/30' :
+        color === 'red' ? 'bg-red-500/20 border-red-500/30 text-red-400 group-hover:bg-red-500/30' :
+        color === 'blue' ? 'bg-cyan-500/20 border-cyan-500/30 text-cyan-400 group-hover:bg-cyan-500/30' : 
+        'bg-white/10 border-white/10 text-white group-hover:bg-white/20'
+      }`}>
+        <Icon className="w-5 h-5 sm:w-6 sm:h-6" />
+      </div>
+    </div>
+  </div>
 );
 
 const getFrequencyDivisor = (frequency) => {
@@ -794,22 +807,25 @@ export default function Financial() {
     <div className="min-h-screen bg-black/95 p-4 sm:p-6 lg:p-8">
       <div className="max-w-7xl mx-auto space-y-6">
         
-        <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-[32px] p-6 shadow-2xl">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-cyan-500 to-blue-600 flex items-center justify-center shadow-lg shadow-cyan-500/20">
-                <DollarSign className="w-7 h-7 text-white" />
+        <div className="relative overflow-hidden bg-white/5 backdrop-blur-2xl border border-white/10 rounded-[40px] p-8 shadow-2xl group">
+          <div className="absolute -right-20 -top-20 w-80 h-80 bg-cyan-600/10 rounded-full blur-[100px] group-hover:bg-cyan-600/20 transition-all duration-700" />
+          
+          <div className="relative flex items-center justify-between">
+            <div className="flex items-center gap-6">
+              <div className="w-20 h-20 rounded-3xl bg-gradient-to-br from-cyan-500 to-blue-600 flex items-center justify-center shadow-2xl shadow-cyan-500/20 transform rotate-3 hover:rotate-0 transition-transform duration-500">
+                <DollarSign className="w-10 h-10 text-white" />
               </div>
               <div>
-                <h1 className="text-3xl font-bold text-white tracking-tight">Finanzas</h1>
-                <p className="text-base text-gray-400 font-medium">Control de ingresos y gastos</p>
+                <h1 className="text-4xl lg:text-5xl font-black text-white tracking-tighter mb-1">Finanzas</h1>
+                <div className="flex items-center gap-2">
+                  <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                  <p className="text-sm text-white/40 font-bold uppercase tracking-[0.2em]">Gestión de Capital & Utilidad</p>
+                </div>
               </div>
             </div>
             <Button
               onClick={() => navigate(createPageUrl("UsersManagement"))}
-              size="icon"
-              variant="ghost"
-              className="text-cyan-400 hover:text-cyan-300 hover:bg-cyan-600/10 theme-light:text-cyan-600"
+              className="w-14 h-14 rounded-full bg-white/5 hover:bg-white/10 border border-white/10 text-white transition-all hover:scale-110 active:scale-90"
             >
               <X className="w-6 h-6" />
             </Button>
@@ -838,375 +854,435 @@ export default function Financial() {
         )}
 
         {/* Filtros de Fecha */}
-        <Card className="bg-gradient-to-br from-[#2B2B2B] to-black border-cyan-500/20 theme-light:bg-white">
-          <CardContent className="p-3 sm:p-4">
-            <div className="flex items-center gap-2 mb-3">
-              <Filter className="w-4 h-4 text-cyan-400" />
-              <h3 className="text-sm font-bold text-white theme-light:text-gray-900">Filtrar por Período</h3>
-            </div>
-            <div className="grid grid-cols-2 sm:grid-cols-6 gap-2">
-              <Button
-                onClick={() => setDateFilter("all")}
-                variant={dateFilter === "all" ? "default" : "outline"}
-                className={dateFilter === "all" ? "bg-gradient-to-r from-cyan-600 to-emerald-600" : "border-cyan-500/20"}
-                size="sm"
-              >
-                Todo
-              </Button>
-              <Button
-                onClick={() => setDateFilter("today")}
-                variant={dateFilter === "today" ? "default" : "outline"}
-                className={dateFilter === "today" ? "bg-gradient-to-r from-cyan-600 to-emerald-600" : "border-cyan-500/20"}
-                size="sm"
-              >
-                Hoy
-              </Button>
-              <Button
-                onClick={() => setDateFilter("week")}
-                variant={dateFilter === "week" ? "default" : "outline"}
-                className={dateFilter === "week" ? "bg-gradient-to-r from-cyan-600 to-emerald-600" : "border-cyan-500/20"}
-                size="sm"
-              >
-                Semana
-              </Button>
-              <Button
-                onClick={() => setDateFilter("month")}
-                variant={dateFilter === "month" ? "default" : "outline"}
-                className={dateFilter === "month" ? "bg-gradient-to-r from-cyan-600 to-emerald-600" : "border-cyan-500/20"}
-                size="sm"
-              >
-                Mes
-              </Button>
-              <Button
-                onClick={() => setDateFilter("custom")}
-                variant={dateFilter === "custom" ? "default" : "outline"}
-                className={dateFilter === "custom" ? "bg-gradient-to-r from-cyan-600 to-emerald-600" : "border-cyan-500/20"}
-                size="sm"
-              >
-                Personalizado
-              </Button>
-            </div>
-            
-            {dateFilter === "custom" && (
-              <div className="grid grid-cols-2 gap-2 mt-3">
-                <div>
-                  <label className="text-xs text-gray-400 mb-1 block">Desde</label>
-                  <Input
-                    type="date"
-                    value={customStartDate}
-                    onChange={(e) => setCustomStartDate(e.target.value)}
-                    className="bg-black/40 border-cyan-500/20 text-white h-9 text-sm theme-light:bg-white"
-                  />
-                </div>
-                <div>
-                  <label className="text-xs text-gray-400 mb-1 block">Hasta</label>
-                  <Input
-                    type="date"
-                    value={customEndDate}
-                    onChange={(e) => setCustomEndDate(e.target.value)}
-                    className="bg-black/40 border-cyan-500/20 text-white h-9 text-sm theme-light:bg-white"
-                  />
-                </div>
+        <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-[32px] p-6 shadow-xl">
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-cyan-500/20 flex items-center justify-center border border-cyan-500/30">
+                <Filter className="w-5 h-5 text-cyan-400" />
               </div>
-            )}
-          </CardContent>
-        </Card>
+              <div>
+                <h3 className="text-white font-bold text-lg tracking-tight">Período de Análisis</h3>
+                <p className="text-xs text-white/40 uppercase tracking-widest font-black">Filtrar registros</p>
+              </div>
+            </div>
 
-        <div className="flex flex-wrap gap-2">
-          <Button onClick={handleManualRefresh} disabled={loading} variant="outline" className="border-cyan-500/20 h-8 sm:h-9 text-xs sm:text-sm theme-light:border-gray-300">
-            <RefreshCw className={`w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2 ${loading ? 'animate-spin' : ''}`} />
-            <span className="hidden xs:inline">Actualizar</span>
-            <span className="xs:hidden">↻</span>
+            <div className="flex flex-wrap items-center gap-1.5 p-1.5 bg-black/40 border border-white/5 rounded-[20px] backdrop-blur-md">
+              {[
+                { id: "all", label: "Historial" },
+                { id: "today", label: "Hoy" },
+                { id: "week", label: "Semana" },
+                { id: "month", label: "Mes" },
+                { id: "custom", label: "Rango" },
+              ].map((pill) => (
+                <button
+                  key={pill.id}
+                  onClick={() => setDateFilter(pill.id)}
+                  className={`px-5 py-2 rounded-2xl text-xs font-bold transition-all duration-300 ${
+                    dateFilter === pill.id
+                      ? "bg-gradient-to-r from-cyan-600 to-blue-600 text-white shadow-lg shadow-cyan-600/20 scale-105"
+                      : "text-white/40 hover:text-white/70 hover:bg-white/5"
+                  }`}
+                >
+                  {pill.label}
+                </button>
+              ))}
+            </div>
+          </div>
+          
+          {dateFilter === "custom" && (
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-6 pt-6 border-t border-white/5">
+              <div className="space-y-2">
+                <label className="text-[10px] font-black text-white/40 uppercase tracking-widest ml-1">Desde</label>
+                <Input
+                  type="date"
+                  value={customStartDate}
+                  onChange={(e) => setCustomStartDate(e.target.value)}
+                  className="bg-black/40 border-white/10 text-white h-12 rounded-2xl px-4 focus:border-cyan-500/50 transition-colors"
+                />
+              </div>
+              <div className="space-y-2">
+                <label className="text-[10px] font-black text-white/40 uppercase tracking-widest ml-1">Hasta</label>
+                <Input
+                  type="date"
+                  value={customEndDate}
+                  onChange={(e) => setCustomEndDate(e.target.value)}
+                  className="bg-black/40 border-white/10 text-white h-12 rounded-2xl px-4 focus:border-cyan-500/50 transition-colors"
+                />
+              </div>
+            </div>
+          )}
+        </div>
+
+        <div className="flex flex-wrap items-center gap-3">
+          <Button 
+            onClick={handleManualRefresh} 
+            disabled={loading} 
+            className="rounded-2xl bg-white/5 border border-white/10 hover:bg-white/10 text-white h-12 px-6 transition-all active:scale-95"
+          >
+            <RefreshCw className={`w-4 h-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
+            <span className="font-bold">Actualizar</span>
           </Button>
 
-          <Button onClick={exportToCSV} className="bg-gradient-to-r from-purple-600 to-blue-600 h-8 sm:h-9 text-xs sm:text-sm">
-            <Download className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
-            <span className="hidden sm:inline">Exportar CSV</span>
-            <span className="sm:hidden">Exportar</span>
+          <Button 
+            onClick={exportToCSV} 
+            className="rounded-2xl bg-gradient-to-r from-indigo-600 to-blue-600 hover:from-indigo-500 hover:to-blue-500 text-white h-12 px-6 shadow-lg shadow-blue-900/20 transition-all active:scale-95"
+          >
+            <Download className="w-4 h-4 mr-2" />
+            <span className="font-bold">Exportar CSV</span>
           </Button>
 
-          <Button onClick={() => setShowExpenseDialog(true)} className="bg-orange-600 hover:bg-orange-700 h-8 sm:h-9 text-xs sm:text-sm">
-            <Plus className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
-            <span className="hidden sm:inline">Registrar Gasto</span>
-            <span className="sm:hidden">Gasto</span>
+          <div className="h-8 w-[1px] bg-white/10 mx-2 hidden md:block" />
+
+          <Button 
+            onClick={() => setShowExpenseDialog(true)} 
+            className="rounded-2xl bg-white/5 border border-orange-500/30 hover:bg-orange-600 hover:border-orange-500 text-white h-12 px-6 transition-all active:scale-95 group"
+          >
+            <Plus className="w-4 h-4 mr-2 text-orange-400 group-hover:text-white" />
+            <span className="font-bold">Nuevo Gasto</span>
           </Button>
 
           {drawerOpen ? (
-            <Button onClick={() => setShowCloseDrawer(true)} className="bg-red-800 hover:bg-red-900 h-8 sm:h-9 text-xs sm:text-sm">
-              <Wallet className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
-              <span className="hidden sm:inline">Cerrar Caja</span>
-              <span className="sm:hidden">Cerrar</span>
+            <Button 
+              onClick={() => setShowCloseDrawer(true)} 
+              className="rounded-2xl bg-red-500/10 border border-red-500/30 hover:bg-red-600 text-red-400 hover:text-white h-12 px-6 transition-all active:scale-95"
+            >
+              <Wallet className="w-4 h-4 mr-2" />
+              <span className="font-bold">Cerrar Caja</span>
             </Button>
           ) : (
-            <Button onClick={() => setShowOpenDrawer(true)} className="bg-emerald-600 hover:bg-emerald-700 h-8 sm:h-9 text-xs sm:text-sm">
-              <Wallet className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
-              <span className="hidden sm:inline">Abrir Caja</span>
-              <span className="sm:hidden">Abrir</span>
+            <Button 
+              onClick={() => setShowOpenDrawer(true)} 
+              className="rounded-2xl bg-emerald-500/10 border border-emerald-500/30 hover:bg-emerald-600 text-emerald-400 hover:text-white h-12 px-6 transition-all active:scale-95"
+            >
+              <Wallet className="w-4 h-4 mr-2" />
+              <span className="font-bold">Abrir Caja</span>
             </Button>
           )}
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-3 lg:gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
           <StatCard 
-            title="Ingresos Totales" 
+            title="Ingresos" 
             value={`$${totalRevenue.toFixed(2)}`} 
+            subtitle="Recaudación bruta"
             icon={TrendingUp} 
             color="green"
             onClick={() => openTransactionsModal(filteredSales, "Todas las Transacciones")}
           />
           <StatCard 
-            title="Ventas con IVU" 
+            title="Con IVU" 
             value={`$${totalSalesWithTax.toFixed(2)}`} 
+            subtitle="Ventas grabadas"
             icon={Receipt} 
             color="blue"
             onClick={() => openTransactionsModal(salesWithTax, "Ventas con IVU")}
           />
           <StatCard 
-            title="Ventas sin IVU" 
+            title="Sin IVU" 
             value={`$${totalSalesWithoutTax.toFixed(2)}`} 
+            subtitle="Ventas exentas"
             icon={Receipt} 
             color="blue"
             onClick={() => openTransactionsModal(salesWithoutTax, "Ventas sin IVU")}
           />
           <StatCard 
-            title="IVU Recaudado" 
+            title="IVU" 
             value={`$${filteredSales.reduce((sum, s) => sum + (s.tax_amount || 0), 0).toFixed(2)}`} 
+            subtitle="Impuesto total"
             icon={Landmark} 
             color="blue"
             onClick={() => openTransactionsModal(filteredSales, "Desglose de IVU")}
           />
         </div>
 
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="bg-black/40 border border-cyan-500/20 backdrop-blur-xl w-full grid grid-cols-2 sm:grid-cols-4 gap-0.5 sm:gap-1 p-0.5 sm:p-1 theme-light:bg-white">
-            <TabsTrigger value="sales" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-cyan-600 data-[state=active]:to-emerald-600 data-[state=active]:text-white text-[10px] sm:text-xs lg:text-sm px-1 sm:px-2 py-1.5 sm:py-2">
-              <span className="hidden sm:inline">💵 Ventas</span>
-              <span className="sm:hidden">💵</span>
-            </TabsTrigger>
-            <TabsTrigger value="allocations" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-cyan-600 data-[state=active]:to-emerald-600 data-[state=active]:text-white text-[10px] sm:text-xs lg:text-sm px-1 sm:px-2 py-1.5 sm:py-2">
-              <span className="hidden sm:inline">💰 Gastos Fijos</span>
-              <span className="sm:hidden">💰</span>
-            </TabsTrigger>
-            <TabsTrigger value="expenses" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-cyan-600 data-[state=active]:to-emerald-600 data-[state=active]:text-white text-[10px] sm:text-xs lg:text-sm px-1 sm:px-2 py-1.5 sm:py-2">
-              <span className="hidden sm:inline">💸 Gastos</span>
-              <span className="sm:hidden">💸</span>
-            </TabsTrigger>
-            <TabsTrigger value="reportes" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-cyan-600 data-[state=active]:to-emerald-600 data-[state=active]:text-white text-[10px] sm:text-xs lg:text-sm px-1 sm:px-2 py-1.5 sm:py-2">
-              <span className="hidden sm:inline">📊 Reportes</span>
-              <span className="sm:hidden">📊</span>
-            </TabsTrigger>
-          </TabsList>
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full space-y-8">
+          <div className="flex justify-center">
+            <TabsList className="bg-white/5 border border-white/10 backdrop-blur-xl p-1.5 rounded-[24px] h-auto gap-2">
+              <TabsTrigger 
+                value="sales" 
+                className="rounded-2xl px-8 py-3 data-[state=active]:bg-gradient-to-r data-[state=active]:from-cyan-600 data-[state=active]:to-blue-600 data-[state=active]:text-white data-[state=active]:shadow-lg data-[state=active]:shadow-cyan-600/20 transition-all duration-300"
+              >
+                <div className="flex items-center gap-2">
+                  <Receipt className="w-4 h-4" />
+                  <span className="font-bold">Ventas</span>
+                </div>
+              </TabsTrigger>
+              <TabsTrigger 
+                value="allocations" 
+                className="rounded-2xl px-8 py-3 data-[state=active]:bg-gradient-to-r data-[state=active]:from-cyan-600 data-[state=active]:to-blue-600 data-[state=active]:text-white data-[state=active]:shadow-lg data-[state=active]:shadow-cyan-600/20 transition-all duration-300"
+              >
+                <div className="flex items-center gap-2">
+                  <Target className="w-4 h-4" />
+                  <span className="font-bold">Distribución</span>
+                </div>
+              </TabsTrigger>
+              <TabsTrigger 
+                value="expenses" 
+                className="rounded-2xl px-8 py-3 data-[state=active]:bg-gradient-to-r data-[state=active]:from-cyan-600 data-[state=active]:to-blue-600 data-[state=active]:text-white data-[state=active]:shadow-lg data-[state=active]:shadow-cyan-600/20 transition-all duration-300"
+              >
+                <div className="flex items-center gap-2">
+                  <CreditCard className="w-4 h-4" />
+                  <span className="font-bold">Gastos</span>
+                </div>
+              </TabsTrigger>
+              <TabsTrigger 
+                value="reportes" 
+                className="rounded-2xl px-8 py-3 data-[state=active]:bg-gradient-to-r data-[state=active]:from-cyan-600 data-[state=active]:to-blue-600 data-[state=active]:text-white data-[state=active]:shadow-lg data-[state=active]:shadow-cyan-600/20 transition-all duration-300"
+              >
+                <div className="flex items-center gap-2">
+                  <PieChart className="w-4 h-4" />
+                  <span className="font-bold">Informes</span>
+                </div>
+              </TabsTrigger>
+            </TabsList>
+          </div>
 
           <TabsContent value="sales">
-            <Card className="bg-gradient-to-br from-[#2B2B2B] to-black border-cyan-500/20 theme-light:bg-white">
-              <CardHeader className="p-3 sm:p-4 lg:p-6">
-                <CardTitle className="text-white flex items-center justify-between text-base sm:text-lg lg:text-xl theme-light:text-gray-900">
-                  <span>💵 Ventas</span>
-                  <Badge className="bg-emerald-600/20 text-emerald-300 border-emerald-500/30 theme-light:bg-emerald-100 text-xs sm:text-sm">${totalRevenue.toFixed(2)}</Badge>
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="p-3 sm:p-4 lg:p-6">
+            <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-[32px] overflow-hidden shadow-2xl">
+              <div className="p-8 border-b border-white/5 flex items-center justify-between">
+                <div>
+                  <h3 className="text-xl font-black text-white tracking-tight">Registro de Ventas</h3>
+                  <p className="text-xs text-white/40 uppercase tracking-widest font-bold">Transacciones liquidadas</p>
+                </div>
+                <div className="px-6 py-2 bg-emerald-500/10 border border-emerald-500/20 rounded-2xl">
+                  <p className="text-[10px] text-emerald-400 font-black uppercase tracking-widest text-center">Total Periodo</p>
+                  <p className="text-2xl font-black text-emerald-400">${totalRevenue.toFixed(2)}</p>
+                </div>
+              </div>
+              <div className="p-4 sm:p-6 lg:p-8">
                 {loading ? (
-                  <div className="p-8 sm:p-12 text-center">
-                    <RefreshCw className="w-10 h-10 sm:w-12 sm:h-12 animate-spin mx-auto mb-4 text-cyan-500" />
-                    <p className="text-gray-400 text-sm sm:text-base">Cargando...</p>
+                  <div className="p-20 text-center">
+                    <RefreshCw className="w-12 h-12 animate-spin mx-auto mb-4 text-cyan-500/50" />
+                    <p className="text-white/40 font-bold uppercase tracking-widest text-xs">Sincronizando...</p>
                   </div>
                 ) : filteredSales.length === 0 ? (
-                  <div className="p-8 sm:p-12 text-center">
-                    <Receipt className="w-12 h-12 sm:w-16 sm:h-16 text-gray-600 mx-auto mb-4" />
-                    <p className="text-lg sm:text-xl font-bold text-gray-400">No hay ventas en este período</p>
+                  <div className="p-20 text-center">
+                    <div className="w-20 h-20 bg-white/5 rounded-full flex items-center justify-center mx-auto mb-6">
+                      <Receipt className="w-10 h-10 text-white/20" />
+                    </div>
+                    <p className="text-xl font-black text-white/40 tracking-tight">Sin Ventas</p>
+                    <p className="text-sm text-white/20">No se encontraron registros en este rango.</p>
                   </div>
                 ) : (
-                  <div className="space-y-2 sm:space-y-3 max-h-[400px] sm:max-h-[600px] overflow-y-auto">
+                  <div className="space-y-3 max-h-[600px] overflow-y-auto pr-2 custom-scrollbar">
                     {filteredSales.map((s) => {
                       const Icon = paymentMethodIcons[s.payment_method] || DollarSign;
                       return (
-                        <div key={s.id} className="p-3 sm:p-4 bg-black/30 rounded-lg sm:rounded-xl border border-cyan-500/10 theme-light:bg-gray-50">
-                          <div className="flex items-center justify-between gap-2 sm:gap-4 flex-wrap sm:flex-nowrap">
-                            <div className="flex-1 min-w-0">
-                              <div className="flex items-center gap-1.5 sm:gap-3 mb-1 sm:mb-2 flex-wrap">
-                                <Badge className="bg-cyan-600/20 text-cyan-300 font-mono text-[10px] sm:text-xs theme-light:bg-cyan-100">{s.sale_number}</Badge>
-                                <Badge variant="outline" className="capitalize flex items-center gap-1 sm:gap-1.5 text-[10px] sm:text-xs">
-                                  <Icon className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
-                                  <span className="hidden xs:inline">{s.payment_method === 'ath_movil' ? 'ATH' : s.payment_method}</span>
-                                </Badge>
+                        <div key={s.id} className="group p-5 bg-white/[0.03] hover:bg-white/[0.06] rounded-[24px] border border-white/5 hover:border-white/10 transition-all duration-300">
+                          <div className="flex items-center justify-between gap-6">
+                            <div className="flex items-center gap-5">
+                              <div className="w-12 h-12 rounded-[18px] bg-black/40 border border-white/5 flex items-center justify-center text-white/60 group-hover:text-cyan-400 group-hover:border-cyan-500/30 transition-all">
+                                <Icon className="w-5 h-5" />
                               </div>
-                              <p className="text-white text-xs sm:text-sm truncate theme-light:text-gray-900">{s.customer_name || 'Cliente'} • {s.items?.length || 0} items</p>
-                              <p className="text-gray-500 text-[10px] sm:text-xs">
-                                {getEntityDate(s) ? format(new Date(getEntityDate(s)), 'dd/MM/yyyy HH:mm') : "-"}
-                              </p>
+                              <div className="min-w-0">
+                                <div className="flex items-center gap-2 mb-1">
+                                  <span className="text-[10px] font-black text-cyan-400 bg-cyan-400/10 px-2 py-0.5 rounded-lg border border-cyan-400/20 uppercase">#{s.sale_number}</span>
+                                  <span className="text-[10px] font-bold text-white/30 uppercase tracking-widest">
+                                    {getEntityDate(s) ? format(new Date(getEntityDate(s)), 'dd MMM, HH:mm', { locale: es }) : "-"}
+                                  </span>
+                                </div>
+                                <h4 className="text-white font-bold truncate tracking-tight">{s.customer_name || 'Consumidor Final'}</h4>
+                                <p className="text-xs text-white/40 font-medium">{s.items?.length || 0} productos liquidados</p>
+                              </div>
                             </div>
-                            <p className="text-xl sm:text-2xl lg:text-3xl font-black text-emerald-400 theme-light:text-emerald-600 whitespace-nowrap">${(s.total || 0).toFixed(2)}</p>
+                            <div className="text-right">
+                              <p className="text-2xl font-black text-emerald-400 tracking-tighter">${(s.total || 0).toFixed(2)}</p>
+                              <div className="flex items-center justify-end gap-1.5 mt-1">
+                                <div className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+                                <span className="text-[9px] font-black text-white/30 uppercase tracking-widest">Cobrado</span>
+                              </div>
+                            </div>
                           </div>
                         </div>
                       );
                     })}
                   </div>
                 )}
-              </CardContent>
-            </Card>
+              </div>
+            </div>
           </TabsContent>
 
-          <TabsContent value="allocations" className="space-y-3 sm:space-y-4 lg:space-y-6">
+          <TabsContent value="allocations" className="space-y-6">
             <OneTimeExpensesWidget />
 
-            <div className="bg-gradient-to-br from-cyan-600/20 to-emerald-600/20 border-2 border-cyan-500/40 rounded-xl sm:rounded-2xl p-3 sm:p-4 lg:p-6 theme-light:bg-white">
-              <div className="flex items-center gap-2 sm:gap-3 mb-3 sm:mb-4">
-                <Calendar className="w-5 h-5 sm:w-6 sm:h-6 text-cyan-400" />
-                <div>
-                  <h3 className="text-white font-bold text-sm sm:text-base lg:text-xl theme-light:text-gray-900">Utilidad de Hoy: {format(new Date(), "dd 'de' MMMM", { locale: es })}</h3>
-                  <p className="text-gray-400 text-[10px] sm:text-xs lg:text-sm theme-light:text-gray-600">Los % se calculan sobre esta ganancia</p>
+            <div className="relative overflow-hidden bg-gradient-to-br from-indigo-500/10 to-cyan-500/10 border border-white/10 rounded-[32px] p-8 shadow-xl">
+              <div className="absolute -right-10 -top-10 w-40 h-40 bg-indigo-500/10 rounded-full blur-[60px]" />
+              
+              <div className="relative flex flex-col md:flex-row md:items-center justify-between gap-8">
+                <div className="flex items-center gap-4">
+                  <div className="w-12 h-12 rounded-2xl bg-indigo-500/20 flex items-center justify-center border border-indigo-500/30">
+                    <Calendar className="w-6 h-6 text-indigo-400" />
+                  </div>
+                  <div>
+                    <h3 className="text-xl font-black text-white tracking-tight">Análisis de Utilidad</h3>
+                    <p className="text-xs text-white/40 uppercase tracking-widest font-bold">Proyección {format(new Date(), "MMMM yyyy", { locale: es })}</p>
+                  </div>
                 </div>
-              </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 sm:gap-3 lg:gap-4">
-                <div className="bg-black/30 rounded-lg sm:rounded-xl p-3 sm:p-4 border border-emerald-500/20 theme-light:bg-emerald-50">
-                  <p className="text-xs sm:text-sm text-emerald-200 mb-1 theme-light:text-emerald-700">💵 Ingresos de Hoy</p>
-                  <p className="text-xl sm:text-2xl lg:text-3xl font-black text-emerald-400 theme-light:text-emerald-600">${todayRevenue.toFixed(2)}</p>
-                  <p className="text-[10px] sm:text-xs text-emerald-200/80 theme-light:text-emerald-700">Ganancia de ventas base: ${todaySalesProfit.toFixed(2)}</p>
-                </div>
-                <div className="bg-black/30 rounded-lg sm:rounded-xl p-3 sm:p-4 border border-red-500/20 theme-light:bg-red-50">
-                  <p className="text-xs sm:text-sm text-red-200 mb-1 theme-light:text-red-700">💸 Gastos de Hoy</p>
-                  <p className="text-xl sm:text-2xl lg:text-3xl font-black text-red-400 theme-light:text-red-600">${todayExpenses.toFixed(2)}</p>
-                </div>
-                <div className="bg-black/30 rounded-lg sm:rounded-xl p-3 sm:p-4 border border-cyan-500/20 theme-light:bg-cyan-50">
-                  <p className="text-xs sm:text-sm text-cyan-200 mb-1 theme-light:text-cyan-700">✨ Utilidad de Hoy</p>
-                  <p className={`text-xl sm:text-2xl lg:text-3xl font-black ${todayNetProfit >= 0 ? 'text-cyan-400' : 'text-red-400'}`}>${todayNetProfit.toFixed(2)}</p>
+                <div className="grid grid-cols-1 xs:grid-cols-3 gap-4 flex-1 max-w-2xl">
+                  <div className="p-4 bg-white/[0.03] rounded-2xl border border-emerald-500/10">
+                    <p className="text-[10px] text-white/30 font-black uppercase tracking-widest mb-1">Ingresos</p>
+                    <p className="text-xl font-black text-emerald-400">${todayRevenue.toFixed(2)}</p>
+                  </div>
+                  <div className="p-4 bg-white/[0.03] rounded-2xl border border-red-500/10">
+                    <p className="text-[10px] text-white/30 font-black uppercase tracking-widest mb-1">Egresos</p>
+                    <p className="text-xl font-black text-red-400">-${todayExpenses.toFixed(2)}</p>
+                  </div>
+                  <div className={`p-4 rounded-2xl border ${todayNetProfit >= 0 ? 'bg-cyan-500/10 border-cyan-500/10' : 'bg-red-500/10 border-red-500/10'}`}>
+                    <p className="text-[10px] text-white/30 font-black uppercase tracking-widest mb-1">Neto Hoy</p>
+                    <p className={`text-xl font-black ${todayNetProfit >= 0 ? 'text-cyan-400' : 'text-red-400'}`}>${todayNetProfit.toFixed(2)}</p>
+                  </div>
                 </div>
               </div>
             </div>
 
-            <div className="flex justify-end">
-              <Button onClick={() => { setEditingExpense(null); setShowFixedExpenseDialog(true); }} className="bg-gradient-to-r from-cyan-600 to-emerald-700 h-8 sm:h-9 text-xs sm:text-sm">
-                <Plus className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
-                <span className="hidden sm:inline">Añadir Gasto Fijo</span>
-                <span className="sm:hidden">Añadir</span>
+            <div className="flex items-center justify-between px-2">
+              <div>
+                <h4 className="text-lg font-black text-white tracking-tight">Cartera de Gastos Fijos</h4>
+                <p className="text-xs text-white/40 font-bold uppercase tracking-widest">Distribución automática de utilidades</p>
+              </div>
+              <Button onClick={() => { setEditingExpense(null); setShowFixedExpenseDialog(true); }} className="rounded-2xl bg-white/5 border border-white/10 hover:bg-white/10 text-white h-11 px-5 transition-all active:scale-95 group">
+                <Plus className="w-4 h-4 mr-2 text-cyan-400 group-hover:text-white" />
+                <span className="font-bold">Añadir Gasto</span>
               </Button>
             </div>
 
-            <div className="space-y-2 sm:space-y-3 lg:space-y-4">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
               {fixedExpenses.length === 0 ? (
-                <Card className="bg-gradient-to-br from-amber-600/10 to-amber-800/10 border-amber-500/20 theme-light:bg-white">
-                  <CardContent className="p-8 sm:p-12 text-center">
-                    <PieChart className="w-16 h-16 sm:w-20 sm:h-20 text-amber-400 mx-auto mb-4" />
-                    <h3 className="text-lg sm:text-xl font-bold text-white mb-2 theme-light:text-gray-900">No hay gastos fijos</h3>
-                    <Button onClick={() => setShowFixedExpenseDialog(true)} className="bg-gradient-to-r from-cyan-600 to-emerald-700 mt-4 text-sm sm:text-base">
-                      <Plus className="w-4 h-4 mr-2" />Crear Primer Gasto
-                    </Button>
-                  </CardContent>
-                </Card>
+                <div className="lg:col-span-2 p-20 text-center bg-white/5 border border-white/10 border-dashed rounded-[32px]">
+                  <PieChart className="w-16 h-16 text-white/10 mx-auto mb-4" />
+                  <p className="text-xl font-black text-white/40 tracking-tight">Sin Gastos Fijos</p>
+                  <p className="text-sm text-white/20 mb-8">Define aportaciones automáticas para tus gastos recurrentes.</p>
+                  <Button onClick={() => setShowFixedExpenseDialog(true)} className="rounded-2xl bg-gradient-to-r from-cyan-600 to-blue-600 text-white px-8 h-12 font-bold">
+                    Crear Primer Gasto
+                  </Button>
+                </div>
               ) : (
                 dailyAllocations.map((allocation) => (
-                  <Card key={allocation.id} className="bg-gradient-to-br from-slate-800/60 to-slate-900/60 border-cyan-500/20 theme-light:bg-white">
-                    <CardContent className="p-3 sm:p-4 lg:p-5">
-                      <div className="flex items-start sm:items-center justify-between gap-3 sm:gap-4 flex-wrap">
-                        <div className="flex items-center gap-2 sm:gap-3 lg:gap-4 flex-1 min-w-0">
-                          <div className="w-12 h-12 sm:w-14 sm:h-14 lg:w-16 lg:h-16 rounded-xl sm:rounded-2xl bg-gradient-to-br from-cyan-600/30 to-emerald-600/30 flex items-center justify-center text-2xl sm:text-3xl border border-cyan-500/30 flex-shrink-0">
-                            {allocation.icon || getCategoryIcon(allocation.category)}
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <h3 className="text-sm sm:text-base lg:text-lg font-bold text-white truncate theme-light:text-gray-900">{allocation.name}</h3>
-                            {allocation.allocation_mode === "target_due_day" ? (
-                              <div className="flex flex-wrap items-center gap-1.5">
-                                <Badge className="bg-emerald-600/30 text-emerald-200 font-mono text-[10px] sm:text-xs theme-light:bg-emerald-100">
-                                  Meta ${allocation.fixed_amount.toFixed(2)} para día {allocation.due_day}
-                                </Badge>
-                                <Badge className="bg-amber-600/30 text-amber-200 font-mono text-[10px] sm:text-xs theme-light:bg-amber-100">
-                                  {allocation.days_remaining} días restantes
-                                </Badge>
-                                {Number.isFinite(allocation.suggested_percentage) && (
-                                  <Badge className="bg-cyan-600/30 text-cyan-200 font-mono text-[10px] sm:text-xs theme-light:bg-cyan-100">
-                                    Sugerido hoy: {allocation.suggested_percentage.toFixed(1)}% de utilidad
-                                  </Badge>
-                                )}
-                              </div>
-                            ) : allocation.allocation_mode === "amount" ? (
-                              <Badge className="bg-emerald-600/30 text-emerald-200 font-mono text-[10px] sm:text-xs theme-light:bg-emerald-100">
-                                ${allocation.fixed_amount.toFixed(2)} / {allocation.frequency}
-                              </Badge>
-                            ) : (
-                              <Badge className="bg-cyan-600/30 text-cyan-200 font-mono text-[10px] sm:text-xs theme-light:bg-cyan-100">
-                                {allocation.actual_percentage}%
-                              </Badge>
-                            )}
-                          </div>
+                  <div key={allocation.id} className="group relative overflow-hidden bg-white/5 backdrop-blur-xl border border-white/10 rounded-[28px] p-6 hover:border-white/20 transition-all duration-300">
+                    <div className="flex items-start justify-between mb-6">
+                      <div className="flex items-center gap-4">
+                        <div className="w-14 h-14 rounded-2xl bg-black/40 border border-white/5 flex items-center justify-center text-3xl shadow-inner">
+                          {allocation.icon || getCategoryIcon(allocation.category)}
                         </div>
-                        <div className="text-right order-3 sm:order-2 w-full sm:w-auto">
-                          <p className="text-[10px] sm:text-xs lg:text-sm text-gray-400">
-                            {allocation.allocation_mode === "target_due_day" ? "Apartar hoy (meta)" : "Apartar hoy"}
-                          </p>
-                          <p className="text-2xl sm:text-2xl lg:text-3xl font-black text-emerald-400 theme-light:text-emerald-600">${allocation.daily_amount.toFixed(2)}</p>
-                          {allocation.allocation_mode === "target_due_day" && (
-                            <p className="text-[10px] sm:text-xs text-gray-500">
-                              Objetivo diario: ${allocation.daily_target.toFixed(2)}
-                            </p>
-                          )}
-                        </div>
-                        <div className="flex gap-1.5 sm:gap-2 order-2 sm:order-3">
-                          <Button size="icon" variant="ghost" onClick={() => { setEditingExpense(allocation); setShowFixedExpenseDialog(true); }} className="text-cyan-400 hover:bg-cyan-600/20 h-8 w-8 sm:h-9 sm:w-9">
-                            <Edit2 className="w-3 h-3 sm:w-4 sm:h-4" />
-                          </Button>
-                          <Button size="icon" variant="ghost" onClick={() => handleDeleteFixedExpense(allocation.id)} className="text-red-400 hover:bg-red-600/20 h-8 w-8 sm:h-9 sm:w-9">
-                            <Trash2 className="w-3 h-3 sm:w-4 sm:h-4" />
-                          </Button>
+                        <div>
+                          <h4 className="text-white font-black tracking-tight text-lg">{allocation.name}</h4>
+                          <span className="text-[10px] font-black text-cyan-400/60 uppercase tracking-widest">{allocation.category}</span>
                         </div>
                       </div>
-                    </CardContent>
-                  </Card>
+                      <div className="flex gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <Button size="icon" onClick={() => { setEditingExpense(allocation); setShowFixedExpenseDialog(true); }} className="w-9 h-9 rounded-xl bg-white/5 hover:bg-cyan-500/20 text-white/40 hover:text-cyan-400">
+                          <Edit2 className="w-4 h-4" />
+                        </Button>
+                        <Button size="icon" onClick={() => handleDeleteFixedExpense(allocation.id)} className="w-9 h-9 rounded-xl bg-white/5 hover:bg-red-500/20 text-white/40 hover:text-red-400">
+                          <Trash2 className="w-4 h-4" />
+                        </Button>
+                      </div>
+                    </div>
+
+                    <div className="space-y-4">
+                      <div className="flex justify-between items-end">
+                        <div>
+                          <p className="text-[10px] font-black text-white/30 uppercase tracking-widest mb-1">Aporte Sugerido (Hoy)</p>
+                          <p className="text-3xl font-black text-emerald-400 tracking-tighter">${allocation.daily_amount.toFixed(2)}</p>
+                        </div>
+                        <div className="text-right">
+                          <p className="text-[10px] font-black text-white/30 uppercase tracking-widest mb-1">Meta {allocation.frequency}</p>
+                          <p className="text-lg font-bold text-white/80">${allocation.fixed_amount.toFixed(2)}</p>
+                        </div>
+                      </div>
+
+                      <div className="pt-4 border-t border-white/5 flex flex-wrap items-center gap-2">
+                        {allocation.allocation_mode === "target_due_day" ? (
+                          <>
+                            <div className="px-3 py-1 bg-amber-500/10 border border-amber-500/20 rounded-full flex items-center gap-2">
+                              <Calendar className="w-3 h-3 text-amber-400" />
+                              <span className="text-[10px] font-black text-amber-400 uppercase">Vence en {allocation.days_remaining} días</span>
+                            </div>
+                            <div className="px-3 py-1 bg-cyan-500/10 border border-cyan-500/20 rounded-full flex items-center gap-2">
+                              <Target className="w-3 h-3 text-cyan-400" />
+                              <span className="text-[10px] font-black text-cyan-400 uppercase">Ahorro: ${allocation.daily_target.toFixed(2)}/día</span>
+                            </div>
+                          </>
+                        ) : (
+                          <div className="px-3 py-1 bg-blue-500/10 border border-blue-500/20 rounded-full flex items-center gap-2">
+                            <TrendingUp className="w-3 h-3 text-blue-400" />
+                            <span className="text-[10px] font-black text-blue-400 uppercase">Frecuencia: {allocation.frequency}</span>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
                 ))
               )}
             </div>
           </TabsContent>
 
           <TabsContent value="expenses">
-            <Card className="bg-gradient-to-br from-[#2B2B2B] to-black border-cyan-500/20 theme-light:bg-white">
-              <CardHeader className="p-3 sm:p-4 lg:p-6">
-                <CardTitle className="text-white text-base sm:text-lg lg:text-xl theme-light:text-gray-900">Gastos Registrados</CardTitle>
-              </CardHeader>
-              <CardContent className="p-3 sm:p-4 lg:p-6">
+            <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-[32px] overflow-hidden shadow-2xl">
+              <div className="p-8 border-b border-white/5 flex items-center justify-between">
+                <div>
+                  <h3 className="text-xl font-black text-white tracking-tight">Talonario de Gastos</h3>
+                  <p className="text-xs text-white/40 uppercase tracking-widest font-bold">Resumen de egresos</p>
+                </div>
+                <div className="px-6 py-2 bg-red-500/10 border border-red-500/20 rounded-2xl text-center">
+                  <p className="text-[10px] text-red-400 font-black uppercase tracking-widest">Subtotal Salidas</p>
+                  <p className="text-2xl font-black text-red-400">-${totalExpenses.toFixed(2)}</p>
+                </div>
+              </div>
+              <div className="p-4 sm:p-6 lg:p-8">
                 {loading ? (
-                  <div className="p-8 sm:p-12 text-center">
-                    <RefreshCw className="w-10 h-10 sm:w-12 sm:h-12 animate-spin mx-auto mb-4 text-cyan-500" />
-                    <p className="text-gray-400 text-sm sm:text-base">Cargando gastos...</p>
+                  <div className="p-20 text-center">
+                    <RefreshCw className="w-12 h-12 animate-spin mx-auto mb-4 text-red-500/50" />
+                    <p className="text-white/40 font-bold uppercase tracking-widest text-xs">Cargando egresos...</p>
                   </div>
                 ) : filteredExpenses.length === 0 ? (
-                  <p className="text-gray-500 text-center py-6 sm:py-8 text-sm sm:text-base">No hay gastos en este período</p>
+                  <div className="p-20 text-center">
+                    <div className="w-20 h-20 bg-white/5 rounded-full flex items-center justify-center mx-auto mb-6">
+                      <CreditCard className="w-10 h-10 text-white/20" />
+                    </div>
+                    <p className="text-xl font-black text-white/40 tracking-tight">Todo en Balance</p>
+                    <p className="text-sm text-white/20">No se han registrado gastos para este periodo.</p>
+                  </div>
                 ) : (
-                  <div className="space-y-2 max-h-[400px] sm:max-h-[600px] overflow-y-auto">
+                  <div className="space-y-3 max-h-[600px] overflow-y-auto pr-2 custom-scrollbar">
                     {filteredExpenses.map((e) => (
-                      <div key={e.id} className="p-3 bg-black/30 rounded-lg border border-red-500/10 theme-light:bg-gray-50">
-                        <div className="flex justify-between gap-3 flex-wrap sm:flex-nowrap">
-                          <div className="flex-1 min-w-0">
-                            <p className="text-white text-xs sm:text-sm truncate theme-light:text-gray-900">{e.description}</p>
-                            <p className="text-gray-500 text-[10px] sm:text-xs">
-                              {getEntityDate(e) ? format(new Date(getEntityDate(e)), 'dd/MM/yyyy HH:mm') : "-"} • {e.category || "other_expense"}
-                            </p>
+                      <div key={e.id} className="group p-5 bg-white/[0.03] hover:bg-white/[0.06] rounded-[24px] border border-white/5 hover:border-white/10 transition-all duration-300">
+                        <div className="flex items-center justify-between gap-6">
+                          <div className="flex items-center gap-5">
+                            <div className="w-12 h-12 rounded-[18px] bg-red-500/10 border border-red-500/20 flex items-center justify-center text-red-400">
+                              <Receipt className="w-5 h-5" />
+                            </div>
+                            <div className="min-w-0">
+                              <div className="flex items-center gap-2 mb-1">
+                                <span className="text-[10px] font-black text-red-400/70 uppercase tracking-widest">{e.category || "Misceláneo"}</span>
+                                <span className="text-[10px] font-bold text-white/30 uppercase tracking-widest">
+                                  {getEntityDate(e) ? format(new Date(getEntityDate(e)), 'dd MMM, HH:mm', { locale: es }) : "-"}
+                                </span>
+                              </div>
+                              <h4 className="text-white font-bold truncate tracking-tight">{e.description}</h4>
+                              <p className="text-xs text-white/40 font-medium">Registrado por {e.recorded_by || "Sistema"}</p>
+                            </div>
                           </div>
-                          <div className="flex items-center gap-2">
-                            <p className="text-red-400 font-bold text-lg sm:text-xl theme-light:text-red-600 whitespace-nowrap">-${getExpenseMagnitude(e.amount).toFixed(2)}</p>
-                            {e._source === "transaction" ? (
-                              <>
+                          <div className="flex items-center gap-4">
+                            <p className="text-2xl font-black text-red-400 tracking-tighter">-${getExpenseMagnitude(e.amount).toFixed(2)}</p>
+                            {e._source === "transaction" && (
+                              <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                                 <Button
                                   size="icon"
-                                  variant="ghost"
                                   onClick={() => handleEditExpense(e)}
-                                  className="text-cyan-400 hover:bg-cyan-600/20 h-8 w-8"
+                                  className="w-8 h-8 rounded-lg bg-white/5 hover:bg-cyan-500/20 text-white/40 hover:text-cyan-400 transition-all"
                                 >
-                                  <Edit2 className="w-3.5 h-3.5" />
+                                  <Edit2 className="w-4 h-4" />
                                 </Button>
                                 <Button
                                   size="icon"
-                                  variant="ghost"
                                   onClick={() => handleDeleteExpense(e.id)}
-                                  className="text-red-400 hover:bg-red-600/20 h-8 w-8"
+                                  className="w-8 h-8 rounded-lg bg-white/5 hover:bg-red-500/20 text-white/40 hover:text-red-400 transition-all"
                                 >
-                                  <Trash2 className="w-3.5 h-3.5" />
+                                  <Trash2 className="w-4 h-4" />
                                 </Button>
-                              </>
-                            ) : (
-                              <Badge variant="outline" className="text-[10px] border-amber-500/40 text-amber-300">
-                                Caja
-                              </Badge>
+                              </div>
                             )}
                           </div>
                         </div>
@@ -1214,8 +1290,8 @@ export default function Financial() {
                     ))}
                   </div>
                 )}
-              </CardContent>
-            </Card>
+              </div>
+            </div>
           </TabsContent>
 
           <TabsContent value="reportes">
@@ -1351,88 +1427,128 @@ function FixedExpenseDialog({ open, onClose, onSave, expense }) {
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent className="max-w-[95vw] sm:max-w-2xl bg-gradient-to-br from-[#2B2B2B] to-black border-cyan-500/30 max-h-[90vh] overflow-y-auto theme-light:bg-white">
-        <DialogHeader>
-          <DialogTitle className="text-lg sm:text-xl lg:text-2xl font-bold text-white flex items-center gap-2 theme-light:text-gray-900">
-            <Target className="w-5 h-5 sm:w-6 sm:h-6 text-cyan-500" />
-            {expense ? "Editar Gasto Fijo" : "Nuevo Gasto Fijo"}
-          </DialogTitle>
-        </DialogHeader>
-
-        <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6 mt-2 sm:mt-4">
-          <div>
-            <label className="text-xs sm:text-sm font-semibold text-gray-300 mb-1.5 sm:mb-2 block theme-light:text-gray-700">Nombre *</label>
-            <Input value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} placeholder="Ej. Renta, Luz, Nómina" className="bg-black/40 border-cyan-500/20 text-white h-10 sm:h-11 theme-light:bg-white theme-light:text-gray-900" required />
-          </div>
-
-          <div>
-            <label className="text-xs sm:text-sm font-semibold text-gray-300 mb-1.5 sm:mb-2 block theme-light:text-gray-700">Categoría</label>
-            <div className="grid grid-cols-3 sm:grid-cols-5 gap-1.5 sm:gap-2">
-              {categories.map(cat => (
-                <button key={cat.value} type="button" onClick={() => setFormData({ ...formData, category: cat.value, icon: cat.icon })}
-                  className={`p-2 sm:p-3 rounded-lg sm:rounded-xl border-2 transition-all ${formData.category === cat.value ? "bg-gradient-to-br from-cyan-600/80 to-emerald-800/80 border-cyan-300/50 scale-105" : "bg-black/30 border-white/10 hover:border-cyan-500/30"}`}>
-                  <div className="text-xl sm:text-2xl mb-0.5 sm:mb-1">{cat.icon}</div>
-                  <div className="text-[9px] sm:text-xs font-medium text-white">{cat.label}</div>
-                </button>
-              ))}
+      <DialogContent className="max-w-[95vw] sm:max-w-2xl bg-[#0A0A0A]/95 backdrop-blur-3xl border border-white/10 rounded-[32px] shadow-2xl overflow-hidden p-0">
+        <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-cyan-600 to-blue-600" />
+        
+        <div className="p-8 sm:p-10">
+          <DialogHeader className="mb-8">
+            <div className="flex items-center gap-4">
+              <div className="w-12 h-12 rounded-2xl bg-cyan-500/10 flex items-center justify-center border border-cyan-500/20">
+                <Target className="w-6 h-6 text-cyan-400" />
+              </div>
+              <DialogTitle className="text-2xl font-black text-white tracking-tight text-left">
+                {expense ? "Configurar Distribución" : "Nueva Distribución"}
+              </DialogTitle>
             </div>
-          </div>
+          </DialogHeader>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <div>
-              <label className="text-xs sm:text-sm font-semibold text-gray-300 mb-1.5 sm:mb-2 block theme-light:text-gray-700">Porcentaje (%)</label>
-              <Input type="number" step="0.1" min="0" max="100" value={formData.percentage} onChange={(e) => setFormData({ ...formData, percentage: e.target.value })} placeholder="30" className="bg-black/40 border-cyan-500/20 text-white h-11 sm:h-12 theme-light:bg-white theme-light:text-gray-900" />
-            </div>
-            <div>
-              <label className="text-xs sm:text-sm font-semibold text-gray-300 mb-1.5 sm:mb-2 block theme-light:text-gray-700">Monto fijo</label>
-              <Input type="number" step="0.01" min="0" value={formData.fixed_amount} onChange={(e) => setFormData({ ...formData, fixed_amount: e.target.value })} placeholder="Ej. 1500" className="bg-black/40 border-emerald-500/20 text-white h-11 sm:h-12 theme-light:bg-white theme-light:text-gray-900" />
-            </div>
-          </div>
-          <p className="text-[11px] text-gray-500">Puedes usar porcentaje, monto fijo o ambos. Si hay monto fijo, el cálculo diario usa ese monto según la frecuencia.</p>
+          <form onSubmit={handleSubmit} className="space-y-8">
+            <div className="space-y-6">
+              <div className="space-y-2">
+                <label className="text-[10px] font-black text-white/40 uppercase tracking-widest ml-1">Nombre del Gasto</label>
+                <Input 
+                  value={formData.name} 
+                  onChange={(e) => setFormData({ ...formData, name: e.target.value })} 
+                  placeholder="Ej. Renta del Local" 
+                  className="bg-white/5 border-white/10 text-white h-12 rounded-2xl px-5 focus:border-cyan-500/50 transition-all font-bold" 
+                  required 
+                />
+              </div>
 
-            <div>
-              <label className="text-xs sm:text-sm font-semibold text-gray-300 mb-1.5 sm:mb-2 block theme-light:text-gray-700">Frecuencia</label>
-              <select 
-              value={formData.frequency} 
-              onChange={(e) => setFormData({ ...formData, frequency: e.target.value })}
-                className="w-full bg-black/40 border border-cyan-500/20 text-white rounded-lg h-11 px-3 theme-light:bg-white theme-light:text-gray-900 theme-light:border-gray-300"
+              <div className="space-y-3">
+                <label className="text-[10px] font-black text-white/40 uppercase tracking-widest ml-1">Categoría</label>
+                <div className="grid grid-cols-5 gap-2">
+                  {categories.map(cat => (
+                    <button 
+                      key={cat.value} 
+                      type="button" 
+                      onClick={() => setFormData({ ...formData, category: cat.value, icon: cat.icon })}
+                      className={`group relative flex flex-col items-center justify-center p-3 rounded-2xl border transition-all duration-300 ${
+                        formData.category === cat.value 
+                          ? "bg-cyan-500/20 border-cyan-500/40 shadow-lg shadow-cyan-500/10" 
+                          : "bg-white/5 border-white/5 hover:border-white/20"
+                      }`}
+                    >
+                      <span className="text-2xl mb-1 filter drop-shadow-md group-hover:scale-110 transition-transform">{cat.icon}</span>
+                      <span className={`text-[9px] font-black uppercase tracking-tight ${formData.category === cat.value ? 'text-cyan-400' : 'text-white/40'}`}>
+                        {cat.label}
+                      </span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <label className="text-[10px] font-black text-white/40 uppercase tracking-widest ml-1">Aporte Fijo ($)</label>
+                  <Input 
+                    type="number" 
+                    step="0.01" 
+                    value={formData.fixed_amount} 
+                    onChange={(e) => setFormData({ ...formData, fixed_amount: e.target.value })} 
+                    placeholder="0.00" 
+                    className="bg-white/5 border-white/10 text-white h-12 rounded-2xl px-5 focus:border-cyan-500/50 font-bold" 
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-[10px] font-black text-white/40 uppercase tracking-widest ml-1">Utilidad (%)</label>
+                  <Input 
+                    type="number" 
+                    step="0.1" 
+                    value={formData.percentage} 
+                    onChange={(e) => setFormData({ ...formData, percentage: e.target.value })} 
+                    placeholder="0" 
+                    className="bg-white/5 border-white/10 text-white h-12 rounded-2xl px-5 focus:border-cyan-500/50 font-bold" 
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <label className="text-[10px] font-black text-white/40 uppercase tracking-widest ml-1">Frecuencia</label>
+                  <select 
+                    value={formData.frequency} 
+                    onChange={(e) => setFormData({ ...formData, frequency: e.target.value })}
+                    className="w-full bg-white/5 border border-white/10 text-white rounded-2xl h-12 px-5 font-bold focus:outline-none focus:border-cyan-500/50 appearance-none cursor-pointer"
+                  >
+                    <option value="daily">Diario</option>
+                    <option value="weekly">Semanal</option>
+                    <option value="biweekly">Quincenal</option>
+                    <option value="monthly">Mensual</option>
+                    <option value="quarterly">Trimestral</option>
+                    <option value="yearly">Anual</option>
+                  </select>
+                </div>
+                <div className="space-y-2">
+                  <label className="text-[10px] font-black text-white/40 uppercase tracking-widest ml-1">Día de Cobro (1-31)</label>
+                  <Input 
+                    type="number" 
+                    value={formData.due_day} 
+                    onChange={(e) => setFormData({ ...formData, due_day: e.target.value })} 
+                    placeholder="Ej. 5" 
+                    className="bg-white/5 border-white/10 text-white h-12 rounded-2xl px-5 focus:border-cyan-500/50 font-bold" 
+                  />
+                </div>
+              </div>
+            </div>
+
+            <div className="flex gap-4 pt-4">
+              <Button 
+                type="button" 
+                onClick={onClose} 
+                className="flex-1 bg-white/5 border border-white/10 hover:bg-white/10 text-white h-14 rounded-2xl font-black uppercase tracking-widest active:scale-95 transition-all"
               >
-              <option value="daily">Diario</option>
-              <option value="weekly">Semanal</option>
-              <option value="biweekly">Quincenal</option>
-              <option value="monthly">Mensual</option>
-              <option value="quarterly">Trimestral</option>
-              <option value="yearly">Anual</option>
-            </select>
-          </div>
-
-          {(formData.frequency === "monthly" || formData.frequency === "quarterly" || parseFloat(formData.fixed_amount || 0) > 0) && (
-            <div>
-              <label className="text-xs sm:text-sm font-semibold text-gray-300 mb-1.5 sm:mb-2 block theme-light:text-gray-700">
-                Día de vencimiento (1-31)
-              </label>
-              <Input 
-                type="number" 
-                min="1" 
-                max="31" 
-                value={formData.due_day} 
-                onChange={(e) => setFormData({ ...formData, due_day: e.target.value })} 
-                placeholder="Ej. 5 para día 5 de cada mes" 
-                className="bg-black/40 border-cyan-500/20 text-white h-11 theme-light:bg-white theme-light:text-gray-900" 
-              />
-              <p className="text-xs text-gray-500 mt-1">
-                Si defines monto fijo, se usa para calcular cuánto apartar cada día hasta este vencimiento.
-              </p>
+                Cancelar
+              </Button>
+              <Button 
+                type="submit" 
+                className="flex-1 bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-white h-14 rounded-2xl font-black uppercase tracking-widest shadow-xl shadow-cyan-600/20 active:scale-95 transition-all"
+              >
+                {expense ? "Actualizar" : "Confirmar"}
+              </Button>
             </div>
-          )}
-
-          <div className="flex gap-2 sm:gap-3">
-            <Button type="button" variant="outline" onClick={onClose} className="flex-1 border-white/15 h-10 sm:h-11 text-sm">Cancelar</Button>
-            <Button type="submit" className="flex-1 bg-gradient-to-r from-cyan-600 to-emerald-700 h-10 sm:h-11 text-sm">
-              <Save className="w-3 h-3 sm:w-4 sm:h-4 mr-1.5 sm:mr-2" />{expense ? "Actualizar" : "Guardar"}
-            </Button>
-          </div>
-        </form>
+          </form>
+        </div>
       </DialogContent>
     </Dialog>
   );
@@ -1489,67 +1605,69 @@ function EditExpenseDialog({ open, onClose, onSave, expense }) {
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent className="max-w-md bg-gradient-to-br from-[#2B2B2B] to-black border-red-900/30">
-        <DialogHeader>
-          <DialogTitle className="text-xl font-bold text-white">
-            Editar Gasto
-          </DialogTitle>
-        </DialogHeader>
+      <DialogContent className="max-w-md bg-[#0A0A0A]/95 backdrop-blur-3xl border border-red-500/20 rounded-[32px] shadow-2xl p-0 overflow-hidden">
+        <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-red-600 to-orange-600" />
+        <div className="p-8">
+          <DialogHeader className="mb-8">
+            <div className="flex items-center gap-4">
+              <div className="w-12 h-12 rounded-2xl bg-red-500/10 flex items-center justify-center border border-red-500/20">
+                <Receipt className="w-6 h-6 text-red-400" />
+              </div>
+              <DialogTitle className="text-2xl font-black text-white tracking-tight text-left">
+                Editar Movimiento
+              </DialogTitle>
+            </div>
+          </DialogHeader>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <label className="text-xs sm:text-sm font-semibold text-gray-300 mb-1.5 sm:mb-2 block">
-              Monto *
-            </label>
-            <Input
-              type="number"
-              step="0.01"
-              min="0"
-              value={formData.amount}
-              onChange={(e) => setFormData({ ...formData, amount: e.target.value })}
-              className="bg-black border-gray-700 text-white"
-              required
-            />
-          </div>
+          <form onSubmit={handleSubmit} className="space-y-6">
+            <div className="space-y-2">
+              <label className="text-[10px] font-black text-white/40 uppercase tracking-widest ml-1">Monto del Gasto ($)</label>
+              <Input
+                type="number"
+                step="0.01"
+                min="0"
+                value={formData.amount}
+                onChange={(e) => setFormData({ ...formData, amount: e.target.value })}
+                className="bg-white/5 border-white/10 text-white h-12 rounded-2xl px-5 focus:border-red-500/50 font-bold"
+                required
+              />
+            </div>
 
-          <div>
-            <label className="text-xs sm:text-sm font-semibold text-gray-300 mb-1.5 sm:mb-2 block">
-              Descripción *
-            </label>
-            <Input
-              value={formData.description}
-              onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-              className="bg-black border-gray-700 text-white"
-              required
-            />
-          </div>
+            <div className="space-y-2">
+              <label className="text-[10px] font-black text-white/40 uppercase tracking-widest ml-1">Descripción</label>
+              <Input
+                value={formData.description}
+                onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                className="bg-white/5 border-white/10 text-white h-12 rounded-2xl px-5 focus:border-red-500/50 font-bold"
+                required
+              />
+            </div>
 
-          <div>
-            <label className="text-xs sm:text-sm font-semibold text-gray-300 mb-1.5 sm:mb-2 block">
-              Categoría *
-            </label>
-            <select
-              value={formData.category}
-              onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-              className="w-full bg-black border border-gray-700 text-white rounded-md h-10 px-3"
-            >
-              {categories.map((cat) => (
-                <option key={cat.value} value={cat.value}>
-                  {cat.label}
-                </option>
-              ))}
-            </select>
-          </div>
+            <div className="space-y-2">
+              <label className="text-[10px] font-black text-white/40 uppercase tracking-widest ml-1">Categoría</label>
+              <select
+                value={formData.category}
+                onChange={(e) => setFormData({ ...formData, category: e.target.value })}
+                className="w-full bg-white/5 border border-white/10 text-white rounded-2xl h-12 px-5 font-bold focus:outline-none focus:border-red-500/50 appearance-none cursor-pointer"
+              >
+                {categories.map((cat) => (
+                  <option key={cat.value} value={cat.value}>
+                    {cat.label}
+                  </option>
+                ))}
+              </select>
+            </div>
 
-          <div className="flex gap-2">
-            <Button type="button" variant="outline" onClick={onClose} className="flex-1 border-gray-700">
-              Cancelar
-            </Button>
-            <Button type="submit" className="flex-1 bg-gradient-to-r from-cyan-600 to-emerald-700">
-              Guardar cambios
-            </Button>
-          </div>
-        </form>
+            <div className="flex gap-4 pt-4">
+              <Button type="button" onClick={onClose} className="flex-1 bg-white/5 border border-white/10 text-white h-14 rounded-2xl font-black uppercase tracking-widest hover:bg-white/10 transition-all">
+                Cancelar
+              </Button>
+              <Button type="submit" className="flex-1 bg-gradient-to-r from-red-600 to-orange-600 text-white h-14 rounded-2xl font-black uppercase tracking-widest shadow-xl shadow-red-900/20 active:scale-95 transition-all">
+                Guardar Cambios
+              </Button>
+            </div>
+          </form>
+        </div>
       </DialogContent>
     </Dialog>
   );
