@@ -172,11 +172,20 @@ export default function POSMobile() {
   }, []);
 
   useEffect(() => {
-    const unsubscribe = subscribeToCashRegister(({ drawer }) => {
+    const unsubscribe = subscribeToCashRegister(({ drawer, isInitialized }) => {
       setCurrentDrawer(drawer || null);
-      setLoadingDrawer(false);
+      if (isInitialized) {
+        setLoadingDrawer(false);
+      }
     });
-    checkCashRegisterStatus().finally(() => setLoadingDrawer(false));
+
+    // Check cache to avoid redundant network requests during navigation
+    const status = getCachedStatus();
+    if (!status.isInitialized || Date.now() - status.lastCheck > 300000) {
+      setLoadingDrawer(true);
+      checkCashRegisterStatus().finally(() => setLoadingDrawer(false));
+    }
+
     return unsubscribe;
   }, []);
 

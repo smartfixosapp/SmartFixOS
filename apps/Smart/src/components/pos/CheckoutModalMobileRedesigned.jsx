@@ -84,30 +84,30 @@ export default function CheckoutModalMobileRedesigned({
             <div className="space-y-3">
               <div className="flex justify-between items-start">
                 <span className="text-gray-400 text-sm">Subtotal</span>
-                <span className="text-white font-bold">${subtotal.toFixed(2)}</span>
+                <span className="text-white font-bold">${(Number(subtotal) || 0).toFixed(2)}</span>
               </div>
               
               {discountAmount > 0 && (
                 <div className="flex justify-between items-start">
                   <span className="text-orange-400 text-sm">Descuento</span>
-                  <span className="text-orange-400 font-bold">-${discountAmount.toFixed(2)}</span>
+                  <span className="text-orange-400 font-bold">-${(Number(discountAmount) || 0).toFixed(2)}</span>
                 </div>
               )}
               
               <div className="flex justify-between items-start">
                 <span className="text-gray-400 text-sm">IVU (11.5%)</span>
-                <span className="text-white font-bold">${tax.toFixed(2)}</span>
+                <span className="text-white font-bold">${(Number(tax) || 0).toFixed(2)}</span>
               </div>
               
               <div className="border-t border-cyan-500/20 pt-3 flex justify-between items-center">
                 <span className="text-cyan-400 font-bold text-lg">Total</span>
-                <span className="text-cyan-400 font-bold text-2xl">${effectiveTotal.toFixed(2)}</span>
+                <span className="text-cyan-400 font-bold text-2xl">${(Number(effectiveTotal) || 0).toFixed(2)}</span>
               </div>
 
               {totalPaid > 0 && (
                 <div className="border-t border-cyan-500/20 pt-3 flex justify-between items-center">
                   <span className="text-blue-400 text-sm">Pagado</span>
-                  <span className="text-blue-400 font-bold">${totalPaid.toFixed(2)}</span>
+                  <span className="text-blue-400 font-bold">${(Number(totalPaid) || 0).toFixed(2)}</span>
                 </div>
               )}
             </div>
@@ -166,7 +166,7 @@ export default function CheckoutModalMobileRedesigned({
                         <span className="text-gray-400">{item.name}</span>
                         <div className="flex items-center gap-2">
                           <span className="text-gray-500">x{item.quantity}</span>
-                          <span className="text-white font-bold">${(item.price * item.quantity).toFixed(2)}</span>
+                          <span className="text-white font-bold">${(Number(item.price || 0) * Number(item.quantity || 1)).toFixed(2)}</span>
                         </div>
                       </div>
                     ))
@@ -242,7 +242,7 @@ export default function CheckoutModalMobileRedesigned({
                       </div>
                       <div className="text-left flex-1">
                         <p className="font-bold text-white">Tarjeta</p>
-                        <p className="text-xs text-gray-500">Exacto: ${effectiveTotal.toFixed(2)}</p>
+                        <p className="text-xs text-gray-500">Exacto: ${(Number(effectiveTotal) || 0).toFixed(2)}</p>
                       </div>
                       {paymentMethod === "card" && <div className="w-5 h-5 rounded-full bg-blue-500" />}
                     </button>
@@ -268,7 +268,7 @@ export default function CheckoutModalMobileRedesigned({
                       </div>
                       <div className="text-left flex-1">
                         <p className="font-bold text-white">ATH Móvil</p>
-                        <p className="text-xs text-gray-500">Exacto: ${effectiveTotal.toFixed(2)}</p>
+                        <p className="text-xs text-gray-500">Exacto: ${(Number(effectiveTotal) || 0).toFixed(2)}</p>
                       </div>
                       {paymentMethod === "ath_movil" && <div className="w-5 h-5 rounded-full bg-orange-500" />}
                     </button>
@@ -306,7 +306,7 @@ export default function CheckoutModalMobileRedesigned({
                     {change > 0 && (
                       <div className="p-3 bg-emerald-500/10 rounded-xl border border-emerald-500/20 flex justify-between items-center">
                         <span className="text-emerald-400 font-medium">Cambio</span>
-                        <span className="text-emerald-400 font-bold text-xl">${change.toFixed(2)}</span>
+                        <span className="text-emerald-400 font-bold text-xl">${(Number(change) || 0).toFixed(2)}</span>
                       </div>
                     )}
                   </motion.div>
@@ -366,7 +366,7 @@ export default function CheckoutModalMobileRedesigned({
                   Procesando...
                 </>
               ) : (
-                `Cobrar $${effectiveTotal.toFixed(2)}`
+                `Cobrar $${(Number(effectiveTotal) || 0).toFixed(2)}`
               )}
             </Button>
             <Button

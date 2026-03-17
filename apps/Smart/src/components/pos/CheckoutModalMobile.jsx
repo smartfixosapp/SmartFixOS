@@ -66,11 +66,11 @@ export default function CheckoutModalMobile({
             {/* Resumen de compra */}
             <div className="bg-gradient-to-br from-blue-500/20 to-blue-600/10 rounded-2xl p-4 border border-blue-500/30">
               <p className="text-xs text-blue-300 mb-2 font-semibold">TOTAL A PAGAR</p>
-              <div className="text-3xl font-black text-white mb-3">${finalTotal.toFixed(2)}</div>
+              <div className="text-3xl font-black text-white mb-3">${(Number(finalTotal) || 0).toFixed(2)}</div>
 
               {workOrderId && totalPaid > 0 && (
                 <div className="text-sm text-yellow-300 mb-2">
-                  <p>Ya pagado: ${totalPaid.toFixed(2)}</p>
+                  <p>Ya pagado: ${(Number(totalPaid) || 0).toFixed(2)}</p>
                 </div>
               )}
 
@@ -174,7 +174,7 @@ export default function CheckoutModalMobile({
                   </div>
                   <div className="text-left flex-1">
                     <p className="font-bold text-white text-sm">Tarjeta</p>
-                    <p className="text-xs text-zinc-500">Exacto: ${finalTotal.toFixed(2)}</p>
+                    <p className="text-xs text-zinc-500">Exacto: ${(Number(finalTotal) || 0).toFixed(2)}</p>
                   </div>
                 </button>
               )}
@@ -257,7 +257,7 @@ export default function CheckoutModalMobile({
                 {depositAmount && parseFloat(depositAmount) > finalTotal && (
                   <div className="flex items-center gap-2 text-red-400 text-xs p-2 bg-red-500/10 rounded border border-red-500/20">
                     <AlertCircle className="w-3 h-3" />
-                    No puede exceder ${finalTotal.toFixed(2)}
+                    No puede exceder ${(Number(finalTotal) || 0).toFixed(2)}
                   </div>
                 )}
               </div>

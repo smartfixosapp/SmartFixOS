@@ -41,7 +41,8 @@ function isLikelyTransportError(error) {
 let cashRegisterCache = {
   isOpen: false,
   drawer: null,
-  lastCheck: 0
+  lastCheck: 0,
+  isInitialized: false // Added to distinguish initial state
 };
 
 const listeners = [];
@@ -76,7 +77,8 @@ export async function checkCashRegisterStatus() {
     cashRegisterCache = {
       isOpen,
       drawer,
-      lastCheck: Date.now()
+      lastCheck: Date.now(),
+      isInitialized: true
     };
 
     // Si ya hay caja remota abierta, limpiamos la local para evitar estados duplicados.
@@ -90,15 +92,22 @@ export async function checkCashRegisterStatus() {
     if (!isLikelyTransportError(error)) {
       console.error("Error checking cash register:", error);
     }
+    
+    // Si falla la red pero tenemos estado local de "abierto", lo honramos para no bloquear al usuario
     if (localDrawer?.status === "open") {
       cashRegisterCache = {
         isOpen: true,
         drawer: localDrawer,
-        lastCheck: Date.now()
+        lastCheck: Date.now(),
+        isInitialized: true
       };
       notifyListeners();
       return cashRegisterCache;
     }
+
+    // Si falló y no hay local, marcamos como inicializado para que el UI pueda reaccionar (ej. error de red)
+    cashRegisterCache.isInitialized = true;
+    notifyListeners();
     return cashRegisterCache;
   }
 }

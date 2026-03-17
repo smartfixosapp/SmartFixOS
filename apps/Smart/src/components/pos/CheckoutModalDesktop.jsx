@@ -100,18 +100,18 @@ export default function CheckoutModalDesktop({
                 </div>
                 <div className="flex justify-between text-xl font-bold text-cyan-400 pt-2 border-t border-white/5">
                   <span>Total</span>
-                  <span>${finalTotal.toFixed(2)}</span>
+                  <span>${(Number(finalTotal) || 0).toFixed(2)}</span>
                 </div>
 
                 {workOrderId && totalPaid > 0 && (
                   <>
                     <div className="flex justify-between text-sm text-blue-400 pt-2 border-t border-white/5">
                       <span>Ya Pagado</span>
-                      <span className="font-bold">-${totalPaid.toFixed(2)}</span>
+                      <span className="font-bold">-${(Number(totalPaid) || 0).toFixed(2)}</span>
                     </div>
                     <div className="flex justify-between text-lg font-bold text-yellow-400 pt-1">
                       <span>Balance Pendiente</span>
-                      <span>${finalTotal.toFixed(2)}</span>
+                      <span>${(Number(finalTotal) || 0).toFixed(2)}</span>
                     </div>
                   </>
                 )}
@@ -119,7 +119,7 @@ export default function CheckoutModalDesktop({
                 {paymentMode === "deposit" && depositAmount && (
                   <div className="flex justify-between text-lg font-bold text-emerald-400 pt-2 border-t border-white/5">
                     <span>A Pagar (Depósito)</span>
-                    <span>${parseFloat(depositAmount).toFixed(2)}</span>
+                    <span>${(parseFloat(depositAmount) || 0).toFixed(2)}</span>
                   </div>
                 )}
               </div>
@@ -214,7 +214,7 @@ export default function CheckoutModalDesktop({
                     <p className={`font-bold text-lg ${paymentMethod === "card" ? "text-white" : "text-zinc-300"}`}>
                       Tarjeta
                     </p>
-                    <p className="text-xs text-zinc-500">Exacto: ${finalTotal.toFixed(2)}</p>
+                    <p className="text-xs text-zinc-500">Exacto: ${(Number(finalTotal) || 0).toFixed(2)}</p>
                   </div>
                 </button>
               )}
@@ -303,7 +303,7 @@ export default function CheckoutModalDesktop({
                 {depositAmount && parseFloat(depositAmount) > finalTotal && (
                    <div className="flex items-center gap-2 text-red-400 text-xs p-2 bg-red-500/10 rounded border border-red-500/20">
                      <AlertCircle className="w-3 h-3" />
-                     No puede exceder ${finalTotal.toFixed(2)}
+                     No puede exceder ${(Number(finalTotal) || 0).toFixed(2)}
                    </div>
                  )}
               </div>

@@ -172,11 +172,20 @@ export default function POSDesktop() {
   }, []);
 
   useEffect(() => {
-    const unsubscribe = subscribeToCashRegister(({ drawer }) => {
+    const unsubscribe = subscribeToCashRegister(({ drawer, isInitialized }) => {
       setCurrentDrawer(drawer || null);
-      setLoadingDrawer(false);
+      if (isInitialized) {
+        setLoadingDrawer(false);
+      }
     });
-    checkCashRegisterStatus().finally(() => setLoadingDrawer(false));
+
+    // Solo verificamos si no se ha inicializado o si el check es viejo (ej. > 5 min)
+    const status = getCachedStatus();
+    if (!status.isInitialized || Date.now() - status.lastCheck > 300000) {
+      setLoadingDrawer(true);
+      checkCashRegisterStatus().finally(() => setLoadingDrawer(false));
+    }
+
     return unsubscribe;
   }, []);
 
