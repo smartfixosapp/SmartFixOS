@@ -14,7 +14,11 @@ import {
   LockKeyhole,
   Clock,
   DollarSign,
-  TrendingUp } from
+  TrendingUp,
+  ChevronDown,
+  ArrowDownCircle,
+  ArrowUpCircle,
+  Banknote } from
 "lucide-react";
 
 /* ============ Fallback local para lista de empleados ============ */
@@ -1469,6 +1473,52 @@ export default function TimeTrackingModal({ open, onClose, session }) {
 
   const openEntriesCount = entries.filter((entry) => !entry.clock_out).length;
 
+  /* ---------- Quick Finance Panel State ---------- */
+  const [qfOpen, setQfOpen] = useState(false);
+  const [qfMode, setQfMode] = useState("expense"); // 'expense' | 'deposit'
+  const [qfAmount, setQfAmount] = useState("");
+  const [qfDesc, setQfDesc] = useState("");
+  const [qfMethod, setQfMethod] = useState("cash");
+  const [qfCategory, setQfCategory] = useState("other_expense");
+  const [qfSaving, setQfSaving] = useState(false);
+
+  const submitQuickFinance = async () => {
+    const amt = parseFloat(qfAmount);
+    if (!amt || amt <= 0) { alert("Ingresa un monto válido."); return; }
+    if (!qfDesc.trim()) { alert("Agrega una descripción."); return; }
+    setQfSaving(true);
+    try {
+      const currentUser = await base44.auth.me().catch(() => null);
+      const tenantId = getCurrentTenantId();
+      const normalizedMethod = qfMethod === "ath_movil" ? "transfer" : qfMethod;
+      const payload = {
+        type: qfMode,                          // 'expense' | 'deposit'
+        amount: amt,
+        category: qfMode === "expense" ? normalizeExpenseCategory(qfCategory) : "income",
+        description: qfDesc.trim() + (qfMethod === "ath_movil" ? " [ATH Móvil]" : ""),
+        payment_method: normalizedMethod,
+        recorded_by: currentUser?.full_name || session?.userName || "Sistema",
+        tenant_id: tenantId,
+      };
+      try {
+        await dataClient.entities.Transaction.create(payload);
+      } catch {
+        await insertSupabaseRecordWithTenantRetry("transaction", payload);
+      }
+      window.dispatchEvent(new Event(qfMode === "expense" ? "expense-created" : "deposit-created"));
+      setQfAmount("");
+      setQfDesc("");
+      setQfMethod("cash");
+      setQfCategory("other_expense");
+      alert(`✅ ${qfMode === "expense" ? "Pago registrado" : "Depósito registrado"} correctamente.`);
+    } catch (e) {
+      console.error(e);
+      alert(`Error: ${e?.message || "No se pudo guardar."}`);
+    } finally {
+      setQfSaving(false);
+    }
+  };
+
   if (!open) return null;
 
   return (
@@ -1543,8 +1593,126 @@ export default function TimeTrackingModal({ open, onClose, session }) {
             </div>
           )}
 
-          <div className="grid gap-6 xl:grid-cols-[360px_minmax(0,1fr)]">
-            <div className="rounded-[24px] border border-white/8 bg-white/[0.03] p-4">
+          {/* ─── Quick Finance Panel ─── */}
+          <div className="rounded-[24px] border border-indigo-500/25 bg-indigo-500/[0.05] overflow-hidden">
+            <button
+              onClick={() => setQfOpen((p) => !p)}
+              className="w-full flex items-center justify-between px-5 py-4 text-left hover:bg-white/[0.03] transition"
+            >
+              <div className="flex items-center gap-3">
+                <div className="flex h-8 w-8 items-center justify-center rounded-xl border border-indigo-400/20 bg-indigo-500/10">
+                  <Banknote className="h-4 w-4 text-indigo-300" />
+                </div>
+                <div>
+                  <p className="text-sm font-bold text-white">Finanzas Rápidas</p>
+                  <p className="text-xs text-slate-400">Registra un pago o depósito sin salir de este módulo</p>
+                </div>
+              </div>
+              <ChevronDown className={`h-5 w-5 text-slate-400 transition-transform ${qfOpen ? "rotate-180" : ""}`} />
+            </button>
+
+            {qfOpen && (
+              <div className="border-t border-white/8 p-5 space-y-5">
+                {/* Mode toggle */}
+                <div className="flex rounded-2xl border border-white/10 bg-black/30 p-1 gap-1">
+                  <button
+                    onClick={() => setQfMode("expense")}
+                    className={`flex-1 flex items-center justify-center gap-2 rounded-xl py-2.5 text-sm font-bold transition ${
+                      qfMode === "expense"
+                        ? "bg-red-600/80 text-white shadow-lg shadow-red-900/20"
+                        : "text-slate-400 hover:text-white"
+                    }`}
+                  >
+                    <ArrowDownCircle className="h-4 w-4" />
+                    Pago / Gasto
+                  </button>
+                  <button
+                    onClick={() => setQfMode("deposit")}
+                    className={`flex-1 flex items-center justify-center gap-2 rounded-xl py-2.5 text-sm font-bold transition ${
+                      qfMode === "deposit"
+                        ? "bg-emerald-600/80 text-white shadow-lg shadow-emerald-900/20"
+                        : "text-slate-400 hover:text-white"
+                    }`}
+                  >
+                    <ArrowUpCircle className="h-4 w-4" />
+                    Depósito / Ingreso
+                  </button>
+                </div>
+
+                {/* Inputs grid */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label className="text-xs text-slate-400 font-semibold uppercase tracking-[0.14em]">Monto ($)</label>
+                    <input
+                      type="number"
+                      min="0"
+                      step="0.01"
+                      value={qfAmount}
+                      onChange={(e) => setQfAmount(e.target.value)}
+                      placeholder="0.00"
+                      className="mt-1.5 w-full rounded-xl border border-white/10 bg-black/30 px-3 py-2.5 text-sm text-white placeholder-slate-600 outline-none focus:border-indigo-400/50 focus:ring-1 focus:ring-indigo-400/20"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-xs text-slate-400 font-semibold uppercase tracking-[0.14em]">Método de Pago</label>
+                    <select
+                      value={qfMethod}
+                      onChange={(e) => setQfMethod(e.target.value)}
+                      className="mt-1.5 w-full rounded-xl border border-white/10 bg-black/30 px-3 py-2.5 text-sm text-white outline-none focus:border-indigo-400/50 focus:ring-1 focus:ring-indigo-400/20"
+                    >
+                      <option value="cash">💵 Efectivo</option>
+                      <option value="credit_card">💳 Tarjeta</option>
+                      <option value="ath_movil">📱 ATH Móvil</option>
+                      <option value="transfer">🏦 Transferencia</option>
+                      <option value="check">📄 Cheque</option>
+                    </select>
+                  </div>
+                  {qfMode === "expense" && (
+                    <div>
+                      <label className="text-xs text-slate-400 font-semibold uppercase tracking-[0.14em]">Categoría</label>
+                      <select
+                        value={qfCategory}
+                        onChange={(e) => setQfCategory(e.target.value)}
+                        className="mt-1.5 w-full rounded-xl border border-white/10 bg-black/30 px-3 py-2.5 text-sm text-white outline-none focus:border-indigo-400/50 focus:ring-1 focus:ring-indigo-400/20"
+                      >
+                        <option value="other_expense">Otro Gasto</option>
+                        <option value="payroll">Nómina</option>
+                        <option value="parts">Piezas / Materiales</option>
+                        <option value="supplies">Suministros</option>
+                        <option value="refund">Reembolso</option>
+                        <option value="repair_payment">Pago de Reparación</option>
+                      </select>
+                    </div>
+                  )}
+                  <div className={qfMode === "expense" ? "" : "sm:col-span-2"}>
+                    <label className="text-xs text-slate-400 font-semibold uppercase tracking-[0.14em]">Descripción</label>
+                    <input
+                      type="text"
+                      value={qfDesc}
+                      onChange={(e) => setQfDesc(e.target.value)}
+                      placeholder={qfMode === "expense" ? "Ej. Pago de renta, compra de piezas…" : "Ej. Depósito del día, ingreso de cliente…"}
+                      className="mt-1.5 w-full rounded-xl border border-white/10 bg-black/30 px-3 py-2.5 text-sm text-white placeholder-slate-600 outline-none focus:border-indigo-400/50 focus:ring-1 focus:ring-indigo-400/20"
+                    />
+                  </div>
+                </div>
+
+                {/* Submit */}
+                <button
+                  onClick={submitQuickFinance}
+                  disabled={qfSaving}
+                  className={`w-full flex items-center justify-center gap-2 rounded-2xl py-3 text-sm font-black uppercase tracking-[0.14em] transition active:scale-95 ${
+                    qfMode === "expense"
+                      ? "bg-gradient-to-r from-red-600 to-red-700 hover:from-red-500 hover:to-red-600 text-white shadow-lg shadow-red-900/20"
+                      : "bg-gradient-to-r from-emerald-600 to-emerald-700 hover:from-emerald-500 hover:to-emerald-600 text-white shadow-lg shadow-emerald-900/20"
+                  } disabled:opacity-50 disabled:cursor-not-allowed`}
+                >
+                  {qfSaving ? "Guardando…" : qfMode === "expense" ? "⬇ Registrar Pago / Gasto" : "⬆ Registrar Depósito / Ingreso"}
+                </button>
+              </div>
+            )}
+          </div>
+
+          <div className="grid gap-6 xl:grid-cols-[360px_minmax(0,1fr)]">            <div className="rounded-[24px] border border-white/8 bg-white/[0.03] p-4">
               <div className="flex items-center justify-between">
                 <div>
                   <h4 className="text-lg font-bold text-white">Equipo</h4>
