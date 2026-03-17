@@ -193,13 +193,14 @@ export default function POSMobile() {
   }, [routeStateOrder, workOrderId, hydrateWorkOrder]);
 
   useEffect(() => {
-    if (workOrderId && selectedOrder) {
+    // ✅ Esperar que el cajón cargue antes de abrir modal de pago
+    if (workOrderId && selectedOrder && !loadingDrawer) {
       setShowPaymentModal(true);
       if (urlPaymentMode === "deposit") {
         setPaymentMethod("cash");
       }
     }
-  }, [workOrderId, selectedOrder]);
+  }, [workOrderId, selectedOrder, loadingDrawer]);
 
   const fetchWorkOrderById = useCallback(async (orderId) => {
     if (!orderId) return null;

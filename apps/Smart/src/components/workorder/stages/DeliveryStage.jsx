@@ -73,7 +73,10 @@ export default function DeliveryStage({ order, onUpdate, user }) {
 
   const { itemsSubtotal, taxAmount, total } = calculateTotals();
   const amountPaid = Number(o.total_paid || o.amount_paid || 0);
-  const balanceDue = Math.max(0, total - amountPaid);
+  // ✅ Priorizar balance_due de DB (actualizado por POS), luego calcular
+  const balanceDue = o.balance_due != null
+    ? Math.max(0, Number(o.balance_due))
+    : Math.max(0, total - amountPaid);
 
   async function persist(itemsToSave = items) {
     setSaving(true);
