@@ -269,24 +269,14 @@ export default function FinancialOverviewWidget({ compact = false, onClick }) {
         <div className="mt-4 text-xs text-white/60">Cargando resumen financiero...</div>
       ) : (
         <>
-          <div className={`mt-4 grid ${compact ? "grid-cols-2 gap-2" : "grid-cols-2 lg:grid-cols-4 gap-3"}`}>
+          <div className={`mt-4 grid grid-cols-2 ${compact ? "gap-2" : "gap-3"}`}>
             <div className="rounded-2xl bg-black/14 border border-white/10 p-2.5 text-center">
               <p className="text-[10px] text-white/52 uppercase tracking-[0.14em]">Entrada</p>
               <p className="text-lg font-black text-emerald-300">${summary.todayRevenue.toFixed(2)}</p>
             </div>
             <div className="rounded-2xl bg-black/14 border border-white/10 p-2.5 text-center">
-              <p className="text-[10px] text-white/52 uppercase tracking-[0.14em]">Ganancia real</p>
-              <p className="text-lg font-black text-cyan-300">${summary.todayProfit.toFixed(2)}</p>
-            </div>
-            <div className="rounded-2xl bg-black/14 border border-white/10 p-2.5 text-center">
               <p className="text-[10px] text-white/52 uppercase tracking-[0.14em]">Apartar hoy</p>
               <p className="text-lg font-black text-amber-300">${summary.todaySetAside.toFixed(2)}</p>
-            </div>
-            <div className="rounded-2xl bg-black/14 border border-white/10 p-2.5 text-center">
-              <p className="text-[10px] text-white/52 uppercase tracking-[0.14em]">Pendiente</p>
-              <p className="text-lg font-black text-white">
-                {summary.pendingCount} · ${summary.pendingAmount.toFixed(2)}
-              </p>
             </div>
           </div>
 
