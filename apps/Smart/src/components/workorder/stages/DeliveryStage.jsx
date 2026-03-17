@@ -428,11 +428,13 @@ export default function DeliveryStage({ order, onUpdate, user }) {
                     <span className="text-2xl font-black text-white">${total.toFixed(2)}</span>
                   </div>
 
-                  {amountPaid > 0 && (
+                  {(amountPaid > 0 || (o.balance_due != null && Number(o.balance_due) === 0 && total > 0)) && (
                     <>
                       <div className="flex items-center justify-between rounded-2xl border border-white/5 bg-black/20 px-4 py-3 text-sm">
                         <span className="font-medium text-gray-400">Pagado / Depósito</span>
-                        <span className="font-bold text-emerald-400">-${amountPaid.toFixed(2)}</span>
+                        <span className="font-bold text-emerald-400">
+                          -{amountPaid > 0 ? amountPaid.toFixed(2) : total.toFixed(2)}
+                        </span>
                       </div>
                       <div className="flex items-center justify-between rounded-2xl border border-white/5 bg-black/20 px-4 py-4">
                         <span className="text-base font-bold text-white">Balance Pendiente</span>
