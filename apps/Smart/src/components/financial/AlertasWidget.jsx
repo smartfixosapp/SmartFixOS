@@ -192,67 +192,97 @@ export default function AlertasWidget() {
 
   return (
     <>
-      <Card className="bg-gradient-to-br from-[#2B2B2B] to-black border-amber-500/20 theme-light:bg-white theme-light:border-gray-200">
-        <CardHeader className="border-b border-amber-500/20 pb-4 theme-light:border-gray-200">
-          <CardTitle className="text-white flex items-center justify-between theme-light:text-gray-900">
-            <span className="flex items-center gap-2">
-              <Bell className="w-5 h-5 text-amber-500" />
-              Alertas Financieras
-              {alerts.length > 0 && (
-                <Badge className="bg-red-600/30 text-red-200 border-red-500/40 animate-pulse theme-light:bg-red-100 theme-light:text-red-700 theme-light:border-red-300">
-                  {alerts.length}
-                </Badge>
-              )}
-            </span>
-            <Button
-              size="sm"
-              variant="ghost"
-              onClick={() => setShowSettings(true)}
-              className="text-gray-400 hover:text-white theme-light:text-gray-600 theme-light:hover:text-gray-900"
-            >
-              <Settings className="w-4 h-4" />
-            </Button>
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="pt-6">
+      <div className="relative overflow-hidden bg-white/5 backdrop-blur-3xl border border-white/10 rounded-[40px] p-8 shadow-2xl group">
+        {/* Decorative Glow */}
+        <div className="absolute -right-10 -top-10 w-40 h-40 bg-amber-500/10 rounded-full blur-[80px] pointer-events-none" />
+        
+        <div className="relative flex items-center justify-between mb-8">
+          <div className="flex items-center gap-4">
+            <div className="w-12 h-12 rounded-2xl bg-amber-500/10 flex items-center justify-center border border-amber-500/20">
+              <Bell className="w-6 h-6 text-amber-400" />
+            </div>
+            <div>
+              <h3 className="text-xl font-black text-white tracking-tight flex items-center gap-2">
+                Alertas Financieras
+                {alerts.length > 0 && (
+                  <span className="flex h-6 w-6 items-center justify-center rounded-full bg-red-600/30 text-[10px] font-black text-red-100 border border-red-500/40 animate-pulse">
+                    {alerts.length}
+                  </span>
+                )}
+              </h3>
+              <p className="text-[10px] text-white/30 font-bold uppercase tracking-[0.2em]">Monitoreo en Tiempo Real</p>
+            </div>
+          </div>
+          <Button
+            size="sm"
+            variant="ghost"
+            onClick={() => setShowSettings(true)}
+            className="w-10 h-10 rounded-xl bg-white/5 text-gray-400 hover:text-white hover:bg-white/10 transition-all"
+          >
+            <Settings className="w-5 h-5" />
+          </Button>
+        </div>
+
+        <div className="relative">
           {loading ? (
-            <div className="text-center py-8 text-gray-400 theme-light:text-gray-600">
-              <Bell className="w-12 h-12 animate-pulse mx-auto mb-2" />
-              <p>Verificando alertas...</p>
+            <div className="flex flex-col items-center justify-center py-12 text-gray-400 italic">
+              <RefreshCw className="w-8 h-8 animate-spin mb-4 text-amber-500/30" />
+              <p className="text-xs font-bold uppercase tracking-widest text-white/20">Escaneando transacciones...</p>
             </div>
           ) : alerts.length === 0 ? (
-            <div className="text-center py-8">
-              <div className="w-16 h-16 rounded-full bg-emerald-600/20 border-2 border-emerald-500/40 flex items-center justify-center mx-auto mb-3 theme-light:bg-emerald-100 theme-light:border-emerald-300">
-                <span className="text-3xl">✅</span>
+            <div className="text-center py-10 px-6 rounded-[32px] bg-white/[0.02] border border-white/5 border-dashed">
+              <div className="w-16 h-16 rounded-full bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center mx-auto mb-4">
+                <span className="text-3xl">🛡️</span>
               </div>
-              <p className="text-emerald-300 font-semibold theme-light:text-emerald-700">Todo bajo control</p>
-              <p className="text-gray-500 text-sm mt-1 theme-light:text-gray-600">No hay alertas financieras</p>
+              <h4 className="text-emerald-400 font-black tracking-tight mb-1 uppercase text-sm">Estado Óptimo</h4>
+              <p className="text-white/20 text-[10px] font-bold uppercase tracking-widest">No se detectaron irregularidades</p>
             </div>
           ) : (
-            <div className="space-y-3">
+            <div className="space-y-4">
               {alerts.map(alert => (
                 <div
                   key={alert.id}
-                  className={`bg-gradient-to-br ${getAlertColor(alert.severity)} border rounded-xl p-4 theme-light:bg-white theme-light:border-gray-200`}
+                  className={`group relative overflow-hidden bg-white/5 border rounded-[28px] p-6 transition-all duration-300 hover:bg-white/[0.08] ${
+                    alert.severity === 'urgent' ? 'border-red-500/30 shadow-[0_8px_32px_rgba(239,68,68,0.1)]' : 'border-amber-500/30 shadow-[0_8px_32px_rgba(245,158,11,0.1)]'
+                  }`}
                 >
-                  <div className="flex items-start justify-between gap-3">
+                  {/* Internal Glow */}
+                  <div className={`absolute -right-4 -top-4 w-20 h-20 rounded-full blur-[30px] opacity-20 transition-opacity group-hover:opacity-40 ${
+                    alert.severity === 'urgent' ? 'bg-red-500' : 'bg-amber-500'
+                  }`} />
+
+                  <div className="relative flex items-start justify-between gap-4">
                     <div className="flex-1">
-                      <div className="flex items-center gap-2 mb-2">
-                        <span className="text-2xl">{getAlertIcon(alert.severity)}</span>
-                        <h4 className="text-white font-bold theme-light:text-gray-900">{alert.title}</h4>
+                      <div className="flex items-center gap-3 mb-3">
+                        <div className={`w-10 h-10 rounded-xl flex items-center justify-center text-xl shadow-inner border ${
+                          alert.severity === 'urgent' ? 'bg-red-500/10 border-red-500/20' : 'bg-amber-500/10 border-amber-500/20'
+                        }`}>
+                          {getAlertIcon(alert.severity)}
+                        </div>
+                        <div>
+                          <h4 className="text-white font-black tracking-tight uppercase text-sm">{alert.title}</h4>
+                          <span className={`text-[10px] font-black uppercase tracking-widest ${
+                            alert.severity === 'urgent' ? 'text-red-400/60' : 'text-amber-400/60'
+                          }`}>Prioridad {alert.severity === 'urgent' ? 'Crítica' : 'Media'}</span>
+                        </div>
                       </div>
-                      <p className="text-gray-300 text-sm mb-2 theme-light:text-gray-700">{alert.message}</p>
+                      <p className="text-white/60 text-sm leading-relaxed mb-4">{alert.message}</p>
                       {alert.amount && (
-                        <p className="text-amber-400 font-bold text-lg theme-light:text-amber-700">
-                          ${alert.amount.toFixed(2)}
-                        </p>
+                        <div className="flex items-center gap-2">
+                          <DollarSign className={`w-4 h-4 ${alert.severity === 'urgent' ? 'text-red-400' : 'text-amber-400'}`} />
+                          <p className={`text-2xl font-black tracking-tighter ${
+                            alert.severity === 'urgent' ? 'text-red-400' : 'text-amber-400'
+                          }`}>
+                            {alert.amount.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                          </p>
+                        </div>
                       )}
                     </div>
                     <Button
                       size="icon"
                       variant="ghost"
                       onClick={() => dismissAlert(alert.id)}
-                      className="text-gray-400 hover:text-white theme-light:text-gray-600 theme-light:hover:text-gray-900"
+                      className="w-10 h-10 rounded-xl text-white/20 hover:text-white hover:bg-white/10"
                     >
                       <X className="w-4 h-4" />
                     </Button>
@@ -261,8 +291,9 @@ export default function AlertasWidget() {
               ))}
             </div>
           )}
-        </CardContent>
-      </Card>
+        </div>
+      </div>
+
 
       {/* Modal de Configuración */}
       <Dialog open={showSettings} onOpenChange={setShowSettings}>
