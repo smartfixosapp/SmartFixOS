@@ -633,18 +633,28 @@ export default function AddItemModal({
   const countInCart = cartItems.reduce((sum, item) => sum + toNum(item.qty, 1), 0);
 
   return createPortal(
-    <div className="fixed inset-0 z-[99999] bg-black/85 backdrop-blur-sm p-4">
-      <div className="relative mx-auto h-full w-full max-w-[1320px] rounded-[28px] border border-white/10 bg-[#05070d] shadow-[0_20px_70px_rgba(0,0,0,0.5)] flex flex-col overflow-hidden">
-        <div className="flex items-center justify-between border-b border-white/10 px-6 py-4">
-          <div>
-            <h3 className="text-3xl font-black text-white tracking-tight">Catalogo de Piezas y Servicios</h3>
-            <p className="text-white/55 text-sm mt-1">Selecciona los items para agregar a la orden</p>
+    <div className="fixed inset-0 z-[99999] bg-black/85 backdrop-blur-md p-3 sm:p-5">
+      <div className="relative mx-auto h-full w-full max-w-[1320px] rounded-[32px] border border-white/10 bg-[linear-gradient(180deg,rgba(6,10,20,0.99),rgba(2,4,12,0.99))] shadow-[0_30px_100px_rgba(0,0,0,0.7)] flex flex-col overflow-hidden">
+        {/* ── Header ── */}
+        <div className="relative flex items-center justify-between border-b border-white/8 px-6 py-4">
+          {/* Ambient glow */}
+          <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-cyan-500/40 to-transparent" />
+          <div className="pointer-events-none absolute left-0 top-0 h-24 w-64 rounded-full bg-cyan-500/5 blur-3xl" />
+
+          <div className="flex items-center gap-4">
+            <div className="flex h-12 w-12 items-center justify-center rounded-2xl border border-cyan-400/25 bg-gradient-to-br from-cyan-500/20 to-blue-600/10 shadow-[0_0_20px_rgba(34,211,238,0.15)]">
+              <ShoppingCart className="h-6 w-6 text-cyan-300" />
+            </div>
+            <div>
+              <h3 className="text-2xl font-black tracking-tight text-white">Catálogo de Piezas y Servicios</h3>
+              <p className="text-[13px] text-white/45 mt-0.5">Selecciona los items para agregar a la orden</p>
+            </div>
           </div>
 
           <div className="flex items-center gap-2">
             <Button
               variant="outline"
-              className="border-amber-500/30 bg-amber-500/10 text-amber-300 hover:bg-amber-500/20"
+              className="rounded-xl border-amber-500/30 bg-amber-500/10 text-amber-300 hover:bg-amber-500/20 hover:border-amber-400/50 transition"
               onClick={() => setShowQuickItem(true)}
             >
               <Wrench className="w-4 h-4 mr-2" /> + Manual
@@ -652,116 +662,170 @@ export default function AddItemModal({
 
             <Button
               variant="outline"
-              className="border-red-500/30 bg-red-500/10 text-red-300 hover:bg-red-500/20"
+              className="rounded-xl border-red-500/25 bg-red-500/8 text-red-300/80 hover:bg-red-500/20 hover:text-red-200 transition"
               onClick={clearCart}
             >
               <Trash2 className="w-4 h-4 mr-2" /> Limpiar
             </Button>
 
-            <Button
-              variant={showCart ? "default" : "outline"}
-              className={showCart ? "bg-emerald-600 hover:bg-emerald-500" : "border-white/20 bg-white/5 text-white"}
+            <button
               onClick={() => setShowCart(true)}
+              className={`relative flex items-center gap-2 rounded-xl border px-4 py-2 text-sm font-bold transition ${
+                showCart
+                  ? "border-emerald-500/50 bg-emerald-600/25 text-emerald-200 shadow-[0_0_20px_rgba(16,185,129,0.15)]"
+                  : "border-white/15 bg-white/5 text-white hover:border-emerald-500/30 hover:bg-emerald-500/10"
+              }`}
             >
-              <ShoppingCart className="w-4 h-4 mr-2" /> Orden
-              <Badge className="ml-2 bg-white/15 text-white">{countInCart}</Badge>
-            </Button>
+              <ShoppingCart className="w-4 h-4" />
+              Orden
+              <span className="flex h-5 w-5 items-center justify-center rounded-full bg-emerald-500 text-[11px] font-black text-white">
+                {countInCart}
+              </span>
+            </button>
 
-            <div className="rounded-xl border border-white/10 bg-white/5 p-1 flex items-center gap-1">
-              <button onClick={() => setViewMode("grid")} className={`p-2 rounded ${viewMode === "grid" ? "bg-cyan-500/20 text-cyan-300" : "text-white/60"}`}>
+            <div className="flex items-center gap-1 rounded-xl border border-white/10 bg-white/5 p-1">
+              <button
+                onClick={() => setViewMode("grid")}
+                className={`rounded-lg p-1.5 transition ${viewMode === "grid" ? "bg-cyan-500/20 text-cyan-300" : "text-white/50 hover:text-white"}`}
+              >
                 <Grid className="w-4 h-4" />
               </button>
-              <button onClick={() => setViewMode("list")} className={`p-2 rounded ${viewMode === "list" ? "bg-cyan-500/20 text-cyan-300" : "text-white/60"}`}>
+              <button
+                onClick={() => setViewMode("list")}
+                className={`rounded-lg p-1.5 transition ${viewMode === "list" ? "bg-cyan-500/20 text-cyan-300" : "text-white/50 hover:text-white"}`}
+              >
                 <List className="w-4 h-4" />
               </button>
             </div>
 
-            <button onClick={onClose} className="w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 text-white grid place-items-center">
-              <X className="w-5 h-5" />
+            <button
+              onClick={onClose}
+              className="flex h-9 w-9 items-center justify-center rounded-xl border border-white/10 bg-white/5 text-white/70 hover:bg-white/15 hover:text-white transition"
+            >
+              <X className="w-4 h-4" />
             </button>
           </div>
         </div>
 
-        <div className="flex-1 min-h-0 grid grid-cols-[260px_minmax(0,1fr)]">
-          <div className="border-r border-white/10 p-4 space-y-3 bg-black/25">
-            <p className="text-xs font-bold uppercase tracking-[0.24em] text-white/60">Categorias</p>
+        {/* ── Body ── */}
+        <div className="flex-1 min-h-0 grid grid-cols-[240px_minmax(0,1fr)]">
+          {/* Sidebar */}
+          <div className="border-r border-white/8 bg-black/20 p-4 space-y-2">
+            <p className="mb-3 text-[10px] font-black uppercase tracking-[0.28em] text-white/35">Categorías</p>
             {[
-              { key: "all", label: "Todas", icon: Package, count: categoryCounts.all },
-              { key: "services", label: "Servicios", icon: Zap, count: categoryCounts.services },
-              { key: "accessories", label: "Accesorios", icon: Box, count: categoryCounts.accessories },
-              { key: "parts", label: "Piezas", icon: Wrench, count: categoryCounts.parts },
-            ].map((cat) => (
-              <button
-                key={cat.key}
-                onClick={() => setActiveCategory(cat.key)}
-                className={`w-full flex items-center justify-between rounded-xl border px-3 py-2.5 transition ${
-                  activeCategory === cat.key
-                    ? "border-cyan-400/40 bg-cyan-500/15 text-cyan-200"
-                    : "border-white/10 bg-white/[0.02] text-white/80 hover:bg-white/[0.06]"
-                }`}
-              >
-                <span className="flex items-center gap-2 text-sm font-semibold">
-                  <cat.icon className="w-4 h-4" /> {cat.label}
-                </span>
-                <Badge className="bg-white/10 text-white">{cat.count}</Badge>
-              </button>
-            ))}
+              { key: "all",         label: "Todas",      icon: Package, count: categoryCounts.all,         color: "cyan" },
+              { key: "services",    label: "Servicios",  icon: Zap,     count: categoryCounts.services,    color: "violet" },
+              { key: "accessories", label: "Accesorios", icon: Box,     count: categoryCounts.accessories, color: "amber" },
+              { key: "parts",       label: "Piezas",     icon: Wrench,  count: categoryCounts.parts,       color: "emerald" },
+            ].map((cat) => {
+              const isActive = activeCategory === cat.key;
+              const colorMap = {
+                cyan:    { border: "border-cyan-400/35",    bg: "bg-cyan-500/12",    text: "text-cyan-200",    badge: "bg-cyan-500/20 text-cyan-200" },
+                violet:  { border: "border-violet-400/35", bg: "bg-violet-500/12",  text: "text-violet-200", badge: "bg-violet-500/20 text-violet-200" },
+                amber:   { border: "border-amber-400/35",  bg: "bg-amber-500/12",   text: "text-amber-200",  badge: "bg-amber-500/20 text-amber-200" },
+                emerald: { border: "border-emerald-400/35",bg: "bg-emerald-500/12", text: "text-emerald-200",badge: "bg-emerald-500/20 text-emerald-200" },
+              }[cat.color];
+              return (
+                <button
+                  key={cat.key}
+                  onClick={() => setActiveCategory(cat.key)}
+                  className={`w-full flex items-center justify-between rounded-2xl border px-3 py-2.5 text-sm font-semibold transition-all ${
+                    isActive
+                      ? `${colorMap.border} ${colorMap.bg} ${colorMap.text}`
+                      : "border-white/8 bg-white/[0.02] text-white/65 hover:bg-white/[0.06] hover:text-white"
+                  }`}
+                >
+                  <span className="flex items-center gap-2">
+                    <cat.icon className="w-4 h-4" />
+                    {cat.label}
+                  </span>
+                  <span className={`rounded-full px-2 py-0.5 text-[11px] font-bold ${
+                    isActive ? colorMap.badge : "bg-white/10 text-white/60"
+                  }`}>
+                    {cat.count}
+                  </span>
+                </button>
+              );
+            })}
           </div>
 
+          {/* Main catalog area */}
           <div className="min-w-0 flex flex-col">
-            <div className="border-b border-white/10 p-4">
+            {/* Search */}
+            <div className="border-b border-white/8 p-4">
               <div className="relative max-w-xl">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-white/35" />
+                <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-white/30" />
                 <Input
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
                   placeholder="Buscar pieza, servicio, SKU..."
-                  className="pl-10 bg-black/30 border-white/15 text-white"
+                  className="pl-10 rounded-xl bg-white/[0.04] border-white/10 text-white placeholder-white/30 focus:border-cyan-500/40 focus:ring-1 focus:ring-cyan-500/20 transition"
                 />
               </div>
             </div>
 
             <ScrollArea className="flex-1 p-4">
               {loading && filteredItems.length === 0 ? (
-                <div className="h-full grid place-items-center text-white/55">Cargando inventario...</div>
+                <div className="h-52 grid place-items-center">
+                  <div className="text-center space-y-2">
+                    <div className="w-8 h-8 mx-auto rounded-full border-2 border-cyan-500/40 border-t-cyan-400 animate-spin" />
+                    <p className="text-sm text-white/40">Cargando inventario...</p>
+                  </div>
+                </div>
               ) : filteredItems.length === 0 ? (
-                <div className="h-full grid place-items-center text-white/50">Sin items cargados todavia</div>
+                <div className="h-52 grid place-items-center text-white/35 text-sm">Sin items para esta categoría</div>
               ) : viewMode === "grid" ? (
                 <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3">
-                  {filteredItems.map((item) => (
-                    <div key={`${item.type}-${item.id}`} className="rounded-2xl border border-white/10 bg-black/30 p-4">
-                      <div className="flex items-start justify-between gap-2">
-                        <p className="text-white font-bold leading-tight">{item.name}</p>
+                  {filteredItems.map((item) => {
+                    const svc = isService(item);
+                    const acc = isAccessory(item);
+                    const typeLabel = svc ? "Servicio" : acc ? "Accesorio" : "Pieza";
+                    const typeCls = svc
+                      ? "border-violet-400/25 bg-violet-500/10 text-violet-300"
+                      : acc
+                      ? "border-amber-400/25 bg-amber-500/10 text-amber-300"
+                      : "border-emerald-400/25 bg-emerald-500/10 text-emerald-300";
+                    return (
+                      <div
+                        key={`${item.type}-${item.id}`}
+                        className="group rounded-2xl border border-white/8 bg-white/[0.03] p-4 hover:border-cyan-500/30 hover:bg-white/[0.06] hover:shadow-[0_0_30px_rgba(34,211,238,0.06)] transition-all duration-200"
+                      >
+                        <div className="flex items-start justify-between gap-2">
+                          <p className="font-bold text-white leading-tight text-sm line-clamp-2">{item.name}</p>
+                          <span className={`shrink-0 rounded-full border px-2 py-0.5 text-[10px] font-bold uppercase tracking-[0.12em] ${typeCls}`}>
+                            {typeLabel}
+                          </span>
+                        </div>
+                        <p className="text-[11px] text-white/35 mt-1.5">{item.sku || "Sin código"}</p>
                         {item.stock > 0 && (
-                          <Badge className="bg-amber-500/15 text-amber-300 border border-amber-500/30">Stock: {item.stock}</Badge>
+                          <p className="text-[11px] text-amber-300/70 mt-0.5">Stock: {item.stock}</p>
                         )}
+                        <div className="mt-4 flex items-center justify-between">
+                          <p className="text-2xl font-black text-white">${toNum(item.price).toFixed(2)}</p>
+                          <button
+                            onClick={() => addToCart(item)}
+                            className="flex h-9 w-9 items-center justify-center rounded-xl border border-cyan-500/25 bg-cyan-500/10 text-cyan-300 hover:bg-cyan-500/25 hover:border-cyan-400/50 hover:shadow-[0_0_14px_rgba(34,211,238,0.2)] transition-all active:scale-95"
+                          >
+                            <Plus className="w-4 h-4" />
+                          </button>
+                        </div>
                       </div>
-                      <p className="text-xs text-white/45 mt-1">{item.sku || "Sin codigo"}</p>
-                      <div className="mt-4 flex items-center justify-between">
-                        <p className="text-2xl font-black text-white">${toNum(item.price).toFixed(2)}</p>
-                        <button
-                          onClick={() => addToCart(item)}
-                          className="w-10 h-10 rounded-full bg-cyan-500/15 border border-cyan-500/30 hover:bg-cyan-500/25 text-cyan-200 grid place-items-center"
-                        >
-                          <Plus className="w-5 h-5" />
-                        </button>
-                      </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               ) : (
-                <div className="space-y-2">
+                <div className="space-y-1.5">
                   {filteredItems.map((item) => (
                     <button
                       key={`${item.type}-${item.id}`}
                       onClick={() => addToCart(item)}
-                      className="w-full rounded-xl border border-white/10 bg-black/25 hover:bg-white/[0.06] p-3 text-left flex items-center justify-between"
+                      className="w-full rounded-xl border border-white/8 bg-white/[0.02] hover:bg-white/[0.06] hover:border-cyan-500/20 p-3 text-left flex items-center justify-between gap-4 transition-all group"
                     >
-                      <div>
-                        <p className="text-sm font-bold text-white">{item.name}</p>
-                        <p className="text-xs text-white/45">{item.sku || "Sin codigo"}</p>
+                      <div className="min-w-0">
+                        <p className="text-sm font-semibold text-white truncate">{item.name}</p>
+                        <p className="text-xs text-white/35">{item.sku || "Sin código"}</p>
                       </div>
-                      <p className="text-sm font-bold text-emerald-300">${toNum(item.price).toFixed(2)}</p>
+                      <p className="shrink-0 text-sm font-black text-emerald-300">${toNum(item.price).toFixed(2)}</p>
                     </button>
                   ))}
                 </div>
@@ -770,63 +834,89 @@ export default function AddItemModal({
           </div>
         </div>
 
+        {/* ── Floating Cart ── */}
         {showCart && (
           <div className="pointer-events-none absolute inset-x-0 bottom-4 px-4">
-            <div className="pointer-events-auto ml-auto w-full max-w-[460px] rounded-2xl border border-emerald-500/25 bg-[#061013]/95 shadow-[0_18px_50px_rgba(0,0,0,0.45)] p-3">
-              <div className="mb-2 flex items-center justify-between">
-                <p className="text-white font-bold text-xs uppercase tracking-[0.18em]">Orden ({countInCart})</p>
-                <div className="flex items-center gap-2">
-                  <p className="text-emerald-300 font-black text-base">${totals.total.toFixed(2)}</p>
+            <div className="pointer-events-auto ml-auto w-full max-w-[480px] rounded-2xl border border-emerald-500/30 bg-[rgba(3,12,10,0.97)] shadow-[0_20px_60px_rgba(0,0,0,0.55),0_0_0_1px_rgba(16,185,129,0.08)] overflow-hidden">
+              {/* Cart header */}
+              <div className="flex items-center justify-between px-4 pt-3 pb-2">
+                <p className="text-xs font-black uppercase tracking-[0.22em] text-white/70">
+                  Orden <span className="text-emerald-400">({countInCart})</span>
+                </p>
+                <div className="flex items-center gap-3">
+                  <p className="text-lg font-black text-emerald-300">${totals.total.toFixed(2)}</p>
                   <button
                     onClick={() => setShowCart(false)}
-                    className="w-6 h-6 rounded-md bg-white/10 hover:bg-white/20 text-white/80 grid place-items-center"
-                    aria-label="Cerrar carrito"
+                    className="flex h-6 w-6 items-center justify-center rounded-lg bg-white/8 hover:bg-white/15 text-white/60 hover:text-white transition"
                   >
                     <X className="w-3.5 h-3.5" />
                   </button>
                 </div>
               </div>
 
+              {/* Cart items */}
               {cartItems.length === 0 ? (
-                <div className="rounded-xl border border-white/10 bg-black/20 p-3 text-center text-xs text-white/55">El carrito esta vacio</div>
+                <div className="mx-3 mb-3 rounded-xl border border-white/8 bg-black/20 p-3 text-center text-xs text-white/40">El carrito está vacío</div>
               ) : (
                 <>
-                  <div className="max-h-32 overflow-y-auto space-y-1.5 pr-1">
+                  <div className="max-h-36 overflow-y-auto space-y-1 px-3">
                     {cartItems.map((item, idx) => (
-                      <div key={`${item.id}-${idx}`} className="rounded-lg border border-white/10 bg-black/25 p-2 flex items-center justify-between gap-2">
-                        <div className="min-w-0">
-                          <p className="text-white text-xs font-semibold truncate">{item.name}</p>
-                          <p className="text-[11px] text-white/45">${toNum(item.price).toFixed(2)} c/u</p>
+                      <div key={`${item.id}-${idx}`} className="flex items-center gap-2 rounded-xl border border-white/8 bg-black/25 px-3 py-2">
+                        <div className="min-w-0 flex-1">
+                          <p className="text-xs font-semibold text-white truncate">{item.name}</p>
+                          <p className="text-[11px] text-white/40">${toNum(item.price).toFixed(2)} c/u</p>
                         </div>
-
-                        <div className="flex items-center gap-1">
-                          <button onClick={() => changeQty(idx, -1)} className="w-7 h-7 rounded-md bg-white/10 hover:bg-white/20 text-white grid place-items-center">
-                            <Minus className="w-3.5 h-3.5" />
+                        <div className="flex items-center gap-1.5 shrink-0">
+                          <button
+                            onClick={() => changeQty(idx, -1)}
+                            className="h-6 w-6 rounded-lg border border-white/10 bg-white/5 text-white/70 hover:bg-white/15 grid place-items-center transition"
+                          >
+                            <Minus className="w-3 h-3" />
                           </button>
-                          <span className="w-6 text-center text-white text-xs font-bold">{item.qty}</span>
-                          <button onClick={() => changeQty(idx, 1)} className="w-7 h-7 rounded-md bg-white/10 hover:bg-white/20 text-white grid place-items-center">
-                            <Plus className="w-3.5 h-3.5" />
+                          <span className="w-5 text-center text-xs font-bold text-white">{item.qty}</span>
+                          <button
+                            onClick={() => changeQty(idx, 1)}
+                            className="h-6 w-6 rounded-lg border border-white/10 bg-white/5 text-white/70 hover:bg-white/15 grid place-items-center transition"
+                          >
+                            <Plus className="w-3 h-3" />
                           </button>
-                          <button onClick={() => removeItem(idx)} className="w-7 h-7 rounded-md bg-red-500/20 hover:bg-red-500/35 text-red-300 grid place-items-center">
-                            <Trash2 className="w-3.5 h-3.5" />
+                          <button
+                            onClick={() => removeItem(idx)}
+                            className="h-6 w-6 rounded-lg border border-red-500/25 bg-red-500/10 text-red-400 hover:bg-red-500/25 grid place-items-center transition"
+                          >
+                            <Trash2 className="w-3 h-3" />
                           </button>
                         </div>
                       </div>
                     ))}
                   </div>
 
-                  <div className="mt-2 rounded-lg border border-emerald-500/25 bg-black/20 p-2">
-                    <div className="flex justify-between text-white/70 text-[11px]"><span>Subtotal</span><span>${totals.subtotal.toFixed(2)}</span></div>
-                    <div className="mt-1 flex justify-between text-white/70 text-[11px]"><span>IVU</span><span>${totals.tax.toFixed(2)}</span></div>
+                  {/* Totals */}
+                  <div className="mx-3 mt-2 rounded-xl border border-white/8 bg-black/20 px-3 py-2 space-y-1">
+                    <div className="flex justify-between text-xs text-white/50">
+                      <span>Subtotal</span>
+                      <span className="font-semibold text-white/70">${totals.subtotal.toFixed(2)}</span>
+                    </div>
+                    <div className="flex justify-between text-xs text-white/50">
+                      <span>IVU (11.5%)</span>
+                      <span className="font-semibold text-white/70">${totals.tax.toFixed(2)}</span>
+                    </div>
+                    <div className="flex justify-between border-t border-white/8 pt-1">
+                      <span className="text-xs font-black uppercase tracking-[0.12em] text-white/60">Total</span>
+                      <span className="text-sm font-black text-emerald-300">${totals.total.toFixed(2)}</span>
+                    </div>
                   </div>
 
-                  <Button
-                    onClick={saveToOrder}
-                    disabled={saving}
-                    className="mt-2 w-full h-9 bg-gradient-to-r from-cyan-500 to-emerald-500 text-black font-black hover:opacity-95"
-                  >
-                    {saving ? "Guardando..." : "Aplicar y Cerrar"}
-                  </Button>
+                  {/* Apply button */}
+                  <div className="p-3">
+                    <button
+                      onClick={saveToOrder}
+                      disabled={saving}
+                      className="w-full rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 py-3 text-sm font-black uppercase tracking-[0.16em] text-white shadow-[0_6px_24px_rgba(16,185,129,0.3)] transition-all active:scale-[0.98] disabled:opacity-60"
+                    >
+                      {saving ? "Guardando..." : "Aplicar y Cerrar"}
+                    </button>
+                  </div>
                 </>
               )}
             </div>
@@ -834,14 +924,18 @@ export default function AddItemModal({
         )}
       </div>
 
-      <QuickItemModal
-        open={showQuickItem}
-        onClose={() => setShowQuickItem(false)}
-        onItemCreated={(item) => {
-          setCartItems((prev) => [...prev, normalizeCartItem(item)]);
-          setShowCart(true);
-        }}
-      />
+      {showQuickItem && (
+        <QuickItemModal
+          open={showQuickItem}
+          onClose={() => setShowQuickItem(false)}
+          onSave={(newItem) => {
+            const normalized = normalizeInventoryItem({ ...newItem, is_manual: true, source: "manual" });
+            setInventoryItems((prev) => uniqueByKey([normalized, ...prev]));
+            addToCart(normalized);
+            setShowQuickItem(false);
+          }}
+        />
+      )}
     </div>,
     document.body
   );
