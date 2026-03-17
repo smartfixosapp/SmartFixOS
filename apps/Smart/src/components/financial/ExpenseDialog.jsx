@@ -11,12 +11,12 @@ import { TrendingDown, DollarSign } from "lucide-react";
 import AIExpenseCategorizor from "./AIExpenseCategorizor";
 import { toast } from "sonner";
 
-export default function ExpenseDialog({ open, onClose, onSuccess, drawer }) {
+export default function ExpenseDialog({ open, onClose, onSuccess, drawer, defaultCategory }) {
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
     amount: "",
     description: "",
-    category: "other_expense",
+    category: defaultCategory || "other_expense",
     reference: ""
   });
 
@@ -158,7 +158,7 @@ export default function ExpenseDialog({ open, onClose, onSuccess, drawer }) {
                 <TrendingDown className="w-6 h-6 text-orange-400" />
               </div>
               <DialogTitle className="text-2xl font-black text-white tracking-tight text-left">
-                Registrar Gasto
+                {defaultCategory === "payroll" ? "Pagar Nómina" : "Registrar Gasto"}
               </DialogTitle>
             </div>
           </DialogHeader>
@@ -207,8 +207,9 @@ export default function ExpenseDialog({ open, onClose, onSuccess, drawer }) {
                 <Select 
                   value={formData.category} 
                   onValueChange={(value) => setFormData({ ...formData, category: value })}
+                  disabled={!!defaultCategory}
                 >
-                  <SelectTrigger className="bg-white/5 border-white/10 text-white h-12 rounded-2xl px-5 focus:border-orange-500/50 font-bold">
+                  <SelectTrigger className="bg-white/5 border-white/10 text-white h-12 rounded-2xl px-5 focus:border-orange-500/50 font-bold disabled:opacity-50">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent className="bg-[#111] border-white/10 text-white rounded-2xl">

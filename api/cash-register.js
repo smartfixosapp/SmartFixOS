@@ -115,7 +115,7 @@ function normalizeOrderUpdateChanges(changes = {}) {
   );
 }
 
-async function sendCashRegisterEmail({ type, tenantId, drawer, performedBy, difference = null, expectedCash = null }) {
+async function sendCashRegisterEmail({ type, tenantId, drawer, performedBy, difference = null, expectedCash = null, partsCost = null, realProfit = null, moneyToSetAside = null }) {
   if (!tenantId) return;
 
   const [tenant, mainSettings, brandingSettings] = await Promise.all([
@@ -149,6 +149,14 @@ async function sendCashRegisterEmail({ type, tenantId, drawer, performedBy, diff
         <p style="margin:0;color:#7F1D1D;font-size:15px;">Total contado: <strong>$${formatMoney(drawer?.closing_balance)}</strong></p>
         <p style="margin:8px 0 0;color:#7F1D1D;font-size:15px;">Efectivo esperado: <strong>$${formatMoney(expectedCash)}</strong></p>
         <p style="margin:8px 0 0;color:#7F1D1D;font-size:15px;">Diferencia: <strong>$${formatMoney(difference)}</strong></p>
+      </div>
+
+      <div style="background:#F3F4F6;border:2px solid #D1D5DB;border-radius:16px;padding:20px;margin:24px 0;">
+        <p style="margin:0 0 8px;color:#374151;font-size:18px;font-weight:800;">Resumen Financiero Real</p>
+        <p style="margin:0;color:#4B5563;font-size:15px;">Entrada Bruta: <strong>$${formatMoney(drawer?.total_revenue)}</strong></p>
+        <p style="margin:8px 0 0;color:#4B5563;font-size:15px;">Costo de Piezas: <strong>$${formatMoney(partsCost)}</strong></p>
+        <p style="margin:8px 0 0;color:#4B5563;font-size:15px;">Ganancia Real Neta: <strong>$${formatMoney(realProfit)}</strong></p>
+        <p style="margin:8px 0 0;color:#4B5563;font-size:15px;">Apartado para Gastos Fijos: <strong>$${formatMoney(moneyToSetAside)}</strong></p>
       </div>
     `;
 
@@ -241,6 +249,9 @@ async function handleClose(req, res, body) {
 
   const countedTotal = calculateTotal(denominations);
   const totalRevenue = Number(summary?.totalRevenue || 0);
+  const partsCost = Number(summary?.partsCost || 0);
+  const realProfit = Number(summary?.realProfit || 0);
+  const moneyToSetAside = Number(summary?.moneyToSetAside || 0);
   const expectedCash = Number(summary?.expectedCash || 0);
   const difference = countedTotal - expectedCash;
   const closedBy = user?.full_name || user?.userName || user?.email || 'Sistema';
@@ -254,7 +265,7 @@ async function handleClose(req, res, body) {
       status: 'closed',
       closing_balance: countedTotal,
       total_revenue: totalRevenue,
-      net_profit: totalRevenue,
+      net_profit: realProfit > 0 ? realProfit : totalRevenue,
       closed_by: closedBy,
       final_count: {
         denominations,
@@ -290,6 +301,9 @@ async function handleClose(req, res, body) {
       performedBy: user,
       difference,
       expectedCash,
+      partsCost,
+      realProfit,
+      moneyToSetAside,
     });
   } catch (emailError) {
     console.warn('cash-register close email warning:', emailError.message);

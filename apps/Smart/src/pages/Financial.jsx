@@ -172,6 +172,7 @@ export default function Financial() {
   const [showOpenDrawer, setShowOpenDrawer] = useState(false);
   const [showCloseDrawer, setShowCloseDrawer] = useState(false);
   const [showExpenseDialog, setShowExpenseDialog] = useState(false);
+  const [expenseDefaultCategory, setExpenseDefaultCategory] = useState(null);
   const [activeTab, setActiveTab] = useState("sales");
   const [fixedExpenses, setFixedExpenses] = useState([]);
   const [showFixedExpenseDialog, setShowFixedExpenseDialog] = useState(false);
@@ -731,17 +732,43 @@ export default function Financial() {
 
   const exportToCSV = () => {
     try {
+      // Calcular detalles avanzados para la exportación
+      const totalSalesProfit = filteredSales.reduce((sum, sale) => sum + computeSaleProfit(sale), 0);
+      const partsCost = filteredSales.reduce((sum, sale) => {
+        const items = Array.isArray(sale?.items) ? sale.items : [];
+        return sum + items.reduce((iSum, item) => {
+          const qty = Number(item?.quantity || 0);
+          return iSum + Number(item?.line_cost || (Number(item?.cost || 0) * qty));
+        }, 0);
+      }, 0);
+      
+      const categoryTotals = filteredExpenses.reduce((acc, e) => {
+        const cat = e.category || 'other_expense';
+        acc[cat] = (acc[cat] || 0) + getExpenseMagnitude(e.amount);
+        return acc;
+      }, {});
+
       // Crear CSV detallado
       let csv = "REPORTE FINANCIERO DETALLADO\n\n";
       csv += `Período: ${dateFilter === 'today' ? 'Hoy' : dateFilter === 'week' ? 'Última Semana' : dateFilter === 'month' ? 'Último Mes' : `${customStartDate} a ${customEndDate}`}\n`;
       csv += `Fecha de Exportación: ${format(new Date(), "dd/MM/yyyy HH:mm")}\n\n`;
 
       // Resumen
-      csv += "RESUMEN\n";
-      csv += `Ingresos Totales,${totalRevenue.toFixed(2)}\n`;
+      csv += "RESUMEN CERTIFICADO\n";
+      csv += `Ingresos Totales (Bruto),${totalRevenue.toFixed(2)}\n`;
+      csv += `Costo Total de Piezas,${partsCost.toFixed(2)}\n`;
+      csv += `Ganancia Real de Ventas,${totalSalesProfit.toFixed(2)}\n`;
       csv += `Gastos Totales,${totalExpenses.toFixed(2)}\n`;
-      csv += `Utilidad Neta,${netProfit.toFixed(2)}\n`;
+      csv += `Utilidad Neta Final (Ganancia Real - Gastos),${(totalSalesProfit - totalExpenses).toFixed(2)}\n`;
       csv += `Total de Ventas,${filteredSales.length}\n\n`;
+
+      csv += "DESGLOSE DE GASTOS POR CATEGORÍA\n";
+      csv += `Nómina (Payroll),${(categoryTotals['payroll'] || 0).toFixed(2)}\n`;
+      csv += `Renta (Rent),${(categoryTotals['rent'] || 0).toFixed(2)}\n`;
+      csv += `Impuestos (Taxes),${(categoryTotals['taxes'] || 0).toFixed(2)}\n`;
+      csv += `Utilidades (Utilities),${(categoryTotals['utilities'] || 0).toFixed(2)}\n`;
+      csv += `Inventario/Piezas (Parts),${(categoryTotals['parts'] || 0).toFixed(2)}\n`;
+      csv += `Otros Gastos,${(categoryTotals['other_expense'] || 0).toFixed(2)}\n\n`;
 
       // Ventas detalladas
       csv += "VENTAS DETALLADAS\n";
@@ -935,7 +962,15 @@ export default function Financial() {
           <div className="h-8 w-[1px] bg-white/10 mx-2 hidden md:block" />
 
           <Button 
-            onClick={() => setShowExpenseDialog(true)} 
+            onClick={() => { setExpenseDefaultCategory("payroll"); setShowExpenseDialog(true); }} 
+            className="rounded-2xl bg-gradient-to-r from-teal-600 to-emerald-600 hover:from-teal-500 hover:to-emerald-500 text-white h-12 px-6 shadow-lg shadow-teal-900/20 transition-all active:scale-95 group"
+          >
+            <Wallet className="w-4 h-4 mr-2" />
+            <span className="font-bold">Pagar Nómina</span>
+          </Button>
+
+          <Button 
+            onClick={() => { setExpenseDefaultCategory(null); setShowExpenseDialog(true); }} 
             className="rounded-2xl bg-white/5 border border-orange-500/30 hover:bg-orange-600 hover:border-orange-500 text-white h-12 px-6 transition-all active:scale-95 group"
           >
             <Plus className="w-4 h-4 mr-2 text-orange-400 group-hover:text-white" />
@@ -1334,7 +1369,7 @@ export default function Financial() {
 
       {showOpenDrawer && <OpenDrawerDialog open={showOpenDrawer} onClose={() => setShowOpenDrawer(false)} onSuccess={handleActionSuccess} />}
       {showCloseDrawer && <CloseDrawerDialog open={showCloseDrawer} onClose={() => setShowCloseDrawer(false)} onSuccess={handleActionSuccess} drawer={currentDrawer} />}
-      {showExpenseDialog && <ExpenseDialog open={showExpenseDialog} onClose={() => setShowExpenseDialog(false)} onSuccess={handleActionSuccess} drawer={currentDrawer} />}
+      {showExpenseDialog && <ExpenseDialog open={showExpenseDialog} onClose={() => setShowExpenseDialog(false)} onSuccess={handleActionSuccess} drawer={currentDrawer} defaultCategory={expenseDefaultCategory} />}
       {showEditExpenseDialog && (
         <EditExpenseDialog
           open={showEditExpenseDialog}

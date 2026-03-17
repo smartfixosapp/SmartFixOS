@@ -63,7 +63,10 @@ export default function CloseDrawerDialog({ isOpen, onClose, drawer, onSuccess }
       totalCard: 0,
       totalATH: 0,
       expectedCash: Math.round(opening * 100) / 100,
-      totalRevenue: 0
+      totalRevenue: 0,
+      partsCost: 0,
+      realProfit: 0,
+      moneyToSetAside: 0
     };
   };
 
@@ -79,8 +82,11 @@ export default function CloseDrawerDialog({ isOpen, onClose, drawer, onSuccess }
   const fetchSalesSummary = async () => {
     try {
       const drawerOpenDate = new Date(drawer.created_date);
-      // Fetch sales more robustly
-      const sales = await base44.entities.Sale.filter({}, "-created_date", 1000); 
+      // Fetch sales and fixed expenses
+      const [sales, fixedExpenses] = await Promise.all([
+        base44.entities.Sale.filter({}, "-created_date", 1000),
+        base44.entities.FixedExpense.list("-created_date", 100).catch(() => [])
+      ]); 
       
       const salesInDrawer = sales.filter(s => {
         if (s.voided) return false;
@@ -103,6 +109,48 @@ export default function CloseDrawerDialog({ isOpen, onClose, drawer, onSuccess }
 
       const expectedCash = (drawer.opening_balance || 0) + totalCash;
       const totalRevenue = salesInDrawer.reduce((sum, s) => sum + (s.amount_paid || s.total || 0), 0);
+      
+      // Calcular Costo de Piezas y Ganancia Real
+      const partsCost = salesInDrawer.reduce((sum, sale) => {
+        const items = Array.isArray(sale?.items) ? sale.items : [];
+        return sum + items.reduce((iSum, item) => {
+          const qty = Number(item?.quantity || 0);
+          return iSum + Number(item?.line_cost || (Number(item?.cost || 0) * qty));
+        }, 0);
+      }, 0);
+
+      const realProfit = salesInDrawer.reduce((sum, sale) => {
+        const items = Array.isArray(sale?.items) ? sale.items : [];
+        return sum + items.reduce((iSum, item) => {
+          const qty = Number(item?.quantity || 0);
+          const total = Number(item?.total || (Number(item?.price || 0) * qty));
+          const lineCost = Number(item?.line_cost || (Number(item?.cost || 0) * qty));
+          const explicitLineProfit = item?.line_profit;
+          const lineProfit = explicitLineProfit != null ? Number(explicitLineProfit || 0) : (total - lineCost);
+          return iSum + lineProfit;
+        }, 0);
+      }, 0);
+
+      // Calcular Dinero a Apartar según FixedExpenses
+      const moneyToSetAside = fixedExpenses.reduce((sum, expense) => {
+        if (!expense.active) return sum;
+        const percentage = Number(expense.percentage || 0);
+        
+        let fixedAmount = 0;
+        try {
+          const parsed = JSON.parse(expense.notes);
+          if (parsed && typeof parsed === "object") fixedAmount = Number(parsed.fixed_amount || 0);
+        } catch {}
+
+        const dailyByPercentage = Math.max(0, realProfit) > 0 ? (realProfit * (percentage / 100)) : 0;
+        const divisors = { daily: 1, weekly: 7, biweekly: 14, monthly: 30, quarterly: 90, yearly: 365 };
+        const divisor = divisors[expense.frequency] || 30;
+        const dailyByAmount = fixedAmount > 0 ? fixedAmount / divisor : 0;
+        
+        // Asume modo de "Porcentaje" por defecto si se ingresó porcentaje, de lo contrario fijo.
+        const setAside = percentage > 0 ? dailyByPercentage : dailyByAmount;
+        return sum + setAside;
+      }, 0);
 
       // Round to 2 decimals to avoid floating point artifacts
       setSalesSummary({
@@ -110,7 +158,10 @@ export default function CloseDrawerDialog({ isOpen, onClose, drawer, onSuccess }
         totalCard: Math.round(totalCard * 100) / 100,
         totalATH: Math.round(totalATH * 100) / 100,
         expectedCash: Math.round(expectedCash * 100) / 100,
-        totalRevenue: Math.round(totalRevenue * 100) / 100
+        totalRevenue: Math.round(totalRevenue * 100) / 100,
+        partsCost: Math.round(partsCost * 100) / 100,
+        realProfit: Math.round(realProfit * 100) / 100,
+        moneyToSetAside: Math.round(moneyToSetAside * 100) / 100
       });
     } catch (error) {
       console.error("Error fetching sales summary:", error);
