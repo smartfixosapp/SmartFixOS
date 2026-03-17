@@ -43,6 +43,8 @@ import WaitingPartsStage from "./stages/WaitingPartsStage.jsx";
 import PartArrivedStage from "./stages/PartArrivedStage.jsx";
 import ExternalRepairStage from "./stages/ExternalRepairStage";
 import WarrantyStage from "./stages/WarrantyStage";
+import CancelledStage from "./stages/CancelledStage";
+import AwaitingApprovalStage from "./stages/AwaitingApprovalStage";
 import { getLocalOrders, getUnsyncedLocalOrders, mergeOrders, removeLocalOrder } from "@/components/utils/localOrderCache";
 import { logWorkOrderPhotoEvent } from "@/components/workorder/utils/auditEvents";
 import { loadSuppliersSafe } from "@/components/utils/suppliers";
@@ -2898,9 +2900,15 @@ export default function WorkOrderPanel({ orderId, onClose, onUpdate, onDelete, p
                   {(status === "picked_up" || status === "delivered" || status === "completed") && (
                     <FinalizedStage order={o} onUpdate={async () => { await clearEventCache(o.id); await loadEventsCallback(true); await handleRefresh(); onUpdate?.(); }} />
                   )}
-                  
-                  {/* Default fallback */}
-                  {!["intake", "waiting_order", "diagnosing", "pending_order", "waiting_parts", "part_arrived_waiting_device", "reparacion_externa", "in_progress", "ready_for_pickup", "picked_up", "delivered", "completed", "warranty"].includes(status) && (
+                  {status === "cancelled" && (
+                    <CancelledStage order={o} onUpdate={async () => { await clearEventCache(o.id); await loadEventsCallback(true); await handleRefresh(); onUpdate?.(); }} />
+                  )}
+                  {status === "awaiting_approval" && (
+                    <AwaitingApprovalStage order={o} onUpdate={async () => { await clearEventCache(o.id); await loadEventsCallback(true); await handleRefresh(); onUpdate?.(); }} />
+                  )}
+
+                  {/* Default fallback – should never be reached for known statuses */}
+                  {!["intake", "waiting_order", "diagnosing", "pending_order", "waiting_parts", "part_arrived_waiting_device", "reparacion_externa", "in_progress", "ready_for_pickup", "picked_up", "delivered", "completed", "warranty", "cancelled", "awaiting_approval"].includes(status) && (
                     <Card className="p-4 bg-gray-900 border-gray-800">
                       <div className="text-gray-400 text-center">Vista estándar para estado: {status}</div>
                     </Card>
