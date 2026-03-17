@@ -49,7 +49,8 @@ import MobileMoreMenu from "../components/dashboard/MobileMoreMenu";
 import { useDeviceDetection } from "../components/utils/useDeviceDetection";
 import {
   Settings as SettingsIcon2,
-  FileText
+  FileText,
+  PiggyBank
 } from "lucide-react";
 import OpenDrawerDialog from "../components/cash/OpenDrawerDialog";
 import CloseDrawerDialog from "../components/cash/CloseDrawerDialog";
