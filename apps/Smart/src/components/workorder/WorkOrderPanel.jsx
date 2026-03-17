@@ -1538,7 +1538,17 @@ export default function WorkOrderPanel({ orderId, onClose, onUpdate, onDelete, p
     try {
       const remoteOrder = await base44.entities.Order.get(orderId);
       const mergedOrder = mergeOrderSnapshot(remoteOrder, findLocalOrder(orderId));
-      setOrder(mergedOrder);
+
+      // ✅ Read-after-write protection: if the remote returned fewer items than what we
+      // currently have optimistically, preserve the current items. This handles the case
+      // where the DB read replica hasn't caught up with the write yet.
+      setOrder((prev) => {
+        const currentItems = Array.isArray(prev?.order_items) ? prev.order_items : [];
+        const remoteItems = Array.isArray(mergedOrder?.order_items) ? mergedOrder.order_items : [];
+        const finalItems = remoteItems.length >= currentItems.length ? remoteItems : currentItems;
+        return { ...mergedOrder, order_items: finalItems };
+      });
+
       setStatus(normalizeStatusId(mergedOrder?.status || remoteOrder?.status || "intake"));
       clearEventCache(orderId);
       await loadEventsCallback(true);
@@ -2904,7 +2914,11 @@ export default function WorkOrderPanel({ orderId, onClose, onUpdate, onDelete, p
                       order={o}
                       onUpdate={async () => { await clearEventCache(o.id); await loadEventsCallback(true); onUpdate?.(); }}
                       onOrderItemsUpdate={handleOrderItemsSaved}
-                      onRemoteSaved={handleRefresh}
+                      onRemoteSaved={async () => {
+                        // Delay to allow DB to be consistent before reading back
+                        await new Promise((r) => setTimeout(r, 1500));
+                        await handleRefresh();
+                      }}
                     />
                   )}
                   {status === "diagnosing" && (
@@ -2921,7 +2935,11 @@ export default function WorkOrderPanel({ orderId, onClose, onUpdate, onDelete, p
                       order={o}
                       onUpdate={async () => { await clearEventCache(o.id); await loadEventsCallback(true); onUpdate?.(); }}
                       onOrderItemsUpdate={handleOrderItemsSaved}
-                      onRemoteSaved={handleRefresh}
+                      onRemoteSaved={async () => {
+                        // Delay to allow DB to be consistent before reading back
+                        await new Promise((r) => setTimeout(r, 1500));
+                        await handleRefresh();
+                      }}
                     />
                   )}
                   {status === "reparacion_externa" && (
