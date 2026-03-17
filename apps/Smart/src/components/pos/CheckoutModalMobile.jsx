@@ -289,13 +289,13 @@ export default function CheckoutModalMobile({
                 <Input
                   value={athMovilPhone}
                   onChange={(e) => setAthMovilPhone(e.target.value)}
-                  placeholder="Teléfono (787...)"
+                  placeholder="Teléfono (Opcional)"
                   className="h-11 bg-[#18181B] border-orange-500/30"
                 />
                 <Input
                   value={athMovilName}
                   onChange={(e) => setAthMovilName(e.target.value)}
-                  placeholder="Nombre del pagador"
+                  placeholder="Nombre del pagador (Opcional)"
                   className="h-11 bg-[#18181B] border-orange-500/30"
                 />
               </div>
@@ -320,13 +320,13 @@ export default function CheckoutModalMobile({
                 <Input
                   value={athMovilPhone}
                   onChange={(e) => setAthMovilPhone(e.target.value)}
-                  placeholder="Teléfono ATH"
+                  placeholder="Teléfono ATH (Opcional)"
                   className="h-11 bg-[#18181B] border-orange-500/30"
                 />
                 <Input
                   value={athMovilName}
                   onChange={(e) => setAthMovilName(e.target.value)}
-                  placeholder="Nombre de quien envió ATH"
+                  placeholder="Nombre de quien envió ATH (Opcional)"
                   className="h-11 bg-[#18181B] border-orange-500/30"
                 />
               </div>

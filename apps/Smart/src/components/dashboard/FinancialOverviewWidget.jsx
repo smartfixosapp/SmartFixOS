@@ -226,9 +226,13 @@ export default function FinancialOverviewWidget({ compact = false, onClick }) {
       return aDate - bDate;
     });
 
-    const todaySetAside = allocations.reduce((sum, item) => sum + toMoney(item?.todayAmount), 0);
-    const pendingAmount = allocations.reduce((sum, item) => sum + toMoney(item?.goalAmount), 0);
-    const nextPayments = allocations.slice(0, compact ? 2 : 3);
+    const recentTransactions = transactions
+      .filter(t => {
+        const d = getEntityDate(t);
+        return d && isWithinInterval(new Date(d), { start: todayStart, end: todayEnd });
+      })
+      .sort((a, b) => new Date(getEntityDate(b)) - new Date(getEntityDate(a)))
+      .slice(0, 5);
 
     return {
       todayRevenue,
@@ -238,7 +242,8 @@ export default function FinancialOverviewWidget({ compact = false, onClick }) {
       netAfterReserve: todayProfit - todaySetAside,
       pendingCount: allocations.length,
       pendingAmount,
-      nextPayments
+      nextPayments: allocations,
+      recentTransactions
     };
   }, [compact, fixedExpenses, sales, transactions]);
 
@@ -246,73 +251,117 @@ export default function FinancialOverviewWidget({ compact = false, onClick }) {
     <button
       type="button"
       onClick={onClick}
-      className={`w-full text-left rounded-[32px] border transition-all duration-300 group overflow-hidden relative shadow-2xl ${
+      className={`w-full text-left rounded-[32px] border transition-all duration-500 group overflow-hidden relative shadow-2xl ${
         compact
-          ? "bg-white/5 backdrop-blur-3xl border-white/10 p-5"
-          : "bg-white/5 backdrop-blur-3xl border-white/10 p-6 lg:p-8"
+          ? "bg-zinc-900/40 backdrop-blur-3xl border-white/10 p-5"
+          : "bg-zinc-900/40 backdrop-blur-3xl border-white/10 p-6 lg:p-8"
       }`}
     >
-      <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/5 via-cyan-500/5 to-blue-500/5 pointer-events-none" />
-      <div className="absolute -right-12 -top-12 w-40 h-40 bg-emerald-500/10 rounded-full blur-[60px] group-hover:bg-emerald-500/20 transition-all duration-700" />
-      <div className="relative z-10 flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-emerald-400 to-cyan-500 flex items-center justify-center shadow-lg shadow-emerald-500/20 group-hover:scale-105 transition-transform duration-500">
-            <DollarSign className="w-6 h-6 text-white" />
+      {/* Background Effects */}
+      <div className="absolute inset-0 bg-gradient-to-br from-blue-500/10 via-purple-500/5 to-emerald-500/10 pointer-events-none" />
+      <div className="absolute -right-20 -top-20 w-64 h-64 bg-blue-500/10 rounded-full blur-[100px] group-hover:bg-blue-500/20 transition-all duration-1000" />
+      <div className="absolute -left-20 -bottom-20 w-64 h-64 bg-emerald-500/10 rounded-full blur-[100px] group-hover:bg-emerald-500/20 transition-all duration-1000" />
+      
+      <div className="relative z-10 flex items-center justify-between mb-8">
+        <div className="flex items-center gap-4">
+          <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-blue-500 via-indigo-500 to-purple-600 flex items-center justify-center shadow-2xl shadow-blue-500/40 group-hover:scale-110 group-hover:rotate-3 transition-all duration-500">
+            <TrendingUp className="w-7 h-7 text-white" />
           </div>
           <div>
-            <p className="text-[10px] uppercase tracking-widest font-black text-white/50">Finanzas</p>
-            <p className="text-xl font-bold text-white tracking-tight">Resumen de hoy</p>
+            <div className="flex items-center gap-2">
+              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+              <p className="text-[10px] uppercase tracking-[0.2em] font-black text-white/40">Smart Analytics</p>
+            </div>
+            <p className="text-2xl font-black text-white tracking-tight leading-none mt-1">Resumen de hoy</p>
           </div>
         </div>
-        <div className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center group-hover:bg-white/10 transition-colors">
-          <ChevronRight className="w-5 h-5 text-cyan-400 group-hover:text-cyan-300 group-hover:translate-x-0.5 transition-all" />
+        <div className="w-12 h-12 rounded-full bg-white/5 border border-white/10 flex items-center justify-center group-hover:bg-white/10 group-hover:border-white/20 transition-all duration-300">
+          <ChevronRight className="w-6 h-6 text-white group-hover:translate-x-1 transition-all" />
         </div>
       </div>
 
       {loading ? (
-        <div className="mt-4 text-xs text-white/60">Cargando resumen financiero...</div>
+        <div className="flex flex-col items-center justify-center py-12 space-y-4">
+          <Loader2 className="w-8 h-8 animate-spin text-blue-400" />
+          <p className="text-xs font-bold text-white/40 uppercase tracking-widest">Sincronizando caja...</p>
+        </div>
       ) : (
-        <div className="relative z-10">
-          <div className={`mt-6 grid grid-cols-2 ${compact ? "gap-3" : "gap-4"}`}>
-            <div className="rounded-[20px] bg-white/5 hover:bg-white/10 border border-white/5 hover:border-white/10 p-4 text-center transition-colors">
-              <p className="text-[10px] text-white/50 uppercase tracking-widest font-bold">Entrada</p>
-              <p className="text-2xl font-black text-emerald-400 tracking-tight mt-1">${summary.todayRevenue.toFixed(2)}</p>
+        <div className="relative z-10 space-y-6">
+          {/* Main Stats Grid */}
+          <div className={`grid grid-cols-2 ${compact ? "gap-3" : "gap-4"}`}>
+            <div className="relative rounded-[24px] bg-white/5 border border-white/5 p-5 group/card transition-all duration-500 hover:bg-white/10 overflow-hidden">
+               <div className="absolute top-0 right-0 p-3 opacity-20 group-hover/card:scale-110 transition-transform">
+                <DollarSign className="w-8 h-8 text-emerald-400" />
+              </div>
+              <p className="text-[10px] text-white/40 uppercase tracking-widest font-black mb-1">Entradas</p>
+              <p className="text-3xl font-black text-emerald-400 tracking-tight">${summary.todayRevenue.toFixed(2)}</p>
+              <div className="mt-2 flex items-center gap-1.5">
+                <div className="h-1 flex-1 bg-white/10 rounded-full overflow-hidden">
+                  <div className="h-full bg-emerald-500 w-[70%]" />
+                </div>
+              </div>
             </div>
-            <div className="rounded-[20px] bg-white/5 hover:bg-white/10 border border-white/5 hover:border-white/10 p-4 text-center transition-colors">
-              <p className="text-[10px] text-white/50 uppercase tracking-widest font-bold">Apartar hoy</p>
-              <p className="text-2xl font-black text-amber-400 tracking-tight mt-1">${summary.todaySetAside.toFixed(2)}</p>
+
+            <div className="relative rounded-[24px] bg-white/5 border border-white/5 p-5 group/card transition-all duration-500 hover:bg-white/10 overflow-hidden">
+              <div className="absolute top-0 right-0 p-3 opacity-20 group-hover/card:scale-110 transition-transform">
+                <TrendingUp className="w-8 h-8 text-blue-400" />
+              </div>
+              <p className="text-[10px] text-white/40 uppercase tracking-widest font-black mb-1">Ganancia Real</p>
+              <p className="text-3xl font-black text-blue-400 tracking-tight">${summary.todayProfit.toFixed(2)}</p>
+              <div className="mt-2 flex items-center gap-1.5">
+                <div className="h-1 flex-1 bg-white/10 rounded-full overflow-hidden">
+                  <div className="h-full bg-blue-500 w-[45%]" />
+                </div>
+              </div>
             </div>
           </div>
 
-          <div className="mt-4 rounded-[20px] bg-white/5 border border-white/5 p-4">
-            <div className="flex items-center justify-between mb-4 pb-3 border-b border-white/5">
-              <p className="text-xs font-bold text-white/80 uppercase tracking-widest flex items-center gap-2">
-                <CalendarClock className="w-4 h-4 text-cyan-400" />
-                Próximos pagos
+          {/* Transactions List */}
+          <div className="rounded-[28px] bg-black/40 border border-white/5 p-5 backdrop-blur-xl">
+            <div className="flex items-center justify-between mb-5 px-1">
+              <p className="text-xs font-black text-white/80 uppercase tracking-[0.15em] flex items-center gap-2">
+                <CalendarClock className="w-4 h-4 text-blue-400" />
+                Transacciones Recientes
               </p>
-              <p className="text-[11px] font-black text-emerald-400 bg-emerald-500/10 px-2 py-1 rounded-lg border border-emerald-500/20 flex items-center gap-1.5 uppercase tracking-wide">
-                <PiggyBank className="w-4 h-4" />
-                Neto: ${summary.netAfterReserve.toFixed(2)}
-              </p>
+              <div className="px-3 py-1 rounded-full bg-blue-500/10 border border-blue-500/20">
+                <p className="text-[10px] font-black text-blue-400 uppercase tracking-wider">Hoy</p>
+              </div>
             </div>
 
-            {summary.nextPayments.length === 0 ? (
-              <p className="text-sm font-medium text-white/40 text-center py-2">No hay gastos fijos activos.</p>
+            {summary.recentTransactions.length === 0 ? (
+              <div className="text-center py-8">
+                <div className="w-12 h-12 rounded-full bg-white/5 flex items-center justify-center mx-auto mb-3">
+                  <DollarSign className="w-6 h-6 text-white/20" />
+                </div>
+                <p className="text-sm font-bold text-white/30">Sin transacciones registradas hoy</p>
+              </div>
             ) : (
               <div className="space-y-3">
-                {summary.nextPayments.map((item) => (
-                  <div key={item.id} className="flex items-center justify-between bg-white/5 p-3 rounded-xl hover:bg-white/10 transition-colors">
-                    <div className="min-w-0">
-                      <p className="text-white font-bold tracking-tight truncate">{item.name}</p>
-                      <p className="text-[10px] font-medium text-white/50 uppercase tracking-wider mt-0.5">
-                        {item.dueDate
-                          ? `Vence ${format(item.dueDate, "d MMM", { locale: es })} (${item.daysRemaining}d)`
-                          : "Sin fecha de vencimiento"}
-                      </p>
+                {summary.recentTransactions.map((t) => (
+                  <div key={t.id} className="group/item flex items-center justify-between bg-white/5 p-3 rounded-2xl hover:bg-white/10 border border-transparent hover:border-white/5 transition-all duration-300">
+                    <div className="flex items-center gap-3 min-w-0">
+                      <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${
+                        t.type === 'revenue' ? "bg-emerald-500/10 text-emerald-400" : "bg-red-500/10 text-red-400"
+                      }`}>
+                        {t.payment_method === 'cash' ? <Banknote className="w-5 h-5" /> : 
+                         t.payment_method === 'ath_movil' ? <Smartphone className="w-5 h-5" /> : 
+                         <CreditCard className="w-5 h-5" />}
+                      </div>
+                      <div className="min-w-0">
+                        <p className="text-sm font-bold text-white tracking-tight truncate group-hover/item:text-blue-400 transition-colors">
+                          {t.description || "Transacción"}
+                        </p>
+                        <p className="text-[10px] font-bold text-white/40 uppercase tracking-widest mt-0.5">
+                          {format(new Date(getEntityDate(t)), "h:mm a", { locale: es })} • {t.payment_method}
+                        </p>
+                      </div>
                     </div>
-                    <div className="text-right">
-                      <p className="text-cyan-400 font-bold tracking-tight">${toMoney(item.goalAmount).toFixed(2)}</p>
-                      <p className="text-[10px] font-medium text-amber-400 uppercase tracking-wider mt-0.5">Hoy: ${toMoney(item.todayAmount).toFixed(2)}</p>
+                    <div className="text-right pl-4">
+                      <p className={`text-base font-black tracking-tight ${
+                        t.type === 'revenue' ? "text-emerald-400" : "text-red-400"
+                      }`}>
+                        {t.type === 'revenue' ? '+' : '-'}${toMoney(t.amount).toFixed(2)}
+                      </p>
                     </div>
                   </div>
                 ))}
@@ -320,9 +369,14 @@ export default function FinancialOverviewWidget({ compact = false, onClick }) {
             )}
           </div>
 
-          <div className="mt-4 flex items-center justify-center gap-2 text-xs font-bold uppercase tracking-widest text-cyan-400/80 bg-cyan-500/10 py-3 rounded-xl border border-cyan-500/20 group-hover:bg-cyan-500/20 group-hover:text-cyan-300 transition-all">
-            <TrendingUp className="w-4 h-4" />
-            Toca aquí para editar en Finanzas
+          <div className="flex items-center justify-between px-2">
+            <div className="flex items-center gap-2">
+              <PiggyBank className="w-4 h-4 text-emerald-400" />
+              <p className="text-xs font-bold text-white/40 uppercase tracking-widest">Reserva: <span className="text-white">${summary.todaySetAside.toFixed(2)}</span></p>
+            </div>
+            <p className="text-xs font-black text-blue-400 bg-blue-500/10 px-4 py-2 rounded-xl border border-blue-500/20 uppercase tracking-widest group-hover:bg-blue-500/20 transition-all">
+              Ver Detalles Finanzas
+            </p>
           </div>
         </div>
       )}

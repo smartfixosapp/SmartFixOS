@@ -332,7 +332,7 @@ export default function CheckoutModalMobileRedesigned({
                     className="space-y-3 bg-[#0a0a0a] rounded-2xl border border-white/5 p-4"
                   >
                     <div>
-                      <label className="text-sm font-semibold text-white mb-2 block">Teléfono (ATH Móvil)</label>
+                      <label className="text-sm font-semibold text-white mb-2 block">Teléfono (ATH Móvil) - Opcional</label>
                       <Input
                         value={athMovilPhone}
                         onChange={(e) => setAthMovilPhone(e.target.value)}
@@ -342,7 +342,7 @@ export default function CheckoutModalMobileRedesigned({
                       />
                     </div>
                     <div>
-                      <label className="text-sm font-semibold text-white mb-2 block">Nombre</label>
+                      <label className="text-sm font-semibold text-white mb-2 block">Nombre - Opcional</label>
                       <Input
                         value={athMovilName}
                         onChange={(e) => setAthMovilName(e.target.value)}

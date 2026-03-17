@@ -9,6 +9,7 @@ import { cn } from "@/lib/utils";
 import { dataClient as base44 } from "@/components/api/dataClient";
 import EditDenominationModal from "./EditDenominationModal";
 import EditAmountModal from "./EditAmountModal";
+import { createCashRegisterClosingEmail, getBusinessInfo } from "../utils/emailTemplates";
 
 // Definición de denominaciones
 const DENOMINATIONS = [
@@ -175,8 +176,39 @@ export default function CloseDrawerDialog({ isOpen, onClose, drawer, onSuccess }
     setLoading(true);
     try {
       const user = await base44.auth.me();
-      // Pasamos el salesSummary como override
-      await closeCashRegister(drawer, denominations, user, summary);
+      
+      // 1. Cerrar caja en el sistema
+      const closingResult = await closeCashRegister(drawer, denominations, user, summary);
+      
+      // 2. Intentar enviar email de resumen
+      try {
+        const businessInfo = await getBusinessInfo();
+        const emailTemplate = createCashRegisterClosingEmail({
+          drawerDate: new Date(drawer.created_date).toLocaleDateString('es-PR', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }),
+          openedBy: drawer.opened_by || "Técnico",
+          closedBy: user?.full_name || user?.email || "Técnico",
+          openingBalance: drawer.opening_balance || 0,
+          totalRevenue: summary.totalRevenue,
+          totalCashSales: summary.totalCash,
+          totalCardSales: summary.totalCard,
+          totalAthSales: summary.totalATH,
+          countedCash: total,
+          expectedCash: summary.expectedCash,
+          difference: total - summary.expectedCash,
+          businessInfo: businessInfo,
+          logoUrl: businessInfo.logo_url
+        });
+
+        await base44.integrations.Core.SendEmail({
+          to: businessInfo.email || "info@smartfixos.com", // Fallback a email de configuración
+          subject: emailTemplate.subject,
+          body: emailTemplate.body
+        });
+        toast.success("Resumen enviado por email");
+      } catch (emailError) {
+        console.warn("No se pudo enviar el email de cierre:", emailError);
+      }
+
       toast.success("Caja cerrada exitosamente");
       window.dispatchEvent(new Event('cash-register-closed'));
       if (onSuccess) onSuccess();
@@ -280,13 +312,18 @@ export default function CloseDrawerDialog({ isOpen, onClose, drawer, onSuccess }
         <DialogContent className="max-w-4xl w-[95vw] bg-zinc-950/95 backdrop-blur-xl border border-white/10 shadow-2xl p-0 gap-0 overflow-hidden rounded-3xl h-[90vh] sm:h-[85vh] flex flex-col [&>button]:hidden z-[9999]">
           {/* Header Apple Style - Responsive */}
           <div className="bg-zinc-900/50 border-b border-white/5 p-3 sm:p-6 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 sm:gap-4 shrink-0">
-              <div className="flex items-center gap-2">
-                  <div className="w-9 h-9 sm:w-12 sm:h-12 rounded-full bg-red-500/20 flex items-center justify-center shrink-0">
-                      <Lock className="w-4 h-4 sm:w-6 sm:h-6 text-red-400" />
+              <div className="flex items-center gap-4">
+                  <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-600 flex items-center justify-center shadow-lg shadow-indigo-500/20 shrink-0">
+                      <Lock className="w-6 h-6 text-white" />
                   </div>
                   <div>
-                      <DialogTitle className="text-base sm:text-xl font-bold text-white">Cerrar Caja</DialogTitle>
-                      <p className="text-zinc-400 text-[10px] sm:text-sm">{new Date().toLocaleDateString()}</p>
+                      <DialogTitle className="text-xl font-bold text-white tracking-tight">Cierre de Caja Profesional</DialogTitle>
+                      <div className="flex items-center gap-2 mt-1">
+                        <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                        <p className="text-zinc-400 text-xs font-medium uppercase tracking-widest">
+                          {new Date().toLocaleDateString('es-PR', { weekday: 'long', day: 'numeric', month: 'long' })}
+                        </p>
+                      </div>
                   </div>
               </div>
               <div className="flex gap-3 sm:gap-8 text-right w-full sm:w-auto justify-between sm:justify-end">

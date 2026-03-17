@@ -179,10 +179,18 @@ export default function POSDesktop() {
       }
     });
 
-    // Solo verificamos si no se ha inicializado o si el check es viejo (ej. > 5 min)
+    // Check if we already have it in cache to avoid unnecessary flash of loader
     const status = getCachedStatus();
-    if (!status.isInitialized || Date.now() - status.lastCheck > 300000) {
-      setLoadingDrawer(true);
+    if (status.isInitialized) {
+      setLoadingDrawer(false);
+      setCurrentDrawer(status.drawer || null);
+    }
+
+    // Solo verificamos si no se ha inicializado o si el check es viejo (ej. > 5 min)
+    if (!status.isInitialized || (Date.now() - status.lastCheck > 300000)) {
+      if (!status.isInitialized) {
+        setLoadingDrawer(true);
+      }
       checkCashRegisterStatus().finally(() => setLoadingDrawer(false));
     }
 
@@ -204,7 +212,10 @@ export default function POSDesktop() {
   useEffect(() => {
     // ✅ Esperar que el cajón cargue antes de abrir modal de pago
     if (workOrderId && selectedOrder && !loadingDrawer) {
-      setShowPaymentModal(true);
+      // Use a small timeout to ensure the UI is ready
+      setTimeout(() => {
+        setShowPaymentModal(true);
+      }, 100);
     }
   }, [workOrderId, selectedOrder, loadingDrawer]);
 
@@ -447,17 +458,21 @@ export default function POSDesktop() {
   const mixedAth = parseFloat(splitAthAmount) || 0;
   const mixedTotal = mixedCash + mixedAth;
   const change = paymentMethod === "cash" && cashReceived ? Math.max(0, parseFloat(cashReceived) - effectiveTotal) : 0;
-  const hasAthMeta = !!String(athMovilPhone || "").trim() && !!String(athMovilName || "").trim();
+  const hasAthMeta = !!String(athMovilPhone || "").trim() || !!String(athMovilName || "").trim();
+  // We make it optional, so its essentially always valid regarding meta if it's ath movil?
+  // User says "obligación que sea algo opcional" -> so it can be empty.
+  const athMetaValid = true; 
+
 
   const isPaymentValid = selectedOrder ?
     (paymentMode === "deposit" ? (parseFloat(depositAmount) > 0 && parseFloat(depositAmount) <= orderBalance && paymentMethod) :
     (paymentMethod === "cash" ? parseFloat(cashReceived) >= effectiveTotal :
-    paymentMethod === "ath_movil" ? hasAthMeta :
-    paymentMethod === "mixed" ? (mixedTotal >= effectiveTotal && (!mixedAth || hasAthMeta)) :
+    paymentMethod === "ath_movil" ? athMetaValid :
+    paymentMethod === "mixed" ? (mixedTotal >= effectiveTotal && (!mixedAth || athMetaValid)) :
     paymentMethod ? true : false)) :
     (paymentMethod === "cash" ? parseFloat(cashReceived) >= total :
-    paymentMethod === "ath_movil" ? hasAthMeta :
-    paymentMethod === "mixed" ? (mixedTotal >= total && (!mixedAth || hasAthMeta)) :
+    paymentMethod === "ath_movil" ? athMetaValid :
+    paymentMethod === "mixed" ? (mixedTotal >= total && (!mixedAth || athMetaValid)) :
     paymentMethod ? true : false);
 
   const getFilteredItems = useCallback(() => {

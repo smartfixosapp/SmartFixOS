@@ -731,6 +731,111 @@ export function createQuoteEmail({
 }
 
 /**
+ * Email de resumen al cerrar la caja
+ */
+export function createCashRegisterClosingEmail({
+  drawerDate,
+  openedBy,
+  closedBy,
+  openingBalance,
+  totalRevenue,
+  totalCashSales,
+  totalCardSales,
+  totalAthSales,
+  countedCash,
+  expectedCash,
+  difference,
+  businessInfo = {},
+  logoUrl = DEFAULT_LOGO_URL
+}) {
+  const isBalanced = Math.abs(difference) < 0.05;
+  const diffColor = difference >= 0 ? "#10B981" : "#EF4444";
+
+  return {
+    subject: `📊 Cierre de Caja - ${drawerDate} | ${businessInfo.business_name || 'SmartFixOS'}`,
+    body: `
+      <!DOCTYPE html>
+      <html lang="es">
+      <head>
+        <meta charset="UTF-8">
+        <title>Cierre de Caja - ${drawerDate}</title>
+      </head>
+      <body style="margin: 0; padding: 20px; background: #F3F4F6;">
+        <div style="${EMAIL_STYLES.container}">
+          <div style="${EMAIL_STYLES.header}">
+            <img src="${logoUrl}" style="height: 100px; width: auto; margin: 0 auto; display: block;" />
+            <h1 style="${EMAIL_STYLES.headerTitle}">Resumen de Cierre</h1>
+            <p style="${EMAIL_STYLES.headerSubtitle}">Corte de caja del ${drawerDate}</p>
+          </div>
+
+          <div style="${EMAIL_STYLES.body}">
+            <p style="${EMAIL_STYLES.greeting}">Reporte de Finalización de Turno</p>
+            
+            <div style="${EMAIL_STYLES.infoBox}">
+               <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                <div>
+                  <p style="${EMAIL_STYLES.infoLabel}">Abierto por</p>
+                  <p style="color: #111827; font-weight: 600;">${openedBy}</p>
+                </div>
+                <div>
+                  <p style="${EMAIL_STYLES.infoLabel}">Cerrado por</p>
+                  <p style="color: #111827; font-weight: 600;">${closedBy}</p>
+                </div>
+              </div>
+            </div>
+
+            <h3 style="${EMAIL_STYLES.checklistTitle}">💰 Flujo de Efectivo</h3>
+            <div style="${EMAIL_STYLES.checklist}">
+              <div style="display: flex; justify-content: space-between; padding: 8px 0;">
+                <span>Balance de Apertura:</span>
+                <span style="font-weight: 700;">$${openingBalance.toFixed(2)}</span>
+              </div>
+              <div style="display: flex; justify-content: space-between; padding: 8px 0;">
+                <span>Ventas en Efectivo:</span>
+                <span style="font-weight: 700;">+$${totalCashSales.toFixed(2)}</span>
+              </div>
+              <div style="display: flex; justify-content: space-between; padding: 8px 0; border-top: 1px solid #E5E7EB; margin-top: 8px;">
+                <span>Efectivo Esperado:</span>
+                <span style="font-weight: 700;">$${expectedCash.toFixed(2)}</span>
+              </div>
+              <div style="display: flex; justify-content: space-between; padding: 8px 0;">
+                <span>Efectivo Contado:</span>
+                <span style="font-weight: 700; color: #111827;">$${countedCash.toFixed(2)}</span>
+              </div>
+              <div style="display: flex; justify-content: space-between; padding: 8px 0; border-top: 2px solid #E5E7EB; margin-top: 8px;">
+                <span style="font-weight: 800;">Diferencia:</span>
+                <span style="font-weight: 800; color: ${diffColor};">${difference > 0 ? "+" : ""}${difference.toFixed(2)}</span>
+              </div>
+            </div>
+
+            <h3 style="${EMAIL_STYLES.checklistTitle} margin-top: 30px;">💳 Otros Métodos de Pago</h3>
+            <div style="${EMAIL_STYLES.checklist}">
+              <div style="display: flex; justify-content: space-between; padding: 8px 0;">
+                <span>Ventas con Tarjeta:</span>
+                <span style="font-weight: 700;">$${totalCardSales.toFixed(2)}</span>
+              </div>
+              <div style="display: flex; justify-content: space-between; padding: 8px 0;">
+                <span>Ventas ATH Móvil:</span>
+                <span style="font-weight: 700;">$${totalAthSales.toFixed(2)}</span>
+              </div>
+              <div style="display: flex; justify-content: space-between; padding: 8px 0; border-top: 1px solid #E5E7EB; margin-top: 8px;">
+                <span style="font-weight: 800;">TOTAL VENTAS:</span>
+                <span style="font-weight: 800; color: #00A8E8;">$${totalRevenue.toFixed(2)}</span>
+              </div>
+            </div>
+
+            <div style="margin-top: 40px; text-align: center; color: #9CA3AF; font-size: 12px;">
+              Este es un reporte automático generado por SmartFixOS
+            </div>
+          </div>
+        </div>
+      </body>
+      </html>
+    `
+  };
+}
+
+/**
  * Cargar configuración del negocio para emails
  */
 export async function getBusinessInfo() {
