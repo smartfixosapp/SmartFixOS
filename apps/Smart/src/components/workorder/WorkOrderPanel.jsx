@@ -1067,7 +1067,7 @@ function DepositModal({ open, onClose, onSave, currentBalance }) {
 
 }
 
-function OrderItemsSection({ order, onUpdated, clearEventCache, loadEventsCallback, onClose }) {
+function OrderItemsSection({ order, onUpdated, clearEventCache, loadEventsCallback, onClose, onOrderItemsUpdate }) {
   const navigate = useNavigate();
   const o = order || {};
   const [showAddItemModal, setShowAddItemModal] = useState(false);
@@ -1250,7 +1250,11 @@ function OrderItemsSection({ order, onUpdated, clearEventCache, loadEventsCallba
       <AddItemModal
         open={showAddItemModal}
         onClose={() => setShowAddItemModal(false)}
-        onSave={() => setShowAddItemModal(false)}
+        onSave={(newItems) => {
+          // Optimistic: update parent order state immediately with new items
+          onOrderItemsUpdate?.(newItems);
+          setShowAddItemModal(false);
+        }}
         order={o}
         onUpdate={async () => {
           await clearEventCache(o.id);
@@ -1560,6 +1564,29 @@ export default function WorkOrderPanel({ orderId, onClose, onUpdate, onDelete, p
       setLoading(false);
     }
   }, [orderId, loadEventsCallback, onUpdate]);
+
+  // ✅ Shared callback for all stages: optimistic merge of catalog items + background refresh
+  const handleOrderItemsSaved = useCallback((newItems) => {
+    setOrder((prev) => {
+      if (!prev) return prev;
+      const items = Array.isArray(newItems) ? newItems : (prev.order_items || []);
+      const subtotal = items.reduce((sum, it) => {
+        const base = Number(it.price || 0) * Number(it.qty || 1);
+        return sum + base - base * (Number(it.discount_percentage || 0) / 100);
+      }, 0);
+      const tax = subtotal * 0.115;
+      const total = subtotal + tax;
+      const paid = Number(prev.amount_paid || prev.total_paid || 0);
+      return {
+        ...prev,
+        order_items: items,
+        cost_estimate: total,
+        balance_due: Math.max(0, total - paid),
+      };
+    });
+    // Background DB sync
+    handleRefresh();
+  }, [handleRefresh]);
 
   const handleSecuritySavedBeforePayment = useCallback(async () => {
     setShowSecurityBeforePayment(false);
@@ -2871,7 +2898,11 @@ export default function WorkOrderPanel({ orderId, onClose, onUpdate, onDelete, p
 
                 {/* ✅ STAGE-CENTRIC VIEW */}
                   {(status === "intake" || status === "waiting_order") && (
-                    <IntakeStage order={o} onUpdate={async () => { await clearEventCache(o.id); await loadEventsCallback(true); await handleRefresh(); onUpdate?.(); }} />
+                    <IntakeStage
+                      order={o}
+                      onUpdate={async () => { await clearEventCache(o.id); await loadEventsCallback(true); await handleRefresh(); onUpdate?.(); }}
+                      onOrderItemsUpdate={handleOrderItemsSaved}
+                    />
                   )}
                   {status === "diagnosing" && (
                     <DiagnosingStage order={o} onUpdate={async () => { await clearEventCache(o.id); await loadEventsCallback(true); await handleRefresh(); onUpdate?.(); }} />
@@ -2883,7 +2914,11 @@ export default function WorkOrderPanel({ orderId, onClose, onUpdate, onDelete, p
                     <WaitingPartsStage order={o} onUpdate={async () => { await clearEventCache(o.id); await loadEventsCallback(true); await handleRefresh(); onUpdate?.(); }} />
                   )}
                   {status === "part_arrived_waiting_device" && (
-                    <PartArrivedStage order={o} onUpdate={async () => { await clearEventCache(o.id); await loadEventsCallback(true); await handleRefresh(); onUpdate?.(); }} />
+                    <PartArrivedStage
+                      order={o}
+                      onUpdate={async () => { await clearEventCache(o.id); await loadEventsCallback(true); await handleRefresh(); onUpdate?.(); }}
+                      onOrderItemsUpdate={handleOrderItemsSaved}
+                    />
                   )}
                   {status === "reparacion_externa" && (
                     <ExternalRepairStage order={o} onUpdate={async () => { await clearEventCache(o.id); await loadEventsCallback(true); await handleRefresh(); onUpdate?.(); }} />
