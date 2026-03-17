@@ -272,7 +272,22 @@ export function upsertLocalOrder(order) {
     (canonicalIncomingNumber && String(o?.order_number) === String(canonicalIncomingNumber))
   );
   const mergedInput = { ...(existing || {}), ...(incoming || {}) };
-  const normalized = normalizeOrder(preferOrderVersion(existing, normalizeOrder(mergedInput)));
+  let preferred = preferOrderVersion(existing, normalizeOrder(mergedInput));
+
+  // Always force-apply payment fields from the incoming record when it comes from the server
+  // (has a real UUID/numeric id, not a local-order-* placeholder). This prevents stale
+  // cache entries from overriding fresh payment data when updated_date hasn't changed yet.
+  const isServerRecord = incoming?.id && !String(incoming.id).startsWith("local-order-");
+  const PAYMENT_FIELDS = ["amount_paid", "balance_due", "paid", "deposit_amount", "updated_date"];
+  if (isServerRecord && preferred) {
+    const overrides = {};
+    for (const field of PAYMENT_FIELDS) {
+      if (incoming[field] !== undefined) overrides[field] = incoming[field];
+    }
+    preferred = { ...preferred, ...overrides };
+  }
+
+  const normalized = normalizeOrder(preferred);
   if (!normalized) return;
 
   const merged = [

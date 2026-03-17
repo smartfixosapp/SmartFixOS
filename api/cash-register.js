@@ -107,6 +107,7 @@ function normalizeOrderUpdateChanges(changes = {}) {
     'pos_discount_applied_total',
     'tenant_id',
     'updated_date',
+    'status',
   ]);
 
   return Object.fromEntries(
@@ -315,7 +316,10 @@ async function handleRecordSale(req, res, body) {
 
   let updatedOrder = null;
   if (orderUpdate?.id && orderUpdate?.changes && typeof orderUpdate.changes === 'object') {
-    const safeChanges = normalizeOrderUpdateChanges(orderUpdate.changes);
+    const safeChanges = {
+      ...normalizeOrderUpdateChanges(orderUpdate.changes),
+      updated_date: new Date().toISOString(),
+    };
     const updatedOrderRows = await sbPatch(
       'order',
       `id=eq.${encodeURIComponent(orderUpdate.id)}`,

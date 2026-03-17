@@ -218,9 +218,25 @@ function findLocalOrder(orderId) {
 }
 
 function mergeOrderSnapshot(remoteOrder, localOrder) {
-  if (remoteOrder && localOrder) return { ...remoteOrder, ...localOrder };
+  if (remoteOrder && localOrder) {
+    // Remote (Supabase) must win for payment-related fields so fresh DB values
+    // are never overwritten by stale localStorage cache.
+    const REMOTE_WINS_FIELDS = [
+      "amount_paid", "balance_due", "paid", "deposit_amount",
+      "total", "subtotal", "tax_amount", "discount_amount",
+      "updated_date",
+    ];
+    const merged = { ...remoteOrder, ...localOrder };
+    for (const field of REMOTE_WINS_FIELDS) {
+      if (remoteOrder[field] !== undefined) {
+        merged[field] = remoteOrder[field];
+      }
+    }
+    return merged;
+  }
   return remoteOrder || localOrder || null;
 }
+
 
 function extractOrderSequence(orderNumber) {
   const raw = String(orderNumber || "").trim();
