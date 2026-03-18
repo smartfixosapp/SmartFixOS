@@ -171,6 +171,50 @@ export default async function handler(req, res) {
       return res.status(200).json({ success: true, message: `📧 Enlace de restablecimiento enviado a ${email}` });
     }
 
+    // ── create_first_user ────────────────────────────────────────────────────
+    if (action === 'create_first_user') {
+      const { email, full_name, phone, pin: userPin } = extra;
+      if (!email || !full_name || !userPin) {
+        return res.status(400).json({ success: false, error: 'email, full_name y pin son requeridos' });
+      }
+      if (!/^\d{4}$/.test(userPin)) {
+        return res.status(400).json({ success: false, error: 'PIN debe ser exactamente 4 dígitos' });
+      }
+
+      // Insert into app_employee
+      const empRes = await fetch(`${SB_URL}/rest/v1/app_employee`, {
+        method: 'POST',
+        headers: { ...sbH(), 'Prefer': 'return=representation' },
+        body: JSON.stringify({
+          full_name: full_name.trim(),
+          email: email.trim().toLowerCase(),
+          phone: (phone || '').trim(),
+          pin: userPin,
+          role: 'admin',
+          status: 'active',
+          active: true,
+          tenant_id: tenantId,
+          hire_date: new Date().toISOString().split('T')[0],
+        }),
+      });
+      const empText = await empRes.text();
+      if (!empRes.ok) throw new Error(`INSERT app_employee: ${empText}`);
+      const empData = JSON.parse(empText);
+      const employee = Array.isArray(empData) ? empData[0] : empData;
+
+      // Also update users table if a record exists
+      try {
+        await sbPatch(
+          'users',
+          `email=eq.${encodeURIComponent(email.trim().toLowerCase())}`,
+          { full_name: full_name.trim(), pin: userPin, active: true }
+        );
+      } catch (e) { /* non-critical — users row may not exist yet */ }
+
+      console.log(`✅ First user created: ${email} in tenant ${tenantId}`);
+      return res.status(200).json({ success: true, employee, message: 'Usuario creado correctamente' });
+    }
+
     return res.status(400).json({ success: false, error: `Acción desconocida: ${action}` });
 
   } catch (e) {

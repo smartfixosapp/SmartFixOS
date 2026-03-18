@@ -20,8 +20,8 @@ export default function PinAccess() {
   const LOCAL_USERS_STORAGE_KEY = "smartfix_local_users";
   const SYSTEM_USER_EMAILS = new Set([
     "admin@smartfixos.com",
-    "911smartfix@gmail.com",
     "smartfixosapp@gmail.com"
+    // NOTE: 911smartfix@gmail.com was removed — it's a valid tenant owner email
   ]);
   const STORE_EMAIL_KEY = "smartfix_store_email";
   const BIOMETRIC_LOGIN_KEY = "smartfix_biometric_login";
@@ -98,6 +98,14 @@ export default function PinAccess() {
   const [biometricSupported, setBiometricSupported] = useState(false);
   const [biometricProfile, setBiometricProfile] = useState(null);
   const [biometricLoading, setBiometricLoading] = useState(false);
+
+  // ── First User Setup (shown when no employees exist after login) ──────────
+  const [firstUserForm, setFirstUserForm]       = useState({ full_name: '', phone: '' });
+  const [firstUserPin, setFirstUserPin]         = useState('');
+  const [firstUserPinConfirm, setFirstUserPinConfirm] = useState('');
+  const [firstUserPinStage, setFirstUserPinStage] = useState('form'); // 'form' | 'pin' | 'confirm'
+  const [firstUserSaving, setFirstUserSaving]   = useState(false);
+  const [firstUserPinError, setFirstUserPinError] = useState('');
 
   // ── Auto-save / Auto-login ────────────────────────────────────────────────
   const SAVED_CREDS_KEY = "smartfix_saved_creds";
@@ -466,22 +474,13 @@ export default function PinAccess() {
 
       const users = await getMergedActiveUsers(resolvedTenantId);
       if (!users.length) {
-        if (isMasterOwnerLogin) {
-          const fallbackMaster = getMasterFallbackUser();
-          setAvailableUsers([fallbackMaster]);
-          setSelectedUser(fallbackMaster);
-          setStep("pin");
-          toast.warning("No hay empleados registrados. Usa Admin Maestro para configurar.");
-        } else {
-          setAvailableUsers([]);
-          setSelectedUser(null);
-          setStoreAuthenticated(false);
-          clearSavedCreds();
-          await supabase.auth.signOut();
-          toast.error("Esta cuenta no tiene usuarios configurados para entrar.");
-          setStep("store");
-          return false;
-        }
+        // No employees found → show first user setup wizard
+        setFirstUserForm({ full_name: '', phone: '' });
+        setFirstUserPin('');
+        setFirstUserPinConfirm('');
+        setFirstUserPinStage('form');
+        setFirstUserPinError('');
+        setStep("first_user_setup");
       } else {
         setAvailableUsers(users);
         setSelectedUser(null);
@@ -690,6 +689,55 @@ export default function PinAccess() {
       auth_id: user.auth_id || null,
       loginTime: new Date().toISOString()
     };
+  };
+
+  // ── First User Setup handler ───────────────────────────────────────────────
+  const handleCreateFirstUser = async () => {
+    const trimmedName = firstUserForm.full_name.trim();
+    if (!trimmedName) { toast.error("Ingresa tu nombre completo"); return; }
+    if (firstUserPin.length !== 4) { setFirstUserPinError("El PIN debe tener 4 dígitos"); return; }
+    if (firstUserPin !== firstUserPinConfirm) { setFirstUserPinError("Los PINs no coinciden"); setFirstUserPinConfirm(""); return; }
+
+    const resolvedTenantId = tenantId || localStorage.getItem("smartfix_tenant_id");
+    if (!resolvedTenantId) { toast.error("No se encontró el ID del taller. Intenta iniciar sesión de nuevo."); return; }
+
+    setFirstUserSaving(true);
+    try {
+      const res = await fetch('/api/manage-tenant', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          tenantId: resolvedTenantId,
+          action: 'create_first_user',
+          email: storeEmail.trim().toLowerCase(),
+          full_name: trimmedName,
+          phone: firstUserForm.phone.trim(),
+          pin: firstUserPin,
+        }),
+      });
+      const data = await res.json();
+      if (!data.success) throw new Error(data.error || 'No se pudo crear el usuario');
+
+      const emp = data.employee;
+      const session = buildSessionFromUser({
+        id: emp.id,
+        full_name: emp.full_name,
+        email: emp.email,
+        role: 'admin',
+        position: 'admin',
+        active: true,
+        pin: firstUserPin,
+        tenant_id: resolvedTenantId,
+        permissions: ADMIN_PERMISSIONS,
+      });
+
+      await completeLogin(session);
+    } catch (e) {
+      console.error("handleCreateFirstUser error:", e);
+      toast.error("Error al crear el usuario: " + e.message);
+    } finally {
+      setFirstUserSaving(false);
+    }
   };
 
   const canUseBiometricLogin = async () => {
@@ -1269,6 +1317,182 @@ export default function PinAccess() {
           />
           <div className="animate-spin rounded-full h-10 w-10 border-4 border-cyan-500 border-t-transparent mx-auto mb-4"></div>
           <p className="text-gray-400 text-sm">Conectando tu tienda...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // ── First User Setup ─────────────────────────────────────────────────────
+  if (storeAuthenticated && step === "first_user_setup") {
+    const isFormStage   = firstUserPinStage === "form";
+    const isPinStage    = firstUserPinStage === "pin";
+    const isConfirmStage = firstUserPinStage === "confirm";
+
+    const handleNumPress = (n) => {
+      if (n === "⌫") {
+        if (isPinStage)    setFirstUserPin(p => p.slice(0, -1));
+        if (isConfirmStage) setFirstUserPinConfirm(p => p.slice(0, -1));
+        return;
+      }
+      if (n === null) return;
+      if (isPinStage) {
+        if (firstUserPin.length >= 4) return;
+        const next = firstUserPin + String(n);
+        setFirstUserPin(next);
+        if (next.length === 4) setFirstUserPinStage("confirm");
+        return;
+      }
+      if (isConfirmStage) {
+        if (firstUserPinConfirm.length >= 4) return;
+        const next = firstUserPinConfirm + String(n);
+        setFirstUserPinConfirm(next);
+        if (next.length === 4) {
+          if (next !== firstUserPin) {
+            setFirstUserPinError("Los PINs no coinciden");
+            setFirstUserPinConfirm("");
+          } else {
+            setFirstUserPinError("");
+            handleCreateFirstUser();
+          }
+        }
+      }
+    };
+
+    return (
+      <div className="pinaccess-fullscreen-container">
+        {/* Fondo decorativo */}
+        <div className="absolute inset-0 overflow-hidden pointer-events-none">
+          <div className="absolute top-0 left-1/4 w-96 h-96 bg-cyan-500/10 rounded-full blur-[120px] animate-pulse" />
+          <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-emerald-500/10 rounded-full blur-[120px] animate-pulse delay-1000" />
+        </div>
+
+        <div className="relative z-10 flex flex-col items-center justify-center w-full max-w-sm mx-auto px-6 py-8">
+          {/* Logo */}
+          <img
+            src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/68f767a3d5fce1486d4cf555/e9bc537e2_DynamicsmartfixosLogowithGearandDevice.png"
+            alt="SmartFixOS"
+            className="h-12 w-auto object-contain mb-6 drop-shadow-[0_4px_16px_rgba(0,168,232,0.8)]"
+          />
+
+          {/* Stage: form */}
+          {isFormStage && (
+            <div className="w-full">
+              <h2 className="text-white text-2xl font-bold text-center mb-1">Configura tu perfil</h2>
+              <p className="text-gray-400 text-sm text-center mb-6">Ingresa tus datos para crear tu usuario</p>
+
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-gray-400 text-xs font-medium mb-1.5">Nombre completo *</label>
+                  <input
+                    type="text"
+                    placeholder="Ej: Juan Pérez"
+                    value={firstUserForm.full_name}
+                    onChange={e => setFirstUserForm(f => ({ ...f, full_name: e.target.value }))}
+                    className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-gray-600 focus:outline-none focus:border-cyan-500/60 focus:ring-1 focus:ring-cyan-500/30 text-sm"
+                  />
+                </div>
+                <div>
+                  <label className="block text-gray-400 text-xs font-medium mb-1.5">Teléfono</label>
+                  <input
+                    type="tel"
+                    placeholder="Ej: 555-123-4567"
+                    value={firstUserForm.phone}
+                    onChange={e => setFirstUserForm(f => ({ ...f, phone: e.target.value }))}
+                    className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-gray-600 focus:outline-none focus:border-cyan-500/60 focus:ring-1 focus:ring-cyan-500/30 text-sm"
+                  />
+                </div>
+              </div>
+
+              <button
+                onClick={() => {
+                  if (!firstUserForm.full_name.trim()) { toast.error("Ingresa tu nombre completo"); return; }
+                  setFirstUserPinStage("pin");
+                }}
+                className="mt-6 w-full bg-gradient-to-r from-cyan-500 to-cyan-600 text-white font-semibold py-3.5 rounded-xl hover:from-cyan-400 hover:to-cyan-500 transition-all duration-200 text-sm"
+              >
+                Continuar →
+              </button>
+
+              <button
+                onClick={() => { setStoreAuthenticated(false); setStep("store"); }}
+                className="mt-3 w-full text-gray-500 text-xs py-2 hover:text-gray-400 transition-colors"
+              >
+                ← Volver al inicio
+              </button>
+            </div>
+          )}
+
+          {/* Stage: pin or confirm */}
+          {(isPinStage || isConfirmStage) && (
+            <div className="w-full flex flex-col items-center">
+              <h2 className="text-white text-xl font-bold text-center mb-1">
+                {isPinStage ? "Elige tu PIN de acceso" : "Confirma tu PIN"}
+              </h2>
+              <p className="text-gray-400 text-xs text-center mb-6">
+                {isPinStage
+                  ? "Este PIN lo usarás cada vez que abras la app"
+                  : "Ingresa el mismo PIN nuevamente"}
+              </p>
+
+              {/* Puntos */}
+              <div className="flex gap-4 mb-6">
+                {[0, 1, 2, 3].map(i => {
+                  const filled = isPinStage ? i < firstUserPin.length : i < firstUserPinConfirm.length;
+                  return (
+                    <div
+                      key={i}
+                      className={`w-4 h-4 rounded-full border-2 transition-all duration-200 ${
+                        filled ? "bg-cyan-400 border-cyan-400 scale-110" : "bg-transparent border-gray-600"
+                      }`}
+                    />
+                  );
+                })}
+              </div>
+
+              {/* Error */}
+              {firstUserPinError && (
+                <p className="text-red-400 text-xs mb-4 text-center">{firstUserPinError}</p>
+              )}
+
+              {/* Loading */}
+              {firstUserSaving ? (
+                <div className="flex flex-col items-center gap-3">
+                  <div className="animate-spin rounded-full h-10 w-10 border-4 border-cyan-500 border-t-transparent" />
+                  <p className="text-gray-400 text-sm">Creando tu usuario...</p>
+                </div>
+              ) : (
+                /* Teclado numérico */
+                <div className="grid grid-cols-3 gap-3 w-full max-w-[260px]">
+                  {numbers.flat().map((n, idx) => (
+                    <button
+                      key={idx}
+                      onClick={() => handleNumPress(n)}
+                      disabled={n === null}
+                      className={`
+                        h-16 rounded-2xl text-lg font-semibold transition-all duration-150 select-none
+                        ${n === null ? "invisible" : ""}
+                        ${n === "⌫"
+                          ? "bg-white/5 text-gray-400 hover:bg-white/10 active:scale-95"
+                          : "bg-white/8 text-white hover:bg-white/15 active:scale-95 active:bg-cyan-500/20 border border-white/5"}
+                      `}
+                    >
+                      {n}
+                    </button>
+                  ))}
+                </div>
+              )}
+
+              <button
+                onClick={() => {
+                  if (isConfirmStage) { setFirstUserPinStage("pin"); setFirstUserPinConfirm(""); setFirstUserPinError(""); }
+                  else { setFirstUserPinStage("form"); setFirstUserPin(""); }
+                }}
+                className="mt-5 text-gray-500 text-xs hover:text-gray-400 transition-colors"
+              >
+                ← Volver
+              </button>
+            </div>
+          )}
         </div>
       </div>
     );
