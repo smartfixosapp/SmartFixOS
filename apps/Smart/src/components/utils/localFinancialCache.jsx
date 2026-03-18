@@ -93,3 +93,15 @@ export function mergeSales(remote = []) {
 export function mergeTransactions(remote = []) {
   return mergeById(Array.isArray(remote) ? remote : [], getLocalTransactions());
 }
+
+const LOCAL_FIXED_EXPENSES_KEY = "smartfix_local_fixed_expenses";
+
+export function readLocalFixedExpenses() {
+  try {
+    const raw = localStorage.getItem(LOCAL_FIXED_EXPENSES_KEY);
+    const parsed = raw ? JSON.parse(raw) : [];
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    return [];
+  }
+}

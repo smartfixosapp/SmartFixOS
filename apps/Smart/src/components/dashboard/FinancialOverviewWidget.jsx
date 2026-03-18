@@ -3,7 +3,7 @@ import { dataClient } from "@/components/api/dataClient";
 import { CalendarClock, ChevronRight, DollarSign, PiggyBank, TrendingUp, Loader2, Banknote, CreditCard } from "lucide-react";
 import { endOfDay, format, isWithinInterval, startOfDay } from "date-fns";
 import { es } from "date-fns/locale";
-import { mergeSales, mergeTransactions, upsertLocalSale, upsertLocalTransactions } from "@/components/utils/localFinancialCache";
+import { mergeSales, mergeTransactions, upsertLocalSale, upsertLocalTransactions, readLocalFixedExpenses } from "@/components/utils/localFinancialCache";
 
 const getFrequencyDivisor = (frequency) => {
   const divisors = {
@@ -54,17 +54,6 @@ const toMoney = (value) => {
   return Number.isFinite(n) ? n : 0;
 };
 
-const LOCAL_FIXED_EXPENSES_KEY = "smartfix_local_fixed_expenses";
-
-const readLocalFixedExpenses = () => {
-  try {
-    const raw = localStorage.getItem(LOCAL_FIXED_EXPENSES_KEY);
-    const parsed = raw ? JSON.parse(raw) : [];
-    return Array.isArray(parsed) ? parsed : [];
-  } catch {
-    return [];
-  }
-};
 
 const computeSaleProfit = (sale) => {
   const items = Array.isArray(sale?.items) ? sale.items : [];
@@ -78,7 +67,7 @@ const computeSaleProfit = (sale) => {
   }, 0);
 };
 
-export default function FinancialOverviewWidget({ compact = false, onClick }) {
+function FinancialOverviewWidgetBase({ compact = false, onClick }) {
   const [sales, setSales] = useState([]);
   const [transactions, setTransactions] = useState([]);
   const [fixedExpenses, setFixedExpenses] = useState([]);
@@ -384,5 +373,42 @@ export default function FinancialOverviewWidget({ compact = false, onClick }) {
         </div>
       )}
     </button>
+  );
+}
+
+class FinancialOverviewErrorBoundary extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = { hasError: false };
+  }
+
+  static getDerivedStateFromError() {
+    return { hasError: true };
+  }
+
+  componentDidCatch(error, errorInfo) {
+    console.error("FinancialOverview Widget Crashed:", error, errorInfo);
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return (
+        <button className="group relative w-full h-full bg-red-500/5 backdrop-blur-3xl border border-red-500/20 rounded-[32px] p-6 lg:p-8 flex flex-col items-center justify-center min-h-[400px]">
+          <DollarSign className="w-12 h-12 text-red-400 mb-4 opacity-50" />
+          <p className="text-red-400 font-semibold text-center">Resumen Financiero no disponible</p>
+          <p className="text-white/40 text-sm mt-2 text-center">Ocurrió un error al cargar este widget.</p>
+        </button>
+      );
+    }
+
+    return this.props.children;
+  }
+}
+
+export default function FinancialOverviewWidget(props) {
+  return (
+    <FinancialOverviewErrorBoundary>
+      <FinancialOverviewWidgetBase {...props} />
+    </FinancialOverviewErrorBoundary>
   );
 }
