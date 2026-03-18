@@ -798,19 +798,9 @@ function EmployeeDetailModal({ open, onClose, employee, entries, formatHM, forma
               </div>
             </div>
 
-            {hourlyRate > 0 && totalHours > 0 ? (
-              <button
-                onClick={() => onPayment?.({ id: employee.id, name: employee.name, hours: totalHours, rate: hourlyRate, payment: calculatedPayment })}
-                className="w-full h-12 rounded-2xl bg-gradient-to-r from-emerald-500 to-green-500 hover:from-emerald-400 hover:to-green-400 text-black font-black text-sm tracking-tight transition-all active:scale-[0.98] flex items-center justify-center gap-2 shadow-[0_4px_24px_rgba(16,185,129,0.3)]"
-              >
-                <DollarSign className="w-4 h-4" />
-                Procesar Pago · ${calculatedPayment.toFixed(2)}
-              </button>
-            ) : (
+            {totalHours === 0 && (
               <div className="text-center py-2">
-                <p className="text-xs text-white/30">
-                  {hourlyRate === 0 ? "⚠️ Sin tarifa configurada en perfil" : "Sin horas en este periodo"}
-                </p>
+                <p className="text-xs text-emerald-400/70 font-bold">✅ Periodo liquidado · $0.00 pendiente</p>
               </div>
             )}
           </div>
@@ -1871,13 +1861,19 @@ export default function TimeTrackingModal({ open, onClose, session }) {
                     <div className="rounded-2xl border border-white/8 bg-black/20 p-4">
                       <h5 className="text-sm font-bold uppercase tracking-[0.18em] text-slate-400">Acciones</h5>
                       <div className="mt-4 space-y-2">
-                        <Button
-                          onClick={() => focusedPayment && handlePayment(focusedPayment)}
-                          disabled={!focusedPayment || focusedPayment.hours === 0 || focusedEmployee.isPaid}
-                          className="w-full justify-start bg-emerald-600 text-white hover:bg-emerald-500 disabled:opacity-40"
-                        >
-                          Procesar pago
-                        </Button>
+                        {focusedEmployee.isPaid ? (
+                          <div className="w-full rounded-lg border border-emerald-400/20 bg-emerald-500/10 px-4 py-3 text-center text-sm font-bold text-emerald-300">
+                            ✅ Periodo pagado
+                          </div>
+                        ) : (
+                          <Button
+                            onClick={() => focusedPayment && handlePayment(focusedPayment)}
+                            disabled={!focusedPayment || focusedPayment.hours === 0}
+                            className="w-full justify-start bg-emerald-600 text-white hover:bg-emerald-500 disabled:opacity-40"
+                          >
+                            Procesar pago
+                          </Button>
+                        )}
                         <Button
                           onClick={() => {
                             setDetailModalTab("pagos");

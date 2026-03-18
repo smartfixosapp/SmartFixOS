@@ -144,36 +144,39 @@ export async function processPayrollHandler(req) {
       tenant_id: tenant_id || null,
     });
 
-    // 3. Obtener y eliminar TimeEntry del periodo pagado (usa service role para bypasear RLS)
-    const { data: allEntries, error: fetchError } = await base44.asServiceRole.supabase
-      .from("time_entry")
-      .select("id, clock_in")
-      .eq("employee_id", employee_id);
-
+    // 3. Obtener y eliminar TimeEntry del periodo pagado
+    //    Usa entities API con service role (asServiceRole.entities bypasea RLS)
     let deletedCount = 0;
     let deleteErrors = [];
 
-    if (!fetchError && Array.isArray(allEntries)) {
+    try {
+      const allEntries = await base44.asServiceRole.entities.TimeEntry.filter(
+        { employee_id: employee_id }, "-clock_in", 500
+      );
+
       const fromDate = new Date(period_start);
       const toDate = new Date(period_end);
-      const entriesInPeriod = allEntries.filter((e) => {
+      const entriesInPeriod = (allEntries || []).filter((e) => {
+        if (!e?.clock_in) return false;
         const d = new Date(e.clock_in);
         return d >= fromDate && d <= toDate;
       });
 
-      for (const entry of entriesInPeriod) {
-        const { error: delErr } = await base44.asServiceRole.supabase
-          .from("time_entry")
-          .delete()
-          .eq("id", entry.id);
+      console.log(`🗑️ Deleting ${entriesInPeriod.length} time entries for employee ${employee_id}`);
 
-        if (delErr) {
-          console.error(`Error deleting time_entry ${entry.id}:`, delErr.message);
-          deleteErrors.push(entry.id);
-        } else {
+      for (const entry of entriesInPeriod) {
+        try {
+          await base44.asServiceRole.entities.TimeEntry.delete(entry.id);
           deletedCount++;
+        } catch (delErr) {
+          console.error(`Error deleting time_entry ${entry.id}:`, delErr?.message || delErr);
+          deleteErrors.push(entry.id);
         }
       }
+
+      console.log(`✅ Deleted ${deletedCount}/${entriesInPeriod.length} time entries`);
+    } catch (fetchErr) {
+      console.error("Error fetching time entries for deletion:", fetchErr?.message || fetchErr);
     }
 
     // 4. Enviar recibo por email al empleado (si tiene email)
