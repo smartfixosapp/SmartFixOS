@@ -2845,7 +2845,7 @@ export default function WorkOrderWizard({ open, onClose, onSuccess, preloadedCus
   return (
     <Dialog modal={false} open={open} onOpenChange={(v) => !v && onClose()}>
       <DialogPortal>
-        <DialogOverlay className="z-[120] bg-black/80 backdrop-blur-md" />
+        <DialogOverlay className="z-[120] bg-black/95 fixed inset-0" />
         <div
           className={`fixed inset-0 z-[121] flex pointer-events-none ${
             isCompactDevice ? "items-end justify-center" : "items-start justify-center"
@@ -2858,9 +2858,9 @@ export default function WorkOrderWizard({ open, onClose, onSuccess, preloadedCus
           }}
         >
           <DialogPrimitive.Content
-            className={`pointer-events-auto p-0 border overflow-hidden flex flex-col relative outline-none glass-panel shadow-[0_24px_100px_rgba(0,0,0,0.6)] ${
+            className={`pointer-events-auto p-0 border overflow-hidden flex flex-col relative outline-none bg-[#090909] shadow-[0_24px_100px_rgba(0,0,0,0.8)] ${
               quickOrderMode
-                ? "border-amber-400/20 shadow-[0_20px_100px_rgba(245,158,11,0.15)]"
+                ? "border-amber-400/30"
                 : "border-white/10"
             } ${
               isCompactDevice
@@ -2879,15 +2879,12 @@ export default function WorkOrderWizard({ open, onClose, onSuccess, preloadedCus
             <div className="w-12 h-1.5 rounded-full bg-white/35" />
           </div>
         )}
-        {/* Fondos animados flotantes */}
-        <div className="absolute -top-40 -right-40 w-80 h-80 bg-gradient-to-br from-cyan-500/20 to-blue-500/10 rounded-full blur-[120px] animate-pulse pointer-events-none" />
-        <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-gradient-to-br from-purple-500/20 to-pink-500/10 rounded-full blur-[120px] animate-pulse delay-1000 pointer-events-none" />
+        {/* Fondos animados (Eliminados para evitar transparencias) */}
         
-        {/* Header */}
-        <div className={`flex items-center justify-between border-b border-white/[0.06] backdrop-blur-3xl relative z-10 ${
+        <div className={`flex items-center justify-between border-b border-white/[0.08] relative z-10 ${
           quickOrderMode
-            ? "bg-amber-500/5"
-            : "bg-white/[0.02]"
+            ? "bg-[#1A1608]"
+            : "bg-white/[0.03]"
         } ${
           isCompactDevice ? "px-6 py-5" : "px-8 py-5"
         }`}>

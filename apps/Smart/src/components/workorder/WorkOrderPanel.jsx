@@ -600,7 +600,7 @@ function WaitingPartsModal({ open, onClose, onSave, initialData, order }) {
 
   return createPortal(
     <div className="fixed inset-0 z-[100000]">
-      <div className="absolute inset-0 bg-black/80 backdrop-blur-md" onClick={onClose} />
+      <div className="absolute inset-0 bg-[#000000]" onClick={onClose} />
       <div className="absolute inset-0 flex items-center justify-center p-4 overflow-y-auto pointer-events-none">
         <div
           className="pointer-events-auto w-full max-w-md border border-white/10 rounded-2xl p-6 max-h-[90vh] overflow-y-auto shadow-[0_30px_100px_rgba(0,0,0,0.55)] theme-light:border-gray-200"
@@ -2526,7 +2526,7 @@ export default function WorkOrderPanel({ orderId, onClose, onUpdate, onDelete, p
 
   if (loading && !order && !loadError) {
     return (
-      <div className="fixed inset-0 z-[60] bg-black/80 backdrop-blur-sm">
+      <div className="fixed inset-0 z-[60] bg-black/90">
         <style>{`
           body.wo-fullscreen nav[aria-orientation="vertical"],
           body.wo-fullscreen .sidebar,
@@ -2626,7 +2626,7 @@ export default function WorkOrderPanel({ orderId, onClose, onUpdate, onDelete, p
 
   return (
     <>
-      <div ref={panelRef} className="fixed inset-0 z-[60] bg-black/95 backdrop-blur-sm overflow-hidden kb-aware-panel" data-keyboard-aware>
+      <div ref={panelRef} className="fixed inset-0 z-[60] bg-[#0A0A0B] overflow-hidden kb-aware-panel" data-keyboard-aware>
         <style>{`
           body.wo-fullscreen nav[aria-orientation="vertical"],
           body.wo-fullscreen .sidebar,
@@ -2696,7 +2696,7 @@ export default function WorkOrderPanel({ orderId, onClose, onUpdate, onDelete, p
         <div className="h-full flex flex-col bg-gradient-to-br from-[#0D0D0D] to-[#1A1A1A] theme-light:bg-gray-50 overflow-hidden">
            {/* ✅ HEADER RESPONSIVE */}
            <div
-            className="flex-shrink-0 border-b border-white/[0.06] bg-[#0D0D0F]/80 backdrop-blur-3xl wo-header"
+            className="flex-shrink-0 border-b border-white/[0.08] bg-[#0D0D0F] wo-header"
             style={{ paddingTop: "calc(env(safe-area-inset-top, 0px) + 2px)" }}
           >
             <div className="max-w-[1800px] mx-auto px-4 sm:px-8 py-4 sm:py-5 flex items-center justify-between gap-4">
@@ -2790,7 +2790,7 @@ export default function WorkOrderPanel({ orderId, onClose, onUpdate, onDelete, p
           <div className="flex-1 overflow-y-auto scrollbar-thin wo-scrollable">
               <div className="max-w-[1800px] mx-auto px-2 sm:px-6 py-3 sm:py-6 space-y-3 sm:space-y-6 wo-panel-content pb-12">
 
-                <Card className="overflow-hidden border-white/[0.08] bg-[#121215]/40 backdrop-blur-2xl mobile-card-compact shadow-[0_24px_80px_rgba(0,0,0,0.4)] rounded-[32px]">
+                <Card className="overflow-hidden border-white/[0.08] bg-[#121215] mobile-card-compact shadow-[0_24px_80px_rgba(0,0,0,0.4)] rounded-[32px]">
                   <CardHeader className="border-b border-white/[0.05] p-5 sm:p-7">
                     <CardTitle className="flex items-start justify-between gap-4 text-white">
                       <div className="space-y-1">
