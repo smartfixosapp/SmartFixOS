@@ -9,7 +9,7 @@ import {
   Search, RefreshCw, LogOut, AlertTriangle, TrendingUp,
   Users, Mail, Calendar, ChevronDown, ChevronRight, Eye,
   PlayCircle, PauseCircle, Trash2, BarChart3, Activity, Power,
-  Pencil, KeyRound, X, Save
+  Pencil, KeyRound, X, Save, Zap, Database, ShoppingBag, ArrowLeftRight
 } from "lucide-react";
 
 const SUPER_SESSION_KEY = "smartfix_saas_session";
@@ -151,6 +151,18 @@ export default function SuperAdmin() {
     monthly_cost: 55,
     max_users: 1,
   });
+
+  // ── Nuclear Delete state ────────────────────────────────────────────────────
+  const [nuclearModal,      setNuclearModal]      = useState(false);
+  const [nuclearEmail,      setNuclearEmail]      = useState("");
+  const [nuclearTenant,     setNuclearTenant]     = useState(false);
+  const [nuclearLoading,    setNuclearLoading]    = useState(false);
+  const [nuclearResult,     setNuclearResult]     = useState(null); // { success, message, report }
+
+  // ── Tenant Data Viewer state ────────────────────────────────────────────────
+  const [dataModal,         setDataModal]         = useState(null); // tenant object
+  const [tenantData,        setTenantData]        = useState(null); // { orders, transactions }
+  const [tenantDataLoading, setTenantDataLoading] = useState(false);
 
   // ── Auth guard ─────────────────────────────────────────────────────────────
   useEffect(() => {
@@ -504,6 +516,76 @@ export default function SuperAdmin() {
       toast.error(e.message);
     } finally {
       setActionId(null);
+    }
+  };
+
+  // ── Nuclear delete by email ─────────────────────────────────────────────────
+  const doNuclearDelete = async () => {
+    if (!nuclearEmail.trim()) return toast.error("Ingresa un email");
+    if (!confirm(`⚠️ BORRADO NUCLEAR: Esto eliminará "${nuclearEmail}" de Supabase Auth, users y app_employee${nuclearTenant ? " + TODO el tenant y sus datos" : ""}. ¿Estás seguro?`)) return;
+
+    setNuclearLoading(true);
+    setNuclearResult(null);
+    try {
+      const res = await fetch('/api/delete-user-complete', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: nuclearEmail.trim(), deleteTenant: nuclearTenant }),
+      });
+      const data = await res.json();
+      setNuclearResult(data);
+      if (data?.success) {
+        toast.success("☢️ " + (data.message || "Eliminado con éxito"));
+        await loadTenants();
+        setTenantUsers({});
+      } else {
+        toast.error(data?.error || "Error en el borrado nuclear");
+      }
+    } catch (e) {
+      setNuclearResult({ success: false, error: e.message });
+      toast.error(e.message || "Error");
+    } finally {
+      setNuclearLoading(false);
+    }
+  };
+
+  // ── Load tenant data (orders + transactions) ─────────────────────────────────
+  const openTenantData = async (tenant) => {
+    setDataModal(tenant);
+    setTenantData(null);
+    setTenantDataLoading(true);
+    try {
+      const [ordersRes, txRes] = await Promise.all([
+        supabase
+          .from("order")
+          .select("id, created_date, status, total_amount, customer_name, device_type, device_brand")
+          .eq("tenant_id", tenant.id)
+          .order("created_date", { ascending: false })
+          .limit(20),
+        supabase
+          .from("transaction")
+          .select("id, created_date, type, amount, category, description, payment_method")
+          .eq("tenant_id", tenant.id)
+          .order("created_date", { ascending: false })
+          .limit(20),
+      ]);
+
+      const orders       = ordersRes.data || [];
+      const transactions = txRes.data    || [];
+
+      const totalIncome  = transactions.filter(t => t.type === "income") .reduce((s, t) => s + (Number(t.amount) || 0), 0);
+      const totalExpense = transactions.filter(t => t.type === "expense").reduce((s, t) => s + (Number(t.amount) || 0), 0);
+      const ordersByStatus = orders.reduce((acc, o) => {
+        acc[o.status || "unknown"] = (acc[o.status || "unknown"] || 0) + 1;
+        return acc;
+      }, {});
+
+      setTenantData({ orders, transactions, totalIncome, totalExpense, ordersByStatus });
+    } catch (e) {
+      toast.error("Error cargando datos: " + e.message);
+      setTenantData({ orders: [], transactions: [], totalIncome: 0, totalExpense: 0, ordersByStatus: {} });
+    } finally {
+      setTenantDataLoading(false);
     }
   };
 
@@ -903,6 +985,232 @@ export default function SuperAdmin() {
         )}
       </AnimatePresence>
 
+      {/* ── Nuclear Delete Modal ── */}
+      <AnimatePresence>
+        {nuclearModal && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-sm"
+            onClick={e => { if (e.target === e.currentTarget && !nuclearLoading) setNuclearModal(false); }}
+          >
+            <motion.div
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.95, opacity: 0 }}
+              className="bg-[#0f0505] border border-orange-500/40 rounded-2xl p-6 w-full max-w-md shadow-2xl space-y-5"
+            >
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-orange-500/20 flex items-center justify-center flex-shrink-0">
+                  <Zap className="w-5 h-5 text-orange-400" />
+                </div>
+                <div>
+                  <h2 className="text-base font-black text-white">Borrado Nuclear</h2>
+                  <p className="text-xs text-orange-300/70">Elimina un email de Supabase Auth + todas las tablas</p>
+                </div>
+                <button onClick={() => setNuclearModal(false)} className="ml-auto text-gray-600 hover:text-white transition-colors">
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+
+              <div className="space-y-3">
+                <div>
+                  <label className="block text-xs text-gray-400 mb-1 font-semibold">Email a eliminar</label>
+                  <input
+                    value={nuclearEmail}
+                    onChange={e => setNuclearEmail(e.target.value)}
+                    type="email"
+                    placeholder="usuario@ejemplo.com"
+                    disabled={nuclearLoading}
+                    className="w-full bg-white/[0.05] border border-orange-500/30 text-white text-sm rounded-xl px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-orange-500/40 placeholder-gray-600"
+                  />
+                </div>
+
+                <label className="flex items-center gap-3 px-3 py-2.5 rounded-xl border border-red-500/20 bg-red-500/5 cursor-pointer hover:bg-red-500/10 transition-all">
+                  <input
+                    type="checkbox"
+                    checked={nuclearTenant}
+                    onChange={e => setNuclearTenant(e.target.checked)}
+                    disabled={nuclearLoading}
+                    className="accent-red-500 w-4 h-4"
+                  />
+                  <div>
+                    <p className="text-sm font-semibold text-red-300">También eliminar el tenant completo</p>
+                    <p className="text-xs text-gray-500">Borra órdenes, transacciones, inventario, etc.</p>
+                  </div>
+                </label>
+              </div>
+
+              {nuclearResult && (
+                <div className={`rounded-xl border p-3 text-xs space-y-1 ${nuclearResult.success ? "border-green-500/30 bg-green-500/5 text-green-300" : "border-red-500/30 bg-red-500/5 text-red-300"}`}>
+                  <p className="font-bold">{nuclearResult.success ? "✅ Completado" : "❌ Error"}</p>
+                  <p>{nuclearResult.message || nuclearResult.error}</p>
+                  {nuclearResult.report?.errors?.length > 0 && (
+                    <p className="text-orange-400">⚠️ {nuclearResult.report.errors.join(" · ")}</p>
+                  )}
+                </div>
+              )}
+
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={doNuclearDelete}
+                  disabled={nuclearLoading || !nuclearEmail.trim()}
+                  className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl bg-orange-600 hover:bg-orange-500 text-white text-sm font-bold transition-all disabled:opacity-40"
+                >
+                  {nuclearLoading
+                    ? <><RefreshCw className="w-3.5 h-3.5 animate-spin" /> Eliminando…</>
+                    : <><Zap className="w-3.5 h-3.5" /> Ejecutar borrado nuclear</>
+                  }
+                </button>
+                <button
+                  onClick={() => setNuclearModal(false)}
+                  disabled={nuclearLoading}
+                  className="px-4 py-2.5 rounded-xl border border-white/10 text-gray-400 hover:text-white text-sm font-semibold transition-all disabled:opacity-40"
+                >
+                  Cerrar
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* ── Tenant Data Viewer Modal ── */}
+      <AnimatePresence>
+        {dataModal && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-sm"
+            onClick={e => { if (e.target === e.currentTarget) setDataModal(null); }}
+          >
+            <motion.div
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.95, opacity: 0 }}
+              className="bg-[#080d1a] border border-cyan-500/30 rounded-2xl w-full max-w-3xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]"
+            >
+              {/* Header */}
+              <div className="flex items-center gap-3 p-5 border-b border-white/[0.07]">
+                <div className="w-9 h-9 rounded-xl bg-cyan-500/20 flex items-center justify-center flex-shrink-0">
+                  <Database className="w-4 h-4 text-cyan-400" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <h2 className="text-sm font-black text-white truncate">{dataModal.name || "Sin nombre"}</h2>
+                  <p className="text-xs text-cyan-400/70">Datos internos de la tienda</p>
+                </div>
+                <button onClick={() => setDataModal(null)} className="text-gray-600 hover:text-white transition-colors">
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+
+              <div className="overflow-y-auto flex-1">
+                {tenantDataLoading ? (
+                  <div className="flex flex-col items-center justify-center py-20 text-gray-600 gap-3">
+                    <RefreshCw className="w-6 h-6 animate-spin" />
+                    <p className="text-sm">Cargando datos de la tienda…</p>
+                  </div>
+                ) : tenantData ? (
+                  <div className="p-5 space-y-5">
+
+                    {/* Summary row */}
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                      {[
+                        { label: "Órdenes",   value: tenantData.orders.length + (tenantData.orders.length === 20 ? "+" : ""), icon: ShoppingBag,     color: "text-blue-400",   bg: "bg-blue-500/10",   border: "border-blue-500/20"   },
+                        { label: "Transac.",  value: tenantData.transactions.length + (tenantData.transactions.length === 20 ? "+" : ""), icon: ArrowLeftRight, color: "text-purple-400", bg: "bg-purple-500/10", border: "border-purple-500/20" },
+                        { label: "Ingresos",  value: `$${tenantData.totalIncome.toFixed(0)}`,  icon: TrendingUp,     color: "text-green-400",  bg: "bg-green-500/10",  border: "border-green-500/20"  },
+                        { label: "Gastos",    value: `$${tenantData.totalExpense.toFixed(0)}`, icon: DollarSign,     color: "text-red-400",    bg: "bg-red-500/10",    border: "border-red-500/20"    },
+                      ].map(m => (
+                        <div key={m.label} className={`rounded-xl border ${m.border} ${m.bg} p-3 flex items-center gap-3`}>
+                          <m.icon className={`w-4 h-4 ${m.color} flex-shrink-0`} />
+                          <div>
+                            <p className="text-xs text-gray-500">{m.label}</p>
+                            <p className={`text-lg font-black ${m.color}`}>{m.value}</p>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+
+                    {/* Order status breakdown */}
+                    {Object.keys(tenantData.ordersByStatus).length > 0 && (
+                      <div className="flex flex-wrap gap-2">
+                        {Object.entries(tenantData.ordersByStatus).map(([status, count]) => (
+                          <span key={status} className="text-[11px] px-2 py-0.5 rounded-full border border-white/10 bg-white/[0.04] text-gray-300 font-semibold">
+                            {status}: {count}
+                          </span>
+                        ))}
+                      </div>
+                    )}
+
+                    {/* Recent orders */}
+                    <div>
+                      <p className="text-[11px] font-semibold text-gray-500 uppercase tracking-widest mb-2 flex items-center gap-1.5">
+                        <ShoppingBag className="w-3.5 h-3.5" /> Últimas órdenes (hasta 20)
+                      </p>
+                      {tenantData.orders.length === 0 ? (
+                        <p className="text-xs text-gray-600 py-2">Sin órdenes registradas</p>
+                      ) : (
+                        <div className="space-y-1.5">
+                          {tenantData.orders.map(order => (
+                            <div key={order.id} className="flex items-center gap-3 bg-white/[0.025] rounded-xl px-3 py-2 text-xs">
+                              <div className="flex-1 min-w-0">
+                                <p className="text-white font-semibold truncate">{order.customer_name || "Cliente"} — {order.device_brand || ""} {order.device_type || ""}</p>
+                                <p className="text-gray-500 truncate">{order.created_date ? new Date(order.created_date).toLocaleDateString("es") : "—"}</p>
+                              </div>
+                              <span className="text-[11px] px-2 py-0.5 rounded-full border border-white/10 bg-white/5 text-gray-400 flex-shrink-0">{order.status || "—"}</span>
+                              <span className="font-bold text-green-400 flex-shrink-0">{order.total_amount ? `$${Number(order.total_amount).toFixed(0)}` : "—"}</span>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Recent transactions */}
+                    <div>
+                      <p className="text-[11px] font-semibold text-gray-500 uppercase tracking-widest mb-2 flex items-center gap-1.5">
+                        <ArrowLeftRight className="w-3.5 h-3.5" /> Últimas transacciones (hasta 20)
+                      </p>
+                      {tenantData.transactions.length === 0 ? (
+                        <p className="text-xs text-gray-600 py-2">Sin transacciones registradas</p>
+                      ) : (
+                        <div className="space-y-1.5">
+                          {tenantData.transactions.map(tx => (
+                            <div key={tx.id} className="flex items-center gap-3 bg-white/[0.025] rounded-xl px-3 py-2 text-xs">
+                              <div className="flex-1 min-w-0">
+                                <p className="text-white font-semibold truncate">{tx.description || tx.category || "—"}</p>
+                                <p className="text-gray-500">{tx.created_date ? new Date(tx.created_date).toLocaleDateString("es") : "—"} · {tx.payment_method || "—"}</p>
+                              </div>
+                              <span className={`text-[11px] px-1.5 py-0.5 rounded-full border flex-shrink-0 ${tx.type === "income" ? "border-green-500/30 text-green-300 bg-green-500/10" : "border-red-500/30 text-red-300 bg-red-500/10"}`}>
+                                {tx.type === "income" ? "+" : "-"}
+                              </span>
+                              <span className={`font-bold flex-shrink-0 ${tx.type === "income" ? "text-green-400" : "text-red-400"}`}>
+                                ${Number(tx.amount || 0).toFixed(2)}
+                              </span>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                ) : null}
+              </div>
+
+              <div className="p-4 border-t border-white/[0.06]">
+                <button
+                  onClick={() => openTenantData(dataModal)}
+                  disabled={tenantDataLoading}
+                  className="flex items-center gap-2 text-xs px-3 py-2 rounded-xl bg-white/[0.04] border border-white/10 text-gray-400 hover:text-white transition-all disabled:opacity-40"
+                >
+                  <RefreshCw className={`w-3.5 h-3.5 ${tenantDataLoading ? "animate-spin" : ""}`} /> Recargar
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       {/* ── Top bar ── */}
       <header className="sticky top-0 z-30 border-b border-white/[0.06] bg-black/70 backdrop-blur-2xl">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 h-14 flex items-center justify-between gap-4">
@@ -936,6 +1244,14 @@ export default function SuperAdmin() {
               </button>
             ))}
           </div>
+
+          <button
+            onClick={() => { setNuclearModal(true); setNuclearResult(null); setNuclearEmail(""); setNuclearTenant(false); }}
+            title="Borrado nuclear: eliminar usuario de todas partes"
+            className="flex items-center gap-1.5 text-xs text-orange-400 hover:text-orange-300 transition-colors px-3 py-1.5 rounded-full border border-orange-500/30 hover:border-orange-400/50 hover:bg-orange-500/10"
+          >
+            <Zap className="w-3.5 h-3.5" /> Nuclear
+          </button>
 
           <button
             onClick={handleLogout}
@@ -1120,6 +1436,15 @@ export default function SuperAdmin() {
                                   className="flex items-center gap-1.5 text-xs px-3 py-2 rounded-xl bg-teal-500/10 border border-teal-500/30 text-teal-300 hover:bg-teal-500/20 transition-all disabled:opacity-50"
                                 >
                                   <Mail className="w-3.5 h-3.5" /> Sembrar plantillas
+                                </button>
+
+                                {/* Ver datos */}
+                                <button
+                                  onClick={() => openTenantData(tenant)}
+                                  disabled={!!busy}
+                                  className="flex items-center gap-1.5 text-xs px-3 py-2 rounded-xl bg-cyan-500/10 border border-cyan-500/30 text-cyan-300 hover:bg-cyan-500/20 transition-all disabled:opacity-50"
+                                >
+                                  <Database className="w-3.5 h-3.5" /> Ver datos
                                 </button>
 
                                 {/* Delete */}
