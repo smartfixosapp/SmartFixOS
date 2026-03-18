@@ -124,6 +124,10 @@
     "delete_reason": {
       "type": "string",
       "description": "Reason for deletion (error, duplicate, system_reset, etc.)"
+    },
+    "tenant_id": {
+      "type": "string",
+      "description": "ID del tenant"
     }
   },
   "required": [

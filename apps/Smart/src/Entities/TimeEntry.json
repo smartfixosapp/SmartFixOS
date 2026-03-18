@@ -8,7 +8,11 @@
     },
     "employee_name": {
       "type": "string",
-      "description": "Nombre del empleado"
+      "description": "Nombre legible del empleado"
+    },
+    "tenant_id": {
+      "type": "string",
+      "description": "ID del tenant"
     },
     "clock_in": {
       "type": "string",

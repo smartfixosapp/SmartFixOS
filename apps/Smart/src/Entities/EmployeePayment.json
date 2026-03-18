@@ -63,6 +63,10 @@
     "paid_by_name": {
       "type": "string",
       "description": "Nombre de quien realiz\u00f3 el pago"
+    },
+    "tenant_id": {
+      "type": "string",
+      "description": "ID del tenant"
     }
   },
   "required": [

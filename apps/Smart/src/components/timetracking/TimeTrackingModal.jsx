@@ -123,6 +123,16 @@ async function insertSupabaseRecordWithTenantRetry(table, payload) {
 
   let lastError = null;
   for (let index = 0; index < attempts.length; index += 1) {
+    // Bridge for RLS: ensure the direct supabase call sends the JWT token
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session?.access_token) {
+        window.__SUPABASE_NEXT_REQUEST_TOKEN = session.access_token;
+      }
+    } catch (_) {
+      // no-op: ignore session errors, the fetch will just run as anon
+    }
+
     const { error } = await supabase.from(table).insert(attempts[index]);
     if (!error) return;
 
@@ -1052,6 +1062,14 @@ export default function TimeTrackingModal({ open, onClose, session }) {
     try {
       let tenantId = getCurrentTenantId();
       const runQueries = async (currentTenantId) => {
+        // Bridge for RLS
+        try {
+          const { data: { session } } = await supabase.auth.getSession();
+          if (session?.access_token) {
+            window.__SUPABASE_NEXT_REQUEST_TOKEN = session.access_token;
+          }
+        } catch (_) {}
+
         let usersQuery = supabase
           .from("users")
           .select("id, email, full_name, role, position, employee_code, hourly_rate, active, tenant_id, auth_id")
@@ -1399,6 +1417,14 @@ export default function TimeTrackingModal({ open, onClose, session }) {
         try {
           await dataClient.entities.TimeEntry.delete(entry.id);
         } catch {
+          // Bridge for RLS
+          try {
+            const { data: { session } } = await supabase.auth.getSession();
+            if (session?.access_token) {
+              window.__SUPABASE_NEXT_REQUEST_TOKEN = session.access_token;
+            }
+          } catch (_) {}
+
           const { error } = await supabase.from("time_entry").delete().eq("id", entry.id);
           if (error) throw error;
         }
