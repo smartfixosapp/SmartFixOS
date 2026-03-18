@@ -529,6 +529,9 @@ importers:
       tailwindcss:
         specifier: ^3.4.17
         version: 3.4.19
+      tailwindcss-safe-area:
+        specifier: ^0.8.0
+        version: 0.8.0(tailwindcss@3.4.19)
       typescript:
         specifier: ^5.8.2
         version: 5.9.3
@@ -4222,6 +4225,12 @@ packages:
     resolution: {integrity: sha512-bl6mpH3T7I3UFxuvDEXLxy/VuFxBk5bbzplh7tXI68mwMokNYd1t9qPBHlnyTwfa4JGC4zP516I1hYYtQ/vspA==}
     peerDependencies:
       tailwindcss: '>=3.0.0 || insiders'
+
+  tailwindcss-safe-area@0.8.0:
+    resolution: {integrity: sha512-OIKZfSvinI9kZ3hduoSxqP8EfW2rXoKvHnNyTDY2zwem06IIRtLcKdMe0nF98o+Xluk5Fy7mmesr1rSXg/wkhA==}
+    engines: {node: '>=16'}
+    peerDependencies:
+      tailwindcss: ^2.0.0 || >=3.0.0
 
   tailwindcss@3.4.19:
     resolution: {integrity: sha512-3ofp+LL8E+pK/JuPLPggVAIaEuhvIz4qNcf3nA1Xn2o/7fb7s/TYpHhwGDv1ZU3PkBluUVaF8PyCHcm48cKLWQ==}
@@ -8655,6 +8664,10 @@ snapshots:
   tailwind-merge@3.5.0: {}
 
   tailwindcss-animate@1.0.7(tailwindcss@3.4.19):
+    dependencies:
+      tailwindcss: 3.4.19
+
+  tailwindcss-safe-area@0.8.0(tailwindcss@3.4.19):
     dependencies:
       tailwindcss: 3.4.19
 

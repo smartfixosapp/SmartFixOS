@@ -215,9 +215,6 @@ export default function Layout({ children }) {
     };
   }, []);
 
-  const darkBgUrl = "https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/68f767a3d5fce1486d4cf555/572f84138_IMG_0296.png";
-  const lightBgUrl = "https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/68f767a3d5fce1486d4cf555/5e30d189f_IMG_1003.png";
-
   return (
     <QueryClientProvider client={queryClient}>
     <I18nProvider>
@@ -227,17 +224,20 @@ export default function Layout({ children }) {
         <div
         className={`flex h-screen flex-col relative overflow-hidden ${theme === "light" ? "text-gray-900" : "text-slate-100"}`}
         style={{
-          backgroundImage: isPinAccess ? 'none' : `url(${theme === "light" ? lightBgUrl : darkBgUrl})`,
           backgroundColor: '#000000',
-          backgroundSize: 'cover',
-          backgroundPosition: 'center',
-          backgroundRepeat: 'no-repeat',
-          backgroundAttachment: 'fixed'
+          background: isPinAccess
+            ? '#000'
+            : theme === "light"
+              ? 'linear-gradient(160deg, #f0f4f8 0%, #e8edf2 100%)'
+              : 'linear-gradient(160deg, #0a0e1a 0%, #050810 60%, #000000 100%)',
         }}
       >
-      {/* Overlay para mejorar legibilidad - SOLO SI NO ES PINACCESS */}
-      {!isPinAccess && (
-        <div className={`fixed inset-0 -z-10 ${theme === "light" ? "bg-[#F8F9FA]/92" : "bg-gradient-to-b from-black/40 via-black/80 to-black/95"} backdrop-blur-[8px]`} />
+      {/* Overlay decorativo — SOLO SI NO ES PINACCESS */}
+      {!isPinAccess && theme !== "light" && (
+        <div className="fixed inset-0 -z-10 bg-gradient-to-b from-transparent via-black/60 to-black/90" />
+      )}
+      {!isPinAccess && theme === "light" && (
+        <div className="fixed inset-0 -z-10 bg-[#F8F9FA]/80 backdrop-blur-[4px]" />
       )}
 
       <Toaster
@@ -305,7 +305,7 @@ export default function Layout({ children }) {
       {/* === Contenido === */}
       <main 
         ref={mainRef}
-        className="flex-1 overflow-y-auto overflow-x-hidden px-2 sm:px-4 md:px-5 pt-[calc(env(safe-area-inset-top,0px)+8px)] md:pt-4 pb-safe relative"
+        className="flex-1 overflow-y-auto overflow-x-hidden px-2 sm:px-4 md:px-5 pt-[calc(env(safe-area-inset-top,0px)+8px)] md:pt-4 pb-[calc(88px+env(safe-area-inset-bottom,0px))] md:pb-4 relative"
         data-pointer-overlay="off"
         style={{ WebkitOverflowScrolling: 'touch', scrollBehavior: 'smooth' }}
       >
