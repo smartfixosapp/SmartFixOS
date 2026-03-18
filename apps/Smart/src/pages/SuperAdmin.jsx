@@ -155,7 +155,6 @@ export default function SuperAdmin() {
   // ── Nuclear Delete state ────────────────────────────────────────────────────
   const [nuclearModal,      setNuclearModal]      = useState(false);
   const [nuclearEmail,      setNuclearEmail]      = useState("");
-  const [nuclearTenant,     setNuclearTenant]     = useState(false);
   const [nuclearLoading,    setNuclearLoading]    = useState(false);
   const [nuclearResult,     setNuclearResult]     = useState(null); // { success, message, report }
 
@@ -522,7 +521,7 @@ export default function SuperAdmin() {
   // ── Nuclear delete by email ─────────────────────────────────────────────────
   const doNuclearDelete = async () => {
     if (!nuclearEmail.trim()) return toast.error("Ingresa un email");
-    if (!confirm(`⚠️ BORRADO NUCLEAR: Esto eliminará "${nuclearEmail}" de Supabase Auth, users y app_employee${nuclearTenant ? " + TODO el tenant y sus datos" : ""}. ¿Estás seguro?`)) return;
+    if (!confirm(`☢️ BORRADO TOTAL: Se eliminará "${nuclearEmail}" de Supabase Auth + users + app_employee + tenant + TODOS sus datos (órdenes, clientes, inventario, transacciones). Esta acción es IRREVERSIBLE. ¿Continuar?`)) return;
 
     setNuclearLoading(true);
     setNuclearResult(null);
@@ -530,7 +529,7 @@ export default function SuperAdmin() {
       const res = await fetch('/api/delete-user-complete', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: nuclearEmail.trim(), deleteTenant: nuclearTenant }),
+        body: JSON.stringify({ email: nuclearEmail.trim(), deleteTenant: true }),
       });
       const data = await res.json();
       setNuclearResult(data);
@@ -992,83 +991,78 @@ export default function SuperAdmin() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-sm"
+            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm"
             onClick={e => { if (e.target === e.currentTarget && !nuclearLoading) setNuclearModal(false); }}
           >
             <motion.div
               initial={{ scale: 0.95, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.95, opacity: 0 }}
-              className="bg-[#0f0505] border border-orange-500/40 rounded-2xl p-6 w-full max-w-md shadow-2xl space-y-5"
+              className="bg-[#0f0505] border border-red-500/50 rounded-2xl p-6 w-full max-w-md shadow-2xl space-y-5"
             >
+              {/* Header */}
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-orange-500/20 flex items-center justify-center flex-shrink-0">
-                  <Zap className="w-5 h-5 text-orange-400" />
+                <div className="w-11 h-11 rounded-xl bg-red-500/20 flex items-center justify-center flex-shrink-0 border border-red-500/30">
+                  <Zap className="w-5 h-5 text-red-400" />
                 </div>
                 <div>
-                  <h2 className="text-base font-black text-white">Borrado Nuclear</h2>
-                  <p className="text-xs text-orange-300/70">Elimina un email de Supabase Auth + todas las tablas</p>
+                  <h2 className="text-base font-black text-white">☢️ Borrar TODO</h2>
+                  <p className="text-xs text-red-300/80">Auth + usuarios + tenant + órdenes + datos completos</p>
                 </div>
-                <button onClick={() => setNuclearModal(false)} className="ml-auto text-gray-600 hover:text-white transition-colors">
+                <button onClick={() => setNuclearModal(false)} disabled={nuclearLoading} className="ml-auto text-gray-600 hover:text-white transition-colors disabled:opacity-40">
                   <X className="w-5 h-5" />
                 </button>
               </div>
 
-              <div className="space-y-3">
-                <div>
-                  <label className="block text-xs text-gray-400 mb-1 font-semibold">Email a eliminar</label>
-                  <input
-                    value={nuclearEmail}
-                    onChange={e => setNuclearEmail(e.target.value)}
-                    type="email"
-                    placeholder="usuario@ejemplo.com"
-                    disabled={nuclearLoading}
-                    className="w-full bg-white/[0.05] border border-orange-500/30 text-white text-sm rounded-xl px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-orange-500/40 placeholder-gray-600"
-                  />
-                </div>
-
-                <label className="flex items-center gap-3 px-3 py-2.5 rounded-xl border border-red-500/20 bg-red-500/5 cursor-pointer hover:bg-red-500/10 transition-all">
-                  <input
-                    type="checkbox"
-                    checked={nuclearTenant}
-                    onChange={e => setNuclearTenant(e.target.checked)}
-                    disabled={nuclearLoading}
-                    className="accent-red-500 w-4 h-4"
-                  />
-                  <div>
-                    <p className="text-sm font-semibold text-red-300">También eliminar el tenant completo</p>
-                    <p className="text-xs text-gray-500">Borra órdenes, transacciones, inventario, etc.</p>
-                  </div>
-                </label>
+              {/* Warning banner */}
+              <div className="rounded-xl border border-red-500/30 bg-red-500/[0.08] px-4 py-3 text-xs text-red-300 leading-relaxed">
+                <p className="font-bold mb-1">⚠️ Esta acción es irreversible</p>
+                <p>Se eliminará el email de <strong>Supabase Auth</strong>, tablas <strong>users</strong> y <strong>app_employee</strong>, el <strong>tenant</strong> completo y <strong>todos sus datos</strong>: órdenes, clientes, inventario, transacciones, configuración, etc.</p>
               </div>
 
+              {/* Email input */}
+              <div>
+                <label className="block text-xs text-gray-400 mb-1.5 font-semibold">Email a eliminar por completo</label>
+                <input
+                  value={nuclearEmail}
+                  onChange={e => setNuclearEmail(e.target.value)}
+                  type="email"
+                  placeholder="usuario@ejemplo.com"
+                  disabled={nuclearLoading}
+                  onKeyDown={e => e.key === 'Enter' && doNuclearDelete()}
+                  className="w-full bg-white/[0.05] border border-red-500/40 text-white text-sm rounded-xl px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-red-500/40 placeholder-gray-600"
+                />
+              </div>
+
+              {/* Result */}
               {nuclearResult && (
                 <div className={`rounded-xl border p-3 text-xs space-y-1 ${nuclearResult.success ? "border-green-500/30 bg-green-500/5 text-green-300" : "border-red-500/30 bg-red-500/5 text-red-300"}`}>
-                  <p className="font-bold">{nuclearResult.success ? "✅ Completado" : "❌ Error"}</p>
+                  <p className="font-bold">{nuclearResult.success ? "✅ Eliminado correctamente" : "❌ Error"}</p>
                   <p>{nuclearResult.message || nuclearResult.error}</p>
                   {nuclearResult.report?.errors?.length > 0 && (
-                    <p className="text-orange-400">⚠️ {nuclearResult.report.errors.join(" · ")}</p>
+                    <p className="text-orange-400 mt-1">⚠️ {nuclearResult.report.errors.join(" · ")}</p>
                   )}
                 </div>
               )}
 
+              {/* Buttons */}
               <div className="flex items-center gap-2">
                 <button
                   onClick={doNuclearDelete}
                   disabled={nuclearLoading || !nuclearEmail.trim()}
-                  className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl bg-orange-600 hover:bg-orange-500 text-white text-sm font-bold transition-all disabled:opacity-40"
+                  className="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl bg-red-600 hover:bg-red-500 text-white text-sm font-black transition-all disabled:opacity-40 shadow-lg shadow-red-900/30"
                 >
                   {nuclearLoading
-                    ? <><RefreshCw className="w-3.5 h-3.5 animate-spin" /> Eliminando…</>
-                    : <><Zap className="w-3.5 h-3.5" /> Ejecutar borrado nuclear</>
+                    ? <><RefreshCw className="w-4 h-4 animate-spin" /> Eliminando todo…</>
+                    : <><Zap className="w-4 h-4" /> ☢️ BORRAR TODO</>
                   }
                 </button>
                 <button
-                  onClick={() => setNuclearModal(false)}
+                  onClick={() => { setNuclearModal(false); setNuclearResult(null); }}
                   disabled={nuclearLoading}
-                  className="px-4 py-2.5 rounded-xl border border-white/10 text-gray-400 hover:text-white text-sm font-semibold transition-all disabled:opacity-40"
+                  className="px-4 py-3 rounded-xl border border-white/10 text-gray-400 hover:text-white text-sm font-semibold transition-all disabled:opacity-40"
                 >
-                  Cerrar
+                  Cancelar
                 </button>
               </div>
             </motion.div>
@@ -1246,11 +1240,11 @@ export default function SuperAdmin() {
           </div>
 
           <button
-            onClick={() => { setNuclearModal(true); setNuclearResult(null); setNuclearEmail(""); setNuclearTenant(false); }}
-            title="Borrado nuclear: eliminar usuario de todas partes"
-            className="flex items-center gap-1.5 text-xs text-orange-400 hover:text-orange-300 transition-colors px-3 py-1.5 rounded-full border border-orange-500/30 hover:border-orange-400/50 hover:bg-orange-500/10"
+            onClick={() => { setNuclearModal(true); setNuclearResult(null); setNuclearEmail(""); }}
+            title="Borrar TODO por email: Auth + tenant + datos completos"
+            className="flex items-center gap-1.5 text-xs text-red-400 hover:text-red-300 transition-colors px-3 py-1.5 rounded-full border border-red-500/30 hover:border-red-400/50 hover:bg-red-500/10"
           >
-            <Zap className="w-3.5 h-3.5" /> Nuclear
+            <Zap className="w-3.5 h-3.5" /> ☢️ Borrar TODO
           </button>
 
           <button
@@ -1447,13 +1441,27 @@ export default function SuperAdmin() {
                                   <Database className="w-3.5 h-3.5" /> Ver datos
                                 </button>
 
-                                {/* Delete */}
+                                {/* Eliminar solo datos tenant */}
                                 <button
                                   onClick={() => setConfirmDelete(tenant.id)}
                                   disabled={!!busy}
                                   className="flex items-center gap-1.5 text-xs px-3 py-2 rounded-xl bg-red-900/20 border border-red-700/30 text-red-400 hover:bg-red-900/40 transition-all disabled:opacity-50"
                                 >
-                                  <Trash2 className="w-3.5 h-3.5" /> Eliminar
+                                  <Trash2 className="w-3.5 h-3.5" /> Eliminar tienda
+                                </button>
+
+                                {/* Nuclear: borrar TODO incluyendo auth */}
+                                <button
+                                  onClick={() => {
+                                    setNuclearEmail(tenant.email || "");
+                                    setNuclearResult(null);
+                                    setNuclearModal(true);
+                                  }}
+                                  disabled={!!busy}
+                                  title="Borrar TODO: Auth + tenant + todos los datos"
+                                  className="flex items-center gap-1.5 text-xs px-3 py-2 rounded-xl bg-red-500/10 border border-red-500/40 text-red-300 hover:bg-red-500/20 font-black transition-all disabled:opacity-50"
+                                >
+                                  <Zap className="w-3.5 h-3.5" /> ☢️ Borrar TODO
                                 </button>
 
                                 {busy && <RefreshCw className="w-3.5 h-3.5 animate-spin text-gray-400 self-center ml-1" />}
