@@ -815,80 +815,7 @@ function EmployeeDetailModal({ open, onClose, employee, entries, formatHM, forma
             )}
           </div>
 
-          {/* ── Week-Grouped Shifts ── */}
-          <div>
-            <p className="text-[9px] font-black uppercase tracking-widest text-white/30 mb-3">Últimas jornadas</p>
-            {weekGroups.length === 0 ? (
-              <div className="text-center py-8 text-white/20">
-                <Clock className="w-8 h-8 mx-auto mb-2 opacity-30" />
-                <p className="text-xs">Sin jornadas en este periodo</p>
-              </div>
-            ) : (
-              <div className="space-y-2">
-                {weekGroups.map((week) => {
-                  const weekMs = week.entries.reduce((s, e) => s + shiftMs(e), 0);
-                  const weekPay = hourlyRate > 0 ? (weekMs / 3600000) * hourlyRate : 0;
-                  const isExpanded = !!expandedWeeks[week.key];
-                  const hasActive = week.entries.some((e) => !e.clock_out);
-
-                  return (
-                    <div key={week.key} className="rounded-2xl border border-white/[0.06] overflow-hidden">
-                      {/* Week header — tap to expand */}
-                      <button
-                        onClick={() => toggleWeek(week.key)}
-                        className="w-full flex items-center gap-3 px-4 py-3 bg-white/[0.02] hover:bg-white/[0.04] transition-all"
-                      >
-                        {hasActive && <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse flex-shrink-0" />}
-                        <div className="flex-1 text-left min-w-0">
-                          <p className="text-xs font-black text-white/70 truncate">{fmtWeekRange(week.monday, week.sunday)}</p>
-                          <p className="text-[10px] text-white/30">{week.entries.length} jornada{week.entries.length !== 1 ? "s" : ""}</p>
-                        </div>
-                        <div className="text-right flex-shrink-0 mr-2">
-                          <p className="text-sm font-black text-white/80">{formatHM(weekMs)}</p>
-                          {weekPay > 0 && <p className="text-[9px] text-emerald-400/60">${weekPay.toFixed(2)}</p>}
-                        </div>
-                        <ChevronDown className={`w-4 h-4 text-white/25 transition-transform duration-200 flex-shrink-0 ${isExpanded ? "rotate-180" : ""}`} />
-                      </button>
-
-                      {/* Shifts inside the week */}
-                      <div
-                        className="overflow-hidden transition-all duration-250 ease-in-out"
-                        style={{ maxHeight: isExpanded ? `${week.entries.length * 72}px` : "0px" }}
-                      >
-                        {week.entries
-                          .sort((a, b) => new Date(b.clock_in) - new Date(a.clock_in))
-                          .map((entry, i) => {
-                            const ms = shiftMs(entry);
-                            const isOpen = !entry.clock_out;
-                            const dayName = new Date(entry.clock_in).toLocaleDateString("es-PR", { weekday: "long", day: "numeric" });
-                            return (
-                              <div key={entry.id || i}
-                                className={`flex items-center gap-3 px-5 py-2.5 border-t border-white/[0.04] ${isOpen ? "bg-emerald-500/5" : ""}`}>
-                                <div className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${isOpen ? "bg-emerald-400 animate-pulse" : "bg-white/15"}`} />
-                                <div className="flex-1 min-w-0">
-                                  <p className="text-xs font-bold text-white/60 capitalize truncate">{dayName}</p>
-                                  <p className="text-[10px] text-white/25">
-                                    {fmtTime(entry.clock_in)} → {isOpen ? "Activo" : fmtTime(entry.clock_out)}
-                                  </p>
-                                </div>
-                                <div className="text-right flex-shrink-0">
-                                  <p className={`text-xs font-black ${isOpen ? "text-emerald-400" : "text-white/50"}`}>{formatHM(ms)}</p>
-                                  {hourlyRate > 0 && !isOpen && (
-                                    <p className="text-[9px] text-white/20">${((ms / 3600000) * hourlyRate).toFixed(2)}</p>
-                                  )}
-                                </div>
-                              </div>
-                            );
-                          })}
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            )}
-          </div>
-
-          {/* ── History Toggle (payments + custom date range) ── */}
+          {/* ── History Toggle (payments + custom date range + jornadas) ── */}
           <button
             onClick={toggleHistory}
             className="w-full flex items-center justify-between px-4 py-3 rounded-2xl bg-white/[0.03] hover:bg-white/[0.06] border border-white/[0.06] transition-all active:scale-[0.99]"
@@ -908,7 +835,7 @@ function EmployeeDetailModal({ open, onClose, employee, entries, formatHM, forma
           {/* ── History Panel: custom date range + payment log ── */}
           <div
             className="overflow-hidden transition-all duration-300 ease-in-out"
-            style={{ maxHeight: historyOpen ? "800px" : "0px", opacity: historyOpen ? 1 : 0 }}
+            style={{ maxHeight: historyOpen ? "2400px" : "0px", opacity: historyOpen ? 1 : 0 }}
           >
             <div className="space-y-4 pb-2">
               {/* Calendar / date range picker */}
@@ -939,6 +866,75 @@ function EmployeeDetailModal({ open, onClose, employee, entries, formatHM, forma
                   <span>{allEntries.length} jornadas · {formatHM(filteredTotalMillis)}</span>
                   {hourlyRate > 0 && <span className="text-emerald-400/60">${(filteredTotalMillis / 3600000 * hourlyRate).toFixed(2)}</span>}
                 </div>
+              </div>
+
+              {/* ── Week-Grouped Shifts (inside historial) ── */}
+              <div>
+                <p className="text-[9px] font-black uppercase tracking-widest text-white/30 mb-3">Jornadas por semana</p>
+                {weekGroups.length === 0 ? (
+                  <div className="text-center py-6 text-white/20">
+                    <Clock className="w-7 h-7 mx-auto mb-2 opacity-30" />
+                    <p className="text-xs">Sin jornadas en este periodo</p>
+                  </div>
+                ) : (
+                  <div className="space-y-2">
+                    {weekGroups.map((week) => {
+                      const weekMs = week.entries.reduce((s, e) => s + shiftMs(e), 0);
+                      const weekPay = hourlyRate > 0 ? (weekMs / 3600000) * hourlyRate : 0;
+                      const isExpanded = !!expandedWeeks[week.key];
+                      const hasActive = week.entries.some((e) => !e.clock_out);
+                      return (
+                        <div key={week.key} className="rounded-2xl border border-white/[0.06] overflow-hidden">
+                          <button
+                            onClick={() => toggleWeek(week.key)}
+                            className="w-full flex items-center gap-3 px-4 py-3 bg-white/[0.02] hover:bg-white/[0.04] transition-all"
+                          >
+                            {hasActive && <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse flex-shrink-0" />}
+                            <div className="flex-1 text-left min-w-0">
+                              <p className="text-xs font-black text-white/70 truncate">{fmtWeekRange(week.monday, week.sunday)}</p>
+                              <p className="text-[10px] text-white/30">{week.entries.length} jornada{week.entries.length !== 1 ? "s" : ""}</p>
+                            </div>
+                            <div className="text-right flex-shrink-0 mr-2">
+                              <p className="text-sm font-black text-white/80">{formatHM(weekMs)}</p>
+                              {weekPay > 0 && <p className="text-[9px] text-emerald-400/60">${weekPay.toFixed(2)}</p>}
+                            </div>
+                            <ChevronDown className={`w-4 h-4 text-white/25 transition-transform duration-200 flex-shrink-0 ${isExpanded ? "rotate-180" : ""}`} />
+                          </button>
+                          <div
+                            className="overflow-hidden transition-all duration-250 ease-in-out"
+                            style={{ maxHeight: isExpanded ? `${week.entries.length * 72}px` : "0px" }}
+                          >
+                            {week.entries
+                              .sort((a, b) => new Date(b.clock_in) - new Date(a.clock_in))
+                              .map((entry, i) => {
+                                const ms = shiftMs(entry);
+                                const isOpen = !entry.clock_out;
+                                const dayName = new Date(entry.clock_in).toLocaleDateString("es-PR", { weekday: "long", day: "numeric" });
+                                return (
+                                  <div key={entry.id || i}
+                                    className={`flex items-center gap-3 px-5 py-2.5 border-t border-white/[0.04] ${isOpen ? "bg-emerald-500/5" : ""}`}>
+                                    <div className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${isOpen ? "bg-emerald-400 animate-pulse" : "bg-white/15"}`} />
+                                    <div className="flex-1 min-w-0">
+                                      <p className="text-xs font-bold text-white/60 capitalize truncate">{dayName}</p>
+                                      <p className="text-[10px] text-white/25">
+                                        {fmtTime(entry.clock_in)} → {isOpen ? "Activo" : fmtTime(entry.clock_out)}
+                                      </p>
+                                    </div>
+                                    <div className="text-right flex-shrink-0">
+                                      <p className={`text-xs font-black ${isOpen ? "text-emerald-400" : "text-white/50"}`}>{formatHM(ms)}</p>
+                                      {hourlyRate > 0 && !isOpen && (
+                                        <p className="text-[9px] text-white/20">${((ms / 3600000) * hourlyRate).toFixed(2)}</p>
+                                      )}
+                                    </div>
+                                  </div>
+                                );
+                              })}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
               </div>
 
               {/* Payment history */}
@@ -1342,100 +1338,124 @@ export default function TimeTrackingModal({ open, onClose, session }) {
   const processPayment = async (amount, type, paymentMethod, notes) => {
     if (!selectedEmployeeForPayment) return;
 
+    const paymentAmount = parseFloat(amount);
+    const currentUser = await base44.auth.me().catch(() => null);
+    const tenantId = getCurrentTenantId();
+    const employeeProfile = employees.find((e) => e.id === selectedEmployeeForPayment.id);
+
     try {
-      const paymentAmount = parseFloat(amount);
-      const currentUser = await base44.auth.me().catch(() => null);
-      const tenantId = getCurrentTenantId();
-      const normalizedPaymentMethod =
-        paymentMethod === "ath_movil" ? "transfer" : paymentMethod;
-      const normalizedNotes = paymentMethod === "ath_movil"
-        ? [notes, "M\u00E9todo real: ATH M\u00F3vil"].filter(Boolean).join(" | ")
-        : notes;
-
-      // ✅ 1. Crear registro de pago al empleado
-      const employeePaymentPayload = {
-        employee_id: selectedEmployeeForPayment.id,
-        employee_name: selectedEmployeeForPayment.name,
-        employee_code: employees.find((e) => e.id === selectedEmployeeForPayment.id)?.employee_code || "",
-        amount: paymentAmount,
-        payment_type: type,
-        payment_method: normalizedPaymentMethod,
-        period_start: from.toISOString(),
-        period_end: to.toISOString(),
-        notes: normalizedNotes,
-        paid_by: currentUser?.id || session?.userId,
-        paid_by_name: currentUser?.full_name || session?.userName,
-        tenant_id: tenantId
-      };
-
-      try {
-        await dataClient.entities.EmployeePayment.create(employeePaymentPayload);
-      } catch {
-        await insertSupabaseRecordWithTenantRetry("employee_payment", employeePaymentPayload);
-      }
-
-      // ✅ 2. Registrar como gasto (expense) en transacciones
-      const transactionPayload = {
-        type: "expense",
-        amount: Math.abs(paymentAmount),
-        category: normalizeExpenseCategory("payroll"),
-        description: `Pago de nómina - ${selectedEmployeeForPayment.name} (${type}) [${paymentMethod}]`,
-        payment_method: normalizedPaymentMethod,
-        recorded_by: currentUser?.full_name || session?.userName || "Sistema",
-        tenant_id: tenantId
-      };
-
-      try {
-        await dataClient.entities.Transaction.create(transactionPayload);
-      } catch {
-        await insertSupabaseRecordWithTenantRetry("transaction", transactionPayload);
-      }
-
-      // ✅ 3. RESETEAR las horas trabajadas del empleado en el periodo
-      // Obtener todos los time entries del empleado en el periodo de pago
-      const employeeEntries = await dataClient.entities.TimeEntry.filter({
-        employee_id: selectedEmployeeForPayment.id
+      // ── PRIMARY: call Deno /processPayroll (service role → real delete + email) ──
+      const FUNCTIONS_URL = import.meta.env.VITE_FUNCTION_URL || "http://localhost:8686";
+      const denoRes = await fetch(`${FUNCTIONS_URL}/processPayroll`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          employee_id: selectedEmployeeForPayment.id,
+          employee_name: selectedEmployeeForPayment.name,
+          employee_email: employeeProfile?.email || "",
+          employee_code: employeeProfile?.employee_code || "",
+          amount: paymentAmount,
+          type,
+          payment_method: paymentMethod,
+          notes: notes || "",
+          period_start: from.toISOString(),
+          period_end: to.toISOString(),
+          paid_by: currentUser?.id || session?.userId || null,
+          paid_by_name: currentUser?.full_name || session?.userName || "Sistema",
+          tenant_id: tenantId,
+          total_hours: selectedEmployeeForPayment.hours || 0,
+          hourly_rate: selectedEmployeeForPayment.rate || 0,
+        }),
       });
 
-      // Filtrar solo los que están en el rango de pago
-      const entriesInPeriod = employeeEntries.filter((e) => {
-        const entryDate = new Date(e.clock_in);
-        return entryDate >= from && entryDate <= to;
-      });
-
-      // Eliminar los time entries del periodo ya pagado
-      for (const entry of entriesInPeriod) {
-        try {
-          await dataClient.entities.TimeEntry.delete(entry.id);
-        } catch {
-          // Bridge for RLS
-          try {
-            const { data: { session } } = await supabase.auth.getSession();
-            if (session?.access_token) {
-              window.__SUPABASE_NEXT_REQUEST_TOKEN = session.access_token;
-            }
-          } catch (_) {}
-
-          const { error } = await supabase.from("time_entry").delete().eq("id", entry.id);
-          if (error) throw error;
-        }
+      if (!denoRes.ok) {
+        const errBody = await denoRes.text().catch(() => "");
+        throw new Error(errBody || `Deno error ${denoRes.status}`);
       }
 
-      // ✅ 4. Marcar como pagado en el estado local
+      const denoResult = await denoRes.json();
+      if (!denoResult.success) {
+        throw new Error(denoResult.error || "Error procesando nómina");
+      }
+
+      // ── Refresh UI ──
       setPaidEmployees((prev) => new Set([...prev, selectedEmployeeForPayment.id]));
-
       setPaymentModalOpen(false);
       setSelectedEmployeeForPayment(null);
       await loadPaidEmployees();
       await loadEntries();
       await loadActiveUsers();
-
-      // ✅ 5. Notificar al sistema para actualizar stats
       window.dispatchEvent(new Event('expense-created'));
 
+      // Show success with email info
+      const emailMsg = denoResult.email_sent
+        ? ` · Recibo enviado a ${employeeProfile?.email}`
+        : employeeProfile?.email ? " · (email no enviado)" : "";
+      alert(`✅ Pago procesado correctamente. ${denoResult.deleted_entries || 0} jornadas liquidadas.${emailMsg}`);
+
     } catch (e) {
-      console.error("Error processing payment:", e);
-      alert(`Error al procesar el pago${e?.message ? `: ${e.message}` : ""}`);
+      console.error("Error en processPayroll Deno:", e);
+
+      // ── FALLBACK: client-side create + best-effort delete ──
+      try {
+        const normalizedMethod = paymentMethod === "ath_movil" ? "transfer" : paymentMethod;
+        const normalizedNotes = paymentMethod === "ath_movil"
+          ? [notes, "Método real: ATH Móvil"].filter(Boolean).join(" | ")
+          : (notes || "");
+
+        const payloadEP = {
+          employee_id: selectedEmployeeForPayment.id,
+          employee_name: selectedEmployeeForPayment.name,
+          employee_code: employeeProfile?.employee_code || "",
+          amount: paymentAmount,
+          payment_type: type,
+          payment_method: normalizedMethod,
+          period_start: from.toISOString(),
+          period_end: to.toISOString(),
+          notes: normalizedNotes,
+          paid_by: currentUser?.id || session?.userId,
+          paid_by_name: currentUser?.full_name || session?.userName,
+          tenant_id: tenantId,
+        };
+
+        try { await dataClient.entities.EmployeePayment.create(payloadEP); }
+        catch { await insertSupabaseRecordWithTenantRetry("employee_payment", payloadEP); }
+
+        const payloadTX = {
+          type: "expense",
+          amount: Math.abs(paymentAmount),
+          category: normalizeExpenseCategory("payroll"),
+          description: `Pago de nómina - ${selectedEmployeeForPayment.name} (${type}) [${paymentMethod}]`,
+          payment_method: normalizedMethod,
+          recorded_by: currentUser?.full_name || session?.userName || "Sistema",
+          tenant_id: tenantId,
+        };
+        try { await dataClient.entities.Transaction.create(payloadTX); }
+        catch { await insertSupabaseRecordWithTenantRetry("transaction", payloadTX); }
+
+        // Best-effort delete via direct supabase
+        const empEntries = await dataClient.entities.TimeEntry.filter({ employee_id: selectedEmployeeForPayment.id }).catch(() => []);
+        const inPeriod = empEntries.filter((en) => {
+          const d = new Date(en.clock_in);
+          return d >= from && d <= to;
+        });
+        for (const en of inPeriod) {
+          await supabase.from("time_entry").delete().eq("id", en.id).catch(() => {});
+        }
+
+        setPaidEmployees((prev) => new Set([...prev, selectedEmployeeForPayment.id]));
+        setPaymentModalOpen(false);
+        setSelectedEmployeeForPayment(null);
+        await loadPaidEmployees();
+        await loadEntries();
+        await loadActiveUsers();
+        window.dispatchEvent(new Event('expense-created'));
+        alert("✅ Pago procesado (modo local).");
+
+      } catch (fallbackErr) {
+        console.error("Fallback also failed:", fallbackErr);
+        alert(`Error al procesar el pago: ${fallbackErr?.message || "Error desconocido"}`);
+      }
     }
   };
 
