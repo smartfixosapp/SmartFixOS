@@ -1,11 +1,11 @@
 {
   "name": "FixedExpense",
   "type": "object",
-  "description": "Gastos fijos basados en porcentaje de utilidad diaria",
+  "description": "Gastos operacionales recurrentes del negocio",
   "properties": {
     "name": {
       "type": "string",
-      "description": "Nombre del gasto fijo"
+      "description": "Nombre del gasto"
     },
     "category": {
       "type": "string",
@@ -19,16 +19,43 @@
         "maintenance",
         "savings",
         "taxes",
+        "internet",
+        "phone",
         "other"
       ],
       "default": "other",
-      "description": "Categor\u00eda del gasto"
+      "description": "Categoría del gasto"
+    },
+    "amount": {
+      "type": "number",
+      "minimum": 0,
+      "default": 0,
+      "description": "Monto fijo en dólares"
+    },
+    "due_day": {
+      "type": "number",
+      "minimum": 1,
+      "maximum": 31,
+      "description": "Día de inicio de la ventana de pago (ej: 1 = desde el día 1)"
+    },
+    "due_day_end": {
+      "type": "number",
+      "minimum": 1,
+      "maximum": 31,
+      "description": "Día de fin de la ventana de pago (ej: 5 = hasta el día 5)"
+    },
+    "working_days_per_month": {
+      "type": "number",
+      "minimum": 1,
+      "maximum": 31,
+      "default": 26,
+      "description": "Días laborables por mes (para calcular meta diaria)"
     },
     "percentage": {
       "type": "number",
       "minimum": 0,
       "maximum": 100,
-      "description": "Porcentaje de la ganancia diaria a apartar"
+      "description": "Porcentaje de ganancia (legacy, deprecated)"
     },
     "frequency": {
       "type": "string",
@@ -41,24 +68,18 @@
         "yearly"
       ],
       "default": "monthly",
-      "description": "Frecuencia de pago"
-    },
-    "due_day": {
-      "type": "number",
-      "minimum": 1,
-      "maximum": 31,
-      "description": "D\u00eda de vencimiento (para frecuencia mensual, ej: 5 = d\u00eda 5 de cada mes)"
+      "description": "Frecuencia de pago (legacy)"
     },
     "priority": {
       "type": "number",
       "minimum": 1,
       "maximum": 10,
       "default": 5,
-      "description": "Prioridad del gasto (1 = m\u00e1s importante)"
+      "description": "Prioridad del gasto (1 = más importante)"
     },
     "icon": {
       "type": "string",
-      "description": "Emoji o \u00edcono del gasto"
+      "description": "Emoji o ícono del gasto"
     },
     "notes": {
       "type": "string",
@@ -67,12 +88,10 @@
     "active": {
       "type": "boolean",
       "default": true,
-      "description": "Si el gasto est\u00e1 activo"
+      "description": "Si el gasto está activo"
     }
   },
   "required": [
-    "name",
-    "percentage",
-    "frequency"
+    "name"
   ]
 }

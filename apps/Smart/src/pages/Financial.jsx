@@ -21,6 +21,7 @@ import AlertasWidget from "../components/financial/AlertasWidget";
 import ReportesFinancieros from "../components/financial/ReportesFinancieros";
 import EnhancedReports from "../components/financial/EnhancedReports";
 import OneTimeExpensesWidget from "../components/financial/OneTimeExpensesWidget";
+import GastosOperacionalesWidget from "../components/financial/GastosOperacionalesWidget";
 import { toast } from "sonner";
 import TransactionsModal from "../components/financial/TransactionsModal";
 import { useNavigate } from "react-router-dom";
@@ -1174,86 +1175,7 @@ export default function Financial() {
               </div>
             </div>
 
-            <div className="flex items-center justify-between px-2">
-              <div>
-                <h4 className="text-lg font-black text-white tracking-tight">Cartera de Gastos Fijos</h4>
-                <p className="text-xs text-white/40 font-bold uppercase tracking-widest">Distribución automática de utilidades</p>
-              </div>
-              <Button onClick={() => { setEditingExpense(null); setShowFixedExpenseDialog(true); }} className="rounded-2xl bg-white/5 border border-white/10 hover:bg-white/10 text-white h-11 px-5 transition-all active:scale-95 group">
-                <Plus className="w-4 h-4 mr-2 text-cyan-400 group-hover:text-white" />
-                <span className="font-bold">Añadir Gasto</span>
-              </Button>
-            </div>
-
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-              {fixedExpenses.length === 0 ? (
-                <div className="lg:col-span-2 p-20 text-center bg-white/5 border border-white/10 border-dashed rounded-[32px]">
-                  <PieChart className="w-16 h-16 text-white/10 mx-auto mb-4" />
-                  <p className="text-xl font-black text-white/40 tracking-tight">Sin Gastos Fijos</p>
-                  <p className="text-sm text-white/20 mb-8">Define aportaciones automáticas para tus gastos recurrentes.</p>
-                  <Button onClick={() => setShowFixedExpenseDialog(true)} className="rounded-2xl bg-gradient-to-r from-cyan-600 to-blue-600 text-white px-8 h-12 font-bold">
-                    Crear Primer Gasto
-                  </Button>
-                </div>
-              ) : (
-                dailyAllocations.map((allocation) => (
-                  <div key={allocation.id} className="group relative overflow-hidden bg-white/5 backdrop-blur-xl border border-white/10 rounded-[28px] p-6 hover:border-white/20 transition-all duration-300">
-                    <div className="flex items-start justify-between mb-6">
-                      <div className="flex items-center gap-4">
-                        <div className="w-14 h-14 rounded-2xl bg-black/40 border border-white/5 flex items-center justify-center text-3xl shadow-inner">
-                          {allocation.icon || getCategoryIcon(allocation.category)}
-                        </div>
-                        <div>
-                          <h4 className="text-white font-black tracking-tight text-lg">{allocation.name}</h4>
-                          <span className="text-[10px] font-black text-cyan-400/60 uppercase tracking-widest">{allocation.category}</span>
-                        </div>
-                      </div>
-                      <div className="flex gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity">
-                        <Button size="icon" onClick={() => { setEditingExpense(allocation); setShowFixedExpenseDialog(true); }} className="w-9 h-9 rounded-xl bg-white/5 hover:bg-cyan-500/20 text-white/40 hover:text-cyan-400">
-                          <Edit2 className="w-4 h-4" />
-                        </Button>
-                        <Button size="icon" onClick={() => handleDeleteFixedExpense(allocation.id)} className="w-9 h-9 rounded-xl bg-white/5 hover:bg-red-500/20 text-white/40 hover:text-red-400">
-                          <Trash2 className="w-4 h-4" />
-                        </Button>
-                      </div>
-                    </div>
-
-                    <div className="space-y-4">
-                      <div className="flex justify-between items-end">
-                        <div>
-                          <p className="text-[10px] font-black text-white/30 uppercase tracking-widest mb-1">Aporte Sugerido (Hoy)</p>
-                          <p className="text-3xl font-black text-emerald-400 tracking-tighter">${allocation.daily_amount.toFixed(2)}</p>
-                        </div>
-                        <div className="text-right">
-                          <p className="text-[10px] font-black text-white/30 uppercase tracking-widest mb-1">Meta {allocation.frequency}</p>
-                          <p className="text-lg font-bold text-white/80">${allocation.fixed_amount.toFixed(2)}</p>
-                        </div>
-                      </div>
-
-                      <div className="pt-4 border-t border-white/5 flex flex-wrap items-center gap-2">
-                        {allocation.allocation_mode === "target_due_day" ? (
-                          <>
-                            <div className="px-3 py-1 bg-amber-500/10 border border-amber-500/20 rounded-full flex items-center gap-2">
-                              <Calendar className="w-3 h-3 text-amber-400" />
-                              <span className="text-[10px] font-black text-amber-400 uppercase">Vence en {allocation.days_remaining} días</span>
-                            </div>
-                            <div className="px-3 py-1 bg-cyan-500/10 border border-cyan-500/20 rounded-full flex items-center gap-2">
-                              <Target className="w-3 h-3 text-cyan-400" />
-                              <span className="text-[10px] font-black text-cyan-400 uppercase">Ahorro: ${allocation.daily_target.toFixed(2)}/día</span>
-                            </div>
-                          </>
-                        ) : (
-                          <div className="px-3 py-1 bg-blue-500/10 border border-blue-500/20 rounded-full flex items-center gap-2">
-                            <TrendingUp className="w-3 h-3 text-blue-400" />
-                            <span className="text-[10px] font-black text-blue-400 uppercase">Frecuencia: {allocation.frequency}</span>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                ))
-              )}
-            </div>
+            <ErrorBoundary><GastosOperacionalesWidget /></ErrorBoundary>
           </TabsContent>
 
           <TabsContent value="expenses">

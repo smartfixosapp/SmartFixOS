@@ -71,6 +71,7 @@ import UserMenuModal from "../components/layout/UserMenuModal";
 import PersonalNotesWidget from "../components/dashboard/PersonalNotesWidget";
 import PriorityOrdersWidget from "../components/dashboard/PriorityOrdersWidget";
 import FinancialOverviewWidget from "../components/dashboard/FinancialOverviewWidget";
+import SmartDailyGoalWidget from "../components/dashboard/SmartDailyGoalWidget";
 import TimeTrackingModal from "../components/timetracking/TimeTrackingModal";
 import LogoutModal from "../components/dashboard/LogoutModal";
 
@@ -966,8 +967,9 @@ export default function Dashboard() {
             )}
           </div>
 
-          <div className="hidden md:block">
+          <div className="hidden md:block space-y-4">
             <FinancialOverviewWidget onClick={() => handleNavigate("Financial")} />
+            <SmartDailyGoalWidget onClick={() => handleNavigate("Financial")} />
           </div>
 
           {/* === MÓVIL: PREMIUM SEQUOIA HEADER === */}
@@ -1037,8 +1039,7 @@ export default function Dashboard() {
             {/* Widgets de estado */}
             <div className="grid grid-cols-1 gap-3 px-2 sm:px-1">
               <FinancialOverviewWidget compact onClick={() => handleNavigate("Financial")} />
-
-
+              <SmartDailyGoalWidget compact onClick={() => handleNavigate("Financial")} />
             </div>
 
             {/* Mobile Bento Grid - App Icons Style */}
