@@ -564,6 +564,100 @@ export default function PinAccess() {
     }
   };
 
+  // ── Google OAuth ───────────────────────────────────────────────────────────
+  const handleGoogleSignIn = async () => {
+    setLoading(true);
+    try {
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: "google",
+        options: {
+          redirectTo: `${window.location.origin}/PinAccess`,
+          queryParams: { access_type: "offline", prompt: "consent" },
+        },
+      });
+      if (error) {
+        toast.error("Error al iniciar con Google: " + error.message);
+        setLoading(false);
+      }
+      // On success, browser redirects to Google — loading stays true
+    } catch (e) {
+      toast.error("No se pudo conectar con Google");
+      setLoading(false);
+    }
+  };
+
+  // After Google OAuth redirect, load the tenant users and proceed
+  const performOAuthAuth = async (oauthUser) => {
+    const email = oauthUser.email;
+    setUsersLoading(true);
+    setError("");
+    setPin("");
+    localStorage.removeItem("smartfix_tenant_id");
+    try {
+      let resolvedTenantId = null;
+      const { data: userRows } = await supabase
+        .from("users").select("tenant_id").eq("email", email).not("tenant_id", "is", null).limit(1);
+      resolvedTenantId = userRows?.[0]?.tenant_id || null;
+      if (!resolvedTenantId) {
+        const { data: empRows } = await supabase
+          .from("app_employee").select("tenant_id").eq("email", email).limit(1);
+        resolvedTenantId = empRows?.[0]?.tenant_id || null;
+      }
+      if (resolvedTenantId) {
+        setTenantId(resolvedTenantId);
+        localStorage.setItem("smartfix_tenant_id", resolvedTenantId);
+        localStorage.setItem("smartfix_store_email", email);
+      }
+      const users = await getMergedActiveUsers(resolvedTenantId);
+      if (users.length) {
+        setAvailableUsers(users);
+        setSelectedUser(null);
+        setStep("user");
+        setStoreAuthenticated(true);
+      } else {
+        toast.error("No hay empleados configurados para este email de Google.");
+        await supabase.auth.signOut();
+      }
+    } catch (e) {
+      console.error("OAuth auth error:", e);
+      toast.error("Error al procesar tu sesión de Google.");
+    } finally {
+      setUsersLoading(false);
+    }
+  };
+
+  // ── Biometric early login (before user selection) ─────────────────────────
+  const handleEarlyBiometricLogin = async () => {
+    if (!biometricSupported || !biometricProfile?.credentialId || !biometricProfile?.session) return;
+    setBiometricLoading(true);
+    setError("");
+    try {
+      const assertion = await navigator.credentials.get({
+        publicKey: {
+          challenge: createChallenge(),
+          allowCredentials: [{ id: base64ToUint8Array(biometricProfile.credentialId), type: "public-key" }],
+          userVerification: "required",
+          timeout: 60000,
+        },
+      });
+      if (!assertion?.rawId) throw new Error("No se pudo validar la biometría");
+      const rawId = arrayBufferToBase64(assertion.rawId);
+      if (rawId !== biometricProfile.credentialId) throw new Error("Credencial biométrica inválida");
+      const session = biometricProfile.session;
+      if (!session?.id) throw new Error("Sesión biométrica expirada — inicia sesión manualmente");
+      saveBiometricProfile({ ...biometricProfile, updatedAt: new Date().toISOString() });
+      await completeLogin(session);
+    } catch (error) {
+      if (error?.name === "NotAllowedError") {
+        toast.error("Autenticación cancelada");
+      } else {
+        toast.error(error?.message || "No se pudo validar la biometría");
+      }
+    } finally {
+      setBiometricLoading(false);
+    }
+  };
+
   const handleSelectUser = (user) => {
     setSlideDir(1);
     setSelectedUser(user);
@@ -821,7 +915,22 @@ export default function PinAccess() {
         }
       }
 
-      // 2. Auto-login con credenciales guardadas
+      // 2. Detectar retorno de Google OAuth (access_token en URL hash o sesión activa)
+      try {
+        const { data: { session: oauthSess } } = await supabase.auth.getSession();
+        if (oauthSess?.user && oauthSess.user.app_metadata?.provider === "google" && !oauthSess.user.email?.endsWith("smartfixos.com")) {
+          console.log("🟢 Google OAuth session detected:", oauthSess.user.email);
+          setCheckingUsers(true);
+          await performOAuthAuth(oauthSess.user);
+          setCheckingUsers(false);
+          setIsReady(true);
+          return;
+        }
+      } catch (oauthErr) {
+        console.warn("Google session check failed:", oauthErr);
+      }
+
+      // 3. Auto-login con credenciales guardadas
       const saved = loadSavedCreds();
       if (saved?.email && saved?.pwd) {
         console.log("🔑 Auto-login:", saved.email);
@@ -2050,6 +2159,30 @@ export default function PinAccess() {
               </div>
             </div>
 
+            {/* ── Biometric Quick Login (si hay perfil guardado) ── */}
+            {biometricSupported && biometricProfile?.session && (
+              <motion.div
+                initial={{ opacity: 0, scale: 0.97 }}
+                animate={{ opacity: 1, scale: 1 }}
+                className="rounded-3xl border border-emerald-500/30 bg-emerald-500/[0.07] p-5 backdrop-blur-xl flex items-center gap-4"
+              >
+                <div className="w-14 h-14 rounded-2xl bg-emerald-500/20 border border-emerald-500/30 flex items-center justify-center flex-shrink-0">
+                  <span className="text-2xl">{/iphone|ipad|mac/i.test(navigator.userAgent) ? "🔐" : "👆"}</span>
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-white font-black text-sm">Acceso rápido</p>
+                  <p className="text-emerald-300/70 text-xs truncate">{biometricProfile.session?.userName || "Usuario guardado"}</p>
+                </div>
+                <button
+                  onClick={handleEarlyBiometricLogin}
+                  disabled={biometricLoading}
+                  className="h-11 px-5 rounded-2xl bg-emerald-500 hover:bg-emerald-400 text-black font-black text-sm transition-all active:scale-95 disabled:opacity-50 flex-shrink-0"
+                >
+                  {biometricLoading ? "..." : /iphone|ipad|mac/i.test(navigator.userAgent) ? "Face ID" : "Huella"}
+                </button>
+              </motion.div>
+            )}
+
             <motion.div
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
@@ -2059,7 +2192,30 @@ export default function PinAccess() {
                 <KeyRound className="w-5 h-5 text-cyan-400" />
                 <h2 className="text-xl font-black text-white">Iniciar Sesión</h2>
               </div>
-              <p className="text-gray-400 text-sm mb-4">Email y contraseña de la cuenta administradora.</p>
+
+              {/* ── Botón Google ── */}
+              <button
+                onClick={handleGoogleSignIn}
+                disabled={loading || usersLoading}
+                className="w-full h-12 rounded-xl border border-white/15 bg-white/5 hover:bg-white/10 text-white font-semibold text-sm transition-all active:scale-[0.98] flex items-center justify-center gap-3 mb-4 disabled:opacity-50"
+              >
+                <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+                  <path d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844c-.209 1.125-.843 2.078-1.796 2.717v2.258h2.908c1.702-1.567 2.684-3.874 2.684-6.615z" fill="#4285F4"/>
+                  <path d="M9 18c2.43 0 4.467-.806 5.956-2.18l-2.908-2.259c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332A8.997 8.997 0 0 0 9 18z" fill="#34A853"/>
+                  <path d="M3.964 10.71A5.41 5.41 0 0 1 3.682 9c0-.593.102-1.17.282-1.71V4.958H.957A8.996 8.996 0 0 0 0 9c0 1.452.348 2.827.957 4.042l3.007-2.332z" fill="#FBBC05"/>
+                  <path d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0A8.997 8.997 0 0 0 .957 4.958L3.964 7.29C4.672 5.163 6.656 3.58 9 3.58z" fill="#EA4335"/>
+                </svg>
+                {loading ? "Conectando..." : "Continuar con Google"}
+              </button>
+
+              {/* ── Divisor ── */}
+              <div className="flex items-center gap-3 mb-4">
+                <div className="flex-1 h-px bg-white/10" />
+                <span className="text-xs text-white/30 font-semibold">o con email</span>
+                <div className="flex-1 h-px bg-white/10" />
+              </div>
+
+              <p className="text-gray-400 text-sm mb-3">Email y contraseña de la cuenta administradora.</p>
               <div className="space-y-3">
                 <input
                   value={storeEmail}
