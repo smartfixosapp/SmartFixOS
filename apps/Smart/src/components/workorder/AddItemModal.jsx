@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
+import { cn } from "@/lib/utils";
 import { createPortal } from "react-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -23,6 +24,7 @@ import {
   Trash2,
   Minus,
   Package,
+  Loader2,
 } from "lucide-react";
 
 const IVU_RATE = 0.115;
@@ -633,70 +635,72 @@ export default function AddItemModal({
   const countInCart = cartItems.reduce((sum, item) => sum + toNum(item.qty, 1), 0);
 
   return createPortal(
-    <div className="fixed inset-0 z-[99999] bg-black/85 backdrop-blur-md p-3 sm:p-5">
-      <div className="relative mx-auto h-full w-full max-w-[1320px] rounded-[32px] border border-white/10 glass-panel shadow-[0_30px_100px_rgba(0,0,0,0.7)] flex flex-col overflow-hidden">
+    <div className="fixed inset-0 z-[99999] bg-black/85 backdrop-blur-md sm:p-5 p-0">
+      <div className="relative mx-auto h-full w-full max-w-[1320px] sm:rounded-[32px] rounded-none border-x sm:border border-white/10 glass-panel shadow-[0_30px_100px_rgba(0,0,0,0.7)] flex flex-col overflow-hidden">
         {/* ── Header ── */}
-        <div className="relative flex items-center justify-between border-b border-white/[0.06] backdrop-blur-3xl px-8 py-5">
+        <div className="relative flex flex-col sm:flex-row items-start sm:items-center justify-between border-b border-white/[0.06] backdrop-blur-3xl px-6 sm:px-8 py-4 sm:py-5 gap-4">
           {/* Ambient glow */}
           <div className="pointer-events-none absolute left-0 top-0 h-24 w-64 rounded-full bg-cyan-500/5 blur-3xl" />
 
-          <div className="flex items-center gap-6">
-            <div className="flex h-14 w-14 items-center justify-center rounded-[22px] border border-cyan-400/25 bg-gradient-to-br from-cyan-500 to-blue-600 shadow-[0_8px_32px_rgba(34,211,238,0.2)]">
-              <ShoppingCart className="h-7 w-7 text-white" />
+          <div className="flex items-center gap-4 sm:gap-6">
+            <div className="flex h-12 w-12 sm:h-14 sm:w-14 items-center justify-center rounded-[18px] sm:rounded-[22px] border border-cyan-400/25 bg-gradient-to-br from-cyan-500 to-blue-600 shadow-[0_8px_32px_rgba(34,211,238,0.2)]">
+              <ShoppingCart className="h-6 w-6 sm:h-7 sm:w-7 text-white" />
             </div>
             <div>
-              <h3 className="text-2xl font-black tracking-tighter uppercase text-white">Catálogo de Items</h3>
-              <div className="flex items-center gap-2 mt-0.5">
+              <h3 className="text-xl sm:text-2xl font-black tracking-tighter uppercase text-white leading-none">Items</h3>
+              <div className="flex items-center gap-2 mt-1">
                 <div className="h-1.5 w-1.5 rounded-full bg-cyan-500 animate-pulse" />
-                <p className="text-[11px] font-black uppercase tracking-[0.2em] text-white/40">Inventario & Servicios</p>
+                <p className="text-[9px] sm:text-[11px] font-black uppercase tracking-[0.2em] text-white/40">Inventario & Servicios</p>
               </div>
             </div>
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 w-full sm:w-auto overflow-x-auto no-scrollbar pb-1 sm:pb-0">
             <Button
               variant="outline"
-              className="rounded-xl border-amber-500/30 bg-amber-500/10 text-amber-300 hover:bg-amber-500/20 hover:border-amber-400/50 transition"
+              size="sm"
+              className="rounded-xl border-amber-500/30 bg-amber-500/10 text-amber-300 hover:bg-amber-500/20 hover:border-amber-400/50 transition whitespace-nowrap px-3 h-9"
               onClick={() => setShowQuickItem(true)}
             >
-              <Wrench className="w-4 h-4 mr-2" /> + Manual
+              <Wrench className="w-3.5 h-3.5 mr-2" /> + Manual
             </Button>
 
             <Button
               variant="outline"
-              className="rounded-xl border-red-500/25 bg-red-500/8 text-red-300/80 hover:bg-red-500/20 hover:text-red-200 transition"
+              size="sm"
+              className="rounded-xl border-red-500/25 bg-red-500/8 text-red-300/80 hover:bg-red-500/20 hover:text-red-200 transition whitespace-nowrap px-3 h-9"
               onClick={clearCart}
             >
-              <Trash2 className="w-4 h-4 mr-2" /> Limpiar
+              <Trash2 className="w-3.5 h-3.5 mr-2" /> Limpiar
             </Button>
 
             <button
               onClick={() => setShowCart(true)}
-              className={`relative flex items-center gap-2 rounded-xl border px-4 py-2 text-sm font-bold transition ${
+              className={`relative flex items-center gap-2 rounded-xl border px-3 h-9 text-xs font-bold transition whitespace-nowrap ${
                 showCart
                   ? "border-emerald-500/50 bg-emerald-600/25 text-emerald-200 shadow-[0_0_20px_rgba(16,185,129,0.15)]"
                   : "border-white/15 bg-white/5 text-white hover:border-emerald-500/30 hover:bg-emerald-500/10"
               }`}
             >
-              <ShoppingCart className="w-4 h-4" />
+              <ShoppingCart className="w-3.5 h-3.5" />
               Orden
-              <span className="flex h-5 w-5 items-center justify-center rounded-full bg-emerald-500 text-[11px] font-black text-white">
+              <span className="flex h-5 w-5 items-center justify-center rounded-full bg-emerald-500 text-[10px] font-black text-white">
                 {countInCart}
               </span>
             </button>
 
-            <div className="flex items-center gap-1 rounded-xl border border-white/10 bg-white/5 p-1">
+            <div className="flex items-center gap-1 rounded-xl border border-white/10 bg-white/5 p-1 h-9 ml-auto sm:ml-0">
               <button
                 onClick={() => setViewMode("grid")}
                 className={`rounded-lg p-1.5 transition ${viewMode === "grid" ? "bg-cyan-500/20 text-cyan-300" : "text-white/50 hover:text-white"}`}
               >
-                <Grid className="w-4 h-4" />
+                <Grid className="w-3.5 h-3.5" />
               </button>
               <button
                 onClick={() => setViewMode("list")}
                 className={`rounded-lg p-1.5 transition ${viewMode === "list" ? "bg-cyan-500/20 text-cyan-300" : "text-white/50 hover:text-white"}`}
               >
-                <List className="w-4 h-4" />
+                <List className="w-3.5 h-3.5" />
               </button>
             </div>
 
@@ -710,9 +714,9 @@ export default function AddItemModal({
         </div>
 
         {/* ── Body ── */}
-        <div className="flex-1 min-h-0 grid grid-cols-[240px_minmax(0,1fr)]">
-          {/* Sidebar */}
-          <div className="border-r border-white/8 bg-black/20 p-4 space-y-2">
+        <div className="flex-1 min-h-0 flex flex-col sm:grid sm:grid-cols-[240px_minmax(0,1fr)]">
+          {/* Sidebar - Solo Desktop */}
+          <div className="hidden sm:block border-r border-white/8 bg-black/20 p-4 space-y-2 overflow-y-auto">
             <p className="mb-3 text-[10px] font-black uppercase tracking-[0.28em] text-white/35">Categorías</p>
             {[
               { key: "all",         label: "Todas",      icon: Package, count: categoryCounts.all,         color: "cyan" },
@@ -751,65 +755,101 @@ export default function AddItemModal({
             })}
           </div>
 
-          {/* Main catalog area */}
-          <div className="min-w-0 flex flex-col">
+          {/* Main area */}
+          <div className="min-w-0 flex flex-col h-full">
+            {/* Mobile Category Selector */}
+            <div className="sm:hidden flex-shrink-0 bg-[#121215] border-b border-white/[0.08] px-4 py-3">
+              <div className="flex gap-2 overflow-x-auto no-scrollbar scroll-smooth">
+                {[
+                  { key: "all",         label: "Todo",      icon: Package, color: "cyan" },
+                  { key: "services",    label: "Servicios",  icon: Zap,     color: "violet" },
+                  { key: "accessories", label: "Accesorios", icon: Box,     color: "amber" },
+                  { key: "parts",       label: "Piezas",     icon: Wrench,  color: "emerald" },
+                ].map((cat) => {
+                  const isActive = activeCategory === cat.key;
+                  const colorMap = {
+                    cyan:    "text-cyan-400 border-cyan-500/30 bg-cyan-500/10 shadow-[0_4px_12px_rgba(6,182,212,0.15)]",
+                    violet:  "text-violet-400 border-violet-500/30 bg-violet-500/10 shadow-[0_4px_12px_rgba(139,92,246,0.15)]",
+                    amber:   "text-amber-400 border-amber-500/30 bg-amber-500/10 shadow-[0_4px_12px_rgba(245,158,11,0.15)]",
+                    emerald: "text-emerald-400 border-emerald-500/30 bg-emerald-500/10 shadow-[0_4px_12px_rgba(16,185,129,0.15)]",
+                  }[cat.color];
+                  return (
+                    <button
+                      key={cat.key}
+                      onClick={() => setActiveCategory(cat.key)}
+                      className={cn(
+                        "flex items-center gap-2 px-5 py-2.5 rounded-[16px] text-[11px] font-black uppercase tracking-wider border z-10 transition-all",
+                        isActive ? colorMap : "text-white/30 border-white/5 bg-white/[0.02]"
+                      )}
+                    >
+                      <cat.icon className="w-3.5 h-3.5" />
+                      {cat.label}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
             {/* Search */}
-            <div className="border-b border-white/8 p-4">
-              <div className="relative max-w-xl">
-                <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-white/30" />
+            <div className="border-b border-white/8 p-4 bg-black/10">
+              <div className="relative w-full max-w-xl mx-auto">
+                <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-white/20" />
                 <Input
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
-                  placeholder="Buscar pieza, servicio, SKU..."
-                  className="pl-10 rounded-xl bg-white/[0.04] border-white/10 text-white placeholder-white/30 focus:border-cyan-500/40 focus:ring-1 focus:ring-cyan-500/20 transition"
+                  placeholder="Buscar pieza o servicio..."
+                  className="pl-11 rounded-2xl bg-white/[0.03] border-white/10 text-sm py-5 text-white placeholder-white/20 focus:border-cyan-500/30 focus:ring-1 focus:ring-cyan-500/10 transition-all shadow-inner"
                 />
               </div>
             </div>
 
-            <ScrollArea className="flex-1 p-4">
+            <ScrollArea className="flex-1 p-4 sm:p-5">
               {loading && filteredItems.length === 0 ? (
                 <div className="h-52 grid place-items-center">
-                  <div className="text-center space-y-2">
-                    <div className="w-8 h-8 mx-auto rounded-full border-2 border-cyan-500/40 border-t-cyan-400 animate-spin" />
-                    <p className="text-sm text-white/40">Cargando inventario...</p>
+                  <div className="text-center space-y-4">
+                    <div className="w-10 h-10 mx-auto rounded-full border-[3px] border-cyan-500/20 border-t-cyan-400 animate-spin shadow-lg shadow-cyan-500/5" />
+                    <p className="text-[10px] font-black uppercase tracking-[0.2em] text-cyan-400/40">Cargando catálogo...</p>
                   </div>
                 </div>
               ) : filteredItems.length === 0 ? (
-                <div className="h-52 grid place-items-center text-white/35 text-sm">Sin items para esta categoría</div>
+                <div className="h-64 flex flex-col items-center justify-center opacity-30 text-center px-8">
+                  <ShoppingCart className="w-12 h-12 mb-4 text-white/50" />
+                  <p className="text-[10px] font-black uppercase tracking-[0.15em] text-white">No se encontraron items para esta búsqueda</p>
+                </div>
               ) : viewMode === "grid" ? (
-                <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
                   {filteredItems.map((item) => {
                     const svc = isService(item);
                     const acc = isAccessory(item);
                     const typeLabel = svc ? "Servicio" : acc ? "Accesorio" : "Pieza";
                     const typeCls = svc
-                      ? "border-violet-400/25 bg-violet-500/10 text-violet-300"
+                      ? "border-violet-400/30 bg-violet-500/10 text-violet-400"
                       : acc
-                      ? "border-amber-400/25 bg-amber-500/10 text-amber-300"
-                      : "border-emerald-400/25 bg-emerald-500/10 text-emerald-300";
+                      ? "border-amber-400/30 bg-amber-500/10 text-amber-400"
+                      : "border-emerald-400/30 bg-emerald-500/10 text-emerald-400";
                     return (
                       <div
                         key={`${item.type}-${item.id}`}
-                        className="group rounded-2xl border border-white/[0.05] bg-white/[0.02] p-5 hover:border-cyan-500/30 hover:bg-white/[0.05] transition-all duration-300 relative overflow-hidden"
+                        className="group rounded-[28px] border border-white/[0.06] bg-white/[0.02] p-6 sm:p-5 hover:border-cyan-500/30 hover:bg-white/[0.05] transition-all duration-300 relative overflow-hidden shadow-xl"
                       >
-                        <div className="absolute -right-16 -top-16 w-32 h-32 bg-cyan-500/5 rounded-full blur-3xl group-hover:bg-cyan-500/10 transition-colors" />
-                        <div className="flex items-start justify-between gap-2">
-                          <p className="font-bold text-white leading-tight text-sm line-clamp-2">{item.name}</p>
-                          <span className={`shrink-0 rounded-full border px-2 py-0.5 text-[10px] font-bold uppercase tracking-[0.12em] ${typeCls}`}>
+                        <div className="absolute -right-12 -top-12 w-32 h-32 bg-cyan-500/[0.03] rounded-full blur-3xl group-hover:bg-cyan-500/[0.08] transition-colors" />
+                        <div className="flex items-start justify-between gap-3 mb-2">
+                          <p className="font-black text-white leading-tight text-[13px] sm:text-sm line-clamp-2 uppercase tracking-tight">{item.name}</p>
+                          <span className={`shrink-0 rounded-full border px-2.5 py-1 text-[9px] font-black uppercase tracking-[0.1em] ${typeCls} shadow-sm`}>
                             {typeLabel}
                           </span>
                         </div>
-                        <p className="text-[11px] text-white/35 mt-1.5">{item.sku || "Sin código"}</p>
+                        <p className="text-[10px] font-black uppercase tracking-wider text-white/20 mb-1">{item.sku || "Sin código"}</p>
                         {item.stock > 0 && (
-                          <p className="text-[11px] text-amber-300/70 mt-0.5">Stock: {item.stock}</p>
+                          <p className="text-[10px] font-black uppercase tracking-widest text-amber-500/40">Stock: {item.stock}</p>
                         )}
-                        <div className="mt-4 flex items-center justify-between">
-                          <p className="text-2xl font-black text-white">${toNum(item.price).toFixed(2)}</p>
+                        <div className="mt-5 flex items-center justify-between pt-4 border-t border-white/[0.04]">
+                          <p className="text-2xl font-black text-white tracking-tighter">${toNum(item.price).toFixed(2)}</p>
                           <button
                             onClick={() => addToCart(item)}
-                            className="flex h-9 w-9 items-center justify-center rounded-xl border border-cyan-500/25 bg-cyan-500/10 text-cyan-300 hover:bg-cyan-500/25 hover:border-cyan-400/50 hover:shadow-[0_0_14px_rgba(34,211,238,0.2)] transition-all active:scale-95"
+                            className="flex h-11 w-11 items-center justify-center rounded-[18px] border border-cyan-500/30 bg-cyan-500/10 text-cyan-400 hover:bg-cyan-500/25 hover:border-cyan-400/50 hover:shadow-[0_8px_20px_rgba(34,211,238,0.2)] transition-all active:scale-90"
                           >
-                            <Plus className="w-4 h-4" />
+                            <Plus className="w-5 h-5" />
                           </button>
                         </div>
                       </div>
@@ -839,15 +879,15 @@ export default function AddItemModal({
 
         {/* ── Floating Cart ── */}
         {showCart && (
-          <div className="pointer-events-none absolute inset-x-0 bottom-4 px-4">
-            <div className="pointer-events-auto ml-auto w-full max-w-[480px] rounded-2xl border border-emerald-500/30 bg-[rgba(3,12,10,0.97)] shadow-[0_20px_60px_rgba(0,0,0,0.55),0_0_0_1px_rgba(16,185,129,0.08)] overflow-hidden">
+          <div className="pointer-events-none absolute inset-x-0 bottom-4 px-4 z-[100] sm:bottom-6 sm:px-6">
+            <div className="pointer-events-auto ml-auto w-full max-w-[480px] rounded-[28px] border border-emerald-500/30 bg-[#0A0C0B]/95 shadow-[0_30px_60px_rgba(0,0,0,0.65)] ring-1 ring-emerald-500/10 overflow-hidden backdrop-blur-3xl">
               {/* Cart header */}
-              <div className="flex items-center justify-between px-4 pt-3 pb-2">
-                <p className="text-xs font-black uppercase tracking-[0.22em] text-white/70">
-                  Orden <span className="text-emerald-400">({countInCart})</span>
+              <div className="flex items-center justify-between px-6 pt-5 pb-3">
+                <p className="text-[10px] font-black uppercase tracking-[0.25em] text-white/40">
+                  Items en Orden <span className="text-emerald-400 ml-1">({countInCart})</span>
                 </p>
-                <div className="flex items-center gap-3">
-                  <p className="text-lg font-black text-emerald-300">${totals.total.toFixed(2)}</p>
+                <div className="flex items-center gap-4">
+                  <p className="text-2xl font-black text-emerald-400 tracking-tighter shadow-sm">${totals.total.toFixed(2)}</p>
                   <button
                     onClick={() => setShowCart(false)}
                     className="flex h-6 w-6 items-center justify-center rounded-lg bg-white/8 hover:bg-white/15 text-white/60 hover:text-white transition"
@@ -862,7 +902,7 @@ export default function AddItemModal({
                 <div className="mx-3 mb-3 rounded-xl border border-white/8 bg-black/20 p-3 text-center text-xs text-white/40">El carrito está vacío</div>
               ) : (
                 <>
-                  <div className="max-h-36 overflow-y-auto space-y-1 px-3">
+                  <div className="max-h-36 overflow-y-auto space-y-1 px-3 no-scrollbar">
                     {cartItems.map((item, idx) => (
                       <div key={`${item.id}-${idx}`} className="flex items-center gap-2 rounded-xl border border-white/8 bg-black/25 px-3 py-2">
                         <div className="min-w-0 flex-1">
@@ -894,31 +934,20 @@ export default function AddItemModal({
                     ))}
                   </div>
 
-                  {/* Totals */}
-                  <div className="mx-3 mt-2 rounded-xl border border-white/8 bg-black/20 px-3 py-2 space-y-1">
-                    <div className="flex justify-between text-xs text-white/50">
-                      <span>Subtotal</span>
-                      <span className="font-semibold text-white/70">${totals.subtotal.toFixed(2)}</span>
+                  {/* Totals & Save */}
+                  <div className="px-6 py-5 bg-white/[0.02] border-t border-white/[0.05] space-y-4 mt-2">
+                    <div className="flex justify-between items-center text-[10px] font-black uppercase tracking-widest text-white/30">
+                      <span>Total Parcial (IVU Inc.)</span>
+                      <span>${totals.total.toFixed(2)}</span>
                     </div>
-                    <div className="flex justify-between text-xs text-white/50">
-                      <span>IVU (11.5%)</span>
-                      <span className="font-semibold text-white/70">${totals.tax.toFixed(2)}</span>
-                    </div>
-                    <div className="flex justify-between border-t border-white/8 pt-1">
-                      <span className="text-xs font-black uppercase tracking-[0.12em] text-white/60">Total</span>
-                      <span className="text-sm font-black text-emerald-300">${totals.total.toFixed(2)}</span>
-                    </div>
-                  </div>
-
-                  {/* Apply button */}
-                  <div className="p-3">
-                    <button
+                    <Button
                       onClick={saveToOrder}
                       disabled={saving}
-                      className="w-full rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 py-3 text-sm font-black uppercase tracking-[0.16em] text-white shadow-[0_6px_24px_rgba(16,185,129,0.3)] transition-all active:scale-[0.98] disabled:opacity-60"
+                      className="w-full h-16 rounded-[20px] bg-emerald-600 hover:bg-emerald-500 shadow-xl shadow-emerald-600/15 text-white font-black uppercase tracking-widest text-[11px] transition-all active:scale-[0.98] border-t border-white/10"
                     >
-                      {saving ? "Guardando..." : "Aplicar y Cerrar"}
-                    </button>
+                      {saving ? <Loader2 className="w-5 h-5 animate-spin mr-3" /> : <ShoppingCart className="w-5 h-5 mr-3" />}
+                      Aplicar a la Orden
+                    </Button>
                   </div>
                 </>
               )}
