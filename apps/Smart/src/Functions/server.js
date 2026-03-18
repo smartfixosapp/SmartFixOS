@@ -49,6 +49,7 @@ import { deleteOrderHandler } from './deleteOrder.js';
 import { resetTransactionsHandler } from './resetTransactions.js';
 import { sendTemplatedEmailHandler } from './sendTemplatedEmail.js';
 import { sendAdminOtpHandler } from './sendAdminOtp.js';
+import { processPayrollHandler } from './processPayroll.js';
 import { verifyAdminOtpHandler } from './verifyAdminOtp.js';
 import { setRequestAuthToken, clearRequestAuthToken } from '../../../../lib/unified-custom-sdk-supabase.js';
 
@@ -122,6 +123,7 @@ const routes = {
   '/deleteTransaction': deleteTransactionHandler,
   '/deleteOrder': deleteOrderHandler,
   '/resetTransactions': resetTransactionsHandler,
+  '/processPayroll': processPayrollHandler,
   '/sendTemplatedEmail': sendTemplatedEmailHandler,
 };
 const port = Deno.env.get("FUNCTIONS_PORT");

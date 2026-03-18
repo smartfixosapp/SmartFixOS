@@ -43,7 +43,8 @@ const functionPaths = {
   "deleteTransaction": "/deleteTransaction",
   "deleteOrder": "/deleteOrder",
   "resetTransactions": "/resetTransactions",
-  "sendTemplatedEmail": "/sendTemplatedEmail"
+  "sendTemplatedEmail": "/sendTemplatedEmail",
+  "processPayroll": "/processPayroll"
 };
 
 // Create client with function configuration
