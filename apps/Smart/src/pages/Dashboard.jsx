@@ -767,20 +767,21 @@ export default function Dashboard() {
         <div className="max-w-[2560px] mx-auto space-y-3 sm:space-y-4 md:space-y-6 lg:space-y-8">
           
           {/* === DESKTOP: HEADER "APPLE CONTROL CENTER" === */}
-          <div className="hidden md:block bg-[linear-gradient(180deg,rgba(15,23,42,0.74),rgba(15,23,42,0.58))] backdrop-blur-3xl border border-white/10 rounded-[32px] lg:rounded-[40px] xl:rounded-[48px] p-6 lg:p-8 xl:p-10 shadow-[0_22px_60px_rgba(0,0,0,0.34)] relative overflow-hidden group">
-            {/* Glossy overlay */}
-            <div className="absolute inset-0 bg-gradient-to-b from-white/[0.04] to-transparent pointer-events-none" />
+          <div className="hidden md:block bg-[#121215]/40 backdrop-blur-[40px] border border-white/10 rounded-[40px] p-8 lg:p-10 shadow-[0_32px_80px_rgba(0,0,0,0.45)] relative overflow-hidden group">
+            {/* Glossy overlay with subtle inner glow */}
+            <div className="absolute inset-0 bg-gradient-to-b from-white/[0.05] to-transparent pointer-events-none" />
+            <div className="absolute inset-0 border border-white/10 rounded-[40px] pointer-events-none shadow-[inset_0_1px_1px_rgba(255,255,255,0.1)]" />
 
             {/* BARRA SUPERIOR MINIMALISTA */}
             <div className="flex flex-wrap items-center justify-between gap-4 lg:gap-6 mb-6 lg:mb-8 xl:mb-10 relative z-10">
               <div className="flex items-center gap-3 lg:gap-4">
-                <div className="flex items-center gap-3 lg:gap-4 bg-white/6 border border-white/10 rounded-full pl-1 pr-4 lg:pr-5 xl:pr-6 py-1 lg:py-1.5 backdrop-blur-md shadow-[inset_0_1px_0_rgba(255,255,255,0.08)]">
-                  <div className="w-8 h-8 lg:w-10 lg:h-10 xl:w-12 xl:h-12 rounded-full bg-gradient-to-tr from-sky-400 to-blue-500 flex items-center justify-center shadow-lg">
-                    <span className="text-xs lg:text-sm xl:text-base font-bold text-white uppercase">{session?.userName?.substring(0,2) || 'US'}</span>
+                <div className="flex items-center gap-4 bg-white/5 border border-white/10 rounded-full pl-1 pr-6 py-1.5 backdrop-blur-2xl shadow-[inset_0_1px_0_rgba(255,255,255,0.08)]">
+                  <div className="w-10 h-10 lg:w-12 lg:h-12 rounded-full bg-gradient-to-tr from-sky-400 via-blue-500 to-indigo-600 flex items-center justify-center shadow-[0_8px_20px_rgba(14,165,233,0.3)] border border-white/20">
+                    <span className="text-sm lg:text-base font-black text-white uppercase tracking-tighter">{session?.userName?.substring(0,2) || 'US'}</span>
                   </div>
                   <div className="flex flex-col">
-                    <span className="text-xs lg:text-sm xl:text-base font-medium text-white/90 leading-none">{session?.userName || 'Usuario'}</span>
-                    <span className="text-[10px] lg:text-xs text-white/45 leading-none mt-1 font-medium tracking-wide">{businessName || session?.storeName || "SmartFixOS"}</span>
+                    <span className="text-sm lg:text-base font-black text-white leading-none tracking-tight">{session?.userName || 'Usuario'}</span>
+                    <span className="text-[10px] lg:text-xs text-white/40 leading-none mt-1 font-black tracking-widest uppercase">{businessName || session?.storeName || "SmartFixOS"}</span>
                   </div>
                 </div>
 
@@ -825,10 +826,10 @@ export default function Dashboard() {
 
                 <button
                   onClick={() => setShowLogoutModal(true)}
-                  className="w-10 h-10 lg:w-12 lg:h-12 xl:w-14 xl:h-14 rounded-full bg-white/6 hover:bg-rose-500/16 border border-white/8 hover:border-rose-500/25 flex items-center justify-center transition-all active:scale-95 group shadow-[inset_0_1px_0_rgba(255,255,255,0.06)]"
+                  className="w-12 h-12 lg:w-14 lg:h-14 rounded-full bg-white/5 hover:bg-rose-500/10 border border-white/10 hover:border-rose-500/20 flex items-center justify-center transition-all active:scale-90 group shadow-[inset_0_1px_0_rgba(255,255,255,0.06)]"
                   title="Cerrar Sesión"
                 >
-                  <LogOut className="w-5 h-5 lg:w-6 lg:h-6 xl:w-7 xl:h-7 text-white/50 group-hover:text-red-400 transition-colors" />
+                  <LogOut className="w-5 h-5 lg:w-6 lg:h-6 text-white/20 group-hover:text-rose-400 transition-all duration-500" />
                 </button>
               </div>
             </div>
@@ -934,25 +935,27 @@ export default function Dashboard() {
                       <button
                         key={btn.id}
                         onClick={handleClick}
-                        className="group relative bg-white/5 hover:bg-white/10 backdrop-blur-3xl border border-white/10 rounded-[32px] px-5 py-5 sm:px-6 sm:py-6 flex flex-col items-start justify-between aspect-[1.02/1] transition-all duration-500 hover:border-white/20 active:scale-95 shadow-[0_16px_36px_rgba(0,0,0,0.22)] hover:shadow-[0_24px_48px_rgba(0,0,0,0.3)] overflow-hidden"
+                        className="group relative bg-[#121215]/40 hover:bg-[#121215]/60 backdrop-blur-3xl border border-white/10 rounded-[32px] px-6 py-6 flex flex-col items-start justify-between aspect-[1.1/1] transition-all duration-700 hover:border-white/20 active:scale-95 shadow-[0_16px_40px_rgba(0,0,0,0.3)] hover:shadow-[0_32px_64px_rgba(0,0,0,0.5)] overflow-hidden"
                       >
-                        <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
+                        <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/10 to-transparent" />
                         
                         <div className="flex justify-between w-full items-start gap-4 relative z-10">
-                            <div className={`w-14 h-14 sm:w-16 sm:h-16 rounded-[20px] bg-gradient-to-br ${getIconGradient(btn.label)} flex items-center justify-center shadow-lg mb-3 text-white transition-transform duration-500 group-hover:scale-110 group-hover:rotate-3`}>
+                            <div className={`w-14 h-14 sm:w-16 sm:h-16 rounded-[22px] bg-gradient-to-br ${getIconGradient(btn.label)} flex items-center justify-center shadow-[0_12px_24px_rgba(0,0,0,0.4)] mb-3 text-white transition-all duration-700 group-hover:scale-110 group-hover:rotate-6 group-hover:shadow-[0_16px_32px_rgba(0,0,0,0.6)]`}>
                               <IconComponent className="w-6 h-6 sm:w-7 sm:h-7" strokeWidth={2.5} />
                             </div>
                             {count !== null && (
-                                <span className="inline-flex items-center justify-center min-w-[36px] h-9 px-3 rounded-full border border-white/10 bg-black/40 backdrop-blur-md text-sm sm:text-base font-black text-white tracking-tight shadow-inner">{count}</span>
+                                <span className="inline-flex items-center justify-center min-w-[36px] h-9 px-3 rounded-full border border-white/10 bg-black text-xs sm:text-sm font-black text-white tracking-widest shadow-[0_4px_12px_rgba(0,0,0,0.5)] group-hover:scale-110 transition-transform duration-500">{count}</span>
                             )}
                         </div>
-                        <div className="flex flex-col items-start gap-1.5 relative z-10 mt-auto">
-                          <span className="text-sm sm:text-base lg:text-lg font-black text-white leading-tight text-left tracking-tight group-hover:text-white/90 transition-colors">
+                        <div className="flex flex-col items-start gap-1 relative z-10 mt-auto">
+                          <span className="text-sm sm:text-base lg:text-lg font-black text-white/90 leading-tight text-left tracking-tight group-hover:text-white transition-colors duration-500 uppercase">
                             {btn.label}
                           </span>
+                          <span className="text-[10px] font-black text-white/20 tracking-[0.2em] uppercase group-hover:text-white/40 transition-colors duration-500">Subapp</span>
                         </div>
                       </button>
                     );
+
                   })}
                 </nav>
 
@@ -970,10 +973,10 @@ export default function Dashboard() {
           <div className="md:hidden space-y-4">
             {/* Header móvil minimalista */}
             <div className="flex flex-col gap-3">
-              <div className="flex items-center justify-between px-2">
+              <div className="flex items-center justify-between px-4 mt-2">
                 <div className="flex flex-col">
-                  <h2 className="text-xl sm:text-2xl font-bold text-white tracking-tight">Hola, {session?.userName?.split(' ')[0]}</h2>
-                  <p className="text-white/60 text-xs sm:text-sm font-medium">{format(new Date(), "EEEE, d MMMM", { locale: es })}</p>
+                  <h2 className="text-2xl font-black text-white tracking-tighter uppercase">Hola, {session?.userName?.split(' ')[0]}</h2>
+                  <p className="text-white/40 text-[10px] font-black uppercase tracking-[0.2em]">{format(new Date(), "EEEE, d MMMM", { locale: es })}</p>
                 </div>
               </div>
               <div className="flex items-center justify-start gap-2 px-2 w-full overflow-x-auto no-scrollbar">
@@ -992,12 +995,12 @@ export default function Dashboard() {
 
                 <button
                   onClick={() => setShowNotificationPanel(!showNotificationPanel)}
-                  className="relative flex-shrink-0 w-10 h-10 rounded-full bg-white/5 border border-white/5 flex items-center justify-center transition-all active:scale-95"
+                  className="relative flex-shrink-0 w-11 h-11 rounded-full bg-white/5 border border-white/10 flex items-center justify-center transition-all active:scale-90 shadow-inner"
                   title="Notificaciones"
                 >
-                  <Bell className="w-5 h-5 text-white/70" />
+                  <Bell className="w-5 h-5 text-white/40" />
                   {unreadNotifications > 0 && (
-                    <span className="absolute top-0 right-0 w-3 h-3 bg-red-500 border border-[#1c1c1e] rounded-full" />
+                    <span className="absolute top-0 right-0 w-3 h-3 bg-red-500 border-2 border-[#121215] rounded-full shadow-[0_0_8px_rgba(220,38,38,0.5)]" />
                   )}
                 </button>
 
@@ -1105,26 +1108,27 @@ export default function Dashboard() {
                     <button
                       key={btn.id}
                       onClick={handleClick}
-                      className="group relative bg-white/5 hover:bg-white/10 backdrop-blur-3xl border border-white/10 rounded-[28px] p-5 flex flex-col items-start justify-between min-h-[140px] active:scale-95 transition-all duration-500 shadow-2xl hover:shadow-[0_20px_40px_rgba(0,0,0,0.3)] hover:border-white/20 hover:-translate-y-1 overflow-hidden touch-manipulation"
+                      className="group relative bg-[#121215]/40 hover:bg-[#121215]/60 backdrop-blur-3xl border border-white/10 rounded-[32px] p-6 flex flex-col items-start justify-between min-h-[160px] active:scale-95 transition-all duration-700 shadow-2xl overflow-hidden touch-manipulation"
                     >
-                      <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
+                      <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/10 to-transparent" />
                       <div className="flex justify-between w-full items-start gap-3 relative z-10">
-                        <div className={`w-12 h-12 rounded-[18px] bg-gradient-to-br ${getIconGradient(btn.label)} flex items-center justify-center shadow-lg mb-2 text-white transition-transform duration-500 group-hover:scale-110 group-hover:rotate-3`}>
+                        <div className={`w-12 h-12 rounded-[20px] bg-gradient-to-br ${getIconGradient(btn.label)} flex items-center justify-center shadow-[0_8px_16px_rgba(0,0,0,0.4)] mb-2 text-white transition-all duration-700 group-active:scale-110`}>
                             <IconComponent className="w-6 h-6" strokeWidth={2.5} />
                         </div>
                         {count !== null && (
-                            <span className="inline-flex items-center justify-center min-w-[32px] h-8 px-2.5 rounded-full border border-white/10 bg-black/40 backdrop-blur-md text-sm font-black text-white tracking-tight shadow-inner">{count}</span>
+                            <span className="inline-flex items-center justify-center min-w-[32px] h-8 px-2.5 rounded-full border border-white/10 bg-black text-[10px] font-black text-white tracking-widest shadow-lg">{count}</span>
                         )}
                       </div>
                       <div className="flex flex-col items-start gap-1 relative z-10 mt-auto">
-                        <span className="text-sm font-black text-white leading-tight text-left tracking-tight group-hover:text-white/90 transition-colors">
+                        <span className="text-sm font-black text-white/90 leading-tight text-left tracking-tight uppercase">
                           {btn.label}
                         </span>
-                        <span className="text-[10px] uppercase tracking-[0.2em] text-white/40 font-bold">
+                        <span className="text-[9px] uppercase tracking-[0.2em] text-white/20 font-black">
                           Subapp
                         </span>
                       </div>
                     </button>
+
                   );
                 })}
               </div>
@@ -1265,39 +1269,43 @@ export default function Dashboard() {
              </div>
 
             {/* === LISTA DE PRECIOS MÓVIL === */}
-            <Card className="bg-gradient-to-br from-emerald-600/10 via-teal-600/10 to-cyan-600/10 backdrop-blur-3xl border border-emerald-500/20 rounded-[24px] shadow-xl mx-1 mb-safe">
-              <CardContent className="p-4 space-y-3 pb-8">
-                <h3 className="text-white font-bold text-base flex items-center gap-2">
-                  💰 Lista de Precios
+            <Card className="bg-[#121215]/40 backdrop-blur-3xl border border-emerald-500/20 rounded-[32px] shadow-2xl mx-2 mb-safe">
+              <CardContent className="p-6 space-y-4 pb-10">
+                <h3 className="text-white font-black text-sm flex items-center gap-2 uppercase tracking-widest">
+                  <div className="w-8 h-8 rounded-lg bg-emerald-500/10 flex items-center justify-center border border-emerald-500/20">
+                    <PiggyBank className="w-4 h-4 text-emerald-400" />
+                  </div>
+                  {t('priceList')}
                 </h3>
                 <div className="relative">
-                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                  <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-white/20" />
                   <input 
                     value={priceSearch} 
                     onChange={(e) => setPriceSearch(e.target.value)} 
                     placeholder="Buscar productos..." 
-                    className="w-full pl-10 pr-3 py-2 bg-black/20 border border-cyan-500/20 rounded-xl text-sm text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-cyan-500/50" 
+                    className="w-full pl-11 pr-4 py-3 bg-black/40 border border-white/10 rounded-2xl text-sm text-white placeholder-white/20 focus:outline-none focus:ring-2 focus:ring-emerald-500/50 font-bold" 
                   />
+                  <div className="absolute inset-0 border border-white/5 rounded-2xl pointer-events-none shadow-inner" />
                 </div>
 
                 {priceSearch && filteredPriceList.length > 0 && (
-                  <div className="space-y-2 max-h-[250px] overflow-y-auto">
-                    {filteredPriceList.slice(0, 10).map((item) => (
+                  <div className="space-y-3 max-h-[300px] overflow-y-auto pr-1 custom-scrollbar">
+                    {filteredPriceList.slice(0, 15).map((item) => (
                       <div 
                         key={`${item.type}-${item.id}`} 
-                        className="p-3 bg-black/20 border border-cyan-500/10 rounded-xl"
+                        className="p-4 bg-white/5 border border-white/5 rounded-2xl shadow-lg active:scale-95 transition-all"
                       >
-                        <div className="flex items-center justify-between gap-3">
+                        <div className="flex items-center justify-between gap-4">
                           <div className="flex-1 min-w-0">
-                            <p className="text-white font-semibold text-sm truncate">{item.name}</p>
-                            <div className="flex items-center gap-2 mt-1">
-                              <Badge className={item.type === "service" ? "bg-blue-600/20 text-blue-300 text-[10px]" : "bg-emerald-600/20 text-emerald-300 text-[10px]"}>
+                            <p className="text-white font-black text-sm truncate uppercase tracking-tight">{item.name}</p>
+                            <div className="flex items-center gap-2 mt-2">
+                              <Badge className={`${item.type === "service" ? "bg-blue-600/20 text-blue-300" : "bg-emerald-600/20 text-emerald-300"} text-[8px] font-black uppercase tracking-tighter px-2 border border-white/5`}>
                                 {item.type === "service" ? "Servicio" : "Producto"}
                               </Badge>
                               {stockPill(item)}
                             </div>
                           </div>
-                          <p className="text-emerald-400 font-bold text-base">${(item.price || 0).toFixed(2)}</p>
+                          <p className="text-emerald-400 font-black text-lg tracking-tighter shadow-sm">${(item.price || 0).toFixed(2)}</p>
                         </div>
                       </div>
                     ))}
@@ -1305,6 +1313,7 @@ export default function Dashboard() {
                 )}
               </CardContent>
             </Card>
+
           </div>
 
           {/* === BUSCAR ÓRDENES (SEQUOIA STYLE - SOLO DESKTOP) === */}
@@ -1323,21 +1332,22 @@ export default function Dashboard() {
                   </h3>
                 </div>
 
-                {/* Buscador estilo iOS */}
+                {/* Buscador estilo Sequoia - Glassmorphic */}
                 <div className="relative group">
-                  <div className="absolute inset-y-0 left-0 pl-3 lg:pl-4 flex items-center pointer-events-none">
-                    <Search className="h-4 w-4 lg:h-5 lg:w-5 xl:h-6 xl:w-6 text-gray-400 group-focus-within:text-blue-500 transition-colors" />
+                  <div className="absolute inset-y-0 left-0 pl-4 lg:pl-5 flex items-center pointer-events-none">
+                    <Search className="h-5 w-5 lg:h-6 lg:w-6 text-white/20 group-focus-within:text-blue-500 transition-colors duration-500" />
                   </div>
                   <input 
                     value={searchTerm} 
                     onChange={(e) => setSearchTerm(e.target.value)} 
                     placeholder="Buscar por cliente, número..." 
-                    className="block w-full pl-10 lg:pl-12 xl:pl-14 pr-3 lg:pr-4 py-2.5 lg:py-3 xl:py-4 bg-white/5 border border-white/10 rounded-xl lg:rounded-2xl text-sm lg:text-base xl:text-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:bg-white/10 transition-all" 
+                    className="block w-full pl-12 lg:pl-14 xl:pl-16 pr-6 py-4 lg:py-5 bg-black/40 border border-white/10 rounded-2xl lg:rounded-3xl text-sm lg:text-base xl:text-lg text-white placeholder-white/20 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:bg-black/60 transition-all duration-500 font-bold" 
                   />
+                  <div className="absolute inset-0 border border-white/5 rounded-2xl lg:rounded-3xl pointer-events-none shadow-[inset_0_1px_1px_rgba(255,255,255,0.05)]" />
                 </div>
 
-                {/* Chips de Estados estilo iOS */}
-                <div className="flex gap-2 lg:gap-3 overflow-x-auto pb-2 no-scrollbar -mx-1 px-1">
+                {/* Chips de Estados estilo Sequoia */}
+                <div className="flex gap-3 lg:gap-4 overflow-x-auto pb-4 no-scrollbar -mx-1 px-1">
                   {ORDER_STATUSES.filter((s) => s.isActive).map((status) => {
                     const count = statusCounts[status.id] || 0;
                     const isSelected = selectedStatusFilter === status.id;
@@ -1352,17 +1362,17 @@ export default function Dashboard() {
                         }}
                         disabled={count === 0} 
                         className={`
-                          px-3 lg:px-4 xl:px-5 py-1.5 lg:py-2 xl:py-2.5 rounded-full text-xs lg:text-sm xl:text-base font-semibold whitespace-nowrap transition-all border
+                          px-4 lg:px-6 py-2.5 lg:py-3 rounded-full text-xs lg:text-sm font-black whitespace-nowrap transition-all duration-500 border uppercase tracking-widest
                           ${isPendingOrder && count > 0
-                            ? 'bg-gradient-to-r from-red-600 to-red-700 text-white border-red-500 shadow-[0_0_20px_rgba(220,38,38,0.6)] animate-pulse scale-105 hover:from-red-500 hover:to-red-600'
+                            ? 'bg-gradient-to-r from-red-600 to-red-800 text-white border-red-500 shadow-[0_0_24px_rgba(220,38,38,0.5)] animate-pulse scale-105'
                             : isSelected 
-                              ? 'bg-white text-black border-white shadow-lg scale-105' 
-                              : 'bg-white/5 text-white/70 border-white/10 hover:bg-white/10 active:scale-95'
+                              ? 'bg-white text-black border-white shadow-[0_8px_24px_rgba(255,255,255,0.2)] scale-105' 
+                              : 'bg-white/5 text-white/40 border-white/10 hover:bg-white/10 hover:text-white active:scale-95 shadow-inner'
                           }
-                          ${count === 0 ? 'opacity-30 cursor-not-allowed' : 'cursor-pointer'}
+                          ${count === 0 ? 'opacity-20 cursor-not-allowed' : 'cursor-pointer'}
                         `}
                       >
-                        {status.label} <span className={`ml-1 lg:ml-1.5 px-1.5 lg:px-2 py-0.5 rounded-full text-[10px] lg:text-xs xl:text-sm ${isPendingOrder && count > 0 ? 'bg-white/20 text-white font-black' : isSelected ? 'bg-black/10 text-black' : 'bg-white/10 text-white'}`}>{count}</span>
+                        {status.label} <span className={`ml-2 px-2 py-0.5 rounded-full text-[10px] lg:text-xs font-black ${isPendingOrder && count > 0 ? 'bg-white/20 text-white' : isSelected ? 'bg-black text-white' : 'bg-white/10 text-white/60'}`}>{count}</span>
                       </button>
                     );
                   })}
@@ -1386,33 +1396,34 @@ export default function Dashboard() {
                         <div 
                           key={order.id}
                           onClick={() => handleOrderSelect(order.id)} 
-                          className="group p-4 lg:p-5 xl:p-6 bg-white/5 hover:bg-white/10 backdrop-blur-md rounded-2xl lg:rounded-3xl border border-white/5 hover:border-white/10 cursor-pointer transition-all active:scale-[0.98]"
+                          className="group p-5 lg:p-6 bg-white/5 hover:bg-[#121215]/60 backdrop-blur-3xl rounded-[28px] lg:rounded-[32px] border border-white/5 hover:border-white/20 cursor-pointer transition-all duration-700 active:scale-[0.98] shadow-lg hover:shadow-2xl"
                         >
-                          <div className="flex justify-between items-start gap-3 lg:gap-4">
-                            <div className="flex items-start gap-3 lg:gap-4 min-w-0">
-                              <div className="w-10 h-10 lg:w-12 lg:h-12 xl:w-14 xl:h-14 rounded-full bg-blue-500/20 flex items-center justify-center shrink-0">
-                                <Smartphone className="w-5 h-5 lg:w-6 lg:h-6 xl:w-7 xl:h-7 text-blue-400" />
+                          <div className="flex justify-between items-start gap-4 lg:gap-6">
+                            <div className="flex items-start gap-4 lg:gap-5 min-w-0">
+                              <div className="w-12 h-12 lg:w-14 lg:h-14 rounded-2xl bg-gradient-to-br from-blue-500/20 to-indigo-500/20 flex items-center justify-center shrink-0 border border-white/10 shadow-inner group-hover:scale-110 transition-transform duration-700">
+                                <Smartphone className="w-6 h-6 lg:w-7 lg:h-7 text-blue-400 group-hover:text-blue-300 transition-colors" />
                               </div>
                               <div className="min-w-0">
-                                <p className="font-semibold text-white text-sm lg:text-base xl:text-lg truncate group-hover:text-blue-400 transition-colors">{order.customer_name || "Cliente Desconocido"}</p>
-                                <p className="text-xs lg:text-sm xl:text-base text-white/50 truncate flex items-center gap-1.5 lg:gap-2 mt-0.5 lg:mt-1">
-                                  <span className="font-medium bg-white/10 px-1.5 lg:px-2 py-0.5 lg:py-1 rounded text-[10px] lg:text-xs xl:text-sm">{order.order_number || "#"}</span>
-                                  <span>•</span>
-                                  <span>{order.device_model || "Dispositivo"}</span>
+                                <p className="font-black text-white text-base lg:text-lg truncate group-hover:text-blue-400 transition-colors duration-500 uppercase tracking-tight">{order.customer_name || "Cliente Desconocido"}</p>
+                                <p className="text-xs lg:text-sm text-white/40 truncate flex items-center gap-2 mt-1.5 font-bold uppercase tracking-widest">
+                                  <span className="bg-white/5 px-2 py-0.5 rounded-lg border border-white/5 shadow-inner">{order.order_number || "#"}</span>
+                                  <span className="opacity-30">•</span>
+                                  <span className="group-hover:text-white/60 transition-colors">{order.device_model || "Dispositivo"}</span>
                                 </p>
                               </div>
                             </div>
                             
-                            <div className="flex flex-col items-end gap-1 lg:gap-1.5">
-                              <span className={`px-2.5 lg:px-3 xl:px-4 py-1 lg:py-1.5 rounded-full text-[10px] lg:text-xs xl:text-sm font-bold uppercase tracking-wide border ${statusConfig.colorClasses} bg-opacity-10 border-opacity-20`}>
+                            <div className="flex flex-col items-end gap-2 shrink-0">
+                              <span className={`px-4 py-1.5 rounded-full text-[10px] lg:text-xs font-black uppercase tracking-[0.2em] border shadow-sm ${statusConfig.colorClasses} bg-opacity-10 border-opacity-30`}>
                                 {statusConfig.label}
                               </span>
-                              <span className="text-[10px] lg:text-xs xl:text-sm text-white/30 font-medium">
+                              <span className="text-[10px] text-white/20 font-black uppercase tracking-widest">
                                 {format(new Date(order.created_date), "d MMM", { locale: es })}
                               </span>
                             </div>
                           </div>
                         </div>
+
                       );
                     })}
                   </div>
@@ -1421,45 +1432,49 @@ export default function Dashboard() {
             </CardContent>
           </Card>
 
-          {/* === LISTA DE PRECIOS - OCULTA EN MÓVIL === */}
-          <Card className="hidden md:block bg-white/5 backdrop-blur-3xl border border-emerald-500/20 rounded-[32px] lg:rounded-[40px] xl:rounded-[48px] shadow-2xl relative overflow-hidden">
-            <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/5 via-teal-500/5 to-cyan-500/5 pointer-events-none" />
-            <div className="absolute -bottom-20 -right-20 w-60 h-60 lg:w-80 lg:h-80 bg-emerald-500/10 rounded-full blur-[100px] animate-pulse delay-1000" />
-            <CardContent className="p-4 sm:p-6 lg:p-8 xl:p-10 space-y-4 lg:space-y-6 relative z-10">
-              <h3 className="text-white text-lg lg:text-xl xl:text-2xl font-black flex items-center gap-3 tracking-tight">
-                <div className="w-10 h-10 rounded-xl bg-emerald-500/10 flex items-center justify-center border border-emerald-500/20">
-                  <PiggyBank className="w-5 h-5 text-emerald-400" />
+          {/* === LISTA DE PRECIOS - SEQUOIA STYLE === */}
+          <Card className="hidden md:block bg-[#121215]/40 backdrop-blur-[40px] border border-emerald-500/20 rounded-[40px] shadow-2xl relative overflow-hidden">
+            <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/5 via-transparent to-transparent pointer-events-none" />
+            <div className="absolute -bottom-32 -right-32 w-96 h-96 bg-emerald-500/10 rounded-full blur-[120px] animate-pulse" />
+            <CardContent className="p-8 lg:p-10 space-y-8 relative z-10">
+              <h3 className="text-white text-2xl font-black flex items-center gap-4 tracking-tighter uppercase">
+                <div className="w-14 h-14 rounded-2xl bg-emerald-500/10 flex items-center justify-center border border-emerald-500/20 shadow-inner">
+                  <PiggyBank className="w-8 h-8 text-emerald-400" />
                 </div>
                 {t('priceList')}
               </h3>
+              
               <div className="relative group">
+                <div className="absolute inset-y-0 left-0 pl-5 flex items-center pointer-events-none">
+                  <Search className="w-6 h-6 text-white/20 group-focus-within:text-emerald-400 transition-colors duration-500" />
+                </div>
                 <input 
                   value={priceSearch} 
                   onChange={(e) => setPriceSearch(e.target.value)} 
                   placeholder={t('searchProducts')} 
-                  className="bg-black/40 border border-emerald-500/20 pl-10 lg:pl-12 xl:pl-14 pr-4 rounded-xl lg:rounded-2xl h-12 lg:h-14 xl:h-16 text-sm lg:text-base xl:text-lg text-white w-full outline-none focus:ring-2 focus:ring-emerald-500/50 font-medium transition-all" 
+                  className="bg-black/40 border border-white/10 pl-14 pr-6 rounded-2xl h-14 lg:h-16 text-base lg:text-lg text-white w-full outline-none focus:ring-2 focus:ring-emerald-500/50 font-bold transition-all duration-500 placeholder-white/20" 
                 />
-                <Search className="w-5 h-5 text-gray-400 group-focus-within:text-emerald-400 absolute left-4 top-1/2 -translate-y-1/2 transition-colors" />
+                <div className="absolute inset-0 border border-white/5 rounded-2xl pointer-events-none shadow-[inset_0_1px_1px_rgba(255,255,255,0.05)]" />
               </div>
 
               {priceSearch && filteredPriceList.length > 0 && (
-                <div className="space-y-2 lg:space-y-3 xl:space-y-4 max-h-[400px] lg:max-h-[500px] xl:max-h-[600px] overflow-y-auto">
+                <div className="space-y-4 max-h-[500px] overflow-y-auto pr-2 custom-scrollbar">
                   {filteredPriceList.map((item) => (
                     <div 
                       key={`${item.type}-${item.id}`} 
-                      className="p-3 lg:p-4 xl:p-5 bg-black/20 border border-cyan-500/10 rounded-lg lg:rounded-xl xl:rounded-2xl"
+                      className="group/item p-5 bg-white/5 hover:bg-[#121215]/60 backdrop-blur-3xl border border-white/5 hover:border-emerald-500/30 rounded-2xl lg:rounded-3xl transition-all duration-700 shadow-lg hover:shadow-2xl"
                     >
-                      <div className="flex items-center justify-between gap-3 lg:gap-4">
-                        <div className="flex-1">
-                          <p className="text-white font-semibold text-sm lg:text-base xl:text-lg truncate">{item.name}</p>
-                          <div className="flex items-center gap-2 mt-1 lg:mt-1.5">
-                            <Badge className={item.type === "service" ? "bg-blue-600/20 text-blue-300 text-xs lg:text-sm" : "bg-emerald-600/20 text-emerald-300 text-xs lg:text-sm"}>
+                      <div className="flex items-center justify-between gap-6">
+                        <div className="flex-1 min-w-0">
+                          <p className="text-white font-black text-lg truncate group-hover:text-emerald-400 transition-colors duration-500 uppercase tracking-tight">{item.name}</p>
+                          <div className="flex items-center gap-3 mt-2">
+                            <Badge className={`${item.type === "service" ? "bg-blue-600/20 text-blue-300" : "bg-emerald-600/20 text-emerald-300"} font-black uppercase tracking-widest text-[10px] px-3 border border-white/10`}>
                               {item.type === "service" ? t('service') : t('product')}
                             </Badge>
                             {stockPill(item)}
                           </div>
                         </div>
-                        <p className="text-emerald-400 font-bold text-lg lg:text-xl xl:text-2xl">${(item.price || 0).toFixed(2)}</p>
+                        <p className="text-emerald-400 font-black text-2xl tracking-tighter shadow-sm">${(item.price || 0).toFixed(2)}</p>
                       </div>
                     </div>
                   ))}
@@ -1467,6 +1482,7 @@ export default function Dashboard() {
               )}
             </CardContent>
           </Card>
+
 
           {/* === WIDGETS (SOLO DESKTOP) === */}
           <div className="hidden md:grid w-full grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8 xl:gap-10">

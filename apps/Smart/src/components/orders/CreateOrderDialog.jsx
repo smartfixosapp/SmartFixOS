@@ -26,6 +26,7 @@ import { Plus, X, AlertCircle, Search, User as UserIcon } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import LockPatternDrawer from "./LockPatternDrawer";
 import { upsertLocalOrder } from "@/components/utils/localOrderCache";
+import UniversalPrintDialog from "../printing/UniversalPrintDialog";
 
 const COMMON_DEVICES = [
   "iPhone 15 Pro Max",
@@ -65,6 +66,8 @@ export default function CreateOrderDialog({ open, onClose, onOrderCreated }) {
   const [error, setError] = useState(null);
   const [patternImage, setPatternImage] = useState(null);
   const [currentUser, setCurrentUser] = useState(null); // Added for employee tracking
+  const [showPrintDialog, setShowPrintDialog] = useState(false);
+  const [printData, setPrintData] = useState(null);
   
   const [formData, setFormData] = useState({
     customer_id: "",
@@ -317,7 +320,10 @@ export default function CreateOrderDialog({ open, onClose, onOrderCreated }) {
       });
       upsertLocalOrder(createdOrder);
 
-      onOrderCreated();
+      setPrintData(createdOrder);
+      setShowPrintDialog(true);
+      
+      onOrderCreated(); // Note: This might close the dialog, let's see how onOrderCreated is used
     } catch (err) {
       setError(err.message);
     }
@@ -737,6 +743,29 @@ export default function CreateOrderDialog({ open, onClose, onOrderCreated }) {
           )}
         </div>
       </DialogContent>
+
+      {showPrintDialog && printData && (
+        <UniversalPrintDialog
+          open={showPrintDialog}
+          onClose={() => {
+            setShowPrintDialog(false);
+            onClose(); // Close the creation dialog after printing
+          }}
+          type="order"
+          data={{
+            ...printData,
+            order_items: [
+              ...(printData.repair_tasks || []).map(t => ({ name: t.description, price: t.cost, qty: 1 })),
+              ...(printData.parts_needed || []).map(p => ({ name: p.name, price: p.price, qty: 1 }))
+            ]
+          }}
+          customer={{
+            name: printData.customer_name,
+            phone: printData.customer_phone,
+            email: printData.customer_email
+          }}
+        />
+      )}
     </Dialog>
   );
 }

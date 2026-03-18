@@ -89,8 +89,8 @@ function FinancialOverviewWidgetBase({ compact = false, onClick }) {
         safeList(dataClient.entities.Transaction, 500),
         safeList(dataClient.entities.FixedExpense, 100)
       ]);
-      const localFixed = readLocalFixedExpenses();
-      const mergedFixed = [...(fixedData || []), ...localFixed];
+      const localFixed = await readLocalFixedExpenses();
+      const mergedFixed = [...(fixedData || []), ...(Array.isArray(localFixed) ? localFixed : [])];
       const dedupedFixed = mergedFixed.filter((item, idx, arr) => {
         const id = String(item?.id || item?._id || "");
         if (id) return arr.findIndex((x) => String(x?.id || x?._id || "") === id) === idx;
@@ -243,113 +243,113 @@ function FinancialOverviewWidgetBase({ compact = false, onClick }) {
     <button
       type="button"
       onClick={onClick}
-      className={`w-full text-left rounded-[32px] border transition-all duration-500 group overflow-hidden relative shadow-2xl ${
+      className={`w-full text-left rounded-[40px] border transition-all duration-700 group overflow-hidden relative shadow-[0_32_80px_rgba(0,0,0,0.4)] ${
         compact
-          ? "bg-zinc-900/40 backdrop-blur-3xl border-white/10 p-5"
-          : "bg-zinc-900/40 backdrop-blur-3xl border-white/10 p-6 lg:p-8"
+          ? "bg-[#121215]/40 backdrop-blur-[40px] border-white/10 p-6"
+          : "bg-[#121215]/40 backdrop-blur-[40px] border-white/10 p-8 lg:p-10"
       }`}
     >
-      {/* Background Effects */}
-      <div className="absolute inset-0 bg-gradient-to-br from-blue-500/10 via-purple-500/5 to-emerald-500/10 pointer-events-none" />
-      <div className="absolute -right-20 -top-20 w-64 h-64 bg-blue-500/10 rounded-full blur-[100px] group-hover:bg-blue-500/20 transition-all duration-1000" />
-      <div className="absolute -left-20 -bottom-20 w-64 h-64 bg-emerald-500/10 rounded-full blur-[100px] group-hover:bg-emerald-500/20 transition-all duration-1000" />
+      {/* Background Effects - More subtle and deep */}
+      <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 via-transparent to-emerald-500/5 pointer-events-none" />
+      <div className="absolute -right-32 -top-32 w-96 h-96 bg-blue-600/10 rounded-full blur-[120px] group-hover:bg-blue-600/20 transition-all duration-1000" />
+      <div className="absolute -left-32 -bottom-32 w-96 h-96 bg-emerald-600/10 rounded-full blur-[120px] group-hover:bg-emerald-600/20 transition-all duration-1000" />
       
-      <div className="relative z-10 flex items-center justify-between mb-8">
-        <div className="flex items-center gap-4">
-          <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-blue-500 via-indigo-500 to-purple-600 flex items-center justify-center shadow-2xl shadow-blue-500/40 group-hover:scale-110 group-hover:rotate-3 transition-all duration-500">
-            <TrendingUp className="w-7 h-7 text-white" />
+      <div className="relative z-10 flex items-center justify-between mb-10">
+        <div className="flex items-center gap-5">
+          <div className="w-16 h-16 rounded-[24px] bg-gradient-to-br from-blue-500 via-indigo-600 to-violet-700 flex items-center justify-center shadow-[0_12px_24px_rgba(37,99,235,0.3)] group-hover:scale-110 group-hover:rotate-6 transition-all duration-700">
+            <TrendingUp className="w-8 h-8 text-white" />
           </div>
           <div>
             <div className="flex items-center gap-2">
-              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-              <p className="text-[10px] uppercase tracking-[0.2em] font-black text-white/40">Smart Analytics</p>
+              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse shadow-[0_0_8px_rgba(16,185,129,0.8)]" />
+              <p className="text-[10px] uppercase tracking-[0.3em] font-black text-white/30">Smart Analytics</p>
             </div>
-            <p className="text-2xl font-black text-white tracking-tight leading-none mt-1">Resumen de hoy</p>
+            <p className="text-3xl font-black text-white tracking-tighter leading-none mt-1 uppercase">Resumen de hoy</p>
           </div>
         </div>
-        <div className="w-12 h-12 rounded-full bg-white/5 border border-white/10 flex items-center justify-center group-hover:bg-white/10 group-hover:border-white/20 transition-all duration-300">
-          <ChevronRight className="w-6 h-6 text-white group-hover:translate-x-1 transition-all" />
+        <div className="w-14 h-14 rounded-full bg-white/5 border border-white/10 flex items-center justify-center group-hover:bg-white/10 group-hover:border-white/20 transition-all duration-500 group-hover:scale-110">
+          <ChevronRight className="w-7 h-7 text-white/50 group-hover:text-white group-hover:translate-x-1 transition-all" />
         </div>
       </div>
 
       {loading ? (
-        <div className="flex flex-col items-center justify-center py-12 space-y-4">
-          <Loader2 className="w-8 h-8 animate-spin text-blue-400" />
-          <p className="text-xs font-bold text-white/40 uppercase tracking-widest">Sincronizando caja...</p>
+        <div className="flex flex-col items-center justify-center py-16 space-y-6">
+          <Loader2 className="w-10 h-10 animate-spin text-blue-500" />
+          <p className="text-[10px] font-black text-white/20 uppercase tracking-[0.3em]">Sincronizando analytics...</p>
         </div>
       ) : (
-        <div className="relative z-10 space-y-6">
+        <div className="relative z-10 space-y-8">
           {/* Main Stats Grid */}
-          <div className={`grid grid-cols-2 ${compact ? "gap-3" : "gap-4"}`}>
-            <div className="relative rounded-[24px] bg-white/5 border border-white/5 p-5 group/card transition-all duration-500 hover:bg-white/10 overflow-hidden">
-               <div className="absolute top-0 right-0 p-3 opacity-20 group-hover/card:scale-110 transition-transform">
-                <DollarSign className="w-8 h-8 text-emerald-400" />
+          <div className={`grid grid-cols-2 ${compact ? "gap-4" : "gap-6"}`}>
+            <div className="relative rounded-[32px] bg-white/5 border border-white/5 p-6 group/card transition-all duration-700 hover:bg-white/10 overflow-hidden shadow-inner">
+               <div className="absolute top-0 right-0 p-4 opacity-10 group-hover/card:scale-125 transition-transform duration-700">
+                <DollarSign className="w-12 h-12 text-emerald-400" />
               </div>
-              <p className="text-[10px] text-white/40 uppercase tracking-widest font-black mb-1">Entradas</p>
-              <p className="text-3xl font-black text-emerald-400 tracking-tight">${summary.todayRevenue.toFixed(2)}</p>
-              <div className="mt-2 flex items-center gap-1.5">
-                <div className="h-1 flex-1 bg-white/10 rounded-full overflow-hidden">
-                  <div className="h-full bg-emerald-500 w-[70%]" />
+              <p className="text-[10px] text-white/30 uppercase tracking-[0.2em] font-black mb-2">Entradas</p>
+              <p className="text-4xl font-black text-emerald-400 tracking-tighter">${summary.todayRevenue.toFixed(2)}</p>
+              <div className="mt-4 flex items-center gap-1.5">
+                <div className="h-1.5 flex-1 bg-white/5 rounded-full overflow-hidden shadow-inner font-black">
+                  <div className="h-full bg-gradient-to-r from-emerald-500 to-teal-400 w-[75%] rounded-full shadow-[0_0_12px_rgba(16,185,129,0.4)]" />
                 </div>
               </div>
             </div>
 
-            <div className="relative rounded-[24px] bg-white/5 border border-white/5 p-5 group/card transition-all duration-500 hover:bg-white/10 overflow-hidden">
-              <div className="absolute top-0 right-0 p-3 opacity-20 group-hover/card:scale-110 transition-transform">
-                <TrendingUp className="w-8 h-8 text-blue-400" />
+            <div className="relative rounded-[32px] bg-white/5 border border-white/5 p-6 group/card transition-all duration-700 hover:bg-white/10 overflow-hidden shadow-inner">
+              <div className="absolute top-0 right-0 p-4 opacity-10 group-hover/card:scale-125 transition-transform duration-700">
+                <TrendingUp className="w-12 h-12 text-blue-400" />
               </div>
-              <p className="text-[10px] text-white/40 uppercase tracking-widest font-black mb-1">Ganancia Real</p>
-              <p className="text-3xl font-black text-blue-400 tracking-tight">${summary.todayProfit.toFixed(2)}</p>
-              <div className="mt-2 flex items-center gap-1.5">
-                <div className="h-1 flex-1 bg-white/10 rounded-full overflow-hidden">
-                  <div className="h-full bg-blue-500 w-[45%]" />
+              <p className="text-[10px] text-white/30 uppercase tracking-[0.2em] font-black mb-2">Ganancia Real</p>
+              <p className="text-4xl font-black text-blue-400 tracking-tighter">${summary.todayProfit.toFixed(2)}</p>
+              <div className="mt-4 flex items-center gap-1.5">
+                <div className="h-1.5 flex-1 bg-white/5 rounded-full overflow-hidden shadow-inner">
+                  <div className="h-full bg-gradient-to-r from-blue-500 to-indigo-400 w-[50%] rounded-full shadow-[0_0_12px_rgba(59,130,246,0.4)]" />
                 </div>
               </div>
             </div>
           </div>
 
           {/* Transactions List */}
-          <div className="rounded-[28px] bg-black/40 border border-white/5 p-5 backdrop-blur-xl">
-            <div className="flex items-center justify-between mb-5 px-1">
-              <p className="text-xs font-black text-white/80 uppercase tracking-[0.15em] flex items-center gap-2">
+          <div className="rounded-[32px] bg-black/30 border border-white/5 p-6 backdrop-blur-3xl shadow-2xl">
+            <div className="flex items-center justify-between mb-6 px-1">
+              <p className="text-xs font-black text-white/60 uppercase tracking-[0.2em] flex items-center gap-2">
                 <CalendarClock className="w-4 h-4 text-blue-400" />
                 Transacciones Recientes
               </p>
-              <div className="px-3 py-1 rounded-full bg-blue-500/10 border border-blue-500/20">
-                <p className="text-[10px] font-black text-blue-400 uppercase tracking-wider">Hoy</p>
+              <div className="px-4 py-1.5 rounded-full bg-blue-500/10 border border-blue-500/20 shadow-inner">
+                <p className="text-[10px] font-black text-blue-400 uppercase tracking-widest">Hoy</p>
               </div>
             </div>
 
             {summary.recentTransactions.length === 0 ? (
-              <div className="text-center py-8">
-                <div className="w-12 h-12 rounded-full bg-white/5 flex items-center justify-center mx-auto mb-3">
-                  <DollarSign className="w-6 h-6 text-white/20" />
+              <div className="text-center py-12">
+                <div className="w-16 h-16 rounded-full bg-white/5 flex items-center justify-center mx-auto mb-4 border border-white/5 shadow-inner">
+                  <DollarSign className="w-8 h-8 text-white/10" />
                 </div>
-                <p className="text-sm font-bold text-white/30">Sin transacciones registradas hoy</p>
+                <p className="text-sm font-black text-white/20 uppercase tracking-widest">Sin actividad hoy</p>
               </div>
             ) : (
-              <div className="space-y-3">
+              <div className="space-y-4">
                 {summary.recentTransactions.map((t) => (
-                  <div key={t.id} className="group/item flex items-center justify-between bg-white/5 p-3 rounded-2xl hover:bg-white/10 border border-transparent hover:border-white/5 transition-all duration-300">
-                    <div className="flex items-center gap-3 min-w-0">
-                      <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${
-                        t.type === 'revenue' ? "bg-emerald-500/10 text-emerald-400" : "bg-red-500/10 text-red-400"
+                  <div key={t.id} className="group/item flex items-center justify-between bg-white/5 p-4 rounded-2xl hover:bg-white/10 border border-transparent hover:border-white/10 transition-all duration-500 shadow-sm">
+                    <div className="flex items-center gap-4 min-w-0">
+                      <div className={`w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 shadow-lg ${
+                        t.type === 'revenue' ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20" : "bg-red-500/10 text-red-400 border border-red-500/20"
                       }`}>
-                        {t.payment_method === 'cash' ? <Banknote className="w-5 h-5" /> : 
-                         t.payment_method === 'ath_movil' ? <Smartphone className="w-5 h-5" /> : 
-                         <CreditCard className="w-5 h-5" />}
+                        {t.payment_method === 'cash' ? <Banknote className="w-6 h-6 border-black" /> : 
+                         t.payment_method === 'ath_movil' ? <Smartphone className="w-6 h-6" /> : 
+                         <CreditCard className="w-6 h-6" />}
                       </div>
                       <div className="min-w-0">
-                        <p className="text-sm font-bold text-white tracking-tight truncate group-hover/item:text-blue-400 transition-colors">
+                        <p className="text-base font-black text-white tracking-tight truncate group-hover/item:text-blue-400 transition-colors duration-500 uppercase">
                           {t.description || "Transacción"}
                         </p>
-                        <p className="text-[10px] font-bold text-white/40 uppercase tracking-widest mt-0.5">
+                        <p className="text-[10px] font-black text-white/30 uppercase tracking-[0.2em] mt-1">
                           {format(new Date(getEntityDate(t)), "h:mm a", { locale: es })} • {t.payment_method}
                         </p>
                       </div>
                     </div>
                     <div className="text-right pl-4">
-                      <p className={`text-base font-black tracking-tight ${
+                      <p className={`text-lg font-black tracking-tighter ${
                         t.type === 'revenue' ? "text-emerald-400" : "text-red-400"
                       }`}>
                         {t.type === 'revenue' ? '+' : '-'}${toMoney(t.amount).toFixed(2)}
@@ -361,18 +361,19 @@ function FinancialOverviewWidgetBase({ compact = false, onClick }) {
             )}
           </div>
 
-          <div className="flex items-center justify-between px-2">
-            <div className="flex items-center gap-2">
-              <PiggyBank className="w-4 h-4 text-emerald-400" />
-              <p className="text-xs font-bold text-white/40 uppercase tracking-widest">Reserva: <span className="text-white">${summary.todaySetAside.toFixed(2)}</span></p>
+          <div className="flex items-center justify-between px-3">
+            <div className="flex items-center gap-3">
+              <PiggyBank className="w-5 h-5 text-emerald-400" />
+              <p className="text-[10px] font-black text-white/30 uppercase tracking-[0.2em]">Reserva: <span className="text-white ml-2 text-xs">${summary.todaySetAside.toFixed(2)}</span></p>
             </div>
-            <p className="text-xs font-black text-blue-400 bg-blue-500/10 px-4 py-2 rounded-xl border border-blue-500/20 uppercase tracking-widest group-hover:bg-blue-500/20 transition-all">
-              Ver Detalles Finanzas
+            <p className="text-[11px] font-black text-blue-400 bg-blue-500/10 px-6 py-2.5 rounded-full border border-blue-500/20 uppercase tracking-[0.2em] group-hover:bg-blue-500/20 shadow-inner transition-all duration-500">
+              Ver Analytics
             </p>
           </div>
         </div>
       )}
     </button>
+
   );
 }
 

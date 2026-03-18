@@ -237,7 +237,7 @@ export default function Layout({ children }) {
       >
       {/* Overlay para mejorar legibilidad - SOLO SI NO ES PINACCESS */}
       {!isPinAccess && (
-        <div className={`fixed inset-0 -z-10 ${theme === "light" ? "bg-[#F5F5F5]/95" : "bg-black/70"} backdrop-blur-sm`} />
+        <div className={`fixed inset-0 -z-10 ${theme === "light" ? "bg-[#F8F9FA]/92" : "bg-gradient-to-b from-black/40 via-black/80 to-black/95"} backdrop-blur-[8px]`} />
       )}
 
       <Toaster

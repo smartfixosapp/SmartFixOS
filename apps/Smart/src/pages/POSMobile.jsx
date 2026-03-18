@@ -4,11 +4,14 @@ import { supabase } from "../../../../lib/supabase-client.js";
 import { useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { ShoppingCart, Search, Plus, Minus, Trash2, User, AlertCircle, X, Loader2, Zap } from "lucide-react";
+import { ShoppingCart, Search, Plus, Minus, Trash2, User, AlertCircle, X, Loader2, Zap, LayoutGrid } from "lucide-react";
 import { toast } from "sonner";
 import { createPageUrl } from "@/components/utils/helpers";
 import { calculateDiscountedPrice } from "@/components/inventory/DiscountBadge";
 import { motion } from "framer-motion";
+
+// Helper for joining class names
+const cn = (...classes) => classes.filter(Boolean).join(" ");
 import CustomerSelector from "../components/pos/CustomerSelector";
 import CheckoutModalMobile from "../components/pos/CheckoutModalMobile";
 import RechargeDialog from "../components/pos/RechargeDialog";
@@ -701,48 +704,58 @@ export default function POSMobile() {
   return (
     <div className="h-screen bg-black flex flex-col overflow-hidden">
       <div
-        className="flex-shrink-0 bg-gradient-to-b from-[#0a0a0a] to-black/50 px-4 pb-3 border-b border-white/5 z-20"
-        style={{ paddingTop: "calc(env(safe-area-inset-top, 0px) + 10px)" }}
+        className="flex-shrink-0 bg-gradient-to-b from-[#0D0D0F] to-black/80 px-4 pb-4 border-b border-white/[0.05] z-20 backdrop-blur-xl"
+        style={{ paddingTop: "calc(env(safe-area-inset-top, 0px) + 16px)" }}
       >
-        <div className="flex items-center justify-between mb-3">
+        <div className="flex items-center justify-between mb-5">
           <div>
-            <h1 className="text-2xl font-bold text-white">POS</h1>
+            <h1 className="text-3xl font-black text-white tracking-tighter uppercase">POS</h1>
             {selectedOrder && (
-              <div className="text-xs text-gray-400 mt-1">
-                Orden: <span className="text-cyan-400 font-bold">{selectedOrder.order_number}</span>
+              <div className="inline-flex items-center px-2 py-0.5 bg-cyan-500/10 border border-cyan-500/30 rounded-full mt-1.5">
+                <span className="text-[9px] font-black text-cyan-400 uppercase tracking-widest">{selectedOrder.order_number}</span>
               </div>
             )}
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2.5">
             {(selectedCustomer || selectedOrder?.customer_name) && (
-              <div className="flex items-center gap-2 px-3 py-2 bg-blue-500/10 rounded-xl border border-blue-500/30">
-                <User className="w-4 h-4 text-blue-400" />
-                <span className="text-xs font-medium text-blue-400 truncate max-w-[150px]">{selectedCustomer?.name || selectedOrder?.customer_name}</span>
+              <div className="flex items-center gap-2 px-3 py-2 bg-blue-500/10 rounded-2xl border border-blue-500/30 max-w-[140px]">
+                <User className="w-3.5 h-3.5 text-blue-400" />
+                <span className="text-[10px] font-black text-blue-400 truncate uppercase tracking-tight">{selectedCustomer?.name || selectedOrder?.customer_name}</span>
               </div>
             )}
             <button
               onClick={() => setShowRechargeDialog(true)}
-              className="p-2 rounded-lg bg-cyan-500/10 border border-cyan-500/30 text-cyan-400 hover:bg-cyan-500/20 transition-colors"
+              className="w-10 h-10 rounded-2xl bg-cyan-500/10 border border-cyan-500/30 text-cyan-400 flex items-center justify-center active:scale-90 transition-all shadow-lg shadow-cyan-500/10"
             >
               <Zap className="w-4 h-4" />
             </button>
             <button
               onClick={() => setShowCustomerSelector(true)}
-              className="p-2 rounded-lg bg-blue-500/10 border border-blue-500/30 text-blue-400 hover:bg-blue-500/20 transition-colors"
+              className="w-10 h-10 rounded-2xl bg-white/5 border border-white/10 text-white/40 flex items-center justify-center active:scale-90 transition-all"
             >
               <User className="w-4 h-4" />
             </button>
           </div>
         </div>
 
-        <div className="relative mb-3">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
-          <Input
+        <div className="relative group/search mb-4">
+          <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+            <Search className="h-4 w-4 text-white/20 group-focus-within/search:text-cyan-400 transition-colors" />
+          </div>
+          <input
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Buscar..."
-            className="pl-10 h-10 bg-white/5 border-white/10 text-white text-sm rounded-lg"
+            className="bg-[#121215]/40 text-white pr-10 pl-10 py-4 text-sm rounded-2xl block w-full border border-white/10 placeholder-white/20 focus:outline-none focus:ring-4 focus:ring-cyan-500/10 focus:border-cyan-500/40 focus:bg-[#121215]/80 transition-all duration-300 backdrop-blur-2xl shadow-[inset_0_2px_10px_rgba(0,0,0,0.1)]" 
           />
+          {searchQuery && (
+            <button
+              onClick={() => setSearchQuery("")}
+              className="absolute right-3 top-1/2 -translate-y-1/2 w-6 h-6 rounded-full bg-white/5 text-white/40 flex items-center justify-center active:scale-95"
+            >
+              <X className="w-3 h-3" />
+            </button>
+          )}
         </div>
 
         <div className="flex gap-2 overflow-x-auto no-scrollbar">
@@ -752,19 +765,23 @@ export default function POSMobile() {
             { id: "devices", label: "Dispositivos" },
             { id: "offers", label: "Ofertas" },
             { id: "services", label: "Servicios" }
-          ].map(tab => (
-            <button
-              key={tab.id}
-              onClick={() => setActiveTab(tab.id)}
-              className={`px-3 py-2 rounded-lg text-xs font-medium whitespace-nowrap transition-all ${
-                activeTab === tab.id
-                  ? "bg-cyan-500/20 text-cyan-400 border border-cyan-500/50"
-                  : "bg-white/5 text-gray-400 border border-white/10 hover:bg-white/10"
-              }`}
-            >
-              {tab.label}
-            </button>
-          ))}
+          ].map(tab => {
+            const isActive = activeTab === tab.id;
+            return (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id)}
+                className={cn(
+                  "px-4 py-2 rounded-full text-[10px] font-black uppercase tracking-widest transition-all duration-300 whitespace-nowrap border",
+                  isActive
+                    ? "bg-gradient-to-r from-blue-600 to-cyan-500 text-white border-transparent shadow-lg shadow-cyan-500/20 scale-105"
+                    : "bg-white/5 text-white/40 border-white/5"
+                )}
+              >
+                {tab.label}
+              </button>
+            );
+          })}
         </div>
       </div>
 
@@ -780,36 +797,55 @@ export default function POSMobile() {
               <p className="text-sm">No hay resultados</p>
             </div>
           ) : (
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-2 gap-4">
               {filteredItems.map((item) => {
                 const finalPrice = toCurrencyNumber(item._type === "product" ? calculateDiscountedPrice(item) : item.price);
                 const cartQty = safeCart.find(c => c.id === item.id)?.quantity || 0;
                 const isOutOfStock = item._type === 'product' && item.stock <= 0;
+                const isService = item._type === 'service';
 
                 return (
                   <motion.button
                     key={item.id}
                     onClick={() => !isOutOfStock && addToCart(item, item._type)}
-                    whileTap={{ scale: 0.95 }}
-                    className={`relative bg-[#0a0a0a] rounded-xl p-3 border transition-all ${
+                    whileTap={{ scale: 0.96 }}
+                    className={cn(
+                      "group relative overflow-hidden rounded-[24px] p-4 text-left transition-all duration-300 border",
                       cartQty > 0 
-                        ? "ring-2 ring-cyan-500 border-cyan-500/50" 
-                        : "border-white/10 hover:border-white/20"
-                    } ${isOutOfStock ? "opacity-50 grayscale" : ""}`}
-                    disabled={isOutOfStock}
+                        ? "bg-cyan-500/10 border-cyan-500/40 shadow-lg shadow-cyan-500/10" 
+                        : "bg-[#0D0D0F]/60 backdrop-blur-xl border-white/[0.08] active:bg-[#121215]/80",
+                      isOutOfStock && "opacity-40 grayscale pointer-events-none"
+                    )}
                   >
-                    <div className="text-left space-y-2">
-                      <h3 className="text-xs font-semibold text-white line-clamp-2 leading-tight">{item.name}</h3>
-                      <div className="flex items-center justify-between">
-                        <span className="text-sm font-bold text-cyan-400">${finalPrice.toFixed(2)}</span>
+                    <div className="relative z-10 flex flex-col h-full justify-between gap-3">
+                      <div>
+                        <div className={cn(
+                          "w-9 h-9 rounded-xl flex items-center justify-center mb-3",
+                          isService ? "bg-purple-500/20 text-purple-400" : "bg-blue-500/20 text-blue-400"
+                        )}>
+                           {isService ? <LayoutGrid className="w-4 h-4" /> : <ShoppingCart className="w-4 h-4" />}
+                        </div>
+                        <h3 className="text-[12px] font-black text-white leading-tight line-clamp-2 uppercase tracking-tight opacity-90">
+                          {item.name}
+                        </h3>
+                      </div>
+
+                      <div className="flex items-center justify-between mt-1">
+                        <span className="text-[14px] font-black text-white tracking-tighter">
+                          ${finalPrice.toFixed(2)}
+                        </span>
+
                         {cartQty > 0 && (
-                          <span className="text-xs font-bold px-2 py-1 bg-cyan-500 text-white rounded-full">{cartQty}</span>
+                          <div className="h-6 w-6 rounded-full bg-cyan-500 text-white flex items-center justify-center text-[10px] font-black">
+                            {cartQty}
+                          </div>
                         )}
                       </div>
                     </div>
+
                     {isOutOfStock && (
-                      <div className="absolute inset-0 rounded-xl bg-black/60 flex items-center justify-center">
-                        <span className="text-xs font-bold text-red-400">AGOTADO</span>
+                      <div className="absolute inset-0 rounded-[24px] bg-black/40 backdrop-blur-[1px] flex items-center justify-center rotate-[-10deg]">
+                        <span className="text-[9px] font-black text-white bg-red-600 px-2 py-0.5 rounded-full">AGOTADO</span>
                       </div>
                     )}
                   </motion.button>
@@ -819,46 +855,49 @@ export default function POSMobile() {
           )}
         </div>
 
-        <div className="flex-shrink-0 bg-[#0a0a0a] border-t border-white/5 px-4 py-3 space-y-3">
-          <div className="space-y-1 text-sm">
-            <div className="flex justify-between text-gray-400">
-              <span>Subtotal</span>
-              <span className="text-white font-bold">${subtotal.toFixed(2)}</span>
+        <div className="flex-shrink-0 bg-[#0D0D0F]/80 backdrop-blur-3xl border-t border-white/[0.05] px-6 py-6 rounded-t-[32px] space-y-5 shadow-[0_-20px_40px_rgba(0,0,0,0.4)]">
+          <div className="space-y-2">
+            <div className="flex justify-between items-center px-1">
+              <span className="text-[10px] font-black text-white/30 uppercase tracking-[0.2em]">Subtotal</span>
+              <span className="text-[13px] font-black text-white/70 tracking-tight">${subtotal.toFixed(2)}</span>
             </div>
-            <div className="flex justify-between text-gray-400">
-              <span>IVU (11.5%)</span>
-              <span className="text-white font-bold">${tax.toFixed(2)}</span>
+            <div className="flex justify-between items-center px-1">
+              <span className="text-[10px] font-black text-white/30 uppercase tracking-[0.2em]">IVU (11.5%)</span>
+              <span className="text-[13px] font-black text-white/70 tracking-tight">${tax.toFixed(2)}</span>
             </div>
-            <div className="h-px bg-white/10 my-2"></div>
-            <div className="flex justify-between text-lg font-bold text-cyan-400">
-              <span>Total</span>
-              <span>${total.toFixed(2)}</span>
+            <div className="flex justify-between items-end pt-3 mt-1 border-t border-white/[0.05]">
+              <span className="text-[11px] font-black text-cyan-400 uppercase tracking-[0.3em]">Total</span>
+              <span className="text-3xl font-black text-white tracking-tighter">${total.toFixed(2)}</span>
             </div>
           </div>
 
-          <Button
-            onClick={() => {
-              if (safeCart.length === 0) {
-                toast.error("Agrega items al carrito");
-                return;
-              }
-              setShowPaymentModal(true);
-            }}
-            disabled={safeCart.length === 0}
-            className="w-full h-12 bg-cyan-600 hover:bg-cyan-700 font-bold rounded-lg"
-          >
-            <ShoppingCart className="w-4 h-4 mr-2" />
-            Cobrar ${total.toFixed(2)}
-          </Button>
-
-          {safeCart.length > 0 && (
-            <button
-              onClick={clearCart}
-              className="w-full py-2 text-xs font-medium text-red-400 hover:text-red-300 transition-colors"
+          <div className="flex flex-col gap-3">
+            <Button
+              onClick={() => {
+                if (safeCart.length === 0) {
+                  toast.error("Agrega items al carrito");
+                  return;
+                }
+                setShowPaymentModal(true);
+              }}
+              disabled={safeCart.length === 0}
+              className="w-full h-16 bg-gradient-to-r from-blue-600 to-cyan-500 hover:opacity-90 active:scale-95 transition-all duration-300 shadow-[0_15px_30px_rgba(6,182,212,0.3)] disabled:opacity-30 disabled:grayscale rounded-[20px]"
             >
-              Vaciar carrito
-            </button>
-          )}
+              <div className="flex items-center justify-center gap-3">
+                <ShoppingCart className="w-5 h-5 text-white" />
+                <span className="text-sm font-black text-white uppercase tracking-[0.2em]">Pagar Ahora</span>
+              </div>
+            </Button>
+
+            {safeCart.length > 0 && (
+              <button
+                onClick={clearCart}
+                className="w-full py-1 text-[9px] font-black text-red-400/40 hover:text-red-400 uppercase tracking-[0.3em] transition-all"
+              >
+                Vaciar Carrito
+              </button>
+            )}
+          </div>
         </div>
       </div>
 

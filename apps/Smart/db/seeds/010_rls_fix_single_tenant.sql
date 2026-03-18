@@ -229,6 +229,12 @@ CREATE POLICY "time_entry_anon" ON "public"."time_entry"
   WITH CHECK (tenant_id IS NULL);
 
 -- ─── employee_payment ───────────────────────────────────────────
+DROP POLICY IF EXISTS "employee_payment_tenant" ON "public"."employee_payment";
+CREATE POLICY "employee_payment_tenant" ON "public"."employee_payment"
+  FOR ALL TO authenticated
+  USING (tenant_id = get_my_tenant_id() OR tenant_id IS NULL)
+  WITH CHECK (tenant_id = get_my_tenant_id() OR tenant_id IS NULL);
+
 DROP POLICY IF EXISTS "employee_payment_anon" ON "public"."employee_payment";
 CREATE POLICY "employee_payment_anon" ON "public"."employee_payment"
   FOR ALL TO anon
@@ -236,6 +242,12 @@ CREATE POLICY "employee_payment_anon" ON "public"."employee_payment"
   WITH CHECK (tenant_id IS NULL);
 
 -- ─── discount_code ──────────────────────────────────────────────
+DROP POLICY IF EXISTS "discount_code_tenant" ON "public"."discount_code";
+CREATE POLICY "discount_code_tenant" ON "public"."discount_code"
+  FOR ALL TO authenticated
+  USING (tenant_id = get_my_tenant_id() OR tenant_id IS NULL)
+  WITH CHECK (tenant_id = get_my_tenant_id() OR tenant_id IS NULL);
+
 DROP POLICY IF EXISTS "discount_code_anon" ON "public"."discount_code";
 CREATE POLICY "discount_code_anon" ON "public"."discount_code"
   FOR ALL TO anon

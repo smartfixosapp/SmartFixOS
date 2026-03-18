@@ -72,70 +72,78 @@ export default function ModernTopNav() {
   }, [location.pathname]);
 
   return (
-    <div className="px-4 py-2">
-        <div className="relative bg-[#1c1c1e]/80 backdrop-blur-2xl border border-white/5 rounded-full h-14 shadow-2xl flex items-center justify-between px-4 max-w-sm mx-auto">
+    <div className="px-4 py-3 sm:py-4">
+      <div className="relative bg-[#0D0D0F]/65 backdrop-blur-[32px] border border-white/10 rounded-full h-15 shadow-[0_22px_70px_rgba(0,0,0,0.6)] flex items-center justify-between px-2 sm:px-4 max-w-sm mx-auto transition-all duration-500 hover:border-white/20 hover:bg-[#0D0D0F]/80">
+        
+        {/* Glass Glow Effect */}
+        <div className="absolute inset-0 rounded-full bg-gradient-to-b from-white/[0.08] to-transparent pointer-events-none" />
 
-          {navItems.map((item) => {
-            const isActive = activeTab === item.id;
-            
-            return (
-              <button
-                key={item.id}
-                onClick={() => hardNavigate(item.path)}
-                className={cn(
-                  "relative flex flex-col items-center justify-center w-14 h-14 transition-all duration-300 z-10"
-                )}
-              >
-                {/* Active Indicator Background */}
-                {isActive && !item.isCenter && (
-                  <motion.div
-                    layoutId="nav-active"
-                    className="absolute inset-0 bg-white/5 rounded-xl -z-10"
-                    transition={{ type: "spring", stiffness: 300, damping: 30 }}
+        {navItems.map((item) => {
+          const isActive = activeTab === item.id;
+          
+          return (
+            <button
+              key={item.id}
+              onClick={() => hardNavigate(item.path)}
+              className={cn(
+                "relative flex flex-col items-center justify-center w-14 h-14 transition-all duration-500 z-10 group"
+              )}
+            >
+              {/* Active Indicator Background - Premium Glass */}
+              {isActive && !item.isCenter && (
+                <motion.div
+                  layoutId="nav-active"
+                  className="absolute inset-2 bg-gradient-to-b from-white/[0.12] to-white/[0.02] border border-white/10 rounded-2xl -z-10 shadow-inner"
+                  transition={{ type: "spring", stiffness: 350, damping: 35 }}
+                />
+              )}
+
+              {/* Center Button Special Style - Apple Style */}
+              {item.isCenter ? (
+                <div className={cn(
+                  "w-11 h-11 rounded-full flex items-center justify-center shadow-[0_10px_30px_rgba(0,0,0,0.4)] transition-all duration-500",
+                  isActive 
+                    ? "bg-gradient-to-br from-blue-500 to-indigo-600 text-white shadow-blue-500/30 scale-105" 
+                    : "bg-white/[0.03] border border-white/10 text-slate-400 hover:text-white hover:bg-white/[0.08] hover:scale-105"
+                )}>
+                  <item.icon 
+                    className={cn(
+                      "w-5 h-5 transition-transform duration-500",
+                      isActive ? "text-white rotate-0" : "text-slate-400 -rotate-3 group-hover:rotate-0"
+                    )} 
+                    strokeWidth={isActive ? 2.5 : 2}
                   />
-                )}
-
-                {/* Center Button Special Style - Apple Style */}
-                {item.isCenter ? (
-                  <div className={cn(
-                    "w-10 h-10 rounded-full flex items-center justify-center shadow-lg transition-all duration-300",
-                    isActive 
-                      ? "bg-blue-600 text-white shadow-blue-500/25" 
-                      : "bg-transparent text-slate-400 hover:text-slate-200"
-                  )}>
+                </div>
+              ) : (
+                <div className="flex flex-col items-center gap-1 transition-transform duration-300 group-active:scale-90">
+                  <div className="relative">
                     <item.icon 
                       className={cn(
-                        "w-5 h-5 transition-colors",
-                        isActive ? "text-white" : "text-slate-400"
-                      )} 
-                      strokeWidth={3}
-                    />
-                  </div>
-                ) : (
-                  <div className="flex flex-col items-center gap-1">
-                    <item.icon 
-                      className={cn(
-                        "w-6 h-6 transition-all duration-300",
-                        isActive ? item.color : "text-slate-500 group-hover:text-slate-300",
-                        isActive && "scale-110"
+                        "w-6 h-6 transition-all duration-500",
+                        isActive ? item.color : "text-white/40 group-hover:text-white/80",
+                        isActive && "drop-shadow-[0_0_12px_rgba(255,255,255,0.3)]"
                       )} 
                       strokeWidth={isActive ? 2.5 : 2}
                     />
                     {isActive && (
-                      <motion.span
-                        initial={{ opacity: 0, y: 5 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        className={cn("text-[10px] font-bold", item.color)}
-                      >
-                        {item.label}
-                      </motion.span>
+                      <motion.div 
+                        layoutId="active-dot"
+                        className={cn("absolute -top-1 -right-1 w-1.5 h-1.5 rounded-full blur-[1px]", item.color.replace('text-', 'bg-'))} 
+                      />
                     )}
                   </div>
-                )}
-              </button>
-            );
-          })}
-        </div>
+                  <span className={cn(
+                    "text-[9px] font-bold tracking-tight transition-all duration-500",
+                    isActive ? item.color : "text-white/20 group-hover:text-white/40"
+                  )}>
+                    {item.label}
+                  </span>
+                </div>
+              )}
+            </button>
+          );
+        })}
+      </div>
     </div>
   );
 }

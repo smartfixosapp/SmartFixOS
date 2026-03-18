@@ -4,10 +4,13 @@ import { supabase } from "../../../../lib/supabase-client.js";
 import { useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { ShoppingCart, Search, Plus, Minus, Trash2, User, AlertCircle, Loader2, Zap } from "lucide-react";
+import { ShoppingCart, Search, Plus, Minus, Trash2, User, AlertCircle, Loader2, Zap, LayoutGrid, X } from "lucide-react";
 import { toast } from "sonner";
 import { calculateDiscountedPrice } from "@/components/inventory/DiscountBadge";
 import { motion } from "framer-motion";
+
+// Helper for joining class names
+const cn = (...classes) => classes.filter(Boolean).join(" ");
 import CustomerSelector from "../components/pos/CustomerSelector";
 import CheckoutModalDesktop from "../components/pos/CheckoutModalDesktop";
 import RechargeDialog from "../components/pos/RechargeDialog";
@@ -23,6 +26,7 @@ import {
   subscribeToCashRegister,
   checkCashRegisterStatus
 } from "@/components/cash/CashRegisterService";
+import UniversalPrintDialog from "../components/printing/UniversalPrintDialog";
 
 const RECENT_CREATED_PRODUCTS_KEY = "smartfix_recent_created_products";
 
@@ -132,6 +136,8 @@ export default function POSDesktop() {
   const [depositAmount, setDepositAmount] = useState("");
   const [paymentMode, setPaymentMode] = useState("regular");
   const [totalPaid, setTotalPaid] = useState(0);
+  const [showPrintDialog, setShowPrintDialog] = useState(false);
+  const [printData, setPrintData] = useState(null);
   const hasShownInventoryOfflineToast = React.useRef(false);
 
   const urlParams = new URLSearchParams(window.location.search);
@@ -425,6 +431,10 @@ export default function POSDesktop() {
     setAthMovilName("");
     setDepositAmount("");
     setPaymentMode("regular");
+    // Don't clear print data yet if we are about to print
+    if (!showPrintDialog) {
+      setPrintData(null);
+    }
     toast.info("Carrito vaciado");
   };
 
@@ -667,13 +677,16 @@ export default function POSDesktop() {
         console.warn("Financial refresh events failed:", refreshError);
       }
       setShowPaymentModal(false);
+      
+      // Preparar impresión
+      setPrintData(sale);
+      setShowPrintDialog(true);
+      
       clearCart();
 
       // Volver directo al boleto si este cobro vino desde una orden
       if (selectedOrder) {
-        setTimeout(() => {
-          window.location.assign(createPageUrl(`Orders?openOrderId=${selectedOrder.id}`));
-        }, 350);
+        // Redirect is now handled by UniversalPrintDialog onClose
       } else {
         setTimeout(() => {
           try {
@@ -722,37 +735,52 @@ export default function POSDesktop() {
       
       {/* LEFT: Products */}
       <div className="flex-1 flex flex-col">
-        <div className="mb-4 space-y-3">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
-            <Input
+        <div className="mb-6 space-y-4">
+          <div className="relative group/search">
+            <div className="absolute inset-y-0 left-0 pl-5 flex items-center pointer-events-none">
+              <Search className="h-5 w-5 text-white/20 group-focus-within/search:text-cyan-400 group-focus-within/search:scale-110 transition-all duration-500" />
+            </div>
+            <input
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Buscar producto..."
-              className="pl-10 h-11 bg-white/5 border-white/10 text-white rounded-lg"
+              placeholder="Buscar producto o servicio..." 
+              className="bg-[#121215]/40 text-white pr-14 pl-14 py-5 text-base rounded-[24px] block w-full border border-white/10 placeholder-white/20 focus:outline-none focus:ring-4 focus:ring-cyan-500/10 focus:border-cyan-500/40 focus:bg-[#121215]/80 transition-all duration-500 backdrop-blur-2xl shadow-[inset_0_2px_10px_rgba(0,0,0,0.2)]" 
             />
+
+            {searchQuery && (
+              <button
+                onClick={() => setSearchQuery("")}
+                className="absolute right-4 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-white/5 hover:bg-white/10 text-white/40 hover:text-white flex items-center justify-center transition-all active:scale-95 border border-white/10"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            )}
           </div>
 
-          <div className="flex gap-2 flex-wrap">
+          <div className="flex gap-2.5 overflow-x-auto no-scrollbar pb-1">
             {[
-              { id: "all", label: "Todo" },
-              { id: "accesorios", label: "Accesorios" },
-              { id: "devices", label: "Dispositivos" },
-              { id: "offers", label: "Ofertas" },
-              { id: "services", label: "Servicios" }
-            ].map(cat => (
-              <button
-                key={cat.id}
-                onClick={() => setActiveCategory(cat.id)}
-                className={`px-3 py-2 rounded-lg text-sm font-medium transition-all ${
-                  activeCategory === cat.id
-                    ? "bg-cyan-500/20 text-cyan-400 border border-cyan-500/50"
-                    : "bg-white/5 text-gray-400 border border-white/10 hover:bg-white/10"
-                }`}
-              >
-                {cat.label}
-              </button>
-            ))}
+              { id: "all", label: "Todo", icon: LayoutGrid },
+              { id: "accesorios", label: "Accesorios", icon: Zap },
+              { id: "devices", label: "Dispositivos", icon: User },
+              { id: "offers", label: "Ofertas", icon: ShoppingCart },
+              { id: "services", label: "Servicios", icon: Search }
+            ].map(cat => {
+              const isActive = activeCategory === cat.id;
+              return (
+                <button
+                  key={cat.id}
+                  onClick={() => setActiveCategory(cat.id)}
+                  className={cn(
+                    "flex items-center gap-2 px-5 py-2.5 rounded-full text-sm font-black tracking-tight transition-all duration-500 whitespace-nowrap border",
+                    isActive
+                      ? "bg-gradient-to-r from-blue-600 to-cyan-500 text-white border-transparent shadow-[0_8px_20px_rgba(6,182,212,0.3)] scale-105"
+                      : "bg-[#121215]/40 text-white/40 border-white/5 hover:bg-[#121215]/60 hover:text-white/80"
+                  )}
+                >
+                  {cat.label}
+                </button>
+              );
+            })}
           </div>
         </div>
 
@@ -767,34 +795,65 @@ export default function POSDesktop() {
               <p className="text-sm">No hay productos o servicios en esta categoría</p>
             </div>
           ) : (
-            <div className="grid grid-cols-4 gap-3 pr-2">
+            <div className="grid grid-cols-3 xl:grid-cols-4 gap-4 pr-2">
               {filteredItems.map((item) => {
                 const finalPrice = toCurrencyNumber(item._type === "product" ? calculateDiscountedPrice(item) : item.price);
                 const cartQty = safeCart.find(c => c.id === item.id)?.quantity || 0;
                 const isOutOfStock = item._type === 'product' && item.stock <= 0;
+                const isService = item._type === 'service';
 
                 return (
                   <motion.button
                     key={item.id}
                     onClick={() => !isOutOfStock && addToCart(item, item._type)}
-                    whileTap={{ scale: 0.95 }}
-                    className={`relative bg-[#0a0a0a] rounded-lg p-3 border text-left transition-all ${
+                    whileTap={{ scale: 0.96 }}
+                    className={cn(
+                      "group relative overflow-hidden rounded-[28px] p-4 text-left transition-all duration-500 border",
                       cartQty > 0 
-                        ? "ring-2 ring-cyan-500 border-cyan-500/50" 
-                        : "border-white/10 hover:border-white/20"
-                    } ${isOutOfStock ? "opacity-50 grayscale" : ""}`}
-                    disabled={isOutOfStock}
+                        ? "bg-cyan-500/10 border-cyan-500/50 shadow-[0_15px_40px_rgba(6,182,212,0.15)]" 
+                        : "bg-[#0D0D0F]/45 backdrop-blur-xl border-white/[0.08] hover:border-white/20 hover:bg-[#121215]/60",
+                      isOutOfStock && "opacity-40 grayscale pointer-events-none"
+                    )}
                   >
-                    <h3 className="text-xs font-semibold text-white line-clamp-2 mb-2">{item.name}</h3>
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm font-bold text-cyan-400">${finalPrice.toFixed(2)}</span>
-                      {cartQty > 0 && (
-                        <span className="text-xs font-bold px-2 py-1 bg-cyan-500 text-white rounded-full">{cartQty}</span>
-                      )}
+                    {/* Glossy Edge Reflection */}
+                    <div className="absolute inset-0 bg-gradient-to-br from-white/[0.05] via-transparent to-transparent opacity-0 transition-opacity duration-500 group-hover:opacity-100 pointer-events-none" />
+
+                    <div className="relative z-10 flex flex-col h-full justify-between gap-3">
+                      <div>
+                        <div className={cn(
+                          "w-10 h-10 rounded-2xl flex items-center justify-center mb-3 transition-transform duration-500 group-hover:scale-110",
+                          isService ? "bg-purple-500/20 text-purple-400" : "bg-blue-500/20 text-blue-400"
+                        )}>
+                           {isService ? <Search className="w-5 h-5" /> : <ShoppingCart className="w-5 h-5" />}
+                        </div>
+                        <h3 className="text-[13px] font-black text-white leading-tight line-clamp-2 uppercase tracking-tight opacity-90 group-hover:opacity-100">
+                          {item.name}
+                        </h3>
+                      </div>
+
+                      <div className="flex items-center justify-between mt-2">
+                        <div className="flex flex-col">
+                          <span className="text-[14px] font-black text-white leading-none">
+                            ${finalPrice.toFixed(2)}
+                          </span>
+                          {!isService && (
+                             <span className={cn("text-[9px] font-bold mt-1", (item.stock || 0) < 5 ? "text-amber-400" : "text-white/20")}>
+                               {item.stock} en stock
+                             </span>
+                          )}
+                        </div>
+
+                        {cartQty > 0 && (
+                          <div className="h-7 w-7 rounded-full bg-cyan-500 text-white flex items-center justify-center text-[11px] font-black shadow-lg shadow-cyan-500/30">
+                            {cartQty}
+                          </div>
+                        )}
+                      </div>
                     </div>
+
                     {isOutOfStock && (
-                      <div className="absolute inset-0 rounded-lg bg-black/60 flex items-center justify-center">
-                        <span className="text-xs font-bold text-red-400">AGOTADO</span>
+                      <div className="absolute inset-0 rounded-[28px] bg-black/40 backdrop-blur-[2px] flex items-center justify-center rotate-[-12deg]">
+                        <span className="text-[10px] font-black text-white bg-red-600 px-3 py-1 rounded-full shadow-lg">AGOTADO</span>
                       </div>
                     )}
                   </motion.button>
@@ -806,123 +865,149 @@ export default function POSDesktop() {
       </div>
 
       {/* RIGHT: Cart & Checkout */}
-      <div className="w-96 bg-[#0a0a0a] rounded-xl border border-white/10 flex flex-col overflow-hidden">
-        <div className="p-4 border-b border-white/5">
-          <h2 className="text-xl font-bold text-white mb-3">Carrito</h2>
-          {selectedOrder && (
-            <div className="text-xs text-cyan-400 mb-2">
-              Orden: <span className="font-bold">{selectedOrder.order_number}</span>
-            </div>
-          )}
-          {(selectedCustomer || selectedOrder?.customer_name) && (
-            <div className="flex items-center gap-2 p-2 bg-blue-500/10 rounded-lg border border-blue-500/30 mb-2">
-              <User className="w-4 h-4 text-blue-400" />
+      <div className="w-[420px] bg-[#0D0D0F]/60 backdrop-blur-[32px] rounded-[32px] border border-white/[0.08] flex flex-col overflow-hidden shadow-[0_30px_60px_rgba(0,0,0,0.5)]">
+        <div className="p-8 border-b border-white/[0.05]">
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="text-2xl font-black text-white tracking-tighter uppercase">Carrito</h2>
+            {selectedOrder && (
+              <div className="px-3 py-1 bg-cyan-500/10 border border-cyan-500/30 rounded-full">
+                 <span className="text-[10px] font-black text-cyan-400 uppercase tracking-widest">{selectedOrder.order_number}</span>
+              </div>
+            )}
+          </div>
+          
+          {(selectedCustomer || selectedOrder?.customer_name) ? (
+            <div className="flex items-center gap-3 p-4 bg-white/5 rounded-2xl border border-white/5 group transition-all hover:bg-white/10">
+              <div className="w-10 h-10 rounded-xl bg-blue-500/20 flex items-center justify-center text-blue-400">
+                <User className="w-5 h-5" />
+              </div>
               <div className="flex-1 min-w-0">
-                <p className="text-white text-sm font-semibold truncate">{selectedCustomer?.name || selectedOrder?.customer_name}</p>
+                <p className="text-[10px] font-black text-white/30 uppercase tracking-widest mb-0.5">Cliente</p>
+                <p className="text-white text-sm font-black truncate">{selectedCustomer?.name || selectedOrder?.customer_name}</p>
               </div>
               <button
                 onClick={() => setSelectedCustomer(null)}
-                className="text-white/50 hover:text-white"
+                className="w-8 h-8 rounded-full bg-white/5 text-white/20 hover:text-red-400 hover:bg-red-400/10 flex items-center justify-center transition-all"
               >
-                ✕
+                <X className="w-4 h-4" />
               </button>
             </div>
+          ) : (
+            <button 
+              onClick={() => setShowCustomerSelector(true)}
+              className="w-full h-14 rounded-2xl border-2 border-dashed border-white/10 flex items-center justify-center gap-2 text-white/30 hover:text-white/60 hover:border-white/20 hover:bg-white/5 transition-all group"
+            >
+              <Plus className="w-5 h-5 group-hover:rotate-90 transition-transform duration-500" />
+              <span className="text-xs font-black uppercase tracking-widest">Asignar Cliente</span>
+            </button>
           )}
         </div>
 
-        <div className="flex-1 overflow-y-auto p-3 space-y-2">
+        <div className="flex-1 overflow-y-auto p-6 space-y-4 no-scrollbar">
           {safeCart.length === 0 ? (
-            <div className="flex flex-col items-center justify-center h-full text-gray-500 py-8">
-              <ShoppingCart className="w-12 h-12 mb-2 opacity-20" />
-              <p className="text-sm">Carrito vacío</p>
+            <div className="flex flex-col items-center justify-center h-full text-white/10 py-12">
+              <div className="w-20 h-20 rounded-full bg-white/[0.02] border border-white/[0.05] flex items-center justify-center mb-6">
+                <ShoppingCart className="w-8 h-8 opacity-20" />
+              </div>
+              <p className="text-sm font-black uppercase tracking-widest">Carrito vacío</p>
             </div>
           ) : (
             safeCart.map((item, idx) => (
-              <div key={idx} className="bg-[#1a1a1a] rounded-lg p-3 border border-white/10">
-                <div className="flex items-start justify-between mb-2">
+              <motion.div 
+                layout
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                key={idx} 
+                className="group bg-white/[0.03] rounded-2xl p-4 border border-white/[0.05] hover:border-white/10 hover:bg-white/[0.05] transition-all"
+              >
+                <div className="flex items-start justify-between mb-3">
                   <div className="flex-1">
-                    <p className="text-white text-sm font-semibold truncate">{item.name}</p>
-                    <p className="text-gray-500 text-xs">${toCurrencyNumber(item.price).toFixed(2)}</p>
+                    <p className="text-white text-[13px] font-black uppercase tracking-tight leading-tight group-hover:text-cyan-400 transition-colors">{item.name}</p>
+                    <p className="text-white/30 text-[11px] font-bold mt-1">${toCurrencyNumber(item.price).toFixed(2)} c/u</p>
                   </div>
                   <button
                     onClick={() => removeItem(idx)}
-                    className="text-gray-400 hover:text-red-400 transition-colors"
+                    className="w-8 h-8 rounded-full bg-white/5 text-white/20 hover:text-red-400 hover:bg-red-400/10 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all active:scale-95"
                   >
                     <Trash2 className="w-4 h-4" />
                   </button>
                 </div>
                 <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-1 bg-white/10 rounded-lg p-1">
+                  <div className="flex items-center gap-1.5 bg-black/40 rounded-xl p-1.5 border border-white/5">
                     <button
                       onClick={() => updateQuantity(idx, -1)}
-                      className="w-6 h-6 rounded bg-white/10 hover:bg-white/20 flex items-center justify-center text-white text-sm"
+                      className="w-8 h-8 rounded-lg bg-white/5 hover:bg-white/10 flex items-center justify-center text-white transition-all active:scale-90"
                     >
-                      <Minus className="w-3 h-3" />
+                      <Minus className="w-3.5 h-3.5" />
                     </button>
-                    <span className="w-6 text-center text-white text-sm font-bold">{item.quantity}</span>
+                    <span className="w-8 text-center text-white text-[13px] font-black">{item.quantity}</span>
                     <button
                       onClick={() => updateQuantity(idx, 1)}
-                      className="w-6 h-6 rounded bg-white/10 hover:bg-white/20 flex items-center justify-center text-white text-sm"
+                      className="w-8 h-8 rounded-lg bg-white/5 hover:bg-white/10 flex items-center justify-center text-white transition-all active:scale-90"
                     >
-                      <Plus className="w-3 h-3" />
+                      <Plus className="w-3.5 h-3.5" />
                     </button>
                   </div>
-                  <span className="text-white font-bold text-sm">${(toCurrencyNumber(item.price) * toCurrencyNumber(item.quantity)).toFixed(2)}</span>
+                  <span className="text-white font-black text-base tracking-tighter">${(toCurrencyNumber(item.price) * toCurrencyNumber(item.quantity)).toFixed(2)}</span>
                 </div>
-              </div>
+              </motion.div>
             ))
           )}
         </div>
 
-        <div className="p-4 border-t border-white/5 space-y-4">
-          <div className="space-y-1 text-sm">
-            <div className="flex justify-between text-gray-400">
-              <span>Subtotal</span>
-              <span className="text-white font-bold">${subtotal.toFixed(2)}</span>
+        <div className="p-8 border-t border-white/[0.05] bg-white/[0.02] space-y-6">
+          <div className="space-y-3">
+            <div className="flex justify-between items-center group/sub">
+              <span className="text-[11px] font-black text-white/30 uppercase tracking-widest group-hover/sub:text-white/50 transition-colors">Subtotal</span>
+              <span className="text-sm font-black text-white/80 tracking-tight">${subtotal.toFixed(2)}</span>
             </div>
-            <div className="flex justify-between text-gray-400">
-              <span>IVU (11.5%)</span>
-              <span className="text-white font-bold">${tax.toFixed(2)}</span>
+            <div className="flex justify-between items-center group/tax">
+              <span className="text-[11px] font-black text-white/30 uppercase tracking-widest group-hover/tax:text-white/50 transition-colors">IVU (11.5%)</span>
+              <span className="text-sm font-black text-white/80 tracking-tight">${tax.toFixed(2)}</span>
             </div>
-            <div className="h-px bg-white/10 my-2"></div>
-            <div className="flex justify-between text-lg font-bold text-cyan-400">
-              <span>Total</span>
-              <span>${total.toFixed(2)}</span>
+            <div className="pt-4 mt-2 border-t border-white/[0.05]">
+              <div className="flex justify-between items-end">
+                <span className="text-[12px] font-black text-cyan-400 uppercase tracking-[0.2em]">Total</span>
+                <div className="flex flex-col items-end">
+                  <span className="text-4xl font-black text-white tracking-tighter leading-none">
+                    ${total.toFixed(2)}
+                  </span>
+                </div>
+              </div>
             </div>
           </div>
 
-          <Button
-            onClick={() => setShowCustomerSelector(true)}
-            variant="outline"
-            className="w-full border-white/10 bg-white/5 text-white hover:bg-white/10"
-          >
-            <User className="w-4 h-4 mr-2" />
-            {selectedCustomer ? selectedCustomer.name : "Seleccionar Cliente"}
-          </Button>
-
-          <Button
-            onClick={() => {
-              if (safeCart.length === 0) {
-                toast.error("Agrega items al carrito");
-                return;
-              }
-              setShowPaymentModal(true);
-            }}
-            disabled={safeCart.length === 0}
-            className="w-full h-11 bg-cyan-600 hover:bg-cyan-700 font-bold"
-          >
-            <ShoppingCart className="w-4 h-4 mr-2" />
-            Cobrar ${selectedOrder ? orderBalance.toFixed(2) : total.toFixed(2)}
-          </Button>
-
-          {safeCart.length > 0 && (
-            <button
-              onClick={clearCart}
-              className="w-full py-2 text-xs font-medium text-red-400 hover:text-red-300 transition-colors"
+          <div className="flex flex-col gap-3">
+            <Button
+              onClick={() => {
+                if (safeCart.length === 0) {
+                  toast.error("Agrega items al carrito");
+                  return;
+                }
+                setShowPaymentModal(true);
+              }}
+              disabled={safeCart.length === 0}
+              className="w-full h-16 rounded-[20px] bg-gradient-to-r from-blue-600 via-cyan-500 to-emerald-500 hover:scale-[1.02] active:scale-[0.98] transition-all duration-500 shadow-[0_15px_35px_rgba(6,182,212,0.4)] disabled:opacity-30 disabled:grayscale disabled:hover:scale-100 group"
             >
-              Vaciar carrito
-            </button>
-          )}
+              <div className="flex items-center justify-center gap-3">
+                <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center group-hover:rotate-[-12deg] transition-transform duration-500">
+                  <ShoppingCart className="w-5 h-5 text-white" />
+                </div>
+                <span className="text-base font-black text-white uppercase tracking-widest">
+                  Cobrar {selectedOrder ? 'Cualquier Depósito' : 'Total'}
+                </span>
+              </div>
+            </Button>
+
+            {safeCart.length > 0 && (
+              <button
+                onClick={clearCart}
+                className="w-full py-2 text-[10px] font-black text-red-400/50 hover:text-red-400 uppercase tracking-widest transition-all hover:letter-spacing-[0.1em]"
+              >
+                Vaciar Carrito
+              </button>
+            )}
+          </div>
         </div>
       </div>
 
@@ -1001,6 +1086,21 @@ export default function POSDesktop() {
           setShowRechargeDialog(false);
         }}
       />
+
+      {showPrintDialog && printData && (
+        <UniversalPrintDialog
+          open={showPrintDialog}
+          onClose={() => {
+            setShowPrintDialog(false);
+            if (selectedOrder) {
+              window.location.assign(createPageUrl(`Orders?openOrderId=${selectedOrder.id}`));
+            }
+          }}
+          type="sale"
+          data={printData}
+          customer={selectedCustomer}
+        />
+      )}
     </div>
   );
 }

@@ -14,6 +14,7 @@ import {
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
+import { cn } from "@/lib/utils";
 import { ORDER_STATUSES, getEffectiveOrderStatus, getStatusConfig, normalizeStatusId } from "@/components/utils/statusRegistry";
 import WorkOrderPanel from "../components/workorder/WorkOrderPanel";
 import WorkOrderPanelErrorBoundary from "../components/workorder/WorkOrderPanelErrorBoundary";
@@ -123,119 +124,138 @@ const OrderCard = React.memo(function OrderCard({ order, onClick, onEditDevice }
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, scale: 0.95 }}
-      transition={{ duration: 0.3 }}
+      transition={{ duration: 0.4 }}
       onClick={onClick}
       onKeyDown={(e) => e.key === 'Enter' && onClick()}
-      className={`group w-full text-left bg-gradient-to-br from-slate-900/95 to-slate-950/90 hover:from-slate-800/95 hover:to-slate-900/90 backdrop-blur-xl border rounded-[28px] p-6 transition-all duration-500 hover:scale-[1.02] hover:-translate-y-1 active:scale-95 shadow-xl hover:shadow-2xl relative overflow-hidden cursor-pointer ${
-      isB2B ?
-      "border-purple-500/50 hover:border-purple-500/70 hover:shadow-purple-500/40" :
-      "border-cyan-500/50 hover:border-cyan-500/70 hover:shadow-cyan-500/35"}`
-      }>
+      className={cn(
+        "group relative w-full overflow-hidden rounded-[32px] border p-5 transition-all duration-500 cursor-pointer",
+        "bg-[#0D0D0F]/45 backdrop-blur-xl border-white/[0.08] hover:border-white/20 hover:bg-[#121215]/60",
+        "shadow-[0_12px_45px_rgba(0,0,0,0.3)] hover:shadow-[0_25px_80px_rgba(0,0,0,0.5)] hover:-translate-y-1.5 active:scale-[0.98]",
+        isB2B && "border-purple-500/30 hover:border-purple-500/50 shadow-purple-900/10"
+      )}
+    >
+      {/* Dynamic Background Glow */}
+      <div className={cn(
+        "absolute -right-20 -top-20 h-40 w-40 rounded-full blur-[80px] opacity-0 transition-opacity duration-700 group-hover:opacity-100",
+        isB2B ? "bg-purple-500/20" : "bg-cyan-500/20"
+      )} />
 
-      {/* Fondo animado vibrante */}
-      <div className={`absolute -right-16 -top-16 w-32 h-32 rounded-full blur-3xl opacity-0 group-hover:opacity-100 transition-all duration-500 ${
-      isB2B ? "bg-gradient-to-br from-purple-500/30 to-pink-500/20" : "bg-gradient-to-br from-blue-500/30 to-cyan-500/20"}`
-      } />
-      {/* Glossy shine */}
-      <div className="absolute inset-0 bg-gradient-to-br from-white/10 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
+      {/* Glossy Edge Reflection */}
+      <div className="absolute inset-0 bg-gradient-to-br from-white/[0.05] via-transparent to-transparent opacity-0 transition-opacity duration-500 group-hover:opacity-100 pointer-events-none" />
 
-      {/* Badge de Garantía */}
-       {(effectiveStatus === "warranty" || (effectiveStatus === "ready_for_pickup" && order.warranty_countdown?.days_remaining > 0)) && (
-         <div className="absolute top-3 right-3 z-20 bg-gradient-to-r from-amber-500 to-orange-500 px-3 py-1.5 rounded-full flex items-center gap-1.5 shadow-lg">
-           <Shield className="w-4 h-4 text-white" />
-           <span className="text-xs font-bold text-white">Garantía</span>
-         </div>
-       )}
+      {/* Warranty Badge - Floating Style */}
+      {(effectiveStatus === "warranty" || (effectiveStatus === "ready_for_pickup" && order.warranty_countdown?.days_remaining > 0)) && (
+        <div className="absolute top-4 right-4 z-20 flex items-center gap-1.5 rounded-full bg-gradient-to-r from-amber-500/90 to-orange-600/90 px-3 py-1 shadow-[0_8px_20px_rgba(245,158,11,0.3)] backdrop-blur-md">
+          <Shield className="w-3.5 h-3.5 text-white" />
+          <span className="text-[10px] font-black uppercase tracking-tight text-white">Garantía</span>
+        </div>
+      )}
 
-      <div className="flex items-start gap-4 relative z-10">
-        {/* Icono del dispositivo */}
-        <div className={`flex-shrink-0 w-14 h-14 rounded-[20px] flex items-center justify-center shadow-xl transition-all duration-300 group-hover:scale-110 group-hover:rotate-3 bg-gradient-to-br ${
-        isB2B ?
-        "from-purple-500 to-pink-500" :
-        "from-blue-500 to-cyan-500"}`
-        }>
-          <DeviceIcon className="w-7 h-7 text-white" strokeWidth={2.5} />
+      <div className="relative z-10 flex flex-col gap-5">
+        <div className="flex items-center gap-4">
+          {/* Device Icon - Sequoia Style */}
+          <div className={cn(
+            "flex h-14 w-14 items-center justify-center rounded-[22px] shadow-2xl transition-all duration-500 group-hover:scale-110 group-hover:rotate-2 group-active:scale-95",
+            isB2B ? "bg-gradient-to-br from-purple-600 to-indigo-700 shadow-purple-500/20" : "bg-gradient-to-br from-blue-600 to-cyan-700 shadow-cyan-500/20"
+          )}>
+            <DeviceIcon className="h-7 w-7 text-white drop-shadow-md" strokeWidth={2.5} />
+          </div>
+
+          <div className="flex-1 min-w-0">
+            {/* Status Badge */}
+            <div className="mb-1.5 overflow-hidden">
+               <span className={cn(
+                 "inline-flex items-center rounded-full px-2.5 py-0.5 text-[9px] font-black uppercase tracking-[0.08em] border backdrop-blur-md",
+                 statusConfig.colorClasses.replace('bg-opacity-10', 'bg-opacity-5').replace('border-opacity-20', 'border-opacity-15')
+               )}>
+                 {statusConfig.label}
+               </span>
+            </div>
+
+            {/* Customer Name */}
+            <h3 className="text-xl font-black text-white truncate leading-tight tracking-tight group-hover:text-white transition-colors">
+              {order.customer_name || "Cliente"}
+              {isB2B && <span className="ml-2 inline-block text-[14px] text-purple-400">🏢</span>}
+            </h3>
+            
+            {/* Order Number */}
+            <p className="text-[11px] font-bold text-white/35 uppercase tracking-[0.15em] mt-0.5">
+              {order.order_number || "WO-LOCAL"}
+            </p>
+          </div>
         </div>
 
-        {/* Contenido principal */}
-        <div className="flex-1 min-w-0">
-          {/* Badge de estado arriba */}
-          <div className="mb-2">
-            <span className={`inline-block px-2.5 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-wide border ${statusConfig.colorClasses} bg-opacity-10 border-opacity-20`}>
-              {statusConfig.label}
-            </span>
+        {/* Content Section */}
+        <div className="space-y-3">
+          {/* Assignment Status */}
+          <div className="flex items-center">
+             <div className={cn(
+               "inline-flex items-center gap-2 rounded-xl border px-3 py-1.5 transition-all duration-500",
+               isAssigned 
+                ? "border-emerald-500/20 bg-emerald-500/10 text-emerald-300" 
+                : "border-amber-500/20 bg-amber-500/10 text-amber-300"
+             )}>
+               <User className="h-3.5 w-3.5" />
+               <span className="text-[11px] font-bold">
+                 {isAssigned ? assignedLabel : "Esperando asignación"}
+               </span>
+             </div>
           </div>
-          
-          {/* Header con nombre destacado */}
-	          <div className="mb-1.5">
-	            <h3 className="font-bold text-lg text-white truncate group-hover:text-white transition-colors leading-tight">
-	              {order.customer_name || "Cliente"}
-	              {isB2B && <span className="ml-2 text-purple-400">🏢</span>}
-	            </h3>
-	            <p className="text-[11px] text-white/50 font-medium tracking-wide mt-0.5">
-	              {order.order_number || "WO-LOCAL"}
-	            </p>
-              <div className="mt-1">
-                <span className={`inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[10px] font-semibold ${
-                  isAssigned
-                    ? "border-emerald-400/35 bg-emerald-500/12 text-emerald-200"
-                    : "border-amber-400/35 bg-amber-500/12 text-amber-200"
-                }`}>
-                  <User className="w-3 h-3" />
-                  {isAssigned ? `Asignado: ${assignedLabel}` : "Sin asignar"}
-                </span>
-              </div>
-	          </div>
 
-          {/* Dispositivo */}
-          <div className="flex items-center gap-2 mb-3 group/device">
-            <p className="text-sm text-white/70 truncate font-medium flex-1">
-              {deviceInfo || order.device_type || "Sin info"}
+          {/* Device Model Info */}
+          <div className="bg-white/[0.03] border border-white/[0.05] rounded-2xl p-3 flex items-center justify-between group/device">
+            <p className="text-[13px] font-semibold text-white/70 truncate flex-1 leading-relaxed">
+              {deviceInfo || order.device_type || "Modelo no especificado"}
             </p>
             <button
               onClick={(e) => {
                 e.stopPropagation();
                 onEditDevice(order);
               }}
-              className="opacity-0 group-hover/device:opacity-100 transition-opacity text-cyan-400/60 hover:text-cyan-300 text-xs px-2 py-1 rounded bg-cyan-500/10 hover:bg-cyan-500/20"
+              className="ml-2 opacity-0 group-hover/device:opacity-100 transition-all duration-300 text-cyan-400 hover:text-cyan-300 text-[10px] font-black uppercase bg-white/5 hover:bg-white/10 px-2.5 py-1 rounded-lg"
             >
               Editar
             </button>
           </div>
+        </div>
 
-          {/* Footer info */}
-          <div className="flex items-center gap-3 pt-3 border-t border-white/5">
-            <div className="flex items-center gap-1.5 text-white/40">
-              <Clock className="w-3.5 h-3.5" />
-              <span className="text-xs font-medium">
+        {/* Footer info - Quartz Glass */}
+        <div className="flex items-center justify-between pt-4 border-t border-white/[0.08] mt-1">
+          <div className="flex items-center gap-4">
+            <div className="flex items-center gap-2 text-white/40">
+              <Calendar className="w-3.5 h-3.5" />
+              <span className="text-[11px] font-bold">
                 {format(new Date(order.created_date || Date.now()), "d MMM", { locale: es })}
               </span>
             </div>
             
-            {taskCount > 0 &&
-            <div className="flex items-center gap-1 text-emerald-400/80">
-                <CheckCircle2 className="w-3.5 h-3.5" />
-                <span className="text-xs font-bold">{taskCount}</span>
-              </div>
-            }
-            
-            {photoCount > 0 &&
-            <div className="flex items-center gap-1 text-purple-400/80">
-                <Camera className="w-3.5 h-3.5" />
-                <span className="text-xs font-bold">{photoCount}</span>
-              </div>
-            }
+            <div className="flex items-center gap-3">
+              {taskCount > 0 && (
+                <div className="flex items-center gap-1.5 text-emerald-400/70">
+                  <CheckCircle2 className="w-3.5 h-3.5" />
+                  <span className="text-[11px] font-black">{taskCount}</span>
+                </div>
+              )}
+              
+              {photoCount > 0 && (
+                <div className="flex items-center gap-1.5 text-purple-400/70">
+                  <Camera className="w-3.5 h-3.5" />
+                  <span className="text-[11px] font-black">{photoCount}</span>
+                </div>
+              )}
+            </div>
+          </div>
 
-            {/* Countdown Badge */}
+          <div className="flex items-center gap-3">
             <CountdownBadge order={order} />
-
-            <div className="ml-auto w-6 h-6 rounded-full bg-white/5 flex items-center justify-center group-hover:bg-white/10 transition-colors">
-              <ChevronRight className="w-3.5 h-3.5 text-white/40 group-hover:text-white" />
+            <div className="h-8 w-8 rounded-full bg-white/[0.05] border border-white/[0.08] flex items-center justify-center transition-all duration-500 group-hover:bg-white/15 group-hover:border-white/20 group-hover:translate-x-1 underline-offset-4">
+              <ChevronRight className="h-4 w-4 text-white/50 group-hover:text-white" />
             </div>
           </div>
         </div>
       </div>
-    </motion.div>);
+    </motion.div>
+  );
 
 });
 
@@ -603,23 +623,23 @@ export default function OrdersPage() {
         <div className="space-y-4 mb-6">
           {/* Tabs Navigation */}
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-            <TabsList className="bg-white/5 border border-white/10 p-1 rounded-[20px] w-full grid grid-cols-3 gap-1">
+            <TabsList className="bg-[#121215]/60 backdrop-blur-xl border border-white/10 p-1 rounded-[22px] w-full grid grid-cols-3 gap-1 shadow-2xl">
               <TabsTrigger 
                 value="work-orders"
-                className="rounded-[16px] text-sm font-bold data-[state=active]:bg-gradient-to-r data-[state=active]:from-cyan-500 data-[state=active]:to-blue-500 data-[state=active]:text-white text-white/60"
+                className="rounded-[18px] text-[13px] font-black tracking-tight data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-600 data-[state=active]:to-cyan-500 data-[state=active]:text-white text-white/40 data-[state=active]:shadow-lg transition-all duration-300"
               >
                 Órdenes
               </TabsTrigger>
               <TabsTrigger 
                 value="recharges"
-                className="rounded-[16px] text-sm font-bold data-[state=active]:bg-gradient-to-r data-[state=active]:from-amber-500 data-[state=active]:to-yellow-500 data-[state=active]:text-white text-white/60"
+                className="rounded-[18px] text-[13px] font-black tracking-tight data-[state=active]:bg-gradient-to-r data-[state=active]:from-amber-500 data-[state=active]:to-orange-500 data-[state=active]:text-white text-white/40 data-[state=active]:shadow-lg transition-all duration-300"
               >
-                <Zap className="w-4 h-4 mr-1" />
+                <Zap className="w-4 h-4 mr-1.5" />
                 Recargas
               </TabsTrigger>
               <TabsTrigger 
                 value="unlocks"
-                className="rounded-[16px] text-sm font-bold data-[state=active]:bg-gradient-to-r data-[state=active]:from-emerald-500 data-[state=active]:to-green-500 data-[state=active]:text-white text-white/60"
+                className="rounded-[18px] text-[13px] font-black tracking-tight data-[state=active]:bg-gradient-to-r data-[state=active]:from-emerald-500 data-[state=active]:to-teal-500 data-[state=active]:text-white text-white/40 data-[state=active]:shadow-lg transition-all duration-300"
               >
                 Desbloqueo
               </TabsTrigger>
@@ -856,24 +876,25 @@ export default function OrdersPage() {
           </div>
 
           {/* Búsqueda estilo Sequoia */}
-          <div className="relative group">
-            <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-              <Search className="h-5 w-5 text-gray-500 group-focus-within:text-cyan-400 transition-all duration-300" />
+          <div className="relative group/search">
+            <div className="absolute inset-y-0 left-0 pl-5 flex items-center pointer-events-none">
+              <Search className="h-5 w-5 text-white/20 group-focus-within/search:text-cyan-400 group-focus-within/search:scale-110 transition-all duration-500" />
             </div>
             <input
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Buscar por cliente, #orden, teléfono..." className="bg-slate-50 text-slate-900 pr-12 pl-12 py-4 text-base rounded-[20px] block w-full from-white/10 to-white/5 border border-white/10 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-cyan-500/50 focus:border-cyan-500/30 focus:from-white/15 focus:to-white/10 transition-all duration-300 backdrop-blur-xl shadow-inner" />
+              placeholder="Buscar por cliente, #orden, teléfono..." 
+              className="bg-[#121215]/40 text-white pr-14 pl-14 py-5 text-base rounded-[24px] block w-full border border-white/10 placeholder-white/20 focus:outline-none focus:ring-4 focus:ring-cyan-500/10 focus:border-cyan-500/40 focus:bg-[#121215]/80 transition-all duration-500 backdrop-blur-2xl shadow-[inset_0_2px_10px_rgba(0,0,0,0.2)]" 
+            />
 
-
-            {searchQuery &&
-            <button
-              onClick={() => setSearchQuery("")}
-              className="absolute right-3 top-1/2 -translate-y-1/2 w-7 h-7 rounded-full bg-white/10 hover:bg-white/20 text-white/60 hover:text-white flex items-center justify-center transition-all active:scale-95">
-
+            {searchQuery && (
+              <button
+                onClick={() => setSearchQuery("")}
+                className="absolute right-4 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-white/5 hover:bg-white/10 text-white/40 hover:text-white flex items-center justify-center transition-all active:scale-95 border border-white/10"
+              >
                 <X className="w-4 h-4" />
               </button>
-            }
+            )}
           </div>
 
 

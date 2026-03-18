@@ -19,6 +19,7 @@ import { catalogCache, debounce } from "@/components/utils/dataCache";
 import { motion, AnimatePresence } from "framer-motion";
 import { generateOrderNumber } from "@/components/utils/sequenceHelpers";
 import { upsertLocalOrder } from "@/components/utils/localOrderCache";
+import UniversalPrintDialog from "../printing/UniversalPrintDialog";
 
 const pickUploadUrl = (uploadResult) => {
   const raw =
@@ -793,6 +794,8 @@ export default function WorkOrderWizard({ open, onClose, onSuccess, preloadedCus
   const [loading, setLoading] = useState(false);
   const [user, setUser] = useState(null);
   const [technicians, setTechnicians] = useState([]);
+  const [showPrintDialog, setShowPrintDialog] = useState(false);
+  const [printData, setPrintData] = useState(null);
   
   // Cliente
   const [customerName, setCustomerName] = useState("");
@@ -2792,11 +2795,14 @@ export default function WorkOrderWizard({ open, onClose, onSuccess, preloadedCus
       }
 
       toast.success(quickOrderMode ? "✅ Orden rápida creada y enviada a reparación" : "✅ Orden creada exitosamente");
-      onSuccess?.(newOrder);
-      onClose();
+      setPrintData(newOrder);
+      setShowPrintDialog(true);
+      // We don't call onSuccess(newOrder) here yet, we wait for the print dialog to close
+      // if printing is desired. 
+      // If we call it, the parent (Orders.jsx) will close this modal, destroying the print dialog.
     } catch (err) {
       console.error("Error creating order:", err);
-      toast.error("Error: " + err.message);
+      toast.error("No se pudo crear la orden: " + err.message);
     } finally {
       setLoading(false);
     }
@@ -4335,6 +4341,23 @@ export default function WorkOrderWizard({ open, onClose, onSuccess, preloadedCus
           </div>
         </div>,
         document.body
+      )}
+
+      {showPrintDialog && printData && (
+        <UniversalPrintDialog
+          open={showPrintDialog}
+          onClose={() => {
+            setShowPrintDialog(false);
+            onSuccess(printData); // Now we call the success callback to close the wizard
+          }}
+          type="order"
+          data={printData}
+          customer={{
+            name: printData.customer_name,
+            phone: printData.customer_phone,
+            email: printData.customer_email
+          }}
+        />
       )}
     </Dialog>
   );
