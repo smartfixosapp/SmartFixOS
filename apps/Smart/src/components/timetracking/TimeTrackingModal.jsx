@@ -591,410 +591,309 @@ function PaymentModal({ open, onClose, employee, onConfirm }) {
 }
 
 /* ====================== Modal de Detalle de Empleado ====================== */
-function EmployeeDetailModal({ open, onClose, employee, entries, formatHM, formatHMS, allEntries, employees, from, to, setSelectedEmployee, setFrom, setTo, loadEntries, onPayment, initialTab = "ponches" }) {
-  const [activeTab, setActiveTab] = React.useState(initialTab);
+function EmployeeDetailModal({ open, onClose, employee, entries, formatHM, formatHMS, allEntries, employees, from, to, setSelectedEmployee, setFrom, setTo, loadEntries, onPayment }) {
+  const [historyOpen, setHistoryOpen] = React.useState(false);
   const [paymentHistory, setPaymentHistory] = React.useState([]);
   const [loadingHistory, setLoadingHistory] = React.useState(false);
+  const [historyLoaded, setHistoryLoaded] = React.useState(false);
+  const [liveMs, setLiveMs] = React.useState(0);
+
+  // Live clock for active shift
+  React.useEffect(() => {
+    if (!open || !employee?.currentEntry) return;
+    const tick = () => {
+      const start = new Date(employee.currentEntry.clock_in).getTime();
+      setLiveMs(Date.now() - start);
+    };
+    tick();
+    const id = setInterval(tick, 1000);
+    return () => clearInterval(id);
+  }, [open, employee?.currentEntry]);
 
   React.useEffect(() => {
-    if (open) {
-      setActiveTab(initialTab);
-    }
-  }, [open, initialTab]);
+    if (!open) { setHistoryOpen(false); setHistoryLoaded(false); }
+  }, [open]);
 
-  React.useEffect(() => {
-    if (open && activeTab === "pagos" && employee?.id) {
-      loadPaymentHistory();
-    }
-  }, [open, activeTab, employee?.id, from, to]);
-
-  const loadPaymentHistory = async () => {
-    if (!employee?.id) return;
+  const loadPaymentHistory = React.useCallback(async () => {
+    if (!employee?.id || loadingHistory) return;
     setLoadingHistory(true);
     try {
       const payments = await base44.entities.EmployeePayment.filter(
-        { employee_id: employee.id },
-        "-created_date",
-        100
+        { employee_id: employee.id }, "-created_date", 100
       );
       setPaymentHistory(payments || []);
-    } catch (error) {
-      console.error("Error loading payment history:", error);
+      setHistoryLoaded(true);
+    } catch (err) {
+      console.error("Error loading payment history:", err);
       setPaymentHistory([]);
     } finally {
       setLoadingHistory(false);
     }
+  }, [employee?.id, loadingHistory]);
+
+  const toggleHistory = () => {
+    if (!historyOpen && !historyLoaded) loadPaymentHistory();
+    setHistoryOpen((v) => !v);
   };
 
   if (!open) return null;
 
-  const totalMillis = entries.reduce((acc, e) => {
-    const start = e.clock_in ? new Date(e.clock_in).getTime() : 0;
-    const end = e.clock_out ? new Date(e.clock_out).getTime() : Date.now();
-    return acc + Math.max(0, end - start);
-  }, 0);
-
-  const currentMillis = employee.currentEntry ? (() => {
-    const start = new Date(employee.currentEntry.clock_in).getTime();
-    const end = Date.now();
-    return end - start;
-  })() : 0;
-
-  const openPunches = allEntries.filter((e) => !e.clock_out).length;
-  const filteredTotalMillis = allEntries.reduce((acc, e) => {
-    const start = e.clock_in ? new Date(e.clock_in).getTime() : 0;
-    const end = e.clock_out ? new Date(e.clock_out).getTime() : Date.now();
-    return acc + Math.max(0, end - start);
-  }, 0);
-
-  const setToday = () => {
-    const d = new Date();
-    const startD = new Date(d);
-    startD.setHours(0, 0, 0, 0);
-    const endD = new Date(d);
-    endD.setHours(23, 59, 59, 999);
-    setFrom(startD);
-    setTo(endD);
-    setTimeout(loadEntries, 100);
-  };
-
-  const setThisWeek = () => {
-    const d = new Date();
-    const day = d.getDay();
-    const startD = new Date(d);
-    startD.setDate(d.getDate() - day);
-    startD.setHours(0, 0, 0, 0);
-    const endD = new Date(startD);
-    endD.setDate(startD.getDate() + 6);
-    endD.setHours(23, 59, 59, 999);
-    setFrom(startD);
-    setTo(endD);
-    setTimeout(loadEntries, 100);
-  };
-
-  const setThisMonth = () => {
-    const d = new Date();
-    const startD = new Date(d.getFullYear(), d.getMonth(), 1);
-    const endD = new Date(d.getFullYear(), d.getMonth() + 1, 0, 23, 59, 59, 999);
-    setFrom(startD);
-    setTo(endD);
-    setTimeout(loadEntries, 100);
-  };
-
-  // Calcular pago para el periodo actual
+  // ── Computed ────────────────────────────────────────────────────────────────
   const employeeData = employees.find((e) => e.id === employee.id);
   const hourlyRate = parseFloat(employeeData?.hourly_rate) || 0;
+
+  const filteredTotalMillis = allEntries.reduce((acc, e) => {
+    const start = e.clock_in ? new Date(e.clock_in).getTime() : 0;
+    const end   = e.clock_out ? new Date(e.clock_out).getTime() : Date.now();
+    return acc + Math.max(0, end - start);
+  }, 0);
+
   const totalHours = filteredTotalMillis / 3600000;
   const calculatedPayment = totalHours * hourlyRate;
+  const isActive = !!employee.currentEntry;
+
+  // Period helpers
+  const applyRange = (startD, endD) => {
+    setFrom(startD); setTo(endD); setTimeout(loadEntries, 100);
+  };
+  const setToday = () => {
+    const d = new Date();
+    const s = new Date(d); s.setHours(0,0,0,0);
+    const e = new Date(d); e.setHours(23,59,59,999);
+    applyRange(s, e);
+  };
+  const setThisWeek = () => {
+    const d = new Date();
+    const s = new Date(d); s.setDate(d.getDate() - d.getDay()); s.setHours(0,0,0,0);
+    const e = new Date(s); e.setDate(s.getDate() + 6); e.setHours(23,59,59,999);
+    applyRange(s, e);
+  };
+  const setThisMonth = () => {
+    const d = new Date();
+    const s = new Date(d.getFullYear(), d.getMonth(), 1);
+    const e = new Date(d.getFullYear(), d.getMonth() + 1, 0, 23, 59, 59, 999);
+    applyRange(s, e);
+  };
+
+  // Recent shifts: up to 8, sorted newest first
+  const recentShifts = [...allEntries]
+    .sort((a, b) => new Date(b.clock_in) - new Date(a.clock_in))
+    .slice(0, 8);
+
+  const fmtShiftDay = (iso) => {
+    const d = new Date(iso);
+    return d.toLocaleDateString("es-PR", { weekday: "short", month: "short", day: "numeric" });
+  };
+  const fmtTime = (iso) => iso ? new Date(iso).toLocaleTimeString("es-PR", { hour: "2-digit", minute: "2-digit" }) : "—";
+  const shiftMs = (e) => {
+    const s = e.clock_in ? new Date(e.clock_in).getTime() : 0;
+    const en = e.clock_out ? new Date(e.clock_out).getTime() : Date.now();
+    return Math.max(0, en - s);
+  };
+
+  const pmtTypeLabel = { salary: "Salario", bonus: "Bono", commission: "Comisión", advance: "Adelanto", other: "Otro" };
 
   return (
-    <div className="fixed inset-0 z-[99999] bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
-      <div className="w-full max-w-4xl bg-gradient-to-br from-slate-900 to-black border-2 border-cyan-500/50 rounded-2xl text-white shadow-[0_0_80px_rgba(6,182,212,0.4)] max-h-[90vh] overflow-y-auto">
-        <div className="px-6 py-4 border-b border-cyan-500/30 flex items-center justify-between sticky top-0 bg-slate-900/90 backdrop-blur-sm z-10">
-          <div className="flex items-center gap-3">
-            <Clock className="w-6 h-6 text-cyan-400" />
-            <h3 className="font-bold text-xl">{employee.name}</h3>
-          </div>
-          <button onClick={onClose} className="text-gray-400 hover:text-white">
-            <X className="w-6 h-6" />
-          </button>
-        </div>
+    <div className="fixed inset-0 z-[99999] bg-black/75 backdrop-blur-md flex items-end sm:items-center justify-center p-0 sm:p-4">
+      <div className="w-full sm:max-w-lg bg-[#0d1117] border border-white/[0.08] sm:rounded-[32px] rounded-t-[32px] text-white shadow-2xl max-h-[92vh] overflow-y-auto">
 
-        {/* Tabs */}
-        <div className="border-b border-white/10 px-6">
-          <div className="flex gap-1">
-            <button
-              onClick={() => setActiveTab("ponches")}
-              className={`px-4 py-3 text-sm font-semibold transition-all relative ${
-              activeTab === "ponches" ?
-              "text-cyan-400" :
-              "text-gray-400 hover:text-gray-300"}`
-              }>
+        {/* ── Header ── */}
+        <div className="sticky top-0 z-10 bg-[#0d1117]/95 backdrop-blur-sm px-6 pt-6 pb-4 border-b border-white/[0.06]">
+          {/* Drag handle (mobile) */}
+          <div className="w-10 h-1 rounded-full bg-white/20 mx-auto mb-4 sm:hidden" />
 
-              Ponches & Horas
-              {activeTab === "ponches" &&
-              <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-cyan-400" />
-              }
-            </button>
-            <button
-              onClick={() => setActiveTab("pagos")}
-              className={`px-4 py-3 text-sm font-semibold transition-all relative ${
-              activeTab === "pagos" ?
-              "text-emerald-400" :
-              "text-gray-400 hover:text-gray-300"}`
-              }>
-
-              Pagos & Nómina
-              {activeTab === "pagos" &&
-              <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-emerald-400" />
-              }
-            </button>
-          </div>
-        </div>
-
-        <div className="p-6 space-y-6">
-          {/* Tab Content: Ponches */}
-          {activeTab === "ponches" &&
-          <>
-              {/* Filtros */}
-              <div className="bg-black/40 border border-white/10 rounded-xl p-4">
-                <h4 className="text-white font-bold mb-3 flex items-center gap-2">
-                  <Filter className="w-5 h-5 text-cyan-400" />
-                  Filtros
-                </h4>
-                <div className="space-y-3">
-                  <div>
-                    <label className="text-xs text-gray-400 mb-1 block">Empleado</label>
-                    <select
-                    value={employee.id}
-                    onChange={(e) => setSelectedEmployee(e.target.value)}
-                    className="bg-black/60 text-slate-50 px-3 py-2 text-sm rounded-md w-full border border-white/10">
-
-                      {employees.map((u) =>
-                    <option key={u.id} value={u.id}>{u.full_name}</option>
-                    )}
-                    </select>
-                  </div>
-                  
-                  <div>
-                    <label className="text-xs text-gray-400 mb-2 block">Rango</label>
-                    <div className="flex flex-wrap gap-2 mb-2">
-                      <button onClick={setToday} className="px-3 py-1.5 bg-cyan-600/20 hover:bg-cyan-600/30 border border-cyan-500/30 rounded-md text-sm text-cyan-300">
-                        Hoy
-                      </button>
-                      <button onClick={setThisWeek} className="px-3 py-1.5 bg-cyan-600/20 hover:bg-cyan-600/30 border border-cyan-500/30 rounded-md text-sm text-cyan-300">
-                        Semana
-                      </button>
-                      <button onClick={setThisMonth} className="px-3 py-1.5 bg-cyan-600/20 hover:bg-cyan-600/30 border border-cyan-500/30 rounded-md text-sm text-cyan-300">
-                        Mes
-                      </button>
-                    </div>
-                    <div className="flex gap-2 items-center">
-                      <input
-                      type="date"
-                      value={from.toISOString().slice(0, 10)}
-                      onChange={(e) => {setFrom(new Date(e.target.value));setTimeout(loadEntries, 100);}}
-                      className="bg-black/60 text-slate-50 px-2 py-1.5 text-xs rounded-md border border-white/10 flex-1" />
-
-                      <span className="text-gray-400">→</span>
-                      <input
-                      type="date"
-                      value={to.toISOString().slice(0, 10)}
-                      onChange={(e) => {setTo(new Date(e.target.value));setTimeout(loadEntries, 100);}}
-                      className="bg-black/60 text-slate-50 px-2 py-1.5 text-xs rounded-md border border-white/10 flex-1" />
-
-                    </div>
-                  </div>
-
-                </div>
-              </div>
-
-              {/* Stats Cards */}
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                <div className="bg-black/40 border border-cyan-500/30 rounded-xl p-3">
-                  <p className="text-xs text-cyan-300 mb-1">PONCHES FILTRADOS</p>
-                  <p className="text-2xl font-bold text-cyan-400">{allEntries.length}</p>
-                </div>
-                <div className="bg-black/40 border border-emerald-500/30 rounded-xl p-3">
-                  <p className="text-xs text-emerald-300 mb-1">PONCHES ABIERTOS</p>
-                  <p className="text-2xl font-bold text-emerald-400">{openPunches}</p>
-                </div>
-                <div className="bg-black/40 border border-red-500/30 rounded-xl p-3">
-                  <p className="text-xs text-red-300 mb-1">HORAS EN RANGO</p>
-                  <p className="text-2xl font-bold text-red-400">{formatHM(filteredTotalMillis)}</p>
-                </div>
-              </div>
-
-              {employee.currentEntry &&
-            <div className="bg-green-500/10 border border-green-500/30 rounded-xl p-4">
-                  <div className="flex items-center gap-2 mb-2">
-                    <span className="w-3 h-3 rounded-full bg-green-400 animate-pulse" />
-                    <p className="text-green-400 font-bold">ACTIVO AHORA</p>
-                  </div>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div>
-                      <p className="text-xs text-gray-400">Entrada</p>
-                      <p className="text-sm font-mono text-white">{fmt(employee.currentEntry.clock_in)}</p>
-                    </div>
-                    <div>
-                      <p className="text-xs text-gray-400">Tiempo Trabajado</p>
-                      <p className="text-lg font-bold text-green-400">{formatHMS(currentMillis)}</p>
-                    </div>
-                  </div>
-                </div>
-            }
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div className="bg-cyan-500/10 border border-cyan-500/30 rounded-xl p-4">
-                  <p className="text-xs text-cyan-300 mb-1">Total Ponches</p>
-                  <p className="text-3xl font-bold text-cyan-400">{entries.length}</p>
-                </div>
-                <div className="bg-purple-500/10 border border-purple-500/30 rounded-xl p-4">
-                  <p className="text-xs text-purple-300 mb-1">Total Horas</p>
-                  <p className="text-3xl font-bold text-purple-400">{formatHM(totalMillis)}</p>
-                </div>
-              </div>
-            </>
-          }
-
-          {/* Tab Content: Pagos */}
-          {activeTab === "pagos" &&
-          <>
-              {/* Filtros de Periodo */}
-              <div className="bg-black/40 border border-white/10 rounded-xl p-4">
-                <h4 className="text-white font-bold mb-3 flex items-center gap-2">
-                  <Filter className="w-5 h-5 text-emerald-400" />
-                  Periodo de Pago
-                </h4>
-                <div className="flex flex-wrap gap-2 mb-3">
-                  <button onClick={setToday} className="px-3 py-1.5 bg-emerald-600/20 hover:bg-emerald-600/30 border border-emerald-500/30 rounded-md text-sm text-emerald-300">
-                    Hoy
-                  </button>
-                  <button onClick={setThisWeek} className="px-3 py-1.5 bg-emerald-600/20 hover:bg-emerald-600/30 border border-emerald-500/30 rounded-md text-sm text-emerald-300">
-                    Semana
-                  </button>
-                  <button onClick={setThisMonth} className="px-3 py-1.5 bg-emerald-600/20 hover:bg-emerald-600/30 border border-emerald-500/30 rounded-md text-sm text-emerald-300">
-                    Mes
-                  </button>
-                </div>
-                <div className="flex gap-2 items-center">
-                  <input
-                  type="date"
-                  value={from.toISOString().slice(0, 10)}
-                  onChange={(e) => {setFrom(new Date(e.target.value));setTimeout(loadEntries, 100);}}
-                  className="bg-black/60 text-slate-50 px-2 py-1.5 text-xs rounded-md border border-white/10 flex-1" />
-
-                  <span className="text-gray-400">→</span>
-                  <input
-                  type="date"
-                  value={to.toISOString().slice(0, 10)}
-                  onChange={(e) => {setTo(new Date(e.target.value));setTimeout(loadEntries, 100);}}
-                  className="bg-black/60 text-slate-50 px-2 py-1.5 text-xs rounded-md border border-white/10 flex-1" />
-
-                </div>
-              </div>
-
-              {/* Cálculo de Pago Actual */}
-              <div className="bg-gradient-to-br from-emerald-950/40 to-green-950/40 border border-emerald-500/30 rounded-xl p-6">
-                <h4 className="text-emerald-400 text-lg font-bold mb-4 flex items-center gap-2">
-                  <DollarSign className="w-6 h-6" />
-                  Pago Calculado - Periodo Actual
-                </h4>
-
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-4">
-                  <div className="bg-black/40 border border-emerald-500/20 rounded-lg p-3">
-                    <p className="text-xs text-emerald-300 mb-1">Horas Trabajadas</p>
-                    <p className="text-2xl font-bold text-white">{totalHours.toFixed(2)}h</p>
-                  </div>
-                  <div className="bg-black/40 border border-emerald-500/20 rounded-lg p-3">
-                    <p className="text-xs text-emerald-300 mb-1">Tarifa/Hora</p>
-                    <p className="text-2xl font-bold text-white">${hourlyRate.toFixed(2)}</p>
-                  </div>
-                  <div className="bg-black/40 border border-emerald-500/20 rounded-lg p-3">
-                    <p className="text-xs text-emerald-300 mb-1">Total a Pagar</p>
-                    <p className="text-2xl font-bold text-emerald-400">${calculatedPayment.toFixed(2)}</p>
-                  </div>
-                </div>
-
-                {hourlyRate > 0 && calculatedPayment > 0 ?
-              <Button
-                onClick={() => onPayment?.({
-                  id: employee.id,
-                  name: employee.name,
-                  hours: totalHours,
-                  rate: hourlyRate,
-                  payment: calculatedPayment
-                })}
-                disabled={totalHours === 0}
-                className="w-full bg-gradient-to-r from-emerald-600 to-green-600 hover:from-emerald-700 hover:to-green-700 text-white h-12 disabled:opacity-50 disabled:cursor-not-allowed">
-
-                    <DollarSign className="w-5 h-5 mr-2" />
-                    {totalHours === 0 ? "Sin Horas - Pagado" : "Procesar Pago"}
-                  </Button> :
-
-              <div className="bg-yellow-500/10 border border-yellow-500/30 rounded-lg p-3 text-center">
-                    <p className="text-yellow-400 text-sm">
-                      {hourlyRate === 0 ?
-                  "⚠️ Configure la tarifa por hora en Settings → Users" :
-                  "Sin horas trabajadas en este periodo"}
-                    </p>
-                  </div>
-              }
-              </div>
-
-              {/* Historial de Pagos */}
-              <div className="bg-black/40 border border-white/10 rounded-xl p-4">
-                <div className="flex items-center justify-between mb-4">
-                  <h4 className="text-white font-bold flex items-center gap-2">
-                    <TrendingUp className="w-5 h-5 text-emerald-400" />
-                    Historial de Pagos
-                  </h4>
-                  <Button
-                  onClick={loadPaymentHistory}
-                  size="sm"
-                  variant="outline" className="bg-background text-slate-900 px-3 text-xs font-medium rounded-md inline-flex items-center justify-center gap-2 whitespace-nowrap transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 border shadow-sm hover:bg-accent hover:text-accent-foreground border-white/15 h-7"
-
-                  disabled={loadingHistory}>
-
-                    <RefreshCcw className={`w-3.5 h-3.5 ${loadingHistory ? 'animate-spin' : ''}`} />
-                  </Button>
-                </div>
-
-                {loadingHistory ?
-              <div className="text-center py-8 text-gray-400">Cargando...</div> :
-              paymentHistory.length === 0 ?
-              <div className="text-center py-8 text-gray-400">
-                    <DollarSign className="w-12 h-12 mx-auto mb-2 opacity-30" />
-                    <p>No hay pagos registrados</p>
-                  </div> :
-
-              <div className="space-y-2 max-h-[400px] overflow-y-auto">
-                    {paymentHistory.map((payment) =>
-                <div
-                  key={payment.id}
-                  className="bg-black/40 border border-emerald-500/10 rounded-lg p-3 hover:bg-emerald-500/5 transition-colors">
-
-                        <div className="flex items-start justify-between mb-2">
-                          <div>
-                            <p className="text-white font-semibold">${parseFloat(payment.amount || 0).toFixed(2)}</p>
-                            <p className="text-xs text-gray-400">
-                              {new Date(payment.created_date).toLocaleDateString('es-PR', {
-                          year: 'numeric',
-                          month: 'short',
-                          day: 'numeric',
-                          hour: '2-digit',
-                          minute: '2-digit'
-                        })}
-                            </p>
-                          </div>
-                          <div className="text-right">
-                            <span className="px-2 py-1 bg-emerald-500/20 text-emerald-300 text-xs rounded">
-                              {payment.payment_type || 'salary'}
-                            </span>
-                          </div>
-                        </div>
-                        {payment.period_start && payment.period_end &&
-                  <p className="text-xs text-gray-500">
-                            Periodo: {new Date(payment.period_start).toLocaleDateString('es-PR')} - {new Date(payment.period_end).toLocaleDateString('es-PR')}
-                          </p>
-                  }
-                        {payment.notes &&
-                  <p className="text-xs text-gray-400 mt-1">{payment.notes}</p>
-                  }
-                        {payment.paid_by_name &&
-                  <p className="text-xs text-gray-500 mt-1">Procesado por: {payment.paid_by_name}</p>
-                  }
-                      </div>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              {/* Avatar */}
+              <div className={`relative w-12 h-12 rounded-2xl flex items-center justify-center font-black text-lg ${
+                isActive ? "bg-emerald-500/20 border border-emerald-400/30" : "bg-white/5 border border-white/10"
+              }`}>
+                {employee.name?.charAt(0)?.toUpperCase() || "?"}
+                {isActive && (
+                  <span className="absolute -bottom-1 -right-1 w-4 h-4 rounded-full bg-emerald-400 border-2 border-[#0d1117] animate-pulse" />
                 )}
-                  </div>
-              }
               </div>
-            </>
-          }
+              <div>
+                <h3 className="font-black text-lg tracking-tight leading-none">{employee.name}</h3>
+                <p className={`text-xs font-bold mt-0.5 ${isActive ? "text-emerald-400" : "text-white/30"}`}>
+                  {isActive ? `Activo · ${formatHMS(liveMs)}` : "Sin turno activo"}
+                </p>
+              </div>
+            </div>
+            <button onClick={onClose} className="w-9 h-9 rounded-2xl bg-white/5 hover:bg-white/10 flex items-center justify-center text-white/50 hover:text-white transition-all">
+              <X className="w-4 h-4" />
+            </button>
+          </div>
+        </div>
+
+        <div className="px-6 py-5 space-y-5">
+
+          {/* ── Period Selector ── */}
+          <div className="space-y-2">
+            <p className="text-[9px] font-black uppercase tracking-widest text-white/30">Periodo de cálculo</p>
+            <div className="flex gap-2">
+              {[["Hoy", setToday], ["Semana", setThisWeek], ["Mes", setThisMonth]].map(([label, fn]) => (
+                <button key={label} onClick={fn}
+                  className="flex-1 py-2 rounded-xl bg-white/5 hover:bg-white/10 border border-white/[0.08] text-xs font-black text-white/60 hover:text-white transition-all active:scale-95">
+                  {label}
+                </button>
+              ))}
+            </div>
+            <div className="flex items-center gap-2">
+              <input type="date" value={from.toISOString().slice(0,10)}
+                onChange={(e) => { setFrom(new Date(e.target.value)); setTimeout(loadEntries, 100); }}
+                className="flex-1 bg-white/[0.03] border border-white/[0.08] text-white/70 text-xs rounded-xl px-3 py-2 outline-none focus:border-cyan-500/50" />
+              <span className="text-white/20 font-bold">→</span>
+              <input type="date" value={to.toISOString().slice(0,10)}
+                onChange={(e) => { setTo(new Date(e.target.value)); setTimeout(loadEntries, 100); }}
+                className="flex-1 bg-white/[0.03] border border-white/[0.08] text-white/70 text-xs rounded-xl px-3 py-2 outline-none focus:border-cyan-500/50" />
+            </div>
+          </div>
+
+          {/* ── Payment Summary Card ── */}
+          <div className="rounded-[24px] bg-gradient-to-br from-emerald-950/50 to-[#0d1117] border border-emerald-500/20 p-5">
+            <div className="grid grid-cols-3 gap-3 mb-4">
+              <div className="text-center">
+                <p className="text-[9px] font-black uppercase tracking-widest text-white/30 mb-1">Horas</p>
+                <p className="text-2xl font-black text-white tracking-tight">{totalHours.toFixed(2)}</p>
+                <p className="text-[9px] text-white/20">h trabajadas</p>
+              </div>
+              <div className="text-center border-x border-white/[0.06]">
+                <p className="text-[9px] font-black uppercase tracking-widest text-white/30 mb-1">Tarifa</p>
+                <p className="text-2xl font-black text-white tracking-tight">${hourlyRate.toFixed(0)}</p>
+                <p className="text-[9px] text-white/20">por hora</p>
+              </div>
+              <div className="text-center">
+                <p className="text-[9px] font-black uppercase tracking-widest text-emerald-400/60 mb-1">Total</p>
+                <p className="text-2xl font-black text-emerald-400 tracking-tight">${calculatedPayment.toFixed(2)}</p>
+                <p className="text-[9px] text-emerald-400/40">a pagar</p>
+              </div>
+            </div>
+
+            {hourlyRate > 0 && totalHours > 0 ? (
+              <button
+                onClick={() => onPayment?.({ id: employee.id, name: employee.name, hours: totalHours, rate: hourlyRate, payment: calculatedPayment })}
+                className="w-full h-12 rounded-2xl bg-gradient-to-r from-emerald-500 to-green-500 hover:from-emerald-400 hover:to-green-400 text-black font-black text-sm tracking-tight transition-all active:scale-[0.98] flex items-center justify-center gap-2 shadow-[0_4px_24px_rgba(16,185,129,0.3)]"
+              >
+                <DollarSign className="w-4 h-4" />
+                Procesar Pago · ${calculatedPayment.toFixed(2)}
+              </button>
+            ) : (
+              <div className="text-center py-2">
+                <p className="text-xs text-white/30">
+                  {hourlyRate === 0 ? "⚠️ Sin tarifa configurada en perfil" : "Sin horas en este periodo"}
+                </p>
+              </div>
+            )}
+          </div>
+
+          {/* ── Recent Shifts ── */}
+          <div>
+            <p className="text-[9px] font-black uppercase tracking-widest text-white/30 mb-3">Últimas jornadas</p>
+            {recentShifts.length === 0 ? (
+              <div className="text-center py-8 text-white/20">
+                <Clock className="w-8 h-8 mx-auto mb-2 opacity-30" />
+                <p className="text-xs">Sin jornadas en este periodo</p>
+              </div>
+            ) : (
+              <div className="space-y-2">
+                {recentShifts.map((entry, i) => {
+                  const ms = shiftMs(entry);
+                  const open = !entry.clock_out;
+                  return (
+                    <div key={entry.id || i}
+                      className={`flex items-center gap-4 px-4 py-3 rounded-2xl border transition-all ${
+                        open
+                          ? "bg-emerald-500/10 border-emerald-500/20"
+                          : "bg-white/[0.02] border-white/[0.06]"
+                      }`}>
+                      {/* Indicator */}
+                      <div className={`w-2 h-2 rounded-full flex-shrink-0 ${open ? "bg-emerald-400 animate-pulse" : "bg-white/20"}`} />
+                      {/* Date */}
+                      <div className="flex-1 min-w-0">
+                        <p className="text-xs font-bold text-white/80 truncate">{fmtShiftDay(entry.clock_in)}</p>
+                        <p className="text-[10px] text-white/30">
+                          {fmtTime(entry.clock_in)} → {open ? <span className="text-emerald-400">Activo</span> : fmtTime(entry.clock_out)}
+                        </p>
+                      </div>
+                      {/* Duration */}
+                      <div className="text-right flex-shrink-0">
+                        <p className={`text-sm font-black ${open ? "text-emerald-400" : "text-white/70"}`}>
+                          {formatHM(ms)}
+                        </p>
+                        {hourlyRate > 0 && !open && (
+                          <p className="text-[9px] text-white/25">${((ms / 3600000) * hourlyRate).toFixed(2)}</p>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+
+          {/* ── History Toggle ── */}
+          <button
+            onClick={toggleHistory}
+            className="w-full flex items-center justify-between px-4 py-3 rounded-2xl bg-white/[0.03] hover:bg-white/[0.06] border border-white/[0.06] transition-all active:scale-[0.99]"
+          >
+            <div className="flex items-center gap-2">
+              <TrendingUp className="w-4 h-4 text-emerald-400/60" />
+              <span className="text-sm font-bold text-white/60">Historial de pagos</span>
+              {paymentHistory.length > 0 && (
+                <span className="text-[9px] font-black bg-emerald-500/20 text-emerald-400 px-2 py-0.5 rounded-full">
+                  {paymentHistory.length}
+                </span>
+              )}
+            </div>
+            <ChevronDown className={`w-4 h-4 text-white/30 transition-transform duration-300 ${historyOpen ? "rotate-180" : ""}`} />
+          </button>
+
+          {/* ── History Panel (animated) ── */}
+          <div
+            className="overflow-hidden transition-all duration-300 ease-in-out"
+            style={{ maxHeight: historyOpen ? "600px" : "0px", opacity: historyOpen ? 1 : 0 }}
+          >
+            <div className="space-y-2 pb-2">
+              {loadingHistory ? (
+                <div className="flex items-center justify-center py-8 gap-2 text-white/30">
+                  <RefreshCcw className="w-4 h-4 animate-spin" />
+                  <span className="text-xs">Cargando...</span>
+                </div>
+              ) : paymentHistory.length === 0 ? (
+                <div className="text-center py-8">
+                  <DollarSign className="w-8 h-8 mx-auto mb-2 text-white/10" />
+                  <p className="text-xs text-white/20">Sin pagos registrados</p>
+                </div>
+              ) : (
+                paymentHistory.map((pmt) => (
+                  <div key={pmt.id}
+                    className="flex items-center gap-4 px-4 py-3.5 rounded-2xl bg-white/[0.02] border border-white/[0.05] hover:bg-white/[0.04] transition-all">
+                    <div className="w-9 h-9 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center flex-shrink-0">
+                      <DollarSign className="w-4 h-4 text-emerald-400" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-black text-white">${parseFloat(pmt.amount || 0).toFixed(2)}</p>
+                      <p className="text-[10px] text-white/30 truncate">
+                        {pmt.period_start && pmt.period_end
+                          ? `${new Date(pmt.period_start).toLocaleDateString("es-PR")} – ${new Date(pmt.period_end).toLocaleDateString("es-PR")}`
+                          : new Date(pmt.created_date).toLocaleDateString("es-PR", { year:"numeric", month:"short", day:"numeric" })}
+                      </p>
+                      {pmt.notes && <p className="text-[10px] text-white/20 truncate mt-0.5">{pmt.notes}</p>}
+                    </div>
+                    <span className="text-[9px] font-black px-2 py-1 rounded-full bg-emerald-500/10 text-emerald-400/80 border border-emerald-500/10 flex-shrink-0">
+                      {pmtTypeLabel[pmt.payment_type] || pmt.payment_type || "Salario"}
+                    </span>
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
+
         </div>
       </div>
-    </div>);
-
+    </div>
+  );
 }
 
 /* ====================== MODAL PRINCIPAL ====================== */
@@ -1353,7 +1252,7 @@ export default function TimeTrackingModal({ open, onClose, session }) {
 
     try {
       const paymentAmount = parseFloat(amount);
-      const currentUser = await base44.auth.me();
+      const currentUser = await base44.auth.me().catch(() => null);
       const tenantId = getCurrentTenantId();
       const normalizedPaymentMethod =
         paymentMethod === "ath_movil" ? "transfer" : paymentMethod;
