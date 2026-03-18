@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { dataClient } from "@/components/api/dataClient";
-import { CalendarClock, ChevronRight, DollarSign, PiggyBank, TrendingUp } from "lucide-react";
+import { CalendarClock, ChevronRight, DollarSign, PiggyBank, TrendingUp, Loader2, Banknote, CreditCard } from "lucide-react";
 import { endOfDay, format, isWithinInterval, startOfDay } from "date-fns";
 import { es } from "date-fns/locale";
 import { mergeSales, mergeTransactions, upsertLocalSale, upsertLocalTransactions } from "@/components/utils/localFinancialCache";
@@ -225,6 +225,9 @@ export default function FinancialOverviewWidget({ compact = false, onClick }) {
       const bDate = b?.dueDate ? b.dueDate.getTime() : Number.MAX_SAFE_INTEGER;
       return aDate - bDate;
     });
+
+    const todaySetAside = allocations.reduce((sum, alloc) => sum + (Number.isFinite(alloc.todayAmount) ? alloc.todayAmount : 0), 0);
+    const pendingAmount = allocations.reduce((sum, alloc) => sum + (Number.isFinite(alloc.goalAmount) ? alloc.goalAmount : 0), 0);
 
     const recentTransactions = transactions
       .filter(t => {
