@@ -1373,10 +1373,15 @@ export default function TimeTrackingModal({ open, onClose, session }) {
         throw new Error(errBody || `Deno error ${denoRes.status}`);
       }
 
-      const denoResult = await denoRes.json();
-      if (!denoResult.success) {
-        throw new Error(denoResult.error || "Error procesando nómina");
+      const denoRaw = await denoRes.json();
+      // server.js wraps responses: { data: { success, ... } } — handle both shapes
+      const denoResult = denoRaw?.data ?? denoRaw;
+      if (!denoResult?.success) {
+        throw new Error(denoResult?.error || "Error procesando nómina");
       }
+
+      // ── Optimistic clear: remove paid employee entries immediately ──
+      setEntries((prev) => prev.filter((e) => String(e.employee_id) !== String(selectedEmployeeForPayment.id)));
 
       // ── Refresh UI ──
       setPaidEmployees((prev) => new Set([...prev, selectedEmployeeForPayment.id]));
@@ -1443,6 +1448,8 @@ export default function TimeTrackingModal({ open, onClose, session }) {
           await supabase.from("time_entry").delete().eq("id", en.id).catch(() => {});
         }
 
+        // Optimistic clear in fallback too
+        setEntries((prev) => prev.filter((e) => String(e.employee_id) !== String(selectedEmployeeForPayment.id)));
         setPaidEmployees((prev) => new Set([...prev, selectedEmployeeForPayment.id]));
         setPaymentModalOpen(false);
         setSelectedEmployeeForPayment(null);
