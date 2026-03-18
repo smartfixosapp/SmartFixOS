@@ -590,6 +590,32 @@ function PaymentModal({ open, onClose, employee, onConfirm }) {
 
 }
 
+// ── Week grouping helper ─────────────────────────────────────────────────────
+function getMondayOfWeek(date) {
+  const d = new Date(date);
+  const day = d.getDay();
+  const offset = day === 0 ? -6 : 1 - day;
+  d.setDate(d.getDate() + offset);
+  d.setHours(0, 0, 0, 0);
+  return d;
+}
+
+function groupEntriesByWeek(entries) {
+  const map = {};
+  for (const e of entries) {
+    const monday = getMondayOfWeek(new Date(e.clock_in));
+    const key = monday.toISOString().slice(0, 10);
+    if (!map[key]) {
+      const sunday = new Date(monday);
+      sunday.setDate(monday.getDate() + 6);
+      sunday.setHours(23, 59, 59, 999);
+      map[key] = { monday, sunday, key, entries: [] };
+    }
+    map[key].entries.push(e);
+  }
+  return Object.values(map).sort((a, b) => b.monday - a.monday);
+}
+
 /* ====================== Modal de Detalle de Empleado ====================== */
 function EmployeeDetailModal({ open, onClose, employee, entries, formatHM, formatHMS, allEntries, employees, from, to, setSelectedEmployee, setFrom, setTo, loadEntries, onPayment }) {
   const [historyOpen, setHistoryOpen] = React.useState(false);
@@ -597,6 +623,7 @@ function EmployeeDetailModal({ open, onClose, employee, entries, formatHM, forma
   const [loadingHistory, setLoadingHistory] = React.useState(false);
   const [historyLoaded, setHistoryLoaded] = React.useState(false);
   const [liveMs, setLiveMs] = React.useState(0);
+  const [expandedWeeks, setExpandedWeeks] = React.useState({});
 
   // Live clock for active shift
   React.useEffect(() => {
@@ -675,15 +702,6 @@ function EmployeeDetailModal({ open, onClose, employee, entries, formatHM, forma
     applyRange(s, e);
   };
 
-  // Recent shifts: up to 8, sorted newest first
-  const recentShifts = [...allEntries]
-    .sort((a, b) => new Date(b.clock_in) - new Date(a.clock_in))
-    .slice(0, 8);
-
-  const fmtShiftDay = (iso) => {
-    const d = new Date(iso);
-    return d.toLocaleDateString("es-PR", { weekday: "short", month: "short", day: "numeric" });
-  };
   const fmtTime = (iso) => iso ? new Date(iso).toLocaleTimeString("es-PR", { hour: "2-digit", minute: "2-digit" }) : "—";
   const shiftMs = (e) => {
     const s = e.clock_in ? new Date(e.clock_in).getTime() : 0;
@@ -692,6 +710,16 @@ function EmployeeDetailModal({ open, onClose, employee, entries, formatHM, forma
   };
 
   const pmtTypeLabel = { salary: "Salario", bonus: "Bono", commission: "Comisión", advance: "Adelanto", other: "Otro" };
+
+  // Group entries by week (last 4 weeks max)
+  const weekGroups = React.useMemo(() => groupEntriesByWeek(allEntries).slice(0, 4), [allEntries]);
+
+  const toggleWeek = (key) => setExpandedWeeks((prev) => ({ ...prev, [key]: !prev[key] }));
+
+  const fmtWeekRange = (monday, sunday) => {
+    const opts = { month: "short", day: "numeric" };
+    return `Lun ${monday.toLocaleDateString("es-PR", opts)} — Dom ${sunday.toLocaleDateString("es-PR", opts)}`;
+  };
 
   return (
     <div className="fixed inset-0 z-[99999] bg-black/75 backdrop-blur-md flex items-end sm:items-center justify-center p-0 sm:p-4">
@@ -787,43 +815,71 @@ function EmployeeDetailModal({ open, onClose, employee, entries, formatHM, forma
             )}
           </div>
 
-          {/* ── Recent Shifts ── */}
+          {/* ── Week-Grouped Shifts ── */}
           <div>
             <p className="text-[9px] font-black uppercase tracking-widest text-white/30 mb-3">Últimas jornadas</p>
-            {recentShifts.length === 0 ? (
+            {weekGroups.length === 0 ? (
               <div className="text-center py-8 text-white/20">
                 <Clock className="w-8 h-8 mx-auto mb-2 opacity-30" />
                 <p className="text-xs">Sin jornadas en este periodo</p>
               </div>
             ) : (
               <div className="space-y-2">
-                {recentShifts.map((entry, i) => {
-                  const ms = shiftMs(entry);
-                  const open = !entry.clock_out;
+                {weekGroups.map((week) => {
+                  const weekMs = week.entries.reduce((s, e) => s + shiftMs(e), 0);
+                  const weekPay = hourlyRate > 0 ? (weekMs / 3600000) * hourlyRate : 0;
+                  const isExpanded = !!expandedWeeks[week.key];
+                  const hasActive = week.entries.some((e) => !e.clock_out);
+
                   return (
-                    <div key={entry.id || i}
-                      className={`flex items-center gap-4 px-4 py-3 rounded-2xl border transition-all ${
-                        open
-                          ? "bg-emerald-500/10 border-emerald-500/20"
-                          : "bg-white/[0.02] border-white/[0.06]"
-                      }`}>
-                      {/* Indicator */}
-                      <div className={`w-2 h-2 rounded-full flex-shrink-0 ${open ? "bg-emerald-400 animate-pulse" : "bg-white/20"}`} />
-                      {/* Date */}
-                      <div className="flex-1 min-w-0">
-                        <p className="text-xs font-bold text-white/80 truncate">{fmtShiftDay(entry.clock_in)}</p>
-                        <p className="text-[10px] text-white/30">
-                          {fmtTime(entry.clock_in)} → {open ? <span className="text-emerald-400">Activo</span> : fmtTime(entry.clock_out)}
-                        </p>
-                      </div>
-                      {/* Duration */}
-                      <div className="text-right flex-shrink-0">
-                        <p className={`text-sm font-black ${open ? "text-emerald-400" : "text-white/70"}`}>
-                          {formatHM(ms)}
-                        </p>
-                        {hourlyRate > 0 && !open && (
-                          <p className="text-[9px] text-white/25">${((ms / 3600000) * hourlyRate).toFixed(2)}</p>
-                        )}
+                    <div key={week.key} className="rounded-2xl border border-white/[0.06] overflow-hidden">
+                      {/* Week header — tap to expand */}
+                      <button
+                        onClick={() => toggleWeek(week.key)}
+                        className="w-full flex items-center gap-3 px-4 py-3 bg-white/[0.02] hover:bg-white/[0.04] transition-all"
+                      >
+                        {hasActive && <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse flex-shrink-0" />}
+                        <div className="flex-1 text-left min-w-0">
+                          <p className="text-xs font-black text-white/70 truncate">{fmtWeekRange(week.monday, week.sunday)}</p>
+                          <p className="text-[10px] text-white/30">{week.entries.length} jornada{week.entries.length !== 1 ? "s" : ""}</p>
+                        </div>
+                        <div className="text-right flex-shrink-0 mr-2">
+                          <p className="text-sm font-black text-white/80">{formatHM(weekMs)}</p>
+                          {weekPay > 0 && <p className="text-[9px] text-emerald-400/60">${weekPay.toFixed(2)}</p>}
+                        </div>
+                        <ChevronDown className={`w-4 h-4 text-white/25 transition-transform duration-200 flex-shrink-0 ${isExpanded ? "rotate-180" : ""}`} />
+                      </button>
+
+                      {/* Shifts inside the week */}
+                      <div
+                        className="overflow-hidden transition-all duration-250 ease-in-out"
+                        style={{ maxHeight: isExpanded ? `${week.entries.length * 72}px` : "0px" }}
+                      >
+                        {week.entries
+                          .sort((a, b) => new Date(b.clock_in) - new Date(a.clock_in))
+                          .map((entry, i) => {
+                            const ms = shiftMs(entry);
+                            const isOpen = !entry.clock_out;
+                            const dayName = new Date(entry.clock_in).toLocaleDateString("es-PR", { weekday: "long", day: "numeric" });
+                            return (
+                              <div key={entry.id || i}
+                                className={`flex items-center gap-3 px-5 py-2.5 border-t border-white/[0.04] ${isOpen ? "bg-emerald-500/5" : ""}`}>
+                                <div className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${isOpen ? "bg-emerald-400 animate-pulse" : "bg-white/15"}`} />
+                                <div className="flex-1 min-w-0">
+                                  <p className="text-xs font-bold text-white/60 capitalize truncate">{dayName}</p>
+                                  <p className="text-[10px] text-white/25">
+                                    {fmtTime(entry.clock_in)} → {isOpen ? "Activo" : fmtTime(entry.clock_out)}
+                                  </p>
+                                </div>
+                                <div className="text-right flex-shrink-0">
+                                  <p className={`text-xs font-black ${isOpen ? "text-emerald-400" : "text-white/50"}`}>{formatHM(ms)}</p>
+                                  {hourlyRate > 0 && !isOpen && (
+                                    <p className="text-[9px] text-white/20">${((ms / 3600000) * hourlyRate).toFixed(2)}</p>
+                                  )}
+                                </div>
+                              </div>
+                            );
+                          })}
                       </div>
                     </div>
                   );
@@ -832,61 +888,97 @@ function EmployeeDetailModal({ open, onClose, employee, entries, formatHM, forma
             )}
           </div>
 
-          {/* ── History Toggle ── */}
+          {/* ── History Toggle (payments + custom date range) ── */}
           <button
             onClick={toggleHistory}
             className="w-full flex items-center justify-between px-4 py-3 rounded-2xl bg-white/[0.03] hover:bg-white/[0.06] border border-white/[0.06] transition-all active:scale-[0.99]"
           >
             <div className="flex items-center gap-2">
               <TrendingUp className="w-4 h-4 text-emerald-400/60" />
-              <span className="text-sm font-bold text-white/60">Historial de pagos</span>
+              <span className="text-sm font-bold text-white/60">Ver historial</span>
               {paymentHistory.length > 0 && (
                 <span className="text-[9px] font-black bg-emerald-500/20 text-emerald-400 px-2 py-0.5 rounded-full">
-                  {paymentHistory.length}
+                  {paymentHistory.length} pagos
                 </span>
               )}
             </div>
             <ChevronDown className={`w-4 h-4 text-white/30 transition-transform duration-300 ${historyOpen ? "rotate-180" : ""}`} />
           </button>
 
-          {/* ── History Panel (animated) ── */}
+          {/* ── History Panel: custom date range + payment log ── */}
           <div
             className="overflow-hidden transition-all duration-300 ease-in-out"
-            style={{ maxHeight: historyOpen ? "600px" : "0px", opacity: historyOpen ? 1 : 0 }}
+            style={{ maxHeight: historyOpen ? "800px" : "0px", opacity: historyOpen ? 1 : 0 }}
           >
-            <div className="space-y-2 pb-2">
-              {loadingHistory ? (
-                <div className="flex items-center justify-center py-8 gap-2 text-white/30">
-                  <RefreshCcw className="w-4 h-4 animate-spin" />
-                  <span className="text-xs">Cargando...</span>
+            <div className="space-y-4 pb-2">
+              {/* Calendar / date range picker */}
+              <div className="bg-white/[0.02] border border-white/[0.06] rounded-2xl p-4 space-y-3">
+                <p className="text-[9px] font-black uppercase tracking-widest text-white/30">Filtrar por fechas</p>
+                <div className="flex gap-2">
+                  {[["Hoy", () => { const d=new Date(); const s=new Date(d); s.setHours(0,0,0,0); const e=new Date(d); e.setHours(23,59,59,999); setFrom(s); setTo(e); setTimeout(loadEntries, 100); }],
+                    ["Semana", () => { const d=new Date(); const s=new Date(d); s.setDate(d.getDate()-d.getDay()); s.setHours(0,0,0,0); const e=new Date(s); e.setDate(s.getDate()+6); e.setHours(23,59,59,999); setFrom(s); setTo(e); setTimeout(loadEntries, 100); }],
+                    ["Mes", () => { const d=new Date(); const s=new Date(d.getFullYear(),d.getMonth(),1); const e=new Date(d.getFullYear(),d.getMonth()+1,0,23,59,59,999); setFrom(s); setTo(e); setTimeout(loadEntries, 100); }]
+                  ].map(([label, fn]) => (
+                    <button key={label} onClick={fn}
+                      className="flex-1 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/[0.08] text-[10px] font-black text-white/50 hover:text-white transition-all">
+                      {label}
+                    </button>
+                  ))}
                 </div>
-              ) : paymentHistory.length === 0 ? (
-                <div className="text-center py-8">
-                  <DollarSign className="w-8 h-8 mx-auto mb-2 text-white/10" />
-                  <p className="text-xs text-white/20">Sin pagos registrados</p>
+                <div className="flex items-center gap-2">
+                  <input type="date" value={from.toISOString().slice(0,10)}
+                    onChange={(e) => { setFrom(new Date(e.target.value)); setTimeout(loadEntries, 100); }}
+                    className="flex-1 bg-white/[0.03] border border-white/[0.08] text-white/60 text-xs rounded-xl px-3 py-2 outline-none focus:border-cyan-500/40" />
+                  <span className="text-white/20">→</span>
+                  <input type="date" value={to.toISOString().slice(0,10)}
+                    onChange={(e) => { setTo(new Date(e.target.value)); setTimeout(loadEntries, 100); }}
+                    className="flex-1 bg-white/[0.03] border border-white/[0.08] text-white/60 text-xs rounded-xl px-3 py-2 outline-none focus:border-cyan-500/40" />
                 </div>
-              ) : (
-                paymentHistory.map((pmt) => (
-                  <div key={pmt.id}
-                    className="flex items-center gap-4 px-4 py-3.5 rounded-2xl bg-white/[0.02] border border-white/[0.05] hover:bg-white/[0.04] transition-all">
-                    <div className="w-9 h-9 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center flex-shrink-0">
-                      <DollarSign className="w-4 h-4 text-emerald-400" />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-black text-white">${parseFloat(pmt.amount || 0).toFixed(2)}</p>
-                      <p className="text-[10px] text-white/30 truncate">
-                        {pmt.period_start && pmt.period_end
-                          ? `${new Date(pmt.period_start).toLocaleDateString("es-PR")} – ${new Date(pmt.period_end).toLocaleDateString("es-PR")}`
-                          : new Date(pmt.created_date).toLocaleDateString("es-PR", { year:"numeric", month:"short", day:"numeric" })}
-                      </p>
-                      {pmt.notes && <p className="text-[10px] text-white/20 truncate mt-0.5">{pmt.notes}</p>}
-                    </div>
-                    <span className="text-[9px] font-black px-2 py-1 rounded-full bg-emerald-500/10 text-emerald-400/80 border border-emerald-500/10 flex-shrink-0">
-                      {pmtTypeLabel[pmt.payment_type] || pmt.payment_type || "Salario"}
-                    </span>
+                {/* Summary of current filter */}
+                <div className="flex items-center justify-between text-[10px] text-white/30 px-1">
+                  <span>{allEntries.length} jornadas · {formatHM(filteredTotalMillis)}</span>
+                  {hourlyRate > 0 && <span className="text-emerald-400/60">${(filteredTotalMillis / 3600000 * hourlyRate).toFixed(2)}</span>}
+                </div>
+              </div>
+
+              {/* Payment history */}
+              <div>
+                <p className="text-[9px] font-black uppercase tracking-widest text-white/30 mb-2">Pagos procesados</p>
+                {loadingHistory ? (
+                  <div className="flex items-center justify-center py-6 gap-2 text-white/30">
+                    <RefreshCcw className="w-4 h-4 animate-spin" />
+                    <span className="text-xs">Cargando...</span>
                   </div>
-                ))
-              )}
+                ) : paymentHistory.length === 0 ? (
+                  <div className="text-center py-6">
+                    <DollarSign className="w-7 h-7 mx-auto mb-2 text-white/10" />
+                    <p className="text-xs text-white/20">Sin pagos registrados</p>
+                  </div>
+                ) : (
+                  <div className="space-y-2">
+                    {paymentHistory.map((pmt) => (
+                      <div key={pmt.id}
+                        className="flex items-center gap-3 px-4 py-3 rounded-2xl bg-white/[0.02] border border-white/[0.05] hover:bg-white/[0.04] transition-all">
+                        <div className="w-8 h-8 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center flex-shrink-0">
+                          <DollarSign className="w-3.5 h-3.5 text-emerald-400" />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-black text-white">${parseFloat(pmt.amount || 0).toFixed(2)}</p>
+                          <p className="text-[10px] text-white/30 truncate">
+                            {pmt.period_start && pmt.period_end
+                              ? `${new Date(pmt.period_start).toLocaleDateString("es-PR")} – ${new Date(pmt.period_end).toLocaleDateString("es-PR")}`
+                              : pmt.created_date ? new Date(pmt.created_date).toLocaleDateString("es-PR", { year:"numeric", month:"short", day:"numeric" }) : "—"}
+                          </p>
+                          {pmt.notes && <p className="text-[10px] text-white/20 truncate mt-0.5">{pmt.notes}</p>}
+                        </div>
+                        <span className="text-[9px] font-black px-2 py-1 rounded-full bg-emerald-500/10 text-emerald-400/80 border border-emerald-500/10 flex-shrink-0">
+                          {pmtTypeLabel[pmt.payment_type] || pmt.payment_type || "Salario"}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
             </div>
           </div>
 

@@ -22,6 +22,7 @@ import ReportesFinancieros from "../components/financial/ReportesFinancieros";
 import EnhancedReports from "../components/financial/EnhancedReports";
 import OneTimeExpensesWidget from "../components/financial/OneTimeExpensesWidget";
 import GastosOperacionalesWidget from "../components/financial/GastosOperacionalesWidget";
+import MonthlyReportModal from "../components/financial/MonthlyReportModal";
 import { toast } from "sonner";
 import TransactionsModal from "../components/financial/TransactionsModal";
 import { useNavigate } from "react-router-dom";
@@ -176,6 +177,7 @@ export default function Financial() {
   const [showExpenseDialog, setShowExpenseDialog] = useState(false);
   const [expenseDefaultCategory, setExpenseDefaultCategory] = useState(null);
   const [showTimeTrackingModal, setShowTimeTrackingModal] = useState(false);
+  const [showMonthlyReport, setShowMonthlyReport] = useState(false);
   const [activeTab, setActiveTab] = useState("sales");
   const [fixedExpenses, setFixedExpenses] = useState([]);
   const [showFixedExpenseDialog, setShowFixedExpenseDialog] = useState(false);
@@ -1176,6 +1178,17 @@ export default function Financial() {
             </div>
 
             <ErrorBoundary><GastosOperacionalesWidget /></ErrorBoundary>
+
+            {/* Monthly Report button */}
+            <div className="mt-4 flex justify-end">
+              <button
+                onClick={() => setShowMonthlyReport(true)}
+                className="flex items-center gap-2 px-5 py-2.5 rounded-2xl bg-white/[0.03] hover:bg-white/[0.06] border border-white/[0.08] text-xs font-black text-white/50 hover:text-white transition-all"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+                Reporte Mensual PDF
+              </button>
+            </div>
           </TabsContent>
 
           <TabsContent value="expenses">
@@ -1317,11 +1330,16 @@ export default function Financial() {
       )}
       {showFixedExpenseDialog && <FixedExpenseDialog open={showFixedExpenseDialog} onClose={() => { setShowFixedExpenseDialog(false); setEditingExpense(null); }} onSave={handleSaveFixedExpense} expense={editingExpense} />}
       
-      <TransactionsModal 
-        open={showTransactionsModal} 
+      <TransactionsModal
+        open={showTransactionsModal}
         onClose={() => setShowTransactionsModal(false)}
         sales={modalSales}
         title={modalTitle}
+      />
+
+      <MonthlyReportModal
+        open={showMonthlyReport}
+        onClose={() => setShowMonthlyReport(false)}
       />
     </div>
   );

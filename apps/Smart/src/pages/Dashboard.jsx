@@ -89,6 +89,7 @@ import RechargesPanel from "@/components/recharges/RechargesPanel";
 import DashboardLinksConfig from "@/components/dashboard/DashboardLinksConfig";
 import WorkQueueWidget from "@/components/dashboard/WorkQueueWidget";
 import DailyTransactionsModal from "@/components/dashboard/DailyTransactionsModal";
+import MonthlyReportModal, { shouldShowMonthlyReport } from "@/components/financial/MonthlyReportModal";
 const LOCAL_DASHBOARD_BUTTONS_KEY = "smartfix_dashboard_buttons_local";
 
 // ------------------------
@@ -185,6 +186,15 @@ export default function Dashboard() {
 
   const [session, setSession] = useState(() => readSessionSync());
   const hasRedirected = useRef(false);
+  const [showMonthlyReport, setShowMonthlyReport] = useState(false);
+
+  // Auto-show monthly report on last day of month
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (shouldShowMonthlyReport()) setShowMonthlyReport(true);
+    }, 3000); // delay 3s after load so dashboard is ready first
+    return () => clearTimeout(timer);
+  }, []);
 
   const sessionRef = useRef(session);
   const [loading, setLoading] = useState(false);
@@ -967,7 +977,7 @@ export default function Dashboard() {
             )}
           </div>
 
-          <div className="hidden md:block space-y-4">
+          <div className="hidden md:grid md:grid-cols-2 md:gap-4 lg:block lg:space-y-4">
             <FinancialOverviewWidget onClick={() => handleNavigate("Financial")} />
             <SmartDailyGoalWidget onClick={() => handleNavigate("Financial")} />
           </div>
@@ -1036,8 +1046,8 @@ export default function Dashboard() {
               </div>
             </div>
 
-            {/* Widgets de estado */}
-            <div className="grid grid-cols-1 gap-3 px-2 sm:px-1">
+            {/* Widgets de estado — lado a lado */}
+            <div className="grid grid-cols-2 gap-3 px-2 sm:px-1">
               <FinancialOverviewWidget compact onClick={() => handleNavigate("Financial")} />
               <SmartDailyGoalWidget compact onClick={() => handleNavigate("Financial")} />
             </div>
@@ -1724,6 +1734,12 @@ export default function Dashboard() {
           onClose={() => setShowDashboardConfig(false)}
         />
       )}
+
+      {/* ✅ REPORTE MENSUAL AUTOMÁTICO (día 31) */}
+      <MonthlyReportModal
+        open={showMonthlyReport}
+        onClose={() => setShowMonthlyReport(false)}
+      />
 
       {/* ✅ MENÚ "MÁS" PARA MÓVIL */}
       {showMoreMenu && (
