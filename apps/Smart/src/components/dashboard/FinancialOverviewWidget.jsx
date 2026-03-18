@@ -1,8 +1,9 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { dataClient } from "@/components/api/dataClient";
-import { CalendarClock, ChevronRight, DollarSign, PiggyBank, TrendingUp, Loader2, Banknote, CreditCard } from "lucide-react";
+import { CalendarClock, ChevronRight, DollarSign, PiggyBank, TrendingUp, Loader2, Banknote, CreditCard, Smartphone } from "lucide-react";
 import { endOfDay, format, isWithinInterval, startOfDay } from "date-fns";
 import { es } from "date-fns/locale";
+import { cn } from "@/lib/utils";
 import { mergeSales, mergeTransactions, upsertLocalSale, upsertLocalTransactions, readLocalFixedExpenses } from "@/components/utils/localFinancialCache";
 
 const getFrequencyDivisor = (frequency) => {
@@ -61,11 +62,18 @@ const computeSaleProfit = (sale) => {
     const qty = Number(item?.quantity || 0);
     const total = Number(item?.total || (Number(item?.price || 0) * qty));
     const lineCost = Number(item?.line_cost || (Number(item?.cost || 0) * qty));
+    
+    // Si hay una ganancia explícita por línea, usarla. De lo contrario, calcular (total - costo).
     const explicitLineProfit = item?.line_profit;
-    const lineProfit = explicitLineProfit != null ? Number(explicitLineProfit || 0) : (total - lineCost);
+    const lineProfit = explicitLineProfit != null 
+      ? Number(explicitLineProfit || 0) 
+      : (total - lineCost);
+      
     return sum + (Number.isFinite(lineProfit) ? lineProfit : 0);
   }, 0);
 };
+
+const DAILY_GOAL = 1000; // Meta diaria configurable
 
 function FinancialOverviewWidgetBase({ compact = false, onClick }) {
   const [sales, setSales] = useState([]);
@@ -153,7 +161,9 @@ function FinancialOverviewWidgetBase({ compact = false, onClick }) {
       const d = getEntityDate(t);
       if (!d) return false;
       try {
-        return isWithinInterval(new Date(d), { start: todayStart, end: todayEnd });
+        const targetDate = new Date(d);
+        if (isNaN(targetDate.getTime())) return false;
+        return isWithinInterval(targetDate, { start: todayStart, end: todayEnd });
       } catch {
         return false;
       }
@@ -164,7 +174,9 @@ function FinancialOverviewWidgetBase({ compact = false, onClick }) {
       const d = getEntityDate(t);
       if (!d) return false;
       try {
-        return isWithinInterval(new Date(d), { start: todayStart, end: todayEnd });
+        const targetDate = new Date(d);
+        if (isNaN(targetDate.getTime())) return false;
+        return isWithinInterval(targetDate, { start: todayStart, end: todayEnd });
       } catch {
         return false;
       }
@@ -174,7 +186,9 @@ function FinancialOverviewWidgetBase({ compact = false, onClick }) {
       const d = getEntityDate(s);
       if (!d) return false;
       try {
-        return isWithinInterval(new Date(d), { start: todayStart, end: todayEnd });
+        const date = new Date(d);
+        if (isNaN(date.getTime())) return false;
+        return isWithinInterval(date, { start: todayStart, end: todayEnd });
       } catch {
         return false;
       }
@@ -325,6 +339,31 @@ function FinancialOverviewWidgetBase({ compact = false, onClick }) {
                 <div className="h-1.5 flex-1 bg-white/5 rounded-full overflow-hidden">
                   <div className="h-full bg-gradient-to-r from-blue-500 to-indigo-400 w-[50%] rounded-full shadow-[0_0_8px_rgba(59,130,246,0.4)]" />
                 </div>
+              </div>
+            </div>
+          </div>
+
+          {/* 📊 BARRA DE COMPLETADO (NUEVA) */}
+          <div className={cn(
+            "bg-white/[0.03] border border-white/[0.06] backdrop-blur-3xl overflow-hidden relative",
+            compact ? "p-4 rounded-[24px]" : "p-6 rounded-[32px]"
+          )}>
+            <div className="flex items-center justify-between mb-3 px-1">
+              <div className="flex items-center gap-2">
+                <div className="w-2 h-2 rounded-full bg-cyan-500 animate-pulse" />
+                <p className="text-[10px] font-black text-white/50 uppercase tracking-[0.2em]">Meta Diaria: <span className="text-white">${DAILY_GOAL}</span></p>
+              </div>
+              <p className="text-[10px] font-black text-cyan-400 uppercase tracking-widest">
+                {Math.min(100, Math.round((summary.todayRevenue / DAILY_GOAL) * 100))}%
+              </p>
+            </div>
+            
+            <div className="relative h-4 bg-black/40 rounded-full border border-white/10 p-0.5 overflow-hidden">
+              <div 
+                className="h-full rounded-full bg-gradient-to-r from-cyan-500 via-blue-500 to-emerald-500 shadow-[0_0_15px_rgba(6,182,212,0.4)] transition-all duration-1000 ease-out relative"
+                style={{ width: `${Math.min(100, (summary.todayRevenue / DAILY_GOAL) * 100)}%` }}
+              >
+                <div className="absolute inset-0 bg-[linear-gradient(45deg,rgba(255,255,255,0.1)_25%,transparent_25%,transparent_50%,rgba(255,255,255,0.1)_50%,rgba(255,255,255,0.1)_75%,transparent_75%,transparent)] bg-[length:20px_20px] animate-[shimmer_2s_linear_infinite]" />
               </div>
             </div>
           </div>

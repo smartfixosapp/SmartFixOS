@@ -9,7 +9,7 @@ import {
   Search, Plus, Filter, X, Smartphone, Laptop, Tablet,
   Watch, Gamepad2, Camera, Box, Clock, AlertCircle, CheckCircle2,
   Package, Zap, User, Phone, Calendar, ChevronRight, Grid3X3,
-  List, RefreshCw, Eye, Building2, FileText, Shield } from
+  List, RefreshCw, Eye, Building2, FileText, Shield, FilePlus } from
 "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
@@ -837,10 +837,10 @@ export default function OrdersPage() {
 
               <Button
                 onClick={openQuickOrderModal}
-                className="h-10 sm:h-11 px-4 sm:px-5 rounded-full text-sm font-bold whitespace-nowrap bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-500 hover:to-cyan-400 border border-cyan-300/40 text-white shadow-[0_0_18px_rgba(34,211,238,0.35)]"
+                className="h-10 sm:h-11 px-3 sm:px-5 rounded-full text-sm font-bold whitespace-nowrap bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-500 hover:to-cyan-400 border border-cyan-300/40 text-white shadow-[0_0_18px_rgba(34,211,238,0.35)]"
               >
-                <Plus className="w-4 h-4 mr-2" />
-                Nueva Orden
+                <FilePlus className="w-5 h-5 sm:mr-2" />
+                <span className="hidden sm:inline">Nueva Orden</span>
               </Button>
 
 
