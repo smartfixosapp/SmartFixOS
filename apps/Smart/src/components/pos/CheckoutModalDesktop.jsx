@@ -45,25 +45,27 @@ export default function CheckoutModalDesktop({
   const finalTotal = effectiveTotal || total || 0;
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
-      <div className="absolute inset-0 bg-black/80 backdrop-blur-sm" onClick={onClose} />
+    <div className="fixed inset-0 z-[100] flex items-center justify-center sm:p-4 p-0">
+      <div className="absolute inset-0 bg-[#000000]/95" onClick={onClose} />
 
-      <div className="relative w-full max-w-4xl bg-[#0F0F12] border border-white/10 rounded-3xl overflow-hidden shadow-2xl animate-in fade-in zoom-in-95 duration-200 flex max-h-[90vh]">
+      <div className="relative w-full h-[100dvh] sm:h-auto sm:max-h-[90vh] sm:max-w-4xl bg-[#0F0F12] border-x sm:border border-white/10 sm:rounded-[32px] overflow-hidden shadow-2xl animate-in fade-in zoom-in-95 duration-300 flex flex-col sm:flex-row">
         {/* Header */}
-        <div className="absolute top-0 left-0 right-0 flex items-center justify-between p-6 pb-2 z-10 bg-gradient-to-b from-[#0F0F12] to-transparent">
+        <div className="absolute top-0 left-0 right-0 flex items-center justify-between p-6 pb-4 z-20 bg-[#0F0F12]/80 backdrop-blur-xl border-b border-white/5">
           <div className="flex items-center gap-3">
-            <CreditCard className="w-6 h-6 text-blue-500" />
-            <h3 className="text-2xl font-bold text-white">Finalizar Cobro</h3>
+            <div className="w-10 h-10 rounded-2xl bg-blue-500/20 flex items-center justify-center text-blue-500">
+              <CreditCard className="w-5 h-5" />
+            </div>
+            <h3 className="text-xl sm:text-2xl font-black text-white uppercase tracking-tight">Finalizar Cobro</h3>
           </div>
-          <button onClick={onClose} className="text-zinc-500 hover:text-white transition-colors">
+          <button onClick={onClose} className="w-10 h-10 rounded-full bg-white/5 hover:bg-white/10 text-zinc-500 hover:text-white transition-all flex items-center justify-center">
             <X className="w-6 h-6" />
           </button>
         </div>
 
         {/* Two Column Layout */}
-        <div className="flex flex-1 overflow-hidden pt-20">
+        <div className="flex flex-col sm:flex-row flex-1 overflow-hidden pt-24">
           {/* LEFT COLUMN - RESUMEN */}
-          <div className="flex-1 border-r border-white/10 p-6 space-y-6 overflow-y-auto">
+          <div className="w-full sm:w-[40%] sm:border-r border-white/10 p-6 space-y-6 overflow-y-auto bg-black/20">
             {/* Resumen de Compra */}
             <div className="bg-[#18181B] rounded-2xl p-4 border border-white/5">
               <div className="flex items-center gap-2 mb-4">
@@ -129,20 +131,20 @@ export default function CheckoutModalDesktop({
             </div>
 
             {/* Toggle IVU */}
-            <div className="flex items-center justify-between p-3 bg-[#18181B] rounded-xl border border-white/5">
+            <div className="flex items-center justify-between p-4 bg-white/[0.03] rounded-[20px] border border-white/[0.08]">
               <div>
-                <p className="text-sm font-semibold text-white">IVU (Impuesto 11.5%)</p>
-                <p className="text-xs text-zinc-500 mt-0.5">Aplicar impuesto a la venta</p>
+                <p className="text-[11px] font-black text-white uppercase tracking-wider">IVU (Impuesto 11.5%)</p>
+                <p className="text-[10px] text-zinc-500 mt-0.5">Aplicar impuesto local</p>
               </div>
               <button
                 onClick={() => setTaxEnabled(!taxEnabled)}
-                className={`relative w-14 h-7 rounded-full transition-colors ${
-                  taxEnabled ? "bg-blue-600" : "bg-gray-600"
+                className={`relative w-14 h-8 rounded-full transition-all duration-500 ${
+                  taxEnabled ? "bg-cyan-500 shadow-[0_0_15px_rgba(6,182,212,0.4)]" : "bg-zinc-800"
                 }`}
               >
                 <span
-                  className={`absolute top-1 left-1 w-5 h-5 bg-white rounded-full transition-transform ${
-                    taxEnabled ? "translate-x-7" : ""
+                  className={`absolute top-1 left-1 w-6 h-6 bg-white rounded-full transition-transform duration-500 shadow-md ${
+                    taxEnabled ? "translate-x-6 scale-110" : "scale-90"
                   }`}
                 />
               </button>
@@ -150,40 +152,36 @@ export default function CheckoutModalDesktop({
           </div>
 
           {/* RIGHT COLUMN - PAGO */}
-          <div className="flex-1 p-6 space-y-6 overflow-y-auto flex flex-col">
+          <div className="flex-1 p-6 space-y-7 overflow-y-auto flex flex-col bg-transparent">
             {/* Métodos de Pago */}
              <div className="space-y-3">
 
               {enabledPaymentMethods.cash && (
                 <button
                   onClick={() => setPaymentMethod("cash")}
-                  className={`w-full p-4 rounded-2xl border transition-all flex items-center gap-4 group ${
+                  className={`w-full p-5 rounded-[24px] border transition-all duration-300 flex items-center gap-5 group ${
                     paymentMethod === "cash"
-                      ? "bg-emerald-900/30 border-emerald-500/70"
-                      : "bg-[#18181B] border-emerald-500/50 hover:border-emerald-500/70 hover:bg-emerald-900/20"
+                      ? "bg-emerald-500/10 border-emerald-500/50 shadow-xl shadow-emerald-500/5 ring-1 ring-emerald-500/20"
+                      : "bg-white/[0.03] border-white/10 hover:border-emerald-500/30 hover:bg-emerald-500/5"
                   }`}
                 >
-                  {paymentMethod === "cash" && (
-                    <div className="w-6 h-6 rounded flex items-center justify-center bg-emerald-500 flex-shrink-0">
-                      <svg className="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 20 20">
-                        <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                      </svg>
-                    </div>
-                  )}
                   <div
-                    className={`w-12 h-12 rounded-xl flex items-center justify-center transition-colors ${
+                    className={`w-14 h-14 rounded-[18px] flex items-center justify-center transition-all duration-500 shadow-inner ${
                       paymentMethod === "cash"
-                        ? "bg-emerald-500 text-white"
-                        : "bg-emerald-500/20 text-emerald-500"
+                        ? "bg-emerald-500 text-white scale-110"
+                        : "bg-emerald-500/10 text-emerald-500"
                     }`}
                   >
-                    <Banknote className="w-6 h-6" />
+                    <Banknote className="w-7 h-7" />
                   </div>
-                  <div className="text-left">
-                    <p className={`font-bold text-lg ${paymentMethod === "cash" ? "text-white" : "text-zinc-300"}`}>
-                      Efectivo
-                    </p>
-                    <p className="text-xs text-zinc-500">Ingresa monto recibido</p>
+                  <div className="text-left flex-1">
+                    <div className="flex items-center gap-2">
+                       <p className={`font-black text-lg uppercase tracking-tight ${paymentMethod === "cash" ? "text-white" : "text-zinc-300"}`}>
+                        Efectivo
+                      </p>
+                      {paymentMethod === "cash" && <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />}
+                    </div>
+                    <p className="text-xs text-zinc-500 uppercase tracking-widest font-bold">Monto Recibido</p>
                   </div>
                 </button>
               )}
@@ -191,33 +189,29 @@ export default function CheckoutModalDesktop({
               {enabledPaymentMethods.card && (
                 <button
                   onClick={() => setPaymentMethod("card")}
-                  className={`w-full p-4 rounded-2xl border transition-all flex items-center gap-4 group ${
+                  className={`w-full p-5 rounded-[24px] border transition-all duration-300 flex items-center gap-5 group ${
                     paymentMethod === "card"
-                      ? "bg-blue-900/30 border-blue-500/70"
-                      : "bg-[#18181B] border-blue-500/50 hover:border-blue-500/70 hover:bg-blue-900/20"
+                      ? "bg-blue-500/10 border-blue-500/50 shadow-xl shadow-blue-500/5 ring-1 ring-blue-500/20"
+                      : "bg-white/[0.03] border-white/10 hover:border-blue-500/30 hover:bg-blue-500/5"
                   }`}
                 >
-                  {paymentMethod === "card" && (
-                    <div className="w-6 h-6 rounded flex items-center justify-center bg-blue-500 flex-shrink-0">
-                      <svg className="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 20 20">
-                        <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                      </svg>
-                    </div>
-                  )}
                   <div
-                    className={`w-12 h-12 rounded-xl flex items-center justify-center transition-colors ${
+                    className={`w-14 h-14 rounded-[18px] flex items-center justify-center transition-all duration-500 shadow-inner ${
                       paymentMethod === "card"
-                        ? "bg-blue-500 text-white"
-                        : "bg-blue-500/20 text-blue-500"
+                        ? "bg-blue-500 text-white scale-110"
+                        : "bg-blue-500/10 text-blue-500"
                     }`}
                   >
-                    <CreditCard className="w-6 h-6" />
+                    <CreditCard className="w-7 h-7" />
                   </div>
-                  <div className="text-left">
-                    <p className={`font-bold text-lg ${paymentMethod === "card" ? "text-white" : "text-zinc-300"}`}>
-                      Tarjeta
-                    </p>
-                    <p className="text-xs text-zinc-500">Exacto: ${(Number(finalTotal) || 0).toFixed(2)}</p>
+                  <div className="text-left flex-1">
+                    <div className="flex items-center gap-2">
+                      <p className={`font-black text-lg uppercase tracking-tight ${paymentMethod === "card" ? "text-white" : "text-zinc-300"}`}>
+                        Tarjeta
+                      </p>
+                      {paymentMethod === "card" && <div className="w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse" />}
+                    </div>
+                    <p className="text-xs text-zinc-500 uppercase tracking-widest font-bold">Exacto: ${(Number(finalTotal) || 0).toFixed(2)}</p>
                   </div>
                 </button>
               )}
@@ -225,33 +219,29 @@ export default function CheckoutModalDesktop({
               {enabledPaymentMethods.ath_movil && (
                 <button
                   onClick={() => setPaymentMethod("ath_movil")}
-                  className={`w-full p-4 rounded-2xl border transition-all flex items-center gap-4 group ${
+                  className={`w-full p-5 rounded-[24px] border transition-all duration-300 flex items-center gap-5 group ${
                     paymentMethod === "ath_movil"
-                      ? "bg-orange-900/30 border-orange-500/70"
-                      : "bg-[#18181B] border-orange-500/50 hover:border-orange-500/70 hover:bg-orange-900/20"
+                      ? "bg-orange-500/10 border-orange-500/50 shadow-xl shadow-orange-500/5 ring-1 ring-orange-500/20"
+                      : "bg-white/[0.03] border-white/10 hover:border-orange-500/30 hover:bg-orange-500/5"
                   }`}
                 >
-                  {paymentMethod === "ath_movil" && (
-                    <div className="w-6 h-6 rounded flex items-center justify-center bg-orange-500 flex-shrink-0">
-                      <svg className="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 20 20">
-                        <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                      </svg>
-                    </div>
-                  )}
                   <div
-                    className={`w-12 h-12 rounded-xl flex items-center justify-center transition-colors ${
+                    className={`w-14 h-14 rounded-[18px] flex items-center justify-center transition-all duration-500 shadow-inner ${
                       paymentMethod === "ath_movil"
-                        ? "bg-orange-500 text-white"
-                        : "bg-orange-500/20 text-orange-500"
+                        ? "bg-orange-500 text-white scale-110"
+                        : "bg-orange-500/10 text-orange-500"
                     }`}
                   >
-                    <Smartphone className="w-6 h-6" />
+                    <Smartphone className="w-7 h-7" />
                   </div>
-                  <div className="text-left">
-                    <p className={`font-bold text-lg ${paymentMethod === "ath_movil" ? "text-white" : "text-zinc-300"}`}>
-                      ATH Móvil
-                    </p>
-                    <p className="text-xs text-zinc-500">Exacto: ${finalTotal.toFixed(2)}</p>
+                  <div className="text-left flex-1">
+                    <div className="flex items-center gap-2">
+                      <p className={`font-black text-lg uppercase tracking-tight ${paymentMethod === "ath_movil" ? "text-white" : "text-zinc-300"}`}>
+                        ATH Móvil
+                      </p>
+                      {paymentMethod === "ath_movil" && <div className="w-1.5 h-1.5 rounded-full bg-orange-500 animate-pulse" />}
+                    </div>
+                    <p className="text-xs text-zinc-500 uppercase tracking-widest font-bold">Pago Exacto</p>
                   </div>
                 </button>
               )}
@@ -259,29 +249,25 @@ export default function CheckoutModalDesktop({
               {enabledPaymentMethods.cash && enabledPaymentMethods.ath_movil && (
                 <button
                   onClick={() => setPaymentMethod("mixed")}
-                  className={`w-full p-4 rounded-2xl border transition-all flex items-center gap-4 group ${
+                  className={`w-full p-5 rounded-[24px] border transition-all duration-300 flex items-center gap-5 group ${
                     paymentMethod === "mixed"
-                      ? "bg-purple-900/30 border-purple-500/70"
-                      : "bg-[#18181B] border-purple-500/50 hover:border-purple-500/70 hover:bg-purple-900/20"
+                      ? "bg-purple-500/10 border-purple-500/50 shadow-xl shadow-purple-500/5 ring-1 ring-purple-500/20"
+                      : "bg-white/[0.03] border-white/10 hover:border-purple-500/30 hover:bg-purple-500/5"
                   }`}
                 >
-                  {paymentMethod === "mixed" && (
-                    <div className="w-6 h-6 rounded flex items-center justify-center bg-purple-500 flex-shrink-0">
-                      <svg className="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 20 20">
-                        <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                      </svg>
-                    </div>
-                  )}
-                  <div className={`w-12 h-12 rounded-xl flex items-center justify-center transition-colors ${
-                    paymentMethod === "mixed" ? "bg-purple-500 text-white" : "bg-purple-500/20 text-purple-400"
+                  <div className={`w-14 h-14 rounded-[18px] flex items-center justify-center transition-all duration-500 shadow-inner ${
+                    paymentMethod === "mixed" ? "bg-purple-500 text-white scale-110" : "bg-purple-500/10 text-purple-400"
                   }`}>
-                    <CreditCard className="w-6 h-6" />
+                    <CreditCard className="w-7 h-7" />
                   </div>
-                  <div className="text-left">
-                    <p className={`font-bold text-lg ${paymentMethod === "mixed" ? "text-white" : "text-zinc-300"}`}>
-                      Pago Dividido
-                    </p>
-                    <p className="text-xs text-zinc-500">Efectivo + ATH Móvil</p>
+                  <div className="text-left flex-1">
+                    <div className="flex items-center gap-2">
+                      <p className={`font-black text-lg uppercase tracking-tight ${paymentMethod === "mixed" ? "text-white" : "text-zinc-300"}`}>
+                        Dividido
+                      </p>
+                      {paymentMethod === "mixed" && <div className="w-1.5 h-1.5 rounded-full bg-purple-500 animate-pulse" />}
+                    </div>
+                    <p className="text-xs text-zinc-500 uppercase tracking-widest font-bold">Efectivo + ATH</p>
                   </div>
                 </button>
               )}
@@ -314,20 +300,20 @@ export default function CheckoutModalDesktop({
 
             {paymentMethod === "cash" && paymentMode !== "deposit" && (
               <div className="space-y-3">
-                <Input
-                  type="number"
-                  value={cashReceived}
-                  onChange={(e) => setCashReceived(e.target.value)}
-                  placeholder="Monto recibido"
-                  className="h-12 bg-[#18181B] border-emerald-500/30 text-xl font-bold text-center"
-                  autoFocus
-                />
-                {change > 0 && (
-                  <div className="p-3 bg-emerald-500/10 rounded-xl border border-emerald-500/20 flex justify-between">
-                    <span className="text-emerald-400 font-medium">Cambio</span>
-                    <span className="text-emerald-400 font-bold text-lg">${change.toFixed(2)}</span>
-                  </div>
-                )}
+                  <Input
+                    type="number"
+                    value={cashReceived}
+                    onChange={(e) => setCashReceived(e.target.value)}
+                    placeholder="Monto recibido"
+                    className="h-16 bg-white/[0.03] border-emerald-500/30 text-3xl font-black text-center rounded-[20px] focus:border-emerald-500/60 focus:ring-emerald-500/10 transition-all shadow-inner"
+                    autoFocus
+                  />
+                  {change > 0 && (
+                    <div className="p-5 bg-emerald-500/10 rounded-[20px] border border-emerald-500/20 flex justify-between items-center shadow-lg shadow-emerald-500/5 animate-in slide-in-from-top-2 duration-300">
+                      <span className="text-emerald-400 font-black uppercase tracking-widest text-[10px]">Cambio Sugerido</span>
+                      <span className="text-emerald-400 font-black text-2xl tracking-tighter">${change.toFixed(2)}</span>
+                    </div>
+                  )}
               </div>
             )}
 
@@ -384,18 +370,18 @@ export default function CheckoutModalDesktop({
               <Button
                 onClick={onConfirmPayment}
                 disabled={processing || !isPaymentValid}
-                className={`w-full h-12 text-lg font-bold rounded-xl shadow-lg transition-all mt-auto ${
+                className={`w-full h-20 text-xl font-black rounded-[24px] shadow-2xl transition-all duration-500 uppercase tracking-widest mt-auto border-t border-white/10 ${
                   paymentMethod === "cash"
-                    ? "bg-emerald-600 hover:bg-emerald-500"
+                    ? "bg-emerald-600 hover:bg-emerald-500 shadow-emerald-500/20"
                     : paymentMethod === "card"
-                    ? "bg-blue-600 hover:bg-blue-500"
+                    ? "bg-blue-600 hover:bg-blue-500 shadow-blue-500/20"
                     : paymentMethod === "mixed"
-                    ? "bg-purple-600 hover:bg-purple-500"
-                    : "bg-orange-600 hover:bg-orange-500"
-                }`}
+                    ? "bg-purple-600 hover:bg-purple-500 shadow-purple-500/20"
+                    : "bg-orange-600 hover:bg-orange-500 shadow-orange-500/20"
+                } active:scale-[0.98]`}
               >
-                {processing ? <Loader2 className="w-5 h-5 animate-spin mr-2 inline" /> : null}
-                Confirmar Pago
+                {processing ? <Loader2 className="w-6 h-6 animate-spin mr-3 inline" /> : null}
+                Finalizar Transacción
               </Button>
             )}
           </div>

@@ -13,7 +13,7 @@ import { motion } from "framer-motion";
 // Helper for joining class names
 const cn = (...classes) => classes.filter(Boolean).join(" ");
 import CustomerSelector from "../components/pos/CustomerSelector";
-import CheckoutModalMobile from "../components/pos/CheckoutModalMobile";
+import CheckoutModal from "../components/pos/CheckoutModalDesktop";
 import RechargeDialog from "../components/pos/RechargeDialog";
 import OpenDrawerDialog from "../components/cash/OpenDrawerDialog";
 import { recordSaleAndTransactions, resolveActiveTenantId } from "@/components/financial/recordSale";
@@ -702,69 +702,73 @@ export default function POSMobile() {
   }
 
   return (
-    <div className="h-screen bg-black flex flex-col overflow-hidden">
+    <div className="h-screen bg-[#090909] flex flex-col overflow-hidden">
       <div
-        className="flex-shrink-0 bg-gradient-to-b from-[#0D0D0F] to-black/80 px-4 pb-4 border-b border-white/[0.05] z-20 backdrop-blur-xl"
-        style={{ paddingTop: "calc(env(safe-area-inset-top, 0px) + 16px)" }}
+        className="flex-shrink-0 bg-[#0D0D0F] px-5 pb-5 border-b border-white/[0.08] z-20 relative"
+        style={{ paddingTop: "calc(env(safe-area-inset-top, 0px) + 20px)" }}
       >
-        <div className="flex items-center justify-between mb-5">
+        <div className="flex items-center justify-between mb-6">
           <div>
-            <h1 className="text-3xl font-black text-white tracking-tighter uppercase">POS</h1>
+            <div className="flex items-center gap-2 mb-1">
+              <div className="w-2 h-2 rounded-full bg-cyan-500 animate-pulse" />
+              <span className="text-[10px] font-black text-cyan-400 uppercase tracking-[0.2em]">Terminal Activa</span>
+            </div>
+            <h1 className="text-4xl font-black text-white tracking-tighter uppercase leading-none">POS</h1>
             {selectedOrder && (
-              <div className="inline-flex items-center px-2 py-0.5 bg-cyan-500/10 border border-cyan-500/30 rounded-full mt-1.5">
-                <span className="text-[9px] font-black text-cyan-400 uppercase tracking-widest">{selectedOrder.order_number}</span>
+              <div className="inline-flex items-center px-2 py-0.5 bg-cyan-500/10 border border-cyan-500/30 rounded-full mt-2">
+                <span className="text-[10px] font-black text-cyan-400 uppercase tracking-widest">{selectedOrder.order_number}</span>
               </div>
             )}
           </div>
-          <div className="flex items-center gap-2.5">
+          <div className="flex items-center gap-3">
             {(selectedCustomer || selectedOrder?.customer_name) && (
-              <div className="flex items-center gap-2 px-3 py-2 bg-blue-500/10 rounded-2xl border border-blue-500/30 max-w-[140px]">
-                <User className="w-3.5 h-3.5 text-blue-400" />
-                <span className="text-[10px] font-black text-blue-400 truncate uppercase tracking-tight">{selectedCustomer?.name || selectedOrder?.customer_name}</span>
+              <div className="flex items-center gap-2 px-4 py-2.5 bg-blue-500/10 rounded-[18px] border border-blue-500/20 max-w-[150px] shadow-lg shadow-blue-500/5">
+                <User className="w-4 h-4 text-blue-400" />
+                <span className="text-[11px] font-black text-blue-400 truncate uppercase tracking-tight">{selectedCustomer?.name || selectedOrder?.customer_name}</span>
               </div>
             )}
             <button
               onClick={() => setShowRechargeDialog(true)}
-              className="w-10 h-10 rounded-2xl bg-cyan-500/10 border border-cyan-500/30 text-cyan-400 flex items-center justify-center active:scale-90 transition-all shadow-lg shadow-cyan-500/10"
+              className="w-12 h-12 rounded-[20px] bg-cyan-500/10 border border-cyan-500/20 text-cyan-400 flex items-center justify-center active:scale-90 transition-all shadow-xl shadow-cyan-500/5"
             >
-              <Zap className="w-4 h-4" />
+              <Zap className="w-5 h-5" />
             </button>
             <button
               onClick={() => setShowCustomerSelector(true)}
-              className="w-10 h-10 rounded-2xl bg-white/5 border border-white/10 text-white/40 flex items-center justify-center active:scale-90 transition-all"
+              className="w-12 h-12 rounded-[20px] bg-white/5 border border-white/10 text-white/40 flex items-center justify-center active:scale-90 transition-all"
             >
-              <User className="w-4 h-4" />
+              <User className="w-5 h-5" />
             </button>
           </div>
         </div>
 
-        <div className="relative group/search mb-4">
-          <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-            <Search className="h-4 w-4 text-white/20 group-focus-within/search:text-cyan-400 transition-colors" />
+        <div className="relative group/search mb-5">
+          <div className="absolute inset-y-0 left-0 pl-5 flex items-center pointer-events-none">
+            <Search className="h-5 w-5 text-white/20 group-focus-within/search:text-cyan-400 transition-all duration-300" />
           </div>
           <input
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Buscar..."
-            className="bg-[#121215]/40 text-white pr-10 pl-10 py-4 text-sm rounded-2xl block w-full border border-white/10 placeholder-white/20 focus:outline-none focus:ring-4 focus:ring-cyan-500/10 focus:border-cyan-500/40 focus:bg-[#121215]/80 transition-all duration-300 backdrop-blur-2xl shadow-[inset_0_2px_10px_rgba(0,0,0,0.1)]" 
+            placeholder="Buscar productos o servicios..."
+            className="bg-black/40 text-white pr-12 pl-12 py-5 text-sm rounded-[22px] block w-full border border-white/10 placeholder-white/20 focus:outline-none focus:ring-4 focus:ring-cyan-500/10 focus:border-cyan-500/30 focus:bg-black/60 transition-all duration-300 shadow-[inset_0_2px_10px_rgba(0,0,0,0.3)]" 
           />
           {searchQuery && (
             <button
               onClick={() => setSearchQuery("")}
-              className="absolute right-3 top-1/2 -translate-y-1/2 w-6 h-6 rounded-full bg-white/5 text-white/40 flex items-center justify-center active:scale-95"
+              className="absolute right-4 top-1/2 -translate-y-1/2 w-7 h-7 rounded-full bg-white/10 text-white/60 flex items-center justify-center active:scale-95 transition-all"
             >
-              <X className="w-3 h-3" />
+              <X className="w-4 h-4" />
             </button>
           )}
         </div>
 
-        <div className="flex gap-2 overflow-x-auto no-scrollbar">
+        <div className="flex gap-2.5 overflow-x-auto no-scrollbar scroll-smooth">
           {[
-            { id: "all", label: "Todo" },
+            { id: "all", label: "General" },
+            { id: "services", label: "Servicios" },
             { id: "accesorios", label: "Accesorios" },
-            { id: "devices", label: "Dispositivos" },
-            { id: "offers", label: "Ofertas" },
-            { id: "services", label: "Servicios" }
+            { id: "devices", label: "Equipos" },
+            { id: "offers", label: "Ofertas" }
           ].map(tab => {
             const isActive = activeTab === tab.id;
             return (
@@ -772,10 +776,10 @@ export default function POSMobile() {
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
                 className={cn(
-                  "px-4 py-2 rounded-full text-[10px] font-black uppercase tracking-widest transition-all duration-300 whitespace-nowrap border",
+                  "px-6 py-3 rounded-[18px] text-[11px] font-black uppercase tracking-[0.1em] transition-all duration-500 whitespace-nowrap border",
                   isActive
-                    ? "bg-gradient-to-r from-blue-600 to-cyan-500 text-white border-transparent shadow-lg shadow-cyan-500/20 scale-105"
-                    : "bg-white/5 text-white/40 border-white/5"
+                    ? "bg-gradient-to-r from-blue-600 to-cyan-500 text-white border-transparent shadow-[0_10px_25px_rgba(6,182,212,0.3)] scale-105 z-10"
+                    : "bg-white/[0.03] text-white/30 border-white/5 hover:bg-white/[0.06]"
                 )}
               >
                 {tab.label}
@@ -810,22 +814,22 @@ export default function POSMobile() {
                     onClick={() => !isOutOfStock && addToCart(item, item._type)}
                     whileTap={{ scale: 0.96 }}
                     className={cn(
-                      "group relative overflow-hidden rounded-[24px] p-4 text-left transition-all duration-300 border",
+                      "group relative overflow-hidden rounded-[28px] p-5 text-left transition-all duration-500 border",
                       cartQty > 0 
-                        ? "bg-cyan-500/10 border-cyan-500/40 shadow-lg shadow-cyan-500/10" 
-                        : "bg-[#0D0D0F]/60 backdrop-blur-xl border-white/[0.08] active:bg-[#121215]/80",
+                        ? "bg-cyan-500/15 border-cyan-500/40 shadow-[0_15px_40px_rgba(6,182,212,0.15)]" 
+                        : "bg-[#121215]/60 border-white/10 hover:border-white/20 active:bg-white/[0.08]",
                       isOutOfStock && "opacity-40 grayscale pointer-events-none"
                     )}
                   >
                     <div className="relative z-10 flex flex-col h-full justify-between gap-3">
                       <div>
                         <div className={cn(
-                          "w-9 h-9 rounded-xl flex items-center justify-center mb-3",
-                          isService ? "bg-purple-500/20 text-purple-400" : "bg-blue-500/20 text-blue-400"
+                          "w-11 h-11 rounded-[16px] flex items-center justify-center mb-4 shadow-inner",
+                          isService ? "bg-purple-500/20 text-purple-400 border border-purple-500/20" : "bg-blue-500/20 text-blue-400 border border-blue-500/20"
                         )}>
-                           {isService ? <LayoutGrid className="w-4 h-4" /> : <ShoppingCart className="w-4 h-4" />}
+                           {isService ? <LayoutGrid className="w-5 h-5" /> : <ShoppingCart className="w-5 h-5" />}
                         </div>
-                        <h3 className="text-[12px] font-black text-white leading-tight line-clamp-2 uppercase tracking-tight opacity-90">
+                        <h3 className="text-[13px] font-black text-white leading-tight line-clamp-2 uppercase tracking-tight">
                           {item.name}
                         </h3>
                       </div>
@@ -855,19 +859,19 @@ export default function POSMobile() {
           )}
         </div>
 
-        <div className="flex-shrink-0 bg-[#0D0D0F]/80 backdrop-blur-3xl border-t border-white/[0.05] px-6 py-6 rounded-t-[32px] space-y-5 shadow-[0_-20px_40px_rgba(0,0,0,0.4)]">
+        <div className="flex-shrink-0 bg-[#0D0D0F] border-t border-white/[0.08] px-6 py-7 rounded-t-[40px] space-y-6 shadow-[0_-25px_50px_rgba(0,0,0,0.6)] relative z-30">
           <div className="space-y-2">
             <div className="flex justify-between items-center px-1">
-              <span className="text-[10px] font-black text-white/30 uppercase tracking-[0.2em]">Subtotal</span>
-              <span className="text-[13px] font-black text-white/70 tracking-tight">${subtotal.toFixed(2)}</span>
+              <span className="text-[10px] font-black text-white/20 uppercase tracking-[0.2em]">Subtotal</span>
+              <span className="text-sm font-black text-white/60 tracking-tight">${subtotal.toFixed(2)}</span>
             </div>
             <div className="flex justify-between items-center px-1">
-              <span className="text-[10px] font-black text-white/30 uppercase tracking-[0.2em]">IVU (11.5%)</span>
-              <span className="text-[13px] font-black text-white/70 tracking-tight">${tax.toFixed(2)}</span>
+              <span className="text-[10px] font-black text-white/20 uppercase tracking-[0.2em]">IVU (11.5%)</span>
+              <span className="text-sm font-black text-white/60 tracking-tight">${tax.toFixed(2)}</span>
             </div>
-            <div className="flex justify-between items-end pt-3 mt-1 border-t border-white/[0.05]">
-              <span className="text-[11px] font-black text-cyan-400 uppercase tracking-[0.3em]">Total</span>
-              <span className="text-3xl font-black text-white tracking-tighter">${total.toFixed(2)}</span>
+            <div className="flex justify-between items-end pt-4 mt-2 border-t border-white/[0.05]">
+              <span className="text-[12px] font-black text-cyan-400 uppercase tracking-[0.2em]">Total Final</span>
+              <span className="text-4xl font-black text-white tracking-tighter shadow-sm">${total.toFixed(2)}</span>
             </div>
           </div>
 
@@ -881,11 +885,13 @@ export default function POSMobile() {
                 setShowPaymentModal(true);
               }}
               disabled={safeCart.length === 0}
-              className="w-full h-16 bg-gradient-to-r from-blue-600 to-cyan-500 hover:opacity-90 active:scale-95 transition-all duration-300 shadow-[0_15px_30px_rgba(6,182,212,0.3)] disabled:opacity-30 disabled:grayscale rounded-[20px]"
+              className="w-full h-20 bg-gradient-to-r from-blue-600 to-cyan-500 hover:opacity-95 active:scale-[0.98] transition-all duration-300 shadow-[0_20px_40px_rgba(6,182,212,0.25)] disabled:opacity-30 disabled:grayscale rounded-[24px] border-t border-white/10"
             >
-              <div className="flex items-center justify-center gap-3">
-                <ShoppingCart className="w-5 h-5 text-white" />
-                <span className="text-sm font-black text-white uppercase tracking-[0.2em]">Pagar Ahora</span>
+              <div className="flex items-center justify-center gap-4">
+                <div className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center">
+                  <ShoppingCart className="w-5 h-5 text-white" />
+                </div>
+                <span className="text-base font-black text-white uppercase tracking-[0.1em]">Finalizar Cobro</span>
               </div>
             </Button>
 
@@ -913,7 +919,7 @@ export default function POSMobile() {
 
       {showPaymentModal && (
         <div className="fixed inset-0 z-[200] flex items-center justify-center pointer-events-auto">
-          <CheckoutModalMobile
+          <CheckoutModal
           open={showPaymentModal}
           onClose={() => {
             setShowPaymentModal(false);
