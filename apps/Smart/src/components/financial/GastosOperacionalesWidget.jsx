@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect, useMemo, useCallback } from "react";
 import { dataClient } from "@/components/api/dataClient";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -10,7 +10,8 @@ import {
 import {
   Plus, Edit2, Trash2, Calendar, Target, TrendingUp,
   AlertTriangle, CheckCircle2, Clock, DollarSign, RefreshCw,
-  Zap, Home, Wifi, Phone, Shield, Users, Package, BarChart2
+  Zap, Home, Wifi, Phone, Shield, Users, Package, BarChart2,
+  Tag, Settings2, X, Check, Layers
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -31,7 +32,54 @@ const CATEGORY_META = {
   other:       { label: "Otro",         icon: Target,    color: "from-white/10 to-white/5",             accent: "text-white/60",    border: "border-white/10" },
 };
 
-const getCategoryMeta = (cat) => CATEGORY_META[cat] || CATEGORY_META.other;
+// Custom category color palette (tailwind-safe classes)
+const COLOR_OPTIONS = [
+  { id: "sky",     color: "from-sky-500/20 to-sky-500/10",       accent: "text-sky-400",       border: "border-sky-500/20" },
+  { id: "lime",    color: "from-lime-500/20 to-green-500/10",    accent: "text-lime-400",      border: "border-lime-500/20" },
+  { id: "fuchsia", color: "from-fuchsia-500/20 to-pink-500/10", accent: "text-fuchsia-400",   border: "border-fuchsia-500/20" },
+  { id: "amber",   color: "from-amber-500/20 to-yellow-500/10", accent: "text-amber-400",     border: "border-amber-500/20" },
+  { id: "teal",    color: "from-teal-500/20 to-cyan-500/10",    accent: "text-teal-400",      border: "border-teal-500/20" },
+  { id: "indigo",  color: "from-indigo-500/20 to-violet-500/10",accent: "text-indigo-400",    border: "border-indigo-500/20" },
+  { id: "red",     color: "from-red-500/20 to-orange-500/10",   accent: "text-red-400",       border: "border-red-500/20" },
+  { id: "slate",   color: "from-slate-400/20 to-slate-500/10",  accent: "text-slate-300",     border: "border-slate-400/20" },
+];
+
+const COLOR_DOT_MAP = {
+  sky: "bg-sky-400", lime: "bg-lime-400", fuchsia: "bg-fuchsia-400",
+  amber: "bg-amber-400", teal: "bg-teal-400", indigo: "bg-indigo-400",
+  red: "bg-red-400", slate: "bg-slate-400",
+};
+
+const LS_KEY = "smartfix_custom_expense_categories";
+
+function loadCustomCategories() {
+  try { return JSON.parse(localStorage.getItem(LS_KEY) || "[]"); }
+  catch { return []; }
+}
+function saveCustomCategories(cats) {
+  localStorage.setItem(LS_KEY, JSON.stringify(cats));
+}
+
+function buildCategoryMeta(customCats) {
+  const merged = { ...CATEGORY_META };
+  for (const c of customCats) {
+    const colorOption = COLOR_OPTIONS.find((o) => o.id === c.colorId) || COLOR_OPTIONS[0];
+    merged[c.id] = {
+      label: c.label,
+      icon: Tag,
+      color: colorOption.color,
+      accent: colorOption.accent,
+      border: colorOption.border,
+      isCustom: true,
+    };
+  }
+  return merged;
+}
+
+const getCategoryMeta = (cat, allMeta) => {
+  const meta = allMeta || CATEGORY_META;
+  return meta[cat] || meta.other;
+};
 
 /** Returns days until the payment window opens this month (or next if already past) */
 function computeExpenseStatus(expense) {
@@ -176,6 +224,161 @@ function EmptyState({ onAdd }) {
   );
 }
 
+// ── Manage Categories Dialog ──────────────────────────────────────────────────
+
+function ManageCategoriesDialog({ open, onClose, onChanged }) {
+  const [cats, setCats] = useState([]);
+  const [newLabel, setNewLabel] = useState("");
+  const [newColor, setNewColor] = useState("sky");
+  const [editingId, setEditingId] = useState(null);
+  const [editLabel, setEditLabel] = useState("");
+  const [editColor, setEditColor] = useState("sky");
+
+  useEffect(() => {
+    if (open) setCats(loadCustomCategories());
+  }, [open]);
+
+  const persist = (next) => {
+    saveCustomCategories(next);
+    setCats(next);
+    onChanged?.();
+  };
+
+  const handleAdd = () => {
+    const label = newLabel.trim();
+    if (!label) return;
+    if (cats.some((c) => c.label.toLowerCase() === label.toLowerCase())) {
+      toast.error("Ya existe una categoría con ese nombre"); return;
+    }
+    const id = `custom_${Date.now()}`;
+    persist([...cats, { id, label, colorId: newColor }]);
+    setNewLabel("");
+    setNewColor("sky");
+    toast.success("Categoría creada");
+  };
+
+  const handleDelete = (id) => {
+    persist(cats.filter((c) => c.id !== id));
+    toast.success("Categoría eliminada");
+  };
+
+  const startEdit = (c) => { setEditingId(c.id); setEditLabel(c.label); setEditColor(c.colorId); };
+  const cancelEdit = () => { setEditingId(null); setEditLabel(""); setEditColor("sky"); };
+
+  const confirmEdit = (id) => {
+    const label = editLabel.trim();
+    if (!label) return;
+    persist(cats.map((c) => c.id === id ? { ...c, label, colorId: editColor } : c));
+    cancelEdit();
+    toast.success("Categoría actualizada");
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={(v) => !v && onClose()}>
+      <DialogContent className="bg-[#111114] border border-white/10 text-white rounded-[28px] max-w-sm">
+        <DialogHeader>
+          <DialogTitle className="text-lg font-black tracking-tight flex items-center gap-3">
+            <div className="w-9 h-9 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center">
+              <Layers className="w-4 h-4 text-cyan-400" />
+            </div>
+            Gestionar Categorías
+          </DialogTitle>
+        </DialogHeader>
+
+        <div className="space-y-4 pt-1">
+          {/* Existing custom categories */}
+          {cats.length === 0 ? (
+            <p className="text-xs text-white/30 text-center py-4">No hay categorías personalizadas aún.</p>
+          ) : (
+            <div className="space-y-2 max-h-52 overflow-y-auto pr-1">
+              {cats.map((c) => {
+                const dot = COLOR_DOT_MAP[c.colorId] || "bg-white/30";
+                return editingId === c.id ? (
+                  <div key={c.id} className="flex items-center gap-2 bg-white/5 rounded-2xl p-2.5">
+                    <Input
+                      value={editLabel}
+                      onChange={(e) => setEditLabel(e.target.value)}
+                      className="flex-1 bg-white/5 border-white/10 text-white h-8 text-sm rounded-xl"
+                      onKeyDown={(e) => e.key === "Enter" && confirmEdit(c.id)}
+                      autoFocus
+                    />
+                    <div className="flex gap-1">
+                      {COLOR_OPTIONS.map((opt) => (
+                        <button
+                          key={opt.id}
+                          onClick={() => setEditColor(opt.id)}
+                          className={`w-5 h-5 rounded-full ${COLOR_DOT_MAP[opt.id]} transition-all ${editColor === opt.id ? "ring-2 ring-white ring-offset-1 ring-offset-black scale-110" : "opacity-60 hover:opacity-100"}`}
+                        />
+                      ))}
+                    </div>
+                    <button onClick={() => confirmEdit(c.id)} className="w-7 h-7 rounded-xl bg-cyan-500/20 text-cyan-400 hover:bg-cyan-500/40 flex items-center justify-center">
+                      <Check className="w-3.5 h-3.5" />
+                    </button>
+                    <button onClick={cancelEdit} className="w-7 h-7 rounded-xl bg-white/5 text-white/40 hover:bg-white/10 flex items-center justify-center">
+                      <X className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                ) : (
+                  <div key={c.id} className="flex items-center gap-3 bg-white/[0.03] border border-white/[0.06] rounded-2xl px-3 py-2.5 group">
+                    <div className={`w-3 h-3 rounded-full flex-shrink-0 ${dot}`} />
+                    <span className="flex-1 text-sm font-semibold text-white/80 truncate">{c.label}</span>
+                    <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <button onClick={() => startEdit(c)} className="w-7 h-7 rounded-xl bg-white/5 hover:bg-white/15 text-white/40 hover:text-white flex items-center justify-center">
+                        <Edit2 className="w-3 h-3" />
+                      </button>
+                      <button onClick={() => handleDelete(c.id)} className="w-7 h-7 rounded-xl bg-white/5 hover:bg-red-500/20 text-white/40 hover:text-red-400 flex items-center justify-center">
+                        <Trash2 className="w-3 h-3" />
+                      </button>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+
+          {/* Divider */}
+          <div className="border-t border-white/[0.06]" />
+
+          {/* Add new */}
+          <div className="space-y-3">
+            <p className="text-[9px] font-black uppercase tracking-widest text-white/30">Nueva Categoría</p>
+            <Input
+              value={newLabel}
+              onChange={(e) => setNewLabel(e.target.value)}
+              placeholder="Ej: Transporte, Limpieza..."
+              className="bg-white/5 border-white/10 text-white placeholder:text-white/20 rounded-xl h-10 text-sm"
+              onKeyDown={(e) => e.key === "Enter" && handleAdd()}
+            />
+            {/* Color picker */}
+            <div className="flex items-center gap-2">
+              <span className="text-[9px] font-black uppercase tracking-widest text-white/30 mr-1">Color:</span>
+              {COLOR_OPTIONS.map((opt) => (
+                <button
+                  key={opt.id}
+                  onClick={() => setNewColor(opt.id)}
+                  className={`w-6 h-6 rounded-full ${COLOR_DOT_MAP[opt.id]} transition-all ${newColor === opt.id ? "ring-2 ring-white ring-offset-1 ring-offset-black scale-110" : "opacity-50 hover:opacity-100"}`}
+                />
+              ))}
+            </div>
+            <Button
+              onClick={handleAdd}
+              disabled={!newLabel.trim()}
+              className="w-full rounded-xl bg-gradient-to-r from-cyan-600 to-blue-600 text-white font-bold h-10 disabled:opacity-40"
+            >
+              <Plus className="w-4 h-4 mr-2" />
+              Agregar Categoría
+            </Button>
+          </div>
+
+          <Button onClick={onClose} variant="ghost" className="w-full rounded-xl bg-white/5 text-white/50 hover:text-white h-10 mt-1">
+            Cerrar
+          </Button>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
 // ── Add / Edit Dialog ─────────────────────────────────────────────────────────
 
 const EMPTY_FORM = {
@@ -188,9 +391,10 @@ const EMPTY_FORM = {
   notes: "",
 };
 
-function ExpenseFormDialog({ open, onClose, initial, onSave }) {
+function ExpenseFormDialog({ open, onClose, initial, onSave, allCategoryMeta }) {
   const [form, setForm] = useState(EMPTY_FORM);
   const [saving, setSaving] = useState(false);
+  const [showManageCats, setShowManageCats] = useState(false);
 
   useEffect(() => {
     if (open) {
@@ -244,141 +448,164 @@ function ExpenseFormDialog({ open, onClose, initial, onSave }) {
     }
   };
 
-  const meta = getCategoryMeta(form.category);
+  const meta = getCategoryMeta(form.category, allCategoryMeta);
   const IconComp = meta.icon;
 
   return (
-    <Dialog open={open} onOpenChange={(v) => !v && onClose()}>
-      <DialogContent className="bg-[#111114] border border-white/10 text-white rounded-[28px] max-w-md">
-        <DialogHeader>
-          <DialogTitle className="text-xl font-black tracking-tight flex items-center gap-3">
-            <div className={`w-10 h-10 rounded-2xl bg-gradient-to-br ${meta.color} border ${meta.border} flex items-center justify-center`}>
-              <IconComp className={`w-5 h-5 ${meta.accent}`} />
-            </div>
-            {initial ? "Editar Gasto" : "Nuevo Gasto Operacional"}
-          </DialogTitle>
-        </DialogHeader>
+    <>
+      <Dialog open={open} onOpenChange={(v) => !v && onClose()}>
+        <DialogContent className="bg-[#111114] border border-white/10 text-white rounded-[28px] max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-xl font-black tracking-tight flex items-center gap-3">
+              <div className={`w-10 h-10 rounded-2xl bg-gradient-to-br ${meta.color} border ${meta.border} flex items-center justify-center`}>
+                <IconComp className={`w-5 h-5 ${meta.accent}`} />
+              </div>
+              {initial ? "Editar Gasto" : "Nuevo Gasto Operacional"}
+            </DialogTitle>
+          </DialogHeader>
 
-        <form onSubmit={handleSubmit} className="space-y-4 pt-2">
-          {/* Name */}
-          <div className="space-y-1.5">
-            <Label className="text-xs font-black uppercase tracking-widest text-white/40">Nombre *</Label>
-            <Input
-              value={form.name}
-              onChange={(e) => set("name", e.target.value)}
-              placeholder="Ej: Renta local, Internet, Luz..."
-              className="bg-white/5 border-white/10 text-white placeholder:text-white/20 rounded-xl h-11"
-            />
-          </div>
-
-          {/* Category */}
-          <div className="space-y-1.5">
-            <Label className="text-xs font-black uppercase tracking-widest text-white/40">Categoría</Label>
-            <Select value={form.category} onValueChange={(v) => set("category", v)}>
-              <SelectTrigger className="bg-white/5 border-white/10 text-white rounded-xl h-11">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent className="bg-[#18181b] border-white/10 text-white rounded-2xl">
-                {Object.entries(CATEGORY_META).map(([key, m]) => {
-                  const Icon = m.icon;
-                  return (
-                    <SelectItem key={key} value={key} className="rounded-xl">
-                      <div className="flex items-center gap-2">
-                        <Icon className={`w-4 h-4 ${m.accent}`} />
-                        <span>{m.label}</span>
-                      </div>
-                    </SelectItem>
-                  );
-                })}
-              </SelectContent>
-            </Select>
-          </div>
-
-          {/* Amount */}
-          <div className="space-y-1.5">
-            <Label className="text-xs font-black uppercase tracking-widest text-white/40">Monto mensual *</Label>
-            <div className="relative">
-              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-white/40 font-bold text-sm">$</span>
+          <form onSubmit={handleSubmit} className="space-y-4 pt-2">
+            {/* Name */}
+            <div className="space-y-1.5">
+              <Label className="text-xs font-black uppercase tracking-widest text-white/40">Nombre *</Label>
               <Input
-                type="number"
-                min="0"
-                step="0.01"
-                value={form.amount}
-                onChange={(e) => set("amount", e.target.value)}
-                placeholder="0.00"
-                className="bg-white/5 border-white/10 text-white placeholder:text-white/20 rounded-xl h-11 pl-7"
+                value={form.name}
+                onChange={(e) => set("name", e.target.value)}
+                placeholder="Ej: Renta local, Internet, Luz..."
+                className="bg-white/5 border-white/10 text-white placeholder:text-white/20 rounded-xl h-11"
               />
             </div>
-          </div>
 
-          {/* Due day range */}
-          <div className="grid grid-cols-2 gap-3">
+            {/* Category + manage button */}
             <div className="space-y-1.5">
-              <Label className="text-xs font-black uppercase tracking-widest text-white/40">Día de inicio *</Label>
+              <div className="flex items-center justify-between">
+                <Label className="text-xs font-black uppercase tracking-widest text-white/40">Categoría</Label>
+                <button
+                  type="button"
+                  onClick={() => setShowManageCats(true)}
+                  className="flex items-center gap-1 text-[9px] font-black uppercase tracking-widest text-cyan-400/70 hover:text-cyan-300 transition-colors"
+                >
+                  <Settings2 className="w-3 h-3" />
+                  Gestionar
+                </button>
+              </div>
+              <Select value={form.category} onValueChange={(v) => set("category", v)}>
+                <SelectTrigger className="bg-white/5 border-white/10 text-white rounded-xl h-11">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent className="bg-[#18181b] border-white/10 text-white rounded-2xl">
+                  {Object.entries(allCategoryMeta || CATEGORY_META).map(([key, m]) => {
+                    const Icon = m.icon;
+                    return (
+                      <SelectItem key={key} value={key} className="rounded-xl">
+                        <div className="flex items-center gap-2">
+                          <Icon className={`w-4 h-4 ${m.accent}`} />
+                          <span>{m.label}</span>
+                          {m.isCustom && <span className="text-[9px] text-white/30 ml-1">·personalizada</span>}
+                        </div>
+                      </SelectItem>
+                    );
+                  })}
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Amount */}
+            <div className="space-y-1.5">
+              <Label className="text-xs font-black uppercase tracking-widest text-white/40">Monto mensual *</Label>
+              <div className="relative">
+                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-white/40 font-bold text-sm">$</span>
+                <Input
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  value={form.amount}
+                  onChange={(e) => set("amount", e.target.value)}
+                  placeholder="0.00"
+                  className="bg-white/5 border-white/10 text-white placeholder:text-white/20 rounded-xl h-11 pl-7"
+                />
+              </div>
+            </div>
+
+            {/* Due day range */}
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1.5">
+                <Label className="text-xs font-black uppercase tracking-widest text-white/40">Día de inicio *</Label>
+                <Input
+                  type="number"
+                  min="1"
+                  max="31"
+                  value={form.due_day}
+                  onChange={(e) => set("due_day", e.target.value)}
+                  placeholder="Ej: 1"
+                  className="bg-white/5 border-white/10 text-white placeholder:text-white/20 rounded-xl h-11"
+                />
+              </div>
+              <div className="space-y-1.5">
+                <Label className="text-xs font-black uppercase tracking-widest text-white/40">Día de fin</Label>
+                <Input
+                  type="number"
+                  min="1"
+                  max="31"
+                  value={form.due_day_end}
+                  onChange={(e) => set("due_day_end", e.target.value)}
+                  placeholder={form.due_day || "Ej: 5"}
+                  className="bg-white/5 border-white/10 text-white placeholder:text-white/20 rounded-xl h-11"
+                />
+              </div>
+            </div>
+            <p className="text-[10px] text-white/25 -mt-2">
+              Rango en que se puede pagar, ej: renta del día 1 al 5, teléfono del 25 al 30.
+            </p>
+
+            {/* Working days */}
+            <div className="space-y-1.5">
+              <Label className="text-xs font-black uppercase tracking-widest text-white/40">Días laborables / mes</Label>
               <Input
                 type="number"
                 min="1"
                 max="31"
-                value={form.due_day}
-                onChange={(e) => set("due_day", e.target.value)}
-                placeholder="Ej: 1"
+                value={form.working_days_per_month}
+                onChange={(e) => set("working_days_per_month", e.target.value)}
                 className="bg-white/5 border-white/10 text-white placeholder:text-white/20 rounded-xl h-11"
               />
+              <p className="text-[10px] text-white/25">Usado para calcular la meta diaria mínima.</p>
             </div>
+
+            {/* Notes */}
             <div className="space-y-1.5">
-              <Label className="text-xs font-black uppercase tracking-widest text-white/40">Día de fin</Label>
+              <Label className="text-xs font-black uppercase tracking-widest text-white/40">Notas</Label>
               <Input
-                type="number"
-                min="1"
-                max="31"
-                value={form.due_day_end}
-                onChange={(e) => set("due_day_end", e.target.value)}
-                placeholder={form.due_day || "Ej: 5"}
+                value={form.notes}
+                onChange={(e) => set("notes", e.target.value)}
+                placeholder="Notas opcionales..."
                 className="bg-white/5 border-white/10 text-white placeholder:text-white/20 rounded-xl h-11"
               />
             </div>
-          </div>
-          <p className="text-[10px] text-white/25 -mt-2">
-            Rango en que se puede pagar, ej: renta del día 1 al 5, teléfono del 25 al 30.
-          </p>
 
-          {/* Working days */}
-          <div className="space-y-1.5">
-            <Label className="text-xs font-black uppercase tracking-widest text-white/40">Días laborables / mes</Label>
-            <Input
-              type="number"
-              min="1"
-              max="31"
-              value={form.working_days_per_month}
-              onChange={(e) => set("working_days_per_month", e.target.value)}
-              className="bg-white/5 border-white/10 text-white placeholder:text-white/20 rounded-xl h-11"
-            />
-            <p className="text-[10px] text-white/25">Usado para calcular la meta diaria mínima.</p>
-          </div>
+            {/* Actions */}
+            <div className="flex gap-3 pt-2">
+              <Button type="button" onClick={onClose} variant="ghost" className="flex-1 rounded-xl bg-white/5 text-white/60 hover:text-white h-11">
+                Cancelar
+              </Button>
+              <Button type="submit" disabled={saving} className="flex-1 rounded-xl bg-gradient-to-r from-cyan-600 to-blue-600 text-white font-bold h-11">
+                {saving ? <RefreshCw className="w-4 h-4 animate-spin" /> : "Guardar"}
+              </Button>
+            </div>
+          </form>
+        </DialogContent>
+      </Dialog>
 
-          {/* Notes */}
-          <div className="space-y-1.5">
-            <Label className="text-xs font-black uppercase tracking-widest text-white/40">Notas</Label>
-            <Input
-              value={form.notes}
-              onChange={(e) => set("notes", e.target.value)}
-              placeholder="Notas opcionales..."
-              className="bg-white/5 border-white/10 text-white placeholder:text-white/20 rounded-xl h-11"
-            />
-          </div>
-
-          {/* Actions */}
-          <div className="flex gap-3 pt-2">
-            <Button type="button" onClick={onClose} variant="ghost" className="flex-1 rounded-xl bg-white/5 text-white/60 hover:text-white h-11">
-              Cancelar
-            </Button>
-            <Button type="submit" disabled={saving} className="flex-1 rounded-xl bg-gradient-to-r from-cyan-600 to-blue-600 text-white font-bold h-11">
-              {saving ? <RefreshCw className="w-4 h-4 animate-spin" /> : "Guardar"}
-            </Button>
-          </div>
-        </form>
-      </DialogContent>
-    </Dialog>
+      {/* Nested manage-categories dialog */}
+      <ManageCategoriesDialog
+        open={showManageCats}
+        onClose={() => setShowManageCats(false)}
+        onChanged={() => {
+          // bubble up so parent re-reads localStorage
+          window.dispatchEvent(new Event("custom-categories-updated"));
+        }}
+      />
+    </>
   );
 }
 
@@ -389,8 +616,19 @@ export default function GastosOperacionalesWidget() {
   const [loading, setLoading] = useState(true);
   const [showDialog, setShowDialog] = useState(false);
   const [editing, setEditing] = useState(null);
+  const [allCategoryMeta, setAllCategoryMeta] = useState(() =>
+    buildCategoryMeta(loadCustomCategories())
+  );
 
-  useEffect(() => { loadExpenses(); }, []);
+  const refreshCategoryMeta = useCallback(() => {
+    setAllCategoryMeta(buildCategoryMeta(loadCustomCategories()));
+  }, []);
+
+  useEffect(() => {
+    loadExpenses();
+    window.addEventListener("custom-categories-updated", refreshCategoryMeta);
+    return () => window.removeEventListener("custom-categories-updated", refreshCategoryMeta);
+  }, [refreshCategoryMeta]);
 
   const loadExpenses = async () => {
     setLoading(true);
@@ -499,7 +737,7 @@ export default function GastosOperacionalesWidget() {
       ) : (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
           {sortedExpenses.map((exp) => {
-            const meta = getCategoryMeta(exp.category);
+            const meta = getCategoryMeta(exp.category, allCategoryMeta);
             const IconComp = meta.icon;
             const urg = URGENCY_STYLES[exp.urgency] || URGENCY_STYLES.low;
 
@@ -579,6 +817,7 @@ export default function GastosOperacionalesWidget() {
         onClose={() => setShowDialog(false)}
         initial={editing}
         onSave={handleSave}
+        allCategoryMeta={allCategoryMeta}
       />
     </div>
   );
