@@ -41,78 +41,60 @@ const safe = (v) => (v == null ? "" : String(v));
 const SimplifiedOrderCard = ({ order, onSelect }) => {
   const created =
     order?.created_date
-      ? format(new Date(order.created_date), "dd MMM, yyyy", { locale: es })
+      ? format(new Date(order.created_date), "dd MMM", { locale: es })
       : "—";
 
   const statusKey = safe(order?.status);
   const statusClass = statusColors[statusKey] || "bg-zinc-600/15 text-zinc-300 border-zinc-500/25";
   const statusText = statusLabels[statusKey] || statusKey?.replace(/_/g, " ") || "—";
   const isQuickOrder = order?.status_metadata?.quick_order === true;
+  const isB2B = order?.company_id || order?.company_name;
 
   return (
     <button
       type="button"
       onClick={() => onSelect?.(order?.id)}
       className="
-        group w-full text-left
-        rounded-2xl md:rounded-xl
-        border border-white/10 hover:border-red-600/40
-        bg-gradient-to-b from-[#0F0F12] to-[#0C0C0F]
-        hover:from-[#111115] hover:to-[#0E0E12]
-        transition-colors
-        focus:outline-none focus:ring-2 focus:ring-red-600/60
-        active:scale-[0.995]
-        p-4 md:p-3
+        group relative w-full text-left overflow-hidden
+        rounded-[24px] border
+        bg-[#121215]/40 backdrop-blur-2xl
+        border-white/[0.06] hover:border-white/20
+        transition-all duration-300
+        active:scale-[0.98]
+        p-4
       "
       aria-label={`Orden ${order?.order_number || "sin número"} de ${order?.customer_name || "cliente"}`}
     >
-      {/* Header: Nº de orden + Estado */}
-      <div className="flex items-start justify-between gap-3">
-        <div className="min-w-0">
-          <div className="flex items-center gap-2 flex-wrap">
-            <p className="font-semibold text-white text-base md:text-sm leading-tight truncate">
-              {order?.order_number || "SIN #ORDEN"}
+      <div className="relative z-10 flex flex-col gap-3">
+        {/* Header: Nº de orden + Estado */}
+        <div className="flex items-start justify-between gap-3">
+          <div className="min-w-0">
+            <div className="flex items-center gap-2">
+              <p className="font-black text-white text-[15px] leading-tight truncate tracking-tight">
+                {order?.customer_name || "Cliente"}
+                {isB2B && <span className="ml-1 text-[12px]">🏢</span>}
+              </p>
+            </div>
+            <p className="mt-0.5 text-[10px] font-black text-white/30 uppercase tracking-[0.12em]">
+              {order?.order_number || "WO-LOCAL"}
             </p>
-            {isQuickOrder ? (
-              <Badge className="border bg-emerald-500/15 text-emerald-300 border-emerald-500/25 text-[11px] md:text-[10px] px-2 py-0.5 rounded-md">
-                Rápida
-              </Badge>
-            ) : null}
-            {/* Fecha (móvil: se oculta, iPad/desktop: visible) */}
-            <span className="hidden sm:inline text-[11px] md:text-xs text-gray-400">
-              {created}
-            </span>
           </div>
-          <p className="mt-0.5 text-[12px] md:text-xs text-gray-400 truncate">
-            {order?.customer_name || "—"}
-            {order?.customer_phone ? (
-              <span className="text-gray-500"> • {order.customer_phone}</span>
-            ) : null}
-          </p>
+
+          <Badge
+            className={`shrink-0 border ${statusClass} text-[9px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full backdrop-blur-md`}
+          >
+            {statusText}
+          </Badge>
         </div>
 
-        <Badge
-          className={`shrink-0 border ${statusClass} text-[11px] md:text-[10px] px-2 py-0.5 rounded-md`}
-        >
-          {statusText}
-        </Badge>
-      </div>
-
-      {/* Body: Dispositivo */}
-      <div className="mt-3 md:mt-2 text-[12px] md:text-xs text-gray-300 flex items-center justify-between gap-3">
-        <span className="truncate">
-          {`${safe(order?.device_brand)} ${safe(order?.device_model)}`.trim() || "—"}
-        </span>
-        {/* Fecha (en móvil se muestra aquí) */}
-        <span className="sm:hidden whitespace-nowrap text-gray-400">{created}</span>
-      </div>
-
-      {/* Footer sutil: Email si existe (solo si cabe) */}
-      {order?.customer_email ? (
-        <div className="mt-2 text-[11px] md:text-[10px] text-gray-500 truncate">
-          {order.customer_email}
+        {/* Body: Dispositivo */}
+        <div className="bg-white/[0.03] border border-white/[0.05] rounded-xl p-2.5 flex items-center justify-between gap-3">
+          <span className="text-[12px] font-semibold text-white/70 truncate">
+            {`${safe(order?.device_brand)} ${safe(order?.device_model)}`.trim() || "Modelo no especificado"}
+          </span>
+          <span className="text-[10px] font-black text-white/20 uppercase whitespace-nowrap">{created}</span>
         </div>
-      ) : null}
+      </div>
     </button>
   );
 };

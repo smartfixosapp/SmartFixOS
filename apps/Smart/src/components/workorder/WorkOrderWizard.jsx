@@ -2858,14 +2858,14 @@ export default function WorkOrderWizard({ open, onClose, onSuccess, preloadedCus
           }}
         >
           <DialogPrimitive.Content
-            className={`pointer-events-auto p-0 border overflow-hidden flex flex-col relative outline-none ${
+            className={`pointer-events-auto p-0 border overflow-hidden flex flex-col relative outline-none glass-panel shadow-[0_24px_100px_rgba(0,0,0,0.6)] ${
               quickOrderMode
-                ? "border-amber-400/30 shadow-[0_20px_100px_rgba(245,158,11,0.28)] bg-gradient-to-br from-[#261602] via-[#1D1306] to-black"
-                : "border-white/20 shadow-[0_20px_100px_rgba(6,182,212,0.4)] bg-gradient-to-br from-[#0A1628] via-[#0D1B2A] to-black"
+                ? "border-amber-400/20 shadow-[0_20px_100px_rgba(245,158,11,0.15)]"
+                : "border-white/10"
             } ${
               isCompactDevice
-                ? "max-w-3xl w-[98vw] h-[calc(100dvh-120px)] rounded-t-[28px] rounded-b-none"
-                : "max-w-none w-[min(96vw,1480px)] h-[min(96dvh,1180px)] rounded-[28px]"
+                ? "max-w-3xl w-[100vw] h-[100dvh] rounded-t-[32px] rounded-b-none"
+                : "max-w-none w-[min(96vw,1440px)] h-[min(94dvh,1100px)] rounded-[32px]"
             }`}
             onInteractOutside={(e) => e.preventDefault()}
             onPointerDownOutside={(e) => e.preventDefault()}
@@ -2884,78 +2884,78 @@ export default function WorkOrderWizard({ open, onClose, onSuccess, preloadedCus
         <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-gradient-to-br from-purple-500/20 to-pink-500/10 rounded-full blur-[120px] animate-pulse delay-1000 pointer-events-none" />
         
         {/* Header */}
-        <div className={`flex items-center justify-between border-b border-white/10 backdrop-blur-xl relative z-10 ${
+        <div className={`flex items-center justify-between border-b border-white/[0.06] backdrop-blur-3xl relative z-10 ${
           quickOrderMode
-            ? "bg-gradient-to-r from-amber-500/18 via-yellow-500/12 to-orange-500/12"
-            : "bg-gradient-to-r from-cyan-600/15 to-purple-600/15"
+            ? "bg-amber-500/5"
+            : "bg-white/[0.02]"
         } ${
-          isCompactDevice ? "px-5 py-4" : "px-4 py-3"
+          isCompactDevice ? "px-6 py-5" : "px-8 py-5"
         }`}>
-          <div className="flex items-center gap-4">
-            <div className={`${isCompactDevice ? "w-14 h-14 rounded-[20px]" : "w-12 h-12 rounded-[18px]"} ${
+          <div className="flex items-center gap-4 sm:gap-6">
+            <div className={`${isCompactDevice ? "w-14 h-14 rounded-[22px]" : "w-14 h-14 rounded-[22px]"} ${
               quickOrderMode
-                ? "bg-gradient-to-br from-amber-400 to-yellow-500"
-                : "bg-gradient-to-br from-cyan-500 to-blue-600"
-            } flex items-center justify-center shadow-2xl`}>
-              <Wrench className={`${isCompactDevice ? "w-7 h-7" : "w-6 h-6"} text-white`} strokeWidth={2.5} />
+                ? "bg-gradient-to-br from-amber-400 to-yellow-600"
+                : "bg-gradient-to-br from-cyan-400 to-blue-600"
+            } flex items-center justify-center shadow-[0_8px_24px_rgba(0,0,0,0.3)]`}>
+              <Wrench className={`${isCompactDevice ? "w-7 h-7" : "w-7 h-7"} text-white`} strokeWidth={2.5} />
             </div>
             <div>
-              <h2 className={`${isCompactDevice ? "text-xl" : "text-lg"} font-black text-white tracking-tight`}>Nueva Orden</h2>
-              <p className={`${isCompactDevice ? "text-sm" : "text-xs"} text-white/60 font-semibold`}>Completa todos los datos</p>
+              <h2 className={`${isCompactDevice ? "text-2xl" : "text-2xl"} font-black text-white tracking-tighter uppercase`}>Nueva Orden</h2>
+              <div className="flex items-center gap-2 mt-0.5">
+                <div className="h-1.5 w-1.5 rounded-full bg-cyan-500 animate-pulse" />
+                <p className="text-[11px] font-black uppercase tracking-[0.2em] text-white/40">Portal de Ingreso</p>
+              </div>
             </div>
           </div>
-          {!isCompactDevice && (
-            <button onClick={onClose} className="w-10 h-10 rounded-full bg-gradient-to-br from-white/10 to-white/5 border border-white/10 hover:from-white/15 hover:to-white/10 flex items-center justify-center transition-all active:scale-95">
-              <X className="w-5 h-5 text-white" />
-            </button>
-          )}
+          <button 
+            onClick={onClose} 
+            className="w-11 h-11 rounded-full bg-white/5 border border-white/10 transition-all hover:bg-white/10 active:scale-95 group flex items-center justify-center"
+          >
+            <X className="w-5 h-5 text-white/60 group-hover:rotate-90 transition-transform duration-300 group-hover:text-white" />
+          </button>
         </div>
 
-        <div className={`relative z-10 border-b border-white/8 ${
-          quickOrderMode
-            ? "bg-[linear-gradient(90deg,rgba(245,158,11,0.10),rgba(234,179,8,0.08),rgba(249,115,22,0.06))]"
-            : "bg-[linear-gradient(90deg,rgba(8,145,178,0.08),rgba(16,185,129,0.08),rgba(124,58,237,0.06))]"
-        } ${
-          isCompactDevice ? "px-5 py-3" : "px-4 py-3"
+        <div className={`relative z-10 border-b border-white/[0.05] bg-white/[0.01] ${
+          isCompactDevice ? "px-6 py-4" : "px-8 py-4"
         }`}>
           <button
             type="button"
             onClick={() => setQuickOrderMode((prev) => !prev)}
-            className={`w-full rounded-[18px] border px-4 py-3 text-left transition-all ${
+            className={`w-full group rounded-[24px] border transition-all duration-500 ${
               quickOrderMode
-                ? "border-amber-400/35 bg-amber-500/12 shadow-[0_0_30px_rgba(245,158,11,0.14)]"
-                : "border-white/10 bg-black/20 hover:bg-white/5"
+                ? "border-amber-400/30 bg-amber-500/10 shadow-[inner_0_0_20px_rgba(245,158,11,0.1)]"
+                : "border-white/[0.05] bg-white/[0.02] hover:bg-white/[0.04]"
             }`}
           >
-            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-              <div className="flex items-start gap-3">
-                <div className={`flex h-11 w-11 items-center justify-center rounded-2xl ${
+            <div className="p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+              <div className="flex items-start gap-4">
+                <div className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl transition-all duration-500 ${
                   quickOrderMode
-                    ? "bg-gradient-to-br from-amber-400 to-yellow-500 text-white"
-                    : "bg-white/8 text-cyan-200"
+                    ? "bg-gradient-to-br from-amber-400 to-yellow-500 text-white shadow-lg"
+                    : "bg-white/5 text-white/30 group-hover:text-white/60"
                 }`}>
-                  <Zap className="h-5 w-5" strokeWidth={2.5} />
+                  <Zap className="h-6 w-6" strokeWidth={2.5} />
                 </div>
                 <div>
-                  <div className="flex items-center gap-2">
-                    <p className="text-sm font-black uppercase tracking-[0.22em] text-white">Orden rápida</p>
+                  <div className="flex items-center gap-3">
+                    <p className="text-sm font-black uppercase tracking-[0.25em] text-white">Orden rápida</p>
                     {quickOrderMode && (
-                      <span className="rounded-full border border-amber-400/30 bg-amber-500/15 px-2 py-0.5 text-[10px] font-bold uppercase tracking-[0.2em] text-amber-100">
-                        Activa
+                      <span className="rounded-full bg-amber-500 text-[10px] font-black uppercase tracking-wider text-black px-2.5 py-0.5">
+                        Express
                       </span>
                     )}
                   </div>
-                  <p className="mt-1 text-sm text-white/60">
-                    Para trabajos directos como pantalla, batería o puerto de carga. Crea la orden y la envía directo a En Reparación.
+                  <p className="mt-1 text-sm text-white/40 leading-relaxed font-medium">
+                    Optimizado para cambios de pantalla y batería. Salta el diagnóstico.
                   </p>
                 </div>
               </div>
-              <div className={`shrink-0 rounded-full px-3 py-1 text-xs font-bold uppercase tracking-[0.22em] ${
+              <div className={`shrink-0 rounded-full px-4 py-1.5 text-[10px] font-black uppercase tracking-[0.2em] border transition-all duration-500 ${
                 quickOrderMode
-                  ? "bg-amber-500/18 text-amber-100"
-                  : "bg-white/8 text-white/45"
+                  ? "bg-amber-500/20 text-amber-200 border-amber-500/30"
+                  : "bg-white/5 text-white/40 border-white/10"
               }`}>
-                {quickOrderMode ? "Salta diagnóstico" : "Modo estándar"}
+                {quickOrderMode ? "Modo Activo" : "Estándar"}
               </div>
             </div>
           </button>
@@ -2972,11 +2972,11 @@ export default function WorkOrderWizard({ open, onClose, onSuccess, preloadedCus
         >
           
           {/* 📋 CLIENTE */}
-          <div className="bg-gradient-to-br from-cyan-500/10 to-blue-500/5 border border-cyan-500/30 rounded-[20px] p-5 space-y-4 backdrop-blur-xl shadow-lg relative overflow-hidden lg:col-span-4 lg:p-4 lg:space-y-3">
-            <div className="absolute -right-16 -top-16 w-32 h-32 bg-gradient-to-br from-cyan-400/20 to-blue-500/10 rounded-full blur-3xl" />
-            <h3 className="text-white font-black text-base flex items-center gap-2.5 relative z-10">
-              <div className="w-8 h-8 rounded-full bg-gradient-to-br from-cyan-400 to-blue-500 flex items-center justify-center shadow-lg">
-                <User className="w-4 h-4 text-white" strokeWidth={2.5} />
+          <div className="bg-white/[0.03] border border-white/[0.08] rounded-[28px] p-6 space-y-5 backdrop-blur-3xl shadow-[0_8px_32px_rgba(0,0,0,0.2)] relative overflow-hidden lg:col-span-4 transition-all hover:bg-white/[0.05] group">
+            <div className="absolute -right-20 -top-20 w-40 h-40 bg-cyan-500/5 rounded-full blur-[80px] group-hover:bg-cyan-500/10 transition-colors duration-700" />
+            <h3 className="text-white font-black text-lg flex items-center gap-3 relative z-10 uppercase tracking-tight">
+              <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-cyan-400 to-blue-600 flex items-center justify-center shadow-lg">
+                <User className="w-5 h-5 text-white" strokeWidth={2.5} />
               </div>
               Cliente
             </h3>
@@ -3184,13 +3184,13 @@ export default function WorkOrderWizard({ open, onClose, onSuccess, preloadedCus
 
           {/* 👤 TÉCNICO */}
           {!quickOrderMode && (
-          <div className="bg-gradient-to-br from-emerald-500/10 to-green-500/5 border border-emerald-500/30 rounded-[20px] p-5 space-y-4 backdrop-blur-xl shadow-lg relative overflow-hidden lg:col-span-3 lg:p-4 lg:space-y-3">
-            <div className="absolute -right-16 -bottom-16 w-32 h-32 bg-gradient-to-br from-emerald-400/20 to-green-500/10 rounded-full blur-3xl" />
-            <h3 className="text-white font-black text-base flex items-center gap-2.5 relative z-10">
-              <div className="w-8 h-8 rounded-full bg-gradient-to-br from-emerald-400 to-green-500 flex items-center justify-center shadow-lg">
-                <Users className="w-4 h-4 text-white" strokeWidth={2.5} />
+          <div className="bg-white/[0.03] border border-white/[0.08] rounded-[28px] p-6 space-y-5 backdrop-blur-3xl shadow-[0_8px_32px_rgba(0,0,0,0.2)] relative overflow-hidden lg:col-span-3 transition-all hover:bg-white/[0.05] group">
+            <div className="absolute -right-20 -bottom-20 w-40 h-40 bg-emerald-500/5 rounded-full blur-[80px] group-hover:bg-emerald-500/10 transition-colors duration-700" />
+            <h3 className="text-white font-black text-lg flex items-center gap-3 relative z-10 uppercase tracking-tight">
+              <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-emerald-400 to-green-600 flex items-center justify-center shadow-lg">
+                <Users className="w-5 h-5 text-white" strokeWidth={2.5} />
               </div>
-              Técnico (opcional)
+              Técnico <span className="text-[10px] text-white/20 ml-1">(Opcional)</span>
             </h3>
 
             <div className="space-y-3">
@@ -3244,12 +3244,12 @@ export default function WorkOrderWizard({ open, onClose, onSuccess, preloadedCus
           )}
 
           {/* 📱 DISPOSITIVO */}
-          <div className="bg-gradient-to-br from-purple-500/10 to-pink-500/5 border border-purple-500/30 rounded-[20px] p-5 space-y-4 backdrop-blur-xl shadow-lg relative overflow-hidden lg:col-span-5 lg:p-4 lg:space-y-3">
-            <div className="absolute -left-16 -top-16 w-32 h-32 bg-gradient-to-br from-purple-400/20 to-pink-500/10 rounded-full blur-3xl animate-pulse" />
+          <div className="bg-white/[0.03] border border-white/[0.08] rounded-[28px] p-6 space-y-5 backdrop-blur-2xl shadow-[0_8px_32px_rgba(0,0,0,0.2)] relative overflow-hidden lg:col-span-5 transition-all hover:bg-white/[0.05] group">
+            <div className="absolute -right-20 -top-20 w-40 h-40 bg-purple-500/5 rounded-full blur-[80px] group-hover:bg-purple-500/10 transition-colors duration-700" />
             <div className="flex items-center justify-between relative z-10">
-              <h3 className="text-white font-black text-base flex items-center gap-2.5">
-                <div className="w-8 h-8 rounded-full bg-gradient-to-br from-purple-400 to-pink-500 flex items-center justify-center shadow-lg">
-                  <Smartphone className="w-4 h-4 text-white" strokeWidth={2.5} />
+              <h3 className="text-white font-black text-lg flex items-center gap-3 relative z-10 uppercase tracking-tight">
+                <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-purple-400 to-pink-500 flex items-center justify-center shadow-lg">
+                  <Smartphone className="w-5 h-5 text-white" strokeWidth={2.5} />
                 </div>
                 Dispositivo
               </h3>
@@ -3457,11 +3457,11 @@ export default function WorkOrderWizard({ open, onClose, onSuccess, preloadedCus
           </div>
 
           {/* 🔧 PROBLEMA */}
-          <div className="bg-gradient-to-br from-orange-500/10 to-amber-500/5 border border-orange-500/30 rounded-[20px] p-5 space-y-4 backdrop-blur-xl shadow-lg relative overflow-hidden lg:col-span-4 lg:p-4 lg:space-y-3">
-            <div className="absolute -right-16 -top-16 w-32 h-32 bg-gradient-to-br from-orange-400/20 to-amber-500/10 rounded-full blur-3xl" />
-            <h3 className="text-white font-black text-base flex items-center gap-2.5 relative z-10">
-              <div className="w-8 h-8 rounded-full bg-gradient-to-br from-orange-400 to-amber-500 flex items-center justify-center shadow-lg">
-                <Wrench className="w-4 h-4 text-white" strokeWidth={2.5} />
+          <div className="bg-white/[0.03] border border-white/[0.08] rounded-[28px] p-6 space-y-5 backdrop-blur-xl shadow-[0_8px_32px_rgba(0,0,0,0.2)] relative overflow-hidden lg:col-span-4 transition-all hover:bg-white/[0.05] group">
+            <div className="absolute -right-20 -top-20 w-40 h-40 bg-orange-500/5 rounded-full blur-[80px] group-hover:bg-orange-500/10 transition-colors duration-700" />
+            <h3 className="text-white font-black text-lg flex items-center gap-3 relative z-10 uppercase tracking-tight">
+              <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-orange-400 to-amber-500 flex items-center justify-center shadow-lg">
+                <Wrench className="w-5 h-5 text-white" strokeWidth={2.5} />
               </div>
               Cliente indica
             </h3>
@@ -3475,14 +3475,14 @@ export default function WorkOrderWizard({ open, onClose, onSuccess, preloadedCus
           </div>
 
           {/* 🛠️ PIEZAS Y SERVICIOS */}
-          <div className="bg-gradient-to-br from-lime-500/10 to-emerald-500/5 border border-lime-500/30 rounded-[20px] p-5 space-y-4 backdrop-blur-xl shadow-lg relative overflow-hidden lg:col-span-8 lg:p-4 lg:space-y-3">
-            <div className="absolute -left-16 -bottom-16 w-32 h-32 bg-gradient-to-br from-lime-400/20 to-emerald-500/10 rounded-full blur-3xl" />
+          <div className="bg-white/[0.03] border border-white/[0.08] rounded-[28px] p-6 space-y-5 backdrop-blur-2xl shadow-[0_8px_32px_rgba(0,0,0,0.2)] relative overflow-hidden lg:col-span-8 transition-all hover:bg-white/[0.05] group">
+            <div className="absolute -left-20 -bottom-20 w-40 h-40 bg-lime-500/5 rounded-full blur-[80px] group-hover:bg-lime-500/10 transition-colors duration-700" />
             <div className="flex items-center justify-between relative z-10">
-              <h3 className="text-white font-black text-base flex items-center gap-2.5">
-                <div className="w-8 h-8 rounded-full bg-gradient-to-br from-lime-400 to-emerald-500 flex items-center justify-center shadow-lg">
-                  <Wrench className="w-4 h-4 text-white" strokeWidth={2.5} />
+              <h3 className="text-white font-black text-lg flex items-center gap-3 relative z-10 uppercase tracking-tight">
+                <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-lime-400 to-emerald-500 flex items-center justify-center shadow-lg">
+                  <Wrench className="w-5 h-5 text-white" strokeWidth={2.5} />
                 </div>
-                Piezas y Servicios
+                Checkout
               </h3>
               <Button
                 type="button"
@@ -3579,13 +3579,13 @@ export default function WorkOrderWizard({ open, onClose, onSuccess, preloadedCus
 
           {/* 🔐 SEGURIDAD */}
           {!quickOrderMode && (
-          <div className="bg-gradient-to-br from-blue-500/10 to-indigo-500/5 border border-blue-500/30 rounded-[20px] p-5 space-y-4 backdrop-blur-xl shadow-lg relative overflow-hidden lg:col-span-4 lg:p-4 lg:space-y-3">
-            <div className="absolute -right-16 -top-16 w-32 h-32 bg-gradient-to-br from-blue-400/20 to-indigo-500/10 rounded-full blur-3xl" />
-            <h3 className="text-white font-black text-base flex items-center gap-2.5 relative z-10">
-              <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-400 to-indigo-500 flex items-center justify-center shadow-lg">
-                <Shield className="w-4 h-4 text-white" strokeWidth={2.5} />
+          <div className="bg-white/[0.03] border border-white/[0.08] rounded-[28px] p-6 space-y-5 backdrop-blur-xl shadow-[0_8px_32px_rgba(0,0,0,0.2)] relative overflow-hidden lg:col-span-4 transition-all hover:bg-white/[0.05] group">
+            <div className="absolute -right-20 -top-20 w-40 h-40 bg-blue-500/5 rounded-full blur-[80px] group-hover:bg-blue-500/10 transition-colors duration-700" />
+            <h3 className="text-white font-black text-lg flex items-center gap-3 relative z-10 uppercase tracking-tight">
+              <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-blue-400 to-indigo-600 flex items-center justify-center shadow-lg">
+                <Shield className="w-5 h-5 text-white" strokeWidth={2.5} />
               </div>
-              Seguridad (opcional)
+              Seguridad <span className="text-[10px] text-white/20 ml-1">(Opcional)</span>
             </h3>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -3642,13 +3642,13 @@ export default function WorkOrderWizard({ open, onClose, onSuccess, preloadedCus
 
           {/* ✅ CHECKLIST */}
           {!quickOrderMode && (
-          <div className="bg-gradient-to-br from-green-500/10 to-emerald-500/5 border border-green-500/30 rounded-[20px] p-5 space-y-4 backdrop-blur-xl shadow-lg relative overflow-hidden lg:col-span-4 lg:p-4 lg:space-y-3">
-            <div className="absolute -left-16 -top-16 w-32 h-32 bg-gradient-to-br from-green-400/20 to-emerald-500/10 rounded-full blur-3xl" />
-            <h3 className="text-white font-black text-base flex items-center gap-2.5 relative z-10">
-              <div className="w-8 h-8 rounded-full bg-gradient-to-br from-green-400 to-emerald-500 flex items-center justify-center shadow-lg">
-                <CheckSquare className="w-4 h-4 text-white" strokeWidth={2.5} />
+          <div className="bg-white/[0.03] border border-white/[0.08] rounded-[28px] p-6 space-y-5 backdrop-blur-xl shadow-[0_8px_32px_rgba(0,0,0,0.2)] relative overflow-hidden lg:col-span-4 transition-all hover:bg-white/[0.05] group">
+            <div className="absolute -left-20 -top-20 w-40 h-40 bg-green-500/5 rounded-full blur-[80px] group-hover:bg-green-500/10 transition-colors duration-700" />
+            <h3 className="text-white font-black text-lg flex items-center gap-3 relative z-10 uppercase tracking-tight">
+              <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-green-400 to-emerald-600 flex items-center justify-center shadow-lg">
+                <CheckSquare className="w-5 h-5 text-white" strokeWidth={2.5} />
               </div>
-              Checklist de Recepción
+              Checklist
             </h3>
 
             <div className="flex items-center justify-between gap-3 flex-wrap">
@@ -3727,13 +3727,13 @@ export default function WorkOrderWizard({ open, onClose, onSuccess, preloadedCus
 
           {/* 📸 FOTOS */}
           {!quickOrderMode && (
-          <div className="bg-gradient-to-br from-pink-500/10 to-rose-500/5 border border-pink-500/30 rounded-[20px] p-5 space-y-4 backdrop-blur-xl shadow-lg relative overflow-hidden lg:col-span-4 lg:p-4 lg:space-y-3">
-            <div className="absolute -right-16 -bottom-16 w-32 h-32 bg-gradient-to-br from-pink-400/20 to-rose-500/10 rounded-full blur-3xl" />
-            <h3 className="text-white font-black text-base flex items-center gap-2.5 relative z-10">
-              <div className="w-8 h-8 rounded-full bg-gradient-to-br from-pink-400 to-rose-500 flex items-center justify-center shadow-lg">
-                <Camera className="w-4 h-4 text-white" strokeWidth={2.5} />
+          <div className="bg-white/[0.03] border border-white/[0.08] rounded-[28px] p-6 space-y-5 backdrop-blur-xl shadow-[0_8px_32px_rgba(0,0,0,0.2)] relative overflow-hidden lg:col-span-4 transition-all hover:bg-white/[0.05] group">
+            <div className="absolute -right-20 -bottom-20 w-40 h-40 bg-pink-500/5 rounded-full blur-[80px] group-hover:bg-pink-500/10 transition-colors duration-700" />
+            <h3 className="text-white font-black text-lg flex items-center gap-3 relative z-10 uppercase tracking-tight">
+              <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-pink-400 to-rose-600 flex items-center justify-center shadow-lg">
+                <Camera className="w-5 h-5 text-white" strokeWidth={2.5} />
               </div>
-              Fotos / Evidencia
+              Evidencia
             </h3>
 
             <input
@@ -3808,16 +3808,16 @@ export default function WorkOrderWizard({ open, onClose, onSuccess, preloadedCus
 
         {/* Footer - FIXED AL FONDO DEL MODAL */}
         <div
-          className={`flex flex-col sm:flex-row gap-3 border-t border-white/10 bg-gradient-to-r from-black/90 via-gray-900/80 to-black/90 backdrop-blur-xl relative z-10 ${
-            isCompactDevice ? "px-5 py-4" : "px-4 py-3"
+          className={`flex flex-col sm:flex-row gap-4 border-t border-white/5 bg-[#0D0D0F]/90 backdrop-blur-3xl relative z-10 ${
+            isCompactDevice ? "px-6 py-6" : "px-8 py-5"
           }`}
-          style={{ paddingBottom: "calc(env(safe-area-inset-bottom, 0px) + 1rem)" }}
+          style={{ paddingBottom: "calc(env(safe-area-inset-bottom, 0px) + 1.25rem)" }}
         >
           {!isCompactDevice && (
             <Button
               onClick={onClose}
               variant="outline"
-              className="border-white/20 text-gray-300 hover:bg-white/10 h-12 rounded-[16px] font-bold active:scale-95 transition-all"
+              className="border-white/10 bg-white/5 text-white/70 hover:bg-white/10 h-14 rounded-[20px] font-black uppercase text-xs tracking-widest active:scale-95 transition-all"
               disabled={loading}
             >
               Cancelar
@@ -3828,7 +3828,7 @@ export default function WorkOrderWizard({ open, onClose, onSuccess, preloadedCus
               onClick={handleAddAnother}
               disabled={loading}
               variant="outline"
-              className="border-cyan-500/40 bg-cyan-500/10 text-cyan-400 hover:bg-cyan-600/20 h-12 rounded-[16px] font-bold active:scale-95 transition-all"
+              className="border-cyan-500/30 bg-cyan-500/5 text-cyan-400 hover:bg-cyan-500/10 h-14 rounded-[20px] font-black uppercase text-xs tracking-widest active:scale-95 transition-all"
             >
               <Plus className="w-5 h-5 mr-2" />
               Añadir otro equipo
@@ -3837,22 +3837,22 @@ export default function WorkOrderWizard({ open, onClose, onSuccess, preloadedCus
           <Button
             onClick={handleSubmit}
             disabled={loading}
-            className={`w-full sm:flex-1 text-white h-12 rounded-[16px] font-black active:scale-95 transition-all duration-300 ${
+            className={`w-full sm:flex-1 text-white h-14 rounded-[20px] font-black uppercase text-sm tracking-widest active:scale-95 transition-all duration-300 shadow-[0_8px_32px_rgba(0,0,0,0.5)] ${
               quickOrderMode
-                ? "bg-gradient-to-r from-amber-500 to-yellow-500 hover:from-amber-600 hover:to-yellow-600 shadow-[0_0_25px_rgba(245,158,11,0.35)] text-slate-950"
-                : "bg-gradient-to-r from-cyan-500 to-emerald-500 hover:from-cyan-600 hover:to-emerald-600 shadow-[0_0_25px_rgba(6,182,212,0.4)]"
+                ? "bg-gradient-to-r from-amber-500 to-yellow-600 hover:from-amber-600 hover:to-yellow-700 shadow-[0_0_30px_rgba(245,158,11,0.25)] text-black"
+                : "bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-600 hover:to-blue-700 shadow-[0_0_30px_rgba(6,182,212,0.3)]"
             }`}
           >
             {loading ? (
               <>
-                <Loader2 className="w-5 h-5 mr-2 animate-spin" />
-                {quickOrderMode ? "Creando rápida..." : "Creando..."}
+                <Loader2 className="w-5 h-5 mr-3 animate-spin" />
+                {quickOrderMode ? "Procesando..." : "Creando Orden..."}
               </>
             ) : (
               <>
-                <Save className="w-5 h-5 mr-2" />
-                {quickOrderMode ? "Crear Orden Rápida" : "Crear Orden"}
-                {customerEmail && <Mail className="w-5 h-5 ml-2" />}
+                <Save className="w-5 h-5 mr-3" />
+                {quickOrderMode ? "Finalizar Orden Rápida" : "Confirmar Orden"}
+                {customerEmail && <Mail className="w-5 h-5 ml-3 opacity-50" />}
               </>
             )}
           </Button>
@@ -4472,9 +4472,9 @@ function PatternModal({ onClose, onSave }) {
   };
 
   return (
-    <div className="fixed inset-0 z-[200] bg-black/80 flex items-center justify-center p-4">
-      <div className="bg-[#0f172a] border border-cyan-500/30 rounded-2xl p-6 w-full max-w-md">
-        <h4 className="text-white font-bold mb-4 text-lg">Patrón de Desbloqueo Android</h4>
+    <div className="fixed inset-0 z-[200] bg-black/90 backdrop-blur-xl flex items-center justify-center p-4">
+      <div className="bg-gradient-to-br from-[#1C1C1E] to-black border border-white/20 backdrop-blur-3xl text-white max-w-md w-full rounded-[32px] overflow-hidden shadow-[0_30px_100px_rgba(6,182,212,0.3)] relative p-8">
+        <h4 className="text-xl font-black uppercase tracking-tight text-white mb-6">Seguridad Android</h4>
         
         <div className="flex flex-col items-center gap-4">
           <div className="w-full aspect-square bg-black rounded-xl border border-cyan-500/20 p-4" style={{ touchAction: 'none' }}>

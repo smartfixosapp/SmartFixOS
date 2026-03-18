@@ -9,8 +9,9 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { usePanelState } from "@/components/utils/panelContext";
+import { motion } from "framer-motion";
 
-// Almacenar el historial de navegación para cada tab
+// Tab navigation history
 const tabHistory = {
   home: ["/Dashboard"],
   orders: ["/Orders"],
@@ -26,7 +27,6 @@ export default function MobileBottomNav() {
   const { hasPanelsOpen } = usePanelState();
   const lastPathRef = useRef(location.pathname);
 
-  // Determine active tab based on path
   useEffect(() => {
     const p = location.pathname;
     let currentTab = "home";
@@ -38,7 +38,6 @@ export default function MobileBottomNav() {
     
     setActiveTab(currentTab);
 
-    // Guardar la ruta actual en el historial del tab activo
     if (p !== lastPathRef.current) {
       const history = tabHistory[currentTab];
       if (history && !history.includes(p)) {
@@ -56,72 +55,116 @@ export default function MobileBottomNav() {
     }
 
     if (tab.id === activeTab) {
-      // Si el tab ya está activo, navegar a su raíz
       navigate(tab.path);
       tabHistory[tab.id] = [tab.path];
     } else {
-      // Restaurar la última ruta del tab
       const lastRoute = tabHistory[tab.id][tabHistory[tab.id].length - 1] || tab.path;
       window.location.assign(lastRoute);
     }
   };
 
   const tabs = [
-    { id: "orders", label: "Órdenes", icon: ClipboardList, path: "/Orders" },
-    { id: "pos", label: "Caja", icon: Wallet, path: "/POS" },
-    { id: "home", label: "Inicio", icon: LayoutGrid, path: "/Dashboard" },
-    { id: "customers", label: "Clientes", icon: Users, path: "/Customers" },
-    { id: "settings", label: "Ajustes", icon: Settings, path: "/Settings" }
+    { id: "orders", label: "Órdenes", icon: ClipboardList, path: "/Orders", gradient: "from-orange-500 to-amber-500" },
+    { id: "pos", label: "Caja", icon: Wallet, path: "/POS", gradient: "from-emerald-500 to-teal-500" },
+    { id: "home", label: "Inicio", icon: LayoutGrid, path: "/Dashboard", gradient: "from-blue-500 to-indigo-500", isCenter: true },
+    { id: "customers", label: "Clientes", icon: Users, path: "/Customers", gradient: "from-purple-500 to-fuchsia-500" },
+    { id: "settings", label: "Ajustes", icon: Settings, path: "/Settings", gradient: "from-slate-400 to-slate-500" }
   ];
 
   return (
     <>
-      {/* Spacer to prevent content from being hidden behind navbar */}
-      <div className={cn("md:hidden w-full flex-shrink-0 transition-all duration-300", hasPanelsOpen ? "h-0" : "h-[84px]")} />
+      {/* Spacer */}
+      <div className={cn(
+        "md:hidden w-full flex-shrink-0 transition-all duration-300",
+        hasPanelsOpen ? "h-0" : "h-[88px]"
+      )} />
 
-      {/* iOS Tab Bar */}
+      {/* Premium Tab Bar */}
       <nav
         data-global-dock
         className={cn(
-        "fixed bottom-0 left-0 right-0 z-[100] md:hidden transition-all duration-300",
-        hasPanelsOpen ? "translate-y-full opacity-0 pointer-events-none" : "translate-y-0 opacity-100"
-      )}>
-        {/* Blur Background */}
-        <div className="absolute inset-0 bg-[#1c1c1e]/90 backdrop-blur-xl border-t border-white/10" />
+          "fixed bottom-0 left-0 right-0 z-[100] md:hidden transition-all duration-300",
+          hasPanelsOpen ? "translate-y-full opacity-0 pointer-events-none" : "translate-y-0 opacity-100"
+        )}
+      >
+        {/* Glass Background */}
+        <div className="absolute inset-0 bg-[#0A0A0C]/85 backdrop-blur-2xl border-t border-white/[0.06]" />
         
-        {/* Tab Items Container */}
-        <div className="relative flex items-end justify-between px-2 pb-[max(env(safe-area-inset-bottom),20px)] pt-3 h-[84px]">
+        {/* Subtle top glow line */}
+        <div className="absolute top-0 left-[15%] right-[15%] h-[1px] bg-gradient-to-r from-transparent via-white/10 to-transparent" />
+
+        {/* Tab Items */}
+        <div className="relative flex items-end justify-around px-1 pb-[max(env(safe-area-inset-bottom),16px)] pt-2 h-[88px]">
           {tabs.map((tab) => {
             const isActive = activeTab === tab.id;
+            const Icon = tab.icon;
+            
             return (
               <button
                 key={tab.id}
                 onClick={() => handleTabClick(tab)}
-                className="flex flex-1 flex-col items-center justify-center gap-1 active:opacity-50 transition-opacity"
+                className={cn(
+                  "relative flex flex-col items-center justify-center min-w-[56px] py-1 active:scale-90 transition-transform duration-150",
+                  tab.isCenter ? "min-w-[64px]" : ""
+                )}
               >
-                <div className={cn(
-                  "relative flex items-center justify-center rounded-full transition-all duration-200",
-                  isActive ? "text-[#0A84FF]" : "text-[#8E8E93]"
-                )}>
-                  {/* Icon */}
-                  <tab.icon 
-                    size={26} 
-                    strokeWidth={isActive ? 2.5 : 2}
-                    fill={isActive && tab.id !== 'pos' ? "currentColor" : "none"}
-                    className={cn(
-                        "transition-transform duration-200",
-                        isActive && "scale-105"
+                {/* Center button special treatment */}
+                {tab.isCenter ? (
+                  <div className={cn(
+                    "relative w-[52px] h-[52px] rounded-2xl flex items-center justify-center transition-all duration-300",
+                    isActive 
+                      ? "bg-gradient-to-br from-blue-500 to-indigo-600 shadow-[0_8px_24px_rgba(99,102,241,0.5)] scale-105" 
+                      : "bg-white/[0.06] border border-white/[0.08]"
+                  )}>
+                    {/* Glow pulse when active */}
+                    {isActive && (
+                      <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-blue-500/30 to-indigo-600/30 blur-lg animate-pulse" />
                     )}
-                  />
-                </div>
-                
-                {/* Label */}
-                <span className={cn(
-                  "text-[10px] font-medium tracking-tight leading-none",
-                  isActive ? "text-[#0A84FF]" : "text-[#8E8E93]"
-                )}>
-                  {tab.label}
-                </span>
+                    <Icon 
+                      className={cn(
+                        "w-6 h-6 relative z-10 transition-colors duration-300",
+                        isActive ? "text-white" : "text-white/40"
+                      )} 
+                      strokeWidth={isActive ? 2.5 : 1.8}
+                    />
+                  </div>
+                ) : (
+                  <>
+                    {/* Active pill indicator */}
+                    {isActive && (
+                      <motion.div
+                        layoutId="mobile-tab-pill"
+                        className={cn(
+                          "absolute -top-0.5 w-5 h-[3px] rounded-full bg-gradient-to-r",
+                          tab.gradient
+                        )}
+                        transition={{ type: "spring", stiffness: 400, damping: 30 }}
+                      />
+                    )}
+                    
+                    {/* Icon container */}
+                    <div className={cn(
+                      "w-10 h-10 rounded-xl flex items-center justify-center transition-all duration-300",
+                      isActive ? "bg-white/[0.06]" : ""
+                    )}>
+                      <Icon 
+                        className={cn(
+                          "w-[22px] h-[22px] transition-all duration-300",
+                          isActive ? "text-white" : "text-white/30"
+                        )} 
+                        strokeWidth={isActive ? 2.2 : 1.8}
+                      />
+                    </div>
+                    
+                    {/* Label */}
+                    <span className={cn(
+                      "text-[10px] font-semibold tracking-tight leading-none mt-0.5 transition-all duration-300",
+                      isActive ? "text-white/90" : "text-white/25"
+                    )}>
+                      {tab.label}
+                    </span>
+                  </>
+                )}
               </button>
             );
           })}

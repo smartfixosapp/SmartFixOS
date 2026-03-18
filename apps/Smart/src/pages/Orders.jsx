@@ -94,10 +94,7 @@ async function fetchTenantOrders() {
 }
 
 const OrderCard = React.memo(function OrderCard({ order, onClick, onEditDevice }) {
-  // Verificación defensiva: no renderizar si faltan datos críticos
-  if (!order || !order.id) {
-    return null;
-  }
+  if (!order || !order.id) return null;
   
   const deviceType = resolveDeviceType(order);
   const DeviceIcon = DEVICE_ICONS[deviceType] || Box;
@@ -106,14 +103,14 @@ const OrderCard = React.memo(function OrderCard({ order, onClick, onEditDevice }
   const isB2B = order.company_id || order.company_name;
 
   const deviceInfo = [
-  order.device_brand,
-  order.device_family,
-  order.device_model].
-  filter(Boolean).join(" ");
+    order.device_brand,
+    order.device_family,
+    order.device_model
+  ].filter(Boolean).join(" ");
 
   const taskCount = Array.isArray(order.checklist_items) ? order.checklist_items.length : 0;
   const photoCount = Array.isArray(order.photos_metadata) ? order.photos_metadata.length :
-  Array.isArray(order.device_photos) ? order.device_photos.length : 0;
+    Array.isArray(order.device_photos) ? order.device_photos.length : 0;
   const assignedLabel = String(order.assigned_to_name || order.assigned_to || "").trim();
   const isAssigned = Boolean(assignedLabel);
 
@@ -121,142 +118,116 @@ const OrderCard = React.memo(function OrderCard({ order, onClick, onEditDevice }
     <motion.div
       role="button"
       tabIndex={0}
-      initial={{ opacity: 0, y: 20 }}
+      initial={{ opacity: 0, y: 15 }}
       animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, scale: 0.95 }}
-      transition={{ duration: 0.4 }}
+      exit={{ opacity: 0, scale: 0.98 }}
+      transition={{ duration: 0.3 }}
       onClick={onClick}
       onKeyDown={(e) => e.key === 'Enter' && onClick()}
       className={cn(
-        "group relative w-full overflow-hidden rounded-[32px] border p-5 transition-all duration-500 cursor-pointer",
-        "bg-[#0D0D0F]/45 backdrop-blur-xl border-white/[0.08] hover:border-white/20 hover:bg-[#121215]/60",
-        "shadow-[0_12px_45px_rgba(0,0,0,0.3)] hover:shadow-[0_25px_80px_rgba(0,0,0,0.5)] hover:-translate-y-1.5 active:scale-[0.98]",
-        isB2B && "border-purple-500/30 hover:border-purple-500/50 shadow-purple-900/10"
+        "group relative w-full overflow-hidden rounded-[28px] border p-4 sm:p-5 transition-all duration-300 cursor-pointer",
+        "bg-[#121215]/40 backdrop-blur-2xl border-white/[0.06] hover:border-white/20 hover:bg-[#16161a]/60",
+        "shadow-[0_8px_32px_rgba(0,0,0,0.35)] active:scale-[0.985]",
+        isB2B && "border-purple-500/20 hover:border-purple-500/40"
       )}
     >
-      {/* Dynamic Background Glow */}
-      <div className={cn(
-        "absolute -right-20 -top-20 h-40 w-40 rounded-full blur-[80px] opacity-0 transition-opacity duration-700 group-hover:opacity-100",
-        isB2B ? "bg-purple-500/20" : "bg-cyan-500/20"
-      )} />
-
-      {/* Glossy Edge Reflection */}
-      <div className="absolute inset-0 bg-gradient-to-br from-white/[0.05] via-transparent to-transparent opacity-0 transition-opacity duration-500 group-hover:opacity-100 pointer-events-none" />
-
-      {/* Warranty Badge - Floating Style */}
-      {(effectiveStatus === "warranty" || (effectiveStatus === "ready_for_pickup" && order.warranty_countdown?.days_remaining > 0)) && (
-        <div className="absolute top-4 right-4 z-20 flex items-center gap-1.5 rounded-full bg-gradient-to-r from-amber-500/90 to-orange-600/90 px-3 py-1 shadow-[0_8px_20px_rgba(245,158,11,0.3)] backdrop-blur-md">
-          <Shield className="w-3.5 h-3.5 text-white" />
-          <span className="text-[10px] font-black uppercase tracking-tight text-white">Garantía</span>
-        </div>
-      )}
-
-      <div className="relative z-10 flex flex-col gap-5">
-        <div className="flex items-center gap-4">
+      <div className="relative z-10 flex flex-col gap-4">
+        <div className="flex items-start gap-4">
           {/* Device Icon - Sequoia Style */}
           <div className={cn(
-            "flex h-14 w-14 items-center justify-center rounded-[22px] shadow-2xl transition-all duration-500 group-hover:scale-110 group-hover:rotate-2 group-active:scale-95",
-            isB2B ? "bg-gradient-to-br from-purple-600 to-indigo-700 shadow-purple-500/20" : "bg-gradient-to-br from-blue-600 to-cyan-700 shadow-cyan-500/20"
+            "flex h-12 w-12 sm:h-14 sm:w-14 shrink-0 items-center justify-center rounded-[20px] shadow-2xl transition-transform duration-300",
+            isB2B 
+              ? "bg-gradient-to-br from-purple-500 to-indigo-600 shadow-purple-500/20" 
+              : "bg-gradient-to-br from-blue-500 to-cyan-600 shadow-cyan-500/20"
           )}>
-            <DeviceIcon className="h-7 w-7 text-white drop-shadow-md" strokeWidth={2.5} />
+            <DeviceIcon className="h-6 w-6 sm:h-7 sm:w-7 text-white drop-shadow-md" strokeWidth={2.5} />
           </div>
 
           <div className="flex-1 min-w-0">
-            {/* Status Badge */}
-            <div className="mb-1.5 overflow-hidden">
-               <span className={cn(
-                 "inline-flex items-center rounded-full px-2.5 py-0.5 text-[9px] font-black uppercase tracking-[0.08em] border backdrop-blur-md",
-                 statusConfig.colorClasses.replace('bg-opacity-10', 'bg-opacity-5').replace('border-opacity-20', 'border-opacity-15')
-               )}>
-                 {statusConfig.label}
-               </span>
+            {/* Status & ID Row */}
+            <div className="flex items-center justify-between mb-1">
+              <span className={cn(
+                "inline-flex items-center rounded-full px-2 py-0.5 text-[9px] font-black uppercase tracking-[0.08em] border backdrop-blur-md",
+                statusConfig.colorClasses.replace('bg-opacity-10', 'bg-opacity-20').replace('border-opacity-20', 'border-opacity-30')
+              )}>
+                {statusConfig.label}
+              </span>
+              <p className="text-[10px] font-bold text-white/30 uppercase tracking-[0.12em]">
+                {order.order_number || "WO-LOCAL"}
+              </p>
             </div>
 
             {/* Customer Name */}
-            <h3 className="text-xl font-black text-white truncate leading-tight tracking-tight group-hover:text-white transition-colors">
+            <h3 className="text-lg sm:text-xl font-black text-white truncate leading-tight tracking-tight">
               {order.customer_name || "Cliente"}
-              {isB2B && <span className="ml-2 inline-block text-[14px] text-purple-400">🏢</span>}
+              {isB2B && <span className="ml-1.5 inline-block text-[12px]">🏢</span>}
             </h3>
-            
-            {/* Order Number */}
-            <p className="text-[11px] font-bold text-white/35 uppercase tracking-[0.15em] mt-0.5">
-              {order.order_number || "WO-LOCAL"}
-            </p>
           </div>
         </div>
 
         {/* Content Section */}
         <div className="space-y-3">
-          {/* Assignment Status */}
-          <div className="flex items-center">
-             <div className={cn(
-               "inline-flex items-center gap-2 rounded-xl border px-3 py-1.5 transition-all duration-500",
-               isAssigned 
-                ? "border-emerald-500/20 bg-emerald-500/10 text-emerald-300" 
-                : "border-amber-500/20 bg-amber-500/10 text-amber-300"
-             )}>
-               <User className="h-3.5 w-3.5" />
-               <span className="text-[11px] font-bold">
-                 {isAssigned ? assignedLabel : "Esperando asignación"}
-               </span>
-             </div>
-          </div>
-
           {/* Device Model Info */}
-          <div className="bg-white/[0.03] border border-white/[0.05] rounded-2xl p-3 flex items-center justify-between group/device">
-            <p className="text-[13px] font-semibold text-white/70 truncate flex-1 leading-relaxed">
+          <div className="bg-white/[0.03] border border-white/[0.05] rounded-xl p-3 flex items-center justify-between">
+            <p className="text-[13px] font-semibold text-white/80 truncate flex-1">
               {deviceInfo || order.device_type || "Modelo no especificado"}
             </p>
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                onEditDevice(order);
-              }}
-              className="ml-2 opacity-0 group-hover/device:opacity-100 transition-all duration-300 text-cyan-400 hover:text-cyan-300 text-[10px] font-black uppercase bg-white/5 hover:bg-white/10 px-2.5 py-1 rounded-lg"
-            >
-              Editar
-            </button>
+            <ChevronRight className="h-4 w-4 text-white/20" />
+          </div>
+
+          <div className="flex items-center justify-between">
+            {/* Assignment Status */}
+            <div className={cn(
+              "inline-flex items-center gap-1.5 rounded-lg border px-2.5 py-1 transition-all duration-300",
+              isAssigned 
+                ? "border-emerald-500/10 bg-emerald-500/5 text-emerald-400/80" 
+                : "border-amber-500/10 bg-amber-500/5 text-amber-400/80"
+            )}>
+              <User className="h-3 w-3" />
+              <span className="text-[10px] font-black uppercase tracking-wide">
+                {isAssigned ? assignedLabel : "Sin asignar"}
+              </span>
+            </div>
+
+            {/* Icons Indicators */}
+            <div className="flex items-center gap-3">
+              {taskCount > 0 && (
+                <div className="flex items-center gap-1 text-emerald-400/60">
+                  <CheckCircle2 className="w-3 h-3" />
+                  <span className="text-[10px] font-black">{taskCount}</span>
+                </div>
+              )}
+              {photoCount > 0 && (
+                <div className="flex items-center gap-1 text-purple-400/60">
+                  <Camera className="w-3 h-3" />
+                  <span className="text-[10px] font-black">{photoCount}</span>
+                </div>
+              )}
+            </div>
           </div>
         </div>
 
-        {/* Footer info - Quartz Glass */}
-        <div className="flex items-center justify-between pt-4 border-t border-white/[0.08] mt-1">
-          <div className="flex items-center gap-4">
-            <div className="flex items-center gap-2 text-white/40">
-              <Calendar className="w-3.5 h-3.5" />
-              <span className="text-[11px] font-bold">
-                {format(new Date(order.created_date || Date.now()), "d MMM", { locale: es })}
-              </span>
-            </div>
-            
-            <div className="flex items-center gap-3">
-              {taskCount > 0 && (
-                <div className="flex items-center gap-1.5 text-emerald-400/70">
-                  <CheckCircle2 className="w-3.5 h-3.5" />
-                  <span className="text-[11px] font-black">{taskCount}</span>
-                </div>
-              )}
-              
-              {photoCount > 0 && (
-                <div className="flex items-center gap-1.5 text-purple-400/70">
-                  <Camera className="w-3.5 h-3.5" />
-                  <span className="text-[11px] font-black">{photoCount}</span>
-                </div>
-              )}
-            </div>
+        {/* Footer info */}
+        <div className="flex items-center justify-between pt-3 border-t border-white/[0.05]">
+          <div className="flex items-center gap-2 text-white/30">
+            <Calendar className="w-3.5 h-3.5" />
+            <span className="text-[10px] font-black uppercase tracking-wide">
+              {format(new Date(order.created_date || Date.now()), "d MMM", { locale: es })}
+            </span>
           </div>
-
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2">
             <CountdownBadge order={order} />
-            <div className="h-8 w-8 rounded-full bg-white/[0.05] border border-white/[0.08] flex items-center justify-center transition-all duration-500 group-hover:bg-white/15 group-hover:border-white/20 group-hover:translate-x-1 underline-offset-4">
-              <ChevronRight className="h-4 w-4 text-white/50 group-hover:text-white" />
-            </div>
+            {(effectiveStatus === "warranty" || (effectiveStatus === "ready_for_pickup" && order.warranty_countdown?.days_remaining > 0)) && (
+              <div className="flex items-center gap-1 rounded-full bg-amber-500/20 text-amber-400 border border-amber-500/20 px-2 py-0.5 shadow-sm">
+                <Shield className="w-3 h-3" />
+                <span className="text-[9px] font-black uppercase tracking-tight">Garantía</span>
+              </div>
+            )}
           </div>
         </div>
       </div>
     </motion.div>
   );
-
 });
 
 export default function OrdersPage() {
@@ -618,33 +589,35 @@ export default function OrdersPage() {
       <div className="fixed -bottom-40 -left-40 w-96 h-96 bg-purple-500/10 rounded-full blur-[120px] animate-pulse delay-1000 pointer-events-none" />
       
       {/* Contenido */}
-      <div className="max-w-[1920px] mx-auto px-3 sm:px-6 py-6">
-        {/* Header Sequoia Style */}
-        <div className="space-y-4 mb-6">
-          {/* Tabs Navigation */}
+      <div className="max-w-[1920px] mx-auto px-3 sm:px-6 py-4 sm:py-6">
+        {/* Header Sequoia Style - Sticky on Mobile */}
+        <div className="sticky top-0 z-40 bg-[#0A0A0A]/80 backdrop-blur-2xl -mx-3 px-3 py-3 border-b border-white/[0.05] sm:relative sm:z-0 sm:bg-transparent sm:backdrop-blur-none sm:border-none sm:p-0 sm:mb-6">
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-            <TabsList className="bg-[#121215]/60 backdrop-blur-xl border border-white/10 p-1 rounded-[22px] w-full grid grid-cols-3 gap-1 shadow-2xl">
+            <TabsList className="bg-white/5 border border-white/10 p-1 rounded-2xl w-full grid grid-cols-3 gap-1 shadow-lg">
               <TabsTrigger 
                 value="work-orders"
-                className="rounded-[18px] text-[13px] font-black tracking-tight data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-600 data-[state=active]:to-cyan-500 data-[state=active]:text-white text-white/40 data-[state=active]:shadow-lg transition-all duration-300"
+                className="rounded-xl text-[11px] sm:text-[13px] font-black tracking-tight data-[state=active]:bg-white data-[state=active]:text-black text-white/50 transition-all duration-300"
               >
                 Órdenes
               </TabsTrigger>
               <TabsTrigger 
                 value="recharges"
-                className="rounded-[18px] text-[13px] font-black tracking-tight data-[state=active]:bg-gradient-to-r data-[state=active]:from-amber-500 data-[state=active]:to-orange-500 data-[state=active]:text-white text-white/40 data-[state=active]:shadow-lg transition-all duration-300"
+                className="rounded-xl text-[11px] sm:text-[13px] font-black tracking-tight data-[state=active]:bg-amber-500 data-[state=active]:text-white text-white/50 transition-all duration-300"
               >
-                <Zap className="w-4 h-4 mr-1.5" />
                 Recargas
               </TabsTrigger>
               <TabsTrigger 
                 value="unlocks"
-                className="rounded-[18px] text-[13px] font-black tracking-tight data-[state=active]:bg-gradient-to-r data-[state=active]:from-emerald-500 data-[state=active]:to-teal-500 data-[state=active]:text-white text-white/40 data-[state=active]:shadow-lg transition-all duration-300"
+                className="rounded-xl text-[11px] sm:text-[13px] font-black tracking-tight data-[state=active]:bg-emerald-500 data-[state=active]:text-white text-white/50 transition-all duration-300"
               >
-                Desbloqueo
+                Remoto
               </TabsTrigger>
             </TabsList>
           </Tabs>
+        </div>
+
+        {/* Search & Actions Bar - Also Sticky or highly compact */}
+        <div className="flex flex-col gap-4 mb-8">
           {/* Título y acciones */}
           <div className="flex items-center justify-between gap-3">
             <div className="flex items-center gap-3">

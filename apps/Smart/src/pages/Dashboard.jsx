@@ -10,6 +10,7 @@ import { supabase } from "../../../../lib/supabase-client.js";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { cn } from "@/lib/utils";
 
 import {
   ClipboardList,
@@ -969,50 +970,67 @@ export default function Dashboard() {
             <FinancialOverviewWidget onClick={() => handleNavigate("Financial")} />
           </div>
 
-          {/* === MÓVIL: APPLE STYLE CONTROL CENTER === */}
-          <div className="md:hidden space-y-4">
-            {/* Header móvil minimalista */}
-            <div className="flex flex-col gap-3">
-              <div className="flex items-center justify-between px-4 mt-2">
+          {/* === MÓVIL: PREMIUM SEQUOIA HEADER === */}
+          <div className="md:hidden space-y-5">
+            {/* Elegant Mobile Header */}
+            <div className="flex flex-col gap-4 px-1">
+              <div className="flex items-center justify-between px-2 pt-2">
                 <div className="flex flex-col">
-                  <h2 className="text-2xl font-black text-white tracking-tighter uppercase">Hola, {session?.userName?.split(' ')[0]}</h2>
-                  <p className="text-white/40 text-[10px] font-black uppercase tracking-[0.2em]">{format(new Date(), "EEEE, d MMMM", { locale: es })}</p>
+                  <div className="flex items-center gap-2">
+                    <div className="w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse shadow-[0_0_8px_rgba(59,130,246,0.8)]" />
+                    <p className="text-[#8E8E93] text-[9px] font-black uppercase tracking-[0.25em]">SmartFix Pro</p>
+                  </div>
+                  <h2 className="text-3xl font-black text-white tracking-tighter mt-1">
+                    Hola, <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-indigo-400">{session?.userName?.split(' ')[0]}</span>
+                  </h2>
                 </div>
-              </div>
-              <div className="flex items-center justify-start gap-2 px-2 w-full overflow-x-auto no-scrollbar">
-                {/* BOTÓN CAJA MÓVIL */}
-                <button
-                  onClick={handleCashButtonClick}
-                  className={`flex-shrink-0 w-10 h-10 rounded-full border flex items-center justify-center transition-all active:scale-95 ${
-                    drawerOpen 
-                      ? "bg-emerald-500/10 border-emerald-500/20" 
-                      : "bg-red-500/10 border-red-500/20"
-                  }`}
-                  title={drawerOpen ? "Cerrar Caja" : "Abrir Caja"}
-                >
-                  <Wallet className={`w-5 h-5 ${drawerOpen ? "text-emerald-400" : "text-red-400"}`} />
-                </button>
-
-                <button
-                  onClick={() => setShowNotificationPanel(!showNotificationPanel)}
-                  className="relative flex-shrink-0 w-11 h-11 rounded-full bg-white/5 border border-white/10 flex items-center justify-center transition-all active:scale-90 shadow-inner"
-                  title="Notificaciones"
-                >
-                  <Bell className="w-5 h-5 text-white/40" />
-                  {unreadNotifications > 0 && (
-                    <span className="absolute top-0 right-0 w-3 h-3 bg-red-500 border-2 border-[#121215] rounded-full shadow-[0_0_8px_rgba(220,38,38,0.5)]" />
-                  )}
-                </button>
-
+                
                 <button
                   onClick={() => setShowUserMenu(true)}
-                  className="flex-shrink-0 w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 backdrop-blur-md flex items-center justify-center border border-white/5 shadow-lg active:scale-95 transition-all ml-auto"
-                  title="Menú Usuario"
+                  className="w-12 h-12 rounded-2xl bg-white/[0.03] border border-white/[0.08] backdrop-blur-xl flex items-center justify-center shadow-lg active:scale-90 transition-all"
                 >
-                  <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-cyan-400 to-blue-500 flex items-center justify-center text-xs font-bold text-white uppercase">
+                  <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-blue-500 to-indigo-600 flex items-center justify-center text-xs font-black text-white shadow-inner">
                     {session?.userName?.substring(0,2) || 'US'}
                   </div>
                 </button>
+              </div>
+
+              {/* Quick Action Bar - Dynamic Island Style */}
+              <div className="flex items-center gap-2 p-1.5 bg-white/[0.02] border border-white/[0.05] rounded-3xl backdrop-blur-2xl">
+                <button
+                  onClick={handleCashButtonClick}
+                  className={cn(
+                    "flex-1 h-12 rounded-2xl border flex items-center justify-center gap-2 transition-all active:scale-95",
+                    drawerOpen 
+                      ? "bg-emerald-500/10 border-emerald-500/20 text-emerald-400" 
+                      : "bg-red-500/10 border-red-500/20 text-red-400"
+                  )}
+                >
+                  <Wallet className="w-5 h-5" strokeWidth={2.5} />
+                  <span className="text-[10px] font-black uppercase tracking-widest">{drawerOpen ? "Caja Abierta" : "Caja Cerrada"}</span>
+                </button>
+
+                <div className="flex items-center gap-1.5 pr-1">
+                  <button
+                    onClick={() => setShowNotificationPanel(!showNotificationPanel)}
+                    className="relative w-12 h-12 rounded-2xl bg-white/[0.04] border border-white/[0.08] flex items-center justify-center active:scale-90 transition-all"
+                  >
+                    <Bell className="w-5 h-5 text-white/50" strokeWidth={2} />
+                    {unreadNotifications > 0 && (
+                      <span className="absolute top-2.5 right-2.5 w-2 h-2 bg-red-500 rounded-full shadow-[0_0_10px_rgba(239,68,68,0.6)]" />
+                    )}
+                  </button>
+                  
+                  <PunchButton 
+                    userId={session?.userId}
+                    userName={session?.userName}
+                    variant="mobile-icon"
+                    onPunchStatusChange={(status) => {
+                      if (status) showToast("👋 ¡Hola!", "Turno iniciado");
+                      else showToast("👋 ¡Adiós!", "Turno finalizado");
+                    }}
+                  />
+                </div>
               </div>
             </div>
 
@@ -1023,13 +1041,13 @@ export default function Dashboard() {
 
             </div>
 
-            {/* Botones de acción móvil estilo macOS Sequoia */}
+            {/* Mobile Bento Grid - App Icons Style */}
             {(loading || loadingButtons) && dashboardButtons.length === 0 ? (
-              <div className="grid grid-cols-2 gap-2 sm:gap-3 px-2 sm:px-1">
+              <div className="grid grid-cols-2 gap-3 px-1">
                 {[1, 2, 3, 4].map(i => <DashboardCardSkeleton key={i} />)}
               </div>
             ) : dashboardButtons.length > 0 ? (
-               <div className="grid grid-cols-2 gap-3 px-2 sm:px-1">
+               <div className="grid grid-cols-2 gap-4 px-1 pt-2">
                 {dashboardButtons.map(btn => {
                   const iconMap = {
                     'ClipboardList': ClipboardList,
@@ -1047,12 +1065,12 @@ export default function Dashboard() {
                   const IconComponent = (typeof btn.icon === 'string' && iconMap[btn.icon]) ? iconMap[btn.icon] : ExternalLink;
 
                   const getIconGradient = (label) => {
-                    if (label.includes("Nueva")) return "from-sky-400 via-blue-500 to-indigo-500";
-                    if (label.includes("Finanzas")) return "from-emerald-400 via-teal-500 to-cyan-500";
-                    if (label.includes("Recargas")) return "from-emerald-400 via-green-500 to-teal-500";
-                    if (label.includes("Rápidas")) return "from-amber-400 via-orange-500 to-rose-500";
-                    if (label.includes("Desbloqueos")) return "from-violet-400 via-fuchsia-500 to-pink-500";
-                    return "from-slate-300 via-slate-400 to-slate-500";
+                    if (label.includes("Nueva")) return "from-blue-500 to-indigo-600 shadow-blue-500/20";
+                    if (label.includes("Finanzas")) return "from-emerald-500 to-teal-600 shadow-emerald-500/20";
+                    if (label.includes("Recargas")) return "from-amber-400 to-orange-500 shadow-amber-500/20";
+                    if (label.includes("Rápidas")) return "from-rose-500 to-pink-600 shadow-rose-500/20";
+                    if (label.includes("Desbloqueos")) return "from-violet-500 to-fuchsia-600 shadow-violet-500/20";
+                    return "from-slate-500 to-slate-700 shadow-slate-500/20";
                   };
 
                   const getCount = (label) => {
@@ -1085,7 +1103,6 @@ export default function Dashboard() {
                   const count = getCount(btn.label);
 
                   const handleClick = () => {
-                    // Forzar apertura de modal para botones de nueva orden
                     if (btn.id === "new_order" || btn.action === "showWorkOrderWizard" || btn.action === "/WorkOrderWizard") {
                       setShowWorkOrderWizard(true);
                       return;
@@ -1108,84 +1125,106 @@ export default function Dashboard() {
                     <button
                       key={btn.id}
                       onClick={handleClick}
-                      className="group relative bg-[#121215]/40 hover:bg-[#121215]/60 backdrop-blur-3xl border border-white/10 rounded-[32px] p-6 flex flex-col items-start justify-between min-h-[160px] active:scale-95 transition-all duration-700 shadow-2xl overflow-hidden touch-manipulation"
+                      className="group relative bg-[#1C1C1E]/40 border border-white/[0.06] rounded-[28px] p-5 flex flex-col items-start justify-between min-h-[140px] active:scale-95 transition-all duration-300 shadow-xl overflow-hidden touch-manipulation"
                     >
-                      <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/10 to-transparent" />
+                      {/* Inner Shine */}
+                      <div className="absolute inset-0 bg-gradient-to-br from-white/[0.05] to-transparent pointer-events-none" />
+                      
                       <div className="flex justify-between w-full items-start gap-3 relative z-10">
-                        <div className={`w-12 h-12 rounded-[20px] bg-gradient-to-br ${getIconGradient(btn.label)} flex items-center justify-center shadow-[0_8px_16px_rgba(0,0,0,0.4)] mb-2 text-white transition-all duration-700 group-active:scale-110`}>
-                            <IconComponent className="w-6 h-6" strokeWidth={2.5} />
+                        <div className={`w-12 h-12 rounded-2xl bg-gradient-to-br ${getIconGradient(btn.label)} flex items-center justify-center shadow-lg relative`}>
+                            <IconComponent className="w-6 h-6 text-white" strokeWidth={2.5} />
+                            <div className="absolute inset-0 rounded-2xl bg-white/20 opacity-20 group-hover:opacity-40 transition-opacity" />
                         </div>
                         {count !== null && (
-                            <span className="inline-flex items-center justify-center min-w-[32px] h-8 px-2.5 rounded-full border border-white/10 bg-black text-[10px] font-black text-white tracking-widest shadow-lg">{count}</span>
+                            <span className="flex items-center justify-center h-6 px-2 rounded-full border border-white/10 bg-white/5 backdrop-blur-md text-[10px] font-black text-white/90 shadow-lg">
+                              {count}
+                            </span>
                         )}
                       </div>
-                      <div className="flex flex-col items-start gap-1 relative z-10 mt-auto">
-                        <span className="text-sm font-black text-white/90 leading-tight text-left tracking-tight uppercase">
+
+                      <div className="flex flex-col items-start relative z-10 mt-auto">
+                        <span className="text-sm font-black text-white/95 leading-none tracking-tight">
                           {btn.label}
                         </span>
-                        <span className="text-[9px] uppercase tracking-[0.2em] text-white/20 font-black">
-                          Subapp
-                        </span>
+                        <div className="flex items-center gap-1.5 mt-2">
+                          <div className="w-1 h-1 rounded-full bg-blue-500 shadow-[0_0_6px_rgba(59,130,246,0.6)]" />
+                          <span className="text-[9px] uppercase tracking-[0.2em] text-white/30 font-black">Subapp</span>
+                        </div>
                       </div>
                     </button>
-
-                  );
+               );
                 })}
               </div>
             ) : null}
 
             {/* === BÚSQUEDA DE ÓRDENES MÓVIL === */}
-            <Card className="bg-gradient-to-br from-purple-600/10 via-blue-600/10 to-cyan-600/10 backdrop-blur-3xl border border-white/10 rounded-[24px] shadow-xl mx-1">
-              <CardContent className="p-4 space-y-3">
+            <div className="mx-1 mt-2">
+              <div className="bg-[#1C1C1E]/40 backdrop-blur-3xl border border-white/[0.08] rounded-[32px] shadow-2xl overflow-hidden p-5 space-y-5">
                 <div className="flex items-center justify-between">
-                  <h3 className="text-white/90 font-bold text-base flex items-center gap-2">
-                    <ClipboardList className="w-4 h-4 text-blue-500" /> Órdenes
-                  </h3>
+                  <div className="flex items-center gap-2.5">
+                    <div className="w-8 h-8 rounded-xl bg-blue-500/20 border border-blue-500/30 flex items-center justify-center">
+                      <ClipboardList className="w-4 h-4 text-blue-400" />
+                    </div>
+                    <h3 className="text-white/90 font-black text-sm uppercase tracking-tight">Gestión de Órdenes</h3>
+                  </div>
                 </div>
 
-                {/* Chips de Estados - Solo iconos */}
-                  <div className="flex gap-3 overflow-x-auto pb-2 no-scrollbar -mx-1 px-1 pt-3">
-                    {ORDER_STATUSES.filter((s) => s.isActive).slice(0, 6).map((status) => {
-                         const count = statusCounts[status.id] || 0;
-                         const isSelected = selectedStatusFilter === status.id;
-                         const isPendingOrder = status.id === "pending_order";
+                {/* Chips de Estados - Premium Horizontal Scroll */}
+                <div className="flex gap-4 overflow-x-auto pb-4 no-scrollbar -mx-2 px-2 pt-2">
+                  {ORDER_STATUSES.filter((s) => s.isActive).slice(0, 6).map((status) => {
+                       const count = statusCounts[status.id] || 0;
+                       const isSelected = selectedStatusFilter === status.id;
+                       const isPendingOrder = status.id === "pending_order";
 
-                         const iconMap = {
-                           'intake': ClipboardList,
-                           'diagnosing': Search,
-                           'awaiting_approval': Clock,
-                           'waiting_parts': Package,
-                           'pending_order': AlertCircle,
-                           'in_progress': Wrench,
-                           'ready_for_pickup': CheckCircle2,
-                         };
-                         const StatusIcon = iconMap[status.id] || ClipboardList;
+                       const iconMap = {
+                         'intake': ClipboardList,
+                         'diagnosing': Search,
+                         'awaiting_approval': Clock,
+                         'waiting_parts': Package,
+                         'pending_order': AlertCircle,
+                         'in_progress': Wrench,
+                         'ready_for_pickup': CheckCircle2,
+                       };
+                       const StatusIcon = iconMap[status.id] || ClipboardList;
 
-                         return (
-                           <button 
-                             key={status.id} 
-                             onClick={() => {
-                               setSelectedStatusFilter(isSelected ? null : status.id);
-                               setShowUnlocksFilter(false);
-                             }}
-                             disabled={count === 0}
-                             title={status.label}
-                             className={`relative flex-shrink-0 min-w-[48px] h-12 rounded-full transition-all border flex items-center justify-center ${
+                       return (
+                         <button 
+                           key={status.id} 
+                           onClick={() => {
+                             setSelectedStatusFilter(isSelected ? null : status.id);
+                             setShowUnlocksFilter(false);
+                           }}
+                           disabled={count === 0}
+                           className={cn(
+                             "relative flex-shrink-0 w-14 h-14 rounded-2xl transition-all border flex items-center justify-center active:scale-90 shadow-lg group",
                              isPendingOrder && count > 0
-                               ? 'bg-gradient-to-r from-red-600 to-red-700 border-red-500 shadow-[0_0_20px_rgba(220,38,38,0.6)] animate-pulse scale-110'
+                               ? 'bg-red-500 border-red-400/50 shadow-red-500/40 animate-pulse'
                                : isSelected 
-                                 ? 'bg-white border-white shadow-lg scale-110' 
-                                 : 'bg-white/5 border-white/10'
-                           } ${count === 0 ? 'opacity-30' : ''}`}
+                                 ? 'bg-white border-white scale-105' 
+                                 : 'bg-white/[0.03] border-white/[0.08]'
+                           )}
                          >
-                           <StatusIcon className={`w-5 h-5 ${isSelected ? 'text-black' : 'text-white'}`} strokeWidth={2.5} />
+                           <StatusIcon className={cn(
+                             "w-6 h-6 transition-colors",
+                             isSelected ? 'text-black' : 'text-white/60 group-hover:text-white'
+                           )} strokeWidth={2.5} />
+                           
                            {count > 0 && (
-                             <span className={`absolute -top-1 -right-1 w-5 h-5 rounded-full text-[9px] font-black flex items-center justify-center ${
+                             <span className={cn(
+                               "absolute -top-1.5 -right-1.5 min-w-[20px] h-5 px-1 rounded-full text-[9px] font-black flex items-center justify-center shadow-lg border border-black/20",
                                isPendingOrder ? 'bg-white text-red-600' : isSelected ? 'bg-black text-white' : 'bg-blue-500 text-white'
-                             }`}>
+                             )}>
                                {count}
                              </span>
                            )}
+                           
+                           {/* Invisible Label below for accessibility/reference if needed, but keeping it clean */}
+                           <span className={cn(
+                             "absolute -bottom-6 left-1/2 -translate-x-1/2 text-[8px] font-black uppercase tracking-tighter whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity",
+                             isSelected ? "text-white" : "text-white/40"
+                           )}>
+                             {status.label}
+                           </span>
                          </button>
                        );
                      })}
@@ -1197,122 +1236,154 @@ export default function Dashboard() {
                          setShowUnlocksFilter(false);
                        }}
                        disabled={statusCounts.warranty === 0}
-                       title="Garantías"
-                       className={`relative flex-shrink-0 min-w-[48px] h-12 rounded-full transition-all border flex items-center justify-center ${
+                       className={cn(
+                         "relative flex-shrink-0 w-14 h-14 rounded-2xl transition-all border flex items-center justify-center active:scale-90 shadow-lg group",
                          selectedStatusFilter === "warranty" 
-                           ? 'bg-white border-white shadow-lg scale-110' 
-                           : 'bg-white/5 border-white/10'
-                       } ${statusCounts.warranty === 0 ? 'opacity-30' : ''}`}
+                           ? 'bg-white border-white scale-105' 
+                           : 'bg-white/[0.03] border-white/[0.08]'
+                       )}
                      >
-                       <Shield className={`w-5 h-5 ${selectedStatusFilter === "warranty" ? 'text-black' : 'text-white'}`} strokeWidth={2.5} />
+                       <Shield className={cn(
+                         "w-6 h-6 transition-colors",
+                         selectedStatusFilter === "warranty" ? 'text-black' : 'text-white/60 group-hover:text-white'
+                       )} strokeWidth={2.5} />
                        {statusCounts.warranty > 0 && (
-                         <span className={`absolute -top-1 -right-1 w-5 h-5 rounded-full text-[9px] font-black flex items-center justify-center ${
+                         <span className={cn(
+                           "absolute -top-1.5 -right-1.5 min-w-[20px] h-5 px-1 rounded-full text-[9px] font-black flex items-center justify-center shadow-lg border border-black/20",
                            selectedStatusFilter === "warranty" ? 'bg-black text-white' : 'bg-amber-500 text-white'
-                         }`}>
+                         )}>
                            {statusCounts.warranty}
                          </span>
                        )}
+                       <span className={cn(
+                         "absolute -bottom-6 left-1/2 -translate-x-1/2 text-[8px] font-black uppercase tracking-tighter whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity",
+                         selectedStatusFilter === "warranty" ? "text-white" : "text-white/40"
+                       )}>
+                         Garantías
+                       </span>
                      </button>
                 </div>
 
-                {/* Buscador */}
-                <div className="relative">
-                  <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
+                {/* Buscador - Premium Sequoia Style */}
+                <div className="relative pt-2">
+                  <div className="absolute left-4 top-[calc(50%+4px)] -translate-y-1/2 h-5 w-5 flex items-center justify-center">
+                    <Search className="h-4 w-4 text-white/30" strokeWidth={2.5} />
+                  </div>
                   <input 
                     value={searchTerm} 
                     onChange={(e) => setSearchTerm(e.target.value)} 
-                    placeholder="Buscar..." 
-                    className="w-full pl-11 pr-4 py-3 bg-white/5 border border-white/10 rounded-xl text-base text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50" 
+                    placeholder="Buscar por orden, cliente o serial..." 
+                    className="w-full pl-11 pr-4 py-3.5 bg-white/[0.04] border border-white/[0.08] rounded-2xl text-sm text-white placeholder-white/20 focus:outline-none focus:ring-2 focus:ring-blue-500/40 focus:bg-white/[0.08] transition-all shadow-inner" 
                   />
                 </div>
+              </div>
+            </div>
 
-                {/* Lista reducida */}
-                {filteredOrders.length === 0 ? (
-                  <div className="text-center py-8 bg-white/5 rounded-xl">
-                    <ClipboardList className="w-10 h-10 mx-auto text-white/20 mb-2" />
-                    <p className="text-white/40 text-xs">
-                      {searchTerm ? 'Sin resultados' : 'Selecciona un estado'}
-                    </p>
-                  </div>
-                ) : (
-                  <div className="space-y-3 max-h-[280px] overflow-y-auto scrollbar-thin">
-                    {filteredOrders.slice(0, 5).map((order) => {
-                      const statusConfig = getStatusConfig(order.status);
-                      return (
-                        <div 
-                          key={order.id}
-                          onClick={() => handleOrderSelect(order.id)} 
-                          className="p-4 bg-white/5 rounded-xl border border-white/5 active:scale-95 transition-all touch-manipulation cursor-pointer"
-                        >
-                          <div className="flex justify-between items-start gap-2">
-                            <div className="min-w-0 flex-1">
-                              <p className="font-semibold text-white text-sm truncate">{order.customer_name || "Cliente"}</p>
-                              <p className="text-xs text-white/50 truncate mt-0.5">
-                                {order.order_number} • {order.device_model || "Dispositivo"}
-                              </p>
-                            </div>
-                            <span className={`px-2 py-0.5 rounded-full text-[9px] font-bold ${statusConfig.colorClasses} whitespace-nowrap`}>
-                              {statusConfig.label}
-                            </span>
-                          </div>
-                        </div>
-                      );
-                      })}
+                              {/* Lista reducida - Modern Style */}
+                <div className="pt-2">
+                  {filteredOrders.length === 0 ? (
+                    <div className="text-center py-10 bg-white/[0.02] border border-white/[0.04] rounded-2xl">
+                      <div className="w-12 h-12 bg-white/5 rounded-full flex items-center justify-center mx-auto mb-3">
+                        <ClipboardList className="w-6 h-6 text-white/10" />
                       </div>
-                      )}
-                      </CardContent>
-                      </Card>
+                      <p className="text-white/30 text-[10px] uppercase font-black tracking-widest">
+                        {searchTerm ? 'Sin resultados' : 'Selecciona un estado'}
+                      </p>
+                    </div>
+                  ) : (
+                    <div className="space-y-3 max-h-[320px] overflow-y-auto no-scrollbar pt-1">
+                      {filteredOrders.slice(0, 6).map((order) => {
+                        const statusConfig = getStatusConfig(order.status);
+                        return (
+                          <div 
+                            key={order.id}
+                            onClick={() => handleOrderSelect(order.id)} 
+                            className="group/order p-4 bg-white/[0.03] hover:bg-white/[0.06] rounded-2xl border border-white/[0.05] active:scale-[0.98] transition-all touch-manipulation cursor-pointer relative overflow-hidden"
+                          >
+                            <div className="flex justify-between items-start gap-3 relative z-10">
+                              <div className="min-w-0 flex-1">
+                                <p className="font-black text-white text-sm truncate tracking-tight uppercase group-hover/order:text-blue-400 transition-colors">
+                                  {order.customer_name || "Cliente"}
+                                </p>
+                                <div className="flex items-center gap-2 mt-1.5">
+                                  <span className="text-[9px] font-black text-blue-500 uppercase tracking-tighter">#{order.order_number?.split('-')?.pop()}</span>
+                                  <span className="w-1 h-1 rounded-full bg-white/20" />
+                                  <p className="text-[9px] text-white/40 truncate font-black uppercase">
+                                    {order.device_model || "Equipo"}
+                                  </p>
+                                </div>
+                              </div>
+                              <div className={cn(
+                                "px-2.5 py-1 rounded-lg text-[8px] font-black uppercase tracking-widest border shadow-sm",
+                                statusConfig.colorClasses.includes('bg-') ? statusConfig.colorClasses : `bg-white/5 border-white/10 text-white/60`
+                              )}>
+                                {statusConfig.label}
+                              </div>
+                            </div>
+                            <div className="absolute inset-0 bg-gradient-to-r from-blue-500/0 via-blue-500/[0.02] to-blue-500/0 opacity-0 group-hover/order:opacity-100 transition-opacity" />
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+              </div>
 
-                      {/* === WIDGETS MÓVIL === */}
-             <div className="space-y-4 px-1">
-               <WorkQueueWidget onSelectOrder={handleOrderSelect} recentOrders={recentOrders} />
-             </div>
+              {/* === WIDGETS MÓVIL === */}
+            <div className="space-y-4 px-1">
+              <WorkQueueWidget onSelectOrder={handleOrderSelect} recentOrders={recentOrders} />
+            </div>
 
             {/* === LISTA DE PRECIOS MÓVIL === */}
-            <Card className="bg-[#121215]/40 backdrop-blur-3xl border border-emerald-500/20 rounded-[32px] shadow-2xl mx-2 mb-safe">
-              <CardContent className="p-6 space-y-4 pb-10">
-                <h3 className="text-white font-black text-sm flex items-center gap-2 uppercase tracking-widest">
-                  <div className="w-8 h-8 rounded-lg bg-emerald-500/10 flex items-center justify-center border border-emerald-500/20">
+            <div className="bg-[#1C1C1E]/40 backdrop-blur-3xl border border-emerald-500/20 rounded-[32px] shadow-2xl mx-1 mb-safe p-6 space-y-5">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2.5">
+                  <div className="w-8 h-8 rounded-xl bg-emerald-500/10 flex items-center justify-center border border-emerald-500/20">
                     <PiggyBank className="w-4 h-4 text-emerald-400" />
                   </div>
-                  {t('priceList')}
-                </h3>
-                <div className="relative">
-                  <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-white/20" />
-                  <input 
-                    value={priceSearch} 
-                    onChange={(e) => setPriceSearch(e.target.value)} 
-                    placeholder="Buscar productos..." 
-                    className="w-full pl-11 pr-4 py-3 bg-black/40 border border-white/10 rounded-2xl text-sm text-white placeholder-white/20 focus:outline-none focus:ring-2 focus:ring-emerald-500/50 font-bold" 
-                  />
-                  <div className="absolute inset-0 border border-white/5 rounded-2xl pointer-events-none shadow-inner" />
+                  <h3 className="text-white font-black text-sm uppercase tracking-tight">{t('priceList')}</h3>
                 </div>
+              </div>
 
-                {priceSearch && filteredPriceList.length > 0 && (
-                  <div className="space-y-3 max-h-[300px] overflow-y-auto pr-1 custom-scrollbar">
-                    {filteredPriceList.slice(0, 15).map((item) => (
-                      <div 
-                        key={`${item.type}-${item.id}`} 
-                        className="p-4 bg-white/5 border border-white/5 rounded-2xl shadow-lg active:scale-95 transition-all"
-                      >
-                        <div className="flex items-center justify-between gap-4">
-                          <div className="flex-1 min-w-0">
-                            <p className="text-white font-black text-sm truncate uppercase tracking-tight">{item.name}</p>
-                            <div className="flex items-center gap-2 mt-2">
-                              <Badge className={`${item.type === "service" ? "bg-blue-600/20 text-blue-300" : "bg-emerald-600/20 text-emerald-300"} text-[8px] font-black uppercase tracking-tighter px-2 border border-white/5`}>
-                                {item.type === "service" ? "Servicio" : "Producto"}
-                              </Badge>
-                              {stockPill(item)}
-                            </div>
+              <div className="relative">
+                <div className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 flex items-center justify-center">
+                  <Search className="h-4 w-4 text-white/20" />
+                </div>
+                <input 
+                  value={priceSearch} 
+                  onChange={(e) => setPriceSearch(e.target.value)} 
+                  placeholder="Buscar productos..." 
+                  className="w-full pl-11 pr-4 py-3.5 bg-white/[0.04] border border-white/[0.08] rounded-2xl text-sm text-white placeholder-white/20 focus:outline-none focus:ring-2 focus:ring-emerald-500/40 focus:bg-white/[0.08] transition-all" 
+                />
+              </div>
+
+              {priceSearch && filteredPriceList.length > 0 && (
+                <div className="space-y-3 max-h-[300px] overflow-y-auto no-scrollbar pt-1">
+                  {filteredPriceList.slice(0, 15).map((item) => (
+                    <div 
+                      key={`${item.type}-${item.id}`} 
+                      className="p-4 bg-white/[0.02] border border-white/[0.05] rounded-2xl active:scale-[0.98] transition-all"
+                    >
+                      <div className="flex items-center justify-between gap-4">
+                        <div className="flex-1 min-w-0">
+                          <p className="text-white font-black text-sm truncate uppercase tracking-tight">{item.name}</p>
+                          <div className="flex items-center gap-2 mt-2">
+                            <span className={cn(
+                              "text-[8px] font-black uppercase tracking-tighter px-2 py-0.5 rounded-md border",
+                              item.type === "service" ? "bg-blue-500/10 text-blue-400 border-blue-500/20" : "bg-emerald-500/10 text-emerald-400 border-emerald-500/20"
+                            )}>
+                              {item.type === "service" ? "Servicio" : "Producto"}
+                            </span>
+                            {stockPill(item)}
                           </div>
-                          <p className="text-emerald-400 font-black text-lg tracking-tighter shadow-sm">${(item.price || 0).toFixed(2)}</p>
                         </div>
+                        <p className="text-emerald-400 font-black text-lg tracking-tighter">${(item.price || 0).toFixed(2)}</p>
                       </div>
-                    ))}
-                  </div>
-                )}
-              </CardContent>
-            </Card>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
 
           </div>
 
@@ -1488,9 +1559,7 @@ export default function Dashboard() {
           <div className="hidden md:grid w-full grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8 xl:gap-10">
             <WorkQueueWidget onSelectOrder={handleOrderSelect} recentOrders={recentOrders} />
             <PersonalNotesWidget />
-          </div>
         </div>
-      </div>
 
       {/* -----------------------------
             MODALES / DIALOGS
@@ -1753,5 +1822,6 @@ export default function Dashboard() {
         }
       `}</style>
     </div>
-  );
+  </div>
+);
 }

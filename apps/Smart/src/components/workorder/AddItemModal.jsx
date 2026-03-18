@@ -634,20 +634,22 @@ export default function AddItemModal({
 
   return createPortal(
     <div className="fixed inset-0 z-[99999] bg-black/85 backdrop-blur-md p-3 sm:p-5">
-      <div className="relative mx-auto h-full w-full max-w-[1320px] rounded-[32px] border border-white/10 bg-[linear-gradient(180deg,rgba(6,10,20,0.99),rgba(2,4,12,0.99))] shadow-[0_30px_100px_rgba(0,0,0,0.7)] flex flex-col overflow-hidden">
+      <div className="relative mx-auto h-full w-full max-w-[1320px] rounded-[32px] border border-white/10 glass-panel shadow-[0_30px_100px_rgba(0,0,0,0.7)] flex flex-col overflow-hidden">
         {/* ── Header ── */}
-        <div className="relative flex items-center justify-between border-b border-white/8 px-6 py-4">
+        <div className="relative flex items-center justify-between border-b border-white/[0.06] backdrop-blur-3xl px-8 py-5">
           {/* Ambient glow */}
-          <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-cyan-500/40 to-transparent" />
           <div className="pointer-events-none absolute left-0 top-0 h-24 w-64 rounded-full bg-cyan-500/5 blur-3xl" />
 
-          <div className="flex items-center gap-4">
-            <div className="flex h-12 w-12 items-center justify-center rounded-2xl border border-cyan-400/25 bg-gradient-to-br from-cyan-500/20 to-blue-600/10 shadow-[0_0_20px_rgba(34,211,238,0.15)]">
-              <ShoppingCart className="h-6 w-6 text-cyan-300" />
+          <div className="flex items-center gap-6">
+            <div className="flex h-14 w-14 items-center justify-center rounded-[22px] border border-cyan-400/25 bg-gradient-to-br from-cyan-500 to-blue-600 shadow-[0_8px_32px_rgba(34,211,238,0.2)]">
+              <ShoppingCart className="h-7 w-7 text-white" />
             </div>
             <div>
-              <h3 className="text-2xl font-black tracking-tight text-white">Catálogo de Piezas y Servicios</h3>
-              <p className="text-[13px] text-white/45 mt-0.5">Selecciona los items para agregar a la orden</p>
+              <h3 className="text-2xl font-black tracking-tighter uppercase text-white">Catálogo de Items</h3>
+              <div className="flex items-center gap-2 mt-0.5">
+                <div className="h-1.5 w-1.5 rounded-full bg-cyan-500 animate-pulse" />
+                <p className="text-[11px] font-black uppercase tracking-[0.2em] text-white/40">Inventario & Servicios</p>
+              </div>
             </div>
           </div>
 
@@ -788,8 +790,9 @@ export default function AddItemModal({
                     return (
                       <div
                         key={`${item.type}-${item.id}`}
-                        className="group rounded-2xl border border-white/8 bg-white/[0.03] p-4 hover:border-cyan-500/30 hover:bg-white/[0.06] hover:shadow-[0_0_30px_rgba(34,211,238,0.06)] transition-all duration-200"
+                        className="group rounded-2xl border border-white/[0.05] bg-white/[0.02] p-5 hover:border-cyan-500/30 hover:bg-white/[0.05] transition-all duration-300 relative overflow-hidden"
                       >
+                        <div className="absolute -right-16 -top-16 w-32 h-32 bg-cyan-500/5 rounded-full blur-3xl group-hover:bg-cyan-500/10 transition-colors" />
                         <div className="flex items-start justify-between gap-2">
                           <p className="font-bold text-white leading-tight text-sm line-clamp-2">{item.name}</p>
                           <span className={`shrink-0 rounded-full border px-2 py-0.5 text-[10px] font-bold uppercase tracking-[0.12em] ${typeCls}`}>

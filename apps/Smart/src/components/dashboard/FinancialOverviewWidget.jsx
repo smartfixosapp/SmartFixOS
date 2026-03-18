@@ -243,33 +243,42 @@ function FinancialOverviewWidgetBase({ compact = false, onClick }) {
     <button
       type="button"
       onClick={onClick}
-      className={`w-full text-left rounded-[40px] border transition-all duration-700 group overflow-hidden relative shadow-[0_32_80px_rgba(0,0,0,0.4)] ${
+      className={cn(
+        "w-full text-left transition-all duration-700 group overflow-hidden relative shadow-[0_32px_80px_rgba(0,0,0,0.4)]",
         compact
-          ? "bg-[#121215]/40 backdrop-blur-[40px] border-white/10 p-6"
-          : "bg-[#121215]/40 backdrop-blur-[40px] border-white/10 p-8 lg:p-10"
-      }`}
+          ? "bg-[#121215]/40 backdrop-blur-[40px] border border-white/10 p-5 rounded-[28px] xs:p-6"
+          : "bg-[#121215]/40 backdrop-blur-[40px] border border-white/10 p-8 lg:p-10 rounded-[40px]"
+      )}
     >
       {/* Background Effects - More subtle and deep */}
       <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 via-transparent to-emerald-500/5 pointer-events-none" />
       <div className="absolute -right-32 -top-32 w-96 h-96 bg-blue-600/10 rounded-full blur-[120px] group-hover:bg-blue-600/20 transition-all duration-1000" />
       <div className="absolute -left-32 -bottom-32 w-96 h-96 bg-emerald-600/10 rounded-full blur-[120px] group-hover:bg-emerald-600/20 transition-all duration-1000" />
       
-      <div className="relative z-10 flex items-center justify-between mb-10">
-        <div className="flex items-center gap-5">
-          <div className="w-16 h-16 rounded-[24px] bg-gradient-to-br from-blue-500 via-indigo-600 to-violet-700 flex items-center justify-center shadow-[0_12px_24px_rgba(37,99,235,0.3)] group-hover:scale-110 group-hover:rotate-6 transition-all duration-700">
-            <TrendingUp className="w-8 h-8 text-white" />
+      <div className={cn("relative z-10 flex items-center justify-between", compact ? "mb-6" : "mb-10")}>
+        <div className="flex items-center gap-4 xs:gap-5">
+          <div className={cn(
+            "rounded-2xl bg-gradient-to-br from-blue-500 via-indigo-600 to-violet-700 flex items-center justify-center shadow-[0_12px_24px_rgba(37,99,235,0.3)] group-hover:scale-110 group-hover:rotate-6 transition-all duration-700",
+            compact ? "w-12 h-12 xs:w-14 xs:h-14 rounded-xl" : "w-16 h-16 rounded-[24px]"
+          )}>
+            <TrendingUp className={cn("text-white", compact ? "w-6 h-6 xs:w-7 xs:h-7" : "w-8 h-8")} />
           </div>
           <div>
             <div className="flex items-center gap-2">
-              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse shadow-[0_0_8px_rgba(16,185,129,0.8)]" />
-              <p className="text-[10px] uppercase tracking-[0.3em] font-black text-white/30">Smart Analytics</p>
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse shadow-[0_0_8px_rgba(16,185,129,0.8)]" />
+              <p className="text-[9px] uppercase tracking-[0.25em] font-black text-white/30 italic">Smart Analytics</p>
             </div>
-            <p className="text-3xl font-black text-white tracking-tighter leading-none mt-1 uppercase">Resumen de hoy</p>
+            <p className={cn(
+              "font-black text-white tracking-tighter leading-none mt-1 uppercase",
+              compact ? "text-xl xs:text-2xl" : "text-3xl"
+            )}>Resumen de hoy</p>
           </div>
         </div>
-        <div className="w-14 h-14 rounded-full bg-white/5 border border-white/10 flex items-center justify-center group-hover:bg-white/10 group-hover:border-white/20 transition-all duration-500 group-hover:scale-110">
-          <ChevronRight className="w-7 h-7 text-white/50 group-hover:text-white group-hover:translate-x-1 transition-all" />
-        </div>
+        {!compact && (
+          <div className="w-14 h-14 rounded-full bg-white/5 border border-white/10 flex items-center justify-center group-hover:bg-white/10 group-hover:border-white/20 transition-all duration-500 group-hover:scale-110">
+            <ChevronRight className="w-7 h-7 text-white/50 group-hover:text-white group-hover:translate-x-1 transition-all" />
+          </div>
+        )}
       </div>
 
       {loading ? (
@@ -280,78 +289,100 @@ function FinancialOverviewWidgetBase({ compact = false, onClick }) {
       ) : (
         <div className="relative z-10 space-y-8">
           {/* Main Stats Grid */}
-          <div className={`grid grid-cols-2 ${compact ? "gap-4" : "gap-6"}`}>
-            <div className="relative rounded-[32px] bg-white/5 border border-white/5 p-6 group/card transition-all duration-700 hover:bg-white/10 overflow-hidden shadow-inner">
-               <div className="absolute top-0 right-0 p-4 opacity-10 group-hover/card:scale-125 transition-transform duration-700">
-                <DollarSign className="w-12 h-12 text-emerald-400" />
+          <div className={cn("grid grid-cols-2", compact ? "gap-3 xs:gap-4" : "gap-6")}>
+            <div className={cn(
+              "relative bg-white/[0.03] border border-white/[0.06] group/card transition-all duration-700 hover:bg-white/5 overflow-hidden shadow-inner",
+              compact ? "p-4 rounded-[24px]" : "p-6 rounded-[32px]"
+            )}>
+               <div className="absolute top-0 right-0 p-3 opacity-10 group-hover/card:scale-125 transition-transform duration-700">
+                <DollarSign className={cn("text-emerald-400", compact ? "w-8 h-8" : "w-12 h-12")} />
               </div>
-              <p className="text-[10px] text-white/30 uppercase tracking-[0.2em] font-black mb-2">Entradas</p>
-              <p className="text-4xl font-black text-emerald-400 tracking-tighter">${summary.todayRevenue.toFixed(2)}</p>
-              <div className="mt-4 flex items-center gap-1.5">
-                <div className="h-1.5 flex-1 bg-white/5 rounded-full overflow-hidden shadow-inner font-black">
-                  <div className="h-full bg-gradient-to-r from-emerald-500 to-teal-400 w-[75%] rounded-full shadow-[0_0_12px_rgba(16,185,129,0.4)]" />
+              <p className="text-[9px] text-white/25 uppercase tracking-[0.2em] font-black mb-1.5 xs:mb-2">Entradas</p>
+              <p className={cn(
+                "font-black text-emerald-400 tracking-tighter",
+                compact ? "text-2xl xs:text-3xl" : "text-4xl"
+              )}>${summary.todayRevenue.toFixed(2)}</p>
+              <div className="mt-3 xs:mt-4 flex items-center gap-1.5">
+                <div className="h-1.5 flex-1 bg-white/5 rounded-full overflow-hidden font-black">
+                  <div className="h-full bg-gradient-to-r from-emerald-500 to-teal-400 w-[75%] rounded-full shadow-[0_0_8px_rgba(16,185,129,0.4)]" />
                 </div>
               </div>
             </div>
 
-            <div className="relative rounded-[32px] bg-white/5 border border-white/5 p-6 group/card transition-all duration-700 hover:bg-white/10 overflow-hidden shadow-inner">
-              <div className="absolute top-0 right-0 p-4 opacity-10 group-hover/card:scale-125 transition-transform duration-700">
-                <TrendingUp className="w-12 h-12 text-blue-400" />
+            <div className={cn(
+              "relative bg-white/[0.03] border border-white/[0.06] group/card transition-all duration-700 hover:bg-white/5 overflow-hidden shadow-inner",
+              compact ? "p-4 rounded-[24px]" : "p-6 rounded-[32px]"
+            )}>
+              <div className="absolute top-0 right-0 p-3 opacity-10 group-hover/card:scale-125 transition-transform duration-700">
+                <TrendingUp className={cn("text-blue-400", compact ? "w-8 h-8" : "w-12 h-12")} />
               </div>
-              <p className="text-[10px] text-white/30 uppercase tracking-[0.2em] font-black mb-2">Ganancia Real</p>
-              <p className="text-4xl font-black text-blue-400 tracking-tighter">${summary.todayProfit.toFixed(2)}</p>
-              <div className="mt-4 flex items-center gap-1.5">
-                <div className="h-1.5 flex-1 bg-white/5 rounded-full overflow-hidden shadow-inner">
-                  <div className="h-full bg-gradient-to-r from-blue-500 to-indigo-400 w-[50%] rounded-full shadow-[0_0_12px_rgba(59,130,246,0.4)]" />
+              <p className="text-[9px] text-white/25 uppercase tracking-[0.2em] font-black mb-1.5 xs:mb-2">Ganancia</p>
+              <p className={cn(
+                "font-black text-blue-400 tracking-tighter",
+                compact ? "text-2xl xs:text-3xl" : "text-4xl"
+              )}>${summary.todayProfit.toFixed(2)}</p>
+              <div className="mt-3 xs:mt-4 flex items-center gap-1.5">
+                <div className="h-1.5 flex-1 bg-white/5 rounded-full overflow-hidden">
+                  <div className="h-full bg-gradient-to-r from-blue-500 to-indigo-400 w-[50%] rounded-full shadow-[0_0_8px_rgba(59,130,246,0.4)]" />
                 </div>
               </div>
             </div>
           </div>
 
           {/* Transactions List */}
-          <div className="rounded-[32px] bg-black/30 border border-white/5 p-6 backdrop-blur-3xl shadow-2xl">
-            <div className="flex items-center justify-between mb-6 px-1">
-              <p className="text-xs font-black text-white/60 uppercase tracking-[0.2em] flex items-center gap-2">
-                <CalendarClock className="w-4 h-4 text-blue-400" />
-                Transacciones Recientes
+          <div className={cn(
+            "bg-black/20 border border-white/[0.04] backdrop-blur-3xl shadow-2xl",
+            compact ? "p-4 rounded-[24px]" : "p-6 rounded-[32px]"
+          )}>
+            <div className={cn("flex items-center justify-between px-1", compact ? "mb-4" : "mb-6")}>
+              <p className="text-[10px] xs:text-xs font-black text-white/50 uppercase tracking-[0.2em] flex items-center gap-2">
+                <CalendarClock className="w-3.5 h-3.5 text-blue-400" />
+                Actividad Reciente
               </p>
-              <div className="px-4 py-1.5 rounded-full bg-blue-500/10 border border-blue-500/20 shadow-inner">
-                <p className="text-[10px] font-black text-blue-400 uppercase tracking-widest">Hoy</p>
+              <div className="px-3 py-1 rounded-full bg-blue-500/10 border border-blue-500/20">
+                <p className="text-[9px] font-black text-blue-400 uppercase tracking-widest">Hoy</p>
               </div>
             </div>
 
             {summary.recentTransactions.length === 0 ? (
-              <div className="text-center py-12">
-                <div className="w-16 h-16 rounded-full bg-white/5 flex items-center justify-center mx-auto mb-4 border border-white/5 shadow-inner">
-                  <DollarSign className="w-8 h-8 text-white/10" />
+              <div className={cn("text-center", compact ? "py-8" : "py-12")}>
+                <div className="w-12 h-12 rounded-full bg-white/5 flex items-center justify-center mx-auto mb-3 border border-white/5">
+                  <DollarSign className="w-6 h-6 text-white/10" />
                 </div>
-                <p className="text-sm font-black text-white/20 uppercase tracking-widest">Sin actividad hoy</p>
+                <p className="text-[10px] font-black text-white/10 uppercase tracking-widest">Sin actividad</p>
               </div>
             ) : (
-              <div className="space-y-4">
+              <div className="space-y-3">
                 {summary.recentTransactions.map((t) => (
-                  <div key={t.id} className="group/item flex items-center justify-between bg-white/5 p-4 rounded-2xl hover:bg-white/10 border border-transparent hover:border-white/10 transition-all duration-500 shadow-sm">
-                    <div className="flex items-center gap-4 min-w-0">
-                      <div className={`w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 shadow-lg ${
-                        t.type === 'revenue' ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20" : "bg-red-500/10 text-red-400 border border-red-500/20"
-                      }`}>
-                        {t.payment_method === 'cash' ? <Banknote className="w-6 h-6 border-black" /> : 
-                         t.payment_method === 'ath_movil' ? <Smartphone className="w-6 h-6" /> : 
-                         <CreditCard className="w-6 h-6" />}
+                  <div key={t.id} className="group/item flex items-center justify-between bg-white/[0.02] p-3 rounded-2xl border border-transparent hover:border-white/5 transition-all duration-500">
+                    <div className="flex items-center gap-3 min-w-0">
+                      <div className={cn(
+                        "rounded-xl flex items-center justify-center shrink-0 shadow-lg",
+                        compact ? "w-10 h-10" : "w-12 h-12",
+                        t.type === 'revenue' ? "bg-emerald-500/10 text-emerald-400" : "bg-red-500/10 text-red-400"
+                      )}>
+                        {t.payment_method === 'cash' ? <Banknote className={compact ? "w-5 h-5" : "w-6 h-6"} /> : 
+                         t.payment_method === 'ath_movil' ? <Smartphone className={compact ? "w-5 h-5" : "w-6 h-6"} /> : 
+                         <CreditCard className={compact ? "w-5 h-5" : "w-6 h-6"} />}
                       </div>
                       <div className="min-w-0">
-                        <p className="text-base font-black text-white tracking-tight truncate group-hover/item:text-blue-400 transition-colors duration-500 uppercase">
+                        <p className={cn(
+                          "font-black text-white tracking-tight truncate group-hover/item:text-blue-400 transition-colors uppercase",
+                          compact ? "text-sm" : "text-base"
+                        )}>
                           {t.description || "Transacción"}
                         </p>
-                        <p className="text-[10px] font-black text-white/30 uppercase tracking-[0.2em] mt-1">
+                        <p className="text-[8px] xs:text-[9px] font-black text-white/20 uppercase tracking-widest mt-0.5">
                           {format(new Date(getEntityDate(t)), "h:mm a", { locale: es })} • {t.payment_method}
                         </p>
                       </div>
                     </div>
-                    <div className="text-right pl-4">
-                      <p className={`text-lg font-black tracking-tighter ${
+                    <div className="text-right pl-3">
+                      <p className={cn(
+                        "font-black tracking-tighter",
+                        compact ? "text-base" : "text-lg",
                         t.type === 'revenue' ? "text-emerald-400" : "text-red-400"
-                      }`}>
+                      )}>
                         {t.type === 'revenue' ? '+' : '-'}${toMoney(t.amount).toFixed(2)}
                       </p>
                     </div>

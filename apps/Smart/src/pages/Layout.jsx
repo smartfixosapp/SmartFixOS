@@ -305,22 +305,20 @@ export default function Layout({ children }) {
       {/* === Contenido === */}
       <main 
         ref={mainRef}
-        className="flex-1 overflow-y-auto overflow-x-hidden px-3 sm:px-5 pt-[calc(env(safe-area-inset-top,0px)+10px)] md:pt-4 pb-safe relative"
+        className="flex-1 overflow-y-auto overflow-x-hidden px-2 sm:px-4 md:px-5 pt-[calc(env(safe-area-inset-top,0px)+8px)] md:pt-4 pb-safe relative"
         data-pointer-overlay="off"
-        style={{ WebkitOverflowScrolling: 'touch' }}
+        style={{ WebkitOverflowScrolling: 'touch', scrollBehavior: 'smooth' }}
       >
         <div data-pointer-target="on">
           <AnimatePresence mode="wait">
             <motion.div
               key={location.pathname}
-              initial={{ opacity: 0, scale: 0.97, y: 15 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 1.03, y: -10 }}
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -5 }}
               transition={{ 
-                type: "spring",
-                stiffness: 300,
-                damping: 25,
-                mass: 0.8
+                duration: 0.2,
+                ease: [0.25, 0.1, 0.25, 1]
               }}
               className="h-full"
             >
@@ -349,26 +347,34 @@ export default function Layout({ children }) {
 
       {/* ===== CSS GLOBAL PARA TEMAS Y ANIMACIONES ===== */}
       <style>{`
-        .no-scrollbar::-webkit-scrollbar {
-          display: none;
-        }
-        .no-scrollbar {
-          -ms-overflow-style: none;
-          scrollbar-width: none;
+        /* Hide scrollbars while keeping scroll */
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+        /* Mobile: prevent text selection on interactive elements */
+        @media (max-width: 767px) {
+          button, a, [role="button"] { -webkit-user-select: none; user-select: none; }
+          /* Prevent overscroll bounce on iOS */
+          html { overscroll-behavior: none; }
+          /* Better font rendering */
+          body { -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
+          /* Prevent zoom on input focus (iOS) */
+          input, select, textarea { font-size: 16px !important; }
+          /* Smoother touch scrolling */
+          .overflow-y-auto, .overflow-auto { -webkit-overflow-scrolling: touch; scroll-behavior: smooth; }
         }
 
-        /* ✅ ANIMACIÓN DE BOTONES ACTIVOS */
+        /* Active button glow animation */
         @keyframes pulseGlow {
-          0%, 100% {
-            box-shadow: 0 8px 24px rgba(0, 168, 232, 0.4);
-          }
-          50% {
-            box-shadow: 0 12px 32px rgba(16, 185, 129, 0.6);
-          }
+          0%, 100% { box-shadow: 0 8px 24px rgba(0, 168, 232, 0.4); }
+          50% { box-shadow: 0 12px 32px rgba(16, 185, 129, 0.6); }
         }
+        header a.scale-110 { animation: pulseGlow 2s ease-in-out infinite; }
 
-        header a.scale-110 {
-          animation: pulseGlow 2s ease-in-out infinite;
+        /* Mobile-first utilities */
+        @media (max-width: 430px) {
+          .mobile-card { border-radius: 20px !important; }
+          .mobile-text-sm { font-size: 13px !important; }
         }
       `}</style>
       </div>

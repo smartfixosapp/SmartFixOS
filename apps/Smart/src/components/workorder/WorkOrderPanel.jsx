@@ -2644,24 +2644,26 @@ export default function WorkOrderPanel({ orderId, onClose, onUpdate, onDelete, p
             padding-left: 0 !important;
           }
 
-          /* ✅ MOBILE RESPONSIVE - OPTIMIZADO PARA 6.5" */
+          /* ✅ PREMIUM SEQUOIA STYLES */
+          .glass-panel {
+            background: rgba(13, 13, 15, 0.7);
+            backdrop-filter: blur(32px) saturate(180%);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+          }
+
           @media (max-width: 768px) {
             .wo-panel-content {
-              padding: 0.75rem !important;
+              padding: 1rem !important;
             }
             
             .wo-status-grid {
               grid-template-columns: repeat(2, 1fr) !important;
-              gap: 0.5rem !important;
+              gap: 0.75rem !important;
             }
 
             .wo-header-title {
-              font-size: 1.125rem !important;
-            }
-
-            /* Optimizar cards para móvil */
-            .mobile-card-compact {
-              padding: 0.75rem !important;
+              font-size: 1.25rem !important;
+              font-weight: 900 !important;
             }
 
             /* Botones más grandes para touch */
@@ -2675,51 +2677,18 @@ export default function WorkOrderPanel({ orderId, onClose, onUpdate, onDelete, p
               font-size: 16px !important;
             }
 
-            /* Espaciado entre secciones */
-            .space-y-6 > * + * {
-              margin-top: 1rem !important;
-            }
-
-            .space-y-4 > * + * {
-              margin-top: 0.75rem !important;
-            }
-
             /* Grid responsive para campos */
             .grid-cols-2 {
               grid-template-columns: 1fr !important;
             }
 
-            /* Header más compacto */
             .wo-header {
-              padding: 0.5rem 0.75rem !important;
+              padding: 0.75rem 1rem !important;
             }
 
-            /* Scroll nativo suave solo en el contenedor principal */
             .wo-scrollable {
               -webkit-overflow-scrolling: touch !important;
               overscroll-behavior: contain;
-            }
-
-            /* Evitar que el modal se expanda más allá de la pantalla */
-            div.flex-1.overflow-y-auto {
-              height: 100% !important;
-              max-height: 100% !important;
-              min-height: 0 !important;
-            }
-          }
-
-          /* Pantallas muy pequeñas (< 400px) */
-          @media (max-width: 400px) {
-            .wo-panel-content {
-              padding: 0.5rem !important;
-            }
-
-            .wo-status-grid {
-              grid-template-columns: 1fr !important;
-            }
-
-            .wo-scrollable {
-              -webkit-overflow-scrolling: touch !important;
             }
           }
         `}</style>
@@ -2727,46 +2696,52 @@ export default function WorkOrderPanel({ orderId, onClose, onUpdate, onDelete, p
         <div className="h-full flex flex-col bg-gradient-to-br from-[#0D0D0D] to-[#1A1A1A] theme-light:bg-gray-50 overflow-hidden">
            {/* ✅ HEADER RESPONSIVE */}
            <div
-            className="flex-shrink-0 border-b border-white/10 bg-[linear-gradient(90deg,rgba(4,10,24,0.94),rgba(10,10,10,0.88),rgba(24,10,38,0.9))] backdrop-blur-xl theme-light:border-gray-200 theme-light:bg-white/80 wo-header"
+            className="flex-shrink-0 border-b border-white/[0.06] bg-[#0D0D0F]/80 backdrop-blur-3xl wo-header"
             style={{ paddingTop: "calc(env(safe-area-inset-top, 0px) + 2px)" }}
           >
-            <div className="max-w-[1800px] mx-auto px-2 sm:px-6 py-2.5 sm:py-3.5 flex items-center justify-between gap-2">
-              <div className="flex items-center gap-1 sm:gap-4 min-w-0 flex-1">
+            <div className="max-w-[1800px] mx-auto px-4 sm:px-8 py-4 sm:py-5 flex items-center justify-between gap-4">
+              <div className="flex items-center gap-3 sm:gap-6 min-w-0 flex-1">
                 <Button
                   variant="ghost"
                   size="sm"
                   onClick={handleClose}
-                  className="text-gray-400 hover:text-white flex-shrink-0 h-9 w-9 sm:w-auto p-0 sm:px-3 rounded-full sm:rounded-2xl border border-white/10 bg-white/[0.03] theme-light:text-gray-600 theme-light:hover:text-gray-900">
-                  <X className="w-4 h-4" />
-                  <span className="hidden sm:inline sm:ml-2">Cerrar</span>
+                  className="group flex-shrink-0 h-10 w-10 sm:w-auto p-0 sm:px-4 rounded-full sm:rounded-2xl border border-white/10 bg-white/5 hover:bg-white/10 text-white/70 hover:text-white transition-all duration-300"
+                >
+                  <X className="w-5 h-5 transition-transform duration-300 group-hover:rotate-90" />
+                  <span className="hidden sm:inline sm:ml-2 font-black uppercase text-[11px] tracking-wider">Cerrar</span>
                 </Button>
 
-                {order &&
-                <div className="flex items-center gap-1 sm:gap-3 min-w-0 flex-1">
-                    <h1 className="text-base sm:text-2xl font-black tracking-tight text-white truncate wo-header-title theme-light:text-gray-900">
-                      {order.order_number}
-                    </h1>
-                    <Badge className={`${getStatusConfig(order.status).colorClasses} rounded-full text-[10px] sm:text-xs px-2.5 sm:px-3 py-1 whitespace-nowrap border border-white/10 shadow-[0_0_20px_rgba(0,0,0,0.15)]`}>
-                      {getStatusConfig(order.status).label}
-                    </Badge>
-                    {order?.status_metadata?.quick_order === true && (
-                      <Badge className="rounded-full text-[10px] sm:text-xs px-2.5 sm:px-3 py-1 whitespace-nowrap border border-emerald-400/25 bg-emerald-500/15 text-emerald-200 shadow-[0_0_20px_rgba(16,185,129,0.18)]">
-                        Rápida
+                {order && (
+                  <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-4 min-w-0">
+                    <div className="flex items-center gap-3">
+                      <h1 className="text-xl sm:text-2xl font-black tracking-tighter text-white truncate wo-header-title">
+                        {order.order_number}
+                      </h1>
+                      <Badge className={cn(
+                        "rounded-full text-[10px] sm:text-xs font-black uppercase tracking-widest px-3 py-1 border backdrop-blur-md shadow-lg",
+                        getStatusConfig(order.status).colorClasses.replace('bg-opacity-10', 'bg-opacity-20')
+                      )}>
+                        {getStatusConfig(order.status).label}
                       </Badge>
+                    </div>
+                    {order?.status_metadata?.quick_order === true && (
+                      <div className="hidden sm:flex items-center gap-1.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 px-3 py-1 shadow-sm">
+                        <Zap className="w-3 h-3" />
+                        <span className="text-[10px] font-black uppercase tracking-tight">Rápida</span>
+                      </div>
                     )}
                   </div>
-                }
+                )}
               </div>
 
-              <div className="flex items-center gap-1 sm:gap-2 flex-shrink-0">
+              <div className="flex items-center gap-2 sm:gap-3 flex-shrink-0">
                 <Button
                   variant="outline"
                   size="icon"
                   onClick={() => setShowPrintDialog(true)}
-                  className="border-blue-500/25 bg-white/5 text-blue-300 hover:bg-blue-600/20 hover:border-blue-500/50 w-9 h-9 sm:w-10 sm:h-10 flex-shrink-0 rounded-full"
-                  title="Enviar Recibo Digital"
+                  className="w-10 h-10 rounded-full border border-white/10 bg-white/5 text-white/60 hover:text-blue-400 hover:bg-blue-500/10 hover:border-blue-500/30 transition-all duration-300"
                 >
-                  <Share2 className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                  <Share2 className="w-4 h-4" />
                 </Button>
                 
                 <Button
@@ -2774,10 +2749,9 @@ export default function WorkOrderPanel({ orderId, onClose, onUpdate, onDelete, p
                   size="icon"
                   onClick={handleRequestDelete}
                   disabled={deleting}
-                  className="border-red-500/25 bg-white/5 text-red-300 hover:bg-red-600/20 hover:border-red-500/50 w-9 h-9 sm:w-10 sm:h-10 flex-shrink-0 rounded-full"
-                  title="Eliminar orden"
+                  className="w-10 h-10 rounded-full border border-white/10 bg-white/5 text-white/60 hover:text-red-400 hover:bg-red-500/10 hover:border-red-500/30 transition-all duration-300"
                 >
-                  <Trash2 className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                  <Trash2 className="w-4 h-4" />
                 </Button>
               </div>
             </div>
@@ -2816,95 +2790,101 @@ export default function WorkOrderPanel({ orderId, onClose, onUpdate, onDelete, p
           <div className="flex-1 overflow-y-auto scrollbar-thin wo-scrollable">
               <div className="max-w-[1800px] mx-auto px-2 sm:px-6 py-3 sm:py-6 space-y-3 sm:space-y-6 wo-panel-content pb-12">
 
-                <Card className="overflow-hidden border-cyan-500/20 bg-[radial-gradient(circle_at_top_left,rgba(34,211,238,0.14),transparent_22%),radial-gradient(circle_at_bottom_right,rgba(16,185,129,0.12),transparent_30%),linear-gradient(135deg,rgba(8,18,28,0.98),rgba(7,24,20,0.92))] theme-light:border-gray-200 theme-light:bg-white mobile-card-compact shadow-[0_26px_60px_rgba(0,0,0,0.28)]">
-                  <CardHeader className="border-b border-cyan-500/20 p-4 pb-3 sm:p-6 sm:pb-4 theme-light:border-gray-200">
-                    <CardTitle className="flex items-start justify-between gap-3 text-white theme-light:text-gray-900">
-                      <div>
-                        <div className="flex items-center gap-2 text-sm sm:text-lg">
-                          <div className="h-2 w-2 rounded-full bg-cyan-500 animate-pulse" />
-                          <span>Estado de la Orden</span>
+                <Card className="overflow-hidden border-white/[0.08] bg-[#121215]/40 backdrop-blur-2xl mobile-card-compact shadow-[0_24px_80px_rgba(0,0,0,0.4)] rounded-[32px]">
+                  <CardHeader className="border-b border-white/[0.05] p-5 sm:p-7">
+                    <CardTitle className="flex items-start justify-between gap-4 text-white">
+                      <div className="space-y-1">
+                        <div className="flex items-center gap-2.5">
+                          <div className="h-2 w-2 rounded-full bg-cyan-500 shadow-[0_0_10px_rgba(6,182,212,0.5)] animate-pulse" />
+                          <span className="text-lg font-black tracking-tight uppercase">Seguimiento</span>
                         </div>
-                        <p className="mt-2 text-xs font-medium uppercase tracking-[0.28em] text-white/35">
-                          Flujo visual de la reparación
+                        <p className="text-[10px] font-black uppercase tracking-[0.2em] text-white/20">
+                          Flujo de reparación en tiempo real
                         </p>
                       </div>
                       <CountdownBadge order={order} />
                     </CardTitle>
                   </CardHeader>
-                  <CardContent className="space-y-4 p-4 pt-4 sm:p-6 sm:pt-5">
-                    <div className="grid gap-3 xl:grid-cols-[1.15fr_0.85fr]">
-                      <div className="rounded-[22px] border border-cyan-400/15 bg-black/25 p-4 backdrop-blur-md">
-                        <div className="flex flex-wrap items-start justify-between gap-3">
-                          <div>
-                            <p className="text-[11px] font-semibold uppercase tracking-[0.28em] text-white/35">Etapa actual</p>
-                            <div className="mt-2 flex flex-wrap items-center gap-3">
-                              <Badge className={`${getStatusConfig(status).colorClasses} rounded-full border px-3 py-1 text-xs font-bold shadow-[0_0_24px_rgba(0,0,0,0.18)]`}>
-                                {getStatusConfig(status).label}
-                              </Badge>
-                              <span className="text-sm font-semibold text-white/55">
-                                Orden #{order?.order_number || "N/A"}
-                              </span>
-                            </div>
-                          </div>
+                  <CardContent className="p-5 sm:p-7 space-y-6">
+                    <div className="grid gap-6 xl:grid-cols-[1.2fr_0.8fr]">
+                      <div className="space-y-4">
+                        <div className="flex items-center justify-between px-1">
+                          <p className="text-[10px] font-black uppercase tracking-[0.2em] text-white/30">Etapa actual</p>
+                          <span className="text-[10px] font-black uppercase tracking-wider text-white/40 bg-white/5 px-2 py-1 rounded-md">
+                            Orden #{order?.order_number || "N/A"}
+                          </span>
                         </div>
 
-                        <div className="mt-4">
-                          <div className="grid grid-cols-2 gap-2 md:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5">
-                            {[...activeStatuses, ...closedStatuses]
-                              .slice()
-                              .sort((a, b) => (a.order || 0) - (b.order || 0))
-                              .map((s, index) => {
-                                const currentOrder = getStatusConfig(status).order || 0;
-                                const isCurrent = normalizeStatusId(status) === s.id;
-                                const isPassed = (s.order || 0) < currentOrder && !getStatusConfig(s.id).isTerminal;
-                                const statusClasses = getStatusConfig(s.id).colorClasses;
-                                return (
-                                  <button
-                                    key={s.id}
-                                    onClick={() => {
-                                      if (!isCurrent) {
-                                        changeStatus(s.id, "", {});
-                                      }
-                                    }}
-                                    disabled={changingStatus || isCurrent}
-                                    className={`flex min-w-0 items-center gap-2 rounded-[18px] border px-2.5 py-2.5 text-left transition-all ${
-                                      isCurrent
-                                        ? `${statusClasses} border-white/10 shadow-[0_10px_30px_rgba(0,0,0,0.25)]`
-                                        : isPassed
-                                        ? `${statusClasses} opacity-85 hover:opacity-100`
-                                        : "border-white/10 bg-white/[0.03] text-white/70 hover:bg-white/[0.06]"
-                                    }`}
-                                  >
-                                    <div className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-xl ${isCurrent ? "bg-black/20" : isPassed ? "bg-black/15" : "bg-white/5"}`}>
-                                      <span className="text-[11px] font-black">{index + 1}</span>
+                        <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
+                          {[...activeStatuses, ...closedStatuses]
+                            .slice()
+                            .sort((a, b) => (a.order || 0) - (b.order || 0))
+                            .map((s, index) => {
+                              const currentOrder = getStatusConfig(status).order || 0;
+                              const isCurrent = normalizeStatusId(status) === s.id;
+                              const isPassed = (s.order || 0) < currentOrder && !getStatusConfig(s.id).isTerminal;
+                              const statusClasses = getStatusConfig(s.id).colorClasses;
+                              return (
+                                <button
+                                  key={s.id}
+                                  onClick={() => {
+                                    if (!isCurrent) {
+                                      changeStatus(s.id, "", {});
+                                    }
+                                  }}
+                                  disabled={changingStatus || isCurrent}
+                                  className={cn(
+                                    "group flex flex-col gap-2 rounded-[20px] border p-3 text-left transition-all duration-300 active:scale-95",
+                                    isCurrent
+                                      ? "bg-white text-black border-white shadow-[0_10px_30px_rgba(255,255,255,0.1)]"
+                                      : isPassed
+                                      ? "bg-white/5 border-white/10 text-white/90 hover:bg-white/10"
+                                      : "bg-black/20 border-white/[0.03] text-white/40 hover:bg-white/5"
+                                  )}
+                                >
+                                  <div className="flex items-center justify-between">
+                                    <div className={cn(
+                                      "flex h-6 w-6 items-center justify-center rounded-lg text-[10px] font-black",
+                                      isCurrent ? "bg-black text-white" : "bg-white/10 text-white/60"
+                                    )}>
+                                      {index + 1}
                                     </div>
-                                    <div className="min-w-0">
-                                      <p className="truncate text-[10px] font-semibold uppercase tracking-[0.14em] text-white/35">Paso</p>
-                                      <p className="line-clamp-2 text-[13px] font-bold leading-tight">{s.label}</p>
-                                    </div>
-                                  </button>
-                                );
-                              })}
-                          </div>
+                                    {isPassed && !isCurrent && <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500" />}
+                                  </div>
+                                  <p className={cn(
+                                    "text-[12px] font-black leading-tight tracking-tight",
+                                    isCurrent ? "text-black" : "text-white/80"
+                                  )}>
+                                    {s.label}
+                                  </p>
+                                </button>
+                              );
+                            })}
                         </div>
                       </div>
 
-                      <div className="grid gap-3 sm:grid-cols-3 xl:grid-cols-1">
-                        <div className="rounded-[20px] border border-white/10 bg-black/20 p-4">
-                          <p className="text-[11px] font-semibold uppercase tracking-[0.28em] text-white/35">Fase</p>
-                          <p className="mt-2 text-lg font-black text-white">{activeStatuses.findIndex((s) => normalizeStatusId(status) === s.id) + 1 || 1}/{activeStatuses.length}</p>
+                      <div className="grid gap-3 grid-cols-3 xl:grid-cols-1">
+                        <div className="rounded-[24px] border border-white/10 bg-white/[0.03] p-4 flex flex-col justify-between">
+                          <p className="text-[10px] font-black uppercase tracking-wider text-white/20">Fase</p>
+                          <p className="text-xl font-black text-white mt-1">
+                            {activeStatuses.findIndex((s) => normalizeStatusId(status) === s.id) + 1 || 1}
+                            <span className="text-white/20 font-medium ml-1">/ {activeStatuses.length}</span>
+                          </p>
                         </div>
-                        <div className="rounded-[20px] border border-white/10 bg-black/20 p-4">
-                          <p className="text-[11px] font-semibold uppercase tracking-[0.28em] text-white/35">Checklist</p>
-                          <p className="mt-2 text-lg font-black text-white">{Array.isArray(order?.checklist_items) ? order.checklist_items.length : 0}</p>
+                        <div className="rounded-[24px] border border-white/10 bg-white/[0.03] p-4 flex flex-col justify-between">
+                          <p className="text-[10px] font-black uppercase tracking-wider text-white/20">Tareas</p>
+                          <p className="text-xl font-black text-white mt-1">
+                            {Array.isArray(order?.checklist_items) ? order.checklist_items.length : 0}
+                          </p>
                         </div>
-                        <div className="rounded-[20px] border border-white/10 bg-black/20 p-4">
-                          <p className="text-[11px] font-semibold uppercase tracking-[0.28em] text-white/35">Actualizado</p>
-                          <p className="mt-2 truncate text-sm font-bold text-white/80">{order?.updated_date ? new Date(order.updated_date).toLocaleDateString() : "Hoy"}</p>
+                        <div className="rounded-[24px] border border-white/10 bg-white/[0.03] p-4 flex flex-col justify-between">
+                          <p className="text-[10px] font-black uppercase tracking-wider text-white/20">Última act.</p>
+                          <p className="text-[13px] font-black text-white mt-1">
+                            {order?.updated_date ? format(new Date(order.updated_date), "dd MMM", { locale: es }) : "Hoy"}
+                          </p>
                         </div>
                       </div>
                     </div>
-
                   </CardContent>
                 </Card>
 
