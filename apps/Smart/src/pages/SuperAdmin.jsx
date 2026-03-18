@@ -526,10 +526,10 @@ export default function SuperAdmin() {
     setNuclearLoading(true);
     setNuclearResult(null);
     try {
-      const res = await fetch('/api/delete-user-complete', {
+      const res = await fetch('/api/delete-tenant', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: nuclearEmail.trim(), deleteTenant: true }),
+        body: JSON.stringify({ email: nuclearEmail.trim() }),
       });
       const data = await res.json();
       setNuclearResult(data);
