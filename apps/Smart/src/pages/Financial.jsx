@@ -1034,42 +1034,42 @@ export default function Financial() {
         </div>
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full space-y-8">
-          <div className="flex justify-center">
-            <TabsList className="bg-white/5 border border-white/10 backdrop-blur-xl p-1.5 rounded-[24px] h-auto gap-2">
+          <div className="flex justify-center px-4 -mt-4">
+            <TabsList className="bg-white/5 border border-white/10 backdrop-blur-xl p-1 rounded-[22px] h-auto flex w-full max-w-[600px] gap-1 shadow-2xl">
               <TabsTrigger 
                 value="sales" 
-                className="rounded-2xl px-8 py-3 data-[state=active]:bg-gradient-to-r data-[state=active]:from-cyan-600 data-[state=active]:to-blue-600 data-[state=active]:text-white data-[state=active]:shadow-lg data-[state=active]:shadow-cyan-600/20 transition-all duration-300"
+                className="flex-1 rounded-[18px] px-2 sm:px-8 py-2.5 data-[state=active]:bg-gradient-to-r data-[state=active]:from-cyan-600 data-[state=active]:to-blue-600 data-[state=active]:text-white data-[state=active]:shadow-lg data-[state=active]:shadow-cyan-600/20 transition-all duration-300"
               >
                 <div className="flex items-center gap-2">
-                  <Receipt className="w-4 h-4" />
-                  <span className="font-bold">Ventas</span>
+                  <Receipt className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                  <span className="font-bold text-[11px] sm:text-sm">Ventas</span>
                 </div>
               </TabsTrigger>
               <TabsTrigger 
                 value="allocations" 
-                className="rounded-2xl px-8 py-3 data-[state=active]:bg-gradient-to-r data-[state=active]:from-cyan-600 data-[state=active]:to-blue-600 data-[state=active]:text-white data-[state=active]:shadow-lg data-[state=active]:shadow-cyan-600/20 transition-all duration-300"
+                className="flex-1 rounded-[18px] px-2 sm:px-8 py-2.5 data-[state=active]:bg-gradient-to-r data-[state=active]:from-cyan-600 data-[state=active]:to-blue-600 data-[state=active]:text-white data-[state=active]:shadow-lg data-[state=active]:shadow-cyan-600/20 transition-all duration-300"
               >
                 <div className="flex items-center gap-2">
-                  <Target className="w-4 h-4" />
-                  <span className="font-bold">Distribución</span>
+                  <Target className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                  <span className="font-bold text-[11px] sm:text-sm">Distribución</span>
                 </div>
               </TabsTrigger>
               <TabsTrigger 
                 value="expenses" 
-                className="rounded-2xl px-8 py-3 data-[state=active]:bg-gradient-to-r data-[state=active]:from-cyan-600 data-[state=active]:to-blue-600 data-[state=active]:text-white data-[state=active]:shadow-lg data-[state=active]:shadow-cyan-600/20 transition-all duration-300"
+                className="flex-1 rounded-[18px] px-2 sm:px-8 py-2.5 data-[state=active]:bg-gradient-to-r data-[state=active]:from-cyan-600 data-[state=active]:to-blue-600 data-[state=active]:text-white data-[state=active]:shadow-lg data-[state=active]:shadow-cyan-600/20 transition-all duration-300"
               >
                 <div className="flex items-center gap-2">
-                  <CreditCard className="w-4 h-4" />
-                  <span className="font-bold">Gastos</span>
+                  <CreditCard className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                  <span className="font-bold text-[11px] sm:text-sm">Gastos</span>
                 </div>
               </TabsTrigger>
               <TabsTrigger 
                 value="reportes" 
-                className="rounded-2xl px-8 py-3 data-[state=active]:bg-gradient-to-r data-[state=active]:from-cyan-600 data-[state=active]:to-blue-600 data-[state=active]:text-white data-[state=active]:shadow-lg data-[state=active]:shadow-cyan-600/20 transition-all duration-300"
+                className="flex-1 rounded-[18px] px-2 sm:px-8 py-2.5 data-[state=active]:bg-gradient-to-r data-[state=active]:from-cyan-600 data-[state=active]:to-blue-600 data-[state=active]:text-white data-[state=active]:shadow-lg data-[state=active]:shadow-cyan-600/20 transition-all duration-300"
               >
                 <div className="flex items-center gap-2">
-                  <PieChart className="w-4 h-4" />
-                  <span className="font-bold">Informes</span>
+                  <PieChart className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                  <span className="font-bold text-[11px] sm:text-sm">Informes</span>
                 </div>
               </TabsTrigger>
             </TabsList>
