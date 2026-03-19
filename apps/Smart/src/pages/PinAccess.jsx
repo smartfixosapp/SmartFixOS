@@ -570,7 +570,7 @@ export default function PinAccess() {
     setLoading(true);
     try {
       localStorage.setItem("google_intent", intent);
-      const prodUrl = "https://smartfixos.vercel.app/PinAccess";
+      const prodUrl = "https://smart-fix-os-smart.vercel.app/PinAccess";
       const { error } = await supabase.auth.signInWithOAuth({
         provider: "google",
         options: {
@@ -637,6 +637,14 @@ export default function PinAccess() {
     const googleName = oauthUser.user_metadata?.full_name || oauthUser.user_metadata?.name || '';
     const intent = localStorage.getItem("google_intent") || "login";
     localStorage.removeItem("google_intent");
+
+    // Super Admin via Google → directo al panel
+    if (email.toLowerCase() === SUPER_ADMIN_EMAIL.toLowerCase()) {
+      const superSession = { email, role: "saas_owner", loginTime: new Date().toISOString() };
+      localStorage.setItem(SUPER_SESSION_KEY, JSON.stringify(superSession));
+      navigate("/SuperAdmin", { replace: true });
+      return;
+    }
 
     setUsersLoading(true);
     setError("");
