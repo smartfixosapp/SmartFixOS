@@ -75,6 +75,8 @@ export default function PinAccess() {
   const hasCheckedSession = useRef(false);
   const usersSectionRef = useRef(null);
   const pinSectionRef = useRef(null);
+  // Ref so the capacitor:deeplink handler always calls the latest performOAuthAuth
+  const performOAuthAuthRef = useRef(null);
   const [isReady, setIsReady] = useState(false);
   const [checkingUsers, setCheckingUsers] = useState(true);
   const [showRequestAccess, setShowRequestAccess] = useState(false);
@@ -783,6 +785,10 @@ export default function PinAccess() {
     }
   };
 
+  // Keep the ref pointing to the latest version so the capacitor:deeplink handler
+  // (defined in useEffect with empty deps) can always call the current performOAuthAuth
+  performOAuthAuthRef.current = performOAuthAuth;
+
   // ── Biometric early login (before user selection) ─────────────────────────
   const handleEarlyBiometricLogin = async () => {
     if (!biometricSupported || !biometricProfile?.credentialId || !biometricProfile?.session) return;
@@ -1035,6 +1041,59 @@ export default function PinAccess() {
   };
 
   // ✅ Verificar si ya hay sesión activa Y si es primera vez - SOLO UNA VEZ
+  // ── Capacitor deep link OAuth handler (native iOS/Android) ───────────────
+  // Fired by capacitor.js appUrlOpen after Google/Apple login redirect
+  // Uses exchangeCodeForSession() to avoid a full page reload
+  useEffect(() => {
+    const handleDeepLink = async (e) => {
+      const { code, gintent, hash, search } = e.detail || {};
+      console.log('[PinAccess] capacitor:deeplink received — code:', !!code, 'gintent:', gintent);
+      try {
+        setCheckingUsers(true);
+        let session = null;
+
+        if (code) {
+          // PKCE flow: exchange the authorization code for tokens directly
+          const { data, error } = await supabase.auth.exchangeCodeForSession(code);
+          if (error) {
+            console.error('[PinAccess] exchangeCodeForSession error:', error);
+            toast.error('Error al iniciar sesión: ' + error.message);
+            setCheckingUsers(false);
+            setLoading(false);
+            return;
+          }
+          session = data?.session;
+        } else if (hash) {
+          // Implicit flow: tokens in hash fragment — navigate to trigger SDK detection
+          window.location.href = '/PinAccess' + search + hash;
+          return; // page will reload and handle via normal OAuth check
+        }
+
+        if (session?.user) {
+          // Use ref so we always call the latest version of performOAuthAuth
+          const handler = performOAuthAuthRef.current;
+          if (handler) {
+            await handler(session.user);
+          }
+          setCheckingUsers(false);
+          setIsReady(true);
+          setLoading(false);
+        } else {
+          toast.error('No se pudo establecer la sesión');
+          setCheckingUsers(false);
+          setLoading(false);
+        }
+      } catch (err) {
+        console.error('[PinAccess] deeplink OAuth error:', err);
+        setCheckingUsers(false);
+        setLoading(false);
+      }
+    };
+
+    window.addEventListener('capacitor:deeplink', handleDeepLink);
+    return () => window.removeEventListener('capacitor:deeplink', handleDeepLink);
+  }, []); // set up once on mount
+
   useEffect(() => {
     if (hasCheckedSession.current) return;
     hasCheckedSession.current = true;

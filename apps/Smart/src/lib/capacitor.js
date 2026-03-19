@@ -62,12 +62,18 @@ export async function initCapacitor() {
         } catch (_) { /* Browser may not be open, ignore */ }
 
         const urlObj = new URL(url);
-        // Preserve ALL query params (Supabase PKCE sends ?code=, implicit sends #access_token=)
-        // Losing the "code" param breaks the PKCE token exchange → session never established
-        const search = urlObj.search || '';   // e.g. "?gintent=login&code=XXXXX"
-        const hash   = urlObj.hash   || '';   // e.g. "#access_token=..." (implicit flow)
-        console.log('[Capacitor] appUrlOpen → /PinAccess' + search + hash);
-        window.location.href = `/PinAccess${search}${hash}`;
+        const code    = urlObj.searchParams.get('code')    || null;
+        const gintent = urlObj.searchParams.get('gintent') || 'login';
+        const hash    = urlObj.hash   || '';
+        const search  = urlObj.search || '';
+
+        console.log('[Capacitor] appUrlOpen — code:', !!code, 'gintent:', gintent);
+
+        // Dispatch a custom event so PinAccess handles the token exchange
+        // without a full page reload (avoids race conditions with the browser close animation)
+        window.dispatchEvent(new CustomEvent('capacitor:deeplink', {
+          detail: { code, gintent, hash, search, url }
+        }));
       } catch (e) {
         console.warn('[Capacitor] appUrlOpen error:', e);
       }
