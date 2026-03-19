@@ -481,31 +481,28 @@ export default function Dashboard() {
       setRecentOrders([...activeOrders, ...unlockOrders]);
       setPriceListItems(priceListData);
 
-      // ── Ingresos del día y del mes ────────────────────────────────────────
+      // ── Ingresos, gastos y ganancia del día / mes ─────────────────────────
       try {
-        const now = new Date();
-        const todayStart  = new Date(now.getFullYear(), now.getMonth(), now.getDate()).toISOString();
-        const monthStart  = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
-        const tenantId    = localStorage.getItem("smartfix_tenant_id");
+        const now        = new Date();
+        const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate()).toISOString();
+        const monthStart = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
+        const tenantId   = localStorage.getItem("smartfix_tenant_id");
         if (tenantId) {
           const { data: txRows } = await supabase
             .from("transaction")
-            .select("amount, created_date")
+            .select("amount, type, created_date")
             .eq("tenant_id", tenantId)
-            .eq("type", "income")
             .gte("created_date", monthStart);
           const rows = txRows || [];
-          const todayIncome = rows
-            .filter(r => r.created_date >= todayStart)
-            .reduce((s, r) => s + (Number(r.amount) || 0), 0);
-          const monthIncome = rows
-            .reduce((s, r) => s + (Number(r.amount) || 0), 0);
-          setKpiIncome({ today: todayIncome, month: monthIncome, loading: false });
+          const todayIncome    = rows.filter(r => r.type === "income"  && r.created_date >= todayStart).reduce((s, r) => s + (Number(r.amount) || 0), 0);
+          const todayExpenses  = rows.filter(r => r.type === "expense" && r.created_date >= todayStart).reduce((s, r) => s + (Number(r.amount) || 0), 0);
+          const monthIncome    = rows.filter(r => r.type === "income").reduce((s, r) => s + (Number(r.amount) || 0), 0);
+          setKpiIncome({ today: todayIncome, month: monthIncome, todayExpenses, loading: false });
         } else {
-          setKpiIncome({ today: 0, month: 0, loading: false });
+          setKpiIncome({ today: 0, month: 0, todayExpenses: 0, loading: false });
         }
       } catch {
-        setKpiIncome({ today: 0, month: 0, loading: false });
+        setKpiIncome({ today: 0, month: 0, todayExpenses: 0, loading: false });
       }
     } catch (err) {
       console.error("Error loading data:", err);
@@ -676,7 +673,11 @@ export default function Dashboard() {
   const [selectedOrderId, setSelectedOrderId] = useState(null);
   const [showNotificationPanel, setShowNotificationPanel] = useState(false);
   const [unreadNotifications, setUnreadNotifications] = useState(0);
-  const [kpiIncome, setKpiIncome] = useState({ today: 0, month: 0, loading: true });
+  const [kpiIncome, setKpiIncome] = useState({ today: 0, month: 0, todayExpenses: 0, loading: true });
+  const DAILY_GOAL_KEY = "smartfix_daily_goal_override";
+  const kpiDailyGoal = useMemo(() => {
+    try { return Number(localStorage.getItem(DAILY_GOAL_KEY) || 0) || 1000; } catch { return 1000; }
+  }, []);
   
   const handleOrderSelect = (orderId) => {
     setSelectedOrderId(orderId);
@@ -910,37 +911,45 @@ export default function Dashboard() {
             </div>
 
             {/* ── KPI BAR ─────────────────────────────────────────────────── */}
-            <div className="grid grid-cols-2 xl:grid-cols-4 gap-3 relative z-10 mb-2">
-              {[
+            {(() => {
+              const fmt = (n) => `$${Number(n || 0).toLocaleString("en-US", { maximumFractionDigits: 0 })}`;
+              const todayProfit = kpiIncome.today - kpiIncome.todayExpenses;
+              const goalPct = kpiDailyGoal > 0 ? Math.min(100, Math.round((kpiIncome.today / kpiDailyGoal) * 100)) : 0;
+              const cards = [
                 {
                   label: "Ingresos hoy",
-                  value: kpiIncome.loading ? "…" : `$${kpiIncome.today.toLocaleString("en-US", { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`,
-                  sub: kpiIncome.loading ? "" : `Este mes $${kpiIncome.month.toLocaleString("en-US", { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`,
+                  value: kpiIncome.loading ? "…" : fmt(kpiIncome.today),
+                  sub: kpiIncome.loading ? "" : `Ganancia: ${fmt(todayProfit)}`,
                   icon: DollarSign,
-                  color: "text-emerald-400",
-                  bg: "bg-emerald-500/10",
-                  border: "border-emerald-500/20",
+                  color: "text-emerald-400", bg: "bg-emerald-500/10", border: "border-emerald-500/20",
                   glow: "shadow-[0_0_20px_rgba(52,211,153,0.08)]"
+                },
+                {
+                  label: "Meta diaria",
+                  value: kpiIncome.loading ? "…" : `${goalPct}%`,
+                  sub: `${fmt(kpiIncome.today)} / ${fmt(kpiDailyGoal)}`,
+                  icon: TrendingUp,
+                  color: goalPct >= 100 ? "text-yellow-400" : goalPct >= 70 ? "text-emerald-400" : "text-blue-400",
+                  bg: goalPct >= 100 ? "bg-yellow-500/10" : "bg-blue-500/10",
+                  border: goalPct >= 100 ? "border-yellow-500/20" : "border-blue-500/20",
+                  glow: goalPct >= 100 ? "shadow-[0_0_20px_rgba(251,191,36,0.12)]" : "",
+                  progress: goalPct
                 },
                 {
                   label: "Órdenes activas",
                   value: kpiStats.active,
                   sub: `${kpiStats.readyToPickup} lista${kpiStats.readyToPickup !== 1 ? "s" : ""} para recoger`,
                   icon: Wrench,
-                  color: "text-blue-400",
-                  bg: "bg-blue-500/10",
-                  border: "border-blue-500/20",
-                  glow: "shadow-[0_0_20px_rgba(96,165,250,0.08)]"
+                  color: "text-indigo-400", bg: "bg-indigo-500/10", border: "border-indigo-500/20",
+                  glow: "shadow-[0_0_20px_rgba(129,140,248,0.08)]"
                 },
                 {
                   label: "Entregadas hoy",
                   value: kpiStats.deliveredToday,
                   sub: "reparaciones completadas",
                   icon: PackageCheck,
-                  color: "text-purple-400",
-                  bg: "bg-purple-500/10",
-                  border: "border-purple-500/20",
-                  glow: "shadow-[0_0_20px_rgba(167,139,250,0.08)]"
+                  color: "text-purple-400", bg: "bg-purple-500/10", border: "border-purple-500/20",
+                  glow: ""
                 },
                 {
                   label: "Sin movimiento",
@@ -952,19 +961,29 @@ export default function Dashboard() {
                   border: kpiStats.overdue > 0 ? "border-red-500/20" : "border-white/[0.07]",
                   glow: kpiStats.overdue > 0 ? "shadow-[0_0_20px_rgba(248,113,113,0.1)]" : ""
                 },
-              ].map((kpi) => (
-                <div key={kpi.label} className={`rounded-2xl border ${kpi.border} ${kpi.bg} ${kpi.glow} px-4 py-3 flex items-center gap-3 transition-all`}>
-                  <div className={`w-9 h-9 rounded-xl ${kpi.bg} border ${kpi.border} flex items-center justify-center flex-shrink-0`}>
-                    <kpi.icon className={`w-4 h-4 ${kpi.color}`} />
-                  </div>
-                  <div className="min-w-0">
-                    <p className="text-[11px] text-white/40 font-medium truncate">{kpi.label}</p>
-                    <p className={`text-xl font-black ${kpi.color} leading-tight`}>{kpi.value}</p>
-                    {kpi.sub && <p className="text-[10px] text-white/25 truncate">{kpi.sub}</p>}
-                  </div>
+              ];
+              return (
+                <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-5 gap-3 relative z-10 mb-2">
+                  {cards.map((kpi) => (
+                    <div key={kpi.label} className={`rounded-2xl border ${kpi.border} ${kpi.bg} ${kpi.glow} px-4 py-3 flex flex-col gap-1 transition-all`}>
+                      <div className="flex items-center gap-2">
+                        <div className={`w-7 h-7 rounded-lg ${kpi.bg} border ${kpi.border} flex items-center justify-center flex-shrink-0`}>
+                          <kpi.icon className={`w-3.5 h-3.5 ${kpi.color}`} />
+                        </div>
+                        <p className="text-[11px] text-white/40 font-medium truncate">{kpi.label}</p>
+                      </div>
+                      <p className={`text-2xl font-black ${kpi.color} leading-tight`}>{kpi.value}</p>
+                      {kpi.progress !== undefined && (
+                        <div className="w-full bg-white/10 rounded-full h-1 mt-0.5">
+                          <div className={`h-1 rounded-full transition-all ${kpi.color.replace("text-","bg-")}`} style={{ width: `${kpi.progress}%` }} />
+                        </div>
+                      )}
+                      {kpi.sub && <p className="text-[10px] text-white/25 truncate">{kpi.sub}</p>}
+                    </div>
+                  ))}
                 </div>
-              ))}
-            </div>
+              );
+            })()}
 
             {/* BENTO GRID LAYOUT */}
             {dashboardButtons.length > 0 && (
@@ -1122,10 +1141,7 @@ export default function Dashboard() {
             )}
           </div>
 
-          <div className="hidden md:grid md:grid-cols-2 md:gap-4 lg:block lg:space-y-4">
-            <FinancialOverviewWidget onClick={() => handleNavigate("Financial")} />
-            <SmartDailyGoalWidget onClick={() => handleNavigate("Financial")} />
-          </div>
+{/* FinancialOverviewWidget + SmartDailyGoalWidget removed — replaced by KPI bar */}
 
           {/* === MÓVIL: PREMIUM SEQUOIA HEADER === */}
           <div className="md:hidden space-y-5">
@@ -1191,56 +1207,38 @@ export default function Dashboard() {
               </div>
             </div>
 
-            {/* Widgets de estado — lado a lado */}
-            <div className="grid grid-cols-2 gap-3 px-2 sm:px-1">
-              <FinancialOverviewWidget compact onClick={() => handleNavigate("Financial")} />
-              <SmartDailyGoalWidget compact onClick={() => handleNavigate("Financial")} />
-            </div>
-
             {/* ── KPI BAR MÓVIL ─────────────────────────────────────────── */}
-            <div className="grid grid-cols-2 gap-2 px-2 sm:px-1">
-              {[
-                {
-                  label: "Ingresos hoy",
-                  value: kpiIncome.loading ? "…" : `$${kpiIncome.today.toLocaleString("en-US", { maximumFractionDigits: 0 })}`,
-                  sub: kpiIncome.loading ? "" : `Mes: $${kpiIncome.month.toLocaleString("en-US", { maximumFractionDigits: 0 })}`,
-                  icon: DollarSign,
-                  color: "text-emerald-400", bg: "bg-emerald-500/10", border: "border-emerald-500/20"
-                },
-                {
-                  label: "Activas",
-                  value: kpiStats.active,
-                  sub: `${kpiStats.readyToPickup} listas`,
-                  icon: Wrench,
-                  color: "text-blue-400", bg: "bg-blue-500/10", border: "border-blue-500/20"
-                },
-                {
-                  label: "Entregadas hoy",
-                  value: kpiStats.deliveredToday,
-                  sub: "completadas",
-                  icon: PackageCheck,
-                  color: "text-purple-400", bg: "bg-purple-500/10", border: "border-purple-500/20"
-                },
-                {
-                  label: "Sin movimiento",
-                  value: kpiStats.overdue,
-                  sub: "+7 días",
-                  icon: Timer,
-                  color: kpiStats.overdue > 0 ? "text-red-400" : "text-slate-500",
-                  bg: kpiStats.overdue > 0 ? "bg-red-500/10" : "bg-white/[0.03]",
-                  border: kpiStats.overdue > 0 ? "border-red-500/20" : "border-white/[0.07]"
-                },
-              ].map((kpi) => (
-                <div key={kpi.label} className={`rounded-2xl border ${kpi.border} ${kpi.bg} px-3 py-2.5 flex items-center gap-2.5`}>
-                  <kpi.icon className={`w-4 h-4 ${kpi.color} flex-shrink-0`} />
-                  <div className="min-w-0">
-                    <p className="text-[10px] text-white/40 truncate">{kpi.label}</p>
-                    <p className={`text-lg font-black ${kpi.color} leading-tight`}>{kpi.value}</p>
-                    {kpi.sub && <p className="text-[10px] text-white/25 truncate">{kpi.sub}</p>}
-                  </div>
+            {(() => {
+              const fmt = (n) => `$${Number(n || 0).toLocaleString("en-US", { maximumFractionDigits: 0 })}`;
+              const todayProfit = kpiIncome.today - kpiIncome.todayExpenses;
+              const goalPct = kpiDailyGoal > 0 ? Math.min(100, Math.round((kpiIncome.today / kpiDailyGoal) * 100)) : 0;
+              const cards = [
+                { label: "Ingresos hoy", value: kpiIncome.loading ? "…" : fmt(kpiIncome.today), sub: `Ganancia: ${fmt(todayProfit)}`, icon: DollarSign, color: "text-emerald-400", bg: "bg-emerald-500/10", border: "border-emerald-500/20" },
+                { label: "Meta diaria", value: kpiIncome.loading ? "…" : `${goalPct}%`, sub: `${fmt(kpiIncome.today)} / ${fmt(kpiDailyGoal)}`, icon: TrendingUp, color: goalPct >= 100 ? "text-yellow-400" : goalPct >= 70 ? "text-emerald-400" : "text-blue-400", bg: goalPct >= 100 ? "bg-yellow-500/10" : "bg-blue-500/10", border: goalPct >= 100 ? "border-yellow-500/20" : "border-blue-500/20", progress: goalPct },
+                { label: "Activas", value: kpiStats.active, sub: `${kpiStats.readyToPickup} listas`, icon: Wrench, color: "text-indigo-400", bg: "bg-indigo-500/10", border: "border-indigo-500/20" },
+                { label: "Entregadas hoy", value: kpiStats.deliveredToday, sub: "completadas", icon: PackageCheck, color: "text-purple-400", bg: "bg-purple-500/10", border: "border-purple-500/20" },
+                { label: "Sin movimiento", value: kpiStats.overdue, sub: "+7 días", icon: Timer, color: kpiStats.overdue > 0 ? "text-red-400" : "text-slate-500", bg: kpiStats.overdue > 0 ? "bg-red-500/10" : "bg-white/[0.03]", border: kpiStats.overdue > 0 ? "border-red-500/20" : "border-white/[0.07]" },
+              ];
+              return (
+                <div className="grid grid-cols-2 gap-2 px-2 sm:px-1">
+                  {cards.map((kpi) => (
+                    <div key={kpi.label} className={`rounded-2xl border ${kpi.border} ${kpi.bg} px-3 py-2.5 flex flex-col gap-0.5`}>
+                      <div className="flex items-center gap-1.5">
+                        <kpi.icon className={`w-3.5 h-3.5 ${kpi.color} flex-shrink-0`} />
+                        <p className="text-[10px] text-white/40 truncate">{kpi.label}</p>
+                      </div>
+                      <p className={`text-xl font-black ${kpi.color} leading-tight`}>{kpi.value}</p>
+                      {kpi.progress !== undefined && (
+                        <div className="w-full bg-white/10 rounded-full h-1">
+                          <div className={`h-1 rounded-full ${kpi.color.replace("text-","bg-")}`} style={{ width: `${kpi.progress}%` }} />
+                        </div>
+                      )}
+                      {kpi.sub && <p className="text-[10px] text-white/25 truncate">{kpi.sub}</p>}
+                    </div>
+                  ))}
                 </div>
-              ))}
-            </div>
+              );
+            })()}
 
             {/* Mobile Bento Grid - App Icons Style */}
             {(loading || loadingButtons) && dashboardButtons.length === 0 ? (
@@ -1545,10 +1543,7 @@ export default function Dashboard() {
                 </div>
               </div>
 
-              {/* === WIDGETS MÓVIL === */}
-            <div className="space-y-4 px-1">
-              <WorkQueueWidget onSelectOrder={handleOrderSelect} recentOrders={recentOrders} />
-            </div>
+{/* WorkQueueWidget removed */}
 
             {/* === LISTA DE PRECIOS MÓVIL === */}
             <div className="bg-[#1C1C1E]/40 backdrop-blur-3xl border border-emerald-500/20 rounded-[32px] shadow-2xl mx-1 mb-safe p-6 space-y-5">
@@ -1771,11 +1766,7 @@ export default function Dashboard() {
           </Card>
 
 
-          {/* === WIDGETS (SOLO DESKTOP) === */}
-          <div className="hidden md:grid w-full grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8 xl:gap-10">
-            <WorkQueueWidget onSelectOrder={handleOrderSelect} recentOrders={recentOrders} />
-            <PersonalNotesWidget />
-        </div>
+{/* WorkQueueWidget + PersonalNotesWidget removed per user request */}
 
       {/* -----------------------------
             MODALES / DIALOGS
