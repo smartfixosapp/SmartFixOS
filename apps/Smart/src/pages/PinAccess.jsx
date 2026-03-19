@@ -570,7 +570,6 @@ export default function PinAccess() {
   const handleGoogleSignIn = async (intent = "login") => {
     setLoading(true);
     try {
-      // Intent va en la URL para que sobreviva el redirect entre orígenes
       const prodUrl = `https://smart-fix-os-smart.vercel.app/PinAccess?gintent=${intent}`;
       const { error } = await supabase.auth.signInWithOAuth({
         provider: "google",
@@ -585,6 +584,24 @@ export default function PinAccess() {
       }
     } catch (e) {
       toast.error("No se pudo conectar con Google");
+      setLoading(false);
+    }
+  };
+
+  const handleAppleSignIn = async (intent = "login") => {
+    setLoading(true);
+    try {
+      const prodUrl = `https://smart-fix-os-smart.vercel.app/PinAccess?gintent=${intent}`;
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: "apple",
+        options: { redirectTo: prodUrl },
+      });
+      if (error) {
+        toast.error("Error al iniciar con Apple: " + error.message);
+        setLoading(false);
+      }
+    } catch (e) {
+      toast.error("No se pudo conectar con Apple");
       setLoading(false);
     }
   };
@@ -2465,7 +2482,7 @@ export default function PinAccess() {
                     <button
                       type="button"
                       onClick={() => { setShowSignup(false); handleGoogleSignIn("register"); }}
-                      className="w-full h-12 rounded-xl border border-white/15 bg-white/5 hover:bg-white/10 text-white font-semibold text-sm transition-all active:scale-[0.98] flex items-center justify-center gap-3 mb-2"
+                      className="w-full h-12 rounded-xl border border-white/15 bg-white/5 hover:bg-white/10 text-white font-semibold text-sm transition-all active:scale-[0.98] flex items-center justify-center gap-3 mb-3"
                     >
                       <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
                         <path d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844c-.209 1.125-.843 2.078-1.796 2.717v2.258h2.908c1.702-1.567 2.684-3.874 2.684-6.615z" fill="#4285F4"/>
@@ -2476,112 +2493,30 @@ export default function PinAccess() {
                       Crear cuenta con Google
                     </button>
 
-                    {/* Divisor */}
-                    <div className="flex items-center gap-3 mb-2">
-                      <div className="flex-1 h-px bg-white/10" />
-                      <span className="text-xs text-white/30 font-semibold">o con email</span>
-                      <div className="flex-1 h-px bg-white/10" />
+                    {/* ── Botón Apple ── */}
+                    <button
+                      type="button"
+                      onClick={() => { setShowSignup(false); handleAppleSignIn("register"); }}
+                      className="w-full h-12 rounded-xl border border-white/15 bg-white/5 hover:bg-white/10 text-white font-semibold text-sm transition-all active:scale-[0.98] flex items-center justify-center gap-3 mb-5"
+                    >
+                      <svg width="17" height="20" viewBox="0 0 814 1000" fill="currentColor">
+                        <path d="M788.1 340.9c-5.8 4.5-108.2 62.2-108.2 190.5 0 148.4 130.3 200.9 134.2 202.2-.6 3.2-20.7 71.9-68.7 141.9-42.8 61.6-87.5 123.1-155.5 123.1s-85.5-39.5-164-39.5c-76 0-103.7 40.8-165.9 40.8s-105-57.8-155.5-127.4C46 790.7 0 663 0 541.8c0-207.8 113.4-317.7 224.5-317.7 100.4 0 163.4 60.2 220.8 60.2 54.7 0 127.9-62.5 240.3-62.5zm-284.4-154.8c22.6-26.8 39.3-65.4 39.3-104.5 0-5.5-.5-11.1-1.6-15.4C450 73.9 385.5 111 345.4 155.1c-20.3 22.6-40.9 61-40.9 101.1 0 6 1 12 1.5 14.2 2.6.5 6.8.9 10.8.9 36.4 0 97.2-35.5 127-85.2z"/>
+                      </svg>
+                      Crear cuenta con Apple
+                    </button>
+
+                    <div className="bg-emerald-500/10 border border-emerald-500/30 rounded-xl p-3 mb-4">
+                      <p className="text-sm text-emerald-300 flex items-start gap-2">
+                        <CheckCircle className="w-4 h-4 mt-0.5 flex-shrink-0" />
+                        <span>15 días gratis · Sin tarjeta de crédito · Acceso completo</span>
+                      </p>
                     </div>
 
-                    <form onSubmit={handleSignup} className="space-y-4">
-
-                      {/* Nombre + Apellido */}
-                      <div>
-                        <label className="text-white mb-2 flex items-center gap-2 text-sm font-semibold">
-                          <UserPlus className="w-4 h-4 text-cyan-400" /> Nombre y Apellido *
-                        </label>
-                        <div className="grid grid-cols-2 gap-2">
-                          <input value={formData.first_name}
-                            onChange={(e) => setFormData({ ...formData, first_name: e.target.value })}
-                            placeholder="Nombre"
-                            className="w-full bg-black/40 border border-cyan-500/30 text-white h-12 rounded-xl px-4 focus:outline-none focus:ring-2 focus:ring-cyan-500/50"
-                            required />
-                          <input value={formData.last_name}
-                            onChange={(e) => setFormData({ ...formData, last_name: e.target.value })}
-                            placeholder="Apellido"
-                            className="w-full bg-black/40 border border-cyan-500/30 text-white h-12 rounded-xl px-4 focus:outline-none focus:ring-2 focus:ring-cyan-500/50" />
-                        </div>
-                      </div>
-
-                      {/* Email */}
-                      <div>
-                        <label className="text-white mb-2 flex items-center gap-2 text-sm font-semibold">
-                          <Mail className="w-4 h-4 text-cyan-400" /> Email *
-                        </label>
-                        <input type="email" value={formData.email}
-                          onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                          placeholder="tu@email.com"
-                          className="w-full bg-black/40 border border-cyan-500/30 text-white h-12 rounded-xl px-4 focus:outline-none focus:ring-2 focus:ring-cyan-500/50"
-                          required />
-                      </div>
-
-                      {/* Contraseña */}
-                      <div>
-                        <label className="text-white mb-2 flex items-center gap-2 text-sm font-semibold">
-                          <KeyRound className="w-4 h-4 text-cyan-400" /> Contraseña *
-                        </label>
-                        <div className="relative">
-                          <input type={showSignupPassword ? "text" : "password"} value={formData.password}
-                            onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                            placeholder="Mínimo 6 caracteres"
-                            className="w-full bg-black/40 border border-cyan-500/30 text-white h-12 rounded-xl px-4 pr-12 focus:outline-none focus:ring-2 focus:ring-cyan-500/50"
-                            required />
-                          <button type="button" onClick={() => setShowSignupPassword(!showSignupPassword)}
-                            className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white">
-                            {showSignupPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
-                          </button>
-                        </div>
-                      </div>
-
-                      {/* Plan selector */}
-                      <div>
-                        <label className="text-white mb-3 flex items-center gap-2 text-sm font-semibold">
-                          <Zap className="w-4 h-4 text-cyan-400" /> Selecciona tu plan
-                        </label>
-                        <div className="grid grid-cols-3 gap-2">
-                          {[
-                            { id: "basic",      label: "Basic",      price: "$55",         sub: "1 usuario",     color: "cyan"    },
-                            { id: "pro",        label: "Pro",         price: "$85",         sub: "3 usuarios",    color: "emerald", popular: true },
-                            { id: "enterprise", label: "Enterprise",  price: "Consultoría", sub: "Ilimitado",     color: "purple"  },
-                          ].map(p => (
-                            <button key={p.id} type="button"
-                              onClick={() => setFormData({ ...formData, plan: p.id })}
-                              className={`relative rounded-xl border-2 p-3 text-center transition-all ${
-                                formData.plan === p.id
-                                  ? p.color === "cyan"    ? "border-cyan-500 bg-cyan-500/15"
-                                  : p.color === "emerald" ? "border-emerald-500 bg-emerald-500/15"
-                                  :                        "border-purple-500 bg-purple-500/15"
-                                  : "border-white/10 bg-white/5 hover:border-white/20"
-                              }`}>
-                              {p.popular && <span className="absolute -top-2.5 left-1/2 -translate-x-1/2 text-[9px] font-bold bg-emerald-500 text-white px-2 py-0.5 rounded-full whitespace-nowrap">POPULAR</span>}
-                              <div className={`text-xs font-bold mb-0.5 ${formData.plan === p.id ? (p.color === "cyan" ? "text-cyan-400" : p.color === "emerald" ? "text-emerald-400" : "text-purple-400") : "text-white/70"}`}>{p.label}</div>
-                              <div className="text-white font-black text-sm leading-none">{p.price}</div>
-                              <div className="text-white/40 text-[10px] mt-0.5">{p.sub}</div>
-                            </button>
-                          ))}
-                        </div>
-                      </div>
-
-                      <div className="bg-emerald-500/10 border border-emerald-500/30 rounded-xl p-3">
-                        <p className="text-sm text-emerald-300 flex items-start gap-2">
-                          <CheckCircle className="w-4 h-4 mt-0.5 flex-shrink-0" />
-                          <span>Recibirás un link por email para activar tu cuenta y elegir tu PIN de acceso.</span>
-                        </p>
-                      </div>
-
-                      <div className="flex gap-3 pt-1">
-                        <Button type="button" variant="outline"
-                          className="flex-1 border-gray-300 bg-white text-gray-900 hover:bg-gray-100 h-12"
-                          onClick={() => setShowSignup(false)} disabled={submitting}>
-                          Cancelar
-                        </Button>
-                        <Button type="submit"
-                          className="flex-1 bg-gradient-to-r from-cyan-600 to-emerald-600 hover:from-cyan-500 hover:to-emerald-500 font-bold h-12"
-                          disabled={submitting}>
-                          {submitting ? "Creando cuenta..." : formData.plan === "enterprise" ? "Contactar ventas →" : "Crear cuenta gratis"}
-                        </Button>
-                      </div>
-                    </form>
+                    <Button type="button" variant="outline"
+                      className="w-full border-white/10 bg-white/5 text-gray-400 hover:text-white h-11"
+                      onClick={() => setShowSignup(false)}>
+                      Cancelar
+                    </Button>
                   </>
                 )}
               </div>
@@ -2707,9 +2642,9 @@ export default function PinAccess() {
 
               {/* ── Botón Google ── */}
               <button
-                onClick={handleGoogleSignIn}
+                onClick={() => handleGoogleSignIn("login")}
                 disabled={loading || usersLoading}
-                className="w-full h-12 rounded-xl border border-white/15 bg-white/5 hover:bg-white/10 text-white font-semibold text-sm transition-all active:scale-[0.98] flex items-center justify-center gap-3 mb-4 disabled:opacity-50"
+                className="w-full h-12 rounded-xl border border-white/15 bg-white/5 hover:bg-white/10 text-white font-semibold text-sm transition-all active:scale-[0.98] flex items-center justify-center gap-3 mb-3 disabled:opacity-50"
               >
                 <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
                   <path d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844c-.209 1.125-.843 2.078-1.796 2.717v2.258h2.908c1.702-1.567 2.684-3.874 2.684-6.615z" fill="#4285F4"/>
@@ -2720,82 +2655,17 @@ export default function PinAccess() {
                 {loading ? "Conectando..." : "Continuar con Google"}
               </button>
 
-              {/* ── Divisor ── */}
-              <div className="flex items-center gap-3 mb-4">
-                <div className="flex-1 h-px bg-white/10" />
-                <span className="text-xs text-white/30 font-semibold">o con email</span>
-                <div className="flex-1 h-px bg-white/10" />
-              </div>
-
-              <p className="text-gray-400 text-sm mb-3">Email y contraseña de la cuenta administradora.</p>
-              <div className="space-y-3">
-                <input
-                  value={storeEmail}
-                  onChange={(e) => setStoreEmail(e.target.value)}
-                  placeholder="tu@email.com"
-                  className="w-full bg-black/40 border border-cyan-500/30 text-white h-12 rounded-xl px-4 focus:outline-none focus:ring-2 focus:ring-cyan-500/50"
-                  type="email"
-                  onKeyDown={(e) => {
-                    const isSA = storeEmail.trim().toLowerCase() === SUPER_ADMIN_EMAIL.toLowerCase();
-                    if (e.key === "Enter") isSA ? handleSendAdminOtpDirect() : document.getElementById("store-password-input")?.focus();
-                  }}
-                />
-                {storeEmail.trim().toLowerCase() === SUPER_ADMIN_EMAIL.toLowerCase() ? (
-                  /* ── SuperAdmin: sin contraseña, solo OTP ── */
-                  <>
-                    <div className="flex items-center gap-3 bg-cyan-500/10 border border-cyan-500/30 rounded-xl px-4 py-3">
-                      <Shield className="w-5 h-5 text-cyan-400 flex-shrink-0" />
-                      <p className="text-cyan-300 text-sm">
-                        Panel de administración — recibirás un código de 6 dígitos en tu email.
-                      </p>
-                    </div>
-                    <Button
-                      onClick={handleSendAdminOtpDirect}
-                      disabled={usersLoading}
-                      className="w-full bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 font-bold h-12"
-                    >
-                      {usersLoading ? "Enviando código..." : "📧 Enviar código de acceso"}
-                    </Button>
-                  </>
-                ) : (
-                  /* ── Tenant normal: email + contraseña ── */
-                  <>
-                    <div className="relative">
-                      <input
-                        id="store-password-input"
-                        value={storePassword}
-                        onChange={(e) => setStorePassword(e.target.value)}
-                        placeholder="Contraseña"
-                        type={showPassword ? "text" : "password"}
-                        className="w-full bg-black/40 border border-cyan-500/30 text-white h-12 rounded-xl px-4 pr-12 focus:outline-none focus:ring-2 focus:ring-cyan-500/50"
-                        onKeyDown={(e) => e.key === "Enter" && handleStoreContinue()}
-                      />
-                      <button
-                        type="button"
-                        onClick={() => setShowPassword(!showPassword)}
-                        className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white transition-colors"
-                      >
-                        {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
-                      </button>
-                    </div>
-                    <Button
-                      onClick={handleStoreContinue}
-                      disabled={usersLoading}
-                      className="w-full bg-gradient-to-r from-cyan-600 to-emerald-600 hover:from-cyan-500 hover:to-emerald-500 font-bold h-12"
-                    >
-                      {usersLoading ? "Verificando..." : "Iniciar Sesión →"}
-                    </Button>
-                    <button
-                      type="button"
-                      onClick={handleForgotPassword}
-                      disabled={sendingReset}
-                      className="w-full text-xs text-gray-500 hover:text-cyan-400 transition-colors py-1"
-                    >
-                      {sendingReset ? "Enviando..." : "¿Olvidaste la contraseña? Enviar enlace de recuperación"}
-                    </button>
-                  </>
-                )}
-              </div>
+              {/* ── Botón Apple ── */}
+              <button
+                onClick={() => handleAppleSignIn("login")}
+                disabled={loading || usersLoading}
+                className="w-full h-12 rounded-xl border border-white/15 bg-white/5 hover:bg-white/10 text-white font-semibold text-sm transition-all active:scale-[0.98] flex items-center justify-center gap-3 disabled:opacity-50"
+              >
+                <svg width="17" height="20" viewBox="0 0 814 1000" fill="currentColor">
+                  <path d="M788.1 340.9c-5.8 4.5-108.2 62.2-108.2 190.5 0 148.4 130.3 200.9 134.2 202.2-.6 3.2-20.7 71.9-68.7 141.9-42.8 61.6-87.5 123.1-155.5 123.1s-85.5-39.5-164-39.5c-76 0-103.7 40.8-165.9 40.8s-105-57.8-155.5-127.4C46 790.7 0 663 0 541.8c0-207.8 113.4-317.7 224.5-317.7 100.4 0 163.4 60.2 220.8 60.2 54.7 0 127.9-62.5 240.3-62.5zm-284.4-154.8c22.6-26.8 39.3-65.4 39.3-104.5 0-5.5-.5-11.1-1.6-15.4C450 73.9 385.5 111 345.4 155.1c-20.3 22.6-40.9 61-40.9 101.1 0 6 1 12 1.5 14.2 2.6.5 6.8.9 10.8.9 36.4 0 97.2-35.5 127-85.2z"/>
+                </svg>
+                {loading ? "Conectando..." : "Continuar con Apple"}
+              </button>
 
             </motion.div>
 
