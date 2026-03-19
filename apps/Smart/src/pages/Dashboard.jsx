@@ -33,7 +33,11 @@ import {
   X,
   CheckCircle2,
   Shield,
-  ArrowUpRight
+  ArrowUpRight,
+  TrendingUp,
+  DollarSign,
+  PackageCheck,
+  Timer
 } from "lucide-react";
 
 import { format, startOfDay } from "date-fns";
@@ -476,6 +480,33 @@ export default function Dashboard() {
 
       setRecentOrders([...activeOrders, ...unlockOrders]);
       setPriceListItems(priceListData);
+
+      // ── Ingresos del día y del mes ────────────────────────────────────────
+      try {
+        const now = new Date();
+        const todayStart  = new Date(now.getFullYear(), now.getMonth(), now.getDate()).toISOString();
+        const monthStart  = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
+        const tenantId    = localStorage.getItem("smartfix_tenant_id");
+        if (tenantId) {
+          const { data: txRows } = await supabase
+            .from("transaction")
+            .select("amount, created_date")
+            .eq("tenant_id", tenantId)
+            .eq("type", "income")
+            .gte("created_date", monthStart);
+          const rows = txRows || [];
+          const todayIncome = rows
+            .filter(r => r.created_date >= todayStart)
+            .reduce((s, r) => s + (Number(r.amount) || 0), 0);
+          const monthIncome = rows
+            .reduce((s, r) => s + (Number(r.amount) || 0), 0);
+          setKpiIncome({ today: todayIncome, month: monthIncome, loading: false });
+        } else {
+          setKpiIncome({ today: 0, month: 0, loading: false });
+        }
+      } catch {
+        setKpiIncome({ today: 0, month: 0, loading: false });
+      }
     } catch (err) {
       console.error("Error loading data:", err);
       // No limpiar datos existentes en caso de error
@@ -645,6 +676,7 @@ export default function Dashboard() {
   const [selectedOrderId, setSelectedOrderId] = useState(null);
   const [showNotificationPanel, setShowNotificationPanel] = useState(false);
   const [unreadNotifications, setUnreadNotifications] = useState(0);
+  const [kpiIncome, setKpiIncome] = useState({ today: 0, month: 0, loading: true });
   
   const handleOrderSelect = (orderId) => {
     setSelectedOrderId(orderId);
@@ -704,6 +736,36 @@ export default function Dashboard() {
       )
       .slice(0, 30);
   }, [priceListItems, priceSearch]);
+
+  // ── KPI stats computed from already-loaded orders ──────────────────────────
+  const kpiStats = useMemo(() => {
+    const todayStart = new Date();
+    todayStart.setHours(0, 0, 0, 0);
+    const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
+    const activeStatuses = ["pending", "in_progress", "waiting_parts", "ready_for_pickup", "diagnosed"];
+
+    const active = recentOrders.filter(o =>
+      activeStatuses.includes(normalizeStatusId(o.status)) &&
+      o.device_type !== "Software" &&
+      !(o.order_number && o.order_number.startsWith("SW-"))
+    );
+    const readyToPickup = recentOrders.filter(o =>
+      normalizeStatusId(o.status) === "ready_for_pickup"
+    );
+    const deliveredToday = recentOrders.filter(o => {
+      const s = normalizeStatusId(o.status);
+      if (s !== "delivered" && s !== "completed" && s !== "picked_up") return false;
+      const d = new Date(o.updated_date || o.created_date);
+      return d >= todayStart;
+    });
+    const overdue = recentOrders.filter(o => {
+      const s = normalizeStatusId(o.status);
+      if (!activeStatuses.includes(s)) return false;
+      const d = new Date(o.updated_date || o.created_date);
+      return d < sevenDaysAgo;
+    });
+    return { active: active.length, readyToPickup: readyToPickup.length, deliveredToday: deliveredToday.length, overdue: overdue.length };
+  }, [recentOrders]);
 
   const stockPill = (item) => {
     if (item.type !== "product" || typeof item.stock !== "number") return null;
@@ -845,6 +907,63 @@ export default function Dashboard() {
                   <LogOut className="w-5 h-5 lg:w-6 lg:h-6 text-white/20 group-hover:text-rose-400 transition-all duration-500" />
                 </button>
               </div>
+            </div>
+
+            {/* ── KPI BAR ─────────────────────────────────────────────────── */}
+            <div className="grid grid-cols-2 xl:grid-cols-4 gap-3 relative z-10 mb-2">
+              {[
+                {
+                  label: "Ingresos hoy",
+                  value: kpiIncome.loading ? "…" : `$${kpiIncome.today.toLocaleString("en-US", { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`,
+                  sub: kpiIncome.loading ? "" : `Este mes $${kpiIncome.month.toLocaleString("en-US", { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`,
+                  icon: DollarSign,
+                  color: "text-emerald-400",
+                  bg: "bg-emerald-500/10",
+                  border: "border-emerald-500/20",
+                  glow: "shadow-[0_0_20px_rgba(52,211,153,0.08)]"
+                },
+                {
+                  label: "Órdenes activas",
+                  value: kpiStats.active,
+                  sub: `${kpiStats.readyToPickup} lista${kpiStats.readyToPickup !== 1 ? "s" : ""} para recoger`,
+                  icon: Wrench,
+                  color: "text-blue-400",
+                  bg: "bg-blue-500/10",
+                  border: "border-blue-500/20",
+                  glow: "shadow-[0_0_20px_rgba(96,165,250,0.08)]"
+                },
+                {
+                  label: "Entregadas hoy",
+                  value: kpiStats.deliveredToday,
+                  sub: "reparaciones completadas",
+                  icon: PackageCheck,
+                  color: "text-purple-400",
+                  bg: "bg-purple-500/10",
+                  border: "border-purple-500/20",
+                  glow: "shadow-[0_0_20px_rgba(167,139,250,0.08)]"
+                },
+                {
+                  label: "Sin movimiento",
+                  value: kpiStats.overdue,
+                  sub: "+ 7 días sin actualizar",
+                  icon: Timer,
+                  color: kpiStats.overdue > 0 ? "text-red-400" : "text-slate-500",
+                  bg: kpiStats.overdue > 0 ? "bg-red-500/10" : "bg-white/[0.03]",
+                  border: kpiStats.overdue > 0 ? "border-red-500/20" : "border-white/[0.07]",
+                  glow: kpiStats.overdue > 0 ? "shadow-[0_0_20px_rgba(248,113,113,0.1)]" : ""
+                },
+              ].map((kpi) => (
+                <div key={kpi.label} className={`rounded-2xl border ${kpi.border} ${kpi.bg} ${kpi.glow} px-4 py-3 flex items-center gap-3 transition-all`}>
+                  <div className={`w-9 h-9 rounded-xl ${kpi.bg} border ${kpi.border} flex items-center justify-center flex-shrink-0`}>
+                    <kpi.icon className={`w-4 h-4 ${kpi.color}`} />
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-[11px] text-white/40 font-medium truncate">{kpi.label}</p>
+                    <p className={`text-xl font-black ${kpi.color} leading-tight`}>{kpi.value}</p>
+                    {kpi.sub && <p className="text-[10px] text-white/25 truncate">{kpi.sub}</p>}
+                  </div>
+                </div>
+              ))}
             </div>
 
             {/* BENTO GRID LAYOUT */}
@@ -1076,6 +1195,51 @@ export default function Dashboard() {
             <div className="grid grid-cols-2 gap-3 px-2 sm:px-1">
               <FinancialOverviewWidget compact onClick={() => handleNavigate("Financial")} />
               <SmartDailyGoalWidget compact onClick={() => handleNavigate("Financial")} />
+            </div>
+
+            {/* ── KPI BAR MÓVIL ─────────────────────────────────────────── */}
+            <div className="grid grid-cols-2 gap-2 px-2 sm:px-1">
+              {[
+                {
+                  label: "Ingresos hoy",
+                  value: kpiIncome.loading ? "…" : `$${kpiIncome.today.toLocaleString("en-US", { maximumFractionDigits: 0 })}`,
+                  sub: kpiIncome.loading ? "" : `Mes: $${kpiIncome.month.toLocaleString("en-US", { maximumFractionDigits: 0 })}`,
+                  icon: DollarSign,
+                  color: "text-emerald-400", bg: "bg-emerald-500/10", border: "border-emerald-500/20"
+                },
+                {
+                  label: "Activas",
+                  value: kpiStats.active,
+                  sub: `${kpiStats.readyToPickup} listas`,
+                  icon: Wrench,
+                  color: "text-blue-400", bg: "bg-blue-500/10", border: "border-blue-500/20"
+                },
+                {
+                  label: "Entregadas hoy",
+                  value: kpiStats.deliveredToday,
+                  sub: "completadas",
+                  icon: PackageCheck,
+                  color: "text-purple-400", bg: "bg-purple-500/10", border: "border-purple-500/20"
+                },
+                {
+                  label: "Sin movimiento",
+                  value: kpiStats.overdue,
+                  sub: "+7 días",
+                  icon: Timer,
+                  color: kpiStats.overdue > 0 ? "text-red-400" : "text-slate-500",
+                  bg: kpiStats.overdue > 0 ? "bg-red-500/10" : "bg-white/[0.03]",
+                  border: kpiStats.overdue > 0 ? "border-red-500/20" : "border-white/[0.07]"
+                },
+              ].map((kpi) => (
+                <div key={kpi.label} className={`rounded-2xl border ${kpi.border} ${kpi.bg} px-3 py-2.5 flex items-center gap-2.5`}>
+                  <kpi.icon className={`w-4 h-4 ${kpi.color} flex-shrink-0`} />
+                  <div className="min-w-0">
+                    <p className="text-[10px] text-white/40 truncate">{kpi.label}</p>
+                    <p className={`text-lg font-black ${kpi.color} leading-tight`}>{kpi.value}</p>
+                    {kpi.sub && <p className="text-[10px] text-white/25 truncate">{kpi.sub}</p>}
+                  </div>
+                </div>
+              ))}
             </div>
 
             {/* Mobile Bento Grid - App Icons Style */}
