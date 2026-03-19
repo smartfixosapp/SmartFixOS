@@ -82,6 +82,8 @@ export default function PinAccess() {
   const [showSignup, setShowSignup] = useState(false);
   const [signupStep, setSignupStep] = useState("form"); // 'form' | 'success'
   const [signupResult, setSignupResult] = useState(null);
+  const [googleRegisterData, setGoogleRegisterData] = useState({ full_name: '', email: '', store_name: '', phone: '', plan: 'basic' });
+  const [googleRegisterSubmitting, setGoogleRegisterSubmitting] = useState(false);
   const [storePassword, setStorePassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [sendingReset, setSendingReset] = useState(false);
@@ -564,9 +566,10 @@ export default function PinAccess() {
   };
 
   // ── Google OAuth ───────────────────────────────────────────────────────────
-  const handleGoogleSignIn = async () => {
+  const handleGoogleSignIn = async (intent = "login") => {
     setLoading(true);
     try {
+      localStorage.setItem("google_intent", intent);
       const prodUrl = "https://smartfixos.vercel.app/PinAccess";
       const { error } = await supabase.auth.signInWithOAuth({
         provider: "google",
@@ -577,12 +580,54 @@ export default function PinAccess() {
       });
       if (error) {
         toast.error("Error al iniciar con Google: " + error.message);
+        localStorage.removeItem("google_intent");
         setLoading(false);
       }
       // On success, browser redirects to Google — loading stays true
     } catch (e) {
       toast.error("No se pudo conectar con Google");
+      localStorage.removeItem("google_intent");
       setLoading(false);
+    }
+  };
+
+  const handleGoogleRegister = async () => {
+    if (!googleRegisterData.store_name.trim()) { toast.error("Ingresa el nombre de tu taller"); return; }
+    if (googleRegisterData.plan === "enterprise") {
+      window.location.href = "mailto:smartfixosapp@gmail.com?subject=Consulta%20Enterprise%20SmartFixOS";
+      return;
+    }
+    setGoogleRegisterSubmitting(true);
+    try {
+      const randomPwd = window.crypto.randomUUID().replace(/-/g, '') + "Aa1!";
+      const res = await fetch('/api/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          ownerName: googleRegisterData.full_name || googleRegisterData.email,
+          email: googleRegisterData.email,
+          password: randomPwd,
+          businessName: googleRegisterData.store_name.trim(),
+          phone: googleRegisterData.phone.trim(),
+          plan: googleRegisterData.plan,
+          country: 'US',
+        }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        setSignupResult({ ...data, googleAuth: true });
+        setSignupStep("success");
+        setShowSignup(true);
+        setStep("welcome");
+        setStoreAuthenticated(false);
+        await supabase.auth.signOut();
+      } else {
+        toast.error(data.error || "Error al crear la cuenta");
+      }
+    } catch (e) {
+      toast.error("Error de conexión. Intenta de nuevo.");
+    } finally {
+      setGoogleRegisterSubmitting(false);
     }
   };
 
@@ -590,11 +635,28 @@ export default function PinAccess() {
   const performOAuthAuth = async (oauthUser) => {
     const email = oauthUser.email;
     const googleName = oauthUser.user_metadata?.full_name || oauthUser.user_metadata?.name || '';
+    const intent = localStorage.getItem("google_intent") || "login";
+    localStorage.removeItem("google_intent");
+
     setUsersLoading(true);
     setError("");
     setPin("");
     localStorage.removeItem("smartfix_tenant_id");
     try {
+      // ── ¿Existe ya un tenant para este email? ──
+      const { data: tenantRows } = await supabase
+        .from("tenant").select("id").eq("email", email).limit(1);
+      const tenantExists = tenantRows && tenantRows.length > 0;
+
+      // Intento de REGISTRO con Google — y aún no tiene cuenta → mostrar form de tienda
+      if (intent === "register" && !tenantExists) {
+        setGoogleRegisterData({ full_name: googleName, email, store_name: '', phone: '', plan: 'basic' });
+        setStep("google_register");
+        setUsersLoading(false);
+        return;
+      }
+
+      // Si intenta registrarse pero YA tiene cuenta → tratarlo como login
       let resolvedTenantId = null;
       const { data: userRows } = await supabase
         .from("users").select("tenant_id").eq("email", email).not("tenant_id", "is", null).limit(1);
@@ -609,7 +671,7 @@ export default function PinAccess() {
         localStorage.setItem("smartfix_tenant_id", resolvedTenantId);
         localStorage.setItem("smartfix_store_email", email);
       }
-      // storeEmail is used in handleCreateFirstUser — set it now
+      // storeEmail es usado en handleCreateFirstUser
       setStoreEmail(email);
 
       const users = await getMergedActiveUsers(resolvedTenantId);
@@ -618,7 +680,7 @@ export default function PinAccess() {
         setFirstUserForm({ full_name: googleName, phone: '' });
         setFirstUserPin('');
         setFirstUserPinConfirm('');
-        setFirstUserPinStage(googleName ? 'pin' : 'form'); // saltar form si ya tenemos el nombre
+        setFirstUserPinStage(googleName ? 'pin' : 'form');
         setFirstUserPinError('');
         setStoreAuthenticated(true);
         setStep("first_user_setup");
@@ -1338,6 +1400,120 @@ export default function PinAccess() {
           />
           <div className="animate-spin rounded-full h-10 w-10 border-4 border-cyan-500 border-t-transparent mx-auto mb-4"></div>
           <p className="text-gray-400 text-sm">Conectando tu tienda...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // ── Google Register — completar datos de tienda ──────────────────────────
+  if (step === "google_register") {
+    const PLANS_GR = [
+      { id: "basic",      label: "Basic",      price: "$55/mes",  sub: "1 usuario",  color: "cyan"    },
+      { id: "pro",        label: "Pro",         price: "$85/mes",  sub: "3 usuarios", color: "emerald", popular: true },
+      { id: "enterprise", label: "Enterprise",  price: "Custom",   sub: "Ilimitado",  color: "purple"  },
+    ];
+    return (
+      <div className="pinaccess-fullscreen-container">
+        <div className="absolute inset-0 overflow-hidden pointer-events-none">
+          <div className="absolute top-0 left-1/4 w-96 h-96 bg-cyan-500/10 rounded-full blur-[120px] animate-pulse" />
+          <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-emerald-500/10 rounded-full blur-[120px] animate-pulse delay-1000" />
+        </div>
+        <div className="relative z-10 w-full max-w-sm mx-auto px-6 py-8 flex flex-col items-center">
+          <img
+            src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/68f767a3d5fce1486d4cf555/e9bc537e2_DynamicsmartfixosLogowithGearandDevice.png"
+            alt="SmartFixOS" className="h-12 w-auto mb-6 drop-shadow-[0_4px_16px_rgba(0,168,232,0.8)]"
+          />
+
+          {/* Encabezado con avatar de Google */}
+          <div className="flex items-center gap-3 mb-6 bg-white/5 border border-white/10 rounded-2xl px-4 py-3 w-full">
+            <div className="w-9 h-9 rounded-full bg-gradient-to-br from-cyan-500 to-emerald-500 flex items-center justify-center text-white font-bold text-sm flex-shrink-0">
+              {(googleRegisterData.full_name || googleRegisterData.email || "?")[0].toUpperCase()}
+            </div>
+            <div className="min-w-0">
+              <p className="text-white text-sm font-semibold truncate">{googleRegisterData.full_name || "Usuario"}</p>
+              <p className="text-gray-400 text-xs truncate">{googleRegisterData.email}</p>
+            </div>
+            <svg width="16" height="16" viewBox="0 0 18 18" fill="none" className="flex-shrink-0 ml-auto">
+              <path d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844c-.209 1.125-.843 2.078-1.796 2.717v2.258h2.908c1.702-1.567 2.684-3.874 2.684-6.615z" fill="#4285F4"/>
+              <path d="M9 18c2.43 0 4.467-.806 5.956-2.18l-2.908-2.259c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332A8.997 8.997 0 0 0 9 18z" fill="#34A853"/>
+              <path d="M3.964 10.71A5.41 5.41 0 0 1 3.682 9c0-.593.102-1.17.282-1.71V4.958H.957A8.996 8.996 0 0 0 0 9c0 1.452.348 2.827.957 4.042l3.007-2.332z" fill="#FBBC05"/>
+              <path d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0A8.997 8.997 0 0 0 .957 4.958L3.964 7.29C4.672 5.163 6.656 3.58 9 3.58z" fill="#EA4335"/>
+            </svg>
+          </div>
+
+          <h2 className="text-white text-2xl font-bold text-center mb-1">Crea tu taller</h2>
+          <p className="text-gray-400 text-sm text-center mb-5">15 días gratis · Sin tarjeta de crédito</p>
+
+          <div className="space-y-3 w-full mb-4">
+            {/* Nombre del taller */}
+            <div>
+              <label className="block text-gray-400 text-xs font-medium mb-1.5">Nombre del taller *</label>
+              <input
+                type="text"
+                placeholder="Ej: The Fix, iRepair, TechShop..."
+                value={googleRegisterData.store_name}
+                onChange={e => setGoogleRegisterData(d => ({ ...d, store_name: e.target.value }))}
+                className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-gray-600 focus:outline-none focus:border-cyan-500/60 focus:ring-1 focus:ring-cyan-500/30 text-sm"
+              />
+            </div>
+            {/* Teléfono */}
+            <div>
+              <label className="block text-gray-400 text-xs font-medium mb-1.5">Teléfono</label>
+              <input
+                type="tel"
+                placeholder="787-000-0000"
+                value={googleRegisterData.phone}
+                onChange={e => setGoogleRegisterData(d => ({ ...d, phone: e.target.value }))}
+                className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-gray-600 focus:outline-none focus:border-cyan-500/60 focus:ring-1 focus:ring-cyan-500/30 text-sm"
+              />
+            </div>
+          </div>
+
+          {/* Selector de plan */}
+          <label className="block text-gray-400 text-xs font-medium mb-2 w-full">Plan</label>
+          <div className="grid grid-cols-3 gap-2 w-full mb-5">
+            {PLANS_GR.map(p => (
+              <button
+                key={p.id}
+                type="button"
+                onClick={() => setGoogleRegisterData(d => ({ ...d, plan: p.id }))}
+                className={`relative rounded-xl border-2 p-2.5 text-center transition-all ${
+                  googleRegisterData.plan === p.id
+                    ? p.color === "cyan"    ? "border-cyan-500 bg-cyan-500/15"
+                    : p.color === "emerald" ? "border-emerald-500 bg-emerald-500/15"
+                    : "border-purple-500 bg-purple-500/15"
+                    : "border-white/10 bg-white/3 hover:border-white/20"
+                }`}
+              >
+                {p.popular && <span className="absolute -top-2 left-1/2 -translate-x-1/2 text-[9px] bg-emerald-500 text-white px-1.5 py-0.5 rounded-full font-bold">Popular</span>}
+                <p className="text-white text-xs font-bold">{p.label}</p>
+                <p className={`text-[10px] font-semibold mt-0.5 ${p.color === "cyan" ? "text-cyan-400" : p.color === "emerald" ? "text-emerald-400" : "text-purple-400"}`}>{p.price}</p>
+                <p className="text-gray-500 text-[9px]">{p.sub}</p>
+              </button>
+            ))}
+          </div>
+
+          <button
+            onClick={handleGoogleRegister}
+            disabled={googleRegisterSubmitting}
+            className="w-full bg-gradient-to-r from-cyan-500 to-emerald-500 text-white font-bold py-3.5 rounded-xl hover:from-cyan-400 hover:to-emerald-400 transition-all text-sm disabled:opacity-50"
+          >
+            {googleRegisterSubmitting ? (
+              <span className="flex items-center justify-center gap-2">
+                <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                Creando tu taller...
+              </span>
+            ) : (
+              googleRegisterData.plan === "enterprise" ? "Contactar ventas →" : "Crear cuenta gratis →"
+            )}
+          </button>
+
+          <button
+            onClick={async () => { await supabase.auth.signOut(); setStep("welcome"); }}
+            className="mt-3 text-gray-500 text-xs hover:text-gray-400 transition-colors"
+          >
+            ← Cancelar y volver
+          </button>
         </div>
       </div>
     );
@@ -2214,6 +2390,28 @@ export default function PinAccess() {
                       </div>
                       <h2 className="text-2xl font-black text-white mb-1">Crea tu cuenta gratis</h2>
                       <p className="text-gray-400 text-sm">15 días de prueba · Sin tarjeta de crédito</p>
+                    </div>
+
+                    {/* ── Botón Google ── */}
+                    <button
+                      type="button"
+                      onClick={() => { setShowSignup(false); handleGoogleSignIn("register"); }}
+                      className="w-full h-12 rounded-xl border border-white/15 bg-white/5 hover:bg-white/10 text-white font-semibold text-sm transition-all active:scale-[0.98] flex items-center justify-center gap-3 mb-2"
+                    >
+                      <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+                        <path d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844c-.209 1.125-.843 2.078-1.796 2.717v2.258h2.908c1.702-1.567 2.684-3.874 2.684-6.615z" fill="#4285F4"/>
+                        <path d="M9 18c2.43 0 4.467-.806 5.956-2.18l-2.908-2.259c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332A8.997 8.997 0 0 0 9 18z" fill="#34A853"/>
+                        <path d="M3.964 10.71A5.41 5.41 0 0 1 3.682 9c0-.593.102-1.17.282-1.71V4.958H.957A8.996 8.996 0 0 0 0 9c0 1.452.348 2.827.957 4.042l3.007-2.332z" fill="#FBBC05"/>
+                        <path d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0A8.997 8.997 0 0 0 .957 4.958L3.964 7.29C4.672 5.163 6.656 3.58 9 3.58z" fill="#EA4335"/>
+                      </svg>
+                      Crear cuenta con Google
+                    </button>
+
+                    {/* Divisor */}
+                    <div className="flex items-center gap-3 mb-2">
+                      <div className="flex-1 h-px bg-white/10" />
+                      <span className="text-xs text-white/30 font-semibold">o con email</span>
+                      <div className="flex-1 h-px bg-white/10" />
                     </div>
 
                     <form onSubmit={handleSignup} className="space-y-4">
