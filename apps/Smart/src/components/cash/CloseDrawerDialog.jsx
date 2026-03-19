@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from "react";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Loader2, DollarSign, Calculator, Lock, Banknote, CreditCard, ArrowUpCircle } from "lucide-react";
+import { Loader2, DollarSign, Calculator, Lock, Banknote, CreditCard, ArrowUpCircle, TrendingDown, FileDown, Receipt } from "lucide-react";
 import { closeCashRegister } from "@/components/cash/CashRegisterService";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
@@ -51,7 +51,8 @@ export default function CloseDrawerDialog({ isOpen, onClose, drawer, onSuccess }
   const [loading, setLoading] = useState(false);
   const [editingItem, setEditingItem] = useState(null);
   const [salesSummary, setSalesSummary] = useState(null);
-  const [editingSummaryField, setEditingSummaryField] = useState(null); // { field: 'totalCash', label: 'Efectivo', value: 100 }
+  const [editingSummaryField, setEditingSummaryField] = useState(null);
+  const [dailyExpenses, setDailyExpenses] = useState([]);
 
   // Refs para long press
   const pressTimer = useRef(null);
@@ -83,11 +84,19 @@ export default function CloseDrawerDialog({ isOpen, onClose, drawer, onSuccess }
   const fetchSalesSummary = async () => {
     try {
       const drawerOpenDate = new Date(drawer.created_date);
-      // Fetch sales and fixed expenses
-      const [sales, fixedExpenses] = await Promise.all([
+      // Fetch sales, fixed expenses and daily transactions
+      const [sales, fixedExpenses, allTransactions] = await Promise.all([
         base44.entities.Sale.filter({}, "-created_date", 1000),
-        base44.entities.FixedExpense.list("-created_date", 100).catch(() => [])
-      ]); 
+        base44.entities.FixedExpense.list("-created_date", 100).catch(() => []),
+        base44.entities.Transaction.list("-created_date", 500).catch(() => [])
+      ]);
+
+      // Filtrar gastos del turno actual
+      const expensesInDrawer = (allTransactions || []).filter(t => {
+        if (t.type !== "expense") return false;
+        try { return new Date(t.created_date) >= drawerOpenDate; } catch { return false; }
+      });
+      setDailyExpenses(expensesInDrawer); 
       
       const salesInDrawer = sales.filter(s => {
         if (s.voided) return false;
@@ -299,6 +308,59 @@ export default function CloseDrawerDialog({ isOpen, onClose, drawer, onSuccess }
      if (editingItem) {
          setDenominations(prev => ({ ...prev, [editingItem.id]: newQty }));
      }
+  };
+
+  const totalExpenses = dailyExpenses.reduce((sum, e) => sum + Number(e.amount || 0), 0);
+  const netProfit = (salesSummary?.totalRevenue || 0) - totalExpenses;
+
+  const handleExportPDF = () => {
+    const s = salesSummary || buildDefaultSummary();
+    const dateStr = new Date().toLocaleDateString('es-PR', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+    const html = `<!DOCTYPE html><html><head><meta charset="utf-8">
+    <title>Cierre de Caja — ${dateStr}</title>
+    <style>
+      body{font-family:system-ui,sans-serif;max-width:680px;margin:0 auto;padding:32px;color:#111}
+      h1{font-size:22px;font-weight:800;margin:0 0 4px}
+      .sub{color:#666;font-size:13px;margin-bottom:24px}
+      .section{background:#f8f8f8;border-radius:12px;padding:16px;margin-bottom:16px}
+      .section h2{font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#888;margin:0 0 12px}
+      .row{display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid #eee;font-size:14px}
+      .row:last-child{border-bottom:none}
+      .row.total{font-weight:800;font-size:16px;color:#111}
+      .row.expense{color:#dc2626}
+      .row.profit{color:#16a34a;font-weight:700}
+      .badge{display:inline-block;padding:2px 8px;border-radius:99px;font-size:11px;font-weight:700}
+      .balanced{background:#dcfce7;color:#166534}.unbalanced{background:#fee2e2;color:#991b1b}
+      .footer{text-align:center;color:#aaa;font-size:11px;margin-top:32px}
+    </style></head><body>
+    <h1>📋 Cierre de Caja</h1>
+    <div class="sub">${dateStr} · Generado por SmartFixOS</div>
+    <div class="section">
+      <h2>💰 Ventas del Turno</h2>
+      <div class="row"><span>Efectivo</span><span>$${(s.totalCash||0).toFixed(2)}</span></div>
+      <div class="row"><span>Tarjetas</span><span>$${(s.totalCard||0).toFixed(2)}</span></div>
+      <div class="row"><span>ATH Móvil</span><span>$${(s.totalATH||0).toFixed(2)}</span></div>
+      <div class="row total"><span>Total Ventas</span><span>$${(s.totalRevenue||0).toFixed(2)}</span></div>
+    </div>
+    ${dailyExpenses.length > 0 ? `<div class="section">
+      <h2>📤 Gastos del Turno</h2>
+      ${dailyExpenses.map(e => `<div class="row expense"><span>${e.description || e.category || 'Gasto'}</span><span>-$${Number(e.amount||0).toFixed(2)}</span></div>`).join('')}
+      <div class="row total expense"><span>Total Gastos</span><span>-$${totalExpenses.toFixed(2)}</span></div>
+    </div>` : ''}
+    <div class="section">
+      <h2>📊 Resultado</h2>
+      <div class="row"><span>Efectivo esperado en caja</span><span>$${(s.expectedCash||0).toFixed(2)}</span></div>
+      <div class="row"><span>Efectivo contado</span><span>$${total.toFixed(2)}</span></div>
+      <div class="row"><span>Diferencia</span><span class="${isBalanced?'balanced':'unbalanced'} badge">${difference>=0?'+':''}${difference.toFixed(2)}</span></div>
+      <div class="row profit"><span>Ganancia Neta</span><span>$${netProfit.toFixed(2)}</span></div>
+    </div>
+    <div class="footer">SmartFixOS · smartfixos.com · ${new Date().toLocaleTimeString('es-PR')}</div>
+    </body></html>`;
+    const w = window.open('', '_blank', 'width=800,height=900');
+    w.document.write(html);
+    w.document.close();
+    w.focus();
+    setTimeout(() => w.print(), 400);
   };
 
   if (!drawer) return null;
@@ -526,15 +588,42 @@ export default function CloseDrawerDialog({ isOpen, onClose, drawer, onSuccess }
                       </div>
                   </div>
 
+                  {/* Gastos del turno */}
+                  {dailyExpenses.length > 0 && (
+                    <div className="border-t border-white/5 pt-4">
+                      <p className="text-xs font-medium text-zinc-500 uppercase tracking-wider mb-3 flex items-center gap-1.5">
+                        <TrendingDown className="w-3.5 h-3.5 text-red-400" /> Gastos del Turno
+                      </p>
+                      <div className="space-y-1.5 max-h-[140px] overflow-y-auto pr-1">
+                        {dailyExpenses.map((e, i) => (
+                          <div key={i} className="flex items-center justify-between bg-red-500/5 border border-red-500/10 rounded-xl px-3 py-2">
+                            <span className="text-xs text-zinc-400 truncate max-w-[140px]" title={e.description}>{e.description || e.category || 'Gasto'}</span>
+                            <span className="text-xs font-bold text-red-400 shrink-0 ml-2">-${Number(e.amount||0).toFixed(2)}</span>
+                          </div>
+                        ))}
+                      </div>
+                      <div className="flex justify-between items-center mt-2 px-1">
+                        <span className="text-xs text-zinc-500">Total gastos</span>
+                        <span className="text-sm font-black text-red-400">-${totalExpenses.toFixed(2)}</span>
+                      </div>
+                      <div className="flex justify-between items-center mt-1 px-1 border-t border-white/5 pt-2">
+                        <span className="text-xs text-zinc-400 font-medium">Ganancia neta</span>
+                        <span className={cn("text-sm font-black", netProfit >= 0 ? "text-emerald-400" : "text-red-400")}>
+                          ${netProfit.toFixed(2)}
+                        </span>
+                      </div>
+                    </div>
+                  )}
+
                   <div className="border-t border-white/5 pt-6 mt-auto">
                       <div className={cn(
                           "rounded-2xl p-4 border transition-colors duration-300",
-                          isBalanced 
-                              ? "bg-emerald-500/10 border-emerald-500/30" 
+                          isBalanced
+                              ? "bg-emerald-500/10 border-emerald-500/30"
                               : "bg-red-500/10 border-red-500/30"
                       )}>
                           <div className="flex items-center gap-2 mb-2">
-                              {isBalanced 
+                              {isBalanced
                                   ? <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
                                   : <div className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
                               }
@@ -554,6 +643,14 @@ export default function CloseDrawerDialog({ isOpen, onClose, drawer, onSuccess }
                               Falta dinero en caja. Verifica los billetes grandes.
                           </p>
                       )}
+                      {/* Exportar PDF */}
+                      <button
+                        onClick={handleExportPDF}
+                        className="mt-3 w-full flex items-center justify-center gap-2 h-10 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-zinc-400 hover:text-white transition-all text-sm font-medium"
+                      >
+                        <FileDown className="w-4 h-4" />
+                        Exportar PDF del turno
+                      </button>
                   </div>
               </div>
               </div>

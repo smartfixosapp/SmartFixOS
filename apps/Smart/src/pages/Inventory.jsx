@@ -1244,66 +1244,60 @@ export default function Inventory() {
         </div>
       }
       <div className="max-w-[1600px] mx-auto">
-        {/* Header Estilo iOS */}
-        <div className="bg-white/5 backdrop-blur-2xl border border-white/10 rounded-[28px] p-6 sm:p-8 mb-6 shadow-[0_20px_60px_rgba(0,0,0,0.4)] relative overflow-hidden theme-light:bg-white/90 theme-light:border-gray-200">
-          <div className="absolute inset-0 bg-gradient-to-br from-cyan-500/10 via-transparent to-emerald-500/10 pointer-events-none" />
-          <div className="relative z-10 flex flex-col md:flex-row items-center justify-between gap-4">
-            <div>
-              <h1 className="text-3xl sm:text-4xl font-black text-white flex items-center gap-3 tracking-tight theme-light:text-gray-900">
-                <div className="w-12 h-12 rounded-[16px] bg-gradient-to-br from-cyan-500 to-emerald-500 flex items-center justify-center shadow-lg">
-                  <Sparkles className="w-7 h-7 text-white" />
-                </div>
-                Inventario
-              </h1>
-              <p className="text-white/60 mt-2 font-medium theme-light:text-gray-600 flex items-center gap-2">
-                <Package className="w-4 h-4" />
-                Gestión de productos por categorías de dispositivos
-              </p>
+        {/* Header — Dark Glass Premium */}
+        <div className="bg-[#0f0f12]/60 backdrop-blur-3xl border border-white/[0.08] rounded-[28px] p-5 sm:p-7 mb-6 shadow-[0_24px_60px_rgba(0,0,0,0.5)] relative overflow-hidden">
+          <div className="absolute inset-0 bg-gradient-to-br from-teal-500/5 via-transparent to-cyan-500/5 pointer-events-none" />
+          <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-teal-500/20 to-transparent" />
+
+          <div className="relative z-10 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-5">
+            {/* Title */}
+            <div className="flex items-center gap-4">
+              <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-teal-500 to-cyan-600 flex items-center justify-center shadow-[0_8px_24px_rgba(20,184,166,0.4)]">
+                <Package className="w-6 h-6 text-white" strokeWidth={2.5} />
+              </div>
+              <div>
+                <h1 className="text-2xl sm:text-3xl font-black text-white tracking-tight leading-none">Inventario</h1>
+                <p className="text-white/40 text-xs mt-1 font-medium tracking-wide">Gestión de productos · stock · compras</p>
+              </div>
             </div>
-            <div className="flex flex-wrap gap-2">
-              <Button
-                onClick={() => setViewMode("reports")}
-                variant="ghost"
-                className={`h-10 rounded-full px-5 font-bold transition-all ${viewMode === "reports" ?
-                "bg-white/15 text-white shadow-lg scale-105 theme-light:bg-gray-900 theme-light:text-white" :
-                "text-white/60 hover:bg-white/10 hover:text-white theme-light:text-gray-600 theme-light:hover:bg-gray-100"}`
-                }>
 
-                <FileText className="w-4 h-4 mr-2" />
-                Reportes
-              </Button>
-              <Button
-                onClick={() => setViewMode("products")}
-                variant="ghost"
-                className={`h-10 rounded-full px-5 font-bold transition-all ${viewMode === "products" ?
-                "bg-white/15 text-white shadow-lg scale-105 theme-light:bg-gray-900 theme-light:text-white" :
-                "text-white/60 hover:bg-white/10 hover:text-white theme-light:text-gray-600 theme-light:hover:bg-gray-100"}`
-                }>
+            {/* Actions */}
+            <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
+              {/* Tab pills */}
+              <div className="flex items-center gap-1 bg-white/5 border border-white/10 rounded-2xl p-1">
+                <button
+                  onClick={() => setViewMode("reports")}
+                  className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold transition-all ${viewMode === "reports" ? "bg-teal-500/20 text-teal-300 border border-teal-500/30" : "text-white/40 hover:text-white/70"}`}
+                >
+                  <FileText className="w-3.5 h-3.5" /> Reportes
+                </button>
+                <button
+                  onClick={() => setViewMode("products")}
+                  className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold transition-all ${viewMode === "products" ? "bg-cyan-500/20 text-cyan-300 border border-cyan-500/30" : "text-white/40 hover:text-white/70"}`}
+                >
+                  <Box className="w-3.5 h-3.5" /> Productos
+                </button>
+              </div>
 
-                <Box className="w-4 h-4 mr-2" />
-                Productos
-              </Button>
-              <Button onClick={() => setShowManageCategories(true)} variant="ghost" className="h-10 rounded-full px-5 text-white/60 hover:bg-white/10 hover:text-white font-semibold theme-light:text-gray-600 theme-light:hover:bg-gray-100">
-                <Settings className="w-4 h-4 mr-2" />
-                Categorías
-              </Button>
-              <Button onClick={() => setShowSuppliers(true)} variant="ghost" className="h-10 rounded-full px-5 text-white/60 hover:bg-white/10 hover:text-white font-semibold theme-light:text-gray-600 theme-light:hover:bg-gray-100">
-                <Globe className="w-4 h-4 mr-2" />
-                Proveedores
-              </Button>
-              <Button onClick={() => setShowPOMenu(true)} variant="ghost" className="h-10 rounded-full px-5 text-white/60 hover:bg-white/10 hover:text-white font-semibold theme-light:text-gray-600 theme-light:hover:bg-gray-100">
-                <FileText className="w-4 h-4 mr-2" />
-                Compras
-              </Button>
-              <Button onClick={() => {setEditing(null);setShowItemDialog(true);}} className="h-10 rounded-full px-6 bg-gradient-to-r from-cyan-500 to-emerald-500 hover:from-cyan-600 hover:to-emerald-600 text-white font-bold shadow-[0_8px_24px_rgba(6,182,212,0.4)] transition-all hover:scale-105 active:scale-95">
-                <Plus className="w-5 h-5 mr-2" />
-                Nuevo
-              </Button>
+              {/* Secondary actions */}
+              <button onClick={() => setShowManageCategories(true)} className="flex items-center gap-1.5 h-9 px-3 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-white/50 hover:text-white transition-all text-xs font-semibold">
+                <Settings className="w-3.5 h-3.5" /> Categorías
+              </button>
+              <button onClick={() => setShowSuppliers(true)} className="flex items-center gap-1.5 h-9 px-3 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-white/50 hover:text-white transition-all text-xs font-semibold">
+                <Globe className="w-3.5 h-3.5" /> Proveedores
+              </button>
+              <button onClick={() => setShowPOMenu(true)} className="flex items-center gap-1.5 h-9 px-3 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-white/50 hover:text-white transition-all text-xs font-semibold">
+                <FileText className="w-3.5 h-3.5" /> Compras
+              </button>
+
+              {/* Primary CTA */}
+              <button onClick={() => {setEditing(null);setShowItemDialog(true);}} className="flex items-center gap-2 h-9 px-4 rounded-xl bg-gradient-to-r from-teal-500 to-cyan-500 hover:from-teal-400 hover:to-cyan-400 text-white font-bold text-xs shadow-[0_8px_20px_rgba(20,184,166,0.35)] hover:shadow-[0_8px_28px_rgba(20,184,166,0.5)] transition-all active:scale-95">
+                <Plus className="w-4 h-4" /> Nuevo
+              </button>
               {selectedProducts.length > 0 &&
-              <Button onClick={() => setShowDiscountDialog(true)} className="h-10 rounded-full px-5 bg-gradient-to-r from-orange-500 to-pink-500 text-white font-bold shadow-lg animate-pulse">
-                  <Tag className="w-4 h-4 mr-2" />
-                  Oferta ({selectedProducts.length})
-                </Button>
+                <button onClick={() => setShowDiscountDialog(true)} className="flex items-center gap-2 h-9 px-4 rounded-xl bg-gradient-to-r from-orange-500 to-pink-500 text-white font-bold text-xs shadow-lg animate-pulse">
+                  <Tag className="w-3.5 h-3.5" /> Oferta ({selectedProducts.length})
+                </button>
               }
             </div>
           </div>

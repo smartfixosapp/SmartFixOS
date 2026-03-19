@@ -122,8 +122,35 @@ export default function PurchaseOrderDetailDialog({
       );
       payload.total_amount = subtotal + Number(form.shipping_cost || 0);
 
+      const previousStatus = poData?.status;
       await base44.entities.PurchaseOrder.update(purchaseOrder.id, payload);
-      toast.success("Orden actualizada");
+
+      // ── AUTO-GASTO: cuando PO se marca como recibida ──────────────────────
+      if (form.status === "received" && previousStatus !== "received") {
+        try {
+          const totalAmount = Math.round(payload.total_amount * 100) / 100;
+          const itemsDesc = form.items
+            .map(it => `${it.product_name} x${it.quantity} @ $${Number(it.unit_cost).toFixed(2)}`)
+            .join(", ");
+          await base44.entities.Transaction.create({
+            type: "expense",
+            category: "parts",
+            amount: totalAmount,
+            description: `Orden de Compra ${form.po_number}${form.supplier_name ? ` — ${form.supplier_name}` : ""}. ${itemsDesc}`,
+            payment_method: "cash",
+            order_number: form.po_number,
+            notes: `Generado automáticamente al recibir la orden ${form.po_number}`
+          });
+          toast.success(`✅ Orden recibida · Gasto de $${totalAmount.toFixed(2)} registrado en Finanzas`);
+        } catch (expErr) {
+          console.warn("No se pudo registrar el gasto automático:", expErr);
+          toast.success("Orden actualizada");
+        }
+      } else {
+        toast.success("Orden actualizada");
+      }
+      // ─────────────────────────────────────────────────────────────────────
+
       setEditing(false);
       onClose?.(true);
     } catch (err) {
