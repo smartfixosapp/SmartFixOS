@@ -162,8 +162,10 @@ export default function SuperAdmin() {
 
   // ── Tenant Data Viewer state ────────────────────────────────────────────────
   const [dataModal,         setDataModal]         = useState(null); // tenant object
-  const [tenantData,        setTenantData]        = useState(null); // { orders, transactions }
+  const [tenantData,        setTenantData]        = useState(null); // { orders, transactions, customers, employees }
   const [tenantDataLoading, setTenantDataLoading] = useState(false);
+  const [supportTab,        setSupportTab]        = useState("orders"); // orders | transactions | customers | employees
+  const [deletingRecord,    setDeletingRecord]    = useState(null);  // id being deleted
 
   // ── Notes state ─────────────────────────────────────────────────────────────
   const [noteModal,   setNoteModal]   = useState(null);  // tenant object
@@ -613,23 +615,36 @@ export default function SuperAdmin() {
     setTenantData(null);
     setTenantDataLoading(true);
     try {
-      const [ordersRes, txRes] = await Promise.all([
+      const [ordersRes, txRes, customersRes, employeesRes] = await Promise.all([
         supabase
           .from("order")
-          .select("id, created_date, status, total_amount, customer_name, device_type, device_brand")
+          .select("id, order_number, created_date, status, total_amount, customer_name, device_type, device_brand, device_model")
           .eq("tenant_id", tenant.id)
           .order("created_date", { ascending: false })
-          .limit(20),
+          .limit(50),
         supabase
           .from("transaction")
           .select("id, created_date, type, amount, category, description, payment_method")
           .eq("tenant_id", tenant.id)
           .order("created_date", { ascending: false })
-          .limit(20),
+          .limit(50),
+        supabase
+          .from("customer")
+          .select("id, full_name, email, phone, created_at")
+          .eq("tenant_id", tenant.id)
+          .order("created_at", { ascending: false })
+          .limit(50),
+        supabase
+          .from("app_employee")
+          .select("id, full_name, email, role, status, pin, created_at")
+          .eq("tenant_id", tenant.id)
+          .order("created_at", { ascending: false }),
       ]);
 
-      const orders       = ordersRes.data || [];
-      const transactions = txRes.data    || [];
+      const orders       = ordersRes.data      || [];
+      const transactions = txRes.data          || [];
+      const customers    = customersRes.data   || [];
+      const employees    = employeesRes.data   || [];
 
       const totalIncome  = transactions.filter(t => t.type === "income") .reduce((s, t) => s + (Number(t.amount) || 0), 0);
       const totalExpense = transactions.filter(t => t.type === "expense").reduce((s, t) => s + (Number(t.amount) || 0), 0);
@@ -638,12 +653,47 @@ export default function SuperAdmin() {
         return acc;
       }, {});
 
-      setTenantData({ orders, transactions, totalIncome, totalExpense, ordersByStatus });
+      setTenantData({ orders, transactions, customers, employees, totalIncome, totalExpense, ordersByStatus });
     } catch (e) {
       toast.error("Error cargando datos: " + e.message);
-      setTenantData({ orders: [], transactions: [], totalIncome: 0, totalExpense: 0, ordersByStatus: {} });
+      setTenantData({ orders: [], transactions: [], customers: [], employees: [], totalIncome: 0, totalExpense: 0, ordersByStatus: {} });
     } finally {
       setTenantDataLoading(false);
+    }
+  };
+
+  // ── Support: delete a record on behalf of tenant ──────────────────────────
+  const deleteSupportRecord = async (table, id, label) => {
+    if (!window.confirm(`¿Eliminar "${label}"?\n\nEsta acción NO se puede deshacer.`)) return;
+    setDeletingRecord(id);
+    try {
+      const { error } = await supabase.from(table).delete().eq("id", id);
+      if (error) throw error;
+      toast.success(`✅ "${label}" eliminado`);
+      // Refresh data
+      await openTenantData(dataModal);
+    } catch (e) {
+      toast.error("Error al eliminar: " + e.message);
+    } finally {
+      setDeletingRecord(null);
+    }
+  };
+
+  // ── Support: reset employee PIN ───────────────────────────────────────────
+  const resetEmployeePin = async (employee) => {
+    const newPin = window.prompt(`Nuevo PIN para ${employee.full_name || employee.email}:\n(4 dígitos numéricos)`);
+    if (!newPin) return;
+    if (!/^\d{4}$/.test(newPin)) { toast.error("El PIN debe ser exactamente 4 dígitos"); return; }
+    setDeletingRecord(employee.id);
+    try {
+      const { error } = await supabase.from("app_employee").update({ pin: newPin }).eq("id", employee.id);
+      if (error) throw error;
+      toast.success(`✅ PIN de ${employee.full_name || employee.email} actualizado`);
+      await openTenantData(dataModal);
+    } catch (e) {
+      toast.error("Error al actualizar PIN: " + e.message);
+    } finally {
+      setDeletingRecord(null);
     }
   };
 
@@ -1245,113 +1295,211 @@ export default function SuperAdmin() {
                 </div>
                 <div className="flex-1 min-w-0">
                   <h2 className="text-sm font-black text-white truncate">{dataModal.name || "Sin nombre"}</h2>
-                  <p className="text-xs text-cyan-400/70">Datos internos de la tienda</p>
+                  <p className="text-xs text-cyan-400/70">Panel de soporte — ver y gestionar datos</p>
                 </div>
+                <button
+                  onClick={() => openTenantData(dataModal)}
+                  disabled={tenantDataLoading}
+                  className="p-1.5 rounded-lg text-gray-600 hover:text-white transition-colors disabled:opacity-40 mr-1"
+                  title="Recargar"
+                >
+                  <RefreshCw className={`w-4 h-4 ${tenantDataLoading ? "animate-spin" : ""}`} />
+                </button>
                 <button onClick={() => setDataModal(null)} className="text-gray-600 hover:text-white transition-colors">
                   <X className="w-5 h-5" />
                 </button>
               </div>
 
-              <div className="overflow-y-auto flex-1">
-                {tenantDataLoading ? (
-                  <div className="flex flex-col items-center justify-center py-20 text-gray-600 gap-3">
-                    <RefreshCw className="w-6 h-6 animate-spin" />
-                    <p className="text-sm">Cargando datos de la tienda…</p>
+              {tenantDataLoading ? (
+                <div className="flex flex-col items-center justify-center py-20 text-gray-600 gap-3">
+                  <RefreshCw className="w-6 h-6 animate-spin" />
+                  <p className="text-sm">Cargando datos de la tienda…</p>
+                </div>
+              ) : tenantData ? (
+                <>
+                  {/* KPI row */}
+                  <div className="grid grid-cols-4 gap-0 border-b border-white/[0.06]">
+                    {[
+                      { label: "Órdenes",    value: tenantData.orders.length,       color: "text-blue-400"   },
+                      { label: "Clientes",   value: tenantData.customers.length,    color: "text-cyan-400"   },
+                      { label: "Ingresos",   value: `$${tenantData.totalIncome.toFixed(0)}`,  color: "text-emerald-400" },
+                      { label: "Empleados",  value: tenantData.employees.length,    color: "text-purple-400" },
+                    ].map((m, i) => (
+                      <div key={m.label} className={`p-3 text-center ${i < 3 ? "border-r border-white/[0.06]" : ""}`}>
+                        <p className="text-[10px] text-gray-600 uppercase tracking-wider">{m.label}</p>
+                        <p className={`text-xl font-black ${m.color}`}>{m.value}</p>
+                      </div>
+                    ))}
                   </div>
-                ) : tenantData ? (
-                  <div className="p-5 space-y-5">
 
-                    {/* Summary row */}
-                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                      {[
-                        { label: "Órdenes",   value: tenantData.orders.length + (tenantData.orders.length === 20 ? "+" : ""), icon: ShoppingBag,     color: "text-blue-400",   bg: "bg-blue-500/10",   border: "border-blue-500/20"   },
-                        { label: "Transac.",  value: tenantData.transactions.length + (tenantData.transactions.length === 20 ? "+" : ""), icon: ArrowLeftRight, color: "text-purple-400", bg: "bg-purple-500/10", border: "border-purple-500/20" },
-                        { label: "Ingresos",  value: `$${tenantData.totalIncome.toFixed(0)}`,  icon: TrendingUp,     color: "text-green-400",  bg: "bg-green-500/10",  border: "border-green-500/20"  },
-                        { label: "Gastos",    value: `$${tenantData.totalExpense.toFixed(0)}`, icon: DollarSign,     color: "text-red-400",    bg: "bg-red-500/10",    border: "border-red-500/20"    },
-                      ].map(m => (
-                        <div key={m.label} className={`rounded-xl border ${m.border} ${m.bg} p-3 flex items-center gap-3`}>
-                          <m.icon className={`w-4 h-4 ${m.color} flex-shrink-0`} />
-                          <div>
-                            <p className="text-xs text-gray-500">{m.label}</p>
-                            <p className={`text-lg font-black ${m.color}`}>{m.value}</p>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
+                  {/* Tabs */}
+                  <div className="flex border-b border-white/[0.06] px-4 pt-2 gap-1">
+                    {[
+                      { id: "orders",       label: "Órdenes",       count: tenantData.orders.length },
+                      { id: "transactions", label: "Transacciones", count: tenantData.transactions.length },
+                      { id: "customers",    label: "Clientes",      count: tenantData.customers.length },
+                      { id: "employees",    label: "Empleados",     count: tenantData.employees.length },
+                    ].map(t => (
+                      <button
+                        key={t.id}
+                        onClick={() => setSupportTab(t.id)}
+                        className={`px-3 py-2 text-xs font-semibold rounded-t-lg border-b-2 transition-all ${
+                          supportTab === t.id
+                            ? "border-cyan-400 text-cyan-300"
+                            : "border-transparent text-gray-500 hover:text-gray-300"
+                        }`}
+                      >
+                        {t.label}
+                        <span className="ml-1.5 text-[10px] opacity-60">({t.count})</span>
+                      </button>
+                    ))}
+                  </div>
 
-                    {/* Order status breakdown */}
-                    {Object.keys(tenantData.ordersByStatus).length > 0 && (
-                      <div className="flex flex-wrap gap-2">
-                        {Object.entries(tenantData.ordersByStatus).map(([status, count]) => (
-                          <span key={status} className="text-[11px] px-2 py-0.5 rounded-full border border-white/10 bg-white/[0.04] text-gray-300 font-semibold">
-                            {status}: {count}
-                          </span>
-                        ))}
+                  {/* Tab content */}
+                  <div className="overflow-y-auto flex-1 p-4">
+
+                    {/* ORDERS */}
+                    {supportTab === "orders" && (
+                      <div className="space-y-1.5">
+                        {tenantData.orders.length === 0
+                          ? <p className="text-xs text-gray-600 py-4 text-center">Sin órdenes registradas</p>
+                          : tenantData.orders.map(order => (
+                            <div key={order.id} className="flex items-center gap-3 bg-white/[0.025] hover:bg-white/[0.04] rounded-xl px-3 py-2.5 text-xs transition-colors">
+                              <div className="flex-1 min-w-0">
+                                <p className="text-white font-semibold truncate">
+                                  {order.order_number ? <span className="text-cyan-400 mr-1">{order.order_number}</span> : null}
+                                  {order.customer_name || "Cliente"} — {[order.device_brand, order.device_model || order.device_type].filter(Boolean).join(" ")}
+                                </p>
+                                <p className="text-gray-500 truncate">{order.created_date ? new Date(order.created_date).toLocaleDateString("es") : "—"} · {order.status || "—"}</p>
+                              </div>
+                              <span className="font-bold text-emerald-400 flex-shrink-0">
+                                {order.total_amount ? `$${Number(order.total_amount).toFixed(0)}` : "—"}
+                              </span>
+                              <button
+                                onClick={() => deleteSupportRecord("order", order.id, order.order_number || order.customer_name || order.id)}
+                                disabled={deletingRecord === order.id}
+                                className="flex-shrink-0 p-1.5 rounded-lg text-gray-600 hover:text-red-400 hover:bg-red-500/10 transition-all disabled:opacity-40"
+                                title="Eliminar orden"
+                              >
+                                {deletingRecord === order.id
+                                  ? <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+                                  : <Trash2 className="w-3.5 h-3.5" />}
+                              </button>
+                            </div>
+                          ))
+                        }
                       </div>
                     )}
 
-                    {/* Recent orders */}
-                    <div>
-                      <p className="text-[11px] font-semibold text-gray-500 uppercase tracking-widest mb-2 flex items-center gap-1.5">
-                        <ShoppingBag className="w-3.5 h-3.5" /> Últimas órdenes (hasta 20)
-                      </p>
-                      {tenantData.orders.length === 0 ? (
-                        <p className="text-xs text-gray-600 py-2">Sin órdenes registradas</p>
-                      ) : (
-                        <div className="space-y-1.5">
-                          {tenantData.orders.map(order => (
-                            <div key={order.id} className="flex items-center gap-3 bg-white/[0.025] rounded-xl px-3 py-2 text-xs">
-                              <div className="flex-1 min-w-0">
-                                <p className="text-white font-semibold truncate">{order.customer_name || "Cliente"} — {order.device_brand || ""} {order.device_type || ""}</p>
-                                <p className="text-gray-500 truncate">{order.created_date ? new Date(order.created_date).toLocaleDateString("es") : "—"}</p>
-                              </div>
-                              <span className="text-[11px] px-2 py-0.5 rounded-full border border-white/10 bg-white/5 text-gray-400 flex-shrink-0">{order.status || "—"}</span>
-                              <span className="font-bold text-green-400 flex-shrink-0">{order.total_amount ? `$${Number(order.total_amount).toFixed(0)}` : "—"}</span>
-                            </div>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-
-                    {/* Recent transactions */}
-                    <div>
-                      <p className="text-[11px] font-semibold text-gray-500 uppercase tracking-widest mb-2 flex items-center gap-1.5">
-                        <ArrowLeftRight className="w-3.5 h-3.5" /> Últimas transacciones (hasta 20)
-                      </p>
-                      {tenantData.transactions.length === 0 ? (
-                        <p className="text-xs text-gray-600 py-2">Sin transacciones registradas</p>
-                      ) : (
-                        <div className="space-y-1.5">
-                          {tenantData.transactions.map(tx => (
-                            <div key={tx.id} className="flex items-center gap-3 bg-white/[0.025] rounded-xl px-3 py-2 text-xs">
+                    {/* TRANSACTIONS */}
+                    {supportTab === "transactions" && (
+                      <div className="space-y-1.5">
+                        {tenantData.transactions.length === 0
+                          ? <p className="text-xs text-gray-600 py-4 text-center">Sin transacciones registradas</p>
+                          : tenantData.transactions.map(tx => (
+                            <div key={tx.id} className="flex items-center gap-3 bg-white/[0.025] hover:bg-white/[0.04] rounded-xl px-3 py-2.5 text-xs transition-colors">
+                              <span className={`flex-shrink-0 w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-black ${tx.type === "income" ? "bg-emerald-500/20 text-emerald-400" : "bg-red-500/20 text-red-400"}`}>
+                                {tx.type === "income" ? "+" : "-"}
+                              </span>
                               <div className="flex-1 min-w-0">
                                 <p className="text-white font-semibold truncate">{tx.description || tx.category || "—"}</p>
                                 <p className="text-gray-500">{tx.created_date ? new Date(tx.created_date).toLocaleDateString("es") : "—"} · {tx.payment_method || "—"}</p>
                               </div>
-                              <span className={`text-[11px] px-1.5 py-0.5 rounded-full border flex-shrink-0 ${tx.type === "income" ? "border-green-500/30 text-green-300 bg-green-500/10" : "border-red-500/30 text-red-300 bg-red-500/10"}`}>
-                                {tx.type === "income" ? "+" : "-"}
-                              </span>
-                              <span className={`font-bold flex-shrink-0 ${tx.type === "income" ? "text-green-400" : "text-red-400"}`}>
+                              <span className={`font-bold flex-shrink-0 ${tx.type === "income" ? "text-emerald-400" : "text-red-400"}`}>
                                 ${Number(tx.amount || 0).toFixed(2)}
                               </span>
+                              <button
+                                onClick={() => deleteSupportRecord("transaction", tx.id, tx.description || tx.category || tx.id)}
+                                disabled={deletingRecord === tx.id}
+                                className="flex-shrink-0 p-1.5 rounded-lg text-gray-600 hover:text-red-400 hover:bg-red-500/10 transition-all disabled:opacity-40"
+                                title="Eliminar transacción"
+                              >
+                                {deletingRecord === tx.id
+                                  ? <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+                                  : <Trash2 className="w-3.5 h-3.5" />}
+                              </button>
                             </div>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                ) : null}
-              </div>
+                          ))
+                        }
+                      </div>
+                    )}
 
-              <div className="p-4 border-t border-white/[0.06]">
-                <button
-                  onClick={() => openTenantData(dataModal)}
-                  disabled={tenantDataLoading}
-                  className="flex items-center gap-2 text-xs px-3 py-2 rounded-xl bg-white/[0.04] border border-white/10 text-gray-400 hover:text-white transition-all disabled:opacity-40"
-                >
-                  <RefreshCw className={`w-3.5 h-3.5 ${tenantDataLoading ? "animate-spin" : ""}`} /> Recargar
-                </button>
-              </div>
+                    {/* CUSTOMERS */}
+                    {supportTab === "customers" && (
+                      <div className="space-y-1.5">
+                        {tenantData.customers.length === 0
+                          ? <p className="text-xs text-gray-600 py-4 text-center">Sin clientes registrados</p>
+                          : tenantData.customers.map(c => (
+                            <div key={c.id} className="flex items-center gap-3 bg-white/[0.025] hover:bg-white/[0.04] rounded-xl px-3 py-2.5 text-xs transition-colors">
+                              <div className="w-7 h-7 rounded-full bg-gradient-to-br from-cyan-500/20 to-purple-500/20 border border-white/10 flex items-center justify-center text-xs font-bold text-cyan-300 flex-shrink-0">
+                                {(c.full_name || c.email || "?")[0].toUpperCase()}
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <p className="text-white font-semibold truncate">{c.full_name || "Sin nombre"}</p>
+                                <p className="text-gray-500 truncate">{c.email || ""} {c.phone ? `· ${c.phone}` : ""}</p>
+                              </div>
+                              <button
+                                onClick={() => deleteSupportRecord("customer", c.id, c.full_name || c.email || c.id)}
+                                disabled={deletingRecord === c.id}
+                                className="flex-shrink-0 p-1.5 rounded-lg text-gray-600 hover:text-red-400 hover:bg-red-500/10 transition-all disabled:opacity-40"
+                                title="Eliminar cliente"
+                              >
+                                {deletingRecord === c.id
+                                  ? <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+                                  : <Trash2 className="w-3.5 h-3.5" />}
+                              </button>
+                            </div>
+                          ))
+                        }
+                      </div>
+                    )}
+
+                    {/* EMPLOYEES */}
+                    {supportTab === "employees" && (
+                      <div className="space-y-1.5">
+                        {tenantData.employees.length === 0
+                          ? <p className="text-xs text-gray-600 py-4 text-center">Sin empleados registrados</p>
+                          : tenantData.employees.map(emp => (
+                            <div key={emp.id} className="flex items-center gap-3 bg-white/[0.025] hover:bg-white/[0.04] rounded-xl px-3 py-2.5 text-xs transition-colors">
+                              <div className="w-7 h-7 rounded-full bg-gradient-to-br from-purple-500/20 to-cyan-500/20 border border-white/10 flex items-center justify-center text-xs font-bold text-purple-300 flex-shrink-0">
+                                {(emp.full_name || emp.email || "?")[0].toUpperCase()}
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <p className="text-white font-semibold truncate">{emp.full_name || "Sin nombre"}</p>
+                                <p className="text-gray-500 truncate">{emp.email || ""} · {emp.role || "—"} · PIN: {emp.pin ? "••••" : "sin PIN"}</p>
+                              </div>
+                              <span className={`flex-shrink-0 text-[10px] px-2 py-0.5 rounded-full border font-semibold ${emp.status === "active" || emp.active !== false ? "border-emerald-500/30 text-emerald-400 bg-emerald-500/10" : "border-red-500/30 text-red-400 bg-red-500/10"}`}>
+                                {emp.status === "active" || emp.active !== false ? "Activo" : "Inactivo"}
+                              </span>
+                              {/* Reset PIN */}
+                              <button
+                                onClick={() => resetEmployeePin(emp)}
+                                disabled={deletingRecord === emp.id}
+                                className="flex-shrink-0 px-2 py-1 rounded-lg text-[10px] font-semibold text-amber-400 border border-amber-500/20 hover:bg-amber-500/10 transition-all disabled:opacity-40"
+                                title="Resetear PIN"
+                              >
+                                PIN
+                              </button>
+                              {/* Delete */}
+                              <button
+                                onClick={() => deleteSupportRecord("app_employee", emp.id, emp.full_name || emp.email || emp.id)}
+                                disabled={deletingRecord === emp.id}
+                                className="flex-shrink-0 p-1.5 rounded-lg text-gray-600 hover:text-red-400 hover:bg-red-500/10 transition-all disabled:opacity-40"
+                                title="Eliminar empleado"
+                              >
+                                {deletingRecord === emp.id
+                                  ? <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+                                  : <Trash2 className="w-3.5 h-3.5" />}
+                              </button>
+                            </div>
+                          ))
+                        }
+                      </div>
+                    )}
+
+                  </div>
+                </>
+              ) : null}
             </motion.div>
           </motion.div>
         )}
