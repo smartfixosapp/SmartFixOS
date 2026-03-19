@@ -1,257 +1,262 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { base44 } from "@/api/base44Client";
-import { Loader2, Lock, Shield } from "lucide-react";
+import { Loader2, Shield, Eye, EyeOff, Lock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
-const brand = {
-  bg: "bg-[#0B0B0F]",
-  panel: "bg-[#121218]",
-  key: "bg-[#1A1A22]",
-  red: "bg-red-600 hover:bg-red-700",
-  text: "text-slate-200",
-  sub: "text-slate-400",
-};
+// ── Lockout config ─────────────────────────────────────────────────────────
+const MAX_ATTEMPTS   = 5;          // intentos antes de bloquear
+const LOCKOUT_MS     = 10 * 60 * 1000; // 10 minutos
+const LOCKOUT_KEY    = "admin_lockout";
+const ATTEMPTS_KEY   = "admin_attempts";
 
-const Dot = ({ filled }) => (
-  <span className={`inline-block w-2.5 h-2.5 rounded-full ${filled ? "bg-slate-200" : "bg-slate-700"}`} />
-);
+// ── SHA-256 via Web Crypto (nativo, sin librerías) ─────────────────────────
+async function sha256(text) {
+  const buf = await crypto.subtle.digest(
+    "SHA-256",
+    new TextEncoder().encode(text)
+  );
+  return Array.from(new Uint8Array(buf))
+    .map((b) => b.toString(16).padStart(2, "0"))
+    .join("");
+}
 
-const hashPin = (pin) => {
-  // Simple hash - en producción usar bcrypt o similar
-  return btoa(pin);
-};
+// ── Lockout helpers ────────────────────────────────────────────────────────
+function getLockoutInfo() {
+  try {
+    const until    = parseInt(localStorage.getItem(LOCKOUT_KEY) || "0", 10);
+    const attempts = parseInt(localStorage.getItem(ATTEMPTS_KEY) || "0", 10);
+    const locked   = until > Date.now();
+    const remaining = locked ? Math.ceil((until - Date.now()) / 60000) : 0;
+    return { locked, until, attempts, remaining };
+  } catch {
+    return { locked: false, until: 0, attempts: 0, remaining: 0 };
+  }
+}
 
+function recordFailedAttempt() {
+  try {
+    const attempts = parseInt(localStorage.getItem(ATTEMPTS_KEY) || "0", 10) + 1;
+    localStorage.setItem(ATTEMPTS_KEY, String(attempts));
+    if (attempts >= MAX_ATTEMPTS) {
+      localStorage.setItem(LOCKOUT_KEY, String(Date.now() + LOCKOUT_MS));
+      localStorage.setItem(ATTEMPTS_KEY, "0");
+      return { lockedNow: true };
+    }
+    return { lockedNow: false, remaining: MAX_ATTEMPTS - attempts };
+  } catch {
+    return { lockedNow: false, remaining: MAX_ATTEMPTS - 1 };
+  }
+}
+
+function clearLockout() {
+  try {
+    localStorage.removeItem(LOCKOUT_KEY);
+    localStorage.removeItem(ATTEMPTS_KEY);
+  } catch {}
+}
+
+// ── Component ──────────────────────────────────────────────────────────────
 export default function AdminPinPrompt({ onSuccess, onCancel }) {
-  const [pin, setPin] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [err, setErr] = useState("");
-  const [shake, setShake] = useState(false);
-  const [mounted, setMounted] = useState(false);
-  const [masterPin, setMasterPin] = useState(null);
+  const [password, setPassword]   = useState("");
+  const [showPwd,  setShowPwd]    = useState(false);
+  const [loading,  setLoading]    = useState(false);
+  const [err,      setErr]        = useState("");
+  const [shake,    setShake]      = useState(false);
+  const [mounted,  setMounted]    = useState(false);
+  const [masterHash, setMasterHash] = useState(null);
+  const [lockout,  setLockout]    = useState({ locked: false, remaining: 0 });
+  const inputRef = useRef(null);
 
+  // Lockout countdown timer
   useEffect(() => {
-    setPin("");
-    setErr("");
-    setTimeout(() => setMounted(true), 50);
-    loadMasterPin();
+    const tick = () => {
+      const info = getLockoutInfo();
+      setLockout(info);
+    };
+    tick();
+    const id = setInterval(tick, 30000);
+    return () => clearInterval(id);
   }, []);
 
-  const loadMasterPin = async () => {
+  useEffect(() => {
+    setTimeout(() => {
+      setMounted(true);
+      inputRef.current?.focus();
+    }, 80);
+    loadMasterHash();
+  }, []);
+
+  const loadMasterHash = async () => {
     try {
       const configs = await base44.entities.SystemConfig.filter({ key: "master_pin" });
       if (configs?.length) {
-        // El valor ya está hasheado en la BD
-        setMasterPin(configs[0].value);
+        setMasterHash(configs[0].value);
       } else {
-        // Crear config por defecto con PIN 9110 hasheado
-        const defaultHashed = hashPin("9110");
+        // Si no hay nada en BD, crear con hash de contraseña por defecto
+        const defaultHash = await sha256("SmFix@2026!");
         await base44.entities.SystemConfig.create({
           key: "master_pin",
-          value: defaultHashed,
+          value: defaultHash,
           category: "security",
-          description: "PIN maestro para acceso a administración de usuarios"
+          description: "Contraseña maestra admin — SHA-256",
         });
-        setMasterPin(defaultHashed);
+        setMasterHash(defaultHash);
       }
-    } catch (error) {
-      console.error("Error loading master PIN:", error);
-      // Fallback al PIN por defecto hasheado
-      setMasterPin(hashPin("9110"));
+    } catch (e) {
+      console.error("Error loading master hash:", e);
+      // Fallback: hash de la contraseña por defecto
+      setMasterHash(await sha256("SmFix@2026!"));
     }
   };
 
-  const showFail = (message = "PIN maestro incorrecto") => {
+  const showFail = (message) => {
     setErr(message);
     setShake(true);
     setTimeout(() => setShake(false), 450);
-    setTimeout(() => setErr(""), 2000);
-    setPin("");
+    setTimeout(() => setErr(""), 3000);
+    setPassword("");
+    inputRef.current?.focus();
   };
 
-  const press = (val) => {
-    if (loading) return;
+  const handleSubmit = async (e) => {
+    e?.preventDefault();
+    if (loading || !password.trim()) return;
 
-    if (val === "back") {
-      setPin((p) => p.slice(0, -1));
-      setErr("");
+    // Verificar lockout
+    const info = getLockoutInfo();
+    if (info.locked) {
+      showFail(`Bloqueado. Intenta en ${info.remaining} min.`);
       return;
     }
-    if (val === "ok") {
-      if (pin.length >= 4) void login(pin);
-      return;
-    }
-    
-    setPin((prev) => {
-      const next = (prev + String(val)).slice(0, 8);
-      setErr("");
-      if (next.length >= 4) {
-        setTimeout(() => login(next), 30);
-      }
-      return next;
-    });
-  };
 
-  const login = async (p) => {
-    if (loading) return;
     setLoading(true);
-
     try {
-      const hashedInput = hashPin(p);
-      
-      // Comparar el hash del input con el hash almacenado
-      if (hashedInput === masterPin) {
+      const inputHash = await sha256(password);
+
+      if (inputHash === masterHash) {
+        clearLockout();
         onSuccess?.();
       } else {
-        showFail();
+        const result = recordFailedAttempt();
+        setLockout(getLockoutInfo());
+        if (result.lockedNow) {
+          showFail(`Demasiados intentos. Bloqueado 10 min.`);
+        } else {
+          showFail(`Contraseña incorrecta (${result.remaining} intentos restantes)`);
+        }
       }
     } catch (e) {
-      console.error("Master PIN login error:", e);
+      console.error("Auth error:", e);
       showFail("Error de autenticación");
     } finally {
       setLoading(false);
     }
   };
 
-  const Key = ({ label, onClick, disabled }) => (
-    <button
-      onClick={onClick}
-      disabled={disabled}
-      className={`w-20 h-16 rounded-2xl ${brand.key} text-slate-100 text-xl font-semibold shadow-[0_8px_30px_rgb(0,0,0,0.35)] active:scale-95 transition disabled:opacity-40`}
-    >
-      {label}
-    </button>
-  );
-
   return (
-    <div 
-      className="fixed inset-0 z-[1000] overflow-hidden bg-black/95 backdrop-blur-sm"
-    >
-      <div className="relative max-w-3xl mx-auto min-h-screen grid place-items-center px-4">
-        <div 
-          className={`w-full text-center transition-all duration-700 ${
-            shake ? "animate-[shake_0.45s_ease]" : ""
-          } ${
-            mounted ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"
-          }`}
-        >
-          {/* Header */}
-          <div className={`transition-all duration-1000 mb-6 ${
-            mounted ? "opacity-100 scale-100" : "opacity-0 scale-90"
-          }`}>
-            <div className="mx-auto w-20 h-20 rounded-full bg-gradient-to-br from-red-600 to-red-800 flex items-center justify-center mb-4 shadow-[0_0_40px_rgba(220,38,38,0.6)]">
-              <Shield className="w-10 h-10 text-white" />
+    <div className="fixed inset-0 z-[1000] bg-black/95 backdrop-blur-sm grid place-items-center px-4">
+      <div
+        className={`w-full max-w-sm transition-all duration-700 ${
+          mounted ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"
+        } ${shake ? "animate-[shake_0.45s_ease]" : ""}`}
+      >
+        {/* Icon */}
+        <div className="flex justify-center mb-6">
+          <div className="w-20 h-20 rounded-full bg-gradient-to-br from-red-600 to-red-900 flex items-center justify-center shadow-[0_0_50px_rgba(220,38,38,0.5)]">
+            <Shield className="w-10 h-10 text-white" />
+          </div>
+        </div>
+
+        {/* Title */}
+        <div className="text-center mb-8">
+          <h1 className="text-2xl font-bold text-white">Acceso Administrativo</h1>
+          <p className="text-slate-400 mt-1 text-sm">Panel de administración de usuarios</p>
+        </div>
+
+        {/* Lockout banner */}
+        {lockout.locked && (
+          <div className="mb-4 px-4 py-3 rounded-xl bg-red-500/10 border border-red-500/30 text-center">
+            <p className="text-red-400 text-sm font-medium">
+              🔒 Bloqueado por intentos fallidos
+            </p>
+            <p className="text-red-300/70 text-xs mt-1">
+              Intenta de nuevo en {lockout.remaining} minuto{lockout.remaining !== 1 ? "s" : ""}
+            </p>
+          </div>
+        )}
+
+        {/* Form */}
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div className="relative">
+            <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500">
+              <Lock className="w-4 h-4" />
             </div>
+            <input
+              ref={inputRef}
+              type={showPwd ? "text" : "password"}
+              value={password}
+              onChange={(e) => { setPassword(e.target.value); setErr(""); }}
+              placeholder="Contraseña maestra"
+              disabled={loading || lockout.locked}
+              autoComplete="current-password"
+              className="w-full bg-[#1A1A24] border border-white/10 rounded-xl pl-11 pr-12 py-4 text-white placeholder:text-slate-600 focus:outline-none focus:border-red-500/50 focus:ring-1 focus:ring-red-500/20 transition disabled:opacity-40 text-base"
+            />
+            <button
+              type="button"
+              onClick={() => setShowPwd((v) => !v)}
+              className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-300 transition"
+              tabIndex={-1}
+            >
+              {showPwd ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+            </button>
           </div>
 
-          {/* Title */}
-          <div className={`transition-all duration-1000 delay-100 ${
-            mounted ? "opacity-100 scale-100" : "opacity-0 scale-95"
-          }`}>
-            <h1 className="text-3xl font-bold text-white drop-shadow-2xl">PIN Maestro</h1>
-            <p className="text-gray-300 mt-2 drop-shadow-lg">Acceso a administración de usuarios</p>
-          </div>
-
-          {/* PIN Dots */}
-          <div className="flex items-center justify-center gap-3 mt-6">
-            {[0, 1, 2, 3, 4, 5, 6, 7].map((i) => (
-              <div 
-                key={i}
-                className={`transition-all duration-500 ${
-                  mounted ? "opacity-100 scale-100" : "opacity-0 scale-0"
-                }`}
-                style={{ transitionDelay: `${200 + (i * 50)}ms` }}
-              >
-                <Dot filled={pin.length > i} />
-              </div>
-            ))}
-          </div>
-
+          {/* Error */}
           {err && (
-            <p className="mt-3 text-red-400 text-sm font-medium animate-[fadeIn_0.3s_ease]">
+            <p className="text-red-400 text-sm text-center font-medium animate-[fadeIn_0.3s_ease]">
               {err}
             </p>
           )}
 
-          {/* Keypad */}
-          <div className="mt-8 grid grid-cols-3 gap-6 place-items-center">
-            {[1, 2, 3, 4, 5, 6, 7, 8, 9].map((n, idx) => (
-              <div
-                key={n}
-                className={`transition-all duration-500 ${
-                  mounted ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"
-                }`}
-                style={{ transitionDelay: `${400 + (idx * 40)}ms` }}
-              >
-                <Key label={n} onClick={() => press(n)} disabled={loading} />
-              </div>
-            ))}
-            
-            <div
-              className={`transition-all duration-500 ${
-                mounted ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"
-              }`}
-              style={{ transitionDelay: '760ms' }}
+          {/* Submit */}
+          <button
+            type="submit"
+            disabled={!password.trim() || loading || lockout.locked}
+            className="w-full py-4 rounded-xl bg-red-600 hover:bg-red-700 disabled:opacity-30 text-white font-semibold text-base transition flex items-center justify-center gap-2 shadow-[0_4px_20px_rgba(220,38,38,0.35)]"
+          >
+            {loading ? (
+              <><Loader2 className="w-5 h-5 animate-spin" /> Verificando…</>
+            ) : (
+              "Verificar acceso"
+            )}
+          </button>
+        </form>
+
+        {/* Cancel */}
+        {onCancel && (
+          <div className="mt-4 text-center">
+            <Button
+              onClick={onCancel}
+              variant="ghost"
+              className="text-slate-500 hover:text-slate-300 hover:bg-white/5"
+              disabled={loading}
             >
-              <Key label="←" onClick={() => press("back")} disabled={loading} />
-            </div>
-            
-            <div
-              className={`transition-all duration-500 ${
-                mounted ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"
-              }`}
-              style={{ transitionDelay: '800ms' }}
-            >
-              <Key label={0} onClick={() => press(0)} disabled={loading} />
-            </div>
-            
-            <div
-              className={`transition-all duration-500 ${
-                mounted ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"
-              }`}
-              style={{ transitionDelay: '840ms' }}
-            >
-              <button
-                onClick={() => press("ok")}
-                disabled={pin.length < 4 || loading}
-                className={`w-20 h-16 rounded-2xl text-white text-base font-semibold shadow-[0_8px_30px_rgba(220,38,38,0.45)] active:scale-95 transition ${brand.red} disabled:opacity-40`}
-              >
-                {loading ? <Loader2 className="mx-auto animate-spin" /> : "✓"}
-              </button>
-            </div>
+              Cancelar
+            </Button>
           </div>
-
-          {/* Cancel */}
-          {onCancel && (
-            <div className="mt-8">
-              <Button
-                onClick={onCancel}
-                variant="outline"
-                className="border-white/15 text-gray-300 hover:bg-white/5"
-                disabled={loading}
-              >
-                Cancelar
-              </Button>
-            </div>
-          )}
-
-          {/* Info */}
-          <p className="mt-8 text-xs text-gray-500">
-            PIN por defecto: 9110 (cambiar después de primer acceso)
-          </p>
-        </div>
+        )}
       </div>
 
       <style>{`
         @keyframes shake {
-          10%, 90% { transform: translateX(-1px); }
-          20%, 80% { transform: translateX(2px); }
-          30%, 50%, 70% { transform: translateX(-4px); }
-          40%, 60% { transform: translateX(4px); }
+          10%, 90% { transform: translateX(-2px); }
+          20%, 80% { transform: translateX(3px); }
+          30%, 50%, 70% { transform: translateX(-5px); }
+          40%, 60% { transform: translateX(5px); }
         }
-        
         @keyframes fadeIn {
-          from { opacity: 0; transform: translateY(-10px); }
-          to { opacity: 1; transform: translateY(0); }
+          from { opacity: 0; transform: translateY(-6px); }
+          to   { opacity: 1; transform: translateY(0); }
         }
       `}</style>
     </div>
