@@ -588,6 +588,7 @@ export default function PinAccess() {
   // After Google OAuth redirect, load the tenant users and proceed
   const performOAuthAuth = async (oauthUser) => {
     const email = oauthUser.email;
+    const googleName = oauthUser.user_metadata?.full_name || oauthUser.user_metadata?.name || '';
     setUsersLoading(true);
     setError("");
     setPin("");
@@ -607,15 +608,34 @@ export default function PinAccess() {
         localStorage.setItem("smartfix_tenant_id", resolvedTenantId);
         localStorage.setItem("smartfix_store_email", email);
       }
+      // storeEmail is used in handleCreateFirstUser — set it now
+      setStoreEmail(email);
+
       const users = await getMergedActiveUsers(resolvedTenantId);
-      if (users.length) {
-        setAvailableUsers(users);
-        setSelectedUser(null);
-        setStep("user");
+      if (!users.length) {
+        // ── Primer usuario: configurar perfil + PIN ──
+        setFirstUserForm({ full_name: googleName, phone: '' });
+        setFirstUserPin('');
+        setFirstUserPinConfirm('');
+        setFirstUserPinStage(googleName ? 'pin' : 'form'); // saltar form si ya tenemos el nombre
+        setFirstUserPinError('');
         setStoreAuthenticated(true);
+        setStep("first_user_setup");
       } else {
-        toast.error("No hay empleados configurados para este email de Google.");
-        await supabase.auth.signOut();
+        setAvailableUsers(users);
+        setStoreAuthenticated(true);
+        // ── Opción B: si el email de Google coincide con un empleado, ir directo a su PIN ──
+        const matched = users.find(u => u.email?.toLowerCase() === email.toLowerCase());
+        if (matched) {
+          setSelectedUser(matched);
+          setPin("");
+          setError("");
+          setStep("pin");
+          toast.success(`¡Hola, ${matched.full_name || matched.email}! Ingresa tu PIN`, { duration: 2500 });
+        } else {
+          setSelectedUser(null);
+          setStep("user");
+        }
       }
     } catch (e) {
       console.error("OAuth auth error:", e);
