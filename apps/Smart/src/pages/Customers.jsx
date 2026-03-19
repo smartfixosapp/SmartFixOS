@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useMemo } from "react";
 import { dataClient } from "@/components/api/dataClient";
+import { supabase } from "../../../../lib/supabase-client.js";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -58,12 +59,27 @@ export default function Customers() {
     queryKey: ["customers"],
     queryFn: async () => {
       const local = readLocalCustomers();
+      const tenantId = localStorage.getItem("smartfix_tenant_id");
       try {
-        const remote = await dataClient.entities.Customer.list("-created_date");
-        const merged = dedupeById([...(remote || []), ...local]);
+        // Fetch customers for this tenant OR orphaned (created before tenant isolation)
+        let query = supabase.from("customer").select("*").order("created_at", { ascending: false });
+        if (tenantId) {
+          query = query.or(`tenant_id.eq.${tenantId},tenant_id.is.null`);
+        }
+        const { data: remote } = await query;
+        const remoteList = remote || [];
+
+        // Backfill orphaned records in background
+        if (tenantId) {
+          const orphaned = remoteList.filter((c) => !c.tenant_id);
+          if (orphaned.length > 0) {
+            supabase.from("customer").update({ tenant_id: tenantId }).is("tenant_id", null).then(() => {});
+          }
+        }
+
+        const merged = dedupeById([...remoteList, ...local]);
         if (local.length > 0) {
-          // Limpia locales ya presentes en remoto.
-          const remainingLocal = local.filter((c) => !remote?.some((r) => r.id === c.id));
+          const remainingLocal = local.filter((c) => !remoteList.some((r) => r.id === c.id));
           writeLocalCustomers(remainingLocal);
         }
         return merged;

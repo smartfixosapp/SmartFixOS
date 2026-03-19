@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import { base44 } from "@/api/base44Client";
+import { supabase } from "../../../../../../lib/supabase-client.js";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
@@ -50,12 +51,17 @@ export default function CustomerStep({ formData, updateFormData }) {
   const performSearch = async (q) => {
     setSearching(true);
     try {
-      const customers = await base44.entities.Customer.list();
-      const query = q.toLowerCase();
-      const filtered = (customers || []).filter((c) =>
-        (c.name || "").toLowerCase().includes(query) ||
-        (c.phone || "").toLowerCase().includes(query) ||
-        (c.email || "").toLowerCase().includes(query)
+      const tenantId = localStorage.getItem("smartfix_tenant_id");
+      let dbQuery = supabase.from("customer").select("id, name, phone, email, additional_phones, is_b2b, company_name, company_tax_id, billing_contact_person");
+      if (tenantId) {
+        dbQuery = dbQuery.or(`tenant_id.eq.${tenantId},tenant_id.is.null`);
+      }
+      const { data: allCustomers } = await dbQuery;
+      const lq = q.toLowerCase();
+      const filtered = (allCustomers || []).filter((c) =>
+        (c.name || "").toLowerCase().includes(lq) ||
+        (c.phone || "").toLowerCase().includes(lq) ||
+        (c.email || "").toLowerCase().includes(lq)
       );
       setSearchResults(filtered.slice(0, 8));
       setShowResults(true);
