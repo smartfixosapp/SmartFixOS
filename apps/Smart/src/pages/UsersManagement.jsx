@@ -452,7 +452,9 @@ export default function UsersManagement() {
 
   const loadPendingRequests = async () => {
     try {
-      const pending = await dataClient.entities.AppEmployee.filter({ status: "pending" });
+      const tenantId = getCurrentTenantId();
+      const filterCond = tenantId ? { status: "pending", tenant_id: tenantId } : { status: "pending" };
+      const pending = await dataClient.entities.AppEmployee.filter(filterCond);
       setPendingRequests(pending || []);
     } catch (error) {
       console.error("Error loading pending requests:", error);

@@ -1035,7 +1035,8 @@ export default function PinAccess() {
       }
 
       // 0b. Verificar sesión Super Admin guardada
-      const superRaw = localStorage.getItem(SUPER_SESSION_KEY);
+      // 🔒 SKIP si venimos de activación — evita que nuevos tenants caigan en SuperAdmin
+      const superRaw = !location.state?.activated ? localStorage.getItem(SUPER_SESSION_KEY) : null;
       if (superRaw) {
         try {
           const superSess = JSON.parse(superRaw);

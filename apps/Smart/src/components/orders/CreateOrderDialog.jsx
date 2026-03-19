@@ -3,6 +3,7 @@ import React, { useState, useEffect } from "react";
 import { Order } from "@/api/entities";
 import { Customer } from "@/api/entities";
 import { User } from "@/api/entities";
+import { supabase } from "../../../../../lib/supabase-client.js";
 import { UploadFile } from "@/api/integrations";
 import {
   Dialog,
@@ -120,8 +121,15 @@ export default function CreateOrderDialog({ open, onClose, onOrderCreated }) {
   }, [open]);
 
   const loadCustomers = async () => {
-    const data = await Customer.list("-created_date");
-    setCustomers(data);
+    // 🔒 Filtrar por tenant_id para aislar clientes por tienda
+    const tenantId = localStorage.getItem("smartfix_tenant_id");
+    let query = supabase
+      .from("customer")
+      .select("id, name, phone, email, tenant_id")
+      .order("created_at", { ascending: false });
+    if (tenantId) query = query.eq("tenant_id", tenantId);
+    const { data } = await query;
+    setCustomers(data || []);
   };
 
   const loadCurrentUser = async () => {

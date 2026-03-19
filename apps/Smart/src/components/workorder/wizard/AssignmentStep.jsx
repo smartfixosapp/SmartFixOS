@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
+import { supabase } from "../../../../../../lib/supabase-client.js";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { UserCheck, Users } from "lucide-react";
@@ -15,12 +16,19 @@ export default function AssignmentStep({ formData, updateFormData, currentUser }
   const loadTechnicians = async () => {
     try {
       setLoading(true);
-      
-      // Simplificar consulta - solo obtener usuarios activos
-      const allUsers = await base44.entities.User.list();
-      
-      // Filtrar técnicos en el cliente (más confiable que filtros complejos)
-      const techs = (allUsers || []).filter(u => {
+
+      // 🔒 Filtrar SIEMPRE por tenant_id para evitar mostrar empleados de otras tiendas
+      const tenantId = localStorage.getItem("smartfix_tenant_id");
+      let query = supabase
+        .from("app_employee")
+        .select("id, full_name, email, role, position, active, tenant_id")
+        .eq("active", true);
+      if (tenantId) query = query.eq("tenant_id", tenantId);
+      const { data: empData } = await query;
+      const allUsers = empData || [];
+
+      // Filtrar técnicos en el cliente
+      const techs = allUsers.filter(u => {
         if (!u.active) return false;
         const role = (u.role || "").toLowerCase();
         const name = (u.full_name || u.name || "").toLowerCase();
