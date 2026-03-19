@@ -262,7 +262,7 @@ export default function SuperAdmin() {
 
   // Load employees for a given tenant
   const loadTenantUsers = useCallback(async (tenantId) => {
-    if (tenantUsers[tenantId]) return; // already loaded
+    if (tenantUsers[tenantId] !== undefined) return; // already loaded
     setTenantUsersLoading(prev => ({ ...prev, [tenantId]: true }));
     try {
       const tenantRecord = tenants.find((candidate) => candidate.id === tenantId);
@@ -428,11 +428,10 @@ export default function SuperAdmin() {
       return { ...prev, [tenantId]: true };
     });
     try {
-      const tFilter = `tenant_id.eq.${tenantId},tenant_id.is.null`;
       const [ordersRes, customersRes, txRes] = await Promise.all([
-        supabase.from("order").select("id", { count: "exact", head: true }).or(tFilter),
-        supabase.from("customer").select("id", { count: "exact", head: true }).or(tFilter),
-        supabase.from("transaction").select("amount, type").or(tFilter).eq("type", "revenue"),
+        supabase.from("order").select("id", { count: "exact", head: true }).eq("tenant_id", tenantId),
+        supabase.from("customer").select("id", { count: "exact", head: true }).eq("tenant_id", tenantId),
+        supabase.from("transaction").select("amount, type").eq("tenant_id", tenantId).eq("type", "revenue"),
       ]);
       const revenue = (txRes.data || []).reduce((s, t) => s + (Number(t.amount) || 0), 0);
       setTenantStats(prev => {
@@ -586,6 +585,33 @@ export default function SuperAdmin() {
     }
   };
 
+  const doMigrateOrphanData = async (tenantId) => {
+    if (!window.confirm("¿Asignar todos los registros sin tienda (órdenes, clientes, transacciones, empleados) a esta tienda?\n\nEsto es una operación de una sola vez. Solo hazlo para la tienda que tenía datos antes de la actualización.")) return;
+    setActionId(tenantId + "migrate");
+    try {
+      const TABLES = ["order", "customer", "transaction", "app_employee", "sale", "invoice", "cash_register", "notification"];
+      const results = await Promise.all(
+        TABLES.map(table =>
+          supabase.from(table).update({ tenant_id: tenantId }).is("tenant_id", null)
+            .then(({ error }) => ({ table, ok: !error, error: error?.message }))
+        )
+      );
+      const failed = results.filter(r => !r.ok);
+      if (failed.length === 0) {
+        toast.success("✅ Datos migrados correctamente. Recarga la página para ver los cambios.");
+        // Invalidate caches so data reloads
+        setTenantStats(prev => { const n = { ...prev }; delete n[tenantId]; return n; });
+        setTenantUsers(prev => { const n = { ...prev }; delete n[tenantId]; return n; });
+      } else {
+        toast.error(`⚠️ Algunos errores: ${failed.map(f => f.table + ': ' + f.error).join(', ')}`);
+      }
+    } catch (e) {
+      toast.error(e.message || "Error al migrar");
+    } finally {
+      setActionId(null);
+    }
+  };
+
   const doSeedTemplates = async (tenantId) => {
     setActionId(tenantId + "seed");
     try {
@@ -659,31 +685,29 @@ export default function SuperAdmin() {
     setTenantData(null);
     setTenantDataLoading(true);
     try {
-      // Include records with NULL tenant_id (created before tenant isolation) alongside tagged records
-      const tenantFilter = `tenant_id.eq.${tenant.id},tenant_id.is.null`;
       const [ordersRes, txRes, customersRes, employeesRes] = await Promise.all([
         supabase
           .from("order")
-          .select("id, order_number, created_at, status, cost_estimate, amount_paid, customer_name, device_type, device_brand, device_model, tenant_id")
-          .or(tenantFilter)
+          .select("id, order_number, created_at, status, cost_estimate, amount_paid, customer_name, device_type, device_brand, device_model")
+          .eq("tenant_id", tenant.id)
           .order("created_at", { ascending: false })
           .limit(50),
         supabase
           .from("transaction")
-          .select("id, created_at, type, amount, category, description, payment_method, tenant_id")
-          .or(tenantFilter)
+          .select("id, created_at, type, amount, category, description, payment_method")
+          .eq("tenant_id", tenant.id)
           .order("created_at", { ascending: false })
           .limit(50),
         supabase
           .from("customer")
-          .select("id, name, email, phone, created_at, tenant_id")
-          .or(tenantFilter)
+          .select("id, name, email, phone, created_at")
+          .eq("tenant_id", tenant.id)
           .order("created_at", { ascending: false })
           .limit(50),
         supabase
           .from("app_employee")
-          .select("id, full_name, email, role, status, pin, created_at, tenant_id")
-          .or(`tenant_id.eq.${tenant.id},tenant_id.is.null`)
+          .select("id, full_name, email, role, status, pin, created_at")
+          .eq("tenant_id", tenant.id)
           .order("created_at", { ascending: false }),
       ]);
 
@@ -700,18 +724,6 @@ export default function SuperAdmin() {
       }, {});
 
       setTenantData({ orders, transactions, customers, employees, totalIncome, totalExpense, ordersByStatus });
-
-      // Backfill orphaned records (NULL tenant_id) to this tenant in background
-      const orphanedOrders = orders.filter(o => !o.tenant_id);
-      const orphanedTx = transactions.filter(t => !t.tenant_id);
-      const orphanedCustomers = customers.filter(c => !c.tenant_id);
-      if (orphanedOrders.length || orphanedTx.length || orphanedCustomers.length) {
-        Promise.all([
-          orphanedOrders.length ? supabase.from("order").update({ tenant_id: tenant.id }).is("tenant_id", null) : Promise.resolve(),
-          orphanedTx.length ? supabase.from("transaction").update({ tenant_id: tenant.id }).is("tenant_id", null) : Promise.resolve(),
-          orphanedCustomers.length ? supabase.from("customer").update({ tenant_id: tenant.id }).is("tenant_id", null) : Promise.resolve(),
-        ]).catch(() => {});
-      }
     } catch (e) {
       toast.error("Error cargando datos: " + e.message);
       setTenantData({ orders: [], transactions: [], customers: [], employees: [], totalIncome: 0, totalExpense: 0, ordersByStatus: {} });
@@ -1866,6 +1878,19 @@ export default function SuperAdmin() {
                                   className="flex items-center gap-1.5 text-xs px-3 py-2 rounded-xl bg-teal-500/10 border border-teal-500/30 text-teal-300 hover:bg-teal-500/20 transition-all disabled:opacity-50"
                                 >
                                   <Mail className="w-3.5 h-3.5" /> Sembrar plantillas
+                                </button>
+
+                                {/* Migrar datos huérfanos */}
+                                <button
+                                  onClick={() => doMigrateOrphanData(tenant.id)}
+                                  disabled={actionId === tenant.id + "migrate" || !!busy}
+                                  title="Asignar registros sin tienda (datos anteriores a la aislación multi-tenant) a esta tienda"
+                                  className="flex items-center gap-1.5 text-xs px-3 py-2 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-300 hover:bg-amber-500/20 transition-all disabled:opacity-50"
+                                >
+                                  {actionId === tenant.id + "migrate"
+                                    ? <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+                                    : <Database className="w-3.5 h-3.5" />}
+                                  Migrar datos
                                 </button>
 
                                 {/* Nota interna */}
