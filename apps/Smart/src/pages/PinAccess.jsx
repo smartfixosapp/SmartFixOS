@@ -586,20 +586,25 @@ export default function PinAccess() {
         // can intercept the custom URL scheme redirect and return control to the app
         const { Browser } = await import('@capacitor/browser');
         const redirectTo = `com.smartfixos.pr911://PinAccess?gintent=${intent}`;
+        toast.info('🔵 [D1] Abriendo Google OAuth...');
 
         const { data, error } = await supabase.auth.signInWithOAuth({
           provider: "google",
           options: {
             redirectTo,
             queryParams: { access_type: "offline", prompt: "consent" },
-            skipBrowserRedirect: true, // Don't auto-navigate — we'll open the URL ourselves
+            skipBrowserRedirect: true,
           },
         });
         if (error) { toast.error("Error al iniciar con Google: " + error.message); setLoading(false); return; }
         if (data?.url) {
+          toast.info('🔵 [D2] URL recibida, abriendo Browser...');
           await Browser.open({ url: data.url });
+        } else {
+          toast.error('🔴 [D2] No se recibió URL de OAuth');
+          setLoading(false);
         }
-        // Loading will be cleared when appUrlOpen fires and page reloads
+        // Loading will be cleared when appUrlOpen fires and the deeplink event fires
       } else {
         // On web: standard redirect
         const redirectTo = `${window.location.origin}/PinAccess?gintent=${intent}`;
@@ -1047,30 +1052,30 @@ export default function PinAccess() {
   useEffect(() => {
     const handleDeepLink = async (e) => {
       const { code, gintent, hash, search } = e.detail || {};
-      console.log('[PinAccess] capacitor:deeplink received — code:', !!code, 'gintent:', gintent);
+      toast.info('🟢 [D3] Deep link recibido — code=' + !!code);
       try {
         setCheckingUsers(true);
         let session = null;
 
         if (code) {
-          // PKCE flow: exchange the authorization code for tokens directly
+          toast.info('🟡 [D4] Intercambiando código PKCE...');
           const { data, error } = await supabase.auth.exchangeCodeForSession(code);
           if (error) {
-            console.error('[PinAccess] exchangeCodeForSession error:', error);
-            toast.error('Error al iniciar sesión: ' + error.message);
+            toast.error('🔴 [D4] Error exchange: ' + error.message);
             setCheckingUsers(false);
             setLoading(false);
             return;
           }
           session = data?.session;
+          toast.info('🟢 [D5] Sesión: ' + (session?.user?.email || 'null'));
         } else if (hash) {
-          // Implicit flow: tokens in hash fragment — navigate to trigger SDK detection
           window.location.href = '/PinAccess' + search + hash;
-          return; // page will reload and handle via normal OAuth check
+          return;
+        } else {
+          toast.error('🔴 [D3] Sin code ni hash en deep link');
         }
 
         if (session?.user) {
-          // Use ref so we always call the latest version of performOAuthAuth
           const handler = performOAuthAuthRef.current;
           if (handler) {
             await handler(session.user);
@@ -1079,11 +1084,12 @@ export default function PinAccess() {
           setIsReady(true);
           setLoading(false);
         } else {
-          toast.error('No se pudo establecer la sesión');
+          toast.error('🔴 [D5] No se pudo establecer la sesión');
           setCheckingUsers(false);
           setLoading(false);
         }
       } catch (err) {
+        toast.error('🔴 [D-err] ' + err.message);
         console.error('[PinAccess] deeplink OAuth error:', err);
         setCheckingUsers(false);
         setLoading(false);

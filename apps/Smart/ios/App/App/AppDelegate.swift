@@ -64,7 +64,11 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
     // With the scene-based lifecycle (iOS 13+), URL opens arrive here — NOT in
     // AppDelegate.application(_:open:options:). Without this, appUrlOpen never fires.
     func scene(_ scene: UIScene, openURLContexts URLContexts: Set<UIOpenURLContext>) {
-        guard let url = URLContexts.first?.url else { return }
+        guard let url = URLContexts.first?.url else {
+            print("⚡️ [SceneDelegate] openURLContexts called but no URL found")
+            return
+        }
+        print("⚡️ [SceneDelegate] openURLContexts → \(url.absoluteString)")
         _ = ApplicationDelegateProxy.shared.application(
             UIApplication.shared,
             open: url,
