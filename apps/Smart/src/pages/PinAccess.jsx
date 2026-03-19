@@ -570,8 +570,8 @@ export default function PinAccess() {
   const handleGoogleSignIn = async (intent = "login") => {
     setLoading(true);
     try {
-      localStorage.setItem("google_intent", intent);
-      const prodUrl = "https://smart-fix-os-smart.vercel.app/PinAccess";
+      // Intent va en la URL para que sobreviva el redirect entre orígenes
+      const prodUrl = `https://smart-fix-os-smart.vercel.app/PinAccess?gintent=${intent}`;
       const { error } = await supabase.auth.signInWithOAuth({
         provider: "google",
         options: {
@@ -581,13 +581,10 @@ export default function PinAccess() {
       });
       if (error) {
         toast.error("Error al iniciar con Google: " + error.message);
-        localStorage.removeItem("google_intent");
         setLoading(false);
       }
-      // On success, browser redirects to Google — loading stays true
     } catch (e) {
       toast.error("No se pudo conectar con Google");
-      localStorage.removeItem("google_intent");
       setLoading(false);
     }
   };
@@ -636,8 +633,10 @@ export default function PinAccess() {
   const performOAuthAuth = async (oauthUser) => {
     const email = oauthUser.email;
     const googleName = oauthUser.user_metadata?.full_name || oauthUser.user_metadata?.name || '';
-    const intent = localStorage.getItem("google_intent") || "login";
-    localStorage.removeItem("google_intent");
+    // Intent viaja en la URL (localStorage no persiste entre orígenes)
+    const urlParams = new URLSearchParams(window.location.search);
+    const intent = urlParams.get("gintent") || "login";
+    window.history.replaceState({}, '', window.location.pathname); // limpiar URL
 
     // Super Admin via Google → directo al panel
     if (email.toLowerCase() === SUPER_ADMIN_EMAIL.toLowerCase()) {
