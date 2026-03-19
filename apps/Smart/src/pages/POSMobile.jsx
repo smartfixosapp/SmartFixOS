@@ -459,21 +459,24 @@ export default function POSMobile() {
     paymentMethod === "mixed" ? (mixedTotal >= total && (!mixedAth || hasAthMeta)) :
     paymentMethod ? true : false);
 
+  // Piezas (subcategoria === "piezas_servicios") NO se venden en POS — son para reparaciones internas
+  const sellableProducts = products.filter(p => p.subcategoria !== "piezas_servicios");
+
   const getFilteredItems = useCallback(() => {
     let items = [];
     const q = searchQuery.toLowerCase();
 
     if (activeTab === "all") {
-      items = [...products, ...services].map((item) => ({
+      items = [...sellableProducts, ...services].map((item) => ({
         ...item,
         _type: item.duration_minutes ? 'service' : 'product'
       }));
     } else if (activeTab === "accesorios") {
-      items = products.filter(p => p.tipo_principal === "accesorios").map(item => ({...item, _type: 'product'}));
+      items = sellableProducts.filter(p => p.tipo_principal === "accesorios").map(item => ({...item, _type: 'product'}));
     } else if (activeTab === "devices") {
-      items = products.filter(p => p.tipo_principal === "dispositivos" && p.subcategoria === "dispositivo_completo").map(item => ({...item, _type: 'product'}));
+      items = sellableProducts.filter(p => p.tipo_principal === "dispositivos" && p.subcategoria === "dispositivo_completo").map(item => ({...item, _type: 'product'}));
     } else if (activeTab === "offers") {
-      items = products.filter(p => p.discount_active && p.discount_percentage > 0).map(item => ({...item, _type: 'product'}));
+      items = sellableProducts.filter(p => p.discount_active && p.discount_percentage > 0).map(item => ({...item, _type: 'product'}));
     } else if (activeTab === "services") {
       items = services.map(item => ({...item, _type: 'service'}));
     }

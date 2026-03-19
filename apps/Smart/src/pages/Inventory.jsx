@@ -817,7 +817,7 @@ export default function Inventory() {
   const [mainCategory, setMainCategory] = useState("dispositivos");
   const [showReports, setShowReports] = useState(false);
   const [showManageCategories, setShowManageCategories] = useState(false);
-  const [viewMode, setViewMode] = useState("reports"); // reports | products | categories
+  const [viewMode, setViewMode] = useState("products"); // products | categories
   const pageSize = 24;
   const recentCreatedRef = useRef([]);
   const [pullStart, setPullStart] = useState(0);
@@ -1263,17 +1263,11 @@ export default function Inventory() {
 
             {/* Actions */}
             <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
-              {/* Tab pills */}
+              {/* Tab pill — solo Productos */}
               <div className="flex items-center gap-1 bg-white/5 border border-white/10 rounded-2xl p-1">
                 <button
-                  onClick={() => setViewMode("reports")}
-                  className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold transition-all ${viewMode === "reports" ? "bg-teal-500/20 text-teal-300 border border-teal-500/30" : "text-white/40 hover:text-white/70"}`}
-                >
-                  <FileText className="w-3.5 h-3.5" /> Reportes
-                </button>
-                <button
                   onClick={() => setViewMode("products")}
-                  className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold transition-all ${viewMode === "products" ? "bg-cyan-500/20 text-cyan-300 border border-cyan-500/30" : "text-white/40 hover:text-white/70"}`}
+                  className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold bg-cyan-500/20 text-cyan-300 border border-cyan-500/30"
                 >
                   <Box className="w-3.5 h-3.5" /> Productos
                 </button>
