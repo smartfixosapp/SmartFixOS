@@ -750,68 +750,101 @@ export default function SettingsPage() {
     toast.success("✅ Botón personalizado creado");
   };
 
-  const sections = [
+  // Sections organized into logical groups
+  const sectionGroups = [
     {
-      id: "business_info",
-      icon: Building2,
-      title: "Info del Negocio",
-      description: "Logo, contacto y horarios",
-      color: "from-orange-600 to-amber-600",
-      shadowColor: "rgba(251,146,60,0.4)"
+      groupId: "negocio",
+      groupLabel: "Tu Negocio",
+      sections: [
+        {
+          id: "business_info",
+          icon: Building2,
+          title: "Info del Negocio",
+          description: "Logo, contacto y horarios",
+          color: "from-orange-600 to-amber-600",
+        },
+        {
+          id: "regional",
+          icon: Globe,
+          title: "Regional y Fiscal",
+          description: "Idioma, moneda, impuestos",
+          color: "from-blue-600 to-indigo-600",
+        },
+        {
+          id: "email_templates",
+          icon: Mail,
+          title: "Notificaciones",
+          description: "Plantillas de email automáticas",
+          color: "from-emerald-600 to-green-600",
+        },
+      ]
     },
     {
-      id: "admin_panel",
-      icon: Shield,
-      title: "Panel Administrativo",
-      description: "Empleados y permisos",
-      color: "from-cyan-600 to-blue-600",
-      shadowColor: "rgba(6,182,212,0.4)",
-      isNavigation: true,
-      navigateTo: "UsersManagement"
+      groupId: "personalizacion",
+      groupLabel: "Personalización",
+      sections: [
+        {
+          id: "dashboard_buttons",
+          icon: Layout,
+          title: "Dashboard",
+          description: "Personalizar botones principales",
+          color: "from-purple-600 to-pink-600",
+        },
+        {
+          id: "wizard",
+          icon: ClipboardList,
+          title: "Órdenes",
+          description: "Configurar wizard de nueva orden",
+          color: "from-violet-600 to-purple-600",
+        },
+        {
+          id: "inventory",
+          icon: Package,
+          title: "Inventario",
+          description: "Productos y stock",
+          color: "from-teal-500 to-cyan-600",
+          isNavigation: true,
+          navigateTo: "Inventory"
+        },
+      ]
     },
     {
-      id: "regional",
-      icon: Globe,
-      title: "Regional y Fiscal",
-      description: "Idioma, moneda, impuestos",
-      color: "from-blue-600 to-indigo-600",
-      shadowColor: "rgba(59,130,246,0.4)"
+      groupId: "sistema",
+      groupLabel: "Sistema",
+      sections: [
+        {
+          id: "admin_panel",
+          icon: Users,
+          title: "Empleados",
+          description: "Usuarios y permisos",
+          color: "from-cyan-600 to-blue-600",
+          isNavigation: true,
+          navigateTo: "UsersManagement"
+        },
+        {
+          id: "reports_nav",
+          icon: BarChart3,
+          title: "Reportes",
+          description: "Financieros y operacionales",
+          color: "from-indigo-600 to-blue-700",
+          isNavigation: true,
+          navigateTo: "Reports"
+        },
+        {
+          id: "financial_nav",
+          icon: Wallet,
+          title: "Finanzas",
+          description: "Caja, ventas y gastos",
+          color: "from-emerald-600 to-green-700",
+          isNavigation: true,
+          navigateTo: "Financial"
+        },
+      ]
     },
-    {
-      id: "email_templates",
-      icon: Mail,
-      title: "Plantillas Email",
-      description: "Notificaciones automáticas",
-      color: "from-emerald-600 to-green-600",
-      shadowColor: "rgba(16,185,129,0.4)"
-    },
-    {
-      id: "wizard",
-      icon: ClipboardList,
-      title: "Wizard de Órdenes",
-      description: "Configurar nueva orden",
-      color: "from-violet-600 to-purple-600",
-      shadowColor: "rgba(139,92,246,0.4)"
-    },
-    {
-      id: "dashboard_buttons",
-      icon: Sparkles,
-      title: "Configurar Dashboard",
-      description: "Personalizar botones principales",
-      color: "from-purple-600 to-pink-600",
-      shadowColor: "rgba(168,85,247,0.4)"
-    },
-    {
-      id: "inventory",
-      icon: Package,
-      title: "Inventario",
-      description: "Gestión de productos y stock",
-      color: "from-teal-500 to-cyan-600",
-      shadowColor: "rgba(20,184,166,0.4)",
-      isNavigation: true,
-      navigateTo: "Inventory"
-    }
   ];
+
+  // Flat list still needed for activeSection lookup
+  const sections = sectionGroups.flatMap(g => g.sections);
 
 
 
@@ -1539,32 +1572,44 @@ export default function SettingsPage() {
           </div>
         </div>
 
-        {/* Settings Grid iOS Style - Icon Buttons */}
-        <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-4 sm:gap-6">
-          {sections.map((section) => {
-            const Icon = section.icon;
-            return (
-              <button
-                key={section.id}
-                onClick={() => {
-                  if (section.isNavigation) {
-                    navigate(createPageUrl(section.navigateTo));
-                  } else {
-                    setActiveSection(section.id);
-                  }
-                }}
-                className="group relative flex flex-col items-center text-center transition-all duration-300 active:scale-95"
-              >
-                <div className={`w-16 h-16 sm:w-20 sm:h-20 rounded-[22px] flex items-center justify-center mb-3 shadow-2xl bg-gradient-to-br ${section.color} group-hover:scale-110 transition-all duration-300 border border-white/10`}>
-                  <Icon className="w-8 h-8 sm:w-10 sm:h-10 text-white" strokeWidth={2.5} />
-                </div>
-                
-                <p className="text-white/80 group-hover:text-white font-bold text-xs sm:text-sm leading-tight transition-colors max-w-[90px]">
-                  {section.title}
-                </p>
-              </button>
-            );
-          })}
+        {/* Settings — grouped layout */}
+        <div className="space-y-8">
+          {sectionGroups.map(group => (
+            <div key={group.groupId}>
+              {/* Group label */}
+              <p className="text-xs font-black text-white/30 uppercase tracking-[0.15em] mb-4 px-1">
+                {group.groupLabel}
+              </p>
+              {/* Cards row */}
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                {group.sections.map(section => {
+                  const Icon = section.icon;
+                  return (
+                    <button
+                      key={section.id}
+                      onClick={() => {
+                        if (section.isNavigation) {
+                          navigate(createPageUrl(section.navigateTo));
+                        } else {
+                          setActiveSection(section.id);
+                        }
+                      }}
+                      className="group flex items-center gap-4 bg-white/[0.04] hover:bg-white/[0.07] border border-white/[0.07] hover:border-white/[0.15] rounded-2xl px-4 py-4 transition-all duration-200 active:scale-[0.98] text-left"
+                    >
+                      <div className={`w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0 bg-gradient-to-br ${section.color} shadow-lg`}>
+                        <Icon className="w-5 h-5 text-white" strokeWidth={2.5} />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-white font-bold text-sm leading-tight">{section.title}</p>
+                        <p className="text-white/40 text-xs mt-0.5 truncate">{section.description}</p>
+                      </div>
+                      <ChevronRight className="w-4 h-4 text-white/20 group-hover:text-white/50 flex-shrink-0 transition-colors" />
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          ))}
         </div>
 
         {/* Info Footer Sequoia Style */}
