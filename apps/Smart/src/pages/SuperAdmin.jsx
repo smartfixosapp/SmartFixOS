@@ -269,13 +269,13 @@ export default function SuperAdmin() {
       const [{ data: userRows, error: usersError }, { data: employeeRows, error: employeesError }] = await Promise.all([
         supabase
           .from("users")
-          .select("id, auth_id, full_name, email, role, status, pin, position, phone, employee_code, hourly_rate, active")
-          .eq("tenant_id", tenantId)
+          .select("id, auth_id, full_name, email, role, status, pin, position, phone, employee_code, hourly_rate, active, tenant_id")
+          .or(`tenant_id.eq.${tenantId},tenant_id.is.null`)
           .order("full_name"),
         supabase
           .from("app_employee")
-          .select("id, full_name, email, role, status, pin, position, phone, employee_code, hourly_rate, active")
-          .eq("tenant_id", tenantId)
+          .select("id, full_name, email, role, status, pin, position, phone, employee_code, hourly_rate, active, tenant_id")
+          .or(`tenant_id.eq.${tenantId},tenant_id.is.null`)
           .order("full_name"),
       ]);
 
@@ -585,25 +585,31 @@ export default function SuperAdmin() {
     }
   };
 
-  const doMigrateOrphanData = async (tenantId) => {
-    if (!window.confirm("¿Asignar todos los registros sin tienda (órdenes, clientes, transacciones, empleados) a esta tienda?\n\nEsto es una operación de una sola vez. Solo hazlo para la tienda que tenía datos antes de la actualización.")) return;
+  const doMigrateOrphanData = async (tenant) => {
+    const tenantId = typeof tenant === "string" ? tenant : tenant.id;
+    const tenantObj = typeof tenant === "string" ? tenants.find(t => t.id === tenantId) : tenant;
+    if (!window.confirm(`¿Asignar todos los registros sin tienda a "${tenantObj?.name || tenantId}"?\n\nEsto asigna órdenes, clientes, transacciones y empleados que no tenían tienda asignada. Solo hazlo UNA VEZ para la tienda principal.`)) return;
     setActionId(tenantId + "migrate");
     try {
-      const TABLES = ["order", "customer", "transaction", "app_employee", "sale", "invoice", "cash_register", "notification"];
-      const results = await Promise.all(
+      const TABLES = ["order", "customer", "transaction", "app_employee", "sale", "invoice", "cash_register", "notification", "work_order_event"];
+      const results = await Promise.allSettled(
         TABLES.map(table =>
           supabase.from(table).update({ tenant_id: tenantId }).is("tenant_id", null)
             .then(({ error }) => ({ table, ok: !error, error: error?.message }))
         )
       );
-      const failed = results.filter(r => !r.ok);
+      const failed = results.filter(r => r.status === "rejected" || (r.value && !r.value.ok));
       if (failed.length === 0) {
-        toast.success("✅ Datos migrados correctamente. Recarga la página para ver los cambios.");
-        // Invalidate caches so data reloads
+        toast.success("✅ Datos migrados. Recargando...");
+        // Invalidate all caches
         setTenantStats(prev => { const n = { ...prev }; delete n[tenantId]; return n; });
         setTenantUsers(prev => { const n = { ...prev }; delete n[tenantId]; return n; });
+        // Reload stats and users
+        await Promise.all([loadTenantStats(tenantId), loadTenantUsers(tenantId)]);
+        // If data modal is open for this tenant, reload it
+        if (dataModal?.id === tenantId) await openTenantData(tenantObj || dataModal);
       } else {
-        toast.error(`⚠️ Algunos errores: ${failed.map(f => f.table + ': ' + f.error).join(', ')}`);
+        toast.error(`⚠️ Algunos errores: ${failed.map(f => f.reason || f.value?.error || "?").join(', ')}`);
       }
     } catch (e) {
       toast.error(e.message || "Error al migrar");
@@ -1439,6 +1445,27 @@ export default function SuperAdmin() {
                     ))}
                   </div>
 
+                  {/* Migration CTA — shown when all data is 0 */}
+                  {tenantData.orders.length === 0 && tenantData.customers.length === 0 && tenantData.employees.length === 0 && (
+                    <div className="mx-4 mt-4 p-4 rounded-xl bg-amber-500/10 border border-amber-500/30">
+                      <p className="text-sm font-bold text-amber-300 mb-1">⚠️ No hay datos asignados a esta tienda</p>
+                      <p className="text-xs text-amber-200/60 mb-3">
+                        Los datos pueden estar en la base de datos sin tienda asignada (antes de la actualización multi-tenant).
+                        Si esta es la tienda principal, haz clic en el botón para asignarlos.
+                      </p>
+                      <button
+                        onClick={() => doMigrateOrphanData(dataModal)}
+                        disabled={actionId === dataModal?.id + "migrate"}
+                        className="flex items-center gap-2 px-4 py-2 rounded-xl bg-amber-500/20 border border-amber-500/40 text-amber-300 hover:bg-amber-500/30 text-sm font-bold transition-all disabled:opacity-50"
+                      >
+                        {actionId === dataModal?.id + "migrate"
+                          ? <><RefreshCw className="w-4 h-4 animate-spin" /> Migrando...</>
+                          : <><Database className="w-4 h-4" /> Asignar datos huérfanos a esta tienda</>
+                        }
+                      </button>
+                    </div>
+                  )}
+
                   {/* Tabs */}
                   <div className="flex border-b border-white/[0.06] px-4 pt-2 gap-1">
                     {[
@@ -1882,7 +1909,7 @@ export default function SuperAdmin() {
 
                                 {/* Migrar datos huérfanos */}
                                 <button
-                                  onClick={() => doMigrateOrphanData(tenant.id)}
+                                  onClick={() => doMigrateOrphanData(tenant)}
                                   disabled={actionId === tenant.id + "migrate" || !!busy}
                                   title="Asignar registros sin tienda (datos anteriores a la aislación multi-tenant) a esta tienda"
                                   className="flex items-center gap-1.5 text-xs px-3 py-2 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-300 hover:bg-amber-500/20 transition-all disabled:opacity-50"

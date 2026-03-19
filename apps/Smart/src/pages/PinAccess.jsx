@@ -576,12 +576,20 @@ export default function PinAccess() {
   const handleGoogleSignIn = async (intent = "login") => {
     setLoading(true);
     try {
-      const prodUrl = `https://smart-fix-os-smart.vercel.app/PinAccess?gintent=${intent}`;
+      // On native (iOS/Android) use deep link scheme so the OS returns to the app after OAuth
+      // On web use the Vercel URL
+      const { Capacitor } = await import('@capacitor/core');
+      const isNative = Capacitor.isNativePlatform();
+      const redirectTo = isNative
+        ? `com.smartfixos.pr911://PinAccess?gintent=${intent}`
+        : `https://smart-fix-os-smart.vercel.app/PinAccess?gintent=${intent}`;
+
       const { error } = await supabase.auth.signInWithOAuth({
         provider: "google",
         options: {
-          redirectTo: prodUrl,
+          redirectTo,
           queryParams: { access_type: "offline", prompt: "consent" },
+          skipBrowserRedirect: false,
         },
       });
       if (error) {
@@ -597,10 +605,15 @@ export default function PinAccess() {
   const handleAppleSignIn = async (intent = "login") => {
     setLoading(true);
     try {
-      const prodUrl = `https://smart-fix-os-smart.vercel.app/PinAccess?gintent=${intent}`;
+      const { Capacitor } = await import('@capacitor/core');
+      const isNative = Capacitor.isNativePlatform();
+      const redirectTo = isNative
+        ? `com.smartfixos.pr911://PinAccess?gintent=${intent}`
+        : `https://smart-fix-os-smart.vercel.app/PinAccess?gintent=${intent}`;
+
       const { error } = await supabase.auth.signInWithOAuth({
         provider: "apple",
-        options: { redirectTo: prodUrl },
+        options: { redirectTo },
       });
       if (error) {
         toast.error("Error al iniciar con Apple: " + error.message);

@@ -5,26 +5,37 @@ const config: CapacitorConfig = {
   appName: 'SmartFixOS',
   webDir: 'dist',
   server: {
+    // Load LIVE from Vercel — app always shows latest code without needing store updates
+    url: 'https://smart-fix-os-smart.vercel.app',
+    cleartext: false,
     iosScheme: 'https',
     androidScheme: 'https',
     allowNavigation: [
-      // Production API (Deno / Render)
+      'smart-fix-os-smart.vercel.app',
       'smartfixos-api.onrender.com',
-      // Supabase Cloud (DB + Auth + Storage)
       'idntuvtabecwubzswpwi.supabase.co',
-      // Frontend (Vercel)
-      'smart-fix-os.vercel.app',
-      // Legacy (keep for backward compat)
-      'supa-6504.ownmy.app',
-      'api-8686.ownmy.app',
-    ]
+      '*.supabase.co',
+    ],
   },
   plugins: {
     SplashScreen: {
-      launchShowDuration: 2000,
+      launchShowDuration: 2500,
       launchAutoHide: true,
       backgroundColor: '#000000',
+      androidSplashResourceName: 'splash',
+      androidScaleType: 'CENTER_CROP',
       showSpinner: false,
+      iosSpinnerStyle: 'small',
+      spinnerColor: '#06b6d4',
+    },
+    StatusBar: {
+      style: 'Dark',
+      backgroundColor: '#000000',
+      overlaysWebView: false,
+    },
+    Keyboard: {
+      resize: 'body',
+      resizeOnFullScreen: true,
     },
   },
 };
