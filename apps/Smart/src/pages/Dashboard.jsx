@@ -32,7 +32,8 @@ import {
   AlertCircle,
   X,
   CheckCircle2,
-  Shield
+  Shield,
+  ArrowUpRight
 } from "lucide-react";
 
 import { format, startOfDay } from "date-fns";
@@ -943,27 +944,52 @@ export default function Dashboard() {
                       }
                     };
 
+                    const getSubtitle = (b) => {
+                      if (b.id === "new_order" || b.action === "showWorkOrderWizard") return "Crear nueva orden";
+                      if (b.label.includes("Órdenes")) return "Ver historial";
+                      if (b.label.includes("Inventario")) return "Stock y productos";
+                      if (b.label.includes("Finanzas")) return "Resumen diario";
+                      if (b.label.includes("Recargas")) return "Gestionar recargas";
+                      if (b.label.includes("Rápidas")) return "Reparación express";
+                      if (b.label.includes("Desbloqueos")) return "IMEI & software";
+                      if (b.label.includes("Cliente")) return "Base de clientes";
+                      if (b.label.includes("Reportes") || b.label.includes("Reporte")) return "Análisis y métricas";
+                      if (b.type === "navigate") return "Ver más →";
+                      return "Abrir módulo";
+                    };
+
                     return (
                       <button
                         key={btn.id}
                         onClick={handleClick}
-                        className="group relative bg-[#121215]/40 hover:bg-[#121215]/60 backdrop-blur-3xl border border-white/10 rounded-[32px] px-6 py-6 flex flex-col items-start justify-between aspect-[1.1/1] transition-all duration-700 hover:border-white/20 active:scale-95 shadow-[0_16px_40px_rgba(0,0,0,0.3)] hover:shadow-[0_32px_64px_rgba(0,0,0,0.5)] overflow-hidden"
+                        className="group relative bg-[#121215]/40 hover:bg-[#121215]/60 backdrop-blur-3xl border border-white/[0.08] hover:border-white/20 rounded-[32px] px-6 py-6 flex flex-col items-start justify-between aspect-[1.1/1] transition-all duration-500 active:scale-95 shadow-[0_16px_40px_rgba(0,0,0,0.3)] hover:shadow-[0_32px_64px_rgba(0,0,0,0.5)] overflow-hidden"
                       >
+                        {/* Top shine */}
                         <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/10 to-transparent" />
-                        
+                        {/* Color wash on hover */}
+                        <div className={`absolute inset-0 bg-gradient-to-br ${getIconGradient(btn.label)} opacity-0 group-hover:opacity-[0.07] transition-opacity duration-500 pointer-events-none`} />
+                        {/* Bottom glow */}
+                        <div className={`absolute bottom-0 left-0 right-0 h-16 bg-gradient-to-t from-black/40 to-transparent pointer-events-none`} />
+
                         <div className="flex justify-between w-full items-start gap-4 relative z-10">
-                            <div className={`w-14 h-14 sm:w-16 sm:h-16 rounded-[22px] bg-gradient-to-br ${getIconGradient(btn.label)} flex items-center justify-center shadow-[0_12px_24px_rgba(0,0,0,0.4)] mb-3 text-white transition-all duration-700 group-hover:scale-110 group-hover:rotate-6 group-hover:shadow-[0_16px_32px_rgba(0,0,0,0.6)]`}>
-                              <IconComponent className="w-6 h-6 sm:w-7 sm:h-7" strokeWidth={2.5} />
-                            </div>
-                            {count !== null && (
-                                <span className="inline-flex items-center justify-center min-w-[36px] h-9 px-3 rounded-full border border-white/10 bg-black text-xs sm:text-sm font-black text-white tracking-widest shadow-[0_4px_12px_rgba(0,0,0,0.5)] group-hover:scale-110 transition-transform duration-500">{count}</span>
-                            )}
+                          <div className={`w-14 h-14 sm:w-16 sm:h-16 rounded-[22px] bg-gradient-to-br ${getIconGradient(btn.label)} flex items-center justify-center shadow-[0_12px_24px_rgba(0,0,0,0.4)] mb-3 text-white transition-all duration-500 group-hover:scale-110 group-hover:rotate-6`}>
+                            <IconComponent className="w-6 h-6 sm:w-7 sm:h-7" strokeWidth={2.5} />
+                          </div>
+                          {count !== null && (
+                            <span className="inline-flex items-center justify-center min-w-[32px] h-8 px-2.5 rounded-full bg-white/10 border border-white/10 text-xs font-black text-white shadow-lg group-hover:bg-white/15 transition-all duration-300">{count}</span>
+                          )}
                         </div>
-                        <div className="flex flex-col items-start gap-1 relative z-10 mt-auto">
-                          <span className="text-sm sm:text-base lg:text-lg font-black text-white/90 leading-tight text-left tracking-tight group-hover:text-white transition-colors duration-500 uppercase">
+
+                        <div className="flex flex-col items-start gap-1 relative z-10 mt-auto w-full">
+                          <span className="text-sm sm:text-base lg:text-lg font-black text-white/90 leading-tight text-left tracking-tight group-hover:text-white transition-colors duration-300 uppercase">
                             {btn.label}
                           </span>
-                          <span className="text-[10px] font-black text-white/20 tracking-[0.2em] uppercase group-hover:text-white/40 transition-colors duration-500">Subapp</span>
+                          <div className="flex items-center justify-between w-full mt-0.5">
+                            <span className="text-[10px] font-medium text-white/25 tracking-wide group-hover:text-white/50 transition-colors duration-300">
+                              {getSubtitle(btn)}
+                            </span>
+                            <ArrowUpRight className="w-3.5 h-3.5 text-white/0 group-hover:text-white/40 transition-all duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+                          </div>
                         </div>
                       </button>
                     );
@@ -1132,34 +1158,49 @@ export default function Dashboard() {
                     }
                   };
 
+                  const getMobileSubtitle = (b) => {
+                    if (b.id === "new_order" || b.action === "showWorkOrderWizard") return "Crear orden";
+                    if (b.label.includes("Órdenes")) return "Ver historial";
+                    if (b.label.includes("Inventario")) return "Stock";
+                    if (b.label.includes("Finanzas")) return "Resumen";
+                    if (b.label.includes("Recargas")) return "Gestionar";
+                    if (b.label.includes("Rápidas")) return "Express";
+                    if (b.label.includes("Desbloqueos")) return "IMEI";
+                    if (b.label.includes("Cliente")) return "Clientes";
+                    return "Abrir";
+                  };
+
                   return (
                     <button
                       key={btn.id}
                       onClick={handleClick}
-                      className="group relative bg-[#1C1C1E]/40 border border-white/[0.06] rounded-[28px] p-5 flex flex-col items-start justify-between min-h-[140px] active:scale-95 transition-all duration-300 shadow-xl overflow-hidden touch-manipulation"
+                      className="group relative bg-[#1C1C1E]/50 border border-white/[0.07] rounded-[28px] p-5 flex flex-col items-start justify-between min-h-[148px] active:scale-95 transition-all duration-300 shadow-xl overflow-hidden touch-manipulation"
                     >
-                      {/* Inner Shine */}
-                      <div className="absolute inset-0 bg-gradient-to-br from-white/[0.05] to-transparent pointer-events-none" />
-                      
+                      {/* Inner shine */}
+                      <div className="absolute inset-0 bg-gradient-to-br from-white/[0.04] to-transparent pointer-events-none" />
+                      {/* Color wash on tap */}
+                      <div className={`absolute inset-0 bg-gradient-to-br ${getIconGradient(btn.label).split(' shadow')[0]} opacity-0 active:opacity-[0.08] transition-opacity duration-200 pointer-events-none`} />
+
                       <div className="flex justify-between w-full items-start gap-3 relative z-10">
-                        <div className={`w-12 h-12 rounded-2xl bg-gradient-to-br ${getIconGradient(btn.label)} flex items-center justify-center shadow-lg relative`}>
-                            <IconComponent className="w-6 h-6 text-white" strokeWidth={2.5} />
-                            <div className="absolute inset-0 rounded-2xl bg-white/20 opacity-20 group-hover:opacity-40 transition-opacity" />
+                        <div className={`w-12 h-12 rounded-[18px] bg-gradient-to-br ${getIconGradient(btn.label)} flex items-center justify-center shadow-lg`}>
+                          <IconComponent className="w-6 h-6 text-white" strokeWidth={2.5} />
                         </div>
                         {count !== null && (
-                            <span className="flex items-center justify-center h-6 px-2 rounded-full border border-white/10 bg-white/5 backdrop-blur-md text-[10px] font-black text-white/90 shadow-lg">
-                              {count}
-                            </span>
+                          <span className="flex items-center justify-center h-6 min-w-[24px] px-2 rounded-full bg-white/10 border border-white/10 text-[10px] font-black text-white/90">
+                            {count}
+                          </span>
                         )}
                       </div>
 
-                      <div className="flex flex-col items-start relative z-10 mt-auto">
+                      <div className="flex flex-col items-start relative z-10 mt-auto w-full">
                         <span className="text-sm font-black text-white/95 leading-none tracking-tight">
                           {btn.label}
                         </span>
-                        <div className="flex items-center gap-1.5 mt-2">
-                          <div className="w-1 h-1 rounded-full bg-blue-500 shadow-[0_0_6px_rgba(59,130,246,0.6)]" />
-                          <span className="text-[9px] uppercase tracking-[0.2em] text-white/30 font-black">Subapp</span>
+                        <div className="flex items-center justify-between w-full mt-2">
+                          <span className="text-[10px] font-medium text-white/30 tracking-wide">
+                            {getMobileSubtitle(btn)}
+                          </span>
+                          <ArrowUpRight className="w-3 h-3 text-white/20" />
                         </div>
                       </div>
                     </button>
