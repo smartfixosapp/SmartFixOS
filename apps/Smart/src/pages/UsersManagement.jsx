@@ -47,8 +47,8 @@ const ADMIN_CORE_PANEL_BUTTONS = [
 const LOCAL_USERS_STORAGE_KEY = "smartfix_local_users";
 const SYSTEM_USER_EMAILS = new Set([
   "admin@smartfixos.com",
-  "911smartfix@gmail.com",
   "smartfixosapp@gmail.com"
+  // NOTE: 911smartfix@gmail.com removed — es un email válido de tenant owner
 ]);
 
 function getCurrentTenantId() {
