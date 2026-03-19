@@ -431,7 +431,7 @@ export default function SuperAdmin() {
       const [ordersRes, customersRes, txRes] = await Promise.all([
         supabase.from("order").select("id", { count: "exact", head: true }).eq("tenant_id", tenantId),
         supabase.from("customer").select("id", { count: "exact", head: true }).eq("tenant_id", tenantId),
-        supabase.from("transaction").select("amount, type").eq("tenant_id", tenantId).eq("type", "income"),
+        supabase.from("transaction").select("amount, type").eq("tenant_id", tenantId).eq("type", "revenue"),
       ]);
       const revenue = (txRes.data || []).reduce((s, t) => s + (Number(t.amount) || 0), 0);
       setTenantStats(prev => {
@@ -661,19 +661,19 @@ export default function SuperAdmin() {
       const [ordersRes, txRes, customersRes, employeesRes] = await Promise.all([
         supabase
           .from("order")
-          .select("id, order_number, created_date, status, total_amount, customer_name, device_type, device_brand, device_model")
+          .select("id, order_number, created_at, status, cost_estimate, amount_paid, customer_name, device_type, device_brand, device_model")
           .eq("tenant_id", tenant.id)
-          .order("created_date", { ascending: false })
+          .order("created_at", { ascending: false })
           .limit(50),
         supabase
           .from("transaction")
-          .select("id, created_date, type, amount, category, description, payment_method")
+          .select("id, created_at, type, amount, category, description, payment_method")
           .eq("tenant_id", tenant.id)
-          .order("created_date", { ascending: false })
+          .order("created_at", { ascending: false })
           .limit(50),
         supabase
           .from("customer")
-          .select("id, full_name, email, phone, created_at")
+          .select("id, name, email, phone, created_at")
           .eq("tenant_id", tenant.id)
           .order("created_at", { ascending: false })
           .limit(50),
@@ -689,7 +689,7 @@ export default function SuperAdmin() {
       const customers    = customersRes.data   || [];
       const employees    = employeesRes.data   || [];
 
-      const totalIncome  = transactions.filter(t => t.type === "income") .reduce((s, t) => s + (Number(t.amount) || 0), 0);
+      const totalIncome  = transactions.filter(t => t.type === "revenue") .reduce((s, t) => s + (Number(t.amount) || 0), 0);
       const totalExpense = transactions.filter(t => t.type === "expense").reduce((s, t) => s + (Number(t.amount) || 0), 0);
       const ordersByStatus = orders.reduce((acc, o) => {
         acc[o.status || "unknown"] = (acc[o.status || "unknown"] || 0) + 1;
@@ -1450,10 +1450,10 @@ export default function SuperAdmin() {
                                   {order.order_number ? <span className="text-cyan-400 mr-1">{order.order_number}</span> : null}
                                   {order.customer_name || "Cliente"} — {[order.device_brand, order.device_model || order.device_type].filter(Boolean).join(" ")}
                                 </p>
-                                <p className="text-gray-500 truncate">{order.created_date ? new Date(order.created_date).toLocaleDateString("es") : "—"} · {order.status || "—"}</p>
+                                <p className="text-gray-500 truncate">{order.created_at ? new Date(order.created_at).toLocaleDateString("es") : "—"} · {order.status || "—"}</p>
                               </div>
                               <span className="font-bold text-emerald-400 flex-shrink-0">
-                                {order.total_amount ? `$${Number(order.total_amount).toFixed(0)}` : "—"}
+                                {(order.amount_paid || order.cost_estimate) ? `$${Number(order.amount_paid || order.cost_estimate || 0).toFixed(0)}` : "—"}
                               </span>
                               <button
                                 onClick={() => deleteSupportRecord("order", order.id, order.order_number || order.customer_name || order.id)}
@@ -1478,14 +1478,14 @@ export default function SuperAdmin() {
                           ? <p className="text-xs text-gray-600 py-4 text-center">Sin transacciones registradas</p>
                           : tenantData.transactions.map(tx => (
                             <div key={tx.id} className="flex items-center gap-3 bg-white/[0.025] hover:bg-white/[0.04] rounded-xl px-3 py-2.5 text-xs transition-colors">
-                              <span className={`flex-shrink-0 w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-black ${tx.type === "income" ? "bg-emerald-500/20 text-emerald-400" : "bg-red-500/20 text-red-400"}`}>
-                                {tx.type === "income" ? "+" : "-"}
+                              <span className={`flex-shrink-0 w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-black ${tx.type === "revenue" ? "bg-emerald-500/20 text-emerald-400" : "bg-red-500/20 text-red-400"}`}>
+                                {tx.type === "revenue" ? "+" : "-"}
                               </span>
                               <div className="flex-1 min-w-0">
                                 <p className="text-white font-semibold truncate">{tx.description || tx.category || "—"}</p>
-                                <p className="text-gray-500">{tx.created_date ? new Date(tx.created_date).toLocaleDateString("es") : "—"} · {tx.payment_method || "—"}</p>
+                                <p className="text-gray-500">{tx.created_at ? new Date(tx.created_at).toLocaleDateString("es") : "—"} · {tx.payment_method || "—"}</p>
                               </div>
-                              <span className={`font-bold flex-shrink-0 ${tx.type === "income" ? "text-emerald-400" : "text-red-400"}`}>
+                              <span className={`font-bold flex-shrink-0 ${tx.type === "revenue" ? "text-emerald-400" : "text-red-400"}`}>
                                 ${Number(tx.amount || 0).toFixed(2)}
                               </span>
                               <button
@@ -1512,14 +1512,14 @@ export default function SuperAdmin() {
                           : tenantData.customers.map(c => (
                             <div key={c.id} className="flex items-center gap-3 bg-white/[0.025] hover:bg-white/[0.04] rounded-xl px-3 py-2.5 text-xs transition-colors">
                               <div className="w-7 h-7 rounded-full bg-gradient-to-br from-cyan-500/20 to-purple-500/20 border border-white/10 flex items-center justify-center text-xs font-bold text-cyan-300 flex-shrink-0">
-                                {(c.full_name || c.email || "?")[0].toUpperCase()}
+                                {(c.name || c.email || "?")[0].toUpperCase()}
                               </div>
                               <div className="flex-1 min-w-0">
-                                <p className="text-white font-semibold truncate">{c.full_name || "Sin nombre"}</p>
+                                <p className="text-white font-semibold truncate">{c.name || "Sin nombre"}</p>
                                 <p className="text-gray-500 truncate">{c.email || ""} {c.phone ? `· ${c.phone}` : ""}</p>
                               </div>
                               <button
-                                onClick={() => deleteSupportRecord("customer", c.id, c.full_name || c.email || c.id)}
+                                onClick={() => deleteSupportRecord("customer", c.id, c.name || c.email || c.id)}
                                 disabled={deletingRecord === c.id}
                                 className="flex-shrink-0 p-1.5 rounded-lg text-gray-600 hover:text-red-400 hover:bg-red-500/10 transition-all disabled:opacity-40"
                                 title="Eliminar cliente"
