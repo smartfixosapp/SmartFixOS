@@ -51,15 +51,23 @@ export async function initCapacitor() {
     });
 
     // Handle OAuth deep link callback (com.smartfixos.pr911://...)
-    // Supabase redirects here after Google/Apple login with tokens in URL hash
-    App.addListener('appUrlOpen', ({ url }) => {
+    // Supabase redirects here after Google/Apple login — PKCE sends ?code=, implicit sends #access_token=
+    App.addListener('appUrlOpen', async ({ url }) => {
       if (!url) return;
       try {
+        // Close the in-app browser (SFSafariViewController) if it was open
+        try {
+          const { Browser } = await import('@capacitor/browser');
+          await Browser.close();
+        } catch (_) { /* Browser may not be open, ignore */ }
+
         const urlObj = new URL(url);
-        const gintent = urlObj.searchParams.get('gintent') || 'login';
-        // Preserve the hash — Supabase SDK reads access_token/refresh_token from it
-        const hash = urlObj.hash || '';
-        window.location.href = `/PinAccess?gintent=${gintent}${hash}`;
+        // Preserve ALL query params (Supabase PKCE sends ?code=, implicit sends #access_token=)
+        // Losing the "code" param breaks the PKCE token exchange → session never established
+        const search = urlObj.search || '';   // e.g. "?gintent=login&code=XXXXX"
+        const hash   = urlObj.hash   || '';   // e.g. "#access_token=..." (implicit flow)
+        console.log('[Capacitor] appUrlOpen → /PinAccess' + search + hash);
+        window.location.href = `/PinAccess${search}${hash}`;
       } catch (e) {
         console.warn('[Capacitor] appUrlOpen error:', e);
       }

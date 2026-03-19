@@ -576,25 +576,36 @@ export default function PinAccess() {
   const handleGoogleSignIn = async (intent = "login") => {
     setLoading(true);
     try {
-      // On native (iOS/Android) use deep link scheme so the OS returns to the app after OAuth
-      // On web use the Vercel URL
       const { Capacitor } = await import('@capacitor/core');
       const isNative = Capacitor.isNativePlatform();
-      const redirectTo = isNative
-        ? `com.smartfixos.pr911://PinAccess?gintent=${intent}`
-        : `https://smart-fix-os-smart.vercel.app/PinAccess?gintent=${intent}`;
 
-      const { error } = await supabase.auth.signInWithOAuth({
-        provider: "google",
-        options: {
-          redirectTo,
-          queryParams: { access_type: "offline", prompt: "consent" },
-          skipBrowserRedirect: false,
-        },
-      });
-      if (error) {
-        toast.error("Error al iniciar con Google: " + error.message);
-        setLoading(false);
+      if (isNative) {
+        // On native: use @capacitor/browser (SFSafariViewController) so the in-app browser
+        // can intercept the custom URL scheme redirect and return control to the app
+        const { Browser } = await import('@capacitor/browser');
+        const redirectTo = `com.smartfixos.pr911://PinAccess?gintent=${intent}`;
+
+        const { data, error } = await supabase.auth.signInWithOAuth({
+          provider: "google",
+          options: {
+            redirectTo,
+            queryParams: { access_type: "offline", prompt: "consent" },
+            skipBrowserRedirect: true, // Don't auto-navigate — we'll open the URL ourselves
+          },
+        });
+        if (error) { toast.error("Error al iniciar con Google: " + error.message); setLoading(false); return; }
+        if (data?.url) {
+          await Browser.open({ url: data.url });
+        }
+        // Loading will be cleared when appUrlOpen fires and page reloads
+      } else {
+        // On web: standard redirect
+        const redirectTo = `${window.location.origin}/PinAccess?gintent=${intent}`;
+        const { error } = await supabase.auth.signInWithOAuth({
+          provider: "google",
+          options: { redirectTo, queryParams: { access_type: "offline", prompt: "consent" } },
+        });
+        if (error) { toast.error("Error al iniciar con Google: " + error.message); setLoading(false); }
       }
     } catch (e) {
       toast.error("No se pudo conectar con Google");
@@ -607,17 +618,26 @@ export default function PinAccess() {
     try {
       const { Capacitor } = await import('@capacitor/core');
       const isNative = Capacitor.isNativePlatform();
-      const redirectTo = isNative
-        ? `com.smartfixos.pr911://PinAccess?gintent=${intent}`
-        : `https://smart-fix-os-smart.vercel.app/PinAccess?gintent=${intent}`;
 
-      const { error } = await supabase.auth.signInWithOAuth({
-        provider: "apple",
-        options: { redirectTo },
-      });
-      if (error) {
-        toast.error("Error al iniciar con Apple: " + error.message);
-        setLoading(false);
+      if (isNative) {
+        const { Browser } = await import('@capacitor/browser');
+        const redirectTo = `com.smartfixos.pr911://PinAccess?gintent=${intent}`;
+
+        const { data, error } = await supabase.auth.signInWithOAuth({
+          provider: "apple",
+          options: { redirectTo, skipBrowserRedirect: true },
+        });
+        if (error) { toast.error("Error al iniciar con Apple: " + error.message); setLoading(false); return; }
+        if (data?.url) {
+          await Browser.open({ url: data.url });
+        }
+      } else {
+        const redirectTo = `${window.location.origin}/PinAccess?gintent=${intent}`;
+        const { error } = await supabase.auth.signInWithOAuth({
+          provider: "apple",
+          options: { redirectTo },
+        });
+        if (error) { toast.error("Error al iniciar con Apple: " + error.message); setLoading(false); }
       }
     } catch (e) {
       toast.error("No se pudo conectar con Apple");
@@ -1102,10 +1122,41 @@ export default function PinAccess() {
         }
       }
 
-      // 2. Detectar retorno de Google OAuth
+      // 2. Detectar retorno de Google OAuth (PKCE ?code= o implicit #access_token=)
       try {
-        const { data: { session: oauthSess } } = await supabase.auth.getSession();
-        const hasGoogleIntent = new URLSearchParams(window.location.search).get("gintent");
+        const urlParams = new URLSearchParams(window.location.search);
+        const hasGoogleIntent = urlParams.get("gintent");
+        const pkceCode = urlParams.get("code");
+
+        let oauthSess = null;
+
+        if (pkceCode || hasGoogleIntent) {
+          // PKCE flow: SDK exchanges the code asynchronously on init — wait for SIGNED_IN event
+          // Implicit flow: tokens already in hash — getSession() returns immediately
+          console.log("🔑 OAuth callback detected (code=" + !!pkceCode + "), waiting for session...");
+          setCheckingUsers(true);
+          oauthSess = await new Promise((resolve) => {
+            let resolved = false;
+            const finish = (sess) => { if (!resolved) { resolved = true; sub?.unsubscribe(); resolve(sess); } };
+
+            // Subscribe first — in case code exchange fires before getSession()
+            const { data: { subscription: sub } } = supabase.auth.onAuthStateChange((event, session) => {
+              if ((event === "SIGNED_IN" || event === "TOKEN_REFRESHED") && session?.user) finish(session);
+            });
+
+            // Also check immediately (implicit flow already has tokens)
+            supabase.auth.getSession().then(({ data }) => {
+              if (data.session?.user) finish(data.session);
+            });
+
+            // Timeout after 10s — don't block the UI forever
+            setTimeout(() => finish(null), 10000);
+          });
+        } else {
+          const { data } = await supabase.auth.getSession();
+          oauthSess = data.session;
+        }
+
         const isGoogleIdentity =
           oauthSess?.user?.app_metadata?.provider === "google" ||
           oauthSess?.user?.identities?.some(id => id.provider === "google") ||
