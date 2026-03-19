@@ -1,3 +1,5 @@
+import { checkRateLimit, getClientIP, tooManyRequests } from './_lib/rateLimit.js';
+
 /**
  * POST /api/manage-tenant
  * SuperAdmin only: perform management actions on a tenant
@@ -55,6 +57,10 @@ export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
   if (req.method === 'OPTIONS') return res.status(200).end();
   if (req.method !== 'POST') return res.status(405).json({ success: false, error: 'Method not allowed' });
+
+  // Rate limit: máx 30 acciones admin por IP por 10 minutos
+  const rl = checkRateLimit(getClientIP(req), 'manage-tenant', { max: 30, windowMs: 10 * 60_000 });
+  if (!rl.ok) return tooManyRequests(res, rl.retryAfterSec);
 
   const { tenantId, action, ...extra } = req.body || {};
   if (!tenantId || !action) {

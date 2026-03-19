@@ -1,5 +1,6 @@
 import { createHash, randomUUID } from 'crypto';
 import { ensureResendConfigured, sendResendEmail } from '../lib/server/resend.js';
+import { checkRateLimit, getClientIP, tooManyRequests } from './_lib/rateLimit.js';
 
 const SB_URL = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL || 'https://idntuvtabecwubzswpwi.supabase.co';
 const SB_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
@@ -140,6 +141,10 @@ export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
   if (req.method === 'OPTIONS') return res.status(200).end();
   if (req.method !== 'POST') return res.status(405).json({ success: false, error: 'Method not allowed' });
+
+  // Rate limit: máx 10 intentos OTP por IP por 15 minutos
+  const rl = checkRateLimit(getClientIP(req), 'admin-otp', { max: 10, windowMs: 15 * 60_000 });
+  if (!rl.ok) return tooManyRequests(res, rl.retryAfterSec);
 
   try {
     const body = req.body || {};

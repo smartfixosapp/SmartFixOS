@@ -1,4 +1,5 @@
 import { sendResendEmail } from '../lib/server/resend.js';
+import { checkRateLimit, getClientIP, tooManyRequests } from './_lib/rateLimit.js';
 
 /**
  * Vercel Serverless Function — /api/register
@@ -130,6 +131,10 @@ export default async function handler(req, res) {
 
   if (req.method === 'OPTIONS') return res.status(200).end();
   if (req.method !== 'POST') return res.status(405).json({ success: false, error: 'Method not allowed' });
+
+  // Rate limit: máx 5 registros por IP por 10 minutos
+  const rl = checkRateLimit(getClientIP(req), 'register', { max: 5, windowMs: 10 * 60_000 });
+  if (!rl.ok) return tooManyRequests(res, rl.retryAfterSec);
 
   if (!SB_KEY) {
     console.error('SUPABASE_SERVICE_ROLE_KEY not set in Vercel environment variables');

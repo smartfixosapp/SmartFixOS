@@ -2,6 +2,7 @@
  * GET /api/validate-token?token=xxx
  * Validates an activation token server-side (uses service role key — bypasses RLS)
  */
+import { checkRateLimit, getClientIP, tooManyRequests } from './_lib/rateLimit.js';
 const SB_URL = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL || 'https://idntuvtabecwubzswpwi.supabase.co';
 const SB_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
@@ -18,6 +19,10 @@ export default async function handler(req, res) {
 
   if (req.method === 'OPTIONS') return res.status(200).end();
   if (req.method !== 'GET') return res.status(405).json({ valid: false, error: 'Method not allowed' });
+
+  // Rate limit: máx 20 validaciones por IP por 10 minutos
+  const rl = checkRateLimit(getClientIP(req), 'validate-token', { max: 20, windowMs: 10 * 60_000 });
+  if (!rl.ok) return tooManyRequests(res, rl.retryAfterSec);
 
   const { token } = req.query;
   if (!token) return res.status(400).json({ valid: false, error: 'Token requerido' });
