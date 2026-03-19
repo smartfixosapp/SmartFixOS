@@ -98,6 +98,9 @@ function mergeTenantUsers(userRows = [], employeeRows = []) {
 function getStatusBadge(tenant) {
   const sub = tenant.effective_subscription_status || tenant.subscription_status;
   const trialDate = tenant.effective_trial_end_date || tenant.trial_end_date;
+  // ⏳ Pendiente de activación (se registró pero no completó el wizard)
+  if (tenant.metadata?.setup_complete === false)
+    return { label: "⏳ Sin activar", cls: "bg-purple-500/20 text-purple-300 border-purple-500/40" };
   if (tenant.status === "suspended")
     return { label: "Suspendida", cls: "bg-red-500/20 text-red-300 border-red-500/30" };
   if (tenant.status === "cancelled")
@@ -522,7 +525,7 @@ export default function SuperAdmin() {
     setEditTenant(tenant);
   };
 
-  const doEditSave = async () => {
+  const doEditSave = async (notify = false) => {
     if (!editTenant) return;
     setActionId(editTenant.id + "edit");
     try {
@@ -533,7 +536,43 @@ export default function SuperAdmin() {
       });
       const data = await res.json();
       if (data?.success) {
-        toast.success(data.message || "✅ Guardado");
+        // Si se pidió notificar al tenant, insertar en tabla notification
+        if (notify) {
+          try {
+            // Construir resumen de cambios relevantes
+            const prev = editTenant;
+            const changes = [];
+            if (editForm.plan !== normalizePlan(prev.effective_plan || prev.plan))
+              changes.push(`Plan: ${editForm.plan}`);
+            const prevMaxUsers = getTenantMaxUsers(prev);
+            if (Number(editForm.max_users) !== prevMaxUsers)
+              changes.push(`Límite de usuarios: ${editForm.max_users}`);
+            if (Number(editForm.monthly_cost) !== Number(prev.effective_monthly_cost ?? prev.monthly_cost))
+              changes.push(`Costo mensual: $${editForm.monthly_cost}/mo`);
+            if (editForm.status !== prev.status)
+              changes.push(`Estado: ${editForm.status}`);
+            if (editForm.subscription_status !== (prev.effective_subscription_status || prev.subscription_status))
+              changes.push(`Suscripción: ${editForm.subscription_status}`);
+
+            const msgBody = changes.length
+              ? `Cambios aplicados: ${changes.join(' · ')}`
+              : 'Tu información de cuenta fue actualizada por el administrador de SmartFixOS.';
+
+            await supabase.from('notification').insert({
+              tenant_id: editTenant.id,
+              type: 'system',
+              title: '🔔 Tu cuenta fue actualizada',
+              message: msgBody,
+              is_read: false,
+            });
+            toast.success("✅ Guardado y notificación enviada al tenant");
+          } catch (notifyErr) {
+            console.warn("Notificación no pudo enviarse:", notifyErr?.message);
+            toast.success("✅ Guardado (notificación falló)");
+          }
+        } else {
+          toast.success(data.message || "✅ Cambios guardados");
+        }
         setEditTenant(null);
         await loadTenants();
       } else {
@@ -763,21 +802,25 @@ export default function SuperAdmin() {
     }
   };
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
     localStorage.removeItem(SUPER_SESSION_KEY);
-    localStorage.removeItem("smartfix_saved_creds"); // evita auto-login al salir
+    localStorage.removeItem("smartfix_saved_creds");
+    // Cerrar sesión de Supabase para evitar re-login automático por OAuth
+    try { await supabase.auth.signOut(); } catch { /* no-op */ }
     navigate("/PinAccess", { replace: true });
   };
 
   // ── Metrics ───────────────────────────────────────────────────────────────
   const metrics = React.useMemo(() => {
     const active    = tenants.filter(t => t.status === "active");
-    const onTrial   = active.filter(t => (t.effective_trial_end_date || t.trial_end_date) && new Date(t.effective_trial_end_date || t.trial_end_date) > new Date());
-    const paying    = active.filter(t => (t.effective_subscription_status || t.subscription_status) === "active");
+    const pending   = tenants.filter(t => t.metadata?.setup_complete === false); // registrados sin activar
+    const onTrial   = active.filter(t => t.metadata?.setup_complete !== false && (t.effective_trial_end_date || t.trial_end_date) && new Date(t.effective_trial_end_date || t.trial_end_date) > new Date());
+    const paying    = active.filter(t => t.metadata?.setup_complete !== false && (t.effective_subscription_status || t.subscription_status) === "active");
     const suspended = tenants.filter(t => t.status === "suspended" || t.status === "cancelled");
-    const overdue   = active.filter(t => (t.effective_trial_end_date || t.trial_end_date) && new Date(t.effective_trial_end_date || t.trial_end_date) < new Date() && (t.effective_subscription_status || t.subscription_status) !== "active");
+    const overdue   = active.filter(t => t.metadata?.setup_complete !== false && (t.effective_trial_end_date || t.trial_end_date) && new Date(t.effective_trial_end_date || t.trial_end_date) < new Date() && (t.effective_subscription_status || t.subscription_status) !== "active");
     return {
       total:     tenants.length,
+      pending:   pending.length,
       active:    active.length,
       trial:     onTrial.length,
       paying:    paying.length,
@@ -1043,20 +1086,30 @@ export default function SuperAdmin() {
                 </div>
               </div>
 
-              <div className="flex items-center gap-2 pt-1">
+              <div className="flex flex-wrap items-center gap-2 pt-1">
+                {/* Guardar sin notificar */}
                 <button
-                  onClick={doEditSave}
+                  onClick={() => doEditSave(false)}
+                  disabled={!!actionId}
+                  className="flex items-center gap-2 px-4 py-2 rounded-xl bg-white/10 hover:bg-white/15 border border-white/20 text-white text-sm font-semibold transition-all disabled:opacity-50"
+                >
+                  <Save className="w-3.5 h-3.5" /> Guardar
+                </button>
+                {/* Guardar y notificar al tenant */}
+                <button
+                  onClick={() => doEditSave(true)}
                   disabled={!!actionId}
                   className="flex items-center gap-2 px-4 py-2 rounded-xl bg-purple-600 hover:bg-purple-500 text-white text-sm font-bold transition-all disabled:opacity-50"
                 >
-                  <Save className="w-3.5 h-3.5" /> Guardar cambios
+                  <Save className="w-3.5 h-3.5" />
+                  {actionId === editTenant?.id + "edit" ? "Guardando..." : "Guardar y notificar"}
                 </button>
                 <button
                   onClick={() => doResetPassword(editForm.email || editTenant?.email)}
                   disabled={!!actionId}
                   className="flex items-center gap-2 px-4 py-2 rounded-xl bg-yellow-500/10 border border-yellow-500/30 text-yellow-300 text-sm font-semibold hover:bg-yellow-500/20 transition-all disabled:opacity-50"
                 >
-                  <KeyRound className="w-3.5 h-3.5" /> Enviar reset de contraseña
+                  <KeyRound className="w-3.5 h-3.5" /> Reset contraseña
                 </button>
               </div>
             </motion.div>
@@ -1595,12 +1648,12 @@ export default function SuperAdmin() {
         {/* ── Metric cards ── */}
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
           {[
-            { label: "Total",     value: metrics.total,     icon: Building2,   grad: "from-blue-500 to-cyan-500"    },
-            { label: "Activas",   value: metrics.active,    icon: CheckCircle, grad: "from-green-500 to-emerald-500"},
-            { label: "Trial",     value: metrics.trial,     icon: Clock,       grad: "from-yellow-500 to-amber-500" },
-            { label: "Pagando",   value: metrics.paying,    icon: DollarSign,  grad: "from-purple-500 to-pink-500"  },
-            { label: "Vencidas",  value: metrics.overdue,   icon: AlertTriangle,grad:"from-orange-500 to-red-500"  },
-            { label: "MRR",       value: `$${metrics.mrr}`, icon: TrendingUp,  grad: "from-cyan-500 to-blue-500"   },
+            { label: "Total",      value: metrics.total,     icon: Building2,   grad: "from-blue-500 to-cyan-500"    },
+            { label: "Sin activar",value: metrics.pending,   icon: Timer,       grad: "from-purple-500 to-violet-500"},
+            { label: "Activas",    value: metrics.active,    icon: CheckCircle, grad: "from-green-500 to-emerald-500"},
+            { label: "Trial",      value: metrics.trial,     icon: Clock,       grad: "from-yellow-500 to-amber-500" },
+            { label: "Pagando",    value: metrics.paying,    icon: DollarSign,  grad: "from-pink-500 to-rose-500"    },
+            { label: "MRR",        value: `$${metrics.mrr}`, icon: TrendingUp,  grad: "from-cyan-500 to-blue-500"    },
           ].map((m, i) => (
             <motion.div
               key={m.label}

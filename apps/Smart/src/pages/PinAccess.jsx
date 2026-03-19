@@ -2133,12 +2133,12 @@ export default function PinAccess() {
           
           <div className="text-center mb-12 flex flex-col items-center gap-4">
             <Button
-              onClick={() => setShowSignup(true)}
+              onClick={() => handleGoogleSignIn("register")}
               variant="outline"
               className="border-cyan-500/40 bg-transparent text-cyan-300 hover:bg-cyan-500/10 rounded-full px-5 font-medium text-sm h-9">
 
               <UserPlus className="w-4 h-4 mr-2" />
-              Solicitar Demo
+              Crear cuenta
             </Button>
           </div>
 

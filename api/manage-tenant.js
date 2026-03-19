@@ -106,8 +106,27 @@ export default async function handler(req, res) {
     // ── edit ──────────────────────────────────────────────────────────────────
     if (action === 'edit') {
       const updates = {};
-      if (extra.name?.trim())  updates.name  = extra.name.trim();
-      if (extra.email?.trim()) updates.email = extra.email.trim().toLowerCase();
+      if (extra.name?.trim())            updates.name                 = extra.name.trim();
+      if (extra.email?.trim())           updates.email                = extra.email.trim().toLowerCase();
+      if (extra.admin_name?.trim())      updates.admin_name           = extra.admin_name.trim();
+      if (extra.admin_phone !== undefined) updates.admin_phone        = String(extra.admin_phone || '').trim();
+      if (extra.country?.trim())         updates.country              = extra.country.trim();
+      if (extra.currency?.trim())        updates.currency             = extra.currency.trim();
+      if (extra.timezone?.trim())        updates.timezone             = extra.timezone.trim();
+      if (extra.address !== undefined)   updates.address              = String(extra.address || '').trim();
+      if (extra.plan?.trim())            updates.plan                 = extra.plan.trim();
+      if (extra.status?.trim())          updates.status               = extra.status.trim();
+      if (extra.subscription_status?.trim()) updates.subscription_status = extra.subscription_status.trim();
+      if (extra.trial_end_date)          updates.trial_end_date       = extra.trial_end_date;
+      if (extra.monthly_cost !== undefined)  updates.monthly_cost     = Number(extra.monthly_cost) || 0;
+      // max_users se guarda en metadata (no en columna directa)
+      if (extra.max_users !== undefined) {
+        const maxU = Number(extra.max_users) || 1;
+        // Leer metadata actual y mergear
+        const current = await sbGet('tenant', filter, 'metadata');
+        const newMeta = { ...(current?.metadata || {}), max_users: maxU };
+        updates.metadata = newMeta;
+      }
       if (Object.keys(updates).length === 0) {
         return res.status(400).json({ success: false, error: 'Nada que actualizar' });
       }

@@ -113,9 +113,6 @@ export default function CreateCustomerDialog({ open, onClose, onSuccess, custome
           ...formData,
           customer_number: customerNumber,
           total_orders: 0,
-          notes: "", // Empty notes as requested to remove field
-          address: "", // Empty address as requested to remove field
-          device_photos: [] // Empty photos as requested to remove field
         });
 
         // Si el backend no retorna entidad válida, guardamos respaldo local para no perder el alta.
@@ -125,9 +122,6 @@ export default function CreateCustomerDialog({ open, onClose, onSuccess, custome
             ...formData,
             customer_number: customerNumber,
             total_orders: 0,
-            notes: "",
-            address: "",
-            device_photos: [],
             is_local: true,
             created_date: new Date().toISOString()
           };
