@@ -84,6 +84,7 @@ export default function PinAccess() {
   const [signupResult, setSignupResult] = useState(null);
   const [googleRegisterData, setGoogleRegisterData] = useState({ full_name: '', email: '', store_name: '', phone: '', plan: 'basic' });
   const [googleRegisterSubmitting, setGoogleRegisterSubmitting] = useState(false);
+  const [googleRegisterSuccess, setGoogleRegisterSuccess] = useState(null); // { tenantName, trialEndDate, email }
   const [storePassword, setStorePassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [sendingReset, setSendingReset] = useState(false);
@@ -615,12 +616,12 @@ export default function PinAccess() {
       });
       const data = await res.json();
       if (data.success) {
-        setSignupResult({ ...data, googleAuth: true });
-        setSignupStep("success");
-        setShowSignup(true);
-        setStep("welcome");
-        setStoreAuthenticated(false);
-        await supabase.auth.signOut();
+        // Mostrar éxito en el mismo paso — NO redirigir, NO signOut todavía
+        setGoogleRegisterSuccess({
+          tenantName: data.tenantName || googleRegisterData.store_name,
+          trialEndDate: data.trialEndDate,
+          email: googleRegisterData.email,
+        });
       } else {
         toast.error(data.error || "Error al crear la cuenta");
       }
@@ -1415,6 +1416,61 @@ export default function PinAccess() {
 
   // ── Google Register — completar datos de tienda ──────────────────────────
   if (step === "google_register") {
+
+    // ── Pantalla de éxito ──
+    if (googleRegisterSuccess) {
+      return (
+        <div className="pinaccess-fullscreen-container">
+          <div className="relative z-10 flex flex-col items-center justify-center w-full max-w-sm mx-auto px-6 py-8 text-center">
+            <div className="w-20 h-20 rounded-full bg-gradient-to-br from-emerald-500 to-cyan-500 flex items-center justify-center mx-auto mb-6 shadow-[0_0_50px_rgba(16,185,129,0.4)]">
+              <CheckCircle className="w-10 h-10 text-white" />
+            </div>
+            <h2 className="text-2xl font-black text-white mb-2">¡Cuenta creada!</h2>
+            <p className="text-gray-400 text-sm mb-6">
+              Tu taller <span className="text-white font-semibold">{googleRegisterSuccess.tenantName}</span> fue registrado
+            </p>
+
+            <div className="bg-cyan-500/10 border border-cyan-500/30 rounded-2xl p-5 mb-6 text-left space-y-3 w-full">
+              <div className="flex items-start gap-3">
+                <Mail className="w-4 h-4 text-cyan-400 mt-0.5 flex-shrink-0" />
+                <div>
+                  <p className="text-white font-semibold text-sm">Revisa tu email</p>
+                  <p className="text-gray-400 text-xs">Enviamos un link de activación a <span className="text-cyan-300">{googleRegisterSuccess.email}</span></p>
+                </div>
+              </div>
+              <div className="flex items-start gap-3">
+                <KeyRound className="w-4 h-4 text-emerald-400 mt-0.5 flex-shrink-0" />
+                <div>
+                  <p className="text-white font-semibold text-sm">Activa tu cuenta y elige tu PIN</p>
+                  <p className="text-gray-400 text-xs">El link te llevará a configurar tu taller</p>
+                </div>
+              </div>
+              <div className="flex items-start gap-3">
+                <Sparkles className="w-4 h-4 text-yellow-400 mt-0.5 flex-shrink-0" />
+                <div>
+                  <p className="text-white font-semibold text-sm">15 días gratis</p>
+                  {googleRegisterSuccess.trialEndDate && (
+                    <p className="text-gray-400 text-xs">Trial hasta el {new Date(googleRegisterSuccess.trialEndDate).toLocaleDateString('es', { day: 'numeric', month: 'long' })}</p>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            <button
+              onClick={async () => {
+                await supabase.auth.signOut();
+                setGoogleRegisterSuccess(null);
+                setStep("store");
+              }}
+              className="w-full bg-gradient-to-r from-cyan-600 to-emerald-600 hover:from-cyan-500 hover:to-emerald-500 text-white font-bold py-3.5 rounded-xl transition-all text-sm"
+            >
+              Entendido, revisar email →
+            </button>
+          </div>
+        </div>
+      );
+    }
+
     const PLANS_GR = [
       { id: "basic",      label: "Basic",      price: "$55/mes",  sub: "1 usuario",  color: "cyan"    },
       { id: "pro",        label: "Pro",         price: "$85/mes",  sub: "3 usuarios", color: "emerald", popular: true },

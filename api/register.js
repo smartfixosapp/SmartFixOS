@@ -12,7 +12,7 @@ const SB_URL = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL || 'htt
 const SB_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
 const FROM_EMAIL = process.env.FROM_EMAIL || 'noreply@smartfixos.com';
 const FROM_NAME = process.env.FROM_NAME || 'SmartFixOS';
-const APP_URL = process.env.APP_URL || 'https://smart-fix-os.vercel.app';
+const APP_URL = process.env.APP_URL || 'https://smart-fix-os-smart.vercel.app';
 
 const sbHeaders = {
   'Content-Type': 'application/json',
