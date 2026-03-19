@@ -25,7 +25,7 @@ export default function PinAccess() {
   ]);
   const STORE_EMAIL_KEY = "smartfix_store_email";
   const BIOMETRIC_LOGIN_KEY = "smartfix_biometric_login";
-  const DEFAULT_STORE_EMAIL = "911smartfix@gmail.com";
+  const DEFAULT_STORE_EMAIL = ""; // No default — cada usuario es único
   const ADMIN_PERMISSIONS = {
     can_view_orders: true,
     can_create_orders: true,
@@ -236,17 +236,23 @@ export default function PinAccess() {
   const getMergedActiveUsers = async (tId = null) => {
     let remoteUsers = [];
     try {
+      // 🔒 SEGURIDAD: nunca cargar usuarios sin filtro de tenant — evita exponer datos de otros tenants
+      if (!tId) {
+        console.warn("getMergedActiveUsers: tId es null — se omiten usuarios remotos por seguridad");
+        return readLocalUsers().filter(u => !isSystemUserLike(u) && u.active !== false);
+      }
+
       let usersQuery = supabase
         .from("users")
         .select("id, email, full_name, role, position, employee_code, pin, active, permissions, tenant_id, auth_id")
-        .eq("active", true);
-      if (tId) usersQuery = usersQuery.eq("tenant_id", tId);
+        .eq("active", true)
+        .eq("tenant_id", tId);
 
       let employeesQuery = supabase
         .from("app_employee")
         .select("id, email, full_name, role, position, employee_code, pin, active, permissions, tenant_id")
-        .eq("active", true);
-      if (tId) employeesQuery = employeesQuery.eq("tenant_id", tId);
+        .eq("active", true)
+        .eq("tenant_id", tId);
 
       const [{ data: userRows, error: userError }, { data: employeeRows, error: employeeError }] = await Promise.all([
         usersQuery,
@@ -691,6 +697,17 @@ export default function PinAccess() {
           .from("app_employee").select("tenant_id").eq("email", email).limit(1);
         resolvedTenantId = empRows?.[0]?.tenant_id || null;
       }
+
+      // 🔒 Si este email no tiene tenant registrado → siempre ir a registro
+      // (Evita que nuevos usuarios vean datos de otros tenants)
+      if (!resolvedTenantId && !tenantExists) {
+        console.log("🆕 Email sin cuenta registrada — mostrando formulario de registro:", email);
+        setGoogleRegisterData({ full_name: googleName, email, store_name: '', phone: '', plan: 'basic' });
+        setStep("google_register");
+        setUsersLoading(false);
+        return;
+      }
+
       if (resolvedTenantId) {
         setTenantId(resolvedTenantId);
         localStorage.setItem("smartfix_tenant_id", resolvedTenantId);
@@ -1093,18 +1110,31 @@ export default function PinAccess() {
       }
 
       // 3. Auto-login con credenciales guardadas
+      // 🔒 Solo si hay sesión Supabase activa con el MISMO email — evita auto-login en dispositivos ajenos
       const saved = loadSavedCreds();
       if (saved?.email && saved?.pwd) {
-        console.log("🔑 Auto-login:", saved.email);
-        setIsAutoLogging(true);
-        setStoreEmail(saved.email);
-        setStorePassword(saved.pwd);
-        const ok = await performStoreAuth(saved.email, saved.pwd);
-        setIsAutoLogging(false);
-        setCheckingUsers(false);
-        setIsReady(true);
-        if (!ok) console.warn("Auto-login falló — mostrando formulario");
-        return;
+        let supabaseSessionEmail = null;
+        try {
+          const { data: { session: activeSession } } = await supabase.auth.getSession();
+          supabaseSessionEmail = activeSession?.user?.email?.toLowerCase() || null;
+        } catch { /* ignorar error */ }
+
+        if (supabaseSessionEmail && supabaseSessionEmail === saved.email.toLowerCase()) {
+          console.log("🔑 Auto-login (sesión verificada):", saved.email);
+          setIsAutoLogging(true);
+          setStoreEmail(saved.email);
+          setStorePassword(saved.pwd);
+          const ok = await performStoreAuth(saved.email, saved.pwd);
+          setIsAutoLogging(false);
+          setCheckingUsers(false);
+          setIsReady(true);
+          if (!ok) console.warn("Auto-login falló — mostrando formulario");
+          return;
+        } else {
+          // Sesión Supabase expirada o no coincide — limpiar credenciales guardadas
+          console.log("🔒 Auto-login omitido — no hay sesión Supabase activa para", saved.email);
+          clearSavedCreds();
+        }
       }
 
       // 3. Verificar usuarios (para bypass detection)
