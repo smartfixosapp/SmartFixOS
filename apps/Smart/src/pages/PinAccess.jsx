@@ -567,10 +567,11 @@ export default function PinAccess() {
   const handleGoogleSignIn = async () => {
     setLoading(true);
     try {
+      const prodUrl = "https://smartfixos.vercel.app/PinAccess";
       const { error } = await supabase.auth.signInWithOAuth({
         provider: "google",
         options: {
-          redirectTo: `${window.location.origin}/PinAccess`,
+          redirectTo: prodUrl,
           queryParams: { access_type: "offline", prompt: "consent" },
         },
       });
