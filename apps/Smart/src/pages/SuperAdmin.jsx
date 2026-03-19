@@ -9,11 +9,13 @@ import {
   Search, RefreshCw, LogOut, AlertTriangle, TrendingUp,
   Users, Mail, Calendar, ChevronDown, ChevronRight, Eye,
   PlayCircle, PauseCircle, Trash2, BarChart3, Activity, Power,
-  Pencil, KeyRound, X, Save, Zap, Database, ShoppingBag, ArrowLeftRight
+  Pencil, KeyRound, X, Save, Zap, Database, ShoppingBag, ArrowLeftRight,
+  StickyNote, MessageSquarePlus, Timer
 } from "lucide-react";
 
-const SUPER_SESSION_KEY = "smartfix_saas_session";
-const SUPER_ADMIN_EMAIL  = "smartfixosapp@gmail.com";
+const SUPER_SESSION_KEY   = "smartfix_saas_session";
+const SUPER_ADMIN_EMAIL   = "smartfixosapp@gmail.com";
+const SESSION_TIMEOUT_MS  = 2 * 60 * 60 * 1000; // 2 horas
 const PLAN_OPTIONS = [
   { key: "smartfixos", label: "Basic", sub: "1 usuario · $55/mo", maxUsers: 1, monthlyCost: 55, color: "from-slate-500 to-slate-600" },
   { key: "pro", label: "Pro", sub: "3 usuarios · $85/mo", maxUsers: 3, monthlyCost: 85, color: "from-blue-500 to-indigo-600" },
@@ -163,18 +165,48 @@ export default function SuperAdmin() {
   const [tenantData,        setTenantData]        = useState(null); // { orders, transactions }
   const [tenantDataLoading, setTenantDataLoading] = useState(false);
 
-  // ── Auth guard ─────────────────────────────────────────────────────────────
+  // ── Notes state ─────────────────────────────────────────────────────────────
+  const [noteModal,   setNoteModal]   = useState(null);  // tenant object
+  const [noteText,    setNoteText]    = useState("");
+  const [noteSaving,  setNoteSaving]  = useState(false);
+  const [tenantNotes, setTenantNotes] = useState({});    // { [tenantId]: string }
+
+  // ── Quick stats state ────────────────────────────────────────────────────────
+  const [tenantStats,        setTenantStats]        = useState({});  // { [tenantId]: { orders, customers, revenue } }
+  const [tenantStatsLoading, setTenantStatsLoading] = useState({});
+
+  // ── Auth guard + session timeout ────────────────────────────────────────────
   useEffect(() => {
-    const raw = localStorage.getItem(SUPER_SESSION_KEY);
-    if (!raw) { navigate("/PinAccess", { replace: true }); return; }
-    try {
-      const sess = JSON.parse(raw);
-      if (sess?.role !== "saas_owner") { navigate("/PinAccess", { replace: true }); return; }
-    } catch {
-      navigate("/PinAccess", { replace: true }); return;
-    }
+    const checkSession = () => {
+      const raw = localStorage.getItem(SUPER_SESSION_KEY);
+      if (!raw) { navigate("/PinAccess", { replace: true }); return false; }
+      try {
+        const sess = JSON.parse(raw);
+        if (sess?.role !== "saas_owner") { navigate("/PinAccess", { replace: true }); return false; }
+        // Verificar timeout de 2 horas
+        if (sess.loginTime && (Date.now() - sess.loginTime) > SESSION_TIMEOUT_MS) {
+          localStorage.removeItem(SUPER_SESSION_KEY);
+          toast.error("Sesión expirada. Inicia sesión de nuevo.");
+          navigate("/PinAccess", { replace: true });
+          return false;
+        }
+        // Si no tiene loginTime (sesión antigua), ponerle uno ahora
+        if (!sess.loginTime) {
+          localStorage.setItem(SUPER_SESSION_KEY, JSON.stringify({ ...sess, loginTime: Date.now() }));
+        }
+        return true;
+      } catch {
+        navigate("/PinAccess", { replace: true }); return false;
+      }
+    };
+
+    if (!checkSession()) return;
     setAuthorized(true);
     loadTenants();
+
+    // Revisar expiración cada 5 minutos
+    const interval = setInterval(() => { checkSession(); }, 5 * 60 * 1000);
+    return () => clearInterval(interval);
   }, []);
 
   // ── Data ──────────────────────────────────────────────────────────────────
@@ -383,8 +415,11 @@ export default function SuperAdmin() {
   const toggleExpanded = useCallback((tenantId) => {
     const opening = expanded !== tenantId;
     setExpanded(opening ? tenantId : null);
-    if (opening) loadTenantUsers(tenantId);
-  }, [expanded, loadTenantUsers]);
+    if (opening) {
+      loadTenantUsers(tenantId);
+      loadTenantStats(tenantId);
+    }
+  }, [expanded, loadTenantUsers, loadTenantStats]);
 
   const doAction = async (tenantId, action, extra = {}) => {
     setActionId(tenantId + action);
@@ -588,6 +623,68 @@ export default function SuperAdmin() {
     }
   };
 
+  // ── Notes ─────────────────────────────────────────────────────────────────
+  const openNote = async (tenant) => {
+    setNoteModal(tenant);
+    setNoteText(tenantNotes[tenant.id] || "");
+    // Cargar nota si no está cargada
+    if (tenantNotes[tenant.id] === undefined) {
+      try {
+        const { data } = await supabase
+          .from("system_config")
+          .select("value")
+          .eq("key", `saas_note_${tenant.id}`)
+          .maybeSingle();
+        const note = data?.value || "";
+        setTenantNotes(prev => ({ ...prev, [tenant.id]: note }));
+        setNoteText(note);
+      } catch {}
+    }
+  };
+
+  const saveNote = async () => {
+    if (!noteModal) return;
+    setNoteSaving(true);
+    try {
+      await supabase.from("system_config").upsert({
+        key: `saas_note_${noteModal.id}`,
+        value: noteText,
+        category: "admin_notes",
+        description: `Nota interna para ${noteModal.name || noteModal.id}`,
+      }, { onConflict: "key" });
+      setTenantNotes(prev => ({ ...prev, [noteModal.id]: noteText }));
+      toast.success("Nota guardada");
+      setNoteModal(null);
+    } catch (e) {
+      toast.error("Error al guardar nota: " + e.message);
+    } finally {
+      setNoteSaving(false);
+    }
+  };
+
+  // ── Quick stats ──────────────────────────────────────────────────────────
+  const loadTenantStats = useCallback(async (tenantId) => {
+    if (tenantStats[tenantId] || tenantStatsLoading[tenantId]) return;
+    setTenantStatsLoading(prev => ({ ...prev, [tenantId]: true }));
+    try {
+      const [ordersRes, customersRes, txRes] = await Promise.all([
+        supabase.from("order").select("id", { count: "exact", head: true }).eq("tenant_id", tenantId),
+        supabase.from("customer").select("id", { count: "exact", head: true }).eq("tenant_id", tenantId),
+        supabase.from("transaction").select("amount, type").eq("tenant_id", tenantId).eq("type", "income"),
+      ]);
+      const revenue = (txRes.data || []).reduce((s, t) => s + (Number(t.amount) || 0), 0);
+      setTenantStats(prev => ({
+        ...prev,
+        [tenantId]: {
+          orders:    ordersRes.count    ?? 0,
+          customers: customersRes.count ?? 0,
+          revenue,
+        }
+      }));
+    } catch {}
+    finally { setTenantStatsLoading(prev => ({ ...prev, [tenantId]: false })); }
+  }, [tenantStats, tenantStatsLoading]);
+
   const handleLogout = () => {
     localStorage.removeItem(SUPER_SESSION_KEY);
     localStorage.removeItem("smartfix_saved_creds"); // evita auto-login al salir
@@ -624,6 +721,60 @@ export default function SuperAdmin() {
   // ── Render ────────────────────────────────────────────────────────────────
   return (
     <div className="min-h-screen bg-[#030303] text-white font-sans">
+
+      {/* ── Note Modal ── */}
+      <AnimatePresence>
+        {noteModal && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-sm"
+            onClick={e => { if (e.target === e.currentTarget && !noteSaving) setNoteModal(null); }}
+          >
+            <motion.div
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.95, opacity: 0 }}
+              className="bg-[#111] border border-yellow-500/30 rounded-2xl p-5 w-full max-w-md shadow-2xl space-y-4"
+            >
+              <div className="flex items-center justify-between">
+                <h2 className="text-sm font-bold text-white flex items-center gap-2">
+                  <StickyNote className="w-4 h-4 text-yellow-400" />
+                  Nota interna — {noteModal.name || noteModal.email}
+                </h2>
+                <button onClick={() => setNoteModal(null)} disabled={noteSaving} className="text-gray-500 hover:text-white transition-colors">
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+              <textarea
+                value={noteText}
+                onChange={e => setNoteText(e.target.value)}
+                rows={5}
+                placeholder="Escribe notas privadas sobre esta tienda… (pagos, acuerdos, contacto especial, etc.)"
+                className="w-full bg-white/[0.05] border border-white/10 text-white text-sm rounded-xl px-3 py-2.5 resize-none focus:outline-none focus:ring-2 focus:ring-yellow-500/30 placeholder-gray-600"
+              />
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={saveNote}
+                  disabled={noteSaving}
+                  className="flex items-center gap-2 px-4 py-2 rounded-xl bg-yellow-500/20 border border-yellow-500/30 text-yellow-300 hover:bg-yellow-500/30 text-sm font-semibold transition-all disabled:opacity-50"
+                >
+                  {noteSaving ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : <Save className="w-3.5 h-3.5" />}
+                  Guardar nota
+                </button>
+                <button
+                  onClick={() => setNoteModal(null)}
+                  disabled={noteSaving}
+                  className="px-4 py-2 rounded-xl border border-white/10 text-gray-400 hover:text-white text-sm transition-all"
+                >
+                  Cancelar
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* ── Edit Tenant Modal ── */}
       <AnimatePresence>
@@ -1247,6 +1398,12 @@ export default function SuperAdmin() {
             <Zap className="w-3.5 h-3.5" /> ☢️ Borrar TODO
           </button>
 
+          {/* Session timer */}
+          <div className="hidden sm:flex items-center gap-1.5 text-[11px] text-gray-600 px-2">
+            <Timer className="w-3 h-3" />
+            <span>Sesión: 2h</span>
+          </div>
+
           <button
             onClick={handleLogout}
             className="flex items-center gap-1.5 text-xs text-gray-500 hover:text-red-400 transition-colors px-3 py-1.5 rounded-full border border-white/10 hover:border-red-500/30"
@@ -1372,6 +1529,40 @@ export default function SuperAdmin() {
                             className="overflow-hidden"
                           >
                             <div className="border-t border-white/[0.06] p-4 bg-white/[0.02] space-y-4">
+
+                              {/* ── Quick Stats ── */}
+                              <div className="grid grid-cols-3 gap-2">
+                                {tenantStatsLoading[tenant.id] ? (
+                                  <div className="col-span-3 flex items-center gap-2 text-xs text-gray-600 py-1">
+                                    <RefreshCw className="w-3.5 h-3.5 animate-spin" /> Cargando estadísticas…
+                                  </div>
+                                ) : tenantStats[tenant.id] ? (
+                                  <>
+                                    {[
+                                      { label: "Órdenes totales",  value: tenantStats[tenant.id].orders,    icon: ShoppingBag, color: "text-blue-400",   bg: "bg-blue-500/10",   border: "border-blue-500/20"   },
+                                      { label: "Clientes",         value: tenantStats[tenant.id].customers, icon: Users,       color: "text-purple-400", bg: "bg-purple-500/10", border: "border-purple-500/20" },
+                                      { label: "Ingresos totales", value: `$${Number(tenantStats[tenant.id].revenue || 0).toFixed(0)}`, icon: TrendingUp, color: "text-green-400", bg: "bg-green-500/10", border: "border-green-500/20" },
+                                    ].map(s => (
+                                      <div key={s.label} className={`rounded-xl border ${s.border} ${s.bg} px-3 py-2 flex items-center gap-2`}>
+                                        <s.icon className={`w-3.5 h-3.5 ${s.color} flex-shrink-0`} />
+                                        <div>
+                                          <p className="text-[10px] text-gray-500">{s.label}</p>
+                                          <p className={`text-base font-black ${s.color}`}>{s.value}</p>
+                                        </div>
+                                      </div>
+                                    ))}
+                                  </>
+                                ) : null}
+                              </div>
+
+                              {/* ── Internal note preview ── */}
+                              {tenantNotes[tenant.id] && (
+                                <div className="flex items-start gap-2 bg-yellow-500/5 border border-yellow-500/20 rounded-xl px-3 py-2 text-xs">
+                                  <StickyNote className="w-3.5 h-3.5 text-yellow-400 flex-shrink-0 mt-0.5" />
+                                  <p className="text-yellow-200/70 line-clamp-2">{tenantNotes[tenant.id]}</p>
+                                </div>
+                              )}
+
                               {/* Details grid */}
                               <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
                                 {[
@@ -1430,6 +1621,21 @@ export default function SuperAdmin() {
                                   className="flex items-center gap-1.5 text-xs px-3 py-2 rounded-xl bg-teal-500/10 border border-teal-500/30 text-teal-300 hover:bg-teal-500/20 transition-all disabled:opacity-50"
                                 >
                                   <Mail className="w-3.5 h-3.5" /> Sembrar plantillas
+                                </button>
+
+                                {/* Nota interna */}
+                                <button
+                                  onClick={() => openNote(tenant)}
+                                  disabled={!!busy}
+                                  title="Agregar nota interna"
+                                  className={`flex items-center gap-1.5 text-xs px-3 py-2 rounded-xl border transition-all disabled:opacity-50 ${
+                                    tenantNotes[tenant.id]
+                                      ? "bg-yellow-500/15 border-yellow-500/40 text-yellow-300 hover:bg-yellow-500/25"
+                                      : "bg-white/[0.04] border-white/10 text-gray-400 hover:text-yellow-300 hover:border-yellow-500/30"
+                                  }`}
+                                >
+                                  <StickyNote className="w-3.5 h-3.5" />
+                                  {tenantNotes[tenant.id] ? "Ver nota" : "Agregar nota"}
                                 </button>
 
                                 {/* Ver datos */}
