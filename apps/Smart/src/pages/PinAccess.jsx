@@ -1054,11 +1054,17 @@ export default function PinAccess() {
         }
       }
 
-      // 2. Detectar retorno de Google OAuth (access_token en URL hash o sesión activa)
+      // 2. Detectar retorno de Google OAuth
       try {
         const { data: { session: oauthSess } } = await supabase.auth.getSession();
-        if (oauthSess?.user && oauthSess.user.app_metadata?.provider === "google" && !oauthSess.user.email?.endsWith("smartfixos.com")) {
-          console.log("🟢 Google OAuth session detected:", oauthSess.user.email);
+        const hasGoogleIntent = new URLSearchParams(window.location.search).get("gintent");
+        const isGoogleIdentity =
+          oauthSess?.user?.app_metadata?.provider === "google" ||
+          oauthSess?.user?.identities?.some(id => id.provider === "google") ||
+          (oauthSess?.user?.app_metadata?.providers || []).includes("google");
+
+        if (oauthSess?.user && (isGoogleIdentity || hasGoogleIntent) && !oauthSess.user.email?.endsWith("smartfixos.com")) {
+          console.log("🟢 Google OAuth session detected:", oauthSess.user.email, "intent:", hasGoogleIntent);
           setCheckingUsers(true);
           await performOAuthAuth(oauthSess.user);
           setCheckingUsers(false);
