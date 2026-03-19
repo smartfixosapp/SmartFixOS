@@ -10,7 +10,7 @@ import {
   Users, Mail, Calendar, ChevronDown, ChevronRight, Eye,
   PlayCircle, PauseCircle, Trash2, BarChart3, Activity, Power,
   Pencil, KeyRound, X, Save, Zap, Database, ShoppingBag, ArrowLeftRight,
-  StickyNote, MessageSquarePlus, Timer
+  StickyNote, MessageSquarePlus, MessageSquare, Timer
 } from "lucide-react";
 
 const SUPER_SESSION_KEY   = "smartfix_saas_session";
@@ -166,6 +166,10 @@ export default function SuperAdmin() {
   const [tenantDataLoading, setTenantDataLoading] = useState(false);
   const [supportTab,        setSupportTab]        = useState("orders"); // orders | transactions | customers | employees
   const [deletingRecord,    setDeletingRecord]    = useState(null);  // id being deleted
+
+  // ── Feedback state ────────────────────────────────────────────────────────
+  const [feedbackList,    setFeedbackList]    = useState([]);
+  const [feedbackLoading, setFeedbackLoading] = useState(false);
 
   // ── Notes state ─────────────────────────────────────────────────────────────
   const [noteModal,   setNoteModal]   = useState(null);  // tenant object
@@ -695,6 +699,29 @@ export default function SuperAdmin() {
     } finally {
       setDeletingRecord(null);
     }
+  };
+
+  // ── Feedback ──────────────────────────────────────────────────────────────
+  const loadFeedback = async () => {
+    setFeedbackLoading(true);
+    try {
+      const { data, error } = await supabase
+        .from("feedback")
+        .select("*")
+        .order("created_at", { ascending: false })
+        .limit(100);
+      if (error) throw error;
+      setFeedbackList(data || []);
+    } catch (e) {
+      console.error("[SuperAdmin] loadFeedback error:", e);
+    } finally {
+      setFeedbackLoading(false);
+    }
+  };
+
+  const markFeedbackStatus = async (id, status) => {
+    await supabase.from("feedback").update({ status }).eq("id", id);
+    setFeedbackList(prev => prev.map(f => f.id === id ? { ...f, status } : f));
   };
 
   // ── Notes ─────────────────────────────────────────────────────────────────
@@ -1521,12 +1548,13 @@ export default function SuperAdmin() {
           {/* Tabs */}
           <div className="hidden sm:flex items-center gap-1 bg-white/5 rounded-xl p-1">
             {[
-              { key: "tenants", label: "Tiendas",  icon: Building2  },
-              { key: "metrics", label: "Métricas", icon: BarChart3   },
+              { key: "tenants",  label: "Tiendas",   icon: Building2       },
+              { key: "metrics",  label: "Métricas",  icon: BarChart3        },
+              { key: "feedback", label: "Feedback",  icon: MessageSquare   },
             ].map(t => (
               <button
                 key={t.key}
-                onClick={() => setTab(t.key)}
+                onClick={() => { setTab(t.key); if (t.key === "feedback") loadFeedback(); }}
                 className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
                   tab === t.key
                     ? "bg-white/10 text-white shadow"
@@ -2027,6 +2055,94 @@ export default function SuperAdmin() {
             </div>
           </div>
         )}
+
+        {/* ── FEEDBACK TAB ── */}
+        {tab === "feedback" && (
+          <div className="max-w-4xl mx-auto px-4 sm:px-6 py-6">
+            <div className="flex items-center justify-between mb-5">
+              <div>
+                <h2 className="text-white font-black text-lg">Feedback de tiendas</h2>
+                <p className="text-gray-500 text-xs mt-0.5">{feedbackList.length} entradas</p>
+              </div>
+              <button
+                onClick={loadFeedback}
+                disabled={feedbackLoading}
+                className="p-2 rounded-lg bg-white/5 border border-white/10 hover:border-white/20 transition-all"
+              >
+                <RefreshCw className={`w-4 h-4 text-gray-400 ${feedbackLoading ? "animate-spin" : ""}`} />
+              </button>
+            </div>
+
+            {feedbackLoading ? (
+              <div className="flex items-center justify-center py-20 text-gray-600 gap-3">
+                <RefreshCw className="w-5 h-5 animate-spin" />
+                <span className="text-sm">Cargando feedback…</span>
+              </div>
+            ) : feedbackList.length === 0 ? (
+              <div className="text-center py-20">
+                <MessageSquare className="w-12 h-12 text-gray-700 mx-auto mb-3" />
+                <p className="text-gray-600 text-sm">Sin feedback aún</p>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {feedbackList.map(fb => {
+                  const typeColors = {
+                    suggestion: "text-amber-400  bg-amber-400/10  border-amber-400/20",
+                    bug:        "text-red-400    bg-red-400/10    border-red-400/20",
+                    question:   "text-cyan-400   bg-cyan-400/10   border-cyan-400/20",
+                    other:      "text-purple-400 bg-purple-400/10 border-purple-400/20",
+                  };
+                  const typeLabels = { suggestion: "Sugerencia", bug: "Problema", question: "Pregunta", other: "Otro" };
+                  const statusColors = {
+                    pending:  "text-yellow-400 bg-yellow-400/10 border-yellow-400/20",
+                    reviewed: "text-blue-400   bg-blue-400/10   border-blue-400/20",
+                    done:     "text-emerald-400 bg-emerald-400/10 border-emerald-400/20",
+                  };
+                  return (
+                    <div key={fb.id} className={`bg-white/[0.03] border rounded-2xl p-5 transition-all ${fb.status === "done" ? "border-white/5 opacity-60" : "border-white/10"}`}>
+                      <div className="flex items-start gap-3 mb-3">
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2 mb-1 flex-wrap">
+                            <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${typeColors[fb.type] || typeColors.other}`}>
+                              {typeLabels[fb.type] || "Otro"}
+                            </span>
+                            <span className="text-gray-500 text-xs font-semibold">{fb.tenant_name || "Tienda"}</span>
+                            {fb.tenant_email && <span className="text-gray-600 text-xs">{fb.tenant_email}</span>}
+                            <span className="text-gray-700 text-xs ml-auto">
+                              {fb.created_at ? new Date(fb.created_at).toLocaleDateString("es", { day:"2-digit", month:"short", year:"2-digit" }) : "—"}
+                            </span>
+                          </div>
+                          <h3 className="text-white font-bold text-sm">{fb.title}</h3>
+                        </div>
+                      </div>
+                      <p className="text-gray-400 text-sm leading-relaxed mb-4 whitespace-pre-wrap">{fb.message}</p>
+                      <div className="flex items-center gap-2">
+                        <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${statusColors[fb.status] || statusColors.pending}`}>
+                          {fb.status === "pending" ? "Pendiente" : fb.status === "reviewed" ? "Revisado" : "Resuelto"}
+                        </span>
+                        <div className="flex items-center gap-1 ml-auto">
+                          {fb.status !== "reviewed" && (
+                            <button onClick={() => markFeedbackStatus(fb.id, "reviewed")}
+                              className="text-[11px] px-2.5 py-1 rounded-lg bg-blue-500/10 border border-blue-500/20 text-blue-400 hover:bg-blue-500/20 transition-all font-semibold">
+                              Marcar revisado
+                            </button>
+                          )}
+                          {fb.status !== "done" && (
+                            <button onClick={() => markFeedbackStatus(fb.id, "done")}
+                              className="text-[11px] px-2.5 py-1 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 hover:bg-emerald-500/20 transition-all font-semibold">
+                              Resuelto ✓
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        )}
+
       </main>
     </div>
   );

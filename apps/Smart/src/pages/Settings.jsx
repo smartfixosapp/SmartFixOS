@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import FeedbackModal from "@/components/settings/FeedbackModal";
 import { dataClient } from "@/components/api/dataClient";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -13,7 +14,7 @@ import {
   X, Eye, EyeOff, Wrench, CheckSquare, Camera, Key, Lock, Search,
   Fingerprint, ShieldCheck, ShieldAlert, History, Download, AlertCircle,
   Briefcase, ShoppingCart, BarChart3, TrendingDown, Activity, GripVertical,
-  Layout, Grid, Zap, ExternalLink, ChevronDown, Upload
+  Layout, Grid, Zap, ExternalLink, ChevronDown, Upload, MessageSquarePlus
 } from "lucide-react";
 import { useI18n } from "@/components/utils/i18n";
 import ImportExportTab from "@/components/settings/ImportExportTab";
@@ -29,7 +30,8 @@ export default function SettingsPage() {
   const { t, language, setLanguage } = useI18n();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
-  const [activeSection, setActiveSection] = useState(null);
+  const [activeSection, setActiveSection]   = useState(null);
+  const [showFeedback,  setShowFeedback]    = useState(false);
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -1612,23 +1614,25 @@ export default function SettingsPage() {
           ))}
         </div>
 
-        {/* Info Footer Sequoia Style */}
-        <div className="mt-8 bg-gradient-to-br from-cyan-500/10 to-blue-500/10 border border-cyan-500/20 rounded-[28px] p-7 backdrop-blur-xl shadow-xl relative overflow-hidden">
-          <div className="absolute -right-12 -bottom-12 w-32 h-32 bg-gradient-to-br from-cyan-400/20 to-blue-500/20 rounded-full blur-3xl" />
-          <div className="flex items-start gap-5 relative z-10">
-            <div className="w-12 h-12 rounded-full bg-gradient-to-br from-cyan-400 to-blue-500 flex items-center justify-center flex-shrink-0 shadow-xl">
-              <Sparkles className="w-6 h-6 text-white" strokeWidth={2.5} />
-            </div>
-            <div className="flex-1">
-              <h4 className="text-white font-black text-lg mb-2 tracking-tight">Configuración en Tiempo Real</h4>
-              <p className="text-white/60 text-sm leading-relaxed font-medium">
-                Los cambios se sincronizan instantáneamente en todos los dispositivos conectados.
-              </p>
-            </div>
+        {/* Feedback banner */}
+        <div className="mt-8 bg-gradient-to-br from-purple-500/10 to-cyan-500/10 border border-purple-500/20 rounded-[24px] p-5 flex items-center gap-4">
+          <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-purple-500 to-cyan-600 flex items-center justify-center flex-shrink-0 shadow-lg">
+            <MessageSquarePlus className="w-6 h-6 text-white" />
           </div>
+          <div className="flex-1 min-w-0">
+            <p className="text-white font-bold text-sm">¿Tienes una sugerencia o problema?</p>
+            <p className="text-gray-500 text-xs mt-0.5">Cuéntanos — leemos cada mensaje</p>
+          </div>
+          <button
+            onClick={() => setShowFeedback(true)}
+            className="flex-shrink-0 px-4 py-2 rounded-xl bg-white/10 hover:bg-white/15 text-white text-sm font-semibold transition-all border border-white/10 hover:border-white/20"
+          >
+            Enviar feedback
+          </button>
         </div>
       </div>
 
+      {showFeedback && <FeedbackModal onClose={() => setShowFeedback(false)} />}
 
     </div>
   );
