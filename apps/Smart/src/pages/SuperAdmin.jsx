@@ -412,6 +412,30 @@ export default function SuperAdmin() {
     }
   };
 
+  // ── Quick stats ──────────────────────────────────────────────────────────
+  const loadTenantStats = useCallback(async (tenantId) => {
+    setTenantStatsLoading(prev => {
+      if (prev[tenantId]) return prev; // ya cargando
+      return { ...prev, [tenantId]: true };
+    });
+    try {
+      const [ordersRes, customersRes, txRes] = await Promise.all([
+        supabase.from("order").select("id", { count: "exact", head: true }).eq("tenant_id", tenantId),
+        supabase.from("customer").select("id", { count: "exact", head: true }).eq("tenant_id", tenantId),
+        supabase.from("transaction").select("amount, type").eq("tenant_id", tenantId).eq("type", "income"),
+      ]);
+      const revenue = (txRes.data || []).reduce((s, t) => s + (Number(t.amount) || 0), 0);
+      setTenantStats(prev => {
+        if (prev[tenantId]) return prev; // ya cargado
+        return { ...prev, [tenantId]: { orders: ordersRes.count ?? 0, customers: customersRes.count ?? 0, revenue } };
+      });
+    } catch (e) {
+      console.warn("loadTenantStats error:", e.message);
+    } finally {
+      setTenantStatsLoading(prev => ({ ...prev, [tenantId]: false }));
+    }
+  }, []); // sin deps — usa setters funcionales
+
   const toggleExpanded = useCallback((tenantId) => {
     const opening = expanded !== tenantId;
     setExpanded(opening ? tenantId : null);
@@ -661,29 +685,6 @@ export default function SuperAdmin() {
       setNoteSaving(false);
     }
   };
-
-  // ── Quick stats ──────────────────────────────────────────────────────────
-  const loadTenantStats = useCallback(async (tenantId) => {
-    if (tenantStats[tenantId] || tenantStatsLoading[tenantId]) return;
-    setTenantStatsLoading(prev => ({ ...prev, [tenantId]: true }));
-    try {
-      const [ordersRes, customersRes, txRes] = await Promise.all([
-        supabase.from("order").select("id", { count: "exact", head: true }).eq("tenant_id", tenantId),
-        supabase.from("customer").select("id", { count: "exact", head: true }).eq("tenant_id", tenantId),
-        supabase.from("transaction").select("amount, type").eq("tenant_id", tenantId).eq("type", "income"),
-      ]);
-      const revenue = (txRes.data || []).reduce((s, t) => s + (Number(t.amount) || 0), 0);
-      setTenantStats(prev => ({
-        ...prev,
-        [tenantId]: {
-          orders:    ordersRes.count    ?? 0,
-          customers: customersRes.count ?? 0,
-          revenue,
-        }
-      }));
-    } catch {}
-    finally { setTenantStatsLoading(prev => ({ ...prev, [tenantId]: false })); }
-  }, [tenantStats, tenantStatsLoading]);
 
   const handleLogout = () => {
     localStorage.removeItem(SUPER_SESSION_KEY);
