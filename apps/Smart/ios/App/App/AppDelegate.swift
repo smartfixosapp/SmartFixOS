@@ -59,4 +59,16 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 // Required to avoid runtime asserts when using Main.storyboard.
 class SceneDelegate: UIResponder, UIWindowSceneDelegate {
     var window: UIWindow?
+
+    // Forward custom URL scheme opens (e.g. com.smartfixos.pr911://) to Capacitor.
+    // With the scene-based lifecycle (iOS 13+), URL opens arrive here — NOT in
+    // AppDelegate.application(_:open:options:). Without this, appUrlOpen never fires.
+    func scene(_ scene: UIScene, openURLContexts URLContexts: Set<UIOpenURLContext>) {
+        guard let url = URLContexts.first?.url else { return }
+        _ = ApplicationDelegateProxy.shared.application(
+            UIApplication.shared,
+            open: url,
+            options: [:]
+        )
+    }
 }
