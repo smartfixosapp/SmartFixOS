@@ -1,865 +1,1151 @@
-import React, { useState, useEffect, useMemo } from "react";
-import appClient from "@/api/appClient";
-import { dataClient } from "@/components/api/dataClient";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import React, { useState, useEffect, useMemo, useCallback } from "react";
+import { supabase } from "../../../../lib/supabase-client.js";
 import {
-  Download, Calendar, DollarSign, Package, Users, ClipboardList,
-  TrendingUp, FileText, RefreshCw, Wallet, BarChart3, Sparkles,
-  ShoppingCart, Clock, AlertCircle, CheckCircle, XCircle, ArrowUpRight, X, CreditCard, Smartphone, 
-  TrendingDown } from
-"lucide-react";
-import { format, startOfMonth, endOfMonth, subMonths } from "date-fns";
+  format,
+  startOfDay, endOfDay,
+  startOfWeek, endOfWeek,
+  startOfMonth, endOfMonth,
+  startOfYear, endOfYear,
+  parseISO,
+} from "date-fns";
 import { es } from "date-fns/locale";
-import { toast } from "sonner";
-import TransactionsModal from "../components/financial/TransactionsModal";
-import TicketAnalysisModal from "../components/financial/TicketAnalysisModal";
-import TaxBreakdownModal from "../components/financial/TaxBreakdownModal";
-import TransactionCountModal from "../components/financial/TransactionCountModal";
-import { useNavigate } from "react-router-dom";
-import { createPageUrl } from "@/components/utils/helpers";
+import {
+  DollarSign, TrendingUp, TrendingDown, BarChart3,
+  Users, ClipboardList, CreditCard, Package, Download,
+  FileText, RefreshCw, Calendar, ChevronDown, Filter,
+  AlertCircle, CheckCircle, Clock, XCircle, Wrench,
+  ShoppingBag, Layers, ArrowUpRight, ArrowDownRight,
+} from "lucide-react";
 
-const MetricCard = ({ title, value, subtitle, icon: Icon, trend, color = "cyan", onClick }) => {
-  const colorClasses = {
-    cyan: "from-cyan-600/20 to-cyan-800/20 border-cyan-500/30 text-cyan-400 theme-light:from-cyan-100 theme-light:to-cyan-200 theme-light:border-cyan-300 theme-light:text-cyan-600",
-    blue: "from-blue-600/20 to-blue-800/20 border-blue-500/30 text-blue-400 theme-light:from-blue-100 theme-light:to-blue-200 theme-light:border-blue-300 theme-light:text-blue-600",
-    emerald: "from-emerald-600/20 to-emerald-800/20 border-emerald-500/30 text-emerald-400 theme-light:from-emerald-100 theme-light:to-emerald-200 theme-light:border-emerald-300 theme-light:text-emerald-600",
-    purple: "from-purple-600/20 to-purple-800/20 border-purple-500/30 text-purple-400 theme-light:from-purple-100 theme-light:to-purple-200 theme-light:border-purple-300 theme-light:text-purple-600",
-    amber: "from-amber-600/20 to-amber-800/20 border-amber-500/30 text-amber-400 theme-light:from-amber-100 theme-light:to-amber-200 theme-light:border-amber-300 theme-light:text-amber-600",
-    red: "from-red-600/20 to-red-800/20 border-red-500/30 text-red-400 theme-light:from-red-100 theme-light:to-red-200 theme-light:border-red-300 theme-light:text-red-600"
-  };
+// ─── helpers ────────────────────────────────────────────────────────────────
 
-  const getTextColorClass = (colorKey) => {
-    const classes = colorClasses[colorKey] || colorClasses.cyan; // Default to cyan if key not found
-    const match = classes.match(/(text-\w+-\d+)(?:\s|$)/);
-    const lightMatch = classes.match(/(theme-light:text-\w+-\d+)(?:\s|$)/);
-    return `${match ? match[1] : ''} ${lightMatch ? lightMatch[1] : ''}`.trim();
-  };
+const getTenantId = () => localStorage.getItem("smartfix_tenant_id");
 
+const fmt = (n) =>
+  new Intl.NumberFormat("es-MX", { style: "currency", currency: "MXN" }).format(n ?? 0);
 
-  return (
-    <div 
-      onClick={onClick}
-      className={`bg-black/40 backdrop-blur-xl border border-cyan-500/20 rounded-2xl p-6 shadow-[0_8px_32px_rgba(0,168,232,0.2)] hover:border-cyan-500/50 transition-all group theme-light:bg-white theme-light:border-gray-200 theme-light:hover:border-cyan-500/50 ${onClick ? 'cursor-pointer hover:scale-105 active:scale-95' : ''}`}>
-      <div className="flex items-start justify-between mb-4">
-        <div className={`p-3 rounded-xl bg-gradient-to-br ${colorClasses[color]} border backdrop-blur-sm group-hover:scale-110 transition-transform`}>
-          <Icon className={`w-6 h-6 ${getTextColorClass(color)}`} />
-        </div>
-        {trend &&
-        <div className={`flex items-center gap-1 px-2 py-1 rounded-lg text-xs ${
-        trend > 0 ? 'bg-emerald-600/20 text-emerald-400 theme-light:bg-emerald-100 theme-light:text-emerald-700' : 'bg-red-600/20 text-red-400 theme-light:bg-red-100 theme-light:text-red-700'}`
-        }>
-            <ArrowUpRight className={`w-3 h-3 ${trend < 0 ? 'rotate-90' : ''}`} />
-            {Math.abs(trend)}%
-          </div>
-        }
-      </div>
-      <div>
-        <p className="text-xs font-medium text-gray-400 uppercase tracking-wide mb-2 theme-light:text-gray-600">{title}</p>
-        <p className="text-3xl font-bold text-white mb-1 theme-light:text-gray-900">{value}</p>
-        {subtitle && <p className="text-xs text-gray-500 theme-light:text-gray-600">{subtitle}</p>}
-      </div>
-    </div>);
-
+const fmtDate = (d) => {
+  if (!d) return "—";
+  try { return format(parseISO(d), "dd/MM/yyyy", { locale: es }); }
+  catch { return d; }
 };
 
+const capitalize = (s) => s ? s.charAt(0).toUpperCase() + s.slice(1) : "—";
+
+const PAYMENT_LABELS = {
+  cash: "Efectivo",
+  card: "Tarjeta",
+  ath_movil: "ATH Móvil",
+  bank_transfer: "Transferencia",
+  credit: "Crédito",
+  debit: "Débito",
+  check: "Cheque",
+  other: "Otro",
+};
+
+const paymentLabel = (m) => PAYMENT_LABELS[m] || capitalize(m) || "—";
+
+const ORDER_STATUS_LABELS = {
+  pending: "Pendiente",
+  in_progress: "En Proceso",
+  waiting_parts: "Esperando Piezas",
+  completed: "Completada",
+  delivered: "Entregada",
+  cancelled: "Cancelada",
+};
+
+const orderStatusLabel = (s) => ORDER_STATUS_LABELS[s] || capitalize(s) || "—";
+
+const STATUS_COLORS = {
+  pending: "text-yellow-400 bg-yellow-400/10",
+  in_progress: "text-blue-400 bg-blue-400/10",
+  waiting_parts: "text-orange-400 bg-orange-400/10",
+  completed: "text-emerald-400 bg-emerald-400/10",
+  delivered: "text-cyan-400 bg-cyan-400/10",
+  cancelled: "text-red-400 bg-red-400/10",
+};
+
+// ─── date range helpers ──────────────────────────────────────────────────────
+
+const getPeriodDates = (period, customStart, customEnd) => {
+  const now = new Date();
+  switch (period) {
+    case "today":
+      return { start: startOfDay(now), end: endOfDay(now) };
+    case "week":
+      return { start: startOfWeek(now, { weekStartsOn: 1 }), end: endOfWeek(now, { weekStartsOn: 1 }) };
+    case "month":
+      return { start: startOfMonth(now), end: endOfMonth(now) };
+    case "year":
+      return { start: startOfYear(now), end: endOfYear(now) };
+    case "custom":
+      return {
+        start: customStart ? startOfDay(new Date(customStart + "T00:00:00")) : startOfMonth(now),
+        end: customEnd ? endOfDay(new Date(customEnd + "T00:00:00")) : endOfMonth(now),
+      };
+    default:
+      return { start: startOfMonth(now), end: endOfMonth(now) };
+  }
+};
+
+const periodLabel = (period, start, end) => {
+  if (period === "today") return format(new Date(), "dd 'de' MMMM yyyy", { locale: es });
+  if (period === "week") return `Semana del ${format(start, "dd/MM")} al ${format(end, "dd/MM/yyyy")}`;
+  if (period === "month") return format(start, "MMMM yyyy", { locale: es }).replace(/^\w/, c => c.toUpperCase());
+  if (period === "year") return format(start, "yyyy");
+  return `${format(start, "dd/MM/yyyy")} — ${format(end, "dd/MM/yyyy")}`;
+};
+
+// ─── sub-components ──────────────────────────────────────────────────────────
+
+const SkeletonCard = () => (
+  <div className="bg-white/[0.03] border border-white/[0.07] rounded-2xl p-6 animate-pulse">
+    <div className="h-4 bg-white/10 rounded w-1/3 mb-4" />
+    <div className="h-8 bg-white/10 rounded w-1/2 mb-2" />
+    <div className="h-3 bg-white/10 rounded w-1/4" />
+  </div>
+);
+
+const SkeletonTable = () => (
+  <div className="animate-pulse space-y-2">
+    {[...Array(5)].map((_, i) => (
+      <div key={i} className="h-10 bg-white/[0.04] rounded-lg" />
+    ))}
+  </div>
+);
+
+const EmptyState = ({ message = "No hay datos para el período seleccionado" }) => (
+  <div className="flex flex-col items-center justify-center py-16 text-white/30">
+    <BarChart3 className="w-12 h-12 mb-3 opacity-40" />
+    <p className="text-sm">{message}</p>
+  </div>
+);
+
+const SummaryCard = ({ icon: Icon, title, value, sub, color = "cyan", negative = false }) => {
+  const palette = {
+    cyan:    { bg: "bg-cyan-500/10",    border: "border-cyan-500/20",    text: "text-cyan-400",    icon: "text-cyan-400/70" },
+    emerald: { bg: "bg-emerald-500/10", border: "border-emerald-500/20", text: "text-emerald-400", icon: "text-emerald-400/70" },
+    red:     { bg: "bg-red-500/10",     border: "border-red-500/20",     text: "text-red-400",     icon: "text-red-400/70" },
+    blue:    { bg: "bg-blue-500/10",    border: "border-blue-500/20",    text: "text-blue-400",    icon: "text-blue-400/70" },
+    orange:  { bg: "bg-orange-500/10",  border: "border-orange-500/20",  text: "text-orange-400",  icon: "text-orange-400/70" },
+    purple:  { bg: "bg-purple-500/10",  border: "border-purple-500/20",  text: "text-purple-400",  icon: "text-purple-400/70" },
+  };
+  const c = palette[color] || palette.cyan;
+  return (
+    <div className={`${c.bg} ${c.border} border rounded-2xl p-5 flex flex-col gap-3`}>
+      <div className="flex items-center justify-between">
+        <span className="text-white/50 text-xs font-medium uppercase tracking-wider">{title}</span>
+        <span className={`${c.icon} p-2 rounded-xl bg-white/[0.04]`}><Icon className="w-4 h-4" /></span>
+      </div>
+      <div className={`text-2xl font-bold ${negative ? "text-red-400" : c.text}`}>{value}</div>
+      {sub && <div className="text-white/40 text-xs">{sub}</div>}
+    </div>
+  );
+};
+
+// Pure-CSS horizontal bar
+const CSSBar = ({ value, max, color = "#22d3ee" }) => {
+  const pct = max > 0 ? Math.min((value / max) * 100, 100) : 0;
+  return (
+    <div className="w-full h-2 bg-white/[0.06] rounded-full overflow-hidden">
+      <div
+        className="h-full rounded-full transition-all duration-500"
+        style={{ width: `${pct}%`, backgroundColor: color }}
+      />
+    </div>
+  );
+};
+
+// Sticky table header wrapper
+const DataTable = ({ headers, children, empty }) => (
+  <div className="overflow-x-auto rounded-xl border border-white/[0.07]">
+    <table className="w-full text-sm">
+      <thead>
+        <tr className="border-b border-white/[0.07] bg-white/[0.04]">
+          {headers.map((h, i) => (
+            <th key={i} className={`px-4 py-3 text-left text-white/50 font-medium text-xs uppercase tracking-wider ${h.right ? "text-right" : ""}`}>
+              {h.label ?? h}
+            </th>
+          ))}
+        </tr>
+      </thead>
+      <tbody>
+        {children}
+      </tbody>
+    </table>
+    {empty && <EmptyState />}
+  </div>
+);
+
+const TR = ({ children, striped }) => (
+  <tr className={`border-b border-white/[0.04] hover:bg-white/[0.03] transition-colors ${striped ? "bg-white/[0.015]" : ""}`}>
+    {children}
+  </tr>
+);
+
+const TD = ({ children, right, bold, muted, green, red }) => (
+  <td className={`px-4 py-3 ${right ? "text-right" : ""} ${bold ? "font-semibold text-white" : ""} ${muted ? "text-white/40" : "text-white/80"} ${green ? "text-emerald-400 font-semibold" : ""} ${red ? "text-red-400 font-semibold" : ""}`}>
+    {children}
+  </td>
+);
+
+// ─── Period selector ──────────────────────────────────────────────────────────
+
+const PERIODS = [
+  { value: "today", label: "Hoy" },
+  { value: "week",  label: "Esta Semana" },
+  { value: "month", label: "Este Mes" },
+  { value: "year",  label: "Este Año" },
+  { value: "custom", label: "Personalizado" },
+];
+
+const PeriodSelector = ({ period, setPeriod, customStart, setCustomStart, customEnd, setCustomEnd }) => (
+  <div className="flex flex-wrap items-center gap-2">
+    <div className="flex bg-white/[0.05] border border-white/[0.08] rounded-xl p-1 gap-0.5">
+      {PERIODS.map((p) => (
+        <button
+          key={p.value}
+          onClick={() => setPeriod(p.value)}
+          className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${
+            period === p.value
+              ? "bg-cyan-500/20 text-cyan-400 border border-cyan-500/30"
+              : "text-white/50 hover:text-white/80 hover:bg-white/[0.05]"
+          }`}
+        >
+          {p.label}
+        </button>
+      ))}
+    </div>
+    {period === "custom" && (
+      <div className="flex items-center gap-2 ml-1">
+        <input
+          type="date"
+          value={customStart}
+          onChange={(e) => setCustomStart(e.target.value)}
+          className="bg-white/[0.05] border border-white/[0.1] rounded-lg px-3 py-1.5 text-sm text-white/80 focus:outline-none focus:border-cyan-500/50"
+        />
+        <span className="text-white/30 text-sm">—</span>
+        <input
+          type="date"
+          value={customEnd}
+          onChange={(e) => setCustomEnd(e.target.value)}
+          className="bg-white/[0.05] border border-white/[0.1] rounded-lg px-3 py-1.5 text-sm text-white/80 focus:outline-none focus:border-cyan-500/50"
+        />
+      </div>
+    )}
+  </div>
+);
+
+// ─── PDF export ───────────────────────────────────────────────────────────────
+
+const buildPdfHtml = ({ data, periodStr, tenantName }) => {
+  const { summary, transactions, orders, products } = data;
+  const income = transactions.filter(t => t.type === "income" || t.type === "ingreso");
+  const expenses = transactions.filter(t => t.type === "expense" || t.type === "gasto");
+  const totalIncome = income.reduce((s, t) => s + (t.amount || 0), 0);
+  const totalExpenses = expenses.reduce((s, t) => s + (t.amount || 0), 0);
+
+  const paymentBreakdown = {};
+  income.forEach(t => {
+    const k = paymentLabel(t.payment_method);
+    if (!paymentBreakdown[k]) paymentBreakdown[k] = { count: 0, total: 0 };
+    paymentBreakdown[k].count++;
+    paymentBreakdown[k].total += t.amount || 0;
+  });
+
+  const rows = (arr, cols) =>
+    arr.map((r, i) =>
+      `<tr style="background:${i % 2 === 0 ? "#fafafa" : "#fff"}">` +
+      cols.map(c => `<td style="padding:6px 10px;border-bottom:1px solid #eee;font-size:12px">${c(r)}</td>`).join("") +
+      `</tr>`
+    ).join("");
+
+  return `<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Reporte — ${tenantName}</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; color: #1a1a2e; font-size: 13px; background: #fff; }
+  .page { max-width: 1000px; margin: 0 auto; padding: 32px 24px; }
+  .header { border-bottom: 3px solid #0ea5e9; padding-bottom: 16px; margin-bottom: 24px; display: flex; justify-content: space-between; align-items: flex-end; }
+  .logo { font-size: 22px; font-weight: 800; color: #0ea5e9; }
+  .period { font-size: 12px; color: #64748b; text-align: right; }
+  .section { margin-bottom: 32px; }
+  .section-title { font-size: 14px; font-weight: 700; color: #0f172a; text-transform: uppercase; letter-spacing: .05em; margin-bottom: 12px; padding-bottom: 6px; border-bottom: 1px solid #e2e8f0; }
+  .cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 24px; }
+  .card { padding: 16px; background: #f8fafc; border-radius: 8px; border: 1px solid #e2e8f0; }
+  .card-label { font-size: 10px; text-transform: uppercase; letter-spacing: .05em; color: #94a3b8; margin-bottom: 4px; }
+  .card-value { font-size: 20px; font-weight: 800; color: #0f172a; }
+  .card-value.green { color: #10b981; }
+  .card-value.red { color: #ef4444; }
+  table { width: 100%; border-collapse: collapse; font-size: 12px; }
+  thead tr { background: #0ea5e9; color: white; }
+  thead th { padding: 8px 10px; text-align: left; font-weight: 600; font-size: 11px; }
+  tbody tr:nth-child(even) { background: #f8fafc; }
+  td { padding: 6px 10px; border-bottom: 1px solid #e2e8f0; color: #334155; }
+  .tfoot td { font-weight: 700; background: #f1f5f9; color: #0f172a; }
+  .badge { display: inline-block; padding: 2px 7px; border-radius: 999px; font-size: 10px; font-weight: 600; }
+  .badge-green { background: #d1fae5; color: #065f46; }
+  .badge-blue  { background: #dbeafe; color: #1e40af; }
+  .badge-red   { background: #fee2e2; color: #991b1b; }
+  .badge-yellow{ background: #fef9c3; color: #713f12; }
+  .badge-gray  { background: #f1f5f9; color: #475569; }
+  @media print { @page { margin: 15mm; } }
+</style>
+</head>
+<body>
+<div class="page">
+  <div class="header">
+    <div>
+      <div class="logo">${tenantName || "SmartFixOS"}</div>
+      <div style="color:#64748b;font-size:12px;margin-top:2px">Sistema de Gestión de Taller</div>
+    </div>
+    <div class="period">
+      <div style="font-size:14px;font-weight:700;color:#0f172a">Reporte de Actividad</div>
+      <div>${periodStr}</div>
+      <div style="margin-top:4px;color:#94a3b8">Generado: ${format(new Date(), "dd/MM/yyyy HH:mm")}</div>
+    </div>
+  </div>
+
+  <!-- RESUMEN -->
+  <div class="section">
+    <div class="section-title">Resumen General</div>
+    <div class="cards">
+      <div class="card"><div class="card-label">Ingresos Totales</div><div class="card-value green">${fmt(totalIncome)}</div></div>
+      <div class="card"><div class="card-label">Gastos Totales</div><div class="card-value red">${fmt(totalExpenses)}</div></div>
+      <div class="card"><div class="card-label">Ganancia Neta</div><div class="card-value ${totalIncome - totalExpenses >= 0 ? "green" : "red"}">${fmt(totalIncome - totalExpenses)}</div></div>
+      <div class="card"><div class="card-label">Órdenes Completadas</div><div class="card-value">${summary.completedOrders}</div></div>
+      <div class="card"><div class="card-label">Ticket Promedio</div><div class="card-value">${fmt(summary.avgTicket)}</div></div>
+      <div class="card"><div class="card-label">Clientes Atendidos</div><div class="card-value">${summary.uniqueCustomers}</div></div>
+    </div>
+  </div>
+
+  <!-- DESGLOSE PAGO -->
+  <div class="section">
+    <div class="section-title">Desglose por Método de Pago</div>
+    <table>
+      <thead><tr><th>Método</th><th>Transacciones</th><th>Total</th></tr></thead>
+      <tbody>
+        ${Object.entries(paymentBreakdown).map(([k, v]) =>
+          `<tr><td>${k}</td><td>${v.count}</td><td>${fmt(v.total)}</td></tr>`
+        ).join("") || "<tr><td colspan='3' style='color:#94a3b8;text-align:center;padding:12px'>Sin datos</td></tr>"}
+        <tr class="tfoot"><td><strong>Total</strong></td><td><strong>${income.length}</strong></td><td><strong>${fmt(totalIncome)}</strong></td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- INGRESOS -->
+  <div class="section">
+    <div class="section-title">Ingresos del Período</div>
+    <table>
+      <thead><tr><th>Fecha</th><th>Descripción</th><th>Categoría</th><th>Método Pago</th><th style="text-align:right">Monto</th></tr></thead>
+      <tbody>
+        ${income.length
+          ? rows(income, [
+              r => fmtDate(r.created_date || r.date),
+              r => r.description || r.notes || "—",
+              r => capitalize(r.category) || "—",
+              r => paymentLabel(r.payment_method),
+              r => `<span style="text-align:right;display:block;color:#10b981;font-weight:600">${fmt(r.amount)}</span>`,
+            ])
+          : "<tr><td colspan='5' style='color:#94a3b8;text-align:center;padding:12px'>Sin ingresos registrados</td></tr>"
+        }
+        <tr class="tfoot"><td colspan="4"><strong>Total Ingresos</strong></td><td style="text-align:right"><strong style="color:#10b981">${fmt(totalIncome)}</strong></td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- GASTOS -->
+  <div class="section">
+    <div class="section-title">Gastos del Período</div>
+    <table>
+      <thead><tr><th>Fecha</th><th>Descripción</th><th>Categoría</th><th>Método Pago</th><th style="text-align:right">Monto</th></tr></thead>
+      <tbody>
+        ${expenses.length
+          ? rows(expenses, [
+              r => fmtDate(r.created_date || r.date),
+              r => r.description || r.notes || "—",
+              r => capitalize(r.category) || "—",
+              r => paymentLabel(r.payment_method),
+              r => `<span style="text-align:right;display:block;color:#ef4444;font-weight:600">${fmt(r.amount)}</span>`,
+            ])
+          : "<tr><td colspan='5' style='color:#94a3b8;text-align:center;padding:12px'>Sin gastos registrados</td></tr>"
+        }
+        <tr class="tfoot"><td colspan="4"><strong>Total Gastos</strong></td><td style="text-align:right"><strong style="color:#ef4444">${fmt(totalExpenses)}</strong></td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- ÓRDENES -->
+  <div class="section">
+    <div class="section-title">Órdenes del Período</div>
+    <table>
+      <thead><tr><th># Orden</th><th>Cliente</th><th>Dispositivo</th><th>Técnico</th><th>Estado</th><th>Fecha</th><th style="text-align:right">Total</th></tr></thead>
+      <tbody>
+        ${orders.length
+          ? rows(orders, [
+              r => r.order_number || r.id?.substring(0, 8) || "—",
+              r => r.customer_name || "—",
+              r => [r.device_brand, r.device_model, r.device_type].filter(Boolean).join(" ") || "—",
+              r => r.assigned_technician || "—",
+              r => {
+                const map = { completed: "badge-green", delivered: "badge-blue", cancelled: "badge-red", pending: "badge-yellow", in_progress: "badge-blue" };
+                const cls = map[r.status] || "badge-gray";
+                return `<span class="badge ${cls}">${orderStatusLabel(r.status)}</span>`;
+              },
+              r => fmtDate(r.created_date),
+              r => `<span style="text-align:right;display:block;font-weight:600">${fmt(r.total_amount)}</span>`,
+            ])
+          : "<tr><td colspan='7' style='color:#94a3b8;text-align:center;padding:12px'>Sin órdenes registradas</td></tr>"
+        }
+      </tbody>
+    </table>
+  </div>
+
+  <!-- INVENTARIO -->
+  <div class="section">
+    <div class="section-title">Productos con Stock Bajo</div>
+    ${products.lowStock.length > 0
+      ? `<table>
+          <thead><tr><th>Nombre</th><th>Categoría</th><th style="text-align:right">Stock Actual</th><th style="text-align:right">Stock Mínimo</th></tr></thead>
+          <tbody>
+            ${rows(products.lowStock, [
+              r => r.name,
+              r => capitalize(r.category) || "—",
+              r => `<span style="text-align:right;display:block;color:#ef4444;font-weight:700">${r.stock}</span>`,
+              r => `<span style="text-align:right;display:block">${r.min_stock}</span>`,
+            ])}
+          </tbody>
+        </table>`
+      : `<p style="color:#10b981;font-size:13px;padding:12px 0">No hay productos con stock bajo.</p>`
+    }
+  </div>
+
+  <div style="margin-top:40px;padding-top:16px;border-top:1px solid #e2e8f0;text-align:center;color:#94a3b8;font-size:11px">
+    SmartFixOS — Reporte generado automáticamente el ${format(new Date(), "dd 'de' MMMM yyyy 'a las' HH:mm", { locale: es })}
+  </div>
+</div>
+<script>window.onload = () => window.print();</script>
+</body>
+</html>`;
+};
+
+// ─── CSV builders ─────────────────────────────────────────────────────────────
+
+const downloadCSV = (content, filename) => {
+  const bom = "\uFEFF";
+  const blob = new Blob([bom + content], { type: "text/csv;charset=utf-8;" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+};
+
+const csvRow = (arr) => arr.map(v => `"${String(v ?? "").replace(/"/g, '""')}"`).join(",");
+
+const buildCSVForTab = (activeTab, data) => {
+  const { transactions, orders, products } = data;
+  const income  = transactions.filter(t => t.type === "income" || t.type === "ingreso");
+  const expenses = transactions.filter(t => t.type === "expense" || t.type === "gasto");
+
+  if (activeTab === "summary") {
+    const paymentBreakdown = {};
+    income.forEach(t => {
+      const k = paymentLabel(t.payment_method);
+      if (!paymentBreakdown[k]) paymentBreakdown[k] = { count: 0, total: 0 };
+      paymentBreakdown[k].count++;
+      paymentBreakdown[k].total += t.amount || 0;
+    });
+    const header = csvRow(["Método de Pago", "Transacciones", "Total"]);
+    const rows = Object.entries(paymentBreakdown)
+      .map(([m, v]) => csvRow([m, v.count, v.total.toFixed(2)]));
+    return header + "\n" + rows.join("\n");
+  }
+
+  if (activeTab === "transactions") {
+    const header = csvRow(["Tipo", "Fecha", "Descripción", "Categoría", "Método Pago", "Monto"]);
+    const allTx = [...income, ...expenses].sort((a, b) =>
+      (a.created_date || "").localeCompare(b.created_date || "")
+    );
+    const rows = allTx.map(t => csvRow([
+      t.type === "income" || t.type === "ingreso" ? "Ingreso" : "Gasto",
+      fmtDate(t.created_date || t.date),
+      t.description || t.notes || "",
+      t.category || "",
+      paymentLabel(t.payment_method),
+      (t.amount || 0).toFixed(2),
+    ]));
+    return header + "\n" + rows.join("\n");
+  }
+
+  if (activeTab === "orders") {
+    const header = csvRow(["# Orden", "Cliente", "Dispositivo", "Técnico", "Estado", "Fecha", "Total"]);
+    const rows = orders.map(o => csvRow([
+      o.order_number || o.id || "",
+      o.customer_name || "",
+      [o.device_brand, o.device_model, o.device_type].filter(Boolean).join(" "),
+      o.assigned_technician || "",
+      orderStatusLabel(o.status),
+      fmtDate(o.created_date),
+      (o.total_amount || 0).toFixed(2),
+    ]));
+    return header + "\n" + rows.join("\n");
+  }
+
+  if (activeTab === "inventory") {
+    const header = csvRow(["Nombre", "Categoría", "Stock Actual", "Stock Mínimo", "Costo", "Precio", "Valor Total"]);
+    const rows = [...products.all].map(p => csvRow([
+      p.name || "",
+      p.category || "",
+      p.stock ?? 0,
+      p.min_stock ?? 0,
+      (p.cost || 0).toFixed(2),
+      (p.price || 0).toFixed(2),
+      ((p.stock || 0) * (p.cost || 0)).toFixed(2),
+    ]));
+    return header + "\n" + rows.join("\n");
+  }
+
+  return "";
+};
+
+// ─── TAB 1: Resumen General ───────────────────────────────────────────────────
+
+const TabResumen = ({ data, loading }) => {
+  const { transactions, orders, summary } = data;
+  const income   = useMemo(() => transactions.filter(t => t.type === "income" || t.type === "ingreso"), [transactions]);
+  const expenses = useMemo(() => transactions.filter(t => t.type === "expense" || t.type === "gasto"), [transactions]);
+  const totalIncome   = income.reduce((s, t) => s + (t.amount || 0), 0);
+  const totalExpenses = expenses.reduce((s, t) => s + (t.amount || 0), 0);
+  const netProfit = totalIncome - totalExpenses;
+
+  const paymentBreakdown = useMemo(() => {
+    const map = {};
+    income.forEach(t => {
+      const k = t.payment_method || "other";
+      if (!map[k]) map[k] = { count: 0, total: 0 };
+      map[k].count++;
+      map[k].total += t.amount || 0;
+    });
+    return Object.entries(map).sort((a, b) => b[1].total - a[1].total);
+  }, [income]);
+
+  const maxPaymentTotal = paymentBreakdown.length > 0 ? Math.max(...paymentBreakdown.map(([, v]) => v.total)) : 1;
+
+  if (loading) return (
+    <div className="space-y-6">
+      <div className="grid grid-cols-2 md:grid-cols-3 gap-4">{[...Array(6)].map((_, i) => <SkeletonCard key={i} />)}</div>
+      <SkeletonTable />
+    </div>
+  );
+
+  return (
+    <div className="space-y-6">
+      {/* KPI cards */}
+      <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+        <SummaryCard icon={TrendingUp}    color="emerald" title="Ingresos Totales"     value={fmt(totalIncome)}          sub={`${income.length} transacciones`} />
+        <SummaryCard icon={TrendingDown}  color="red"     title="Gastos Totales"       value={fmt(totalExpenses)}         sub={`${expenses.length} transacciones`} />
+        <SummaryCard icon={DollarSign}    color={netProfit >= 0 ? "cyan" : "red"} title="Ganancia Neta" value={fmt(netProfit)} negative={netProfit < 0} sub={netProfit >= 0 ? "Utilidad positiva" : "Pérdida en el período"} />
+        <SummaryCard icon={CheckCircle}   color="blue"    title="Órdenes Completadas"  value={summary.completedOrders}   sub="del período" />
+        <SummaryCard icon={CreditCard}    color="orange"  title="Ticket Promedio"       value={fmt(summary.avgTicket)}    sub="por orden completada" />
+        <SummaryCard icon={Users}         color="purple"  title="Clientes Atendidos"    value={summary.uniqueCustomers}   sub="clientes únicos" />
+      </div>
+
+      {/* Payment method breakdown */}
+      <div className="bg-white/[0.03] border border-white/[0.07] rounded-2xl overflow-hidden">
+        <div className="px-6 py-4 border-b border-white/[0.07]">
+          <h3 className="text-white font-semibold text-sm">Desglose por Método de Pago — Ingresos</h3>
+        </div>
+        {paymentBreakdown.length === 0
+          ? <EmptyState message="Sin transacciones de ingreso en el período" />
+          : (
+            <DataTable headers={[{ label: "Método de Pago" }, { label: "Transacciones" }, { label: "Total" }, { label: "Participación" }]}>
+              {paymentBreakdown.map(([method, v], i) => (
+                <TR key={method} striped={i % 2 === 1}>
+                  <TD bold>{paymentLabel(method)}</TD>
+                  <TD muted>{v.count}</TD>
+                  <TD green>{fmt(v.total)}</TD>
+                  <td className="px-4 py-3 w-48">
+                    <div className="flex items-center gap-2">
+                      <CSSBar value={v.total} max={maxPaymentTotal} color="#22d3ee" />
+                      <span className="text-white/40 text-xs w-10 text-right">
+                        {totalIncome > 0 ? ((v.total / totalIncome) * 100).toFixed(1) : 0}%
+                      </span>
+                    </div>
+                  </td>
+                </TR>
+              ))}
+              <tr className="bg-white/[0.04] border-t border-white/[0.1]">
+                <td className="px-4 py-3 text-white font-bold text-sm">Total</td>
+                <td className="px-4 py-3 text-white/60 font-semibold text-sm">{income.length}</td>
+                <td className="px-4 py-3 text-emerald-400 font-bold text-sm">{fmt(totalIncome)}</td>
+                <td className="px-4 py-3" />
+              </tr>
+            </DataTable>
+          )
+        }
+      </div>
+
+      {/* Orders by status mini summary */}
+      {orders.length > 0 && (
+        <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
+          {[
+            { status: "pending",       label: "Pendientes",    color: "text-yellow-400 bg-yellow-400/10 border-yellow-400/20" },
+            { status: "in_progress",   label: "En Proceso",    color: "text-blue-400 bg-blue-400/10 border-blue-400/20" },
+            { status: "waiting_parts", label: "Esp. Piezas",   color: "text-orange-400 bg-orange-400/10 border-orange-400/20" },
+            { status: "completed",     label: "Completadas",   color: "text-emerald-400 bg-emerald-400/10 border-emerald-400/20" },
+            { status: "cancelled",     label: "Canceladas",    color: "text-red-400 bg-red-400/10 border-red-400/20" },
+          ].map(({ status, label, color }) => {
+            const count = orders.filter(o => o.status === status).length;
+            return (
+              <div key={status} className={`${color} border rounded-xl p-3 text-center`}>
+                <div className="text-2xl font-bold">{count}</div>
+                <div className="text-xs mt-0.5 opacity-80">{label}</div>
+              </div>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+};
+
+// ─── TAB 2: Ingresos y Gastos ─────────────────────────────────────────────────
+
+const TabTransactions = ({ data, loading }) => {
+  const { transactions } = data;
+  const income   = useMemo(() => transactions.filter(t => t.type === "income" || t.type === "ingreso")
+    .sort((a, b) => (b.created_date || "").localeCompare(a.created_date || "")), [transactions]);
+  const expenses = useMemo(() => transactions.filter(t => t.type === "expense" || t.type === "gasto")
+    .sort((a, b) => (b.created_date || "").localeCompare(a.created_date || "")), [transactions]);
+
+  const totalIncome   = income.reduce((s, t) => s + (t.amount || 0), 0);
+  const totalExpenses = expenses.reduce((s, t) => s + (t.amount || 0), 0);
+
+  if (loading) return <div className="space-y-6"><SkeletonTable /><SkeletonTable /></div>;
+
+  const txHeaders = [
+    { label: "Fecha" },
+    { label: "Descripción" },
+    { label: "Categoría" },
+    { label: "Método Pago" },
+    { label: "Monto", right: true },
+  ];
+
+  return (
+    <div className="space-y-8">
+      {/* Income */}
+      <div className="bg-white/[0.03] border border-white/[0.07] rounded-2xl overflow-hidden">
+        <div className="px-6 py-4 border-b border-white/[0.07] flex items-center justify-between">
+          <h3 className="text-emerald-400 font-semibold text-sm flex items-center gap-2">
+            <ArrowUpRight className="w-4 h-4" /> Ingresos
+          </h3>
+          <span className="text-emerald-400 font-bold">{fmt(totalIncome)}</span>
+        </div>
+        {income.length === 0
+          ? <EmptyState message="Sin ingresos en el período seleccionado" />
+          : (
+            <DataTable headers={txHeaders}>
+              {income.map((t, i) => (
+                <TR key={t.id || i} striped={i % 2 === 1}>
+                  <TD muted>{fmtDate(t.created_date || t.date)}</TD>
+                  <TD>{t.description || t.notes || <span className="text-white/30 italic">Sin descripción</span>}</TD>
+                  <TD muted>{capitalize(t.category) || "—"}</TD>
+                  <TD muted>{paymentLabel(t.payment_method)}</TD>
+                  <TD right green>{fmt(t.amount)}</TD>
+                </TR>
+              ))}
+              <tr className="bg-emerald-500/[0.08] border-t border-emerald-500/20">
+                <td colSpan={4} className="px-4 py-3 text-white font-bold text-sm">Total Ingresos</td>
+                <td className="px-4 py-3 text-emerald-400 font-bold text-sm text-right">{fmt(totalIncome)}</td>
+              </tr>
+            </DataTable>
+          )
+        }
+      </div>
+
+      {/* Expenses */}
+      <div className="bg-white/[0.03] border border-white/[0.07] rounded-2xl overflow-hidden">
+        <div className="px-6 py-4 border-b border-white/[0.07] flex items-center justify-between">
+          <h3 className="text-red-400 font-semibold text-sm flex items-center gap-2">
+            <ArrowDownRight className="w-4 h-4" /> Gastos
+          </h3>
+          <span className="text-red-400 font-bold">{fmt(totalExpenses)}</span>
+        </div>
+        {expenses.length === 0
+          ? <EmptyState message="Sin gastos en el período seleccionado" />
+          : (
+            <DataTable headers={txHeaders}>
+              {expenses.map((t, i) => (
+                <TR key={t.id || i} striped={i % 2 === 1}>
+                  <TD muted>{fmtDate(t.created_date || t.date)}</TD>
+                  <TD>{t.description || t.notes || <span className="text-white/30 italic">Sin descripción</span>}</TD>
+                  <TD muted>{capitalize(t.category) || "—"}</TD>
+                  <TD muted>{paymentLabel(t.payment_method)}</TD>
+                  <TD right red>{fmt(t.amount)}</TD>
+                </TR>
+              ))}
+              <tr className="bg-red-500/[0.08] border-t border-red-500/20">
+                <td colSpan={4} className="px-4 py-3 text-white font-bold text-sm">Total Gastos</td>
+                <td className="px-4 py-3 text-red-400 font-bold text-sm text-right">{fmt(totalExpenses)}</td>
+              </tr>
+            </DataTable>
+          )
+        }
+      </div>
+    </div>
+  );
+};
+
+// ─── TAB 3: Órdenes ───────────────────────────────────────────────────────────
+
+const TabOrders = ({ data, loading }) => {
+  const { orders } = data;
+  const [statusFilter, setStatusFilter] = useState("all");
+  const [techFilter, setTechFilter] = useState("all");
+
+  const technicians = useMemo(() => {
+    const set = new Set(orders.map(o => o.assigned_technician).filter(Boolean));
+    return [...set].sort();
+  }, [orders]);
+
+  const filtered = useMemo(() => {
+    return orders.filter(o => {
+      if (statusFilter !== "all" && o.status !== statusFilter) return false;
+      if (techFilter !== "all" && o.assigned_technician !== techFilter) return false;
+      return true;
+    });
+  }, [orders, statusFilter, techFilter]);
+
+  const byTechnician = useMemo(() => {
+    const map = {};
+    orders.forEach(o => {
+      const k = o.assigned_technician || "Sin asignar";
+      if (!map[k]) map[k] = 0;
+      map[k]++;
+    });
+    return Object.entries(map).sort((a, b) => b[1] - a[1]);
+  }, [orders]);
+
+  if (loading) return <div className="space-y-4"><SkeletonCard /><SkeletonTable /></div>;
+
+  const statusCounts = {
+    completed:     orders.filter(o => o.status === "completed").length,
+    delivered:     orders.filter(o => o.status === "delivered").length,
+    in_progress:   orders.filter(o => o.status === "in_progress").length,
+    waiting_parts: orders.filter(o => o.status === "waiting_parts").length,
+    pending:       orders.filter(o => o.status === "pending").length,
+    cancelled:     orders.filter(o => o.status === "cancelled").length,
+  };
+
+  return (
+    <div className="space-y-6">
+      {/* Summary strip */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <SummaryCard icon={ClipboardList} color="blue"    title="Total Órdenes"      value={orders.length} />
+        <SummaryCard icon={CheckCircle}   color="emerald" title="Completadas/Entregadas" value={statusCounts.completed + statusCounts.delivered} />
+        <SummaryCard icon={Clock}         color="orange"  title="En Proceso"         value={statusCounts.in_progress + statusCounts.waiting_parts + statusCounts.pending} />
+        <SummaryCard icon={XCircle}       color="red"     title="Canceladas"         value={statusCounts.cancelled} />
+      </div>
+
+      {/* By technician */}
+      {byTechnician.length > 0 && (
+        <div className="bg-white/[0.03] border border-white/[0.07] rounded-2xl overflow-hidden">
+          <div className="px-6 py-4 border-b border-white/[0.07]">
+            <h3 className="text-white font-semibold text-sm flex items-center gap-2"><Wrench className="w-4 h-4 text-white/40" /> Por Técnico</h3>
+          </div>
+          <div className="p-4 grid grid-cols-2 md:grid-cols-4 gap-3">
+            {byTechnician.map(([tech, count]) => (
+              <div key={tech} className="bg-white/[0.04] border border-white/[0.06] rounded-xl p-3">
+                <div className="text-white/50 text-xs mb-1 truncate">{tech}</div>
+                <div className="text-white font-bold text-xl">{count}</div>
+                <CSSBar value={count} max={byTechnician[0][1]} color="#818cf8" />
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Filters */}
+      <div className="flex flex-wrap gap-3 items-center">
+        <div className="flex items-center gap-2 text-white/40 text-sm">
+          <Filter className="w-4 h-4" /> Filtros:
+        </div>
+        <select
+          value={statusFilter}
+          onChange={e => setStatusFilter(e.target.value)}
+          className="bg-white/[0.05] border border-white/[0.1] rounded-lg px-3 py-1.5 text-sm text-white/80 focus:outline-none focus:border-cyan-500/50"
+        >
+          <option value="all">Todos los estados</option>
+          {Object.entries(ORDER_STATUS_LABELS).map(([v, l]) => (
+            <option key={v} value={v}>{l}</option>
+          ))}
+        </select>
+        {technicians.length > 0 && (
+          <select
+            value={techFilter}
+            onChange={e => setTechFilter(e.target.value)}
+            className="bg-white/[0.05] border border-white/[0.1] rounded-lg px-3 py-1.5 text-sm text-white/80 focus:outline-none focus:border-cyan-500/50"
+          >
+            <option value="all">Todos los técnicos</option>
+            {technicians.map(t => <option key={t} value={t}>{t}</option>)}
+          </select>
+        )}
+        {(statusFilter !== "all" || techFilter !== "all") && (
+          <span className="text-white/40 text-xs">{filtered.length} resultado{filtered.length !== 1 ? "s" : ""}</span>
+        )}
+      </div>
+
+      {/* Orders table */}
+      <div className="bg-white/[0.03] border border-white/[0.07] rounded-2xl overflow-hidden">
+        {filtered.length === 0
+          ? <EmptyState message="No hay órdenes para los filtros seleccionados" />
+          : (
+            <DataTable headers={[
+              { label: "# Orden" }, { label: "Cliente" }, { label: "Dispositivo" },
+              { label: "Técnico" }, { label: "Estado" }, { label: "Fecha" }, { label: "Total", right: true },
+            ]}>
+              {filtered.map((o, i) => (
+                <TR key={o.id || i} striped={i % 2 === 1}>
+                  <TD bold>{o.order_number || `#${o.id?.substring(0, 8)}`}</TD>
+                  <TD>{o.customer_name || "—"}</TD>
+                  <TD muted>{[o.device_brand, o.device_model].filter(Boolean).join(" ") || o.device_type || "—"}</TD>
+                  <TD muted>{o.assigned_technician || <span className="text-white/20">Sin asignar</span>}</TD>
+                  <td className="px-4 py-3">
+                    <span className={`text-xs font-medium px-2 py-1 rounded-full ${STATUS_COLORS[o.status] || "text-white/40 bg-white/[0.05]"}`}>
+                      {orderStatusLabel(o.status)}
+                    </span>
+                  </td>
+                  <TD muted>{fmtDate(o.created_date)}</TD>
+                  <TD right bold>{fmt(o.total_amount)}</TD>
+                </TR>
+              ))}
+            </DataTable>
+          )
+        }
+      </div>
+    </div>
+  );
+};
+
+// ─── TAB 4: Inventario ────────────────────────────────────────────────────────
+
+const TabInventory = ({ data, loading }) => {
+  const { products } = data;
+
+  const inventoryValue = useMemo(
+    () => products.all.reduce((s, p) => s + (p.stock || 0) * (p.cost || 0), 0),
+    [products.all]
+  );
+
+  if (loading) return <div className="space-y-4"><SkeletonCard /><SkeletonTable /></div>;
+
+  return (
+    <div className="space-y-6">
+      {/* Summary */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <SummaryCard icon={Package}    color="blue"    title="Total Productos"    value={products.all.length}        sub="productos activos" />
+        <SummaryCard icon={AlertCircle} color="red"   title="Stock Bajo"          value={products.lowStock.length}   sub="requieren reposición" />
+        <SummaryCard icon={Layers}     color="orange"  title="Valor del Inventario" value={fmt(inventoryValue)}      sub="al costo" />
+        <SummaryCard icon={ShoppingBag} color="purple" title="Categorías"         value={new Set(products.all.map(p => p.category).filter(Boolean)).size} />
+      </div>
+
+      {/* Low stock alert */}
+      <div className="bg-white/[0.03] border border-white/[0.07] rounded-2xl overflow-hidden">
+        <div className="px-6 py-4 border-b border-white/[0.07] flex items-center gap-2">
+          <AlertCircle className="w-4 h-4 text-red-400" />
+          <h3 className="text-white font-semibold text-sm">Productos con Stock Bajo</h3>
+          {products.lowStock.length > 0 && (
+            <span className="ml-auto text-xs bg-red-500/20 text-red-400 border border-red-500/30 px-2 py-0.5 rounded-full">
+              {products.lowStock.length} producto{products.lowStock.length !== 1 ? "s" : ""}
+            </span>
+          )}
+        </div>
+        {products.lowStock.length === 0
+          ? (
+            <div className="flex flex-col items-center justify-center py-10 text-white/30">
+              <CheckCircle className="w-8 h-8 mb-2 text-emerald-400/40" />
+              <p className="text-sm text-emerald-400/60">Todos los productos tienen stock suficiente</p>
+            </div>
+          )
+          : (
+            <DataTable headers={[
+              { label: "Nombre" }, { label: "Categoría" },
+              { label: "Stock Actual", right: true }, { label: "Stock Mínimo", right: true },
+              { label: "Diferencia", right: true },
+            ]}>
+              {products.lowStock.map((p, i) => {
+                const diff = (p.stock || 0) - (p.min_stock || 0);
+                return (
+                  <TR key={p.id || i} striped={i % 2 === 1}>
+                    <TD bold>{p.name}</TD>
+                    <TD muted>{capitalize(p.category) || "—"}</TD>
+                    <TD right red>{p.stock ?? 0}</TD>
+                    <TD right muted>{p.min_stock ?? 0}</TD>
+                    <TD right red>{diff}</TD>
+                  </TR>
+                );
+              })}
+            </DataTable>
+          )
+        }
+      </div>
+
+      {/* Full inventory value table */}
+      <div className="bg-white/[0.03] border border-white/[0.07] rounded-2xl overflow-hidden">
+        <div className="px-6 py-4 border-b border-white/[0.07] flex items-center justify-between">
+          <h3 className="text-white font-semibold text-sm flex items-center gap-2">
+            <Layers className="w-4 h-4 text-white/40" /> Inventario Completo
+          </h3>
+          <span className="text-cyan-400 font-bold text-sm">{fmt(inventoryValue)}</span>
+        </div>
+        {products.all.length === 0
+          ? <EmptyState message="Sin productos registrados" />
+          : (
+            <DataTable headers={[
+              { label: "Nombre" }, { label: "Categoría" },
+              { label: "Stock", right: true }, { label: "Mín.", right: true },
+              { label: "Costo", right: true }, { label: "Precio", right: true },
+              { label: "Valor Total", right: true },
+            ]}>
+              {[...products.all]
+                .sort((a, b) => (b.stock * (b.cost || 0)) - (a.stock * (a.cost || 0)))
+                .map((p, i) => (
+                  <TR key={p.id || i} striped={i % 2 === 1}>
+                    <TD bold>{p.name}</TD>
+                    <TD muted>{capitalize(p.category) || "—"}</TD>
+                    <td className={`px-4 py-3 text-right font-semibold text-sm ${p.stock <= (p.min_stock || 0) ? "text-red-400" : "text-white/80"}`}>{p.stock ?? 0}</td>
+                    <TD right muted>{p.min_stock ?? 0}</TD>
+                    <TD right muted>{fmt(p.cost)}</TD>
+                    <TD right muted>{fmt(p.price)}</TD>
+                    <TD right bold>{fmt((p.stock || 0) * (p.cost || 0))}</TD>
+                  </TR>
+                ))
+              }
+              <tr className="bg-cyan-500/[0.06] border-t border-cyan-500/20">
+                <td colSpan={6} className="px-4 py-3 text-white font-bold text-sm">Valor Total del Inventario</td>
+                <td className="px-4 py-3 text-cyan-400 font-bold text-sm text-right">{fmt(inventoryValue)}</td>
+              </tr>
+            </DataTable>
+          )
+        }
+      </div>
+    </div>
+  );
+};
+
+// ─── MAIN PAGE ────────────────────────────────────────────────────────────────
+
+const TABS = [
+  { id: "summary",      label: "Resumen General",       icon: BarChart3 },
+  { id: "transactions", label: "Ingresos y Gastos",      icon: DollarSign },
+  { id: "orders",       label: "Órdenes",                icon: ClipboardList },
+  { id: "inventory",    label: "Inventario",             icon: Package },
+];
+
 export default function Reports() {
-  const navigate = useNavigate();
+  const [activeTab, setActiveTab] = useState("summary");
+  const [period, setPeriod] = useState("month");
+  const [customStart, setCustomStart] = useState(format(startOfMonth(new Date()), "yyyy-MM-dd"));
+  const [customEnd, setCustomEnd]     = useState(format(endOfMonth(new Date()), "yyyy-MM-dd"));
   const [loading, setLoading] = useState(false);
-  const [activeTab, setActiveTab] = useState("sales");
+  const [lastFetched, setLastFetched] = useState(null);
 
-  const [startDate, setStartDate] = useState(format(startOfMonth(new Date()), "yyyy-MM-dd"));
-  const [endDate, setEndDate] = useState(format(endOfMonth(new Date()), "yyyy-MM-dd"));
-
-  const [sales, setSales] = useState([]);
-  const [orders, setOrders] = useState([]);
-  const [products, setProducts] = useState([]);
-  const [timeEntries, setTimeEntries] = useState([]);
   const [transactions, setTransactions] = useState([]);
-  const [cashRegisters, setCashRegisters] = useState([]);
-  const [showTransactionsModal, setShowTransactionsModal] = useState(false);
-  const [showTicketModal, setShowTicketModal] = useState(false);
-  const [showTaxModal, setShowTaxModal] = useState(false);
-  const [showCountModal, setShowCountModal] = useState(false);
+  const [orders, setOrders] = useState([]);
+  const [products, setProducts] = useState({ all: [], lowStock: [] });
 
-  useEffect(() => {
-    loadData();
-  }, [startDate, endDate]);
+  const tenantId = getTenantId();
 
-  const loadData = async () => {
+  const { start, end } = useMemo(
+    () => getPeriodDates(period, customStart, customEnd),
+    [period, customStart, customEnd]
+  );
+
+  const periodStr = useMemo(() => periodLabel(period, start, end), [period, start, end]);
+
+  const startISO = start.toISOString();
+  const endISO   = end.toISOString();
+
+  const summary = useMemo(() => {
+    const income = transactions.filter(t => t.type === "income" || t.type === "ingreso");
+    const completedOrders = orders.filter(o => o.status === "completed" || o.status === "delivered");
+    const totalIncome = income.reduce((s, t) => s + (t.amount || 0), 0);
+    const uniqueCustomers = new Set(orders.map(o => o.customer_name).filter(Boolean)).size;
+    return {
+      completedOrders: completedOrders.length,
+      avgTicket: completedOrders.length > 0 ? totalIncome / completedOrders.length : 0,
+      uniqueCustomers,
+    };
+  }, [transactions, orders]);
+
+  const fetchData = useCallback(async () => {
+    if (!tenantId) return;
     setLoading(true);
-    const loadingToast = toast.loading("Cargando reportes...");
-
     try {
-      const [salesData, ordersData, productsData, timeData, transactionsData, cashData] = await Promise.allSettled([
-      dataClient.entities.Sale.list("-created_date", 500).catch(() => []),
-      dataClient.entities.Order.list("-created_date", 500).catch(() => []),
-      dataClient.entities.Product.list("-created_date", 500).catch(() => []),
-      dataClient.entities.TimeEntry.list("-created_date", 500).catch(() => []),
-      dataClient.entities.Transaction.list("-created_date", 500).catch(() => []),
-      dataClient.entities.CashRegister.list("-date", 100).catch(() => [])]
-      );
+      const [txRes, ordersRes, productsRes] = await Promise.all([
+        supabase
+          .from("transaction")
+          .select("id, type, amount, description, notes, category, payment_method, created_date, date")
+          .eq("tenant_id", tenantId)
+          .gte("created_date", startISO)
+          .lte("created_date", endISO)
+          .order("created_date", { ascending: false }),
 
-      setSales(salesData.status === "fulfilled" ? salesData.value || [] : []);
-      setOrders(ordersData.status === "fulfilled" ? ordersData.value || [] : []);
-      setProducts(productsData.status === "fulfilled" ? productsData.value || [] : []);
-      setTimeEntries(timeData.status === "fulfilled" ? timeData.value || [] : []);
-      setTransactions(transactionsData.status === "fulfilled" ? transactionsData.value || [] : []);
-      setCashRegisters(cashData.status === "fulfilled" ? cashData.value || [] : []);
+        supabase
+          .from("order")
+          .select("id, order_number, customer_name, device_type, device_brand, device_model, status, assigned_technician, total_amount, created_date")
+          .eq("tenant_id", tenantId)
+          .gte("created_date", startISO)
+          .lte("created_date", endISO)
+          .order("created_date", { ascending: false }),
 
-      toast.success("✅ Reportes cargados", { id: loadingToast });
-    } catch (error) {
-      console.error("Error loading reports:", error);
-      toast.error("Error al cargar datos", { id: loadingToast });
+        supabase
+          .from("product")
+          .select("id, name, stock, min_stock, category, cost, price")
+          .eq("tenant_id", tenantId)
+          .eq("active", true)
+          .order("name"),
+      ]);
+
+      if (txRes.error)       console.error("[Reports] transactions error:", txRes.error);
+      if (ordersRes.error)   console.error("[Reports] orders error:", ordersRes.error);
+      if (productsRes.error) console.error("[Reports] products error:", productsRes.error);
+
+      const allProducts = productsRes.data || [];
+      const lowStock = allProducts.filter(p => (p.stock ?? 0) <= (p.min_stock ?? 0));
+
+      setTransactions(txRes.data || []);
+      setOrders(ordersRes.data || []);
+      setProducts({ all: allProducts, lowStock });
+      setLastFetched(new Date());
     } finally {
       setLoading(false);
     }
-  };
+  }, [tenantId, startISO, endISO]);
 
-  const filterByDateRange = (items, dateField = 'created_date') => {
-    return items.filter((item) => {
-      try {
-        const itemDate = new Date(item[dateField]);
-        const start = new Date(startDate);
-        const end = new Date(endDate);
-        end.setHours(23, 59, 59, 999);
-        return itemDate >= start && itemDate <= end;
-      } catch {
-        return false;
-      }
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
+
+  const handleExportPDF = () => {
+    const tenantName = localStorage.getItem("smartfix_business_name") || "SmartFixOS";
+    const html = buildPdfHtml({
+      data: { summary, transactions, orders, products },
+      periodStr,
+      tenantName,
     });
-  };
-
-  const filteredSales = useMemo(() => filterByDateRange(sales.filter((s) => !s.voided)), [sales, startDate, endDate]);
-  const filteredOrders = useMemo(() => filterByDateRange(orders), [orders, startDate, endDate]);
-  const filteredTimeEntries = useMemo(() => filterByDateRange(timeEntries, 'clock_in'), [timeEntries, startDate, endDate]);
-  const filteredRegisters = useMemo(() => filterByDateRange(cashRegisters, 'date'), [cashRegisters, startDate, endDate]);
-
-  const cashAnalysis = useMemo(() => {
-    const totalRevenue = filteredRegisters.reduce((sum, r) => sum + (r.total_revenue || 0), 0);
-    const avgDiff = filteredRegisters.length > 0
-      ? filteredRegisters.reduce((sum, r) => sum + (r.final_count?.difference || 0), 0) / filteredRegisters.length
-      : 0;
-    
-    // Calcular totales por método desde las ventas filtradas (ya que los registros de caja no siempre tienen el desglose guardado en este formato simple)
-    // O mejor, usar las ventas filtradas que coinciden con los días de los registros
-    const cashSales = filteredSales.filter(s => s.payment_method === 'cash').reduce((sum, s) => sum + (s.total || 0), 0);
-    const cardSales = filteredSales.filter(s => s.payment_method === 'card').reduce((sum, s) => sum + (s.total || 0), 0);
-    const athSales = filteredSales.filter(s => s.payment_method === 'ath_movil').reduce((sum, s) => sum + (s.total || 0), 0);
-
-    return { totalRevenue, avgDiff, cashSales, cardSales, athSales, count: filteredRegisters.length };
-  }, [filteredRegisters, filteredSales]);
-
-  const salesAnalysis = useMemo(() => {
-    const totalRevenue = filteredSales.reduce((sum, s) => sum + (s.total || 0), 0);
-    const totalTransactions = filteredSales.length;
-    const avgTicket = totalTransactions > 0 ? totalRevenue / totalTransactions : 0;
-
-    const productSales = {};
-    const serviceSales = {};
-
-    filteredSales.forEach((sale) => {
-      (sale.items || []).forEach((item) => {
-        if (item.type === 'product') {
-          if (!productSales[item.name]) {
-            productSales[item.name] = { name: item.name, quantity: 0, revenue: 0 };
-          }
-          productSales[item.name].quantity += item.quantity || 0;
-          productSales[item.name].revenue += (item.price || 0) * (item.quantity || 0);
-        } else {
-          if (!serviceSales[item.name]) {
-            serviceSales[item.name] = { name: item.name, count: 0, revenue: 0 };
-          }
-          serviceSales[item.name].count += 1;
-          serviceSales[item.name].revenue += (item.price || 0) * (item.quantity || 1);
-        }
-      });
-    });
-
-    const topProducts = Object.values(productSales).sort((a, b) => b.revenue - a.revenue).slice(0, 10);
-    const topServices = Object.values(serviceSales).sort((a, b) => b.revenue - a.revenue).slice(0, 10);
-
-    const paymentMethods = filteredSales.reduce((acc, s) => {
-      const method = s.payment_method || 'cash';
-      acc[method] = (acc[method] || 0) + (s.total || 0);
-      return acc;
-    }, {});
-
-    return { totalRevenue, totalTransactions, avgTicket, topProducts, topServices, paymentMethods };
-  }, [filteredSales]);
-
-  const ordersAnalysis = useMemo(() => {
-    const totalOrders = filteredOrders.length;
-    const completedOrders = filteredOrders.filter((o) => o.status === 'completed' || o.status === 'picked_up').length;
-    const activeOrders = filteredOrders.filter((o) => !['completed', 'picked_up', 'cancelled'].includes(o.status)).length;
-    const cancelledOrders = filteredOrders.filter((o) => o.status === 'cancelled').length;
-
-    const avgRepairValue = filteredOrders.length > 0 ?
-    filteredOrders.reduce((sum, o) => sum + (o.cost_estimate || 0), 0) / filteredOrders.length :
-    0;
-
-    const deviceTypes = filteredOrders.reduce((acc, o) => {
-      const type = o.device_type || 'Unknown';
-      acc[type] = (acc[type] || 0) + 1;
-      return acc;
-    }, {});
-
-    const statusBreakdown = filteredOrders.reduce((acc, o) => {
-      const status = o.status || 'unknown';
-      acc[status] = (acc[status] || 0) + 1;
-      return acc;
-    }, {});
-
-    return {
-      totalOrders, completedOrders, activeOrders, cancelledOrders,
-      completionRate: totalOrders > 0 ? completedOrders / totalOrders * 100 : 0,
-      avgRepairValue, deviceTypes, statusBreakdown
-    };
-  }, [filteredOrders]);
-
-  const inventoryAnalysis = useMemo(() => {
-    const totalProducts = products.length;
-    const totalValue = products.reduce((sum, p) => sum + (p.stock || 0) * (p.cost || 0), 0);
-    const lowStock = products.filter((p) => (p.stock || 0) <= (p.min_stock || 5)).length;
-    const outOfStock = products.filter((p) => (p.stock || 0) === 0).length;
-
-    const categoryBreakdown = products.reduce((acc, p) => {
-      const cat = p.category || 'other';
-      acc[cat] = (acc[cat] || 0) + 1;
-      return acc;
-    }, {});
-
-    return { totalProducts, totalValue, lowStock, outOfStock, categoryBreakdown };
-  }, [products]);
-
-  const timeAnalysis = useMemo(() => {
-    const totalHours = filteredTimeEntries.reduce((sum, entry) => {
-      if (entry.clock_out) {
-        const hours = (new Date(entry.clock_out) - new Date(entry.clock_in)) / (1000 * 60 * 60);
-        return sum + hours;
-      }
-      return sum;
-    }, 0);
-
-    const employeeHours = filteredTimeEntries.reduce((acc, entry) => {
-      const name = entry.employee_name || 'Unknown';
-      if (entry.clock_out) {
-        const hours = (new Date(entry.clock_out) - new Date(entry.clock_in)) / (1000 * 60 * 60);
-        acc[name] = (acc[name] || 0) + hours;
-      }
-      return acc;
-    }, {});
-
-    return { totalHours, totalEntries: filteredTimeEntries.length, employeeHours };
-  }, [filteredTimeEntries]);
-
-  const exportToCSV = (data, filename) => {
-    if (!data || data.length === 0) {
-      toast.error("No hay datos para exportar");
-      return;
+    const win = window.open("", "_blank");
+    if (win) {
+      win.document.write(html);
+      win.document.close();
     }
+  };
 
-    const headers = Object.keys(data[0]).join(",");
-    const rows = data.map((row) =>
-    Object.values(row).map((val) =>
-    typeof val === 'string' && val.includes(',') ? `"${val}"` : val
-    ).join(",")
+  const handleExportCSV = () => {
+    const csv = buildCSVForTab(activeTab, { transactions, orders, products });
+    const tabLabel = TABS.find(t => t.id === activeTab)?.label || activeTab;
+    const filename = `reporte_${tabLabel.replace(/\s+/g, "_").toLowerCase()}_${format(start, "yyyyMMdd")}_${format(end, "yyyyMMdd")}.csv`;
+    downloadCSV(csv, filename);
+  };
+
+  const data = { transactions, orders, products, summary };
+
+  if (!tenantId) {
+    return (
+      <div className="min-h-screen bg-[#0f0f12] flex items-center justify-center">
+        <div className="text-white/40 text-center">
+          <AlertCircle className="w-10 h-10 mx-auto mb-3 opacity-40" />
+          <p>No se encontró el ID de tenant. Inicia sesión nuevamente.</p>
+        </div>
+      </div>
     );
-
-    const csv = [headers, ...rows].join("\n");
-    const blob = new Blob([csv], { type: "text/csv" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `${filename}_${format(new Date(), "yyyy-MM-dd")}.csv`;
-    a.click();
-    URL.revokeObjectURL(url);
-    toast.success("✅ Reporte exportado");
-  };
-
-  const exportSalesReport = () => {
-    const data = filteredSales.map((s) => ({
-      fecha: format(new Date(s.created_date), "yyyy-MM-dd HH:mm"),
-      numero_venta: s.sale_number,
-      cliente: s.customer_name,
-      subtotal: s.subtotal,
-      impuestos: s.tax_amount,
-      total: s.total,
-      metodo_pago: s.payment_method,
-      empleado: s.employee
-    }));
-    exportToCSV(data, "ventas");
-  };
-
-  const exportOrdersReport = () => {
-    const data = filteredOrders.map((o) => ({
-      fecha: format(new Date(o.created_date), "yyyy-MM-dd"),
-      numero_orden: o.order_number,
-      cliente: o.customer_name,
-      telefono: o.customer_phone,
-      dispositivo: `${o.device_brand || ''} ${o.device_model || ''}`,
-      problema: o.initial_problem,
-      estado: o.status,
-      estimado: o.cost_estimate,
-      pagado: o.amount_paid
-    }));
-    exportToCSV(data, "ordenes");
-  };
-
-  const exportInventoryReport = () => {
-    const data = products.map((p) => ({
-      nombre: p.name,
-      sku: p.sku,
-      categoria: p.category,
-      precio: p.price,
-      costo: p.cost,
-      stock: p.stock,
-      activo: p.active ? "Sí" : "No"
-    }));
-    exportToCSV(data, "inventario");
-  };
-
-  const exportTimeReport = () => {
-    const data = filteredTimeEntries.map((t) => ({
-      fecha: format(new Date(t.clock_in), "yyyy-MM-dd"),
-      empleado: t.employee_name,
-      entrada: t.clock_in ? format(new Date(t.clock_in), "HH:mm") : "N/A",
-      salida: t.clock_out ? format(new Date(t.clock_out), "HH:mm") : "Activo",
-      horas: t.clock_out ? ((new Date(t.clock_out) - new Date(t.clock_in)) / (1000 * 60 * 60)).toFixed(2) : "N/A"
-    }));
-    exportToCSV(data, "ponches");
-  };
-
-  const exportCashReport = () => {
-    const data = filteredRegisters.map((r) => ({
-      fecha: r.date,
-      abierto_por: r.opened_by,
-      cerrado_por: r.closed_by,
-      total_ventas: r.total_revenue,
-      diferencia: r.final_count?.difference || 0,
-      estado: r.status
-    }));
-    exportToCSV(data, "rendimiento_caja");
-  };
-
-  const setDateRange = (range) => {
-    const today = new Date();
-    switch (range) {
-      case "today":
-        setStartDate(format(today, "yyyy-MM-dd"));
-        setEndDate(format(today, "yyyy-MM-dd"));
-        break;
-      case "week":
-        const weekStart = new Date(today);
-        weekStart.setDate(today.getDate() - 7);
-        setStartDate(format(weekStart, "yyyy-MM-dd"));
-        setEndDate(format(today, "yyyy-MM-dd"));
-        break;
-      case "month":
-        setStartDate(format(startOfMonth(today), "yyyy-MM-dd"));
-        setEndDate(format(endOfMonth(today), "yyyy-MM-dd"));
-        break;
-      case "last_month":
-        const lastMonth = subMonths(today, 1);
-        setStartDate(format(startOfMonth(lastMonth), "yyyy-MM-dd"));
-        setEndDate(format(endOfMonth(lastMonth), "yyyy-MM-dd"));
-        break;
-    }
-  };
+  }
 
   return (
-    <div className="min-h-screen bg-[radial-gradient(circle_at_top,#0f172a_0%,#020617_45%,#000_90%)] theme-light:bg-gray-50 p-4 sm:p-6">
-      <div className="max-w-[1920px] mx-auto space-y-6">
-        {/* Hero Header con colores del logo */}
-        <div className="relative">
-          <div className="absolute inset-0 bg-gradient-to-r from-cyan-600/20 via-emerald-600/20 to-lime-600/20 blur-3xl opacity-30"></div>
-          <div className="relative bg-gradient-to-br from-cyan-600/10 to-emerald-600/10 backdrop-blur-xl border border-cyan-500/20 rounded-3xl p-4 sm:p-6 lg:p-8 shadow-[0_16px_64px_rgba(0,168,232,0.5)] theme-light:bg-white theme-light:border-gray-200 theme-light:shadow-lg">
-            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-              <div className="flex items-center gap-3 sm:gap-4">
-                <div className="relative">
-                  <div className="absolute inset-0 bg-cyan-600 blur-2xl opacity-50"></div>
-                  <BarChart3 className="relative w-10 h-10 sm:w-12 sm:h-12 text-cyan-500" />
-                </div>
-                <div>
-                  <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-white theme-light:text-gray-900">
-                    Reportes y Análisis
-                  </h1>
-                  <p className="text-gray-400 text-sm sm:text-base lg:text-lg theme-light:text-gray-600">Inteligencia de negocio en tiempo real</p>
-                </div>
-              </div>
-              <div className="flex items-center gap-2 w-full sm:w-auto">
-                <Button onClick={loadData} disabled={loading} className="bg-gradient-to-r from-cyan-600 to-emerald-700 hover:from-cyan-700 hover:to-emerald-800 shadow-[0_8px_32px_rgba(0,168,232,0.5)] flex-1 sm:flex-none h-9 sm:h-10 text-sm">
-                  <RefreshCw className={`w-4 h-4 sm:w-5 sm:h-5 sm:mr-2 ${loading ? 'animate-spin' : ''}`} />
-                  <span className="hidden sm:inline">Actualizar</span>
-                </Button>
-                <Button
-                  onClick={() => navigate(createPageUrl("UsersManagement"))}
-                  size="icon"
-                  variant="ghost"
-                  className="text-cyan-400 hover:text-cyan-300 hover:bg-cyan-600/10 theme-light:text-cyan-600 h-9 w-9 sm:h-10 sm:w-10"
-                >
-                  <X className="w-5 h-5 sm:w-6 sm:h-6" />
-                </Button>
-              </div>
+    <div className="min-h-screen bg-[#0f0f12] text-white">
+      {/* Sticky header */}
+      <div className="sticky top-0 z-30 bg-[#0f0f12]/95 backdrop-blur-sm border-b border-white/[0.07] px-6 py-4">
+        <div className="max-w-7xl mx-auto flex flex-col gap-4">
+          {/* Title row */}
+          <div className="flex items-center justify-between flex-wrap gap-3">
+            <div>
+              <h1 className="text-xl font-bold text-white">Reportes</h1>
+              <p className="text-white/40 text-xs mt-0.5">{periodStr}</p>
+            </div>
+            <div className="flex items-center gap-2">
+              {lastFetched && (
+                <span className="text-white/25 text-xs hidden md:block">
+                  Actualizado {format(lastFetched, "HH:mm")}
+                </span>
+              )}
+              <button
+                onClick={fetchData}
+                disabled={loading}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white/[0.05] border border-white/[0.1] text-white/60 hover:text-white/90 text-sm transition-colors disabled:opacity-40"
+              >
+                <RefreshCw className={`w-3.5 h-3.5 ${loading ? "animate-spin" : ""}`} />
+                <span className="hidden sm:inline">Actualizar</span>
+              </button>
+              <button
+                onClick={handleExportCSV}
+                disabled={loading}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white/[0.05] border border-white/[0.1] text-white/60 hover:text-white/90 text-sm transition-colors disabled:opacity-40"
+              >
+                <Download className="w-3.5 h-3.5" />
+                <span className="hidden sm:inline">CSV</span>
+              </button>
+              <button
+                onClick={handleExportPDF}
+                disabled={loading}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-cyan-500/10 border border-cyan-500/30 text-cyan-400 hover:bg-cyan-500/20 text-sm font-medium transition-colors disabled:opacity-40"
+              >
+                <FileText className="w-3.5 h-3.5" />
+                <span className="hidden sm:inline">Exportar PDF</span>
+              </button>
             </div>
           </div>
+          {/* Period selector */}
+          <PeriodSelector
+            period={period} setPeriod={setPeriod}
+            customStart={customStart} setCustomStart={setCustomStart}
+            customEnd={customEnd} setCustomEnd={setCustomEnd}
+          />
         </div>
-
-        {/* Date Filters Glass con mejor espaciado y separación */}
-        <div className="bg-black/40 backdrop-blur-xl border border-cyan-500/20 rounded-2xl p-6 shadow-[0_8px_32px_rgba(0,168,232,0.2)] theme-light:bg-white theme-light:border-gray-200 theme-light:shadow-md">
-          <div className="space-y-8">
-            {/* Inputs de fecha con más espacio vertical */}
-            <div className="space-y-5">
-              <h3 className="text-white text-base font-semibold mb-4 theme-light:text-gray-900">Seleccionar Rango de Fechas</h3>
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <div className="space-y-2">
-                  <label className="text-gray-300 text-sm block font-medium theme-light:text-gray-700">
-                    Fecha Inicio
-                  </label>
-                  <Input
-                    type="date"
-                    value={startDate}
-                    onChange={(e) => setStartDate(e.target.value)}
-                    className="bg-black/40 border-cyan-500/20 text-white h-12 w-full theme-light:bg-white theme-light:border-gray-300 theme-light:text-gray-900" />
-
-                </div>
-                <div className="space-y-2">
-                  <label className="text-gray-300 text-sm block font-medium theme-light:text-gray-700">
-                    Fecha Fin
-                  </label>
-                  <Input
-                    type="date"
-                    value={endDate}
-                    onChange={(e) => setEndDate(e.target.value)}
-                    className="bg-black/40 border-cyan-500/20 text-white h-12 w-full theme-light:bg-white theme-light:border-gray-300 theme-light:text-gray-900" />
-
-                </div>
-              </div>
-            </div>
-            
-            {/* Separador visual */}
-            <div className="border-t border-cyan-500/10 theme-light:border-gray-200"></div>
-            
-            {/* Botones de atajos */}
-            <div className="space-y-3">
-              <label className="text-gray-300 text-sm block font-medium theme-light:text-gray-700">
-                Rangos rápidos
-              </label>
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                <Button
-                  onClick={() => setDateRange("today")}
-                  variant="outline" className="bg-background text-slate-900 px-4 py-2 text-sm font-medium rounded-md inline-flex items-center justify-center gap-2 whitespace-nowrap transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 border shadow-sm hover:text-accent-foreground border-cyan-500/20 hover:bg-cyan-600/10 h-11 theme-light:border-gray-300 theme-light:text-gray-700 theme-light:hover:bg-gray-50">
-
-                  Hoy
-                </Button>
-                <Button
-                  onClick={() => setDateRange("week")}
-                  variant="outline" className="bg-background text-slate-900 px-4 py-2 text-sm font-medium rounded-md inline-flex items-center justify-center gap-2 whitespace-nowrap transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 border shadow-sm hover:text-accent-foreground border-cyan-500/20 hover:bg-cyan-600/10 h-11 theme-light:border-gray-300 theme-light:text-gray-700 theme-light:hover:bg-gray-50">
-
-                  7 días
-                </Button>
-                <Button
-                  onClick={() => setDateRange("month")}
-                  variant="outline" className="bg-background text-slate-900 px-4 py-2 text-sm font-medium rounded-md inline-flex items-center justify-center gap-2 whitespace-nowrap transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 border shadow-sm hover:text-accent-foreground border-cyan-500/20 hover:bg-cyan-600/10 h-11 theme-light:border-gray-300 theme-light:text-gray-700 theme-light:hover:bg-gray-50">
-
-                  Este mes
-                </Button>
-                <Button
-                  onClick={() => setDateRange("last_month")}
-                  variant="outline" className="bg-background text-slate-900 px-4 py-2 text-sm font-medium rounded-md inline-flex items-center justify-center gap-2 whitespace-nowrap transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 border shadow-sm hover:text-accent-foreground border-cyan-500/20 hover:bg-cyan-600/10 h-11 theme-light:border-gray-300 theme-light:text-gray-700 theme-light:hover:bg-gray-50">
-
-                  Mes pasado
-                </Button>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Tabs con colores del logo */}
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <div className="bg-black/40 backdrop-blur-xl border border-cyan-500/20 rounded-2xl p-2 shadow-[0_8px_32px_rgba(0,168,232,0.2)] theme-light:bg-white theme-light:border-gray-200 theme-light:shadow-md">
-            <TabsList className="bg-transparent gap-2 w-full justify-start overflow-x-auto">
-              <TabsTrigger value="sales" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-emerald-600 data-[state=active]:to-emerald-800 data-[state=active]:text-white rounded-xl flex items-center gap-2 px-3 sm:px-4">
-                <DollarSign className="w-4 h-4" strokeWidth={2.5} />
-                <span className="hidden sm:inline">Ventas</span>
-              </TabsTrigger>
-              <TabsTrigger value="orders" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-cyan-600 data-[state=active]:to-blue-600 data-[state=active]:text-white rounded-xl flex items-center gap-2 px-3 sm:px-4">
-                <ClipboardList className="w-4 h-4" strokeWidth={2.5} />
-                <span className="hidden sm:inline">Órdenes</span>
-              </TabsTrigger>
-              <TabsTrigger value="inventory" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-teal-600 data-[state=active]:to-cyan-600 data-[state=active]:text-white rounded-xl flex items-center gap-2 px-3 sm:px-4">
-                <Package className="w-4 h-4" strokeWidth={2.5} />
-                <span className="hidden sm:inline">Inventario</span>
-              </TabsTrigger>
-              <TabsTrigger value="time" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-lime-600 data-[state=active]:to-emerald-600 data-[state=active]:text-white rounded-xl flex items-center gap-2 px-3 sm:px-4">
-                <Clock className="w-4 h-4" strokeWidth={2.5} />
-                <span className="hidden sm:inline">Tiempo</span>
-              </TabsTrigger>
-              <TabsTrigger value="cash" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-600 data-[state=active]:to-indigo-600 data-[state=active]:text-white rounded-xl flex items-center gap-2 px-3 sm:px-4">
-                <Wallet className="w-4 h-4" strokeWidth={2.5} />
-                <span className="hidden sm:inline">Caja</span>
-              </TabsTrigger>
-            </TabsList>
-          </div>
-
-          {/* CASH TAB */}
-          <TabsContent value="cash" className="space-y-6">
-            <div className="flex justify-end gap-2">
-              <Button onClick={() => navigate(createPageUrl("CashHistory"))} variant="outline" className="border-purple-500/20 text-purple-400 hover:bg-purple-500/10">
-                <Clock className="w-4 h-4 mr-2" />
-                Ver Historial Completo
-              </Button>
-              <Button onClick={exportCashReport} className="bg-gradient-to-r from-purple-600 to-indigo-700 hover:from-purple-700 hover:to-indigo-800 shadow-[0_4px_20px_rgba(147,51,234,0.4)]">
-                <Download className="w-4 h-4 mr-2" />Exportar Reporte (CSV)
-              </Button>
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-              <MetricCard title="Ventas Totales" value={`$${cashAnalysis.totalRevenue.toFixed(2)}`} subtitle={`${cashAnalysis.count} cierres`} icon={DollarSign} color="purple" />
-              <MetricCard title="Promedio Diferencia" value={`$${cashAnalysis.avgDiff.toFixed(2)}`} subtitle="Por cierre" icon={AlertCircle} color={cashAnalysis.avgDiff < 0 ? "red" : "emerald"} />
-              <MetricCard title="Ventas Efectivo" value={`$${cashAnalysis.cashSales.toFixed(2)}`} subtitle="En el periodo" icon={Wallet} color="emerald" />
-              <MetricCard title="ATH Móvil" value={`$${cashAnalysis.athSales.toFixed(2)}`} subtitle="En el periodo" icon={Smartphone} color="orange" />
-            </div>
-
-            <Card className="bg-black/40 backdrop-blur-xl border-purple-500/20 shadow-[0_8px_32px_rgba(147,51,234,0.2)] theme-light:bg-white theme-light:border-gray-200">
-              <CardHeader>
-                <CardTitle className="text-white flex items-center gap-2 theme-light:text-gray-900">
-                  <TrendingUp className="w-5 h-5 text-purple-500" />
-                  Rendimiento Diario
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-3 max-h-[400px] overflow-y-auto">
-                  {filteredRegisters.length === 0 ? (
-                    <div className="text-center py-8 text-gray-500">No hay registros de caja en este periodo</div>
-                  ) : (
-                    filteredRegisters.map((reg) => (
-                      <div key={reg.id} className="flex items-center justify-between p-4 bg-black/30 backdrop-blur-sm border border-purple-500/10 rounded-xl hover:border-purple-600/50 transition-all">
-                        <div>
-                          <p className="text-white font-medium">{format(new Date(reg.date), "EEEE d MMMM", { locale: es })}</p>
-                          <p className="text-xs text-gray-400">Cerrado por: {reg.closed_by || "N/A"}</p>
-                        </div>
-                        <div className="text-right">
-                          <p className="text-white font-bold">${(reg.total_revenue || 0).toFixed(2)}</p>
-                          <p className={`text-xs ${(reg.final_count?.difference || 0) !== 0 ? "text-red-400" : "text-emerald-400"}`}>
-                            Dif: ${(reg.final_count?.difference || 0).toFixed(2)}
-                          </p>
-                        </div>
-                      </div>
-                    ))
-                  )}
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          {/* SALES TAB */}
-          <TabsContent value="sales" className="space-y-6">
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-              <MetricCard 
-                title="Ingresos Totales" 
-                value={`$${salesAnalysis.totalRevenue.toFixed(2)}`} 
-                subtitle={`${salesAnalysis.totalTransactions} transacciones`} 
-                icon={DollarSign} 
-                color="emerald"
-                onClick={() => setShowTransactionsModal(true)}
-              />
-              <MetricCard 
-                title="Ticket Promedio" 
-                value={`$${salesAnalysis.avgTicket.toFixed(2)}`} 
-                subtitle="Por transacción" 
-                icon={TrendingUp} 
-                color="cyan"
-                onClick={() => setShowTicketModal(true)}
-              />
-              <MetricCard 
-                title="IVU Recaudado" 
-                value={`$${(salesAnalysis.totalRevenue * 0.115).toFixed(2)}`} 
-                subtitle="11.5% de ventas" 
-                icon={FileText} 
-                color="purple"
-                onClick={() => setShowTaxModal(true)}
-              />
-              <MetricCard 
-                title="Transacciones" 
-                value={salesAnalysis.totalTransactions} 
-                subtitle="Ventas completadas" 
-                icon={ShoppingCart} 
-                color="amber"
-                onClick={() => setShowCountModal(true)}
-              />
-            </div>
-
-            <div className="flex gap-3">
-              <Button onClick={exportSalesReport} className="bg-gradient-to-r from-emerald-600 to-emerald-800 hover:from-emerald-700 hover:to-emerald-900 shadow-[0_4px_20px_rgba(16,185,129,0.4)]">
-                <Download className="w-4 h-4 mr-2" />Exportar Ventas (CSV)
-              </Button>
-            </div>
-
-            <div className="grid grid-cols-1 gap-6">
-              <Card className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-[24px] shadow-2xl">
-                <CardHeader>
-                  <CardTitle className="text-white flex items-center gap-2 text-xl font-bold">
-                    <Package className="w-6 h-6 text-blue-500" />
-                    Top 10 Productos
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-2">
-                    {salesAnalysis.topProducts.map((product, i) =>
-                    <div key={i} className="flex items-center justify-between p-4 bg-black/30 backdrop-blur-sm border border-cyan-500/10 rounded-xl hover:border-emerald-600/50 transition-all group theme-light:bg-gray-50 theme-light:border-gray-200 theme-light:hover:border-emerald-500/50">
-                        <div className="flex items-center gap-3 flex-1 min-w-0">
-                          <div className="w-8 h-8 rounded-lg bg-emerald-600/20 border border-emerald-500/30 flex items-center justify-center group-hover:scale-110 transition-transform theme-light:bg-emerald-100 theme-light:border-emerald-300">
-                            <span className="text-white font-bold text-sm theme-light:text-emerald-700">#{i + 1}</span>
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <p className="text-white font-medium truncate theme-light:text-gray-900">{product.name}</p>
-                            <p className="text-xs text-gray-400 theme-light:text-gray-600">{product.quantity} unidades</p>
-                          </div>
-                        </div>
-                        <Badge className="bg-emerald-600/20 text-emerald-300 border-emerald-600/30 ml-3 theme-light:bg-emerald-100 theme-light:text-emerald-700 theme-light:border-emerald-300">
-                          ${product.revenue.toFixed(2)}
-                        </Badge>
-                      </div>
-                    )}
-                    {salesAnalysis.topProducts.length === 0 &&
-                    <div className="text-center py-12 text-gray-500 theme-light:text-gray-600">
-                        <Package className="w-12 h-12 mx-auto mb-3 opacity-30" />
-                        <p>No hay datos</p>
-                      </div>
-                    }
-                  </div>
-                </CardContent>
-              </Card>
-
-
-            </div>
-
-            <Card className="bg-black/40 backdrop-blur-xl border-cyan-500/20 shadow-[0_8px_32px_rgba(0,168,232,0.2)] theme-light:bg-white theme-light:border-gray-200">
-              <CardHeader>
-                <CardTitle className="text-white flex items-center gap-2 theme-light:text-gray-900">
-                  <Wallet className="w-5 h-5 text-emerald-500" />
-                  Ingresos por Método de Pago
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                  {Object.entries(salesAnalysis.paymentMethods).map(([method, amount]) => {
-                    const getMethodIcon = (m) => {
-                      const lower = m.toLowerCase();
-                      if (lower.includes('cash') || lower.includes('efectivo')) return Wallet;
-                      if (lower.includes('card') || lower.includes('tarjeta')) return CreditCard;
-                      if (lower.includes('ath') || lower.includes('movil')) return Smartphone;
-                      return DollarSign;
-                    };
-                    const MethodIcon = getMethodIcon(method);
-                    
-                    const getMethodColor = (m) => {
-                      const lower = m.toLowerCase();
-                      if (lower.includes('cash') || lower.includes('efectivo')) return "text-emerald-400 bg-emerald-500/20 border-emerald-500/30";
-                      if (lower.includes('card') || lower.includes('tarjeta')) return "text-blue-400 bg-blue-500/20 border-blue-500/30";
-                      if (lower.includes('ath') || lower.includes('movil')) return "text-orange-400 bg-orange-500/20 border-orange-500/30";
-                      return "text-purple-400 bg-purple-500/20 border-purple-500/30";
-                    };
-                    const colorClass = getMethodColor(method);
-
-                    return (
-                      <div key={method} className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-2xl p-5 hover:bg-white/10 transition-all group">
-                        <div className="flex items-center gap-3 mb-3">
-                          <div className={`p-2 rounded-xl border ${colorClass}`}>
-                            <MethodIcon className="w-5 h-5" />
-                          </div>
-                          <span className="text-white font-medium capitalize truncate">
-                            {method.replace(/_/g, ' ')}
-                          </span>
-                        </div>
-                        <p className="text-2xl font-bold text-white tracking-tight">${amount.toFixed(2)}</p>
-                      </div>
-                    );
-                  })}
-                  {Object.keys(salesAnalysis.paymentMethods).length === 0 &&
-                    <div className="col-span-full text-center py-12 text-gray-500 bg-white/5 rounded-2xl border border-white/10 border-dashed">
-                      <Wallet className="w-12 h-12 mx-auto mb-3 opacity-30" />
-                      <p>No hay datos de ingresos</p>
-                    </div>
-                  }
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          {/* ORDERS TAB */}
-          <TabsContent value="orders" className="space-y-6">
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-              <MetricCard title="Total Órdenes" value={ordersAnalysis.totalOrders} subtitle={`${ordersAnalysis.activeOrders} activas`} icon={ClipboardList} color="cyan" />
-              <MetricCard title="Completadas" value={ordersAnalysis.completedOrders} subtitle={`${ordersAnalysis.completionRate.toFixed(1)}% tasa`} icon={CheckCircle} color="emerald" />
-              <MetricCard title="Valor Promedio" value={`$${ordersAnalysis.avgRepairValue.toFixed(2)}`} subtitle="Por orden" icon={DollarSign} color="purple" />
-              <MetricCard title="Canceladas" value={ordersAnalysis.cancelledOrders} subtitle={`${(ordersAnalysis.cancelledOrders / Math.max(ordersAnalysis.totalOrders, 1) * 100).toFixed(1)}%`} icon={XCircle} color="red" />
-            </div>
-
-            <Button onClick={exportOrdersReport} className="bg-gradient-to-r from-cyan-600 to-emerald-700 hover:from-cyan-700 hover:to-emerald-800 shadow-[0_4px_20px_rgba(0,168,232,0.4)]">
-              <Download className="w-4 h-4 mr-2" />Exportar Órdenes (CSV)
-            </Button>
-
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <Card className="bg-black/40 backdrop-blur-xl border-cyan-500/20 shadow-[0_8px_32px_rgba(0,168,232,0.2)] theme-light:bg-white theme-light:border-gray-200">
-                <CardHeader>
-                  <CardTitle className="text-white flex items-center gap-2 theme-light:text-gray-900">
-                    <Package className="w-5 h-5 text-cyan-500" />
-                    Por Tipo de Dispositivo
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-2">
-                    {Object.entries(ordersAnalysis.deviceTypes).sort(([, a], [, b]) => b - a).map(([type, count]) =>
-                    <div key={type} className="flex items-center justify-between p-4 bg-black/30 backdrop-blur-sm border border-cyan-500/10 rounded-xl hover:border-cyan-600/50 transition-all theme-light:bg-gray-50 theme-light:border-gray-200 theme-light:hover:border-cyan-500/50">
-                        <span className="text-white font-medium capitalize theme-light:text-gray-900">{type}</span>
-                        <Badge className="bg-cyan-600/20 text-cyan-300 border-cyan-600/30 theme-light:bg-cyan-100 theme-light:text-cyan-700 theme-light:border-cyan-300">{count}</Badge>
-                      </div>
-                    )}
-                    {Object.keys(ordersAnalysis.deviceTypes).length === 0 &&
-                    <div className="text-center py-8 text-gray-500 theme-light:text-gray-600">No hay datos</div>
-                    }
-                  </div>
-                </CardContent>
-              </Card>
-
-              <Card className="bg-black/40 backdrop-blur-xl border-cyan-500/20 shadow-[0_8px_32px_rgba(0,168,232,0.2)] theme-light:bg-white theme-light:border-gray-200">
-                <CardHeader>
-                  <CardTitle className="text-white flex items-center gap-2 theme-light:text-gray-900">
-                    <BarChart3 className="w-5 h-5 text-emerald-500" />
-                    Por Estado
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-2">
-                    {Object.entries(ordersAnalysis.statusBreakdown).sort(([, a], [, b]) => b - a).map(([status, count]) =>
-                    <div key={status} className="flex items-center justify-between p-4 bg-black/30 backdrop-blur-sm border border-cyan-500/10 rounded-xl hover:border-emerald-600/50 transition-all theme-light:bg-gray-50 theme-light:border-gray-200 theme-light:hover:border-emerald-500/50">
-                        <span className="text-white font-medium capitalize theme-light:text-gray-900">{status.replace(/_/g, ' ')}</span>
-                        <Badge className="bg-emerald-600/20 text-emerald-300 border-emerald-600/30 theme-light:bg-emerald-100 theme-light:text-emerald-700 theme-light:border-emerald-300">{count}</Badge>
-                      </div>
-                    )}
-                    {Object.keys(ordersAnalysis.statusBreakdown).length === 0 &&
-                    <div className="text-center py-8 text-gray-500 theme-light:text-gray-600">No hay datos</div>
-                    }
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-          </TabsContent>
-
-          {/* INVENTORY TAB */}
-          <TabsContent value="inventory" className="space-y-6">
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-              <MetricCard title="Total Productos" value={inventoryAnalysis.totalProducts} subtitle="En catálogo" icon={Package} color="cyan" />
-              <MetricCard title="Valor Total" value={`$${inventoryAnalysis.totalValue.toFixed(2)}`} subtitle="Costo inventario" icon={DollarSign} color="emerald" />
-              <MetricCard title="Stock Bajo" value={inventoryAnalysis.lowStock} subtitle="Requieren reorden" icon={AlertCircle} color="amber" />
-              <MetricCard title="Agotados" value={inventoryAnalysis.outOfStock} subtitle="Sin stock" icon={XCircle} color="red" />
-            </div>
-
-            <Button onClick={exportInventoryReport} className="bg-gradient-to-r from-teal-600 to-cyan-700 hover:from-teal-700 hover:to-cyan-800 shadow-[0_4px_20px_rgba(20,184,166,0.4)]">
-              <Download className="w-4 h-4 mr-2" />Exportar Inventario (CSV)
-            </Button>
-
-            <Card className="bg-black/40 backdrop-blur-xl border-cyan-500/20 shadow-[0_8px_32px_rgba(0,168,232,0.2)] theme-light:bg-white theme-light:border-gray-200">
-              <CardHeader>
-                <CardTitle className="text-white flex items-center gap-2 theme-light:text-gray-900">
-                  <BarChart3 className="w-5 h-5 text-teal-500" />
-                  Productos por Categoría
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  {Object.entries(inventoryAnalysis.categoryBreakdown).sort(([, a], [, b]) => b - a).map(([category, count]) =>
-                  <div key={category} className="flex items-center justify-between p-4 bg-black/30 backdrop-blur-sm border border-cyan-500/10 rounded-xl hover:border-teal-600/50 transition-all theme-light:bg-gray-50 theme-light:border-gray-200 theme-light:hover:border-teal-500/50">
-                      <p className="text-white font-medium capitalize mb-2 theme-light:text-gray-900">{category.replace(/_/g, ' ')}</p>
-                      <div className="flex items-center justify-between">
-                        <Badge className="bg-teal-600/20 text-teal-300 border-teal-600/30 theme-light:bg-teal-100 theme-light:text-teal-700 theme-light:border-teal-300">{count} productos</Badge>
-                      </div>
-                    </div>
-                  )}
-                  {Object.keys(inventoryAnalysis.categoryBreakdown).length === 0 &&
-                  <div className="col-span-2 text-center py-8 text-gray-500 theme-light:text-gray-600">No hay productos</div>
-                  }
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          {/* TIME TAB */}
-          <TabsContent value="time" className="space-y-6">
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-              <MetricCard title="Total Horas" value={timeAnalysis.totalHours.toFixed(1)} subtitle={`${timeAnalysis.totalEntries} entradas`} icon={Clock} color="amber" />
-              <MetricCard title="Promedio/Empleado" value={(timeAnalysis.totalHours / Math.max(Object.keys(timeAnalysis.employeeHours).length, 1)).toFixed(1)} subtitle="Horas por empleado" icon={TrendingUp} color="cyan" />
-              <MetricCard title="Empleados" value={Object.keys(timeAnalysis.employeeHours).length} subtitle="Con registros" icon={Users} color="emerald" />
-            </div>
-
-            <Button onClick={exportTimeReport} className="bg-gradient-to-r from-lime-600 to-emerald-700 hover:from-lime-700 hover:to-emerald-800 shadow-[0_4px_20px_rgba(168,215,0,0.4)]">
-              <Download className="w-4 h-4 mr-2" />Exportar Ponches (CSV)
-            </Button>
-
-            <Card className="bg-black/40 backdrop-blur-xl border-cyan-500/20 shadow-[0_8px_32px_rgba(0,168,232,0.2)] theme-light:bg-white theme-light:border-gray-200">
-              <CardHeader>
-                <CardTitle className="text-white flex items-center gap-2 theme-light:text-gray-900">
-                  <Users className="w-5 h-5 text-lime-500" />
-                  Horas por Empleado
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-2">
-                  {Object.entries(timeAnalysis.employeeHours).sort(([, a], [, b]) => b - a).map(([name, hours]) =>
-                  <div key={name} className="flex items-center justify-between p-4 bg-black/30 backdrop-blur-sm border border-cyan-500/10 rounded-xl hover:border-lime-600/50 transition-all theme-light:bg-gray-50 theme-light:border-gray-200 theme-light:hover:border-lime-500/50">
-                      <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-full bg-lime-600/20 border border-lime-500/30 flex items-center justify-center theme-light:bg-lime-100 theme-light:border-lime-300">
-                          <Users className="w-5 h-5 text-lime-400 theme-light:text-lime-600" />
-                        </div>
-                        <span className="text-white font-medium theme-light:text-gray-900">{name}</span>
-                      </div>
-                      <Badge className="bg-lime-600/20 text-lime-300 border-lime-600/30 theme-light:bg-lime-100 theme-light:text-lime-700 theme-light:border-lime-300">
-                        {hours.toFixed(1)} hrs
-                      </Badge>
-                    </div>
-                  )}
-                  {Object.keys(timeAnalysis.employeeHours).length === 0 &&
-                  <div className="text-center py-12 text-gray-500 theme-light:text-gray-600">
-                      <Clock className="w-12 h-12 mx-auto mb-3 opacity-30" />
-                      <p>No hay datos</p>
-                    </div>
-                  }
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
-        </Tabs>
       </div>
 
-      <TransactionsModal 
-        open={showTransactionsModal} 
-        onClose={() => setShowTransactionsModal(false)}
-        sales={filteredSales}
-        title="Detalles de Transacciones"
-      />
+      {/* Main content */}
+      <div className="max-w-7xl mx-auto px-4 md:px-6 py-6">
+        {/* Tabs */}
+        <div className="flex border-b border-white/[0.07] mb-6 overflow-x-auto">
+          {TABS.map(({ id, label, icon: Icon }) => (
+            <button
+              key={id}
+              onClick={() => setActiveTab(id)}
+              className={`flex items-center gap-2 px-5 py-3 text-sm font-medium border-b-2 whitespace-nowrap transition-colors ${
+                activeTab === id
+                  ? "border-cyan-500 text-cyan-400"
+                  : "border-transparent text-white/40 hover:text-white/70 hover:border-white/20"
+              }`}
+            >
+              <Icon className="w-4 h-4" />
+              {label}
+            </button>
+          ))}
+        </div>
 
-      <TicketAnalysisModal
-        open={showTicketModal}
-        onClose={() => setShowTicketModal(false)}
-        sales={filteredSales}
-      />
-
-      <TaxBreakdownModal
-        open={showTaxModal}
-        onClose={() => setShowTaxModal(false)}
-        sales={filteredSales}
-      />
-
-      <TransactionCountModal
-        open={showCountModal}
-        onClose={() => setShowCountModal(false)}
-        sales={filteredSales}
-      />
-    </div>);
-
+        {/* Tab content */}
+        {activeTab === "summary"      && <TabResumen      data={data} loading={loading} />}
+        {activeTab === "transactions" && <TabTransactions data={data} loading={loading} />}
+        {activeTab === "orders"       && <TabOrders       data={data} loading={loading} />}
+        {activeTab === "inventory"    && <TabInventory    data={data} loading={loading} />}
+      </div>
+    </div>
+  );
 }

@@ -115,6 +115,7 @@ const ADMIN_CORE_DASHBOARD_BUTTONS = [
   { id: "orders", label: "Órdenes", icon: "ClipboardList", gradient: "from-purple-500 to-pink-600", action: "Orders", type: "navigate", enabled: true },
   { id: "inventory", label: "Inventario", icon: "Package", gradient: "from-teal-500 to-cyan-600", action: "Inventory", type: "navigate", enabled: true },
   { id: "financial", label: "Finanzas", icon: "Wallet", gradient: "from-emerald-600 to-green-700", action: "Financial", type: "navigate", enabled: true },
+  { id: "reports", label: "Reportes", icon: "BarChart3", gradient: "from-indigo-500 to-blue-600", action: "Reports", type: "navigate", enabled: true },
 ];
 
 const LEGACY_DASHBOARD_DEFAULT_IDS = new Set([
@@ -1091,7 +1092,7 @@ export default function Dashboard() {
                       if (b.label.includes("Rápidas")) return "Reparación express";
                       if (b.label.includes("Desbloqueos")) return "IMEI & software";
                       if (b.label.includes("Cliente")) return "Base de clientes";
-                      if (b.label.includes("Reportes") || b.label.includes("Reporte")) return "Análisis y métricas";
+                      if (b.label.includes("Reportes") || b.label.includes("Reporte")) return "P&L · Órdenes · Inventario";
                       if (b.type === "navigate") return "Ver más →";
                       return "Abrir módulo";
                     };
