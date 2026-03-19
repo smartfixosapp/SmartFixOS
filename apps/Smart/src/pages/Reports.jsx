@@ -1,28 +1,28 @@
 import React, { useState, useEffect, useMemo, useCallback } from "react";
 import { supabase } from "../../../../lib/supabase-client.js";
 import {
-  format,
-  startOfDay, endOfDay,
-  startOfWeek, endOfWeek,
-  startOfMonth, endOfMonth,
-  startOfYear, endOfYear,
-  parseISO,
+  format, startOfDay, endOfDay, startOfWeek, endOfWeek,
+  startOfMonth, endOfMonth, startOfYear, endOfYear, parseISO, subMonths,
 } from "date-fns";
 import { es } from "date-fns/locale";
 import {
-  DollarSign, TrendingUp, TrendingDown, BarChart3,
-  Users, ClipboardList, CreditCard, Package, Download,
-  FileText, RefreshCw, Calendar, ChevronDown, Filter,
-  AlertCircle, CheckCircle, Clock, XCircle, Wrench,
-  ShoppingBag, Layers, ArrowUpRight, ArrowDownRight,
+  DollarSign, TrendingUp, TrendingDown, BarChart3, Users,
+  ClipboardList, CreditCard, Package, Download, FileText,
+  RefreshCw, Calendar, ChevronDown, ArrowUpRight, ArrowDownRight,
+  CheckCircle, Clock, XCircle, Wrench, Printer, AlertCircle,
+  ShoppingBag, Receipt, PieChart, Banknote, Percent,
 } from "lucide-react";
+import {
+  LineChart, Line, BarChart, Bar, PieChart as RPieChart, Pie, Cell,
+  XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer,
+} from "recharts";
 
 // ─── helpers ────────────────────────────────────────────────────────────────
+const getTenantId  = () => localStorage.getItem("smartfix_tenant_id");
+const getBizName   = () => localStorage.getItem("smartfix_business_name") || "SmartFixOS";
 
-const getTenantId = () => localStorage.getItem("smartfix_tenant_id");
-
-const fmt = (n) =>
-  new Intl.NumberFormat("es-MX", { style: "currency", currency: "MXN" }).format(n ?? 0);
+const usd = (n) =>
+  new Intl.NumberFormat("es-PR", { style: "currency", currency: "USD" }).format(n ?? 0);
 
 const fmtDate = (d) => {
   if (!d) return "—";
@@ -30,936 +30,94 @@ const fmtDate = (d) => {
   catch { return d; }
 };
 
-const capitalize = (s) => s ? s.charAt(0).toUpperCase() + s.slice(1) : "—";
+const capitalize = (s) => (s ? s.charAt(0).toUpperCase() + s.slice(1) : "—");
 
 const PAYMENT_LABELS = {
-  cash: "Efectivo",
-  card: "Tarjeta",
-  ath_movil: "ATH Móvil",
-  bank_transfer: "Transferencia",
-  credit: "Crédito",
-  debit: "Débito",
-  check: "Cheque",
-  other: "Otro",
+  cash: "Efectivo", card: "Tarjeta", ath_movil: "ATH Móvil",
+  bank_transfer: "Transferencia", credit: "Crédito", debit: "Débito",
+  check: "Cheque", other: "Otro",
 };
+const payLabel = (m) => PAYMENT_LABELS[m] || capitalize(m) || "Otro";
 
-const paymentLabel = (m) => PAYMENT_LABELS[m] || capitalize(m) || "—";
-
-const ORDER_STATUS_LABELS = {
-  pending: "Pendiente",
-  in_progress: "En Proceso",
-  waiting_parts: "Esperando Piezas",
-  completed: "Completada",
-  delivered: "Entregada",
-  cancelled: "Cancelada",
+const STATUS_META = {
+  pending:       { label: "Pendiente",         color: "text-yellow-400 bg-yellow-400/10 border-yellow-400/20" },
+  in_progress:   { label: "En Proceso",        color: "text-blue-400   bg-blue-400/10   border-blue-400/20"   },
+  waiting_parts: { label: "Esp. Piezas",       color: "text-orange-400 bg-orange-400/10 border-orange-400/20" },
+  completed:     { label: "Completada",        color: "text-emerald-400 bg-emerald-400/10 border-emerald-400/20"},
+  delivered:     { label: "Entregada",         color: "text-cyan-400   bg-cyan-400/10   border-cyan-400/20"   },
+  cancelled:     { label: "Cancelada",         color: "text-red-400    bg-red-400/10    border-red-400/20"    },
 };
+const statusMeta = (s) => STATUS_META[s] || { label: capitalize(s), color: "text-gray-400 bg-gray-400/10 border-gray-400/20" };
 
-const orderStatusLabel = (s) => ORDER_STATUS_LABELS[s] || capitalize(s) || "—";
+const CHART_COLORS = ["#10B981","#06B6D4","#8B5CF6","#F59E0B","#EF4444","#EC4899","#84CC16","#F97316"];
 
-const STATUS_COLORS = {
-  pending: "text-yellow-400 bg-yellow-400/10",
-  in_progress: "text-blue-400 bg-blue-400/10",
-  waiting_parts: "text-orange-400 bg-orange-400/10",
-  completed: "text-emerald-400 bg-emerald-400/10",
-  delivered: "text-cyan-400 bg-cyan-400/10",
-  cancelled: "text-red-400 bg-red-400/10",
-};
-
-// ─── date range helpers ──────────────────────────────────────────────────────
-
-const getPeriodDates = (period, customStart, customEnd) => {
+const getPeriodDates = (period, cStart, cEnd) => {
   const now = new Date();
   switch (period) {
-    case "today":
-      return { start: startOfDay(now), end: endOfDay(now) };
-    case "week":
-      return { start: startOfWeek(now, { weekStartsOn: 1 }), end: endOfWeek(now, { weekStartsOn: 1 }) };
-    case "month":
-      return { start: startOfMonth(now), end: endOfMonth(now) };
-    case "year":
-      return { start: startOfYear(now), end: endOfYear(now) };
-    case "custom":
-      return {
-        start: customStart ? startOfDay(new Date(customStart + "T00:00:00")) : startOfMonth(now),
-        end: customEnd ? endOfDay(new Date(customEnd + "T00:00:00")) : endOfMonth(now),
-      };
-    default:
-      return { start: startOfMonth(now), end: endOfMonth(now) };
+    case "today":   return { start: startOfDay(now),   end: endOfDay(now) };
+    case "week":    return { start: startOfWeek(now, { weekStartsOn: 1 }), end: endOfWeek(now, { weekStartsOn: 1 }) };
+    case "month":   return { start: startOfMonth(now), end: endOfMonth(now) };
+    case "lastmonth": { const lm = subMonths(now,1); return { start: startOfMonth(lm), end: endOfMonth(lm) }; }
+    case "year":    return { start: startOfYear(now),  end: endOfYear(now) };
+    case "custom":  return { start: cStart ? new Date(cStart) : startOfMonth(now), end: cEnd ? new Date(cEnd + "T23:59:59") : endOfMonth(now) };
+    default:        return { start: startOfMonth(now), end: endOfMonth(now) };
   }
 };
 
-const periodLabel = (period, start, end) => {
-  if (period === "today") return format(new Date(), "dd 'de' MMMM yyyy", { locale: es });
-  if (period === "week") return `Semana del ${format(start, "dd/MM")} al ${format(end, "dd/MM/yyyy")}`;
-  if (period === "month") return format(start, "MMMM yyyy", { locale: es }).replace(/^\w/, c => c.toUpperCase());
-  if (period === "year") return format(start, "yyyy");
-  return `${format(start, "dd/MM/yyyy")} — ${format(end, "dd/MM/yyyy")}`;
+const periodLabel = (p, s, e) => {
+  if (p === "today")     return `Hoy ${format(s, "dd/MM/yyyy")}`;
+  if (p === "week")      return `Semana ${format(s,"dd/MM")} – ${format(e,"dd/MM/yyyy")}`;
+  if (p === "lastmonth") return format(s, "MMMM yyyy", { locale: es });
+  if (p === "month")     return format(s, "MMMM yyyy", { locale: es });
+  if (p === "year")      return format(s, "yyyy");
+  return `${format(s,"dd/MM/yyyy")} – ${format(e,"dd/MM/yyyy")}`;
 };
 
-// ─── sub-components ──────────────────────────────────────────────────────────
-
-const SkeletonCard = () => (
-  <div className="bg-white/[0.03] border border-white/[0.07] rounded-2xl p-6 animate-pulse">
-    <div className="h-4 bg-white/10 rounded w-1/3 mb-4" />
-    <div className="h-8 bg-white/10 rounded w-1/2 mb-2" />
-    <div className="h-3 bg-white/10 rounded w-1/4" />
-  </div>
-);
-
-const SkeletonTable = () => (
-  <div className="animate-pulse space-y-2">
-    {[...Array(5)].map((_, i) => (
-      <div key={i} className="h-10 bg-white/[0.04] rounded-lg" />
-    ))}
-  </div>
-);
-
-const EmptyState = ({ message = "No hay datos para el período seleccionado" }) => (
-  <div className="flex flex-col items-center justify-center py-16 text-white/30">
-    <BarChart3 className="w-12 h-12 mb-3 opacity-40" />
-    <p className="text-sm">{message}</p>
-  </div>
-);
-
-const SummaryCard = ({ icon: Icon, title, value, sub, color = "cyan", negative = false }) => {
-  const palette = {
-    cyan:    { bg: "bg-cyan-500/10",    border: "border-cyan-500/20",    text: "text-cyan-400",    icon: "text-cyan-400/70" },
-    emerald: { bg: "bg-emerald-500/10", border: "border-emerald-500/20", text: "text-emerald-400", icon: "text-emerald-400/70" },
-    red:     { bg: "bg-red-500/10",     border: "border-red-500/20",     text: "text-red-400",     icon: "text-red-400/70" },
-    blue:    { bg: "bg-blue-500/10",    border: "border-blue-500/20",    text: "text-blue-400",    icon: "text-blue-400/70" },
-    orange:  { bg: "bg-orange-500/10",  border: "border-orange-500/20",  text: "text-orange-400",  icon: "text-orange-400/70" },
-    purple:  { bg: "bg-purple-500/10",  border: "border-purple-500/20",  text: "text-purple-400",  icon: "text-purple-400/70" },
+// ─── KPI Card ───────────────────────────────────────────────────────────────
+const KpiCard = ({ icon: Icon, label, value, sub, color = "emerald", trend, onClick }) => {
+  const colors = {
+    emerald: "from-emerald-500/10 to-emerald-700/5 border-emerald-500/20 text-emerald-400",
+    red:     "from-red-500/10     to-red-700/5     border-red-500/20     text-red-400",
+    cyan:    "from-cyan-500/10    to-cyan-700/5    border-cyan-500/20    text-cyan-400",
+    purple:  "from-purple-500/10  to-purple-700/5  border-purple-500/20  text-purple-400",
+    amber:   "from-amber-500/10   to-amber-700/5   border-amber-500/20   text-amber-400",
+    blue:    "from-blue-500/10    to-blue-700/5    border-blue-500/20    text-blue-400",
   };
-  const c = palette[color] || palette.cyan;
   return (
-    <div className={`${c.bg} ${c.border} border rounded-2xl p-5 flex flex-col gap-3`}>
-      <div className="flex items-center justify-between">
-        <span className="text-white/50 text-xs font-medium uppercase tracking-wider">{title}</span>
-        <span className={`${c.icon} p-2 rounded-xl bg-white/[0.04]`}><Icon className="w-4 h-4" /></span>
-      </div>
-      <div className={`text-2xl font-bold ${negative ? "text-red-400" : c.text}`}>{value}</div>
-      {sub && <div className="text-white/40 text-xs">{sub}</div>}
-    </div>
-  );
-};
-
-// Pure-CSS horizontal bar
-const CSSBar = ({ value, max, color = "#22d3ee" }) => {
-  const pct = max > 0 ? Math.min((value / max) * 100, 100) : 0;
-  return (
-    <div className="w-full h-2 bg-white/[0.06] rounded-full overflow-hidden">
-      <div
-        className="h-full rounded-full transition-all duration-500"
-        style={{ width: `${pct}%`, backgroundColor: color }}
-      />
-    </div>
-  );
-};
-
-// Sticky table header wrapper
-const DataTable = ({ headers, children, empty }) => (
-  <div className="overflow-x-auto rounded-xl border border-white/[0.07]">
-    <table className="w-full text-sm">
-      <thead>
-        <tr className="border-b border-white/[0.07] bg-white/[0.04]">
-          {headers.map((h, i) => (
-            <th key={i} className={`px-4 py-3 text-left text-white/50 font-medium text-xs uppercase tracking-wider ${h.right ? "text-right" : ""}`}>
-              {h.label ?? h}
-            </th>
-          ))}
-        </tr>
-      </thead>
-      <tbody>
-        {children}
-      </tbody>
-    </table>
-    {empty && <EmptyState />}
-  </div>
-);
-
-const TR = ({ children, striped }) => (
-  <tr className={`border-b border-white/[0.04] hover:bg-white/[0.03] transition-colors ${striped ? "bg-white/[0.015]" : ""}`}>
-    {children}
-  </tr>
-);
-
-const TD = ({ children, right, bold, muted, green, red }) => (
-  <td className={`px-4 py-3 ${right ? "text-right" : ""} ${bold ? "font-semibold text-white" : ""} ${muted ? "text-white/40" : "text-white/80"} ${green ? "text-emerald-400 font-semibold" : ""} ${red ? "text-red-400 font-semibold" : ""}`}>
-    {children}
-  </td>
-);
-
-// ─── Period selector ──────────────────────────────────────────────────────────
-
-const PERIODS = [
-  { value: "today", label: "Hoy" },
-  { value: "week",  label: "Esta Semana" },
-  { value: "month", label: "Este Mes" },
-  { value: "year",  label: "Este Año" },
-  { value: "custom", label: "Personalizado" },
-];
-
-const PeriodSelector = ({ period, setPeriod, customStart, setCustomStart, customEnd, setCustomEnd }) => (
-  <div className="flex flex-wrap items-center gap-2">
-    <div className="flex bg-white/[0.05] border border-white/[0.08] rounded-xl p-1 gap-0.5">
-      {PERIODS.map((p) => (
-        <button
-          key={p.value}
-          onClick={() => setPeriod(p.value)}
-          className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${
-            period === p.value
-              ? "bg-cyan-500/20 text-cyan-400 border border-cyan-500/30"
-              : "text-white/50 hover:text-white/80 hover:bg-white/[0.05]"
-          }`}
-        >
-          {p.label}
-        </button>
-      ))}
-    </div>
-    {period === "custom" && (
-      <div className="flex items-center gap-2 ml-1">
-        <input
-          type="date"
-          value={customStart}
-          onChange={(e) => setCustomStart(e.target.value)}
-          className="bg-white/[0.05] border border-white/[0.1] rounded-lg px-3 py-1.5 text-sm text-white/80 focus:outline-none focus:border-cyan-500/50"
-        />
-        <span className="text-white/30 text-sm">—</span>
-        <input
-          type="date"
-          value={customEnd}
-          onChange={(e) => setCustomEnd(e.target.value)}
-          className="bg-white/[0.05] border border-white/[0.1] rounded-lg px-3 py-1.5 text-sm text-white/80 focus:outline-none focus:border-cyan-500/50"
-        />
-      </div>
-    )}
-  </div>
-);
-
-// ─── PDF export ───────────────────────────────────────────────────────────────
-
-const buildPdfHtml = ({ data, periodStr, tenantName }) => {
-  const { summary, transactions, orders, products } = data;
-  const income = transactions.filter(t => t.type === "income" || t.type === "ingreso");
-  const expenses = transactions.filter(t => t.type === "expense" || t.type === "gasto");
-  const totalIncome = income.reduce((s, t) => s + (t.amount || 0), 0);
-  const totalExpenses = expenses.reduce((s, t) => s + (t.amount || 0), 0);
-
-  const paymentBreakdown = {};
-  income.forEach(t => {
-    const k = paymentLabel(t.payment_method);
-    if (!paymentBreakdown[k]) paymentBreakdown[k] = { count: 0, total: 0 };
-    paymentBreakdown[k].count++;
-    paymentBreakdown[k].total += t.amount || 0;
-  });
-
-  const rows = (arr, cols) =>
-    arr.map((r, i) =>
-      `<tr style="background:${i % 2 === 0 ? "#fafafa" : "#fff"}">` +
-      cols.map(c => `<td style="padding:6px 10px;border-bottom:1px solid #eee;font-size:12px">${c(r)}</td>`).join("") +
-      `</tr>`
-    ).join("");
-
-  return `<!DOCTYPE html>
-<html lang="es">
-<head>
-<meta charset="UTF-8">
-<title>Reporte — ${tenantName}</title>
-<style>
-  * { margin: 0; padding: 0; box-sizing: border-box; }
-  body { font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; color: #1a1a2e; font-size: 13px; background: #fff; }
-  .page { max-width: 1000px; margin: 0 auto; padding: 32px 24px; }
-  .header { border-bottom: 3px solid #0ea5e9; padding-bottom: 16px; margin-bottom: 24px; display: flex; justify-content: space-between; align-items: flex-end; }
-  .logo { font-size: 22px; font-weight: 800; color: #0ea5e9; }
-  .period { font-size: 12px; color: #64748b; text-align: right; }
-  .section { margin-bottom: 32px; }
-  .section-title { font-size: 14px; font-weight: 700; color: #0f172a; text-transform: uppercase; letter-spacing: .05em; margin-bottom: 12px; padding-bottom: 6px; border-bottom: 1px solid #e2e8f0; }
-  .cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 24px; }
-  .card { padding: 16px; background: #f8fafc; border-radius: 8px; border: 1px solid #e2e8f0; }
-  .card-label { font-size: 10px; text-transform: uppercase; letter-spacing: .05em; color: #94a3b8; margin-bottom: 4px; }
-  .card-value { font-size: 20px; font-weight: 800; color: #0f172a; }
-  .card-value.green { color: #10b981; }
-  .card-value.red { color: #ef4444; }
-  table { width: 100%; border-collapse: collapse; font-size: 12px; }
-  thead tr { background: #0ea5e9; color: white; }
-  thead th { padding: 8px 10px; text-align: left; font-weight: 600; font-size: 11px; }
-  tbody tr:nth-child(even) { background: #f8fafc; }
-  td { padding: 6px 10px; border-bottom: 1px solid #e2e8f0; color: #334155; }
-  .tfoot td { font-weight: 700; background: #f1f5f9; color: #0f172a; }
-  .badge { display: inline-block; padding: 2px 7px; border-radius: 999px; font-size: 10px; font-weight: 600; }
-  .badge-green { background: #d1fae5; color: #065f46; }
-  .badge-blue  { background: #dbeafe; color: #1e40af; }
-  .badge-red   { background: #fee2e2; color: #991b1b; }
-  .badge-yellow{ background: #fef9c3; color: #713f12; }
-  .badge-gray  { background: #f1f5f9; color: #475569; }
-  @media print { @page { margin: 15mm; } }
-</style>
-</head>
-<body>
-<div class="page">
-  <div class="header">
-    <div>
-      <div class="logo">${tenantName || "SmartFixOS"}</div>
-      <div style="color:#64748b;font-size:12px;margin-top:2px">Sistema de Gestión de Taller</div>
-    </div>
-    <div class="period">
-      <div style="font-size:14px;font-weight:700;color:#0f172a">Reporte de Actividad</div>
-      <div>${periodStr}</div>
-      <div style="margin-top:4px;color:#94a3b8">Generado: ${format(new Date(), "dd/MM/yyyy HH:mm")}</div>
-    </div>
-  </div>
-
-  <!-- RESUMEN -->
-  <div class="section">
-    <div class="section-title">Resumen General</div>
-    <div class="cards">
-      <div class="card"><div class="card-label">Ingresos Totales</div><div class="card-value green">${fmt(totalIncome)}</div></div>
-      <div class="card"><div class="card-label">Gastos Totales</div><div class="card-value red">${fmt(totalExpenses)}</div></div>
-      <div class="card"><div class="card-label">Ganancia Neta</div><div class="card-value ${totalIncome - totalExpenses >= 0 ? "green" : "red"}">${fmt(totalIncome - totalExpenses)}</div></div>
-      <div class="card"><div class="card-label">Órdenes Completadas</div><div class="card-value">${summary.completedOrders}</div></div>
-      <div class="card"><div class="card-label">Ticket Promedio</div><div class="card-value">${fmt(summary.avgTicket)}</div></div>
-      <div class="card"><div class="card-label">Clientes Atendidos</div><div class="card-value">${summary.uniqueCustomers}</div></div>
-    </div>
-  </div>
-
-  <!-- DESGLOSE PAGO -->
-  <div class="section">
-    <div class="section-title">Desglose por Método de Pago</div>
-    <table>
-      <thead><tr><th>Método</th><th>Transacciones</th><th>Total</th></tr></thead>
-      <tbody>
-        ${Object.entries(paymentBreakdown).map(([k, v]) =>
-          `<tr><td>${k}</td><td>${v.count}</td><td>${fmt(v.total)}</td></tr>`
-        ).join("") || "<tr><td colspan='3' style='color:#94a3b8;text-align:center;padding:12px'>Sin datos</td></tr>"}
-        <tr class="tfoot"><td><strong>Total</strong></td><td><strong>${income.length}</strong></td><td><strong>${fmt(totalIncome)}</strong></td></tr>
-      </tbody>
-    </table>
-  </div>
-
-  <!-- INGRESOS -->
-  <div class="section">
-    <div class="section-title">Ingresos del Período</div>
-    <table>
-      <thead><tr><th>Fecha</th><th>Descripción</th><th>Categoría</th><th>Método Pago</th><th style="text-align:right">Monto</th></tr></thead>
-      <tbody>
-        ${income.length
-          ? rows(income, [
-              r => fmtDate(r.created_date || r.date),
-              r => r.description || r.notes || "—",
-              r => capitalize(r.category) || "—",
-              r => paymentLabel(r.payment_method),
-              r => `<span style="text-align:right;display:block;color:#10b981;font-weight:600">${fmt(r.amount)}</span>`,
-            ])
-          : "<tr><td colspan='5' style='color:#94a3b8;text-align:center;padding:12px'>Sin ingresos registrados</td></tr>"
-        }
-        <tr class="tfoot"><td colspan="4"><strong>Total Ingresos</strong></td><td style="text-align:right"><strong style="color:#10b981">${fmt(totalIncome)}</strong></td></tr>
-      </tbody>
-    </table>
-  </div>
-
-  <!-- GASTOS -->
-  <div class="section">
-    <div class="section-title">Gastos del Período</div>
-    <table>
-      <thead><tr><th>Fecha</th><th>Descripción</th><th>Categoría</th><th>Método Pago</th><th style="text-align:right">Monto</th></tr></thead>
-      <tbody>
-        ${expenses.length
-          ? rows(expenses, [
-              r => fmtDate(r.created_date || r.date),
-              r => r.description || r.notes || "—",
-              r => capitalize(r.category) || "—",
-              r => paymentLabel(r.payment_method),
-              r => `<span style="text-align:right;display:block;color:#ef4444;font-weight:600">${fmt(r.amount)}</span>`,
-            ])
-          : "<tr><td colspan='5' style='color:#94a3b8;text-align:center;padding:12px'>Sin gastos registrados</td></tr>"
-        }
-        <tr class="tfoot"><td colspan="4"><strong>Total Gastos</strong></td><td style="text-align:right"><strong style="color:#ef4444">${fmt(totalExpenses)}</strong></td></tr>
-      </tbody>
-    </table>
-  </div>
-
-  <!-- ÓRDENES -->
-  <div class="section">
-    <div class="section-title">Órdenes del Período</div>
-    <table>
-      <thead><tr><th># Orden</th><th>Cliente</th><th>Dispositivo</th><th>Técnico</th><th>Estado</th><th>Fecha</th><th style="text-align:right">Total</th></tr></thead>
-      <tbody>
-        ${orders.length
-          ? rows(orders, [
-              r => r.order_number || r.id?.substring(0, 8) || "—",
-              r => r.customer_name || "—",
-              r => [r.device_brand, r.device_model, r.device_type].filter(Boolean).join(" ") || "—",
-              r => r.assigned_technician || "—",
-              r => {
-                const map = { completed: "badge-green", delivered: "badge-blue", cancelled: "badge-red", pending: "badge-yellow", in_progress: "badge-blue" };
-                const cls = map[r.status] || "badge-gray";
-                return `<span class="badge ${cls}">${orderStatusLabel(r.status)}</span>`;
-              },
-              r => fmtDate(r.created_date),
-              r => `<span style="text-align:right;display:block;font-weight:600">${fmt(r.total_amount)}</span>`,
-            ])
-          : "<tr><td colspan='7' style='color:#94a3b8;text-align:center;padding:12px'>Sin órdenes registradas</td></tr>"
-        }
-      </tbody>
-    </table>
-  </div>
-
-  <!-- INVENTARIO -->
-  <div class="section">
-    <div class="section-title">Productos con Stock Bajo</div>
-    ${products.lowStock.length > 0
-      ? `<table>
-          <thead><tr><th>Nombre</th><th>Categoría</th><th style="text-align:right">Stock Actual</th><th style="text-align:right">Stock Mínimo</th></tr></thead>
-          <tbody>
-            ${rows(products.lowStock, [
-              r => r.name,
-              r => capitalize(r.category) || "—",
-              r => `<span style="text-align:right;display:block;color:#ef4444;font-weight:700">${r.stock}</span>`,
-              r => `<span style="text-align:right;display:block">${r.min_stock}</span>`,
-            ])}
-          </tbody>
-        </table>`
-      : `<p style="color:#10b981;font-size:13px;padding:12px 0">No hay productos con stock bajo.</p>`
-    }
-  </div>
-
-  <div style="margin-top:40px;padding-top:16px;border-top:1px solid #e2e8f0;text-align:center;color:#94a3b8;font-size:11px">
-    SmartFixOS — Reporte generado automáticamente el ${format(new Date(), "dd 'de' MMMM yyyy 'a las' HH:mm", { locale: es })}
-  </div>
-</div>
-<script>window.onload = () => window.print();</script>
-</body>
-</html>`;
-};
-
-// ─── CSV builders ─────────────────────────────────────────────────────────────
-
-const downloadCSV = (content, filename) => {
-  const bom = "\uFEFF";
-  const blob = new Blob([bom + content], { type: "text/csv;charset=utf-8;" });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement("a");
-  a.href = url;
-  a.download = filename;
-  document.body.appendChild(a);
-  a.click();
-  document.body.removeChild(a);
-  URL.revokeObjectURL(url);
-};
-
-const csvRow = (arr) => arr.map(v => `"${String(v ?? "").replace(/"/g, '""')}"`).join(",");
-
-const buildCSVForTab = (activeTab, data) => {
-  const { transactions, orders, products } = data;
-  const income  = transactions.filter(t => t.type === "income" || t.type === "ingreso");
-  const expenses = transactions.filter(t => t.type === "expense" || t.type === "gasto");
-
-  if (activeTab === "summary") {
-    const paymentBreakdown = {};
-    income.forEach(t => {
-      const k = paymentLabel(t.payment_method);
-      if (!paymentBreakdown[k]) paymentBreakdown[k] = { count: 0, total: 0 };
-      paymentBreakdown[k].count++;
-      paymentBreakdown[k].total += t.amount || 0;
-    });
-    const header = csvRow(["Método de Pago", "Transacciones", "Total"]);
-    const rows = Object.entries(paymentBreakdown)
-      .map(([m, v]) => csvRow([m, v.count, v.total.toFixed(2)]));
-    return header + "\n" + rows.join("\n");
-  }
-
-  if (activeTab === "transactions") {
-    const header = csvRow(["Tipo", "Fecha", "Descripción", "Categoría", "Método Pago", "Monto"]);
-    const allTx = [...income, ...expenses].sort((a, b) =>
-      (a.created_date || "").localeCompare(b.created_date || "")
-    );
-    const rows = allTx.map(t => csvRow([
-      t.type === "income" || t.type === "ingreso" ? "Ingreso" : "Gasto",
-      fmtDate(t.created_date || t.date),
-      t.description || t.notes || "",
-      t.category || "",
-      paymentLabel(t.payment_method),
-      (t.amount || 0).toFixed(2),
-    ]));
-    return header + "\n" + rows.join("\n");
-  }
-
-  if (activeTab === "orders") {
-    const header = csvRow(["# Orden", "Cliente", "Dispositivo", "Técnico", "Estado", "Fecha", "Total"]);
-    const rows = orders.map(o => csvRow([
-      o.order_number || o.id || "",
-      o.customer_name || "",
-      [o.device_brand, o.device_model, o.device_type].filter(Boolean).join(" "),
-      o.assigned_technician || "",
-      orderStatusLabel(o.status),
-      fmtDate(o.created_date),
-      (o.total_amount || 0).toFixed(2),
-    ]));
-    return header + "\n" + rows.join("\n");
-  }
-
-  if (activeTab === "inventory") {
-    const header = csvRow(["Nombre", "Categoría", "Stock Actual", "Stock Mínimo", "Costo", "Precio", "Valor Total"]);
-    const rows = [...products.all].map(p => csvRow([
-      p.name || "",
-      p.category || "",
-      p.stock ?? 0,
-      p.min_stock ?? 0,
-      (p.cost || 0).toFixed(2),
-      (p.price || 0).toFixed(2),
-      ((p.stock || 0) * (p.cost || 0)).toFixed(2),
-    ]));
-    return header + "\n" + rows.join("\n");
-  }
-
-  return "";
-};
-
-// ─── TAB 1: Resumen General ───────────────────────────────────────────────────
-
-const TabResumen = ({ data, loading }) => {
-  const { transactions, orders, summary } = data;
-  const income   = useMemo(() => transactions.filter(t => t.type === "income" || t.type === "ingreso"), [transactions]);
-  const expenses = useMemo(() => transactions.filter(t => t.type === "expense" || t.type === "gasto"), [transactions]);
-  const totalIncome   = income.reduce((s, t) => s + (t.amount || 0), 0);
-  const totalExpenses = expenses.reduce((s, t) => s + (t.amount || 0), 0);
-  const netProfit = totalIncome - totalExpenses;
-
-  const paymentBreakdown = useMemo(() => {
-    const map = {};
-    income.forEach(t => {
-      const k = t.payment_method || "other";
-      if (!map[k]) map[k] = { count: 0, total: 0 };
-      map[k].count++;
-      map[k].total += t.amount || 0;
-    });
-    return Object.entries(map).sort((a, b) => b[1].total - a[1].total);
-  }, [income]);
-
-  const maxPaymentTotal = paymentBreakdown.length > 0 ? Math.max(...paymentBreakdown.map(([, v]) => v.total)) : 1;
-
-  if (loading) return (
-    <div className="space-y-6">
-      <div className="grid grid-cols-2 md:grid-cols-3 gap-4">{[...Array(6)].map((_, i) => <SkeletonCard key={i} />)}</div>
-      <SkeletonTable />
-    </div>
-  );
-
-  return (
-    <div className="space-y-6">
-      {/* KPI cards */}
-      <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-        <SummaryCard icon={TrendingUp}    color="emerald" title="Ingresos Totales"     value={fmt(totalIncome)}          sub={`${income.length} transacciones`} />
-        <SummaryCard icon={TrendingDown}  color="red"     title="Gastos Totales"       value={fmt(totalExpenses)}         sub={`${expenses.length} transacciones`} />
-        <SummaryCard icon={DollarSign}    color={netProfit >= 0 ? "cyan" : "red"} title="Ganancia Neta" value={fmt(netProfit)} negative={netProfit < 0} sub={netProfit >= 0 ? "Utilidad positiva" : "Pérdida en el período"} />
-        <SummaryCard icon={CheckCircle}   color="blue"    title="Órdenes Completadas"  value={summary.completedOrders}   sub="del período" />
-        <SummaryCard icon={CreditCard}    color="orange"  title="Ticket Promedio"       value={fmt(summary.avgTicket)}    sub="por orden completada" />
-        <SummaryCard icon={Users}         color="purple"  title="Clientes Atendidos"    value={summary.uniqueCustomers}   sub="clientes únicos" />
-      </div>
-
-      {/* Payment method breakdown */}
-      <div className="bg-white/[0.03] border border-white/[0.07] rounded-2xl overflow-hidden">
-        <div className="px-6 py-4 border-b border-white/[0.07]">
-          <h3 className="text-white font-semibold text-sm">Desglose por Método de Pago — Ingresos</h3>
+    <button
+      onClick={onClick}
+      className={`group w-full text-left bg-gradient-to-br ${colors[color]} border rounded-2xl p-5 transition-all hover:scale-[1.02] hover:shadow-lg`}
+    >
+      <div className="flex items-start justify-between mb-3">
+        <div className={`p-2 rounded-xl bg-white/5 ${colors[color].split(" ")[3]}`}>
+          <Icon className="w-5 h-5" />
         </div>
-        {paymentBreakdown.length === 0
-          ? <EmptyState message="Sin transacciones de ingreso en el período" />
-          : (
-            <DataTable headers={[{ label: "Método de Pago" }, { label: "Transacciones" }, { label: "Total" }, { label: "Participación" }]}>
-              {paymentBreakdown.map(([method, v], i) => (
-                <TR key={method} striped={i % 2 === 1}>
-                  <TD bold>{paymentLabel(method)}</TD>
-                  <TD muted>{v.count}</TD>
-                  <TD green>{fmt(v.total)}</TD>
-                  <td className="px-4 py-3 w-48">
-                    <div className="flex items-center gap-2">
-                      <CSSBar value={v.total} max={maxPaymentTotal} color="#22d3ee" />
-                      <span className="text-white/40 text-xs w-10 text-right">
-                        {totalIncome > 0 ? ((v.total / totalIncome) * 100).toFixed(1) : 0}%
-                      </span>
-                    </div>
-                  </td>
-                </TR>
-              ))}
-              <tr className="bg-white/[0.04] border-t border-white/[0.1]">
-                <td className="px-4 py-3 text-white font-bold text-sm">Total</td>
-                <td className="px-4 py-3 text-white/60 font-semibold text-sm">{income.length}</td>
-                <td className="px-4 py-3 text-emerald-400 font-bold text-sm">{fmt(totalIncome)}</td>
-                <td className="px-4 py-3" />
-              </tr>
-            </DataTable>
-          )
-        }
-      </div>
-
-      {/* Orders by status mini summary */}
-      {orders.length > 0 && (
-        <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
-          {[
-            { status: "pending",       label: "Pendientes",    color: "text-yellow-400 bg-yellow-400/10 border-yellow-400/20" },
-            { status: "in_progress",   label: "En Proceso",    color: "text-blue-400 bg-blue-400/10 border-blue-400/20" },
-            { status: "waiting_parts", label: "Esp. Piezas",   color: "text-orange-400 bg-orange-400/10 border-orange-400/20" },
-            { status: "completed",     label: "Completadas",   color: "text-emerald-400 bg-emerald-400/10 border-emerald-400/20" },
-            { status: "cancelled",     label: "Canceladas",    color: "text-red-400 bg-red-400/10 border-red-400/20" },
-          ].map(({ status, label, color }) => {
-            const count = orders.filter(o => o.status === status).length;
-            return (
-              <div key={status} className={`${color} border rounded-xl p-3 text-center`}>
-                <div className="text-2xl font-bold">{count}</div>
-                <div className="text-xs mt-0.5 opacity-80">{label}</div>
-              </div>
-            );
-          })}
-        </div>
-      )}
-    </div>
-  );
-};
-
-// ─── TAB 2: Ingresos y Gastos ─────────────────────────────────────────────────
-
-const TabTransactions = ({ data, loading }) => {
-  const { transactions } = data;
-  const income   = useMemo(() => transactions.filter(t => t.type === "income" || t.type === "ingreso")
-    .sort((a, b) => (b.created_date || "").localeCompare(a.created_date || "")), [transactions]);
-  const expenses = useMemo(() => transactions.filter(t => t.type === "expense" || t.type === "gasto")
-    .sort((a, b) => (b.created_date || "").localeCompare(a.created_date || "")), [transactions]);
-
-  const totalIncome   = income.reduce((s, t) => s + (t.amount || 0), 0);
-  const totalExpenses = expenses.reduce((s, t) => s + (t.amount || 0), 0);
-
-  if (loading) return <div className="space-y-6"><SkeletonTable /><SkeletonTable /></div>;
-
-  const txHeaders = [
-    { label: "Fecha" },
-    { label: "Descripción" },
-    { label: "Categoría" },
-    { label: "Método Pago" },
-    { label: "Monto", right: true },
-  ];
-
-  return (
-    <div className="space-y-8">
-      {/* Income */}
-      <div className="bg-white/[0.03] border border-white/[0.07] rounded-2xl overflow-hidden">
-        <div className="px-6 py-4 border-b border-white/[0.07] flex items-center justify-between">
-          <h3 className="text-emerald-400 font-semibold text-sm flex items-center gap-2">
-            <ArrowUpRight className="w-4 h-4" /> Ingresos
-          </h3>
-          <span className="text-emerald-400 font-bold">{fmt(totalIncome)}</span>
-        </div>
-        {income.length === 0
-          ? <EmptyState message="Sin ingresos en el período seleccionado" />
-          : (
-            <DataTable headers={txHeaders}>
-              {income.map((t, i) => (
-                <TR key={t.id || i} striped={i % 2 === 1}>
-                  <TD muted>{fmtDate(t.created_date || t.date)}</TD>
-                  <TD>{t.description || t.notes || <span className="text-white/30 italic">Sin descripción</span>}</TD>
-                  <TD muted>{capitalize(t.category) || "—"}</TD>
-                  <TD muted>{paymentLabel(t.payment_method)}</TD>
-                  <TD right green>{fmt(t.amount)}</TD>
-                </TR>
-              ))}
-              <tr className="bg-emerald-500/[0.08] border-t border-emerald-500/20">
-                <td colSpan={4} className="px-4 py-3 text-white font-bold text-sm">Total Ingresos</td>
-                <td className="px-4 py-3 text-emerald-400 font-bold text-sm text-right">{fmt(totalIncome)}</td>
-              </tr>
-            </DataTable>
-          )
-        }
-      </div>
-
-      {/* Expenses */}
-      <div className="bg-white/[0.03] border border-white/[0.07] rounded-2xl overflow-hidden">
-        <div className="px-6 py-4 border-b border-white/[0.07] flex items-center justify-between">
-          <h3 className="text-red-400 font-semibold text-sm flex items-center gap-2">
-            <ArrowDownRight className="w-4 h-4" /> Gastos
-          </h3>
-          <span className="text-red-400 font-bold">{fmt(totalExpenses)}</span>
-        </div>
-        {expenses.length === 0
-          ? <EmptyState message="Sin gastos en el período seleccionado" />
-          : (
-            <DataTable headers={txHeaders}>
-              {expenses.map((t, i) => (
-                <TR key={t.id || i} striped={i % 2 === 1}>
-                  <TD muted>{fmtDate(t.created_date || t.date)}</TD>
-                  <TD>{t.description || t.notes || <span className="text-white/30 italic">Sin descripción</span>}</TD>
-                  <TD muted>{capitalize(t.category) || "—"}</TD>
-                  <TD muted>{paymentLabel(t.payment_method)}</TD>
-                  <TD right red>{fmt(t.amount)}</TD>
-                </TR>
-              ))}
-              <tr className="bg-red-500/[0.08] border-t border-red-500/20">
-                <td colSpan={4} className="px-4 py-3 text-white font-bold text-sm">Total Gastos</td>
-                <td className="px-4 py-3 text-red-400 font-bold text-sm text-right">{fmt(totalExpenses)}</td>
-              </tr>
-            </DataTable>
-          )
-        }
-      </div>
-    </div>
-  );
-};
-
-// ─── TAB 3: Órdenes ───────────────────────────────────────────────────────────
-
-const TabOrders = ({ data, loading }) => {
-  const { orders } = data;
-  const [statusFilter, setStatusFilter] = useState("all");
-  const [techFilter, setTechFilter] = useState("all");
-
-  const technicians = useMemo(() => {
-    const set = new Set(orders.map(o => o.assigned_technician).filter(Boolean));
-    return [...set].sort();
-  }, [orders]);
-
-  const filtered = useMemo(() => {
-    return orders.filter(o => {
-      if (statusFilter !== "all" && o.status !== statusFilter) return false;
-      if (techFilter !== "all" && o.assigned_technician !== techFilter) return false;
-      return true;
-    });
-  }, [orders, statusFilter, techFilter]);
-
-  const byTechnician = useMemo(() => {
-    const map = {};
-    orders.forEach(o => {
-      const k = o.assigned_technician || "Sin asignar";
-      if (!map[k]) map[k] = 0;
-      map[k]++;
-    });
-    return Object.entries(map).sort((a, b) => b[1] - a[1]);
-  }, [orders]);
-
-  if (loading) return <div className="space-y-4"><SkeletonCard /><SkeletonTable /></div>;
-
-  const statusCounts = {
-    completed:     orders.filter(o => o.status === "completed").length,
-    delivered:     orders.filter(o => o.status === "delivered").length,
-    in_progress:   orders.filter(o => o.status === "in_progress").length,
-    waiting_parts: orders.filter(o => o.status === "waiting_parts").length,
-    pending:       orders.filter(o => o.status === "pending").length,
-    cancelled:     orders.filter(o => o.status === "cancelled").length,
-  };
-
-  return (
-    <div className="space-y-6">
-      {/* Summary strip */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <SummaryCard icon={ClipboardList} color="blue"    title="Total Órdenes"      value={orders.length} />
-        <SummaryCard icon={CheckCircle}   color="emerald" title="Completadas/Entregadas" value={statusCounts.completed + statusCounts.delivered} />
-        <SummaryCard icon={Clock}         color="orange"  title="En Proceso"         value={statusCounts.in_progress + statusCounts.waiting_parts + statusCounts.pending} />
-        <SummaryCard icon={XCircle}       color="red"     title="Canceladas"         value={statusCounts.cancelled} />
-      </div>
-
-      {/* By technician */}
-      {byTechnician.length > 0 && (
-        <div className="bg-white/[0.03] border border-white/[0.07] rounded-2xl overflow-hidden">
-          <div className="px-6 py-4 border-b border-white/[0.07]">
-            <h3 className="text-white font-semibold text-sm flex items-center gap-2"><Wrench className="w-4 h-4 text-white/40" /> Por Técnico</h3>
-          </div>
-          <div className="p-4 grid grid-cols-2 md:grid-cols-4 gap-3">
-            {byTechnician.map(([tech, count]) => (
-              <div key={tech} className="bg-white/[0.04] border border-white/[0.06] rounded-xl p-3">
-                <div className="text-white/50 text-xs mb-1 truncate">{tech}</div>
-                <div className="text-white font-bold text-xl">{count}</div>
-                <CSSBar value={count} max={byTechnician[0][1]} color="#818cf8" />
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* Filters */}
-      <div className="flex flex-wrap gap-3 items-center">
-        <div className="flex items-center gap-2 text-white/40 text-sm">
-          <Filter className="w-4 h-4" /> Filtros:
-        </div>
-        <select
-          value={statusFilter}
-          onChange={e => setStatusFilter(e.target.value)}
-          className="bg-white/[0.05] border border-white/[0.1] rounded-lg px-3 py-1.5 text-sm text-white/80 focus:outline-none focus:border-cyan-500/50"
-        >
-          <option value="all">Todos los estados</option>
-          {Object.entries(ORDER_STATUS_LABELS).map(([v, l]) => (
-            <option key={v} value={v}>{l}</option>
-          ))}
-        </select>
-        {technicians.length > 0 && (
-          <select
-            value={techFilter}
-            onChange={e => setTechFilter(e.target.value)}
-            className="bg-white/[0.05] border border-white/[0.1] rounded-lg px-3 py-1.5 text-sm text-white/80 focus:outline-none focus:border-cyan-500/50"
-          >
-            <option value="all">Todos los técnicos</option>
-            {technicians.map(t => <option key={t} value={t}>{t}</option>)}
-          </select>
-        )}
-        {(statusFilter !== "all" || techFilter !== "all") && (
-          <span className="text-white/40 text-xs">{filtered.length} resultado{filtered.length !== 1 ? "s" : ""}</span>
+        {trend !== undefined && (
+          <span className={`text-xs font-semibold flex items-center gap-0.5 ${trend >= 0 ? "text-emerald-400" : "text-red-400"}`}>
+            {trend >= 0 ? <ArrowUpRight className="w-3 h-3" /> : <ArrowDownRight className="w-3 h-3" />}
+            {Math.abs(trend).toFixed(1)}%
+          </span>
         )}
       </div>
-
-      {/* Orders table */}
-      <div className="bg-white/[0.03] border border-white/[0.07] rounded-2xl overflow-hidden">
-        {filtered.length === 0
-          ? <EmptyState message="No hay órdenes para los filtros seleccionados" />
-          : (
-            <DataTable headers={[
-              { label: "# Orden" }, { label: "Cliente" }, { label: "Dispositivo" },
-              { label: "Técnico" }, { label: "Estado" }, { label: "Fecha" }, { label: "Total", right: true },
-            ]}>
-              {filtered.map((o, i) => (
-                <TR key={o.id || i} striped={i % 2 === 1}>
-                  <TD bold>{o.order_number || `#${o.id?.substring(0, 8)}`}</TD>
-                  <TD>{o.customer_name || "—"}</TD>
-                  <TD muted>{[o.device_brand, o.device_model].filter(Boolean).join(" ") || o.device_type || "—"}</TD>
-                  <TD muted>{o.assigned_technician || <span className="text-white/20">Sin asignar</span>}</TD>
-                  <td className="px-4 py-3">
-                    <span className={`text-xs font-medium px-2 py-1 rounded-full ${STATUS_COLORS[o.status] || "text-white/40 bg-white/[0.05]"}`}>
-                      {orderStatusLabel(o.status)}
-                    </span>
-                  </td>
-                  <TD muted>{fmtDate(o.created_date)}</TD>
-                  <TD right bold>{fmt(o.total_amount)}</TD>
-                </TR>
-              ))}
-            </DataTable>
-          )
-        }
-      </div>
-    </div>
+      <p className="text-gray-400 text-xs uppercase tracking-wider mb-1">{label}</p>
+      <p className={`text-2xl font-black ${colors[color].split(" ")[3]}`}>{value}</p>
+      {sub && <p className="text-gray-500 text-xs mt-1">{sub}</p>}
+    </button>
   );
 };
 
-// ─── TAB 4: Inventario ────────────────────────────────────────────────────────
-
-const TabInventory = ({ data, loading }) => {
-  const { products } = data;
-
-  const inventoryValue = useMemo(
-    () => products.all.reduce((s, p) => s + (p.stock || 0) * (p.cost || 0), 0),
-    [products.all]
-  );
-
-  if (loading) return <div className="space-y-4"><SkeletonCard /><SkeletonTable /></div>;
-
-  return (
-    <div className="space-y-6">
-      {/* Summary */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <SummaryCard icon={Package}    color="blue"    title="Total Productos"    value={products.all.length}        sub="productos activos" />
-        <SummaryCard icon={AlertCircle} color="red"   title="Stock Bajo"          value={products.lowStock.length}   sub="requieren reposición" />
-        <SummaryCard icon={Layers}     color="orange"  title="Valor del Inventario" value={fmt(inventoryValue)}      sub="al costo" />
-        <SummaryCard icon={ShoppingBag} color="purple" title="Categorías"         value={new Set(products.all.map(p => p.category).filter(Boolean)).size} />
-      </div>
-
-      {/* Low stock alert */}
-      <div className="bg-white/[0.03] border border-white/[0.07] rounded-2xl overflow-hidden">
-        <div className="px-6 py-4 border-b border-white/[0.07] flex items-center gap-2">
-          <AlertCircle className="w-4 h-4 text-red-400" />
-          <h3 className="text-white font-semibold text-sm">Productos con Stock Bajo</h3>
-          {products.lowStock.length > 0 && (
-            <span className="ml-auto text-xs bg-red-500/20 text-red-400 border border-red-500/30 px-2 py-0.5 rounded-full">
-              {products.lowStock.length} producto{products.lowStock.length !== 1 ? "s" : ""}
-            </span>
-          )}
-        </div>
-        {products.lowStock.length === 0
-          ? (
-            <div className="flex flex-col items-center justify-center py-10 text-white/30">
-              <CheckCircle className="w-8 h-8 mb-2 text-emerald-400/40" />
-              <p className="text-sm text-emerald-400/60">Todos los productos tienen stock suficiente</p>
-            </div>
-          )
-          : (
-            <DataTable headers={[
-              { label: "Nombre" }, { label: "Categoría" },
-              { label: "Stock Actual", right: true }, { label: "Stock Mínimo", right: true },
-              { label: "Diferencia", right: true },
-            ]}>
-              {products.lowStock.map((p, i) => {
-                const diff = (p.stock || 0) - (p.min_stock || 0);
-                return (
-                  <TR key={p.id || i} striped={i % 2 === 1}>
-                    <TD bold>{p.name}</TD>
-                    <TD muted>{capitalize(p.category) || "—"}</TD>
-                    <TD right red>{p.stock ?? 0}</TD>
-                    <TD right muted>{p.min_stock ?? 0}</TD>
-                    <TD right red>{diff}</TD>
-                  </TR>
-                );
-              })}
-            </DataTable>
-          )
-        }
-      </div>
-
-      {/* Full inventory value table */}
-      <div className="bg-white/[0.03] border border-white/[0.07] rounded-2xl overflow-hidden">
-        <div className="px-6 py-4 border-b border-white/[0.07] flex items-center justify-between">
-          <h3 className="text-white font-semibold text-sm flex items-center gap-2">
-            <Layers className="w-4 h-4 text-white/40" /> Inventario Completo
-          </h3>
-          <span className="text-cyan-400 font-bold text-sm">{fmt(inventoryValue)}</span>
-        </div>
-        {products.all.length === 0
-          ? <EmptyState message="Sin productos registrados" />
-          : (
-            <DataTable headers={[
-              { label: "Nombre" }, { label: "Categoría" },
-              { label: "Stock", right: true }, { label: "Mín.", right: true },
-              { label: "Costo", right: true }, { label: "Precio", right: true },
-              { label: "Valor Total", right: true },
-            ]}>
-              {[...products.all]
-                .sort((a, b) => (b.stock * (b.cost || 0)) - (a.stock * (a.cost || 0)))
-                .map((p, i) => (
-                  <TR key={p.id || i} striped={i % 2 === 1}>
-                    <TD bold>{p.name}</TD>
-                    <TD muted>{capitalize(p.category) || "—"}</TD>
-                    <td className={`px-4 py-3 text-right font-semibold text-sm ${p.stock <= (p.min_stock || 0) ? "text-red-400" : "text-white/80"}`}>{p.stock ?? 0}</td>
-                    <TD right muted>{p.min_stock ?? 0}</TD>
-                    <TD right muted>{fmt(p.cost)}</TD>
-                    <TD right muted>{fmt(p.price)}</TD>
-                    <TD right bold>{fmt((p.stock || 0) * (p.cost || 0))}</TD>
-                  </TR>
-                ))
-              }
-              <tr className="bg-cyan-500/[0.06] border-t border-cyan-500/20">
-                <td colSpan={6} className="px-4 py-3 text-white font-bold text-sm">Valor Total del Inventario</td>
-                <td className="px-4 py-3 text-cyan-400 font-bold text-sm text-right">{fmt(inventoryValue)}</td>
-              </tr>
-            </DataTable>
-          )
-        }
-      </div>
-    </div>
-  );
-};
-
-// ─── MAIN PAGE ────────────────────────────────────────────────────────────────
-
-const TABS = [
-  { id: "summary",      label: "Resumen General",       icon: BarChart3 },
-  { id: "transactions", label: "Ingresos y Gastos",      icon: DollarSign },
-  { id: "orders",       label: "Órdenes",                icon: ClipboardList },
-  { id: "inventory",    label: "Inventario",             icon: Package },
-];
-
+// ─── Main Component ─────────────────────────────────────────────────────────
 export default function Reports() {
-  const [activeTab, setActiveTab] = useState("summary");
-  const [period, setPeriod] = useState("month");
-  const [customStart, setCustomStart] = useState(format(startOfMonth(new Date()), "yyyy-MM-dd"));
-  const [customEnd, setCustomEnd]     = useState(format(endOfMonth(new Date()), "yyyy-MM-dd"));
-  const [loading, setLoading] = useState(false);
+  const [period, setPeriod]         = useState("month");
+  const [customStart, setCustomStart] = useState("");
+  const [customEnd, setCustomEnd]   = useState("");
+  const [loading, setLoading]       = useState(false);
   const [lastFetched, setLastFetched] = useState(null);
+  const [activeTab, setActiveTab]   = useState("pl");
 
   const [transactions, setTransactions] = useState([]);
-  const [orders, setOrders] = useState([]);
-  const [products, setProducts] = useState({ all: [], lowStock: [] });
+  const [orders, setOrders]             = useState([]);
+  const [products, setProducts]         = useState([]);
 
   const tenantId = getTenantId();
 
@@ -968,23 +126,6 @@ export default function Reports() {
     [period, customStart, customEnd]
   );
 
-  const periodStr = useMemo(() => periodLabel(period, start, end), [period, start, end]);
-
-  const startISO = start.toISOString();
-  const endISO   = end.toISOString();
-
-  const summary = useMemo(() => {
-    const income = transactions.filter(t => t.type === "income" || t.type === "ingreso");
-    const completedOrders = orders.filter(o => o.status === "completed" || o.status === "delivered");
-    const totalIncome = income.reduce((s, t) => s + (t.amount || 0), 0);
-    const uniqueCustomers = new Set(orders.map(o => o.customer_name).filter(Boolean)).size;
-    return {
-      completedOrders: completedOrders.length,
-      avgTicket: completedOrders.length > 0 ? totalIncome / completedOrders.length : 0,
-      uniqueCustomers,
-    };
-  }, [transactions, orders]);
-
   const fetchData = useCallback(async () => {
     if (!tenantId) return;
     setLoading(true);
@@ -992,159 +133,609 @@ export default function Reports() {
       const [txRes, ordersRes, productsRes] = await Promise.all([
         supabase
           .from("transaction")
-          .select("id, type, amount, description, notes, category, payment_method, created_date, date")
+          .select("id,type,amount,description,notes,category,payment_method,created_date")
           .eq("tenant_id", tenantId)
-          .gte("created_date", startISO)
-          .lte("created_date", endISO)
+          .gte("created_date", start.toISOString())
+          .lte("created_date", end.toISOString())
           .order("created_date", { ascending: false }),
 
         supabase
           .from("order")
-          .select("id, order_number, customer_name, device_type, device_brand, device_model, status, assigned_technician, total_amount, created_date")
+          .select("id,order_number,customer_name,device_type,device_brand,device_model,status,assigned_technician,total_amount,deposit_amount,created_date")
           .eq("tenant_id", tenantId)
-          .gte("created_date", startISO)
-          .lte("created_date", endISO)
+          .gte("created_date", start.toISOString())
+          .lte("created_date", end.toISOString())
           .order("created_date", { ascending: false }),
 
         supabase
           .from("product")
-          .select("id, name, stock, min_stock, category, cost, price")
-          .eq("tenant_id", tenantId)
-          .eq("active", true)
-          .order("name"),
+          .select("id,name,stock,min_stock,category,cost,price,active")
+          .eq("tenant_id", tenantId),
       ]);
-
-      if (txRes.error)       console.error("[Reports] transactions error:", txRes.error);
-      if (ordersRes.error)   console.error("[Reports] orders error:", ordersRes.error);
-      if (productsRes.error) console.error("[Reports] products error:", productsRes.error);
-
-      const allProducts = productsRes.data || [];
-      const lowStock = allProducts.filter(p => (p.stock ?? 0) <= (p.min_stock ?? 0));
 
       setTransactions(txRes.data || []);
       setOrders(ordersRes.data || []);
-      setProducts({ all: allProducts, lowStock });
+      setProducts((productsRes.data || []).filter(p => p.active));
       setLastFetched(new Date());
+    } catch (e) {
+      console.error("[Reports] fetchData error:", e);
     } finally {
       setLoading(false);
     }
-  }, [tenantId, startISO, endISO]);
+  }, [tenantId, start, end]);
 
-  useEffect(() => {
-    fetchData();
-  }, [fetchData]);
+  useEffect(() => { fetchData(); }, [fetchData]);
 
-  const handleExportPDF = () => {
-    const tenantName = localStorage.getItem("smartfix_business_name") || "SmartFixOS";
-    const html = buildPdfHtml({
-      data: { summary, transactions, orders, products },
-      periodStr,
-      tenantName,
+  // ─── computed metrics ────────────────────────────────────────────────────
+  const income = useMemo(() =>
+    transactions.filter(t => t.type === "income" || t.type === "ingreso"),
+    [transactions]
+  );
+  const expenses = useMemo(() =>
+    transactions.filter(t => t.type === "expense" || t.type === "gasto"),
+    [transactions]
+  );
+
+  const totalIncome   = useMemo(() => income.reduce((s,t)  => s + (t.amount || 0), 0), [income]);
+  const totalExpenses = useMemo(() => expenses.reduce((s,t) => s + (t.amount || 0), 0), [expenses]);
+  const netProfit     = totalIncome - totalExpenses;
+  const margin        = totalIncome > 0 ? (netProfit / totalIncome) * 100 : 0;
+
+  const completedOrders = useMemo(() =>
+    orders.filter(o => o.status === "completed" || o.status === "delivered"),
+    [orders]
+  );
+  const avgTicket = completedOrders.length > 0 ? totalIncome / completedOrders.length : 0;
+  const uniqueCustomers = useMemo(() =>
+    new Set(orders.map(o => o.customer_name).filter(Boolean)).size,
+    [orders]
+  );
+  const lowStock = useMemo(() =>
+    products.filter(p => (p.stock ?? 0) <= (p.min_stock ?? 0)),
+    [products]
+  );
+
+  // income breakdown by payment method
+  const byPayment = useMemo(() => {
+    const map = {};
+    income.forEach(t => {
+      const k = t.payment_method || "other";
+      map[k] = (map[k] || 0) + (t.amount || 0);
     });
-    const win = window.open("", "_blank");
-    if (win) {
-      win.document.write(html);
-      win.document.close();
-    }
+    return Object.entries(map)
+      .map(([method, amount]) => ({ method, label: payLabel(method), amount }))
+      .sort((a, b) => b.amount - a.amount);
+  }, [income]);
+
+  // expense breakdown by category
+  const byCategory = useMemo(() => {
+    const map = {};
+    expenses.forEach(t => {
+      const k = t.category || "other";
+      map[k] = (map[k] || 0) + (t.amount || 0);
+    });
+    return Object.entries(map)
+      .map(([cat, amount]) => ({ cat: capitalize(cat), amount }))
+      .sort((a, b) => b.amount - a.amount);
+  }, [expenses]);
+
+  // daily trend for chart
+  const dailyTrend = useMemo(() => {
+    const map = {};
+    transactions.forEach(t => {
+      const day = t.created_date ? t.created_date.slice(0, 10) : null;
+      if (!day) return;
+      if (!map[day]) map[day] = { date: day, label: format(parseISO(day), "dd/MM", { locale: es }), income: 0, expenses: 0 };
+      if (t.type === "income" || t.type === "ingreso") map[day].income += t.amount || 0;
+      if (t.type === "expense" || t.type === "gasto")  map[day].expenses += t.amount || 0;
+    });
+    return Object.values(map).sort((a, b) => a.date.localeCompare(b.date));
+  }, [transactions]);
+
+  // orders by status for bar chart
+  const ordersByStatus = useMemo(() => {
+    const map = {};
+    orders.forEach(o => {
+      const s = o.status || "unknown";
+      map[s] = (map[s] || 0) + 1;
+    });
+    return Object.entries(map).map(([status, count]) => ({
+      status: statusMeta(status).label,
+      count,
+    }));
+  }, [orders]);
+
+  // ─── Export PDF ──────────────────────────────────────────────────────────
+  const handleExportPDF = () => {
+    const bizName  = getBizName();
+    const periStr  = periodLabel(period, start, end);
+    const now      = format(new Date(), "dd/MM/yyyy HH:mm", { locale: es });
+
+    const rowsIncome = byPayment.map(b => `
+      <tr><td>${b.label}</td><td class="num">${usd(b.amount)}</td><td class="num">${totalIncome > 0 ? ((b.amount/totalIncome)*100).toFixed(1) : 0}%</td></tr>
+    `).join("");
+    const rowsExpenses = byCategory.map(b => `
+      <tr><td>${b.cat}</td><td class="num">${usd(b.amount)}</td><td class="num">${totalExpenses > 0 ? ((b.amount/totalExpenses)*100).toFixed(1) : 0}%</td></tr>
+    `).join("");
+    const rowsOrders = completedOrders.slice(0, 50).map(o => `
+      <tr>
+        <td>${o.order_number || "—"}</td>
+        <td>${o.customer_name || "—"}</td>
+        <td>${o.device_brand || ""} ${o.device_model || ""}</td>
+        <td>${o.assigned_technician || "—"}</td>
+        <td class="num">${usd(o.total_amount)}</td>
+        <td>${fmtDate(o.created_date)}</td>
+      </tr>
+    `).join("");
+
+    const html = `<!DOCTYPE html><html lang="es"><head><meta charset="UTF-8">
+    <title>Reporte ${bizName} — ${periStr}</title>
+    <style>
+      * { margin:0; padding:0; box-sizing:border-box; }
+      body { font-family: 'Segoe UI', Arial, sans-serif; color:#111; padding:30px; font-size:13px; }
+      .header { display:flex; justify-content:space-between; align-items:flex-start; border-bottom:3px solid #111; padding-bottom:16px; margin-bottom:24px; }
+      .biz { font-size:22px; font-weight:900; }
+      .sub { font-size:12px; color:#555; margin-top:4px; }
+      .kpi-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:12px; margin-bottom:24px; }
+      .kpi { border:1px solid #ddd; border-radius:10px; padding:14px; }
+      .kpi-label { font-size:10px; text-transform:uppercase; letter-spacing:.05em; color:#666; }
+      .kpi-val { font-size:22px; font-weight:900; margin-top:4px; }
+      .kpi-val.green { color:#059669; } .kpi-val.red { color:#DC2626; } .kpi-val.blue { color:#0284C7; }
+      h2 { font-size:15px; font-weight:800; margin:20px 0 10px; border-bottom:1px solid #eee; padding-bottom:6px; }
+      table { width:100%; border-collapse:collapse; margin-bottom:20px; }
+      th { background:#f4f4f4; font-size:11px; text-transform:uppercase; letter-spacing:.04em; padding:8px 10px; text-align:left; }
+      td { padding:7px 10px; border-bottom:1px solid #f0f0f0; font-size:12px; }
+      .num { text-align:right; font-variant-numeric:tabular-nums; }
+      .total-row td { font-weight:800; border-top:2px solid #111; }
+      .footer { margin-top:30px; font-size:10px; color:#999; text-align:center; }
+      @media print { body { padding:20px; } }
+    </style></head><body>
+    <div class="header">
+      <div><div class="biz">${bizName}</div><div class="sub">Estado de Resultados — ${periStr}</div></div>
+      <div class="sub" style="text-align:right">Generado: ${now}<br>SmartFixOS</div>
+    </div>
+
+    <div class="kpi-grid">
+      <div class="kpi"><div class="kpi-label">Ingresos Totales</div><div class="kpi-val green">${usd(totalIncome)}</div></div>
+      <div class="kpi"><div class="kpi-label">Gastos Totales</div><div class="kpi-val red">${usd(totalExpenses)}</div></div>
+      <div class="kpi"><div class="kpi-label">Utilidad Neta</div><div class="kpi-val ${netProfit >= 0 ? "green" : "red"}">${usd(netProfit)}</div></div>
+      <div class="kpi"><div class="kpi-label">Margen</div><div class="kpi-val blue">${margin.toFixed(1)}%</div></div>
+      <div class="kpi"><div class="kpi-label">Órdenes Completadas</div><div class="kpi-val">${completedOrders.length}</div></div>
+      <div class="kpi"><div class="kpi-label">Ticket Promedio</div><div class="kpi-val">${usd(avgTicket)}</div></div>
+    </div>
+
+    <h2>💰 Ingresos por Método de Pago</h2>
+    <table><thead><tr><th>Método</th><th class="num">Monto</th><th class="num">%</th></tr></thead>
+    <tbody>${rowsIncome}<tr class="total-row"><td>TOTAL</td><td class="num">${usd(totalIncome)}</td><td class="num">100%</td></tr></tbody></table>
+
+    <h2>📉 Gastos por Categoría</h2>
+    <table><thead><tr><th>Categoría</th><th class="num">Monto</th><th class="num">%</th></tr></thead>
+    <tbody>${rowsExpenses}<tr class="total-row"><td>TOTAL</td><td class="num">${usd(totalExpenses)}</td><td class="num">100%</td></tr></tbody></table>
+
+    <h2>📋 Órdenes Completadas (últimas 50)</h2>
+    <table><thead><tr><th>#</th><th>Cliente</th><th>Dispositivo</th><th>Técnico</th><th class="num">Total</th><th>Fecha</th></tr></thead>
+    <tbody>${rowsOrders}</tbody></table>
+
+    <div class="footer">Reporte generado por SmartFixOS • ${bizName} • ${periStr}</div>
+    </body></html>`;
+
+    const w = window.open("", "_blank");
+    w.document.write(html);
+    w.document.close();
+    setTimeout(() => w.print(), 500);
   };
 
+  // ─── Export CSV ──────────────────────────────────────────────────────────
   const handleExportCSV = () => {
-    const csv = buildCSVForTab(activeTab, { transactions, orders, products });
-    const tabLabel = TABS.find(t => t.id === activeTab)?.label || activeTab;
-    const filename = `reporte_${tabLabel.replace(/\s+/g, "_").toLowerCase()}_${format(start, "yyyyMMdd")}_${format(end, "yyyyMMdd")}.csv`;
-    downloadCSV(csv, filename);
+    const rows = [["Fecha","Tipo","Categoría","Descripción","Método de Pago","Monto"]];
+    transactions.forEach(t => {
+      rows.push([
+        fmtDate(t.created_date),
+        t.type === "income" || t.type === "ingreso" ? "Ingreso" : "Gasto",
+        capitalize(t.category || ""),
+        `"${(t.description || "").replace(/"/g, "'")}"`,
+        payLabel(t.payment_method),
+        (t.amount || 0).toFixed(2),
+      ]);
+    });
+    const csv = rows.map(r => r.join(",")).join("\n");
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(new Blob([csv], { type: "text/csv" }));
+    a.download = `reporte_${format(start,"yyyy-MM-dd")}_${format(end,"yyyy-MM-dd")}.csv`;
+    a.click();
   };
 
-  const data = { transactions, orders, products, summary };
-
-  if (!tenantId) {
-    return (
-      <div className="min-h-screen bg-[#0f0f12] flex items-center justify-center">
-        <div className="text-white/40 text-center">
-          <AlertCircle className="w-10 h-10 mx-auto mb-3 opacity-40" />
-          <p>No se encontró el ID de tenant. Inicia sesión nuevamente.</p>
-        </div>
-      </div>
-    );
-  }
+  // ─── UI ──────────────────────────────────────────────────────────────────
+  const tabs = [
+    { id: "pl",      label: "Estado de Resultados", icon: Receipt },
+    { id: "orders",  label: "Órdenes",              icon: ClipboardList },
+    { id: "txns",    label: "Transacciones",         icon: DollarSign },
+    { id: "charts",  label: "Gráficas",             icon: BarChart3 },
+  ];
 
   return (
-    <div className="min-h-screen bg-[#0f0f12] text-white">
-      {/* Sticky header */}
-      <div className="sticky top-0 z-30 bg-[#0f0f12]/95 backdrop-blur-sm border-b border-white/[0.07] px-6 py-4">
-        <div className="max-w-7xl mx-auto flex flex-col gap-4">
-          {/* Title row */}
-          <div className="flex items-center justify-between flex-wrap gap-3">
-            <div>
-              <h1 className="text-xl font-bold text-white">Reportes</h1>
-              <p className="text-white/40 text-xs mt-0.5">{periodStr}</p>
-            </div>
-            <div className="flex items-center gap-2">
-              {lastFetched && (
-                <span className="text-white/25 text-xs hidden md:block">
-                  Actualizado {format(lastFetched, "HH:mm")}
-                </span>
-              )}
-              <button
-                onClick={fetchData}
-                disabled={loading}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white/[0.05] border border-white/[0.1] text-white/60 hover:text-white/90 text-sm transition-colors disabled:opacity-40"
-              >
-                <RefreshCw className={`w-3.5 h-3.5 ${loading ? "animate-spin" : ""}`} />
-                <span className="hidden sm:inline">Actualizar</span>
-              </button>
-              <button
-                onClick={handleExportCSV}
-                disabled={loading}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white/[0.05] border border-white/[0.1] text-white/60 hover:text-white/90 text-sm transition-colors disabled:opacity-40"
-              >
-                <Download className="w-3.5 h-3.5" />
-                <span className="hidden sm:inline">CSV</span>
-              </button>
-              <button
-                onClick={handleExportPDF}
-                disabled={loading}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-cyan-500/10 border border-cyan-500/30 text-cyan-400 hover:bg-cyan-500/20 text-sm font-medium transition-colors disabled:opacity-40"
-              >
-                <FileText className="w-3.5 h-3.5" />
-                <span className="hidden sm:inline">Exportar PDF</span>
-              </button>
-            </div>
+    <div className="min-h-screen bg-[#080810] text-white">
+      {/* Header */}
+      <div className="bg-[#0f0f18]/80 backdrop-blur-xl border-b border-white/5 px-6 py-5 sticky top-0 z-20">
+        <div className="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-4">
+          <div>
+            <h1 className="text-2xl font-black tracking-tight">Reportes</h1>
+            <p className="text-gray-500 text-sm mt-0.5">
+              {periodLabel(period, start, end)}
+              {lastFetched && <span className="ml-2 text-gray-600">· actualizado {format(lastFetched,"HH:mm")}</span>}
+            </p>
           </div>
-          {/* Period selector */}
-          <PeriodSelector
-            period={period} setPeriod={setPeriod}
-            customStart={customStart} setCustomStart={setCustomStart}
-            customEnd={customEnd} setCustomEnd={setCustomEnd}
-          />
+
+          <div className="flex flex-wrap items-center gap-2">
+            {/* Period pills */}
+            {[
+              { k:"today", l:"Hoy" },
+              { k:"week",  l:"Semana" },
+              { k:"month", l:"Este mes" },
+              { k:"lastmonth", l:"Mes anterior" },
+              { k:"year",  l:"Año" },
+              { k:"custom",l:"Personalizado" },
+            ].map(p => (
+              <button
+                key={p.k}
+                onClick={() => setPeriod(p.k)}
+                className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+                  period === p.k
+                    ? "bg-cyan-500/20 text-cyan-300 border border-cyan-500/40"
+                    : "bg-white/5 text-gray-400 border border-white/5 hover:border-white/20"
+                }`}
+              >
+                {p.l}
+              </button>
+            ))}
+
+            {period === "custom" && (
+              <>
+                <input type="date" value={customStart} onChange={e => setCustomStart(e.target.value)}
+                  className="bg-white/5 border border-white/10 rounded-lg px-3 py-1.5 text-xs text-white" />
+                <input type="date" value={customEnd} onChange={e => setCustomEnd(e.target.value)}
+                  className="bg-white/5 border border-white/10 rounded-lg px-3 py-1.5 text-xs text-white" />
+              </>
+            )}
+
+            <button onClick={fetchData} disabled={loading}
+              className="p-2 rounded-lg bg-white/5 border border-white/10 hover:border-white/20 transition-all">
+              <RefreshCw className={`w-4 h-4 text-gray-400 ${loading ? "animate-spin" : ""}`} />
+            </button>
+            <button onClick={handleExportCSV}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white/5 border border-white/10 hover:border-emerald-500/40 text-gray-400 hover:text-emerald-400 text-xs font-semibold transition-all">
+              <Download className="w-3.5 h-3.5" /> CSV
+            </button>
+            <button onClick={handleExportPDF}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-cyan-500/10 border border-cyan-500/30 text-cyan-400 hover:bg-cyan-500/20 text-xs font-semibold transition-all">
+              <Printer className="w-3.5 h-3.5" /> Exportar PDF
+            </button>
+          </div>
         </div>
       </div>
 
-      {/* Main content */}
-      <div className="max-w-7xl mx-auto px-4 md:px-6 py-6">
+      <div className="max-w-7xl mx-auto px-6 py-6 space-y-6">
+        {/* KPI Grid */}
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+          <KpiCard icon={TrendingUp}    color="emerald" label="Ingresos"         value={usd(totalIncome)}       sub={`${income.length} transacciones`} />
+          <KpiCard icon={TrendingDown}  color="red"     label="Gastos"           value={usd(totalExpenses)}     sub={`${expenses.length} transacciones`} />
+          <KpiCard icon={DollarSign}    color="cyan"    label="Utilidad Neta"    value={usd(netProfit)}         sub={netProfit >= 0 ? "Positivo ✓" : "⚠ Negativo"} />
+          <KpiCard icon={Percent}       color="purple"  label="Margen"           value={`${margin.toFixed(1)}%`} sub="Sobre ingresos" />
+          <KpiCard icon={ClipboardList} color="blue"    label="Órdenes"          value={orders.length}          sub={`${completedOrders.length} completadas`} />
+          <KpiCard icon={Banknote}      color="amber"   label="Ticket Promedio"  value={usd(avgTicket)}         sub={`${uniqueCustomers} clientes`} />
+        </div>
+
         {/* Tabs */}
-        <div className="flex border-b border-white/[0.07] mb-6 overflow-x-auto">
-          {TABS.map(({ id, label, icon: Icon }) => (
-            <button
-              key={id}
-              onClick={() => setActiveTab(id)}
-              className={`flex items-center gap-2 px-5 py-3 text-sm font-medium border-b-2 whitespace-nowrap transition-colors ${
-                activeTab === id
-                  ? "border-cyan-500 text-cyan-400"
-                  : "border-transparent text-white/40 hover:text-white/70 hover:border-white/20"
+        <div className="flex gap-1 bg-white/5 rounded-xl p-1 border border-white/5">
+          {tabs.map(t => (
+            <button key={t.id} onClick={() => setActiveTab(t.id)}
+              className={`flex-1 flex items-center justify-center gap-2 py-2.5 px-3 rounded-lg text-sm font-semibold transition-all ${
+                activeTab === t.id
+                  ? "bg-white/10 text-white shadow"
+                  : "text-gray-500 hover:text-gray-300"
               }`}
             >
-              <Icon className="w-4 h-4" />
-              {label}
+              <t.icon className="w-4 h-4" />
+              <span className="hidden sm:inline">{t.label}</span>
             </button>
           ))}
         </div>
 
-        {/* Tab content */}
-        {activeTab === "summary"      && <TabResumen      data={data} loading={loading} />}
-        {activeTab === "transactions" && <TabTransactions data={data} loading={loading} />}
-        {activeTab === "orders"       && <TabOrders       data={data} loading={loading} />}
-        {activeTab === "inventory"    && <TabInventory    data={data} loading={loading} />}
+        {/* ── TAB: P&L ── */}
+        {activeTab === "pl" && (
+          <div className="grid lg:grid-cols-2 gap-6">
+            {/* Estado de resultados */}
+            <div className="bg-white/[0.03] border border-white/8 rounded-2xl overflow-hidden">
+              <div className="px-6 py-4 border-b border-white/5">
+                <h2 className="font-black text-white">Estado de Resultados</h2>
+                <p className="text-gray-500 text-xs mt-0.5">{periodLabel(period, start, end)}</p>
+              </div>
+              <div className="p-6 space-y-3">
+                {/* Income lines */}
+                <p className="text-xs text-gray-500 uppercase tracking-wider font-semibold">Ingresos</p>
+                {byPayment.length === 0
+                  ? <p className="text-gray-600 text-sm">Sin ingresos en el período</p>
+                  : byPayment.map(b => (
+                    <div key={b.method} className="flex justify-between items-center py-1">
+                      <span className="text-gray-300 text-sm">{b.label}</span>
+                      <span className="text-emerald-400 font-semibold tabular-nums">{usd(b.amount)}</span>
+                    </div>
+                  ))
+                }
+                <div className="flex justify-between items-center py-2 border-t border-white/10">
+                  <span className="font-black text-white">Total Ingresos</span>
+                  <span className="font-black text-emerald-400 text-lg tabular-nums">{usd(totalIncome)}</span>
+                </div>
+
+                <div className="pt-2">
+                  <p className="text-xs text-gray-500 uppercase tracking-wider font-semibold mb-2">Gastos</p>
+                  {byCategory.length === 0
+                    ? <p className="text-gray-600 text-sm">Sin gastos en el período</p>
+                    : byCategory.map(b => (
+                      <div key={b.cat} className="flex justify-between items-center py-1">
+                        <span className="text-gray-300 text-sm">{b.cat}</span>
+                        <span className="text-red-400 font-semibold tabular-nums">({usd(b.amount)})</span>
+                      </div>
+                    ))
+                  }
+                  <div className="flex justify-between items-center py-2 border-t border-white/10">
+                    <span className="font-black text-white">Total Gastos</span>
+                    <span className="font-black text-red-400 text-lg tabular-nums">({usd(totalExpenses)})</span>
+                  </div>
+                </div>
+
+                <div className={`flex justify-between items-center py-3 px-4 rounded-xl mt-2 ${netProfit >= 0 ? "bg-emerald-500/10 border border-emerald-500/20" : "bg-red-500/10 border border-red-500/20"}`}>
+                  <div>
+                    <p className="font-black text-white text-base">Utilidad Neta</p>
+                    <p className="text-gray-400 text-xs">Margen: {margin.toFixed(1)}%</p>
+                  </div>
+                  <span className={`font-black text-2xl tabular-nums ${netProfit >= 0 ? "text-emerald-400" : "text-red-400"}`}>
+                    {usd(netProfit)}
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            {/* Sidebar cards */}
+            <div className="space-y-4">
+              {/* Payment method breakdown */}
+              <div className="bg-white/[0.03] border border-white/8 rounded-2xl p-5">
+                <h3 className="font-bold text-white mb-4 text-sm">Ingresos por Método de Pago</h3>
+                <div className="space-y-3">
+                  {byPayment.map((b, i) => (
+                    <div key={b.method}>
+                      <div className="flex justify-between text-sm mb-1">
+                        <span className="text-gray-300">{b.label}</span>
+                        <span className="text-white font-semibold tabular-nums">{usd(b.amount)}</span>
+                      </div>
+                      <div className="h-1.5 bg-white/5 rounded-full overflow-hidden">
+                        <div
+                          className="h-full rounded-full"
+                          style={{
+                            width: totalIncome > 0 ? `${(b.amount/totalIncome)*100}%` : "0%",
+                            background: CHART_COLORS[i % CHART_COLORS.length],
+                          }}
+                        />
+                      </div>
+                    </div>
+                  ))}
+                  {byPayment.length === 0 && <p className="text-gray-600 text-sm">Sin datos</p>}
+                </div>
+              </div>
+
+              {/* Expense by category */}
+              <div className="bg-white/[0.03] border border-white/8 rounded-2xl p-5">
+                <h3 className="font-bold text-white mb-4 text-sm">Gastos por Categoría</h3>
+                <div className="space-y-3">
+                  {byCategory.map((b, i) => (
+                    <div key={b.cat}>
+                      <div className="flex justify-between text-sm mb-1">
+                        <span className="text-gray-300">{b.cat}</span>
+                        <span className="text-red-400 font-semibold tabular-nums">{usd(b.amount)}</span>
+                      </div>
+                      <div className="h-1.5 bg-white/5 rounded-full overflow-hidden">
+                        <div
+                          className="h-full rounded-full bg-red-500"
+                          style={{ width: totalExpenses > 0 ? `${(b.amount/totalExpenses)*100}%` : "0%", opacity: 0.6 + (i * 0.1) }}
+                        />
+                      </div>
+                    </div>
+                  ))}
+                  {byCategory.length === 0 && <p className="text-gray-600 text-sm">Sin datos</p>}
+                </div>
+              </div>
+
+              {/* Low stock alert */}
+              {lowStock.length > 0 && (
+                <div className="bg-amber-500/5 border border-amber-500/20 rounded-2xl p-5">
+                  <div className="flex items-center gap-2 mb-3">
+                    <AlertCircle className="w-4 h-4 text-amber-400" />
+                    <h3 className="font-bold text-amber-400 text-sm">{lowStock.length} Productos con Stock Bajo</h3>
+                  </div>
+                  <div className="space-y-1.5 max-h-32 overflow-auto">
+                    {lowStock.map(p => (
+                      <div key={p.id} className="flex justify-between text-xs">
+                        <span className="text-gray-300">{p.name}</span>
+                        <span className="text-amber-400 font-semibold">{p.stock} / {p.min_stock} mín</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* ── TAB: ORDERS ── */}
+        {activeTab === "orders" && (
+          <div className="bg-white/[0.03] border border-white/8 rounded-2xl overflow-hidden">
+            <div className="px-6 py-4 border-b border-white/5 flex items-center justify-between">
+              <h2 className="font-black text-white">Órdenes del Período</h2>
+              <span className="text-gray-500 text-sm">{orders.length} órdenes</span>
+            </div>
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b border-white/5">
+                    {["#","Cliente","Dispositivo","Técnico","Estado","Total","Fecha"].map(h => (
+                      <th key={h} className="px-5 py-3 text-left text-xs text-gray-500 uppercase tracking-wider font-semibold">{h}</th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {orders.length === 0 ? (
+                    <tr><td colSpan={7} className="px-5 py-10 text-center text-gray-600">Sin órdenes en este período</td></tr>
+                  ) : orders.map(o => {
+                    const sm = statusMeta(o.status);
+                    return (
+                      <tr key={o.id} className="border-b border-white/[0.03] hover:bg-white/[0.02] transition-colors">
+                        <td className="px-5 py-3 font-mono text-cyan-400 text-xs">{o.order_number || "—"}</td>
+                        <td className="px-5 py-3 text-white font-medium">{o.customer_name || "—"}</td>
+                        <td className="px-5 py-3 text-gray-400">{[o.device_brand, o.device_model].filter(Boolean).join(" ") || o.device_type || "—"}</td>
+                        <td className="px-5 py-3 text-gray-400">{o.assigned_technician || "—"}</td>
+                        <td className="px-5 py-3">
+                          <span className={`inline-flex px-2 py-0.5 rounded-full text-xs font-semibold border ${sm.color}`}>{sm.label}</span>
+                        </td>
+                        <td className="px-5 py-3 text-white font-semibold tabular-nums">{usd(o.total_amount)}</td>
+                        <td className="px-5 py-3 text-gray-400 text-xs">{fmtDate(o.created_date)}</td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
+
+        {/* ── TAB: TRANSACTIONS ── */}
+        {activeTab === "txns" && (
+          <div className="bg-white/[0.03] border border-white/8 rounded-2xl overflow-hidden">
+            <div className="px-6 py-4 border-b border-white/5 flex items-center justify-between">
+              <h2 className="font-black text-white">Transacciones</h2>
+              <div className="flex items-center gap-4 text-sm">
+                <span className="text-emerald-400 font-semibold">{income.length} ingresos</span>
+                <span className="text-red-400 font-semibold">{expenses.length} gastos</span>
+              </div>
+            </div>
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b border-white/5">
+                    {["Fecha","Tipo","Descripción","Categoría","Método","Monto"].map(h => (
+                      <th key={h} className="px-5 py-3 text-left text-xs text-gray-500 uppercase tracking-wider font-semibold">{h}</th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {transactions.length === 0 ? (
+                    <tr><td colSpan={6} className="px-5 py-10 text-center text-gray-600">Sin transacciones en este período</td></tr>
+                  ) : transactions.map(t => {
+                    const isIncome = t.type === "income" || t.type === "ingreso";
+                    return (
+                      <tr key={t.id} className="border-b border-white/[0.03] hover:bg-white/[0.02] transition-colors">
+                        <td className="px-5 py-3 text-gray-400 text-xs">{fmtDate(t.created_date)}</td>
+                        <td className="px-5 py-3">
+                          <span className={`inline-flex items-center gap-1 text-xs font-semibold ${isIncome ? "text-emerald-400" : "text-red-400"}`}>
+                            {isIncome ? <ArrowUpRight className="w-3 h-3" /> : <ArrowDownRight className="w-3 h-3" />}
+                            {isIncome ? "Ingreso" : "Gasto"}
+                          </span>
+                        </td>
+                        <td className="px-5 py-3 text-white max-w-xs truncate">{t.description || "—"}</td>
+                        <td className="px-5 py-3 text-gray-400 text-xs">{capitalize(t.category) || "—"}</td>
+                        <td className="px-5 py-3 text-gray-400 text-xs">{payLabel(t.payment_method)}</td>
+                        <td className={`px-5 py-3 font-black tabular-nums ${isIncome ? "text-emerald-400" : "text-red-400"}`}>
+                          {isIncome ? "+" : "-"}{usd(t.amount)}
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+                {transactions.length > 0 && (
+                  <tfoot>
+                    <tr className="border-t border-white/10 bg-white/[0.02]">
+                      <td colSpan={4} className="px-5 py-3 font-black text-white text-sm">TOTALES</td>
+                      <td className="px-5 py-3 font-black text-emerald-400 tabular-nums">+{usd(totalIncome)}</td>
+                      <td className="px-5 py-3 font-black text-red-400 tabular-nums">-{usd(totalExpenses)}</td>
+                    </tr>
+                    <tr className="bg-white/[0.03]">
+                      <td colSpan={4} className="px-5 py-3 font-black text-white text-sm">UTILIDAD NETA</td>
+                      <td colSpan={2} className={`px-5 py-3 font-black text-xl tabular-nums ${netProfit >= 0 ? "text-cyan-400" : "text-red-400"}`}>{usd(netProfit)}</td>
+                    </tr>
+                  </tfoot>
+                )}
+              </table>
+            </div>
+          </div>
+        )}
+
+        {/* ── TAB: CHARTS ── */}
+        {activeTab === "charts" && (
+          <div className="grid lg:grid-cols-2 gap-6">
+            {/* Trend chart */}
+            <div className="bg-white/[0.03] border border-white/8 rounded-2xl p-5 lg:col-span-2">
+              <h3 className="font-bold text-white mb-5">Evolución: Ingresos vs Gastos</h3>
+              {dailyTrend.length === 0
+                ? <p className="text-gray-600 text-sm text-center py-10">Sin datos para graficar</p>
+                : (
+                  <ResponsiveContainer width="100%" height={280}>
+                    <LineChart data={dailyTrend}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="#ffffff08" />
+                      <XAxis dataKey="label" stroke="#555" tick={{ fontSize: 11 }} />
+                      <YAxis stroke="#555" tick={{ fontSize: 11 }} tickFormatter={v => `$${v}`} />
+                      <Tooltip
+                        contentStyle={{ background:"#12121e", border:"1px solid #ffffff15", borderRadius:"12px" }}
+                        labelStyle={{ color:"#fff", fontWeight:700 }}
+                        formatter={(v, n) => [usd(v), n === "income" ? "Ingresos" : "Gastos"]}
+                      />
+                      <Legend formatter={n => n === "income" ? "Ingresos" : "Gastos"} />
+                      <Line type="monotone" dataKey="income"   stroke="#10B981" strokeWidth={2} dot={false} />
+                      <Line type="monotone" dataKey="expenses" stroke="#EF4444" strokeWidth={2} dot={false} />
+                    </LineChart>
+                  </ResponsiveContainer>
+                )}
+            </div>
+
+            {/* Payment pie */}
+            <div className="bg-white/[0.03] border border-white/8 rounded-2xl p-5">
+              <h3 className="font-bold text-white mb-5">Ingresos por Método</h3>
+              {byPayment.length === 0
+                ? <p className="text-gray-600 text-sm text-center py-10">Sin datos</p>
+                : (
+                  <ResponsiveContainer width="100%" height={260}>
+                    <RPieChart>
+                      <Pie data={byPayment} dataKey="amount" nameKey="label" cx="50%" cy="50%"
+                        outerRadius={90} label={({ label, percent }) => `${label} ${(percent*100).toFixed(0)}%`}
+                        labelLine={false}>
+                        {byPayment.map((_, i) => <Cell key={i} fill={CHART_COLORS[i % CHART_COLORS.length]} />)}
+                      </Pie>
+                      <Tooltip contentStyle={{ background:"#12121e", border:"1px solid #ffffff15", borderRadius:"12px" }}
+                        formatter={v => usd(v)} />
+                    </RPieChart>
+                  </ResponsiveContainer>
+                )}
+            </div>
+
+            {/* Orders by status bar */}
+            <div className="bg-white/[0.03] border border-white/8 rounded-2xl p-5">
+              <h3 className="font-bold text-white mb-5">Órdenes por Estado</h3>
+              {ordersByStatus.length === 0
+                ? <p className="text-gray-600 text-sm text-center py-10">Sin datos</p>
+                : (
+                  <ResponsiveContainer width="100%" height={260}>
+                    <BarChart data={ordersByStatus} layout="vertical">
+                      <CartesianGrid strokeDasharray="3 3" stroke="#ffffff08" horizontal={false} />
+                      <XAxis type="number" stroke="#555" tick={{ fontSize: 11 }} />
+                      <YAxis dataKey="status" type="category" stroke="#555" tick={{ fontSize: 11 }} width={90} />
+                      <Tooltip contentStyle={{ background:"#12121e", border:"1px solid #ffffff15", borderRadius:"12px" }} />
+                      <Bar dataKey="count" fill="#06B6D4" radius={[0,6,6,0]}>
+                        {ordersByStatus.map((_, i) => <Cell key={i} fill={CHART_COLORS[i % CHART_COLORS.length]} />)}
+                      </Bar>
+                    </BarChart>
+                  </ResponsiveContainer>
+                )}
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
