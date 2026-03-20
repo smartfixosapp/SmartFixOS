@@ -2638,34 +2638,36 @@ export default function PinAccess() {
                       <p className="text-gray-400 text-sm">15 días de prueba · Sin tarjeta de crédito</p>
                     </div>
 
-                    {/* ── Botón Google ── */}
-                    <button
-                      type="button"
-                      onClick={() => { setShowSignup(false); handleGoogleSignIn("register"); }}
-                      className="w-full h-12 rounded-xl border border-white/15 bg-white/5 hover:bg-white/10 text-white font-semibold text-sm transition-all active:scale-[0.98] flex items-center justify-center gap-3 mb-3"
-                    >
-                      <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
-                        <path d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844c-.209 1.125-.843 2.078-1.796 2.717v2.258h2.908c1.702-1.567 2.684-3.874 2.684-6.615z" fill="#4285F4"/>
-                        <path d="M9 18c2.43 0 4.467-.806 5.956-2.18l-2.908-2.259c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332A8.997 8.997 0 0 0 9 18z" fill="#34A853"/>
-                        <path d="M3.964 10.71A5.41 5.41 0 0 1 3.682 9c0-.593.102-1.17.282-1.71V4.958H.957A8.996 8.996 0 0 0 0 9c0 1.452.348 2.827.957 4.042l3.007-2.332z" fill="#FBBC05"/>
-                        <path d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0A8.997 8.997 0 0 0 .957 4.958L3.964 7.29C4.672 5.163 6.656 3.58 9 3.58z" fill="#EA4335"/>
-                      </svg>
-                      Crear cuenta con Google
-                    </button>
-
-                    {/* ── Botón Apple — Coming Soon ── */}
-                    <div className="relative w-full mb-5">
+                    {/* ── OAuth logos ── */}
+                    <div className="flex gap-3 mb-5">
+                      {/* Google */}
                       <button
                         type="button"
-                        disabled
-                        className="w-full h-12 rounded-xl border border-white/8 bg-white/3 text-white/30 font-semibold text-sm flex items-center justify-center gap-3 cursor-not-allowed"
+                        onClick={() => { setShowSignup(false); handleGoogleSignIn("register"); }}
+                        className="flex-1 h-12 rounded-xl border border-white/15 bg-white/5 hover:bg-white/10 transition-all active:scale-[0.97] flex items-center justify-center"
+                        title="Registrarse con Google"
                       >
-                        <svg width="17" height="20" viewBox="0 0 814 1000" fill="currentColor" className="opacity-40">
-                          <path d="M788.1 340.9c-5.8 4.5-108.2 62.2-108.2 190.5 0 148.4 130.3 200.9 134.2 202.2-.6 3.2-20.7 71.9-68.7 141.9-42.8 61.6-87.5 123.1-155.5 123.1s-85.5-39.5-164-39.5c-76 0-103.7 40.8-165.9 40.8s-105-57.8-155.5-127.4C46 790.7 0 663 0 541.8c0-207.8 113.4-317.7 224.5-317.7 100.4 0 163.4 60.2 220.8 60.2 54.7 0 127.9-62.5 240.3-62.5zm-284.4-154.8c22.6-26.8 39.3-65.4 39.3-104.5 0-5.5-.5-11.1-1.6-15.4C450 73.9 385.5 111 345.4 155.1c-20.3 22.6-40.9 61-40.9 101.1 0 6 1 12 1.5 14.2 2.6.5 6.8.9 10.8.9 36.4 0 97.2-35.5 127-85.2z"/>
+                        <svg width="20" height="20" viewBox="0 0 18 18" fill="none">
+                          <path d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844c-.209 1.125-.843 2.078-1.796 2.717v2.258h2.908c1.702-1.567 2.684-3.874 2.684-6.615z" fill="#4285F4"/>
+                          <path d="M9 18c2.43 0 4.467-.806 5.956-2.18l-2.908-2.259c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332A8.997 8.997 0 0 0 9 18z" fill="#34A853"/>
+                          <path d="M3.964 10.71A5.41 5.41 0 0 1 3.682 9c0-.593.102-1.17.282-1.71V4.958H.957A8.996 8.996 0 0 0 0 9c0 1.452.348 2.827.957 4.042l3.007-2.332z" fill="#FBBC05"/>
+                          <path d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0A8.997 8.997 0 0 0 .957 4.958L3.964 7.29C4.672 5.163 6.656 3.58 9 3.58z" fill="#EA4335"/>
                         </svg>
-                        Crear cuenta con Apple
                       </button>
-                      <span className="absolute -top-2 right-2 text-[10px] font-black uppercase tracking-wider bg-white/10 text-white/40 px-2 py-0.5 rounded-full">Pronto</span>
+                      {/* Apple — Coming Soon */}
+                      <div className="relative flex-1">
+                        <button
+                          type="button"
+                          disabled
+                          className="w-full h-12 rounded-xl border border-white/8 bg-white/3 flex items-center justify-center cursor-not-allowed"
+                          title="Próximamente"
+                        >
+                          <svg width="17" height="20" viewBox="0 0 814 1000" fill="currentColor" className="opacity-30">
+                            <path d="M788.1 340.9c-5.8 4.5-108.2 62.2-108.2 190.5 0 148.4 130.3 200.9 134.2 202.2-.6 3.2-20.7 71.9-68.7 141.9-42.8 61.6-87.5 123.1-155.5 123.1s-85.5-39.5-164-39.5c-76 0-103.7 40.8-165.9 40.8s-105-57.8-155.5-127.4C46 790.7 0 663 0 541.8c0-207.8 113.4-317.7 224.5-317.7 100.4 0 163.4 60.2 220.8 60.2 54.7 0 127.9-62.5 240.3-62.5zm-284.4-154.8c22.6-26.8 39.3-65.4 39.3-104.5 0-5.5-.5-11.1-1.6-15.4C450 73.9 385.5 111 345.4 155.1c-20.3 22.6-40.9 61-40.9 101.1 0 6 1 12 1.5 14.2 2.6.5 6.8.9 10.8.9 36.4 0 97.2-35.5 127-85.2z"/>
+                          </svg>
+                        </button>
+                        <span className="absolute -top-2 -right-1 text-[9px] font-black uppercase tracking-wide bg-white/10 text-white/40 px-1.5 py-0.5 rounded-full pointer-events-none">Pronto</span>
+                      </div>
                     </div>
 
                     <div className="bg-emerald-500/10 border border-emerald-500/30 rounded-xl p-3 mb-4">
@@ -2803,33 +2805,35 @@ export default function PinAccess() {
                 <h2 className="text-xl font-black text-white">Iniciar Sesión</h2>
               </div>
 
-              {/* ── Botón Google ── */}
-              <button
-                onClick={() => handleGoogleSignIn("login")}
-                disabled={loading || usersLoading}
-                className="w-full h-12 rounded-xl border border-white/15 bg-white/5 hover:bg-white/10 text-white font-semibold text-sm transition-all active:scale-[0.98] flex items-center justify-center gap-3 mb-3 disabled:opacity-50"
-              >
-                <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
-                  <path d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844c-.209 1.125-.843 2.078-1.796 2.717v2.258h2.908c1.702-1.567 2.684-3.874 2.684-6.615z" fill="#4285F4"/>
-                  <path d="M9 18c2.43 0 4.467-.806 5.956-2.18l-2.908-2.259c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332A8.997 8.997 0 0 0 9 18z" fill="#34A853"/>
-                  <path d="M3.964 10.71A5.41 5.41 0 0 1 3.682 9c0-.593.102-1.17.282-1.71V4.958H.957A8.996 8.996 0 0 0 0 9c0 1.452.348 2.827.957 4.042l3.007-2.332z" fill="#FBBC05"/>
-                  <path d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0A8.997 8.997 0 0 0 .957 4.958L3.964 7.29C4.672 5.163 6.656 3.58 9 3.58z" fill="#EA4335"/>
-                </svg>
-                {loading ? "Conectando..." : "Continuar con Google"}
-              </button>
-
-              {/* ── Botón Apple — Coming Soon ── */}
-              <div className="relative w-full">
+              {/* ── OAuth logos ── */}
+              <div className="flex gap-3 mb-3">
+                {/* Google */}
                 <button
-                  disabled
-                  className="w-full h-12 rounded-xl border border-white/8 bg-white/3 text-white/30 font-semibold text-sm flex items-center justify-center gap-3 cursor-not-allowed"
+                  onClick={() => handleGoogleSignIn("login")}
+                  disabled={loading || usersLoading}
+                  className="flex-1 h-12 rounded-xl border border-white/15 bg-white/5 hover:bg-white/10 transition-all active:scale-[0.97] flex items-center justify-center disabled:opacity-40"
+                  title="Continuar con Google"
                 >
-                  <svg width="17" height="20" viewBox="0 0 814 1000" fill="currentColor" className="opacity-40">
-                    <path d="M788.1 340.9c-5.8 4.5-108.2 62.2-108.2 190.5 0 148.4 130.3 200.9 134.2 202.2-.6 3.2-20.7 71.9-68.7 141.9-42.8 61.6-87.5 123.1-155.5 123.1s-85.5-39.5-164-39.5c-76 0-103.7 40.8-165.9 40.8s-105-57.8-155.5-127.4C46 790.7 0 663 0 541.8c0-207.8 113.4-317.7 224.5-317.7 100.4 0 163.4 60.2 220.8 60.2 54.7 0 127.9-62.5 240.3-62.5zm-284.4-154.8c22.6-26.8 39.3-65.4 39.3-104.5 0-5.5-.5-11.1-1.6-15.4C450 73.9 385.5 111 345.4 155.1c-20.3 22.6-40.9 61-40.9 101.1 0 6 1 12 1.5 14.2 2.6.5 6.8.9 10.8.9 36.4 0 97.2-35.5 127-85.2z"/>
+                  <svg width="20" height="20" viewBox="0 0 18 18" fill="none">
+                    <path d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844c-.209 1.125-.843 2.078-1.796 2.717v2.258h2.908c1.702-1.567 2.684-3.874 2.684-6.615z" fill="#4285F4"/>
+                    <path d="M9 18c2.43 0 4.467-.806 5.956-2.18l-2.908-2.259c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332A8.997 8.997 0 0 0 9 18z" fill="#34A853"/>
+                    <path d="M3.964 10.71A5.41 5.41 0 0 1 3.682 9c0-.593.102-1.17.282-1.71V4.958H.957A8.996 8.996 0 0 0 0 9c0 1.452.348 2.827.957 4.042l3.007-2.332z" fill="#FBBC05"/>
+                    <path d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0A8.997 8.997 0 0 0 .957 4.958L3.964 7.29C4.672 5.163 6.656 3.58 9 3.58z" fill="#EA4335"/>
                   </svg>
-                  Continuar con Apple
                 </button>
-                <span className="absolute -top-2 right-2 text-[10px] font-black uppercase tracking-wider bg-white/10 text-white/40 px-2 py-0.5 rounded-full">Pronto</span>
+                {/* Apple — Coming Soon */}
+                <div className="relative flex-1">
+                  <button
+                    disabled
+                    className="w-full h-12 rounded-xl border border-white/8 bg-white/3 flex items-center justify-center cursor-not-allowed"
+                    title="Próximamente"
+                  >
+                    <svg width="17" height="20" viewBox="0 0 814 1000" fill="currentColor" className="opacity-30">
+                      <path d="M788.1 340.9c-5.8 4.5-108.2 62.2-108.2 190.5 0 148.4 130.3 200.9 134.2 202.2-.6 3.2-20.7 71.9-68.7 141.9-42.8 61.6-87.5 123.1-155.5 123.1s-85.5-39.5-164-39.5c-76 0-103.7 40.8-165.9 40.8s-105-57.8-155.5-127.4C46 790.7 0 663 0 541.8c0-207.8 113.4-317.7 224.5-317.7 100.4 0 163.4 60.2 220.8 60.2 54.7 0 127.9-62.5 240.3-62.5zm-284.4-154.8c22.6-26.8 39.3-65.4 39.3-104.5 0-5.5-.5-11.1-1.6-15.4C450 73.9 385.5 111 345.4 155.1c-20.3 22.6-40.9 61-40.9 101.1 0 6 1 12 1.5 14.2 2.6.5 6.8.9 10.8.9 36.4 0 97.2-35.5 127-85.2z"/>
+                    </svg>
+                  </button>
+                  <span className="absolute -top-2 -right-1 text-[9px] font-black uppercase tracking-wide bg-white/10 text-white/40 px-1.5 py-0.5 rounded-full pointer-events-none">Pronto</span>
+                </div>
               </div>
 
             </motion.div>
