@@ -2653,17 +2653,20 @@ export default function PinAccess() {
                       Crear cuenta con Google
                     </button>
 
-                    {/* ── Botón Apple ── */}
-                    <button
-                      type="button"
-                      onClick={() => { setShowSignup(false); handleAppleSignIn("register"); }}
-                      className="w-full h-12 rounded-xl border border-white/15 bg-white/5 hover:bg-white/10 text-white font-semibold text-sm transition-all active:scale-[0.98] flex items-center justify-center gap-3 mb-5"
-                    >
-                      <svg width="17" height="20" viewBox="0 0 814 1000" fill="currentColor">
-                        <path d="M788.1 340.9c-5.8 4.5-108.2 62.2-108.2 190.5 0 148.4 130.3 200.9 134.2 202.2-.6 3.2-20.7 71.9-68.7 141.9-42.8 61.6-87.5 123.1-155.5 123.1s-85.5-39.5-164-39.5c-76 0-103.7 40.8-165.9 40.8s-105-57.8-155.5-127.4C46 790.7 0 663 0 541.8c0-207.8 113.4-317.7 224.5-317.7 100.4 0 163.4 60.2 220.8 60.2 54.7 0 127.9-62.5 240.3-62.5zm-284.4-154.8c22.6-26.8 39.3-65.4 39.3-104.5 0-5.5-.5-11.1-1.6-15.4C450 73.9 385.5 111 345.4 155.1c-20.3 22.6-40.9 61-40.9 101.1 0 6 1 12 1.5 14.2 2.6.5 6.8.9 10.8.9 36.4 0 97.2-35.5 127-85.2z"/>
-                      </svg>
-                      Crear cuenta con Apple
-                    </button>
+                    {/* ── Botón Apple — Coming Soon ── */}
+                    <div className="relative w-full mb-5">
+                      <button
+                        type="button"
+                        disabled
+                        className="w-full h-12 rounded-xl border border-white/8 bg-white/3 text-white/30 font-semibold text-sm flex items-center justify-center gap-3 cursor-not-allowed"
+                      >
+                        <svg width="17" height="20" viewBox="0 0 814 1000" fill="currentColor" className="opacity-40">
+                          <path d="M788.1 340.9c-5.8 4.5-108.2 62.2-108.2 190.5 0 148.4 130.3 200.9 134.2 202.2-.6 3.2-20.7 71.9-68.7 141.9-42.8 61.6-87.5 123.1-155.5 123.1s-85.5-39.5-164-39.5c-76 0-103.7 40.8-165.9 40.8s-105-57.8-155.5-127.4C46 790.7 0 663 0 541.8c0-207.8 113.4-317.7 224.5-317.7 100.4 0 163.4 60.2 220.8 60.2 54.7 0 127.9-62.5 240.3-62.5zm-284.4-154.8c22.6-26.8 39.3-65.4 39.3-104.5 0-5.5-.5-11.1-1.6-15.4C450 73.9 385.5 111 345.4 155.1c-20.3 22.6-40.9 61-40.9 101.1 0 6 1 12 1.5 14.2 2.6.5 6.8.9 10.8.9 36.4 0 97.2-35.5 127-85.2z"/>
+                        </svg>
+                        Crear cuenta con Apple
+                      </button>
+                      <span className="absolute -top-2 right-2 text-[10px] font-black uppercase tracking-wider bg-white/10 text-white/40 px-2 py-0.5 rounded-full">Pronto</span>
+                    </div>
 
                     <div className="bg-emerald-500/10 border border-emerald-500/30 rounded-xl p-3 mb-4">
                       <p className="text-sm text-emerald-300 flex items-start gap-2">
@@ -2815,17 +2818,19 @@ export default function PinAccess() {
                 {loading ? "Conectando..." : "Continuar con Google"}
               </button>
 
-              {/* ── Botón Apple ── */}
-              <button
-                onClick={() => handleAppleSignIn("login")}
-                disabled={loading || usersLoading}
-                className="w-full h-12 rounded-xl border border-white/15 bg-white/5 hover:bg-white/10 text-white font-semibold text-sm transition-all active:scale-[0.98] flex items-center justify-center gap-3 disabled:opacity-50"
-              >
-                <svg width="17" height="20" viewBox="0 0 814 1000" fill="currentColor">
-                  <path d="M788.1 340.9c-5.8 4.5-108.2 62.2-108.2 190.5 0 148.4 130.3 200.9 134.2 202.2-.6 3.2-20.7 71.9-68.7 141.9-42.8 61.6-87.5 123.1-155.5 123.1s-85.5-39.5-164-39.5c-76 0-103.7 40.8-165.9 40.8s-105-57.8-155.5-127.4C46 790.7 0 663 0 541.8c0-207.8 113.4-317.7 224.5-317.7 100.4 0 163.4 60.2 220.8 60.2 54.7 0 127.9-62.5 240.3-62.5zm-284.4-154.8c22.6-26.8 39.3-65.4 39.3-104.5 0-5.5-.5-11.1-1.6-15.4C450 73.9 385.5 111 345.4 155.1c-20.3 22.6-40.9 61-40.9 101.1 0 6 1 12 1.5 14.2 2.6.5 6.8.9 10.8.9 36.4 0 97.2-35.5 127-85.2z"/>
-                </svg>
-                {loading ? "Conectando..." : "Continuar con Apple"}
-              </button>
+              {/* ── Botón Apple — Coming Soon ── */}
+              <div className="relative w-full">
+                <button
+                  disabled
+                  className="w-full h-12 rounded-xl border border-white/8 bg-white/3 text-white/30 font-semibold text-sm flex items-center justify-center gap-3 cursor-not-allowed"
+                >
+                  <svg width="17" height="20" viewBox="0 0 814 1000" fill="currentColor" className="opacity-40">
+                    <path d="M788.1 340.9c-5.8 4.5-108.2 62.2-108.2 190.5 0 148.4 130.3 200.9 134.2 202.2-.6 3.2-20.7 71.9-68.7 141.9-42.8 61.6-87.5 123.1-155.5 123.1s-85.5-39.5-164-39.5c-76 0-103.7 40.8-165.9 40.8s-105-57.8-155.5-127.4C46 790.7 0 663 0 541.8c0-207.8 113.4-317.7 224.5-317.7 100.4 0 163.4 60.2 220.8 60.2 54.7 0 127.9-62.5 240.3-62.5zm-284.4-154.8c22.6-26.8 39.3-65.4 39.3-104.5 0-5.5-.5-11.1-1.6-15.4C450 73.9 385.5 111 345.4 155.1c-20.3 22.6-40.9 61-40.9 101.1 0 6 1 12 1.5 14.2 2.6.5 6.8.9 10.8.9 36.4 0 97.2-35.5 127-85.2z"/>
+                  </svg>
+                  Continuar con Apple
+                </button>
+                <span className="absolute -top-2 right-2 text-[10px] font-black uppercase tracking-wider bg-white/10 text-white/40 px-2 py-0.5 rounded-full">Pronto</span>
+              </div>
 
             </motion.div>
 
