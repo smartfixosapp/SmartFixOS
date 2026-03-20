@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { dataClient } from "@/components/api/dataClient";
 import { Button } from "@/components/ui/button";
-import { Lock, ArrowLeft, Delete, Check, ExternalLink, Shield, Zap, UserPlus, Smartphone, Box, Receipt, Users, BarChart3, Globe, Sparkles, MessageCircle, Clock, Database, Cloud, Mail, Building2, CheckCircle, Star, Phone, Wrench, Camera, Eye, EyeOff, KeyRound } from "lucide-react";
+import { Lock, ArrowLeft, Delete, Check, ExternalLink, Shield, Zap, UserPlus, Smartphone, Box, Receipt, Users, BarChart3, Globe, Sparkles, MessageCircle, Clock, Database, Cloud, Mail, Building2, CheckCircle, Star, Phone, Wrench, Camera, Eye, EyeOff, KeyRound, Fingerprint } from "lucide-react";
 import { supabase } from "../../../../lib/supabase-client.js";
 import { toast } from "sonner";
 import { motion, AnimatePresence } from "framer-motion";
@@ -1285,6 +1285,21 @@ export default function PinAccess() {
     setBiometricProfile(loadBiometricProfile());
   }, []);
 
+  // Auto-trigger early biometric (pantalla de selección de usuario)
+  useEffect(() => {
+    if (step !== "user") return;
+    if (!biometricSupported || !biometricProfile?.credentialId || !biometricProfile?.session) return;
+    const timer = setTimeout(() => handleEarlyBiometricLogin(), 900);
+    return () => clearTimeout(timer);
+  }, [step, biometricSupported, biometricProfile?.credentialId]);
+
+  // Auto-trigger biometric cuando usuario seleccionado tiene huella configurada
+  useEffect(() => {
+    if (!isBiometricAvailableForSelectedUser || biometricLoading || loading) return;
+    const timer = setTimeout(() => handleBiometricLogin(), 600);
+    return () => clearTimeout(timer);
+  }, [isBiometricAvailableForSelectedUser]);
+
   const handleNumberClick = (num) => {
     if (pin.length < 4) {
       setPin(pin + num);
@@ -2108,16 +2123,27 @@ export default function PinAccess() {
                         <button
                           onClick={handleBiometricLogin}
                           disabled={loading || biometricLoading}
-                          className="w-full mt-4 h-12 rounded-2xl border border-emerald-500/30 bg-emerald-500/10 hover:bg-emerald-500/15 text-emerald-300 font-semibold transition-all active:scale-95 disabled:opacity-40"
+                          className="w-full mt-4 py-4 rounded-2xl border border-emerald-500/30 bg-emerald-500/10 hover:bg-emerald-500/15 flex flex-col items-center gap-1.5 transition-all active:scale-95 disabled:opacity-40"
                         >
-                          {biometricLoading ? "Validando huella..." : `Entrar con huella`}
+                          {biometricLoading ? (
+                            <div className="w-8 h-8 border-2 border-emerald-400/50 border-t-emerald-400 rounded-full animate-spin" />
+                          ) : /iphone|ipad|mac/i.test(navigator.userAgent) ? (
+                            <svg viewBox="0 0 24 24" className="w-9 h-9 text-emerald-300" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round">
+                              <path d="M9 3H5a2 2 0 00-2 2v4M9 3h6M15 3h4a2 2 0 012 2v4M3 15v4a2 2 0 002 2h4m6 0h4a2 2 0 002-2v-4M9 9h.01M15 9h.01M9 14.5s1 1.5 3 1.5 3-1.5 3-1.5" />
+                            </svg>
+                          ) : (
+                            <Fingerprint className="w-9 h-9 text-emerald-300" />
+                          )}
+                          <span className="text-emerald-300 text-xs font-semibold">
+                            {biometricLoading ? "Verificando..." : /iphone|ipad|mac/i.test(navigator.userAgent) ? "Face ID" : "Huella digital"}
+                          </span>
                         </button>
                         <button
                           onClick={clearBiometricProfile}
                           disabled={loading || biometricLoading}
-                          className="w-full mt-2 text-xs text-white/45 hover:text-white/70 transition-colors"
+                          className="w-full mt-2 text-xs text-white/40 hover:text-white/60 transition-colors"
                         >
-                          Quitar huella de este dispositivo
+                          Quitar de este dispositivo
                         </button>
                       </>
                     )}
@@ -2776,20 +2802,26 @@ export default function PinAccess() {
                 animate={{ opacity: 1, scale: 1 }}
                 className="rounded-3xl border border-emerald-500/30 bg-emerald-500/[0.07] p-5 backdrop-blur-xl flex items-center gap-4"
               >
-                <div className="w-14 h-14 rounded-2xl bg-emerald-500/20 border border-emerald-500/30 flex items-center justify-center flex-shrink-0">
-                  <span className="text-2xl">{/iphone|ipad|mac/i.test(navigator.userAgent) ? "🔐" : "👆"}</span>
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-white font-black text-sm">Acceso rápido</p>
-                  <p className="text-emerald-300/70 text-xs truncate">{biometricProfile.session?.userName || "Usuario guardado"}</p>
-                </div>
                 <button
                   onClick={handleEarlyBiometricLogin}
                   disabled={biometricLoading}
-                  className="h-11 px-5 rounded-2xl bg-emerald-500 hover:bg-emerald-400 text-black font-black text-sm transition-all active:scale-95 disabled:opacity-50 flex-shrink-0"
+                  className="w-16 h-16 rounded-2xl bg-emerald-500/20 border border-emerald-500/30 flex flex-col items-center justify-center gap-1 flex-shrink-0 hover:bg-emerald-500/30 transition-all active:scale-95 disabled:opacity-50"
                 >
-                  {biometricLoading ? "..." : /iphone|ipad|mac/i.test(navigator.userAgent) ? "Face ID" : "Huella"}
+                  {biometricLoading ? (
+                    <div className="w-6 h-6 border-2 border-emerald-400/50 border-t-emerald-400 rounded-full animate-spin" />
+                  ) : /iphone|ipad|mac/i.test(navigator.userAgent) ? (
+                    <svg viewBox="0 0 24 24" className="w-7 h-7 text-emerald-300" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round">
+                      <path d="M9 3H5a2 2 0 00-2 2v4M9 3h6M15 3h4a2 2 0 012 2v4M3 15v4a2 2 0 002 2h4m6 0h4a2 2 0 002-2v-4M9 9h.01M15 9h.01M9 14.5s1 1.5 3 1.5 3-1.5 3-1.5" />
+                    </svg>
+                  ) : (
+                    <Fingerprint className="w-7 h-7 text-emerald-300" />
+                  )}
                 </button>
+                <div className="flex-1 min-w-0">
+                  <p className="text-white font-black text-sm">Acceso rápido</p>
+                  <p className="text-emerald-300/70 text-xs truncate">{biometricProfile.session?.userName || "Usuario guardado"}</p>
+                  <p className="text-white/30 text-[10px] mt-0.5">{/iphone|ipad|mac/i.test(navigator.userAgent) ? "Face ID" : "Huella digital"}</p>
+                </div>
               </motion.div>
             )}
 

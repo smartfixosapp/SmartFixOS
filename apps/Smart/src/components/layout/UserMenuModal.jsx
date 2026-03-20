@@ -742,41 +742,6 @@ export default function UserMenuModal({ open, onClose, user }) {
           </div>
 
               {/* Logout Button */}
-              <div className="bg-gradient-to-br from-cyan-600/10 to-blue-600/10 border border-cyan-500/20 rounded-xl p-4 theme-light:from-cyan-50 theme-light:to-blue-50 theme-light:border-cyan-300">
-                <div className="flex items-center gap-2 mb-2">
-                  <Fingerprint className="w-5 h-5 text-cyan-400 theme-light:text-cyan-600" />
-                  <span className="text-white font-medium theme-light:text-gray-900">Huella digital</span>
-                </div>
-                <p className="text-xs text-gray-400 mb-3 theme-light:text-gray-600">
-                  {biometricSupported
-                    ? (biometricProfile?.userId === displayUser?.id
-                        ? "La huella está activa en este dispositivo."
-                        : "Activa la huella para entrar más rápido la próxima vez.")
-                    : "Este dispositivo o navegador no soporta huella para este login."}
-                </p>
-                {biometricSupported && (
-                  biometricProfile?.userId === displayUser?.id ? (
-                    <Button
-                      onClick={clearBiometricProfile}
-                      variant="outline"
-                      className="w-full border-cyan-600/30 text-cyan-300 hover:bg-cyan-600/10 theme-light:border-cyan-300 theme-light:text-cyan-700 theme-light:hover:bg-cyan-50"
-                      disabled={biometricLoading}
-                    >
-                      Quitar huella de este dispositivo
-                    </Button>
-                  ) : (
-                    <Button
-                      onClick={handleEnableBiometric}
-                      className="w-full bg-gradient-to-r from-cyan-600 to-emerald-700 hover:from-cyan-700 hover:to-emerald-800"
-                      disabled={biometricLoading}
-                    >
-                      {biometricLoading ? "Activando..." : "Activar huella en este dispositivo"}
-                    </Button>
-                  )
-                )}
-              </div>
-
-              {/* Logout Button */}
               <Button
                 onClick={handleLogout}
                 variant="outline"

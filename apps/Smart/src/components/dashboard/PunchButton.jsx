@@ -362,7 +362,7 @@ export default function PunchButton({ userId, userName, variant = "default", onP
             <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
           ) : (
             <>
-              {punchStatus ? <LogOut className="w-5 h-5" /> : <LogIn className="w-5 h-5" />}
+              {punchStatus ? <LogOut className="w-5 h-5" /> : <Clock className="w-5 h-5" />}
               <span className={cn(
                 "absolute top-2 right-2 w-2 h-2 rounded-full",
                 punchStatus ? "bg-lime-500 animate-pulse shadow-[0_0_8px_rgba(132,204,22,0.8)]" : "bg-emerald-500"
@@ -412,7 +412,7 @@ export default function PunchButton({ userId, userName, variant = "default", onP
               </>
             ) : (
               <>
-                <LogIn className="w-5 h-5 relative z-10" />
+                <Clock className="w-5 h-5 relative z-10" />
                 <span className="text-sm font-bold relative z-10">Ponche</span>
               </>
             )}

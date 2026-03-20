@@ -26,12 +26,70 @@ import { useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/components/utils/helpers";
 import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
 
+const BIOMETRIC_LOGIN_KEY = "smartfix_biometric_login";
+
 export default function SettingsPage() {
   const { t, language, setLanguage } = useI18n();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [activeSection, setActiveSection]   = useState(null);
   const [showFeedback,  setShowFeedback]    = useState(false);
+
+  // Biometric state (mobile only)
+  const isMobileDevice = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent) || !!window.Capacitor;
+  const [biometricSupported, setBiometricSupported] = useState(false);
+  const [biometricProfile, setBiometricProfile] = useState(null);
+  const [biometricLoading, setBiometricLoading] = useState(false);
+
+  const loadBiometricProfile = () => {
+    try { return JSON.parse(localStorage.getItem(BIOMETRIC_LOGIN_KEY) || "null"); } catch { return null; }
+  };
+  const saveBiometricProfile = (profile) => {
+    try { localStorage.setItem(BIOMETRIC_LOGIN_KEY, JSON.stringify(profile)); } catch {}
+    setBiometricProfile(profile);
+  };
+  const clearBiometricProfile = () => {
+    localStorage.removeItem(BIOMETRIC_LOGIN_KEY);
+    setBiometricProfile(null);
+  };
+
+  useEffect(() => {
+    if (!isMobileDevice) return;
+    setBiometricProfile(loadBiometricProfile());
+    if (window.PublicKeyCredential?.isUserVerifyingPlatformAuthenticatorAvailable) {
+      window.PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable()
+        .then(setBiometricSupported).catch(() => setBiometricSupported(false));
+    }
+  }, []);
+
+  const handleEnableBiometric = async () => {
+    const raw = localStorage.getItem("employee_session") || sessionStorage.getItem("911-session");
+    if (!raw) { toast.error("Inicia sesión primero"); return; }
+    const session = JSON.parse(raw);
+    setBiometricLoading(true);
+    try {
+      const challenge = new Uint8Array(32);
+      crypto.getRandomValues(challenge);
+      const credential = await navigator.credentials.create({
+        publicKey: {
+          challenge,
+          rp: { name: "SmartFixOS", id: window.location.hostname },
+          user: { id: new TextEncoder().encode(session.id || session.userId), name: session.email || session.userName, displayName: session.full_name || session.userName },
+          pubKeyCredParams: [{ alg: -7, type: "public-key" }, { alg: -257, type: "public-key" }],
+          authenticatorSelection: { authenticatorAttachment: "platform", userVerification: "required" },
+          timeout: 60000,
+        },
+      });
+      if (!credential?.rawId) throw new Error("No se pudo crear la credencial");
+      const toB64 = (buf) => { const b = new Uint8Array(buf); let s = ""; for (const x of b) s += String.fromCharCode(x); return btoa(s); };
+      saveBiometricProfile({ credentialId: toB64(credential.rawId), userId: session.id || session.userId, tenantId: session.tenant_id || null, session, createdAt: new Date().toISOString() });
+      toast.success("Face ID / Huella activada correctamente");
+    } catch (err) {
+      if (err?.name !== "NotAllowedError") toast.error(err?.message || "No se pudo activar la biometría");
+    } finally {
+      setBiometricLoading(false);
+    }
+  };
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -841,6 +899,13 @@ export default function SettingsPage() {
           isNavigation: true,
           navigateTo: "Financial"
         },
+        ...(isMobileDevice ? [{
+          id: "biometric",
+          icon: Fingerprint,
+          title: "Face ID / Huella",
+          description: "Acceso biométrico al dispositivo",
+          color: "from-emerald-600 to-teal-600",
+        }] : []),
       ]
     },
   ];
@@ -1275,6 +1340,67 @@ export default function SettingsPage() {
 
           {/* EMAIL TEMPLATES */}
           {activeSection === "email_templates" && <EmailTemplatesTab />}
+
+          {/* BIOMETRIC */}
+          {activeSection === "biometric" && (
+            <div className="space-y-4">
+              <div className="bg-gradient-to-br from-white/10 to-white/5 border border-white/10 rounded-[28px] p-7 backdrop-blur-xl shadow-2xl space-y-5">
+                {/* Status */}
+                <div className="flex items-center gap-4">
+                  <div className={`w-16 h-16 rounded-2xl flex items-center justify-center ${biometricProfile ? "bg-emerald-500/20 border border-emerald-500/30" : "bg-white/5 border border-white/10"}`}>
+                    {/iphone|ipad|mac/i.test(navigator.userAgent) ? (
+                      <svg viewBox="0 0 24 24" className={`w-8 h-8 ${biometricProfile ? "text-emerald-400" : "text-white/30"}`} fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round">
+                        <path d="M9 3H5a2 2 0 00-2 2v4M9 3h6M15 3h4a2 2 0 012 2v4M3 15v4a2 2 0 002 2h4m6 0h4a2 2 0 002-2v-4M9 9h.01M15 9h.01M9 14.5s1 1.5 3 1.5 3-1.5 3-1.5" />
+                      </svg>
+                    ) : (
+                      <Fingerprint className={`w-8 h-8 ${biometricProfile ? "text-emerald-400" : "text-white/30"}`} />
+                    )}
+                  </div>
+                  <div>
+                    <p className="text-white font-bold text-lg">
+                      {/iphone|ipad|mac/i.test(navigator.userAgent) ? "Face ID" : "Huella digital"}
+                    </p>
+                    <p className={`text-sm font-medium ${biometricProfile ? "text-emerald-400" : "text-white/40"}`}>
+                      {biometricProfile ? "Activo en este dispositivo" : "No configurado"}
+                    </p>
+                    {biometricProfile?.session?.userName && (
+                      <p className="text-white/50 text-xs mt-0.5">Usuario: {biometricProfile.session.userName}</p>
+                    )}
+                  </div>
+                </div>
+
+                <p className="text-white/50 text-sm">
+                  {biometricSupported
+                    ? "Activa el acceso biométrico para entrar al sistema sin escribir tu PIN cada vez."
+                    : "Este dispositivo no soporta autenticación biométrica."}
+                </p>
+
+                {biometricSupported && (
+                  biometricProfile ? (
+                    <button
+                      onClick={clearBiometricProfile}
+                      disabled={biometricLoading}
+                      className="w-full h-12 rounded-2xl border border-red-500/30 bg-red-500/10 text-red-400 font-semibold hover:bg-red-500/15 transition-all active:scale-95 disabled:opacity-40"
+                    >
+                      Quitar Face ID / Huella de este dispositivo
+                    </button>
+                  ) : (
+                    <button
+                      onClick={handleEnableBiometric}
+                      disabled={biometricLoading}
+                      className="w-full h-12 rounded-2xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-bold transition-all active:scale-95 disabled:opacity-40 flex items-center justify-center gap-2"
+                    >
+                      {biometricLoading ? (
+                        <><div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> Activando...</>
+                      ) : (
+                        <>{/iphone|ipad|mac/i.test(navigator.userAgent) ? "Activar Face ID" : "Activar Huella digital"}</>
+                      )}
+                    </button>
+                  )
+                )}
+              </div>
+            </div>
+          )}
 
 
 
