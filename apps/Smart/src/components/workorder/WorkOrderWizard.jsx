@@ -10,7 +10,8 @@ import AddItemModal from "./AddItemModal";
 import {
   User, Smartphone, Wrench, Shield, CheckSquare, Plus,
   X, Mail, Loader2, Camera, Check, Search, Eye, Grid3X3, Users, Save,
-  Laptop, Tablet, Monitor, Watch, Gamepad2, Zap, Pencil, Trash2, ChevronDown
+  Laptop, Tablet, Monitor, Watch, Gamepad2, Zap, Pencil, Trash2, ChevronDown,
+  Clock, SlidersHorizontal
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
@@ -2875,7 +2876,7 @@ export default function WorkOrderWizard({ open, onClose, onSuccess, preloadedCus
             onTouchEnd={handleSwipeEnd}
           >
         {isCompactDevice && (
-          <div className="pt-2 flex justify-center">
+          <div className="flex justify-center" style={{ paddingTop: "calc(env(safe-area-inset-top, 0px) + 8px)" }}>
             <div className="w-12 h-1.5 rounded-full bg-white/35" />
           </div>
         )}
@@ -3261,7 +3262,8 @@ export default function WorkOrderWizard({ open, onClose, onSuccess, preloadedCus
                   }`}
                 >
                   <span className="inline-flex items-center gap-1.5">
-                    Uso temporal
+                    <Clock className="w-3.5 h-3.5" />
+                    <span className="hidden sm:inline">Uso temporal</span>
                     <ChevronDown className={`w-3.5 h-3.5 transition-transform ${showTemporaryDeviceInput ? "rotate-180" : ""}`} />
                   </span>
                 </button>
@@ -3270,7 +3272,10 @@ export default function WorkOrderWizard({ open, onClose, onSuccess, preloadedCus
                   onClick={() => window.location.assign("/Settings?section=wizard&tab=catalog")}
                   className="rounded-full border border-purple-400/40 bg-purple-500/15 px-3 py-2 text-xs font-semibold text-white hover:bg-purple-500/25 transition-all"
                 >
-                  Gestión avanzada
+                  <span className="inline-flex items-center gap-1.5">
+                    <SlidersHorizontal className="w-3.5 h-3.5" />
+                    <span className="hidden sm:inline">Gestión avanzada</span>
+                  </span>
                 </button>
               </div>
             </div>

@@ -638,7 +638,8 @@ export default function AddItemModal({
     <div className="fixed inset-0 z-[99999] bg-black/85 backdrop-blur-md sm:p-5 p-0">
       <div className="relative mx-auto h-full w-full max-w-[1320px] sm:rounded-[32px] rounded-none border-x sm:border border-white/10 glass-panel shadow-[0_30px_100px_rgba(0,0,0,0.7)] flex flex-col overflow-hidden">
         {/* ── Header ── */}
-        <div className="relative flex flex-col sm:flex-row items-start sm:items-center justify-between border-b border-white/[0.06] backdrop-blur-3xl px-6 sm:px-8 py-4 sm:py-5 gap-4">
+        <div className="relative flex flex-col sm:flex-row items-start sm:items-center justify-between border-b border-white/[0.06] backdrop-blur-3xl px-6 sm:px-8 gap-4"
+          style={{ paddingTop: "calc(env(safe-area-inset-top, 0px) + 16px)", paddingBottom: "16px" }}>
           {/* Ambient glow */}
           <div className="pointer-events-none absolute left-0 top-0 h-24 w-64 rounded-full bg-cyan-500/5 blur-3xl" />
 
@@ -655,14 +656,15 @@ export default function AddItemModal({
             </div>
           </div>
 
-          <div className="flex items-center gap-2 w-full sm:w-auto overflow-x-auto no-scrollbar pb-1 sm:pb-0">
+          <div className="flex items-center gap-2 w-full sm:w-auto pb-1 sm:pb-0">
             <Button
               variant="outline"
               size="sm"
               className="rounded-xl border-amber-500/30 bg-amber-500/10 text-amber-300 hover:bg-amber-500/20 hover:border-amber-400/50 transition whitespace-nowrap px-3 h-9"
               onClick={() => setShowQuickItem(true)}
             >
-              <Wrench className="w-3.5 h-3.5 mr-2" /> + Manual
+              <Wrench className="w-3.5 h-3.5 sm:mr-2" />
+              <span className="hidden sm:inline">+ Manual</span>
             </Button>
 
             <Button
@@ -671,7 +673,8 @@ export default function AddItemModal({
               className="rounded-xl border-red-500/25 bg-red-500/8 text-red-300/80 hover:bg-red-500/20 hover:text-red-200 transition whitespace-nowrap px-3 h-9"
               onClick={clearCart}
             >
-              <Trash2 className="w-3.5 h-3.5 mr-2" /> Limpiar
+              <Trash2 className="w-3.5 h-3.5 sm:mr-2" />
+              <span className="hidden sm:inline">Limpiar</span>
             </Button>
 
             <button
@@ -683,30 +686,15 @@ export default function AddItemModal({
               }`}
             >
               <ShoppingCart className="w-3.5 h-3.5" />
-              Orden
+              <span className="hidden sm:inline">Orden</span>
               <span className="flex h-5 w-5 items-center justify-center rounded-full bg-emerald-500 text-[10px] font-black text-white">
                 {countInCart}
               </span>
             </button>
 
-            <div className="flex items-center gap-1 rounded-xl border border-white/10 bg-white/5 p-1 h-9 ml-auto sm:ml-0">
-              <button
-                onClick={() => setViewMode("grid")}
-                className={`rounded-lg p-1.5 transition ${viewMode === "grid" ? "bg-cyan-500/20 text-cyan-300" : "text-white/50 hover:text-white"}`}
-              >
-                <Grid className="w-3.5 h-3.5" />
-              </button>
-              <button
-                onClick={() => setViewMode("list")}
-                className={`rounded-lg p-1.5 transition ${viewMode === "list" ? "bg-cyan-500/20 text-cyan-300" : "text-white/50 hover:text-white"}`}
-              >
-                <List className="w-3.5 h-3.5" />
-              </button>
-            </div>
-
             <button
               onClick={onClose}
-              className="flex h-9 w-9 items-center justify-center rounded-xl border border-white/10 bg-white/5 text-white/70 hover:bg-white/15 hover:text-white transition"
+              className="flex h-9 w-9 items-center justify-center rounded-xl border border-white/10 bg-white/5 text-white/70 hover:bg-white/15 hover:text-white transition ml-auto sm:ml-0"
             >
               <X className="w-4 h-4" />
             </button>
