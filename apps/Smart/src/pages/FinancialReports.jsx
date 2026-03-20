@@ -15,6 +15,13 @@ import { toast } from "sonner";
 export default function FinancialReportsPage() {
   const [loading, setLoading] = useState(false);
   const [period, setPeriod] = useState("month");
+  const [chartH, setChartH] = useState(() => window.innerWidth < 640 ? 220 : 350);
+
+  useEffect(() => {
+    const onResize = () => setChartH(window.innerWidth < 640 ? 220 : 350);
+    window.addEventListener("resize", onResize);
+    return () => window.removeEventListener("resize", onResize);
+  }, []);
   const [startDate, setStartDate] = useState(format(startOfMonth(new Date()), "yyyy-MM-dd"));
   const [endDate, setEndDate] = useState(format(endOfMonth(new Date()), "yyyy-MM-dd"));
   const [paymentMethod, setPaymentMethod] = useState("all");
@@ -147,10 +154,10 @@ export default function FinancialReportsPage() {
   const COLORS = ["#00A8E8", "#10B981", "#A8D700", "#F59E0B", "#EF4444"];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-black to-[#0A0A0A] p-6">
-      <div className="max-w-7xl mx-auto space-y-6">
+    <div className="min-h-screen bg-gradient-to-br from-black to-[#0A0A0A] p-3 sm:p-6">
+      <div className="max-w-7xl mx-auto space-y-4 sm:space-y-6">
         <div className="flex items-center justify-between">
-          <h1 className="text-3xl font-black text-white">📊 Reportes Financieros</h1>
+          <h1 className="text-xl sm:text-3xl font-black text-white">📊 Reportes Financieros</h1>
         </div>
 
         <Card className="bg-black/40 border-cyan-500/20">
@@ -212,7 +219,7 @@ export default function FinancialReportsPage() {
               </div>
             </div>
 
-            <div className="flex gap-3">
+            <div className="flex flex-wrap gap-2">
               <Button
                 onClick={generateReport}
                 disabled={loading}
@@ -223,11 +230,11 @@ export default function FinancialReportsPage() {
               {reportData && (
                 <>
                   <Button onClick={exportCSV} variant="outline" className="border-cyan-500/30 text-cyan-400">
-                    <Download className="w-4 h-4 mr-2" />
+                    <Download className="w-4 h-4 mr-1 sm:mr-2" />
                     CSV
                   </Button>
                   <Button onClick={exportPDF} variant="outline" className="border-cyan-500/30 text-cyan-400">
-                    <FileText className="w-4 h-4 mr-2" />
+                    <FileText className="w-4 h-4 mr-1 sm:mr-2" />
                     PDF
                   </Button>
                 </>
@@ -238,35 +245,35 @@ export default function FinancialReportsPage() {
 
         {reportData && (
           <>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-6">
               <Card className="bg-gradient-to-br from-emerald-600/20 to-green-600/20 border-emerald-500/30">
-                <CardContent className="p-6">
+                <CardContent className="p-4 sm:p-6">
                   <div className="flex items-center gap-3 mb-2">
-                    <TrendingUp className="w-8 h-8 text-emerald-400" />
-                    <h3 className="text-gray-300 text-sm">Ingresos Totales</h3>
+                    <TrendingUp className="w-6 h-6 sm:w-8 sm:h-8 text-emerald-400" />
+                    <h3 className="text-gray-300 text-xs sm:text-sm">Ingresos Totales</h3>
                   </div>
-                  <p className="text-4xl font-black text-emerald-400">${reportData.revenue.toFixed(2)}</p>
-                  <p className="text-sm text-gray-400 mt-2">{reportData.salesCount} ventas</p>
+                  <p className="text-2xl sm:text-4xl font-black text-emerald-400">${reportData.revenue.toFixed(2)}</p>
+                  <p className="text-xs sm:text-sm text-gray-400 mt-1">{reportData.salesCount} ventas</p>
                 </CardContent>
               </Card>
 
               <Card className="bg-gradient-to-br from-red-600/20 to-red-800/20 border-red-500/30">
-                <CardContent className="p-6">
+                <CardContent className="p-4 sm:p-6">
                   <div className="flex items-center gap-3 mb-2">
-                    <DollarSign className="w-8 h-8 text-red-400" />
-                    <h3 className="text-gray-300 text-sm">Gastos Totales</h3>
+                    <DollarSign className="w-6 h-6 sm:w-8 sm:h-8 text-red-400" />
+                    <h3 className="text-gray-300 text-xs sm:text-sm">Gastos Totales</h3>
                   </div>
-                  <p className="text-4xl font-black text-red-400">${reportData.expenses.toFixed(2)}</p>
+                  <p className="text-2xl sm:text-4xl font-black text-red-400">${reportData.expenses.toFixed(2)}</p>
                 </CardContent>
               </Card>
 
               <Card className="bg-gradient-to-br from-cyan-600/20 to-blue-600/20 border-cyan-500/30">
-                <CardContent className="p-6">
+                <CardContent className="p-4 sm:p-6">
                   <div className="flex items-center gap-3 mb-2">
-                    <CreditCard className="w-8 h-8 text-cyan-400" />
-                    <h3 className="text-gray-300 text-sm">Utilidad Neta</h3>
+                    <CreditCard className="w-6 h-6 sm:w-8 sm:h-8 text-cyan-400" />
+                    <h3 className="text-gray-300 text-xs sm:text-sm">Utilidad Neta</h3>
                   </div>
-                  <p className={`text-4xl font-black ${reportData.netProfit >= 0 ? 'text-cyan-400' : 'text-red-400'}`}>
+                  <p className={`text-2xl sm:text-4xl font-black ${reportData.netProfit >= 0 ? 'text-cyan-400' : 'text-red-400'}`}>
                     ${reportData.netProfit.toFixed(2)}
                   </p>
                 </CardContent>
@@ -282,19 +289,19 @@ export default function FinancialReportsPage() {
 
               <TabsContent value="trend">
                 <Card className="bg-black/40 border-cyan-500/20">
-                  <CardHeader>
-                    <CardTitle className="text-white">Evolución de Ingresos y Gastos</CardTitle>
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-white text-base sm:text-xl">Evolución de Ingresos y Gastos</CardTitle>
                   </CardHeader>
-                  <CardContent>
-                    <ResponsiveContainer width="100%" height={400}>
+                  <CardContent className="px-1 sm:px-6">
+                    <ResponsiveContainer width="100%" height={chartH}>
                       <LineChart data={reportData.trend}>
                         <CartesianGrid strokeDasharray="3 3" stroke="#444" />
-                        <XAxis dataKey="date" stroke="#888" />
-                        <YAxis stroke="#888" />
-                        <Tooltip contentStyle={{ backgroundColor: "#1a1a1a", border: "1px solid #444" }} />
-                        <Legend />
-                        <Line type="monotone" dataKey="revenue" stroke="#10B981" name="Ingresos" strokeWidth={2} />
-                        <Line type="monotone" dataKey="expenses" stroke="#EF4444" name="Gastos" strokeWidth={2} />
+                        <XAxis dataKey="date" stroke="#888" tick={{ fontSize: 10 }} />
+                        <YAxis stroke="#888" tick={{ fontSize: 10 }} width={45} />
+                        <Tooltip contentStyle={{ backgroundColor: "#1a1a1a", border: "1px solid #444", fontSize: 12 }} />
+                        <Legend wrapperStyle={{ fontSize: 12 }} />
+                        <Line type="monotone" dataKey="revenue" stroke="#10B981" name="Ingresos" strokeWidth={2} dot={false} />
+                        <Line type="monotone" dataKey="expenses" stroke="#EF4444" name="Gastos" strokeWidth={2} dot={false} />
                       </LineChart>
                     </ResponsiveContainer>
                   </CardContent>
@@ -303,11 +310,11 @@ export default function FinancialReportsPage() {
 
               <TabsContent value="methods">
                 <Card className="bg-black/40 border-cyan-500/20">
-                  <CardHeader>
-                    <CardTitle className="text-white">Ingresos por Método de Pago</CardTitle>
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-white text-base sm:text-xl">Ingresos por Método de Pago</CardTitle>
                   </CardHeader>
-                  <CardContent>
-                    <ResponsiveContainer width="100%" height={400}>
+                  <CardContent className="px-1 sm:px-6">
+                    <ResponsiveContainer width="100%" height={chartH}>
                       <PieChart>
                         <Pie
                           data={Object.entries(reportData.revenueByMethod).map(([name, value]) => ({ name, value }))}
@@ -315,7 +322,7 @@ export default function FinancialReportsPage() {
                           cy="50%"
                           labelLine={false}
                           label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
-                          outerRadius={120}
+                          outerRadius={chartH < 260 ? 70 : 110}
                           fill="#8884d8"
                           dataKey="value"
                         >
@@ -323,7 +330,7 @@ export default function FinancialReportsPage() {
                             <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                           ))}
                         </Pie>
-                        <Tooltip contentStyle={{ backgroundColor: "#1a1a1a", border: "1px solid #444" }} />
+                        <Tooltip contentStyle={{ backgroundColor: "#1a1a1a", border: "1px solid #444", fontSize: 12 }} />
                       </PieChart>
                     </ResponsiveContainer>
                   </CardContent>
@@ -332,16 +339,16 @@ export default function FinancialReportsPage() {
 
               <TabsContent value="expenses">
                 <Card className="bg-black/40 border-cyan-500/20">
-                  <CardHeader>
-                    <CardTitle className="text-white">Gastos por Categoría</CardTitle>
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-white text-base sm:text-xl">Gastos por Categoría</CardTitle>
                   </CardHeader>
-                  <CardContent>
-                    <ResponsiveContainer width="100%" height={400}>
+                  <CardContent className="px-1 sm:px-6">
+                    <ResponsiveContainer width="100%" height={chartH}>
                       <BarChart data={Object.entries(reportData.expensesByCategory).map(([name, value]) => ({ name, value }))}>
                         <CartesianGrid strokeDasharray="3 3" stroke="#444" />
-                        <XAxis dataKey="name" stroke="#888" />
-                        <YAxis stroke="#888" />
-                        <Tooltip contentStyle={{ backgroundColor: "#1a1a1a", border: "1px solid #444" }} />
+                        <XAxis dataKey="name" stroke="#888" tick={{ fontSize: 10 }} />
+                        <YAxis stroke="#888" tick={{ fontSize: 10 }} width={45} />
+                        <Tooltip contentStyle={{ backgroundColor: "#1a1a1a", border: "1px solid #444", fontSize: 12 }} />
                         <Bar dataKey="value" fill="#EF4444" />
                       </BarChart>
                     </ResponsiveContainer>

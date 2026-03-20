@@ -876,13 +876,13 @@ export default function SettingsPage() {
               Volver
             </button>
             
-            <div className="flex items-center gap-6">
-              <div className={`w-20 h-20 rounded-[26px] bg-gradient-to-br ${section.color} flex items-center justify-center shadow-2xl transform hover:scale-105 hover:rotate-3 transition-all duration-300`}>
-                <Icon className="w-10 h-10 text-white" strokeWidth={2.5} />
+            <div className="flex items-center gap-4 sm:gap-6">
+              <div className={`w-14 h-14 sm:w-20 sm:h-20 rounded-[20px] sm:rounded-[26px] bg-gradient-to-br ${section.color} flex items-center justify-center shadow-2xl transition-all duration-300 flex-shrink-0`}>
+                <Icon className="w-7 h-7 sm:w-10 sm:h-10 text-white" strokeWidth={2.5} />
               </div>
               <div>
-                <h1 className="text-4xl font-black text-white tracking-tighter mb-2">{section.title}</h1>
-                <p className="text-white/60 text-lg font-bold">{section.description}</p>
+                <h1 className="text-2xl sm:text-4xl font-black text-white tracking-tighter mb-1">{section.title}</h1>
+                <p className="text-white/60 text-sm sm:text-lg font-bold">{section.description}</p>
               </div>
             </div>
           </div>
