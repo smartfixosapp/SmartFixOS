@@ -2423,7 +2423,7 @@ export default function WorkOrderWizard({ open, onClose, onSuccess, preloadedCus
       const customerData = {
         name: fullName,
         phone: customerPhone,
-        email: customerEmail || "",
+        ...(customerEmail ? { email: customerEmail } : {}),
         is_b2b: isB2B,
         company_name: isB2B ? companyName : "",
         company_tax_id: isB2B ? companyTaxId : "",
@@ -2611,7 +2611,7 @@ export default function WorkOrderWizard({ open, onClose, onSuccess, preloadedCus
         customer_id: finalCustomerId,
         customer_name: fullName,
         customer_phone: customerPhone,
-        customer_email: customerEmail || "",
+        ...(customerEmail ? { customer_email: customerEmail } : {}),
         company_id: isB2B ? finalCustomerId : null,
         company_name: isB2B ? companyName : null,
         device_type: deviceType || "Phone",
