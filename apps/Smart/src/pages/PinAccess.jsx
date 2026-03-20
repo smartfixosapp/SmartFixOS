@@ -1654,8 +1654,8 @@ export default function PinAccess() {
     }
 
     const PLANS_GR = [
-      { id: "basic",      label: "Basic",      price: "$55/mes",  sub: "1 usuario",  color: "cyan"    },
-      { id: "pro",        label: "Pro",         price: "$85/mes",  sub: "3 usuarios", color: "emerald", popular: true },
+      { id: "basic",      label: "Starter",    price: "$49/mes",  sub: "1 técnico",  color: "cyan"    },
+      { id: "pro",        label: "Pro",         price: "$89/mes",  sub: "5 técnicos", color: "emerald", popular: true },
       { id: "enterprise", label: "Enterprise",  price: "Custom",   sub: "Ilimitado",  color: "purple"  },
     ];
     return (
@@ -2468,16 +2468,16 @@ export default function PinAccess() {
 
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
 
-              {/* ── Basic ── */}
+              {/* ── Starter ── */}
               <div className="relative flex flex-col bg-white/[0.03] border border-white/10 rounded-2xl p-6 hover:border-white/20 transition-all">
-                <p className="text-xs font-bold text-gray-500 uppercase tracking-widest mb-3">Basic</p>
+                <p className="text-xs font-bold text-gray-500 uppercase tracking-widest mb-3">Starter</p>
                 <div className="flex items-end gap-1 mb-1">
-                  <span className="text-4xl font-black text-white">$55</span>
+                  <span className="text-4xl font-black text-white">$49</span>
                   <span className="text-gray-500 text-sm mb-1">/mes</span>
                 </div>
-                <p className="text-xs text-gray-500 mb-5">1 usuario · Para talleres individuales</p>
+                <p className="text-xs text-gray-500 mb-5">1 técnico · Taller individual</p>
                 <ul className="space-y-2 flex-1">
-                  {["Órdenes de reparación ilimitadas","Clientes y historial","Inventario","POS integrado","Panel financiero","Soporte por email"].map(f => (
+                  {["Órdenes de reparación ilimitadas","Clientes y historial","Inventario y stock","POS integrado","Panel financiero","Soporte por email"].map(f => (
                     <li key={f} className="flex items-center gap-2 text-xs text-gray-300">
                       <CheckCircle className="w-3.5 h-3.5 text-cyan-400 flex-shrink-0" /> {f}
                     </li>
@@ -2500,12 +2500,12 @@ export default function PinAccess() {
                 </div>
                 <p className="text-xs font-bold text-cyan-400 uppercase tracking-widest mb-3">Pro</p>
                 <div className="flex items-end gap-1 mb-1">
-                  <span className="text-4xl font-black text-white">$85</span>
+                  <span className="text-4xl font-black text-white">$89</span>
                   <span className="text-gray-400 text-sm mb-1">/mes</span>
                 </div>
-                <p className="text-xs text-gray-400 mb-5">Hasta 3 usuarios · Para equipos pequeños</p>
+                <p className="text-xs text-gray-400 mb-5">Hasta 5 técnicos · Equipos en crecimiento</p>
                 <ul className="space-y-2 flex-1">
-                  {["Todo lo del plan Basic","Hasta 3 técnicos","Control de tiempo (ponche)","Galería de fotos por orden","Descuentos y códigos promo","Soporte prioritario"].map(f => (
+                  {["Todo lo del plan Starter","Hasta 5 técnicos","Control de tiempo (ponche)","Notificaciones email y SMS","Portal del cliente","Reportes financieros avanzados","Soporte prioritario"].map(f => (
                     <li key={f} className="flex items-center gap-2 text-xs text-gray-200">
                       <CheckCircle className="w-3.5 h-3.5 text-cyan-400 flex-shrink-0" /> {f}
                     </li>
@@ -2655,19 +2655,17 @@ export default function PinAccess() {
                         </svg>
                       </button>
                       {/* Apple — Coming Soon */}
-                      <div className="relative flex-1">
-                        <button
-                          type="button"
-                          disabled
-                          className="w-full h-12 rounded-xl border border-white/8 bg-white/3 flex items-center justify-center cursor-not-allowed"
-                          title="Próximamente"
-                        >
-                          <svg width="17" height="20" viewBox="0 0 814 1000" fill="currentColor" className="opacity-30">
-                            <path d="M788.1 340.9c-5.8 4.5-108.2 62.2-108.2 190.5 0 148.4 130.3 200.9 134.2 202.2-.6 3.2-20.7 71.9-68.7 141.9-42.8 61.6-87.5 123.1-155.5 123.1s-85.5-39.5-164-39.5c-76 0-103.7 40.8-165.9 40.8s-105-57.8-155.5-127.4C46 790.7 0 663 0 541.8c0-207.8 113.4-317.7 224.5-317.7 100.4 0 163.4 60.2 220.8 60.2 54.7 0 127.9-62.5 240.3-62.5zm-284.4-154.8c22.6-26.8 39.3-65.4 39.3-104.5 0-5.5-.5-11.1-1.6-15.4C450 73.9 385.5 111 345.4 155.1c-20.3 22.6-40.9 61-40.9 101.1 0 6 1 12 1.5 14.2 2.6.5 6.8.9 10.8.9 36.4 0 97.2-35.5 127-85.2z"/>
-                          </svg>
-                        </button>
-                        <span className="absolute -top-2 -right-1 text-[9px] font-black uppercase tracking-wide bg-white/10 text-white/40 px-1.5 py-0.5 rounded-full pointer-events-none">Pronto</span>
-                      </div>
+                      <button
+                        type="button"
+                        disabled
+                        className="flex-1 h-12 rounded-xl border border-white/8 bg-white/3 flex items-center justify-center gap-2 cursor-not-allowed"
+                        title="Próximamente"
+                      >
+                        <svg width="17" height="20" viewBox="0 0 814 1000" fill="currentColor" className="opacity-30">
+                          <path d="M788.1 340.9c-5.8 4.5-108.2 62.2-108.2 190.5 0 148.4 130.3 200.9 134.2 202.2-.6 3.2-20.7 71.9-68.7 141.9-42.8 61.6-87.5 123.1-155.5 123.1s-85.5-39.5-164-39.5c-76 0-103.7 40.8-165.9 40.8s-105-57.8-155.5-127.4C46 790.7 0 663 0 541.8c0-207.8 113.4-317.7 224.5-317.7 100.4 0 163.4 60.2 220.8 60.2 54.7 0 127.9-62.5 240.3-62.5zm-284.4-154.8c22.6-26.8 39.3-65.4 39.3-104.5 0-5.5-.5-11.1-1.6-15.4C450 73.9 385.5 111 345.4 155.1c-20.3 22.6-40.9 61-40.9 101.1 0 6 1 12 1.5 14.2 2.6.5 6.8.9 10.8.9 36.4 0 97.2-35.5 127-85.2z"/>
+                        </svg>
+                        <span className="text-[10px] font-bold text-white/30 uppercase tracking-wide">Pronto</span>
+                      </button>
                     </div>
 
                     <div className="bg-emerald-500/10 border border-emerald-500/30 rounded-xl p-3 mb-4">
@@ -2822,18 +2820,16 @@ export default function PinAccess() {
                   </svg>
                 </button>
                 {/* Apple — Coming Soon */}
-                <div className="relative flex-1">
-                  <button
-                    disabled
-                    className="w-full h-12 rounded-xl border border-white/8 bg-white/3 flex items-center justify-center cursor-not-allowed"
-                    title="Próximamente"
-                  >
-                    <svg width="17" height="20" viewBox="0 0 814 1000" fill="currentColor" className="opacity-30">
-                      <path d="M788.1 340.9c-5.8 4.5-108.2 62.2-108.2 190.5 0 148.4 130.3 200.9 134.2 202.2-.6 3.2-20.7 71.9-68.7 141.9-42.8 61.6-87.5 123.1-155.5 123.1s-85.5-39.5-164-39.5c-76 0-103.7 40.8-165.9 40.8s-105-57.8-155.5-127.4C46 790.7 0 663 0 541.8c0-207.8 113.4-317.7 224.5-317.7 100.4 0 163.4 60.2 220.8 60.2 54.7 0 127.9-62.5 240.3-62.5zm-284.4-154.8c22.6-26.8 39.3-65.4 39.3-104.5 0-5.5-.5-11.1-1.6-15.4C450 73.9 385.5 111 345.4 155.1c-20.3 22.6-40.9 61-40.9 101.1 0 6 1 12 1.5 14.2 2.6.5 6.8.9 10.8.9 36.4 0 97.2-35.5 127-85.2z"/>
-                    </svg>
-                  </button>
-                  <span className="absolute -top-2 -right-1 text-[9px] font-black uppercase tracking-wide bg-white/10 text-white/40 px-1.5 py-0.5 rounded-full pointer-events-none">Pronto</span>
-                </div>
+                <button
+                  disabled
+                  className="flex-1 h-12 rounded-xl border border-white/8 bg-white/3 flex items-center justify-center gap-2 cursor-not-allowed"
+                  title="Próximamente"
+                >
+                  <svg width="17" height="20" viewBox="0 0 814 1000" fill="currentColor" className="opacity-30">
+                    <path d="M788.1 340.9c-5.8 4.5-108.2 62.2-108.2 190.5 0 148.4 130.3 200.9 134.2 202.2-.6 3.2-20.7 71.9-68.7 141.9-42.8 61.6-87.5 123.1-155.5 123.1s-85.5-39.5-164-39.5c-76 0-103.7 40.8-165.9 40.8s-105-57.8-155.5-127.4C46 790.7 0 663 0 541.8c0-207.8 113.4-317.7 224.5-317.7 100.4 0 163.4 60.2 220.8 60.2 54.7 0 127.9-62.5 240.3-62.5zm-284.4-154.8c22.6-26.8 39.3-65.4 39.3-104.5 0-5.5-.5-11.1-1.6-15.4C450 73.9 385.5 111 345.4 155.1c-20.3 22.6-40.9 61-40.9 101.1 0 6 1 12 1.5 14.2 2.6.5 6.8.9 10.8.9 36.4 0 97.2-35.5 127-85.2z"/>
+                  </svg>
+                  <span className="text-[10px] font-bold text-white/30 uppercase tracking-wide">Pronto</span>
+                </button>
               </div>
 
             </motion.div>

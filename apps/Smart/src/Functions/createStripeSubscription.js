@@ -70,7 +70,7 @@ export async function createStripeSubscriptionHandler(req) {
               name: 'SmartFixOS',
               description: 'Sistema de gestión para talleres de reparación electrónica',
             },
-            unit_amount: Math.round((tenant.monthly_cost || 65) * 100),
+            unit_amount: Math.round((tenant.monthly_cost || 49) * 100),
             recurring: { interval: 'month' }
           },
           quantity: 1,

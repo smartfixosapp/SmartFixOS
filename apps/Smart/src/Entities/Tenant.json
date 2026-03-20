@@ -61,7 +61,7 @@
     },
     "monthly_cost": {
       "type": "number",
-      "default": 65,
+      "default": 49,
       "description": "Costo mensual en USD"
     },
     "subscription_status": {

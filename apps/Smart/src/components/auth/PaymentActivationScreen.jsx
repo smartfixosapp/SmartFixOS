@@ -70,7 +70,7 @@ export default function PaymentActivationScreen({
           <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-cyan-600 to-emerald-600 flex items-center justify-center mx-auto mb-6 shadow-[0_0_60px_rgba(6,182,212,0.3)]">
             <CreditCard className="w-10 h-10 text-white" />
           </div>
-          <h1 className="text-3xl font-black text-white mb-2">Activa tu plan SmartFixOS</h1>
+          <h1 className="text-3xl font-black text-white mb-2">Activa tu plan Starter</h1>
           <p className="text-gray-400 text-sm">Pago seguro procesado por Stripe</p>
         </div>
 
@@ -79,7 +79,7 @@ export default function PaymentActivationScreen({
           <div className="space-y-4 mb-6 pb-6 border-b border-white/10">
             <div className="flex justify-between items-center">
               <span className="text-gray-400">Plan</span>
-              <span className="text-white font-semibold">SmartFixOS</span>
+              <span className="text-white font-semibold">Starter</span>
             </div>
             <div className="flex justify-between items-center">
               <span className="text-gray-400">Tienda</span>
@@ -87,17 +87,18 @@ export default function PaymentActivationScreen({
             </div>
             <div className="flex justify-between items-center">
               <span className="text-gray-400">Precio mensual</span>
-              <span className="text-xl font-black text-emerald-400">$65.00 USD</span>
+              <span className="text-xl font-black text-emerald-400">$49.00 USD</span>
             </div>
           </div>
 
           {/* Beneficios */}
           <div className="space-y-2">
             {[
-              "Órdenes y reparaciones ilimitadas",
+              "Órdenes de reparación ilimitadas",
               "POS y gestión de caja",
-              "Inventario y proveedores",
-              "Reportes y análisis",
+              "Inventario y stock",
+              "Clientes y historial",
+              "Panel financiero",
               "Soporte por email"
             ].map((benefit) => (
               <div key={benefit} className="flex items-center gap-2">
@@ -157,7 +158,7 @@ export default function PaymentActivationScreen({
         </div>
 
         <p className="text-center text-xs text-gray-500 mt-6">
-          Se cobrará $65.00 USD/mes. Puedes cancelar en cualquier momento.
+          Se cobrará $49.00 USD/mes. Puedes cancelar en cualquier momento.
         </p>
       </div>
     </div>

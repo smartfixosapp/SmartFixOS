@@ -151,7 +151,7 @@ async function sendActivationConfirmation(base44, tenantId) {
       <p><strong>Detalles de tu suscripción:</strong></p>
       <ul>
         <li>Plan: ${tenant.plan || 'SmartFixOS'}</li>
-        <li>Costo: $${tenant.monthly_cost || 65}/mes</li>
+        <li>Costo: $${tenant.monthly_cost || 49}/mes</li>
         <li>Próximo pago: ${tenant.next_billing_date || 'N/A'}</li>
       </ul>
       <p>Acceso completo al sistema disponible 24/7. Tus datos están protegidos con encriptación de grado empresarial.</p>

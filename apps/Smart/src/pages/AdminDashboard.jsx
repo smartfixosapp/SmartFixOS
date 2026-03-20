@@ -38,7 +38,7 @@ export default function AdminDashboard() {
 
     const monthlyRecurring = subscriptions
       .filter(s => s.status === "active")
-      .reduce((sum, s) => sum + (s.amount || 65), 0);
+      .reduce((sum, s) => sum + (s.amount || 49), 0);
 
     const churnTenants = tenants.filter(t => t.status === "cancelled").length;
     const totalUsers = tenants.length;
@@ -219,7 +219,7 @@ export default function AdminDashboard() {
                           </span>
                         </td>
                         <td className="py-3 px-4 text-slate-400">{tenant.next_billing_date || "N/A"}</td>
-                        <td className="py-3 px-4 text-white font-semibold">${tenant.monthly_cost || 65}</td>
+                        <td className="py-3 px-4 text-white font-semibold">${tenant.monthly_cost || 49}</td>
                       </tr>
                     ))}
                 </tbody>

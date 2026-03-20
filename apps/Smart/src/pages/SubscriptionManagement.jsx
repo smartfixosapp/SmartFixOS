@@ -41,7 +41,7 @@ export default function SubscriptionManagement() {
         tenant_name: tenant.name,
         plan: tenant.plan,
         status: "cancelled",
-        amount: tenant.monthly_cost || 65,
+        amount: tenant.monthly_cost || 49,
         cancellation_date: new Date().toISOString(),
         cancellation_reason: reason,
       });
@@ -110,7 +110,7 @@ export default function SubscriptionManagement() {
                       </div>
                       <div>
                         <p className="text-xs text-slate-400">Costo Mensual</p>
-                        <p className="text-lg font-semibold text-white">${tenant.monthly_cost || 65}</p>
+                        <p className="text-lg font-semibold text-white">${tenant.monthly_cost || 49}</p>
                       </div>
                       <div>
                         <p className="text-xs text-slate-400">Próximo Pago</p>

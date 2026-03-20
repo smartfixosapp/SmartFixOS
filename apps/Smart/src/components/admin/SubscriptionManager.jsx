@@ -162,7 +162,7 @@ export default function SubscriptionManager() {
               <div className="text-3xl font-bold text-emerald-400">
                 ${tenants
                   .filter(t => t.subscription_status === 'active')
-                  .reduce((sum, t) => sum + (t.monthly_cost || 65), 0)}
+                  .reduce((sum, t) => sum + (t.monthly_cost || 49), 0)}
               </div>
               <p className="text-gray-400 text-sm mt-1">Ingresos Mensuales</p>
             </div>
@@ -208,7 +208,7 @@ export default function SubscriptionManager() {
                         ? format(new Date(tenant.next_billing_date), 'dd MMM yyyy')
                         : 'N/A'}
                     </td>
-                    <td className="py-3 px-4 text-cyan-400 font-semibold">${tenant.monthly_cost || 65}</td>
+                    <td className="py-3 px-4 text-cyan-400 font-semibold">${tenant.monthly_cost || 49}</td>
                     <td className="py-3 px-4">
                       <div className="flex gap-2">
                         {tenant.subscription_status === 'past_due' && (
