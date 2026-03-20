@@ -342,8 +342,8 @@ export default function CustomerStep({ formData, updateFormData }) {
           <Input
             id="main-phone"
             name="phone"
-            type="tel"
-            inputMode="tel"
+            type="text"
+            inputMode="text"
             autoComplete="tel"
             value={phoneRaw}
             onChange={(e) => {
@@ -375,8 +375,8 @@ export default function CustomerStep({ formData, updateFormData }) {
             {formData.customer.additional_phones.map((phone, index) => (
               <div key={index} className="flex gap-2">
                 <Input
-                  type="tel"
-                  inputMode="tel"
+                  type="text"
+                  inputMode="text"
                   autoComplete="tel"
                   value={phone}
                   onChange={(e) => handleUpdateAdditionalPhone(index, e.target.value)}

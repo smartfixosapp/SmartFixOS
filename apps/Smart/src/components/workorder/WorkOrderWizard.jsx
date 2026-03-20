@@ -3597,7 +3597,7 @@ export default function WorkOrderWizard({ open, onClose, onSuccess, preloadedCus
                   value={devicePin}
                   onChange={(e) => setDevicePin(e.target.value.replace(/\D/g, '').slice(0, 6))}
                   type={showPin ? "text" : "password"}
-                  inputMode="numeric"
+                  inputMode="text"
                   maxLength={6}
                   placeholder="123456"
                   className="w-full bg-black/30 border border-white/10 rounded-lg px-3 py-2 pr-10 text-white text-sm"
@@ -4473,8 +4473,8 @@ function PatternModal({ onClose, onSave }) {
     onSave(pattern);
   };
 
-  return (
-    <div className="fixed inset-0 z-[200] bg-black/90 backdrop-blur-xl flex items-center justify-center p-4">
+  return createPortal(
+    <div className="fixed inset-0 z-[999999] bg-black/90 backdrop-blur-xl flex items-center justify-center p-4">
       <div className="bg-gradient-to-br from-[#1C1C1E] to-black border border-white/20 backdrop-blur-3xl text-white max-w-md w-full rounded-[32px] overflow-hidden shadow-[0_30px_100px_rgba(6,182,212,0.3)] relative p-8">
         <h4 className="text-xl font-black uppercase tracking-tight text-white mb-6">Seguridad Android</h4>
         
@@ -4523,6 +4523,7 @@ function PatternModal({ onClose, onSave }) {
           </div>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }

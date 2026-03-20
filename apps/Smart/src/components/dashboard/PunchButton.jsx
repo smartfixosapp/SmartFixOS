@@ -209,6 +209,20 @@ export default function PunchButton({ userId, userName, variant = "default", onP
 
   useEffect(() => {
     checkPunchStatus();
+
+    // Polling cada 30s para sincronizar entre dispositivos
+    const interval = setInterval(() => checkPunchStatus(), 30_000);
+
+    // Refresh cuando el app vuelve al frente (iOS background → foreground)
+    const handleVisibility = () => {
+      if (document.visibilityState === "visible") checkPunchStatus();
+    };
+    document.addEventListener("visibilitychange", handleVisibility);
+
+    return () => {
+      clearInterval(interval);
+      document.removeEventListener("visibilitychange", handleVisibility);
+    };
   }, [userId, userName]);
 
   const checkPunchStatus = async () => {

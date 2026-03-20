@@ -46,19 +46,42 @@ let cashRegisterCache = {
 };
 
 const listeners = [];
+let pollingInterval = null;
+let visibilityHandler = null;
 
 // ✅ NOTIFICAR A TODOS LOS LISTENERS
 function notifyListeners() {
   listeners.forEach(fn => fn(cashRegisterCache));
 }
 
+function startPolling() {
+  if (pollingInterval) return; // ya corriendo
+  pollingInterval = setInterval(() => checkCashRegisterStatus(), 30_000);
+
+  // Refresh cuando app vuelve al frente (iOS background → foreground)
+  visibilityHandler = () => {
+    if (document.visibilityState === "visible") checkCashRegisterStatus();
+  };
+  document.addEventListener("visibilitychange", visibilityHandler);
+}
+
+function stopPolling() {
+  if (pollingInterval) { clearInterval(pollingInterval); pollingInterval = null; }
+  if (visibilityHandler) {
+    document.removeEventListener("visibilitychange", visibilityHandler);
+    visibilityHandler = null;
+  }
+}
+
 // ✅ SUSCRIBIRSE A CAMBIOS
 export function subscribeToCashRegister(callback) {
   listeners.push(callback);
   callback(cashRegisterCache);
+  if (listeners.length === 1) startPolling(); // primer suscriptor → arrancar polling
   return () => {
     const idx = listeners.indexOf(callback);
     if (idx > -1) listeners.splice(idx, 1);
+    if (listeners.length === 0) stopPolling(); // sin suscriptores → parar polling
   };
 }
 

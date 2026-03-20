@@ -5,10 +5,10 @@ import { QueryClient } from "@tanstack/react-query";
 export const optimizedQueryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      staleTime: 5 * 60 * 1000, // 5 minutos
-      cacheTime: 10 * 60 * 1000, // 10 minutos
-      refetchOnWindowFocus: false,
-      refetchOnReconnect: true,
+      staleTime: 30 * 1000,       // 30 segundos — datos expiran rápido para sincronizar entre dispositivos
+      cacheTime: 10 * 60 * 1000,  // 10 minutos en caché
+      refetchOnWindowFocus: true,  // Recarga al volver al tab/app en desktop
+      refetchOnReconnect: true,    // Recarga al recuperar red
       retry: 2,
       retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
     },
