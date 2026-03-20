@@ -840,19 +840,19 @@ export default function Financial() {
     <div className="min-h-screen bg-black/95 p-4 sm:p-6 lg:p-8">
       <div className="max-w-7xl mx-auto space-y-6">
         
-        <div className="relative overflow-hidden bg-white/5 backdrop-blur-2xl border border-white/10 rounded-[40px] p-8 shadow-2xl group">
+        <div className="relative overflow-hidden bg-white/5 backdrop-blur-2xl border border-white/10 rounded-[28px] sm:rounded-[40px] p-4 sm:p-8 shadow-2xl group">
           <div className="absolute -right-20 -top-20 w-80 h-80 bg-cyan-600/10 rounded-full blur-[100px] group-hover:bg-cyan-600/20 transition-all duration-700" />
-          
+
           <div className="relative flex items-center justify-between">
-            <div className="flex items-center gap-6">
-              <div className="w-20 h-20 rounded-3xl bg-gradient-to-br from-cyan-500 to-blue-600 flex items-center justify-center shadow-2xl shadow-cyan-500/20 transform rotate-3 hover:rotate-0 transition-transform duration-500">
-                <DollarSign className="w-10 h-10 text-white" />
+            <div className="flex items-center gap-3 sm:gap-6">
+              <div className="w-12 h-12 sm:w-20 sm:h-20 rounded-2xl sm:rounded-3xl bg-gradient-to-br from-cyan-500 to-blue-600 flex items-center justify-center shadow-2xl shadow-cyan-500/20 flex-shrink-0">
+                <DollarSign className="w-6 h-6 sm:w-10 sm:h-10 text-white" />
               </div>
               <div>
-                <h1 className="text-4xl lg:text-5xl font-black text-white tracking-tighter mb-1">Finanzas</h1>
+                <h1 className="text-2xl sm:text-4xl lg:text-5xl font-black text-white tracking-tighter mb-1">Finanzas</h1>
                 <div className="flex items-center gap-2">
                   <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-                  <p className="text-sm text-white/40 font-bold uppercase tracking-[0.2em]">Gestión de Capital & Utilidad</p>
+                  <p className="text-xs sm:text-sm text-white/40 font-bold uppercase tracking-[0.2em]">Gestión de Capital & Utilidad</p>
                 </div>
               </div>
             </div>
@@ -1080,7 +1080,7 @@ export default function Financial() {
 
           <TabsContent value="sales">
             <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-[32px] overflow-hidden shadow-2xl">
-              <div className="p-8 border-b border-white/5 flex items-center justify-between">
+              <div className="p-4 sm:p-8 border-b border-white/5 flex items-center justify-between">
                 <div>
                   <h3 className="text-xl font-black text-white tracking-tight">Registro de Ventas</h3>
                   <p className="text-xs text-white/40 uppercase tracking-widest font-bold">Transacciones liquidadas</p>
@@ -1193,7 +1193,7 @@ export default function Financial() {
 
           <TabsContent value="expenses">
             <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-[32px] overflow-hidden shadow-2xl">
-              <div className="p-8 border-b border-white/5 flex items-center justify-between">
+              <div className="p-4 sm:p-8 border-b border-white/5 flex items-center justify-between">
                 <div>
                   <h3 className="text-xl font-black text-white tracking-tight">Talonario de Gastos</h3>
                   <p className="text-xs text-white/40 uppercase tracking-widest font-bold">Resumen de egresos</p>

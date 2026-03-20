@@ -356,7 +356,7 @@ export default function Reports() {
   return (
     <div className="min-h-screen bg-[#080810] text-white">
       {/* Header */}
-      <div className="bg-[#0f0f18]/80 backdrop-blur-xl border-b border-white/5 px-6 py-5 sticky top-0 z-20">
+      <div className="bg-[#0f0f18]/80 backdrop-blur-xl border-b border-white/5 px-3 sm:px-6 py-3 sm:py-5 sticky top-0 z-20">
         <div className="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-4">
           <div>
             <h1 className="text-2xl font-black tracking-tight">Reportes</h1>
@@ -414,7 +414,7 @@ export default function Reports() {
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-6 py-6 space-y-6">
+      <div className="max-w-7xl mx-auto px-3 sm:px-6 py-3 sm:py-6 space-y-4 sm:space-y-6">
         {/* KPI Grid */}
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
           <KpiCard icon={TrendingUp}    color="emerald" label="Ingresos"         value={usd(totalIncome)}       sub={`${income.length} transacciones`} />
