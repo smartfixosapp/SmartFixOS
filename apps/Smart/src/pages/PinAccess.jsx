@@ -978,6 +978,14 @@ export default function PinAccess() {
       await ensureAdminBootstrap(dataClient);
     }
 
+    // Track last_login per tenant (fire and forget)
+    try {
+      const tenantId = session.tenant_id || localStorage.getItem("smartfix_tenant_id");
+      if (tenantId) {
+        dataClient.Tenant.update(tenantId, { last_login: new Date().toISOString() }).catch(() => {});
+      }
+    } catch {}
+
     if (navigator.vibrate) {
       navigator.vibrate([50, 100, 50]);
     }

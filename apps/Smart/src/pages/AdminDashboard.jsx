@@ -4,12 +4,39 @@ import { useQuery } from "@tanstack/react-query";
 import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell } from "recharts";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { TrendingUp, Users, Building2, CreditCard, AlertCircle } from "lucide-react";
+import { TrendingUp, Users, Building2, CreditCard, AlertCircle, Activity, Clock, Wifi, WifiOff, ArrowUpDown } from "lucide-react";
 
 const COLORS = ["#00A8E8", "#10B981", "#A8D700"];
 
+function timeAgo(dateStr) {
+  if (!dateStr) return null;
+  const diff = Date.now() - new Date(dateStr).getTime();
+  const mins = Math.floor(diff / 60000);
+  const hours = Math.floor(diff / 3600000);
+  const days = Math.floor(diff / 86400000);
+  if (mins < 2) return "Ahora mismo";
+  if (mins < 60) return `Hace ${mins} min`;
+  if (hours < 24) return `Hace ${hours}h`;
+  if (days === 1) return "Ayer";
+  if (days < 7) return `Hace ${days} días`;
+  if (days < 30) return `Hace ${Math.floor(days / 7)} sem`;
+  if (days < 365) return `Hace ${Math.floor(days / 30)} mes${Math.floor(days / 30) > 1 ? "es" : ""}`;
+  return `Hace ${Math.floor(days / 365)} año${Math.floor(days / 365) > 1 ? "s" : ""}`;
+}
+
+function activityColor(dateStr) {
+  if (!dateStr) return { dot: "bg-gray-600", badge: "bg-gray-500/20 text-gray-400", label: "Nunca" };
+  const days = (Date.now() - new Date(dateStr).getTime()) / 86400000;
+  if (days < 1)  return { dot: "bg-emerald-400 animate-pulse", badge: "bg-emerald-400/20 text-emerald-300", label: "Hoy" };
+  if (days < 3)  return { dot: "bg-lime-400",   badge: "bg-lime-400/20 text-lime-300",   label: "Reciente" };
+  if (days < 7)  return { dot: "bg-amber-400",  badge: "bg-amber-400/20 text-amber-300", label: "Esta semana" };
+  if (days < 30) return { dot: "bg-orange-400", badge: "bg-orange-400/20 text-orange-300",label: "Este mes" };
+  return { dot: "bg-red-500", badge: "bg-red-500/20 text-red-400", label: "Inactivo" };
+}
+
 export default function AdminDashboard() {
   const [dateRange, setDateRange] = useState("month");
+  const [activitySort, setActivitySort] = useState("recent"); // "recent" | "oldest" | "never"
 
   // 📊 Fetch Tenants
   const { data: tenants = [] } = useQuery({
@@ -53,6 +80,42 @@ export default function AdminDashboard() {
       totalUsers,
     };
   }, [tenants, subscriptions]);
+
+  // 📊 Activity metrics
+  const activityStats = React.useMemo(() => {
+    const now = Date.now();
+    const active24h = tenants.filter(t => t.last_login && (now - new Date(t.last_login).getTime()) < 86400000).length;
+    const active7d  = tenants.filter(t => t.last_login && (now - new Date(t.last_login).getTime()) < 7*86400000).length;
+    const never     = tenants.filter(t => !t.last_login).length;
+    return { active24h, active7d, never };
+  }, [tenants]);
+
+  const sortedTenantsByActivity = React.useMemo(() => {
+    const copy = [...tenants];
+    if (activitySort === "recent") {
+      return copy.sort((a, b) => {
+        if (!a.last_login && !b.last_login) return 0;
+        if (!a.last_login) return 1;
+        if (!b.last_login) return -1;
+        return new Date(b.last_login) - new Date(a.last_login);
+      });
+    }
+    if (activitySort === "oldest") {
+      return copy.sort((a, b) => {
+        if (!a.last_login && !b.last_login) return 0;
+        if (!a.last_login) return 1;
+        if (!b.last_login) return -1;
+        return new Date(a.last_login) - new Date(b.last_login);
+      });
+    }
+    // "never" first
+    return copy.sort((a, b) => {
+      if (!a.last_login && !b.last_login) return 0;
+      if (!a.last_login) return -1;
+      if (!b.last_login) return 1;
+      return 0;
+    });
+  }, [tenants, activitySort]);
 
   // 📊 Subscription Status Distribution
   const subscriptionData = [
@@ -187,11 +250,126 @@ export default function AdminDashboard() {
         </div>
 
         {/* Detailed Tables */}
-        <Tabs defaultValue="subscriptions" className="bg-slate-800/50 border border-slate-700 rounded-lg p-6">
+        {/* Activity KPI mini-cards */}
+        <div className="grid grid-cols-3 gap-4 mb-6">
+          <Card className="bg-emerald-900/30 border-emerald-700/40">
+            <CardContent className="pt-4 pb-3">
+              <div className="flex items-center gap-2 mb-1">
+                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                <span className="text-xs text-emerald-300 font-semibold uppercase tracking-wide">Últimas 24h</span>
+              </div>
+              <div className="text-3xl font-bold text-white">{activityStats.active24h}</div>
+              <p className="text-xs text-slate-400 mt-1">tiendas conectadas hoy</p>
+            </CardContent>
+          </Card>
+          <Card className="bg-amber-900/30 border-amber-700/40">
+            <CardContent className="pt-4 pb-3">
+              <div className="flex items-center gap-2 mb-1">
+                <Wifi className="w-3 h-3 text-amber-400" />
+                <span className="text-xs text-amber-300 font-semibold uppercase tracking-wide">Últimos 7 días</span>
+              </div>
+              <div className="text-3xl font-bold text-white">{activityStats.active7d}</div>
+              <p className="text-xs text-slate-400 mt-1">tiendas activas esta semana</p>
+            </CardContent>
+          </Card>
+          <Card className="bg-red-900/30 border-red-700/40">
+            <CardContent className="pt-4 pb-3">
+              <div className="flex items-center gap-2 mb-1">
+                <WifiOff className="w-3 h-3 text-red-400" />
+                <span className="text-xs text-red-300 font-semibold uppercase tracking-wide">Sin actividad</span>
+              </div>
+              <div className="text-3xl font-bold text-white">{activityStats.never}</div>
+              <p className="text-xs text-slate-400 mt-1">nunca se conectaron</p>
+            </CardContent>
+          </Card>
+        </div>
+
+        <Tabs defaultValue="activity" className="bg-slate-800/50 border border-slate-700 rounded-lg p-6">
           <TabsList className="bg-slate-900/50">
+            <TabsTrigger value="activity">
+              <Activity className="w-3.5 h-3.5 mr-1.5" />
+              Actividad
+            </TabsTrigger>
             <TabsTrigger value="subscriptions">Suscripciones Activas</TabsTrigger>
             <TabsTrigger value="trials">Tenants en Trial</TabsTrigger>
           </TabsList>
+
+          {/* ── ACTIVIDAD TAB ── */}
+          <TabsContent value="activity" className="mt-6">
+            <div className="flex items-center justify-between mb-4">
+              <p className="text-sm text-slate-400">Última vez que cada tienda inició sesión en el sistema</p>
+              <div className="flex gap-2">
+                {[
+                  { key: "recent", label: "Más recientes" },
+                  { key: "oldest", label: "Más antiguos" },
+                  { key: "never",  label: "Sin actividad" },
+                ].map(opt => (
+                  <button
+                    key={opt.key}
+                    onClick={() => setActivitySort(opt.key)}
+                    className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all flex items-center gap-1 ${
+                      activitySort === opt.key
+                        ? "bg-cyan-500/20 text-cyan-300 border border-cyan-500/40"
+                        : "bg-slate-700/50 text-slate-400 border border-slate-600/40 hover:border-slate-500"
+                    }`}
+                  >
+                    <ArrowUpDown className="w-3 h-3" />
+                    {opt.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b border-slate-700">
+                    <th className="text-left py-3 px-4 text-slate-300 font-semibold">Tienda</th>
+                    <th className="text-left py-3 px-4 text-slate-300 font-semibold">Estado</th>
+                    <th className="text-left py-3 px-4 text-slate-300 font-semibold">Último acceso</th>
+                    <th className="text-left py-3 px-4 text-slate-300 font-semibold">Actividad</th>
+                    <th className="text-left py-3 px-4 text-slate-300 font-semibold">Fecha exacta</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {sortedTenantsByActivity.map(tenant => {
+                    const ac = activityColor(tenant.last_login);
+                    const ago = timeAgo(tenant.last_login);
+                    return (
+                      <tr key={tenant.id} className="border-b border-slate-700/50 hover:bg-slate-700/20 transition-colors">
+                        <td className="py-3 px-4">
+                          <div className="flex items-center gap-2">
+                            <span className={`w-2 h-2 rounded-full flex-shrink-0 ${ac.dot}`} />
+                            <span className="text-white font-medium">{tenant.name}</span>
+                          </div>
+                          <p className="text-xs text-slate-500 ml-4">{tenant.email}</p>
+                        </td>
+                        <td className="py-3 px-4">
+                          <span className={`px-2 py-0.5 rounded text-xs font-medium ${
+                            tenant.status === "active" ? "bg-emerald-400/15 text-emerald-300" : "bg-gray-500/15 text-gray-400"
+                          }`}>
+                            {tenant.status === "active" ? "Activo" : tenant.status || "—"}
+                          </span>
+                        </td>
+                        <td className="py-3 px-4">
+                          <span className="text-white">{ago || "—"}</span>
+                        </td>
+                        <td className="py-3 px-4">
+                          <span className={`px-2 py-1 rounded text-xs font-semibold ${ac.badge}`}>
+                            {ac.label}
+                          </span>
+                        </td>
+                        <td className="py-3 px-4 text-slate-400 text-xs">
+                          {tenant.last_login
+                            ? new Date(tenant.last_login).toLocaleString("es-PR", { dateStyle: "short", timeStyle: "short" })
+                            : <span className="text-slate-600">Sin registro</span>}
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          </TabsContent>
 
           <TabsContent value="subscriptions" className="mt-6">
             <div className="overflow-x-auto">
