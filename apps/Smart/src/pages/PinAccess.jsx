@@ -797,7 +797,7 @@ export default function PinAccess() {
   // (defined in useEffect with empty deps) can always call the current performOAuthAuth
   performOAuthAuthRef.current = performOAuthAuth;
 
-  // ── Biometric early login (before user selection) ─────────────────────────
+  // ── Biometric early login (directo al usuario, sin seleccionar) ──────────
   const handleEarlyBiometricLogin = async () => {
     if (!biometricSupported || !biometricProfile?.credentialId || !biometricProfile?.session) return;
     setBiometricLoading(true);
@@ -819,10 +819,10 @@ export default function PinAccess() {
       saveBiometricProfile({ ...biometricProfile, updatedAt: new Date().toISOString() });
       await completeLogin(session, true); // fromBiometric = true → no ofrecer registro de nuevo
     } catch (error) {
-      if (error?.name === "NotAllowedError") {
-        toast.error("Autenticación cancelada");
-      } else {
-        toast.error(error?.message || "No se pudo validar la biometría");
+      // NotAllowedError = usuario canceló. Otros errores = problema técnico.
+      // En ambos casos, caemos al flujo normal de PIN sin toast intrusivo.
+      if (error?.name !== "NotAllowedError") {
+        console.warn("[Biometric] Error:", error?.message);
       }
     } finally {
       setBiometricLoading(false);
@@ -1378,23 +1378,14 @@ export default function PinAccess() {
   }, []);
 
   // ── Auto-trigger biométrico ─────────────────────────────────────────────
-  // Se activa solo si ya hay un perfil registrado en este dispositivo.
-  // Primera vez: se ofrece registrar después del PIN. Siguiente vez: entra solo.
-
-  // Al llegar a la pantalla de selección de usuario — si tiene huella/face id registrado
+  // Se activa tan pronto como la página está lista y hay un perfil biométrico guardado.
+  // No espera la selección de usuario — entra directo al usuario al que pertenece la biometría.
   useEffect(() => {
-    if (step !== "user") return;
+    if (!isReady) return;
     if (!biometricSupported || !biometricProfile?.credentialId || !biometricProfile?.session) return;
-    const timer = setTimeout(() => handleEarlyBiometricLogin(), 700);
+    const timer = setTimeout(() => handleEarlyBiometricLogin(), 500);
     return () => clearTimeout(timer);
-  }, [step, biometricSupported, biometricProfile?.credentialId]);
-
-  // Al seleccionar un usuario — si ese usuario tiene huella/face id configurado
-  useEffect(() => {
-    if (!isBiometricAvailableForSelectedUser || biometricLoading || loading) return;
-    const timer = setTimeout(() => handleBiometricLogin(), 500);
-    return () => clearTimeout(timer);
-  }, [isBiometricAvailableForSelectedUser]);
+  }, [isReady, biometricSupported, biometricProfile?.credentialId]);
 
   const handleNumberClick = (num) => {
     if (pin.length < 4) {
@@ -1702,6 +1693,61 @@ export default function PinAccess() {
           />
           <div className="animate-spin rounded-full h-10 w-10 border-4 border-cyan-500 border-t-transparent mx-auto mb-4"></div>
           <p className="text-gray-400 text-sm">Conectando tu tienda...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // ── Pantalla biométrica (Face ID / Touch ID leyendo) ─────────────────────
+  if (biometricLoading && biometricProfile?.session) {
+    const bioUser = biometricProfile.session;
+    const { name: bioName, label: bioLabel } = getBiometricType();
+    const isMac = /Mac/.test(navigator.userAgent) && !/iPhone|iPad/.test(navigator.userAgent);
+    const isIOS = /iPhone|iPad/.test(navigator.userAgent);
+    return (
+      <div className="pinaccess-fullscreen-container">
+        <div className="relative z-10 flex flex-col items-center justify-center w-full max-w-xs mx-auto px-6 text-center">
+          {/* Logo */}
+          <img
+            src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/68f767a3d5fce1486d4cf555/e9bc537e2_DynamicsmartfixosLogowithGearandDevice.png"
+            alt="SmartFixOS"
+            className="h-10 w-auto object-contain mx-auto mb-10 opacity-60"
+          />
+
+          {/* Ícono biométrico animado */}
+          <div className="relative mb-6">
+            <div className="w-24 h-24 rounded-3xl bg-gradient-to-br from-cyan-500/20 to-blue-600/10 border border-cyan-400/30 flex items-center justify-center mx-auto">
+              {isMac ? (
+                <svg viewBox="0 0 24 24" className="w-12 h-12 text-cyan-300" fill="none" stroke="currentColor" strokeWidth="1.5">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M7.5 3.75H6A2.25 2.25 0 0 0 3.75 6v1.5M16.5 3.75H18A2.25 2.25 0 0 1 20.25 6v1.5m0 9V18A2.25 2.25 0 0 1 18 20.25h-1.5m-9 0H6A2.25 2.25 0 0 1 3.75 18v-1.5M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
+                </svg>
+              ) : isIOS ? (
+                <svg viewBox="0 0 24 24" className="w-12 h-12 text-cyan-300" fill="none" stroke="currentColor" strokeWidth="1.5">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 5.25a3 3 0 0 1 3 3m3 0a6 6 0 0 1-7.029 5.912c-.563-.097-1.159.026-1.563.43L10.5 17.25H8.25v2.25H6v2.25H2.25v-2.818c0-.597.237-1.17.659-1.591l6.499-6.499c.404-.404.527-1 .43-1.563A6 6 0 0 1 21.75 8.25Z" />
+                </svg>
+              ) : (
+                <Fingerprint className="w-12 h-12 text-cyan-300" />
+              )}
+            </div>
+            {/* Pulso animado alrededor del ícono */}
+            <div className="absolute inset-0 rounded-3xl border border-cyan-400/20 animate-ping" />
+          </div>
+
+          <h2 className="text-xl font-bold text-white mb-1">{bioName}</h2>
+          <p className="text-white/40 text-sm mb-2">
+            Verificando como <span className="text-white/70 font-medium">{bioUser.full_name || bioUser.userName || bioUser.email}</span>
+          </p>
+          <p className="text-white/25 text-xs mb-10">
+            {isMac ? "Toca el sensor Touch ID" : isIOS ? "Mira la cámara" : "Coloca tu dedo"}
+          </p>
+
+          {/* Botón fallback */}
+          <button
+            onClick={() => setBiometricLoading(false)}
+            className="text-white/30 hover:text-white/60 text-sm transition-colors"
+          >
+            Usar PIN en su lugar →
+          </button>
         </div>
       </div>
     );

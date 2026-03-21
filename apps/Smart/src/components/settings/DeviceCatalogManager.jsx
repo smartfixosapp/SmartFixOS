@@ -797,7 +797,7 @@ export default function DeviceCatalogManager() {
             await base44.entities.DeviceModel.create({
               name: mod.name, brand_id: resolvedBrandId,
               ...(validFamilyId ? { family_id: validFamilyId } : {}),
-              family: mod.family || "", brand: mod.brand || "",
+              brand: mod.brand || "",
               active: true, order: mod.order || 1,
             });
             syncCount++;
@@ -1100,7 +1100,7 @@ export default function DeviceCatalogManager() {
       const existingModel = (remoteModsAll || []).find((m) =>
         normalizedNameKey(m.name) === normalizedNameKey(name) &&
         m.brand_id === remoteBrand.id &&
-        (m.family_id === remoteFamily.id || normalizedNameKey(m.family) === normalizedNameKey(remoteFamily.name))
+        m.family_id === remoteFamily.id
       );
       if (!existingModel) {
         await base44.entities.DeviceModel.create({
@@ -1109,7 +1109,6 @@ export default function DeviceCatalogManager() {
           brand: remoteBrand.name,
           category_id: remoteCategory.id,
           family_id: remoteFamily.id,
-          family: remoteFamily.name,
           active: true,
           order: (remoteModsAll || []).filter((m) => m.family_id === remoteFamily.id).length + 1,
         });
@@ -1337,7 +1336,6 @@ export default function DeviceCatalogManager() {
 
         await base44.entities.DeviceModel.update(model.id, {
           family_id: targetFamily.id,
-          family: targetFamily.name,
         });
         updatedCount += 1;
       }

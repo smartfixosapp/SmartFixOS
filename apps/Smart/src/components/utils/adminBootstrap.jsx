@@ -138,7 +138,6 @@ async function ensureDefaultDeviceCatalog(base44) {
           brand: brand.name,
           category_id: smartphoneCategory.id,
           family_id: family.id,
-          family: family.name,
           active: true,
           order: models.filter((row) => row.family_id === family.id).length + 1,
         });
