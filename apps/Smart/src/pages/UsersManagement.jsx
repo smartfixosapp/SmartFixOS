@@ -325,7 +325,7 @@ export default function UsersManagement() {
       return false;
     }
   });
-  const [activeView, setActiveView] = useState(null); // null = selector, "users" = gestión usuarios, "time" = control tiempo
+  const [activeView, setActiveView] = useState("users"); // "users" = gestión usuarios, "time" = control tiempo
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
@@ -1057,83 +1057,6 @@ export default function UsersManagement() {
     return <AdminAuthGate onSuccess={() => setAuthorized(true)} />;
   }
 
-  // Selector de vista
-  if (activeView === null) {
-    const ICON_MAP = {
-      Shield, Clock, Building2, CreditCard, Wallet, BarChart3, 
-      Users, ExternalLink, Smartphone, FileText, Package
-    };
-
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-950 via-purple-950 to-slate-900 flex items-center justify-center p-4">
-        <div className="max-w-4xl w-full">
-          <div className="text-center mb-12">
-            <div className="w-24 h-24 rounded-3xl bg-gradient-to-br from-cyan-500 to-purple-500 mx-auto mb-6 flex items-center justify-center shadow-[0_0_80px_rgba(168,85,247,0.6)]">
-              <Users className="w-12 h-12 text-white" />
-            </div>
-            <h1 className="text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-purple-400 mb-3">
-              Panel Administrativo
-            </h1>
-            <p className="text-purple-300/70 text-lg">
-              Usuarios, finanzas, reportes y configuración del negocio
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {adminPanelButtons.map((button) => {
-              const IconComponent = ICON_MAP[button.icon] || Shield;
-
-              const handleClick = () => {
-                if (button.type === "view") {
-                  setActiveView(button.view);
-                } else if (button.type === "navigate") {
-                  navigate(createPageUrl(button.action));
-                } else if (button.type === "external") {
-                  window.open(button.action, '_blank');
-                }
-              };
-
-              return (
-                <button
-                  key={button.id}
-                  onClick={handleClick}
-                  className={`group relative overflow-hidden bg-gradient-to-br ${button.gradient}/10 backdrop-blur-xl border-2 border-${button.gradient.split('-')[1]}-500/30 hover:border-${button.gradient.split('-')[1]}-400/60 rounded-3xl p-8 transition-all hover:scale-105 active:scale-95 shadow-[0_8px_32px_rgba(168,85,247,0.3)] hover:shadow-[0_16px_64px_rgba(168,85,247,0.5)]`}
-                >
-                  <div className={`absolute inset-0 bg-gradient-to-br ${button.gradient}/0 group-hover:${button.gradient}/20 transition-all duration-500`} />
-
-                  <div className="relative">
-                    <div className={`w-20 h-20 rounded-2xl bg-gradient-to-br ${button.gradient} flex items-center justify-center mb-6 shadow-lg group-hover:scale-110 transition-transform`}>
-                      <IconComponent className="w-10 h-10 text-white" />
-                    </div>
-
-                    <h3 className="text-white font-black text-2xl mb-3">
-                      {button.label}
-                    </h3>
-                    <p className="text-cyan-300/70 text-sm mb-6">
-                      {button.type === "view" ? `Vista: ${button.view}` : button.type === "external" ? "Enlace externo" : `Ir a ${button.action}`}
-                    </p>
-
-                    <div className="flex items-center gap-2 text-cyan-400 font-medium group-hover:gap-4 transition-all">
-                      <span>Abrir</span>
-                      <Check className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
-                    </div>
-                  </div>
-                </button>
-              );
-            })}
-          </div>
-
-          <button
-            onClick={() => window.history.back()}
-            className="mt-8 mx-auto block px-6 py-3 text-gray-400 hover:text-white transition-colors"
-          >
-            ← Volver al Dashboard
-          </button>
-        </div>
-      </div>
-    );
-  }
-
   // Vista de Control de Tiempo
   if (activeView === "time") {
     return (
@@ -1141,7 +1064,7 @@ export default function UsersManagement() {
         <div className="max-w-7xl mx-auto">
           <div className="flex justify-end mb-6">
             <Button
-              onClick={() => setActiveView(null)}
+              onClick={() => setActiveView("users")}
               size="icon"
               variant="ghost"
               className="text-emerald-400 hover:text-emerald-300 hover:bg-emerald-600/10 theme-light:text-emerald-600"
@@ -1152,7 +1075,7 @@ export default function UsersManagement() {
           
           <TimeTrackingModal 
             open={true} 
-            onClose={() => setActiveView(null)} 
+            onClose={() => setActiveView("users")} 
           />
         </div>
       </div>
@@ -1166,7 +1089,7 @@ export default function UsersManagement() {
         <div className="max-w-4xl mx-auto">
           <div className="flex justify-end mb-6">
             <Button
-              onClick={() => setActiveView(null)}
+              onClick={() => setActiveView("users")}
               size="icon"
               variant="ghost"
               className="text-orange-400 hover:text-orange-300 hover:bg-orange-600/10 theme-light:text-orange-600"
@@ -1375,7 +1298,7 @@ export default function UsersManagement() {
         <div className="max-w-4xl mx-auto">
           <div className="flex justify-end mb-6">
             <Button
-              onClick={() => setActiveView(null)}
+              onClick={() => setActiveView("users")}
               size="icon"
               variant="ghost"
               className="text-green-400 hover:text-green-300 hover:bg-green-600/10 theme-light:text-green-600"
@@ -1516,7 +1439,7 @@ export default function UsersManagement() {
             </div>
           </div>
           <Button
-            onClick={() => setActiveView(null)}
+            onClick={() => setActiveView("users")}
             size="icon"
             variant="ghost"
             className="w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 text-white"
