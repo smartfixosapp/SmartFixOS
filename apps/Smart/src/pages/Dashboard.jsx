@@ -48,7 +48,6 @@ import { useI18n } from "@/components/utils/i18n";
 import { createPageUrl } from "@/components/utils/helpers";
 import PunchButton from "@/components/dashboard/PunchButton";
 import { debounce, catalogCache } from "@/components/utils/dataCache";
-import { DashboardCardSkeleton } from "@/components/ui/loading-skeleton";
 
 import WorkOrderWizard from "../components/workorder/WorkOrderWizard";
 import FirstTimeSetupWizard, { isSetupComplete } from "../components/onboarding/FirstTimeSetupWizard";
@@ -97,7 +96,6 @@ import DashboardLinksConfig from "@/components/dashboard/DashboardLinksConfig";
 import WorkQueueWidget from "@/components/dashboard/WorkQueueWidget";
 import DailyTransactionsModal from "@/components/dashboard/DailyTransactionsModal";
 import MonthlyReportModal, { shouldShowMonthlyReport } from "@/components/financial/MonthlyReportModal";
-const LOCAL_DASHBOARD_BUTTONS_KEY = "smartfix_dashboard_buttons_local";
 const DASHBOARD_WIDGETS_KEY = "smartfix_dashboard_widgets";
 
 // ------------------------
@@ -111,51 +109,6 @@ function readSessionSync() {
   } catch {
     return null;
   }
-}
-
-const ADMIN_CORE_DASHBOARD_BUTTONS = [
-  { id: "new_order", label: "Nueva Orden", icon: "ClipboardList", gradient: "from-blue-500 to-cyan-600", action: "showWorkOrderWizard", type: "modal", enabled: true },
-  { id: "orders", label: "Órdenes", icon: "ClipboardList", gradient: "from-purple-500 to-pink-600", action: "Orders", type: "navigate", enabled: true },
-  { id: "inventory", label: "Inventario", icon: "Package", gradient: "from-teal-500 to-cyan-600", action: "Inventory", type: "navigate", enabled: true },
-  { id: "financial", label: "Finanzas", icon: "Wallet", gradient: "from-emerald-600 to-green-700", action: "Financial", type: "navigate", enabled: true },
-  { id: "reports", label: "Reportes", icon: "BarChart3", gradient: "from-indigo-500 to-blue-600", action: "Reports", type: "navigate", enabled: true },
-];
-
-const LEGACY_DASHBOARD_DEFAULT_IDS = new Set([
-  "pos",
-  "customers",
-  "reports",
-  "recharges",
-  "technicians",
-  "notifications",
-  "users",
-  "database"
-]);
-
-function mergeAdminDashboardButtons(savedButtons = []) {
-  const savedMap = new Map((savedButtons || []).map((b) => [b.id, b]));
-  const customButtons = (savedButtons || []).filter(
-    (b) => !ADMIN_CORE_DASHBOARD_BUTTONS.some((d) => d.id === b.id) && !LEGACY_DASHBOARD_DEFAULT_IDS.has(b?.id)
-  );
-
-  const mergedDefaults = ADMIN_CORE_DASHBOARD_BUTTONS.map((defaults, idx) => {
-    const saved = savedMap.get(defaults.id) || {};
-    return {
-      ...saved,
-      ...defaults,
-      order: Number.isFinite(saved.order) ? saved.order : idx,
-      enabled: saved.enabled !== undefined ? saved.enabled : defaults.enabled !== false
-    };
-  });
-
-  const merged = [...mergedDefaults, ...customButtons.map((b, idx) => ({
-    ...b,
-    order: Number.isFinite(b.order) ? b.order : mergedDefaults.length + idx
-  }))];
-
-  return merged
-    .sort((a, b) => a.order - b.order)
-    .map((b, idx) => ({ ...b, order: idx }));
 }
 
 function Toast({ toast, onClose }) {
@@ -207,7 +160,6 @@ export default function Dashboard() {
 
   const sessionRef = useRef(session);
   const [loading, setLoading] = useState(false);
-  const [loadingButtons, setLoadingButtons] = useState(true);
 
   const [drawerOpen, setDrawerOpen] = useState(
     () => getCachedStatus().isOpen
@@ -245,13 +197,12 @@ export default function Dashboard() {
   const [showTimeTracking, setShowTimeTracking] = useState(false);
   const [showLogoutModal, setShowLogoutModal] = useState(false);
   const [showDashboardConfig, setShowDashboardConfig] = useState(false);
-  const [dashboardButtons, setDashboardButtons] = useState([]);
   const [widgetConfig, setWidgetConfig] = useState(() => {
     try {
       const raw = localStorage.getItem(DASHBOARD_WIDGETS_KEY);
       const parsed = raw ? JSON.parse(raw) : {};
-      return { kpiIncome: true, kpiGoal: true, kpiActive: true, kpiDelivered: true, kpiOverdue: true, orders: false, priceList: false, urgentOrders: false, readyPickup: false, posSalesToday: false, criticalStock: false, newCustomers: false, cashStatus: false, avgRepairTime: false, technicianLoad: false, ...parsed };
-    } catch { return { kpiIncome: true, kpiGoal: true, kpiActive: true, kpiDelivered: true, kpiOverdue: true, orders: false, priceList: false, urgentOrders: false, readyPickup: false, posSalesToday: false, criticalStock: false, newCustomers: false, cashStatus: false, avgRepairTime: false, technicianLoad: false }; }
+      return { kpiIncome: true, kpiGoal: true, kpiActive: true, kpiDelivered: true, kpiOverdue: true, orders: false, priceList: false, urgentOrders: false, readyPickup: false, posSalesToday: false, criticalStock: false, newCustomers: false, cashStatus: false, avgRepairTime: false, technicianLoad: false, navNewOrder: true, navOrders: true, navInventory: true, navFinancial: true, navReports: false, ...parsed };
+    } catch { return { kpiIncome: true, kpiGoal: true, kpiActive: true, kpiDelivered: true, kpiOverdue: true, orders: false, priceList: false, urgentOrders: false, readyPickup: false, posSalesToday: false, criticalStock: false, newCustomers: false, cashStatus: false, avgRepairTime: false, technicianLoad: false, navNewOrder: true, navOrders: true, navInventory: true, navFinancial: true, navReports: false }; }
   });
   const [showMoreMenu, setShowMoreMenu] = useState(false);
   const [showDailyTransactions, setShowDailyTransactions] = useState(false);
@@ -260,24 +211,6 @@ export default function Dashboard() {
   const [todayTxCount, setTodayTxCount] = useState(0);
   const [businessName, setBusinessName] = useState("");
   const [showSetupWizard, setShowSetupWizard] = useState(false);
-
-  const readLocalDashboardButtons = useCallback(() => {
-    try {
-      const raw = localStorage.getItem(LOCAL_DASHBOARD_BUTTONS_KEY);
-      const parsed = raw ? JSON.parse(raw) : [];
-      return Array.isArray(parsed) ? parsed : [];
-    } catch {
-      return [];
-    }
-  }, []);
-
-  const writeLocalDashboardButtons = useCallback((buttons) => {
-    try {
-      localStorage.setItem(LOCAL_DASHBOARD_BUTTONS_KEY, JSON.stringify(buttons || []));
-    } catch {
-      // no-op
-    }
-  }, []);
 
   const handleCashButtonClick = async () => {
     try {
@@ -541,7 +474,6 @@ export default function Dashboard() {
 
     loadFreshData();
     loadUnreadNotifications();
-    loadDashboardButtons();
     // ✅ OPTIMIZACIÓN: Aumentar intervalo a 5 minutos para reducir carga
     const iv = setInterval(() => loadFreshData(), 300000);
     return () => clearInterval(iv);
@@ -581,71 +513,27 @@ export default function Dashboard() {
     };
   }, [loadFreshData]);
 
-  const loadDashboardButtons = useCallback(async (useCache = true) => {
-    setLoadingButtons(true);
-    try {
-      const currentRole = sessionRef.current?.userRole || sessionRef.current?.role;
-      const isAdminSession = currentRole === "admin" || currentRole === "manager";
-
-      // Intentar caché primero
-      const cached = useCache ? catalogCache.get('dashboard-buttons') : null;
-      if (cached) {
-        const source = isAdminSession ? mergeAdminDashboardButtons(cached) : cached;
-        setDashboardButtons(source.filter(b => b.enabled).sort((a, b) => a.order - b.order));
-        return;
-      }
-
-      const configs = await dataClient.entities.AppSettings.filter({ slug: "dashboard-buttons" });
-      if (configs?.length > 0) {
-        const buttons = configs[0].payload?.buttons || [];
-        const source = isAdminSession ? mergeAdminDashboardButtons(buttons) : buttons;
-        catalogCache.set('dashboard-buttons', source);
-        writeLocalDashboardButtons(source);
-        setDashboardButtons(source.filter(b => b.enabled).sort((a, b) => a.order - b.order));
-      } else {
-        const localButtons = readLocalDashboardButtons();
-        const source = isAdminSession ? mergeAdminDashboardButtons(localButtons) : localButtons;
-        setDashboardButtons(source.filter((b) => b?.enabled !== false).sort((a, b) => (a.order ?? 0) - (b.order ?? 0)));
-      }
-    } catch (error) {
-      console.error("Error loading dashboard buttons:", error);
-      const currentRole = sessionRef.current?.userRole || sessionRef.current?.role;
-      const isAdminSession = currentRole === "admin" || currentRole === "manager";
-      const localButtons = readLocalDashboardButtons();
-      const source = isAdminSession ? mergeAdminDashboardButtons(localButtons) : localButtons;
-      setDashboardButtons(source.filter((b) => b?.enabled !== false).sort((a, b) => (a.order ?? 0) - (b.order ?? 0)));
-    } finally {
-      setLoadingButtons(false);
-    }
-  }, [readLocalDashboardButtons, writeLocalDashboardButtons]);
-
   useEffect(() => {
-    const handleUpdate = () => {
-      catalogCache.invalidate('dashboard-buttons');
-      loadDashboardButtons(false);
-    };
     const handleOpen = () => setShowDashboardConfig(true);
     const handleQuick = () => setShowQuickRepair(true);
     const handleWidgetUpdate = () => {
       try {
         const raw = localStorage.getItem(DASHBOARD_WIDGETS_KEY);
         const parsed = raw ? JSON.parse(raw) : {};
-        setWidgetConfig({ kpiIncome: true, kpiGoal: true, kpiActive: true, kpiDelivered: true, kpiOverdue: true, orders: false, priceList: false, urgentOrders: false, readyPickup: false, posSalesToday: false, criticalStock: false, newCustomers: false, cashStatus: false, avgRepairTime: false, technicianLoad: false, ...parsed });
+        setWidgetConfig({ kpiIncome: true, kpiGoal: true, kpiActive: true, kpiDelivered: true, kpiOverdue: true, orders: false, priceList: false, urgentOrders: false, readyPickup: false, posSalesToday: false, criticalStock: false, newCustomers: false, cashStatus: false, avgRepairTime: false, technicianLoad: false, navNewOrder: true, navOrders: true, navInventory: true, navFinancial: true, navReports: false, ...parsed });
       } catch {}
     };
 
-    window.addEventListener('dashboard-buttons-updated', handleUpdate);
     window.addEventListener('open-dashboard-config', handleOpen);
     window.addEventListener('open-quick-repair', handleQuick);
     window.addEventListener('dashboard-widgets-updated', handleWidgetUpdate);
 
     return () => {
-      window.removeEventListener('dashboard-buttons-updated', handleUpdate);
       window.removeEventListener('open-dashboard-config', handleOpen);
       window.removeEventListener('open-quick-repair', handleQuick);
       window.removeEventListener('dashboard-widgets-updated', handleWidgetUpdate);
     };
-  }, [loadDashboardButtons]);
+  }, []);
 
   useEffect(() => {
     const interval = setInterval(loadUnreadNotifications, 30000);
@@ -1255,159 +1143,46 @@ export default function Dashboard() {
               </div>
             )}
 
-            {/* BENTO GRID LAYOUT */}
-            {dashboardButtons.length > 0 && (
-              <div className="flex flex-col lg:flex-row gap-5 lg:gap-6 xl:gap-8 relative z-10">
-                
-                {/* APPS GRID */}
-                <nav className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 3xl:grid-cols-7 4xl:grid-cols-8 gap-3 lg:gap-4 xl:gap-5 2xl:gap-6 flex-1">
-                  {dashboardButtons.map(btn => {
-                    const iconMap = {
-                      'ClipboardList': ClipboardList,
-                      'Wrench': Wrench,
-                      'Smartphone': Smartphone,
-                      'Zap': Zap,
-                      'Package': Package,
-                      'Wallet': Wallet,
-                      'BarChart3': BarChart3,
-                      'Users': Users,
-                      'Bell': Bell,
-                      'SettingsIcon': SettingsIcon,
-                      'ExternalLink': ExternalLink
-                    };
-                    const IconComponent = (typeof btn.icon === 'string' && iconMap[btn.icon]) ? iconMap[btn.icon] : ExternalLink;
-
-                    const getIconGradient = (label) => {
-                      if (label.includes("Nueva")) return "from-sky-500 to-blue-600";
-                      if (label.includes("Finanzas")) return "from-emerald-500 to-teal-600";
-                      if (label.includes("Recargas")) return "from-emerald-500 to-green-600";
-                      if (label.includes("Rápidas")) return "from-amber-500 to-orange-600";
-                      if (label.includes("Desbloqueos")) return "from-violet-500 to-fuchsia-600";
-                      
-                      const gradients = [
-                        "from-sky-500 to-blue-600",
-                        "from-fuchsia-500 to-purple-600",
-                        "from-cyan-500 to-emerald-600",
-                        "from-rose-500 to-pink-600",
-                        "from-amber-500 to-orange-600",
-                        "from-slate-500 to-slate-600"
-                      ];
-                      let hash = 0;
-                      for (let i = 0; i < label.length; i++) {
-                        hash = label.charCodeAt(i) + ((hash << 5) - hash);
-                      }
-                      return gradients[Math.abs(hash) % gradients.length];
-                    };
-
-                    const getCount = (label) => {
-                        // Nueva Orden -> Active orders (excluding unlocks/software)
-                        if (label.includes("Nueva")) {
-                            const active = recentOrders.filter(o => 
-                                !["delivered", "cancelled", "completed", "picked_up"].includes(o.status) &&
-                                o.device_type !== "Software" &&
-                                !(o.order_number && o.order_number.startsWith("SW-"))
-                            );
-                            return active.length;
-                        }
-                        // Recargas -> Today's recharges
-                        if (label.includes("Recargas")) return activeRechargesCount;
-                        // Rápidas -> Active quick repairs (assuming tagged or identified, but for now active orders is best proxy or same as Nueva)
-                        if (label.includes("Rápidas")) {
-                             const active = recentOrders.filter(o => 
-                                !["delivered", "cancelled", "completed", "picked_up"].includes(o.status) &&
-                                o.device_type !== "Software"
-                            );
-                            return active.length;
-                        }
-                        // Desbloqueos -> Active unlocks
-                        if (label.includes("Desbloqueos")) {
-                            const unlocks = recentOrders.filter(o => 
-                                !["delivered", "cancelled", "completed", "picked_up", "ready_for_pickup"].includes(o.status) &&
-                                (o.device_type === "Software" || (o.order_number && o.order_number.startsWith("SW-")))
-                            );
-                            return unlocks.length;
-                        }
-                        return null;
-                    };
-
-                    const count = getCount(btn.label);
-
-                    const handleClick = () => {
-                      // Forzar apertura de modal para botones de nueva orden
-                        if (btn.id === "new_order" || btn.action === "showWorkOrderWizard" || btn.action === "/WorkOrderWizard") {
-                          setShowWorkOrderWizard(true);
-                        return;
-                      }
-                      if (btn.type === "modal") {
-                        if (btn.action === "showQuickRepair") setShowQuickRepair(true);
-                        else if (btn.action === "showUnlocksDialog") setShowUnlocksDialog(true);
-                      } else if (btn.type === "navigate") {
-                        if (btn.action === "/Recharges" || btn.action === "Recharges") {
-                          setShowRechargesPanel(true);
-                        } else {
-                          handleNavigate(btn.action);
-                        }
-                      } else if (btn.type === "external") {
-                        window.open(btn.action, '_blank');
-                      }
-                    };
-
-                    const getSubtitle = (b) => {
-                      if (b.id === "new_order" || b.action === "showWorkOrderWizard") return "Crear nueva orden";
-                      if (b.label.includes("Órdenes")) return "Ver historial";
-                      if (b.label.includes("Inventario")) return "Stock y productos";
-                      if (b.label.includes("Finanzas")) return "Resumen diario";
-                      if (b.label.includes("Recargas")) return "Gestionar recargas";
-                      if (b.label.includes("Rápidas")) return "Reparación express";
-                      if (b.label.includes("Desbloqueos")) return "IMEI & software";
-                      if (b.label.includes("Cliente")) return "Base de clientes";
-                      if (b.label.includes("Reportes") || b.label.includes("Reporte")) return "P&L · Órdenes · Inventario";
-                      if (b.type === "navigate") return "Ver más →";
-                      return "Abrir módulo";
-                    };
-
-                    return (
-                      <button
-                        key={btn.id}
-                        onClick={handleClick}
-                        className="group relative bg-[#121215]/40 hover:bg-[#121215]/60 backdrop-blur-3xl border border-white/[0.08] hover:border-white/20 rounded-[32px] px-6 py-6 flex flex-col items-start justify-between aspect-[1.1/1] transition-all duration-500 active:scale-95 shadow-[0_16px_40px_rgba(0,0,0,0.3)] hover:shadow-[0_32px_64px_rgba(0,0,0,0.5)] overflow-hidden"
-                      >
-                        {/* Top shine */}
-                        <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/10 to-transparent" />
-                        {/* Color wash on hover */}
-                        <div className={`absolute inset-0 bg-gradient-to-br ${getIconGradient(btn.label)} opacity-0 group-hover:opacity-[0.07] transition-opacity duration-500 pointer-events-none`} />
-                        {/* Bottom glow */}
-                        <div className={`absolute bottom-0 left-0 right-0 h-16 bg-gradient-to-t from-black/40 to-transparent pointer-events-none`} />
-
-                        <div className="flex justify-between w-full items-start gap-4 relative z-10">
-                          <div className={`w-14 h-14 sm:w-16 sm:h-16 rounded-[22px] bg-gradient-to-br ${getIconGradient(btn.label)} flex items-center justify-center shadow-[0_12px_24px_rgba(0,0,0,0.4)] mb-3 text-white transition-all duration-500 group-hover:scale-110 group-hover:rotate-6`}>
-                            <IconComponent className="w-6 h-6 sm:w-7 sm:h-7" strokeWidth={2.5} />
-                          </div>
-                          {count !== null && (
-                            <span className="inline-flex items-center justify-center min-w-[32px] h-8 px-2.5 rounded-full bg-white/10 border border-white/10 text-xs font-black text-white shadow-lg group-hover:bg-white/15 transition-all duration-300">{count}</span>
-                          )}
+            {/* ═══ ACCESOS DIRECTOS (WIDGETS DE NAVEGACIÓN) ═══════════════════════════ */}
+            {(widgetConfig.navNewOrder || widgetConfig.navOrders || widgetConfig.navInventory || widgetConfig.navFinancial || widgetConfig.navReports) && (
+              <nav className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-3 lg:gap-4 xl:gap-5 relative z-10">
+                {[
+                  widgetConfig.navNewOrder && { id: "navNewOrder", label: "Nueva Orden", icon: ClipboardList, gradient: "from-sky-500 to-blue-600", subtitle: "Crear nueva orden", onClick: () => setShowWorkOrderWizard(true) },
+                  widgetConfig.navOrders && { id: "navOrders", label: "Órdenes", icon: ClipboardList, gradient: "from-purple-500 to-pink-600", subtitle: "Ver historial", onClick: () => handleNavigate("Orders") },
+                  widgetConfig.navInventory && { id: "navInventory", label: "Inventario", icon: Package, gradient: "from-teal-500 to-cyan-600", subtitle: "Stock y productos", onClick: () => handleNavigate("Inventory") },
+                  widgetConfig.navFinancial && { id: "navFinancial", label: "Finanzas", icon: Wallet, gradient: "from-emerald-600 to-green-700", subtitle: "Resumen diario", onClick: () => handleNavigate("Financial") },
+                  widgetConfig.navReports && { id: "navReports", label: "Reportes", icon: BarChart3, gradient: "from-indigo-500 to-blue-600", subtitle: "P&L · Análisis", onClick: () => handleNavigate("FinancialReports") },
+                ].filter(Boolean).map(btn => {
+                  const IconComponent = btn.icon;
+                  return (
+                    <button
+                      key={btn.id}
+                      onClick={btn.onClick}
+                      className="group relative bg-[#121215]/40 hover:bg-[#121215]/60 backdrop-blur-3xl border border-white/[0.08] hover:border-white/20 rounded-[32px] px-6 py-6 flex flex-col items-start justify-between aspect-[1.1/1] transition-all duration-500 active:scale-95 shadow-[0_16px_40px_rgba(0,0,0,0.3)] hover:shadow-[0_32px_64px_rgba(0,0,0,0.5)] overflow-hidden"
+                    >
+                      <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/10 to-transparent" />
+                      <div className={`absolute inset-0 bg-gradient-to-br ${btn.gradient} opacity-0 group-hover:opacity-[0.07] transition-opacity duration-500 pointer-events-none`} />
+                      <div className="absolute bottom-0 left-0 right-0 h-16 bg-gradient-to-t from-black/40 to-transparent pointer-events-none" />
+                      <div className="flex justify-between w-full items-start relative z-10">
+                        <div className={`w-14 h-14 sm:w-16 sm:h-16 rounded-[22px] bg-gradient-to-br ${btn.gradient} flex items-center justify-center shadow-[0_12px_24px_rgba(0,0,0,0.4)] mb-3 transition-all duration-500 group-hover:scale-110 group-hover:rotate-6`}>
+                          <IconComponent className="w-6 h-6 sm:w-7 sm:h-7 text-white" strokeWidth={2.5} />
                         </div>
-
-                        <div className="flex flex-col items-start gap-1 relative z-10 mt-auto w-full">
-                          <span className="text-sm sm:text-base lg:text-lg font-black text-white/90 leading-tight text-left tracking-tight group-hover:text-white transition-colors duration-300 uppercase">
-                            {btn.label}
+                      </div>
+                      <div className="flex flex-col items-start gap-1 relative z-10 mt-auto w-full">
+                        <span className="text-sm sm:text-base lg:text-lg font-black text-white/90 leading-tight text-left tracking-tight group-hover:text-white transition-colors duration-300 uppercase">
+                          {btn.label}
+                        </span>
+                        <div className="flex items-center justify-between w-full mt-0.5">
+                          <span className="text-[10px] font-medium text-white/25 tracking-wide group-hover:text-white/50 transition-colors duration-300">
+                            {btn.subtitle}
                           </span>
-                          <div className="flex items-center justify-between w-full mt-0.5">
-                            <span className="text-[10px] font-medium text-white/25 tracking-wide group-hover:text-white/50 transition-colors duration-300">
-                              {getSubtitle(btn)}
-                            </span>
-                            <ArrowUpRight className="w-3.5 h-3.5 text-white/0 group-hover:text-white/40 transition-all duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
-                          </div>
+                          <ArrowUpRight className="w-3.5 h-3.5 text-white/0 group-hover:text-white/40 transition-all duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
                         </div>
-                      </button>
-                    );
-
-                  })}
-                </nav>
-
-                {/* WIDGETS COLUMN */}
-                <div className="grid grid-cols-2 lg:grid-cols-1 gap-3 lg:gap-4 xl:gap-5 w-full lg:w-[280px] xl:w-[320px] 2xl:w-[400px]" />
-              </div>
+                      </div>
+                    </button>
+                  );
+                })}
+              </nav>
             )}
           </div>
 
@@ -1518,136 +1293,46 @@ export default function Dashboard() {
               );
             })()}
 
-            {/* Mobile Bento Grid - App Icons Style */}
-            {(loading || loadingButtons) && dashboardButtons.length === 0 ? (
-              <div className="grid grid-cols-2 gap-3 px-1">
-                {[1, 2, 3, 4].map(i => <DashboardCardSkeleton key={i} />)}
-              </div>
-            ) : dashboardButtons.length > 0 ? (
-               <div className="grid grid-cols-2 gap-4 px-1 pt-2">
-                {dashboardButtons.map(btn => {
-                  const iconMap = {
-                    'ClipboardList': ClipboardList,
-                    'Wrench': Wrench,
-                    'Smartphone': Smartphone,
-                    'Zap': Zap,
-                    'Package': Package,
-                    'Wallet': Wallet,
-                    'BarChart3': BarChart3,
-                    'Users': Users,
-                    'Bell': Bell,
-                    'SettingsIcon': SettingsIcon,
-                    'ExternalLink': ExternalLink
-                  };
-                  const IconComponent = (typeof btn.icon === 'string' && iconMap[btn.icon]) ? iconMap[btn.icon] : ExternalLink;
-
-                  const getIconGradient = (label) => {
-                    if (label.includes("Nueva")) return "from-blue-500 to-indigo-600 shadow-blue-500/20";
-                    if (label.includes("Finanzas")) return "from-emerald-500 to-teal-600 shadow-emerald-500/20";
-                    if (label.includes("Recargas")) return "from-amber-400 to-orange-500 shadow-amber-500/20";
-                    if (label.includes("Rápidas")) return "from-rose-500 to-pink-600 shadow-rose-500/20";
-                    if (label.includes("Desbloqueos")) return "from-violet-500 to-fuchsia-600 shadow-violet-500/20";
-                    return "from-slate-500 to-slate-700 shadow-slate-500/20";
-                  };
-
-                  const getCount = (label) => {
-                      if (label.includes("Nueva")) {
-                          const active = recentOrders.filter(o => 
-                              !["delivered", "cancelled", "completed", "picked_up"].includes(o.status) &&
-                              o.device_type !== "Software" &&
-                              !(o.order_number && o.order_number.startsWith("SW-"))
-                          );
-                          return active.length;
-                      }
-                      if (label.includes("Recargas")) return activeRechargesCount;
-                      if (label.includes("Rápidas")) {
-                           const active = recentOrders.filter(o => 
-                              !["delivered", "cancelled", "completed", "picked_up"].includes(o.status) &&
-                              o.device_type !== "Software"
-                          );
-                          return active.length;
-                      }
-                      if (label.includes("Desbloqueos")) {
-                          const unlocks = recentOrders.filter(o => 
-                              !["delivered", "cancelled", "completed", "picked_up", "ready_for_pickup"].includes(o.status) &&
-                              (o.device_type === "Software" || (o.order_number && o.order_number.startsWith("SW-")))
-                          );
-                          return unlocks.length;
-                      }
-                      return null;
-                  };
-
-                  const count = getCount(btn.label);
-
-                  const handleClick = () => {
-                    if (btn.id === "new_order" || btn.action === "showWorkOrderWizard" || btn.action === "/WorkOrderWizard") {
-                      setShowWorkOrderWizard(true);
-                      return;
-                    }
-                    if (btn.type === "modal") {
-                      if (btn.action === "showQuickRepair") setShowQuickRepair(true);
-                      else if (btn.action === "showUnlocksDialog") setShowUnlocksDialog(true);
-                    } else if (btn.type === "navigate") {
-                      if (btn.action === "/Recharges" || btn.action === "Recharges") {
-                        setShowRechargesPanel(true);
-                      } else {
-                        handleNavigate(btn.action);
-                      }
-                    } else if (btn.type === "external") {
-                      window.open(btn.action, '_blank');
-                    }
-                  };
-
-                  const getMobileSubtitle = (b) => {
-                    if (b.id === "new_order" || b.action === "showWorkOrderWizard") return "Crear orden";
-                    if (b.label.includes("Órdenes")) return "Ver historial";
-                    if (b.label.includes("Inventario")) return "Stock";
-                    if (b.label.includes("Finanzas")) return "Resumen";
-                    if (b.label.includes("Recargas")) return "Gestionar";
-                    if (b.label.includes("Rápidas")) return "Express";
-                    if (b.label.includes("Desbloqueos")) return "IMEI";
-                    if (b.label.includes("Cliente")) return "Clientes";
-                    return "Abrir";
-                  };
-
+            {/* ═══ ACCESOS DIRECTOS MÓVIL ════════════════════════════════════════════ */}
+            {(widgetConfig.navNewOrder || widgetConfig.navOrders || widgetConfig.navInventory || widgetConfig.navFinancial || widgetConfig.navReports) && (
+              <div className="grid grid-cols-2 gap-4 px-1 pt-2">
+                {[
+                  widgetConfig.navNewOrder && { id: "navNewOrder", label: "Nueva Orden", icon: ClipboardList, gradient: "from-blue-500 to-indigo-600", subtitle: "Crear orden", onClick: () => setShowWorkOrderWizard(true) },
+                  widgetConfig.navOrders && { id: "navOrders", label: "Órdenes", icon: ClipboardList, gradient: "from-purple-500 to-pink-600", subtitle: "Ver historial", onClick: () => handleNavigate("Orders") },
+                  widgetConfig.navInventory && { id: "navInventory", label: "Inventario", icon: Package, gradient: "from-teal-500 to-cyan-600", subtitle: "Stock", onClick: () => handleNavigate("Inventory") },
+                  widgetConfig.navFinancial && { id: "navFinancial", label: "Finanzas", icon: Wallet, gradient: "from-emerald-500 to-teal-600", subtitle: "Resumen", onClick: () => handleNavigate("Financial") },
+                  widgetConfig.navReports && { id: "navReports", label: "Reportes", icon: BarChart3, gradient: "from-indigo-500 to-blue-600", subtitle: "P&L", onClick: () => handleNavigate("FinancialReports") },
+                ].filter(Boolean).map(btn => {
+                  const IconComponent = btn.icon;
                   return (
                     <button
                       key={btn.id}
-                      onClick={handleClick}
+                      onClick={btn.onClick}
                       className="group relative bg-[#1C1C1E]/50 border border-white/[0.07] rounded-[28px] p-5 flex flex-col items-start justify-between min-h-[148px] active:scale-95 transition-all duration-300 shadow-xl overflow-hidden touch-manipulation"
                     >
-                      {/* Inner shine */}
                       <div className="absolute inset-0 bg-gradient-to-br from-white/[0.04] to-transparent pointer-events-none" />
-                      {/* Color wash on tap */}
-                      <div className={`absolute inset-0 bg-gradient-to-br ${getIconGradient(btn.label).split(' shadow')[0]} opacity-0 active:opacity-[0.08] transition-opacity duration-200 pointer-events-none`} />
-
+                      <div className={`absolute inset-0 bg-gradient-to-br ${btn.gradient} opacity-0 active:opacity-[0.08] transition-opacity duration-200 pointer-events-none`} />
                       <div className="flex justify-between w-full items-start gap-3 relative z-10">
-                        <div className={`w-12 h-12 rounded-[18px] bg-gradient-to-br ${getIconGradient(btn.label)} flex items-center justify-center shadow-lg`}>
+                        <div className={`w-12 h-12 rounded-[18px] bg-gradient-to-br ${btn.gradient} flex items-center justify-center shadow-lg`}>
                           <IconComponent className="w-6 h-6 text-white" strokeWidth={2.5} />
                         </div>
-                        {count !== null && (
-                          <span className="flex items-center justify-center h-6 min-w-[24px] px-2 rounded-full bg-white/10 border border-white/10 text-[10px] font-black text-white/90">
-                            {count}
-                          </span>
-                        )}
                       </div>
-
                       <div className="flex flex-col items-start relative z-10 mt-auto w-full">
                         <span className="text-sm font-black text-white/95 leading-none tracking-tight">
                           {btn.label}
                         </span>
                         <div className="flex items-center justify-between w-full mt-2">
                           <span className="text-[10px] font-medium text-white/30 tracking-wide">
-                            {getMobileSubtitle(btn)}
+                            {btn.subtitle}
                           </span>
                           <ArrowUpRight className="w-3 h-3 text-white/20" />
                         </div>
                       </div>
                     </button>
-               );
+                  );
                 })}
               </div>
-            ) : null}
+            )}
 
             {/* ═══ WIDGETS EXTRAS MÓVIL ════════════════════════════════════ */}
             {(widgetConfig.urgentOrders || widgetConfig.readyPickup || widgetConfig.posSalesToday || widgetConfig.criticalStock || widgetConfig.newCustomers || widgetConfig.cashStatus || widgetConfig.avgRepairTime || widgetConfig.technicianLoad) && (
@@ -2321,28 +2006,8 @@ export default function Dashboard() {
         <MobileMoreMenu
           open={showMoreMenu}
           onClose={() => setShowMoreMenu(false)}
-          buttons={dashboardButtons.slice(2)}
-          onButtonClick={(btn) => {
-            // Forzar apertura de modal para botones de nueva orden
-            if (btn.id === "new_order" || btn.action === "showWorkOrderWizard" || btn.action === "/WorkOrderWizard") {
-              setShowWorkOrderWizard(true);
-              return;
-            }
-            if (btn.type === "modal") {
-              if (btn.action === "showQuickRepair") setShowQuickRepair(true);
-              else if (btn.action === "showUnlocksDialog") setShowUnlocksDialog(true);
-            } else if (btn.type === "navigate") {
-              if (btn.action === "/Recharges" || btn.action === "Recharges") {
-                setShowRechargesPanel(true);
-              } else if (false) {
-                setShowWorkOrderWizard(true);
-              } else {
-                handleNavigate(btn.action);
-              }
-            } else if (btn.type === "external") {
-              window.open(btn.action, '_blank');
-            }
-          }}
+          buttons={[]}
+          onButtonClick={() => {}}
         />
       )}
 

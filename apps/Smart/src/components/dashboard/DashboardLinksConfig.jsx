@@ -1,22 +1,77 @@
 import React, { useState, useEffect } from "react";
-import { dataClient } from "@/components/api/dataClient";
 import {
-  ClipboardList, Wrench, Smartphone, Zap, X, Save,
-  Layout, Grid, Eye, EyeOff, GripVertical, Package,
-  Wallet, BarChart3, Plus, Edit2, ExternalLink, Trash2,
-  PiggyBank, Layers, DollarSign, TrendingUp, PackageCheck, Timer,
-  AlertCircle, ShoppingCart, Users, Clock
+  X, Save, Eye, EyeOff,
+  DollarSign, TrendingUp, PackageCheck, Timer,
+  AlertCircle, ShoppingCart, Users, Clock, Wrench,
+  ClipboardList, Package, Wallet, BarChart3, Layers,
+  LayoutGrid
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
-import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
 
 const DASHBOARD_WIDGETS_KEY = "smartfix_dashboard_widgets";
 
 const AVAILABLE_WIDGETS = [
+  // ── Accesos directos de navegación ──────────────────────────────────────
+  {
+    id: "navNewOrder",
+    group: "nav",
+    label: "Nueva Orden",
+    description: "Abre el asistente para crear una nueva orden de trabajo",
+    icon: ClipboardList,
+    color: "text-sky-400",
+    bg: "bg-sky-500/10",
+    border: "border-sky-500/20",
+    defaultOn: true
+  },
+  {
+    id: "navOrders",
+    group: "nav",
+    label: "Órdenes",
+    description: "Navega al historial y gestión de órdenes",
+    icon: ClipboardList,
+    color: "text-purple-400",
+    bg: "bg-purple-500/10",
+    border: "border-purple-500/20",
+    defaultOn: true
+  },
+  {
+    id: "navInventory",
+    group: "nav",
+    label: "Inventario",
+    description: "Gestiona stock, productos y servicios",
+    icon: Package,
+    color: "text-teal-400",
+    bg: "bg-teal-500/10",
+    border: "border-teal-500/20",
+    defaultOn: true
+  },
+  {
+    id: "navFinancial",
+    group: "nav",
+    label: "Finanzas",
+    description: "Resumen financiero, caja y transacciones",
+    icon: Wallet,
+    color: "text-emerald-400",
+    bg: "bg-emerald-500/10",
+    border: "border-emerald-500/20",
+    defaultOn: true
+  },
+  {
+    id: "navReports",
+    group: "nav",
+    label: "Reportes",
+    description: "Reportes P&L, análisis y estadísticas",
+    icon: BarChart3,
+    color: "text-indigo-400",
+    bg: "bg-indigo-500/10",
+    border: "border-indigo-500/20",
+    defaultOn: false
+  },
+  // ── KPI widgets ──────────────────────────────────────────────────────────
   {
     id: "kpiIncome",
+    group: "kpi",
     label: "Ingresos de hoy",
     description: "Ventas y ganancia del día actual",
     icon: DollarSign,
@@ -27,6 +82,7 @@ const AVAILABLE_WIDGETS = [
   },
   {
     id: "kpiGoal",
+    group: "kpi",
     label: "Meta diaria",
     description: "Porcentaje de avance hacia tu meta de ventas diaria",
     icon: TrendingUp,
@@ -37,6 +93,7 @@ const AVAILABLE_WIDGETS = [
   },
   {
     id: "kpiActive",
+    group: "kpi",
     label: "Órdenes activas",
     description: "Total de órdenes en progreso y listas para recoger",
     icon: Wrench,
@@ -47,6 +104,7 @@ const AVAILABLE_WIDGETS = [
   },
   {
     id: "kpiDelivered",
+    group: "kpi",
     label: "Entregadas hoy",
     description: "Reparaciones completadas y entregadas hoy",
     icon: PackageCheck,
@@ -57,6 +115,7 @@ const AVAILABLE_WIDGETS = [
   },
   {
     id: "kpiOverdue",
+    group: "kpi",
     label: "Sin movimiento",
     description: "Órdenes sin actualizar por más de 7 días",
     icon: Timer,
@@ -67,6 +126,7 @@ const AVAILABLE_WIDGETS = [
   },
   {
     id: "orders",
+    group: "data",
     label: "Gestión de Órdenes",
     description: "Filtros de estado, búsqueda y lista de órdenes activas",
     icon: ClipboardList,
@@ -77,9 +137,10 @@ const AVAILABLE_WIDGETS = [
   },
   {
     id: "priceList",
+    group: "data",
     label: "Lista de Precios",
     description: "Busca precios de productos y servicios al instante",
-    icon: PiggyBank,
+    icon: DollarSign,
     color: "text-emerald-400",
     bg: "bg-emerald-500/10",
     border: "border-emerald-500/20",
@@ -87,6 +148,7 @@ const AVAILABLE_WIDGETS = [
   },
   {
     id: "urgentOrders",
+    group: "data",
     label: "Órdenes urgentes",
     description: "Órdenes activas sin actualizar por más de 5 días",
     icon: AlertCircle,
@@ -97,6 +159,7 @@ const AVAILABLE_WIDGETS = [
   },
   {
     id: "readyPickup",
+    group: "data",
     label: "Listos para recoger",
     description: "Reparaciones terminadas esperando al cliente",
     icon: PackageCheck,
@@ -107,6 +170,7 @@ const AVAILABLE_WIDGETS = [
   },
   {
     id: "posSalesToday",
+    group: "data",
     label: "Transacciones hoy",
     description: "Cantidad de movimientos financieros registrados hoy",
     icon: ShoppingCart,
@@ -117,6 +181,7 @@ const AVAILABLE_WIDGETS = [
   },
   {
     id: "criticalStock",
+    group: "data",
     label: "Stock crítico",
     description: "Productos con inventario bajo el mínimo configurado",
     icon: Package,
@@ -127,6 +192,7 @@ const AVAILABLE_WIDGETS = [
   },
   {
     id: "newCustomers",
+    group: "data",
     label: "Clientes nuevos",
     description: "Clientes registrados en los últimos 7 días",
     icon: Users,
@@ -137,6 +203,7 @@ const AVAILABLE_WIDGETS = [
   },
   {
     id: "cashStatus",
+    group: "data",
     label: "Estado de caja",
     description: "Si la caja está abierta e ingresos del día",
     icon: Wallet,
@@ -147,6 +214,7 @@ const AVAILABLE_WIDGETS = [
   },
   {
     id: "avgRepairTime",
+    group: "data",
     label: "Tiempo promedio",
     description: "Días promedio desde ingreso hasta entrega",
     icon: Clock,
@@ -157,6 +225,7 @@ const AVAILABLE_WIDGETS = [
   },
   {
     id: "technicianLoad",
+    group: "data",
     label: "Carga por técnico",
     description: "Órdenes activas asignadas a cada técnico",
     icon: Wrench,
@@ -167,87 +236,19 @@ const AVAILABLE_WIDGETS = [
   },
 ];
 
-const ICON_OPTIONS = [
-  { value: "ClipboardList", label: "Clipboard", component: ClipboardList },
-  { value: "Wrench", label: "Herramienta", component: Wrench },
-  { value: "Smartphone", label: "Teléfono", component: Smartphone },
-  { value: "Zap", label: "Rayo", component: Zap },
-  { value: "Package", label: "Paquete", component: Package },
-  { value: "Wallet", label: "Billetera", component: Wallet },
-  { value: "BarChart3", label: "Gráfica", component: BarChart3 },
-  { value: "ExternalLink", label: "Enlace", component: ExternalLink }
-];
-
-const GRADIENT_OPTIONS = [
-  { value: "from-purple-500 to-pink-600", label: "Morado-Rosa" },
-  { value: "from-orange-500 to-red-600", label: "Naranja-Rojo" },
-  { value: "from-indigo-500 to-purple-600", label: "Índigo-Morado" },
-  { value: "from-amber-500 to-yellow-600", label: "Ámbar-Amarillo" },
-  { value: "from-teal-500 to-cyan-600", label: "Verde-Cian" },
-  { value: "from-green-600 to-emerald-700", label: "Verde-Esmeralda" },
-  { value: "from-blue-600 to-indigo-700", label: "Azul-Índigo" },
-  { value: "from-cyan-600 to-blue-600", label: "Cian-Azul" }
-];
-
-const PREDEFINED_BUTTONS = [
-  {
-    id: "new_order",
-    label: "Nueva Orden",
-    icon: "ClipboardList",
-    gradient: "from-purple-500 to-pink-600",
-    action: "showWorkOrderWizard",
-    type: "modal"
-  },
-  {
-    id: "inventory",
-    label: "Inventario",
-    icon: "Package",
-    gradient: "from-teal-500 to-cyan-600",
-    action: "Inventory",
-    type: "navigate"
-  },
-  {
-    id: "financial",
-    label: "Finanzas",
-    icon: "Wallet",
-    gradient: "from-green-600 to-emerald-700",
-    action: "Financial",
-    type: "navigate"
-  },
-  {
-    id: "reports",
-    label: "Reportes",
-    icon: "BarChart3",
-    gradient: "from-blue-600 to-indigo-700",
-    action: "FinancialReports",
-    type: "navigate"
-  }
-];
-
-const DEFAULT_ENABLED = ["new_order", "inventory", "financial"];
+const DEFAULT_WIDGET_CONFIG = {
+  navNewOrder: true, navOrders: true, navInventory: true, navFinancial: true, navReports: false,
+  kpiIncome: true, kpiGoal: true, kpiActive: true, kpiDelivered: true, kpiOverdue: true,
+  orders: false, priceList: false, urgentOrders: false, readyPickup: false, posSalesToday: false,
+  criticalStock: false, newCustomers: false, cashStatus: false, avgRepairTime: false, technicianLoad: false
+};
 
 export default function DashboardLinksConfig({ open, onClose }) {
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
-  const [buttons, setButtons] = useState([]);
-  const [activeTab, setActiveTab] = useState("buttons");
-  const [widgetConfig, setWidgetConfig] = useState({
-    kpiIncome: true, kpiGoal: true, kpiActive: true, kpiDelivered: true, kpiOverdue: true,
-    orders: false, priceList: false,
-    urgentOrders: false, readyPickup: false, posSalesToday: false, criticalStock: false,
-    newCustomers: false, cashStatus: false, avgRepairTime: false, technicianLoad: false
-  });
-  const DAILY_GOAL_KEY = "smartfix_daily_goal_override";
+  const [widgetConfig, setWidgetConfig] = useState({ ...DEFAULT_WIDGET_CONFIG });
   const [dailyGoal, setDailyGoal] = useState(() => {
     try { return localStorage.getItem("smartfix_daily_goal_override") || "1000"; } catch { return "1000"; }
-  });
-  const [showCreateCustom, setShowCreateCustom] = useState(false);
-  const [customButton, setCustomButton] = useState({
-    label: "",
-    icon: "ExternalLink",
-    gradient: "from-cyan-600 to-blue-600",
-    action: "",
-    type: "navigate"
   });
 
   useEffect(() => {
@@ -256,169 +257,32 @@ export default function DashboardLinksConfig({ open, onClose }) {
     }
   }, [open]);
 
-  const loadConfig = async () => {
+  const loadConfig = () => {
     setLoading(true);
     try {
-      // Load widget config from localStorage
-      try {
-        const raw = localStorage.getItem(DASHBOARD_WIDGETS_KEY);
-        const parsed = raw ? JSON.parse(raw) : {};
-        setWidgetConfig({ kpiIncome: true, kpiGoal: true, kpiActive: true, kpiDelivered: true, kpiOverdue: true, orders: false, priceList: false, urgentOrders: false, readyPickup: false, posSalesToday: false, criticalStock: false, newCustomers: false, cashStatus: false, avgRepairTime: false, technicianLoad: false, ...parsed });
-      } catch {}
-
-      const configs = await dataClient.entities.AppSettings.filter({ slug: "dashboard-buttons" });
-      
-      if (configs?.length > 0) {
-        const savedButtons = configs[0].payload?.buttons || [];
-        
-        // Combinar predefinidos con custom guardados
-        const predefinedWithState = PREDEFINED_BUTTONS.map(btn => {
-          const saved = savedButtons.find(s => s.id === btn.id);
-          return {
-            ...btn,
-            enabled: saved !== undefined ? saved.enabled : DEFAULT_ENABLED.includes(btn.id),
-            order: saved !== undefined ? saved.order : PREDEFINED_BUTTONS.indexOf(btn)
-          };
-        });
-        
-        const customButtons = savedButtons.filter(s => !PREDEFINED_BUTTONS.some(p => p.id === s.id));
-        
-        const allButtons = [...predefinedWithState, ...customButtons].sort((a, b) => a.order - b.order);
-        setButtons(allButtons);
-      } else {
-        // Configuración por defecto: habilitados los principales
-        setButtons(PREDEFINED_BUTTONS.map((btn, idx) => ({
-          ...btn,
-          enabled: DEFAULT_ENABLED.includes(btn.id),
-          order: idx
-        })));
-      }
-    } catch (error) {
-      console.error("Error loading dashboard buttons config:", error);
-      toast.error("Error al cargar configuración");
-      setButtons(PREDEFINED_BUTTONS.map((btn, idx) => ({
-        ...btn,
-        enabled: DEFAULT_ENABLED.includes(btn.id),
-        order: idx
-      })));
+      const raw = localStorage.getItem(DASHBOARD_WIDGETS_KEY);
+      const parsed = raw ? JSON.parse(raw) : {};
+      setWidgetConfig({ ...DEFAULT_WIDGET_CONFIG, ...parsed });
+    } catch {
+      setWidgetConfig({ ...DEFAULT_WIDGET_CONFIG });
     } finally {
       setLoading(false);
     }
   };
 
-  const handleToggle = (buttonId) => {
-    setButtons(buttons.map(btn => 
-      btn.id === buttonId ? { ...btn, enabled: !btn.enabled } : btn
-    ));
-  };
-
-  const handleDeleteCustom = (buttonId) => {
-    if (confirm("¿Eliminar este botón personalizado?")) {
-      setButtons(buttons.filter(btn => btn.id !== buttonId));
-    }
-  };
-
-  const handleCreateCustom = () => {
-    if (!customButton.label.trim() || !customButton.action.trim()) {
-      toast.error("Completa el nombre y la acción");
-      return;
-    }
-
-    const newButton = {
-      id: `custom_${Date.now()}`,
-      label: customButton.label,
-      icon: customButton.icon,
-      gradient: customButton.gradient,
-      action: customButton.action,
-      type: customButton.type,
-      isCustom: true,
-      enabled: true,
-      order: buttons.length
-    };
-
-    setButtons([...buttons, newButton]);
-    setCustomButton({
-      label: "",
-      icon: "ExternalLink",
-      gradient: "from-cyan-600 to-blue-600",
-      action: "",
-      type: "navigate"
-    });
-    setShowCreateCustom(false);
-    toast.success("✅ Botón creado");
-  };
-
-  const handleDragEnd = (result) => {
-    if (!result.destination) return;
-
-    const items = Array.from(buttons);
-    const [reorderedItem] = items.splice(result.source.index, 1);
-    items.splice(result.destination.index, 0, reorderedItem);
-
-    const updatedButtons = items.map((btn, idx) => ({
-      ...btn,
-      order: idx
-    }));
-
-    setButtons(updatedButtons);
-  };
-
-  const handleReset = async () => {
-    if (!confirm("¿Restablecer el dashboard a los botones de fábrica? Esto eliminará todos los botones personalizados.")) return;
-    try {
-      const configs = await dataClient.entities.AppSettings.filter({ slug: "dashboard-buttons" });
-      if (configs?.length > 0) {
-        await dataClient.entities.AppSettings.delete(configs[0].id);
-      }
-    } catch {}
-    const defaults = PREDEFINED_BUTTONS.map((btn, idx) => ({
-      ...btn, enabled: DEFAULT_ENABLED.includes(btn.id), order: idx
-    }));
-    setButtons(defaults);
-    localStorage.setItem("smartfix_dashboard_buttons_local", JSON.stringify(defaults));
-    window.dispatchEvent(new CustomEvent('dashboard-buttons-updated'));
-    toast.success("✅ Dashboard restablecido a valores de fábrica");
-  };
-
-  const handleSave = async () => {
+  const handleSave = () => {
     setSaving(true);
     try {
-      const configs = await dataClient.entities.AppSettings.filter({ slug: "dashboard-buttons" });
-      
-      const payload = {
-        buttons: buttons.map(btn => ({
-          id: btn.id,
-          label: btn.label,
-          icon: btn.icon,
-          gradient: btn.gradient,
-          action: btn.action,
-          type: btn.type,
-          isCustom: btn.isCustom || false,
-          enabled: btn.enabled,
-          order: btn.order
-        }))
-      };
-
-      if (configs?.length > 0) {
-        await dataClient.entities.AppSettings.update(configs[0].id, { payload });
-      } else {
-        await dataClient.entities.AppSettings.create({
-          slug: "dashboard-buttons",
-          payload
-        });
-      }
-
-      // Save widget config to localStorage
       localStorage.setItem(DASHBOARD_WIDGETS_KEY, JSON.stringify(widgetConfig));
       const goalNum = Number(dailyGoal);
-      if (!isNaN(goalNum) && goalNum > 0) localStorage.setItem("smartfix_daily_goal_override", String(goalNum));
+      if (!isNaN(goalNum) && goalNum > 0) {
+        localStorage.setItem("smartfix_daily_goal_override", String(goalNum));
+      }
       window.dispatchEvent(new CustomEvent('dashboard-widgets-updated'));
-
-      toast.success("✅ Configuración guardada");
-      window.dispatchEvent(new CustomEvent('dashboard-buttons-updated'));
+      toast.success("Configuración guardada");
       onClose();
     } catch (error) {
-      console.error("Error saving dashboard buttons config:", error);
+      console.error("Error saving dashboard config:", error);
       toast.error("Error al guardar configuración");
     } finally {
       setSaving(false);
@@ -426,6 +290,9 @@ export default function DashboardLinksConfig({ open, onClose }) {
   };
 
   if (!open) return null;
+
+  const navWidgets = AVAILABLE_WIDGETS.filter(w => w.group === "nav");
+  const dataWidgets = AVAILABLE_WIDGETS.filter(w => w.group !== "nav");
 
   return (
     <div className="fixed inset-0 z-[9999] bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
@@ -436,14 +303,14 @@ export default function DashboardLinksConfig({ open, onClose }) {
           <div className="relative flex items-center justify-between">
             <div className="flex items-center gap-4">
               <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-cyan-500 to-emerald-500 flex items-center justify-center shadow-lg">
-                <Layout className="w-8 h-8 text-white" />
+                <LayoutGrid className="w-8 h-8 text-white" />
               </div>
               <div>
                 <h2 className="text-2xl font-black text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-emerald-400">
                   Personalizar Dashboard
                 </h2>
                 <p className="text-cyan-300/70 text-sm mt-1">
-                  Gestiona botones y widgets visibles
+                  Activa o desactiva accesos y widgets
                 </p>
               </div>
             </div>
@@ -454,347 +321,128 @@ export default function DashboardLinksConfig({ open, onClose }) {
               <X className="w-5 h-5 text-white" />
             </button>
           </div>
-
-          {/* TABS */}
-          <div className="flex gap-2 mt-5 relative">
-            <button
-              onClick={() => setActiveTab("buttons")}
-              className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-black uppercase tracking-widest transition-all ${
-                activeTab === "buttons"
-                  ? "bg-cyan-500/20 border border-cyan-500/40 text-cyan-300"
-                  : "bg-white/5 border border-white/10 text-white/40 hover:text-white/70"
-              }`}
-            >
-              <Grid className="w-4 h-4" />
-              Botones
-            </button>
-            <button
-              onClick={() => setActiveTab("widgets")}
-              className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-black uppercase tracking-widest transition-all ${
-                activeTab === "widgets"
-                  ? "bg-emerald-500/20 border border-emerald-500/40 text-emerald-300"
-                  : "bg-white/5 border border-white/10 text-white/40 hover:text-white/70"
-              }`}
-            >
-              <Layers className="w-4 h-4" />
-              Widgets
-            </button>
-          </div>
         </div>
 
         {/* Content */}
-        <div className="p-6 overflow-y-auto max-h-[calc(90vh-260px)]">
+        <div className="p-6 overflow-y-auto max-h-[calc(90vh-200px)]">
           {loading ? (
             <div className="text-center py-12">
               <div className="w-12 h-12 border-4 border-cyan-500/30 border-t-cyan-500 rounded-full animate-spin mx-auto mb-4" />
               <p className="text-cyan-300/70">Cargando configuración...</p>
             </div>
-          ) : activeTab === "widgets" ? (
-            /* ── WIDGETS TAB ── */
-            <div className="space-y-4">
-              <div className="mb-4 bg-emerald-500/10 border border-emerald-500/30 rounded-2xl p-4">
-                <div className="flex items-start gap-3">
-                  <Layers className="w-5 h-5 text-emerald-400 mt-0.5 flex-shrink-0" />
-                  <div>
-                    <p className="text-white font-semibold mb-1">Widgets del Dashboard</p>
-                    <p className="text-emerald-300/70 text-sm">
-                      Activa los widgets que quieres ver debajo de los botones principales
-                    </p>
-                  </div>
-                </div>
-              </div>
-
-              {AVAILABLE_WIDGETS.map((widget) => {
-                const isEnabled = !!widgetConfig[widget.id];
-                const IconComp = widget.icon;
-                return (
-                  <div
-                    key={widget.id}
-                    className={`rounded-2xl border transition-all p-4 flex items-center gap-4 ${
-                      isEnabled
-                        ? `${widget.border} ${widget.bg}`
-                        : "border-slate-700/30 bg-slate-900/40 opacity-70"
-                    }`}
-                  >
-                    <div className={`w-12 h-12 rounded-xl ${widget.bg} border ${widget.border} flex items-center justify-center flex-shrink-0`}>
-                      <IconComp className={`w-6 h-6 ${widget.color}`} />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-white font-bold">{widget.label}</p>
-                      <p className="text-slate-400 text-xs mt-0.5">{widget.description}</p>
-                    </div>
-                    <button
-                      onClick={() => setWidgetConfig(prev => ({ ...prev, [widget.id]: !prev[widget.id] }))}
-                      className={`px-4 py-2 rounded-xl font-semibold text-sm transition-all flex items-center gap-2 ${
-                        isEnabled
-                          ? "bg-gradient-to-r from-emerald-500 to-green-600 text-white shadow-lg"
-                          : "bg-slate-700/50 text-slate-400 border border-slate-600"
-                      }`}
-                    >
-                      {isEnabled ? (
-                        <><Eye className="w-4 h-4" /> Visible</>
-                      ) : (
-                        <><EyeOff className="w-4 h-4" /> Oculto</>
-                      )}
-                    </button>
-                  </div>
-                );
-              })}
-
-                  {/* Meta diaria config */}
-                  <div className="mt-4 pt-4 border-t border-white/[0.06]">
-                    <p className="text-[10px] font-black text-white/30 uppercase tracking-widest mb-3">Configurar Meta Diaria</p>
-                    <div className="flex items-center gap-3 bg-white/[0.04] border border-white/[0.08] rounded-2xl px-4 py-3">
-                      <TrendingUp className="w-4 h-4 text-blue-400 shrink-0" />
-                      <span className="text-xs text-white/50 font-bold whitespace-nowrap">Meta $</span>
-                      <input
-                        type="number"
-                        min="0"
-                        value={dailyGoal}
-                        onChange={(e) => setDailyGoal(e.target.value)}
-                        placeholder="1000"
-                        className="flex-1 bg-transparent text-white text-sm font-black outline-none placeholder-white/20 min-w-0"
-                      />
-                      <span className="text-[10px] text-white/20 font-bold">USD/día</span>
-                    </div>
-                  </div>
-            </div>
           ) : (
-            <>
-              <div className="mb-6 bg-cyan-500/10 border border-cyan-500/30 rounded-2xl p-4">
-                <div className="flex items-start gap-3">
-                  <Grid className="w-5 h-5 text-cyan-400 mt-0.5 flex-shrink-0" />
-                  <div>
-                    <p className="text-white font-semibold mb-1">Gestiona tus Botones</p>
-                    <p className="text-cyan-300/70 text-sm">
-                      Arrastra para reordenar • Activa/Desactiva según necesites • Crea botones personalizados
-                    </p>
-                  </div>
+            <div className="space-y-6">
+              {/* ── Accesos Directos ── */}
+              <div>
+                <p className="text-[10px] font-black text-white/30 uppercase tracking-widest mb-3 flex items-center gap-2">
+                  <Layers className="w-3.5 h-3.5" />
+                  Accesos Directos
+                </p>
+                <div className="space-y-3">
+                  {navWidgets.map((widget) => {
+                    const isEnabled = widgetConfig[widget.id] !== false && (widgetConfig[widget.id] === true || widget.defaultOn);
+                    const enabled = !!widgetConfig[widget.id];
+                    const IconComp = widget.icon;
+                    return (
+                      <div
+                        key={widget.id}
+                        className={`rounded-2xl border transition-all p-4 flex items-center gap-4 ${
+                          enabled
+                            ? `${widget.border} ${widget.bg}`
+                            : "border-slate-700/30 bg-slate-900/40 opacity-70"
+                        }`}
+                      >
+                        <div className={`w-12 h-12 rounded-xl ${widget.bg} border ${widget.border} flex items-center justify-center flex-shrink-0`}>
+                          <IconComp className={`w-6 h-6 ${widget.color}`} />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-white font-bold">{widget.label}</p>
+                          <p className="text-slate-400 text-xs mt-0.5">{widget.description}</p>
+                        </div>
+                        <button
+                          onClick={() => setWidgetConfig(prev => ({ ...prev, [widget.id]: !prev[widget.id] }))}
+                          className={`px-4 py-2 rounded-xl font-semibold text-sm transition-all flex items-center gap-2 ${
+                            enabled
+                              ? "bg-gradient-to-r from-emerald-500 to-green-600 text-white shadow-lg"
+                              : "bg-slate-700/50 text-slate-400 border border-slate-600"
+                          }`}
+                        >
+                          {enabled ? (
+                            <><Eye className="w-4 h-4" /> Visible</>
+                          ) : (
+                            <><EyeOff className="w-4 h-4" /> Oculto</>
+                          )}
+                        </button>
+                      </div>
+                    );
+                  })}
                 </div>
               </div>
 
-              {/* Acciones */}
-              <div className="flex gap-2 mb-4">
-                <Button
-                  onClick={() => setShowCreateCustom(!showCreateCustom)}
-                  className="flex-1 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 h-11 shadow-lg"
-                >
-                  <Plus className="w-4 h-4 mr-1.5" />
-                  Agregar botón
-                </Button>
-                <Button
-                  onClick={handleReset}
-                  variant="ghost"
-                  className="h-11 px-4 text-white/30 hover:text-red-400 hover:bg-red-500/10 border border-white/[0.06] hover:border-red-500/20 rounded-xl transition-all text-xs font-bold"
-                  title="Restablecer a valores de fábrica"
-                >
-                  <X className="w-4 h-4 mr-1.5" />
-                  Restablecer
-                </Button>
+              {/* ── Widgets de Datos ── */}
+              <div>
+                <p className="text-[10px] font-black text-white/30 uppercase tracking-widest mb-3 flex items-center gap-2">
+                  <Layers className="w-3.5 h-3.5" />
+                  Widgets de Datos
+                </p>
+                <div className="space-y-3">
+                  {dataWidgets.map((widget) => {
+                    const enabled = !!widgetConfig[widget.id];
+                    const IconComp = widget.icon;
+                    return (
+                      <div
+                        key={widget.id}
+                        className={`rounded-2xl border transition-all p-4 flex items-center gap-4 ${
+                          enabled
+                            ? `${widget.border} ${widget.bg}`
+                            : "border-slate-700/30 bg-slate-900/40 opacity-70"
+                        }`}
+                      >
+                        <div className={`w-12 h-12 rounded-xl ${widget.bg} border ${widget.border} flex items-center justify-center flex-shrink-0`}>
+                          <IconComp className={`w-6 h-6 ${widget.color}`} />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-white font-bold">{widget.label}</p>
+                          <p className="text-slate-400 text-xs mt-0.5">{widget.description}</p>
+                        </div>
+                        <button
+                          onClick={() => setWidgetConfig(prev => ({ ...prev, [widget.id]: !prev[widget.id] }))}
+                          className={`px-4 py-2 rounded-xl font-semibold text-sm transition-all flex items-center gap-2 ${
+                            enabled
+                              ? "bg-gradient-to-r from-emerald-500 to-green-600 text-white shadow-lg"
+                              : "bg-slate-700/50 text-slate-400 border border-slate-600"
+                          }`}
+                        >
+                          {enabled ? (
+                            <><Eye className="w-4 h-4" /> Visible</>
+                          ) : (
+                            <><EyeOff className="w-4 h-4" /> Oculto</>
+                          )}
+                        </button>
+                      </div>
+                    );
+                  })}
+                </div>
               </div>
 
-              {/* Formulario para crear botón personalizado */}
-              {showCreateCustom && (
-                <div className="mb-6 bg-slate-800/60 border border-purple-500/30 rounded-2xl p-4 space-y-3">
-                  <h4 className="text-white font-bold flex items-center gap-2">
-                    <Plus className="w-5 h-5 text-purple-400" />
-                    Nuevo Acceso
-                  </h4>
-                  
-                  <div>
-                    <label className="text-white/60 text-xs font-bold uppercase tracking-wider ml-1">Nombre</label>
-                    <Input
-                      value={customButton.label}
-                      onChange={(e) => setCustomButton({...customButton, label: e.target.value})}
-                      placeholder="Ej: Reportes Externos"
-                      className="bg-white/5 border-transparent rounded-xl h-12 text-white placeholder-white/20 focus:bg-white/10"
-                    />
-                  </div>
-
-                  <div className="grid grid-cols-2 gap-3">
-                    <div>
-                      <label className="text-white/60 text-xs font-bold uppercase tracking-wider ml-1">Icono</label>
-                      <select
-                        value={customButton.icon}
-                        onChange={(e) => setCustomButton({...customButton, icon: e.target.value})}
-                        className="w-full bg-white/5 border-transparent rounded-xl h-12 px-3 text-sm text-white"
-                      >
-                        {ICON_OPTIONS.map(opt => (
-                          <option key={opt.value} value={opt.value}>{opt.label}</option>
-                        ))}
-                      </select>
-                    </div>
-
-                    <div>
-                      <label className="text-white/60 text-xs font-bold uppercase tracking-wider ml-1">Color</label>
-                      <select
-                        value={customButton.gradient}
-                        onChange={(e) => setCustomButton({...customButton, gradient: e.target.value})}
-                        className="w-full bg-white/5 border-transparent rounded-xl h-12 px-3 text-sm text-white"
-                      >
-                        {GRADIENT_OPTIONS.map(opt => (
-                          <option key={opt.value} value={opt.value}>{opt.label}</option>
-                        ))}
-                      </select>
-                    </div>
-                  </div>
-
-                  <div>
-                    <label className="text-white/60 text-xs font-bold uppercase tracking-wider ml-1">Tipo</label>
-                    <select
-                      value={customButton.type}
-                      onChange={(e) => setCustomButton({...customButton, type: e.target.value, action: ""})}
-                      className="w-full bg-white/5 border-transparent rounded-xl h-12 px-3 text-sm text-white"
-                    >
-                      <option value="navigate">Ruta Interna</option>
-                      <option value="external">URL</option>
-                    </select>
-                  </div>
-
-                  {customButton.type === "navigate" ? (
-                    <div>
-                      <label className="text-white/60 text-xs font-bold uppercase tracking-wider ml-1">Ruta Interna</label>
-                      <select
-                        value={customButton.action}
-                        onChange={(e) => setCustomButton({...customButton, action: e.target.value})}
-                        className="w-full bg-white/5 border-transparent rounded-xl h-12 px-3 text-sm text-white"
-                      >
-                        <option value="">Selecciona una página...</option>
-                        <option value="Dashboard">Dashboard</option>
-                        <option value="Orders">Órdenes</option>
-                        <option value="POS">POS</option>
-                        <option value="Customers">Clientes</option>
-                        <option value="Inventory">Inventario</option>
-                        <option value="Financial">Finanzas</option>
-                        <option value="Reports">Reportes</option>
-                        <option value="Settings">Configuración</option>
-                        <option value="UsersManagement">Usuarios</option>
-                        <option value="TimeTracking">Control de Tiempo</option>
-                        <option value="CashHistory">Historial de Caja</option>
-                        <option value="Technicians">Técnicos</option>
-                        <option value="Notifications">Notificaciones</option>
-                      </select>
-                    </div>
-                  ) : (
-                    <div>
-                      <label className="text-white/60 text-xs font-bold uppercase tracking-wider ml-1">URL</label>
-                      <Input
-                        value={customButton.action}
-                        onChange={(e) => setCustomButton({...customButton, action: e.target.value})}
-                        placeholder="https://ejemplo.com"
-                        className="bg-white/5 border-transparent rounded-xl h-12 text-white placeholder-white/20 focus:bg-white/10"
-                      />
-                    </div>
-                  )}
-
-                  <div className="flex gap-2">
-                    <Button
-                      onClick={() => setShowCreateCustom(false)}
-                      variant="outline"
-                      className="flex-1 border-slate-600"
-                    >
-                      Cancelar
-                    </Button>
-                    <Button
-                      onClick={handleCreateCustom}
-                      className="flex-1 bg-gradient-to-r from-purple-600 to-pink-600"
-                    >
-                      <Plus className="w-4 h-4 mr-2" />
-                      Crear
-                    </Button>
-                  </div>
+              {/* Meta diaria config */}
+              <div className="pt-4 border-t border-white/[0.06]">
+                <p className="text-[10px] font-black text-white/30 uppercase tracking-widest mb-3">Configurar Meta Diaria</p>
+                <div className="flex items-center gap-3 bg-white/[0.04] border border-white/[0.08] rounded-2xl px-4 py-3">
+                  <TrendingUp className="w-4 h-4 text-blue-400 shrink-0" />
+                  <span className="text-xs text-white/50 font-bold whitespace-nowrap">Meta $</span>
+                  <input
+                    type="number"
+                    min="0"
+                    value={dailyGoal}
+                    onChange={(e) => setDailyGoal(e.target.value)}
+                    placeholder="1000"
+                    className="flex-1 bg-transparent text-white text-sm font-black outline-none placeholder-white/20 min-w-0"
+                  />
+                  <span className="text-[10px] text-white/20 font-bold">USD/día</span>
                 </div>
-              )}
-
-              <DragDropContext onDragEnd={handleDragEnd}>
-                <Droppable droppableId="buttons">
-                  {(provided) => (
-                    <div
-                      {...provided.droppableProps}
-                      ref={provided.innerRef}
-                      className="space-y-3"
-                    >
-                      {buttons.map((button, index) => {
-                        const IconComponent = typeof button.icon === 'string' 
-                          ? ICON_OPTIONS.find(i => i.value === button.icon)?.component || ExternalLink
-                          : button.icon;
-                        
-                        return (
-                          <Draggable key={button.id} draggableId={button.id} index={index}>
-                            {(provided, snapshot) => (
-                              <div
-                                ref={provided.innerRef}
-                                {...provided.draggableProps}
-                                className={`relative overflow-hidden rounded-2xl border transition-all ${
-                                  snapshot.isDragging
-                                    ? "border-cyan-500 shadow-[0_0_40px_rgba(6,182,212,0.4)] scale-105"
-                                    : button.enabled
-                                    ? "border-cyan-500/30 bg-slate-800/40 hover:border-cyan-500/50"
-                                    : "border-slate-700/30 bg-slate-900/40 opacity-60"
-                                }`}
-                              >
-                                <div className="flex items-center gap-4 p-4">
-                                  <div
-                                    {...provided.dragHandleProps}
-                                    className="cursor-grab active:cursor-grabbing"
-                                  >
-                                    <GripVertical className="w-5 h-5 text-slate-500" />
-                                  </div>
-
-                                  <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${button.gradient} flex items-center justify-center shadow-lg flex-shrink-0`}>
-                                    <IconComponent className="w-6 h-6 text-white" />
-                                  </div>
-
-                                  <div className="flex-1">
-                                    <p className="text-white font-bold">{button.label}</p>
-                                    <p className="text-slate-400 text-xs mt-0.5">
-                                      {button.isCustom ? `Custom • ${button.type === 'external' ? 'URL' : 'Página'}: ${button.action}` : `Orden: ${index + 1}`}
-                                    </p>
-                                  </div>
-
-                                  {button.isCustom && (
-                                    <Button
-                                      onClick={() => handleDeleteCustom(button.id)}
-                                      variant="ghost"
-                                      size="icon"
-                                      className="text-red-400 hover:text-red-300 hover:bg-red-600/20"
-                                    >
-                                      <Trash2 className="w-4 h-4" />
-                                    </Button>
-                                  )}
-
-                                  <button
-                                    onClick={() => handleToggle(button.id)}
-                                    className={`px-4 py-2 rounded-xl font-semibold text-sm transition-all flex items-center gap-2 ${
-                                      button.enabled
-                                        ? "bg-gradient-to-r from-emerald-500 to-green-600 text-white shadow-lg"
-                                        : "bg-slate-700/50 text-slate-400 border border-slate-600"
-                                    }`}
-                                  >
-                                    {button.enabled ? (
-                                      <>
-                                        <Eye className="w-4 h-4" />
-                                        Activo
-                                      </>
-                                    ) : (
-                                      <>
-                                        <EyeOff className="w-4 h-4" />
-                                        Inactivo
-                                      </>
-                                    )}
-                                  </button>
-                                </div>
-                              </div>
-                            )}
-                          </Draggable>
-                        );
-                      })}
-                      {provided.placeholder}
-                    </div>
-                  )}
-                </Droppable>
-              </DragDropContext>
-            </>
+              </div>
+            </div>
           )}
         </div>
 
