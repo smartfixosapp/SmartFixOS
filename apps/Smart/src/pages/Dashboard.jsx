@@ -66,6 +66,7 @@ import UnlocksDialog from "../components/unlocks/UnlocksDialog";
 import {
   ORDER_STATUSES,
   getStatusConfig,
+  getEffectiveOrderStatus,
   normalizeStatusId
 } from "@/components/utils/statusRegistry";
 
@@ -706,7 +707,7 @@ export default function Dashboard() {
 
       // Filtrar por estado seleccionado
       if (selectedStatusFilter) {
-        orders = orders.filter(o => normalizeStatusId(o.status) === selectedStatusFilter);
+        orders = orders.filter(o => getEffectiveOrderStatus(o) === selectedStatusFilter);
       }
     }
 
@@ -747,21 +748,21 @@ export default function Dashboard() {
     const activeStatuses = ["pending", "in_progress", "waiting_parts", "ready_for_pickup", "diagnosed"];
 
     const active = recentOrders.filter(o =>
-      activeStatuses.includes(normalizeStatusId(o.status)) &&
+      activeStatuses.includes(getEffectiveOrderStatus(o)) &&
       o.device_type !== "Software" &&
       !(o.order_number && o.order_number.startsWith("SW-"))
     );
     const readyToPickup = recentOrders.filter(o =>
-      normalizeStatusId(o.status) === "ready_for_pickup"
+      getEffectiveOrderStatus(o) === "ready_for_pickup"
     );
     const deliveredToday = recentOrders.filter(o => {
-      const s = normalizeStatusId(o.status);
+      const s = getEffectiveOrderStatus(o);
       if (s !== "delivered" && s !== "completed" && s !== "picked_up") return false;
       const d = new Date(o.updated_date || o.created_date);
       return d >= todayStart;
     });
     const overdue = recentOrders.filter(o => {
-      const s = normalizeStatusId(o.status);
+      const s = getEffectiveOrderStatus(o);
       if (!activeStatuses.includes(s)) return false;
       const d = new Date(o.updated_date || o.created_date);
       return d < sevenDaysAgo;
@@ -798,19 +799,19 @@ export default function Dashboard() {
     );
 
     filteredRecentOrders.forEach((order) => {
-      const normalized = normalizeStatusId(order.status);
+      const normalized = getEffectiveOrderStatus(order);
       if (counts.hasOwnProperty(normalized)) counts[normalized]++;
     });
 
     // Contar desbloqueos
     counts.unlocks = recentOrders.filter(
-      (o) => o.device_type === "Software" || 
+      (o) => o.device_type === "Software" ||
              (o.order_number && o.order_number.startsWith("SW-"))
     ).length;
 
     // Contar garantías
     counts.warranty = recentOrders.filter(
-      (o) => normalizeStatusId(o.status) === "warranty"
+      (o) => getEffectiveOrderStatus(o) === "warranty"
     ).length;
 
     return counts;
