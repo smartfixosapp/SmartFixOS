@@ -1109,13 +1109,21 @@ export default function PinAccess() {
     localStorage.setItem("employee_session", JSON.stringify(session));
     sessionStorage.setItem("911-session", JSON.stringify(session));
 
+    // ── Sincronizar tenant_id en localStorage para que todos los módulos
+    //    (TimeTracking, etc.) puedan leerlo sin parsear el session object ──
+    const tenantIdFromSession = session?.tenant_id || session?.tenantId;
+    if (tenantIdFromSession) {
+      localStorage.setItem("smartfix_tenant_id", tenantIdFromSession);
+      localStorage.setItem("current_tenant_id", tenantIdFromSession);
+    }
+
     if (session.role === "admin") {
       await ensureAdminBootstrap(dataClient);
     }
 
     // Track last_login per tenant (fire and forget)
     try {
-      const tenantId = session.tenant_id || localStorage.getItem("smartfix_tenant_id");
+      const tenantId = tenantIdFromSession || localStorage.getItem("smartfix_tenant_id");
       if (tenantId) {
         dataClient.Tenant.update(tenantId, { last_login: new Date().toISOString() }).catch(() => {});
       }
