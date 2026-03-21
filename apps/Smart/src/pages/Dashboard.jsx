@@ -249,8 +249,8 @@ export default function Dashboard() {
     try {
       const raw = localStorage.getItem(DASHBOARD_WIDGETS_KEY);
       const parsed = raw ? JSON.parse(raw) : {};
-      return { priceList: false, orders: false, ...parsed };
-    } catch { return { priceList: false, orders: false }; }
+      return { kpiIncome: true, kpiGoal: true, kpiActive: true, kpiDelivered: true, kpiOverdue: true, orders: false, priceList: false, ...parsed };
+    } catch { return { kpiIncome: true, kpiGoal: true, kpiActive: true, kpiDelivered: true, kpiOverdue: true, orders: false, priceList: false }; }
   });
   const [showMoreMenu, setShowMoreMenu] = useState(false);
   const [showDailyTransactions, setShowDailyTransactions] = useState(false);
@@ -616,7 +616,7 @@ export default function Dashboard() {
       try {
         const raw = localStorage.getItem(DASHBOARD_WIDGETS_KEY);
         const parsed = raw ? JSON.parse(raw) : {};
-        setWidgetConfig({ priceList: false, orders: false, ...parsed });
+        setWidgetConfig({ kpiIncome: true, kpiGoal: true, kpiActive: true, kpiDelivered: true, kpiOverdue: true, orders: false, priceList: false, ...parsed });
       } catch {}
     };
 
@@ -944,6 +944,7 @@ export default function Dashboard() {
               const goalPct = kpiDailyGoal > 0 ? Math.min(100, Math.round((kpiIncome.today / kpiDailyGoal) * 100)) : 0;
               const cards = [
                 {
+                  widgetId: "kpiIncome",
                   label: "Ingresos hoy",
                   value: kpiIncome.loading ? "…" : fmt(kpiIncome.today),
                   sub: kpiIncome.loading ? "" : `Ganancia: ${fmt(todayProfit)}`,
@@ -952,6 +953,7 @@ export default function Dashboard() {
                   glow: "shadow-[0_0_20px_rgba(52,211,153,0.08)]"
                 },
                 {
+                  widgetId: "kpiGoal",
                   label: "Meta diaria",
                   value: kpiIncome.loading ? "…" : `${goalPct}%`,
                   sub: `${fmt(kpiIncome.today)} / ${fmt(kpiDailyGoal)}`,
@@ -963,6 +965,7 @@ export default function Dashboard() {
                   progress: goalPct
                 },
                 {
+                  widgetId: "kpiActive",
                   label: "Órdenes activas",
                   value: kpiStats.active,
                   sub: `${kpiStats.readyToPickup} lista${kpiStats.readyToPickup !== 1 ? "s" : ""} para recoger`,
@@ -971,6 +974,7 @@ export default function Dashboard() {
                   glow: "shadow-[0_0_20px_rgba(129,140,248,0.08)]"
                 },
                 {
+                  widgetId: "kpiDelivered",
                   label: "Entregadas hoy",
                   value: kpiStats.deliveredToday,
                   sub: "reparaciones completadas",
@@ -979,6 +983,7 @@ export default function Dashboard() {
                   glow: ""
                 },
                 {
+                  widgetId: "kpiOverdue",
                   label: "Sin movimiento",
                   value: kpiStats.overdue,
                   sub: "+ 7 días sin actualizar",
@@ -988,7 +993,7 @@ export default function Dashboard() {
                   border: kpiStats.overdue > 0 ? "border-red-500/20" : "border-white/[0.07]",
                   glow: kpiStats.overdue > 0 ? "shadow-[0_0_20px_rgba(248,113,113,0.1)]" : ""
                 },
-              ];
+              ].filter(c => widgetConfig[c.widgetId] !== false);
               return (
                 <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-5 gap-3 relative z-10 mb-2">
                   {cards.map((kpi) => (
@@ -1248,12 +1253,12 @@ export default function Dashboard() {
               const todayProfit = kpiIncome.today - kpiIncome.todayExpenses;
               const goalPct = kpiDailyGoal > 0 ? Math.min(100, Math.round((kpiIncome.today / kpiDailyGoal) * 100)) : 0;
               const cards = [
-                { label: "Ingresos hoy", value: kpiIncome.loading ? "…" : fmt(kpiIncome.today), sub: `Ganancia: ${fmt(todayProfit)}`, icon: DollarSign, color: "text-emerald-400", bg: "bg-emerald-500/10", border: "border-emerald-500/20" },
-                { label: "Meta diaria", value: kpiIncome.loading ? "…" : `${goalPct}%`, sub: `${fmt(kpiIncome.today)} / ${fmt(kpiDailyGoal)}`, icon: TrendingUp, color: goalPct >= 100 ? "text-yellow-400" : goalPct >= 70 ? "text-emerald-400" : "text-blue-400", bg: goalPct >= 100 ? "bg-yellow-500/10" : "bg-blue-500/10", border: goalPct >= 100 ? "border-yellow-500/20" : "border-blue-500/20", progress: goalPct },
-                { label: "Activas", value: kpiStats.active, sub: `${kpiStats.readyToPickup} listas`, icon: Wrench, color: "text-indigo-400", bg: "bg-indigo-500/10", border: "border-indigo-500/20" },
-                { label: "Entregadas hoy", value: kpiStats.deliveredToday, sub: "completadas", icon: PackageCheck, color: "text-purple-400", bg: "bg-purple-500/10", border: "border-purple-500/20" },
-                { label: "Sin movimiento", value: kpiStats.overdue, sub: "+7 días", icon: Timer, color: kpiStats.overdue > 0 ? "text-red-400" : "text-slate-500", bg: kpiStats.overdue > 0 ? "bg-red-500/10" : "bg-white/[0.03]", border: kpiStats.overdue > 0 ? "border-red-500/20" : "border-white/[0.07]" },
-              ];
+                { widgetId: "kpiIncome", label: "Ingresos hoy", value: kpiIncome.loading ? "…" : fmt(kpiIncome.today), sub: `Ganancia: ${fmt(todayProfit)}`, icon: DollarSign, color: "text-emerald-400", bg: "bg-emerald-500/10", border: "border-emerald-500/20" },
+                { widgetId: "kpiGoal", label: "Meta diaria", value: kpiIncome.loading ? "…" : `${goalPct}%`, sub: `${fmt(kpiIncome.today)} / ${fmt(kpiDailyGoal)}`, icon: TrendingUp, color: goalPct >= 100 ? "text-yellow-400" : goalPct >= 70 ? "text-emerald-400" : "text-blue-400", bg: goalPct >= 100 ? "bg-yellow-500/10" : "bg-blue-500/10", border: goalPct >= 100 ? "border-yellow-500/20" : "border-blue-500/20", progress: goalPct },
+                { widgetId: "kpiActive", label: "Activas", value: kpiStats.active, sub: `${kpiStats.readyToPickup} listas`, icon: Wrench, color: "text-indigo-400", bg: "bg-indigo-500/10", border: "border-indigo-500/20" },
+                { widgetId: "kpiDelivered", label: "Entregadas hoy", value: kpiStats.deliveredToday, sub: "completadas", icon: PackageCheck, color: "text-purple-400", bg: "bg-purple-500/10", border: "border-purple-500/20" },
+                { widgetId: "kpiOverdue", label: "Sin movimiento", value: kpiStats.overdue, sub: "+7 días", icon: Timer, color: kpiStats.overdue > 0 ? "text-red-400" : "text-slate-500", bg: kpiStats.overdue > 0 ? "bg-red-500/10" : "bg-white/[0.03]", border: kpiStats.overdue > 0 ? "border-red-500/20" : "border-white/[0.07]" },
+              ].filter(c => widgetConfig[c.widgetId] !== false);
               return (
                 <div className="grid grid-cols-2 gap-2 px-2 sm:px-1">
                   {cards.map((kpi) => (

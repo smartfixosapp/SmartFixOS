@@ -17,7 +17,8 @@ import {
   X, Eye, EyeOff, Wrench, CheckSquare, Camera, Key, Lock, Search,
   Fingerprint, ShieldCheck, ShieldAlert, History, Download, AlertCircle,
   Briefcase, ShoppingCart, BarChart3, TrendingDown, Activity, GripVertical,
-  Layout, Grid, Zap, ExternalLink, ChevronDown, Upload, MessageSquarePlus, PiggyBank, Layers
+  Layout, Grid, Zap, ExternalLink, ChevronDown, Upload, MessageSquarePlus, PiggyBank, Layers,
+  TrendingUp, PackageCheck, Timer
 } from "lucide-react";
 import { useI18n } from "@/components/utils/i18n";
 import ImportExportTab from "@/components/settings/ImportExportTab";
@@ -177,9 +178,20 @@ export default function SettingsPage() {
     try {
       const raw = localStorage.getItem("smartfix_dashboard_widgets");
       const parsed = raw ? JSON.parse(raw) : {};
-      return { priceList: false, orders: false, ...parsed };
-    } catch { return { priceList: false, orders: false }; }
+      return { kpiIncome: true, kpiGoal: true, kpiActive: true, kpiDelivered: true, kpiOverdue: true, orders: false, priceList: false, ...parsed };
+    } catch { return { kpiIncome: true, kpiGoal: true, kpiActive: true, kpiDelivered: true, kpiOverdue: true, orders: false, priceList: false }; }
   });
+  const [dailyGoal, setDailyGoal] = useState(() => {
+    try { return localStorage.getItem("smartfix_daily_goal_override") || "1000"; } catch { return "1000"; }
+  });
+  const saveDailyGoal = (val) => {
+    setDailyGoal(val);
+    const n = Number(val);
+    if (!isNaN(n) && n > 0) {
+      localStorage.setItem("smartfix_daily_goal_override", String(n));
+      window.dispatchEvent(new CustomEvent('dashboard-widgets-updated'));
+    }
+  };
   const handleToggleWidget = (widgetId) => {
     const next = { ...widgetConfig, [widgetId]: !widgetConfig[widgetId] };
     setWidgetConfig(next);
@@ -1678,6 +1690,11 @@ export default function SettingsPage() {
 
                 <div className="space-y-3 relative z-10">
                   {[
+                    { id: "kpiIncome", label: "Ingresos de hoy", description: "Ventas y ganancia del día actual", icon: DollarSign, color: "text-emerald-400", bg: "bg-emerald-500/10", border: "border-emerald-500/20" },
+                    { id: "kpiGoal", label: "Meta diaria", description: "Porcentaje de avance hacia tu meta de ventas", icon: TrendingUp, color: "text-blue-400", bg: "bg-blue-500/10", border: "border-blue-500/20" },
+                    { id: "kpiActive", label: "Órdenes activas", description: "Total de órdenes en progreso y listas para recoger", icon: Wrench, color: "text-indigo-400", bg: "bg-indigo-500/10", border: "border-indigo-500/20" },
+                    { id: "kpiDelivered", label: "Entregadas hoy", description: "Reparaciones completadas y entregadas hoy", icon: PackageCheck, color: "text-purple-400", bg: "bg-purple-500/10", border: "border-purple-500/20" },
+                    { id: "kpiOverdue", label: "Sin movimiento", description: "Órdenes sin actualizar por más de 7 días", icon: Timer, color: "text-red-400", bg: "bg-red-500/10", border: "border-red-500/20" },
                     { id: "orders", label: "Gestión de Órdenes", description: "Filtros, búsqueda y lista de órdenes activas", icon: ClipboardList, color: "text-blue-400", bg: "bg-blue-500/10", border: "border-blue-500/20" },
                     { id: "priceList", label: "Lista de Precios", description: "Busca precios de productos y servicios al instante", icon: PiggyBank, color: "text-emerald-400", bg: "bg-emerald-500/10", border: "border-emerald-500/20" }
                   ].map(widget => {
@@ -1701,6 +1718,24 @@ export default function SettingsPage() {
                       </div>
                     );
                   })}
+
+                  {/* Meta diaria config */}
+                  <div className="mt-4 pt-4 border-t border-white/[0.06]">
+                    <p className="text-white/40 text-xs font-bold uppercase tracking-wider mb-3">Configurar Meta Diaria</p>
+                    <div className="flex items-center gap-3 bg-white/[0.04] border border-white/[0.08] rounded-2xl px-4 py-3">
+                      <TrendingUp className="w-4 h-4 text-blue-400 shrink-0" />
+                      <span className="text-xs text-white/50 font-bold whitespace-nowrap">Meta $</span>
+                      <input
+                        type="number"
+                        min="0"
+                        value={dailyGoal}
+                        onChange={(e) => saveDailyGoal(e.target.value)}
+                        placeholder="1000"
+                        className="flex-1 bg-transparent text-white text-sm font-black outline-none placeholder-white/20 min-w-0"
+                      />
+                      <span className="text-[10px] text-white/20 font-bold">USD/día</span>
+                    </div>
+                  </div>
                 </div>
               </div>
 

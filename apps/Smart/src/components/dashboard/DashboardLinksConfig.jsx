@@ -4,7 +4,7 @@ import {
   ClipboardList, Wrench, Smartphone, Zap, X, Save,
   Layout, Grid, Eye, EyeOff, GripVertical, Package,
   Wallet, BarChart3, Plus, Edit2, ExternalLink, Trash2,
-  PiggyBank, Layers
+  PiggyBank, Layers, DollarSign, TrendingUp, PackageCheck, Timer
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -15,13 +15,64 @@ const DASHBOARD_WIDGETS_KEY = "smartfix_dashboard_widgets";
 
 const AVAILABLE_WIDGETS = [
   {
+    id: "kpiIncome",
+    label: "Ingresos de hoy",
+    description: "Ventas y ganancia del día actual",
+    icon: DollarSign,
+    color: "text-emerald-400",
+    bg: "bg-emerald-500/10",
+    border: "border-emerald-500/20",
+    defaultOn: true
+  },
+  {
+    id: "kpiGoal",
+    label: "Meta diaria",
+    description: "Porcentaje de avance hacia tu meta de ventas diaria",
+    icon: TrendingUp,
+    color: "text-blue-400",
+    bg: "bg-blue-500/10",
+    border: "border-blue-500/20",
+    defaultOn: true
+  },
+  {
+    id: "kpiActive",
+    label: "Órdenes activas",
+    description: "Total de órdenes en progreso y listas para recoger",
+    icon: Wrench,
+    color: "text-indigo-400",
+    bg: "bg-indigo-500/10",
+    border: "border-indigo-500/20",
+    defaultOn: true
+  },
+  {
+    id: "kpiDelivered",
+    label: "Entregadas hoy",
+    description: "Reparaciones completadas y entregadas hoy",
+    icon: PackageCheck,
+    color: "text-purple-400",
+    bg: "bg-purple-500/10",
+    border: "border-purple-500/20",
+    defaultOn: true
+  },
+  {
+    id: "kpiOverdue",
+    label: "Sin movimiento",
+    description: "Órdenes sin actualizar por más de 7 días",
+    icon: Timer,
+    color: "text-red-400",
+    bg: "bg-red-500/10",
+    border: "border-red-500/20",
+    defaultOn: true
+  },
+  {
     id: "orders",
     label: "Gestión de Órdenes",
     description: "Filtros de estado, búsqueda y lista de órdenes activas",
     icon: ClipboardList,
     color: "text-blue-400",
     bg: "bg-blue-500/10",
-    border: "border-blue-500/20"
+    border: "border-blue-500/20",
+    defaultOn: false
   },
   {
     id: "priceList",
@@ -30,7 +81,8 @@ const AVAILABLE_WIDGETS = [
     icon: PiggyBank,
     color: "text-emerald-400",
     bg: "bg-emerald-500/10",
-    border: "border-emerald-500/20"
+    border: "border-emerald-500/20",
+    defaultOn: false
   }
 ];
 
@@ -110,7 +162,7 @@ const PREDEFINED_BUTTONS = [
     label: "Inventario",
     icon: "Package",
     gradient: "from-teal-500 to-cyan-600",
-    action: "Settings",
+    action: "Inventory",
     type: "navigate"
   },
   {
@@ -118,7 +170,7 @@ const PREDEFINED_BUTTONS = [
     label: "Finanzas",
     icon: "Wallet",
     gradient: "from-green-600 to-emerald-700",
-    action: "Settings",
+    action: "Financial",
     type: "navigate"
   },
   {
@@ -126,7 +178,7 @@ const PREDEFINED_BUTTONS = [
     label: "Reportes",
     icon: "BarChart3",
     gradient: "from-blue-600 to-indigo-700",
-    action: "Settings",
+    action: "FinancialReports",
     type: "navigate"
   }
 ];
@@ -136,7 +188,14 @@ export default function DashboardLinksConfig({ open, onClose }) {
   const [saving, setSaving] = useState(false);
   const [buttons, setButtons] = useState([]);
   const [activeTab, setActiveTab] = useState("buttons");
-  const [widgetConfig, setWidgetConfig] = useState({ priceList: false, orders: false });
+  const [widgetConfig, setWidgetConfig] = useState({
+    kpiIncome: true, kpiGoal: true, kpiActive: true, kpiDelivered: true, kpiOverdue: true,
+    orders: false, priceList: false
+  });
+  const DAILY_GOAL_KEY = "smartfix_daily_goal_override";
+  const [dailyGoal, setDailyGoal] = useState(() => {
+    try { return localStorage.getItem("smartfix_daily_goal_override") || "1000"; } catch { return "1000"; }
+  });
   const [showCreateCustom, setShowCreateCustom] = useState(false);
   const [customButton, setCustomButton] = useState({
     label: "",
@@ -159,7 +218,7 @@ export default function DashboardLinksConfig({ open, onClose }) {
       try {
         const raw = localStorage.getItem(DASHBOARD_WIDGETS_KEY);
         const parsed = raw ? JSON.parse(raw) : {};
-        setWidgetConfig({ priceList: false, orders: false, ...parsed });
+        setWidgetConfig({ kpiIncome: true, kpiGoal: true, kpiActive: true, kpiDelivered: true, kpiOverdue: true, orders: false, priceList: false, ...parsed });
       } catch {}
 
       const configs = await dataClient.entities.AppSettings.filter({ slug: "dashboard-buttons" });
@@ -172,7 +231,7 @@ export default function DashboardLinksConfig({ open, onClose }) {
           const saved = savedButtons.find(s => s.id === btn.id);
           return {
             ...btn,
-            enabled: saved !== undefined ? saved.enabled : (btn.id === "inventory" || btn.id === "financial" || btn.id === "reports" ? false : true),
+            enabled: saved !== undefined ? saved.enabled : (["new_order","orders_list","inventory","financial"].includes(btn.id)),
             order: saved !== undefined ? saved.order : PREDEFINED_BUTTONS.indexOf(btn)
           };
         });
@@ -185,7 +244,7 @@ export default function DashboardLinksConfig({ open, onClose }) {
         // Configuración por defecto: habilitados los principales
         setButtons(PREDEFINED_BUTTONS.map((btn, idx) => ({
           ...btn,
-          enabled: ["new_order", "pos", "orders_list", "quick_repair", "unlocks", "recharges"].includes(btn.id),
+          enabled: ["new_order","orders_list","inventory","financial"].includes(btn.id),
           order: idx
         })));
       }
@@ -289,6 +348,8 @@ export default function DashboardLinksConfig({ open, onClose }) {
 
       // Save widget config to localStorage
       localStorage.setItem(DASHBOARD_WIDGETS_KEY, JSON.stringify(widgetConfig));
+      const goalNum = Number(dailyGoal);
+      if (!isNaN(goalNum) && goalNum > 0) localStorage.setItem("smartfix_daily_goal_override", String(goalNum));
       window.dispatchEvent(new CustomEvent('dashboard-widgets-updated'));
 
       toast.success("✅ Configuración guardada");
@@ -417,6 +478,24 @@ export default function DashboardLinksConfig({ open, onClose }) {
                   </div>
                 );
               })}
+
+                  {/* Meta diaria config */}
+                  <div className="mt-4 pt-4 border-t border-white/[0.06]">
+                    <p className="text-[10px] font-black text-white/30 uppercase tracking-widest mb-3">Configurar Meta Diaria</p>
+                    <div className="flex items-center gap-3 bg-white/[0.04] border border-white/[0.08] rounded-2xl px-4 py-3">
+                      <TrendingUp className="w-4 h-4 text-blue-400 shrink-0" />
+                      <span className="text-xs text-white/50 font-bold whitespace-nowrap">Meta $</span>
+                      <input
+                        type="number"
+                        min="0"
+                        value={dailyGoal}
+                        onChange={(e) => setDailyGoal(e.target.value)}
+                        placeholder="1000"
+                        className="flex-1 bg-transparent text-white text-sm font-black outline-none placeholder-white/20 min-w-0"
+                      />
+                      <span className="text-[10px] text-white/20 font-bold">USD/día</span>
+                    </div>
+                  </div>
             </div>
           ) : (
             <>
