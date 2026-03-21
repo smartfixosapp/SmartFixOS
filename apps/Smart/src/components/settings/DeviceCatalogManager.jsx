@@ -572,7 +572,13 @@ export default function DeviceCatalogManager() {
   };
 
   useEffect(() => {
-    loadAll();
+    const init = async () => {
+      await loadAll();
+      const localCatalog = readLocalDeviceCatalog();
+      const hasLocal = [...localCatalog.categories, ...localCatalog.brands, ...localCatalog.families, ...localCatalog.models].some((e) => isLocalCatalogId(e.id));
+      if (hasLocal) await syncLocalToSupabase(true);
+    };
+    init();
     const reloadCatalog = () => loadAll();
     window.addEventListener(DEVICE_CATALOG_UPDATED_EVENT, reloadCatalog);
     window.addEventListener("storage", reloadCatalog);
@@ -626,6 +632,123 @@ export default function DeviceCatalogManager() {
       toast.error("Error cargando catálogo");
     } finally {
       setLoading(false);
+    }
+  };
+
+  const syncLocalToSupabase = async (silent = false) => {
+    const localCatalog = readLocalDeviceCatalog();
+    const localCats = localCatalog.categories.filter((c) => isLocalCatalogId(c.id));
+    const localBrands = localCatalog.brands.filter((b) => isLocalCatalogId(b.id));
+    const localFams = localCatalog.families.filter((f) => isLocalCatalogId(f.id));
+    const localMods = localCatalog.models.filter((m) => isLocalCatalogId(m.id));
+
+    if (!localCats.length && !localBrands.length && !localFams.length && !localMods.length) {
+      if (!silent) toast.info("No hay datos locales pendientes de sincronizar");
+      return;
+    }
+
+    setSyncing(true);
+    const idMap = new Map();
+    let syncCount = 0;
+
+    try {
+      // 1. Sync categories
+      const remoteCats = await base44.entities.DeviceCategory.filter({ active: true }, "order").catch(() => []);
+      for (const cat of localCats) {
+        const existing = (remoteCats || []).find((r) => normalizedNameKey(r.name) === normalizedNameKey(cat.name));
+        if (existing) {
+          idMap.set(cat.id, existing.id);
+        } else {
+          try {
+            const created = await base44.entities.DeviceCategory.create({ name: cat.name, active: true, order: cat.order || 1 });
+            if (created?.id) { idMap.set(cat.id, created.id); syncCount++; }
+          } catch { /* no-op */ }
+        }
+      }
+
+      // 2. Sync brands
+      const remoteBrands = await base44.entities.Brand.filter({ active: true }, "order").catch(() => []);
+      for (const brand of localBrands) {
+        const resolvedCategoryId = idMap.get(brand.category_id) || brand.category_id;
+        if (!resolvedCategoryId || isLocalCatalogId(resolvedCategoryId)) continue;
+        const existing = (remoteBrands || []).find((r) => normalizedNameKey(r.name) === normalizedNameKey(brand.name) && r.category_id === resolvedCategoryId);
+        if (existing) {
+          idMap.set(brand.id, existing.id);
+        } else {
+          try {
+            const created = await base44.entities.Brand.create({ name: brand.name, category_id: resolvedCategoryId, active: true, order: brand.order || 1 });
+            if (created?.id) { idMap.set(brand.id, created.id); syncCount++; }
+          } catch { /* no-op */ }
+        }
+      }
+
+      // 3. Sync families
+      const remoteFams = await base44.entities.DeviceFamily.filter({ active: true }, "order").catch(() => []);
+      for (const fam of localFams) {
+        const resolvedBrandId = idMap.get(fam.brand_id) || fam.brand_id;
+        if (!resolvedBrandId || isLocalCatalogId(resolvedBrandId)) continue;
+        const existing = (remoteFams || []).find((r) => normalizedNameKey(r.name) === normalizedNameKey(fam.name) && r.brand_id === resolvedBrandId);
+        if (existing) {
+          idMap.set(fam.id, existing.id);
+        } else {
+          try {
+            const created = await base44.entities.DeviceFamily.create({ name: fam.name, brand_id: resolvedBrandId, active: true, order: fam.order || 1 });
+            if (created?.id) { idMap.set(fam.id, created.id); syncCount++; }
+          } catch { /* no-op */ }
+        }
+      }
+
+      // 4. Sync models
+      const remoteMods = await base44.entities.DeviceModel.filter({ active: true }, "order").catch(() => []);
+      for (const mod of localMods) {
+        const resolvedBrandId = idMap.get(mod.brand_id) || mod.brand_id;
+        if (!resolvedBrandId || isLocalCatalogId(resolvedBrandId)) continue;
+        const resolvedFamilyId = idMap.get(mod.family_id) || mod.family_id;
+        const validFamilyId = resolvedFamilyId && !isLocalCatalogId(resolvedFamilyId) ? resolvedFamilyId : null;
+        const existing = (remoteMods || []).find((r) => normalizedNameKey(r.name) === normalizedNameKey(mod.name) && r.brand_id === resolvedBrandId);
+        if (!existing) {
+          try {
+            await base44.entities.DeviceModel.create({
+              name: mod.name,
+              brand_id: resolvedBrandId,
+              ...(validFamilyId ? { family_id: validFamilyId } : {}),
+              family: mod.family || "",
+              active: true,
+              order: mod.order || 1,
+            });
+            syncCount++;
+          } catch { /* no-op */ }
+        }
+        if (existing) idMap.set(mod.id, existing.id);
+      }
+
+      // Remove synced local entries from localStorage
+      if (idMap.size > 0) {
+        const updated = readLocalDeviceCatalog();
+        updated.categories = updated.categories.filter((c) => !idMap.has(c.id));
+        updated.brands = updated.brands.filter((b) => !idMap.has(b.id));
+        updated.families = updated.families.filter((f) => !idMap.has(f.id));
+        updated.models = updated.models.filter((m) => !idMap.has(m.id));
+        writeLocalDeviceCatalog(updated);
+      }
+
+      catalogCache.delete?.("device_categories");
+      await loadAll();
+
+      if (!silent) {
+        if (syncCount > 0) {
+          toast.success(`Sincronizados ${syncCount} elementos al catálogo en la nube`);
+        } else {
+          toast.info("Catálogo ya sincronizado");
+        }
+      } else if (syncCount > 0) {
+        toast.success(`Catálogo sincronizado: ${syncCount} elementos subidos a la nube`);
+      }
+    } catch (error) {
+      console.error("[DeviceCatalogManager] Error sincronizando:", error);
+      if (!silent) toast.error("Error durante la sincronización");
+    } finally {
+      setSyncing(false);
     }
   };
 
@@ -1317,15 +1440,26 @@ export default function DeviceCatalogManager() {
             </div>
           </div>
 
-          <Button
-            onClick={normalizeFamilies}
-            disabled={normalizing || !models.length}
-            variant="outline"
-            className="border-amber-500/40 bg-amber-500/10 text-amber-300 hover:bg-amber-500/15"
-          >
-            <Wrench className="mr-2 h-4 w-4" />
-            {normalizing ? "Normalizando..." : "Normalizar familias"}
-          </Button>
+          <div className="flex gap-2 flex-wrap">
+            <Button
+              onClick={() => syncLocalToSupabase(false)}
+              disabled={syncing || loading}
+              variant="outline"
+              className="border-cyan-500/40 bg-cyan-500/10 text-cyan-300 hover:bg-cyan-500/15"
+            >
+              <RefreshCw className={`mr-2 h-4 w-4 ${syncing ? "animate-spin" : ""}`} />
+              {syncing ? "Sincronizando..." : "Sincronizar a nube"}
+            </Button>
+            <Button
+              onClick={normalizeFamilies}
+              disabled={normalizing || !models.length}
+              variant="outline"
+              className="border-amber-500/40 bg-amber-500/10 text-amber-300 hover:bg-amber-500/15"
+            >
+              <Wrench className="mr-2 h-4 w-4" />
+              {normalizing ? "Normalizando..." : "Normalizar familias"}
+            </Button>
+          </div>
         </div>
       </div>
 
