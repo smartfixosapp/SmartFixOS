@@ -10,6 +10,7 @@ import { triggerRealtimeNotification, NOTIFICATION_TYPES } from "@/components/no
 import { ensureAdminBootstrap, ensureTenantAdminUser } from "@/components/utils/adminBootstrap";
 import { getUserPermissions } from "@/components/utils/rolePermissions";
 import RequestAccessModal from "../components/auth/RequestAccessModal";
+import NovedadesPanel from "../components/pinaccess/NovedadesPanel";
 // registerTenant now handled by /api/register (Vercel serverless)
 
 export default function PinAccess() {
@@ -859,6 +860,8 @@ export default function PinAccess() {
       // Fase 4: tenant isolation
       tenant_id: user.tenant_id || tenantId || null,
       auth_id: user.auth_id || null,
+      // Timeout de sesión por usuario
+      session_timeout_ms: user.session_timeout_ms ?? null,
       loginTime: new Date().toISOString()
     };
   };
@@ -2250,6 +2253,9 @@ export default function PinAccess() {
                         </motion.button>
                       ))}
                     </motion.div>
+
+                    {/* Novedades del sistema — bajo el grid de usuarios */}
+                    <NovedadesPanel />
                   </div>
                 </div>
               </motion.div>

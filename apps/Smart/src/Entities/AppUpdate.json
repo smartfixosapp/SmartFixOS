@@ -1,0 +1,51 @@
+{
+  "name": "AppUpdate",
+  "type": "object",
+  "description": "Novedades / changelog visible en PinAccess",
+  "properties": {
+    "title": {
+      "type": "string",
+      "minLength": 2,
+      "description": "Título de la novedad"
+    },
+    "description": {
+      "type": "string",
+      "description": "Descripción completa"
+    },
+    "type": {
+      "type": "string",
+      "enum": ["feature", "fix", "improvement", "breaking"],
+      "default": "feature",
+      "description": "Tipo de cambio"
+    },
+    "version": {
+      "type": "string",
+      "description": "Versión (ej: 2.4.0)"
+    },
+    "badge_color": {
+      "type": "string",
+      "description": "Clases Tailwind para el degradado del badge",
+      "default": "from-cyan-500 to-blue-600"
+    },
+    "order": {
+      "type": "integer",
+      "default": 0,
+      "description": "Orden de aparición (menor = primero)"
+    },
+    "published": {
+      "type": "boolean",
+      "default": false,
+      "description": "Visible en PinAccess"
+    },
+    "published_at": {
+      "type": "string",
+      "format": "date",
+      "description": "Fecha de publicación"
+    },
+    "tenant_id": {
+      "type": "string",
+      "description": "ID del tenant (NULL = global)"
+    }
+  },
+  "required": ["title", "type"]
+}

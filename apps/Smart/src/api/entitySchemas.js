@@ -61,6 +61,7 @@ import Subscription from "@/Entities/Subscription.json";
 import CommunicationHistory from "@/Entities/CommunicationHistory.json";
 import CustomerSegment from "@/Entities/CustomerSegment.json";
 import EmailTemplate from "@/Entities/EmailTemplate.json";
+import AppUpdate from "@/Entities/AppUpdate.json";
 
 export const entitySchemas = {
   Customer,
@@ -126,6 +127,7 @@ export const entitySchemas = {
   CommunicationHistory,
   CustomerSegment,
   EmailTemplate,
+  AppUpdate,
 };
 
 export default entitySchemas;

@@ -171,6 +171,15 @@ const appClientAdapter = {
       create: (data) => appClient.entities.SystemConfig.create(data),
       update: (id, data) => appClient.entities.SystemConfig.update(id, data),
     },
+    // AppUpdate — novedades del sistema, visibles en PinAccess (sin tenant filter)
+    AppUpdate: {
+      list:   (order, limit) => appClient.entities.AppUpdate.list(order, limit),
+      filter: (q, order)     => appClient.entities.AppUpdate.filter(q, order),
+      get:    (id)           => appClient.entities.AppUpdate.get(id),
+      create: (data)         => appClient.entities.AppUpdate.create(data),
+      update: (id, data)     => appClient.entities.AppUpdate.update(id, data),
+      delete: (id)           => appClient.entities.AppUpdate.delete(id),
+    },
   },
   auth: {
     me: async () => {

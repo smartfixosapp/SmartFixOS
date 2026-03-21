@@ -15,8 +15,11 @@ const PUBLIC_PATHS = new Set([
 ]);
 
 // ─── Timeouts ──────────────────────────────────────────────────────────────
-/** Inactividad dentro de la app → PinAccess */
-const INACTIVITY_MS = 5 * 60 * 1000; // 5 minutos
+/** Inactividad por defecto → PinAccess (si el usuario no configuró el suyo) */
+const DEFAULT_INACTIVITY_MS = 5 * 60 * 1000; // 5 minutos
+
+/** Umbral "Nunca": si el usuario elige 0 o null → no hay timer */
+const NEVER_TIMEOUT = null;
 
 /**
  * Tiempo en segundo plano (multitarea / cambio de pestaña) antes de pedir PIN.
@@ -74,6 +77,8 @@ function readPinSession() {
       position: session.position || session.role || session.userRole || "user",
       permissions: session.permissions || {},
       permissions_list: session.permissions_list || [],
+      // Timeout personalizado por usuario (null = usar default del sistema)
+      session_timeout_ms: session.session_timeout_ms ?? null,
     };
   } catch {
     return null;
@@ -85,6 +90,9 @@ export default function AuthGate({ children }) {
   const [user, setUser] = React.useState(null);
   const [isCheckingAuth, setIsCheckingAuth] = React.useState(true);
   const inactivityTimerRef = React.useRef(null);
+  // ── Timeout dinámico por usuario ─────────────────────────────────────
+  // Ref para no crear stale closures en los callbacks del timer.
+  const inactivityMsRef = React.useRef(DEFAULT_INACTIVITY_MS);
 
   // ── Logout ────────────────────────────────────────────────────────────
   const handleLogout = React.useCallback((reason = "manual") => {
@@ -109,11 +117,28 @@ export default function AuthGate({ children }) {
     window.location.href = "/PinAccess";
   }, []);
 
-  // ── Timer de inactividad ──────────────────────────────────────────────
+  // ── Timer de inactividad (respeta la preferencia del usuario) ─────────
   const resetInactivityTimer = React.useCallback(() => {
     if (isPublicPath()) return;
+    const ms = inactivityMsRef.current;
+    // null o 0 → "Nunca" → no armar timer
+    if (!ms) return;
     if (inactivityTimerRef.current) clearTimeout(inactivityTimerRef.current);
-    inactivityTimerRef.current = setTimeout(requirePin, INACTIVITY_MS);
+    inactivityTimerRef.current = setTimeout(requirePin, ms);
+  }, [requirePin]);
+
+  // ── Actualizar timeout en vivo (llamado desde UserSessionSettings) ────
+  const updateSessionTimeout = React.useCallback((newMs) => {
+    inactivityMsRef.current = newMs ?? DEFAULT_INACTIVITY_MS;
+    // Re-armar el timer con el nuevo valor inmediatamente
+    if (!isPublicPath() && inactivityTimerRef.current) {
+      clearTimeout(inactivityTimerRef.current);
+      inactivityTimerRef.current = null;
+    }
+    if (!isPublicPath()) {
+      const ms = inactivityMsRef.current;
+      if (ms) inactivityTimerRef.current = setTimeout(requirePin, ms);
+    }
   }, [requirePin]);
 
   // ── Verificar auth en mount ───────────────────────────────────────────
@@ -139,6 +164,8 @@ export default function AuthGate({ children }) {
     const sessionUser = readPinSession();
 
     if (sessionUser) {
+      // Cargar el timeout personal del usuario en el ref antes de activar el timer
+      inactivityMsRef.current = sessionUser.session_timeout_ms ?? DEFAULT_INACTIVITY_MS;
       setUser(sessionUser);
       setIsCheckingAuth(false);
       return;
@@ -236,7 +263,7 @@ export default function AuthGate({ children }) {
 
   if (user) {
     return (
-      <AuthContext.Provider value={{ user, handleLogout }}>
+      <AuthContext.Provider value={{ user, handleLogout, updateSessionTimeout }}>
         {children}
       </AuthContext.Provider>
     );

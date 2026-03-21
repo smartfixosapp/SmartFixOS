@@ -140,6 +140,12 @@
       "format": "date-time",
       "description": "Expiraci\u00f3n del token de activaci\u00f3n"
     },
+    "session_timeout_ms": {
+      "type": "integer",
+      "description": "Tiempo de inactividad en ms antes de redirigir a PinAccess. null = sistema (5 min).",
+      "default": null,
+      "minimum": 30000
+    },
     "tenant_id": {
       "type": "string",
       "description": "ID del tenant"

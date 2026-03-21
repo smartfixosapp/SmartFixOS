@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from "react";
 import FeedbackModal from "@/components/settings/FeedbackModal";
+import UserSessionSettings from "@/components/settings/UserSessionSettings";
+import UpdatesManager from "@/components/settings/UpdatesManager";
 import { dataClient } from "@/components/api/dataClient";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -34,6 +36,18 @@ export default function SettingsPage() {
   const [loading, setLoading] = useState(false);
   const [activeSection, setActiveSection]   = useState(null);
   const [showFeedback,  setShowFeedback]    = useState(false);
+
+  // ── Sesión del usuario actual ──────────────────────────────────────────
+  const currentSession = (() => {
+    try {
+      const raw = sessionStorage.getItem("911-session") || localStorage.getItem("employee_session");
+      return raw ? JSON.parse(raw) : null;
+    } catch { return null; }
+  })();
+  const currentUserRole = currentSession?.role || currentSession?.userRole || "";
+  const currentUserEmail = currentSession?.email || currentSession?.userEmail || "";
+  const isAdmin = currentUserRole === "admin";
+  const isSuperAdmin = currentUserEmail === "smartfixosapp@gmail.com" || currentUserEmail === "911smartfix@gmail.com";
 
   // Biometric state (mobile only)
   const isMobileDevice = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent) || !!window.Capacitor;
@@ -906,6 +920,22 @@ export default function SettingsPage() {
           description: "Acceso biométrico al dispositivo",
           color: "from-emerald-600 to-teal-600",
         }] : []),
+        // Timeout de sesión — visible para TODOS los usuarios
+        {
+          id: "mi_sesion",
+          icon: Clock,
+          title: "Mi Sesión",
+          description: "Tiempo de inactividad antes de pedir PIN",
+          color: "from-violet-600 to-purple-600",
+        },
+        // Novedades — solo admin / super admin
+        ...(isAdmin || isSuperAdmin ? [{
+          id: "novedades_admin",
+          icon: Sparkles,
+          title: "Novedades",
+          description: "Publicar actualizaciones del sistema",
+          color: "from-amber-500 to-orange-600",
+        }] : []),
       ]
     },
   ];
@@ -1340,6 +1370,12 @@ export default function SettingsPage() {
 
           {/* EMAIL TEMPLATES */}
           {activeSection === "email_templates" && <EmailTemplatesTab />}
+
+          {/* MI SESIÓN — timeout personalizado por usuario */}
+          {activeSection === "mi_sesion" && <UserSessionSettings />}
+
+          {/* NOVEDADES — admin panel para publicar updates */}
+          {activeSection === "novedades_admin" && <UpdatesManager />}
 
           {/* BIOMETRIC */}
           {activeSection === "biometric" && (
