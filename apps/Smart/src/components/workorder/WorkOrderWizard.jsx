@@ -1469,32 +1469,18 @@ export default function WorkOrderWizard({ open, onClose, onSuccess, preloadedCus
           nameLower.includes("diagnostic") ||
           nameLower.includes("diagnostico");
 
-        // Services/diagnostics: match by device type/category only
-        // (e.g. "Diagnóstico SmartPhone" shows for any SmartPhone regardless of model)
+        // Services/diagnostics: always match by device category only
+        // Shows regardless of model (Diagnóstico SmartPhone → any SmartPhone)
         if (looksLikeService) return categoryMatched;
 
-        // Parts/products: smart matching based on what's selected
-        const nameHasModel = modelLower && nameLower.includes(modelLower);
-        const compatHasModel = modelLower && compatModels.some(m => normalizedText(m).includes(modelLower));
-        const nameHasFamily = familyLower && nameLower.includes(familyLower);
-        const compatHasFamily = familyLower && compatFamilies.some(f => normalizedText(f).includes(familyLower));
-        const nameHasBrand = brandLower && nameLower.includes(brandLower);
-        const compatHasBrand = brandLower && compatBrands.some(b => normalizedText(b).includes(brandLower));
+        // Parts/products: ONLY show when a specific model is selected
+        // Selecting family (iPhone) or brand (Apple) without a model → no parts shown yet
+        if (!modelLower) return false;
 
-        if (modelLower) {
-          // Model selected → REQUIRE model keyword in name or compatibility_models
-          return categoryMatched && (nameHasModel || compatHasModel);
-        }
-        if (familyLower) {
-          // Family selected (no model) → match by family
-          return categoryMatched && (nameHasFamily || compatHasFamily);
-        }
-        if (brandLower) {
-          // Brand only → match by brand
-          return categoryMatched && (nameHasBrand || compatHasBrand);
-        }
-        // Category only → show all matching category
-        return categoryMatched;
+        // Model selected → REQUIRE model keyword in name or compatibility_models
+        const nameHasModel = nameLower.includes(modelLower);
+        const compatHasModel = compatModels.some(m => normalizedText(m).includes(modelLower));
+        return categoryMatched && (nameHasModel || compatHasModel);
       });
 
       const ranked = filtered.sort((a, b) => {
