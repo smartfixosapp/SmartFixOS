@@ -635,12 +635,55 @@ export default function DeviceCatalogManager() {
     }
   };
 
+  // ── Helpers para cascade-upsert en Supabase ────────────────────────────
+  // Cada helper busca el elemento por nombre; si no existe, lo crea.
+  // Esto garantiza que la jerarquía completa exista en Supabase aunque
+  // el dato original haya sido guardado localmente con local-device-* IDs.
+
+  const ensureRemoteCategory = async (name, remoteCats) => {
+    const match = (remoteCats || []).find((c) => normalizedNameKey(c.name) === normalizedNameKey(name));
+    if (match?.id) return match;
+    return await base44.entities.DeviceCategory.create({ name, active: true, order: (remoteCats || []).length + 1 });
+  };
+
+  const ensureRemoteBrand = async (name, categoryId, remoteBrands) => {
+    const match = (remoteBrands || []).find(
+      (b) => normalizedNameKey(b.name) === normalizedNameKey(name) && b.category_id === categoryId
+    );
+    if (match?.id) return match;
+    return await base44.entities.Brand.create({
+      name, category_id: categoryId, active: true,
+      order: (remoteBrands || []).filter((b) => b.category_id === categoryId).length + 1,
+    });
+  };
+
+  const ensureRemoteFamily = async (name, brandId, remoteFams) => {
+    const match = (remoteFams || []).find(
+      (f) => normalizedNameKey(f.name) === normalizedNameKey(name) && f.brand_id === brandId
+    );
+    if (match?.id) return match;
+    return await base44.entities.DeviceFamily.create({
+      name, brand_id: brandId, active: true,
+      order: (remoteFams || []).filter((f) => f.brand_id === brandId).length + 1,
+    });
+  };
+
+  // Detectar si el error es realmente de red (sin conexión)
+  const isNetworkError = (error) => {
+    if (!navigator.onLine) return true;
+    const msg = String(error?.message || error || "").toLowerCase();
+    return msg.includes("fetch") || msg.includes("network") || msg.includes("failed to fetch") || msg.includes("connection refused");
+  };
+
+  // ── Sync local → Supabase con cascade-upsert ───────────────────────────
+  // Resuelve IDs locales (local-device-*) usando búsqueda por NOMBRE en Supabase,
+  // así no se saltan entradas aunque su categoría/marca tampoco esté en idMap.
   const syncLocalToSupabase = async (silent = false) => {
     const localCatalog = readLocalDeviceCatalog();
-    const localCats = localCatalog.categories.filter((c) => isLocalCatalogId(c.id));
+    const localCats   = localCatalog.categories.filter((c) => isLocalCatalogId(c.id));
     const localBrands = localCatalog.brands.filter((b) => isLocalCatalogId(b.id));
-    const localFams = localCatalog.families.filter((f) => isLocalCatalogId(f.id));
-    const localMods = localCatalog.models.filter((m) => isLocalCatalogId(m.id));
+    const localFams   = localCatalog.families.filter((f) => isLocalCatalogId(f.id));
+    const localMods   = localCatalog.models.filter((m) => isLocalCatalogId(m.id));
 
     if (!localCats.length && !localBrands.length && !localFams.length && !localMods.length) {
       if (!silent) toast.info("No hay datos locales pendientes de sincronizar");
@@ -648,11 +691,11 @@ export default function DeviceCatalogManager() {
     }
 
     setSyncing(true);
-    const idMap = new Map();
+    const idMap = new Map(); // local-id → supabase-id
     let syncCount = 0;
 
     try {
-      // 1. Sync categories
+      // 1. Categorías
       const remoteCats = await base44.entities.DeviceCategory.filter({ active: true }, "order").catch(() => []);
       for (const cat of localCats) {
         const existing = (remoteCats || []).find((r) => normalizedNameKey(r.name) === normalizedNameKey(cat.name));
@@ -666,12 +709,23 @@ export default function DeviceCatalogManager() {
         }
       }
 
-      // 2. Sync brands
+      // 2. Marcas — resuelve category_id por idMap o por nombre (cascade)
       const remoteBrands = await base44.entities.Brand.filter({ active: true }, "order").catch(() => []);
       for (const brand of localBrands) {
-        const resolvedCategoryId = idMap.get(brand.category_id) || brand.category_id;
+        let resolvedCategoryId = idMap.get(brand.category_id) || brand.category_id;
+        // Si sigue siendo un ID local, buscar categoría por nombre en Supabase
+        if (!resolvedCategoryId || isLocalCatalogId(resolvedCategoryId)) {
+          const catName = brand.category || "";
+          if (catName) {
+            const byName = (remoteCats || []).find((c) => normalizedNameKey(c.name) === normalizedNameKey(catName));
+            if (byName?.id) resolvedCategoryId = byName.id;
+          }
+        }
         if (!resolvedCategoryId || isLocalCatalogId(resolvedCategoryId)) continue;
-        const existing = (remoteBrands || []).find((r) => normalizedNameKey(r.name) === normalizedNameKey(brand.name) && r.category_id === resolvedCategoryId);
+
+        const existing = (remoteBrands || []).find(
+          (r) => normalizedNameKey(r.name) === normalizedNameKey(brand.name) && r.category_id === resolvedCategoryId
+        );
         if (existing) {
           idMap.set(brand.id, existing.id);
         } else {
@@ -682,12 +736,22 @@ export default function DeviceCatalogManager() {
         }
       }
 
-      // 3. Sync families
+      // 3. Familias — resuelve brand_id por idMap o por nombre (cascade)
       const remoteFams = await base44.entities.DeviceFamily.filter({ active: true }, "order").catch(() => []);
       for (const fam of localFams) {
-        const resolvedBrandId = idMap.get(fam.brand_id) || fam.brand_id;
+        let resolvedBrandId = idMap.get(fam.brand_id) || fam.brand_id;
+        if (!resolvedBrandId || isLocalCatalogId(resolvedBrandId)) {
+          const brandName = fam.brand || "";
+          if (brandName) {
+            const byName = (remoteBrands || []).find((b) => normalizedNameKey(b.name) === normalizedNameKey(brandName));
+            if (byName?.id) resolvedBrandId = byName.id;
+          }
+        }
         if (!resolvedBrandId || isLocalCatalogId(resolvedBrandId)) continue;
-        const existing = (remoteFams || []).find((r) => normalizedNameKey(r.name) === normalizedNameKey(fam.name) && r.brand_id === resolvedBrandId);
+
+        const existing = (remoteFams || []).find(
+          (r) => normalizedNameKey(r.name) === normalizedNameKey(fam.name) && r.brand_id === resolvedBrandId
+        );
         if (existing) {
           idMap.set(fam.id, existing.id);
         } else {
@@ -698,55 +762,75 @@ export default function DeviceCatalogManager() {
         }
       }
 
-      // 4. Sync models
+      // 4. Modelos — resuelve brand_id y family_id por idMap o por nombre
       const remoteMods = await base44.entities.DeviceModel.filter({ active: true }, "order").catch(() => []);
       for (const mod of localMods) {
-        const resolvedBrandId = idMap.get(mod.brand_id) || mod.brand_id;
+        let resolvedBrandId = idMap.get(mod.brand_id) || mod.brand_id;
+        if (!resolvedBrandId || isLocalCatalogId(resolvedBrandId)) {
+          const brandName = mod.brand || "";
+          if (brandName) {
+            const byName = (remoteBrands || []).find((b) => normalizedNameKey(b.name) === normalizedNameKey(brandName));
+            if (byName?.id) resolvedBrandId = byName.id;
+          }
+        }
         if (!resolvedBrandId || isLocalCatalogId(resolvedBrandId)) continue;
-        const resolvedFamilyId = idMap.get(mod.family_id) || mod.family_id;
+
+        let resolvedFamilyId = idMap.get(mod.family_id) || mod.family_id;
+        if (!resolvedFamilyId || isLocalCatalogId(resolvedFamilyId)) {
+          const famName = mod.family || "";
+          if (famName) {
+            const byName = (remoteFams || []).find(
+              (f) => normalizedNameKey(f.name) === normalizedNameKey(famName) && f.brand_id === resolvedBrandId
+            );
+            if (byName?.id) resolvedFamilyId = byName.id;
+          }
+        }
         const validFamilyId = resolvedFamilyId && !isLocalCatalogId(resolvedFamilyId) ? resolvedFamilyId : null;
-        const existing = (remoteMods || []).find((r) => normalizedNameKey(r.name) === normalizedNameKey(mod.name) && r.brand_id === resolvedBrandId);
-        if (!existing) {
+
+        const existing = (remoteMods || []).find(
+          (r) => normalizedNameKey(r.name) === normalizedNameKey(mod.name) && r.brand_id === resolvedBrandId
+        );
+        if (existing) {
+          idMap.set(mod.id, existing.id);
+        } else {
           try {
             await base44.entities.DeviceModel.create({
-              name: mod.name,
-              brand_id: resolvedBrandId,
+              name: mod.name, brand_id: resolvedBrandId,
               ...(validFamilyId ? { family_id: validFamilyId } : {}),
-              family: mod.family || "",
-              active: true,
-              order: mod.order || 1,
+              family: mod.family || "", brand: mod.brand || "",
+              active: true, order: mod.order || 1,
             });
             syncCount++;
           } catch { /* no-op */ }
         }
-        if (existing) idMap.set(mod.id, existing.id);
       }
 
-      // Remove synced local entries from localStorage
-      if (idMap.size > 0) {
-        const updated = readLocalDeviceCatalog();
-        updated.categories = updated.categories.filter((c) => !idMap.has(c.id));
-        updated.brands = updated.brands.filter((b) => !idMap.has(b.id));
-        updated.families = updated.families.filter((f) => !idMap.has(f.id));
-        updated.models = updated.models.filter((m) => !idMap.has(m.id));
-        writeLocalDeviceCatalog(updated);
-      }
+      // Limpiar del localStorage los que fueron subidos (o ya existían en remoto)
+      const synced = new Set(idMap.keys());
+      // También limpiar los modelos nuevos que no generan idMap entry pero sí se crearon
+      const updated = readLocalDeviceCatalog();
+      updated.categories = updated.categories.filter((c) => !synced.has(c.id));
+      updated.brands     = updated.brands.filter((b) => !synced.has(b.id));
+      updated.families   = updated.families.filter((f) => !synced.has(f.id));
+      // Para modelos: si tenía ID local y su brand pudo resolverse, considerarlo sincronizado
+      updated.models = updated.models.filter((m) => {
+        if (!isLocalCatalogId(m.id)) return true;
+        const brandResolved = idMap.get(m.brand_id) || (!isLocalCatalogId(m.brand_id) ? m.brand_id : null);
+        return !brandResolved; // si no se pudo resolver brand, mantener
+      });
+      writeLocalDeviceCatalog(updated);
 
       catalogCache.delete?.("device_categories");
       await loadAll();
 
       if (!silent) {
-        if (syncCount > 0) {
-          toast.success(`Sincronizados ${syncCount} elementos al catálogo en la nube`);
-        } else {
-          toast.info("Catálogo ya sincronizado");
-        }
+        toast.success(syncCount > 0 ? `☁️ ${syncCount} elementos sincronizados a la nube` : "Catálogo ya sincronizado");
       } else if (syncCount > 0) {
-        toast.success(`Catálogo sincronizado: ${syncCount} elementos subidos a la nube`);
+        toast.success(`☁️ Catálogo sincronizado automáticamente (${syncCount} elementos)`);
       }
     } catch (error) {
       console.error("[DeviceCatalogManager] Error sincronizando:", error);
-      if (!silent) toast.error("Error durante la sincronización");
+      if (!silent) toast.error("Error durante la sincronización — intenta de nuevo");
     } finally {
       setSyncing(false);
     }
@@ -892,27 +976,35 @@ export default function DeviceCatalogManager() {
 
     setCreating(true);
     try {
-      // ☁️ Cloud-first: resolver categoría real en Supabase y crear la marca ahí
-      const remoteCats = await base44.entities.DeviceCategory.filter({ active: true }, "order").catch(() => null);
-      if (remoteCats === null) throw new Error("Sin conexión");
-      const remoteCategory = remoteCats.find((c) => normalizedNameKey(c.name) === normalizedNameKey(selectedCategory.name));
-      if (!remoteCategory?.id) throw new Error("Categoría no encontrada en Supabase");
+      // ☁️ Cloud-first con cascade-upsert:
+      // Si la categoría no existe en Supabase (tenía ID local), la crea primero.
+      const remoteCats = await base44.entities.DeviceCategory.filter({ active: true }, "order");
+      const remoteBrandsAll = await base44.entities.Brand.filter({ active: true }, "order").catch(() => []);
 
-      const remoteBrands = await base44.entities.Brand.filter({ category_id: remoteCategory.id, active: true }, "order").catch(() => []);
-      const match = (remoteBrands || []).find((b) => normalizedNameKey(b.name) === normalizedNameKey(name));
-      if (!match) {
-        await base44.entities.Brand.create({ name, category_id: remoteCategory.id, active: true, order: (remoteBrands || []).length + 1 });
-      }
+      const remoteCategory = await ensureRemoteCategory(selectedCategory.name, remoteCats);
+      if (!remoteCategory?.id) throw new Error("No se pudo crear/encontrar la categoría en Supabase");
+
+      await ensureRemoteBrand(name, remoteCategory.id, remoteBrandsAll);
+
+      // Limpiar del local cualquier entrada duplicada con ID local para esta marca
+      const lc = readLocalDeviceCatalog();
+      lc.brands = lc.brands.filter((b) => !(isLocalCatalogId(b.id) && normalizedNameKey(b.name) === normalizedNameKey(name)));
+      writeLocalDeviceCatalog(lc);
+
       catalogCache.delete?.(`brands_${normalizedNameKey(selectedCategory.name)}`);
       toast.success("Marca guardada en la nube ☁️");
       setNewItemName("");
       await loadAll();
     } catch (error) {
-      console.warn("[DeviceCatalogManager] Sin conexión — guardando marca localmente:", error);
-      const localCatalog = readLocalDeviceCatalog();
-      ensureLocalBrand(localCatalog, selectedCategory.name, name);
-      writeLocalDeviceCatalog(localCatalog);
-      toast.warning("Sin conexión — guardado localmente, se sincronizará automáticamente");
+      console.warn("[DeviceCatalogManager] Error creando marca:", error);
+      const lc = readLocalDeviceCatalog();
+      ensureLocalBrand(lc, selectedCategory.name, name);
+      writeLocalDeviceCatalog(lc);
+      if (isNetworkError(error)) {
+        toast.warning("Sin conexión — guardado localmente, se sincronizará automáticamente");
+      } else {
+        toast.warning(`Guardado localmente (${error.message}) — se sincronizará automáticamente`);
+      }
       setNewItemName("");
       await loadAll();
     } finally {
@@ -933,27 +1025,40 @@ export default function DeviceCatalogManager() {
 
     setCreating(true);
     try {
-      // ☁️ Cloud-first: resolver marca real en Supabase y crear la familia ahí
-      const remoteBrands = await base44.entities.Brand.filter({ active: true }, "order").catch(() => null);
-      if (remoteBrands === null) throw new Error("Sin conexión");
-      const remoteBrand = remoteBrands.find((b) => normalizedNameKey(b.name) === normalizedNameKey(selectedBrand.name));
-      if (!remoteBrand?.id) throw new Error("Marca no encontrada en Supabase");
+      // ☁️ Cloud-first con cascade-upsert:
+      // Si la categoría o la marca tienen IDs locales, las crea en Supabase primero.
+      const remoteCats    = await base44.entities.DeviceCategory.filter({ active: true }, "order");
+      const remoteBrandsAll = await base44.entities.Brand.filter({ active: true }, "order").catch(() => []);
+      const remoteFamsAll   = await base44.entities.DeviceFamily.filter({ active: true }, "order").catch(() => []);
 
-      const remoteFamilies = await base44.entities.DeviceFamily.filter({ brand_id: remoteBrand.id, active: true }, "order").catch(() => []);
-      const match = (remoteFamilies || []).find((f) => normalizedNameKey(f.name) === normalizedNameKey(name));
-      if (!match) {
-        await base44.entities.DeviceFamily.create({ name, brand_id: remoteBrand.id, active: true, order: (remoteFamilies || []).length + 1 });
-      }
+      const remoteCategory = await ensureRemoteCategory(selectedCategory?.name || "", remoteCats);
+      if (!remoteCategory?.id) throw new Error("No se pudo crear/encontrar la categoría");
+
+      const remoteBrand = await ensureRemoteBrand(selectedBrand.name, remoteCategory.id, remoteBrandsAll);
+      if (!remoteBrand?.id) throw new Error("No se pudo crear/encontrar la marca");
+
+      await ensureRemoteFamily(name, remoteBrand.id, remoteFamsAll);
+
+      // Limpiar duplicados locales
+      const lc = readLocalDeviceCatalog();
+      lc.brands  = lc.brands.filter((b) => !(isLocalCatalogId(b.id) && normalizedNameKey(b.name) === normalizedNameKey(selectedBrand.name)));
+      lc.families = lc.families.filter((f) => !(isLocalCatalogId(f.id) && normalizedNameKey(f.name) === normalizedNameKey(name)));
+      writeLocalDeviceCatalog(lc);
+
       catalogCache.delete?.(`families_${normalizedNameKey(selectedCategory?.name || "")}_${normalizedNameKey(selectedBrand.name)}`);
       toast.success("Familia guardada en la nube ☁️");
       setNewItemName("");
       await loadAll();
     } catch (error) {
-      console.warn("[DeviceCatalogManager] Sin conexión — guardando familia localmente:", error);
-      const localCatalog = readLocalDeviceCatalog();
-      ensureLocalFamily(localCatalog, selectedCategory?.name || "", selectedBrand.name, name);
-      writeLocalDeviceCatalog(localCatalog);
-      toast.warning("Sin conexión — guardado localmente, se sincronizará automáticamente");
+      console.warn("[DeviceCatalogManager] Error creando familia:", error);
+      const lc = readLocalDeviceCatalog();
+      ensureLocalFamily(lc, selectedCategory?.name || "", selectedBrand.name, name);
+      writeLocalDeviceCatalog(lc);
+      if (isNetworkError(error)) {
+        toast.warning("Sin conexión — guardado localmente, se sincronizará automáticamente");
+      } else {
+        toast.warning(`Guardado localmente (${error.message}) — se sincronizará automáticamente`);
+      }
       setNewItemName("");
       await loadAll();
     } finally {
@@ -974,54 +1079,72 @@ export default function DeviceCatalogManager() {
 
     setCreating(true);
     try {
-      // ☁️ Cloud-first: resolver marca y familia reales en Supabase y crear modelo ahí
-      const remoteBrands = await base44.entities.Brand.filter({ active: true }, "order").catch(() => null);
-      if (remoteBrands === null) throw new Error("Sin conexión");
-      const remoteBrand = remoteBrands.find((b) => normalizedNameKey(b.name) === normalizedNameKey(selectedBrand.name));
-      if (!remoteBrand?.id) throw new Error("Marca no encontrada en Supabase");
+      // ☁️ Cloud-first con cascade-upsert completo:
+      // Garantiza que categoría → marca → familia existan en Supabase,
+      // creándolas si es necesario (aunque vinieran de localStorage con IDs locales).
+      const remoteCats      = await base44.entities.DeviceCategory.filter({ active: true }, "order");
+      const remoteBrandsAll = await base44.entities.Brand.filter({ active: true }, "order").catch(() => []);
+      const remoteFamsAll   = await base44.entities.DeviceFamily.filter({ active: true }, "order").catch(() => []);
+      const remoteModsAll   = await base44.entities.DeviceModel.filter({ active: true }, "order").catch(() => []);
 
-      const remoteFamilies = await base44.entities.DeviceFamily.filter({ brand_id: remoteBrand.id, active: true }, "order").catch(() => []);
-      const remoteFamily = (remoteFamilies || []).find((f) => normalizedNameKey(f.name) === normalizedNameKey(selectedFamily.name));
-      if (!remoteFamily?.id) throw new Error("Familia no encontrada en Supabase");
+      const remoteCategory = await ensureRemoteCategory(selectedCategory?.name || "", remoteCats);
+      if (!remoteCategory?.id) throw new Error("No se pudo crear/encontrar la categoría");
 
-      const remoteModels = await base44.entities.DeviceModel.filter({ brand_id: remoteBrand.id, active: true }, "order").catch(() => []);
-      const match = (remoteModels || []).find((m) =>
+      const remoteBrand = await ensureRemoteBrand(selectedBrand.name, remoteCategory.id, remoteBrandsAll);
+      if (!remoteBrand?.id) throw new Error("No se pudo crear/encontrar la marca");
+
+      const remoteFamily = await ensureRemoteFamily(selectedFamily.name, remoteBrand.id, remoteFamsAll);
+      if (!remoteFamily?.id) throw new Error("No se pudo crear/encontrar la familia");
+
+      // Crear el modelo solo si no existe ya
+      const existingModel = (remoteModsAll || []).find((m) =>
         normalizedNameKey(m.name) === normalizedNameKey(name) &&
+        m.brand_id === remoteBrand.id &&
         (m.family_id === remoteFamily.id || normalizedNameKey(m.family) === normalizedNameKey(remoteFamily.name))
       );
-      if (!match) {
+      if (!existingModel) {
         await base44.entities.DeviceModel.create({
           name,
           brand_id: remoteBrand.id,
           brand: remoteBrand.name,
-          category_id: remoteBrand.category_id || selectedCategory?.id,
+          category_id: remoteCategory.id,
           family_id: remoteFamily.id,
           family: remoteFamily.name,
           active: true,
-          order: (remoteModels || []).filter((m) => m.family_id === remoteFamily.id).length + 1,
+          order: (remoteModsAll || []).filter((m) => m.family_id === remoteFamily.id).length + 1,
         });
       }
+
+      // Limpiar duplicados locales de toda la jerarquía que acaba de subirse
+      const lc = readLocalDeviceCatalog();
+      lc.brands   = lc.brands.filter((b)   => !(isLocalCatalogId(b.id) && normalizedNameKey(b.name) === normalizedNameKey(selectedBrand.name)));
+      lc.families = lc.families.filter((f) => !(isLocalCatalogId(f.id) && normalizedNameKey(f.name) === normalizedNameKey(selectedFamily.name)));
+      lc.models   = lc.models.filter((m)   => !(isLocalCatalogId(m.id) && normalizedNameKey(m.name) === normalizedNameKey(name)));
+      writeLocalDeviceCatalog(lc);
+
       catalogCache.delete?.(`models_${remoteBrand.id}_${remoteFamily.id}`);
       toast.success("Modelo guardado en la nube ☁️");
       setNewItemName("");
       await loadAll();
     } catch (error) {
-      console.warn("[DeviceCatalogManager] Sin conexión — guardando modelo localmente:", error);
-      // Fallback offline
-      const localCatalog = readLocalDeviceCatalog();
-      const { family, brand } = ensureLocalFamily(localCatalog, selectedCategory?.name || "", selectedBrand.name, selectedFamily.name);
-      const exists = localCatalog.models.some(
-        (item) => item?.brand_id === brand.id && normalizedNameKey(item?.name) === normalizedNameKey(name)
-      );
+      console.warn("[DeviceCatalogManager] Error creando modelo:", error);
+      const lc = readLocalDeviceCatalog();
+      const { family, brand } = ensureLocalFamily(lc, selectedCategory?.name || "", selectedBrand.name, selectedFamily.name);
+      const exists = lc.models.some((item) => item?.brand_id === brand.id && normalizedNameKey(item?.name) === normalizedNameKey(name));
       if (!exists) {
-        localCatalog.models.unshift({
+        lc.models.unshift({
           id: `local-device-model-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
-          name, brand_id: brand.id, family_id: family.id, family: family.name, active: true,
-          order: localCatalog.models.filter((item) => item?.family_id === family.id).length + 1
+          name, brand_id: brand.id, family_id: family.id,
+          family: family.name, brand: selectedBrand.name, active: true,
+          order: lc.models.filter((item) => item?.family_id === family.id).length + 1,
         });
-        writeLocalDeviceCatalog(localCatalog);
+        writeLocalDeviceCatalog(lc);
       }
-      toast.warning("Sin conexión — guardado localmente, se sincronizará automáticamente");
+      if (isNetworkError(error)) {
+        toast.warning("Sin conexión — guardado localmente, se sincronizará automáticamente");
+      } else {
+        toast.warning(`Guardado localmente (${error.message}) — se sincronizará automáticamente`);
+      }
       setNewItemName("");
       await loadAll();
     } finally {

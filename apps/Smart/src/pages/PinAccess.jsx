@@ -1293,20 +1293,8 @@ export default function PinAccess() {
     setBiometricProfile(loadBiometricProfile());
   }, []);
 
-  // Auto-trigger early biometric (pantalla de selección de usuario)
-  useEffect(() => {
-    if (step !== "user") return;
-    if (!biometricSupported || !biometricProfile?.credentialId || !biometricProfile?.session) return;
-    const timer = setTimeout(() => handleEarlyBiometricLogin(), 900);
-    return () => clearTimeout(timer);
-  }, [step, biometricSupported, biometricProfile?.credentialId]);
-
-  // Auto-trigger biometric cuando usuario seleccionado tiene huella configurada
-  useEffect(() => {
-    if (!isBiometricAvailableForSelectedUser || biometricLoading || loading) return;
-    const timer = setTimeout(() => handleBiometricLogin(), 600);
-    return () => clearTimeout(timer);
-  }, [isBiometricAvailableForSelectedUser]);
+  // Auto-trigger biometric deshabilitado — el usuario inicia sesión siempre con PIN.
+  // El botón de biometría sigue disponible manualmente en la UI si el usuario lo prefiere.
 
   const handleNumberClick = (num) => {
     if (pin.length < 4) {
