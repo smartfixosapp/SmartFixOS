@@ -17,7 +17,7 @@ import {
   X, Eye, EyeOff, Wrench, CheckSquare, Camera, Key, Lock, Search,
   Fingerprint, ShieldCheck, ShieldAlert, History, Download, AlertCircle,
   Briefcase, ShoppingCart, BarChart3, TrendingDown, Activity, GripVertical,
-  Layout, Grid, Zap, ExternalLink, ChevronDown, Upload, MessageSquarePlus
+  Layout, Grid, Zap, ExternalLink, ChevronDown, Upload, MessageSquarePlus, PiggyBank, Layers
 } from "lucide-react";
 import { useI18n } from "@/components/utils/i18n";
 import ImportExportTab from "@/components/settings/ImportExportTab";
@@ -172,6 +172,22 @@ export default function SettingsPage() {
   const [newUsefulLink, setNewUsefulLink] = useState({ name: "", url: "" }); // 👈
   
   // Dashboard Buttons Config
+  const DASHBOARD_WIDGETS_KEY = "smartfix_dashboard_widgets";
+  const [widgetConfig, setWidgetConfig] = useState(() => {
+    try {
+      const raw = localStorage.getItem("smartfix_dashboard_widgets");
+      const parsed = raw ? JSON.parse(raw) : {};
+      return { priceList: false, orders: false, ...parsed };
+    } catch { return { priceList: false, orders: false }; }
+  });
+  const handleToggleWidget = (widgetId) => {
+    const next = { ...widgetConfig, [widgetId]: !widgetConfig[widgetId] };
+    setWidgetConfig(next);
+    localStorage.setItem("smartfix_dashboard_widgets", JSON.stringify(next));
+    window.dispatchEvent(new CustomEvent('dashboard-widgets-updated'));
+    toast.success("Widget actualizado");
+  };
+
   const [dashboardButtons, setDashboardButtons] = useState([]);
   const [showCreateCustom, setShowCreateCustom] = useState(false);
   const [customButton, setCustomButton] = useState({
@@ -1642,6 +1658,49 @@ export default function SettingsPage() {
                     <Plus className="w-5 h-5 mr-2" />
                     Añadir Acceso Directo
                   </Button>
+                </div>
+              </div>
+
+              {/* === WIDGETS OPCIONALES === */}
+              <div className="bg-gradient-to-br from-white/10 to-white/5 border border-white/10 rounded-[28px] p-7 backdrop-blur-xl shadow-2xl relative overflow-hidden mt-6">
+                <div className="absolute -right-20 -bottom-20 w-48 h-48 bg-gradient-to-br from-emerald-500/20 to-teal-500/10 rounded-full blur-[80px]" />
+                <div className="flex items-start gap-5 mb-7 relative z-10">
+                  <div className="w-12 h-12 rounded-full bg-gradient-to-br from-emerald-400 to-teal-500 flex items-center justify-center shrink-0 shadow-xl">
+                    <Layers className="w-6 h-6 text-white" strokeWidth={2.5} />
+                  </div>
+                  <div>
+                    <h2 className="text-2xl font-black text-white tracking-tight">Widgets del Dashboard</h2>
+                    <p className="text-white/60 text-sm mt-2 leading-relaxed font-semibold">
+                      Activa o desactiva las secciones opcionales que aparecen en tu pantalla principal.
+                    </p>
+                  </div>
+                </div>
+
+                <div className="space-y-3 relative z-10">
+                  {[
+                    { id: "orders", label: "Gestión de Órdenes", description: "Filtros, búsqueda y lista de órdenes activas", icon: ClipboardList, color: "text-blue-400", bg: "bg-blue-500/10", border: "border-blue-500/20" },
+                    { id: "priceList", label: "Lista de Precios", description: "Busca precios de productos y servicios al instante", icon: PiggyBank, color: "text-emerald-400", bg: "bg-emerald-500/10", border: "border-emerald-500/20" }
+                  ].map(widget => {
+                    const WidgetIcon = widget.icon;
+                    const isOn = widgetConfig[widget.id];
+                    return (
+                      <div key={widget.id} className={`flex items-center gap-4 p-4 rounded-[20px] border transition-all duration-300 ${isOn ? `${widget.bg} ${widget.border}` : "bg-white/[0.03] border-white/[0.07]"}`}>
+                        <div className={`w-12 h-12 rounded-2xl flex items-center justify-center ${isOn ? widget.bg : "bg-white/5"} border ${isOn ? widget.border : "border-white/10"}`}>
+                          <WidgetIcon className={`w-6 h-6 ${isOn ? widget.color : "text-white/30"}`} strokeWidth={2.5} />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className={`font-black text-base ${isOn ? "text-white" : "text-white/50"}`}>{widget.label}</p>
+                          <p className="text-white/30 text-xs mt-0.5 font-semibold">{widget.description}</p>
+                        </div>
+                        <button
+                          onClick={() => handleToggleWidget(widget.id)}
+                          className={`w-12 h-7 rounded-full transition-colors relative flex items-center px-1 ${isOn ? "bg-green-500" : "bg-white/10"}`}
+                        >
+                          <div className={`w-5 h-5 rounded-full bg-white shadow-sm transition-transform ${isOn ? "translate-x-5" : "translate-x-0"}`} />
+                        </button>
+                      </div>
+                    );
+                  })}
                 </div>
               </div>
 
