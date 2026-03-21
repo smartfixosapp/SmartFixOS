@@ -118,123 +118,104 @@ const ICON_MAP = {
 
 // === Tarjeta de inventario ===
 function InventoryCard({ item, onEdit, onDelete, onSelect, isSelected }) {
-  const st = item.stock <= 0 ? { tag: "Agotado", color: "text-red-400" } :
-  item.stock <= (item.min_stock || 0) ? { tag: "Bajo", color: "text-amber-400" } :
-  { tag: "OK", color: "text-emerald-400" };
+  const isService = item.part_type === 'servicio' || item.tipo_principal === 'servicios' || item.part_type === 'diagnostic';
+  const stockStatus = isService ? null :
+    item.stock <= 0 ? { tag: "Agotado", bg: "bg-red-500/15 border-red-500/30", text: "text-red-400" } :
+    item.stock <= (item.min_stock || 0) ? { tag: "Bajo", bg: "bg-amber-500/15 border-amber-500/30", text: "text-amber-400" } :
+    { tag: `${item.stock}`, bg: "bg-emerald-500/10 border-emerald-500/25", text: "text-emerald-400" };
 
   const priceInfo = formatPriceWithDiscount(item);
+  const profit = Number(item.price || 0) - Number(item.cost || 0);
+  const margin = Number(item.price || 0) > 0 ? ((profit / Number(item.price)) * 100).toFixed(0) : 0;
 
   return (
     <div
-      className={`group bg-white/5 backdrop-blur-xl border rounded-[20px] p-5 flex flex-col gap-3 hover:shadow-[0_12px_40px_rgba(0,168,232,0.25)] transition-all duration-300 cursor-pointer active:scale-[0.98] theme-light:bg-white theme-light:border-gray-200 theme-light:hover:shadow-lg ${
-      isSelected ? 'border-cyan-500 bg-cyan-500/10 ring-2 ring-cyan-500/40 scale-[1.02]' : 'border-white/10 hover:border-cyan-500/30'}`
-      }
-      onClick={() => onSelect?.(item)}>
+      className={`group relative bg-[#111114]/70 backdrop-blur-xl border rounded-[24px] p-4 flex flex-col gap-3 cursor-pointer transition-all duration-200 active:scale-[0.98] hover:bg-[#111114]/90 ${
+        isSelected ? 'border-cyan-500/60 ring-2 ring-cyan-500/20' : 'border-white/[0.07] hover:border-white/15'
+      }`}
+      onClick={() => onSelect?.(item)}
+    >
+      {/* Selection dot */}
+      <div className={`absolute top-3.5 left-3.5 w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all ${
+        isSelected ? 'bg-cyan-500 border-cyan-500 scale-110' : 'border-white/15 group-hover:border-white/30'
+      }`}>
+        {isSelected && <CheckSquare className="w-3 h-3 text-white" />}
+      </div>
 
-      <div className="flex items-start justify-between gap-3">
-        <div className="flex items-start gap-3 flex-1 min-w-0">
-          <div
-            className={`w-6 h-6 rounded-full border-2 flex items-center justify-center flex-shrink-0 transition-all ${
-            isSelected ? 'bg-cyan-500 border-cyan-500 scale-110' : 'border-white/20 group-hover:border-cyan-500/50'}`
-            }>
-            {isSelected && <CheckSquare className="w-4 h-4 text-white" />}
-          </div>
+      {/* Actions */}
+      <div className="absolute top-3 right-3 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+        <button
+          onClick={e => { e.stopPropagation(); onSelect?.(item, true); }}
+          className="w-7 h-7 rounded-xl bg-orange-500/15 border border-orange-500/20 flex items-center justify-center text-orange-400 hover:bg-orange-500/25 transition-all"
+          title="Configurar Oferta"
+        >
+          <Tag className="w-3.5 h-3.5" />
+        </button>
+        <button
+          onClick={e => { e.stopPropagation(); onEdit(item); }}
+          className="w-7 h-7 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-white/50 hover:text-white hover:bg-white/10 transition-all"
+        >
+          <Edit className="w-3.5 h-3.5" />
+        </button>
+        <button
+          onClick={e => { e.stopPropagation(); onDelete(item); }}
+          className="w-7 h-7 rounded-xl bg-red-500/10 border border-red-500/15 flex items-center justify-center text-red-400 hover:bg-red-500/20 transition-all"
+        >
+          <Trash2 className="w-3.5 h-3.5" />
+        </button>
+      </div>
 
-          <div className="flex-1 min-w-0">
-            <p className="font-bold text-white leading-tight truncate text-base theme-light:text-gray-900">
-              {item.name || "—"}
-            </p>
-            <div className="flex items-center gap-1.5 mt-2 flex-wrap">
-              <Badge className="text-[10px] px-2 py-0.5 rounded-full bg-cyan-500/20 text-cyan-300 border border-cyan-500/30 theme-light:bg-cyan-100 theme-light:text-cyan-700 theme-light:border-cyan-300">
-                {item.device_category || "Otros"}
-              </Badge>
-              <Badge className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 theme-light:bg-emerald-100 theme-light:text-emerald-700 theme-light:border-emerald-300">
-                {item.part_type || "Pieza"}
-              </Badge>
-            </div>
-          </div>
-        </div>
-
-        <div className="flex gap-1.5 flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
-          <Button
-            size="icon"
-            variant="ghost"
-            className="h-8 w-8 rounded-full text-orange-400 hover:text-orange-300 hover:bg-orange-500/20"
-            onClick={(e) => {
-              e.stopPropagation();
-              onSelect?.(item, true);
-            }}
-            title="Configurar Oferta">
-
-            <Tag className="w-4 h-4" />
-          </Button>
-          <Button
-            size="icon"
-            variant="ghost"
-            className="h-8 w-8 rounded-full text-white/70 hover:text-white hover:bg-white/10"
-            onClick={(e) => {e.stopPropagation();onEdit(item);}}>
-            <Edit className="w-4 h-4" />
-          </Button>
-          <Button
-            size="icon"
-            variant="ghost"
-            className="h-8 w-8 rounded-full text-red-400 hover:text-red-300 hover:bg-red-500/20"
-            onClick={(e) => {e.stopPropagation();onDelete(item);}}>
-            <Trash2 className="w-4 h-4" />
-          </Button>
+      {/* Name + badges */}
+      <div className="pl-7 pr-16">
+        <p className="font-bold text-white text-[15px] leading-snug truncate">{item.name || "—"}</p>
+        <div className="flex items-center gap-1.5 mt-1.5 flex-wrap">
+          {item.device_category && (
+            <span className="text-[10px] px-2 py-0.5 rounded-full bg-cyan-500/15 text-cyan-400 border border-cyan-500/20 font-bold">
+              {item.device_category}
+            </span>
+          )}
+          {item.part_type && item.part_type !== 'servicio' && (
+            <span className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/15 font-bold">
+              {item.part_type}
+            </span>
+          )}
+          {isService && (
+            <span className="text-[10px] px-2 py-0.5 rounded-full bg-orange-500/10 text-orange-400 border border-orange-500/15 font-bold">
+              Servicio
+            </span>
+          )}
         </div>
       </div>
 
       <DiscountBadge product={item} />
 
-      <div className="flex items-center justify-between gap-4 pt-3 border-t border-white/5 theme-light:border-gray-100">
-        <div className="flex-1">
-          <div className="flex items-baseline gap-2 mb-1">
-            <p className="text-2xl font-black text-white tracking-tight theme-light:text-gray-900">
-              {money(priceInfo.finalPrice)}
-            </p>
-            {priceInfo.originalPrice &&
-            <p className="text-sm text-gray-500 line-through">{money(priceInfo.originalPrice)}</p>
-            }
+      {/* Price + stock row */}
+      <div className="flex items-end justify-between gap-3 pt-2 border-t border-white/[0.05]">
+        <div>
+          <div className="flex items-baseline gap-1.5">
+            <p className="text-xl font-black text-white">{money(priceInfo.finalPrice)}</p>
+            {priceInfo.originalPrice && (
+              <p className="text-xs text-white/30 line-through">{money(priceInfo.originalPrice)}</p>
+            )}
           </div>
-          {priceInfo.savings > 0 &&
-          <p className="text-xs text-orange-400 font-bold">💰 Ahorras {money(priceInfo.savings)}</p>
-          }
-          <p className="text-xs text-white/40 mt-1 theme-light:text-gray-500">
-            Costo: {money(item.cost)} • Ganancia: {money(Number(item.price || 0) - Number(item.cost || 0))}
+          <p className="text-[11px] text-white/30 mt-0.5">
+            Costo {money(item.cost)} · <span className={profit >= 0 ? 'text-emerald-400/70' : 'text-red-400/70'}>+{margin}%</span>
           </p>
         </div>
-
-        {item.part_type !== 'servicio' && item.tipo_principal !== 'servicios' &&
-        <div className="text-right">
-            <div className={`px-3 py-1.5 rounded-full border ${
-          item.stock <= 0 ?
-          'bg-red-500/20 border-red-500/40 text-red-300' :
-          item.stock <= (item.min_stock || 0) ?
-          'bg-amber-500/20 border-amber-500/40 text-amber-300' :
-          'bg-emerald-500/20 border-emerald-500/40 text-emerald-300'}`
-          }>
-              <p className="text-2xl font-black leading-none">{Number(item.stock || 0)}</p>
-            </div>
-            <p className="text-[10px] text-white/40 mt-1 font-medium theme-light:text-gray-500">{st.tag}</p>
+        {stockStatus && (
+          <div className={`px-3 py-1.5 rounded-2xl border text-center min-w-[52px] ${stockStatus.bg}`}>
+            <p className={`text-base font-black leading-none ${stockStatus.text}`}>{stockStatus.tag}</p>
+            {item.stock <= 0 && <p className="text-[9px] text-red-400/60 font-bold mt-0.5">Agotado</p>}
+            {item.stock > 0 && item.stock <= (item.min_stock || 0) && <p className="text-[9px] text-amber-400/60 font-bold mt-0.5">Bajo</p>}
           </div>
-        }
+        )}
       </div>
 
-      {item.compatibility_models?.length > 0 &&
-      <p className="text-[11px] text-white/35 line-clamp-2 theme-light:text-gray-500">
-          Compatible: {item.compatibility_models.join(", ")}
-        </p>
-      }
-
-      {Number(item.stock || 0) > 0 && Number(item.stock || 0) <= Number(item.min_stock || 0) &&
-      <div className="flex items-center gap-2 text-[11px] text-amber-200 bg-amber-500/10 border border-amber-400/30 px-2 py-1 rounded-md theme-light:bg-amber-50 theme-light:text-amber-700">
-          <AlertTriangle className="w-3.5 h-3.5" />
-          Bajo stock
-        </div>
-      }
-    </div>);
-
+      {item.compatibility_models?.length > 0 && (
+        <p className="text-[10px] text-white/25 truncate">Compatible: {item.compatibility_models.join(", ")}</p>
+      )}
+    </div>
+  );
 }
 
 // === Modal para crear/editar item ===
@@ -1233,614 +1214,396 @@ export default function Inventory() {
   };
 
   return (
-    <div ref={containerRef} className="min-h-screen bg-gradient-to-br from-slate-950 via-blue-950 to-slate-900 theme-light:bg-gradient-to-br theme-light:from-gray-50 theme-light:to-blue-50 p-3 sm:p-6 overflow-y-auto" style={{ WebkitOverflowScrolling: 'touch' }}>
+    <div ref={containerRef} className="min-h-screen bg-[#0a0a0c] overflow-y-auto" style={{ WebkitOverflowScrolling: 'touch' }}>
       {/* Pull-to-refresh indicator */}
-      {pullDistance > 0 &&
-      <div
-        className="absolute top-0 left-0 right-0 flex justify-center py-2 z-50"
-        style={{ transform: `translateY(${Math.min(pullDistance, 60)}px)` }}>
-
-          <Settings className={`w-6 h-6 text-cyan-400 ${pullDistance > 60 ? 'animate-spin' : ''}`} />
+      {pullDistance > 0 && (
+        <div className="absolute top-0 left-0 right-0 flex justify-center py-2 z-50"
+          style={{ transform: `translateY(${Math.min(pullDistance, 60)}px)` }}>
+          <Settings className={`w-6 h-6 text-teal-400 ${pullDistance > 60 ? 'animate-spin' : ''}`} />
         </div>
-      }
-      <div className="max-w-[1600px] mx-auto">
-        {/* Header — Dark Glass Premium */}
-        <div className="bg-[#0f0f12]/60 backdrop-blur-3xl border border-white/[0.08] rounded-[28px] p-5 sm:p-7 mb-6 shadow-[0_24px_60px_rgba(0,0,0,0.5)] relative overflow-hidden">
-          <div className="absolute inset-0 bg-gradient-to-br from-teal-500/5 via-transparent to-cyan-500/5 pointer-events-none" />
-          <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-teal-500/20 to-transparent" />
+      )}
 
-          <div className="relative z-10 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-5">
-            {/* Title */}
-            <div className="flex items-center gap-4">
-              <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-teal-500 to-cyan-600 flex items-center justify-center shadow-[0_8px_24px_rgba(20,184,166,0.4)]">
-                <Package className="w-6 h-6 text-white" strokeWidth={2.5} />
+      <div className="max-w-[1600px] mx-auto px-3 sm:px-6 py-4 sm:py-6">
+        {/* ── Header ────────────────────────────────────────────── */}
+        <div className="bg-[#111114]/80 backdrop-blur-3xl border border-white/[0.06] rounded-[28px] px-5 py-4 mb-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+          <div className="flex items-center gap-4">
+            <div className="w-11 h-11 rounded-2xl bg-gradient-to-br from-teal-500 to-cyan-600 flex items-center justify-center shadow-lg">
+              <Package className="w-5 h-5 text-white" strokeWidth={2.5} />
+            </div>
+            <div>
+              <h1 className="text-xl font-black text-white tracking-tight">Inventario</h1>
+              <p className="text-white/30 text-[11px] font-medium">Gestión de productos · stock · compras</p>
+            </div>
+          </div>
+          <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
+            <button onClick={() => setShowManageCategories(true)} className="flex items-center gap-1.5 h-9 px-3 rounded-xl bg-white/5 hover:bg-white/10 border border-white/[0.08] text-white/50 hover:text-white transition-all text-xs font-semibold">
+              <Settings className="w-3.5 h-3.5" /> Categorías
+            </button>
+            <button onClick={() => setShowSuppliers(true)} className="flex items-center gap-1.5 h-9 px-3 rounded-xl bg-white/5 hover:bg-white/10 border border-white/[0.08] text-white/50 hover:text-white transition-all text-xs font-semibold">
+              <Globe className="w-3.5 h-3.5" /> Proveedores
+            </button>
+            <button onClick={() => setShowPOMenu(true)} className="flex items-center gap-1.5 h-9 px-3 rounded-xl bg-white/5 hover:bg-white/10 border border-white/[0.08] text-white/50 hover:text-white transition-all text-xs font-semibold">
+              <FileText className="w-3.5 h-3.5" /> Compras
+            </button>
+            <button
+              onClick={() => { setEditing(null); setShowItemDialog(true); }}
+              className="flex items-center gap-2 h-9 px-4 rounded-xl bg-gradient-to-r from-teal-500 to-cyan-500 text-white font-bold text-xs shadow-[0_6px_16px_rgba(20,184,166,0.3)] hover:opacity-90 transition-all active:scale-95"
+            >
+              <Plus className="w-4 h-4" /> Nuevo
+            </button>
+            {selectedProducts.length > 0 && (
+              <button onClick={() => setShowDiscountDialog(true)} className="flex items-center gap-2 h-9 px-4 rounded-xl bg-gradient-to-r from-orange-500 to-pink-500 text-white font-bold text-xs shadow-lg animate-pulse">
+                <Tag className="w-3.5 h-3.5" /> Oferta ({selectedProducts.length})
+              </button>
+            )}
+          </div>
+        </div>
+
+        {/* ── KPI Bar ───────────────────────────────────────────── */}
+        {(() => {
+          const total = items.length;
+          const outOfStock = items.filter(i => i.type !== 'service' && i.part_type !== 'servicio' && Number(i.stock || 0) <= 0).length;
+          const lowStock = items.filter(i => i.type !== 'service' && i.part_type !== 'servicio' && Number(i.stock || 0) > 0 && Number(i.stock || 0) <= Number(i.min_stock || 0)).length;
+          const totalValue = items.reduce((sum, i) => sum + Number(i.stock || 0) * Number(i.cost || 0), 0);
+          return (
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-5">
+              <div className="bg-[#111114]/60 border border-white/[0.06] rounded-[20px] px-4 py-3.5">
+                <p className="text-white/30 text-[10px] font-black uppercase tracking-widest mb-1">Total</p>
+                <p className="text-white font-black text-2xl">{total}</p>
               </div>
-              <div>
-                <h1 className="text-2xl sm:text-3xl font-black text-white tracking-tight leading-none">Inventario</h1>
-                <p className="text-white/40 text-xs mt-1 font-medium tracking-wide">Gestión de productos · stock · compras</p>
+              <div className={`bg-[#111114]/60 border rounded-[20px] px-4 py-3.5 ${lowStock > 0 ? 'border-amber-500/25' : 'border-white/[0.06]'}`}>
+                <p className="text-white/30 text-[10px] font-black uppercase tracking-widest mb-1">Stock bajo</p>
+                <p className={`font-black text-2xl ${lowStock > 0 ? 'text-amber-400' : 'text-white/30'}`}>{lowStock}</p>
+              </div>
+              <div className={`bg-[#111114]/60 border rounded-[20px] px-4 py-3.5 ${outOfStock > 0 ? 'border-red-500/25' : 'border-white/[0.06]'}`}>
+                <p className="text-white/30 text-[10px] font-black uppercase tracking-widest mb-1">Agotados</p>
+                <p className={`font-black text-2xl ${outOfStock > 0 ? 'text-red-400' : 'text-white/30'}`}>{outOfStock}</p>
+              </div>
+              <div className="bg-[#111114]/60 border border-teal-500/20 rounded-[20px] px-4 py-3.5">
+                <p className="text-white/30 text-[10px] font-black uppercase tracking-widest mb-1">Valor</p>
+                <p className="text-teal-400 font-black text-xl">${totalValue.toLocaleString('en-US', { maximumFractionDigits: 0 })}</p>
               </div>
             </div>
+          );
+        })()}
 
-            {/* Actions */}
-            <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
-              {/* Tab pill — solo Productos */}
-              <div className="flex items-center gap-1 bg-white/5 border border-white/10 rounded-2xl p-1">
+        {/* ── Main Category Tabs ────────────────────────────────── */}
+        <div className="flex items-center gap-1.5 overflow-x-auto pb-1 mb-4 scrollbar-none">
+          {[
+            { key: 'dispositivos', label: 'Dispositivos', Icon: Smartphone, color: 'text-cyan-400', filterFn: i => i.tipo_principal === 'dispositivos' && i.subcategoria === 'dispositivo_completo' },
+            { key: 'piezas', label: 'Piezas', Icon: Wrench, color: 'text-emerald-400', filterFn: i => i.tipo_principal === 'dispositivos' && i.subcategoria === 'piezas_servicios' && i.part_type !== 'servicio' },
+            { key: 'accesorios', label: 'Accesorios', Icon: Box, color: 'text-purple-400', filterFn: i => i.tipo_principal === 'accesorios' },
+            { key: 'servicios', label: 'Servicios', Icon: Sparkles, color: 'text-orange-400', filterFn: i => i.tipo_principal === 'servicios' || i.part_type === 'servicio' || i.part_type === 'diagnostic' },
+          ].map(({ key, label, Icon, color, filterFn }) => {
+            const count = items.filter(filterFn).length;
+            const active = mainCategory === key;
+            return (
+              <button
+                key={key}
+                onClick={() => { setMainCategory(key); setDeviceCategory(null); setPartTypeFilter("all"); setPage(1); }}
+                className={`flex items-center gap-2 px-4 py-2.5 rounded-2xl text-sm font-black whitespace-nowrap transition-all active:scale-95 flex-shrink-0 ${
+                  active ? 'bg-white text-gray-900 shadow-lg' : 'bg-[#111114]/60 border border-white/[0.07] text-white/50 hover:text-white hover:bg-white/10'
+                }`}
+              >
+                <Icon className={`w-4 h-4 ${active ? 'text-gray-700' : color}`} />
+                {label}
+                <span className={`text-xs font-bold ${active ? 'text-gray-500' : 'text-white/25'}`}>{count}</span>
+              </button>
+            );
+          })}
+        </div>
+
+        {/* ── Device sub-category pills ─────────────────────────── */}
+        {(mainCategory === 'dispositivos' || mainCategory === 'piezas' || mainCategory === 'servicios') && deviceCategories.length > 0 && (
+          <div className="flex items-center gap-2 overflow-x-auto pb-1 mb-4 scrollbar-none">
+            <button
+              onClick={() => { setDeviceCategory(null); setPage(1); }}
+              className={`flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold whitespace-nowrap flex-shrink-0 transition-all ${
+                !deviceCategory ? 'bg-white/15 text-white' : 'bg-[#111114]/60 border border-white/[0.07] text-white/40 hover:text-white'
+              }`}
+            >
+              Todos
+            </button>
+            {deviceCategories.map(cat => {
+              const catValue = cat.icon || cat.name.toLowerCase();
+              const IconComp = ICON_MAP[cat.icon_name] || Smartphone;
+              return (
                 <button
-                  onClick={() => setViewMode("products")}
-                  className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold bg-cyan-500/20 text-cyan-300 border border-cyan-500/30"
+                  key={cat.id}
+                  onClick={() => { setDeviceCategory(catValue); setPage(1); }}
+                  className={`flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold whitespace-nowrap flex-shrink-0 transition-all active:scale-95 ${
+                    deviceCategory === catValue ? 'bg-white/15 text-white' : 'bg-[#111114]/60 border border-white/[0.07] text-white/40 hover:text-white'
+                  }`}
                 >
-                  <Box className="w-3.5 h-3.5" /> Productos
+                  <IconComp className="w-3.5 h-3.5" />
+                  {cat.name}
                 </button>
-              </div>
+              );
+            })}
+          </div>
+        )}
 
-              {/* Secondary actions */}
-              <button onClick={() => setShowManageCategories(true)} className="flex items-center gap-1.5 h-9 px-3 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-white/50 hover:text-white transition-all text-xs font-semibold">
-                <Settings className="w-3.5 h-3.5" /> Categorías
-              </button>
-              <button onClick={() => setShowSuppliers(true)} className="flex items-center gap-1.5 h-9 px-3 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-white/50 hover:text-white transition-all text-xs font-semibold">
-                <Globe className="w-3.5 h-3.5" /> Proveedores
-              </button>
-              <button onClick={() => setShowPOMenu(true)} className="flex items-center gap-1.5 h-9 px-3 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-white/50 hover:text-white transition-all text-xs font-semibold">
-                <FileText className="w-3.5 h-3.5" /> Compras
-              </button>
-
-              {/* Primary CTA */}
-              <button onClick={() => {setEditing(null);setShowItemDialog(true);}} className="flex items-center gap-2 h-9 px-4 rounded-xl bg-gradient-to-r from-teal-500 to-cyan-500 hover:from-teal-400 hover:to-cyan-400 text-white font-bold text-xs shadow-[0_8px_20px_rgba(20,184,166,0.35)] hover:shadow-[0_8px_28px_rgba(20,184,166,0.5)] transition-all active:scale-95">
-                <Plus className="w-4 h-4" /> Nuevo
-              </button>
-              {selectedProducts.length > 0 &&
-                <button onClick={() => setShowDiscountDialog(true)} className="flex items-center gap-2 h-9 px-4 rounded-xl bg-gradient-to-r from-orange-500 to-pink-500 text-white font-bold text-xs shadow-lg animate-pulse">
-                  <Tag className="w-3.5 h-3.5" /> Oferta ({selectedProducts.length})
+        {/* ── Accessory sub-category pills ─────────────────────── */}
+        {mainCategory === 'accesorios' && accessoryCategories.length > 0 && (
+          <div className="flex items-center gap-2 overflow-x-auto pb-1 mb-4 scrollbar-none">
+            <button
+              onClick={() => { setDeviceCategory(null); setPage(1); }}
+              className={`flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold whitespace-nowrap flex-shrink-0 transition-all ${
+                !deviceCategory ? 'bg-white/15 text-white' : 'bg-[#111114]/60 border border-white/[0.07] text-white/40 hover:text-white'
+              }`}
+            >
+              Todos
+            </button>
+            {accessoryCategories.map(acc => {
+              const IconComp = ICON_MAP[acc.icon_name] || Box;
+              return (
+                <button
+                  key={acc.id}
+                  onClick={() => { setDeviceCategory(acc.slug); setPage(1); }}
+                  className={`flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold whitespace-nowrap flex-shrink-0 transition-all active:scale-95 ${
+                    deviceCategory === acc.slug ? 'bg-white/15 text-white' : 'bg-[#111114]/60 border border-white/[0.07] text-white/40 hover:text-white'
+                  }`}
+                >
+                  <IconComp className="w-3.5 h-3.5" />
+                  {acc.name}
                 </button>
-              }
-            </div>
+              );
+            })}
           </div>
-        </div>
+        )}
 
-        {/* Vista de Reportes o Productos */}
-        {viewMode === "reports" ?
-        <div className="bg-black/40 backdrop-blur-xl border border-cyan-500/20 rounded-2xl p-6 mb-6 theme-light:bg-white theme-light:border-gray-200">
-            <InventoryReports
-            open={true}
-            onClose={() => {}}
-            isEmbedded={true} />
-
-          </div> :
-
-        <>
-        {/* Selector de categoría principal - Apple Style */}
-        <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-[24px] p-4 sm:p-5 mb-6 theme-light:bg-white/80 theme-light:border-gray-200">
-          <div className="grid grid-cols-2 gap-2 sm:gap-3">
+        {/* ── Part type + view tabs (piezas only) ──────────────── */}
+        {mainCategory === 'piezas' && (
+          <div className="flex flex-wrap items-center gap-2 mb-4">
             <button
-                onClick={() => {
-                  setMainCategory("dispositivos");
-                  setDeviceCategory(null);
-                  setPartTypeFilter("all");
-                  setPage(1);
-                }}
-                className={`group flex flex-col items-center gap-2 sm:gap-3 px-3 sm:px-5 py-4 sm:py-6 rounded-[20px] transition-all duration-300 ${
-                mainCategory === "dispositivos" ?
-                "bg-gradient-to-br from-cyan-500 to-blue-500 text-white shadow-[0_12px_40px_rgba(6,182,212,0.4)] scale-105" :
-                "bg-white/5 text-white/60 hover:bg-white/10 hover:scale-[1.02] theme-light:bg-gray-50 theme-light:text-gray-600 theme-light:hover:bg-gray-100"}`
-                }>
-              <div className={`w-10 h-10 sm:w-14 sm:h-14 rounded-[18px] flex items-center justify-center transition-transform group-hover:scale-110 ${
-                mainCategory === "dispositivos" ? "bg-white/20" : "bg-cyan-500/20"}`
-                }>
-                <Smartphone className="w-5 h-5 sm:w-7 sm:h-7" />
-              </div>
-              <span className="font-black text-sm sm:text-base">Dispositivos</span>
+              onClick={() => { setPartTypeFilter("all"); setPage(1); }}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition-all ${
+                partTypeFilter === "all" ? 'bg-white/15 text-white' : 'bg-[#111114]/60 border border-white/[0.07] text-white/40 hover:text-white'
+              }`}
+            >
+              Todas
             </button>
-
-            <button
-                onClick={() => {
-                  setMainCategory("piezas");
-                  setDeviceCategory(null);
-                  setPartTypeFilter("all");
-                  setPage(1);
-                }}
-                className={`group flex flex-col items-center gap-2 sm:gap-3 px-3 sm:px-5 py-4 sm:py-6 rounded-[20px] transition-all duration-300 ${
-                mainCategory === "piezas" ?
-                "bg-gradient-to-br from-emerald-500 to-green-500 text-white shadow-[0_12px_40px_rgba(16,185,129,0.4)] scale-105" :
-                "bg-white/5 text-white/60 hover:bg-white/10 hover:scale-[1.02] theme-light:bg-gray-50 theme-light:text-gray-600 theme-light:hover:bg-gray-100"}`
-                }>
-              <div className={`w-10 h-10 sm:w-14 sm:h-14 rounded-[18px] flex items-center justify-center transition-transform group-hover:scale-110 ${
-                mainCategory === "piezas" ? "bg-white/20" : "bg-emerald-500/20"}`
-                }>
-                <Wrench className="w-5 h-5 sm:w-7 sm:h-7" />
-              </div>
-              <span className="font-black text-sm sm:text-base">Piezas</span>
-            </button>
-
-            <button
-                onClick={() => {
-                  setMainCategory("accesorios");
-                  setDeviceCategory(null);
-                  setPartTypeFilter("all");
-                  setPage(1);
-                }}
-                className={`group flex flex-col items-center gap-2 sm:gap-3 px-3 sm:px-5 py-4 sm:py-6 rounded-[20px] transition-all duration-300 ${
-                mainCategory === "accesorios" ?
-                "bg-gradient-to-br from-purple-500 to-pink-500 text-white shadow-[0_12px_40px_rgba(168,85,247,0.4)] scale-105" :
-                "bg-white/5 text-white/60 hover:bg-white/10 hover:scale-[1.02] theme-light:bg-gray-50 theme-light:text-gray-600 theme-light:hover:bg-gray-100"}`
-                }>
-              <div className={`w-10 h-10 sm:w-14 sm:h-14 rounded-[18px] flex items-center justify-center transition-transform group-hover:scale-110 ${
-                mainCategory === "accesorios" ? "bg-white/20" : "bg-purple-500/20"}`
-                }>
-                <Box className="w-5 h-5 sm:w-7 sm:h-7" />
-              </div>
-              <span className="font-black text-sm sm:text-base">Accesorios</span>
-            </button>
-
-            <button
-                onClick={() => {
-                  setMainCategory("servicios");
-                  setDeviceCategory(null);
-                  setPartTypeFilter("all");
-                  setPage(1);
-                }}
-                className={`group flex flex-col items-center gap-2 sm:gap-3 px-3 sm:px-5 py-4 sm:py-6 rounded-[20px] transition-all duration-300 ${
-                mainCategory === "servicios" ?
-                "bg-gradient-to-br from-orange-500 to-red-500 text-white shadow-[0_12px_40px_rgba(249,115,22,0.4)] scale-105" :
-                "bg-white/5 text-white/60 hover:bg-white/10 hover:scale-[1.02] theme-light:bg-gray-50 theme-light:text-gray-600 theme-light:hover:bg-gray-100"}`
-                }>
-              <div className={`w-10 h-10 sm:w-14 sm:h-14 rounded-[18px] flex items-center justify-center transition-transform group-hover:scale-110 ${
-                mainCategory === "servicios" ? "bg-white/20" : "bg-orange-500/20"}`
-                }>
-                <Sparkles className="w-5 h-5 sm:w-7 sm:h-7" />
-              </div>
-              <span className="font-black text-sm sm:text-base">Servicios</span>
-            </button>
-            </div>
-            </div>
-
-        {/* Categorías de dispositivos - Apple Style */}
-        {(mainCategory === "dispositivos" || mainCategory === "piezas" || mainCategory === "servicios") &&
-          <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-[24px] p-6 mb-6 theme-light:bg-white/80 theme-light:border-gray-200">
-            <h2 className="text-white text-base font-bold mb-5 flex items-center gap-2 tracking-tight theme-light:text-gray-900">
-              <Smartphone className="w-5 h-5 text-cyan-400 theme-light:text-cyan-600" />
-              Dispositivo
-            </h2>
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 xl:grid-cols-6 gap-3">
-              {deviceCategories.length === 0 ?
-              <div className="col-span-full text-center py-8">
-                  <p className="text-white/40 text-sm theme-light:text-gray-600">
-                    No hay categorías. Crea una en "Gestionar Categorías"
-                  </p>
-                </div> :
-
-              deviceCategories.map((cat) => {
-                const IconComponent = ICON_MAP[cat.icon_name] || Smartphone;
-                const catValue = cat.icon || cat.name.toLowerCase();
-                const count = items.filter((i) => {
-                  if (mainCategory === "dispositivos") {
-                    return i.tipo_principal === "dispositivos" && i.subcategoria === "dispositivo_completo" && i.device_category === catValue;
-                  } else if (mainCategory === "piezas") {
-                    return i.tipo_principal === "dispositivos" && i.subcategoria === "piezas_servicios" && i.device_category === catValue;
-                  } else if (mainCategory === "servicios") {
-                    return (i.tipo_principal === "servicios" || i.part_type === "servicio" || i.part_type === "diagnostic" || i.category === "diagnostic" || (i.name || "").toLowerCase().includes("diagnostico")) && i.device_category === catValue;
-                  }
-                  return false;
-                }).length;
-                return (
-                  <button
-                    key={cat.id}
-                    onClick={() => {setDeviceCategory(catValue);setPage(1);}}
-                    className={`group relative flex flex-col items-center gap-3 p-5 rounded-[20px] transition-all duration-300 active:scale-95 ${
-                    deviceCategory === catValue ?
-                    "bg-gradient-to-br from-cyan-500 to-emerald-500 text-white shadow-[0_12px_32px_rgba(6,182,212,0.35)] scale-105" :
-                    "bg-white/5 text-white/60 hover:bg-white/10 hover:text-white hover:scale-[1.02] theme-light:bg-gray-50 theme-light:text-gray-600 theme-light:hover:bg-gray-100"}`
-                    }>
-                      <div className={`w-12 h-12 rounded-[16px] flex items-center justify-center transition-transform group-hover:scale-110 ${
-                    deviceCategory === catValue ? "bg-white/20" : "bg-cyan-500/20"}`
-                    }>
-                        <IconComponent className="w-6 h-6" />
-                      </div>
-                      <div className="text-center">
-                        <p className="font-black text-sm tracking-tight">{cat.name}</p>
-                        <p className={`text-[10px] mt-1 font-bold ${deviceCategory === catValue ? 'text-white/80' : 'text-white/40 theme-light:text-gray-500'}`}>
-                          {count} {count === 1 ? 'item' : 'items'}
-                        </p>
-                      </div>
-                    </button>);
-
-              })
-              }
-            </div>
-          </div>
-          }
-
-        {/* Categorías de accesorios (solo si mainCategory === "accesorios") */}
-        {mainCategory === "accesorios" &&
-          <div className="bg-black/40 backdrop-blur-xl border border-cyan-500/20 rounded-2xl p-6 mb-6 theme-light:bg-white theme-light:border-gray-200">
-            <h2 className="text-white text-lg font-bold mb-4 flex items-center gap-2 theme-light:text-gray-900">
-              <Box className="w-5 h-5 text-purple-400" strokeWidth={2.5} />
-              Tipo de Accesorio
-            </h2>
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
-              {accessoryCategories.length === 0 ?
-              <div className="col-span-full text-center py-8">
-                  <p className="text-white/40 text-sm theme-light:text-gray-600">
-                    No hay categorías de accesorios. Créalas en "Gestionar Categorías"
-                  </p>
-                </div> :
-
-              accessoryCategories.map((acc) => {
-                const IconComponent = ICON_MAP[acc.icon_name] || Box;
-                const count = items.filter((i) => i.tipo_principal === "accesorios" && i.subcategoria === acc.slug).length;
-                return (
-                  <button
-                    key={acc.id}
-                    onClick={() => {setDeviceCategory(acc.slug);setPage(1);}}
-                    className={`flex flex-col items-center gap-3 p-4 rounded-xl border-2 transition-all ${
-                    deviceCategory === acc.slug ?
-                    "bg-gradient-to-br from-purple-600 to-pink-600 text-white border-transparent shadow-[0_8px_24px_rgba(168,85,247,0.4)]" :
-                    "bg-white/5 border-white/10 text-white/60 hover:bg-white/10 hover:border-white/20 theme-light:bg-gray-50 theme-light:border-gray-300"}`
-                    }>
-
-                      <IconComponent className="w-8 h-8" />
-                      <div className="text-center">
-                        <p className="font-bold text-base">{acc.name}</p>
-                        <p className="text-xs opacity-70">{count} items</p>
-                      </div>
-                    </button>);
-
-              })
-              }
-            </div>
-          </div>
-          }
-
-        {/* Filtros de tipo de pieza - Apple Style */}
-        {mainCategory === "piezas" &&
-          <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-[24px] p-5 mb-6 theme-light:bg-white/80 theme-light:border-gray-200">
-            <h2 className="text-white text-base font-bold mb-4 flex items-center gap-2 tracking-tight theme-light:text-gray-900">
-              <Monitor className="w-5 h-5 text-emerald-400 theme-light:text-emerald-600" strokeWidth={2.5} />
-              Tipo de Pieza
-            </h2>
-            <div className="flex flex-wrap gap-2">
+            {partTypes.filter(pt => pt.active !== false).map(type => {
+              const IconComp = ICON_MAP[type.icon_name] || Monitor;
+              const count = items.filter(i => i.tipo_principal === 'dispositivos' && i.subcategoria === 'piezas_servicios' && i.part_type === type.slug && (!deviceCategory || i.device_category === deviceCategory)).length;
+              return (
+                <button
+                  key={type.id}
+                  onClick={() => { setPartTypeFilter(type.slug); setPage(1); }}
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition-all active:scale-95 ${
+                    partTypeFilter === type.slug ? 'bg-emerald-500/15 border border-emerald-500/30 text-emerald-300' : 'bg-[#111114]/60 border border-white/[0.07] text-white/40 hover:text-white'
+                  }`}
+                >
+                  <IconComp className="w-3.5 h-3.5" />
+                  {type.name}
+                  <span className="opacity-40">{count}</span>
+                </button>
+              );
+            })}
+            <div className="h-5 w-px bg-white/10 mx-0.5" />
+            {[
+              { key: 'products', label: 'Productos', Icon: Box },
+              { key: 'offers', label: 'Ofertas', Icon: Tag },
+              { key: 'services', label: 'Servicios', Icon: Wrench },
+            ].map(({ key, label, Icon }) => (
               <button
-                onClick={() => {setPartTypeFilter("all");setPage(1);}}
-                className={`px-4 py-2.5 rounded-full text-sm font-bold transition-all ${
-                partTypeFilter === "all" ?
-                "bg-white/15 text-white shadow-lg scale-105 theme-light:bg-gray-900 theme-light:text-white" :
-                "bg-white/5 text-white/60 hover:bg-white/10 hover:text-white theme-light:bg-gray-100 theme-light:text-gray-600 theme-light:hover:bg-gray-200"}`
-                }>
-                Todas
+                key={key}
+                onClick={() => { setViewTab(key); setPage(1); }}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition-all active:scale-95 ${
+                  viewTab === key ? 'bg-white/15 text-white' : 'text-white/30 hover:text-white'
+                }`}
+              >
+                <Icon className="w-3.5 h-3.5" />
+                {label}
               </button>
-              {partTypes.filter((pt) => pt.active !== false).map((type) => {
-                const IconComponent = ICON_MAP[type.icon_name] || Monitor;
-                const count = items.filter((i) => {
-                  return i.tipo_principal === "dispositivos" &&
-                  i.subcategoria === "piezas_servicios" &&
-                  i.part_type === type.slug && (
-                  !deviceCategory || i.device_category === deviceCategory);
-                }).length;
-                return (
-                  <button
-                    key={type.id}
-                    onClick={() => {setPartTypeFilter(type.slug);setPage(1);}}
-                    className={`flex items-center gap-2 px-4 py-2.5 rounded-full text-sm font-bold transition-all ${
-                    partTypeFilter === type.slug ?
-                    "bg-white/15 text-white shadow-lg scale-105 theme-light:bg-gray-900 theme-light:text-white" :
-                    "bg-white/5 text-white/60 hover:bg-white/10 hover:text-white theme-light:bg-gray-100 theme-light:text-gray-600 theme-light:hover:bg-gray-200"}`
-                    }>
-                    <IconComponent className="w-4 h-4" />
-                    {type.name} <span className="opacity-60">•</span> {count}
-                  </button>);
-              })}
-            </div>
+            ))}
           </div>
-          }
+        )}
 
-        {/* Tabs - Apple Style */}
-        {mainCategory === "piezas" &&
-          <div className="flex gap-2 mb-6 p-1.5 bg-white/5 backdrop-blur-xl border border-white/10 rounded-[18px] theme-light:bg-gray-100 theme-light:border-gray-200 overflow-x-auto">
-          <button
-              onClick={() => {setViewTab("products");setPage(1);}}
-              className={`flex items-center justify-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-3 rounded-[14px] text-xs sm:text-sm font-bold transition-all whitespace-nowrap ${
-              viewTab === "products" ?
-              "bg-white text-gray-900 shadow-lg theme-light:bg-white theme-light:text-gray-900" :
-              "text-white/60 hover:text-white theme-light:text-gray-600"}`
-              }>
-
-            <Box className="w-4 h-4" />
-            <span>Productos</span>
-          </button>
-          <button
-              onClick={() => {setViewTab("offers");setPage(1);}}
-              className={`flex items-center justify-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-3 rounded-[14px] text-xs sm:text-sm font-bold transition-all whitespace-nowrap ${
-              viewTab === "offers" ?
-              "bg-white text-gray-900 shadow-lg theme-light:bg-white theme-light:text-gray-900" :
-              "text-white/60 hover:text-white theme-light:text-gray-600"}`
-              }>
-
-            <Tag className="w-4 h-4" />
-            <span>Ofertas</span>
-          </button>
-          <button
-              onClick={() => {setViewTab("services");setPage(1);}}
-              className={`flex items-center justify-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-3 rounded-[14px] text-xs sm:text-sm font-bold transition-all whitespace-nowrap ${
-              viewTab === "services" ?
-              "bg-white text-gray-900 shadow-lg theme-light:bg-white theme-light:text-gray-900" :
-              "text-white/60 hover:text-white theme-light:text-gray-600"}`
-              }>
-
-            <Wrench className="w-4 h-4" />
-            <span>Servicios</span>
-          </button>
-        </div>
-          }
-
-        {/* Búsqueda estilo iOS */}
-        <div className="relative mb-6 group">
-          <Search className="absolute left-5 top-1/2 -translate-y-1/2 w-5 h-5 text-white/30 group-focus-within:text-cyan-400 transition-colors theme-light:text-gray-400 theme-light:group-focus-within:text-cyan-600" />
+        {/* ── Search ────────────────────────────────────────────── */}
+        <div className="relative mb-5 group">
+          <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-white/25 group-focus-within:text-teal-400 transition-colors" />
           <Input
-              value={q}
-              onChange={(e) => {setQ(e.target.value);setPage(1);}}
-              placeholder="Buscar productos, modelos, proveedores..."
-              className="pl-14 h-14 bg-white/5 backdrop-blur-xl border border-white/10 rounded-[18px] text-white text-base placeholder:text-white/30 focus:bg-white/10 focus:border-cyan-500/50 focus:ring-2 focus:ring-cyan-500/20 transition-all theme-light:bg-white theme-light:border-gray-200 theme-light:text-gray-900 theme-light:placeholder:text-gray-400" />
+            value={q}
+            onChange={e => { setQ(e.target.value); setPage(1); }}
+            placeholder="Buscar productos, modelos, proveedores..."
+            className="pl-11 h-11 bg-[#111114]/60 border border-white/[0.08] rounded-2xl text-white text-sm placeholder:text-white/20 focus:bg-[#111114]/80 focus:border-teal-500/50 focus:ring-2 focus:ring-teal-500/20 transition-all"
+          />
         </div>
 
-        {/* Grid de items */}
-        <div className="min-h-[400px]">
-          {pageItems.length === 0 ?
-            <div className="text-center py-16">
-              <Box className="w-16 h-16 text-white/20 mx-auto mb-4 theme-light:text-gray-300" />
-              <p className="text-white/40 text-lg theme-light:text-gray-600">
-                {q ? "No se encontraron resultados" : "No hay items en esta categoría"}
-              </p>
-            </div> :
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 gap-4">
-              {pageItems.map((item) =>
-              <InventoryCard
-                key={item.id}
-                item={item}
-                isSelected={selectedProducts.some((p) => p.id === item.id)}
-                onSelect={handleSelectProduct}
-                onEdit={(it) => {setEditing(it);setShowItemDialog(true);}}
-                onDelete={handleDeleteItem} />
-
-              )}
-            </div>
-            }
-        </div>
-
-        {/* Paginación - Apple Style */}
-        <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mt-8 px-2">
-          <p className="text-sm text-white/50 font-medium theme-light:text-gray-600">
-            Mostrando <span className="text-white font-bold theme-light:text-gray-900">{pageItems.length}</span> de <span className="text-white font-bold theme-light:text-gray-900">{filtered.length}</span> productos
-          </p>
-          <div className="flex items-center gap-3">
-            <Button
-                size="icon"
-                variant="ghost"
-                disabled={page <= 1}
-                onClick={() => setPage((p) => Math.max(1, p - 1))}
-                className="h-10 w-10 rounded-full bg-white/5 hover:bg-white/10 border border-white/10 disabled:opacity-30 disabled:cursor-not-allowed transition-all theme-light:bg-gray-100 theme-light:hover:bg-gray-200">
-              <ChevronLeft className="w-5 h-5" />
-            </Button>
-            <div className="px-4 py-2 bg-white/10 rounded-full border border-white/10 theme-light:bg-gray-100 theme-light:border-gray-200">
-              <span className="text-white font-bold text-sm theme-light:text-gray-900">{page}</span>
-              <span className="text-white/40 mx-1.5 theme-light:text-gray-500">/</span>
-              <span className="text-white/60 font-semibold text-sm theme-light:text-gray-600">{pageCount}</span>
-            </div>
-            <Button
-                size="icon"
-                variant="ghost"
-                disabled={page >= pageCount}
-                onClick={() => setPage((p) => Math.min(pageCount, p + 1))}
-                className="h-10 w-10 rounded-full bg-white/5 hover:bg-white/10 border border-white/10 disabled:opacity-30 disabled:cursor-not-allowed transition-all theme-light:bg-gray-100 theme-light:hover:bg-gray-200">
-              <ChevronRight className="w-5 h-5" />
-            </Button>
-          </div>
-        </div>
-          </>
-        }
-
-        {/* Dialogs */}
-        {showItemDialog &&
-        <InventoryItemDialog
-          open={showItemDialog}
-          onOpenChange={setShowItemDialog}
-          value={editing}
-          onSave={handleSaveItem}
-          deviceCategories={deviceCategories}
-          partTypes={partTypes}
-          accessoryCategories={accessoryCategories}
-          currentDeviceCategory={deviceCategory}
-          currentPartType={partTypeFilter}
-          suppliers={suppliers} />
-
-        }
-
-        {showReports &&
-        <InventoryReports
-          open={showReports}
-          onClose={() => setShowReports(false)} />
-
-        }
-
-        {/* Modal de menú de Órdenes de Compra */}
-        {showPOMenu &&
-        <Dialog open={showPOMenu} onOpenChange={setShowPOMenu}>
-          <DialogContent className="bg-[#0f0f10] border border-cyan-500/20 max-w-md text-white theme-light:bg-white theme-light:border-gray-200">
-            <DialogHeader>
-              <DialogTitle className="text-xl font-bold text-white theme-light:text-gray-900 flex items-center gap-2">
-                <FileText className="w-6 h-6 text-cyan-400" />
-                Órdenes de Compra
-              </DialogTitle>
-            </DialogHeader>
-
-            <div className="space-y-3 py-4">
+        {/* ── Product grid ──────────────────────────────────────── */}
+        <div className="min-h-[300px]">
+          {pageItems.length === 0 ? (
+            <div className="text-center py-20">
+              <Box className="w-14 h-14 text-white/10 mx-auto mb-4" />
+              <p className="text-white/30 font-bold text-base">{q ? "Sin resultados para esa búsqueda" : "No hay productos en esta categoría"}</p>
               <button
-                type="button"
-                onClick={() => {
-                  setShowPOMenu(false);
-                  setShowPOList(true);
-                }}
-                className="w-full flex items-center gap-4 p-6 rounded-xl bg-gradient-to-br from-cyan-600/20 to-emerald-600/20 border-2 border-cyan-500/30 hover:border-cyan-500/50 transition-all group">
-
-                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-cyan-600 to-emerald-600 flex items-center justify-center">
-                  <FileText className="w-6 h-6 text-white" />
-                </div>
-                <div className="text-left flex-1">
-                  <p className="text-lg font-bold text-white theme-light:text-gray-900">Ver Órdenes</p>
-                  <p className="text-sm text-white/60 theme-light:text-gray-600">Historial de órdenes de compra</p>
-                </div>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => {
-                  setShowPOMenu(false);
-                  setShowPODialog(true);
-                }}
-                className="w-full flex items-center gap-4 p-6 rounded-xl bg-gradient-to-br from-emerald-600/20 to-green-600/20 border-2 border-emerald-500/30 hover:border-emerald-500/50 transition-all group">
-
-                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-emerald-600 to-green-600 flex items-center justify-center">
-                  <Plus className="w-6 h-6 text-white" />
-                </div>
-                <div className="text-left flex-1">
-                  <p className="text-lg font-bold text-white theme-light:text-gray-900">Nueva Orden</p>
-                  <p className="text-sm text-white/60 theme-light:text-gray-600">Crear orden de compra</p>
-                </div>
+                onClick={() => { setEditing(null); setShowItemDialog(true); }}
+                className="mt-4 inline-flex items-center gap-2 px-5 py-2.5 rounded-2xl bg-teal-500/15 border border-teal-500/25 text-teal-400 text-sm font-bold hover:bg-teal-500/25 transition-all"
+              >
+                <Plus className="w-4 h-4" /> Agregar producto
               </button>
             </div>
-          </DialogContent>
-        </Dialog>
-        }
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 gap-3">
+              {pageItems.map(item => (
+                <InventoryCard
+                  key={item.id}
+                  item={item}
+                  isSelected={selectedProducts.some(p => p.id === item.id)}
+                  onSelect={handleSelectProduct}
+                  onEdit={it => { setEditing(it); setShowItemDialog(true); }}
+                  onDelete={handleDeleteItem}
+                />
+              ))}
+            </div>
+          )}
+        </div>
 
-        {/* Listado de órdenes existentes */}
-        {showPOList &&
-        <Dialog open={showPOList} onOpenChange={setShowPOList}>
-          <DialogContent className="bg-[#0f0f10] border border-cyan-500/20 max-w-4xl text-white theme-light:bg-white theme-light:border-gray-200">
-            <DialogHeader>
-              <DialogTitle className="text-xl font-bold text-white theme-light:text-gray-900">
-                Historial de Órdenes de Compra
-              </DialogTitle>
-            </DialogHeader>
-
-            <div className="space-y-3 max-h-[60vh] overflow-y-auto">
-              {poList.length === 0 ?
-              <p className="text-white/40 text-sm text-center py-8 theme-light:text-gray-500">
-                  Aún no hay órdenes de compra.
-                </p> :
-
-              poList.map((po) =>
-              <div
-                key={po.id}
-                className="flex items-center justify-between gap-3 rounded-lg border border-cyan-500/20 px-4 py-3 hover:border-cyan-500/40 theme-light:border-gray-200">
-
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2 mb-1">
-                    <p className="text-sm font-semibold text-white theme-light:text-gray-900">{po.po_number}</p>
-                    <Badge className={`text-xs ${
-                    po.status === "received" ? "bg-green-600/20 text-green-300 border-green-600/30" :
-                    po.status === "ordered" ? "bg-blue-600/20 text-blue-300 border-blue-600/30" :
-                    "bg-gray-600/20 text-gray-300 border-gray-600/30"}`
-                    }>
-                      {po.status === "draft" ? "Borrador" :
-                      po.status === "ordered" ? "Ordenado" :
-                      po.status === "received" ? "Recibido" : "Cancelado"}
-                    </Badge>
-                  </div>
-                  <p className="text-xs text-white/40 theme-light:text-gray-600">
-                    {po.supplier_name || "Suplidor no definido"} • ${Number(po.total_amount || 0).toFixed(2)} • {(po.items || po.line_items || []).length} productos
-                  </p>
-                </div>
-
-                <div className="flex gap-2">
-                  <Button
-                    type="button"
-                    size="sm"
-                    onClick={() => {
-                      console.log("🔍 Abriendo orden:", po);
-                      setViewingPO(po);
-                      setShowPOList(false);
-                      setShowPODetail(true);
-                    }}
-                    className="bg-cyan-600 hover:bg-cyan-700 h-8 text-xs">
-
-                    Ver/Editar
-                  </Button>
-                </div>
+        {/* ── Pagination ────────────────────────────────────────── */}
+        {filtered.length > 0 && (
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mt-8 px-1">
+            <p className="text-sm text-white/30 font-medium">
+              Mostrando <span className="text-white font-bold">{pageItems.length}</span> de <span className="text-white font-bold">{filtered.length}</span> productos
+            </p>
+            <div className="flex items-center gap-3">
+              <Button size="icon" variant="ghost" disabled={page <= 1} onClick={() => setPage(p => Math.max(1, p - 1))}
+                className="h-9 w-9 rounded-full bg-white/5 hover:bg-white/10 border border-white/10 disabled:opacity-30 transition-all">
+                <ChevronLeft className="w-4 h-4" />
+              </Button>
+              <div className="px-4 py-2 bg-white/5 rounded-full border border-white/10">
+                <span className="text-white font-bold text-sm">{page}</span>
+                <span className="text-white/30 mx-1.5">/</span>
+                <span className="text-white/50 font-semibold text-sm">{pageCount}</span>
               </div>
-              )}
+              <Button size="icon" variant="ghost" disabled={page >= pageCount} onClick={() => setPage(p => Math.min(pageCount, p + 1))}
+                className="h-9 w-9 rounded-full bg-white/5 hover:bg-white/10 border border-white/10 disabled:opacity-30 transition-all">
+                <ChevronRight className="w-4 h-4" />
+              </Button>
             </div>
-          </DialogContent>
-        </Dialog>
-        }
+          </div>
+        )}
 
-        {showSuppliers &&
-        <SuppliersDialog
-          open={showSuppliers}
-          onClose={async () => {
-            setShowSuppliers(false);
-            const supRes = await loadSuppliersSafe();
-            setSuppliers(supRes || []);
-          }} />
+        {/* ── Dialogs (unchanged) ───────────────────────────────── */}
+        {showItemDialog && (
+          <InventoryItemDialog
+            open={showItemDialog}
+            onOpenChange={setShowItemDialog}
+            value={editing}
+            onSave={handleSaveItem}
+            deviceCategories={deviceCategories}
+            partTypes={partTypes}
+            accessoryCategories={accessoryCategories}
+            currentDeviceCategory={deviceCategory}
+            currentPartType={partTypeFilter}
+            suppliers={suppliers}
+          />
+        )}
 
-        }
+        {showReports && (
+          <InventoryReports open={showReports} onClose={() => setShowReports(false)} />
+        )}
 
-        {showPODialog &&
-        <PurchaseOrderDialog
-          open={showPODialog}
-          onClose={async (reload) => {
-            setShowPODialog(false);
-            setEditingPO(null);
-            if (reload) await loadInventory();
-          }}
-          purchaseOrder={editingPO}
-          suppliers={suppliers}
-          products={items}
-          workOrders={workOrders} />
+        {showPOMenu && (
+          <Dialog open={showPOMenu} onOpenChange={setShowPOMenu}>
+            <DialogContent className="bg-[#0f0f10] border border-cyan-500/20 max-w-md text-white">
+              <DialogHeader>
+                <DialogTitle className="text-xl font-bold text-white flex items-center gap-2">
+                  <FileText className="w-6 h-6 text-cyan-400" />
+                  Órdenes de Compra
+                </DialogTitle>
+              </DialogHeader>
+              <div className="space-y-3 py-4">
+                <button type="button" onClick={() => { setShowPOMenu(false); setShowPOList(true); }}
+                  className="w-full flex items-center gap-4 p-6 rounded-xl bg-gradient-to-br from-cyan-600/20 to-emerald-600/20 border-2 border-cyan-500/30 hover:border-cyan-500/50 transition-all">
+                  <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-cyan-600 to-emerald-600 flex items-center justify-center">
+                    <FileText className="w-6 h-6 text-white" />
+                  </div>
+                  <div className="text-left flex-1">
+                    <p className="text-lg font-bold text-white">Ver Órdenes</p>
+                    <p className="text-sm text-white/60">Historial de órdenes de compra</p>
+                  </div>
+                </button>
+                <button type="button" onClick={() => { setShowPOMenu(false); setShowPODialog(true); }}
+                  className="w-full flex items-center gap-4 p-6 rounded-xl bg-gradient-to-br from-emerald-600/20 to-green-600/20 border-2 border-emerald-500/30 hover:border-emerald-500/50 transition-all">
+                  <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-emerald-600 to-green-600 flex items-center justify-center">
+                    <Plus className="w-6 h-6 text-white" />
+                  </div>
+                  <div className="text-left flex-1">
+                    <p className="text-lg font-bold text-white">Nueva Orden</p>
+                    <p className="text-sm text-white/60">Crear orden de compra</p>
+                  </div>
+                </button>
+              </div>
+            </DialogContent>
+          </Dialog>
+        )}
 
-        }
+        {showPOList && (
+          <Dialog open={showPOList} onOpenChange={setShowPOList}>
+            <DialogContent className="bg-[#0f0f10] border border-cyan-500/20 max-w-4xl text-white">
+              <DialogHeader>
+                <DialogTitle className="text-xl font-bold text-white">Historial de Órdenes de Compra</DialogTitle>
+              </DialogHeader>
+              <div className="space-y-3 max-h-[60vh] overflow-y-auto">
+                {poList.length === 0 ? (
+                  <p className="text-white/40 text-sm text-center py-8">Aún no hay órdenes de compra.</p>
+                ) : poList.map(po => (
+                  <div key={po.id} className="flex items-center justify-between gap-3 rounded-lg border border-cyan-500/20 px-4 py-3 hover:border-cyan-500/40">
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 mb-1">
+                        <p className="text-sm font-semibold text-white">{po.po_number}</p>
+                        <Badge className={`text-xs ${po.status === "received" ? "bg-green-600/20 text-green-300 border-green-600/30" : po.status === "ordered" ? "bg-blue-600/20 text-blue-300 border-blue-600/30" : "bg-gray-600/20 text-gray-300 border-gray-600/30"}`}>
+                          {po.status === "draft" ? "Borrador" : po.status === "ordered" ? "Ordenado" : po.status === "received" ? "Recibido" : "Cancelado"}
+                        </Badge>
+                      </div>
+                      <p className="text-xs text-white/40">{po.supplier_name || "Suplidor no definido"} · ${Number(po.total_amount || 0).toFixed(2)} · {(po.items || po.line_items || []).length} productos</p>
+                    </div>
+                    <Button type="button" size="sm" onClick={() => { setViewingPO(po); setShowPOList(false); setShowPODetail(true); }} className="bg-cyan-600 hover:bg-cyan-700 h-8 text-xs">
+                      Ver/Editar
+                    </Button>
+                  </div>
+                ))}
+              </div>
+            </DialogContent>
+          </Dialog>
+        )}
 
-        {showPODetail &&
-        <PurchaseOrderDetailDialog
-          open={showPODetail}
-          onClose={async (reload) => {
-            setShowPODetail(false);
-            setViewingPO(null);
-            if (reload) await loadInventory();
-          }}
-          purchaseOrder={viewingPO}
-          suppliers={suppliers}
-          products={items}
-          workOrders={workOrders} />
+        {showSuppliers && (
+          <SuppliersDialog open={showSuppliers} onClose={async () => { setShowSuppliers(false); const supRes = await loadSuppliersSafe(); setSuppliers(supRes || []); }} />
+        )}
 
-        }
+        {showPODialog && (
+          <PurchaseOrderDialog
+            open={showPODialog}
+            onClose={async (reload) => { setShowPODialog(false); setEditingPO(null); if (reload) await loadInventory(); }}
+            purchaseOrder={editingPO}
+            suppliers={suppliers}
+            products={items}
+            workOrders={workOrders}
+          />
+        )}
 
-        {showDiscountDialog &&
-        <SetDiscountDialog
-          open={showDiscountDialog}
-          onClose={() => setShowDiscountDialog(false)}
-          products={selectedProducts}
-          onSuccess={handleDiscountSuccess} />
+        {showPODetail && (
+          <PurchaseOrderDetailDialog
+            open={showPODetail}
+            onClose={async (reload) => { setShowPODetail(false); setViewingPO(null); if (reload) await loadInventory(); }}
+            purchaseOrder={viewingPO}
+            suppliers={suppliers}
+            products={items}
+            workOrders={workOrders}
+          />
+        )}
 
-        }
+        {showDiscountDialog && (
+          <SetDiscountDialog open={showDiscountDialog} onClose={() => setShowDiscountDialog(false)} products={selectedProducts} onSuccess={handleDiscountSuccess} />
+        )}
 
-        {showReports &&
-        <InventoryReports
-          open={showReports}
-          onClose={() => setShowReports(false)} />
-
-        }
-
-        {showManageCategories &&
-        <ManageCategoriesDialog
-          open={showManageCategories}
-          onClose={() => setShowManageCategories(false)}
-          onUpdate={loadInventory} />
-
-        }
-
-
-
+        {showManageCategories && (
+          <ManageCategoriesDialog open={showManageCategories} onClose={() => setShowManageCategories(false)} onUpdate={loadInventory} />
+        )}
 
       </div>
-    </div>);
-
+    </div>
+  );
 }
