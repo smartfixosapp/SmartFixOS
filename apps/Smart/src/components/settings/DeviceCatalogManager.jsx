@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { catalogCache } from "@/components/utils/dataCache";
 import { toast } from "sonner";
-import { ChevronDown, GripVertical, Pencil, Plus, Smartphone, Trash2, Wrench } from "lucide-react";
+import { ChevronDown, GripVertical, Pencil, Plus, RefreshCw, Smartphone, Trash2, Wrench } from "lucide-react";
 
 const normalized = (value) => String(value || "").trim().toLowerCase();
 const normalizedNameKey = (value = "") =>
@@ -527,6 +527,7 @@ export default function DeviceCatalogManager() {
   const [loading, setLoading] = useState(false);
   const [creating, setCreating] = useState(false);
   const [normalizing, setNormalizing] = useState(false);
+  const [syncing, setSyncing] = useState(false);
 
   const [selectedCategory, setSelectedCategory] = useState(null);
   const [selectedBrand, setSelectedBrand] = useState(null);
