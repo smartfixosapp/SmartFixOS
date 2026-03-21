@@ -1757,6 +1757,49 @@ export default function Dashboard() {
             </CardContent>
           </Card>}
 
+          {/* === LISTA DE PRECIOS DESKTOP (widget opcional) === */}
+          {widgetConfig.priceList && (
+            <div className="hidden md:block bg-[#1C1C1E]/40 backdrop-blur-3xl border border-emerald-500/20 rounded-[32px] shadow-2xl p-6 space-y-5 mt-6">
+              <div className="flex items-center gap-3">
+                <div className="w-9 h-9 rounded-xl bg-emerald-500/10 flex items-center justify-center border border-emerald-500/20">
+                  <PiggyBank className="w-5 h-5 text-emerald-400" />
+                </div>
+                <h3 className="text-white font-black text-base uppercase tracking-tight">Lista de Precios</h3>
+              </div>
+              <div className="relative">
+                <div className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 flex items-center justify-center">
+                  <Search className="h-4 w-4 text-white/20" />
+                </div>
+                <input
+                  value={priceSearch}
+                  onChange={(e) => setPriceSearch(e.target.value)}
+                  placeholder="Buscar productos o servicios..."
+                  className="w-full pl-11 pr-4 py-3.5 bg-white/[0.04] border border-white/[0.08] rounded-2xl text-sm text-white placeholder-white/20 focus:outline-none focus:ring-2 focus:ring-emerald-500/40 focus:bg-white/[0.08] transition-all"
+                />
+              </div>
+              {priceSearch && filteredPriceList.length > 0 && (
+                <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 max-h-[320px] overflow-y-auto no-scrollbar">
+                  {filteredPriceList.slice(0, 24).map((item) => (
+                    <div key={`d-${item.type}-${item.id}`} className="p-3 bg-white/[0.02] border border-white/[0.05] rounded-2xl">
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="min-w-0 flex-1">
+                          <p className="text-white font-black text-sm truncate uppercase tracking-tight">{item.name}</p>
+                          <span className={cn("text-[8px] font-black uppercase tracking-tighter px-2 py-0.5 rounded-md border mt-1 inline-block", item.type === "service" ? "bg-blue-500/10 text-blue-400 border-blue-500/20" : "bg-emerald-500/10 text-emerald-400 border-emerald-500/20")}>
+                            {item.type === "service" ? "Servicio" : "Producto"}
+                          </span>
+                        </div>
+                        <p className="text-emerald-400 font-black text-base tracking-tighter shrink-0">${(item.price || 0).toFixed(2)}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+              {priceSearch && filteredPriceList.length === 0 && (
+                <p className="text-white/20 text-sm text-center py-4 font-bold">Sin resultados para "{priceSearch}"</p>
+              )}
+            </div>
+          )}
+
         </div>
 
 {/* WorkQueueWidget + PersonalNotesWidget removed per user request */}

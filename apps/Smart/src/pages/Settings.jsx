@@ -16,9 +16,7 @@ import {
   Smartphone, FileText, CreditCard, Wallet, UserCircle, Plus, Edit2, Trash2,
   X, Eye, EyeOff, Wrench, CheckSquare, Camera, Key, Lock, Search,
   Fingerprint, ShieldCheck, ShieldAlert, History, Download, AlertCircle,
-  Briefcase, ShoppingCart, BarChart3, TrendingDown, Activity, GripVertical,
-  Layout, Grid, Zap, ExternalLink, ChevronDown, Upload, MessageSquarePlus, PiggyBank, Layers,
-  TrendingUp, PackageCheck, Timer
+  BarChart3, ExternalLink, ChevronDown, Upload, MessageSquarePlus
 } from "lucide-react";
 import { useI18n } from "@/components/utils/i18n";
 import ImportExportTab from "@/components/settings/ImportExportTab";
@@ -28,7 +26,6 @@ import { WarrantySalesModal, WarrantyRepairsModal } from "@/components/settings/
 import EmailTemplatesTab from "@/components/settings/tabs/EmailTemplatesTab";
 import { useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/components/utils/helpers";
-import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
 
 const BIOMETRIC_LOGIN_KEY = "smartfix_biometric_login";
 
@@ -172,44 +169,6 @@ export default function SettingsPage() {
   const [usefulLinks, setUsefulLinks] = useState([]); // 👈
   const [newUsefulLink, setNewUsefulLink] = useState({ name: "", url: "" }); // 👈
   
-  // Dashboard Buttons Config
-  const DASHBOARD_WIDGETS_KEY = "smartfix_dashboard_widgets";
-  const [widgetConfig, setWidgetConfig] = useState(() => {
-    try {
-      const raw = localStorage.getItem("smartfix_dashboard_widgets");
-      const parsed = raw ? JSON.parse(raw) : {};
-      return { kpiIncome: true, kpiGoal: true, kpiActive: true, kpiDelivered: true, kpiOverdue: true, orders: false, priceList: false, ...parsed };
-    } catch { return { kpiIncome: true, kpiGoal: true, kpiActive: true, kpiDelivered: true, kpiOverdue: true, orders: false, priceList: false }; }
-  });
-  const [dailyGoal, setDailyGoal] = useState(() => {
-    try { return localStorage.getItem("smartfix_daily_goal_override") || "1000"; } catch { return "1000"; }
-  });
-  const saveDailyGoal = (val) => {
-    setDailyGoal(val);
-    const n = Number(val);
-    if (!isNaN(n) && n > 0) {
-      localStorage.setItem("smartfix_daily_goal_override", String(n));
-      window.dispatchEvent(new CustomEvent('dashboard-widgets-updated'));
-    }
-  };
-  const handleToggleWidget = (widgetId) => {
-    const next = { ...widgetConfig, [widgetId]: !widgetConfig[widgetId] };
-    setWidgetConfig(next);
-    localStorage.setItem("smartfix_dashboard_widgets", JSON.stringify(next));
-    window.dispatchEvent(new CustomEvent('dashboard-widgets-updated'));
-    toast.success("Widget actualizado");
-  };
-
-  const [dashboardButtons, setDashboardButtons] = useState([]);
-  const [showCreateCustom, setShowCreateCustom] = useState(false);
-  const [customButton, setCustomButton] = useState({
-    label: "",
-    icon: "ExternalLink",
-    gradient: "from-cyan-600 to-blue-600",
-    action: "",
-    type: "navigate"
-  });
-
   // Admin Panel Buttons Config
   const [adminPanelButtons, setAdminPanelButtons] = useState([]);
   const [showCreateAdminButton, setShowCreateAdminButton] = useState(false);
@@ -221,92 +180,27 @@ export default function SettingsPage() {
     type: "navigate",
     view: ""
   });
-  const LOCAL_DASHBOARD_BUTTONS_KEY = "smartfix_dashboard_buttons_local";
-
-  const readLocalDashboardButtons = () => {
-    try {
-      const raw = localStorage.getItem(LOCAL_DASHBOARD_BUTTONS_KEY);
-      const parsed = raw ? JSON.parse(raw) : [];
-      return Array.isArray(parsed) ? parsed : [];
-    } catch {
-      return [];
-    }
-  };
-
-  const writeLocalDashboardButtons = (buttons) => {
-    try {
-      localStorage.setItem(LOCAL_DASHBOARD_BUTTONS_KEY, JSON.stringify(buttons || []));
-    } catch {
-      // no-op
-    }
-  };
-
-  // Botones predeterminados del Dashboard — solo los 5 esenciales activos por defecto
-  const ADMIN_CORE_DASHBOARD_BUTTONS = [
-    { id: "new_order",      label: "Nueva Orden",          icon: "ClipboardList", gradient: "from-blue-500 to-cyan-600",    action: "showWorkOrderWizard", type: "modal",    enabled: true  },
-    { id: "orders",         label: "Órdenes",              icon: "ClipboardList", gradient: "from-purple-500 to-pink-600",  action: "Orders",              type: "navigate", enabled: true  },
-    { id: "inventory",      label: "Inventario",           icon: "Package",       gradient: "from-teal-500 to-cyan-600",   action: "Inventory",           type: "navigate", enabled: true  },
-    { id: "financial",      label: "Finanzas",             icon: "Wallet",        gradient: "from-emerald-600 to-green-700", action: "Financial",          type: "navigate", enabled: true  },
-    { id: "reports",        label: "Reportes",             icon: "BarChart3",     gradient: "from-blue-600 to-indigo-700", action: "Reports",             type: "navigate", enabled: true  },
-    { id: "pos",            label: "POS",                  icon: "Wallet",        gradient: "from-green-600 to-emerald-700", action: "POS",                type: "navigate", enabled: false },
-    { id: "customers",      label: "Clientes",             icon: "Users",         gradient: "from-blue-600 to-indigo-700", action: "Customers",           type: "navigate", enabled: false },
-    { id: "recharges",      label: "Recargas",             icon: "Zap",           gradient: "from-amber-500 to-yellow-600", action: "Recharges",          type: "navigate", enabled: false },
-    { id: "technicians",    label: "Técnicos",             icon: "Wrench",        gradient: "from-cyan-500 to-blue-600",   action: "Technicians",         type: "navigate", enabled: false },
-    { id: "notifications",  label: "Notificaciones",       icon: "Bell",          gradient: "from-orange-500 to-red-600",  action: "Notifications",       type: "navigate", enabled: false },
-    { id: "users",          label: "Panel Administrativo", icon: "Users",         gradient: "from-pink-500 to-rose-600",   action: "UsersManagement",     type: "navigate", enabled: false },
-  ];
-
-  const mergeAdminDashboardButtons = (savedButtons = []) => {
-    const savedMap = new Map((savedButtons || []).map((b) => [b.id, b]));
-    const customButtons = (savedButtons || []).filter(
-      (b) => !ADMIN_CORE_DASHBOARD_BUTTONS.some((d) => d.id === b.id)
-    );
-
-    const mergedDefaults = ADMIN_CORE_DASHBOARD_BUTTONS.map((defaults, idx) => {
-      const saved = savedMap.get(defaults.id) || {};
-      return {
-        ...saved,
-        ...defaults,
-        order: Number.isFinite(saved.order) ? saved.order : idx,
-        enabled: saved.enabled !== undefined ? saved.enabled : true
-      };
-    });
-
-    return [...mergedDefaults, ...customButtons]
-      .sort((a, b) => (a.order ?? 0) - (b.order ?? 0))
-      .map((b, idx) => ({ ...b, order: idx }));
-  };
-
-
-
   useEffect(() => {
     loadAllSettings();
   }, []);
-
-  useEffect(() => {
-    if (activeSection === "dashboard_buttons" && dashboardButtons.length === 0) {
-      loadDashboardButtons();
-    }
-  }, [activeSection, dashboardButtons.length]);
 
 
 
   const loadAllSettings = async () => {
     try {
-      const [configRes, themeRes, pmRes, linksRes, buttonsRes, adminButtonsRes, brandingRes] = await Promise.all([
+      const [configRes, themeRes, pmRes, linksRes, adminButtonsRes, brandingRes] = await Promise.all([
         dataClient.entities.AppSettings.filter({ slug: "app-main-settings" }).catch(() => []),
         dataClient.entities.AppSettings.filter({ slug: "app-theme" }).catch(() => []),
         dataClient.entities.AppSettings.filter({ slug: "payment-methods" }).catch(() => []),
         dataClient.entities.AppSettings.filter({ slug: "useful-links" }).catch(() => []),
-        dataClient.entities.AppSettings.filter({ slug: "dashboard-buttons" }).catch(() => []),
         dataClient.entities.AppSettings.filter({ slug: "admin-panel-buttons" }).catch(() => []),
         dataClient.entities.AppSettings.filter({ slug: "business-branding" }).catch(() => [])
       ]);
 
       if (configRes?.length) {
          const loaded = configRes[0].payload;
-         setAppConfig({ 
-           ...appConfig, 
+         setAppConfig({
+           ...appConfig,
            ...loaded,
            business_hours: loaded.business_hours || appConfig.business_hours
          });
@@ -326,18 +220,6 @@ export default function SettingsPage() {
       if (linksRes?.length) {
         const payload = linksRes[0].payload;
         setUsefulLinks(Array.isArray(payload) ? payload : (payload?.links || []));
-      }
-      
-      // Cargar botones del dashboard
-      if (buttonsRes?.length) {
-        const savedButtons = buttonsRes[0].payload?.buttons || [];
-        const merged = mergeAdminDashboardButtons(savedButtons);
-        setDashboardButtons(merged);
-        writeLocalDashboardButtons(merged);
-      } else {
-        const localButtons = readLocalDashboardButtons();
-        const merged = mergeAdminDashboardButtons(localButtons);
-        setDashboardButtons(merged);
       }
 
       // Cargar botones del panel administrativo
@@ -631,131 +513,6 @@ export default function SettingsPage() {
     }
   };
 
-  // Dashboard Buttons Helpers
-  const ICON_OPTIONS = [
-    { value: "Shield", label: "Escudo", component: Shield },
-    { value: "Clock", label: "Reloj", component: Clock },
-    { value: "Building2", label: "Edificio", component: Building2 },
-    { value: "CreditCard", label: "Tarjeta", component: CreditCard },
-    { value: "ClipboardList", label: "Clipboard", component: ClipboardList },
-    { value: "Wrench", label: "Herramienta", component: Wrench },
-    { value: "Smartphone", label: "Teléfono", component: Smartphone },
-    { value: "Zap", label: "Rayo", component: Zap },
-    { value: "Package", label: "Paquete", component: Package },
-    { value: "Wallet", label: "Billetera", component: Wallet },
-    { value: "BarChart3", label: "Gráfica", component: BarChart3 },
-    { value: "ExternalLink", label: "Enlace", component: ExternalLink },
-    { value: "Users", label: "Usuarios", component: Users },
-    { value: "FileText", label: "Archivo", component: FileText },
-    { value: "ShoppingCart", label: "Carrito", component: ShoppingCart }
-  ];
-
-  const GRADIENT_OPTIONS = [
-    { value: "from-purple-500 to-pink-600", label: "Morado-Rosa" },
-    { value: "from-orange-500 to-red-600", label: "Naranja-Rojo" },
-    { value: "from-indigo-500 to-purple-600", label: "Índigo-Morado" },
-    { value: "from-amber-500 to-yellow-600", label: "Ámbar-Amarillo" },
-    { value: "from-teal-500 to-cyan-600", label: "Verde-Cian" },
-    { value: "from-green-600 to-emerald-700", label: "Verde-Esmeralda" },
-    { value: "from-blue-600 to-indigo-700", label: "Azul-Índigo" },
-    { value: "from-cyan-600 to-blue-600", label: "Cian-Azul" }
-  ];
-
-  const loadDashboardButtons = async () => {
-    try {
-      const configs = await dataClient.entities.AppSettings.filter({ slug: "dashboard-buttons" });
-      const savedButtons = configs?.[0]?.payload?.buttons || [];
-      const merged = mergeAdminDashboardButtons(savedButtons);
-      setDashboardButtons(merged.length ? merged : mergeAdminDashboardButtons([]));
-      writeLocalDashboardButtons(merged);
-    } catch (error) {
-      console.error("Error loading dashboard buttons:", error);
-      const localButtons = readLocalDashboardButtons();
-      const merged = mergeAdminDashboardButtons(localButtons);
-      setDashboardButtons(merged.length ? merged : mergeAdminDashboardButtons([]));
-    }
-  };
-
-  const handleToggleButton = (buttonId) => {
-    setDashboardButtons(dashboardButtons.map(btn => 
-      btn.id === buttonId ? { ...btn, enabled: !btn.enabled } : btn
-    ));
-  };
-
-  const handleDeleteButton = (buttonId) => {
-    if (confirm("¿Eliminar este botón del dashboard?")) {
-      setDashboardButtons(dashboardButtons.filter(btn => btn.id !== buttonId));
-      toast.success("✅ Botón eliminado");
-    }
-  };
-
-  const handleDragEnd = (result) => {
-    if (!result.destination) return;
-
-    const items = Array.from(dashboardButtons);
-    const [reorderedItem] = items.splice(result.source.index, 1);
-    items.splice(result.destination.index, 0, reorderedItem);
-
-    const updatedButtons = items.map((btn, idx) => ({
-      ...btn,
-      order: idx
-    }));
-
-    setDashboardButtons(updatedButtons);
-  };
-
-  const saveDashboardButtons = async () => {
-    setLoading(true);
-    try {
-      const configs = await dataClient.entities.AppSettings.filter({ slug: "dashboard-buttons" });
-      
-      const payload = {
-        buttons: dashboardButtons.map(btn => ({
-          id: btn.id,
-          label: btn.label,
-          icon: btn.icon,
-          gradient: btn.gradient,
-          action: btn.action || btn.page,
-          type: btn.type || "navigate",
-          page: btn.page,
-          enabled: btn.enabled,
-          order: btn.order
-        }))
-      };
-
-      if (configs?.length) {
-        await dataClient.entities.AppSettings.update(configs[0].id, { payload });
-      } else {
-        await dataClient.entities.AppSettings.create({
-          slug: "dashboard-buttons",
-          payload
-        });
-      }
-
-      writeLocalDashboardButtons(payload.buttons || []);
-      toast.success("✅ Configuración guardada");
-      window.dispatchEvent(new CustomEvent('dashboard-buttons-updated'));
-    } catch (error) {
-      console.error("Error saving dashboard buttons:", error);
-      const fallbackButtons = dashboardButtons.map(btn => ({
-        id: btn.id,
-        label: btn.label,
-        icon: btn.icon,
-        gradient: btn.gradient,
-        action: btn.action || btn.page,
-        type: btn.type || "navigate",
-        page: btn.page,
-        enabled: btn.enabled,
-        order: btn.order
-      }));
-      writeLocalDashboardButtons(fallbackButtons);
-      window.dispatchEvent(new CustomEvent('dashboard-buttons-updated'));
-      toast.warning("Sin conexión. Configuración guardada localmente.");
-    } finally {
-      setLoading(false);
-    }
-  };
-
   const saveAdminPanelButtons = async () => {
     setLoading(true);
     try {
@@ -921,13 +678,6 @@ export default function SettingsPage() {
       groupId: "personalizacion",
       groupLabel: "Personalización",
       sections: [
-        {
-          id: "dashboard_buttons",
-          icon: Layout,
-          title: "Dashboard",
-          description: "Personalizar botones principales",
-          color: "from-purple-600 to-pink-600",
-        },
         {
           id: "wizard",
           icon: ClipboardList,
@@ -1562,337 +1312,6 @@ export default function SettingsPage() {
                 className="w-full bg-gradient-to-r from-green-500 to-teal-500 hover:from-green-600 hover:to-teal-600 text-white rounded-[20px] h-14 text-lg font-black shadow-[0_0_30px_rgba(16,185,129,0.4)] active:scale-95 transition-all duration-300"
               >
                 {loading ? <Loader2 className="w-5 h-5 mr-2 animate-spin" /> : "Guardar Métodos de Pago"}
-              </Button>
-            </div>
-          )}
-
-
-
-          {/* DASHBOARD BUTTONS (SEQUOIA STYLE) */}
-          {activeSection === "dashboard_buttons" && (
-            <div className="space-y-6">
-              <div className="bg-gradient-to-br from-white/10 to-white/5 border border-white/10 rounded-[28px] p-7 backdrop-blur-xl shadow-2xl relative overflow-hidden">
-                <div className="absolute -right-20 -bottom-20 w-48 h-48 bg-gradient-to-br from-purple-500/20 to-pink-500/10 rounded-full blur-[80px]" />
-                <div className="flex items-start gap-5 mb-7 relative z-10">
-                  <div className="w-12 h-12 rounded-full bg-gradient-to-br from-blue-400 to-cyan-500 flex items-center justify-center shrink-0 shadow-xl">
-                    <Grid className="w-6 h-6 text-white" strokeWidth={2.5} />
-                  </div>
-                  <div>
-                    <h2 className="text-2xl font-black text-white tracking-tight">Personalización de Pantalla</h2>
-                    <p className="text-white/60 text-sm mt-2 leading-relaxed font-semibold">
-                      Organiza y personaliza los accesos directos de tu pantalla principal. Arrastra para reordenar.
-                    </p>
-                  </div>
-                </div>
-
-                <DragDropContext onDragEnd={handleDragEnd}>
-                  <Droppable droppableId="buttons">
-                    {(provided) => (
-                      <div
-                        {...provided.droppableProps}
-                        ref={provided.innerRef}
-                        className="space-y-3"
-                      >
-                        {dashboardButtons.map((button, index) => {
-                          const IconComponent = typeof button.icon === 'string' 
-                            ? ICON_OPTIONS.find(i => i.value === button.icon)?.component || ExternalLink
-                            : button.icon;
-                          
-                          return (
-                            <Draggable key={button.id} draggableId={button.id} index={index}>
-                              {(provided, snapshot) => (
-                                <div
-                                  ref={provided.innerRef}
-                                  {...provided.draggableProps}
-                                  className={`relative overflow-hidden rounded-[20px] border transition-all duration-500 ${
-                                    snapshot.isDragging
-                                      ? "border-cyan-500/50 bg-gradient-to-br from-cyan-500/20 to-blue-500/10 shadow-[0_20px_60px_rgba(6,182,212,0.4)] scale-105 z-50"
-                                      : "border-white/10 bg-gradient-to-br from-white/8 to-white/5 hover:from-white/12 hover:to-white/8"
-                                  }`}
-                                >
-                                  <div className="flex items-center gap-4 p-4">
-                                    <div
-                                      {...provided.dragHandleProps}
-                                      className="cursor-grab active:cursor-grabbing p-2 hover:bg-white/5 rounded-lg transition-colors"
-                                    >
-                                      <GripVertical className="w-5 h-5 text-white/30" />
-                                    </div>
-
-                                    <div className={`w-14 h-14 rounded-[18px] bg-gradient-to-br ${button.gradient} flex items-center justify-center shadow-xl flex-shrink-0 transform transition-transform duration-300 ${snapshot.isDragging ? 'scale-110' : ''}`}>
-                                      <IconComponent className="w-7 h-7 text-white" strokeWidth={2.5} />
-                                    </div>
-
-                                    <div className="flex-1 min-w-0">
-                                      <p className="text-white font-black text-lg truncate">{button.label}</p>
-                                      <p className="text-white/50 text-xs mt-1 truncate font-semibold">
-                                        {button.page || button.action}
-                                      </p>
-                                    </div>
-
-                                    <div className="flex items-center gap-2">
-                                      <Button
-                                        onClick={() => handleDeleteButton(button.id)}
-                                        variant="ghost"
-                                        size="icon"
-                                        className="text-white/20 hover:text-red-400 hover:bg-red-500/10 rounded-full"
-                                      >
-                                        <Trash2 className="w-4 h-4" />
-                                      </Button>
-
-                                      <button
-                                        onClick={() => handleToggleButton(button.id)}
-                                        className={`w-12 h-7 rounded-full transition-colors relative flex items-center px-1 ${
-                                          button.enabled ? "bg-green-500" : "bg-white/10"
-                                        }`}
-                                      >
-                                        <div className={`w-5 h-5 rounded-full bg-white shadow-sm transition-transform ${
-                                          button.enabled ? "translate-x-5" : "translate-x-0"
-                                        }`} />
-                                      </button>
-                                    </div>
-                                  </div>
-                                </div>
-                              )}
-                            </Draggable>
-                          );
-                        })}
-                        {provided.placeholder}
-                      </div>
-                    )}
-                  </Droppable>
-                </DragDropContext>
-
-                <div className="mt-6 pt-6 border-t border-white/5">
-                  <Button
-                    onClick={() => setShowCreateCustom(true)}
-                    className="w-full bg-white/5 hover:bg-white/10 text-white border border-white/5 rounded-2xl h-12 font-semibold transition-all"
-                  >
-                    <Plus className="w-5 h-5 mr-2" />
-                    Añadir Acceso Directo
-                  </Button>
-                </div>
-              </div>
-
-              {/* === WIDGETS OPCIONALES === */}
-              <div className="bg-gradient-to-br from-white/10 to-white/5 border border-white/10 rounded-[28px] p-7 backdrop-blur-xl shadow-2xl relative overflow-hidden mt-6">
-                <div className="absolute -right-20 -bottom-20 w-48 h-48 bg-gradient-to-br from-emerald-500/20 to-teal-500/10 rounded-full blur-[80px]" />
-                <div className="flex items-start gap-5 mb-7 relative z-10">
-                  <div className="w-12 h-12 rounded-full bg-gradient-to-br from-emerald-400 to-teal-500 flex items-center justify-center shrink-0 shadow-xl">
-                    <Layers className="w-6 h-6 text-white" strokeWidth={2.5} />
-                  </div>
-                  <div>
-                    <h2 className="text-2xl font-black text-white tracking-tight">Widgets del Dashboard</h2>
-                    <p className="text-white/60 text-sm mt-2 leading-relaxed font-semibold">
-                      Activa o desactiva las secciones opcionales que aparecen en tu pantalla principal.
-                    </p>
-                  </div>
-                </div>
-
-                <div className="space-y-3 relative z-10">
-                  {[
-                    { id: "kpiIncome", label: "Ingresos de hoy", description: "Ventas y ganancia del día actual", icon: DollarSign, color: "text-emerald-400", bg: "bg-emerald-500/10", border: "border-emerald-500/20" },
-                    { id: "kpiGoal", label: "Meta diaria", description: "Porcentaje de avance hacia tu meta de ventas", icon: TrendingUp, color: "text-blue-400", bg: "bg-blue-500/10", border: "border-blue-500/20" },
-                    { id: "kpiActive", label: "Órdenes activas", description: "Total de órdenes en progreso y listas para recoger", icon: Wrench, color: "text-indigo-400", bg: "bg-indigo-500/10", border: "border-indigo-500/20" },
-                    { id: "kpiDelivered", label: "Entregadas hoy", description: "Reparaciones completadas y entregadas hoy", icon: PackageCheck, color: "text-purple-400", bg: "bg-purple-500/10", border: "border-purple-500/20" },
-                    { id: "kpiOverdue", label: "Sin movimiento", description: "Órdenes sin actualizar por más de 7 días", icon: Timer, color: "text-red-400", bg: "bg-red-500/10", border: "border-red-500/20" },
-                    { id: "orders", label: "Gestión de Órdenes", description: "Filtros, búsqueda y lista de órdenes activas", icon: ClipboardList, color: "text-blue-400", bg: "bg-blue-500/10", border: "border-blue-500/20" },
-                    { id: "priceList", label: "Lista de Precios", description: "Busca precios de productos y servicios al instante", icon: PiggyBank, color: "text-emerald-400", bg: "bg-emerald-500/10", border: "border-emerald-500/20" }
-                  ].map(widget => {
-                    const WidgetIcon = widget.icon;
-                    const isOn = widgetConfig[widget.id];
-                    return (
-                      <div key={widget.id} className={`flex items-center gap-4 p-4 rounded-[20px] border transition-all duration-300 ${isOn ? `${widget.bg} ${widget.border}` : "bg-white/[0.03] border-white/[0.07]"}`}>
-                        <div className={`w-12 h-12 rounded-2xl flex items-center justify-center ${isOn ? widget.bg : "bg-white/5"} border ${isOn ? widget.border : "border-white/10"}`}>
-                          <WidgetIcon className={`w-6 h-6 ${isOn ? widget.color : "text-white/30"}`} strokeWidth={2.5} />
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <p className={`font-black text-base ${isOn ? "text-white" : "text-white/50"}`}>{widget.label}</p>
-                          <p className="text-white/30 text-xs mt-0.5 font-semibold">{widget.description}</p>
-                        </div>
-                        <button
-                          onClick={() => handleToggleWidget(widget.id)}
-                          className={`w-12 h-7 rounded-full transition-colors relative flex items-center px-1 ${isOn ? "bg-green-500" : "bg-white/10"}`}
-                        >
-                          <div className={`w-5 h-5 rounded-full bg-white shadow-sm transition-transform ${isOn ? "translate-x-5" : "translate-x-0"}`} />
-                        </button>
-                      </div>
-                    );
-                  })}
-
-                  {/* Meta diaria config */}
-                  <div className="mt-4 pt-4 border-t border-white/[0.06]">
-                    <p className="text-white/40 text-xs font-bold uppercase tracking-wider mb-3">Configurar Meta Diaria</p>
-                    <div className="flex items-center gap-3 bg-white/[0.04] border border-white/[0.08] rounded-2xl px-4 py-3">
-                      <TrendingUp className="w-4 h-4 text-blue-400 shrink-0" />
-                      <span className="text-xs text-white/50 font-bold whitespace-nowrap">Meta $</span>
-                      <input
-                        type="number"
-                        min="0"
-                        value={dailyGoal}
-                        onChange={(e) => saveDailyGoal(e.target.value)}
-                        placeholder="1000"
-                        className="flex-1 bg-transparent text-white text-sm font-black outline-none placeholder-white/20 min-w-0"
-                      />
-                      <span className="text-[10px] text-white/20 font-bold">USD/día</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {showCreateCustom && (
-                <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-xl flex items-center justify-center p-4">
-                  <div className="bg-gradient-to-br from-[#1c1c1e] to-black/90 border border-white/20 p-8 rounded-[36px] max-w-md w-full shadow-2xl relative overflow-hidden">
-                    <div className="absolute -top-20 -right-20 w-40 h-40 bg-gradient-to-br from-cyan-500/20 to-blue-500/10 rounded-full blur-[80px]" />
-                    <h3 className="text-3xl font-black text-white mb-7 tracking-tight relative z-10">Nuevo Acceso</h3>
-                    <div className="space-y-5">
-                      <div className="space-y-2">
-                        <label className="text-white/60 text-xs font-bold uppercase tracking-wider ml-1">Nombre</label>
-                        <Input
-                          value={customButton.label}
-                          onChange={(e) => setCustomButton({...customButton, label: e.target.value})}
-                          placeholder="Ej: Reportes Externos"
-                          className="bg-white/5 border-transparent rounded-xl h-12 text-white placeholder-white/20 focus:bg-white/10"
-                        />
-                      </div>
-
-                      <div className="grid grid-cols-2 gap-4">
-                        <div className="space-y-2">
-                          <label className="text-white/60 text-xs font-bold uppercase tracking-wider ml-1">Icono</label>
-                          <select
-                            value={customButton.icon}
-                            onChange={(e) => setCustomButton({...customButton, icon: e.target.value})}
-                            className="w-full bg-white/5 border-transparent rounded-xl h-12 text-white px-3 outline-none focus:bg-white/10"
-                          >
-                            {ICON_OPTIONS.map(opt => (
-                              <option key={opt.value} value={opt.value} className="bg-[#1c1c1e]">{opt.label}</option>
-                            ))}
-                          </select>
-                        </div>
-                        <div className="space-y-2">
-                          <label className="text-white/60 text-xs font-bold uppercase tracking-wider ml-1">Color</label>
-                          <select
-                            value={customButton.gradient}
-                            onChange={(e) => setCustomButton({...customButton, gradient: e.target.value})}
-                            className="w-full bg-white/5 border-transparent rounded-xl h-12 text-white px-3 outline-none focus:bg-white/10"
-                          >
-                            {GRADIENT_OPTIONS.map(opt => (
-                              <option key={opt.value} value={opt.value} className="bg-[#1c1c1e]">{opt.label}</option>
-                            ))}
-                          </select>
-                        </div>
-                      </div>
-
-                      <div className="space-y-3">
-                        <label className="text-white/60 text-xs font-bold uppercase tracking-wider ml-1">Tipo de Destino</label>
-                        
-                        {/* Botones de radio */}
-                        <div className="flex gap-3">
-                          <button
-                            type="button"
-                            onClick={() => setCustomButton({...customButton, type: 'navigate', action: ''})}
-                            className={`flex-1 p-3 rounded-xl border-2 transition-all ${
-                              customButton.type === 'navigate'
-                                ? 'bg-cyan-500/20 border-cyan-500/60 text-white'
-                                : 'bg-white/5 border-white/10 text-white/60 hover:bg-white/10'
-                            }`}
-                          >
-                            <p className="font-bold text-sm">🔗 Ruta Interna</p>
-                            <p className="text-xs opacity-70">Página del sistema</p>
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => setCustomButton({...customButton, type: 'external', action: ''})}
-                            className={`flex-1 p-3 rounded-xl border-2 transition-all ${
-                              customButton.type === 'external'
-                                ? 'bg-emerald-500/20 border-emerald-500/60 text-white'
-                                : 'bg-white/5 border-white/10 text-white/60 hover:bg-white/10'
-                            }`}
-                          >
-                            <p className="font-bold text-sm">🌐 URL Externa</p>
-                            <p className="text-xs opacity-70">Link externo</p>
-                          </button>
-                        </div>
-
-                        {/* Input según tipo seleccionado */}
-                        {customButton.type === 'navigate' ? (
-                          <div className="space-y-2">
-                            <label className="text-white/60 text-xs font-bold ml-1">Selecciona la página</label>
-                            <select
-                              value={customButton.action}
-                              onChange={(e) => setCustomButton({...customButton, action: e.target.value})}
-                              className="w-full bg-white/5 border-transparent rounded-xl h-12 text-white px-3 outline-none focus:bg-white/10"
-                            >
-                              <option value="" className="bg-[#1c1c1e]">-- Selecciona una página --</option>
-                              <option value="Dashboard" className="bg-[#1c1c1e]">📊 Dashboard</option>
-                              <option value="Orders" className="bg-[#1c1c1e]">📋 Órdenes</option>
-                              <option value="Customers" className="bg-[#1c1c1e]">👥 Clientes</option>
-                              <option value="Inventory" className="bg-[#1c1c1e]">📦 Inventario</option>
-                              <option value="POS" className="bg-[#1c1c1e]">🛒 Punto de Venta</option>
-                              <option value="Financial" className="bg-[#1c1c1e]">💰 Finanzas</option>
-                              <option value="Reports" className="bg-[#1c1c1e]">📈 Reportes</option>
-                              <option value="Recharges" className="bg-[#1c1c1e]">⚡ Recargas</option>
-                              <option value="Notifications" className="bg-[#1c1c1e]">🔔 Notificaciones</option>
-                              <option value="Technicians" className="bg-[#1c1c1e]">🔧 Técnicos</option>
-                              <option value="Settings" className="bg-[#1c1c1e]">⚙️ Configuración</option>
-                              <option value="UsersManagement" className="bg-[#1c1c1e]">👤 Usuarios</option>
-                              <option value="TimeTracking" className="bg-[#1c1c1e]">⏱️ Control de Tiempo</option>
-                              <option value="CashHistory" className="bg-[#1c1c1e]">💵 Historial de Caja</option>
-                            </select>
-                          </div>
-                        ) : (
-                          <div className="space-y-2">
-                            <label className="text-white/60 text-xs font-bold ml-1">URL Externa</label>
-                            <Input
-                              value={customButton.action}
-                              onChange={(e) => setCustomButton({...customButton, action: e.target.value})}
-                              placeholder="https://ejemplo.com"
-                              className="bg-white/5 border-transparent rounded-xl h-12 text-white placeholder-white/20 focus:bg-white/10"
-                            />
-                          </div>
-                        )}
-                      </div>
-
-                      <div className="flex gap-4 pt-4 relative z-10">
-                        <Button
-                          onClick={() => setShowCreateCustom(false)}
-                          className="flex-1 bg-white/5 hover:bg-white/10 border border-white/10 text-white rounded-[16px] h-14 font-bold active:scale-95 transition-all"
-                        >
-                          Cancelar
-                        </Button>
-                        <Button
-                          onClick={() => {
-                            if (!customButton.label || !customButton.action) return toast.error("Faltan datos");
-                            const newButton = {
-                              id: `custom_${Date.now()}`,
-                              label: customButton.label,
-                              icon: customButton.icon,
-                              gradient: customButton.gradient,
-                              type: customButton.type,
-                              action: customButton.action,
-                              enabled: true,
-                              order: dashboardButtons.length
-                            };
-                            setDashboardButtons([...dashboardButtons, newButton]);
-                            setCustomButton({ label: "", icon: "ExternalLink", gradient: "from-cyan-600 to-blue-600", action: "", type: "navigate" });
-                            setShowCreateCustom(false);
-                            toast.success("Creado");
-                          }}
-                          className="flex-1 bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 text-white rounded-[16px] h-14 font-black shadow-[0_0_25px_rgba(59,130,246,0.4)] active:scale-95 transition-all duration-300"
-                        >
-                          Crear
-                        </Button>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              <Button 
-                onClick={saveDashboardButtons} 
-                disabled={loading} 
-                className="w-full bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white rounded-[20px] h-14 text-lg font-black shadow-[0_0_30px_rgba(168,85,247,0.4)] transition-all duration-300 active:scale-95"
-              >
-                {loading ? <Loader2 className="w-5 h-5 mr-2 animate-spin" /> : "Guardar Configuración"}
               </Button>
             </div>
           )}
