@@ -976,10 +976,72 @@ export default function PinAccess() {
   // ── Detectar tipo de autenticador biométrico del dispositivo ──────────────
   const getBiometricType = () => {
     const ua = navigator.userAgent;
-    if (/iPhone|iPad/.test(ua)) return { name: "Face ID", label: "Face ID", icon: "󰥋" };
-    if (/Android/.test(ua))     return { name: "Huella Digital", label: "Huella", icon: "👆" };
-    if (/Mac/.test(ua))         return { name: "Touch ID", label: "Touch ID", icon: "👆" };
-    return { name: "Biometría", label: "Biometría", icon: "🔐" };
+    if (/iPhone|iPad/.test(ua)) return { name: "Face ID",       label: "Face ID",       type: "faceid"      };
+    if (/Android/.test(ua))     return { name: "Huella Digital", label: "Huella Digital", type: "fingerprint" };
+    if (/Mac/.test(ua))         return { name: "Touch ID",       label: "Touch ID",       type: "touchid"     };
+    return                             { name: "Acceso Seguro",  label: "Acceso Seguro",  type: "security"    };
+  };
+
+  // ── Renderizar ícono biométrico según dispositivo ─────────────────────────
+  const BiometricIcon = ({ type, size = "md", className = "" }) => {
+    const sz = size === "lg" ? "w-12 h-12" : size === "sm" ? "w-6 h-6" : "w-8 h-8";
+    const cls = `${sz} ${className}`;
+
+    // Face ID — esquinas + ojos + nariz + boca (estilo Apple oficial)
+    if (type === "faceid") return (
+      <svg viewBox="0 0 24 24" className={cls} fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+        {/* Esquinas del marco */}
+        <path d="M2 9V6a2 2 0 012-2h3"/>
+        <path d="M2 15v3a2 2 0 002 2h3"/>
+        <path d="M22 9V6a2 2 0 00-2-2h-3"/>
+        <path d="M22 15v3a2 2 0 01-2 2h-3"/>
+        {/* Ojos */}
+        <circle cx="9" cy="10.5" r="0.75" fill="currentColor" stroke="none"/>
+        <circle cx="15" cy="10.5" r="0.75" fill="currentColor" stroke="none"/>
+        {/* Nariz */}
+        <path d="M12 9v2.5"/>
+        {/* Boca / sonrisa */}
+        <path d="M9 14.5c0 0 1 2 3 2s3-2 3-2"/>
+      </svg>
+    );
+
+    // Touch ID — huella dactilar con arcos concéntricos (estilo Apple Touch ID)
+    if (type === "touchid") return (
+      <svg viewBox="0 0 24 24" className={cls} fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round">
+        {/* Arco exterior */}
+        <path d="M4.5 10.5a7.5 7.5 0 0115 0c0 5-2 8.5-7.5 10"/>
+        {/* Arco medio */}
+        <path d="M7.5 10.5a4.5 4.5 0 019 0c0 3-1 6-4.5 7.5"/>
+        {/* Arco interior */}
+        <path d="M10.5 10.5a1.5 1.5 0 013 0c0 2-.5 4-1.5 5"/>
+        {/* Centro */}
+        <circle cx="12" cy="10.5" r="0.75" fill="currentColor" stroke="none"/>
+        {/* Corte típico de Touch ID en la parte superior */}
+        <path d="M9 6.5A5.5 5.5 0 0115 6.5"/>
+      </svg>
+    );
+
+    // Fingerprint Android — huella con líneas más marcadas (Lucide Fingerprint)
+    if (type === "fingerprint") return (
+      <svg viewBox="0 0 24 24" className={cls} fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round">
+        <path d="M12 10a2 2 0 00-2 2v.5"/>
+        <path d="M12 10a2 2 0 012 2c0 4-1.5 7-2 8"/>
+        <path d="M12 10a5 5 0 00-5 5c0 3 1 6 2 8"/>
+        <path d="M12 10a5 5 0 015 5c0 2-.5 5-2 7.5"/>
+        <path d="M8.5 7.4A8 8 0 0120 12c0 5.5-2.5 9-4 11"/>
+        <path d="M4 12a8 8 0 011-3.9"/>
+        <path d="M15 5.4A8 8 0 014.5 10"/>
+      </svg>
+    );
+
+    // Security genérico — escudo con candado
+    return (
+      <svg viewBox="0 0 24 24" className={cls} fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M12 2l7.5 3v5c0 5.5-3.5 10-7.5 11.5C8 20 4.5 15.5 4.5 10V5L12 2z"/>
+        <rect x="9" y="11" width="6" height="5" rx="1"/>
+        <path d="M10 11V9a2 2 0 014 0v2"/>
+      </svg>
+    );
   };
 
   // Navegar al Dashboard después de la oferta biométrica (o directamente)
@@ -1701,9 +1763,11 @@ export default function PinAccess() {
   // ── Pantalla biométrica (Face ID / Touch ID leyendo) ─────────────────────
   if (biometricLoading && biometricProfile?.session) {
     const bioUser = biometricProfile.session;
-    const { name: bioName, label: bioLabel } = getBiometricType();
-    const isMac = /Mac/.test(navigator.userAgent) && !/iPhone|iPad/.test(navigator.userAgent);
-    const isIOS = /iPhone|iPad/.test(navigator.userAgent);
+    const { name: bioName, type: bioType } = getBiometricType();
+    const bioHint = bioType === "touchid"     ? "Toca el sensor Touch ID de tu Mac"
+                  : bioType === "faceid"      ? "Mira la cámara de tu iPhone"
+                  : bioType === "fingerprint" ? "Coloca tu dedo en el sensor"
+                  :                             "Completa la verificación";
     return (
       <div className="pinaccess-fullscreen-container">
         <div className="relative z-10 flex flex-col items-center justify-center w-full max-w-xs mx-auto px-6 text-center">
@@ -1717,17 +1781,7 @@ export default function PinAccess() {
           {/* Ícono biométrico animado */}
           <div className="relative mb-6">
             <div className="w-24 h-24 rounded-3xl bg-gradient-to-br from-cyan-500/20 to-blue-600/10 border border-cyan-400/30 flex items-center justify-center mx-auto">
-              {isMac ? (
-                <svg viewBox="0 0 24 24" className="w-12 h-12 text-cyan-300" fill="none" stroke="currentColor" strokeWidth="1.5">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M7.5 3.75H6A2.25 2.25 0 0 0 3.75 6v1.5M16.5 3.75H18A2.25 2.25 0 0 1 20.25 6v1.5m0 9V18A2.25 2.25 0 0 1 18 20.25h-1.5m-9 0H6A2.25 2.25 0 0 1 3.75 18v-1.5M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
-                </svg>
-              ) : isIOS ? (
-                <svg viewBox="0 0 24 24" className="w-12 h-12 text-cyan-300" fill="none" stroke="currentColor" strokeWidth="1.5">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 5.25a3 3 0 0 1 3 3m3 0a6 6 0 0 1-7.029 5.912c-.563-.097-1.159.026-1.563.43L10.5 17.25H8.25v2.25H6v2.25H2.25v-2.818c0-.597.237-1.17.659-1.591l6.499-6.499c.404-.404.527-1 .43-1.563A6 6 0 0 1 21.75 8.25Z" />
-                </svg>
-              ) : (
-                <Fingerprint className="w-12 h-12 text-cyan-300" />
-              )}
+              <BiometricIcon type={bioType} size="lg" className="text-cyan-300" />
             </div>
             {/* Pulso animado alrededor del ícono */}
             <div className="absolute inset-0 rounded-3xl border border-cyan-400/20 animate-ping" />
@@ -1737,9 +1791,7 @@ export default function PinAccess() {
           <p className="text-white/40 text-sm mb-2">
             Verificando como <span className="text-white/70 font-medium">{bioUser.full_name || bioUser.userName || bioUser.email}</span>
           </p>
-          <p className="text-white/25 text-xs mb-10">
-            {isMac ? "Toca el sensor Touch ID" : isIOS ? "Mira la cámara" : "Coloca tu dedo"}
-          </p>
+          <p className="text-white/25 text-xs mb-10">{bioHint}</p>
 
           {/* Botón fallback */}
           <button
@@ -2260,35 +2312,34 @@ export default function PinAccess() {
 
                     {loading && <p className="text-cyan-400 font-bold text-center mt-6 animate-pulse">⚡ Validando...</p>}
 
-                    {isBiometricAvailableForSelectedUser && (
-                      <>
-                        <button
-                          onClick={handleBiometricLogin}
-                          disabled={loading || biometricLoading}
-                          className="w-full mt-4 py-4 rounded-2xl border border-emerald-500/30 bg-emerald-500/10 hover:bg-emerald-500/15 flex flex-col items-center gap-1.5 transition-all active:scale-95 disabled:opacity-40"
-                        >
-                          {biometricLoading ? (
-                            <div className="w-8 h-8 border-2 border-emerald-400/50 border-t-emerald-400 rounded-full animate-spin" />
-                          ) : /iphone|ipad|mac/i.test(navigator.userAgent) ? (
-                            <svg viewBox="0 0 24 24" className="w-9 h-9 text-emerald-300" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round">
-                              <path d="M9 3H5a2 2 0 00-2 2v4M9 3h6M15 3h4a2 2 0 012 2v4M3 15v4a2 2 0 002 2h4m6 0h4a2 2 0 002-2v-4M9 9h.01M15 9h.01M9 14.5s1 1.5 3 1.5 3-1.5 3-1.5" />
-                            </svg>
-                          ) : (
-                            <Fingerprint className="w-9 h-9 text-emerald-300" />
-                          )}
-                          <span className="text-emerald-300 text-xs font-semibold">
-                            {biometricLoading ? "Verificando..." : /iphone|ipad|mac/i.test(navigator.userAgent) ? "Face ID" : "Huella digital"}
-                          </span>
-                        </button>
-                        <button
-                          onClick={clearBiometricProfile}
-                          disabled={loading || biometricLoading}
-                          className="w-full mt-2 text-xs text-white/40 hover:text-white/60 transition-colors"
-                        >
-                          Quitar de este dispositivo
-                        </button>
-                      </>
-                    )}
+                    {isBiometricAvailableForSelectedUser && (() => {
+                      const { label, type } = getBiometricType();
+                      return (
+                        <>
+                          <button
+                            onClick={handleBiometricLogin}
+                            disabled={loading || biometricLoading}
+                            className="w-full mt-4 py-4 rounded-2xl border border-emerald-500/30 bg-emerald-500/10 hover:bg-emerald-500/15 flex flex-col items-center gap-1.5 transition-all active:scale-95 disabled:opacity-40"
+                          >
+                            {biometricLoading ? (
+                              <div className="w-8 h-8 border-2 border-emerald-400/50 border-t-emerald-400 rounded-full animate-spin" />
+                            ) : (
+                              <BiometricIcon type={type} size="md" className="text-emerald-300" />
+                            )}
+                            <span className="text-emerald-300 text-xs font-semibold">
+                              {biometricLoading ? "Verificando..." : label}
+                            </span>
+                          </button>
+                          <button
+                            onClick={clearBiometricProfile}
+                            disabled={loading || biometricLoading}
+                            className="w-full mt-2 text-xs text-white/40 hover:text-white/60 transition-colors"
+                          >
+                            Quitar de este dispositivo
+                          </button>
+                        </>
+                      );
+                    })()}
                   </div>
                 </div>
               </motion.div>
@@ -2944,26 +2995,29 @@ export default function PinAccess() {
                 animate={{ opacity: 1, scale: 1 }}
                 className="rounded-3xl border border-emerald-500/30 bg-emerald-500/[0.07] p-5 backdrop-blur-xl flex items-center gap-4"
               >
-                <button
-                  onClick={handleEarlyBiometricLogin}
-                  disabled={biometricLoading}
-                  className="w-16 h-16 rounded-2xl bg-emerald-500/20 border border-emerald-500/30 flex flex-col items-center justify-center gap-1 flex-shrink-0 hover:bg-emerald-500/30 transition-all active:scale-95 disabled:opacity-50"
-                >
-                  {biometricLoading ? (
-                    <div className="w-6 h-6 border-2 border-emerald-400/50 border-t-emerald-400 rounded-full animate-spin" />
-                  ) : /iphone|ipad|mac/i.test(navigator.userAgent) ? (
-                    <svg viewBox="0 0 24 24" className="w-7 h-7 text-emerald-300" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round">
-                      <path d="M9 3H5a2 2 0 00-2 2v4M9 3h6M15 3h4a2 2 0 012 2v4M3 15v4a2 2 0 002 2h4m6 0h4a2 2 0 002-2v-4M9 9h.01M15 9h.01M9 14.5s1 1.5 3 1.5 3-1.5 3-1.5" />
-                    </svg>
-                  ) : (
-                    <Fingerprint className="w-7 h-7 text-emerald-300" />
-                  )}
-                </button>
-                <div className="flex-1 min-w-0">
-                  <p className="text-white font-black text-sm">Acceso rápido</p>
-                  <p className="text-emerald-300/70 text-xs truncate">{biometricProfile.session?.userName || "Usuario guardado"}</p>
-                  <p className="text-white/30 text-[10px] mt-0.5">{/iphone|ipad|mac/i.test(navigator.userAgent) ? "Face ID" : "Huella digital"}</p>
-                </div>
+                {(() => {
+                  const { label, type } = getBiometricType();
+                  return (
+                    <>
+                      <button
+                        onClick={handleEarlyBiometricLogin}
+                        disabled={biometricLoading}
+                        className="w-16 h-16 rounded-2xl bg-emerald-500/20 border border-emerald-500/30 flex flex-col items-center justify-center gap-1 flex-shrink-0 hover:bg-emerald-500/30 transition-all active:scale-95 disabled:opacity-50"
+                      >
+                        {biometricLoading ? (
+                          <div className="w-6 h-6 border-2 border-emerald-400/50 border-t-emerald-400 rounded-full animate-spin" />
+                        ) : (
+                          <BiometricIcon type={type} size="sm" className="text-emerald-300" />
+                        )}
+                      </button>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-white font-black text-sm">Acceso rápido</p>
+                        <p className="text-emerald-300/70 text-xs truncate">{biometricProfile.session?.userName || "Usuario guardado"}</p>
+                        <p className="text-white/30 text-[10px] mt-0.5">{label}</p>
+                      </div>
+                    </>
+                  );
+                })()}
               </motion.div>
             )}
 
@@ -3292,12 +3346,14 @@ export default function PinAccess() {
         open={showRequestAccess}
         onClose={() => setShowRequestAccess(false)} />
 
-      {/* ── Oferta de activar Touch ID / Face ID tras login exitoso ────────── */}
+      {/* ── Oferta de activar biometría tras login exitoso ───────────────────── */}
       <AnimatePresence>
         {showBiometricOffer && (() => {
-          const { name, label } = getBiometricType();
-          const isMac = /Mac/.test(navigator.userAgent) && !/iPhone|iPad/.test(navigator.userAgent);
-          const isIOS = /iPhone|iPad/.test(navigator.userAgent);
+          const { name, label, type } = getBiometricType();
+          const hint = type === "touchid"     ? "Usa el Touch ID de tu Mac para entrar automáticamente la próxima vez."
+                     : type === "faceid"      ? "Usa Face ID para entrar sin escribir tu PIN cada vez."
+                     : type === "fingerprint" ? "Registra tu huella digital para entrar automáticamente."
+                     :                          "Activa el acceso seguro para entrar sin PIN la próxima vez.";
           return (
             <motion.div
               initial={{ opacity: 0 }}
@@ -3315,28 +3371,10 @@ export default function PinAccess() {
                 {/* Header */}
                 <div className="bg-gradient-to-br from-cyan-500/20 to-blue-600/10 px-6 pt-8 pb-6 text-center">
                   <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-gradient-to-br from-cyan-500/30 to-blue-500/20 border border-cyan-400/30 flex items-center justify-center">
-                    {isMac ? (
-                      <svg viewBox="0 0 24 24" className="w-8 h-8 text-cyan-300" fill="none" stroke="currentColor" strokeWidth="1.5">
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M7.5 3.75H6A2.25 2.25 0 0 0 3.75 6v1.5M16.5 3.75H18A2.25 2.25 0 0 1 20.25 6v1.5m0 9V18A2.25 2.25 0 0 1 18 20.25h-1.5m-9 0H6A2.25 2.25 0 0 1 3.75 18v-1.5M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
-                      </svg>
-                    ) : isIOS ? (
-                      <svg viewBox="0 0 24 24" className="w-8 h-8 text-cyan-300" fill="none" stroke="currentColor" strokeWidth="1.5">
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 5.25a3 3 0 0 1 3 3m3 0a6 6 0 0 1-7.029 5.912c-.563-.097-1.159.026-1.563.43L10.5 17.25H8.25v2.25H6v2.25H2.25v-2.818c0-.597.237-1.17.659-1.591l6.499-6.499c.404-.404.527-1 .43-1.563A6 6 0 0 1 21.75 8.25Z" />
-                      </svg>
-                    ) : (
-                      <svg viewBox="0 0 24 24" className="w-8 h-8 text-cyan-300" fill="none" stroke="currentColor" strokeWidth="1.5">
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M12 1.5a10.5 10.5 0 1 0 0 21 10.5 10.5 0 0 0 0-21ZM8.625 9.75a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H8.25m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H12m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0h-.375m-13.5 3.01c0 1.6 1.123 2.994 2.707 3.227 1.087.16 2.185.283 3.293.369V21l4.184-4.183a1.14 1.14 0 0 1 .778-.332 48.294 48.294 0 0 0 5.83-.498c1.585-.233 2.708-1.626 2.708-3.228V6.741c0-1.602-1.123-2.995-2.707-3.228A48.394 48.394 0 0 0 12 3c-2.392 0-4.744.175-7.043.513C3.373 3.746 2.25 5.14 2.25 6.741v6.018Z" />
-                      </svg>
-                    )}
+                    <BiometricIcon type={type} size="md" className="text-cyan-300" />
                   </div>
                   <h2 className="text-xl font-bold text-white mb-1">Activar {name}</h2>
-                  <p className="text-white/50 text-sm">
-                    {isMac
-                      ? "Usa el Touch ID de tu Mac para entrar automáticamente la próxima vez."
-                      : isIOS
-                      ? "Usa Face ID para entrar sin escribir tu PIN."
-                      : "Usa tu huella digital para entrar automáticamente."}
-                  </p>
+                  <p className="text-white/50 text-sm">{hint}</p>
                 </div>
 
                 {/* Botones */}
@@ -3355,7 +3393,10 @@ export default function PinAccess() {
                         Configurando...
                       </>
                     ) : (
-                      `Activar ${label}`
+                      <span className="flex items-center gap-2">
+                        <BiometricIcon type={type} size="sm" className="text-white" />
+                        Activar {label}
+                      </span>
                     )}
                   </button>
                   <button
