@@ -2837,25 +2837,22 @@ export default function WorkOrderPanel({ orderId, onClose, onUpdate, onDelete, p
                                   className={cn(
                                     "group flex flex-col gap-2 rounded-[20px] border p-3 text-left transition-all duration-300 active:scale-95",
                                     isCurrent
-                                      ? "bg-white text-black border-white shadow-[0_10px_30px_rgba(255,255,255,0.1)]"
+                                      ? `${statusClasses} shadow-[0_8px_24px_rgba(0,0,0,0.3)] scale-[1.02] opacity-100`
                                       : isPassed
-                                      ? "bg-white/5 border-white/10 text-white/90 hover:bg-white/10"
-                                      : "bg-black/20 border-white/[0.03] text-white/40 hover:bg-white/5"
+                                      ? "bg-white/5 border-white/10 text-white/90 hover:bg-white/10 opacity-60"
+                                      : `${statusClasses} opacity-30 hover:opacity-60`
                                   )}
                                 >
                                   <div className="flex items-center justify-between">
                                     <div className={cn(
                                       "flex h-6 w-6 items-center justify-center rounded-lg text-[10px] font-black",
-                                      isCurrent ? "bg-black text-white" : "bg-white/10 text-white/60"
+                                      isCurrent ? "bg-black/30 text-white" : "bg-black/20 text-white/60"
                                     )}>
                                       {index + 1}
                                     </div>
-                                    {isPassed && !isCurrent && <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500" />}
+                                    {isPassed && !isCurrent && <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />}
                                   </div>
-                                  <p className={cn(
-                                    "text-[12px] font-black leading-tight tracking-tight",
-                                    isCurrent ? "text-black" : "text-white/80"
-                                  )}>
+                                  <p className="text-[12px] font-black leading-tight tracking-tight">
                                     {s.label}
                                   </p>
                                 </button>
