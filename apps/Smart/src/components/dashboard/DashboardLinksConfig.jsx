@@ -1,14 +1,38 @@
 import React, { useState, useEffect } from "react";
 import { dataClient } from "@/components/api/dataClient";
-import { 
-  ClipboardList, Wrench, Smartphone, Zap, X, Save, 
+import {
+  ClipboardList, Wrench, Smartphone, Zap, X, Save,
   Layout, Grid, Eye, EyeOff, GripVertical, Package,
-  Wallet, BarChart3, Plus, Edit2, ExternalLink, Trash2
+  Wallet, BarChart3, Plus, Edit2, ExternalLink, Trash2,
+  PiggyBank, Layers
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
+
+const DASHBOARD_WIDGETS_KEY = "smartfix_dashboard_widgets";
+
+const AVAILABLE_WIDGETS = [
+  {
+    id: "orders",
+    label: "Gestión de Órdenes",
+    description: "Filtros de estado, búsqueda y lista de órdenes activas",
+    icon: ClipboardList,
+    color: "text-blue-400",
+    bg: "bg-blue-500/10",
+    border: "border-blue-500/20"
+  },
+  {
+    id: "priceList",
+    label: "Lista de Precios",
+    description: "Busca precios de productos y servicios al instante",
+    icon: PiggyBank,
+    color: "text-emerald-400",
+    bg: "bg-emerald-500/10",
+    border: "border-emerald-500/20"
+  }
+];
 
 const ICON_OPTIONS = [
   { value: "ClipboardList", label: "Clipboard", component: ClipboardList },
@@ -111,6 +135,8 @@ export default function DashboardLinksConfig({ open, onClose }) {
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [buttons, setButtons] = useState([]);
+  const [activeTab, setActiveTab] = useState("buttons");
+  const [widgetConfig, setWidgetConfig] = useState({ priceList: false, orders: false });
   const [showCreateCustom, setShowCreateCustom] = useState(false);
   const [customButton, setCustomButton] = useState({
     label: "",
@@ -129,6 +155,13 @@ export default function DashboardLinksConfig({ open, onClose }) {
   const loadConfig = async () => {
     setLoading(true);
     try {
+      // Load widget config from localStorage
+      try {
+        const raw = localStorage.getItem(DASHBOARD_WIDGETS_KEY);
+        const parsed = raw ? JSON.parse(raw) : {};
+        setWidgetConfig({ priceList: false, orders: false, ...parsed });
+      } catch {}
+
       const configs = await dataClient.entities.AppSettings.filter({ slug: "dashboard-buttons" });
       
       if (configs?.length > 0) {
@@ -254,6 +287,10 @@ export default function DashboardLinksConfig({ open, onClose }) {
         });
       }
 
+      // Save widget config to localStorage
+      localStorage.setItem(DASHBOARD_WIDGETS_KEY, JSON.stringify(widgetConfig));
+      window.dispatchEvent(new CustomEvent('dashboard-widgets-updated'));
+
       toast.success("✅ Configuración guardada");
       window.dispatchEvent(new CustomEvent('dashboard-buttons-updated'));
       onClose();
@@ -280,10 +317,10 @@ export default function DashboardLinksConfig({ open, onClose }) {
               </div>
               <div>
                 <h2 className="text-2xl font-black text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-emerald-400">
-                  Enlaces del Dashboard
+                  Personalizar Dashboard
                 </h2>
                 <p className="text-cyan-300/70 text-sm mt-1">
-                  Personaliza los botones de acceso rápido
+                  Gestiona botones y widgets visibles
                 </p>
               </div>
             </div>
@@ -294,14 +331,92 @@ export default function DashboardLinksConfig({ open, onClose }) {
               <X className="w-5 h-5 text-white" />
             </button>
           </div>
+
+          {/* TABS */}
+          <div className="flex gap-2 mt-5 relative">
+            <button
+              onClick={() => setActiveTab("buttons")}
+              className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-black uppercase tracking-widest transition-all ${
+                activeTab === "buttons"
+                  ? "bg-cyan-500/20 border border-cyan-500/40 text-cyan-300"
+                  : "bg-white/5 border border-white/10 text-white/40 hover:text-white/70"
+              }`}
+            >
+              <Grid className="w-4 h-4" />
+              Botones
+            </button>
+            <button
+              onClick={() => setActiveTab("widgets")}
+              className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-black uppercase tracking-widest transition-all ${
+                activeTab === "widgets"
+                  ? "bg-emerald-500/20 border border-emerald-500/40 text-emerald-300"
+                  : "bg-white/5 border border-white/10 text-white/40 hover:text-white/70"
+              }`}
+            >
+              <Layers className="w-4 h-4" />
+              Widgets
+            </button>
+          </div>
         </div>
 
         {/* Content */}
-        <div className="p-6 overflow-y-auto max-h-[calc(90vh-200px)]">
+        <div className="p-6 overflow-y-auto max-h-[calc(90vh-260px)]">
           {loading ? (
             <div className="text-center py-12">
               <div className="w-12 h-12 border-4 border-cyan-500/30 border-t-cyan-500 rounded-full animate-spin mx-auto mb-4" />
               <p className="text-cyan-300/70">Cargando configuración...</p>
+            </div>
+          ) : activeTab === "widgets" ? (
+            /* ── WIDGETS TAB ── */
+            <div className="space-y-4">
+              <div className="mb-4 bg-emerald-500/10 border border-emerald-500/30 rounded-2xl p-4">
+                <div className="flex items-start gap-3">
+                  <Layers className="w-5 h-5 text-emerald-400 mt-0.5 flex-shrink-0" />
+                  <div>
+                    <p className="text-white font-semibold mb-1">Widgets del Dashboard</p>
+                    <p className="text-emerald-300/70 text-sm">
+                      Activa los widgets que quieres ver debajo de los botones principales
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {AVAILABLE_WIDGETS.map((widget) => {
+                const isEnabled = !!widgetConfig[widget.id];
+                const IconComp = widget.icon;
+                return (
+                  <div
+                    key={widget.id}
+                    className={`rounded-2xl border transition-all p-4 flex items-center gap-4 ${
+                      isEnabled
+                        ? `${widget.border} ${widget.bg}`
+                        : "border-slate-700/30 bg-slate-900/40 opacity-70"
+                    }`}
+                  >
+                    <div className={`w-12 h-12 rounded-xl ${widget.bg} border ${widget.border} flex items-center justify-center flex-shrink-0`}>
+                      <IconComp className={`w-6 h-6 ${widget.color}`} />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-white font-bold">{widget.label}</p>
+                      <p className="text-slate-400 text-xs mt-0.5">{widget.description}</p>
+                    </div>
+                    <button
+                      onClick={() => setWidgetConfig(prev => ({ ...prev, [widget.id]: !prev[widget.id] }))}
+                      className={`px-4 py-2 rounded-xl font-semibold text-sm transition-all flex items-center gap-2 ${
+                        isEnabled
+                          ? "bg-gradient-to-r from-emerald-500 to-green-600 text-white shadow-lg"
+                          : "bg-slate-700/50 text-slate-400 border border-slate-600"
+                      }`}
+                    >
+                      {isEnabled ? (
+                        <><Eye className="w-4 h-4" /> Visible</>
+                      ) : (
+                        <><EyeOff className="w-4 h-4" /> Oculto</>
+                      )}
+                    </button>
+                  </div>
+                );
+              })}
             </div>
           ) : (
             <>

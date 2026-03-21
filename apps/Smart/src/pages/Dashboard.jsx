@@ -97,6 +97,7 @@ import WorkQueueWidget from "@/components/dashboard/WorkQueueWidget";
 import DailyTransactionsModal from "@/components/dashboard/DailyTransactionsModal";
 import MonthlyReportModal, { shouldShowMonthlyReport } from "@/components/financial/MonthlyReportModal";
 const LOCAL_DASHBOARD_BUTTONS_KEY = "smartfix_dashboard_buttons_local";
+const DASHBOARD_WIDGETS_KEY = "smartfix_dashboard_widgets";
 
 // ------------------------
 
@@ -244,6 +245,13 @@ export default function Dashboard() {
   const [showLogoutModal, setShowLogoutModal] = useState(false);
   const [showDashboardConfig, setShowDashboardConfig] = useState(false);
   const [dashboardButtons, setDashboardButtons] = useState([]);
+  const [widgetConfig, setWidgetConfig] = useState(() => {
+    try {
+      const raw = localStorage.getItem(DASHBOARD_WIDGETS_KEY);
+      const parsed = raw ? JSON.parse(raw) : {};
+      return { priceList: false, orders: false, ...parsed };
+    } catch { return { priceList: false, orders: false }; }
+  });
   const [showMoreMenu, setShowMoreMenu] = useState(false);
   const [showDailyTransactions, setShowDailyTransactions] = useState(false);
   const [businessName, setBusinessName] = useState("");
@@ -603,16 +611,25 @@ export default function Dashboard() {
       loadDashboardButtons(false);
     };
     const handleOpen = () => setShowDashboardConfig(true);
-    const handleQuick = () => setShowQuickRepair(true); // Manejar evento del FAB
-    
+    const handleQuick = () => setShowQuickRepair(true);
+    const handleWidgetUpdate = () => {
+      try {
+        const raw = localStorage.getItem(DASHBOARD_WIDGETS_KEY);
+        const parsed = raw ? JSON.parse(raw) : {};
+        setWidgetConfig({ priceList: false, orders: false, ...parsed });
+      } catch {}
+    };
+
     window.addEventListener('dashboard-buttons-updated', handleUpdate);
     window.addEventListener('open-dashboard-config', handleOpen);
     window.addEventListener('open-quick-repair', handleQuick);
-    
+    window.addEventListener('dashboard-widgets-updated', handleWidgetUpdate);
+
     return () => {
       window.removeEventListener('dashboard-buttons-updated', handleUpdate);
       window.removeEventListener('open-dashboard-config', handleOpen);
       window.removeEventListener('open-quick-repair', handleQuick);
+      window.removeEventListener('dashboard-widgets-updated', handleWidgetUpdate);
     };
   }, [loadDashboardButtons]);
 
@@ -900,6 +917,14 @@ export default function Dashboard() {
                   {unreadNotifications > 0 && (
                     <span className="absolute top-0 right-0 w-3 h-3 lg:w-4 lg:h-4 bg-red-500 border border-[#1c1c1e] rounded-full" />
                   )}
+                </button>
+
+                <button
+                  onClick={() => setShowDashboardConfig(true)}
+                  className="w-12 h-12 lg:w-14 lg:h-14 rounded-full bg-white/5 hover:bg-indigo-500/10 border border-white/10 hover:border-indigo-500/20 flex items-center justify-center transition-all active:scale-90 group shadow-[inset_0_1px_0_rgba(255,255,255,0.06)]"
+                  title="Personalizar Dashboard"
+                >
+                  <LayoutGrid className="w-5 h-5 lg:w-6 lg:h-6 text-white/20 group-hover:text-indigo-400 transition-all duration-500" />
                 </button>
 
                 <button
@@ -1196,7 +1221,7 @@ export default function Dashboard() {
                     )}
                   </button>
                   
-                  <PunchButton 
+                  <PunchButton
                     userId={session?.userId}
                     userName={session?.userName}
                     variant="mobile-icon"
@@ -1205,6 +1230,14 @@ export default function Dashboard() {
                       else showToast("👋 ¡Adiós!", "Turno finalizado");
                     }}
                   />
+
+                  <button
+                    onClick={() => setShowDashboardConfig(true)}
+                    className="w-12 h-12 rounded-2xl bg-white/[0.04] border border-white/[0.08] flex items-center justify-center active:scale-90 transition-all"
+                    title="Personalizar"
+                  >
+                    <LayoutGrid className="w-5 h-5 text-white/50" strokeWidth={2} />
+                  </button>
                 </div>
               </div>
             </div>
@@ -1373,7 +1406,8 @@ export default function Dashboard() {
               </div>
             ) : null}
 
-            {/* === BÚSQUEDA DE ÓRDENES MÓVIL === */}
+            {/* === BÚSQUEDA DE ÓRDENES MÓVIL (widget opcional) === */}
+            {widgetConfig.orders && (
             <div className="mx-1 mt-2">
               <div className="bg-[#1C1C1E]/40 backdrop-blur-3xl border border-white/[0.08] rounded-[32px] shadow-2xl overflow-hidden p-5 space-y-5">
                 <div className="flex items-center justify-between">
@@ -1493,7 +1527,6 @@ export default function Dashboard() {
                   />
                 </div>
               </div>
-            </div>
 
                               {/* Lista reducida - Modern Style */}
                 <div className="pt-2">
@@ -1543,11 +1576,13 @@ export default function Dashboard() {
                     </div>
                   )}
                 </div>
-              </div>
+            </div>
+            )}
 
 {/* WorkQueueWidget removed */}
 
-            {/* === LISTA DE PRECIOS MÓVIL === */}
+            {/* === LISTA DE PRECIOS MÓVIL (widget opcional) === */}
+            {widgetConfig.priceList && (
             <div className="bg-[#1C1C1E]/40 backdrop-blur-3xl border border-emerald-500/20 rounded-[32px] shadow-2xl mx-1 mb-safe p-6 space-y-5">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2.5">
@@ -1597,11 +1632,12 @@ export default function Dashboard() {
                 </div>
               )}
             </div>
+            )}
 
           </div>
 
-          {/* === BUSCAR ÓRDENES (SEQUOIA STYLE - SOLO DESKTOP) === */}
-          <Card className="hidden md:block bg-gradient-to-br from-purple-600/10 via-blue-600/10 to-cyan-600/10 backdrop-blur-3xl border border-white/10 rounded-[32px] lg:rounded-[40px] xl:rounded-[48px] shadow-2xl relative overflow-hidden mt-6">
+          {/* === BUSCAR ÓRDENES (SEQUOIA STYLE - SOLO DESKTOP, widget opcional) === */}
+          {widgetConfig.orders && <Card className="hidden md:block bg-gradient-to-br from-purple-600/10 via-blue-600/10 to-cyan-600/10 backdrop-blur-3xl border border-white/10 rounded-[32px] lg:rounded-[40px] xl:rounded-[48px] shadow-2xl relative overflow-hidden mt-6">
             <div className="absolute inset-0 bg-gradient-to-br from-white/10 via-transparent to-transparent pointer-events-none" />
             <div className="absolute -top-20 -left-20 w-60 h-60 lg:w-80 lg:h-80 bg-purple-500/20 rounded-full blur-[100px] animate-pulse" />
             <CardContent className="p-4 sm:p-6 lg:p-8 xl:p-10 flex flex-col max-h-[600px] lg:max-h-[700px] xl:max-h-[800px]">
@@ -1714,9 +1750,9 @@ export default function Dashboard() {
                 </div>
               )}
             </CardContent>
-          </Card>
+          </Card>}
 
-
+        </div>
 
 {/* WorkQueueWidget + PersonalNotesWidget removed per user request */}
 
