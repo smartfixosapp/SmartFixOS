@@ -9,18 +9,14 @@ import {
   DialogTitle,
   DialogFooter } from
 "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import {
   Calendar,
   ClipboardList,
   FileText,
+  Package,
   PackageSearch,
   Truck,
-  UserCircle2,
   CheckCircle2,
   ChevronLeft,
   ChevronRight } from
@@ -91,7 +87,6 @@ export default function PurchaseOrderDialog({
           setNotes(po.notes || "");
           setShippingCost(Number(po.shipping_cost || 0));
 
-          // Mapear items con soporte para ambos formatos
           const rawItems = po.items || po.line_items || purchaseOrder.items || purchaseOrder.line_items || [];
           console.log("📦 Items crudos:", rawItems);
 
@@ -111,7 +106,6 @@ export default function PurchaseOrderDialog({
           console.log("✅ Items mapeados:", mappedItems);
         } catch (err) {
           console.error("❌ Error cargando PurchaseOrder:", err);
-          // Fallback a usar el objeto original si falla el get
           const rawItems = purchaseOrder.items || purchaseOrder.line_items || [];
           const mappedItems = rawItems.map((it) => {
             const prodId = it.product_id || it.inventory_item_id;
@@ -356,170 +350,164 @@ export default function PurchaseOrderDialog({
     }
   };
 
+  // ── Step indicator ─────────────────────────────────────────────────────────
   const StepIndicator = () => {
     const steps = [
-    { id: 1, label: "Suplidor", icon: UserCircle2 },
-    { id: 2, label: "Productos", icon: PackageSearch },
-    { id: 3, label: "Fechas y costos", icon: Calendar },
-    { id: 4, label: "Órdenes de trabajo", icon: ClipboardList },
-    { id: 5, label: "Resumen", icon: CheckCircle2 }];
+      { id: 1, label: "Suplidor", icon: Truck },
+      { id: 2, label: "Productos", icon: Package },
+      { id: 3, label: "Fechas", icon: Calendar },
+      { id: 4, label: "Órdenes", icon: ClipboardList },
+      { id: 5, label: "Resumen", icon: CheckCircle2 }
+    ];
 
     return (
-      <div className="flex flex-col gap-3 mb-4">
-        <div className="flex justify-between gap-2">
+      <div className="flex flex-col gap-3 mb-6">
+        <div className="flex gap-2">
           {steps.map((s) => {
             const Icon = s.icon;
             const active = step === s.id;
             const done = step > s.id;
             return (
-              <div
+              <button
                 key={s.id}
-                className="flex-1 flex flex-col items-center text-xs">
-
-                <div
-                  className={[
-                  "w-8 h-8 rounded-full flex items-center justify-center border",
-                  active ?
-                  "bg-cyan-600 text-white border-cyan-400" :
-                  done ?
-                  "bg-emerald-600 text-white border-emerald-400" :
-                  "bg-slate-900 text-slate-400 border-slate-700"].
-                  join(" ")}>
-
-                  <Icon className="w-4 h-4" />
-                </div>
-                <span className="mt-1 text-[10px] text-slate-300">
-                  {s.label}
-                </span>
-              </div>);
-
+                type="button"
+                onClick={() => done && setStep(s.id)}
+                className={[
+                  "flex-1 flex items-center justify-center gap-1.5 py-2 px-1 rounded-xl border text-xs font-bold transition-all",
+                  active
+                    ? "bg-white text-gray-900 border-transparent shadow-lg"
+                    : done
+                    ? "bg-teal-500/10 border-teal-500/30 text-teal-400 cursor-pointer hover:bg-teal-500/20"
+                    : "bg-[#111114] border border-white/[0.08] text-white/40"
+                ].join(" ")}
+              >
+                <Icon className="w-3.5 h-3.5 shrink-0" />
+                <span className="hidden sm:inline truncate">{s.label}</span>
+              </button>
+            );
           })}
         </div>
-        <div className="w-full h-1 bg-slate-800 rounded-full overflow-hidden">
+        <div className="w-full h-1 bg-white/5 rounded-full overflow-hidden">
           <div
-            className="h-full bg-gradient-to-r from-cyan-500 to-emerald-500 transition-all"
-            style={{ width: `${(step - 1) * 25}%` }} />
-
+            className="h-full bg-gradient-to-r from-teal-500 to-cyan-500 transition-all duration-500"
+            style={{ width: `${(step - 1) * 25}%` }}
+          />
         </div>
-      </div>);
-
+      </div>
+    );
   };
 
-  const Step1Supplier = () =>
-  <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <p className="text-xs text-slate-400 mb-2">Selecciona el suplidor</p>
-        {poNumber &&
-      <span className="text-[11px] text-slate-300">
-            <span className="text-slate-500 mr-1">PO:</span>
-            <span className="font-mono">{poNumber}</span>
+  // ── Step 1: Supplier ───────────────────────────────────────────────────────
+  const Step1Supplier = () => (
+    <div className="space-y-4">
+      <div className="flex items-center justify-between mb-1">
+        <p className="text-[10px] font-black text-white/30 uppercase tracking-widest">Selecciona el suplidor</p>
+        {poNumber && (
+          <span className="text-[11px] text-white/30 font-mono">
+            <span className="text-white/20 mr-1">PO:</span>{poNumber}
           </span>
-      }
+        )}
       </div>
-      <div className="grid sm:grid-cols-2 gap-2 max-h-56 overflow-y-auto">
-        {suppliers.length === 0 &&
-      <p className="text-xs text-slate-500">No hay suplidores. Crea uno primero.</p>
-      }
-        {suppliers.
-      filter((s) => s.active !== false).
-      map((s) =>
-      <button
-        key={s.id}
-        type="button"
-        onClick={() => {
-          setSupplierId(s.id);
-          setSupplierName(s.name || "");
-        }}
-        className={[
-        "flex flex-col items-start p-3 rounded-lg border text-left text-sm transition-all",
-        supplierId === s.id ?
-        "bg-gradient-to-r from-cyan-600 to-emerald-600 text-white border-transparent shadow-lg" :
-        "bg-slate-900 border-slate-700 text-slate-200 hover:bg-slate-800"].
-        join(" ")}>
-
-              <span className="font-semibold truncate">{s.name}</span>
-              {s.website &&
-        <span className="text-[10px] opacity-70 truncate">{s.website}</span>
-        }
+      <div className="grid sm:grid-cols-2 gap-2 max-h-52 overflow-y-auto">
+        {suppliers.length === 0 && (
+          <p className="text-xs text-white/30">No hay suplidores. Crea uno primero.</p>
+        )}
+        {suppliers
+          .filter((s) => s.active !== false)
+          .map((s) => (
+            <button
+              key={s.id}
+              type="button"
+              onClick={() => {
+                setSupplierId(s.id);
+                setSupplierName(s.name || "");
+              }}
+              className={[
+                "flex items-center gap-3 p-4 rounded-2xl border text-left transition-all",
+                supplierId === s.id
+                  ? "bg-gradient-to-r from-teal-500/20 to-cyan-500/20 border-teal-500/40 shadow-[0_0_16px_rgba(20,184,166,0.15)]"
+                  : "bg-[#111114]/60 border border-white/[0.07] hover:bg-white/5"
+              ].join(" ")}
+            >
+              <div className="w-8 h-8 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center shrink-0">
+                <Truck className="w-4 h-4 text-teal-400" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className={`font-bold text-sm truncate ${supplierId === s.id ? "text-white" : "text-white/70"}`}>{s.name}</p>
+                {s.website && <p className="text-[10px] text-white/30 truncate">{s.website}</p>}
+              </div>
+              {supplierId === s.id && <div className="w-2 h-2 rounded-full bg-teal-400 shrink-0" />}
             </button>
-      )}
+          ))}
       </div>
 
       <div>
-        <p className="text-xs text-slate-400 mb-1">Nombre manual (opcional)</p>
-        <Input
-        value={supplierName}
-        onChange={(e) => setSupplierName(e.target.value)}
-        placeholder="Ej: Proveedor nuevo sin registrar"
-        className="bg-black/40 border-slate-700 text-sm" />
-
-        <p className="text-[11px] text-slate-500 mt-1">
+        <label className="text-[10px] font-black text-white/30 uppercase tracking-widest block mb-1.5">Nombre manual (opcional)</label>
+        <input
+          value={supplierName}
+          onChange={(e) => setSupplierName(e.target.value)}
+          placeholder="Ej: Proveedor nuevo sin registrar"
+          className="w-full bg-[#111114]/60 border border-white/[0.08] rounded-xl px-4 py-3 text-white text-sm placeholder:text-white/20 focus:outline-none focus:border-teal-500/50 focus:ring-2 focus:ring-teal-500/10"
+        />
+        <p className="text-[11px] text-white/20 mt-1">
           Si seleccionas un suplidor de la lista, este nombre se rellenará automáticamente.
         </p>
       </div>
-    </div>;
+    </div>
+  );
 
-
-  const Step2Products = () =>
-  <div className="space-y-4">
-      <div className="flex items-center gap-2">
-        <PackageSearch className="w-4 h-4 text-cyan-400" />
-        <p className="text-xs text-slate-300">Añade productos a la orden (vista compacta).</p>
-      </div>
-
-      <Input
-      value={searchProduct}
-      onChange={(e) => setSearchProduct(e.target.value)}
-      placeholder="Buscar producto por nombre, modelo compatible..."
-      className="bg-black/40 border-slate-700 text-sm" />
-
+  // ── Step 2: Products ───────────────────────────────────────────────────────
+  const Step2Products = () => (
+    <div className="space-y-4">
+      <input
+        value={searchProduct}
+        onChange={(e) => setSearchProduct(e.target.value)}
+        placeholder="Buscar producto por nombre, modelo compatible..."
+        className="w-full bg-[#111114]/60 border border-white/[0.08] rounded-xl px-4 py-3 text-white text-sm placeholder:text-white/20 focus:outline-none focus:border-teal-500/50"
+      />
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div className="border border-slate-800 rounded-lg p-2 bg-black/40 max-h-64 overflow-y-auto">
-          <p className="text-[11px] text-slate-400 mb-1 flex items-center gap-1">
-            <PackageSearch className="w-3 h-3" />
-            Productos disponibles ({filteredProducts.length})
+        <div className="bg-[#111114]/60 border border-white/[0.07] rounded-2xl p-3 max-h-60 overflow-y-auto">
+          <p className="text-[10px] font-black text-white/30 uppercase tracking-widest mb-2">
+            Disponibles ({filteredProducts.length})
           </p>
-          {filteredProducts.length === 0 ?
-        <p className="text-xs text-slate-500 py-4 text-center">No se encontraron productos.</p> :
-
-        <ul className="space-y-1">
-              {filteredProducts.map((p) =>
-          <li
-            key={p.id}
-            className="flex items-center justify-between gap-2 text-xs bg-slate-900/60 hover:bg-slate-900 rounded-md px-2 py-1">
-
+          {filteredProducts.length === 0 ? (
+            <p className="text-xs text-white/30 py-4 text-center">No se encontraron productos.</p>
+          ) : (
+            <ul className="space-y-1">
+              {filteredProducts.map((p) => (
+                <li
+                  key={p.id}
+                  className="flex items-center justify-between gap-2 text-xs bg-white/[0.03] hover:bg-white/[0.06] rounded-xl px-3 py-2 transition-all"
+                >
                   <div className="flex-1 min-w-0">
-                    <p className="font-medium truncate">{p.name}</p>
-                    <p className="text-[10px] text-slate-400 truncate">
-                      Costo: {money(p.cost || 0)} • Stock: {p.stock ?? 0}
+                    <p className="font-bold text-white/80 truncate">{p.name}</p>
+                    <p className="text-[10px] text-white/30 truncate">
+                      Costo: {money(p.cost || 0)} · Stock: {p.stock ?? 0}
                     </p>
                   </div>
-                  <Button
-              type="button"
-              size="icon"
-              variant="outline" className="bg-background text-slate-900 text-sm font-semibold rounded-full inline-flex items-center justify-center gap-2 whitespace-nowrap transition-all duration-200 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 border shadow-sm hover:bg-accent hover:text-accent-foreground h-7 w-7 border-cyan-600/60"
-
-              onClick={() => handleAddProduct(p)}>
-
+                  <button
+                    type="button"
+                    onClick={() => handleAddProduct(p)}
+                    className="w-7 h-7 rounded-lg bg-teal-500/15 border border-teal-500/30 flex items-center justify-center text-teal-400 hover:bg-teal-500/25 transition-all font-bold text-base"
+                  >
                     +
-                  </Button>
+                  </button>
                 </li>
-          )}
+              ))}
             </ul>
-        }
+          )}
         </div>
 
-        <div className="border border-slate-800 rounded-lg p-2 bg-black/40 max-h-64 overflow-y-auto">
-          <p className="text-[11px] text-slate-400 mb-1 flex items-center gap-1">
-            <ClipboardList className="w-3 h-3" />
-            Productos en la orden ({items.length})
+        <div className="bg-[#111114]/60 border border-white/[0.07] rounded-2xl p-3 max-h-60 overflow-y-auto">
+          <p className="text-[10px] font-black text-white/30 uppercase tracking-widest mb-2">
+            En la orden ({items.length})
           </p>
-          {items.length === 0 ?
-        <p className="text-xs text-slate-500 py-4 text-center">Aún no has añadido productos.</p> :
-
-        <table className="w-full text-[11px]">
-              <thead className="text-slate-400">
+          {items.length === 0 ? (
+            <p className="text-xs text-white/30 py-4 text-center">Aún no has añadido productos.</p>
+          ) : (
+            <table className="w-full text-[11px]">
+              <thead className="text-white/30">
                 <tr>
                   <th className="text-left pb-1">Producto</th>
                   <th className="text-right pb-1">Cant.</th>
@@ -528,387 +516,347 @@ export default function PurchaseOrderDialog({
                   <th className="text-right pb-1"></th>
                 </tr>
               </thead>
-              <tbody className="text-slate-100">
-                {items.map((it) =>
-            <tr key={it.product_id} className="border-t border-slate-800">
-                    <td className="py-1 pr-2 max-w-[140px] truncate">{it.product_name}</td>
-                    <td className="py-1 text-right">
-                      <Input
-                  type="number"
-                  min={1}
-                  value={it.quantity}
-                  onChange={(e) =>
-                  handleChangeItemQty(it.product_id, e.target.value)
-                  }
-                  className="h-7 w-14 text-right bg-slate-900 border-slate-700" />
-
+              <tbody className="text-white/70">
+                {items.map((it) => (
+                  <tr key={it.product_id} className="border-t border-white/[0.04]">
+                    <td className="py-1.5 pr-2 max-w-[120px] truncate font-bold">{it.product_name}</td>
+                    <td className="py-1.5 text-right">
+                      <input
+                        type="number"
+                        min={1}
+                        value={it.quantity}
+                        onChange={(e) => handleChangeItemQty(it.product_id, e.target.value)}
+                        className="h-7 w-14 text-right bg-white/5 border border-white/10 rounded-lg text-white text-xs focus:outline-none focus:border-teal-500/50 px-1"
+                      />
                     </td>
-                    <td className="py-1 text-right">
-                      <Input
-                  type="number"
-                  step="0.01"
-                  min={0}
-                  value={it.unit_cost}
-                  onChange={(e) =>
-                  handleChangeItemCost(it.product_id, e.target.value)
-                  }
-                  className="h-7 w-20 text-right bg-slate-900 border-slate-700" />
-
+                    <td className="py-1.5 text-right">
+                      <input
+                        type="number"
+                        step="0.01"
+                        min={0}
+                        value={it.unit_cost}
+                        onChange={(e) => handleChangeItemCost(it.product_id, e.target.value)}
+                        className="h-7 w-20 text-right bg-white/5 border border-white/10 rounded-lg text-white text-xs focus:outline-none focus:border-teal-500/50 px-1"
+                      />
                     </td>
-                    <td className="py-1 text-right">
+                    <td className="py-1.5 text-right text-white/60">
                       {money((it.unit_cost || 0) * (it.quantity || 0))}
                     </td>
-                    <td className="py-1 text-right">
-                      <Button
-                  type="button"
-                  size="icon"
-                  variant="ghost"
-                  className="h-6 w-6 text-red-400"
-                  onClick={() => handleRemoveItem(it.product_id)}>
-
+                    <td className="py-1.5 text-right">
+                      <button
+                        type="button"
+                        onClick={() => handleRemoveItem(it.product_id)}
+                        className="w-6 h-6 rounded-lg bg-red-500/10 border border-red-500/20 flex items-center justify-center text-red-400 hover:bg-red-500/20 transition-all text-xs ml-auto"
+                      >
                         ×
-                      </Button>
+                      </button>
                     </td>
                   </tr>
-            )}
+                ))}
               </tbody>
               <tfoot>
                 <tr>
-                  <td colSpan={3} className="pt-2 text-right text-slate-400">Subtotal:</td>
-                  <td className="pt-2 text-right font-semibold text-slate-100">
+                  <td colSpan={3} className="pt-2 text-right text-white/30 font-bold">Subtotal:</td>
+                  <td className="pt-2 text-right font-bold text-white/70">
                     {money(subtotalAmount)}
                   </td>
                   <td />
                 </tr>
               </tfoot>
             </table>
-        }
+          )}
         </div>
       </div>
-    </div>;
+    </div>
+  );
 
-
-  const Step3DatesStatus = () =>
-  <div className="space-y-4">
+  // ── Step 3: Dates & Status ─────────────────────────────────────────────────
+  const Step3DatesStatus = () => (
+    <div className="space-y-4">
       <div className="grid sm:grid-cols-2 gap-4">
         <div>
-          <p className="text-xs text-slate-400 mb-1">Fecha de orden *</p>
-          <div className="flex items-center gap-2">
-            <Calendar className="w-4 h-4 text-cyan-400" />
-            <Input
+          <label className="text-[10px] font-black text-white/30 uppercase tracking-widest block mb-1.5">Fecha de orden *</label>
+          <input
             type="date"
             value={orderDate}
             onChange={(e) => setOrderDate(e.target.value)}
-            className="bg-black/40 border-slate-700 text-sm" />
-
-          </div>
+            className="w-full bg-[#111114]/60 border border-white/[0.08] rounded-xl px-4 py-3 text-white text-sm focus:outline-none focus:border-teal-500/50"
+          />
         </div>
         <div>
-          <p className="text-xs text-slate-400 mb-1">Fecha estimada de entrega</p>
-          <div className="flex items-center gap-2">
-            <Truck className="w-4 h-4 text-emerald-400" />
-            <Input
+          <label className="text-[10px] font-black text-white/30 uppercase tracking-widest block mb-1.5">Fecha estimada de entrega</label>
+          <input
             type="date"
             value={expectedDate}
             onChange={(e) => setExpectedDate(e.target.value)}
-            className="bg-black/40 border-slate-700 text-sm" />
-
-          </div>
+            className="w-full bg-[#111114]/60 border border-white/[0.08] rounded-xl px-4 py-3 text-white text-sm focus:outline-none focus:border-teal-500/50"
+          />
         </div>
       </div>
 
       <div>
-        <p className="text-xs text-slate-400 mb-1">Estado</p>
+        <label className="text-[10px] font-black text-white/30 uppercase tracking-widest block mb-2">Estado</label>
         <div className="flex flex-wrap gap-2">
           {[
-        { value: "draft", label: "Borrador" },
-        { value: "ordered", label: "Ordenado" },
-        { value: "received", label: "Recibido" },
-        { value: "cancelled", label: "Cancelado" }].
-        map((opt) =>
-        <button
-          key={opt.value}
-          type="button"
-          onClick={() => setStatus(opt.value)}
-          className={[
-          "px-3 py-1.5 rounded-lg text-xs border",
-          status === opt.value ?
-          "bg-gradient-to-r from-cyan-600 to-emerald-600 text-white border-transparent" :
-          "bg-black/40 border-slate-700 text-slate-200 hover:bg-slate-800"].
-          join(" ")}>
-
+            { value: "draft", label: "Borrador", active: "bg-slate-600 text-white border-slate-500", inactive: "bg-[#111114]/60 border-white/[0.08] text-white/40" },
+            { value: "ordered", label: "Ordenado", active: "bg-blue-600 text-white border-blue-500", inactive: "bg-[#111114]/60 border-white/[0.08] text-white/40" },
+            { value: "received", label: "Recibido", active: "bg-emerald-600 text-white border-emerald-500", inactive: "bg-[#111114]/60 border-white/[0.08] text-white/40" },
+            { value: "cancelled", label: "Cancelado", active: "bg-red-600 text-white border-red-500", inactive: "bg-[#111114]/60 border-white/[0.08] text-white/40" }
+          ].map((opt) => (
+            <button
+              key={opt.value}
+              type="button"
+              onClick={() => setStatus(opt.value)}
+              className={[
+                "px-4 py-2 rounded-xl text-sm font-bold border transition-all",
+                status === opt.value ? opt.active : opt.inactive
+              ].join(" ")}
+            >
               {opt.label}
             </button>
-        )}
+          ))}
         </div>
       </div>
 
       <div>
-        <p className="text-xs text-slate-400 mb-1">Costo de envío (opcional)</p>
-        <Input
-        type="number"
-        step="0.01"
-        min={0}
-        value={shippingCost}
-        onChange={(e) => setShippingCost(Number(e.target.value) || 0)}
-        placeholder="0.00"
-        className="bg-black/40 border-slate-700 text-sm" />
-
-        <p className="text-[11px] text-slate-500 mt-1">
-          Se sumará al total de la orden
-        </p>
+        <label className="text-[10px] font-black text-white/30 uppercase tracking-widest block mb-1.5">Costo de envío (opcional)</label>
+        <input
+          type="number"
+          step="0.01"
+          min={0}
+          value={shippingCost}
+          onChange={(e) => setShippingCost(Number(e.target.value) || 0)}
+          placeholder="0.00"
+          className="w-full bg-[#111114]/60 border border-white/[0.08] rounded-xl px-4 py-3 text-white text-sm placeholder:text-white/20 focus:outline-none focus:border-teal-500/50"
+        />
+        <p className="text-[11px] text-white/20 mt-1">Se sumará al total de la orden</p>
       </div>
 
       <div>
-        <p className="text-xs text-slate-400 mb-1">Notas</p>
-        <Textarea
-        value={notes}
-        onChange={(e) => setNotes(e.target.value)}
-        rows={3}
-        placeholder="Comentarios adicionales sobre la orden (opcional)"
-        className="bg-black/40 border-slate-700 text-sm" />
-
+        <label className="text-[10px] font-black text-white/30 uppercase tracking-widest block mb-1.5">Notas</label>
+        <textarea
+          value={notes}
+          onChange={(e) => setNotes(e.target.value)}
+          rows={3}
+          placeholder="Comentarios adicionales sobre la orden (opcional)"
+          className="w-full bg-[#111114]/60 border border-white/[0.08] rounded-xl px-4 py-3 text-white text-sm placeholder:text-white/20 focus:outline-none focus:border-teal-500/50 resize-none"
+        />
       </div>
-    </div>;
+    </div>
+  );
 
-
-  const Step4WorkOrders = () =>
-  <div className="space-y-4">
-      <div className="border border-slate-800 rounded-lg p-2 bg-black/40 max-h-56 overflow-y-auto">
-        <p className="text-[11px] text-slate-400 mb-1">Enlace por producto (opcional)</p>
-        {items.length === 0 ?
-      <p className="text-xs text-slate-500 py-4 text-center">No hay productos en la orden.</p> :
-
-      <table className="w-full text-[11px]">
-            <thead className="text-slate-400">
+  // ── Step 4: Work Orders ────────────────────────────────────────────────────
+  const Step4WorkOrders = () => (
+    <div className="space-y-4">
+      <div className="bg-[#111114]/60 border border-white/[0.07] rounded-2xl p-3 max-h-56 overflow-y-auto">
+        <p className="text-[10px] font-black text-white/30 uppercase tracking-widest mb-2">Enlace por producto (opcional)</p>
+        {items.length === 0 ? (
+          <p className="text-xs text-white/30 py-4 text-center">No hay productos en la orden.</p>
+        ) : (
+          <table className="w-full text-[11px]">
+            <thead className="text-white/30">
               <tr>
                 <th className="text-left pb-1">Producto</th>
                 <th className="text-center pb-1">Cant.</th>
                 <th className="text-left pb-1">Orden de trabajo</th>
               </tr>
             </thead>
-            <tbody className="text-slate-100">
-              {items.map((it) =>
-          <tr key={it.product_id} className="border-t border-slate-800">
-                  <td className="py-1 pr-2 max-w-[160px] truncate">{it.product_name}</td>
-                  <td className="py-1 text-center">{it.quantity}</td>
-                  <td className="py-1">
+            <tbody className="text-white/70">
+              {items.map((it) => (
+                <tr key={it.product_id} className="border-t border-white/[0.04]">
+                  <td className="py-1.5 pr-2 max-w-[160px] truncate font-bold">{it.product_name}</td>
+                  <td className="py-1.5 text-center">{it.quantity}</td>
+                  <td className="py-1.5">
                     <select
-                value={it.work_order_id || ""}
-                onChange={(e) =>
-                handleChangeItemWO(it.product_id, e.target.value)
-                }
-                className="w-full h-8 rounded-md bg-slate-900 border border-slate-700 text-[11px]">
-
+                      value={it.work_order_id || ""}
+                      onChange={(e) => handleChangeItemWO(it.product_id, e.target.value)}
+                      className="w-full h-8 rounded-lg bg-[#111114]/60 border border-white/[0.08] text-white text-[11px] px-2 focus:outline-none focus:border-teal-500/50"
+                    >
                       <option value="">Sin enlace</option>
-                      {workOrders.map((wo) =>
-                <option key={wo.id} value={wo.id}>
-                          #{wo.id} • {wo.customer_name || "Cliente"}
+                      {workOrders.map((wo) => (
+                        <option key={wo.id} value={wo.id}>
+                          #{wo.id} · {wo.customer_name || "Cliente"}
                         </option>
-                )}
+                      ))}
                     </select>
                   </td>
                 </tr>
-          )}
+              ))}
             </tbody>
           </table>
-      }
+        )}
       </div>
-    </div>;
+    </div>
+  );
 
-
-  const Step5Summary = () =>
-  <div className="space-y-4">
-      <div className="border border-slate-800 rounded-lg p-3 bg-black/40">
-        <p className="text-xs text-slate-400 mb-1 flex items-center gap-1">
-          <FileText className="w-3 h-3 text-cyan-400" />
-          Número de PO
-        </p>
-        <p className="text-sm text-slate-100 font-mono">
-          {poNumber || "Se generará automáticamente"}
-        </p>
+  // ── Step 5: Summary ────────────────────────────────────────────────────────
+  const Step5Summary = () => (
+    <div className="space-y-3">
+      <div className="bg-[#111114]/60 border border-white/[0.07] rounded-2xl p-4">
+        <p className="text-[10px] font-black text-white/30 uppercase tracking-widest mb-1.5">Número de PO</p>
+        <p className="text-sm text-white font-mono">{poNumber || "Se generará automáticamente"}</p>
       </div>
 
-      <div className="border border-slate-800 rounded-lg p-3 bg-black/40">
-        <p className="text-xs text-slate-400 mb-1 flex items-center gap-1">
-          <UserCircle2 className="w-3 h-3 text-cyan-400" />
-          Suplidor
-        </p>
-        <p className="text-sm text-slate-100">
-          {selectedSupplier?.name || supplierName || "Sin suplidor definido"}
-        </p>
+      <div className="bg-[#111114]/60 border border-white/[0.07] rounded-2xl p-4">
+        <p className="text-[10px] font-black text-white/30 uppercase tracking-widest mb-1.5">Suplidor</p>
+        <p className="text-sm text-white font-bold">{selectedSupplier?.name || supplierName || "Sin suplidor definido"}</p>
       </div>
 
-      <div className="border border-slate-800 rounded-lg p-3 bg-black/40">
-        <p className="text-xs text-slate-400 mb-1 flex items-center gap-1">
-          <PackageSearch className="w-3 h-3 text-emerald-400" />
-          Productos ({items.length})
-        </p>
-        {items.length === 0 ?
-      <p className="text-xs text-slate-500">No hay productos.</p> :
-
-      <ul className="space-y-1 text-xs text-slate-100 max-h-40 overflow-y-auto">
-            {items.map((it) =>
-        <li
-          key={it.product_id}
-          className="flex items-center justify-between gap-2 border-b border-slate-800/70 pb-1">
-
+      <div className="bg-[#111114]/60 border border-white/[0.07] rounded-2xl p-4">
+        <p className="text-[10px] font-black text-white/30 uppercase tracking-widest mb-2">Productos ({items.length})</p>
+        {items.length === 0 ? (
+          <p className="text-xs text-white/30">No hay productos.</p>
+        ) : (
+          <ul className="space-y-1 text-xs text-white/70 max-h-40 overflow-y-auto">
+            {items.map((it) => (
+              <li
+                key={it.product_id}
+                className="flex items-center justify-between gap-2 border-b border-white/[0.04] pb-1.5"
+              >
                 <div className="flex-1 min-w-0">
-                  <p className="truncate font-medium">{it.product_name}</p>
-                  <p className="text-[10px] text-slate-400">
-                    Cant: {it.quantity} • Costo: {money(it.unit_cost)} • Total:{" "}
+                  <p className="truncate font-bold text-white/80">{it.product_name}</p>
+                  <p className="text-[10px] text-white/30">
+                    Cant: {it.quantity} · Costo: {money(it.unit_cost)} · Total:{" "}
                     {money((it.unit_cost || 0) * (it.quantity || 0))}
                   </p>
                 </div>
-                {it.work_order_id &&
-          <Badge className="bg-indigo-600/30 border-indigo-500/40 text-[10px]">
+                {it.work_order_id && (
+                  <span className="text-[10px] px-2 py-0.5 rounded-full bg-indigo-500/15 text-indigo-300 border border-indigo-500/20 font-bold shrink-0">
                     OT #{it.work_order_id}
-                  </Badge>
-          }
+                  </span>
+                )}
               </li>
-        )}
+            ))}
           </ul>
-      }
-        <div className="space-y-1 mt-2 text-sm border-t border-slate-800 pt-2">
+        )}
+        <div className="space-y-1 mt-3 text-sm border-t border-white/[0.05] pt-3">
           <div className="flex items-center justify-between">
-            <span className="text-slate-400">Subtotal productos:</span>
-            <span className="text-slate-100">{money(subtotalAmount)}</span>
+            <span className="text-white/30 font-bold">Subtotal:</span>
+            <span className="text-white/70">{money(subtotalAmount)}</span>
           </div>
-          {shippingCost > 0 &&
-        <div className="flex items-center justify-between">
-              <span className="text-slate-400">Costo de envío:</span>
-              <span className="text-slate-100">{money(shippingCost)}</span>
+          {shippingCost > 0 && (
+            <div className="flex items-center justify-between">
+              <span className="text-white/30 font-bold">Envío:</span>
+              <span className="text-white/70">{money(shippingCost)}</span>
             </div>
-        }
-          <div className="flex items-center justify-between font-semibold">
-            <span className="text-slate-400">Total de la orden:</span>
-            <span className="text-emerald-400">{money(totalAmount)}</span>
+          )}
+          <div className="flex items-center justify-between font-bold">
+            <span className="text-white/50">Total:</span>
+            <span className="text-emerald-400 text-lg">{money(totalAmount)}</span>
           </div>
         </div>
       </div>
 
       <div className="grid sm:grid-cols-2 gap-3">
-        <div className="border border-slate-800 rounded-lg p-3 bg-black/40">
-          <p className="text-xs text-slate-400 mb-1 flex items-center gap-1">
-            <Calendar className="w-3 h-3 text-cyan-400" />
-            Fechas
-          </p>
-          <p className="text-[11px] text-slate-100">Orden: {orderDate || "—"}</p>
-          <p className="text-[11px] text-slate-100">Estimada: {expectedDate || "—"}</p>
+        <div className="bg-[#111114]/60 border border-white/[0.07] rounded-2xl p-4">
+          <p className="text-[10px] font-black text-white/30 uppercase tracking-widest mb-1.5">Fechas</p>
+          <p className="text-[11px] text-white/70">Orden: {orderDate || "—"}</p>
+          <p className="text-[11px] text-white/70">Estimada: {expectedDate || "—"}</p>
         </div>
-        <div className="border border-slate-800 rounded-lg p-3 bg-black/40">
-          <p className="text-xs text-slate-400 mb-1 flex items-center gap-1">
-            <FileText className="w-3 h-3 text-emerald-400" />
-            Estado
+        <div className="bg-[#111114]/60 border border-white/[0.07] rounded-2xl p-4">
+          <p className="text-[10px] font-black text-white/30 uppercase tracking-widest mb-1.5">Estado</p>
+          <p className="text-[11px] text-white/70 capitalize">
+            {status === "draft" ? "Borrador" : status === "ordered" ? "Ordenado" : status === "received" ? "Recibido" : status === "cancelled" ? "Cancelado" : status}
           </p>
-          <p className="text-[11px] text-slate-100 capitalize">
-            {status === "draft" ?
-          "Borrador" :
-          status === "ordered" ?
-          "Ordenado" :
-          status === "received" ?
-          "Recibido" :
-          status === "cancelled" ?
-          "Cancelado" :
-          status}
-          </p>
-          {defaultWorkOrderId &&
-        <p className="text-[11px] text-slate-300 mt-1">OT general: #{defaultWorkOrderId}</p>
-        }
+          {defaultWorkOrderId && (
+            <p className="text-[11px] text-white/40 mt-1">OT general: #{defaultWorkOrderId}</p>
+          )}
         </div>
       </div>
 
-      {notes &&
-    <div className="border border-slate-800 rounded-lg p-3 bg-black/40">
-          <p className="text-xs text-slate-400 mb-1">Notas</p>
-          <p className="text-[11px] text-slate-100 whitespace-pre-wrap">{notes}</p>
+      {notes && (
+        <div className="bg-[#111114]/60 border border-white/[0.07] rounded-2xl p-4">
+          <p className="text-[10px] font-black text-white/30 uppercase tracking-widest mb-1.5">Notas</p>
+          <p className="text-[11px] text-white/60 whitespace-pre-wrap">{notes}</p>
         </div>
-    }
-    </div>;
-
+      )}
+    </div>
+  );
 
   return (
     <Dialog open={open} onOpenChange={(v) => !v && onClose?.(false)}>
-      <DialogContent className="bg-[#020617] border border-cyan-500/30 max-w-4xl text-white theme-light:bg-white theme-light:border-gray-200">
-        <DialogHeader>
-          <DialogTitle className="text-lg font-bold flex items-center gap-2">
-            <FileText className="w-5 h-5 text-cyan-400" />
-            {isEditing ? "Editar Orden de Compra" : "Nueva Orden de Compra"}
-          </DialogTitle>
-        </DialogHeader>
-
-        {loadingPO ?
-        <div className="py-10 text-center text-sm text-slate-300">
-            Cargando orden de compra...
-          </div> :
-
-        <>
-            <StepIndicator />
-
-            <div className="mt-2 max-h-[55vh] overflow-y-auto pr-1">
-              {step === 1 && <Step1Supplier />}
-              {step === 2 && <Step2Products />}
-              {step === 3 && <Step3DatesStatus />}
-              {step === 4 && <Step4WorkOrders />}
-              {step === 5 && <Step5Summary />}
-            </div>
-
-            <DialogFooter className="mt-4 flex flex-col sm:flex-row items-center justify-between gap-3">
-              <div className="flex items-center gap-2 text-xs text-slate-400">
-                <ClipboardList className="w-3 h-3" />
-                <span>
-                  Paso {step} de 5 • Productos en orden:{" "}
-                  <span className="text-emerald-400 font-semibold">{items.length}</span>
-                </span>
+      <DialogContent className="bg-[#0a0a0c] border border-white/[0.06] max-w-4xl text-white p-0 overflow-hidden">
+        <div className="p-6 pb-0">
+          <DialogHeader className="mb-4">
+            <DialogTitle className="text-lg font-black flex items-center gap-2 text-white">
+              <div className="w-8 h-8 rounded-xl bg-teal-500/15 border border-teal-500/25 flex items-center justify-center">
+                <FileText className="w-4 h-4 text-teal-400" />
               </div>
+              {isEditing ? "Editar Orden de Compra" : "Nueva Orden de Compra"}
+            </DialogTitle>
+          </DialogHeader>
 
-              <div className="flex items-center gap-2">
-                <Button
+          {loadingPO ? (
+            <div className="py-10 text-center text-sm text-white/30">
+              Cargando orden de compra...
+            </div>
+          ) : (
+            <>
+              <StepIndicator />
+
+              <div className="mt-2 max-h-[55vh] overflow-y-auto pr-1 pb-2">
+                {step === 1 && <Step1Supplier />}
+                {step === 2 && <Step2Products />}
+                {step === 3 && <Step3DatesStatus />}
+                {step === 4 && <Step4WorkOrders />}
+                {step === 5 && <Step5Summary />}
+              </div>
+            </>
+          )}
+        </div>
+
+        <DialogFooter className="px-6 py-4 border-t border-white/[0.05] bg-[#0a0a0c] flex flex-col sm:flex-row items-center justify-between gap-3">
+          <div className="flex items-center gap-2 text-xs text-white/30">
+            <ClipboardList className="w-3 h-3" />
+            <span>
+              Paso {step} de 5 · Productos:{" "}
+              <span className="text-teal-400 font-bold">{items.length}</span>
+            </span>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() => onClose?.(false)}
+              className="px-4 py-2 rounded-xl bg-white/5 border border-white/10 text-white/50 text-sm font-bold hover:bg-white/10 transition-all"
+            >
+              Cancelar
+            </button>
+
+            {step > 1 && (
+              <button
                 type="button"
-                variant="outline"
-                onClick={() => onClose?.(false)} className="bg-background text-slate-900 px-4 py-2 text-sm font-semibold rounded-full inline-flex items-center justify-center gap-2 whitespace-nowrap transition-all duration-200 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 border shadow-sm hover:bg-accent hover:text-accent-foreground h-9 border-slate-600">
+                onClick={handlePrev}
+                className="px-4 py-2 rounded-xl bg-white/5 border border-white/10 text-white/70 text-sm font-bold hover:bg-white/10 transition-all flex items-center gap-1"
+              >
+                <ChevronLeft className="w-4 h-4" />
+                Atrás
+              </button>
+            )}
 
-
-                  Cancelar
-                </Button>
-
-                {step > 1 &&
-              <Button
-                type="button"
-                variant="outline"
-                onClick={handlePrev} className="bg-background text-gray-900 px-4 py-2 text-sm font-semibold rounded-full inline-flex items-center justify-center gap-2 whitespace-nowrap transition-all duration-200 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 border shadow-sm hover:bg-accent hover:text-accent-foreground h-9 border-cyan-600">
-
-
-                    <ChevronLeft className="w-4 h-4 mr-1" />
-                    Atrás
-                  </Button>
-              }
-
-                {step < 5 &&
-              <Button
+            {step < 5 && (
+              <button
                 type="button"
                 onClick={handleNext}
-                className="bg-gradient-to-r from-cyan-600 to-emerald-600">
+                className="px-4 py-2 rounded-xl bg-gradient-to-r from-teal-500 to-cyan-500 text-white text-sm font-bold hover:opacity-90 transition-all active:scale-95 flex items-center gap-1"
+              >
+                Siguiente
+                <ChevronRight className="w-4 h-4" />
+              </button>
+            )}
 
-                    Siguiente
-                    <ChevronRight className="w-4 h-4 ml-1" />
-                  </Button>
-              }
-
-                {step === 5 &&
-              <Button
+            {step === 5 && (
+              <button
                 type="button"
                 onClick={handleSave}
-                className="bg-gradient-to-r from-emerald-600 to-cyan-600">
-
-                    Guardar Orden
-                  </Button>
-              }
-              </div>
-            </DialogFooter>
-          </>
-        }
+                className="px-4 py-2 rounded-xl bg-gradient-to-r from-teal-500 to-cyan-500 text-white text-sm font-bold hover:opacity-90 transition-all active:scale-95"
+              >
+                Guardar Orden
+              </button>
+            )}
+          </div>
+        </DialogFooter>
       </DialogContent>
-    </Dialog>);
-
+    </Dialog>
+  );
 }

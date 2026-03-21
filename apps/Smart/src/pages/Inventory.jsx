@@ -13,7 +13,7 @@ import {
   Search, Plus, Smartphone, Tablet, Laptop, AlertTriangle,
   FileText, Upload, Trash2, Edit, ChevronLeft, ChevronRight,
   Globe, Tag, CheckSquare, Monitor, Battery, Wrench, Box,
-  Sparkles, Settings, Package } from
+  Sparkles, Settings, Package, Zap } from
 "lucide-react";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter // 👈 DialogFooter añadido
@@ -27,6 +27,7 @@ import NotificationService from "../components/notifications/NotificationService
 import DiscountBadge, { formatPriceWithDiscount } from "../components/inventory/DiscountBadge";
 import SetDiscountDialog from "../components/inventory/SetDiscountDialog";
 import ManageCategoriesDialog from "../components/inventory/ManageCategoriesDialog";
+import QuickOrderDialog from "../components/inventory/QuickOrderDialog";
 import InventoryReports from "../components/inventory/InventoryReports";
 import { catalogCache } from "@/components/utils/dataCache";
 import { loadSuppliersSafe } from "@/components/utils/suppliers";
@@ -793,6 +794,7 @@ export default function Inventory() {
   const [viewingPO, setViewingPO] = useState(null);
   const [selectedProducts, setSelectedProducts] = useState([]);
   const [showDiscountDialog, setShowDiscountDialog] = useState(false);
+  const [showQuickOrder, setShowQuickOrder] = useState(false);
   const [viewTab, setViewTab] = useState("products");
   const [page, setPage] = useState(1);
   const [mainCategory, setMainCategory] = useState("dispositivos");
@@ -1245,6 +1247,9 @@ export default function Inventory() {
             <button onClick={() => setShowPOMenu(true)} className="flex items-center gap-1.5 h-9 px-3 rounded-xl bg-white/5 hover:bg-white/10 border border-white/[0.08] text-white/50 hover:text-white transition-all text-xs font-semibold">
               <FileText className="w-3.5 h-3.5" /> Compras
             </button>
+            <button onClick={() => setShowQuickOrder(true)} className="flex items-center gap-1.5 h-9 px-3 rounded-xl bg-violet-500/10 hover:bg-violet-500/20 border border-violet-500/20 text-violet-400 hover:text-violet-300 transition-all text-xs font-semibold">
+              <Zap className="w-3.5 h-3.5" /> Orden Especial
+            </button>
             <button
               onClick={() => { setEditing(null); setShowItemDialog(true); }}
               className="flex items-center gap-2 h-9 px-4 rounded-xl bg-gradient-to-r from-teal-500 to-cyan-500 text-white font-bold text-xs shadow-[0_6px_16px_rgba(20,184,166,0.3)] hover:opacity-90 transition-all active:scale-95"
@@ -1601,6 +1606,15 @@ export default function Inventory() {
 
         {showManageCategories && (
           <ManageCategoriesDialog open={showManageCategories} onClose={() => setShowManageCategories(false)} onUpdate={loadInventory} />
+        )}
+
+        {showQuickOrder && (
+          <QuickOrderDialog
+            open={showQuickOrder}
+            onClose={(reload) => { setShowQuickOrder(false); if (reload) loadInventory(); }}
+            workOrders={workOrders}
+            suppliers={suppliers}
+          />
         )}
 
       </div>

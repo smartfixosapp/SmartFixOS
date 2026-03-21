@@ -9,17 +9,12 @@ import {
   DialogTitle,
   DialogFooter } from
 "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import {
   Calendar,
   FileText,
   PackageSearch,
   Truck,
-  UserCircle2,
   X,
   Save,
   Edit2 } from
@@ -49,6 +44,11 @@ export default function PurchaseOrderDetailDialog({
     shipping_cost: 0,
     items: []
   });
+
+  // Receive flow state
+  const [showReceiveFlow, setShowReceiveFlow] = useState(false);
+  const [receiveItems, setReceiveItems] = useState([]);
+  const [receiving, setReceiving] = useState(false);
 
   useEffect(() => {
     if (!open || !purchaseOrder?.id) return;
@@ -115,7 +115,6 @@ export default function PurchaseOrderDetailDialog({
         }))
       };
 
-      // Calcular total
       const subtotal = form.items.reduce(
         (sum, it) => sum + Number(it.unit_cost || 0) * Number(it.quantity || 0),
         0
@@ -182,6 +181,81 @@ export default function PurchaseOrderDetailDialog({
     }));
   };
 
+  // ── Receive flow handlers ──────────────────────────────────────────────────
+  const handleOpenReceiveFlow = () => {
+    const currentItems = form.items || poData?.items || poData?.line_items || [];
+    setReceiveItems(currentItems.map(item => ({
+      product_id: item.product_id || item.inventory_item_id,
+      product_name: item.product_name || item.name || "Producto",
+      ordered_qty: Number(item.quantity || item.qty || 1),
+      unit_cost: Number(item.unit_cost || item.cost || 0),
+      received_qty: Number(item.quantity || item.qty || 1)
+    })));
+    setShowReceiveFlow(true);
+  };
+
+  const handleConfirmReceive = async () => {
+    setReceiving(true);
+    try {
+      const { dataClient } = await import("@/components/api/dataClient").catch(() => ({ dataClient: null }));
+      const { supabase } = await import("../../../../../lib/supabase-client.js").catch(() => ({ supabase: null }));
+
+      // Update stock for each received item
+      for (const item of receiveItems) {
+        if (!item.product_id || item.received_qty <= 0) continue;
+        try {
+          if (dataClient?.entities?.Product) {
+            const existing = await dataClient.entities.Product.get(item.product_id).catch(() => null);
+            if (existing) {
+              const newStock = Number(existing.stock || 0) + Number(item.received_qty);
+              await dataClient.entities.Product.update(item.product_id, { stock: newStock });
+            }
+          } else if (supabase) {
+            const { data: prod } = await supabase.from('product').select('stock').eq('id', item.product_id).single();
+            if (prod) {
+              await supabase.from('product').update({ stock: Number(prod.stock || 0) + Number(item.received_qty) }).eq('id', item.product_id);
+            }
+          }
+        } catch (err) {
+          console.warn("Error updating stock for", item.product_id, err);
+        }
+      }
+
+      // Calculate total cost
+      const totalCost = receiveItems.reduce((sum, item) => sum + (item.received_qty * item.unit_cost), 0) + Number(form.shipping_cost || poData?.shipping_cost || 0);
+
+      // Create expense transaction
+      try {
+        const txPayload = {
+          type: "expense",
+          amount: totalCost,
+          description: `Orden de compra recibida: ${form.po_number || poData?.po_number} — ${form.supplier_name || poData?.supplier_name || "Suplidor"}`,
+          category: "inventory_purchase",
+          payment_method: "other",
+          notes: `PO: ${form.po_number || poData?.po_number}. Items recibidos: ${receiveItems.map(i => `${i.product_name} x${i.received_qty}`).join(", ")}`,
+          created_date: new Date().toISOString().split("T")[0],
+        };
+        if (dataClient?.entities?.Transaction) {
+          await dataClient.entities.Transaction.create(txPayload).catch(e => console.warn("Transaction create failed", e));
+        } else if (supabase) {
+          await supabase.from('transaction').insert(txPayload).catch(e => console.warn("Transaction insert failed", e));
+        }
+      } catch {}
+
+      // Update PO status to received
+      await base44.entities.PurchaseOrder.update(purchaseOrder.id, { status: "received" });
+      setForm(prev => ({ ...prev, status: "received" }));
+      setShowReceiveFlow(false);
+      toast.success("✅ Orden recibida — stock actualizado y gasto registrado");
+      onClose(true);
+    } catch (err) {
+      console.error("Error confirming receive:", err);
+      toast.error("Error al confirmar recepción");
+    } finally {
+      setReceiving(false);
+    }
+  };
+
   const subtotal = form.items.reduce(
     (sum, it) => sum + Number(it.unit_cost || 0) * Number(it.quantity || 0),
     0
@@ -190,312 +264,370 @@ export default function PurchaseOrderDetailDialog({
 
   const selectedSupplier = suppliers.find((s) => s.id === form.supplier_id);
 
+  const statusConfig = {
+    draft: { label: "Borrador", cls: "bg-slate-600/20 text-slate-300 border-slate-600/40" },
+    ordered: { label: "Ordenado", cls: "bg-blue-500/20 text-blue-300 border-blue-500/40" },
+    received: { label: "Recibido", cls: "bg-emerald-500/20 text-emerald-300 border-emerald-500/40" },
+    cancelled: { label: "Cancelado", cls: "bg-red-500/20 text-red-300 border-red-500/40" }
+  };
+
   return (
     <Dialog open={open} onOpenChange={(v) => !v && onClose?.(false)}>
-      <DialogContent className="bg-[#020617] border border-cyan-500/30 max-w-4xl max-h-[90vh] overflow-hidden flex flex-col text-white theme-light:bg-white theme-light:border-gray-200">
-        <DialogHeader>
-          <DialogTitle className="text-xl font-bold flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <FileText className="w-5 h-5 text-cyan-400" />
-              Orden de Compra: {form.po_number}
-            </div>
-            {!editing &&
-            <Button
-              size="sm"
-              onClick={() => setEditing(true)}
-              className="bg-gradient-to-r from-cyan-600 to-emerald-600">
-
-                <Edit2 className="w-4 h-4 mr-2" />
-                Editar
-              </Button>
-            }
-          </DialogTitle>
-        </DialogHeader>
-
-        {loading ?
-        <div className="py-12 text-center text-slate-300">Cargando...</div> :
-
-        <div className="overflow-y-auto flex-1 space-y-4 pr-2">
-            {/* Información del proveedor */}
-            <div className="bg-black/40 border border-cyan-500/20 rounded-xl p-4 theme-light:bg-gray-50 theme-light:border-gray-200">
-              <div className="flex items-center gap-2 mb-3">
-                <UserCircle2 className="w-5 h-5 text-cyan-400" />
-                <h3 className="font-bold text-white theme-light:text-gray-900">Proveedor</h3>
+      <DialogContent className="bg-[#0a0a0c] border border-white/[0.06] max-w-4xl max-h-[90vh] overflow-hidden flex flex-col text-white p-0">
+        {/* Header */}
+        <div className="px-6 pt-6 pb-4 border-b border-white/[0.05]">
+          <div className="flex items-center justify-between gap-3">
+            <div className="flex items-center gap-3">
+              <div className="w-9 h-9 rounded-xl bg-teal-500/15 border border-teal-500/25 flex items-center justify-center shrink-0">
+                <FileText className="w-4 h-4 text-teal-400" />
               </div>
-              {editing ?
-            <div className="space-y-2">
-                  <select
-                value={form.supplier_id}
-                onChange={(e) => {
-                  const sup = suppliers.find((s) => s.id === e.target.value);
-                  setForm((f) => ({
-                    ...f,
-                    supplier_id: e.target.value,
-                    supplier_name: sup?.name || ""
-                  }));
-                }}
-                className="w-full h-10 px-3 rounded-md bg-black/20 border border-cyan-500/20 text-white theme-light:bg-white theme-light:border-gray-300">
-
-                    <option value="">Seleccionar proveedor</option>
-                    {suppliers.map((s) =>
-                <option key={s.id} value={s.id}>
-                        {s.name}
-                      </option>
-                )}
-                  </select>
-                  <Input
-                value={form.supplier_name}
-                onChange={(e) => setForm((f) => ({ ...f, supplier_name: e.target.value }))}
-                placeholder="O escribe un nombre manual"
-                className="bg-black/20 border-cyan-500/20 theme-light:bg-white theme-light:border-gray-300" />
-
-                </div> :
-
-            <p className="text-slate-100 theme-light:text-gray-800">
-                  {selectedSupplier?.name || form.supplier_name || "No especificado"}
-                </p>
-            }
-            </div>
-
-            {/* Estado y fechas */}
-            <div className="grid sm:grid-cols-2 gap-4">
-              <div className="bg-black/40 border border-cyan-500/20 rounded-xl p-4 theme-light:bg-gray-50 theme-light:border-gray-200">
-                <div className="flex items-center gap-2 mb-3">
-                  <Calendar className="w-5 h-5 text-cyan-400" />
-                  <h3 className="font-bold text-white theme-light:text-gray-900">Fechas</h3>
-                </div>
-                {editing ?
-              <div className="space-y-2">
-                    <div>
-                      <label className="text-xs text-slate-400 theme-light:text-gray-600">Fecha orden</label>
-                      <Input
-                    type="date"
-                    value={form.order_date}
-                    onChange={(e) => setForm((f) => ({ ...f, order_date: e.target.value }))}
-                    className="bg-black/20 border-cyan-500/20 theme-light:bg-white theme-light:border-gray-300" />
-
-                    </div>
-                    <div>
-                      <label className="text-xs text-slate-400 theme-light:text-gray-600">Fecha estimada</label>
-                      <Input
-                    type="date"
-                    value={form.expected_date}
-                    onChange={(e) => setForm((f) => ({ ...f, expected_date: e.target.value }))}
-                    className="bg-black/20 border-cyan-500/20 theme-light:bg-white theme-light:border-gray-300" />
-
-                    </div>
-                  </div> :
-
-              <div className="space-y-1 text-sm">
-                    <p className="text-slate-300 theme-light:text-gray-700">
-                      Orden: {form.order_date || "—"}
-                    </p>
-                    <p className="text-slate-300 theme-light:text-gray-700">
-                      Estimada: {form.expected_date || "—"}
-                    </p>
-                  </div>
-              }
-              </div>
-
-              <div className="bg-black/40 border border-cyan-500/20 rounded-xl p-4 theme-light:bg-gray-50 theme-light:border-gray-200">
-                <div className="flex items-center gap-2 mb-3">
-                  <Truck className="w-5 h-5 text-emerald-400" />
-                  <h3 className="font-bold text-white theme-light:text-gray-900">Estado</h3>
-                </div>
-                {editing ?
-              <select
-                value={form.status}
-                onChange={(e) => setForm((f) => ({ ...f, status: e.target.value }))}
-                className="w-full h-10 px-3 rounded-md bg-black/20 border border-cyan-500/20 text-white theme-light:bg-white theme-light:border-gray-300">
-
-                    <option value="draft">Borrador</option>
-                    <option value="ordered">Ordenado</option>
-                    <option value="received">Recibido</option>
-                    <option value="cancelled">Cancelado</option>
-                  </select> :
-
-              <Badge
-                className={`${
-                form.status === "received" ?
-                "bg-green-600/20 text-green-300 border-green-600/30" :
-                form.status === "ordered" ?
-                "bg-blue-600/20 text-blue-300 border-blue-600/30" :
-                "bg-gray-600/20 text-gray-300 border-gray-600/30"}`
-                }>
-
-                    {form.status === "draft" ?
-                "Borrador" :
-                form.status === "ordered" ?
-                "Ordenado" :
-                form.status === "received" ?
-                "Recibido" :
-                "Cancelado"}
-                  </Badge>
-              }
-              </div>
-            </div>
-
-            {/* Productos */}
-            <div className="bg-black/40 border border-cyan-500/20 rounded-xl p-4 theme-light:bg-gray-50 theme-light:border-gray-200">
-              <div className="flex items-center gap-2 mb-3">
-                <PackageSearch className="w-5 h-5 text-emerald-400" />
-                <h3 className="font-bold text-white theme-light:text-gray-900">
-                  Productos ({form.items.length})
-                </h3>
-              </div>
-              <div className="overflow-x-auto">
-                <table className="w-full text-sm">
-                  <thead>
-                    <tr className="border-b border-slate-700 theme-light:border-gray-300">
-                      <th className="text-left py-2 text-slate-400 theme-light:text-gray-600">Producto</th>
-                      <th className="text-right py-2 text-slate-400 theme-light:text-gray-600">Cant.</th>
-                      <th className="text-right py-2 text-slate-400 theme-light:text-gray-600">Costo</th>
-                      <th className="text-right py-2 text-slate-400 theme-light:text-gray-600">Total</th>
-                      {editing && <th className="text-right py-2 text-slate-400 theme-light:text-gray-600"></th>}
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {form.items.map((it, idx) =>
-                  <tr key={idx} className="border-b border-slate-800 theme-light:border-gray-200">
-                        <td className="py-2 text-slate-100 theme-light:text-gray-800">{it.product_name}</td>
-                        <td className="py-2 text-right">
-                          {editing ?
-                      <Input
-                        type="number"
-                        min={1}
-                        value={it.quantity}
-                        onChange={(e) => handleChangeItemQty(idx, e.target.value)}
-                        className="h-8 w-16 text-right bg-black/20 border-cyan-500/20 theme-light:bg-white theme-light:border-gray-300" /> :
-
-
-                      <span className="text-slate-100 theme-light:text-gray-800">{it.quantity}</span>
-                      }
-                        </td>
-                        <td className="py-2 text-right">
-                          {editing ?
-                      <Input
-                        type="number"
-                        step="0.01"
-                        min={0}
-                        value={it.unit_cost}
-                        onChange={(e) => handleChangeItemCost(idx, e.target.value)}
-                        className="h-8 w-20 text-right bg-black/20 border-cyan-500/20 theme-light:bg-white theme-light:border-gray-300" /> :
-
-
-                      <span className="text-slate-100 theme-light:text-gray-800">{money(it.unit_cost)}</span>
-                      }
-                        </td>
-                        <td className="py-2 text-right text-slate-100 theme-light:text-gray-800">
-                          {money((it.unit_cost || 0) * (it.quantity || 0))}
-                        </td>
-                        {editing &&
-                    <td className="py-2 text-right">
-                            <Button
-                        size="icon"
-                        variant="ghost"
-                        className="h-7 w-7 text-red-400"
-                        onClick={() => handleRemoveItem(idx)}>
-
-                              <X className="w-4 h-4" />
-                            </Button>
-                          </td>
-                    }
-                      </tr>
+              <div>
+                <h2 className="text-white font-black text-lg leading-tight">
+                  Orden {form.po_number || "—"}
+                </h2>
+                <div className="flex items-center gap-2 mt-0.5">
+                  {form.status && (
+                    <span className={`text-[10px] font-black px-2 py-0.5 rounded-full border ${(statusConfig[form.status] || statusConfig.draft).cls}`}>
+                      {(statusConfig[form.status] || statusConfig.draft).label}
+                    </span>
                   )}
-                  </tbody>
-                  <tfoot>
-                    <tr>
-                      <td colSpan={3} className="pt-3 text-right text-slate-400 theme-light:text-gray-600">
-                        Subtotal:
-                      </td>
-                      <td className="pt-3 text-right font-semibold text-slate-100 theme-light:text-gray-900">
-                        {money(subtotal)}
-                      </td>
-                      {editing && <td />}
-                    </tr>
-                    <tr>
-                      <td colSpan={3} className="pt-2 text-right text-slate-400 theme-light:text-gray-600">
-                        Envío:
-                      </td>
-                      <td className="pt-2 text-right">
-                        {editing ?
-                      <Input
-                        type="number"
-                        step="0.01"
-                        min={0}
-                        value={form.shipping_cost}
-                        onChange={(e) =>
-                        setForm((f) => ({ ...f, shipping_cost: Number(e.target.value) || 0 }))
-                        }
-                        className="h-8 w-24 ml-auto text-right bg-black/20 border-cyan-500/20 theme-light:bg-white theme-light:border-gray-300" /> :
-
-
-                      <span className="text-slate-100 theme-light:text-gray-900">{money(form.shipping_cost)}</span>
-                      }
-                      </td>
-                      {editing && <td />}
-                    </tr>
-                    <tr>
-                      <td colSpan={3} className="pt-2 text-right font-bold text-slate-300 theme-light:text-gray-700">
-                        Total:
-                      </td>
-                      <td className="pt-2 text-right font-bold text-emerald-400 theme-light:text-emerald-600">
-                        {money(total)}
-                      </td>
-                      {editing && <td />}
-                    </tr>
-                  </tfoot>
-                </table>
+                  {(form.supplier_name || selectedSupplier?.name) && (
+                    <span className="text-[11px] text-white/30 font-medium">
+                      {selectedSupplier?.name || form.supplier_name}
+                    </span>
+                  )}
+                </div>
               </div>
             </div>
-
-            {/* Notas */}
-            <div className="bg-black/40 border border-cyan-500/20 rounded-xl p-4 theme-light:bg-gray-50 theme-light:border-gray-200">
-              <h3 className="font-bold text-white mb-2 theme-light:text-gray-900">Notas</h3>
-              {editing ?
-            <Textarea
-              value={form.notes}
-              onChange={(e) => setForm((f) => ({ ...f, notes: e.target.value }))}
-              rows={3}
-              className="bg-black/20 border-cyan-500/20 theme-light:bg-white theme-light:border-gray-300" /> :
-
-
-            <p className="text-slate-300 text-sm theme-light:text-gray-700">
-                  {form.notes || "Sin notas"}
-                </p>
-            }
+            <div className="flex items-center gap-2 shrink-0">
+              {!editing && poData?.status !== "received" && poData?.status !== "cancelled" && (
+                <button
+                  onClick={handleOpenReceiveFlow}
+                  className="flex items-center gap-2 px-4 py-2 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 text-white text-sm font-bold hover:opacity-90 transition-all active:scale-95 shadow-[0_4px_12px_rgba(16,185,129,0.3)]"
+                >
+                  <PackageSearch className="w-4 h-4" />
+                  Recibir Orden
+                </button>
+              )}
+              {!editing && (
+                <button
+                  onClick={() => setEditing(true)}
+                  className="flex items-center gap-2 px-4 py-2 rounded-xl bg-white/5 border border-white/10 text-white/70 text-sm font-bold hover:bg-white/10 transition-all"
+                >
+                  <Edit2 className="w-4 h-4" />
+                  Editar
+                </button>
+              )}
             </div>
           </div>
-        }
+        </div>
 
-        <DialogFooter className="border-t border-cyan-500/20 pt-4 theme-light:border-gray-200">
-          {editing ?
-          <div className="flex gap-2 w-full">
-              <Button
-              variant="outline"
-              onClick={() => setEditing(false)} className="bg-background text-slate-900 px-4 py-2 text-sm font-medium rounded-md inline-flex items-center justify-center gap-2 whitespace-nowrap transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 border shadow-sm hover:bg-accent hover:text-accent-foreground h-9 flex-1 border-slate-600 theme-light:border-gray-300">
+        {loading ? (
+          <div className="py-12 text-center text-white/30">Cargando...</div>
+        ) : (
+          <div className="overflow-y-auto flex-1 space-y-4 px-6 py-4">
+            {/* Supplier */}
+            <div className="bg-[#111114]/80 border border-white/[0.06] rounded-[24px] p-5">
+              <div className="flex items-center gap-2 mb-3">
+                <Truck className="w-4 h-4 text-teal-400" />
+                <p className="text-[10px] font-black text-white/30 uppercase tracking-widest">Proveedor</p>
+              </div>
+              {editing ? (
+                <div className="space-y-2">
+                  <select
+                    value={form.supplier_id}
+                    onChange={(e) => {
+                      const sup = suppliers.find((s) => s.id === e.target.value);
+                      setForm((f) => ({
+                        ...f,
+                        supplier_id: e.target.value,
+                        supplier_name: sup?.name || ""
+                      }));
+                    }}
+                    className="w-full h-10 px-3 rounded-xl bg-[#111114]/60 border border-white/[0.08] text-white text-sm focus:outline-none focus:border-teal-500/50"
+                  >
+                    <option value="">Seleccionar proveedor</option>
+                    {suppliers.map((s) => (
+                      <option key={s.id} value={s.id}>{s.name}</option>
+                    ))}
+                  </select>
+                  <input
+                    value={form.supplier_name}
+                    onChange={(e) => setForm((f) => ({ ...f, supplier_name: e.target.value }))}
+                    placeholder="O escribe un nombre manual"
+                    className="w-full bg-[#111114]/60 border border-white/[0.08] rounded-xl px-4 py-3 text-white text-sm placeholder:text-white/20 focus:outline-none focus:border-teal-500/50"
+                  />
+                </div>
+              ) : (
+                <p className="text-white font-bold">{selectedSupplier?.name || form.supplier_name || "No especificado"}</p>
+              )}
+            </div>
 
+            {/* Dates + Status */}
+            <div className="grid sm:grid-cols-2 gap-4">
+              <div className="bg-[#111114]/80 border border-white/[0.06] rounded-[24px] p-5">
+                <div className="flex items-center gap-2 mb-3">
+                  <Calendar className="w-4 h-4 text-teal-400" />
+                  <p className="text-[10px] font-black text-white/30 uppercase tracking-widest">Fechas</p>
+                </div>
+                {editing ? (
+                  <div className="space-y-2">
+                    <div>
+                      <label className="text-[10px] text-white/30 font-bold block mb-1">Fecha orden</label>
+                      <input
+                        type="date"
+                        value={form.order_date}
+                        onChange={(e) => setForm((f) => ({ ...f, order_date: e.target.value }))}
+                        className="w-full bg-[#111114]/60 border border-white/[0.08] rounded-xl px-3 py-2 text-white text-sm focus:outline-none focus:border-teal-500/50"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-[10px] text-white/30 font-bold block mb-1">Fecha estimada</label>
+                      <input
+                        type="date"
+                        value={form.expected_date}
+                        onChange={(e) => setForm((f) => ({ ...f, expected_date: e.target.value }))}
+                        className="w-full bg-[#111114]/60 border border-white/[0.08] rounded-xl px-3 py-2 text-white text-sm focus:outline-none focus:border-teal-500/50"
+                      />
+                    </div>
+                  </div>
+                ) : (
+                  <div className="space-y-1 text-sm">
+                    <p className="text-white/60">Orden: <span className="text-white font-bold">{form.order_date || "—"}</span></p>
+                    <p className="text-white/60">Estimada: <span className="text-white font-bold">{form.expected_date || "—"}</span></p>
+                  </div>
+                )}
+              </div>
 
+              <div className="bg-[#111114]/80 border border-white/[0.06] rounded-[24px] p-5">
+                <div className="flex items-center gap-2 mb-3">
+                  <Truck className="w-4 h-4 text-teal-400" />
+                  <p className="text-[10px] font-black text-white/30 uppercase tracking-widest">Estado</p>
+                </div>
+                {editing ? (
+                  <div className="flex flex-wrap gap-2">
+                    {[
+                      { value: "draft", label: "Borrador", active: "bg-slate-600 text-white border-slate-500" },
+                      { value: "ordered", label: "Ordenado", active: "bg-blue-600 text-white border-blue-500" },
+                      { value: "received", label: "Recibido", active: "bg-emerald-600 text-white border-emerald-500" },
+                      { value: "cancelled", label: "Cancelado", active: "bg-red-600 text-white border-red-500" }
+                    ].map((opt) => (
+                      <button
+                        key={opt.value}
+                        type="button"
+                        onClick={() => setForm((f) => ({ ...f, status: opt.value }))}
+                        className={[
+                          "px-3 py-1.5 rounded-xl text-xs font-bold border transition-all",
+                          form.status === opt.value ? opt.active : "bg-[#111114]/60 border-white/[0.08] text-white/40"
+                        ].join(" ")}
+                      >
+                        {opt.label}
+                      </button>
+                    ))}
+                  </div>
+                ) : (
+                  <span className={`inline-flex items-center text-sm font-bold px-3 py-1.5 rounded-xl border ${(statusConfig[form.status] || statusConfig.draft).cls}`}>
+                    {(statusConfig[form.status] || statusConfig.draft).label}
+                  </span>
+                )}
+              </div>
+            </div>
+
+            {/* Products */}
+            <div className="bg-[#111114]/80 border border-white/[0.06] rounded-[24px] p-5">
+              <div className="flex items-center gap-2 mb-4">
+                <PackageSearch className="w-4 h-4 text-emerald-400" />
+                <p className="text-[10px] font-black text-white/30 uppercase tracking-widest">
+                  Productos ({form.items.length})
+                </p>
+              </div>
+
+              <div className="space-y-2">
+                {form.items.map((it, idx) => (
+                  <div key={idx} className="bg-white/[0.03] border border-white/[0.05] rounded-2xl p-3 flex items-center gap-3">
+                    <div className="flex-1 min-w-0">
+                      <p className="text-white font-bold text-sm truncate">{it.product_name}</p>
+                      {!editing && (
+                        <p className="text-white/30 text-xs mt-0.5">
+                          {it.quantity} × {money(it.unit_cost)} = {money((it.unit_cost || 0) * (it.quantity || 0))}
+                        </p>
+                      )}
+                    </div>
+                    {editing && (
+                      <div className="flex items-center gap-2 shrink-0">
+                        <div className="flex flex-col items-end gap-1">
+                          <label className="text-[9px] text-white/30 font-bold">Cant</label>
+                          <input
+                            type="number"
+                            min={1}
+                            value={it.quantity}
+                            onChange={(e) => handleChangeItemQty(idx, e.target.value)}
+                            className="h-8 w-16 text-right bg-white/5 border border-white/10 rounded-lg text-white text-xs focus:outline-none focus:border-teal-500/50 px-2"
+                          />
+                        </div>
+                        <div className="flex flex-col items-end gap-1">
+                          <label className="text-[9px] text-white/30 font-bold">Costo</label>
+                          <input
+                            type="number"
+                            step="0.01"
+                            min={0}
+                            value={it.unit_cost}
+                            onChange={(e) => handleChangeItemCost(idx, e.target.value)}
+                            className="h-8 w-24 text-right bg-white/5 border border-white/10 rounded-lg text-white text-xs focus:outline-none focus:border-teal-500/50 px-2"
+                          />
+                        </div>
+                        <button
+                          onClick={() => handleRemoveItem(idx)}
+                          className="w-8 h-8 mt-4 rounded-xl bg-red-500/10 border border-red-500/20 flex items-center justify-center text-red-400 hover:bg-red-500/20 transition-all"
+                        >
+                          <X className="w-4 h-4" />
+                        </button>
+                      </div>
+                    )}
+                    {!editing && (
+                      <div className="text-right shrink-0">
+                        <p className="text-white font-black text-sm">{money((it.unit_cost || 0) * (it.quantity || 0))}</p>
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+
+              {/* Totals */}
+              <div className="mt-4 pt-4 border-t border-white/[0.05] space-y-2">
+                <div className="flex items-center justify-between text-sm">
+                  <span className="text-white/30 font-bold">Subtotal</span>
+                  <span className="text-white/70">{money(subtotal)}</span>
+                </div>
+                <div className="flex items-center justify-between text-sm">
+                  <span className="text-white/30 font-bold">Envío</span>
+                  {editing ? (
+                    <input
+                      type="number"
+                      step="0.01"
+                      min={0}
+                      value={form.shipping_cost}
+                      onChange={(e) => setForm((f) => ({ ...f, shipping_cost: Number(e.target.value) || 0 }))}
+                      className="h-8 w-28 text-right bg-white/5 border border-white/10 rounded-lg text-white text-sm focus:outline-none focus:border-teal-500/50 px-2"
+                    />
+                  ) : (
+                    <span className="text-white/70">{money(form.shipping_cost)}</span>
+                  )}
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-white/50 font-black text-sm">Total</span>
+                  <span className="text-emerald-400 font-black text-xl">{money(total)}</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Notes */}
+            <div className="bg-[#111114]/80 border border-white/[0.06] rounded-[24px] p-5">
+              <p className="text-[10px] font-black text-white/30 uppercase tracking-widest mb-3">Notas</p>
+              {editing ? (
+                <textarea
+                  value={form.notes}
+                  onChange={(e) => setForm((f) => ({ ...f, notes: e.target.value }))}
+                  rows={3}
+                  className="w-full bg-[#111114]/60 border border-white/[0.08] rounded-xl px-4 py-3 text-white text-sm placeholder:text-white/20 focus:outline-none focus:border-teal-500/50 resize-none"
+                />
+              ) : (
+                <p className="text-white/60 text-sm">{form.notes || "Sin notas"}</p>
+              )}
+            </div>
+          </div>
+        )}
+
+        <DialogFooter className="border-t border-white/[0.05] px-6 py-4">
+          {editing ? (
+            <div className="flex gap-2 w-full">
+              <button
+                onClick={() => setEditing(false)}
+                className="flex-1 py-2.5 rounded-xl bg-white/5 border border-white/10 text-white/50 text-sm font-bold hover:bg-white/10 transition-all"
+              >
                 Cancelar
-              </Button>
-              <Button
-              onClick={handleSave}
-              className="flex-1 bg-gradient-to-r from-cyan-600 to-emerald-600">
-
-                <Save className="w-4 h-4 mr-2" />
+              </button>
+              <button
+                onClick={handleSave}
+                className="flex-1 py-2.5 rounded-xl bg-gradient-to-r from-teal-500 to-cyan-500 text-white text-sm font-bold hover:opacity-90 transition-all flex items-center justify-center gap-2"
+              >
+                <Save className="w-4 h-4" />
                 Guardar Cambios
-              </Button>
-            </div> :
-
-          <Button
-            onClick={() => onClose?.(false)}
-            className="w-full bg-gradient-to-r from-cyan-600 to-emerald-600">
-
+              </button>
+            </div>
+          ) : (
+            <button
+              onClick={() => onClose?.(false)}
+              className="w-full py-2.5 rounded-xl bg-white/5 border border-white/10 text-white/50 text-sm font-bold hover:bg-white/10 transition-all"
+            >
               Cerrar
-            </Button>
-          }
+            </button>
+          )}
         </DialogFooter>
-      </DialogContent>
-    </Dialog>);
 
+        {/* Receive Flow Overlay */}
+        {showReceiveFlow && (
+          <div className="fixed inset-0 z-[9999] bg-black/80 backdrop-blur-sm flex items-center justify-center p-4" onClick={() => setShowReceiveFlow(false)}>
+            <div className="bg-zinc-900 border border-emerald-500/30 rounded-3xl max-w-lg w-full shadow-2xl" onClick={e => e.stopPropagation()}>
+              <div className="bg-gradient-to-r from-emerald-500/20 to-teal-500/20 border-b border-emerald-500/20 p-5 flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-2xl bg-emerald-500/20 border border-emerald-500/30 flex items-center justify-center">
+                    <PackageSearch className="w-5 h-5 text-emerald-400" />
+                  </div>
+                  <div>
+                    <p className="text-white font-black text-lg">Recibir Orden</p>
+                    <p className="text-emerald-300/70 text-xs">Confirma las cantidades recibidas</p>
+                  </div>
+                </div>
+                <button onClick={() => setShowReceiveFlow(false)} className="w-8 h-8 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 flex items-center justify-center text-white/50 hover:text-white transition-all">
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+              <div className="p-5 space-y-3 max-h-[50vh] overflow-y-auto">
+                {receiveItems.map((item, idx) => (
+                  <div key={idx} className="bg-white/[0.04] border border-white/[0.07] rounded-2xl p-4 flex items-center justify-between gap-4">
+                    <div className="flex-1 min-w-0">
+                      <p className="text-white font-bold text-sm truncate">{item.product_name}</p>
+                      <p className="text-white/30 text-xs">Ordenado: {item.ordered_qty} · Costo: {money(item.unit_cost)}/u</p>
+                    </div>
+                    <div className="flex items-center gap-2 flex-shrink-0">
+                      <button
+                        onClick={() => setReceiveItems(prev => prev.map((r, i) => i === idx ? { ...r, received_qty: Math.max(0, r.received_qty - 1) } : r))}
+                        className="w-8 h-8 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-white/60 hover:text-white hover:bg-white/10 transition-all font-bold text-lg"
+                      >−</button>
+                      <span className="text-white font-black text-lg w-8 text-center">{item.received_qty}</span>
+                      <button
+                        onClick={() => setReceiveItems(prev => prev.map((r, i) => i === idx ? { ...r, received_qty: r.received_qty + 1 } : r))}
+                        className="w-8 h-8 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-white/60 hover:text-white hover:bg-white/10 transition-all font-bold text-lg"
+                      >+</button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+              <div className="p-5 border-t border-white/[0.05]">
+                <div className="flex items-center justify-between mb-4 text-sm">
+                  <span className="text-white/40 font-bold">Total a registrar como gasto</span>
+                  <span className="text-emerald-400 font-black text-xl">
+                    {money(receiveItems.reduce((s, i) => s + i.received_qty * i.unit_cost, 0) + Number(form.shipping_cost || poData?.shipping_cost || 0))}
+                  </span>
+                </div>
+                <div className="flex gap-3">
+                  <button onClick={() => setShowReceiveFlow(false)} className="flex-1 py-3 rounded-2xl bg-white/5 border border-white/10 text-white/50 text-sm font-bold hover:bg-white/10 transition-all">
+                    Cancelar
+                  </button>
+                  <button
+                    onClick={handleConfirmReceive}
+                    disabled={receiving}
+                    className="flex-1 py-3 rounded-2xl bg-gradient-to-r from-emerald-500 to-teal-500 text-white text-sm font-black hover:opacity-90 transition-all disabled:opacity-50"
+                  >
+                    {receiving ? "Procesando..." : "Confirmar Recepción"}
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+      </DialogContent>
+    </Dialog>
+  );
 }
