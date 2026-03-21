@@ -10,7 +10,8 @@ import {
   Users, Mail, Calendar, ChevronDown, ChevronRight, Eye,
   PlayCircle, PauseCircle, Trash2, BarChart3, Activity, Power,
   Pencil, KeyRound, X, Save, Zap, Database, ShoppingBag, ArrowLeftRight,
-  StickyNote, MessageSquarePlus, MessageSquare, Timer
+  StickyNote, MessageSquarePlus, MessageSquare, Timer,
+  Wifi, WifiOff, ArrowUpDown
 } from "lucide-react";
 
 const SUPER_SESSION_KEY   = "smartfix_saas_session";
@@ -23,6 +24,31 @@ const PLAN_OPTIONS = [
 ];
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
+function timeAgo(dateStr) {
+  if (!dateStr) return null;
+  const diff = Date.now() - new Date(dateStr).getTime();
+  const mins = Math.floor(diff / 60000);
+  const hours = Math.floor(diff / 3600000);
+  const days = Math.floor(diff / 86400000);
+  if (mins < 2)  return "Ahora mismo";
+  if (mins < 60) return `Hace ${mins} min`;
+  if (hours < 24) return `Hace ${hours}h`;
+  if (days === 1) return "Ayer";
+  if (days < 7)  return `Hace ${days} días`;
+  if (days < 30) return `Hace ${Math.floor(days / 7)} sem`;
+  if (days < 365) return `Hace ${Math.floor(days / 30)} mes${Math.floor(days / 30) > 1 ? "es" : ""}`;
+  return `Hace ${Math.floor(days / 365)} año${Math.floor(days / 365) > 1 ? "s" : ""}`;
+}
+function activityColor(dateStr) {
+  if (!dateStr) return { dot: "bg-gray-700", badge: "bg-gray-500/15 text-gray-500", label: "Nunca" };
+  const days = (Date.now() - new Date(dateStr).getTime()) / 86400000;
+  if (days < 1)  return { dot: "bg-emerald-400 animate-pulse", badge: "bg-emerald-500/15 text-emerald-400", label: "Hoy" };
+  if (days < 3)  return { dot: "bg-lime-400",   badge: "bg-lime-500/15 text-lime-400",   label: "Reciente" };
+  if (days < 7)  return { dot: "bg-amber-400",  badge: "bg-amber-500/15 text-amber-400", label: "Esta semana" };
+  if (days < 30) return { dot: "bg-orange-400", badge: "bg-orange-500/15 text-orange-400", label: "Este mes" };
+  return { dot: "bg-red-500", badge: "bg-red-500/15 text-red-400", label: "Inactivo" };
+}
+
 function normalizePlan(plan) {
   const normalized = String(plan || "").trim().toLowerCase();
   if (normalized === "basic") return "smartfixos";
@@ -126,7 +152,8 @@ export default function SuperAdmin() {
   const [search,     setSearch]       = useState("");
   const [actionId,   setActionId]     = useState(null);
   const [expanded,   setExpanded]     = useState(null); // tenant id detalle
-  const [tab,        setTab]          = useState("tenants"); // tenants | metrics
+  const [tab,        setTab]          = useState("tenants"); // tenants | metrics | activity
+  const [activitySort, setActivitySort] = useState("recent"); // recent | oldest | never
   const [tenantUsers,        setTenantUsers]        = useState({}); // { [tenantId]: [] }
   const [tenantUsersLoading, setTenantUsersLoading] = useState({}); // { [tenantId]: bool }
   const [confirmDelete,      setConfirmDelete]      = useState(null); // tenantId to confirm delete
@@ -1657,6 +1684,7 @@ export default function SuperAdmin() {
             {[
               { key: "tenants",  label: "Tiendas",   icon: Building2       },
               { key: "metrics",  label: "Métricas",  icon: BarChart3        },
+              { key: "activity", label: "Actividad", icon: Activity         },
               { key: "feedback", label: "Feedback",  icon: MessageSquare   },
             ].map(t => (
               <button
@@ -2175,6 +2203,112 @@ export default function SuperAdmin() {
             </div>
           </div>
         )}
+
+        {/* ── ACTIVIDAD TAB ── */}
+        {tab === "activity" && (() => {
+          const now = Date.now();
+          const active24h = tenants.filter(t => t.last_login && (now - new Date(t.last_login).getTime()) < 86400000).length;
+          const active7d  = tenants.filter(t => t.last_login && (now - new Date(t.last_login).getTime()) < 7*86400000).length;
+          const never     = tenants.filter(t => !t.last_login).length;
+
+          const sorted = [...tenants].sort((a, b) => {
+            if (activitySort === "never") {
+              if (!a.last_login && !b.last_login) return 0;
+              if (!a.last_login) return -1;
+              if (!b.last_login) return 1;
+              return 0;
+            }
+            if (!a.last_login && !b.last_login) return 0;
+            if (!a.last_login) return 1;
+            if (!b.last_login) return -1;
+            return activitySort === "recent"
+              ? new Date(b.last_login) - new Date(a.last_login)
+              : new Date(a.last_login) - new Date(b.last_login);
+          });
+
+          return (
+            <div className="space-y-5">
+              {/* KPI mini-cards */}
+              <div className="grid grid-cols-3 gap-3">
+                {[
+                  { label: "Hoy",          value: active24h, icon: Wifi,    dot: "bg-emerald-400 animate-pulse", color: "text-emerald-400", border: "border-emerald-500/20", bg: "bg-emerald-500/5" },
+                  { label: "Últimos 7 días", value: active7d,  icon: Activity, dot: "bg-amber-400",   color: "text-amber-400",   border: "border-amber-500/20",   bg: "bg-amber-500/5"   },
+                  { label: "Nunca entró",   value: never,     icon: WifiOff, dot: "bg-red-500",     color: "text-red-400",     border: "border-red-500/20",     bg: "bg-red-500/5"     },
+                ].map(k => (
+                  <div key={k.label} className={`rounded-2xl border ${k.border} ${k.bg} p-4`}>
+                    <div className="flex items-center gap-2 mb-2">
+                      <span className={`w-2 h-2 rounded-full flex-shrink-0 ${k.dot}`} />
+                      <span className={`text-[11px] font-bold uppercase tracking-wide ${k.color}`}>{k.label}</span>
+                    </div>
+                    <p className="text-3xl font-black text-white">{k.value}</p>
+                    <p className="text-xs text-gray-600 mt-1">tiendas</p>
+                  </div>
+                ))}
+              </div>
+
+              {/* Sort buttons */}
+              <div className="flex items-center justify-between">
+                <p className="text-xs text-gray-600">Última vez que alguien inició sesión por tienda</p>
+                <div className="flex gap-1.5">
+                  {[
+                    { key: "recent", label: "Más recientes" },
+                    { key: "oldest", label: "Más antiguos"  },
+                    { key: "never",  label: "Sin actividad" },
+                  ].map(opt => (
+                    <button
+                      key={opt.key}
+                      onClick={() => setActivitySort(opt.key)}
+                      className={`flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-[11px] font-semibold transition-all border ${
+                        activitySort === opt.key
+                          ? "bg-purple-500/20 text-purple-300 border-purple-500/40"
+                          : "bg-white/[0.03] text-gray-500 border-white/[0.07] hover:border-white/20 hover:text-gray-300"
+                      }`}
+                    >
+                      <ArrowUpDown className="w-3 h-3" />
+                      {opt.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Table */}
+              <div className="bg-white/[0.025] border border-white/[0.07] rounded-2xl overflow-hidden">
+                {sorted.map((tenant, i) => {
+                  const ac  = activityColor(tenant.last_login);
+                  const ago = timeAgo(tenant.last_login);
+                  const badge = getStatusBadge(tenant);
+                  return (
+                    <div key={tenant.id} className={`flex items-center gap-3 px-4 py-3 ${i < sorted.length - 1 ? "border-b border-white/[0.05]" : ""} hover:bg-white/[0.03] transition-colors`}>
+                      {/* Dot */}
+                      <span className={`w-2.5 h-2.5 rounded-full flex-shrink-0 ${ac.dot}`} />
+
+                      {/* Name / email */}
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-semibold text-white truncate">{tenant.name || "—"}</p>
+                        <p className="text-[11px] text-gray-600 truncate">{tenant.email || "—"}</p>
+                      </div>
+
+                      {/* Status */}
+                      <span className={`hidden sm:inline text-[10px] px-2 py-0.5 rounded-full border font-semibold flex-shrink-0 ${badge.cls}`}>
+                        {badge.label}
+                      </span>
+
+                      {/* Activity badge */}
+                      <span className={`text-[11px] px-2.5 py-1 rounded-lg font-semibold flex-shrink-0 ${ac.badge}`}>
+                        {ac.label}
+                      </span>
+
+                      {/* Time ago */}
+                      <span className="text-xs text-gray-500 flex-shrink-0 w-28 text-right">
+                        {ago || <span className="text-gray-700">Sin registro</span>}
+                      </span>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          );
+        })()}
 
         {/* ── FEEDBACK TAB ── */}
         {tab === "feedback" && (
