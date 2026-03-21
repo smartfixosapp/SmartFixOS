@@ -1716,56 +1716,6 @@ export default function Dashboard() {
             </CardContent>
           </Card>
 
-          {/* === LISTA DE PRECIOS - SEQUOIA STYLE === */}
-          <Card className="hidden md:block bg-[#121215]/40 backdrop-blur-[40px] border border-emerald-500/20 rounded-[40px] shadow-2xl relative overflow-hidden">
-            <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/5 via-transparent to-transparent pointer-events-none" />
-            <div className="absolute -bottom-32 -right-32 w-96 h-96 bg-emerald-500/10 rounded-full blur-[120px] animate-pulse" />
-            <CardContent className="p-8 lg:p-10 space-y-8 relative z-10">
-              <h3 className="text-white text-2xl font-black flex items-center gap-4 tracking-tighter uppercase">
-                <div className="w-14 h-14 rounded-2xl bg-emerald-500/10 flex items-center justify-center border border-emerald-500/20 shadow-inner">
-                  <PiggyBank className="w-8 h-8 text-emerald-400" />
-                </div>
-                {t('priceList')}
-              </h3>
-              
-              <div className="relative group">
-                <div className="absolute inset-y-0 left-0 pl-5 flex items-center pointer-events-none">
-                  <Search className="w-6 h-6 text-white/20 group-focus-within:text-emerald-400 transition-colors duration-500" />
-                </div>
-                <input 
-                  value={priceSearch} 
-                  onChange={(e) => setPriceSearch(e.target.value)} 
-                  placeholder={t('searchProducts')} 
-                  className="bg-black/40 border border-white/10 pl-14 pr-6 rounded-2xl h-14 lg:h-16 text-base lg:text-lg text-white w-full outline-none focus:ring-2 focus:ring-emerald-500/50 font-bold transition-all duration-500 placeholder-white/20" 
-                />
-                <div className="absolute inset-0 border border-white/5 rounded-2xl pointer-events-none shadow-[inset_0_1px_1px_rgba(255,255,255,0.05)]" />
-              </div>
-
-              {priceSearch && filteredPriceList.length > 0 && (
-                <div className="space-y-4 max-h-[500px] overflow-y-auto pr-2 custom-scrollbar">
-                  {filteredPriceList.map((item) => (
-                    <div 
-                      key={`${item.type}-${item.id}`} 
-                      className="group/item p-5 bg-white/5 hover:bg-[#121215]/60 backdrop-blur-3xl border border-white/5 hover:border-emerald-500/30 rounded-2xl lg:rounded-3xl transition-all duration-700 shadow-lg hover:shadow-2xl"
-                    >
-                      <div className="flex items-center justify-between gap-6">
-                        <div className="flex-1 min-w-0">
-                          <p className="text-white font-black text-lg truncate group-hover:text-emerald-400 transition-colors duration-500 uppercase tracking-tight">{item.name}</p>
-                          <div className="flex items-center gap-3 mt-2">
-                            <Badge className={`${item.type === "service" ? "bg-blue-600/20 text-blue-300" : "bg-emerald-600/20 text-emerald-300"} font-black uppercase tracking-widest text-[10px] px-3 border border-white/10`}>
-                              {item.type === "service" ? t('service') : t('product')}
-                            </Badge>
-                            {stockPill(item)}
-                          </div>
-                        </div>
-                        <p className="text-emerald-400 font-black text-2xl tracking-tighter shadow-sm">${(item.price || 0).toFixed(2)}</p>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </CardContent>
-          </Card>
 
 
 {/* WorkQueueWidget + PersonalNotesWidget removed per user request */}
