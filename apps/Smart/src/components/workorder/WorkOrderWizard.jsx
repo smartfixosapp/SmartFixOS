@@ -1272,7 +1272,7 @@ export default function WorkOrderWizard({ open, onClose, onSuccess, preloadedCus
           [...(localBrands || []), ...brandsByCategory.flat()],
           (item) => normalizedNameKey(item?.name)
         );
-        catalogCache.set(cacheKey, merged);
+        if (merged.length > 0) catalogCache.set(cacheKey, merged);
         setBrands(merged);
       } else {
         const localBrands = (localCatalog.brands || []).filter((item) =>
@@ -1351,7 +1351,7 @@ export default function WorkOrderWizard({ open, onClose, onSuccess, preloadedCus
         [...(localFamilies || []), ...remoteFamiliesByBrand.flat()],
         (item) => normalizedNameKey(item?.name)
       );
-      catalogCache.set(cacheKey, merged);
+      if (merged.length > 0) catalogCache.set(cacheKey, merged);
       setFamilies(merged);
     } catch {
       const localFamilies = (localCatalog.families || []).filter((item) => localBrandIds.includes(item?.brand_id));
@@ -1457,7 +1457,7 @@ export default function WorkOrderWizard({ open, onClose, onSuccess, preloadedCus
         (item) =>
           `${normalizedNameKey(item?.family || item?.device_family || item?.family_id || "")}::${normalizedNameKey(item?.name)}`
       );
-      catalogCache.set(cacheKey, merged);
+      if (merged.length > 0) catalogCache.set(cacheKey, merged);
       setModels(merged);
     } catch {
       const selectedFamilyName = String(deviceFamily || "").trim();

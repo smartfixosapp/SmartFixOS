@@ -177,6 +177,13 @@ export default function POSDesktop() {
     Promise.all([loadInventory(), loadPaymentMethods(), loadTaxRate(), checkCashDrawerStatus()]);
   }, []);
 
+  // Auto-open drawer dialog when arriving from a work order and drawer is closed
+  useEffect(() => {
+    if (!loadingDrawer && !currentDrawer && workOrderId) {
+      setShowOpenDrawerModal(true);
+    }
+  }, [loadingDrawer, currentDrawer, workOrderId]);
+
   useEffect(() => {
     const unsubscribe = subscribeToCashRegister(({ drawer, isInitialized }) => {
       setCurrentDrawer(drawer || null);
