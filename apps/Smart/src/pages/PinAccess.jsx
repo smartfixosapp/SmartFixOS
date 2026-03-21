@@ -65,6 +65,9 @@ export default function PinAccess() {
   const [masterLoading, setMasterLoading] = useState(false);
   const [loading, setLoading] = useState(false);
   const [showSuccessBurst, setShowSuccessBurst] = useState(false);
+  const [showBiometricOffer, setShowBiometricOffer] = useState(false);
+  const [pendingLoginSession, setPendingLoginSession] = useState(null);
+  const [biometricRegistering, setBiometricRegistering] = useState(false);
   const [error, setError] = useState("");
   const [otpInput, setOtpInput] = useState("");
   const [otpLoading, setOtpLoading] = useState(false);
@@ -814,7 +817,7 @@ export default function PinAccess() {
       const session = biometricProfile.session;
       if (!session?.id) throw new Error("Sesión biométrica expirada — inicia sesión manualmente");
       saveBiometricProfile({ ...biometricProfile, updatedAt: new Date().toISOString() });
-      await completeLogin(session);
+      await completeLogin(session, true); // fromBiometric = true → no ofrecer registro de nuevo
     } catch (error) {
       if (error?.name === "NotAllowedError") {
         toast.error("Autenticación cancelada");
@@ -957,7 +960,7 @@ export default function PinAccess() {
         updatedAt: new Date().toISOString(),
       });
 
-      await completeLogin(session);
+      await completeLogin(session, true); // fromBiometric = true
     } catch (error) {
       console.error("Biometric login error:", error);
       if (error?.name === "NotAllowedError") {
@@ -970,7 +973,77 @@ export default function PinAccess() {
     }
   };
 
-  const completeLogin = async (session) => {
+  // ── Detectar tipo de autenticador biométrico del dispositivo ──────────────
+  const getBiometricType = () => {
+    const ua = navigator.userAgent;
+    if (/iPhone|iPad/.test(ua)) return { name: "Face ID", label: "Face ID", icon: "󰥋" };
+    if (/Android/.test(ua))     return { name: "Huella Digital", label: "Huella", icon: "👆" };
+    if (/Mac/.test(ua))         return { name: "Touch ID", label: "Touch ID", icon: "👆" };
+    return { name: "Biometría", label: "Biometría", icon: "🔐" };
+  };
+
+  // Navegar al Dashboard después de la oferta biométrica (o directamente)
+  const finishLoginNavigation = () => {
+    setShowBiometricOffer(false);
+    setPendingLoginSession(null);
+    setShowSuccessBurst(true);
+    setTimeout(() => {
+      setShowSuccessBurst(false);
+      navigate("/Dashboard", { replace: true });
+    }, 500);
+  };
+
+  // Registrar credencial biométrica (Touch ID / Face ID) en este dispositivo
+  const handleRegisterBiometric = async () => {
+    if (!pendingLoginSession) { finishLoginNavigation(); return; }
+    setBiometricRegistering(true);
+    try {
+      const credential = await navigator.credentials.create({
+        publicKey: {
+          challenge: createChallenge(),
+          rp: { name: "SmartFixOS", id: window.location.hostname },
+          user: {
+            id: new TextEncoder().encode(pendingLoginSession.id),
+            name: pendingLoginSession.email || pendingLoginSession.full_name || pendingLoginSession.id,
+            displayName: pendingLoginSession.full_name || "Usuario",
+          },
+          pubKeyCredParams: [
+            { alg: -7, type: "public-key" },   // ES256
+            { alg: -257, type: "public-key" },  // RS256
+          ],
+          authenticatorSelection: {
+            authenticatorAttachment: "platform", // Touch ID / Face ID / Huella (no llaves físicas)
+            userVerification: "required",
+            residentKey: "preferred",
+          },
+          timeout: 60000,
+          attestation: "none",
+        },
+      });
+      if (!credential?.rawId) throw new Error("No se recibió credencial");
+      const credentialId = arrayBufferToBase64(credential.rawId);
+      saveBiometricProfile({
+        credentialId,
+        userId: pendingLoginSession.id,
+        tenantId: pendingLoginSession.tenant_id || null,
+        session: pendingLoginSession,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      });
+      const { name } = getBiometricType();
+      toast.success(`✅ ${name} activado — próxima vez entrarás automáticamente`);
+    } catch (err) {
+      if (err?.name !== "NotAllowedError") {
+        console.warn("[PinAccess] Biometric registration error:", err);
+      }
+      // Si el usuario cancela o hay error, simplemente continuar sin biometría
+    } finally {
+      setBiometricRegistering(false);
+      finishLoginNavigation();
+    }
+  };
+
+  const completeLogin = async (session, fromBiometric = false) => {
     localStorage.setItem("employee_session", JSON.stringify(session));
     sessionStorage.setItem("911-session", JSON.stringify(session));
 
@@ -1001,10 +1074,21 @@ export default function PinAccess() {
       console.warn("PIN login: notificación no disponible (continuando login).", notifyError);
     }
 
-    toast.success(`¡Bienvenido, ${session.userName}!`, {
-      duration: 2000
-    });
+    toast.success(`¡Bienvenido, ${session.userName}!`, { duration: 2000 });
 
+    // ── Ofrecer biometría si el dispositivo lo soporta y aún no está registrado ──
+    const alreadyHasBiometric =
+      biometricProfile?.credentialId &&
+      (biometricProfile?.userId === session.id || !biometricProfile?.userId);
+
+    if (!fromBiometric && biometricSupported && !alreadyHasBiometric) {
+      // Guardar sesión como pendiente y mostrar oferta de Touch ID / Face ID
+      setPendingLoginSession(session);
+      setShowBiometricOffer(true);
+      return; // No navegar todavía — esperamos la respuesta del usuario
+    }
+
+    // Navegación normal (ya tiene biometría o viene de login biométrico)
     setShowSuccessBurst(true);
     setTimeout(() => {
       setShowSuccessBurst(false);
@@ -1293,8 +1377,24 @@ export default function PinAccess() {
     setBiometricProfile(loadBiometricProfile());
   }, []);
 
-  // Auto-trigger biometric deshabilitado — el usuario inicia sesión siempre con PIN.
-  // El botón de biometría sigue disponible manualmente en la UI si el usuario lo prefiere.
+  // ── Auto-trigger biométrico ─────────────────────────────────────────────
+  // Se activa solo si ya hay un perfil registrado en este dispositivo.
+  // Primera vez: se ofrece registrar después del PIN. Siguiente vez: entra solo.
+
+  // Al llegar a la pantalla de selección de usuario — si tiene huella/face id registrado
+  useEffect(() => {
+    if (step !== "user") return;
+    if (!biometricSupported || !biometricProfile?.credentialId || !biometricProfile?.session) return;
+    const timer = setTimeout(() => handleEarlyBiometricLogin(), 700);
+    return () => clearTimeout(timer);
+  }, [step, biometricSupported, biometricProfile?.credentialId]);
+
+  // Al seleccionar un usuario — si ese usuario tiene huella/face id configurado
+  useEffect(() => {
+    if (!isBiometricAvailableForSelectedUser || biometricLoading || loading) return;
+    const timer = setTimeout(() => handleBiometricLogin(), 500);
+    return () => clearTimeout(timer);
+  }, [isBiometricAvailableForSelectedUser]);
 
   const handleNumberClick = (num) => {
     if (pin.length < 4) {
@@ -3145,6 +3245,86 @@ export default function PinAccess() {
       <RequestAccessModal
         open={showRequestAccess}
         onClose={() => setShowRequestAccess(false)} />
+
+      {/* ── Oferta de activar Touch ID / Face ID tras login exitoso ────────── */}
+      <AnimatePresence>
+        {showBiometricOffer && (() => {
+          const { name, label } = getBiometricType();
+          const isMac = /Mac/.test(navigator.userAgent) && !/iPhone|iPad/.test(navigator.userAgent);
+          const isIOS = /iPhone|iPad/.test(navigator.userAgent);
+          return (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 z-[300] flex items-end sm:items-center justify-center bg-black/70 backdrop-blur-md p-4"
+            >
+              <motion.div
+                initial={{ y: 80, opacity: 0, scale: 0.96 }}
+                animate={{ y: 0, opacity: 1, scale: 1 }}
+                exit={{ y: 60, opacity: 0, scale: 0.96 }}
+                transition={{ type: "spring", damping: 22, stiffness: 260 }}
+                className="w-full max-w-sm bg-[#111] border border-white/10 rounded-3xl overflow-hidden shadow-2xl"
+              >
+                {/* Header */}
+                <div className="bg-gradient-to-br from-cyan-500/20 to-blue-600/10 px-6 pt-8 pb-6 text-center">
+                  <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-gradient-to-br from-cyan-500/30 to-blue-500/20 border border-cyan-400/30 flex items-center justify-center">
+                    {isMac ? (
+                      <svg viewBox="0 0 24 24" className="w-8 h-8 text-cyan-300" fill="none" stroke="currentColor" strokeWidth="1.5">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M7.5 3.75H6A2.25 2.25 0 0 0 3.75 6v1.5M16.5 3.75H18A2.25 2.25 0 0 1 20.25 6v1.5m0 9V18A2.25 2.25 0 0 1 18 20.25h-1.5m-9 0H6A2.25 2.25 0 0 1 3.75 18v-1.5M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
+                      </svg>
+                    ) : isIOS ? (
+                      <svg viewBox="0 0 24 24" className="w-8 h-8 text-cyan-300" fill="none" stroke="currentColor" strokeWidth="1.5">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 5.25a3 3 0 0 1 3 3m3 0a6 6 0 0 1-7.029 5.912c-.563-.097-1.159.026-1.563.43L10.5 17.25H8.25v2.25H6v2.25H2.25v-2.818c0-.597.237-1.17.659-1.591l6.499-6.499c.404-.404.527-1 .43-1.563A6 6 0 0 1 21.75 8.25Z" />
+                      </svg>
+                    ) : (
+                      <svg viewBox="0 0 24 24" className="w-8 h-8 text-cyan-300" fill="none" stroke="currentColor" strokeWidth="1.5">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M12 1.5a10.5 10.5 0 1 0 0 21 10.5 10.5 0 0 0 0-21ZM8.625 9.75a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H8.25m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H12m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0h-.375m-13.5 3.01c0 1.6 1.123 2.994 2.707 3.227 1.087.16 2.185.283 3.293.369V21l4.184-4.183a1.14 1.14 0 0 1 .778-.332 48.294 48.294 0 0 0 5.83-.498c1.585-.233 2.708-1.626 2.708-3.228V6.741c0-1.602-1.123-2.995-2.707-3.228A48.394 48.394 0 0 0 12 3c-2.392 0-4.744.175-7.043.513C3.373 3.746 2.25 5.14 2.25 6.741v6.018Z" />
+                      </svg>
+                    )}
+                  </div>
+                  <h2 className="text-xl font-bold text-white mb-1">Activar {name}</h2>
+                  <p className="text-white/50 text-sm">
+                    {isMac
+                      ? "Usa el Touch ID de tu Mac para entrar automáticamente la próxima vez."
+                      : isIOS
+                      ? "Usa Face ID para entrar sin escribir tu PIN."
+                      : "Usa tu huella digital para entrar automáticamente."}
+                  </p>
+                </div>
+
+                {/* Botones */}
+                <div className="px-6 py-5 space-y-3">
+                  <button
+                    onClick={handleRegisterBiometric}
+                    disabled={biometricRegistering}
+                    className="w-full py-4 rounded-2xl bg-gradient-to-r from-cyan-500 to-blue-600 text-white font-bold text-base hover:from-cyan-400 hover:to-blue-500 transition-all active:scale-95 disabled:opacity-60 flex items-center justify-center gap-2"
+                  >
+                    {biometricRegistering ? (
+                      <>
+                        <svg className="w-5 h-5 animate-spin" viewBox="0 0 24 24" fill="none">
+                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
+                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
+                        </svg>
+                        Configurando...
+                      </>
+                    ) : (
+                      `Activar ${label}`
+                    )}
+                  </button>
+                  <button
+                    onClick={finishLoginNavigation}
+                    disabled={biometricRegistering}
+                    className="w-full py-3 rounded-2xl text-white/40 hover:text-white/70 font-medium text-sm transition-colors disabled:opacity-40"
+                  >
+                    Ahora no
+                  </button>
+                </div>
+              </motion.div>
+            </motion.div>
+          );
+        })()}
+      </AnimatePresence>
 
       <AnimatePresence>
         {showSuccessBurst && (
