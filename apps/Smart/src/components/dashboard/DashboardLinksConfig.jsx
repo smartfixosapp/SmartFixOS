@@ -4,7 +4,8 @@ import {
   ClipboardList, Wrench, Smartphone, Zap, X, Save,
   Layout, Grid, Eye, EyeOff, GripVertical, Package,
   Wallet, BarChart3, Plus, Edit2, ExternalLink, Trash2,
-  PiggyBank, Layers, DollarSign, TrendingUp, PackageCheck, Timer
+  PiggyBank, Layers, DollarSign, TrendingUp, PackageCheck, Timer,
+  AlertCircle, ShoppingCart, Users, Clock
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -83,7 +84,87 @@ const AVAILABLE_WIDGETS = [
     bg: "bg-emerald-500/10",
     border: "border-emerald-500/20",
     defaultOn: false
-  }
+  },
+  {
+    id: "urgentOrders",
+    label: "Órdenes urgentes",
+    description: "Órdenes activas sin actualizar por más de 5 días",
+    icon: AlertCircle,
+    color: "text-red-400",
+    bg: "bg-red-500/10",
+    border: "border-red-500/20",
+    defaultOn: false
+  },
+  {
+    id: "readyPickup",
+    label: "Listos para recoger",
+    description: "Reparaciones terminadas esperando al cliente",
+    icon: PackageCheck,
+    color: "text-emerald-400",
+    bg: "bg-emerald-500/10",
+    border: "border-emerald-500/20",
+    defaultOn: false
+  },
+  {
+    id: "posSalesToday",
+    label: "Transacciones hoy",
+    description: "Cantidad de movimientos financieros registrados hoy",
+    icon: ShoppingCart,
+    color: "text-cyan-400",
+    bg: "bg-cyan-500/10",
+    border: "border-cyan-500/20",
+    defaultOn: false
+  },
+  {
+    id: "criticalStock",
+    label: "Stock crítico",
+    description: "Productos con inventario bajo el mínimo configurado",
+    icon: Package,
+    color: "text-orange-400",
+    bg: "bg-orange-500/10",
+    border: "border-orange-500/20",
+    defaultOn: false
+  },
+  {
+    id: "newCustomers",
+    label: "Clientes nuevos",
+    description: "Clientes registrados en los últimos 7 días",
+    icon: Users,
+    color: "text-violet-400",
+    bg: "bg-violet-500/10",
+    border: "border-violet-500/20",
+    defaultOn: false
+  },
+  {
+    id: "cashStatus",
+    label: "Estado de caja",
+    description: "Si la caja está abierta e ingresos del día",
+    icon: Wallet,
+    color: "text-emerald-400",
+    bg: "bg-emerald-500/10",
+    border: "border-emerald-500/20",
+    defaultOn: false
+  },
+  {
+    id: "avgRepairTime",
+    label: "Tiempo promedio",
+    description: "Días promedio desde ingreso hasta entrega",
+    icon: Clock,
+    color: "text-sky-400",
+    bg: "bg-sky-500/10",
+    border: "border-sky-500/20",
+    defaultOn: false
+  },
+  {
+    id: "technicianLoad",
+    label: "Carga por técnico",
+    description: "Órdenes activas asignadas a cada técnico",
+    icon: Wrench,
+    color: "text-amber-400",
+    bg: "bg-amber-500/10",
+    border: "border-amber-500/20",
+    defaultOn: false
+  },
 ];
 
 const ICON_OPTIONS = [
@@ -190,7 +271,9 @@ export default function DashboardLinksConfig({ open, onClose }) {
   const [activeTab, setActiveTab] = useState("buttons");
   const [widgetConfig, setWidgetConfig] = useState({
     kpiIncome: true, kpiGoal: true, kpiActive: true, kpiDelivered: true, kpiOverdue: true,
-    orders: false, priceList: false
+    orders: false, priceList: false,
+    urgentOrders: false, readyPickup: false, posSalesToday: false, criticalStock: false,
+    newCustomers: false, cashStatus: false, avgRepairTime: false, technicianLoad: false
   });
   const DAILY_GOAL_KEY = "smartfix_daily_goal_override";
   const [dailyGoal, setDailyGoal] = useState(() => {
@@ -218,7 +301,7 @@ export default function DashboardLinksConfig({ open, onClose }) {
       try {
         const raw = localStorage.getItem(DASHBOARD_WIDGETS_KEY);
         const parsed = raw ? JSON.parse(raw) : {};
-        setWidgetConfig({ kpiIncome: true, kpiGoal: true, kpiActive: true, kpiDelivered: true, kpiOverdue: true, orders: false, priceList: false, ...parsed });
+        setWidgetConfig({ kpiIncome: true, kpiGoal: true, kpiActive: true, kpiDelivered: true, kpiOverdue: true, orders: false, priceList: false, urgentOrders: false, readyPickup: false, posSalesToday: false, criticalStock: false, newCustomers: false, cashStatus: false, avgRepairTime: false, technicianLoad: false, ...parsed });
       } catch {}
 
       const configs = await dataClient.entities.AppSettings.filter({ slug: "dashboard-buttons" });

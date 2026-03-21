@@ -37,7 +37,8 @@ import {
   TrendingUp,
   DollarSign,
   PackageCheck,
-  Timer
+  Timer,
+  ShoppingCart
 } from "lucide-react";
 
 import { format, startOfDay } from "date-fns";
@@ -249,11 +250,14 @@ export default function Dashboard() {
     try {
       const raw = localStorage.getItem(DASHBOARD_WIDGETS_KEY);
       const parsed = raw ? JSON.parse(raw) : {};
-      return { kpiIncome: true, kpiGoal: true, kpiActive: true, kpiDelivered: true, kpiOverdue: true, orders: false, priceList: false, ...parsed };
-    } catch { return { kpiIncome: true, kpiGoal: true, kpiActive: true, kpiDelivered: true, kpiOverdue: true, orders: false, priceList: false }; }
+      return { kpiIncome: true, kpiGoal: true, kpiActive: true, kpiDelivered: true, kpiOverdue: true, orders: false, priceList: false, urgentOrders: false, readyPickup: false, posSalesToday: false, criticalStock: false, newCustomers: false, cashStatus: false, avgRepairTime: false, technicianLoad: false, ...parsed };
+    } catch { return { kpiIncome: true, kpiGoal: true, kpiActive: true, kpiDelivered: true, kpiOverdue: true, orders: false, priceList: false, urgentOrders: false, readyPickup: false, posSalesToday: false, criticalStock: false, newCustomers: false, cashStatus: false, avgRepairTime: false, technicianLoad: false }; }
   });
   const [showMoreMenu, setShowMoreMenu] = useState(false);
   const [showDailyTransactions, setShowDailyTransactions] = useState(false);
+  // Widget extra data
+  const [newCustomersCount, setNewCustomersCount] = useState(0);
+  const [todayTxCount, setTodayTxCount] = useState(0);
   const [businessName, setBusinessName] = useState("");
   const [showSetupWizard, setShowSetupWizard] = useState(false);
 
@@ -508,6 +512,16 @@ export default function Dashboard() {
           const todayExpenses  = rows.filter(r => r.type === "expense" && r.created_date >= todayStart).reduce((s, r) => s + (Number(r.amount) || 0), 0);
           const monthIncome    = rows.filter(r => r.type === "income").reduce((s, r) => s + (Number(r.amount) || 0), 0);
           setKpiIncome({ today: todayIncome, month: monthIncome, todayExpenses, loading: false });
+          setTodayTxCount(rows.filter(r => r.created_date >= todayStart).length);
+
+          // New customers this week
+          const weekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
+          const { count: custCount } = await supabase
+            .from("customer")
+            .select("id", { count: "exact", head: true })
+            .eq("tenant_id", tenantId)
+            .gte("created_date", weekAgo);
+          setNewCustomersCount(custCount ?? 0);
         } else {
           setKpiIncome({ today: 0, month: 0, todayExpenses: 0, loading: false });
         }
@@ -616,7 +630,7 @@ export default function Dashboard() {
       try {
         const raw = localStorage.getItem(DASHBOARD_WIDGETS_KEY);
         const parsed = raw ? JSON.parse(raw) : {};
-        setWidgetConfig({ kpiIncome: true, kpiGoal: true, kpiActive: true, kpiDelivered: true, kpiOverdue: true, orders: false, priceList: false, ...parsed });
+        setWidgetConfig({ kpiIncome: true, kpiGoal: true, kpiActive: true, kpiDelivered: true, kpiOverdue: true, orders: false, priceList: false, urgentOrders: false, readyPickup: false, posSalesToday: false, criticalStock: false, newCustomers: false, cashStatus: false, avgRepairTime: false, technicianLoad: false, ...parsed });
       } catch {}
     };
 
@@ -785,6 +799,55 @@ export default function Dashboard() {
       return d < sevenDaysAgo;
     });
     return { active: active.length, readyToPickup: readyToPickup.length, deliveredToday: deliveredToday.length, overdue: overdue.length };
+  }, [recentOrders]);
+
+  // Widget: Órdenes urgentes (active orders not updated in 5+ days)
+  const urgentOrdersList = useMemo(() => {
+    const fiveDaysAgo = new Date(Date.now() - 5 * 24 * 60 * 60 * 1000);
+    const activeStatuses = ["pending", "in_progress", "waiting_parts", "diagnosed", "intake"];
+    return recentOrders.filter(o => {
+      const s = getEffectiveOrderStatus(o);
+      if (!activeStatuses.includes(s)) return false;
+      const d = new Date(o.updated_date || o.created_date);
+      return d < fiveDaysAgo;
+    }).slice(0, 8);
+  }, [recentOrders]);
+
+  // Widget: Listos para recoger
+  const readyPickupList = useMemo(() =>
+    recentOrders.filter(o => getEffectiveOrderStatus(o) === "ready_for_pickup").slice(0, 8)
+  , [recentOrders]);
+
+  // Widget: Stock crítico
+  const criticalStockList = useMemo(() =>
+    priceListItems.filter(i => i.type === "product" && typeof i.stock === "number" && i.stock <= Math.max(i.min_stock || 0, 3)).slice(0, 10)
+  , [priceListItems]);
+
+  // Widget: Tiempo promedio de reparación (days from created to delivered, last 30 orders)
+  const avgRepairTime = useMemo(() => {
+    const completed = recentOrders.filter(o => {
+      const s = getEffectiveOrderStatus(o);
+      return ["delivered","completed","picked_up"].includes(s) && o.created_date && o.updated_date;
+    });
+    if (completed.length === 0) return null;
+    const avg = completed.reduce((sum, o) => {
+      const diff = (new Date(o.updated_date) - new Date(o.created_date)) / (1000 * 60 * 60 * 24);
+      return sum + diff;
+    }, 0) / completed.length;
+    return Math.round(avg * 10) / 10;
+  }, [recentOrders]);
+
+  // Widget: Carga por técnico (active orders grouped by assigned_to_name)
+  const technicianLoad = useMemo(() => {
+    const activeStatuses = ["pending", "in_progress", "waiting_parts", "diagnosed", "intake", "ready_for_pickup"];
+    const map = {};
+    recentOrders.forEach(o => {
+      const s = getEffectiveOrderStatus(o);
+      if (!activeStatuses.includes(s)) return;
+      const name = o.assigned_to_name || o.technician_name || "Sin asignar";
+      map[name] = (map[name] || 0) + 1;
+    });
+    return Object.entries(map).sort((a, b) => b[1] - a[1]).slice(0, 6);
   }, [recentOrders]);
 
   const stockPill = (item) => {
@@ -1016,6 +1079,181 @@ export default function Dashboard() {
                 </div>
               );
             })()}
+
+            {/* ═══ WIDGETS EXTRAS ══════════════════════════════════════════ */}
+            {(widgetConfig.urgentOrders || widgetConfig.readyPickup || widgetConfig.posSalesToday || widgetConfig.criticalStock || widgetConfig.newCustomers || widgetConfig.cashStatus || widgetConfig.avgRepairTime || widgetConfig.technicianLoad) && (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 mb-2">
+
+                {/* Órdenes urgentes */}
+                {widgetConfig.urgentOrders && (
+                  <div className="bg-[#1C1C1E]/60 backdrop-blur-xl border border-red-500/20 rounded-[28px] p-5 space-y-3">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2.5">
+                        <div className="w-8 h-8 rounded-xl bg-red-500/10 border border-red-500/20 flex items-center justify-center">
+                          <AlertCircle className="w-4 h-4 text-red-400" />
+                        </div>
+                        <span className="text-white/80 font-black text-xs uppercase tracking-tight">Urgentes</span>
+                      </div>
+                      <span className="text-2xl font-black text-red-400">{urgentOrdersList.length}</span>
+                    </div>
+                    {urgentOrdersList.length > 0 && (
+                      <div className="space-y-1.5">
+                        {urgentOrdersList.slice(0,4).map(o => (
+                          <div key={o.id} onClick={() => handleOrderSelect(o.id)} className="flex items-center justify-between px-3 py-1.5 bg-white/[0.03] rounded-xl cursor-pointer hover:bg-white/[0.06] transition-colors">
+                            <span className="text-white/70 text-xs font-bold truncate">{o.customer_name || "Cliente"}</span>
+                            <span className="text-red-400/70 text-[10px] font-black ml-2 shrink-0">#{o.order_number?.split('-')?.pop()}</span>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                    {urgentOrdersList.length === 0 && <p className="text-white/20 text-xs text-center py-2 font-bold">Sin órdenes urgentes</p>}
+                  </div>
+                )}
+
+                {/* Listos para recoger */}
+                {widgetConfig.readyPickup && (
+                  <div className="bg-[#1C1C1E]/60 backdrop-blur-xl border border-emerald-500/20 rounded-[28px] p-5 space-y-3">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2.5">
+                        <div className="w-8 h-8 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center">
+                          <PackageCheck className="w-4 h-4 text-emerald-400" />
+                        </div>
+                        <span className="text-white/80 font-black text-xs uppercase tracking-tight">Para Recoger</span>
+                      </div>
+                      <span className="text-2xl font-black text-emerald-400">{readyPickupList.length}</span>
+                    </div>
+                    {readyPickupList.length > 0 && (
+                      <div className="space-y-1.5">
+                        {readyPickupList.slice(0,4).map(o => (
+                          <div key={o.id} onClick={() => handleOrderSelect(o.id)} className="flex items-center justify-between px-3 py-1.5 bg-white/[0.03] rounded-xl cursor-pointer hover:bg-white/[0.06] transition-colors">
+                            <span className="text-white/70 text-xs font-bold truncate">{o.customer_name || "Cliente"}</span>
+                            <span className="text-emerald-400/70 text-[10px] font-black ml-2 shrink-0">#{o.order_number?.split('-')?.pop()}</span>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                    {readyPickupList.length === 0 && <p className="text-white/20 text-xs text-center py-2 font-bold">Sin órdenes listas</p>}
+                  </div>
+                )}
+
+                {/* Ventas / Transacciones hoy */}
+                {widgetConfig.posSalesToday && (
+                  <div className="bg-[#1C1C1E]/60 backdrop-blur-xl border border-cyan-500/20 rounded-[28px] p-5 space-y-3">
+                    <div className="flex items-center gap-2.5 mb-1">
+                      <div className="w-8 h-8 rounded-xl bg-cyan-500/10 border border-cyan-500/20 flex items-center justify-center">
+                        <ShoppingCart className="w-4 h-4 text-cyan-400" />
+                      </div>
+                      <span className="text-white/80 font-black text-xs uppercase tracking-tight">Transacciones hoy</span>
+                    </div>
+                    <p className="text-3xl font-black text-cyan-400">{todayTxCount}</p>
+                    <p className="text-white/30 text-[11px] font-bold">movimientos registrados</p>
+                  </div>
+                )}
+
+                {/* Stock crítico */}
+                {widgetConfig.criticalStock && (
+                  <div className="bg-[#1C1C1E]/60 backdrop-blur-xl border border-orange-500/20 rounded-[28px] p-5 space-y-3">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2.5">
+                        <div className="w-8 h-8 rounded-xl bg-orange-500/10 border border-orange-500/20 flex items-center justify-center">
+                          <Package className="w-4 h-4 text-orange-400" />
+                        </div>
+                        <span className="text-white/80 font-black text-xs uppercase tracking-tight">Stock Crítico</span>
+                      </div>
+                      <span className="text-2xl font-black text-orange-400">{criticalStockList.length}</span>
+                    </div>
+                    {criticalStockList.length > 0 && (
+                      <div className="space-y-1.5">
+                        {criticalStockList.slice(0,4).map(item => (
+                          <div key={item.id} className="flex items-center justify-between px-3 py-1.5 bg-white/[0.03] rounded-xl">
+                            <span className="text-white/70 text-xs font-bold truncate">{item.name}</span>
+                            <span className={`text-[10px] font-black ml-2 shrink-0 ${item.stock <= 0 ? 'text-red-400' : 'text-orange-400'}`}>{item.stock <= 0 ? 'Agotado' : `${item.stock} uds`}</span>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                    {criticalStockList.length === 0 && <p className="text-white/20 text-xs text-center py-2 font-bold">Stock en orden</p>}
+                  </div>
+                )}
+
+                {/* Clientes nuevos */}
+                {widgetConfig.newCustomers && (
+                  <div className="bg-[#1C1C1E]/60 backdrop-blur-xl border border-violet-500/20 rounded-[28px] p-5 space-y-2">
+                    <div className="flex items-center gap-2.5 mb-1">
+                      <div className="w-8 h-8 rounded-xl bg-violet-500/10 border border-violet-500/20 flex items-center justify-center">
+                        <Users className="w-4 h-4 text-violet-400" />
+                      </div>
+                      <span className="text-white/80 font-black text-xs uppercase tracking-tight">Clientes nuevos</span>
+                    </div>
+                    <p className="text-3xl font-black text-violet-400">{newCustomersCount}</p>
+                    <p className="text-white/30 text-[11px] font-bold">esta semana</p>
+                  </div>
+                )}
+
+                {/* Estado de caja */}
+                {widgetConfig.cashStatus && (
+                  <div className={`bg-[#1C1C1E]/60 backdrop-blur-xl border rounded-[28px] p-5 space-y-2 ${drawerOpen ? 'border-emerald-500/20' : 'border-red-500/20'}`}>
+                    <div className="flex items-center gap-2.5 mb-1">
+                      <div className={`w-8 h-8 rounded-xl border flex items-center justify-center ${drawerOpen ? 'bg-emerald-500/10 border-emerald-500/20' : 'bg-red-500/10 border-red-500/20'}`}>
+                        <Wallet className={`w-4 h-4 ${drawerOpen ? 'text-emerald-400' : 'text-red-400'}`} />
+                      </div>
+                      <span className="text-white/80 font-black text-xs uppercase tracking-tight">Estado de Caja</span>
+                    </div>
+                    <p className={`text-lg font-black ${drawerOpen ? 'text-emerald-400' : 'text-red-400'}`}>{drawerOpen ? '● Abierta' : '● Cerrada'}</p>
+                    <p className="text-white/30 text-[11px] font-bold">
+                      Ingresos hoy: ${Number(kpiIncome.today || 0).toLocaleString("en-US", { maximumFractionDigits: 0 })}
+                    </p>
+                  </div>
+                )}
+
+                {/* Tiempo promedio de reparación */}
+                {widgetConfig.avgRepairTime && (
+                  <div className="bg-[#1C1C1E]/60 backdrop-blur-xl border border-sky-500/20 rounded-[28px] p-5 space-y-2">
+                    <div className="flex items-center gap-2.5 mb-1">
+                      <div className="w-8 h-8 rounded-xl bg-sky-500/10 border border-sky-500/20 flex items-center justify-center">
+                        <Clock className="w-4 h-4 text-sky-400" />
+                      </div>
+                      <span className="text-white/80 font-black text-xs uppercase tracking-tight">Tiempo Promedio</span>
+                    </div>
+                    <p className="text-3xl font-black text-sky-400">{avgRepairTime !== null ? `${avgRepairTime}d` : '—'}</p>
+                    <p className="text-white/30 text-[11px] font-bold">días por reparación</p>
+                  </div>
+                )}
+
+                {/* Carga por técnico */}
+                {widgetConfig.technicianLoad && (
+                  <div className="bg-[#1C1C1E]/60 backdrop-blur-xl border border-amber-500/20 rounded-[28px] p-5 space-y-3">
+                    <div className="flex items-center gap-2.5">
+                      <div className="w-8 h-8 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center">
+                        <Wrench className="w-4 h-4 text-amber-400" />
+                      </div>
+                      <span className="text-white/80 font-black text-xs uppercase tracking-tight">Carga por Técnico</span>
+                    </div>
+                    {technicianLoad.length > 0 ? (
+                      <div className="space-y-2">
+                        {technicianLoad.map(([name, count]) => {
+                          const max = technicianLoad[0]?.[1] || 1;
+                          return (
+                            <div key={name} className="space-y-0.5">
+                              <div className="flex justify-between items-center">
+                                <span className="text-white/60 text-[11px] font-bold truncate max-w-[70%]">{name}</span>
+                                <span className="text-amber-400 text-[11px] font-black">{count}</span>
+                              </div>
+                              <div className="w-full bg-white/[0.06] rounded-full h-1">
+                                <div className="h-1 rounded-full bg-amber-500/60 transition-all" style={{ width: `${(count/max)*100}%` }} />
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    ) : (
+                      <p className="text-white/20 text-xs text-center py-2 font-bold">Sin órdenes asignadas</p>
+                    )}
+                  </div>
+                )}
+
+              </div>
+            )}
 
             {/* BENTO GRID LAYOUT */}
             {dashboardButtons.length > 0 && (
@@ -1410,6 +1648,111 @@ export default function Dashboard() {
                 })}
               </div>
             ) : null}
+
+            {/* ═══ WIDGETS EXTRAS MÓVIL ════════════════════════════════════ */}
+            {(widgetConfig.urgentOrders || widgetConfig.readyPickup || widgetConfig.posSalesToday || widgetConfig.criticalStock || widgetConfig.newCustomers || widgetConfig.cashStatus || widgetConfig.avgRepairTime || widgetConfig.technicianLoad) && (
+              <div className="grid grid-cols-2 gap-3 mx-1">
+
+                {widgetConfig.urgentOrders && (
+                  <div className="bg-[#1C1C1E]/60 border border-red-500/20 rounded-[24px] p-4">
+                    <div className="flex items-center gap-2 mb-2">
+                      <AlertCircle className="w-4 h-4 text-red-400 shrink-0" />
+                      <span className="text-white/60 text-[10px] font-black uppercase tracking-tight truncate">Urgentes</span>
+                    </div>
+                    <p className="text-2xl font-black text-red-400">{urgentOrdersList.length}</p>
+                    <p className="text-white/20 text-[10px] font-bold mt-0.5">sin actualizar +5d</p>
+                  </div>
+                )}
+
+                {widgetConfig.readyPickup && (
+                  <div className="bg-[#1C1C1E]/60 border border-emerald-500/20 rounded-[24px] p-4">
+                    <div className="flex items-center gap-2 mb-2">
+                      <PackageCheck className="w-4 h-4 text-emerald-400 shrink-0" />
+                      <span className="text-white/60 text-[10px] font-black uppercase tracking-tight truncate">Para recoger</span>
+                    </div>
+                    <p className="text-2xl font-black text-emerald-400">{readyPickupList.length}</p>
+                    <p className="text-white/20 text-[10px] font-bold mt-0.5">listas para entregar</p>
+                  </div>
+                )}
+
+                {widgetConfig.posSalesToday && (
+                  <div className="bg-[#1C1C1E]/60 border border-cyan-500/20 rounded-[24px] p-4">
+                    <div className="flex items-center gap-2 mb-2">
+                      <ShoppingCart className="w-4 h-4 text-cyan-400 shrink-0" />
+                      <span className="text-white/60 text-[10px] font-black uppercase tracking-tight truncate">Transacciones</span>
+                    </div>
+                    <p className="text-2xl font-black text-cyan-400">{todayTxCount}</p>
+                    <p className="text-white/20 text-[10px] font-bold mt-0.5">movimientos hoy</p>
+                  </div>
+                )}
+
+                {widgetConfig.criticalStock && (
+                  <div className="bg-[#1C1C1E]/60 border border-orange-500/20 rounded-[24px] p-4">
+                    <div className="flex items-center gap-2 mb-2">
+                      <Package className="w-4 h-4 text-orange-400 shrink-0" />
+                      <span className="text-white/60 text-[10px] font-black uppercase tracking-tight truncate">Stock crítico</span>
+                    </div>
+                    <p className="text-2xl font-black text-orange-400">{criticalStockList.length}</p>
+                    <p className="text-white/20 text-[10px] font-bold mt-0.5">productos bajos</p>
+                  </div>
+                )}
+
+                {widgetConfig.newCustomers && (
+                  <div className="bg-[#1C1C1E]/60 border border-violet-500/20 rounded-[24px] p-4">
+                    <div className="flex items-center gap-2 mb-2">
+                      <Users className="w-4 h-4 text-violet-400 shrink-0" />
+                      <span className="text-white/60 text-[10px] font-black uppercase tracking-tight truncate">Clientes nuevos</span>
+                    </div>
+                    <p className="text-2xl font-black text-violet-400">{newCustomersCount}</p>
+                    <p className="text-white/20 text-[10px] font-bold mt-0.5">esta semana</p>
+                  </div>
+                )}
+
+                {widgetConfig.cashStatus && (
+                  <div className={`bg-[#1C1C1E]/60 border rounded-[24px] p-4 ${drawerOpen ? 'border-emerald-500/20' : 'border-red-500/20'}`}>
+                    <div className="flex items-center gap-2 mb-2">
+                      <Wallet className={`w-4 h-4 shrink-0 ${drawerOpen ? 'text-emerald-400' : 'text-red-400'}`} />
+                      <span className="text-white/60 text-[10px] font-black uppercase tracking-tight truncate">Caja</span>
+                    </div>
+                    <p className={`text-sm font-black ${drawerOpen ? 'text-emerald-400' : 'text-red-400'}`}>{drawerOpen ? '● Abierta' : '● Cerrada'}</p>
+                    <p className="text-white/20 text-[10px] font-bold mt-0.5">${Number(kpiIncome.today||0).toLocaleString("en-US",{maximumFractionDigits:0})} hoy</p>
+                  </div>
+                )}
+
+                {widgetConfig.avgRepairTime && (
+                  <div className="bg-[#1C1C1E]/60 border border-sky-500/20 rounded-[24px] p-4">
+                    <div className="flex items-center gap-2 mb-2">
+                      <Clock className="w-4 h-4 text-sky-400 shrink-0" />
+                      <span className="text-white/60 text-[10px] font-black uppercase tracking-tight truncate">T. Promedio</span>
+                    </div>
+                    <p className="text-2xl font-black text-sky-400">{avgRepairTime !== null ? `${avgRepairTime}d` : '—'}</p>
+                    <p className="text-white/20 text-[10px] font-bold mt-0.5">por reparación</p>
+                  </div>
+                )}
+
+                {widgetConfig.technicianLoad && (
+                  <div className="bg-[#1C1C1E]/60 border border-amber-500/20 rounded-[24px] p-4 col-span-2">
+                    <div className="flex items-center gap-2 mb-3">
+                      <Wrench className="w-4 h-4 text-amber-400 shrink-0" />
+                      <span className="text-white/60 text-[10px] font-black uppercase tracking-tight">Carga por Técnico</span>
+                    </div>
+                    {technicianLoad.length > 0 ? (
+                      <div className="grid grid-cols-2 gap-2">
+                        {technicianLoad.map(([name, count]) => (
+                          <div key={name} className="flex items-center justify-between bg-white/[0.03] rounded-xl px-3 py-1.5">
+                            <span className="text-white/60 text-[10px] font-bold truncate">{name}</span>
+                            <span className="text-amber-400 text-xs font-black ml-2 shrink-0">{count}</span>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <p className="text-white/20 text-xs text-center font-bold">Sin asignaciones</p>
+                    )}
+                  </div>
+                )}
+
+              </div>
+            )}
 
             {/* === BÚSQUEDA DE ÓRDENES MÓVIL (widget opcional) === */}
             {widgetConfig.orders && (
