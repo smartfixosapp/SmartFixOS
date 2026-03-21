@@ -212,6 +212,12 @@ export default function Dashboard() {
       return raw ? JSON.parse(raw) : [];
     } catch { return []; }
   });
+  const [widgetOrder, setWidgetOrder] = useState(() => {
+    try {
+      const raw = localStorage.getItem("smartfix_widget_order");
+      return raw ? JSON.parse(raw) : null;
+    } catch { return null; }
+  });
   const [showMoreMenu, setShowMoreMenu] = useState(false);
   const [showDailyTransactions, setShowDailyTransactions] = useState(false);
   // Widget extra data
@@ -537,16 +543,24 @@ export default function Dashboard() {
         setCustomWidgets(raw ? JSON.parse(raw) : []);
       } catch {}
     };
+    const handleWidgetOrderUpdate = () => {
+      try {
+        const raw = localStorage.getItem("smartfix_widget_order");
+        setWidgetOrder(raw ? JSON.parse(raw) : null);
+      } catch {}
+    };
 
     window.addEventListener('open-dashboard-config', handleOpen);
     window.addEventListener('open-quick-repair', handleQuick);
     window.addEventListener('dashboard-widgets-updated', handleWidgetUpdate);
+    window.addEventListener('dashboard-widgets-updated', handleWidgetOrderUpdate);
     window.addEventListener('dashboard-custom-widgets-updated', handleCustomWidgetUpdate);
 
     return () => {
       window.removeEventListener('open-dashboard-config', handleOpen);
       window.removeEventListener('open-quick-repair', handleQuick);
       window.removeEventListener('dashboard-widgets-updated', handleWidgetUpdate);
+      window.removeEventListener('dashboard-widgets-updated', handleWidgetOrderUpdate);
       window.removeEventListener('dashboard-custom-widgets-updated', handleCustomWidgetUpdate);
     };
   }, []);
@@ -860,23 +874,6 @@ export default function Dashboard() {
 
               <div className="flex items-center gap-3 lg:gap-4">
                 <button
-                  onClick={handleCashButtonClick}
-                  className={`relative w-10 h-10 lg:w-12 lg:h-12 xl:w-14 xl:h-14 rounded-full border flex items-center justify-center transition-all active:scale-95 group shadow-[inset_0_1px_0_rgba(255,255,255,0.06)] ${
-                    drawerOpen 
-                      ? "bg-emerald-500/10 hover:bg-emerald-500/16 border-emerald-500/20 hover:border-emerald-500/25" 
-                      : "bg-rose-500/10 hover:bg-rose-500/16 border-rose-500/20 hover:border-rose-500/25"
-                  }`}
-                  title={drawerOpen ? "Cerrar Caja" : "Abrir Caja"}
-                >
-                  <Wallet className={`w-5 h-5 lg:w-6 lg:h-6 xl:w-7 xl:h-7 transition-colors ${
-                    drawerOpen ? "text-emerald-400 group-hover:text-emerald-300" : "text-red-400 group-hover:text-red-300"
-                  }`} />
-                  <span className={`absolute -bottom-1 -right-1 w-3 h-3 lg:w-4 lg:h-4 rounded-full border-2 border-[#1c1c1e] ${
-                    drawerOpen ? "bg-emerald-500" : "bg-red-500"
-                  }`} />
-                </button>
-
-                <button
                   onClick={() => setShowNotificationPanel(!showNotificationPanel)}
                   className="relative w-10 h-10 lg:w-12 lg:h-12 xl:w-14 xl:h-14 rounded-full bg-white/6 hover:bg-white/10 border border-white/8 flex items-center justify-center transition-all active:scale-95 group shadow-[inset_0_1px_0_rgba(255,255,255,0.06)]"
                 >
@@ -987,281 +984,275 @@ export default function Dashboard() {
             {/* ═══ WIDGETS EXTRAS ══════════════════════════════════════════ */}
             {(widgetConfig.urgentOrders || widgetConfig.readyPickup || widgetConfig.posSalesToday || widgetConfig.criticalStock || widgetConfig.newCustomers || widgetConfig.cashStatus || widgetConfig.avgRepairTime || widgetConfig.technicianLoad || widgetConfig.navNewOrder || widgetConfig.navOrders || widgetConfig.navInventory || widgetConfig.navFinancial || widgetConfig.navReports || customWidgets.length > 0) && (
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 mb-2">
-
-                {/* Órdenes urgentes */}
-                {widgetConfig.urgentOrders && (
-                  <div className="bg-[#1C1C1E]/60 backdrop-blur-xl border border-red-500/20 rounded-[28px] p-5 space-y-3">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2.5">
-                        <div className="w-8 h-8 rounded-xl bg-red-500/10 border border-red-500/20 flex items-center justify-center">
-                          <AlertCircle className="w-4 h-4 text-red-400" />
-                        </div>
-                        <span className="text-white/80 font-black text-xs uppercase tracking-tight">Urgentes</span>
-                      </div>
-                      <span className="text-2xl font-black text-red-400">{urgentOrdersList.length}</span>
-                    </div>
-                    {urgentOrdersList.length > 0 && (
-                      <div className="space-y-1.5">
-                        {urgentOrdersList.slice(0,4).map(o => (
-                          <div key={o.id} onClick={() => handleOrderSelect(o.id)} className="flex items-center justify-between px-3 py-1.5 bg-white/[0.03] rounded-xl cursor-pointer hover:bg-white/[0.06] transition-colors">
-                            <span className="text-white/70 text-xs font-bold truncate">{o.customer_name || "Cliente"}</span>
-                            <span className="text-red-400/70 text-[10px] font-black ml-2 shrink-0">#{o.order_number?.split('-')?.pop()}</span>
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                    {urgentOrdersList.length === 0 && <p className="text-white/20 text-xs text-center py-2 font-bold">Sin órdenes urgentes</p>}
-                  </div>
-                )}
-
-                {/* Listos para recoger */}
-                {widgetConfig.readyPickup && (
-                  <div className="bg-[#1C1C1E]/60 backdrop-blur-xl border border-emerald-500/20 rounded-[28px] p-5 space-y-3">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2.5">
-                        <div className="w-8 h-8 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center">
-                          <PackageCheck className="w-4 h-4 text-emerald-400" />
-                        </div>
-                        <span className="text-white/80 font-black text-xs uppercase tracking-tight">Para Recoger</span>
-                      </div>
-                      <span className="text-2xl font-black text-emerald-400">{readyPickupList.length}</span>
-                    </div>
-                    {readyPickupList.length > 0 && (
-                      <div className="space-y-1.5">
-                        {readyPickupList.slice(0,4).map(o => (
-                          <div key={o.id} onClick={() => handleOrderSelect(o.id)} className="flex items-center justify-between px-3 py-1.5 bg-white/[0.03] rounded-xl cursor-pointer hover:bg-white/[0.06] transition-colors">
-                            <span className="text-white/70 text-xs font-bold truncate">{o.customer_name || "Cliente"}</span>
-                            <span className="text-emerald-400/70 text-[10px] font-black ml-2 shrink-0">#{o.order_number?.split('-')?.pop()}</span>
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                    {readyPickupList.length === 0 && <p className="text-white/20 text-xs text-center py-2 font-bold">Sin órdenes listas</p>}
-                  </div>
-                )}
-
-                {/* Ventas / Transacciones hoy */}
-                {widgetConfig.posSalesToday && (
-                  <div className="bg-[#1C1C1E]/60 backdrop-blur-xl border border-cyan-500/20 rounded-[28px] p-5 space-y-3">
-                    <div className="flex items-center gap-2.5 mb-1">
-                      <div className="w-8 h-8 rounded-xl bg-cyan-500/10 border border-cyan-500/20 flex items-center justify-center">
-                        <ShoppingCart className="w-4 h-4 text-cyan-400" />
-                      </div>
-                      <span className="text-white/80 font-black text-xs uppercase tracking-tight">Transacciones hoy</span>
-                    </div>
-                    <p className="text-3xl font-black text-cyan-400">{todayTxCount}</p>
-                    <p className="text-white/30 text-[11px] font-bold">movimientos registrados</p>
-                  </div>
-                )}
-
-                {/* Stock crítico */}
-                {widgetConfig.criticalStock && (
-                  <div className="bg-[#1C1C1E]/60 backdrop-blur-xl border border-orange-500/20 rounded-[28px] p-5 space-y-3">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2.5">
-                        <div className="w-8 h-8 rounded-xl bg-orange-500/10 border border-orange-500/20 flex items-center justify-center">
-                          <Package className="w-4 h-4 text-orange-400" />
-                        </div>
-                        <span className="text-white/80 font-black text-xs uppercase tracking-tight">Stock Crítico</span>
-                      </div>
-                      <span className="text-2xl font-black text-orange-400">{criticalStockList.length}</span>
-                    </div>
-                    {criticalStockList.length > 0 && (
-                      <div className="space-y-1.5">
-                        {criticalStockList.slice(0,4).map(item => (
-                          <div key={item.id} className="flex items-center justify-between px-3 py-1.5 bg-white/[0.03] rounded-xl">
-                            <span className="text-white/70 text-xs font-bold truncate">{item.name}</span>
-                            <span className={`text-[10px] font-black ml-2 shrink-0 ${item.stock <= 0 ? 'text-red-400' : 'text-orange-400'}`}>{item.stock <= 0 ? 'Agotado' : `${item.stock} uds`}</span>
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                    {criticalStockList.length === 0 && <p className="text-white/20 text-xs text-center py-2 font-bold">Stock en orden</p>}
-                  </div>
-                )}
-
-                {/* Clientes nuevos */}
-                {widgetConfig.newCustomers && (
-                  <div className="bg-[#1C1C1E]/60 backdrop-blur-xl border border-violet-500/20 rounded-[28px] p-5 space-y-2">
-                    <div className="flex items-center gap-2.5 mb-1">
-                      <div className="w-8 h-8 rounded-xl bg-violet-500/10 border border-violet-500/20 flex items-center justify-center">
-                        <Users className="w-4 h-4 text-violet-400" />
-                      </div>
-                      <span className="text-white/80 font-black text-xs uppercase tracking-tight">Clientes nuevos</span>
-                    </div>
-                    <p className="text-3xl font-black text-violet-400">{newCustomersCount}</p>
-                    <p className="text-white/30 text-[11px] font-bold">esta semana</p>
-                  </div>
-                )}
-
-                {/* Estado de caja */}
-                {widgetConfig.cashStatus && (
-                  <div className={`bg-[#1C1C1E]/60 backdrop-blur-xl border rounded-[28px] p-5 space-y-2 ${drawerOpen ? 'border-emerald-500/20' : 'border-red-500/20'}`}>
-                    <div className="flex items-center gap-2.5 mb-1">
-                      <div className={`w-8 h-8 rounded-xl border flex items-center justify-center ${drawerOpen ? 'bg-emerald-500/10 border-emerald-500/20' : 'bg-red-500/10 border-red-500/20'}`}>
-                        <Wallet className={`w-4 h-4 ${drawerOpen ? 'text-emerald-400' : 'text-red-400'}`} />
-                      </div>
-                      <span className="text-white/80 font-black text-xs uppercase tracking-tight">Estado de Caja</span>
-                    </div>
-                    <p className={`text-lg font-black ${drawerOpen ? 'text-emerald-400' : 'text-red-400'}`}>{drawerOpen ? '● Abierta' : '● Cerrada'}</p>
-                    <p className="text-white/30 text-[11px] font-bold">
-                      Ingresos hoy: ${Number(kpiIncome.today || 0).toLocaleString("en-US", { maximumFractionDigits: 0 })}
-                    </p>
-                  </div>
-                )}
-
-                {/* Tiempo promedio de reparación */}
-                {widgetConfig.avgRepairTime && (
-                  <div className="bg-[#1C1C1E]/60 backdrop-blur-xl border border-sky-500/20 rounded-[28px] p-5 space-y-2">
-                    <div className="flex items-center gap-2.5 mb-1">
-                      <div className="w-8 h-8 rounded-xl bg-sky-500/10 border border-sky-500/20 flex items-center justify-center">
-                        <Clock className="w-4 h-4 text-sky-400" />
-                      </div>
-                      <span className="text-white/80 font-black text-xs uppercase tracking-tight">Tiempo Promedio</span>
-                    </div>
-                    <p className="text-3xl font-black text-sky-400">{avgRepairTime !== null ? `${avgRepairTime}d` : '—'}</p>
-                    <p className="text-white/30 text-[11px] font-bold">días por reparación</p>
-                  </div>
-                )}
-
-                {/* Carga por técnico */}
-                {widgetConfig.technicianLoad && (
-                  <div className="bg-[#1C1C1E]/60 backdrop-blur-xl border border-amber-500/20 rounded-[28px] p-5 space-y-3">
-                    <div className="flex items-center gap-2.5">
-                      <div className="w-8 h-8 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center">
-                        <Wrench className="w-4 h-4 text-amber-400" />
-                      </div>
-                      <span className="text-white/80 font-black text-xs uppercase tracking-tight">Carga por Técnico</span>
-                    </div>
-                    {technicianLoad.length > 0 ? (
-                      <div className="space-y-2">
-                        {technicianLoad.map(([name, count]) => {
-                          const max = technicianLoad[0]?.[1] || 1;
-                          return (
-                            <div key={name} className="space-y-0.5">
-                              <div className="flex justify-between items-center">
-                                <span className="text-white/60 text-[11px] font-bold truncate max-w-[70%]">{name}</span>
-                                <span className="text-amber-400 text-[11px] font-black">{count}</span>
-                              </div>
-                              <div className="w-full bg-white/[0.06] rounded-full h-1">
-                                <div className="h-1 rounded-full bg-amber-500/60 transition-all" style={{ width: `${(count/max)*100}%` }} />
-                              </div>
+                {(() => {
+                  const DEFAULT_ORDER = ['urgentOrders','readyPickup','posSalesToday','criticalStock','newCustomers','cashStatus','avgRepairTime','technicianLoad','navNewOrder','navOrders','navInventory','navFinancial','navReports'];
+                  const order = widgetOrder || DEFAULT_ORDER;
+                  const widgetJSX = order.map(id => {
+                    if (id === 'urgentOrders' && widgetConfig.urgentOrders) return (
+                      <div key="urgentOrders" className="bg-[#1C1C1E]/60 backdrop-blur-xl border border-red-500/20 rounded-[28px] p-5 space-y-3">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-2.5">
+                            <div className="w-8 h-8 rounded-xl bg-red-500/10 border border-red-500/20 flex items-center justify-center">
+                              <AlertCircle className="w-4 h-4 text-red-400" />
                             </div>
-                          );
-                        })}
-                      </div>
-                    ) : (
-                      <p className="text-white/20 text-xs text-center py-2 font-bold">Sin órdenes asignadas</p>
-                    )}
-                  </div>
-                )}
-
-                {/* ── Accesos Directos de Navegación ────────────────────────── */}
-                {widgetConfig.navNewOrder && (
-                  <button
-                    onClick={() => setShowWorkOrderWizard(true)}
-                    className="bg-[#1C1C1E]/60 backdrop-blur-xl border border-sky-500/20 rounded-[28px] p-5 space-y-3 text-left w-full hover:bg-[#1C1C1E]/80 transition-all active:scale-95 group"
-                  >
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2.5">
-                        <div className="w-8 h-8 rounded-xl bg-sky-500/10 border border-sky-500/20 flex items-center justify-center">
-                          <ClipboardList className="w-4 h-4 text-sky-400" />
+                            <span className="text-white/80 font-black text-xs uppercase tracking-tight">Urgentes</span>
+                          </div>
+                          <span className="text-2xl font-black text-red-400">{urgentOrdersList.length}</span>
                         </div>
-                        <span className="text-white/80 font-black text-xs uppercase tracking-tight">Nueva Orden</span>
+                        {urgentOrdersList.length > 0 && (
+                          <div className="space-y-1.5">
+                            {urgentOrdersList.slice(0,4).map(o => (
+                              <div key={o.id} onClick={() => handleOrderSelect(o.id)} className="flex items-center justify-between px-3 py-1.5 bg-white/[0.03] rounded-xl cursor-pointer hover:bg-white/[0.06] transition-colors">
+                                <span className="text-white/70 text-xs font-bold truncate">{o.customer_name || "Cliente"}</span>
+                                <span className="text-red-400/70 text-[10px] font-black ml-2 shrink-0">#{o.order_number?.split('-')?.pop()}</span>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                        {urgentOrdersList.length === 0 && <p className="text-white/20 text-xs text-center py-2 font-bold">Sin órdenes urgentes</p>}
                       </div>
-                      <ArrowUpRight className="w-4 h-4 text-white/20 group-hover:text-white/50 transition-colors" />
-                    </div>
-                    <p className="text-white/30 text-[11px] font-bold">Crear nueva orden de trabajo</p>
-                  </button>
-                )}
-                {widgetConfig.navOrders && (
-                  <button
-                    onClick={() => handleNavigate("Orders")}
-                    className="bg-[#1C1C1E]/60 backdrop-blur-xl border border-purple-500/20 rounded-[28px] p-5 space-y-3 text-left w-full hover:bg-[#1C1C1E]/80 transition-all active:scale-95 group"
-                  >
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2.5">
-                        <div className="w-8 h-8 rounded-xl bg-purple-500/10 border border-purple-500/20 flex items-center justify-center">
-                          <ClipboardList className="w-4 h-4 text-purple-400" />
+                    );
+                    if (id === 'readyPickup' && widgetConfig.readyPickup) return (
+                      <div key="readyPickup" className="bg-[#1C1C1E]/60 backdrop-blur-xl border border-emerald-500/20 rounded-[28px] p-5 space-y-3">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-2.5">
+                            <div className="w-8 h-8 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center">
+                              <PackageCheck className="w-4 h-4 text-emerald-400" />
+                            </div>
+                            <span className="text-white/80 font-black text-xs uppercase tracking-tight">Para Recoger</span>
+                          </div>
+                          <span className="text-2xl font-black text-emerald-400">{readyPickupList.length}</span>
                         </div>
-                        <span className="text-white/80 font-black text-xs uppercase tracking-tight">Órdenes</span>
+                        {readyPickupList.length > 0 && (
+                          <div className="space-y-1.5">
+                            {readyPickupList.slice(0,4).map(o => (
+                              <div key={o.id} onClick={() => handleOrderSelect(o.id)} className="flex items-center justify-between px-3 py-1.5 bg-white/[0.03] rounded-xl cursor-pointer hover:bg-white/[0.06] transition-colors">
+                                <span className="text-white/70 text-xs font-bold truncate">{o.customer_name || "Cliente"}</span>
+                                <span className="text-emerald-400/70 text-[10px] font-black ml-2 shrink-0">#{o.order_number?.split('-')?.pop()}</span>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                        {readyPickupList.length === 0 && <p className="text-white/20 text-xs text-center py-2 font-bold">Sin órdenes listas</p>}
                       </div>
-                      <ArrowUpRight className="w-4 h-4 text-white/20 group-hover:text-white/50 transition-colors" />
-                    </div>
-                    <p className="text-white/30 text-[11px] font-bold">Ver historial y gestión</p>
-                  </button>
-                )}
-                {widgetConfig.navInventory && (
-                  <button
-                    onClick={() => handleNavigate("Inventory")}
-                    className="bg-[#1C1C1E]/60 backdrop-blur-xl border border-teal-500/20 rounded-[28px] p-5 space-y-3 text-left w-full hover:bg-[#1C1C1E]/80 transition-all active:scale-95 group"
-                  >
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2.5">
-                        <div className="w-8 h-8 rounded-xl bg-teal-500/10 border border-teal-500/20 flex items-center justify-center">
-                          <Package className="w-4 h-4 text-teal-400" />
+                    );
+                    if (id === 'posSalesToday' && widgetConfig.posSalesToday) return (
+                      <div key="posSalesToday" className="bg-[#1C1C1E]/60 backdrop-blur-xl border border-cyan-500/20 rounded-[28px] p-5 space-y-3">
+                        <div className="flex items-center gap-2.5 mb-1">
+                          <div className="w-8 h-8 rounded-xl bg-cyan-500/10 border border-cyan-500/20 flex items-center justify-center">
+                            <ShoppingCart className="w-4 h-4 text-cyan-400" />
+                          </div>
+                          <span className="text-white/80 font-black text-xs uppercase tracking-tight">Transacciones hoy</span>
                         </div>
-                        <span className="text-white/80 font-black text-xs uppercase tracking-tight">Inventario</span>
+                        <p className="text-3xl font-black text-cyan-400">{todayTxCount}</p>
+                        <p className="text-white/30 text-[11px] font-bold">movimientos registrados</p>
                       </div>
-                      <ArrowUpRight className="w-4 h-4 text-white/20 group-hover:text-white/50 transition-colors" />
-                    </div>
-                    <p className="text-white/30 text-[11px] font-bold">Stock y productos</p>
-                  </button>
-                )}
-                {widgetConfig.navFinancial && (
-                  <button
-                    onClick={() => handleNavigate("Financial")}
-                    className="bg-[#1C1C1E]/60 backdrop-blur-xl border border-emerald-500/20 rounded-[28px] p-5 space-y-3 text-left w-full hover:bg-[#1C1C1E]/80 transition-all active:scale-95 group"
-                  >
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2.5">
-                        <div className="w-8 h-8 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center">
-                          <Wallet className="w-4 h-4 text-emerald-400" />
+                    );
+                    if (id === 'criticalStock' && widgetConfig.criticalStock) return (
+                      <div key="criticalStock" className="bg-[#1C1C1E]/60 backdrop-blur-xl border border-orange-500/20 rounded-[28px] p-5 space-y-3">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-2.5">
+                            <div className="w-8 h-8 rounded-xl bg-orange-500/10 border border-orange-500/20 flex items-center justify-center">
+                              <Package className="w-4 h-4 text-orange-400" />
+                            </div>
+                            <span className="text-white/80 font-black text-xs uppercase tracking-tight">Stock Crítico</span>
+                          </div>
+                          <span className="text-2xl font-black text-orange-400">{criticalStockList.length}</span>
                         </div>
-                        <span className="text-white/80 font-black text-xs uppercase tracking-tight">Finanzas</span>
+                        {criticalStockList.length > 0 && (
+                          <div className="space-y-1.5">
+                            {criticalStockList.slice(0,4).map(item => (
+                              <div key={item.id} className="flex items-center justify-between px-3 py-1.5 bg-white/[0.03] rounded-xl">
+                                <span className="text-white/70 text-xs font-bold truncate">{item.name}</span>
+                                <span className={`text-[10px] font-black ml-2 shrink-0 ${item.stock <= 0 ? 'text-red-400' : 'text-orange-400'}`}>{item.stock <= 0 ? 'Agotado' : `${item.stock} uds`}</span>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                        {criticalStockList.length === 0 && <p className="text-white/20 text-xs text-center py-2 font-bold">Stock en orden</p>}
                       </div>
-                      <ArrowUpRight className="w-4 h-4 text-white/20 group-hover:text-white/50 transition-colors" />
-                    </div>
-                    <p className="text-white/30 text-[11px] font-bold">Resumen financiero</p>
-                  </button>
-                )}
-                {widgetConfig.navReports && (
-                  <button
-                    onClick={() => handleNavigate("FinancialReports")}
-                    className="bg-[#1C1C1E]/60 backdrop-blur-xl border border-indigo-500/20 rounded-[28px] p-5 space-y-3 text-left w-full hover:bg-[#1C1C1E]/80 transition-all active:scale-95 group"
-                  >
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2.5">
-                        <div className="w-8 h-8 rounded-xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center">
-                          <BarChart3 className="w-4 h-4 text-indigo-400" />
+                    );
+                    if (id === 'newCustomers' && widgetConfig.newCustomers) return (
+                      <div key="newCustomers" className="bg-[#1C1C1E]/60 backdrop-blur-xl border border-violet-500/20 rounded-[28px] p-5 space-y-2">
+                        <div className="flex items-center gap-2.5 mb-1">
+                          <div className="w-8 h-8 rounded-xl bg-violet-500/10 border border-violet-500/20 flex items-center justify-center">
+                            <Users className="w-4 h-4 text-violet-400" />
+                          </div>
+                          <span className="text-white/80 font-black text-xs uppercase tracking-tight">Clientes nuevos</span>
                         </div>
-                        <span className="text-white/80 font-black text-xs uppercase tracking-tight">Reportes</span>
+                        <p className="text-3xl font-black text-violet-400">{newCustomersCount}</p>
+                        <p className="text-white/30 text-[11px] font-bold">esta semana</p>
                       </div>
-                      <ArrowUpRight className="w-4 h-4 text-white/20 group-hover:text-white/50 transition-colors" />
-                    </div>
-                    <p className="text-white/30 text-[11px] font-bold">P&L y análisis</p>
-                  </button>
-                )}
-
-                {/* ── Widgets Personalizados (links externos) ────────────────── */}
-                {customWidgets.map(widget => (
-                  <button
-                    key={widget.id}
-                    onClick={() => window.open(widget.url, '_blank')}
-                    className="bg-[#1C1C1E]/60 backdrop-blur-xl border border-white/10 rounded-[28px] p-5 space-y-3 text-left w-full hover:bg-[#1C1C1E]/80 transition-all active:scale-95 group"
-                  >
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2.5">
-                        <div className="w-8 h-8 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center">
-                          <ExternalLink className="w-4 h-4 text-white/40" />
+                    );
+                    if (id === 'cashStatus' && widgetConfig.cashStatus) return (
+                      <button key="cashStatus"
+                        onClick={handleCashButtonClick}
+                        className={`bg-[#1C1C1E]/60 backdrop-blur-xl border rounded-[28px] p-5 space-y-2 text-left w-full hover:brightness-110 transition-all active:scale-95 group ${drawerOpen ? 'border-emerald-500/20' : 'border-red-500/20'}`}
+                      >
+                        <div className="flex items-center justify-between mb-1">
+                          <div className="flex items-center gap-2.5">
+                            <div className={`w-8 h-8 rounded-xl border flex items-center justify-center ${drawerOpen ? 'bg-emerald-500/10 border-emerald-500/20' : 'bg-red-500/10 border-red-500/20'}`}>
+                              <Wallet className={`w-4 h-4 ${drawerOpen ? 'text-emerald-400' : 'text-red-400'}`} />
+                            </div>
+                            <span className="text-white/80 font-black text-xs uppercase tracking-tight">Estado de Caja</span>
+                          </div>
+                          <ArrowUpRight className="w-4 h-4 text-white/20 group-hover:text-white/50 transition-colors" />
                         </div>
-                        <span className="text-white/80 font-black text-xs uppercase tracking-tight truncate max-w-[120px]">{widget.name}</span>
+                        <p className={`text-lg font-black ${drawerOpen ? 'text-emerald-400' : 'text-red-400'}`}>{drawerOpen ? '● Abierta' : '● Cerrada'}</p>
+                        <p className="text-white/30 text-[11px] font-bold">
+                          Ingresos hoy: ${Number(kpiIncome.today || 0).toLocaleString("en-US", { maximumFractionDigits: 0 })}
+                        </p>
+                      </button>
+                    );
+                    if (id === 'avgRepairTime' && widgetConfig.avgRepairTime) return (
+                      <div key="avgRepairTime" className="bg-[#1C1C1E]/60 backdrop-blur-xl border border-sky-500/20 rounded-[28px] p-5 space-y-2">
+                        <div className="flex items-center gap-2.5 mb-1">
+                          <div className="w-8 h-8 rounded-xl bg-sky-500/10 border border-sky-500/20 flex items-center justify-center">
+                            <Clock className="w-4 h-4 text-sky-400" />
+                          </div>
+                          <span className="text-white/80 font-black text-xs uppercase tracking-tight">Tiempo Promedio</span>
+                        </div>
+                        <p className="text-3xl font-black text-sky-400">{avgRepairTime !== null ? `${avgRepairTime}d` : '—'}</p>
+                        <p className="text-white/30 text-[11px] font-bold">días por reparación</p>
                       </div>
-                      <ArrowUpRight className="w-4 h-4 text-white/20 group-hover:text-white/50 transition-colors" />
-                    </div>
-                    <p className="text-white/20 text-[11px] font-bold truncate">{widget.url.replace(/^https?:\/\//, '')}</p>
-                  </button>
-                ))}
+                    );
+                    if (id === 'technicianLoad' && widgetConfig.technicianLoad) return (
+                      <div key="technicianLoad" className="bg-[#1C1C1E]/60 backdrop-blur-xl border border-amber-500/20 rounded-[28px] p-5 space-y-3">
+                        <div className="flex items-center gap-2.5">
+                          <div className="w-8 h-8 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center">
+                            <Wrench className="w-4 h-4 text-amber-400" />
+                          </div>
+                          <span className="text-white/80 font-black text-xs uppercase tracking-tight">Carga por Técnico</span>
+                        </div>
+                        {technicianLoad.length > 0 ? (
+                          <div className="space-y-2">
+                            {technicianLoad.map(([name, count]) => {
+                              const max = technicianLoad[0]?.[1] || 1;
+                              return (
+                                <div key={name} className="space-y-0.5">
+                                  <div className="flex justify-between items-center">
+                                    <span className="text-white/60 text-[11px] font-bold truncate max-w-[70%]">{name}</span>
+                                    <span className="text-amber-400 text-[11px] font-black">{count}</span>
+                                  </div>
+                                  <div className="w-full bg-white/[0.06] rounded-full h-1">
+                                    <div className="h-1 rounded-full bg-amber-500/60 transition-all" style={{ width: `${(count/max)*100}%` }} />
+                                  </div>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        ) : (
+                          <p className="text-white/20 text-xs text-center py-2 font-bold">Sin órdenes asignadas</p>
+                        )}
+                      </div>
+                    );
+                    if (id === 'navNewOrder' && widgetConfig.navNewOrder) return (
+                      <button key="navNewOrder"
+                        onClick={() => setShowWorkOrderWizard(true)}
+                        className="bg-[#1C1C1E]/60 backdrop-blur-xl border border-sky-500/20 rounded-[28px] p-5 space-y-3 text-left w-full hover:bg-[#1C1C1E]/80 transition-all active:scale-95 group"
+                      >
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-2.5">
+                            <div className="w-8 h-8 rounded-xl bg-sky-500/10 border border-sky-500/20 flex items-center justify-center">
+                              <ClipboardList className="w-4 h-4 text-sky-400" />
+                            </div>
+                            <span className="text-white/80 font-black text-xs uppercase tracking-tight">Nueva Orden</span>
+                          </div>
+                          <ArrowUpRight className="w-4 h-4 text-white/20 group-hover:text-white/50 transition-colors" />
+                        </div>
+                        <p className="text-white/30 text-[11px] font-bold">Crear nueva orden de trabajo</p>
+                      </button>
+                    );
+                    if (id === 'navOrders' && widgetConfig.navOrders) return (
+                      <button key="navOrders"
+                        onClick={() => handleNavigate("Orders")}
+                        className="bg-[#1C1C1E]/60 backdrop-blur-xl border border-purple-500/20 rounded-[28px] p-5 space-y-3 text-left w-full hover:bg-[#1C1C1E]/80 transition-all active:scale-95 group"
+                      >
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-2.5">
+                            <div className="w-8 h-8 rounded-xl bg-purple-500/10 border border-purple-500/20 flex items-center justify-center">
+                              <ClipboardList className="w-4 h-4 text-purple-400" />
+                            </div>
+                            <span className="text-white/80 font-black text-xs uppercase tracking-tight">Órdenes</span>
+                          </div>
+                          <ArrowUpRight className="w-4 h-4 text-white/20 group-hover:text-white/50 transition-colors" />
+                        </div>
+                        <p className="text-white/30 text-[11px] font-bold">Ver historial y gestión</p>
+                      </button>
+                    );
+                    if (id === 'navInventory' && widgetConfig.navInventory) return (
+                      <button key="navInventory"
+                        onClick={() => handleNavigate("Inventory")}
+                        className="bg-[#1C1C1E]/60 backdrop-blur-xl border border-teal-500/20 rounded-[28px] p-5 space-y-3 text-left w-full hover:bg-[#1C1C1E]/80 transition-all active:scale-95 group"
+                      >
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-2.5">
+                            <div className="w-8 h-8 rounded-xl bg-teal-500/10 border border-teal-500/20 flex items-center justify-center">
+                              <Package className="w-4 h-4 text-teal-400" />
+                            </div>
+                            <span className="text-white/80 font-black text-xs uppercase tracking-tight">Inventario</span>
+                          </div>
+                          <ArrowUpRight className="w-4 h-4 text-white/20 group-hover:text-white/50 transition-colors" />
+                        </div>
+                        <p className="text-white/30 text-[11px] font-bold">Stock y productos</p>
+                      </button>
+                    );
+                    if (id === 'navFinancial' && widgetConfig.navFinancial) return (
+                      <button key="navFinancial"
+                        onClick={() => handleNavigate("Financial")}
+                        className="bg-[#1C1C1E]/60 backdrop-blur-xl border border-emerald-500/20 rounded-[28px] p-5 space-y-3 text-left w-full hover:bg-[#1C1C1E]/80 transition-all active:scale-95 group"
+                      >
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-2.5">
+                            <div className="w-8 h-8 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center">
+                              <Wallet className="w-4 h-4 text-emerald-400" />
+                            </div>
+                            <span className="text-white/80 font-black text-xs uppercase tracking-tight">Finanzas</span>
+                          </div>
+                          <ArrowUpRight className="w-4 h-4 text-white/20 group-hover:text-white/50 transition-colors" />
+                        </div>
+                        <p className="text-white/30 text-[11px] font-bold">Resumen financiero</p>
+                      </button>
+                    );
+                    if (id === 'navReports' && widgetConfig.navReports) return (
+                      <button key="navReports"
+                        onClick={() => handleNavigate("FinancialReports")}
+                        className="bg-[#1C1C1E]/60 backdrop-blur-xl border border-indigo-500/20 rounded-[28px] p-5 space-y-3 text-left w-full hover:bg-[#1C1C1E]/80 transition-all active:scale-95 group"
+                      >
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-2.5">
+                            <div className="w-8 h-8 rounded-xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center">
+                              <BarChart3 className="w-4 h-4 text-indigo-400" />
+                            </div>
+                            <span className="text-white/80 font-black text-xs uppercase tracking-tight">Reportes</span>
+                          </div>
+                          <ArrowUpRight className="w-4 h-4 text-white/20 group-hover:text-white/50 transition-colors" />
+                        </div>
+                        <p className="text-white/30 text-[11px] font-bold">P&L y análisis</p>
+                      </button>
+                    );
+                    return null;
+                  }).filter(Boolean);
+                  const customWidgetCards = customWidgets.map(widget => (
+                    <button
+                      key={widget.id}
+                      onClick={() => window.open(widget.url, '_blank')}
+                      className="bg-[#1C1C1E]/60 backdrop-blur-xl border border-white/10 rounded-[28px] p-5 space-y-3 text-left w-full hover:bg-[#1C1C1E]/80 transition-all active:scale-95 group"
+                    >
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2.5">
+                          <div className="w-8 h-8 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center">
+                            <ExternalLink className="w-4 h-4 text-white/40" />
+                          </div>
+                          <span className="text-white/80 font-black text-xs uppercase tracking-tight truncate max-w-[120px]">{widget.name}</span>
+                        </div>
+                        <ArrowUpRight className="w-4 h-4 text-white/20 group-hover:text-white/50 transition-colors" />
+                      </div>
+                      <p className="text-white/20 text-[11px] font-bold truncate">{widget.url.replace(/^https?:\/\//, '')}</p>
+                    </button>
+                  ));
+                  return [...widgetJSX, ...customWidgetCards];
+                })()}
 
               </div>
             )}
@@ -1377,159 +1368,158 @@ export default function Dashboard() {
             {/* ═══ WIDGETS EXTRAS MÓVIL ════════════════════════════════════ */}
             {(widgetConfig.urgentOrders || widgetConfig.readyPickup || widgetConfig.posSalesToday || widgetConfig.criticalStock || widgetConfig.newCustomers || widgetConfig.cashStatus || widgetConfig.avgRepairTime || widgetConfig.technicianLoad || widgetConfig.navNewOrder || widgetConfig.navOrders || widgetConfig.navInventory || widgetConfig.navFinancial || widgetConfig.navReports || customWidgets.length > 0) && (
               <div className="grid grid-cols-2 gap-3 mx-1">
-
-                {widgetConfig.urgentOrders && (
-                  <div className="bg-[#1C1C1E]/60 border border-red-500/20 rounded-[24px] p-4">
-                    <div className="flex items-center gap-2 mb-2">
-                      <AlertCircle className="w-4 h-4 text-red-400 shrink-0" />
-                      <span className="text-white/60 text-[10px] font-black uppercase tracking-tight truncate">Urgentes</span>
-                    </div>
-                    <p className="text-2xl font-black text-red-400">{urgentOrdersList.length}</p>
-                    <p className="text-white/20 text-[10px] font-bold mt-0.5">sin actualizar +5d</p>
-                  </div>
-                )}
-
-                {widgetConfig.readyPickup && (
-                  <div className="bg-[#1C1C1E]/60 border border-emerald-500/20 rounded-[24px] p-4">
-                    <div className="flex items-center gap-2 mb-2">
-                      <PackageCheck className="w-4 h-4 text-emerald-400 shrink-0" />
-                      <span className="text-white/60 text-[10px] font-black uppercase tracking-tight truncate">Para recoger</span>
-                    </div>
-                    <p className="text-2xl font-black text-emerald-400">{readyPickupList.length}</p>
-                    <p className="text-white/20 text-[10px] font-bold mt-0.5">listas para entregar</p>
-                  </div>
-                )}
-
-                {widgetConfig.posSalesToday && (
-                  <div className="bg-[#1C1C1E]/60 border border-cyan-500/20 rounded-[24px] p-4">
-                    <div className="flex items-center gap-2 mb-2">
-                      <ShoppingCart className="w-4 h-4 text-cyan-400 shrink-0" />
-                      <span className="text-white/60 text-[10px] font-black uppercase tracking-tight truncate">Transacciones</span>
-                    </div>
-                    <p className="text-2xl font-black text-cyan-400">{todayTxCount}</p>
-                    <p className="text-white/20 text-[10px] font-bold mt-0.5">movimientos hoy</p>
-                  </div>
-                )}
-
-                {widgetConfig.criticalStock && (
-                  <div className="bg-[#1C1C1E]/60 border border-orange-500/20 rounded-[24px] p-4">
-                    <div className="flex items-center gap-2 mb-2">
-                      <Package className="w-4 h-4 text-orange-400 shrink-0" />
-                      <span className="text-white/60 text-[10px] font-black uppercase tracking-tight truncate">Stock crítico</span>
-                    </div>
-                    <p className="text-2xl font-black text-orange-400">{criticalStockList.length}</p>
-                    <p className="text-white/20 text-[10px] font-bold mt-0.5">productos bajos</p>
-                  </div>
-                )}
-
-                {widgetConfig.newCustomers && (
-                  <div className="bg-[#1C1C1E]/60 border border-violet-500/20 rounded-[24px] p-4">
-                    <div className="flex items-center gap-2 mb-2">
-                      <Users className="w-4 h-4 text-violet-400 shrink-0" />
-                      <span className="text-white/60 text-[10px] font-black uppercase tracking-tight truncate">Clientes nuevos</span>
-                    </div>
-                    <p className="text-2xl font-black text-violet-400">{newCustomersCount}</p>
-                    <p className="text-white/20 text-[10px] font-bold mt-0.5">esta semana</p>
-                  </div>
-                )}
-
-                {widgetConfig.cashStatus && (
-                  <div className={`bg-[#1C1C1E]/60 border rounded-[24px] p-4 ${drawerOpen ? 'border-emerald-500/20' : 'border-red-500/20'}`}>
-                    <div className="flex items-center gap-2 mb-2">
-                      <Wallet className={`w-4 h-4 shrink-0 ${drawerOpen ? 'text-emerald-400' : 'text-red-400'}`} />
-                      <span className="text-white/60 text-[10px] font-black uppercase tracking-tight truncate">Caja</span>
-                    </div>
-                    <p className={`text-sm font-black ${drawerOpen ? 'text-emerald-400' : 'text-red-400'}`}>{drawerOpen ? '● Abierta' : '● Cerrada'}</p>
-                    <p className="text-white/20 text-[10px] font-bold mt-0.5">${Number(kpiIncome.today||0).toLocaleString("en-US",{maximumFractionDigits:0})} hoy</p>
-                  </div>
-                )}
-
-                {widgetConfig.avgRepairTime && (
-                  <div className="bg-[#1C1C1E]/60 border border-sky-500/20 rounded-[24px] p-4">
-                    <div className="flex items-center gap-2 mb-2">
-                      <Clock className="w-4 h-4 text-sky-400 shrink-0" />
-                      <span className="text-white/60 text-[10px] font-black uppercase tracking-tight truncate">T. Promedio</span>
-                    </div>
-                    <p className="text-2xl font-black text-sky-400">{avgRepairTime !== null ? `${avgRepairTime}d` : '—'}</p>
-                    <p className="text-white/20 text-[10px] font-bold mt-0.5">por reparación</p>
-                  </div>
-                )}
-
-                {widgetConfig.technicianLoad && (
-                  <div className="bg-[#1C1C1E]/60 border border-amber-500/20 rounded-[24px] p-4 col-span-2">
-                    <div className="flex items-center gap-2 mb-3">
-                      <Wrench className="w-4 h-4 text-amber-400 shrink-0" />
-                      <span className="text-white/60 text-[10px] font-black uppercase tracking-tight">Carga por Técnico</span>
-                    </div>
-                    {technicianLoad.length > 0 ? (
-                      <div className="grid grid-cols-2 gap-2">
-                        {technicianLoad.map(([name, count]) => (
-                          <div key={name} className="flex items-center justify-between bg-white/[0.03] rounded-xl px-3 py-1.5">
-                            <span className="text-white/60 text-[10px] font-bold truncate">{name}</span>
-                            <span className="text-amber-400 text-xs font-black ml-2 shrink-0">{count}</span>
-                          </div>
-                        ))}
+                {(() => {
+                  const DEFAULT_ORDER = ['urgentOrders','readyPickup','posSalesToday','criticalStock','newCustomers','cashStatus','avgRepairTime','technicianLoad','navNewOrder','navOrders','navInventory','navFinancial','navReports'];
+                  const order = widgetOrder || DEFAULT_ORDER;
+                  const widgetJSX = order.map(id => {
+                    if (id === 'urgentOrders' && widgetConfig.urgentOrders) return (
+                      <div key="urgentOrders" className="bg-[#1C1C1E]/60 border border-red-500/20 rounded-[24px] p-4">
+                        <div className="flex items-center gap-2 mb-2">
+                          <AlertCircle className="w-4 h-4 text-red-400 shrink-0" />
+                          <span className="text-white/60 text-[10px] font-black uppercase tracking-tight truncate">Urgentes</span>
+                        </div>
+                        <p className="text-2xl font-black text-red-400">{urgentOrdersList.length}</p>
+                        <p className="text-white/20 text-[10px] font-bold mt-0.5">sin actualizar +5d</p>
                       </div>
-                    ) : (
-                      <p className="text-white/20 text-xs text-center font-bold">Sin asignaciones</p>
-                    )}
-                  </div>
-                )}
-
-                {widgetConfig.navNewOrder && (
-                  <button onClick={() => setShowWorkOrderWizard(true)} className="bg-[#1C1C1E]/60 border border-sky-500/20 rounded-[24px] p-4 text-left active:scale-95 transition-all">
-                    <div className="flex items-center gap-2 mb-2">
-                      <ClipboardList className="w-4 h-4 text-sky-400 shrink-0" />
-                      <span className="text-white/60 text-[10px] font-black uppercase tracking-tight truncate">Nueva Orden</span>
-                    </div>
-                    <p className="text-white/40 text-xs font-bold">Crear orden</p>
-                  </button>
-                )}
-                {widgetConfig.navOrders && (
-                  <button onClick={() => handleNavigate("Orders")} className="bg-[#1C1C1E]/60 border border-purple-500/20 rounded-[24px] p-4 text-left active:scale-95 transition-all">
-                    <div className="flex items-center gap-2 mb-2">
-                      <ClipboardList className="w-4 h-4 text-purple-400 shrink-0" />
-                      <span className="text-white/60 text-[10px] font-black uppercase tracking-tight truncate">Órdenes</span>
-                    </div>
-                    <p className="text-white/40 text-xs font-bold">Ver historial</p>
-                  </button>
-                )}
-                {widgetConfig.navInventory && (
-                  <button onClick={() => handleNavigate("Inventory")} className="bg-[#1C1C1E]/60 border border-teal-500/20 rounded-[24px] p-4 text-left active:scale-95 transition-all">
-                    <div className="flex items-center gap-2 mb-2">
-                      <Package className="w-4 h-4 text-teal-400 shrink-0" />
-                      <span className="text-white/60 text-[10px] font-black uppercase tracking-tight truncate">Inventario</span>
-                    </div>
-                    <p className="text-white/40 text-xs font-bold">Stock</p>
-                  </button>
-                )}
-                {widgetConfig.navFinancial && (
-                  <button onClick={() => handleNavigate("Financial")} className="bg-[#1C1C1E]/60 border border-emerald-500/20 rounded-[24px] p-4 text-left active:scale-95 transition-all">
-                    <div className="flex items-center gap-2 mb-2">
-                      <Wallet className="w-4 h-4 text-emerald-400 shrink-0" />
-                      <span className="text-white/60 text-[10px] font-black uppercase tracking-tight truncate">Finanzas</span>
-                    </div>
-                    <p className="text-white/40 text-xs font-bold">Resumen</p>
-                  </button>
-                )}
-                {widgetConfig.navReports && (
-                  <button onClick={() => handleNavigate("FinancialReports")} className="bg-[#1C1C1E]/60 border border-indigo-500/20 rounded-[24px] p-4 text-left active:scale-95 transition-all">
-                    <div className="flex items-center gap-2 mb-2">
-                      <BarChart3 className="w-4 h-4 text-indigo-400 shrink-0" />
-                      <span className="text-white/60 text-[10px] font-black uppercase tracking-tight truncate">Reportes</span>
-                    </div>
-                    <p className="text-white/40 text-xs font-bold">P&L</p>
-                  </button>
-                )}
-                {customWidgets.map(widget => (
-                  <button key={widget.id} onClick={() => window.open(widget.url, '_blank')} className="bg-[#1C1C1E]/60 border border-white/10 rounded-[24px] p-4 text-left active:scale-95 transition-all">
-                    <div className="flex items-center gap-2 mb-2">
-                      <ExternalLink className="w-4 h-4 text-white/30 shrink-0" />
-                      <span className="text-white/60 text-[10px] font-black uppercase tracking-tight truncate">{widget.name}</span>
-                    </div>
-                    <p className="text-white/30 text-[10px] font-bold truncate">{widget.url.replace(/^https?:\/\//, '')}</p>
-                  </button>
-                ))}
+                    );
+                    if (id === 'readyPickup' && widgetConfig.readyPickup) return (
+                      <div key="readyPickup" className="bg-[#1C1C1E]/60 border border-emerald-500/20 rounded-[24px] p-4">
+                        <div className="flex items-center gap-2 mb-2">
+                          <PackageCheck className="w-4 h-4 text-emerald-400 shrink-0" />
+                          <span className="text-white/60 text-[10px] font-black uppercase tracking-tight truncate">Para recoger</span>
+                        </div>
+                        <p className="text-2xl font-black text-emerald-400">{readyPickupList.length}</p>
+                        <p className="text-white/20 text-[10px] font-bold mt-0.5">listas para entregar</p>
+                      </div>
+                    );
+                    if (id === 'posSalesToday' && widgetConfig.posSalesToday) return (
+                      <div key="posSalesToday" className="bg-[#1C1C1E]/60 border border-cyan-500/20 rounded-[24px] p-4">
+                        <div className="flex items-center gap-2 mb-2">
+                          <ShoppingCart className="w-4 h-4 text-cyan-400 shrink-0" />
+                          <span className="text-white/60 text-[10px] font-black uppercase tracking-tight truncate">Transacciones</span>
+                        </div>
+                        <p className="text-2xl font-black text-cyan-400">{todayTxCount}</p>
+                        <p className="text-white/20 text-[10px] font-bold mt-0.5">movimientos hoy</p>
+                      </div>
+                    );
+                    if (id === 'criticalStock' && widgetConfig.criticalStock) return (
+                      <div key="criticalStock" className="bg-[#1C1C1E]/60 border border-orange-500/20 rounded-[24px] p-4">
+                        <div className="flex items-center gap-2 mb-2">
+                          <Package className="w-4 h-4 text-orange-400 shrink-0" />
+                          <span className="text-white/60 text-[10px] font-black uppercase tracking-tight truncate">Stock crítico</span>
+                        </div>
+                        <p className="text-2xl font-black text-orange-400">{criticalStockList.length}</p>
+                        <p className="text-white/20 text-[10px] font-bold mt-0.5">productos bajos</p>
+                      </div>
+                    );
+                    if (id === 'newCustomers' && widgetConfig.newCustomers) return (
+                      <div key="newCustomers" className="bg-[#1C1C1E]/60 border border-violet-500/20 rounded-[24px] p-4">
+                        <div className="flex items-center gap-2 mb-2">
+                          <Users className="w-4 h-4 text-violet-400 shrink-0" />
+                          <span className="text-white/60 text-[10px] font-black uppercase tracking-tight truncate">Clientes nuevos</span>
+                        </div>
+                        <p className="text-2xl font-black text-violet-400">{newCustomersCount}</p>
+                        <p className="text-white/20 text-[10px] font-bold mt-0.5">esta semana</p>
+                      </div>
+                    );
+                    if (id === 'cashStatus' && widgetConfig.cashStatus) return (
+                      <button key="cashStatus" onClick={handleCashButtonClick} className={`bg-[#1C1C1E]/60 border rounded-[24px] p-4 text-left w-full active:scale-95 transition-all ${drawerOpen ? 'border-emerald-500/20' : 'border-red-500/20'}`}>
+                        <div className="flex items-center gap-2 mb-2">
+                          <Wallet className={`w-4 h-4 shrink-0 ${drawerOpen ? 'text-emerald-400' : 'text-red-400'}`} />
+                          <span className="text-white/60 text-[10px] font-black uppercase tracking-tight truncate">Caja</span>
+                        </div>
+                        <p className={`text-sm font-black ${drawerOpen ? 'text-emerald-400' : 'text-red-400'}`}>{drawerOpen ? '● Abierta' : '● Cerrada'}</p>
+                        <p className="text-white/20 text-[10px] font-bold mt-0.5">${Number(kpiIncome.today||0).toLocaleString("en-US",{maximumFractionDigits:0})} hoy</p>
+                      </button>
+                    );
+                    if (id === 'avgRepairTime' && widgetConfig.avgRepairTime) return (
+                      <div key="avgRepairTime" className="bg-[#1C1C1E]/60 border border-sky-500/20 rounded-[24px] p-4">
+                        <div className="flex items-center gap-2 mb-2">
+                          <Clock className="w-4 h-4 text-sky-400 shrink-0" />
+                          <span className="text-white/60 text-[10px] font-black uppercase tracking-tight truncate">T. Promedio</span>
+                        </div>
+                        <p className="text-2xl font-black text-sky-400">{avgRepairTime !== null ? `${avgRepairTime}d` : '—'}</p>
+                        <p className="text-white/20 text-[10px] font-bold mt-0.5">por reparación</p>
+                      </div>
+                    );
+                    if (id === 'technicianLoad' && widgetConfig.technicianLoad) return (
+                      <div key="technicianLoad" className="bg-[#1C1C1E]/60 border border-amber-500/20 rounded-[24px] p-4 col-span-2">
+                        <div className="flex items-center gap-2 mb-3">
+                          <Wrench className="w-4 h-4 text-amber-400 shrink-0" />
+                          <span className="text-white/60 text-[10px] font-black uppercase tracking-tight">Carga por Técnico</span>
+                        </div>
+                        {technicianLoad.length > 0 ? (
+                          <div className="grid grid-cols-2 gap-2">
+                            {technicianLoad.map(([name, count]) => (
+                              <div key={name} className="flex items-center justify-between bg-white/[0.03] rounded-xl px-3 py-1.5">
+                                <span className="text-white/60 text-[10px] font-bold truncate">{name}</span>
+                                <span className="text-amber-400 text-xs font-black ml-2 shrink-0">{count}</span>
+                              </div>
+                            ))}
+                          </div>
+                        ) : (
+                          <p className="text-white/20 text-xs text-center font-bold">Sin asignaciones</p>
+                        )}
+                      </div>
+                    );
+                    if (id === 'navNewOrder' && widgetConfig.navNewOrder) return (
+                      <button key="navNewOrder" onClick={() => setShowWorkOrderWizard(true)} className="bg-[#1C1C1E]/60 border border-sky-500/20 rounded-[24px] p-4 text-left active:scale-95 transition-all">
+                        <div className="flex items-center gap-2 mb-2">
+                          <ClipboardList className="w-4 h-4 text-sky-400 shrink-0" />
+                          <span className="text-white/60 text-[10px] font-black uppercase tracking-tight truncate">Nueva Orden</span>
+                        </div>
+                        <p className="text-white/40 text-xs font-bold">Crear orden</p>
+                      </button>
+                    );
+                    if (id === 'navOrders' && widgetConfig.navOrders) return (
+                      <button key="navOrders" onClick={() => handleNavigate("Orders")} className="bg-[#1C1C1E]/60 border border-purple-500/20 rounded-[24px] p-4 text-left active:scale-95 transition-all">
+                        <div className="flex items-center gap-2 mb-2">
+                          <ClipboardList className="w-4 h-4 text-purple-400 shrink-0" />
+                          <span className="text-white/60 text-[10px] font-black uppercase tracking-tight truncate">Órdenes</span>
+                        </div>
+                        <p className="text-white/40 text-xs font-bold">Ver historial</p>
+                      </button>
+                    );
+                    if (id === 'navInventory' && widgetConfig.navInventory) return (
+                      <button key="navInventory" onClick={() => handleNavigate("Inventory")} className="bg-[#1C1C1E]/60 border border-teal-500/20 rounded-[24px] p-4 text-left active:scale-95 transition-all">
+                        <div className="flex items-center gap-2 mb-2">
+                          <Package className="w-4 h-4 text-teal-400 shrink-0" />
+                          <span className="text-white/60 text-[10px] font-black uppercase tracking-tight truncate">Inventario</span>
+                        </div>
+                        <p className="text-white/40 text-xs font-bold">Stock</p>
+                      </button>
+                    );
+                    if (id === 'navFinancial' && widgetConfig.navFinancial) return (
+                      <button key="navFinancial" onClick={() => handleNavigate("Financial")} className="bg-[#1C1C1E]/60 border border-emerald-500/20 rounded-[24px] p-4 text-left active:scale-95 transition-all">
+                        <div className="flex items-center gap-2 mb-2">
+                          <Wallet className="w-4 h-4 text-emerald-400 shrink-0" />
+                          <span className="text-white/60 text-[10px] font-black uppercase tracking-tight truncate">Finanzas</span>
+                        </div>
+                        <p className="text-white/40 text-xs font-bold">Resumen</p>
+                      </button>
+                    );
+                    if (id === 'navReports' && widgetConfig.navReports) return (
+                      <button key="navReports" onClick={() => handleNavigate("FinancialReports")} className="bg-[#1C1C1E]/60 border border-indigo-500/20 rounded-[24px] p-4 text-left active:scale-95 transition-all">
+                        <div className="flex items-center gap-2 mb-2">
+                          <BarChart3 className="w-4 h-4 text-indigo-400 shrink-0" />
+                          <span className="text-white/60 text-[10px] font-black uppercase tracking-tight truncate">Reportes</span>
+                        </div>
+                        <p className="text-white/40 text-xs font-bold">P&L</p>
+                      </button>
+                    );
+                    return null;
+                  }).filter(Boolean);
+                  const customWidgetCards = customWidgets.map(widget => (
+                    <button key={widget.id} onClick={() => window.open(widget.url, '_blank')} className="bg-[#1C1C1E]/60 border border-white/10 rounded-[24px] p-4 text-left active:scale-95 transition-all">
+                      <div className="flex items-center gap-2 mb-2">
+                        <ExternalLink className="w-4 h-4 text-white/30 shrink-0" />
+                        <span className="text-white/60 text-[10px] font-black uppercase tracking-tight truncate">{widget.name}</span>
+                      </div>
+                      <p className="text-white/30 text-[10px] font-bold truncate">{widget.url.replace(/^https?:\/\//, '')}</p>
+                    </button>
+                  ));
+                  return [...widgetJSX, ...customWidgetCards];
+                })()}
 
               </div>
             )}

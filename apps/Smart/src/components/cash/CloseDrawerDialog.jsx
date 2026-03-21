@@ -53,6 +53,10 @@ export default function CloseDrawerDialog({ isOpen, onClose, drawer, onSuccess }
   const [salesSummary, setSalesSummary] = useState(null);
   const [editingSummaryField, setEditingSummaryField] = useState(null);
   const [dailyExpenses, setDailyExpenses] = useState([]);
+  const [showATHModal, setShowATHModal] = useState(false);
+  const [athTransactions, setAthTransactions] = useState([]);
+  const [loadingATH, setLoadingATH] = useState(false);
+  const [paymentMethodsList, setPaymentMethodsList] = useState(['cash','card','ath_movil']);
 
   // Refs para long press
   const pressTimer = useRef(null);
@@ -161,6 +165,39 @@ export default function CloseDrawerDialog({ isOpen, onClose, drawer, onSuccess }
         const setAside = percentage > 0 ? dailyByPercentage : dailyByAmount;
         return sum + setAside;
       }, 0);
+
+      // Load configured payment methods from settings
+      try {
+        const settingsRecs = await base44.entities.AppSettings.filter({ slug: "general.pos.payment_methods" }).catch(() => []);
+        if (settingsRecs?.length > 0) {
+          const raw = settingsRecs[0].value || "Cash, Card, ATH Móvil";
+          const methods = raw.split(",").map(m => m.trim().toLowerCase()
+            .replace(/á/g, 'a').replace(/é/g, 'e').replace(/í/g, 'i').replace(/ó/g, 'o').replace(/ú/g, 'u')
+            .replace(/\s+/g, '_'));
+          setPaymentMethodsList(methods.length > 0 ? methods : ['cash','card','ath_movil']);
+        }
+      } catch {}
+
+      // Build ATH transactions with details
+      const athSales = salesInDrawer.filter(s => {
+        if (s.payment_method === 'ath_movil') return true;
+        const methods = Array.isArray(s.payment_details?.methods) ? s.payment_details.methods : [];
+        return methods.some(m => m.method === 'ath_movil' && Number(m.amount || 0) > 0);
+      });
+      setAthTransactions(athSales.map(s => {
+        const methods = Array.isArray(s.payment_details?.methods) ? s.payment_details.methods : [];
+        const athAmount = methods.length > 0
+          ? methods.filter(m => m.method === 'ath_movil').reduce((sum, m) => sum + Number(m.amount || 0), 0)
+          : (s.payment_method === 'ath_movil' ? Number(s.amount_paid || s.total || 0) : 0);
+        return {
+          id: s.id,
+          customerName: s.customer_name || s.customer?.name || 'Sin nombre',
+          customerPhone: s.customer_phone || s.customer?.phone || '',
+          amount: athAmount,
+          date: s.created_date,
+          reference: s.order_number || s.id?.slice(-6) || ''
+        };
+      }));
 
       // Round to 2 decimals to avoid floating point artifacts
       setSalesSummary({
@@ -488,7 +525,7 @@ export default function CloseDrawerDialog({ isOpen, onClose, drawer, onSuccess }
                               </div>
                           </div>
                           <div 
-                            onClick={() => setEditingSummaryField({ field: 'totalATH', label: 'ATH Móvil', value: summary.totalATH })}
+                            onClick={() => setShowATHModal(true)}
                             className="bg-white/5 rounded-xl p-3 flex items-center justify-between hover:bg-white/10 cursor-pointer transition-colors active:scale-[0.98]"
                           >
                               <div className="flex items-center gap-2">
@@ -571,7 +608,7 @@ export default function CloseDrawerDialog({ isOpen, onClose, drawer, onSuccess }
                               </div>
                           </div>
                           <div 
-                            onClick={() => setEditingSummaryField({ field: 'totalATH', label: 'ATH Móvil', value: summary.totalATH })}
+                            onClick={() => setShowATHModal(true)}
                             className="bg-white/5 rounded-xl p-3 flex items-center justify-between group hover:bg-white/10 cursor-pointer transition-colors"
                           >
                               <div className="flex items-center gap-2">
@@ -700,6 +737,60 @@ export default function CloseDrawerDialog({ isOpen, onClose, drawer, onSuccess }
           currentValue={editingSummaryField?.value}
           onSave={handleSummaryUpdate}
       />
+
+      {/* ── ATH Móvil Transactions Modal ─────────────────────────── */}
+      {showATHModal && (
+        <div className="fixed inset-0 z-[9999] bg-black/70 backdrop-blur-sm flex items-center justify-center p-4" onClick={() => setShowATHModal(false)}>
+          <div className="bg-zinc-900 border border-orange-500/30 rounded-3xl max-w-md w-full max-h-[80vh] overflow-hidden shadow-2xl" onClick={e => e.stopPropagation()}>
+            <div className="bg-gradient-to-r from-orange-500/20 to-amber-500/20 border-b border-orange-500/20 p-5 flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-2xl bg-orange-500/20 border border-orange-500/30 flex items-center justify-center">
+                  <ArrowUpCircle className="w-5 h-5 text-orange-400" />
+                </div>
+                <div>
+                  <p className="text-white font-black text-lg">ATH Móvil</p>
+                  <p className="text-orange-300/70 text-xs">{athTransactions.length} transacciones · ${(summary?.totalATH || 0).toFixed(2)}</p>
+                </div>
+              </div>
+              <button onClick={() => setShowATHModal(false)} className="w-8 h-8 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 flex items-center justify-center text-white/50 hover:text-white transition-all">
+                <span className="text-lg leading-none">×</span>
+              </button>
+            </div>
+            <div className="p-4 overflow-y-auto max-h-[calc(80vh-120px)]">
+              {athTransactions.length === 0 ? (
+                <div className="text-center py-8">
+                  <ArrowUpCircle className="w-10 h-10 text-white/10 mx-auto mb-3" />
+                  <p className="text-white/30 font-bold">Sin transacciones ATH Móvil</p>
+                  <p className="text-white/15 text-xs mt-1">en este turno</p>
+                </div>
+              ) : (
+                <div className="space-y-2">
+                  {athTransactions.map((tx, i) => (
+                    <div key={tx.id || i} className="bg-white/5 border border-orange-500/15 rounded-2xl p-4 flex items-center justify-between gap-3">
+                      <div className="flex-1 min-w-0">
+                        <p className="text-white font-bold text-sm truncate">{tx.customerName}</p>
+                        {tx.customerPhone && (
+                          <p className="text-white/40 text-xs mt-0.5">{tx.customerPhone}</p>
+                        )}
+                        {tx.reference && (
+                          <p className="text-orange-400/60 text-[10px] font-bold mt-0.5">#{tx.reference}</p>
+                        )}
+                      </div>
+                      <div className="text-right flex-shrink-0">
+                        <p className="text-orange-400 font-black text-lg">${tx.amount.toFixed(2)}</p>
+                      </div>
+                    </div>
+                  ))}
+                  <div className="mt-3 pt-3 border-t border-white/5 flex justify-between items-center">
+                    <span className="text-white/40 text-xs font-bold">TOTAL ATH MÓVIL</span>
+                    <span className="text-orange-400 font-black text-xl">${(summary?.totalATH || 0).toFixed(2)}</span>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 }

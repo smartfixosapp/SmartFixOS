@@ -4,8 +4,9 @@ import {
   DollarSign, TrendingUp, PackageCheck, Timer,
   AlertCircle, ShoppingCart, Users, Clock, Wrench,
   ClipboardList, Package, Wallet, BarChart3, Layers,
-  LayoutGrid, Plus, Trash2, ExternalLink, Link
+  LayoutGrid, Plus, Trash2, ExternalLink, Link, GripVertical
 } from "lucide-react";
+import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 
@@ -252,6 +253,8 @@ export default function DashboardLinksConfig({ open, onClose }) {
     try { return localStorage.getItem("smartfix_daily_goal_override") || "1000"; } catch { return "1000"; }
   });
   const [customWidgets, setCustomWidgets] = useState([]);
+  const WIDGET_ORDER_KEY = "smartfix_widget_order";
+  const [widgetOrder, setWidgetOrder] = useState([]);
   const [showAddCustom, setShowAddCustom] = useState(false);
   const [newCustom, setNewCustom] = useState({ name: "", url: "" });
 
@@ -276,6 +279,16 @@ export default function DashboardLinksConfig({ open, onClose }) {
       const rawCustom = localStorage.getItem(CUSTOM_WIDGETS_KEY);
       setCustomWidgets(rawCustom ? JSON.parse(rawCustom) : []);
     } catch {}
+    try {
+      const rawOrder = localStorage.getItem("smartfix_widget_order");
+      if (rawOrder) {
+        setWidgetOrder(JSON.parse(rawOrder));
+      } else {
+        setWidgetOrder(AVAILABLE_WIDGETS.map(w => w.id));
+      }
+    } catch {
+      setWidgetOrder(AVAILABLE_WIDGETS.map(w => w.id));
+    }
   };
 
   const handleSave = () => {
@@ -287,6 +300,7 @@ export default function DashboardLinksConfig({ open, onClose }) {
         localStorage.setItem("smartfix_daily_goal_override", String(goalNum));
       }
       localStorage.setItem(CUSTOM_WIDGETS_KEY, JSON.stringify(customWidgets));
+      localStorage.setItem("smartfix_widget_order", JSON.stringify(widgetOrder));
       window.dispatchEvent(new CustomEvent('dashboard-widgets-updated'));
       window.dispatchEvent(new CustomEvent('dashboard-custom-widgets-updated'));
       toast.success("Configuración guardada");
@@ -323,10 +337,15 @@ export default function DashboardLinksConfig({ open, onClose }) {
     setCustomWidgets(prev => prev.filter(w => w.id !== id));
   };
 
-  if (!open) return null;
+  const handleDragEnd = (result) => {
+    if (!result.destination) return;
+    const newOrder = Array.from(widgetOrder);
+    const [moved] = newOrder.splice(result.source.index, 1);
+    newOrder.splice(result.destination.index, 0, moved);
+    setWidgetOrder(newOrder);
+  };
 
-  const navWidgets = AVAILABLE_WIDGETS.filter(w => w.group === "nav");
-  const dataWidgets = AVAILABLE_WIDGETS.filter(w => w.group !== "nav");
+  if (!open) return null;
 
   return (
     <div className="fixed inset-0 z-[9999] bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
@@ -366,97 +385,81 @@ export default function DashboardLinksConfig({ open, onClose }) {
             </div>
           ) : (
             <div className="space-y-6">
-              {/* ── Accesos Directos ── */}
+              {/* ── Widgets — Lista unificada con drag ── */}
               <div>
                 <p className="text-[10px] font-black text-white/30 uppercase tracking-widest mb-3 flex items-center gap-2">
                   <Layers className="w-3.5 h-3.5" />
-                  Accesos Directos
+                  Widgets · arrastra para reorganizar
                 </p>
-                <div className="space-y-3">
-                  {navWidgets.map((widget) => {
-                    const isEnabled = widgetConfig[widget.id] !== false && (widgetConfig[widget.id] === true || widget.defaultOn);
-                    const enabled = !!widgetConfig[widget.id];
-                    const IconComp = widget.icon;
-                    return (
+                <DragDropContext onDragEnd={handleDragEnd}>
+                  <Droppable droppableId="widgets-list">
+                    {(provided) => (
                       <div
-                        key={widget.id}
-                        className={`rounded-2xl border transition-all p-4 flex items-center gap-4 ${
-                          enabled
-                            ? `${widget.border} ${widget.bg}`
-                            : "border-slate-700/30 bg-slate-900/40 opacity-70"
-                        }`}
+                        {...provided.droppableProps}
+                        ref={provided.innerRef}
+                        className="space-y-2"
                       >
-                        <div className={`w-12 h-12 rounded-xl ${widget.bg} border ${widget.border} flex items-center justify-center flex-shrink-0`}>
-                          <IconComp className={`w-6 h-6 ${widget.color}`} />
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <p className="text-white font-bold">{widget.label}</p>
-                          <p className="text-slate-400 text-xs mt-0.5">{widget.description}</p>
-                        </div>
-                        <button
-                          onClick={() => setWidgetConfig(prev => ({ ...prev, [widget.id]: !prev[widget.id] }))}
-                          className={`px-4 py-2 rounded-xl font-semibold text-sm transition-all flex items-center gap-2 ${
-                            enabled
-                              ? "bg-gradient-to-r from-emerald-500 to-green-600 text-white shadow-lg"
-                              : "bg-slate-700/50 text-slate-400 border border-slate-600"
-                          }`}
-                        >
-                          {enabled ? (
-                            <><Eye className="w-4 h-4" /> Visible</>
-                          ) : (
-                            <><EyeOff className="w-4 h-4" /> Oculto</>
-                          )}
-                        </button>
+                        {widgetOrder
+                          .map(id => AVAILABLE_WIDGETS.find(w => w.id === id))
+                          .filter(Boolean)
+                          .map((widget, index) => {
+                            const enabled = !!widgetConfig[widget.id];
+                            const IconComp = widget.icon;
+                            return (
+                              <Draggable key={widget.id} draggableId={widget.id} index={index}>
+                                {(provided, snapshot) => (
+                                  <div
+                                    ref={provided.innerRef}
+                                    {...provided.draggableProps}
+                                    className={`rounded-2xl border transition-all p-3 flex items-center gap-3 ${
+                                      snapshot.isDragging ? "opacity-80 scale-[1.02] shadow-2xl" : ""
+                                    } ${
+                                      enabled
+                                        ? `${widget.border} ${widget.bg}`
+                                        : "border-slate-700/30 bg-slate-900/40 opacity-60"
+                                    }`}
+                                  >
+                                    {/* Drag handle */}
+                                    <div
+                                      {...provided.dragHandleProps}
+                                      className="text-white/20 hover:text-white/50 transition-colors cursor-grab active:cursor-grabbing flex-shrink-0"
+                                    >
+                                      <GripVertical className="w-4 h-4" />
+                                    </div>
+                                    {/* Icon */}
+                                    <div className={`w-9 h-9 rounded-xl ${widget.bg} border ${widget.border} flex items-center justify-center flex-shrink-0`}>
+                                      <IconComp className={`w-5 h-5 ${widget.color}`} />
+                                    </div>
+                                    {/* Label */}
+                                    <div className="flex-1 min-w-0">
+                                      <p className="text-white font-bold text-sm truncate">{widget.label}</p>
+                                      <p className="text-slate-400 text-[11px] mt-0.5 truncate">{widget.description}</p>
+                                    </div>
+                                    {/* Toggle */}
+                                    <button
+                                      onClick={() => setWidgetConfig(prev => ({ ...prev, [widget.id]: !prev[widget.id] }))}
+                                      className={`px-3 py-1.5 rounded-xl font-semibold text-xs transition-all flex items-center gap-1.5 flex-shrink-0 ${
+                                        enabled
+                                          ? "bg-gradient-to-r from-emerald-500 to-green-600 text-white shadow-md"
+                                          : "bg-slate-700/50 text-slate-400 border border-slate-600"
+                                      }`}
+                                    >
+                                      {enabled ? (
+                                        <><Eye className="w-3.5 h-3.5" /> Visible</>
+                                      ) : (
+                                        <><EyeOff className="w-3.5 h-3.5" /> Oculto</>
+                                      )}
+                                    </button>
+                                  </div>
+                                )}
+                              </Draggable>
+                            );
+                          })}
+                        {provided.placeholder}
                       </div>
-                    );
-                  })}
-                </div>
-              </div>
-
-              {/* ── Widgets de Datos ── */}
-              <div>
-                <p className="text-[10px] font-black text-white/30 uppercase tracking-widest mb-3 flex items-center gap-2">
-                  <Layers className="w-3.5 h-3.5" />
-                  Widgets de Datos
-                </p>
-                <div className="space-y-3">
-                  {dataWidgets.map((widget) => {
-                    const enabled = !!widgetConfig[widget.id];
-                    const IconComp = widget.icon;
-                    return (
-                      <div
-                        key={widget.id}
-                        className={`rounded-2xl border transition-all p-4 flex items-center gap-4 ${
-                          enabled
-                            ? `${widget.border} ${widget.bg}`
-                            : "border-slate-700/30 bg-slate-900/40 opacity-70"
-                        }`}
-                      >
-                        <div className={`w-12 h-12 rounded-xl ${widget.bg} border ${widget.border} flex items-center justify-center flex-shrink-0`}>
-                          <IconComp className={`w-6 h-6 ${widget.color}`} />
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <p className="text-white font-bold">{widget.label}</p>
-                          <p className="text-slate-400 text-xs mt-0.5">{widget.description}</p>
-                        </div>
-                        <button
-                          onClick={() => setWidgetConfig(prev => ({ ...prev, [widget.id]: !prev[widget.id] }))}
-                          className={`px-4 py-2 rounded-xl font-semibold text-sm transition-all flex items-center gap-2 ${
-                            enabled
-                              ? "bg-gradient-to-r from-emerald-500 to-green-600 text-white shadow-lg"
-                              : "bg-slate-700/50 text-slate-400 border border-slate-600"
-                          }`}
-                        >
-                          {enabled ? (
-                            <><Eye className="w-4 h-4" /> Visible</>
-                          ) : (
-                            <><EyeOff className="w-4 h-4" /> Oculto</>
-                          )}
-                        </button>
-                      </div>
-                    );
-                  })}
-                </div>
+                    )}
+                  </Droppable>
+                </DragDropContext>
               </div>
 
               {/* Meta diaria config */}
