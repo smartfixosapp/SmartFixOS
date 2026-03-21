@@ -1492,31 +1492,7 @@ export default function DeviceCatalogManager() {
           </div>
 
           <div className="flex gap-2 flex-wrap">
-            {/* Solo mostrar si hay datos locales sin subir (fallback offline) */}
-            {(() => {
-              const lc = readLocalDeviceCatalog();
-              const hasLocal = [...lc.categories, ...lc.brands, ...lc.families, ...lc.models].some((e) => isLocalCatalogId(e.id));
-              return hasLocal ? (
-                <Button
-                  onClick={() => syncLocalToSupabase(false)}
-                  disabled={syncing || loading}
-                  variant="outline"
-                  className="border-amber-500/40 bg-amber-500/10 text-amber-300 hover:bg-amber-500/15"
-                >
-                  <RefreshCw className={`mr-2 h-4 w-4 ${syncing ? "animate-spin" : ""}`} />
-                  {syncing ? "Sincronizando..." : "⚠️ Datos offline pendientes — Subir ahora"}
-                </Button>
-              ) : null;
-            })()}
-            <Button
-              onClick={normalizeFamilies}
-              disabled={normalizing || !models.length}
-              variant="outline"
-              className="border-amber-500/40 bg-amber-500/10 text-amber-300 hover:bg-amber-500/15"
-            >
-              <Wrench className="mr-2 h-4 w-4" />
-              {normalizing ? "Normalizando..." : "Normalizar familias"}
-            </Button>
+            {/* Sincronización automática — botones manuales eliminados */}
           </div>
         </div>
       </div>

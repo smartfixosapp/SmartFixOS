@@ -210,19 +210,19 @@ export default function SettingsPage() {
     }
   };
 
+  // Botones predeterminados del Dashboard — solo los 5 esenciales activos por defecto
   const ADMIN_CORE_DASHBOARD_BUTTONS = [
-    { id: "new_order", label: "Nueva Orden", icon: "ClipboardList", gradient: "from-blue-500 to-cyan-600", action: "showWorkOrderWizard", type: "modal", enabled: true },
-    { id: "orders", label: "Órdenes", icon: "ClipboardList", gradient: "from-purple-500 to-pink-600", action: "Orders", type: "navigate", enabled: true },
-    { id: "pos", label: "POS", icon: "Wallet", gradient: "from-green-600 to-emerald-700", action: "POS", type: "navigate", enabled: true },
-    { id: "customers", label: "Clientes", icon: "Users", gradient: "from-blue-600 to-indigo-700", action: "Customers", type: "navigate", enabled: true },
-    { id: "inventory", label: "Inventario", icon: "Package", gradient: "from-teal-500 to-cyan-600", action: "Inventory", type: "navigate", enabled: true },
-    { id: "financial", label: "Finanzas", icon: "Wallet", gradient: "from-emerald-600 to-green-700", action: "Financial", type: "navigate", enabled: true },
-    { id: "reports", label: "Reportes", icon: "BarChart3", gradient: "from-blue-600 to-indigo-700", action: "Reports", type: "navigate", enabled: true },
-    { id: "recharges", label: "Recargas", icon: "Zap", gradient: "from-amber-500 to-yellow-600", action: "Recharges", type: "navigate", enabled: true },
-    { id: "technicians", label: "Técnicos", icon: "Wrench", gradient: "from-cyan-500 to-blue-600", action: "Technicians", type: "navigate", enabled: true },
-    { id: "notifications", label: "Notificaciones", icon: "Bell", gradient: "from-orange-500 to-red-600", action: "Notifications", type: "navigate", enabled: true },
-    { id: "users", label: "Panel Administrativo", icon: "Users", gradient: "from-pink-500 to-rose-600", action: "UsersManagement", type: "navigate", enabled: true },
-    { id: "database", label: "Base de Datos", icon: "SettingsIcon", gradient: "from-cyan-600 to-blue-600", action: "Settings", type: "navigate", enabled: true }
+    { id: "new_order",      label: "Nueva Orden",          icon: "ClipboardList", gradient: "from-blue-500 to-cyan-600",    action: "showWorkOrderWizard", type: "modal",    enabled: true  },
+    { id: "orders",         label: "Órdenes",              icon: "ClipboardList", gradient: "from-purple-500 to-pink-600",  action: "Orders",              type: "navigate", enabled: true  },
+    { id: "inventory",      label: "Inventario",           icon: "Package",       gradient: "from-teal-500 to-cyan-600",   action: "Inventory",           type: "navigate", enabled: true  },
+    { id: "financial",      label: "Finanzas",             icon: "Wallet",        gradient: "from-emerald-600 to-green-700", action: "Financial",          type: "navigate", enabled: true  },
+    { id: "reports",        label: "Reportes",             icon: "BarChart3",     gradient: "from-blue-600 to-indigo-700", action: "Reports",             type: "navigate", enabled: true  },
+    { id: "pos",            label: "POS",                  icon: "Wallet",        gradient: "from-green-600 to-emerald-700", action: "POS",                type: "navigate", enabled: false },
+    { id: "customers",      label: "Clientes",             icon: "Users",         gradient: "from-blue-600 to-indigo-700", action: "Customers",           type: "navigate", enabled: false },
+    { id: "recharges",      label: "Recargas",             icon: "Zap",           gradient: "from-amber-500 to-yellow-600", action: "Recharges",          type: "navigate", enabled: false },
+    { id: "technicians",    label: "Técnicos",             icon: "Wrench",        gradient: "from-cyan-500 to-blue-600",   action: "Technicians",         type: "navigate", enabled: false },
+    { id: "notifications",  label: "Notificaciones",       icon: "Bell",          gradient: "from-orange-500 to-red-600",  action: "Notifications",       type: "navigate", enabled: false },
+    { id: "users",          label: "Panel Administrativo", icon: "Users",         gradient: "from-pink-500 to-rose-600",   action: "UsersManagement",     type: "navigate", enabled: false },
   ];
 
   const mergeAdminDashboardButtons = (savedButtons = []) => {
@@ -841,7 +841,7 @@ export default function SettingsPage() {
           id: "regional",
           icon: Globe,
           title: "Regional y Fiscal",
-          description: "Idioma, moneda, impuestos",
+          description: "Idioma, moneda, zona horaria e impuestos",
           color: "from-blue-600 to-indigo-600",
         },
         {
@@ -867,8 +867,8 @@ export default function SettingsPage() {
         {
           id: "wizard",
           icon: ClipboardList,
-          title: "Órdenes",
-          description: "Configurar wizard de nueva orden",
+          title: "Catálogo",
+          description: "Dispositivos, marcas y modelos",
           color: "from-violet-600 to-purple-600",
         },
         {
@@ -896,6 +896,22 @@ export default function SettingsPage() {
           navigateTo: "UsersManagement"
         },
         {
+          id: "time_tracking",
+          icon: Clock,
+          title: "Control de Tiempo",
+          description: "Asistencia y registros de entrada/salida",
+          color: "from-emerald-500 to-green-600",
+          isNavigation: true,
+          navigateTo: "TimeTracking"
+        },
+        {
+          id: "payment_methods",
+          icon: CreditCard,
+          title: "Métodos de Pago",
+          description: "Efectivo, tarjeta, ATH Móvil y más",
+          color: "from-green-600 to-teal-600",
+        },
+        {
           id: "reports_nav",
           icon: BarChart3,
           title: "Reportes",
@@ -913,29 +929,14 @@ export default function SettingsPage() {
           isNavigation: true,
           navigateTo: "Financial"
         },
-        ...(isMobileDevice ? [{
+        // Seguridad y Sesión — biometría + timeout, visible para TODOS
+        {
           id: "biometric",
           icon: Fingerprint,
-          title: "Face ID / Huella",
-          description: "Acceso biométrico al dispositivo",
-          color: "from-emerald-600 to-teal-600",
-        }] : []),
-        // Timeout de sesión — visible para TODOS los usuarios
-        {
-          id: "mi_sesion",
-          icon: Clock,
-          title: "Mi Sesión",
-          description: "Tiempo de inactividad antes de pedir PIN",
-          color: "from-violet-600 to-purple-600",
+          title: "Seguridad y Sesión",
+          description: "Biometría y tiempo de inactividad",
+          color: "from-indigo-500 to-purple-600",
         },
-        // Novedades — solo admin / super admin
-        ...(isAdmin || isSuperAdmin ? [{
-          id: "novedades_admin",
-          icon: Sparkles,
-          title: "Novedades",
-          description: "Publicar actualizaciones del sistema",
-          color: "from-amber-500 to-orange-600",
-        }] : []),
       ]
     },
   ];
@@ -1371,70 +1372,155 @@ export default function SettingsPage() {
           {/* EMAIL TEMPLATES */}
           {activeSection === "email_templates" && <EmailTemplatesTab />}
 
-          {/* MI SESIÓN — timeout personalizado por usuario */}
-          {activeSection === "mi_sesion" && <UserSessionSettings />}
-
-          {/* NOVEDADES — admin panel para publicar updates */}
-          {activeSection === "novedades_admin" && <UpdatesManager />}
-
-          {/* BIOMETRIC */}
+          {/* SEGURIDAD Y SESIÓN — biometría + timeout por usuario */}
           {activeSection === "biometric" && (
-            <div className="space-y-4">
-              <div className="bg-gradient-to-br from-white/10 to-white/5 border border-white/10 rounded-[28px] p-7 backdrop-blur-xl shadow-2xl space-y-5">
-                {/* Status */}
-                <div className="flex items-center gap-4">
-                  <div className={`w-16 h-16 rounded-2xl flex items-center justify-center ${biometricProfile ? "bg-emerald-500/20 border border-emerald-500/30" : "bg-white/5 border border-white/10"}`}>
-                    {/iphone|ipad|mac/i.test(navigator.userAgent) ? (
-                      <svg viewBox="0 0 24 24" className={`w-8 h-8 ${biometricProfile ? "text-emerald-400" : "text-white/30"}`} fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round">
-                        <path d="M9 3H5a2 2 0 00-2 2v4M9 3h6M15 3h4a2 2 0 012 2v4M3 15v4a2 2 0 002 2h4m6 0h4a2 2 0 002-2v-4M9 9h.01M15 9h.01M9 14.5s1 1.5 3 1.5 3-1.5 3-1.5" />
-                      </svg>
+            <div className="space-y-6">
+              {/* ── Sección Biometría (solo en dispositivos con soporte) ── */}
+              {(isMobileDevice || biometricSupported) && (
+                <div className="bg-gradient-to-br from-white/10 to-white/5 border border-white/10 rounded-[28px] p-7 backdrop-blur-xl shadow-2xl space-y-5">
+                  <div className="flex items-center gap-3 mb-2">
+                    <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-indigo-500/30 to-purple-500/20 border border-indigo-500/20 flex items-center justify-center">
+                      <Fingerprint className="w-5 h-5 text-indigo-300" />
+                    </div>
+                    <div>
+                      <p className="text-white font-black text-base">Acceso Biométrico</p>
+                      <p className="text-white/40 text-xs">Face ID, Touch ID o huella digital</p>
+                    </div>
+                  </div>
+
+                  {/* Status */}
+                  <div className="flex items-center gap-4">
+                    <div className={`w-16 h-16 rounded-2xl flex items-center justify-center ${biometricProfile ? "bg-emerald-500/20 border border-emerald-500/30" : "bg-white/5 border border-white/10"}`}>
+                      {/iphone|ipad|mac/i.test(navigator.userAgent) ? (
+                        <svg viewBox="0 0 24 24" className={`w-8 h-8 ${biometricProfile ? "text-emerald-400" : "text-white/30"}`} fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round">
+                          <path d="M9 3H5a2 2 0 00-2 2v4M9 3h6M15 3h4a2 2 0 012 2v4M3 15v4a2 2 0 002 2h4m6 0h4a2 2 0 002-2v-4M9 9h.01M15 9h.01M9 14.5s1 1.5 3 1.5 3-1.5 3-1.5" />
+                        </svg>
+                      ) : (
+                        <Fingerprint className={`w-8 h-8 ${biometricProfile ? "text-emerald-400" : "text-white/30"}`} />
+                      )}
+                    </div>
+                    <div>
+                      <p className="text-white font-bold text-lg">
+                        {/iphone|ipad|mac/i.test(navigator.userAgent) ? "Face ID" : "Huella digital"}
+                      </p>
+                      <p className={`text-sm font-medium ${biometricProfile ? "text-emerald-400" : "text-white/40"}`}>
+                        {biometricProfile ? "Activo en este dispositivo" : "No configurado"}
+                      </p>
+                      {biometricProfile?.session?.userName && (
+                        <p className="text-white/50 text-xs mt-0.5">Usuario: {biometricProfile.session.userName}</p>
+                      )}
+                    </div>
+                  </div>
+
+                  <p className="text-white/50 text-sm">
+                    {biometricSupported
+                      ? "Activa el acceso biométrico para entrar sin escribir tu PIN cada vez."
+                      : "Este dispositivo no soporta autenticación biométrica."}
+                  </p>
+
+                  {biometricSupported && (
+                    biometricProfile ? (
+                      <button
+                        onClick={clearBiometricProfile}
+                        disabled={biometricLoading}
+                        className="w-full h-12 rounded-2xl border border-red-500/30 bg-red-500/10 text-red-400 font-semibold hover:bg-red-500/15 transition-all active:scale-95 disabled:opacity-40"
+                      >
+                        Quitar Face ID / Huella de este dispositivo
+                      </button>
                     ) : (
-                      <Fingerprint className={`w-8 h-8 ${biometricProfile ? "text-emerald-400" : "text-white/30"}`} />
-                    )}
+                      <button
+                        onClick={handleEnableBiometric}
+                        disabled={biometricLoading}
+                        className="w-full h-12 rounded-2xl bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-bold transition-all active:scale-95 disabled:opacity-40 flex items-center justify-center gap-2"
+                      >
+                        {biometricLoading ? (
+                          <><div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> Activando...</>
+                        ) : (
+                          <>{/iphone|ipad|mac/i.test(navigator.userAgent) ? "Activar Face ID" : "Activar Huella digital"}</>
+                        )}
+                      </button>
+                    )
+                  )}
+                </div>
+              )}
+
+              {/* ── Sección Tiempo de Inactividad ── */}
+              <UserSessionSettings />
+            </div>
+          )}
+
+          {/* MÉTODOS DE PAGO */}
+          {activeSection === "payment_methods" && (
+            <div className="space-y-6">
+              <div className="bg-gradient-to-br from-white/10 to-white/5 border border-white/10 rounded-[28px] p-7 backdrop-blur-xl shadow-2xl space-y-5">
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-green-500/30 to-teal-500/20 border border-green-500/20 flex items-center justify-center">
+                    <CreditCard className="w-6 h-6 text-green-300" />
                   </div>
                   <div>
-                    <p className="text-white font-bold text-lg">
-                      {/iphone|ipad|mac/i.test(navigator.userAgent) ? "Face ID" : "Huella digital"}
-                    </p>
-                    <p className={`text-sm font-medium ${biometricProfile ? "text-emerald-400" : "text-white/40"}`}>
-                      {biometricProfile ? "Activo en este dispositivo" : "No configurado"}
-                    </p>
-                    {biometricProfile?.session?.userName && (
-                      <p className="text-white/50 text-xs mt-0.5">Usuario: {biometricProfile.session.userName}</p>
-                    )}
+                    <p className="text-white font-black text-lg">Métodos habilitados</p>
+                    <p className="text-white/40 text-sm">Activa los que acepta tu negocio</p>
                   </div>
                 </div>
 
-                <p className="text-white/50 text-sm">
-                  {biometricSupported
-                    ? "Activa el acceso biométrico para entrar al sistema sin escribir tu PIN cada vez."
-                    : "Este dispositivo no soporta autenticación biométrica."}
-                </p>
+                {[
+                  { key: "cash",          label: "Efectivo",         icon: "💵" },
+                  { key: "card",          label: "Tarjeta",          icon: "💳" },
+                  { key: "ath_movil",     label: "ATH Móvil",        icon: "📱" },
+                  { key: "bank_transfer", label: "Transferencia",    icon: "🏦" },
+                  { key: "check",         label: "Cheque",           icon: "📝" },
+                ].map(({ key, label, icon }) => (
+                  <div key={key} className="flex items-center justify-between py-3 border-b border-white/5 last:border-0">
+                    <span className="text-white font-semibold text-base">{icon} {label}</span>
+                    <button
+                      onClick={() => setPaymentMethods({ ...paymentMethods, [key]: !paymentMethods[key] })}
+                      className={`w-12 h-7 rounded-full transition-colors relative flex items-center px-1 ${paymentMethods[key] ? "bg-green-500" : "bg-white/10"}`}
+                    >
+                      <div className={`w-5 h-5 rounded-full bg-white shadow-sm transition-transform ${paymentMethods[key] ? "translate-x-5" : "translate-x-0"}`} />
+                    </button>
+                  </div>
+                ))}
 
-                {biometricSupported && (
-                  biometricProfile ? (
-                    <button
-                      onClick={clearBiometricProfile}
-                      disabled={biometricLoading}
-                      className="w-full h-12 rounded-2xl border border-red-500/30 bg-red-500/10 text-red-400 font-semibold hover:bg-red-500/15 transition-all active:scale-95 disabled:opacity-40"
-                    >
-                      Quitar Face ID / Huella de este dispositivo
-                    </button>
-                  ) : (
-                    <button
-                      onClick={handleEnableBiometric}
-                      disabled={biometricLoading}
-                      className="w-full h-12 rounded-2xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-bold transition-all active:scale-95 disabled:opacity-40 flex items-center justify-center gap-2"
-                    >
-                      {biometricLoading ? (
-                        <><div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> Activando...</>
-                      ) : (
-                        <>{/iphone|ipad|mac/i.test(navigator.userAgent) ? "Activar Face ID" : "Activar Huella digital"}</>
-                      )}
-                    </button>
-                  )
+                {/* Métodos personalizados */}
+                {customPaymentMethods.length > 0 && (
+                  <div className="pt-2 space-y-2">
+                    <p className="text-white/40 text-xs font-bold uppercase tracking-wider">Personalizados</p>
+                    {customPaymentMethods.map((method, i) => (
+                      <div key={i} className="flex items-center justify-between py-2">
+                        <span className="text-white font-semibold">✨ {method}</span>
+                        <button
+                          onClick={() => removeCustomMethod(i)}
+                          className="text-red-400 hover:text-red-300 p-1 rounded-lg hover:bg-red-500/10 transition-all"
+                        >
+                          <X className="w-4 h-4" />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
                 )}
+
+                {/* Añadir método personalizado */}
+                <div className="flex gap-2 pt-2">
+                  <Input
+                    value={newCustomMethod}
+                    onChange={(e) => setNewCustomMethod(e.target.value)}
+                    onKeyDown={(e) => e.key === "Enter" && addCustomMethod()}
+                    placeholder="Nombre del método personalizado"
+                    className="bg-white/5 border-white/10 rounded-xl h-11 text-white placeholder-white/20 focus:bg-white/10 flex-1"
+                  />
+                  <Button onClick={addCustomMethod} className="bg-green-600 hover:bg-green-500 text-white rounded-xl h-11 px-4 font-bold">
+                    <Plus className="w-4 h-4" />
+                  </Button>
+                </div>
               </div>
+
+              <Button
+                onClick={savePaymentMethods}
+                disabled={loading}
+                className="w-full bg-gradient-to-r from-green-500 to-teal-500 hover:from-green-600 hover:to-teal-600 text-white rounded-[20px] h-14 text-lg font-black shadow-[0_0_30px_rgba(16,185,129,0.4)] active:scale-95 transition-all duration-300"
+              >
+                {loading ? <Loader2 className="w-5 h-5 mr-2 animate-spin" /> : "Guardar Métodos de Pago"}
+              </Button>
             </div>
           )}
 
