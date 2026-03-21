@@ -87,11 +87,27 @@ export function upsertLocalTransactions(transactions = []) {
 }
 
 export function mergeSales(remote = []) {
-  return mergeById(Array.isArray(remote) ? remote : [], getLocalSales());
+  const remoteList = Array.isArray(remote) ? remote : [];
+  if (remoteList.length > 0) {
+    // Supabase is source of truth: include local only if not in remote
+    const remoteIds = new Set(remoteList.map((r) => String(r?.id || "")));
+    const localOnly = getLocalSales().filter((s) => !remoteIds.has(String(s?.id || "")));
+    return mergeById(remoteList, localOnly);
+  }
+  // Offline fallback
+  return mergeById(remoteList, getLocalSales());
 }
 
 export function mergeTransactions(remote = []) {
-  return mergeById(Array.isArray(remote) ? remote : [], getLocalTransactions());
+  const remoteList = Array.isArray(remote) ? remote : [];
+  if (remoteList.length > 0) {
+    // Supabase is source of truth: include local only if not in remote
+    const remoteIds = new Set(remoteList.map((r) => String(r?.id || "")));
+    const localOnly = getLocalTransactions().filter((t) => !remoteIds.has(String(t?.id || "")));
+    return mergeById(remoteList, localOnly);
+  }
+  // Offline fallback
+  return mergeById(remoteList, getLocalTransactions());
 }
 
 const LOCAL_FIXED_EXPENSES_KEY = "smartfix_local_fixed_expenses";

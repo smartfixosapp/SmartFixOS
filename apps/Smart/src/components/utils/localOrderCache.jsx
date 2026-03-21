@@ -305,8 +305,28 @@ export function upsertLocalOrder(order) {
 }
 
 export function mergeOrders(remoteOrders = [], localOrders = []) {
+  // If we have remote data, remote is the source of truth.
+  // Local-only orders (not in remote) are included only as offline fallback.
+  const remoteList = Array.isArray(remoteOrders) ? remoteOrders.map(normalizeOrder).filter(Boolean) : [];
+  const remoteIds = new Set(remoteList.map((o) => String(o?.id || "")));
+  const remoteNumbers = new Set(
+    remoteList.map((o) => canonicalOrderNumber(o?.order_number)).filter(Boolean)
+  );
+
+  const localList = Array.isArray(localOrders) ? localOrders.map(normalizeOrder).filter(Boolean) : [];
+
+  // Only include local orders that are genuinely not in Supabase (offline-created)
+  const localOnlyOrders = remoteList.length > 0
+    ? localList.filter((o) => {
+        const id = String(o?.id || "");
+        const num = canonicalOrderNumber(o?.order_number);
+        return !remoteIds.has(id) && !(num && remoteNumbers.has(num));
+      })
+    : localList;
+
   const map = new Map();
-  [...localOrders, ...remoteOrders].forEach((order) => {
+  // Remote goes in last (wins on conflict)
+  [...localOnlyOrders, ...remoteList].forEach((order) => {
     const normalized = normalizeOrder(order);
     if (!normalized) return;
     const canonicalNumber = canonicalOrderNumber(normalized.order_number);

@@ -77,14 +77,23 @@ export default function Customers() {
           }
         }
 
-        const merged = dedupeById([...remoteList, ...local]);
-        if (local.length > 0) {
-          const remainingLocal = local.filter((c) => !remoteList.some((r) => r.id === c.id));
-          writeLocalCustomers(remainingLocal);
+        // Sync any local-only customers (created offline) to Supabase, then clear them
+        const localOnlyCustomers = local.filter((c) => !remoteList.some((r) => r.id === c.id));
+        if (localOnlyCustomers.length > 0 && tenantId) {
+          Promise.allSettled(
+            localOnlyCustomers.map((c) =>
+              supabase.from("customer").upsert({ ...c, tenant_id: tenantId }).then(() => {})
+            )
+          ).then(() => {
+            writeLocalCustomers([]); // clear local after sync
+          });
+        } else if (localOnlyCustomers.length === 0) {
+          writeLocalCustomers([]); // no orphans — clear local cache, Supabase is source of truth
         }
-        return merged;
+        return remoteList; // Supabase is the source of truth
       } catch {
-        return dedupeById(local);
+        // Offline fallback: use local cache
+        return dedupeById([...local]);
       }
     }
   });
