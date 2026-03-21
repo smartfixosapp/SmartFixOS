@@ -1453,18 +1453,14 @@ export default function WorkOrderWizard({ open, onClose, onSuccess, preloadedCus
         const compatModels = Array.isArray(p.compatibility_models) ? p.compatibility_models : [];
         const compatFamilies = Array.isArray(p.compatible_families) ? p.compatible_families : [];
         const compatBrands = Array.isArray(p.compatible_brands) ? p.compatible_brands : [];
-        const hasModelCompatExact = compatModels.some(m => normalizedText(m) === modelLower);
-        const hasModelCompatLoose = compatModels.some(m => normalizedText(m).includes(modelLower));
-        const hasFamilyMatch = familyLower && compatFamilies.some(f => normalizedText(f) === familyLower || normalizedText(f).includes(familyLower));
-        const hasBrandMatch = brandLower && compatBrands.some(b => normalizedText(b) === brandLower || normalizedText(b).includes(brandLower));
-        const nameHasExactModel = nameLower.includes(modelLower);
-        const nameHasFamily = familyLower && nameLower.includes(familyLower);
-        const nameHasBrand = brandLower && nameLower.includes(brandLower);
+
         const typeExactInProduct =
           normalizedNameKey(p?.device_category) === normalizedTypeKey ||
           normalizedNameKey(p?.category) === normalizedTypeKey ||
           normalizedNameKey(p?.part_type) === normalizedTypeKey ||
           normalizedNameKey(p?.tipo_principal) === normalizedTypeKey;
+        const categoryMatched = deviceCategoryMatch(p) || typeExactInProduct;
+
         const looksLikeService =
           normalizedNameKey(p?.part_type) === "servicio" ||
           normalizedNameKey(p?.part_type) === "service" ||
@@ -1472,17 +1468,33 @@ export default function WorkOrderWizard({ open, onClose, onSuccess, preloadedCus
           normalizedNameKey(p?.category) === "diagnostic" ||
           nameLower.includes("diagnostic") ||
           nameLower.includes("diagnostico");
-        const nameMatch =
-          nameHasExactModel ||
-          nameHasFamily ||
-          nameHasBrand;
 
-        const categoryMatched = deviceCategoryMatch(p) || typeExactInProduct;
-        const strongMatch = hasModelCompatExact || nameHasExactModel;
-        const mediumMatch = hasModelCompatLoose || hasFamilyMatch || hasBrandMatch || nameMatch;
-        const typeOnlyServiceMatch = categoryMatched && looksLikeService;
+        // Services/diagnostics: match by device type/category only
+        // (e.g. "Diagnóstico SmartPhone" shows for any SmartPhone regardless of model)
+        if (looksLikeService) return categoryMatched;
 
-        return categoryMatched && (strongMatch || mediumMatch || typeOnlyServiceMatch);
+        // Parts/products: smart matching based on what's selected
+        const nameHasModel = modelLower && nameLower.includes(modelLower);
+        const compatHasModel = modelLower && compatModels.some(m => normalizedText(m).includes(modelLower));
+        const nameHasFamily = familyLower && nameLower.includes(familyLower);
+        const compatHasFamily = familyLower && compatFamilies.some(f => normalizedText(f).includes(familyLower));
+        const nameHasBrand = brandLower && nameLower.includes(brandLower);
+        const compatHasBrand = brandLower && compatBrands.some(b => normalizedText(b).includes(brandLower));
+
+        if (modelLower) {
+          // Model selected → REQUIRE model keyword in name or compatibility_models
+          return categoryMatched && (nameHasModel || compatHasModel);
+        }
+        if (familyLower) {
+          // Family selected (no model) → match by family
+          return categoryMatched && (nameHasFamily || compatHasFamily);
+        }
+        if (brandLower) {
+          // Brand only → match by brand
+          return categoryMatched && (nameHasBrand || compatHasBrand);
+        }
+        // Category only → show all matching category
+        return categoryMatched;
       });
 
       const ranked = filtered.sort((a, b) => {
