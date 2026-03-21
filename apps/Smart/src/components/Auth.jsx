@@ -14,17 +14,57 @@ const PUBLIC_PATHS = new Set([
   "/returnlogin",
 ]);
 
-function readPinSession() {
-  const raw =
-    localStorage.getItem("employee_session") ||
-    sessionStorage.getItem("911-session");
+// ─── Timeouts ──────────────────────────────────────────────────────────────
+/** Inactividad dentro de la app → PinAccess */
+const INACTIVITY_MS = 5 * 60 * 1000; // 5 minutos
 
+/**
+ * Tiempo en segundo plano (multitarea / cambio de pestaña) antes de pedir PIN.
+ * 30 s → cambios rápidos de app no interrumpen, pero irse a la multitarea sí.
+ */
+const BACKGROUND_GRACE_MS = 30 * 1000; // 30 segundos
+
+/** Clave en localStorage para guardar cuándo fue el último "hide" */
+const BG_TS_KEY = "_sfos_bg_ts";
+
+const ACTIVITY_EVENTS = [
+  "mousemove",
+  "mousedown",
+  "keydown",
+  "touchstart",
+  "scroll",
+  "click",
+  "pointerdown",
+];
+
+// ─── Helpers ───────────────────────────────────────────────────────────────
+function clearAllSessions() {
+  localStorage.removeItem("employee_session");
+  sessionStorage.removeItem("911-session");
+  localStorage.removeItem(BG_TS_KEY);
+}
+
+function isPublicPath(path = window.location.pathname) {
+  return PUBLIC_PATHS.has(path);
+}
+
+function readPinSession() {
+  const ssRaw = sessionStorage.getItem("911-session");
+  const lsRaw = localStorage.getItem("employee_session");
+
+  // Si sessionStorage está vacío pero localStorage tiene datos →
+  // la pestaña/app fue cerrada y reabierta → forzar re-login
+  if (!ssRaw && lsRaw) {
+    localStorage.removeItem("employee_session");
+    return null;
+  }
+
+  const raw = ssRaw || lsRaw;
   if (!raw) return null;
 
   try {
     const session = JSON.parse(raw);
     if (!session?.id) return null;
-
     return {
       id: session.id,
       email: session.email || session.userEmail || "",
@@ -40,13 +80,62 @@ function readPinSession() {
   }
 }
 
+// ─── Componente ────────────────────────────────────────────────────────────
 export default function AuthGate({ children }) {
   const [user, setUser] = React.useState(null);
   const [isCheckingAuth, setIsCheckingAuth] = React.useState(true);
+  const inactivityTimerRef = React.useRef(null);
 
+  // ── Logout ────────────────────────────────────────────────────────────
+  const handleLogout = React.useCallback((reason = "manual") => {
+    if (inactivityTimerRef.current) {
+      clearTimeout(inactivityTimerRef.current);
+      inactivityTimerRef.current = null;
+    }
+    clearAllSessions();
+    setUser(null);
+    window.location.href = reason === "manual" ? "/Welcome" : "/PinAccess";
+  }, []);
+
+  // ── Ir a PinAccess sin destruir la sesión visual ──────────────────────
+  // (la sesión se re-valida cuando el usuario entra el PIN exitosamente)
+  const requirePin = React.useCallback(() => {
+    if (inactivityTimerRef.current) {
+      clearTimeout(inactivityTimerRef.current);
+      inactivityTimerRef.current = null;
+    }
+    clearAllSessions();
+    setUser(null);
+    window.location.href = "/PinAccess";
+  }, []);
+
+  // ── Timer de inactividad ──────────────────────────────────────────────
+  const resetInactivityTimer = React.useCallback(() => {
+    if (isPublicPath()) return;
+    if (inactivityTimerRef.current) clearTimeout(inactivityTimerRef.current);
+    inactivityTimerRef.current = setTimeout(requirePin, INACTIVITY_MS);
+  }, [requirePin]);
+
+  // ── Verificar auth en mount ───────────────────────────────────────────
   React.useEffect(() => {
     const currentPath = window.location.pathname;
-    const isPublicPath = PUBLIC_PATHS.has(currentPath);
+
+    // Limpiar cualquier _bg_ts que pudo haber quedado de un cierre previo
+    // Si hay _bg_ts muy antiguo (> 1 min) sin que el app haya vuelto, ignorarlo
+    const bgTs = localStorage.getItem(BG_TS_KEY);
+    if (bgTs) {
+      const elapsed = Date.now() - parseInt(bgTs, 10);
+      if (elapsed > BACKGROUND_GRACE_MS) {
+        // El app fue cerrado mientras estaba en background → re-login
+        clearAllSessions();
+        if (!isPublicPath(currentPath)) {
+          window.location.href = "/PinAccess";
+          return;
+        }
+      }
+      localStorage.removeItem(BG_TS_KEY);
+    }
+
     const sessionUser = readPinSession();
 
     if (sessionUser) {
@@ -58,21 +147,92 @@ export default function AuthGate({ children }) {
     setUser(null);
     setIsCheckingAuth(false);
 
-    if (!isPublicPath) {
-      window.location.href = "/Welcome";
+    if (!isPublicPath(currentPath)) {
+      window.location.href = "/PinAccess";
     }
   }, []);
 
-  const handleLogout = async () => {
-    localStorage.removeItem("employee_session");
-    sessionStorage.removeItem("911-session");
-    setUser(null);
-    window.location.href = "/Welcome";
-  };
+  // ── Eventos de actividad → resetear timer ────────────────────────────
+  React.useEffect(() => {
+    if (!user || isPublicPath()) return;
 
-  if (isCheckingAuth) {
-    return null;
-  }
+    ACTIVITY_EVENTS.forEach((ev) =>
+      window.addEventListener(ev, resetInactivityTimer, { passive: true })
+    );
+    resetInactivityTimer();
+
+    return () => {
+      ACTIVITY_EVENTS.forEach((ev) =>
+        window.removeEventListener(ev, resetInactivityTimer)
+      );
+      if (inactivityTimerRef.current) {
+        clearTimeout(inactivityTimerRef.current);
+        inactivityTimerRef.current = null;
+      }
+    };
+  }, [user, resetInactivityTimer]);
+
+  // ── visibilitychange: segunda plano ↔ primer plano ───────────────────
+  // Funciona para:
+  //   • Cambio de pestaña en navegador de escritorio
+  //   • Bloqueo de pantalla (web / PWA)
+  //   • Ir a multitarea en móvil (PWA)
+  React.useEffect(() => {
+    if (!user) return;
+
+    const handleVisibilityChange = () => {
+      if (document.hidden) {
+        // App va al fondo → guardar timestamp
+        if (!isPublicPath()) {
+          localStorage.setItem(BG_TS_KEY, Date.now().toString());
+        }
+      } else {
+        // App vuelve al frente → verificar cuánto tiempo estuvo en fondo
+        const bgTs = localStorage.getItem(BG_TS_KEY);
+        localStorage.removeItem(BG_TS_KEY);
+
+        if (bgTs) {
+          const elapsed = Date.now() - parseInt(bgTs, 10);
+          if (elapsed >= BACKGROUND_GRACE_MS) {
+            // Estuvo ≥ 30 s en segundo plano → pedir PIN
+            requirePin();
+            return;
+          }
+        }
+
+        // Verificar que la sesión siga válida (por si el timer la limpió)
+        const ssRaw = sessionStorage.getItem("911-session");
+        const lsRaw = localStorage.getItem("employee_session");
+        if (!ssRaw && !lsRaw) {
+          window.location.href = "/PinAccess";
+        }
+      }
+    };
+
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+    return () =>
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+  }, [user, requirePin]);
+
+  // ── beforeunload: cerrar ventana / pestaña en escritorio ─────────────
+  // Limpia localStorage para que al reabrir no exista sesión persistente.
+  // sessionStorage ya se limpia automáticamente por el navegador al cerrar.
+  React.useEffect(() => {
+    if (isPublicPath()) return;
+
+    const handleBeforeUnload = () => {
+      localStorage.removeItem("employee_session");
+      // Guardar un timestamp de cierre para que, si beforeunload no se
+      // disparó en móvil, Auth detecte en el siguiente mount que fue cerrado.
+      localStorage.setItem(BG_TS_KEY, "0"); // 0 = cerrado definitivamente
+    };
+
+    window.addEventListener("beforeunload", handleBeforeUnload);
+    return () => window.removeEventListener("beforeunload", handleBeforeUnload);
+  }, []);
+
+  // ─────────────────────────────────────────────────────────────────────
+  if (isCheckingAuth) return null;
 
   if (user) {
     return (
@@ -82,10 +242,7 @@ export default function AuthGate({ children }) {
     );
   }
 
-  const currentPath = window.location.pathname;
-  if (PUBLIC_PATHS.has(currentPath)) {
-    return <>{children}</>;
-  }
+  if (isPublicPath()) return <>{children}</>;
 
   return null;
 }

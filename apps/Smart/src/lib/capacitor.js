@@ -38,7 +38,7 @@ export async function initCapacitor() {
   }
 
   try {
-    // ── App (back button on Android + OAuth deep link handler) ───
+    // ── App (back button on Android + OAuth deep link handler + background lock) ───
     const { App } = await import('@capacitor/app');
 
     // Handle Android back button
@@ -47,6 +47,43 @@ export async function initCapacitor() {
         window.history.back();
       } else {
         App.exitApp();
+      }
+    });
+
+    // ── Bloqueo por multitarea / segundo plano (iOS & Android) ─────────
+    // Cuando el usuario manda la app al fondo (multitarea, home button,
+    // cambio de app), guardamos el timestamp. Al volver, si pasaron más
+    // de 30 s, limpiamos la sesión y redirigimos al PinAccess.
+    const BG_TS_KEY = "_sfos_bg_ts";
+    const BACKGROUND_GRACE_MS = 30 * 1000;
+
+    App.addListener('appStateChange', ({ isActive }) => {
+      const PUBLIC = new Set(["/Welcome","/PinAccess","/Setup","/InitialSetup","/VerifySetup","/Activate","/TenantActivate","/returnlogin"]);
+      const currentPath = window.location.pathname;
+
+      if (!isActive) {
+        // App va al fondo → guardar timestamp (solo si hay sesión activa)
+        if (!PUBLIC.has(currentPath)) {
+          localStorage.setItem(BG_TS_KEY, Date.now().toString());
+        }
+      } else {
+        // App vuelve al frente
+        const bgTs = localStorage.getItem(BG_TS_KEY);
+        localStorage.removeItem(BG_TS_KEY);
+
+        if (bgTs) {
+          const elapsed = Date.now() - parseInt(bgTs, 10);
+          // bgTs === "0" significa cierre definitivo (beforeunload lo puso así)
+          const wasDefinitelyClosed = bgTs === "0";
+          if (wasDefinitelyClosed || elapsed >= BACKGROUND_GRACE_MS) {
+            // Limpiar sesión y volver al PIN
+            localStorage.removeItem("employee_session");
+            sessionStorage.removeItem("911-session");
+            if (!PUBLIC.has(currentPath)) {
+              window.location.href = "/PinAccess";
+            }
+          }
+        }
       }
     });
 
