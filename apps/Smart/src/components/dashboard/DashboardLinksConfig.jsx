@@ -199,46 +199,6 @@ const PREDEFINED_BUTTONS = [
     type: "modal"
   },
   {
-    id: "pos",
-    label: "POS / Ventas",
-    icon: "Wallet",
-    gradient: "from-emerald-500 to-green-600",
-    action: "POS",
-    type: "navigate"
-  },
-  {
-    id: "orders_list",
-    label: "Ver Órdenes",
-    icon: "ClipboardList",
-    gradient: "from-orange-500 to-amber-600",
-    action: "Orders",
-    type: "navigate"
-  },
-  {
-    id: "quick_repair",
-    label: "Órdenes Rápidas",
-    icon: "Wrench",
-    gradient: "from-orange-500 to-red-600",
-    action: "showQuickRepair",
-    type: "modal"
-  },
-  {
-    id: "unlocks",
-    label: "Desbloqueos",
-    icon: "Smartphone",
-    gradient: "from-indigo-500 to-purple-600",
-    action: "showUnlocksDialog",
-    type: "modal"
-  },
-  {
-    id: "recharges",
-    label: "Recargas",
-    icon: "Zap",
-    gradient: "from-amber-500 to-yellow-600",
-    action: "Recharges",
-    type: "navigate"
-  },
-  {
     id: "inventory",
     label: "Inventario",
     icon: "Package",
@@ -263,6 +223,8 @@ const PREDEFINED_BUTTONS = [
     type: "navigate"
   }
 ];
+
+const DEFAULT_ENABLED = ["new_order", "inventory", "financial"];
 
 export default function DashboardLinksConfig({ open, onClose }) {
   const [loading, setLoading] = useState(false);
@@ -314,7 +276,7 @@ export default function DashboardLinksConfig({ open, onClose }) {
           const saved = savedButtons.find(s => s.id === btn.id);
           return {
             ...btn,
-            enabled: saved !== undefined ? saved.enabled : (["new_order","orders_list","inventory","financial"].includes(btn.id)),
+            enabled: saved !== undefined ? saved.enabled : DEFAULT_ENABLED.includes(btn.id),
             order: saved !== undefined ? saved.order : PREDEFINED_BUTTONS.indexOf(btn)
           };
         });
@@ -327,7 +289,7 @@ export default function DashboardLinksConfig({ open, onClose }) {
         // Configuración por defecto: habilitados los principales
         setButtons(PREDEFINED_BUTTONS.map((btn, idx) => ({
           ...btn,
-          enabled: ["new_order","orders_list","inventory","financial"].includes(btn.id),
+          enabled: DEFAULT_ENABLED.includes(btn.id),
           order: idx
         })));
       }
@@ -336,7 +298,7 @@ export default function DashboardLinksConfig({ open, onClose }) {
       toast.error("Error al cargar configuración");
       setButtons(PREDEFINED_BUTTONS.map((btn, idx) => ({
         ...btn,
-        enabled: ["new_order", "pos", "orders_list", "quick_repair", "unlocks", "recharges"].includes(btn.id),
+        enabled: DEFAULT_ENABLED.includes(btn.id),
         order: idx
       })));
     } finally {
@@ -399,6 +361,23 @@ export default function DashboardLinksConfig({ open, onClose }) {
     }));
 
     setButtons(updatedButtons);
+  };
+
+  const handleReset = async () => {
+    if (!confirm("¿Restablecer el dashboard a los botones de fábrica? Esto eliminará todos los botones personalizados.")) return;
+    try {
+      const configs = await dataClient.entities.AppSettings.filter({ slug: "dashboard-buttons" });
+      if (configs?.length > 0) {
+        await dataClient.entities.AppSettings.delete(configs[0].id);
+      }
+    } catch {}
+    const defaults = PREDEFINED_BUTTONS.map((btn, idx) => ({
+      ...btn, enabled: DEFAULT_ENABLED.includes(btn.id), order: idx
+    }));
+    setButtons(defaults);
+    localStorage.setItem("smartfix_dashboard_buttons_local", JSON.stringify(defaults));
+    window.dispatchEvent(new CustomEvent('dashboard-buttons-updated'));
+    toast.success("✅ Dashboard restablecido a valores de fábrica");
   };
 
   const handleSave = async () => {
@@ -594,14 +573,25 @@ export default function DashboardLinksConfig({ open, onClose }) {
                 </div>
               </div>
 
-              {/* Botón para crear personalizado */}
-              <Button
-                onClick={() => setShowCreateCustom(!showCreateCustom)}
-                className="w-full mb-4 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 h-12 shadow-lg"
-              >
-                <Plus className="w-5 h-5 mr-2" />
-                Crear Botón Personalizado
-              </Button>
+              {/* Acciones */}
+              <div className="flex gap-2 mb-4">
+                <Button
+                  onClick={() => setShowCreateCustom(!showCreateCustom)}
+                  className="flex-1 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 h-11 shadow-lg"
+                >
+                  <Plus className="w-4 h-4 mr-1.5" />
+                  Agregar botón
+                </Button>
+                <Button
+                  onClick={handleReset}
+                  variant="ghost"
+                  className="h-11 px-4 text-white/30 hover:text-red-400 hover:bg-red-500/10 border border-white/[0.06] hover:border-red-500/20 rounded-xl transition-all text-xs font-bold"
+                  title="Restablecer a valores de fábrica"
+                >
+                  <X className="w-4 h-4 mr-1.5" />
+                  Restablecer
+                </Button>
+              </div>
 
               {/* Formulario para crear botón personalizado */}
               {showCreateCustom && (
