@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { supabase } from "../../../../lib/supabase-client.js";
 import FeedbackModal from "@/components/settings/FeedbackModal";
 import UserSessionSettings from "@/components/settings/UserSessionSettings";
 import UpdatesManager from "@/components/settings/UpdatesManager";
@@ -136,7 +137,9 @@ export default function SettingsPage() {
     timezone: "America/Puerto_Rico",
     language: "es",
     google_review_link: "",
-    access_request_email: "smartfixosapp@gmail.com"
+    facebook_url: "",
+    instagram_url: "",
+    custom_social_url: "",
   });
 
   // Business branding config
@@ -340,6 +343,7 @@ export default function SettingsPage() {
   const saveAppConfig = async () => {
     setLoading(true);
     try {
+      // 1. Guardar en app_settings (fuente principal)
       const configs = await dataClient.entities.AppSettings.filter({ slug: "app-main-settings" });
       if (configs?.length) {
         await dataClient.entities.AppSettings.update(configs[0].id, { payload: appConfig });
@@ -350,7 +354,39 @@ export default function SettingsPage() {
           description: "Configuración principal"
         });
       }
-      
+
+      // 2. Sincronizar en system_config (lo que lee el Dashboard para el nombre del negocio)
+      const tenantId = localStorage.getItem("smartfix_tenant_id") || localStorage.getItem("current_tenant_id");
+      if (tenantId) {
+        const branding = {
+          business_name: appConfig.business_name,
+          slogan:        appConfig.slogan,
+          phone:         appConfig.business_phone,
+          whatsapp:      appConfig.business_whatsapp,
+          email:         appConfig.business_email,
+          address:       appConfig.business_address,
+          logo_url:      businessBranding.logo_url || "",
+          timezone:      appConfig.timezone,
+          tax_rate:      appConfig.tax_rate,
+          currency:      appConfig.currency,
+          google_review_link: appConfig.google_review_link,
+          facebook_url:  appConfig.facebook_url,
+          instagram_url: appConfig.instagram_url,
+          custom_social_url: appConfig.custom_social_url,
+        };
+        const { data: existing } = await supabase
+          .from("system_config").select("id")
+          .eq("key", "settings.branding").eq("tenant_id", tenantId).limit(1);
+        if (existing?.length) {
+          await supabase.from("system_config").update({ value: JSON.stringify(branding) }).eq("id", existing[0].id);
+        } else {
+          await supabase.from("system_config").insert({
+            key: "settings.branding", value: JSON.stringify(branding),
+            category: "general", description: "Configuración del taller", tenant_id: tenantId,
+          });
+        }
+      }
+
       if (appConfig.language !== language) {
         await setLanguage(appConfig.language);
         toast.success("✅ Idioma actualizado");
@@ -840,8 +876,8 @@ export default function SettingsPage() {
         {
           id: "regional",
           icon: Globe,
-          title: "Regional y Fiscal",
-          description: "Idioma, moneda, zona horaria e impuestos",
+          title: "Idioma y Región",
+          description: "Idioma del sistema y zona horaria",
           color: "from-blue-600 to-indigo-600",
         },
         {
@@ -983,88 +1019,108 @@ export default function SettingsPage() {
             </div>
           </div>
 
-          {/* REGIONAL (SEQUOIA STYLE) */}
+          {/* IDIOMA Y REGIÓN */}
           {activeSection === "regional" && (
-            <div className="space-y-6">
-              <div className="bg-gradient-to-br from-white/10 to-white/5 border border-white/10 rounded-[28px] p-7 space-y-6 backdrop-blur-xl shadow-2xl relative overflow-hidden">
+            <div className="space-y-5">
+
+              {/* ── Idioma ── */}
+              <div className="bg-gradient-to-br from-white/10 to-white/5 border border-white/10 rounded-[28px] p-7 backdrop-blur-xl shadow-2xl relative overflow-hidden">
                 <div className="absolute -right-20 -top-20 w-48 h-48 bg-gradient-to-br from-blue-500/20 to-cyan-500/10 rounded-full blur-[80px]" />
-                <div className="space-y-2">
-                  <label className="text-white/60 text-sm font-semibold ml-1">Idioma del Sistema</label>
-                  <div className="relative">
-                    <select 
-                      value={appConfig.language} 
-                      onChange={(e) => setAppConfig({...appConfig, language: e.target.value})} 
-                      className="w-full bg-white/5 hover:bg-white/10 border border-white/5 hover:border-white/10 rounded-2xl px-4 py-3.5 text-white appearance-none outline-none focus:ring-2 focus:ring-blue-500/50 transition-all"
+                <div className="flex items-center gap-3 mb-6 relative z-10">
+                  <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-blue-500/30 to-indigo-500/20 border border-blue-500/20 flex items-center justify-center">
+                    <Globe className="w-5 h-5 text-blue-300" />
+                  </div>
+                  <div>
+                    <p className="text-white font-black text-base">Idioma del Sistema</p>
+                    <p className="text-white/40 text-xs">Cambia el idioma de toda la interfaz</p>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 relative z-10">
+                  {[
+                    { value: "es", flag: "🇵🇷", label: "Español", sublabel: "Puerto Rico / Latinoamérica" },
+                    { value: "en", flag: "🇺🇸", label: "English",  sublabel: "United States" },
+                  ].map((lang) => (
+                    <button
+                      key={lang.value}
+                      onClick={() => setAppConfig({ ...appConfig, language: lang.value })}
+                      className={`flex items-center gap-4 p-4 rounded-2xl border-2 transition-all duration-200 text-left ${
+                        appConfig.language === lang.value
+                          ? "border-blue-500/60 bg-blue-500/15 shadow-[0_0_20px_rgba(59,130,246,0.2)]"
+                          : "border-white/10 bg-white/[0.04] hover:bg-white/[0.07] hover:border-white/20"
+                      }`}
                     >
-                      <option value="es" className="bg-gray-900">🇪🇸 Español</option>
-                      <option value="en" className="bg-gray-900">🇺🇸 English</option>
-                      <option value="zh" className="bg-gray-900">🇨🇳 中文</option>
-                      <option value="de" className="bg-gray-900">🇩🇪 Deutsch</option>
-                      <option value="fr" className="bg-gray-900">🇫🇷 Français</option>
-                    </select>
-                    <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-white/40 pointer-events-none" />
-                  </div>
-                  <p className="text-xs text-orange-400/80 font-medium ml-1 mt-1 flex items-center gap-1">
-                    <AlertCircle className="w-3 h-3" /> Requiere recargar la página
-                  </p>
+                      <span className="text-3xl leading-none">{lang.flag}</span>
+                      <div className="flex-1">
+                        <p className={`font-black text-base ${appConfig.language === lang.value ? "text-blue-300" : "text-white"}`}>{lang.label}</p>
+                        <p className="text-white/40 text-xs mt-0.5">{lang.sublabel}</p>
+                      </div>
+                      {appConfig.language === lang.value && (
+                        <div className="w-6 h-6 rounded-full bg-blue-500 flex items-center justify-center flex-shrink-0">
+                          <Check className="w-3.5 h-3.5 text-white" />
+                        </div>
+                      )}
+                    </button>
+                  ))}
                 </div>
 
-                <div className="space-y-2">
-                  <label className="text-white/60 text-sm font-semibold ml-1">IVU / Impuesto (%)</label>
-                  <Input 
-                    type="number" 
-                    step="0.1" 
-                    value={appConfig.tax_rate} 
-                    onChange={(e) => setAppConfig({...appConfig, tax_rate: parseFloat(e.target.value)})} 
-                    className="bg-white/5 border-white/5 rounded-2xl h-12 text-white text-lg font-bold px-4 focus:bg-white/10 transition-all" 
-                  />
+                <p className="text-xs text-orange-400/80 font-medium ml-1 mt-4 flex items-center gap-1.5 relative z-10">
+                  <AlertCircle className="w-3.5 h-3.5" />
+                  El cambio de idioma requiere recargar la página para aplicarse completamente
+                </p>
+              </div>
+
+              {/* ── Zona Horaria ── */}
+              <div className="bg-gradient-to-br from-white/10 to-white/5 border border-white/10 rounded-[28px] p-7 backdrop-blur-xl shadow-2xl relative overflow-hidden">
+                <div className="flex items-center gap-3 mb-6">
+                  <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-indigo-500/30 to-purple-500/20 border border-indigo-500/20 flex items-center justify-center">
+                    <Clock className="w-5 h-5 text-indigo-300" />
+                  </div>
+                  <div>
+                    <p className="text-white font-black text-base">Zona Horaria</p>
+                    <p className="text-white/40 text-xs">Afecta fechas, horas y reportes del sistema</p>
+                  </div>
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <label className="text-white/60 text-sm font-semibold ml-1">Moneda</label>
-                    <div className="relative">
-                      <select 
-                        value={appConfig.currency} 
-                        onChange={(e) => setAppConfig({...appConfig, currency: e.target.value})} 
-                        className="w-full bg-white/5 border border-white/5 rounded-2xl px-4 py-3.5 text-white appearance-none outline-none focus:ring-2 focus:ring-blue-500/50"
-                      >
-                        <option value="USD" className="bg-gray-900">USD ($)</option>
-                        <option value="EUR" className="bg-gray-900">EUR (€)</option>
-                        <option value="GBP" className="bg-gray-900">GBP (£)</option>
-                        <option value="MXN" className="bg-gray-900">MXN ($)</option>
-                        <option value="CNY" className="bg-gray-900">CNY (¥)</option>
-                      </select>
-                      <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-white/40 pointer-events-none" />
-                    </div>
-                  </div>
-
-                  <div className="space-y-2">
-                    <label className="text-white/60 text-sm font-semibold ml-1">Zona Horaria</label>
-                    <div className="relative">
-                      <select 
-                        value={appConfig.timezone} 
-                        onChange={(e) => setAppConfig({...appConfig, timezone: e.target.value})} 
-                        className="w-full bg-white/5 border border-white/5 rounded-2xl px-4 py-3.5 text-white appearance-none outline-none focus:ring-2 focus:ring-blue-500/50"
-                      >
-                        <option value="America/Puerto_Rico" className="bg-gray-900">Puerto Rico</option>
-                        <option value="America/New_York" className="bg-gray-900">New York</option>
-                        <option value="America/Los_Angeles" className="bg-gray-900">Los Angeles</option>
-                        <option value="Europe/Madrid" className="bg-gray-900">Madrid</option>
-                        <option value="Asia/Tokyo" className="bg-gray-900">Tokyo</option>
-                      </select>
-                      <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-white/40 pointer-events-none" />
-                    </div>
-                  </div>
+                <div className="relative">
+                  <select
+                    value={appConfig.timezone}
+                    onChange={(e) => setAppConfig({ ...appConfig, timezone: e.target.value })}
+                    className="w-full bg-white/5 hover:bg-white/10 border border-white/10 hover:border-white/20 rounded-2xl px-4 py-3.5 text-white appearance-none outline-none focus:ring-2 focus:ring-indigo-500/50 transition-all"
+                  >
+                    <optgroup label="🌎 Caribe & Puerto Rico" className="bg-gray-900">
+                      <option value="America/Puerto_Rico" className="bg-gray-900">🇵🇷 Puerto Rico (AST, UTC-4)</option>
+                      <option value="America/Santo_Domingo" className="bg-gray-900">🇩🇴 República Dominicana (AST, UTC-4)</option>
+                    </optgroup>
+                    <optgroup label="🌎 Estados Unidos" className="bg-gray-900">
+                      <option value="America/New_York" className="bg-gray-900">🇺🇸 New York / Miami (ET, UTC-5)</option>
+                      <option value="America/Chicago" className="bg-gray-900">🇺🇸 Chicago / Houston (CT, UTC-6)</option>
+                      <option value="America/Denver" className="bg-gray-900">🇺🇸 Denver / Phoenix (MT, UTC-7)</option>
+                      <option value="America/Los_Angeles" className="bg-gray-900">🇺🇸 Los Angeles / Seattle (PT, UTC-8)</option>
+                    </optgroup>
+                    <optgroup label="🌎 América Latina" className="bg-gray-900">
+                      <option value="America/Mexico_City" className="bg-gray-900">🇲🇽 Ciudad de México (CST, UTC-6)</option>
+                      <option value="America/Bogota" className="bg-gray-900">🇨🇴 Colombia (COT, UTC-5)</option>
+                      <option value="America/Lima" className="bg-gray-900">🇵🇪 Perú (PET, UTC-5)</option>
+                      <option value="America/Santiago" className="bg-gray-900">🇨🇱 Chile (CLT, UTC-4/-3)</option>
+                      <option value="America/Argentina/Buenos_Aires" className="bg-gray-900">🇦🇷 Argentina (ART, UTC-3)</option>
+                      <option value="America/Sao_Paulo" className="bg-gray-900">🇧🇷 São Paulo (BRT, UTC-3)</option>
+                    </optgroup>
+                    <optgroup label="🌍 Europa" className="bg-gray-900">
+                      <option value="Europe/Madrid" className="bg-gray-900">🇪🇸 España (CET, UTC+1/+2)</option>
+                      <option value="Europe/London" className="bg-gray-900">🇬🇧 Reino Unido (GMT, UTC+0/+1)</option>
+                    </optgroup>
+                  </select>
+                  <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-white/40 pointer-events-none" />
                 </div>
               </div>
 
-              <Button 
-                onClick={saveAppConfig} 
-                disabled={loading} 
-                className="w-full bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 text-white rounded-[20px] h-14 text-lg font-black shadow-[0_0_30px_rgba(59,130,246,0.4)] active:scale-95 transition-all duration-300"
+              <Button
+                onClick={saveAppConfig}
+                disabled={loading}
+                className="w-full bg-gradient-to-r from-blue-500 to-indigo-500 hover:from-blue-600 hover:to-indigo-600 text-white rounded-[20px] h-14 text-lg font-black shadow-[0_0_30px_rgba(59,130,246,0.4)] active:scale-95 transition-all duration-300"
               >
-                {loading ? <Loader2 className="w-5 h-5 mr-2 animate-spin" /> : "Guardar Cambios"}
+                {loading ? <Loader2 className="w-5 h-5 mr-2 animate-spin" /> : <><Check className="w-5 h-5 mr-2" />Guardar Idioma y Región</>}
               </Button>
             </div>
           )}
@@ -1073,283 +1129,241 @@ export default function SettingsPage() {
 
           {/* BUSINESS INFO */}
           {activeSection === "business_info" && (
-            <div className="space-y-6">
-              {/* Logo Section */}
+            <div className="space-y-5">
+
+              {/* ── 1. Identidad Visual ── */}
               <div className="bg-gradient-to-br from-white/10 to-white/5 border border-white/10 rounded-[28px] p-7 backdrop-blur-xl shadow-2xl relative overflow-hidden">
-                <div className="absolute -right-20 -top-20 w-48 h-48 bg-gradient-to-br from-cyan-500/20 to-blue-500/10 rounded-full blur-[80px]" />
-                <div className="flex items-start gap-5 mb-7 relative z-10">
-                  <div className="w-12 h-12 rounded-full bg-gradient-to-br from-cyan-400 to-blue-500 flex items-center justify-center shrink-0 shadow-xl">
-                    <Building2 className="w-6 h-6 text-white" strokeWidth={2.5} />
+                <div className="absolute -right-20 -top-20 w-48 h-48 bg-gradient-to-br from-orange-500/20 to-amber-500/10 rounded-full blur-[80px]" />
+                <div className="flex items-center gap-3 mb-6 relative z-10">
+                  <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-orange-500/30 to-amber-500/20 border border-orange-500/20 flex items-center justify-center">
+                    <Camera className="w-5 h-5 text-orange-300" />
                   </div>
                   <div>
-                    <h2 className="text-2xl font-black text-white tracking-tight">Logo de la Tienda</h2>
-                    <p className="text-white/60 text-sm mt-2 leading-relaxed font-semibold">
-                      Este logo aparecerá en todos los recibos y documentos
-                    </p>
+                    <p className="text-white font-black text-base">Identidad Visual</p>
+                    <p className="text-white/40 text-xs">Logo, nombre y slogan — aparecen en recibos, emails y el sistema</p>
                   </div>
                 </div>
 
                 <div className="space-y-5 relative z-10">
-                  {businessBranding.logo_url && (
-                    <div className="p-6 bg-black/40 rounded-2xl border border-white/10 text-center">
-                      <p className="text-white/60 text-sm font-semibold mb-4">Logo Actual</p>
-                      <div className="relative inline-block">
-                        <img 
-                          src={businessBranding.logo_url} 
-                          alt="Logo actual" 
-                          className="max-w-[300px] max-h-[150px] object-contain bg-white/5 rounded-xl border border-white/10 p-4 mx-auto"
-                        />
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => setBusinessBranding({ ...businessBranding, logo_url: "" })}
-                          className="absolute -top-2 -right-2 text-red-400 hover:text-red-300 hover:bg-red-500/10 bg-black/80 rounded-full"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </Button>
-                      </div>
-                    </div>
-                  )}
-
-                  <div className="space-y-3">
-                    <label className="text-white/60 text-sm font-semibold ml-1">
-                      {businessBranding.logo_url ? "Cambiar Logo" : "Subir Logo"}
-                    </label>
-                    <Button
-                      onClick={() => document.getElementById('logo-upload-input').click()}
-                      disabled={uploadingLogo}
-                      className="w-full bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-600 hover:to-blue-600 text-white rounded-xl h-14 font-bold"
-                    >
-                      {uploadingLogo ? (
-                        <>
-                          <Loader2 className="w-5 h-5 mr-2 animate-spin" />
-                          Subiendo...
-                        </>
+                  {/* Logo */}
+                  <div className="flex items-center gap-5 p-4 bg-black/30 rounded-2xl border border-white/10">
+                    <div className="w-20 h-20 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center flex-shrink-0 overflow-hidden">
+                      {businessBranding.logo_url ? (
+                        <img src={businessBranding.logo_url} alt="Logo" className="w-full h-full object-contain p-2" />
                       ) : (
-                        <>
-                          <Upload className="w-5 h-5 mr-2" />
-                          Seleccionar Imagen
-                        </>
+                        <Building2 className="w-8 h-8 text-white/20" />
                       )}
-                    </Button>
-                    <input
-                      id="logo-upload-input"
-                      type="file"
-                      accept="image/png,image/jpeg,image/jpg"
-                      onChange={(e) => handleLogoUpload(e.target.files[0])}
-                      className="hidden"
-                    />
-                    <p className="text-xs text-gray-400 ml-1 text-center">Formatos: PNG, JPG • Tamaño recomendado: 500x200px</p>
+                    </div>
+                    <div className="flex-1 space-y-2">
+                      <p className="text-white/60 text-xs font-semibold">Logo de la Tienda</p>
+                      <div className="flex gap-2">
+                        <Button
+                          onClick={() => document.getElementById('logo-upload-input').click()}
+                          disabled={uploadingLogo}
+                          className="bg-orange-500/20 hover:bg-orange-500/30 border border-orange-500/30 text-orange-300 rounded-xl h-9 px-4 text-sm font-bold"
+                        >
+                          {uploadingLogo ? <><Loader2 className="w-4 h-4 mr-1.5 animate-spin" />Subiendo...</> : <><Upload className="w-4 h-4 mr-1.5" />{businessBranding.logo_url ? "Cambiar" : "Subir Logo"}</>}
+                        </Button>
+                        {businessBranding.logo_url && (
+                          <Button variant="ghost" size="icon" onClick={() => setBusinessBranding({ ...businessBranding, logo_url: "" })} className="text-red-400 hover:text-red-300 hover:bg-red-500/10 rounded-xl h-9 w-9">
+                            <Trash2 className="w-4 h-4" />
+                          </Button>
+                        )}
+                      </div>
+                      <p className="text-white/25 text-xs">PNG, JPG · 500×200 px recomendado</p>
+                    </div>
                   </div>
+                  <input id="logo-upload-input" type="file" accept="image/png,image/jpeg,image/jpg" onChange={(e) => handleLogoUpload(e.target.files[0])} className="hidden" />
 
-                  <div className="space-y-2">
-                    <label className="text-white/60 text-sm font-semibold ml-1">Nombre de la Tienda</label>
-                    <Input
-                      value={appConfig.business_name}
-                      onChange={(e) => setAppConfig({ ...appConfig, business_name: e.target.value })}
-                      placeholder="Ej: 911 SmartFix"
-                      className="bg-white/5 border-white/10 text-white rounded-xl h-12"
-                    />
-                    <p className="text-xs text-gray-400 ml-1">Este nombre aparecerá en los recibos PDF y emails</p>
+                  {/* Nombre + Slogan */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <label className="text-white/60 text-xs font-semibold ml-1">Nombre de la Tienda *</label>
+                      <Input
+                        value={appConfig.business_name}
+                        onChange={(e) => setAppConfig({ ...appConfig, business_name: e.target.value })}
+                        placeholder="Ej: 911 SmartFix"
+                        className="bg-white/5 border-white/10 text-white rounded-xl h-12 focus:bg-white/10"
+                      />
+                      <p className="text-white/25 text-xs ml-1">Aparece en recibos, emails y el dashboard</p>
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-white/60 text-xs font-semibold ml-1">Slogan / Tagline</label>
+                      <Input
+                        value={appConfig.slogan || ""}
+                        onChange={(e) => setAppConfig({ ...appConfig, slogan: e.target.value })}
+                        placeholder="Tu taller de confianza"
+                        className="bg-white/5 border-white/10 text-white rounded-xl h-12 focus:bg-white/10"
+                      />
+                      <p className="text-white/25 text-xs ml-1">Subtítulo que acompaña el nombre</p>
+                    </div>
                   </div>
-
                 </div>
               </div>
 
-              {/* Contact Information */}
+              {/* ── 2. Información de Contacto ── */}
               <div className="bg-gradient-to-br from-white/10 to-white/5 border border-white/10 rounded-[28px] p-7 backdrop-blur-xl shadow-2xl relative overflow-hidden">
-                <div className="absolute -right-20 -top-20 w-48 h-48 bg-gradient-to-br from-blue-500/20 to-purple-500/10 rounded-full blur-[80px]" />
-                <div className="flex items-start gap-5 mb-7 relative z-10">
-                  <div className="w-12 h-12 rounded-full bg-gradient-to-br from-blue-400 to-purple-500 flex items-center justify-center shrink-0 shadow-xl">
-                    <Smartphone className="w-6 h-6 text-white" strokeWidth={2.5} />
+                <div className="absolute -left-20 -bottom-20 w-48 h-48 bg-gradient-to-br from-blue-500/20 to-cyan-500/10 rounded-full blur-[80px]" />
+                <div className="flex items-center gap-3 mb-6 relative z-10">
+                  <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-blue-500/30 to-cyan-500/20 border border-blue-500/20 flex items-center justify-center">
+                    <Smartphone className="w-5 h-5 text-blue-300" />
                   </div>
                   <div>
-                    <h2 className="text-2xl font-black text-white tracking-tight">Información de Contacto</h2>
-                    <p className="text-white/60 text-sm mt-2 leading-relaxed font-semibold">
-                      Datos que aparecerán en recibos y comunicaciones
-                    </p>
+                    <p className="text-white font-black text-base">Información de Contacto</p>
+                    <p className="text-white/40 text-xs">Teléfono, email y dirección que aparecen en recibos y comunicaciones</p>
                   </div>
                 </div>
 
-                <div className="space-y-5 relative z-10">
+                <div className="space-y-4 relative z-10">
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <label className="text-white/60 text-sm font-semibold ml-1">Teléfono del Negocio</label>
-                      <Input
-                        value={appConfig.business_phone}
-                        onChange={(e) => setAppConfig({ ...appConfig, business_phone: e.target.value })}
-                        placeholder="(787) 123-4567"
-                        className="bg-white/5 border-white/10 text-white rounded-xl h-12"
-                      />
+                    <div className="space-y-1.5">
+                      <label className="text-white/60 text-xs font-semibold ml-1">📞 Teléfono del Negocio</label>
+                      <Input value={appConfig.business_phone} onChange={(e) => setAppConfig({ ...appConfig, business_phone: e.target.value })} placeholder="(787) 123-4567" className="bg-white/5 border-white/10 text-white rounded-xl h-11 focus:bg-white/10" />
                     </div>
-
-                    <div className="space-y-2">
-                      <label className="text-white/60 text-sm font-semibold ml-1">WhatsApp</label>
-                      <Input
-                        value={appConfig.business_whatsapp}
-                        onChange={(e) => setAppConfig({ ...appConfig, business_whatsapp: e.target.value })}
-                        placeholder="(787) 123-4567"
-                        className="bg-white/5 border-white/10 text-white rounded-xl h-12"
-                      />
+                    <div className="space-y-1.5">
+                      <label className="text-white/60 text-xs font-semibold ml-1">💬 WhatsApp</label>
+                      <Input value={appConfig.business_whatsapp} onChange={(e) => setAppConfig({ ...appConfig, business_whatsapp: e.target.value })} placeholder="(787) 123-4567" className="bg-white/5 border-white/10 text-white rounded-xl h-11 focus:bg-white/10" />
                     </div>
                   </div>
-
-                  <div className="space-y-2">
-                    <label className="text-white/60 text-sm font-semibold ml-1">Email del Negocio</label>
-                    <Input
-                      value={appConfig.business_email}
-                      onChange={(e) => setAppConfig({ ...appConfig, business_email: e.target.value })}
-                      placeholder="info@smartfix.com"
-                      className="bg-white/5 border-white/10 text-white rounded-xl h-12"
-                    />
-                    <p className="text-xs text-gray-400 ml-1">Email principal de contacto</p>
+                  <div className="space-y-1.5">
+                    <label className="text-white/60 text-xs font-semibold ml-1">✉️ Email del Negocio</label>
+                    <Input value={appConfig.business_email} onChange={(e) => setAppConfig({ ...appConfig, business_email: e.target.value })} placeholder="info@smartfix.com" className="bg-white/5 border-white/10 text-white rounded-xl h-11 focus:bg-white/10" />
                   </div>
-
-                  <div className="space-y-2">
-                    <label className="text-white/60 text-sm font-semibold ml-1">Dirección Física</label>
-                    <Input
-                      value={appConfig.business_address}
-                      onChange={(e) => setAppConfig({ ...appConfig, business_address: e.target.value })}
-                      placeholder="Calle Principal #123, San Juan, PR"
-                      className="bg-white/5 border-white/10 text-white rounded-xl h-12"
-                    />
-                    <p className="text-xs text-gray-400 ml-1">Dirección pública del negocio para recibos y contacto</p>
+                  <div className="space-y-1.5">
+                    <label className="text-white/60 text-xs font-semibold ml-1">📍 Dirección Física</label>
+                    <Input value={appConfig.business_address} onChange={(e) => setAppConfig({ ...appConfig, business_address: e.target.value })} placeholder="Calle Principal #123, San Juan, PR" className="bg-white/5 border-white/10 text-white rounded-xl h-11 focus:bg-white/10" />
                   </div>
+                </div>
+              </div>
 
-                  <div className="space-y-4">
-                    <label className="text-white/60 text-sm font-semibold ml-1">Horarios por Día</label>
-                    {['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'].map((day) => {
-                      const dayLabel = { monday: 'Lunes', tuesday: 'Martes', wednesday: 'Miércoles', thursday: 'Jueves', friday: 'Viernes', saturday: 'Sábado', sunday: 'Domingo' }[day];
-                      const hours = appConfig.business_hours[day];
-                      return (
-                        <div key={day} className="flex items-center gap-3 p-3 bg-white/5 rounded-xl border border-white/10">
-                          <div className="flex-1">
-                            <p className="text-white font-semibold text-sm">{dayLabel}</p>
+              {/* ── 3. Horarios ── */}
+              <div className="bg-gradient-to-br from-white/10 to-white/5 border border-white/10 rounded-[28px] p-7 backdrop-blur-xl shadow-2xl relative overflow-hidden">
+                <div className="flex items-center gap-3 mb-6">
+                  <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-emerald-500/30 to-green-500/20 border border-emerald-500/20 flex items-center justify-center">
+                    <Clock className="w-5 h-5 text-emerald-300" />
+                  </div>
+                  <div>
+                    <p className="text-white font-black text-base">Horarios de Atención</p>
+                    <p className="text-white/40 text-xs">Se muestran en recibos y comunicaciones con clientes</p>
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  {['monday','tuesday','wednesday','thursday','friday','saturday','sunday'].map((day) => {
+                    const dayLabel = { monday:'Lunes', tuesday:'Martes', wednesday:'Miércoles', thursday:'Jueves', friday:'Viernes', saturday:'Sábado', sunday:'Domingo' }[day];
+                    const hours = appConfig.business_hours[day];
+                    return (
+                      <div key={day} className="flex items-center gap-3 px-4 py-3 bg-white/[0.04] hover:bg-white/[0.06] rounded-2xl border border-white/[0.07] transition-colors">
+                        <span className="text-white font-semibold text-sm w-24 shrink-0">{dayLabel}</span>
+                        {!hours.closed ? (
+                          <div className="flex items-center gap-2 flex-1">
+                            <input type="time" value={hours.open} onChange={(e) => setAppConfig({ ...appConfig, business_hours: {...appConfig.business_hours, [day]: {...hours, open: e.target.value}} })} className="bg-white/5 border border-white/10 text-white rounded-xl px-3 py-2 text-sm flex-1 min-w-0 focus:outline-none focus:ring-1 focus:ring-emerald-500/50" />
+                            <span className="text-white/30 font-bold">—</span>
+                            <input type="time" value={hours.close} onChange={(e) => setAppConfig({ ...appConfig, business_hours: {...appConfig.business_hours, [day]: {...hours, close: e.target.value}} })} className="bg-white/5 border border-white/10 text-white rounded-xl px-3 py-2 text-sm flex-1 min-w-0 focus:outline-none focus:ring-1 focus:ring-emerald-500/50" />
                           </div>
-                          {!hours.closed ? (
-                            <div className="flex items-center gap-2">
-                              <input 
-                                type="time" 
-                                value={hours.open}
-                                onChange={(e) => setAppConfig({
-                                  ...appConfig, 
-                                  business_hours: {...appConfig.business_hours, [day]: {...hours, open: e.target.value}}
-                                })}
-                                className="bg-white/5 border-white/10 text-white rounded-lg px-2 py-2 text-sm"
-                              />
-                              <span className="text-white/50">-</span>
-                              <input 
-                                type="time" 
-                                value={hours.close}
-                                onChange={(e) => setAppConfig({
-                                  ...appConfig, 
-                                  business_hours: {...appConfig.business_hours, [day]: {...hours, close: e.target.value}}
-                                })}
-                                className="bg-white/5 border-white/10 text-white rounded-lg px-2 py-2 text-sm"
-                              />
-                            </div>
-                          ) : (
-                            <p className="text-red-400 text-sm font-semibold">Cerrado</p>
-                          )}
-                          <button
-                            onClick={() => setAppConfig({
-                              ...appConfig,
-                              business_hours: {...appConfig.business_hours, [day]: {...hours, closed: !hours.closed}}
-                            })}
-                            className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
-                              hours.closed 
-                                ? 'bg-white/5 border border-white/10 text-white/60 hover:bg-white/10' 
-                                : 'bg-red-500/20 border border-red-500/30 text-red-400'
-                            }`}
-                          >
-                            {hours.closed ? 'Abrir' : 'Cerrar'}
-                          </button>
-                        </div>
-                      );
-                    })}
+                        ) : (
+                          <span className="flex-1 text-red-400 text-sm font-semibold">Cerrado</span>
+                        )}
+                        <button onClick={() => setAppConfig({ ...appConfig, business_hours: {...appConfig.business_hours, [day]: {...hours, closed: !hours.closed}} })} className={`shrink-0 px-3 py-1.5 rounded-xl text-xs font-bold transition-all border ${hours.closed ? 'bg-white/5 border-white/10 text-white/50 hover:bg-white/10' : 'bg-red-500/15 border-red-500/30 text-red-400 hover:bg-red-500/25'}`}>
+                          {hours.closed ? 'Abrir' : 'Cerrar'}
+                        </button>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* ── 4. Redes Sociales & Links ── */}
+              <div className="bg-gradient-to-br from-white/10 to-white/5 border border-white/10 rounded-[28px] p-7 backdrop-blur-xl shadow-2xl relative overflow-hidden">
+                <div className="absolute -right-20 -bottom-20 w-48 h-48 bg-gradient-to-br from-purple-500/20 to-pink-500/10 rounded-full blur-[80px]" />
+                <div className="flex items-center gap-3 mb-6 relative z-10">
+                  <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-purple-500/30 to-pink-500/20 border border-purple-500/20 flex items-center justify-center">
+                    <ExternalLink className="w-5 h-5 text-purple-300" />
                   </div>
-
-                  <div className="space-y-2">
-                    <label className="text-white/60 text-sm font-semibold ml-1 flex items-center gap-2">
-                      <ExternalLink className="w-4 h-4 text-cyan-400" />
-                      Link de Google Reviews
-                    </label>
-                    <Input
-                      value={appConfig.google_review_link}
-                      onChange={(e) => setAppConfig({ ...appConfig, google_review_link: e.target.value })}
-                      placeholder="https://g.page/r/..."
-                      className="bg-white/5 border-white/10 text-white rounded-xl h-12"
-                    />
-                    <p className="text-xs text-gray-400 ml-1">Los clientes podrán acceder a este link desde su recibo para dejar una reseña</p>
+                  <div>
+                    <p className="text-white font-black text-base">Redes Sociales & Links</p>
+                    <p className="text-white/40 text-xs">Se usan como botones en plantillas de email y recibos</p>
                   </div>
+                </div>
 
-                  <div className="space-y-2">
-                    <label className="text-white/60 text-sm font-semibold ml-1 flex items-center gap-2">
-                      <Mail className="w-4 h-4 text-cyan-400" />
-                      Email para Solicitudes de Acceso
-                    </label>
-                    <Input
-                      value={appConfig.access_request_email}
-                      onChange={(e) => setAppConfig({ ...appConfig, access_request_email: e.target.value })}
-                      placeholder="smartfixosapp@gmail.com"
-                      className="bg-white/5 border-white/10 text-white rounded-xl h-12"
-                    />
-                    <p className="text-xs text-gray-400 ml-1">Uso interno: aquí llegan las solicitudes de nuevos empleados</p>
-                  </div>
-
-                  <div className="h-px bg-gradient-to-r from-transparent via-white/20 to-transparent mt-6" />
-
-                  <div className="mt-6">
-                    <label className="text-white/60 text-sm font-semibold ml-1 block mb-4">Configurar Términos y Garantías</label>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                      <button
-                        onClick={() => setShowWarrantySalesModal(true)}
-                        className="flex items-center gap-3 p-4 rounded-xl bg-emerald-600/10 border border-emerald-500/30 hover:border-emerald-500/60 text-left transition-all group"
-                      >
-                        <div className="w-10 h-10 rounded-lg bg-emerald-500/20 flex items-center justify-center text-emerald-400 group-hover:scale-110 transition-transform">
-                          <Shield className="w-5 h-5" />
-                        </div>
-                        <div className="flex-1">
-                          <p className="text-white font-bold text-sm">Garantía por Venta</p>
-                          <p className="text-xs text-gray-400">
-                            {businessBranding.warranty_sales ? "Configurado ✓" : "No configurado"}
-                          </p>
-                        </div>
-                      </button>
-
-                      <button
-                        onClick={() => setShowWarrantyRepairsModal(true)}
-                        className="flex items-center gap-3 p-4 rounded-xl bg-blue-600/10 border border-blue-500/30 hover:border-blue-500/60 text-left transition-all group"
-                      >
-                        <div className="w-10 h-10 rounded-lg bg-blue-500/20 flex items-center justify-center text-blue-400 group-hover:scale-110 transition-transform">
-                          <Shield className="w-5 h-5" />
-                        </div>
-                        <div className="flex-1">
-                          <p className="text-white font-bold text-sm">Garantía por Reparación</p>
-                          <p className="text-xs text-gray-400">
-                            {businessBranding.warranty_repairs ? "Configurado ✓" : "No configurado"}
-                          </p>
-                        </div>
-                      </button>
+                <div className="space-y-4 relative z-10">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div className="space-y-1.5">
+                      <label className="text-white/60 text-xs font-semibold ml-1">📘 Facebook</label>
+                      <Input value={appConfig.facebook_url || ""} onChange={(e) => setAppConfig({ ...appConfig, facebook_url: e.target.value })} placeholder="https://facebook.com/tutienda" className="bg-white/5 border-white/10 text-white rounded-xl h-11 focus:bg-white/10" />
+                    </div>
+                    <div className="space-y-1.5">
+                      <label className="text-white/60 text-xs font-semibold ml-1">📸 Instagram</label>
+                      <Input value={appConfig.instagram_url || ""} onChange={(e) => setAppConfig({ ...appConfig, instagram_url: e.target.value })} placeholder="https://instagram.com/tutienda" className="bg-white/5 border-white/10 text-white rounded-xl h-11 focus:bg-white/10" />
                     </div>
                   </div>
+                  <div className="space-y-1.5">
+                    <label className="text-white/60 text-xs font-semibold ml-1">⭐ Google Reviews</label>
+                    <Input value={appConfig.google_review_link || ""} onChange={(e) => setAppConfig({ ...appConfig, google_review_link: e.target.value })} placeholder="https://g.page/r/..." className="bg-white/5 border-white/10 text-white rounded-xl h-11 focus:bg-white/10" />
+                    <p className="text-white/25 text-xs ml-1">Los clientes pueden dejar una reseña desde su recibo</p>
                   </div>
+                  <div className="space-y-1.5">
+                    <label className="text-white/60 text-xs font-semibold ml-1">🌐 Sitio Web / Otro Link</label>
+                    <Input value={appConfig.custom_social_url || ""} onChange={(e) => setAppConfig({ ...appConfig, custom_social_url: e.target.value })} placeholder="https://tusitioweb.com" className="bg-white/5 border-white/10 text-white rounded-xl h-11 focus:bg-white/10" />
                   </div>
+                </div>
+              </div>
 
+              {/* ── 5. Fiscal ── */}
+              <div className="bg-gradient-to-br from-white/10 to-white/5 border border-white/10 rounded-[28px] p-7 backdrop-blur-xl shadow-2xl relative overflow-hidden">
+                <div className="absolute -right-20 -bottom-20 w-48 h-48 bg-gradient-to-br from-emerald-500/20 to-teal-500/10 rounded-full blur-[80px]" />
+                <div className="flex items-center gap-3 mb-6 relative z-10">
+                  <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-emerald-500/30 to-teal-500/20 border border-emerald-500/20 flex items-center justify-center">
+                    <DollarSign className="w-5 h-5 text-emerald-300" />
+                  </div>
+                  <div>
+                    <p className="text-white font-black text-base">Fiscal</p>
+                    <p className="text-white/40 text-xs">Moneda e impuestos aplicados en órdenes y recibos</p>
+                  </div>
+                </div>
 
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 relative z-10">
+                  <div className="space-y-1.5">
+                    <label className="text-white/60 text-xs font-semibold ml-1">💵 Moneda</label>
+                    <select
+                      value={appConfig.currency || "USD"}
+                      onChange={(e) => setAppConfig({ ...appConfig, currency: e.target.value })}
+                      className="w-full bg-white/5 border border-white/10 text-white rounded-xl h-11 px-3 focus:bg-white/10 focus:outline-none focus:ring-1 focus:ring-white/20 appearance-none"
+                    >
+                      <option value="USD" className="bg-gray-900">🇺🇸 USD — Dólar americano</option>
+                      <option value="EUR" className="bg-gray-900">🇪🇺 EUR — Euro</option>
+                      <option value="MXN" className="bg-gray-900">🇲🇽 MXN — Peso mexicano</option>
+                      <option value="COP" className="bg-gray-900">🇨🇴 COP — Peso colombiano</option>
+                      <option value="DOP" className="bg-gray-900">🇩🇴 DOP — Peso dominicano</option>
+                      <option value="GBP" className="bg-gray-900">🇬🇧 GBP — Libra esterlina</option>
+                    </select>
+                  </div>
+                  <div className="space-y-1.5">
+                    <label className="text-white/60 text-xs font-semibold ml-1">🧾 IVU / Impuesto (%)</label>
+                    <Input
+                      type="number"
+                      min="0"
+                      max="100"
+                      step="0.1"
+                      value={appConfig.tax_rate ?? 11.5}
+                      onChange={(e) => setAppConfig({ ...appConfig, tax_rate: parseFloat(e.target.value) || 0 })}
+                      placeholder="11.5"
+                      className="bg-white/5 border-white/10 text-white rounded-xl h-11 focus:bg-white/10"
+                    />
+                    <p className="text-white/25 text-xs ml-1">Puerto Rico: 11.5% · Introduce 0 si no aplica impuesto</p>
+                  </div>
+                </div>
+              </div>
 
-              <Button 
-                onClick={() => {
-                  saveBusinessBranding();
-                  saveAppConfig();
-                }} 
-                disabled={loading} 
-                className="w-full bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-600 hover:to-blue-600 text-white rounded-[20px] h-14 text-lg font-black shadow-[0_0_30px_rgba(6,182,212,0.4)] active:scale-95 transition-all duration-300"
+              <Button
+                onClick={async () => { await saveBusinessBranding(); await saveAppConfig(); }}
+                disabled={loading}
+                className="w-full bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white rounded-[20px] h-14 text-lg font-black shadow-[0_0_30px_rgba(249,115,22,0.4)] active:scale-95 transition-all duration-300"
               >
-                {loading ? <Loader2 className="w-5 h-5 mr-2 animate-spin" /> : <><Check className="w-5 h-5 mr-2" />Guardar Configuración</>}
+                {loading ? <Loader2 className="w-5 h-5 mr-2 animate-spin" /> : <><Check className="w-5 h-5 mr-2" />Guardar Info del Negocio</>}
               </Button>
 
-              {/* Modales de Garantías */}
+              {/* Modales de Garantías (ocultos, pueden activarse desde otro módulo) */}
               <WarrantySalesModal
                 isOpen={showWarrantySalesModal}
                 onClose={() => setShowWarrantySalesModal(false)}
