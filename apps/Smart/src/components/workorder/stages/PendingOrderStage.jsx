@@ -137,6 +137,12 @@ export default function PendingOrderStage({ order, onUpdate, user, onOrderItemsU
           loadLinks();
           onUpdate?.();
         }}
+        onLinkSaved={(updatedOrder) => {
+          if (updatedOrder?.order_items) {
+            onOrderItemsUpdate?.(updatedOrder.order_items);
+          }
+          onUpdate?.();
+        }}
         open={activeModal === "links"}
         onOpenChange={(open) => setActiveModal(open ? "links" : null)}
         accent="amber"
