@@ -28,6 +28,7 @@ import {
   Package,
   BarChart3,
   ExternalLink,
+  Link,
   LayoutGrid,
   AlertCircle,
   X,
@@ -97,6 +98,7 @@ import WorkQueueWidget from "@/components/dashboard/WorkQueueWidget";
 import DailyTransactionsModal from "@/components/dashboard/DailyTransactionsModal";
 import MonthlyReportModal, { shouldShowMonthlyReport } from "@/components/financial/MonthlyReportModal";
 const DASHBOARD_WIDGETS_KEY = "smartfix_dashboard_widgets";
+const CUSTOM_WIDGETS_KEY = "smartfix_custom_link_widgets";
 
 // ------------------------
 
@@ -203,6 +205,12 @@ export default function Dashboard() {
       const parsed = raw ? JSON.parse(raw) : {};
       return { kpiIncome: true, kpiGoal: true, kpiActive: true, kpiDelivered: true, kpiOverdue: true, orders: false, priceList: false, urgentOrders: false, readyPickup: false, posSalesToday: false, criticalStock: false, newCustomers: false, cashStatus: false, avgRepairTime: false, technicianLoad: false, navNewOrder: true, navOrders: true, navInventory: true, navFinancial: true, navReports: false, ...parsed };
     } catch { return { kpiIncome: true, kpiGoal: true, kpiActive: true, kpiDelivered: true, kpiOverdue: true, orders: false, priceList: false, urgentOrders: false, readyPickup: false, posSalesToday: false, criticalStock: false, newCustomers: false, cashStatus: false, avgRepairTime: false, technicianLoad: false, navNewOrder: true, navOrders: true, navInventory: true, navFinancial: true, navReports: false }; }
+  });
+  const [customWidgets, setCustomWidgets] = useState(() => {
+    try {
+      const raw = localStorage.getItem("smartfix_custom_link_widgets");
+      return raw ? JSON.parse(raw) : [];
+    } catch { return []; }
   });
   const [showMoreMenu, setShowMoreMenu] = useState(false);
   const [showDailyTransactions, setShowDailyTransactions] = useState(false);
@@ -523,15 +531,23 @@ export default function Dashboard() {
         setWidgetConfig({ kpiIncome: true, kpiGoal: true, kpiActive: true, kpiDelivered: true, kpiOverdue: true, orders: false, priceList: false, urgentOrders: false, readyPickup: false, posSalesToday: false, criticalStock: false, newCustomers: false, cashStatus: false, avgRepairTime: false, technicianLoad: false, navNewOrder: true, navOrders: true, navInventory: true, navFinancial: true, navReports: false, ...parsed });
       } catch {}
     };
+    const handleCustomWidgetUpdate = () => {
+      try {
+        const raw = localStorage.getItem("smartfix_custom_link_widgets");
+        setCustomWidgets(raw ? JSON.parse(raw) : []);
+      } catch {}
+    };
 
     window.addEventListener('open-dashboard-config', handleOpen);
     window.addEventListener('open-quick-repair', handleQuick);
     window.addEventListener('dashboard-widgets-updated', handleWidgetUpdate);
+    window.addEventListener('dashboard-custom-widgets-updated', handleCustomWidgetUpdate);
 
     return () => {
       window.removeEventListener('open-dashboard-config', handleOpen);
       window.removeEventListener('open-quick-repair', handleQuick);
       window.removeEventListener('dashboard-widgets-updated', handleWidgetUpdate);
+      window.removeEventListener('dashboard-custom-widgets-updated', handleCustomWidgetUpdate);
     };
   }, []);
 
@@ -969,7 +985,7 @@ export default function Dashboard() {
             })()}
 
             {/* ═══ WIDGETS EXTRAS ══════════════════════════════════════════ */}
-            {(widgetConfig.urgentOrders || widgetConfig.readyPickup || widgetConfig.posSalesToday || widgetConfig.criticalStock || widgetConfig.newCustomers || widgetConfig.cashStatus || widgetConfig.avgRepairTime || widgetConfig.technicianLoad) && (
+            {(widgetConfig.urgentOrders || widgetConfig.readyPickup || widgetConfig.posSalesToday || widgetConfig.criticalStock || widgetConfig.newCustomers || widgetConfig.cashStatus || widgetConfig.avgRepairTime || widgetConfig.technicianLoad || widgetConfig.navNewOrder || widgetConfig.navOrders || widgetConfig.navInventory || widgetConfig.navFinancial || widgetConfig.navReports || customWidgets.length > 0) && (
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 mb-2">
 
                 {/* Órdenes urgentes */}
@@ -1140,49 +1156,114 @@ export default function Dashboard() {
                   </div>
                 )}
 
-              </div>
-            )}
+                {/* ── Accesos Directos de Navegación ────────────────────────── */}
+                {widgetConfig.navNewOrder && (
+                  <button
+                    onClick={() => setShowWorkOrderWizard(true)}
+                    className="bg-[#1C1C1E]/60 backdrop-blur-xl border border-sky-500/20 rounded-[28px] p-5 space-y-3 text-left w-full hover:bg-[#1C1C1E]/80 transition-all active:scale-95 group"
+                  >
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2.5">
+                        <div className="w-8 h-8 rounded-xl bg-sky-500/10 border border-sky-500/20 flex items-center justify-center">
+                          <ClipboardList className="w-4 h-4 text-sky-400" />
+                        </div>
+                        <span className="text-white/80 font-black text-xs uppercase tracking-tight">Nueva Orden</span>
+                      </div>
+                      <ArrowUpRight className="w-4 h-4 text-white/20 group-hover:text-white/50 transition-colors" />
+                    </div>
+                    <p className="text-white/30 text-[11px] font-bold">Crear nueva orden de trabajo</p>
+                  </button>
+                )}
+                {widgetConfig.navOrders && (
+                  <button
+                    onClick={() => handleNavigate("Orders")}
+                    className="bg-[#1C1C1E]/60 backdrop-blur-xl border border-purple-500/20 rounded-[28px] p-5 space-y-3 text-left w-full hover:bg-[#1C1C1E]/80 transition-all active:scale-95 group"
+                  >
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2.5">
+                        <div className="w-8 h-8 rounded-xl bg-purple-500/10 border border-purple-500/20 flex items-center justify-center">
+                          <ClipboardList className="w-4 h-4 text-purple-400" />
+                        </div>
+                        <span className="text-white/80 font-black text-xs uppercase tracking-tight">Órdenes</span>
+                      </div>
+                      <ArrowUpRight className="w-4 h-4 text-white/20 group-hover:text-white/50 transition-colors" />
+                    </div>
+                    <p className="text-white/30 text-[11px] font-bold">Ver historial y gestión</p>
+                  </button>
+                )}
+                {widgetConfig.navInventory && (
+                  <button
+                    onClick={() => handleNavigate("Inventory")}
+                    className="bg-[#1C1C1E]/60 backdrop-blur-xl border border-teal-500/20 rounded-[28px] p-5 space-y-3 text-left w-full hover:bg-[#1C1C1E]/80 transition-all active:scale-95 group"
+                  >
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2.5">
+                        <div className="w-8 h-8 rounded-xl bg-teal-500/10 border border-teal-500/20 flex items-center justify-center">
+                          <Package className="w-4 h-4 text-teal-400" />
+                        </div>
+                        <span className="text-white/80 font-black text-xs uppercase tracking-tight">Inventario</span>
+                      </div>
+                      <ArrowUpRight className="w-4 h-4 text-white/20 group-hover:text-white/50 transition-colors" />
+                    </div>
+                    <p className="text-white/30 text-[11px] font-bold">Stock y productos</p>
+                  </button>
+                )}
+                {widgetConfig.navFinancial && (
+                  <button
+                    onClick={() => handleNavigate("Financial")}
+                    className="bg-[#1C1C1E]/60 backdrop-blur-xl border border-emerald-500/20 rounded-[28px] p-5 space-y-3 text-left w-full hover:bg-[#1C1C1E]/80 transition-all active:scale-95 group"
+                  >
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2.5">
+                        <div className="w-8 h-8 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center">
+                          <Wallet className="w-4 h-4 text-emerald-400" />
+                        </div>
+                        <span className="text-white/80 font-black text-xs uppercase tracking-tight">Finanzas</span>
+                      </div>
+                      <ArrowUpRight className="w-4 h-4 text-white/20 group-hover:text-white/50 transition-colors" />
+                    </div>
+                    <p className="text-white/30 text-[11px] font-bold">Resumen financiero</p>
+                  </button>
+                )}
+                {widgetConfig.navReports && (
+                  <button
+                    onClick={() => handleNavigate("FinancialReports")}
+                    className="bg-[#1C1C1E]/60 backdrop-blur-xl border border-indigo-500/20 rounded-[28px] p-5 space-y-3 text-left w-full hover:bg-[#1C1C1E]/80 transition-all active:scale-95 group"
+                  >
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2.5">
+                        <div className="w-8 h-8 rounded-xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center">
+                          <BarChart3 className="w-4 h-4 text-indigo-400" />
+                        </div>
+                        <span className="text-white/80 font-black text-xs uppercase tracking-tight">Reportes</span>
+                      </div>
+                      <ArrowUpRight className="w-4 h-4 text-white/20 group-hover:text-white/50 transition-colors" />
+                    </div>
+                    <p className="text-white/30 text-[11px] font-bold">P&L y análisis</p>
+                  </button>
+                )}
 
-            {/* ═══ ACCESOS DIRECTOS (WIDGETS DE NAVEGACIÓN) ═══════════════════════════ */}
-            {(widgetConfig.navNewOrder || widgetConfig.navOrders || widgetConfig.navInventory || widgetConfig.navFinancial || widgetConfig.navReports) && (
-              <nav className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-3 lg:gap-4 xl:gap-5 relative z-10">
-                {[
-                  widgetConfig.navNewOrder && { id: "navNewOrder", label: "Nueva Orden", icon: ClipboardList, gradient: "from-sky-500 to-blue-600", subtitle: "Crear nueva orden", onClick: () => setShowWorkOrderWizard(true) },
-                  widgetConfig.navOrders && { id: "navOrders", label: "Órdenes", icon: ClipboardList, gradient: "from-purple-500 to-pink-600", subtitle: "Ver historial", onClick: () => handleNavigate("Orders") },
-                  widgetConfig.navInventory && { id: "navInventory", label: "Inventario", icon: Package, gradient: "from-teal-500 to-cyan-600", subtitle: "Stock y productos", onClick: () => handleNavigate("Inventory") },
-                  widgetConfig.navFinancial && { id: "navFinancial", label: "Finanzas", icon: Wallet, gradient: "from-emerald-600 to-green-700", subtitle: "Resumen diario", onClick: () => handleNavigate("Financial") },
-                  widgetConfig.navReports && { id: "navReports", label: "Reportes", icon: BarChart3, gradient: "from-indigo-500 to-blue-600", subtitle: "P&L · Análisis", onClick: () => handleNavigate("FinancialReports") },
-                ].filter(Boolean).map(btn => {
-                  const IconComponent = btn.icon;
-                  return (
-                    <button
-                      key={btn.id}
-                      onClick={btn.onClick}
-                      className="group relative bg-[#121215]/40 hover:bg-[#121215]/60 backdrop-blur-3xl border border-white/[0.08] hover:border-white/20 rounded-[32px] px-6 py-6 flex flex-col items-start justify-between aspect-[1.1/1] transition-all duration-500 active:scale-95 shadow-[0_16px_40px_rgba(0,0,0,0.3)] hover:shadow-[0_32px_64px_rgba(0,0,0,0.5)] overflow-hidden"
-                    >
-                      <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/10 to-transparent" />
-                      <div className={`absolute inset-0 bg-gradient-to-br ${btn.gradient} opacity-0 group-hover:opacity-[0.07] transition-opacity duration-500 pointer-events-none`} />
-                      <div className="absolute bottom-0 left-0 right-0 h-16 bg-gradient-to-t from-black/40 to-transparent pointer-events-none" />
-                      <div className="flex justify-between w-full items-start relative z-10">
-                        <div className={`w-14 h-14 sm:w-16 sm:h-16 rounded-[22px] bg-gradient-to-br ${btn.gradient} flex items-center justify-center shadow-[0_12px_24px_rgba(0,0,0,0.4)] mb-3 transition-all duration-500 group-hover:scale-110 group-hover:rotate-6`}>
-                          <IconComponent className="w-6 h-6 sm:w-7 sm:h-7 text-white" strokeWidth={2.5} />
+                {/* ── Widgets Personalizados (links externos) ────────────────── */}
+                {customWidgets.map(widget => (
+                  <button
+                    key={widget.id}
+                    onClick={() => window.open(widget.url, '_blank')}
+                    className="bg-[#1C1C1E]/60 backdrop-blur-xl border border-white/10 rounded-[28px] p-5 space-y-3 text-left w-full hover:bg-[#1C1C1E]/80 transition-all active:scale-95 group"
+                  >
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2.5">
+                        <div className="w-8 h-8 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center">
+                          <ExternalLink className="w-4 h-4 text-white/40" />
                         </div>
+                        <span className="text-white/80 font-black text-xs uppercase tracking-tight truncate max-w-[120px]">{widget.name}</span>
                       </div>
-                      <div className="flex flex-col items-start gap-1 relative z-10 mt-auto w-full">
-                        <span className="text-sm sm:text-base lg:text-lg font-black text-white/90 leading-tight text-left tracking-tight group-hover:text-white transition-colors duration-300 uppercase">
-                          {btn.label}
-                        </span>
-                        <div className="flex items-center justify-between w-full mt-0.5">
-                          <span className="text-[10px] font-medium text-white/25 tracking-wide group-hover:text-white/50 transition-colors duration-300">
-                            {btn.subtitle}
-                          </span>
-                          <ArrowUpRight className="w-3.5 h-3.5 text-white/0 group-hover:text-white/40 transition-all duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
-                        </div>
-                      </div>
-                    </button>
-                  );
-                })}
-              </nav>
+                      <ArrowUpRight className="w-4 h-4 text-white/20 group-hover:text-white/50 transition-colors" />
+                    </div>
+                    <p className="text-white/20 text-[11px] font-bold truncate">{widget.url.replace(/^https?:\/\//, '')}</p>
+                  </button>
+                ))}
+
+              </div>
             )}
           </div>
 
@@ -1293,49 +1374,8 @@ export default function Dashboard() {
               );
             })()}
 
-            {/* ═══ ACCESOS DIRECTOS MÓVIL ════════════════════════════════════════════ */}
-            {(widgetConfig.navNewOrder || widgetConfig.navOrders || widgetConfig.navInventory || widgetConfig.navFinancial || widgetConfig.navReports) && (
-              <div className="grid grid-cols-2 gap-4 px-1 pt-2">
-                {[
-                  widgetConfig.navNewOrder && { id: "navNewOrder", label: "Nueva Orden", icon: ClipboardList, gradient: "from-blue-500 to-indigo-600", subtitle: "Crear orden", onClick: () => setShowWorkOrderWizard(true) },
-                  widgetConfig.navOrders && { id: "navOrders", label: "Órdenes", icon: ClipboardList, gradient: "from-purple-500 to-pink-600", subtitle: "Ver historial", onClick: () => handleNavigate("Orders") },
-                  widgetConfig.navInventory && { id: "navInventory", label: "Inventario", icon: Package, gradient: "from-teal-500 to-cyan-600", subtitle: "Stock", onClick: () => handleNavigate("Inventory") },
-                  widgetConfig.navFinancial && { id: "navFinancial", label: "Finanzas", icon: Wallet, gradient: "from-emerald-500 to-teal-600", subtitle: "Resumen", onClick: () => handleNavigate("Financial") },
-                  widgetConfig.navReports && { id: "navReports", label: "Reportes", icon: BarChart3, gradient: "from-indigo-500 to-blue-600", subtitle: "P&L", onClick: () => handleNavigate("FinancialReports") },
-                ].filter(Boolean).map(btn => {
-                  const IconComponent = btn.icon;
-                  return (
-                    <button
-                      key={btn.id}
-                      onClick={btn.onClick}
-                      className="group relative bg-[#1C1C1E]/50 border border-white/[0.07] rounded-[28px] p-5 flex flex-col items-start justify-between min-h-[148px] active:scale-95 transition-all duration-300 shadow-xl overflow-hidden touch-manipulation"
-                    >
-                      <div className="absolute inset-0 bg-gradient-to-br from-white/[0.04] to-transparent pointer-events-none" />
-                      <div className={`absolute inset-0 bg-gradient-to-br ${btn.gradient} opacity-0 active:opacity-[0.08] transition-opacity duration-200 pointer-events-none`} />
-                      <div className="flex justify-between w-full items-start gap-3 relative z-10">
-                        <div className={`w-12 h-12 rounded-[18px] bg-gradient-to-br ${btn.gradient} flex items-center justify-center shadow-lg`}>
-                          <IconComponent className="w-6 h-6 text-white" strokeWidth={2.5} />
-                        </div>
-                      </div>
-                      <div className="flex flex-col items-start relative z-10 mt-auto w-full">
-                        <span className="text-sm font-black text-white/95 leading-none tracking-tight">
-                          {btn.label}
-                        </span>
-                        <div className="flex items-center justify-between w-full mt-2">
-                          <span className="text-[10px] font-medium text-white/30 tracking-wide">
-                            {btn.subtitle}
-                          </span>
-                          <ArrowUpRight className="w-3 h-3 text-white/20" />
-                        </div>
-                      </div>
-                    </button>
-                  );
-                })}
-              </div>
-            )}
-
             {/* ═══ WIDGETS EXTRAS MÓVIL ════════════════════════════════════ */}
-            {(widgetConfig.urgentOrders || widgetConfig.readyPickup || widgetConfig.posSalesToday || widgetConfig.criticalStock || widgetConfig.newCustomers || widgetConfig.cashStatus || widgetConfig.avgRepairTime || widgetConfig.technicianLoad) && (
+            {(widgetConfig.urgentOrders || widgetConfig.readyPickup || widgetConfig.posSalesToday || widgetConfig.criticalStock || widgetConfig.newCustomers || widgetConfig.cashStatus || widgetConfig.avgRepairTime || widgetConfig.technicianLoad || widgetConfig.navNewOrder || widgetConfig.navOrders || widgetConfig.navInventory || widgetConfig.navFinancial || widgetConfig.navReports || customWidgets.length > 0) && (
               <div className="grid grid-cols-2 gap-3 mx-1">
 
                 {widgetConfig.urgentOrders && (
@@ -1435,6 +1475,61 @@ export default function Dashboard() {
                     )}
                   </div>
                 )}
+
+                {widgetConfig.navNewOrder && (
+                  <button onClick={() => setShowWorkOrderWizard(true)} className="bg-[#1C1C1E]/60 border border-sky-500/20 rounded-[24px] p-4 text-left active:scale-95 transition-all">
+                    <div className="flex items-center gap-2 mb-2">
+                      <ClipboardList className="w-4 h-4 text-sky-400 shrink-0" />
+                      <span className="text-white/60 text-[10px] font-black uppercase tracking-tight truncate">Nueva Orden</span>
+                    </div>
+                    <p className="text-white/40 text-xs font-bold">Crear orden</p>
+                  </button>
+                )}
+                {widgetConfig.navOrders && (
+                  <button onClick={() => handleNavigate("Orders")} className="bg-[#1C1C1E]/60 border border-purple-500/20 rounded-[24px] p-4 text-left active:scale-95 transition-all">
+                    <div className="flex items-center gap-2 mb-2">
+                      <ClipboardList className="w-4 h-4 text-purple-400 shrink-0" />
+                      <span className="text-white/60 text-[10px] font-black uppercase tracking-tight truncate">Órdenes</span>
+                    </div>
+                    <p className="text-white/40 text-xs font-bold">Ver historial</p>
+                  </button>
+                )}
+                {widgetConfig.navInventory && (
+                  <button onClick={() => handleNavigate("Inventory")} className="bg-[#1C1C1E]/60 border border-teal-500/20 rounded-[24px] p-4 text-left active:scale-95 transition-all">
+                    <div className="flex items-center gap-2 mb-2">
+                      <Package className="w-4 h-4 text-teal-400 shrink-0" />
+                      <span className="text-white/60 text-[10px] font-black uppercase tracking-tight truncate">Inventario</span>
+                    </div>
+                    <p className="text-white/40 text-xs font-bold">Stock</p>
+                  </button>
+                )}
+                {widgetConfig.navFinancial && (
+                  <button onClick={() => handleNavigate("Financial")} className="bg-[#1C1C1E]/60 border border-emerald-500/20 rounded-[24px] p-4 text-left active:scale-95 transition-all">
+                    <div className="flex items-center gap-2 mb-2">
+                      <Wallet className="w-4 h-4 text-emerald-400 shrink-0" />
+                      <span className="text-white/60 text-[10px] font-black uppercase tracking-tight truncate">Finanzas</span>
+                    </div>
+                    <p className="text-white/40 text-xs font-bold">Resumen</p>
+                  </button>
+                )}
+                {widgetConfig.navReports && (
+                  <button onClick={() => handleNavigate("FinancialReports")} className="bg-[#1C1C1E]/60 border border-indigo-500/20 rounded-[24px] p-4 text-left active:scale-95 transition-all">
+                    <div className="flex items-center gap-2 mb-2">
+                      <BarChart3 className="w-4 h-4 text-indigo-400 shrink-0" />
+                      <span className="text-white/60 text-[10px] font-black uppercase tracking-tight truncate">Reportes</span>
+                    </div>
+                    <p className="text-white/40 text-xs font-bold">P&L</p>
+                  </button>
+                )}
+                {customWidgets.map(widget => (
+                  <button key={widget.id} onClick={() => window.open(widget.url, '_blank')} className="bg-[#1C1C1E]/60 border border-white/10 rounded-[24px] p-4 text-left active:scale-95 transition-all">
+                    <div className="flex items-center gap-2 mb-2">
+                      <ExternalLink className="w-4 h-4 text-white/30 shrink-0" />
+                      <span className="text-white/60 text-[10px] font-black uppercase tracking-tight truncate">{widget.name}</span>
+                    </div>
+                    <p className="text-white/30 text-[10px] font-bold truncate">{widget.url.replace(/^https?:\/\//, '')}</p>
+                  </button>
+                ))}
 
               </div>
             )}

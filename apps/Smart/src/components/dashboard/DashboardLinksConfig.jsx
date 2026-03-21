@@ -4,12 +4,13 @@ import {
   DollarSign, TrendingUp, PackageCheck, Timer,
   AlertCircle, ShoppingCart, Users, Clock, Wrench,
   ClipboardList, Package, Wallet, BarChart3, Layers,
-  LayoutGrid
+  LayoutGrid, Plus, Trash2, ExternalLink, Link
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 
 const DASHBOARD_WIDGETS_KEY = "smartfix_dashboard_widgets";
+const CUSTOM_WIDGETS_KEY = "smartfix_custom_link_widgets";
 
 const AVAILABLE_WIDGETS = [
   // ── Accesos directos de navegación ──────────────────────────────────────
@@ -250,6 +251,9 @@ export default function DashboardLinksConfig({ open, onClose }) {
   const [dailyGoal, setDailyGoal] = useState(() => {
     try { return localStorage.getItem("smartfix_daily_goal_override") || "1000"; } catch { return "1000"; }
   });
+  const [customWidgets, setCustomWidgets] = useState([]);
+  const [showAddCustom, setShowAddCustom] = useState(false);
+  const [newCustom, setNewCustom] = useState({ name: "", url: "" });
 
   useEffect(() => {
     if (open) {
@@ -268,6 +272,10 @@ export default function DashboardLinksConfig({ open, onClose }) {
     } finally {
       setLoading(false);
     }
+    try {
+      const rawCustom = localStorage.getItem(CUSTOM_WIDGETS_KEY);
+      setCustomWidgets(rawCustom ? JSON.parse(rawCustom) : []);
+    } catch {}
   };
 
   const handleSave = () => {
@@ -278,7 +286,9 @@ export default function DashboardLinksConfig({ open, onClose }) {
       if (!isNaN(goalNum) && goalNum > 0) {
         localStorage.setItem("smartfix_daily_goal_override", String(goalNum));
       }
+      localStorage.setItem(CUSTOM_WIDGETS_KEY, JSON.stringify(customWidgets));
       window.dispatchEvent(new CustomEvent('dashboard-widgets-updated'));
+      window.dispatchEvent(new CustomEvent('dashboard-custom-widgets-updated'));
       toast.success("Configuración guardada");
       onClose();
     } catch (error) {
@@ -287,6 +297,30 @@ export default function DashboardLinksConfig({ open, onClose }) {
     } finally {
       setSaving(false);
     }
+  };
+
+  const handleAddCustomWidget = () => {
+    if (!newCustom.name.trim() || !newCustom.url.trim()) {
+      toast.error("Completa el nombre y la URL");
+      return;
+    }
+    let url = newCustom.url.trim();
+    if (!url.startsWith("http://") && !url.startsWith("https://")) {
+      url = "https://" + url;
+    }
+    const widget = {
+      id: `custom_${Date.now()}`,
+      name: newCustom.name.trim(),
+      url
+    };
+    setCustomWidgets(prev => [...prev, widget]);
+    setNewCustom({ name: "", url: "" });
+    setShowAddCustom(false);
+    toast.success("✅ Widget creado");
+  };
+
+  const handleDeleteCustomWidget = (id) => {
+    setCustomWidgets(prev => prev.filter(w => w.id !== id));
   };
 
   if (!open) return null;
@@ -440,6 +474,87 @@ export default function DashboardLinksConfig({ open, onClose }) {
                     className="flex-1 bg-transparent text-white text-sm font-black outline-none placeholder-white/20 min-w-0"
                   />
                   <span className="text-[10px] text-white/20 font-bold">USD/día</span>
+                </div>
+              </div>
+
+              {/* ── Widgets Personalizados ───────────────────────────────────────────── */}
+              <div className="mt-6 pt-6 border-t border-white/[0.06]">
+                <div className="flex items-center justify-between mb-4">
+                  <p className="text-[10px] font-black text-white/30 uppercase tracking-widest">Widgets Personalizados</p>
+                  <button
+                    onClick={() => setShowAddCustom(!showAddCustom)}
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-cyan-500/10 border border-cyan-500/20 text-cyan-400 text-xs font-black hover:bg-cyan-500/20 transition-all"
+                  >
+                    <Plus className="w-3.5 h-3.5" />
+                    Agregar
+                  </button>
+                </div>
+
+                {showAddCustom && (
+                  <div className="mb-4 bg-white/[0.03] border border-white/[0.08] rounded-2xl p-4 space-y-3">
+                    <div>
+                      <label className="text-[10px] font-black text-white/30 uppercase tracking-widest block mb-1.5">Nombre</label>
+                      <input
+                        type="text"
+                        value={newCustom.name}
+                        onChange={e => setNewCustom(prev => ({ ...prev, name: e.target.value }))}
+                        placeholder="Ej: Suplidor ABC"
+                        className="w-full bg-white/[0.06] border border-white/[0.1] rounded-xl px-3 py-2.5 text-sm text-white placeholder-white/20 focus:outline-none focus:ring-2 focus:ring-cyan-500/40"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-[10px] font-black text-white/30 uppercase tracking-widest block mb-1.5">URL</label>
+                      <input
+                        type="url"
+                        value={newCustom.url}
+                        onChange={e => setNewCustom(prev => ({ ...prev, url: e.target.value }))}
+                        placeholder="https://ejemplo.com"
+                        className="w-full bg-white/[0.06] border border-white/[0.1] rounded-xl px-3 py-2.5 text-sm text-white placeholder-white/20 focus:outline-none focus:ring-2 focus:ring-cyan-500/40"
+                      />
+                    </div>
+                    <div className="flex gap-2">
+                      <button
+                        onClick={() => { setShowAddCustom(false); setNewCustom({ name: "", url: "" }); }}
+                        className="flex-1 py-2 rounded-xl bg-white/5 border border-white/10 text-white/40 text-xs font-black hover:bg-white/10 transition-all"
+                      >
+                        Cancelar
+                      </button>
+                      <button
+                        onClick={handleAddCustomWidget}
+                        className="flex-1 py-2 rounded-xl bg-gradient-to-r from-cyan-500 to-emerald-600 text-white text-xs font-black hover:opacity-90 transition-all"
+                      >
+                        Crear Widget
+                      </button>
+                    </div>
+                  </div>
+                )}
+
+                {customWidgets.length === 0 && !showAddCustom && (
+                  <div className="text-center py-6 bg-white/[0.02] border border-dashed border-white/[0.08] rounded-2xl">
+                    <ExternalLink className="w-6 h-6 text-white/15 mx-auto mb-2" />
+                    <p className="text-white/20 text-xs font-bold">Sin widgets personalizados</p>
+                    <p className="text-white/10 text-[10px] mt-0.5">Agrega links externos como accesos rápidos</p>
+                  </div>
+                )}
+
+                <div className="space-y-2">
+                  {customWidgets.map(widget => (
+                    <div key={widget.id} className="flex items-center gap-3 p-3 bg-white/[0.03] border border-white/[0.07] rounded-xl">
+                      <div className="w-9 h-9 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center flex-shrink-0">
+                        <Link className="w-4 h-4 text-white/40" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-white text-sm font-bold truncate">{widget.name}</p>
+                        <p className="text-white/30 text-[10px] truncate">{widget.url}</p>
+                      </div>
+                      <button
+                        onClick={() => handleDeleteCustomWidget(widget.id)}
+                        className="w-8 h-8 rounded-xl bg-red-500/10 border border-red-500/20 flex items-center justify-center text-red-400 hover:bg-red-500/20 transition-all flex-shrink-0"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                  ))}
                 </div>
               </div>
             </div>
