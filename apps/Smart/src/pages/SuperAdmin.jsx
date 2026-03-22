@@ -513,13 +513,15 @@ export default function SuperAdmin() {
     }
   };
 
-  const doDelete = async (tenantId) => {
+  const doDelete = async ({ id: tenantId, email }) => {
     setActionId(tenantId + "delete");
     try {
+      // Nuclear delete by email: limpia Auth user + todas las tablas por email Y tenant_id
+      const body = email ? { email } : { tenantId };
       const res = await fetch('/api/delete-tenant', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ tenantId }),
+        body: JSON.stringify(body),
       });
       const data = await res.json();
       if (data?.success) {
@@ -1384,7 +1386,7 @@ export default function SuperAdmin() {
               </div>
               <div className="flex items-center gap-2">
                 <button
-                  onClick={() => doDelete(confirmDelete)}
+                  onClick={() => doDelete(confirmDelete || {})}
                   disabled={!!actionId}
                   className="flex-1 py-2.5 rounded-xl bg-red-600 hover:bg-red-500 text-white text-sm font-bold transition-all disabled:opacity-50 flex items-center justify-center gap-2"
                 >
@@ -2197,7 +2199,7 @@ export default function SuperAdmin() {
 
                                 {/* Eliminar solo datos tenant */}
                                 <button
-                                  onClick={() => setConfirmDelete(tenant.id)}
+                                  onClick={() => setConfirmDelete({ id: tenant.id, email: tenant.email })}
                                   disabled={!!busy}
                                   className="flex items-center gap-1.5 text-xs px-3 py-2 rounded-xl bg-red-900/20 border border-red-700/30 text-red-400 hover:bg-red-900/40 transition-all disabled:opacity-50"
                                 >
