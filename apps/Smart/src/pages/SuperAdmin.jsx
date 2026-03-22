@@ -11,7 +11,7 @@ import {
   PlayCircle, PauseCircle, Trash2, BarChart3, Activity, Power,
   Pencil, KeyRound, X, Save, Zap, Database, ShoppingBag, ArrowLeftRight,
   StickyNote, MessageSquarePlus, MessageSquare, Timer,
-  Wifi, WifiOff, ArrowUpDown
+  Wifi, WifiOff, ArrowUpDown, UserPlus, Send, Copy, ExternalLink
 } from "lucide-react";
 
 const SUPER_SESSION_KEY   = "smartfix_saas_session";
@@ -196,6 +196,12 @@ export default function SuperAdmin() {
   const [tenantDataLoading, setTenantDataLoading] = useState(false);
   const [supportTab,        setSupportTab]        = useState("orders"); // orders | transactions | customers | employees
   const [deletingRecord,    setDeletingRecord]    = useState(null);  // id being deleted
+
+  // ── Invite tenant state ───────────────────────────────────────────────────
+  const [inviteModal,   setInviteModal]   = useState(false);
+  const [inviteForm,    setInviteForm]    = useState({ ownerName: "", email: "", businessName: "", plan: "smartfixos" });
+  const [inviteLoading, setInviteLoading] = useState(false);
+  const [inviteResult,  setInviteResult]  = useState(null); // { success, tenantName, trialEndDate } | null
 
   // ── Feedback state ────────────────────────────────────────────────────────
   const [feedbackList,    setFeedbackList]    = useState([]);
@@ -709,6 +715,40 @@ export default function SuperAdmin() {
       toast.error(e.message || "Error");
     } finally {
       setNuclearLoading(false);
+    }
+  };
+
+  // ── Invite new tenant ────────────────────────────────────────────────────────
+  const doInviteTenant = async () => {
+    const { ownerName, email, businessName, plan } = inviteForm;
+    if (!ownerName.trim() || !email.trim()) return toast.error("Nombre y email son requeridos");
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return toast.error("Email inválido");
+
+    setInviteLoading(true);
+    setInviteResult(null);
+    try {
+      const FUNCTIONS_URL = import.meta.env.VITE_FUNCTIONS_URL || "http://localhost:8686";
+      const res = await fetch(`${FUNCTIONS_URL}/registerTenant`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          ownerName: ownerName.trim(),
+          email: email.trim().toLowerCase(),
+          password: crypto.randomUUID().replace(/-/g, "").slice(0, 16),
+          businessName: businessName.trim() || ownerName.trim(),
+          plan,
+          country: "US",
+        }),
+      });
+      const data = await res.json();
+      if (!data.success) throw new Error(data.error || "Error al invitar");
+      setInviteResult(data);
+      toast.success(`✅ Invitación enviada a ${email}`);
+      await loadTenants();
+    } catch (e) {
+      toast.error(e.message || "Error al enviar invitación");
+    } finally {
+      setInviteLoading(false);
     }
   };
 
@@ -1326,6 +1366,134 @@ export default function SuperAdmin() {
         )}
       </AnimatePresence>
 
+      {/* ── Invite Tenant Modal ── */}
+      <AnimatePresence>
+        {inviteModal && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm"
+            onClick={(e) => { if (e.target === e.currentTarget && !inviteLoading) setInviteModal(false); }}
+          >
+            <motion.div
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.95, opacity: 0 }}
+              className="bg-[#111114] border border-purple-500/20 rounded-2xl p-6 w-full max-w-md shadow-2xl"
+            >
+              {inviteResult ? (
+                /* Success screen */
+                <div className="text-center space-y-4">
+                  <div className="w-16 h-16 rounded-full bg-emerald-500/20 border border-emerald-500/30 flex items-center justify-center mx-auto">
+                    <CheckCircle className="w-8 h-8 text-emerald-400" />
+                  </div>
+                  <h3 className="text-xl font-bold text-white">¡Invitación enviada!</h3>
+                  <p className="text-gray-400 text-sm">
+                    Se envió el email de activación a <span className="text-white font-medium">{inviteForm.email}</span>
+                  </p>
+                  <div className="bg-white/[0.04] border border-white/[0.07] rounded-xl p-4 text-left space-y-2">
+                    <p className="text-xs text-gray-500 font-medium uppercase tracking-wide">Resumen</p>
+                    <p className="text-sm text-white"><span className="text-gray-500">Negocio:</span> {inviteResult.tenantName}</p>
+                    <p className="text-sm text-white"><span className="text-gray-500">Trial hasta:</span> {inviteResult.trialEndDate}</p>
+                  </div>
+                  <button
+                    onClick={() => setInviteModal(false)}
+                    className="w-full py-3 rounded-xl bg-purple-500/20 border border-purple-500/30 text-purple-300 font-semibold hover:bg-purple-500/30 transition-all"
+                  >
+                    Listo
+                  </button>
+                </div>
+              ) : (
+                /* Form */
+                <>
+                  <div className="flex items-center justify-between mb-5">
+                    <div className="flex items-center gap-2">
+                      <div className="w-8 h-8 rounded-lg bg-purple-500/20 flex items-center justify-center">
+                        <UserPlus className="w-4 h-4 text-purple-400" />
+                      </div>
+                      <h3 className="text-lg font-bold text-white">Invitar tienda</h3>
+                    </div>
+                    <button onClick={() => setInviteModal(false)} className="text-gray-500 hover:text-white transition-colors">
+                      <X className="w-5 h-5" />
+                    </button>
+                  </div>
+
+                  <div className="space-y-4">
+                    <div>
+                      <label className="block text-xs text-gray-500 mb-1.5 font-medium">Nombre del dueño *</label>
+                      <input
+                        value={inviteForm.ownerName}
+                        onChange={e => setInviteForm(f => ({ ...f, ownerName: e.target.value }))}
+                        placeholder="Angel Meléndez"
+                        className="w-full bg-white/[0.04] border border-white/[0.08] rounded-xl px-4 py-2.5 text-white text-sm placeholder-gray-600 focus:outline-none focus:border-purple-500/50"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs text-gray-500 mb-1.5 font-medium">Email *</label>
+                      <input
+                        value={inviteForm.email}
+                        onChange={e => setInviteForm(f => ({ ...f, email: e.target.value }))}
+                        placeholder="angel@taller.com"
+                        type="email"
+                        className="w-full bg-white/[0.04] border border-white/[0.08] rounded-xl px-4 py-2.5 text-white text-sm placeholder-gray-600 focus:outline-none focus:border-purple-500/50"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs text-gray-500 mb-1.5 font-medium">Nombre del negocio</label>
+                      <input
+                        value={inviteForm.businessName}
+                        onChange={e => setInviteForm(f => ({ ...f, businessName: e.target.value }))}
+                        placeholder="Amp Phone Repair"
+                        className="w-full bg-white/[0.04] border border-white/[0.08] rounded-xl px-4 py-2.5 text-white text-sm placeholder-gray-600 focus:outline-none focus:border-purple-500/50"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs text-gray-500 mb-1.5 font-medium">Plan</label>
+                      <div className="grid grid-cols-3 gap-2">
+                        {PLAN_OPTIONS.map(p => (
+                          <button key={p.key}
+                            onClick={() => setInviteForm(f => ({ ...f, plan: p.key }))}
+                            className={`py-2 rounded-xl text-xs font-semibold border transition-all ${
+                              inviteForm.plan === p.key
+                                ? "border-purple-500/60 bg-purple-500/20 text-purple-300"
+                                : "border-white/[0.08] bg-white/[0.03] text-gray-500 hover:bg-white/[0.06]"
+                            }`}
+                          >
+                            {p.label}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="mt-6 flex gap-3">
+                    <button
+                      onClick={() => setInviteModal(false)}
+                      disabled={inviteLoading}
+                      className="flex-1 py-2.5 rounded-xl border border-white/[0.08] text-gray-500 text-sm hover:bg-white/[0.04] transition-all"
+                    >
+                      Cancelar
+                    </button>
+                    <button
+                      onClick={doInviteTenant}
+                      disabled={inviteLoading || !inviteForm.ownerName || !inviteForm.email}
+                      className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl bg-purple-500/20 border border-purple-500/40 text-purple-300 font-semibold text-sm hover:bg-purple-500/30 transition-all disabled:opacity-40"
+                    >
+                      {inviteLoading ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
+                      {inviteLoading ? "Enviando…" : "Enviar invitación"}
+                    </button>
+                  </div>
+                  <p className="text-[11px] text-gray-600 text-center mt-3">
+                    Se enviará un email con el link de activación. La contraseña se genera automáticamente.
+                  </p>
+                </>
+              )}
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       {/* ── Nuclear Delete Modal ── */}
       <AnimatePresence>
         {nuclearModal && (
@@ -1772,6 +1940,12 @@ export default function SuperAdmin() {
                 className="h-10 w-10 rounded-xl border border-white/[0.08] bg-white/[0.04] hover:bg-white/[0.08] flex items-center justify-center transition-all disabled:opacity-40"
               >
                 <RefreshCw className={`w-4 h-4 text-gray-400 ${loading ? "animate-spin" : ""}`} />
+              </button>
+              <button
+                onClick={() => { setInviteModal(true); setInviteResult(null); setInviteForm({ ownerName: "", email: "", businessName: "", plan: "smartfixos" }); }}
+                className="h-10 flex items-center gap-2 px-4 rounded-xl border border-purple-500/40 bg-purple-500/10 hover:bg-purple-500/20 text-purple-300 text-sm font-semibold transition-all"
+              >
+                <UserPlus className="w-4 h-4" /> Invitar tienda
               </button>
             </div>
 
