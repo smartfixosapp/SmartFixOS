@@ -1111,6 +1111,9 @@ export default function PinAccess() {
   const completeLogin = async (session, fromBiometric = false) => {
     localStorage.setItem("employee_session", JSON.stringify(session));
     sessionStorage.setItem("911-session", JSON.stringify(session));
+    // Limpiar flag de cierre previo para que AuthGate no confunda esta sesión
+    // recién creada con una app "cerrada hace mucho tiempo".
+    localStorage.removeItem("_sfos_bg_ts");
 
     // ── Sincronizar tenant_id en localStorage para que todos los módulos
     //    (TimeTracking, etc.) puedan leerlo sin parsear el session object ──
