@@ -95,6 +95,23 @@ function formatReceiptHtml(sale, customer, items, biz) {
   </div>`;
 }
 
+// ── Envío directo a Resend (sin servidor Deno) ─────────────────────────────
+async function sendViaResend(toEmail, subject, bodyHtml) {
+  const apiKey = import.meta.env.VITE_RESEND_API_KEY;
+  const fromEmail = import.meta.env.VITE_FROM_EMAIL || "noreply@smartfixos.com";
+  const fromName = import.meta.env.VITE_FROM_NAME || "SmartFixOS";
+  if (!apiKey) throw new Error("VITE_RESEND_API_KEY no configurado");
+  const res = await fetch("https://api.resend.com/emails", {
+    method: "POST",
+    headers: { "Authorization": `Bearer ${apiKey}`, "Content-Type": "application/json" },
+    body: JSON.stringify({ from: `${fromName} <${fromEmail}>`, to: [toEmail], subject, html: bodyHtml }),
+  });
+  if (!res.ok) {
+    const err = await res.text();
+    throw new Error(`Resend error ${res.status}: ${err}`);
+  }
+}
+
 // ── Componente principal ───────────────────────────────────────────────────
 export default function POSSaleActionsModal({ open, onClose, sale, customer, cartItems, onPrint }) {
   const [tab, setTab] = useState(null);
@@ -103,6 +120,7 @@ export default function POSSaleActionsModal({ open, onClose, sale, customer, car
   const [sending, setSending] = useState(false);
   const [sent, setSent] = useState({ email: false, wa: false });
   const [businessInfo, setBusinessInfo] = useState(null);
+  const cfg = getConfig();
 
   useEffect(() => {
     if (!open) { setTab(null); setSent({ email: false, wa: false }); return; }
@@ -143,10 +161,13 @@ export default function POSSaleActionsModal({ open, onClose, sale, customer, car
     if (!emailAddr) { toast.error("Ingresa un email"); return; }
     setSending(true);
     try {
-      await sendEmail({ to_email: emailAddr, subject: `Recibo — ${bizName}`, body_html: receiptHtml });
+      await sendViaResend(emailAddr, `Recibo — ${bizName}`, receiptHtml);
       setSent(p => ({ ...p, email: true }));
       toast.success("✅ Recibo enviado por email");
-    } catch { toast.error("Error enviando email"); }
+    } catch (err) {
+      console.error("Email error:", err);
+      toast.error(`Error enviando email: ${err.message}`);
+    }
     finally { setSending(false); }
   };
 
@@ -190,16 +211,22 @@ export default function POSSaleActionsModal({ open, onClose, sale, customer, car
 
         <div className="px-6 pb-6 space-y-3">
           {tab === null && (<>
-            <ActionCard icon={Mail} label="Enviar por Email"
-              sublabel={emailAddr || "Sin email guardado — puedes escribirlo"}
-              color="bg-blue-600/80" done={sent.email} onClick={() => setTab("email")} />
-            <ActionCard icon={MessageCircle} label="Enviar por WhatsApp"
-              sublabel={waPhone || "Sin teléfono guardado — puedes escribirlo"}
-              color="bg-emerald-600/80" done={sent.wa} onClick={() => setTab("whatsapp")} />
-            <ActionCard icon={Printer} label="Imprimir Recibo"
-              sublabel="Impresora térmica o regular"
-              color="bg-slate-600/80" done={false}
-              onClick={() => { onPrint?.(); onClose(); }} />
+            {cfg.send_email !== false && (
+              <ActionCard icon={Mail} label="Enviar por Email"
+                sublabel={emailAddr || "Sin email guardado — puedes escribirlo"}
+                color="bg-blue-600/80" done={sent.email} onClick={() => setTab("email")} />
+            )}
+            {cfg.send_whatsapp !== false && (
+              <ActionCard icon={MessageCircle} label="Enviar por WhatsApp"
+                sublabel={waPhone || "Sin teléfono guardado — puedes escribirlo"}
+                color="bg-emerald-600/80" done={sent.wa} onClick={() => setTab("whatsapp")} />
+            )}
+            {cfg.send_print !== false && (
+              <ActionCard icon={Printer} label="Imprimir Recibo"
+                sublabel="Impresora térmica o regular"
+                color="bg-slate-600/80" done={false}
+                onClick={() => { onPrint?.(); onClose(); }} />
+            )}
             <button onClick={onClose}
               className="w-full mt-1 py-3 text-white/30 text-sm hover:text-white/50 transition-colors">
               Omitir

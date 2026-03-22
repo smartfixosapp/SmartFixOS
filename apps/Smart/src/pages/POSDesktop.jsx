@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { dataClient } from "@/components/api/dataClient";
 import { supabase } from "../../../../lib/supabase-client.js";
-import { useLocation } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ShoppingCart, Search, Plus, Minus, Trash2, User, AlertCircle, Loader2, Zap, LayoutGrid, X, PenLine, History } from "lucide-react";
@@ -106,6 +106,7 @@ function toCurrencyNumber(value) {
 
 export default function POSDesktop() {
   const location = useLocation();
+  const navigate = useNavigate();
   const [products, setProducts] = useState([]);
   const [services, setServices] = useState([]);
   const [cart, setCart] = useState([]);
@@ -143,6 +144,7 @@ export default function POSDesktop() {
   const [manualItem, setManualItem] = useState({ name: "", price: "", qty: "1" });
   const [showSaleActions, setShowSaleActions] = useState(false);
   const [completedSale, setCompletedSale] = useState(null);
+  const [completedOrderId, setCompletedOrderId] = useState(null);
   const [showSaleHistory, setShowSaleHistory] = useState(false);
   const [historyCustomer, setHistoryCustomer] = useState(null);
   const hasShownInventoryOfflineToast = React.useRef(false);
@@ -564,7 +566,7 @@ export default function POSDesktop() {
                          (paymentMethod === "cash" ? parseFloat(cashReceived) :
                          paymentMethod === "mixed" ? mixedTotal : effectiveTotal);
       
-      const amountPaidOnOrder = selectedOrder ? Math.min(amountPaid, selectedOrder.balance_due != null ? selectedOrder.balance_due : (orderTotal - totalPaid)) : 0;
+      const amountPaidOnOrder = selectedOrder ? Math.min(amountPaid, orderBalance) : 0;
       
       const saleNumber = `S-${new Date().toISOString().split('T')[0]}-${Math.floor(Math.random() * 9000 + 1000)}`;
       const paymentMethods = paymentMethod === "mixed" ?
@@ -705,6 +707,11 @@ export default function POSDesktop() {
       }
       setShowPaymentModal(false);
 
+      // Capture order info before clearing (clearCart sets selectedOrder = null)
+      const cameFromOrder = !!selectedOrder;
+      const orderIdBeforeClear = selectedOrder?.id || null;
+      setCompletedOrderId(orderIdBeforeClear);
+
       // Mostrar modal de acciones post-venta (email / WhatsApp / imprimir)
       setPrintData(sale);
       setCompletedSale(sale);
@@ -712,10 +719,7 @@ export default function POSDesktop() {
 
       clearCart();
 
-      // Volver directo al boleto si este cobro vino desde una orden
-      if (selectedOrder) {
-        // Redirect is now handled by UniversalPrintDialog onClose
-      } else {
+      if (!cameFromOrder) {
         setTimeout(() => {
           try {
             window.dispatchEvent(new Event("force-refresh"));
@@ -1204,8 +1208,9 @@ export default function POSDesktop() {
         onClose={() => {
           setShowSaleActions(false);
           setCompletedSale(null);
-          if (selectedOrder) {
-            window.location.assign(createPageUrl(`Orders?openOrderId=${selectedOrder.id}`));
+          if (completedOrderId) {
+            setCompletedOrderId(null);
+            navigate(createPageUrl(`Orders?openOrderId=${completedOrderId}`));
           }
         }}
         sale={completedSale}
