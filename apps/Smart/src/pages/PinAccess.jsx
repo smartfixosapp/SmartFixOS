@@ -1054,7 +1054,7 @@ export default function PinAccess() {
     setShowSuccessBurst(true);
     setTimeout(() => {
       setShowSuccessBurst(false);
-      navigate("/Dashboard", { replace: true });
+      window.location.href = "/Dashboard";
     }, 500);
   };
 
@@ -1165,7 +1165,7 @@ export default function PinAccess() {
     setShowSuccessBurst(true);
     setTimeout(() => {
       setShowSuccessBurst(false);
-      navigate("/Dashboard", { replace: true });
+      window.location.href = "/Dashboard";
     }, 850);
   };
 
