@@ -143,7 +143,7 @@ export default function POSSaleActionsModal({ open, onClose, sale, customer, car
     if (!emailAddr) { toast.error("Ingresa un email"); return; }
     setSending(true);
     try {
-      await sendEmail({ to: emailAddr, subject: `Recibo — ${bizName}`, html: receiptHtml });
+      await sendEmail({ to_email: emailAddr, subject: `Recibo — ${bizName}`, body_html: receiptHtml });
       setSent(p => ({ ...p, email: true }));
       toast.success("✅ Recibo enviado por email");
     } catch { toast.error("Error enviando email"); }

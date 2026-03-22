@@ -150,8 +150,10 @@ export default function POSDesktop() {
   const urlParams = new URLSearchParams(window.location.search);
   const workOrderId = urlParams.get("workOrderId");
   const urlPaymentMode = urlParams.get("mode") || "full";
+  const urlBalance = parseFloat(urlParams.get("balance") || "0");
   const routeStateOrder = location.state?.workOrder || null;
   const routePaymentMode = location.state?.paymentMode || null;
+  const routeBalanceDue = parseFloat(location.state?.balanceDue || "0");
 
   const hydrateWorkOrder = useCallback(async (order) => {
     if (!order?.id) return;
@@ -218,7 +220,8 @@ export default function POSDesktop() {
   }, []);
 
   useEffect(() => {
-    if (workOrderId) {
+    // Skip DB fetch if we already have the order via route state
+    if (workOrderId && !routeStateOrder) {
       loadWorkOrder();
     }
   }, [workOrderId]);
@@ -231,13 +234,12 @@ export default function POSDesktop() {
 
   useEffect(() => {
     // ✅ Esperar que el cajón cargue antes de abrir modal de pago
-    if (workOrderId && selectedOrder && !loadingDrawer) {
-      // Use a small timeout to ensure the UI is ready
+    if ((workOrderId || location.state?.openPaymentImmediately) && selectedOrder && !loadingDrawer) {
       setTimeout(() => {
         setShowPaymentModal(true);
-      }, 100);
+      }, 150);
     }
-  }, [workOrderId, selectedOrder, loadingDrawer]);
+  }, [workOrderId, selectedOrder, loadingDrawer, location.state?.openPaymentImmediately]);
 
   const fetchWorkOrderById = useCallback(async (orderId) => {
     if (!orderId) return null;
@@ -473,9 +475,15 @@ export default function POSDesktop() {
         0,
         parseFloat(
           toCurrencyNumber(
-            selectedOrder.balance_due != null
+            selectedOrder.balance_due != null && Number(selectedOrder.balance_due) > 0
               ? selectedOrder.balance_due
-              : (orderTotal - totalPaid)
+              : (orderTotal - totalPaid) > 0
+                ? (orderTotal - totalPaid)
+                : routeBalanceDue > 0
+                  ? routeBalanceDue
+                  : urlBalance > 0
+                    ? urlBalance
+                    : 0
           ).toFixed(2)
         )
       )
