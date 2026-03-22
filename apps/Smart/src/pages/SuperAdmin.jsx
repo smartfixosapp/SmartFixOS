@@ -164,7 +164,10 @@ export default function SuperAdmin() {
   const [actionId,   setActionId]     = useState(null);
   const [expanded,   setExpanded]     = useState(null); // tenant id detalle
   const [tab,        setTab]          = useState("tenants"); // tenants | metrics | activity | storage
-  const [activitySort, setActivitySort] = useState("recent"); // recent | oldest | never
+  const [activitySort, setActivitySort] = useState("recent"); // recent | oldest | never | atrisk
+  const [activityStats,     setActivityStats]     = useState({}); // { [tenantId]: { orders7d, orders30d, totalOrders } }
+  const [activityStatsLoaded, setActivityStatsLoaded] = useState(false);
+  const [activityStatsLoading, setActivityStatsLoading] = useState(false);
 
   // ── Storage Browser state ─────────────────────────────────────────────────
   const [storageTenantId,   setStorageTenantId]   = useState(null);   // tenant seleccionado
@@ -281,19 +284,61 @@ export default function SuperAdmin() {
   }, []);
 
   // ── Data ──────────────────────────────────────────────────────────────────
+
+  // Carga estadísticas de actividad por tenant (órdenes, clientes) para el tab de actividad
+  const loadActivityStats = async (tenantList) => {
+    if (activityStatsLoaded || activityStatsLoading) return;
+    setActivityStatsLoading(true);
+    try {
+      const now = new Date();
+      const d7  = new Date(now - 7  * 86400000).toISOString();
+      const d30 = new Date(now - 30 * 86400000).toISOString();
+
+      const [{ data: orders7d }, { data: orders30d }, { data: allOrders }] = await Promise.all([
+        supabase.from("order").select("tenant_id").gte("created_date", d7),
+        supabase.from("order").select("tenant_id").gte("created_date", d30),
+        supabase.from("order").select("tenant_id").limit(5000),
+      ]);
+
+      const count = (rows, tid) => (rows || []).filter(r => r.tenant_id === tid).length;
+
+      const stats = {};
+      for (const t of tenantList) {
+        stats[t.id] = {
+          orders7d:    count(orders7d,  t.id),
+          orders30d:   count(orders30d, t.id),
+          totalOrders: count(allOrders, t.id),
+        };
+      }
+      setActivityStats(stats);
+      setActivityStatsLoaded(true);
+    } catch (e) {
+      console.error("[SuperAdmin] loadActivityStats error:", e);
+    } finally {
+      setActivityStatsLoading(false);
+    }
+  };
+
   const loadTenants = async () => {
     setLoading(true);
     try {
-      const [tenantRows, subscriptionRows] = await Promise.all([
-        appClient.entities.Tenant.list("-created_date", 500),
+      const [{ data: tenantRows, error: tenantError }, { data: subscriptionRows }] = await Promise.all([
+        // Usar supabase directo para garantizar que last_login y last_seen se incluyan
+        supabase
+          .from("tenant")
+          .select("id, name, email, plan, status, subscription_status, trial_end_date, created_date, last_login, last_seen, country, currency, timezone, metadata, monthly_cost, admin_name, admin_phone, address")
+          .order("created_date", { ascending: false })
+          .limit(500),
         supabase
           .from("subscription")
           .select("id, tenant_id, plan, status, amount, trial_end_date, next_billing_date, created_at")
           .order("created_at", { ascending: false }),
       ]);
 
+      if (tenantError) throw tenantError;
+
       const subscriptionsByTenant = new Map();
-      for (const row of subscriptionRows?.data || []) {
+      for (const row of subscriptionRows || []) {
         if (!row?.tenant_id || subscriptionsByTenant.has(row.tenant_id)) continue;
         subscriptionsByTenant.set(row.tenant_id, row);
       }
@@ -2041,7 +2086,7 @@ export default function SuperAdmin() {
             ].map(t => (
               <button
                 key={t.key}
-                onClick={() => { setTab(t.key); if (t.key === "feedback") loadFeedback(); if (t.key === "storage") loadStorageStats(); }}
+                onClick={() => { setTab(t.key); if (t.key === "feedback") loadFeedback(); if (t.key === "storage") loadStorageStats(); if (t.key === "activity") loadActivityStats(tenants); }}
                 className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
                   tab === t.key
                     ? "bg-white/10 text-white shadow"
@@ -2058,7 +2103,7 @@ export default function SuperAdmin() {
           <select
             className="sm:hidden text-xs bg-white/10 border border-white/20 text-white rounded-lg px-2 py-1.5 outline-none"
             value={tab}
-            onChange={e => { const v = e.target.value; setTab(v); if (v === "feedback") loadFeedback(); if (v === "storage") loadStorageStats(); }}
+            onChange={e => { const v = e.target.value; setTab(v); if (v === "feedback") loadFeedback(); if (v === "storage") loadStorageStats(); if (v === "activity") loadActivityStats(tenants); }}
           >
             <option value="tenants">Tiendas</option>
             <option value="metrics">Métricas</option>
@@ -2595,15 +2640,55 @@ export default function SuperAdmin() {
           const active7d   = tenants.filter(t => t.last_login && (now - new Date(t.last_login).getTime()) < 7*86400000).length;
           const never      = tenants.filter(t => !t.last_login).length;
 
+          // Engagement score: 0-100 basado en actividad recente
+          const engagementScore = (tenant) => {
+            let score = 0;
+            const stats = activityStats[tenant.id] || {};
+            if (tenant.last_login) {
+              const daysAgo = (now - new Date(tenant.last_login).getTime()) / 86400000;
+              if (daysAgo < 1)  score += 40;
+              else if (daysAgo < 3)  score += 30;
+              else if (daysAgo < 7)  score += 20;
+              else if (daysAgo < 14) score += 10;
+            }
+            if (stats.orders7d  > 10) score += 30;
+            else if (stats.orders7d  > 3) score += 20;
+            else if (stats.orders7d  > 0) score += 10;
+            if (stats.orders30d > 20) score += 30;
+            else if (stats.orders30d > 5) score += 20;
+            else if (stats.orders30d > 0) score += 10;
+            return Math.min(score, 100);
+          };
+
+          const engagementBadge = (score) => {
+            if (score >= 60) return { label: "Alto",   cls: "bg-emerald-500/15 text-emerald-400 border-emerald-500/30" };
+            if (score >= 30) return { label: "Medio",  cls: "bg-amber-500/15 text-amber-400 border-amber-500/30"       };
+            if (score > 0)   return { label: "Bajo",   cls: "bg-orange-500/15 text-orange-400 border-orange-500/30"    };
+            return                   { label: "Ninguno", cls: "bg-gray-500/15 text-gray-500 border-gray-500/20"          };
+          };
+
+          // At-risk: en trial con < 5 días y no han logueado en 3+ días
+          const isAtRisk = (tenant) => {
+            const badge = getStatusBadge(tenant);
+            const isTrial = badge.label?.includes("Trial") && !badge.label?.includes("vencido");
+            if (!isTrial) return false;
+            const trialEnd = new Date(tenant.effective_trial_end_date || tenant.trial_end_date);
+            const daysLeft = (trialEnd - new Date()) / 86400000;
+            if (daysLeft > 5) return false;
+            if (!tenant.last_login) return true;
+            const lastLoginDays = (now - new Date(tenant.last_login).getTime()) / 86400000;
+            return lastLoginDays > 3;
+          };
+
+          const atRiskCount = tenants.filter(isAtRisk).length;
+
           const sorted = [...tenants].sort((a, b) => {
-            // "online" sort: primero los que tienen last_seen más reciente
-            if (activitySort === "recent") {
-              const aVal = a.last_seen || a.last_login;
-              const bVal = b.last_seen || b.last_login;
-              if (!aVal && !bVal) return 0;
-              if (!aVal) return 1;
-              if (!bVal) return -1;
-              return new Date(bVal) - new Date(aVal);
+            if (activitySort === "atrisk") {
+              const ar = isAtRisk(b) - isAtRisk(a);
+              if (ar !== 0) return ar;
+            }
+            if (activitySort === "engagement") {
+              return engagementScore(b) - engagementScore(a);
             }
             if (activitySort === "never") {
               if (!a.last_login && !b.last_login) return 0;
@@ -2611,21 +2696,26 @@ export default function SuperAdmin() {
               if (!b.last_login) return 1;
               return 0;
             }
-            if (!a.last_login && !b.last_login) return 0;
-            if (!a.last_login) return 1;
-            if (!b.last_login) return -1;
-            return new Date(a.last_login) - new Date(b.last_login);
+            const aVal = a.last_seen || a.last_login;
+            const bVal = b.last_seen || b.last_login;
+            if (!aVal && !bVal) return 0;
+            if (!aVal) return activitySort === "recent" ? 1 : -1;
+            if (!bVal) return activitySort === "recent" ? -1 : 1;
+            return activitySort === "recent"
+              ? new Date(bVal) - new Date(aVal)
+              : new Date(aVal) - new Date(bVal);
           });
 
           return (
-            <div className="space-y-5">
-              {/* KPI mini-cards — 4 cards con "Online ahora" destacado */}
+            <div className="max-w-5xl mx-auto px-4 sm:px-6 py-6 space-y-5">
+
+              {/* KPI row */}
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                 {[
-                  { label: "Online ahora",    value: onlineNow, icon: Wifi,    dot: "bg-emerald-400 animate-pulse shadow-[0_0_8px_rgba(52,211,153,0.7)]", color: "text-emerald-400", border: "border-emerald-500/40", bg: "bg-emerald-500/10" },
-                  { label: "Hoy",             value: active24h, icon: Activity, dot: "bg-blue-400",     color: "text-blue-400",   border: "border-blue-500/20",   bg: "bg-blue-500/5"   },
-                  { label: "Últimos 7 días",  value: active7d,  icon: TrendingUp,dot:"bg-amber-400",  color: "text-amber-400",   border: "border-amber-500/20",   bg: "bg-amber-500/5"   },
-                  { label: "Nunca entró",     value: never,     icon: WifiOff, dot: "bg-red-500",     color: "text-red-400",     border: "border-red-500/20",     bg: "bg-red-500/5"     },
+                  { label: "Online ahora",   value: onlineNow, dot: "bg-emerald-400 animate-pulse shadow-[0_0_8px_rgba(52,211,153,0.7)]", color: "text-emerald-400", border: "border-emerald-500/40", bg: "bg-emerald-500/10" },
+                  { label: "Activos hoy",    value: active24h, dot: "bg-blue-400",   color: "text-blue-400",   border: "border-blue-500/20",   bg: "bg-blue-500/5"   },
+                  { label: "Esta semana",    value: active7d,  dot: "bg-amber-400",  color: "text-amber-400",  border: "border-amber-500/20",  bg: "bg-amber-500/5"  },
+                  { label: "En riesgo",      value: atRiskCount, dot: atRiskCount > 0 ? "bg-red-500 animate-pulse" : "bg-gray-600", color: atRiskCount > 0 ? "text-red-400" : "text-gray-500", border: atRiskCount > 0 ? "border-red-500/40" : "border-gray-500/20", bg: atRiskCount > 0 ? "bg-red-500/10" : "bg-gray-500/5" },
                 ].map(k => (
                   <div key={k.label} className={`rounded-2xl border ${k.border} ${k.bg} p-4`}>
                     <div className="flex items-center gap-2 mb-2">
@@ -2638,40 +2728,39 @@ export default function SuperAdmin() {
                 ))}
               </div>
 
-              {/* Sort buttons */}
-              <div className="flex items-center justify-between">
-                <p className="text-xs text-gray-600">Última vez que alguien inició sesión por tienda</p>
-                <div className="flex gap-1.5">
-                  {[
-                    { key: "recent", label: "Más recientes" },
-                    { key: "oldest", label: "Más antiguos"  },
-                    { key: "never",  label: "Sin actividad" },
-                  ].map(opt => (
-                    <button
-                      key={opt.key}
-                      onClick={() => setActivitySort(opt.key)}
-                      className={`flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-[11px] font-semibold transition-all border ${
-                        activitySort === opt.key
-                          ? "bg-purple-500/20 text-purple-300 border-purple-500/40"
-                          : "bg-white/[0.03] text-gray-500 border-white/[0.07] hover:border-white/20 hover:text-gray-300"
-                      }`}
-                    >
-                      <ArrowUpDown className="w-3 h-3" />
-                      {opt.label}
-                    </button>
-                  ))}
+              {/* Controls row */}
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <div className="flex items-center gap-2">
+                  <p className="text-xs text-gray-600 hidden sm:block">Ordenar por:</p>
+                  <div className="flex flex-wrap gap-1.5">
+                    {[
+                      { key: "recent",     label: "Más recientes"   },
+                      { key: "oldest",     label: "Más antiguos"    },
+                      { key: "never",      label: "Sin actividad"   },
+                      { key: "engagement", label: "Engagement"      },
+                      { key: "atrisk",     label: `⚠️ En riesgo ${atRiskCount > 0 ? `(${atRiskCount})` : ""}` },
+                    ].map(opt => (
+                      <button
+                        key={opt.key}
+                        onClick={() => { setActivitySort(opt.key); loadActivityStats(tenants); }}
+                        className={`flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-[11px] font-semibold transition-all border ${
+                          activitySort === opt.key
+                            ? "bg-purple-500/20 text-purple-300 border-purple-500/40"
+                            : "bg-white/[0.03] text-gray-500 border-white/[0.07] hover:border-white/20 hover:text-gray-300"
+                        }`}
+                      >
+                        {opt.label}
+                      </button>
+                    ))}
+                  </div>
                 </div>
+                <p className="text-[10px] text-gray-700 flex items-center gap-1">
+                  <span className="w-1.5 h-1.5 rounded-full bg-gray-600 animate-pulse" />
+                  Auto-refresh 30s
+                </p>
               </div>
 
-              {/* Nota sobre auto-refresh */}
-              <p className="text-[10px] text-gray-700 text-right -mt-2">
-                <span className="inline-flex items-center gap-1">
-                  <span className="w-1.5 h-1.5 rounded-full bg-gray-600 animate-pulse" />
-                  Se actualiza automáticamente cada 30 seg
-                </span>
-              </p>
-
-              {/* Table */}
+              {/* Main table */}
               <div className="bg-white/[0.025] border border-white/[0.07] rounded-2xl overflow-hidden">
                 {sorted.map((tenant, i) => {
                   const ac       = activityColor(tenant.last_login);
@@ -2679,54 +2768,113 @@ export default function SuperAdmin() {
                   const ago      = timeAgo(tenant.last_login);
                   const seenAgo  = timeAgo(tenant.last_seen);
                   const badge    = getStatusBadge(tenant);
+                  const stats    = activityStats[tenant.id];
+                  const score    = engagementScore(tenant);
+                  const eng      = engagementBadge(score);
+                  const atRisk   = isAtRisk(tenant);
+
+                  // Trial days remaining
+                  const trialEnd = tenant.effective_trial_end_date || tenant.trial_end_date;
+                  const trialDaysLeft = trialEnd ? Math.ceil((new Date(trialEnd) - new Date()) / 86400000) : null;
+
                   return (
-                    <div key={tenant.id} className={`flex items-center gap-3 px-4 py-3 ${i < sorted.length - 1 ? "border-b border-white/[0.05]" : ""} ${presence ? "bg-emerald-500/[0.02]" : ""} hover:bg-white/[0.03] transition-colors`}>
+                    <div
+                      key={tenant.id}
+                      className={`px-4 py-3.5 ${i < sorted.length - 1 ? "border-b border-white/[0.05]" : ""} ${atRisk ? "bg-red-500/[0.03]" : presence ? "bg-emerald-500/[0.02]" : ""} hover:bg-white/[0.03] transition-colors`}
+                    >
+                      <div className="flex items-start gap-3">
+                        {/* Presencia dot */}
+                        <span className={`w-2.5 h-2.5 rounded-full flex-shrink-0 mt-1.5 ${presence ? presence.dot : ac.dot}`} />
 
-                      {/* Presencia dot — si hay last_seen reciente muestra verde pulsante, si no, usa activityColor */}
-                      <span className={`w-2.5 h-2.5 rounded-full flex-shrink-0 ${presence ? presence.dot : ac.dot}`} />
+                        {/* Info principal */}
+                        <div className="flex-1 min-w-0">
+                          <div className="flex flex-wrap items-center gap-1.5">
+                            <p className="text-sm font-bold text-white">{tenant.name || "—"}</p>
+                            {atRisk && (
+                              <span className="text-[10px] px-1.5 py-0.5 rounded-md bg-red-500/20 border border-red-500/40 text-red-300 font-bold animate-pulse">
+                                ⚠️ En riesgo
+                              </span>
+                            )}
+                            {presence && (
+                              <span className={`text-[10px] px-1.5 py-0.5 rounded-md border font-bold ${presence.badge}`}>
+                                {presence.label}
+                              </span>
+                            )}
+                          </div>
+                          <div className="flex flex-wrap items-center gap-x-3 gap-y-0.5 mt-0.5">
+                            <p className="text-[11px] text-gray-600">{tenant.email || "—"}</p>
+                            {presence && seenAgo && (
+                              <p className="text-[10px] text-emerald-600">Visto {seenAgo}</p>
+                            )}
+                            {!presence && ago && (
+                              <p className="text-[10px] text-gray-600">Último login: {ago}</p>
+                            )}
+                            {!tenant.last_login && (
+                              <p className="text-[10px] text-red-700 font-semibold">Nunca ha entrado</p>
+                            )}
+                          </div>
 
-                      {/* Name / email */}
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2">
-                          <p className="text-sm font-semibold text-white truncate">{tenant.name || "—"}</p>
-                          {presence && (
-                            <span className={`text-[10px] px-1.5 py-0.5 rounded-md border font-bold flex-shrink-0 ${presence.badge}`}>
-                              {presence.label}
-                            </span>
+                          {/* Stats row */}
+                          {stats && (
+                            <div className="flex flex-wrap gap-3 mt-1.5">
+                              <span className="text-[10px] text-gray-600 flex items-center gap-1">
+                                <span className="w-1.5 h-1.5 rounded-full bg-blue-500" />
+                                {stats.orders7d} órdenes (7d)
+                              </span>
+                              <span className="text-[10px] text-gray-600 flex items-center gap-1">
+                                <span className="w-1.5 h-1.5 rounded-full bg-purple-500" />
+                                {stats.orders30d} órdenes (30d)
+                              </span>
+                              <span className="text-[10px] text-gray-500 flex items-center gap-1">
+                                Total: {stats.totalOrders}
+                              </span>
+                            </div>
+                          )}
+                          {activityStatsLoading && !stats && (
+                            <p className="text-[10px] text-gray-700 mt-1">Cargando stats…</p>
                           )}
                         </div>
-                        <div className="flex items-center gap-2 mt-0.5">
-                          <p className="text-[11px] text-gray-600 truncate">{tenant.email || "—"}</p>
-                          {presence && seenAgo && (
-                            <p className="text-[10px] text-emerald-600 flex-shrink-0">
-                              Visto {seenAgo}
+
+                        {/* Right side badges */}
+                        <div className="flex flex-col items-end gap-1.5 flex-shrink-0">
+                          {/* Plan + status */}
+                          <span className={`text-[10px] px-2 py-0.5 rounded-full border font-semibold ${badge.cls}`}>
+                            {badge.label}
+                          </span>
+
+                          {/* Engagement */}
+                          <span className={`text-[10px] px-2 py-0.5 rounded-full border font-semibold ${eng.cls}`}>
+                            Eng: {eng.label}
+                          </span>
+
+                          {/* Trial days */}
+                          {trialDaysLeft !== null && trialDaysLeft > 0 && (
+                            <span className={`text-[10px] px-2 py-0.5 rounded-full border font-semibold ${trialDaysLeft <= 3 ? "bg-red-500/15 text-red-400 border-red-500/30" : trialDaysLeft <= 7 ? "bg-orange-500/15 text-orange-400 border-orange-500/30" : "bg-gray-500/10 text-gray-500 border-gray-500/20"}`}>
+                              {trialDaysLeft}d trial
+                            </span>
+                          )}
+
+                          {/* Last login date */}
+                          {tenant.last_login && (
+                            <p className="text-[10px] text-gray-600">
+                              {new Date(tenant.last_login).toLocaleDateString("es", { day:"2-digit", month:"short", hour:"2-digit", minute:"2-digit" })}
                             </p>
                           )}
                         </div>
                       </div>
-
-                      {/* Status badge */}
-                      <span className={`hidden sm:inline text-[10px] px-2 py-0.5 rounded-full border font-semibold flex-shrink-0 ${badge.cls}`}>
-                        {badge.label}
-                      </span>
-
-                      {/* Último login badge */}
-                      <span className={`text-[11px] px-2.5 py-1 rounded-lg font-semibold flex-shrink-0 ${ac.badge}`}>
-                        {ac.label}
-                      </span>
-
-                      {/* Time ago del último login */}
-                      <div className="text-right flex-shrink-0 w-28">
-                        <p className="text-xs text-gray-500">{ago || <span className="text-gray-700">Sin registro</span>}</p>
-                        {tenant.last_login && (
-                          <p className="text-[10px] text-gray-700">
-                            {new Date(tenant.last_login).toLocaleDateString("es", { day:"2-digit", month:"short" })}
-                          </p>
-                        )}
-                      </div>
                     </div>
                   );
                 })}
+              </div>
+
+              {/* Leyenda */}
+              <div className="flex flex-wrap gap-4 text-[10px] text-gray-600 px-1">
+                <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" /> Online ahora (&lt;4 min)</span>
+                <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-emerald-400" /> Activo hoy</span>
+                <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-amber-400" /> Esta semana</span>
+                <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-red-500" /> Inactivo +30d</span>
+                <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-gray-600" /> Sin registro</span>
+                <span className="flex items-center gap-1">⚠️ Trial crítico + sin actividad</span>
               </div>
             </div>
           );

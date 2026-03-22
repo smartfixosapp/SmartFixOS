@@ -1,26 +1,43 @@
 import './App.css'
 import Pages from "@/pages/index.jsx"
 import { Toaster } from "@/components/ui/toaster"
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query"
-import { useEffect } from "react"
+import { QueryClient, QueryClientProvider, onlineManager } from "@tanstack/react-query"
+import { useEffect, useState, useCallback, useRef } from "react"
+import { isNative } from "@/lib/capacitor"
+import { Wifi, WifiOff } from "lucide-react"
+import { AnimatePresence, motion } from "framer-motion"
 
+// ── React Query — configuración optimizada para mobile ─────────────────────
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      refetchOnWindowFocus: true,   // Recarga en desktop al volver al tab
-      refetchOnReconnect: true,     // Recarga al recuperar red
+      // En mobile/native: no refetch al enfocar ventana (no tiene sentido para apps nativas)
+      // En web: sí refetch al volver al tab
+      refetchOnWindowFocus: !isNative(),
+      refetchOnReconnect: true,      // Recarga automática al recuperar red
+      retry: 2,                      // 2 reintentos en mobile (conexión intermitente)
+      retryDelay: (attempt) => Math.min(1000 * 2 ** attempt, 10000),
+      staleTime: 60 * 1000,          // 1 min — balance entre frescura y performance
+      gcTime:    5 * 60 * 1000,      // 5 min en cache (era default 5m, explícito)
+      networkMode: 'offlineFirst',   // No lanzar error inmediato si offline
+    },
+    mutations: {
       retry: 1,
-      staleTime: 30 * 1000,         // 30s — sincroniza cambios entre dispositivos
+      networkMode: 'offlineFirst',
     },
   },
 })
 
-// Invalida queries cuando el app vuelve al frente en iOS/Android (Capacitor)
+// ── Sync al volver al frente (Capacitor visibilitychange) ──────────────────
 function AppSyncListener() {
   useEffect(() => {
     const handler = () => {
       if (document.visibilityState === "visible") {
-        queryClient.invalidateQueries();
+        // Solo invalida queries críticos — no todo de golpe
+        queryClient.invalidateQueries({ predicate: (q) => {
+          const key = q.queryKey?.[0];
+          return key === 'orders' || key === 'notifications' || key === 'dashboard';
+        }});
       }
     };
     document.addEventListener("visibilitychange", handler);
@@ -29,11 +46,68 @@ function AppSyncListener() {
   return null;
 }
 
+// ── Banner de estado de red (Offline / Online) ────────────────────────────
+function NetworkStatusBanner() {
+  const [status, setStatus] = useState(null); // null | 'offline' | 'back-online'
+  const timerRef = useRef(null);
+
+  const handleOffline = useCallback(() => {
+    clearTimeout(timerRef.current);
+    setStatus('offline');
+    onlineManager.setOnline(false);
+  }, []);
+
+  const handleOnline = useCallback(() => {
+    clearTimeout(timerRef.current);
+    setStatus('back-online');
+    onlineManager.setOnline(true);
+    // Esconder el banner de "volviste online" después de 3s
+    timerRef.current = setTimeout(() => setStatus(null), 3000);
+  }, []);
+
+  useEffect(() => {
+    window.addEventListener('offline', handleOffline);
+    window.addEventListener('online',  handleOnline);
+    return () => {
+      window.removeEventListener('offline', handleOffline);
+      window.removeEventListener('online',  handleOnline);
+      clearTimeout(timerRef.current);
+    };
+  }, [handleOffline, handleOnline]);
+
+  return (
+    <AnimatePresence>
+      {status && (
+        <motion.div
+          key={status}
+          initial={{ y: -48, opacity: 0 }}
+          animate={{ y: 0,   opacity: 1 }}
+          exit={{    y: -48, opacity: 0 }}
+          transition={{ type: "spring", stiffness: 400, damping: 30 }}
+          className={`fixed top-0 left-0 right-0 z-[9999] flex items-center justify-center gap-2 py-2.5 text-xs font-bold ${
+            status === 'offline'
+              ? 'bg-red-600 text-white'
+              : 'bg-emerald-600 text-white'
+          }`}
+          style={{ paddingTop: `calc(0.625rem + env(safe-area-inset-top, 0px))` }}
+        >
+          {status === 'offline' ? (
+            <><WifiOff className="w-3.5 h-3.5" /> Sin conexión — algunos datos pueden estar desactualizados</>
+          ) : (
+            <><Wifi className="w-3.5 h-3.5" /> Conexión restaurada ✓</>
+          )}
+        </motion.div>
+      )}
+    </AnimatePresence>
+  );
+}
+
 function App() {
   return (
     <>
       <QueryClientProvider client={queryClient}>
         <AppSyncListener />
+        <NetworkStatusBanner />
         <Pages />
         <Toaster />
       </QueryClientProvider>
@@ -41,4 +115,4 @@ function App() {
   )
 }
 
-export default App 
+export default App

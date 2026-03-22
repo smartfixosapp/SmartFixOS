@@ -8,6 +8,24 @@ export const isIOS = () => Capacitor.getPlatform() === 'ios';
 export const isAndroid = () => Capacitor.getPlatform() === 'android';
 
 /**
+ * triggerHaptic — feedback táctil en acciones clave
+ * type: 'light' | 'medium' | 'heavy' | 'success' | 'warning' | 'error'
+ */
+export async function triggerHaptic(type = 'light') {
+  if (!Capacitor.isNativePlatform()) return;
+  try {
+    const { Haptics, ImpactStyle, NotificationType } = await import('@capacitor/haptics');
+    if (type === 'success')  return Haptics.notification({ type: NotificationType.Success });
+    if (type === 'warning')  return Haptics.notification({ type: NotificationType.Warning });
+    if (type === 'error')    return Haptics.notification({ type: NotificationType.Error });
+    const style = type === 'heavy' ? ImpactStyle.Heavy
+                : type === 'medium' ? ImpactStyle.Medium
+                : ImpactStyle.Light;
+    return Haptics.impact({ style });
+  } catch { /* no-op */ }
+}
+
+/**
  * Initialize all Capacitor plugins.
  * Called once at app startup in main.jsx.
  */
@@ -53,9 +71,9 @@ export async function initCapacitor() {
     // ── Bloqueo por multitarea / segundo plano (iOS & Android) ─────────
     // Cuando el usuario manda la app al fondo (multitarea, home button,
     // cambio de app), guardamos el timestamp. Al volver, si pasaron más
-    // de 30 s, limpiamos la sesión y redirigimos al PinAccess.
+    // de 5 minutos, limpiamos la sesión y redirigimos al PinAccess.
     const BG_TS_KEY = "_sfos_bg_ts";
-    const BACKGROUND_GRACE_MS = 30 * 1000;
+    const BACKGROUND_GRACE_MS = 5 * 60 * 1000; // 5 minutos (era 30s — muy agresivo)
 
     App.addListener('appStateChange', ({ isActive }) => {
       const PUBLIC = new Set(["/Welcome","/PinAccess","/Setup","/InitialSetup","/VerifySetup","/Activate","/TenantActivate","/returnlogin"]);

@@ -34,6 +34,7 @@ export function useHeartbeat() {
   // Envía el heartbeat a Supabase
   const beat = useCallback(async () => {
     if (!activeRef.current) return;
+    if (!navigator.onLine) return; // No intentar si no hay red
 
     const tenantId = tenantIdRef.current || getTenantId();
     if (!tenantId) return;
