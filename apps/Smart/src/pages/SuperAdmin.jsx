@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import appClient from "@/api/appClient";
 import { supabase } from "../../../../lib/supabase-client.js";
+import { createClient } from "@supabase/supabase-js";
 import { toast } from "sonner";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -13,8 +14,16 @@ import {
   StickyNote, MessageSquarePlus, MessageSquare, Timer,
   Wifi, WifiOff, ArrowUpDown, UserPlus, Send, Copy, ExternalLink,
   HardDrive, Folder, FolderOpen, Image, FileText, Film, File, ArrowLeft,
-  Download, Link2
+  Download, Link2, CreditCard, Plus, ToggleLeft, ToggleRight,
+  Banknote, Globe
 } from "lucide-react";
+
+// ── Admin Supabase client (service role — bypasses RLS for admin queries) ──
+const _SB_URL = import.meta.env.VITE_SUPABASE_URL || "https://idntuvtabecwubzswpwi.supabase.co";
+const _SB_SRK = import.meta.env.VITE_SUPABASE_SERVICE_ROLE_KEY;
+const adminSupabase = _SB_SRK
+  ? createClient(_SB_URL, _SB_SRK, { auth: { persistSession: false } })
+  : supabase; // fallback to anon if service role not available
 
 const SUPER_SESSION_KEY   = "smartfix_saas_session";
 const SUPER_ADMIN_EMAIL   = "smartfixosapp@gmail.com";
@@ -230,6 +239,13 @@ export default function SuperAdmin() {
   const [feedbackList,    setFeedbackList]    = useState([]);
   const [feedbackLoading, setFeedbackLoading] = useState(false);
 
+  // ── Payment methods state ─────────────────────────────────────────────────
+  const [paymentMethods,        setPaymentMethods]        = useState([]);
+  const [paymentMethodsLoading, setPaymentMethodsLoading] = useState(false);
+  const [paymentMethodForm,     setPaymentMethodForm]     = useState({ name: "", details: "", instructions: "", icon: "💳", enabled: true });
+  const [editingPaymentMethod,  setEditingPaymentMethod]  = useState(null); // index being edited
+  const [showPaymentForm,       setShowPaymentForm]       = useState(false);
+
   // ── Notes state ─────────────────────────────────────────────────────────────
   const [noteModal,   setNoteModal]   = useState(null);  // tenant object
   const [noteText,    setNoteText]    = useState("");
@@ -295,9 +311,9 @@ export default function SuperAdmin() {
       const d30 = new Date(now - 30 * 86400000).toISOString();
 
       const [{ data: orders7d }, { data: orders30d }, { data: allOrders }] = await Promise.all([
-        supabase.from("order").select("tenant_id").gte("created_date", d7),
-        supabase.from("order").select("tenant_id").gte("created_date", d30),
-        supabase.from("order").select("tenant_id").limit(5000),
+        adminSupabase.from("order").select("tenant_id").gte("created_date", d7),
+        adminSupabase.from("order").select("tenant_id").gte("created_date", d30),
+        adminSupabase.from("order").select("tenant_id").limit(5000),
       ]);
 
       const count = (rows, tid) => (rows || []).filter(r => r.tenant_id === tid).length;
@@ -322,14 +338,29 @@ export default function SuperAdmin() {
   const loadTenants = async () => {
     setLoading(true);
     try {
-      const [{ data: tenantRows, error: tenantError }, { data: subscriptionRows }] = await Promise.all([
-        // Usar supabase directo para garantizar que last_login y last_seen se incluyan
-        supabase
+      // Intentar con last_seen; si falla (columna no existe), reintentar sin ella
+      let tenantRows, tenantError;
+      const tenantQuery = adminSupabase
+        .from("tenant")
+        .select("id, name, email, plan, status, subscription_status, trial_end_date, created_date, last_login, last_seen, country, currency, timezone, metadata, monthly_cost, admin_name, admin_phone, address")
+        .order("created_date", { ascending: false })
+        .limit(500);
+
+      ({ data: tenantRows, error: tenantError } = await tenantQuery);
+
+      // Si falla por columna inexistente (last_seen no migrada aún), reintentar sin ella
+      if (tenantError && tenantError.message?.includes("last_seen")) {
+        const fallback = await adminSupabase
           .from("tenant")
-          .select("id, name, email, plan, status, subscription_status, trial_end_date, created_date, last_login, last_seen, country, currency, timezone, metadata, monthly_cost, admin_name, admin_phone, address")
+          .select("id, name, email, plan, status, subscription_status, trial_end_date, created_date, last_login, country, currency, timezone, metadata, monthly_cost, admin_name, admin_phone, address")
           .order("created_date", { ascending: false })
-          .limit(500),
-        supabase
+          .limit(500);
+        tenantRows = fallback.data;
+        tenantError = fallback.error;
+      }
+
+      const [{ data: subscriptionRows }] = await Promise.all([
+        adminSupabase
           .from("subscription")
           .select("id, tenant_id, plan, status, amount, trial_end_date, next_billing_date, created_at")
           .order("created_at", { ascending: false }),
@@ -374,12 +405,12 @@ export default function SuperAdmin() {
     try {
       const tenantRecord = tenants.find((candidate) => candidate.id === tenantId);
       const [{ data: userRows, error: usersError }, { data: employeeRows, error: employeesError }] = await Promise.all([
-        supabase
+        adminSupabase
           .from("users")
           .select("id, auth_id, full_name, email, role, status, pin, position, phone, employee_code, hourly_rate, active, tenant_id")
           .or(`tenant_id.eq.${tenantId},tenant_id.is.null`)
           .order("full_name"),
-        supabase
+        adminSupabase
           .from("app_employee")
           .select("id, full_name, email, role, status, pin, position, phone, employee_code, hourly_rate, active, tenant_id")
           .or(`tenant_id.eq.${tenantId},tenant_id.is.null`)
@@ -442,10 +473,10 @@ export default function SuperAdmin() {
       };
 
       if (editTenantUser.entity_source === "app_employee") {
-        const { error } = await supabase.from("app_employee").update(payload).eq("id", editTenantUser.id);
+        const { error } = await adminSupabase.from("app_employee").update(payload).eq("id", editTenantUser.id);
         if (error) throw error;
       } else if (editTenantUser.entity_source === "users") {
-        const { error } = await supabase.from("users").update(payload).eq("id", editTenantUser.id);
+        const { error } = await adminSupabase.from("users").update(payload).eq("id", editTenantUser.id);
         if (error) throw error;
       } else {
         throw new Error("Ese registro no se puede editar desde aquí");
@@ -476,10 +507,10 @@ export default function SuperAdmin() {
       };
 
       if (user.entity_source === "app_employee") {
-        const { error } = await supabase.from("app_employee").update(payload).eq("id", user.id);
+        const { error } = await adminSupabase.from("app_employee").update(payload).eq("id", user.id);
         if (error) throw error;
       } else if (user.entity_source === "users") {
-        const { error } = await supabase.from("users").update(payload).eq("id", user.id);
+        const { error } = await adminSupabase.from("users").update(payload).eq("id", user.id);
         if (error) throw error;
       } else {
         throw new Error("Ese registro no se puede editar desde aquí");
@@ -505,10 +536,10 @@ export default function SuperAdmin() {
     setActionId(`${tenantId}-${user.id}-delete`);
     try {
       if (user.entity_source === "app_employee") {
-        const { error } = await supabase.from("app_employee").delete().eq("id", user.id);
+        const { error } = await adminSupabase.from("app_employee").delete().eq("id", user.id);
         if (error) throw error;
       } else if (user.entity_source === "users") {
-        const { error } = await supabase.from("users").delete().eq("id", user.id);
+        const { error } = await adminSupabase.from("users").delete().eq("id", user.id);
         if (error) throw error;
       } else {
         throw new Error("Ese registro no se puede borrar desde aquí");
@@ -536,9 +567,9 @@ export default function SuperAdmin() {
     });
     try {
       const [ordersRes, customersRes, txRes] = await Promise.all([
-        supabase.from("order").select("id", { count: "exact", head: true }).eq("tenant_id", tenantId),
-        supabase.from("customer").select("id", { count: "exact", head: true }).eq("tenant_id", tenantId),
-        supabase.from("transaction").select("amount, type").eq("tenant_id", tenantId).eq("type", "revenue"),
+        adminSupabase.from("order").select("id", { count: "exact", head: true }).eq("tenant_id", tenantId),
+        adminSupabase.from("customer").select("id", { count: "exact", head: true }).eq("tenant_id", tenantId),
+        adminSupabase.from("transaction").select("amount, type").eq("tenant_id", tenantId).eq("type", "revenue"),
       ]);
       const revenue = (txRes.data || []).reduce((s, t) => s + (Number(t.amount) || 0), 0);
       setTenantStats(prev => {
@@ -667,7 +698,7 @@ export default function SuperAdmin() {
               ? `Cambios aplicados: ${changes.join(' · ')}`
               : 'Tu información de cuenta fue actualizada por el administrador de SmartFixOS.';
 
-            await supabase.from('notification').insert({
+            await adminSupabase.from('notification').insert({
               tenant_id: editTenant.id,
               type: 'system',
               title: '🔔 Tu cuenta fue actualizada',
@@ -703,7 +734,7 @@ export default function SuperAdmin() {
       const TABLES = ["order", "customer", "transaction", "app_employee", "sale", "invoice", "cash_register", "notification", "work_order_event"];
       const results = await Promise.allSettled(
         TABLES.map(table =>
-          supabase.from(table).update({ tenant_id: tenantId }).is("tenant_id", null)
+          adminSupabase.from(table).update({ tenant_id: tenantId }).is("tenant_id", null)
             .then(({ error }) => ({ table, ok: !error, error: error?.message }))
         )
       );
@@ -872,25 +903,25 @@ export default function SuperAdmin() {
     setTenantDataLoading(true);
     try {
       const [ordersRes, txRes, customersRes, employeesRes] = await Promise.all([
-        supabase
+        adminSupabase
           .from("order")
           .select("id, order_number, created_at, status, cost_estimate, amount_paid, customer_name, device_type, device_brand, device_model")
           .eq("tenant_id", tenant.id)
           .order("created_at", { ascending: false })
           .limit(50),
-        supabase
+        adminSupabase
           .from("transaction")
           .select("id, created_at, type, amount, category, description, payment_method")
           .eq("tenant_id", tenant.id)
           .order("created_at", { ascending: false })
           .limit(50),
-        supabase
+        adminSupabase
           .from("customer")
           .select("id, name, email, phone, created_at")
           .eq("tenant_id", tenant.id)
           .order("created_at", { ascending: false })
           .limit(50),
-        supabase
+        adminSupabase
           .from("app_employee")
           .select("id, full_name, email, role, status, pin, created_at")
           .eq("tenant_id", tenant.id)
@@ -923,7 +954,7 @@ export default function SuperAdmin() {
     if (!window.confirm(`¿Eliminar "${label}"?\n\nEsta acción NO se puede deshacer.`)) return;
     setDeletingRecord(id);
     try {
-      const { error } = await supabase.from(table).delete().eq("id", id);
+      const { error } = await adminSupabase.from(table).delete().eq("id", id);
       if (error) throw error;
       toast.success(`✅ "${label}" eliminado`);
       // Refresh data
@@ -942,7 +973,7 @@ export default function SuperAdmin() {
     if (!/^\d{4}$/.test(newPin)) { toast.error("El PIN debe ser exactamente 4 dígitos"); return; }
     setDeletingRecord(employee.id);
     try {
-      const { error } = await supabase.from("app_employee").update({ pin: newPin }).eq("id", employee.id);
+      const { error } = await adminSupabase.from("app_employee").update({ pin: newPin }).eq("id", employee.id);
       if (error) throw error;
       toast.success(`✅ PIN de ${employee.full_name || employee.email} actualizado`);
       await openTenantData(dataModal);
@@ -972,7 +1003,7 @@ export default function SuperAdmin() {
   };
 
   const markFeedbackStatus = async (id, status) => {
-    await supabase.from("feedback").update({ status }).eq("id", id);
+    await adminSupabase.from("feedback").update({ status }).eq("id", id);
     setFeedbackList(prev => prev.map(f => f.id === id ? { ...f, status } : f));
   };
 
@@ -982,7 +1013,7 @@ export default function SuperAdmin() {
     if (storageStatsLoaded) return;
     try {
       // Listar carpetas del bucket (cada carpeta = un tenant_id)
-      const { data: rootItems } = await supabase.storage
+      const { data: rootItems } = await adminSupabase.storage
         .from("uploads")
         .list("", { limit: 200, sortBy: { column: "name", order: "asc" } });
 
@@ -990,7 +1021,7 @@ export default function SuperAdmin() {
       const tenantFolders = (rootItems || []).filter(item => !item.metadata); // carpetas no tienen metadata
       for (const folder of tenantFolders) {
         try {
-          const { data: items } = await supabase.storage
+          const { data: items } = await adminSupabase.storage
             .from("uploads")
             .list(folder.name, { limit: 500 });
           const allFiles = [];
@@ -998,7 +1029,7 @@ export default function SuperAdmin() {
           for (const item of (items || [])) {
             if (!item.metadata) {
               // Es sub-carpeta (categoría)
-              const { data: subItems } = await supabase.storage
+              const { data: subItems } = await adminSupabase.storage
                 .from("uploads")
                 .list(`${folder.name}/${item.name}`, { limit: 500 });
               allFiles.push(...(subItems || []).filter(f => f.metadata));
@@ -1029,7 +1060,7 @@ export default function SuperAdmin() {
     setStorageLoading(true);
     try {
       const fullPath = [tenantId, ...pathParts].join("/");
-      const { data: items } = await supabase.storage
+      const { data: items } = await adminSupabase.storage
         .from("uploads")
         .list(fullPath, { limit: 500, sortBy: { column: "created_at", order: "desc" } });
 
@@ -1048,11 +1079,12 @@ export default function SuperAdmin() {
   // Elimina un archivo del storage
   const deleteStorageFile = async (fileName) => {
     const fullPath = [storageTenantId, ...storagePath, fileName].join("/");
-    const { error } = await supabase.storage.from("uploads").remove([fullPath]);
+    const { error } = await adminSupabase.storage.from("uploads").remove([fullPath]);
     if (!error) {
       setStorageFiles(prev => prev.filter(f => f.name !== fileName));
       toast.success("Archivo eliminado");
-      // Actualizar stats
+      // Invalidar caché para que se recargue en la próxima visita
+      setStorageStatsLoaded(false);
       setStorageStats(prev => {
         const tid = storageTenantId;
         const cur = prev[tid] || { count: 0, size: 0 };
@@ -1087,7 +1119,7 @@ export default function SuperAdmin() {
   // URL pública de un archivo
   const getPublicUrl = (tenantId, pathParts, fileName) => {
     const fullPath = [tenantId, ...pathParts, fileName].join("/");
-    const { data } = supabase.storage.from("uploads").getPublicUrl(fullPath);
+    const { data } = adminSupabase.storage.from("uploads").getPublicUrl(fullPath);
     return data?.publicUrl || "";
   };
 
@@ -1114,7 +1146,7 @@ export default function SuperAdmin() {
     if (!noteModal) return;
     setNoteSaving(true);
     try {
-      await supabase.from("system_config").upsert({
+      await adminSupabase.from("system_config").upsert({
         key: `saas_note_${noteModal.id}`,
         value: noteText,
         category: "admin_notes",
@@ -1128,6 +1160,88 @@ export default function SuperAdmin() {
     } finally {
       setNoteSaving(false);
     }
+  };
+
+  // ── Payment Methods ───────────────────────────────────────────────────────
+  const loadPaymentMethods = async () => {
+    if (paymentMethodsLoading) return;
+    setPaymentMethodsLoading(true);
+    try {
+      const { data } = await adminSupabase
+        .from("system_config")
+        .select("value")
+        .eq("key", "saas_payment_methods")
+        .maybeSingle();
+      const methods = data?.value;
+      if (Array.isArray(methods) && methods.length > 0) {
+        setPaymentMethods(methods);
+      } else {
+        // Default payment methods
+        setPaymentMethods([
+          { id: "cash",          name: "Efectivo (Cash)",        icon: "💵", details: "",         instructions: "",                     enabled: true  },
+          { id: "credit_card",   name: "Tarjeta de Crédito",     icon: "💳", details: "",         instructions: "Visa, Mastercard, Amex", enabled: true  },
+          { id: "debit_card",    name: "Tarjeta de Débito",      icon: "💳", details: "",         instructions: "ATH, Visa Débito",       enabled: true  },
+          { id: "zelle",         name: "Zelle",                  icon: "💸", details: "",         instructions: "Enviar a: ",            enabled: true  },
+          { id: "venmo",         name: "Venmo",                  icon: "💜", details: "",         instructions: "Enviar a: @",           enabled: false },
+          { id: "paypal",        name: "PayPal",                 icon: "🅿️", details: "",         instructions: "Enviar a: ",            enabled: false },
+          { id: "cashapp",       name: "Cash App",               icon: "💚", details: "",         instructions: "Enviar a: $",           enabled: false },
+          { id: "check",         name: "Cheque",                 icon: "📝", details: "",         instructions: "A nombre de: ",         enabled: false },
+          { id: "bank_transfer", name: "Transferencia Bancaria", icon: "🏦", details: "",         instructions: "Número de cuenta: ",    enabled: false },
+          { id: "apple_pay",     name: "Apple Pay",              icon: "🍎", details: "",         instructions: "",                     enabled: false },
+          { id: "google_pay",    name: "Google Pay",             icon: "🔵", details: "",         instructions: "",                     enabled: false },
+          { id: "stripe",        name: "Stripe (Online)",        icon: "⚡", details: "",         instructions: "Pago en línea",         enabled: false },
+          { id: "ath_movil",     name: "ATH Móvil",              icon: "🇵🇷", details: "",        instructions: "Perfil: ",              enabled: false },
+        ]);
+      }
+    } catch (e) {
+      console.error("[SuperAdmin] loadPaymentMethods error:", e);
+    } finally {
+      setPaymentMethodsLoading(false);
+    }
+  };
+
+  const savePaymentMethods = async (methods) => {
+    try {
+      await adminSupabase.from("system_config").upsert({
+        key: "saas_payment_methods",
+        value: methods,
+        category: "saas_config",
+        description: "Métodos de pago disponibles en el sistema SmartFixOS",
+      }, { onConflict: "key" });
+      setPaymentMethods(methods);
+      toast.success("Métodos de pago guardados");
+    } catch (e) {
+      toast.error("Error al guardar: " + e.message);
+    }
+  };
+
+  const togglePaymentMethod = async (idx) => {
+    const updated = paymentMethods.map((m, i) => i === idx ? { ...m, enabled: !m.enabled } : m);
+    await savePaymentMethods(updated);
+  };
+
+  const deletePaymentMethod = async (idx) => {
+    if (!confirm("¿Eliminar este método de pago?")) return;
+    const updated = paymentMethods.filter((_, i) => i !== idx);
+    await savePaymentMethods(updated);
+  };
+
+  const addOrUpdatePaymentMethod = async () => {
+    if (!paymentMethodForm.name.trim()) return toast.error("El nombre es requerido");
+    let updated;
+    if (editingPaymentMethod !== null) {
+      updated = paymentMethods.map((m, i) => i === editingPaymentMethod ? { ...m, ...paymentMethodForm } : m);
+    } else {
+      const newMethod = {
+        ...paymentMethodForm,
+        id: paymentMethodForm.name.toLowerCase().replace(/[^a-z0-9]/g, "_"),
+      };
+      updated = [...paymentMethods, newMethod];
+    }
+    await savePaymentMethods(updated);
+    setShowPaymentForm(false);
+    setEditingPaymentMethod(null);
+    setPaymentMethodForm({ name: "", details: "", instructions: "", icon: "💳", enabled: true });
   };
 
   const handleLogout = async () => {
@@ -2083,10 +2197,11 @@ export default function SuperAdmin() {
               { key: "activity", label: "Actividad", icon: Activity         },
               { key: "storage",  label: "Storage",   icon: HardDrive        },
               { key: "feedback", label: "Feedback",  icon: MessageSquare   },
+              { key: "payments", label: "Pagos",     icon: CreditCard      },
             ].map(t => (
               <button
                 key={t.key}
-                onClick={() => { setTab(t.key); if (t.key === "feedback") loadFeedback(); if (t.key === "storage") loadStorageStats(); if (t.key === "activity") loadActivityStats(tenants); }}
+                onClick={() => { setTab(t.key); if (t.key === "feedback") loadFeedback(); if (t.key === "storage") loadStorageStats(); if (t.key === "activity") loadActivityStats(tenants); if (t.key === "payments") loadPaymentMethods(); }}
                 className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
                   tab === t.key
                     ? "bg-white/10 text-white shadow"
@@ -2103,13 +2218,14 @@ export default function SuperAdmin() {
           <select
             className="sm:hidden text-xs bg-white/10 border border-white/20 text-white rounded-lg px-2 py-1.5 outline-none"
             value={tab}
-            onChange={e => { const v = e.target.value; setTab(v); if (v === "feedback") loadFeedback(); if (v === "storage") loadStorageStats(); if (v === "activity") loadActivityStats(tenants); }}
+            onChange={e => { const v = e.target.value; setTab(v); if (v === "feedback") loadFeedback(); if (v === "storage") loadStorageStats(); if (v === "activity") loadActivityStats(tenants); if (v === "payments") loadPaymentMethods(); }}
           >
             <option value="tenants">Tiendas</option>
             <option value="metrics">Métricas</option>
             <option value="activity">Actividad</option>
             <option value="storage">Storage</option>
             <option value="feedback">Feedback</option>
+            <option value="payments">Pagos</option>
           </select>
 
           <button
@@ -3203,6 +3319,213 @@ export default function SuperAdmin() {
                   </>
                 )}
               </>
+            )}
+          </div>
+        )}
+
+        {/* ── Pagos Tab ── */}
+        {tab === "payments" && (
+          <div className="max-w-3xl mx-auto space-y-6">
+
+            {/* Header */}
+            <div className="flex items-center justify-between">
+              <div>
+                <h2 className="text-white font-black text-lg flex items-center gap-2">
+                  <CreditCard className="w-5 h-5 text-emerald-400" />
+                  Métodos de Pago
+                </h2>
+                <p className="text-gray-500 text-xs mt-0.5">
+                  Configura los métodos de pago disponibles para las tiendas SmartFixOS
+                </p>
+              </div>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => { setShowPaymentForm(true); setEditingPaymentMethod(null); setPaymentMethodForm({ name: "", details: "", instructions: "", icon: "💳", enabled: true }); }}
+                  className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-emerald-500/20 border border-emerald-500/30 text-emerald-300 hover:bg-emerald-500/30 text-xs font-semibold transition-all"
+                >
+                  <Plus className="w-3.5 h-3.5" /> Agregar método
+                </button>
+              </div>
+            </div>
+
+            {/* Add/Edit Form */}
+            {showPaymentForm && (
+              <div className="bg-white/[0.04] border border-emerald-500/20 rounded-2xl p-5 space-y-4">
+                <h3 className="text-sm font-bold text-white">
+                  {editingPaymentMethod !== null ? "Editar método de pago" : "Nuevo método de pago"}
+                </h3>
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-xs text-gray-500 mb-1 font-medium">Icono (emoji)</label>
+                    <input
+                      value={paymentMethodForm.icon}
+                      onChange={e => setPaymentMethodForm(f => ({ ...f, icon: e.target.value }))}
+                      className="w-full bg-white/[0.05] border border-white/10 text-white text-sm rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-emerald-500/30"
+                      placeholder="💳"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs text-gray-500 mb-1 font-medium">Nombre *</label>
+                    <input
+                      value={paymentMethodForm.name}
+                      onChange={e => setPaymentMethodForm(f => ({ ...f, name: e.target.value }))}
+                      className="w-full bg-white/[0.05] border border-white/10 text-white text-sm rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-emerald-500/30"
+                      placeholder="ej: Zelle, PayPal..."
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs text-gray-500 mb-1 font-medium">Detalles (cuenta/email/usuario)</label>
+                    <input
+                      value={paymentMethodForm.details}
+                      onChange={e => setPaymentMethodForm(f => ({ ...f, details: e.target.value }))}
+                      className="w-full bg-white/[0.05] border border-white/10 text-white text-sm rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-emerald-500/30"
+                      placeholder="ej: pagos@smartfixos.com"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs text-gray-500 mb-1 font-medium">Instrucciones para cliente</label>
+                    <input
+                      value={paymentMethodForm.instructions}
+                      onChange={e => setPaymentMethodForm(f => ({ ...f, instructions: e.target.value }))}
+                      className="w-full bg-white/[0.05] border border-white/10 text-white text-sm rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-emerald-500/30"
+                      placeholder="ej: Enviar a nombre de..."
+                    />
+                  </div>
+                </div>
+                <div className="flex items-center gap-2">
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={paymentMethodForm.enabled}
+                      onChange={e => setPaymentMethodForm(f => ({ ...f, enabled: e.target.checked }))}
+                      className="rounded"
+                    />
+                    <span className="text-xs text-gray-400">Habilitado por defecto</span>
+                  </label>
+                </div>
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={addOrUpdatePaymentMethod}
+                    className="flex items-center gap-2 px-4 py-2 rounded-xl bg-emerald-500/20 border border-emerald-500/30 text-emerald-300 hover:bg-emerald-500/30 text-sm font-semibold transition-all"
+                  >
+                    <Save className="w-3.5 h-3.5" />
+                    {editingPaymentMethod !== null ? "Actualizar" : "Agregar"}
+                  </button>
+                  <button
+                    onClick={() => { setShowPaymentForm(false); setEditingPaymentMethod(null); }}
+                    className="px-4 py-2 rounded-xl border border-white/10 text-gray-400 hover:text-white text-sm transition-all"
+                  >
+                    Cancelar
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* Loading */}
+            {paymentMethodsLoading ? (
+              <div className="flex items-center justify-center py-16 text-gray-600 gap-3">
+                <RefreshCw className="w-5 h-5 animate-spin" />
+                <span className="text-sm">Cargando métodos de pago…</span>
+              </div>
+            ) : (
+              <div className="space-y-2">
+                {paymentMethods.length === 0 && (
+                  <div className="text-center py-12 text-gray-600">
+                    <CreditCard className="w-10 h-10 mx-auto mb-3 text-gray-700" />
+                    <p className="text-sm">No hay métodos de pago configurados</p>
+                  </div>
+                )}
+                {paymentMethods.map((method, idx) => (
+                  <div
+                    key={method.id || idx}
+                    className={`flex items-center gap-4 p-4 rounded-xl border transition-all ${
+                      method.enabled
+                        ? "bg-white/[0.04] border-white/[0.08] hover:border-white/20"
+                        : "bg-white/[0.02] border-white/[0.04] opacity-60"
+                    }`}
+                  >
+                    {/* Icon */}
+                    <span className="text-2xl w-8 text-center flex-shrink-0">{method.icon}</span>
+
+                    {/* Info */}
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2">
+                        <p className="text-white font-semibold text-sm">{method.name}</p>
+                        {method.enabled ? (
+                          <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">ACTIVO</span>
+                        ) : (
+                          <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-gray-500/15 text-gray-500 border border-gray-500/20">INACTIVO</span>
+                        )}
+                      </div>
+                      {method.details && (
+                        <p className="text-gray-400 text-xs mt-0.5 truncate">{method.details}</p>
+                      )}
+                      {method.instructions && (
+                        <p className="text-gray-600 text-xs truncate">{method.instructions}</p>
+                      )}
+                    </div>
+
+                    {/* Actions */}
+                    <div className="flex items-center gap-1 flex-shrink-0">
+                      {/* Toggle */}
+                      <button
+                        onClick={() => togglePaymentMethod(idx)}
+                        className={`p-2 rounded-lg border text-xs font-semibold transition-all ${
+                          method.enabled
+                            ? "bg-emerald-500/15 border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/25"
+                            : "bg-white/5 border-white/10 text-gray-500 hover:text-white hover:border-white/20"
+                        }`}
+                        title={method.enabled ? "Desactivar" : "Activar"}
+                      >
+                        {method.enabled ? <ToggleRight className="w-4 h-4" /> : <ToggleLeft className="w-4 h-4" />}
+                      </button>
+                      {/* Edit */}
+                      <button
+                        onClick={() => {
+                          setEditingPaymentMethod(idx);
+                          setPaymentMethodForm({ name: method.name, details: method.details || "", instructions: method.instructions || "", icon: method.icon || "💳", enabled: method.enabled });
+                          setShowPaymentForm(true);
+                        }}
+                        className="p-2 rounded-lg bg-white/5 border border-white/10 text-gray-400 hover:text-blue-400 hover:border-blue-500/30 transition-all"
+                        title="Editar"
+                      >
+                        <Pencil className="w-3.5 h-3.5" />
+                      </button>
+                      {/* Delete */}
+                      <button
+                        onClick={() => deletePaymentMethod(idx)}
+                        className="p-2 rounded-lg bg-white/5 border border-white/10 text-gray-400 hover:text-red-400 hover:border-red-500/30 transition-all"
+                        title="Eliminar"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                  </div>
+                ))}
+
+                {/* Summary */}
+                {paymentMethods.length > 0 && (
+                  <div className="mt-4 p-4 rounded-xl bg-white/[0.02] border border-white/[0.05] text-xs text-gray-500 flex items-center justify-between">
+                    <span>{paymentMethods.filter(m => m.enabled).length} de {paymentMethods.length} métodos activos</span>
+                    <button
+                      onClick={loadPaymentMethods}
+                      className="flex items-center gap-1 text-gray-600 hover:text-white transition-all"
+                    >
+                      <RefreshCw className="w-3 h-3" /> Recargar
+                    </button>
+                  </div>
+                )}
+
+                {/* Info box */}
+                <div className="mt-4 p-4 rounded-xl bg-blue-500/5 border border-blue-500/10">
+                  <p className="text-xs text-blue-400 font-semibold mb-1">ℹ️ ¿Cómo funciona?</p>
+                  <p className="text-xs text-gray-500">
+                    Los métodos habilitados aquí estarán disponibles en el POS de todas las tiendas SmartFixOS.
+                    Cada tienda puede ver cuáles métodos acepta su taller.
+                    Agrega los detalles de cuenta para que aparezcan en los recibos.
+                  </p>
+                </div>
+              </div>
             )}
           </div>
         )}
