@@ -4,7 +4,7 @@ import { supabase } from "../../../../lib/supabase-client.js";
 import { useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { ShoppingCart, Search, Plus, Minus, Trash2, User, AlertCircle, Loader2, Zap, LayoutGrid, X } from "lucide-react";
+import { ShoppingCart, Search, Plus, Minus, Trash2, User, AlertCircle, Loader2, Zap, LayoutGrid, X, PenLine } from "lucide-react";
 import { toast } from "sonner";
 import { calculateDiscountedPrice } from "@/components/inventory/DiscountBadge";
 import { motion } from "framer-motion";
@@ -138,6 +138,8 @@ export default function POSDesktop() {
   const [totalPaid, setTotalPaid] = useState(0);
   const [showPrintDialog, setShowPrintDialog] = useState(false);
   const [printData, setPrintData] = useState(null);
+  const [showManualItem, setShowManualItem] = useState(false);
+  const [manualItem, setManualItem] = useState({ name: "", price: "", qty: "1" });
   const hasShownInventoryOfflineToast = React.useRef(false);
 
   const urlParams = new URLSearchParams(window.location.search);
@@ -496,36 +498,35 @@ export default function POSDesktop() {
     paymentMethod ? true : false);
 
   // Piezas (subcategoria === "piezas_servicios") NO se venden en POS — son para reparaciones internas
-  const sellableProducts = products;
+  // Solo accesorios y dispositivos completos — sin piezas de reparación ni servicios
+  const sellableProducts = products.filter(p =>
+    p.tipo_principal === "accesorios" ||
+    (p.tipo_principal === "dispositivos" && p.subcategoria === "dispositivo_completo")
+  );
 
   const getFilteredItems = useCallback(() => {
     let items = [];
     const q = searchQuery.toLowerCase();
 
     if (activeCategory === "all") {
-      items = [...sellableProducts, ...services].map((item) => ({
-        ...item,
-        _type: item.duration_minutes ? "service" : "product"
-      }));
+      items = sellableProducts.map((item) => ({ ...item, _type: "product" }));
     } else if (activeCategory === "accesorios") {
       items = sellableProducts.filter(p => p.tipo_principal === "accesorios").map(item => ({...item, _type: 'product'}));
     } else if (activeCategory === "devices") {
-      items = sellableProducts.filter(p => p.tipo_principal === "dispositivos" && p.subcategoria === "dispositivo_completo").map(item => ({...item, _type: 'product'}));
+      items = sellableProducts.filter(p => p.tipo_principal === "dispositivos").map(item => ({...item, _type: 'product'}));
     } else if (activeCategory === "offers") {
       items = sellableProducts.filter(p => p.discount_active && p.discount_percentage > 0).map(item => ({...item, _type: 'product'}));
-    } else if (activeCategory === "services") {
-      items = services.map(item => ({...item, _type: 'service'}));
     }
 
     if (q) {
-      items = items.filter(item => 
+      items = items.filter(item =>
         (item.name || "").toLowerCase().includes(q) ||
         (item.sku || "").toLowerCase().includes(q)
       );
     }
 
     return items.slice(0, 200);
-  }, [products, services, activeCategory, searchQuery]);
+  }, [products, activeCategory, searchQuery]);
 
   const filteredItems = getFilteredItems();
 
@@ -776,7 +777,6 @@ export default function POSDesktop() {
               { id: "accesorios", label: "Accesorios", icon: Zap },
               { id: "devices", label: "Dispositivos", icon: User },
               { id: "offers", label: "Ofertas", icon: ShoppingCart },
-              { id: "services", label: "Servicios", icon: Search }
             ].map(cat => {
               const isActive = activeCategory === cat.id;
               return (
@@ -794,6 +794,13 @@ export default function POSDesktop() {
                 </button>
               );
             })}
+            <button
+              onClick={() => setShowManualItem(true)}
+              className="flex items-center gap-2 px-5 py-2.5 rounded-full text-sm font-black tracking-tight transition-all duration-500 whitespace-nowrap border bg-[#121215]/40 text-amber-400/80 border-amber-500/20 hover:bg-amber-500/10 hover:text-amber-300 hover:border-amber-500/40"
+            >
+              <PenLine className="w-3.5 h-3.5" />
+              Manual
+            </button>
           </div>
         </div>
 
@@ -1099,6 +1106,74 @@ export default function POSDesktop() {
           setShowRechargeDialog(false);
         }}
       />
+
+      {/* Modal ítem manual */}
+      {showManualItem && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+          <div className="bg-[#111114] border border-white/10 rounded-3xl p-6 w-full max-w-sm shadow-2xl">
+            <h3 className="text-white font-black text-lg mb-5 flex items-center gap-2">
+              <PenLine className="w-5 h-5 text-amber-400" />
+              Ítem Manual
+            </h3>
+            <div className="space-y-3">
+              <input
+                autoFocus
+                placeholder="Descripción del ítem"
+                value={manualItem.name}
+                onChange={e => setManualItem(prev => ({ ...prev, name: e.target.value }))}
+                className="w-full bg-white/5 border border-white/10 rounded-2xl px-4 py-3 text-white placeholder-white/30 text-sm focus:outline-none focus:border-cyan-500/50"
+              />
+              <div className="flex gap-3">
+                <input
+                  placeholder="Precio"
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  value={manualItem.price}
+                  onChange={e => setManualItem(prev => ({ ...prev, price: e.target.value }))}
+                  className="flex-1 bg-white/5 border border-white/10 rounded-2xl px-4 py-3 text-white placeholder-white/30 text-sm focus:outline-none focus:border-cyan-500/50"
+                />
+                <input
+                  placeholder="Cant."
+                  type="number"
+                  min="1"
+                  value={manualItem.qty}
+                  onChange={e => setManualItem(prev => ({ ...prev, qty: e.target.value }))}
+                  className="w-24 bg-white/5 border border-white/10 rounded-2xl px-4 py-3 text-white placeholder-white/30 text-sm focus:outline-none focus:border-cyan-500/50"
+                />
+              </div>
+            </div>
+            <div className="flex gap-3 mt-5">
+              <button
+                onClick={() => { setShowManualItem(false); setManualItem({ name: "", price: "", qty: "1" }); }}
+                className="flex-1 py-3 rounded-2xl border border-white/10 text-white/50 text-sm font-bold hover:bg-white/5"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={() => {
+                  const name = manualItem.name.trim();
+                  const price = parseFloat(manualItem.price);
+                  const qty = parseInt(manualItem.qty) || 1;
+                  if (!name || !price || price <= 0) { toast.error("Ingresa nombre y precio"); return; }
+                  const id = `manual-${Date.now()}`;
+                  setCart(prev => {
+                    const existing = prev.find(c => c.id === id);
+                    if (existing) return prev.map(c => c.id === id ? { ...c, quantity: c.quantity + qty } : c);
+                    return [...prev, { id, name, price, cost: 0, quantity: qty, type: "product", taxable: true, _manual: true }];
+                  });
+                  toast.success(`✅ ${name} agregado`);
+                  setShowManualItem(false);
+                  setManualItem({ name: "", price: "", qty: "1" });
+                }}
+                className="flex-1 py-3 rounded-2xl bg-gradient-to-r from-amber-500 to-orange-500 text-white text-sm font-black shadow-lg"
+              >
+                Agregar al carrito
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {showPrintDialog && printData && (
         <UniversalPrintDialog
