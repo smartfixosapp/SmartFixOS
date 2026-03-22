@@ -4,7 +4,7 @@ import { supabase } from "../../../../lib/supabase-client.js";
 import { useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { ShoppingCart, Search, Plus, Minus, Trash2, User, AlertCircle, Loader2, Zap, LayoutGrid, X, PenLine } from "lucide-react";
+import { ShoppingCart, Search, Plus, Minus, Trash2, User, AlertCircle, Loader2, Zap, LayoutGrid, X, PenLine, History } from "lucide-react";
 import { toast } from "sonner";
 import { calculateDiscountedPrice } from "@/components/inventory/DiscountBadge";
 import { motion } from "framer-motion";
@@ -27,7 +27,7 @@ import {
   checkCashRegisterStatus
 } from "@/components/cash/CashRegisterService";
 import UniversalPrintDialog from "../components/printing/UniversalPrintDialog";
-import POSSaleActionsModal from "../components/pos/POSSaleActionsModal";
+import POSSaleActionsModal, { POSSaleHistoryModal } from "../components/pos/POSSaleActionsModal";
 
 const RECENT_CREATED_PRODUCTS_KEY = "smartfix_recent_created_products";
 
@@ -143,6 +143,8 @@ export default function POSDesktop() {
   const [manualItem, setManualItem] = useState({ name: "", price: "", qty: "1" });
   const [showSaleActions, setShowSaleActions] = useState(false);
   const [completedSale, setCompletedSale] = useState(null);
+  const [showSaleHistory, setShowSaleHistory] = useState(false);
+  const [historyCustomer, setHistoryCustomer] = useState(null);
   const hasShownInventoryOfflineToast = React.useRef(false);
 
   const urlParams = new URLSearchParams(window.location.search);
@@ -754,7 +756,8 @@ export default function POSDesktop() {
       {/* LEFT: Products */}
       <div className="flex-1 flex flex-col">
         <div className="mb-6 space-y-4">
-          <div className="relative group/search">
+          <div className="flex items-center gap-3">
+          <div className="relative group/search flex-1">
             <div className="absolute inset-y-0 left-0 pl-5 flex items-center pointer-events-none">
               <Search className="h-5 w-5 text-white/20 group-focus-within/search:text-cyan-400 group-focus-within/search:scale-110 transition-all duration-500" />
             </div>
@@ -773,6 +776,15 @@ export default function POSDesktop() {
                 <X className="w-4 h-4" />
               </button>
             )}
+          </div>
+          {/* Botón historial de ventas */}
+          <button
+            onClick={() => setShowSaleHistory(true)}
+            title="Historial de ventas"
+            className="w-14 h-14 rounded-[20px] bg-[#121215]/60 border border-white/10 flex items-center justify-center text-white/40 hover:text-cyan-400 hover:border-cyan-500/30 transition-all flex-shrink-0"
+          >
+            <History className="w-5 h-5" />
+          </button>
           </div>
 
           <div className="flex gap-2.5 overflow-x-auto no-scrollbar pb-1">
@@ -1194,6 +1206,17 @@ export default function POSDesktop() {
         onPrint={() => {
           setShowSaleActions(false);
           setShowPrintDialog(true);
+        }}
+      />
+
+      <POSSaleHistoryModal
+        open={showSaleHistory}
+        onClose={() => setShowSaleHistory(false)}
+        onReopen={(entry) => {
+          setCompletedSale(entry.sale);
+          setPrintData(entry.sale);
+          setHistoryCustomer(entry.customer);
+          setShowSaleActions(true);
         }}
       />
 
