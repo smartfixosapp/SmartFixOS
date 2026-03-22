@@ -3,7 +3,7 @@
  * Saves all wizard data and activates the tenant account (uses service role key)
  */
 const SB_URL = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL || 'https://idntuvtabecwubzswpwi.supabase.co';
-const SB_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
+const SB_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.VITE_SUPABASE_SERVICE_ROLE_KEY;
 
 const sbHeaders = {
   'Content-Type': 'application/json',

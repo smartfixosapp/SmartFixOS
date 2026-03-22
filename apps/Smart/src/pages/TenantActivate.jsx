@@ -208,7 +208,7 @@ export default function TenantActivate() {
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [step, status, pinStep, pin, confirmPin, goNext, handleActivate]);
+  }, [step, status, pinStep, pin, confirmPin]);
 
   const validateConfirmPin = (value = confirmPin) => {
     if (value !== pin) {

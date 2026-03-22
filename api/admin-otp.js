@@ -3,7 +3,7 @@ import { ensureResendConfigured, sendResendEmail } from '../lib/server/resend.js
 import { checkRateLimit, getClientIP, tooManyRequests } from './_lib/rateLimit.js';
 
 const SB_URL = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL || 'https://idntuvtabecwubzswpwi.supabase.co';
-const SB_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
+const SB_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.VITE_SUPABASE_SERVICE_ROLE_KEY;
 const FROM_EMAIL = process.env.FROM_EMAIL || 'noreply@smartfixos.com';
 const SUPER_ADMIN_EMAIL = process.env.SUPER_ADMIN_EMAIL || 'smartfixosapp@gmail.com';
 const sbH = { 'Content-Type': 'application/json', 'apikey': SB_KEY, 'Authorization': `Bearer ${SB_KEY}` };
