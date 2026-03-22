@@ -1394,6 +1394,10 @@ export default function WorkOrderWizard({ open, onClose, onSuccess, preloadedCus
     }
   };
 
+  // Tokens de marca/modelo conocidos que indican que un servicio es específico de dispositivo.
+  // Si el nombre de un servicio contiene alguno de estos → necesita match con el equipo seleccionado.
+  const DEVICE_SPECIFIC_RE = /\b(ps[1-9]|xbox|playstation|switch|iphone|ipad|macbook|galaxy|airpods|pixel|surface|nintendo|sony|microsoft|samsung|apple|dell|hp|lenovo|motorola|xiaomi|asus|huawei|oneplus)\b/i;
+
   const loadSuggestedProducts = async () => {
     if (!deviceType && !deviceBrand && !deviceFamily && !deviceModel) {
       setSuggestedProducts([]);
@@ -1469,9 +1473,28 @@ export default function WorkOrderWizard({ open, onClose, onSuccess, preloadedCus
           nameLower.includes("diagnostic") ||
           nameLower.includes("diagnostico");
 
-        // Services/diagnostics: always match by device category only
-        // Shows regardless of model (Diagnóstico SmartPhone → any SmartPhone)
-        if (looksLikeService) return categoryMatched;
+        if (looksLikeService) {
+          if (!categoryMatched) return false;
+
+          // Detectar si el servicio es genérico o específico de modelo/marca
+          const serviceIsDeviceSpecific =
+            compatModels.length > 0 ||
+            DEVICE_SPECIFIC_RE.test(p.name || "");
+
+          // Servicio genérico (ej. "Diagnóstico de consola") → muestra para cualquier equipo de la categoría
+          if (!serviceIsDeviceSpecific) return true;
+
+          // Servicio específico (ej. "Puerto HDMI PS5") → solo si hace match con el equipo seleccionado
+          const nameHasModel  = modelLower  && nameLower.includes(modelLower);
+          const nameHasFamily = familyLower && nameLower.includes(familyLower);
+          const nameHasBrand  = brandLower  && nameLower.includes(brandLower);
+          const compatHasModel  = modelLower  && compatModels.some(m => normalizedText(m).includes(modelLower));
+          const compatHasFamily = familyLower && compatModels.some(m => normalizedText(m).includes(familyLower));
+          const compatHasBrand  = brandLower  && compatModels.some(m => normalizedText(m).includes(brandLower));
+
+          return nameHasModel || nameHasFamily || nameHasBrand ||
+                 compatHasModel || compatHasFamily || compatHasBrand;
+        }
 
         // Parts/products: ONLY show when a specific model is selected
         // Selecting family (iPhone) or brand (Apple) without a model → no parts shown yet
