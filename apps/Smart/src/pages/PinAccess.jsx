@@ -826,12 +826,15 @@ export default function PinAccess() {
         .eq("id", session.id)
         .maybeSingle();
 
-      if (!empCheck || empCheck.active === false) {
-        // Cuenta eliminada o explícitamente desactivada — limpiar perfil biométrico local
+      // empCheck es null cuando RLS bloquea la consulta (sesión Supabase expiró al cerrar la app)
+      // Solo rechazar si el empleado EXISTE y active === false (desactivado explícitamente)
+      if (empCheck && empCheck.active === false) {
         clearBiometricProfile();
-        setError("Esta cuenta ya no existe o fue desactivada. Inicia sesión manualmente.");
+        setError("Esta cuenta fue desactivada. Inicia sesión manualmente.");
         return;
       }
+      // Si empCheck es null → RLS bloqueó la consulta (no hay sesión Supabase), pero la
+      // biometría ya fue verificada por el sistema operativo → continuar con la sesión guardada
 
       saveBiometricProfile({ ...biometricProfile, updatedAt: new Date().toISOString() });
       await completeLogin(session, true); // fromBiometric = true → no ofrecer registro de nuevo
