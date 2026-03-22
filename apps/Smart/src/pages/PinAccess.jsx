@@ -1143,11 +1143,18 @@ export default function PinAccess() {
       await ensureAdminBootstrap(dataClient);
     }
 
-    // Track last_login per tenant (fire and forget)
+    // Track last_login + last_seen per tenant (fire and forget, directo a Supabase para evitar RLS issues)
     try {
       const tenantId = tenantIdFromSession || localStorage.getItem("smartfix_tenant_id");
       if (tenantId) {
-        dataClient.Tenant.update(tenantId, { last_login: new Date().toISOString() }).catch(() => {});
+        const now = new Date().toISOString();
+        supabase
+          .from("tenant")
+          .update({ last_login: now, last_seen: now })
+          .eq("id", tenantId)
+          .then(({ error }) => {
+            if (error) console.warn("[PinAccess] last_login update failed:", error.message);
+          });
       }
     } catch {}
 

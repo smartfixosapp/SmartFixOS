@@ -104,7 +104,13 @@ export async function uploadFileHandler(req) {
       const serviceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') || Deno.env.get('SERVICE_ROLE_KEY');
 
       const ext = (file_name || 'upload').split('.').pop().toLowerCase() || 'bin';
-      const storagePath = `${Date.now()}_${Math.random().toString(36).slice(2, 8)}.${ext}`;
+
+      // Organizar archivos por tenant: {tenant_id}/{category}/{timestamp}.{ext}
+      // Esto permite ver archivos de cada tienda por separado en el panel admin
+      const tenantId = user.tenant_id || null;
+      const category = metadata?.category || related_entity_type || 'general';
+      const folder = tenantId ? `${tenantId}/${category}` : category;
+      const storagePath = `${folder}/${Date.now()}_${Math.random().toString(36).slice(2, 8)}.${ext}`;
 
       let fileBytes;
       if (file instanceof File || file instanceof Blob) {

@@ -11,7 +11,9 @@ import {
   PlayCircle, PauseCircle, Trash2, BarChart3, Activity, Power,
   Pencil, KeyRound, X, Save, Zap, Database, ShoppingBag, ArrowLeftRight,
   StickyNote, MessageSquarePlus, MessageSquare, Timer,
-  Wifi, WifiOff, ArrowUpDown, UserPlus, Send, Copy, ExternalLink
+  Wifi, WifiOff, ArrowUpDown, UserPlus, Send, Copy, ExternalLink,
+  HardDrive, Folder, FolderOpen, Image, FileText, Film, File, ArrowLeft,
+  Download, Link2
 } from "lucide-react";
 
 const SUPER_SESSION_KEY   = "smartfix_saas_session";
@@ -47,6 +49,15 @@ function activityColor(dateStr) {
   if (days < 7)  return { dot: "bg-amber-400",  badge: "bg-amber-500/15 text-amber-400", label: "Esta semana" };
   if (days < 30) return { dot: "bg-orange-400", badge: "bg-orange-500/15 text-orange-400", label: "Este mes" };
   return { dot: "bg-red-500", badge: "bg-red-500/15 text-red-400", label: "Inactivo" };
+}
+
+// Presencia en tiempo real basada en last_seen (heartbeat cada 2 min)
+function presenceStatus(lastSeenStr) {
+  if (!lastSeenStr) return null; // sin datos de presencia
+  const mins = (Date.now() - new Date(lastSeenStr).getTime()) / 60000;
+  if (mins < 4)   return { label: "Online",   dot: "bg-emerald-400 animate-pulse shadow-[0_0_6px_rgba(52,211,153,0.8)]", badge: "bg-emerald-500/20 text-emerald-300 border-emerald-500/40", icon: "🟢" };
+  if (mins < 30)  return { label: "Reciente",  dot: "bg-amber-400",   badge: "bg-amber-500/15 text-amber-300 border-amber-500/30",   icon: "🟡" };
+  return null; // offline = sin badge de presencia
 }
 
 function normalizePlan(plan) {
@@ -152,8 +163,17 @@ export default function SuperAdmin() {
   const [search,     setSearch]       = useState("");
   const [actionId,   setActionId]     = useState(null);
   const [expanded,   setExpanded]     = useState(null); // tenant id detalle
-  const [tab,        setTab]          = useState("tenants"); // tenants | metrics | activity
+  const [tab,        setTab]          = useState("tenants"); // tenants | metrics | activity | storage
   const [activitySort, setActivitySort] = useState("recent"); // recent | oldest | never
+
+  // ── Storage Browser state ─────────────────────────────────────────────────
+  const [storageTenantId,   setStorageTenantId]   = useState(null);   // tenant seleccionado
+  const [storagePath,       setStoragePath]       = useState([]);      // breadcrumb de carpetas
+  const [storageFiles,      setStorageFiles]      = useState([]);      // archivos en carpeta actual
+  const [storageFolders,    setStorageFolders]    = useState([]);      // sub-carpetas en carpeta actual
+  const [storageLoading,    setStorageLoading]    = useState(false);
+  const [storageStats,      setStorageStats]      = useState({});      // { [tenantId]: { count, size } }
+  const [storageStatsLoaded, setStorageStatsLoaded] = useState(false);
   const [tenantUsers,        setTenantUsers]        = useState({}); // { [tenantId]: [] }
   const [tenantUsersLoading, setTenantUsersLoading] = useState({}); // { [tenantId]: bool }
   const [confirmDelete,      setConfirmDelete]      = useState(null); // tenantId to confirm delete
@@ -247,8 +267,17 @@ export default function SuperAdmin() {
     loadTenants();
 
     // Revisar expiración cada 5 minutos
-    const interval = setInterval(() => { checkSession(); }, 5 * 60 * 1000);
-    return () => clearInterval(interval);
+    const sessionInterval = setInterval(() => { checkSession(); }, 5 * 60 * 1000);
+
+    // Auto-refresh de presencia cada 30 segundos (para ver tiendas online en tiempo real)
+    const presenceInterval = setInterval(() => {
+      loadTenants();
+    }, 30 * 1000);
+
+    return () => {
+      clearInterval(sessionInterval);
+      clearInterval(presenceInterval);
+    };
   }, []);
 
   // ── Data ──────────────────────────────────────────────────────────────────
@@ -900,6 +929,121 @@ export default function SuperAdmin() {
   const markFeedbackStatus = async (id, status) => {
     await supabase.from("feedback").update({ status }).eq("id", id);
     setFeedbackList(prev => prev.map(f => f.id === id ? { ...f, status } : f));
+  };
+
+  // ── Storage Browser ───────────────────────────────────────────────────────
+  // Carga estadísticas de storage para todos los tenants (cuántos archivos / tamaño)
+  const loadStorageStats = async () => {
+    if (storageStatsLoaded) return;
+    try {
+      // Listar carpetas del bucket (cada carpeta = un tenant_id)
+      const { data: rootItems } = await supabase.storage
+        .from("uploads")
+        .list("", { limit: 200, sortBy: { column: "name", order: "asc" } });
+
+      const stats = {};
+      const tenantFolders = (rootItems || []).filter(item => !item.metadata); // carpetas no tienen metadata
+      for (const folder of tenantFolders) {
+        try {
+          const { data: items } = await supabase.storage
+            .from("uploads")
+            .list(folder.name, { limit: 500 });
+          const allFiles = [];
+          // Iterar sub-carpetas (categorías)
+          for (const item of (items || [])) {
+            if (!item.metadata) {
+              // Es sub-carpeta (categoría)
+              const { data: subItems } = await supabase.storage
+                .from("uploads")
+                .list(`${folder.name}/${item.name}`, { limit: 500 });
+              allFiles.push(...(subItems || []).filter(f => f.metadata));
+            } else {
+              allFiles.push(item);
+            }
+          }
+          const totalSize = allFiles.reduce((acc, f) => acc + (f.metadata?.size || 0), 0);
+          stats[folder.name] = { count: allFiles.length, size: totalSize };
+        } catch {}
+      }
+      setStorageStats(stats);
+      setStorageStatsLoaded(true);
+    } catch (e) {
+      console.error("[Storage] loadStorageStats error:", e);
+    }
+  };
+
+  // Abre el explorador de archivos de un tenant
+  const openStorageTenant = async (tenantId) => {
+    setStorageTenantId(tenantId);
+    setStoragePath([]);
+    await browseStoragePath(tenantId, []);
+  };
+
+  // Navega a una sub-carpeta
+  const browseStoragePath = async (tenantId, pathParts) => {
+    setStorageLoading(true);
+    try {
+      const fullPath = [tenantId, ...pathParts].join("/");
+      const { data: items } = await supabase.storage
+        .from("uploads")
+        .list(fullPath, { limit: 500, sortBy: { column: "created_at", order: "desc" } });
+
+      const folders = (items || []).filter(item => !item.metadata);
+      const files   = (items || []).filter(item => !!item.metadata);
+      setStorageFolders(folders);
+      setStorageFiles(files);
+      setStoragePath(pathParts);
+    } catch (e) {
+      console.error("[Storage] browseStoragePath error:", e);
+    } finally {
+      setStorageLoading(false);
+    }
+  };
+
+  // Elimina un archivo del storage
+  const deleteStorageFile = async (fileName) => {
+    const fullPath = [storageTenantId, ...storagePath, fileName].join("/");
+    const { error } = await supabase.storage.from("uploads").remove([fullPath]);
+    if (!error) {
+      setStorageFiles(prev => prev.filter(f => f.name !== fileName));
+      toast.success("Archivo eliminado");
+      // Actualizar stats
+      setStorageStats(prev => {
+        const tid = storageTenantId;
+        const cur = prev[tid] || { count: 0, size: 0 };
+        return { ...prev, [tid]: { count: Math.max(0, cur.count - 1), size: cur.size } };
+      });
+    } else {
+      toast.error("Error al eliminar: " + error.message);
+    }
+  };
+
+  // Formatea bytes en legible (KB / MB / GB)
+  const fmtBytes = (bytes) => {
+    if (!bytes) return "0 B";
+    if (bytes < 1024) return `${bytes} B`;
+    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+    if (bytes < 1024 * 1024 * 1024) return `${(bytes / 1024 / 1024).toFixed(1)} MB`;
+    return `${(bytes / 1024 / 1024 / 1024).toFixed(2)} GB`;
+  };
+
+  // Ícono por tipo de archivo
+  const fileIcon = (name = "", size = "w-5 h-5") => {
+    const ext = name.split(".").pop().toLowerCase();
+    if (["jpg","jpeg","png","gif","webp","svg","bmp"].includes(ext))
+      return <Image className={`${size} text-emerald-400`} />;
+    if (["mp4","mov","avi","webm","mkv"].includes(ext))
+      return <Film className={`${size} text-purple-400`} />;
+    if (["pdf","doc","docx","txt","csv","xlsx"].includes(ext))
+      return <FileText className={`${size} text-blue-400`} />;
+    return <File className={`${size} text-gray-400`} />;
+  };
+
+  // URL pública de un archivo
+  const getPublicUrl = (tenantId, pathParts, fileName) => {
+    const fullPath = [tenantId, ...pathParts, fileName].join("/");
+    const { data } = supabase.storage.from("uploads").getPublicUrl(fullPath);
+    return data?.publicUrl || "";
   };
 
   // ── Notes ─────────────────────────────────────────────────────────────────
@@ -1886,17 +2030,18 @@ export default function SuperAdmin() {
             </div>
           </div>
 
-          {/* Tabs */}
+          {/* Tabs — desktop */}
           <div className="hidden sm:flex items-center gap-1 bg-white/5 rounded-xl p-1">
             {[
               { key: "tenants",  label: "Tiendas",   icon: Building2       },
               { key: "metrics",  label: "Métricas",  icon: BarChart3        },
               { key: "activity", label: "Actividad", icon: Activity         },
+              { key: "storage",  label: "Storage",   icon: HardDrive        },
               { key: "feedback", label: "Feedback",  icon: MessageSquare   },
             ].map(t => (
               <button
                 key={t.key}
-                onClick={() => { setTab(t.key); if (t.key === "feedback") loadFeedback(); }}
+                onClick={() => { setTab(t.key); if (t.key === "feedback") loadFeedback(); if (t.key === "storage") loadStorageStats(); }}
                 className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
                   tab === t.key
                     ? "bg-white/10 text-white shadow"
@@ -1908,6 +2053,19 @@ export default function SuperAdmin() {
               </button>
             ))}
           </div>
+
+          {/* Tabs — móvil (select) */}
+          <select
+            className="sm:hidden text-xs bg-white/10 border border-white/20 text-white rounded-lg px-2 py-1.5 outline-none"
+            value={tab}
+            onChange={e => { const v = e.target.value; setTab(v); if (v === "feedback") loadFeedback(); if (v === "storage") loadStorageStats(); }}
+          >
+            <option value="tenants">Tiendas</option>
+            <option value="metrics">Métricas</option>
+            <option value="activity">Actividad</option>
+            <option value="storage">Storage</option>
+            <option value="feedback">Feedback</option>
+          </select>
 
           <button
             onClick={() => { setNuclearModal(true); setNuclearResult(null); setNuclearEmail(""); }}
@@ -2432,11 +2590,21 @@ export default function SuperAdmin() {
         {/* ── ACTIVIDAD TAB ── */}
         {tab === "activity" && (() => {
           const now = Date.now();
-          const active24h = tenants.filter(t => t.last_login && (now - new Date(t.last_login).getTime()) < 86400000).length;
-          const active7d  = tenants.filter(t => t.last_login && (now - new Date(t.last_login).getTime()) < 7*86400000).length;
-          const never     = tenants.filter(t => !t.last_login).length;
+          const onlineNow  = tenants.filter(t => t.last_seen  && (now - new Date(t.last_seen).getTime())  < 4 * 60000).length;
+          const active24h  = tenants.filter(t => t.last_login && (now - new Date(t.last_login).getTime()) < 86400000).length;
+          const active7d   = tenants.filter(t => t.last_login && (now - new Date(t.last_login).getTime()) < 7*86400000).length;
+          const never      = tenants.filter(t => !t.last_login).length;
 
           const sorted = [...tenants].sort((a, b) => {
+            // "online" sort: primero los que tienen last_seen más reciente
+            if (activitySort === "recent") {
+              const aVal = a.last_seen || a.last_login;
+              const bVal = b.last_seen || b.last_login;
+              if (!aVal && !bVal) return 0;
+              if (!aVal) return 1;
+              if (!bVal) return -1;
+              return new Date(bVal) - new Date(aVal);
+            }
             if (activitySort === "never") {
               if (!a.last_login && !b.last_login) return 0;
               if (!a.last_login) return -1;
@@ -2446,19 +2614,18 @@ export default function SuperAdmin() {
             if (!a.last_login && !b.last_login) return 0;
             if (!a.last_login) return 1;
             if (!b.last_login) return -1;
-            return activitySort === "recent"
-              ? new Date(b.last_login) - new Date(a.last_login)
-              : new Date(a.last_login) - new Date(b.last_login);
+            return new Date(a.last_login) - new Date(b.last_login);
           });
 
           return (
             <div className="space-y-5">
-              {/* KPI mini-cards */}
-              <div className="grid grid-cols-3 gap-3">
+              {/* KPI mini-cards — 4 cards con "Online ahora" destacado */}
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                 {[
-                  { label: "Hoy",          value: active24h, icon: Wifi,    dot: "bg-emerald-400 animate-pulse", color: "text-emerald-400", border: "border-emerald-500/20", bg: "bg-emerald-500/5" },
-                  { label: "Últimos 7 días", value: active7d,  icon: Activity, dot: "bg-amber-400",   color: "text-amber-400",   border: "border-amber-500/20",   bg: "bg-amber-500/5"   },
-                  { label: "Nunca entró",   value: never,     icon: WifiOff, dot: "bg-red-500",     color: "text-red-400",     border: "border-red-500/20",     bg: "bg-red-500/5"     },
+                  { label: "Online ahora",    value: onlineNow, icon: Wifi,    dot: "bg-emerald-400 animate-pulse shadow-[0_0_8px_rgba(52,211,153,0.7)]", color: "text-emerald-400", border: "border-emerald-500/40", bg: "bg-emerald-500/10" },
+                  { label: "Hoy",             value: active24h, icon: Activity, dot: "bg-blue-400",     color: "text-blue-400",   border: "border-blue-500/20",   bg: "bg-blue-500/5"   },
+                  { label: "Últimos 7 días",  value: active7d,  icon: TrendingUp,dot:"bg-amber-400",  color: "text-amber-400",   border: "border-amber-500/20",   bg: "bg-amber-500/5"   },
+                  { label: "Nunca entró",     value: never,     icon: WifiOff, dot: "bg-red-500",     color: "text-red-400",     border: "border-red-500/20",     bg: "bg-red-500/5"     },
                 ].map(k => (
                   <div key={k.label} className={`rounded-2xl border ${k.border} ${k.bg} p-4`}>
                     <div className="flex items-center gap-2 mb-2">
@@ -2496,37 +2663,67 @@ export default function SuperAdmin() {
                 </div>
               </div>
 
+              {/* Nota sobre auto-refresh */}
+              <p className="text-[10px] text-gray-700 text-right -mt-2">
+                <span className="inline-flex items-center gap-1">
+                  <span className="w-1.5 h-1.5 rounded-full bg-gray-600 animate-pulse" />
+                  Se actualiza automáticamente cada 30 seg
+                </span>
+              </p>
+
               {/* Table */}
               <div className="bg-white/[0.025] border border-white/[0.07] rounded-2xl overflow-hidden">
                 {sorted.map((tenant, i) => {
-                  const ac  = activityColor(tenant.last_login);
-                  const ago = timeAgo(tenant.last_login);
-                  const badge = getStatusBadge(tenant);
+                  const ac       = activityColor(tenant.last_login);
+                  const presence = presenceStatus(tenant.last_seen);
+                  const ago      = timeAgo(tenant.last_login);
+                  const seenAgo  = timeAgo(tenant.last_seen);
+                  const badge    = getStatusBadge(tenant);
                   return (
-                    <div key={tenant.id} className={`flex items-center gap-3 px-4 py-3 ${i < sorted.length - 1 ? "border-b border-white/[0.05]" : ""} hover:bg-white/[0.03] transition-colors`}>
-                      {/* Dot */}
-                      <span className={`w-2.5 h-2.5 rounded-full flex-shrink-0 ${ac.dot}`} />
+                    <div key={tenant.id} className={`flex items-center gap-3 px-4 py-3 ${i < sorted.length - 1 ? "border-b border-white/[0.05]" : ""} ${presence ? "bg-emerald-500/[0.02]" : ""} hover:bg-white/[0.03] transition-colors`}>
+
+                      {/* Presencia dot — si hay last_seen reciente muestra verde pulsante, si no, usa activityColor */}
+                      <span className={`w-2.5 h-2.5 rounded-full flex-shrink-0 ${presence ? presence.dot : ac.dot}`} />
 
                       {/* Name / email */}
                       <div className="flex-1 min-w-0">
-                        <p className="text-sm font-semibold text-white truncate">{tenant.name || "—"}</p>
-                        <p className="text-[11px] text-gray-600 truncate">{tenant.email || "—"}</p>
+                        <div className="flex items-center gap-2">
+                          <p className="text-sm font-semibold text-white truncate">{tenant.name || "—"}</p>
+                          {presence && (
+                            <span className={`text-[10px] px-1.5 py-0.5 rounded-md border font-bold flex-shrink-0 ${presence.badge}`}>
+                              {presence.label}
+                            </span>
+                          )}
+                        </div>
+                        <div className="flex items-center gap-2 mt-0.5">
+                          <p className="text-[11px] text-gray-600 truncate">{tenant.email || "—"}</p>
+                          {presence && seenAgo && (
+                            <p className="text-[10px] text-emerald-600 flex-shrink-0">
+                              Visto {seenAgo}
+                            </p>
+                          )}
+                        </div>
                       </div>
 
-                      {/* Status */}
+                      {/* Status badge */}
                       <span className={`hidden sm:inline text-[10px] px-2 py-0.5 rounded-full border font-semibold flex-shrink-0 ${badge.cls}`}>
                         {badge.label}
                       </span>
 
-                      {/* Activity badge */}
+                      {/* Último login badge */}
                       <span className={`text-[11px] px-2.5 py-1 rounded-lg font-semibold flex-shrink-0 ${ac.badge}`}>
                         {ac.label}
                       </span>
 
-                      {/* Time ago */}
-                      <span className="text-xs text-gray-500 flex-shrink-0 w-28 text-right">
-                        {ago || <span className="text-gray-700">Sin registro</span>}
-                      </span>
+                      {/* Time ago del último login */}
+                      <div className="text-right flex-shrink-0 w-28">
+                        <p className="text-xs text-gray-500">{ago || <span className="text-gray-700">Sin registro</span>}</p>
+                        {tenant.last_login && (
+                          <p className="text-[10px] text-gray-700">
+                            {new Date(tenant.last_login).toLocaleDateString("es", { day:"2-digit", month:"short" })}
+                          </p>
+                        )}
+                      </div>
                     </div>
                   );
                 })}
@@ -2618,6 +2815,246 @@ export default function SuperAdmin() {
                   );
                 })}
               </div>
+            )}
+          </div>
+        )}
+
+        {/* ── STORAGE TAB ── */}
+        {tab === "storage" && (
+          <div className="max-w-5xl mx-auto px-4 sm:px-6 py-6">
+
+            {/* Header */}
+            <div className="flex items-center justify-between mb-5">
+              <div>
+                <h2 className="text-white font-black text-lg flex items-center gap-2">
+                  <HardDrive className="w-5 h-5 text-cyan-400" />
+                  Storage por Tienda
+                </h2>
+                <p className="text-gray-500 text-xs mt-0.5">
+                  Archivos organizados por tenant · bucket <span className="text-cyan-400 font-mono">uploads</span>
+                </p>
+              </div>
+              <button
+                onClick={() => { setStorageStatsLoaded(false); loadStorageStats(); }}
+                className="p-2 rounded-lg bg-white/5 border border-white/10 hover:border-white/20 transition-all"
+              >
+                <RefreshCw className="w-4 h-4 text-gray-400" />
+              </button>
+            </div>
+
+            {/* Breadcrumb + volver */}
+            {storageTenantId && (
+              <div className="flex items-center gap-2 mb-4 text-xs">
+                <button
+                  onClick={() => { setStorageTenantId(null); setStorageFiles([]); setStorageFolders([]); setStoragePath([]); }}
+                  className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-white/5 border border-white/10 hover:border-white/20 text-gray-300 hover:text-white transition-all"
+                >
+                  <ArrowLeft className="w-3.5 h-3.5" /> Tiendas
+                </button>
+                <span className="text-gray-600">/</span>
+                <span className="text-cyan-400 font-mono font-bold truncate max-w-[120px]">{storageTenantId}</span>
+                {storagePath.map((part, idx) => (
+                  <React.Fragment key={idx}>
+                    <span className="text-gray-600">/</span>
+                    <button
+                      onClick={() => browseStoragePath(storageTenantId, storagePath.slice(0, idx + 1))}
+                      className="text-gray-300 hover:text-white transition-all"
+                    >
+                      {part}
+                    </button>
+                  </React.Fragment>
+                ))}
+              </div>
+            )}
+
+            {/* Lista de tiendas (pantalla principal) */}
+            {!storageTenantId && (
+              <>
+                {!storageStatsLoaded ? (
+                  <div className="flex flex-col items-center justify-center py-20 text-gray-600 gap-3">
+                    <HardDrive className="w-10 h-10 text-gray-700 animate-pulse" />
+                    <p className="text-sm">Cargando estadísticas de storage…</p>
+                    <p className="text-xs text-gray-700">Esto puede tomar unos segundos</p>
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                    {tenants.map(tenant => {
+                      const stats = storageStats[tenant.id] || { count: 0, size: 0 };
+                      return (
+                        <button
+                          key={tenant.id}
+                          onClick={() => openStorageTenant(tenant.id)}
+                          className="group text-left p-4 rounded-xl bg-white/5 border border-white/10 hover:border-cyan-500/40 hover:bg-cyan-500/5 transition-all"
+                        >
+                          <div className="flex items-start gap-3">
+                            <div className="w-9 h-9 rounded-lg bg-cyan-500/10 border border-cyan-500/20 flex items-center justify-center flex-shrink-0 group-hover:bg-cyan-500/20 transition-all">
+                              <Folder className="w-5 h-5 text-cyan-400" />
+                            </div>
+                            <div className="min-w-0 flex-1">
+                              <p className="text-white font-bold text-sm truncate">{tenant.name}</p>
+                              <p className="text-gray-500 text-xs truncate font-mono">{tenant.id}</p>
+                              <div className="flex items-center gap-3 mt-2">
+                                <span className="flex items-center gap-1 text-xs text-gray-400">
+                                  <File className="w-3 h-3" />
+                                  {stats.count} archivo{stats.count !== 1 ? "s" : ""}
+                                </span>
+                                <span className="text-xs text-gray-500">{fmtBytes(stats.size)}</span>
+                              </div>
+                            </div>
+                            <ChevronRight className="w-4 h-4 text-gray-600 group-hover:text-cyan-400 transition-all flex-shrink-0 mt-1" />
+                          </div>
+                        </button>
+                      );
+                    })}
+
+                    {/* Archivos sin tenant (raíz del bucket - legacy) */}
+                    {Object.keys(storageStats).filter(k => !tenants.some(t => t.id === k)).length > 0 && (
+                      <div className="col-span-full mt-2">
+                        <p className="text-xs text-gray-600 mb-2 font-semibold uppercase tracking-wider">
+                          Carpetas no asociadas a tienda (archivos legacy)
+                        </p>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                          {Object.keys(storageStats)
+                            .filter(k => !tenants.some(t => t.id === k))
+                            .map(key => {
+                              const stats = storageStats[key];
+                              return (
+                                <button
+                                  key={key}
+                                  onClick={() => openStorageTenant(key)}
+                                  className="group text-left p-4 rounded-xl bg-orange-500/5 border border-orange-500/20 hover:border-orange-500/40 transition-all"
+                                >
+                                  <div className="flex items-center gap-3">
+                                    <Folder className="w-5 h-5 text-orange-400" />
+                                    <div className="min-w-0 flex-1">
+                                      <p className="text-gray-300 font-bold text-sm font-mono truncate">{key}</p>
+                                      <p className="text-xs text-gray-500">{stats.count} archivos · {fmtBytes(stats.size)}</p>
+                                    </div>
+                                  </div>
+                                </button>
+                              );
+                            })}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </>
+            )}
+
+            {/* Explorador de archivos de un tenant */}
+            {storageTenantId && (
+              <>
+                {storageLoading ? (
+                  <div className="flex items-center justify-center py-16 text-gray-600 gap-3">
+                    <RefreshCw className="w-5 h-5 animate-spin" />
+                    <span className="text-sm">Cargando archivos…</span>
+                  </div>
+                ) : (
+                  <>
+                    {/* Sub-carpetas (categorías) */}
+                    {storageFolders.length > 0 && (
+                      <div className="mb-4">
+                        <p className="text-xs text-gray-600 uppercase tracking-wider font-semibold mb-2">Carpetas</p>
+                        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
+                          {storageFolders.map(folder => (
+                            <button
+                              key={folder.name}
+                              onClick={() => browseStoragePath(storageTenantId, [...storagePath, folder.name])}
+                              className="flex items-center gap-2 px-3 py-2.5 rounded-lg bg-white/5 border border-white/10 hover:border-white/20 hover:bg-white/8 transition-all text-left"
+                            >
+                              <FolderOpen className="w-4 h-4 text-amber-400 flex-shrink-0" />
+                              <span className="text-gray-300 text-xs font-medium truncate">{folder.name}</span>
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Archivos */}
+                    {storageFiles.length === 0 && storageFolders.length === 0 ? (
+                      <div className="text-center py-16">
+                        <HardDrive className="w-12 h-12 text-gray-700 mx-auto mb-3" />
+                        <p className="text-gray-600 text-sm">Esta carpeta está vacía</p>
+                      </div>
+                    ) : storageFiles.length > 0 ? (
+                      <>
+                        <p className="text-xs text-gray-600 uppercase tracking-wider font-semibold mb-2">
+                          Archivos ({storageFiles.length})
+                        </p>
+                        <div className="space-y-1.5">
+                          {storageFiles.map(file => {
+                            const pubUrl = getPublicUrl(storageTenantId, storagePath, file.name);
+                            const isImage = ["jpg","jpeg","png","gif","webp","svg"].includes(
+                              file.name.split(".").pop().toLowerCase()
+                            );
+                            return (
+                              <div
+                                key={file.name}
+                                className="group flex items-center gap-3 px-3 py-2.5 rounded-xl bg-white/3 border border-white/8 hover:border-white/15 hover:bg-white/5 transition-all"
+                              >
+                                {/* Miniatura o ícono */}
+                                <div className="w-9 h-9 rounded-lg bg-white/5 border border-white/10 flex items-center justify-center flex-shrink-0 overflow-hidden">
+                                  {isImage ? (
+                                    <img
+                                      src={pubUrl}
+                                      alt={file.name}
+                                      className="w-full h-full object-cover rounded-lg"
+                                      onError={e => { e.target.style.display = "none"; }}
+                                    />
+                                  ) : fileIcon(file.name)}
+                                </div>
+
+                                {/* Info */}
+                                <div className="min-w-0 flex-1">
+                                  <p className="text-gray-200 text-xs font-medium truncate">{file.name}</p>
+                                  <div className="flex items-center gap-2 mt-0.5">
+                                    <span className="text-gray-600 text-[11px]">{fmtBytes(file.metadata?.size)}</span>
+                                    {file.created_at && (
+                                      <span className="text-gray-700 text-[11px]">
+                                        {new Date(file.created_at).toLocaleDateString("es", { day:"2-digit", month:"short", year:"2-digit" })}
+                                      </span>
+                                    )}
+                                  </div>
+                                </div>
+
+                                {/* Acciones */}
+                                <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-all">
+                                  <a
+                                    href={pubUrl}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    title="Abrir"
+                                    className="p-1.5 rounded-lg bg-white/5 hover:bg-blue-500/20 border border-white/10 hover:border-blue-500/30 text-gray-400 hover:text-blue-400 transition-all"
+                                  >
+                                    <Link2 className="w-3.5 h-3.5" />
+                                  </a>
+                                  <button
+                                    title="Copiar URL"
+                                    onClick={() => { navigator.clipboard.writeText(pubUrl); toast.success("URL copiada"); }}
+                                    className="p-1.5 rounded-lg bg-white/5 hover:bg-emerald-500/20 border border-white/10 hover:border-emerald-500/30 text-gray-400 hover:text-emerald-400 transition-all"
+                                  >
+                                    <Copy className="w-3.5 h-3.5" />
+                                  </button>
+                                  <button
+                                    title="Eliminar"
+                                    onClick={() => {
+                                      if (confirm(`¿Eliminar "${file.name}"?`)) deleteStorageFile(file.name);
+                                    }}
+                                    className="p-1.5 rounded-lg bg-white/5 hover:bg-red-500/20 border border-white/10 hover:border-red-500/30 text-gray-400 hover:text-red-400 transition-all"
+                                  >
+                                    <Trash2 className="w-3.5 h-3.5" />
+                                  </button>
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </>
+                    ) : null}
+                  </>
+                )}
+              </>
             )}
           </div>
         )}

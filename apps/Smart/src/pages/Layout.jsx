@@ -28,6 +28,7 @@ import { useRealtimeNotifications } from "@/components/notifications/RealtimeNot
 import { notificationEngine } from "@/components/notifications/AdvancedNotificationsEngine";
 import PWAMetaTags from "@/components/utils/PWAMetaTags";
 import GlobalPriceWidget from "@/components/layout/GlobalPriceWidget";
+import { useHeartbeat } from "@/hooks/useHeartbeat";
 
 export default function Layout({ children }) {
   const location = useLocation();
@@ -44,6 +45,9 @@ export default function Layout({ children }) {
   // 🔔 Notificaciones en tiempo real (solo para admins/managers)
   const shouldEnableNotifications = user && (user.role === 'admin' || user.role === 'manager');
   useRealtimeNotifications({ enabled: shouldEnableNotifications });
+
+  // 💓 Heartbeat de presencia — actualiza last_seen en tenant cada 2 min
+  useHeartbeat();
 
 
 
