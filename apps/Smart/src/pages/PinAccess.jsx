@@ -817,6 +817,22 @@ export default function PinAccess() {
       if (rawId !== biometricProfile.credentialId) throw new Error("Credencial biométrica inválida");
       const session = biometricProfile.session;
       if (!session?.id) throw new Error("Sesión biométrica expirada — inicia sesión manualmente");
+
+      // Verificar que el empleado siga existiendo y activo en la DB
+      const { data: empCheck } = await supabase
+        .from("app_employee")
+        .select("id, status, active")
+        .eq("id", session.id)
+        .eq("active", true)
+        .maybeSingle();
+
+      if (!empCheck) {
+        // Cuenta eliminada o desactivada — limpiar perfil biométrico local
+        clearBiometricProfile();
+        setError("Esta cuenta ya no existe o fue desactivada. Inicia sesión manualmente.");
+        return;
+      }
+
       saveBiometricProfile({ ...biometricProfile, updatedAt: new Date().toISOString() });
       await completeLogin(session, true); // fromBiometric = true → no ofrecer registro de nuevo
     } catch (error) {
