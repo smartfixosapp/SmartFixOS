@@ -145,10 +145,12 @@ export default function AuthGate({ children }) {
   React.useEffect(() => {
     const currentPath = window.location.pathname;
 
-    // Limpiar cualquier _bg_ts que pudo haber quedado de un cierre previo
-    // Si hay _bg_ts muy antiguo (> 1 min) sin que el app haya vuelto, ignorarlo
+    // Limpiar cualquier _bg_ts que pudo haber quedado de un cierre previo.
+    // IMPORTANTE: si sessionStorage ya tiene una sesión fresca (mismo tab/navegación),
+    // ignorar BG_TS_KEY — el usuario acaba de hacer login en este tab.
+    const freshSS = sessionStorage.getItem("911-session");
     const bgTs = localStorage.getItem(BG_TS_KEY);
-    if (bgTs) {
+    if (bgTs && !freshSS) {
       const elapsed = Date.now() - parseInt(bgTs, 10);
       if (elapsed > BACKGROUND_GRACE_MS) {
         // El app fue cerrado mientras estaba en background → re-login
@@ -158,6 +160,9 @@ export default function AuthGate({ children }) {
           return;
         }
       }
+      localStorage.removeItem(BG_TS_KEY);
+    } else if (bgTs && freshSS) {
+      // Sesión fresca presente — limpiar el flag obsoleto sin borrar la sesión
       localStorage.removeItem(BG_TS_KEY);
     }
 
