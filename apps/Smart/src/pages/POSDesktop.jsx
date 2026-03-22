@@ -496,7 +496,7 @@ export default function POSDesktop() {
     paymentMethod ? true : false);
 
   // Piezas (subcategoria === "piezas_servicios") NO se venden en POS — son para reparaciones internas
-  const sellableProducts = products.filter(p => p.subcategoria !== "piezas_servicios");
+  const sellableProducts = products;
 
   const getFilteredItems = useCallback(() => {
     let items = [];
