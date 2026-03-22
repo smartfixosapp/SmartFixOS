@@ -819,15 +819,15 @@ export default function PinAccess() {
       if (!session?.id) throw new Error("Sesión biométrica expirada — inicia sesión manualmente");
 
       // Verificar que el empleado siga existiendo y activo en la DB
+      // NOTE: active puede ser NULL (no explícitamente false) para empleados activos
       const { data: empCheck } = await supabase
         .from("app_employee")
         .select("id, status, active")
         .eq("id", session.id)
-        .eq("active", true)
         .maybeSingle();
 
-      if (!empCheck) {
-        // Cuenta eliminada o desactivada — limpiar perfil biométrico local
+      if (!empCheck || empCheck.active === false) {
+        // Cuenta eliminada o explícitamente desactivada — limpiar perfil biométrico local
         clearBiometricProfile();
         setError("Esta cuenta ya no existe o fue desactivada. Inicia sesión manualmente.");
         return;

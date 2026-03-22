@@ -166,12 +166,20 @@ export default function OrdersMobile() {
       <div className="sticky top-0 z-20 bg-gradient-to-r from-slate-950 to-slate-900 border-b border-cyan-500/20 px-4 py-3">
         <div className="flex items-center justify-between mb-3">
           <h1 className="text-2xl font-bold text-white">Órdenes</h1>
-          <button
-            onClick={() => document.querySelector('.orders-chatbot-trigger')?.click()}
-            className="p-2 bg-gradient-to-r from-blue-600 to-cyan-600 rounded-xl"
-          >
-            <Bot className="w-5 h-5 text-white" />
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => navigate(createPageUrl("Orders/new"))}
+              className="px-3 py-2 bg-gradient-to-r from-cyan-600 to-blue-600 rounded-xl text-white text-xs font-bold flex items-center gap-1"
+            >
+              <span className="text-base leading-none">+</span> Nueva Orden
+            </button>
+            <button
+              onClick={() => document.querySelector('.orders-chatbot-trigger')?.click()}
+              className="p-2 bg-slate-800 border border-slate-700 rounded-xl"
+            >
+              <Bot className="w-5 h-5 text-white" />
+            </button>
+          </div>
         </div>
         
         {/* Búsqueda */}

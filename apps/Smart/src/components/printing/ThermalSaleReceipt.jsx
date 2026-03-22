@@ -148,11 +148,11 @@ export default function ThermalSaleReceipt({ sale, customer, onClose, autoPrint 
           <div style={{ fontSize: '9pt', fontWeight: 'bold', marginBottom: '2mm' }}>ARTÍCULOS:</div>
           {(sale.items || []).map((item, idx) => (
             <div key={idx} style={{ marginBottom: '2mm' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '9pt' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '9pt', fontWeight: 'bold' }}>
                 <span>{item.name}</span>
                 <span>${((item.price || 0) * (item.quantity || 1)).toFixed(2)}</span>
               </div>
-              <div style={{ fontSize: '8pt', color: '#666' }}>
+              <div style={{ fontSize: '8pt', fontWeight: 'bold', color: '#333' }}>
                 {item.quantity || 1} x ${(item.price || 0).toFixed(2)}
               </div>
             </div>
@@ -162,7 +162,7 @@ export default function ThermalSaleReceipt({ sale, customer, onClose, autoPrint 
         <div style={{ borderTop: '1px solid #000', paddingTop: '3mm', marginBottom: '3mm' }} />
 
         {/* TOTALES */}
-        <div style={{ fontSize: '9pt' }}>
+        <div style={{ fontSize: '9pt', fontWeight: 'bold' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '1mm' }}>
             <span>Subtotal:</span>
             <span>${(sale.subtotal || 0).toFixed(2)}</span>

@@ -1,10 +1,10 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { dataClient } from "@/components/api/dataClient";
 import { supabase } from "../../../../lib/supabase-client.js";
-import { useLocation } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { ShoppingCart, Search, Plus, Minus, Trash2, User, AlertCircle, X, Loader2, Zap, LayoutGrid } from "lucide-react";
+import { ShoppingCart, Search, Plus, Minus, Trash2, User, AlertCircle, X, Loader2, Zap, LayoutGrid, PenLine, History } from "lucide-react";
 import { toast } from "sonner";
 import { createPageUrl } from "@/components/utils/helpers";
 import { calculateDiscountedPrice } from "@/components/inventory/DiscountBadge";
@@ -26,6 +26,8 @@ import {
   subscribeToCashRegister,
   checkCashRegisterStatus
 } from "@/components/cash/CashRegisterService";
+import UniversalPrintDialog from "../components/printing/UniversalPrintDialog";
+import POSSaleActionsModal, { POSSaleHistoryModal, saveSaleToHistory } from "../components/pos/POSSaleActionsModal";
 
 const RECENT_CREATED_PRODUCTS_KEY = "smartfix_recent_created_products";
 
@@ -104,6 +106,7 @@ function toCurrencyNumber(value) {
 
 export default function POSMobile() {
   const location = useLocation();
+  const navigate = useNavigate();
   const [products, setProducts] = useState([]);
   const [services, setServices] = useState([]);
   const [cart, setCart] = useState([]);
@@ -136,12 +139,22 @@ export default function POSMobile() {
   const [paymentMode, setPaymentMode] = useState("regular");
   const [totalPaid, setTotalPaid] = useState(0);
   const hasShownInventoryOfflineToast = React.useRef(false);
+  const [showManualItem, setShowManualItem] = useState(false);
+  const [manualItem, setManualItem] = useState({ name: "", price: "", qty: "1" });
+  const [showSaleActions, setShowSaleActions] = useState(false);
+  const [completedSale, setCompletedSale] = useState(null);
+  const [completedOrderId, setCompletedOrderId] = useState(null);
+  const [showSaleHistory, setShowSaleHistory] = useState(false);
+  const [showPrintDialog, setShowPrintDialog] = useState(false);
+  const [printData, setPrintData] = useState(null);
 
   const urlParams = new URLSearchParams(window.location.search);
   const workOrderId = urlParams.get("workOrderId");
   const urlPaymentMode = urlParams.get("mode") || "full";
   const routeStateOrder = location.state?.workOrder || null;
   const routePaymentMode = location.state?.paymentMode || null;
+  const urlBalance = parseFloat(urlParams.get("balance") || "0");
+  const routeBalanceDue = parseFloat(location.state?.balanceDue || "0");
 
   const hydrateWorkOrder = useCallback(async (order) => {
     if (!order?.id) return;
@@ -200,7 +213,7 @@ export default function POSMobile() {
   }, []);
 
   useEffect(() => {
-    if (workOrderId) {
+    if (workOrderId && !routeStateOrder) {
       loadWorkOrder();
     }
   }, [workOrderId]);
@@ -212,14 +225,10 @@ export default function POSMobile() {
   }, [routeStateOrder, workOrderId, hydrateWorkOrder]);
 
   useEffect(() => {
-    // ✅ Esperar que el cajón cargue antes de abrir modal de pago
-    if (workOrderId && selectedOrder && !loadingDrawer) {
-      setShowPaymentModal(true);
-      if (urlPaymentMode === "deposit") {
-        setPaymentMethod("cash");
-      }
+    if ((workOrderId || location.state?.openPaymentImmediately) && selectedOrder && !loadingDrawer) {
+      setTimeout(() => setShowPaymentModal(true), 150);
     }
-  }, [workOrderId, selectedOrder, loadingDrawer]);
+  }, [workOrderId, selectedOrder, loadingDrawer, location.state?.openPaymentImmediately]);
 
   const fetchWorkOrderById = useCallback(async (orderId) => {
     if (!orderId) return null;
@@ -441,9 +450,15 @@ export default function POSMobile() {
         0,
         parseFloat(
           toCurrencyNumber(
-            selectedOrder.balance_due != null
+            selectedOrder.balance_due != null && Number(selectedOrder.balance_due) > 0
               ? selectedOrder.balance_due
-              : (orderTotal - totalPaid)
+              : (orderTotal - totalPaid) > 0
+                ? (orderTotal - totalPaid)
+                : routeBalanceDue > 0
+                  ? routeBalanceDue
+                  : urlBalance > 0
+                    ? urlBalance
+                    : 0
           ).toFixed(2)
         )
       )
@@ -466,26 +481,24 @@ export default function POSMobile() {
     paymentMethod === "mixed" ? (mixedTotal >= total && (!mixedAth || hasAthMeta)) :
     paymentMethod ? true : false);
 
-  // Piezas (subcategoria === "piezas_servicios") NO se venden en POS — son para reparaciones internas
-  const sellableProducts = products.filter(p => p.subcategoria !== "piezas_servicios");
+  // Solo accesorios y dispositivos completos — igual que desktop
+  const sellableProducts = products.filter(p =>
+    p.tipo_principal === "accesorios" ||
+    (p.tipo_principal === "dispositivos" && p.subcategoria === "dispositivo_completo")
+  );
 
   const getFilteredItems = useCallback(() => {
     let items = [];
     const q = searchQuery.toLowerCase();
 
     if (activeTab === "all") {
-      items = [...sellableProducts, ...services].map((item) => ({
-        ...item,
-        _type: item.duration_minutes ? 'service' : 'product'
-      }));
+      items = sellableProducts.map(p => ({ ...p, _type: 'product' }));
     } else if (activeTab === "accesorios") {
       items = sellableProducts.filter(p => p.tipo_principal === "accesorios").map(item => ({...item, _type: 'product'}));
     } else if (activeTab === "devices") {
-      items = sellableProducts.filter(p => p.tipo_principal === "dispositivos" && p.subcategoria === "dispositivo_completo").map(item => ({...item, _type: 'product'}));
+      items = sellableProducts.filter(p => p.tipo_principal === "dispositivos").map(item => ({...item, _type: 'product'}));
     } else if (activeTab === "offers") {
       items = sellableProducts.filter(p => p.discount_active && p.discount_percentage > 0).map(item => ({...item, _type: 'product'}));
-    } else if (activeTab === "services") {
-      items = services.map(item => ({...item, _type: 'service'}));
     }
 
     if (q) {
@@ -521,7 +534,7 @@ export default function POSMobile() {
                          (paymentMethod === "cash" ? parseFloat(cashReceived) :
                          paymentMethod === "mixed" ? mixedTotal : effectiveTotal);
                          
-      const amountPaidOnOrder = selectedOrder ? Math.min(amountPaid, selectedOrder.balance_due != null ? selectedOrder.balance_due : (orderTotal - totalPaid)) : 0;
+      const amountPaidOnOrder = selectedOrder ? Math.min(amountPaid, orderBalance) : 0;
       
       const saleNumber = `S-${new Date().toISOString().split('T')[0]}-${Math.floor(Math.random() * 9000 + 1000)}`;
       const paymentMethods = paymentMethod === "mixed" ?
@@ -661,20 +674,20 @@ export default function POSMobile() {
         console.warn("Financial refresh events failed:", refreshError);
       }
       setShowPaymentModal(false);
+
+      const cameFromOrder = !!selectedOrder;
+      const orderIdBeforeClear = selectedOrder?.id || null;
+      setCompletedOrderId(orderIdBeforeClear);
+
+      setPrintData(sale);
+      setCompletedSale(sale);
+      setShowSaleActions(true);
+
       clearCart();
 
-      // Volver directo al boleto si este cobro vino desde una orden
-      if (selectedOrder) {
+      if (!cameFromOrder) {
         setTimeout(() => {
-          window.location.assign(createPageUrl(`Orders?openOrderId=${selectedOrder.id}`));
-        }, 350);
-      } else {
-        setTimeout(() => {
-          try {
-            window.dispatchEvent(new Event("force-refresh"));
-          } catch (refreshError) {
-            console.warn("force-refresh event failed:", refreshError);
-          }
+          try { window.dispatchEvent(new Event("force-refresh")); } catch {}
         }, 500);
       }
 
@@ -772,12 +785,11 @@ export default function POSMobile() {
           )}
         </div>
 
-        <div className="flex gap-2.5 overflow-x-auto no-scrollbar scroll-smooth">
+        <div className="flex gap-2.5 overflow-x-auto no-scrollbar scroll-smooth" style={{ touchAction: 'pan-x' }}>
           {[
-            { id: "all", label: "General" },
-            { id: "services", label: "Servicios" },
+            { id: "all", label: "Todo" },
             { id: "accesorios", label: "Accesorios" },
-            { id: "devices", label: "Equipos" },
+            { id: "devices", label: "Dispositivos" },
             { id: "offers", label: "Ofertas" }
           ].map(tab => {
             const isActive = activeTab === tab.id;
@@ -796,6 +808,13 @@ export default function POSMobile() {
               </button>
             );
           })}
+          <button
+            onClick={() => setShowManualItem(true)}
+            className="px-6 py-3 rounded-[18px] text-[11px] font-black uppercase tracking-[0.1em] whitespace-nowrap border bg-amber-500/10 text-amber-400 border-amber-500/20 flex items-center gap-1.5"
+          >
+            <PenLine className="w-3.5 h-3.5" />
+            Manual
+          </button>
         </div>
       </div>
 
@@ -993,6 +1012,97 @@ export default function POSMobile() {
           setShowRechargeDialog(false);
         }}
       />
+
+      {/* Post-sale actions */}
+      <POSSaleActionsModal
+        open={showSaleActions}
+        onClose={() => {
+          setShowSaleActions(false);
+          setCompletedSale(null);
+          if (completedOrderId) {
+            setCompletedOrderId(null);
+            navigate(createPageUrl(`Orders?openOrderId=${completedOrderId}`));
+          }
+        }}
+        sale={completedSale}
+        customer={selectedCustomer}
+        cartItems={printData ? (Array.isArray(printData.items) ? printData.items : safeCart) : safeCart}
+        onPrint={() => { setShowSaleActions(false); setShowPrintDialog(true); }}
+      />
+
+      {showPrintDialog && printData && (
+        <UniversalPrintDialog
+          open={showPrintDialog}
+          onClose={() => setShowPrintDialog(false)}
+          sale={printData}
+          customer={selectedCustomer}
+        />
+      )}
+
+      <POSSaleHistoryModal
+        open={showSaleHistory}
+        onClose={() => setShowSaleHistory(false)}
+        onReopen={(entry) => {
+          setCompletedSale(entry.sale);
+          setPrintData(entry.sale);
+          setShowSaleHistory(false);
+          setShowSaleActions(true);
+        }}
+      />
+
+      {/* Manual item sheet */}
+      {showManualItem && (
+        <div className="fixed inset-0 z-[80] flex items-end justify-center bg-black/70 backdrop-blur-sm" onClick={() => setShowManualItem(false)}>
+          <div className="bg-[#0f0f12] border border-white/10 rounded-t-3xl w-full max-w-lg p-6 space-y-4" onClick={e => e.stopPropagation()}>
+            <h3 className="text-white font-black text-lg">Artículo Manual</h3>
+            <input
+              autoFocus
+              placeholder="Nombre del artículo"
+              value={manualItem.name}
+              onChange={e => setManualItem(p => ({ ...p, name: e.target.value }))}
+              className="w-full bg-white/5 border border-white/10 rounded-2xl px-4 py-3 text-white placeholder-white/30 text-sm focus:outline-none focus:border-cyan-500/50"
+            />
+            <div className="flex gap-3">
+              <input
+                type="number"
+                placeholder="Precio"
+                value={manualItem.price}
+                onChange={e => setManualItem(p => ({ ...p, price: e.target.value }))}
+                className="flex-1 bg-white/5 border border-white/10 rounded-2xl px-4 py-3 text-white placeholder-white/30 text-sm focus:outline-none focus:border-cyan-500/50"
+              />
+              <input
+                type="number"
+                placeholder="Qty"
+                value={manualItem.qty}
+                onChange={e => setManualItem(p => ({ ...p, qty: e.target.value }))}
+                className="w-24 bg-white/5 border border-white/10 rounded-2xl px-4 py-3 text-white placeholder-white/30 text-sm focus:outline-none focus:border-cyan-500/50"
+              />
+            </div>
+            <button
+              onClick={() => {
+                if (!manualItem.name.trim() || !manualItem.price) { toast.error("Nombre y precio requeridos"); return; }
+                const price = parseFloat(manualItem.price);
+                const qty = parseInt(manualItem.qty) || 1;
+                setCart(prev => [...prev, {
+                  id: `manual-${Date.now()}`,
+                  name: manualItem.name.trim(),
+                  price,
+                  cost: 0,
+                  quantity: qty,
+                  type: 'product',
+                  taxable: true,
+                }]);
+                setManualItem({ name: "", price: "", qty: "1" });
+                setShowManualItem(false);
+                toast.success(`✅ ${manualItem.name} añadido`);
+              }}
+              className="w-full py-4 bg-gradient-to-r from-amber-500 to-orange-500 text-white font-black rounded-2xl"
+            >
+              Añadir al Carrito
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
