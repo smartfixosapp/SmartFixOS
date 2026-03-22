@@ -211,9 +211,6 @@ export default function ThermalSaleReceipt({ sale, customer, onClose, autoPrint 
               <div style={{ fontSize: '8pt', textAlign: 'center' }}>
                 {pc.footer_text || '¡Gracias por su compra!'}
               </div>
-              {pc.review_link && (
-                <div style={{ fontSize: '7pt', textAlign: 'center', marginTop: '2mm' }}>⭐ {pc.review_link}</div>
-              )}
               <div style={{ fontSize: '7pt', textAlign: 'center', marginTop: '2mm', color: '#555' }}>
                 Atendido por: {sale.employee || '911 Smart Fix'}
               </div>
