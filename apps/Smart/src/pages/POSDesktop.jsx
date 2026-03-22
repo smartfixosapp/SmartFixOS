@@ -289,9 +289,12 @@ export default function POSDesktop() {
 
       try {
         [prods, servs] = await Promise.all([
-          dataClient.entities.Product.filter({ active: true }, undefined, 200),
-          dataClient.entities.Service.filter({ active: true }, undefined, 100)
+          dataClient.entities.Product.list("-created_date", 200),
+          dataClient.entities.Service.list("-created_date", 100)
         ]);
+        // Filtrar inactivos en cliente (evita que active=NULL rompa el filtro en DB)
+        prods = (prods || []).filter((p) => p?.active !== false);
+        servs = (servs || []).filter((s) => s?.active !== false);
       } catch (primaryError) {
         const [prodsList, servsList] = await Promise.all([
           dataClient.entities.Product.list("-created_date", 400).catch(() => null),

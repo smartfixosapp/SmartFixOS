@@ -101,6 +101,7 @@ function normalizeProductPayload(payload) {
     subcategoria: payload?.subcategoria === "servicio" ? "piezas_servicios" : (payload?.subcategoria || "piezas_servicios"),
     supplier_id: payload?.supplier_id || "",
     supplier_name: payload?.supplier_name || "",
+    active: payload?.active !== false,
   };
 }
 
@@ -855,7 +856,7 @@ export default function Inventory() {
   const loadInventory = async () => {
     try {
       const [pRes, poRes, supRes, woRes, catRes, ptRes, accRes] = await Promise.allSettled([
-      dataClient.entities.Product?.filter?.({ active: true }, "-created_date", 500).catch(() => []),
+      dataClient.entities.Product?.list?.("-created_date", 500).catch(() => []),
       dataClient.entities.PurchaseOrder?.list?.("-created_date", 100).catch(() => []),
       loadSuppliersSafe().catch(() => []),
       dataClient.entities.Order?.filter?.({ deleted: false }, "-created_date", 100).catch(() => []),
