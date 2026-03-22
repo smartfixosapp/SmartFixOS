@@ -94,6 +94,21 @@ export default function AuthGate({ children }) {
   // Ref para no crear stale closures en los callbacks del timer.
   const inactivityMsRef = React.useRef(DEFAULT_INACTIVITY_MS);
 
+  // ── Refresh session (llamado por PinAccess tras login exitoso) ───────
+  const refreshSession = React.useCallback(() => {
+    const sessionUser = readPinSession();
+    if (sessionUser) {
+      inactivityMsRef.current = sessionUser.session_timeout_ms ?? DEFAULT_INACTIVITY_MS;
+      setUser(sessionUser);
+    }
+  }, []);
+
+  // Exponer en window para que PinAccess (ruta pública, sin AuthContext) lo llame
+  React.useEffect(() => {
+    window.__sfos_refreshAuth = refreshSession;
+    return () => { delete window.__sfos_refreshAuth; };
+  }, [refreshSession]);
+
   // ── Logout ────────────────────────────────────────────────────────────
   const handleLogout = React.useCallback((reason = "manual") => {
     if (inactivityTimerRef.current) {
