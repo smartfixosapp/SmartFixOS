@@ -911,121 +911,19 @@ Gracias por su preferencia
                   )}
                 </div>
 
-                {/* Botones de acción */}
-                <div className="p-6 border-t border-cyan-500/20 bg-black/40 space-y-3">
-                  <div className="grid grid-cols-2 gap-3">
-                    <Button
-                      onClick={handlePrint}
-                      className="h-14 bg-gradient-to-r from-cyan-600 to-emerald-600 hover:from-cyan-700 hover:to-emerald-700 shadow-[0_8px_24px_rgba(0,168,232,0.5)] font-bold text-base"
-                    >
-                      <Printer className="w-5 h-5 mr-2" />
-                      Imprimir
-                    </Button>
-                    <Button
-                      onClick={handleGeneratePDF}
-                      className="h-14 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 shadow-[0_8px_24px_rgba(168,85,247,0.5)] font-bold text-base"
-                    >
-                      <Download className="w-5 h-5 mr-2" />
-                      Generar PDF
-                    </Button>
-                  </div>
-
-                  <div className="grid grid-cols-2 gap-3">
-                    {showManualInput === 'email' ? (
-                      <div className="col-span-2 flex gap-2">
-                        <Input
-                          type="email"
-                          value={manualEmail}
-                          onChange={(e) => setManualEmail(e.target.value)}
-                          placeholder="cliente@email.com"
-                          className="flex-1 bg-black/40 border-white/15 text-white"
-                          autoFocus
-                        />
-                        <Button
-                          onClick={() => handleSendEmail()}
-                          disabled={sending.email || !manualEmail}
-                          className="bg-blue-600 hover:bg-blue-700"
-                        >
-                          {sending.email ? <Loader2 className="w-4 h-4 animate-spin" /> : "Enviar"}
-                        </Button>
-                        <Button
-                          size="icon"
-                          variant="ghost"
-                          onClick={() => {
-                            setShowManualInput(null);
-                            setManualEmail("");
-                          }}
-                          className="text-gray-400"
-                        >
-                          <X className="w-4 h-4" />
-                        </Button>
-                      </div>
-                    ) : (
-                      <Button
-                        onClick={() => customer?.email || data.customer_email ? handleSendEmail(customer?.email || data.customer_email) : setShowManualInput('email')}
-                        disabled={sending.email || sent.email}
-                        className="bg-gradient-to-r from-blue-600 to-blue-800 hover:from-blue-700 hover:to-blue-900 h-12"
-                      >
-                        {sending.email ? (
-                          <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                        ) : sent.email ? (
-                          <Check className="w-4 h-4 mr-2" />
-                        ) : (
-                          <Mail className="w-4 h-4 mr-2" />
-                        )}
-                        {sent.email ? "Enviado" : "Email"}
-                      </Button>
-                    )}
-
-                    {showManualInput === 'whatsapp' ? (
-                      <div className="col-span-2 flex gap-2">
-                        <Input
-                          type="tel"
-                          value={manualPhone}
-                          onChange={(e) => setManualPhone(e.target.value)}
-                          placeholder="(787) 123-4567"
-                          className="flex-1 bg-black/40 border-white/15 text-white"
-                          autoFocus
-                        />
-                        <Button
-                          onClick={() => handleSendWhatsApp()}
-                          disabled={!manualPhone}
-                          className="bg-green-600 hover:bg-green-700"
-                        >
-                          Enviar
-                        </Button>
-                        <Button
-                          size="icon"
-                          variant="ghost"
-                          onClick={() => {
-                            setShowManualInput(null);
-                            setManualPhone("");
-                          }}
-                          className="text-gray-400"
-                        >
-                          <X className="w-4 h-4" />
-                        </Button>
-                      </div>
-                    ) : (
-                      <Button
-                        onClick={() => customer?.phone || data.customer_phone ? handleSendWhatsApp(customer?.phone || data.customer_phone) : setShowManualInput('whatsapp')}
-                        disabled={sent.whatsapp}
-                        className="bg-gradient-to-r from-green-600 to-green-800 hover:from-green-700 hover:to-green-900 h-12"
-                      >
-                        {sent.whatsapp ? (
-                          <Check className="w-4 h-4 mr-2" />
-                        ) : (
-                          <MessageCircle className="w-4 h-4 mr-2" />
-                        )}
-                        {sent.whatsapp ? "Enviado" : "WhatsApp"}
-                      </Button>
-                    )}
-                  </div>
-
+                {/* Botones de acción — solo imprimir */}
+                <div className="p-6 border-t border-cyan-500/20 bg-black/40">
+                  <Button
+                    onClick={handlePrint}
+                    className="w-full h-14 bg-gradient-to-r from-cyan-600 to-emerald-600 hover:from-cyan-700 hover:to-emerald-700 shadow-[0_8px_24px_rgba(0,168,232,0.5)] font-bold text-base"
+                  >
+                    <Printer className="w-5 h-5 mr-2" />
+                    Imprimir
+                  </Button>
                   <Button
                     onClick={onClose}
                     variant="outline"
-                    className="w-full h-12 border-2 border-gray-500/30 text-gray-300 hover:bg-gray-700"
+                    className="w-full h-10 mt-3 border border-gray-500/20 text-gray-500 hover:bg-gray-700/20 text-sm"
                   >
                     Cerrar
                   </Button>

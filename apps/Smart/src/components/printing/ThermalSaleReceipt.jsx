@@ -23,49 +23,33 @@ export default function ThermalSaleReceipt({ sale, customer, onClose, autoPrint 
 
   const loadTerms = async () => {
     try {
-      // Primero intentar cargar términos de venta + garantía desde business-branding
+      // 1. Leer desde pos-receipt-config (editor POS & Recibo en Settings)
+      const posConfig = (() => {
+        try { return JSON.parse(localStorage.getItem("pos_receipt_config") || "{}"); } catch { return {}; }
+      })();
+
+      let termsText = "";
+      if (posConfig.warranty_text)   termsText += posConfig.warranty_text;
+      if (posConfig.conditions_text) termsText += (termsText ? "\n\n" : "") + posConfig.conditions_text;
+
+      if (termsText.trim()) { setTerms(termsText.trim()); return; }
+
+      // 2. Fallback: business-branding
       const brandingConfigs = await base44.entities.AppSettings.filter({ slug: "business-branding" });
       if (brandingConfigs?.length > 0) {
         const branding = brandingConfigs[0].payload || {};
-        let termsText = branding.terms_sales || "";
-        
-        // Agregar garantía por venta si existe
+        let bt = branding.terms_sales || "";
         if (branding.warranty_sales) {
-          const warrantyInfo = typeof branding.warranty_sales === 'object' 
-            ? branding.warranty_sales 
-            : { text: branding.warranty_sales };
-          
-          if (warrantyInfo.text) {
-            termsText += `\n\n🛡️ GARANTÍA POR VENTA\n${warrantyInfo.text}`;
-            if (warrantyInfo.duration) {
-              termsText += `\nDuración: ${warrantyInfo.duration}`;
-            }
-          }
+          const wi = typeof branding.warranty_sales === 'object' ? branding.warranty_sales : { text: branding.warranty_sales };
+          if (wi.text) { bt += `\n\n🛡️ GARANTÍA\n${wi.text}`; }
         }
-        
-        if (termsText.trim()) {
-          setTerms(termsText.trim());
-          return;
-        }
+        if (bt.trim()) { setTerms(bt.trim()); return; }
       }
-      
-      // Fallback a términos legacy
-      const configs = await base44.entities.SystemConfig.filter({ key: "receipt_terms" });
-      if (configs?.length > 0) {
-        const value = configs[0].value || configs[0].value_json || "";
-        setTerms(typeof value === 'string' ? value : value.text || "");
-      } else {
-        setTerms(`
-• No se aceptan devoluciones en productos electrónicos.
-• Garantía de 30 días en reparaciones.
-• El taller no se hace responsable por pérdida de datos.
-• Equipos no reclamados en 90 días pasan a propiedad del taller.
-• Al firmar acepta términos y condiciones.
-        `.trim());
-      }
-    } catch (error) {
-      console.error("Error loading terms:", error);
-      setTerms("Términos disponibles en SmartFixOS");
+
+      // 3. Fallback genérico
+      setTerms("• No se aceptan devoluciones en productos electrónicos.\n• Garantía de 30 días en reparaciones.\n• El taller no se hace responsable por pérdida de datos.");
+    } catch {
+      setTerms("");
     }
   };
 
@@ -134,7 +118,7 @@ export default function ThermalSaleReceipt({ sale, customer, onClose, autoPrint 
           )}
           <div style={{ fontSize: '9pt', marginTop: '1mm' }}>RECIBO DE VENTA</div>
           <div style={{ fontSize: '8pt', marginTop: '1mm' }}>
-            {format(new Date(sale.created_date || new Date()), "dd/MM/yyyy HH:mm", { locale: es })}
+            {format(new Date(sale.created_date || new Date()), "d 'de' MMMM 'del' yyyy", { locale: es })}
           </div>
         </div>
 
@@ -142,8 +126,8 @@ export default function ThermalSaleReceipt({ sale, customer, onClose, autoPrint 
 
         {/* VENTA # */}
         <div style={{ textAlign: 'center', marginBottom: '3mm' }}>
-          <div style={{ fontSize: '9pt' }}>VENTA:</div>
-          <div style={{ fontSize: '16pt', fontWeight: 'bold', letterSpacing: '1px' }}>
+          <div style={{ fontSize: '7pt', color: '#555' }}>Recibo No.</div>
+          <div style={{ fontSize: '11pt', fontWeight: 'bold', letterSpacing: '0.5px' }}>
             {sale.sale_number || 'SIN #'}
           </div>
         </div>
@@ -220,14 +204,22 @@ export default function ThermalSaleReceipt({ sale, customer, onClose, autoPrint 
           )}
         </div>
 
-        <div style={{ borderTop: '2px dashed #000', paddingTop: '3mm', marginTop: '3mm' }}>
-          <div style={{ fontSize: '8pt', textAlign: 'center' }}>
-            ¡Gracias por su compra!
-          </div>
-          <div style={{ fontSize: '7pt', textAlign: 'center', marginTop: '2mm' }}>
-            Vendedor: {sale.employee || 'Sistema'}
-          </div>
-        </div>
+        {(() => {
+          const pc = (() => { try { return JSON.parse(localStorage.getItem("pos_receipt_config") || "{}"); } catch { return {}; } })();
+          return (
+            <div style={{ borderTop: '2px dashed #000', paddingTop: '3mm', marginTop: '3mm' }}>
+              <div style={{ fontSize: '8pt', textAlign: 'center' }}>
+                {pc.footer_text || '¡Gracias por su compra!'}
+              </div>
+              {pc.review_link && (
+                <div style={{ fontSize: '7pt', textAlign: 'center', marginTop: '2mm' }}>⭐ {pc.review_link}</div>
+              )}
+              <div style={{ fontSize: '7pt', textAlign: 'center', marginTop: '2mm', color: '#555' }}>
+                Atendido por: {sale.employee || '911 Smart Fix'}
+              </div>
+            </div>
+          );
+        })()}
 
         {/* ✅ TÉRMINOS Y CONDICIONES */}
         {terms && (
