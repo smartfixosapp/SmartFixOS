@@ -1398,6 +1398,37 @@ export default function WorkOrderWizard({ open, onClose, onSuccess, preloadedCus
   // Si el nombre de un servicio contiene alguno de estos → necesita match con el equipo seleccionado.
   const DEVICE_SPECIFIC_RE = /\b(ps[1-9]|xbox|playstation|switch|iphone|ipad|macbook|galaxy|airpods|pixel|surface|nintendo|sony|microsoft|samsung|apple|dell|hp|lenovo|motorola|xiaomi|asus|huawei|oneplus)\b/i;
 
+  // Sub-model qualifiers: words that extend a base model into a deeper variant.
+  // "iPhone 14" ≠ "iPhone 14 Pro" ≠ "iPhone 14 Pro Max"
+  const MODEL_QUALIFIERS = new Set(["pro", "max", "plus", "ultra", "mini", "lite", "oled", "slim", "fe", "s", "e"]);
+
+  // Token-boundary exact model match.
+  // Splits both strings into word tokens, then looks for the model tokens as a
+  // contiguous sub-sequence inside the name tokens.  If found, the token that
+  // immediately follows in the name must NOT be a known sub-model qualifier —
+  // otherwise the product belongs to a deeper variant of the model.
+  //
+  // Examples (modelStr = "iphone 14"):
+  //   "iphone 14 pantalla lcd"          → TRUE  (next token "pantalla" is not a qualifier)
+  //   "iphone 14 pro max pantalla lcd"  → FALSE (next token "pro" IS a qualifier)
+  //
+  // Examples (modelStr = "iphone 14 pro"):
+  //   "iphone 14 pro pantalla oled"     → TRUE
+  //   "iphone 14 pro max pantalla lcd"  → FALSE (next token "max" IS a qualifier)
+  const tokenExactMatch = (nameStr, modelStr) => {
+    if (!modelStr) return false;
+    const nameToks  = nameStr.split(/\s+/).filter(Boolean);
+    const modelToks = modelStr.split(/\s+/).filter(Boolean);
+    if (!modelToks.length) return false;
+    for (let i = 0; i <= nameToks.length - modelToks.length; i++) {
+      if (modelToks.every((t, j) => nameToks[i + j] === t)) {
+        const nextTok = nameToks[i + modelToks.length];
+        if (!nextTok || !MODEL_QUALIFIERS.has(nextTok)) return true;
+      }
+    }
+    return false;
+  };
+
   const loadSuggestedProducts = async () => {
     if (!deviceType && !deviceBrand && !deviceFamily && !deviceModel) {
       setSuggestedProducts([]);
@@ -1485,10 +1516,10 @@ export default function WorkOrderWizard({ open, onClose, onSuccess, preloadedCus
           if (!serviceIsDeviceSpecific) return true;
 
           // Servicio específico (ej. "Puerto HDMI PS5") → solo si hace match con el equipo seleccionado
-          const nameHasModel  = modelLower  && nameLower.includes(modelLower);
+          const nameHasModel  = modelLower  && tokenExactMatch(nameLower, modelLower);
           const nameHasFamily = familyLower && nameLower.includes(familyLower);
           const nameHasBrand  = brandLower  && nameLower.includes(brandLower);
-          const compatHasModel  = modelLower  && compatModels.some(m => normalizedText(m).includes(modelLower));
+          const compatHasModel  = modelLower  && compatModels.some(m => tokenExactMatch(normalizedText(m), modelLower));
           const compatHasFamily = familyLower && compatModels.some(m => normalizedText(m).includes(familyLower));
           const compatHasBrand  = brandLower  && compatModels.some(m => normalizedText(m).includes(brandLower));
 
@@ -1500,9 +1531,10 @@ export default function WorkOrderWizard({ open, onClose, onSuccess, preloadedCus
         // Selecting family (iPhone) or brand (Apple) without a model → no parts shown yet
         if (!modelLower) return false;
 
-        // Model selected → REQUIRE model keyword in name or compatibility_models
-        const nameHasModel = nameLower.includes(modelLower);
-        const compatHasModel = compatModels.some(m => normalizedText(m).includes(modelLower));
+        // Model selected → REQUIRE exact token-boundary model match in name or compatibility_models
+        // "iPhone 14" must NOT match "iPhone 14 Pro Max" — uses tokenExactMatch for precision
+        const nameHasModel = tokenExactMatch(nameLower, modelLower);
+        const compatHasModel = compatModels.some(m => tokenExactMatch(normalizedText(m), modelLower));
         return categoryMatched && (nameHasModel || compatHasModel);
       });
 
@@ -1521,7 +1553,7 @@ export default function WorkOrderWizard({ open, onClose, onSuccess, preloadedCus
             nameLower.includes("diagnostico")
           ) value += 25;
           if (compatModels.some((m) => normalizedText(m) === modelLower)) value += 100;
-          if (nameLower.includes(modelLower)) value += 80;
+          if (tokenExactMatch(nameLower, modelLower)) value += 80;
           if (familyLower && nameLower.includes(familyLower)) value += 30;
           if (brandLower && nameLower.includes(brandLower)) value += 15;
           return value;
