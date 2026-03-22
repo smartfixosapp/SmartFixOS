@@ -3,8 +3,8 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "sonner";
 import {
-  Building2, Phone, MapPin, Clock, LayoutDashboard, Lock,
-  ChevronRight, ChevronLeft, Check, Upload, Palette,
+  Building2, Phone, Clock, Lock,
+  ChevronRight, ChevronLeft, Check, Upload,
   DollarSign, Wrench, Users, Package, BarChart3,
   AlertTriangle, Timer, Star, Bell, Loader2, CheckCircle2, XCircle
 } from "lucide-react";
@@ -49,7 +49,7 @@ export default function TenantActivate() {
 
   const [step, setStep] = useState(0);
   const [dir, setDir] = useState(1);
-  const TOTAL_STEPS = 5;
+  const TOTAL_STEPS = 4;
 
   // Step 1 — Identidad
   const [businessName, setBusinessName] = useState('');
@@ -75,12 +75,10 @@ export default function TenantActivate() {
     Object.fromEntries(DAYS.map(d => [d, { ...DEFAULT_HOURS }]))
   );
 
-  // Step 4 — Dashboard widgets
-  const [widgets, setWidgets] = useState(() =>
-    Object.fromEntries(DASHBOARD_WIDGETS.map(w => [w.key, true]))
-  );
+  // Widgets — all enabled by default (no longer a wizard step)
+  const widgets = Object.fromEntries(DASHBOARD_WIDGETS.map(w => [w.key, true]));
 
-  // Step 5 — PIN
+  // Step 4 — PIN
   const [pin, setPin] = useState('');
   const [confirmPin, setConfirmPin] = useState('');
   const [pinStep, setPinStep] = useState('set'); // set | confirm
@@ -103,9 +101,8 @@ export default function TenantActivate() {
     setWarrantyDays(90);
     setRetentionDays(30);
     setReceiptNote('No nos hacemos responsables por equipos dejados más de 30 días.');
-    setWidgets(Object.fromEntries(DASHBOARD_WIDGETS.map(w => [w.key, true])));
     setDir(1);
-    setStep(4);
+    setStep(3);
     setPinStep('set');
     setPin('');
     setConfirmPin('');
@@ -141,7 +138,7 @@ export default function TenantActivate() {
 
   // ── Navigation ──────────────────────────────────────────────────────────────
   const goNext = () => {
-    if (step === 4 && pinStep === 'set') {
+    if (step === 3 && pinStep === 'set') {
       if (pin.length !== 4) { setPinError('El PIN debe tener 4 dígitos'); return; }
       setPinStep('confirm');
       setConfirmPin('');
@@ -152,7 +149,7 @@ export default function TenantActivate() {
   };
 
   const goBack = () => {
-    if (step === 4 && pinStep === 'confirm') {
+    if (step === 3 && pinStep === 'confirm') {
       setPinStep('set');
       setConfirmPin('');
       return;
@@ -182,7 +179,7 @@ export default function TenantActivate() {
   };
 
   useEffect(() => {
-    if (step !== 4 || status === 'saving') return;
+    if (step !== 3 || status === 'saving') return;
 
     const handleKeyDown = (event) => {
       if (event.metaKey || event.ctrlKey || event.altKey) return;
@@ -211,7 +208,7 @@ export default function TenantActivate() {
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [step, status, pinStep, pin, confirmPin]);
+  }, [step, status, pinStep, pin, confirmPin, goNext, handleActivate]);
 
   const validateConfirmPin = (value = confirmPin) => {
     if (value !== pin) {
@@ -364,8 +361,8 @@ export default function TenantActivate() {
   }
 
   // ── Wizard UI ─────────────────────────────────────────────────────────────
-  const stepTitles = ['Identidad', 'Contacto', 'Políticas', 'Dashboard', 'Tu PIN'];
-  const stepIcons  = [Building2, Phone, Clock, LayoutDashboard, Lock];
+  const stepTitles = ['Identidad', 'Contacto', 'Políticas', 'Tu PIN'];
+  const stepIcons  = [Building2, Phone, Clock, Lock];
 
   return (
     <div className="min-h-screen bg-[#0a0a0a] flex flex-col items-center justify-start py-8 px-4">
@@ -547,45 +544,8 @@ export default function TenantActivate() {
               </div>
             )}
 
-            {/* ── Step 3: Dashboard Widgets ── */}
+            {/* ── Step 3: PIN ── */}
             {step === 3 && (
-              <div className="space-y-5">
-                <StepHeader icon={LayoutDashboard} title="Tu Dashboard" subtitle="¿Qué quieres ver al entrar al sistema?" />
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  {DASHBOARD_WIDGETS.map(w => {
-                    const Icon = w.icon;
-                    const enabled = widgets[w.key];
-                    return (
-                      <button key={w.key}
-                        onClick={() => setWidgets(prev => ({ ...prev, [w.key]: !prev[w.key] }))}
-                        className={`flex items-center gap-3 p-4 rounded-xl border transition-all text-left ${
-                          enabled
-                            ? 'bg-cyan-500/10 border-cyan-500/40 text-white'
-                            : 'bg-white/3 border-white/10 text-gray-500 hover:bg-white/5'
-                        }`}
-                      >
-                        <div className={`p-2 rounded-lg ${enabled ? 'bg-cyan-500/20' : 'bg-white/5'}`}>
-                          <Icon className={`w-4 h-4 ${enabled ? 'text-cyan-400' : 'text-gray-500'}`} />
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <p className="font-medium text-sm leading-tight">{w.label}</p>
-                          <p className="text-xs text-gray-500 mt-0.5">{w.desc}</p>
-                        </div>
-                        <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0 ${
-                          enabled ? 'bg-cyan-500 border-cyan-500' : 'border-gray-600'
-                        }`}>
-                          {enabled && <Check className="w-3 h-3 text-white" />}
-                        </div>
-                      </button>
-                    );
-                  })}
-                </div>
-                <p className="text-xs text-gray-500 text-center">Puedes cambiar esto desde Configuración en cualquier momento</p>
-              </div>
-            )}
-
-            {/* ── Step 4: PIN ── */}
-            {step === 4 && (
               <div className="space-y-5">
                 <StepHeader
                   icon={Lock}
@@ -670,7 +630,7 @@ export default function TenantActivate() {
               Continuar <ChevronRight className="w-4 h-4" />
             </button>
           )}
-          {step === TOTAL_STEPS - 1 && pinStep === 'set' && pin.length === 4 && (
+          {step === 3 && pinStep === 'set' && pin.length === 4 && (
             <button onClick={goNext}
               className="flex-1 flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-gradient-to-r from-cyan-600 to-cyan-500 hover:from-cyan-500 hover:to-cyan-400 text-white font-semibold transition-all">
               Confirmar PIN <ChevronRight className="w-4 h-4" />

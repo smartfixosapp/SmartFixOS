@@ -115,6 +115,22 @@ export async function registerTenantHandler(req) {
     };
     const planCfg = PLANS[plan];
 
+    // 0. Límite beta: máximo 5 tenants
+    const MAX_TENANTS = 5;
+    const sbUrl = sb.url;
+    const sbKey = sb.key;
+    const countRes = await fetch(`${sbUrl}/rest/v1/tenant?select=id`, {
+      headers: { 'apikey': sbKey, 'Authorization': `Bearer ${sbKey}`, 'Prefer': 'count=exact', 'Range': '0-0' },
+    });
+    const countHeader = countRes.headers.get('content-range');
+    const totalTenants = countHeader ? parseInt(countHeader.split('/')[1], 10) : 0;
+    if (totalTenants >= MAX_TENANTS) {
+      return Response.json({
+        success: false,
+        error: 'La aplicación está en modo beta cerrado con cupo lleno. Contáctanos para más información.',
+      }, { status: 403 });
+    }
+
     // 1. Email único
     const existing = await sbSelect('tenant', { email }, sb);
     if (existing.length > 0) {
