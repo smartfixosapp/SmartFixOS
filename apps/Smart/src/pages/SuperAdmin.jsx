@@ -718,6 +718,43 @@ export default function SuperAdmin() {
     }
   };
 
+  // ── Force-activate a pending tenant ──────────────────────────────────────────
+  const doForceActivate = async (tenant) => {
+    if (!confirm(`¿Activar manualmente la cuenta de "${tenant.name}"? Esto marcará la cuenta como activa sin necesidad del link de activación.`)) return;
+    setActionId(tenant.id + "forceactivate");
+    try {
+      const SB_URL = import.meta.env.VITE_SUPABASE_URL || 'https://idntuvtabecwubzswpwi.supabase.co';
+      const SB_KEY = import.meta.env.VITE_SUPABASE_SERVICE_ROLE_KEY;
+      const headers = { 'Content-Type': 'application/json', 'apikey': SB_KEY, 'Authorization': `Bearer ${SB_KEY}`, 'Prefer': 'return=representation' };
+
+      // 1. Activate app_employee
+      await fetch(`${SB_URL}/rest/v1/app_employee?tenant_id=eq.${tenant.id}&status=eq.pending`, {
+        method: 'PATCH', headers,
+        body: JSON.stringify({ status: 'active', active: true, activation_token: null, activation_expires_at: null }),
+      });
+
+      // 2. Activate users
+      await fetch(`${SB_URL}/rest/v1/users?email=eq.${encodeURIComponent(tenant.email)}`, {
+        method: 'PATCH', headers,
+        body: JSON.stringify({ active: true, tenant_id: tenant.id }),
+      });
+
+      // 3. Mark tenant setup_complete
+      const currentMeta = tenant.metadata || {};
+      await fetch(`${SB_URL}/rest/v1/tenant?id=eq.${tenant.id}`, {
+        method: 'PATCH', headers,
+        body: JSON.stringify({ status: 'active', metadata: { ...currentMeta, setup_complete: true } }),
+      });
+
+      toast.success(`✅ Cuenta activada: ${tenant.name}`);
+      await loadTenants();
+    } catch (e) {
+      toast.error(e.message || "Error al activar");
+    } finally {
+      setActionId(null);
+    }
+  };
+
   // ── Invite new tenant ────────────────────────────────────────────────────────
   const doInviteTenant = async () => {
     const { ownerName, email, businessName, plan } = inviteForm;
@@ -2098,6 +2135,18 @@ export default function SuperAdmin() {
                                 >
                                   <Pencil className="w-3.5 h-3.5" /> Editar
                                 </button>
+
+                                {/* Force activate — only for pending accounts */}
+                                {tenant.metadata?.setup_complete === false && (
+                                  <button
+                                    onClick={() => doForceActivate(tenant)}
+                                    disabled={!!busy}
+                                    title="Activar manualmente sin link de activación"
+                                    className="flex items-center gap-1.5 text-xs px-3 py-2 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 hover:bg-emerald-500/20 transition-all disabled:opacity-50"
+                                  >
+                                    <CheckCircle className="w-3.5 h-3.5" /> Activar
+                                  </button>
+                                )}
 
                                 {/* Seed email templates */}
                                 <button
