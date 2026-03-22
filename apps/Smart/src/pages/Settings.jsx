@@ -24,6 +24,7 @@ import WizardConfigPanel from "@/components/settings/WizardConfigPanel";
 import DeviceCatalogManager from "@/components/settings/DeviceCatalogManager";
 import { WarrantySalesModal, WarrantyRepairsModal } from "@/components/settings/WarrantyConfigModals";
 import EmailTemplatesTab from "@/components/settings/tabs/EmailTemplatesTab";
+import POSReceiptTab from "@/components/settings/tabs/POSReceiptTab";
 import { useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/components/utils/helpers";
 
@@ -694,6 +695,13 @@ export default function SettingsPage() {
           isNavigation: true,
           navigateTo: "Inventory"
         },
+        {
+          id: "pos_receipt",
+          icon: Receipt,
+          title: "POS & Recibo",
+          description: "Garantía, condiciones y envío de recibos",
+          color: "from-amber-500 to-orange-600",
+        },
       ]
     },
     {
@@ -1163,6 +1171,9 @@ export default function SettingsPage() {
 
           {/* EMAIL TEMPLATES */}
           {activeSection === "email_templates" && <EmailTemplatesTab />}
+
+          {/* POS & RECIBO */}
+          {activeSection === "pos_receipt" && <POSReceiptTab />}
 
           {/* SEGURIDAD Y SESIÓN — biometría + timeout por usuario */}
           {activeSection === "biometric" && (

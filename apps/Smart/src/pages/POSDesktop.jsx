@@ -27,6 +27,7 @@ import {
   checkCashRegisterStatus
 } from "@/components/cash/CashRegisterService";
 import UniversalPrintDialog from "../components/printing/UniversalPrintDialog";
+import POSSaleActionsModal from "../components/pos/POSSaleActionsModal";
 
 const RECENT_CREATED_PRODUCTS_KEY = "smartfix_recent_created_products";
 
@@ -140,6 +141,8 @@ export default function POSDesktop() {
   const [printData, setPrintData] = useState(null);
   const [showManualItem, setShowManualItem] = useState(false);
   const [manualItem, setManualItem] = useState({ name: "", price: "", qty: "1" });
+  const [showSaleActions, setShowSaleActions] = useState(false);
+  const [completedSale, setCompletedSale] = useState(null);
   const hasShownInventoryOfflineToast = React.useRef(false);
 
   const urlParams = new URLSearchParams(window.location.search);
@@ -691,11 +694,12 @@ export default function POSDesktop() {
         console.warn("Financial refresh events failed:", refreshError);
       }
       setShowPaymentModal(false);
-      
-      // Preparar impresión
+
+      // Mostrar modal de acciones post-venta (email / WhatsApp / imprimir)
       setPrintData(sale);
-      setShowPrintDialog(true);
-      
+      setCompletedSale(sale);
+      setShowSaleActions(true);
+
       clearCart();
 
       // Volver directo al boleto si este cobro vino desde una orden
@@ -1174,6 +1178,24 @@ export default function POSDesktop() {
           </div>
         </div>
       )}
+
+      <POSSaleActionsModal
+        open={showSaleActions}
+        onClose={() => {
+          setShowSaleActions(false);
+          setCompletedSale(null);
+          if (selectedOrder) {
+            window.location.assign(createPageUrl(`Orders?openOrderId=${selectedOrder.id}`));
+          }
+        }}
+        sale={completedSale}
+        customer={selectedCustomer}
+        cartItems={printData ? (Array.isArray(printData.items) ? printData.items : safeCart) : safeCart}
+        onPrint={() => {
+          setShowSaleActions(false);
+          setShowPrintDialog(true);
+        }}
+      />
 
       {showPrintDialog && printData && (
         <UniversalPrintDialog
