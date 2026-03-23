@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { Clock, CheckCircle2, Shield } from "lucide-react";
 import { toast } from "sonner";
-import { useAuth, saveLocalTimeout } from "@/components/Auth";
+import { useAuth, saveLocalTimeout, readLocalTimeout } from "@/components/Auth";
 
 // ── Opciones pre-establecidas de timeout ─────────────────────────────────────
 const TIMEOUT_OPTIONS = [
@@ -35,9 +35,13 @@ export default function UserSessionSettings() {
   const session = readCurrentSession();
   const employeeId = session?.id || user?.id;
 
-  const [selected, setSelected] = useState(
-    () => session?.session_timeout_ms ?? 5 * 60_000
-  );
+  const [selected, setSelected] = useState(() => {
+    // Prioridad: valor guardado localmente en este dispositivo
+    const local = readLocalTimeout(employeeId);
+    if (local !== undefined) return local;
+    // Fallback: valor en la sesión activa
+    return session?.session_timeout_ms ?? 5 * 60_000;
+  });
   const [saving, setSaving] = useState(false);
 
   const handleSave = () => {
