@@ -1,8 +1,7 @@
 import React, { useState } from "react";
 import { Clock, CheckCircle2, Shield } from "lucide-react";
 import { toast } from "sonner";
-import { dataClient } from "@/components/api/dataClient";
-import { useAuth } from "@/components/Auth";
+import { useAuth, saveLocalTimeout } from "@/components/Auth";
 
 // ── Opciones pre-establecidas de timeout ─────────────────────────────────────
 const TIMEOUT_OPTIONS = [
@@ -41,14 +40,12 @@ export default function UserSessionSettings() {
   );
   const [saving, setSaving] = useState(false);
 
-  const handleSave = async () => {
+  const handleSave = () => {
     if (!employeeId) { toast.error("No hay sesión activa"); return; }
     setSaving(true);
     try {
-      // 1. Actualizar en base de datos
-      await dataClient.entities.AppEmployee.update(employeeId, {
-        session_timeout_ms: selected,
-      });
+      // 1. Guardar localmente en este dispositivo (no se sincroniza entre equipos)
+      saveLocalTimeout(employeeId, selected);
 
       // 2. Parchear las sesiones en storage para que persista tras refresco
       const patch = { session_timeout_ms: selected };
@@ -62,8 +59,6 @@ export default function UserSessionSettings() {
 
       const opt = TIMEOUT_OPTIONS.find((o) => o.ms === selected);
       toast.success(`✅ Sesión configurada: ${opt?.label ?? "Personalizado"}`);
-    } catch {
-      toast.error("Error al guardar la configuración");
     } finally {
       setSaving(false);
     }
@@ -158,8 +153,8 @@ export default function UserSessionSettings() {
       </button>
 
       <p className="text-white/30 text-xs text-center">
-        Este ajuste aplica solo a tu usuario en este dispositivo.
-        Otros usuarios del sistema tienen su propia configuración.
+        Esta configuración es <strong className="text-white/40">local a este dispositivo</strong> — no afecta otros equipos ni teléfonos.
+        Cada dispositivo puede tener su propio tiempo de sesión.
       </p>
     </div>
   );

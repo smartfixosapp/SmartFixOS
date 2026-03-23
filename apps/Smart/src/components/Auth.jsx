@@ -21,14 +21,33 @@ const DEFAULT_INACTIVITY_MS = 5 * 60 * 1000; // 5 minutos
 /** Umbral "Nunca": si el usuario elige 0 o null → no hay timer */
 const NEVER_TIMEOUT = null;
 
-/**
- * Tiempo en segundo plano (multitarea / cambio de pestaña) antes de pedir PIN.
- * 30 s → cambios rápidos de app no interrumpen, pero irse a la multitarea sí.
- */
-const BACKGROUND_GRACE_MS = 30 * 1000; // 30 segundos
+/** Mínimo grace en background para evitar kicks en cambios rápidos de app */
+const MIN_BACKGROUND_GRACE_MS = 10 * 1000; // 10 segundos mínimo
 
 /** Clave en localStorage para guardar cuándo fue el último "hide" */
 const BG_TS_KEY = "_sfos_bg_ts";
+
+/** Clave base para preferencias locales de timeout por usuario+dispositivo */
+const LOCAL_TIMEOUT_KEY = (userId) => `_sfos_local_timeout_${userId}`;
+
+// ─── Preferencias locales de timeout (por dispositivo) ────────────────────
+export function readLocalTimeout(userId) {
+  if (!userId) return undefined;
+  try {
+    const raw = localStorage.getItem(LOCAL_TIMEOUT_KEY(userId));
+    if (raw === null) return undefined;
+    if (raw === "null") return null; // "Nunca"
+    const n = Number(raw);
+    return Number.isFinite(n) ? n : undefined;
+  } catch { return undefined; }
+}
+
+export function saveLocalTimeout(userId, ms) {
+  if (!userId) return;
+  try {
+    localStorage.setItem(LOCAL_TIMEOUT_KEY(userId), ms === null ? "null" : String(ms));
+  } catch {}
+}
 
 const ACTIVITY_EVENTS = [
   "mousemove",
@@ -68,6 +87,11 @@ function readPinSession() {
   try {
     const session = JSON.parse(raw);
     if (!session?.id) return null;
+    // Preferencia local del dispositivo tiene prioridad sobre el valor de Supabase
+    const localTimeout = readLocalTimeout(session.id);
+    const timeoutMs = localTimeout !== undefined
+      ? localTimeout
+      : (session.session_timeout_ms ?? null);
     return {
       id: session.id,
       email: session.email || session.userEmail || "",
@@ -77,8 +101,8 @@ function readPinSession() {
       position: session.position || session.role || session.userRole || "user",
       permissions: session.permissions || {},
       permissions_list: session.permissions_list || [],
-      // Timeout personalizado por usuario (null = usar default del sistema)
-      session_timeout_ms: session.session_timeout_ms ?? null,
+      // Timeout: local del dispositivo primero, luego Supabase, luego null
+      session_timeout_ms: timeoutMs,
     };
   } catch {
     return null;
@@ -167,12 +191,27 @@ export default function AuthGate({ children }) {
     const bgTs = localStorage.getItem(BG_TS_KEY);
     if (bgTs && !freshSS) {
       const elapsed = Date.now() - parseInt(bgTs, 10);
-      if (elapsed > BACKGROUND_GRACE_MS) {
-        // El app fue cerrado mientras estaba en background → re-login
-        clearAllSessions();
-        if (!isPublicPath(currentPath)) {
-          window.location.href = "/PinAccess";
-          return;
+      // Leer la preferencia local del usuario para respetar "Nunca"
+      // Intentamos obtener el userId de localStorage para leer su preferencia local
+      let localUserTimeout = undefined;
+      try {
+        const lsRaw = localStorage.getItem("employee_session");
+        const lsSession = lsRaw ? JSON.parse(lsRaw) : null;
+        if (lsSession?.id) localUserTimeout = readLocalTimeout(lsSession.id);
+      } catch {}
+      // Si el usuario configuró "Nunca" en este dispositivo, no pedir PIN
+      const shouldNever = localUserTimeout === null || localUserTimeout === 0;
+      if (!shouldNever) {
+        const graceMs = localUserTimeout != null
+          ? Math.max(MIN_BACKGROUND_GRACE_MS, localUserTimeout)
+          : MIN_BACKGROUND_GRACE_MS;
+        if (elapsed > graceMs) {
+          // El app fue cerrado mientras estaba en background → re-login
+          clearAllSessions();
+          if (!isPublicPath(currentPath)) {
+            window.location.href = "/PinAccess";
+            return;
+          }
         }
       }
       localStorage.removeItem(BG_TS_KEY);
@@ -240,10 +279,17 @@ export default function AuthGate({ children }) {
 
         if (bgTs) {
           const elapsed = Date.now() - parseInt(bgTs, 10);
-          if (elapsed >= BACKGROUND_GRACE_MS) {
-            // Estuvo ≥ 30 s en segundo plano → pedir PIN
-            requirePin();
-            return;
+          const userMs = inactivityMsRef.current;
+          // Si el usuario eligió "Nunca" (null) → nunca pedir PIN por background
+          if (userMs === null || userMs === 0) {
+            // No hacer nada — respetar la preferencia del usuario
+          } else {
+            // Usar el timeout del usuario como grace period (mínimo 10s)
+            const graceMs = Math.max(MIN_BACKGROUND_GRACE_MS, userMs);
+            if (elapsed >= graceMs) {
+              requirePin();
+              return;
+            }
           }
         }
 
