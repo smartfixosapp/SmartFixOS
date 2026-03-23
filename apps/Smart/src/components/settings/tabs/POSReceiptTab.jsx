@@ -2,8 +2,8 @@ import React, { useState, useEffect } from "react";
 import { dataClient } from "@/components/api/dataClient";
 import { toast } from "sonner";
 import {
-  Save, Loader2, Receipt, ShieldCheck, FileText, Star,
-  Info, Eye, EyeOff, Monitor, Smartphone
+  Save, Loader2, Receipt, ShieldCheck, FileText,
+  Info, Eye, EyeOff, Monitor, Smartphone, Mail
 } from "lucide-react";
 
 const SLUG = "pos-receipt-config";
@@ -11,12 +11,14 @@ const SLUG = "pos-receipt-config";
 const DEFAULTS = {
   warranty_text: "",
   conditions_text: "",
-  review_link: "",
   footer_text: "",
   show_hours: false,
   send_email: true,
   send_whatsapp: true,
   send_print: true,
+  email_from_name: "",
+  email_subject_sale: "🧾 Tu recibo de venta #{number}",
+  email_subject_order: "🔧 Tu orden de reparación #{number}",
 };
 
 // ── Mock sale para la vista previa ────────────────────────────────────────────
@@ -161,10 +163,6 @@ function ReceiptPreview({ config, bizInfo }) {
         </div>
       )}
 
-      {/* Review link — solo en email/WhatsApp, NO en impreso */}
-      <div style={{ marginTop: "3mm", textAlign: "center", fontSize: "6.5pt", color: "#999" }}>
-        (Link de reseña solo aparece en email/WhatsApp)
-      </div>
     </div>
   );
 }
@@ -348,13 +346,29 @@ export default function POSReceiptTab() {
             />
           </Section>
 
-          <Section icon={Star} title="Link de Reseña">
-            <FieldLabel label="URL de Google Reviews" hint="Solo se incluye en email y WhatsApp — NO en el recibo impreso" />
+          <Section icon={Mail} title="Configuración de Email">
+            <FieldLabel label="Nombre del remitente" hint="Aparece como 'De:' en el correo" />
             <input
-              type="url"
-              placeholder="https://g.page/r/..."
-              value={config.review_link}
-              onChange={e => set("review_link", e.target.value)}
+              type="text"
+              placeholder="Ej: 911 Smart Fix"
+              value={config.email_from_name}
+              onChange={e => set("email_from_name", e.target.value)}
+              className="w-full bg-white/5 border border-white/10 rounded-2xl px-4 py-3 text-white placeholder-white/25 text-sm focus:outline-none focus:border-cyan-500/50"
+            />
+            <FieldLabel label="Asunto email — Venta" hint="Usa {number} para el número de recibo" />
+            <input
+              type="text"
+              placeholder="🧾 Tu recibo de venta #{number}"
+              value={config.email_subject_sale}
+              onChange={e => set("email_subject_sale", e.target.value)}
+              className="w-full bg-white/5 border border-white/10 rounded-2xl px-4 py-3 text-white placeholder-white/25 text-sm focus:outline-none focus:border-cyan-500/50"
+            />
+            <FieldLabel label="Asunto email — Orden" hint="Usa {number} para el número de orden" />
+            <input
+              type="text"
+              placeholder="🔧 Tu orden de reparación #{number}"
+              value={config.email_subject_order}
+              onChange={e => set("email_subject_order", e.target.value)}
               className="w-full bg-white/5 border border-white/10 rounded-2xl px-4 py-3 text-white placeholder-white/25 text-sm focus:outline-none focus:border-cyan-500/50"
             />
           </Section>
