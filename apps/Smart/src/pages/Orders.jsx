@@ -27,7 +27,6 @@ import { AnimatePresence, motion } from "framer-motion";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import CountdownBadge from "@/components/orders/CountdownBadge";
 
-import RechargesPanel from "@/components/recharges/RechargesPanel";
 import UnlocksPanel from "@/components/unlocks/UnlocksPanel";
 import EditDeviceModal from "@/components/orders/EditDeviceModal";
 import { getLocalOrders, getUnsyncedLocalOrders, mergeOrders, upsertLocalOrder } from "@/components/utils/localOrderCache";
@@ -245,7 +244,7 @@ export default function OrdersPage() {
   const [showCreateInvoice, setShowCreateInvoice] = useState(false);
   const [showPendingAlerts, setShowPendingAlerts] = useState(false);
   const [showStatusDropdown, setShowStatusDropdown] = useState(false);
-  const [activeTab, setActiveTab] = useState("work-orders"); // work-orders, quick-repairs, recharges, unlocks
+  const [activeTab, setActiveTab] = useState("work-orders"); // work-orders, unlocks
   const [editingDeviceOrder, setEditingDeviceOrder] = useState(null);
   const [pullStart, setPullStart] = useState(0);
   const [pullDistance, setPullDistance] = useState(0);
@@ -493,12 +492,10 @@ export default function OrdersPage() {
   }, [orders, selectedStatus, searchQuery, showB2BOnly]);
 
   const displayOrders = useMemo(() => {
-    if (filteredOrders.length > 0) return filteredOrders;
-    const hasSearch = Boolean(searchQuery?.trim());
-    if (hasSearch) return filteredOrders;
-    if ((orders || []).length === 0) return filteredOrders;
-    return (orders || []).filter((o) => o && !o.deleted && o.id);
-  }, [filteredOrders, orders, searchQuery]);
+    // Siempre respetar el filtro activo — nunca hacer fallback a "todos"
+    // para evitar que órdenes cerradas/entregadas aparezcan en el filtro "Activos"
+    return filteredOrders;
+  }, [filteredOrders]);
 
   const tryOpenOrderWithGlobalGate = useCallback(async (targetOrder) => {
     if (!targetOrder?.id) return;
@@ -595,7 +592,7 @@ export default function OrdersPage() {
           style={{ top: "env(safe-area-inset-top, 0px)" }}>
           {/* Row 1: Tabs */}
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-            <TabsList className="bg-white/5 border border-white/10 p-1 rounded-2xl w-full grid grid-cols-3 gap-1 shadow-lg">
+            <TabsList className="bg-white/5 border border-white/10 p-1 rounded-2xl w-full grid grid-cols-2 gap-1 shadow-lg">
               <TabsTrigger
                 value="work-orders"
                 className="rounded-xl text-[11px] sm:text-[13px] font-black tracking-tight data-[state=active]:bg-white data-[state=active]:text-black text-white/50 transition-all duration-300"
@@ -603,16 +600,10 @@ export default function OrdersPage() {
                 Órdenes
               </TabsTrigger>
               <TabsTrigger
-                value="recharges"
-                className="rounded-xl text-[11px] sm:text-[13px] font-black tracking-tight data-[state=active]:bg-amber-500 data-[state=active]:text-white text-white/50 transition-all duration-300"
-              >
-                Recargas
-              </TabsTrigger>
-              <TabsTrigger
                 value="unlocks"
-                className="rounded-xl text-[11px] sm:text-[13px] font-black tracking-tight data-[state=active]:bg-emerald-500 data-[state=active]:text-white text-white/50 transition-all duration-300"
+                className="rounded-xl text-[11px] sm:text-[13px] font-black tracking-tight data-[state=active]:bg-violet-500 data-[state=active]:text-white text-white/50 transition-all duration-300"
               >
-                Remoto
+                Desbloqueo
               </TabsTrigger>
             </TabsList>
           </Tabs>
@@ -1030,11 +1021,6 @@ export default function OrdersPage() {
           </>
         }
         </>
-        )}
-
-        {/* Recharges Tab */}
-        {activeTab === "recharges" && (
-          <RechargesPanel />
         )}
 
         {/* Unlocks Tab */}
