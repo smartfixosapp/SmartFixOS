@@ -33,7 +33,7 @@ import SecurityEditDialog from "./SecurityEditDialog";
 import AdminAuthGate from "../users/AdminAuthGate";
 import { dataClient } from "@/components/api/dataClient";
 import PatternDisplay from "@/components/security/PatternDisplay";
-import { ChevronRight, ChevronDown, Filter } from "lucide-react";
+import { ChevronRight, ChevronDown, Filter, Zap } from "lucide-react";
 import CountdownBadge from "@/components/orders/CountdownBadge";
 import { usePanelState } from "@/components/utils/panelContext";
 import IntakeStage from "./stages/IntakeStage";
