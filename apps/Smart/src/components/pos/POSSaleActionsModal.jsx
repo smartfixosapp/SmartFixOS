@@ -95,22 +95,7 @@ function formatReceiptHtml(sale, customer, items, biz) {
   </div>`;
 }
 
-// ── Envío directo a Resend (sin servidor Deno) ─────────────────────────────
-async function sendViaResend(toEmail, subject, bodyHtml) {
-  const apiKey = import.meta.env.VITE_RESEND_API_KEY;
-  const fromEmail = import.meta.env.VITE_FROM_EMAIL || "noreply@smartfixos.com";
-  const fromName = import.meta.env.VITE_FROM_NAME || "SmartFixOS";
-  if (!apiKey) throw new Error("VITE_RESEND_API_KEY no configurado");
-  const res = await fetch("https://api.resend.com/emails", {
-    method: "POST",
-    headers: { "Authorization": `Bearer ${apiKey}`, "Content-Type": "application/json" },
-    body: JSON.stringify({ from: `${fromName} <${fromEmail}>`, to: [toEmail], subject, html: bodyHtml }),
-  });
-  if (!res.ok) {
-    const err = await res.text();
-    throw new Error(`Resend error ${res.status}: ${err}`);
-  }
-}
+// (sendViaResend eliminado — usamos el servidor Deno vía sendEmail de @/api/functions)
 
 // ── Componente principal ───────────────────────────────────────────────────
 export default function POSSaleActionsModal({ open, onClose, sale, customer, cartItems, onPrint }) {
@@ -161,14 +146,28 @@ export default function POSSaleActionsModal({ open, onClose, sale, customer, car
     if (!emailAddr) { toast.error("Ingresa un email"); return; }
     setSending(true);
     try {
-      await sendViaResend(emailAddr, `Recibo — ${bizName}`, receiptHtml);
+      // Llama directamente a la Vercel serverless function /api/send-raw-email
+      // (RESEND_API_KEY está en process.env de Vercel, no en el frontend)
+      const res = await fetch('/api/send-raw-email', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          to: emailAddr,
+          subject: `Recibo de venta — ${bizName}`,
+          html: receiptHtml,
+          from_name: bizName,
+        }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok || data.success === false) {
+        throw new Error(data.error || `Error ${res.status}`);
+      }
       setSent(p => ({ ...p, email: true }));
       toast.success("✅ Recibo enviado por email");
     } catch (err) {
       console.error("Email error:", err);
       toast.error(`Error enviando email: ${err.message}`);
-    }
-    finally { setSending(false); }
+    } finally { setSending(false); }
   };
 
   const handleSendWhatsApp = () => {
