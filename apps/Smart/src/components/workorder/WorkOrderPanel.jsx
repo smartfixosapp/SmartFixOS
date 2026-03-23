@@ -33,7 +33,7 @@ import SecurityEditDialog from "./SecurityEditDialog";
 import AdminAuthGate from "../users/AdminAuthGate";
 import { dataClient } from "@/components/api/dataClient";
 import PatternDisplay from "@/components/security/PatternDisplay";
-import { ChevronRight, Filter } from "lucide-react";
+import { ChevronRight, ChevronDown, Filter } from "lucide-react";
 import CountdownBadge from "@/components/orders/CountdownBadge";
 import { usePanelState } from "@/components/utils/panelContext";
 import IntakeStage from "./stages/IntakeStage";
@@ -1129,10 +1129,11 @@ function OrderItemsSection({ order, onUpdated, clearEventCache, loadEventsCallba
             </span>
             <Button
               onClick={() => setShowAddItemModal(true)}
-              className="h-10 w-full sm:w-auto px-4 bg-gradient-to-r from-cyan-600 to-emerald-600 hover:from-cyan-700 hover:to-emerald-700"
+              className="h-10 w-10 sm:w-auto px-0 sm:px-4 bg-gradient-to-r from-cyan-600 to-emerald-600 hover:from-cyan-700 hover:to-emerald-700 rounded-full sm:rounded-lg"
+              title="Añadir"
             >
-              <Plus className="w-4 h-4 mr-2" />
-              Añadir
+              <Plus className="w-4 h-4 sm:mr-2" />
+              <span className="hidden sm:inline">Añadir</span>
             </Button>
           </CardTitle>
         </CardHeader>
@@ -1230,22 +1231,20 @@ function OrderItemsSection({ order, onUpdated, clearEventCache, loadEventsCallba
           <Button
             onClick={handleDepositoClick}
             disabled={isPaid}
-            className="h-12 bg-gradient-to-r from-emerald-600 to-green-600 hover:from-emerald-700 hover:to-green-700 flex flex-col items-center justify-center gap-1"
+            title="Depósito"
+            className="h-12 bg-gradient-to-r from-emerald-600 to-green-600 hover:from-emerald-700 hover:to-green-700 flex items-center justify-center gap-2"
           >
-            <div className="flex items-center gap-2">
-              <Wallet className="w-5 h-5" />
-              <span className="font-bold">Depósito</span>
-            </div>
+            <Wallet className="w-5 h-5 flex-shrink-0" />
+            <span className="hidden sm:inline font-bold">Depósito</span>
           </Button>
           <Button
             onClick={handleCobrarClick}
             disabled={isPaid}
-            className="h-12 bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-700 hover:to-blue-700 flex flex-col items-center justify-center gap-1 disabled:opacity-50"
+            title="Cobrar Total"
+            className="h-12 bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-700 hover:to-blue-700 flex items-center justify-center gap-2 disabled:opacity-50"
           >
-            <div className="flex items-center gap-2">
-              <DollarSign className="w-5 h-5" />
-              <span className="font-bold">Cobrar Total</span>
-            </div>
+            <DollarSign className="w-5 h-5 flex-shrink-0" />
+            <span className="hidden sm:inline font-bold">Cobrar Total</span>
           </Button>
         </div>
       )}
@@ -1326,6 +1325,7 @@ export default function WorkOrderPanel({ orderId, onClose, onUpdate, onDelete, p
   const [showAdminAuth, setShowAdminAuth] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [stagesOpen, setStagesOpen] = useState(false);
 
   // ✅ Soporte de teclado para confirmación de eliminación
   useEffect(() => {
@@ -2808,83 +2808,102 @@ export default function WorkOrderPanel({ orderId, onClose, onUpdate, onDelete, p
                       <CountdownBadge order={order} />
                     </CardTitle>
                   </CardHeader>
-                  <CardContent className="p-5 sm:p-7 space-y-6">
-                    <div className="grid gap-6 xl:grid-cols-[1.2fr_0.8fr]">
-                      <div className="space-y-4">
-                        <div className="flex items-center justify-between px-1">
-                          <p className="text-[10px] font-black uppercase tracking-[0.2em] text-white/30">Etapa actual</p>
-                          <span className="text-[10px] font-black uppercase tracking-wider text-white/40 bg-white/5 px-2 py-1 rounded-md">
-                            Orden #{order?.order_number || "N/A"}
-                          </span>
+                  <CardContent className="p-5 sm:p-7 space-y-4">
+                    {/* Accordion trigger — always visible */}
+                    <button
+                      onClick={() => setStagesOpen(v => !v)}
+                      className="w-full flex items-center justify-between px-4 py-3 rounded-2xl border border-white/10 bg-white/[0.03] hover:bg-white/[0.06] transition-all duration-200"
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className={cn(
+                          "px-3 py-1.5 rounded-xl text-[11px] font-black uppercase tracking-wider border",
+                          getStatusConfig(status).colorClasses
+                        )}>
+                          {getStatusConfig(status).label}
                         </div>
+                        <span className="text-[10px] font-black uppercase tracking-[0.15em] text-white/30">
+                          {activeStatuses.findIndex((s) => normalizeStatusId(status) === s.id) + 1 || 1}/{activeStatuses.length} · {Array.isArray(order?.checklist_items) ? order.checklist_items.length : 0} tareas
+                        </span>
+                      </div>
+                      <ChevronDown className={cn(
+                        "w-4 h-4 text-white/40 transition-transform duration-300",
+                        stagesOpen && "rotate-180"
+                      )} />
+                    </button>
 
-                        <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
-                          {[...activeStatuses, ...closedStatuses]
-                            .slice()
-                            .sort((a, b) => (a.order || 0) - (b.order || 0))
-                            .map((s, index) => {
-                              const currentOrder = getStatusConfig(status).order || 0;
-                              const isCurrent = normalizeStatusId(status) === s.id;
-                              const isPassed = (s.order || 0) < currentOrder && !getStatusConfig(s.id).isTerminal;
-                              const statusClasses = getStatusConfig(s.id).colorClasses;
-                              return (
-                                <button
-                                  key={s.id}
-                                  onClick={() => {
-                                    if (!isCurrent) {
-                                      changeStatus(s.id, "", {});
-                                    }
-                                  }}
-                                  disabled={changingStatus || isCurrent}
-                                  className={cn(
-                                    "group flex flex-col gap-2 rounded-[20px] border p-3 text-left transition-all duration-300 active:scale-95",
-                                    isCurrent
-                                      ? `${statusClasses} shadow-[0_8px_24px_rgba(0,0,0,0.3)] scale-[1.02] opacity-100`
-                                      : isPassed
-                                      ? "bg-white/5 border-white/10 text-white/90 hover:bg-white/10 opacity-60"
-                                      : `${statusClasses} opacity-30 hover:opacity-60`
-                                  )}
-                                >
-                                  <div className="flex items-center justify-between">
-                                    <div className={cn(
-                                      "flex h-6 w-6 items-center justify-center rounded-lg text-[10px] font-black",
-                                      isCurrent ? "bg-black/30 text-white" : "bg-black/20 text-white/60"
-                                    )}>
-                                      {index + 1}
+                    {/* Accordion body */}
+                    {stagesOpen && (
+                      <div className="grid gap-6 xl:grid-cols-[1.2fr_0.8fr]">
+                        <div className="space-y-3">
+                          <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
+                            {[...activeStatuses, ...closedStatuses]
+                              .slice()
+                              .sort((a, b) => (a.order || 0) - (b.order || 0))
+                              .map((s, index) => {
+                                const currentOrder = getStatusConfig(status).order || 0;
+                                const isCurrent = normalizeStatusId(status) === s.id;
+                                const isPassed = (s.order || 0) < currentOrder && !getStatusConfig(s.id).isTerminal;
+                                const statusClasses = getStatusConfig(s.id).colorClasses;
+                                return (
+                                  <button
+                                    key={s.id}
+                                    onClick={() => {
+                                      if (!isCurrent) {
+                                        changeStatus(s.id, "", {});
+                                        setStagesOpen(false);
+                                      }
+                                    }}
+                                    disabled={changingStatus || isCurrent}
+                                    className={cn(
+                                      "group flex flex-col gap-2 rounded-[20px] border p-3 text-left transition-all duration-300 active:scale-95",
+                                      isCurrent
+                                        ? `${statusClasses} shadow-[0_8px_24px_rgba(0,0,0,0.3)] scale-[1.02] opacity-100`
+                                        : isPassed
+                                        ? "bg-white/5 border-white/10 text-white/90 hover:bg-white/10 opacity-60"
+                                        : `${statusClasses} opacity-30 hover:opacity-60`
+                                    )}
+                                  >
+                                    <div className="flex items-center justify-between">
+                                      <div className={cn(
+                                        "flex h-6 w-6 items-center justify-center rounded-lg text-[10px] font-black",
+                                        isCurrent ? "bg-black/30 text-white" : "bg-black/20 text-white/60"
+                                      )}>
+                                        {index + 1}
+                                      </div>
+                                      {isPassed && !isCurrent && <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />}
                                     </div>
-                                    {isPassed && !isCurrent && <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />}
-                                  </div>
-                                  <p className="text-[12px] font-black leading-tight tracking-tight">
-                                    {s.label}
-                                  </p>
-                                </button>
-                              );
-                            })}
+                                    <p className="text-[12px] font-black leading-tight tracking-tight">
+                                      {s.label}
+                                    </p>
+                                  </button>
+                                );
+                              })}
+                          </div>
                         </div>
-                      </div>
 
-                      <div className="grid gap-3 grid-cols-3 xl:grid-cols-1">
-                        <div className="rounded-[24px] border border-white/10 bg-white/[0.03] p-4 flex flex-col justify-between">
-                          <p className="text-[10px] font-black uppercase tracking-wider text-white/20">Fase</p>
-                          <p className="text-xl font-black text-white mt-1">
-                            {activeStatuses.findIndex((s) => normalizeStatusId(status) === s.id) + 1 || 1}
-                            <span className="text-white/20 font-medium ml-1">/ {activeStatuses.length}</span>
-                          </p>
-                        </div>
-                        <div className="rounded-[24px] border border-white/10 bg-white/[0.03] p-4 flex flex-col justify-between">
-                          <p className="text-[10px] font-black uppercase tracking-wider text-white/20">Tareas</p>
-                          <p className="text-xl font-black text-white mt-1">
-                            {Array.isArray(order?.checklist_items) ? order.checklist_items.length : 0}
-                          </p>
-                        </div>
-                        <div className="rounded-[24px] border border-white/10 bg-white/[0.03] p-4 flex flex-col justify-between">
-                          <p className="text-[10px] font-black uppercase tracking-wider text-white/20">Última act.</p>
-                          <p className="text-[13px] font-black text-white mt-1">
-                            {order?.updated_date ? format(new Date(order.updated_date), "dd MMM", { locale: es }) : "Hoy"}
-                          </p>
+                        <div className="grid gap-3 grid-cols-3 xl:grid-cols-1">
+                          <div className="rounded-[24px] border border-white/10 bg-white/[0.03] p-4 flex flex-col justify-between">
+                            <p className="text-[10px] font-black uppercase tracking-wider text-white/20">Fase</p>
+                            <p className="text-xl font-black text-white mt-1">
+                              {activeStatuses.findIndex((s) => normalizeStatusId(status) === s.id) + 1 || 1}
+                              <span className="text-white/20 font-medium ml-1">/ {activeStatuses.length}</span>
+                            </p>
+                          </div>
+                          <div className="rounded-[24px] border border-white/10 bg-white/[0.03] p-4 flex flex-col justify-between">
+                            <p className="text-[10px] font-black uppercase tracking-wider text-white/20">Tareas</p>
+                            <p className="text-xl font-black text-white mt-1">
+                              {Array.isArray(order?.checklist_items) ? order.checklist_items.length : 0}
+                            </p>
+                          </div>
+                          <div className="rounded-[24px] border border-white/10 bg-white/[0.03] p-4 flex flex-col justify-between">
+                            <p className="text-[10px] font-black uppercase tracking-wider text-white/20">Última act.</p>
+                            <p className="text-[13px] font-black text-white mt-1">
+                              {order?.updated_date ? format(new Date(order.updated_date), "dd MMM", { locale: es }) : "Hoy"}
+                            </p>
+                          </div>
                         </div>
                       </div>
-                    </div>
+                    )}
                   </CardContent>
                 </Card>
 

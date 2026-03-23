@@ -590,24 +590,25 @@ export default function OrdersPage() {
       
       {/* Contenido */}
       <div className="max-w-[1920px] mx-auto px-3 sm:px-6 py-4 sm:py-6">
-        {/* Header Sequoia Style - Sticky on Mobile */}
-        <div className="sticky z-40 bg-[#0A0A0A]/80 backdrop-blur-2xl -mx-3 px-3 py-3 border-b border-white/[0.05] sm:relative sm:z-0 sm:bg-transparent sm:backdrop-blur-none sm:border-none sm:p-0 sm:mb-6"
+        {/* Header Sequoia Style - Sticky on Mobile (tabs + actions combined) */}
+        <div className="relative sticky z-40 bg-[#0A0A0A]/80 backdrop-blur-2xl -mx-3 px-3 py-2 border-b border-white/[0.05] sm:relative sm:z-0 sm:bg-transparent sm:backdrop-blur-none sm:border-none sm:p-0 sm:mb-6"
           style={{ top: "env(safe-area-inset-top, 0px)" }}>
+          {/* Row 1: Tabs */}
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
             <TabsList className="bg-white/5 border border-white/10 p-1 rounded-2xl w-full grid grid-cols-3 gap-1 shadow-lg">
-              <TabsTrigger 
+              <TabsTrigger
                 value="work-orders"
                 className="rounded-xl text-[11px] sm:text-[13px] font-black tracking-tight data-[state=active]:bg-white data-[state=active]:text-black text-white/50 transition-all duration-300"
               >
                 Órdenes
               </TabsTrigger>
-              <TabsTrigger 
+              <TabsTrigger
                 value="recharges"
                 className="rounded-xl text-[11px] sm:text-[13px] font-black tracking-tight data-[state=active]:bg-amber-500 data-[state=active]:text-white text-white/50 transition-all duration-300"
               >
                 Recargas
               </TabsTrigger>
-              <TabsTrigger 
+              <TabsTrigger
                 value="unlocks"
                 className="rounded-xl text-[11px] sm:text-[13px] font-black tracking-tight data-[state=active]:bg-emerald-500 data-[state=active]:text-white text-white/50 transition-all duration-300"
               >
@@ -615,17 +616,86 @@ export default function OrdersPage() {
               </TabsTrigger>
             </TabsList>
           </Tabs>
+
+          {/* Row 2: Mobile-only compact action row */}
+          <div className="flex items-center gap-2 mt-2 sm:hidden">
+            <button
+              onClick={() => loadOrders()}
+              className="w-9 h-9 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-white/60 active:scale-95"
+            >
+              <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
+            </button>
+            <button
+              onClick={() => setShowStatusDropdown(!showStatusDropdown)}
+              className={`flex-1 h-9 px-3 rounded-full text-xs font-bold border flex items-center gap-2 ${
+                selectedStatus === "active" && !showB2BOnly
+                  ? "bg-gradient-to-r from-cyan-500/30 to-blue-500/30 border-cyan-400/50 text-cyan-200"
+                  : "bg-white/5 border-white/15 text-white/70"
+              }`}
+            >
+              <Filter className="w-3.5 h-3.5 flex-shrink-0" />
+              <span className="truncate">
+                {showB2BOnly ? "B2B" :
+                  selectedStatus === "active" ? `Todos (${displayOrders.length})` :
+                  selectedStatus === "closed" ? "Cerrados" :
+                  ORDER_STATUSES.find((s) => s.id === selectedStatus)?.label || "Filtros"}
+              </span>
+            </button>
+            <Button
+              onClick={openQuickOrderModal}
+              className="h-9 px-3 rounded-full text-xs font-bold bg-gradient-to-r from-blue-600 to-cyan-500 text-white border border-cyan-300/40 whitespace-nowrap"
+            >
+              <FilePlus className="w-4 h-4 mr-1" />
+              Nueva
+            </Button>
+          </div>
+
+          {/* Mobile dropdown panel */}
+          <AnimatePresence>
+            {showStatusDropdown && (
+              <motion.div
+                initial={{ opacity: 0, y: -8 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -8 }}
+                transition={{ duration: 0.15 }}
+                className="sm:hidden absolute top-full left-0 right-0 bg-[#0A0A0A]/97 backdrop-blur-2xl border-x border-b border-white/10 rounded-b-[20px] shadow-[0_20px_60px_rgba(0,0,0,0.6)] z-50 max-h-[65vh] overflow-y-auto"
+              >
+                <div className="p-3 space-y-1">
+                  <button
+                    onClick={() => { setShowStatusDropdown(false); openQuickOrderModal(); }}
+                    className="w-full px-4 py-3 rounded-[14px] text-left text-sm font-bold flex items-center gap-3 bg-gradient-to-r from-blue-500/20 to-cyan-500/20 border border-blue-400/30 text-white"
+                  >
+                    <Plus className="w-4 h-4" /> Nueva Orden
+                  </button>
+                  <div className="h-px bg-white/10 my-2" />
+                  <p className="text-[10px] font-black text-white/30 uppercase tracking-wider px-3 pb-1">Estado</p>
+                  {[{ id: "active", label: "Todos (Activos)" }, ...ORDER_STATUSES.filter(s => s.isActive && !["picked_up","completed","cancelled","delivered","warranty"].includes(s.id)), { id: "closed", label: "Cerrados / Historial" }].map(s => (
+                    <button
+                      key={s.id}
+                      onClick={() => { setSelectedStatus(s.id); setShowStatusDropdown(false); }}
+                      className={`w-full px-4 py-2.5 rounded-[14px] text-left text-sm font-bold flex items-center justify-between transition-all ${
+                        selectedStatus === s.id ? "bg-white/10 text-white border border-white/20" : "text-white/60 hover:bg-white/5 hover:text-white"
+                      }`}
+                    >
+                      <span>{s.label}</span>
+                      <span className="text-xs bg-white/10 px-2 py-0.5 rounded-full">{statusCounts[s.id] || 0}</span>
+                    </button>
+                  ))}
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
 
-        {/* Search & Actions Bar - Also Sticky or highly compact */}
+        {/* Search & Actions Bar - Desktop only full version */}
         <div className="flex flex-col gap-4 mb-8">
           {/* Título y acciones */}
-          <div className="flex items-center justify-between gap-3">
+          <div className="hidden sm:flex items-center justify-between gap-3">
             <div className="flex items-center gap-3">
               <h1 className="text-3xl font-bold text-white tracking-tight">
                 Órdenes
               </h1>
-              
+
               <button
                 onClick={() => loadOrders()}
                 className="w-10 h-10 sm:w-11 sm:h-11 rounded-full bg-gradient-to-br from-white/10 to-white/5 hover:from-white/15 hover:to-white/10 border border-white/10 flex items-center justify-center text-white/70 hover:text-white transition-all duration-300 active:scale-95 shadow-lg">
