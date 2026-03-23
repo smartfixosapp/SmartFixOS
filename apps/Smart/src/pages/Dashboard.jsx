@@ -39,7 +39,8 @@ import {
   DollarSign,
   PackageCheck,
   Timer,
-  ShoppingCart
+  ShoppingCart,
+  ChevronRight
 } from "lucide-react";
 
 import { format, startOfDay } from "date-fns";
@@ -1524,231 +1525,162 @@ export default function Dashboard() {
               </div>
             )}
 
-            {/* === BÚSQUEDA DE ÓRDENES MÓVIL (widget opcional) === */}
-            {widgetConfig.orders && (
+            {/* === MÓDULO UNIFICADO: Órdenes + Lista de Precios (MÓVIL) === */}
+            {(widgetConfig.orders || widgetConfig.priceList) && (
             <div className="mx-1 mt-2">
-              <div className="bg-[#1C1C1E]/40 backdrop-blur-3xl border border-white/[0.08] rounded-[32px] shadow-2xl overflow-hidden p-5 space-y-5">
+              <div className="bg-[#1C1C1E]/40 backdrop-blur-3xl border border-white/[0.08] rounded-[32px] shadow-2xl overflow-hidden">
+            {widgetConfig.orders && (
+            <div className="p-5 space-y-4">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2.5">
                     <div className="w-8 h-8 rounded-xl bg-blue-500/20 border border-blue-500/30 flex items-center justify-center">
                       <ClipboardList className="w-4 h-4 text-blue-400" />
                     </div>
-                    <h3 className="text-white/90 font-black text-sm uppercase tracking-tight">Gestión de Órdenes</h3>
+                    <h3 className="text-white/90 font-black text-sm uppercase tracking-tight">Órdenes</h3>
                   </div>
+                  <button
+                    onClick={() => navigate(createPageUrl("Orders"))}
+                    className="flex items-center gap-1 text-blue-400 text-[10px] font-black uppercase tracking-tight active:opacity-70"
+                  >
+                    Ver todas <ChevronRight className="w-3.5 h-3.5" />
+                  </button>
                 </div>
 
-                {/* Chips de Estados - Premium Horizontal Scroll */}
-                <div className="flex gap-4 overflow-x-auto pb-4 no-scrollbar -mx-2 px-2 pt-2">
-                  {ORDER_STATUSES.filter((s) => s.isActive).slice(0, 6).map((status) => {
-                       const count = statusCounts[status.id] || 0;
-                       const isSelected = selectedStatusFilter === status.id;
-                       const isPendingOrder = status.id === "pending_order";
-
-                       const iconMap = {
-                         'intake': ClipboardList,
-                         'diagnosing': Search,
-                         'awaiting_approval': Clock,
-                         'waiting_parts': Package,
-                         'pending_order': AlertCircle,
-                         'in_progress': Wrench,
-                         'ready_for_pickup': CheckCircle2,
-                       };
-                       const StatusIcon = iconMap[status.id] || ClipboardList;
-
-                       return (
-                         <button 
-                           key={status.id} 
-                           onClick={() => {
-                             setSelectedStatusFilter(isSelected ? null : status.id);
-                             setShowUnlocksFilter(false);
-                           }}
-                           disabled={count === 0}
-                           className={cn(
-                             "relative flex-shrink-0 w-14 h-14 rounded-2xl transition-all border flex items-center justify-center active:scale-90 shadow-lg group",
-                             isPendingOrder && count > 0
-                               ? 'bg-red-500 border-red-400/50 shadow-red-500/40 animate-pulse'
-                               : isSelected 
-                                 ? 'bg-white border-white scale-105' 
-                                 : 'bg-white/[0.03] border-white/[0.08]'
-                           )}
-                         >
-                           <StatusIcon className={cn(
-                             "w-6 h-6 transition-colors",
-                             isSelected ? 'text-black' : 'text-white/60 group-hover:text-white'
-                           )} strokeWidth={2.5} />
-                           
-                           {count > 0 && (
-                             <span className={cn(
-                               "absolute -top-1.5 -right-1.5 min-w-[20px] h-5 px-1 rounded-full text-[9px] font-black flex items-center justify-center shadow-lg border border-black/20",
-                               isPendingOrder ? 'bg-white text-red-600' : isSelected ? 'bg-black text-white' : 'bg-blue-500 text-white'
-                             )}>
-                               {count}
-                             </span>
-                           )}
-                           
-                           {/* Invisible Label below for accessibility/reference if needed, but keeping it clean */}
-                           <span className={cn(
-                             "absolute -bottom-6 left-1/2 -translate-x-1/2 text-[8px] font-black uppercase tracking-tighter whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity",
-                             isSelected ? "text-white" : "text-white/40"
-                           )}>
-                             {status.label}
-                           </span>
-                         </button>
-                       );
-                     })}
-
-                     {/* Botón Garantías */}
-                     <button 
-                       onClick={() => {
-                         setSelectedStatusFilter(selectedStatusFilter === "warranty" ? null : "warranty");
-                         setShowUnlocksFilter(false);
-                       }}
-                       disabled={statusCounts.warranty === 0}
-                       className={cn(
-                         "relative flex-shrink-0 w-14 h-14 rounded-2xl transition-all border flex items-center justify-center active:scale-90 shadow-lg group",
-                         selectedStatusFilter === "warranty" 
-                           ? 'bg-white border-white scale-105' 
-                           : 'bg-white/[0.03] border-white/[0.08]'
-                       )}
-                     >
-                       <Shield className={cn(
-                         "w-6 h-6 transition-colors",
-                         selectedStatusFilter === "warranty" ? 'text-black' : 'text-white/60 group-hover:text-white'
-                       )} strokeWidth={2.5} />
-                       {statusCounts.warranty > 0 && (
-                         <span className={cn(
-                           "absolute -top-1.5 -right-1.5 min-w-[20px] h-5 px-1 rounded-full text-[9px] font-black flex items-center justify-center shadow-lg border border-black/20",
-                           selectedStatusFilter === "warranty" ? 'bg-black text-white' : 'bg-amber-500 text-white'
-                         )}>
-                           {statusCounts.warranty}
-                         </span>
-                       )}
-                       <span className={cn(
-                         "absolute -bottom-6 left-1/2 -translate-x-1/2 text-[8px] font-black uppercase tracking-tighter whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity",
-                         selectedStatusFilter === "warranty" ? "text-white" : "text-white/40"
-                       )}>
-                         Garantías
-                       </span>
-                     </button>
+                {/* Chips de estado → navegan a Orders con filtro */}
+                <div className="flex gap-2 overflow-x-auto pb-1 no-scrollbar" style={{ touchAction: 'pan-x' }}>
+                  {ORDER_STATUSES.filter(s => s.isActive).map(status => {
+                    const count = statusCounts[status.id] || 0;
+                    const isPending = status.id === "pending_order";
+                    return (
+                      <button
+                        key={status.id}
+                        onClick={() => navigate(createPageUrl(`Orders?status=${status.id}`))}
+                        className={cn(
+                          "flex-shrink-0 flex flex-col items-center gap-0.5 px-3 py-2.5 rounded-2xl border transition-all active:scale-95 min-w-[56px]",
+                          isPending && count > 0
+                            ? "bg-red-500/20 border-red-500/40 animate-pulse"
+                            : count > 0
+                              ? "bg-white/[0.05] border-white/10"
+                              : "bg-white/[0.02] border-white/[0.05] opacity-40"
+                        )}
+                      >
+                        <span className={cn(
+                          "text-lg font-black leading-none",
+                          isPending && count > 0 ? "text-red-400" : count > 0 ? "text-white" : "text-white/30"
+                        )}>
+                          {count}
+                        </span>
+                        <span className="text-[7px] font-black uppercase tracking-tight text-white/40 text-center leading-tight max-w-[60px]">
+                          {status.label}
+                        </span>
+                      </button>
+                    );
+                  })}
+                  {/* Garantías */}
+                  {statusCounts.warranty > 0 && (
+                    <button
+                      onClick={() => navigate(createPageUrl("Orders?status=warranty"))}
+                      className="flex-shrink-0 flex flex-col items-center gap-0.5 px-3 py-2.5 rounded-2xl border bg-amber-500/10 border-amber-500/20 transition-all active:scale-95 min-w-[56px]"
+                    >
+                      <span className="text-lg font-black leading-none text-amber-400">{statusCounts.warranty}</span>
+                      <span className="text-[7px] font-black uppercase tracking-tight text-white/40 text-center leading-tight">Garantías</span>
+                    </button>
+                  )}
                 </div>
 
-                {/* Buscador - Premium Sequoia Style */}
-                <div className="relative pt-2">
-                  <div className="absolute left-4 top-[calc(50%+4px)] -translate-y-1/2 h-5 w-5 flex items-center justify-center">
-                    <Search className="h-4 w-4 text-white/30" strokeWidth={2.5} />
-                  </div>
-                  <input 
-                    value={searchTerm} 
-                    onChange={(e) => setSearchTerm(e.target.value)} 
-                    placeholder="Buscar por orden, cliente o serial..." 
-                    className="w-full pl-11 pr-4 py-3.5 bg-white/[0.04] border border-white/[0.08] rounded-2xl text-sm text-white placeholder-white/20 focus:outline-none focus:ring-2 focus:ring-blue-500/40 focus:bg-white/[0.08] transition-all shadow-inner" 
-                  />
-                </div>
-              </div>
-
-                              {/* Lista reducida - Modern Style */}
-                <div className="pt-2">
-                  {filteredOrders.length === 0 ? (
-                    <div className="text-center py-10 bg-white/[0.02] border border-white/[0.04] rounded-2xl">
-                      <div className="w-12 h-12 bg-white/5 rounded-full flex items-center justify-center mx-auto mb-3">
-                        <ClipboardList className="w-6 h-6 text-white/10" />
-                      </div>
-                      <p className="text-white/30 text-[10px] uppercase font-black tracking-widest">
-                        {searchTerm ? 'Sin resultados' : 'Selecciona un estado'}
-                      </p>
-                    </div>
-                  ) : (
-                    <div className="space-y-3 max-h-[320px] overflow-y-auto no-scrollbar pt-1">
-                      {filteredOrders.slice(0, 6).map((order) => {
-                        const statusConfig = getStatusConfig(order.status);
-                        return (
-                          <div 
-                            key={order.id}
-                            onClick={() => handleOrderSelect(order.id)} 
-                            className="group/order p-4 bg-white/[0.03] hover:bg-white/[0.06] rounded-2xl border border-white/[0.05] active:scale-[0.98] transition-all touch-manipulation cursor-pointer relative overflow-hidden"
-                          >
-                            <div className="flex justify-between items-start gap-3 relative z-10">
-                              <div className="min-w-0 flex-1">
-                                <p className="font-black text-white text-sm truncate tracking-tight uppercase group-hover/order:text-blue-400 transition-colors">
-                                  {order.customer_name || "Cliente"}
-                                </p>
-                                <div className="flex items-center gap-2 mt-1.5">
-                                  <span className="text-[9px] font-black text-blue-500 uppercase tracking-tighter">#{order.order_number?.split('-')?.pop()}</span>
-                                  <span className="w-1 h-1 rounded-full bg-white/20" />
-                                  <p className="text-[9px] text-white/40 truncate font-black uppercase">
-                                    {order.device_model || "Equipo"}
-                                  </p>
-                                </div>
-                              </div>
-                              <div className={cn(
-                                "px-2.5 py-1 rounded-lg text-[8px] font-black uppercase tracking-widest border shadow-sm",
-                                statusConfig.colorClasses.includes('bg-') ? statusConfig.colorClasses : `bg-white/5 border-white/10 text-white/60`
-                              )}>
-                                {statusConfig.label}
-                              </div>
-                            </div>
-                            <div className="absolute inset-0 bg-gradient-to-r from-blue-500/0 via-blue-500/[0.02] to-blue-500/0 opacity-0 group-hover/order:opacity-100 transition-opacity" />
+                {/* Órdenes recientes — sin requerir filtro */}
+                <div className="space-y-2">
+                  {recentOrders
+                    .filter(o => o.device_type !== "Software" && !(o.order_number?.startsWith("SW-")))
+                    .slice(0, 6)
+                    .map(order => {
+                      const statusConfig = getStatusConfig(getEffectiveOrderStatus(order));
+                      return (
+                        <div
+                          key={order.id}
+                          onClick={() => handleOrderSelect(order.id)}
+                          className="flex items-center justify-between gap-3 p-3.5 bg-white/[0.03] border border-white/[0.05] rounded-2xl active:scale-[0.98] transition-all cursor-pointer"
+                        >
+                          <div className="min-w-0 flex-1">
+                            <p className="text-white font-black text-sm truncate uppercase tracking-tight">
+                              {order.customer_name || "Cliente"}
+                            </p>
+                            <p className="text-white/30 text-[9px] font-bold uppercase tracking-tight mt-0.5">
+                              {order.order_number} · {order.device_model || "Dispositivo"}
+                            </p>
                           </div>
-                        );
-                      })}
+                          <span className={cn(
+                            "px-2 py-1 rounded-lg text-[8px] font-black uppercase tracking-widest border flex-shrink-0",
+                            statusConfig.colorClasses?.includes('bg-') ? statusConfig.colorClasses : "bg-white/5 border-white/10 text-white/50"
+                          )}>
+                            {statusConfig.label}
+                          </span>
+                        </div>
+                      );
+                    })}
+                  {recentOrders.filter(o => o.device_type !== "Software" && !(o.order_number?.startsWith("SW-"))).length === 0 && (
+                    <div className="text-center py-6">
+                      <p className="text-white/20 text-[10px] font-black uppercase tracking-widest">Sin órdenes recientes</p>
                     </div>
                   )}
                 </div>
             </div>
             )}
 
+            {/* Divider entre secciones */}
+            {widgetConfig.orders && widgetConfig.priceList && (
+              <div className="mx-5 border-t border-white/[0.06]" />
+            )}
+
 {/* WorkQueueWidget removed */}
 
-            {/* === LISTA DE PRECIOS MÓVIL (widget opcional) === */}
+            {/* Lista de Precios — dentro del card unificado */}
             {widgetConfig.priceList && (
-            <div className="bg-[#1C1C1E]/40 backdrop-blur-3xl border border-emerald-500/20 rounded-[32px] shadow-2xl mx-1 mb-safe p-6 space-y-5">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2.5">
-                  <div className="w-8 h-8 rounded-xl bg-emerald-500/10 flex items-center justify-center border border-emerald-500/20">
-                    <PiggyBank className="w-4 h-4 text-emerald-400" />
-                  </div>
-                  <h3 className="text-white font-black text-sm uppercase tracking-tight">{t('priceList')}</h3>
+            <div className="p-5 space-y-4">
+              <div className="flex items-center gap-2.5">
+                <div className="w-8 h-8 rounded-xl bg-emerald-500/10 flex items-center justify-center border border-emerald-500/20">
+                  <PiggyBank className="w-4 h-4 text-emerald-400" />
                 </div>
+                <h3 className="text-white font-black text-sm uppercase tracking-tight">{t('priceList')}</h3>
               </div>
-
               <div className="relative">
-                <div className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 flex items-center justify-center">
+                <div className="absolute left-4 top-1/2 -translate-y-1/2">
                   <Search className="h-4 w-4 text-white/20" />
                 </div>
-                <input 
-                  value={priceSearch} 
-                  onChange={(e) => setPriceSearch(e.target.value)} 
-                  placeholder="Buscar productos..." 
-                  className="w-full pl-11 pr-4 py-3.5 bg-white/[0.04] border border-white/[0.08] rounded-2xl text-sm text-white placeholder-white/20 focus:outline-none focus:ring-2 focus:ring-emerald-500/40 focus:bg-white/[0.08] transition-all" 
+                <input
+                  value={priceSearch}
+                  onChange={e => setPriceSearch(e.target.value)}
+                  placeholder="Buscar productos o servicios..."
+                  className="w-full pl-11 pr-4 py-3.5 bg-white/[0.04] border border-white/[0.08] rounded-2xl text-sm text-white placeholder-white/20 focus:outline-none focus:ring-2 focus:ring-emerald-500/40 focus:bg-white/[0.08] transition-all"
                 />
               </div>
-
               {priceSearch && filteredPriceList.length > 0 && (
-                <div className="space-y-3 max-h-[300px] overflow-y-auto no-scrollbar pt-1">
-                  {filteredPriceList.slice(0, 15).map((item) => (
-                    <div 
-                      key={`${item.type}-${item.id}`} 
-                      className="p-4 bg-white/[0.02] border border-white/[0.05] rounded-2xl active:scale-[0.98] transition-all"
-                    >
-                      <div className="flex items-center justify-between gap-4">
-                        <div className="flex-1 min-w-0">
-                          <p className="text-white font-black text-sm truncate uppercase tracking-tight">{item.name}</p>
-                          <div className="flex items-center gap-2 mt-2">
-                            <span className={cn(
-                              "text-[8px] font-black uppercase tracking-tighter px-2 py-0.5 rounded-md border",
-                              item.type === "service" ? "bg-blue-500/10 text-blue-400 border-blue-500/20" : "bg-emerald-500/10 text-emerald-400 border-emerald-500/20"
-                            )}>
-                              {item.type === "service" ? "Servicio" : "Producto"}
-                            </span>
-                            {stockPill(item)}
-                          </div>
+                <div className="space-y-2.5 max-h-[260px] overflow-y-auto no-scrollbar">
+                  {filteredPriceList.slice(0, 15).map(item => (
+                    <div key={`${item.type}-${item.id}`} className="flex items-center justify-between gap-3 p-3.5 bg-white/[0.02] border border-white/[0.05] rounded-2xl">
+                      <div className="min-w-0 flex-1">
+                        <p className="text-white font-black text-sm truncate uppercase tracking-tight">{item.name}</p>
+                        <div className="flex items-center gap-2 mt-1">
+                          <span className={cn(
+                            "text-[8px] font-black uppercase tracking-tight px-2 py-0.5 rounded-md border",
+                            item.type === "service" ? "bg-blue-500/10 text-blue-400 border-blue-500/20" : "bg-emerald-500/10 text-emerald-400 border-emerald-500/20"
+                          )}>
+                            {item.type === "service" ? "Servicio" : "Producto"}
+                          </span>
+                          {stockPill(item)}
                         </div>
-                        <p className="text-emerald-400 font-black text-lg tracking-tighter">${(item.price || 0).toFixed(2)}</p>
                       </div>
+                      <p className="text-emerald-400 font-black text-lg tracking-tighter flex-shrink-0">${(item.price || 0).toFixed(2)}</p>
                     </div>
                   ))}
                 </div>
               )}
+              {priceSearch && filteredPriceList.length === 0 && (
+                <p className="text-white/20 text-xs font-black uppercase tracking-widest text-center py-3">Sin resultados para "{priceSearch}"</p>
+              )}
+            </div>
+            )}
+              </div>{/* fin card unificado */}
             </div>
             )}
 
