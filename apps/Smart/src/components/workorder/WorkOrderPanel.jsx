@@ -11,7 +11,7 @@ import { Badge } from "@/components/ui/badge";
 import {
   X, PhoneCall, MessageCircle, Eye, EyeOff, Trash2,
   Smartphone, Laptop, Tablet, Watch, Gamepad2, Camera as CameraIcon, Box, Image as ImageIcon, List,
-  CheckCircle2, PackageOpen, Pin, ActivitySquare, Plus, Minus, Search, Factory, RefreshCw, ShoppingCart, DollarSign, AlertCircle,
+  CheckCircle2, Check, PackageOpen, Pin, ActivitySquare, Plus, Minus, Search, Factory, RefreshCw, ShoppingCart, DollarSign, AlertCircle,
   ClipboardList, Shield, MessageSquare, Link, Loader2, Download, Grid3x3, Lock, FileText, Hash, Share2, Wallet, CreditCard } from
 "lucide-react";
 import OrderPhotosGallery from "../orders/OrderPhotosGallery";
@@ -488,6 +488,15 @@ function WaitingPartsModal({ open, onClose, onSave, initialData, order }) {
   const [linkNames, setLinkNames] = useState([]);
   const [linkSummary, setLinkSummary] = useState("");
   const [catalogSuggestions, setCatalogSuggestions] = useState([]);
+  const [selectedParts, setSelectedParts] = useState(new Set());
+
+  const togglePart = (name) => {
+    setSelectedParts(prev => {
+      const next = new Set(prev);
+      if (next.has(name)) next.delete(name); else next.add(name);
+      return next;
+    });
+  };
 
   // Cargar catálogo de piezas cuando se abre
   useEffect(() => {
@@ -539,6 +548,7 @@ function WaitingPartsModal({ open, onClose, onSave, initialData, order }) {
     });
     setLinkNames(Array.isArray(initialData?.linkNames) ? initialData.linkNames : []);
     setLinkSummary(initialData?.linkSummary || "");
+    setSelectedParts(new Set());
     setErr("");
   }, [
     open,
@@ -585,8 +595,13 @@ function WaitingPartsModal({ open, onClose, onSave, initialData, order }) {
   }, [open, order?.id]);
 
   const handleSubmit = async () => {
-    if (!formData.partName.trim()) {
-      setErr("El nombre de la pieza es requerido.");
+    // Combinar piezas seleccionadas con chips + texto manual
+    const fromChips = [...selectedParts];
+    const manual = formData.partName.trim();
+    const combined = [...fromChips, ...(manual ? [manual] : [])].join(", ");
+
+    if (!combined) {
+      setErr("Selecciona o escribe el nombre de la(s) pieza(s).");
       return;
     }
 
@@ -603,7 +618,7 @@ function WaitingPartsModal({ open, onClose, onSave, initialData, order }) {
     await onSave?.({
       supplier: formData.supplier.trim(),
       tracking: formData.tracking.trim(),
-      partName: formData.partName.trim(),
+      partName: combined,
       carrier: formData.carrier.trim(),
       deviceLocation: formData.deviceLocation
     });
@@ -689,7 +704,9 @@ function WaitingPartsModal({ open, onClose, onSave, initialData, order }) {
 
             {/* Nombre de pieza */}
             <div>
-              <label className="text-xs text-gray-300 mb-2 block font-medium theme-light:text-gray-700">Nombre de la(s) Pieza(s) *</label>
+              <label className="text-xs text-gray-300 mb-2 block font-medium theme-light:text-gray-700">
+                Pieza(s) adicionales <span className="text-white/30 font-normal">(o escribe si no aparece arriba)</span>
+              </label>
               <input
                 type="text"
                 list="parts-suggestions"
@@ -704,46 +721,74 @@ function WaitingPartsModal({ open, onClose, onSave, initialData, order }) {
                 </datalist>
               )}
 
-              {/* Piezas del carrito de la orden como chips */}
-              {Array.isArray(order?.order_items) && order.order_items.length > 0 && (
-                <div className="mt-2">
-                  <p className="text-[10px] text-orange-300/70 mb-1.5 font-bold uppercase tracking-wide">Piezas en carrito:</p>
-                  <div className="flex flex-wrap gap-1.5">
-                    {[...new Map(order.order_items.map(i => [i.name, i])).values()].map((item) => (
-                      <button
-                        key={item.id || item.name}
-                        type="button"
-                        onClick={() => updateField("partName", item.name)}
-                        className="rounded-full border border-orange-500/30 bg-orange-500/10 px-2.5 py-1 text-[11px] font-medium text-orange-200 hover:bg-orange-500/20 transition-colors"
-                      >
-                        {item.name}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {linkSummary && (
+              {/* Piezas del carrito + links — multi-select */}
+              {(Array.isArray(order?.order_items) && order.order_items.length > 0) || linkNames.length > 0 ? (
                 <div className="mt-2 space-y-2">
-                  <p className="text-[11px] text-cyan-300 theme-light:text-cyan-700">
-                    Detectado desde links: {linkSummary}
-                  </p>
-                  {linkNames.length > 1 && (
-                    <div className="flex flex-wrap gap-1.5">
-                      {linkNames.map((name) => (
-                        <button
-                          key={name}
-                          type="button"
-                          onClick={() => updateField("partName", name)}
-                          className="rounded-full border border-cyan-500/30 bg-cyan-500/10 px-2.5 py-1 text-[11px] font-medium text-cyan-200 hover:bg-cyan-500/20 theme-light:text-cyan-700"
-                        >
-                          {name}
-                        </button>
-                      ))}
+                  {/* Chips del carrito */}
+                  {Array.isArray(order?.order_items) && order.order_items.length > 0 && (
+                    <div>
+                      <p className="text-[10px] text-white/40 mb-1.5 font-bold uppercase tracking-wide">Piezas del carrito:</p>
+                      <div className="flex flex-wrap gap-1.5">
+                        {[...new Map(order.order_items.map(i => [i.name, i])).values()].map((item) => {
+                          const sel = selectedParts.has(item.name);
+                          return (
+                            <button
+                              key={item.id || item.name}
+                              type="button"
+                              onClick={() => togglePart(item.name)}
+                              className={`flex items-center gap-1 rounded-full border px-2.5 py-1 text-[11px] font-semibold transition-all ${
+                                sel
+                                  ? "border-emerald-500/60 bg-emerald-500/20 text-emerald-200 shadow-[0_0_8px_rgba(16,185,129,0.2)]"
+                                  : "border-white/15 bg-white/5 text-white/60 hover:border-orange-500/40 hover:bg-orange-500/10 hover:text-orange-200"
+                              }`}
+                            >
+                              {sel && <Check className="w-3 h-3 flex-shrink-0" />}
+                              {item.name}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Chips de links */}
+                  {linkNames.length > 0 && (
+                    <div>
+                      <p className="text-[10px] text-white/40 mb-1.5 font-bold uppercase tracking-wide">Detectado desde links:</p>
+                      <div className="flex flex-wrap gap-1.5">
+                        {linkNames.map((name) => {
+                          const sel = selectedParts.has(name);
+                          return (
+                            <button
+                              key={name}
+                              type="button"
+                              onClick={() => togglePart(name)}
+                              className={`flex items-center gap-1 rounded-full border px-2.5 py-1 text-[11px] font-semibold transition-all ${
+                                sel
+                                  ? "border-emerald-500/60 bg-emerald-500/20 text-emerald-200 shadow-[0_0_8px_rgba(16,185,129,0.2)]"
+                                  : "border-cyan-500/30 bg-cyan-500/10 text-cyan-200 hover:bg-cyan-500/20"
+                              }`}
+                            >
+                              {sel && <Check className="w-3 h-3 flex-shrink-0" />}
+                              {name}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Preview de lo que se guardará */}
+                  {selectedParts.size > 0 && (
+                    <div className="rounded-lg bg-emerald-500/10 border border-emerald-500/20 px-3 py-2">
+                      <p className="text-[10px] text-emerald-400/70 font-bold uppercase tracking-wide mb-0.5">Se guardará como:</p>
+                      <p className="text-xs text-emerald-200 font-medium">
+                        {[...selectedParts, ...(formData.partName.trim() ? [formData.partName.trim()] : [])].join(", ")}
+                      </p>
                     </div>
                   )}
                 </div>
-              )}
+              ) : null}
             </div>
 
             {/* Suplidor */}
