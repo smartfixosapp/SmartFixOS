@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useRef, useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { ShoppingCart, ExternalLink, Package, Plus, Trash2, MapPin, Box, Truck, Shield, X, Camera, History, Pencil, Check, Minus, Loader2 } from "lucide-react";
 import { Input } from "@/components/ui/input";
@@ -26,6 +26,7 @@ export default function WaitingPartsStage({ order, onUpdate, onOrderItemsUpdate,
   const location = o.device_location || "taller"; // taller | cliente
   const [activeModal, setActiveModal] = useState(null);
   const [links, setLinks] = useState([]);
+  const itemsSectionRef = useRef(null);
   const [editingDetails, setEditingDetails] = useState(false);
   const [suppliers, setSuppliers] = useState([]);
   const [loadingSuppliers, setLoadingSuppliers] = useState(false);
@@ -271,88 +272,118 @@ export default function WaitingPartsStage({ order, onUpdate, onOrderItemsUpdate,
 
   return (
     <div className="space-y-6">
-      <section className="relative overflow-hidden rounded-[30px] border border-orange-500/15 bg-[radial-gradient(circle_at_top_left,rgba(249,115,22,0.16),transparent_28%),radial-gradient(circle_at_bottom_right,rgba(239,68,68,0.14),transparent_30%),linear-gradient(135deg,rgba(32,16,10,0.98),rgba(20,12,10,0.96))] p-5 shadow-[0_22px_70px_rgba(0,0,0,0.35)] sm:p-6">
+      <section className="relative overflow-hidden rounded-[30px] border border-orange-500/15 bg-[radial-gradient(circle_at_top_left,rgba(249,115,22,0.16),transparent_28%),radial-gradient(circle_at_bottom_right,rgba(239,68,68,0.14),transparent_30%),linear-gradient(135deg,rgba(32,16,10,0.98),rgba(20,12,10,0.96))] p-4 sm:p-6 shadow-[0_22px_70px_rgba(0,0,0,0.35)]">
         <div className="absolute inset-0 bg-[linear-gradient(120deg,transparent,rgba(255,255,255,0.03),transparent)]" />
-        <div className="relative z-10 grid gap-5 xl:grid-cols-[1.2fr_0.8fr] xl:items-start">
-          <div className="space-y-4">
-            <div className="flex flex-wrap items-center gap-2">
-              <Badge className="rounded-full border border-orange-400/30 bg-orange-500/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.25em] text-orange-200">
-                Esperando piezas
-              </Badge>
-              <Badge variant="outline" className="rounded-full border-white/10 bg-white/5 px-3 py-1 text-xs text-white/65">
-                Seguimiento de pedido
-              </Badge>
-            </div>
+        <div className="relative z-10 space-y-4">
 
-            <div className="space-y-2">
-              <p className="text-[11px] font-semibold uppercase tracking-[0.32em] text-white/35">Etapa activa</p>
-              <div className="flex flex-wrap items-end gap-x-4 gap-y-2">
-                <h2 className="text-3xl font-black tracking-tight text-white sm:text-4xl">Esperando Repuestos</h2>
-                <div className="inline-flex items-center rounded-full border border-orange-400/20 bg-orange-500/10 px-3 py-1 text-sm font-semibold text-orange-200">
+          {/* Encabezado */}
+          <div className="flex flex-wrap items-center gap-2">
+            <Badge className="rounded-full border border-orange-400/30 bg-orange-500/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.25em] text-orange-200">
+              Esperando piezas
+            </Badge>
+            <Badge variant="outline" className="rounded-full border-white/10 bg-white/5 px-2 py-1 text-[11px] text-white/65">
+              Seguimiento de pedido
+            </Badge>
+          </div>
+
+          {/* Título + modelo */}
+          <div className="space-y-1">
+            <p className="text-[11px] font-semibold uppercase tracking-[0.32em] text-white/35">Etapa activa</p>
+            <div className="flex flex-wrap items-end gap-x-3 gap-y-2">
+              <h2 className="text-2xl font-black tracking-tight text-white sm:text-4xl">Esperando Repuestos</h2>
+              {(o.device_brand || o.device_model) && (
+                <span className="inline-flex items-center rounded-full border border-orange-400/20 bg-orange-500/10 px-3 py-1 text-sm font-semibold text-orange-200">
                   {o.device_brand} {o.device_model}
-                </div>
-              </div>
-              <p className="max-w-2xl text-sm leading-relaxed text-white/55">
-                Esta etapa debe dejar claro dónde está el equipo, qué pedido está en tránsito y cuánto impacta en el total de la orden.
-              </p>
+                </span>
+              )}
+            </div>
+          </div>
+
+          {/* Tarjetas info — siempre columna única en móvil, 3 en md+ */}
+          <div className="grid gap-3 sm:grid-cols-3">
+            {/* Cliente */}
+            <div className="rounded-[18px] border border-white/10 bg-black/25 p-4">
+              <p className="mb-1 text-[11px] font-semibold uppercase tracking-[0.24em] text-white/35">Cliente</p>
+              <p className="truncate text-base font-bold text-orange-200">{o.customer_name || "No registrado"}</p>
             </div>
 
-            <div className="grid gap-3 md:grid-cols-3">
-              <div className="rounded-[22px] border border-white/10 bg-black/25 p-4 backdrop-blur-md">
-                <p className="mb-1 text-[11px] font-semibold uppercase tracking-[0.24em] text-white/35">Cliente</p>
-                <p className="truncate text-lg font-bold text-orange-200">{o.customer_name || "No registrado"}</p>
-              </div>
-              <div className="rounded-[22px] border border-white/10 bg-black/25 p-4 backdrop-blur-md">
-                <p className="mb-1 text-[11px] font-semibold uppercase tracking-[0.24em] text-white/35">Ubicación del equipo</p>
-                <p className="truncate text-sm font-semibold text-white/75">{location === "taller" ? "En Taller" : "Con Cliente"}</p>
-                <p className="mt-1 text-xs text-white/45">{location === "taller" ? "Listo para montar la pieza." : "Pendiente a que el cliente entregue el equipo."}</p>
-              </div>
-              <div className="rounded-[22px] border border-white/10 bg-black/25 p-4 backdrop-blur-md">
-                <div className="flex items-start justify-between gap-3">
-                  <div>
-                    <p className="mb-1 text-[11px] font-semibold uppercase tracking-[0.24em] text-white/35">Detalles del pedido</p>
-                    <p className="truncate text-sm font-semibold text-white/75">{displayPartName}</p>
-                    <p className="mt-1 text-xs text-white/45">{displaySupplier} · {displayCarrier} · {displayTracking}</p>
-                  </div>
-                  <Button 
-                    variant="ghost" 
-                    size="icon" 
-                    className="h-8 w-8 rounded-lg text-white/55 hover:bg-white/10 hover:text-white"
-                    onClick={() => setEditingDetails(!editingDetails)}
-                    title={editingDetails ? "Cancelar edición" : "Editar información"}
-                  >
-                    {editingDetails ? <X className="w-4 h-4" /> : <Pencil className="w-4 h-4" />}
-                  </Button>
+            {/* Ubicación */}
+            <div className="rounded-[18px] border border-white/10 bg-black/25 p-4">
+              <p className="mb-1 text-[11px] font-semibold uppercase tracking-[0.24em] text-white/35">Ubicación del equipo</p>
+              <p className="text-sm font-semibold text-white/75">{location === "taller" ? "🏢 En Taller" : "👤 Con Cliente"}</p>
+              <p className="mt-1 text-xs text-white/45 leading-snug">{location === "taller" ? "Listo para montar la pieza." : "Pendiente a que el cliente entregue el equipo."}</p>
+            </div>
+
+            {/* Detalles del pedido */}
+            <div className="rounded-[18px] border border-white/10 bg-black/25 p-4">
+              <div className="flex items-start justify-between gap-2">
+                <div className="min-w-0 flex-1">
+                  <p className="mb-1 text-[11px] font-semibold uppercase tracking-[0.24em] text-white/35">Detalles del pedido</p>
+                  <p className="truncate text-sm font-semibold text-white/75">{displayPartName}</p>
+                  <p className="mt-1 text-xs text-white/45 truncate">{displaySupplier} · {displayCarrier} · {displayTracking}</p>
+                  {/* Links de compra si existen */}
+                  {links.length > 0 && (
+                    <div className="mt-2 flex flex-wrap gap-1">
+                      {links.slice(0, 3).map((link, i) => (
+                        <a
+                          key={i}
+                          href={link.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center gap-1 rounded-lg border border-orange-400/20 bg-orange-500/10 px-2 py-0.5 text-[10px] font-semibold text-orange-300 hover:bg-orange-500/20"
+                        >
+                          <ExternalLink className="w-2.5 h-2.5" />
+                          {link.partName || new URL(link.url).hostname.replace("www.", "")}
+                        </a>
+                      ))}
+                    </div>
+                  )}
                 </div>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="flex-shrink-0 h-8 w-8 rounded-lg text-white/55 hover:bg-white/10 hover:text-white"
+                  onClick={() => setEditingDetails(!editingDetails)}
+                  title={editingDetails ? "Cancelar edición" : "Editar información"}
+                >
+                  {editingDetails ? <X className="w-4 h-4" /> : <Pencil className="w-4 h-4" />}
+                </Button>
               </div>
             </div>
           </div>
 
-          <div className="rounded-[26px] border border-orange-400/15 bg-black/25 p-5 backdrop-blur-md">
-            <div className="flex items-start gap-3">
-              <div className="flex h-12 w-12 items-center justify-center rounded-2xl border border-orange-400/20 bg-orange-500/15">
-                <Truck className="h-5 w-5 text-orange-300" />
+          {/* Siguiente paso — fila en móvil */}
+          <div className="rounded-[22px] border border-orange-400/15 bg-black/25 p-4">
+            <div className="flex items-center gap-3">
+              <div className="flex-shrink-0 flex h-10 w-10 items-center justify-center rounded-2xl border border-orange-400/20 bg-orange-500/15">
+                <Truck className="h-4 w-4 text-orange-300" />
               </div>
-              <div>
-                <p className="text-[11px] font-semibold uppercase tracking-[0.28em] text-white/35">Siguiente paso</p>
-                <h3 className="mt-1 text-xl font-black tracking-tight text-white">Monitorear llegada</h3>
-                <p className="mt-2 text-sm leading-relaxed text-white/55">
-                  Actualiza tracking, suplidor y costos en una sola vista sin sacrificar la claridad de la orden.
-                </p>
-                <div className="mt-4 flex flex-wrap gap-2">
-                  <Button
-                    onClick={() => setShowAddItemModal(true)}
-                    className="rounded-2xl bg-gradient-to-r from-cyan-600 to-emerald-600 px-4 text-white shadow-lg shadow-cyan-950/20 hover:from-cyan-700 hover:to-emerald-700"
-                  >
-                    <Plus className="mr-2 h-4 w-4" />
-                    Añadir piezas
-                  </Button>
-                  <div className="inline-flex items-center rounded-2xl border border-white/10 bg-white/5 px-4 py-2 text-sm text-white/55">
-                    Los links ya se agregan automáticamente a items manuales.
-                  </div>
-                </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-[10px] font-semibold uppercase tracking-[0.28em] text-white/35">Siguiente paso</p>
+                <h3 className="text-base font-black tracking-tight text-white">Monitorear llegada</h3>
               </div>
+              {/* Botón añadir piezas — hace scroll al section */}
+              <Button
+                onClick={() => itemsSectionRef.current?.scrollIntoView({ behavior: "smooth", block: "start" })}
+                className="flex-shrink-0 rounded-2xl bg-gradient-to-r from-cyan-600 to-emerald-600 px-3 py-2 text-white text-sm shadow-lg hover:from-cyan-700 hover:to-emerald-700"
+              >
+                <Plus className="h-4 w-4 sm:mr-2" />
+                <span className="hidden sm:inline">Añadir piezas</span>
+              </Button>
             </div>
+            {/* Tracking link directo si hay tracking */}
+            {trackingUrl && displayTracking !== "—" && (
+              <a
+                href={trackingUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="mt-3 flex items-center gap-2 rounded-xl border border-orange-400/20 bg-orange-500/10 px-3 py-2 text-sm text-orange-300 hover:bg-orange-500/20"
+              >
+                <Truck className="w-4 h-4 flex-shrink-0" />
+                <span className="truncate font-medium">Rastrear: {displayTracking}</span>
+                <ExternalLink className="w-3.5 h-3.5 flex-shrink-0 ml-auto" />
+              </a>
+            )}
           </div>
         </div>
       </section>
@@ -454,14 +485,16 @@ export default function WaitingPartsStage({ order, onUpdate, onOrderItemsUpdate,
         </div>
       )}
 
-      <SharedItemsSection
-        order={o}
-        onUpdate={onUpdate}
-        onOrderItemsUpdate={onOrderItemsUpdate}
-        onRemoteSaved={onRemoteSaved}
-        accentColor="orange"
-        subtitle="Mantén aquí la lista final de repuestos y servicios mientras el pedido está en tránsito."
-      />
+      <div ref={itemsSectionRef}>
+        <SharedItemsSection
+          order={o}
+          onUpdate={onUpdate}
+          onOrderItemsUpdate={onOrderItemsUpdate}
+          onRemoteSaved={onRemoteSaved}
+          accentColor="orange"
+          subtitle="Mantén aquí la lista final de repuestos y servicios mientras el pedido está en tránsito."
+        />
+      </div>
 
       <WorkOrderUnifiedHub order={order} onUpdate={onUpdate} accent="amber" title="Centro de Historial" subtitle="Pedido, fotos, seguridad y notas operativas consolidadas en una sola pieza." />
 

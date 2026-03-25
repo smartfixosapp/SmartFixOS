@@ -2876,7 +2876,7 @@ export default function WorkOrderPanel({ orderId, onClose, onUpdate, onDelete, p
               </div>
             </div> :
 
-          <div className="flex-1 overflow-y-auto scrollbar-thin wo-scrollable">
+          <div className="flex-1 overflow-y-auto overflow-x-hidden scrollbar-thin wo-scrollable">
               <div className="max-w-[1800px] mx-auto px-2 sm:px-6 py-3 sm:py-6 space-y-3 sm:space-y-6 wo-panel-content pb-12">
 
                 <Card className="overflow-hidden border-white/[0.08] bg-[#121215] mobile-card-compact shadow-[0_24px_80px_rgba(0,0,0,0.4)] rounded-[32px]">
