@@ -106,10 +106,20 @@ export default function OrdersMobile() {
       result = result.filter(o => new Date(o.created_date) <= to);
     }
 
+    // Ordenar: más nuevo primero (número de orden mayor primero)
+    result = [...result].sort((a, b) => {
+      const seqA = extractOrderSequence(a.order_number);
+      const seqB = extractOrderSequence(b.order_number);
+      if (seqA !== 0 && seqB !== 0) return seqB - seqA;
+      const dateA = a.created_date || a.created_at || "";
+      const dateB = b.created_date || b.created_at || "";
+      return dateB.localeCompare(dateA);
+    });
+
     return result;
   }, [orders, searchTerm, selectedStatus, dateFrom, dateTo]);
 
-  // Agrupar por fecha
+  // Agrupar por fecha (grupos ordenados de más reciente a más antiguo)
   const groupedOrders = useMemo(() => {
     const groups = {};
     filteredOrders.forEach(order => {
@@ -117,7 +127,13 @@ export default function OrdersMobile() {
       if (!groups[dateKey]) groups[dateKey] = [];
       groups[dateKey].push(order);
     });
-    return groups;
+    // Ordenar las claves de fecha de más reciente a más antigua
+    return Object.fromEntries(
+      Object.entries(groups).sort(([a], [b]) => {
+        const da = new Date(a); const db = new Date(b);
+        return db - da;
+      })
+    );
   }, [filteredOrders]);
 
   const handleOrderClick = async (order) => {

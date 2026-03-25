@@ -488,6 +488,17 @@ export default function OrdersPage() {
       );
     }
 
+    // Ordenar: más nuevo primero (número de orden mayor primero)
+    result.sort((a, b) => {
+      const seqA = extractOrderSequence(a.order_number);
+      const seqB = extractOrderSequence(b.order_number);
+      if (seqA !== 0 && seqB !== 0) return seqB - seqA;
+      // Fallback por fecha si el número no es parseable
+      const dateA = a.created_date || a.created_at || "";
+      const dateB = b.created_date || b.created_at || "";
+      return dateB.localeCompare(dateA);
+    });
+
     return result;
   }, [orders, selectedStatus, searchQuery, showB2BOnly]);
 
