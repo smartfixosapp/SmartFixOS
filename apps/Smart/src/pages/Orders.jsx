@@ -526,7 +526,8 @@ export default function OrdersPage() {
 
     const merged = mergeOrders(remoteOrders, getUnsyncedLocalOrders(remoteOrders));
     const blockers = (merged || []).filter((ord) => {
-      if (!ord || String(ord.id || "") === String(targetOrder.id || "")) return false;
+      if (!ord || ord.deleted) return false; // órdenes borradas no bloquean
+      if (String(ord.id || "") === String(targetOrder.id || "")) return false;
       const seq = extractOrderSequence(ord.order_number);
       if (seq <= 0 || seq >= currentSeq) return false;
         const st = getEffectiveOrderStatus(ord);

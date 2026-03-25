@@ -153,7 +153,8 @@ export default function OrdersMobile() {
       }
 
       const blockers = (remoteOrders || []).filter((ord) => {
-        if (!ord || String(ord.id || "") === String(target.id || "")) return false;
+        if (!ord || ord.deleted) return false; // órdenes borradas no bloquean
+        if (String(ord.id || "") === String(target.id || "")) return false;
         const seq = extractOrderSequence(ord.order_number);
         if (seq <= 0 || seq >= currentSeq) return false;
         const st = getEffectiveOrderStatus(ord);
