@@ -84,8 +84,9 @@ function formatReceiptHtml(sale, customer, items, biz) {
   return `<!DOCTYPE html>
 <html lang="es">
 <head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${subject}</title></head>
-<body style="margin:0;padding:0;background:#0F0F12;font-family:'Segoe UI',Arial,sans-serif;">
-<div style="max-width:600px;margin:0 auto;padding:20px 16px;">
+<body style="margin:0;padding:0;background:#1a1a2e;font-family:'Segoe UI',Arial,sans-serif;" bgcolor="#1a1a2e">
+<table width="100%" cellpadding="0" cellspacing="0" border="0" bgcolor="#1a1a2e" style="background:#1a1a2e;"><tr><td align="center" style="padding:20px 16px;">
+<div style="max-width:600px;width:100%;">
 
   <div style="background:linear-gradient(135deg,#0891b2 0%,#059669 60%,#65a30d 100%);border-radius:20px 20px 0 0;padding:36px 32px;text-align:center;">
     ${logo ? `<img src="${logo}" alt="Logo" style="max-height:50px;max-width:160px;margin:0 auto 16px;display:block;filter:brightness(0) invert(1);" />` : ""}
@@ -141,6 +142,7 @@ function formatReceiptHtml(sale, customer, items, biz) {
   </div>
 
 </div>
+</td></tr></table>
 </body>
 </html>`;
 }

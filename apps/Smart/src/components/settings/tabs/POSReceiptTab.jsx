@@ -222,8 +222,9 @@ function EmailPreview({ config, bizInfo }) {
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>${subject}</title>
 </head>
-<body style="margin:0;padding:0;background:#0F0F12;font-family:'Segoe UI',Arial,sans-serif;">
-  <div style="max-width:560px;margin:0 auto;padding:16px 12px;">
+<body style="margin:0;padding:0;background:#1a1a2e;font-family:'Segoe UI',Arial,sans-serif;" bgcolor="#1a1a2e">
+<table width="100%" cellpadding="0" cellspacing="0" border="0" bgcolor="#1a1a2e" style="background:#1a1a2e;"><tr><td align="center" style="padding:16px 12px;">
+  <div style="max-width:560px;width:100%;">
     <div style="background:linear-gradient(135deg,#0891b2 0%,#059669 60%,#65a30d 100%);border-radius:20px 20px 0 0;padding:32px 28px;text-align:center;">
       ${logo ? `<img src="${logo}" alt="Logo" style="max-height:48px;max-width:140px;margin:0 auto 14px;display:block;filter:brightness(0) invert(1);" onerror="this.style.display='none'" />` : ''}
       <h1 style="margin:0;color:white;font-size:20px;font-weight:800;letter-spacing:-0.3px;">🧾 Recibo de Venta</h1>
@@ -274,6 +275,7 @@ function EmailPreview({ config, bizInfo }) {
       <p style="margin:10px 0 0;color:rgba(255,255,255,0.25);font-size:10px;">Powered by SmartFixOS</p>
     </div>
   </div>
+</td></tr></table>
 </body>
 </html>`;
 
