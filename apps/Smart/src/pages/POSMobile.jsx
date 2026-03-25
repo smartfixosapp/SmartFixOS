@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import { dataClient } from "@/components/api/dataClient";
 import { supabase } from "../../../../lib/supabase-client.js";
 import { useLocation, useNavigate } from "react-router-dom";
@@ -117,7 +117,8 @@ export default function POSMobile() {
   const [showRechargeDialog, setShowRechargeDialog] = useState(false);
   const [showOpenDrawerModal, setShowOpenDrawerModal] = useState(false);
   const [currentDrawer, setCurrentDrawer] = useState(() => getCachedStatus().drawer);
-  const [loadingDrawer, setLoadingDrawer] = useState(true);
+  // ✅ Si el caché ya está inicializado (navegación entre páginas), arranca en false directamente
+  const [loadingDrawer, setLoadingDrawer] = useState(() => !getCachedStatus().isInitialized);
   const [activeTab, setActiveTab] = useState("all");
   const [searchQuery, setSearchQuery] = useState("");
   const [paymentMethod, setPaymentMethod] = useState(null);
@@ -139,6 +140,8 @@ export default function POSMobile() {
   const [paymentMode, setPaymentMode] = useState("regular");
   const [totalPaid, setTotalPaid] = useState(0);
   const hasShownInventoryOfflineToast = React.useRef(false);
+  // Guard to ensure payment modal auto-opens exactly once per navigation
+  const autoOpenPaymentFired = useRef(false);
   const [showManualItem, setShowManualItem] = useState(false);
   const [manualItem, setManualItem] = useState({ name: "", price: "", qty: "1" });
   const [showSaleActions, setShowSaleActions] = useState(false);
@@ -184,7 +187,8 @@ export default function POSMobile() {
   }, [routePaymentMode, urlPaymentMode]);
 
   useEffect(() => {
-    Promise.all([loadInventory(), loadPaymentMethods(), loadTaxRate(), checkCashDrawerStatus()]);
+    // checkCashDrawerStatus se maneja por subscribeToCashRegister — no incluir aquí para evitar parpadeos
+    Promise.all([loadInventory(), loadPaymentMethods(), loadTaxRate()]);
   }, []);
 
   // Auto-open drawer dialog when arriving from a work order and drawer is closed
@@ -230,11 +234,15 @@ export default function POSMobile() {
     }
   }, [routeStateOrder, workOrderId, hydrateWorkOrder]);
 
+  // ✅ Auto-abrir modal de pago cuando llegamos desde una orden
+  // Depende también de currentDrawer para que se dispare cuando el cajero abre la caja
   useEffect(() => {
-    if ((workOrderId || location.state?.openPaymentImmediately) && selectedOrder && !loadingDrawer) {
-      setTimeout(() => setShowPaymentModal(true), 150);
+    const shouldAutoOpen = workOrderId || location.state?.openPaymentImmediately;
+    if (shouldAutoOpen && selectedOrder && !loadingDrawer && currentDrawer && !autoOpenPaymentFired.current) {
+      autoOpenPaymentFired.current = true;
+      setTimeout(() => setShowPaymentModal(true), 200);
     }
-  }, [workOrderId, selectedOrder, loadingDrawer, location.state?.openPaymentImmediately]);
+  }, [workOrderId, selectedOrder, loadingDrawer, currentDrawer, location.state?.openPaymentImmediately]);
 
   const fetchWorkOrderById = useCallback(async (orderId) => {
     if (!orderId) return null;

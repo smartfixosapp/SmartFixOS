@@ -594,7 +594,7 @@ function WaitingPartsModal({ open, onClose, onSave, initialData, order }) {
     };
   }, [open, order?.id]);
 
-  const handleSubmit = async () => {
+  const handleSubmit = () => {
     // Combinar piezas seleccionadas con chips + texto manual
     const fromChips = [...selectedParts];
     const manual = formData.partName.trim();
@@ -615,14 +615,15 @@ function WaitingPartsModal({ open, onClose, onSave, initialData, order }) {
       return;
     }
 
-    await onSave?.({
+    // ✅ Cerrar inmediatamente (optimista) — guardar en background
+    onClose?.();
+    onSave?.({
       supplier: formData.supplier.trim(),
       tracking: formData.tracking.trim(),
       partName: combined,
       carrier: formData.carrier.trim(),
       deviceLocation: formData.deviceLocation
     });
-    onClose?.();
   };
 
   const updateField = (field, value) => {
