@@ -202,10 +202,16 @@ export default function POSMobile() {
       }
     });
 
-    // Check cache to avoid redundant network requests during navigation
+    // Si ya tenemos caché inicializado, no bloquear la UI
     const status = getCachedStatus();
+    if (status.isInitialized) {
+      setLoadingDrawer(false);
+      setCurrentDrawer(status.drawer || null);
+    }
+
+    // Solo re-verificar si no está inicializado o el caché es viejo (> 5 min)
     if (!status.isInitialized || Date.now() - status.lastCheck > 300000) {
-      setLoadingDrawer(true);
+      if (!status.isInitialized) setLoadingDrawer(true);
       checkCashRegisterStatus().finally(() => setLoadingDrawer(false));
     }
 

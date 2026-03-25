@@ -168,9 +168,15 @@ export default function POSSaleActionsModal({ open, onClose, sale, customer, car
     // WhatsApp: usar teléfono del cliente
     setWaPhone(customer?.phone || customer?.mobile || "");
 
-    // Cargar info del negocio
-    dataClient.entities.AppSettings.filter({ slug: "business-info" })
-      .then(res => { if (res?.[0]?.payload) setBusinessInfo(res[0].payload); })
+    // Cargar info del negocio + branding (logo)
+    Promise.all([
+      dataClient.entities.AppSettings.filter({ slug: "business-info" }).catch(() => []),
+      dataClient.entities.AppSettings.filter({ slug: "business-branding" }).catch(() => []),
+    ]).then(([bizRes, brandingRes]) => {
+      const info = bizRes?.[0]?.payload || {};
+      const branding = brandingRes?.[0]?.payload || {};
+      setBusinessInfo({ ...info, logo_url: branding.logo_url || info.logo_url || "" });
+    })
       .catch(() => {});
 
     // Guardar en historial al abrir el modal (venta ya completada)
