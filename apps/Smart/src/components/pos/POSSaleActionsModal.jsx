@@ -57,42 +57,92 @@ function formatReceiptText(sale, customer, items, biz) {
 
 function formatReceiptHtml(sale, customer, items, biz) {
   const config = getConfig();
-  const name = biz?.name || "SmartFixOS";
+  const fromName = config.email_from_name || biz?.name || "SmartFixOS";
   const phone = biz?.phone || "";
-  const addr = biz?.address || "";
   const date = new Date().toLocaleDateString("es-PR", { year: "numeric", month: "long", day: "numeric" });
   const total = Number(sale?.total_amount || sale?.total || 0).toFixed(2);
+  const subtotal = Number(sale?.subtotal || 0).toFixed(2);
+  const tax = Number(sale?.tax_amount || 0).toFixed(2);
   const num = sale?.sale_number || sale?.id?.slice(-6) || "—";
+  const subject = (config.email_subject_sale || "🧾 Tu recibo de venta #{number}").replace("#{number}", num);
+  const logo = biz?.logo_url || "";
+  const customerName = customer?.name || customer?.full_name || "";
 
-  const rows = (items || []).map(i => `
-    <tr>
-      <td style="padding:6px 8px;border-bottom:1px solid #eee">${i.name}</td>
-      <td style="padding:6px 8px;border-bottom:1px solid #eee;text-align:center">${i.quantity}</td>
-      <td style="padding:6px 8px;border-bottom:1px solid #eee;text-align:right">$${(Number(i.price || 0) * Number(i.quantity || 1)).toFixed(2)}</td>
-    </tr>`).join("");
+  const payLabel = sale?.payment_method === "cash" ? "💵 Efectivo"
+    : sale?.payment_method === "card" ? "💳 Tarjeta"
+    : sale?.payment_method === "ath_movil" ? "📱 ATH Móvil"
+    : sale?.payment_method || "";
 
-  return `<div style="font-family:Arial,sans-serif;max-width:520px;margin:0 auto;background:#fff;padding:32px;border-radius:12px">
-    <h1 style="margin:0 0 4px;font-size:22px;color:#111">${name}</h1>
-    ${addr ? `<p style="margin:0;color:#666;font-size:13px">${addr}</p>` : ""}
-    ${phone ? `<p style="margin:0;color:#666;font-size:13px">Tel: ${phone}</p>` : ""}
-    <hr style="margin:20px 0;border:none;border-top:1px solid #eee"/>
-    <p style="margin:0 0 4px;font-size:13px;color:#888">Recibo #${num} · ${date}</p>
-    ${customer?.name || customer?.full_name ? `<p style="margin:4px 0;font-size:14px;color:#333">Cliente: <strong>${customer.name || customer.full_name}</strong></p>` : ""}
-    <table style="width:100%;margin-top:16px;border-collapse:collapse;font-size:14px">
-      <thead><tr style="background:#f5f5f5">
-        <th style="padding:8px;text-align:left">Artículo</th>
-        <th style="padding:8px;text-align:center">Cant.</th>
-        <th style="padding:8px;text-align:right">Total</th>
-      </tr></thead>
-      <tbody>${rows}</tbody>
-    </table>
-    <div style="text-align:right;margin-top:16px;font-size:20px;font-weight:bold;color:#111">Total: $${total}</div>
-    ${config.warranty_text ? `<div style="margin-top:20px;padding:12px;background:#f9f9f9;border-radius:8px;font-size:12px;color:#555"><strong>Garantía:</strong><br/>${config.warranty_text}</div>` : ""}
-    ${config.conditions_text ? `<div style="margin-top:12px;padding:12px;background:#f9f9f9;border-radius:8px;font-size:12px;color:#555"><strong>Condiciones:</strong><br/>${config.conditions_text}</div>` : ""}
-    ${config.review_link ? `<div style="margin-top:16px;text-align:center"><a href="${config.review_link}" style="color:#2563eb;font-size:13px">⭐ Déjanos una reseña</a></div>` : ""}
-    ${config.footer_text ? `<p style="margin-top:16px;text-align:center;font-size:12px;color:#888">${config.footer_text}</p>` : ""}
-    <p style="margin-top:24px;text-align:center;font-size:11px;color:#aaa">Generado por SmartFixOS</p>
-  </div>`;
+  const rows = (items || []).map(i =>
+    `<tr>
+      <td style="padding:10px 12px;border-bottom:1px solid rgba(255,255,255,0.06);color:rgba(255,255,255,0.9);font-size:14px;">${i.name}</td>
+      <td style="padding:10px 8px;border-bottom:1px solid rgba(255,255,255,0.06);text-align:center;color:rgba(255,255,255,0.5);font-size:13px;">${i.quantity || 1}</td>
+      <td style="padding:10px 12px;border-bottom:1px solid rgba(255,255,255,0.06);text-align:right;color:#34d399;font-weight:700;font-size:14px;">$${(Number(i.price || 0) * Number(i.quantity || 1)).toFixed(2)}</td>
+    </tr>`
+  ).join("");
+
+  return `<!DOCTYPE html>
+<html lang="es">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${subject}</title></head>
+<body style="margin:0;padding:0;background:#0F0F12;font-family:'Segoe UI',Arial,sans-serif;">
+<div style="max-width:600px;margin:0 auto;padding:20px 16px;">
+
+  <div style="background:linear-gradient(135deg,#0891b2 0%,#059669 60%,#65a30d 100%);border-radius:20px 20px 0 0;padding:36px 32px;text-align:center;">
+    ${logo ? `<img src="${logo}" alt="Logo" style="max-height:50px;max-width:160px;margin:0 auto 16px;display:block;filter:brightness(0) invert(1);" />` : ""}
+    <h1 style="margin:0;color:white;font-size:22px;font-weight:800;">🧾 Recibo de Venta</h1>
+    <p style="margin:8px 0 0;color:rgba(255,255,255,0.75);font-size:14px;">${fromName}</p>
+  </div>
+
+  <div style="background:#1a1a2e;border-left:1px solid rgba(255,255,255,0.08);border-right:1px solid rgba(255,255,255,0.08);padding:28px 32px;">
+
+    <div style="background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.08);border-left:4px solid #0891b2;border-radius:12px;padding:18px 20px;margin-bottom:24px;">
+      <div style="color:rgba(255,255,255,0.4);font-size:11px;text-transform:uppercase;letter-spacing:1px;">NÚMERO DE RECIBO</div>
+      <div style="color:white;font-size:22px;font-weight:800;margin:4px 0 8px;">${num}</div>
+      <div style="color:rgba(255,255,255,0.5);font-size:13px;">📅 ${date}</div>
+      ${customerName ? `
+      <div style="border-top:1px solid rgba(255,255,255,0.08);padding-top:12px;margin-top:12px;">
+        <div style="color:white;font-weight:700;font-size:15px;">👤 ${customerName}</div>
+        ${phone ? `<div style="color:rgba(255,255,255,0.5);font-size:13px;margin-top:4px;">📞 ${phone}</div>` : ""}
+      </div>` : ""}
+    </div>
+
+    <div style="margin-bottom:20px;">
+      <div style="color:rgba(255,255,255,0.5);font-size:11px;text-transform:uppercase;letter-spacing:1px;margin-bottom:12px;">ARTÍCULOS</div>
+      <table style="width:100%;border-collapse:collapse;">
+        <thead><tr style="background:rgba(255,255,255,0.05);">
+          <th style="padding:10px 12px;text-align:left;color:rgba(255,255,255,0.5);font-size:11px;font-weight:600;text-transform:uppercase;border-bottom:1px solid rgba(255,255,255,0.08);">Artículo</th>
+          <th style="padding:10px 8px;text-align:center;color:rgba(255,255,255,0.5);font-size:11px;font-weight:600;text-transform:uppercase;border-bottom:1px solid rgba(255,255,255,0.08);">Cant.</th>
+          <th style="padding:10px 12px;text-align:right;color:rgba(255,255,255,0.5);font-size:11px;font-weight:600;text-transform:uppercase;border-bottom:1px solid rgba(255,255,255,0.08);">Total</th>
+        </tr></thead>
+        <tbody>${rows}</tbody>
+      </table>
+    </div>
+
+    <div style="background:rgba(5,150,105,0.1);border:1px solid rgba(5,150,105,0.3);border-radius:12px;padding:18px 20px;">
+      ${Number(subtotal) > 0 ? `<div style="display:table;width:100%;margin-bottom:8px;"><span style="display:table-cell;color:rgba(255,255,255,0.6);font-size:14px;">Subtotal</span><span style="display:table-cell;text-align:right;color:rgba(255,255,255,0.6);font-size:14px;">$${subtotal}</span></div>` : ""}
+      ${Number(tax) > 0 ? `<div style="display:table;width:100%;margin-bottom:8px;"><span style="display:table-cell;color:rgba(255,255,255,0.6);font-size:14px;">IVU (11.5%)</span><span style="display:table-cell;text-align:right;color:rgba(255,255,255,0.6);font-size:14px;">$${tax}</span></div>` : ""}
+      <div style="border-top:2px solid rgba(5,150,105,0.5);padding-top:12px;display:table;width:100%;">
+        <span style="display:table-cell;color:white;font-size:18px;font-weight:800;">TOTAL</span>
+        <span style="display:table-cell;text-align:right;color:#34d399;font-size:28px;font-weight:800;">$${total}</span>
+      </div>
+      ${payLabel ? `<div style="border-top:1px solid rgba(255,255,255,0.08);padding-top:10px;margin-top:10px;display:table;width:100%;"><span style="display:table-cell;color:rgba(255,255,255,0.5);font-size:13px;">Método de pago</span><span style="display:table-cell;text-align:right;color:rgba(255,255,255,0.8);font-weight:600;font-size:13px;">${payLabel}</span></div>` : ""}
+    </div>
+
+    ${config.warranty_text ? `<div style="margin-top:20px;padding:14px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:10px;font-size:12px;color:rgba(255,255,255,0.6);"><strong style="color:rgba(255,255,255,0.8);">📋 Garantía:</strong><br/>${config.warranty_text}</div>` : ""}
+    ${config.conditions_text ? `<div style="margin-top:10px;padding:14px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:10px;font-size:12px;color:rgba(255,255,255,0.6);"><strong style="color:rgba(255,255,255,0.8);">📌 Condiciones:</strong><br/>${config.conditions_text}</div>` : ""}
+
+  </div>
+
+  <div style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06);border-top:none;border-radius:0 0 20px 20px;padding:24px 32px;text-align:center;">
+    <p style="margin:0 0 4px;color:rgba(255,255,255,0.6);font-size:14px;font-weight:600;">${fromName}</p>
+    ${phone ? `<p style="margin:0 0 4px;color:rgba(255,255,255,0.4);font-size:12px;">📞 ${phone}</p>` : ""}
+    ${config.footer_text ? `<p style="margin:10px 0 0;color:rgba(255,255,255,0.5);font-size:13px;">${config.footer_text}</p>` : ""}
+    <p style="margin:12px 0 0;color:rgba(255,255,255,0.2);font-size:11px;">Powered by SmartFixOS</p>
+  </div>
+
+</div>
+</body>
+</html>`;
 }
 
 // (sendViaResend eliminado — usamos el servidor Deno vía sendEmail de @/api/functions)

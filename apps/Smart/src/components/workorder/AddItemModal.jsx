@@ -948,7 +948,7 @@ export default function AddItemModal({
         <QuickItemModal
           open={showQuickItem}
           onClose={() => setShowQuickItem(false)}
-          onSave={(newItem) => {
+          onItemCreated={(newItem) => {
             const normalized = normalizeInventoryItem({ ...newItem, is_manual: true, source: "manual" });
             setInventoryItems((prev) => uniqueByKey([normalized, ...prev]));
             addToCart(normalized);
