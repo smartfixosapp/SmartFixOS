@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Image as ImageIcon, Loader2, Share2 } from "lucide-react";
+import { Camera, Image as ImageIcon, Loader2, Share2 } from "lucide-react";
 import { base44 } from "@/api/base44Client";
 import GalleryModal from "@/components/common/GalleryModal";
 import { toast } from "sonner";
@@ -202,10 +202,11 @@ export default function OrderMultimedia({ order, onUpdate }) {
             Fotos y Evidencias
           </h3>
           <div className="flex items-center gap-2">
+            {/* Selector de etapa: oculto en móvil para no desplazar el botón de cámara */}
             <select
               value={selectedStage}
               onChange={(e) => setSelectedStage(e.target.value)}
-              className="h-9 rounded-xl border border-white/10 bg-black/30 px-3 text-xs font-semibold text-white outline-none theme-light:border-gray-300 theme-light:bg-white theme-light:text-gray-900"
+              className="hidden sm:block h-9 rounded-xl border border-white/10 bg-black/30 px-3 text-xs font-semibold text-white outline-none theme-light:border-gray-300 theme-light:bg-white theme-light:text-gray-900"
             >
               {PHOTO_STAGE_OPTIONS.map((option) => (
                 <option key={option.id} value={option.id}>
@@ -213,8 +214,20 @@ export default function OrderMultimedia({ order, onUpdate }) {
                 </option>
               ))}
             </select>
-            <label className={`inline-flex items-center gap-2 px-4 py-1.5 rounded-xl cursor-pointer text-xs font-bold transition-all hover:scale-105 active:scale-95 ${uploading ? "bg-white/10 text-gray-400" : "bg-cyan-500 hover:bg-cyan-400 text-white shadow-lg shadow-cyan-900/20"}`}>
-              {uploading ? <Loader2 className="w-3 h-3 animate-spin" /> : "Subir"}
+            {/* Botón de cámara — icono, siempre visible en móvil */}
+            <label
+              className={`inline-flex items-center justify-center w-9 h-9 rounded-xl cursor-pointer transition-all hover:scale-105 active:scale-95 flex-shrink-0 ${
+                uploading
+                  ? "bg-white/10 text-gray-400 cursor-not-allowed"
+                  : "bg-cyan-500 hover:bg-cyan-400 text-white shadow-lg shadow-cyan-900/20"
+              }`}
+              title="Subir foto"
+            >
+              {uploading ? (
+                <Loader2 className="w-4 h-4 animate-spin" />
+              ) : (
+                <Camera className="w-4 h-4" />
+              )}
               <input type="file" accept="image/*,video/*" multiple onChange={handleUpload} className="hidden" disabled={uploading} />
             </label>
           </div>

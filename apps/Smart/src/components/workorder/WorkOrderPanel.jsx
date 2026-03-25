@@ -1209,18 +1209,17 @@ function OrderItemsSection({ order, onUpdated, clearEventCache, loadEventsCallba
     <>
       <Card className="p-4 bg-gradient-to-br from-emerald-600/10 to-lime-600/10 border-emerald-500/20 theme-light:bg-white theme-light:border-gray-200">
         <CardHeader className="border-b border-emerald-500/20 pb-4 theme-light:border-gray-200">
-          <CardTitle className="text-white flex flex-col items-start gap-3 sm:flex-row sm:items-center sm:justify-between theme-light:text-gray-900">
+          <CardTitle className="text-white flex items-center justify-between gap-2 theme-light:text-gray-900">
             <span className="flex items-center gap-2 min-w-0">
-              <ShoppingCart className="w-5 h-5 text-emerald-500 theme-light:text-emerald-600" />
-              Piezas y Servicios
+              <ShoppingCart className="w-5 h-5 flex-shrink-0 text-emerald-500 theme-light:text-emerald-600" />
+              <span className="truncate">Piezas y Servicios</span>
             </span>
             <Button
               onClick={() => setShowAddItemModal(true)}
-              className="h-10 w-10 sm:w-auto px-0 sm:px-4 bg-gradient-to-r from-cyan-600 to-emerald-600 hover:from-cyan-700 hover:to-emerald-700 rounded-full sm:rounded-lg"
-              title="Añadir"
+              className="flex-shrink-0 h-9 w-9 p-0 bg-gradient-to-r from-cyan-600 to-emerald-600 hover:from-cyan-700 hover:to-emerald-700 rounded-full"
+              title="Añadir pieza o servicio"
             >
-              <Plus className="w-4 h-4 sm:mr-2" />
-              <span className="hidden sm:inline">Añadir</span>
+              <Plus className="w-4 h-4" />
             </Button>
           </CardTitle>
         </CardHeader>
@@ -2787,7 +2786,7 @@ export default function WorkOrderPanel({ orderId, onClose, onUpdate, onDelete, p
            {/* ✅ HEADER RESPONSIVE */}
            <div
             className="flex-shrink-0 border-b border-white/[0.08] bg-[#0D0D0F] wo-header"
-            style={{ paddingTop: "calc(env(safe-area-inset-top, 0px) + 2px)" }}
+            style={{ paddingTop: "calc(env(safe-area-inset-top, 20px) + 14px)" }}
           >
             <div className="max-w-[1800px] mx-auto px-4 sm:px-8 py-4 sm:py-5 flex items-center justify-between gap-4">
               <div className="flex items-center gap-3 sm:gap-6 min-w-0 flex-1">
@@ -2923,48 +2922,69 @@ export default function WorkOrderPanel({ orderId, onClose, onUpdate, onDelete, p
                       <div className="grid gap-6 xl:grid-cols-[1.2fr_0.8fr]">
                         <div className="space-y-3">
                           <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
-                            {[...activeStatuses, ...closedStatuses]
-                              .slice()
-                              .sort((a, b) => (a.order || 0) - (b.order || 0))
-                              .map((s, index) => {
-                                const currentOrder = getStatusConfig(status).order || 0;
-                                const isCurrent = normalizeStatusId(status) === s.id;
-                                const isPassed = (s.order || 0) < currentOrder && !getStatusConfig(s.id).isTerminal;
-                                const statusClasses = getStatusConfig(s.id).colorClasses;
-                                return (
-                                  <button
-                                    key={s.id}
-                                    onClick={() => {
-                                      if (!isCurrent) {
-                                        changeStatus(s.id, "", {});
-                                        setStagesOpen(false);
-                                      }
-                                    }}
-                                    disabled={changingStatus || isCurrent}
-                                    className={cn(
-                                      "group flex flex-col gap-2 rounded-[20px] border p-3 text-left transition-all duration-300 active:scale-95",
-                                      isCurrent
-                                        ? `${statusClasses} shadow-[0_8px_24px_rgba(0,0,0,0.3)] scale-[1.02] opacity-100`
-                                        : isPassed
-                                        ? "bg-white/5 border-white/10 text-white/90 hover:bg-white/10 opacity-60"
-                                        : `${statusClasses} opacity-30 hover:opacity-60`
-                                    )}
-                                  >
-                                    <div className="flex items-center justify-between">
-                                      <div className={cn(
-                                        "flex h-6 w-6 items-center justify-center rounded-lg text-[10px] font-black",
-                                        isCurrent ? "bg-black/30 text-white" : "bg-black/20 text-white/60"
-                                      )}>
-                                        {index + 1}
+                            {/* Icono por status para reemplazar el número */}
+                            {(() => {
+                              const STATUS_ICON_MAP = {
+                                intake: <PackageOpen className="w-3.5 h-3.5" />,
+                                waiting_order: <ClipboardList className="w-3.5 h-3.5" />,
+                                diagnosing: <Search className="w-3.5 h-3.5" />,
+                                pending_order: <ShoppingCart className="w-3.5 h-3.5" />,
+                                waiting_parts: <PackageOpen className="w-3.5 h-3.5" />,
+                                part_arrived_waiting_device: <Check className="w-3.5 h-3.5" />,
+                                reparacion_externa: <Factory className="w-3.5 h-3.5" />,
+                                in_progress: <RefreshCw className="w-3.5 h-3.5" />,
+                                ready_for_pickup: <CheckCircle2 className="w-3.5 h-3.5" />,
+                                picked_up: <Check className="w-3.5 h-3.5" />,
+                                delivered: <Check className="w-3.5 h-3.5" />,
+                                completed: <CheckCircle2 className="w-3.5 h-3.5" />,
+                                cancelled: <X className="w-3.5 h-3.5" />,
+                                awaiting_approval: <ActivitySquare className="w-3.5 h-3.5" />,
+                                warranty: <Shield className="w-3.5 h-3.5" />,
+                              };
+                              return [...activeStatuses, ...closedStatuses]
+                                .slice()
+                                .sort((a, b) => (a.order || 0) - (b.order || 0))
+                                .map((s) => {
+                                  const currentOrder = getStatusConfig(status).order || 0;
+                                  const isCurrent = normalizeStatusId(status) === s.id;
+                                  const isPassed = (s.order || 0) < currentOrder && !getStatusConfig(s.id).isTerminal;
+                                  const statusClasses = getStatusConfig(s.id).colorClasses;
+                                  const statusIcon = STATUS_ICON_MAP[s.id] || <ActivitySquare className="w-3.5 h-3.5" />;
+                                  return (
+                                    <button
+                                      key={s.id}
+                                      onClick={() => {
+                                        if (!isCurrent) {
+                                          changeStatus(s.id, "", {});
+                                          setStagesOpen(false);
+                                        }
+                                      }}
+                                      disabled={changingStatus || isCurrent}
+                                      className={cn(
+                                        "group flex flex-col gap-2 rounded-[20px] border p-3 text-left transition-all duration-300 active:scale-95",
+                                        isCurrent
+                                          ? `${statusClasses} shadow-[0_8px_24px_rgba(0,0,0,0.3)] scale-[1.02] opacity-100`
+                                          : isPassed
+                                          ? "bg-white/5 border-white/10 text-white/90 hover:bg-white/10 opacity-60"
+                                          : `${statusClasses} opacity-30 hover:opacity-60`
+                                      )}
+                                    >
+                                      <div className="flex items-center justify-between">
+                                        <div className={cn(
+                                          "flex h-6 w-6 items-center justify-center rounded-lg",
+                                          isCurrent ? "bg-black/30 text-white" : "bg-black/20 text-white/60"
+                                        )}>
+                                          {statusIcon}
+                                        </div>
+                                        {isPassed && !isCurrent && <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />}
                                       </div>
-                                      {isPassed && !isCurrent && <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />}
-                                    </div>
-                                    <p className="text-[12px] font-black leading-tight tracking-tight">
-                                      {s.label}
-                                    </p>
-                                  </button>
-                                );
-                              })}
+                                      <p className="text-[12px] font-black leading-tight tracking-tight">
+                                        {s.label}
+                                      </p>
+                                    </button>
+                                  );
+                                });
+                            })()}
                           </div>
                         </div>
 
