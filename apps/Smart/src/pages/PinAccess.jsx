@@ -839,11 +839,13 @@ export default function PinAccess() {
       saveBiometricProfile({ ...biometricProfile, updatedAt: new Date().toISOString() });
       await completeLogin(session, true); // fromBiometric = true → no ofrecer registro de nuevo
     } catch (error) {
-      // NotAllowedError = usuario canceló. Otros errores = problema técnico.
-      // En ambos casos, caemos al flujo normal de PIN sin toast intrusivo.
-      if (error?.name !== "NotAllowedError") {
-        console.warn("[Biometric] Error:", error?.message);
-      }
+      // NotAllowedError = usuario canceló o iOS no encontró la credencial en este dispositivo.
+      // Cualquier error aquí = limpiar perfil biométrico para evitar que iOS muestre
+      // el dialog "No hay contraseña guardada" en cada visita.
+      console.warn("[Biometric] Auto-trigger falló:", error?.name, error?.message);
+      clearBiometricProfile();
+      // No mostramos toast — el usuario verá la pantalla de PIN normalmente.
+      // La próxima vez que haga login con PIN, se ofrecerá registrar de nuevo.
     } finally {
       setBiometricLoading(false);
     }
@@ -986,9 +988,13 @@ export default function PinAccess() {
     } catch (error) {
       console.error("Biometric login error:", error);
       if (error?.name === "NotAllowedError") {
-        toast.error("Autenticación biométrica cancelada");
+        // El usuario canceló O el dispositivo no encontró la credencial
+        // Limpiar perfil para que en el próximo login con PIN se ofrezca re-registrar
+        clearBiometricProfile();
+        toast.error("Biometría no disponible — inicia con PIN para reactivarla");
       } else {
-        toast.error(error?.message || "No se pudo entrar con huella");
+        clearBiometricProfile();
+        toast.error("No se pudo autenticar — inicia con PIN para reactivar biometría");
       }
     } finally {
       setBiometricLoading(false);
@@ -2355,6 +2361,19 @@ export default function PinAccess() {
 
                     {loading && <p className="text-cyan-400 font-bold text-center mt-6 animate-pulse">⚡ Validando...</p>}
 
+                    {/* Hint: dispositivo nuevo — no hay biometría registrada aquí */}
+                    {biometricSupported && !isBiometricAvailableForSelectedUser && !loading && (() => {
+                      const { label, type } = getBiometricType();
+                      return (
+                        <div className="mt-5 flex items-center gap-2 bg-white/[0.04] border border-white/10 rounded-2xl px-4 py-3">
+                          <BiometricIcon type={type} size="sm" className="text-white/30 flex-shrink-0" />
+                          <p className="text-xs text-white/40 leading-tight">
+                            Ingresa tu PIN para activar {label} en este dispositivo
+                          </p>
+                        </div>
+                      );
+                    })()}
+
                     {isBiometricAvailableForSelectedUser && (() => {
                       const { label, type } = getBiometricType();
                       return (
@@ -3245,6 +3264,19 @@ export default function PinAccess() {
                   <div className="h-8 text-center mt-4">
                     {loading && <div className="text-cyan-400 font-bold animate-pulse">⚡ Validando...</div>}
                   </div>
+
+                  {/* Hint: dispositivo nuevo — no hay biometría registrada aquí */}
+                  {biometricSupported && selectedUser && !isBiometricAvailableForSelectedUser && !loading && (() => {
+                    const { label, type } = getBiometricType();
+                    return (
+                      <div className="mt-3 flex items-center gap-2 bg-white/[0.04] border border-white/10 rounded-2xl px-4 py-3">
+                        <BiometricIcon type={type} size="sm" className="text-white/30 flex-shrink-0" />
+                        <p className="text-xs text-white/40 leading-tight">
+                          Ingresa tu PIN para activar {label} en este dispositivo
+                        </p>
+                      </div>
+                    );
+                  })()}
                 </motion.div>
               )}
             </AnimatePresence>

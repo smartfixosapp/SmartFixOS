@@ -2772,7 +2772,10 @@ export default function WorkOrderPanel({ orderId, onClose, onUpdate, onDelete, p
             }
 
             .wo-header {
-              padding: 0.75rem 1rem !important;
+              padding-right: 1rem !important;
+              padding-bottom: 0.75rem !important;
+              padding-left: 1rem !important;
+              /* padding-top is set inline via env(safe-area-inset-top) — no override */
             }
 
             .wo-scrollable {
