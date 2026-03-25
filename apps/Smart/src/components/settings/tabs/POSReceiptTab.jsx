@@ -3,7 +3,7 @@ import { dataClient } from "@/components/api/dataClient";
 import { toast } from "sonner";
 import {
   Save, Loader2, Receipt, ShieldCheck, FileText,
-  Info, Eye, EyeOff, Monitor, Smartphone, Mail
+  Info, Eye, EyeOff, Monitor, Mail
 } from "lucide-react";
 
 const SLUG = "pos-receipt-config";
@@ -208,6 +208,84 @@ function FieldLabel({ label, hint }) {
   );
 }
 
+// ── Preview del email ─────────────────────────────────────────────────────────
+function EmailPreview({ config, bizInfo }) {
+  const fromName = config.email_from_name || bizInfo.name || "SmartFixOS";
+  const subject = (config.email_subject_sale || "🧾 Tu recibo de venta #{number}").replace("#{number}", "S-2026-0042");
+  const dateStr = new Date().toLocaleDateString("es-PR", { day: "numeric", month: "long", year: "numeric" });
+  const logo = bizInfo.logo_url;
+
+  const html = `<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>${subject}</title>
+</head>
+<body style="margin:0;padding:0;background:#0F0F12;font-family:'Segoe UI',Arial,sans-serif;">
+  <div style="max-width:560px;margin:0 auto;padding:16px 12px;">
+    <div style="background:linear-gradient(135deg,#0891b2 0%,#059669 60%,#65a30d 100%);border-radius:20px 20px 0 0;padding:32px 28px;text-align:center;">
+      ${logo ? `<img src="${logo}" alt="Logo" style="max-height:48px;max-width:140px;margin:0 auto 14px;display:block;filter:brightness(0) invert(1);" onerror="this.style.display='none'" />` : ''}
+      <h1 style="margin:0;color:white;font-size:20px;font-weight:800;letter-spacing:-0.3px;">🧾 Recibo de Venta</h1>
+      <p style="margin:6px 0 0;color:rgba(255,255,255,0.75);font-size:13px;">${fromName}</p>
+    </div>
+    <div style="background:#1a1a2e;border-left:1px solid rgba(255,255,255,0.08);border-right:1px solid rgba(255,255,255,0.08);padding:24px 28px;">
+      <div style="background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.08);border-left:4px solid #0891b2;border-radius:12px;padding:16px 18px;margin-bottom:20px;">
+        <div style="color:rgba(255,255,255,0.4);font-size:10px;text-transform:uppercase;letter-spacing:1px;">NÚMERO DE RECIBO</div>
+        <div style="color:white;font-size:20px;font-weight:800;margin:4px 0 6px;">S-2026-0042</div>
+        <div style="color:rgba(255,255,255,0.5);font-size:12px;">📅 ${dateStr}</div>
+        <div style="border-top:1px solid rgba(255,255,255,0.08);padding-top:10px;margin-top:10px;">
+          <div style="color:white;font-weight:700;font-size:14px;">👤 Francis Reyes</div>
+          <div style="color:rgba(255,255,255,0.5);font-size:12px;margin-top:3px;">📞 787-555-1234</div>
+        </div>
+      </div>
+      <div style="margin-bottom:18px;">
+        <div style="color:rgba(255,255,255,0.5);font-size:10px;text-transform:uppercase;letter-spacing:1px;margin-bottom:10px;">ARTÍCULOS</div>
+        <table style="width:100%;border-collapse:collapse;">
+          <thead>
+            <tr style="background:rgba(255,255,255,0.05);">
+              <th style="padding:8px 10px;text-align:left;color:rgba(255,255,255,0.5);font-size:10px;font-weight:600;text-transform:uppercase;border-bottom:1px solid rgba(255,255,255,0.08);">Artículo</th>
+              <th style="padding:8px 6px;text-align:center;color:rgba(255,255,255,0.5);font-size:10px;font-weight:600;text-transform:uppercase;border-bottom:1px solid rgba(255,255,255,0.08);">Cant.</th>
+              <th style="padding:8px 10px;text-align:right;color:rgba(255,255,255,0.5);font-size:10px;font-weight:600;text-transform:uppercase;border-bottom:1px solid rgba(255,255,255,0.08);">Total</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td style="padding:9px 10px;border-bottom:1px solid rgba(255,255,255,0.06);color:rgba(255,255,255,0.9);font-size:13px;">iPhone 14 – Pantalla LCD</td><td style="padding:9px 6px;border-bottom:1px solid rgba(255,255,255,0.06);text-align:center;color:rgba(255,255,255,0.5);font-size:12px;">1</td><td style="padding:9px 10px;border-bottom:1px solid rgba(255,255,255,0.06);text-align:right;color:#34d399;font-weight:700;font-size:13px;">$149.99</td></tr>
+            <tr><td style="padding:9px 10px;border-bottom:1px solid rgba(255,255,255,0.06);color:rgba(255,255,255,0.9);font-size:13px;">Protector de Vidrio</td><td style="padding:9px 6px;border-bottom:1px solid rgba(255,255,255,0.06);text-align:center;color:rgba(255,255,255,0.5);font-size:12px;">1</td><td style="padding:9px 10px;border-bottom:1px solid rgba(255,255,255,0.06);text-align:right;color:#34d399;font-weight:700;font-size:13px;">$14.99</td></tr>
+            <tr><td style="padding:9px 10px;color:rgba(255,255,255,0.9);font-size:13px;">Limpieza General</td><td style="padding:9px 6px;text-align:center;color:rgba(255,255,255,0.5);font-size:12px;">1</td><td style="padding:9px 10px;text-align:right;color:#34d399;font-weight:700;font-size:13px;">$9.80</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div style="background:rgba(5,150,105,0.1);border:1px solid rgba(5,150,105,0.3);border-radius:12px;padding:16px 18px;">
+        <div style="display:flex;justify-content:space-between;margin-bottom:6px;color:rgba(255,255,255,0.6);font-size:13px;"><span>Subtotal</span><span>$174.78</span></div>
+        <div style="display:flex;justify-content:space-between;margin-bottom:10px;color:rgba(255,255,255,0.6);font-size:13px;"><span>IVU (11.5%)</span><span>$20.10</span></div>
+        <div style="border-top:2px solid rgba(5,150,105,0.5);padding-top:10px;display:flex;justify-content:space-between;align-items:center;">
+          <span style="color:white;font-size:17px;font-weight:800;">TOTAL</span>
+          <span style="color:#34d399;font-size:26px;font-weight:800;">$194.88</span>
+        </div>
+        <div style="border-top:1px solid rgba(255,255,255,0.08);padding-top:8px;margin-top:8px;display:flex;justify-content:space-between;color:rgba(255,255,255,0.5);font-size:12px;">
+          <span>Método de pago</span><span style="color:rgba(255,255,255,0.8);font-weight:600;">💳 Tarjeta</span>
+        </div>
+      </div>
+    </div>
+    <div style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06);border-top:none;border-radius:0 0 20px 20px;padding:20px 28px;text-align:center;">
+      <p style="margin:0 0 3px;color:rgba(255,255,255,0.6);font-size:13px;font-weight:600;">${fromName}</p>
+      ${bizInfo.phone ? `<p style="margin:0 0 3px;color:rgba(255,255,255,0.4);font-size:11px;">📞 ${bizInfo.phone}</p>` : ''}
+      <p style="margin:10px 0 0;color:rgba(255,255,255,0.25);font-size:10px;">Powered by SmartFixOS</p>
+    </div>
+  </div>
+</body>
+</html>`;
+
+  return (
+    <iframe
+      srcDoc={html}
+      title="Email Preview"
+      style={{ width: "100%", height: "620px", border: "none", borderRadius: "12px", display: "block" }}
+    />
+  );
+}
+
 // ── Componente principal ──────────────────────────────────────────────────────
 export default function POSReceiptTab() {
   const [config, setConfig] = useState(DEFAULTS);
@@ -216,6 +294,7 @@ export default function POSReceiptTab() {
   const [saving, setSaving] = useState(false);
   const [bizInfo, setBizInfo] = useState({});
   const [showPreview, setShowPreview] = useState(true);
+  const [previewTab, setPreviewTab] = useState("receipt"); // "receipt" | "email"
 
   useEffect(() => {
     Promise.all([
@@ -395,16 +474,49 @@ export default function POSReceiptTab() {
 
         {/* ── Panel derecho: vista previa ───────────────────────────── */}
         {showPreview && (
-          <div className="w-[320px] flex-shrink-0">
+          <div className="w-[340px] flex-shrink-0">
             <div className="sticky top-4">
-              <div className="flex items-center gap-2 mb-3">
-                <Monitor className="w-4 h-4 text-white/40" />
-                <span className="text-white/50 text-xs font-bold uppercase tracking-widest">Vista Previa — Recibo 80mm</span>
+              {/* Tab switcher */}
+              <div className="flex items-center gap-1 mb-3 bg-white/5 border border-white/10 rounded-2xl p-1">
+                <button
+                  onClick={() => setPreviewTab("receipt")}
+                  className={`flex-1 flex items-center justify-center gap-1.5 py-2 rounded-xl text-xs font-bold transition-all ${
+                    previewTab === "receipt"
+                      ? "bg-white/10 text-white shadow"
+                      : "text-white/40 hover:text-white/60"
+                  }`}
+                >
+                  <Monitor className="w-3.5 h-3.5" />
+                  Recibo 80mm
+                </button>
+                <button
+                  onClick={() => setPreviewTab("email")}
+                  className={`flex-1 flex items-center justify-center gap-1.5 py-2 rounded-xl text-xs font-bold transition-all ${
+                    previewTab === "email"
+                      ? "bg-white/10 text-white shadow"
+                      : "text-white/40 hover:text-white/60"
+                  }`}
+                >
+                  <Mail className="w-3.5 h-3.5" />
+                  Email
+                </button>
               </div>
-              <div className="bg-[#1a1a1f] border border-white/10 rounded-[20px] p-4 overflow-auto max-h-[80vh]">
-                <ReceiptPreview config={config} bizInfo={bizInfo} />
-              </div>
-              <p className="text-white/25 text-[10px] text-center mt-2">Datos de ejemplo — el recibo real usará la venta actual</p>
+
+              {previewTab === "receipt" ? (
+                <>
+                  <div className="bg-[#1a1a1f] border border-white/10 rounded-[20px] p-4 overflow-auto max-h-[80vh]">
+                    <ReceiptPreview config={config} bizInfo={bizInfo} />
+                  </div>
+                  <p className="text-white/25 text-[10px] text-center mt-2">Datos de ejemplo — el recibo real usará la venta actual</p>
+                </>
+              ) : (
+                <>
+                  <div className="bg-[#0F0F12] border border-white/10 rounded-[20px] overflow-hidden">
+                    <EmailPreview config={config} bizInfo={bizInfo} />
+                  </div>
+                  <p className="text-white/25 text-[10px] text-center mt-2">Vista previa del email — datos de ejemplo</p>
+                </>
+              )}
             </div>
           </div>
         )}

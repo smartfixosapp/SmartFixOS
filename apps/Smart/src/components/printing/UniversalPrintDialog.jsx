@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Printer, X, Mail, MessageCircle, Check, Loader2, Download } from "lucide-react";
+import { Printer, X, Mail, MessageCircle, Check, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { base44 } from "@/api/base44Client";
@@ -84,25 +84,6 @@ export default function UniversalPrintDialog({
     return doc.output("blob");
   };
 
-  const handleGeneratePDF = async () => {
-    try {
-      toast.loading("Generando PDF...");
-      const pdfBlob = await generateThermalPDFBlob();
-      const fileName = `${type === "sale" ? "Recibo" : "Orden"}_${type === "sale" ? data.sale_number : data.order_number}.pdf`;
-      const url = URL.createObjectURL(pdfBlob);
-      const a = document.createElement("a");
-      a.href = url; a.download = fileName;
-      document.body.appendChild(a); a.click();
-      URL.revokeObjectURL(url); a.remove();
-      toast.dismiss();
-      toast.success("✅ PDF descargado");
-    } catch (error) {
-      toast.dismiss();
-      toast.error("Error generando PDF");
-      console.error(error);
-    }
-  };
-
   const handleSendEmail = async (email) => {
     const targetEmail = email || manualEmail;
 
@@ -123,13 +104,13 @@ export default function UniversalPrintDialog({
       const pdfBlob = await generateThermalPDFBlob();
       const { file_url: pdfUrl } = await base44.integrations.Core.UploadFile({ file: pdfBlob });
       const customerName = customer?.name || data.customer_name || "Cliente";
+      const docNumber = type === "sale" ? data.sale_number : data.order_number;
 
-      const itemsList = (type === "sale" ? data.items : data.order_items || []).map((item, idx) =>
-        `<tr style="background: ${idx % 2 === 0 ? '#F9FAFB' : 'white'};">
-          <td style="padding: 12px 10px; border-bottom: 1px solid #E5E7EB; color: #1F2937; font-weight: 600;">${item.name}</td>
-          <td style="padding: 12px 10px; border-bottom: 1px solid #E5E7EB; text-align: center; color: #374151;">${item.quantity || item.qty || 1}</td>
-          <td style="padding: 12px 10px; border-bottom: 1px solid #E5E7EB; text-align: right; color: #6B7280;">$${(item.price || 0).toFixed(2)}</td>
-          <td style="padding: 12px 10px; border-bottom: 1px solid #E5E7EB; text-align: right; font-weight: bold; color: #059669;">$${((item.price || 0) * (item.quantity || item.qty || 1)).toFixed(2)}</td>
+      const itemsList = (type === "sale" ? data.items : data.order_items || []).map((item) =>
+        `<tr>
+          <td style="padding:10px 12px;border-bottom:1px solid rgba(255,255,255,0.06);color:rgba(255,255,255,0.9);font-weight:600;font-size:14px;">${item.name}</td>
+          <td style="padding:10px 8px;border-bottom:1px solid rgba(255,255,255,0.06);text-align:center;color:rgba(255,255,255,0.5);font-size:13px;">${item.quantity || item.qty || 1}</td>
+          <td style="padding:10px 12px;border-bottom:1px solid rgba(255,255,255,0.06);text-align:right;color:#34d399;font-weight:700;font-size:14px;">$${((item.price || 0) * (item.quantity || item.qty || 1)).toFixed(2)}</td>
         </tr>`
       ).join('');
 
@@ -137,97 +118,113 @@ export default function UniversalPrintDialog({
         subtotal: data.subtotal || 0,
         tax: data.tax_amount || 0,
         total: data.total || 0,
-        discount: data.discount_amount || 0
+        discount: data.discount_amount || 0,
+        labor: 0
       } : (() => {
         const items = data.order_items || [];
         const subtotal = items.reduce((sum, item) => sum + ((item.price || 0) * (item.qty || item.quantity || 1)), 0);
         const labor = data.labor_cost || 0;
         const total = subtotal + labor;
         const tax = total * (data.tax_rate || 0.115);
-        return { subtotal, labor, total: total + tax, tax };
+        return { subtotal, labor, total: total + tax, tax, discount: 0 };
       })();
 
-      const emailBody = `
-        <!DOCTYPE html>
-        <html>
-        <head><meta charset="UTF-8"></head>
-        <body style="margin: 0; padding: 0; background: #F3F4F6;">
-          <div style="font-family: 'Segoe UI', Arial, sans-serif; max-width: 600px; margin: 0 auto; background: #ffffff;">
-            <div style="background: linear-gradient(135deg, #00A8E8 0%, #10B981 50%, #A8D700 100%); padding: 40px 20px; text-align: center;">
-              <h1 style="color: white; margin: 0; font-size: 28px; font-weight: bold;">
-                ${type === "sale" ? "🧾 Recibo de Venta" : "🔧 Orden de Reparación"}
-              </h1>
-            </div>
+      const posConfig = (() => { try { return JSON.parse(localStorage.getItem("pos_receipt_config") || "{}"); } catch { return {}; } })();
+      const fromName = posConfig.email_from_name || businessInfo?.business_name || "SmartFixOS";
+      const subjectTemplate = type === "sale"
+        ? (posConfig.email_subject_sale || "🧾 Tu recibo de venta #{number}")
+        : (posConfig.email_subject_order || "🔧 Tu orden de reparación #{number}");
+      const subject = subjectTemplate.replace("#{number}", docNumber);
 
-            <div style="padding: 40px 30px; background: white;">
-              <div style="background: #F9FAFB; border-left: 4px solid #00A8E8; padding: 20px; margin-bottom: 30px; border-radius: 8px;">
-                <p style="margin: 0; color: #6B7280; font-size: 12px;">NÚMERO</p>
-                <p style="margin: 4px 0 0 0; color: #111827; font-size: 20px; font-weight: bold;">
-                  ${type === "sale" ? data.sale_number : data.order_number}
-                </p>
-                <p style="margin: 8px 0 0 0; color: #6B7280; font-size: 14px;">${format(new Date(), 'dd/MM/yyyy HH:mm')}</p>
-                ${customer?.name || data.customer_name ? `
-                <div style="border-top: 1px solid #E5E7EB; padding-top: 12px; margin-top: 12px;">
-                  <p style="margin: 0; color: #111827; font-weight: bold;">${customer?.name || data.customer_name}</p>
-                  ${customer?.phone || data.customer_phone ? `<p style="margin: 4px 0 0 0; color: #374151;">📞 ${customer?.phone || data.customer_phone}</p>` : ''}
-                </div>
-                ` : ''}
-              </div>
+      const emailBody = `<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>${subject}</title>
+</head>
+<body style="margin:0;padding:0;background:#0F0F12;font-family:'Segoe UI',Arial,sans-serif;">
+  <div style="max-width:600px;margin:0 auto;padding:20px 16px;">
 
-              <table style="width: 100%; border-collapse: collapse; margin-bottom: 20px;">
-                <thead>
-                  <tr style="background: #374151;">
-                    <th style="padding: 12px; text-align: left; color: white;">Artículo</th>
-                    <th style="padding: 12px; text-align: center; color: white;">Cant.</th>
-                    <th style="padding: 12px; text-align: right; color: white;">Precio</th>
-                    <th style="padding: 12px; text-align: right; color: white;">Total</th>
-                  </tr>
-                </thead>
-                <tbody>${itemsList}</tbody>
-              </table>
+    <!-- Header -->
+    <div style="background:linear-gradient(135deg,#0891b2 0%,#059669 60%,#65a30d 100%);border-radius:20px 20px 0 0;padding:36px 32px;text-align:center;">
+      ${logo ? `<img src="${logo}" alt="Logo" style="max-height:50px;max-width:160px;margin:0 auto 16px;display:block;filter:brightness(0) invert(1);" onerror="this.style.display='none'" />` : ''}
+      <h1 style="margin:0;color:white;font-size:22px;font-weight:800;letter-spacing:-0.3px;">
+        ${type === "sale" ? "🧾 Recibo de Venta" : "🔧 Orden de Reparación"}
+      </h1>
+      <p style="margin:8px 0 0;color:rgba(255,255,255,0.75);font-size:14px;">${fromName}</p>
+    </div>
 
-              <div style="background: #F0FDF4; border: 2px solid #10B981; border-radius: 12px; padding: 20px;">
-                <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
-                  <span>Subtotal</span>
-                  <span style="font-weight: bold;">$${totals.subtotal.toFixed(2)}</span>
-                </div>
-                ${totals.labor > 0 ? `
-                <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
-                  <span>Mano de Obra</span>
-                  <span style="font-weight: bold;">$${totals.labor.toFixed(2)}</span>
-                </div>` : ''}
-                ${totals.discount > 0 ? `
-                <div style="display: flex; justify-content: space-between; margin-bottom: 8px; color: #059669;">
-                  <span>Descuento</span>
-                  <span style="font-weight: bold;">-$${totals.discount.toFixed(2)}</span>
-                </div>` : ''}
-                <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
-                  <span>IVU (11.5%)</span>
-                  <span style="font-weight: bold;">$${totals.tax.toFixed(2)}</span>
-                </div>
-                <div style="border-top: 3px solid #10B981; padding-top: 12px; margin-top: 12px; display: flex; justify-content: space-between;">
-                  <span style="font-size: 20px; font-weight: bold; color: #059669;">TOTAL</span>
-                  <span style="font-size: 28px; font-weight: bold; color: #059669;">$${totals.total.toFixed(2)}</span>
-                </div>
-              </div>
-            </div>
+    <!-- Body -->
+    <div style="background:#1a1a2e;border-left:1px solid rgba(255,255,255,0.08);border-right:1px solid rgba(255,255,255,0.08);padding:28px 32px;">
 
-            <div style="background: #F9FAFB; padding: 30px; text-align: center; border-top: 3px solid #E5E7EB;">
-              <p style="margin: 0; color: #111827; font-weight: bold;">✨ SmartFixOS</p>
-              <p style="margin: 8px 0 0 0; color: #9CA3AF; font-size: 11px;">
-                ${format(new Date(), "dd/MM/yyyy 'a las' HH:mm:ss")}
-              </p>
-            </div>
-          </div>
-        </body>
-        </html>
-      `;
+      <!-- Order info card -->
+      <div style="background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.08);border-left:4px solid #0891b2;border-radius:12px;padding:18px 20px;margin-bottom:24px;">
+        <div style="color:rgba(255,255,255,0.4);font-size:11px;text-transform:uppercase;letter-spacing:1px;">NÚMERO DE ${type === "sale" ? "RECIBO" : "ORDEN"}</div>
+        <div style="color:white;font-size:22px;font-weight:800;margin:4px 0 8px;">${docNumber}</div>
+        <div style="color:rgba(255,255,255,0.5);font-size:13px;">📅 ${format(new Date(), 'dd/MM/yyyy HH:mm')}</div>
+        ${customerName ? `
+        <div style="border-top:1px solid rgba(255,255,255,0.08);padding-top:12px;margin-top:12px;">
+          <div style="color:white;font-weight:700;font-size:15px;">👤 ${customerName}</div>
+          ${customer?.phone || data.customer_phone ? `<div style="color:rgba(255,255,255,0.5);font-size:13px;margin-top:4px;">📞 ${customer?.phone || data.customer_phone}</div>` : ''}
+        </div>` : ''}
+      </div>
 
-      const fromName = businessInfo?.business_name || "SmartFixOS";
+      <!-- Items -->
+      <div style="margin-bottom:20px;">
+        <div style="color:rgba(255,255,255,0.5);font-size:11px;text-transform:uppercase;letter-spacing:1px;margin-bottom:12px;">ARTÍCULOS</div>
+        <table style="width:100%;border-collapse:collapse;">
+          <thead>
+            <tr style="background:rgba(255,255,255,0.05);">
+              <th style="padding:10px 12px;text-align:left;color:rgba(255,255,255,0.5);font-size:11px;font-weight:600;text-transform:uppercase;border-bottom:1px solid rgba(255,255,255,0.08);">Artículo</th>
+              <th style="padding:10px 8px;text-align:center;color:rgba(255,255,255,0.5);font-size:11px;font-weight:600;text-transform:uppercase;border-bottom:1px solid rgba(255,255,255,0.08);">Cant.</th>
+              <th style="padding:10px 12px;text-align:right;color:rgba(255,255,255,0.5);font-size:11px;font-weight:600;text-transform:uppercase;border-bottom:1px solid rgba(255,255,255,0.08);">Total</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${itemsList}
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Totals -->
+      <div style="background:rgba(5,150,105,0.1);border:1px solid rgba(5,150,105,0.3);border-radius:12px;padding:18px 20px;">
+        <div style="display:flex;justify-content:space-between;margin-bottom:8px;color:rgba(255,255,255,0.6);font-size:14px;">
+          <span>Subtotal</span><span>$${totals.subtotal.toFixed(2)}</span>
+        </div>
+        ${totals.labor > 0 ? `<div style="display:flex;justify-content:space-between;margin-bottom:8px;color:rgba(255,255,255,0.6);font-size:14px;"><span>Mano de Obra</span><span>$${totals.labor.toFixed(2)}</span></div>` : ''}
+        ${totals.discount > 0 ? `<div style="display:flex;justify-content:space-between;margin-bottom:8px;color:#34d399;font-size:14px;"><span>Descuento</span><span>-$${totals.discount.toFixed(2)}</span></div>` : ''}
+        <div style="display:flex;justify-content:space-between;margin-bottom:12px;color:rgba(255,255,255,0.6);font-size:14px;">
+          <span>IVU (11.5%)</span><span>$${totals.tax.toFixed(2)}</span>
+        </div>
+        <div style="border-top:2px solid rgba(5,150,105,0.5);padding-top:12px;display:flex;justify-content:space-between;align-items:center;">
+          <span style="color:white;font-size:18px;font-weight:800;">TOTAL</span>
+          <span style="color:#34d399;font-size:28px;font-weight:800;">$${totals.total.toFixed(2)}</span>
+        </div>
+        ${type === "sale" && data.payment_method ? `
+        <div style="border-top:1px solid rgba(255,255,255,0.08);padding-top:10px;margin-top:10px;display:flex;justify-content:space-between;color:rgba(255,255,255,0.5);font-size:13px;">
+          <span>Método de pago</span>
+          <span style="color:rgba(255,255,255,0.8);font-weight:600;">${data.payment_method === 'cash' ? '💵 Efectivo' : data.payment_method === 'card' ? '💳 Tarjeta' : data.payment_method === 'ath_movil' ? '📱 ATH Móvil' : data.payment_method}</span>
+        </div>` : ''}
+      </div>
+
+    </div>
+
+    <!-- Footer -->
+    <div style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06);border-top:none;border-radius:0 0 20px 20px;padding:24px 32px;text-align:center;">
+      <p style="margin:0 0 4px;color:rgba(255,255,255,0.6);font-size:14px;font-weight:600;">${fromName}</p>
+      ${businessInfo?.business_phone ? `<p style="margin:0 0 4px;color:rgba(255,255,255,0.4);font-size:12px;">📞 ${businessInfo.business_phone}</p>` : ''}
+      <p style="margin:12px 0 0;color:rgba(255,255,255,0.25);font-size:11px;">Powered by SmartFixOS</p>
+    </div>
+
+  </div>
+</body>
+</html>`;
+
       await base44.integrations.Core.SendEmail({
         from_name: fromName,
         to: targetEmail,
-        subject: `${type === "sale" ? "🧾 Recibo de Venta" : "🔧 Orden de Reparación"} #${type === "sale" ? data.sale_number : data.order_number}`,
+        subject: subject,
         body: emailBody
       });
 
@@ -250,45 +247,46 @@ export default function UniversalPrintDialog({
     }
 
     setSending(prev => ({ ...prev, whatsapp: true }));
+    const toastId = toast.loading("Generando enlace del recibo...");
     try {
-      toast.loading("Generando PDF para WhatsApp...");
       const pdfBlob = await generateThermalPDFBlob();
-      toast.dismiss();
+      const docNumber = type === "sale" ? data.sale_number : data.order_number;
+      const fileName = `receipts/${docNumber}_${Date.now()}.pdf`;
 
-      const url = URL.createObjectURL(pdfBlob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `${type === "sale" ? "Recibo" : "Orden"}_${type === "sale" ? data.sale_number : data.order_number}.pdf`;
-      document.body.appendChild(a);
-      a.click();
-      URL.revokeObjectURL(url);
-      a.remove();
+      // Subir PDF a Storage y obtener URL pública
+      const { file_url: pdfUrl } = await base44.integrations.Core.UploadFile({
+        file: pdfBlob,
+        file_name: fileName,
+      });
 
-      const message = `
-${type === "sale" ? "🧾 *RECIBO DE VENTA*" : "🔧 *ORDEN DE REPARACIÓN*"}
-━━━━━━━━━━━━━━━━━━━━
+      toast.dismiss(toastId);
 
-${businessInfo?.business_name || '911 Smart Fix'}
-
-📋 *${type === "sale" ? "Recibo" : "Orden"}:* ${type === "sale" ? data.sale_number : data.order_number}
-👤 *Cliente:* ${customer?.name || data.customer_name || "Cliente"}
-📅 *Fecha:* ${format(new Date(), 'dd/MM/yyyy HH:mm')}
-
-📄 *Tu recibo completo está adjunto en PDF*
-(Por favor, adjunta el archivo PDF descargado)
-
-━━━━━━━━━━━━━━━━━━━━
-🔧 *${businessInfo?.business_name || '911 Smart Fix'}*
-${businessInfo?.business_phone ? `📞 ${businessInfo.business_phone}` : ''}
-Gracias por su preferencia
-      `.trim();
+      const bizName = businessInfo?.business_name || '911 Smart Fix';
+      const customerName = customer?.name || data.customer_name || "Cliente";
+      const message = [
+        `${type === "sale" ? "🧾 *Recibo de Venta*" : "🔧 *Orden de Reparación*"}`,
+        `━━━━━━━━━━━━━━━━━━━━`,
+        ``,
+        `📋 *#${docNumber}*`,
+        `👤 ${customerName}`,
+        `📅 ${format(new Date(), 'dd/MM/yyyy')}`,
+        ``,
+        `Haz clic en el enlace para ver y descargar tu recibo:`,
+        pdfUrl,
+        ``,
+        `━━━━━━━━━━━━━━━━━━━━`,
+        `🔧 *${bizName}*`,
+        businessInfo?.business_phone ? `📞 ${businessInfo.business_phone}` : null,
+        `Gracias por su preferencia`,
+      ].filter(Boolean).join('\n');
 
       openWhatsApp(targetPhone, message);
       setSent(prev => ({ ...prev, whatsapp: true }));
       setManualPhone("");
-      toast.success("✅ PDF descargado - Abriendo WhatsApp");
+      toast.success("✅ Enlace generado — abriendo WhatsApp");
     } catch (error) {
-      toast.error("Error al generar PDF");
+      toast.dismiss(toastId);
+      toast.error("Error al generar enlace");
       console.error(error);
     } finally {
       setSending(prev => ({ ...prev, whatsapp: false }));
@@ -400,15 +398,6 @@ Gracias por su preferencia
                   </button>
                 </div>
               </div>
-
-              {/* Download PDF */}
-              <button
-                onClick={handleGeneratePDF}
-                className="w-full h-10 flex items-center justify-center gap-2 rounded-xl bg-white/5 border border-white/10 text-white/60 font-bold text-sm hover:bg-white/10 transition-all active:scale-95"
-              >
-                <Download className="w-3.5 h-3.5" />
-                Descargar PDF
-              </button>
 
             </div>
           </div>
