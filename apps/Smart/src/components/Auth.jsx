@@ -74,11 +74,21 @@ function readPinSession() {
   const ssRaw = sessionStorage.getItem("911-session");
   const lsRaw = localStorage.getItem("employee_session");
 
-  // Si sessionStorage está vacío pero localStorage tiene datos →
-  // la pestaña/app fue cerrada y reabierta → forzar re-login
+  // sessionStorage vacío + localStorage con datos:
+  //   - BG_TS_KEY = "0"  → beforeunload marcó cierre explícito → re-login obligatorio
+  //   - cualquier otro caso → iOS/Android mató el proceso en background;
+  //     el AuthGate ya verificó el tiempo transcurrido antes de llamar aquí,
+  //     así que restauramos la sesión desde localStorage (no forzar Google OAuth)
   if (!ssRaw && lsRaw) {
-    localStorage.removeItem("employee_session");
-    return null;
+    const bgTs = localStorage.getItem(BG_TS_KEY);
+    if (bgTs === "0") {
+      // Cierre explícito de pestaña en escritorio → re-login
+      localStorage.removeItem("employee_session");
+      localStorage.removeItem(BG_TS_KEY);
+      return null;
+    }
+    // Proceso matado por el SO → restaurar sessionStorage para esta sesión
+    try { sessionStorage.setItem("911-session", lsRaw); } catch {}
   }
 
   const raw = ssRaw || lsRaw;
@@ -204,7 +214,7 @@ export default function AuthGate({ children }) {
       if (!shouldNever) {
         const graceMs = localUserTimeout != null
           ? Math.max(MIN_BACKGROUND_GRACE_MS, localUserTimeout)
-          : MIN_BACKGROUND_GRACE_MS;
+          : DEFAULT_INACTIVITY_MS; // 5 min por defecto si el usuario no configuró timeout
         if (elapsed > graceMs) {
           // El app fue cerrado mientras estaba en background → re-login
           clearAllSessions();
