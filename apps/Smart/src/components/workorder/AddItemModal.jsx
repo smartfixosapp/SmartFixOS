@@ -526,8 +526,68 @@ export default function AddItemModal({
     });
   };
 
-  const removeItem = (idx) => {
-    setCartItems((prev) => prev.filter((_, i) => i !== idx));
+  const removeItem = async (idx) => {
+    const newItems = cartItems.filter((_, i) => i !== idx);
+    setCartItems(newItems);
+
+    // Auto-save deletion to DB immediately (no need to click "Aplicar")
+    if (!isDraftOrder && order?.id) {
+      try {
+        const normalized = newItems.map((raw) => {
+          const item = normalizeCartItem(raw);
+          return {
+            id: item.id,
+            name: item.name,
+            price: toNum(item.price, 0),
+            qty: toNum(item.qty, 1),
+            type: item.type,
+            __kind: item.__kind || item.type,
+            __source_id: item.__source_id || item.id,
+            from_inventory: item.from_inventory === true,
+            stock: toNum(item.stock, 0),
+            sku: item.sku || "",
+            discount_percentage: toNum(item.discount_percentage, 0),
+            taxable: item.taxable !== false,
+            source: item.source || (item.from_inventory ? "inventory" : "manual"),
+            is_manual: item.is_manual === true,
+            ...(item.link_ref_id ? { link_ref_id: item.link_ref_id } : {}),
+            ...(item.link_url ? { link_url: item.link_url } : {}),
+            ...(item.part_type ? { part_type: item.part_type } : {}),
+            ...(item.tipo_principal ? { tipo_principal: item.tipo_principal } : {}),
+            ...(item.category ? { category: item.category } : {}),
+          };
+        });
+
+        const subtotal = newItems.reduce((sum, item) => {
+          const base = toNum(item.price, 0) * toNum(item.qty, 1);
+          const discount = toNum(item.discount_percentage, 0);
+          return sum + base - base * (discount / 100);
+        }, 0);
+        const taxableBase = newItems.reduce((sum, item) => {
+          if (item.taxable === false) return sum;
+          const base = toNum(item.price, 0) * toNum(item.qty, 1);
+          const discount = toNum(item.discount_percentage, 0);
+          return sum + (base - base * (discount / 100));
+        }, 0);
+        const newTotal = subtotal + taxableBase * IVU_RATE;
+        const currentPaid = Number(order?.total_paid || order?.amount_paid || 0);
+        const balanceDue = Math.max(0, newTotal - currentPaid);
+
+        const payload = { order_items: normalized, cost_estimate: newTotal, balance_due: balanceDue, tax_rate: IVU_RATE };
+        onSave?.(normalized);
+        onUpdate?.({ id: order.id, ...payload, total: newTotal });
+
+        try {
+          await dataClient.entities.Order.update(order.id, payload);
+        } catch {
+          await base44.entities.Order.update(order.id, payload).catch(() => null);
+        }
+        toast.success("Item eliminado");
+      } catch (e) {
+        console.error("[AddItemModal] auto-save after delete failed:", e);
+        toast.error("No se pudo guardar la eliminación");
+      }
+    }
   };
 
   const clearCart = () => {

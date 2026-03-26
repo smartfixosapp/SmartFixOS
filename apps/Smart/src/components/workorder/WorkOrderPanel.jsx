@@ -232,6 +232,9 @@ function mergeOrderSnapshot(remoteOrder, localOrder) {
       "amount_paid", "balance_due", "paid", "deposit_amount",
       "total", "subtotal", "tax_amount", "discount_amount",
       "updated_date",
+      // Status fields: DB is authoritative — local cache must never override a status change
+      "status", "status_metadata", "status_note", "status_history",
+      "status_note_visible_to_customer",
     ];
     const merged = { ...remoteOrder, ...localOrder };
     for (const field of REMOTE_WINS_FIELDS) {
