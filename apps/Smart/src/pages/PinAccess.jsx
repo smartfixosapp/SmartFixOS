@@ -801,6 +801,13 @@ export default function PinAccess() {
   // ── Biometric early login (directo al usuario, sin seleccionar) ──────────
   const handleEarlyBiometricLogin = async () => {
     if (!biometricSupported || !biometricProfile?.credentialId || !biometricProfile?.session) return;
+    // Si el perfil fue creado en otro dispositivo/navegador, limpiar silenciosamente
+    // para evitar que macOS muestre el diálogo "No tienes contraseña guardada"
+    if (biometricProfile.deviceKey && biometricProfile.deviceKey !== navigator.userAgent.slice(0, 120)) {
+      console.warn("[Biometric] Device mismatch — clearing profile to avoid browser credential dialog");
+      clearBiometricProfile();
+      return;
+    }
     setBiometricLoading(true);
     setError("");
     try {
@@ -1119,6 +1126,7 @@ export default function PinAccess() {
         session: pendingLoginSession,
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
+        deviceKey: navigator.userAgent.slice(0, 120),
       });
       const { name } = getBiometricType();
       toast.success(`✅ ${name} activado — próxima vez entrarás automáticamente`);

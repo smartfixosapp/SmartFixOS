@@ -4,7 +4,6 @@ import { createPortal } from "react-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { dataClient } from "@/components/api/dataClient";
 import { base44 } from "@/api/base44Client";
 import { catalogCache } from "@/components/utils/dataCache";
@@ -25,6 +24,7 @@ import {
   Minus,
   Package,
   Loader2,
+  Sparkles,
 } from "lucide-react";
 
 const IVU_RATE = 0.115;
@@ -186,6 +186,13 @@ export default function AddItemModal({
   deviceFamily = "",
   deviceModel = "",
 }) {
+  // Prefer explicit props, fallback to order fields
+  const effectiveDeviceType   = deviceType   || String(order?.device_type   || "");
+  const effectiveDeviceBrand  = deviceBrand  || String(order?.device_brand  || "");
+  const effectiveDeviceFamily = deviceFamily || String(order?.device_family || "");
+  const effectiveDeviceModel  = deviceModel  || String(order?.device_model  || "");
+  const hasDeviceInfo = !!(effectiveDeviceModel || effectiveDeviceBrand || effectiveDeviceFamily || effectiveDeviceType);
+
   const [activeCategory, setActiveCategory] = useState("all");
   const [search, setSearch] = useState("");
   const [inventoryItems, setInventoryItems] = useState([]);
@@ -380,12 +387,59 @@ export default function AddItemModal({
     }
   };
 
+  // Smart suggestion helpers (used by "suggestions" category)
+  const deviceSuggestionFilter = useMemo(() => {
+    const typeKey   = effectiveDeviceType.trim().toLowerCase();
+    const brandKey  = effectiveDeviceBrand.trim().toLowerCase();
+    const familyKey = effectiveDeviceFamily.trim().toLowerCase();
+    const modelKey  = effectiveDeviceModel.trim().toLowerCase();
+
+    const categoryMatchesDevice = (item) => {
+      if (!typeKey) return true;
+      const haystack = [item?.device_category, item?.category, item?.part_type, item?.tipo_principal, item?.name]
+        .filter(Boolean).join(" ").toLowerCase();
+      if (typeKey.includes("tablet")) return haystack.includes("tablet") || haystack.includes("ipad");
+      if (typeKey.includes("laptop") || typeKey.includes("pc") || typeKey.includes("desktop") || typeKey.includes("computadora"))
+        return haystack.includes("laptop") || haystack.includes("pc") || haystack.includes("desktop") || haystack.includes("computadora");
+      if (typeKey.includes("accesorio")) return haystack.includes("accesorio");
+      return haystack.includes("phone") || haystack.includes("iphone") || haystack.includes("galaxy") || haystack.includes("celular") || haystack.includes("smartphone");
+    };
+
+    const matchesSpecificDevice = (item) => {
+      if (!modelKey && !familyKey && !brandKey) return false;
+      const name = String(item?.name || "").toLowerCase();
+      const compatModels   = Array.isArray(item?.compatibility_models) ? item.compatibility_models : [];
+      const compatFamilies = Array.isArray(item?.compatible_families)  ? item.compatible_families  : [];
+      const compatBrands   = Array.isArray(item?.compatible_brands)    ? item.compatible_brands    : [];
+      const modelMatch  = modelKey  ? name.includes(modelKey)  || compatModels.some((m)  => String(m  || "").toLowerCase().includes(modelKey))  : false;
+      const familyMatch = familyKey ? name.includes(familyKey) || compatFamilies.some((f) => String(f || "").toLowerCase().includes(familyKey)) : false;
+      const brandMatch  = brandKey  ? name.includes(brandKey)  || compatBrands.some((b)  => String(b  || "").toLowerCase().includes(brandKey))  : false;
+      return modelMatch || familyMatch || brandMatch;
+    };
+
+    return { categoryMatchesDevice, matchesSpecificDevice, modelKey, familyKey, brandKey, typeKey };
+  }, [effectiveDeviceType, effectiveDeviceBrand, effectiveDeviceFamily, effectiveDeviceModel]);
+
   const filteredItems = useMemo(() => {
     let base = [...inventoryItems];
 
-    if (activeCategory === "services") base = base.filter(isService);
-    if (activeCategory === "accessories") base = base.filter(isAccessory);
-    if (activeCategory === "parts") base = base.filter((i) => !isService(i) && !isAccessory(i));
+    if (activeCategory === "suggestions") {
+      // Smart: services + accessories by device type; parts strictly by model
+      const { categoryMatchesDevice, matchesSpecificDevice, modelKey, familyKey, brandKey } = deviceSuggestionFilter;
+      const byType = base.filter((item) => categoryMatchesDevice(item));
+      if (modelKey || familyKey || brandKey) {
+        const parts    = byType.filter((i) => !isService(i) && !isAccessory(i));
+        const nonParts = byType.filter((i) =>  isService(i) ||  isAccessory(i));
+        const strictParts = parts.filter((i) => matchesSpecificDevice(i));
+        base = [...nonParts, ...(strictParts.length > 0 ? strictParts : parts)];
+      } else {
+        base = byType;
+      }
+    } else {
+      if (activeCategory === "services")    base = base.filter(isService);
+      if (activeCategory === "accessories") base = base.filter(isAccessory);
+      if (activeCategory === "parts")       base = base.filter((i) => !isService(i) && !isAccessory(i));
+    }
 
     const q = search.trim().toLowerCase();
     if (q) {
@@ -394,83 +448,26 @@ export default function AddItemModal({
       );
     }
 
-    const typeKey = String(deviceType || "").trim().toLowerCase();
-    const brandKey = String(deviceBrand || "").trim().toLowerCase();
-    const familyKey = String(deviceFamily || "").trim().toLowerCase();
-    const modelKey = String(deviceModel || "").trim().toLowerCase();
-
-    const categoryMatchesDevice = (item) => {
-      if (!typeKey) return true;
-      const haystack = [
-        item?.device_category,
-        item?.category,
-        item?.part_type,
-        item?.tipo_principal,
-        item?.name
-      ]
-        .filter(Boolean)
-        .join(" ")
-        .toLowerCase();
-
-      if (typeKey.includes("tablet")) return haystack.includes("tablet") || haystack.includes("ipad");
-      if (
-        typeKey.includes("laptop") ||
-        typeKey.includes("pc") ||
-        typeKey.includes("desktop") ||
-        typeKey.includes("computadora")
-      ) {
-        return haystack.includes("laptop") || haystack.includes("pc") || haystack.includes("desktop") || haystack.includes("computadora");
-      }
-      if (typeKey.includes("accesorio")) return haystack.includes("accesorio");
-      return (
-        haystack.includes("phone") ||
-        haystack.includes("iphone") ||
-        haystack.includes("galaxy") ||
-        haystack.includes("celular") ||
-        haystack.includes("smartphone")
-      );
-    };
-
-    const matchesSpecificDevice = (item) => {
-      if (!modelKey && !familyKey && !brandKey) return true;
-      const name = String(item?.name || "").toLowerCase();
-      const compatModels = Array.isArray(item?.compatibility_models) ? item.compatibility_models : [];
-      const compatFamilies = Array.isArray(item?.compatible_families) ? item.compatible_families : [];
-      const compatBrands = Array.isArray(item?.compatible_brands) ? item.compatible_brands : [];
-
-      const modelMatch = modelKey
-        ? name.includes(modelKey) || compatModels.some((m) => String(m || "").toLowerCase().includes(modelKey))
-        : false;
-      const familyMatch = familyKey
-        ? name.includes(familyKey) || compatFamilies.some((f) => String(f || "").toLowerCase().includes(familyKey))
-        : false;
-      const brandMatch = brandKey
-        ? name.includes(brandKey) || compatBrands.some((b) => String(b || "").toLowerCase().includes(brandKey))
-        : false;
-
-      return modelMatch || familyMatch || brandMatch;
-    };
-
-    if (typeKey || modelKey || familyKey || brandKey) {
-      const byCategory = base.filter((item) => categoryMatchesDevice(item));
-      if (modelKey || familyKey || brandKey) {
-        const strictMatches = byCategory.filter((item) => matchesSpecificDevice(item));
-        base = strictMatches.length > 0 ? strictMatches : byCategory;
-      } else {
-        base = byCategory;
-      }
-    }
-
     return base;
-  }, [inventoryItems, activeCategory, search, deviceType, deviceBrand, deviceFamily, deviceModel]);
+  }, [inventoryItems, activeCategory, search, deviceSuggestionFilter]);
 
   const categoryCounts = useMemo(() => {
     const all = inventoryItems.length;
     const services = inventoryItems.filter(isService).length;
     const accessories = inventoryItems.filter(isAccessory).length;
     const parts = inventoryItems.filter((i) => !isService(i) && !isAccessory(i)).length;
-    return { all, services, accessories, parts };
-  }, [inventoryItems]);
+    const { categoryMatchesDevice, matchesSpecificDevice, modelKey, familyKey, brandKey } = deviceSuggestionFilter;
+    const byType = inventoryItems.filter((item) => categoryMatchesDevice(item));
+    let suggestions;
+    if (modelKey || familyKey || brandKey) {
+      const strictParts = byType.filter((i) => !isService(i) && !isAccessory(i) && matchesSpecificDevice(i));
+      const nonParts = byType.filter((i) => isService(i) || isAccessory(i));
+      suggestions = nonParts.length + strictParts.length;
+    } else {
+      suggestions = byType.length;
+    }
+    return { all, services, accessories, parts, suggestions };
+  }, [inventoryItems, deviceSuggestionFilter]);
 
   const totals = useMemo(() => {
     const subtotal = cartItems.reduce((sum, item) => {
@@ -767,14 +764,16 @@ export default function AddItemModal({
           <div className="hidden sm:block border-r border-white/8 bg-black/20 p-4 space-y-2 overflow-y-auto">
             <p className="mb-3 text-[10px] font-black uppercase tracking-[0.28em] text-white/35">Categorías</p>
             {[
-              { key: "all",         label: "Todas",      icon: Package, count: categoryCounts.all,         color: "cyan" },
-              { key: "services",    label: "Servicios",  icon: Zap,     count: categoryCounts.services,    color: "violet" },
-              { key: "accessories", label: "Accesorios", icon: Box,     count: categoryCounts.accessories, color: "amber" },
-              { key: "parts",       label: "Piezas",     icon: Wrench,  count: categoryCounts.parts,       color: "emerald" },
+              { key: "all",         label: "Todas",      icon: Package,  count: categoryCounts.all,         color: "cyan" },
+              ...(hasDeviceInfo ? [{ key: "suggestions", label: "Sugerencias", icon: Sparkles, count: categoryCounts.suggestions, color: "pink" }] : []),
+              { key: "services",    label: "Servicios",  icon: Zap,      count: categoryCounts.services,    color: "violet" },
+              { key: "accessories", label: "Accesorios", icon: Box,      count: categoryCounts.accessories, color: "amber" },
+              { key: "parts",       label: "Piezas",     icon: Wrench,   count: categoryCounts.parts,       color: "emerald" },
             ].map((cat) => {
               const isActive = activeCategory === cat.key;
               const colorMap = {
                 cyan:    { border: "border-cyan-400/35",    bg: "bg-cyan-500/12",    text: "text-cyan-200",    badge: "bg-cyan-500/20 text-cyan-200" },
+                pink:    { border: "border-pink-400/35",    bg: "bg-pink-500/12",    text: "text-pink-200",    badge: "bg-pink-500/20 text-pink-200" },
                 violet:  { border: "border-violet-400/35", bg: "bg-violet-500/12",  text: "text-violet-200", badge: "bg-violet-500/20 text-violet-200" },
                 amber:   { border: "border-amber-400/35",  bg: "bg-amber-500/12",   text: "text-amber-200",  badge: "bg-amber-500/20 text-amber-200" },
                 emerald: { border: "border-emerald-400/35",bg: "bg-emerald-500/12", text: "text-emerald-200",badge: "bg-emerald-500/20 text-emerald-200" },
@@ -809,14 +808,16 @@ export default function AddItemModal({
             <div className="sm:hidden flex-shrink-0 bg-[#121215] border-b border-white/[0.08] px-4 py-3">
               <div className="flex gap-2 overflow-x-auto no-scrollbar scroll-smooth">
                 {[
-                  { key: "all",         label: "Todo",      icon: Package, color: "cyan" },
-                  { key: "services",    label: "Servicios",  icon: Zap,     color: "violet" },
-                  { key: "accessories", label: "Accesorios", icon: Box,     color: "amber" },
-                  { key: "parts",       label: "Piezas",     icon: Wrench,  color: "emerald" },
+                  { key: "all",         label: "Todo",       icon: Package,  color: "cyan" },
+                  ...(hasDeviceInfo ? [{ key: "suggestions", label: "Sugerencias", icon: Sparkles, color: "pink" }] : []),
+                  { key: "services",    label: "Servicios",  icon: Zap,      color: "violet" },
+                  { key: "accessories", label: "Accesorios", icon: Box,      color: "amber" },
+                  { key: "parts",       label: "Piezas",     icon: Wrench,   color: "emerald" },
                 ].map((cat) => {
                   const isActive = activeCategory === cat.key;
                   const colorMap = {
                     cyan:    "text-cyan-400 border-cyan-500/30 bg-cyan-500/10 shadow-[0_4px_12px_rgba(6,182,212,0.15)]",
+                    pink:    "text-pink-400 border-pink-500/30 bg-pink-500/10 shadow-[0_4px_12px_rgba(236,72,153,0.15)]",
                     violet:  "text-violet-400 border-violet-500/30 bg-violet-500/10 shadow-[0_4px_12px_rgba(139,92,246,0.15)]",
                     amber:   "text-amber-400 border-amber-500/30 bg-amber-500/10 shadow-[0_4px_12px_rgba(245,158,11,0.15)]",
                     emerald: "text-emerald-400 border-emerald-500/30 bg-emerald-500/10 shadow-[0_4px_12px_rgba(16,185,129,0.15)]",
@@ -851,7 +852,15 @@ export default function AddItemModal({
               </div>
             </div>
 
-            <ScrollArea className="flex-1 p-4 sm:p-5">
+            <div className="flex-1 overflow-y-auto p-4 sm:p-5">
+              {activeCategory === "suggestions" && hasDeviceInfo && (
+                <div className="mb-4 flex items-center gap-2 rounded-2xl border border-pink-500/20 bg-pink-500/8 px-4 py-2.5">
+                  <Sparkles className="w-3.5 h-3.5 text-pink-400 shrink-0" />
+                  <p className="text-[11px] font-black uppercase tracking-wider text-pink-300">
+                    {[effectiveDeviceBrand, effectiveDeviceModel].filter(Boolean).join(" · ") || effectiveDeviceType}
+                  </p>
+                </div>
+              )}
               {loading && filteredItems.length === 0 ? (
                 <div className="h-52 grid place-items-center">
                   <div className="text-center space-y-4">
@@ -921,7 +930,7 @@ export default function AddItemModal({
                   ))}
                 </div>
               )}
-            </ScrollArea>
+            </div>
           </div>
         </div>
 
