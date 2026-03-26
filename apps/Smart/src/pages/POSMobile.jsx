@@ -113,11 +113,7 @@ export default function POSMobile() {
   const [selectedCustomer, setSelectedCustomer] = useState(null);
   const [loading, setLoading] = useState(false);
   const [showCustomerSelector, setShowCustomerSelector] = useState(false);
-  // Abrir modal de cobro desde el primer render si venimos desde una orden
-  const [showPaymentModal, setShowPaymentModal] = useState(() => {
-    const params = new URLSearchParams(window.location.search);
-    return !!(params.get("workOrderId") || (window.history.state?.usr?.openPaymentImmediately));
-  });
+  const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [showRechargeDialog, setShowRechargeDialog] = useState(false);
   const [showOpenDrawerModal, setShowOpenDrawerModal] = useState(false);
   const [currentDrawer, setCurrentDrawer] = useState(() => getCachedStatus().drawer);
@@ -192,6 +188,8 @@ export default function POSMobile() {
         }
       }
     }
+    // Abrir modal DESPUÉS de que la orden está cargada
+    setShowPaymentModal(true);
   }, [urlPaymentMode]);
 
   // ── Startup: inventario + cajón + orden ──────────────────────────────────
@@ -458,11 +456,9 @@ export default function POSMobile() {
               ? selectedOrder.balance_due
               : (orderTotal - totalPaid) > 0
                 ? (orderTotal - totalPaid)
-                : routeBalanceDue > 0
-                  ? routeBalanceDue
-                  : urlBalance > 0
-                    ? urlBalance
-                    : 0
+                : urlBalance > 0
+                  ? urlBalance
+                  : 0
           ).toFixed(2)
         )
       )
