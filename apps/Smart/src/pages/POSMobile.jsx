@@ -140,8 +140,6 @@ export default function POSMobile() {
   const [paymentMode, setPaymentMode] = useState("regular");
   const [totalPaid, setTotalPaid] = useState(0);
   const hasShownInventoryOfflineToast = React.useRef(false);
-  // Guard to ensure payment modal auto-opens exactly once per navigation
-  const autoOpenPaymentFired = useRef(false);
   const [showManualItem, setShowManualItem] = useState(false);
   const [manualItem, setManualItem] = useState({ name: "", price: "", qty: "1" });
   const [showSaleActions, setShowSaleActions] = useState(false);
@@ -154,18 +152,15 @@ export default function POSMobile() {
   const urlParams = new URLSearchParams(window.location.search);
   const workOrderId = urlParams.get("workOrderId");
   const urlPaymentMode = urlParams.get("mode") || "full";
-  const routeStateOrder = location.state?.workOrder || null;
-  const routePaymentMode = location.state?.paymentMode || null;
   const urlBalance = parseFloat(urlParams.get("balance") || "0");
-  const routeBalanceDue = parseFloat(location.state?.balanceDue || "0");
+  const openPaymentImmediately = !!(workOrderId || location.state?.openPaymentImmediately);
 
   const hydrateWorkOrder = useCallback(async (order) => {
     if (!order?.id) return;
     const paid = Number(order.total_paid || order.amount_paid || 0);
     setTotalPaid(paid);
     setSelectedOrder(order);
-    setPaymentMode(routePaymentMode || urlPaymentMode);
-
+    setPaymentMode(urlPaymentMode);
     const orderItems = Array.isArray(order.order_items) ? order.order_items : [];
     setCart(orderItems.map((item) => ({
       id: item.id || `temp-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
@@ -176,16 +171,14 @@ export default function POSMobile() {
       type: item.type || "product",
       taxable: item.taxable !== false
     })));
-    // Setear cliente desde campos embebidos de la orden de inmediato (sin esperar DB)
+    // Cliente inmediato desde campos de la orden, sin esperar DB
     if (order.customer_id || order.customer_name) {
-      const immediateCustomer = {
+      setSelectedCustomer({
         id: order.customer_id || null,
         name: order.customer_name || "",
         phone: order.customer_phone || order.phone || "",
         email: order.customer_email || order.email || "",
-      };
-      setSelectedCustomer(immediateCustomer);
-      // Luego enriquecer con datos completos de DB
+      });
       if (order.customer_id) {
         try {
           const customer = await dataClient.entities.Customer.get(order.customer_id);
@@ -195,65 +188,48 @@ export default function POSMobile() {
         }
       }
     }
-  }, [routePaymentMode, urlPaymentMode]);
+  }, [urlPaymentMode]);
 
+  // ── Startup: inventario + cajón + orden ──────────────────────────────────
   useEffect(() => {
-    // checkCashDrawerStatus se maneja por subscribeToCashRegister — no incluir aquí para evitar parpadeos
     Promise.all([loadInventory(), loadPaymentMethods(), loadTaxRate()]);
-  }, []);
 
-  // Auto-open drawer dialog when arriving from a work order and drawer is closed
-  useEffect(() => {
-    if (!loadingDrawer && !currentDrawer && workOrderId) {
-      setShowOpenDrawerModal(true);
-    }
-  }, [loadingDrawer, currentDrawer, workOrderId]);
-
-  useEffect(() => {
+    // Cajón de caja
     const unsubscribe = subscribeToCashRegister(({ drawer, isInitialized }) => {
       setCurrentDrawer(drawer || null);
-      if (isInitialized) {
-        setLoadingDrawer(false);
-      }
+      if (isInitialized) setLoadingDrawer(false);
     });
-
-    // Si ya tenemos caché inicializado, no bloquear la UI
     const status = getCachedStatus();
     if (status.isInitialized) {
       setLoadingDrawer(false);
       setCurrentDrawer(status.drawer || null);
     }
-
-    // Solo re-verificar si no está inicializado o el caché es viejo (> 5 min)
     if (!status.isInitialized || Date.now() - status.lastCheck > 300000) {
       if (!status.isInitialized) setLoadingDrawer(true);
       checkCashRegisterStatus().finally(() => setLoadingDrawer(false));
     }
 
-    return unsubscribe;
-  }, []);
-
-  useEffect(() => {
-    const shouldAutoOpen = !!(workOrderId || location.state?.openPaymentImmediately);
-
-    if (workOrderId && !routeStateOrder?.id) {
-      // Sin datos en state → buscar en DB, luego abrir modal
+    // Cargar orden y abrir modal de cobro si corresponde
+    if (workOrderId) {
       (async () => {
-        await loadWorkOrder();
-        if (shouldAutoOpen && !autoOpenPaymentFired.current) {
-          autoOpenPaymentFired.current = true;
-          setTimeout(() => setShowPaymentModal(true), 200);
+        try {
+          const order = await fetchWorkOrderById(workOrderId);
+          if (order?.id) {
+            await hydrateWorkOrder(order);
+            if (openPaymentImmediately) {
+              setTimeout(() => setShowPaymentModal(true), 150);
+            }
+          } else {
+            toast.error("No se encontró la orden para cobrar");
+          }
+        } catch (err) {
+          console.error("[POSMobile] Error cargando orden:", err);
+          toast.error("Error cargando orden");
         }
       })();
-    } else if (routeStateOrder?.id && (!workOrderId || String(routeStateOrder.id) === String(workOrderId))) {
-      // Datos en state → hidratar y abrir modal directamente
-      hydrateWorkOrder(routeStateOrder).then(() => {
-        if (shouldAutoOpen && !autoOpenPaymentFired.current) {
-          autoOpenPaymentFired.current = true;
-          setTimeout(() => setShowPaymentModal(true), 200);
-        }
-      });
     }
+
+    return unsubscribe;
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
