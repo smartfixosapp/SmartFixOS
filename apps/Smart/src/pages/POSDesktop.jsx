@@ -113,7 +113,11 @@ export default function POSDesktop() {
   const [selectedCustomer, setSelectedCustomer] = useState(null);
   const [loading, setLoading] = useState(false);
   const [showCustomerSelector, setShowCustomerSelector] = useState(false);
-  const [showPaymentModal, setShowPaymentModal] = useState(false);
+  // Abrir modal de cobro desde el primer render si venimos desde una orden
+  const [showPaymentModal, setShowPaymentModal] = useState(() => {
+    const params = new URLSearchParams(window.location.search);
+    return !!(params.get("workOrderId") || (window.history.state?.usr?.openPaymentImmediately));
+  });
   const [showRechargeDialog, setShowRechargeDialog] = useState(false);
   const [showOpenDrawerModal, setShowOpenDrawerModal] = useState(false);
   const [currentDrawer, setCurrentDrawer] = useState(() => getCachedStatus().drawer);
@@ -217,9 +221,6 @@ export default function POSDesktop() {
           const order = await fetchWorkOrderById(workOrderId);
           if (order?.id) {
             await hydrateWorkOrder(order);
-            if (openPaymentImmediately) {
-              setTimeout(() => setShowPaymentModal(true), 150);
-            }
           } else {
             toast.error("No se encontró la orden para cobrar");
           }
