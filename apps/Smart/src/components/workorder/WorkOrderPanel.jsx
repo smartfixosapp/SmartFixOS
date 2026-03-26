@@ -2976,7 +2976,9 @@ export default function WorkOrderPanel({ orderId, onClose, onUpdate, onDelete, p
                                       disabled={changingStatus || isCurrent}
                                       className={cn(
                                         "group flex flex-col gap-2 rounded-[20px] border p-3 text-left transition-all duration-300 active:scale-95",
-                                        isCurrent
+                                        isCurrent && s.id === "cancelled"
+                                          ? "bg-red-600 text-white border-red-500 shadow-[0_8px_32px_rgba(220,38,38,0.5)] scale-[1.02] opacity-100"
+                                          : isCurrent
                                           ? `${statusClasses} shadow-[0_8px_24px_rgba(0,0,0,0.3)] scale-[1.02] opacity-100`
                                           : isPassed
                                           ? "bg-white/5 border-white/10 text-white/90 hover:bg-white/10 opacity-60"
