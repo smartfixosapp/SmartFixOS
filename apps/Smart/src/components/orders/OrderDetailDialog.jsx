@@ -200,6 +200,11 @@ export default function OrderDetailDialog({ order, open, onClose, onOrderUpdated
       });
     }
 
+    if (!editedOrder?.id) {
+      toast.error("Error: No se encontró ID de la orden");
+      return;
+    }
+
     // Navigate to POS with state
     navigate(`/POS?workOrderId=${editedOrder.id}`, {
       state: {

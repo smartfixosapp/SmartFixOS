@@ -149,11 +149,22 @@ export default function POSMobile() {
   const [showPrintDialog, setShowPrintDialog] = useState(false);
   const [printData, setPrintData] = useState(null);
 
-  const urlParams = new URLSearchParams(location.search);
-  const workOrderId = urlParams.get("workOrderId");
-  const urlPaymentMode = urlParams.get("mode") || "full";
-  const urlBalance = parseFloat(urlParams.get("balance") || "0");
-  const openPaymentImmediately = !!(workOrderId || location.state?.openPaymentImmediately);
+  const { workOrderId, urlPaymentMode, urlBalance } = React.useMemo(() => {
+    const params = new URLSearchParams(location.search);
+    const wId = params.get("workOrderId");
+    // Evitar strings "undefined" o "null" literales
+    const cleanId = (wId === "undefined" || wId === "null" || !wId) ? null : wId;
+
+    return {
+      workOrderId: cleanId,
+      urlPaymentMode: params.get("mode") || "full",
+      urlBalance: parseFloat(params.get("balance") || "0") || 0
+    };
+  }, [location.search]);
+
+  const openPaymentImmediately = React.useMemo(() => 
+    !!(workOrderId || location.state?.openPaymentImmediately),
+  [workOrderId, location.state?.openPaymentImmediately]);
 
   const hydrateWorkOrder = useCallback(async (order) => {
     if (!order?.id) return;
@@ -192,55 +203,72 @@ export default function POSMobile() {
     setShowPaymentModal(true);
   }, [urlPaymentMode]);
 
-  // ── Startup: inventario + cajón + orden ──────────────────────────────────
+  // ── Startup: inventario + cajón + config ──────────────────────────────────
   useEffect(() => {
-    Promise.all([loadInventory(), loadPaymentMethods(), loadTaxRate()]);
+    loadInventory();
+    loadPaymentMethods();
+    loadTaxRate();
 
-    // Cajón de caja
     const unsubscribe = subscribeToCashRegister(({ drawer, isInitialized }) => {
       setCurrentDrawer(drawer || null);
       if (isInitialized) setLoadingDrawer(false);
     });
+
     const status = getCachedStatus();
     if (status.isInitialized) {
       setLoadingDrawer(false);
       setCurrentDrawer(status.drawer || null);
-    }
-    if (!status.isInitialized || Date.now() - status.lastCheck > 300000) {
-      if (!status.isInitialized) setLoadingDrawer(true);
+    } else {
+      setLoadingDrawer(true);
       checkCashRegisterStatus().finally(() => setLoadingDrawer(false));
-    }
-
-    // Cargar orden y abrir modal de cobro si corresponde
-    if (workOrderId || location.state?.workOrder || location.state?.order) {
-      (async () => {
-        try {
-          // Priorizar datos en state para carga instantánea
-          const stateOrder = location.state?.workOrder || location.state?.order;
-          if (stateOrder?.id && (String(stateOrder.id) === String(workOrderId) || !workOrderId)) {
-             await hydrateWorkOrder(stateOrder);
-             return;
-          }
-
-          // Fallback a fetch si no hay state o no coincide el ID
-          if (workOrderId) {
-            const order = await fetchWorkOrderById(workOrderId);
-            if (order?.id) {
-              await hydrateWorkOrder(order);
-            } else {
-              toast.error("No se encontró la orden para cobrar");
-            }
-          }
-        } catch (err) {
-          console.error("[POSMobile] Error cargando orden:", err);
-          toast.error("Error cargando orden");
-        }
-      })();
+      
+      // Safety timeout: si en 5s no responde, forzar cierre de loader
+      const timer = setTimeout(() => setLoadingDrawer(false), 5000);
+      return () => {
+        unsubscribe();
+        clearTimeout(timer);
+      };
     }
 
     return unsubscribe;
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [location.state, workOrderId, hydrateWorkOrder]);
+  }, []);
+
+  // ── Carga de Orden ────────────────────────────────────────────────────────
+  useEffect(() => {
+    const stateOrder = location.state?.workOrder || location.state?.order;
+    const targetId = workOrderId || stateOrder?.id;
+
+    if (!targetId) return;
+
+    // GUARD: Si ya tenemos esta orden cargada, no re-hidratar (evita bucles infinitos)
+    if (selectedOrder?.id && String(selectedOrder.id) === String(targetId)) {
+      return;
+    }
+    
+    // Si tenemos la orden en el state y coincide con el ID de la URL (o no hay ID en URL)
+    if (stateOrder?.id && (!workOrderId || String(stateOrder.id) === String(workOrderId))) {
+       hydrateWorkOrder(stateOrder);
+       return;
+    }
+
+    // Si solo tenemos el ID en la URL, la buscamos
+    if (workOrderId) {
+      (async () => {
+        try {
+          const fetched = await fetchWorkOrderById(workOrderId);
+          if (fetched?.id) {
+            await hydrateWorkOrder(fetched);
+          } else {
+            toast.error("No se encontró la orden solicitada");
+          }
+        } catch (err) {
+          console.error("[POSMobile] Fetch order failed:", err);
+        }
+      })();
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [workOrderId, location.state, hydrateWorkOrder, selectedOrder?.id]);
 
   const fetchWorkOrderById = useCallback(async (orderId) => {
     if (!orderId) return null;
