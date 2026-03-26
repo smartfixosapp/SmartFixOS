@@ -113,20 +113,106 @@ export default function SharedItemsSection({
   }[accentColor] || {};
 
   const handleDeposit = () => {
+    const items = [
+      ...(o.repair_tasks || []).map(t => ({
+        id: t.id,
+        name: t.name || 'Servicio',
+        price: t.cost || 0,
+        cost: t.labor_cost || 0,
+        taxable: t.taxable !== false,
+        type: 'service',
+        qty: 1
+      })),
+      ...(o.parts_needed || []).map(p => ({
+        id: p.id,
+        name: p.name || 'Parte',
+        price: p.price || 0,
+        cost: p.cost_price || 0,
+        taxable: p.taxable !== false,
+        type: 'part',
+        qty: p.quantity || 1
+      })),
+      ...(o.order_items || []).map(i => ({
+        ...i,
+        price: i.price || 0,
+        cost: i.cost || i.cost_price || 0,
+        taxable: i.taxable !== false,
+        qty: i.qty || i.quantity || 1
+      }))
+    ];
+
     if (onClose) onClose();
     else window.dispatchEvent(new Event("close-workorder-panel"));
     navigate(
       createPageUrl(`POS?workOrderId=${o.id}&balance=${totals.balance}&mode=deposit`),
-      { state: { fromDashboard: true, paymentMode: "deposit", workOrder: o, balanceDue: totals.balance, openPaymentImmediately: true } }
+      { 
+        state: { 
+          fromDashboard: true, 
+          paymentMode: "deposit", 
+          workOrder: o, 
+          items,
+          customer: {
+            id: o.customer_id,
+            name: o.customer_name,
+            phone: o.customer_phone,
+            email: o.customer_email
+          },
+          balanceDue: totals.balance, 
+          openPaymentImmediately: true 
+        } 
+      }
     );
   };
 
   const handleCollect = () => {
+    const items = [
+      ...(o.repair_tasks || []).map(t => ({
+        id: t.id,
+        name: t.name || 'Servicio',
+        price: t.cost || 0,
+        cost: t.labor_cost || 0,
+        taxable: t.taxable !== false,
+        type: 'service',
+        qty: 1
+      })),
+      ...(o.parts_needed || []).map(p => ({
+        id: p.id,
+        name: p.name || 'Parte',
+        price: p.price || 0,
+        cost: p.cost_price || 0,
+        taxable: p.taxable !== false,
+        type: 'part',
+        qty: p.quantity || 1
+      })),
+      ...(o.order_items || []).map(i => ({
+        ...i,
+        price: i.price || 0,
+        cost: i.cost || i.cost_price || 0,
+        taxable: i.taxable !== false,
+        qty: i.qty || i.quantity || 1
+      }))
+    ];
+
     if (onClose) onClose();
     else window.dispatchEvent(new Event("close-workorder-panel"));
     navigate(
       createPageUrl(`POS?workOrderId=${o.id}&balance=${totals.balance}&mode=full`),
-      { state: { fromDashboard: true, paymentMode: "full", workOrder: o, balanceDue: totals.balance, openPaymentImmediately: true } }
+      { 
+        state: { 
+          fromDashboard: true, 
+          paymentMode: "full", 
+          workOrder: o, 
+          items,
+          customer: {
+            id: o.customer_id,
+            name: o.customer_name,
+            phone: o.customer_phone,
+            email: o.customer_email
+          },
+          balanceDue: totals.balance, 
+          openPaymentImmediately: true 
+        } 
+      }
     );
   };
 

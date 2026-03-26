@@ -296,13 +296,39 @@ export default function UnlocksPanel() {
       setSelectedUnlock(null);
       return;
     }
+    const items = [{
+      id: `sw-${selectedUnlock.id}`,
+      name: selectedUnlock.initial_problem?.split('\n')[0] || "Software Service",
+      price: total,
+      cost: 0,
+      taxable: false,
+      type: 'service',
+      qty: 1
+    }];
+
+    const state = {
+      fromDashboard: true,
+      workOrder: selectedUnlock,
+      items,
+      customer: {
+        id: selectedUnlock.customer_id,
+        name: selectedUnlock.customer_name,
+        phone: selectedUnlock.customer_phone,
+        email: selectedUnlock.customer_email
+      },
+      balanceDue: balance,
+      openPaymentImmediately: true
+    };
+
     if (option === "pay") {
       setSelectedUnlock(null);
-      navigate(createPageUrl(`POS?workOrderId=${selectedUnlock.id}&balance=${balance}&mode=full`));
+      navigate(createPageUrl(`POS?workOrderId=${selectedUnlock.id}&balance=${balance}&mode=full`), { state });
     } else if (option === "deposit") {
       const depositAmt = customAmount || balance;
       setSelectedUnlock(null);
-      navigate(createPageUrl(`POS?workOrderId=${selectedUnlock.id}&balance=${balance}&depositAmount=${depositAmt}&mode=deposit`));
+      navigate(createPageUrl(`POS?workOrderId=${selectedUnlock.id}&balance=${balance}&depositAmount=${depositAmt}&mode=deposit`), {
+        state: { ...state, paymentMode: "deposit", depositAmount: depositAmt }
+      });
     } else if (option === "skip") {
       await completeUnlock(selectedUnlock.id);
     }

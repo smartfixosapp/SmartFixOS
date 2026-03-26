@@ -270,14 +270,40 @@ export default function UnlocksDialog({ open, onClose, onSuccess, initialTab = "
       return;
     }
 
+    const items = [{
+      id: `sw-${paymentModalOrder.id}`,
+      name: paymentModalOrder.initial_problem?.split('\n')[0] || "Software Service",
+      price: total,
+      cost: 0,
+      taxable: false,
+      type: 'service',
+      qty: 1
+    }];
+
+    const state = {
+      fromDashboard: true,
+      workOrder: paymentModalOrder,
+      items,
+      customer: {
+        id: paymentModalOrder.customer_id,
+        name: paymentModalOrder.customer_name,
+        phone: paymentModalOrder.customer_phone,
+        email: paymentModalOrder.customer_email
+      },
+      balanceDue: balance,
+      openPaymentImmediately: true
+    };
+
     if (option === "pay") {
       setPaymentModalOrder(null);
       onClose();
-      navigate(createPageUrl(`POS?workOrderId=${paymentModalOrder.id}&balance=${balance}&mode=full`));
+      navigate(createPageUrl(`POS?workOrderId=${paymentModalOrder.id}&balance=${balance}&mode=full`), { state });
     } else if (option === "deposit") {
       setPaymentModalOrder(null);
       onClose();
-      navigate(createPageUrl(`POS?workOrderId=${paymentModalOrder.id}&balance=${balance}&mode=deposit`));
+      navigate(createPageUrl(`POS?workOrderId=${paymentModalOrder.id}&balance=${balance}&mode=deposit`), { 
+        state: { ...state, paymentMode: "deposit" } 
+      });
     } else if (option === "skip") {
       await completeUnlock(paymentModalOrder.id);
       setPaymentModalOrder(null);

@@ -260,24 +260,30 @@ export default function POSMobile() {
 
     if (!targetId) return;
 
-    // GUARD: Si ya tenemos esta orden cargada, no re-hidratar (evita bucles infinitos)
-    if (selectedOrder?.id && String(selectedOrder.id) === String(targetId)) {
+    // 1. Forzar apertura de modal si viene del state (ej. clic en "Cobrar")
+    if (location.state?.openPaymentImmediately) {
+      setShowPaymentModal(true);
+    }
+
+    // 2. GUARD: Si ya tenemos esta orden cargada, solo re-hidratar si el state es nuevo
+    // o si el carrito está vacío (ej. después de un clearCart)
+    const isAlreadyLoaded = selectedOrder?.id && String(selectedOrder.id) === String(targetId);
+    
+    if (isAlreadyLoaded && !location.state?.items && cart.length > 0) {
+      if (location.state?.openPaymentImmediately && !showPaymentModal) {
+        setShowPaymentModal(true);
+      }
       return;
     }
     
-    // Si tenemos la orden en el state y coincide con el ID de la URL (o no hay ID en URL)
     if (stateOrder?.id && (!workOrderId || String(stateOrder.id) === String(workOrderId))) {
        hydrateWorkOrder(stateOrder, location.state);
-       return;
-    }
-
-    // Si solo tenemos el ID en la URL, la buscamos
-    if (workOrderId) {
+    } else if (workOrderId) {
       (async () => {
         try {
           const fetched = await fetchWorkOrderById(workOrderId);
           if (fetched?.id) {
-            await hydrateWorkOrder(fetched);
+            await hydrateWorkOrder(fetched, location.state);
           } else {
             toast.error("No se encontró la orden solicitada");
           }
@@ -287,7 +293,7 @@ export default function POSMobile() {
       })();
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [workOrderId, location.state, hydrateWorkOrder, selectedOrder?.id]);
+  }, [workOrderId, location.state, hydrateWorkOrder, selectedOrder?.id, cart.length]);
 
   const fetchWorkOrderById = useCallback(async (orderId) => {
     if (!orderId) return null;

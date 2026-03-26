@@ -1192,16 +1192,52 @@ function OrderItemsSection({ order, onUpdated, clearEventCache, loadEventsCallba
   const handleDepositoClick = () => {
     // ✅ Cerrar panel antes de navegar al POS
     if (onClose) onClose();
+    const items = [
+      ...(o.repair_tasks || []).map(t => ({ id: t.id, name: t.name || 'Servicio', price: t.cost || 0, cost: t.labor_cost || 0, taxable: t.taxable !== false, type: 'service', qty: 1 })),
+      ...(o.parts_needed || []).map(p => ({ id: p.id, name: p.name || 'Parte', price: p.price || 0, cost: p.cost_price || 0, taxable: p.taxable !== false, type: 'part', qty: p.quantity || 1 })),
+      ...(o.order_items || []).map(i => ({ ...i, price: i.price || 0, cost: i.cost || i.cost_price || 0, taxable: i.taxable !== false, qty: i.qty || i.quantity || 1 }))
+    ];
     navigate(createPageUrl(`POS?workOrderId=${o.id}&balance=${balance}&mode=deposit`), {
-      state: { fromDashboard: true, paymentMode: "deposit", workOrder: o, balanceDue: balance, openPaymentImmediately: true }
+      state: { 
+        fromDashboard: true, 
+        paymentMode: "deposit", 
+        workOrder: o, 
+        items,
+        customer: {
+          id: o.customer_id,
+          name: o.customer_name,
+          phone: o.customer_phone,
+          email: o.customer_email
+        },
+        balanceDue: balance, 
+        openPaymentImmediately: true 
+      }
     });
   };
 
   const handleCobrarClick = () => {
     // ✅ Cerrar panel antes de navegar al POS
     if (onClose) onClose();
+    const items = [
+      ...(o.repair_tasks || []).map(t => ({ id: t.id, name: t.name || 'Servicio', price: t.cost || 0, cost: t.labor_cost || 0, taxable: t.taxable !== false, type: 'service', qty: 1 })),
+      ...(o.parts_needed || []).map(p => ({ id: p.id, name: p.name || 'Parte', price: p.price || 0, cost: p.cost_price || 0, taxable: p.taxable !== false, type: 'part', qty: p.quantity || 1 })),
+      ...(o.order_items || []).map(i => ({ ...i, price: i.price || 0, cost: i.cost || i.cost_price || 0, taxable: i.taxable !== false, qty: i.qty || i.quantity || 1 }))
+    ];
     navigate(createPageUrl(`POS?workOrderId=${o.id}&balance=${balance}&mode=full`), {
-      state: { fromDashboard: true, paymentMode: "full", workOrder: o, balanceDue: balance, openPaymentImmediately: true }
+      state: { 
+        fromDashboard: true, 
+        paymentMode: "full", 
+        workOrder: o, 
+        items,
+        customer: {
+          id: o.customer_id,
+          name: o.customer_name,
+          phone: o.customer_phone,
+          email: o.customer_email
+        },
+        balanceDue: balance, 
+        openPaymentImmediately: true 
+      }
     });
   };
 
@@ -1478,7 +1514,27 @@ export default function WorkOrderPanel({ orderId, onClose, onUpdate, onDelete, p
         : Math.max(0, total - totalPaid);
 
     // Default behavior for header button: go to POS for full payment
-    navigate(createPageUrl(`POS?workOrderId=${order.id}&balance=${balance}&mode=full`), { state: { fromDashboard: true, paymentMode: "full", workOrder: order, balanceDue: balance, openPaymentImmediately: true } });
+    const items = [
+      ...(order.repair_tasks || []).map(t => ({ id: t.id, name: t.name || 'Servicio', price: t.cost || 0, cost: t.labor_cost || 0, taxable: t.taxable !== false, type: 'service', qty: 1 })),
+      ...(order.parts_needed || []).map(p => ({ id: p.id, name: p.name || 'Parte', price: p.price || 0, cost: p.cost_price || 0, taxable: p.taxable !== false, type: 'part', qty: p.quantity || 1 })),
+      ...(order.order_items || []).map(i => ({ ...i, price: i.price || 0, cost: i.cost || i.cost_price || 0, taxable: i.taxable !== false, qty: i.qty || i.quantity || 1 }))
+    ];
+    navigate(createPageUrl(`POS?workOrderId=${order.id}&balance=${balance}&mode=full`), { 
+      state: { 
+        fromDashboard: true, 
+        paymentMode: "full", 
+        workOrder: order, 
+        items,
+        customer: {
+          id: order.customer_id,
+          name: order.customer_name,
+          phone: order.customer_phone,
+          email: order.customer_email
+        },
+        balanceDue: balance, 
+        openPaymentImmediately: true 
+      } 
+    });
   }, [order, navigate]);
 
   const [showSecurityBeforePayment, setShowSecurityBeforePayment] = useState(false);
