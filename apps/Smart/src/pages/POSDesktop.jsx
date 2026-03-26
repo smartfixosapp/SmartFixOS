@@ -117,7 +117,7 @@ export default function POSDesktop() {
   const [showRechargeDialog, setShowRechargeDialog] = useState(false);
   const [showOpenDrawerModal, setShowOpenDrawerModal] = useState(false);
   const [currentDrawer, setCurrentDrawer] = useState(() => getCachedStatus().drawer);
-  const [loadingDrawer, setLoadingDrawer] = useState(true);
+  const [loadingDrawer, setLoadingDrawer] = useState(() => !getCachedStatus().isInitialized);
   const [activeCategory, setActiveCategory] = useState("all");
   const [searchQuery, setSearchQuery] = useState("");
   const [paymentMethod, setPaymentMethod] = useState(null);
@@ -149,7 +149,7 @@ export default function POSDesktop() {
   const [historyCustomer, setHistoryCustomer] = useState(null);
   const hasShownInventoryOfflineToast = React.useRef(false);
 
-  const urlParams = new URLSearchParams(window.location.search);
+  const urlParams = new URLSearchParams(location.search);
   const workOrderId = urlParams.get("workOrderId");
   const urlPaymentMode = urlParams.get("mode") || "full";
   const urlBalance = parseFloat(urlParams.get("balance") || "0");
@@ -213,14 +213,24 @@ export default function POSDesktop() {
     }
 
     // Cargar orden y abrir modal de cobro si corresponde
-    if (workOrderId) {
+    if (workOrderId || location.state?.workOrder || location.state?.order) {
       (async () => {
         try {
-          const order = await fetchWorkOrderById(workOrderId);
-          if (order?.id) {
-            await hydrateWorkOrder(order);
-          } else {
-            toast.error("No se encontró la orden para cobrar");
+          // Priorizar datos en state para carga instantánea
+          const stateOrder = location.state?.workOrder || location.state?.order;
+          if (stateOrder?.id && (String(stateOrder.id) === String(workOrderId) || !workOrderId)) {
+             await hydrateWorkOrder(stateOrder);
+             return;
+          }
+
+          // Fallback a fetch si no hay state o no coincide el ID
+          if (workOrderId) {
+            const order = await fetchWorkOrderById(workOrderId);
+            if (order?.id) {
+              await hydrateWorkOrder(order);
+            } else {
+              toast.error("No se encontró la orden para cobrar");
+            }
           }
         } catch (err) {
           console.error("[POSDesktop] Error cargando orden:", err);
@@ -231,7 +241,7 @@ export default function POSDesktop() {
 
     return unsubscribe;
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [location.state, workOrderId, hydrateWorkOrder]);
 
   const fetchWorkOrderById = useCallback(async (orderId) => {
     if (!orderId) return null;

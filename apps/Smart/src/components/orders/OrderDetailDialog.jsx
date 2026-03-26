@@ -201,10 +201,10 @@ export default function OrderDetailDialog({ order, open, onClose, onOrderUpdated
     }
 
     // Navigate to POS with state
-    navigate("/POS", {
+    navigate(`/POS?workOrderId=${editedOrder.id}`, {
       state: {
         fromWorkOrder: true,
-        order: editedOrder,
+        workOrder: editedOrder,
         items,
         customer: {
           id: editedOrder.customer_id,
@@ -212,7 +212,8 @@ export default function OrderDetailDialog({ order, open, onClose, onOrderUpdated
           phone: editedOrder.customer_phone,
           email: editedOrder.customer_email
         },
-        deposit: editedOrder.deposit_amount || editedOrder.amount_paid || 0
+        deposit: editedOrder.deposit_amount || editedOrder.amount_paid || 0,
+        openPaymentImmediately: true
       }
     });
 
