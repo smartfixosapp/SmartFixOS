@@ -176,12 +176,23 @@ export default function POSMobile() {
       type: item.type || "product",
       taxable: item.taxable !== false
     })));
-    if (order.customer_id) {
-      try {
-        const customer = await dataClient.entities.Customer.get(order.customer_id);
-        setSelectedCustomer(customer);
-      } catch (e) {
-        console.error("Error loading customer:", e);
+    // Setear cliente desde campos embebidos de la orden de inmediato (sin esperar DB)
+    if (order.customer_id || order.customer_name) {
+      const immediateCustomer = {
+        id: order.customer_id || null,
+        name: order.customer_name || "",
+        phone: order.customer_phone || order.phone || "",
+        email: order.customer_email || order.email || "",
+      };
+      setSelectedCustomer(immediateCustomer);
+      // Luego enriquecer con datos completos de DB
+      if (order.customer_id) {
+        try {
+          const customer = await dataClient.entities.Customer.get(order.customer_id);
+          if (customer?.id) setSelectedCustomer(customer);
+        } catch (e) {
+          console.error("Error loading customer:", e);
+        }
       }
     }
   }, [routePaymentMode, urlPaymentMode]);
@@ -235,15 +246,14 @@ export default function POSMobile() {
     }
   }, [routeStateOrder, workOrderId, hydrateWorkOrder]);
 
-  // ✅ Auto-abrir modal de pago cuando llegamos desde una orden
-  // Depende también de currentDrawer para que se dispare cuando el cajero abre la caja
+  // ✅ Auto-abrir modal de pago al llegar desde una orden de trabajo
   useEffect(() => {
     const shouldAutoOpen = workOrderId || location.state?.openPaymentImmediately;
-    if (shouldAutoOpen && selectedOrder && !loadingDrawer && currentDrawer && !autoOpenPaymentFired.current) {
+    if (shouldAutoOpen && selectedOrder && !autoOpenPaymentFired.current) {
       autoOpenPaymentFired.current = true;
-      setTimeout(() => setShowPaymentModal(true), 200);
+      setTimeout(() => setShowPaymentModal(true), 400);
     }
-  }, [workOrderId, selectedOrder, loadingDrawer, currentDrawer, location.state?.openPaymentImmediately]);
+  }, [workOrderId, selectedOrder, location.state?.openPaymentImmediately]);
 
   const fetchWorkOrderById = useCallback(async (orderId) => {
     if (!orderId) return null;

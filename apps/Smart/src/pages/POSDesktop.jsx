@@ -148,6 +148,8 @@ export default function POSDesktop() {
   const [showSaleHistory, setShowSaleHistory] = useState(false);
   const [historyCustomer, setHistoryCustomer] = useState(null);
   const hasShownInventoryOfflineToast = React.useRef(false);
+  // Guard: abrir modal de pago solo una vez por navegación
+  const autoOpenPaymentFired = React.useRef(false);
 
   const urlParams = new URLSearchParams(window.location.search);
   const workOrderId = urlParams.get("workOrderId");
@@ -173,19 +175,30 @@ export default function POSDesktop() {
       type: item.type || "product",
       taxable: item.taxable !== false
     })));
-    if (order.customer_id) {
-      try {
-        const customer = await dataClient.entities.Customer.get(order.customer_id);
-        setSelectedCustomer(customer);
-      } catch (e) {
-        console.error("Error loading customer:", e);
+    // Setear cliente desde campos embebidos de la orden de inmediato (sin esperar DB)
+    if (order.customer_id || order.customer_name) {
+      const immediateCustomer = {
+        id: order.customer_id || null,
+        name: order.customer_name || "",
+        phone: order.customer_phone || order.phone || "",
+        email: order.customer_email || order.email || "",
+      };
+      setSelectedCustomer(immediateCustomer);
+      // Luego enriquecer con datos completos de DB
+      if (order.customer_id) {
+        try {
+          const customer = await dataClient.entities.Customer.get(order.customer_id);
+          if (customer?.id) setSelectedCustomer(customer);
+        } catch (e) {
+          console.error("Error loading customer:", e);
+        }
       }
     }
   }, [routePaymentMode, urlPaymentMode]);
 
   useEffect(() => {
     setActiveCategory("all");
-    Promise.all([loadInventory(), loadPaymentMethods(), loadTaxRate(), checkCashDrawerStatus()]);
+    Promise.all([loadInventory(), loadPaymentMethods(), loadTaxRate()]);
   }, []);
 
   // Auto-open drawer dialog when arriving from a work order and drawer is closed
@@ -234,14 +247,15 @@ export default function POSDesktop() {
     }
   }, [routeStateOrder, workOrderId, hydrateWorkOrder]);
 
+  // ✅ Auto-abrir modal de pago al llegar desde una orden de trabajo
   useEffect(() => {
-    // ✅ Esperar que el cajón cargue antes de abrir modal de pago
-    if ((workOrderId || location.state?.openPaymentImmediately) && selectedOrder && !loadingDrawer) {
-      setTimeout(() => {
-        setShowPaymentModal(true);
-      }, 150);
+    const shouldAutoOpen = workOrderId || location.state?.openPaymentImmediately;
+    if (shouldAutoOpen && selectedOrder && !autoOpenPaymentFired.current) {
+      autoOpenPaymentFired.current = true;
+      // Esperar un ciclo para que el cajón termine de cargar, luego abrir
+      setTimeout(() => setShowPaymentModal(true), 400);
     }
-  }, [workOrderId, selectedOrder, loadingDrawer, location.state?.openPaymentImmediately]);
+  }, [workOrderId, selectedOrder, location.state?.openPaymentImmediately]);
 
   const fetchWorkOrderById = useCallback(async (orderId) => {
     if (!orderId) return null;
