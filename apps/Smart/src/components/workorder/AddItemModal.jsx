@@ -950,7 +950,7 @@ export default function AddItemModal({
                 <div className="mx-3 mb-3 rounded-xl border border-white/8 bg-black/20 p-3 text-center text-xs text-white/40">El carrito está vacío</div>
               ) : (
                 <>
-                  <div className="max-h-36 overflow-y-auto space-y-1 px-3 no-scrollbar">
+                  <div className="max-h-64 overflow-y-auto space-y-1 px-3 no-scrollbar">
                     {cartItems.map((item, idx) => (
                       <div key={`${item.id}-${idx}`} className="flex items-center gap-2 rounded-xl border border-white/8 bg-black/25 px-3 py-2">
                         <div className="min-w-0 flex-1">

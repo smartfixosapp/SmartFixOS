@@ -7,18 +7,14 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Wrench, DollarSign, FileText } from "lucide-react";
 import { toast } from "sonner";
-import { dataClient } from "@/components/api/dataClient";
-import { catalogCache } from "@/components/utils/dataCache";
-import { supabase } from "../../../../../lib/supabase-client.js";
 
 export default function QuickItemModal({ open, onClose, onItemCreated }) {
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [price, setPrice] = useState("");
-  const [saving, setSaving] = useState(false);
+  const [cost, setCost] = useState("");
 
-  const handleSave = async () => {
-    if (saving) return;
+  const handleSave = () => {
     if (!name.trim()) {
       toast.error("El nombre es requerido");
       return;
@@ -34,69 +30,22 @@ export default function QuickItemModal({ open, onClose, onItemCreated }) {
       name: name.trim(),
       description: description.trim(),
       price: Number(price),
+      cost: Number(cost) || 0,
       qty: 1,
       from_inventory: false,
       is_manual: true
     };
 
-    setSaving(true);
-    // Persistir en el catálogo (Product table) para que aparezca en búsquedas futuras
-    try {
-      let created = null;
-      try {
-        created = await dataClient.entities.Product.create({
-          name: itemData.name,
-          description: itemData.description,
-          price: itemData.price,
-          type: "service",
-          active: true,
-          stock: 0,
-          cost: 0,
-          category: "other",
-        });
-      } catch (primaryError) {
-        console.warn("[QuickItemModal] dataClient create failed, trying direct supabase fallback:", primaryError);
-        const { data, error } = await supabase
-          .from("product")
-          .insert({
-            name: itemData.name,
-            description: itemData.description,
-            price: itemData.price,
-            type: "service",
-            active: true,
-            stock: 0,
-            cost: 0,
-            category: "other",
-          })
-          .select("id, name, description, price, type, stock, category")
-          .single();
-
-        if (error) throw error;
-        created = data;
-      }
-      // Invalidar caché para que AddItemModal recargue el catálogo
-      catalogCache.invalidate("pos-active-products");
-      catalogCache.invalidate("pos-active-services");
-      // Usar el ID real si está disponible
-      if (created?.id) itemData.id = created.id;
-    } catch (err) {
-      // Si falla guardar en catálogo, continuamos de todos modos (el item se añade al carrito)
-      console.warn("[QuickItemModal] No se pudo guardar en catálogo:", err);
-    } finally {
-      setSaving(false);
-    }
-
     toast.success(`✅ Item añadido: ${itemData.name}`);
 
-    // Llamar callback para añadir al carrito
     if (onItemCreated) {
       onItemCreated(itemData);
     }
 
-    // Limpiar y cerrar
     setName("");
     setDescription("");
     setPrice("");
+    setCost("");
     onClose();
   };
 
@@ -169,21 +118,36 @@ export default function QuickItemModal({ open, onClose, onItemCreated }) {
 
           </div>
 
-          {/* Precio */}
-          <div className="space-y-2">
-            <Label className="text-white/70 text-sm flex items-center gap-2">
-              <DollarSign className="w-4 h-4" />
-              Precio *
-            </Label>
-            <Input
-              type="number"
-              step="0.01"
-              placeholder="0.00"
-              value={price}
-              onChange={(e) => setPrice(e.target.value)}
-              onKeyDown={handleEnterToSave}
-              className="bg-white/5 border-white/10 text-white placeholder:text-white/30 h-12 text-lg" />
-
+          {/* Precio y Costo */}
+          <div className="grid grid-cols-2 gap-3">
+            <div className="space-y-2">
+              <Label className="text-white/70 text-sm flex items-center gap-2">
+                <DollarSign className="w-4 h-4" />
+                Precio *
+              </Label>
+              <Input
+                type="number"
+                step="0.01"
+                placeholder="0.00"
+                value={price}
+                onChange={(e) => setPrice(e.target.value)}
+                onKeyDown={handleEnterToSave}
+                className="bg-white/5 border-white/10 text-white placeholder:text-white/30 h-12 text-lg" />
+            </div>
+            <div className="space-y-2">
+              <Label className="text-white/70 text-sm flex items-center gap-2">
+                <DollarSign className="w-4 h-4 text-white/40" />
+                Costo
+              </Label>
+              <Input
+                type="number"
+                step="0.01"
+                placeholder="0.00"
+                value={cost}
+                onChange={(e) => setCost(e.target.value)}
+                onKeyDown={handleEnterToSave}
+                className="bg-white/5 border-white/10 text-white placeholder:text-white/30 h-12 text-lg" />
+            </div>
           </div>
 
           <div className="flex gap-3 pt-2">
@@ -196,9 +160,8 @@ export default function QuickItemModal({ open, onClose, onItemCreated }) {
             </Button>
             <Button
               onClick={handleSave}
-              disabled={saving}
               className="flex-1 bg-gradient-to-r from-cyan-500 to-emerald-500 hover:from-cyan-600 hover:to-emerald-600 text-white font-semibold h-12">
-              {saving ? "Guardando..." : "Guardar"}
+              Guardar
             </Button>
           </div>
         </div>

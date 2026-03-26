@@ -110,9 +110,9 @@ const DEFAULT_ORDER_STATUSES = [
     id: "cancelled",
     label: "Cancelado",
     order: 12,
-    colorClass: "bg-gray-600/20 text-gray-300 border-gray-600/30",
-    colorClasses: "bg-gray-600/20 text-gray-300 border-gray-600/30",
-    color: "#6B7280",
+    colorClass: "bg-red-600/90 text-white border-red-500",
+    colorClasses: "bg-red-600/90 text-white border-red-500",
+    color: "#DC2626",
     isActive: false,
     isTerminal: true
   }
