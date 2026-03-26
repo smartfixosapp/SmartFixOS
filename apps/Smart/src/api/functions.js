@@ -95,29 +95,9 @@ export const registerRefund = functionsClient.functions.registerRefund;
 export const deleteTransaction = functionsClient.functions.deleteTransaction;
 export const deleteOrder = functionsClient.functions.deleteOrder;
 export const resetTransactions = functionsClient.functions.resetTransactions;
-// sendTemplatedEmail — calls /api/send-email (Vercel serverless, replaces dead Render server)
-export const sendTemplatedEmail = async (body) => {
-  // Get tenant_id from active session (stored in localStorage)
-  let tenant_id = null;
-  try {
-    const raw = localStorage.getItem('employee_session') || localStorage.getItem('911-session');
-    if (raw) {
-      const sess = JSON.parse(raw);
-      tenant_id = sess?.tenant_id || sess?.user?.tenant_id || null;
-    }
-  } catch { /* ignore */ }
-
-  const res = await fetch('/api/send-email', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ ...body, tenant_id }),
-  });
-  if (!res.ok) {
-    const errText = await res.text().catch(() => res.status);
-    throw new Error(`send-email: ${errText}`);
-  }
-  return res.json();
-};
+// sendTemplatedEmail — llama al servidor Deno en VITE_FUNCTION_URL/sendTemplatedEmail
+// (antes llamaba a /api/send-email de Vercel que no existe en desarrollo local)
+export const sendTemplatedEmail = functionsClient.functions.sendTemplatedEmail;
 
 // Export configured client
 export default functionsClient;

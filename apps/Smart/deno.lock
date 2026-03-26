@@ -3,7 +3,16 @@
   "specifiers": {
     "npm:@base44/sdk@~0.8.3": "0.8.19",
     "npm:@base44/vite-plugin@0.2": "0.2.22",
+    "npm:@capacitor/android@^8.2.0": "8.3.0_@capacitor+core@8.3.0",
+    "npm:@capacitor/app@^8.0.1": "8.1.0_@capacitor+core@8.3.0",
+    "npm:@capacitor/browser@^8.0.2": "8.0.3_@capacitor+core@8.3.0",
     "npm:@capacitor/cli@^8.1.0": "8.2.0",
+    "npm:@capacitor/core@^8.2.0": "8.3.0",
+    "npm:@capacitor/haptics@^8.0.1": "8.0.1_@capacitor+core@8.3.0",
+    "npm:@capacitor/ios@^8.2.0": "8.3.0_@capacitor+core@8.3.0",
+    "npm:@capacitor/keyboard@^8.0.1": "8.0.2_@capacitor+core@8.3.0",
+    "npm:@capacitor/splash-screen@^8.0.1": "8.0.1_@capacitor+core@8.3.0",
+    "npm:@capacitor/status-bar@^8.0.1": "8.0.2_@capacitor+core@8.3.0",
     "npm:@eslint/js@^9.19.0": "9.39.3",
     "npm:@hello-pangea/dnd@17": "17.0.0_react@18.3.1_react-dom@18.3.1__react@18.3.1_@types+react@18.3.27_redux@5.0.1",
     "npm:@hookform/resolvers@^4.1.2": "4.1.3_react-hook-form@7.71.2__react@18.3.1_react@18.3.1",
@@ -82,6 +91,7 @@
     "npm:stripe@14.19.0": "14.19.0",
     "npm:tailwind-merge@^3.0.2": "3.5.0",
     "npm:tailwindcss-animate@^1.0.7": "1.0.7_tailwindcss@3.4.19__postcss@8.5.6__jiti@1.21.7",
+    "npm:tailwindcss-safe-area@0.8": "0.8.0_tailwindcss@3.4.19__postcss@8.5.6__jiti@1.21.7",
     "npm:tailwindcss@^3.4.17": "3.4.19_postcss@8.5.6_jiti@1.21.7",
     "npm:three@0.171": "0.171.0",
     "npm:typescript@^5.8.2": "5.9.3",
@@ -251,6 +261,24 @@
         "@babel/types"
       ]
     },
+    "@capacitor/android@8.3.0_@capacitor+core@8.3.0": {
+      "integrity": "sha512-EQy6ByUuKayQBJmMm/e0byJiHavqsQHrvW23BuT2GNVQvenAvipqwaePiJHzrv2PZr7A0T0+se4kgDCeROj0mQ==",
+      "dependencies": [
+        "@capacitor/core"
+      ]
+    },
+    "@capacitor/app@8.1.0_@capacitor+core@8.3.0": {
+      "integrity": "sha512-MlmttTOWHDedr/G4SrhNRxsXMqY+R75S4MM4eIgzsgCzOYhb/MpCkA5Q3nuOCfL1oHm26xjUzqZ5aupbOwdfYg==",
+      "dependencies": [
+        "@capacitor/core"
+      ]
+    },
+    "@capacitor/browser@8.0.3_@capacitor+core@8.3.0": {
+      "integrity": "sha512-WJWPHEPbweiFoHYmVlCbZf5yrqJ2Rchx2Xvbmd+3Lf+Zkpq3nXBThThY2CF69lYEg1NINGF9BcHThIOEU1gZlQ==",
+      "dependencies": [
+        "@capacitor/core"
+      ]
+    },
     "@capacitor/cli@8.2.0": {
       "integrity": "sha512-1cMEk0d/I6tl1U+v/lnJR5Oylpx8ZBIHrvQxD5zK0MkjYOUyQAAGJgh97rkhGJqjAUvrGpa8H4BmyhNQN9a17A==",
       "dependencies": [
@@ -273,6 +301,42 @@
         "xml2js"
       ],
       "bin": true
+    },
+    "@capacitor/core@8.3.0": {
+      "integrity": "sha512-S4ajn4G/fS3VJj8salxqH/3LO5PPWv1VxGKQ27OCajnDcLJjEg9VXwgMPnlypgkIOqCJ2fmQLtk8GT+BlI9/rw==",
+      "dependencies": [
+        "tslib"
+      ]
+    },
+    "@capacitor/haptics@8.0.1_@capacitor+core@8.3.0": {
+      "integrity": "sha512-8v8rowLBMeb3CryqoQvXndwyUsoi4pPXf0qFw7IGA4D32Uk7+K6juN2SjRowqunoovkvvbFmU9TD7JIAz2zmFw==",
+      "dependencies": [
+        "@capacitor/core"
+      ]
+    },
+    "@capacitor/ios@8.3.0_@capacitor+core@8.3.0": {
+      "integrity": "sha512-5Rtwv8SITKlYTt8lAZG+khnVIdzPtqbocH3eP+JkEmX1vpSMwx4TOKtT8OBz8gpQ+pUJDRp7DBYOv3U6l/obCw==",
+      "dependencies": [
+        "@capacitor/core"
+      ]
+    },
+    "@capacitor/keyboard@8.0.2_@capacitor+core@8.3.0": {
+      "integrity": "sha512-he6xKmTBp5AhVrWJeEi6RYkJ25FjLLdNruBU2wafpITk3Nb7UdzOj96x3K6etFuEj8/rtn9WXBTs1o2XA86A1A==",
+      "dependencies": [
+        "@capacitor/core"
+      ]
+    },
+    "@capacitor/splash-screen@8.0.1_@capacitor+core@8.3.0": {
+      "integrity": "sha512-c/ew/Z3eA7z8l06WoRAtzVF16VwYYrExmHmfGq1Cg675pVzaC/yuucB8/1xG1vhEfnW4fZ1KhSf/kzR1RiVYgg==",
+      "dependencies": [
+        "@capacitor/core"
+      ]
+    },
+    "@capacitor/status-bar@8.0.2_@capacitor+core@8.3.0": {
+      "integrity": "sha512-WXs8YB8B9eEaPZz+bcdY6t2nForF1FLoj/JU0Dl9RRgQnddnS98FEEyDooQhaY7wivr000j4+SC1FyeJkrFO7A==",
+      "dependencies": [
+        "@capacitor/core"
+      ]
     },
     "@esbuild/aix-ppc64@0.25.12": {
       "integrity": "sha512-Hhmwd6CInZ3dwpuGTF8fJG6yoWmsToE+vYgD4nytZVxcu1ulHpUQRAB1UJ8+N1Am3Mz4+xOByoQoSZf4D+CpkA==",
@@ -5065,6 +5129,12 @@
         "tailwindcss"
       ]
     },
+    "tailwindcss-safe-area@0.8.0_tailwindcss@3.4.19__postcss@8.5.6__jiti@1.21.7": {
+      "integrity": "sha512-OIKZfSvinI9kZ3hduoSxqP8EfW2rXoKvHnNyTDY2zwem06IIRtLcKdMe0nF98o+Xluk5Fy7mmesr1rSXg/wkhA==",
+      "dependencies": [
+        "tailwindcss"
+      ]
+    },
     "tailwindcss@3.4.19_postcss@8.5.6_jiti@1.21.7": {
       "integrity": "sha512-3ofp+LL8E+pK/JuPLPggVAIaEuhvIz4qNcf3nA1Xn2o/7fb7s/TYpHhwGDv1ZU3PkBluUVaF8PyCHcm48cKLWQ==",
       "dependencies": [
@@ -5542,7 +5612,16 @@
       "dependencies": [
         "npm:@base44/sdk@~0.8.3",
         "npm:@base44/vite-plugin@0.2",
+        "npm:@capacitor/android@^8.2.0",
+        "npm:@capacitor/app@^8.0.1",
+        "npm:@capacitor/browser@^8.0.2",
         "npm:@capacitor/cli@^8.1.0",
+        "npm:@capacitor/core@^8.2.0",
+        "npm:@capacitor/haptics@^8.0.1",
+        "npm:@capacitor/ios@^8.2.0",
+        "npm:@capacitor/keyboard@^8.0.1",
+        "npm:@capacitor/splash-screen@^8.0.1",
+        "npm:@capacitor/status-bar@^8.0.1",
         "npm:@eslint/js@^9.19.0",
         "npm:@hello-pangea/dnd@17",
         "npm:@hookform/resolvers@^4.1.2",
@@ -5615,6 +5694,7 @@
         "npm:sonner@^2.0.1",
         "npm:tailwind-merge@^3.0.2",
         "npm:tailwindcss-animate@^1.0.7",
+        "npm:tailwindcss-safe-area@0.8",
         "npm:tailwindcss@^3.4.17",
         "npm:three@0.171",
         "npm:typescript@^5.8.2",
