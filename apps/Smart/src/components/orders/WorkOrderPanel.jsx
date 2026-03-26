@@ -49,7 +49,7 @@ const SafeOrderService = {
   },
 };
 
-export default function WorkOrderPanelV2({ orderId, onClose, onUpdate }) {
+export default function WorkOrderPanelV2({ orderId, onClose, onUpdate, user }) {
   const [order, setOrder] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -184,6 +184,94 @@ export default function WorkOrderPanelV2({ orderId, onClose, onUpdate }) {
     }
   };
 
+  const handleRefresh = loadOrder;
+
+  const sendStatusChangeEmail = async (newStatusId, previousStatusId, currentOrder) => {
+    const o = currentOrder || order;
+    if (!o?.customer_email) return;
+
+    // Estados que NO envían email (basado en el panel principal)
+    const skipEmailStates = ["reparacion_externa", "waiting_order", "pending_order", "intake"];
+    if (skipEmailStates.includes(newStatusId)) return;
+
+    try {
+      const deviceLine = `${o.device_brand || ""} ${o.device_model || ""}`.trim();
+      await base44.functions.invoke('sendTemplatedEmail', {
+        event_type: newStatusId,
+        order_data: {
+          order_number: o.order_number,
+          customer_name: o.customer_name || "Cliente",
+          customer_email: o.customer_email,
+          device_info: deviceLine || o.device_type || "tu equipo",
+          initial_problem: o.initial_problem || ""
+        }
+      });
+
+      await base44.entities.WorkOrderEvent.create({
+        order_id: o.id,
+        order_number: o.order_number,
+        event_type: "email_sent",
+        description: `Email enviado a ${o.customer_email} para estado: ${newStatusId}`,
+        user_name: user?.full_name || user?.email || "Sistema",
+        user_id: user?.id || null,
+        metadata: { template: newStatusId, auto: true }
+      });
+    } catch (err) {
+      console.error("[Email Error]", err);
+    }
+  };
+
+  const changeStatus = async (newStatus, note = "", metadata = {}, skipRefresh = false) => {
+    if (!order?.id) return;
+    const oldStatus = order.status;
+
+    try {
+      const updateData = {
+        status: newStatus,
+        status_note: note || undefined,
+        updated_date: new Date().toISOString()
+      };
+      
+      if (metadata && Object.keys(metadata).length > 0) {
+        updateData.status_metadata = {
+          ...(order.status_metadata || {}),
+          ...metadata
+        };
+      }
+
+      const updated = await base44.entities.Order.update(order.id, updateData);
+      setOrder(updated);
+
+      await base44.entities.WorkOrderEvent.create({
+        order_id: order.id,
+        order_number: order.order_number,
+        event_type: "status_change",
+        description: `Estado: ${oldStatus} → ${newStatus}${note ? ` — ${note}` : ""}`,
+        user_name: user?.full_name || user?.email || "Sistema",
+        user_id: user?.id || null,
+        metadata: { from: oldStatus, to: newStatus, ...metadata }
+      });
+
+      // Triggers de Automatización y Email
+      await sendStatusChangeEmail(newStatus, oldStatus, updated);
+      
+      try {
+        await base44.functions.invoke('handleStatusChange', {
+          orderId: order.id,
+          newStatus,
+          previousStatus: oldStatus
+        });
+      } catch (e) {
+        console.warn("handleStatusChange error:", e);
+      }
+
+      if (!skipRefresh) onUpdate?.();
+    } catch (err) {
+      console.error("changeStatus error:", err);
+      throw err;
+    }
+  };
+
   const handleClose = useCallback(() => {
     if (backFix) {
       if (window.history.length > 1) {
@@ -312,8 +400,8 @@ export default function WorkOrderPanelV2({ orderId, onClose, onUpdate }) {
         ref={stepContainerRef}
         className="flex-1 overflow-y-auto app-scroll p-4 space-y-6"
       >
-        <WorkOrderInfoHeader order={order} />
-        <WorkOrderProgress order={order} />
+        <WorkOrderInfoHeader order={order} onUpdate={handleRefresh} user={user} changeStatus={changeStatus} />
+        <WorkOrderProgress order={order} onUpdate={onUpdate} user={user} changeStatus={changeStatus} />
 
         {order.photos_metadata?.length > 0 && (
           <Card className="bg-white/5 border border-white/5 rounded-[24px]">

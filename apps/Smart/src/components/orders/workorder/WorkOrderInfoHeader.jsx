@@ -551,7 +551,7 @@ export default function WorkOrderPanel({ order, onUpdate, onClose, onDelete }) {
         <div className="max-w-5xl mx-auto px-3 sm:px-4 py-2">
           <div className="flex items-center justify-between gap-2">
             <div className="flex-1">
-              <WorkOrderProgress order={order} onUpdate={handleChildUpdate} user={user} />
+              <WorkOrderProgress order={order} onUpdate={handleChildUpdate} user={user} changeStatus={changeStatus} />
             </div>
             <div className="hidden sm:flex items-center gap-2">
               <Button onClick={handleGoToPOS} className="bg-green-600 hover:bg-green-700 h-10">

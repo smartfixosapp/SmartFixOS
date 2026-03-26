@@ -148,6 +148,7 @@ export default function POSDesktop() {
   const [showSaleHistory, setShowSaleHistory] = useState(false);
   const [historyCustomer, setHistoryCustomer] = useState(null);
   const hasShownInventoryOfflineToast = React.useRef(false);
+  const lastHydratedRef = React.useRef(null);
 
   const { workOrderId, urlPaymentMode, urlBalance } = React.useMemo(() => {
     const params = new URLSearchParams(location.search);
@@ -261,33 +262,32 @@ export default function POSDesktop() {
 
     if (!targetId) return;
 
-    // 1. Forzar apertura de modal si viene del state (ej. clic en "Cobrar")
-    if (location.state?.openPaymentImmediately) {
-      setShowPaymentModal(true);
-    }
-
-    // 2. GUARD: Si ya tenemos esta orden cargada, solo re-hidratar si el state es nuevo
-    // o si el carrito está vacío (ej. después de un clearCart)
-    const isAlreadyLoaded = selectedOrder?.id && String(selectedOrder.id) === String(targetId);
+    // Generamos una "firma" de la hidratación actual para evitar repetirla si nada ha cambiado
+    // Incluimos urlPaymentMode y urlBalance para forzar re-hidratación si cambian los parámetros de cobro
+    const hydrationSignature = `${targetId}_${location.state?.items ? 'withItems' : 'noItems'}_${urlPaymentMode}_${urlBalance}`;
     
-    // Si ya está cargada Y no hay items nuevos en state Y el carrito tiene algo, no hacer nada
-    if (isAlreadyLoaded && !location.state?.items && cart.length > 0) {
-      // Si el modal debería estar abierto pero no lo está, lo abrimos
+    // Si ya hidratamos esta firma y el carrito NO está vacío, no hacemos nada
+    const isMatchingOrder = selectedOrder?.id && String(selectedOrder.id) === String(targetId);
+    if (lastHydratedRef.current === hydrationSignature && isMatchingOrder && cart.length > 0) {
+      // Si se pidió pago inmediato y el modal está cerrado, lo abrimos
       if (location.state?.openPaymentImmediately && !showPaymentModal) {
         setShowPaymentModal(true);
       }
       return;
     }
-    
-    // Si llegamos aquí, procedemos a hidratar
+
+    console.log(`[POS] 💧 Iniciando hidratación para: ${targetId} (Firma: ${hydrationSignature})`);
+
     if (stateOrder?.id && (!workOrderId || String(stateOrder.id) === String(workOrderId))) {
        hydrateWorkOrder(stateOrder, location.state);
+       lastHydratedRef.current = hydrationSignature;
     } else if (workOrderId) {
       (async () => {
         try {
           const fetched = await fetchWorkOrderById(workOrderId);
           if (fetched?.id) {
             await hydrateWorkOrder(fetched, location.state);
+            lastHydratedRef.current = hydrationSignature;
           } else {
             toast.error("No se encontró la orden solicitada");
           }
@@ -296,8 +296,7 @@ export default function POSDesktop() {
         }
       })();
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [workOrderId, location.state, hydrateWorkOrder, selectedOrder?.id, cart.length]);
+  }, [workOrderId, location.state, hydrateWorkOrder, selectedOrder?.id, cart.length, urlPaymentMode, urlBalance]);
 
   const fetchWorkOrderById = useCallback(async (orderId) => {
     if (!orderId) return null;

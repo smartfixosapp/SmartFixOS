@@ -43,7 +43,7 @@ const STATUS = {
 };
 const STATUS_LIST = Object.keys(STATUS);
 
-export default function WorkOrderProgress({ order, onUpdate, user }) {
+export default function WorkOrderProgress({ order, onUpdate, user, changeStatus }) {
   const nav = useNavigate();
   const displayStatus = optimisticStatus || order?.status;
   const st = STATUS[displayStatus] || STATUS.intake;
@@ -93,23 +93,27 @@ export default function WorkOrderProgress({ order, onUpdate, user }) {
     setBusy(true);
     
     try {
-      const status_metadata = { ...(order?.status_metadata || {}), ...metadataPatch };
+      if (typeof changeStatus === "function") {
+        await changeStatus(newStatus, note, metadataPatch, true);
+      } else {
+        // Fallback si no se pasa la función (no recomendado pero evita romper)
+        const status_metadata = { ...(order?.status_metadata || {}), ...metadataPatch };
+        await base44.entities.Order.update(order.id, {
+          status: newStatus,
+          status_metadata,
+          status_note: note || undefined,
+        });
 
-      await base44.entities.Order.update(order.id, {
-        status: newStatus,
-        status_metadata,
-        status_note: note || undefined,
-      });
-
-      await base44.entities.WorkOrderEvent.create({
-        order_id: order.id,
-        order_number: order.order_number,
-        event_type: "status_change",
-        description: `Estado: ${STATUS[newStatus]?.label || newStatus}${note ? ` — ${note}` : ""}`,
-        user_id: user?.id,
-        user_name: user?.full_name || user?.email || "Sistema",
-        metadata: { status: newStatus, status_metadata }
-      });
+        await base44.entities.WorkOrderEvent.create({
+          order_id: order.id,
+          order_number: order.order_number,
+          event_type: "status_change",
+          description: `Estado: ${STATUS[newStatus]?.label || newStatus}${note ? ` — ${note}` : ""}`,
+          user_id: user?.id,
+          user_name: user?.full_name || user?.email || "Sistema",
+          metadata: { status: newStatus, status_metadata }
+        });
+      }
 
       if (newStatus === "completed") {
         const items = [

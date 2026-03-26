@@ -140,6 +140,7 @@ export default function POSMobile() {
   const [paymentMode, setPaymentMode] = useState("regular");
   const [totalPaid, setTotalPaid] = useState(0);
   const hasShownInventoryOfflineToast = React.useRef(false);
+  const lastHydratedRef = React.useRef(null);
   const [showManualItem, setShowManualItem] = useState(false);
   const [manualItem, setManualItem] = useState({ name: "", price: "", qty: "1" });
   const [showSaleActions, setShowSaleActions] = useState(false);
@@ -260,40 +261,40 @@ export default function POSMobile() {
 
     if (!targetId) return;
 
-    // 1. Forzar apertura de modal si viene del state (ej. clic en "Cobrar")
-    if (location.state?.openPaymentImmediately) {
-      setShowPaymentModal(true);
-    }
-
-    // 2. GUARD: Si ya tenemos esta orden cargada, solo re-hidratar si el state es nuevo
-    // o si el carrito está vacío (ej. después de un clearCart)
-    const isAlreadyLoaded = selectedOrder?.id && String(selectedOrder.id) === String(targetId);
+    // Generamos una "firma" de la hidratación actual para evitar repetirla si nada ha cambiado
+    const hydrationSignature = `${targetId}_${location.state?.items ? 'withItems' : 'noItems'}_${urlPaymentMode}_${urlBalance}`;
     
-    if (isAlreadyLoaded && !location.state?.items && cart.length > 0) {
+    // Si ya hidratamos esta firma y el carrito NO está vacío, no hacemos nada
+    const isMatchingOrder = selectedOrder?.id && String(selectedOrder.id) === String(targetId);
+    if (lastHydratedRef.current === hydrationSignature && isMatchingOrder && cart.length > 0) {
+      // Si se pidió pago inmediato y el modal está cerrado, lo abrimos
       if (location.state?.openPaymentImmediately && !showPaymentModal) {
         setShowPaymentModal(true);
       }
       return;
     }
-    
+
+    console.log(`[POS Mobile] 💧 Iniciando hidratación para: ${targetId} (Firma: ${hydrationSignature})`);
+
     if (stateOrder?.id && (!workOrderId || String(stateOrder.id) === String(workOrderId))) {
        hydrateWorkOrder(stateOrder, location.state);
+       lastHydratedRef.current = hydrationSignature;
     } else if (workOrderId) {
       (async () => {
         try {
           const fetched = await fetchWorkOrderById(workOrderId);
           if (fetched?.id) {
             await hydrateWorkOrder(fetched, location.state);
+            lastHydratedRef.current = hydrationSignature;
           } else {
             toast.error("No se encontró la orden solicitada");
           }
         } catch (err) {
-          console.error("[POSMobile] Fetch order failed:", err);
+          console.error("[POS Mobile] Fetch order failed:", err);
         }
       })();
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [workOrderId, location.state, hydrateWorkOrder, selectedOrder?.id, cart.length]);
+  }, [workOrderId, location.state, hydrateWorkOrder, selectedOrder?.id, cart.length, urlPaymentMode, urlBalance]);
 
   const fetchWorkOrderById = useCallback(async (orderId) => {
     if (!orderId) return null;
