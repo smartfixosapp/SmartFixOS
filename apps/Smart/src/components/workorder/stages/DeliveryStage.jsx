@@ -463,7 +463,20 @@ export default function DeliveryStage({ order, onUpdate, user }) {
                         // ✅ Cerrar panel antes de navegar al POS
                         window.dispatchEvent(new Event('close-workorder-panel'));
                         navigate(createPageUrl(`POS?workOrderId=${o.id}&balance=${balanceDue}&mode=deposit`), {
-                          state: { fromDashboard: true, paymentMode: "deposit", workOrder: o, balanceDue, openPaymentImmediately: true }
+                          state: { 
+                            fromDashboard: true, 
+                            paymentMode: "deposit", 
+                            workOrder: o, 
+                            items: items,
+                            customer: {
+                              id: o.customer_id,
+                              name: o.customer_name,
+                              phone: o.customer_phone || o.phone,
+                              email: o.customer_email || o.email
+                            },
+                            balanceDue, 
+                            openPaymentImmediately: true 
+                          }
                         });
                       }}
                     >
@@ -476,7 +489,20 @@ export default function DeliveryStage({ order, onUpdate, user }) {
                         // ✅ Cerrar panel antes de navegar al POS
                         window.dispatchEvent(new Event('close-workorder-panel'));
                         navigate(createPageUrl(`POS?workOrderId=${o.id}&balance=${balanceDue}&mode=full`), {
-                          state: { fromDashboard: true, paymentMode: "full", workOrder: o, balanceDue, openPaymentImmediately: true }
+                          state: { 
+                            fromDashboard: true, 
+                            paymentMode: "full", 
+                            workOrder: o, 
+                            items: items,
+                            customer: {
+                              id: o.customer_id,
+                              name: o.customer_name,
+                              phone: o.customer_phone || o.phone,
+                              email: o.customer_email || o.email
+                            },
+                            balanceDue, 
+                            openPaymentImmediately: true 
+                          }
                         });
                       }}
                     >

@@ -405,7 +405,20 @@ export default function FinalizedStage({ order, onUpdate }) {
                         variant="outline"
                         className="h-12 rounded-2xl border-emerald-500/30 text-emerald-300 hover:bg-emerald-500/10"
                         onClick={() => navigate(createPageUrl(`POS?workOrderId=${o.id}&balance=${totals.balance}&mode=deposit`), {
-                          state: { fromDashboard: true, paymentMode: "deposit", workOrder: o, balanceDue: totals.balance, openPaymentImmediately: true }
+                          state: { 
+                            fromDashboard: true, 
+                            paymentMode: "deposit", 
+                            workOrder: o, 
+                            items: items,
+                            customer: {
+                              id: o.customer_id,
+                              name: o.customer_name,
+                              phone: o.customer_phone || o.phone,
+                              email: o.customer_email || o.email
+                            },
+                            balanceDue: totals.balance, 
+                            openPaymentImmediately: true 
+                          }
                         })}
                       >
                         Depósito
@@ -413,7 +426,20 @@ export default function FinalizedStage({ order, onUpdate }) {
                       <Button
                         className="h-12 rounded-2xl bg-emerald-600 text-white shadow-lg shadow-emerald-900/20 hover:bg-emerald-500"
                         onClick={() => navigate(createPageUrl(`POS?workOrderId=${o.id}&balance=${totals.balance}&mode=full`), {
-                          state: { fromDashboard: true, paymentMode: "full", workOrder: o, balanceDue: totals.balance, openPaymentImmediately: true }
+                          state: { 
+                            fromDashboard: true, 
+                            paymentMode: "full", 
+                            workOrder: o, 
+                            items: items,
+                            customer: {
+                              id: o.customer_id,
+                              name: o.customer_name,
+                              phone: o.customer_phone || o.phone,
+                              email: o.customer_email || o.email
+                            },
+                            balanceDue: totals.balance, 
+                            openPaymentImmediately: true 
+                          }
                         })}
                       >
                         Cobrar Restante

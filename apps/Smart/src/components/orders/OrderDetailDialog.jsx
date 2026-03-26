@@ -178,11 +178,13 @@ export default function OrderDetailDialog({ order, open, onClose, onOrderUpdated
     if (editedOrder.repair_tasks) {
       editedOrder.repair_tasks.forEach(task => {
         items.push({
-          id: task.id || Date.now().toString() + Math.random(),
+          id: task.id || `task-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
           name: task.description,
           type: "service",
           price: task.cost || 0,
-          quantity: 1
+          cost: task.labor_cost || 0, // Using labor_cost or similar if available
+          quantity: 1,
+          taxable: task.tax_exempt !== true // Default to true unless explicitly exempt
         });
       });
     }
@@ -191,11 +193,13 @@ export default function OrderDetailDialog({ order, open, onClose, onOrderUpdated
     if (editedOrder.parts_needed) {
       editedOrder.parts_needed.forEach(part => {
         items.push({
-          id: part.id || Date.now().toString() + Math.random(),
+          id: part.id || `part-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
           name: part.name,
           type: "product",
           price: part.price || 0,
-          quantity: part.quantity || 1
+          cost: part.cost || 0,
+          quantity: part.quantity || 1,
+          taxable: part.taxable !== false
         });
       });
     }

@@ -166,33 +166,52 @@ export default function POSDesktop() {
     !!(workOrderId || location.state?.openPaymentImmediately),
   [workOrderId, location.state?.openPaymentImmediately]);
 
-  const hydrateWorkOrder = useCallback(async (order) => {
+  const hydrateWorkOrder = useCallback(async (order, extraState = null) => {
     if (!order?.id) return;
     const paid = Number(order.total_paid || order.amount_paid || 0);
     setTotalPaid(paid);
     setSelectedOrder(order);
-    setPaymentMode(urlPaymentMode);
-    const orderItems = Array.isArray(order.order_items) ? order.order_items : [];
-    setCart(orderItems.map((item) => ({
+    setPaymentMode(extraState?.paymentMode || urlPaymentMode);
+
+    // PRIORITIZAMOS los items del state si existen, si no order_items, si no reconstruimos de tasks/parts
+    let itemsToLoad = [];
+    if (Array.isArray(extraState?.items) && extraState.items.length > 0) {
+      itemsToLoad = extraState.items;
+    } else if (Array.isArray(order.order_items) && order.order_items.length > 0) {
+      itemsToLoad = order.order_items;
+    } else {
+      const tasks = Array.isArray(order.repair_tasks) ? order.repair_tasks : [];
+      const parts = Array.isArray(order.parts_needed) ? order.parts_needed : [];
+      itemsToLoad = [
+        ...tasks.map(t => ({ ...t, name: t.description || t.name, price: t.cost || t.price, type: 'service' })),
+        ...parts.map(p => ({ ...p, name: p.name, price: p.price, type: 'product' }))
+      ];
+    }
+
+    setCart(itemsToLoad.map((item) => ({
       id: item.id || `temp-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
-      name: item.name,
-      price: toCurrencyNumber(item.price),
-      cost: toCurrencyNumber(item.line_cost != null ? Number(item.line_cost) / Math.max(1, Number(item.qty || item.quantity || 1)) : item.cost),
+      name: item.name || item.description || "Articulo",
+      price: toCurrencyNumber(item.price || item.cost || 0),
+      cost: toCurrencyNumber(item.cost_price || item.labor_cost || item.line_cost || item.cost || 0),
       quantity: item.qty || item.quantity || 1,
-      type: item.type || "product",
-      taxable: item.taxable !== false
+      type: item.type || (item.duration_minutes ? "service" : "product"),
+      taxable: item.taxable !== false && item.tax_exempt !== true
     })));
-    // Cliente inmediato desde campos de la orden, sin esperar DB
-    if (order.customer_id || order.customer_name) {
+
+    // Cliente: Prioridad state, luego campos de la orden
+    const stateCustomer = extraState?.customer;
+    if (stateCustomer?.name || order.customer_name) {
       setSelectedCustomer({
-        id: order.customer_id || null,
-        name: order.customer_name || "",
-        phone: order.customer_phone || order.phone || "",
-        email: order.customer_email || order.email || "",
+        id: stateCustomer?.id || order.customer_id || null,
+        name: stateCustomer?.name || order.customer_name || "",
+        phone: stateCustomer?.phone || order.customer_phone || order.phone || "",
+        email: stateCustomer?.email || order.customer_email || order.email || "",
       });
-      if (order.customer_id) {
+      // Si tenemos ID pero falta info, intentamos traer full desde DB
+      const targetCustomerId = stateCustomer?.id || order.customer_id;
+      if (targetCustomerId && (!stateCustomer?.email && !order.customer_email)) {
         try {
-          const customer = await dataClient.entities.Customer.get(order.customer_id);
+          const customer = await dataClient.entities.Customer.get(targetCustomerId);
           if (customer?.id) setSelectedCustomer(customer);
         } catch (e) {
           console.error("Error loading customer:", e);
@@ -249,7 +268,7 @@ export default function POSDesktop() {
     
     // Si tenemos la orden en el state y coincide con el ID de la URL (o no hay ID en URL)
     if (stateOrder?.id && (!workOrderId || String(stateOrder.id) === String(workOrderId))) {
-       hydrateWorkOrder(stateOrder);
+       hydrateWorkOrder(stateOrder, location.state);
        return;
     }
 
