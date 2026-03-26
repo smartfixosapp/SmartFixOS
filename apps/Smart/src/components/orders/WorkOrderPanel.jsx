@@ -187,8 +187,19 @@ export default function WorkOrderPanelV2({ orderId, onClose, onUpdate, user }) {
   const handleRefresh = loadOrder;
 
   const sendStatusChangeEmail = async (newStatusId, previousStatusId, currentOrder) => {
-    const o = currentOrder || order;
-    if (!o?.customer_email) return;
+    // Siempre usar la orden original como fallback para datos del cliente,
+    // ya que Order.update() puede devolver una respuesta parcial sin customer_email
+    const o = {
+      ...(currentOrder || order),
+      customer_email: currentOrder?.customer_email || order?.customer_email,
+      customer_name:  currentOrder?.customer_name  || order?.customer_name,
+      customer_phone: currentOrder?.customer_phone || order?.customer_phone,
+      order_number:   currentOrder?.order_number   || order?.order_number,
+    };
+    if (!o?.customer_email) {
+      console.warn("[Email] Sin customer_email, omitiendo email para estado:", newStatusId);
+      return;
+    }
 
     // Estados que NO envían email (basado en el panel principal)
     const skipEmailStates = ["reparacion_externa", "waiting_order", "pending_order", "intake"];

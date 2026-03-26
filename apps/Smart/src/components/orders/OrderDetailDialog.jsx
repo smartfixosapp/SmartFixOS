@@ -44,6 +44,8 @@ import OrderTimeline from "./OrderTimeline"; // New import
 import DeleteOrderDialog from "./DeleteOrderDialog";
 import RefundModal from "./RefundModal";
 import { openWhatsApp, makeCall } from "@/components/utils/helpers";
+import { sendTemplatedEmail } from "@/api/functions";
+import { navigateToPOS } from "../utils/posNavigation";
 
 const statusColors = {
   intake: "bg-blue-500/20 text-blue-400 border-blue-500/30",
@@ -97,37 +99,32 @@ export default function OrderDetailDialog({ order, open, onClose, onOrderUpdated
           }
         ];
 
-        // Send email notification
         if (editedOrder.customer_email) {
           try {
-            await base44.integrations.Core.SendEmail({
-              to: editedOrder.customer_email,
-              subject: `911 SmartFix - Actualización de su orden ${editedOrder.order_number}`,
-              body: `
-                <h2>Hola ${editedOrder.customer_name},</h2>
-                <p>Su orden <strong>${editedOrder.order_number}</strong> ha cambiado de estado:</p>
-                <p><strong>Nuevo Estado:</strong> ${newStatus.replace(/_/g, ' ')}</p>
-                <p><strong>Dispositivo:</strong> ${editedOrder.device_brand} ${editedOrder.device_model}</p>
-                <p>Puede contactarnos al (787) 123-4567 para más información.</p>
-                <br>
-                <p>Gracias por confiar en 911 SmartFix PR</p>
-              `
+            console.log("[Email Dialog] 🚀 Enviando email templated para:", newStatus);
+            await sendTemplatedEmail({
+              event_type: newStatus,
+              order_data: {
+                order_number: editedOrder.order_number,
+                customer_name: editedOrder.customer_name || "Cliente",
+                customer_email: editedOrder.customer_email,
+                device_info: `${editedOrder.device_brand || ""} ${editedOrder.device_model || ""}`.trim(),
+                amount: editedOrder.total || editedOrder.cost_estimate || 0,
+                balance: (editedOrder.cost_estimate || 0) - (editedOrder.amount_paid || 0),
+                initial_problem: editedOrder.initial_problem || ""
+              }
             });
 
-            // Log email
-            await base44.entities.EmailLog.create({
+            // Log email event
+            await base44.entities.WorkOrderEvent.create({
               order_id: editedOrder.id,
-              customer_id: editedOrder.customer_id,
-              to_email: editedOrder.customer_email,
-              subject: `Actualización de orden ${editedOrder.order_number}`,
-              body: `Estado cambiado a: ${newStatus}`,
-              event_type: "order_status_changed",
-              status: "sent",
-              sent_at: new Date().toISOString(),
-              sent_by: user?.full_name || user?.email
+              order_number: editedOrder.order_number,
+              event_type: "email_sent",
+              description: `Email de actualización (${newStatus}) enviado automáticamente`,
+              user_name: user?.full_name || user?.email || "Sistema"
             });
           } catch (emailError) {
-            console.error("Error sending email:", emailError);
+            console.error("[Email Dialog] ❌ Error sending templated email:", emailError);
           }
         }
       }
@@ -170,62 +167,7 @@ export default function OrderDetailDialog({ order, open, onClose, onOrderUpdated
 
   const handleCloseAndGoToPOS = () => {
     if (!confirm("¿Cerrar esta orden y procesar pago en POS?")) return;
-
-    // Prepare items
-    const items = [];
-
-    // Add services
-    if (editedOrder.repair_tasks) {
-      editedOrder.repair_tasks.forEach(task => {
-        items.push({
-          id: task.id || `task-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
-          name: task.description,
-          type: "service",
-          price: task.cost || 0,
-          cost: task.labor_cost || 0, // Using labor_cost or similar if available
-          quantity: 1,
-          taxable: task.tax_exempt !== true // Default to true unless explicitly exempt
-        });
-      });
-    }
-
-    // Add parts
-    if (editedOrder.parts_needed) {
-      editedOrder.parts_needed.forEach(part => {
-        items.push({
-          id: part.id || `part-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
-          name: part.name,
-          type: "product",
-          price: part.price || 0,
-          cost: part.cost || 0,
-          quantity: part.quantity || 1,
-          taxable: part.taxable !== false
-        });
-      });
-    }
-
-    if (!editedOrder?.id) {
-      toast.error("Error: No se encontró ID de la orden");
-      return;
-    }
-
-    // Navigate to POS with state
-    navigate(`/POS?workOrderId=${editedOrder.id}`, {
-      state: {
-        fromWorkOrder: true,
-        workOrder: editedOrder,
-        items,
-        customer: {
-          id: editedOrder.customer_id,
-          name: editedOrder.customer_name,
-          phone: editedOrder.customer_phone,
-          email: editedOrder.customer_email
-        },
-        deposit: editedOrder.deposit_amount || editedOrder.amount_paid || 0,
-        openPaymentImmediately: true
-      }
-    });
-
+    navigateToPOS(editedOrder, navigate, { fromDashboard: true, openPaymentImmediately: true });
     onClose();
   };
 

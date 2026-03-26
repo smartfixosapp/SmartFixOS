@@ -21,6 +21,7 @@ import { useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/components/utils/helpers";
 import { base44 } from "@/api/base44Client";
 import { sendTemplatedEmail } from "@/api/functions";
+import { navigateToPOS } from "../utils/posNavigation";
 import UniversalPrintDialog from "../printing/UniversalPrintDialog";
 import { LinkifiedText } from "@/components/utils/linkify";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -1215,31 +1216,6 @@ function OrderItemsSection({ order, onUpdated, clearEventCache, loadEventsCallba
     });
   };
 
-  const handleCobrarClick = () => {
-    // ✅ Cerrar panel antes de navegar al POS
-    if (onClose) onClose();
-    const items = [
-      ...(o.repair_tasks || []).map(t => ({ id: t.id, name: t.name || 'Servicio', price: t.cost || 0, cost: t.labor_cost || 0, taxable: t.taxable !== false, type: 'service', qty: 1 })),
-      ...(o.parts_needed || []).map(p => ({ id: p.id, name: p.name || 'Parte', price: p.price || 0, cost: p.cost_price || 0, taxable: p.taxable !== false, type: 'part', qty: p.quantity || 1 })),
-      ...(o.order_items || []).map(i => ({ ...i, price: i.price || 0, cost: i.cost || i.cost_price || 0, taxable: i.taxable !== false, qty: i.qty || i.quantity || 1 }))
-    ];
-    navigate(createPageUrl(`POS?workOrderId=${o.id}&balance=${balance}&mode=full`), {
-      state: { 
-        fromDashboard: true, 
-        paymentMode: "full", 
-        workOrder: o, 
-        items,
-        customer: {
-          id: o.customer_id,
-          name: o.customer_name,
-          phone: o.customer_phone,
-          email: o.customer_email
-        },
-        balanceDue: balance, 
-        openPaymentImmediately: true 
-      }
-    });
-  };
 
   return (
     <>
@@ -1505,36 +1481,7 @@ export default function WorkOrderPanel({ orderId, onClose, onUpdate, onDelete, p
 
   // Updated handleCobrarClick for header button to potentially handle full payment
   const handleCobrarClick = useCallback(() => {
-    if (!order) return;
-    const total = Number(order.total || 0);
-    const totalPaid = Number(order.amount_paid ?? order.total_paid ?? 0);
-    const balance =
-      order.balance_due != null
-        ? Math.max(0, Number(order.balance_due || 0))
-        : Math.max(0, total - totalPaid);
-
-    // Default behavior for header button: go to POS for full payment
-    const items = [
-      ...(order.repair_tasks || []).map(t => ({ id: t.id, name: t.name || 'Servicio', price: t.cost || 0, cost: t.labor_cost || 0, taxable: t.taxable !== false, type: 'service', qty: 1 })),
-      ...(order.parts_needed || []).map(p => ({ id: p.id, name: p.name || 'Parte', price: p.price || 0, cost: p.cost_price || 0, taxable: p.taxable !== false, type: 'part', qty: p.quantity || 1 })),
-      ...(order.order_items || []).map(i => ({ ...i, price: i.price || 0, cost: i.cost || i.cost_price || 0, taxable: i.taxable !== false, qty: i.qty || i.quantity || 1 }))
-    ];
-    navigate(createPageUrl(`POS?workOrderId=${order.id}&balance=${balance}&mode=full`), { 
-      state: { 
-        fromDashboard: true, 
-        paymentMode: "full", 
-        workOrder: order, 
-        items,
-        customer: {
-          id: order.customer_id,
-          name: order.customer_name,
-          phone: order.customer_phone,
-          email: order.customer_email
-        },
-        balanceDue: balance, 
-        openPaymentImmediately: true 
-      } 
-    });
+    navigateToPOS(order, navigate, { fromDashboard: true, openPaymentImmediately: true });
   }, [order, navigate]);
 
   const [showSecurityBeforePayment, setShowSecurityBeforePayment] = useState(false);
@@ -2366,7 +2313,7 @@ export default function WorkOrderPanel({ orderId, onClose, onUpdate, onDelete, p
 
         try {
           // ✅ ESTADOS QUE NO ENVÍAN NOTIFICACIONES (solo intake y diagnosing)
-          const skipNotificationStates = ["intake", "diagnosing"];
+          const skipNotificationStates = ["intake"];
           
           if (!skipNotificationStates.includes(nextId)) {
             const statusLabels = {
@@ -2501,19 +2448,8 @@ export default function WorkOrderPanel({ orderId, onClose, onUpdate, onDelete, p
       clearEventCache(order.id);
       await loadEventsCallback(true);
 
-      await NotificationService.notifyOrderStatusChange(
-        {
-          ...order,
-          status: "cancelled",
-          status_metadata: {
-            ...(order?.status_metadata && typeof order.status_metadata === "object" ? order.status_metadata : {}),
-            kind: "cancelled",
-            cancellation_reason: reason
-          }
-        },
-        "cancelled",
-        me
-      );
+      // ✅ ADDED: Send templated email for cancellation
+      await sendStatusChangeEmail("cancelled", order?.status);
 
     } catch (err) {
       console.error("Error cancelando orden:", err);

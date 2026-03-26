@@ -2,6 +2,7 @@ import React, { useMemo, useState } from "react";
 import { base44 } from "@/api/base44Client";
 import { useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/components/utils/helpers";
+import { navigateToPOS } from "../../utils/posNavigation";
 import { motion, AnimatePresence } from "framer-motion";
 
 import { Button } from "@/components/ui/button";
@@ -115,50 +116,9 @@ export default function WorkOrderProgress({ order, onUpdate, user, changeStatus 
         });
       }
 
-      if (newStatus === "completed") {
-        const items = [
-          ...(order.repair_tasks || []).map(t => ({
-            id: t.id,
-            name: t.name || 'Servicio',
-            price: t.cost || 0,
-            cost: t.labor_cost || 0,
-            taxable: t.taxable !== false,
-            type: 'service',
-            qty: 1
-          })),
-          ...(order.parts_needed || []).map(p => ({
-            id: p.id,
-            name: p.name || 'Parte',
-            price: p.price || 0,
-            cost: p.cost_price || 0,
-            taxable: p.taxable !== false,
-            type: 'part',
-            qty: p.quantity || 1
-          })),
-          ...(order.order_items || []).map(i => ({
-            ...i,
-            price: i.price || 0,
-            cost: i.cost || i.cost_price || 0,
-            taxable: i.taxable !== false,
-            qty: i.qty || i.quantity || 1
-          }))
-        ];
-
-        nav(createPageUrl(`POS?workOrderId=${order.id}`), {
-          state: {
-            fromDashboard: true,
-            workOrder: order,
-            items,
-            customer: {
-              id: order.customer_id,
-              name: order.customer_name,
-              phone: order.customer_phone,
-              email: order.customer_email
-            },
-            openPaymentImmediately: true,
-          }
-        });
-      }
+    if (newStatus === "completed") {
+      navigateToPOS(order, nav, { fromDashboard: true, openPaymentImmediately: true });
+    }
 
       onUpdate?.({});
       setOptimisticStatus(null); // Clear optimistic state after success

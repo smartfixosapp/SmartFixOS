@@ -140,7 +140,6 @@ export default function POSMobile() {
   const [paymentMode, setPaymentMode] = useState("regular");
   const [totalPaid, setTotalPaid] = useState(0);
   const hasShownInventoryOfflineToast = React.useRef(false);
-  const lastHydratedRef = React.useRef(null);
   const [showManualItem, setShowManualItem] = useState(false);
   const [manualItem, setManualItem] = useState({ name: "", price: "", qty: "1" });
   const [showSaleActions, setShowSaleActions] = useState(false);
@@ -162,10 +161,6 @@ export default function POSMobile() {
       urlBalance: parseFloat(params.get("balance") || "0") || 0
     };
   }, [location.search]);
-
-  const openPaymentImmediately = React.useMemo(() => 
-    !!(workOrderId || location.state?.openPaymentImmediately),
-  [workOrderId, location.state?.openPaymentImmediately]);
 
   const hydrateWorkOrder = useCallback(async (order, extraState = null) => {
     if (!order?.id) return;
@@ -224,7 +219,7 @@ export default function POSMobile() {
     setShowPaymentModal(true);
   }, [urlPaymentMode]);
 
-  // ── Startup: inventario + cajón + config ──────────────────────────────────
+  // ── Startup: inventario + cajón + config + carga de orden ─────────────────
   useEffect(() => {
     loadInventory();
     loadPaymentMethods();
@@ -236,85 +231,105 @@ export default function POSMobile() {
     });
 
     const status = getCachedStatus();
+    let safetyTimer = null;
     if (status.isInitialized) {
       setLoadingDrawer(false);
       setCurrentDrawer(status.drawer || null);
     } else {
       setLoadingDrawer(true);
       checkCashRegisterStatus().finally(() => setLoadingDrawer(false));
-      
-      // Safety timeout: si en 5s no responde, forzar cierre de loader
-      const timer = setTimeout(() => setLoadingDrawer(false), 5000);
-      return () => {
-        unsubscribe();
-        clearTimeout(timer);
-      };
+      safetyTimer = setTimeout(() => setLoadingDrawer(false), 5000);
     }
 
-    return unsubscribe;
+    // ── Carga de orden desde URL ──────────────────────────────────────────
+    if (workOrderId) {
+      const navState = location.state || {};
+      const stateOrder = navState.workOrder || navState.order || null;
+      const navMode = navState.paymentMode || urlPaymentMode;
+
+      (async () => {
+        try {
+          let order = null;
+
+          if (stateOrder?.id && String(stateOrder.id) === String(workOrderId)) {
+            order = stateOrder;
+          } else {
+            try {
+              order = await dataClient.entities.Order.get(workOrderId);
+            } catch {}
+            if (!order?.id) {
+              try {
+                const tenantId = localStorage.getItem("smartfix_tenant_id") || null;
+                let q = supabase.from("order").select("*, repair_tasks(*), parts_needed(*), order_items").eq("id", workOrderId).limit(1);
+                if (tenantId) q = q.eq("tenant_id", tenantId);
+                const { data } = await q.maybeSingle();
+                order = data || null;
+              } catch {}
+            }
+          }
+
+          if (!order?.id) {
+            toast.error("No se encontró la orden");
+            return;
+          }
+
+          const paid = Number(order.total_paid || order.amount_paid || 0);
+          setTotalPaid(paid);
+          setSelectedOrder(order);
+          setPaymentMode(navMode);
+
+          const rawItems = navState.items?.length
+            ? navState.items
+            : order.order_items?.length
+              ? order.order_items
+              : [
+                  ...(order.repair_tasks || []).map(t => ({ id: t.id, name: t.name || t.description || 'Servicio', price: t.cost || 0, cost: t.labor_cost || 0, type: 'service', taxable: t.taxable !== false, quantity: 1 })),
+                  ...(order.parts_needed || []).map(p => ({ id: p.id, name: p.name || 'Parte', price: p.price || 0, cost: p.cost_price || 0, type: 'product', taxable: p.taxable !== false, quantity: p.quantity || 1 })),
+                ];
+
+          setCart(rawItems.map(item => ({
+            id: item.id || `item-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
+            name: item.name || item.description || "Artículo",
+            price: toCurrencyNumber(item.price || item.cost || 0),
+            cost: toCurrencyNumber(item.cost_price || item.labor_cost || item.cost || 0),
+            quantity: item.qty || item.quantity || 1,
+            type: item.type || (item.duration_minutes ? "service" : "product"),
+            taxable: item.taxable !== false && item.tax_exempt !== true,
+          })));
+
+          const cust = navState.customer;
+          setSelectedCustomer({
+            id: cust?.id || order.customer_id || null,
+            name: cust?.name || order.customer_name || "",
+            phone: cust?.phone || order.customer_phone || "",
+            email: cust?.email || order.customer_email || "",
+          });
+
+          setShowPaymentModal(true);
+        } catch (err) {
+          console.error("[POS Mobile] Error cargando orden:", err);
+          toast.error("Error al cargar la orden");
+        }
+      })();
+    }
+
+    return () => {
+      unsubscribe();
+      if (safetyTimer) clearTimeout(safetyTimer);
+    };
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
-
-  // ── Carga de Orden ────────────────────────────────────────────────────────
-  useEffect(() => {
-    const stateOrder = location.state?.workOrder || location.state?.order;
-    const targetId = workOrderId || stateOrder?.id;
-
-    if (!targetId) return;
-
-    // Generamos una "firma" de la hidratación actual para evitar repetirla si nada ha cambiado
-    const itemsCount = Array.isArray(location.state?.items) ? location.state.items.length : 0;
-    const itemsSignature = location.state?.items ? `withItems_${itemsCount}` : 'noItems';
-    const hydrationSignature = `${targetId}_${itemsSignature}_${urlPaymentMode}_${urlBalance}_${location.state?.balanceDue || 0}`;
-    
-    // Si ya hidratamos esta firma y el carrito NO está vacío, no hacemos nada
-    const isMatchingOrder = selectedOrder?.id && String(selectedOrder.id) === String(targetId);
-    console.log("[POS Mobile] 🔍 Guard Check:", { 
-      lastHydrated: lastHydratedRef.current, 
-      currentSignature: hydrationSignature, 
-      isMatchingOrder, 
-      cartLength: cart.length 
-    });
-
-    if (lastHydratedRef.current === hydrationSignature && isMatchingOrder && cart.length > 0) {
-      // Si se pidió pago inmediato y el modal está cerrado, lo abrimos
-      if (location.state?.openPaymentImmediately && !showPaymentModal) {
-        setShowPaymentModal(true);
-      }
-      return;
-    }
-
-    console.log(`[POS Mobile] 💧 Iniciando hidratación para: ${targetId} (Firma: ${hydrationSignature})`);
-
-    const timer = setTimeout(async () => {
-      if (stateOrder?.id && (!workOrderId || String(stateOrder.id) === String(workOrderId))) {
-        await hydrateWorkOrder(stateOrder, location.state);
-        lastHydratedRef.current = hydrationSignature;
-      } else if (workOrderId) {
-        try {
-          const fetched = await fetchWorkOrderById(workOrderId);
-          if (fetched?.id) {
-            await hydrateWorkOrder(fetched, location.state);
-            lastHydratedRef.current = hydrationSignature;
-          } else {
-            toast.error("No se encontró la orden solicitada");
-          }
-        } catch (err) {
-          console.error("[POS Mobile] Fetch order failed:", err);
-        }
-      }
-    }, 300);
-
-    return () => clearTimeout(timer);
-  }, [workOrderId, location.state, hydrateWorkOrder, selectedOrder?.id, cart.length, urlPaymentMode, urlBalance]);
 
   const fetchWorkOrderById = useCallback(async (orderId) => {
     if (!orderId) return null;
 
+    // Bypass local cache
+    /*
     try {
       const localOrder = getLocalOrders().find((order) => String(order?.id || "") === String(orderId));
       if (localOrder?.id) return localOrder;
     } catch {}
+    */
 
     try {
       const order = await dataClient.entities.Order.get(orderId);
@@ -327,7 +342,7 @@ export default function POSMobile() {
       const tenantId = localStorage.getItem("smartfix_tenant_id") || null;
       let query = supabase
         .from("order")
-        .select("*")
+        .select("*, repair_tasks(*), parts_needed(*), order_items")
         .eq("id", orderId)
         .limit(1);
 

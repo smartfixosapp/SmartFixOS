@@ -11,6 +11,7 @@ import {
   CheckCircle2, XCircle, Image as ImageIcon, ChevronDown, ChevronUp, Mail, Printer
 } from "lucide-react";
 import { getStatusConfig } from "@/components/utils/statusRegistry";
+import { navigateToPOS } from "../../utils/posNavigation";
 
 import WorkOrderItems from "./WorkOrderItems";
 import WorkOrderChecklist from "./WorkOrderChecklist";
@@ -187,48 +188,7 @@ export default function WorkOrderPanel({ order, onUpdate, onClose, onDelete }) {
   }, [order?.id, order?.assigned_to, order?.assigned_to_name]);
 
   const handleGoToPOS = () => {
-    const items = [
-      ...(order.repair_tasks || []).map(t => ({
-        id: t.id,
-        name: t.name || 'Servicio',
-        price: t.cost || 0,
-        cost: t.labor_cost || 0,
-        taxable: t.taxable !== false,
-        type: 'service',
-        qty: 1
-      })),
-      ...(order.parts_needed || []).map(p => ({
-        id: p.id,
-        name: p.name || 'Parte',
-        price: p.price || 0,
-        cost: p.cost_price || 0,
-        taxable: p.taxable !== false,
-        type: 'part',
-        qty: p.quantity || 1
-      })),
-      ...(order.order_items || []).map(i => ({
-        ...i,
-        price: i.price || 0,
-        cost: i.cost || i.cost_price || 0,
-        taxable: i.taxable !== false,
-        qty: i.qty || i.quantity || 1
-      }))
-    ];
-
-    nav(createPageUrl(`POS?workOrderId=${order.id}`), {
-      state: {
-        fromDashboard: true,
-        workOrder: order,
-        items,
-        customer: {
-          id: order.customer_id,
-          name: order.customer_name,
-          phone: order.customer_phone,
-          email: order.customer_email
-        },
-        openPaymentImmediately: true,
-      }
-    });
+    navigateToPOS(order, nav, { fromDashboard: true, openPaymentImmediately: true });
   };
 
   const handleChildUpdate = async (data) => {
