@@ -22,6 +22,7 @@ import { createPageUrl } from "@/components/utils/helpers";
 import { base44 } from "@/api/base44Client";
 import { sendTemplatedEmail } from "@/api/functions";
 import { navigateToPOS } from "../utils/posNavigation";
+import QuickPayModal from "@/components/pos/QuickPayModal";
 import UniversalPrintDialog from "../printing/UniversalPrintDialog";
 import { LinkifiedText } from "@/components/utils/linkify";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -1479,10 +1480,16 @@ export default function WorkOrderPanel({ orderId, onClose, onUpdate, onDelete, p
   const panelRef = useRef(null);
   useKeyboardScrollIntoView(panelRef);
 
-  // Updated handleCobrarClick for header button to potentially handle full payment
+  const [quickPayMode, setQuickPayMode] = useState(null);
+
+  const handlePaymentClick = useCallback((mode) => {
+    setQuickPayMode(mode || "full");
+  }, []);
+
+  // Legacy header button — now opens inline modal
   const handleCobrarClick = useCallback(() => {
-    navigateToPOS(order, navigate, { fromDashboard: true, openPaymentImmediately: true });
-  }, [order, navigate]);
+    setQuickPayMode("full");
+  }, []);
 
   const [showSecurityBeforePayment, setShowSecurityBeforePayment] = useState(false);
 
@@ -2175,15 +2182,7 @@ export default function WorkOrderPanel({ orderId, onClose, onUpdate, onDelete, p
         return new Promise((resolve) => {
           document.getElementById('goPOS').onclick = () => {
             document.body.removeChild(alertDiv);
-            navigate(createPageUrl(`POS?workOrderId=${order.id}&balance=${balance}&mode=full`), {
-              state: {
-                fromDashboard: true,
-                paymentMode: "full",
-                workOrder: order,
-                balanceDue: balance,
-                openPaymentImmediately: true,
-              }
-            });
+            setQuickPayMode("full");
             resolve();
           };
 
@@ -3078,13 +3077,13 @@ export default function WorkOrderPanel({ orderId, onClose, onUpdate, onDelete, p
                     <RepairStage order={o} onUpdate={async () => { await clearEventCache(o.id); await loadEventsCallback(true); await handleRefresh(); onUpdate?.(); }} />
                   )}
                   {status === "warranty" && (
-                    <WarrantyStage order={o} onUpdate={async () => { await clearEventCache(o.id); await loadEventsCallback(true); await handleRefresh(); onUpdate?.(); }} />
+                    <WarrantyStage order={o} onUpdate={async () => { await clearEventCache(o.id); await loadEventsCallback(true); await handleRefresh(); onUpdate?.(); }} onPaymentClick={handlePaymentClick} />
                   )}
                   {status === "ready_for_pickup" && (
-                    <DeliveryStage order={o} onUpdate={async () => { await clearEventCache(o.id); await loadEventsCallback(true); await handleRefresh(); onUpdate?.(); }} />
+                    <DeliveryStage order={o} onUpdate={async () => { await clearEventCache(o.id); await loadEventsCallback(true); await handleRefresh(); onUpdate?.(); }} onPaymentClick={handlePaymentClick} />
                   )}
                   {(status === "picked_up" || status === "delivered" || status === "completed") && (
-                    <FinalizedStage order={o} onUpdate={async () => { await clearEventCache(o.id); await loadEventsCallback(true); await handleRefresh(); onUpdate?.(); }} />
+                    <FinalizedStage order={o} onUpdate={async () => { await clearEventCache(o.id); await loadEventsCallback(true); await handleRefresh(); onUpdate?.(); }} onPaymentClick={handlePaymentClick} />
                   )}
                   {status === "cancelled" && (
                     <CancelledStage order={o} onUpdate={async () => { await clearEventCache(o.id); await loadEventsCallback(true); await handleRefresh(); onUpdate?.(); }} />
@@ -3267,6 +3266,22 @@ export default function WorkOrderPanel({ orderId, onClose, onUpdate, onDelete, p
         )}
 
       </div>
+
+      {quickPayMode && order && (
+        <QuickPayModal
+          order={order}
+          paymentMode={quickPayMode}
+          onClose={() => setQuickPayMode(null)}
+          onSuccess={async ({ updatedOrder }) => {
+            setQuickPayMode(null);
+            if (updatedOrder?.id) {
+              setOrder((prev) => ({ ...(prev || {}), ...updatedOrder }));
+            }
+            await handleRefresh(true);
+            onUpdate?.();
+          }}
+        />
+      )}
     </>
   );
 }

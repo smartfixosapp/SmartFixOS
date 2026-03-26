@@ -21,7 +21,7 @@ import AddItemModal from "@/components/workorder/AddItemModal";
 import { Button } from "@/components/ui/button";
 import { createPageUrl } from "@/components/utils/helpers";
 
-export default function FinalizedStage({ order, onUpdate }) {
+export default function FinalizedStage({ order, onUpdate, onPaymentClick }) {
   const o = order || {};
   const navigate = useNavigate();
   const [showCatalog, setShowCatalog] = useState(false);
@@ -404,43 +404,13 @@ export default function FinalizedStage({ order, onUpdate }) {
                       <Button
                         variant="outline"
                         className="h-12 rounded-2xl border-emerald-500/30 text-emerald-300 hover:bg-emerald-500/10"
-                        onClick={() => navigate(createPageUrl(`POS?workOrderId=${o.id}&balance=${totals.balance}&mode=deposit`), {
-                          state: { 
-                            fromDashboard: true, 
-                            paymentMode: "deposit", 
-                            workOrder: o, 
-                            items: items,
-                            customer: {
-                              id: o.customer_id,
-                              name: o.customer_name,
-                              phone: o.customer_phone || o.phone,
-                              email: o.customer_email || o.email
-                            },
-                            balanceDue: totals.balance, 
-                            openPaymentImmediately: true 
-                          }
-                        })}
+                        onClick={() => onPaymentClick?.("deposit")}
                       >
                         Depósito
                       </Button>
                       <Button
                         className="h-12 rounded-2xl bg-emerald-600 text-white shadow-lg shadow-emerald-900/20 hover:bg-emerald-500"
-                        onClick={() => navigate(createPageUrl(`POS?workOrderId=${o.id}&balance=${totals.balance}&mode=full`), {
-                          state: { 
-                            fromDashboard: true, 
-                            paymentMode: "full", 
-                            workOrder: o, 
-                            items: items,
-                            customer: {
-                              id: o.customer_id,
-                              name: o.customer_name,
-                              phone: o.customer_phone || o.phone,
-                              email: o.customer_email || o.email
-                            },
-                            balanceDue: totals.balance, 
-                            openPaymentImmediately: true 
-                          }
-                        })}
+                        onClick={() => onPaymentClick?.("full")}
                       >
                         Cobrar Restante
                       </Button>

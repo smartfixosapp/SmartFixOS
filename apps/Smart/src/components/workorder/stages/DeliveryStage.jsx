@@ -32,7 +32,7 @@ function getTenantId() {
   }
 }
 
-export default function DeliveryStage({ order, onUpdate, user }) {
+export default function DeliveryStage({ order, onUpdate, user, onPaymentClick }) {
   const o = order || {};
   const [items, setItems] = useState([]);
   const [showAddItemModal, setShowAddItemModal] = useState(false);
@@ -459,52 +459,14 @@ export default function DeliveryStage({ order, onUpdate, user }) {
                     <Button 
                       variant="outline"
                       className="h-12 rounded-2xl border-emerald-500/30 bg-white text-base font-bold text-emerald-500 hover:bg-emerald-50"
-                      onClick={() => {
-                        // ✅ Cerrar panel antes de navegar al POS
-                        window.dispatchEvent(new Event('close-workorder-panel'));
-                        navigate(createPageUrl(`POS?workOrderId=${o.id}&balance=${balanceDue}&mode=deposit`), {
-                          state: { 
-                            fromDashboard: true, 
-                            paymentMode: "deposit", 
-                            workOrder: o, 
-                            items: items,
-                            customer: {
-                              id: o.customer_id,
-                              name: o.customer_name,
-                              phone: o.customer_phone || o.phone,
-                              email: o.customer_email || o.email
-                            },
-                            balanceDue, 
-                            openPaymentImmediately: true 
-                          }
-                        });
-                      }}
+                      onClick={() => onPaymentClick?.("deposit")}
                     >
                       <Wallet className="w-5 h-5 mr-2" />
                       Depósito
                     </Button>
-                    <Button 
+                    <Button
                       className="h-12 rounded-2xl bg-gradient-to-r from-emerald-500 to-teal-500 text-base font-bold text-white shadow-[0_14px_30px_rgba(16,185,129,0.22)] hover:from-emerald-400 hover:to-teal-400"
-                      onClick={() => {
-                        // ✅ Cerrar panel antes de navegar al POS
-                        window.dispatchEvent(new Event('close-workorder-panel'));
-                        navigate(createPageUrl(`POS?workOrderId=${o.id}&balance=${balanceDue}&mode=full`), {
-                          state: { 
-                            fromDashboard: true, 
-                            paymentMode: "full", 
-                            workOrder: o, 
-                            items: items,
-                            customer: {
-                              id: o.customer_id,
-                              name: o.customer_name,
-                              phone: o.customer_phone || o.phone,
-                              email: o.customer_email || o.email
-                            },
-                            balanceDue, 
-                            openPaymentImmediately: true 
-                          }
-                        });
-                      }}
+                      onClick={() => onPaymentClick?.("full")}
                     >
                       <DollarSign className="w-5 h-5 mr-2" />
                       Cobrar Restante
