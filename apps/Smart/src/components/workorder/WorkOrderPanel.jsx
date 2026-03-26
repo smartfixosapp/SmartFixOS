@@ -1603,12 +1603,15 @@ export default function WorkOrderPanel({ orderId, onClose, onUpdate, onDelete, p
       return;
     }
 
+    console.log("[Email] 📨 Intentando enviar email para:", { newStatusId, previousStatusId, customerEmail: order?.customer_email });
     if (!order?.customer_email) {
+      console.warn("[Email] ⚠️ No hay email de cliente. Saltando.");
       return;
     }
 
     try {
       const deviceLine = `${order.device_brand || ""} ${order.device_family || ""} ${order.device_model || ""}`.trim();
+      console.log("[Email] 🚀 Enviando email a /api/send-email...");
       const result = await sendTemplatedEmail({
         event_type: newStatusId,
         order_data: {
@@ -1621,6 +1624,7 @@ export default function WorkOrderPanel({ orderId, onClose, onUpdate, onDelete, p
           initial_problem: order.initial_problem || ""
         }
       });
+      console.log("[Email] ✅ Resultado de /api/send-email:", result);
       if (result?.success === false) {
         throw new Error(result?.message || "No hay plantilla activa para este estado");
       }
@@ -2329,9 +2333,9 @@ export default function WorkOrderPanel({ orderId, onClose, onUpdate, onDelete, p
           metadata: { from: prevStatusId, to: nextId, ...(metadata || {}) }
         });
 
-        console.log("[ChangeStatus] Llamando a sendStatusChangeEmail...");
+        console.log("[ChangeStatus] 📧 Llamando a sendStatusChangeEmail...");
         await sendStatusChangeEmail(nextId, prevStatusId);
-        console.log("[ChangeStatus] Email procesado");
+        console.log("[ChangeStatus] 📧 Email procesado correctamente.");
 
         // ✅ Llamar función para iniciar contadores y enviar emails
         try {

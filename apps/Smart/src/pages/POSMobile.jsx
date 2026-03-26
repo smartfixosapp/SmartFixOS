@@ -189,6 +189,7 @@ export default function POSMobile() {
       ];
     }
 
+    console.log("[POS Mobile] 💧 hydrateWorkOrder called with:", { orderId: order?.id, itemsCount: itemsToLoad.length });
     setCart(itemsToLoad.map((item) => ({
       id: item.id || `temp-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
       name: item.name || item.description || "Articulo",
@@ -262,10 +263,19 @@ export default function POSMobile() {
     if (!targetId) return;
 
     // Generamos una "firma" de la hidratación actual para evitar repetirla si nada ha cambiado
-    const hydrationSignature = `${targetId}_${location.state?.items ? 'withItems' : 'noItems'}_${urlPaymentMode}_${urlBalance}`;
+    const itemsCount = Array.isArray(location.state?.items) ? location.state.items.length : 0;
+    const itemsSignature = location.state?.items ? `withItems_${itemsCount}` : 'noItems';
+    const hydrationSignature = `${targetId}_${itemsSignature}_${urlPaymentMode}_${urlBalance}_${location.state?.balanceDue || 0}`;
     
     // Si ya hidratamos esta firma y el carrito NO está vacío, no hacemos nada
     const isMatchingOrder = selectedOrder?.id && String(selectedOrder.id) === String(targetId);
+    console.log("[POS Mobile] 🔍 Guard Check:", { 
+      lastHydrated: lastHydratedRef.current, 
+      currentSignature: hydrationSignature, 
+      isMatchingOrder, 
+      cartLength: cart.length 
+    });
+
     if (lastHydratedRef.current === hydrationSignature && isMatchingOrder && cart.length > 0) {
       // Si se pidió pago inmediato y el modal está cerrado, lo abrimos
       if (location.state?.openPaymentImmediately && !showPaymentModal) {
@@ -276,11 +286,11 @@ export default function POSMobile() {
 
     console.log(`[POS Mobile] 💧 Iniciando hidratación para: ${targetId} (Firma: ${hydrationSignature})`);
 
-    if (stateOrder?.id && (!workOrderId || String(stateOrder.id) === String(workOrderId))) {
-       hydrateWorkOrder(stateOrder, location.state);
-       lastHydratedRef.current = hydrationSignature;
-    } else if (workOrderId) {
-      (async () => {
+    const timer = setTimeout(async () => {
+      if (stateOrder?.id && (!workOrderId || String(stateOrder.id) === String(workOrderId))) {
+        await hydrateWorkOrder(stateOrder, location.state);
+        lastHydratedRef.current = hydrationSignature;
+      } else if (workOrderId) {
         try {
           const fetched = await fetchWorkOrderById(workOrderId);
           if (fetched?.id) {
@@ -292,8 +302,10 @@ export default function POSMobile() {
         } catch (err) {
           console.error("[POS Mobile] Fetch order failed:", err);
         }
-      })();
-    }
+      }
+    }, 300);
+
+    return () => clearTimeout(timer);
   }, [workOrderId, location.state, hydrateWorkOrder, selectedOrder?.id, cart.length, urlPaymentMode, urlBalance]);
 
   const fetchWorkOrderById = useCallback(async (orderId) => {
