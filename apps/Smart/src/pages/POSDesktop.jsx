@@ -235,27 +235,28 @@ export default function POSDesktop() {
   }, []);
 
   useEffect(() => {
-    // Si no hay id en routeStateOrder (objeto vacío o sin datos), buscar en DB
+    const shouldAutoOpen = !!(workOrderId || location.state?.openPaymentImmediately);
+
     if (workOrderId && !routeStateOrder?.id) {
-      loadWorkOrder();
+      // Sin datos en state → buscar en DB, luego abrir modal
+      (async () => {
+        await loadWorkOrder();
+        if (shouldAutoOpen && !autoOpenPaymentFired.current) {
+          autoOpenPaymentFired.current = true;
+          setTimeout(() => setShowPaymentModal(true), 200);
+        }
+      })();
+    } else if (routeStateOrder?.id && (!workOrderId || String(routeStateOrder.id) === String(workOrderId))) {
+      // Datos en state → hidratar y abrir modal directamente
+      hydrateWorkOrder(routeStateOrder).then(() => {
+        if (shouldAutoOpen && !autoOpenPaymentFired.current) {
+          autoOpenPaymentFired.current = true;
+          setTimeout(() => setShowPaymentModal(true), 200);
+        }
+      });
     }
-  }, [workOrderId]);
-
-  useEffect(() => {
-    if (routeStateOrder?.id && (!workOrderId || String(routeStateOrder.id) === String(workOrderId))) {
-      hydrateWorkOrder(routeStateOrder);
-    }
-  }, [routeStateOrder, workOrderId, hydrateWorkOrder]);
-
-  // ✅ Auto-abrir modal de pago al llegar desde una orden de trabajo
-  useEffect(() => {
-    const shouldAutoOpen = workOrderId || location.state?.openPaymentImmediately;
-    if (shouldAutoOpen && selectedOrder && !autoOpenPaymentFired.current) {
-      autoOpenPaymentFired.current = true;
-      // Esperar un ciclo para que el cajón termine de cargar, luego abrir
-      setTimeout(() => setShowPaymentModal(true), 400);
-    }
-  }, [workOrderId, selectedOrder, location.state?.openPaymentImmediately]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const fetchWorkOrderById = useCallback(async (orderId) => {
     if (!orderId) return null;
