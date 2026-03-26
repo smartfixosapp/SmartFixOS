@@ -223,13 +223,14 @@ export default function POSMobile() {
   }, []);
 
   useEffect(() => {
-    if (workOrderId && !routeStateOrder) {
+    // Si no hay id en routeStateOrder (objeto vacío o sin datos), buscar en DB
+    if (workOrderId && !routeStateOrder?.id) {
       loadWorkOrder();
     }
   }, [workOrderId]);
 
   useEffect(() => {
-    if (routeStateOrder?.id && (!workOrderId || routeStateOrder.id === workOrderId)) {
+    if (routeStateOrder?.id && (!workOrderId || String(routeStateOrder.id) === String(workOrderId))) {
       hydrateWorkOrder(routeStateOrder);
     }
   }, [routeStateOrder, workOrderId, hydrateWorkOrder]);
@@ -1035,7 +1036,7 @@ export default function POSMobile() {
           setCompletedSale(null);
           if (completedOrderId) {
             setCompletedOrderId(null);
-            navigate(createPageUrl(`Orders?openOrderId=${completedOrderId}`));
+            navigate(createPageUrl(`OrdersMobile?openOrderId=${completedOrderId}`));
           }
         }}
         sale={completedSale}

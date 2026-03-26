@@ -63,6 +63,15 @@ export default function OrdersMobile() {
     loadOrders();
   }, []);
 
+  // Abrir orden específica cuando viene desde POS (post-pago)
+  useEffect(() => {
+    try {
+      const params = new URLSearchParams(location.search);
+      const openOrderId = params.get("openOrderId");
+      if (openOrderId) setSelectedOrderId(openOrderId);
+    } catch {}
+  }, [location.search]);
+
   const loadOrders = async () => {
     setLoading(true);
     try {

@@ -222,14 +222,14 @@ export default function POSDesktop() {
   }, []);
 
   useEffect(() => {
-    // Skip DB fetch if we already have the order via route state
-    if (workOrderId && !routeStateOrder) {
+    // Si no hay id en routeStateOrder (objeto vacío o sin datos), buscar en DB
+    if (workOrderId && !routeStateOrder?.id) {
       loadWorkOrder();
     }
   }, [workOrderId]);
 
   useEffect(() => {
-    if (routeStateOrder?.id && (!workOrderId || routeStateOrder.id === workOrderId)) {
+    if (routeStateOrder?.id && (!workOrderId || String(routeStateOrder.id) === String(workOrderId))) {
       hydrateWorkOrder(routeStateOrder);
     }
   }, [routeStateOrder, workOrderId, hydrateWorkOrder]);
