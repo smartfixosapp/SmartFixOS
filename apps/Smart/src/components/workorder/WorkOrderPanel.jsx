@@ -1903,7 +1903,9 @@ export default function WorkOrderPanel({ orderId, onClose, onUpdate, onDelete, p
         }
 
         setOrder(data);
-        setStatus(getEffectiveOrderStatus(data));
+        // Use order.status directly — getEffectiveOrderStatus reads status_history first
+        // which can lag behind the actual status field after a status change.
+        setStatus(normalizeStatusId(data?.status));
         setLoading(false);
 
       } catch (e) {
@@ -1938,7 +1940,7 @@ export default function WorkOrderPanel({ orderId, onClose, onUpdate, onDelete, p
         if (fresh && fresh.updated_date !== order?.updated_date) {
           console.log("[WO] Auto-refresh detectó cambios");
           setOrder(fresh);
-          setStatus(getEffectiveOrderStatus(fresh));
+          setStatus(normalizeStatusId(fresh?.status));
           clearEventCache(orderId);
           loadEventsCallback(true);
         }
@@ -2410,9 +2412,19 @@ export default function WorkOrderPanel({ orderId, onClose, onUpdate, onDelete, p
   async function saveCancelReason(reason) {
     if (!order?.id) return;
     try {
+      const updatedHistory = [
+        ...(Array.isArray(order.status_history) ? order.status_history : []),
+        {
+          status: "cancelled",
+          timestamp: new Date().toISOString(),
+          note: reason || null,
+          visible_to_customer: false
+        }
+      ];
       await base44.entities.Order.update(order.id, {
         status: "cancelled",
         updated_date: new Date().toISOString(),
+        status_history: updatedHistory,
         status_metadata: {
           ...(order?.status_metadata && typeof order.status_metadata === "object" ? order.status_metadata : {}),
           kind: "cancelled",
@@ -2425,6 +2437,7 @@ export default function WorkOrderPanel({ orderId, onClose, onUpdate, onDelete, p
         ...prevOrder,
         status: "cancelled",
         updated_date: new Date().toISOString(),
+        status_history: updatedHistory,
         status_metadata: {
           ...(prevOrder?.status_metadata && typeof prevOrder.status_metadata === "object" ? prevOrder.status_metadata : {}),
           kind: "cancelled",
