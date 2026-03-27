@@ -51,6 +51,7 @@ import { sendTemplatedEmailHandler } from './sendTemplatedEmail.js';
 import { sendAdminOtpHandler } from './sendAdminOtp.js';
 import { processPayrollHandler } from './processPayroll.js';
 import { verifyAdminOtpHandler } from './verifyAdminOtp.js';
+import { trackParcelHandler } from './trackParcel.js';
 import { setRequestAuthToken, clearRequestAuthToken } from '../../../../lib/unified-custom-sdk-supabase.js';
 
 // CORS headers
@@ -70,6 +71,7 @@ const unwrappedRoutes = new Set([
   '/registerTenant',    // Maneja su propio JSON — el wrapper rompe el error handling del SDK
   '/sendAdminOtp',      // Mismo motivo
   '/verifyAdminOtp',    // Mismo motivo
+  '/trackParcel',       // Respuesta directa con datos de tracking
 ]);
 
 // Route handlers
@@ -125,6 +127,7 @@ const routes = {
   '/resetTransactions': resetTransactionsHandler,
   '/processPayroll': processPayrollHandler,
   '/sendTemplatedEmail': sendTemplatedEmailHandler,
+  '/trackParcel': trackParcelHandler,
 };
 const port = Deno.env.get("FUNCTIONS_PORT");
 console.log(`🌐 Functions server port is ${port}`);

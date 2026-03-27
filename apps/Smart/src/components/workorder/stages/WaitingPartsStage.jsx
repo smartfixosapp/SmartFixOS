@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from "react";
-import { ExternalLink, MapPin, Truck, X, Pencil, Check, Loader2, PhoneCall, MessageCircle, Mail, Clock, Zap } from "lucide-react";
+import { ExternalLink, MapPin, Truck, X, Pencil, Check, Loader2, PhoneCall, MessageCircle, Mail, Zap, RefreshCw, CalendarDays, Navigation } from "lucide-react";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -12,63 +11,76 @@ import WorkOrderUnifiedHub from "@/components/workorder/WorkOrderUnifiedHub";
 import { loadOrderLinks } from "@/components/workorder/utils/orderLinksStore";
 import SharedItemsSection from "@/components/workorder/SharedItemsSection";
 
-// ── Etapas del recorrido de la pieza ────────────────────────────────────────
-const TRACKING_STAGES = [
-  { key: "ordered",    label: "Pedido",      emoji: "🛒", desc: "Orden colocada al proveedor"       },
-  { key: "confirmed",  label: "Confirmado",  emoji: "📦", desc: "Proveedor confirmó disponibilidad" },
-  { key: "shipped",    label: "Enviado",     emoji: "🚚", desc: "La pieza salió del almacén"        },
-  { key: "in_transit", label: "En Tránsito", emoji: "🗺️", desc: "En camino hacia destino"           },
-  { key: "arrived",    label: "En Destino",  emoji: "📍", desc: "Llegó a la oficina local"          },
-  { key: "received",   label: "Recibido",    emoji: "✅", desc: "Pieza en el taller"                },
-];
-
-const STAGE_IDX = Object.fromEntries(TRACKING_STAGES.map((s, i) => [s.key, i]));
-
 // ── Detección automática de carrier por número de tracking ──────────────────
 function detectCarrier(trackingNum) {
   if (!trackingNum || !trackingNum.trim()) return "";
   const t = trackingNum.trim().toUpperCase();
-  if (t.startsWith("1Z"))                                                    return "UPS";
-  if (t.startsWith("TBA") || t.startsWith("A0"))                            return "Amazon";
-  if (t.startsWith("9") && t.length >= 20 && /^\d+$/.test(t))               return "USPS";
-  if ((t.length === 20 || t.length === 22) && /^\d+$/.test(t))              return "USPS";
-  if ((t.length === 12 || t.length === 15) && /^\d+$/.test(t))              return "FedEx";
-  if (t.length === 34 && /^[A-Z]{2}\d{9}[A-Z]{2}$/.test(t))                return "USPS";
-  if (/^\d{10}$/.test(t))                                                    return "DHL";
-  if (t.startsWith("JD") || t.startsWith("7489") || t.startsWith("7480"))   return "DHL";
+  if (t.startsWith("1Z"))                                                  return "UPS";
+  if (t.startsWith("TBA") || t.startsWith("A0"))                          return "Amazon";
+  if (t.startsWith("9") && t.length >= 20 && /^\d+$/.test(t))             return "USPS";
+  if ((t.length === 20 || t.length === 22) && /^\d+$/.test(t))            return "USPS";
+  if ((t.length === 12 || t.length === 15) && /^\d+$/.test(t))            return "FedEx";
+  if (t.length === 34 && /^[A-Z]{2}\d{9}[A-Z]{2}$/.test(t))              return "USPS";
+  if (/^\d{10}$/.test(t))                                                  return "DHL";
+  if (t.startsWith("JD") || t.startsWith("7489") || t.startsWith("7480")) return "DHL";
   return "";
 }
 
-const CARRIER_ICONS = {
-  UPS:    { emoji: "🟤", color: "text-amber-400",   border: "border-amber-500/30",   bg: "bg-amber-500/10" },
-  USPS:   { emoji: "🦅", color: "text-blue-400",    border: "border-blue-500/30",    bg: "bg-blue-500/10"  },
-  FedEx:  { emoji: "🟣", color: "text-purple-400",  border: "border-purple-500/30",  bg: "bg-purple-500/10"},
-  DHL:    { emoji: "🟡", color: "text-yellow-400",  border: "border-yellow-500/30",  bg: "bg-yellow-500/10"},
-  Amazon: { emoji: "📦", color: "text-orange-400",  border: "border-orange-500/30",  bg: "bg-orange-500/10"},
+const CARRIER_STYLE = {
+  UPS:    { color: "text-amber-400",  border: "border-amber-500/30",  bg: "bg-amber-500/10"  },
+  USPS:   { color: "text-blue-400",   border: "border-blue-500/30",   bg: "bg-blue-500/10"   },
+  FedEx:  { color: "text-purple-400", border: "border-purple-500/30", bg: "bg-purple-500/10" },
+  DHL:    { color: "text-yellow-400", border: "border-yellow-500/30", bg: "bg-yellow-500/10" },
+  Amazon: { color: "text-orange-400", border: "border-orange-500/30", bg: "bg-orange-500/10" },
 };
+
+const FUNCTIONS_URL = import.meta.env.VITE_FUNCTIONS_URL || "http://localhost:8686";
+
+function getTrackingUrl(trackingNumber, carrier) {
+  if (!trackingNumber || trackingNumber === "—") return null;
+  const t = trackingNumber.trim().toUpperCase();
+  const c = (carrier || "").toUpperCase();
+  if (c === "UPS"   || t.startsWith("1Z"))                          return `https://www.ups.com/track?tracknum=${t}`;
+  if (c === "USPS"  || (t.startsWith("9") && t.length >= 20))       return `https://tools.usps.com/go/TrackConfirmAction?tLabels=${t}`;
+  if (c === "FEDEX" || t.length === 12 || t.length === 15)          return `https://www.fedex.com/fedextrack/?trknbr=${t}`;
+  if (c === "DHL"   || /^\d{10}$/.test(t))                          return `https://www.dhl.com/en/express/tracking.html?AWB=${t}`;
+  if (c === "AMAZON")                                                return `https://track.amazon.com/tracking/${t}`;
+  return `https://www.google.com/search?q=${encodeURIComponent(t + " tracking")}`;
+}
+
+function fmtDate(str) {
+  if (!str) return "—";
+  try {
+    const d = new Date(str.replace(" ", "T"));
+    if (isNaN(d)) return str;
+    return d.toLocaleString("es", { month: "short", day: "numeric", year: "numeric", hour: "2-digit", minute: "2-digit" });
+  } catch { return str; }
+}
 
 export default function WaitingPartsStage({ order, onUpdate, onOrderItemsUpdate, onRemoteSaved, onPaymentClick }) {
   const o = order || {};
   const location = o.device_location || "taller";
 
   const [editingDetails, setEditingDetails] = useState(false);
-  const [suppliers, setSuppliers] = useState([]);
+  const [suppliers,      setSuppliers]      = useState([]);
   const [loadingSuppliers, setLoadingSuppliers] = useState(false);
-  const [links, setLinks] = useState([]);
-  const [trackingEvents, setTrackingEvents] = useState([]);
-  const [savingStage, setSavingStage] = useState(false);
+  const [links,          setLinks]          = useState([]);
 
-  const [editForm, setEditForm] = useState({
-    partName: "", supplier: "", carrier: "", tracking: ""
-  });
+  // Real tracking state
+  const [trackingData,   setTrackingData]   = useState(null);
+  const [loadingTracking, setLoadingTracking] = useState(false);
+  const [trackingError,  setTrackingError]  = useState(null);
+
+  const [editForm, setEditForm] = useState({ partName: "", supplier: "", carrier: "", tracking: "" });
 
   useEffect(() => {
-    if (order?.id) {
-      loadLinks();
-      loadSuppliers();
-      loadTrackingEvents();
-    }
+    if (order?.id) { loadLinks(); loadSuppliers(); }
   }, [order?.id]);
+
+  // Auto-fetch tracking when component mounts or tracking number changes
+  useEffect(() => {
+    if (o.parts_tracking && o.parts_tracking.trim()) fetchTracking();
+  }, [o.parts_tracking]);
 
   const loadSuppliers = async () => {
     setLoadingSuppliers(true);
@@ -85,74 +97,36 @@ export default function WaitingPartsStage({ order, onUpdate, onOrderItemsUpdate,
     } catch { setLinks([]); }
   };
 
-  const loadTrackingEvents = async () => {
-    if (!order?.id) return;
+  const fetchTracking = async () => {
+    const trackNum = o.parts_tracking?.trim();
+    if (!trackNum) return;
+    setLoadingTracking(true);
+    setTrackingError(null);
     try {
-      const events = await base44.entities.WorkOrderEvent.filter({
-        order_id: order.id,
-        event_type: "parts_tracking"
+      const res = await fetch(`${FUNCTIONS_URL}/trackParcel`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ trackingNumber: trackNum, carrier: displayCarrier !== "—" ? displayCarrier : undefined })
       });
-      setTrackingEvents(Array.isArray(events) ? events.sort((a, b) => new Date(b.created_at) - new Date(a.created_at)) : []);
-    } catch { setTrackingEvents([]); }
-  };
-
-  // ── Tracking URL heurístico ─────────────────────────────────────────────
-  const getTrackingUrl = (trackingNumber) => {
-    if (!trackingNumber || trackingNumber === "—") return null;
-    const t = trackingNumber.trim().toUpperCase();
-    if (t.startsWith("1Z")) return `https://www.ups.com/track?tracknum=${t}`;
-    if (t.startsWith("9") && t.length >= 20) return `https://tools.usps.com/go/TrackConfirmAction?tLabels=${t}`;
-    if ((t.length === 12 || t.length === 15) && /^\d+$/.test(t)) return `https://www.fedex.com/fedextrack/?trknbr=${t}`;
-    if (t.length === 10 && /^\d+$/.test(t)) return `https://www.dhl.com/en/express/tracking.html?AWB=${t}`;
-    return `https://www.google.com/search?q=${encodeURIComponent(t + " tracking")}`;
-  };
-
-  const latestLink = links[0] || null;
-  const displayPartName = o.part_name || links.map(l => l.partName).filter(Boolean).join(", ") || "—";
-  const displaySupplier = o.parts_supplier || (() => {
-    try { return latestLink ? new URL(latestLink.url).hostname.replace("www.", "") : "—"; }
-    catch { return "—"; }
-  })();
-  const displayTracking = o.parts_tracking || "—";
-  // Auto-detect carrier from tracking if not set manually
-  const displayCarrier  = o.parts_carrier  || detectCarrier(displayTracking) || "—";
-  const carrierStyle    = CARRIER_ICONS[displayCarrier] || null;
-  const trackingUrl     = getTrackingUrl(displayTracking);
-
-  // ── Stage actual ────────────────────────────────────────────────────────
-  const currentStageKey = o.parts_status || "ordered";
-  const currentIdx      = STAGE_IDX[currentStageKey] ?? 0;
-
-  const handleAdvanceStage = async (stageKey) => {
-    if (savingStage) return;
-    setSavingStage(true);
-    try {
-      const stage = TRACKING_STAGES.find(s => s.key === stageKey);
-      const updatedOrder = await base44.entities.Order.update(order.id, { parts_status: stageKey });
-
-      let me = null;
-      try { me = await base44.auth.me(); } catch {}
-
-      const event = await base44.entities.WorkOrderEvent.create({
-        order_id: order.id,
-        order_number: order.order_number,
-        event_type: "parts_tracking",
-        description: `${stage.emoji} Pieza marcada como: ${stage.label} — ${stage.desc}`,
-        user_name: me?.full_name || me?.email || "Sistema",
-        user_id: me?.id || null,
-        metadata: { stage: stageKey, partName: displayPartName, carrier: displayCarrier, tracking: displayTracking }
-      });
-
-      setTrackingEvents(prev => [event, ...prev]);
-      toast.success(`${stage.emoji} ${stage.label}`);
-      if (onUpdate) onUpdate(updatedOrder);
+      const data = await res.json();
+      if (!res.ok || data.error) throw new Error(data.error || "Error de API");
+      setTrackingData(data);
     } catch (e) {
-      console.error(e);
-      toast.error("Error al actualizar etapa");
+      setTrackingError(e.message);
     } finally {
-      setSavingStage(false);
+      setLoadingTracking(false);
     }
   };
+
+  // Derived display values
+  const displayTracking = o.parts_tracking || "—";
+  const displayCarrier  = o.parts_carrier  || detectCarrier(displayTracking) || "—";
+  const displayPartName = o.part_name || links.map(l => l.partName).filter(Boolean).join(", ") || "—";
+  const displaySupplier = o.parts_supplier || (() => {
+    try { return links[0] ? new URL(links[0].url).hostname.replace("www.", "") : "—"; } catch { return "—"; }
+  })();
+  const carrierStyle = CARRIER_STYLE[displayCarrier] || null;
+  const trackingUrl  = getTrackingUrl(displayTracking, displayCarrier);
 
   useEffect(() => {
     if (editingDetails) {
@@ -169,9 +143,7 @@ export default function WaitingPartsStage({ order, onUpdate, onOrderItemsUpdate,
     try {
       const trackingVal  = editForm.tracking.trim();
       const prevTracking = (order.parts_tracking || "").trim();
-
-      // Auto-detectar carrier si el usuario no lo seleccionó
-      const autoCarrier = detectCarrier(trackingVal);
+      const autoCarrier  = detectCarrier(trackingVal);
       const finalCarrier = editForm.carrier.trim() || autoCarrier;
 
       const updatedOrder = await base44.entities.Order.update(order.id, {
@@ -194,38 +166,23 @@ export default function WaitingPartsStage({ order, onUpdate, onOrderItemsUpdate,
         metadata: { partName: editForm.partName, supplier: editForm.supplier, carrier: finalCarrier, tracking: trackingVal }
       });
 
-      // ── Auto-avance de etapa cuando se agrega tracking por primera vez ──
-      if (trackingVal && !prevTracking && currentIdx < STAGE_IDX["shipped"]) {
-        const shippedStage = TRACKING_STAGES.find(s => s.key === "shipped");
+      // Auto-advance stage if tracking added for first time
+      if (trackingVal && !prevTracking) {
         await base44.entities.Order.update(order.id, { parts_status: "shipped" });
-        const autoEvent = await base44.entities.WorkOrderEvent.create({
-          order_id: order.id,
-          order_number: order.order_number,
-          event_type: "parts_tracking",
-          description: `🚚 Tracking detectado automáticamente — ${shippedStage.label} · Carrier: ${finalCarrier || "Desconocido"} · #${trackingVal}`,
-          user_name: me?.full_name || me?.email || "Sistema",
-          user_id: me?.id || null,
-          metadata: { stage: "shipped", carrier: finalCarrier, tracking: trackingVal, auto: true }
-        });
-        setTrackingEvents(prev => [autoEvent, ...prev]);
-        toast.success(`🚚 Tracking detectado — ${finalCarrier || "Envío"} · Etapa avanzada a Enviado`);
-        if (onUpdate) onUpdate({ ...updatedOrder, parts_status: "shipped", parts_carrier: finalCarrier });
+        toast.success(`🚚 Tracking guardado — ${finalCarrier || "Envío"} detectado. Consultando estado...`);
       } else {
-        if (onUpdate) onUpdate({ ...updatedOrder, parts_carrier: finalCarrier });
         toast.success("Detalles actualizados");
       }
 
       setEditingDetails(false);
+      if (onUpdate) onUpdate({ ...updatedOrder, parts_carrier: finalCarrier });
+
+      // Fetch real tracking data after save
+      if (trackingVal) setTimeout(fetchTracking, 800);
     } catch (e) {
       console.error(e);
       toast.error("Error al actualizar");
     }
-  };
-
-  const formatTime = (iso) => {
-    if (!iso) return "";
-    const d = new Date(iso);
-    return d.toLocaleString("es", { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" });
   };
 
   return (
@@ -263,14 +220,12 @@ export default function WaitingPartsStage({ order, onUpdate, onOrderItemsUpdate,
               <p className="mb-1 text-[11px] font-semibold uppercase tracking-[0.24em] text-white/35">Cliente</p>
               <p className="truncate text-base font-bold text-orange-200">{o.customer_name || "No registrado"}</p>
             </div>
-
             {/* Ubicación */}
             <div className="rounded-[18px] border border-white/10 bg-black/25 p-4">
               <p className="mb-1 text-[11px] font-semibold uppercase tracking-[0.24em] text-white/35">Ubicación del equipo</p>
               <p className="text-sm font-semibold text-white/75">{location === "taller" ? "🏢 En Taller" : "👤 Con Cliente"}</p>
               <p className="mt-1 text-xs text-white/45 leading-snug">{location === "taller" ? "Listo para montar la pieza." : "Pendiente a que el cliente entregue el equipo."}</p>
             </div>
-
             {/* Detalles del pedido */}
             <div className="rounded-[18px] border border-white/10 bg-black/25 p-4">
               <div className="flex items-start justify-between gap-2">
@@ -298,7 +253,6 @@ export default function WaitingPartsStage({ order, onUpdate, onOrderItemsUpdate,
               </div>
             </div>
           </div>
-
         </div>
 
         {/* Botones de contacto */}
@@ -363,10 +317,10 @@ export default function WaitingPartsStage({ order, onUpdate, onOrderItemsUpdate,
                 )}
               </div>
               <div>
-                <p className="text-xs text-gray-400 uppercase font-bold tracking-wider mb-2">Envío</p>
+                <p className="text-xs text-gray-400 uppercase font-bold tracking-wider mb-2">Carrier</p>
                 <select value={editForm.carrier} onChange={e => setEditForm(p => ({ ...p, carrier: e.target.value }))}
                   className="w-full h-10 px-3 rounded-md bg-black/40 border border-white/15 text-white">
-                  <option value="">Seleccionar...</option>
+                  <option value="">Auto-detectar</option>
                   {["USPS","FedEx","UPS","DHL","Amazon","Otro"].map(c => <option key={c} value={c}>{c}</option>)}
                 </select>
               </div>
@@ -407,144 +361,161 @@ export default function WaitingPartsStage({ order, onUpdate, onOrderItemsUpdate,
         </div>
       )}
 
-      {/* ── MAPA DE TRACKING DE LA PIEZA ──────────────────────────────────── */}
-      <div className="overflow-hidden rounded-[28px] border border-orange-500/15 bg-[linear-gradient(180deg,rgba(255,255,255,0.04),rgba(255,255,255,0.01))] shadow-[0_18px_50px_rgba(0,0,0,0.25)]">
-        {/* Header */}
-        <div className="border-b border-white/8 bg-gradient-to-r from-orange-500/10 to-transparent p-5">
-          <div className="flex items-center justify-between gap-3">
-            <div className="flex-1 min-w-0">
-              <h3 className="text-white font-bold text-sm uppercase tracking-wider flex items-center gap-2">
-                <MapPin className="w-4 h-4 text-orange-400" />
-                Seguimiento de la Pieza
-              </h3>
-              <div className="flex flex-wrap items-center gap-2 mt-1.5">
-                {displayPartName !== "—" && (
-                  <span className="text-xs text-white/50 truncate">{displayPartName}</span>
-                )}
-                {displayTracking !== "—" && (
+      {/* ── SEGUIMIENTO EN TIEMPO REAL ─────────────────────────────────────── */}
+      {displayTracking !== "—" && (
+        <div className="overflow-hidden rounded-[28px] border border-orange-500/15 bg-[linear-gradient(180deg,rgba(255,255,255,0.04),rgba(255,255,255,0.01))] shadow-[0_18px_50px_rgba(0,0,0,0.25)]">
+
+          {/* Header */}
+          <div className="border-b border-white/8 bg-gradient-to-r from-orange-500/10 to-transparent p-5">
+            <div className="flex items-center justify-between gap-3">
+              <div className="flex-1 min-w-0">
+                <h3 className="text-white font-bold text-sm uppercase tracking-wider flex items-center gap-2">
+                  <MapPin className="w-4 h-4 text-orange-400" />Seguimiento del Paquete
+                </h3>
+                <div className="flex flex-wrap items-center gap-2 mt-1">
                   <span className="text-[11px] font-mono text-white/40">#{displayTracking}</span>
+                  {carrierStyle ? (
+                    <span className={`inline-flex items-center gap-1 rounded-lg border ${carrierStyle.border} ${carrierStyle.bg} px-2 py-0.5 text-[10px] font-bold ${carrierStyle.color}`}>
+                      <Zap className="w-2.5 h-2.5" />{displayCarrier}
+                    </span>
+                  ) : displayCarrier !== "—" && (
+                    <span className="text-xs text-white/40">{displayCarrier}</span>
+                  )}
+                </div>
+              </div>
+              <div className="flex items-center gap-2">
+                <Button variant="ghost" size="sm" onClick={fetchTracking} disabled={loadingTracking}
+                  className="h-8 px-3 rounded-xl text-white/60 hover:bg-white/8 hover:text-white text-xs gap-1.5">
+                  <RefreshCw className={`w-3.5 h-3.5 ${loadingTracking ? "animate-spin" : ""}`} />
+                  <span className="hidden sm:inline">Actualizar</span>
+                </Button>
+                {trackingUrl && (
+                  <a href={trackingUrl} target="_blank" rel="noopener noreferrer"
+                    className="flex items-center gap-1.5 rounded-xl border border-orange-400/25 bg-orange-500/10 px-3 py-1.5 text-xs font-semibold text-orange-300 hover:bg-orange-500/20 transition-all">
+                    <ExternalLink className="w-3.5 h-3.5" />
+                    Ver en {displayCarrier !== "—" ? displayCarrier : "carrier"}
+                  </a>
                 )}
-                {carrierStyle ? (
-                  <span className={`inline-flex items-center gap-1 rounded-lg border ${carrierStyle.border} ${carrierStyle.bg} px-2 py-0.5 text-[10px] font-bold ${carrierStyle.color}`}>
-                    <Zap className="w-2.5 h-2.5" />{displayCarrier} detectado
-                  </span>
-                ) : displayCarrier !== "—" ? (
-                  <span className="text-xs text-white/40">{displayCarrier}</span>
-                ) : null}
               </div>
             </div>
-            {trackingUrl && displayTracking !== "—" && (
-              <a href={trackingUrl} target="_blank" rel="noopener noreferrer"
-                className="flex-shrink-0 flex items-center gap-1.5 rounded-xl border border-orange-400/25 bg-orange-500/10 px-3 py-1.5 text-xs font-semibold text-orange-300 hover:bg-orange-500/20 transition-all">
-                <ExternalLink className="w-3.5 h-3.5" />
-                Ver en {displayCarrier !== "—" ? displayCarrier : "carrier"}
-              </a>
-            )}
           </div>
-        </div>
 
-        {/* Stepper */}
-        <div className="p-5 space-y-5">
-          {/* Barra de progreso + etapas */}
-          <div className="relative">
-            {/* Línea de progreso de fondo */}
-            <div className="absolute top-6 left-6 right-6 h-0.5 bg-white/8 hidden sm:block" />
-            {/* Línea de progreso completada */}
-            <div
-              className="absolute top-6 left-6 h-0.5 bg-gradient-to-r from-orange-500 to-emerald-500 hidden sm:block transition-all duration-700"
-              style={{ width: currentIdx === 0 ? "0%" : `${(currentIdx / (TRACKING_STAGES.length - 1)) * (100 - 48 / (TRACKING_STAGES.length - 1))}%` }}
-            />
+          {/* Body */}
+          <div className="p-5">
+            {loadingTracking && (
+              <div className="flex items-center justify-center gap-3 py-8 text-white/40">
+                <Loader2 className="w-5 h-5 animate-spin" />
+                <span className="text-sm">Consultando {displayCarrier !== "—" ? displayCarrier : "carrier"}...</span>
+              </div>
+            )}
 
-            <div className="grid grid-cols-3 sm:grid-cols-6 gap-3 sm:gap-2 relative z-10">
-              {TRACKING_STAGES.map((stage, idx) => {
-                const isCompleted = idx < currentIdx;
-                const isCurrent   = idx === currentIdx;
-                const isFuture    = idx > currentIdx;
+            {!loadingTracking && trackingError && (
+              <div className="rounded-2xl border border-red-500/20 bg-red-500/8 p-4 text-sm text-red-300">
+                <p className="font-semibold mb-1">No se pudo obtener el estado en tiempo real</p>
+                <p className="text-xs text-red-400/80">{trackingError}</p>
+                <p className="text-xs text-white/30 mt-2">
+                  Usa el botón "Ver en {displayCarrier !== "—" ? displayCarrier : "carrier"}" para consultar directamente en el sitio del carrier.
+                </p>
+              </div>
+            )}
 
-                return (
-                  <button
-                    key={stage.key}
-                    disabled={savingStage}
-                    onClick={() => handleAdvanceStage(stage.key)}
-                    title={stage.desc}
-                    className={`
-                      flex flex-col items-center gap-2 p-3 rounded-2xl border transition-all duration-200 text-center
-                      ${isCurrent   ? "border-orange-400/50 bg-orange-500/15 shadow-[0_0_20px_rgba(249,115,22,0.15)] scale-105"  : ""}
-                      ${isCompleted ? "border-emerald-500/30 bg-emerald-500/10 cursor-pointer hover:bg-emerald-500/15"             : ""}
-                      ${isFuture    ? "border-white/8 bg-white/3 cursor-pointer hover:bg-white/6 opacity-60 hover:opacity-90"      : ""}
-                      ${savingStage ? "opacity-50 cursor-not-allowed" : ""}
-                    `}
-                  >
-                    <div className={`
-                      relative w-12 h-12 rounded-2xl flex items-center justify-center text-2xl
-                      ${isCurrent   ? "bg-orange-500/20 ring-2 ring-orange-400/40" : ""}
-                      ${isCompleted ? "bg-emerald-500/15" : ""}
-                      ${isFuture    ? "bg-white/5" : ""}
-                    `}>
-                      <span>{stage.emoji}</span>
-                      {isCompleted && (
-                        <div className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-emerald-500 flex items-center justify-center">
-                          <Check className="w-2.5 h-2.5 text-white" />
-                        </div>
-                      )}
-                      {isCurrent && (
-                        <div className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-orange-400 flex items-center justify-center animate-pulse">
-                          <Clock className="w-2.5 h-2.5 text-white" />
-                        </div>
-                      )}
+            {!loadingTracking && trackingData && (
+              <div className="space-y-4">
+                {/* Resumen de 3 datos clave */}
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  {/* Salida */}
+                  <div className="rounded-2xl border border-white/8 bg-white/3 p-4">
+                    <div className="flex items-center gap-2 mb-2">
+                      <CalendarDays className="w-3.5 h-3.5 text-white/30" />
+                      <p className="text-[10px] font-semibold uppercase tracking-widest text-white/30">Fecha de salida</p>
                     </div>
-                    <div>
-                      <p className={`text-[11px] font-bold leading-tight ${isCurrent ? "text-orange-200" : isCompleted ? "text-emerald-300" : "text-white/40"}`}>
-                        {stage.label}
+                    <p className="text-sm font-bold text-white/85">{fmtDate(trackingData.departureDate)}</p>
+                    {trackingData.departureLocation && (
+                      <p className="text-xs text-white/40 mt-0.5 truncate">{trackingData.departureLocation}</p>
+                    )}
+                  </div>
+
+                  {/* Posición actual */}
+                  <div className="rounded-2xl border border-orange-400/20 bg-orange-500/8 p-4">
+                    <div className="flex items-center gap-2 mb-2">
+                      <Navigation className="w-3.5 h-3.5 text-orange-400" />
+                      <p className="text-[10px] font-semibold uppercase tracking-widest text-orange-300/60">Posición actual</p>
+                    </div>
+                    <p className="text-sm font-bold text-orange-200">{trackingData.currentStage}</p>
+                    {trackingData.currentLocation && (
+                      <p className="text-xs text-orange-300/60 mt-0.5 truncate">{trackingData.currentLocation}</p>
+                    )}
+                    {trackingData.lastUpdate && (
+                      <p className="text-[10px] text-white/25 mt-1">{fmtDate(trackingData.lastUpdate)}</p>
+                    )}
+                  </div>
+
+                  {/* Entrega estimada */}
+                  <div className={`rounded-2xl border p-4 ${trackingData.delivered ? "border-emerald-500/30 bg-emerald-500/10" : "border-white/8 bg-white/3"}`}>
+                    <div className="flex items-center gap-2 mb-2">
+                      <Truck className={`w-3.5 h-3.5 ${trackingData.delivered ? "text-emerald-400" : "text-white/30"}`} />
+                      <p className={`text-[10px] font-semibold uppercase tracking-widest ${trackingData.delivered ? "text-emerald-300/70" : "text-white/30"}`}>
+                        {trackingData.delivered ? "Entregado" : "Entrega estimada"}
                       </p>
                     </div>
-                  </button>
-                );
-              })}
-            </div>
-          </div>
+                    <p className={`text-sm font-bold ${trackingData.delivered ? "text-emerald-300" : "text-white/85"}`}>
+                      {trackingData.delivered ? "✅ Paquete entregado" : (trackingData.eta ? fmtDate(trackingData.eta) : "Por confirmar")}
+                    </p>
+                  </div>
+                </div>
 
-          {/* Estado actual destacado */}
-          <div className="rounded-[18px] border border-orange-400/20 bg-gradient-to-r from-orange-500/10 to-transparent p-4 flex items-center gap-3">
-            <span className="text-3xl">{TRACKING_STAGES[currentIdx]?.emoji}</span>
-            <div className="flex-1 min-w-0">
-              <p className="text-[10px] font-semibold uppercase tracking-widest text-white/35">Estado actual</p>
-              <p className="text-base font-black text-white">{TRACKING_STAGES[currentIdx]?.label}</p>
-              <p className="text-xs text-white/50">{TRACKING_STAGES[currentIdx]?.desc}</p>
-            </div>
-            {currentIdx < TRACKING_STAGES.length - 1 && (
-              <Button
-                size="sm"
-                disabled={savingStage}
-                onClick={() => handleAdvanceStage(TRACKING_STAGES[currentIdx + 1].key)}
-                className="flex-shrink-0 rounded-xl bg-gradient-to-r from-orange-600 to-amber-600 hover:from-orange-700 hover:to-amber-700 text-white text-xs font-bold px-3"
-              >
-                {savingStage ? <Loader2 className="w-3 h-3 animate-spin" /> : (
-                  <>{TRACKING_STAGES[currentIdx + 1]?.emoji} <span className="ml-1 hidden sm:inline">{TRACKING_STAGES[currentIdx + 1]?.label}</span></>
-                )}
-              </Button>
-            )}
-          </div>
-
-          {/* Historial de cambios de estado */}
-          {trackingEvents.length > 0 && (
-            <div className="space-y-2">
-              <p className="text-[10px] font-semibold uppercase tracking-widest text-white/30">Historial de movimientos</p>
-              <div className="space-y-1.5 max-h-48 overflow-y-auto pr-1">
-                {trackingEvents.map((ev, i) => (
-                  <div key={ev.id || i} className="flex items-start gap-3 rounded-xl border border-white/6 bg-white/3 px-3 py-2">
-                    <div className="w-1.5 h-1.5 rounded-full bg-orange-400 mt-2 flex-shrink-0" />
-                    <div className="flex-1 min-w-0">
-                      <p className="text-xs text-white/75 leading-snug">{ev.description}</p>
-                      <p className="text-[10px] text-white/30 mt-0.5">{formatTime(ev.created_at)}{ev.user_name ? ` · ${ev.user_name}` : ""}</p>
+                {/* Historial de movimientos */}
+                {trackingData.events && trackingData.events.length > 0 && (
+                  <div className="space-y-2">
+                    <p className="text-[10px] font-semibold uppercase tracking-widest text-white/25">Historial de movimientos</p>
+                    <div className="space-y-1 max-h-56 overflow-y-auto pr-1">
+                      {trackingData.events.map((ev, i) => (
+                        <div key={i} className={`flex items-start gap-3 rounded-xl border px-3 py-2.5 ${i === 0 ? "border-orange-400/20 bg-orange-500/8" : "border-white/5 bg-white/2"}`}>
+                          <div className={`mt-1.5 w-1.5 h-1.5 rounded-full flex-shrink-0 ${i === 0 ? "bg-orange-400" : "bg-white/20"}`} />
+                          <div className="flex-1 min-w-0">
+                            <p className={`text-xs leading-snug ${i === 0 ? "text-white/80 font-semibold" : "text-white/55"}`}>{ev.status}</p>
+                            <div className="flex items-center gap-2 mt-0.5 flex-wrap">
+                              {ev.location && <span className="text-[10px] text-white/30 truncate">{ev.location}</span>}
+                              {ev.date && <span className="text-[10px] text-white/25">{fmtDate(ev.date)}</span>}
+                            </div>
+                          </div>
+                        </div>
+                      ))}
                     </div>
                   </div>
-                ))}
+                )}
               </div>
-            </div>
-          )}
+            )}
+
+            {!loadingTracking && !trackingData && !trackingError && (
+              <div className="flex flex-col items-center justify-center gap-3 py-8 text-center">
+                <p className="text-sm text-white/40">Agrega el TRACK17_API_KEY en tu .env para consultar el estado en tiempo real</p>
+                {trackingUrl && (
+                  <a href={trackingUrl} target="_blank" rel="noopener noreferrer"
+                    className="flex items-center gap-1.5 rounded-xl border border-orange-400/25 bg-orange-500/10 px-4 py-2 text-sm font-semibold text-orange-300 hover:bg-orange-500/20">
+                    <ExternalLink className="w-4 h-4" />Ver tracking en {displayCarrier !== "—" ? displayCarrier : "sitio del carrier"}
+                  </a>
+                )}
+              </div>
+            )}
+          </div>
         </div>
-      </div>
+      )}
+
+      {/* Prompt cuando no hay tracking */}
+      {displayTracking === "—" && (
+        <div className="rounded-[22px] border border-white/8 bg-white/3 p-5 flex items-center gap-4">
+          <MapPin className="w-8 h-8 text-white/20 flex-shrink-0" />
+          <div>
+            <p className="text-sm font-semibold text-white/50">Sin número de tracking aún</p>
+            <p className="text-xs text-white/30">Edita los detalles del pedido y agrega el número de tracking para ver el estado en tiempo real.</p>
+          </div>
+          <Button variant="ghost" size="sm" onClick={() => setEditingDetails(true)}
+            className="ml-auto flex-shrink-0 rounded-xl border border-white/15 text-white/60 hover:bg-white/8 text-xs">
+            <Pencil className="w-3.5 h-3.5 mr-1.5" />Agregar
+          </Button>
+        </div>
+      )}
 
       {/* ── PIEZAS Y SERVICIOS ────────────────────────────────────────────── */}
       <div>
