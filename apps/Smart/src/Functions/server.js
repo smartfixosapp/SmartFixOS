@@ -165,8 +165,9 @@ const isDev = Deno.env.get("DENO_ENV") !== "production";
 
       // Some routes (like Python backend API endpoints) return unwrapped responses
       if (unwrappedRoutes.has(path)) {
-        // Return response directly without wrapping
-        return new Response(response.body, {
+        // Materialize body first to avoid ReadableStream forwarding issues
+        const body = await response.text();
+        return new Response(body, {
           status: response.status,
           statusText: response.statusText,
           headers
