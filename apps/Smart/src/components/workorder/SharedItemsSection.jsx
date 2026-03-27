@@ -298,15 +298,15 @@ export default function SharedItemsSection({
                       onClick={handleDeposit}
                       className="h-11 rounded-2xl bg-gradient-to-r from-emerald-600 to-green-600 text-white shadow-lg hover:from-emerald-500 hover:to-green-500"
                     >
-                      <Wallet className="mr-2 h-4 w-4" />
-                      Depósito
+                      <Wallet className="h-4 w-4 flex-shrink-0" />
+                      <span className="hidden sm:inline ml-2">Depósito</span>
                     </Button>
                     <Button
                       onClick={handleCollect}
                       className="h-11 rounded-2xl bg-gradient-to-r from-cyan-600 to-blue-600 text-white shadow-lg hover:from-cyan-500 hover:to-blue-500"
                     >
-                      <DollarSign className="mr-2 h-4 w-4" />
-                      Cobrar
+                      <DollarSign className="h-4 w-4 flex-shrink-0" />
+                      <span className="hidden sm:inline ml-2">Cobrar</span>
                     </Button>
                   </div>
                 )}

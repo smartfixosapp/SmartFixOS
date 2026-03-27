@@ -25,6 +25,8 @@ import {
   Package,
   Loader2,
   Sparkles,
+  Wallet,
+  DollarSign,
 } from "lucide-react";
 
 const IVU_RATE = 0.115;
@@ -1007,24 +1009,27 @@ export default function AddItemModal({
                     <Button
                       onClick={saveToOrder}
                       disabled={saving}
-                      className="w-full h-16 rounded-[20px] bg-emerald-600 hover:bg-emerald-500 shadow-xl shadow-emerald-600/15 text-white font-black uppercase tracking-widest text-[11px] transition-all active:scale-[0.98] border-t border-white/10"
+                      className="w-full h-12 sm:h-16 rounded-[20px] bg-emerald-600 hover:bg-emerald-500 shadow-xl shadow-emerald-600/15 text-white font-black uppercase tracking-widest text-[11px] transition-all active:scale-[0.98] border-t border-white/10"
                     >
-                      {saving ? <Loader2 className="w-5 h-5 animate-spin mr-3" /> : <ShoppingCart className="w-5 h-5 mr-3" />}
-                      Aplicar a la Orden
+                      {saving ? <Loader2 className="w-5 h-5 animate-spin mr-2" /> : <ShoppingCart className="w-5 h-5 mr-2" />}
+                      <span className="hidden sm:inline">Aplicar a la Orden</span>
+                      <span className="sm:hidden">Aplicar</span>
                     </Button>
                     {onPaymentClick && (
                       <div className="grid grid-cols-2 gap-2">
                         <button
                           onClick={() => { onClose?.(); onPaymentClick("deposit"); }}
-                          className="h-12 rounded-2xl border border-white/15 bg-white/5 text-white/80 hover:bg-white/10 font-black text-sm uppercase tracking-wide transition-all active:scale-95"
+                          className="h-11 rounded-2xl border border-white/15 bg-white/5 text-white/80 hover:bg-white/10 font-black text-sm uppercase tracking-wide transition-all active:scale-95 flex items-center justify-center gap-2"
                         >
-                          Depósito
+                          <Wallet className="w-4 h-4 flex-shrink-0" />
+                          <span className="hidden sm:inline">Depósito</span>
                         </button>
                         <button
                           onClick={() => { onClose?.(); onPaymentClick("full"); }}
-                          className="h-12 rounded-2xl border border-emerald-500/30 bg-emerald-500/12 text-emerald-300 hover:bg-emerald-500/20 font-black text-sm uppercase tracking-wide transition-all active:scale-95"
+                          className="h-11 rounded-2xl border border-emerald-500/30 bg-emerald-500/12 text-emerald-300 hover:bg-emerald-500/20 font-black text-sm uppercase tracking-wide transition-all active:scale-95 flex items-center justify-center gap-2"
                         >
-                          Cobrar
+                          <DollarSign className="w-4 h-4 flex-shrink-0" />
+                          <span className="hidden sm:inline">Cobrar</span>
                         </button>
                       </div>
                     )}

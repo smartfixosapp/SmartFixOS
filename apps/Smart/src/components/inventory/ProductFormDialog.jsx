@@ -356,12 +356,12 @@ export default function ProductFormDialog({ open, onClose, product = null, onSuc
               </div>
               <button
                 onClick={() => setFormData({ ...formData, taxable: !formData.taxable })}
-                className={`relative w-14 h-7 rounded-full transition-colors ${
+                className={`relative w-11 h-6 rounded-full transition-colors flex-shrink-0 ${
                   formData.taxable ? "bg-red-600" : "bg-gray-600"
                 }`}>
                 <span
-                  className={`absolute top-1 left-1 w-5 h-5 bg-white rounded-full transition-transform ${
-                    formData.taxable ? "translate-x-7" : ""
+                  className={`absolute top-1 left-1 w-4 h-4 bg-white rounded-full transition-transform ${
+                    formData.taxable ? "translate-x-5" : ""
                   }`}
                 />
               </button>
@@ -475,12 +475,12 @@ export default function ProductFormDialog({ open, onClose, product = null, onSuc
               </div>
               <button
                 onClick={() => setFormData({ ...formData, is_serialized: !formData.is_serialized })}
-                className={`relative w-14 h-7 rounded-full transition-colors ${
+                className={`relative w-11 h-6 rounded-full transition-colors flex-shrink-0 ${
                   formData.is_serialized ? "bg-red-600" : "bg-gray-600"
                 }`}>
                 <span
-                  className={`absolute top-1 left-1 w-5 h-5 bg-white rounded-full transition-transform ${
-                    formData.is_serialized ? "translate-x-7" : ""
+                  className={`absolute top-1 left-1 w-4 h-4 bg-white rounded-full transition-transform ${
+                    formData.is_serialized ? "translate-x-5" : ""
                   }`}
                 />
               </button>

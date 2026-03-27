@@ -212,12 +212,12 @@ export default function EditUserModal({ user, onClose, onUpdate, roles }) {
                 onChange={(e) => setFormData({...formData, active: e.target.checked})}
                 className="sr-only peer"
               />
-              <div className={`w-14 h-7 rounded-full transition-all ${
+              <div className={`w-11 h-6 rounded-full transition-all flex-shrink-0 ${
                 formData.active ? 'bg-gradient-to-r from-emerald-600 to-green-600' : 'bg-slate-700'
               }`}>
-                <div className={`w-6 h-6 bg-white rounded-full shadow-lg transition-all ${
-                  formData.active ? 'translate-x-7' : 'translate-x-0.5'
-                } mt-0.5`} />
+                <div className={`w-4 h-4 bg-white rounded-full shadow-lg transition-all ${
+                  formData.active ? 'translate-x-6' : 'translate-x-0.5'
+                } mt-1`} />
               </div>
             </div>
           </div>
