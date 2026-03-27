@@ -6,7 +6,14 @@ import path from 'path'
 export default defineConfig({
   plugins: [react()],
   server: {
-    allowedHosts: true
+    allowedHosts: true,
+    proxy: {
+      '/fn': {
+        target: 'http://127.0.0.1:8686',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/fn/, '')
+      }
+    }
   },
   resolve: {
     alias: {

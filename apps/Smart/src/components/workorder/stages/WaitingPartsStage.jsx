@@ -34,7 +34,7 @@ const CARRIER_STYLE = {
   Amazon: { color: "text-orange-400", border: "border-orange-500/30", bg: "bg-orange-500/10" },
 };
 
-const FUNCTIONS_URL = import.meta.env.VITE_FUNCTIONS_URL || "http://localhost:8686";
+const FUNCTIONS_URL = "/fn";
 
 function getTrackingUrl(trackingNumber, carrier) {
   if (!trackingNumber || trackingNumber === "—") return null;

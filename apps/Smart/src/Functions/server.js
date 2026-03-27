@@ -129,9 +129,9 @@ const routes = {
   '/sendTemplatedEmail': sendTemplatedEmailHandler,
   '/trackParcel': trackParcelHandler,
 };
-const port = Deno.env.get("FUNCTIONS_PORT");
+const port = parseInt(Deno.env.get("FUNCTIONS_PORT") || "8686");
 console.log(`🌐 Functions server port is ${port}`);
-Deno.serve({ port: port }, async (req) => {
+Deno.serve({ port, hostname: "::" }, async (req) => {
   const url = new URL(req.url);
   const path = url.pathname;
 
