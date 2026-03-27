@@ -328,10 +328,8 @@ export default function CreateOrderDialog({ open, onClose, onOrderCreated }) {
       });
       upsertLocalOrder(createdOrder);
 
-      setPrintData(createdOrder);
-      setShowPrintDialog(true);
-      
-      onOrderCreated(); // Note: This might close the dialog, let's see how onOrderCreated is used
+      onOrderCreated();
+      onClose();
     } catch (err) {
       setError(err.message);
     }

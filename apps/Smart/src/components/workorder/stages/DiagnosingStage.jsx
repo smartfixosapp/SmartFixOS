@@ -2,7 +2,10 @@ import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
-import { Microscope, ClipboardList, Save, ShoppingCart, Send, PhoneCall, MessageCircle, Mail } from "lucide-react";
+import {
+  Microscope, ShoppingCart, Send, PhoneCall, MessageCircle, Mail,
+  CheckCircle2, XCircle, AlertCircle, MinusCircle, Save, ClipboardCheck, ChevronDown, ChevronUp
+} from "lucide-react";
 import { base44 } from "@/api/base44Client";
 import { toast } from "sonner";
 import AddItemModal from "@/components/workorder/AddItemModal";
@@ -11,28 +14,55 @@ import OrderLinksDialog from "@/components/workorder/OrderLinksDialog";
 import { loadOrderLinks } from "@/components/workorder/utils/orderLinksStore";
 import SharedItemsSection from "@/components/workorder/SharedItemsSection";
 
+const DEFAULT_CHECKLIST = [
+  { id: "screen",    label: "Pantalla" },
+  { id: "battery",   label: "Batería" },
+  { id: "cameras",   label: "Cámaras" },
+  { id: "ports",     label: "Puertos de carga" },
+  { id: "water",     label: "Agua / Humedad" },
+  { id: "buttons",   label: "Botones físicos" },
+  { id: "audio",     label: "Audio (mic / altavoz)" },
+  { id: "wifi",      label: "WiFi / Bluetooth" },
+  { id: "casing",    label: "Carcasa / Estructura" },
+  { id: "software",  label: "Software / Sistema" },
+];
+
+const STATUS_CYCLE = { not_tested: "ok", ok: "issue", issue: "warning", warning: "not_tested" };
+
+const STATUS_CFG = {
+  not_tested: { Icon: MinusCircle,  color: "text-white/25",   ring: "border-white/10 bg-white/[0.04]",         label: "" },
+  ok:         { Icon: CheckCircle2, color: "text-emerald-400", ring: "border-emerald-500/25 bg-emerald-500/10", label: "OK" },
+  issue:      { Icon: XCircle,      color: "text-red-400",     ring: "border-red-500/25 bg-red-500/10",         label: "Problema" },
+  warning:    { Icon: AlertCircle,  color: "text-amber-400",   ring: "border-amber-500/25 bg-amber-500/10",     label: "Revisar" },
+};
+
 export default function DiagnosingStage({ order, onUpdate, user, onOrderItemsUpdate, onRemoteSaved, onPaymentClick }) {
-  const [diagnosis, setDiagnosis] = useState("");
-  const [saving, setSaving] = useState(false);
-  const [activeModal, setActiveModal] = useState(null);
-  const [showCatalog, setShowCatalog] = useState(false);
-  const [sendingQuote, setSendingQuote] = useState(false);
-  const [events, setEvents] = useState([]);
-  const [links, setLinks] = useState([]);
+  const [activeModal, setActiveModal]       = useState(null);
+  const [showCatalog, setShowCatalog]       = useState(false);
+  const [sendingQuote, setSendingQuote]     = useState(false);
+  const [links, setLinks]                   = useState([]);
   const [linkOrderPreview, setLinkOrderPreview] = useState(null);
   const [openCatalogFromLink, setOpenCatalogFromLink] = useState(false);
+  // Checklist
+  const [checklist, setChecklist]           = useState([]);
+  const [checklistNotes, setChecklistNotes] = useState("");
+  const [checklistSaving, setChecklistSaving] = useState(false);
+  const [showChecklist, setShowChecklist]   = useState(false);
 
   const effectiveOrder = linkOrderPreview?.id === order?.id
-    ? {
-        ...order,
-        ...linkOrderPreview,
-        order_items: Array.isArray(linkOrderPreview?.order_items) ? linkOrderPreview.order_items : order?.order_items,
-      }
+    ? { ...order, ...linkOrderPreview, order_items: Array.isArray(linkOrderPreview?.order_items) ? linkOrderPreview.order_items : order?.order_items }
     : order;
 
   useEffect(() => {
-    loadEvents();
     loadLinks();
+    // Merge saved checklist with defaults
+    const saved = Array.isArray(order?.checklist_items) ? order.checklist_items : [];
+    const merged = DEFAULT_CHECKLIST.map(def => {
+      const found = saved.find(s => s.id === def.id);
+      return found ? { ...def, ...found } : { ...def, status: "not_tested", notes: "" };
+    });
+    setChecklist(merged);
+    setChecklistNotes(order?.checklist_notes || "");
   }, [order?.id]);
 
   useEffect(() => {
@@ -40,25 +70,35 @@ export default function DiagnosingStage({ order, onUpdate, user, onOrderItemsUpd
     setOpenCatalogFromLink(false);
   }, [order?.id]);
 
-  const loadEvents = async () => {
-    if (!order?.id) return;
-    try {
-      const data = await base44.entities.WorkOrderEvent.filter({ order_id: order.id }, "-created_date", 10);
-      setEvents(data);
-    } catch (e) {
-      console.error(e);
-    }
-  };
-
   const loadLinks = async () => {
     if (!order?.id) return;
     try {
       const result = await loadOrderLinks(order);
       setLinks(Array.isArray(result?.links) ? result.links : []);
-    } catch (e) {
-      console.error(e);
-      setLinks([]);
-    }
+    } catch { setLinks([]); }
+  };
+
+  const cycleStatus = (id) => {
+    setChecklist(prev => prev.map(item =>
+      item.id !== id ? item : { ...item, status: STATUS_CYCLE[item.status] || "not_tested" }
+    ));
+  };
+
+  const setItemNote = (id, notes) => {
+    setChecklist(prev => prev.map(item => item.id !== id ? item : { ...item, notes }));
+  };
+
+  const handleSaveChecklist = async () => {
+    setChecklistSaving(true);
+    try {
+      await base44.entities.Order.update(order.id, {
+        checklist_items: checklist,
+        checklist_notes: checklistNotes,
+      });
+      onUpdate?.();
+      toast.success("Checklist guardado");
+    } catch { toast.error("Error al guardar checklist"); }
+    finally { setChecklistSaving(false); }
   };
 
   const handleSendQuote = async () => {
@@ -68,265 +108,144 @@ export default function DiagnosingStage({ order, onUpdate, user, onOrderItemsUpd
     }
     setSendingQuote(true);
     try {
-      // Cargar configuración del negocio
       const { getBusinessInfo } = await import("@/components/utils/emailTemplates");
       const businessInfo = await getBusinessInfo();
-      
-      // Generar PDF bonito
-      const jsPDF = (await import("jspdf")).default;
-      const doc = new jsPDF();
-      
-      // Header con gradiente
-      doc.setFillColor(0, 168, 232);
-      doc.rect(0, 0, 210, 60, 'F');
-      doc.setFillColor(16, 185, 129);
-      doc.setGState(new doc.GState({ opacity: 0.3 }));
-      doc.circle(210, 0, 40, 'F');
-      doc.circle(0, 60, 35, 'F');
-      doc.setGState(new doc.GState({ opacity: 1 }));
 
-      // Logo
-      try {
-        const logoUrl = businessInfo.logo_url || "https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/68f767a3d5fce1486d4cf555/e9bc537e2_DynamicsmartfixosLogowithGearandDevice.png";
-        const img = new Image();
-        img.crossOrigin = "anonymous";
-        img.src = logoUrl;
-        await new Promise((resolve) => {
-          img.onload = resolve;
-          img.onerror = resolve;
-        });
-        doc.addImage(img, 'PNG', 20, 10, 35, 35);
-      } catch (e) {
-        console.log("Logo no disponible");
-      }
+      const items = Array.isArray(effectiveOrder.order_items) ? effectiveOrder.order_items : [];
 
-      // Título
-      doc.setTextColor(255, 255, 255);
-      doc.setFontSize(32);
-      doc.setFont(undefined, 'bold');
-      doc.text(businessInfo.business_name || 'SmartFixOS', 105, 25, { align: 'center' });
-      doc.setFontSize(14);
-      doc.setFont(undefined, 'normal');
-      doc.text('Cotización de Diagnóstico', 105, 36, { align: 'center' });
-      doc.setFontSize(10);
-      doc.text(`Fecha: ${new Date().toLocaleDateString('es-PR', { year: 'numeric', month: 'long', day: 'numeric' })}`, 105, 45, { align: 'center' });
+      // Totals from actual line items
+      const subtotal = items.reduce((sum, item) => {
+        const price    = Number(item.price || 0);
+        const qty      = Number(item.qty || 1);
+        const discount = Number(item.discount_percentage || 0);
+        return sum + price * qty * (1 - discount / 100);
+      }, 0);
+      const tax   = subtotal * 0.115;
+      const total = subtotal + tax;
 
-      let yPos = 75;
+      // Line items HTML — links never exposed to client
+      const itemsRowsHTML = items.length > 0
+        ? items.map(item => {
+            const name      = item.name || item.service_name || item.product_name || "Item";
+            const price     = Number(item.price || 0);
+            const qty       = Number(item.qty || 1);
+            const discount  = Number(item.discount_percentage || 0);
+            const lineTotal = price * qty * (1 - discount / 100);
+            return `
+              <tr style="border-bottom:1px solid #F3F4F6;">
+                <td style="padding:12px 16px;color:#1F2937;font-size:14px;">${name}</td>
+                <td style="padding:12px 16px;color:#6B7280;font-size:13px;text-align:center;">${qty > 1 ? `x${qty}` : ""}</td>
+                <td style="padding:12px 16px;color:#1F2937;font-size:14px;text-align:right;font-weight:600;">$${lineTotal.toFixed(2)}</td>
+              </tr>`;
+          }).join("")
+        : `<tr><td colspan="3" style="padding:20px;text-align:center;color:#9CA3AF;font-size:14px;">Sin ítems añadidos</td></tr>`;
 
-      // Info del equipo
-      doc.setFillColor(240, 248, 255);
-      doc.roundedRect(15, yPos - 8, 180, 30, 3, 3, 'F');
-      doc.setTextColor(0, 168, 232);
-      doc.setFontSize(12);
-      doc.setFont(undefined, 'bold');
-      doc.text('Orden:', 20, yPos);
-      doc.setFont(undefined, 'normal');
-      doc.setTextColor(60, 60, 60);
-      doc.text(order.order_number || 'N/A', 45, yPos);
-      yPos += 10;
-      doc.setFont(undefined, 'bold');
-      doc.setTextColor(0, 168, 232);
-      doc.text('Equipo:', 20, yPos);
-      doc.setFont(undefined, 'normal');
-      doc.setTextColor(60, 60, 60);
-      doc.text(`${order.device_brand || ''} ${order.device_model || ''}`, 45, yPos);
-      yPos += 10;
-      doc.setFont(undefined, 'bold');
-      doc.setTextColor(0, 168, 232);
-      doc.text('Problema:', 20, yPos);
-      doc.setFont(undefined, 'normal');
-      doc.setTextColor(60, 60, 60);
-      const problemText = doc.splitTextToSize(order.initial_problem || 'N/A', 140);
-      doc.text(problemText, 45, yPos);
-      yPos += 35;
+      // Checklist section HTML
+      const testedItems = checklist.filter(c => c.status !== "not_tested");
+      const checklistHTML = testedItems.length > 0 ? `
+        <div style="background:#F9FAFB;border-radius:16px;padding:24px;margin:24px 0;border:2px solid #E5E7EB;">
+          <p style="color:#111827;font-size:16px;font-weight:700;margin:0 0 6px 0;">🔍 Estado del Dispositivo</p>
+          <p style="color:#6B7280;font-size:13px;margin:0 0 16px 0;">Hallazgos adicionales del diagnóstico técnico:</p>
+          <table style="width:100%;border-collapse:collapse;">
+            ${testedItems.map(c => {
+              const icon  = c.status === "ok" ? "✅" : c.status === "issue" ? "❌" : "⚠️";
+              const label = c.status === "ok" ? "OK" : c.status === "issue" ? "Problema encontrado" : "Requiere revisión";
+              const bg    = c.status === "ok" ? "#F0FDF4" : c.status === "issue" ? "#FEF2F2" : "#FFFBEB";
+              const color = c.status === "ok" ? "#065F46" : c.status === "issue" ? "#7F1D1D" : "#78350F";
+              return `<tr style="border-bottom:1px solid #E5E7EB;">
+                <td style="padding:10px 12px;font-size:14px;color:#1F2937;">${c.label}</td>
+                <td style="padding:10px 12px;">
+                  <span style="display:inline-block;padding:4px 10px;border-radius:20px;background:${bg};color:${color};font-size:12px;font-weight:700;">${icon} ${label}</span>
+                </td>
+              </tr>
+              ${c.notes ? `<tr><td colspan="2" style="padding:4px 12px 10px;font-size:13px;color:#6B7280;font-style:italic;">${c.notes}</td></tr>` : ""}`;
+            }).join("")}
+          </table>
+          ${checklistNotes ? `<p style="margin:16px 0 0;padding:12px;background:white;border-radius:8px;border:1px solid #E5E7EB;color:#374151;font-size:14px;line-height:1.6;">${checklistNotes}</p>` : ""}
+        </div>` : "";
 
-      // Desglose de precios
-      doc.setFillColor(250, 250, 250);
-      doc.roundedRect(15, yPos - 5, 180, 65, 5, 5, 'F');
-      doc.setDrawColor(220, 220, 220);
-      doc.setLineWidth(0.5);
-      doc.roundedRect(15, yPos - 5, 180, 65, 5, 5, 'S');
+      const emailHTML = `<!DOCTYPE html>
+<html lang="es">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"></head>
+<body style="margin:0;padding:20px;background:#F3F4F6;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;">
+<div style="max-width:650px;margin:0 auto;background:white;border-radius:16px;overflow:hidden;box-shadow:0 4px 30px rgba(0,0,0,0.08);">
+  <div style="background:linear-gradient(135deg,#7C3AED 0%,#4F46E5 100%);padding:48px 30px;text-align:center;">
+    ${businessInfo.logo_url ? `<img src="${businessInfo.logo_url}" alt="${businessInfo.business_name}" style="height:70px;width:auto;margin:0 auto 18px;display:block;filter:drop-shadow(0 4px 20px rgba(0,0,0,0.2));" />` : ""}
+    <h1 style="color:white;margin:0;font-size:26px;font-weight:800;">🔍 Diagnóstico Completado</h1>
+    <p style="color:rgba(255,255,255,0.8);margin:8px 0 0;font-size:15px;">${businessInfo.business_name || "SmartFixOS"}</p>
+  </div>
+  <div style="padding:40px 36px;">
+    <p style="font-size:18px;color:#111827;margin:0 0 20px;font-weight:600;">Hola <strong>${order.customer_name}</strong> 👋</p>
+    <p style="color:#374151;font-size:15px;line-height:1.7;margin:0 0 28px;">
+      Hemos completado el diagnóstico de tu <strong>${order.device_brand || ""} ${order.device_model || ""}</strong>.
+      A continuación encontrarás el detalle de lo que necesita tu equipo.
+    </p>
 
-      const estimado = Number(order.cost_estimate || order.total || 0);
-      const subtotal = estimado / 1.115;
-      const ivu = estimado - subtotal;
+    <div style="background:#F9FAFB;border-radius:12px;padding:18px 20px;margin-bottom:24px;border:1px solid #E5E7EB;">
+      <p style="color:#6B7280;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;margin:0 0 4px;">Número de orden</p>
+      <p style="color:#111827;font-size:20px;font-weight:800;margin:0 0 10px;">${order.order_number}</p>
+      <p style="color:#6B7280;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;margin:0 0 4px;">Problema reportado</p>
+      <p style="color:#1F2937;font-size:14px;margin:0;line-height:1.6;">${order.initial_problem || "N/A"}</p>
+    </div>
 
-      doc.setFontSize(12);
-      doc.setTextColor(80, 80, 80);
-      doc.setFont(undefined, 'normal');
-      doc.text('Subtotal', 25, yPos);
-      doc.setFont(undefined, 'bold');
-      doc.setTextColor(40, 40, 40);
-      doc.text(`$${subtotal.toFixed(2)}`, 185, yPos, { align: 'right' });
-      yPos += 10;
+    ${checklistHTML}
 
-      doc.setFont(undefined, 'normal');
-      doc.setTextColor(0, 168, 232);
-      doc.text('IVU (11.5%)', 25, yPos);
-      doc.setFont(undefined, 'bold');
-      doc.text(`+$${ivu.toFixed(2)}`, 185, yPos, { align: 'right' });
-      yPos += 15;
+    <div style="background:#F9FAFB;border-radius:16px;overflow:hidden;border:2px solid #E5E7EB;margin:24px 0;">
+      <div style="background:#111827;padding:16px 20px;">
+        <p style="color:white;font-size:16px;font-weight:700;margin:0;">💰 Cotización de Reparación</p>
+        <p style="color:rgba(255,255,255,0.4);font-size:12px;margin:4px 0 0;">Orden #${order.order_number}</p>
+      </div>
+      <table style="width:100%;border-collapse:collapse;">
+        <thead>
+          <tr style="background:#F3F4F6;">
+            <th style="padding:10px 16px;text-align:left;font-size:11px;font-weight:700;color:#6B7280;text-transform:uppercase;letter-spacing:0.5px;">Servicio / Pieza</th>
+            <th style="padding:10px 16px;text-align:center;font-size:11px;font-weight:700;color:#6B7280;text-transform:uppercase;">Cant.</th>
+            <th style="padding:10px 16px;text-align:right;font-size:11px;font-weight:700;color:#6B7280;text-transform:uppercase;">Total</th>
+          </tr>
+        </thead>
+        <tbody>${itemsRowsHTML}</tbody>
+      </table>
+      <div style="padding:16px 20px;border-top:2px solid #E5E7EB;">
+        <div style="display:flex;justify-content:space-between;margin-bottom:8px;">
+          <span style="color:#6B7280;font-size:14px;">Subtotal</span>
+          <span style="color:#1F2937;font-size:14px;font-weight:600;">$${subtotal.toFixed(2)}</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;margin-bottom:16px;">
+          <span style="color:#6B7280;font-size:14px;">IVU (11.5%)</span>
+          <span style="color:#6B7280;font-size:14px;">$${tax.toFixed(2)}</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;padding:14px;background:linear-gradient(135deg,#7C3AED,#4F46E5);border-radius:10px;">
+          <span style="color:white;font-size:16px;font-weight:800;">Total Estimado</span>
+          <span style="color:white;font-size:20px;font-weight:900;">$${total.toFixed(2)}</span>
+        </div>
+      </div>
+    </div>
 
-      doc.setDrawColor(0, 168, 232);
-      doc.setLineWidth(1);
-      doc.line(25, yPos, 185, yPos);
-      yPos += 12;
+    ${businessInfo.phone || businessInfo.whatsapp ? `
+    <div style="background:#F9FAFB;border-radius:12px;padding:20px;margin:24px 0;text-align:center;border:1px solid #E5E7EB;">
+      <p style="color:#111827;font-size:14px;font-weight:600;margin:0 0 12px;">¿Aprobamos la reparación? Contáctanos:</p>
+      <div style="display:flex;justify-content:center;gap:12px;flex-wrap:wrap;">
+        ${businessInfo.phone ? `<a href="tel:${businessInfo.phone}" style="display:inline-flex;align-items:center;gap:6px;background:#111827;color:white;padding:10px 20px;border-radius:8px;text-decoration:none;font-weight:600;font-size:14px;">📞 Llamar</a>` : ""}
+        ${businessInfo.whatsapp ? `<a href="https://wa.me/${businessInfo.whatsapp.replace(/\D/g,"")}" style="display:inline-flex;align-items:center;gap:6px;background:#10B981;color:white;padding:10px 20px;border-radius:8px;text-decoration:none;font-weight:600;font-size:14px;">💬 WhatsApp</a>` : ""}
+      </div>
+    </div>` : ""}
 
-      doc.setFillColor(16, 185, 129);
-      doc.roundedRect(20, yPos - 8, 170, 16, 3, 3, 'F');
-      doc.setFontSize(14);
-      doc.setFont(undefined, 'bold');
-      doc.setTextColor(255, 255, 255);
-      doc.text('Total Estimado', 25, yPos);
-      doc.setFontSize(18);
-      doc.text(`$${estimado.toFixed(2)}`, 185, yPos, { align: 'right' });
-
-      // Footer
-      yPos = 270;
-      doc.setDrawColor(0, 168, 232);
-      doc.setLineWidth(0.3);
-      doc.line(20, yPos, 190, yPos);
-      yPos += 8;
-      doc.setFontSize(10);
-      doc.setTextColor(0, 168, 232);
-      doc.setFont(undefined, 'bold');
-      doc.text(businessInfo.business_name || 'SmartFixOS', 105, yPos, { align: 'center' });
-      doc.setFontSize(8);
-      doc.setFont(undefined, 'normal');
-      doc.setTextColor(120, 120, 120);
-      doc.text(businessInfo.slogan || 'Tu taller de confianza', 105, yPos + 5, { align: 'center' });
-
-      // Email bonito con cotización integrada (sin necesidad de descargar)
-      const emailHTML = `
-        <!DOCTYPE html>
-        <html lang="es">
-        <head>
-          <meta charset="UTF-8">
-          <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        </head>
-        <body style="margin: 0; padding: 20px; background: #F3F4F6; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;">
-          <div style="max-width: 650px; margin: 0 auto; background: white;">
-            <div style="background: linear-gradient(135deg, #00A8E8 0%, #10B981 100%); padding: 60px 30px; text-align: center;">
-              ${businessInfo.logo_url ? `
-                <img src="${businessInfo.logo_url}" alt="${businessInfo.business_name}" style="height: 120px; width: auto; margin: 0 auto 20px; display: block; filter: drop-shadow(0 4px 20px rgba(0,0,0,0.2));" />
-              ` : ''}
-              <h1 style="color: white; margin: 0; font-size: 32px; font-weight: 800;">🔍 Diagnóstico Completado</h1>
-              <p style="color: rgba(255,255,255,0.95); margin: 12px 0 0 0; font-size: 18px; font-weight: 600;">Tu equipo ha sido evaluado</p>
-            </div>
-            
-            <div style="padding: 50px 40px;">
-              <p style="font-size: 20px; color: #111827; margin: 0 0 30px 0; font-weight: 600;">
-                Hola <strong>${order.customer_name}</strong> 👋
-              </p>
-              
-              <div style="background: #F0FDF4; border-radius: 16px; padding: 24px; margin: 30px 0; border-left: 6px solid #10B981;">
-                <p style="margin: 0; color: #065F46; font-size: 22px; font-weight: 800;">
-                  ✅ Diagnóstico Completo
-                </p>
-                <p style="margin: 12px 0 0 0; color: #064E3B; font-size: 16px; line-height: 1.6;">
-                  Hemos completado el diagnóstico de tu <strong>${order.device_brand} ${order.device_model}</strong>
-                </p>
-              </div>
-              
-              <div style="background: #F9FAFB; border-radius: 16px; padding: 28px; margin: 30px 0; border: 2px solid #E5E7EB;">
-                <div style="margin-bottom: 20px;">
-                  <p style="color: #6B7280; font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; margin: 0 0 6px 0;">Número de Orden</p>
-                  <p style="color: #111827; font-size: 24px; font-weight: 800; margin: 0;">${order.order_number}</p>
-                </div>
-                <div>
-                  <p style="color: #6B7280; font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; margin: 0 0 6px 0;">Problema Reportado</p>
-                  <p style="color: #1F2937; font-size: 16px; margin: 0; line-height: 1.6; background: white; padding: 16px; border-radius: 8px; border: 2px solid #E5E7EB;">
-                    ${order.initial_problem || 'N/A'}
-                  </p>
-                </div>
-              </div>
-              
-              <div style="background: #F9FAFB; border-radius: 16px; padding: 28px; margin: 30px 0; border: 2px solid #E5E7EB;">
-                <p style="color: #111827; font-size: 18px; margin: 0 0 20px 0; font-weight: 700; text-align: center;">💰 Cotización Detallada</p>
-                
-                <div style="background: white; border-radius: 12px; padding: 24px; border: 2px solid #E5E7EB;">
-                  <div style="margin-bottom: 16px;">
-                    <p style="color: #6B7280; font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; margin: 0 0 6px 0;">Orden</p>
-                    <p style="color: #111827; font-size: 20px; font-weight: 800; margin: 0;">${order.order_number}</p>
-                  </div>
-                  
-                  <div style="margin-bottom: 16px;">
-                    <p style="color: #6B7280; font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; margin: 0 0 6px 0;">Equipo</p>
-                    <p style="color: #1F2937; font-size: 16px; margin: 0;">${order.device_brand || ''} ${order.device_model || ''}</p>
-                  </div>
-                  
-                  <div style="margin-bottom: 24px; padding-bottom: 20px; border-bottom: 2px solid #E5E7EB;">
-                    <p style="color: #6B7280; font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; margin: 0 0 6px 0;">Problema Reportado</p>
-                    <p style="color: #1F2937; font-size: 14px; margin: 0; line-height: 1.6;">${order.initial_problem || 'N/A'}</p>
-                  </div>
-                  
-                  <div style="background: #F3F4F6; border-radius: 8px; padding: 16px; margin-bottom: 16px;">
-                    <div style="display: flex; justify-content: space-between; margin-bottom: 12px;">
-                      <span style="color: #6B7280; font-size: 14px;">Subtotal</span>
-                      <span style="color: #111827; font-size: 14px; font-weight: 700;">$${(Number(order.cost_estimate || order.total || 0) / 1.115).toFixed(2)}</span>
-                    </div>
-                    <div style="display: flex; justify-content: space-between; padding-bottom: 12px; border-bottom: 2px solid #E5E7EB;">
-                      <span style="color: #00A8E8; font-size: 14px; font-weight: 600;">IVU (11.5%)</span>
-                      <span style="color: #00A8E8; font-size: 14px; font-weight: 700;">+$${(Number(order.cost_estimate || order.total || 0) - (Number(order.cost_estimate || order.total || 0) / 1.115)).toFixed(2)}</span>
-                    </div>
-                    <div style="display: flex; justify-content: space-between; margin-top: 16px; padding: 12px; background: linear-gradient(135deg, #10B981 0%, #059669 100%); border-radius: 8px;">
-                      <span style="color: white; font-size: 16px; font-weight: 800;">Total Estimado</span>
-                      <span style="color: white; font-size: 20px; font-weight: 900;">${Number(order.cost_estimate || order.total || 0).toFixed(2)}</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-              
-              <p style="color: #374151; line-height: 1.8; font-size: 16px; margin: 20px 0;">
-                Adjuntamos evidencias y detalles técnicos. Por favor revise la información y contáctenos para proceder.
-              </p>
-              
-              ${businessInfo.phone || businessInfo.whatsapp ? `
-                <div style="background: #F9FAFB; border-radius: 12px; padding: 24px; margin: 30px 0; text-align: center; border: 2px solid #E5E7EB;">
-                  <p style="color: #111827; font-size: 15px; font-weight: 600; margin: 0 0 16px 0;">💬 Contáctanos</p>
-                  <div style="display: flex; justify-content: center; gap: 20px; flex-wrap: wrap;">
-                    ${businessInfo.phone ? `
-                      <a href="tel:${businessInfo.phone}" style="display: inline-flex; align-items: center; gap: 8px; background: #111827; color: white; padding: 12px 24px; border-radius: 10px; text-decoration: none; font-weight: 600;">
-                        📞 Llamar
-                      </a>
-                    ` : ''}
-                    ${businessInfo.whatsapp ? `
-                      <a href="https://wa.me/${businessInfo.whatsapp.replace(/\D/g, '')}" style="display: inline-flex; align-items: center; gap: 8px; background: #10B981; color: white; padding: 12px 24px; border-radius: 10px; text-decoration: none; font-weight: 600;">
-                        💬 WhatsApp
-                      </a>
-                    ` : ''}
-                  </div>
-                </div>
-              ` : ''}
-              
-              <div style="margin-top: 50px; padding-top: 30px; border-top: 2px solid #E5E7EB; text-align: center;">
-                ${businessInfo.logo_url ? `
-                  <img src="${businessInfo.logo_url}" alt="${businessInfo.business_name}" style="height: 60px; width: auto; margin: 0 auto 20px; display: block; opacity: 0.7;" />
-                ` : ''}
-                <p style="margin: 8px 0; color: #111827; font-size: 14px; font-weight: 700;">
-                  ${businessInfo.business_name || 'SmartFixOS'}
-                </p>
-                <p style="margin: 4px 0; color: #6B7280; font-size: 13px;">
-                  ${businessInfo.slogan || 'Tu taller de confianza'}
-                </p>
-                ${businessInfo.address ? `<p style="margin: 8px 0; color: #6B7280; font-size: 13px;">${businessInfo.address}</p>` : ''}
-                ${businessInfo.phone ? `<p style="margin: 8px 0; color: #6B7280; font-size: 13px;">📞 ${businessInfo.phone}</p>` : ''}
-                <p style="color: #9CA3AF; font-size: 11px; margin: 16px 0 0 0;">
-                  ${new Date().toLocaleDateString('es-PR', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
-                </p>
-              </div>
-            </div>
-          </div>
-        </body>
-        </html>
-      `;
+    <div style="margin-top:40px;padding-top:24px;border-top:1px solid #E5E7EB;text-align:center;">
+      ${businessInfo.logo_url ? `<img src="${businessInfo.logo_url}" alt="${businessInfo.business_name}" style="height:36px;width:auto;margin:0 auto 10px;display:block;opacity:0.55;" />` : ""}
+      <p style="color:#374151;font-size:13px;font-weight:700;margin:0;">${businessInfo.business_name || "SmartFixOS"}</p>
+      ${businessInfo.address ? `<p style="color:#9CA3AF;font-size:12px;margin:4px 0 0;">${businessInfo.address}</p>` : ""}
+      ${businessInfo.phone ? `<p style="color:#9CA3AF;font-size:12px;margin:4px 0 0;">📞 ${businessInfo.phone}</p>` : ""}
+    </div>
+  </div>
+</div>
+</body>
+</html>`;
 
       await base44.integrations.Core.SendEmail({
         to: order.customer_email,
         subject: `🔍 Diagnóstico Completado - Orden #${order.order_number}`,
-        body: emailHTML
+        body: emailHTML,
       });
-      
       toast.success("Cotización enviada al cliente");
     } catch (error) {
       console.error(error);
@@ -336,36 +255,19 @@ export default function DiagnosingStage({ order, onUpdate, user, onOrderItemsUpd
     }
   };
 
-  const handleSaveDiagnosis = async () => {
-    if (!diagnosis.trim()) return;
-    setSaving(true);
-    try {
-      await base44.entities.WorkOrderEvent.create({
-        order_id: order.id,
-        order_number: order.order_number,
-        event_type: "diagnosis_added",
-        description: `Diagnóstico Técnico: ${diagnosis}`,
-        user_name: user?.full_name || "Técnico",
-        user_id: user?.id,
-        metadata: { diagnosis: true }
-      });
-      
-      setDiagnosis("");
-      onUpdate();
-      loadEvents();
-      toast.success("Diagnóstico guardado");
-    } catch (error) {
-      console.error(error);
-      toast.error("Error al guardar diagnóstico");
-    } finally {
-      setSaving(false);
-    }
-  };
+  // Derived checklist stats
+  const checkedCount  = checklist.filter(c => c.status !== "not_tested").length;
+  const issueCount    = checklist.filter(c => c.status === "issue").length;
+  const warningCount  = checklist.filter(c => c.status === "warning").length;
+  const o = order || {};
 
   return (
     <div className="space-y-6">
+
+      {/* ── Hero ── */}
       <section className="relative overflow-hidden rounded-[30px] border border-purple-500/15 bg-[radial-gradient(circle_at_top_left,rgba(168,85,247,0.16),transparent_28%),radial-gradient(circle_at_bottom_right,rgba(59,130,246,0.14),transparent_30%),linear-gradient(135deg,rgba(16,12,30,0.98),rgba(10,18,30,0.96))] p-5 shadow-[0_22px_70px_rgba(0,0,0,0.35)] sm:p-6">
         <div className="absolute inset-0 bg-[linear-gradient(120deg,transparent,rgba(255,255,255,0.03),transparent)]" />
+
         <div className="relative z-10 grid gap-5 xl:grid-cols-[1.2fr_0.8fr] xl:items-start">
           <div className="space-y-4">
             <div className="flex flex-wrap items-center gap-2">
@@ -382,36 +284,54 @@ export default function DiagnosingStage({ order, onUpdate, user, onOrderItemsUpd
               <div className="flex flex-wrap items-end gap-x-4 gap-y-2">
                 <h2 className="text-3xl font-black tracking-tight text-white sm:text-4xl">Etapa de Diagnóstico</h2>
                 <div className="inline-flex items-center rounded-full border border-purple-400/20 bg-purple-500/10 px-3 py-1 text-sm font-semibold text-purple-200">
-                  {order?.device_brand} {order?.device_model}
+                  {o.device_brand} {o.device_model}
                 </div>
               </div>
               <p className="max-w-2xl text-sm leading-relaxed text-white/55">
-                Documenta hallazgos, añade enlaces de piezas y deja una cotización clara para que el cliente entienda el siguiente paso.
+                Completa el checklist de diagnóstico, añade piezas y envía la cotización al cliente.
               </p>
             </div>
 
+            {/* Info grid: 3 cards */}
             <div className="grid gap-3 md:grid-cols-3">
+              {/* Cliente */}
               <div className="rounded-[22px] border border-white/10 bg-black/25 p-4 backdrop-blur-md">
                 <p className="mb-1 text-[11px] font-semibold uppercase tracking-[0.24em] text-white/35">Cliente</p>
-                <p className="truncate text-lg font-bold text-purple-200">{order?.customer_name || "No registrado"}</p>
+                <p className="truncate text-lg font-bold text-purple-200">{o.customer_name || "No registrado"}</p>
               </div>
+
+              {/* Checklist status */}
               <div className="rounded-[22px] border border-white/10 bg-black/25 p-4 backdrop-blur-md">
-                <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                  <div className="min-w-0 flex-1">
-                    <p className="mb-1 text-[11px] font-semibold uppercase tracking-[0.24em] text-white/35">Notas de Diagnóstico</p>
-                    <p className="line-clamp-2 text-sm font-semibold text-white/75">
-                      {events.find((event) => event.event_type === "diagnosis_added")?.description || "Documenta hallazgos, pruebas y conclusión."}
-                    </p>
-                  </div>
-                  <Button
-                    onClick={() => setActiveModal(activeModal === "diagnosis" ? null : "diagnosis")}
-                    size="sm"
-                    className="w-full rounded-xl bg-purple-600 px-3 text-white hover:bg-purple-500 sm:w-auto"
-                  >
-                    {activeModal === "diagnosis" ? "Cerrar" : "Abrir"}
-                  </Button>
+                <p className="mb-2 text-[11px] font-semibold uppercase tracking-[0.24em] text-white/35">Checklist</p>
+                <div className="mb-3 flex flex-wrap items-center gap-2">
+                  <span className="text-xl font-black text-white">{checkedCount}</span>
+                  <span className="text-xs text-white/40">/ {checklist.length}</span>
+                  {issueCount > 0 && (
+                    <Badge className="rounded-full border-red-500/30 bg-red-500/10 text-[11px] text-red-300">
+                      {issueCount} {issueCount === 1 ? "problema" : "problemas"}
+                    </Badge>
+                  )}
+                  {warningCount > 0 && issueCount === 0 && (
+                    <Badge className="rounded-full border-amber-500/30 bg-amber-500/10 text-[11px] text-amber-300">
+                      {warningCount} a revisar
+                    </Badge>
+                  )}
+                  {checkedCount === checklist.length && checklist.length > 0 && issueCount === 0 && warningCount === 0 && (
+                    <Badge className="rounded-full border-emerald-500/30 bg-emerald-500/10 text-[11px] text-emerald-300">
+                      ✓ Completo
+                    </Badge>
+                  )}
                 </div>
+                <Button
+                  onClick={() => setShowChecklist(v => !v)}
+                  size="sm"
+                  className="w-full rounded-xl bg-purple-600 px-3 text-white hover:bg-purple-500"
+                >
+                  {showChecklist ? <><ChevronUp className="mr-1 h-3.5 w-3.5" /> Cerrar</> : <><ClipboardCheck className="mr-1 h-3.5 w-3.5" /> Abrir</>}
+                </Button>
               </div>
+
+              {/* Links y Cotización */}
               <div className="rounded-[22px] border border-white/10 bg-black/25 p-4 backdrop-blur-md">
                 <p className="mb-2 text-[11px] font-semibold uppercase tracking-[0.24em] text-white/35">Links y Cotización</p>
                 <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap">
@@ -420,7 +340,7 @@ export default function DiagnosingStage({ order, onUpdate, user, onOrderItemsUpd
                     size="sm"
                     className="w-full rounded-xl bg-cyan-600 px-3 text-white hover:bg-cyan-500 sm:w-auto"
                   >
-                    {activeModal === "links" ? "Cerrar" : (links.length > 0 ? "Ver Links" : "Añadir Link")}
+                    {activeModal === "links" ? "Cerrar" : (links.length > 0 ? `Ver Links (${links.length})` : "Añadir Link")}
                   </Button>
                   <Button
                     onClick={handleSendQuote}
@@ -429,6 +349,7 @@ export default function DiagnosingStage({ order, onUpdate, user, onOrderItemsUpd
                     variant="outline"
                     className="w-full rounded-xl border-white/10 bg-white/5 text-white hover:bg-white/10 sm:w-auto"
                   >
+                    <Send className="mr-1.5 h-3.5 w-3.5" />
                     {sendingQuote ? "Enviando..." : "Cotización"}
                   </Button>
                 </div>
@@ -436,27 +357,30 @@ export default function DiagnosingStage({ order, onUpdate, user, onOrderItemsUpd
             </div>
           </div>
         </div>
-        {(order?.customer_phone || order?.customer_email) && (() => {
-          const phone = order?.customer_phone || "";
-          const email = order?.customer_email || "";
+
+        {/* Contact buttons */}
+        {(o.customer_phone || o.customer_email) && (() => {
+          const phone  = o.customer_phone || "";
+          const email  = o.customer_email || "";
           const digits = phone.replace(/\D/g, "");
-          const intl = digits.startsWith("1") ? digits : digits.length === 10 ? `1${digits}` : digits;
+          const intl   = digits.startsWith("1") ? digits : digits.length === 10 ? `1${digits}` : digits;
           return (
             <div className="relative z-10 mt-4 grid grid-cols-1 gap-3 sm:grid-cols-3">
               {digits && (
-                <a href={`tel:+${intl}`} className="flex items-center justify-center gap-3 h-14 rounded-2xl border border-white/15 bg-white/5 text-white hover:bg-white/10 font-bold text-sm uppercase tracking-wide transition-all active:scale-95">
-                  <PhoneCall className="w-5 h-5 text-white/60" />{phone}
+                <a href={`tel:+${intl}`} className="flex h-14 items-center justify-center gap-3 rounded-2xl border border-white/15 bg-white/5 font-bold text-sm uppercase tracking-wide text-white transition-all hover:bg-white/10 active:scale-95">
+                  <PhoneCall className="h-5 w-5 text-white/60" />{phone}
                 </a>
               )}
               {digits && (
                 <a href={`https://wa.me/${intl}`} target="_blank" rel="noreferrer"
-                  className="flex items-center justify-center gap-3 h-14 rounded-2xl border border-emerald-500/30 bg-emerald-500/12 text-emerald-300 hover:bg-emerald-500/20 font-bold text-sm uppercase tracking-wide transition-all active:scale-95">
-                  <MessageCircle className="w-5 h-5" />WhatsApp
+                  className="flex h-14 items-center justify-center gap-3 rounded-2xl border border-emerald-500/30 bg-emerald-500/12 font-bold text-sm uppercase tracking-wide text-emerald-300 transition-all hover:bg-emerald-500/20 active:scale-95">
+                  <MessageCircle className="h-5 w-5" />WhatsApp
                 </a>
               )}
               {email && (
-                <a href={`mailto:${email}`} className="flex items-center justify-center gap-3 h-14 rounded-2xl border border-blue-500/30 bg-blue-500/12 text-blue-300 hover:bg-blue-500/20 font-bold text-sm uppercase tracking-wide transition-all active:scale-95">
-                  <Mail className="w-5 h-5" /><span className="truncate">{email}</span>
+                <a href={`mailto:${email}`}
+                  className="flex h-14 items-center justify-center gap-3 rounded-2xl border border-blue-500/30 bg-blue-500/12 font-bold text-sm uppercase tracking-wide text-blue-300 transition-all hover:bg-blue-500/20 active:scale-95">
+                  <Mail className="h-5 w-5" /><span className="truncate">{email}</span>
                 </a>
               )}
             </div>
@@ -464,7 +388,7 @@ export default function DiagnosingStage({ order, onUpdate, user, onOrderItemsUpd
         })()}
       </section>
 
-
+      {/* ── Piezas y Servicios ── */}
       <SharedItemsSection
         order={effectiveOrder}
         onUpdate={onUpdate}
@@ -475,66 +399,115 @@ export default function DiagnosingStage({ order, onUpdate, user, onOrderItemsUpd
         subtitle="Añade piezas o servicios sugeridos para que la cotización salga lista desde esta misma etapa."
       />
 
-      <WorkOrderUnifiedHub
-        order={order}
-        onUpdate={onUpdate}
-        accent="purple"
-        title="Centro de Historial"
-        subtitle="Diagnóstico, notas, evidencia y seguridad integrados en un mismo lugar."
-      />
-
-      {activeModal === "diagnosis" && (
-        <section className="overflow-hidden rounded-[28px] border border-purple-500/15 bg-[radial-gradient(circle_at_top_left,rgba(168,85,247,0.14),transparent_28%),linear-gradient(180deg,rgba(255,255,255,0.04),rgba(255,255,255,0.02))] shadow-[0_24px_50px_rgba(0,0,0,0.28)] backdrop-blur-xl">
-          <div className="border-b border-white/10 bg-[linear-gradient(90deg,rgba(168,85,247,0.12),rgba(99,102,241,0.05),transparent)] px-4 py-4 sm:px-6 sm:py-5">
-            <div className="flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-2xl border border-purple-400/20 bg-purple-500/15 text-purple-300 sm:h-12 sm:w-12">
-                <ClipboardList className="h-5 w-5" />
+      {/* ── Checklist de Diagnóstico ── */}
+      {showChecklist && (
+        <section className="overflow-hidden rounded-[28px] border border-purple-500/15 bg-[radial-gradient(circle_at_top_left,rgba(168,85,247,0.12),transparent_28%),linear-gradient(180deg,rgba(255,255,255,0.04),rgba(255,255,255,0.02))] shadow-[0_20px_50px_rgba(0,0,0,0.28)]">
+          <div className="border-b border-white/10 bg-gradient-to-r from-purple-500/10 to-transparent px-5 py-4 sm:px-6 sm:py-5">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="flex h-10 w-10 items-center justify-center rounded-2xl border border-purple-400/20 bg-purple-500/15 text-purple-300 sm:h-12 sm:w-12">
+                  <ClipboardCheck className="h-5 w-5" />
+                </div>
+                <div>
+                  <p className="text-[11px] font-semibold uppercase tracking-[0.28em] text-white/35">Diagnóstico técnico</p>
+                  <h3 className="text-lg font-black tracking-tight text-white sm:text-xl">Checklist del Dispositivo</h3>
+                </div>
               </div>
-              <div>
-                <p className="text-[11px] font-semibold uppercase tracking-[0.28em] text-white/35">Diagnóstico técnico</p>
-                <h3 className="text-lg font-black tracking-tight text-white sm:text-xl">Notas de Diagnóstico</h3>
-              </div>
+              <p className="text-xs text-white/35">Toca para cambiar estado</p>
             </div>
           </div>
-          <div className="space-y-5 p-4 sm:p-6">
+
+          <div className="space-y-3 p-5 sm:p-6">
+            {/* Info banner */}
+            <div className="rounded-2xl border border-white/10 bg-black/20 px-4 py-3 text-xs text-white/45 leading-relaxed">
+              <strong className="text-white/60">Motivo de ingreso:</strong> {o.initial_problem || "No especificado"} &nbsp;·&nbsp;
+              El checklist documenta lo encontrado durante el diagnóstico (puede diferir del motivo de ingreso).
+            </div>
+
+            {/* Check items */}
+            <div className="grid gap-2 sm:grid-cols-2">
+              {checklist.map(item => {
+                const cfg    = STATUS_CFG[item.status] || STATUS_CFG.not_tested;
+                const { Icon } = cfg;
+                return (
+                  <div key={item.id} className={`rounded-2xl border ${cfg.ring} transition-all`}>
+                    <button
+                      onClick={() => cycleStatus(item.id)}
+                      className="flex w-full items-center gap-3 p-4 text-left"
+                    >
+                      <Icon className={`h-6 w-6 shrink-0 ${cfg.color}`} />
+                      <span className="flex-1 text-sm font-semibold text-white">{item.label}</span>
+                      {cfg.label && (
+                        <Badge className={`shrink-0 rounded-full border-0 text-[11px] font-bold ${
+                          item.status === "ok"      ? "bg-emerald-500/20 text-emerald-300" :
+                          item.status === "issue"   ? "bg-red-500/20 text-red-300" :
+                                                      "bg-amber-500/20 text-amber-300"
+                        }`}>
+                          {cfg.label}
+                        </Badge>
+                      )}
+                    </button>
+                    {item.status !== "not_tested" && (
+                      <div className="border-t border-white/[0.06] px-4 pb-3 pt-2">
+                        <input
+                          type="text"
+                          placeholder="Nota opcional..."
+                          value={item.notes || ""}
+                          onChange={e => setItemNote(item.id, e.target.value)}
+                          className="w-full bg-transparent text-xs text-white/60 placeholder:text-white/20 outline-none"
+                        />
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* General notes */}
             <Textarea
-              placeholder="Describe los hallazgos técnicos, pruebas realizadas y conclusión..."
-              className="min-h-[180px] resize-none rounded-[22px] border-white/10 bg-black/30 text-white transition-all placeholder:text-white/20 focus:border-purple-400/40 focus:ring-purple-500/40"
-              value={diagnosis}
-              onChange={(e) => setDiagnosis(e.target.value)}
+              placeholder="Notas generales del diagnóstico (se incluyen en el email al cliente)..."
+              className="min-h-[100px] resize-none rounded-[22px] border-white/10 bg-black/30 text-white placeholder:text-white/20 focus:border-purple-400/40 focus:ring-purple-500/40"
+              value={checklistNotes}
+              onChange={e => setChecklistNotes(e.target.value)}
             />
+
+            {/* Save + Send */}
             <div className="flex flex-col gap-3 border-t border-white/10 pt-4 sm:flex-row sm:items-center sm:justify-between">
               <Button
                 variant="ghost"
-                className="h-11 justify-start rounded-2xl border border-white/10 bg-white/5 px-4 text-white/70 hover:bg-white/10 hover:text-white"
                 onClick={handleSendQuote}
                 disabled={sendingQuote}
+                className="h-11 justify-start rounded-2xl border border-white/10 bg-white/5 px-4 text-white/70 hover:bg-white/10 hover:text-white"
               >
                 <Send className="mr-2 h-4 w-4" />
-                {sendingQuote ? "Enviando..." : "Enviar Cotización"}
+                {sendingQuote ? "Enviando..." : "Enviar cotización con checklist"}
               </Button>
               <Button
-                onClick={async () => {
-                  await handleSaveDiagnosis();
-                  setActiveModal(null);
-                }}
-                disabled={saving || !diagnosis.trim()}
+                onClick={handleSaveChecklist}
+                disabled={checklistSaving}
                 className="h-11 rounded-2xl border-0 bg-gradient-to-r from-purple-600 to-indigo-600 px-6 text-white shadow-lg shadow-purple-950/30 hover:from-purple-500 hover:to-indigo-500"
               >
-                {saving ? "Guardando..." : <><Save className="mr-2 h-4 w-4" /> Guardar Nota</>}
+                <Save className="mr-2 h-4 w-4" />
+                {checklistSaving ? "Guardando..." : "Guardar Checklist"}
               </Button>
             </div>
           </div>
         </section>
       )}
 
+      {/* ── Historia y Comentarios ── */}
+      <WorkOrderUnifiedHub
+        order={order}
+        onUpdate={onUpdate}
+        accent="purple"
+        title="Historia y Comentarios"
+        subtitle="Notas técnicas, evidencia fotográfica y actividad de la orden."
+      />
+
       <OrderLinksDialog
         order={effectiveOrder}
         user={user}
-        onUpdate={() => {
-          loadLinks();
-          onUpdate?.();
-        }}
+        onUpdate={() => { loadLinks(); onUpdate?.(); }}
         onLinkSaved={(nextOrder) => {
           if (nextOrder?.id === order?.id) {
             setLinkOrderPreview(nextOrder);
@@ -551,18 +524,15 @@ export default function DiagnosingStage({ order, onUpdate, user, onOrderItemsUpd
         onLinksChange={setLinks}
       />
 
-      <AddItemModal 
-        open={showCatalog} 
-        onClose={() => {
-          setShowCatalog(false);
-          setOpenCatalogFromLink(false);
-        }} 
+      <AddItemModal
+        open={showCatalog}
+        onClose={() => { setShowCatalog(false); setOpenCatalogFromLink(false); }}
         order={effectiveOrder}
         initialItems={Array.isArray(effectiveOrder?.order_items) ? effectiveOrder.order_items : []}
         onUpdate={onUpdate}
         autoOpenCart={openCatalogFromLink}
       />
-      
+
     </div>
   );
 }
