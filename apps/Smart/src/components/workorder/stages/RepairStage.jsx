@@ -1,10 +1,12 @@
-import React, { useMemo, useState } from "react";
+import React, { useMemo, useState, useRef, useEffect } from "react";
 import {
   Wrench, PhoneCall, MessageCircle, Mail, Plus,
-  CheckCircle2, Circle, ClipboardList
+  CheckCircle2, Circle, ClipboardList, Camera, Activity
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { toast } from "sonner";
+import { base44 } from "@/api/base44Client";
 import WorkOrderUnifiedHub from "@/components/workorder/WorkOrderUnifiedHub";
 import AddItemModal from "@/components/workorder/AddItemModal";
 import SharedItemsSection from "@/components/workorder/SharedItemsSection";
@@ -14,16 +16,42 @@ const CLOSE_CHECKLIST = [
   "Sin daños adicionales al equipo",
   "Equipo limpio y presentable",
   "Evidencia fotográfica tomada",
-  "Cliente notificado",
 ];
 
 export default function RepairStage({ order, onUpdate, onOrderItemsUpdate, onRemoteSaved, onPaymentClick }) {
   const o = order || {};
-  const [showCatalog, setShowCatalog] = useState(false);
-  const [checked, setChecked]         = useState([]);
 
-  const toggle = (i) =>
-    setChecked(prev => prev.includes(i) ? prev.filter(x => x !== i) : [...prev, i]);
+  // Checklist: si ya estaba done, iniciar con todo marcado
+  const [checked,     setChecked]    = useState(() => o.repair_checklist_done ? CLOSE_CHECKLIST.map((_, i) => i) : []);
+  const [showCatalog, setShowCatalog] = useState(false);
+  const [hubTab,      setHubTab]     = useState(null);
+  const hubRef = useRef(null);
+
+  const allDone = checked.length === CLOSE_CHECKLIST.length;
+
+  const toggle = async (i) => {
+    const next = checked.includes(i)
+      ? checked.filter(x => x !== i)
+      : [...checked, i];
+    setChecked(next);
+
+    const nowAllDone = next.length === CLOSE_CHECKLIST.length;
+    const wasDone = checked.length === CLOSE_CHECKLIST.length;
+
+    // Solo guardar al completar todos o al desmarcar alguno habiendo estado completo
+    if (nowAllDone !== wasDone) {
+      try {
+        await base44.entities.Order.update(order.id, { repair_checklist_done: nowAllDone });
+        if (nowAllDone) toast.success("Checklist completo — listo para avanzar");
+        if (onUpdate) onUpdate();
+      } catch { /* silent */ }
+    }
+  };
+
+  const openHub = (tab) => {
+    setHubTab(tab);
+    setTimeout(() => hubRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }), 80);
+  };
 
   const orderItems = Array.isArray(o.order_items) ? o.order_items : [];
   const itemCount  = orderItems.length;
@@ -35,17 +63,14 @@ export default function RepairStage({ order, onUpdate, onOrderItemsUpdate, onRem
     [orderItems]
   );
 
-  const allDone = CLOSE_CHECKLIST.every((_, i) => checked.includes(i));
-
   return (
     <div className="space-y-6">
 
       {/* ── HERO ─────────────────────────────────────────────────────────── */}
       <section className="relative overflow-hidden rounded-[30px] border border-emerald-500/15 bg-[radial-gradient(circle_at_top_left,rgba(16,185,129,0.16),transparent_28%),radial-gradient(circle_at_bottom_right,rgba(34,197,94,0.12),transparent_30%),linear-gradient(135deg,rgba(8,24,18,0.98),rgba(10,14,24,0.96))] p-4 sm:p-6 shadow-[0_22px_70px_rgba(0,0,0,0.35)]">
         <div className="absolute inset-0 bg-[linear-gradient(120deg,transparent,rgba(255,255,255,0.03),transparent)]" />
-
         <div className="relative z-10 space-y-4">
-          {/* Badges */}
+
           <div className="flex flex-wrap items-center gap-2">
             <Badge className="rounded-full border border-emerald-400/30 bg-emerald-500/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.25em] text-emerald-200">
               Reparación
@@ -60,7 +85,6 @@ export default function RepairStage({ order, onUpdate, onOrderItemsUpdate, onRem
             )}
           </div>
 
-          {/* Título + dispositivo */}
           <div className="flex flex-wrap items-end gap-x-3 gap-y-2">
             <h2 className="text-2xl font-black tracking-tight text-white sm:text-4xl">En Reparación</h2>
             {(o.device_brand || o.device_model) && (
@@ -70,14 +94,11 @@ export default function RepairStage({ order, onUpdate, onOrderItemsUpdate, onRem
             )}
           </div>
 
-          {/* Info esencial: cliente + problema */}
           <div className="grid gap-3 sm:grid-cols-2">
             <div className="rounded-[18px] border border-white/10 bg-black/25 p-4">
               <p className="mb-1 text-[11px] font-semibold uppercase tracking-[0.24em] text-white/35">Cliente</p>
               <p className="truncate text-base font-bold text-emerald-200">{o.customer_name || "No registrado"}</p>
-              {o.customer_phone && (
-                <p className="mt-0.5 text-xs text-white/45 truncate">{o.customer_phone}</p>
-              )}
+              {o.customer_phone && <p className="mt-0.5 text-xs text-white/45 truncate">{o.customer_phone}</p>}
             </div>
             <div className="rounded-[18px] border border-white/10 bg-black/25 p-4">
               <p className="mb-1 text-[11px] font-semibold uppercase tracking-[0.24em] text-white/35">Problema reportado</p>
@@ -85,7 +106,6 @@ export default function RepairStage({ order, onUpdate, onOrderItemsUpdate, onRem
             </div>
           </div>
 
-          {/* Contacto */}
           {(o.customer_phone || o.customer_email) && (() => {
             const phone  = o.customer_phone || "";
             const email  = o.customer_email || "";
@@ -144,16 +164,25 @@ export default function RepairStage({ order, onUpdate, onOrderItemsUpdate, onRem
           <div className="flex items-center justify-between gap-3">
             <div className="flex items-center gap-3">
               <ClipboardList className="w-4 h-4 text-emerald-400" />
-              <h3 className="text-white font-bold text-sm uppercase tracking-wider">Checklist de Cierre</h3>
+              <div>
+                <h3 className="text-white font-bold text-sm uppercase tracking-wider">Checklist de Cierre</h3>
+                <p className="text-[11px] text-white/35 mt-0.5">{checked.length}/{CLOSE_CHECKLIST.length} completados</p>
+              </div>
             </div>
-            {allDone && (
+            {allDone ? (
               <span className="flex items-center gap-1.5 rounded-full border border-emerald-400/30 bg-emerald-500/15 px-3 py-1 text-[11px] font-bold text-emerald-300">
                 <CheckCircle2 className="w-3 h-3" />Listo para avanzar
+              </span>
+            ) : (
+              <span className="rounded-full border border-red-500/20 bg-red-500/10 px-3 py-1 text-[11px] font-bold text-red-400">
+                🔒 Bloquea avance
               </span>
             )}
           </div>
         </div>
+
         <div className="p-5 space-y-2">
+          {/* Items del checklist */}
           {CLOSE_CHECKLIST.map((label, i) => (
             <button
               key={i}
@@ -173,6 +202,24 @@ export default function RepairStage({ order, onUpdate, onOrderItemsUpdate, onRem
               </span>
             </button>
           ))}
+
+          {/* Acciones rápidas: Fotos y Nota */}
+          <div className="grid grid-cols-2 gap-2 pt-2">
+            <button
+              onClick={() => openHub("photos")}
+              className="flex items-center justify-center gap-2 rounded-2xl border border-blue-500/20 bg-blue-500/8 px-4 py-3 hover:bg-blue-500/14 transition-all"
+            >
+              <Camera className="w-4 h-4 text-blue-400" />
+              <span className="text-sm font-semibold text-blue-300">Subir foto</span>
+            </button>
+            <button
+              onClick={() => openHub("timeline")}
+              className="flex items-center justify-center gap-2 rounded-2xl border border-cyan-500/20 bg-cyan-500/8 px-4 py-3 hover:bg-cyan-500/14 transition-all"
+            >
+              <Activity className="w-4 h-4 text-cyan-400" />
+              <span className="text-sm font-semibold text-cyan-300">Tomar nota</span>
+            </button>
+          </div>
         </div>
       </div>
 
@@ -188,13 +235,16 @@ export default function RepairStage({ order, onUpdate, onOrderItemsUpdate, onRem
       />
 
       {/* ── HISTORIAL / FOTOS / NOTAS ────────────────────────────────────── */}
-      <WorkOrderUnifiedHub
-        order={order}
-        onUpdate={onUpdate}
-        accent="emerald"
-        title="Fotos · Notas · Historial"
-        subtitle="Documenta el proceso, toma evidencia y deja el historial listo para el cierre."
-      />
+      <div ref={hubRef}>
+        <WorkOrderUnifiedHub
+          order={order}
+          onUpdate={onUpdate}
+          accent="emerald"
+          title="Fotos · Notas · Historial"
+          subtitle="Documenta el proceso, toma evidencia y deja el historial listo para el cierre."
+          openTab={hubTab}
+        />
+      </div>
 
       <AddItemModal
         open={showCatalog}

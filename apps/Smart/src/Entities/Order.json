@@ -569,6 +569,10 @@
       "type": "string",
       "description": "Etapa actual del tracking de la pieza: ordered | confirmed | shipped | in_transit | arrived | received"
     },
+    "repair_checklist_done": {
+      "type": "boolean",
+      "description": "Técnico completó el checklist de cierre — requerido para avanzar desde in_progress"
+    },
     "parts_supplier": {
       "type": "string",
       "description": "Proveedor de piezas"

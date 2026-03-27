@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from "react";
+import React, { useMemo, useState, useEffect } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Activity, Camera, ChevronDown, LockKeyhole, Sparkles } from "lucide-react";
 import OrderSecurity from "@/components/workorder/sections/OrderSecurity";
@@ -10,10 +10,15 @@ export default function WorkOrderUnifiedHub({
   onUpdate,
   title = "Centro de Historial",
   subtitle = "Historial, fotos y seguridad reunidos en un solo lugar",
-  accent = "cyan"
+  accent = "cyan",
+  openTab = null
 }) {
   const o = order || {};
   const [activeTab, setActiveTab] = useState(null);
+
+  useEffect(() => {
+    if (openTab) setActiveTab(openTab);
+  }, [openTab]);
 
   const photoCount = useMemo(() => {
     const groups = [

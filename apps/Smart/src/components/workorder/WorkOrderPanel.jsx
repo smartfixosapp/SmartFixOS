@@ -2130,6 +2130,16 @@ export default function WorkOrderPanel({ orderId, onClose, onUpdate, onDelete, p
 
     console.log("[ChangeStatus] Iniciando cambio:", prevStatusId, "→", nextId);
 
+    // Bloquear avance desde in_progress si el checklist de cierre no está completo
+    if (prevStatusId === "in_progress" && nextId !== "cancelled") {
+      const prevOrder = getStatusConfig(prevStatusId).order || 0;
+      const nextOrder = getStatusConfig(nextId).order || 0;
+      if (nextOrder > prevOrder && !order?.repair_checklist_done) {
+        toast("Completa el checklist de cierre antes de avanzar la orden", { icon: "🔒" });
+        return;
+      }
+    }
+
     // Mostrar modales específicos SOLO si no viene de skipModalCheck
     if (!skipModalCheck) {
       if (nextId === "cancelled") {
