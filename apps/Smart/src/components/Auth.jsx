@@ -136,7 +136,9 @@ export default function AuthGate({ children }) {
   const refreshSession = React.useCallback(() => {
     const sessionUser = readPinSession();
     if (sessionUser) {
-      inactivityMsRef.current = sessionUser.session_timeout_ms ?? DEFAULT_INACTIVITY_MS;
+      // null = "Nunca" → preservar; undefined = usar default
+      const tms = sessionUser.session_timeout_ms;
+      inactivityMsRef.current = (tms !== undefined) ? tms : DEFAULT_INACTIVITY_MS;
       setUser(sessionUser);
     }
   }, []);
@@ -189,7 +191,8 @@ export default function AuthGate({ children }) {
       inactivityTimerRef.current = null;
     }
     clearAllSessions();
-    setUser(null);
+    // No llamar setUser(null) antes del navigate — evita el flash de pantalla blanca.
+    // La sesión ya fue limpiada de storage; PinAccess asume el control.
     window.location.href = "/PinAccess";
   }, []);
 
@@ -263,7 +266,9 @@ export default function AuthGate({ children }) {
 
     if (sessionUser) {
       // Cargar el timeout personal del usuario en el ref antes de activar el timer
-      inactivityMsRef.current = sessionUser.session_timeout_ms ?? DEFAULT_INACTIVITY_MS;
+      // null = "Nunca" → preservar; undefined = usar default
+      const tms = sessionUser.session_timeout_ms;
+      inactivityMsRef.current = (tms !== undefined) ? tms : DEFAULT_INACTIVITY_MS;
       setUser(sessionUser);
       setIsCheckingAuth(false);
       return;
