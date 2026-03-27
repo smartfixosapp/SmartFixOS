@@ -1381,6 +1381,13 @@ export default function WorkOrderPanel({ orderId, onClose, onUpdate, onDelete, p
     return () => unregisterPanel('workorder-panel');
   }, [registerPanel, unregisterPanel]);
 
+  // ✅ Proteger sesión: mientras esta orden está abierta, el sistema no
+  // expulsa al técnico por inactividad (puede estar trabajando en silencio).
+  useEffect(() => {
+    window.__sfos_setOrderActive?.(true);
+    return () => { window.__sfos_setOrderActive?.(false); };
+  }, []);
+
   const [order, setOrder] = useState(null);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState(null);

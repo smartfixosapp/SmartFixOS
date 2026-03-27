@@ -127,6 +127,10 @@ export default function AuthGate({ children }) {
   // ── Timeout dinámico por usuario ─────────────────────────────────────
   // Ref para no crear stale closures en los callbacks del timer.
   const inactivityMsRef = React.useRef(DEFAULT_INACTIVITY_MS);
+  // ── Protección de orden activa ────────────────────────────────────────
+  // Cuando WorkOrderPanel tiene una orden abierta, incrementa este contador.
+  // El timer de inactividad no expulsa al usuario mientras orderActiveCount > 0.
+  const orderActiveCountRef = React.useRef(0);
 
   // ── Refresh session (llamado por PinAccess tras login exitoso) ───────
   const refreshSession = React.useCallback(() => {
@@ -143,6 +147,20 @@ export default function AuthGate({ children }) {
     return () => { delete window.__sfos_refreshAuth; };
   }, [refreshSession]);
 
+  // Exponer setter para que WorkOrderPanel registre/libere órdenes activas
+  React.useEffect(() => {
+    // __sfos_setOrderActive(true)  → orden abierta  (incrementa contador)
+    // __sfos_setOrderActive(false) → orden cerrada  (decrementa contador, mín. 0)
+    window.__sfos_setOrderActive = (active) => {
+      if (active) {
+        orderActiveCountRef.current = (orderActiveCountRef.current || 0) + 1;
+      } else {
+        orderActiveCountRef.current = Math.max(0, (orderActiveCountRef.current || 0) - 1);
+      }
+    };
+    return () => { delete window.__sfos_setOrderActive; };
+  }, []);
+
   // ── Logout ────────────────────────────────────────────────────────────
   const handleLogout = React.useCallback((reason = "manual") => {
     if (inactivityTimerRef.current) {
@@ -157,6 +175,15 @@ export default function AuthGate({ children }) {
   // ── Ir a PinAccess sin destruir la sesión visual ──────────────────────
   // (la sesión se re-valida cuando el usuario entra el PIN exitosamente)
   const requirePin = React.useCallback(() => {
+    // No expulsar si hay una orden activa abierta — reiniciar el timer en su lugar.
+    if (orderActiveCountRef.current > 0) {
+      const ms = inactivityMsRef.current;
+      if (ms) {
+        if (inactivityTimerRef.current) clearTimeout(inactivityTimerRef.current);
+        inactivityTimerRef.current = setTimeout(requirePin, ms);
+      }
+      return;
+    }
     if (inactivityTimerRef.current) {
       clearTimeout(inactivityTimerRef.current);
       inactivityTimerRef.current = null;
@@ -178,7 +205,9 @@ export default function AuthGate({ children }) {
 
   // ── Actualizar timeout en vivo (llamado desde UserSessionSettings) ────
   const updateSessionTimeout = React.useCallback((newMs) => {
-    inactivityMsRef.current = newMs ?? DEFAULT_INACTIVITY_MS;
+    // IMPORTANTE: no usar ?? aquí — null significa "Nunca" y debe preservarse.
+    // undefined = usar default; null = nunca; número = ms específico.
+    inactivityMsRef.current = (newMs !== undefined) ? newMs : DEFAULT_INACTIVITY_MS;
     // Re-armar el timer con el nuevo valor inmediatamente
     if (!isPublicPath() && inactivityTimerRef.current) {
       clearTimeout(inactivityTimerRef.current);
@@ -293,6 +322,8 @@ export default function AuthGate({ children }) {
           // Si el usuario eligió "Nunca" (null) → nunca pedir PIN por background
           if (userMs === null || userMs === 0) {
             // No hacer nada — respetar la preferencia del usuario
+          } else if (orderActiveCountRef.current > 0) {
+            // Hay una orden activa abierta → no expulsar por background
           } else {
             // Usar el timeout del usuario como grace period (mínimo 10s)
             const graceMs = Math.max(MIN_BACKGROUND_GRACE_MS, userMs);
