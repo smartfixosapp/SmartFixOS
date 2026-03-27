@@ -59,10 +59,8 @@ export async function trackParcelHandler(req) {
       body: JSON.stringify(createBody)
     });
 
-    // Paso 2: Obtener datos actuales
-    const getUrl = carrierCode
-      ? `${BASE_URL}/trackings/${carrierCode}/${trackingNumber}`
-      : `${BASE_URL}/trackings?tracking_numbers=${encodeURIComponent(trackingNumber)}&limit=1`;
+    // Paso 2: Obtener datos actuales (siempre usar query params — el endpoint por path falla si el tracking no estaba pre-registrado)
+    const getUrl = `${BASE_URL}/trackings?tracking_numbers=${encodeURIComponent(trackingNumber)}&limit=1`;
 
     const res  = await fetch(getUrl, { headers });
     const data = await res.json();
