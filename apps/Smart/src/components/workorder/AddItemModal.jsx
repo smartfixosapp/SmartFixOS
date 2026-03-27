@@ -205,6 +205,12 @@ export default function AddItemModal({
 
   const isDraftOrder = draftMode || !order?.id;
 
+  // Reset category on open: default to suggestions when device info exists
+  useEffect(() => {
+    if (open) setActiveCategory(hasDeviceInfo ? "suggestions" : "all");
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open]);
+
   // Enter key applies & saves when cart is visible and has items
   useEffect(() => {
     if (!open) return;
@@ -803,7 +809,7 @@ export default function AddItemModal({
           </div>
 
           {/* Main area */}
-          <div className="min-w-0 flex flex-col h-full">
+          <div className="min-w-0 flex flex-col overflow-hidden">
             {/* Mobile Category Selector */}
             <div className="sm:hidden flex-shrink-0 bg-[#121215] border-b border-white/[0.08] px-4 py-3">
               <div className="flex gap-2 overflow-x-auto no-scrollbar scroll-smooth">

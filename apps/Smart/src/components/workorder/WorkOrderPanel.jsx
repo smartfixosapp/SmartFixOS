@@ -12,7 +12,7 @@ import {
   X, PhoneCall, MessageCircle, Eye, EyeOff, Trash2,
   Smartphone, Laptop, Tablet, Watch, Gamepad2, Camera as CameraIcon, Box, Image as ImageIcon, List,
   CheckCircle2, Check, PackageOpen, Pin, ActivitySquare, Plus, Minus, Search, Factory, RefreshCw, ShoppingCart, DollarSign, AlertCircle,
-  ClipboardList, Shield, MessageSquare, Link, Loader2, Download, Grid3x3, Lock, FileText, Hash, Share2, Wallet, CreditCard } from
+  ClipboardList, Shield, MessageSquare, Link, Loader2, Download, Grid3x3, Lock, FileText, Hash, Share2, Wallet, CreditCard, Mail, Printer } from
 "lucide-react";
 import OrderPhotosGallery from "../orders/OrderPhotosGallery";
 import { ORDER_STATUSES, getStatusConfig, normalizeStatusId, getEffectiveOrderStatus } from "@/components/utils/statusRegistry";
@@ -1484,6 +1484,7 @@ export default function WorkOrderPanel({ orderId, onClose, onUpdate, onDelete, p
   useKeyboardScrollIntoView(panelRef);
 
   const [quickPayMode, setQuickPayMode] = useState(null);
+  const [showUniversalItems, setShowUniversalItems] = useState(false);
 
   const handlePaymentClick = useCallback((mode) => {
     setQuickPayMode(mode || "full");
@@ -3030,6 +3031,49 @@ export default function WorkOrderPanel({ orderId, onClose, onUpdate, onDelete, p
                   </CardContent>
                 </Card>
 
+                {/* ── Customer Quick Contact Card (always visible) ── */}
+                {order?.customer_name && (() => {
+                  const phone = order.customer_phone || "";
+                  const email = order.customer_email || "";
+                  const digits = phone.replace(/\D/g, "");
+                  const intl = digits.startsWith("1") ? digits : digits.length === 10 ? `1${digits}` : digits;
+                  const waHref = digits ? `https://wa.me/${intl}` : null;
+                  const telHref = digits ? `tel:+${intl}` : null;
+                  const mailHref = email ? `mailto:${email}` : null;
+                  return (
+                    <div className="rounded-[24px] border border-white/8 bg-white/[0.02] px-5 py-4 flex items-center gap-4">
+                      <div className="flex-1 min-w-0">
+                        <p className="text-[10px] font-black uppercase tracking-[0.2em] text-white/25">Cliente</p>
+                        <p className="text-base font-black text-white truncate mt-0.5">{order.customer_name}</p>
+                        <div className="flex flex-wrap gap-3 mt-1">
+                          {phone && <span className="text-[11px] text-white/40 font-medium">{phone}</span>}
+                          {email && <span className="text-[11px] text-white/40 font-medium truncate">{email}</span>}
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2 shrink-0">
+                        {telHref && (
+                          <a href={telHref} title="Llamar"
+                            className="flex h-9 w-9 items-center justify-center rounded-xl border border-white/10 bg-white/5 text-white/50 hover:text-white hover:bg-white/10 transition">
+                            <PhoneCall className="w-4 h-4" />
+                          </a>
+                        )}
+                        {waHref && (
+                          <a href={waHref} target="_blank" rel="noreferrer" title="WhatsApp"
+                            className="flex h-9 w-9 items-center justify-center rounded-xl border border-emerald-500/20 bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20 transition">
+                            <MessageCircle className="w-4 h-4" />
+                          </a>
+                        )}
+                        {mailHref && (
+                          <a href={mailHref} title="Enviar email"
+                            className="flex h-9 w-9 items-center justify-center rounded-xl border border-blue-500/20 bg-blue-500/10 text-blue-400 hover:bg-blue-500/20 transition">
+                            <Mail className="w-4 h-4" />
+                          </a>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })()}
+
                 {/* ✅ STAGE-CENTRIC VIEW */}
                   {(status === "intake" || status === "waiting_order") && (
                     <IntakeStage
@@ -3117,7 +3161,46 @@ export default function WorkOrderPanel({ orderId, onClose, onUpdate, onDelete, p
                     </Card>
                   )}
 
-
+                  {/* ── Universal Actions: Piezas & Servicios + Cobro ── always visible ── */}
+                  {status !== "cancelled" && order && (() => {
+                    const bal = order.balance_due != null
+                      ? Math.max(0, Number(order.balance_due || 0))
+                      : Math.max(0, Number(order.total || 0) - Number(order.amount_paid ?? 0));
+                    return (
+                      <div className="rounded-[28px] border border-white/8 bg-white/[0.02] p-5 space-y-3">
+                        <p className="text-[10px] font-black uppercase tracking-[0.25em] text-white/25">Acciones rápidas</p>
+                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                          <button
+                            onClick={() => setShowUniversalItems(true)}
+                            className="flex items-center justify-center gap-2 h-12 rounded-2xl border border-cyan-500/25 bg-cyan-500/8 text-cyan-300 hover:bg-cyan-500/15 font-black text-sm uppercase tracking-wide transition-all active:scale-95"
+                          >
+                            <ShoppingCart className="w-4 h-4" />
+                            Piezas y Servicios
+                          </button>
+                          <button
+                            onClick={() => handlePaymentClick("deposit")}
+                            className="flex items-center justify-center gap-2 h-12 rounded-2xl border border-white/15 bg-white/5 text-white/80 hover:bg-white/10 font-black text-sm uppercase tracking-wide transition-all active:scale-95"
+                          >
+                            <Wallet className="w-4 h-4" />
+                            Depósito
+                          </button>
+                          <button
+                            onClick={() => handlePaymentClick("full")}
+                            className={cn(
+                              "flex items-center justify-center gap-2 h-12 rounded-2xl font-black text-sm uppercase tracking-wide transition-all active:scale-95",
+                              bal > 0.01
+                                ? "border border-emerald-500/30 bg-emerald-500/12 text-emerald-300 hover:bg-emerald-500/20"
+                                : "border border-white/8 bg-white/[0.02] text-white/25 cursor-default"
+                            )}
+                            disabled={bal <= 0.01}
+                          >
+                            <DollarSign className="w-4 h-4" />
+                            {bal > 0.01 ? `Cobrar $${bal.toFixed(2)}` : "Saldada"}
+                          </button>
+                        </div>
+                      </div>
+                    );
+                  })()}
 
               </div>
             </div>
@@ -3284,6 +3367,23 @@ export default function WorkOrderPanel({ orderId, onClose, onUpdate, onDelete, p
         )}
 
       </div>
+
+      {showUniversalItems && order && (
+        <AddItemModal
+          open={showUniversalItems}
+          onClose={() => setShowUniversalItems(false)}
+          order={order}
+          onSave={(newItems) => {
+            handleOrderItemsSaved(newItems);
+            setShowUniversalItems(false);
+          }}
+          onUpdate={async () => { await handleRefresh(true); onUpdate?.(); }}
+          onRemoteSaved={async () => {
+            await new Promise((r) => setTimeout(r, 1500));
+            await handleRefresh();
+          }}
+        />
+      )}
 
       {quickPayMode && order && (
         <QuickPayModal
