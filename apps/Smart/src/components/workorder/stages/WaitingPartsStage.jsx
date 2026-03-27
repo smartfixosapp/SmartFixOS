@@ -489,7 +489,7 @@ export default function WaitingPartsStage({ order, onUpdate, onOrderItemsUpdate,
 
             {!loadingTracking && !trackingData && !trackingError && (
               <div className="flex flex-col items-center justify-center gap-3 py-8 text-center">
-                <p className="text-sm text-white/40">Agrega el TRACK17_API_KEY en tu .env para consultar el estado en tiempo real</p>
+                <p className="text-sm text-white/40">Sin datos de tracking disponibles aún. Intenta actualizar en unos minutos.</p>
                 {trackingUrl && (
                   <a href={trackingUrl} target="_blank" rel="noopener noreferrer"
                     className="flex items-center gap-1.5 rounded-xl border border-orange-400/25 bg-orange-500/10 px-4 py-2 text-sm font-semibold text-orange-300 hover:bg-orange-500/20">
