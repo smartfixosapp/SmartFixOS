@@ -14,18 +14,222 @@ import OrderLinksDialog from "@/components/workorder/OrderLinksDialog";
 import { loadOrderLinks } from "@/components/workorder/utils/orderLinksStore";
 import SharedItemsSection from "@/components/workorder/SharedItemsSection";
 
-const DEFAULT_CHECKLIST = [
-  { id: "screen",    label: "Pantalla" },
-  { id: "battery",   label: "Batería" },
-  { id: "cameras",   label: "Cámaras" },
-  { id: "ports",     label: "Puertos de carga" },
-  { id: "water",     label: "Agua / Humedad" },
-  { id: "buttons",   label: "Botones físicos" },
-  { id: "audio",     label: "Audio (mic / altavoz)" },
-  { id: "wifi",      label: "WiFi / Bluetooth" },
-  { id: "casing",    label: "Carcasa / Estructura" },
-  { id: "software",  label: "Software / Sistema" },
-];
+// ── Checklists por tipo de dispositivo ────────────────────────────────────────
+const DEVICE_CHECKLISTS = {
+  smartphone: [
+    { id: "pantalla",       label: "Pantalla / Táctil" },
+    { id: "bateria",        label: "Batería" },
+    { id: "camara_trasera", label: "Cámara Trasera" },
+    { id: "camara_frontal", label: "Cámara Frontal" },
+    { id: "altavoz",        label: "Altavoz / Bocina" },
+    { id: "microfono",      label: "Micrófono" },
+    { id: "puerto_carga",   label: "Puerto de Carga" },
+    { id: "botones",        label: "Botones Físicos" },
+    { id: "sim_tray",       label: "Ranura SIM" },
+    { id: "wifi_bt",        label: "Wi-Fi / Bluetooth" },
+    { id: "senal_celular",  label: "Señal Celular" },
+    { id: "biometrico",     label: "Huella / Face ID" },
+    { id: "vibracion",      label: "Motor de Vibración" },
+    { id: "software",       label: "Software / iOS / Android" },
+    { id: "chasis",         label: "Chasis / Golpes / Agua" },
+  ],
+  tablet: [
+    { id: "pantalla",         label: "Pantalla / Táctil" },
+    { id: "bateria",          label: "Batería" },
+    { id: "puerto_carga",     label: "Puerto de Carga" },
+    { id: "camaras",          label: "Cámaras" },
+    { id: "altavoces",        label: "Altavoces" },
+    { id: "microfono",        label: "Micrófono" },
+    { id: "wifi_bt",          label: "Wi-Fi / Bluetooth" },
+    { id: "conector_teclado", label: "Conector de Teclado" },
+    { id: "botones",          label: "Botones Físicos" },
+    { id: "sim_tray",         label: "Ranura SIM (si aplica)" },
+    { id: "biometrico",       label: "Sensor Biométrico" },
+    { id: "software",         label: "Software / iPadOS / Android" },
+    { id: "chasis",           label: "Chasis / Marco / Golpes" },
+  ],
+  laptop_windows: [
+    { id: "pantalla",      label: "Pantalla / Bisagras" },
+    { id: "bateria",       label: "Batería" },
+    { id: "teclado",       label: "Teclado" },
+    { id: "touchpad",      label: "Touchpad" },
+    { id: "almacenamiento",label: "Disco / SSD" },
+    { id: "ram",           label: "Memoria RAM" },
+    { id: "procesador",    label: "Procesador / Temperatura" },
+    { id: "gpu",           label: "Tarjeta Gráfica" },
+    { id: "puertos",       label: "Puertos USB / HDMI" },
+    { id: "wifi_bt",       label: "Wi-Fi / Bluetooth" },
+    { id: "camara_mic",    label: "Cámara / Micrófono" },
+    { id: "altavoces",     label: "Altavoces" },
+    { id: "ventilacion",   label: "Ventilación / Limpieza" },
+    { id: "software",      label: "Windows / Drivers" },
+    { id: "cargador",      label: "Cargador / Conector" },
+  ],
+  macbook: [
+    { id: "pantalla",      label: "Pantalla / Retina" },
+    { id: "bateria",       label: "Batería (CoconutBattery)" },
+    { id: "teclado",       label: "Teclado / Touch Bar" },
+    { id: "trackpad",      label: "Force Touch / Trackpad" },
+    { id: "almacenamiento",label: "SSD / Almacenamiento" },
+    { id: "ram",           label: "Memoria RAM (unificada)" },
+    { id: "procesador",    label: "CPU / GPU / Apple Silicon" },
+    { id: "puertos",       label: "Puertos USB-C / Thunderbolt" },
+    { id: "wifi_bt",       label: "Wi-Fi / Bluetooth" },
+    { id: "camara_mic",    label: "Cámara FaceTime / Micrófono" },
+    { id: "altavoces",     label: "Altavoces" },
+    { id: "ventilacion",   label: "Ventilación / Polvo" },
+    { id: "diagnostics",   label: "Apple Diagnostics / macOS" },
+    { id: "touch_id",      label: "Touch ID" },
+    { id: "bisagra",       label: "Bisagra / Chasis" },
+  ],
+  desktop_pc: [
+    { id: "fuente_poder",   label: "Fuente de Poder" },
+    { id: "placa_madre",    label: "Placa Madre" },
+    { id: "procesador",     label: "Procesador / Pasta Térmica" },
+    { id: "ram",            label: "Memoria RAM" },
+    { id: "almacenamiento", label: "Disco Duro / SSD" },
+    { id: "gpu",            label: "Tarjeta Gráfica" },
+    { id: "puertos",        label: "Puertos USB / HDMI / DP" },
+    { id: "ventilacion",    label: "Ventiladores / Refrigeración" },
+    { id: "red",            label: "Tarjeta de Red / Wi-Fi" },
+    { id: "unidad_optica",  label: "Unidad Óptica (si aplica)" },
+    { id: "bios",           label: "BIOS / UEFI" },
+    { id: "software",       label: "Windows / Drivers" },
+    { id: "cables",         label: "Cables Internos / Conexiones" },
+    { id: "chasis",         label: "Chasis / Polvo / Daños" },
+  ],
+  imac: [
+    { id: "pantalla",       label: "Pantalla / Panel Retina" },
+    { id: "fuente_poder",   label: "Fuente de Poder Interna" },
+    { id: "placa_madre",    label: "Placa Madre" },
+    { id: "procesador",     label: "CPU / GPU / Apple Silicon" },
+    { id: "ram",            label: "Memoria RAM (según modelo)" },
+    { id: "almacenamiento", label: "SSD / Fusion Drive" },
+    { id: "puertos",        label: "Puertos USB-C / Thunderbolt" },
+    { id: "wifi_bt",        label: "Wi-Fi / Bluetooth" },
+    { id: "camara_mic",     label: "Cámara FaceTime / Micrófono" },
+    { id: "altavoces",      label: "Altavoces Integrados" },
+    { id: "ventilacion",    label: "Ventilación / Temperatura" },
+    { id: "soporte",        label: "Soporte / Base" },
+    { id: "diagnostics",    label: "Apple Diagnostics / macOS" },
+    { id: "backlight",      label: "Brillo / Backlight" },
+  ],
+  headphones: [
+    { id: "auriculares",    label: "Auriculares / Almohadillas" },
+    { id: "drivers_audio",  label: "Drivers de Audio" },
+    { id: "cable",          label: "Cable / Conector 3.5mm" },
+    { id: "microfono",      label: "Micrófono Integrado" },
+    { id: "bateria",        label: "Batería (inalámbricos)" },
+    { id: "bluetooth",      label: "Bluetooth / Pareado" },
+    { id: "controles",      label: "Controles / Botones" },
+    { id: "anc",            label: "Cancelación de Ruido (ANC)" },
+    { id: "diadema",        label: "Diadema / Estructura" },
+    { id: "carga",          label: "Puerto de Carga / Estuche" },
+    { id: "firmware",       label: "Firmware / App Companion" },
+    { id: "balance",        label: "Balance L/R de Audio" },
+  ],
+  smartwatch: [
+    { id: "pantalla",     label: "Pantalla / Táctil" },
+    { id: "bateria",      label: "Batería / Autonomía" },
+    { id: "carga",        label: "Cargador Magnético / Pines" },
+    { id: "bt_wifi",      label: "Bluetooth / Wi-Fi / LTE" },
+    { id: "sensor_bio",   label: "Sensor Cardíaco / SpO2" },
+    { id: "sensor_mov",   label: "Acelerómetro / Giroscopio" },
+    { id: "gps",          label: "GPS (si aplica)" },
+    { id: "corona",       label: "Botones / Corona Digital" },
+    { id: "mic_speaker",  label: "Micrófono / Altavoz" },
+    { id: "agua",         label: "Sellado / Resistencia al Agua" },
+    { id: "correa",       label: "Correa / Chasis" },
+    { id: "firmware",     label: "Firmware / watchOS / WearOS" },
+    { id: "pareo",        label: "Pareo con Teléfono" },
+  ],
+  game_console: [
+    { id: "encendido",    label: "Encendido / Fuente de Poder" },
+    { id: "video",        label: "Salida de Video / HDMI" },
+    { id: "lectora",      label: "Lectora de Discos" },
+    { id: "almacenamiento",label: "Disco Duro / SSD Interno" },
+    { id: "ventilacion",  label: "Ventilación / Limpieza Polvo" },
+    { id: "puertos_usb",  label: "Puertos USB" },
+    { id: "wifi_bt",      label: "Wi-Fi / Bluetooth" },
+    { id: "controles",    label: "Controles / Joysticks" },
+    { id: "online",       label: "Conectividad en Línea" },
+    { id: "audio",        label: "Salida de Audio" },
+    { id: "firmware",     label: "Firmware del Sistema" },
+    { id: "temperatura",  label: "Temperatura / Sobrecalentamiento" },
+    { id: "chasis",       label: "Chasis / Daños Físicos" },
+  ],
+  printer: [
+    { id: "cabezal",      label: "Cabezal de Impresión" },
+    { id: "tinta",        label: "Cartuchos / Tóner" },
+    { id: "alimentacion", label: "Alimentación de Papel" },
+    { id: "rodillos",     label: "Rodillos / Fusor" },
+    { id: "bandeja",      label: "Bandejas de Papel" },
+    { id: "conectividad", label: "USB / Wi-Fi / Ethernet" },
+    { id: "panel",        label: "Pantalla / Panel de Control" },
+    { id: "calidad",      label: "Calidad de Impresión" },
+    { id: "escaner",      label: "Escáner (si aplica)" },
+    { id: "atascos",      label: "Sensor de Atascos" },
+    { id: "firmware",     label: "Firmware / Drivers" },
+    { id: "fuente_poder", label: "Fuente de Poder" },
+    { id: "limpieza",     label: "Limpieza Interna / Cabezal" },
+  ],
+  // Fallback genérico
+  generic: [
+    { id: "encendido",    label: "Encendido / Energía" },
+    { id: "pantalla",     label: "Pantalla / Display" },
+    { id: "bateria",      label: "Batería (si aplica)" },
+    { id: "conectividad", label: "Conectividad / Puertos" },
+    { id: "audio",        label: "Audio" },
+    { id: "software",     label: "Software / Firmware" },
+    { id: "agua",         label: "Agua / Humedad" },
+    { id: "chasis",       label: "Chasis / Daños Físicos" },
+  ],
+};
+
+// ── Labels legibles por tipo ───────────────────────────────────────────────────
+const DEVICE_TYPE_LABELS = {
+  smartphone:    "📱 Smartphone / Celular",
+  tablet:        "📱 Tablet / iPad",
+  laptop_windows:"💻 Laptop / Windows",
+  macbook:       "💻 MacBook",
+  desktop_pc:    "🖥️ PC Torre / Desktop",
+  imac:          "🖥️ iMac",
+  headphones:    "🎧 Audífonos / Headset",
+  smartwatch:    "⌚ Smartwatch / Apple Watch",
+  game_console:  "🎮 Consola de Videojuegos",
+  printer:       "🖨️ Impresora",
+  generic:       "🔧 Dispositivo General",
+};
+
+// ── Detección automática del tipo de dispositivo ───────────────────────────────
+function detectDeviceCategory(order) {
+  const raw = [
+    order?.device_type   || "",
+    order?.device_brand  || "",
+    order?.device_model  || "",
+  ].join(" ").toLowerCase();
+
+  if (/imac/.test(raw))                                              return "imac";
+  if (/macbook|mac book/.test(raw))                                  return "macbook";
+  if (/iphone|galaxy|pixel|celular|smartphone|android|oneplus|motorola|xiaomi|huawei|redmi|oppo|realme/.test(raw)) return "smartphone";
+  if (/ipad|tablet|kindle|surface(?!\s*pro\s*\d)|lenovo\s*tab|samsung\s*tab/.test(raw)) return "tablet";
+  if (/apple\s*watch|smartwatch|watch\s*series|galaxy\s*watch|fitbit|garmin/.test(raw)) return "smartwatch";
+  if (/airpods|headphone|audifonos|audífonos|headset|earbuds|earphone|beats|bose|sony\s*wh|sony\s*wf|jabra/.test(raw)) return "headphones";
+  if (/playstation|xbox|nintendo|ps4|ps5|switch|console|consola|wii|game|gaming\s*console/.test(raw)) return "game_console";
+  if (/printer|impresora|epson\s*(l\d|et)|hp\s*(laserjet|deskjet|officejet|envy)|canon\s*(pixma|mg)|brother/.test(raw)) return "printer";
+  if (/macbook|mac\s*pro|mac\s*mini|apple(?!\s*watch)/.test(raw))   return "macbook";
+  if (/desktop|torre|pc tower|all.in.one(?!\s*imac)/.test(raw))     return "desktop_pc";
+  if (/laptop|notebook|chromebook|surface\s*pro|thinkpad|ideapad|inspiron|pavilion|spectre|envy\s*\d|yoga/.test(raw)) return "laptop_windows";
+  if (/tower|servidor|workstation/.test(raw))                        return "desktop_pc";
+
+  return "generic";
+}
+
+// ── Checklist por defecto (fallback) ─────────────────────────────────────────
+function getChecklistForOrder(order) {
+  const category = detectDeviceCategory(order);
+  return { category, items: DEVICE_CHECKLISTS[category] || DEVICE_CHECKLISTS.generic };
+}
 
 const STATUS_CYCLE = { not_tested: "ok", ok: "issue", issue: "warning", warning: "not_tested" };
 
@@ -48,6 +252,7 @@ export default function DiagnosingStage({ order, onUpdate, user, onOrderItemsUpd
   const [checklistNotes, setChecklistNotes] = useState("");
   const [checklistSaving, setChecklistSaving] = useState(false);
   const [showChecklist, setShowChecklist]   = useState(false);
+  const [deviceCategory, setDeviceCategory] = useState("generic");
 
   const effectiveOrder = linkOrderPreview?.id === order?.id
     ? { ...order, ...linkOrderPreview, order_items: Array.isArray(linkOrderPreview?.order_items) ? linkOrderPreview.order_items : order?.order_items }
@@ -55,9 +260,11 @@ export default function DiagnosingStage({ order, onUpdate, user, onOrderItemsUpd
 
   useEffect(() => {
     loadLinks();
-    // Merge saved checklist with defaults
+    // Detect device category and merge saved items with the correct template
+    const { category, items: templateItems } = getChecklistForOrder(order);
+    setDeviceCategory(category);
     const saved = Array.isArray(order?.checklist_items) ? order.checklist_items : [];
-    const merged = DEFAULT_CHECKLIST.map(def => {
+    const merged = templateItems.map(def => {
       const found = saved.find(s => s.id === def.id);
       return found ? { ...def, ...found } : { ...def, status: "not_tested", notes: "" };
     });
@@ -302,7 +509,8 @@ export default function DiagnosingStage({ order, onUpdate, user, onOrderItemsUpd
 
               {/* Checklist status */}
               <div className="rounded-[22px] border border-white/10 bg-black/25 p-4 backdrop-blur-md">
-                <p className="mb-2 text-[11px] font-semibold uppercase tracking-[0.24em] text-white/35">Checklist</p>
+                <p className="mb-1 text-[11px] font-semibold uppercase tracking-[0.24em] text-white/35">Checklist</p>
+                <p className="mb-2 truncate text-[11px] font-semibold text-purple-300">{DEVICE_TYPE_LABELS[deviceCategory]}</p>
                 <div className="mb-3 flex flex-wrap items-center gap-2">
                   <span className="text-xl font-black text-white">{checkedCount}</span>
                   <span className="text-xs text-white/40">/ {checklist.length}</span>
@@ -409,7 +617,7 @@ export default function DiagnosingStage({ order, onUpdate, user, onOrderItemsUpd
                   <ClipboardCheck className="h-5 w-5" />
                 </div>
                 <div>
-                  <p className="text-[11px] font-semibold uppercase tracking-[0.28em] text-white/35">Diagnóstico técnico</p>
+                  <p className="text-[11px] font-semibold uppercase tracking-[0.28em] text-white/35">Diagnóstico técnico · {DEVICE_TYPE_LABELS[deviceCategory]}</p>
                   <h3 className="text-lg font-black tracking-tight text-white sm:text-xl">Checklist del Dispositivo</h3>
                 </div>
               </div>
