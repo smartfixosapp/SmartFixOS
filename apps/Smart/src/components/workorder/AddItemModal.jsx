@@ -185,6 +185,7 @@ export default function AddItemModal({
   deviceBrand = "",
   deviceFamily = "",
   deviceModel = "",
+  onPaymentClick,
 }) {
   // Prefer explicit props, fallback to order fields
   const effectiveDeviceType   = deviceType   || String(order?.device_type   || "");
@@ -236,7 +237,7 @@ export default function AddItemModal({
 
   useEffect(() => {
     if (!open) return;
-    setActiveCategory("all");
+    setActiveCategory(hasDeviceInfo ? "suggestions" : "all");
     setSearch("");
     setShowCart(Boolean(autoOpenCart));
 
@@ -770,8 +771,8 @@ export default function AddItemModal({
           <div className="hidden sm:block border-r border-white/8 bg-black/20 p-4 space-y-2 overflow-y-auto">
             <p className="mb-3 text-[10px] font-black uppercase tracking-[0.28em] text-white/35">Categorías</p>
             {[
-              { key: "all",         label: "Todas",      icon: Package,  count: categoryCounts.all,         color: "cyan" },
               ...(hasDeviceInfo ? [{ key: "suggestions", label: "Sugerencias", icon: Sparkles, count: categoryCounts.suggestions, color: "pink" }] : []),
+              { key: "all",         label: "Todas",      icon: Package,  count: categoryCounts.all,         color: "cyan" },
               { key: "services",    label: "Servicios",  icon: Zap,      count: categoryCounts.services,    color: "violet" },
               { key: "accessories", label: "Accesorios", icon: Box,      count: categoryCounts.accessories, color: "amber" },
               { key: "parts",       label: "Piezas",     icon: Wrench,   count: categoryCounts.parts,       color: "emerald" },
@@ -814,8 +815,8 @@ export default function AddItemModal({
             <div className="sm:hidden flex-shrink-0 bg-[#121215] border-b border-white/[0.08] px-4 py-3">
               <div className="flex gap-2 overflow-x-auto no-scrollbar scroll-smooth">
                 {[
-                  { key: "all",         label: "Todo",       icon: Package,  color: "cyan" },
                   ...(hasDeviceInfo ? [{ key: "suggestions", label: "Sugerencias", icon: Sparkles, color: "pink" }] : []),
+                  { key: "all",         label: "Todo",       icon: Package,  color: "cyan" },
                   { key: "services",    label: "Servicios",  icon: Zap,      color: "violet" },
                   { key: "accessories", label: "Accesorios", icon: Box,      color: "amber" },
                   { key: "parts",       label: "Piezas",     icon: Wrench,   color: "emerald" },
@@ -1011,6 +1012,22 @@ export default function AddItemModal({
                       {saving ? <Loader2 className="w-5 h-5 animate-spin mr-3" /> : <ShoppingCart className="w-5 h-5 mr-3" />}
                       Aplicar a la Orden
                     </Button>
+                    {onPaymentClick && (
+                      <div className="grid grid-cols-2 gap-2">
+                        <button
+                          onClick={() => { onClose?.(); onPaymentClick("deposit"); }}
+                          className="h-12 rounded-2xl border border-white/15 bg-white/5 text-white/80 hover:bg-white/10 font-black text-sm uppercase tracking-wide transition-all active:scale-95"
+                        >
+                          Depósito
+                        </button>
+                        <button
+                          onClick={() => { onClose?.(); onPaymentClick("full"); }}
+                          className="h-12 rounded-2xl border border-emerald-500/30 bg-emerald-500/12 text-emerald-300 hover:bg-emerald-500/20 font-black text-sm uppercase tracking-wide transition-all active:scale-95"
+                        >
+                          Cobrar
+                        </button>
+                      </div>
+                    )}
                   </div>
                 </>
               )}

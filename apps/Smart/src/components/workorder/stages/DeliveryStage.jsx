@@ -496,6 +496,7 @@ export default function DeliveryStage({ order, onUpdate, user, onPaymentClick })
         onClose={() => setShowAddItemModal(false)}
         order={o}
         onUpdate={onUpdate}
+        onPaymentClick={onPaymentClick}
       />
 
     </div>
