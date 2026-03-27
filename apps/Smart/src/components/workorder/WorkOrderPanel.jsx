@@ -2896,7 +2896,7 @@ export default function WorkOrderPanel({ orderId, onClose, onUpdate, onDelete, p
                 <Card className="overflow-hidden border-white/[0.08] bg-[#121215] mobile-card-compact shadow-[0_24px_80px_rgba(0,0,0,0.4)] rounded-[32px]">
                   <CardHeader className="border-b border-white/[0.05] p-5 sm:p-7">
                     <CardTitle className="flex items-start justify-between gap-4 text-white">
-                      <div className="space-y-1 min-w-0 flex-1">
+                      <div className="space-y-1">
                         <div className="flex items-center gap-2.5">
                           <div className="h-2 w-2 rounded-full bg-cyan-500 shadow-[0_0_10px_rgba(6,182,212,0.5)] animate-pulse" />
                           <span className="text-lg font-black tracking-tight uppercase">Seguimiento</span>
@@ -2904,38 +2904,6 @@ export default function WorkOrderPanel({ orderId, onClose, onUpdate, onDelete, p
                         <p className="text-[10px] font-black uppercase tracking-[0.2em] text-white/20">
                           Flujo de reparación en tiempo real
                         </p>
-                        {order?.customer_name && (() => {
-                          const phone = order.customer_phone || "";
-                          const email = order.customer_email || "";
-                          const digits = phone.replace(/\D/g, "");
-                          const intl = digits.startsWith("1") ? digits : digits.length === 10 ? `1${digits}` : digits;
-                          return (
-                            <div className="flex items-center gap-2 flex-wrap mt-2">
-                              <span className="text-sm font-bold text-white/70 truncate">{order.customer_name}</span>
-                              {digits && (
-                                <>
-                                  <a href={`tel:+${intl}`} title="Llamar"
-                                    className="flex h-7 w-7 items-center justify-center rounded-lg border border-white/10 bg-white/5 text-white/50 hover:text-white hover:bg-white/10 transition"
-                                    onClick={e => e.stopPropagation()}>
-                                    <PhoneCall className="w-3.5 h-3.5" />
-                                  </a>
-                                  <a href={`https://wa.me/${intl}`} target="_blank" rel="noreferrer" title="WhatsApp"
-                                    className="flex h-7 w-7 items-center justify-center rounded-lg border border-emerald-500/20 bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20 transition"
-                                    onClick={e => e.stopPropagation()}>
-                                    <MessageCircle className="w-3.5 h-3.5" />
-                                  </a>
-                                </>
-                              )}
-                              {email && (
-                                <a href={`mailto:${email}`} title="Email"
-                                  className="flex h-7 w-7 items-center justify-center rounded-lg border border-blue-500/20 bg-blue-500/10 text-blue-400 hover:bg-blue-500/20 transition"
-                                  onClick={e => e.stopPropagation()}>
-                                  <Mail className="w-3.5 h-3.5" />
-                                </a>
-                              )}
-                            </div>
-                          );
-                        })()}
                       </div>
                       <CountdownBadge order={order} />
                     </CardTitle>
