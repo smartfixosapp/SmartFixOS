@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { ShoppingCart, Plus, Package, Wallet, DollarSign, CheckCircle2, PhoneCall, MessageCircle, Mail } from "lucide-react";
+import { ShoppingCart, Plus, Package, Wallet, DollarSign, CheckCircle2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import AddItemModal from "@/components/workorder/AddItemModal";
@@ -315,47 +315,6 @@ export default function SharedItemsSection({
           </div>
         )}
       </div>
-
-      {/* ── Customer Contact ── */}
-      {(o.customer_phone || o.customer_email) && (() => {
-        const phone = o.customer_phone || "";
-        const email = o.customer_email || "";
-        const digits = phone.replace(/\D/g, "");
-        const intl = digits.startsWith("1") ? digits : digits.length === 10 ? `1${digits}` : digits;
-        return (
-          <div className="relative z-10 border-t border-white/10 px-6 py-5 grid grid-cols-1 gap-3 sm:grid-cols-3">
-            {digits && (
-              <a
-                href={`tel:+${intl}`}
-                className="flex items-center justify-center gap-3 h-14 rounded-2xl border border-white/15 bg-white/5 text-white hover:bg-white/10 font-black text-sm uppercase tracking-wide transition-all active:scale-95"
-              >
-                <PhoneCall className="w-5 h-5 text-white/60" />
-                {phone}
-              </a>
-            )}
-            {digits && (
-              <a
-                href={`https://wa.me/${intl}`}
-                target="_blank"
-                rel="noreferrer"
-                className="flex items-center justify-center gap-3 h-14 rounded-2xl border border-emerald-500/30 bg-emerald-500/12 text-emerald-300 hover:bg-emerald-500/20 font-black text-sm uppercase tracking-wide transition-all active:scale-95"
-              >
-                <MessageCircle className="w-5 h-5" />
-                WhatsApp
-              </a>
-            )}
-            {email && (
-              <a
-                href={`mailto:${email}`}
-                className="flex items-center justify-center gap-3 h-14 rounded-2xl border border-blue-500/30 bg-blue-500/12 text-blue-300 hover:bg-blue-500/20 font-black text-sm uppercase tracking-wide transition-all active:scale-95"
-              >
-                <Mail className="w-5 h-5" />
-                <span className="truncate">{email}</span>
-              </a>
-            )}
-          </div>
-        );
-      })()}
 
       {/* ── AddItemModal ── */}
       <AddItemModal
