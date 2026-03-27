@@ -3068,6 +3068,7 @@ export default function WorkOrderPanel({ orderId, onClose, onUpdate, onDelete, p
                       order={o}
                       onUpdate={async () => { await clearEventCache(o.id); await loadEventsCallback(true); onUpdate?.(); }}
                       onOrderItemsUpdate={handleOrderItemsSaved}
+                      onPaymentClick={handlePaymentClick}
                       onRemoteSaved={async () => {
                         // Delay to allow DB to be consistent before reading back
                         await new Promise((r) => setTimeout(r, 1500));
@@ -3080,6 +3081,7 @@ export default function WorkOrderPanel({ orderId, onClose, onUpdate, onDelete, p
                       order={o}
                       onUpdate={async () => { await clearEventCache(o.id); await loadEventsCallback(true); await handleRefresh(); onUpdate?.(); }}
                       onOrderItemsUpdate={handleOrderItemsSaved}
+                      onPaymentClick={handlePaymentClick}
                       onRemoteSaved={async () => {
                         await new Promise((r) => setTimeout(r, 1500));
                         await handleRefresh();
@@ -3091,6 +3093,7 @@ export default function WorkOrderPanel({ orderId, onClose, onUpdate, onDelete, p
                       order={o}
                       onUpdate={async () => { await clearEventCache(o.id); await loadEventsCallback(true); await handleRefresh(); onUpdate?.(); }}
                       onOrderItemsUpdate={handleOrderItemsSaved}
+                      onPaymentClick={handlePaymentClick}
                       onRemoteSaved={async () => {
                         await new Promise((r) => setTimeout(r, 1500));
                         await handleRefresh();
@@ -3102,6 +3105,7 @@ export default function WorkOrderPanel({ orderId, onClose, onUpdate, onDelete, p
                       order={o}
                       onUpdate={async () => { await clearEventCache(o.id); await loadEventsCallback(true); await handleRefresh(); onUpdate?.(); }}
                       onOrderItemsUpdate={handleOrderItemsSaved}
+                      onPaymentClick={handlePaymentClick}
                       onRemoteSaved={async () => {
                         await new Promise((r) => setTimeout(r, 1500));
                         await handleRefresh();
@@ -3113,6 +3117,7 @@ export default function WorkOrderPanel({ orderId, onClose, onUpdate, onDelete, p
                       order={o}
                       onUpdate={async () => { await clearEventCache(o.id); await loadEventsCallback(true); onUpdate?.(); }}
                       onOrderItemsUpdate={handleOrderItemsSaved}
+                      onPaymentClick={handlePaymentClick}
                       onRemoteSaved={async () => {
                         // Delay to allow DB to be consistent before reading back
                         await new Promise((r) => setTimeout(r, 1500));

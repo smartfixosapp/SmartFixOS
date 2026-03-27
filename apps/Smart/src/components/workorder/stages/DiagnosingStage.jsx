@@ -11,7 +11,7 @@ import OrderLinksDialog from "@/components/workorder/OrderLinksDialog";
 import { loadOrderLinks } from "@/components/workorder/utils/orderLinksStore";
 import SharedItemsSection from "@/components/workorder/SharedItemsSection";
 
-export default function DiagnosingStage({ order, onUpdate, user, onOrderItemsUpdate, onRemoteSaved }) {
+export default function DiagnosingStage({ order, onUpdate, user, onOrderItemsUpdate, onRemoteSaved, onPaymentClick }) {
   const [diagnosis, setDiagnosis] = useState("");
   const [saving, setSaving] = useState(false);
   const [activeModal, setActiveModal] = useState(null);
@@ -444,6 +444,7 @@ export default function DiagnosingStage({ order, onUpdate, user, onOrderItemsUpd
         onUpdate={onUpdate}
         onOrderItemsUpdate={onOrderItemsUpdate}
         onRemoteSaved={onRemoteSaved}
+        onPaymentClick={onPaymentClick}
         accentColor="purple"
         subtitle="Añade piezas o servicios sugeridos para que la cotización salga lista desde esta misma etapa."
       />

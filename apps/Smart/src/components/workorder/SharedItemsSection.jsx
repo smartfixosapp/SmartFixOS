@@ -28,6 +28,7 @@ export default function SharedItemsSection({
   onOrderItemsUpdate,
   onRemoteSaved,
   onClose,
+  onPaymentClick,
   accentColor = "cyan",
   subtitle = "Añade piezas o servicios y mantén el costo visible en todo momento.",
   catalogButtonLabel = "Piezas y Servicios",
@@ -114,15 +115,23 @@ export default function SharedItemsSection({
   }[accentColor] || {};
 
   const handleDeposit = () => {
-    if (onClose) onClose();
-    else window.dispatchEvent(new Event("close-workorder-panel"));
-    navigateToPOS(o, navigate, { fromDashboard: true, openPaymentImmediately: true, paymentMode: "deposit" });
+    if (onPaymentClick) {
+      onPaymentClick("deposit");
+    } else {
+      if (onClose) onClose();
+      else window.dispatchEvent(new Event("close-workorder-panel"));
+      navigateToPOS(o, navigate, { fromDashboard: true, openPaymentImmediately: true, paymentMode: "deposit" });
+    }
   };
 
   const handleCollect = () => {
-    if (onClose) onClose();
-    else window.dispatchEvent(new Event("close-workorder-panel"));
-    navigateToPOS(o, navigate, { fromDashboard: true, openPaymentImmediately: true, paymentMode: "full" });
+    if (onPaymentClick) {
+      onPaymentClick("full");
+    } else {
+      if (onClose) onClose();
+      else window.dispatchEvent(new Event("close-workorder-panel"));
+      navigateToPOS(o, navigate, { fromDashboard: true, openPaymentImmediately: true, paymentMode: "full" });
+    }
   };
 
   return (

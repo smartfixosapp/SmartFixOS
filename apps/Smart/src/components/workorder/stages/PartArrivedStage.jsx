@@ -6,7 +6,7 @@ import { base44 } from "@/api/base44Client";
 import WorkOrderUnifiedHub from "@/components/workorder/WorkOrderUnifiedHub";
 import SharedItemsSection from "@/components/workorder/SharedItemsSection";
 
-export default function PartArrivedStage({ order, onUpdate, onOrderItemsUpdate, onRemoteSaved }) {
+export default function PartArrivedStage({ order, onUpdate, onOrderItemsUpdate, onRemoteSaved, onPaymentClick }) {
   const o = order || {};
   const [activeModal, setActiveModal] = useState(null);
   const [links, setLinks] = useState([]);
@@ -189,6 +189,7 @@ export default function PartArrivedStage({ order, onUpdate, onOrderItemsUpdate, 
         onUpdate={onUpdate}
         onOrderItemsUpdate={onOrderItemsUpdate}
         onRemoteSaved={onRemoteSaved}
+        onPaymentClick={onPaymentClick}
         accentColor="amber"
         subtitle="Aunque la pieza ya llegó, mantén a la vista los artículos, el costo y el balance antes de pasar a reparación."
       />

@@ -7,7 +7,7 @@ import WorkOrderUnifiedHub from "@/components/workorder/WorkOrderUnifiedHub";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import SharedItemsSection from "@/components/workorder/SharedItemsSection";
 
-export default function IntakeStage({ order, onUpdate, onOrderItemsUpdate, onRemoteSaved }) {
+export default function IntakeStage({ order, onUpdate, onOrderItemsUpdate, onRemoteSaved, onPaymentClick }) {
   const o = order || {};
   const [previewPhoto, setPreviewPhoto] = useState(null);
 
@@ -160,6 +160,7 @@ export default function IntakeStage({ order, onUpdate, onOrderItemsUpdate, onRem
         onUpdate={onUpdate}
         onOrderItemsUpdate={onOrderItemsUpdate}
         onRemoteSaved={onRemoteSaved}
+        onPaymentClick={onPaymentClick}
         accentColor="cyan"
         subtitle="Si en recepción ya sabes qué hace falta, registra aquí piezas o servicios sin salir del flujo inicial."
       />

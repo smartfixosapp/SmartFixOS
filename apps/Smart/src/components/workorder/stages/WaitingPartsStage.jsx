@@ -20,7 +20,7 @@ import { loadOrderLinks } from "@/components/workorder/utils/orderLinksStore";
 import { createPageUrl } from "@/components/utils/helpers";
 import SharedItemsSection from "@/components/workorder/SharedItemsSection";
 
-export default function WaitingPartsStage({ order, onUpdate, onOrderItemsUpdate, onRemoteSaved }) {
+export default function WaitingPartsStage({ order, onUpdate, onOrderItemsUpdate, onRemoteSaved, onPaymentClick }) {
   const o = order || {};
   const navigate = useNavigate();
   const location = o.device_location || "taller"; // taller | cliente
@@ -491,6 +491,7 @@ export default function WaitingPartsStage({ order, onUpdate, onOrderItemsUpdate,
           onUpdate={onUpdate}
           onOrderItemsUpdate={onOrderItemsUpdate}
           onRemoteSaved={onRemoteSaved}
+          onPaymentClick={onPaymentClick}
           accentColor="orange"
           subtitle="Mantén aquí la lista final de repuestos y servicios mientras el pedido está en tránsito."
         />

@@ -7,7 +7,7 @@ import WorkOrderUnifiedHub from "@/components/workorder/WorkOrderUnifiedHub";
 import OrderLinksDialog from "@/components/workorder/OrderLinksDialog";
 import { loadOrderLinks } from "@/components/workorder/utils/orderLinksStore";
 
-export default function PendingOrderStage({ order, onUpdate, user, onOrderItemsUpdate, onRemoteSaved }) {
+export default function PendingOrderStage({ order, onUpdate, user, onOrderItemsUpdate, onRemoteSaved, onPaymentClick }) {
   const [activeModal, setActiveModal] = useState(null);
   const [links, setLinks] = useState([]);
   
@@ -123,6 +123,7 @@ export default function PendingOrderStage({ order, onUpdate, user, onOrderItemsU
         onUpdate={onUpdate}
         onOrderItemsUpdate={onOrderItemsUpdate}
         onRemoteSaved={onRemoteSaved}
+        onPaymentClick={onPaymentClick}
         accentColor="yellow"
         subtitle="Centraliza costos, añade piezas y mantén el total visible antes de avanzar la orden."
       />
