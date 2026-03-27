@@ -1,10 +1,12 @@
-import React, { useMemo, useState, useRef, useEffect } from "react";
+import React, { useMemo, useState, useRef } from "react";
 import {
   Wrench, PhoneCall, MessageCircle, Mail, Plus,
-  CheckCircle2, Circle, ClipboardList, Camera, Activity
+  CheckCircle2, Circle, ClipboardList, Camera, Activity,
+  Send, Loader2
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 import { base44 } from "@/api/base44Client";
 import WorkOrderUnifiedHub from "@/components/workorder/WorkOrderUnifiedHub";
@@ -22,10 +24,13 @@ export default function RepairStage({ order, onUpdate, onOrderItemsUpdate, onRem
   const o = order || {};
 
   // Checklist: si ya estaba done, iniciar con todo marcado
-  const [checked,     setChecked]    = useState(() => o.repair_checklist_done ? CLOSE_CHECKLIST.map((_, i) => i) : []);
-  const [showCatalog, setShowCatalog] = useState(false);
-  const [hubTab,      setHubTab]     = useState(null);
-  const hubRef = useRef(null);
+  const [checked,      setChecked]     = useState(() => o.repair_checklist_done ? CLOSE_CHECKLIST.map((_, i) => i) : []);
+  const [showCatalog,  setShowCatalog]  = useState(false);
+  const [showNote,     setShowNote]     = useState(false);
+  const [noteText,     setNoteText]     = useState("");
+  const [savingNote,   setSavingNote]   = useState(false);
+  const [uploadingPhoto, setUploadingPhoto] = useState(false);
+  const photoInputRef = useRef(null);
 
   const allDone = checked.length === CLOSE_CHECKLIST.length;
 
@@ -48,9 +53,61 @@ export default function RepairStage({ order, onUpdate, onOrderItemsUpdate, onRem
     }
   };
 
-  const openHub = (tab) => {
-    setHubTab(tab);
-    setTimeout(() => hubRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }), 80);
+  const handlePhotoUpload = async (e) => {
+    const files = Array.from(e.target.files || []).filter(f => f.type?.startsWith("image/"));
+    if (!files.length || !order?.id) return;
+    setUploadingPhoto(true);
+    try {
+      let me = null;
+      try { me = await base44.auth.me(); } catch {}
+      const newItems = [];
+      for (const file of files) {
+        try {
+          const { file_url } = await base44.integrations.Core.UploadFile({ file });
+          const url = `${file_url}${file_url.includes("?") ? "&" : "?"}v=${Date.now()}`;
+          newItems.push({
+            id: `${Date.now()}-${file.name}`,
+            type: "image", mime: file.type || "image/jpeg",
+            filename: file.name, publicUrl: url, thumbUrl: url,
+            stage_id: "in_progress", stage_label: "Reparación",
+            captured_at: new Date().toISOString(),
+            captured_by: me?.full_name || me?.email || "Técnico"
+          });
+        } catch { /* skip failed file */ }
+      }
+      if (newItems.length) {
+        const existing = Array.isArray(o.photos_metadata) ? o.photos_metadata : [];
+        await base44.entities.Order.update(order.id, { photos_metadata: [...existing, ...newItems] });
+        toast.success(`${newItems.length} foto${newItems.length > 1 ? "s" : ""} subida${newItems.length > 1 ? "s" : ""}`);
+        if (onUpdate) onUpdate();
+      }
+    } catch { toast.error("Error al subir foto"); }
+    finally { setUploadingPhoto(false); e.target.value = ""; }
+  };
+
+  const handleSaveNote = async () => {
+    const body = noteText.trim();
+    if (!body || !order?.id) return;
+    setSavingNote(true);
+    try {
+      let me = null;
+      try { me = await base44.auth.me(); } catch {}
+      await base44.entities.WorkOrderEvent.create({
+        order_id: order.id,
+        order_number: order.order_number,
+        event_type: "note_added",
+        description: body,
+        user_id: me?.id || null,
+        user_name: me?.full_name || me?.email || "Técnico",
+        user_role: me?.role || null,
+        metadata: { note_text: body }
+      });
+      toast.success("Nota guardada");
+      setNoteText("");
+      setShowNote(false);
+      if (onUpdate) onUpdate();
+    } catch { toast.error("Error al guardar nota"); }
+    finally { setSavingNote(false); }
   };
 
   const orderItems = Array.isArray(o.order_items) ? o.order_items : [];
@@ -206,20 +263,59 @@ export default function RepairStage({ order, onUpdate, onOrderItemsUpdate, onRem
           {/* Acciones rápidas: Fotos y Nota */}
           <div className="grid grid-cols-2 gap-2 pt-2">
             <button
-              onClick={() => openHub("photos")}
-              className="flex items-center justify-center gap-2 rounded-2xl border border-blue-500/20 bg-blue-500/8 px-4 py-3 hover:bg-blue-500/14 transition-all"
+              onClick={() => photoInputRef.current?.click()}
+              disabled={uploadingPhoto}
+              className="flex items-center justify-center gap-2 rounded-2xl border border-blue-500/20 bg-blue-500/8 px-4 py-3 hover:bg-blue-500/14 transition-all disabled:opacity-50"
             >
-              <Camera className="w-4 h-4 text-blue-400" />
-              <span className="text-sm font-semibold text-blue-300">Subir foto</span>
+              {uploadingPhoto
+                ? <Loader2 className="w-4 h-4 text-blue-400 animate-spin" />
+                : <Camera className="w-4 h-4 text-blue-400" />
+              }
+              <span className="text-sm font-semibold text-blue-300">
+                {uploadingPhoto ? "Subiendo…" : "Subir foto"}
+              </span>
             </button>
             <button
-              onClick={() => openHub("timeline")}
+              onClick={() => setShowNote(v => !v)}
               className="flex items-center justify-center gap-2 rounded-2xl border border-cyan-500/20 bg-cyan-500/8 px-4 py-3 hover:bg-cyan-500/14 transition-all"
             >
               <Activity className="w-4 h-4 text-cyan-400" />
               <span className="text-sm font-semibold text-cyan-300">Tomar nota</span>
             </button>
           </div>
+
+          {/* Input de nota inline */}
+          {showNote && (
+            <div className="rounded-2xl border border-cyan-500/20 bg-cyan-500/5 p-3 space-y-2">
+              <Textarea
+                value={noteText}
+                onChange={e => setNoteText(e.target.value)}
+                placeholder="Escribe la nota técnica…"
+                className="bg-black/40 border-white/15 text-white resize-none text-sm min-h-[80px]"
+                autoFocus
+              />
+              <div className="flex justify-end gap-2">
+                <Button variant="ghost" size="sm" onClick={() => { setShowNote(false); setNoteText(""); }}
+                  className="text-white/50 hover:text-white text-xs">Cancelar</Button>
+                <Button size="sm" onClick={handleSaveNote} disabled={savingNote || !noteText.trim()}
+                  className="bg-cyan-600 hover:bg-cyan-700 text-white text-xs gap-1.5">
+                  {savingNote ? <Loader2 className="w-3 h-3 animate-spin" /> : <Send className="w-3 h-3" />}
+                  Guardar nota
+                </Button>
+              </div>
+            </div>
+          )}
+
+          {/* Input de foto oculto */}
+          <input
+            ref={photoInputRef}
+            type="file"
+            accept="image/*"
+            capture="environment"
+            multiple
+            onChange={handlePhotoUpload}
+            className="hidden"
+          />
         </div>
       </div>
 
@@ -235,16 +331,13 @@ export default function RepairStage({ order, onUpdate, onOrderItemsUpdate, onRem
       />
 
       {/* ── HISTORIAL / FOTOS / NOTAS ────────────────────────────────────── */}
-      <div ref={hubRef}>
-        <WorkOrderUnifiedHub
-          order={order}
-          onUpdate={onUpdate}
-          accent="emerald"
-          title="Fotos · Notas · Historial"
-          subtitle="Documenta el proceso, toma evidencia y deja el historial listo para el cierre."
-          openTab={hubTab}
-        />
-      </div>
+      <WorkOrderUnifiedHub
+        order={order}
+        onUpdate={onUpdate}
+        accent="emerald"
+        title="Fotos · Notas · Historial"
+        subtitle="Historial completo, galería de evidencia y seguridad."
+      />
 
       <AddItemModal
         open={showCatalog}
