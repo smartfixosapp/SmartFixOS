@@ -1,5 +1,5 @@
-import React, { useRef, useState, useEffect } from "react";
-import { ExternalLink, Plus, MapPin, Box, Truck, X, Pencil, Check, Loader2, PhoneCall, MessageCircle, Mail, ShoppingCart, Package, CheckCircle2, Clock } from "lucide-react";
+import React, { useState, useEffect } from "react";
+import { ExternalLink, MapPin, Truck, X, Pencil, Check, Loader2, PhoneCall, MessageCircle, Mail, Clock, Zap } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
@@ -24,10 +24,32 @@ const TRACKING_STAGES = [
 
 const STAGE_IDX = Object.fromEntries(TRACKING_STAGES.map((s, i) => [s.key, i]));
 
+// ── Detección automática de carrier por número de tracking ──────────────────
+function detectCarrier(trackingNum) {
+  if (!trackingNum || !trackingNum.trim()) return "";
+  const t = trackingNum.trim().toUpperCase();
+  if (t.startsWith("1Z"))                                                    return "UPS";
+  if (t.startsWith("TBA") || t.startsWith("A0"))                            return "Amazon";
+  if (t.startsWith("9") && t.length >= 20 && /^\d+$/.test(t))               return "USPS";
+  if ((t.length === 20 || t.length === 22) && /^\d+$/.test(t))              return "USPS";
+  if ((t.length === 12 || t.length === 15) && /^\d+$/.test(t))              return "FedEx";
+  if (t.length === 34 && /^[A-Z]{2}\d{9}[A-Z]{2}$/.test(t))                return "USPS";
+  if (/^\d{10}$/.test(t))                                                    return "DHL";
+  if (t.startsWith("JD") || t.startsWith("7489") || t.startsWith("7480"))   return "DHL";
+  return "";
+}
+
+const CARRIER_ICONS = {
+  UPS:    { emoji: "🟤", color: "text-amber-400",   border: "border-amber-500/30",   bg: "bg-amber-500/10" },
+  USPS:   { emoji: "🦅", color: "text-blue-400",    border: "border-blue-500/30",    bg: "bg-blue-500/10"  },
+  FedEx:  { emoji: "🟣", color: "text-purple-400",  border: "border-purple-500/30",  bg: "bg-purple-500/10"},
+  DHL:    { emoji: "🟡", color: "text-yellow-400",  border: "border-yellow-500/30",  bg: "bg-yellow-500/10"},
+  Amazon: { emoji: "📦", color: "text-orange-400",  border: "border-orange-500/30",  bg: "bg-orange-500/10"},
+};
+
 export default function WaitingPartsStage({ order, onUpdate, onOrderItemsUpdate, onRemoteSaved, onPaymentClick }) {
   const o = order || {};
   const location = o.device_location || "taller";
-  const itemsSectionRef = useRef(null);
 
   const [editingDetails, setEditingDetails] = useState(false);
   const [suppliers, setSuppliers] = useState([]);
@@ -91,8 +113,10 @@ export default function WaitingPartsStage({ order, onUpdate, onOrderItemsUpdate,
     try { return latestLink ? new URL(latestLink.url).hostname.replace("www.", "") : "—"; }
     catch { return "—"; }
   })();
-  const displayCarrier  = o.parts_carrier  || "—";
   const displayTracking = o.parts_tracking || "—";
+  // Auto-detect carrier from tracking if not set manually
+  const displayCarrier  = o.parts_carrier  || detectCarrier(displayTracking) || "—";
+  const carrierStyle    = CARRIER_ICONS[displayCarrier] || null;
   const trackingUrl     = getTrackingUrl(displayTracking);
 
   // ── Stage actual ────────────────────────────────────────────────────────
@@ -143,26 +167,55 @@ export default function WaitingPartsStage({ order, onUpdate, onOrderItemsUpdate,
 
   const handleSaveDetails = async () => {
     try {
+      const trackingVal  = editForm.tracking.trim();
+      const prevTracking = (order.parts_tracking || "").trim();
+
+      // Auto-detectar carrier si el usuario no lo seleccionó
+      const autoCarrier = detectCarrier(trackingVal);
+      const finalCarrier = editForm.carrier.trim() || autoCarrier;
+
       const updatedOrder = await base44.entities.Order.update(order.id, {
-        part_name:       editForm.partName.trim(),
-        parts_supplier:  editForm.supplier.trim(),
-        parts_carrier:   editForm.carrier.trim(),
-        parts_tracking:  editForm.tracking.trim()
+        part_name:      editForm.partName.trim(),
+        parts_supplier: editForm.supplier.trim(),
+        parts_carrier:  finalCarrier,
+        parts_tracking: trackingVal
       });
+
       let me = null;
       try { me = await base44.auth.me(); } catch {}
+
       await base44.entities.WorkOrderEvent.create({
         order_id: order.id,
         order_number: order.order_number,
         event_type: "parts_info",
-        description: `Detalles del pedido actualizados: ${editForm.partName || "—"} · ${editForm.supplier || "—"} · ${editForm.carrier || "—"} · Tracking: ${editForm.tracking || "—"}`,
+        description: `Detalles del pedido actualizados: ${editForm.partName || "—"} · ${finalCarrier || "—"} · Tracking: ${trackingVal || "—"}`,
         user_name: me?.full_name || me?.email || "Sistema",
         user_id: me?.id || null,
-        metadata: { partName: editForm.partName, supplier: editForm.supplier, carrier: editForm.carrier, tracking: editForm.tracking }
+        metadata: { partName: editForm.partName, supplier: editForm.supplier, carrier: finalCarrier, tracking: trackingVal }
       });
+
+      // ── Auto-avance de etapa cuando se agrega tracking por primera vez ──
+      if (trackingVal && !prevTracking && currentIdx < STAGE_IDX["shipped"]) {
+        const shippedStage = TRACKING_STAGES.find(s => s.key === "shipped");
+        await base44.entities.Order.update(order.id, { parts_status: "shipped" });
+        const autoEvent = await base44.entities.WorkOrderEvent.create({
+          order_id: order.id,
+          order_number: order.order_number,
+          event_type: "parts_tracking",
+          description: `🚚 Tracking detectado automáticamente — ${shippedStage.label} · Carrier: ${finalCarrier || "Desconocido"} · #${trackingVal}`,
+          user_name: me?.full_name || me?.email || "Sistema",
+          user_id: me?.id || null,
+          metadata: { stage: "shipped", carrier: finalCarrier, tracking: trackingVal, auto: true }
+        });
+        setTrackingEvents(prev => [autoEvent, ...prev]);
+        toast.success(`🚚 Tracking detectado — ${finalCarrier || "Envío"} · Etapa avanzada a Enviado`);
+        if (onUpdate) onUpdate({ ...updatedOrder, parts_status: "shipped", parts_carrier: finalCarrier });
+      } else {
+        if (onUpdate) onUpdate({ ...updatedOrder, parts_carrier: finalCarrier });
+        toast.success("Detalles actualizados");
+      }
+
       setEditingDetails(false);
-      toast.success("Detalles actualizados");
-      if (onUpdate) onUpdate(updatedOrder);
     } catch (e) {
       console.error(e);
       toast.error("Error al actualizar");
@@ -246,32 +299,6 @@ export default function WaitingPartsStage({ order, onUpdate, onOrderItemsUpdate,
             </div>
           </div>
 
-          {/* Botón scroll a piezas */}
-          <div className="rounded-[22px] border border-orange-400/15 bg-black/25 p-4">
-            <div className="flex items-center gap-3">
-              <div className="flex-shrink-0 flex h-10 w-10 items-center justify-center rounded-2xl border border-orange-400/20 bg-orange-500/15">
-                <Truck className="h-4 w-4 text-orange-300" />
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className="text-[10px] font-semibold uppercase tracking-[0.28em] text-white/35">Siguiente paso</p>
-                <h3 className="text-base font-black tracking-tight text-white">Monitorear llegada</h3>
-              </div>
-              <Button
-                onClick={() => itemsSectionRef.current?.scrollIntoView({ behavior: "smooth", block: "start" })}
-                className="flex-shrink-0 rounded-2xl bg-gradient-to-r from-cyan-600 to-emerald-600 px-3 py-2 text-white text-sm shadow-lg hover:from-cyan-700 hover:to-emerald-700">
-                <Plus className="h-4 w-4 sm:mr-2" />
-                <span className="hidden sm:inline">Añadir piezas</span>
-              </Button>
-            </div>
-            {trackingUrl && displayTracking !== "—" && (
-              <a href={trackingUrl} target="_blank" rel="noopener noreferrer"
-                className="mt-3 flex items-center gap-2 rounded-xl border border-orange-400/20 bg-orange-500/10 px-3 py-2 text-sm text-orange-300 hover:bg-orange-500/20">
-                <Truck className="w-4 h-4 flex-shrink-0" />
-                <span className="truncate font-medium">Rastrear: {displayTracking}</span>
-                <ExternalLink className="w-3.5 h-3.5 flex-shrink-0 ml-auto" />
-              </a>
-            )}
-          </div>
         </div>
 
         {/* Botones de contacto */}
@@ -345,8 +372,29 @@ export default function WaitingPartsStage({ order, onUpdate, onOrderItemsUpdate,
               </div>
               <div>
                 <p className="text-xs text-gray-400 uppercase font-bold tracking-wider mb-2">Tracking #</p>
-                <Input value={editForm.tracking} onChange={e => setEditForm(p => ({ ...p, tracking: e.target.value }))}
-                  placeholder="1Z999AA..." className="bg-black/40 border-white/15 text-white h-10" autoComplete="off" />
+                <div className="relative">
+                  <Input
+                    value={editForm.tracking}
+                    onChange={e => {
+                      const val = e.target.value;
+                      const auto = detectCarrier(val);
+                      setEditForm(p => ({ ...p, tracking: val, carrier: auto || p.carrier }));
+                    }}
+                    placeholder="1Z999AA10123456784..."
+                    className="bg-black/40 border-white/15 text-white h-10 pr-20"
+                    autoComplete="off"
+                  />
+                  {detectCarrier(editForm.tracking) && (
+                    <span className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-1 rounded-lg bg-emerald-500/20 border border-emerald-500/30 px-2 py-0.5 text-[10px] font-bold text-emerald-300">
+                      <Zap className="w-2.5 h-2.5" />{detectCarrier(editForm.tracking)}
+                    </span>
+                  )}
+                </div>
+                {detectCarrier(editForm.tracking) && (
+                  <p className="mt-1 text-[10px] text-emerald-400 flex items-center gap-1">
+                    <Zap className="w-2.5 h-2.5" />Carrier detectado automáticamente
+                  </p>
+                )}
               </div>
             </div>
             <div className="flex justify-end gap-2 pt-3 border-t border-white/10">
@@ -363,23 +411,33 @@ export default function WaitingPartsStage({ order, onUpdate, onOrderItemsUpdate,
       <div className="overflow-hidden rounded-[28px] border border-orange-500/15 bg-[linear-gradient(180deg,rgba(255,255,255,0.04),rgba(255,255,255,0.01))] shadow-[0_18px_50px_rgba(0,0,0,0.25)]">
         {/* Header */}
         <div className="border-b border-white/8 bg-gradient-to-r from-orange-500/10 to-transparent p-5">
-          <div className="flex items-center justify-between">
-            <div>
+          <div className="flex items-center justify-between gap-3">
+            <div className="flex-1 min-w-0">
               <h3 className="text-white font-bold text-sm uppercase tracking-wider flex items-center gap-2">
                 <MapPin className="w-4 h-4 text-orange-400" />
                 Seguimiento de la Pieza
               </h3>
-              <p className="text-xs text-white/40 mt-0.5">
-                {displayPartName !== "—" ? displayPartName : "Actualiza el estado según avance el pedido"}
-                {displayCarrier !== "—" ? ` · ${displayCarrier}` : ""}
-                {displayTracking !== "—" ? ` · #${displayTracking}` : ""}
-              </p>
+              <div className="flex flex-wrap items-center gap-2 mt-1.5">
+                {displayPartName !== "—" && (
+                  <span className="text-xs text-white/50 truncate">{displayPartName}</span>
+                )}
+                {displayTracking !== "—" && (
+                  <span className="text-[11px] font-mono text-white/40">#{displayTracking}</span>
+                )}
+                {carrierStyle ? (
+                  <span className={`inline-flex items-center gap-1 rounded-lg border ${carrierStyle.border} ${carrierStyle.bg} px-2 py-0.5 text-[10px] font-bold ${carrierStyle.color}`}>
+                    <Zap className="w-2.5 h-2.5" />{displayCarrier} detectado
+                  </span>
+                ) : displayCarrier !== "—" ? (
+                  <span className="text-xs text-white/40">{displayCarrier}</span>
+                ) : null}
+              </div>
             </div>
             {trackingUrl && displayTracking !== "—" && (
               <a href={trackingUrl} target="_blank" rel="noopener noreferrer"
-                className="flex items-center gap-1.5 rounded-xl border border-orange-400/25 bg-orange-500/10 px-3 py-1.5 text-xs font-semibold text-orange-300 hover:bg-orange-500/20 transition-all">
+                className="flex-shrink-0 flex items-center gap-1.5 rounded-xl border border-orange-400/25 bg-orange-500/10 px-3 py-1.5 text-xs font-semibold text-orange-300 hover:bg-orange-500/20 transition-all">
                 <ExternalLink className="w-3.5 h-3.5" />
-                Rastrear
+                Ver en {displayCarrier !== "—" ? displayCarrier : "carrier"}
               </a>
             )}
           </div>
@@ -489,7 +547,7 @@ export default function WaitingPartsStage({ order, onUpdate, onOrderItemsUpdate,
       </div>
 
       {/* ── PIEZAS Y SERVICIOS ────────────────────────────────────────────── */}
-      <div ref={itemsSectionRef}>
+      <div>
         <SharedItemsSection
           order={o}
           onUpdate={onUpdate}
