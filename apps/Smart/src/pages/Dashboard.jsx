@@ -941,8 +941,8 @@ export default function Dashboard() {
                   <Bell className="w-4 h-4 text-white/60 group-hover:text-white transition-colors" />
                   {unreadNotifications > 0 && <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 border border-[#1c1c1e] rounded-full" />}
                 </button>
-                <button onClick={() => setShowDashboardConfig(true)} className="flex-1 h-10 rounded-xl bg-white/5 hover:bg-indigo-500/10 border border-white/10 hover:border-indigo-500/20 flex items-center justify-center transition-all active:scale-90 group" title="Personalizar Dashboard">
-                  <LayoutGrid className="w-4 h-4 text-white/20 group-hover:text-indigo-400 transition-all duration-500" />
+                <button onClick={handleCashButtonClick} className={cn("flex-1 h-10 rounded-xl border flex items-center justify-center transition-all active:scale-90", drawerOpen ? "bg-emerald-500/10 border-emerald-500/20 text-emerald-400 hover:bg-emerald-500/20" : "bg-red-500/10 border-red-500/20 text-red-400 hover:bg-red-500/20")} title={drawerOpen ? "Cerrar Caja" : "Abrir Caja"}>
+                  <Wallet className="w-4 h-4" strokeWidth={2.5} />
                 </button>
                 <button onClick={() => setShowLogoutModal(true)} className="flex-1 h-10 rounded-xl bg-white/5 hover:bg-rose-500/10 border border-white/10 hover:border-rose-500/20 flex items-center justify-center transition-all active:scale-90 group" title="Cerrar Sesión">
                   <LogOut className="w-4 h-4 text-white/20 group-hover:text-rose-400 transition-all duration-500" />
@@ -1116,8 +1116,8 @@ export default function Dashboard() {
                   {unreadNotifications > 0 && <span className="absolute top-2.5 right-2.5 w-2 h-2 bg-red-500 rounded-full shadow-[0_0_10px_rgba(239,68,68,0.6)]" />}
                 </button>
                 <PunchButton userId={session?.userId} userName={session?.userName} variant="mobile-icon" onPunchStatusChange={(status) => { if (status) showToast("👋 ¡Hola!", "Turno iniciado"); else showToast("👋 ¡Adiós!", "Turno finalizado"); }} />
-                <button onClick={() => setShowDashboardConfig(true)} className="w-12 h-12 rounded-2xl bg-white/[0.04] border border-white/[0.08] flex items-center justify-center active:scale-90 transition-all" title="Personalizar">
-                  <LayoutGrid className="w-5 h-5 text-white/50" strokeWidth={2} />
+                <button onClick={handleCashButtonClick} className={cn("w-12 h-12 rounded-2xl border flex items-center justify-center active:scale-90 transition-all", drawerOpen ? "bg-emerald-500/10 border-emerald-500/20 text-emerald-400" : "bg-red-500/10 border-red-500/20 text-red-400")} title={drawerOpen ? "Cerrar Caja" : "Abrir Caja"}>
+                  <Wallet className="w-5 h-5" strokeWidth={2.5} />
                 </button>
               </div>
             </div>
