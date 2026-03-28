@@ -739,7 +739,7 @@ export default function OrdersPage() {
                     animate={{ opacity: 1, y: 0, scale: 1 }}
                     exit={{ opacity: 0, y: -10, scale: 0.95 }}
                     transition={{ duration: 0.2 }}
-                    className="absolute top-full right-0 sm:left-0 mt-2 w-80 bg-[#0A0A0A]/95 backdrop-blur-2xl border border-white/10 rounded-[24px] shadow-[0_20px_60px_rgba(0,0,0,0.5)] overflow-hidden z-50">
+                    className="absolute top-full right-0 sm:left-0 mt-2 w-[calc(100vw-2rem)] sm:w-80 max-w-sm bg-[#0A0A0A]/95 backdrop-blur-2xl border border-white/10 rounded-[24px] shadow-[0_20px_60px_rgba(0,0,0,0.5)] overflow-hidden z-50">
 
                       <div className="p-3 space-y-1 max-h-[520px] overflow-y-auto scrollbar-thin">
                         {/* Acciones Rápidas */}

@@ -844,7 +844,7 @@ export default function Dashboard() {
         <div className="max-w-[2560px] mx-auto space-y-3 sm:space-y-4 md:space-y-6 lg:space-y-8">
           
           {/* === DESKTOP: HEADER "APPLE CONTROL CENTER" === */}
-          <div className="hidden md:block bg-[#121215]/40 backdrop-blur-[40px] border border-white/10 rounded-[40px] p-8 lg:p-10 shadow-[0_32px_80px_rgba(0,0,0,0.45)] relative overflow-hidden group">
+          <div className="hidden md:block bg-[#121215]/40 backdrop-blur-[40px] border border-white/10 rounded-[40px] p-5 md:p-8 lg:p-10 shadow-[0_32px_80px_rgba(0,0,0,0.45)] relative overflow-hidden group">
             {/* Glossy overlay with subtle inner glow */}
             <div className="absolute inset-0 bg-gradient-to-b from-white/[0.05] to-transparent pointer-events-none" />
             <div className="absolute inset-0 border border-white/10 rounded-[40px] pointer-events-none shadow-[inset_0_1px_1px_rgba(255,255,255,0.1)]" />

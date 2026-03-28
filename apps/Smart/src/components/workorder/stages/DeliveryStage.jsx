@@ -1,8 +1,7 @@
 import React, { useRef, useState } from "react";
 import {
-  PackageCheck, CheckCircle2, AlertCircle,
+  CheckCircle2, AlertCircle,
   PhoneCall, MessageCircle, Mail, Camera, Activity, Loader2,
-  DollarSign, Wallet,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -134,28 +133,6 @@ export default function DeliveryStage({
           </h2>
           <p className="text-sm font-bold text-white/50">{o.customer_name}</p>
         </div>
-
-        {/* cobro rápido si hay balance */}
-        {!isSaldado && (
-          <div className="grid grid-cols-2 gap-2 mb-4">
-            <button
-              onClick={() => onPaymentClick?.("deposit")}
-              className="flex items-center justify-center gap-2 h-11 rounded-2xl border border-white/15 bg-white/5 text-white hover:bg-white/10 font-semibold text-sm transition-all active:scale-95"
-            >
-              <Wallet className="w-4 h-4 text-white/60 flex-shrink-0" />
-              <span className="hidden sm:inline">Depósito</span>
-              <span className="sm:hidden">Dep.</span>
-            </button>
-            <button
-              onClick={() => onPaymentClick?.("full")}
-              className="flex items-center justify-center gap-2 h-11 rounded-2xl border border-emerald-500/40 bg-emerald-500/15 text-emerald-200 hover:bg-emerald-500/25 font-semibold text-sm transition-all active:scale-95"
-            >
-              <DollarSign className="w-4 h-4 flex-shrink-0" />
-              <span className="hidden sm:inline">Cobrar restante</span>
-              <span className="sm:hidden">Cobrar</span>
-            </button>
-          </div>
-        )}
 
         {/* contacto */}
         {(digits || email) && (
