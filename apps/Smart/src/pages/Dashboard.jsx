@@ -449,15 +449,16 @@ export default function Dashboard() {
         if (tenantId) {
           const { data: txRows } = await supabase
             .from("transaction")
-            .select("amount, type, created_date")
+            .select("amount, type, created_at")
             .eq("tenant_id", tenantId)
-            .gte("created_date", monthStart);
+            .gte("created_at", monthStart);
           const rows = txRows || [];
-          const todayIncome    = rows.filter(r => r.type === "income"  && r.created_date >= todayStart).reduce((s, r) => s + (Number(r.amount) || 0), 0);
-          const todayExpenses  = rows.filter(r => r.type === "expense" && r.created_date >= todayStart).reduce((s, r) => s + (Number(r.amount) || 0), 0);
-          const monthIncome    = rows.filter(r => r.type === "income").reduce((s, r) => s + (Number(r.amount) || 0), 0);
+          const isIncome = (r) => r.type === "revenue" || r.type === "income";
+          const todayIncome    = rows.filter(r => isIncome(r) && r.created_at >= todayStart).reduce((s, r) => s + (Number(r.amount) || 0), 0);
+          const todayExpenses  = rows.filter(r => r.type === "expense" && r.created_at >= todayStart).reduce((s, r) => s + (Number(r.amount) || 0), 0);
+          const monthIncome    = rows.filter(r => isIncome(r)).reduce((s, r) => s + (Number(r.amount) || 0), 0);
           setKpiIncome({ today: todayIncome, month: monthIncome, todayExpenses, loading: false });
-          setTodayTxCount(rows.filter(r => r.created_date >= todayStart).length);
+          setTodayTxCount(rows.filter(r => r.created_at >= todayStart).length);
 
           // New customers this week
           const weekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
