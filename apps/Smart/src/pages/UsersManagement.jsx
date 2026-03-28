@@ -832,6 +832,34 @@ export default function UsersManagement() {
     }
   };
 
+  const handleResendInvitation = async (user) => {
+    if (!user?.email) {
+      toast.error("Este empleado no tiene email registrado. Edítalo primero.");
+      return;
+    }
+    try {
+      const newToken = `${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
+      const newExpiresAt = new Date(Date.now() + 48 * 60 * 60 * 1000).toISOString();
+
+      const { error } = await supabase
+        .from("app_employee")
+        .update({
+          activation_token: newToken,
+          activation_expires_at: newExpiresAt,
+          status: "pending"
+        })
+        .eq("id", user.id);
+
+      if (error) throw error;
+
+      await sendApprovalEmail(user, newToken);
+      toast.success(`✅ Invitación reenviada a ${user.email}`);
+    } catch (err) {
+      console.error("Error resending invitation:", err);
+      toast.error("No se pudo reenviar la invitación. Intenta nuevamente.");
+    }
+  };
+
   const sendApprovalEmail = async (employee, token) => {
     const activationUrl = `${window.location.origin}/Activate?token=${token}`;
     const approvalDate = new Date().toLocaleDateString('es-PR', { 
@@ -1504,6 +1532,7 @@ export default function UsersManagement() {
                 onEdit={() => setEditingUser(user)}
                 onDelete={() => handleDeleteUser(user)}
                 onToggleActive={() => handleToggleActive(user)}
+                onResendInvite={() => handleResendInvitation(user)}
               />
             ))}
           </div>
@@ -1524,6 +1553,7 @@ export default function UsersManagement() {
           user={editingUser}
           onClose={() => setEditingUser(null)}
           onUpdate={handleUpdateUser}
+          onResendInvite={handleResendInvitation}
           roles={ROLES}
         />
       )}

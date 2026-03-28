@@ -2,10 +2,10 @@ import React, { useState, useEffect } from "react";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { X, Check, Eye, EyeOff, Edit3 } from "lucide-react";
+import { X, Check, Eye, EyeOff, Edit3, Send } from "lucide-react";
 import { toast } from "sonner";
 
-export default function EditUserModal({ user, onClose, onUpdate, roles }) {
+export default function EditUserModal({ user, onClose, onUpdate, onResendInvite, roles }) {
   const [formData, setFormData] = useState({
     full_name: "",
     email: "",
@@ -19,6 +19,9 @@ export default function EditUserModal({ user, onClose, onUpdate, roles }) {
   });
   const [showPin, setShowPin] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [resending, setResending] = useState(false);
+
+  const isPending = user?.status === "pending";
 
   useEffect(() => {
     if (user) {
@@ -71,6 +74,37 @@ export default function EditUserModal({ user, onClose, onUpdate, roles }) {
       toast.error("Error al actualizar: " + (error.message || "Intenta nuevamente"));
     } finally {
       setSaving(false);
+    }
+  };
+
+  const handleSaveAndResend = async () => {
+    if (!formData.full_name?.trim()) {
+      toast.error("El nombre es requerido");
+      return;
+    }
+    if (!formData.email?.trim()) {
+      toast.error("El email es requerido para reenviar la invitación");
+      return;
+    }
+
+    setResending(true);
+    try {
+      const userData = {
+        full_name: formData.full_name,
+        email: formData.email,
+        phone: formData.phone,
+        customRole: formData.role,
+        active: formData.active,
+        hourly_rate: parseFloat(formData.hourly_rate) || 0,
+        ...(formData.pin?.trim() && { pin: formData.pin })
+      };
+      await onUpdate(user.id, userData);
+      await onResendInvite({ ...user, email: formData.email, full_name: formData.full_name });
+    } catch (error) {
+      console.error("Error saving and resending:", error);
+      toast.error("Error al guardar: " + (error.message || "Intenta nuevamente"));
+    } finally {
+      setResending(false);
     }
   };
 
@@ -223,34 +257,56 @@ export default function EditUserModal({ user, onClose, onUpdate, roles }) {
           </div>
 
           {/* Botones */}
-          <div className="flex gap-3 pt-6">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={onClose}
-              disabled={saving}
-              className="flex-1 border-cyan-500/30 text-cyan-400 hover:bg-cyan-600/10 h-12 rounded-xl theme-light:border-gray-300"
-            >
-              <X className="w-4 h-4 mr-2" />
-              Cancelar
-            </Button>
-            <Button
-              type="submit"
-              disabled={saving}
-              className="flex-1 bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 h-12 rounded-xl shadow-[0_0_40px_rgba(99,102,241,0.4)]"
-            >
-              {saving ? (
-                <>
-                  <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin mr-2" />
-                  Guardando...
-                </>
-              ) : (
-                <>
-                  <Check className="w-5 h-5 mr-2" />
-                  Actualizar Usuario
-                </>
-              )}
-            </Button>
+          <div className="flex flex-col gap-3 pt-6">
+            {(isPending && onResendInvite) && (
+              <Button
+                type="button"
+                disabled={resending || saving}
+                onClick={handleSaveAndResend}
+                className="w-full bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 h-12 rounded-xl shadow-lg text-white font-bold"
+              >
+                {resending ? (
+                  <>
+                    <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin mr-2" />
+                    Guardando y reenviando...
+                  </>
+                ) : (
+                  <>
+                    <Send className="w-4 h-4 mr-2" />
+                    Guardar y reenviar invitación
+                  </>
+                )}
+              </Button>
+            )}
+            <div className="flex gap-3">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={onClose}
+                disabled={saving || resending}
+                className="flex-1 border-cyan-500/30 text-cyan-400 hover:bg-cyan-600/10 h-12 rounded-xl theme-light:border-gray-300"
+              >
+                <X className="w-4 h-4 mr-2" />
+                Cancelar
+              </Button>
+              <Button
+                type="submit"
+                disabled={saving || resending}
+                className="flex-1 bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 h-12 rounded-xl shadow-[0_0_40px_rgba(99,102,241,0.4)]"
+              >
+                {saving ? (
+                  <>
+                    <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin mr-2" />
+                    Guardando...
+                  </>
+                ) : (
+                  <>
+                    <Check className="w-5 h-5 mr-2" />
+                    Actualizar Usuario
+                  </>
+                )}
+              </Button>
+            </div>
           </div>
         </form>
       </DialogContent>

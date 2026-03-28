@@ -1,24 +1,28 @@
 import React from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Mail, Phone, Code, Calendar, Lock, Unlock, Edit, Trash2, DollarSign, ChevronDown, ChevronUp } from "lucide-react";
+import { Mail, Phone, Code, Calendar, Lock, Unlock, Edit, Trash2, DollarSign, ChevronDown, ChevronUp, Send, Clock } from "lucide-react";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 
-export default function UserCard({ user, roles, onEdit, onDelete, onToggleActive }) {
+export default function UserCard({ user, roles, onEdit, onDelete, onToggleActive, onResendInvite }) {
   const [showPayments, setShowPayments] = React.useState(false);
   const [payments, setPayments] = React.useState([]);
-  
+  const [resending, setResending] = React.useState(false);
+
   const userRole = user.position || user.role;
   const role = roles.find(r => r.value === userRole) || roles[2];
   const RoleIcon = role.icon;
-  
+
+  const isPending = user.status === "pending";
+  const isExpired = isPending && user.activation_expires_at && new Date(user.activation_expires_at) < new Date();
+
   React.useEffect(() => {
     if (showPayments) {
       loadPayments();
     }
   }, [showPayments]);
-  
+
   const loadPayments = async () => {
     try {
       const { dataClient } = await import("@/components/api/dataClient");
@@ -33,11 +37,21 @@ export default function UserCard({ user, roles, onEdit, onDelete, onToggleActive
     }
   };
 
+  const handleResend = async (e) => {
+    e.stopPropagation();
+    setResending(true);
+    try {
+      await onResendInvite();
+    } finally {
+      setResending(false);
+    }
+  };
+
   return (
     <div
       className={`group relative overflow-hidden bg-slate-900/60 backdrop-blur-xl border rounded-3xl p-6 transition-all duration-300 hover:scale-[1.02] theme-light:bg-white ${
-        user.active 
-          ? 'border-cyan-500/20 hover:border-cyan-500/50 hover:shadow-[0_0_40px_rgba(6,182,212,0.3)]' 
+        user.active
+          ? 'border-cyan-500/20 hover:border-cyan-500/50 hover:shadow-[0_0_40px_rgba(6,182,212,0.3)]'
           : 'border-slate-800/30 opacity-60'
       }`}
     >
@@ -45,7 +59,7 @@ export default function UserCard({ user, roles, onEdit, onDelete, onToggleActive
       <div className="absolute inset-0 bg-gradient-to-r from-cyan-500/0 via-cyan-500/5 to-cyan-500/0 opacity-0 group-hover:opacity-100 transition-opacity" />
 
       {/* Header con avatar y estado */}
-      <div className="relative flex items-start justify-between mb-6">
+      <div className="relative flex items-start justify-between mb-4">
         <div className="flex items-center gap-4">
           <div className="relative">
             <div className={`absolute inset-0 bg-gradient-to-r ${role.color} blur-xl opacity-60 rounded-2xl`} />
@@ -65,19 +79,45 @@ export default function UserCard({ user, roles, onEdit, onDelete, onToggleActive
             </Badge>
           </div>
         </div>
-        
+
         {/* Indicador de estado */}
-        <div className="relative">
+        <div className="flex flex-col items-end gap-1.5">
           {user.active ? (
-            <>
+            <div className="relative">
               <div className="absolute inset-0 bg-emerald-400 blur-md opacity-60 rounded-full animate-pulse" />
               <div className="relative w-3 h-3 rounded-full bg-emerald-400" />
-            </>
+            </div>
           ) : (
             <div className="w-3 h-3 rounded-full bg-slate-600" />
           )}
+          {/* Badge pendiente/expirado */}
+          {isPending && (
+            <span className={`text-[10px] font-black px-2 py-0.5 rounded-full border ${
+              isExpired
+                ? "bg-red-500/10 border-red-500/30 text-red-400"
+                : "bg-amber-500/10 border-amber-500/30 text-amber-400"
+            }`}>
+              {isExpired ? "EXPIRADO" : "PENDIENTE"}
+            </span>
+          )}
         </div>
       </div>
+
+      {/* Alerta invitación pendiente */}
+      {isPending && (
+        <div className={`relative flex items-center gap-2.5 rounded-xl px-3 py-2.5 mb-4 border ${
+          isExpired
+            ? "bg-red-500/10 border-red-500/20"
+            : "bg-amber-500/10 border-amber-500/20"
+        }`}>
+          <Clock className={`w-3.5 h-3.5 shrink-0 ${isExpired ? "text-red-400" : "text-amber-400"}`} />
+          <p className={`text-[11px] font-semibold leading-tight ${isExpired ? "text-red-300" : "text-amber-300"}`}>
+            {isExpired
+              ? "El enlace de activación venció. Reenvía la invitación."
+              : "Esperando que el empleado active su cuenta."}
+          </p>
+        </div>
+      )}
 
       {/* Información del usuario */}
       <div className="relative space-y-3 mb-6">
@@ -124,6 +164,24 @@ export default function UserCard({ user, roles, onEdit, onDelete, onToggleActive
         >
           <Edit className="w-4 h-4 mr-1" />
           Editar
+        </Button>
+        {/* Botón reenviar — siempre visible para poder corregir email */}
+        <Button
+          size="sm"
+          variant="outline"
+          disabled={resending}
+          onClick={handleResend}
+          title="Reenviar invitación"
+          className={`h-10 rounded-xl border transition-all ${
+            isPending
+              ? "border-amber-500/50 text-amber-400 hover:bg-amber-500/10 bg-amber-500/5"
+              : "border-blue-500/30 text-blue-400 hover:bg-blue-500/10"
+          }`}
+        >
+          {resending
+            ? <div className="w-4 h-4 border-2 border-current/30 border-t-current rounded-full animate-spin" />
+            : <Send className="w-4 h-4" />
+          }
         </Button>
         <Button
           size="sm"
