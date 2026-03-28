@@ -901,141 +901,139 @@ export default function Dashboard() {
       <div className="px-2 sm:px-3 md:px-6 lg:px-8 xl:px-12 2xl:px-16 pt-2 md:pt-4 lg:pt-6 pb-6 md:h-full md:flex md:flex-col">
         <div className="max-w-[2560px] mx-auto space-y-4 md:space-y-0 md:h-full md:flex md:flex-col">
           
-          {/* === DESKTOP: PULSO === */}
-          <div className="hidden md:flex md:flex-col md:flex-1 md:min-h-0 bg-[#121215]/40 backdrop-blur-[40px] border border-white/10 rounded-[40px] p-6 lg:p-8 shadow-[0_32px_80px_rgba(0,0,0,0.45)] relative overflow-hidden">
-            <div className="absolute inset-0 bg-gradient-to-b from-white/[0.05] to-transparent pointer-events-none" />
+          {/* === DESKTOP: PULSO — layout horizontal (left panel | right feed) === */}
+          <div className="hidden md:flex md:flex-row md:flex-1 md:min-h-0 bg-[#121215]/40 backdrop-blur-[40px] border border-white/10 rounded-[40px] shadow-[0_32px_80px_rgba(0,0,0,0.45)] relative overflow-hidden">
+            <div className="absolute inset-0 bg-gradient-to-br from-white/[0.04] to-transparent pointer-events-none" />
             <div className="absolute inset-0 border border-white/10 rounded-[40px] pointer-events-none shadow-[inset_0_1px_1px_rgba(255,255,255,0.1)]" />
 
-            {/* Header row */}
-            <div className="flex flex-wrap items-center justify-between gap-4 lg:gap-6 mb-5 relative z-10 shrink-0">
-              <div className="flex items-center gap-3 lg:gap-4">
-                <div className="flex items-center gap-4 bg-white/5 border border-white/10 rounded-full pl-1 pr-6 py-1.5 backdrop-blur-2xl shadow-[inset_0_1px_0_rgba(255,255,255,0.08)]">
-                  <div className="w-10 h-10 lg:w-12 lg:h-12 rounded-full bg-gradient-to-tr from-sky-400 via-blue-500 to-indigo-600 flex items-center justify-center shadow-[0_8px_20px_rgba(14,165,233,0.3)] border border-white/20">
-                    <span className="text-sm lg:text-base font-black text-white uppercase tracking-tighter">{session?.userName?.substring(0,2) || 'US'}</span>
-                  </div>
-                  <div className="flex flex-col">
-                    <span className="text-sm lg:text-base font-black text-white leading-none tracking-tight">{session?.userName || 'Usuario'}</span>
-                    <span className="text-[10px] lg:text-xs text-white/40 leading-none mt-1 font-black tracking-widest uppercase">{businessName || session?.storeName || "SmartFixOS"}</span>
-                  </div>
-                </div>
-                <PunchButton userId={session?.userId} userName={session?.userName} variant="apple" onPunchStatusChange={(status) => { if (status) showToast("👋 ¡Hola!", "Turno iniciado"); else showToast("👋 ¡Adiós!", "Turno finalizado"); }} />
-              </div>
-              <div className="flex items-center gap-3 lg:gap-4">
-                <button onClick={() => setShowNotificationPanel(!showNotificationPanel)} className="relative w-12 h-12 lg:w-14 lg:h-14 rounded-full bg-white/5 hover:bg-white/10 border border-white/8 flex items-center justify-center transition-all active:scale-95 group">
-                  <Bell className="w-5 h-5 lg:w-6 lg:h-6 text-white/70 group-hover:text-white transition-colors" />
-                  {unreadNotifications > 0 && <span className="absolute top-0 right-0 w-3 h-3 lg:w-4 lg:h-4 bg-red-500 border border-[#1c1c1e] rounded-full" />}
-                </button>
+            {/* ── Panel izquierdo: usuario + KPIs + accesos rápidos ── */}
+            <div className="relative z-10 w-[260px] xl:w-[300px] shrink-0 flex flex-col gap-3 p-6 lg:p-7 border-r border-white/[0.07]">
 
-                <button onClick={() => setShowDashboardConfig(true)} className="w-12 h-12 lg:w-14 lg:h-14 rounded-full bg-white/5 hover:bg-indigo-500/10 border border-white/10 hover:border-indigo-500/20 flex items-center justify-center transition-all active:scale-90 group" title="Personalizar Dashboard">
-                  <LayoutGrid className="w-5 h-5 lg:w-6 lg:h-6 text-white/20 group-hover:text-indigo-400 transition-all duration-500" />
+              {/* Usuario */}
+              <div className="flex items-center gap-3 bg-white/5 border border-white/10 rounded-2xl pl-2 pr-4 py-2 backdrop-blur-2xl shadow-[inset_0_1px_0_rgba(255,255,255,0.08)]">
+                <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-sky-400 via-blue-500 to-indigo-600 flex items-center justify-center shadow-[0_4px_12px_rgba(14,165,233,0.3)] border border-white/20 shrink-0">
+                  <span className="text-sm font-black text-white uppercase tracking-tighter">{session?.userName?.substring(0,2) || 'US'}</span>
+                </div>
+                <div className="min-w-0">
+                  <p className="text-sm font-black text-white leading-none tracking-tight truncate">{session?.userName || 'Usuario'}</p>
+                  <p className="text-[10px] text-white/40 leading-none mt-1 font-black tracking-widest uppercase truncate">{businessName || session?.storeName || "SmartFixOS"}</p>
+                </div>
+              </div>
+
+              {/* Botones de acción */}
+              <div className="flex items-center gap-2">
+                <PunchButton userId={session?.userId} userName={session?.userName} variant="apple" onPunchStatusChange={(status) => { if (status) showToast("👋 ¡Hola!", "Turno iniciado"); else showToast("👋 ¡Adiós!", "Turno finalizado"); }} />
+                <button onClick={() => setShowNotificationPanel(!showNotificationPanel)} className="relative flex-1 h-10 rounded-xl bg-white/5 hover:bg-white/10 border border-white/8 flex items-center justify-center transition-all active:scale-95 group">
+                  <Bell className="w-4 h-4 text-white/60 group-hover:text-white transition-colors" />
+                  {unreadNotifications > 0 && <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 border border-[#1c1c1e] rounded-full" />}
                 </button>
-                <button onClick={() => setShowLogoutModal(true)} className="w-12 h-12 lg:w-14 lg:h-14 rounded-full bg-white/5 hover:bg-rose-500/10 border border-white/10 hover:border-rose-500/20 flex items-center justify-center transition-all active:scale-90 group" title="Cerrar Sesión">
-                  <LogOut className="w-5 h-5 lg:w-6 lg:h-6 text-white/20 group-hover:text-rose-400 transition-all duration-500" />
+                <button onClick={() => setShowDashboardConfig(true)} className="flex-1 h-10 rounded-xl bg-white/5 hover:bg-indigo-500/10 border border-white/10 hover:border-indigo-500/20 flex items-center justify-center transition-all active:scale-90 group" title="Personalizar Dashboard">
+                  <LayoutGrid className="w-4 h-4 text-white/20 group-hover:text-indigo-400 transition-all duration-500" />
+                </button>
+                <button onClick={() => setShowLogoutModal(true)} className="flex-1 h-10 rounded-xl bg-white/5 hover:bg-rose-500/10 border border-white/10 hover:border-rose-500/20 flex items-center justify-center transition-all active:scale-90 group" title="Cerrar Sesión">
+                  <LogOut className="w-4 h-4 text-white/20 group-hover:text-rose-400 transition-all duration-500" />
                 </button>
               </div>
+
+              {/* Divider */}
+              <div className="border-t border-white/[0.06]" />
+
+              {/* KPIs */}
+              {(() => {
+                const fmt = (n) => `$${Number(n||0).toLocaleString("en-US",{maximumFractionDigits:0})}`;
+                const todayProfit = kpiIncome.today - kpiIncome.todayExpenses;
+                const goalPct = kpiDailyGoal > 0 ? Math.min(100, Math.round((kpiIncome.today / kpiDailyGoal) * 100)) : 0;
+                return (
+                  <>
+                    <div className="rounded-2xl border border-emerald-500/20 bg-emerald-500/10 px-4 py-3 flex items-center gap-3">
+                      <div className="w-9 h-9 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center shrink-0">
+                        <DollarSign className="w-4 h-4 text-emerald-400" />
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <p className="text-lg font-black text-emerald-400 leading-tight">{kpiIncome.loading ? "…" : fmt(kpiIncome.today)}</p>
+                        <p className="text-[10px] text-white/30 font-bold truncate">
+                          Ingresos hoy{kpiDailyGoal > 0 ? ` · ${goalPct}% meta` : ''}
+                        </p>
+                      </div>
+                    </div>
+
+                    <button
+                      onClick={() => setFeedFilter(f => f === 'urgent' ? null : 'urgent')}
+                      className={cn("rounded-2xl border px-4 py-3 flex items-center gap-3 transition-all active:scale-95", feedFilter === 'urgent' ? "border-indigo-400/50 bg-indigo-500/20 shadow-[0_0_20px_rgba(99,102,241,0.2)]" : "border-indigo-500/20 bg-indigo-500/10 hover:bg-indigo-500/15")}
+                    >
+                      <div className="w-9 h-9 rounded-xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center shrink-0">
+                        <Wrench className="w-4 h-4 text-indigo-400" />
+                      </div>
+                      <div className="text-left">
+                        <p className="text-lg font-black text-indigo-400 leading-tight">{kpiStats.active}</p>
+                        <p className="text-[10px] text-white/30 font-bold">{feedFilter === 'urgent' ? '▾ filtrado en feed' : 'Órdenes activas'}</p>
+                      </div>
+                    </button>
+
+                    <button
+                      onClick={() => setFeedFilter(f => f === 'ready' ? null : 'ready')}
+                      className={cn("rounded-2xl border px-4 py-3 flex items-center gap-3 transition-all active:scale-95", feedFilter === 'ready' ? "border-cyan-400/50 bg-cyan-500/20 shadow-[0_0_20px_rgba(6,182,212,0.2)]" : "border-cyan-500/20 bg-cyan-500/10 hover:bg-cyan-500/15")}
+                    >
+                      <div className="w-9 h-9 rounded-xl bg-cyan-500/10 border border-cyan-500/20 flex items-center justify-center shrink-0">
+                        <PackageCheck className="w-4 h-4 text-cyan-400" />
+                      </div>
+                      <div className="text-left">
+                        <p className="text-lg font-black text-cyan-400 leading-tight">{kpiStats.readyToPickup}</p>
+                        <p className="text-[10px] text-white/30 font-bold">{feedFilter === 'ready' ? '▾ filtrado en feed' : 'Para recoger'}</p>
+                      </div>
+                    </button>
+                  </>
+                );
+              })()}
+
+              {/* Divider */}
+              <div className="border-t border-white/[0.06]" />
+
+              {/* Accesos rápidos */}
+              <button onClick={() => setShowWorkOrderWizard(true)} className="flex-1 min-h-[44px] bg-blue-500/10 border border-blue-500/20 rounded-xl flex items-center gap-3 px-4 hover:bg-blue-500/15 active:scale-95 transition-all">
+                <ClipboardList className="w-4 h-4 text-blue-400 shrink-0" />
+                <span className="text-[11px] font-black text-blue-400/80 uppercase tracking-tight">Nueva Orden</span>
+              </button>
+              <button onClick={() => handleNavigate("POS")} className="flex-1 min-h-[44px] bg-emerald-500/10 border border-emerald-500/20 rounded-xl flex items-center gap-3 px-4 hover:bg-emerald-500/15 active:scale-95 transition-all">
+                <Wallet className="w-4 h-4 text-emerald-400 shrink-0" />
+                <span className="text-[11px] font-black text-emerald-400/80 uppercase tracking-tight">POS</span>
+              </button>
+              <button onClick={() => handleNavigate("Inventory")} className="flex-1 min-h-[44px] bg-orange-500/10 border border-orange-500/20 rounded-xl flex items-center gap-3 px-4 hover:bg-orange-500/15 active:scale-95 transition-all">
+                <Package className="w-4 h-4 text-orange-400 shrink-0" />
+                <span className="text-[11px] font-black text-orange-400/80 uppercase tracking-tight">Inventario</span>
+              </button>
+              <button onClick={() => handleNavigate("Financial")} className="flex-1 min-h-[44px] bg-purple-500/10 border border-purple-500/20 rounded-xl flex items-center gap-3 px-4 hover:bg-purple-500/15 active:scale-95 transition-all">
+                <BarChart3 className="w-4 h-4 text-purple-400 shrink-0" />
+                <span className="text-[11px] font-black text-purple-400/80 uppercase tracking-tight">Finanzas</span>
+              </button>
             </div>
 
-            {/* Body: Left sidebar (KPIs + Quick Nav) + Feed */}
-            <div className="flex gap-5 relative z-10 flex-1 min-h-0">
-
-              {/* ── Left sidebar ── */}
-              <div className="w-[220px] xl:w-[260px] shrink-0 flex flex-col gap-2.5">
-                {/* KPI cards stacked vertically */}
-                {(() => {
-                  const fmt = (n) => `$${Number(n||0).toLocaleString("en-US",{maximumFractionDigits:0})}`;
-                  const todayProfit = kpiIncome.today - kpiIncome.todayExpenses;
-                  const goalPct = kpiDailyGoal > 0 ? Math.min(100, Math.round((kpiIncome.today / kpiDailyGoal) * 100)) : 0;
-                  return (
-                    <>
-                      {/* Ingresos */}
-                      <div className="rounded-2xl border border-emerald-500/20 bg-emerald-500/10 px-4 py-3.5 flex items-center gap-3 shrink-0">
-                        <div className="w-9 h-9 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center shrink-0">
-                          <DollarSign className="w-4 h-4 text-emerald-400" />
-                        </div>
-                        <div className="min-w-0 flex-1">
-                          <p className="text-xl font-black text-emerald-400 leading-tight">{kpiIncome.loading ? "…" : fmt(kpiIncome.today)}</p>
-                          <p className="text-[10px] text-white/30 font-bold truncate">Ingresos hoy</p>
-                          {kpiDailyGoal > 0 && (
-                            <p className={`text-[10px] font-black ${goalPct >= 100 ? 'text-yellow-400' : goalPct >= 70 ? 'text-emerald-400' : 'text-blue-400'}`}>{goalPct}% meta · {fmt(todayProfit)} ganancia</p>
-                          )}
-                        </div>
-                      </div>
-
-                      {/* Activas */}
-                      <button
-                        onClick={() => setFeedFilter(f => f === 'urgent' ? null : 'urgent')}
-                        className={cn("rounded-2xl border px-4 py-3.5 flex items-center gap-3 transition-all active:scale-95 shrink-0", feedFilter === 'urgent' ? "border-indigo-400/50 bg-indigo-500/20 shadow-[0_0_20px_rgba(99,102,241,0.2)]" : "border-indigo-500/20 bg-indigo-500/10 hover:bg-indigo-500/15")}
-                      >
-                        <div className="w-9 h-9 rounded-xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center shrink-0">
-                          <Wrench className="w-4 h-4 text-indigo-400" />
-                        </div>
-                        <div className="text-left">
-                          <p className="text-xl font-black text-indigo-400 leading-tight">{kpiStats.active}</p>
-                          <p className="text-[10px] text-white/30 font-bold">{feedFilter === 'urgent' ? '▾ filtrado en feed' : 'Órdenes activas'}</p>
-                        </div>
-                      </button>
-
-                      {/* Para recoger */}
-                      <button
-                        onClick={() => setFeedFilter(f => f === 'ready' ? null : 'ready')}
-                        className={cn("rounded-2xl border px-4 py-3.5 flex items-center gap-3 transition-all active:scale-95 shrink-0", feedFilter === 'ready' ? "border-cyan-400/50 bg-cyan-500/20 shadow-[0_0_20px_rgba(6,182,212,0.2)]" : "border-cyan-500/20 bg-cyan-500/10 hover:bg-cyan-500/15")}
-                      >
-                        <div className="w-9 h-9 rounded-xl bg-cyan-500/10 border border-cyan-500/20 flex items-center justify-center shrink-0">
-                          <PackageCheck className="w-4 h-4 text-cyan-400" />
-                        </div>
-                        <div className="text-left">
-                          <p className="text-xl font-black text-cyan-400 leading-tight">{kpiStats.readyToPickup}</p>
-                          <p className="text-[10px] text-white/30 font-bold">{feedFilter === 'ready' ? '▾ filtrado en feed' : 'Para recoger'}</p>
-                        </div>
-                      </button>
-                    </>
-                  );
-                })()}
-
-                {/* Divider */}
-                <div className="border-t border-white/[0.06] my-0.5 shrink-0" />
-
-                {/* Quick Nav */}
-                <button onClick={() => setShowWorkOrderWizard(true)} className="flex-1 min-h-[52px] bg-blue-500/10 border border-blue-500/20 rounded-[20px] flex items-center gap-3 px-4 hover:bg-blue-500/15 active:scale-95 transition-all">
-                  <ClipboardList className="w-4 h-4 text-blue-400 shrink-0" />
-                  <span className="text-[11px] font-black text-blue-400/80 uppercase tracking-tight">Nueva Orden</span>
-                </button>
-                <button onClick={() => handleNavigate("POS")} className="flex-1 min-h-[52px] bg-emerald-500/10 border border-emerald-500/20 rounded-[20px] flex items-center gap-3 px-4 hover:bg-emerald-500/15 active:scale-95 transition-all">
-                  <Wallet className="w-4 h-4 text-emerald-400 shrink-0" />
-                  <span className="text-[11px] font-black text-emerald-400/80 uppercase tracking-tight">POS</span>
-                </button>
-                <button onClick={() => handleNavigate("Inventory")} className="flex-1 min-h-[52px] bg-orange-500/10 border border-orange-500/20 rounded-[20px] flex items-center gap-3 px-4 hover:bg-orange-500/15 active:scale-95 transition-all">
-                  <Package className="w-4 h-4 text-orange-400 shrink-0" />
-                  <span className="text-[11px] font-black text-orange-400/80 uppercase tracking-tight">Inventario</span>
-                </button>
-                <button onClick={() => handleNavigate("Financial")} className="flex-1 min-h-[52px] bg-purple-500/10 border border-purple-500/20 rounded-[20px] flex items-center gap-3 px-4 hover:bg-purple-500/15 active:scale-95 transition-all">
-                  <BarChart3 className="w-4 h-4 text-purple-400 shrink-0" />
-                  <span className="text-[11px] font-black text-purple-400/80 uppercase tracking-tight">Finanzas</span>
-                </button>
-              </div>
-
-              {/* ── Priority Feed (right, fills remaining space) ── */}
-              <div className="flex-1 bg-white/[0.02] border border-white/[0.06] rounded-[28px] overflow-hidden flex flex-col min-h-0">
-                <div className="flex items-center justify-between px-5 py-4 border-b border-white/[0.05] shrink-0">
-                  <div className="flex items-center gap-2.5">
-                    <div className={cn("w-7 h-7 rounded-xl border flex items-center justify-center transition-colors", feedFilter ? "bg-indigo-500/10 border-indigo-500/20" : "bg-white/5 border-white/10")}>
-                      <Bell className={cn("w-3.5 h-3.5 transition-colors", feedFilter ? "text-indigo-400" : "text-white/50")} />
-                    </div>
-                    <span className="text-white font-black text-sm uppercase tracking-tight">
-                      {feedFilter === 'urgent' ? 'Órdenes urgentes' : feedFilter === 'ready' ? 'Para recoger' : 'Atención requerida'}
-                    </span>
-                    {feedFilter && (
-                      <button onClick={() => setFeedFilter(null)} className="ml-1 w-5 h-5 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center transition-colors">
-                        <X className="w-3 h-3 text-white/50" />
-                      </button>
-                    )}
+            {/* ── Panel derecho: Feed "Atención requerida" ── */}
+            <div className="relative z-10 flex-1 flex flex-col min-h-0 p-6 lg:p-7">
+              {/* Feed header */}
+              <div className="flex items-center justify-between mb-4 shrink-0">
+                <div className="flex items-center gap-2.5">
+                  <div className={cn("w-7 h-7 rounded-xl border flex items-center justify-center transition-colors", feedFilter ? "bg-indigo-500/10 border-indigo-500/20" : "bg-white/5 border-white/10")}>
+                    <Bell className={cn("w-3.5 h-3.5 transition-colors", feedFilter ? "text-indigo-400" : "text-white/50")} />
                   </div>
-                  {visibleFeedItems.length > 0 && (
-                    <span className={cn("w-6 h-6 rounded-full flex items-center justify-center text-[11px] font-black text-white shadow-[0_0_12px_rgba(239,68,68,0.4)]", feedFilter === 'ready' ? "bg-cyan-500" : "bg-red-500")}>
-                      {visibleFeedItems.length}
-                    </span>
+                  <span className="text-white font-black text-sm uppercase tracking-tight">
+                    {feedFilter === 'urgent' ? 'Órdenes urgentes' : feedFilter === 'ready' ? 'Para recoger' : 'Atención requerida'}
+                  </span>
+                  {feedFilter && (
+                    <button onClick={() => setFeedFilter(null)} className="ml-1 w-5 h-5 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center transition-colors">
+                      <X className="w-3 h-3 text-white/50" />
+                    </button>
                   )}
                 </div>
+                {visibleFeedItems.length > 0 && (
+                  <span className={cn("w-6 h-6 rounded-full flex items-center justify-center text-[11px] font-black text-white shadow-[0_0_12px_rgba(239,68,68,0.4)]", feedFilter === 'ready' ? "bg-cyan-500" : "bg-red-500")}>
+                    {visibleFeedItems.length}
+                  </span>
+                )}
+              </div>
+
+              {/* Feed list — scrollbar aparece automáticamente cuando overflow */}
+              <div className="flex-1 bg-white/[0.02] border border-white/[0.06] rounded-[24px] overflow-hidden flex flex-col min-h-0">
                 <div className="divide-y divide-white/[0.04] flex-1 overflow-y-auto">
                   {visibleFeedItems.map(item => (
                     <button
@@ -1060,7 +1058,7 @@ export default function Dashboard() {
                     </button>
                   ))}
                   {visibleFeedItems.length === 0 && (
-                    <div className="flex flex-col items-center justify-center py-14">
+                    <div className="flex flex-col items-center justify-center py-14 h-full">
                       <CheckCircle2 className="w-10 h-10 text-emerald-500/30 mb-3" />
                       <p className="text-white/20 text-xs font-black uppercase tracking-widest">
                         {feedFilter ? 'Sin resultados para este filtro' : 'Todo en orden'}
@@ -1069,7 +1067,6 @@ export default function Dashboard() {
                   )}
                 </div>
               </div>
-
             </div>
           </div>
 
