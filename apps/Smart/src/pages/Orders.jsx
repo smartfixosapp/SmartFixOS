@@ -12,7 +12,7 @@ import {
   List, RefreshCw, Eye, Building2, FileText, Shield, FilePlus } from
 "lucide-react";
 import { toast } from "sonner";
-import { format } from "date-fns";
+import { format, formatDistanceToNow } from "date-fns";
 import { es } from "date-fns/locale";
 import { cn } from "@/lib/utils";
 import { ORDER_STATUSES, getEffectiveOrderStatus, getStatusConfig, normalizeStatusId } from "@/components/utils/statusRegistry";
@@ -94,133 +94,114 @@ async function fetchTenantOrders() {
 
 const OrderCard = React.memo(function OrderCard({ order, onClick, onEditDevice }) {
   if (!order || !order.id) return null;
-  
+
   const deviceType = resolveDeviceType(order);
   const DeviceIcon = DEVICE_ICONS[deviceType] || Box;
   const effectiveStatus = getEffectiveOrderStatus(order);
   const statusConfig = getStatusConfig(effectiveStatus);
   const isB2B = order.company_id || order.company_name;
 
-  const deviceInfo = [
-    order.device_brand,
-    order.device_family,
-    order.device_model
-  ].filter(Boolean).join(" ");
-
+  const deviceInfo = [order.device_brand, order.device_family, order.device_model].filter(Boolean).join(" ");
   const taskCount = Array.isArray(order.checklist_items) ? order.checklist_items.length : 0;
   const photoCount = Array.isArray(order.photos_metadata) ? order.photos_metadata.length :
     Array.isArray(order.device_photos) ? order.device_photos.length : 0;
   const assignedLabel = String(order.assigned_to_name || order.assigned_to || "").trim();
-  const isAssigned = Boolean(assignedLabel);
+  const phone = order.customer_phone || order.phone || "";
+
+  let ageLabel = "";
+  try {
+    const d = new Date(order.created_date || order.created_at || Date.now());
+    ageLabel = formatDistanceToNow(d, { addSuffix: true, locale: es });
+  } catch {}
 
   return (
     <motion.div
       role="button"
       tabIndex={0}
-      initial={{ opacity: 0, y: 15 }}
+      initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, scale: 0.98 }}
-      transition={{ duration: 0.3 }}
+      transition={{ duration: 0.25 }}
       onClick={onClick}
       onKeyDown={(e) => e.key === 'Enter' && onClick()}
       className={cn(
-        "group relative w-full overflow-hidden rounded-[28px] border p-4 sm:p-5 transition-all duration-300 cursor-pointer",
+        "group relative w-full overflow-hidden rounded-[24px] border p-4 transition-all duration-300 cursor-pointer",
         "bg-[#121215]/40 backdrop-blur-2xl border-white/[0.06] hover:border-white/20 hover:bg-[#16161a]/60",
-        "shadow-[0_8px_32px_rgba(0,0,0,0.35)] active:scale-[0.985]",
+        "shadow-[0_4px_20px_rgba(0,0,0,0.3)] active:scale-[0.985]",
         isB2B && "border-purple-500/20 hover:border-purple-500/40"
       )}
     >
-      <div className="relative z-10 flex flex-col gap-4">
-        <div className="flex items-start gap-4">
-          {/* Device Icon - Sequoia Style */}
+      <div className="relative z-10 flex flex-col gap-3">
+        {/* Top row: icon + customer + status */}
+        <div className="flex items-start gap-3">
           <div className={cn(
-            "flex h-12 w-12 sm:h-14 sm:w-14 shrink-0 items-center justify-center rounded-[20px] shadow-2xl transition-transform duration-300",
-            isB2B 
-              ? "bg-gradient-to-br from-purple-500 to-indigo-600 shadow-purple-500/20" 
-              : "bg-gradient-to-br from-blue-500 to-cyan-600 shadow-cyan-500/20"
+            "flex h-11 w-11 shrink-0 items-center justify-center rounded-[16px] shadow-lg",
+            isB2B
+              ? "bg-gradient-to-br from-purple-500 to-indigo-600"
+              : "bg-gradient-to-br from-blue-500 to-cyan-600"
           )}>
-            <DeviceIcon className="h-6 w-6 sm:h-7 sm:w-7 text-white drop-shadow-md" strokeWidth={2.5} />
+            <DeviceIcon className="h-5 w-5 text-white" strokeWidth={2.5} />
           </div>
 
           <div className="flex-1 min-w-0">
-            {/* Status & ID Row */}
-            <div className="flex items-center justify-between mb-1">
-              <span className={cn(
-                "inline-flex items-center rounded-full px-2 py-0.5 text-[9px] font-black uppercase tracking-[0.08em] border backdrop-blur-md",
-                statusConfig.colorClasses.replace('bg-opacity-10', 'bg-opacity-20').replace('border-opacity-20', 'border-opacity-30')
-              )}>
-                {statusConfig.label}
-              </span>
-              <p className="text-[10px] font-bold text-white/30 uppercase tracking-[0.12em]">
-                {order.order_number || "WO-LOCAL"}
-              </p>
-            </div>
-
-            {/* Customer Name */}
-            <h3 className="text-lg sm:text-xl font-black text-white truncate leading-tight tracking-tight">
+            <h3 className="text-[15px] font-black text-white truncate leading-tight">
               {order.customer_name || "Cliente"}
-              {isB2B && <span className="ml-1.5 inline-block text-[12px]">🏢</span>}
+              {isB2B && <span className="ml-1 text-[11px]">🏢</span>}
             </h3>
-          </div>
-        </div>
-
-        {/* Content Section */}
-        <div className="space-y-3">
-          {/* Device Model Info */}
-          <div className="bg-white/[0.03] border border-white/[0.05] rounded-xl p-3 flex items-center justify-between">
-            <p className="text-[13px] font-semibold text-white/80 truncate flex-1">
-              {deviceInfo || order.device_type || "Modelo no especificado"}
+            <p className="text-[10px] text-white/30 font-medium truncate mt-0.5">
+              {deviceInfo || order.device_type || "Dispositivo"} · <span className="text-white/20">{order.order_number || "LOCAL"}</span>
             </p>
-            <ChevronRight className="h-4 w-4 text-white/20" />
           </div>
 
-          <div className="flex items-center justify-between">
-            {/* Assignment Status */}
-            <div className={cn(
-              "inline-flex items-center gap-1.5 rounded-lg border px-2.5 py-1 transition-all duration-300",
-              isAssigned 
-                ? "border-emerald-500/10 bg-emerald-500/5 text-emerald-400/80" 
-                : "border-amber-500/10 bg-amber-500/5 text-amber-400/80"
-            )}>
-              <User className="h-3 w-3" />
-              <span className="text-[10px] font-black uppercase tracking-wide">
-                {isAssigned ? assignedLabel : "Sin asignar"}
-              </span>
-            </div>
-
-            {/* Icons Indicators */}
-            <div className="flex items-center gap-3">
-              {taskCount > 0 && (
-                <div className="flex items-center gap-1 text-emerald-400/60">
-                  <CheckCircle2 className="w-3 h-3" />
-                  <span className="text-[10px] font-black">{taskCount}</span>
-                </div>
-              )}
-              {photoCount > 0 && (
-                <div className="flex items-center gap-1 text-purple-400/60">
-                  <Camera className="w-3 h-3" />
-                  <span className="text-[10px] font-black">{photoCount}</span>
-                </div>
-              )}
-            </div>
-          </div>
+          <span className={cn(
+            "inline-flex items-center rounded-full px-2 py-0.5 text-[9px] font-black uppercase tracking-[0.08em] border shrink-0",
+            statusConfig.colorClasses
+          )}>
+            {statusConfig.label}
+          </span>
         </div>
 
-        {/* Footer info */}
-        <div className="flex items-center justify-between pt-3 border-t border-white/[0.05]">
-          <div className="flex items-center gap-2 text-white/30">
-            <Calendar className="w-3.5 h-3.5" />
-            <span className="text-[10px] font-black uppercase tracking-wide">
-              {format(new Date(order.created_date || Date.now()), "d MMM", { locale: es })}
-            </span>
+        {/* Footer: age + tech + badges + phone */}
+        <div className="flex items-center justify-between gap-2 pt-2.5 border-t border-white/[0.05]">
+          <div className="flex items-center gap-2 min-w-0 overflow-hidden">
+            <span className="text-[10px] font-bold text-white/25 shrink-0">{ageLabel}</span>
+            {assignedLabel && (
+              <span className="inline-flex items-center gap-1 rounded-lg border border-emerald-500/15 bg-emerald-500/5 px-2 py-0.5 text-emerald-400/80 text-[9px] font-black uppercase tracking-wide truncate max-w-[100px]">
+                <User className="h-2.5 w-2.5 shrink-0" />
+                <span className="truncate">{assignedLabel}</span>
+              </span>
+            )}
           </div>
-          <div className="flex items-center gap-2">
-            <CountdownBadge order={order} />
-            {(effectiveStatus === "warranty" || (effectiveStatus === "ready_for_pickup" && order.warranty_countdown?.days_remaining > 0)) && (
-              <div className="flex items-center gap-1 rounded-full bg-amber-500/20 text-amber-400 border border-amber-500/20 px-2 py-0.5 shadow-sm">
-                <Shield className="w-3 h-3" />
-                <span className="text-[9px] font-black uppercase tracking-tight">Garantía</span>
+
+          <div className="flex items-center gap-2 shrink-0">
+            {taskCount > 0 && (
+              <div className="flex items-center gap-0.5 text-emerald-400/50">
+                <CheckCircle2 className="w-3 h-3" />
+                <span className="text-[10px] font-black">{taskCount}</span>
               </div>
+            )}
+            {photoCount > 0 && (
+              <div className="flex items-center gap-0.5 text-purple-400/50">
+                <Camera className="w-3 h-3" />
+                <span className="text-[10px] font-black">{photoCount}</span>
+              </div>
+            )}
+            <CountdownBadge order={order} />
+            {effectiveStatus === "warranty" && (
+              <div className="flex items-center gap-1 rounded-full bg-amber-500/20 text-amber-400 border border-amber-500/20 px-1.5 py-0.5">
+                <Shield className="w-3 h-3" />
+                <span className="text-[9px] font-black uppercase tracking-tight">Gtía</span>
+              </div>
+            )}
+            {phone && (
+              <a
+                href={`tel:${phone}`}
+                onClick={e => e.stopPropagation()}
+                className="w-6 h-6 rounded-lg bg-white/[0.04] border border-white/10 flex items-center justify-center text-white/25 hover:text-white/70 hover:bg-white/10 transition-all active:scale-90"
+                title={phone}
+              >
+                <Phone className="w-3 h-3" />
+              </a>
             )}
           </div>
         </div>
@@ -711,11 +692,11 @@ export default function OrdersPage() {
                 <button
                   onClick={() => setShowStatusDropdown(!showStatusDropdown)}
                   className={`h-10 sm:h-11 px-4 sm:px-5 rounded-full text-sm font-bold whitespace-nowrap transition-all duration-300 border flex items-center gap-2 ${
-                  selectedStatus === "active" && !showB2BOnly ?
-                  "bg-gradient-to-r from-cyan-500 to-blue-500 text-white border-cyan-400 shadow-[0_0_20px_rgba(6,182,212,0.4)]" :
                   showB2BOnly ?
                   "bg-gradient-to-r from-purple-500 to-pink-500 text-white border-purple-400 shadow-[0_0_25px_rgba(168,85,247,0.5)]" :
-                  "bg-gradient-to-r from-purple-500 to-pink-500 text-white border-purple-400 shadow-[0_0_20px_rgba(168,85,247,0.4)]"}`
+                  selectedStatus !== "active" ?
+                  "bg-gradient-to-r from-purple-500 to-pink-500 text-white border-purple-400 shadow-[0_0_20px_rgba(168,85,247,0.4)]" :
+                  "bg-white/[0.06] text-white/60 border-white/10 hover:bg-white/10 hover:text-white/80"}`
                   }>
 
                   <Filter className="w-4 h-4" />
@@ -1014,6 +995,32 @@ export default function OrdersPage() {
                </Button>
              </div>
             )} */}
+
+            {/* Status strip */}
+            <div className="flex gap-2 overflow-x-auto no-scrollbar pb-1 mb-4">
+              {[
+                { label: "Activas", countKey: "active", color: "text-blue-400", bg: "bg-blue-500/10 border-blue-500/20", filter: "active" },
+                { label: "Para recoger", countKey: "ready_for_pickup", color: "text-emerald-400", bg: "bg-emerald-500/10 border-emerald-500/20", filter: "ready_for_pickup" },
+                { label: "Garantías", countKey: "warranty", color: "text-amber-400", bg: "bg-amber-500/10 border-amber-500/20", filter: "warranty" },
+                { label: "Cerradas", countKey: "closed", color: "text-white/40", bg: "bg-white/5 border-white/10", filter: "closed" },
+              ].map(chip => (
+                <button
+                  key={chip.filter}
+                  onClick={() => setSelectedStatus(chip.filter)}
+                  className={cn(
+                    "flex items-center gap-2 px-3 py-1.5 rounded-full border text-[11px] font-black whitespace-nowrap transition-all active:scale-95 shrink-0",
+                    selectedStatus === chip.filter
+                      ? `${chip.bg} ${chip.color}`
+                      : "bg-white/[0.03] border-white/[0.06] text-white/30 hover:text-white/50"
+                  )}
+                >
+                  <span>{chip.label}</span>
+                  <span className={cn("px-1.5 py-0.5 rounded-full text-[10px]", selectedStatus === chip.filter ? chip.bg : "bg-white/5")}>
+                    {statusCounts[chip.countKey] || 0}
+                  </span>
+                </button>
+              ))}
+            </div>
 
             {/* Grid de órdenes con animaciones */}
             <motion.div
