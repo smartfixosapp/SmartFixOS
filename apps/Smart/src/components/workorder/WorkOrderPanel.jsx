@@ -21,7 +21,7 @@ import { useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/components/utils/helpers";
 import { base44 } from "@/api/base44Client";
 import { sendTemplatedEmail } from "@/api/functions";
-import { navigateToPOS } from "../utils/posNavigation";
+
 import QuickPayModal from "@/components/pos/QuickPayModal";
 import UniversalPrintDialog from "../printing/UniversalPrintDialog";
 import { LinkifiedText } from "@/components/utils/linkify";
@@ -1195,29 +1195,7 @@ function OrderItemsSection({ order, onUpdated, clearEventCache, loadEventsCallba
   const isPaid = balance <= 0.01;
 
   const handleDepositoClick = () => {
-    // ✅ Cerrar panel antes de navegar al POS
-    if (onClose) onClose();
-    const items = [
-      ...(o.repair_tasks || []).map(t => ({ id: t.id, name: t.name || 'Servicio', price: t.cost || 0, cost: t.labor_cost || 0, taxable: t.taxable !== false, type: 'service', qty: 1 })),
-      ...(o.parts_needed || []).map(p => ({ id: p.id, name: p.name || 'Parte', price: p.price || 0, cost: p.cost_price || 0, taxable: p.taxable !== false, type: 'part', qty: p.quantity || 1 })),
-      ...(o.order_items || []).map(i => ({ ...i, price: i.price || 0, cost: i.cost || i.cost_price || 0, taxable: i.taxable !== false, qty: i.qty || i.quantity || 1 }))
-    ];
-    navigate(createPageUrl(`POS?workOrderId=${o.id}&balance=${balance}&mode=deposit`), {
-      state: { 
-        fromDashboard: true, 
-        paymentMode: "deposit", 
-        workOrder: o, 
-        items,
-        customer: {
-          id: o.customer_id,
-          name: o.customer_name,
-          phone: o.customer_phone,
-          email: o.customer_email
-        },
-        balanceDue: balance, 
-        openPaymentImmediately: true 
-      }
-    });
+    setQuickPayMode("deposit");
   };
 
 
