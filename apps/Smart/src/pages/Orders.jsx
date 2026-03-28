@@ -579,7 +579,7 @@ export default function OrdersPage() {
       className="min-h-screen bg-[#0A0A0A] theme-light:bg-gray-50 pb-24 overflow-y-auto"
       style={{
         WebkitOverflowScrolling: "touch",
-        paddingTop: "calc(env(safe-area-inset-top, 0px) + 6px)"
+        paddingTop: "6px"
       }}
     >
       {/* Pull-to-refresh indicator */}
@@ -599,7 +599,7 @@ export default function OrdersPage() {
       <div className="max-w-[1920px] mx-auto px-3 sm:px-6 py-4 sm:py-6">
         {/* Header Sequoia Style - Sticky on Mobile (tabs + actions combined) */}
         <div className="relative sticky z-40 bg-[#0A0A0A]/80 backdrop-blur-2xl -mx-3 px-3 py-2 border-b border-white/[0.05] sm:relative sm:z-0 sm:bg-transparent sm:backdrop-blur-none sm:border-none sm:p-0 sm:mb-6"
-          style={{ top: "env(safe-area-inset-top, 0px)" }}>
+          style={{ top: "0px" }}>
           {/* Row 1: Tabs */}
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
             <TabsList className="bg-white/5 border border-white/10 p-1 rounded-2xl w-full grid grid-cols-2 gap-1 shadow-lg">

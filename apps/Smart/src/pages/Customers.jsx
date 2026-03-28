@@ -142,7 +142,7 @@ export default function Customers() {
   return (
     <div
       className="min-h-screen bg-black pb-28"
-      style={{ paddingTop: "calc(env(safe-area-inset-top, 0px) + 6px)" }}
+      style={{ paddingTop: "6px" }}
     >
       {/* Ambient glow */}
       <div className="fixed -top-40 -right-40 w-80 h-80 bg-blue-500/8 rounded-full blur-[120px] pointer-events-none" />

@@ -819,7 +819,7 @@ export default function POSMobile() {
     <div className="h-screen bg-[#090909] flex flex-col overflow-hidden">
       <div
         className="flex-shrink-0 bg-[#0D0D0F] px-5 pb-5 border-b border-white/[0.08] z-20 relative"
-        style={{ paddingTop: "calc(env(safe-area-inset-top, 0px) + 20px)" }}
+        style={{ paddingTop: "20px" }}
       >
         <div className="flex items-center justify-between mb-6">
           <div>

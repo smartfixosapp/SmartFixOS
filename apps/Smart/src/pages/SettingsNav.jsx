@@ -79,7 +79,7 @@ export default function SettingsNav() {
   return (
     <div
       className="min-h-screen bg-black p-4 pb-24 text-white"
-      style={{ paddingTop: "calc(env(safe-area-inset-top, 0px) + 10px)" }}
+      style={{ paddingTop: "10px" }}
     >
       <div className="flex items-center gap-3 mb-8">
         <Button 

@@ -378,21 +378,12 @@ export default function Dashboard() {
 
     setLoading(true);
     try {
-      // ✅ OPTIMIZACIÓN: Cargar solo órdenes activas para reducir payload
-      let orderFilter =
-        sessionRef.current.userRole === "technician"
-          ? { 
-              assigned_to: sessionRef.current.userId, 
-              deleted: false,
-              status: { $nin: ["delivered", "cancelled", "completed"] }
-            }
-          : { 
-              deleted: false,
-              status: { $nin: ["delivered", "cancelled", "completed"] }
-            };
+      const closedStatuses = ["delivered", "cancelled", "completed", "picked_up"];
+      const isTech = sessionRef.current.userRole === "technician";
 
-      const [orders, recharges, products, services] = await Promise.all([
-        dataClient.entities.Order.filter(orderFilter, "-updated_date", 100).catch(err => {
+      const [allOrders, recharges, products, services] = await Promise.all([
+        // Usar .list() igual que Orders.jsx — más confiable que .filter() con $nin
+        dataClient.entities.Order.list("-updated_date", 300).catch(err => {
           console.error("Error loading orders:", err);
           return [];
         }),
@@ -421,11 +412,19 @@ export default function Dashboard() {
       const rechargesToday = (recharges || []).filter(r => new Date(r.created_date) >= today);
       setActiveRechargesCount(rechargesToday.length);
 
-      // ✅ Separar órdenes con optimización
+      // Filtrar localmente — más robusto que usar $nin en el servidor
+      const orders = (allOrders || []).filter(o => {
+        if (o.deleted) return false;
+        const s = getEffectiveOrderStatus(o);
+        if (closedStatuses.includes(s)) return false;
+        // Si es técnico, solo sus órdenes
+        if (isTech && o.assigned_to !== sessionRef.current.userId) return false;
+        return true;
+      });
+
       const activeOrders = [];
       const unlockOrders = [];
-      
-      for (const o of (orders || [])) {
+      for (const o of orders) {
         if (o.device_type === "Software" || (o.order_number && o.order_number.startsWith("SW-"))) {
           unlockOrders.push(o);
         } else {
@@ -878,7 +877,7 @@ export default function Dashboard() {
   if (!session) return null;
 
   return (
-    <div className="min-h-screen pb-20 md:pb-6">
+    <div className="min-h-screen pb-20 md:h-screen md:overflow-hidden md:pb-0">
       <Toast toast={toast} onClose={() => setToast(null)} />
 
       {/* Wizard primer inicio — solo para tenants nuevos */}
@@ -899,16 +898,16 @@ export default function Dashboard() {
         />
       )}
 
-      <div className="px-2 sm:px-3 md:px-6 lg:px-8 xl:px-12 2xl:px-16 pt-2 md:pt-6 lg:pt-8 pb-6">
-        <div className="max-w-[2560px] mx-auto space-y-4 md:space-y-6">
+      <div className="px-2 sm:px-3 md:px-6 lg:px-8 xl:px-12 2xl:px-16 pt-2 md:pt-4 lg:pt-6 pb-6 md:h-full md:flex md:flex-col">
+        <div className="max-w-[2560px] mx-auto space-y-4 md:space-y-0 md:h-full md:flex md:flex-col">
           
           {/* === DESKTOP: PULSO === */}
-          <div className="hidden md:block bg-[#121215]/40 backdrop-blur-[40px] border border-white/10 rounded-[40px] p-8 lg:p-10 shadow-[0_32px_80px_rgba(0,0,0,0.45)] relative overflow-hidden">
+          <div className="hidden md:flex md:flex-col md:flex-1 md:min-h-0 bg-[#121215]/40 backdrop-blur-[40px] border border-white/10 rounded-[40px] p-6 lg:p-8 shadow-[0_32px_80px_rgba(0,0,0,0.45)] relative overflow-hidden">
             <div className="absolute inset-0 bg-gradient-to-b from-white/[0.05] to-transparent pointer-events-none" />
             <div className="absolute inset-0 border border-white/10 rounded-[40px] pointer-events-none shadow-[inset_0_1px_1px_rgba(255,255,255,0.1)]" />
 
             {/* Header row */}
-            <div className="flex flex-wrap items-center justify-between gap-4 lg:gap-6 mb-8 relative z-10">
+            <div className="flex flex-wrap items-center justify-between gap-4 lg:gap-6 mb-5 relative z-10 shrink-0">
               <div className="flex items-center gap-3 lg:gap-4">
                 <div className="flex items-center gap-4 bg-white/5 border border-white/10 rounded-full pl-1 pr-6 py-1.5 backdrop-blur-2xl shadow-[inset_0_1px_0_rgba(255,255,255,0.08)]">
                   <div className="w-10 h-10 lg:w-12 lg:h-12 rounded-full bg-gradient-to-tr from-sky-400 via-blue-500 to-indigo-600 flex items-center justify-center shadow-[0_8px_20px_rgba(14,165,233,0.3)] border border-white/20">
@@ -942,7 +941,7 @@ export default function Dashboard() {
               const todayProfit = kpiIncome.today - kpiIncome.todayExpenses;
               const goalPct = kpiDailyGoal > 0 ? Math.min(100, Math.round((kpiIncome.today / kpiDailyGoal) * 100)) : 0;
               return (
-                <div className="flex gap-3 mb-8 relative z-10">
+                <div className="flex gap-3 mb-5 relative z-10 shrink-0">
                   <div className="flex-1 rounded-2xl border border-emerald-500/20 bg-emerald-500/10 px-5 py-4 flex items-center gap-4">
                     <div className="w-10 h-10 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center shrink-0">
                       <DollarSign className="w-5 h-5 text-emerald-400" />
@@ -987,9 +986,9 @@ export default function Dashboard() {
             })()}
 
             {/* Body: Feed + Quick Nav */}
-            <div className="grid grid-cols-1 lg:grid-cols-[1fr_220px] gap-5 relative z-10">
+            <div className="grid grid-cols-1 lg:grid-cols-[1fr_220px] gap-5 relative z-10 flex-1 min-h-0">
               {/* Priority Feed */}
-              <div className="bg-white/[0.02] border border-white/[0.06] rounded-[28px] overflow-hidden">
+              <div className="bg-white/[0.02] border border-white/[0.06] rounded-[28px] overflow-hidden flex flex-col min-h-0">
                 <div className="flex items-center justify-between px-5 py-4 border-b border-white/[0.05]">
                   <div className="flex items-center gap-2.5">
                     <div className={cn("w-7 h-7 rounded-xl border flex items-center justify-center transition-colors", feedFilter ? "bg-indigo-500/10 border-indigo-500/20" : "bg-white/5 border-white/10")}>
@@ -1010,7 +1009,7 @@ export default function Dashboard() {
                     </span>
                   )}
                 </div>
-                <div className="divide-y divide-white/[0.04] max-h-[400px] overflow-y-auto no-scrollbar">
+                <div className="divide-y divide-white/[0.04] flex-1 overflow-y-auto no-scrollbar">
                   {visibleFeedItems.map(item => (
                     <button
                       key={item.id}
@@ -1045,7 +1044,7 @@ export default function Dashboard() {
               </div>
 
               {/* Quick Nav */}
-              <div className="flex flex-col gap-3">
+              <div className="flex flex-col gap-3 min-h-0">
                 <button onClick={() => setShowWorkOrderWizard(true)} className="flex-1 min-h-[72px] bg-blue-500/10 border border-blue-500/20 rounded-[24px] flex flex-col items-center justify-center gap-2 hover:bg-blue-500/15 active:scale-95 transition-all">
                   <ClipboardList className="w-5 h-5 text-blue-400" />
                   <span className="text-[10px] font-black text-blue-400/80 uppercase tracking-tight">Nueva Orden</span>

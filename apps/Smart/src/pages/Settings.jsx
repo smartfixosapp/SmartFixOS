@@ -775,7 +775,7 @@ export default function SettingsPage() {
     return (
       <div
         className="min-h-screen bg-black/90 backdrop-blur-3xl theme-light:bg-gray-50 p-4 sm:p-6 relative"
-        style={{ paddingTop: "calc(env(safe-area-inset-top, 0px) + 10px)" }}
+        style={{ paddingTop: "10px" }}
       >
         {/* Fondos animados flotantes */}
         <div className="fixed -top-40 -right-40 w-96 h-96 bg-gradient-to-br from-purple-500/10 to-pink-500/10 rounded-full blur-[120px] animate-pulse pointer-events-none" />
@@ -1338,7 +1338,7 @@ export default function SettingsPage() {
   return (
     <div
       className="min-h-screen bg-black/90 backdrop-blur-3xl theme-light:bg-gray-50 p-4 sm:p-6 relative"
-      style={{ paddingTop: "calc(env(safe-area-inset-top, 0px) + 10px)" }}
+      style={{ paddingTop: "10px" }}
     >
       {/* Fondos animados flotantes estilo macOS Sequoia */}
       <div className="fixed -top-60 -right-60 w-[500px] h-[500px] bg-gradient-to-br from-purple-500/15 to-pink-500/10 rounded-full blur-[140px] animate-pulse pointer-events-none" />
