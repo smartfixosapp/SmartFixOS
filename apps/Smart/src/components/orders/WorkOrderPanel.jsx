@@ -24,6 +24,7 @@ import WorkOrderTimeline from "./workorder/WorkOrderTimeline";
 import WorkOrderProgress from "./workorder/WorkOrderProgress";
 import OrderPhotosGallery from "./OrderPhotosGallery";
 import OrderChecklistBadges from "./OrderChecklistBadges";
+import QuickPayModal from "@/components/pos/QuickPayModal";
 
 // --- servicio seguro ---
 const SafeOrderService = {
@@ -56,6 +57,11 @@ export default function WorkOrderPanelV2({ orderId, onClose, onUpdate, user }) {
   const [featureFlags, setFeatureFlags] = useState({});
   const [currentStep, setCurrentStep] = useState(0);
   const stepContainerRef = useRef(null);
+  const [quickPayMode, setQuickPayMode] = useState(null);
+
+  const handlePaymentClick = useCallback((mode) => {
+    setQuickPayMode(mode || "full");
+  }, []);
 
   // cargar flags
   useEffect(() => {
@@ -411,8 +417,8 @@ export default function WorkOrderPanelV2({ orderId, onClose, onUpdate, user }) {
         ref={stepContainerRef}
         className="flex-1 overflow-y-auto app-scroll p-4 space-y-6"
       >
-        <WorkOrderInfoHeader order={order} onUpdate={handleRefresh} user={user} changeStatus={changeStatus} />
-        <WorkOrderProgress order={order} onUpdate={onUpdate} user={user} changeStatus={changeStatus} />
+        <WorkOrderInfoHeader order={order} onUpdate={handleRefresh} user={user} changeStatus={changeStatus} onPaymentClick={handlePaymentClick} />
+        <WorkOrderProgress order={order} onUpdate={onUpdate} user={user} changeStatus={changeStatus} onPaymentClick={handlePaymentClick} />
 
         {order.photos_metadata?.length > 0 && (
           <Card className="bg-white/5 border border-white/5 rounded-[24px]">
@@ -447,6 +453,20 @@ export default function WorkOrderPanelV2({ orderId, onClose, onUpdate, user }) {
         <WorkOrderItems order={order} onUpdate={loadOrder} />
         <WorkOrderTimeline orderId={order.id} />
       </div>
+
+      {quickPayMode && order && (
+        <QuickPayModal
+          order={order}
+          paymentMode={quickPayMode}
+          onClose={() => setQuickPayMode(null)}
+          onSuccess={async ({ updatedOrder }) => {
+            setQuickPayMode(null);
+            if (updatedOrder?.id) setOrder((prev) => ({ ...(prev || {}), ...updatedOrder }));
+            await loadOrder();
+            onUpdate?.();
+          }}
+        />
+      )}
     </div>
   );
 }

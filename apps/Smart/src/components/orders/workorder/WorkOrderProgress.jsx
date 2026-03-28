@@ -44,7 +44,7 @@ const STATUS = {
 };
 const STATUS_LIST = Object.keys(STATUS);
 
-export default function WorkOrderProgress({ order, onUpdate, user, changeStatus }) {
+export default function WorkOrderProgress({ order, onUpdate, user, changeStatus, onPaymentClick }) {
   const nav = useNavigate();
   const displayStatus = optimisticStatus || order?.status;
   const st = STATUS[displayStatus] || STATUS.intake;
@@ -117,7 +117,11 @@ export default function WorkOrderProgress({ order, onUpdate, user, changeStatus 
       }
 
     if (newStatus === "completed") {
-      navigateToPOS(order, nav, { fromDashboard: true, openPaymentImmediately: true });
+      if (onPaymentClick) {
+        onPaymentClick("full");
+      } else {
+        navigateToPOS(order, nav, { fromDashboard: true, openPaymentImmediately: true });
+      }
     }
 
       onUpdate?.({});

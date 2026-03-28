@@ -153,7 +153,7 @@ const priorityChip = (p) => {
 };
 
 /* ================= PANEL ================= */
-export default function WorkOrderPanel({ order, onUpdate, onClose, onDelete }) {
+export default function WorkOrderPanel({ order, onUpdate, onClose, onDelete, onPaymentClick }) {
   const nav = useNavigate();
   const [user, setUser] = useState(null);
   const [assignedUser, setAssignedUser] = useState(null);
@@ -188,7 +188,11 @@ export default function WorkOrderPanel({ order, onUpdate, onClose, onDelete }) {
   }, [order?.id, order?.assigned_to, order?.assigned_to_name]);
 
   const handleGoToPOS = () => {
-    navigateToPOS(order, nav, { fromDashboard: true, openPaymentImmediately: true });
+    if (onPaymentClick) {
+      onPaymentClick("full");
+    } else {
+      navigateToPOS(order, nav, { fromDashboard: true, openPaymentImmediately: true });
+    }
   };
 
   const handleChildUpdate = async (data) => {
@@ -511,7 +515,7 @@ export default function WorkOrderPanel({ order, onUpdate, onClose, onDelete }) {
         <div className="max-w-5xl mx-auto px-3 sm:px-4 py-2">
           <div className="flex items-center justify-between gap-2">
             <div className="flex-1">
-              <WorkOrderProgress order={order} onUpdate={handleChildUpdate} user={user} changeStatus={changeStatus} />
+              <WorkOrderProgress order={order} onUpdate={handleChildUpdate} user={user} changeStatus={changeStatus} onPaymentClick={onPaymentClick} />
             </div>
             <div className="hidden sm:flex items-center gap-2">
               <Button onClick={handleGoToPOS} className="bg-green-600 hover:bg-green-700 h-10">
