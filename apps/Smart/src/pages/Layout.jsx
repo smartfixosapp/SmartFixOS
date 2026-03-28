@@ -307,13 +307,13 @@ export default function Layout({ children }) {
       )}
 
       {/* === Contenido === */}
-      <main 
+      <main
         ref={mainRef}
-        className="flex-1 overflow-y-auto overflow-x-hidden px-2 sm:px-4 md:px-5 pt-[calc(env(safe-area-inset-top,0px)+8px)] md:pt-4 pb-[calc(88px+env(safe-area-inset-bottom,0px))] md:pb-4 relative"
+        className={`flex-1 overflow-x-hidden px-2 sm:px-4 md:px-5 pt-[calc(env(safe-area-inset-top,0px)+8px)] md:pt-4 pb-[calc(88px+env(safe-area-inset-bottom,0px))] md:pb-4 relative ${isDashboard ? 'overflow-hidden flex flex-col' : 'overflow-y-auto'}`}
         data-pointer-overlay="off"
-        style={{ WebkitOverflowScrolling: 'touch', scrollBehavior: 'smooth' }}
+        style={{ WebkitOverflowScrolling: isDashboard ? 'auto' : 'touch', scrollBehavior: 'smooth' }}
       >
-        <div data-pointer-target="on">
+        <div data-pointer-target="on" className={isDashboard ? 'flex flex-col flex-1 min-h-0' : ''}>
           <AnimatePresence mode="wait">
             <motion.div
               key={location.pathname}
@@ -324,7 +324,7 @@ export default function Layout({ children }) {
                 duration: 0.2,
                 ease: [0.25, 0.1, 0.25, 1]
               }}
-              className="h-full"
+              className={isDashboard ? "flex flex-col flex-1 min-h-0" : "h-full"}
             >
               {children}
             </motion.div>

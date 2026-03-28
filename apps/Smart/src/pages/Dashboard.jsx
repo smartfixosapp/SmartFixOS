@@ -911,8 +911,8 @@ export default function Dashboard() {
         />
       )}
 
-      <div className="px-2 sm:px-3 md:px-6 lg:px-8 xl:px-12 2xl:px-16 pt-2 md:pt-4 lg:pt-6 pb-0 h-full flex flex-col md:pb-0">
-        <div className="max-w-[2560px] mx-auto h-full flex flex-col md:space-y-0">
+      <div className="pt-1 md:pt-2 lg:pt-3 h-full flex flex-col">
+        <div className="max-w-[2560px] mx-auto w-full h-full flex flex-col">
           
           {/* === DESKTOP: PULSO — layout horizontal (left panel | right feed) === */}
           <div className="hidden md:flex md:flex-row md:flex-1 md:min-h-0 bg-[#121215]/40 backdrop-blur-[40px] border border-white/10 rounded-[40px] shadow-[0_32px_80px_rgba(0,0,0,0.45)] relative overflow-hidden">
