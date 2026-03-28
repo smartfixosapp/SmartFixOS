@@ -1160,7 +1160,7 @@ export default function Dashboard() {
                   </span>
                 )}
               </div>
-              <div className="divide-y divide-white/[0.04] max-h-[420px] overflow-y-auto">
+              <div className="divide-y divide-white/[0.04] max-h-[260px] overflow-y-auto">
                 {visibleFeedItems.map(item => (
                   <button
                     key={item.id}
