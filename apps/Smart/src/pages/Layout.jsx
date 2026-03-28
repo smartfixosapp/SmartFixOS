@@ -309,7 +309,10 @@ export default function Layout({ children }) {
       {/* === Contenido === */}
       <main
         ref={mainRef}
-        className={`flex-1 overflow-x-hidden px-2 sm:px-4 md:px-5 pt-[calc(env(safe-area-inset-top,0px)+8px)] md:pt-4 pb-[calc(88px+env(safe-area-inset-bottom,0px))] md:pb-4 relative ${isDashboard ? 'overflow-hidden flex flex-col' : 'overflow-y-auto'}`}
+        className={isDashboard
+          ? 'flex-1 overflow-hidden overflow-x-hidden flex flex-col relative'
+          : 'flex-1 overflow-y-auto overflow-x-hidden px-2 sm:px-4 md:px-5 pt-[calc(env(safe-area-inset-top,0px)+8px)] md:pt-4 pb-[calc(88px+env(safe-area-inset-bottom,0px))] md:pb-4 relative'
+        }
         data-pointer-overlay="off"
         style={{ WebkitOverflowScrolling: isDashboard ? 'auto' : 'touch', scrollBehavior: 'smooth' }}
       >
