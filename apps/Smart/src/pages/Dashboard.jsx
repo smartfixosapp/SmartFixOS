@@ -935,61 +935,88 @@ export default function Dashboard() {
               </div>
             </div>
 
-            {/* KPI chips — 3 numbers */}
-            {(() => {
-              const fmt = (n) => `$${Number(n||0).toLocaleString("en-US",{maximumFractionDigits:0})}`;
-              const todayProfit = kpiIncome.today - kpiIncome.todayExpenses;
-              const goalPct = kpiDailyGoal > 0 ? Math.min(100, Math.round((kpiIncome.today / kpiDailyGoal) * 100)) : 0;
-              return (
-                <div className="flex gap-3 mb-5 relative z-10 shrink-0">
-                  <div className="flex-1 rounded-2xl border border-emerald-500/20 bg-emerald-500/10 px-5 py-4 flex items-center gap-4">
-                    <div className="w-10 h-10 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center shrink-0">
-                      <DollarSign className="w-5 h-5 text-emerald-400" />
-                    </div>
-                    <div className="min-w-0">
-                      <p className="text-2xl font-black text-emerald-400 leading-tight">{kpiIncome.loading ? "…" : fmt(kpiIncome.today)}</p>
-                      <p className="text-[11px] text-white/30 font-bold truncate">Ingresos hoy · {fmt(todayProfit)} ganancia</p>
-                    </div>
-                    {kpiDailyGoal > 0 && (
-                      <div className="ml-auto text-right shrink-0">
-                        <p className={`text-xl font-black ${goalPct >= 100 ? 'text-yellow-400' : goalPct >= 70 ? 'text-emerald-400' : 'text-blue-400'}`}>{goalPct}%</p>
-                        <p className="text-[10px] text-white/20 font-bold">meta diaria</p>
-                      </div>
-                    )}
-                  </div>
-                  <button
-                    onClick={() => setFeedFilter(f => f === 'urgent' ? null : 'urgent')}
-                    className={cn("min-w-[160px] rounded-2xl border px-5 py-4 flex items-center gap-4 transition-all active:scale-95", feedFilter === 'urgent' ? "border-indigo-400/50 bg-indigo-500/20 shadow-[0_0_20px_rgba(99,102,241,0.2)]" : "border-indigo-500/20 bg-indigo-500/10 hover:bg-indigo-500/15")}
-                  >
-                    <div className="w-10 h-10 rounded-xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center shrink-0">
-                      <Wrench className="w-5 h-5 text-indigo-400" />
-                    </div>
-                    <div className="text-left">
-                      <p className="text-2xl font-black text-indigo-400 leading-tight">{kpiStats.active}</p>
-                      <p className="text-[11px] text-white/30 font-bold">{feedFilter === 'urgent' ? '▾ mostrando en feed' : 'Órdenes activas'}</p>
-                    </div>
-                  </button>
-                  <button
-                    onClick={() => setFeedFilter(f => f === 'ready' ? null : 'ready')}
-                    className={cn("min-w-[160px] rounded-2xl border px-5 py-4 flex items-center gap-4 transition-all active:scale-95", feedFilter === 'ready' ? "border-cyan-400/50 bg-cyan-500/20 shadow-[0_0_20px_rgba(6,182,212,0.2)]" : "border-cyan-500/20 bg-cyan-500/10 hover:bg-cyan-500/15")}
-                  >
-                    <div className="w-10 h-10 rounded-xl bg-cyan-500/10 border border-cyan-500/20 flex items-center justify-center shrink-0">
-                      <PackageCheck className="w-5 h-5 text-cyan-400" />
-                    </div>
-                    <div className="text-left">
-                      <p className="text-2xl font-black text-cyan-400 leading-tight">{kpiStats.readyToPickup}</p>
-                      <p className="text-[11px] text-white/30 font-bold">{feedFilter === 'ready' ? '▾ mostrando en feed' : 'Para recoger'}</p>
-                    </div>
-                  </button>
-                </div>
-              );
-            })()}
+            {/* Body: Left sidebar (KPIs + Quick Nav) + Feed */}
+            <div className="flex gap-5 relative z-10 flex-1 min-h-0">
 
-            {/* Body: Feed + Quick Nav */}
-            <div className="grid grid-cols-1 lg:grid-cols-[1fr_220px] gap-5 relative z-10 flex-1 min-h-0">
-              {/* Priority Feed */}
-              <div className="bg-white/[0.02] border border-white/[0.06] rounded-[28px] overflow-hidden flex flex-col min-h-0">
-                <div className="flex items-center justify-between px-5 py-4 border-b border-white/[0.05]">
+              {/* ── Left sidebar ── */}
+              <div className="w-[220px] xl:w-[260px] shrink-0 flex flex-col gap-2.5">
+                {/* KPI cards stacked vertically */}
+                {(() => {
+                  const fmt = (n) => `$${Number(n||0).toLocaleString("en-US",{maximumFractionDigits:0})}`;
+                  const todayProfit = kpiIncome.today - kpiIncome.todayExpenses;
+                  const goalPct = kpiDailyGoal > 0 ? Math.min(100, Math.round((kpiIncome.today / kpiDailyGoal) * 100)) : 0;
+                  return (
+                    <>
+                      {/* Ingresos */}
+                      <div className="rounded-2xl border border-emerald-500/20 bg-emerald-500/10 px-4 py-3.5 flex items-center gap-3 shrink-0">
+                        <div className="w-9 h-9 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center shrink-0">
+                          <DollarSign className="w-4 h-4 text-emerald-400" />
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <p className="text-xl font-black text-emerald-400 leading-tight">{kpiIncome.loading ? "…" : fmt(kpiIncome.today)}</p>
+                          <p className="text-[10px] text-white/30 font-bold truncate">Ingresos hoy</p>
+                          {kpiDailyGoal > 0 && (
+                            <p className={`text-[10px] font-black ${goalPct >= 100 ? 'text-yellow-400' : goalPct >= 70 ? 'text-emerald-400' : 'text-blue-400'}`}>{goalPct}% meta · {fmt(todayProfit)} ganancia</p>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Activas */}
+                      <button
+                        onClick={() => setFeedFilter(f => f === 'urgent' ? null : 'urgent')}
+                        className={cn("rounded-2xl border px-4 py-3.5 flex items-center gap-3 transition-all active:scale-95 shrink-0", feedFilter === 'urgent' ? "border-indigo-400/50 bg-indigo-500/20 shadow-[0_0_20px_rgba(99,102,241,0.2)]" : "border-indigo-500/20 bg-indigo-500/10 hover:bg-indigo-500/15")}
+                      >
+                        <div className="w-9 h-9 rounded-xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center shrink-0">
+                          <Wrench className="w-4 h-4 text-indigo-400" />
+                        </div>
+                        <div className="text-left">
+                          <p className="text-xl font-black text-indigo-400 leading-tight">{kpiStats.active}</p>
+                          <p className="text-[10px] text-white/30 font-bold">{feedFilter === 'urgent' ? '▾ filtrado en feed' : 'Órdenes activas'}</p>
+                        </div>
+                      </button>
+
+                      {/* Para recoger */}
+                      <button
+                        onClick={() => setFeedFilter(f => f === 'ready' ? null : 'ready')}
+                        className={cn("rounded-2xl border px-4 py-3.5 flex items-center gap-3 transition-all active:scale-95 shrink-0", feedFilter === 'ready' ? "border-cyan-400/50 bg-cyan-500/20 shadow-[0_0_20px_rgba(6,182,212,0.2)]" : "border-cyan-500/20 bg-cyan-500/10 hover:bg-cyan-500/15")}
+                      >
+                        <div className="w-9 h-9 rounded-xl bg-cyan-500/10 border border-cyan-500/20 flex items-center justify-center shrink-0">
+                          <PackageCheck className="w-4 h-4 text-cyan-400" />
+                        </div>
+                        <div className="text-left">
+                          <p className="text-xl font-black text-cyan-400 leading-tight">{kpiStats.readyToPickup}</p>
+                          <p className="text-[10px] text-white/30 font-bold">{feedFilter === 'ready' ? '▾ filtrado en feed' : 'Para recoger'}</p>
+                        </div>
+                      </button>
+                    </>
+                  );
+                })()}
+
+                {/* Divider */}
+                <div className="border-t border-white/[0.06] my-0.5 shrink-0" />
+
+                {/* Quick Nav */}
+                <button onClick={() => setShowWorkOrderWizard(true)} className="flex-1 min-h-[52px] bg-blue-500/10 border border-blue-500/20 rounded-[20px] flex items-center gap-3 px-4 hover:bg-blue-500/15 active:scale-95 transition-all">
+                  <ClipboardList className="w-4 h-4 text-blue-400 shrink-0" />
+                  <span className="text-[11px] font-black text-blue-400/80 uppercase tracking-tight">Nueva Orden</span>
+                </button>
+                <button onClick={() => handleNavigate("POS")} className="flex-1 min-h-[52px] bg-emerald-500/10 border border-emerald-500/20 rounded-[20px] flex items-center gap-3 px-4 hover:bg-emerald-500/15 active:scale-95 transition-all">
+                  <Wallet className="w-4 h-4 text-emerald-400 shrink-0" />
+                  <span className="text-[11px] font-black text-emerald-400/80 uppercase tracking-tight">POS</span>
+                </button>
+                <button onClick={() => handleNavigate("Inventory")} className="flex-1 min-h-[52px] bg-orange-500/10 border border-orange-500/20 rounded-[20px] flex items-center gap-3 px-4 hover:bg-orange-500/15 active:scale-95 transition-all">
+                  <Package className="w-4 h-4 text-orange-400 shrink-0" />
+                  <span className="text-[11px] font-black text-orange-400/80 uppercase tracking-tight">Inventario</span>
+                </button>
+                <button onClick={() => handleNavigate("Financial")} className="flex-1 min-h-[52px] bg-purple-500/10 border border-purple-500/20 rounded-[20px] flex items-center gap-3 px-4 hover:bg-purple-500/15 active:scale-95 transition-all">
+                  <BarChart3 className="w-4 h-4 text-purple-400 shrink-0" />
+                  <span className="text-[11px] font-black text-purple-400/80 uppercase tracking-tight">Finanzas</span>
+                </button>
+              </div>
+
+              {/* ── Priority Feed (right, fills remaining space) ── */}
+              <div className="flex-1 bg-white/[0.02] border border-white/[0.06] rounded-[28px] overflow-hidden flex flex-col min-h-0">
+                <div className="flex items-center justify-between px-5 py-4 border-b border-white/[0.05] shrink-0">
                   <div className="flex items-center gap-2.5">
                     <div className={cn("w-7 h-7 rounded-xl border flex items-center justify-center transition-colors", feedFilter ? "bg-indigo-500/10 border-indigo-500/20" : "bg-white/5 border-white/10")}>
                       <Bell className={cn("w-3.5 h-3.5 transition-colors", feedFilter ? "text-indigo-400" : "text-white/50")} />
@@ -1009,7 +1036,7 @@ export default function Dashboard() {
                     </span>
                   )}
                 </div>
-                <div className="divide-y divide-white/[0.04] flex-1 overflow-y-auto no-scrollbar">
+                <div className="divide-y divide-white/[0.04] flex-1 overflow-y-auto">
                   {visibleFeedItems.map(item => (
                     <button
                       key={item.id}
@@ -1043,25 +1070,6 @@ export default function Dashboard() {
                 </div>
               </div>
 
-              {/* Quick Nav */}
-              <div className="flex flex-col gap-3 min-h-0">
-                <button onClick={() => setShowWorkOrderWizard(true)} className="flex-1 min-h-[72px] bg-blue-500/10 border border-blue-500/20 rounded-[24px] flex flex-col items-center justify-center gap-2 hover:bg-blue-500/15 active:scale-95 transition-all">
-                  <ClipboardList className="w-5 h-5 text-blue-400" />
-                  <span className="text-[10px] font-black text-blue-400/80 uppercase tracking-tight">Nueva Orden</span>
-                </button>
-                <button onClick={() => handleNavigate("POS")} className="flex-1 min-h-[72px] bg-emerald-500/10 border border-emerald-500/20 rounded-[24px] flex flex-col items-center justify-center gap-2 hover:bg-emerald-500/15 active:scale-95 transition-all">
-                  <Wallet className="w-5 h-5 text-emerald-400" />
-                  <span className="text-[10px] font-black text-emerald-400/80 uppercase tracking-tight">POS</span>
-                </button>
-                <button onClick={() => handleNavigate("Inventory")} className="flex-1 min-h-[72px] bg-orange-500/10 border border-orange-500/20 rounded-[24px] flex flex-col items-center justify-center gap-2 hover:bg-orange-500/15 active:scale-95 transition-all">
-                  <Package className="w-5 h-5 text-orange-400" />
-                  <span className="text-[10px] font-black text-orange-400/80 uppercase tracking-tight">Inventario</span>
-                </button>
-                <button onClick={() => handleNavigate("Financial")} className="flex-1 min-h-[72px] bg-purple-500/10 border border-purple-500/20 rounded-[24px] flex flex-col items-center justify-center gap-2 hover:bg-purple-500/15 active:scale-95 transition-all">
-                  <BarChart3 className="w-5 h-5 text-purple-400" />
-                  <span className="text-[10px] font-black text-purple-400/80 uppercase tracking-tight">Finanzas</span>
-                </button>
-              </div>
             </div>
           </div>
 
@@ -1155,7 +1163,7 @@ export default function Dashboard() {
                   </span>
                 )}
               </div>
-              <div className="divide-y divide-white/[0.04]">
+              <div className="divide-y divide-white/[0.04] max-h-[420px] overflow-y-auto">
                 {visibleFeedItems.map(item => (
                   <button
                     key={item.id}
