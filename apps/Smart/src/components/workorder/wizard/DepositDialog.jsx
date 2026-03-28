@@ -14,16 +14,13 @@ import { Textarea } from "@/components/ui/textarea";
 import { DollarSign, CreditCard, Smartphone, MoreHorizontal, Wallet, Check } from "lucide-react";
 import { toast } from "sonner";
 import { useDeviceDetection } from "@/components/utils/useDeviceDetection";
-import { useNavigate } from "react-router-dom";
-import { createPageUrl } from "@/components/utils/helpers";
 import { SendEmail } from "@/api/integrations";
 import { recordSaleAndTransactions, resolveActiveTenantId } from "@/components/financial/recordSale";
 import { upsertLocalOrder } from "@/components/utils/localOrderCache";
 import { upsertLocalSale, upsertLocalTransactions } from "@/components/utils/localFinancialCache";
 
 export default function DepositDialog({ open, onClose, order, onSuccess, isCreating = false, onDepositData }) {
-  const { isDesktop, isMobile, isTablet } = useDeviceDetection();
-  const navigate = useNavigate();
+  const { isDesktop } = useDeviceDetection();
   const [amount, setAmount] = useState("");
   const [paymentMethod, setPaymentMethod] = useState("cash");
   const [notes, setNotes] = useState("");
@@ -87,25 +84,6 @@ export default function DepositDialog({ open, onClose, order, onSuccess, isCreat
       } else {
         toast.error("Por favor ingresa un monto válido mayor a 0");
       }
-      return;
-    }
-
-    // MÓVIL/TABLET: Redirigir al POS con datos pre-cargados
-    if (isMobile || isTablet) {
-      const depositData = {
-        orderId: order?.id,
-        orderNumber: order?.order_number,
-        customerId: order?.customer_id,
-        customerName: order?.customer_name,
-        depositAmount: depositAmount,
-        paymentMethod: paymentMethod,
-        notes: notes,
-        balanceDue: balanceDue
-      };
-      
-      sessionStorage.setItem('pendingDeposit', JSON.stringify(depositData));
-      navigate(createPageUrl('POS'));
-      onClose();
       return;
     }
 
@@ -291,7 +269,7 @@ export default function DepositDialog({ open, onClose, order, onSuccess, isCreat
 
   // Contenido compartido entre Dialog y Sheet
   const contentBody = (
-    <div className="overflow-y-auto flex-1 px-4 py-4 space-y-4" style={{ maxHeight: 'calc(90vh - 160px)' }}>
+    <div className="overflow-y-auto flex-1 min-h-0 px-4 py-4 space-y-4">
           
           {/* Resumen de la Orden */}
           <div className="bg-gray-900/50 rounded-xl p-3 border border-gray-800 space-y-1.5">
