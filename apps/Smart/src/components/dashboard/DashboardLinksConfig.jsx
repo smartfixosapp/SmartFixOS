@@ -10,7 +10,7 @@ import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 
-const DASHBOARD_WIDGETS_KEY = "smartfix_dashboard_widgets";
+const DASHBOARD_WIDGETS_KEY = "smartfix_dashboard_widgets_v2";
 const CUSTOM_WIDGETS_KEY = "smartfix_custom_link_widgets";
 
 const AVAILABLE_WIDGETS = [
