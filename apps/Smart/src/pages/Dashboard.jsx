@@ -844,26 +844,39 @@ export default function Dashboard() {
 
   // ── Priority Feed: unified list of items needing attention
   const priorityFeedItems = useMemo(() => {
+    // Safe date helper — returns null for null/invalid/epoch dates
+    const safeDate = (raw) => {
+      if (!raw) return null;
+      const d = new Date(raw);
+      if (isNaN(d.getTime())) return null;
+      // Reject epoch (1970) — means DB date field was null and got converted to 0
+      if (d.getFullYear() < 2000) return null;
+      return d;
+    };
+    const orderDate = (o) => safeDate(o.updated_date) || safeDate(o.created_date) || new Date();
+    const daysSince = (o) => Math.max(0, Math.round((Date.now() - orderDate(o)) / 86400000));
+    const hrsSince  = (o) => Math.max(0, Math.round((Date.now() - orderDate(o)) / 3600000));
+
     const items = [];
     urgentOrdersList.forEach(o => {
-      const daysOld = Math.round((Date.now() - new Date(o.updated_date || o.created_date)) / (1000 * 60 * 60 * 24));
-      items.push({ type: 'urgent', priority: 1, id: `urgent-${o.id}`, title: o.customer_name || "Cliente", sub: `${o.device_model || "Dispositivo"} · ${daysOld}d sin actualizar`, number: o.order_number, color: 'red', orderId: o.id });
+      const d = daysSince(o);
+      items.push({ type: 'urgent', priority: 1, id: `urgent-${o.id}`, title: o.customer_name || "Cliente", sub: `${o.device_model || "Dispositivo"} · ${d === 0 ? 'hoy sin actualizar' : `${d}d sin actualizar`}`, number: o.order_number, color: 'red', orderId: o.id });
     });
     readyPickupList.forEach(o => {
-      const daysWaiting = Math.round((Date.now() - new Date(o.updated_date || o.created_date)) / (1000 * 60 * 60 * 24));
-      items.push({ type: 'ready', priority: 2, id: `ready-${o.id}`, title: o.customer_name || "Cliente", sub: `${o.device_model || "Dispositivo"} · esperando ${daysWaiting}d`, number: o.order_number, color: 'green', orderId: o.id });
+      const d = daysSince(o);
+      items.push({ type: 'ready', priority: 2, id: `ready-${o.id}`, title: o.customer_name || "Cliente", sub: `${o.device_model || "Dispositivo"} · ${d === 0 ? 'listo hoy' : `esperando ${d}d`}`, number: o.order_number, color: 'green', orderId: o.id });
     });
     intakeOrdersList.forEach(o => {
-      const hrsOld = Math.round((Date.now() - new Date(o.created_date || o.created_at)) / (1000 * 60 * 60));
-      const label = hrsOld < 24 ? `hace ${hrsOld}h` : `hace ${Math.round(hrsOld/24)}d`;
+      const h = hrsSince(o);
+      const label = h < 1 ? 'ahora' : h < 24 ? `hace ${h}h` : `hace ${Math.round(h/24)}d`;
       items.push({ type: 'intake', priority: 3, id: `intake-${o.id}`, title: o.customer_name || "Cliente", sub: `${o.device_model || "Dispositivo"} · recibido ${label}`, number: o.order_number, color: 'blue', orderId: o.id });
     });
     pendingPartsList.forEach(o => {
       items.push({ type: 'parts', priority: 4, id: `parts-${o.id}`, title: o.customer_name || "Cliente", sub: `${o.device_model || "Dispositivo"} · pendiente ordenar`, number: o.order_number, color: 'orange', orderId: o.id });
     });
     staleDiagnosisList.forEach(o => {
-      const daysStale = Math.round((Date.now() - new Date(o.updated_date || o.created_date)) / (1000 * 60 * 60 * 24));
-      items.push({ type: 'stale', priority: 5, id: `stale-${o.id}`, title: o.customer_name || "Cliente", sub: `${o.device_model || "Dispositivo"} · ${daysStale}d sin diagnóstico`, number: o.order_number, color: 'yellow', orderId: o.id });
+      const d = daysSince(o);
+      items.push({ type: 'stale', priority: 5, id: `stale-${o.id}`, title: o.customer_name || "Cliente", sub: `${o.device_model || "Dispositivo"} · ${d === 0 ? 'sin diagnóstico hoy' : `${d}d sin diagnóstico`}`, number: o.order_number, color: 'yellow', orderId: o.id });
     });
     return items.slice(0, 18);
   }, [urgentOrdersList, readyPickupList, intakeOrdersList, pendingPartsList, staleDiagnosisList]);
