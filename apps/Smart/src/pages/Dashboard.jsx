@@ -890,7 +890,7 @@ export default function Dashboard() {
   if (!session) return null;
 
   return (
-    <div className="md:h-full md:overflow-hidden">
+    <div className="h-full overflow-hidden">
       <Toast toast={toast} onClose={() => setToast(null)} />
 
       {/* Wizard primer inicio — solo para tenants nuevos */}
@@ -911,8 +911,8 @@ export default function Dashboard() {
         />
       )}
 
-      <div className="px-2 sm:px-3 md:px-6 lg:px-8 xl:px-12 2xl:px-16 pt-2 md:pt-4 lg:pt-6 pb-6 md:pb-0 md:h-full md:flex md:flex-col">
-        <div className="max-w-[2560px] mx-auto space-y-3 md:space-y-0 md:h-full md:flex md:flex-col">
+      <div className="px-2 sm:px-3 md:px-6 lg:px-8 xl:px-12 2xl:px-16 pt-2 md:pt-4 lg:pt-6 pb-0 h-full flex flex-col md:pb-0">
+        <div className="max-w-[2560px] mx-auto h-full flex flex-col md:space-y-0">
           
           {/* === DESKTOP: PULSO — layout horizontal (left panel | right feed) === */}
           <div className="hidden md:flex md:flex-row md:flex-1 md:min-h-0 bg-[#121215]/40 backdrop-blur-[40px] border border-white/10 rounded-[40px] shadow-[0_32px_80px_rgba(0,0,0,0.45)] relative overflow-hidden">
@@ -1084,9 +1084,9 @@ export default function Dashboard() {
           </div>
 
           {/* === MÓVIL: PULSO === */}
-          <div className="md:hidden space-y-4">
+          <div className="md:hidden flex flex-col flex-1 min-h-0 gap-3">
             {/* Header greeting */}
-            <div className="flex items-center justify-between px-2 pt-0">
+            <div className="flex items-center justify-between px-2 pt-0 shrink-0">
               <div className="flex flex-col">
                 <div className="flex items-center gap-2">
                   <div className="w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse shadow-[0_0_8px_rgba(59,130,246,0.8)]" />
@@ -1104,7 +1104,7 @@ export default function Dashboard() {
             </div>
 
             {/* Quick action bar */}
-            <div className="flex items-center gap-2 p-1.5 bg-white/[0.02] border border-white/[0.05] rounded-3xl backdrop-blur-2xl">
+            <div className="flex items-center gap-2 p-1.5 bg-white/[0.02] border border-white/[0.05] rounded-3xl backdrop-blur-2xl shrink-0">
               <button onClick={handleCashButtonClick} className={cn("flex-1 h-12 rounded-2xl border flex items-center justify-center gap-2 transition-all active:scale-95", drawerOpen ? "bg-emerald-500/10 border-emerald-500/20 text-emerald-400" : "bg-red-500/10 border-red-500/20 text-red-400")}>
                 <Wallet className="w-5 h-5" strokeWidth={2.5} />
                 <span className="text-[10px] font-black uppercase tracking-widest">{drawerOpen ? "Caja Abierta" : "Caja Cerrada"}</span>
@@ -1127,7 +1127,7 @@ export default function Dashboard() {
               const todayProfit = kpiIncome.today - kpiIncome.todayExpenses;
               const goalPct = kpiDailyGoal > 0 ? Math.min(100, Math.round((kpiIncome.today / kpiDailyGoal) * 100)) : 0;
               return (
-                <div className="grid grid-cols-3 gap-2 px-1">
+                <div className="grid grid-cols-3 gap-2 px-1 shrink-0">
                   <div className="rounded-2xl border border-emerald-500/20 bg-emerald-500/10 px-3 py-3 flex flex-col gap-1">
                     <DollarSign className="w-4 h-4 text-emerald-400" />
                     <p className="text-lg font-black text-emerald-400 leading-tight">{kpiIncome.loading ? "…" : fmt(kpiIncome.today)}</p>
@@ -1154,7 +1154,7 @@ export default function Dashboard() {
             })()}
 
             {/* Priority Feed */}
-            <div className="bg-[#1C1C1E]/60 border border-white/[0.06] rounded-[28px] overflow-hidden mx-1">
+            <div className="bg-[#1C1C1E]/60 border border-white/[0.06] rounded-[28px] overflow-hidden mx-1 flex flex-col flex-1 min-h-0">
               <div className="flex items-center justify-between px-4 py-3.5 border-b border-white/[0.05]">
                 <div className="flex items-center gap-2">
                   <Bell className={cn("w-3.5 h-3.5 transition-colors", feedFilter ? "text-indigo-400" : "text-white/40")} />
@@ -1173,7 +1173,7 @@ export default function Dashboard() {
                   </span>
                 )}
               </div>
-              <div className="divide-y divide-white/[0.04] max-h-[260px] overflow-y-auto">
+              <div className="divide-y divide-white/[0.04] flex-1 overflow-y-auto">
                 {visibleFeedItems.map(item => (
                   <button
                     key={item.id}
@@ -1207,7 +1207,7 @@ export default function Dashboard() {
             </div>
 
             {/* Quick Nav — 4 buttons */}
-            <div className="grid grid-cols-4 gap-2 px-1 pb-1">
+            <div className="grid grid-cols-4 gap-2 px-1 pb-2 shrink-0">
               <button onClick={() => setShowWorkOrderWizard(true)} className="flex flex-col items-center justify-center gap-1.5 py-4 bg-blue-500/10 border border-blue-500/20 rounded-[20px] active:scale-95 transition-all">
                 <ClipboardList className="w-5 h-5 text-blue-400" />
                 <span className="text-[9px] font-black text-blue-400/80 uppercase tracking-tight">Nueva</span>
