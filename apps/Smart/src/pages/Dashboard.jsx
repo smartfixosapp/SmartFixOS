@@ -40,7 +40,8 @@ import {
   PackageCheck,
   Timer,
   ShoppingCart,
-  ChevronRight
+  ChevronRight,
+  Inbox
 } from "lucide-react";
 
 import { format, startOfDay } from "date-fns";
@@ -191,6 +192,8 @@ export default function Dashboard() {
   
   // ⭐️ ESTADO FILTRO PARA ÓRDENES
   const [selectedStatusFilter, setSelectedStatusFilter] = useState(null);
+  // Filtro del feed de atención (null | 'urgent' | 'ready')
+  const [feedFilter, setFeedFilter] = useState(null);
   const [showUnlocksFilter, setShowUnlocksFilter] = useState(false);
   const [showTimeTracking, setShowTimeTracking] = useState(false);
   const [showLogoutModal, setShowLogoutModal] = useState(false);
@@ -690,25 +693,28 @@ export default function Dashboard() {
     const todayStart = new Date();
     todayStart.setHours(0, 0, 0, 0);
     const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
-    const activeStatuses = ["pending", "in_progress", "waiting_parts", "ready_for_pickup", "diagnosed"];
+    // Closed = ya no requieren trabajo activo
+    const closedStatuses = ["picked_up", "completed", "cancelled", "delivered"];
 
-    const active = recentOrders.filter(o =>
-      activeStatuses.includes(getEffectiveOrderStatus(o)) &&
-      o.device_type !== "Software" &&
-      !(o.order_number && o.order_number.startsWith("SW-"))
-    );
+    const active = recentOrders.filter(o => {
+      const s = getEffectiveOrderStatus(o);
+      return !closedStatuses.includes(s) &&
+        s !== "warranty" &&
+        o.device_type !== "Software" &&
+        !(o.order_number && o.order_number.startsWith("SW-"));
+    });
     const readyToPickup = recentOrders.filter(o =>
       getEffectiveOrderStatus(o) === "ready_for_pickup"
     );
     const deliveredToday = recentOrders.filter(o => {
       const s = getEffectiveOrderStatus(o);
-      if (s !== "delivered" && s !== "completed" && s !== "picked_up") return false;
+      if (!["delivered", "completed", "picked_up"].includes(s)) return false;
       const d = new Date(o.updated_date || o.created_date);
       return d >= todayStart;
     });
     const overdue = recentOrders.filter(o => {
       const s = getEffectiveOrderStatus(o);
-      if (!activeStatuses.includes(s)) return false;
+      if (closedStatuses.includes(s)) return false;
       const d = new Date(o.updated_date || o.created_date);
       return d < sevenDaysAgo;
     });
@@ -732,10 +738,36 @@ export default function Dashboard() {
     recentOrders.filter(o => getEffectiveOrderStatus(o) === "ready_for_pickup").slice(0, 8)
   , [recentOrders]);
 
-  // Widget: Stock crítico
-  const criticalStockList = useMemo(() =>
-    priceListItems.filter(i => i.type === "product" && typeof i.stock === "number" && i.stock <= Math.max(i.min_stock || 0, 3)).slice(0, 10)
-  , [priceListItems]);
+  // Widget: Órdenes en recepción (intake) — recién llegadas, sin iniciar
+  const intakeOrdersList = useMemo(() =>
+    recentOrders.filter(o =>
+      getEffectiveOrderStatus(o) === "intake" &&
+      o.device_type !== "Software" &&
+      !(o.order_number && o.order_number.startsWith("SW-"))
+    ).slice(0, 8)
+  , [recentOrders]);
+
+  // Widget: Pendiente de ordenar partes
+  const pendingPartsList = useMemo(() =>
+    recentOrders.filter(o => {
+      const s = getEffectiveOrderStatus(o);
+      return (s === "pending_order" || s === "waiting_parts") &&
+        o.device_type !== "Software" &&
+        !(o.order_number && o.order_number.startsWith("SW-"));
+    }).slice(0, 8)
+  , [recentOrders]);
+
+  // Widget: Diagnóstico estancado (3+ días en estado diagnosing sin actualizar)
+  const staleDiagnosisList = useMemo(() => {
+    const threeDaysAgo = new Date(Date.now() - 3 * 24 * 60 * 60 * 1000);
+    return recentOrders.filter(o => {
+      const s = getEffectiveOrderStatus(o);
+      if (s !== "diagnosing") return false;
+      if (o.device_type === "Software" || (o.order_number && o.order_number.startsWith("SW-"))) return false;
+      const d = new Date(o.updated_date || o.created_date);
+      return d < threeDaysAgo;
+    }).slice(0, 6);
+  }, [recentOrders]);
 
   // Widget: Tiempo promedio de reparación (days from created to delivered, last 30 orders)
   const avgRepairTime = useMemo(() => {
@@ -822,11 +854,26 @@ export default function Dashboard() {
       const daysWaiting = Math.round((Date.now() - new Date(o.updated_date || o.created_date)) / (1000 * 60 * 60 * 24));
       items.push({ type: 'ready', priority: 2, id: `ready-${o.id}`, title: o.customer_name || "Cliente", sub: `${o.device_model || "Dispositivo"} · esperando ${daysWaiting}d`, number: o.order_number, color: 'green', orderId: o.id });
     });
-    criticalStockList.forEach(item => {
-      items.push({ type: 'stock', priority: 3, id: `stock-${item.id}`, title: item.name, sub: item.stock <= 0 ? 'Sin stock' : `Quedan ${item.stock} unidades`, color: 'orange' });
+    intakeOrdersList.forEach(o => {
+      const hrsOld = Math.round((Date.now() - new Date(o.created_date || o.created_at)) / (1000 * 60 * 60));
+      const label = hrsOld < 24 ? `hace ${hrsOld}h` : `hace ${Math.round(hrsOld/24)}d`;
+      items.push({ type: 'intake', priority: 3, id: `intake-${o.id}`, title: o.customer_name || "Cliente", sub: `${o.device_model || "Dispositivo"} · recibido ${label}`, number: o.order_number, color: 'blue', orderId: o.id });
     });
-    return items.slice(0, 12);
-  }, [urgentOrdersList, readyPickupList, criticalStockList]);
+    pendingPartsList.forEach(o => {
+      items.push({ type: 'parts', priority: 4, id: `parts-${o.id}`, title: o.customer_name || "Cliente", sub: `${o.device_model || "Dispositivo"} · pendiente ordenar`, number: o.order_number, color: 'orange', orderId: o.id });
+    });
+    staleDiagnosisList.forEach(o => {
+      const daysStale = Math.round((Date.now() - new Date(o.updated_date || o.created_date)) / (1000 * 60 * 60 * 24));
+      items.push({ type: 'stale', priority: 5, id: `stale-${o.id}`, title: o.customer_name || "Cliente", sub: `${o.device_model || "Dispositivo"} · ${daysStale}d sin diagnóstico`, number: o.order_number, color: 'yellow', orderId: o.id });
+    });
+    return items.slice(0, 18);
+  }, [urgentOrdersList, readyPickupList, intakeOrdersList, pendingPartsList, staleDiagnosisList]);
+
+  // Feed filtrado según chip activo
+  const visibleFeedItems = useMemo(() => {
+    if (!feedFilter) return priorityFeedItems;
+    return priorityFeedItems.filter(item => item.type === feedFilter);
+  }, [priorityFeedItems, feedFilter]);
 
   if (!session) return null;
 
@@ -852,7 +899,7 @@ export default function Dashboard() {
         />
       )}
 
-      <div className="px-2 sm:px-3 md:px-6 lg:px-8 xl:px-12 2xl:px-16 pt-[calc(env(safe-area-inset-top,0px)+10px)] sm:pt-[calc(env(safe-area-inset-top,0px)+14px)] md:pt-6 lg:pt-8 pb-6">
+      <div className="px-2 sm:px-3 md:px-6 lg:px-8 xl:px-12 2xl:px-16 pt-2 md:pt-6 lg:pt-8 pb-6">
         <div className="max-w-[2560px] mx-auto space-y-4 md:space-y-6">
           
           {/* === DESKTOP: PULSO === */}
@@ -911,24 +958,30 @@ export default function Dashboard() {
                       </div>
                     )}
                   </div>
-                  <div className="min-w-[160px] rounded-2xl border border-indigo-500/20 bg-indigo-500/10 px-5 py-4 flex items-center gap-4">
+                  <button
+                    onClick={() => setFeedFilter(f => f === 'urgent' ? null : 'urgent')}
+                    className={cn("min-w-[160px] rounded-2xl border px-5 py-4 flex items-center gap-4 transition-all active:scale-95", feedFilter === 'urgent' ? "border-indigo-400/50 bg-indigo-500/20 shadow-[0_0_20px_rgba(99,102,241,0.2)]" : "border-indigo-500/20 bg-indigo-500/10 hover:bg-indigo-500/15")}
+                  >
                     <div className="w-10 h-10 rounded-xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center shrink-0">
                       <Wrench className="w-5 h-5 text-indigo-400" />
                     </div>
-                    <div>
+                    <div className="text-left">
                       <p className="text-2xl font-black text-indigo-400 leading-tight">{kpiStats.active}</p>
-                      <p className="text-[11px] text-white/30 font-bold">Órdenes activas</p>
+                      <p className="text-[11px] text-white/30 font-bold">{feedFilter === 'urgent' ? '▾ mostrando en feed' : 'Órdenes activas'}</p>
                     </div>
-                  </div>
-                  <div className="min-w-[160px] rounded-2xl border border-cyan-500/20 bg-cyan-500/10 px-5 py-4 flex items-center gap-4">
+                  </button>
+                  <button
+                    onClick={() => setFeedFilter(f => f === 'ready' ? null : 'ready')}
+                    className={cn("min-w-[160px] rounded-2xl border px-5 py-4 flex items-center gap-4 transition-all active:scale-95", feedFilter === 'ready' ? "border-cyan-400/50 bg-cyan-500/20 shadow-[0_0_20px_rgba(6,182,212,0.2)]" : "border-cyan-500/20 bg-cyan-500/10 hover:bg-cyan-500/15")}
+                  >
                     <div className="w-10 h-10 rounded-xl bg-cyan-500/10 border border-cyan-500/20 flex items-center justify-center shrink-0">
                       <PackageCheck className="w-5 h-5 text-cyan-400" />
                     </div>
-                    <div>
+                    <div className="text-left">
                       <p className="text-2xl font-black text-cyan-400 leading-tight">{kpiStats.readyToPickup}</p>
-                      <p className="text-[11px] text-white/30 font-bold">Para recoger</p>
+                      <p className="text-[11px] text-white/30 font-bold">{feedFilter === 'ready' ? '▾ mostrando en feed' : 'Para recoger'}</p>
                     </div>
-                  </div>
+                  </button>
                 </div>
               );
             })()}
@@ -939,29 +992,38 @@ export default function Dashboard() {
               <div className="bg-white/[0.02] border border-white/[0.06] rounded-[28px] overflow-hidden">
                 <div className="flex items-center justify-between px-5 py-4 border-b border-white/[0.05]">
                   <div className="flex items-center gap-2.5">
-                    <div className="w-7 h-7 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center">
-                      <Bell className="w-3.5 h-3.5 text-white/50" />
+                    <div className={cn("w-7 h-7 rounded-xl border flex items-center justify-center transition-colors", feedFilter ? "bg-indigo-500/10 border-indigo-500/20" : "bg-white/5 border-white/10")}>
+                      <Bell className={cn("w-3.5 h-3.5 transition-colors", feedFilter ? "text-indigo-400" : "text-white/50")} />
                     </div>
-                    <span className="text-white font-black text-sm uppercase tracking-tight">Atención requerida</span>
+                    <span className="text-white font-black text-sm uppercase tracking-tight">
+                      {feedFilter === 'urgent' ? 'Órdenes urgentes' : feedFilter === 'ready' ? 'Para recoger' : 'Atención requerida'}
+                    </span>
+                    {feedFilter && (
+                      <button onClick={() => setFeedFilter(null)} className="ml-1 w-5 h-5 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center transition-colors">
+                        <X className="w-3 h-3 text-white/50" />
+                      </button>
+                    )}
                   </div>
-                  {priorityFeedItems.length > 0 && (
-                    <span className="w-6 h-6 rounded-full bg-red-500 flex items-center justify-center text-[11px] font-black text-white shadow-[0_0_12px_rgba(239,68,68,0.4)]">
-                      {priorityFeedItems.length}
+                  {visibleFeedItems.length > 0 && (
+                    <span className={cn("w-6 h-6 rounded-full flex items-center justify-center text-[11px] font-black text-white shadow-[0_0_12px_rgba(239,68,68,0.4)]", feedFilter === 'ready' ? "bg-cyan-500" : "bg-red-500")}>
+                      {visibleFeedItems.length}
                     </span>
                   )}
                 </div>
                 <div className="divide-y divide-white/[0.04] max-h-[400px] overflow-y-auto no-scrollbar">
-                  {priorityFeedItems.map(item => (
+                  {visibleFeedItems.map(item => (
                     <button
                       key={item.id}
                       onClick={() => item.orderId ? handleOrderSelect(item.orderId) : handleNavigate("Inventory")}
                       className="w-full flex items-center gap-4 px-5 py-3.5 hover:bg-white/[0.04] transition-colors text-left group"
                     >
-                      <div className={`w-1 h-8 rounded-full shrink-0 ${item.color === 'red' ? 'bg-red-500' : item.color === 'green' ? 'bg-emerald-500' : 'bg-orange-500'}`} />
-                      <div className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 ${item.color === 'red' ? 'bg-red-500/10 border border-red-500/20' : item.color === 'green' ? 'bg-emerald-500/10 border border-emerald-500/20' : 'bg-orange-500/10 border border-orange-500/20'}`}>
+                      <div className={`w-1 h-8 rounded-full shrink-0 ${item.color === 'red' ? 'bg-red-500' : item.color === 'green' ? 'bg-emerald-500' : item.color === 'blue' ? 'bg-blue-500' : item.color === 'yellow' ? 'bg-yellow-500' : 'bg-orange-500'}`} />
+                      <div className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 ${item.color === 'red' ? 'bg-red-500/10 border border-red-500/20' : item.color === 'green' ? 'bg-emerald-500/10 border border-emerald-500/20' : item.color === 'blue' ? 'bg-blue-500/10 border border-blue-500/20' : item.color === 'yellow' ? 'bg-yellow-500/10 border border-yellow-500/20' : 'bg-orange-500/10 border border-orange-500/20'}`}>
                         {item.type === 'urgent' && <AlertCircle className="w-4 h-4 text-red-400" />}
                         {item.type === 'ready' && <PackageCheck className="w-4 h-4 text-emerald-400" />}
-                        {item.type === 'stock' && <Package className="w-4 h-4 text-orange-400" />}
+                        {item.type === 'intake' && <Inbox className="w-4 h-4 text-blue-400" />}
+                        {item.type === 'parts' && <ShoppingCart className="w-4 h-4 text-orange-400" />}
+                        {item.type === 'stale' && <Search className="w-4 h-4 text-yellow-400" />}
                       </div>
                       <div className="flex-1 min-w-0">
                         <p className="text-sm font-black text-white truncate">{item.title}</p>
@@ -971,10 +1033,12 @@ export default function Dashboard() {
                       <ChevronRight className="w-4 h-4 text-white/10 group-hover:text-white/30 transition-colors shrink-0" />
                     </button>
                   ))}
-                  {priorityFeedItems.length === 0 && (
+                  {visibleFeedItems.length === 0 && (
                     <div className="flex flex-col items-center justify-center py-14">
                       <CheckCircle2 className="w-10 h-10 text-emerald-500/30 mb-3" />
-                      <p className="text-white/20 text-xs font-black uppercase tracking-widest">Todo en orden</p>
+                      <p className="text-white/20 text-xs font-black uppercase tracking-widest">
+                        {feedFilter ? 'Sin resultados para este filtro' : 'Todo en orden'}
+                      </p>
                     </div>
                   )}
                 </div>
@@ -1005,7 +1069,7 @@ export default function Dashboard() {
           {/* === MÓVIL: PULSO === */}
           <div className="md:hidden space-y-4">
             {/* Header greeting */}
-            <div className="flex items-center justify-between px-2 pt-2">
+            <div className="flex items-center justify-between px-2 pt-0">
               <div className="flex flex-col">
                 <div className="flex items-center gap-2">
                   <div className="w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse shadow-[0_0_8px_rgba(59,130,246,0.8)]" />
@@ -1052,16 +1116,22 @@ export default function Dashboard() {
                     <p className="text-lg font-black text-emerald-400 leading-tight">{kpiIncome.loading ? "…" : fmt(kpiIncome.today)}</p>
                     <p className="text-[9px] text-white/30 font-bold leading-tight">Ingresos hoy</p>
                   </div>
-                  <div className="rounded-2xl border border-indigo-500/20 bg-indigo-500/10 px-3 py-3 flex flex-col gap-1">
+                  <button
+                    onClick={() => setFeedFilter(f => f === 'urgent' ? null : 'urgent')}
+                    className={cn("rounded-2xl border px-3 py-3 flex flex-col gap-1 transition-all active:scale-95", feedFilter === 'urgent' ? "border-indigo-400/50 bg-indigo-500/20 shadow-[0_0_16px_rgba(99,102,241,0.2)]" : "border-indigo-500/20 bg-indigo-500/10")}
+                  >
                     <Wrench className="w-4 h-4 text-indigo-400" />
                     <p className="text-lg font-black text-indigo-400 leading-tight">{kpiStats.active}</p>
-                    <p className="text-[9px] text-white/30 font-bold leading-tight">Activas</p>
-                  </div>
-                  <div className="rounded-2xl border border-cyan-500/20 bg-cyan-500/10 px-3 py-3 flex flex-col gap-1">
+                    <p className="text-[9px] text-white/30 font-bold leading-tight">{feedFilter === 'urgent' ? 'filtrado ▾' : 'Activas'}</p>
+                  </button>
+                  <button
+                    onClick={() => setFeedFilter(f => f === 'ready' ? null : 'ready')}
+                    className={cn("rounded-2xl border px-3 py-3 flex flex-col gap-1 transition-all active:scale-95", feedFilter === 'ready' ? "border-cyan-400/50 bg-cyan-500/20 shadow-[0_0_16px_rgba(6,182,212,0.2)]" : "border-cyan-500/20 bg-cyan-500/10")}
+                  >
                     <PackageCheck className="w-4 h-4 text-cyan-400" />
                     <p className="text-lg font-black text-cyan-400 leading-tight">{kpiStats.readyToPickup}</p>
-                    <p className="text-[9px] text-white/30 font-bold leading-tight">Para recoger</p>
-                  </div>
+                    <p className="text-[9px] text-white/30 font-bold leading-tight">{feedFilter === 'ready' ? 'filtrado ▾' : 'Para recoger'}</p>
+                  </button>
                 </div>
               );
             })()}
@@ -1070,27 +1140,36 @@ export default function Dashboard() {
             <div className="bg-[#1C1C1E]/60 border border-white/[0.06] rounded-[28px] overflow-hidden mx-1">
               <div className="flex items-center justify-between px-4 py-3.5 border-b border-white/[0.05]">
                 <div className="flex items-center gap-2">
-                  <Bell className="w-3.5 h-3.5 text-white/40" />
-                  <span className="text-white font-black text-[11px] uppercase tracking-tight">Atención requerida</span>
+                  <Bell className={cn("w-3.5 h-3.5 transition-colors", feedFilter ? "text-indigo-400" : "text-white/40")} />
+                  <span className="text-white font-black text-[11px] uppercase tracking-tight">
+                    {feedFilter === 'urgent' ? 'Órdenes urgentes' : feedFilter === 'ready' ? 'Para recoger' : 'Atención requerida'}
+                  </span>
+                  {feedFilter && (
+                    <button onClick={() => setFeedFilter(null)} className="w-4 h-4 rounded-full bg-white/10 flex items-center justify-center">
+                      <X className="w-2.5 h-2.5 text-white/50" />
+                    </button>
+                  )}
                 </div>
-                {priorityFeedItems.length > 0 && (
-                  <span className="w-5 h-5 rounded-full bg-red-500 flex items-center justify-center text-[10px] font-black text-white">
-                    {priorityFeedItems.length}
+                {visibleFeedItems.length > 0 && (
+                  <span className={cn("w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-black text-white", feedFilter === 'ready' ? "bg-cyan-500" : "bg-red-500")}>
+                    {visibleFeedItems.length}
                   </span>
                 )}
               </div>
               <div className="divide-y divide-white/[0.04]">
-                {priorityFeedItems.map(item => (
+                {visibleFeedItems.map(item => (
                   <button
                     key={item.id}
                     onClick={() => item.orderId ? handleOrderSelect(item.orderId) : handleNavigate("Inventory")}
                     className="w-full flex items-center gap-3 px-4 py-3 active:bg-white/[0.04] transition-colors text-left"
                   >
-                    <div className={`w-1 h-7 rounded-full shrink-0 ${item.color === 'red' ? 'bg-red-500' : item.color === 'green' ? 'bg-emerald-500' : 'bg-orange-500'}`} />
-                    <div className={`w-7 h-7 rounded-xl flex items-center justify-center shrink-0 ${item.color === 'red' ? 'bg-red-500/10' : item.color === 'green' ? 'bg-emerald-500/10' : 'bg-orange-500/10'}`}>
+                    <div className={`w-1 h-7 rounded-full shrink-0 ${item.color === 'red' ? 'bg-red-500' : item.color === 'green' ? 'bg-emerald-500' : item.color === 'blue' ? 'bg-blue-500' : item.color === 'yellow' ? 'bg-yellow-500' : 'bg-orange-500'}`} />
+                    <div className={`w-7 h-7 rounded-xl flex items-center justify-center shrink-0 ${item.color === 'red' ? 'bg-red-500/10' : item.color === 'green' ? 'bg-emerald-500/10' : item.color === 'blue' ? 'bg-blue-500/10' : item.color === 'yellow' ? 'bg-yellow-500/10' : 'bg-orange-500/10'}`}>
                       {item.type === 'urgent' && <AlertCircle className="w-3.5 h-3.5 text-red-400" />}
                       {item.type === 'ready' && <PackageCheck className="w-3.5 h-3.5 text-emerald-400" />}
-                      {item.type === 'stock' && <Package className="w-3.5 h-3.5 text-orange-400" />}
+                      {item.type === 'intake' && <Inbox className="w-3.5 h-3.5 text-blue-400" />}
+                      {item.type === 'parts' && <ShoppingCart className="w-3.5 h-3.5 text-orange-400" />}
+                      {item.type === 'stale' && <Search className="w-3.5 h-3.5 text-yellow-400" />}
                     </div>
                     <div className="flex-1 min-w-0">
                       <p className="text-xs font-black text-white truncate">{item.title}</p>
@@ -1099,10 +1178,12 @@ export default function Dashboard() {
                     <ChevronRight className="w-3.5 h-3.5 text-white/15 shrink-0" />
                   </button>
                 ))}
-                {priorityFeedItems.length === 0 && (
+                {visibleFeedItems.length === 0 && (
                   <div className="flex flex-col items-center justify-center py-8">
                     <CheckCircle2 className="w-8 h-8 text-emerald-500/30 mb-2" />
-                    <p className="text-white/20 text-[10px] font-black uppercase tracking-widest">Todo en orden</p>
+                    <p className="text-white/20 text-[10px] font-black uppercase tracking-widest">
+                      {feedFilter ? 'Sin resultados' : 'Todo en orden'}
+                    </p>
                   </div>
                 )}
               </div>

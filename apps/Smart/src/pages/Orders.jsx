@@ -227,8 +227,9 @@ export default function OrdersPage() {
   const [showStatusDropdown, setShowStatusDropdown] = useState(false);
   const [activeTab, setActiveTab] = useState("work-orders"); // work-orders, unlocks
   const [editingDeviceOrder, setEditingDeviceOrder] = useState(null);
-  const [pullStart, setPullStart] = useState(0);
   const [pullDistance, setPullDistance] = useState(0);
+  const pullStartRef = useRef(0);
+  const isPullingRef = useRef(false);
   const containerRef = useRef(null);
   const ordersLoadInFlightRef = useRef(false);
   const ordersErrorToastShownRef = useRef(false);
@@ -328,45 +329,61 @@ export default function OrdersPage() {
     };
   }, [refreshTick]);
 
-  // Pull-to-refresh handlers
+  // Pull-to-refresh handlers (stable — uses refs to avoid re-registering on every move)
   useEffect(() => {
     const container = containerRef.current;
     if (!container) return;
 
     const handleTouchStart = (e) => {
+      // Only activate if already at top AND it's a fresh touch (not finishing a scroll)
       if (container.scrollTop === 0) {
-        setPullStart(e.touches[0].clientY);
+        pullStartRef.current = e.touches[0].clientY;
+        isPullingRef.current = false;
+      } else {
+        pullStartRef.current = 0;
       }
     };
 
     const handleTouchMove = (e) => {
-      if (pullStart > 0) {
-        const distance = e.touches[0].clientY - pullStart;
-        if (distance > 0 && distance < 100) {
-          setPullDistance(distance);
-        }
+      if (pullStartRef.current === 0) return;
+      const distance = e.touches[0].clientY - pullStartRef.current;
+      if (distance > 5) {
+        isPullingRef.current = true;
+        setPullDistance(Math.min(distance, 100));
+      } else {
+        // Scrolling up or sideways — cancel pull
+        pullStartRef.current = 0;
+        isPullingRef.current = false;
+        setPullDistance(0);
       }
     };
 
     const handleTouchEnd = () => {
-      if (pullDistance > 60) {
-        window.dispatchEvent(new Event("force-refresh"));
-        loadOrders();
+      if (isPullingRef.current && pullStartRef.current > 0) {
+        setPullDistance(prev => {
+          if (prev > 60) {
+            window.dispatchEvent(new Event("force-refresh"));
+            loadOrders();
+          }
+          return 0;
+        });
+      } else {
+        setPullDistance(0);
       }
-      setPullStart(0);
-      setPullDistance(0);
+      pullStartRef.current = 0;
+      isPullingRef.current = false;
     };
 
-    container.addEventListener("touchstart", handleTouchStart);
-    container.addEventListener("touchmove", handleTouchMove);
-    container.addEventListener("touchend", handleTouchEnd);
+    container.addEventListener("touchstart", handleTouchStart, { passive: true });
+    container.addEventListener("touchmove", handleTouchMove, { passive: true });
+    container.addEventListener("touchend", handleTouchEnd, { passive: true });
 
     return () => {
       container.removeEventListener("touchstart", handleTouchStart);
       container.removeEventListener("touchmove", handleTouchMove);
       container.removeEventListener("touchend", handleTouchEnd);
     };
-  }, [pullStart, pullDistance]);
+  }, []); // stable — no deps needed, refs handle mutable values
 
   const loadOrders = async () => {
     if (ordersLoadInFlightRef.current) return;
@@ -995,32 +1012,6 @@ export default function OrdersPage() {
                </Button>
              </div>
             )} */}
-
-            {/* Status strip */}
-            <div className="flex gap-2 overflow-x-auto no-scrollbar pb-1 mb-4">
-              {[
-                { label: "Activas", countKey: "active", color: "text-blue-400", bg: "bg-blue-500/10 border-blue-500/20", filter: "active" },
-                { label: "Para recoger", countKey: "ready_for_pickup", color: "text-emerald-400", bg: "bg-emerald-500/10 border-emerald-500/20", filter: "ready_for_pickup" },
-                { label: "Garantías", countKey: "warranty", color: "text-amber-400", bg: "bg-amber-500/10 border-amber-500/20", filter: "warranty" },
-                { label: "Cerradas", countKey: "closed", color: "text-white/40", bg: "bg-white/5 border-white/10", filter: "closed" },
-              ].map(chip => (
-                <button
-                  key={chip.filter}
-                  onClick={() => setSelectedStatus(chip.filter)}
-                  className={cn(
-                    "flex items-center gap-2 px-3 py-1.5 rounded-full border text-[11px] font-black whitespace-nowrap transition-all active:scale-95 shrink-0",
-                    selectedStatus === chip.filter
-                      ? `${chip.bg} ${chip.color}`
-                      : "bg-white/[0.03] border-white/[0.06] text-white/30 hover:text-white/50"
-                  )}
-                >
-                  <span>{chip.label}</span>
-                  <span className={cn("px-1.5 py-0.5 rounded-full text-[10px]", selectedStatus === chip.filter ? chip.bg : "bg-white/5")}>
-                    {statusCounts[chip.countKey] || 0}
-                  </span>
-                </button>
-              ))}
-            </div>
 
             {/* Grid de órdenes con animaciones */}
             <motion.div
