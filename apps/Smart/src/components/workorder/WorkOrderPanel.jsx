@@ -3099,10 +3099,10 @@ export default function WorkOrderPanel({ orderId, onClose, onUpdate, onDelete, p
                     />
                   )}
                   {status === "reparacion_externa" && (
-                    <ExternalRepairStage order={o} onUpdate={async () => { await clearEventCache(o.id); await loadEventsCallback(true); await handleRefresh(); onUpdate?.(); }} />
+                    <ExternalRepairStage order={o} onUpdate={async () => { await clearEventCache(o.id); await loadEventsCallback(true); await handleRefresh(); onUpdate?.(); }} onPaymentClick={handlePaymentClick} />
                   )}
                   {status === "in_progress" && (
-                    <RepairStage order={o} onUpdate={async () => { await clearEventCache(o.id); await loadEventsCallback(true); await handleRefresh(); onUpdate?.(); }} />
+                    <RepairStage order={o} onUpdate={async () => { await clearEventCache(o.id); await loadEventsCallback(true); await handleRefresh(); onUpdate?.(); }} onPaymentClick={handlePaymentClick} onOrderItemsUpdate={handleOrderItemsSaved} onRemoteSaved={async () => { await new Promise((r) => setTimeout(r, 1500)); await handleRefresh(); }} />
                   )}
                   {status === "warranty" && (
                     <WarrantyStage
