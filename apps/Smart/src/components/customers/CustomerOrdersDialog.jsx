@@ -9,7 +9,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { format } from "date-fns";
-import { ArrowRight, Package } from "lucide-react";
+import { ArrowRight, Package, Trash2, Star } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 
@@ -22,7 +22,7 @@ const statusColors = {
   delivered: "bg-slate-100 text-slate-800 border-slate-200"
 };
 
-export default function CustomerOrdersDialog({ customer, orders = [], open, onClose }) {
+export default function CustomerOrdersDialog({ customer, orders = [], open, onClose, onDelete }) {
   const navigate = useNavigate();
 
   const handleOrderClick = (orderId) => {
@@ -40,13 +40,34 @@ export default function CustomerOrdersDialog({ customer, orders = [], open, onCl
   const completedOrders = ordersList.filter(o => !o.deleted && ['completed', 'delivered', 'picked_up'].includes(o.status));
   const deletedOrders = ordersList.filter(o => o.deleted);
 
+  const vip = (customer.total_orders || 0) >= 3;
+
   return (
     <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent className="max-w-3xl max-h-[80vh] overflow-y-auto bg-gradient-to-br from-[#2B2B2B] to-black border-red-900/30">
+      <DialogContent className="max-w-3xl max-h-[80vh] overflow-y-auto bg-[#121215] border border-white/10">
         <DialogHeader>
-          <DialogTitle className="text-xl sm:text-2xl font-bold text-white">
-            Órdenes de {customer.name}
-          </DialogTitle>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <DialogTitle className="text-xl sm:text-2xl font-black text-white">
+                {customer.name}
+              </DialogTitle>
+              {vip && (
+                <span className="flex items-center gap-1 px-2 py-1 bg-yellow-500/15 border border-yellow-500/30 rounded-lg">
+                  <Star className="w-3 h-3 text-yellow-400 fill-yellow-400" />
+                  <span className="text-[10px] font-black text-yellow-400 uppercase tracking-tight">VIP</span>
+                </span>
+              )}
+            </div>
+            {onDelete && (
+              <button
+                onClick={() => onDelete(customer.id)}
+                className="flex items-center gap-1.5 px-3 py-1.5 text-red-400/60 hover:text-red-400 hover:bg-red-500/10 border border-transparent hover:border-red-500/20 rounded-xl text-xs font-bold transition-all"
+              >
+                <Trash2 className="w-3.5 h-3.5" />
+                Eliminar cliente
+              </button>
+            )}
+          </div>
         </DialogHeader>
 
         {ordersList.length === 0 ? (

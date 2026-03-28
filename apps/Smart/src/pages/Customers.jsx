@@ -1,14 +1,13 @@
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useMemo } from "react";
 import { dataClient } from "@/components/api/dataClient";
 import { supabase } from "../../../../lib/supabase-client.js";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Search, Plus, User, Phone, Mail, History, Edit, Trash2, ChevronRight, Users, ClipboardList } from "lucide-react";
-import { useNavigate } from "react-router-dom";
-import { createPageUrl } from "@/components/utils/helpers";
+import {
+  Search, Plus, Phone, Mail, MessageCircle,
+  Star, Users, ChevronRight, Edit, Trash2
+} from "lucide-react";
+import { formatDistanceToNow } from "date-fns";
+import { es } from "date-fns/locale";
 import { motion } from "framer-motion";
 import CreateCustomerDialog from "../components/customers/CreateCustomerDialog";
 import CustomerOrdersDialog from "../components/customers/CustomerOrdersDialog";
@@ -20,33 +19,47 @@ function readLocalCustomers() {
     const raw = localStorage.getItem(LOCAL_CUSTOMERS_KEY);
     const parsed = raw ? JSON.parse(raw) : [];
     return Array.isArray(parsed) ? parsed : [];
-  } catch {
-    return [];
-  }
+  } catch { return []; }
 }
 
 function writeLocalCustomers(customers) {
-  try {
-    localStorage.setItem(LOCAL_CUSTOMERS_KEY, JSON.stringify(customers || []));
-  } catch {
-    // no-op
-  }
+  try { localStorage.setItem(LOCAL_CUSTOMERS_KEY, JSON.stringify(customers || [])); } catch {}
 }
 
 function dedupeById(list = []) {
   const seen = new Set();
-  const out = [];
-  for (const item of list) {
-    const id = item?.id;
-    if (!id || seen.has(id)) continue;
-    seen.add(id);
-    out.push(item);
-  }
-  return out;
+  return list.filter(item => { if (!item?.id || seen.has(item.id)) return false; seen.add(item.id); return true; });
+}
+
+function getWhatsAppUrl(phone) {
+  const digits = (phone || "").replace(/\D/g, "");
+  return `https://wa.me/${digits}`;
+}
+
+function getLastVisit(customer) {
+  const d = customer.updated_at || customer.created_at;
+  if (!d) return null;
+  try { return formatDistanceToNow(new Date(d), { addSuffix: true, locale: es }); } catch { return null; }
+}
+
+function isVip(customer) {
+  return (customer.total_orders || 0) >= 3;
+}
+
+// Avatar color based on first letter
+const AVATAR_COLORS = [
+  "from-blue-500 to-indigo-600",
+  "from-emerald-500 to-teal-600",
+  "from-purple-500 to-violet-600",
+  "from-orange-500 to-red-500",
+  "from-pink-500 to-rose-600",
+  "from-cyan-500 to-sky-600",
+];
+function avatarColor(name = "") {
+  return AVATAR_COLORS[name.charCodeAt(0) % AVATAR_COLORS.length];
 }
 
 export default function Customers() {
-  const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState("");
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [selectedCustomer, setSelectedCustomer] = useState(null);
@@ -61,38 +74,22 @@ export default function Customers() {
       const local = readLocalCustomers();
       const tenantId = localStorage.getItem("smartfix_tenant_id");
       try {
-        // Fetch customers for this tenant OR orphaned (created before tenant isolation)
         let query = supabase.from("customer").select("*").order("created_at", { ascending: false });
-        if (tenantId) {
-          query = query.or(`tenant_id.eq.${tenantId},tenant_id.is.null`);
-        }
+        if (tenantId) query = query.or(`tenant_id.eq.${tenantId},tenant_id.is.null`);
         const { data: remote } = await query;
         const remoteList = remote || [];
-
-        // Backfill orphaned records in background
         if (tenantId) {
-          const orphaned = remoteList.filter((c) => !c.tenant_id);
-          if (orphaned.length > 0) {
-            supabase.from("customer").update({ tenant_id: tenantId }).is("tenant_id", null).then(() => {});
-          }
+          const orphaned = remoteList.filter(c => !c.tenant_id);
+          if (orphaned.length > 0) supabase.from("customer").update({ tenant_id: tenantId }).is("tenant_id", null).then(() => {});
         }
-
-        // Sync any local-only customers (created offline) to Supabase, then clear them
-        const localOnlyCustomers = local.filter((c) => !remoteList.some((r) => r.id === c.id));
+        const localOnlyCustomers = local.filter(c => !remoteList.some(r => r.id === c.id));
         if (localOnlyCustomers.length > 0 && tenantId) {
-          Promise.allSettled(
-            localOnlyCustomers.map((c) =>
-              supabase.from("customer").upsert({ ...c, tenant_id: tenantId }).then(() => {})
-            )
-          ).then(() => {
-            writeLocalCustomers([]); // clear local after sync
-          });
+          Promise.allSettled(localOnlyCustomers.map(c => supabase.from("customer").upsert({ ...c, tenant_id: tenantId }).then(() => {}))).then(() => writeLocalCustomers([]));
         } else if (localOnlyCustomers.length === 0) {
-          writeLocalCustomers([]); // no orphans — clear local cache, Supabase is source of truth
+          writeLocalCustomers([]);
         }
-        return remoteList; // Supabase is the source of truth
+        return remoteList;
       } catch {
-        // Offline fallback: use local cache
         return dedupeById([...local]);
       }
     }
@@ -100,304 +97,369 @@ export default function Customers() {
 
   const deleteCustomerMutation = useMutation({
     mutationFn: (customerId) => dataClient.entities.Customer.delete(customerId),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["customers"] });
-    }
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["customers"] })
   });
 
   const filteredCustomers = useMemo(() => {
     if (!searchQuery) return customers;
-    const query = searchQuery.toLowerCase();
-    return customers.filter(
-      (c) =>
-      c.name.toLowerCase().includes(query) ||
-      c.phone.includes(query) ||
-      c.email && c.email.toLowerCase().includes(query)
+    const q = searchQuery.toLowerCase();
+    return customers.filter(c =>
+      c.name?.toLowerCase().includes(q) ||
+      c.phone?.includes(q) ||
+      c.email?.toLowerCase().includes(q)
     );
   }, [customers, searchQuery]);
 
+  const stats = useMemo(() => ({
+    total: customers.length,
+    vip: customers.filter(isVip).length,
+    newThisMonth: customers.filter(c => {
+      if (!c.created_at) return false;
+      const d = new Date(c.created_at);
+      const now = new Date();
+      return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
+    }).length,
+  }), [customers]);
+
   const handleDelete = async (customerId) => {
-    if (window.confirm("¿Estás seguro de eliminar este cliente?")) {
-      try {
-        await deleteCustomerMutation.mutateAsync(customerId);
-      } catch (error) {
-        alert("Error al eliminar el cliente: " + error.message);
-      }
+    if (window.confirm("¿Eliminar este cliente? Esta acción no se puede deshacer.")) {
+      try { await deleteCustomerMutation.mutateAsync(customerId); } catch (e) { alert("Error: " + e.message); }
     }
   };
 
-  const handleEdit = (customer) => {
-    setEditingCustomer(customer);
-    setShowCreateDialog(true);
-  };
+  const handleEdit = (customer) => { setEditingCustomer(customer); setShowCreateDialog(true); };
 
   const handleViewOrders = async (customer) => {
     try {
-      // Cargar las órdenes del cliente
       const orders = await dataClient.entities.Order.filter({ customer_id: customer.id });
       setSelectedCustomer({ ...customer, orders: orders || [] });
-      setShowOrdersDialog(true);
-    } catch (error) {
-      console.error("Error loading customer orders:", error);
-      // Ensure orders is an empty array even if fetching fails, to prevent undefined errors
+    } catch {
       setSelectedCustomer({ ...customer, orders: [] });
-      setShowOrdersDialog(true);
     }
+    setShowOrdersDialog(true);
   };
 
   return (
     <div
-      className="min-h-screen bg-black theme-light:bg-gray-50 pb-24"
+      className="min-h-screen bg-black pb-28"
       style={{ paddingTop: "calc(env(safe-area-inset-top, 0px) + 6px)" }}
     >
-      {/* Fondos animados */}
-      <div className="fixed -top-40 -right-40 w-96 h-96 bg-cyan-500/10 rounded-full blur-[120px] animate-pulse pointer-events-none" />
-      <div className="fixed -bottom-40 -left-40 w-96 h-96 bg-emerald-500/10 rounded-full blur-[120px] animate-pulse delay-1000 pointer-events-none" />
+      {/* Ambient glow */}
+      <div className="fixed -top-40 -right-40 w-80 h-80 bg-blue-500/8 rounded-full blur-[120px] pointer-events-none" />
+      <div className="fixed -bottom-40 -left-40 w-80 h-80 bg-cyan-500/8 rounded-full blur-[120px] pointer-events-none" />
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 py-6 relative z-10">
-        {/* Header iOS Style */}
-        <div className="mb-6">
-          <div className="flex items-center justify-between gap-3 mb-4">
+      <div className="max-w-4xl mx-auto px-3 sm:px-5 py-4 relative z-10">
+
+        {/* ── HEADER ─────────────────────────────────────── */}
+        <div className="flex items-center justify-between mb-5">
+          <div>
+            <h1 className="text-[32px] font-black text-white tracking-tight leading-none">Clientes</h1>
+            <p className="text-white/30 mt-1 text-[11px] font-bold uppercase tracking-widest">{customers.length} registrados</p>
+          </div>
+          <button
+            onClick={() => { setEditingCustomer(null); setShowCreateDialog(true); }}
+            className="h-11 px-5 bg-blue-500 hover:bg-blue-400 text-white font-black text-sm rounded-full flex items-center gap-2 transition-all active:scale-95 shadow-[0_0_20px_rgba(59,130,246,0.35)]"
+          >
+            <Plus className="w-4 h-4" />
+            <span className="hidden sm:inline">Nuevo</span>
+          </button>
+        </div>
+
+        {/* ── STATS BAR ──────────────────────────────────── */}
+        <div className="flex gap-2 mb-4">
+          <div className="flex-1 bg-white/[0.03] border border-white/[0.06] rounded-2xl px-4 py-3 flex items-center gap-3">
+            <Users className="w-4 h-4 text-blue-400 shrink-0" />
             <div>
-              <h1 className="text-[32px] sm:text-4xl font-black text-white tracking-tight leading-none theme-light:text-gray-900">
-                Clientes
-              </h1>
-              <p className="text-gray-400 mt-1 text-sm theme-light:text-gray-600">{customers.length} clientes registrados</p>
+              <p className="text-lg font-black text-white leading-none">{stats.total}</p>
+              <p className="text-[10px] text-white/30 font-bold">Total</p>
             </div>
-            <Button
-              onClick={() => {
-                setEditingCustomer(null);
-                setShowCreateDialog(true);
-              }}
-              className="h-11 px-6 bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 text-white font-bold shadow-[0_0_25px_rgba(59,130,246,0.4)] rounded-full flex items-center gap-2 transition-all active:scale-95">
-
-              <Plus className="w-5 h-5" />
-              <span className="hidden sm:inline">Nuevo</span>
-            </Button>
+          </div>
+          <div className="flex-1 bg-white/[0.03] border border-white/[0.06] rounded-2xl px-4 py-3 flex items-center gap-3">
+            <Star className="w-4 h-4 text-yellow-400 shrink-0" />
+            <div>
+              <p className="text-lg font-black text-yellow-400 leading-none">{stats.vip}</p>
+              <p className="text-[10px] text-white/30 font-bold">VIP (3+ órdenes)</p>
+            </div>
+          </div>
+          <div className="flex-1 bg-white/[0.03] border border-white/[0.06] rounded-2xl px-4 py-3 flex items-center gap-3">
+            <Plus className="w-4 h-4 text-emerald-400 shrink-0" />
+            <div>
+              <p className="text-lg font-black text-emerald-400 leading-none">{stats.newThisMonth}</p>
+              <p className="text-[10px] text-white/30 font-bold">Este mes</p>
+            </div>
           </div>
         </div>
 
-        {/* Search iOS Style */}
-        <div className="relative mb-6">
-          <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500" strokeWidth={2.5} />
+        {/* ── SEARCH ─────────────────────────────────────── */}
+        <div className="relative mb-4">
+          <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-white/30" strokeWidth={2.5} />
           <input
-            placeholder="Buscar"
+            placeholder="Buscar por nombre, teléfono..."
             value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)} className="bg-white/8 text-slate-900 pr-4 pl-12 rounded-xl w-full h-11 border-none placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition-all theme-light:bg-gray-100 theme-light:text-gray-900" />
-
-
+            onChange={e => setSearchQuery(e.target.value)}
+            className="w-full h-11 pl-11 pr-4 bg-white/[0.04] border border-white/[0.08] rounded-2xl text-white text-sm placeholder-white/20 focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:bg-white/[0.07] transition-all font-medium"
+          />
         </div>
 
-        {isLoading ?
-        <div className="text-center py-12">
-            <div className="animate-spin w-8 h-8 border-4 border-cyan-600 border-t-transparent rounded-full mx-auto mb-3"></div>
-            <p className="text-gray-400 theme-light:text-gray-600">Cargando clientes...</p>
-          </div> :
-        filteredCustomers.length === 0 ?
-        <div className="text-center py-12">
-            <User className="w-16 h-16 mx-auto mb-4 text-gray-600" />
-            <p className="text-gray-400 mb-4 theme-light:text-gray-600">
-              {searchQuery ? "No se encontraron clientes" : "No hay clientes registrados"}
+        {/* ── CONTENT ────────────────────────────────────── */}
+        {isLoading ? (
+          <div className="flex flex-col items-center justify-center py-20">
+            <div className="w-8 h-8 border-2 border-blue-500 border-t-transparent rounded-full animate-spin mb-3" />
+            <p className="text-white/30 text-xs font-bold uppercase tracking-widest">Cargando...</p>
+          </div>
+        ) : filteredCustomers.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-20">
+            <Users className="w-12 h-12 text-white/10 mb-4" />
+            <p className="text-white/30 text-sm font-bold mb-4">
+              {searchQuery ? "Sin resultados" : "Sin clientes registrados"}
             </p>
-            {!searchQuery &&
-          <Button
-            onClick={() => setShowCreateDialog(true)}
-            className="bg-gradient-to-r from-cyan-600 to-emerald-700 hover:from-cyan-700 hover:to-emerald-800">
-
-                <Plus className="w-5 h-5 mr-2" />
-                Crear Primer Cliente
-              </Button>
-          }
-          </div> :
-
-        <>
-            {/* Mobile/Tablet - iOS Card List */}
+            {!searchQuery && (
+              <button
+                onClick={() => setShowCreateDialog(true)}
+                className="px-5 py-2.5 bg-blue-500/10 border border-blue-500/20 rounded-xl text-blue-400 text-sm font-bold transition-all active:scale-95"
+              >
+                Crear primer cliente
+              </button>
+            )}
+          </div>
+        ) : (
+          <>
+            {/* Mobile/Tablet cards */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:hidden gap-3">
-              {filteredCustomers.map((customer) =>
-            <motion.button
-              key={customer.id}
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              onClick={() => handleViewOrders(customer)}
-              className="relative bg-gradient-to-br from-white/10 to-white/5 hover:from-white/15 hover:to-white/10 backdrop-blur-xl border border-white/10 rounded-[24px] p-5 transition-all duration-300 hover:scale-[1.02] active:scale-95 shadow-lg hover:shadow-2xl hover:border-blue-500/30 text-left theme-light:bg-white theme-light:border-gray-200 theme-light:hover:shadow-xl">
+              {filteredCustomers.map((customer, i) => {
+                const vip = isVip(customer);
+                const lastVisit = getLastVisit(customer);
+                const totalOrders = customer.total_orders || 0;
+                return (
+                  <motion.div
+                    key={customer.id}
+                    initial={{ opacity: 0, y: 8 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: i * 0.03 }}
+                    className="bg-[#1C1C1E]/60 backdrop-blur-xl border border-white/[0.07] rounded-[24px] overflow-hidden"
+                  >
+                    {/* Card tap area */}
+                    <button
+                      onClick={() => handleViewOrders(customer)}
+                      className="w-full p-4 text-left active:bg-white/[0.04] transition-colors"
+                    >
+                      <div className="flex items-start gap-3 mb-3">
+                        {/* Avatar */}
+                        <div className={`w-12 h-12 rounded-[14px] bg-gradient-to-br ${avatarColor(customer.name)} flex items-center justify-center text-white font-black text-lg shrink-0 shadow-lg`}>
+                          {customer.name?.charAt(0).toUpperCase()}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <h3 className="text-white font-black text-[15px] leading-tight truncate">{customer.name}</h3>
+                            {vip && (
+                              <span className="flex items-center gap-0.5 px-1.5 py-0.5 bg-yellow-500/15 border border-yellow-500/30 rounded-md">
+                                <Star className="w-2.5 h-2.5 text-yellow-400 fill-yellow-400" />
+                                <span className="text-[9px] font-black text-yellow-400 uppercase tracking-tight">VIP</span>
+                              </span>
+                            )}
+                          </div>
+                          <div className="flex items-center gap-2 mt-1 flex-wrap">
+                            {totalOrders > 0 && (
+                              <span className="text-[10px] font-bold text-blue-400/80 bg-blue-500/10 px-2 py-0.5 rounded-full">
+                                {totalOrders} {totalOrders === 1 ? "orden" : "órdenes"}
+                              </span>
+                            )}
+                            {lastVisit && (
+                              <span className="text-[10px] text-white/25 font-bold">{lastVisit}</span>
+                            )}
+                          </div>
+                        </div>
+                        <ChevronRight className="w-4 h-4 text-white/15 shrink-0 mt-1" />
+                      </div>
 
-                  {/* Glossy Effect */}
-                  <div className="absolute inset-0 bg-gradient-to-br from-white/10 via-transparent to-transparent opacity-0 hover:opacity-100 transition-opacity rounded-[24px] pointer-events-none" />
-                  
-                  <div className="relative z-10">
-                    <div className="flex items-center gap-3 mb-3">
-                      <div className="w-14 h-14 rounded-[18px] bg-gradient-to-br from-blue-500 to-cyan-500 flex items-center justify-center text-white font-black text-xl shadow-lg">
-                        {customer.name.charAt(0).toUpperCase()}
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <h3 className="text-white font-bold text-[17px] truncate theme-light:text-gray-900">
-                          {customer.name}
-                        </h3>
-                        {(customer.total_orders > 0 || customer.orders?.length > 0) &&
-                    <span className="inline-block mt-1 px-2 py-0.5 bg-blue-500/20 text-blue-300 rounded-full text-xs font-bold theme-light:bg-blue-100 theme-light:text-blue-700">
-                            {customer.orders?.length || customer.total_orders || 0} {(customer.orders?.length || customer.total_orders) === 1 ? "orden" : "órdenes"}
-                          </span>
-                    }
-                      </div>
-                    </div>
-
-                    <div className="space-y-2 text-sm mb-4">
-                      <div className="flex items-center gap-2 text-white/70 theme-light:text-gray-600">
-                        <Phone className="w-4 h-4 flex-shrink-0" />
-                        <span className="truncate">{customer.phone}</span>
-                      </div>
-                      {customer.email &&
-                  <div className="flex items-center gap-2 text-white/70 theme-light:text-gray-600">
-                          <Mail className="w-4 h-4 flex-shrink-0" />
+                      {/* Contact info */}
+                      {customer.phone && (
+                        <div className="flex items-center gap-2 text-white/50 text-xs mb-1.5">
+                          <Phone className="w-3.5 h-3.5 shrink-0" />
+                          <span className="truncate font-medium">{customer.phone}</span>
+                        </div>
+                      )}
+                      {customer.email && (
+                        <div className="flex items-center gap-2 text-white/30 text-xs">
+                          <Mail className="w-3.5 h-3.5 shrink-0" />
                           <span className="truncate">{customer.email}</span>
                         </div>
-                  }
-                    </div>
+                      )}
+                    </button>
 
-                    <div className="flex gap-2 pt-3 border-t border-white/10 theme-light:border-gray-200">
+                    {/* Action bar */}
+                    <div className="flex border-t border-white/[0.05]">
+                      {customer.phone && (
+                        <a
+                          href={`tel:${customer.phone}`}
+                          onClick={e => e.stopPropagation()}
+                          className="flex-1 flex items-center justify-center gap-1.5 py-2.5 text-white/50 hover:text-white/80 transition-colors active:bg-white/[0.04]"
+                        >
+                          <Phone className="w-4 h-4" />
+                          <span className="text-[10px] font-black uppercase tracking-tight">Llamar</span>
+                        </a>
+                      )}
+                      {customer.phone && (
+                        <a
+                          href={getWhatsAppUrl(customer.phone)}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          onClick={e => e.stopPropagation()}
+                          className="flex-1 flex items-center justify-center gap-1.5 py-2.5 text-green-400/70 hover:text-green-400 transition-colors active:bg-white/[0.04] border-l border-white/[0.05]"
+                        >
+                          <MessageCircle className="w-4 h-4" />
+                          <span className="text-[10px] font-black uppercase tracking-tight">WhatsApp</span>
+                        </a>
+                      )}
                       <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleEdit(customer);
-                    }}
-                    className="flex-1 h-9 px-3 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl text-white/80 hover:text-white font-semibold text-sm flex items-center justify-center gap-2 transition-all active:scale-95 theme-light:bg-gray-50 theme-light:border-gray-200 theme-light:text-gray-700">
-
+                        onClick={e => { e.stopPropagation(); handleEdit(customer); }}
+                        className="flex-1 flex items-center justify-center gap-1.5 py-2.5 text-white/40 hover:text-white/70 transition-colors active:bg-white/[0.04] border-l border-white/[0.05]"
+                      >
                         <Edit className="w-4 h-4" />
-                        <span>Editar</span>
-                      </button>
-                      <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleDelete(customer.id);
-                    }}
-                    className="flex-1 h-9 px-3 bg-red-500/10 hover:bg-red-500/20 border border-red-500/30 rounded-xl text-red-400 hover:text-red-300 font-semibold text-sm flex items-center justify-center gap-2 transition-all active:scale-95 theme-light:bg-red-50 theme-light:border-red-200 theme-light:text-red-600">
-
-                        <Trash2 className="w-4 h-4" />
-                        <span>Eliminar</span>
+                        <span className="text-[10px] font-black uppercase tracking-tight">Editar</span>
                       </button>
                     </div>
-                  </div>
-                </motion.button>
-            )}
+                  </motion.div>
+                );
+              })}
             </div>
 
-            {/* Desktop - Table */}
-            <div className="hidden lg:block bg-[#121212] border border-cyan-500/20 rounded-xl overflow-hidden theme-light:bg-white theme-light:border-gray-200">
+            {/* Desktop table */}
+            <div className="hidden lg:block bg-[#1C1C1E]/60 backdrop-blur-xl border border-white/[0.07] rounded-[28px] overflow-hidden">
               <table className="w-full">
-                <thead className="bg-black/40 border-b border-cyan-500/20 theme-light:bg-gray-50 theme-light:border-gray-200">
+                <thead className="border-b border-white/[0.06]">
                   <tr>
-                    <th className="text-left p-4 text-gray-400 font-medium text-sm theme-light:text-gray-700">Cliente</th>
-                    <th className="text-left p-4 text-gray-400 font-medium text-sm theme-light:text-gray-700">Teléfono</th>
-                    <th className="text-left p-4 text-gray-400 font-medium text-sm theme-light:text-gray-700">Email</th>
-                    <th className="text-center p-4 text-gray-400 font-medium text-sm theme-light:text-gray-700">Órdenes</th>
-                    <th className="text-right p-4 text-gray-400 font-medium text-sm theme-light:text-gray-700">Acciones</th>
+                    <th className="text-left px-5 py-3.5 text-white/30 font-black text-[10px] uppercase tracking-widest">Cliente</th>
+                    <th className="text-left px-5 py-3.5 text-white/30 font-black text-[10px] uppercase tracking-widest">Contacto</th>
+                    <th className="text-left px-5 py-3.5 text-white/30 font-black text-[10px] uppercase tracking-widest">Última actividad</th>
+                    <th className="text-center px-5 py-3.5 text-white/30 font-black text-[10px] uppercase tracking-widest">Órdenes</th>
+                    <th className="text-right px-5 py-3.5 text-white/30 font-black text-[10px] uppercase tracking-widest">Acciones</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {filteredCustomers.map((customer) =>
-                <tr
-                  key={customer.id}
-                  className="border-b border-cyan-500/10 hover:bg-cyan-600/5 transition-colors cursor-pointer theme-light:border-gray-100 theme-light:hover:bg-gray-50"
-                  onClick={() => handleViewOrders(customer)}>
-
-                      <td className="p-4">
-                        <div className="flex items-center gap-3">
-                          <div className="w-10 h-10 rounded-full bg-gradient-to-br from-cyan-600 to-emerald-600 flex items-center justify-center text-white font-bold">
-                            {customer.name.charAt(0).toUpperCase()}
+                  {filteredCustomers.map(customer => {
+                    const vip = isVip(customer);
+                    const lastVisit = getLastVisit(customer);
+                    return (
+                      <tr
+                        key={customer.id}
+                        onClick={() => handleViewOrders(customer)}
+                        className="border-b border-white/[0.04] hover:bg-white/[0.03] transition-colors cursor-pointer group"
+                      >
+                        <td className="px-5 py-3.5">
+                          <div className="flex items-center gap-3">
+                            <div className={`w-9 h-9 rounded-xl bg-gradient-to-br ${avatarColor(customer.name)} flex items-center justify-center text-white font-black text-sm shrink-0`}>
+                              {customer.name?.charAt(0).toUpperCase()}
+                            </div>
+                            <div>
+                              <div className="flex items-center gap-2">
+                                <span className="text-white font-black text-sm">{customer.name}</span>
+                                {vip && (
+                                  <span className="flex items-center gap-0.5 px-1.5 py-0.5 bg-yellow-500/15 border border-yellow-500/30 rounded-md">
+                                    <Star className="w-2.5 h-2.5 text-yellow-400 fill-yellow-400" />
+                                    <span className="text-[9px] font-black text-yellow-400 uppercase">VIP</span>
+                                  </span>
+                                )}
+                              </div>
+                            </div>
                           </div>
-                          <span className="text-white font-medium theme-light:text-gray-900">{customer.name}</span>
-                        </div>
-                      </td>
-                      <td className="p-4 text-gray-300 theme-light:text-gray-700">{customer.phone}</td>
-                      <td className="p-4 text-gray-300 theme-light:text-gray-700">{customer.email || "—"}</td>
-                      <td className="p-4 text-center">
-                        <Badge className="bg-cyan-600/20 text-cyan-300 border-cyan-600/30 theme-light:bg-cyan-100 theme-light:text-cyan-700 theme-light:border-cyan-300">
-                          {customer.total_orders || 0}
-                        </Badge>
-                      </td>
-                      <td className="p-4">
-                        <div className="flex items-center justify-end gap-2">
-                          <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleViewOrders(customer);
-                        }}
-                        className="hover:bg-cyan-600/10 text-cyan-400 theme-light:hover:bg-cyan-50 theme-light:text-cyan-600">
-
-                            <History className="w-4 h-4" />
-                          </Button>
-                          <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleEdit(customer);
-                        }}
-                        className="hover:bg-white/5 theme-light:hover:bg-gray-100">
-
-                            <Edit className="w-4 h-4" />
-                          </Button>
-                          <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleDelete(customer.id);
-                        }}
-                        className="hover:bg-red-600/10 text-red-400 theme-light:text-red-600 theme-light:hover:bg-red-50">
-
-                            <Trash2 className="w-4 h-4" />
-                          </Button>
-                        </div>
-                      </td>
-                    </tr>
-                )}
+                        </td>
+                        <td className="px-5 py-3.5">
+                          <div className="space-y-1">
+                            {customer.phone && (
+                              <div className="flex items-center gap-2">
+                                <span className="text-white/60 text-xs font-medium">{customer.phone}</span>
+                                <a href={`tel:${customer.phone}`} onClick={e => e.stopPropagation()} className="text-white/20 hover:text-white/60 transition-colors">
+                                  <Phone className="w-3.5 h-3.5" />
+                                </a>
+                                <a href={getWhatsAppUrl(customer.phone)} target="_blank" rel="noopener noreferrer" onClick={e => e.stopPropagation()} className="text-green-400/30 hover:text-green-400/80 transition-colors">
+                                  <MessageCircle className="w-3.5 h-3.5" />
+                                </a>
+                              </div>
+                            )}
+                            {customer.email && (
+                              <p className="text-white/30 text-xs">{customer.email}</p>
+                            )}
+                          </div>
+                        </td>
+                        <td className="px-5 py-3.5">
+                          <span className="text-white/30 text-xs font-medium">{lastVisit || "—"}</span>
+                        </td>
+                        <td className="px-5 py-3.5 text-center">
+                          <span className={`inline-block px-2.5 py-1 rounded-lg text-xs font-black border ${
+                            (customer.total_orders || 0) > 0
+                              ? "bg-blue-500/10 text-blue-400 border-blue-500/20"
+                              : "bg-white/5 text-white/20 border-white/10"
+                          }`}>
+                            {customer.total_orders || 0}
+                          </span>
+                        </td>
+                        <td className="px-5 py-3.5">
+                          <div className="flex items-center justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                            <button
+                              onClick={e => { e.stopPropagation(); handleEdit(customer); }}
+                              className="w-8 h-8 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 flex items-center justify-center text-white/40 hover:text-white/80 transition-all active:scale-90"
+                            >
+                              <Edit className="w-3.5 h-3.5" />
+                            </button>
+                            <button
+                              onClick={e => { e.stopPropagation(); handleDelete(customer.id); }}
+                              className="w-8 h-8 rounded-xl bg-red-500/5 hover:bg-red-500/15 border border-red-500/10 flex items-center justify-center text-red-400/40 hover:text-red-400 transition-all active:scale-90"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })}
                 </tbody>
               </table>
             </div>
           </>
-        }
+        )}
       </div>
 
       {/* Dialogs */}
       <CreateCustomerDialog
         open={showCreateDialog}
-        onClose={() => {
-          setShowCreateDialog(false);
-          setEditingCustomer(null);
-        }}
+        onClose={() => { setShowCreateDialog(false); setEditingCustomer(null); }}
         customer={editingCustomer}
         onSuccess={(createdCustomer) => {
           if (createdCustomer?.id) {
             queryClient.setQueryData(["customers"], (prev = []) => {
-              const exists = prev.some((c) => c.id === createdCustomer.id);
-              if (exists) return prev.map((c) => (c.id === createdCustomer.id ? createdCustomer : c));
+              const exists = prev.some(c => c.id === createdCustomer.id);
+              if (exists) return prev.map(c => c.id === createdCustomer.id ? createdCustomer : c);
               return [createdCustomer, ...prev];
             });
             if (createdCustomer?.is_local) {
               const local = readLocalCustomers();
-              writeLocalCustomers([createdCustomer, ...local.filter((c) => c.id !== createdCustomer.id)]);
+              writeLocalCustomers([createdCustomer, ...local.filter(c => c.id !== createdCustomer.id)]);
             }
           }
           queryClient.invalidateQueries({ queryKey: ["customers"] });
           setShowCreateDialog(false);
           setEditingCustomer(null);
-        }} />
-
-
-      {selectedCustomer &&
-      <CustomerOrdersDialog
-        open={showOrdersDialog}
-        onClose={() => {
-          setShowOrdersDialog(false);
-          setSelectedCustomer(null);
         }}
-        customer={selectedCustomer}
-        orders={selectedCustomer.orders || []} />
+      />
 
-      }
-    </div>);
-
+      {selectedCustomer && (
+        <CustomerOrdersDialog
+          open={showOrdersDialog}
+          onClose={() => { setShowOrdersDialog(false); setSelectedCustomer(null); }}
+          customer={selectedCustomer}
+          orders={selectedCustomer.orders || []}
+          onDelete={async (customerId) => {
+            if (window.confirm("¿Eliminar este cliente permanentemente? Esta acción no se puede deshacer.")) {
+              try {
+                await deleteCustomerMutation.mutateAsync(customerId);
+                setShowOrdersDialog(false);
+                setSelectedCustomer(null);
+              } catch (e) { alert("Error: " + e.message); }
+            }
+          }}
+        />
+      )}
+    </div>
+  );
 }
