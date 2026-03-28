@@ -1,567 +1,355 @@
-import React, { useMemo, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import React, { useRef, useState } from "react";
 import {
-  Shield,
-  AlertTriangle,
-  CalendarClock,
-  BadgeCheck,
-  ReceiptText,
-  Plus,
-  ShoppingCart,
-  Wallet,
-  DollarSign,
-  TimerReset,
-  ClipboardList,
-  Wrench,
-  CheckCircle2,
-  Clock3,
-  PhoneCall,
-  MessageCircle,
-  Mail
+  Shield, AlertTriangle, CheckCircle2, XCircle, AlertCircle,
+  PhoneCall, MessageCircle, Mail, Camera, Activity, Loader2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import AddItemModal from "@/components/workorder/AddItemModal";
+import { Textarea } from "@/components/ui/textarea";
+import { toast } from "sonner";
+import { base44 } from "@/api/base44Client";
 import WorkOrderUnifiedHub from "@/components/workorder/WorkOrderUnifiedHub";
-import { createPageUrl } from "@/components/utils/helpers";
+import SharedItemsSection from "@/components/workorder/SharedItemsSection";
 
-export default function WarrantyStage({ order, onUpdate, onPaymentClick }) {
+// ── Opciones de veredicto ─────────────────────────────────────────────────────
+const VERDICTS = [
+  {
+    id: "covered",
+    label: "Cubierto",
+    sublabel: "Sin costo para el cliente",
+    icon: CheckCircle2,
+    idle: "border-emerald-500/30 bg-emerald-500/8 text-emerald-300 hover:bg-emerald-500/18",
+    active: "border-emerald-500 bg-emerald-500/22 text-emerald-200 shadow-[0_0_20px_rgba(16,185,129,0.18)] scale-[1.02]",
+  },
+  {
+    id: "partial",
+    label: "Parcial",
+    sublabel: "Parte cubierta, hay extras",
+    icon: AlertCircle,
+    idle: "border-amber-500/30 bg-amber-500/8 text-amber-300 hover:bg-amber-500/18",
+    active: "border-amber-500 bg-amber-500/22 text-amber-200 shadow-[0_0_20px_rgba(245,158,11,0.18)] scale-[1.02]",
+  },
+  {
+    id: "not_covered",
+    label: "No aplica",
+    sublabel: "Daño fuera de garantía",
+    icon: XCircle,
+    idle: "border-red-500/30 bg-red-500/8 text-red-300 hover:bg-red-500/18",
+    active: "border-red-500 bg-red-500/22 text-red-200 shadow-[0_0_20px_rgba(239,68,68,0.18)] scale-[1.02]",
+  },
+];
+
+// ─────────────────────────────────────────────────────────────────────────────
+export default function WarrantyStage({
+  order,
+  onUpdate,
+  onPaymentClick,
+  onOrderItemsUpdate,
+  onRemoteSaved,
+  onClose,
+}) {
   const o = order || {};
-  const navigate = useNavigate();
-  const [showCatalog, setShowCatalog] = useState(false);
+  const photoInputRef = useRef(null);
 
-  const items = Array.isArray(o.order_items) ? o.order_items : [];
-  const itemCount = items.length;
+  const [uploadingPhoto, setUploadingPhoto] = useState(false);
+  const [showNote, setShowNote]             = useState(false);
+  const [noteText, setNoteText]             = useState("");
+  const [savingNote, setSavingNote]         = useState(false);
+  const [verdict, setVerdict]               = useState(o.warranty_verdict || null);
+  const [savingVerdict, setSavingVerdict]   = useState(false);
 
-  const claimReason = String(o?.warranty_mode?.warranty_reason || "").trim();
-  const customerStory = String(o?.initial_problem || "").trim();
-  const entryDate = o?.warranty_mode?.warranty_entry_date || null;
-  const startedAt = o?.warranty_countdown?.started_at || null;
-  const daysRemaining = Number(o?.warranty_countdown?.days_remaining ?? -1);
+  // ── Datos de garantía ────────────────────────────────────────────────────
+  const claimReason    = String(o?.warranty_mode?.warranty_reason || "").trim();
+  const originalProblem = String(o?.initial_problem || "").trim();
+  const daysRemaining  = Number(o?.warranty_countdown?.days_remaining ?? -1);
   const warrantyExpired = o?.warranty_countdown?.expired === true || daysRemaining === 0;
-  const totalPaid = Number(o?.total_paid || o?.amount_paid || 0);
 
-  const totals = useMemo(() => {
-    const subtotal = items.reduce((sum, item) => {
-      const qty = Number(item?.qty || item?.quantity || 1);
-      const basePrice = Number(item?.price || 0);
-      const discountPercentage = Number(item?.discount_percentage || 0);
-      const lineTotal = basePrice * qty;
-      return sum + (lineTotal - lineTotal * (discountPercentage / 100));
-    }, 0);
+  const phone  = o.customer_phone || "";
+  const email  = o.customer_email || "";
+  const digits = phone.replace(/\D/g, "");
+  const intl   = digits.startsWith("1") ? digits : digits.length === 10 ? `1${digits}` : digits;
 
-    const taxableSubtotal = items.reduce((sum, item) => {
-      if (item?.taxable === false) return sum;
-      const qty = Number(item?.qty || item?.quantity || 1);
-      const basePrice = Number(item?.price || 0);
-      const discountPercentage = Number(item?.discount_percentage || 0);
-      const lineTotal = basePrice * qty;
-      return sum + (lineTotal - lineTotal * (discountPercentage / 100));
-    }, 0);
-
-    const tax = taxableSubtotal * 0.115;
-    const total = subtotal + tax;
-    const balanceDue = Math.max(0, total - totalPaid);
-
-    return { subtotal, tax, total, balanceDue };
-  }, [items, totalPaid]);
-
-  const itemPreview = items.slice(0, 3);
-
+  // ── Tono según estado de garantía ────────────────────────────────────────
   const warrantyTone = warrantyExpired
-    ? {
-        badge: "border-red-400/25 bg-red-500/10 text-red-200",
-        emphasis: "text-red-300",
-        title: "Fuera de ventana de garantía",
-        text: "La garantía ya expiró. Si continúas el trabajo, trata esta etapa como reclamo revisado con cargos potenciales."
-      }
+    ? { badge: "border-red-400/25 bg-red-500/10 text-red-200", label: "Vencida", icon: AlertTriangle }
     : daysRemaining >= 0 && daysRemaining <= 7
-      ? {
-          badge: "border-amber-400/25 bg-amber-500/10 text-amber-100",
-          emphasis: "text-amber-300",
-          title: "Garantía por vencer",
-          text: "El reclamo sigue activo, pero conviene documentar hallazgos y definir cobertura con rapidez."
-        }
-      : {
-          badge: "border-emerald-400/25 bg-emerald-500/10 text-emerald-100",
-          emphasis: "text-emerald-300",
-          title: "Garantía activa",
-          text: "El reclamo entra dentro de la ventana de garantía. Prioriza diagnóstico de causa y claridad sobre cobertura."
-        };
+    ? { badge: "border-amber-400/25 bg-amber-500/10 text-amber-100", label: `${daysRemaining}d restantes`, icon: Shield }
+    : { badge: "border-emerald-400/25 bg-emerald-500/10 text-emerald-100", label: daysRemaining >= 0 ? `${daysRemaining}d restantes` : "Activa", icon: Shield };
 
-  const coverageSummary = totals.balanceDue > 0.01
-    ? {
-        title: "Hay cargos adicionales",
-        text: "La orden ya tiene piezas o servicios con impacto económico. Si algo no está cubierto por garantía, queda listo para cobro.",
-        tone: "text-amber-300 bg-amber-500/10 border-amber-400/20"
-      }
-    : {
-        title: "Sin cargos pendientes",
-        text: "Todavía no hay balance adicional. Útil si el reclamo será cubierto o aún no se han añadido extras.",
-        tone: "text-emerald-300 bg-emerald-500/10 border-emerald-400/20"
-      };
+  const StatusIcon = warrantyTone.icon;
 
-  const actionCards = [
-    {
-      id: "reason",
-      title: "Motivo del reclamo",
-      text: claimReason || "Falta registrar la razón específica por la que el cliente regresó bajo garantía.",
-      icon: ClipboardList,
-      tone: "bg-amber-500/10 text-amber-300"
-    },
-    {
-      id: "story",
-      title: "Cliente indica",
-      text: customerStory || "No hay narrativa inicial del cliente. Conviene documentarla para comparar con el trabajo previo.",
-      icon: Wrench,
-      tone: "bg-cyan-500/10 text-cyan-300"
-    },
-    {
-      id: "coverage",
-      title: coverageSummary.title,
-      text: coverageSummary.text,
-      icon: totals.balanceDue > 0.01 ? ReceiptText : BadgeCheck,
-      tone: totals.balanceDue > 0.01 ? "bg-orange-500/10 text-orange-300" : "bg-emerald-500/10 text-emerald-300"
+  // ── Guardar veredicto ────────────────────────────────────────────────────
+  async function handleVerdict(id) {
+    if (savingVerdict) return;
+    setSavingVerdict(true);
+    try {
+      await base44.entities.Order.update(o.id, { warranty_verdict: id });
+      setVerdict(id);
+      onUpdate?.();
+    } catch {
+      toast.error("No se pudo guardar el veredicto");
+    } finally {
+      setSavingVerdict(false);
     }
-  ];
+  }
 
+  // ── Subir foto ───────────────────────────────────────────────────────────
+  async function handlePhoto(e) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setUploadingPhoto(true);
+    try {
+      const { file_url } = await base44.integrations.Core.UploadFile({ file });
+      if (!file_url) throw new Error("sin url");
+      const prev = Array.isArray(o.photos_metadata) ? o.photos_metadata : [];
+      await base44.entities.Order.update(o.id, {
+        photos_metadata: [...prev, { url: file_url, created_at: new Date().toISOString(), context: "warranty" }],
+      });
+      await base44.entities.WorkOrderEvent.create({
+        order_id: o.id,
+        order_number: o.order_number,
+        event_type: "photo_added",
+        description: "Foto de garantía subida",
+        metadata: { url: file_url },
+      });
+      toast.success("Foto guardada");
+      onUpdate?.();
+    } catch {
+      toast.error("Error subiendo foto");
+    } finally {
+      setUploadingPhoto(false);
+      e.target.value = "";
+    }
+  }
+
+  // ── Guardar nota ─────────────────────────────────────────────────────────
+  async function handleSaveNote() {
+    if (!noteText.trim()) return;
+    setSavingNote(true);
+    try {
+      await base44.entities.WorkOrderEvent.create({
+        order_id: o.id,
+        order_number: o.order_number,
+        event_type: "note_added",
+        description: noteText.trim(),
+        metadata: { context: "warranty" },
+      });
+      setNoteText("");
+      setShowNote(false);
+      toast.success("Nota guardada");
+      onUpdate?.();
+    } catch {
+      toast.error("Error guardando nota");
+    } finally {
+      setSavingNote(false);
+    }
+  }
+
+  // ─────────────────────────────────────────────────────────────────────────
   return (
-    <div className="space-y-6">
-      <section className="relative overflow-hidden rounded-[30px] border border-amber-500/15 bg-[radial-gradient(circle_at_top_left,rgba(245,158,11,0.16),transparent_28%),radial-gradient(circle_at_bottom_right,rgba(234,179,8,0.14),transparent_30%),linear-gradient(135deg,rgba(28,18,8,0.98),rgba(18,14,10,0.96))] p-5 shadow-[0_22px_70px_rgba(0,0,0,0.35)] sm:p-6">
-        <div className="absolute inset-0 bg-[linear-gradient(120deg,transparent,rgba(255,255,255,0.03),transparent)]" />
-        <div className="relative z-10 grid gap-5 xl:grid-cols-[1.12fr_0.88fr] xl:items-start">
-          <div className="space-y-4">
-            <div className="flex flex-wrap items-center gap-2">
-              <Badge className="rounded-full border border-amber-400/30 bg-amber-500/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.25em] text-amber-100">
-                Garantía
-              </Badge>
-              <Badge variant="outline" className={`rounded-full px-3 py-1 text-xs ${warrantyTone.badge}`}>
-                {warrantyExpired ? "Reclamo vencido" : "Reclamo activo"}
-              </Badge>
-              {o?.passed_warranty === true && (
-                <Badge variant="outline" className="rounded-full border-white/10 bg-white/5 px-3 py-1 text-xs text-white/65">
-                  Historial de garantía
-                </Badge>
-              )}
-            </div>
+    <div className="space-y-4">
 
-            <div className="space-y-2">
-              <p className="text-[11px] font-semibold uppercase tracking-[0.32em] text-white/35">Etapa activa</p>
-              <div className="flex flex-wrap items-end gap-x-4 gap-y-2">
-                <h2 className="text-3xl font-black tracking-tight text-white sm:text-4xl">Revisión por Garantía</h2>
-                <div className="inline-flex items-center rounded-full border border-amber-400/20 bg-amber-500/10 px-3 py-1 text-sm font-semibold text-amber-100">
-                  {o.device_brand} {o.device_model}
-                </div>
-              </div>
-              <p className="max-w-2xl text-sm leading-relaxed text-white/55">
-                Esta etapa no debe parecer entrega. Debe ayudar a validar si el reclamo aplica, qué se hará y si existen cargos nuevos fuera de garantía.
-              </p>
-            </div>
-
-            <div className="grid gap-3 md:grid-cols-4">
-              <div className="rounded-[22px] border border-white/10 bg-black/25 p-4 backdrop-blur-md">
-                <p className="mb-1 text-[11px] font-semibold uppercase tracking-[0.24em] text-white/35">Cliente</p>
-                <p className="truncate text-lg font-bold text-amber-200">{o.customer_name || "No registrado"}</p>
-              </div>
-              <div className="rounded-[22px] border border-white/10 bg-black/25 p-4 backdrop-blur-md">
-                <p className="mb-1 text-[11px] font-semibold uppercase tracking-[0.24em] text-white/35">Ingreso a garantía</p>
-                <p className="truncate text-sm font-semibold text-white/80">
-                  {entryDate ? new Date(entryDate).toLocaleDateString() : "No registrado"}
-                </p>
-              </div>
-              <div className="rounded-[22px] border border-white/10 bg-black/25 p-4 backdrop-blur-md">
-                <p className="mb-1 text-[11px] font-semibold uppercase tracking-[0.24em] text-white/35">Días restantes</p>
-                <p className={`truncate text-lg font-bold ${warrantyTone.emphasis}`}>
-                  {daysRemaining >= 0 ? `${daysRemaining} días` : "Sin contador"}
-                </p>
-              </div>
-              <div className="rounded-[22px] border border-white/10 bg-black/25 p-4 backdrop-blur-md">
-                <p className="mb-1 text-[11px] font-semibold uppercase tracking-[0.24em] text-white/35">Balance adicional</p>
-                <p className={`truncate text-lg font-bold ${totals.balanceDue > 0.01 ? "text-amber-300" : "text-emerald-300"}`}>
-                  ${totals.balanceDue.toFixed(2)}
-                </p>
-              </div>
-            </div>
-          </div>
-
-          <div className="space-y-4">
-            <div className="rounded-[26px] border border-amber-400/15 bg-black/25 p-5 backdrop-blur-md">
-              <div className="flex items-start gap-3">
-                <div className="flex h-12 w-12 items-center justify-center rounded-2xl border border-amber-400/20 bg-amber-500/15">
-                  {warrantyExpired ? (
-                    <AlertTriangle className="h-5 w-5 text-red-300" />
-                  ) : (
-                    <Shield className="h-5 w-5 text-amber-200" />
-                  )}
-                </div>
-                <div className="min-w-0">
-                  <p className="text-[11px] font-semibold uppercase tracking-[0.28em] text-white/35">Estado de cobertura</p>
-                  <h3 className="mt-1 text-xl font-black tracking-tight text-white">{warrantyTone.title}</h3>
-                  <p className="mt-2 text-sm leading-relaxed text-white/55">{warrantyTone.text}</p>
-                </div>
-              </div>
-            </div>
-
-            <div className="rounded-[26px] border border-cyan-400/15 bg-[linear-gradient(180deg,rgba(34,211,238,0.08),rgba(0,0,0,0.18))] p-4 backdrop-blur-md">
-              <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-                <div className="min-w-0">
-                  <div className="flex items-center gap-2">
-                    <ShoppingCart className="h-4 w-4 text-cyan-300" />
-                    <p className="text-[11px] font-semibold uppercase tracking-[0.28em] text-white/35">Intervención adicional</p>
-                  </div>
-                  <h3 className="mt-1 text-lg font-black tracking-tight text-white">Piezas y servicios</h3>
-                  <p className="mt-1 text-sm text-white/55">
-                    {itemCount > 0
-                      ? `${itemCount} item${itemCount === 1 ? "" : "s"} registrado${itemCount === 1 ? "" : "s"} · total actual $${totals.total.toFixed(2)}`
-                      : "Añade solo lo que realmente no quede cubierto o deba quedar trazado en garantía."}
-                  </p>
-                </div>
-                <Button
-                  type="button"
-                  onClick={() => setShowCatalog(true)}
-                  className="rounded-2xl bg-cyan-500/90 px-5 text-slate-950 shadow-lg shadow-cyan-950/20 hover:bg-cyan-400"
-                >
-                  <Plus className="mr-2 h-4 w-4" />
-                  Añadir extras
-                </Button>
-              </div>
-
-              {itemPreview.length > 0 && (
-                <div className="mt-4 flex flex-wrap gap-2">
-                  {itemPreview.map((item, index) => (
-                    <div
-                      key={`${item?.id || item?.name || "item"}-${index}`}
-                      className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-black/25 px-3 py-1.5 text-xs text-white/80"
-                    >
-                      <ReceiptText className="h-3.5 w-3.5 text-cyan-300" />
-                      <span className="max-w-[220px] truncate">{item?.name || "Item"}</span>
-                    </div>
-                  ))}
-                  {itemCount > itemPreview.length && (
-                    <div className="inline-flex items-center rounded-full border border-white/10 bg-black/25 px-3 py-1.5 text-xs text-white/60">
-                      +{itemCount - itemPreview.length} más
-                    </div>
-                  )}
-                </div>
-              )}
-            </div>
-          </div>
+      {/* ── HERO: dispositivo + estado + contacto ─────────────────────────── */}
+      <section className="relative overflow-hidden rounded-[28px] border border-amber-500/15 bg-[radial-gradient(circle_at_top_left,rgba(245,158,11,0.14),transparent_28%),linear-gradient(135deg,rgba(28,18,8,0.98),rgba(18,14,10,0.96))] p-5 shadow-[0_22px_70px_rgba(0,0,0,0.35)]">
+        {/* badges */}
+        <div className="flex flex-wrap items-center gap-2 mb-4">
+          <Badge className="rounded-full border border-amber-400/30 bg-amber-500/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.25em] text-amber-100">
+            Garantía
+          </Badge>
+          <Badge variant="outline" className={`rounded-full px-3 py-1 text-xs flex items-center gap-1 ${warrantyTone.badge}`}>
+            <StatusIcon className="w-3 h-3" />
+            {warrantyTone.label}
+          </Badge>
         </div>
-        {(o.customer_phone || o.customer_email) && (() => {
-          const phone = o.customer_phone || "";
-          const email = o.customer_email || "";
-          const digits = phone.replace(/\D/g, "");
-          const intl = digits.startsWith("1") ? digits : digits.length === 10 ? `1${digits}` : digits;
-          return (
-            <div className="relative z-10 mt-4 grid grid-cols-1 gap-3 sm:grid-cols-3">
-              {digits && (
-                <a href={`tel:+${intl}`} className="flex items-center justify-center gap-3 h-14 rounded-2xl border border-white/15 bg-white/5 text-white hover:bg-white/10 font-bold text-sm uppercase tracking-wide transition-all active:scale-95">
-                  <PhoneCall className="w-5 h-5 text-white/60" />{phone}
-                </a>
-              )}
-              {digits && (
-                <a href={`https://wa.me/${intl}`} target="_blank" rel="noreferrer"
-                  className="flex items-center justify-center gap-3 h-14 rounded-2xl border border-emerald-500/30 bg-emerald-500/12 text-emerald-300 hover:bg-emerald-500/20 font-bold text-sm uppercase tracking-wide transition-all active:scale-95">
-                  <MessageCircle className="w-5 h-5" />WhatsApp
-                </a>
-              )}
-              {email && (
-                <a href={`mailto:${email}`} className="flex items-center justify-center gap-3 h-14 rounded-2xl border border-blue-500/30 bg-blue-500/12 text-blue-300 hover:bg-blue-500/20 font-bold text-sm uppercase tracking-wide transition-all active:scale-95">
-                  <Mail className="w-5 h-5" /><span className="truncate">{email}</span>
-                </a>
-              )}
-            </div>
-          );
-        })()}
+
+        {/* dispositivo + cliente */}
+        <div className="flex flex-wrap items-end gap-x-4 gap-y-1 mb-5">
+          <h2 className="text-2xl sm:text-3xl font-black tracking-tight text-white">
+            {o.device_brand} {o.device_model}
+          </h2>
+          <p className="text-sm font-bold text-white/50">{o.customer_name}</p>
+        </div>
+
+        {/* contacto */}
+        {(digits || email) && (
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+            {digits && (
+              <a
+                href={`tel:+${intl}`}
+                className="flex items-center justify-center gap-2 h-11 rounded-2xl border border-white/15 bg-white/5 text-white hover:bg-white/10 font-semibold text-sm transition-all active:scale-95"
+              >
+                <PhoneCall className="w-4 h-4 text-white/60 flex-shrink-0" />
+                <span className="hidden sm:inline truncate">{phone}</span>
+                <span className="sm:hidden">Llamar</span>
+              </a>
+            )}
+            {digits && (
+              <a
+                href={`https://wa.me/${intl}`}
+                target="_blank"
+                rel="noreferrer"
+                className="flex items-center justify-center gap-2 h-11 rounded-2xl border border-emerald-500/30 bg-emerald-500/10 text-emerald-300 hover:bg-emerald-500/20 font-semibold text-sm transition-all active:scale-95"
+              >
+                <MessageCircle className="w-4 h-4 flex-shrink-0" />
+                <span className="hidden sm:inline">WhatsApp</span>
+              </a>
+            )}
+            {email && (
+              <a
+                href={`mailto:${email}`}
+                className="flex items-center justify-center gap-2 h-11 rounded-2xl border border-blue-500/30 bg-blue-500/10 text-blue-300 hover:bg-blue-500/20 font-semibold text-sm transition-all active:scale-95 col-span-2 sm:col-span-1"
+              >
+                <Mail className="w-4 h-4 flex-shrink-0" />
+                <span className="hidden sm:inline truncate">{email}</span>
+                <span className="sm:hidden">Email</span>
+              </a>
+            )}
+          </div>
+        )}
       </section>
 
-      <div className="grid gap-6 xl:grid-cols-[1.04fr_0.96fr]">
-        <section className="overflow-hidden rounded-[28px] border border-amber-500/15 bg-[linear-gradient(180deg,rgba(255,255,255,0.05),rgba(255,255,255,0.02))] shadow-[0_18px_50px_rgba(0,0,0,0.28)]">
-          <div className="border-b border-white/10 bg-gradient-to-r from-amber-500/10 to-transparent p-5">
-            <div className="flex items-center gap-3">
-              <div className="flex h-12 w-12 items-center justify-center rounded-2xl border border-amber-400/20 bg-amber-500/15 text-amber-200">
-                <TimerReset className="h-5 w-5" />
-              </div>
-              <div>
-                <p className="text-[11px] font-semibold uppercase tracking-[0.28em] text-white/35">Lectura rápida</p>
-                <h3 className="text-xl font-black tracking-tight text-white">Pulso del reclamo</h3>
-              </div>
-            </div>
-          </div>
-          <div className="grid gap-4 p-5 md:grid-cols-2 xl:grid-cols-2">
-            <div className="rounded-[22px] border border-white/8 bg-black/20 p-5">
-              <div className="flex items-center justify-between">
-                <p className="text-[11px] font-bold uppercase tracking-[0.28em] text-white/35">Motivo</p>
-                <Badge className="border-amber-500/20 bg-amber-500/10 text-amber-200">Cliente</Badge>
-              </div>
-              <p className="mt-3 text-sm leading-relaxed text-white/70">
-                {claimReason || "Falta registrar la razón del reclamo de garantía."}
-              </p>
-            </div>
-
-            <div className="rounded-[22px] border border-white/8 bg-black/20 p-5">
-              <div className="flex items-center justify-between">
-                <p className="text-[11px] font-bold uppercase tracking-[0.28em] text-white/35">Cliente indica</p>
-                <Badge className="border-cyan-500/20 bg-cyan-500/10 text-cyan-200">Recepción</Badge>
-              </div>
-              <p className="mt-3 text-sm leading-relaxed text-white/70">
-                {customerStory || "No hay nota inicial disponible para comparar con el reclamo actual."}
-              </p>
-            </div>
-
-            <div className="rounded-[22px] border border-white/8 bg-black/20 p-5">
-              <div className="flex items-center justify-between">
-                <p className="text-[11px] font-bold uppercase tracking-[0.28em] text-white/35">Ventana</p>
-                <Badge className={warrantyTone.badge}>
-                  {warrantyExpired ? "Expirada" : "Activa"}
-                </Badge>
-              </div>
-              <p className="mt-3 text-sm leading-relaxed text-white/70">
-                {startedAt
-                  ? `La cobertura arrancó el ${new Date(startedAt).toLocaleDateString()} y quedan ${daysRemaining >= 0 ? daysRemaining : "?"} días.`
-                  : "No hay fecha de inicio de garantía registrada."}
-              </p>
-            </div>
-
-            <div className="rounded-[22px] border border-white/8 bg-black/20 p-5">
-              <div className="flex items-center justify-between">
-                <p className="text-[11px] font-bold uppercase tracking-[0.28em] text-white/35">Cobro</p>
-                <Badge className={coverageSummary.tone}>
-                  {totals.balanceDue > 0.01 ? "Con extras" : "Sin cargos"}
-                </Badge>
-              </div>
-              <p className="mt-3 text-sm leading-relaxed text-white/70">
-                {totals.balanceDue > 0.01
-                  ? `El balance pendiente es $${totals.balanceDue.toFixed(2)}. Útil para trabajos mixtos: parte cubierta, parte adicional.`
-                  : "No hay balance adicional. Si el reclamo se cubre completo, puedes trabajar sin ruido comercial."}
-              </p>
-            </div>
-          </div>
-        </section>
-
-        <section className="overflow-hidden rounded-[28px] border border-cyan-500/15 bg-[linear-gradient(180deg,rgba(255,255,255,0.05),rgba(255,255,255,0.02))] shadow-[0_18px_50px_rgba(0,0,0,0.28)]">
-          <div className="border-b border-white/10 bg-gradient-to-r from-cyan-500/10 to-transparent p-5">
-            <div className="flex items-center gap-3">
-              <div className="flex h-12 w-12 items-center justify-center rounded-2xl border border-cyan-400/20 bg-cyan-500/15 text-cyan-300">
-                <Clock3 className="h-5 w-5" />
-              </div>
-              <div>
-                <p className="text-[11px] font-semibold uppercase tracking-[0.28em] text-white/35">Qué debe resolverse</p>
-                <h3 className="text-xl font-black tracking-tight text-white">Prioridades de garantía</h3>
-              </div>
-            </div>
-          </div>
-          <div className="space-y-4 p-5">
-            {actionCards.map((item) => {
-              const Icon = item.icon;
-              return (
-                <div key={item.id} className="rounded-[22px] border border-white/8 bg-black/20 p-4">
-                  <div className="flex items-start gap-3">
-                    <div className={`mt-0.5 flex h-9 w-9 items-center justify-center rounded-xl ${item.tone}`}>
-                      <Icon className="h-4.5 w-4.5" />
-                    </div>
-                    <div>
-                      <p className="font-bold text-white">{item.title}</p>
-                      <p className="mt-1 text-sm leading-relaxed text-white/60">{item.text}</p>
-                    </div>
-                  </div>
-                </div>
-              );
-            })}
-
-            <div className="rounded-[22px] border border-white/8 bg-black/20 p-4">
-              <div className="flex items-start gap-3">
-                <div className="mt-0.5 flex h-9 w-9 items-center justify-center rounded-xl bg-emerald-500/10 text-emerald-300">
-                  <CheckCircle2 className="h-4.5 w-4.5" />
-                </div>
-                <div>
-                  <p className="font-bold text-white">Cerrar criterio de cobertura</p>
-                  <p className="mt-1 text-sm leading-relaxed text-white/60">
-                    Antes de salir de esta etapa, debe quedar claro si se cubre todo, si hay extras o si el reclamo no procede dentro de garantía.
-                  </p>
-                </div>
-              </div>
-            </div>
-          </div>
-        </section>
+      {/* ── COMPARACIÓN: reclamo actual vs problema original ─────────────── */}
+      <div className="grid gap-3 sm:grid-cols-2">
+        <div className="rounded-[22px] border border-amber-500/20 bg-black/30 p-4 space-y-2">
+          <p className="text-[10px] font-black uppercase tracking-[0.28em] text-amber-400/70">
+            Cliente reclama ahora
+          </p>
+          {claimReason
+            ? <p className="text-sm leading-relaxed text-white/80">{claimReason}</p>
+            : <p className="text-sm text-white/25 italic">Sin motivo registrado</p>
+          }
+        </div>
+        <div className="rounded-[22px] border border-white/10 bg-black/30 p-4 space-y-2">
+          <p className="text-[10px] font-black uppercase tracking-[0.28em] text-white/30">
+            Problema original
+          </p>
+          {originalProblem
+            ? <p className="text-sm leading-relaxed text-white/80">{originalProblem}</p>
+            : <p className="text-sm text-white/25 italic">Sin descripción inicial</p>
+          }
+        </div>
       </div>
 
-      <section className="relative overflow-hidden rounded-[30px] border border-amber-500/15 bg-[radial-gradient(circle_at_top_left,rgba(245,158,11,0.10),transparent_24%),radial-gradient(circle_at_bottom_right,rgba(34,211,238,0.10),transparent_28%),linear-gradient(180deg,rgba(24,24,27,0.98),rgba(10,10,12,0.98))] shadow-[0_22px_70px_rgba(0,0,0,0.35)]">
-        <div className="absolute inset-0 bg-[linear-gradient(120deg,transparent,rgba(255,255,255,0.025),transparent)]" />
-        <div className="relative z-10 border-b border-white/10 px-6 py-5">
-          <div className="flex items-start justify-between gap-4">
-            <div className="flex items-start gap-4">
-              <div className="flex h-12 w-12 items-center justify-center rounded-2xl border border-cyan-400/20 bg-cyan-500/15 shadow-[0_10px_30px_rgba(34,211,238,0.12)]">
-                <ShoppingCart className="h-5 w-5 text-cyan-300" />
-              </div>
-              <div>
-                <p className="text-[11px] font-semibold uppercase tracking-[0.28em] text-white/35">Cobertura y extras</p>
-                <h3 className="mt-1 text-2xl font-black tracking-tight text-white">Piezas y Servicios</h3>
-                <p className="mt-2 max-w-2xl text-sm leading-relaxed text-white/55">
-                  Úsalo solo si la garantía requiere piezas nuevas, cargos parciales o una trazabilidad económica más precisa.
-                </p>
-              </div>
-            </div>
-            <Button
-              size="sm"
-              onClick={() => setShowCatalog(true)}
-              className="h-10 rounded-2xl bg-cyan-500/90 px-4 text-sm font-bold text-slate-950 shadow-lg shadow-cyan-950/20 hover:bg-cyan-400"
+      {/* ── VEREDICTO ────────────────────────────────────────────────────── */}
+      <section className="rounded-[28px] border border-white/10 bg-black/25 p-5 space-y-4">
+        {/* header */}
+        <div className="flex flex-wrap items-center gap-2">
+          <Shield className="w-4 h-4 text-amber-400 flex-shrink-0" />
+          <p className="text-[11px] font-black uppercase tracking-[0.28em] text-white/40">
+            Veredicto de garantía
+          </p>
+          {verdict
+            ? <span className="ml-auto text-[10px] font-black uppercase tracking-wider text-emerald-400 bg-emerald-400/10 border border-emerald-400/25 px-2 py-0.5 rounded-full">
+                Listo para avanzar
+              </span>
+            : <span className="ml-auto text-[10px] font-black uppercase tracking-wider text-amber-400 bg-amber-400/10 border border-amber-400/25 px-2 py-0.5 rounded-full">
+                🔒 Requerido para avanzar
+              </span>
+          }
+        </div>
+
+        {/* botones veredicto */}
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+          {VERDICTS.map(({ id, label, sublabel, icon: Icon, idle, active }) => (
+            <button
+              key={id}
+              onClick={() => handleVerdict(id)}
+              disabled={savingVerdict}
+              className={`flex flex-col items-center justify-center gap-1.5 rounded-2xl border p-4 transition-all active:scale-95 disabled:opacity-60 ${
+                verdict === id ? active : idle
+              }`}
             >
-              <Plus className="mr-2 h-4 w-4" />
-              Añadir
+              <Icon className="w-6 h-6" />
+              <span className="font-black text-sm">{label}</span>
+              <span className="text-[10px] opacity-70 text-center leading-tight">{sublabel}</span>
+            </button>
+          ))}
+        </div>
+      </section>
+
+      {/* ── ACCIONES RÁPIDAS: foto + nota ────────────────────────────────── */}
+      <div className="grid grid-cols-2 gap-2">
+        <input
+          ref={photoInputRef}
+          type="file"
+          accept="image/*"
+          capture="environment"
+          className="hidden"
+          onChange={handlePhoto}
+        />
+        <button
+          onClick={() => photoInputRef.current?.click()}
+          disabled={uploadingPhoto}
+          className="flex items-center justify-center gap-2 rounded-2xl border border-blue-500/20 bg-blue-500/8 px-4 py-3 hover:bg-blue-500/14 transition-all disabled:opacity-50 active:scale-95"
+        >
+          {uploadingPhoto
+            ? <Loader2 className="w-4 h-4 text-blue-400 animate-spin" />
+            : <Camera className="w-4 h-4 text-blue-400" />
+          }
+          <span className="text-sm font-semibold text-blue-300">
+            {uploadingPhoto ? "Subiendo…" : "Foto"}
+          </span>
+        </button>
+
+        <button
+          onClick={() => setShowNote(v => !v)}
+          className="flex items-center justify-center gap-2 rounded-2xl border border-cyan-500/20 bg-cyan-500/8 px-4 py-3 hover:bg-cyan-500/14 transition-all active:scale-95"
+        >
+          <Activity className="w-4 h-4 text-cyan-400" />
+          <span className="text-sm font-semibold text-cyan-300">Nota</span>
+        </button>
+      </div>
+
+      {/* nota inline */}
+      {showNote && (
+        <div className="rounded-2xl border border-cyan-500/20 bg-cyan-500/5 p-3 space-y-2">
+          <Textarea
+            value={noteText}
+            onChange={e => setNoteText(e.target.value)}
+            placeholder="Escribe la nota de garantía…"
+            className="bg-black/40 border-white/15 text-white resize-none text-sm min-h-[80px]"
+          />
+          <div className="flex gap-2">
+            <Button
+              onClick={handleSaveNote}
+              disabled={savingNote || !noteText.trim()}
+              size="sm"
+              className="bg-cyan-600 hover:bg-cyan-500 text-white rounded-xl"
+            >
+              {savingNote ? <Loader2 className="w-4 h-4 animate-spin" /> : "Guardar"}
+            </Button>
+            <Button
+              onClick={() => { setShowNote(false); setNoteText(""); }}
+              size="sm"
+              variant="ghost"
+              className="text-white/50 rounded-xl"
+            >
+              Cancelar
             </Button>
           </div>
         </div>
+      )}
 
-        <div className="relative z-10 p-6">
-          {itemCount === 0 ? (
-            <div className="rounded-[24px] border border-dashed border-white/10 bg-black/20 px-6 py-14 text-center">
-              <ShoppingCart className="mx-auto mb-4 h-12 w-12 text-white/20" />
-              <p className="text-base font-semibold text-white/55">No hay extras registrados en esta garantía.</p>
-              <p className="mt-2 text-sm text-white/35">Si algo no queda cubierto o requiere trazabilidad adicional, añádelo desde aquí.</p>
-            </div>
-          ) : (
-            <div className="overflow-hidden rounded-[24px] border border-white/10 bg-black/20">
-              <div className="divide-y divide-white/5">
-                {items.map((item, idx) => {
-                  const qty = Number(item?.qty || item?.quantity || 1);
-                  const price = Number(item?.price || 0);
-                  const discount = Number(item?.discount_percentage || 0);
-                  const lineTotal = price * qty;
-                  const itemTotal = lineTotal - lineTotal * (discount / 100);
+      {/* ── PIEZAS Y EXTRAS ──────────────────────────────────────────────── */}
+      <SharedItemsSection
+        order={o}
+        onUpdate={onUpdate}
+        onOrderItemsUpdate={onOrderItemsUpdate}
+        onRemoteSaved={onRemoteSaved}
+        onClose={onClose}
+        accentColor="amber"
+        subtitle="Solo si la garantía requiere piezas nuevas o hay cargos fuera de cobertura."
+        catalogButtonLabel="Añadir extras"
+        onPaymentClick={onPaymentClick}
+      />
 
-                  return (
-                    <div key={`${item?.id || item?.name || "item"}-${idx}`} className="px-6 py-5 transition-colors hover:bg-white/[0.03]">
-                      <div className="flex items-start justify-between gap-4">
-                        <div className="min-w-0 flex-1">
-                          <p className="truncate text-xl font-black tracking-tight text-white">{item?.name || "Item"}</p>
-                          <p className="mt-2 text-sm text-white/45">
-                            {item?.type === "service" ? "Servicio agregado a cobertura de garantía." : "Producto agregado a cobertura de garantía."}
-                          </p>
-                          <div className="mt-4 flex flex-wrap gap-2">
-                            <Badge variant="outline" className="rounded-full border-white/10 bg-white/5 px-3 py-1 text-[11px] text-gray-300">
-                              ${price.toFixed(2)} c/u
-                            </Badge>
-                            <Badge variant="outline" className="rounded-full border-white/10 bg-white/5 px-3 py-1 text-[11px] text-gray-300">
-                              {item?.type === "service" ? "Servicio" : "Producto"}
-                            </Badge>
-                            {discount > 0 && (
-                              <Badge className="rounded-full border-orange-500/30 bg-orange-500/20 px-3 py-1 text-[11px] text-orange-300">
-                                -{discount}% desc.
-                              </Badge>
-                            )}
-                            {item?.taxable === false && (
-                              <Badge className="rounded-full border-violet-500/30 bg-violet-500/20 px-3 py-1 text-[11px] text-violet-300">
-                                Sin IVU
-                              </Badge>
-                            )}
-                          </div>
-                        </div>
-                        <div className="pl-4 text-right">
-                          <div className="inline-flex items-center rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs font-semibold text-white/70">
-                            x{qty}
-                          </div>
-                          <p className="mt-3 text-3xl font-black tracking-tight text-emerald-300">${itemTotal.toFixed(2)}</p>
-                        </div>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-
-              <div className="grid gap-4 border-t border-white/10 bg-black/35 p-5 lg:grid-cols-[1fr_360px]">
-                <div className="space-y-3">
-                  <div className="rounded-[20px] border border-white/8 bg-black/20 px-5 py-4">
-                    <div className="flex items-center justify-between text-sm">
-                      <span className="font-medium text-gray-400">Subtotal</span>
-                      <span className="text-xl font-black tracking-tight text-white">${totals.subtotal.toFixed(2)}</span>
-                    </div>
-                  </div>
-                  <div className="rounded-[20px] border border-white/8 bg-black/20 px-5 py-4">
-                    <div className="flex items-center justify-between text-sm">
-                      <span className="font-medium text-gray-400">IVU (11.5%)</span>
-                      <span className="text-xl font-black tracking-tight text-white">${totals.tax.toFixed(2)}</span>
-                    </div>
-                  </div>
-                  <div className="rounded-[20px] border border-emerald-500/15 bg-emerald-500/10 px-5 py-4">
-                    <div className="flex items-center justify-between">
-                      <span className="text-base font-bold text-white">Total</span>
-                      <span className="text-3xl font-black tracking-tight text-white">${totals.total.toFixed(2)}</span>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="rounded-[24px] border border-amber-500/15 bg-[linear-gradient(180deg,rgba(245,158,11,0.08),rgba(0,0,0,0.18))] p-5">
-                  <p className="text-[11px] font-semibold uppercase tracking-[0.28em] text-white/35">Acciones de cobro</p>
-                  <h4 className="mt-2 text-2xl font-black tracking-tight text-white">
-                    {totals.balanceDue > 0.01 ? "Cerrar diferencia de garantía" : "Sin cobro adicional"}
-                  </h4>
-                  <p className="mt-2 text-sm leading-relaxed text-white/55">
-                    {totals.balanceDue > 0.01
-                      ? "Si el reclamo no cubre todo, puedes registrar depósito o cobrar el restante sin salir de la orden."
-                      : "La garantía no dejó balance adicional pendiente. Puedes continuar sin fricción comercial."}
-                  </p>
-                  {totalPaid > 0 && (
-                    <div className="mt-4 rounded-[18px] border border-emerald-500/15 bg-emerald-500/10 px-4 py-3">
-                      <div className="flex items-center justify-between text-sm">
-                        <span className="font-medium text-emerald-100/80">Pagado / Depósito</span>
-                        <span className="font-bold text-emerald-300">-${totalPaid.toFixed(2)}</span>
-                      </div>
-                      <div className="mt-3 flex items-center justify-between border-t border-emerald-400/10 pt-3">
-                        <span className="font-semibold text-white">Balance pendiente</span>
-                        <span className={`text-2xl font-black tracking-tight ${totals.balanceDue <= 0.01 ? "text-emerald-300" : "text-white"}`}>
-                          ${totals.balanceDue.toFixed(2)}
-                        </span>
-                      </div>
-                    </div>
-                  )}
-                  {totals.balanceDue > 0.01 ? (
-                    <div className="mt-5 grid grid-cols-1 gap-4">
-                      <Button
-                        variant="outline"
-                        className="h-12 rounded-2xl border-emerald-500/30 text-emerald-300 hover:bg-emerald-500/10"
-                        onClick={() => onPaymentClick?.("deposit")}
-                      >
-                        <Wallet className="mr-2 h-5 w-5" />
-                        Depósito
-                      </Button>
-                      <Button
-                        className="h-12 rounded-2xl bg-emerald-600 text-white shadow-lg shadow-emerald-900/20 hover:bg-emerald-500"
-                        onClick={() => onPaymentClick?.("full")}
-                      >
-                        <DollarSign className="mr-2 h-5 w-5" />
-                        Cobrar Restante
-                      </Button>
-                    </div>
-                  ) : (
-                    <div className="mt-5 rounded-[18px] border border-emerald-500/20 bg-emerald-500/10 p-4 text-center">
-                      <p className="flex items-center justify-center gap-2 text-lg font-bold text-emerald-400">
-                        <BadgeCheck className="h-5 w-5" />
-                        Sin cobro adicional pendiente
-                      </p>
-                    </div>
-                  )}
-                </div>
-              </div>
-            </div>
-          )}
-        </div>
-      </section>
-
+      {/* ── HISTORIAL ────────────────────────────────────────────────────── */}
       <WorkOrderUnifiedHub
         order={order}
         onUpdate={onUpdate}
         accent="amber"
         title="Centro de Garantía"
-        subtitle="Historial, notas técnicas, evidencias y seguridad reunidos para validar el reclamo."
-      />
-
-      <AddItemModal
-        open={showCatalog}
-        onClose={() => setShowCatalog(false)}
-        onSave={() => setShowCatalog(false)}
-        order={o}
-        onUpdate={onUpdate}
+        subtitle="Historial, notas y evidencias del reclamo."
       />
     </div>
   );

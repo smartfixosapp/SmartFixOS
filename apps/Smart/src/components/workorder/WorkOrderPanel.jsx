@@ -2147,6 +2147,16 @@ export default function WorkOrderPanel({ orderId, onClose, onUpdate, onDelete, p
       }
     }
 
+    // Bloquear avance desde warranty si no hay veredicto
+    if (prevStatusId === "warranty" && nextId !== "cancelled") {
+      const prevOrder = getStatusConfig(prevStatusId).order || 0;
+      const nextOrder = getStatusConfig(nextId).order || 0;
+      if (nextOrder > prevOrder && !order?.warranty_verdict) {
+        toast("Define el veredicto de garantía antes de avanzar la orden", { icon: "🔒" });
+        return;
+      }
+    }
+
     // Mostrar modales específicos SOLO si no viene de skipModalCheck
     if (!skipModalCheck) {
       if (nextId === "cancelled") {
@@ -3117,10 +3127,24 @@ export default function WorkOrderPanel({ orderId, onClose, onUpdate, onDelete, p
                     <RepairStage order={o} onUpdate={async () => { await clearEventCache(o.id); await loadEventsCallback(true); await handleRefresh(); onUpdate?.(); }} />
                   )}
                   {status === "warranty" && (
-                    <WarrantyStage order={o} onUpdate={async () => { await clearEventCache(o.id); await loadEventsCallback(true); await handleRefresh(); onUpdate?.(); }} onPaymentClick={handlePaymentClick} />
+                    <WarrantyStage
+                      order={o}
+                      onUpdate={async () => { await clearEventCache(o.id); await loadEventsCallback(true); await handleRefresh(); onUpdate?.(); }}
+                      onPaymentClick={handlePaymentClick}
+                      onOrderItemsUpdate={handleOrderItemsSaved}
+                      onRemoteSaved={async () => { await new Promise((r) => setTimeout(r, 1500)); await handleRefresh(); }}
+                      onClose={handleClose}
+                    />
                   )}
                   {status === "ready_for_pickup" && (
-                    <DeliveryStage order={o} onUpdate={async () => { await clearEventCache(o.id); await loadEventsCallback(true); await handleRefresh(); onUpdate?.(); }} onPaymentClick={handlePaymentClick} />
+                    <DeliveryStage
+                      order={o}
+                      onUpdate={async () => { await clearEventCache(o.id); await loadEventsCallback(true); await handleRefresh(); onUpdate?.(); }}
+                      onPaymentClick={handlePaymentClick}
+                      onOrderItemsUpdate={handleOrderItemsSaved}
+                      onRemoteSaved={async () => { await new Promise((r) => setTimeout(r, 1500)); await handleRefresh(); }}
+                      onClose={handleClose}
+                    />
                   )}
                   {(status === "picked_up" || status === "delivered" || status === "completed") && (
                     <FinalizedStage order={o} onUpdate={async () => { await clearEventCache(o.id); await loadEventsCallback(true); await handleRefresh(); onUpdate?.(); }} onPaymentClick={handlePaymentClick} />

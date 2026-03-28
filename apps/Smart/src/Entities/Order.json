@@ -1,22 +1,22 @@
 {
   "name": "Order",
   "type": "object",
-  "description": "\u00d3rdenes de trabajo con validaciones estrictas de estado y datos requeridos",
+  "description": "Órdenes de trabajo con validaciones estrictas de estado y datos requeridos",
   "properties": {
     "order_number": {
       "type": "string",
       "minLength": 3,
-      "description": "N\u00famero \u00fanico de orden"
+      "description": "Número único de orden"
     },
     "created_date": {
       "type": "string",
       "format": "date-time",
-      "description": "Fecha de creaci\u00f3n"
+      "description": "Fecha de creación"
     },
     "updated_date": {
       "type": "string",
       "format": "date-time",
-      "description": "\u00daltima actualizaci\u00f3n"
+      "description": "Última actualización"
     },
     "store_id": {
       "type": "string",
@@ -35,7 +35,7 @@
     "customer_phone": {
       "type": "string",
       "pattern": "^[0-9+()\\-\\s]{6,}$",
-      "description": "Tel\u00e9fono del cliente (cache)"
+      "description": "Teléfono del cliente (cache)"
     },
     "customer_email": {
       "type": "string",
@@ -48,12 +48,12 @@
         "type": "string",
         "pattern": "^[0-9+()\\-\\s]{6,}$"
       },
-      "description": "Otros tel\u00e9fonos (cache)"
+      "description": "Otros teléfonos (cache)"
     },
     "device_type": {
       "type": "string",
       "minLength": 2,
-      "description": "Tipo de equipo (categor\u00eda)"
+      "description": "Tipo de equipo (categoría)"
     },
     "device_brand": {
       "type": "string",
@@ -61,7 +61,7 @@
     },
     "device_subcategory": {
       "type": "string",
-      "description": "Subcategor\u00eda"
+      "description": "Subcategoría"
     },
     "device_family": {
       "type": "string",
@@ -146,7 +146,7 @@
         "pattern_vector": {
           "type": "string",
           "pattern": "^pattern:[0-9](?:-[0-9])*$",
-          "description": "Patr\u00f3n de Android en formato: pattern:0-1-4-7"
+          "description": "Patrón de Android en formato: pattern:0-1-4-7"
         },
         "pattern_image": {
           "type": "string"
@@ -303,7 +303,7 @@
         "ready_to_deliver",
         "delivered"
       ],
-      "description": "Estado espec\u00edfico para desbloqueos"
+      "description": "Estado específico para desbloqueos"
     },
     "tracking_url": {
       "type": "string",
@@ -318,7 +318,7 @@
     },
     "status_metadata": {
       "type": "object",
-      "description": "Metadatos espec\u00edficos del estado",
+      "description": "Metadatos específicos del estado",
       "additionalProperties": true
     },
     "status_history": {
@@ -583,7 +583,7 @@
     },
     "parts_carrier": {
       "type": "string",
-      "description": "Compa\u00f1\u00eda de env\u00edo (USPS, FedEx, etc)"
+      "description": "Compañía de envío (USPS, FedEx, etc)"
     },
     "part_name": {
       "type": "string",
@@ -632,7 +632,7 @@
         "taller",
         "cliente"
       ],
-      "description": "Ubicaci\u00f3n f\u00edsica del equipo"
+      "description": "Ubicación física del equipo"
     },
     "external_shop": {
       "type": "string"
@@ -642,97 +642,106 @@
     },
     "pickup_countdown": {
       "type": "object",
-      "description": "Contador de 30 d\u00edas para recoger equipo",
+      "description": "Contador de 30 días para recoger equipo",
       "properties": {
         "started_at": {
           "type": "string",
           "format": "date-time",
-          "description": "Fecha cuando pas\u00f3 a listo para recoger"
+          "description": "Fecha cuando pasó a listo para recoger"
         },
         "days_remaining": {
           "type": "number",
           "minimum": 0,
           "maximum": 30,
-          "description": "D\u00edas restantes"
+          "description": "Días restantes"
         },
         "reminder_15_sent": {
           "type": "boolean",
           "default": false,
-          "description": "Si ya se envi\u00f3 el recordatorio de 15 d\u00edas"
+          "description": "Si ya se envió el recordatorio de 15 días"
         },
         "reminder_3_sent": {
           "type": "boolean",
           "default": false,
-          "description": "Si ya se envi\u00f3 el recordatorio de 3 d\u00edas"
+          "description": "Si ya se envió el recordatorio de 3 días"
         },
         "expired": {
           "type": "boolean",
           "default": false,
-          "description": "Si ya pasaron los 30 d\u00edas"
+          "description": "Si ya pasaron los 30 días"
         }
       }
     },
     "warranty_countdown": {
       "type": "object",
-      "description": "Contador de 30 d\u00edas de garant\u00eda",
+      "description": "Contador de 30 días de garantía",
       "properties": {
         "started_at": {
           "type": "string",
           "format": "date-time",
-          "description": "Fecha cuando se entreg\u00f3"
+          "description": "Fecha cuando se entregó"
         },
         "days_remaining": {
           "type": "number",
           "minimum": 0,
           "maximum": 30,
-          "description": "D\u00edas de garant\u00eda restantes"
+          "description": "Días de garantía restantes"
         },
         "checkup_15_sent": {
           "type": "boolean",
           "default": false,
-          "description": "Si ya se envi\u00f3 el checkup de 15 d\u00edas"
+          "description": "Si ya se envió el checkup de 15 días"
         },
         "expiry_notice_sent": {
           "type": "boolean",
           "default": false,
-          "description": "Si ya se envi\u00f3 el aviso de expiraci\u00f3n"
+          "description": "Si ya se envió el aviso de expiración"
         },
         "expired": {
           "type": "boolean",
           "default": false,
-          "description": "Si ya expir\u00f3 la garant\u00eda"
+          "description": "Si ya expiró la garantía"
         }
       }
     },
     "warranty_mode": {
       "type": "object",
-      "description": "Informaci\u00f3n sobre ingreso por garant\u00eda",
+      "description": "Información sobre ingreso por garantía",
       "properties": {
         "is_warranty_claim": {
           "type": "boolean",
           "default": false,
-          "description": "Si la orden es un reclamo por garant\u00eda"
+          "description": "Si la orden es un reclamo por garantía"
         },
         "warranty_entry_date": {
           "type": "string",
           "format": "date-time",
-          "description": "Cu\u00e1ndo entr\u00f3 en modo garant\u00eda"
+          "description": "Cuándo entró en modo garantía"
         },
         "warranty_exit_date": {
           "type": "string",
           "format": "date-time",
-          "description": "Cu\u00e1ndo sali\u00f3 de modo garant\u00eda"
+          "description": "Cuándo salió de modo garantía"
         },
         "warranty_reason": {
           "type": "string",
-          "description": "Raz\u00f3n del reclamo de garant\u00eda"
+          "description": "Razón del reclamo de garantía"
         }
       }
     },
     "passed_warranty": {
       "type": "boolean",
       "default": false,
-      "description": "Marca permanente: esta orden pas\u00f3 por garant\u00eda (no editable)"
+      "description": "Marca permanente: esta orden pasó por garantía (no editable)"
+    },
+    "warranty_verdict": {
+      "type": "string",
+      "enum": [
+        "covered",
+        "partial",
+        "not_covered"
+      ],
+      "description": "Veredicto del tecnico: covered = cubierto, partial = cobertura parcial, not_covered = no aplica. Requerido para avanzar desde etapa warranty."
     }
   },
   "required": [
