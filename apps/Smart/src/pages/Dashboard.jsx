@@ -877,7 +877,7 @@ export default function Dashboard() {
   if (!session) return null;
 
   return (
-    <div className="min-h-screen pb-20 md:h-screen md:overflow-hidden md:pb-0">
+    <div className="md:h-full md:overflow-hidden">
       <Toast toast={toast} onClose={() => setToast(null)} />
 
       {/* Wizard primer inicio — solo para tenants nuevos */}
@@ -898,8 +898,8 @@ export default function Dashboard() {
         />
       )}
 
-      <div className="px-2 sm:px-3 md:px-6 lg:px-8 xl:px-12 2xl:px-16 pt-2 md:pt-4 lg:pt-6 pb-6 md:h-full md:flex md:flex-col">
-        <div className="max-w-[2560px] mx-auto space-y-4 md:space-y-0 md:h-full md:flex md:flex-col">
+      <div className="px-2 sm:px-3 md:px-6 lg:px-8 xl:px-12 2xl:px-16 pt-2 md:pt-4 lg:pt-6 pb-6 md:pb-0 md:h-full md:flex md:flex-col">
+        <div className="max-w-[2560px] mx-auto space-y-3 md:space-y-0 md:h-full md:flex md:flex-col">
           
           {/* === DESKTOP: PULSO — layout horizontal (left panel | right feed) === */}
           <div className="hidden md:flex md:flex-row md:flex-1 md:min-h-0 bg-[#121215]/40 backdrop-blur-[40px] border border-white/10 rounded-[40px] shadow-[0_32px_80px_rgba(0,0,0,0.45)] relative overflow-hidden">
