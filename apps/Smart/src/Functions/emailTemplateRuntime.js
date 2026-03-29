@@ -25,6 +25,33 @@ function getAlertColorForStatus(status) {
   return colors[status] || { bg: "#F9FAFB", border: "#6B7280", title: "#374151", text: "#1F2937" };
 }
 
+function getHeaderGradient(eventType) {
+  const map = {
+    intake:                       'linear-gradient(135deg,#10B981 0%,#059669 100%)',
+    diagnosing:                   'linear-gradient(135deg,#3B82F6 0%,#1D4ED8 100%)',
+    awaiting_approval:            'linear-gradient(135deg,#F59E0B 0%,#B45309 100%)',
+    waiting_parts:                'linear-gradient(135deg,#F97316 0%,#C2410C 100%)',
+    pending_order:                'linear-gradient(135deg,#F59E0B 0%,#92400E 100%)',
+    part_arrived_waiting_device:  'linear-gradient(135deg,#0EA5E9 0%,#0369A1 100%)',
+    reparacion_externa:           'linear-gradient(135deg,#8B5CF6 0%,#6D28D9 100%)',
+    in_progress:                  'linear-gradient(135deg,#3B82F6 0%,#1D4ED8 100%)',
+    ready_for_pickup:             'linear-gradient(135deg,#10B981 0%,#047857 100%)',
+    pickup_reminder_15:           'linear-gradient(135deg,#F59E0B 0%,#B45309 100%)',
+    pickup_reminder_3:            'linear-gradient(135deg,#DC2626 0%,#991B1B 100%)',
+    picked_up:                    'linear-gradient(135deg,#059669 0%,#065F46 100%)',
+    delivered:                    'linear-gradient(135deg,#059669 0%,#065F46 100%)',
+    cancelled:                    'linear-gradient(135deg,#DC2626 0%,#991B1B 100%)',
+    warranty:                     'linear-gradient(135deg,#3B82F6 0%,#1E40AF 100%)',
+    warranty_check_15:            'linear-gradient(135deg,#10B981 0%,#065F46 100%)',
+    warranty_expired:             'linear-gradient(135deg,#6366F1 0%,#3730A3 100%)',
+    deposit_received:             'linear-gradient(135deg,#0EA5E9 0%,#0369A1 100%)',
+    payment_received:             'linear-gradient(135deg,#10B981 0%,#059669 100%)',
+    sale_completed:               'linear-gradient(135deg,#10B981 0%,#065F46 100%)',
+    refund_processed:             'linear-gradient(135deg,#F97316 0%,#C2410C 100%)',
+  };
+  return map[eventType] || 'linear-gradient(135deg,#00A8E8 0%,#10B981 50%,#A8D700 100%)';
+}
+
 function interpolate(text, variables) {
   if (typeof text !== "string") return text;
   return text.replace(/{{\s*([^}]+)\s*}}/g, (_, key) => {
@@ -241,7 +268,7 @@ export async function sendTemplatedEmailWithBase44(base44, { event_type, order_d
     <head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"></head>
     <body style="margin: 0; padding: 20px; background: #F3F4F6;">
       <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 650px; margin: 0 auto; background: #ffffff;">
-        <div style="background: linear-gradient(135deg, #00A8E8 0%, #10B981 50%, #A8D700 100%); padding: 60px 30px; text-align: center; border-radius: 20px 20px 0 0;">
+        <div style="background: ${getHeaderGradient(event_type)}; padding: 60px 30px; text-align: center; border-radius: 20px 20px 0 0;">
           <img src="${logoUrl}" alt="${businessInfo.business_name || 'SmartFixOS'}" style="height: 120px; width: auto; margin: 0 auto; display: block;" />
           <h1 style="color: white; margin: 20px 0 0 0; font-size: 32px; font-weight: 800;">${interpolate(template.header_title, variables)}</h1>
           <p style="color: rgba(255,255,255,0.98); margin: 12px 0 0 0; font-size: 18px; font-weight: 600;">${interpolate(template.header_subtitle || "", variables)}</p>

@@ -20,6 +20,68 @@ import {
 
 const EMAIL_TEMPLATES_SETTINGS_SLUG = "email-templates-config";
 
+const TEMPLATE_GROUPS = [
+  {
+    id: 'orders',
+    label: 'Órdenes de Trabajo',
+    icon: '🔧',
+    types: ['intake','diagnosing','awaiting_approval','waiting_parts','pending_order','part_arrived_waiting_device','reparacion_externa','in_progress','ready_for_pickup','picked_up','delivered','cancelled','warranty'],
+  },
+  {
+    id: 'reminders',
+    label: 'Recordatorios Automáticos',
+    icon: '⏰',
+    types: ['pickup_reminder_15','pickup_reminder_3','warranty_check_15','warranty_expired'],
+  },
+  {
+    id: 'payments',
+    label: 'Pagos & Ventas',
+    icon: '💳',
+    types: ['deposit_received','payment_received','sale_completed','refund_processed'],
+  },
+];
+
+const TEMPLATE_VARIABLES = [
+  { key: '{{order_number}}',   desc: 'Número de orden' },
+  { key: '{{customer_name}}',  desc: 'Nombre del cliente' },
+  { key: '{{device_info}}',    desc: 'Equipo (marca/modelo)' },
+  { key: '{{initial_problem}}',desc: 'Problema reportado' },
+  { key: '{{amount}}',         desc: 'Total de la orden' },
+  { key: '{{balance}}',        desc: 'Balance pendiente' },
+  { key: '{{total_paid}}',     desc: 'Total pagado' },
+  { key: '{{payment_method}}', desc: 'Método de pago' },
+  { key: '{{sale_number}}',    desc: 'Número de venta' },
+  { key: '{{days_remaining}}', desc: 'Días restantes' },
+  { key: '{{days_elapsed}}',   desc: 'Días transcurridos' },
+];
+
+function getHeaderGradient(eventType) {
+  const map = {
+    intake:                       'linear-gradient(135deg,#10B981 0%,#059669 100%)',
+    diagnosing:                   'linear-gradient(135deg,#3B82F6 0%,#1D4ED8 100%)',
+    awaiting_approval:            'linear-gradient(135deg,#F59E0B 0%,#B45309 100%)',
+    waiting_parts:                'linear-gradient(135deg,#F97316 0%,#C2410C 100%)',
+    pending_order:                'linear-gradient(135deg,#F59E0B 0%,#92400E 100%)',
+    part_arrived_waiting_device:  'linear-gradient(135deg,#0EA5E9 0%,#0369A1 100%)',
+    reparacion_externa:           'linear-gradient(135deg,#8B5CF6 0%,#6D28D9 100%)',
+    in_progress:                  'linear-gradient(135deg,#3B82F6 0%,#1D4ED8 100%)',
+    ready_for_pickup:             'linear-gradient(135deg,#10B981 0%,#047857 100%)',
+    pickup_reminder_15:           'linear-gradient(135deg,#F59E0B 0%,#B45309 100%)',
+    pickup_reminder_3:            'linear-gradient(135deg,#DC2626 0%,#991B1B 100%)',
+    picked_up:                    'linear-gradient(135deg,#059669 0%,#065F46 100%)',
+    delivered:                    'linear-gradient(135deg,#059669 0%,#065F46 100%)',
+    cancelled:                    'linear-gradient(135deg,#DC2626 0%,#991B1B 100%)',
+    warranty:                     'linear-gradient(135deg,#3B82F6 0%,#1E40AF 100%)',
+    warranty_check_15:            'linear-gradient(135deg,#10B981 0%,#065F46 100%)',
+    warranty_expired:             'linear-gradient(135deg,#6366F1 0%,#3730A3 100%)',
+    deposit_received:             'linear-gradient(135deg,#0EA5E9 0%,#0369A1 100%)',
+    payment_received:             'linear-gradient(135deg,#10B981 0%,#059669 100%)',
+    sale_completed:               'linear-gradient(135deg,#10B981 0%,#065F46 100%)',
+    refund_processed:             'linear-gradient(135deg,#F97316 0%,#C2410C 100%)',
+  };
+  return map[eventType] || 'linear-gradient(135deg,#00A8E8 0%,#10B981 50%,#A8D700 100%)';
+}
+
 const EMAIL_TEMPLATE_ALLOWED_FIELDS = [
   "name",
   "event_type",
@@ -121,6 +183,10 @@ export default function EmailTemplatesTab() {
   const [sendingTest, setSendingTest] = useState(false);
   const [testEmail, setTestEmail] = useState("");
   const [loadWarning, setLoadWarning] = useState("");
+  const [openGroups, setOpenGroups] = useState({ orders: true, reminders: true, payments: true });
+  const [showAdvanced, setShowAdvanced] = useState(false);
+  const [previewTemplate, setPreviewTemplate] = useState(null);
+  const [customizedTypes, setCustomizedTypes] = useState(new Set());
 
   const pickUploadUrl = (result) =>
   result?.file_url ||
@@ -222,12 +288,14 @@ export default function EmailTemplatesTab() {
       const { storedTemplates } = await readTemplateSettings();
       if (storedTemplates.length > 0) {
         setTemplates(mergeTemplatesWithSystemDefaults(storedTemplates));
+        setCustomizedTypes(new Set(storedTemplates.map(t => t.event_type)));
         setLoadWarning("");
         return;
       }
 
       const legacyData = await base44.entities.EmailTemplate.filter({}, "-created_date", 100).catch(() => []);
       setTemplates(mergeTemplatesWithSystemDefaults(legacyData || []));
+      setCustomizedTypes(new Set((legacyData || []).filter(t => t.id).map(t => t.event_type)));
       setLoadWarning("");
     } catch (error) {
       console.error("Error loading templates:", error);
@@ -254,6 +322,7 @@ export default function EmailTemplatesTab() {
 
       await writeTemplateSettings(nextTemplates);
       toast.success("✅ Plantilla guardada");
+      setCustomizedTypes(prev => new Set([...prev, payload.event_type]));
       setShowEditor(false);
       setEditingTemplate(null);
       await loadTemplates();
@@ -278,6 +347,7 @@ export default function EmailTemplatesTab() {
       const nextTemplates = (storedTemplates || []).filter((template) => template?.event_type !== templateToDelete.event_type);
       await writeTemplateSettings(nextTemplates);
       toast.success("✅ Plantilla restablecida al valor del sistema");
+      setCustomizedTypes(prev => { const next = new Set(prev); next.delete(templateToDelete.event_type); return next; });
       await loadTemplates();
     } catch (error) {
       toast.error(error?.message ? `Error al eliminar: ${error.message}` : "Error al eliminar");
@@ -413,7 +483,7 @@ export default function EmailTemplatesTab() {
       editingTemplate.warranty_type === 'sales' ? businessInfo.warranty_sales : businessInfo.warranty_repairs);
       const hoursText = editingTemplate.custom_hours || null;
 
-      const previewHTML = generatePreview(logoToUse, warrantyText, hoursText);
+      const previewHTML = generatePreview(editingTemplate, logoToUse, warrantyText, hoursText);
 
       if (!previewHTML) {
         throw new Error("No se pudo generar el HTML del email (plantilla vacía)");
@@ -434,32 +504,32 @@ export default function EmailTemplatesTab() {
     }
   };
 
-  const generatePreview = (logoUrlOverride, warrantyTextOverride, hoursTextOverride) => {
-    if (!editingTemplate) return "";
+  const generatePreview = (template, logoUrlOverride, warrantyTextOverride, hoursTextOverride) => {
+    if (!template) return "";
 
-    const eventInfo = EVENT_TYPES[editingTemplate.event_type];
+    const eventInfo = EVENT_TYPES[template.event_type];
     const alertColor = eventInfo?.alertColor || { bg: "#F9FAFB", border: "#6B7280", title: "#374151", text: "#1F2937" };
     const logoToUse = logoUrlOverride || businessInfo.logo_url;
-    const warrantyText = warrantyTextOverride || editingTemplate.custom_warranty || (
-    editingTemplate.warranty_type === 'sales' ? businessInfo.warranty_sales : businessInfo.warranty_repairs);
+    const warrantyText = warrantyTextOverride || template.custom_warranty || (
+    template.warranty_type === 'sales' ? businessInfo.warranty_sales : businessInfo.warranty_repairs);
 
-    const nextStepsHTML = editingTemplate.show_next_steps && editingTemplate.next_steps_items?.length ? `
+    const nextStepsHTML = template.show_next_steps && template.next_steps_items?.length ? `
       <div style="background: #F0F9FF; border-radius: 16px; padding: 24px; margin: 30px 0; border: 2px solid #BFDBFE;">
         <h3 style="color: #1E40AF; font-size: 18px; font-weight: 800; margin: 0 0 16px 0;">
           🔄 Próximos Pasos
         </h3>
         <ol style="margin: 0; padding-left: 20px; color: #1E3A8A; font-size: 15px; line-height: 1.8;">
-          ${editingTemplate.next_steps_items.map((step) => `<li style="margin: 8px 0;">${step}</li>`).join('')}
+          ${template.next_steps_items.map((step) => `<li style="margin: 8px 0;">${step}</li>`).join('')}
         </ol>
       </div>
     ` : '';
 
     const generateHoursHTML = () => {
-      if (!editingTemplate.show_hours) return '';
+      if (!template.show_hours) return '';
 
       // Si hay horario personalizado en la plantilla, usarlo
-      if (hoursTextOverride || editingTemplate.custom_hours) {
-        const customHours = hoursTextOverride || editingTemplate.custom_hours;
+      if (hoursTextOverride || template.custom_hours) {
+        const customHours = hoursTextOverride || template.custom_hours;
         return `
           <div style="background: #ECFDF5; border-radius: 16px; padding: 28px; margin: 35px 0; text-align: center; border: 2px solid #10B981;">
             <p style="font-size: 20px; font-weight: 800; color: #065F46; margin: 0 0 16px 0;">🕐 Horario de Recogida</p>
@@ -511,7 +581,7 @@ export default function EmailTemplatesTab() {
 
     const hoursHTML = generateHoursHTML();
 
-    const warrantyHTML = editingTemplate.show_warranty && warrantyText ? `
+    const warrantyHTML = template.show_warranty && warrantyText ? `
       <div style="background: #EFF6FF; border-radius: 16px; padding: 28px; margin: 35px 0; border: 2px solid #3B82F6;">
         <div style="text-align: center; margin-bottom: 20px;">
           <div style="display: inline-block; background: linear-gradient(135deg, #3B82F6, #1D4ED8); padding: 12px 24px; border-radius: 12px; box-shadow: 0 4px 16px rgba(59,130,246,0.3);">
@@ -524,8 +594,8 @@ export default function EmailTemplatesTab() {
       </div>
     ` : '';
 
-    const reviewLink = editingTemplate.review_link || businessInfo.google_review_link;
-    const reviewHTML = editingTemplate.show_review_request && reviewLink ? `
+    const reviewLink = template.review_link || businessInfo.google_review_link;
+    const reviewHTML = template.show_review_request && reviewLink ? `
       <div style="background: linear-gradient(135deg, #FFFBEB 0%, #FEF3C7 100%); border-radius: 16px; padding: 32px; margin: 35px 0; text-align: center; border: 2px solid #FCD34D; box-shadow: 0 4px 16px rgba(251,191,36,0.2);">
         <p style="font-size: 22px; font-weight: 800; color: #78350F; margin: 0 0 12px 0;">
           ⭐ ¿Qué tal fue tu experiencia?
@@ -551,22 +621,22 @@ export default function EmailTemplatesTab() {
       <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>${editingTemplate.header_title}</title>
+        <title>${template.header_title}</title>
       </head>
       <body style="margin: 0; padding: 20px; background: #F3F4F6;">
         <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; max-width: 650px; margin: 0 auto; background: #ffffff;">
           <!-- Header con gradiente -->
-          <div style="background: linear-gradient(135deg, #00A8E8 0%, #10B981 50%, #A8D700 100%); padding: 60px 30px; text-align: center; border-radius: 20px 20px 0 0;">
-            <img 
+          <div style="background: ${getHeaderGradient(template.event_type)}; padding: 60px 30px; text-align: center; border-radius: 20px 20px 0 0;">
+            <img
               src="${logoToUse}"
               alt="${businessInfo.business_name}"
               style="max-height: 120px; max-width: 300px; width: auto; height: auto; margin: 0 auto; display: block; filter: drop-shadow(0 4px 20px rgba(0,0,0,0.2)); object-fit: contain;"
             />
             <h1 style="color: white; margin: 20px 0 0 0; font-size: 32px; font-weight: 800; text-shadow: 0 2px 10px rgba(0,0,0,0.3);">
-              ${editingTemplate.header_title || "Título del Email"}
+              ${template.header_title || "Título del Email"}
             </h1>
             <p style="color: rgba(255,255,255,0.98); margin: 12px 0 0 0; font-size: 18px; font-weight: 600;">
-              ${editingTemplate.header_subtitle || "Actualización de tu orden"}
+              ${template.header_subtitle || "Actualización de tu orden"}
             </p>
           </div>
 
@@ -579,10 +649,10 @@ export default function EmailTemplatesTab() {
             <!-- Alert principal -->
             <div style="border-radius: 16px; padding: 24px; margin: 30px 0; border-left: 6px solid; background: ${alertColor.bg}; border-left-color: ${alertColor.border};">
               <p style="margin: 0; color: ${alertColor.title}; font-size: 22px; font-weight: 800;">
-                ${eventInfo?.emoji} ${editingTemplate.alert_title || "Título"}
+                ${eventInfo?.emoji} ${template.alert_title || "Título"}
               </p>
               <p style="margin: 12px 0 0 0; color: ${alertColor.text}; font-size: 16px; line-height: 1.6;">
-                ${editingTemplate.alert_message || "Mensaje principal"}
+                ${template.alert_message || "Mensaje principal"}
               </p>
             </div>
 
@@ -603,14 +673,14 @@ export default function EmailTemplatesTab() {
             ${warrantyHTML}
             ${reviewHTML}
 
-            ${editingTemplate.main_message ? `
+            ${template.main_message ? `
               <p style="color: #374151; line-height: 1.8; font-size: 16px; margin: 20px 0;">
-                ${editingTemplate.main_message}
+                ${template.main_message}
               </p>
             ` : ''}
 
             <!-- Checklist de Condiciones Verificadas -->
-            ${editingTemplate.show_checklist ? `
+            ${template.show_checklist ? `
               <div style="background: #F0F9FF; border-radius: 16px; padding: 28px; margin: 35px 0; border: 2px solid #0EA5E9;">
                 <p style="font-size: 20px; font-weight: 800; color: #075985; margin: 0 0 20px 0; text-align: center;">✅ Condiciones Verificadas</p>
                 <div style="background: white; border-radius: 12px; padding: 20px;">
@@ -636,7 +706,7 @@ export default function EmailTemplatesTab() {
             ` : ''}
 
             <!-- Fotos de la Orden -->
-            ${editingTemplate.show_photos ? `
+            ${template.show_photos ? `
               <div style="background: #F5F3FF; border-radius: 16px; padding: 28px; margin: 35px 0; border: 2px solid #A78BFA;">
                 <p style="font-size: 20px; font-weight: 800; color: #5B21B6; margin: 0 0 20px 0; text-align: center;">📸 Fotos del Equipo</p>
                 <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px;">
@@ -655,10 +725,10 @@ export default function EmailTemplatesTab() {
 
             <!-- Contacto -->
             ${(() => {
-      const phoneToUse = editingTemplate.custom_phone || businessInfo.phone;
-      const whatsappToUse = editingTemplate.custom_whatsapp || businessInfo.whatsapp;
-      const showPhone = editingTemplate.show_phone_contact !== false && phoneToUse;
-      const showWhatsapp = editingTemplate.show_whatsapp_contact !== false && whatsappToUse;
+      const phoneToUse = template.custom_phone || businessInfo.phone;
+      const whatsappToUse = template.custom_whatsapp || businessInfo.whatsapp;
+      const showPhone = template.show_phone_contact !== false && phoneToUse;
+      const showWhatsapp = template.show_whatsapp_contact !== false && whatsappToUse;
 
       if (!showPhone && !showWhatsapp) return '';
 
@@ -729,6 +799,7 @@ export default function EmailTemplatesTab() {
                 setShowEditor(false);
                 setEditingTemplate(null);
                 setShowPreview(false);
+                setShowAdvanced(false);
               }}
               className="bg-white text-black hover:bg-gray-100 border-0">
 
@@ -882,9 +953,37 @@ export default function EmailTemplatesTab() {
               </div>
             </div>
 
-            {/* Secciones Opcionales */}
-            <div className="bg-gradient-to-br from-white/10 to-white/5 border border-white/10 rounded-[28px] p-7 backdrop-blur-xl shadow-2xl space-y-4">
-              <h3 className="text-white font-bold text-lg">Secciones Opcionales</h3>
+            {/* Variables Panel */}
+            <div className="bg-gradient-to-br from-amber-500/10 to-amber-600/5 border border-amber-500/20 rounded-[20px] p-5">
+              <p className="text-amber-300 text-sm font-bold mb-3">📎 Variables disponibles — clic para copiar</p>
+              <div className="flex flex-wrap gap-2">
+                {TEMPLATE_VARIABLES.map(v => (
+                  <button
+                    key={v.key}
+                    type="button"
+                    onClick={() => { navigator.clipboard?.writeText(v.key); toast.success(`Copiado: ${v.key}`); }}
+                    className="px-2 py-1 bg-amber-500/20 hover:bg-amber-500/30 text-amber-200 text-xs font-mono rounded-lg border border-amber-500/30 transition-colors"
+                    title={v.desc}
+                  >
+                    {v.key}
+                  </button>
+                ))}
+              </div>
+              <p className="text-amber-400/60 text-xs mt-2">Pega la variable en cualquier campo de texto del editor</p>
+            </div>
+
+            {/* Advanced Toggle */}
+            <div className="bg-gradient-to-br from-white/10 to-white/5 border border-white/10 rounded-[28px] overflow-hidden backdrop-blur-xl shadow-2xl">
+              <button
+                type="button"
+                onClick={() => setShowAdvanced(v => !v)}
+                className="w-full flex items-center justify-between px-7 py-5 hover:bg-white/5 transition-colors"
+              >
+                <span className="text-white font-bold">⚙️ Opciones Avanzadas</span>
+                <ChevronDown className={`w-5 h-5 text-white/60 transition-transform duration-200 ${showAdvanced ? 'rotate-180' : ''}`} />
+              </button>
+
+            {showAdvanced && <div className="px-7 pb-7 space-y-4 border-t border-white/10 pt-5">
 
               <label className="flex items-center gap-3 p-3 bg-white/5 rounded-xl cursor-pointer hover:bg-white/10 transition-all">
                 <input
@@ -1125,10 +1224,9 @@ export default function EmailTemplatesTab() {
                   </Button>
                 </div>
               }
-            </div>
 
-            {/* Config adicional */}
-            <div className="bg-gradient-to-br from-white/10 to-white/5 border border-white/10 rounded-[28px] p-7 backdrop-blur-xl shadow-2xl space-y-4">
+              <div className="h-px bg-white/10" />
+
               <div className="space-y-2">
                 <label className="text-white/70 text-sm font-semibold">Enviar a</label>
                 <select
@@ -1154,6 +1252,7 @@ export default function EmailTemplatesTab() {
                   <p className="text-white/60 text-xs">Los emails se enviarán automáticamente</p>
                 </div>
               </label>
+            </div>}
             </div>
 
             <div className="space-y-3">
@@ -1209,6 +1308,7 @@ export default function EmailTemplatesTab() {
                 <div
                 className="bg-gray-100 rounded-xl overflow-auto max-h-[calc(100vh-12rem)] custom-scrollbar"
                 dangerouslySetInnerHTML={{ __html: generatePreview(
+                    editingTemplate,
                     editingTemplate.logo_url || businessInfo.logo_url,
                     editingTemplate.custom_warranty || (editingTemplate.warranty_type === 'sales' ? businessInfo.warranty_sales : businessInfo.warranty_repairs),
                     editingTemplate.custom_hours
@@ -1276,84 +1376,116 @@ export default function EmailTemplatesTab() {
         </div>
       )}
 
-      {/* Templates Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {templates.map((template) => {
-          const eventInfo = EVENT_TYPES[template.event_type];
-          const isSystemTemplate = Boolean(DEFAULT_TEMPLATES[template.event_type]);
+      {/* Accordion Groups */}
+      <div className="space-y-4">
+        {TEMPLATE_GROUPS.map(group => {
+          const groupTemplates = templates.filter(t => group.types.includes(t.event_type));
+          const activeCount = groupTemplates.filter(t => t.enabled !== false).length;
+          const customCount = groupTemplates.filter(t => customizedTypes.has(t.event_type)).length;
+          const isOpen = openGroups[group.id];
 
           return (
-            <div
-              key={template.id}
-              className={`bg-gradient-to-br from-white/10 to-white/5 border rounded-[20px] p-5 backdrop-blur-xl shadow-lg transition-all ${
-              template.enabled ? "border-cyan-500/30" : "border-white/10 opacity-60"}`
-              }>
-
-              <div className="flex items-start gap-4">
-                <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${eventInfo?.color || "from-gray-500 to-gray-600"} flex items-center justify-center text-2xl shrink-0`}>
-                  {eventInfo?.icon || "📧"}
-                </div>
-                
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-start justify-between gap-2 mb-2">
-                    <div className="flex-1">
-                      <h3 className="text-white font-bold text-lg truncate">{template.name}</h3>
-                      <p className="text-white/60 text-xs mt-1">{eventInfo?.label}</p>
-                    </div>
-                    
-                    {template.enabled ?
-                    <Badge className="bg-green-500/20 text-green-400 border-green-500/30">
-                        Activa
-                      </Badge> :
-
-                    <Badge className="bg-white/10 text-white/60 border-white/20">
-                        Inactiva
-                      </Badge>
-                    }
-                  </div>
-                  
-                  <p className="text-white/70 text-sm mt-2 line-clamp-2">
-                    {template.header_title}
+            <div key={group.id} className="bg-gradient-to-br from-white/10 to-white/5 border border-white/10 rounded-[24px] overflow-hidden backdrop-blur-xl">
+              <button
+                type="button"
+                onClick={() => setOpenGroups(prev => ({ ...prev, [group.id]: !prev[group.id] }))}
+                className="w-full flex items-center gap-4 p-5 hover:bg-white/5 transition-colors text-left"
+              >
+                <span className="text-3xl">{group.icon}</span>
+                <div className="flex-1">
+                  <h3 className="text-white font-bold text-base">{group.label}</h3>
+                  <p className="text-white/50 text-xs mt-0.5">
+                    {groupTemplates.length} plantillas · {activeCount} activas{customCount > 0 ? ` · ${customCount} editadas` : ''}
                   </p>
-
-                  <div className="flex items-center gap-2 mt-4">
-                    <Button
-                      onClick={() => {
-                        setEditingTemplate({ ...template });
-                        setShowEditor(true);
-                      }}
-                      variant="outline"
-                      size="sm" className="bg-background text-slate-900 px-3 text-xs font-semibold rounded-md inline-flex items-center justify-center gap-2 whitespace-nowrap transition-all duration-200 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 border shadow-sm hover:text-accent-foreground h-8 border-white/10 hover:bg-white/10 flex-1">
-
-
-                      <Edit2 className="w-3 h-3 mr-2" />
-                      Editar
-                    </Button>
-                    
-                    <Button
-                      onClick={() => handleToggleTemplate(template)}
-                      variant="outline"
-                      size="sm" className="bg-background text-slate-900 px-3 text-xs font-semibold rounded-md inline-flex items-center justify-center gap-2 whitespace-nowrap transition-all duration-200 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 border shadow-sm hover:text-accent-foreground h-8 border-white/10 hover:bg-white/10">
-
-
-                      {template.enabled ? <PowerOff className="w-3 h-3" /> : <Power className="w-3 h-3" />}
-                    </Button>
-
-                    {!isSystemTemplate && template.id && (
-                      <Button
-                        onClick={() => handleDeleteTemplate(template.id)}
-                        variant="outline"
-                        size="sm"
-                        className="border-red-500/30 text-red-400 hover:bg-red-500/10">
-
-                        <Trash2 className="w-3 h-3" />
-                      </Button>
-                    )}
-                  </div>
                 </div>
-              </div>
-            </div>);
+                <div className="flex items-center gap-2">
+                  {customCount > 0 && (
+                    <Badge className="bg-cyan-500/20 text-cyan-300 border-cyan-500/30 text-xs">{customCount} editadas</Badge>
+                  )}
+                  <ChevronDown className={`w-5 h-5 text-white/40 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`} />
+                </div>
+              </button>
 
+              {isOpen && (
+                <div className="px-5 pb-5 grid grid-cols-1 md:grid-cols-2 gap-3 border-t border-white/10 pt-4">
+                  {groupTemplates.map(tmpl => {
+                    const eventInfo = EVENT_TYPES[tmpl.event_type];
+                    const isCustomized = customizedTypes.has(tmpl.event_type);
+
+                    return (
+                      <div
+                        key={tmpl.id}
+                        className={`bg-white/5 border rounded-[16px] p-4 transition-all ${tmpl.enabled !== false ? "border-cyan-500/20" : "border-white/10 opacity-60"}`}
+                      >
+                        <div className="flex items-start gap-3">
+                          <div
+                            className="w-10 h-10 rounded-xl flex items-center justify-center text-xl shrink-0"
+                            style={{ background: getHeaderGradient(tmpl.event_type) }}
+                          >
+                            {eventInfo?.icon || "📧"}
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-start justify-between gap-1 mb-1">
+                              <h3 className="text-white font-bold text-sm truncate flex-1">{tmpl.name}</h3>
+                              <div className="flex items-center gap-1 shrink-0 ml-1">
+                                {isCustomized
+                                  ? <Badge className="bg-cyan-500/20 text-cyan-300 border-cyan-500/30 text-[10px] px-1.5 py-0">Editada</Badge>
+                                  : <Badge className="bg-white/10 text-white/50 border-white/10 text-[10px] px-1.5 py-0">Sistema</Badge>
+                                }
+                                {tmpl.enabled !== false
+                                  ? <Badge className="bg-green-500/20 text-green-400 border-green-500/30 text-[10px] px-1.5 py-0">Activa</Badge>
+                                  : <Badge className="bg-white/10 text-white/60 border-white/20 text-[10px] px-1.5 py-0">Inactiva</Badge>
+                                }
+                              </div>
+                            </div>
+                            <p className="text-white/50 text-xs line-clamp-1">{tmpl.header_title}</p>
+                            <div className="flex items-center gap-1.5 mt-3">
+                              <Button
+                                onClick={() => { setEditingTemplate({ ...tmpl }); setShowEditor(true); setShowAdvanced(false); }}
+                                variant="outline"
+                                size="sm"
+                                className="border-white/10 hover:bg-white/10 text-white h-7 text-xs px-2 flex-1"
+                              >
+                                <Edit2 className="w-3 h-3 mr-1" /> Editar
+                              </Button>
+                              <Button
+                                onClick={() => setPreviewTemplate(tmpl)}
+                                variant="outline"
+                                size="sm"
+                                className="border-white/10 hover:bg-cyan-500/10 hover:border-cyan-500/30 text-white h-7 text-xs px-2"
+                                title="Vista previa"
+                              >
+                                <Eye className="w-3 h-3" />
+                              </Button>
+                              <Button
+                                onClick={() => handleToggleTemplate(tmpl)}
+                                variant="outline"
+                                size="sm"
+                                className="border-white/10 hover:bg-white/10 text-white h-7 text-xs px-2"
+                              >
+                                {tmpl.enabled !== false ? <PowerOff className="w-3 h-3" /> : <Power className="w-3 h-3" />}
+                              </Button>
+                              {isCustomized && (
+                                <Button
+                                  onClick={() => handleDeleteTemplate(tmpl.id)}
+                                  variant="outline"
+                                  size="sm"
+                                  className="border-red-500/30 text-red-400 hover:bg-red-500/10 h-7 text-xs px-2"
+                                  title="Restablecer al sistema"
+                                >
+                                  <Trash2 className="w-3 h-3" />
+                                </Button>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          );
         })}
       </div>
 
@@ -1364,6 +1496,47 @@ export default function EmailTemplatesTab() {
           <p className="text-white/40 text-sm mt-2">Crea plantillas personalizadas para cada estado de orden</p>
         </div>
       }
+
+      {/* Quick Preview Modal */}
+      {previewTemplate && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm">
+          <div className="bg-[#0F172A] border border-white/10 rounded-[28px] w-full max-w-2xl max-h-[90vh] flex flex-col overflow-hidden shadow-2xl">
+            <div className="flex items-center justify-between p-5 border-b border-white/10 shrink-0">
+              <div className="flex items-center gap-3">
+                <div
+                  className="w-10 h-10 rounded-xl flex items-center justify-center text-xl shrink-0"
+                  style={{ background: getHeaderGradient(previewTemplate.event_type) }}
+                >
+                  {EVENT_TYPES[previewTemplate.event_type]?.icon || '📧'}
+                </div>
+                <div>
+                  <h3 className="text-white font-bold">{previewTemplate.name}</h3>
+                  <p className="text-white/50 text-xs">{EVENT_TYPES[previewTemplate.event_type]?.label}</p>
+                </div>
+              </div>
+              <Button
+                onClick={() => setPreviewTemplate(null)}
+                variant="ghost"
+                size="icon"
+                className="text-white/60 hover:text-white hover:bg-white/10"
+              >
+                <X className="w-5 h-5" />
+              </Button>
+            </div>
+            <div
+              className="flex-1 overflow-auto bg-gray-100 custom-scrollbar"
+              dangerouslySetInnerHTML={{
+                __html: generatePreview(
+                  previewTemplate,
+                  businessInfo.logo_url,
+                  previewTemplate.custom_warranty || (previewTemplate.warranty_type === 'sales' ? businessInfo.warranty_sales : businessInfo.warranty_repairs),
+                  previewTemplate.custom_hours
+                )
+              }}
+            />
+          </div>
+        </div>
+      )}
 
       <style>{`
         .custom-scrollbar::-webkit-scrollbar {
