@@ -2289,9 +2289,7 @@ export default function WorkOrderPanel({ orderId, onClose, onUpdate, onDelete, p
           metadata: { from: prevStatusId, to: nextId, ...(metadata || {}) }
         });
 
-        console.log("[ChangeStatus] 📧 Llamando a sendStatusChangeEmail...");
-        await sendStatusChangeEmail(nextId, prevStatusId);
-        console.log("[ChangeStatus] 📧 Email procesado correctamente.");
+        sendStatusChangeEmail(nextId, prevStatusId);
 
         // ✅ Llamar función para iniciar contadores y enviar emails
         try {
@@ -2468,8 +2466,7 @@ export default function WorkOrderPanel({ orderId, onClose, onUpdate, onDelete, p
       clearEventCache(order.id);
       await loadEventsCallback(true);
 
-      // ✅ ADDED: Send templated email for cancellation
-      await sendStatusChangeEmail("cancelled", order?.status);
+      sendStatusChangeEmail("cancelled", order?.status);
 
     } catch (err) {
       console.error("Error cancelando orden:", err);

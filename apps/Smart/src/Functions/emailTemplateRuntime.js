@@ -50,14 +50,25 @@ function buildVariables(orderData = {}) {
   };
 }
 
+const _cache = {
+  templates: { data: null, ts: 0 },
+  business: { data: null, ts: 0 },
+};
+const CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutes
+
 export async function sendTemplatedEmailWithBase44(base44, { event_type, order_data = {} }) {
-  const [templateSettings, legacyTemplates] = await Promise.all([
-    base44.asServiceRole.entities.AppSettings.filter({ slug: EMAIL_TEMPLATES_SETTINGS_SLUG }).catch(() => []),
-    base44.asServiceRole.entities.EmailTemplate.filter({
-      event_type,
-      enabled: true
-    }).catch(() => [])
-  ]);
+  const now = Date.now();
+
+  if (!_cache.templates.data || now - _cache.templates.ts > CACHE_TTL_MS) {
+    const [templateSettings, legacyTemplates] = await Promise.all([
+      base44.asServiceRole.entities.AppSettings.filter({ slug: EMAIL_TEMPLATES_SETTINGS_SLUG }).catch(() => []),
+      base44.asServiceRole.entities.EmailTemplate.filter({ enabled: true }).catch(() => [])
+    ]);
+    _cache.templates.data = { templateSettings, legacyTemplates };
+    _cache.templates.ts = now;
+  }
+
+  const { templateSettings, legacyTemplates } = _cache.templates.data;
 
   const configuredTemplates = Array.isArray(templateSettings?.[0]?.payload?.templates)
     ? templateSettings[0].payload.templates
@@ -67,17 +78,25 @@ export async function sendTemplatedEmailWithBase44(base44, { event_type, order_d
     (template) => template?.event_type === event_type && template?.enabled !== false
   );
 
-  const templates = matchingConfiguredTemplates.length > 0 ? matchingConfiguredTemplates : legacyTemplates;
+  const matchingLegacy = legacyTemplates.filter((t) => t.event_type === event_type);
+  const templates = matchingConfiguredTemplates.length > 0 ? matchingConfiguredTemplates : matchingLegacy;
 
   if (!templates || templates.length === 0) {
     return { success: false, message: `No hay plantilla activa para: ${event_type}` };
   }
 
   const template = templates.find((t) => t.is_default) || templates[0];
-  const [businessConfigs, brandingConfigs] = await Promise.all([
-    base44.asServiceRole.entities.AppSettings.filter({ slug: "app-main-settings" }),
-    base44.asServiceRole.entities.AppSettings.filter({ slug: "business-branding" })
-  ]);
+
+  if (!_cache.business.data || now - _cache.business.ts > CACHE_TTL_MS) {
+    const [businessConfigs, brandingConfigs] = await Promise.all([
+      base44.asServiceRole.entities.AppSettings.filter({ slug: "app-main-settings" }),
+      base44.asServiceRole.entities.AppSettings.filter({ slug: "business-branding" })
+    ]);
+    _cache.business.data = { businessConfigs, brandingConfigs };
+    _cache.business.ts = now;
+  }
+
+  const { businessConfigs, brandingConfigs } = _cache.business.data;
 
   const businessInfo = businessConfigs?.[0]?.payload || {};
   const branding = brandingConfigs?.[0]?.payload || {};

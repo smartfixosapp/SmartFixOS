@@ -621,17 +621,6 @@ function SettingsPage() {
   const [showLogoOnReceipt, setShowLogoOnReceipt] = useState(true);
   const [receiptPaperWidth, setReceiptPaperWidth] = useState("80mm");
 
-  const [smtpHost, setSmtpHost] = useState("");
-  const [smtpPort, setSmtpPort] = useState("587");
-  const [smtpUser, setSmtpUser] = useState("");
-  const [smtpPass, setSmtpPass] = useState("");
-  const [smtpFrom, setSmtpFrom] = useState("notificaciones@smartfix.com");
-  const [notifCreateWO, setNotifCreateWO] = useState(true);
-  const [notifReadyWO, setNotifReadyWO] = useState(true);
-  const [notifCashClose, setNotifCashClose] = useState(true);
-  const [notifSound, setNotifSound] = useState(true);
-  const [notifInApp, setNotifInApp] = useState(true);
-
   const [requirePinDelete, setRequirePinDelete] = useState(true);
   const [forceMFAAdmins, setForceMFAAdmins] = useState(false);
   const [autoLockMinutes, setAutoLockMinutes] = useState("5");
@@ -708,17 +697,6 @@ function SettingsPage() {
         get("receipt.show_logo", setShowLogoOnReceipt),
         get("receipt.paper_width", setReceiptPaperWidth),
 
-        get("email.smtp.host", setSmtpHost),
-        get("email.smtp.port", setSmtpPort),
-        get("email.smtp.user", setSmtpUser),
-        get("email.smtp.pass", setSmtpPass),
-        get("email.smtp.from", setSmtpFrom),
-        get("notifications.email.on_create_order", setNotifCreateWO),
-        get("notifications.email.on_ready", setNotifReadyWO),
-        get("notifications.email.on_cash_close", setNotifCashClose),
-        get("notifications.sound", setNotifSound),
-        get("notifications.in_app", setNotifInApp),
-
         get("permissions.require_pin_delete", setRequirePinDelete),
         get("permissions.force_mfa_admins", setForceMFAAdmins),
         get("permissions.autolock_minutes", setAutoLockMinutes),
@@ -793,17 +771,6 @@ function SettingsPage() {
         rec("receipt.show_logo", showLogoOnReceipt, "receipt"),
         rec("receipt.paper_width", receiptPaperWidth, "receipt"),
 
-        rec("email.smtp.host", smtpHost, "email"),
-        rec("email.smtp.port", smtpPort, "email"),
-        rec("email.smtp.user", smtpUser, "email"),
-        rec("email.smtp.pass", smtpPass, "email"),
-        rec("email.smtp.from", smtpFrom, "email"),
-        rec("notifications.email.on_create_order", notifCreateWO, "notifications"),
-        rec("notifications.email.on_ready", notifReadyWO, "notifications"),
-        rec("notifications.email.on_cash_close", notifCashClose, "notifications"),
-        rec("notifications.sound", notifSound, "notifications"),
-        rec("notifications.in_app", notifInApp, "notifications"),
-
         rec("permissions.require_pin_delete", requirePinDelete, "permissions"),
         rec("permissions.force_mfa_admins", forceMFAAdmins, "permissions"),
         rec("permissions.autolock_minutes", autoLockMinutes, "permissions"),
@@ -846,8 +813,6 @@ function SettingsPage() {
       orders:{ statusFlow, allowBackStatus, blockDeliveryWithoutPay, requirePhotosIntake, allowCamera, autoAssignToCreator, allowPartialPayments },
       receipt:{ header:receiptHeader, footer:receiptFooter, notes:invoiceNotes, showLogoOnReceipt, paperWidth:receiptPaperWidth },
       tax:{ ivuRate },
-      email:{ smtpHost, smtpPort, smtpUser, smtpPass, smtpFrom },
-      notifications:{ notifCreateWO, notifReadyWO, notifCashClose, notifSound, notifInApp },
       security:{ requirePinDelete, forceMFAAdmins, autoLockMinutes, roleMatrix },
       integrations:{ socialInboxEnabled, facebookPageToken, instagramToken, webhookUrl, apiKeyPublic, apiKeySecret, smsProviderApiKey, smsSender },
       flags:{ ffBetaWorkOrderV2, ffFastCameraUpload, ffMultiBranch }
@@ -909,17 +874,6 @@ function SettingsPage() {
     set(d.receipt?.showLogoOnReceipt, setShowLogoOnReceipt);
     set(d.receipt?.paperWidth, setReceiptPaperWidth);
     set(d.tax?.ivuRate, setIvuRate);
-
-    set(d.email?.smtpHost, setSmtpHost);
-    set(d.email?.smtpPort, setSmtpPort);
-    set(d.email?.smtpUser, setSmtpUser);
-    set(d.email?.smtpPass, setSmtpPass);
-    set(d.email?.smtpFrom, setSmtpFrom);
-    set(d.notifications?.notifCreateWO, setNotifCreateWO);
-    set(d.notifications?.notifReadyWO, setNotifReadyWO);
-    set(d.notifications?.notifCashClose, setNotifCashClose);
-    set(d.notifications?.notifSound, setNotifSound);
-    set(d.notifications?.notifInApp, setNotifInApp);
 
     set(d.security?.requirePinDelete, setRequirePinDelete);
     set(d.security?.forceMFAAdmins, setForceMFAAdmins);
@@ -999,7 +953,6 @@ function SettingsPage() {
             <TabsTrigger value="inventory" className="justify-start gap-2"><Package2/> Inventario</TabsTrigger>
             <TabsTrigger value="numbering" className="justify-start gap-2"><Hash/> Numeración</TabsTrigger>
             <TabsTrigger value="tax" className="justify-start gap-2"><DollarSign/> Impuestos & Recibos</TabsTrigger>
-            <TabsTrigger value="email" className="justify-start gap-2"><Mail/> Email & Notifs</TabsTrigger>
             <TabsTrigger value="security" className="justify-start gap-2"><KeyRound/> Seguridad & Roles</TabsTrigger>
             <TabsTrigger value="users" className="justify-start gap-2"><Users2/> Usuarios</TabsTrigger>
             <TabsTrigger value="branches" className="justify-start gap-2"><Building2b/> Sucursales</TabsTrigger>
@@ -1161,25 +1114,6 @@ function SettingsPage() {
                   </Button>
                 </div>
               </SettingsCard>
-            </TabsContent>
-
-            <TabsContent value="email">
-              <SettingsCard title="Email & Notificaciones" description="SMTP y canales de alerta.">
-                <Row label="SMTP Host" control={<Input value={smtpHost} onChange={e=>setSmtpHost(e.target.value)} className="h-11" />} />
-                <Row label="SMTP Port" control={<Input type="number" value={smtpPort} onChange={e=>setSmtpPort(e.target.value)} className="h-11" />} />
-                <Row label="SMTP Usuario" control={<Input value={smtpUser} onChange={e=>setSmtpUser(e.target.value)} className="h-11" />} />
-                <Row label="SMTP Password" control={<Input type="password" value={smtpPass} onChange={e=>setSmtpPass(e.target.value)} className="h-11" />} />
-                <Row label="Remitente (From)" control={<Input value={smtpFrom} onChange={e=>setSmtpFrom(e.target.value)} className="h-11" />} />
-                <Row label="Email al crear orden" control={<Switch checked={notifCreateWO} onCheckedChange={setNotifCreateWO} />} />
-                <Row label="Email cuando está 'Listo'" control={<Switch checked={notifReadyWO} onCheckedChange={setNotifReadyWO} />} />
-                <Row label="Email en cierre de caja" control={<Switch checked={notifCashClose} onCheckedChange={setNotifCashClose} />} />
-                <Row label="Sonido de notificaciones" control={<Switch checked={notifSound} onCheckedChange={setNotifSound} />} />
-                <Row label="Notificaciones in-app" control={<Switch checked={notifInApp} onCheckedChange={setNotifInApp} />} />
-              </SettingsCard>
-              <TestsCard
-                smtpHost={smtpHost} smtpUser={smtpUser} smtpFrom={smtpFrom}
-                webhookUrl={webhookUrl} smsSender={smsSender} toastRef={toastRef}
-              />
             </TabsContent>
 
             <TabsContent value="security">

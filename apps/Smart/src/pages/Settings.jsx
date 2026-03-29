@@ -146,7 +146,10 @@ export default function SettingsPage() {
     logo_url: "",
     store_name: "",
     terms_sales: "",
-    terms_workorders: ""
+    terms_workorders: "",
+    warranty_repairs: "",
+    warranty_sales: "",
+    conditions_text: "",
   });
 
   const [uploadingLogo, setUploadingLogo] = useState(false);
@@ -622,6 +625,42 @@ export default function SettingsPage() {
     }
   };
 
+  const savePolicies = async () => {
+    setLoading(true);
+    try {
+      // 1. business-branding → email templates consume warranty_repairs / warranty_sales
+      const brandingConfigs = await dataClient.entities.AppSettings.filter({ slug: "business-branding" });
+      const brandingPayload = {
+        ...(brandingConfigs?.[0]?.payload || {}),
+        ...businessBranding,
+      };
+      if (brandingConfigs?.length) {
+        await dataClient.entities.AppSettings.update(brandingConfigs[0].id, { payload: brandingPayload });
+      } else {
+        await dataClient.entities.AppSettings.create({ slug: "business-branding", payload: brandingPayload, description: "Logo y políticas del negocio" });
+      }
+
+      // 2. pos-receipt-config → POS receipts consume warranty_text / conditions_text
+      const receiptConfigs = await dataClient.entities.AppSettings.filter({ slug: "pos-receipt-config" });
+      const receiptPayload = {
+        ...(receiptConfigs?.[0]?.payload || {}),
+        warranty_text: businessBranding.warranty_repairs || "",
+        conditions_text: businessBranding.conditions_text || "",
+      };
+      if (receiptConfigs?.length) {
+        await dataClient.entities.AppSettings.update(receiptConfigs[0].id, { payload: receiptPayload });
+      } else {
+        await dataClient.entities.AppSettings.create({ slug: "pos-receipt-config", payload: receiptPayload });
+      }
+
+      toast.success("✅ Políticas guardadas");
+    } catch {
+      toast.error("Error al guardar políticas");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const addCustomAdminButton = () => {
     if (!customAdminButton.label) {
       toast.error("El nombre del botón es obligatorio");
@@ -665,6 +704,13 @@ export default function SettingsPage() {
           title: "Idioma y Región",
           description: "Idioma del sistema y zona horaria",
           color: "from-blue-600 to-indigo-600",
+        },
+        {
+          id: "business_policies",
+          icon: ShieldCheck,
+          title: "Políticas del Negocio",
+          description: "Garantías de reparación, ventas y condiciones",
+          color: "from-indigo-600 to-violet-600",
         },
         {
           id: "email_templates",
@@ -1171,6 +1217,91 @@ export default function SettingsPage() {
 
           {/* EMAIL TEMPLATES */}
           {activeSection === "email_templates" && <EmailTemplatesTab />}
+
+          {/* POLÍTICAS DEL NEGOCIO */}
+          {activeSection === "business_policies" && (
+            <div className="space-y-5">
+
+              {/* Garantía Reparaciones */}
+              <div className="bg-gradient-to-br from-white/10 to-white/5 border border-white/10 rounded-[28px] p-7 backdrop-blur-xl shadow-2xl relative overflow-hidden">
+                <div className="absolute -right-20 -top-20 w-48 h-48 bg-gradient-to-br from-indigo-500/20 to-violet-500/10 rounded-full blur-[80px]" />
+                <div className="flex items-center gap-3 mb-5 relative z-10">
+                  <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-indigo-500/30 to-violet-500/20 border border-indigo-500/20 flex items-center justify-center">
+                    <ShieldCheck className="w-5 h-5 text-indigo-300" />
+                  </div>
+                  <div>
+                    <p className="text-white font-black text-base">Garantía de Reparaciones</p>
+                    <p className="text-white/40 text-xs">Aparece en emails de entrega/recogida y en recibos de servicio</p>
+                  </div>
+                </div>
+                <textarea
+                  rows={4}
+                  placeholder="Ej: 90 días de garantía en mano de obra. Las piezas tienen garantía del fabricante. No cubre daños por agua o golpes posteriores."
+                  value={businessBranding.warranty_repairs || ""}
+                  onChange={(e) => setBusinessBranding({ ...businessBranding, warranty_repairs: e.target.value })}
+                  className="w-full bg-white/5 border border-white/10 rounded-2xl px-4 py-3 text-white placeholder-white/25 text-sm resize-none focus:outline-none focus:border-indigo-500/50 relative z-10"
+                />
+              </div>
+
+              {/* Garantía Ventas */}
+              <div className="bg-gradient-to-br from-white/10 to-white/5 border border-white/10 rounded-[28px] p-7 backdrop-blur-xl shadow-2xl relative overflow-hidden">
+                <div className="absolute -left-20 -bottom-20 w-48 h-48 bg-gradient-to-br from-emerald-500/20 to-teal-500/10 rounded-full blur-[80px]" />
+                <div className="flex items-center gap-3 mb-5 relative z-10">
+                  <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-emerald-500/30 to-teal-500/20 border border-emerald-500/20 flex items-center justify-center">
+                    <ShieldCheck className="w-5 h-5 text-emerald-300" />
+                  </div>
+                  <div>
+                    <p className="text-white font-black text-base">Garantía de Ventas</p>
+                    <p className="text-white/40 text-xs">Aplica a productos vendidos — aparece en recibos de POS y emails de pago</p>
+                  </div>
+                </div>
+                <textarea
+                  rows={4}
+                  placeholder="Ej: 30 días de garantía contra defectos de fábrica. No se aceptan devoluciones en accesorios sin empaque original."
+                  value={businessBranding.warranty_sales || ""}
+                  onChange={(e) => setBusinessBranding({ ...businessBranding, warranty_sales: e.target.value })}
+                  className="w-full bg-white/5 border border-white/10 rounded-2xl px-4 py-3 text-white placeholder-white/25 text-sm resize-none focus:outline-none focus:border-emerald-500/50 relative z-10"
+                />
+              </div>
+
+              {/* Condiciones de Venta */}
+              <div className="bg-gradient-to-br from-white/10 to-white/5 border border-white/10 rounded-[28px] p-7 backdrop-blur-xl shadow-2xl relative overflow-hidden">
+                <div className="absolute -right-20 -bottom-20 w-48 h-48 bg-gradient-to-br from-amber-500/20 to-orange-500/10 rounded-full blur-[80px]" />
+                <div className="flex items-center gap-3 mb-5 relative z-10">
+                  <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-amber-500/30 to-orange-500/20 border border-amber-500/20 flex items-center justify-center">
+                    <FileText className="w-5 h-5 text-amber-300" />
+                  </div>
+                  <div>
+                    <p className="text-white font-black text-base">Condiciones de Venta</p>
+                    <p className="text-white/40 text-xs">Política de devoluciones y términos generales — aparece en todos los recibos</p>
+                  </div>
+                </div>
+                <textarea
+                  rows={4}
+                  placeholder="Ej: No se aceptan devoluciones después de 7 días. Guarda tu recibo como comprobante. Equipos no reclamados después de 30 días serán considerados abandonados."
+                  value={businessBranding.conditions_text || ""}
+                  onChange={(e) => setBusinessBranding({ ...businessBranding, conditions_text: e.target.value })}
+                  className="w-full bg-white/5 border border-white/10 rounded-2xl px-4 py-3 text-white placeholder-white/25 text-sm resize-none focus:outline-none focus:border-amber-500/50 relative z-10"
+                />
+              </div>
+
+              {/* Info banner */}
+              <div className="bg-indigo-500/5 border border-indigo-500/20 rounded-2xl px-4 py-3 flex items-start gap-3">
+                <AlertCircle className="w-4 h-4 text-indigo-400 flex-shrink-0 mt-0.5" />
+                <p className="text-indigo-300/70 text-xs">
+                  Estos textos se aplican automáticamente en <strong>emails de estado de orden</strong> y en los <strong>recibos de POS</strong>. No necesitas configurarlos por separado en cada plantilla ni en el tab de POS & Recibo.
+                </p>
+              </div>
+
+              <Button
+                onClick={savePolicies}
+                disabled={loading}
+                className="w-full bg-gradient-to-r from-indigo-500 to-violet-500 hover:from-indigo-600 hover:to-violet-600 text-white rounded-[20px] h-14 text-lg font-black shadow-[0_0_30px_rgba(99,102,241,0.4)] active:scale-95 transition-all duration-300"
+              >
+                {loading ? <Loader2 className="w-5 h-5 mr-2 animate-spin" /> : <><Check className="w-5 h-5 mr-2" />Guardar Políticas del Negocio</>}
+              </Button>
+            </div>
+          )}
 
           {/* POS & RECIBO */}
           {activeSection === "pos_receipt" && <POSReceiptTab />}
