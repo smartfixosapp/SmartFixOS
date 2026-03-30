@@ -596,7 +596,6 @@ export default function PinAccess() {
         const { Browser } = await import('@capacitor/browser');
         // IMPORTANT: Using the full path as requested by the user for precise Supabase matching
         const redirectTo = `com.smartfixos.pr911://PinAccess`;
-        toast.info('🔵 [D1] Abriendo Google OAuth...');
 
         const { data, error } = await supabase.auth.signInWithOAuth({
           provider: "google",
@@ -615,7 +614,6 @@ export default function PinAccess() {
         }
 
         if (data?.url) {
-          toast.info('🔵 [D2] URL recibida, abriendo Browser...');
           await Browser.open({ url: data.url });
           // Note: Browser.addListener('browserFinished') could be added here
           // if we want to reset oauthInProgress when user manually closes.
@@ -1295,13 +1293,11 @@ export default function PinAccess() {
         await Browser.close();
       } catch (_) { /* ignore */ }
 
-      toast.info('🟢 [D3] Deep link recibido — code=' + !!code);
       try {
         setCheckingUsers(true);
         let session = null;
 
         if (code) {
-          toast.info('🟡 [D4] Intercambiando código PKCE...');
           const { data, error } = await supabase.auth.exchangeCodeForSession(code);
           if (error) {
             toast.error('🔴 [D4] Error exchange: ' + error.message);
@@ -1311,9 +1307,7 @@ export default function PinAccess() {
             return;
           }
           session = data?.session;
-          toast.info('🟢 [D5] Sesión activa');
         } else if (hash) {
-          toast.info('🟡 [D4] Procesando sesión desde hash...');
           // Clean hash (remove #) and parse params
           const hashStr = hash.startsWith('#') ? hash.substring(1) : hash;
           const params = new URLSearchParams(hashStr);
@@ -1331,7 +1325,6 @@ export default function PinAccess() {
               return;
             }
             session = data?.session;
-            toast.info('🟢 [D5] Sesión establecida');
           } else {
             toast.error('🔴 [D4] Hash inválido o incompleto');
           }

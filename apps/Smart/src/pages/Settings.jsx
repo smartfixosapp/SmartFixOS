@@ -28,7 +28,7 @@ import POSReceiptTab from "@/components/settings/tabs/POSReceiptTab";
 import { useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/components/utils/helpers";
 
-const BIOMETRIC_LOGIN_KEY = "smartfix_biometric_login";
+const BIOMETRIC_LOGIN_KEY = "smartfix_biometric_profile";
 
 export default function SettingsPage() {
   const { t, language, setLanguage } = useI18n();
@@ -68,38 +68,80 @@ export default function SettingsPage() {
   };
 
   useEffect(() => {
-    if (!isMobileDevice) return;
-    setBiometricProfile(loadBiometricProfile());
-    if (window.PublicKeyCredential?.isUserVerifyingPlatformAuthenticatorAvailable) {
-      window.PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable()
-        .then(setBiometricSupported).catch(() => setBiometricSupported(false));
-    }
+    const checkBiometrics = async () => {
+      setBiometricProfile(loadBiometricProfile());
+      
+      const { Capacitor } = await import('@capacitor/core');
+      const isNative = Capacitor.isNativePlatform();
+
+      if (isNative) {
+        try {
+          const { NativeBiometric } = await import('@capgo/capacitor-native-biometric');
+          const result = await NativeBiometric.isAvailable();
+          setBiometricSupported(result.isAvailable);
+        } catch (err) {
+          console.error("Biometric detection failed:", err);
+          setBiometricSupported(false);
+        }
+      } else if (window.PublicKeyCredential?.isUserVerifyingPlatformAuthenticatorAvailable) {
+        const available = await window.PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable();
+        setBiometricSupported(available);
+      }
+    };
+    
+    checkBiometrics();
   }, []);
 
   const handleEnableBiometric = async () => {
     const raw = localStorage.getItem("employee_session") || sessionStorage.getItem("911-session");
     if (!raw) { toast.error("Inicia sesión primero"); return; }
-    const session = JSON.parse(raw);
+    const sessionData = JSON.parse(raw);
+    
     setBiometricLoading(true);
     try {
-      const challenge = new Uint8Array(32);
-      crypto.getRandomValues(challenge);
-      const credential = await navigator.credentials.create({
-        publicKey: {
-          challenge,
-          rp: { name: "SmartFixOS", id: window.location.hostname },
-          user: { id: new TextEncoder().encode(session.id || session.userId), name: session.email || session.userName, displayName: session.full_name || session.userName },
-          pubKeyCredParams: [{ alg: -7, type: "public-key" }, { alg: -257, type: "public-key" }],
-          authenticatorSelection: { authenticatorAttachment: "platform", userVerification: "required" },
-          timeout: 60000,
-        },
-      });
-      if (!credential?.rawId) throw new Error("No se pudo crear la credencial");
-      const toB64 = (buf) => { const b = new Uint8Array(buf); let s = ""; for (const x of b) s += String.fromCharCode(x); return btoa(s); };
-      saveBiometricProfile({ credentialId: toB64(credential.rawId), userId: session.id || session.userId, tenantId: session.tenant_id || null, session, createdAt: new Date().toISOString() });
-      toast.success("Face ID / Huella activada correctamente");
+      const { Capacitor } = await import('@capacitor/core');
+      const isNative = Capacitor.isNativePlatform();
+
+      if (isNative) {
+        const { NativeBiometric } = await import('@capgo/capacitor-native-biometric');
+        // Simple verification to confirm identity before saving
+        await NativeBiometric.verifyIdentity({
+          reason: "Confirma tu identidad para activar el acceso rápido",
+          title: "Activar Face ID / Huella",
+          subtitle: "Usa tu biometría para guardar el perfil",
+          description: "Esto te permitirá entrar sin PIN la próxima vez."
+        });
+        
+        // Save the profile info (session) - same structure as PinAccess expects
+        saveBiometricProfile({ 
+          userId: sessionData.id || sessionData.userId, 
+          tenantId: sessionData.tenant_id || null, 
+          session: sessionData,
+          createdAt: new Date().toISOString(),
+          isNative: true // flag for identification
+        });
+        toast.success("✅ Face ID / Huella activada correctamente");
+      } else {
+        // Fallback for Web (WebAuthn)
+        const challenge = new Uint8Array(32);
+        crypto.getRandomValues(challenge);
+        const credential = await navigator.credentials.create({
+          publicKey: {
+            challenge,
+            rp: { name: "SmartFixOS", id: window.location.hostname },
+            user: { id: new TextEncoder().encode(sessionData.id || sessionData.userId), name: sessionData.email || sessionData.userName, displayName: sessionData.full_name || sessionData.userName },
+            pubKeyCredParams: [{ alg: -7, type: "public-key" }, { alg: -257, type: "public-key" }],
+            authenticatorSelection: { authenticatorAttachment: "platform", userVerification: "required" },
+            timeout: 60000,
+          },
+        });
+        if (!credential?.rawId) throw new Error("No se pudo crear la credencial");
+        const toB64 = (buf) => { const b = new Uint8Array(buf); let s = ""; for (const x of b) s += String.fromCharCode(x); return btoa(s); };
+        saveBiometricProfile({ credentialId: toB64(credential.rawId), userId: sessionData.id || sessionData.userId, tenantId: sessionData.tenant_id || null, session: sessionData, createdAt: new Date().toISOString() });
+        toast.success("✅ Biometría activada (Web)");
+      }
     } catch (err) {
-      if (err?.name !== "NotAllowedError") toast.error(err?.message || "No se pudo activar la biometría");
+      if (err?.name !== "NotAllowedError") toast.error("Error: " + (err?.message || "No se pudo activar"));
     } finally {
       setBiometricLoading(false);
     }
