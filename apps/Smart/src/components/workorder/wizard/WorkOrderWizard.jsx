@@ -272,6 +272,11 @@ export default function WorkOrderWizard({
   const effectiveSteps = useMemo(() => {
     let steps = [...configuredSteps];
 
+    // Skip customer step when customer is already preloaded
+    if (preloadedCustomer) {
+      steps = steps.filter((s) => s !== "customer");
+    }
+
     const brandName = formData?.device_brand?.name || formData?.device_brand || "";
     const subcatName = formData?.device_subcategory?.name || formData?.device_subcategory || "";
 

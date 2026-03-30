@@ -794,7 +794,7 @@ export default function POSMobile() {
 
   if (!currentDrawer) {
     return (
-      <div className="h-screen bg-black flex items-center justify-center p-4">
+      <div className="h-full min-h-0 bg-black flex items-center justify-center p-4 overflow-hidden">
         <div className="text-center space-y-6 max-w-sm">
           <div className="w-16 h-16 bg-red-500/20 rounded-full flex items-center justify-center mx-auto">
             <AlertCircle className="w-8 h-8 text-red-400" />

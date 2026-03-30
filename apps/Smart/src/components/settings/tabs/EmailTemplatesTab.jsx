@@ -183,7 +183,7 @@ export default function EmailTemplatesTab() {
   const [sendingTest, setSendingTest] = useState(false);
   const [testEmail, setTestEmail] = useState("");
   const [loadWarning, setLoadWarning] = useState("");
-  const [openGroups, setOpenGroups] = useState({ orders: true, reminders: true, payments: true });
+  const [openGroups, setOpenGroups] = useState({ orders: false, reminders: false, payments: false });
   const [showAdvanced, setShowAdvanced] = useState(false);
   const [previewTemplate, setPreviewTemplate] = useState(null);
   const [customizedTypes, setCustomizedTypes] = useState(new Set());
@@ -1477,41 +1477,37 @@ export default function EmailTemplatesTab() {
                             </div>
                             <p className="text-white/50 text-xs line-clamp-1">{tmpl.header_title}</p>
                             <div className="flex items-center gap-1.5 mt-3">
-                              <Button
+                              <button
+                                type="button"
                                 onClick={() => { setEditingTemplate({ ...tmpl }); setShowEditor(true); setShowAdvanced(false); }}
-                                variant="outline"
-                                size="sm"
-                                className="border-white/10 hover:bg-white/10 text-white h-7 text-xs px-2 flex-1"
+                                className="flex-1 h-7 px-2 text-xs rounded-lg bg-white/10 hover:bg-white/20 text-white border border-white/20 transition-colors inline-flex items-center justify-center gap-1"
                               >
-                                <Edit2 className="w-3 h-3 mr-1" /> Editar
-                              </Button>
-                              <Button
+                                <Edit2 className="w-3 h-3" /> Editar
+                              </button>
+                              <button
+                                type="button"
                                 onClick={() => setPreviewTemplate(tmpl)}
-                                variant="outline"
-                                size="sm"
-                                className="border-white/10 hover:bg-cyan-500/10 hover:border-cyan-500/30 text-white h-7 text-xs px-2"
                                 title="Vista previa"
+                                className="h-7 px-2 text-xs rounded-lg bg-white/10 hover:bg-cyan-500/20 text-white border border-white/20 hover:border-cyan-500/40 transition-colors inline-flex items-center justify-center"
                               >
                                 <Eye className="w-3 h-3" />
-                              </Button>
-                              <Button
+                              </button>
+                              <button
+                                type="button"
                                 onClick={() => handleToggleTemplate(tmpl)}
-                                variant="outline"
-                                size="sm"
-                                className="border-white/10 hover:bg-white/10 text-white h-7 text-xs px-2"
+                                className="h-7 px-2 text-xs rounded-lg bg-white/10 hover:bg-white/20 text-white border border-white/20 transition-colors inline-flex items-center justify-center"
                               >
                                 {tmpl.enabled !== false ? <PowerOff className="w-3 h-3" /> : <Power className="w-3 h-3" />}
-                              </Button>
+                              </button>
                               {isCustomized && (
-                                <Button
+                                <button
+                                  type="button"
                                   onClick={() => handleDeleteTemplate(tmpl.id)}
-                                  variant="outline"
-                                  size="sm"
-                                  className="border-red-500/30 text-red-400 hover:bg-red-500/10 h-7 text-xs px-2"
                                   title="Restablecer al sistema"
+                                  className="h-7 px-2 text-xs rounded-lg bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/30 transition-colors inline-flex items-center justify-center"
                                 >
                                   <Trash2 className="w-3 h-3" />
-                                </Button>
+                                </button>
                               )}
                             </div>
                           </div>
