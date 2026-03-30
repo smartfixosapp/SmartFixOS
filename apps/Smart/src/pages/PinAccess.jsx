@@ -107,6 +107,7 @@ export default function PinAccess() {
   const [biometricSupported, setBiometricSupported] = useState(false);
   const [biometricProfile, setBiometricProfile] = useState(null);
   const [biometricLoading, setBiometricLoading] = useState(false);
+  const [hasCancelledBiometric, setHasCancelledBiometric] = useState(false);
 
   // ── First User Setup (shown when no employees exist after login) ──────────
   const [firstUserForm, setFirstUserForm]       = useState({ full_name: '', phone: '' });
@@ -800,14 +801,15 @@ export default function PinAccess() {
 
   // ── Biometric early login (directo al usuario, sin seleccionar) ──────────
   const handleEarlyBiometricLogin = async () => {
-    if (!biometricSupported || !biometricProfile?.credentialId || !biometricProfile?.session) return;
+    if (!biometricSupported || !biometricProfile?.credentialId || !biometricProfile?.session || hasCancelledBiometric) return;
+    
     // Si el perfil fue creado en otro dispositivo/navegador, limpiar silenciosamente
-    // para evitar que macOS muestre el diálogo "No tienes contraseña guardada"
     if (biometricProfile.deviceKey && biometricProfile.deviceKey !== navigator.userAgent.slice(0, 120)) {
       console.warn("[Biometric] Device mismatch — clearing profile to avoid browser credential dialog");
       clearBiometricProfile();
       return;
     }
+    
     setBiometricLoading(true);
     setError("");
     try {
@@ -820,41 +822,37 @@ export default function PinAccess() {
         },
       });
       if (!assertion?.rawId) throw new Error("No se pudo validar la biometría");
+      
       const rawId = arrayBufferToBase64(assertion.rawId);
       if (rawId !== biometricProfile.credentialId) throw new Error("Credencial biométrica inválida");
+      
       const session = biometricProfile.session;
       if (!session?.id) throw new Error("Sesión biométrica expirada — inicia sesión manualmente");
 
-      // Verificar que el empleado siga existiendo y activo en la DB
-      // NOTE: active puede ser NULL (no explícitamente false) para empleados activos
-      const { data: empCheck } = await supabase
-        .from("app_employee")
-        .select("id, status, active")
-        .eq("id", session.id)
-        .maybeSingle();
-
-      // empCheck es null cuando RLS bloquea la consulta (sesión Supabase expiró al cerrar la app)
-      // Solo rechazar si el empleado EXISTE y active === false (desactivado explícitamente)
-      if (empCheck && empCheck.active === false) {
-        clearBiometricProfile();
-        setError("Esta cuenta fue desactivada. Inicia sesión manualmente.");
-        return;
-      }
-      // Si empCheck es null → RLS bloqueó la consulta (no hay sesión Supabase), pero la
-      // biometría ya fue verificada por el sistema operativo → continuar con la sesión guardada
-
       saveBiometricProfile({ ...biometricProfile, updatedAt: new Date().toISOString() });
-      await completeLogin(session, true); // fromBiometric = true → no ofrecer registro de nuevo
+      await completeLogin(session, true);
     } catch (error) {
-      // NotAllowedError = usuario canceló o iOS no encontró la credencial en este dispositivo.
-      // Cualquier error aquí = limpiar perfil biométrico para evitar que iOS muestre
-      // el dialog "No hay contraseña guardada" en cada visita.
       console.warn("[Biometric] Auto-trigger falló:", error?.name, error?.message);
-      clearBiometricProfile();
-      // No mostramos toast — el usuario verá la pantalla de PIN normalmente.
-      // La próxima vez que haga login con PIN, se ofrecerá registrar de nuevo.
+      
+      // ❌ IMPORTANTE: No borrar el perfil si el usuario canceló (NotAllowedError)
+      // o si hubo un timeout. Solo marcar como cancelado para esta sesión.
+      if (error?.name === "NotAllowedError" || error?.name === "AbortError" || error?.name === "TimeoutError") {
+        setHasCancelledBiometric(true);
+      } else {
+        // Solo borrar si es un error fatal de la identidad
+        clearBiometricProfile();
+      }
     } finally {
       setBiometricLoading(false);
+    }
+  };
+
+  const handleReattemptBiometric = async () => {
+    setHasCancelledBiometric(false);
+    if (step === "pin" && selectedUser && biometricProfile?.userId === selectedUser.id) {
+      await handleBiometricLogin();
+    } else {
+      await handleEarlyBiometricLogin();
     }
   };
 
@@ -1497,11 +1495,11 @@ export default function PinAccess() {
   // Se activa tan pronto como la página está lista y hay un perfil biométrico guardado.
   // No espera la selección de usuario — entra directo al usuario al que pertenece la biometría.
   useEffect(() => {
-    if (!isReady) return;
+    if (!isReady || hasCancelledBiometric) return;
     if (!biometricSupported || !biometricProfile?.credentialId || !biometricProfile?.session) return;
     const timer = setTimeout(() => handleEarlyBiometricLogin(), 500);
     return () => clearTimeout(timer);
-  }, [isReady, biometricSupported, biometricProfile?.credentialId]);
+  }, [isReady, biometricSupported, biometricProfile?.credentialId, hasCancelledBiometric]);
 
   const handleNumberClick = (num) => {
     if (pin.length < 4) {
@@ -2268,6 +2266,20 @@ export default function PinAccess() {
                 <div className="min-h-full flex flex-col items-center justify-center p-4 sm:p-8">
                   <div className="w-full max-w-lg">
                     <h2 className="text-2xl sm:text-3xl font-black text-white mb-1 text-center">¿Quién eres?</h2>
+                    
+                    {/* Botón rápido biométrico si se canceló */}
+                    {hasCancelledBiometric && biometricSupported && biometricProfile?.session && (
+                      <div className="flex justify-center mb-4 mt-2">
+                        <button
+                          onClick={handleReattemptBiometric}
+                          className="flex items-center gap-2 px-4 py-2 rounded-full border border-cyan-500/40 bg-cyan-500/10 hover:bg-cyan-500/20 text-cyan-300 text-xs font-bold transition-all active:scale-95 animate-in fade-in zoom-in duration-300"
+                        >
+                          <BiometricIcon type={getBiometricType().type} size="sm" />
+                          Acceder rápido con {getBiometricType().label}
+                        </button>
+                      </div>
+                    )}
+
                     <p className="text-gray-500 text-sm text-center mb-8">Selecciona tu perfil para continuar</p>
                     <motion.div
                       className="grid grid-cols-2 sm:grid-cols-3 gap-4"
@@ -2385,29 +2397,31 @@ export default function PinAccess() {
                     {isBiometricAvailableForSelectedUser && (() => {
                       const { label, type } = getBiometricType();
                       return (
-                        <>
-                          <button
-                            onClick={handleBiometricLogin}
+                        <div className="space-y-3 mt-6">
+                           <button
+                            onClick={handleReattemptBiometric}
                             disabled={loading || biometricLoading}
-                            className="w-full mt-4 py-4 rounded-2xl border border-emerald-500/30 bg-emerald-500/10 hover:bg-emerald-500/15 flex flex-col items-center gap-1.5 transition-all active:scale-95 disabled:opacity-40"
+                            className="w-full py-4 rounded-2xl border border-cyan-500/30 bg-cyan-500/10 hover:bg-cyan-500/15 flex flex-col items-center gap-1.5 transition-all active:scale-95 disabled:opacity-40 animate-in fade-in slide-in-from-bottom-2 duration-500"
                           >
                             {biometricLoading ? (
-                              <div className="w-8 h-8 border-2 border-emerald-400/50 border-t-emerald-400 rounded-full animate-spin" />
+                              <div className="w-8 h-8 border-2 border-cyan-400/50 border-t-cyan-400 rounded-full animate-spin" />
                             ) : (
-                              <BiometricIcon type={type} size="md" className="text-emerald-300" />
+                              <BiometricIcon type={type} size="md" className="text-cyan-300" />
                             )}
-                            <span className="text-emerald-300 text-xs font-semibold">
-                              {biometricLoading ? "Verificando..." : label}
+                            <span className="text-cyan-300 text-xs font-bold tracking-tight">
+                              {biometricLoading ? "Verificando..." : `Entrar con ${label}`}
                             </span>
                           </button>
-                          <button
-                            onClick={clearBiometricProfile}
-                            disabled={loading || biometricLoading}
-                            className="w-full mt-2 text-xs text-white/40 hover:text-white/60 transition-colors"
-                          >
-                            Quitar de este dispositivo
-                          </button>
-                        </>
+
+                          {!biometricLoading && (
+                            <button
+                              onClick={clearBiometricProfile}
+                              className="w-full text-[10px] text-white/20 hover:text-white/40 transition-colors uppercase font-black tracking-widest"
+                            >
+                              Desactivar en este dispositivo
+                            </button>
+                          )}
+                        </div>
                       );
                     })()}
                   </div>
