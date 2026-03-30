@@ -132,6 +132,45 @@ export async function sendTemplatedEmailWithBase44(base44, { event_type, order_d
   const alertColor = getAlertColorForStatus(event_type);
   const variables = buildVariables(order_data);
 
+  // Bloque de desglose financiero — solo para eventos de pago
+  const PAYMENT_EVENT_TYPES = new Set(['deposit_received', 'payment_received', 'sale_completed', 'refund_processed']);
+  const paymentSummaryHTML = PAYMENT_EVENT_TYPES.has(event_type) ? (() => {
+    const isRefund  = event_type === 'refund_processed';
+    const isSale    = event_type === 'sale_completed';
+    const isDeposit = event_type === 'deposit_received';
+    const titleMap  = {
+      deposit_received: '🧾 Resumen del Depósito',
+      payment_received: '🧾 Recibo de Pago',
+      sale_completed:   '🧾 Recibo de Venta',
+      refund_processed: '🧾 Detalle del Reembolso',
+    };
+    const rows = [
+      ...(isSale && variables.sale_number ? [{ label: 'Número de venta', value: variables.sale_number, bold: true }] : []),
+      ...(!isRefund && variables.amount    ? [{ label: isSale ? 'Total de la venta' : 'Total de la orden', value: `$${variables.amount}` }] : []),
+      ...(variables.total_paid             ? [{ label: isRefund ? 'Monto reembolsado' : isDeposit ? 'Depósito recibido' : 'Monto pagado', value: `$${variables.total_paid}`, highlight: true }] : []),
+      ...(!isRefund && !isSale && variables.balance !== undefined && variables.balance !== ''
+        ? [{ label: 'Balance pendiente', value: parseFloat(variables.balance) === 0 ? '✅ Saldado' : `$${variables.balance}`, balanceColor: parseFloat(variables.balance) === 0 ? '#059669' : '#DC2626' }]
+        : []),
+      ...(variables.payment_method ? [{ label: isRefund ? 'Método de reembolso' : 'Método de pago', value: variables.payment_method }] : []),
+    ];
+    if (rows.length === 0) return '';
+    const rowsHTML = rows.map((row, idx) => {
+      const isLast = idx === rows.length - 1;
+      const valueColor = row.balanceColor || (row.highlight ? '#059669' : row.bold ? '#111827' : '#374151');
+      const valueFontWeight = (row.highlight || row.bold) ? '800' : '600';
+      const valueFontSize   = (row.highlight || row.bold) ? '18px' : '15px';
+      return `<div style="display:flex;justify-content:space-between;align-items:center;padding:14px 20px;${isLast ? '' : 'border-bottom:1px solid #F3F4F6;'}">
+        <span style="color:#6B7280;font-size:14px;font-weight:500;">${row.label}</span>
+        <span style="color:${valueColor};font-size:${valueFontSize};font-weight:${valueFontWeight};">${row.value}</span>
+      </div>`;
+    }).join('');
+    return `
+    <div style="background:linear-gradient(135deg,#F0FDF4 0%,#ECFDF5 100%);border-radius:16px;padding:28px;margin:30px 0;border:2px solid #10B981;">
+      <p style="font-size:18px;font-weight:800;color:#065F46;margin:0 0 20px 0;text-align:center;">${titleMap[event_type]}</p>
+      <div style="background:white;border-radius:12px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,0.06);">${rowsHTML}</div>
+    </div>`;
+  })() : '';
+
   const nextStepsHTML = template.show_next_steps && template.next_steps_items?.length ? `
     <div style="background: #F0F9FF; border-radius: 16px; padding: 24px; margin: 30px 0; border: 2px solid #BFDBFE;">
       <h3 style="color: #1E40AF; font-size: 18px; font-weight: 800; margin: 0 0 16px 0;">🔄 Próximos Pasos</h3>
@@ -283,6 +322,7 @@ export async function sendTemplatedEmailWithBase44(base44, { event_type, order_d
             ${variables.order_number ? `<div style="margin-bottom: 24px;"><p style="color: #6B7280; font-size: 12px; font-weight: 700; margin: 0 0 6px 0;">ORDEN</p><p style="color: #111827; font-size: 24px; font-weight: 800; margin: 0;">${variables.order_number}</p></div>` : ""}
             ${variables.device_info ? `<div><p style="color: #6B7280; font-size: 12px; font-weight: 700; margin: 0 0 6px 0;">EQUIPO</p><p style="color: #111827; font-size: 18px; font-weight: 600; margin: 0;">${variables.device_info}</p></div>` : ""}
           </div>
+          ${paymentSummaryHTML}
           ${nextStepsHTML}${hoursHTML}${checklistHTML}${photosHTML}${warrantyHTML}${reviewHTML}
           ${template.main_message ? `<p style="color: #374151; line-height: 1.8; font-size: 16px; margin: 20px 0;">${interpolate(template.main_message, variables)}</p>` : ""}
           ${contactHTML}

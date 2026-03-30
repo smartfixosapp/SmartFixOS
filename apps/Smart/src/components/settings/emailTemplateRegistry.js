@@ -318,17 +318,42 @@ export const DEFAULT_TEMPLATES = {
     name: "Recibo de Depósito",
     header_title: "Depósito recibido",
     header_subtitle: "Tu pago parcial fue registrado",
-    alert_title: "Pago aplicado correctamente",
-    alert_message: "Hemos recibido tu depósito y ya fue aplicado a la orden.",
-    main_message: "Conserva este correo como referencia. Tu balance pendiente aparece actualizado más abajo."
+    alert_title: "Depósito aplicado — ${{total_paid}}",
+    alert_message: "Recibimos tu depósito de ${{total_paid}} mediante {{payment_method}}. El desglose completo aparece abajo.",
+    main_message: "Conserva este correo como comprobante. Cuando tu orden esté lista te avisaremos para coordinar el balance restante.",
+    show_phone_contact: true,
+    show_whatsapp_contact: true
   },
   payment_received: {
     name: "Recibo de Pago",
     header_title: "Pago recibido",
     header_subtitle: "Tu recibo está listo",
-    alert_title: "Pago confirmado",
-    alert_message: "Tu pago fue procesado correctamente y quedó registrado en la orden.",
-    main_message: "Guarda este correo como evidencia de tu pago. Si el balance llegó a cero, tu orden queda saldada."
+    alert_title: "Pago confirmado — ${{total_paid}}",
+    alert_message: "Procesamos tu pago de ${{total_paid}} mediante {{payment_method}}. El desglose completo aparece abajo.",
+    main_message: "Guarda este correo como comprobante de pago. Si tienes alguna pregunta sobre el recibo, contáctanos.",
+    show_phone_contact: true,
+    show_whatsapp_contact: true
+  },
+  sale_completed: {
+    name: "Recibo de Venta",
+    header_title: "¡Gracias por tu compra!",
+    header_subtitle: "Tu recibo de venta está listo",
+    alert_title: "Venta completada — ${{total_paid}}",
+    alert_message: "Completamos tu venta por un total de ${{total_paid}} mediante {{payment_method}}. El detalle aparece abajo.",
+    main_message: "¡Gracias por preferirnos! Si tienes alguna pregunta sobre tu compra, con gusto te atendemos.",
+    show_review_request: true,
+    show_phone_contact: true,
+    show_whatsapp_contact: true
+  },
+  refund_processed: {
+    name: "Reembolso Procesado",
+    header_title: "Reembolso procesado",
+    header_subtitle: "Tu devolución ha sido registrada",
+    alert_title: "Reembolso de ${{total_paid}} en proceso",
+    alert_message: "Procesamos tu reembolso de ${{total_paid}} al método {{payment_method}}. El detalle aparece abajo.",
+    main_message: "Los reembolsos pueden tardar entre 3 y 10 días hábiles en reflejarse según tu banco o método de pago. Si tienes dudas, contáctanos.",
+    show_phone_contact: true,
+    show_whatsapp_contact: true
   }
 };
 
