@@ -6,6 +6,8 @@ import { Lock, ArrowLeft, Delete, Check, ExternalLink, Shield, Zap, UserPlus, Sm
 import { supabase } from "../../../../lib/supabase-client.js";
 import { toast } from "sonner";
 import { motion, AnimatePresence } from "framer-motion";
+import { Capacitor } from "@capacitor/core";
+import { NativeBiometric } from "@capgo/capacitor-native-biometric";
 import { triggerRealtimeNotification, NOTIFICATION_TYPES } from "@/components/notifications/RealtimeNotifications";
 import { ensureAdminBootstrap, ensureTenantAdminUser } from "@/components/utils/adminBootstrap";
 import { getUserPermissions } from "@/components/utils/rolePermissions";
@@ -801,11 +803,11 @@ export default function PinAccess() {
 
   // ── Biometric early login (directo al usuario, sin seleccionar) ──────────
   const handleEarlyBiometricLogin = async () => {
-    if (!biometricSupported || !biometricProfile?.credentialId || !biometricProfile?.session || hasCancelledBiometric) return;
+    if (!biometricSupported || !biometricProfile?.session || hasCancelledBiometric) return;
     
     // Si el perfil fue creado en otro dispositivo/navegador, limpiar silenciosamente
     if (biometricProfile.deviceKey && biometricProfile.deviceKey !== navigator.userAgent.slice(0, 120)) {
-      console.warn("[Biometric] Device mismatch — clearing profile to avoid browser credential dialog");
+      console.warn("[Biometric] Device mismatch — clearing profile");
       clearBiometricProfile();
       return;
     }
@@ -813,33 +815,41 @@ export default function PinAccess() {
     setBiometricLoading(true);
     setError("");
     try {
-      const assertion = await navigator.credentials.get({
-        publicKey: {
-          challenge: createChallenge(),
-          allowCredentials: [{ id: base64ToUint8Array(biometricProfile.credentialId), type: "public-key" }],
-          userVerification: "required",
-          timeout: 60000,
-        },
-      });
-      if (!assertion?.rawId) throw new Error("No se pudo validar la biometría");
-      
-      const rawId = arrayBufferToBase64(assertion.rawId);
-      if (rawId !== biometricProfile.credentialId) throw new Error("Credencial biométrica inválida");
-      
+      if (Capacitor.isNativePlatform()) {
+        // ── FLUJO NATIVO (iOS/Android): FaceID/TouchID Directo ──
+        const result = await NativeBiometric.verifyIdentity({
+          reason: "Acceso rápido a SmartFixOS",
+          title: "Autenticar",
+          subtitle: "Reconocimiento facial o huella",
+          description: "Mira a la cámara para entrar",
+        });
+        
+        if (!result) throw new Error("Verificación fallida");
+      } else {
+        // ── FLUJO WEB (Desktop): WebAuthn ──
+        const assertion = await navigator.credentials.get({
+          publicKey: {
+            challenge: createChallenge(),
+            allowCredentials: [{ id: base64ToUint8Array(biometricProfile.credentialId), type: "public-key" }],
+            userVerification: "required",
+            timeout: 60000,
+          },
+        });
+        if (!assertion?.rawId) throw new Error("No se pudo validar la biometría");
+      }
+
       const session = biometricProfile.session;
-      if (!session?.id) throw new Error("Sesión biométrica expirada — inicia sesión manualmente");
+      if (!session?.id) throw new Error("Sesión expirada");
 
       saveBiometricProfile({ ...biometricProfile, updatedAt: new Date().toISOString() });
       await completeLogin(session, true);
     } catch (error) {
       console.warn("[Biometric] Auto-trigger falló:", error?.name, error?.message);
       
-      // ❌ IMPORTANTE: No borrar el perfil si el usuario canceló (NotAllowedError)
-      // o si hubo un timeout. Solo marcar como cancelado para esta sesión.
-      if (error?.name === "NotAllowedError" || error?.name === "AbortError" || error?.name === "TimeoutError") {
+      // No borrar perfil si es cancelación o timeout común
+      if (error?.name === "NotAllowedError" || error?.name === "AbortError" || error?.name === "TimeoutError" || error?.message?.includes("cancel")) {
         setHasCancelledBiometric(true);
       } else {
-        // Solo borrar si es un error fatal de la identidad
         clearBiometricProfile();
       }
     } finally {
@@ -942,6 +952,17 @@ export default function PinAccess() {
   };
 
   const canUseBiometricLogin = async () => {
+    // 1. Verificar si estamos en plataforma nativa (iOS/Android)
+    if (Capacitor.isNativePlatform()) {
+      try {
+        const result = await NativeBiometric.isAvailable();
+        return result.isAvailable;
+      } catch {
+        return false;
+      }
+    }
+
+    // 2. Fallback a WebAuthn (Escritorio/Navegador)
     if (!window.PublicKeyCredential?.isUserVerifyingPlatformAuthenticatorAvailable) return false;
     try {
       return await window.PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable();
@@ -951,55 +972,42 @@ export default function PinAccess() {
   };
 
   const handleBiometricLogin = async () => {
-    if (!isBiometricAvailableForSelectedUser || !biometricProfile?.credentialId) return;
+    if (!isBiometricAvailableForSelectedUser) return;
 
     setBiometricLoading(true);
     setError("");
     try {
-      const assertion = await navigator.credentials.get({
-        publicKey: {
-          challenge: createChallenge(),
-          allowCredentials: [
-            {
-              id: base64ToUint8Array(biometricProfile.credentialId),
-              type: "public-key",
-            },
-          ],
-          userVerification: "required",
-          timeout: 60000,
-        },
-      });
-
-      if (!assertion?.rawId) {
-        throw new Error("No se pudo validar la huella");
-      }
-
-      const rawId = arrayBufferToBase64(assertion.rawId);
-      if (rawId !== biometricProfile.credentialId) {
-        throw new Error("Credencial biométrica inválida");
+      if (Capacitor.isNativePlatform()) {
+        const result = await NativeBiometric.verifyIdentity({
+          reason: "Entrar a tu perfil",
+          title: "Verificar Identidad",
+        });
+        if (!result) throw new Error("No se pudo verificar biometría");
+      } else {
+        // WebAuthn flow
+        const assertion = await navigator.credentials.get({
+          publicKey: {
+            challenge: createChallenge(),
+            allowCredentials: [{ id: base64ToUint8Array(biometricProfile.credentialId), type: "public-key" }],
+            userVerification: "required",
+            timeout: 60000,
+          },
+        });
+        if (!assertion?.rawId) throw new Error("Credencial no confirmada");
       }
 
       const session = biometricProfile.session;
-      if (!session?.id) {
-        throw new Error("No se encontró una sesión biométrica válida");
-      }
+      if (!session?.id) throw new Error("Sesión inválida");
 
-      saveBiometricProfile({
-        ...biometricProfile,
-        updatedAt: new Date().toISOString(),
-      });
-
-      await completeLogin(session, true); // fromBiometric = true
+      saveBiometricProfile({ ...biometricProfile, updatedAt: new Date().toISOString() });
+      await completeLogin(session, true);
     } catch (error) {
       console.error("Biometric login error:", error);
-      if (error?.name === "NotAllowedError") {
-        // El usuario canceló O el dispositivo no encontró la credencial
-        // Limpiar perfil para que en el próximo login con PIN se ofrezca re-registrar
-        clearBiometricProfile();
-        toast.error("Biometría no disponible — inicia con PIN para reactivarla");
+      if (error?.name === "NotAllowedError" || error?.message?.includes("cancel")) {
+        setHasCancelledBiometric(true);
       } else {
         clearBiometricProfile();
-        toast.error("No se pudo autenticar — inicia con PIN para reactivar biometría");
+        toast.error("Biometría no disponible — inicia con PIN");
       }
     } finally {
       setBiometricLoading(false);
@@ -1093,32 +1101,44 @@ export default function PinAccess() {
     if (!pendingLoginSession) { finishLoginNavigation(); return; }
     setBiometricRegistering(true);
     try {
-      const credential = await navigator.credentials.create({
-        publicKey: {
-          challenge: createChallenge(),
-          rp: { name: "SmartFixOS", id: window.location.hostname },
-          user: {
-            id: new TextEncoder().encode(pendingLoginSession.id),
-            name: pendingLoginSession.email || pendingLoginSession.full_name || pendingLoginSession.id,
-            displayName: pendingLoginSession.full_name || "Usuario",
+      let isNative = Capacitor.isNativePlatform();
+      let credentialId = "native_stored";
+
+      if (isNative) {
+        // En móvil usamos el plugin nativo directo (no más diálogos de Passkey)
+        const verified = await NativeBiometric.verifyIdentity({
+          reason: "Vincular FaceID/TouchID para entrar rápido",
+          title: "Vincular Biometría",
+        });
+        if (!verified) throw new Error("Verificación nativa cancelada");
+      } else {
+        // En escritorio seguimos usando WebAuthn
+        const credential = await navigator.credentials.create({
+          publicKey: {
+            challenge: createChallenge(),
+            rp: { name: "SmartFixOS", id: window.location.hostname },
+            user: {
+              id: new TextEncoder().encode(pendingLoginSession.id),
+              name: pendingLoginSession.email || pendingLoginSession.full_name || pendingLoginSession.id,
+              displayName: pendingLoginSession.full_name || "Usuario",
+            },
+            pubKeyCredParams: [{ alg: -7, type: "public-key" }, { alg: -257, type: "public-key" }],
+            authenticatorSelection: {
+              authenticatorAttachment: "platform",
+              userVerification: "required",
+              residentKey: "preferred",
+            },
+            timeout: 60000,
+            attestation: "none",
           },
-          pubKeyCredParams: [
-            { alg: -7, type: "public-key" },   // ES256
-            { alg: -257, type: "public-key" },  // RS256
-          ],
-          authenticatorSelection: {
-            authenticatorAttachment: "platform", // Touch ID / Face ID / Huella (no llaves físicas)
-            userVerification: "required",
-            residentKey: "preferred",
-          },
-          timeout: 60000,
-          attestation: "none",
-        },
-      });
-      if (!credential?.rawId) throw new Error("No se recibió credencial");
-      const credentialId = arrayBufferToBase64(credential.rawId);
+        });
+        if (!credential?.rawId) throw new Error("No se recibió credencial");
+        credentialId = arrayBufferToBase64(credential.rawId);
+      }
+
       saveBiometricProfile({
         credentialId,
+        isNative,
         userId: pendingLoginSession.id,
         tenantId: pendingLoginSession.tenant_id || null,
         session: pendingLoginSession,
@@ -1126,13 +1146,11 @@ export default function PinAccess() {
         updatedAt: new Date().toISOString(),
         deviceKey: navigator.userAgent.slice(0, 120),
       });
+
       const { name } = getBiometricType();
-      toast.success(`✅ ${name} activado — próxima vez entrarás automáticamente`);
+      toast.success(`✅ ${name} activado — próxima vez entrarás directamente`);
     } catch (err) {
-      if (err?.name !== "NotAllowedError") {
-        console.warn("[PinAccess] Biometric registration error:", err);
-      }
-      // Si el usuario cancela o hay error, simplemente continuar sin biometría
+      console.warn("[Biometric] Registro falló:", err);
     } finally {
       setBiometricRegistering(false);
       finishLoginNavigation();

@@ -324,6 +324,9 @@ importers:
       '@capacitor/status-bar':
         specifier: ^8.0.1
         version: 8.0.1(@capacitor/core@8.2.0)
+      '@capgo/capacitor-native-biometric':
+        specifier: ^8.4.2
+        version: 8.4.2(@capacitor/core@8.2.0)
       '@hello-pangea/dnd':
         specifier: ^17.0.0
         version: 17.0.0(@types/react@18.3.28)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
@@ -1144,6 +1147,11 @@ packages:
 
   '@capacitor/status-bar@8.0.1':
     resolution: {integrity: sha512-OR59dlbwvmrV5dKsC9lvwv48QaGbqcbSTBpk+9/WXWxXYSdXXdzJZU9p8oyNPAkuJhCdnSa3XmU43fZRPBJJ5w==}
+    peerDependencies:
+      '@capacitor/core': '>=8.0.0'
+
+  '@capgo/capacitor-native-biometric@8.4.2':
+    resolution: {integrity: sha512-mue8KmjtOO3l4vymwM34tHGt6NVg0Wg3GqdOPsjqoFAGrZC+tRPa4Xzn5n0B2XzDtAeMtfynxSJOhl8l1c2X0Q==}
     peerDependencies:
       '@capacitor/core': '>=8.0.0'
 
@@ -6165,6 +6173,10 @@ snapshots:
       '@capacitor/core': 8.2.0
 
   '@capacitor/status-bar@8.0.1(@capacitor/core@8.2.0)':
+    dependencies:
+      '@capacitor/core': 8.2.0
+
+  '@capgo/capacitor-native-biometric@8.4.2(@capacitor/core@8.2.0)':
     dependencies:
       '@capacitor/core': 8.2.0
 
