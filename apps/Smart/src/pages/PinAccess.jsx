@@ -1313,9 +1313,28 @@ export default function PinAccess() {
           session = data?.session;
           toast.info('🟢 [D5] Sesión activa');
         } else if (hash) {
-          // Instead of reload, just process as is (hash might contain access_token)
-          // But Supabase PKCE is preferred
-          toast.info('🟡 [D4] Hash detectado (posible sesión implícita)');
+          toast.info('🟡 [D4] Procesando sesión desde hash...');
+          // Clean hash (remove #) and parse params
+          const hashStr = hash.startsWith('#') ? hash.substring(1) : hash;
+          const params = new URLSearchParams(hashStr);
+          const access_token = params.get('access_token');
+          const refresh_token = params.get('refresh_token');
+
+          if (access_token && refresh_token) {
+            const { data, error } = await supabase.auth.setSession({
+              access_token,
+              refresh_token
+            });
+            if (error) {
+              toast.error('🔴 [D4] Error al establecer sesión: ' + error.message);
+              setOauthInProgress(false);
+              return;
+            }
+            session = data?.session;
+            toast.info('🟢 [D5] Sesión establecida');
+          } else {
+            toast.error('🔴 [D4] Hash inválido o incompleto');
+          }
         }
 
         if (session?.user) {
