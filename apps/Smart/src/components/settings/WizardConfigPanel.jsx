@@ -1,15 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Card } from "@/components/ui/card";
-import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
 import DeviceCatalogManager from "@/components/settings/DeviceCatalogManager";
-import {
-  Save, Loader2, User, Smartphone, AlertCircle
-} from "lucide-react";
+import { Loader2, AlertCircle } from "lucide-react";
 const DEFAULT_CONFIG = {
   key: "default",
   problem_presets: [
@@ -85,12 +78,6 @@ export default function WizardConfigPanel() {
   const [config, setConfig] = useState(DEFAULT_CONFIG);
   const [loading, setLoading] = useState(false);
   const [loadingData, setLoadingData] = useState(true);
-  const [activeTab, setActiveTab] = useState(() => {
-    if (typeof window === "undefined") return "catalog";
-    const params = new URLSearchParams(window.location.search);
-    const requestedTab = params.get("tab");
-    return requestedTab === "customer" || requestedTab === "catalog" ? requestedTab : "catalog";
-  });
 
   useEffect(() => {
     loadConfig();
@@ -111,27 +98,7 @@ export default function WizardConfigPanel() {
   };
 
   const saveConfig = async () => {
-    if (activeTab === "catalog") {
-      toast.success("El catálogo se guarda automáticamente al crear, editar o eliminar.");
-      return;
-    }
-
-    setLoading(true);
-    try {
-      const payload = buildWizardConfigPayload(config);
-      const configs = await base44.entities.WorkOrderWizardConfig.list();
-      if (configs?.length) {
-        await base44.entities.WorkOrderWizardConfig.update(configs[0].id, payload);
-      } else {
-        await base44.entities.WorkOrderWizardConfig.create(payload);
-      }
-      toast.success("✅ Configuración del wizard guardada");
-    } catch (error) {
-      console.error("Error saving config:", error);
-      toast.error("Error al guardar configuración");
-    } finally {
-      setLoading(false);
-    }
+    toast.success("El catálogo se guarda automáticamente al crear, editar o eliminar.");
   };
 
   const addProblemPreset = () => {
@@ -188,139 +155,10 @@ export default function WizardConfigPanel() {
     );
   }
 
-  const tabs = [
-    { id: "customer", label: "Cliente", icon: User },
-    { id: "catalog", label: "Catálogo", icon: Smartphone }
-  ];
-
   return (
     <div className="space-y-6">
-      {/* Cards Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-        {tabs.map((tab) => {
-          const Icon = tab.icon;
-          const isActive = activeTab === tab.id;
-          return (
-            <button
-              key={tab.id}
-              onClick={() => setActiveTab(tab.id)}
-              className={`group relative overflow-hidden rounded-2xl p-6 text-left transition-all border-2 ${
-                isActive
-                  ? "bg-gradient-to-br from-cyan-600/30 to-emerald-600/30 border-cyan-400/50 shadow-lg shadow-cyan-500/20"
-                  : "bg-black/40 border-white/10 hover:border-cyan-500/30 hover:bg-white/5"
-              }`}
-            >
-              <div className={`w-14 h-14 rounded-xl flex items-center justify-center mb-4 ${
-                isActive
-                  ? "bg-gradient-to-br from-cyan-500 to-emerald-600"
-                  : "bg-white/10"
-              }`}>
-                <Icon className={`w-7 h-7 ${isActive ? "text-white" : "text-cyan-400"}`} />
-              </div>
-              <h3 className={`font-bold text-base mb-1 ${isActive ? "text-white" : "text-gray-200"}`}>
-                {tab.label}
-              </h3>
-              <p className="text-xs text-gray-400">
-                {tab.id === "customer" && "Campos del cliente"}
-                {tab.id === "catalog" && "Tipos, marcas, modelos"}
-              </p>
-            </button>
-          );
-        })}
-      </div>
-
-      {/* CAMPOS DE CLIENTE */}
-      {activeTab === "customer" && (
-        <div className="space-y-4">
-          <Card className="bg-black/40 border border-cyan-500/20 p-6">
-            <h3 className="text-white font-bold mb-4 flex items-center gap-2">
-              <User className="w-5 h-5 text-cyan-400" />
-              Campos del Cliente
-            </h3>
-            <div className="space-y-3">
-              {config.customer_fields.map((field, index) => (
-                <div
-                  key={index}
-                  className="flex items-center gap-3 p-3 bg-black/30 border border-white/10 rounded-lg"
-                >
-                  <div className="flex-1 grid grid-cols-2 gap-3">
-                    <Input
-                      value={field.label}
-                      onChange={(e) => {
-                        const updated = [...config.customer_fields];
-                        updated[index].label = e.target.value;
-                        setConfig({ ...config, customer_fields: updated });
-                      }}
-                      placeholder="Etiqueta"
-                      className="bg-black/30 border-white/10 text-white"
-                    />
-                    <select
-                      value={field.type}
-                      onChange={(e) => {
-                        const updated = [...config.customer_fields];
-                        updated[index].type = e.target.value;
-                        setConfig({ ...config, customer_fields: updated });
-                      }}
-                      className="bg-black/30 border border-white/10 rounded-lg px-3 py-2 text-white text-sm"
-                    >
-                      <option value="text">Texto</option>
-                      <option value="email">Email</option>
-                      <option value="tel">Teléfono</option>
-                      <option value="textarea">Área de texto</option>
-                    </select>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <label className="text-xs text-gray-400">Requerido</label>
-                    <Switch
-                      checked={field.required}
-                      onCheckedChange={(checked) => {
-                        const updated = [...config.customer_fields];
-                        updated[index].required = checked;
-                        setConfig({ ...config, customer_fields: updated });
-                      }}
-                    />
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <label className="text-xs text-gray-400">Visible</label>
-                    <Switch
-                      checked={field.visible}
-                      onCheckedChange={(checked) => {
-                        const updated = [...config.customer_fields];
-                        updated[index].visible = checked;
-                        setConfig({ ...config, customer_fields: updated });
-                      }}
-                    />
-                  </div>
-                </div>
-              ))}
-            </div>
-          </Card>
-        </div>
-      )}
-
       {/* CATÁLOGO DE DISPOSITIVOS */}
-      {activeTab === "catalog" && (
-        <DeviceCatalogManager />
-      )}
-
-      {/* Botón Guardar */}
-      <Button
-        onClick={saveConfig}
-        disabled={loading}
-        className="w-full bg-gradient-to-r from-cyan-600 to-emerald-600 h-14 text-lg font-bold shadow-lg"
-      >
-        {loading ? (
-          <>
-            <Loader2 className="w-5 h-5 mr-2 animate-spin" />
-            Guardando...
-          </>
-        ) : (
-          <>
-            <Save className="w-5 h-5 mr-2" />
-            {activeTab === "catalog" ? "Catálogo con guardado automático" : "Guardar Configuración"}
-          </>
-        )}
-      </Button>
+      <DeviceCatalogManager />
 
       {/* Info */}
       <div className="bg-gradient-to-r from-blue-600/10 to-purple-600/10 border border-blue-500/20 rounded-xl p-4">
