@@ -5,8 +5,7 @@ const config: CapacitorConfig = {
   appName: 'SmartFixOS',
   webDir: 'dist',
   server: {
-    // Load LIVE from Vercel — app always shows latest code without needing store updates
-    url: 'https://smart-fix-os-smart.vercel.app',
+    // url: 'https://smart-fix-os-smart.vercel.app',
     cleartext: false,
     iosScheme: 'https',
     androidScheme: 'https',

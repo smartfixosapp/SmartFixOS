@@ -110,6 +110,7 @@ export default function PinAccess() {
   const [biometricProfile, setBiometricProfile] = useState(null);
   const [biometricLoading, setBiometricLoading] = useState(false);
   const [hasCancelledBiometric, setHasCancelledBiometric] = useState(false);
+  const [oauthInProgress, setOauthInProgress] = useState(false);
 
   // ── First User Setup (shown when no employees exist after login) ──────────
   const [firstUserForm, setFirstUserForm]       = useState({ full_name: '', phone: '' });
@@ -589,8 +590,9 @@ export default function PinAccess() {
       const isNative = Capacitor.isNativePlatform();
 
       if (isNative) {
-        // On native: use @capacitor/browser (SFSafariViewController) so the in-app browser
-        // can intercept the custom URL scheme redirect and return control to the app
+        if (oauthInProgress) return;
+        setOauthInProgress(true);
+
         const { Browser } = await import('@capacitor/browser');
         const redirectTo = `com.smartfixos.pr911://PinAccess?gintent=${intent}`;
         toast.info('🔵 [D1] Abriendo Google OAuth...');
@@ -603,15 +605,24 @@ export default function PinAccess() {
             skipBrowserRedirect: true,
           },
         });
-        if (error) { toast.error("Error al iniciar con Google: " + error.message); setLoading(false); return; }
+
+        if (error) {
+          toast.error("Error al iniciar con Google: " + error.message);
+          setLoading(false);
+          setOauthInProgress(false);
+          return;
+        }
+
         if (data?.url) {
           toast.info('🔵 [D2] URL recibida, abriendo Browser...');
           await Browser.open({ url: data.url });
+          // Note: Browser.addListener('browserFinished') could be added here
+          // if we want to reset oauthInProgress when user manually closes.
         } else {
           toast.error('🔴 [D2] No se recibió URL de OAuth');
           setLoading(false);
+          setOauthInProgress(false);
         }
-        // Loading will be cleared when appUrlOpen fires and the deeplink event fires
       } else {
         // On web: standard redirect
         const redirectTo = `${window.location.origin}/PinAccess?gintent=${intent}`;
@@ -1276,6 +1287,13 @@ export default function PinAccess() {
   useEffect(() => {
     const handleDeepLink = async (e) => {
       const { code, gintent, hash, search } = e.detail || {};
+      
+      // Force close browser one last time just in case capacitor.js missed it
+      try {
+        const { Browser } = await import('@capacitor/browser');
+        await Browser.close();
+      } catch (_) { /* ignore */ }
+
       toast.info('🟢 [D3] Deep link recibido — code=' + !!code);
       try {
         setCheckingUsers(true);
@@ -1288,15 +1306,14 @@ export default function PinAccess() {
             toast.error('🔴 [D4] Error exchange: ' + error.message);
             setCheckingUsers(false);
             setLoading(false);
+            setOauthInProgress(false);
             return;
           }
           session = data?.session;
-          toast.info('🟢 [D5] Sesión: ' + (session?.user?.email || 'null'));
+          toast.info('🟢 [D5] Sesión activa');
         } else if (hash) {
           window.location.href = '/PinAccess' + search + hash;
           return;
-        } else {
-          toast.error('🔴 [D3] Sin code ni hash en deep link');
         }
 
         if (session?.user) {
@@ -1304,19 +1321,14 @@ export default function PinAccess() {
           if (handler) {
             await handler(session.user);
           }
-          setCheckingUsers(false);
-          setIsReady(true);
-          setLoading(false);
-        } else {
-          toast.error('🔴 [D5] No se pudo establecer la sesión');
-          setCheckingUsers(false);
-          setLoading(false);
         }
       } catch (err) {
         toast.error('🔴 [D-err] ' + err.message);
         console.error('[PinAccess] deeplink OAuth error:', err);
+      } finally {
         setCheckingUsers(false);
         setLoading(false);
+        setOauthInProgress(false);
       }
     };
 

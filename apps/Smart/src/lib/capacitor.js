@@ -110,11 +110,12 @@ export async function initCapacitor() {
     App.addListener('appUrlOpen', async ({ url }) => {
       if (!url) return;
       try {
-        // Close the in-app browser (SFSafariViewController) if it was open
+        // Close the in-app browser (SFSafariViewController) IMMEDIATELY
+        // This must be the very first thing we do to return control to the app
         try {
           const { Browser } = await import('@capacitor/browser');
-          await Browser.close();
-        } catch (_) { /* Browser may not be open, ignore */ }
+          Browser.close().catch(() => {}); // fire and forget to avoid blocking
+        } catch (_) { /* no-op */ }
 
         const urlObj = new URL(url);
         const code    = urlObj.searchParams.get('code')    || null;
