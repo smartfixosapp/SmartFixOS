@@ -141,16 +141,32 @@ export default function AuthGate({ children }) {
   // El timer de inactividad no expulsa al usuario mientras orderActiveCount > 0.
   const orderActiveCountRef = React.useRef(0);
 
-  // ── Refresh session (llamado por PinAccess tras login exitoso) ───────
+  // ── Refresh session (llamado por PinAccess tras login) ───────────────
   const refreshSession = React.useCallback(() => {
     const sessionUser = readPinSession();
     if (sessionUser) {
-      // null = "Nunca" → preservar; undefined = usar default
       const tms = sessionUser.session_timeout_ms;
       inactivityMsRef.current = (tms !== undefined) ? tms : DEFAULT_INACTIVITY_MS;
       setUser(sessionUser);
     }
   }, []);
+
+  // 🔄 Refresh Auth (Backend Sync) con Delay de seguridad
+  const refreshAuth = React.useCallback(async () => {
+    try {
+      // Delay inicial para dar tiempo al entorno nativo/red móvil
+      await new Promise(resolve => setTimeout(resolve, 800));
+      
+      const userData = await dataClient.auth.me();
+      if (userData) {
+        // Sincronizar usuario del backend con el estado global
+        // Esto asegura que si el usuario cambió su rol/permisos, se refleje.
+        refreshSession(); 
+      }
+    } catch (error) {
+      console.warn("⚠️ Auth server sync delayed or failed:", error);
+    }
+  }, [refreshSession]);
 
   // Exponer en window para que PinAccess (ruta pública, sin AuthContext) lo llame
   React.useEffect(() => {
@@ -289,7 +305,10 @@ export default function AuthGate({ children }) {
     if (!isPublicPath(currentPath)) {
       window.location.href = "/PinAccess";
     }
-  }, []);
+    
+    // Intentar sincronización con el servidor en segundo plano
+    refreshAuth();
+  }, [refreshAuth]);
 
   // ── Eventos de actividad → resetear timer ────────────────────────────
   React.useEffect(() => {
