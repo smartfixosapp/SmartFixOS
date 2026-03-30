@@ -594,8 +594,8 @@ export default function PinAccess() {
         setOauthInProgress(true);
 
         const { Browser } = await import('@capacitor/browser');
-        // IMPORTANT: Simplified redirectTo to match the Supabase allowed list exactly
-        const redirectTo = `com.smartfixos.pr911://`;
+        // IMPORTANT: Using the full path as requested by the user for precise Supabase matching
+        const redirectTo = `com.smartfixos.pr911://PinAccess`;
         toast.info('🔵 [D1] Abriendo Google OAuth...');
 
         const { data, error } = await supabase.auth.signInWithOAuth({
