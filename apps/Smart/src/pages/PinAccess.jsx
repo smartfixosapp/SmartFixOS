@@ -594,7 +594,8 @@ export default function PinAccess() {
         setOauthInProgress(true);
 
         const { Browser } = await import('@capacitor/browser');
-        const redirectTo = `com.smartfixos.pr911://PinAccess?gintent=${intent}`;
+        // IMPORTANT: Simplified redirectTo to match the Supabase allowed list exactly
+        const redirectTo = `com.smartfixos.pr911://`;
         toast.info('🔵 [D1] Abriendo Google OAuth...');
 
         const { data, error } = await supabase.auth.signInWithOAuth({
@@ -1312,8 +1313,9 @@ export default function PinAccess() {
           session = data?.session;
           toast.info('🟢 [D5] Sesión activa');
         } else if (hash) {
-          window.location.href = '/PinAccess' + search + hash;
-          return;
+          // Instead of reload, just process as is (hash might contain access_token)
+          // But Supabase PKCE is preferred
+          toast.info('🟡 [D4] Hash detectado (posible sesión implícita)');
         }
 
         if (session?.user) {
