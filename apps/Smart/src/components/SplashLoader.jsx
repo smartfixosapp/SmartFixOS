@@ -16,15 +16,27 @@ const SplashLoader = () => {
       </div>
 
       <div className="relative z-10 flex flex-col items-center gap-8">
-        {/* Logo con animación de rotación y pulso */}
+        {/* Logo con animación de rebote estilo Apple */}
         <motion.div
+          initial={{ scale: 0.5, opacity: 0 }}
           animate={{ 
-            rotate: 360,
-            scale: [1, 1.05, 1]
+            scale: [0.5, 1.1, 1],
+            opacity: 1,
+            rotate: 360
           }}
           transition={{ 
-            rotate: { duration: 15, repeat: Infinity, ease: "linear" },
-            scale: { duration: 2, repeat: Infinity, ease: "easeInOut" }
+            scale: { 
+              type: "spring", 
+              stiffness: 260, 
+              damping: 20,
+              duration: 1.5 
+            },
+            rotate: { 
+              duration: 25, 
+              repeat: Infinity, 
+              ease: "linear" 
+            },
+            opacity: { duration: 0.5 }
           }}
           className="w-32 h-32 sm:w-40 sm:h-40 drop-shadow-[0_0_30px_rgba(59,130,246,0.3)]"
         >
@@ -37,14 +49,25 @@ const SplashLoader = () => {
 
         {/* Texto de carga elegante */}
         <div className="flex flex-col items-center gap-3">
-          <motion.p
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.5, duration: 0.8 }}
-            className="text-white/40 text-sm font-medium tracking-[0.2em] uppercase"
+          <motion.div
+            animate={{ 
+              scale: [1, 1.05, 1],
+              opacity: [0.4, 0.7, 0.4]
+            }}
+            transition={{ 
+              duration: 2.5, 
+              repeat: Infinity, 
+              ease: "easeInOut" 
+            }}
+            className="flex flex-col items-center gap-2"
           >
-            Iniciando Sistema
-          </motion.p>
+            <p className="text-white/60 text-xs font-bold tracking-[0.3em] uppercase">
+              SmartFixOS
+            </p>
+            <p className="text-white/30 text-[10px] font-medium tracking-[0.1em] uppercase">
+              Iniciando sistema...
+            </p>
+          </motion.div>
           
           {/* Barra de progreso sutil */}
           <div className="w-32 h-[2px] bg-white/5 rounded-full overflow-hidden relative">
