@@ -6,6 +6,8 @@ import { useEffect, useState, useCallback, useRef } from "react"
 import { isNative } from "@/lib/capacitor"
 import { Wifi, WifiOff } from "lucide-react"
 import { AnimatePresence, motion } from "framer-motion"
+import SplashLoader from "@/components/SplashLoader"
+import { SplashScreen } from '@capacitor/splash-screen'
 
 // ── React Query — configuración optimizada para mobile ─────────────────────
 const queryClient = new QueryClient({
@@ -103,9 +105,37 @@ function NetworkStatusBanner() {
 }
 
 function App() {
+  const [appLoading, setAppLoading] = useState(true);
+
+  useEffect(() => {
+    // 1. Ocultar el splash nativo de iOS lo antes posible
+    // para mostrar nuestra animación personalizada de React
+    const hideNativeSplash = async () => {
+      try {
+        await SplashScreen.hide();
+      } catch (err) {
+        console.warn("Could not hide native splash:", err);
+      }
+    };
+    
+    hideNativeSplash();
+
+    // 2. Mantener nuestra animación de engranajes por un tiempo mínimo 
+    // para que la experiencia no sea brusca y el usuario vea el logo
+    const timer = setTimeout(() => {
+      setAppLoading(false);
+    }, 3500); // 3.5 segundos de pura elegancia
+
+    return () => clearTimeout(timer);
+  }, []);
+
   return (
     <>
       <QueryClientProvider client={queryClient}>
+        <AnimatePresence mode="wait">
+          {appLoading && <SplashLoader key="splash" />}
+        </AnimatePresence>
+        
         <AppSyncListener />
         <NetworkStatusBanner />
         <Pages />
