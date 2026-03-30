@@ -1,4 +1,7 @@
 import React from "react";
+import { Capacitor } from '@capacitor/core';
+import { useNavigate, useLocation } from 'react-router-dom';
+import { dataClient } from "@/components/api/dataClient";
 
 export const AuthContext = React.createContext(null);
 export const useAuth = () => React.useContext(AuthContext);
@@ -22,7 +25,7 @@ const DEFAULT_INACTIVITY_MS = 5 * 60 * 1000; // 5 minutos
 const NEVER_TIMEOUT = null;
 
 /** Mínimo grace en background para evitar kicks en cambios rápidos de app */
-const MIN_BACKGROUND_GRACE_MS = 10 * 1000; // 10 segundos mínimo
+const MIN_BACKGROUND_GRACE_MS = Capacitor.isNativePlatform() ? 24 * 60 * 60 * 1000 : 10 * 1000; // 24h en nativo, 10s en el navegador
 
 /** Clave en localStorage para guardar cuándo fue el último "hide" */
 const BG_TS_KEY = "_sfos_bg_ts";
@@ -61,14 +64,16 @@ const ACTIVITY_EVENTS = [
 
 // ─── Helpers ───────────────────────────────────────────────────────────────
 async function clearAllSessions(forceLogout = false) {
-  const { Capacitor } = await import('@capacitor/core');
   const isWeb = Capacitor.getPlatform() === 'web';
   
   // Si es manual (forceLogout), borramos siempre. 
-  // Si es automático, solo borramos si estamos en WEB. 
-  // Las apps nativas deben persistir su sesión.
+  // En apps nativas, solo borramos si es un logout explícito.
   if (forceLogout || isWeb) {
     localStorage.removeItem("employee_session");
+    // También el perfil biométrico si es un logout total
+    if (forceLogout) {
+      localStorage.removeItem("smartfix_biometric_profile");
+    }
   }
   
   sessionStorage.removeItem("911-session");
@@ -130,6 +135,8 @@ function readPinSession() {
 
 // ─── Componente ────────────────────────────────────────────────────────────
 export default function AuthGate({ children }) {
+  const navigate = useNavigate();
+  const location = useLocation();
   const [user, setUser] = React.useState(null);
   const [isCheckingAuth, setIsCheckingAuth] = React.useState(true);
   const inactivityTimerRef = React.useRef(null);
@@ -196,8 +203,8 @@ export default function AuthGate({ children }) {
     }
     clearAllSessions(true);
     setUser(null);
-    window.location.href = reason === "manual" ? "/Welcome" : "/PinAccess";
-  }, []);
+    navigate(reason === "manual" ? "/Welcome" : "/PinAccess", { replace: true });
+  }, [navigate]);
 
   // ── Ir a PinAccess sin destruir la sesión visual ──────────────────────
   // (la sesión se re-valida cuando el usuario entra el PIN exitosamente)
@@ -218,8 +225,8 @@ export default function AuthGate({ children }) {
     clearAllSessions(false);
     // No llamar setUser(null) antes del navigate — evita el flash de pantalla blanca.
     // La sesión ya fue limpiada de storage; PinAccess asume el control.
-    window.location.href = "/PinAccess";
-  }, []);
+    navigate("/PinAccess", { replace: true });
+  }, [navigate]);
 
   // ── Timer de inactividad (respeta la preferencia del usuario) ─────────
   const resetInactivityTimer = React.useCallback(() => {
@@ -254,7 +261,8 @@ export default function AuthGate({ children }) {
     // Limpiar cualquier _bg_ts que pudo haber quedado de un cierre previo.
     // IMPORTANTE: si sessionStorage ya tiene una sesión fresca (mismo tab/navegación),
     // ignorar BG_TS_KEY — el usuario acaba de hacer login en este tab.
-    const freshSS = sessionStorage.getItem("911-session");
+    // En nativo, sessionStorage se borra siempre al cerrar la app; usamos localStorage
+    const freshSS = Capacitor.isNativePlatform() ? false : sessionStorage.getItem("911-session");
     const bgTs = localStorage.getItem(BG_TS_KEY);
     if (bgTs && !freshSS) {
       const elapsed = Date.now() - parseInt(bgTs, 10);
@@ -276,7 +284,7 @@ export default function AuthGate({ children }) {
           // El app fue cerrado mientras estaba en background → re-login
           clearAllSessions(false);
           if (!isPublicPath(currentPath)) {
-            window.location.href = "/PinAccess";
+            navigate("/PinAccess", { replace: true });
             return;
           }
         }
@@ -303,7 +311,7 @@ export default function AuthGate({ children }) {
     setIsCheckingAuth(false);
 
     if (!isPublicPath(currentPath)) {
-      window.location.href = "/PinAccess";
+      navigate("/PinAccess", { replace: true });
     }
     
     // Intentar sincronización con el servidor en segundo plano
@@ -371,7 +379,7 @@ export default function AuthGate({ children }) {
         const ssRaw = sessionStorage.getItem("911-session");
         const lsRaw = localStorage.getItem("employee_session");
         if (!ssRaw && !lsRaw) {
-          window.location.href = "/PinAccess";
+          navigate("/PinAccess", { replace: true });
         }
       }
     };
@@ -383,21 +391,17 @@ export default function AuthGate({ children }) {
 
   // ── beforeunload: cerrar ventana / pestaña en escritorio ─────────────
   // Limpia localStorage para que al reabrir no exista sesión persistente (solo en WEB).
-  // sessionStorage ya se limpia automáticamente por el navegador al cerrar.
   React.useEffect(() => {
-    if (isPublicPath()) return;
-
-    const handleBeforeUnload = async () => {
-      const { Capacitor } = await import('@capacitor/core');
-      // Solo borrar en web, en App nativa queremos persistencia total
-      if (Capacitor.getPlatform() === 'web') {
-        localStorage.removeItem("employee_session");
-        localStorage.setItem(BG_TS_KEY, "0"); // 0 = cerrado definitivamente
-      }
-    };
-
-    window.addEventListener("beforeunload", handleBeforeUnload);
-    return () => window.removeEventListener("beforeunload", handleBeforeUnload);
+    if (!isPublicPath() && !Capacitor.isNativePlatform()) {
+      const handleBeforeUnload = () => {
+        if (Capacitor.getPlatform() === 'web') {
+          localStorage.removeItem("employee_session");
+          localStorage.setItem(BG_TS_KEY, "0");
+        }
+      };
+      window.addEventListener("beforeunload", handleBeforeUnload);
+      return () => window.removeEventListener("beforeunload", handleBeforeUnload);
+    }
   }, []);
 
   // ─────────────────────────────────────────────────────────────────────

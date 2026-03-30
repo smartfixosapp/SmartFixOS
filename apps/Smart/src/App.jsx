@@ -120,22 +120,13 @@ function App() {
     
     hideNativeSplash();
 
-    // 2. Mantener nuestra animación de engranajes por un tiempo mínimo 
-    // para que la experiencia no sea brusca y el usuario vea el logo
-    const timer = setTimeout(() => {
-      setAppLoading(false);
-    }, 3500); // 3.5 segundos de pura elegancia
-
-    return () => clearTimeout(timer);
+    // 2. Saltar animación de carga forzada para máxima velocidad
+    setAppLoading(false);
   }, []);
 
   return (
     <>
       <QueryClientProvider client={queryClient}>
-        <AnimatePresence mode="wait">
-          {appLoading && <SplashLoader key="splash" />}
-        </AnimatePresence>
-        
         <AppSyncListener />
         <NetworkStatusBanner />
         <Pages />

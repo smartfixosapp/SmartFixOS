@@ -240,8 +240,8 @@ export default function PinAccess() {
   const isBiometricAvailableForSelectedUser =
     biometricSupported &&
     selectedUser &&
-    biometricProfile?.userId === selectedUser.id &&
-    (!biometricProfile?.tenantId || biometricProfile?.tenantId === (selectedUser.tenant_id || tenantId || null));
+    String(biometricProfile?.userId) === String(selectedUser.id);
+    // Relaxed tenant check to avoid boot-up race conditions on mobile networks
 
   const getMergedActiveUsers = async (tId = null) => {
     let remoteUsers = [];
@@ -1231,11 +1231,8 @@ export default function PinAccess() {
     }
 
     // Navegación normal (ya tiene biometría o viene de login biométrico)
-    setShowSuccessBurst(true);
-    setTimeout(() => {
-      setShowSuccessBurst(false);
-      navigate("/Dashboard", { replace: true });
-    }, 850);
+    // Navegación instantánea (sin delay de burst)
+    navigate("/Dashboard", { replace: true });
   };
 
   const handleMasterValidate = async () => {
@@ -1324,6 +1321,14 @@ export default function PinAccess() {
               setOauthInProgress(false);
               return;
             }
+            
+            // ✅ SUCCESS: Clean the URL hash immediately to prevent re-processing
+            if (window.history.replaceState) {
+              window.history.replaceState(null, null, window.location.pathname + window.location.search);
+            } else {
+              window.location.hash = '';
+            }
+            
             session = data?.session;
           } else {
             toast.error('🔴 [D4] Hash inválido o incompleto');
@@ -1349,6 +1354,15 @@ export default function PinAccess() {
     window.addEventListener('capacitor:deeplink', handleDeepLink);
     return () => window.removeEventListener('capacitor:deeplink', handleDeepLink);
   }, []); // set up once on mount
+
+  // 🛡️ Initialize Biometric Support and Profile on mount
+  useEffect(() => {
+    (async () => {
+      const supported = await canUseBiometricLogin();
+      setBiometricSupported(supported);
+      setBiometricProfile(loadBiometricProfile());
+    })();
+  }, []);
 
   useEffect(() => {
     if (hasCheckedSession.current) return;
@@ -1479,6 +1493,12 @@ export default function PinAccess() {
 
         if (oauthSess?.user && (isGoogleIdentity || hasGoogleIntent) && !oauthSess.user.email?.endsWith("smartfixos.com")) {
           console.log("🟢 Google OAuth session detected:", oauthSess.user.email, "intent:", hasGoogleIntent);
+          
+          // ✅ ATOMIC URL CLEANING: Remove tokens/codes after use
+          if (window.history.replaceState) {
+            window.history.replaceState(null, null, window.location.pathname + window.location.search);
+          }
+          
           setCheckingUsers(true);
           await performOAuthAuth(oauthSess.user);
           setCheckingUsers(false);
@@ -2246,14 +2266,8 @@ export default function PinAccess() {
     );
   }
 
-  // ── Kiosk full-screen: user grid + PIN con slide horizontal ───────────────
+  // ── Kiosk full-screen: user grid + PIN ────────────────────────────────────
   if (storeAuthenticated && (step === "user" || step === "pin")) {
-    const hSlide = {
-      enter: (d) => ({ x: d > 0 ? "100%" : "-100%", opacity: 0 }),
-      center: { x: 0, opacity: 1, transition: { duration: 0.3, ease: [0.25, 0.46, 0.45, 0.94] } },
-      exit:  (d) => ({ x: d < 0 ? "100%" : "-100%", opacity: 0, transition: { duration: 0.22, ease: [0.55, 0, 1, 0.45] } }),
-    };
-
     return (
       <div className="pinaccess-fullscreen-container overflow-hidden">
         {/* Fondo decorativo */}
@@ -2292,209 +2306,131 @@ export default function PinAccess() {
           </button>
         </div>
 
-        {/* Panel deslizante */}
+        {/* Panel directo (sin animaciones de deslizamiento para ZERO LAG) */}
         <div className="absolute inset-0" style={{ paddingTop: "52px" }}>
-          <AnimatePresence mode="wait" custom={slideDir}>
-
             {/* ─── Grilla de usuarios ─── */}
             {step === "user" && (
-              <motion.div
-                key="user-panel"
-                custom={slideDir}
-                variants={hSlide}
-                initial="enter"
-                animate="center"
-                exit="exit"
-                className="absolute inset-0 overflow-y-auto"
-              >
-                <div className="min-h-full flex flex-col items-center justify-center p-4 sm:p-8">
-                  <div className="w-full max-w-lg">
-                    <h2 className="text-2xl sm:text-3xl font-black text-white mb-1 text-center">¿Quién eres?</h2>
-                    
-                    {/* Botón rápido biométrico si se canceló */}
-                    {hasCancelledBiometric && biometricSupported && biometricProfile?.session && (
-                      <div className="flex justify-center mb-4 mt-2">
-                        <button
-                          onClick={handleReattemptBiometric}
-                          className="flex items-center gap-2 px-4 py-2 rounded-full border border-cyan-500/40 bg-cyan-500/10 hover:bg-cyan-500/20 text-cyan-300 text-xs font-bold transition-all active:scale-95 animate-in fade-in zoom-in duration-300"
-                        >
-                          <BiometricIcon type={getBiometricType().type} size="sm" />
-                          Acceder rápido con {getBiometricType().label}
-                        </button>
-                      </div>
-                    )}
-
-                    <p className="text-gray-500 text-sm text-center mb-8">Selecciona tu perfil para continuar</p>
-                    <motion.div
-                      className="grid grid-cols-2 sm:grid-cols-3 gap-4"
-                      initial="hidden"
-                      animate="show"
-                      variants={{ hidden: {}, show: { transition: { staggerChildren: 0.07 } } }}
-                    >
-                      {availableUsers.map((user) => (
-                        <motion.button
-                          key={user.id}
-                          onClick={() => handleSelectUser(user)}
-                          variants={{ hidden: { opacity: 0, y: 16, scale: 0.95 }, show: { opacity: 1, y: 0, scale: 1 } }}
-                          whileHover={{ scale: 1.04, y: -3 }}
-                          whileTap={{ scale: 0.96 }}
-                          className="rounded-2xl border border-white/10 bg-white/5 hover:bg-white/10 hover:border-cyan-500/40 p-5 flex flex-col items-center gap-3 min-h-[140px] transition-all shadow-lg hover:shadow-cyan-500/10"
-                        >
-                          <div className="w-14 h-14 rounded-full bg-gradient-to-br from-cyan-500 to-emerald-500 flex items-center justify-center font-black text-white text-xl shadow-lg shadow-cyan-500/25">
-                            {(user.full_name || user.email || "?")[0].toUpperCase()}
-                          </div>
-                          <p className="text-white font-bold text-sm leading-tight text-center">
-                            {user.full_name || user.email || "Usuario"}
-                          </p>
-                          {(user.position || user.role) && (
-                            <span className="text-xs text-gray-500 capitalize">{user.position || user.role}</span>
-                          )}
-                        </motion.button>
-                      ))}
-                    </motion.div>
-
-                    {/* Novedades del sistema — bajo el grid de usuarios */}
-                    <NovedadesPanel />
-                  </div>
-                </div>
-              </motion.div>
-            )}
-
-            {/* ─── PIN pad ─── */}
-            {step === "pin" && selectedUser && (
-              <motion.div
-                key="pin-panel"
-                custom={slideDir}
-                variants={hSlide}
-                initial="enter"
-                animate="center"
-                exit="exit"
-                className="absolute inset-0 overflow-y-auto"
-              >
-                <div className="min-h-full flex flex-col items-center justify-center p-4 sm:p-6">
-                  <div className="w-full max-w-xs">
-
-                    {/* Botón volver */}
-                    <button
-                      onClick={() => { setSlideDir(-1); setStep("user"); setPin(""); setError(""); }}
-                      className="flex items-center gap-2 text-gray-500 hover:text-white mb-8 transition-colors text-sm active:scale-95"
-                    >
-                      <ArrowLeft className="w-4 h-4" /> Seleccionar otro usuario
-                    </button>
-
-                    {/* Avatar + nombre */}
-                    <div className="text-center mb-8">
-                      <div className="w-20 h-20 rounded-full bg-gradient-to-br from-cyan-500 to-emerald-500 flex items-center justify-center font-black text-white text-3xl mx-auto mb-4 shadow-[0_0_40px_rgba(6,182,212,0.4)]">
-                        {(selectedUser.full_name || selectedUser.email || "?")[0].toUpperCase()}
-                      </div>
-                      <h2 className="text-2xl font-black text-white">{selectedUser.full_name || selectedUser.email}</h2>
-                      <p className="text-gray-500 text-sm mt-1">Ingresa tu PIN de 4 dígitos</p>
-                    </div>
-
-                    {/* Indicadores PIN */}
-                    <div className="flex justify-center gap-5 mb-8">
-                      {[0, 1, 2, 3].map((i) => (
-                        <div key={i} className={`w-4 h-4 rounded-full border-2 transition-all duration-300 ${pin.length > i ? "bg-white border-white shadow-[0_0_10px_rgba(255,255,255,0.8)] scale-110" : "bg-transparent border-white/30"}`} />
-                      ))}
-                    </div>
-
-                    {error && <p className="text-red-400 text-sm font-medium text-center mb-4 animate-pulse">{error}</p>}
-
-                    {/* Teclado numérico */}
-                    <div className="space-y-3">
-                      {numbers.map((row, ri) => (
-                        <div key={ri} className="grid grid-cols-3 gap-3">
-                          {row.map((num, ci) => {
-                            if (num === null) return <div key={`e${ci}`} />;
-                            if (num === "⌫") return (
-                              <button key="bs" onClick={handleBackspace} disabled={pin.length === 0 || loading}
-                                className="h-16 w-full rounded-2xl bg-red-500/20 border border-red-500/30 hover:bg-red-500/30 flex items-center justify-center transition-all active:scale-95 disabled:opacity-30 shadow-lg">
-                                <Delete className="w-6 h-6 text-red-300" />
-                              </button>
-                            );
-                            return (
-                              <button key={num} onClick={() => handleNumberClick(String(num))} disabled={loading || pin.length >= 4}
-                                className="h-16 w-full rounded-2xl bg-white/10 border border-white/10 hover:bg-cyan-500/20 hover:border-cyan-500/40 text-white text-2xl font-semibold transition-all active:scale-95 disabled:opacity-30 shadow-lg hover:shadow-cyan-500/20">
-                                {num}
-                              </button>
-                            );
-                          })}
-                        </div>
-                      ))}
-                    </div>
-
-                    {loading && <p className="text-cyan-400 font-bold text-center mt-6 animate-pulse">⚡ Validando...</p>}
-
-                    {/* Hint: dispositivo nuevo — no hay biometría registrada aquí */}
-                    {biometricSupported && !isBiometricAvailableForSelectedUser && !loading && (() => {
-                      const { label, type } = getBiometricType();
-                      return (
-                        <div className="mt-5 flex items-center gap-2 bg-white/[0.04] border border-white/10 rounded-2xl px-4 py-3">
-                          <BiometricIcon type={type} size="sm" className="text-white/30 flex-shrink-0" />
-                          <p className="text-xs text-white/40 leading-tight">
-                            Ingresa tu PIN para activar {label} en este dispositivo
-                          </p>
-                        </div>
-                      );
-                    })()}
-
-                    {isBiometricAvailableForSelectedUser && (() => {
-                      const { label, type } = getBiometricType();
-                      return (
-                        <div className="space-y-3 mt-6">
-                           <button
+                <div className="absolute inset-0 overflow-y-auto">
+                  <div className="min-h-full flex flex-col items-center justify-center p-4 sm:p-8">
+                    <div className="w-full max-w-lg">
+                      <h2 className="text-2xl sm:text-3xl font-black text-white mb-1 text-center font-sans tracking-tight">¿Quién eres?</h2>
+                      
+                      {/* Botón rápido biométrico si ya hay perfil registrado */}
+                      {hasCancelledBiometric && biometricSupported && biometricProfile?.session && (
+                        <div className="flex justify-center mb-6 mt-2">
+                          <button
                             onClick={handleReattemptBiometric}
-                            disabled={loading || biometricLoading}
-                            className="w-full py-4 rounded-2xl border border-cyan-500/30 bg-cyan-500/10 hover:bg-cyan-500/15 flex flex-col items-center gap-1.5 transition-all active:scale-95 disabled:opacity-40 animate-in fade-in slide-in-from-bottom-2 duration-500"
+                            className="flex items-center gap-2 px-4 py-2 rounded-full border border-cyan-500/40 bg-cyan-500/10 hover:bg-cyan-500/20 text-cyan-300 text-xs font-bold transition-all active:scale-95"
                           >
-                            {biometricLoading ? (
-                              <div className="w-8 h-8 border-2 border-cyan-400/50 border-t-cyan-400 rounded-full animate-spin" />
-                            ) : (
-                              <BiometricIcon type={type} size="md" className="text-cyan-300" />
-                            )}
-                            <span className="text-cyan-300 text-xs font-bold tracking-tight">
-                              {biometricLoading ? "Verificando..." : `Entrar con ${label}`}
+                            <BiometricIcon type={getBiometricType().type} size="sm" />
+                            Entrar rápido con {getBiometricType().label}
+                          </button>
+                        </div>
+                      )}
+
+                      <p className="text-gray-500 text-sm text-center mb-8">Selecciona tu perfil para continuar</p>
+
+                      <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                        {availableUsers.map((u) => (
+                          <button
+                            key={u.id}
+                            onClick={() => {
+                              setSelectedUser(u);
+                              setStep("pin");
+                            }}
+                            className="group relative flex flex-col items-center p-4 rounded-3xl bg-white/[0.03] border border-white/5 hover:bg-white/[0.08] hover:border-cyan-500/30 transition-all active:scale-95"
+                          >
+                            <div className="w-16 h-16 rounded-full bg-gradient-to-br from-cyan-600/20 to-blue-600/20 border border-white/10 flex items-center justify-center mb-3">
+                              <span className="text-xl font-black text-white/40 group-hover:text-cyan-300 transition-colors">
+                                {(u.full_name || u.userName || u.email || "?")[0].toUpperCase()}
+                              </span>
+                            </div>
+                            <span className="text-sm font-bold text-white/80 group-hover:text-white truncate w-full text-center">
+                              {u.full_name || u.userName || u.email}
+                            </span>
+                            <span className="text-[10px] text-gray-500 uppercase tracking-widest font-black mt-1">
+                              {u.position || u.role || "staff"}
                             </span>
                           </button>
-
-                          {!biometricLoading && (
-                            <button
-                              onClick={clearBiometricProfile}
-                              className="w-full text-[10px] text-white/20 hover:text-white/40 transition-colors uppercase font-black tracking-widest"
-                            >
-                              Desactivar en este dispositivo
-                            </button>
-                          )}
-                        </div>
-                      );
-                    })()}
+                        ))}
+                      </div>
+                    </div>
                   </div>
                 </div>
-              </motion.div>
             )}
 
-          </AnimatePresence>
+            {/* ─── Pantalla de PIN ─── */}
+            {step === "pin" && selectedUser && (
+                <div className="absolute inset-0 overflow-hidden">
+                  <div className="h-full flex flex-col items-center justify-center p-6">
+                    <div className="w-full max-w-sm">
+                      <div className="flex flex-col items-center mb-8">
+                        <button onClick={() => setStep("user")} className="mb-4 group">
+                          <div className="w-20 h-20 rounded-full bg-gradient-to-br from-cyan-500 to-blue-600 p-0.5 shadow-[0_0_20px_rgba(6,182,212,0.3)] group-active:scale-95 transition-transform">
+                            <div className="w-full h-full rounded-full bg-black flex items-center justify-center overflow-hidden">
+                              <span className="text-2xl font-black text-cyan-400">
+                                {(selectedUser?.full_name || selectedUser?.userName || "?")[0].toUpperCase()}
+                              </span>
+                            </div>
+                          </div>
+                        </button>
+                        <h2 className="text-2xl font-black text-white">{selectedUser?.full_name || selectedUser?.userName}</h2>
+                        <p className="text-gray-500 text-xs uppercase tracking-[0.2em] mt-1 font-bold">Ingresa tu PIN</p>
+                      </div>
+
+                      {/* Bubbles de PIN */}
+                      <div className="flex justify-center gap-4 mb-10">
+                        {[0, 1, 2, 3].map((i) => (
+                          <div key={i} className={`w-4 h-4 rounded-full border-2 transition-all ${pin.length > i ? "bg-cyan-500 border-cyan-500 shadow-[0_0_10px_rgba(6,182,212,0.6)]" : "border-white/20"}`} />
+                        ))}
+                      </div>
+
+                      {error && <p className="text-red-500 text-xs text-center mb-6 font-bold">{error}</p>}
+
+                      {/* Teclado Numérico */}
+                      <div className="grid grid-cols-3 gap-4">
+                        {[1, 2, 3, 4, 5, 6, 7, 8, 9].map((n) => (
+                          <button key={n} onClick={() => handleNumberClick(String(n))} className="w-full aspect-square rounded-2xl bg-white/5 text-2xl font-black text-white active:bg-white/15 active:scale-90 transition-all">{n}</button>
+                        ))}
+                        <button onClick={() => setStep("user")} className="text-xs font-bold text-gray-500 active:text-white transition-colors">ESC</button>
+                        <button onClick={() => handleNumberClick("0")} className="w-full aspect-square rounded-2xl bg-white/5 text-2xl font-black text-white active:bg-white/15 active:scale-90 transition-all">0</button>
+                        <button onClick={handleBackspace} className="w-full aspect-square rounded-2xl bg-red-500/10 text-xl font-black text-white active:bg-red-500/20 active:scale-90 transition-all">⌫</button>
+                      </div>
+
+                      {/* Opción Biométrica proactiva si está disponible para este usuario */}
+                      {isBiometricAvailableForSelectedUser && (
+                        <button
+                          onClick={handleReattemptBiometric}
+                          disabled={loading || biometricLoading}
+                          className="w-full mt-8 py-4 rounded-3xl border border-cyan-500/30 bg-cyan-500/10 flex flex-col items-center gap-1 transition-all active:scale-95 disabled:opacity-40"
+                        >
+                          {biometricLoading ? (
+                             <div className="w-6 h-6 border-2 border-cyan-400/50 border-t-cyan-400 rounded-full animate-spin" />
+                          ) : (
+                            <>
+                              <BiometricIcon type={getBiometricType().type} size="md" className="text-cyan-300" />
+                              <span className="text-cyan-300 text-xs font-bold">Usar {getBiometricType().label}</span>
+                            </>
+                          )}
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                </div>
+            )}
         </div>
 
-        {/* Burst de éxito */}
-        <AnimatePresence>
-          {showSuccessBurst && (
-            <motion.div
-              initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-              className="absolute inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-md"
-            >
-              <motion.div
-                initial={{ scale: 0.7 }} animate={{ scale: 1, transition: { type: "spring", stiffness: 200 } }}
-                className="text-center"
-              >
-                <div className="w-24 h-24 rounded-full bg-gradient-to-br from-cyan-500 to-emerald-500 flex items-center justify-center mx-auto mb-4 shadow-[0_0_60px_rgba(6,182,212,0.6)]">
-                  <Check className="w-12 h-12 text-white" />
+        {/* Burst de éxito (instantáneo) */}
+        {showSuccessBurst && (
+          <div className="absolute inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
+             <div className="text-center animate-in zoom-in fade-in duration-200">
+                <div className="w-20 h-20 rounded-full bg-cyan-500 flex items-center justify-center mx-auto mb-4 shadow-[0_0_40px_rgba(6,182,212,0.6)]">
+                  <Check className="w-10 h-10 text-white" />
                 </div>
-                <p className="text-white text-2xl font-black">¡Bienvenido!</p>
-              </motion.div>
-            </motion.div>
-          )}
-        </AnimatePresence>
+                <p className="text-white text-xl font-black">¡Listo!</p>
+             </div>
+          </div>
+        )}
       </div>
     );
   }

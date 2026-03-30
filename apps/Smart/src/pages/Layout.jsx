@@ -317,21 +317,9 @@ export default function Layout({ children }) {
         style={{ WebkitOverflowScrolling: isDashboard ? 'auto' : 'touch', scrollBehavior: 'smooth' }}
       >
         <div data-pointer-target="on" className={isDashboard ? 'flex flex-col flex-1 min-h-0' : ''}>
-          <AnimatePresence mode="wait">
-            <motion.div
-              key={location.pathname}
-              initial={{ opacity: 0, y: 8 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -5 }}
-              transition={{ 
-                duration: 0.2,
-                ease: [0.25, 0.1, 0.25, 1]
-              }}
-              className={isDashboard ? "flex flex-col flex-1 min-h-0" : "h-full"}
-            >
-              {children}
-            </motion.div>
-          </AnimatePresence>
+          <div className={isDashboard ? "flex flex-col flex-1 min-h-0" : "h-full"}>
+            {children}
+          </div>
         </div>
       </main>
 

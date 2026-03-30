@@ -366,6 +366,15 @@ Devuelve solo clientes que deberían recibir recordatorio.`,
    * EJECUTAR TODAS LAS VERIFICACIONES
    */
   static async runAllChecks() {
+    // 🛡️ Sincronización: No ejecutar si no hay sesión activa
+    try {
+      const session = sessionStorage.getItem("911-session") || localStorage.getItem("employee_session");
+      if (!session) {
+        console.log('🤖 SmartNotificationsEngine: Esperando a inicio de sesión para analizar...');
+        return null;
+      }
+    } catch (e) { return null; }
+
     console.log('🤖 SmartNotificationsEngine: Iniciando análisis...');
     
     const results = await Promise.allSettled([

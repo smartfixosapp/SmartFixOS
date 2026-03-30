@@ -183,17 +183,44 @@ const appClientAdapter = {
   },
   auth: {
     me: async () => {
-      try {
-        // 🔐 SOLO autenticación real Base44 - SIN MOCK
-        const user = await appClient.auth.me();
-        if (!user) {
-          console.warn("⚠️ Auth: No authenticated. Retornando null.");
-          return null;
+      // 🔄 Inteligent Retry: Wait for Supabase session to settle on mobile
+      let attempts = 0;
+      const maxAttempts = 15; // 15 * 200ms = 3.0s total wait
+      
+      while (attempts < maxAttempts) {
+        try {
+          const user = await appClient.auth.me();
+          if (user) {
+            console.log("✅ Auth: me() success!");
+            return user;
+          }
+          
+          // Check for session evidence silently
+          const empKey = localStorage.getItem('employee_session');
+          const sbKey = Object.keys(localStorage).find(k => k.startsWith('sb-') && k.endsWith('-auth-token'));
+          
+          if (!empKey && !sbKey) break; 
+          
+          await new Promise(r => setTimeout(r, 200));
+          attempts++;
+        } catch (error) {
+          await new Promise(r => setTimeout(r, 200));
+          attempts++;
         }
-        return user;
+      }
+
+      try {
+        const user = await appClient.auth.me();
+        return user || null;
       } catch (error) {
-        console.error("🔴 CRITICAL: Auth connection failed", error);
-        return null; // No fallback to mock
+        // Only log CRITICAL error if we are NOT on a public/auth path
+        const publicPaths = ['/Welcome', '/PinAccess', '/Setup', '/InitialSetup', '/Activate'];
+        const isPublic = publicPaths.some(p => window.location.pathname.includes(p));
+        
+        if (!isPublic) {
+          console.error("🔴 CRITICAL: Auth connection failed:", error?.message || error);
+        }
+        return null;
       }
     },
     updateMe: async (data) => {
