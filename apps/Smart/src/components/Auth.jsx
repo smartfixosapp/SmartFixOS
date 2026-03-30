@@ -60,8 +60,16 @@ const ACTIVITY_EVENTS = [
 ];
 
 // ─── Helpers ───────────────────────────────────────────────────────────────
-function clearAllSessions() {
-  localStorage.removeItem("employee_session");
+async function clearAllSessions(forceLogout = false) {
+  const { Capacitor } = await import('@capacitor/core');
+  const isNative = Capacitor.isNativePlatform();
+  
+  // Si es manual (forceLogout), borramos siempre. 
+  // Si es automático, solo borramos si estamos en WEB.
+  if (forceLogout || !isNative) {
+    localStorage.removeItem("employee_session");
+  }
+  
   sessionStorage.removeItem("911-session");
   localStorage.removeItem(BG_TS_KEY);
 }
@@ -169,7 +177,7 @@ export default function AuthGate({ children }) {
       clearTimeout(inactivityTimerRef.current);
       inactivityTimerRef.current = null;
     }
-    clearAllSessions();
+    clearAllSessions(true);
     setUser(null);
     window.location.href = reason === "manual" ? "/Welcome" : "/PinAccess";
   }, []);
@@ -190,7 +198,7 @@ export default function AuthGate({ children }) {
       clearTimeout(inactivityTimerRef.current);
       inactivityTimerRef.current = null;
     }
-    clearAllSessions();
+    clearAllSessions(false);
     // No llamar setUser(null) antes del navigate — evita el flash de pantalla blanca.
     // La sesión ya fue limpiada de storage; PinAccess asume el control.
     window.location.href = "/PinAccess";
@@ -249,7 +257,7 @@ export default function AuthGate({ children }) {
           : DEFAULT_INACTIVITY_MS; // 5 min por defecto si el usuario no configuró timeout
         if (elapsed > graceMs) {
           // El app fue cerrado mientras estaba en background → re-login
-          clearAllSessions();
+          clearAllSessions(false);
           if (!isPublicPath(currentPath)) {
             window.location.href = "/PinAccess";
             return;
@@ -354,16 +362,18 @@ export default function AuthGate({ children }) {
   }, [user, requirePin]);
 
   // ── beforeunload: cerrar ventana / pestaña en escritorio ─────────────
-  // Limpia localStorage para que al reabrir no exista sesión persistente.
+  // Limpia localStorage para que al reabrir no exista sesión persistente (solo en WEB).
   // sessionStorage ya se limpia automáticamente por el navegador al cerrar.
   React.useEffect(() => {
     if (isPublicPath()) return;
 
-    const handleBeforeUnload = () => {
-      localStorage.removeItem("employee_session");
-      // Guardar un timestamp de cierre para que, si beforeunload no se
-      // disparó en móvil, Auth detecte en el siguiente mount que fue cerrado.
-      localStorage.setItem(BG_TS_KEY, "0"); // 0 = cerrado definitivamente
+    const handleBeforeUnload = async () => {
+      const { Capacitor } = await import('@capacitor/core');
+      // Solo borrar en web, en App nativa queremos persistencia
+      if (!Capacitor.isNativePlatform()) {
+        localStorage.removeItem("employee_session");
+        localStorage.setItem(BG_TS_KEY, "0"); // 0 = cerrado definitivamente
+      }
     };
 
     window.addEventListener("beforeunload", handleBeforeUnload);

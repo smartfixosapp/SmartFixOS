@@ -65,7 +65,7 @@ import { Label } from "@/components/ui/label";
 import NotificationService from "../notifications/NotificationService";
 
 const LOCAL_TIME_ENTRIES_KEY = "local_time_entries";
-const BIOMETRIC_LOGIN_KEY = "smartfix_biometric_login";
+const BIOMETRIC_LOGIN_KEY = "smartfix_biometric_profile";
 
 const readLocalEntries = () => {
   try {
@@ -555,16 +555,11 @@ export default function UserMenuModal({ open, onClose, user }) {
     // Limpieza completa y redirección directa
     try {
       onClose();
+      // Solo borramos la sesión, NUNCA la biometría
       localStorage.removeItem("employee_session");
       sessionStorage.removeItem("911-session");
       sessionStorage.removeItem("timeEntryId");
       
-      Object.keys(sessionStorage).forEach(key => {
-        if (key.startsWith("dashboard_") || key.includes("session")) {
-          sessionStorage.removeItem(key);
-        }
-      });
-
       navigate("/PinAccess", { replace: true });
     } catch (error) {
       console.error("Error during logout:", error);
