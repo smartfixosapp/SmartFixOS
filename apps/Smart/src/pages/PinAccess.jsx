@@ -27,7 +27,7 @@ export default function PinAccess() {
     // NOTE: 911smartfix@gmail.com was removed — it's a valid tenant owner email
   ]);
   const STORE_EMAIL_KEY = "smartfix_store_email";
-  const BIOMETRIC_LOGIN_KEY = "smartfix_biometric_login";
+  const BIOMETRIC_LOGIN_KEY = "smartfix_biometric_profile";
   const DEFAULT_STORE_EMAIL = ""; // No default — cada usuario es único
   const ADMIN_PERMISSIONS = {
     can_view_orders: true,

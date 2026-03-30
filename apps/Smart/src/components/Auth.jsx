@@ -62,11 +62,12 @@ const ACTIVITY_EVENTS = [
 // ─── Helpers ───────────────────────────────────────────────────────────────
 async function clearAllSessions(forceLogout = false) {
   const { Capacitor } = await import('@capacitor/core');
-  const isNative = Capacitor.isNativePlatform();
+  const isWeb = Capacitor.getPlatform() === 'web';
   
   // Si es manual (forceLogout), borramos siempre. 
-  // Si es automático, solo borramos si estamos en WEB.
-  if (forceLogout || !isNative) {
+  // Si es automático, solo borramos si estamos en WEB. 
+  // Las apps nativas deben persistir su sesión.
+  if (forceLogout || isWeb) {
     localStorage.removeItem("employee_session");
   }
   
@@ -369,8 +370,8 @@ export default function AuthGate({ children }) {
 
     const handleBeforeUnload = async () => {
       const { Capacitor } = await import('@capacitor/core');
-      // Solo borrar en web, en App nativa queremos persistencia
-      if (!Capacitor.isNativePlatform()) {
+      // Solo borrar en web, en App nativa queremos persistencia total
+      if (Capacitor.getPlatform() === 'web') {
         localStorage.removeItem("employee_session");
         localStorage.setItem(BG_TS_KEY, "0"); // 0 = cerrado definitivamente
       }
