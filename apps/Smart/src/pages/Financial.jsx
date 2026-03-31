@@ -802,6 +802,12 @@ export default function Financial() {
     setAiLoading(true);
     setAiSummary("");
     try {
+      const GEMINI_KEY = import.meta.env.VITE_GEMINI_API_KEY;
+      if (!GEMINI_KEY) {
+        setAiSummary("⚠️ VITE_GEMINI_API_KEY no está configurada en el .env");
+        return;
+      }
+
       const periodLabel =
         dateFilter === "today" ? "hoy" :
         dateFilter === "week"  ? "esta semana" :
@@ -816,45 +822,48 @@ export default function Financial() {
       const topCategories = Object.entries(categoryTotals)
         .sort((a, b) => b[1] - a[1])
         .slice(0, 3)
-        .map(([cat, amount]) => ({
-          label: CATEGORY_LABELS[cat] || cat,
-          amount,
-        }));
+        .map(([cat, amount]) => ({ label: CATEGORY_LABELS[cat] || cat, amount }));
 
-      const avgTicket = filteredSales.length > 0
-        ? totalRevenue / filteredSales.length
-        : 0;
+      const avgTicket = filteredSales.length > 0 ? totalRevenue / filteredSales.length : 0;
 
-      const paymentBreakdown = paymentMethodBreakdown.map(p => ({
-        method: p.label,
-        total: p.total,
-      }));
+      const prompt = `Eres el asistente financiero de SmartFixOS, un sistema para talleres de reparación.
+Analiza los siguientes datos y dame un resumen ejecutivo en ESPAÑOL, directo y útil para el dueño del negocio.
 
-      const FUNCTION_URL = import.meta.env.VITE_FUNCTION_URL || import.meta.env.VITE_API_URL || "http://localhost:8686";
-      const res = await fetch(`${FUNCTION_URL}/ai/gemini-summary`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          totalIncome: totalRevenue,
-          totalExpenses,
-          netProfit,
-          period: periodLabel,
-          salesCount: filteredSales.length,
-          topCategories,
-          paymentBreakdown,
-          avgTicket,
-        }),
-      });
+PERÍODO: ${periodLabel}
+- Ingresos: $${totalRevenue.toFixed(2)}
+- Gastos: $${totalExpenses.toFixed(2)}
+- Ganancia neta: $${netProfit.toFixed(2)}
+- Ventas/cobros: ${filteredSales.length}
+- Ticket promedio: $${avgTicket.toFixed(2)}
+${topCategories.length > 0 ? `- Top gastos: ${topCategories.map(c => `${c.label} $${c.amount.toFixed(0)}`).join(", ")}` : ""}
+${paymentMethodBreakdown.length > 0 ? `- Métodos de pago: ${paymentMethodBreakdown.map(p => `${p.label} $${p.total.toFixed(0)}`).join(", ")}` : ""}
+
+Responde con: 1) resumen de 2 oraciones, 2) un punto positivo, 3) una recomendación. Máximo 100 palabras. Usa emojis con moderación.`;
+
+      const res = await fetch(
+        `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_KEY}`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            contents: [{ parts: [{ text: prompt }] }],
+            generationConfig: { temperature: 0.4, maxOutputTokens: 300 },
+          }),
+        }
+      );
 
       const data = await res.json();
-      if (data.summary) {
-        setAiSummary(data.summary);
+      const text = data?.candidates?.[0]?.content?.parts?.[0]?.text;
+
+      if (text) {
+        setAiSummary(text);
       } else {
-        setAiSummary("No se pudo generar el resumen. Intenta de nuevo.");
+        const errMsg = data?.error?.message || "Respuesta inesperada de Gemini";
+        setAiSummary(`⚠️ ${errMsg}`);
       }
     } catch (err) {
       console.error("AI summary error:", err);
-      setAiSummary("Error al conectar con el asistente IA. Verifica que el servidor de funciones esté corriendo.");
+      setAiSummary("⚠️ Error de conexión con Gemini. Revisa tu conexión a internet.");
     } finally {
       setAiLoading(false);
     }
