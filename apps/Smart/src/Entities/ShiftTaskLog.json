@@ -1,0 +1,47 @@
+{
+  "name": "ShiftTaskLog",
+  "type": "object",
+  "description": "Registro de completación de tareas de turno por empleado",
+  "properties": {
+    "task_id": {
+      "type": "string",
+      "description": "ID de la ShiftTask completada"
+    },
+    "task_title": {
+      "type": "string",
+      "description": "Título de la tarea (snapshot al momento de completar)"
+    },
+    "task_type": {
+      "type": "string",
+      "enum": ["opening", "closing"],
+      "description": "Tipo de turno"
+    },
+    "employee_id": {
+      "type": "string",
+      "description": "ID del empleado que completó la tarea"
+    },
+    "employee_name": {
+      "type": "string",
+      "description": "Nombre del empleado (snapshot)"
+    },
+    "shift_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Fecha del turno en formato YYYY-MM-DD"
+    },
+    "session_started_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Hora de inicio de sesión del empleado ese día"
+    },
+    "completed_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Hora exacta en que se marcó la tarea como completada"
+    },
+    "tenant_id": {
+      "type": "string"
+    }
+  },
+  "required": ["task_id", "employee_id", "shift_date"]
+}

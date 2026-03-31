@@ -1,0 +1,48 @@
+{
+  "name": "ShiftTask",
+  "type": "object",
+  "description": "Tareas de apertura y cierre de turno por empleado o rol",
+  "properties": {
+    "title": {
+      "type": "string",
+      "description": "Nombre de la tarea"
+    },
+    "description": {
+      "type": "string",
+      "description": "Descripción adicional de la tarea"
+    },
+    "type": {
+      "type": "string",
+      "enum": ["opening", "closing"],
+      "description": "Tipo: apertura o cierre de turno"
+    },
+    "priority": {
+      "type": "string",
+      "enum": ["normal", "urgent"],
+      "default": "normal",
+      "description": "Prioridad de la tarea"
+    },
+    "assigned_to_employee_id": {
+      "type": "string",
+      "description": "ID del empleado específico al que aplica (vacío = aplica por rol o a todos)"
+    },
+    "assigned_to_role": {
+      "type": "string",
+      "description": "Rol al que aplica: admin, manager, technician, cashier (vacío = todos)"
+    },
+    "active": {
+      "type": "boolean",
+      "default": true,
+      "description": "Si la tarea está activa"
+    },
+    "sort_order": {
+      "type": "integer",
+      "default": 0,
+      "description": "Orden de visualización"
+    },
+    "tenant_id": {
+      "type": "string"
+    }
+  },
+  "required": ["title", "type"]
+}

@@ -62,6 +62,8 @@ import CommunicationHistory from "@/Entities/CommunicationHistory.json";
 import CustomerSegment from "@/Entities/CustomerSegment.json";
 import EmailTemplate from "@/Entities/EmailTemplate.json";
 import AppUpdate from "@/Entities/AppUpdate.json";
+import ShiftTask from "@/Entities/ShiftTask.json";
+import ShiftTaskLog from "@/Entities/ShiftTaskLog.json";
 
 export const entitySchemas = {
   Customer,
@@ -128,6 +130,8 @@ export const entitySchemas = {
   CustomerSegment,
   EmailTemplate,
   AppUpdate,
+  ShiftTask,
+  ShiftTaskLog,
 };
 
 export default entitySchemas;

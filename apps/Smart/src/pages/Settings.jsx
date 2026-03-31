@@ -25,6 +25,7 @@ import DeviceCatalogManager from "@/components/settings/DeviceCatalogManager";
 import { WarrantySalesModal, WarrantyRepairsModal } from "@/components/settings/WarrantyConfigModals";
 import EmailTemplatesTab from "@/components/settings/tabs/EmailTemplatesTab";
 import POSReceiptTab from "@/components/settings/tabs/POSReceiptTab";
+import ShiftTasksManager from "@/components/settings/ShiftTasksManager";
 import { useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/components/utils/helpers";
 
@@ -839,6 +840,13 @@ export default function SettingsPage() {
           isNavigation: true,
           navigateTo: "Financial"
         },
+        {
+          id: "shift_tasks",
+          icon: ClipboardList,
+          title: "Tareas de Turno",
+          description: "Tareas de apertura y cierre por empleado",
+          color: "from-amber-500 to-orange-600",
+        },
         // Seguridad y Sesión — biometría + timeout, visible para TODOS
         {
           id: "biometric",
@@ -1347,6 +1355,13 @@ export default function SettingsPage() {
 
           {/* POS & RECIBO */}
           {activeSection === "pos_receipt" && <POSReceiptTab />}
+
+          {/* TAREAS DE TURNO */}
+          {activeSection === "shift_tasks" && (
+            <div className="space-y-6">
+              <ShiftTasksManager />
+            </div>
+          )}
 
           {/* SEGURIDAD Y SESIÓN — biometría + timeout por usuario */}
           {activeSection === "biometric" && (
