@@ -3857,7 +3857,7 @@ export default function WorkOrderWizard({ open, onClose, onSuccess, preloadedCus
                 <Button
                   onClick={onClose}
                   variant="outline"
-                  className="flex-1 border-white/10 bg-white/[0.04] text-white/50 hover:bg-white/10 h-11 rounded-[16px] font-black uppercase text-[11px] tracking-widest active:scale-95 transition-all"
+                  className="flex-1 border-red-500/30 bg-red-500/10 text-red-400 hover:bg-red-500/20 h-11 rounded-[16px] font-black uppercase text-[11px] tracking-widest active:scale-95 transition-all"
                   disabled={loading}
                 >
                   Cancelar
@@ -3866,7 +3866,7 @@ export default function WorkOrderWizard({ open, onClose, onSuccess, preloadedCus
                   <Button
                     onClick={() => setMobileStep(s => Math.max(0, s - 1))}
                     variant="outline"
-                    className="flex-1 border-white/10 bg-white/[0.04] text-white/70 hover:bg-white/10 h-11 rounded-[16px] font-black uppercase text-[11px] tracking-widest active:scale-95 transition-all"
+                    className="flex-1 border-white/15 bg-white/[0.07] text-white/80 hover:bg-white/[0.12] h-11 rounded-[16px] font-black uppercase text-[11px] tracking-widest active:scale-95 transition-all"
                     disabled={loading}
                   >
                     <ChevronLeft className="w-4 h-4 mr-1" />

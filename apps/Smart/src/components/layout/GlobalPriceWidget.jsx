@@ -17,12 +17,23 @@ export default function GlobalPriceWidget() {
   const [partsPrice, setPartsPrice] = useState("");
   const [laborPrice, setLaborPrice] = useState("");
   const [includeTax, setIncludeTax] = useState(true);
+  const [enabled, setEnabled] = useState(() => localStorage.getItem("smartfix_show_price_widget") !== "false");
 
   useEffect(() => {
     const handleOpen = () => setOpen(true);
     window.addEventListener("open-global-price-widget", handleOpen);
-    return () => window.removeEventListener("open-global-price-widget", handleOpen);
+    const handleToggle = (e) => {
+      setEnabled(e.detail?.enabled ?? true);
+      if (!e.detail?.enabled) setOpen(false);
+    };
+    window.addEventListener("smartfix:price-widget-toggle", handleToggle);
+    return () => {
+      window.removeEventListener("open-global-price-widget", handleOpen);
+      window.removeEventListener("smartfix:price-widget-toggle", handleToggle);
+    };
   }, []);
+
+  if (!enabled) return null;
 
   const totals = useMemo(() => {
     const parts = toMoneyNumber(partsPrice);

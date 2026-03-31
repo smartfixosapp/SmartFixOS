@@ -16,7 +16,7 @@ import {
   Smartphone, FileText, CreditCard, Wallet, UserCircle, Plus, Edit2, Trash2,
   X, Eye, EyeOff, Wrench, CheckSquare, Camera, Key, Lock, Search,
   Fingerprint, ShieldCheck, ShieldAlert, History, Download, AlertCircle,
-  BarChart3, ExternalLink, ChevronDown, Upload, MessageSquarePlus
+  BarChart3, ExternalLink, ChevronDown, Upload, MessageSquarePlus, Calculator
 } from "lucide-react";
 import { useI18n } from "@/components/utils/i18n";
 import ImportExportTab from "@/components/settings/ImportExportTab";
@@ -36,6 +36,7 @@ export default function SettingsPage() {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [activeSection, setActiveSection]   = useState(null);
+  const [showPriceWidget, setShowPriceWidget] = useState(() => localStorage.getItem("smartfix_show_price_widget") !== "false");
   const [showFeedback,  setShowFeedback]    = useState(false);
 
   // ── Sesión del usuario actual ──────────────────────────────────────────
@@ -847,6 +848,14 @@ export default function SettingsPage() {
           description: "Tareas de apertura y cierre por empleado",
           color: "from-amber-500 to-orange-600",
         },
+        {
+          id: "calculator_widget",
+          icon: Calculator,
+          title: "Calculadora de Precio",
+          description: "Widget flotante en todas las pantallas",
+          color: "from-cyan-500 to-emerald-600",
+          isToggle: true,
+        },
         // Seguridad y Sesión — biometría + timeout, visible para TODOS
         {
           id: "biometric",
@@ -1560,11 +1569,22 @@ export default function SettingsPage() {
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                 {group.sections.map(section => {
                   const Icon = section.icon;
+                  const isOn = section.isToggle
+                    ? (section.id === "calculator_widget" ? showPriceWidget : true)
+                    : null;
+
                   return (
                     <button
                       key={section.id}
                       onClick={() => {
-                        if (section.isNavigation) {
+                        if (section.isToggle) {
+                          if (section.id === "calculator_widget") {
+                            const next = !showPriceWidget;
+                            setShowPriceWidget(next);
+                            localStorage.setItem("smartfix_show_price_widget", String(next));
+                            window.dispatchEvent(new CustomEvent("smartfix:price-widget-toggle", { detail: { enabled: next } }));
+                          }
+                        } else if (section.isNavigation) {
                           navigate(createPageUrl(section.navigateTo));
                         } else {
                           setActiveSection(section.id);
@@ -1579,7 +1599,13 @@ export default function SettingsPage() {
                         <p className="text-white font-bold text-sm leading-tight">{section.title}</p>
                         <p className="text-white/40 text-xs mt-0.5 truncate">{section.description}</p>
                       </div>
-                      <ChevronRight className="w-4 h-4 text-white/20 group-hover:text-white/50 flex-shrink-0 transition-colors" />
+                      {section.isToggle ? (
+                        <div className={`relative w-11 h-6 rounded-full transition-colors duration-300 flex-shrink-0 ${isOn ? "bg-cyan-500" : "bg-white/10"}`}>
+                          <div className={`absolute top-0.5 w-5 h-5 rounded-full bg-white shadow transition-transform duration-300 ${isOn ? "translate-x-5" : "translate-x-0.5"}`} />
+                        </div>
+                      ) : (
+                        <ChevronRight className="w-4 h-4 text-white/20 group-hover:text-white/50 flex-shrink-0 transition-colors" />
+                      )}
                     </button>
                   );
                 })}
