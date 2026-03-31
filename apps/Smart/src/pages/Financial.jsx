@@ -802,9 +802,9 @@ export default function Financial() {
     setAiLoading(true);
     setAiSummary("");
     try {
-      const GEMINI_KEY = import.meta.env.VITE_GEMINI_API_KEY;
-      if (!GEMINI_KEY) {
-        setAiSummary("⚠️ VITE_GEMINI_API_KEY no está configurada en el .env");
+      const GROQ_KEY = import.meta.env.VITE_GROQ_API_KEY;
+      if (!GROQ_KEY) {
+        setAiSummary("⚠️ VITE_GROQ_API_KEY no está configurada en Vercel → Settings → Environment Variables");
         return;
       }
 
@@ -840,25 +840,27 @@ ${paymentMethodBreakdown.length > 0 ? `- Métodos de pago: ${paymentMethodBreakd
 
 Responde con: 1) resumen de 2 oraciones, 2) un punto positivo, 3) una recomendación. Máximo 100 palabras. Usa emojis con moderación.`;
 
-      const res = await fetch(
-        `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_KEY}`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            contents: [{ parts: [{ text: prompt }] }],
-            generationConfig: { temperature: 0.4, maxOutputTokens: 300 },
-          }),
-        }
-      );
+      const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${GROQ_KEY}`,
+        },
+        body: JSON.stringify({
+          model: "llama-3.3-70b-versatile",
+          messages: [{ role: "user", content: prompt }],
+          temperature: 0.4,
+          max_tokens: 300,
+        }),
+      });
 
       const data = await res.json();
-      const text = data?.candidates?.[0]?.content?.parts?.[0]?.text;
+      const text = data?.choices?.[0]?.message?.content;
 
       if (text) {
         setAiSummary(text);
       } else {
-        const errMsg = data?.error?.message || "Respuesta inesperada de Gemini";
+        const errMsg = data?.error?.message || "Respuesta inesperada";
         setAiSummary(`⚠️ ${errMsg}`);
       }
     } catch (err) {
@@ -1092,12 +1094,12 @@ Responde con: 1) resumen de 2 oraciones, 2) un punto positivo, 3) una recomendac
                     <span className="w-1.5 h-1.5 rounded-full bg-violet-400 animate-bounce" style={{animationDelay:"150ms"}} />
                     <span className="w-1.5 h-1.5 rounded-full bg-violet-400 animate-bounce" style={{animationDelay:"300ms"}} />
                   </div>
-                  <span className="text-xs text-violet-400/60 font-bold">Gemini está analizando tus finanzas…</span>
+                  <span className="text-xs text-violet-400/60 font-bold">IA analizando tus finanzas…</span>
                 </div>
               ) : (
                 <div className="p-4 rounded-2xl bg-violet-500/5 border border-violet-500/10">
                   <p className="text-sm text-white/80 leading-relaxed whitespace-pre-line">{aiSummary}</p>
-                  <p className="text-[9px] text-white/20 font-bold uppercase tracking-widest mt-3">Generado por Gemini · SmartFixOS IA</p>
+                  <p className="text-[9px] text-white/20 font-bold uppercase tracking-widest mt-3">Generado por Llama 3.3 · SmartFixOS IA</p>
                 </div>
               )}
             </div>
