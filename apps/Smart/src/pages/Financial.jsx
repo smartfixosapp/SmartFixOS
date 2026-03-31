@@ -1059,6 +1059,56 @@ Responde con: 1) resumen de 2 oraciones, 2) un punto positivo, 3) una recomendac
           </div>
         )}
 
+        {/* ── CARD IA: Resumen Inteligente ── */}
+        <div className="bg-white/[0.03] border border-violet-500/20 rounded-[28px] overflow-hidden">
+          <div className="p-5 flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="w-9 h-9 rounded-2xl bg-violet-500/20 text-violet-400 flex items-center justify-center">
+                <Sparkles className="w-5 h-5" />
+              </div>
+              <div>
+                <h2 className="text-base font-black text-white tracking-tight">Resumen IA</h2>
+                <p className="text-[10px] text-white/30 font-bold uppercase tracking-widest">Análisis automático del período</p>
+              </div>
+            </div>
+            <button
+              onClick={fetchAiSummary}
+              disabled={aiLoading}
+              className="flex items-center gap-2 px-4 py-2 rounded-[16px] bg-violet-500/15 border border-violet-500/20 text-violet-300 text-xs font-black hover:bg-violet-500/25 transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {aiLoading ? (
+                <><RefreshCw className="w-3.5 h-3.5 animate-spin" /> Analizando…</>
+              ) : (
+                <><Sparkles className="w-3.5 h-3.5" /> Analizar</>
+              )}
+            </button>
+          </div>
+          {(aiSummary || aiLoading) && (
+            <div className="px-5 pb-5">
+              {aiLoading && !aiSummary ? (
+                <div className="flex items-center gap-3 p-4 rounded-2xl bg-violet-500/5 border border-violet-500/10">
+                  <div className="flex gap-1">
+                    <span className="w-1.5 h-1.5 rounded-full bg-violet-400 animate-bounce" style={{animationDelay:"0ms"}} />
+                    <span className="w-1.5 h-1.5 rounded-full bg-violet-400 animate-bounce" style={{animationDelay:"150ms"}} />
+                    <span className="w-1.5 h-1.5 rounded-full bg-violet-400 animate-bounce" style={{animationDelay:"300ms"}} />
+                  </div>
+                  <span className="text-xs text-violet-400/60 font-bold">Gemini está analizando tus finanzas…</span>
+                </div>
+              ) : (
+                <div className="p-4 rounded-2xl bg-violet-500/5 border border-violet-500/10">
+                  <p className="text-sm text-white/80 leading-relaxed whitespace-pre-line">{aiSummary}</p>
+                  <p className="text-[9px] text-white/20 font-bold uppercase tracking-widest mt-3">Generado por Gemini · SmartFixOS IA</p>
+                </div>
+              )}
+            </div>
+          )}
+          {!aiSummary && !aiLoading && (
+            <div className="px-5 pb-5">
+              <p className="text-xs text-white/20 font-bold">Presiona "Analizar" para que la IA te explique cómo va el negocio en este período.</p>
+            </div>
+          )}
+        </div>
+
         {/* ── CARD 1: KPIs ── */}
         <div className="grid grid-cols-3 gap-3">
           {[
@@ -1265,56 +1315,6 @@ Responde con: 1) resumen de 2 oraciones, 2) un punto positivo, 3) una recomendac
             <ErrorBoundary><OneTimeExpensesWidget /></ErrorBoundary>
             <ErrorBoundary><GastosOperacionalesWidget /></ErrorBoundary>
           </div>
-        </div>
-
-        {/* ── CARD IA: Resumen Inteligente ── */}
-        <div className="bg-white/[0.03] border border-violet-500/20 rounded-[28px] overflow-hidden">
-          <div className="p-5 flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="w-9 h-9 rounded-2xl bg-violet-500/20 text-violet-400 flex items-center justify-center">
-                <Sparkles className="w-5 h-5" />
-              </div>
-              <div>
-                <h2 className="text-base font-black text-white tracking-tight">Resumen IA</h2>
-                <p className="text-[10px] text-white/30 font-bold uppercase tracking-widest">Análisis automático del período</p>
-              </div>
-            </div>
-            <button
-              onClick={fetchAiSummary}
-              disabled={aiLoading}
-              className="flex items-center gap-2 px-4 py-2 rounded-[16px] bg-violet-500/15 border border-violet-500/20 text-violet-300 text-xs font-black hover:bg-violet-500/25 transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {aiLoading ? (
-                <><RefreshCw className="w-3.5 h-3.5 animate-spin" /> Analizando…</>
-              ) : (
-                <><Sparkles className="w-3.5 h-3.5" /> Analizar</>
-              )}
-            </button>
-          </div>
-          {(aiSummary || aiLoading) && (
-            <div className="px-5 pb-5">
-              {aiLoading && !aiSummary ? (
-                <div className="flex items-center gap-3 p-4 rounded-2xl bg-violet-500/5 border border-violet-500/10">
-                  <div className="flex gap-1">
-                    <span className="w-1.5 h-1.5 rounded-full bg-violet-400 animate-bounce" style={{animationDelay:"0ms"}} />
-                    <span className="w-1.5 h-1.5 rounded-full bg-violet-400 animate-bounce" style={{animationDelay:"150ms"}} />
-                    <span className="w-1.5 h-1.5 rounded-full bg-violet-400 animate-bounce" style={{animationDelay:"300ms"}} />
-                  </div>
-                  <span className="text-xs text-violet-400/60 font-bold">Gemini está analizando tus finanzas…</span>
-                </div>
-              ) : (
-                <div className="p-4 rounded-2xl bg-violet-500/5 border border-violet-500/10">
-                  <p className="text-sm text-white/80 leading-relaxed whitespace-pre-line">{aiSummary}</p>
-                  <p className="text-[9px] text-white/20 font-bold uppercase tracking-widest mt-3">Generado por Gemini · SmartFixOS IA</p>
-                </div>
-              )}
-            </div>
-          )}
-          {!aiSummary && !aiLoading && (
-            <div className="px-5 pb-5">
-              <p className="text-xs text-white/20 font-bold">Presiona "Analizar" para que la IA te explique cómo va el negocio en este período.</p>
-            </div>
-          )}
         </div>
 
         {/* ── CARD 6: Informe ── */}
