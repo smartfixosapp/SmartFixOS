@@ -233,6 +233,7 @@ export default function Dashboard() {
   const [priceListSearch, setPriceListSearch] = useState("");
   const [aiDaySummary, setAiDaySummary] = useState("");
   const [aiDayLoading, setAiDayLoading] = useState(false);
+  const [showAiPopup, setShowAiPopup] = useState(false);
   // Widget extra data
   const [newCustomersCount, setNewCustomersCount] = useState(0);
   const [todayTxCount, setTodayTxCount] = useState(0);
@@ -1170,36 +1171,6 @@ Dime: qué priorizar primero, algo positivo si aplica, y una acción concreta. S
                 );
               })()}
 
-              {/* IA — Briefing del día */}
-              <div className="border border-violet-500/20 rounded-2xl overflow-hidden bg-white/[0.02]">
-                <div className="flex items-center justify-between px-4 py-3">
-                  <div className="flex items-center gap-2">
-                    <span className="text-violet-400 text-sm">✨</span>
-                    <span className="text-[10px] font-black text-white/40 uppercase tracking-widest">Resumen IA</span>
-                  </div>
-                  <button
-                    onClick={fetchDaySummary}
-                    disabled={aiDayLoading}
-                    className="text-[10px] font-black text-violet-400/70 hover:text-violet-300 transition-colors disabled:opacity-40 uppercase tracking-widest"
-                  >
-                    {aiDayLoading ? "…" : "Analizar"}
-                  </button>
-                </div>
-                {(aiDaySummary || aiDayLoading) && (
-                  <div className="px-4 pb-3">
-                    {aiDayLoading ? (
-                      <div className="flex gap-1">
-                        <span className="w-1.5 h-1.5 rounded-full bg-violet-400 animate-bounce" style={{animationDelay:"0ms"}} />
-                        <span className="w-1.5 h-1.5 rounded-full bg-violet-400 animate-bounce" style={{animationDelay:"150ms"}} />
-                        <span className="w-1.5 h-1.5 rounded-full bg-violet-400 animate-bounce" style={{animationDelay:"300ms"}} />
-                      </div>
-                    ) : (
-                      <p className="text-xs text-white/70 leading-relaxed">{aiDaySummary}</p>
-                    )}
-                  </div>
-                )}
-              </div>
-
               {/* Divider */}
               <div className="border-t border-white/[0.06]" />
 
@@ -1435,36 +1406,6 @@ Dime: qué priorizar primero, algo positivo si aplica, y una acción concreta. S
                 </div>
               );
             })()}
-
-            {/* IA — Briefing móvil */}
-            <div className="border border-violet-500/20 rounded-2xl overflow-hidden bg-white/[0.02] mx-1 shrink-0">
-              <div className="flex items-center justify-between px-4 py-2.5">
-                <div className="flex items-center gap-2">
-                  <span className="text-violet-400 text-xs">✨</span>
-                  <span className="text-[9px] font-black text-white/40 uppercase tracking-widest">Resumen IA</span>
-                </div>
-                <button
-                  onClick={fetchDaySummary}
-                  disabled={aiDayLoading}
-                  className="text-[9px] font-black text-violet-400/70 hover:text-violet-300 disabled:opacity-40 uppercase tracking-widest"
-                >
-                  {aiDayLoading ? "…" : "Analizar"}
-                </button>
-              </div>
-              {(aiDaySummary || aiDayLoading) && (
-                <div className="px-4 pb-3">
-                  {aiDayLoading ? (
-                    <div className="flex gap-1">
-                      <span className="w-1.5 h-1.5 rounded-full bg-violet-400 animate-bounce" style={{animationDelay:"0ms"}} />
-                      <span className="w-1.5 h-1.5 rounded-full bg-violet-400 animate-bounce" style={{animationDelay:"150ms"}} />
-                      <span className="w-1.5 h-1.5 rounded-full bg-violet-400 animate-bounce" style={{animationDelay:"300ms"}} />
-                    </div>
-                  ) : (
-                    <p className="text-xs text-white/70 leading-relaxed">{aiDaySummary}</p>
-                  )}
-                </div>
-              )}
-            </div>
 
             {/* Priority Feed */}
             <div className="bg-[#1C1C1E]/60 border border-white/[0.06] rounded-[28px] overflow-hidden mx-1 flex flex-col flex-1 min-h-0">
@@ -1819,6 +1760,86 @@ Dime: qué priorizar primero, algo positivo si aplica, y una acción concreta. S
           </div>
         </div>
       )}
+
+      {/* ✨ BOTÓN FLOTANTE IA */}
+      <div className="fixed bottom-6 right-5 z-50 flex flex-col items-end gap-3">
+
+        {/* Popup */}
+        {showAiPopup && (
+          <div className="w-80 bg-[#111]/95 backdrop-blur-2xl border border-violet-500/25 rounded-[24px] shadow-2xl shadow-violet-900/30 overflow-hidden">
+            {/* Header */}
+            <div className="flex items-center justify-between px-4 py-3.5 border-b border-white/[0.06]">
+              <div className="flex items-center gap-2">
+                <span className="text-violet-400 text-base">✨</span>
+                <span className="text-xs font-black text-white uppercase tracking-widest">Resumen del día</span>
+              </div>
+              <button
+                onClick={() => setShowAiPopup(false)}
+                className="w-6 h-6 rounded-full bg-white/5 hover:bg-white/10 flex items-center justify-center transition-colors"
+              >
+                <X className="w-3.5 h-3.5 text-white/40" />
+              </button>
+            </div>
+
+            {/* Body */}
+            <div className="p-4">
+              {aiDayLoading ? (
+                <div className="flex items-center gap-3">
+                  <div className="flex gap-1">
+                    <span className="w-1.5 h-1.5 rounded-full bg-violet-400 animate-bounce" style={{animationDelay:"0ms"}} />
+                    <span className="w-1.5 h-1.5 rounded-full bg-violet-400 animate-bounce" style={{animationDelay:"150ms"}} />
+                    <span className="w-1.5 h-1.5 rounded-full bg-violet-400 animate-bounce" style={{animationDelay:"300ms"}} />
+                  </div>
+                  <span className="text-xs text-violet-400/60 font-bold">Analizando el negocio…</span>
+                </div>
+              ) : aiDaySummary ? (
+                <>
+                  <p className="text-sm text-white/80 leading-relaxed">{aiDaySummary}</p>
+                  <button
+                    onClick={() => { setAiDaySummary(""); fetchDaySummary(); }}
+                    className="mt-3 text-[9px] font-black text-violet-400/40 hover:text-violet-400/70 uppercase tracking-widest transition-colors"
+                  >
+                    ↺ Actualizar
+                  </button>
+                </>
+              ) : (
+                <div className="text-center py-2">
+                  <p className="text-xs text-white/30 mb-3">La IA analiza tus órdenes, ingresos y tareas del día</p>
+                  <button
+                    onClick={fetchDaySummary}
+                    className="px-5 py-2.5 rounded-2xl bg-violet-500/20 border border-violet-500/30 text-violet-300 text-xs font-black hover:bg-violet-500/30 transition-all active:scale-95"
+                  >
+                    ✨ Analizar ahora
+                  </button>
+                </div>
+              )}
+            </div>
+            <div className="px-4 pb-3">
+              <p className="text-[9px] text-white/15 font-bold uppercase tracking-widest">Llama 3.3 · SmartFixOS IA</p>
+            </div>
+          </div>
+        )}
+
+        {/* Botón flotante */}
+        <button
+          onClick={() => {
+            setShowAiPopup(p => !p);
+            if (!showAiPopup && !aiDaySummary && !aiDayLoading) fetchDaySummary();
+          }}
+          className={`w-14 h-14 rounded-full shadow-2xl flex items-center justify-center transition-all active:scale-90 ${
+            showAiPopup
+              ? "bg-violet-600 shadow-violet-900/50 rotate-12"
+              : "bg-gradient-to-br from-violet-600 to-purple-700 shadow-violet-900/50 hover:scale-110"
+          }`}
+          style={{ boxShadow: "0 8px 32px rgba(139,92,246,0.5)" }}
+        >
+          {aiDayLoading ? (
+            <span className="text-xl animate-spin inline-block">⟳</span>
+          ) : (
+            <span className="text-xl">✨</span>
+          )}
+        </button>
+      </div>
 
       {/* ✨ ANIMACIONES ESTILO SEQUOIA */}
       <style>{`
