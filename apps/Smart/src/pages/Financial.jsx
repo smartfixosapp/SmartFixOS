@@ -18,7 +18,6 @@ import CloseDrawerDialog from "../components/cash/CloseDrawerDialog";
 import ExpenseDialog from "../components/financial/ExpenseDialog";
 import TimeTrackingModal from "../components/timetracking/TimeTrackingModal";
 import AlertasWidget from "../components/financial/AlertasWidget";
-import ReportesFinancieros from "../components/financial/ReportesFinancieros";
 import EnhancedReports from "../components/financial/EnhancedReports";
 import OneTimeExpensesWidget from "../components/financial/OneTimeExpensesWidget";
 import GastosOperacionalesWidget from "../components/financial/GastosOperacionalesWidget";
@@ -26,7 +25,6 @@ import MonthlyReportModal from "../components/financial/MonthlyReportModal";
 import { toast } from "sonner";
 import TransactionsModal from "../components/financial/TransactionsModal";
 import { useNavigate } from "react-router-dom";
-import { createPageUrl } from "@/components/utils/helpers";
 import {
   getCachedStatus,
   subscribeToCashRegister,
@@ -453,6 +451,29 @@ export default function Financial() {
   const totalExpenses = filteredExpenses.reduce((sum, e) => sum + getExpenseMagnitude(e.amount), 0);
   const netProfit = totalRevenue - totalExpenses;
 
+  // Payment method breakdown
+  const paymentMethodBreakdown = React.useMemo(() => {
+    const methods = {
+      cash:      { label: "Efectivo",  emoji: "💵", colorBar: "bg-emerald-500", colorText: "text-emerald-400", colorBg: "bg-emerald-500/10 border-emerald-500/20", total: 0, count: 0 },
+      card:      { label: "Tarjeta",   emoji: "💳", colorBar: "bg-blue-500",    colorText: "text-blue-400",    colorBg: "bg-blue-500/10 border-blue-500/20",         total: 0, count: 0 },
+      ath_movil: { label: "ATH Móvil", emoji: "📱", colorBar: "bg-purple-500",  colorText: "text-purple-400",  colorBg: "bg-purple-500/10 border-purple-500/20",     total: 0, count: 0 },
+      mixed:     { label: "Mixto",     emoji: "🔀", colorBar: "bg-amber-500",   colorText: "text-amber-400",   colorBg: "bg-amber-500/10 border-amber-500/20",       total: 0, count: 0 },
+      other:     { label: "Otro",      emoji: "🏦", colorBar: "bg-slate-500",   colorText: "text-slate-400",   colorBg: "bg-slate-500/10 border-slate-500/20",       total: 0, count: 0 },
+    };
+    const safeList = Array.isArray(filteredSales) ? filteredSales : [];
+    safeList.forEach(s => {
+      const m = s.payment_method || "other";
+      const key = methods[m] ? m : "other";
+      methods[key].total += Number(s.total || 0);
+      methods[key].count += 1;
+    });
+    const grandTotal = Object.values(methods).reduce((sum, m) => sum + m.total, 0) || 1;
+    return Object.entries(methods)
+      .map(([key, m]) => ({ key, ...m, pct: grandTotal > 0 ? ((m.total / grandTotal) * 100) : 0 }))
+      .filter(m => m.count > 0)
+      .sort((a, b) => b.total - a.total);
+  }, [filteredSales]);
+
   const todayStart = startOfDay(new Date());
   const todayEnd = endOfDay(new Date());
 
@@ -857,7 +878,7 @@ export default function Financial() {
               </div>
             </div>
             <Button
-              onClick={() => navigate(createPageUrl("UsersManagement"))}
+              onClick={() => navigate(-1)}
               className="w-14 h-14 rounded-full bg-white/5 hover:bg-white/10 border border-white/10 text-white transition-all hover:scale-110 active:scale-90"
             >
               <X className="w-6 h-6" />
@@ -1038,41 +1059,50 @@ export default function Financial() {
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full space-y-8">
           <div className="flex justify-center px-4 -mt-4">
-            <TabsList className="bg-white/5 border border-white/10 backdrop-blur-xl p-1 rounded-[22px] h-auto flex w-full max-w-[600px] gap-1 shadow-2xl">
-              <TabsTrigger 
-                value="sales" 
-                className="flex-1 rounded-[18px] px-2 sm:px-8 py-2.5 data-[state=active]:bg-gradient-to-r data-[state=active]:from-cyan-600 data-[state=active]:to-blue-600 data-[state=active]:text-white data-[state=active]:shadow-lg data-[state=active]:shadow-cyan-600/20 transition-all duration-300"
+            <TabsList className="bg-white/5 border border-white/10 backdrop-blur-xl p-1 rounded-[22px] h-auto flex w-full max-w-[720px] gap-1 shadow-2xl">
+              <TabsTrigger
+                value="sales"
+                className="flex-1 rounded-[18px] px-2 sm:px-6 py-2.5 data-[state=active]:bg-gradient-to-r data-[state=active]:from-cyan-600 data-[state=active]:to-blue-600 data-[state=active]:text-white data-[state=active]:shadow-lg data-[state=active]:shadow-cyan-600/20 transition-all duration-300"
               >
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-1.5">
                   <Receipt className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-                  <span className="font-bold text-[11px] sm:text-sm">Ventas</span>
+                  <span className="font-bold text-[10px] sm:text-sm">Ventas</span>
                 </div>
               </TabsTrigger>
-              <TabsTrigger 
-                value="allocations" 
-                className="flex-1 rounded-[18px] px-2 sm:px-8 py-2.5 data-[state=active]:bg-gradient-to-r data-[state=active]:from-cyan-600 data-[state=active]:to-blue-600 data-[state=active]:text-white data-[state=active]:shadow-lg data-[state=active]:shadow-cyan-600/20 transition-all duration-300"
+              <TabsTrigger
+                value="metodos"
+                className="flex-1 rounded-[18px] px-2 sm:px-6 py-2.5 data-[state=active]:bg-gradient-to-r data-[state=active]:from-emerald-600 data-[state=active]:to-cyan-600 data-[state=active]:text-white data-[state=active]:shadow-lg data-[state=active]:shadow-emerald-600/20 transition-all duration-300"
               >
-                <div className="flex items-center gap-2">
-                  <Target className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-                  <span className="font-bold text-[11px] sm:text-sm">Distribución</span>
-                </div>
-              </TabsTrigger>
-              <TabsTrigger 
-                value="expenses" 
-                className="flex-1 rounded-[18px] px-2 sm:px-8 py-2.5 data-[state=active]:bg-gradient-to-r data-[state=active]:from-cyan-600 data-[state=active]:to-blue-600 data-[state=active]:text-white data-[state=active]:shadow-lg data-[state=active]:shadow-cyan-600/20 transition-all duration-300"
-              >
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-1.5">
                   <CreditCard className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-                  <span className="font-bold text-[11px] sm:text-sm">Gastos</span>
+                  <span className="font-bold text-[10px] sm:text-sm">Métodos</span>
                 </div>
               </TabsTrigger>
-              <TabsTrigger 
-                value="reportes" 
-                className="flex-1 rounded-[18px] px-2 sm:px-8 py-2.5 data-[state=active]:bg-gradient-to-r data-[state=active]:from-cyan-600 data-[state=active]:to-blue-600 data-[state=active]:text-white data-[state=active]:shadow-lg data-[state=active]:shadow-cyan-600/20 transition-all duration-300"
+              <TabsTrigger
+                value="allocations"
+                className="flex-1 rounded-[18px] px-2 sm:px-6 py-2.5 data-[state=active]:bg-gradient-to-r data-[state=active]:from-cyan-600 data-[state=active]:to-blue-600 data-[state=active]:text-white data-[state=active]:shadow-lg data-[state=active]:shadow-cyan-600/20 transition-all duration-300"
               >
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-1.5">
+                  <Target className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                  <span className="font-bold text-[10px] sm:text-sm">Distribución</span>
+                </div>
+              </TabsTrigger>
+              <TabsTrigger
+                value="expenses"
+                className="flex-1 rounded-[18px] px-2 sm:px-6 py-2.5 data-[state=active]:bg-gradient-to-r data-[state=active]:from-red-600 data-[state=active]:to-rose-600 data-[state=active]:text-white data-[state=active]:shadow-lg data-[state=active]:shadow-red-600/20 transition-all duration-300"
+              >
+                <div className="flex items-center gap-1.5">
+                  <TrendingUp className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                  <span className="font-bold text-[10px] sm:text-sm">Gastos</span>
+                </div>
+              </TabsTrigger>
+              <TabsTrigger
+                value="reportes"
+                className="flex-1 rounded-[18px] px-2 sm:px-6 py-2.5 data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-600 data-[state=active]:to-indigo-600 data-[state=active]:text-white data-[state=active]:shadow-lg data-[state=active]:shadow-purple-600/20 transition-all duration-300"
+              >
+                <div className="flex items-center gap-1.5">
                   <PieChart className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-                  <span className="font-bold text-[11px] sm:text-sm">Informes</span>
+                  <span className="font-bold text-[10px] sm:text-sm">Informes</span>
                 </div>
               </TabsTrigger>
             </TabsList>
@@ -1140,6 +1170,89 @@ export default function Financial() {
                   </div>
                 )}
               </div>
+            </div>
+          </TabsContent>
+
+          {/* ─── MÉTODOS DE PAGO ─── */}
+          <TabsContent value="metodos">
+            <div className="space-y-6">
+              {/* Header */}
+              <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-[32px] p-6 sm:p-8">
+                <div className="flex items-center justify-between mb-8">
+                  <div>
+                    <h3 className="text-xl font-black text-white tracking-tight">Métodos de Pago</h3>
+                    <p className="text-xs text-white/40 uppercase tracking-widest font-bold mt-0.5">
+                      {filteredSales.length} ventas · ${totalRevenue.toFixed(2)} total
+                    </p>
+                  </div>
+                  <div className="w-12 h-12 rounded-2xl bg-emerald-500/20 border border-emerald-500/30 flex items-center justify-center">
+                    <CreditCard className="w-6 h-6 text-emerald-400" />
+                  </div>
+                </div>
+
+                {paymentMethodBreakdown.length === 0 ? (
+                  <div className="py-16 text-center">
+                    <div className="w-20 h-20 bg-white/5 rounded-full flex items-center justify-center mx-auto mb-6">
+                      <CreditCard className="w-10 h-10 text-white/20" />
+                    </div>
+                    <p className="text-white/40 font-bold">Sin ventas en este periodo</p>
+                  </div>
+                ) : (
+                  <div className="space-y-5">
+                    {paymentMethodBreakdown.map((m) => (
+                      <div key={m.key} className={`p-5 rounded-[22px] border ${m.colorBg}`}>
+                        <div className="flex items-center justify-between mb-3">
+                          <div className="flex items-center gap-3">
+                            <span className="text-2xl">{m.emoji}</span>
+                            <div>
+                              <p className="font-black text-white text-base">{m.label}</p>
+                              <p className="text-xs text-white/40 font-bold">{m.count} transacción{m.count !== 1 ? "es" : ""}</p>
+                            </div>
+                          </div>
+                          <div className="text-right">
+                            <p className={`text-2xl font-black ${m.colorText}`}>${m.total.toFixed(2)}</p>
+                            <p className="text-xs text-white/40 font-bold">{m.pct.toFixed(1)}% del total</p>
+                          </div>
+                        </div>
+                        {/* Progress bar */}
+                        <div className="w-full bg-white/5 rounded-full h-2.5 overflow-hidden">
+                          <div
+                            className={`h-full rounded-full ${m.colorBar} transition-all duration-700`}
+                            style={{ width: `${m.pct}%` }}
+                          />
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {/* Donut visual summary */}
+              {paymentMethodBreakdown.length > 0 && (
+                <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-[32px] p-6 sm:p-8">
+                  <h4 className="text-sm font-black text-white/60 uppercase tracking-widest mb-6">Resumen Visual</h4>
+                  <div className="flex flex-wrap gap-3">
+                    {paymentMethodBreakdown.map((m) => (
+                      <div key={m.key} className={`flex items-center gap-2 px-4 py-2.5 rounded-2xl border ${m.colorBg}`}>
+                        <span>{m.emoji}</span>
+                        <span className={`text-sm font-black ${m.colorText}`}>{m.pct.toFixed(0)}%</span>
+                        <span className="text-xs text-white/50 font-bold">{m.label}</span>
+                      </div>
+                    ))}
+                  </div>
+                  {/* Stacked bar */}
+                  <div className="mt-5 w-full h-4 rounded-full overflow-hidden flex">
+                    {paymentMethodBreakdown.map((m) => (
+                      <div
+                        key={m.key}
+                        className={`h-full ${m.colorBar} transition-all duration-700`}
+                        style={{ width: `${m.pct}%` }}
+                        title={`${m.label}: ${m.pct.toFixed(1)}%`}
+                      />
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
           </TabsContent>
 
@@ -1268,38 +1381,13 @@ export default function Financial() {
           </TabsContent>
 
           <TabsContent value="reportes">
-            <div className="space-y-4">
-              <div className="flex gap-2">
-                <Button
-                  size="sm"
-                  variant={reportsView === "enhanced" ? "default" : "outline"}
-                  className={reportsView === "enhanced" ? "bg-gradient-to-r from-cyan-600 to-emerald-600" : "border-cyan-500/20"}
-                  onClick={() => setReportsView("enhanced")}
-                >
-                  Reporte Detallado
-                </Button>
-                <Button
-                  size="sm"
-                  variant={reportsView === "classic" ? "default" : "outline"}
-                  className={reportsView === "classic" ? "bg-gradient-to-r from-cyan-600 to-emerald-600" : "border-cyan-500/20"}
-                  onClick={() => setReportsView("classic")}
-                >
-                  Reporte Clásico
-                </Button>
-              </div>
-
-              {reportsView === "enhanced" ? (
-                <ErrorBoundary>
-                  <EnhancedReports
-                    dateFilter={dateFilter}
-                    customStartDate={customStartDate}
-                    customEndDate={customEndDate}
-                  />
-                </ErrorBoundary>
-              ) : (
-                <ReportesFinancieros />
-              )}
-            </div>
+            <ErrorBoundary>
+              <EnhancedReports
+                dateFilter={dateFilter}
+                customStartDate={customStartDate}
+                customEndDate={customEndDate}
+              />
+            </ErrorBoundary>
           </TabsContent>
         </Tabs>
       </div>
