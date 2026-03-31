@@ -228,6 +228,8 @@ export default function Dashboard() {
   });
   const [showMoreMenu, setShowMoreMenu] = useState(false);
   const [showDailyTransactions, setShowDailyTransactions] = useState(false);
+  const [showPriceList, setShowPriceList] = useState(false);
+  const [priceListSearch, setPriceListSearch] = useState("");
   // Widget extra data
   const [newCustomersCount, setNewCustomersCount] = useState(0);
   const [todayTxCount, setTodayTxCount] = useState(0);
@@ -697,6 +699,14 @@ export default function Dashboard() {
       .slice(0, 30);
   }, [priceListItems, priceSearch]);
 
+  const priceListFiltered = React.useMemo(() => {
+    if (!priceListSearch.trim()) return priceListItems.slice(0, 40);
+    const q = priceListSearch.toLowerCase();
+    return priceListItems
+      .filter(p => p.name?.toLowerCase().includes(q) || p.sku?.toLowerCase().includes(q))
+      .slice(0, 40);
+  }, [priceListItems, priceListSearch]);
+
   // ── KPI stats computed from already-loaded orders ──────────────────────────
   const kpiStats = useMemo(() => {
     const todayStart = new Date();
@@ -1063,6 +1073,45 @@ export default function Dashboard() {
                         <p className="text-[10px] text-white/30 font-bold">{feedFilter === 'ready' ? '▾ filtrado en feed' : 'Para recoger'}</p>
                       </div>
                     </button>
+                    {/* Finance KPI card */}
+                    <button
+                      onClick={() => handleNavigate("Financial")}
+                      className="rounded-2xl border border-emerald-500/20 bg-gradient-to-br from-emerald-500/10 to-cyan-500/5 px-4 py-3 flex flex-col gap-2 transition-all active:scale-95 hover:border-emerald-500/40 text-left"
+                    >
+                      <div className="flex items-center justify-between w-full">
+                        <div className="w-9 h-9 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center shrink-0">
+                          <DollarSign className="w-4 h-4 text-emerald-400" />
+                        </div>
+                        <span className="text-[9px] font-black text-emerald-400/50 uppercase tracking-widest">Ver →</span>
+                      </div>
+                      <div className="grid grid-cols-2 gap-x-4 gap-y-0.5">
+                        <div>
+                          <p className="text-[8px] text-white/25 font-black uppercase tracking-widest">Entró hoy</p>
+                          <p className="text-base font-black text-emerald-400 leading-tight">
+                            {kpiIncome.loading ? "…" : `$${(kpiIncome.today||0).toFixed(0)}`}
+                          </p>
+                        </div>
+                        <div>
+                          <p className="text-[8px] text-white/25 font-black uppercase tracking-widest">Salió hoy</p>
+                          <p className="text-base font-black text-red-400 leading-tight">
+                            {kpiIncome.loading ? "…" : `$${(kpiIncome.todayExpenses||0).toFixed(0)}`}
+                          </p>
+                        </div>
+                      </div>
+                      {!kpiIncome.loading && (
+                        <div className="w-full h-1.5 bg-white/5 rounded-full overflow-hidden flex">
+                          {(() => {
+                            const t = Math.max(kpiIncome.today, kpiIncome.todayExpenses, 1);
+                            return (
+                              <>
+                                <div className="h-full bg-emerald-500 rounded-full" style={{width:`${Math.min(100,(kpiIncome.today/t)*100)}%`}} />
+                                <div className="h-full bg-red-500/70 rounded-full ml-0.5" style={{width:`${Math.min(100,(kpiIncome.todayExpenses/t)*100)}%`}} />
+                              </>
+                            );
+                          })()}
+                        </div>
+                      )}
+                    </button>
                   </>
                 );
               })()}
@@ -1075,13 +1124,9 @@ export default function Dashboard() {
                 <ClipboardList className="w-4 h-4 text-blue-400 shrink-0" />
                 <span className="text-[11px] font-black text-blue-400/80 uppercase tracking-tight">Nueva Orden</span>
               </button>
-              <button onClick={() => handleNavigate("POS")} className="flex-1 min-h-[44px] bg-emerald-500/10 border border-emerald-500/20 rounded-xl flex items-center gap-3 px-4 hover:bg-emerald-500/15 active:scale-95 transition-all">
-                <Wallet className="w-4 h-4 text-emerald-400 shrink-0" />
-                <span className="text-[11px] font-black text-emerald-400/80 uppercase tracking-tight">POS</span>
-              </button>
-              <button onClick={() => handleNavigate("Inventory")} className="flex-1 min-h-[44px] bg-orange-500/10 border border-orange-500/20 rounded-xl flex items-center gap-3 px-4 hover:bg-orange-500/15 active:scale-95 transition-all">
-                <Package className="w-4 h-4 text-orange-400 shrink-0" />
-                <span className="text-[11px] font-black text-orange-400/80 uppercase tracking-tight">Inventario</span>
+              <button onClick={() => { setShowPriceList(true); setPriceListSearch(""); }} className="flex-1 min-h-[44px] bg-violet-500/10 border border-violet-500/20 rounded-xl flex items-center gap-3 px-4 hover:bg-violet-500/15 active:scale-95 transition-all">
+                <Search className="w-4 h-4 text-violet-400 shrink-0" />
+                <span className="text-[11px] font-black text-violet-400/80 uppercase tracking-tight">Lista Precios</span>
               </button>
             </div>
 
@@ -1111,11 +1156,10 @@ export default function Dashboard() {
 
               {/* Feed list — scrollbar aparece automáticamente cuando overflow */}
               {/* ── Tarjetas selectoras de categoría ── */}
-              <div className="grid grid-cols-3 gap-2 mb-3 shrink-0">
+              <div className="grid grid-cols-2 gap-2 mb-3 shrink-0">
                 {[
-                  { id: 'orders', label: 'Órdenes',    icon: Wrench,        count: visibleFeedItems.length,   activeBg: 'bg-gradient-to-br from-red-500/25 to-orange-500/10 border-red-500/35 shadow-[0_0_20px_rgba(239,68,68,0.12)]',     iconActive: 'text-red-400',    numActive: 'text-red-300' },
-                  { id: 'stock',  label: 'Stock Bajo', icon: Package,       count: lowStockProducts.length,   activeBg: 'bg-gradient-to-br from-amber-500/25 to-yellow-500/10 border-amber-500/35 shadow-[0_0_20px_rgba(245,158,11,0.12)]', iconActive: 'text-amber-400',  numActive: 'text-amber-300' },
-                  { id: 'tasks',  label: 'Tareas',     icon: ClipboardList, count: pendingShiftTasks.length,  activeBg: 'bg-gradient-to-br from-indigo-500/25 to-purple-500/10 border-indigo-500/35 shadow-[0_0_20px_rgba(99,102,241,0.12)]', iconActive: 'text-indigo-400', numActive: 'text-indigo-300' },
+                  { id: 'orders', label: 'Órdenes', icon: Wrench,        count: visibleFeedItems.length,  activeBg: 'bg-gradient-to-br from-red-500/25 to-orange-500/10 border-red-500/35 shadow-[0_0_20px_rgba(239,68,68,0.12)]',     iconActive: 'text-red-400',    numActive: 'text-red-300' },
+                  { id: 'tasks',  label: 'Tareas',  icon: ClipboardList, count: pendingShiftTasks.length, activeBg: 'bg-gradient-to-br from-indigo-500/25 to-purple-500/10 border-indigo-500/35 shadow-[0_0_20px_rgba(99,102,241,0.12)]', iconActive: 'text-indigo-400', numActive: 'text-indigo-300' },
                 ].map(({ id, label, icon: Icon, count, activeBg, iconActive, numActive }) => {
                   const active = activeFeedCategory === id;
                   return (
@@ -1136,104 +1180,69 @@ export default function Dashboard() {
               <div className="flex-1 bg-white/[0.02] border border-white/[0.06] rounded-[24px] overflow-hidden flex flex-col min-h-0">
                 <div className="flex-1 overflow-y-auto">
 
-                  {/* Finance summary card */}
-                  {widgetConfig.cashStatus !== false && (
-                    <button
-                      onClick={() => handleNavigate("Financial")}
-                      className="w-full mb-3 p-4 rounded-[22px] bg-gradient-to-br from-emerald-500/10 to-cyan-500/10 border border-emerald-500/20 hover:border-emerald-500/40 text-left transition-all active:scale-[0.98] group"
-                    >
-                      <div className="flex items-center justify-between mb-3">
-                        <div className="flex items-center gap-2">
-                          <div className="w-7 h-7 rounded-xl bg-emerald-500/20 flex items-center justify-center">
-                            <DollarSign className="w-3.5 h-3.5 text-emerald-400" />
-                          </div>
-                          <span className="text-[11px] font-black text-white/60 uppercase tracking-widest">Finanzas · Hoy</span>
-                        </div>
-                        <span className="text-[10px] font-black text-emerald-400/60 group-hover:text-emerald-400 transition-colors uppercase tracking-widest">Ver todo →</span>
-                      </div>
-                      <div className="grid grid-cols-3 gap-2 mb-3">
-                        <div>
-                          <p className="text-[9px] text-white/30 font-black uppercase tracking-widest">Entró</p>
-                          <p className="text-base font-black text-emerald-400 leading-tight">
-                            {kpiIncome.loading ? "…" : `$${(kpiIncome.today || 0).toFixed(0)}`}
-                          </p>
-                        </div>
-                        <div>
-                          <p className="text-[9px] text-white/30 font-black uppercase tracking-widest">Salió</p>
-                          <p className="text-base font-black text-red-400 leading-tight">
-                            {kpiIncome.loading ? "…" : `$${(kpiIncome.todayExpenses || 0).toFixed(0)}`}
-                          </p>
-                        </div>
-                        <div>
-                          <p className="text-[9px] text-white/30 font-black uppercase tracking-widest">Neto</p>
-                          <p className={`text-base font-black leading-tight ${((kpiIncome.today || 0) - (kpiIncome.todayExpenses || 0)) >= 0 ? "text-cyan-400" : "text-red-400"}`}>
-                            {kpiIncome.loading ? "…" : `$${Math.abs((kpiIncome.today || 0) - (kpiIncome.todayExpenses || 0)).toFixed(0)}`}
-                          </p>
-                        </div>
-                      </div>
-                      {!kpiIncome.loading && (kpiIncome.today > 0 || kpiIncome.todayExpenses > 0) && (
-                        <div className="w-full h-1.5 bg-white/5 rounded-full overflow-hidden flex gap-0.5">
-                          {(() => {
-                            const total = Math.max(kpiIncome.today, kpiIncome.todayExpenses) || 1;
-                            const incomePct = Math.min(100, (kpiIncome.today / total) * 100);
-                            const expensePct = Math.min(100, (kpiIncome.todayExpenses / total) * 100);
-                            return (
-                              <>
-                                <div className="h-full bg-emerald-500 rounded-full transition-all duration-700" style={{ width: `${incomePct}%` }} />
-                                <div className="h-full bg-red-500 rounded-full transition-all duration-700" style={{ width: `${expensePct}%` }} />
-                              </>
-                            );
-                          })()}
-                        </div>
-                      )}
-                    </button>
-                  )}
-
-                  {/* ÓRDENES */}
+                  {/* ÓRDENES — agrupadas por estado */}
                   {activeFeedCategory === 'orders' && (
-                    visibleFeedItems.length === 0
+                    visibleFeedItems.length === 0 && lowStockProducts.length === 0
                       ? <div className="flex flex-col items-center justify-center py-14 h-full"><CheckCircle2 className="w-10 h-10 text-emerald-500/30 mb-3" /><p className="text-white/20 text-xs font-black uppercase tracking-widest">Sin órdenes pendientes</p></div>
-                      : visibleFeedItems.map(item => (
-                          <button key={item.id} onClick={() => item.orderId ? handleOrderSelect(item.orderId) : handleNavigate("Inventory")}
-                            className="w-full flex items-center gap-4 px-5 py-3.5 hover:bg-white/[0.04] transition-colors text-left group border-t border-white/[0.04] first:border-0">
-                            <div className={`w-1 h-8 rounded-full shrink-0 ${item.color === 'red' ? 'bg-red-500' : item.color === 'green' ? 'bg-emerald-500' : item.color === 'blue' ? 'bg-blue-500' : item.color === 'yellow' ? 'bg-yellow-500' : 'bg-orange-500'}`} />
-                            <div className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 ${item.color === 'red' ? 'bg-red-500/10 border border-red-500/20' : item.color === 'green' ? 'bg-emerald-500/10 border border-emerald-500/20' : item.color === 'blue' ? 'bg-blue-500/10 border border-blue-500/20' : item.color === 'yellow' ? 'bg-yellow-500/10 border border-yellow-500/20' : 'bg-orange-500/10 border border-orange-500/20'}`}>
-                              {item.type === 'urgent' && <AlertCircle className="w-4 h-4 text-red-400" />}
-                              {item.type === 'ready' && <PackageCheck className="w-4 h-4 text-emerald-400" />}
-                              {item.type === 'intake' && <Inbox className="w-4 h-4 text-blue-400" />}
-                              {item.type === 'parts' && <ShoppingCart className="w-4 h-4 text-orange-400" />}
-                              {item.type === 'stale' && <Search className="w-4 h-4 text-yellow-400" />}
+                      : <>
+                          {/* Group orders by type */}
+                          {[
+                            { type: 'urgent', label: '🔴 Urgentes', items: visibleFeedItems.filter(i => i.type === 'urgent') },
+                            { type: 'ready',  label: '✅ Para Recoger', items: visibleFeedItems.filter(i => i.type === 'ready') },
+                            { type: 'intake', label: '📥 En Diagnóstico', items: visibleFeedItems.filter(i => i.type === 'intake' || i.type === 'stale') },
+                            { type: 'parts',  label: '🛒 Esperando Piezas', items: visibleFeedItems.filter(i => i.type === 'parts') },
+                          ].filter(g => g.items.length > 0).map(group => (
+                            <div key={group.type}>
+                              <div className="flex items-center gap-2 px-5 pt-3 pb-1.5">
+                                <span className="text-[9px] font-black text-white/30 uppercase tracking-widest">{group.label}</span>
+                                <span className="text-[9px] font-black text-white/20">({group.items.length})</span>
+                                <div className="flex-1 h-px bg-white/[0.04]" />
+                              </div>
+                              {group.items.map(item => (
+                                <button key={item.id} onClick={() => item.orderId ? handleOrderSelect(item.orderId) : null}
+                                  className="w-full flex items-center gap-4 px-5 py-3.5 hover:bg-white/[0.04] transition-colors text-left group border-t border-white/[0.04] first:border-0">
+                                  <div className={`w-1 h-8 rounded-full shrink-0 ${item.color === 'red' ? 'bg-red-500' : item.color === 'green' ? 'bg-emerald-500' : item.color === 'blue' ? 'bg-blue-500' : item.color === 'yellow' ? 'bg-yellow-500' : 'bg-orange-500'}`} />
+                                  <div className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 ${item.color === 'red' ? 'bg-red-500/10 border border-red-500/20' : item.color === 'green' ? 'bg-emerald-500/10 border border-emerald-500/20' : item.color === 'blue' ? 'bg-blue-500/10 border border-blue-500/20' : item.color === 'yellow' ? 'bg-yellow-500/10 border border-yellow-500/20' : 'bg-orange-500/10 border border-orange-500/20'}`}>
+                                    {item.type === 'urgent' && <AlertCircle className="w-4 h-4 text-red-400" />}
+                                    {item.type === 'ready' && <PackageCheck className="w-4 h-4 text-emerald-400" />}
+                                    {(item.type === 'intake' || item.type === 'stale') && <Search className="w-4 h-4 text-yellow-400" />}
+                                    {item.type === 'parts' && <ShoppingCart className="w-4 h-4 text-orange-400" />}
+                                  </div>
+                                  <div className="flex-1 min-w-0">
+                                    <p className="text-sm font-black text-white truncate">{item.title}</p>
+                                    <p className="text-[11px] text-white/30 font-bold truncate">{item.sub}</p>
+                                  </div>
+                                  {item.number && <span className="text-[10px] font-black text-white/20 shrink-0">#{item.number?.split('-')?.pop()}</span>}
+                                  <ChevronRight className="w-4 h-4 text-white/10 group-hover:text-white/30 transition-colors shrink-0" />
+                                </button>
+                              ))}
                             </div>
-                            <div className="flex-1 min-w-0">
-                              <p className="text-sm font-black text-white truncate">{item.title}</p>
-                              <p className="text-[11px] text-white/30 font-bold truncate">{item.sub}</p>
+                          ))}
+                          {/* Stock bajo — al fondo */}
+                          {lowStockProducts.length > 0 && (
+                            <div>
+                              <div className="flex items-center gap-2 px-5 pt-3 pb-1.5">
+                                <span className="text-[9px] font-black text-amber-400/50 uppercase tracking-widest">⚠️ Stock Bajo</span>
+                                <span className="text-[9px] font-black text-white/20">({lowStockProducts.length})</span>
+                                <div className="flex-1 h-px bg-white/[0.04]" />
+                              </div>
+                              {lowStockProducts.map(p => (
+                                <button key={p.id} onClick={() => handleNavigate("Inventory")}
+                                  className="w-full flex items-center gap-4 px-5 py-3 hover:bg-white/[0.04] transition-colors text-left border-t border-white/[0.04] first:border-0">
+                                  <div className="w-1 h-8 rounded-full shrink-0 bg-amber-500" />
+                                  <div className="w-8 h-8 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center shrink-0">
+                                    <Package className="w-4 h-4 text-amber-400" />
+                                  </div>
+                                  <div className="flex-1 min-w-0">
+                                    <p className="text-sm font-black text-white truncate">{p.name}</p>
+                                    <p className="text-[11px] text-amber-400/60 font-bold">{p.stock <= 0 ? 'Agotado' : `Stock: ${p.stock}`}{p.min_stock > 0 ? ` · Mín: ${p.min_stock}` : ''}</p>
+                                  </div>
+                                  <ChevronRight className="w-4 h-4 text-white/10 group-hover:text-white/30 shrink-0" />
+                                </button>
+                              ))}
                             </div>
-                            {item.number && <span className="text-[10px] font-black text-white/20 shrink-0">#{item.number?.split('-')?.pop()}</span>}
-                            <ChevronRight className="w-4 h-4 text-white/10 group-hover:text-white/30 transition-colors shrink-0" />
-                          </button>
-                        ))
-                  )}
-
-                  {/* STOCK BAJO */}
-                  {activeFeedCategory === 'stock' && (
-                    lowStockProducts.length === 0
-                      ? <div className="flex flex-col items-center justify-center py-14 h-full"><CheckCircle2 className="w-10 h-10 text-emerald-500/30 mb-3" /><p className="text-white/20 text-xs font-black uppercase tracking-widest">Stock al día</p></div>
-                      : lowStockProducts.map(p => (
-                          <button key={p.id} onClick={() => handleNavigate("Inventory")}
-                            className="w-full flex items-center gap-4 px-5 py-3.5 hover:bg-white/[0.04] transition-colors text-left group border-t border-white/[0.04] first:border-0">
-                            <div className="w-1 h-8 rounded-full shrink-0 bg-amber-500" />
-                            <div className="w-8 h-8 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center shrink-0">
-                              <Package className="w-4 h-4 text-amber-400" />
-                            </div>
-                            <div className="flex-1 min-w-0">
-                              <p className="text-sm font-black text-white truncate">{p.name}</p>
-                              <p className="text-[11px] text-amber-400/70 font-bold">
-                                {p.stock <= 0 ? 'Agotado' : `Stock: ${p.stock}`}{p.min_stock > 0 ? ` · Mín: ${p.min_stock}` : ''}
-                              </p>
-                            </div>
-                            <ChevronRight className="w-4 h-4 text-white/10 group-hover:text-white/30 transition-colors shrink-0" />
-                          </button>
-                        ))
+                          )}
+                        </>
                   )}
 
                   {/* TAREAS */}
@@ -1289,12 +1298,7 @@ export default function Dashboard() {
                 <Wallet className="w-5 h-5" strokeWidth={2.5} />
                 <span className="text-[10px] font-black uppercase tracking-widest">{drawerOpen ? "Caja Abierta" : "Caja Cerrada"}</span>
               </button>
-              <div className="flex items-center gap-1.5 pr-1">
-                <PunchButton userId={session?.userId} userName={session?.userName} variant="mobile-icon" onPunchStatusChange={(status) => { if (status) showToast("👋 ¡Hola!", "Turno iniciado"); else showToast("👋 ¡Adiós!", "Turno finalizado"); }} />
-                <button onClick={handleCashButtonClick} className={cn("w-12 h-12 rounded-2xl border flex items-center justify-center active:scale-90 transition-all", drawerOpen ? "bg-emerald-500/10 border-emerald-500/20 text-emerald-400" : "bg-red-500/10 border-red-500/20 text-red-400")} title={drawerOpen ? "Cerrar Caja" : "Abrir Caja"}>
-                  <Wallet className="w-5 h-5" strokeWidth={2.5} />
-                </button>
-              </div>
+              <PunchButton userId={session?.userId} userName={session?.userName} variant="mobile-icon" onPunchStatusChange={(status) => { if (status) showToast("👋 ¡Hola!", "Turno iniciado"); else showToast("👋 ¡Adiós!", "Turno finalizado"); }} />
             </div>
 
             {/* KPI chips — 3 compact */}
@@ -1303,19 +1307,14 @@ export default function Dashboard() {
               const todayProfit = kpiIncome.today - kpiIncome.todayExpenses;
               const goalPct = kpiDailyGoal > 0 ? Math.min(100, Math.round((kpiIncome.today / kpiDailyGoal) * 100)) : 0;
               return (
-                <div className="grid grid-cols-3 gap-2 px-1 shrink-0">
-                  <div className="rounded-2xl border border-emerald-500/20 bg-emerald-500/10 px-3 py-3 flex flex-col gap-1">
-                    <DollarSign className="w-4 h-4 text-emerald-400" />
-                    <p className="text-lg font-black text-emerald-400 leading-tight">{kpiIncome.loading ? "…" : fmt(kpiIncome.today)}</p>
-                    <p className="text-[9px] text-white/30 font-bold leading-tight">Ingresos hoy</p>
-                  </div>
+                <div className="grid grid-cols-2 gap-2 px-1 shrink-0">
                   <button
                     onClick={() => setFeedFilter(f => f === 'urgent' ? null : 'urgent')}
                     className={cn("rounded-2xl border px-3 py-3 flex flex-col gap-1 transition-all active:scale-95", feedFilter === 'urgent' ? "border-indigo-400/50 bg-indigo-500/20 shadow-[0_0_16px_rgba(99,102,241,0.2)]" : "border-indigo-500/20 bg-indigo-500/10")}
                   >
                     <Wrench className="w-4 h-4 text-indigo-400" />
                     <p className="text-lg font-black text-indigo-400 leading-tight">{kpiStats.active}</p>
-                    <p className="text-[9px] text-white/30 font-bold leading-tight">{feedFilter === 'urgent' ? 'filtrado ▾' : 'Activas'}</p>
+                    <p className="text-[9px] text-white/30 font-bold leading-tight">{feedFilter === 'urgent' ? 'filtrado ▾' : 'Órdenes Activas'}</p>
                   </button>
                   <button
                     onClick={() => setFeedFilter(f => f === 'ready' ? null : 'ready')}
@@ -1324,6 +1323,33 @@ export default function Dashboard() {
                     <PackageCheck className="w-4 h-4 text-cyan-400" />
                     <p className="text-lg font-black text-cyan-400 leading-tight">{kpiStats.readyToPickup}</p>
                     <p className="text-[9px] text-white/30 font-bold leading-tight">{feedFilter === 'ready' ? 'filtrado ▾' : 'Para recoger'}</p>
+                  </button>
+                  {/* Finance chip */}
+                  <button
+                    onClick={() => handleNavigate("Financial")}
+                    className="col-span-2 rounded-2xl border border-emerald-500/20 bg-gradient-to-r from-emerald-500/10 to-cyan-500/5 px-3 py-3 flex items-center gap-3 transition-all active:scale-95"
+                  >
+                    <DollarSign className="w-4 h-4 text-emerald-400 shrink-0" />
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-3">
+                        <span className="text-sm font-black text-emerald-400">{kpiIncome.loading ? "…" : `$${(kpiIncome.today||0).toFixed(0)}`}</span>
+                        <span className="text-[9px] text-white/20 font-bold">entró</span>
+                        <span className="text-sm font-black text-red-400">{kpiIncome.loading ? "…" : `$${(kpiIncome.todayExpenses||0).toFixed(0)}`}</span>
+                        <span className="text-[9px] text-white/20 font-bold">salió</span>
+                      </div>
+                      {!kpiIncome.loading && (
+                        <div className="w-full h-1 bg-white/5 rounded-full overflow-hidden flex mt-1">
+                          {(() => {
+                            const t = Math.max(kpiIncome.today, kpiIncome.todayExpenses, 1);
+                            return (<>
+                              <div className="h-full bg-emerald-500 rounded-full" style={{width:`${Math.min(100,(kpiIncome.today/t)*100)}%`}} />
+                              <div className="h-full bg-red-500/70 rounded-full ml-0.5" style={{width:`${Math.min(100,(kpiIncome.todayExpenses/t)*100)}%`}} />
+                            </>);
+                          })()}
+                        </div>
+                      )}
+                    </div>
+                    <span className="text-[9px] font-black text-emerald-400/40 shrink-0">→</span>
                   </button>
                 </div>
               );
@@ -1351,77 +1377,28 @@ export default function Dashboard() {
               </div>
               <div className="flex-1 overflow-y-auto">
 
-                {/* Finance summary card */}
-                {widgetConfig.cashStatus !== false && (
-                  <button
-                    onClick={() => handleNavigate("Financial")}
-                    className="w-full mb-3 p-4 rounded-[22px] bg-gradient-to-br from-emerald-500/10 to-cyan-500/10 border border-emerald-500/20 hover:border-emerald-500/40 text-left transition-all active:scale-[0.98] group"
-                  >
-                    <div className="flex items-center justify-between mb-3">
-                      <div className="flex items-center gap-2">
-                        <div className="w-7 h-7 rounded-xl bg-emerald-500/20 flex items-center justify-center">
-                          <DollarSign className="w-3.5 h-3.5 text-emerald-400" />
-                        </div>
-                        <span className="text-[11px] font-black text-white/60 uppercase tracking-widest">Finanzas · Hoy</span>
-                      </div>
-                      <span className="text-[10px] font-black text-emerald-400/60 group-hover:text-emerald-400 transition-colors uppercase tracking-widest">Ver todo →</span>
-                    </div>
-                    <div className="grid grid-cols-3 gap-2 mb-3">
-                      <div>
-                        <p className="text-[9px] text-white/30 font-black uppercase tracking-widest">Entró</p>
-                        <p className="text-base font-black text-emerald-400 leading-tight">
-                          {kpiIncome.loading ? "…" : `$${(kpiIncome.today || 0).toFixed(0)}`}
-                        </p>
-                      </div>
-                      <div>
-                        <p className="text-[9px] text-white/30 font-black uppercase tracking-widest">Salió</p>
-                        <p className="text-base font-black text-red-400 leading-tight">
-                          {kpiIncome.loading ? "…" : `$${(kpiIncome.todayExpenses || 0).toFixed(0)}`}
-                        </p>
-                      </div>
-                      <div>
-                        <p className="text-[9px] text-white/30 font-black uppercase tracking-widest">Neto</p>
-                        <p className={`text-base font-black leading-tight ${((kpiIncome.today || 0) - (kpiIncome.todayExpenses || 0)) >= 0 ? "text-cyan-400" : "text-red-400"}`}>
-                          {kpiIncome.loading ? "…" : `$${Math.abs((kpiIncome.today || 0) - (kpiIncome.todayExpenses || 0)).toFixed(0)}`}
-                        </p>
-                      </div>
-                    </div>
-                    {!kpiIncome.loading && (kpiIncome.today > 0 || kpiIncome.todayExpenses > 0) && (
-                      <div className="w-full h-1.5 bg-white/5 rounded-full overflow-hidden flex gap-0.5">
-                        {(() => {
-                          const total = Math.max(kpiIncome.today, kpiIncome.todayExpenses) || 1;
-                          const incomePct = Math.min(100, (kpiIncome.today / total) * 100);
-                          const expensePct = Math.min(100, (kpiIncome.todayExpenses / total) * 100);
-                          return (
-                            <>
-                              <div className="h-full bg-emerald-500 rounded-full transition-all duration-700" style={{ width: `${incomePct}%` }} />
-                              <div className="h-full bg-red-500 rounded-full transition-all duration-700" style={{ width: `${expensePct}%` }} />
-                            </>
-                          );
-                        })()}
-                      </div>
-                    )}
-                  </button>
-                )}
-
-                {/* ── ÓRDENES ─── */}
-                {visibleFeedItems.length > 0 && (
-                  <>
+                {/* Órdenes agrupadas por estado */}
+                {[
+                  { type: 'urgent', label: '🔴 Urgentes', items: visibleFeedItems.filter(i => i.type === 'urgent') },
+                  { type: 'ready',  label: '✅ Para Recoger', items: visibleFeedItems.filter(i => i.type === 'ready') },
+                  { type: 'intake', label: '📥 Diagnóstico', items: visibleFeedItems.filter(i => i.type === 'intake' || i.type === 'stale') },
+                  { type: 'parts',  label: '🛒 Piezas', items: visibleFeedItems.filter(i => i.type === 'parts') },
+                ].filter(g => g.items.length > 0).map(group => (
+                  <div key={group.type}>
                     <div className="flex items-center gap-2 px-4 pt-2.5 pb-1">
-                      <span className="text-[8px] font-black text-white/20 uppercase tracking-[0.18em]">Órdenes</span>
+                      <span className="text-[8px] font-black text-white/20 uppercase tracking-[0.18em]">{group.label}</span>
                       <div className="flex-1 h-px bg-white/[0.05]" />
-                      <span className="text-[8px] font-black text-white/20">{visibleFeedItems.length}</span>
+                      <span className="text-[8px] font-black text-white/20">{group.items.length}</span>
                     </div>
-                    {visibleFeedItems.map(item => (
-                      <button key={item.id} onClick={() => item.orderId ? handleOrderSelect(item.orderId) : handleNavigate("Inventory")}
+                    {group.items.map(item => (
+                      <button key={item.id} onClick={() => item.orderId ? handleOrderSelect(item.orderId) : null}
                         className="w-full flex items-center gap-3 px-4 py-2.5 active:bg-white/[0.04] transition-colors text-left border-t border-white/[0.04] first:border-0">
                         <div className={`w-1 h-6 rounded-full shrink-0 ${item.color === 'red' ? 'bg-red-500' : item.color === 'green' ? 'bg-emerald-500' : item.color === 'blue' ? 'bg-blue-500' : item.color === 'yellow' ? 'bg-yellow-500' : 'bg-orange-500'}`} />
                         <div className={`w-7 h-7 rounded-xl flex items-center justify-center shrink-0 ${item.color === 'red' ? 'bg-red-500/10' : item.color === 'green' ? 'bg-emerald-500/10' : item.color === 'blue' ? 'bg-blue-500/10' : item.color === 'yellow' ? 'bg-yellow-500/10' : 'bg-orange-500/10'}`}>
                           {item.type === 'urgent' && <AlertCircle className="w-3.5 h-3.5 text-red-400" />}
                           {item.type === 'ready' && <PackageCheck className="w-3.5 h-3.5 text-emerald-400" />}
-                          {item.type === 'intake' && <Inbox className="w-3.5 h-3.5 text-blue-400" />}
+                          {(item.type === 'intake' || item.type === 'stale') && <Search className="w-3.5 h-3.5 text-yellow-400" />}
                           {item.type === 'parts' && <ShoppingCart className="w-3.5 h-3.5 text-orange-400" />}
-                          {item.type === 'stale' && <Search className="w-3.5 h-3.5 text-yellow-400" />}
                         </div>
                         <div className="flex-1 min-w-0">
                           <p className="text-xs font-black text-white truncate">{item.title}</p>
@@ -1430,14 +1407,13 @@ export default function Dashboard() {
                         <ChevronRight className="w-3.5 h-3.5 text-white/15 shrink-0" />
                       </button>
                     ))}
-                  </>
-                )}
-
-                {/* ── STOCK BAJO ─── */}
+                  </div>
+                ))}
+                {/* Stock bajo al fondo */}
                 {lowStockProducts.length > 0 && (
-                  <>
-                    <div className="flex items-center gap-2 px-4 pt-2.5 pb-1 mt-1">
-                      <span className="text-[8px] font-black text-white/20 uppercase tracking-[0.18em]">Stock Bajo</span>
+                  <div>
+                    <div className="flex items-center gap-2 px-4 pt-2.5 pb-1">
+                      <span className="text-[8px] font-black text-amber-400/50 uppercase tracking-[0.18em]">⚠️ Stock Bajo</span>
                       <div className="flex-1 h-px bg-white/[0.05]" />
                       <span className="text-[8px] font-black text-white/20">{lowStockProducts.length}</span>
                     </div>
@@ -1450,12 +1426,12 @@ export default function Dashboard() {
                         </div>
                         <div className="flex-1 min-w-0">
                           <p className="text-xs font-black text-white truncate">{p.name}</p>
-                          <p className="text-[10px] text-amber-400/70 font-bold">{p.stock <= 0 ? 'Agotado' : `Stock: ${p.stock}`}</p>
+                          <p className="text-[10px] text-amber-400/60 font-bold">{p.stock <= 0 ? 'Agotado' : `Stock: ${p.stock}`}</p>
                         </div>
                         <ChevronRight className="w-3.5 h-3.5 text-white/15 shrink-0" />
                       </button>
                     ))}
-                  </>
+                  </div>
                 )}
 
                 {/* ── TAREAS ─── */}
@@ -1494,19 +1470,15 @@ export default function Dashboard() {
               </div>
             </div>
 
-            {/* Quick Nav — 4 buttons */}
-            <div className="grid grid-cols-4 gap-2 px-1 pb-2 shrink-0">
+            {/* Quick Nav */}
+            <div className="grid grid-cols-2 gap-2 px-1 pb-2 shrink-0">
               <button onClick={() => setShowWorkOrderWizard(true)} className="flex flex-col items-center justify-center gap-1.5 py-4 bg-blue-500/10 border border-blue-500/20 rounded-[20px] active:scale-95 transition-all">
                 <ClipboardList className="w-5 h-5 text-blue-400" />
-                <span className="text-[9px] font-black text-blue-400/80 uppercase tracking-tight">Nueva</span>
+                <span className="text-[9px] font-black text-blue-400/80 uppercase tracking-tight">Nueva Orden</span>
               </button>
-              <button onClick={() => handleNavigate("POS")} className="flex flex-col items-center justify-center gap-1.5 py-4 bg-emerald-500/10 border border-emerald-500/20 rounded-[20px] active:scale-95 transition-all">
-                <Wallet className="w-5 h-5 text-emerald-400" />
-                <span className="text-[9px] font-black text-emerald-400/80 uppercase tracking-tight">POS</span>
-              </button>
-              <button onClick={() => handleNavigate("Inventory")} className="flex flex-col items-center justify-center gap-1.5 py-4 bg-orange-500/10 border border-orange-500/20 rounded-[20px] active:scale-95 transition-all">
-                <Package className="w-5 h-5 text-orange-400" />
-                <span className="text-[9px] font-black text-orange-400/80 uppercase tracking-tight">Inventario</span>
+              <button onClick={() => { setShowPriceList(true); setPriceListSearch(""); }} className="flex flex-col items-center justify-center gap-1.5 py-4 bg-violet-500/10 border border-violet-500/20 rounded-[20px] active:scale-95 transition-all">
+                <Search className="w-5 h-5 text-violet-400" />
+                <span className="text-[9px] font-black text-violet-400/80 uppercase tracking-tight">Lista Precios</span>
               </button>
             </div>
           </div>
@@ -1702,6 +1674,63 @@ export default function Dashboard() {
           onClose={() => setShowDailyTransactions(false)}
           currentDrawer={currentDrawer}
         />
+      )}
+
+      {/* Price List Modal */}
+      {showPriceList && (
+        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-end sm:items-center justify-center p-4" onClick={() => setShowPriceList(false)}>
+          <div className="w-full max-w-lg bg-[#111] border border-white/10 rounded-[32px] overflow-hidden shadow-2xl" onClick={e => e.stopPropagation()}>
+            <div className="p-5 border-b border-white/5 flex items-center gap-3">
+              <div className="w-10 h-10 rounded-2xl bg-violet-500/20 border border-violet-500/30 flex items-center justify-center">
+                <Search className="w-5 h-5 text-violet-400" />
+              </div>
+              <div className="flex-1">
+                <h3 className="text-base font-black text-white">Lista de Precios</h3>
+                <p className="text-[10px] text-white/30 font-bold uppercase tracking-widest">{priceListItems.length} productos</p>
+              </div>
+              <button onClick={() => setShowPriceList(false)} className="w-8 h-8 rounded-xl bg-white/5 flex items-center justify-center text-white/30 hover:text-white transition-colors">
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+            <div className="p-4">
+              <input
+                autoFocus
+                type="text"
+                placeholder="Buscar producto o servicio..."
+                value={priceListSearch}
+                onChange={e => setPriceListSearch(e.target.value)}
+                className="w-full bg-white/5 border border-white/10 rounded-2xl px-4 h-12 text-white text-sm font-medium placeholder-white/20 focus:outline-none focus:border-violet-500/50"
+              />
+            </div>
+            <div className="max-h-[50vh] overflow-y-auto pb-4">
+              {priceListFiltered.length === 0 ? (
+                <div className="py-10 text-center">
+                  <p className="text-white/20 font-bold text-sm">Sin resultados</p>
+                </div>
+              ) : (
+                priceListFiltered.map(item => (
+                  <div key={item.id} className="flex items-center gap-4 px-5 py-3 border-t border-white/[0.04] first:border-0">
+                    <div className="w-8 h-8 rounded-xl bg-violet-500/10 border border-violet-500/20 flex items-center justify-center shrink-0">
+                      {item.type === 'service' ? <Wrench className="w-4 h-4 text-violet-400" /> : <Package className="w-4 h-4 text-violet-400" />}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-bold text-white truncate">{item.name}</p>
+                      {item.sku && <p className="text-[10px] text-white/25 font-medium">SKU: {item.sku}</p>}
+                    </div>
+                    <div className="text-right shrink-0">
+                      <p className="text-sm font-black text-emerald-400">${(item.price || 0).toFixed(2)}</p>
+                      {typeof item.stock === 'number' && (
+                        <p className={`text-[10px] font-bold ${item.stock <= 0 ? 'text-red-400' : 'text-white/25'}`}>
+                          {item.stock <= 0 ? 'Agotado' : `Stock: ${item.stock}`}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
+        </div>
       )}
 
       {/* ✨ ANIMACIONES ESTILO SEQUOIA */}
