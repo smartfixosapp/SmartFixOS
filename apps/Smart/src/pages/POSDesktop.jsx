@@ -28,6 +28,7 @@ import {
 } from "@/components/cash/CashRegisterService";
 import UniversalPrintDialog from "../components/printing/UniversalPrintDialog";
 import POSSaleActionsModal, { POSSaleHistoryModal } from "../components/pos/POSSaleActionsModal";
+import { callGroqAI } from "@/lib/groqAI";
 
 const RECENT_CREATED_PRODUCTS_KEY = "smartfix_recent_created_products";
 
@@ -148,6 +149,8 @@ export default function POSDesktop() {
   const [showSaleHistory, setShowSaleHistory] = useState(false);
   const [historyCustomer, setHistoryCustomer] = useState(null);
   const hasShownInventoryOfflineToast = React.useRef(false);
+  const [aiPriceSuggestion, setAiPriceSuggestion] = useState("");
+  const [aiPriceLoading, setAiPriceLoading] = useState(false);
 
   // URL params — leído una vez con useMemo, location.search no cambia mientras estamos en POS
   const { workOrderId, urlPaymentMode, urlBalance } = React.useMemo(() => {
@@ -217,6 +220,28 @@ export default function POSDesktop() {
     // Abrir modal DESPUÉS de que la orden está cargada
     setShowPaymentModal(true);
   }, [urlPaymentMode]);
+
+  const fetchPriceSuggestion = async (serviceName) => {
+    if (!serviceName || serviceName.trim().length < 3) return;
+    setAiPriceLoading(true);
+    setAiPriceSuggestion("");
+    try {
+      const prompt = `Eres un experto en precios de talleres de reparación de dispositivos electrónicos en Puerto Rico / Estados Unidos.
+El técnico quiere cobrar por: "${serviceName}"
+
+Sugiere un precio justo en USD basado en el mercado actual. Responde SOLO con:
+- Precio sugerido: $XX - $XX
+- Justificación: una línea breve
+
+Máximo 30 palabras en total.`;
+      const text = await callGroqAI(prompt, { maxTokens: 80 });
+      setAiPriceSuggestion(text);
+    } catch(err) {
+      setAiPriceSuggestion("");
+    } finally {
+      setAiPriceLoading(false);
+    }
+  };
 
   // ── Startup: inventario + cajón + config + carga de orden ─────────────────
   // Effect único que corre UNA SOLA VEZ al montar. No hay setTimeout, no hay
@@ -1231,13 +1256,31 @@ export default function POSDesktop() {
               Ítem Manual
             </h3>
             <div className="space-y-3">
-              <input
-                autoFocus
-                placeholder="Descripción del ítem"
-                value={manualItem.name}
-                onChange={e => setManualItem(prev => ({ ...prev, name: e.target.value }))}
-                className="w-full bg-white/5 border border-white/10 rounded-2xl px-4 py-3 text-white placeholder-white/30 text-sm focus:outline-none focus:border-cyan-500/50"
-              />
+              <div>
+                <div className="flex gap-2">
+                  <input
+                    autoFocus
+                    placeholder="Descripción del ítem"
+                    value={manualItem.name}
+                    onChange={e => { setManualItem(prev => ({ ...prev, name: e.target.value })); setAiPriceSuggestion(""); }}
+                    className="flex-1 bg-white/5 border border-white/10 rounded-2xl px-4 py-3 text-white placeholder-white/30 text-sm focus:outline-none focus:border-cyan-500/50"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => fetchPriceSuggestion(manualItem.name)}
+                    disabled={aiPriceLoading || manualItem.name.trim().length < 3}
+                    className="px-3 py-2 rounded-2xl bg-violet-500/15 border border-violet-500/20 text-violet-300 text-xs font-black disabled:opacity-40 hover:bg-violet-500/25 transition-all whitespace-nowrap"
+                    title="Sugerir precio con IA"
+                  >
+                    {aiPriceLoading ? "…" : "✨ IA"}
+                  </button>
+                </div>
+                {aiPriceSuggestion && (
+                  <div className="text-xs text-violet-300/80 bg-violet-500/10 border border-violet-500/20 rounded-xl px-3 py-2 mt-1">
+                    {aiPriceSuggestion}
+                  </div>
+                )}
+              </div>
               <div className="flex gap-3">
                 <input
                   placeholder="Precio"
@@ -1260,7 +1303,7 @@ export default function POSDesktop() {
             </div>
             <div className="flex gap-3 mt-5">
               <button
-                onClick={() => { setShowManualItem(false); setManualItem({ name: "", price: "", qty: "1" }); }}
+                onClick={() => { setShowManualItem(false); setManualItem({ name: "", price: "", qty: "1" }); setAiPriceSuggestion(""); }}
                 className="flex-1 py-3 rounded-2xl border border-white/10 text-white/50 text-sm font-bold hover:bg-white/5"
               >
                 Cancelar
@@ -1280,6 +1323,7 @@ export default function POSDesktop() {
                   toast.success(`✅ ${name} agregado`);
                   setShowManualItem(false);
                   setManualItem({ name: "", price: "", qty: "1" });
+                  setAiPriceSuggestion("");
                 }}
                 className="flex-1 py-3 rounded-2xl bg-gradient-to-r from-amber-500 to-orange-500 text-white text-sm font-black shadow-lg"
               >

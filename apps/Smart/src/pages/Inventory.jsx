@@ -33,6 +33,7 @@ import InventoryReports from "../components/inventory/InventoryReports";
 import { catalogCache } from "@/components/utils/dataCache";
 import { loadSuppliersSafe } from "@/components/utils/suppliers";
 import { supabase } from "../../../../lib/supabase-client.js";
+import { callGroqAI } from "@/lib/groqAI";
 
 const RECENT_CREATED_PRODUCTS_KEY = "smartfix_recent_created_products";
 
@@ -1020,6 +1021,8 @@ export default function Inventory() {
   const recentCreatedRef = useRef([]);
   const [pullStart, setPullStart] = useState(0);
   const [pullDistance, setPullDistance] = useState(0);
+  const [aiInventoryAnalysis, setAiInventoryAnalysis] = useState("");
+  const [aiInventoryLoading, setAiInventoryLoading] = useState(false);
   const containerRef = useRef(null);
 
   useEffect(() => {
@@ -1543,6 +1546,39 @@ export default function Inventory() {
     }
   };
 
+  const fetchInventoryAnalysis = async () => {
+    setAiInventoryLoading(true);
+    setAiInventoryAnalysis("");
+    try {
+      const allItems = items || [];
+      const lowStock = allItems.filter(p => p.active !== false && Number(p.stock||0) <= Number(p.min_stock||0) && Number(p.stock||0) >= 0);
+      const outOfStock = allItems.filter(p => p.active !== false && Number(p.stock||0) <= 0);
+      const top = allItems
+        .filter(p => p.active !== false && Number(p.stock||0) > 0)
+        .sort((a,b) => Number(a.stock||0) - Number(b.stock||0))
+        .slice(0, 5)
+        .map(p => `${p.name} (stock: ${p.stock}, mín: ${p.min_stock||0})`);
+
+      const prompt = `Eres el asistente de inventario de SmartFixOS para un taller de reparación.
+Analiza este inventario en ESPAÑOL. Máximo 100 palabras.
+
+RESUMEN:
+- Total de productos activos: ${allItems.filter(p=>p.active!==false).length}
+- Agotados: ${outOfStock.length}
+- Stock bajo (en o debajo del mínimo): ${lowStock.length}
+- Productos con menos stock: ${top.join(", ") || "ninguno"}
+
+Dime: qué comprar urgente, qué riesgo hay para el negocio, y una recomendación concreta. Sé directo.`;
+
+      const text = await callGroqAI(prompt, { maxTokens: 250 });
+      setAiInventoryAnalysis(text);
+    } catch(err) {
+      setAiInventoryAnalysis("⚠️ " + err.message);
+    } finally {
+      setAiInventoryLoading(false);
+    }
+  };
+
   const handleDiscountSuccess = async () => {
     await loadInventory();
     setSelectedProducts([]);
@@ -1656,6 +1692,36 @@ export default function Inventory() {
             </div>
           );
         })()}
+
+        {/* ── IA Inventario ── */}
+        <div className="border border-violet-500/20 rounded-2xl overflow-hidden bg-white/[0.02] mb-4">
+          <div className="flex items-center justify-between px-4 py-3">
+            <div className="flex items-center gap-2">
+              <span className="text-violet-400">✨</span>
+              <span className="text-xs font-black text-white/50 uppercase tracking-widest">Análisis IA del inventario</span>
+            </div>
+            <button
+              onClick={fetchInventoryAnalysis}
+              disabled={aiInventoryLoading}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-violet-500/10 border border-violet-500/20 text-violet-300 text-xs font-black hover:bg-violet-500/20 transition-all active:scale-95 disabled:opacity-50"
+            >
+              {aiInventoryLoading ? "Analizando…" : "✨ Analizar stock"}
+            </button>
+          </div>
+          {(aiInventoryAnalysis || aiInventoryLoading) && (
+            <div className="px-4 pb-4">
+              {aiInventoryLoading ? (
+                <div className="flex gap-1">
+                  <span className="w-1.5 h-1.5 rounded-full bg-violet-400 animate-bounce" style={{animationDelay:"0ms"}} />
+                  <span className="w-1.5 h-1.5 rounded-full bg-violet-400 animate-bounce" style={{animationDelay:"150ms"}} />
+                  <span className="w-1.5 h-1.5 rounded-full bg-violet-400 animate-bounce" style={{animationDelay:"300ms"}} />
+                </div>
+              ) : (
+                <p className="text-sm text-white/70 leading-relaxed">{aiInventoryAnalysis}</p>
+              )}
+            </div>
+          )}
+        </div>
 
         {/* ── Main Category Tabs ────────────────────────────────── */}
         <div className="flex items-center gap-1.5 overflow-x-auto pb-1 mb-4 scrollbar-none">

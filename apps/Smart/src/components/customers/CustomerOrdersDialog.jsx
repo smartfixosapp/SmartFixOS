@@ -1,4 +1,5 @@
-import React from "react";
+import React, { useState } from "react";
+import { callGroqAI } from "@/lib/groqAI";
 import {
   Dialog,
   DialogContent,
@@ -24,10 +25,43 @@ const statusColors = {
 
 export default function CustomerOrdersDialog({ customer, orders = [], open, onClose, onDelete }) {
   const navigate = useNavigate();
+  const [aiClientSummary, setAiClientSummary] = useState("");
+  const [aiClientLoading, setAiClientLoading] = useState(false);
 
   const handleOrderClick = (orderId) => {
     navigate(createPageUrl(`Orders?order=${orderId}`));
     onClose();
+  };
+
+  const fetchClientSummary = async () => {
+    setAiClientLoading(true);
+    setAiClientSummary("");
+    try {
+      const totalSpent = orders.reduce((sum, o) => sum + (o.total || o.quoted_price || 0), 0);
+      const avgTicket = orders.length > 0 ? totalSpent / orders.length : 0;
+      const lastOrder = orders.sort((a,b) => new Date(b.created_date||b.created_at) - new Date(a.created_date||a.created_at))[0];
+      const daysSinceLast = lastOrder ? Math.floor((Date.now() - new Date(lastOrder.created_date||lastOrder.created_at)) / 86400000) : null;
+      const devices = [...new Set(orders.map(o => o.device_model || o.brand || "").filter(Boolean))].slice(0,3);
+
+      const prompt = `Eres el asistente de SmartFixOS para un taller de reparación.
+Analiza este perfil de cliente en ESPAÑOL. Máximo 80 palabras.
+
+CLIENTE: ${customer?.full_name || customer?.name || "Cliente"}
+- Total de visitas/órdenes: ${orders.length}
+- Gasto total histórico: $${totalSpent.toFixed(0)}
+- Ticket promedio: $${avgTicket.toFixed(0)}
+- Días desde última visita: ${daysSinceLast !== null ? daysSinceLast : "desconocido"}
+- Dispositivos: ${devices.join(", ") || "varios"}
+
+Dime: tipo de cliente (frecuente/ocasional/nuevo), su valor para el negocio, y una acción recomendada (ej: ofrecer descuento, llamar para seguimiento, etc).`;
+
+      const text = await callGroqAI(prompt, { maxTokens: 200 });
+      setAiClientSummary(text);
+    } catch(err) {
+      setAiClientSummary("⚠️ " + err.message);
+    } finally {
+      setAiClientLoading(false);
+    }
   };
 
   if (!customer) return null;
@@ -69,6 +103,41 @@ export default function CustomerOrdersDialog({ customer, orders = [], open, onCl
             )}
           </div>
         </DialogHeader>
+
+        {/* IA — Resumen del cliente */}
+        <div className="mx-4 mb-3 border border-violet-500/20 rounded-2xl overflow-hidden bg-white/[0.02]">
+          <div className="flex items-center justify-between px-4 py-2.5">
+            <div className="flex items-center gap-2">
+              <span className="text-violet-400 text-xs">✨</span>
+              <span className="text-[10px] font-black text-white/40 uppercase tracking-widest">Análisis IA del cliente</span>
+            </div>
+            <button
+              onClick={fetchClientSummary}
+              disabled={aiClientLoading}
+              className="text-[10px] font-black text-violet-400/70 hover:text-violet-300 disabled:opacity-40 uppercase tracking-widest transition-colors"
+            >
+              {aiClientLoading ? "…" : "Analizar"}
+            </button>
+          </div>
+          {(aiClientSummary || aiClientLoading) && (
+            <div className="px-4 pb-3">
+              {aiClientLoading ? (
+                <div className="flex gap-1">
+                  <span className="w-1.5 h-1.5 rounded-full bg-violet-400 animate-bounce" style={{animationDelay:"0ms"}} />
+                  <span className="w-1.5 h-1.5 rounded-full bg-violet-400 animate-bounce" style={{animationDelay:"150ms"}} />
+                  <span className="w-1.5 h-1.5 rounded-full bg-violet-400 animate-bounce" style={{animationDelay:"300ms"}} />
+                </div>
+              ) : (
+                <p className="text-xs text-white/70 leading-relaxed">{aiClientSummary}</p>
+              )}
+            </div>
+          )}
+          {!aiClientSummary && !aiClientLoading && (
+            <div className="px-4 pb-2">
+              <p className="text-[10px] text-white/20">Presiona "Analizar" para ver el perfil IA del cliente</p>
+            </div>
+          )}
+        </div>
 
         {ordersList.length === 0 ? (
           <div className="text-center py-12">

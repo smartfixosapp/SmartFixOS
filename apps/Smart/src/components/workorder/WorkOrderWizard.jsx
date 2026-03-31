@@ -5,6 +5,7 @@ import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
 import * as DialogPrimitive from "@radix-ui/react-dialog";
 import { base44 } from "@/api/base44Client";
 import { sendTemplatedEmail } from "@/api/functions";
+import { callGroqAI } from "@/lib/groqAI";
 import NotificationService from "../notifications/NotificationService";
 import AddItemModal from "./AddItemModal";
 import {
@@ -826,6 +827,8 @@ export default function WorkOrderWizard({ open, onClose, onSuccess, preloadedCus
   
   // Problema
   const [problem, setProblem] = useState("");
+  const [aiDiagnosis, setAiDiagnosis] = useState("");
+  const [aiDiagnosisLoading, setAiDiagnosisLoading] = useState(false);
   const [photos, setPhotos] = useState([]);
   const [previewMedia, setPreviewMedia] = useState(null);
   
@@ -866,6 +869,36 @@ export default function WorkOrderWizard({ open, onClose, onSuccess, preloadedCus
   // Búsqueda
   const [customerSearchQuery, setCustomerSearchQuery] = useState("");
   const [customerResults, setCustomerResults] = useState([]);
+
+  const fetchAiDiagnosis = async () => {
+    if (!problem.trim()) return;
+    setAiDiagnosisLoading(true);
+    setAiDiagnosis("");
+    try {
+      const deviceInfo = [
+        deviceBrand || "",
+        deviceModel || "",
+      ].filter(Boolean).join(" ") || "dispositivo no especificado";
+
+      const prompt = `Eres un técnico experto en reparación de dispositivos electrónicos.
+El técnico describe este problema: "${problem}"
+Dispositivo: ${deviceInfo}
+
+Responde en ESPAÑOL con:
+1. **Causas probables** (2-3 causas más comunes, una línea cada una)
+2. **Diagnóstico sugerido** (pasos concretos para confirmar el problema)
+3. **Piezas posibles** (qué podría necesitar)
+
+Sé técnico pero claro. Máximo 120 palabras.`;
+
+      const text = await callGroqAI(prompt, { maxTokens: 350 });
+      setAiDiagnosis(text);
+    } catch (err) {
+      setAiDiagnosis("⚠️ " + err.message);
+    } finally {
+      setAiDiagnosisLoading(false);
+    }
+  };
 
   const handleDragEndCatalog = async (result) => {
     if (!result.destination) return;
@@ -3505,6 +3538,29 @@ export default function WorkOrderWizard({ open, onClose, onSuccess, preloadedCus
               placeholder={quickOrderMode ? "Ej: Cliente indica que solo necesita cambio de pantalla o batería..." : "Ej: Cliente indica que el equipo estaba cargando y de momento se apagó..."}
               className="w-full bg-black/30 border border-white/10 rounded-lg px-3 py-2 text-white text-sm min-h-[80px]"
             />
+
+              {/* IA — Asistente de diagnóstico */}
+              {problem.trim().length > 10 && (
+                <div className="mt-2">
+                  <button
+                    type="button"
+                    onClick={fetchAiDiagnosis}
+                    disabled={aiDiagnosisLoading}
+                    className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-violet-500/10 border border-violet-500/20 text-violet-300 text-xs font-black hover:bg-violet-500/20 transition-all active:scale-95 disabled:opacity-50"
+                  >
+                    {aiDiagnosisLoading ? (
+                      <><span className="animate-spin">⟳</span> Analizando…</>
+                    ) : (
+                      <>✨ Sugerir diagnóstico IA</>
+                    )}
+                  </button>
+                  {aiDiagnosis && (
+                    <div className="mt-2 p-3 rounded-xl bg-violet-500/5 border border-violet-500/15">
+                      <p className="text-xs text-white/70 leading-relaxed whitespace-pre-line">{aiDiagnosis}</p>
+                    </div>
+                  )}
+                </div>
+              )}
           </div>
           )}
 

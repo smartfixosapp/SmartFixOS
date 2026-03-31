@@ -12,6 +12,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
+import { callGroqAI } from "@/lib/groqAI";
 
 import {
   ClipboardList,
@@ -230,6 +231,8 @@ export default function Dashboard() {
   const [showDailyTransactions, setShowDailyTransactions] = useState(false);
   const [showPriceList, setShowPriceList] = useState(false);
   const [priceListSearch, setPriceListSearch] = useState("");
+  const [aiDaySummary, setAiDaySummary] = useState("");
+  const [aiDayLoading, setAiDayLoading] = useState(false);
   // Widget extra data
   const [newCustomersCount, setNewCustomersCount] = useState(0);
   const [todayTxCount, setTodayTxCount] = useState(0);
@@ -940,6 +943,40 @@ export default function Dashboard() {
     load();
   }, [session?.userId]);
 
+  const fetchDaySummary = async () => {
+    setAiDayLoading(true);
+    setAiDaySummary("");
+    try {
+      const urgent = visibleFeedItems.filter(i => i.type === 'urgent').length;
+      const ready = visibleFeedItems.filter(i => i.type === 'ready').length;
+      const intake = visibleFeedItems.filter(i => i.type === 'intake' || i.type === 'stale').length;
+      const parts = visibleFeedItems.filter(i => i.type === 'parts').length;
+      const todayIncome = kpiIncome.today || 0;
+      const activeOrders = kpiStats.active || 0;
+
+      const prompt = `Eres el asistente de SmartFixOS para un taller de reparación.
+Da un briefing matutino en ESPAÑOL, directo y útil para el dueño. Máximo 80 palabras.
+
+ESTADO ACTUAL:
+- Órdenes activas: ${activeOrders}
+- Urgentes: ${urgent}
+- Listas para recoger: ${ready}
+- En diagnóstico: ${intake}
+- Esperando piezas: ${parts}
+- Ingresos de hoy: $${todayIncome.toFixed(0)}
+- Tareas pendientes: ${pendingShiftTasks.length}
+
+Dime: qué priorizar primero, algo positivo si aplica, y una acción concreta. Sé breve y directo. Usa máximo 2 emojis.`;
+
+      const text = await callGroqAI(prompt, { maxTokens: 200 });
+      setAiDaySummary(text);
+    } catch (err) {
+      setAiDaySummary("⚠️ " + err.message);
+    } finally {
+      setAiDayLoading(false);
+    }
+  };
+
   const handleCompleteTask = async (task) => {
     if (completingTaskId) return;
     setCompletingTaskId(task.id);
@@ -1132,6 +1169,36 @@ export default function Dashboard() {
                   </>
                 );
               })()}
+
+              {/* IA — Briefing del día */}
+              <div className="border border-violet-500/20 rounded-2xl overflow-hidden bg-white/[0.02]">
+                <div className="flex items-center justify-between px-4 py-3">
+                  <div className="flex items-center gap-2">
+                    <span className="text-violet-400 text-sm">✨</span>
+                    <span className="text-[10px] font-black text-white/40 uppercase tracking-widest">Resumen IA</span>
+                  </div>
+                  <button
+                    onClick={fetchDaySummary}
+                    disabled={aiDayLoading}
+                    className="text-[10px] font-black text-violet-400/70 hover:text-violet-300 transition-colors disabled:opacity-40 uppercase tracking-widest"
+                  >
+                    {aiDayLoading ? "…" : "Analizar"}
+                  </button>
+                </div>
+                {(aiDaySummary || aiDayLoading) && (
+                  <div className="px-4 pb-3">
+                    {aiDayLoading ? (
+                      <div className="flex gap-1">
+                        <span className="w-1.5 h-1.5 rounded-full bg-violet-400 animate-bounce" style={{animationDelay:"0ms"}} />
+                        <span className="w-1.5 h-1.5 rounded-full bg-violet-400 animate-bounce" style={{animationDelay:"150ms"}} />
+                        <span className="w-1.5 h-1.5 rounded-full bg-violet-400 animate-bounce" style={{animationDelay:"300ms"}} />
+                      </div>
+                    ) : (
+                      <p className="text-xs text-white/70 leading-relaxed">{aiDaySummary}</p>
+                    )}
+                  </div>
+                )}
+              </div>
 
               {/* Divider */}
               <div className="border-t border-white/[0.06]" />
@@ -1368,6 +1435,36 @@ export default function Dashboard() {
                 </div>
               );
             })()}
+
+            {/* IA — Briefing móvil */}
+            <div className="border border-violet-500/20 rounded-2xl overflow-hidden bg-white/[0.02] mx-1 shrink-0">
+              <div className="flex items-center justify-between px-4 py-2.5">
+                <div className="flex items-center gap-2">
+                  <span className="text-violet-400 text-xs">✨</span>
+                  <span className="text-[9px] font-black text-white/40 uppercase tracking-widest">Resumen IA</span>
+                </div>
+                <button
+                  onClick={fetchDaySummary}
+                  disabled={aiDayLoading}
+                  className="text-[9px] font-black text-violet-400/70 hover:text-violet-300 disabled:opacity-40 uppercase tracking-widest"
+                >
+                  {aiDayLoading ? "…" : "Analizar"}
+                </button>
+              </div>
+              {(aiDaySummary || aiDayLoading) && (
+                <div className="px-4 pb-3">
+                  {aiDayLoading ? (
+                    <div className="flex gap-1">
+                      <span className="w-1.5 h-1.5 rounded-full bg-violet-400 animate-bounce" style={{animationDelay:"0ms"}} />
+                      <span className="w-1.5 h-1.5 rounded-full bg-violet-400 animate-bounce" style={{animationDelay:"150ms"}} />
+                      <span className="w-1.5 h-1.5 rounded-full bg-violet-400 animate-bounce" style={{animationDelay:"300ms"}} />
+                    </div>
+                  ) : (
+                    <p className="text-xs text-white/70 leading-relaxed">{aiDaySummary}</p>
+                  )}
+                </div>
+              )}
+            </div>
 
             {/* Priority Feed */}
             <div className="bg-[#1C1C1E]/60 border border-white/[0.06] rounded-[28px] overflow-hidden mx-1 flex flex-col flex-1 min-h-0">

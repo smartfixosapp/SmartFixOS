@@ -18,6 +18,7 @@ import {
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { openWhatsApp, makeCall } from "@/components/utils/helpers";
+import { callGroqAI } from "@/lib/groqAI";
 
 const statusColors = {
   intake: "bg-blue-500/20 text-blue-400 border-blue-500/30",
@@ -46,10 +47,40 @@ export default function CustomerPortal() {
   const [order, setOrder] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [customerMessage, setCustomerMessage] = useState("");
+  const [aiPortalResponse, setAiPortalResponse] = useState("");
+  const [aiPortalLoading, setAiPortalLoading] = useState(false);
 
   useEffect(() => {
     loadOrder();
   }, [orderId, token]);
+
+  const fetchPortalAiResponse = async () => {
+    if (!customerMessage.trim()) return;
+    setAiPortalLoading(true);
+    setAiPortalResponse("");
+    try {
+      const orderStatus = order?.status || "en proceso";
+      const deviceInfo = order?.device_model || order?.device_brand || "tu dispositivo";
+
+      const prompt = `Eres el asistente de atención al cliente de SmartFixOS, un taller de reparación.
+El cliente pregunta: "${customerMessage}"
+
+Estado actual de su reparación: ${orderStatus}
+Dispositivo: ${deviceInfo}
+
+Responde en ESPAÑOL de forma amable, profesional y breve (máximo 40 palabras).
+Si preguntan cuándo estará listo, di que el técnico los contactará pronto.
+Si preguntan por el estado, explica el estado actual de forma amigable.`;
+
+      const text = await callGroqAI(prompt, { maxTokens: 150 });
+      setAiPortalResponse(text);
+    } catch(err) {
+      setAiPortalResponse("Lo sentimos, no pudimos procesar tu consulta en este momento.");
+    } finally {
+      setAiPortalLoading(false);
+    }
+  };
 
   const loadOrder = async () => {
     setLoading(true);
@@ -327,6 +358,33 @@ export default function CustomerPortal() {
             </CardContent>
           </Card>
         )}
+
+        {/* Pregunta al asistente */}
+        <div className="mt-4 border border-violet-500/20 rounded-2xl p-4 bg-white/[0.02]">
+          <p className="text-xs font-black text-white/40 uppercase tracking-widest mb-3">✨ Asistente IA</p>
+          <div className="flex gap-2">
+            <input
+              type="text"
+              value={customerMessage}
+              onChange={(e) => setCustomerMessage(e.target.value)}
+              onKeyDown={(e) => e.key === 'Enter' && fetchPortalAiResponse()}
+              placeholder="¿Tienes alguna pregunta sobre tu reparación?"
+              className="flex-1 bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-sm text-white placeholder-white/20 focus:outline-none focus:border-violet-500/40"
+            />
+            <button
+              onClick={fetchPortalAiResponse}
+              disabled={aiPortalLoading || !customerMessage.trim()}
+              className="px-3 py-2 rounded-xl bg-violet-500/15 border border-violet-500/20 text-violet-300 text-xs font-black disabled:opacity-40 hover:bg-violet-500/25 transition-all"
+            >
+              {aiPortalLoading ? "…" : "→"}
+            </button>
+          </div>
+          {aiPortalResponse && (
+            <div className="mt-3 p-3 rounded-xl bg-violet-500/5 border border-violet-500/10">
+              <p className="text-sm text-white/80 leading-relaxed">{aiPortalResponse}</p>
+            </div>
+          )}
+        </div>
 
         {/* Footer */}
         <div className="text-center text-gray-500 text-sm py-4">
