@@ -808,15 +808,6 @@ export default function SettingsPage() {
           navigateTo: "UsersManagement"
         },
         {
-          id: "time_tracking",
-          icon: Clock,
-          title: "Control de Tiempo",
-          description: "Asistencia y registros de entrada/salida",
-          color: "from-emerald-500 to-green-600",
-          isNavigation: true,
-          navigateTo: "UsersManagement"
-        },
-        {
           id: "payment_methods",
           icon: CreditCard,
           title: "Métodos de Pago",
