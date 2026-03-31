@@ -841,7 +841,7 @@ ${paymentMethodBreakdown.length > 0 ? `- Métodos de pago: ${paymentMethodBreakd
 Responde con: 1) resumen de 2 oraciones, 2) un punto positivo, 3) una recomendación. Máximo 100 palabras. Usa emojis con moderación.`;
 
       const res = await fetch(
-        `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_KEY}`,
+        `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-8b:generateContent?key=${GEMINI_KEY}`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
