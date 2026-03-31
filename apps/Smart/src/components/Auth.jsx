@@ -430,7 +430,7 @@ export default function AuthGate({ children }) {
   }
 
   // Una vez validado:
-  if (user || isPublicPath(currentPath)) {
+  if (user || isPublicPath(currentPath) || isLikelyAuthenticated) {
     return (
       <AuthContext.Provider value={{ user, handleLogout, updateSessionTimeout }}>
         {children}
