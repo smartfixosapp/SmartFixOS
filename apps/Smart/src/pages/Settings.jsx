@@ -281,8 +281,7 @@ export default function SettingsPage() {
              { id: "time", label: "Control de Tiempo", icon: "Clock", gradient: "from-emerald-600 to-green-600", view: "time", enabled: true, order: 1 },
              { id: "payment_methods", label: "Métodos de Pago", icon: "CreditCard", gradient: "from-green-600 to-emerald-600", view: "payment_methods", enabled: true, order: 2 },
              { id: "business_info", label: "Info del Negocio", icon: "Building2", gradient: "from-orange-600 to-amber-600", view: "business_info", enabled: true, order: 3 },
-             { id: "financial", label: "Finanzas", icon: "Wallet", gradient: "from-purple-600 to-violet-600", type: "navigate", action: "Financial", enabled: true, order: 4 },
-             { id: "reports", label: "Reportes", icon: "BarChart3", gradient: "from-indigo-600 to-blue-600", type: "navigate", action: "Financial", enabled: true, order: 5 }
+             { id: "financial", label: "Finanzas", icon: "Wallet", gradient: "from-purple-600 to-violet-600", type: "navigate", action: "Financial", enabled: true, order: 4 }
         ];
         setAdminPanelButtons(initialAdminButtons);
       }
@@ -815,19 +814,10 @@ export default function SettingsPage() {
           color: "from-green-600 to-teal-600",
         },
         {
-          id: "reports_nav",
-          icon: BarChart3,
-          title: "Reportes",
-          description: "Financieros y operacionales",
-          color: "from-indigo-600 to-blue-700",
-          isNavigation: true,
-          navigateTo: "Financial"
-        },
-        {
           id: "financial_nav",
           icon: Wallet,
-          title: "Finanzas",
-          description: "Caja, ventas y gastos",
+          title: "Finanzas & Reportes",
+          description: "Caja, ventas, gastos e informes",
           color: "from-emerald-600 to-green-700",
           isNavigation: true,
           navigateTo: "Financial"
