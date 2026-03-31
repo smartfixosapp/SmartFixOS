@@ -6,6 +6,7 @@ import React, {
   useRef
 } from "react";
 import { dataClient } from "@/components/api/dataClient";
+import { base44 } from "@/api/base44Client";
 import { supabase } from "../../../../lib/supabase-client.js";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -41,7 +42,10 @@ import {
   Timer,
   ShoppingCart,
   ChevronRight,
-  Inbox
+  Inbox,
+  Check,
+  Sunrise,
+  Sunset
 } from "lucide-react";
 
 import { format, startOfDay } from "date-fns";
@@ -194,6 +198,9 @@ export default function Dashboard() {
   const [selectedStatusFilter, setSelectedStatusFilter] = useState(null);
   // Filtro del feed de atención (null | 'urgent' | 'ready')
   const [feedFilter, setFeedFilter] = useState(null);
+  // Feed categorías: tareas de turno
+  const [pendingShiftTasks, setPendingShiftTasks] = useState([]);
+  const [completingTaskId, setCompletingTaskId] = useState(null);
   const [showUnlocksFilter, setShowUnlocksFilter] = useState(false);
   const [showTimeTracking, setShowTimeTracking] = useState(false);
   const [showLogoutModal, setShowLogoutModal] = useState(false);
@@ -888,6 +895,68 @@ export default function Dashboard() {
     return priorityFeedItems.filter(item => item.type === feedFilter);
   }, [priorityFeedItems, feedFilter]);
 
+  // Stock bajo — derivado de priceListItems (ya cargado)
+  const lowStockProducts = useMemo(() => {
+    return priceListItems
+      .filter(p => p.type === 'product' && typeof p.stock === 'number' &&
+        (p.stock <= 0 || (p.min_stock > 0 && p.stock <= p.min_stock)))
+      .slice(0, 8);
+  }, [priceListItems]);
+
+  // Tareas de turno pendientes del usuario
+  useEffect(() => {
+    if (!session?.userId) return;
+    const load = async () => {
+      try {
+        const today = new Date().toISOString().slice(0, 10);
+        const allTasks = await base44.entities.ShiftTask.filter({ active: true }, 'sort_order', 100);
+        const role = session.role || '';
+        const myTasks = (allTasks || []).filter(t =>
+          (!t.assigned_to_employee_id && !t.assigned_to_role)
+          || t.assigned_to_employee_id === session.userId
+          || t.assigned_to_role === role
+        );
+        const logs = await base44.entities.ShiftTaskLog.filter(
+          { employee_id: session.userId, shift_date: today }, '-completed_at', 100
+        );
+        const done = new Set((logs || []).map(l => l.task_id));
+        setPendingShiftTasks(myTasks.filter(t => !done.has(t.id)));
+      } catch (e) {
+        console.error('[Dashboard] Error loading shift tasks:', e);
+      }
+    };
+    load();
+  }, [session?.userId]);
+
+  const handleCompleteTask = async (task) => {
+    if (completingTaskId) return;
+    setCompletingTaskId(task.id);
+    try {
+      const today = new Date().toISOString().slice(0, 10);
+      const now = new Date().toISOString();
+      let sessionStart = now;
+      try {
+        const stored = JSON.parse(localStorage.getItem('smartfix_session_start') || 'null');
+        if (stored?.date === today) sessionStart = stored.time;
+      } catch (_) {}
+      await base44.entities.ShiftTaskLog.create({
+        task_id: task.id,
+        task_title: task.title,
+        task_type: task.type,
+        employee_id: session.userId,
+        employee_name: session.userName || '',
+        shift_date: today,
+        session_started_at: sessionStart,
+        completed_at: now,
+      });
+      setPendingShiftTasks(prev => prev.filter(t => t.id !== task.id));
+    } catch (e) {
+      console.error('[Dashboard] Error completing task:', e);
+    } finally {
+      setCompletingTaskId(null);
+    }
+  };
+
   if (!session) return null;
 
   return (
@@ -937,10 +1006,6 @@ export default function Dashboard() {
               {/* Botones de acción */}
               <div className="flex items-center gap-2">
                 <PunchButton userId={session?.userId} userName={session?.userName} variant="apple" onPunchStatusChange={(status) => { if (status) showToast("👋 ¡Hola!", "Turno iniciado"); else showToast("👋 ¡Adiós!", "Turno finalizado"); }} />
-                <button onClick={() => setShowNotificationPanel(!showNotificationPanel)} className="relative flex-1 h-10 rounded-xl bg-white/5 hover:bg-white/10 border border-white/8 flex items-center justify-center transition-all active:scale-95 group">
-                  <Bell className="w-4 h-4 text-white/60 group-hover:text-white transition-colors" />
-                  {unreadNotifications > 0 && <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 border border-[#1c1c1e] rounded-full" />}
-                </button>
                 <button onClick={handleCashButtonClick} className={cn("flex-1 h-10 rounded-xl border flex items-center justify-center transition-all active:scale-90", drawerOpen ? "bg-emerald-500/10 border-emerald-500/20 text-emerald-400 hover:bg-emerald-500/20" : "bg-red-500/10 border-red-500/20 text-red-400 hover:bg-red-500/20")} title={drawerOpen ? "Cerrar Caja" : "Abrir Caja"}>
                   <Wallet className="w-4 h-4" strokeWidth={2.5} />
                 </button>
@@ -1039,44 +1104,113 @@ export default function Dashboard() {
                     </button>
                   )}
                 </div>
-                {visibleFeedItems.length > 0 && (
-                  <span className={cn("w-6 h-6 rounded-full flex items-center justify-center text-[11px] font-black text-white shadow-[0_0_12px_rgba(239,68,68,0.4)]", feedFilter === 'ready' ? "bg-cyan-500" : "bg-red-500")}>
-                    {visibleFeedItems.length}
+                {(visibleFeedItems.length + lowStockProducts.length + pendingShiftTasks.length) > 0 && (
+                  <span className="w-6 h-6 rounded-full flex items-center justify-center text-[11px] font-black text-white bg-red-500 shadow-[0_0_12px_rgba(239,68,68,0.4)]">
+                    {visibleFeedItems.length + lowStockProducts.length + pendingShiftTasks.length}
                   </span>
                 )}
               </div>
 
               {/* Feed list — scrollbar aparece automáticamente cuando overflow */}
               <div className="flex-1 bg-white/[0.02] border border-white/[0.06] rounded-[24px] overflow-hidden flex flex-col min-h-0">
-                <div className="divide-y divide-white/[0.04] flex-1 overflow-y-auto">
-                  {visibleFeedItems.map(item => (
-                    <button
-                      key={item.id}
-                      onClick={() => item.orderId ? handleOrderSelect(item.orderId) : handleNavigate("Inventory")}
-                      className="w-full flex items-center gap-4 px-5 py-3.5 hover:bg-white/[0.04] transition-colors text-left group"
-                    >
-                      <div className={`w-1 h-8 rounded-full shrink-0 ${item.color === 'red' ? 'bg-red-500' : item.color === 'green' ? 'bg-emerald-500' : item.color === 'blue' ? 'bg-blue-500' : item.color === 'yellow' ? 'bg-yellow-500' : 'bg-orange-500'}`} />
-                      <div className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 ${item.color === 'red' ? 'bg-red-500/10 border border-red-500/20' : item.color === 'green' ? 'bg-emerald-500/10 border border-emerald-500/20' : item.color === 'blue' ? 'bg-blue-500/10 border border-blue-500/20' : item.color === 'yellow' ? 'bg-yellow-500/10 border border-yellow-500/20' : 'bg-orange-500/10 border border-orange-500/20'}`}>
-                        {item.type === 'urgent' && <AlertCircle className="w-4 h-4 text-red-400" />}
-                        {item.type === 'ready' && <PackageCheck className="w-4 h-4 text-emerald-400" />}
-                        {item.type === 'intake' && <Inbox className="w-4 h-4 text-blue-400" />}
-                        {item.type === 'parts' && <ShoppingCart className="w-4 h-4 text-orange-400" />}
-                        {item.type === 'stale' && <Search className="w-4 h-4 text-yellow-400" />}
+                <div className="flex-1 overflow-y-auto">
+
+                  {/* ── ÓRDENES ─────────────────────────────────── */}
+                  {visibleFeedItems.length > 0 && (
+                    <>
+                      <div className="flex items-center gap-2 px-5 pt-3 pb-1.5">
+                        <span className="text-[8px] font-black text-white/25 uppercase tracking-[0.2em]">Órdenes</span>
+                        <div className="flex-1 h-px bg-white/[0.05]" />
+                        <span className="text-[8px] font-black text-white/20">{visibleFeedItems.length}</span>
                       </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm font-black text-white truncate">{item.title}</p>
-                        <p className="text-[11px] text-white/30 font-bold truncate">{item.sub}</p>
+                      {visibleFeedItems.map(item => (
+                        <button key={item.id} onClick={() => item.orderId ? handleOrderSelect(item.orderId) : handleNavigate("Inventory")}
+                          className="w-full flex items-center gap-4 px-5 py-3 hover:bg-white/[0.04] transition-colors text-left group border-t border-white/[0.04] first:border-0">
+                          <div className={`w-1 h-7 rounded-full shrink-0 ${item.color === 'red' ? 'bg-red-500' : item.color === 'green' ? 'bg-emerald-500' : item.color === 'blue' ? 'bg-blue-500' : item.color === 'yellow' ? 'bg-yellow-500' : 'bg-orange-500'}`} />
+                          <div className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 ${item.color === 'red' ? 'bg-red-500/10 border border-red-500/20' : item.color === 'green' ? 'bg-emerald-500/10 border border-emerald-500/20' : item.color === 'blue' ? 'bg-blue-500/10 border border-blue-500/20' : item.color === 'yellow' ? 'bg-yellow-500/10 border border-yellow-500/20' : 'bg-orange-500/10 border border-orange-500/20'}`}>
+                            {item.type === 'urgent' && <AlertCircle className="w-4 h-4 text-red-400" />}
+                            {item.type === 'ready' && <PackageCheck className="w-4 h-4 text-emerald-400" />}
+                            {item.type === 'intake' && <Inbox className="w-4 h-4 text-blue-400" />}
+                            {item.type === 'parts' && <ShoppingCart className="w-4 h-4 text-orange-400" />}
+                            {item.type === 'stale' && <Search className="w-4 h-4 text-yellow-400" />}
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm font-black text-white truncate">{item.title}</p>
+                            <p className="text-[11px] text-white/30 font-bold truncate">{item.sub}</p>
+                          </div>
+                          {item.number && <span className="text-[10px] font-black text-white/20 shrink-0">#{item.number?.split('-')?.pop()}</span>}
+                          <ChevronRight className="w-4 h-4 text-white/10 group-hover:text-white/30 transition-colors shrink-0" />
+                        </button>
+                      ))}
+                    </>
+                  )}
+
+                  {/* ── STOCK BAJO ───────────────────────────────── */}
+                  {lowStockProducts.length > 0 && (
+                    <>
+                      <div className="flex items-center gap-2 px-5 pt-3 pb-1.5 mt-1">
+                        <span className="text-[8px] font-black text-white/25 uppercase tracking-[0.2em]">Stock Bajo</span>
+                        <div className="flex-1 h-px bg-white/[0.05]" />
+                        <span className="text-[8px] font-black text-white/20">{lowStockProducts.length}</span>
                       </div>
-                      {item.number && <span className="text-[10px] font-black text-white/20 shrink-0">#{item.number?.split('-')?.pop()}</span>}
-                      <ChevronRight className="w-4 h-4 text-white/10 group-hover:text-white/30 transition-colors shrink-0" />
-                    </button>
-                  ))}
-                  {visibleFeedItems.length === 0 && (
+                      {lowStockProducts.map(p => (
+                        <button key={p.id} onClick={() => handleNavigate("Inventory")}
+                          className="w-full flex items-center gap-4 px-5 py-3 hover:bg-white/[0.04] transition-colors text-left group border-t border-white/[0.04] first:border-0">
+                          <div className="w-1 h-7 rounded-full shrink-0 bg-amber-500" />
+                          <div className="w-8 h-8 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center shrink-0">
+                            <Package className="w-4 h-4 text-amber-400" />
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm font-black text-white truncate">{p.name}</p>
+                            <p className="text-[11px] text-amber-400/70 font-bold truncate">
+                              {p.stock <= 0 ? 'Agotado' : `Stock: ${p.stock}`}{p.min_stock > 0 ? ` · Mín: ${p.min_stock}` : ''}
+                            </p>
+                          </div>
+                          <ChevronRight className="w-4 h-4 text-white/10 group-hover:text-white/30 transition-colors shrink-0" />
+                        </button>
+                      ))}
+                    </>
+                  )}
+
+                  {/* ── TAREAS ───────────────────────────────────── */}
+                  {pendingShiftTasks.length > 0 && (
+                    <>
+                      <div className="flex items-center gap-2 px-5 pt-3 pb-1.5 mt-1">
+                        <span className="text-[8px] font-black text-white/25 uppercase tracking-[0.2em]">Tareas</span>
+                        <div className="flex-1 h-px bg-white/[0.05]" />
+                        <span className="text-[8px] font-black text-white/20">{pendingShiftTasks.length}</span>
+                      </div>
+                      {pendingShiftTasks.map(task => (
+                        <div key={task.id} className="flex items-center gap-4 px-5 py-3 border-t border-white/[0.04] first:border-0">
+                          <div className="w-1 h-7 rounded-full shrink-0 bg-indigo-500" />
+                          <div className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 ${task.type === 'opening' ? 'bg-amber-500/10 border border-amber-500/20' : 'bg-indigo-500/10 border border-indigo-500/20'}`}>
+                            {task.type === 'opening'
+                              ? <Sunrise className="w-4 h-4 text-amber-400" />
+                              : <Sunset className="w-4 h-4 text-indigo-400" />
+                            }
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm font-black text-white truncate">{task.title}</p>
+                            {task.description && <p className="text-[11px] text-white/30 font-bold truncate">{task.description}</p>}
+                          </div>
+                          {task.priority === 'urgent' && <span className="text-[9px] font-black px-1.5 py-0.5 rounded-full bg-red-500/15 text-red-400 border border-red-500/20 shrink-0">Urgente</span>}
+                          <button
+                            onClick={() => handleCompleteTask(task)}
+                            disabled={completingTaskId === task.id}
+                            className={`w-8 h-8 rounded-full border flex items-center justify-center shrink-0 transition-all ${completingTaskId === task.id ? 'bg-emerald-500/20 border-emerald-500/30 animate-pulse' : 'bg-white/5 border-white/15 hover:bg-emerald-500/20 hover:border-emerald-500/40 hover:text-emerald-400'} text-white/30`}
+                          >
+                            <Check className="w-4 h-4" />
+                          </button>
+                        </div>
+                      ))}
+                    </>
+                  )}
+
+                  {/* ── TODO BIEN ────────────────────────────────── */}
+                  {visibleFeedItems.length === 0 && lowStockProducts.length === 0 && pendingShiftTasks.length === 0 && (
                     <div className="flex flex-col items-center justify-center py-14 h-full">
                       <CheckCircle2 className="w-10 h-10 text-emerald-500/30 mb-3" />
-                      <p className="text-white/20 text-xs font-black uppercase tracking-widest">
-                        {feedFilter ? 'Sin resultados para este filtro' : 'Todo en orden'}
-                      </p>
+                      <p className="text-white/20 text-xs font-black uppercase tracking-widest">Todo en orden</p>
                     </div>
                   )}
                 </div>
@@ -1111,10 +1245,6 @@ export default function Dashboard() {
                 <span className="text-[10px] font-black uppercase tracking-widest">{drawerOpen ? "Caja Abierta" : "Caja Cerrada"}</span>
               </button>
               <div className="flex items-center gap-1.5 pr-1">
-                <button onClick={() => setShowNotificationPanel(!showNotificationPanel)} className="relative w-12 h-12 rounded-2xl bg-white/[0.04] border border-white/[0.08] flex items-center justify-center active:scale-90 transition-all">
-                  <Bell className="w-5 h-5 text-white/50" strokeWidth={2} />
-                  {unreadNotifications > 0 && <span className="absolute top-2.5 right-2.5 w-2 h-2 bg-red-500 rounded-full shadow-[0_0_10px_rgba(239,68,68,0.6)]" />}
-                </button>
                 <PunchButton userId={session?.userId} userName={session?.userName} variant="mobile-icon" onPunchStatusChange={(status) => { if (status) showToast("👋 ¡Hola!", "Turno iniciado"); else showToast("👋 ¡Adiós!", "Turno finalizado"); }} />
                 <button onClick={handleCashButtonClick} className={cn("w-12 h-12 rounded-2xl border flex items-center justify-center active:scale-90 transition-all", drawerOpen ? "bg-emerald-500/10 border-emerald-500/20 text-emerald-400" : "bg-red-500/10 border-red-500/20 text-red-400")} title={drawerOpen ? "Cerrar Caja" : "Abrir Caja"}>
                   <Wallet className="w-5 h-5" strokeWidth={2.5} />
@@ -1168,40 +1298,99 @@ export default function Dashboard() {
                     </button>
                   )}
                 </div>
-                {visibleFeedItems.length > 0 && (
-                  <span className={cn("w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-black text-white", feedFilter === 'ready' ? "bg-cyan-500" : "bg-red-500")}>
-                    {visibleFeedItems.length}
+                {(visibleFeedItems.length + lowStockProducts.length + pendingShiftTasks.length) > 0 && (
+                  <span className="w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-black text-white bg-red-500">
+                    {visibleFeedItems.length + lowStockProducts.length + pendingShiftTasks.length}
                   </span>
                 )}
               </div>
-              <div className="divide-y divide-white/[0.04] flex-1 overflow-y-auto">
-                {visibleFeedItems.map(item => (
-                  <button
-                    key={item.id}
-                    onClick={() => item.orderId ? handleOrderSelect(item.orderId) : handleNavigate("Inventory")}
-                    className="w-full flex items-center gap-3 px-4 py-3 active:bg-white/[0.04] transition-colors text-left"
-                  >
-                    <div className={`w-1 h-7 rounded-full shrink-0 ${item.color === 'red' ? 'bg-red-500' : item.color === 'green' ? 'bg-emerald-500' : item.color === 'blue' ? 'bg-blue-500' : item.color === 'yellow' ? 'bg-yellow-500' : 'bg-orange-500'}`} />
-                    <div className={`w-7 h-7 rounded-xl flex items-center justify-center shrink-0 ${item.color === 'red' ? 'bg-red-500/10' : item.color === 'green' ? 'bg-emerald-500/10' : item.color === 'blue' ? 'bg-blue-500/10' : item.color === 'yellow' ? 'bg-yellow-500/10' : 'bg-orange-500/10'}`}>
-                      {item.type === 'urgent' && <AlertCircle className="w-3.5 h-3.5 text-red-400" />}
-                      {item.type === 'ready' && <PackageCheck className="w-3.5 h-3.5 text-emerald-400" />}
-                      {item.type === 'intake' && <Inbox className="w-3.5 h-3.5 text-blue-400" />}
-                      {item.type === 'parts' && <ShoppingCart className="w-3.5 h-3.5 text-orange-400" />}
-                      {item.type === 'stale' && <Search className="w-3.5 h-3.5 text-yellow-400" />}
+              <div className="flex-1 overflow-y-auto">
+
+                {/* ── ÓRDENES ─── */}
+                {visibleFeedItems.length > 0 && (
+                  <>
+                    <div className="flex items-center gap-2 px-4 pt-2.5 pb-1">
+                      <span className="text-[8px] font-black text-white/20 uppercase tracking-[0.18em]">Órdenes</span>
+                      <div className="flex-1 h-px bg-white/[0.05]" />
+                      <span className="text-[8px] font-black text-white/20">{visibleFeedItems.length}</span>
                     </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-xs font-black text-white truncate">{item.title}</p>
-                      <p className="text-[10px] text-white/30 font-bold truncate">{item.sub}</p>
+                    {visibleFeedItems.map(item => (
+                      <button key={item.id} onClick={() => item.orderId ? handleOrderSelect(item.orderId) : handleNavigate("Inventory")}
+                        className="w-full flex items-center gap-3 px-4 py-2.5 active:bg-white/[0.04] transition-colors text-left border-t border-white/[0.04] first:border-0">
+                        <div className={`w-1 h-6 rounded-full shrink-0 ${item.color === 'red' ? 'bg-red-500' : item.color === 'green' ? 'bg-emerald-500' : item.color === 'blue' ? 'bg-blue-500' : item.color === 'yellow' ? 'bg-yellow-500' : 'bg-orange-500'}`} />
+                        <div className={`w-7 h-7 rounded-xl flex items-center justify-center shrink-0 ${item.color === 'red' ? 'bg-red-500/10' : item.color === 'green' ? 'bg-emerald-500/10' : item.color === 'blue' ? 'bg-blue-500/10' : item.color === 'yellow' ? 'bg-yellow-500/10' : 'bg-orange-500/10'}`}>
+                          {item.type === 'urgent' && <AlertCircle className="w-3.5 h-3.5 text-red-400" />}
+                          {item.type === 'ready' && <PackageCheck className="w-3.5 h-3.5 text-emerald-400" />}
+                          {item.type === 'intake' && <Inbox className="w-3.5 h-3.5 text-blue-400" />}
+                          {item.type === 'parts' && <ShoppingCart className="w-3.5 h-3.5 text-orange-400" />}
+                          {item.type === 'stale' && <Search className="w-3.5 h-3.5 text-yellow-400" />}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-xs font-black text-white truncate">{item.title}</p>
+                          <p className="text-[10px] text-white/30 font-bold truncate">{item.sub}</p>
+                        </div>
+                        <ChevronRight className="w-3.5 h-3.5 text-white/15 shrink-0" />
+                      </button>
+                    ))}
+                  </>
+                )}
+
+                {/* ── STOCK BAJO ─── */}
+                {lowStockProducts.length > 0 && (
+                  <>
+                    <div className="flex items-center gap-2 px-4 pt-2.5 pb-1 mt-1">
+                      <span className="text-[8px] font-black text-white/20 uppercase tracking-[0.18em]">Stock Bajo</span>
+                      <div className="flex-1 h-px bg-white/[0.05]" />
+                      <span className="text-[8px] font-black text-white/20">{lowStockProducts.length}</span>
                     </div>
-                    <ChevronRight className="w-3.5 h-3.5 text-white/15 shrink-0" />
-                  </button>
-                ))}
-                {visibleFeedItems.length === 0 && (
+                    {lowStockProducts.map(p => (
+                      <button key={p.id} onClick={() => handleNavigate("Inventory")}
+                        className="w-full flex items-center gap-3 px-4 py-2.5 active:bg-white/[0.04] transition-colors text-left border-t border-white/[0.04] first:border-0">
+                        <div className="w-1 h-6 rounded-full shrink-0 bg-amber-500" />
+                        <div className="w-7 h-7 rounded-xl bg-amber-500/10 flex items-center justify-center shrink-0">
+                          <Package className="w-3.5 h-3.5 text-amber-400" />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-xs font-black text-white truncate">{p.name}</p>
+                          <p className="text-[10px] text-amber-400/70 font-bold">{p.stock <= 0 ? 'Agotado' : `Stock: ${p.stock}`}</p>
+                        </div>
+                        <ChevronRight className="w-3.5 h-3.5 text-white/15 shrink-0" />
+                      </button>
+                    ))}
+                  </>
+                )}
+
+                {/* ── TAREAS ─── */}
+                {pendingShiftTasks.length > 0 && (
+                  <>
+                    <div className="flex items-center gap-2 px-4 pt-2.5 pb-1 mt-1">
+                      <span className="text-[8px] font-black text-white/20 uppercase tracking-[0.18em]">Tareas</span>
+                      <div className="flex-1 h-px bg-white/[0.05]" />
+                      <span className="text-[8px] font-black text-white/20">{pendingShiftTasks.length}</span>
+                    </div>
+                    {pendingShiftTasks.map(task => (
+                      <div key={task.id} className="flex items-center gap-3 px-4 py-2.5 border-t border-white/[0.04] first:border-0">
+                        <div className="w-1 h-6 rounded-full shrink-0 bg-indigo-500" />
+                        <div className={`w-7 h-7 rounded-xl flex items-center justify-center shrink-0 ${task.type === 'opening' ? 'bg-amber-500/10' : 'bg-indigo-500/10'}`}>
+                          {task.type === 'opening' ? <Sunrise className="w-3.5 h-3.5 text-amber-400" /> : <Sunset className="w-3.5 h-3.5 text-indigo-400" />}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-xs font-black text-white truncate">{task.title}</p>
+                        </div>
+                        <button onClick={() => handleCompleteTask(task)} disabled={completingTaskId === task.id}
+                          className={`w-7 h-7 rounded-full border flex items-center justify-center shrink-0 transition-all ${completingTaskId === task.id ? 'bg-emerald-500/20 border-emerald-500/30 animate-pulse' : 'bg-white/5 border-white/15 hover:bg-emerald-500/20 hover:border-emerald-500/40 hover:text-emerald-400'} text-white/30`}>
+                          <Check className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                    ))}
+                  </>
+                )}
+
+                {/* ── TODO EN ORDEN ─── */}
+                {visibleFeedItems.length === 0 && lowStockProducts.length === 0 && pendingShiftTasks.length === 0 && (
                   <div className="flex flex-col items-center justify-center py-8">
                     <CheckCircle2 className="w-8 h-8 text-emerald-500/30 mb-2" />
-                    <p className="text-white/20 text-[10px] font-black uppercase tracking-widest">
-                      {feedFilter ? 'Sin resultados' : 'Todo en orden'}
-                    </p>
+                    <p className="text-white/20 text-[10px] font-black uppercase tracking-widest">Todo en orden</p>
                   </div>
                 )}
               </div>
