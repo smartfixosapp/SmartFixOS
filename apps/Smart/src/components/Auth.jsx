@@ -155,6 +155,8 @@ export default function AuthGate({ children }) {
   // Cuando WorkOrderPanel tiene una orden abierta, incrementa este contador.
   // El timer de inactividad no expulsa al usuario mientras orderActiveCount > 0.
   const orderActiveCountRef = React.useRef(0);
+  // ── Ref para el timer de inactividad ─────────────────────────────────
+  const inactivityTimerRef = React.useRef(null);
 
   // ── Refresh session (llamado por PinAccess tras login) ───────────────
   const refreshSession = React.useCallback(() => {
