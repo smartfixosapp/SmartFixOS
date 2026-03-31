@@ -52,6 +52,7 @@ import { sendAdminOtpHandler } from './sendAdminOtp.js';
 import { processPayrollHandler } from './processPayroll.js';
 import { verifyAdminOtpHandler } from './verifyAdminOtp.js';
 import { trackParcelHandler } from './trackParcel.js';
+import { geminiSummaryHandler } from './geminiSummary.js';
 import { setRequestAuthToken, clearRequestAuthToken } from '../../../../lib/unified-custom-sdk-supabase.js';
 
 // CORS headers
@@ -65,6 +66,7 @@ const corsHeaders = {
 const unwrappedRoutes = new Set([
   '/extract_file',
   '/ai/invoke',
+  '/ai/gemini-summary',
   '/ai/generate-image',
   '/sendEmailInternal',
   '/stripeWebhook',     // Stripe espera respuesta directa sin wrapper
@@ -128,6 +130,7 @@ const routes = {
   '/processPayroll': processPayrollHandler,
   '/sendTemplatedEmail': sendTemplatedEmailHandler,
   '/trackParcel': trackParcelHandler,
+  '/ai/gemini-summary': geminiSummaryHandler,
 };
 const port = parseInt(Deno.env.get("FUNCTIONS_PORT") || "8686");
 console.log(`🌐 Functions server port is ${port}`);

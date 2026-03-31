@@ -9,7 +9,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import {
   DollarSign, TrendingUp, TrendingDown, Wallet, Receipt,
   CreditCard, Landmark, RefreshCw, Plus, Target, PieChart,
-  Edit2, Trash2, Save, Calendar, Download, Filter, X, AlertTriangle
+  Edit2, Trash2, Save, Calendar, Download, Filter, X, AlertTriangle, Sparkles
 } from "lucide-react";
 import { format, startOfDay, endOfDay, isWithinInterval } from "date-fns";
 import { es } from "date-fns/locale";
@@ -192,6 +192,8 @@ export default function Financial() {
   const [reportsView, setReportsView] = useState("enhanced");
   const [movFilter, setMovFilter] = useState("all"); // "all" | "income" | "expense"
   const [activeTab, setActiveTab] = useState("resumen");
+  const [aiSummary, setAiSummary] = useState("");
+  const [aiLoading, setAiLoading] = useState(false);
 
   const isFetching = useRef(false);
   const recentFixedExpenseMutationAt = useRef(0);
@@ -796,6 +798,68 @@ export default function Financial() {
     }
   };
 
+  const fetchAiSummary = async () => {
+    setAiLoading(true);
+    setAiSummary("");
+    try {
+      const periodLabel =
+        dateFilter === "today" ? "hoy" :
+        dateFilter === "week"  ? "esta semana" :
+        dateFilter === "month" ? "este mes" : "todo el período";
+
+      const categoryTotals = filteredExpenses.reduce((acc, e) => {
+        const cat = e.category || "other_expense";
+        acc[cat] = (acc[cat] || 0) + getExpenseMagnitude(e.amount);
+        return acc;
+      }, {});
+
+      const topCategories = Object.entries(categoryTotals)
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 3)
+        .map(([cat, amount]) => ({
+          label: CATEGORY_LABELS[cat] || cat,
+          amount,
+        }));
+
+      const avgTicket = filteredSales.length > 0
+        ? totalRevenue / filteredSales.length
+        : 0;
+
+      const paymentBreakdown = paymentMethodBreakdown.map(p => ({
+        method: p.label,
+        total: p.total,
+      }));
+
+      const FUNCTION_URL = import.meta.env.VITE_FUNCTION_URL || import.meta.env.VITE_API_URL || "http://localhost:8686";
+      const res = await fetch(`${FUNCTION_URL}/ai/gemini-summary`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          totalIncome: totalRevenue,
+          totalExpenses,
+          netProfit,
+          period: periodLabel,
+          salesCount: filteredSales.length,
+          topCategories,
+          paymentBreakdown,
+          avgTicket,
+        }),
+      });
+
+      const data = await res.json();
+      if (data.summary) {
+        setAiSummary(data.summary);
+      } else {
+        setAiSummary("No se pudo generar el resumen. Intenta de nuevo.");
+      }
+    } catch (err) {
+      console.error("AI summary error:", err);
+      setAiSummary("Error al conectar con el asistente IA. Verifica que el servidor de funciones esté corriendo.");
+    } finally {
+      setAiLoading(false);
+    }
+  };
+
   const exportToCSV = () => {
     try {
       // Calcular detalles avanzados para la exportación
@@ -1192,6 +1256,56 @@ export default function Financial() {
             <ErrorBoundary><OneTimeExpensesWidget /></ErrorBoundary>
             <ErrorBoundary><GastosOperacionalesWidget /></ErrorBoundary>
           </div>
+        </div>
+
+        {/* ── CARD IA: Resumen Inteligente ── */}
+        <div className="bg-white/[0.03] border border-violet-500/20 rounded-[28px] overflow-hidden">
+          <div className="p-5 flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="w-9 h-9 rounded-2xl bg-violet-500/20 text-violet-400 flex items-center justify-center">
+                <Sparkles className="w-5 h-5" />
+              </div>
+              <div>
+                <h2 className="text-base font-black text-white tracking-tight">Resumen IA</h2>
+                <p className="text-[10px] text-white/30 font-bold uppercase tracking-widest">Análisis automático del período</p>
+              </div>
+            </div>
+            <button
+              onClick={fetchAiSummary}
+              disabled={aiLoading}
+              className="flex items-center gap-2 px-4 py-2 rounded-[16px] bg-violet-500/15 border border-violet-500/20 text-violet-300 text-xs font-black hover:bg-violet-500/25 transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {aiLoading ? (
+                <><RefreshCw className="w-3.5 h-3.5 animate-spin" /> Analizando…</>
+              ) : (
+                <><Sparkles className="w-3.5 h-3.5" /> Analizar</>
+              )}
+            </button>
+          </div>
+          {(aiSummary || aiLoading) && (
+            <div className="px-5 pb-5">
+              {aiLoading && !aiSummary ? (
+                <div className="flex items-center gap-3 p-4 rounded-2xl bg-violet-500/5 border border-violet-500/10">
+                  <div className="flex gap-1">
+                    <span className="w-1.5 h-1.5 rounded-full bg-violet-400 animate-bounce" style={{animationDelay:"0ms"}} />
+                    <span className="w-1.5 h-1.5 rounded-full bg-violet-400 animate-bounce" style={{animationDelay:"150ms"}} />
+                    <span className="w-1.5 h-1.5 rounded-full bg-violet-400 animate-bounce" style={{animationDelay:"300ms"}} />
+                  </div>
+                  <span className="text-xs text-violet-400/60 font-bold">Gemini está analizando tus finanzas…</span>
+                </div>
+              ) : (
+                <div className="p-4 rounded-2xl bg-violet-500/5 border border-violet-500/10">
+                  <p className="text-sm text-white/80 leading-relaxed whitespace-pre-line">{aiSummary}</p>
+                  <p className="text-[9px] text-white/20 font-bold uppercase tracking-widest mt-3">Generado por Gemini · SmartFixOS IA</p>
+                </div>
+              )}
+            </div>
+          )}
+          {!aiSummary && !aiLoading && (
+            <div className="px-5 pb-5">
+              <p className="text-xs text-white/20 font-bold">Presiona "Analizar" para que la IA te explique cómo va el negocio en este período.</p>
+            </div>
+          )}
         </div>
 
         {/* ── CARD 6: Informe ── */}
