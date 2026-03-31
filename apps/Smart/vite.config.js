@@ -3,6 +3,9 @@ import react from '@vitejs/plugin-react'
 import path from 'path'
 import { VitePWA } from 'vite-plugin-pwa'
 
+// Prevent browserslist from traversing parent dirs (macOS SIP/TCC EPERM)
+process.env.BROWSERSLIST = 'chrome >= 87, safari >= 14, ios >= 14'
+
 // https://vite.dev/config/
 export default defineConfig({
   plugins: [
