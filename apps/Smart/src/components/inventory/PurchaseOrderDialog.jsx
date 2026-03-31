@@ -19,7 +19,11 @@ import {
   Truck,
   CheckCircle2,
   ChevronLeft,
-  ChevronRight } from
+  ChevronRight,
+  Link2,
+  Zap,
+  AlertCircle,
+  Wrench } from
 "lucide-react";
 
 const money = (n) => `$${Number(n || 0).toFixed(2)}`;
@@ -350,6 +354,33 @@ export default function PurchaseOrderDialog({
     }
   };
 
+  // ── Work Order helpers ─────────────────────────────────────────────────────
+  const WO_PARTS_STATUSES = ['waiting_parts', 'waiting_order', 'pending_order'];
+
+  const woLabel = (wo) => {
+    const num = wo.order_number || `#${String(wo.id).slice(-6).toUpperCase()}`;
+    const device = [wo.device_brand, wo.device_model].filter(Boolean).join(' ') || wo.device_type || '';
+    return { num, device };
+  };
+
+  const woStatusInfo = (status) => {
+    const map = {
+      waiting_parts:     { label: 'Esp. piezas',   color: 'text-amber-400 bg-amber-500/10 border-amber-500/20' },
+      waiting_order:     { label: 'Esp. orden',    color: 'text-amber-400 bg-amber-500/10 border-amber-500/20' },
+      pending_order:     { label: 'Pedido pend.',  color: 'text-orange-400 bg-orange-500/10 border-orange-500/20' },
+      in_progress:       { label: 'En progreso',   color: 'text-blue-400 bg-blue-500/10 border-blue-500/20' },
+      diagnosing:        { label: 'Diagnóstico',   color: 'text-purple-400 bg-purple-500/10 border-purple-500/20' },
+      awaiting_approval: { label: 'Esp. aprobación', color: 'text-cyan-400 bg-cyan-500/10 border-cyan-500/20' },
+      intake:            { label: 'Recibido',      color: 'text-white/40 bg-white/5 border-white/10' },
+    };
+    return map[status] || { label: status || '—', color: 'text-white/40 bg-white/5 border-white/10' };
+  };
+
+  // Órdenes que están esperando piezas — candidatas a sugerir
+  const suggestedWorkOrders = workOrders.filter(wo =>
+    WO_PARTS_STATUSES.includes(wo.status)
+  );
+
   // ── Step indicator ─────────────────────────────────────────────────────────
   const StepIndicator = () => {
     const steps = [
@@ -648,44 +679,130 @@ export default function PurchaseOrderDialog({
   // ── Step 4: Work Orders ────────────────────────────────────────────────────
   const Step4WorkOrders = () => (
     <div className="space-y-4">
-      <div className="bg-[#111114]/60 border border-white/[0.07] rounded-2xl p-3 max-h-56 overflow-y-auto">
-        <p className="text-[10px] font-black text-white/30 uppercase tracking-widest mb-2">Enlace por producto (opcional)</p>
-        {items.length === 0 ? (
-          <p className="text-xs text-white/30 py-4 text-center">No hay productos en la orden.</p>
-        ) : (
-          <table className="w-full text-[11px]">
-            <thead className="text-white/30">
-              <tr>
-                <th className="text-left pb-1">Producto</th>
-                <th className="text-center pb-1">Cant.</th>
-                <th className="text-left pb-1">Orden de trabajo</th>
-              </tr>
-            </thead>
-            <tbody className="text-white/70">
-              {items.map((it) => (
-                <tr key={it.product_id} className="border-t border-white/[0.04]">
-                  <td className="py-1.5 pr-2 max-w-[160px] truncate font-bold">{it.product_name}</td>
-                  <td className="py-1.5 text-center">{it.quantity}</td>
-                  <td className="py-1.5">
-                    <select
-                      value={it.work_order_id || ""}
-                      onChange={(e) => handleChangeItemWO(it.product_id, e.target.value)}
-                      className="w-full h-8 rounded-lg bg-[#111114]/60 border border-white/[0.08] text-white text-[11px] px-2 focus:outline-none focus:border-teal-500/50"
-                    >
-                      <option value="">Sin enlace</option>
-                      {workOrders.map((wo) => (
-                        <option key={wo.id} value={wo.id}>
-                          #{wo.id} · {wo.customer_name || "Cliente"}
-                        </option>
-                      ))}
-                    </select>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        )}
+
+      {/* ─ Sugerencias automáticas ─────────────────────────────────── */}
+      {suggestedWorkOrders.length > 0 && (
+        <div>
+          <div className="flex items-center gap-2 mb-2">
+            <Zap className="w-3.5 h-3.5 text-amber-400" />
+            <p className="text-[10px] font-black text-amber-400/80 uppercase tracking-widest">
+              Órdenes esperando piezas ({suggestedWorkOrders.length})
+            </p>
+          </div>
+          <div className="grid sm:grid-cols-2 gap-2 max-h-44 overflow-y-auto">
+            {suggestedWorkOrders.map((wo) => {
+              const { num, device } = woLabel(wo);
+              const { label: sLabel, color: sColor } = woStatusInfo(wo.status);
+              const isLinkedToAny = items.some(it => it.work_order_id === wo.id);
+              return (
+                <button
+                  key={wo.id}
+                  type="button"
+                  onClick={() => applyDefaultWorkOrderToItems(isLinkedToAny ? "" : wo.id)}
+                  className={`flex items-start gap-3 p-3 rounded-2xl border text-left transition-all ${
+                    isLinkedToAny
+                      ? 'bg-indigo-500/15 border-indigo-500/35 ring-1 ring-indigo-500/20'
+                      : 'bg-[#111114]/60 border-amber-500/20 hover:bg-amber-500/5 hover:border-amber-500/35'
+                  }`}
+                >
+                  <div className={`w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0 ${isLinkedToAny ? 'bg-indigo-500/20' : 'bg-amber-500/10'}`}>
+                    {isLinkedToAny
+                      ? <Link2 className="w-3.5 h-3.5 text-indigo-400" />
+                      : <AlertCircle className="w-3.5 h-3.5 text-amber-400" />
+                    }
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-1.5 flex-wrap">
+                      <span className="text-xs font-black text-white">{num}</span>
+                      <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded-full border ${sColor}`}>{sLabel}</span>
+                      {isLinkedToAny && <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-full border text-indigo-300 bg-indigo-500/10 border-indigo-500/20">Enlazada ✓</span>}
+                    </div>
+                    <p className="text-[11px] text-white/60 font-semibold truncate mt-0.5">{wo.customer_name || '—'}</p>
+                    {device && <p className="text-[10px] text-white/30 truncate">{device}</p>}
+                  </div>
+                </button>
+              );
+            })}
+          </div>
+          <p className="text-[10px] text-white/20 mt-1.5">Toca una tarjeta para enlazar/desenlazar todos los productos a esa orden.</p>
+        </div>
+      )}
+
+      {suggestedWorkOrders.length === 0 && (
+        <div className="flex items-center gap-3 p-3 bg-white/[0.02] border border-white/[0.05] rounded-2xl">
+          <Wrench className="w-4 h-4 text-white/20 flex-shrink-0" />
+          <p className="text-xs text-white/30">No hay órdenes de trabajo esperando piezas en este momento.</p>
+        </div>
+      )}
+
+      {/* ─ Aplicar a todos ─────────────────────────────────────────── */}
+      <div className="flex items-center gap-3 p-3 bg-[#111114]/60 border border-white/[0.07] rounded-2xl">
+        <Link2 className="w-4 h-4 text-white/30 flex-shrink-0" />
+        <div className="flex-1 min-w-0">
+          <p className="text-[10px] font-black text-white/40 uppercase tracking-wider mb-1">Aplicar a todos los productos</p>
+          <select
+            value={defaultWorkOrderId}
+            onChange={(e) => {
+              setDefaultWorkOrderId(e.target.value);
+              applyDefaultWorkOrderToItems(e.target.value);
+            }}
+            className="w-full h-8 rounded-xl bg-black/30 border border-white/[0.08] text-white text-xs px-2 focus:outline-none focus:border-teal-500/50"
+          >
+            <option value="">Sin enlace global</option>
+            {workOrders.map((wo) => {
+              const { num, device } = woLabel(wo);
+              const { label: sLabel } = woStatusInfo(wo.status);
+              return (
+                <option key={wo.id} value={wo.id}>
+                  {num} · {wo.customer_name || 'Cliente'}{device ? ` · ${device}` : ''} [{sLabel}]
+                </option>
+              );
+            })}
+          </select>
+        </div>
       </div>
+
+      {/* ─ Por producto ────────────────────────────────────────────── */}
+      {items.length > 0 && (
+        <div>
+          <p className="text-[10px] font-black text-white/30 uppercase tracking-widest mb-2">Enlace individual por producto</p>
+          <div className="space-y-2 max-h-52 overflow-y-auto">
+            {items.map((it) => {
+              const linkedWO = workOrders.find(wo => wo.id === it.work_order_id);
+              const { num: linkedNum } = linkedWO ? woLabel(linkedWO) : {};
+              const { color: linkedColor } = linkedWO ? woStatusInfo(linkedWO.status) : {};
+              return (
+                <div key={it.product_id} className="flex items-center gap-3 p-3 bg-[#111114]/60 border border-white/[0.06] rounded-2xl">
+                  <div className="flex-1 min-w-0">
+                    <p className="text-xs font-bold text-white truncate">{it.product_name}</p>
+                    <p className="text-[10px] text-white/30">Cant: {it.quantity}</p>
+                  </div>
+                  {it.work_order_id && linkedWO ? (
+                    <span className={`text-[9px] font-bold px-2 py-0.5 rounded-full border flex-shrink-0 ${linkedColor}`}>
+                      {linkedNum}
+                    </span>
+                  ) : null}
+                  <select
+                    value={it.work_order_id || ""}
+                    onChange={(e) => handleChangeItemWO(it.product_id, e.target.value)}
+                    className="h-8 rounded-xl bg-black/30 border border-white/[0.08] text-white text-[11px] px-2 focus:outline-none focus:border-teal-500/50 flex-shrink-0 max-w-[180px]"
+                  >
+                    <option value="">Sin enlace</option>
+                    {workOrders.map((wo) => {
+                      const { num, device } = woLabel(wo);
+                      return (
+                        <option key={wo.id} value={wo.id}>
+                          {num} · {wo.customer_name || 'Cliente'}{device ? ` · ${device}` : ''}
+                        </option>
+                      );
+                    })}
+                  </select>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
     </div>
   );
 
