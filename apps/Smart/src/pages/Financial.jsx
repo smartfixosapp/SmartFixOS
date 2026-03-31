@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import {
-  DollarSign, TrendingUp, Wallet, Receipt,
+  DollarSign, TrendingUp, TrendingDown, Wallet, Receipt,
   CreditCard, Landmark, RefreshCw, Plus, Target, PieChart,
   Edit2, Trash2, Save, Calendar, Download, Filter, X, AlertTriangle
 } from "lucide-react";
@@ -176,7 +176,6 @@ export default function Financial() {
   const [expenseDefaultCategory, setExpenseDefaultCategory] = useState(null);
   const [showTimeTrackingModal, setShowTimeTrackingModal] = useState(false);
   const [showMonthlyReport, setShowMonthlyReport] = useState(false);
-  const [activeTab, setActiveTab] = useState("sales");
   const [fixedExpenses, setFixedExpenses] = useState([]);
   const [showFixedExpenseDialog, setShowFixedExpenseDialog] = useState(false);
   const [editingExpense, setEditingExpense] = useState(null);
@@ -191,6 +190,8 @@ export default function Financial() {
   const [editingTransaction, setEditingTransaction] = useState(null);
   const [showEditExpenseDialog, setShowEditExpenseDialog] = useState(false);
   const [reportsView, setReportsView] = useState("enhanced");
+  const [movFilter, setMovFilter] = useState("all"); // "all" | "income" | "expense"
+  const [activeTab, setActiveTab] = useState("resumen");
 
   const isFetching = useRef(false);
   const recentFixedExpenseMutationAt = useRef(0);
@@ -473,6 +474,45 @@ export default function Financial() {
       .filter(m => m.count > 0)
       .sort((a, b) => b.total - a.total);
   }, [filteredSales]);
+
+  const CATEGORY_LABELS = {
+    rent: "Renta", utilities: "Utilidades", supplies: "Suministros",
+    payroll: "Nómina", parts: "Piezas", maintenance: "Mantenimiento",
+    insurance: "Seguros", taxes: "Impuestos", other_expense: "Otros Gastos",
+    repair_payment: "Cobro de Reparación", refund: "Devolución",
+    cash_movement: "Movimiento de Caja"
+  };
+
+  const combinedMovements = React.useMemo(() => {
+    const income = (Array.isArray(filteredSales) ? filteredSales : []).map(s => ({
+      id: `sale-${s.id}`,
+      kind: "income",
+      date: getEntityDate(s),
+      title: s.customer_name || "Consumidor Final",
+      subtitle: `#${s.sale_number || '---'} · ${s.items?.length || 0} artículo${(s.items?.length || 0) !== 1 ? 's' : ''}`,
+      amount: s.total || 0,
+      method: s.payment_method,
+      raw: s,
+      canEdit: false
+    }));
+    const expns = (Array.isArray(filteredExpenses) ? filteredExpenses : []).map(e => ({
+      id: `expense-${e.id}`,
+      kind: "expense",
+      date: getEntityDate(e),
+      title: e.description || "Gasto",
+      subtitle: CATEGORY_LABELS[e.category] || e.category || "Misceláneo",
+      amount: getExpenseMagnitude(e.amount),
+      method: e.payment_method || "cash",
+      raw: e,
+      canEdit: e._source === "transaction",
+      origId: e.id
+    }));
+    return [...income, ...expns].sort((a, b) => {
+      if (!a.date) return 1;
+      if (!b.date) return -1;
+      return new Date(b.date) - new Date(a.date);
+    });
+  }, [filteredSales, filteredExpenses]);
 
   const todayStart = startOfDay(new Date());
   const todayEnd = endOfDay(new Date());
@@ -968,52 +1008,39 @@ export default function Financial() {
         </div>
 
         <div className="flex flex-wrap items-center gap-3">
-          <Button 
-            onClick={handleManualRefresh} 
-            disabled={loading} 
+          <Button
+            onClick={handleManualRefresh}
+            disabled={loading}
             className="rounded-2xl bg-white/5 border border-white/10 hover:bg-white/10 text-white h-12 px-6 transition-all active:scale-95"
           >
             <RefreshCw className={`w-4 h-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
             <span className="font-bold">Actualizar</span>
           </Button>
-
-          <Button 
-            onClick={exportToCSV} 
+          <Button
+            onClick={exportToCSV}
             className="rounded-2xl bg-gradient-to-r from-indigo-600 to-blue-600 hover:from-indigo-500 hover:to-blue-500 text-white h-12 px-6 shadow-lg shadow-blue-900/20 transition-all active:scale-95"
           >
             <Download className="w-4 h-4 mr-2" />
             <span className="font-bold">Exportar CSV</span>
           </Button>
-
-          <div className="h-8 w-[1px] bg-white/10 mx-2 hidden md:block" />
-
-          <Button 
-            onClick={() => setShowTimeTrackingModal(true)} 
-            className="rounded-2xl bg-gradient-to-r from-teal-600 to-emerald-600 hover:from-teal-500 hover:to-emerald-500 text-white h-12 px-6 shadow-lg shadow-teal-900/20 transition-all active:scale-95 group"
+          <Button
+            onClick={() => { setExpenseDefaultCategory(null); setShowExpenseDialog(true); }}
+            className="rounded-2xl bg-white/5 border border-orange-500/30 hover:bg-orange-600 hover:border-orange-500 text-white h-12 px-6 transition-all active:scale-95"
           >
-            <Wallet className="w-4 h-4 mr-2" />
-            <span className="font-bold">Pagar Nómina</span>
-          </Button>
-
-          <Button 
-            onClick={() => { setExpenseDefaultCategory(null); setShowExpenseDialog(true); }} 
-            className="rounded-2xl bg-white/5 border border-orange-500/30 hover:bg-orange-600 hover:border-orange-500 text-white h-12 px-6 transition-all active:scale-95 group"
-          >
-            <Plus className="w-4 h-4 mr-2 text-orange-400 group-hover:text-white" />
+            <Plus className="w-4 h-4 mr-2 text-orange-400" />
             <span className="font-bold">Nuevo Gasto</span>
           </Button>
-
           {drawerOpen ? (
-            <Button 
-              onClick={() => setShowCloseDrawer(true)} 
+            <Button
+              onClick={() => setShowCloseDrawer(true)}
               className="rounded-2xl bg-red-500/10 border border-red-500/30 hover:bg-red-600 text-red-400 hover:text-white h-12 px-6 transition-all active:scale-95"
             >
               <Wallet className="w-4 h-4 mr-2" />
               <span className="font-bold">Cerrar Caja</span>
             </Button>
           ) : (
-            <Button 
-              onClick={() => setShowOpenDrawer(true)} 
+            <Button
+              onClick={() => setShowOpenDrawer(true)}
               className="rounded-2xl bg-emerald-500/10 border border-emerald-500/30 hover:bg-emerald-600 text-emerald-400 hover:text-white h-12 px-6 transition-all active:scale-95"
             >
               <Wallet className="w-4 h-4 mr-2" />
@@ -1022,56 +1049,56 @@ export default function Financial() {
           )}
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
-          <StatCard 
-            title="Ingresos" 
-            value={`$${totalRevenue.toFixed(2)}`} 
-            subtitle="Recaudación bruta"
-            icon={TrendingUp} 
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6">
+          <StatCard
+            title="Lo que Entró"
+            value={`$${totalRevenue.toFixed(2)}`}
+            subtitle={`${filteredSales.length} venta${filteredSales.length !== 1 ? 's' : ''} en el período`}
+            icon={TrendingUp}
             color="green"
-            onClick={() => openTransactionsModal(filteredSales, "Todas las Transacciones")}
+            onClick={() => { setActiveTab("movimientos"); setMovFilter("income"); }}
           />
-          <StatCard 
-            title="Con IVU" 
-            value={`$${totalSalesWithTax.toFixed(2)}`} 
-            subtitle="Ventas grabadas"
-            icon={Receipt} 
-            color="blue"
-            onClick={() => openTransactionsModal(salesWithTax, "Ventas con IVU")}
+          <StatCard
+            title="Lo que Salió"
+            value={`$${totalExpenses.toFixed(2)}`}
+            subtitle={`${filteredExpenses.length} gasto${filteredExpenses.length !== 1 ? 's' : ''} en el período`}
+            icon={Receipt}
+            color="red"
+            onClick={() => { setActiveTab("movimientos"); setMovFilter("expense"); }}
           />
-          <StatCard 
-            title="Sin IVU" 
-            value={`$${totalSalesWithoutTax.toFixed(2)}`} 
-            subtitle="Ventas exentas"
-            icon={Receipt} 
-            color="blue"
-            onClick={() => openTransactionsModal(salesWithoutTax, "Ventas sin IVU")}
-          />
-          <StatCard 
-            title="IVU" 
-            value={`$${filteredSales.reduce((sum, s) => sum + (s.tax_amount || 0), 0).toFixed(2)}`} 
-            subtitle="Impuesto total"
-            icon={Landmark} 
-            color="blue"
-            onClick={() => openTransactionsModal(filteredSales, "Desglose de IVU")}
+          <StatCard
+            title={netProfit >= 0 ? "Ganancia Neta" : "Déficit"}
+            value={`${netProfit >= 0 ? '' : '-'}$${Math.abs(netProfit).toFixed(2)}`}
+            subtitle={netProfit >= 0 ? "¡Estás en números verdes! 🎉" : "Los gastos superan los ingresos"}
+            icon={DollarSign}
+            color={netProfit >= 0 ? "green" : "red"}
           />
         </div>
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full space-y-8">
           <div className="flex justify-center px-4 -mt-4">
-            <TabsList className="bg-white/5 border border-white/10 backdrop-blur-xl p-1 rounded-[22px] h-auto flex w-full max-w-[720px] gap-1 shadow-2xl">
+            <TabsList className="bg-white/5 border border-white/10 backdrop-blur-xl p-1 rounded-[22px] h-auto flex w-full max-w-[700px] gap-1 shadow-2xl">
               <TabsTrigger
-                value="sales"
-                className="flex-1 rounded-[18px] px-2 sm:px-6 py-2.5 data-[state=active]:bg-gradient-to-r data-[state=active]:from-cyan-600 data-[state=active]:to-blue-600 data-[state=active]:text-white data-[state=active]:shadow-lg data-[state=active]:shadow-cyan-600/20 transition-all duration-300"
+                value="resumen"
+                className="flex-1 rounded-[18px] px-2 sm:px-4 py-2.5 data-[state=active]:bg-gradient-to-r data-[state=active]:from-emerald-600 data-[state=active]:to-teal-600 data-[state=active]:text-white data-[state=active]:shadow-lg transition-all duration-300"
+              >
+                <div className="flex items-center gap-1.5">
+                  <DollarSign className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                  <span className="font-bold text-[10px] sm:text-sm">Resumen</span>
+                </div>
+              </TabsTrigger>
+              <TabsTrigger
+                value="movimientos"
+                className="flex-1 rounded-[18px] px-2 sm:px-4 py-2.5 data-[state=active]:bg-gradient-to-r data-[state=active]:from-cyan-600 data-[state=active]:to-blue-600 data-[state=active]:text-white data-[state=active]:shadow-lg transition-all duration-300"
               >
                 <div className="flex items-center gap-1.5">
                   <Receipt className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-                  <span className="font-bold text-[10px] sm:text-sm">Ventas</span>
+                  <span className="font-bold text-[10px] sm:text-sm">Movimientos</span>
                 </div>
               </TabsTrigger>
               <TabsTrigger
                 value="metodos"
-                className="flex-1 rounded-[18px] px-2 sm:px-6 py-2.5 data-[state=active]:bg-gradient-to-r data-[state=active]:from-emerald-600 data-[state=active]:to-cyan-600 data-[state=active]:text-white data-[state=active]:shadow-lg data-[state=active]:shadow-emerald-600/20 transition-all duration-300"
+                className="flex-1 rounded-[18px] px-2 sm:px-4 py-2.5 data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-600 data-[state=active]:to-violet-600 data-[state=active]:text-white data-[state=active]:shadow-lg transition-all duration-300"
               >
                 <div className="flex items-center gap-1.5">
                   <CreditCard className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
@@ -1079,94 +1106,244 @@ export default function Financial() {
                 </div>
               </TabsTrigger>
               <TabsTrigger
-                value="allocations"
-                className="flex-1 rounded-[18px] px-2 sm:px-6 py-2.5 data-[state=active]:bg-gradient-to-r data-[state=active]:from-cyan-600 data-[state=active]:to-blue-600 data-[state=active]:text-white data-[state=active]:shadow-lg data-[state=active]:shadow-cyan-600/20 transition-all duration-300"
+                value="compromisos"
+                className="flex-1 rounded-[18px] px-2 sm:px-4 py-2.5 data-[state=active]:bg-gradient-to-r data-[state=active]:from-amber-600 data-[state=active]:to-orange-600 data-[state=active]:text-white data-[state=active]:shadow-lg transition-all duration-300"
               >
                 <div className="flex items-center gap-1.5">
-                  <Target className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-                  <span className="font-bold text-[10px] sm:text-sm">Distribución</span>
+                  <Calendar className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                  <span className="font-bold text-[10px] sm:text-sm">Compromisos</span>
                 </div>
               </TabsTrigger>
               <TabsTrigger
-                value="expenses"
-                className="flex-1 rounded-[18px] px-2 sm:px-6 py-2.5 data-[state=active]:bg-gradient-to-r data-[state=active]:from-red-600 data-[state=active]:to-rose-600 data-[state=active]:text-white data-[state=active]:shadow-lg data-[state=active]:shadow-red-600/20 transition-all duration-300"
-              >
-                <div className="flex items-center gap-1.5">
-                  <TrendingUp className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-                  <span className="font-bold text-[10px] sm:text-sm">Gastos</span>
-                </div>
-              </TabsTrigger>
-              <TabsTrigger
-                value="reportes"
-                className="flex-1 rounded-[18px] px-2 sm:px-6 py-2.5 data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-600 data-[state=active]:to-indigo-600 data-[state=active]:text-white data-[state=active]:shadow-lg data-[state=active]:shadow-purple-600/20 transition-all duration-300"
+                value="informe"
+                className="flex-1 rounded-[18px] px-2 sm:px-4 py-2.5 data-[state=active]:bg-gradient-to-r data-[state=active]:from-indigo-600 data-[state=active]:to-blue-700 data-[state=active]:text-white data-[state=active]:shadow-lg transition-all duration-300"
               >
                 <div className="flex items-center gap-1.5">
                   <PieChart className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-                  <span className="font-bold text-[10px] sm:text-sm">Informes</span>
+                  <span className="font-bold text-[10px] sm:text-sm">Informe</span>
                 </div>
               </TabsTrigger>
             </TabsList>
           </div>
 
-          <TabsContent value="sales">
-            <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-[32px] overflow-hidden shadow-2xl">
-              <div className="p-4 sm:p-8 border-b border-white/5 flex items-center justify-between">
-                <div>
-                  <h3 className="text-xl font-black text-white tracking-tight">Registro de Ventas</h3>
-                  <p className="text-xs text-white/40 uppercase tracking-widest font-bold">Transacciones liquidadas</p>
+          {/* ─── RESUMEN ─── */}
+          <TabsContent value="resumen" className="space-y-6">
+            {/* Caja Status */}
+            <div className={`relative overflow-hidden rounded-[32px] border p-6 sm:p-8 ${
+              drawerOpen
+                ? "bg-emerald-500/10 border-emerald-500/30 shadow-[0_8px_32px_rgba(16,185,129,0.15)]"
+                : "bg-white/5 border-white/10"
+            }`}>
+              <div className="flex items-center justify-between gap-4">
+                <div className="flex items-center gap-4">
+                  <div className={`w-14 h-14 rounded-2xl flex items-center justify-center border ${
+                    drawerOpen
+                      ? "bg-emerald-500/20 border-emerald-500/40 text-emerald-400"
+                      : "bg-white/5 border-white/10 text-white/30"
+                  }`}>
+                    <Wallet className="w-7 h-7" />
+                  </div>
+                  <div>
+                    <p className="text-[10px] font-black uppercase tracking-widest text-white/40">Caja Registradora</p>
+                    <p className={`text-2xl font-black tracking-tight ${drawerOpen ? "text-emerald-400" : "text-white/50"}`}>
+                      {drawerOpen ? "🟢 Abierta" : "⚫ Cerrada"}
+                    </p>
+                    {drawerOpen && currentDrawer && (
+                      <p className="text-xs text-emerald-300/60 font-bold mt-0.5">
+                        Abierta por {currentDrawer.opened_by || "sistema"} · Balance inicial ${(currentDrawer.opening_balance || 0).toFixed(2)}
+                      </p>
+                    )}
+                  </div>
                 </div>
-                <div className="px-6 py-2 bg-emerald-500/10 border border-emerald-500/20 rounded-2xl">
-                  <p className="text-[10px] text-emerald-400 font-black uppercase tracking-widest text-center">Total Periodo</p>
-                  <p className="text-2xl font-black text-emerald-400">${totalRevenue.toFixed(2)}</p>
+                <div className="flex flex-col sm:flex-row gap-2">
+                  {drawerOpen ? (
+                    <Button
+                      onClick={() => setShowCloseDrawer(true)}
+                      className="rounded-2xl bg-red-500/10 border border-red-500/30 hover:bg-red-600 text-red-400 hover:text-white h-12 px-5 transition-all"
+                    >
+                      <Wallet className="w-4 h-4 mr-2" />
+                      <span className="font-bold">Cerrar Caja</span>
+                    </Button>
+                  ) : (
+                    <Button
+                      onClick={() => setShowOpenDrawer(true)}
+                      className="rounded-2xl bg-emerald-500/10 border border-emerald-500/30 hover:bg-emerald-600 text-emerald-400 hover:text-white h-12 px-5 transition-all"
+                    >
+                      <Wallet className="w-4 h-4 mr-2" />
+                      <span className="font-bold">Abrir Caja</span>
+                    </Button>
+                  )}
+                  <Button
+                    onClick={() => { setExpenseDefaultCategory(null); setShowExpenseDialog(true); }}
+                    className="rounded-2xl bg-white/5 border border-orange-500/30 hover:bg-orange-600 hover:border-orange-500 text-white h-12 px-5 transition-all"
+                  >
+                    <Plus className="w-4 h-4 mr-2 text-orange-400" />
+                    <span className="font-bold">Nuevo Gasto</span>
+                  </Button>
                 </div>
               </div>
-              <div className="p-4 sm:p-6 lg:p-8">
+            </div>
+
+            {/* Últimos movimientos */}
+            <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-[32px] overflow-hidden">
+              <div className="p-5 sm:p-7 border-b border-white/5 flex items-center justify-between">
+                <div>
+                  <h3 className="text-lg font-black text-white tracking-tight">Últimos Movimientos</h3>
+                  <p className="text-xs text-white/40 uppercase tracking-widest font-bold mt-0.5">Entradas y salidas recientes</p>
+                </div>
+                <button
+                  onClick={() => setActiveTab("movimientos")}
+                  className="text-xs font-black text-cyan-400 hover:text-cyan-300 uppercase tracking-widest transition-colors"
+                >
+                  Ver todos →
+                </button>
+              </div>
+              <div className="p-4 sm:p-6">
                 {loading ? (
-                  <div className="p-20 text-center">
-                    <RefreshCw className="w-12 h-12 animate-spin mx-auto mb-4 text-cyan-500/50" />
-                    <p className="text-white/40 font-bold uppercase tracking-widest text-xs">Sincronizando...</p>
+                  <div className="py-10 text-center">
+                    <RefreshCw className="w-8 h-8 animate-spin mx-auto mb-3 text-white/20" />
+                    <p className="text-xs text-white/30 font-bold uppercase tracking-widest">Cargando...</p>
                   </div>
-                ) : filteredSales.length === 0 ? (
-                  <div className="p-20 text-center">
-                    <div className="w-20 h-20 bg-white/5 rounded-full flex items-center justify-center mx-auto mb-6">
-                      <Receipt className="w-10 h-10 text-white/20" />
-                    </div>
-                    <p className="text-xl font-black text-white/40 tracking-tight">Sin Ventas</p>
-                    <p className="text-sm text-white/20">No se encontraron registros en este rango.</p>
+                ) : combinedMovements.length === 0 ? (
+                  <div className="py-10 text-center">
+                    <p className="text-white/30 font-bold">Sin movimientos en este período</p>
                   </div>
                 ) : (
-                  <div className="space-y-3 max-h-[600px] overflow-y-auto pr-2 custom-scrollbar">
-                    {filteredSales.map((s) => {
-                      const Icon = paymentMethodIcons[s.payment_method] || DollarSign;
-                      return (
-                        <div key={s.id} className="group p-5 bg-white/[0.03] hover:bg-white/[0.06] rounded-[24px] border border-white/5 hover:border-white/10 transition-all duration-300">
-                          <div className="flex items-center justify-between gap-6">
-                            <div className="flex items-center gap-5">
-                              <div className="w-12 h-12 rounded-[18px] bg-black/40 border border-white/5 flex items-center justify-center text-white/60 group-hover:text-cyan-400 group-hover:border-cyan-500/30 transition-all">
-                                <Icon className="w-5 h-5" />
-                              </div>
-                              <div className="min-w-0">
-                                <div className="flex items-center gap-2 mb-1">
-                                  <span className="text-[10px] font-black text-cyan-400 bg-cyan-400/10 px-2 py-0.5 rounded-lg border border-cyan-400/20 uppercase">#{s.sale_number}</span>
-                                  <span className="text-[10px] font-bold text-white/30 uppercase tracking-widest">
-                                    {getEntityDate(s) ? format(new Date(getEntityDate(s)), 'dd MMM, HH:mm', { locale: es }) : "-"}
-                                  </span>
-                                </div>
-                                <h4 className="text-white font-bold truncate tracking-tight">{s.customer_name || 'Consumidor Final'}</h4>
-                                <p className="text-xs text-white/40 font-medium">{s.items?.length || 0} productos liquidados</p>
-                              </div>
+                  <div className="space-y-2">
+                    {combinedMovements.slice(0, 8).map((m) => (
+                      <div key={m.id} className="flex items-center gap-4 p-4 rounded-[20px] bg-white/[0.02] hover:bg-white/[0.05] transition-all">
+                        <div className={`w-10 h-10 rounded-2xl flex items-center justify-center flex-shrink-0 ${
+                          m.kind === "income"
+                            ? "bg-emerald-500/15 border border-emerald-500/25 text-emerald-400"
+                            : "bg-red-500/15 border border-red-500/25 text-red-400"
+                        }`}>
+                          {m.kind === "income" ? <TrendingUp className="w-4 h-4" /> : <TrendingDown className="w-4 h-4" />}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-white font-bold text-sm truncate">{m.title}</p>
+                          <p className="text-xs text-white/35 font-medium truncate">{m.subtitle}</p>
+                        </div>
+                        <div className="text-right flex-shrink-0">
+                          <p className={`text-lg font-black tracking-tight ${m.kind === "income" ? "text-emerald-400" : "text-red-400"}`}>
+                            {m.kind === "income" ? "+" : "-"}${m.amount.toFixed(2)}
+                          </p>
+                          <p className="text-[10px] text-white/25 font-bold">
+                            {m.date ? format(new Date(m.date), "dd MMM HH:mm", { locale: es }) : "—"}
+                          </p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+          </TabsContent>
+
+          {/* ─── MOVIMIENTOS ─── */}
+          <TabsContent value="movimientos" className="space-y-6">
+            {/* Filter pills */}
+            <div className="flex gap-2 p-1 bg-white/5 rounded-[20px] border border-white/10 w-fit">
+              {[
+                { id: "all", label: "Todos", color: "from-cyan-600 to-blue-600" },
+                { id: "income", label: "✅ Entradas", color: "from-emerald-600 to-green-600" },
+                { id: "expense", label: "🔴 Salidas", color: "from-red-600 to-rose-600" },
+              ].map(f => (
+                <button
+                  key={f.id}
+                  onClick={() => setMovFilter(f.id)}
+                  className={`px-5 py-2 rounded-[16px] text-xs font-black transition-all duration-300 ${
+                    movFilter === f.id
+                      ? `bg-gradient-to-r ${f.color} text-white shadow-lg scale-105`
+                      : "text-white/40 hover:text-white/70"
+                  }`}
+                >
+                  {f.label}
+                </button>
+              ))}
+            </div>
+
+            <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-[32px] overflow-hidden">
+              <div className="p-5 sm:p-7 border-b border-white/5 flex items-center justify-between">
+                <div>
+                  <h3 className="text-xl font-black text-white tracking-tight">
+                    {movFilter === "all" ? "Todos los Movimientos" : movFilter === "income" ? "Entradas de Dinero" : "Salidas de Dinero"}
+                  </h3>
+                  <p className="text-xs text-white/40 uppercase tracking-widest font-bold mt-0.5">
+                    {combinedMovements.filter(m => movFilter === "all" || m.kind === movFilter).length} registros
+                  </p>
+                </div>
+                <div className={`px-5 py-2 rounded-2xl border text-center ${
+                  movFilter === "expense" ? "bg-red-500/10 border-red-500/20" : "bg-emerald-500/10 border-emerald-500/20"
+                }`}>
+                  <p className="text-[10px] font-black uppercase tracking-widest text-white/40">
+                    {movFilter === "expense" ? "Total Salidas" : "Total Entradas"}
+                  </p>
+                  <p className={`text-2xl font-black ${movFilter === "expense" ? "text-red-400" : "text-emerald-400"}`}>
+                    {movFilter === "expense"
+                      ? `-$${totalExpenses.toFixed(2)}`
+                      : `$${totalRevenue.toFixed(2)}`}
+                  </p>
+                </div>
+              </div>
+              <div className="p-4 sm:p-6">
+                {loading ? (
+                  <div className="py-16 text-center">
+                    <RefreshCw className="w-10 h-10 animate-spin mx-auto mb-4 text-white/20" />
+                    <p className="text-xs text-white/30 font-bold uppercase tracking-widest">Cargando...</p>
+                  </div>
+                ) : combinedMovements.filter(m => movFilter === "all" || m.kind === movFilter).length === 0 ? (
+                  <div className="py-16 text-center">
+                    <p className="text-white/30 font-bold text-lg">Sin movimientos</p>
+                    <p className="text-white/20 text-sm mt-1">No hay registros para este filtro y período</p>
+                  </div>
+                ) : (
+                  <div className="space-y-2 max-h-[700px] overflow-y-auto pr-1 custom-scrollbar">
+                    {combinedMovements
+                      .filter(m => movFilter === "all" || m.kind === movFilter)
+                      .map((m) => (
+                        <div key={m.id} className="group flex items-center gap-4 p-4 rounded-[20px] bg-white/[0.02] hover:bg-white/[0.05] border border-white/5 hover:border-white/10 transition-all">
+                          <div className={`w-11 h-11 rounded-2xl flex items-center justify-center flex-shrink-0 ${
+                            m.kind === "income"
+                              ? "bg-emerald-500/15 border border-emerald-500/25 text-emerald-400"
+                              : "bg-red-500/15 border border-red-500/25 text-red-400"
+                          }`}>
+                            {m.kind === "income" ? <TrendingUp className="w-5 h-5" /> : <TrendingDown className="w-5 h-5" />}
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2 mb-0.5">
+                              <span className={`text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded-lg border ${
+                                m.kind === "income"
+                                  ? "text-emerald-400 bg-emerald-400/10 border-emerald-400/20"
+                                  : "text-red-400 bg-red-400/10 border-red-400/20"
+                              }`}>
+                                {m.kind === "income" ? "Ingreso" : "Gasto"}
+                              </span>
+                              <span className="text-[10px] text-white/25 font-bold">
+                                {m.date ? format(new Date(m.date), "dd MMM yyyy · HH:mm", { locale: es }) : "—"}
+                              </span>
                             </div>
-                            <div className="text-right">
-                              <p className="text-2xl font-black text-emerald-400 tracking-tighter">${(s.total || 0).toFixed(2)}</p>
-                              <div className="flex items-center justify-end gap-1.5 mt-1">
-                                <div className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
-                                <span className="text-[9px] font-black text-white/30 uppercase tracking-widest">Cobrado</span>
+                            <p className="text-white font-bold text-sm truncate">{m.title}</p>
+                            <p className="text-xs text-white/35 truncate">{m.subtitle}</p>
+                          </div>
+                          <div className="flex items-center gap-3">
+                            <p className={`text-xl font-black tracking-tight ${m.kind === "income" ? "text-emerald-400" : "text-red-400"}`}>
+                              {m.kind === "income" ? "+" : "-"}${m.amount.toFixed(2)}
+                            </p>
+                            {m.canEdit && (
+                              <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                <Button size="icon" onClick={() => handleEditExpense(m.raw)}
+                                  className="w-8 h-8 rounded-lg bg-white/5 hover:bg-cyan-500/20 text-white/30 hover:text-cyan-400">
+                                  <Edit2 className="w-3.5 h-3.5" />
+                                </Button>
+                                <Button size="icon" onClick={() => handleDeleteExpense(m.origId)}
+                                  className="w-8 h-8 rounded-lg bg-white/5 hover:bg-red-500/20 text-white/30 hover:text-red-400">
+                                  <Trash2 className="w-3.5 h-3.5" />
+                                </Button>
                               </div>
-                            </div>
+                            )}
                           </div>
                         </div>
-                      );
-                    })}
+                      ))}
                   </div>
                 )}
               </div>
@@ -1176,26 +1353,22 @@ export default function Financial() {
           {/* ─── MÉTODOS DE PAGO ─── */}
           <TabsContent value="metodos">
             <div className="space-y-6">
-              {/* Header */}
               <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-[32px] p-6 sm:p-8">
                 <div className="flex items-center justify-between mb-8">
                   <div>
-                    <h3 className="text-xl font-black text-white tracking-tight">Métodos de Pago</h3>
+                    <h3 className="text-xl font-black text-white tracking-tight">¿Cómo te Pagaron?</h3>
                     <p className="text-xs text-white/40 uppercase tracking-widest font-bold mt-0.5">
                       {filteredSales.length} ventas · ${totalRevenue.toFixed(2)} total
                     </p>
                   </div>
-                  <div className="w-12 h-12 rounded-2xl bg-emerald-500/20 border border-emerald-500/30 flex items-center justify-center">
-                    <CreditCard className="w-6 h-6 text-emerald-400" />
+                  <div className="w-12 h-12 rounded-2xl bg-purple-500/20 border border-purple-500/30 flex items-center justify-center">
+                    <CreditCard className="w-6 h-6 text-purple-400" />
                   </div>
                 </div>
-
                 {paymentMethodBreakdown.length === 0 ? (
                   <div className="py-16 text-center">
-                    <div className="w-20 h-20 bg-white/5 rounded-full flex items-center justify-center mx-auto mb-6">
-                      <CreditCard className="w-10 h-10 text-white/20" />
-                    </div>
-                    <p className="text-white/40 font-bold">Sin ventas en este periodo</p>
+                    <CreditCard className="w-12 h-12 text-white/15 mx-auto mb-4" />
+                    <p className="text-white/30 font-bold">Sin ventas en este período</p>
                   </div>
                 ) : (
                   <div className="space-y-5">
@@ -1214,24 +1387,18 @@ export default function Financial() {
                             <p className="text-xs text-white/40 font-bold">{m.pct.toFixed(1)}% del total</p>
                           </div>
                         </div>
-                        {/* Progress bar */}
                         <div className="w-full bg-white/5 rounded-full h-2.5 overflow-hidden">
-                          <div
-                            className={`h-full rounded-full ${m.colorBar} transition-all duration-700`}
-                            style={{ width: `${m.pct}%` }}
-                          />
+                          <div className={`h-full rounded-full ${m.colorBar} transition-all duration-700`} style={{ width: `${m.pct}%` }} />
                         </div>
                       </div>
                     ))}
                   </div>
                 )}
               </div>
-
-              {/* Donut visual summary */}
               {paymentMethodBreakdown.length > 0 && (
                 <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-[32px] p-6 sm:p-8">
-                  <h4 className="text-sm font-black text-white/60 uppercase tracking-widest mb-6">Resumen Visual</h4>
-                  <div className="flex flex-wrap gap-3">
+                  <h4 className="text-sm font-black text-white/50 uppercase tracking-widest mb-5">Distribución visual</h4>
+                  <div className="flex flex-wrap gap-3 mb-5">
                     {paymentMethodBreakdown.map((m) => (
                       <div key={m.key} className={`flex items-center gap-2 px-4 py-2.5 rounded-2xl border ${m.colorBg}`}>
                         <span>{m.emoji}</span>
@@ -1240,15 +1407,9 @@ export default function Financial() {
                       </div>
                     ))}
                   </div>
-                  {/* Stacked bar */}
-                  <div className="mt-5 w-full h-4 rounded-full overflow-hidden flex">
+                  <div className="w-full h-4 rounded-full overflow-hidden flex">
                     {paymentMethodBreakdown.map((m) => (
-                      <div
-                        key={m.key}
-                        className={`h-full ${m.colorBar} transition-all duration-700`}
-                        style={{ width: `${m.pct}%` }}
-                        title={`${m.label}: ${m.pct.toFixed(1)}%`}
-                      />
+                      <div key={m.key} className={`h-full ${m.colorBar}`} style={{ width: `${m.pct}%` }} title={`${m.label}: ${m.pct.toFixed(1)}%`} />
                     ))}
                   </div>
                 </div>
@@ -1256,44 +1417,40 @@ export default function Financial() {
             </div>
           </TabsContent>
 
-          <TabsContent value="allocations" className="space-y-6">
-            <ErrorBoundary><OneTimeExpensesWidget /></ErrorBoundary>
-
-            <div className="relative overflow-hidden bg-gradient-to-br from-indigo-500/10 to-cyan-500/10 border border-white/10 rounded-[32px] p-8 shadow-xl">
-              <div className="absolute -right-10 -top-10 w-40 h-40 bg-indigo-500/10 rounded-full blur-[60px]" />
-              
-              <div className="relative flex flex-col md:flex-row md:items-center justify-between gap-8">
-                <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 rounded-2xl bg-indigo-500/20 flex items-center justify-center border border-indigo-500/30">
-                    <Calendar className="w-6 h-6 text-indigo-400" />
-                  </div>
-                  <div>
-                    <h3 className="text-xl font-black text-white tracking-tight">Análisis de Utilidad</h3>
-                    <p className="text-xs text-white/40 uppercase tracking-widest font-bold">Proyección {format(new Date(), "MMMM yyyy", { locale: es })}</p>
-                  </div>
+          {/* ─── COMPROMISOS ─── */}
+          <TabsContent value="compromisos" className="space-y-6">
+            <div className="relative overflow-hidden bg-gradient-to-br from-amber-500/10 to-orange-500/10 border border-amber-500/20 rounded-[32px] p-6 sm:p-8">
+              <div className="flex items-center gap-4 mb-6">
+                <div className="w-12 h-12 rounded-2xl bg-amber-500/20 border border-amber-500/30 flex items-center justify-center">
+                  <Calendar className="w-6 h-6 text-amber-400" />
                 </div>
-
-                <div className="grid grid-cols-1 xs:grid-cols-3 gap-4 flex-1 max-w-2xl">
-                  <div className="p-4 bg-white/[0.03] rounded-2xl border border-emerald-500/10">
-                    <p className="text-[10px] text-white/30 font-black uppercase tracking-widest mb-1">Ingresos</p>
-                    <p className="text-xl font-black text-emerald-400">${todayRevenue.toFixed(2)}</p>
-                  </div>
-                  <div className="p-4 bg-white/[0.03] rounded-2xl border border-red-500/10">
-                    <p className="text-[10px] text-white/30 font-black uppercase tracking-widest mb-1">Egresos</p>
-                    <p className="text-xl font-black text-red-400">-${todayExpenses.toFixed(2)}</p>
-                  </div>
-                  <div className={`p-4 rounded-2xl border ${todayNetProfit >= 0 ? 'bg-cyan-500/10 border-cyan-500/10' : 'bg-red-500/10 border-red-500/10'}`}>
-                    <p className="text-[10px] text-white/30 font-black uppercase tracking-widest mb-1">Neto Hoy</p>
-                    <p className={`text-xl font-black ${todayNetProfit >= 0 ? 'text-cyan-400' : 'text-red-400'}`}>${todayNetProfit.toFixed(2)}</p>
-                  </div>
+                <div>
+                  <h3 className="text-xl font-black text-white tracking-tight">Compromisos del Mes</h3>
+                  <p className="text-xs text-amber-400/60 uppercase tracking-widest font-bold">
+                    Lo que debes pagar · {format(new Date(), "MMMM yyyy", { locale: es })}
+                  </p>
+                </div>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div className="p-4 bg-black/20 rounded-2xl border border-white/5">
+                  <p className="text-[10px] text-white/30 font-black uppercase tracking-widest mb-1">Ventas del día</p>
+                  <p className="text-xl font-black text-emerald-400">${todayRevenue.toFixed(2)}</p>
+                </div>
+                <div className="p-4 bg-black/20 rounded-2xl border border-white/5">
+                  <p className="text-[10px] text-white/30 font-black uppercase tracking-widest mb-1">Gastos del día</p>
+                  <p className="text-xl font-black text-red-400">-${todayExpenses.toFixed(2)}</p>
+                </div>
+                <div className={`p-4 rounded-2xl border ${todayNetProfit >= 0 ? "bg-cyan-500/10 border-cyan-500/15" : "bg-red-500/10 border-red-500/15"}`}>
+                  <p className="text-[10px] text-white/30 font-black uppercase tracking-widest mb-1">Ganancia hoy</p>
+                  <p className={`text-xl font-black ${todayNetProfit >= 0 ? "text-cyan-400" : "text-red-400"}`}>${todayNetProfit.toFixed(2)}</p>
                 </div>
               </div>
             </div>
 
+            <ErrorBoundary><OneTimeExpensesWidget /></ErrorBoundary>
             <ErrorBoundary><GastosOperacionalesWidget /></ErrorBoundary>
 
-            {/* Monthly Report button */}
-            <div className="mt-4 flex justify-end">
+            <div className="flex justify-end">
               <button
                 onClick={() => setShowMonthlyReport(true)}
                 className="flex items-center gap-2 px-5 py-2.5 rounded-2xl bg-white/[0.03] hover:bg-white/[0.06] border border-white/[0.08] text-xs font-black text-white/50 hover:text-white transition-all"
@@ -1304,83 +1461,8 @@ export default function Financial() {
             </div>
           </TabsContent>
 
-          <TabsContent value="expenses">
-            <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-[32px] overflow-hidden shadow-2xl">
-              <div className="p-4 sm:p-8 border-b border-white/5 flex items-center justify-between">
-                <div>
-                  <h3 className="text-xl font-black text-white tracking-tight">Talonario de Gastos</h3>
-                  <p className="text-xs text-white/40 uppercase tracking-widest font-bold">Resumen de egresos</p>
-                </div>
-                <div className="px-6 py-2 bg-red-500/10 border border-red-500/20 rounded-2xl text-center">
-                  <p className="text-[10px] text-red-400 font-black uppercase tracking-widest">Subtotal Salidas</p>
-                  <p className="text-2xl font-black text-red-400">-${totalExpenses.toFixed(2)}</p>
-                </div>
-              </div>
-              <div className="p-4 sm:p-6 lg:p-8">
-                {loading ? (
-                  <div className="p-20 text-center">
-                    <RefreshCw className="w-12 h-12 animate-spin mx-auto mb-4 text-red-500/50" />
-                    <p className="text-white/40 font-bold uppercase tracking-widest text-xs">Cargando egresos...</p>
-                  </div>
-                ) : filteredExpenses.length === 0 ? (
-                  <div className="p-20 text-center">
-                    <div className="w-20 h-20 bg-white/5 rounded-full flex items-center justify-center mx-auto mb-6">
-                      <CreditCard className="w-10 h-10 text-white/20" />
-                    </div>
-                    <p className="text-xl font-black text-white/40 tracking-tight">Todo en Balance</p>
-                    <p className="text-sm text-white/20">No se han registrado gastos para este periodo.</p>
-                  </div>
-                ) : (
-                  <div className="space-y-3 max-h-[600px] overflow-y-auto pr-2 custom-scrollbar">
-                    {filteredExpenses.map((e) => (
-                      <div key={e.id} className="group p-5 bg-white/[0.03] hover:bg-white/[0.06] rounded-[24px] border border-white/5 hover:border-white/10 transition-all duration-300">
-                        <div className="flex items-center justify-between gap-6">
-                          <div className="flex items-center gap-5">
-                            <div className="w-12 h-12 rounded-[18px] bg-red-500/10 border border-red-500/20 flex items-center justify-center text-red-400">
-                              <Receipt className="w-5 h-5" />
-                            </div>
-                            <div className="min-w-0">
-                              <div className="flex items-center gap-2 mb-1">
-                                <span className="text-[10px] font-black text-red-400/70 uppercase tracking-widest">{e.category || "Misceláneo"}</span>
-                                <span className="text-[10px] font-bold text-white/30 uppercase tracking-widest">
-                                  {getEntityDate(e) ? format(new Date(getEntityDate(e)), 'dd MMM, HH:mm', { locale: es }) : "-"}
-                                </span>
-                              </div>
-                              <h4 className="text-white font-bold truncate tracking-tight">{e.description}</h4>
-                              <p className="text-xs text-white/40 font-medium">Registrado por {e.recorded_by || "Sistema"}</p>
-                            </div>
-                          </div>
-                          <div className="flex items-center gap-4">
-                            <p className="text-2xl font-black text-red-400 tracking-tighter">-${getExpenseMagnitude(e.amount).toFixed(2)}</p>
-                            {e._source === "transaction" && (
-                              <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                                <Button
-                                  size="icon"
-                                  onClick={() => handleEditExpense(e)}
-                                  className="w-8 h-8 rounded-lg bg-white/5 hover:bg-cyan-500/20 text-white/40 hover:text-cyan-400 transition-all"
-                                >
-                                  <Edit2 className="w-4 h-4" />
-                                </Button>
-                                <Button
-                                  size="icon"
-                                  onClick={() => handleDeleteExpense(e.id)}
-                                  className="w-8 h-8 rounded-lg bg-white/5 hover:bg-red-500/20 text-white/40 hover:text-red-400 transition-all"
-                                >
-                                  <Trash2 className="w-4 h-4" />
-                                </Button>
-                              </div>
-                            )}
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-            </div>
-          </TabsContent>
-
-          <TabsContent value="reportes">
+          {/* ─── INFORME ─── */}
+          <TabsContent value="informe">
             <ErrorBoundary>
               <EnhancedReports
                 dateFilter={dateFilter}

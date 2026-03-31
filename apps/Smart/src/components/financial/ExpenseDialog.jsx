@@ -37,18 +37,11 @@ export default function ExpenseDialog({ open, onClose, onSuccess, drawer, defaul
   };
 
   const normalizeCategory = (category) => {
-    const validCategories = new Set(["other_expense", "parts", "payroll", "repair_payment", "supplies", "refund"]);
-    if (validCategories.has(category)) return category;
-
-    const mapToValid = {
-      rent: "other_expense",
-      utilities: "other_expense",
-      maintenance: "supplies",
-      insurance: "other_expense",
-      taxes: "other_expense"
-    };
-
-    return mapToValid[category] || "other_expense";
+    const validCategories = new Set([
+      "other_expense", "parts", "payroll", "repair_payment", "supplies", "refund",
+      "rent", "utilities", "maintenance", "insurance", "taxes"
+    ]);
+    return validCategories.has(category) ? category : "other_expense";
   };
 
   const handleSubmit = async (e) => {
