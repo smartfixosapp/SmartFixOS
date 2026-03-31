@@ -14,7 +14,7 @@ import {
   FileText, Upload, Trash2, Edit, ChevronLeft, ChevronRight,
   Globe, Tag, CheckSquare, Monitor, Battery, Wrench, Box,
   Sparkles, Settings, Package, Zap, History, TrendingUp, TrendingDown,
-  Minus, ArrowUpDown } from
+  Minus, ArrowUpDown, MoreHorizontal } from
 "lucide-react";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter // 👈 DialogFooter añadido
@@ -1013,6 +1013,9 @@ export default function Inventory() {
   const [quickAdjustItem, setQuickAdjustItem] = useState(null);
   // ── Historial de Movimientos ─────────────────────────────────────────
   const [showHistorial, setShowHistorial] = useState(false);
+  // ── Menú ⋯ (acciones secundarias) ────────────────────────────────────
+  const [showMoreMenu, setShowMoreMenu] = useState(false);
+  const moreMenuRef = useRef(null);
   const pageSize = 24;
   const recentCreatedRef = useRef([]);
   const [pullStart, setPullStart] = useState(0);
@@ -1062,6 +1065,22 @@ export default function Inventory() {
       container.removeEventListener("touchend", handleTouchEnd);
     };
   }, [pullStart, pullDistance]);
+
+  // Cerrar menú ⋯ al hacer clic fuera
+  useEffect(() => {
+    if (!showMoreMenu) return;
+    const handler = (e) => {
+      if (moreMenuRef.current && !moreMenuRef.current.contains(e.target)) {
+        setShowMoreMenu(false);
+      }
+    };
+    document.addEventListener("mousedown", handler);
+    document.addEventListener("touchstart", handler);
+    return () => {
+      document.removeEventListener("mousedown", handler);
+      document.removeEventListener("touchstart", handler);
+    };
+  }, [showMoreMenu]);
 
   // ✅ OPTIMIZACIÓN: Carga de datos con manejo robusto de errores y caché
   const loadInventory = async () => {
@@ -1542,43 +1561,70 @@ export default function Inventory() {
 
       <div className="max-w-[1600px] mx-auto px-3 sm:px-6 py-4 sm:py-6">
         {/* ── Header ────────────────────────────────────────────── */}
-        <div className="bg-[#111114]/80 backdrop-blur-3xl border border-white/[0.06] rounded-[28px] px-5 py-4 mb-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-          <div className="flex items-center gap-4">
-            <div className="w-11 h-11 rounded-2xl bg-gradient-to-br from-teal-500 to-cyan-600 flex items-center justify-center shadow-lg">
+        <div className="bg-[#111114]/80 backdrop-blur-3xl border border-white/[0.06] rounded-[28px] px-5 py-4 mb-5 flex items-center justify-between gap-3">
+          <div className="flex items-center gap-3 min-w-0">
+            <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-teal-500 to-cyan-600 flex items-center justify-center shadow-lg flex-shrink-0">
               <Package className="w-5 h-5 text-white" strokeWidth={2.5} />
             </div>
-            <div>
-              <h1 className="text-xl font-black text-white tracking-tight">Inventario</h1>
-              <p className="text-white/30 text-[11px] font-medium">Gestión de productos · stock · compras</p>
+            <div className="min-w-0">
+              <h1 className="text-xl font-black text-white tracking-tight leading-none">Inventario</h1>
+              <p className="text-white/30 text-[11px] font-medium mt-0.5 truncate">
+                {items.length} productos · <span className={items.filter(i => i.part_type !== 'servicio' && Number(i.stock||0) <= 0).length > 0 ? 'text-red-400/70' : 'text-white/20'}>{items.filter(i => i.part_type !== 'servicio' && Number(i.stock||0) <= 0).length} agotados</span>
+              </p>
             </div>
           </div>
-          <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
-            <button onClick={() => setShowHistorial(true)} className="flex items-center gap-1.5 h-9 px-3 rounded-xl bg-white/5 hover:bg-white/10 border border-white/[0.08] text-white/50 hover:text-white transition-all text-xs font-semibold">
-              <History className="w-3.5 h-3.5" /> Historial
-            </button>
-            <button onClick={() => setShowManageCategories(true)} className="flex items-center gap-1.5 h-9 px-3 rounded-xl bg-white/5 hover:bg-white/10 border border-white/[0.08] text-white/50 hover:text-white transition-all text-xs font-semibold">
-              <Settings className="w-3.5 h-3.5" /> Categorías
-            </button>
-            <button onClick={() => setShowSuppliers(true)} className="flex items-center gap-1.5 h-9 px-3 rounded-xl bg-white/5 hover:bg-white/10 border border-white/[0.08] text-white/50 hover:text-white transition-all text-xs font-semibold">
-              <Globe className="w-3.5 h-3.5" /> Proveedores
-            </button>
-            <button onClick={() => setShowPOMenu(true)} className="flex items-center gap-1.5 h-9 px-3 rounded-xl bg-white/5 hover:bg-white/10 border border-white/[0.08] text-white/50 hover:text-white transition-all text-xs font-semibold">
-              <FileText className="w-3.5 h-3.5" /> Compras
-            </button>
-            <button onClick={() => setShowQuickOrder(true)} className="flex items-center gap-1.5 h-9 px-3 rounded-xl bg-violet-500/10 hover:bg-violet-500/20 border border-violet-500/20 text-violet-400 hover:text-violet-300 transition-all text-xs font-semibold">
-              <Zap className="w-3.5 h-3.5" /> Orden Especial
-            </button>
+
+          <div className="flex items-center gap-2 flex-shrink-0">
+            {selectedProducts.length > 0 && (
+              <button onClick={() => setShowDiscountDialog(true)} className="flex items-center gap-1.5 h-9 px-3 rounded-xl bg-gradient-to-r from-orange-500 to-pink-500 text-white font-bold text-xs shadow-lg animate-pulse">
+                <Tag className="w-3.5 h-3.5" /> Oferta ({selectedProducts.length})
+              </button>
+            )}
+
+            {/* ⋯ Menú secundario */}
+            <div className="relative" ref={moreMenuRef}>
+              <button
+                onClick={() => setShowMoreMenu(p => !p)}
+                className={`w-9 h-9 rounded-xl border flex items-center justify-center transition-all ${
+                  showMoreMenu ? 'bg-white/10 border-white/20 text-white' : 'bg-white/5 border-white/[0.08] text-white/50 hover:bg-white/10 hover:text-white'
+                }`}
+              >
+                <MoreHorizontal className="w-4 h-4" />
+              </button>
+
+              {showMoreMenu && (
+                <div className="absolute right-0 top-11 z-[100] w-56 bg-[#111114] border border-white/10 rounded-2xl shadow-[0_16px_48px_rgba(0,0,0,0.6)] overflow-hidden">
+                  {[
+                    { label: 'Historial de movimientos', Icon: History, action: () => { setShowHistorial(true); setShowMoreMenu(false); } },
+                    { label: 'Gestionar categorías', Icon: Settings, action: () => { setShowManageCategories(true); setShowMoreMenu(false); } },
+                    { label: 'Proveedores', Icon: Globe, action: () => { setShowSuppliers(true); setShowMoreMenu(false); } },
+                    { label: 'Órdenes de compra', Icon: FileText, action: () => { setShowPOMenu(true); setShowMoreMenu(false); } },
+                    null, // separador
+                    { label: 'Orden especial', Icon: Zap, action: () => { setShowQuickOrder(true); setShowMoreMenu(false); }, accent: 'text-violet-400' },
+                  ].map((item, i) =>
+                    item === null ? (
+                      <div key={i} className="h-px bg-white/[0.06] mx-3" />
+                    ) : (
+                      <button
+                        key={item.label}
+                        onClick={item.action}
+                        className={`w-full flex items-center gap-3 px-4 py-2.5 text-sm font-semibold transition-all hover:bg-white/5 text-left ${item.accent || 'text-white/60 hover:text-white'}`}
+                      >
+                        <item.Icon className="w-4 h-4 flex-shrink-0" />
+                        {item.label}
+                      </button>
+                    )
+                  )}
+                </div>
+              )}
+            </div>
+
             <button
               onClick={() => { setEditing(null); setShowItemDialog(true); }}
               className="flex items-center gap-2 h-9 px-4 rounded-xl bg-gradient-to-r from-teal-500 to-cyan-500 text-white font-bold text-xs shadow-[0_6px_16px_rgba(20,184,166,0.3)] hover:opacity-90 transition-all active:scale-95"
             >
               <Plus className="w-4 h-4" /> Nuevo
             </button>
-            {selectedProducts.length > 0 && (
-              <button onClick={() => setShowDiscountDialog(true)} className="flex items-center gap-2 h-9 px-4 rounded-xl bg-gradient-to-r from-orange-500 to-pink-500 text-white font-bold text-xs shadow-lg animate-pulse">
-                <Tag className="w-3.5 h-3.5" /> Oferta ({selectedProducts.length})
-              </button>
-            )}
           </div>
         </div>
 
@@ -1588,24 +1634,25 @@ export default function Inventory() {
           const outOfStock = items.filter(i => i.type !== 'service' && i.part_type !== 'servicio' && Number(i.stock || 0) <= 0).length;
           const lowStock = items.filter(i => i.type !== 'service' && i.part_type !== 'servicio' && Number(i.stock || 0) > 0 && Number(i.stock || 0) <= Number(i.min_stock || 0)).length;
           const totalValue = items.reduce((sum, i) => sum + Number(i.stock || 0) * Number(i.cost || 0), 0);
+          const kpis = [
+            { label: 'Total', value: total, icon: Package, color: 'text-white/40', bg: 'bg-white/5', border: 'border-white/[0.06]', val: 'text-white' },
+            { label: 'Stock bajo', value: lowStock, icon: TrendingDown, color: lowStock > 0 ? 'text-amber-400' : 'text-white/30', bg: lowStock > 0 ? 'bg-amber-500/10' : 'bg-white/5', border: lowStock > 0 ? 'border-amber-500/25' : 'border-white/[0.06]', val: lowStock > 0 ? 'text-amber-400' : 'text-white/30' },
+            { label: 'Agotados', value: outOfStock, icon: AlertTriangle, color: outOfStock > 0 ? 'text-red-400' : 'text-white/30', bg: outOfStock > 0 ? 'bg-red-500/10' : 'bg-white/5', border: outOfStock > 0 ? 'border-red-500/25' : 'border-white/[0.06]', val: outOfStock > 0 ? 'text-red-400' : 'text-white/30' },
+            { label: 'Valor inventario', value: `$${totalValue.toLocaleString('en-US', { maximumFractionDigits: 0 })}`, icon: TrendingUp, color: 'text-teal-400', bg: 'bg-teal-500/10', border: 'border-teal-500/20', val: 'text-teal-400' },
+          ];
           return (
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-5">
-              <div className="bg-[#111114]/60 border border-white/[0.06] rounded-[20px] px-4 py-3.5">
-                <p className="text-white/30 text-[10px] font-black uppercase tracking-widest mb-1">Total</p>
-                <p className="text-white font-black text-2xl">{total}</p>
-              </div>
-              <div className={`bg-[#111114]/60 border rounded-[20px] px-4 py-3.5 ${lowStock > 0 ? 'border-amber-500/25' : 'border-white/[0.06]'}`}>
-                <p className="text-white/30 text-[10px] font-black uppercase tracking-widest mb-1">Stock bajo</p>
-                <p className={`font-black text-2xl ${lowStock > 0 ? 'text-amber-400' : 'text-white/30'}`}>{lowStock}</p>
-              </div>
-              <div className={`bg-[#111114]/60 border rounded-[20px] px-4 py-3.5 ${outOfStock > 0 ? 'border-red-500/25' : 'border-white/[0.06]'}`}>
-                <p className="text-white/30 text-[10px] font-black uppercase tracking-widest mb-1">Agotados</p>
-                <p className={`font-black text-2xl ${outOfStock > 0 ? 'text-red-400' : 'text-white/30'}`}>{outOfStock}</p>
-              </div>
-              <div className="bg-[#111114]/60 border border-teal-500/20 rounded-[20px] px-4 py-3.5">
-                <p className="text-white/30 text-[10px] font-black uppercase tracking-widest mb-1">Valor</p>
-                <p className="text-teal-400 font-black text-xl">${totalValue.toLocaleString('en-US', { maximumFractionDigits: 0 })}</p>
-              </div>
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 mb-5">
+              {kpis.map(({ label, value, icon: Icon, color, bg, border, val }) => (
+                <div key={label} className={`bg-[#111114]/60 border ${border} rounded-[18px] px-3.5 py-3 flex items-center gap-3`}>
+                  <div className={`w-8 h-8 rounded-xl ${bg} flex items-center justify-center flex-shrink-0`}>
+                    <Icon className={`w-3.5 h-3.5 ${color}`} />
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-white/30 text-[9px] font-black uppercase tracking-widest leading-none truncate">{label}</p>
+                    <p className={`font-black text-lg leading-none mt-1 ${val}`}>{value}</p>
+                  </div>
+                </div>
+              ))}
             </div>
           );
         })()}
