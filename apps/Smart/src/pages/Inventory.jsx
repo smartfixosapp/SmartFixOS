@@ -122,14 +122,27 @@ const ICON_MAP = {
 // === Tarjeta de inventario ===
 function InventoryCard({ item, onEdit, onDelete, onSelect, isSelected, onQuickAdjust }) {
   const isService = item.part_type === 'servicio' || item.tipo_principal === 'servicios' || item.part_type === 'diagnostic';
-  const stockStatus = isService ? null :
-    item.stock <= 0 ? { tag: "Agotado", bg: "bg-red-500/15 border-red-500/30", text: "text-red-400" } :
-    item.stock <= (item.min_stock || 0) ? { tag: "Bajo", bg: "bg-amber-500/15 border-amber-500/30", text: "text-amber-400" } :
-    { tag: `${item.stock}`, bg: "bg-emerald-500/10 border-emerald-500/25", text: "text-emerald-400" };
+  const stockNum = Number(item.stock || 0);
+  const minStockNum = Number(item.min_stock || 0);
 
-  const priceInfo = formatPriceWithDiscount(item);
-  const profit = Number(item.price || 0) - Number(item.cost || 0);
-  const margin = Number(item.price || 0) > 0 ? ((profit / Number(item.price)) * 100).toFixed(0) : 0;
+  let stockBadge = null;
+  if (!isService) {
+    if (stockNum <= 0) {
+      stockBadge = { label: "Agotado", sub: null, bg: "bg-red-500/15 border-red-500/30", text: "text-red-400" };
+    } else if (minStockNum > 0 && stockNum <= minStockNum) {
+      stockBadge = { label: String(stockNum), sub: "Bajo", bg: "bg-amber-500/15 border-amber-500/30", text: "text-amber-400" };
+    } else {
+      stockBadge = { label: String(stockNum), sub: "ajustar ▾", bg: "bg-emerald-500/10 border-emerald-500/25", text: "text-emerald-400" };
+    }
+  }
+
+  let priceInfo = { finalPrice: Number(item.price || 0), originalPrice: null };
+  try { priceInfo = formatPriceWithDiscount(item); } catch { /* use defaults */ }
+
+  const price = Number(priceInfo.finalPrice || 0);
+  const cost = Number(item.cost || 0);
+  const profit = price - cost;
+  const margin = price > 0 ? Math.round((profit / price) * 100) : 0;
 
   return (
     <div
@@ -190,37 +203,43 @@ function InventoryCard({ item, onEdit, onDelete, onSelect, isSelected, onQuickAd
         </div>
       </div>
 
+      {/* Discount badge */}
       <DiscountBadge product={item} />
 
       {/* Price + stock row */}
       <div className="flex items-end justify-between gap-3 pt-2 border-t border-white/[0.05]">
         <div>
           <div className="flex items-baseline gap-1.5">
-            <p className="text-xl font-black text-white">{money(priceInfo.finalPrice)}</p>
-            {priceInfo.originalPrice && (
+            <p className="text-xl font-black text-white">{money(price)}</p>
+            {priceInfo.originalPrice != null && priceInfo.originalPrice !== price && (
               <p className="text-xs text-white/30 line-through">{money(priceInfo.originalPrice)}</p>
             )}
           </div>
           <p className="text-[11px] text-white/30 mt-0.5">
-            Costo {money(item.cost)} · <span className={profit >= 0 ? 'text-emerald-400/70' : 'text-red-400/70'}>+{margin}%</span>
+            Costo {money(cost)} ·{" "}
+            <span className={profit >= 0 ? 'text-emerald-400/70' : 'text-red-400/70'}>
+              {profit >= 0 ? "+" : ""}{margin}%
+            </span>
           </p>
         </div>
-        {stockStatus && (
+        {stockBadge && (
           <button
             onClick={e => { e.stopPropagation(); onQuickAdjust?.(item); }}
-            className={`px-3 py-1.5 rounded-2xl border text-center min-w-[52px] transition-all hover:scale-105 active:scale-95 ${stockStatus.bg}`}
-            title="Clic para ajustar stock rápido"
+            className={`px-3 py-1.5 rounded-2xl border text-center min-w-[56px] transition-all hover:scale-105 active:scale-95 ${stockBadge.bg}`}
+            title="Toca para ajustar stock rápido"
           >
-            <p className={`text-base font-black leading-none ${stockStatus.text}`}>{stockStatus.tag}</p>
-            {item.stock <= 0 && <p className="text-[9px] text-red-400/60 font-bold mt-0.5">Agotado</p>}
-            {item.stock > 0 && item.stock <= (item.min_stock || 0) && <p className="text-[9px] text-amber-400/60 font-bold mt-0.5">Bajo</p>}
-            {item.stock > 0 && item.stock > (item.min_stock || 0) && <p className="text-[9px] text-white/20 font-bold mt-0.5">ajustar</p>}
+            <p className={`text-base font-black leading-none ${stockBadge.text}`}>{stockBadge.label}</p>
+            {stockBadge.sub && (
+              <p className="text-[9px] text-white/25 font-bold mt-0.5">{stockBadge.sub}</p>
+            )}
           </button>
         )}
       </div>
 
-      {item.compatibility_models?.length > 0 && (
-        <p className="text-[10px] text-white/25 truncate">Compatible: {item.compatibility_models.join(", ")}</p>
+      {Array.isArray(item.compatibility_models) && item.compatibility_models.length > 0 && (
+        <p className="text-[10px] text-white/25 truncate">
+          Compatible: {item.compatibility_models.join(", ")}
+        </p>
       )}
     </div>
   );
