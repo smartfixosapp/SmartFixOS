@@ -2943,7 +2943,9 @@ export default function WorkOrderWizard({ open, onClose, onSuccess, preloadedCus
         <div
           ref={bodyScrollRef}
           className={`flex-1 relative z-10 ${
-            isCompactDevice
+            isCompactDevice && mobileStep === 0
+              ? "overflow-hidden flex flex-col p-4 pb-3 gap-0"
+              : isCompactDevice
               ? "overflow-y-auto p-5 pb-6"
               : "overflow-y-auto grid grid-cols-12 gap-4 auto-rows-min p-4 pb-4"
           }`}
@@ -2951,45 +2953,46 @@ export default function WorkOrderWizard({ open, onClose, onSuccess, preloadedCus
           
           {/* 🚀 PASO 0 — Selector de tipo (solo móvil) */}
           {isCompactDevice && mobileStep === 0 && (
-            <div className="flex flex-col gap-4 h-full py-2">
-              <p className="text-center text-white/40 text-xs font-black uppercase tracking-[0.2em]">¿Qué tipo de orden vas a crear?</p>
+            <>
+              <p className="text-center text-white/40 text-[10px] font-black uppercase tracking-[0.2em] shrink-0 py-2">¿Qué tipo de orden vas a crear?</p>
               {/* Orden Regular */}
               <button
                 onClick={() => { setQuickOrderMode(false); setMobileStep(1); }}
-                className="flex-1 bg-white/[0.03] border border-white/[0.1] rounded-[28px] p-8 flex flex-col items-center justify-center gap-5 active:scale-95 transition-all hover:bg-white/[0.06] group"
+                className="flex-1 min-h-0 bg-white/[0.03] border border-white/[0.1] rounded-[24px] p-5 flex flex-col items-center justify-center gap-3 active:scale-[0.97] transition-all hover:bg-white/[0.06] group"
               >
-                <div className="w-20 h-20 rounded-[24px] bg-gradient-to-br from-cyan-400 to-blue-600 flex items-center justify-center shadow-[0_8px_32px_rgba(6,182,212,0.35)]">
-                  <Wrench className="w-10 h-10 text-white" strokeWidth={2.5} />
+                <div className="w-14 h-14 rounded-[18px] bg-gradient-to-br from-cyan-400 to-blue-600 flex items-center justify-center shadow-[0_8px_24px_rgba(6,182,212,0.35)] shrink-0">
+                  <Wrench className="w-7 h-7 text-white" strokeWidth={2.5} />
                 </div>
                 <div className="text-center">
-                  <p className="text-2xl font-black text-white uppercase tracking-tight">Orden Regular</p>
-                  <p className="text-sm text-white/40 mt-2 leading-relaxed">Diagnóstico completo · 7 pasos</p>
+                  <p className="text-xl font-black text-white uppercase tracking-tight">Orden Regular</p>
+                  <p className="text-xs text-white/40 mt-1">Diagnóstico completo · 7 pasos</p>
                 </div>
-                <div className="flex gap-2 flex-wrap justify-center">
+                <div className="flex gap-1.5 flex-wrap justify-center">
                   {["Cliente","Técnico","Dispositivo","Problema","Seguridad","Checklist","Evidencia"].map(s => (
-                    <span key={s} className="text-[10px] font-bold text-cyan-400/70 bg-cyan-500/10 border border-cyan-500/20 rounded-full px-2 py-0.5">{s}</span>
+                    <span key={s} className="text-[9px] font-bold text-cyan-400/70 bg-cyan-500/10 border border-cyan-500/20 rounded-full px-2 py-0.5">{s}</span>
                   ))}
                 </div>
               </button>
+              <div className="shrink-0 h-3" />
               {/* Orden Rápida */}
               <button
                 onClick={() => { setQuickOrderMode(true); setMobileStep(1); }}
-                className="flex-1 bg-amber-500/[0.05] border border-amber-500/20 rounded-[28px] p-8 flex flex-col items-center justify-center gap-5 active:scale-95 transition-all hover:bg-amber-500/[0.1] group"
+                className="flex-1 min-h-0 bg-amber-500/[0.05] border border-amber-500/20 rounded-[24px] p-5 flex flex-col items-center justify-center gap-3 active:scale-[0.97] transition-all hover:bg-amber-500/[0.1] group"
               >
-                <div className="w-20 h-20 rounded-[24px] bg-gradient-to-br from-amber-400 to-yellow-600 flex items-center justify-center shadow-[0_8px_32px_rgba(245,158,11,0.35)]">
-                  <Zap className="w-10 h-10 text-white" strokeWidth={2.5} />
+                <div className="w-14 h-14 rounded-[18px] bg-gradient-to-br from-amber-400 to-yellow-600 flex items-center justify-center shadow-[0_8px_24px_rgba(245,158,11,0.35)] shrink-0">
+                  <Zap className="w-7 h-7 text-white" strokeWidth={2.5} />
                 </div>
                 <div className="text-center">
-                  <p className="text-2xl font-black text-white uppercase tracking-tight">Orden Rápida</p>
-                  <p className="text-sm text-white/40 mt-2 leading-relaxed">Cambio rápido · 3 pasos</p>
+                  <p className="text-xl font-black text-white uppercase tracking-tight">Orden Rápida</p>
+                  <p className="text-xs text-white/40 mt-1">Cambio rápido · 3 pasos</p>
                 </div>
-                <div className="flex gap-2 flex-wrap justify-center">
+                <div className="flex gap-1.5 flex-wrap justify-center">
                   {["Cliente","Dispositivo","Problema"].map(s => (
-                    <span key={s} className="text-[10px] font-bold text-amber-400/70 bg-amber-500/10 border border-amber-500/20 rounded-full px-2 py-0.5">{s}</span>
+                    <span key={s} className="text-[9px] font-bold text-amber-400/70 bg-amber-500/10 border border-amber-500/20 rounded-full px-2 py-0.5">{s}</span>
                   ))}
                 </div>
               </button>
-            </div>
+            </>
           )}
 
           {/* 📋 CLIENTE */}
