@@ -201,6 +201,8 @@ export default function Dashboard() {
   // Feed categorías: tareas de turno
   const [pendingShiftTasks, setPendingShiftTasks] = useState([]);
   const [completingTaskId, setCompletingTaskId] = useState(null);
+  // Categoría activa en el panel de atención
+  const [activeFeedCategory, setActiveFeedCategory] = useState('orders');
   const [showUnlocksFilter, setShowUnlocksFilter] = useState(false);
   const [showTimeTracking, setShowTimeTracking] = useState(false);
   const [showLogoutModal, setShowLogoutModal] = useState(false);
@@ -1112,106 +1114,100 @@ export default function Dashboard() {
               </div>
 
               {/* Feed list — scrollbar aparece automáticamente cuando overflow */}
+              {/* ── Tarjetas selectoras de categoría ── */}
+              <div className="grid grid-cols-3 gap-2 mb-3 shrink-0">
+                {[
+                  { id: 'orders', label: 'Órdenes',    icon: Wrench,        count: visibleFeedItems.length,   activeBg: 'bg-gradient-to-br from-red-500/25 to-orange-500/10 border-red-500/35 shadow-[0_0_20px_rgba(239,68,68,0.12)]',     iconActive: 'text-red-400',    numActive: 'text-red-300' },
+                  { id: 'stock',  label: 'Stock Bajo', icon: Package,       count: lowStockProducts.length,   activeBg: 'bg-gradient-to-br from-amber-500/25 to-yellow-500/10 border-amber-500/35 shadow-[0_0_20px_rgba(245,158,11,0.12)]', iconActive: 'text-amber-400',  numActive: 'text-amber-300' },
+                  { id: 'tasks',  label: 'Tareas',     icon: ClipboardList, count: pendingShiftTasks.length,  activeBg: 'bg-gradient-to-br from-indigo-500/25 to-purple-500/10 border-indigo-500/35 shadow-[0_0_20px_rgba(99,102,241,0.12)]', iconActive: 'text-indigo-400', numActive: 'text-indigo-300' },
+                ].map(({ id, label, icon: Icon, count, activeBg, iconActive, numActive }) => {
+                  const active = activeFeedCategory === id;
+                  return (
+                    <button
+                      key={id}
+                      onClick={() => setActiveFeedCategory(id)}
+                      className={`flex flex-col items-start p-3 rounded-2xl border transition-all active:scale-95 ${active ? activeBg : 'bg-white/[0.03] border-white/[0.07] hover:bg-white/[0.06]'}`}
+                    >
+                      <Icon className={`w-4 h-4 mb-2 transition-colors ${active ? iconActive : 'text-white/20'}`} />
+                      <p className={`text-[9px] font-black uppercase tracking-wider leading-none transition-colors ${active ? 'text-white/60' : 'text-white/20'}`}>{label}</p>
+                      <p className={`text-2xl font-black leading-tight mt-0.5 transition-colors ${active ? numActive : count > 0 ? 'text-white/50' : 'text-white/15'}`}>{count}</p>
+                    </button>
+                  );
+                })}
+              </div>
+
+              {/* ── Lista de la categoría activa ── */}
               <div className="flex-1 bg-white/[0.02] border border-white/[0.06] rounded-[24px] overflow-hidden flex flex-col min-h-0">
                 <div className="flex-1 overflow-y-auto">
 
-                  {/* ── ÓRDENES ─────────────────────────────────── */}
-                  {visibleFeedItems.length > 0 && (
-                    <>
-                      <div className="flex items-center gap-2 px-5 pt-3 pb-1.5">
-                        <span className="text-[8px] font-black text-white/25 uppercase tracking-[0.2em]">Órdenes</span>
-                        <div className="flex-1 h-px bg-white/[0.05]" />
-                        <span className="text-[8px] font-black text-white/20">{visibleFeedItems.length}</span>
-                      </div>
-                      {visibleFeedItems.map(item => (
-                        <button key={item.id} onClick={() => item.orderId ? handleOrderSelect(item.orderId) : handleNavigate("Inventory")}
-                          className="w-full flex items-center gap-4 px-5 py-3 hover:bg-white/[0.04] transition-colors text-left group border-t border-white/[0.04] first:border-0">
-                          <div className={`w-1 h-7 rounded-full shrink-0 ${item.color === 'red' ? 'bg-red-500' : item.color === 'green' ? 'bg-emerald-500' : item.color === 'blue' ? 'bg-blue-500' : item.color === 'yellow' ? 'bg-yellow-500' : 'bg-orange-500'}`} />
-                          <div className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 ${item.color === 'red' ? 'bg-red-500/10 border border-red-500/20' : item.color === 'green' ? 'bg-emerald-500/10 border border-emerald-500/20' : item.color === 'blue' ? 'bg-blue-500/10 border border-blue-500/20' : item.color === 'yellow' ? 'bg-yellow-500/10 border border-yellow-500/20' : 'bg-orange-500/10 border border-orange-500/20'}`}>
-                            {item.type === 'urgent' && <AlertCircle className="w-4 h-4 text-red-400" />}
-                            {item.type === 'ready' && <PackageCheck className="w-4 h-4 text-emerald-400" />}
-                            {item.type === 'intake' && <Inbox className="w-4 h-4 text-blue-400" />}
-                            {item.type === 'parts' && <ShoppingCart className="w-4 h-4 text-orange-400" />}
-                            {item.type === 'stale' && <Search className="w-4 h-4 text-yellow-400" />}
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <p className="text-sm font-black text-white truncate">{item.title}</p>
-                            <p className="text-[11px] text-white/30 font-bold truncate">{item.sub}</p>
-                          </div>
-                          {item.number && <span className="text-[10px] font-black text-white/20 shrink-0">#{item.number?.split('-')?.pop()}</span>}
-                          <ChevronRight className="w-4 h-4 text-white/10 group-hover:text-white/30 transition-colors shrink-0" />
-                        </button>
-                      ))}
-                    </>
-                  )}
-
-                  {/* ── STOCK BAJO ───────────────────────────────── */}
-                  {lowStockProducts.length > 0 && (
-                    <>
-                      <div className="flex items-center gap-2 px-5 pt-3 pb-1.5 mt-1">
-                        <span className="text-[8px] font-black text-white/25 uppercase tracking-[0.2em]">Stock Bajo</span>
-                        <div className="flex-1 h-px bg-white/[0.05]" />
-                        <span className="text-[8px] font-black text-white/20">{lowStockProducts.length}</span>
-                      </div>
-                      {lowStockProducts.map(p => (
-                        <button key={p.id} onClick={() => handleNavigate("Inventory")}
-                          className="w-full flex items-center gap-4 px-5 py-3 hover:bg-white/[0.04] transition-colors text-left group border-t border-white/[0.04] first:border-0">
-                          <div className="w-1 h-7 rounded-full shrink-0 bg-amber-500" />
-                          <div className="w-8 h-8 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center shrink-0">
-                            <Package className="w-4 h-4 text-amber-400" />
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <p className="text-sm font-black text-white truncate">{p.name}</p>
-                            <p className="text-[11px] text-amber-400/70 font-bold truncate">
-                              {p.stock <= 0 ? 'Agotado' : `Stock: ${p.stock}`}{p.min_stock > 0 ? ` · Mín: ${p.min_stock}` : ''}
-                            </p>
-                          </div>
-                          <ChevronRight className="w-4 h-4 text-white/10 group-hover:text-white/30 transition-colors shrink-0" />
-                        </button>
-                      ))}
-                    </>
-                  )}
-
-                  {/* ── TAREAS ───────────────────────────────────── */}
-                  {pendingShiftTasks.length > 0 && (
-                    <>
-                      <div className="flex items-center gap-2 px-5 pt-3 pb-1.5 mt-1">
-                        <span className="text-[8px] font-black text-white/25 uppercase tracking-[0.2em]">Tareas</span>
-                        <div className="flex-1 h-px bg-white/[0.05]" />
-                        <span className="text-[8px] font-black text-white/20">{pendingShiftTasks.length}</span>
-                      </div>
-                      {pendingShiftTasks.map(task => (
-                        <div key={task.id} className="flex items-center gap-4 px-5 py-3 border-t border-white/[0.04] first:border-0">
-                          <div className="w-1 h-7 rounded-full shrink-0 bg-indigo-500" />
-                          <div className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 ${task.type === 'opening' ? 'bg-amber-500/10 border border-amber-500/20' : 'bg-indigo-500/10 border border-indigo-500/20'}`}>
-                            {task.type === 'opening'
-                              ? <Sunrise className="w-4 h-4 text-amber-400" />
-                              : <Sunset className="w-4 h-4 text-indigo-400" />
-                            }
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <p className="text-sm font-black text-white truncate">{task.title}</p>
-                            {task.description && <p className="text-[11px] text-white/30 font-bold truncate">{task.description}</p>}
-                          </div>
-                          {task.priority === 'urgent' && <span className="text-[9px] font-black px-1.5 py-0.5 rounded-full bg-red-500/15 text-red-400 border border-red-500/20 shrink-0">Urgente</span>}
-                          <button
-                            onClick={() => handleCompleteTask(task)}
-                            disabled={completingTaskId === task.id}
-                            className={`w-8 h-8 rounded-full border flex items-center justify-center shrink-0 transition-all ${completingTaskId === task.id ? 'bg-emerald-500/20 border-emerald-500/30 animate-pulse' : 'bg-white/5 border-white/15 hover:bg-emerald-500/20 hover:border-emerald-500/40 hover:text-emerald-400'} text-white/30`}
-                          >
-                            <Check className="w-4 h-4" />
+                  {/* ÓRDENES */}
+                  {activeFeedCategory === 'orders' && (
+                    visibleFeedItems.length === 0
+                      ? <div className="flex flex-col items-center justify-center py-14 h-full"><CheckCircle2 className="w-10 h-10 text-emerald-500/30 mb-3" /><p className="text-white/20 text-xs font-black uppercase tracking-widest">Sin órdenes pendientes</p></div>
+                      : visibleFeedItems.map(item => (
+                          <button key={item.id} onClick={() => item.orderId ? handleOrderSelect(item.orderId) : handleNavigate("Inventory")}
+                            className="w-full flex items-center gap-4 px-5 py-3.5 hover:bg-white/[0.04] transition-colors text-left group border-t border-white/[0.04] first:border-0">
+                            <div className={`w-1 h-8 rounded-full shrink-0 ${item.color === 'red' ? 'bg-red-500' : item.color === 'green' ? 'bg-emerald-500' : item.color === 'blue' ? 'bg-blue-500' : item.color === 'yellow' ? 'bg-yellow-500' : 'bg-orange-500'}`} />
+                            <div className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 ${item.color === 'red' ? 'bg-red-500/10 border border-red-500/20' : item.color === 'green' ? 'bg-emerald-500/10 border border-emerald-500/20' : item.color === 'blue' ? 'bg-blue-500/10 border border-blue-500/20' : item.color === 'yellow' ? 'bg-yellow-500/10 border border-yellow-500/20' : 'bg-orange-500/10 border border-orange-500/20'}`}>
+                              {item.type === 'urgent' && <AlertCircle className="w-4 h-4 text-red-400" />}
+                              {item.type === 'ready' && <PackageCheck className="w-4 h-4 text-emerald-400" />}
+                              {item.type === 'intake' && <Inbox className="w-4 h-4 text-blue-400" />}
+                              {item.type === 'parts' && <ShoppingCart className="w-4 h-4 text-orange-400" />}
+                              {item.type === 'stale' && <Search className="w-4 h-4 text-yellow-400" />}
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <p className="text-sm font-black text-white truncate">{item.title}</p>
+                              <p className="text-[11px] text-white/30 font-bold truncate">{item.sub}</p>
+                            </div>
+                            {item.number && <span className="text-[10px] font-black text-white/20 shrink-0">#{item.number?.split('-')?.pop()}</span>}
+                            <ChevronRight className="w-4 h-4 text-white/10 group-hover:text-white/30 transition-colors shrink-0" />
                           </button>
-                        </div>
-                      ))}
-                    </>
+                        ))
                   )}
 
-                  {/* ── TODO BIEN ────────────────────────────────── */}
-                  {visibleFeedItems.length === 0 && lowStockProducts.length === 0 && pendingShiftTasks.length === 0 && (
-                    <div className="flex flex-col items-center justify-center py-14 h-full">
-                      <CheckCircle2 className="w-10 h-10 text-emerald-500/30 mb-3" />
-                      <p className="text-white/20 text-xs font-black uppercase tracking-widest">Todo en orden</p>
-                    </div>
+                  {/* STOCK BAJO */}
+                  {activeFeedCategory === 'stock' && (
+                    lowStockProducts.length === 0
+                      ? <div className="flex flex-col items-center justify-center py-14 h-full"><CheckCircle2 className="w-10 h-10 text-emerald-500/30 mb-3" /><p className="text-white/20 text-xs font-black uppercase tracking-widest">Stock al día</p></div>
+                      : lowStockProducts.map(p => (
+                          <button key={p.id} onClick={() => handleNavigate("Inventory")}
+                            className="w-full flex items-center gap-4 px-5 py-3.5 hover:bg-white/[0.04] transition-colors text-left group border-t border-white/[0.04] first:border-0">
+                            <div className="w-1 h-8 rounded-full shrink-0 bg-amber-500" />
+                            <div className="w-8 h-8 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center shrink-0">
+                              <Package className="w-4 h-4 text-amber-400" />
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <p className="text-sm font-black text-white truncate">{p.name}</p>
+                              <p className="text-[11px] text-amber-400/70 font-bold">
+                                {p.stock <= 0 ? 'Agotado' : `Stock: ${p.stock}`}{p.min_stock > 0 ? ` · Mín: ${p.min_stock}` : ''}
+                              </p>
+                            </div>
+                            <ChevronRight className="w-4 h-4 text-white/10 group-hover:text-white/30 transition-colors shrink-0" />
+                          </button>
+                        ))
+                  )}
+
+                  {/* TAREAS */}
+                  {activeFeedCategory === 'tasks' && (
+                    pendingShiftTasks.length === 0
+                      ? <div className="flex flex-col items-center justify-center py-14 h-full"><CheckCircle2 className="w-10 h-10 text-emerald-500/30 mb-3" /><p className="text-white/20 text-xs font-black uppercase tracking-widest">Tareas completadas</p></div>
+                      : pendingShiftTasks.map(task => (
+                          <div key={task.id} className="flex items-center gap-4 px-5 py-3.5 border-t border-white/[0.04] first:border-0">
+                            <div className="w-1 h-8 rounded-full shrink-0 bg-indigo-500" />
+                            <div className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 ${task.type === 'opening' ? 'bg-amber-500/10 border border-amber-500/20' : 'bg-indigo-500/10 border border-indigo-500/20'}`}>
+                              {task.type === 'opening' ? <Sunrise className="w-4 h-4 text-amber-400" /> : <Sunset className="w-4 h-4 text-indigo-400" />}
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <p className="text-sm font-black text-white truncate">{task.title}</p>
+                              {task.description && <p className="text-[11px] text-white/30 font-bold truncate">{task.description}</p>}
+                            </div>
+                            {task.priority === 'urgent' && <span className="text-[9px] font-black px-1.5 py-0.5 rounded-full bg-red-500/15 text-red-400 border border-red-500/20 shrink-0">Urgente</span>}
+                            <button onClick={() => handleCompleteTask(task)} disabled={completingTaskId === task.id}
+                              className={`w-8 h-8 rounded-full border flex items-center justify-center shrink-0 transition-all ${completingTaskId === task.id ? 'bg-emerald-500/20 border-emerald-500/30 animate-pulse' : 'bg-white/5 border-white/15 hover:bg-emerald-500/20 hover:border-emerald-500/40 hover:text-emerald-400'} text-white/30`}>
+                              <Check className="w-4 h-4" />
+                            </button>
+                          </div>
+                        ))
                   )}
                 </div>
               </div>
