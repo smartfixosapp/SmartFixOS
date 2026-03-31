@@ -25,6 +25,7 @@ import TermsModalsManager from "../components/settings/TermsModalsManager";
 import { useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/components/utils/helpers";
 import { ensureTenantAdminUser } from "@/components/utils/adminBootstrap";
+import EmployeeProfileDrawer from "../components/users/EmployeeProfileDrawer";
 
 const ROLES = [
   { value: "admin",      label: "Administrador", color: "from-cyan-600 to-blue-600",   icon: Shield,     badge: "bg-cyan-500"  },
@@ -335,7 +336,12 @@ export default function UsersManagement() {
   const [showTimeTracking, setShowTimeTracking] = useState(false);
   const [pendingRequests, setPendingRequests] = useState([]);
   const [adminPanelButtons, setAdminPanelButtons] = useState([]);
-  
+  const [mainTab, setMainTab] = useState("equipo");
+  const [selectedEmployee, setSelectedEmployee] = useState(null);
+  const [weekEntries, setWeekEntries] = useState([]);
+  const [clockEntries, setClockEntries] = useState([]);
+  const [clockLoading, setClockLoading] = useState(null);
+
   // Settings states
   const [appConfig, setAppConfig] = useState({
     business_name: "911 SmartFix",
@@ -386,6 +392,8 @@ export default function UsersManagement() {
       checkUrlActions();
       loadSettings();
       loadAdminPanelButtons();
+      loadClockEntries();
+      loadWeekEntries();
     }
 
     const handleButtonsUpdate = () => {
@@ -397,6 +405,87 @@ export default function UsersManagement() {
       window.removeEventListener('admin-panel-buttons-updated', handleButtonsUpdate);
     };
   }, [authorized]);
+
+  // Load today's clock entries for the Tiempo tab
+  const loadClockEntries = async () => {
+    try {
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      const { data } = await supabase
+        .from("time_entry")
+        .select("*")
+        .gte("clock_in", today.toISOString())
+        .order("clock_in", { ascending: false });
+      setClockEntries(data || []);
+    } catch (e) {
+      console.error("Error loading clock entries:", e);
+    }
+  };
+
+  // Load this week's completed entries for the Nómina tab
+  const loadWeekEntries = async () => {
+    try {
+      const weekStart = new Date();
+      weekStart.setDate(weekStart.getDate() - 7);
+      weekStart.setHours(0, 0, 0, 0);
+      const { data } = await supabase
+        .from("time_entry")
+        .select("*")
+        .gte("clock_in", weekStart.toISOString())
+        .not("clock_out", "is", null);
+      setWeekEntries(data || []);
+    } catch (e) {
+      console.error("Error loading week entries:", e);
+    }
+  };
+
+  const handleClockIn = async (user) => {
+    setClockLoading(user.id);
+    try {
+      const { data, error } = await supabase
+        .from("time_entry")
+        .insert({
+          employee_id: user.id,
+          employee_name: user.full_name,
+          clock_in: new Date().toISOString(),
+          tenant_id: getCurrentTenantId(),
+        })
+        .select()
+        .single();
+      if (error) throw error;
+      setClockEntries(prev => [data, ...prev]);
+      toast.success(`✅ Entrada registrada para ${user.full_name}`);
+    } catch (e) {
+      console.error(e);
+      toast.error("Error al registrar entrada");
+    } finally {
+      setClockLoading(null);
+    }
+  };
+
+  const handleClockOut = async (user, entry) => {
+    setClockLoading(user.id);
+    try {
+      const clockOutTime = new Date().toISOString();
+      const totalHours = Math.round(
+        ((new Date(clockOutTime) - new Date(entry.clock_in)) / 3600000) * 100
+      ) / 100;
+      const { error } = await supabase
+        .from("time_entry")
+        .update({ clock_out: clockOutTime, total_hours: totalHours })
+        .eq("id", entry.id);
+      if (error) throw error;
+      setClockEntries(prev =>
+        prev.map(e => e.id === entry.id ? { ...e, clock_out: clockOutTime, total_hours: totalHours } : e)
+      );
+      toast.success(`✅ Salida registrada — ${totalHours.toFixed(1)}h trabajadas`);
+    } catch (e) {
+      console.error(e);
+      toast.error("Error al registrar salida");
+    } finally {
+      setClockLoading(null);
+    }
+  };
 
   const loadSettings = async () => {
     try {
@@ -1081,6 +1170,15 @@ export default function UsersManagement() {
 
   const roleCounts = getRoleCounts();
 
+  // ── Nómina computed ──────────────────────────────────────────────────────
+  const totalWeekHours = weekEntries.reduce((s, e) => s + Number(e.total_hours || 0), 0);
+  const totalWeekPay = users.reduce((s, u) => {
+    const uHrs = weekEntries
+      .filter(e => e.employee_id === u.id)
+      .reduce((h, e) => h + Number(e.total_hours || 0), 0);
+    return s + uHrs * Number(u.hourly_rate || 0);
+  }, 0);
+
   if (!authorized) {
     return <AdminAuthGate onSuccess={() => setAuthorized(true)} />;
   }
@@ -1476,65 +1574,270 @@ export default function UsersManagement() {
           </Button>
         </div>
 
-        {/* Barra de búsqueda y acciones */}
-        <div className="flex flex-col sm:flex-row gap-4 items-center justify-between mb-6">
-          <div className="relative flex-1 w-full">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-            <Input
-              placeholder="Buscar por nombre, email, código..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-12 h-12 bg-white/5 border-white/10 text-white"
-            />
-          </div>
-          <Button
-            onClick={() => setShowCreateModal(true)}
-            className="w-full sm:w-auto h-12 bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-700 hover:to-blue-700 shadow-lg"
-          >
-            <UserPlus className="w-5 h-5 mr-2" />
-            Crear Usuario Nuevo
-          </Button>
+        {/* ── Tab navigation ── */}
+        <div className="flex gap-1 bg-white/[0.04] border border-white/[0.07] rounded-2xl p-1 mb-6">
+          {[
+            { id: "equipo", label: "Equipo", icon: Users },
+            { id: "nomina", label: "Nómina", icon: DollarSign },
+            { id: "tiempo", label: "Tiempo", icon: Clock },
+          ].map(t => (
+            <button
+              key={t.id}
+              onClick={() => setMainTab(t.id)}
+              className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-bold transition-all ${
+                mainTab === t.id
+                  ? "bg-white/[0.1] text-white shadow-sm"
+                  : "text-white/35 hover:text-white/60"
+              }`}
+            >
+              <t.icon className="w-4 h-4" />
+              <span className="hidden sm:inline">{t.label}</span>
+            </button>
+          ))}
         </div>
 
-
-
-        {/* Grid de Usuarios */}
-        {loading ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {[...Array(6)].map((_, i) => (
-              <div key={i} className="bg-slate-900/40 border border-cyan-500/10 rounded-2xl p-6 animate-pulse backdrop-blur-xl">
-                <div className="flex items-center gap-4 mb-4">
-                  <div className="w-16 h-16 rounded-2xl bg-slate-800" />
-                  <div className="flex-1">
-                    <div className="h-5 bg-slate-800 rounded w-32 mb-2" />
-                    <div className="h-4 bg-slate-800/60 rounded w-24" />
-                  </div>
-                </div>
+        {/* ══ TAB: EQUIPO ══ */}
+        {mainTab === "equipo" && (
+          <>
+            {/* Barra de búsqueda y acciones */}
+            <div className="flex flex-col sm:flex-row gap-4 items-center justify-between mb-6">
+              <div className="relative flex-1 w-full">
+                <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                <Input
+                  placeholder="Buscar por nombre, email, código..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="pl-12 h-12 bg-white/5 border-white/10 text-white"
+                />
               </div>
-            ))}
-          </div>
-        ) : filteredUsers.length === 0 ? (
-          <div className="bg-slate-900/40 border border-cyan-500/20 rounded-3xl p-16 text-center backdrop-blur-xl theme-light:bg-white">
-            <div className="w-24 h-24 rounded-full bg-gradient-to-br from-cyan-500/10 to-purple-500/10 mx-auto mb-6 flex items-center justify-center">
-              <AlertCircle className="w-12 h-12 text-cyan-400/60" />
+              <Button
+                onClick={() => setShowCreateModal(true)}
+                className="w-full sm:w-auto h-12 bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-700 hover:to-blue-700 shadow-lg"
+              >
+                <UserPlus className="w-5 h-5 mr-2" />
+                Crear Empleado
+              </Button>
             </div>
-            <p className="text-cyan-300/60 text-lg font-semibold theme-light:text-gray-600">
-              {searchTerm ? "No se encontraron usuarios" : "No hay usuarios creados"}
+
+            {/* Grid de Usuarios */}
+            {loading ? (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                {[...Array(6)].map((_, i) => (
+                  <div key={i} className="bg-white/[0.04] border border-white/[0.07] rounded-[22px] p-5 animate-pulse">
+                    <div className="flex items-center gap-4">
+                      <div className="w-[52px] h-[52px] rounded-[16px] bg-white/10" />
+                      <div className="flex-1">
+                        <div className="h-4 bg-white/10 rounded w-28 mb-2" />
+                        <div className="h-3 bg-white/[0.06] rounded w-20" />
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : filteredUsers.length === 0 ? (
+              <div className="bg-white/[0.02] border border-white/[0.06] rounded-3xl p-16 text-center">
+                <AlertCircle className="w-10 h-10 text-white/15 mx-auto mb-4" />
+                <p className="text-white/30 text-base font-semibold">
+                  {searchTerm ? "No se encontraron empleados" : "No hay empleados creados"}
+                </p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                {filteredUsers.map((user) => (
+                  <UserCard
+                    key={user.id}
+                    user={user}
+                    roles={ROLES}
+                    onClick={() => setSelectedEmployee(user)}
+                    onEdit={() => setEditingUser(user)}
+                    onDelete={() => handleDeleteUser(user)}
+                    onToggleActive={() => handleToggleActive(user)}
+                    onResendInvite={() => handleResendInvitation(user)}
+                  />
+                ))}
+              </div>
+            )}
+          </>
+        )}
+
+        {/* ══ TAB: NÓMINA ══ */}
+        {mainTab === "nomina" && (
+          <div className="space-y-4">
+            {/* KPI cards */}
+            <div className="grid grid-cols-3 gap-3 mb-2">
+              <div className="bg-white/[0.04] border border-white/[0.07] rounded-2xl p-4 text-center">
+                <p className="text-white font-black text-2xl">{users.length}</p>
+                <p className="text-white/35 text-[11px] font-bold uppercase tracking-wide mt-0.5">Empleados</p>
+              </div>
+              <div className="bg-white/[0.04] border border-white/[0.07] rounded-2xl p-4 text-center">
+                <p className="text-white font-black text-2xl">{totalWeekHours.toFixed(1)}</p>
+                <p className="text-white/35 text-[11px] font-bold uppercase tracking-wide mt-0.5">Hrs semana</p>
+              </div>
+              <div className="bg-emerald-500/[0.08] border border-emerald-500/20 rounded-2xl p-4 text-center">
+                <p className="text-emerald-400 font-black text-2xl">${totalWeekPay.toFixed(0)}</p>
+                <p className="text-white/35 text-[11px] font-bold uppercase tracking-wide mt-0.5">A pagar</p>
+              </div>
+            </div>
+
+            <p className="text-white/25 text-xs font-bold uppercase tracking-widest px-1">
+              Horas completadas — últimos 7 días
             </p>
+
+            {users.length === 0 ? (
+              <div className="text-center py-12">
+                <DollarSign className="w-10 h-10 text-white/10 mx-auto mb-3" />
+                <p className="text-white/30 text-sm font-semibold">Sin empleados registrados</p>
+              </div>
+            ) : (
+              users.map(user => {
+                const userEntries = weekEntries.filter(e => e.employee_id === user.id);
+                const hours = userEntries.reduce((s, e) => s + Number(e.total_hours || 0), 0);
+                const rate = Number(user.hourly_rate || 0);
+                const amount = hours * rate;
+                const roleInfo = ROLES.find(r => r.value === (user.position || user.role));
+                const nameParts = (user.full_name || "").split(" ").filter(Boolean);
+                const initials = nameParts.length >= 2
+                  ? (nameParts[0][0] + nameParts[1][0]).toUpperCase()
+                  : (nameParts[0]?.[0] || "?").toUpperCase();
+
+                return (
+                  <div
+                    key={user.id}
+                    className="bg-white/[0.04] border border-white/[0.07] rounded-2xl p-4 flex items-center gap-4"
+                  >
+                    <div className={`w-11 h-11 rounded-[14px] bg-gradient-to-br ${roleInfo?.color || "from-slate-500 to-slate-700"} flex items-center justify-center flex-shrink-0`}>
+                      <span className="text-white font-black text-sm">{initials}</span>
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-white font-bold text-sm truncate">{user.full_name}</p>
+                      <p className="text-white/35 text-xs mt-0.5">
+                        {hours.toFixed(1)}h
+                        {rate > 0 ? ` × $${rate.toFixed(2)}/hr` : " (sin tarifa)"}
+                      </p>
+                    </div>
+                    <div className="text-right flex-shrink-0">
+                      <p className={`font-black text-base ${amount > 0 ? "text-emerald-400" : "text-white/30"}`}>
+                        ${amount.toFixed(2)}
+                      </p>
+                      <p className="text-white/20 text-[10px]">esta semana</p>
+                    </div>
+                  </div>
+                );
+              })
+            )}
           </div>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {filteredUsers.map((user) => (
-              <UserCard
-                key={user.id}
-                user={user}
-                roles={ROLES}
-                onEdit={() => setEditingUser(user)}
-                onDelete={() => handleDeleteUser(user)}
-                onToggleActive={() => handleToggleActive(user)}
-                onResendInvite={() => handleResendInvitation(user)}
-              />
-            ))}
+        )}
+
+        {/* ══ TAB: TIEMPO (Clock in/out) ══ */}
+        {mainTab === "tiempo" && (
+          <div className="space-y-3">
+            {/* Date header */}
+            <div className="text-center mb-4">
+              <p className="text-white/25 text-xs font-black uppercase tracking-widest">
+                {new Date().toLocaleDateString("es-PR", {
+                  weekday: "long", day: "numeric", month: "long"
+                }).toUpperCase()}
+              </p>
+              <p className="text-white/50 text-sm font-bold mt-1">
+                Registro de entrada y salida
+              </p>
+            </div>
+
+            <div className="flex justify-end mb-2">
+              <button
+                onClick={loadClockEntries}
+                className="flex items-center gap-2 text-white/30 hover:text-white/60 text-xs font-bold transition-colors"
+              >
+                <Zap className="w-3 h-3" />
+                Actualizar
+              </button>
+            </div>
+
+            {users.length === 0 ? (
+              <div className="text-center py-12">
+                <Clock className="w-10 h-10 text-white/10 mx-auto mb-3" />
+                <p className="text-white/30 text-sm font-semibold">Sin empleados</p>
+              </div>
+            ) : (
+              users.map(user => {
+                const openEntry = clockEntries.find(
+                  e => e.employee_id === user.id && !e.clock_out
+                );
+                const isClockedIn = !!openEntry;
+                const roleInfo = ROLES.find(r => r.value === (user.position || user.role));
+                const nameParts = (user.full_name || "").split(" ").filter(Boolean);
+                const initials = nameParts.length >= 2
+                  ? (nameParts[0][0] + nameParts[1][0]).toUpperCase()
+                  : (nameParts[0]?.[0] || "?").toUpperCase();
+                const isLoading = clockLoading === user.id;
+
+                return (
+                  <div
+                    key={user.id}
+                    className={`rounded-2xl p-4 flex items-center gap-4 border transition-all ${
+                      isClockedIn
+                        ? "bg-emerald-500/[0.07] border-emerald-500/20"
+                        : "bg-white/[0.04] border-white/[0.07]"
+                    }`}
+                  >
+                    {/* Avatar with live dot */}
+                    <div className="relative flex-shrink-0">
+                      <div className={`w-12 h-12 rounded-[16px] bg-gradient-to-br ${roleInfo?.color || "from-slate-500 to-slate-700"} flex items-center justify-center`}>
+                        <span className="text-white font-black text-base">{initials}</span>
+                      </div>
+                      <div className={`absolute -bottom-1 -right-1 w-3.5 h-3.5 rounded-full border-2 border-[#090a0d] ${
+                        isClockedIn ? "bg-emerald-400 animate-pulse" : "bg-slate-600"
+                      }`} />
+                    </div>
+
+                    {/* Name + status */}
+                    <div className="flex-1 min-w-0">
+                      <p className="text-white font-bold text-sm truncate">{user.full_name}</p>
+                      {isClockedIn ? (
+                        <p className="text-emerald-400 text-xs font-semibold mt-0.5">
+                          Entrada: {(() => {
+                            try {
+                              return new Date(openEntry.clock_in).toLocaleTimeString("es-PR", { hour: "2-digit", minute: "2-digit" });
+                            } catch { return ""; }
+                          })()}
+                        </p>
+                      ) : (
+                        <p className="text-white/30 text-xs mt-0.5">Sin entrada hoy</p>
+                      )}
+                    </div>
+
+                    {/* Clock in/out button */}
+                    <button
+                      onClick={() =>
+                        isClockedIn
+                          ? handleClockOut(user, openEntry)
+                          : handleClockIn(user)
+                      }
+                      disabled={isLoading}
+                      className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold transition-all active:scale-95 flex-shrink-0 border ${
+                        isClockedIn
+                          ? "bg-red-500/15 border-red-500/30 text-red-400 hover:bg-red-500/25"
+                          : "bg-emerald-500/15 border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/25"
+                      }`}
+                    >
+                      {isLoading ? (
+                        <div className="w-4 h-4 border border-current/30 border-t-current rounded-full animate-spin" />
+                      ) : isClockedIn ? (
+                        <>
+                          <Clock className="w-3.5 h-3.5" />
+                          Salida
+                        </>
+                      ) : (
+                        <>
+                          <Zap className="w-3.5 h-3.5" />
+                          Entrada
+                        </>
+                      )}
+                    </button>
+                  </div>
+                );
+              })
+            )}
           </div>
         )}
       </div>
@@ -1555,6 +1858,24 @@ export default function UsersManagement() {
           onUpdate={handleUpdateUser}
           onResendInvite={handleResendInvitation}
           roles={ROLES}
+        />
+      )}
+
+      {/* Employee Profile Drawer */}
+      {selectedEmployee && (
+        <EmployeeProfileDrawer
+          employee={selectedEmployee}
+          roles={ROLES}
+          onClose={() => setSelectedEmployee(null)}
+          onEdit={() => {
+            setEditingUser(selectedEmployee);
+            setSelectedEmployee(null);
+          }}
+          onToggleActive={() => {
+            handleToggleActive(selectedEmployee);
+            setSelectedEmployee(null);
+          }}
+          onResendInvite={() => handleResendInvitation(selectedEmployee)}
         />
       )}
 
