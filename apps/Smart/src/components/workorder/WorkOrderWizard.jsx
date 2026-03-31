@@ -918,11 +918,12 @@ export default function WorkOrderWizard({ open, onClose, onSuccess, preloadedCus
   const [showAddItemModal, setShowAddItemModal] = useState(false);
   const [suggestedProducts, setSuggestedProducts] = useState([]);
   // Mobile step-by-step wizard (only on isCompactDevice)
-  const mobileStepsTotal = quickOrderMode ? 3 : 7;
+  // Step 0 = type selector (Rápida vs Regular), then content steps
+  const mobileStepsTotal = quickOrderMode ? 4 : 8;
   const isLastMobileStep = isCompactDevice && mobileStep === mobileStepsTotal - 1;
   const mobileStepLabels = quickOrderMode
-    ? ["Cliente", "Dispositivo", "Problema"]
-    : ["Cliente", "Técnico", "Dispositivo", "Problema", "Seguridad", "Checklist", "Evidencia"];
+    ? ["Tipo", "Cliente", "Dispositivo", "Problema"]
+    : ["Tipo", "Cliente", "Técnico", "Dispositivo", "Problema", "Seguridad", "Checklist", "Evidencia"];
 
   const checklistTemplateKey = useMemo(() => resolveChecklistTemplate(deviceType), [deviceType]);
   const checklistTemplateItems = useMemo(
@@ -2822,7 +2823,7 @@ export default function WorkOrderWizard({ open, onClose, onSuccess, preloadedCus
                 : "border-white/10"
             } ${
               isCompactDevice
-                ? "max-w-3xl w-[100vw] h-[100dvh] rounded-t-[32px] rounded-b-none"
+                ? "max-w-3xl w-[100vw] h-[100dvh] rounded-none"
                 : "max-w-none w-[min(96vw,1440px)] h-[min(94dvh,1100px)] rounded-[32px]"
             }`}
             onInteractOutside={(e) => e.preventDefault()}
@@ -2833,9 +2834,7 @@ export default function WorkOrderWizard({ open, onClose, onSuccess, preloadedCus
             onTouchEnd={handleSwipeEnd}
           >
         {isCompactDevice && (
-          <div className="flex justify-center" style={{ paddingTop: "calc(env(safe-area-inset-top, 0px) + 8px)" }}>
-            <div className="w-12 h-1.5 rounded-full bg-white/35" />
-          </div>
+          <div style={{ height: "env(safe-area-inset-top, 0px)" }} />
         )}
         {/* Fondos animados (Eliminados para evitar transparencias) */}
         
@@ -2870,10 +2869,8 @@ export default function WorkOrderWizard({ open, onClose, onSuccess, preloadedCus
           </button>
         </div>
 
-        {(!isCompactDevice || mobileStep === 0) && (
-        <div className={`relative z-10 border-b border-white/[0.05] bg-white/[0.01] ${
-          isCompactDevice ? "px-6 py-4" : "px-8 py-4"
-        }`}>
+        {!isCompactDevice && (
+        <div className={`relative z-10 border-b border-white/[0.05] bg-white/[0.01] px-8 py-4`}>
           <button
             type="button"
             onClick={() => { setQuickOrderMode((prev) => !prev); if (isCompactDevice) setMobileStep(0); }}
@@ -2918,8 +2915,8 @@ export default function WorkOrderWizard({ open, onClose, onSuccess, preloadedCus
         </div>
         )}
 
-        {/* Mobile step progress strip */}
-        {isCompactDevice && (
+        {/* Mobile step progress strip — hidden on step 0 (type selector) */}
+        {isCompactDevice && mobileStep > 0 && (
           <div className="flex items-center gap-3 px-6 py-3 border-b border-white/[0.05] bg-white/[0.01] shrink-0">
             <span className="text-[10px] font-black uppercase tracking-[0.18em] text-white/50 shrink-0 min-w-[70px]">
               {mobileStepLabels[mobileStep]}
@@ -2952,8 +2949,51 @@ export default function WorkOrderWizard({ open, onClose, onSuccess, preloadedCus
           }`}
         >
           
+          {/* 🚀 PASO 0 — Selector de tipo (solo móvil) */}
+          {isCompactDevice && mobileStep === 0 && (
+            <div className="flex flex-col gap-4 h-full py-2">
+              <p className="text-center text-white/40 text-xs font-black uppercase tracking-[0.2em]">¿Qué tipo de orden vas a crear?</p>
+              {/* Orden Regular */}
+              <button
+                onClick={() => { setQuickOrderMode(false); setMobileStep(1); }}
+                className="flex-1 bg-white/[0.03] border border-white/[0.1] rounded-[28px] p-8 flex flex-col items-center justify-center gap-5 active:scale-95 transition-all hover:bg-white/[0.06] group"
+              >
+                <div className="w-20 h-20 rounded-[24px] bg-gradient-to-br from-cyan-400 to-blue-600 flex items-center justify-center shadow-[0_8px_32px_rgba(6,182,212,0.35)]">
+                  <Wrench className="w-10 h-10 text-white" strokeWidth={2.5} />
+                </div>
+                <div className="text-center">
+                  <p className="text-2xl font-black text-white uppercase tracking-tight">Orden Regular</p>
+                  <p className="text-sm text-white/40 mt-2 leading-relaxed">Diagnóstico completo · 7 pasos</p>
+                </div>
+                <div className="flex gap-2 flex-wrap justify-center">
+                  {["Cliente","Técnico","Dispositivo","Problema","Seguridad","Checklist","Evidencia"].map(s => (
+                    <span key={s} className="text-[10px] font-bold text-cyan-400/70 bg-cyan-500/10 border border-cyan-500/20 rounded-full px-2 py-0.5">{s}</span>
+                  ))}
+                </div>
+              </button>
+              {/* Orden Rápida */}
+              <button
+                onClick={() => { setQuickOrderMode(true); setMobileStep(1); }}
+                className="flex-1 bg-amber-500/[0.05] border border-amber-500/20 rounded-[28px] p-8 flex flex-col items-center justify-center gap-5 active:scale-95 transition-all hover:bg-amber-500/[0.1] group"
+              >
+                <div className="w-20 h-20 rounded-[24px] bg-gradient-to-br from-amber-400 to-yellow-600 flex items-center justify-center shadow-[0_8px_32px_rgba(245,158,11,0.35)]">
+                  <Zap className="w-10 h-10 text-white" strokeWidth={2.5} />
+                </div>
+                <div className="text-center">
+                  <p className="text-2xl font-black text-white uppercase tracking-tight">Orden Rápida</p>
+                  <p className="text-sm text-white/40 mt-2 leading-relaxed">Cambio rápido · 3 pasos</p>
+                </div>
+                <div className="flex gap-2 flex-wrap justify-center">
+                  {["Cliente","Dispositivo","Problema"].map(s => (
+                    <span key={s} className="text-[10px] font-bold text-amber-400/70 bg-amber-500/10 border border-amber-500/20 rounded-full px-2 py-0.5">{s}</span>
+                  ))}
+                </div>
+              </button>
+            </div>
+          )}
+
           {/* 📋 CLIENTE */}
-          {(!isCompactDevice || mobileStep === 0) && (
+          {(!isCompactDevice || mobileStep === 1) && (
           <div className="bg-white/[0.03] border border-white/[0.08] rounded-[28px] p-6 space-y-5 backdrop-blur-3xl shadow-[0_8px_32px_rgba(0,0,0,0.2)] relative overflow-hidden lg:col-span-4 transition-all hover:bg-white/[0.05] group">
             <div className="absolute -right-20 -top-20 w-40 h-40 bg-cyan-500/5 rounded-full blur-[80px] group-hover:bg-cyan-500/10 transition-colors duration-700" />
             <h3 className="text-white font-black text-lg flex items-center gap-3 relative z-10 uppercase tracking-tight">
@@ -3166,7 +3206,7 @@ export default function WorkOrderWizard({ open, onClose, onSuccess, preloadedCus
           )}
 
           {/* 👤 TÉCNICO */}
-          {!quickOrderMode && (!isCompactDevice || mobileStep === 1) && (
+          {!quickOrderMode && (!isCompactDevice || mobileStep === 2) && (
           <div className="bg-white/[0.03] border border-white/[0.08] rounded-[28px] p-6 space-y-5 backdrop-blur-3xl shadow-[0_8px_32px_rgba(0,0,0,0.2)] relative overflow-hidden lg:col-span-3 transition-all hover:bg-white/[0.05] group">
             <div className="absolute -right-20 -bottom-20 w-40 h-40 bg-emerald-500/5 rounded-full blur-[80px] group-hover:bg-emerald-500/10 transition-colors duration-700" />
             <h3 className="text-white font-black text-lg flex items-center gap-3 relative z-10 uppercase tracking-tight">
@@ -3227,7 +3267,7 @@ export default function WorkOrderWizard({ open, onClose, onSuccess, preloadedCus
           )}
 
           {/* 📱 DISPOSITIVO */}
-          {(!isCompactDevice || (quickOrderMode ? mobileStep === 1 : mobileStep === 2)) && (
+          {(!isCompactDevice || (quickOrderMode ? mobileStep === 2 : mobileStep === 3)) && (
           <div className="bg-white/[0.03] border border-white/[0.08] rounded-[28px] p-6 space-y-5 backdrop-blur-2xl shadow-[0_8px_32px_rgba(0,0,0,0.2)] relative overflow-hidden lg:col-span-5 transition-all hover:bg-white/[0.05] group">
             <div className="absolute -right-20 -top-20 w-40 h-40 bg-purple-500/5 rounded-full blur-[80px] group-hover:bg-purple-500/10 transition-colors duration-700" />
             <div className="flex items-center justify-between relative z-10">
@@ -3446,7 +3486,7 @@ export default function WorkOrderWizard({ open, onClose, onSuccess, preloadedCus
           )}
 
           {/* 🔧 PROBLEMA */}
-          {(!isCompactDevice || (quickOrderMode ? mobileStep === 2 : mobileStep === 3)) && (
+          {(!isCompactDevice || (quickOrderMode ? mobileStep === 3 : mobileStep === 4)) && (
           <div className="bg-white/[0.03] border border-white/[0.08] rounded-[28px] p-6 space-y-5 backdrop-blur-xl shadow-[0_8px_32px_rgba(0,0,0,0.2)] relative overflow-hidden lg:col-span-4 transition-all hover:bg-white/[0.05] group">
             <div className="absolute -right-20 -top-20 w-40 h-40 bg-orange-500/5 rounded-full blur-[80px] group-hover:bg-orange-500/10 transition-colors duration-700" />
             <h3 className="text-white font-black text-lg flex items-center gap-3 relative z-10 uppercase tracking-tight">
@@ -3466,7 +3506,7 @@ export default function WorkOrderWizard({ open, onClose, onSuccess, preloadedCus
           )}
 
           {/* 🛠️ PIEZAS Y SERVICIOS — mismo paso que PROBLEMA en móvil */}
-          {(!isCompactDevice || (quickOrderMode ? mobileStep === 2 : mobileStep === 3)) && (
+          {(!isCompactDevice || (quickOrderMode ? mobileStep === 3 : mobileStep === 4)) && (
           <div className="bg-white/[0.03] border border-white/[0.08] rounded-[28px] p-6 space-y-5 backdrop-blur-2xl shadow-[0_8px_32px_rgba(0,0,0,0.2)] relative overflow-hidden lg:col-span-8 transition-all hover:bg-white/[0.05] group">
             <div className="absolute -left-20 -bottom-20 w-40 h-40 bg-lime-500/5 rounded-full blur-[80px] group-hover:bg-lime-500/10 transition-colors duration-700" />
             <div className="flex items-center justify-between relative z-10">
@@ -3571,7 +3611,7 @@ export default function WorkOrderWizard({ open, onClose, onSuccess, preloadedCus
           )}
 
           {/* 🔐 SEGURIDAD */}
-          {!quickOrderMode && (!isCompactDevice || mobileStep === 4) && (
+          {!quickOrderMode && (!isCompactDevice || mobileStep === 5) && (
           <div className="bg-white/[0.03] border border-white/[0.08] rounded-[28px] p-6 space-y-5 backdrop-blur-xl shadow-[0_8px_32px_rgba(0,0,0,0.2)] relative overflow-hidden lg:col-span-4 transition-all hover:bg-white/[0.05] group">
             <div className="absolute -right-20 -top-20 w-40 h-40 bg-blue-500/5 rounded-full blur-[80px] group-hover:bg-blue-500/10 transition-colors duration-700" />
             <h3 className="text-white font-black text-lg flex items-center gap-3 relative z-10 uppercase tracking-tight">
@@ -3634,7 +3674,7 @@ export default function WorkOrderWizard({ open, onClose, onSuccess, preloadedCus
           )}
 
           {/* ✅ CHECKLIST */}
-          {!quickOrderMode && (!isCompactDevice || mobileStep === 5) && (
+          {!quickOrderMode && (!isCompactDevice || mobileStep === 6) && (
           <div className="bg-white/[0.03] border border-white/[0.08] rounded-[28px] p-6 space-y-5 backdrop-blur-xl shadow-[0_8px_32px_rgba(0,0,0,0.2)] relative overflow-hidden lg:col-span-4 transition-all hover:bg-white/[0.05] group">
             <div className="absolute -left-20 -top-20 w-40 h-40 bg-green-500/5 rounded-full blur-[80px] group-hover:bg-green-500/10 transition-colors duration-700" />
             <h3 className="text-white font-black text-lg flex items-center gap-3 relative z-10 uppercase tracking-tight">
@@ -3719,7 +3759,7 @@ export default function WorkOrderWizard({ open, onClose, onSuccess, preloadedCus
           )}
 
           {/* 📸 FOTOS */}
-          {!quickOrderMode && (!isCompactDevice || mobileStep === 6) && (
+          {!quickOrderMode && (!isCompactDevice || mobileStep === 7) && (
           <div className="bg-white/[0.03] border border-white/[0.08] rounded-[28px] p-6 space-y-5 backdrop-blur-xl shadow-[0_8px_32px_rgba(0,0,0,0.2)] relative overflow-hidden lg:col-span-4 transition-all hover:bg-white/[0.05] group">
             <div className="absolute -right-20 -bottom-20 w-40 h-40 bg-pink-500/5 rounded-full blur-[80px] group-hover:bg-pink-500/10 transition-colors duration-700" />
             <h3 className="text-white font-black text-lg flex items-center gap-3 relative z-10 uppercase tracking-tight">
@@ -3809,7 +3849,7 @@ export default function WorkOrderWizard({ open, onClose, onSuccess, preloadedCus
           {isCompactDevice ? (
             /* ── MOBILE FOOTER: step navigation ── */
             <div className="flex flex-col gap-3">
-              {/* Row 1: Cancelar + Volver */}
+              {/* Row 1: Cancelar + Volver (Volver va a step 0 que cambia el tipo) */}
               <div className="flex gap-2">
                 <Button
                   onClick={onClose}
@@ -3831,8 +3871,8 @@ export default function WorkOrderWizard({ open, onClose, onSuccess, preloadedCus
                   </Button>
                 )}
               </div>
-              {/* Row 2: Siguiente / Confirmar */}
-              {isLastMobileStep ? (
+              {/* Row 2: Siguiente / Confirmar — oculto en step 0 (tarjeta avanza sola) */}
+              {mobileStep === 0 ? null : isLastMobileStep ? (
                 <Button
                   onClick={handleSubmit}
                   disabled={loading}
