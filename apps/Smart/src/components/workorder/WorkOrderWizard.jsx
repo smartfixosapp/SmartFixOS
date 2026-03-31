@@ -11,7 +11,7 @@ import {
   User, Smartphone, Wrench, Shield, CheckSquare, Plus,
   X, Mail, Loader2, Camera, Check, Search, Eye, Grid3X3, Users, Save,
   Laptop, Tablet, Monitor, Watch, Gamepad2, Zap, Pencil, Trash2, ChevronDown,
-  Clock, SlidersHorizontal
+  Clock, SlidersHorizontal, ChevronLeft, ChevronRight
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
@@ -911,11 +911,19 @@ export default function WorkOrderWizard({ open, onClose, onSuccess, preloadedCus
   const bodyScrollRef = useRef(null);
   const swipeStateRef = useRef({ startY: 0, lastY: 0, active: false });
   const [isCompactDevice, setIsCompactDevice] = useState(false);
+  const [mobileStep, setMobileStep] = useState(0);
 
   // Items (piezas y servicios)
   const [orderItems, setOrderItems] = useState([]);
   const [showAddItemModal, setShowAddItemModal] = useState(false);
   const [suggestedProducts, setSuggestedProducts] = useState([]);
+  // Mobile step-by-step wizard (only on isCompactDevice)
+  const mobileStepsTotal = quickOrderMode ? 3 : 7;
+  const isLastMobileStep = isCompactDevice && mobileStep === mobileStepsTotal - 1;
+  const mobileStepLabels = quickOrderMode
+    ? ["Cliente", "Dispositivo", "Problema"]
+    : ["Cliente", "Técnico", "Dispositivo", "Problema", "Seguridad", "Checklist", "Evidencia"];
+
   const checklistTemplateKey = useMemo(() => resolveChecklistTemplate(deviceType), [deviceType]);
   const checklistTemplateItems = useMemo(
     () => CHECKLIST_LIBRARY[checklistTemplateKey] || CHECKLIST_LIBRARY.celulares,
@@ -1198,6 +1206,7 @@ export default function WorkOrderWizard({ open, onClose, onSuccess, preloadedCus
 
   useEffect(() => {
     if (!open) return;
+    setMobileStep(0);
     const iv = setInterval(() => {
       loadTechnicians();
     }, 8000);
@@ -2861,12 +2870,13 @@ export default function WorkOrderWizard({ open, onClose, onSuccess, preloadedCus
           </button>
         </div>
 
+        {(!isCompactDevice || mobileStep === 0) && (
         <div className={`relative z-10 border-b border-white/[0.05] bg-white/[0.01] ${
           isCompactDevice ? "px-6 py-4" : "px-8 py-4"
         }`}>
           <button
             type="button"
-            onClick={() => setQuickOrderMode((prev) => !prev)}
+            onClick={() => { setQuickOrderMode((prev) => !prev); if (isCompactDevice) setMobileStep(0); }}
             className={`w-full group rounded-[24px] border transition-all duration-500 ${
               quickOrderMode
                 ? "border-amber-400/30 bg-amber-500/10 shadow-[inner_0_0_20px_rgba(245,158,11,0.1)]"
@@ -2906,18 +2916,44 @@ export default function WorkOrderWizard({ open, onClose, onSuccess, preloadedCus
             </div>
           </button>
         </div>
+        )}
+
+        {/* Mobile step progress strip */}
+        {isCompactDevice && (
+          <div className="flex items-center gap-3 px-6 py-3 border-b border-white/[0.05] bg-white/[0.01] shrink-0">
+            <span className="text-[10px] font-black uppercase tracking-[0.18em] text-white/50 shrink-0 min-w-[70px]">
+              {mobileStepLabels[mobileStep]}
+            </span>
+            <div className="flex-1 flex gap-1">
+              {Array.from({ length: mobileStepsTotal }).map((_, i) => (
+                <div
+                  key={i}
+                  className={`h-1.5 flex-1 rounded-full transition-all duration-300 ${
+                    i < mobileStep
+                      ? quickOrderMode ? "bg-amber-400" : "bg-cyan-500"
+                      : i === mobileStep
+                      ? quickOrderMode ? "bg-amber-400/80" : "bg-cyan-400"
+                      : "bg-white/10"
+                  }`}
+                />
+              ))}
+            </div>
+            <span className="text-[10px] font-bold text-white/25 shrink-0">{mobileStep + 1}/{mobileStepsTotal}</span>
+          </div>
+        )}
 
         {/* Body - TODAS LAS SECCIONES EN UNA PÁGINA */}
         <div
           ref={bodyScrollRef}
-          className={`flex-1 p-5 relative z-10 ${
+          className={`flex-1 relative z-10 ${
             isCompactDevice
-              ? "overflow-y-auto space-y-5 pb-28"
+              ? "overflow-y-auto p-5 pb-6"
               : "overflow-y-auto grid grid-cols-12 gap-4 auto-rows-min p-4 pb-4"
           }`}
         >
           
           {/* 📋 CLIENTE */}
+          {(!isCompactDevice || mobileStep === 0) && (
           <div className="bg-white/[0.03] border border-white/[0.08] rounded-[28px] p-6 space-y-5 backdrop-blur-3xl shadow-[0_8px_32px_rgba(0,0,0,0.2)] relative overflow-hidden lg:col-span-4 transition-all hover:bg-white/[0.05] group">
             <div className="absolute -right-20 -top-20 w-40 h-40 bg-cyan-500/5 rounded-full blur-[80px] group-hover:bg-cyan-500/10 transition-colors duration-700" />
             <h3 className="text-white font-black text-lg flex items-center gap-3 relative z-10 uppercase tracking-tight">
@@ -3127,9 +3163,10 @@ export default function WorkOrderWizard({ open, onClose, onSuccess, preloadedCus
               </div>
             )}
           </div>
+          )}
 
           {/* 👤 TÉCNICO */}
-          {!quickOrderMode && (
+          {!quickOrderMode && (!isCompactDevice || mobileStep === 1) && (
           <div className="bg-white/[0.03] border border-white/[0.08] rounded-[28px] p-6 space-y-5 backdrop-blur-3xl shadow-[0_8px_32px_rgba(0,0,0,0.2)] relative overflow-hidden lg:col-span-3 transition-all hover:bg-white/[0.05] group">
             <div className="absolute -right-20 -bottom-20 w-40 h-40 bg-emerald-500/5 rounded-full blur-[80px] group-hover:bg-emerald-500/10 transition-colors duration-700" />
             <h3 className="text-white font-black text-lg flex items-center gap-3 relative z-10 uppercase tracking-tight">
@@ -3190,6 +3227,7 @@ export default function WorkOrderWizard({ open, onClose, onSuccess, preloadedCus
           )}
 
           {/* 📱 DISPOSITIVO */}
+          {(!isCompactDevice || (quickOrderMode ? mobileStep === 1 : mobileStep === 2)) && (
           <div className="bg-white/[0.03] border border-white/[0.08] rounded-[28px] p-6 space-y-5 backdrop-blur-2xl shadow-[0_8px_32px_rgba(0,0,0,0.2)] relative overflow-hidden lg:col-span-5 transition-all hover:bg-white/[0.05] group">
             <div className="absolute -right-20 -top-20 w-40 h-40 bg-purple-500/5 rounded-full blur-[80px] group-hover:bg-purple-500/10 transition-colors duration-700" />
             <div className="flex items-center justify-between relative z-10">
@@ -3405,8 +3443,10 @@ export default function WorkOrderWizard({ open, onClose, onSuccess, preloadedCus
             </AnimatePresence>
 
           </div>
+          )}
 
           {/* 🔧 PROBLEMA */}
+          {(!isCompactDevice || (quickOrderMode ? mobileStep === 2 : mobileStep === 3)) && (
           <div className="bg-white/[0.03] border border-white/[0.08] rounded-[28px] p-6 space-y-5 backdrop-blur-xl shadow-[0_8px_32px_rgba(0,0,0,0.2)] relative overflow-hidden lg:col-span-4 transition-all hover:bg-white/[0.05] group">
             <div className="absolute -right-20 -top-20 w-40 h-40 bg-orange-500/5 rounded-full blur-[80px] group-hover:bg-orange-500/10 transition-colors duration-700" />
             <h3 className="text-white font-black text-lg flex items-center gap-3 relative z-10 uppercase tracking-tight">
@@ -3423,8 +3463,10 @@ export default function WorkOrderWizard({ open, onClose, onSuccess, preloadedCus
               className="w-full bg-black/30 border border-white/10 rounded-lg px-3 py-2 text-white text-sm min-h-[80px]"
             />
           </div>
+          )}
 
-          {/* 🛠️ PIEZAS Y SERVICIOS */}
+          {/* 🛠️ PIEZAS Y SERVICIOS — mismo paso que PROBLEMA en móvil */}
+          {(!isCompactDevice || (quickOrderMode ? mobileStep === 2 : mobileStep === 3)) && (
           <div className="bg-white/[0.03] border border-white/[0.08] rounded-[28px] p-6 space-y-5 backdrop-blur-2xl shadow-[0_8px_32px_rgba(0,0,0,0.2)] relative overflow-hidden lg:col-span-8 transition-all hover:bg-white/[0.05] group">
             <div className="absolute -left-20 -bottom-20 w-40 h-40 bg-lime-500/5 rounded-full blur-[80px] group-hover:bg-lime-500/10 transition-colors duration-700" />
             <div className="flex items-center justify-between relative z-10">
@@ -3526,9 +3568,10 @@ export default function WorkOrderWizard({ open, onClose, onSuccess, preloadedCus
               </div>
             )}
           </div>
+          )}
 
           {/* 🔐 SEGURIDAD */}
-          {!quickOrderMode && (
+          {!quickOrderMode && (!isCompactDevice || mobileStep === 4) && (
           <div className="bg-white/[0.03] border border-white/[0.08] rounded-[28px] p-6 space-y-5 backdrop-blur-xl shadow-[0_8px_32px_rgba(0,0,0,0.2)] relative overflow-hidden lg:col-span-4 transition-all hover:bg-white/[0.05] group">
             <div className="absolute -right-20 -top-20 w-40 h-40 bg-blue-500/5 rounded-full blur-[80px] group-hover:bg-blue-500/10 transition-colors duration-700" />
             <h3 className="text-white font-black text-lg flex items-center gap-3 relative z-10 uppercase tracking-tight">
@@ -3591,7 +3634,7 @@ export default function WorkOrderWizard({ open, onClose, onSuccess, preloadedCus
           )}
 
           {/* ✅ CHECKLIST */}
-          {!quickOrderMode && (
+          {!quickOrderMode && (!isCompactDevice || mobileStep === 5) && (
           <div className="bg-white/[0.03] border border-white/[0.08] rounded-[28px] p-6 space-y-5 backdrop-blur-xl shadow-[0_8px_32px_rgba(0,0,0,0.2)] relative overflow-hidden lg:col-span-4 transition-all hover:bg-white/[0.05] group">
             <div className="absolute -left-20 -top-20 w-40 h-40 bg-green-500/5 rounded-full blur-[80px] group-hover:bg-green-500/10 transition-colors duration-700" />
             <h3 className="text-white font-black text-lg flex items-center gap-3 relative z-10 uppercase tracking-tight">
@@ -3676,7 +3719,7 @@ export default function WorkOrderWizard({ open, onClose, onSuccess, preloadedCus
           )}
 
           {/* 📸 FOTOS */}
-          {!quickOrderMode && (
+          {!quickOrderMode && (!isCompactDevice || mobileStep === 6) && (
           <div className="bg-white/[0.03] border border-white/[0.08] rounded-[28px] p-6 space-y-5 backdrop-blur-xl shadow-[0_8px_32px_rgba(0,0,0,0.2)] relative overflow-hidden lg:col-span-4 transition-all hover:bg-white/[0.05] group">
             <div className="absolute -right-20 -bottom-20 w-40 h-40 bg-pink-500/5 rounded-full blur-[80px] group-hover:bg-pink-500/10 transition-colors duration-700" />
             <h3 className="text-white font-black text-lg flex items-center gap-3 relative z-10 uppercase tracking-tight">
@@ -3758,54 +3801,121 @@ export default function WorkOrderWizard({ open, onClose, onSuccess, preloadedCus
 
         {/* Footer - FIXED AL FONDO DEL MODAL */}
         <div
-          className={`flex flex-col sm:flex-row gap-4 border-t border-white/5 bg-[#0D0D0F]/90 backdrop-blur-3xl relative z-10 ${
-            isCompactDevice ? "px-6 py-6" : "px-8 py-5"
+          className={`border-t border-white/5 bg-[#0D0D0F]/90 backdrop-blur-3xl relative z-10 ${
+            isCompactDevice ? "px-5 py-4" : "px-8 py-5 flex flex-col sm:flex-row gap-4"
           }`}
-          style={{ paddingBottom: "calc(env(safe-area-inset-bottom, 0px) + 1.25rem)" }}
+          style={{ paddingBottom: isCompactDevice ? "calc(env(safe-area-inset-bottom, 0px) + 1rem)" : "calc(env(safe-area-inset-bottom, 0px) + 1.25rem)" }}
         >
-          {!isCompactDevice && (
-            <Button
-              onClick={onClose}
-              variant="outline"
-              className="border-white/10 bg-white/5 text-white/70 hover:bg-white/10 h-14 rounded-[20px] font-black uppercase text-xs tracking-widest active:scale-95 transition-all"
-              disabled={loading}
-            >
-              Cancelar
-            </Button>
+          {isCompactDevice ? (
+            /* ── MOBILE FOOTER: step navigation ── */
+            <div className="flex flex-col gap-3">
+              {/* Row 1: Cancelar + Volver */}
+              <div className="flex gap-2">
+                <Button
+                  onClick={onClose}
+                  variant="outline"
+                  className="flex-1 border-white/10 bg-white/[0.04] text-white/50 hover:bg-white/10 h-11 rounded-[16px] font-black uppercase text-[11px] tracking-widest active:scale-95 transition-all"
+                  disabled={loading}
+                >
+                  Cancelar
+                </Button>
+                {mobileStep > 0 && (
+                  <Button
+                    onClick={() => setMobileStep(s => Math.max(0, s - 1))}
+                    variant="outline"
+                    className="flex-1 border-white/10 bg-white/[0.04] text-white/70 hover:bg-white/10 h-11 rounded-[16px] font-black uppercase text-[11px] tracking-widest active:scale-95 transition-all"
+                    disabled={loading}
+                  >
+                    <ChevronLeft className="w-4 h-4 mr-1" />
+                    Volver
+                  </Button>
+                )}
+              </div>
+              {/* Row 2: Siguiente / Confirmar */}
+              {isLastMobileStep ? (
+                <Button
+                  onClick={handleSubmit}
+                  disabled={loading}
+                  className={`w-full text-white h-14 rounded-[20px] font-black uppercase text-sm tracking-widest active:scale-95 transition-all duration-300 shadow-[0_8px_32px_rgba(0,0,0,0.5)] ${
+                    quickOrderMode
+                      ? "bg-gradient-to-r from-amber-500 to-yellow-600 hover:from-amber-600 hover:to-yellow-700 shadow-[0_0_30px_rgba(245,158,11,0.25)] text-black"
+                      : "bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-600 hover:to-blue-700 shadow-[0_0_30px_rgba(6,182,212,0.3)]"
+                  }`}
+                >
+                  {loading ? (
+                    <>
+                      <Loader2 className="w-5 h-5 mr-3 animate-spin" />
+                      {quickOrderMode ? "Procesando..." : "Creando Orden..."}
+                    </>
+                  ) : (
+                    <>
+                      <Save className="w-5 h-5 mr-3" />
+                      {quickOrderMode ? "Finalizar Orden Rápida" : "Confirmar Orden"}
+                      {customerEmail && <Mail className="w-5 h-5 ml-3 opacity-50" />}
+                    </>
+                  )}
+                </Button>
+              ) : (
+                <Button
+                  onClick={() => setMobileStep(s => Math.min(mobileStepsTotal - 1, s + 1))}
+                  disabled={loading}
+                  className={`w-full h-14 rounded-[20px] font-black uppercase text-sm tracking-widest active:scale-95 transition-all duration-300 ${
+                    quickOrderMode
+                      ? "bg-gradient-to-r from-amber-500/80 to-yellow-600/80 text-black"
+                      : "bg-gradient-to-r from-cyan-500/80 to-blue-600/80 text-white"
+                  }`}
+                >
+                  Siguiente
+                  <ChevronRight className="w-5 h-5 ml-2" />
+                </Button>
+              )}
+            </div>
+          ) : (
+            /* ── DESKTOP FOOTER: unchanged ── */
+            <>
+              <Button
+                onClick={onClose}
+                variant="outline"
+                className="border-white/10 bg-white/5 text-white/70 hover:bg-white/10 h-14 rounded-[20px] font-black uppercase text-xs tracking-widest active:scale-95 transition-all"
+                disabled={loading}
+              >
+                Cancelar
+              </Button>
+              {isB2B && (
+                <Button
+                  onClick={handleAddAnother}
+                  disabled={loading}
+                  variant="outline"
+                  className="border-cyan-500/30 bg-cyan-500/5 text-cyan-400 hover:bg-cyan-500/10 h-14 rounded-[20px] font-black uppercase text-xs tracking-widest active:scale-95 transition-all"
+                >
+                  <Plus className="w-5 h-5 mr-2" />
+                  Añadir otro equipo
+                </Button>
+              )}
+              <Button
+                onClick={handleSubmit}
+                disabled={loading}
+                className={`w-full sm:flex-1 text-white h-14 rounded-[20px] font-black uppercase text-sm tracking-widest active:scale-95 transition-all duration-300 shadow-[0_8px_32px_rgba(0,0,0,0.5)] ${
+                  quickOrderMode
+                    ? "bg-gradient-to-r from-amber-500 to-yellow-600 hover:from-amber-600 hover:to-yellow-700 shadow-[0_0_30px_rgba(245,158,11,0.25)] text-black"
+                    : "bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-600 hover:to-blue-700 shadow-[0_0_30px_rgba(6,182,212,0.3)]"
+                }`}
+              >
+                {loading ? (
+                  <>
+                    <Loader2 className="w-5 h-5 mr-3 animate-spin" />
+                    {quickOrderMode ? "Procesando..." : "Creando Orden..."}
+                  </>
+                ) : (
+                  <>
+                    <Save className="w-5 h-5 mr-3" />
+                    {quickOrderMode ? "Finalizar Orden Rápida" : "Confirmar Orden"}
+                    {customerEmail && <Mail className="w-5 h-5 ml-3 opacity-50" />}
+                  </>
+                )}
+              </Button>
+            </>
           )}
-          {!isCompactDevice && isB2B && (
-            <Button
-              onClick={handleAddAnother}
-              disabled={loading}
-              variant="outline"
-              className="border-cyan-500/30 bg-cyan-500/5 text-cyan-400 hover:bg-cyan-500/10 h-14 rounded-[20px] font-black uppercase text-xs tracking-widest active:scale-95 transition-all"
-            >
-              <Plus className="w-5 h-5 mr-2" />
-              Añadir otro equipo
-            </Button>
-          )}
-          <Button
-            onClick={handleSubmit}
-            disabled={loading}
-            className={`w-full sm:flex-1 text-white h-14 rounded-[20px] font-black uppercase text-sm tracking-widest active:scale-95 transition-all duration-300 shadow-[0_8px_32px_rgba(0,0,0,0.5)] ${
-              quickOrderMode
-                ? "bg-gradient-to-r from-amber-500 to-yellow-600 hover:from-amber-600 hover:to-yellow-700 shadow-[0_0_30px_rgba(245,158,11,0.25)] text-black"
-                : "bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-600 hover:to-blue-700 shadow-[0_0_30px_rgba(6,182,212,0.3)]"
-            }`}
-          >
-            {loading ? (
-              <>
-                <Loader2 className="w-5 h-5 mr-3 animate-spin" />
-                {quickOrderMode ? "Procesando..." : "Creando Orden..."}
-              </>
-            ) : (
-              <>
-                <Save className="w-5 h-5 mr-3" />
-                {quickOrderMode ? "Finalizar Orden Rápida" : "Confirmar Orden"}
-                {customerEmail && <Mail className="w-5 h-5 ml-3 opacity-50" />}
-              </>
-            )}
-          </Button>
         </div>
           </DialogPrimitive.Content>
         </div>
