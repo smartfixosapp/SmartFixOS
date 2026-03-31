@@ -1186,23 +1186,15 @@ export default function UsersManagement() {
   // Vista de Control de Tiempo
   if (activeView === "time") {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-950 via-emerald-950 to-slate-900 theme-light:bg-gradient-to-br theme-light:from-gray-50 theme-light:to-emerald-50 p-4">
+      <div className="min-h-screen bg-gradient-to-br from-slate-950 via-emerald-950 to-slate-900 p-4">
         <div className="max-w-7xl mx-auto">
-          <div className="flex justify-end mb-6">
-            <Button
-              onClick={() => setActiveView("users")}
-              size="icon"
-              variant="ghost"
-              className="text-emerald-400 hover:text-emerald-300 hover:bg-emerald-600/10 theme-light:text-emerald-600"
-            >
-              <X className="w-6 h-6" />
-            </Button>
-          </div>
-          
-          <TimeTrackingModal 
-            open={true} 
-            onClose={() => setActiveView("users")} 
-          />
+          <button
+            onClick={() => setActiveView("users")}
+            className="flex items-center gap-2 text-white/50 hover:text-white mb-6 text-sm font-bold transition-colors"
+          >
+            <X className="w-4 h-4" /> Volver
+          </button>
+          <TimeTrackingModal open={true} onClose={() => setActiveView("users")} />
         </div>
       </div>
     );
@@ -1211,18 +1203,12 @@ export default function UsersManagement() {
   // Vista de Información del Negocio
   if (activeView === "business_info") {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-950 via-orange-950 to-slate-900 theme-light:bg-gradient-to-br theme-light:from-gray-50 theme-light:to-orange-50 p-4">
+      <div className="min-h-screen bg-gradient-to-br from-slate-950 via-orange-950 to-slate-900 p-4">
         <div className="max-w-4xl mx-auto">
-          <div className="flex justify-end mb-6">
-            <Button
-              onClick={() => setActiveView("users")}
-              size="icon"
-              variant="ghost"
-              className="text-orange-400 hover:text-orange-300 hover:bg-orange-600/10 theme-light:text-orange-600"
-            >
-              <X className="w-6 h-6" />
-            </Button>
-          </div>
+          <button onClick={() => setActiveView("users")}
+            className="flex items-center gap-2 text-white/50 hover:text-white mb-6 text-sm font-bold transition-colors">
+            <X className="w-4 h-4" /> Volver
+          </button>
 
           <div className="space-y-4">
             <div className="bg-gradient-to-br from-orange-600/10 to-amber-600/10 backdrop-blur-xl border border-orange-500/20 rounded-2xl p-6 mb-6 shadow-[0_8px_32px_rgba(251,146,60,0.4)] theme-light:bg-white theme-light:border-gray-200">
@@ -1420,21 +1406,16 @@ export default function UsersManagement() {
   // Vista de Métodos de Pago
   if (activeView === "payment_methods") {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-950 via-green-950 to-slate-900 theme-light:bg-gradient-to-br theme-light:from-gray-50 theme-light:to-green-50 p-4">
+      <div className="min-h-screen bg-gradient-to-br from-slate-950 via-green-950 to-slate-900 p-4">
         <div className="max-w-4xl mx-auto">
-          <div className="flex justify-end mb-6">
-            <Button
-              onClick={() => setActiveView("users")}
-              size="icon"
-              variant="ghost"
-              className="text-green-400 hover:text-green-300 hover:bg-green-600/10 theme-light:text-green-600"
-            >
-              <X className="w-6 h-6" />
-            </Button>
+          <button onClick={() => setActiveView("users")}
+            className="flex items-center gap-2 text-white/50 hover:text-white mb-6 text-sm font-bold transition-colors">
+            <X className="w-4 h-4" /> Volver</button>
+          <div className="hidden">
           </div>
 
           <div className="space-y-4">
-            <div className="bg-gradient-to-br from-green-600/10 to-emerald-600/10 backdrop-blur-xl border border-green-500/20 rounded-2xl p-6 mb-6 shadow-[0_8px_32px_rgba(34,197,94,0.4)] theme-light:bg-white theme-light:border-gray-200">
+            <div className="bg-gradient-to-br from-green-600/10 to-emerald-600/10 backdrop-blur-xl border border-green-500/20 rounded-2xl p-6 mb-6 shadow-[0_8px_32px_rgba(34,197,94,0.4)]">
               <div className="flex items-center gap-4 mb-6">
                 <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-green-500 to-emerald-600 flex items-center justify-center shadow-lg">
                   <CreditCard className="w-9 h-9 text-white" />

@@ -814,7 +814,7 @@ export default function SettingsPage() {
           description: "Asistencia y registros de entrada/salida",
           color: "from-emerald-500 to-green-600",
           isNavigation: true,
-          navigateTo: "TimeTracking"
+          navigateTo: "UsersManagement"
         },
         {
           id: "payment_methods",
