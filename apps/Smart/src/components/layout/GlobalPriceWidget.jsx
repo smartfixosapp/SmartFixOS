@@ -33,8 +33,6 @@ export default function GlobalPriceWidget() {
     };
   }, []);
 
-  if (!enabled) return null;
-
   const totals = useMemo(() => {
     const parts = toMoneyNumber(partsPrice);
     const labor = toMoneyNumber(laborPrice);
@@ -43,6 +41,8 @@ export default function GlobalPriceWidget() {
     const total = subtotal + tax;
     return { parts, labor, subtotal, tax, total };
   }, [partsPrice, laborPrice, includeTax]);
+
+  if (!enabled) return null;
 
   return (
     <>
