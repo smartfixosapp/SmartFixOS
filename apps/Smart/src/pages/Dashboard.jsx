@@ -231,9 +231,11 @@ export default function Dashboard() {
   const [showDailyTransactions, setShowDailyTransactions] = useState(false);
   const [showPriceList, setShowPriceList] = useState(false);
   const [priceListSearch, setPriceListSearch] = useState("");
-  const [aiDaySummary, setAiDaySummary] = useState("");
-  const [aiDayLoading, setAiDayLoading] = useState(false);
-  const [showAiPopup, setShowAiPopup] = useState(false);
+  const [showAiChat, setShowAiChat] = useState(false);
+  const [chatMessages, setChatMessages] = useState([]);
+  const [chatInput, setChatInput] = useState("");
+  const [chatLoading, setChatLoading] = useState(false);
+  const chatEndRef = useRef(null);
   // Widget extra data
   const [newCustomersCount, setNewCustomersCount] = useState(0);
   const [todayTxCount, setTodayTxCount] = useState(0);
@@ -944,37 +946,69 @@ export default function Dashboard() {
     load();
   }, [session?.userId]);
 
-  const fetchDaySummary = async () => {
-    setAiDayLoading(true);
-    setAiDaySummary("");
+  // Construye el contexto del negocio para el sistema IA
+  const buildBusinessContext = () => {
+    const urgent = visibleFeedItems.filter(i => i.type === 'urgent').length;
+    const ready  = visibleFeedItems.filter(i => i.type === 'ready').length;
+    const intake = visibleFeedItems.filter(i => i.type === 'intake' || i.type === 'stale').length;
+    const parts  = visibleFeedItems.filter(i => i.type === 'parts').length;
+    const techInfo = technicianLoad.map(([name, count]) => `${name}: ${count} órdenes`).join(", ");
+    const topOrders = visibleFeedItems.slice(0, 5).map(i => `"${i.title}" (${i.sub})`).join(", ");
+
+    return `Eres el asistente inteligente de SmartFixOS, un sistema para talleres de reparación de dispositivos electrónicos.
+Conoces todos los datos del negocio en tiempo real y respondes en ESPAÑOL de forma concisa y útil.
+No repitas el contexto en tus respuestas — úsalo solo para responder la pregunta del usuario.
+
+CONTEXTO ACTUAL DEL NEGOCIO (${businessName || "SmartFixOS"}):
+- Órdenes activas: ${kpiStats.active || 0} | Urgentes: ${urgent} | Listas para recoger: ${ready}
+- En diagnóstico: ${intake} | Esperando piezas: ${parts}
+- Ingresos hoy: $${(kpiIncome.today||0).toFixed(0)} | Gastos hoy: $${(kpiIncome.todayExpenses||0).toFixed(0)}
+- Meta diaria: $${kpiDailyGoal || 0}
+- Técnicos y carga: ${techInfo || "sin datos"}
+- Órdenes destacadas: ${topOrders || "ninguna"}
+- Tareas pendientes del turno: ${pendingShiftTasks.length}
+- Clientes nuevos (semana): ${newCustomersCount}`;
+  };
+
+  const sendChatMessage = async (text) => {
+    if (!text.trim() || chatLoading) return;
+    const userMsg = { role: "user", content: text.trim() };
+    const updated = [...chatMessages, userMsg];
+    setChatMessages(updated);
+    setChatInput("");
+    setChatLoading(true);
+    setTimeout(() => chatEndRef.current?.scrollIntoView({ behavior: "smooth" }), 50);
+
     try {
-      const urgent = visibleFeedItems.filter(i => i.type === 'urgent').length;
-      const ready = visibleFeedItems.filter(i => i.type === 'ready').length;
-      const intake = visibleFeedItems.filter(i => i.type === 'intake' || i.type === 'stale').length;
-      const parts = visibleFeedItems.filter(i => i.type === 'parts').length;
-      const todayIncome = kpiIncome.today || 0;
-      const activeOrders = kpiStats.active || 0;
+      const GROQ_KEY = import.meta.env.VITE_GROQ_API_KEY;
+      if (!GROQ_KEY) throw new Error("VITE_GROQ_API_KEY no configurada");
 
-      const prompt = `Eres el asistente de SmartFixOS para un taller de reparación.
-Da un briefing matutino en ESPAÑOL, directo y útil para el dueño. Máximo 80 palabras.
+      const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "Authorization": `Bearer ${GROQ_KEY}` },
+        body: JSON.stringify({
+          model: "llama-3.3-70b-versatile",
+          messages: [
+            { role: "system", content: buildBusinessContext() },
+            ...updated.slice(-10), // últimos 10 mensajes para contexto
+          ],
+          temperature: 0.5,
+          max_tokens: 350,
+        }),
+      });
 
-ESTADO ACTUAL:
-- Órdenes activas: ${activeOrders}
-- Urgentes: ${urgent}
-- Listas para recoger: ${ready}
-- En diagnóstico: ${intake}
-- Esperando piezas: ${parts}
-- Ingresos de hoy: $${todayIncome.toFixed(0)}
-- Tareas pendientes: ${pendingShiftTasks.length}
-
-Dime: qué priorizar primero, algo positivo si aplica, y una acción concreta. Sé breve y directo. Usa máximo 2 emojis.`;
-
-      const text = await callGroqAI(prompt, { maxTokens: 200 });
-      setAiDaySummary(text);
+      const data = await res.json();
+      const reply = data?.choices?.[0]?.message?.content;
+      if (reply) {
+        setChatMessages(m => [...m, { role: "assistant", content: reply }]);
+      } else {
+        setChatMessages(m => [...m, { role: "assistant", content: "⚠️ " + (data?.error?.message || "Sin respuesta") }]);
+      }
     } catch (err) {
-      setAiDaySummary("⚠️ " + err.message);
+      setChatMessages(m => [...m, { role: "assistant", content: "⚠️ " + err.message }]);
     } finally {
-      setAiDayLoading(false);
+      setChatLoading(false);
+      setTimeout(() => chatEndRef.current?.scrollIntoView({ behavior: "smooth" }), 100);
     }
   };
 
@@ -1761,83 +1795,123 @@ Dime: qué priorizar primero, algo positivo si aplica, y una acción concreta. S
         </div>
       )}
 
-      {/* ✨ BOTÓN FLOTANTE IA */}
+      {/* ✨ ASISTENTE IA FLOTANTE */}
       <div className="fixed bottom-6 right-5 z-50 flex flex-col items-end gap-3">
 
-        {/* Popup */}
-        {showAiPopup && (
-          <div className="w-80 bg-[#111]/95 backdrop-blur-2xl border border-violet-500/25 rounded-[24px] shadow-2xl shadow-violet-900/30 overflow-hidden">
+        {/* Ventana de chat */}
+        {showAiChat && (
+          <div className="w-[340px] sm:w-[380px] bg-[#0e0e0e]/98 backdrop-blur-3xl border border-violet-500/20 rounded-[28px] shadow-2xl shadow-violet-900/40 overflow-hidden flex flex-col"
+            style={{ height: "480px", boxShadow: "0 24px 80px rgba(139,92,246,0.25)" }}>
+
             {/* Header */}
-            <div className="flex items-center justify-between px-4 py-3.5 border-b border-white/[0.06]">
-              <div className="flex items-center gap-2">
-                <span className="text-violet-400 text-base">✨</span>
-                <span className="text-xs font-black text-white uppercase tracking-widest">Resumen del día</span>
+            <div className="flex items-center justify-between px-5 py-4 border-b border-white/[0.06] shrink-0">
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-violet-600 to-purple-700 flex items-center justify-center shadow-lg shadow-violet-900/50">
+                  <span className="text-sm">✨</span>
+                </div>
+                <div>
+                  <p className="text-sm font-black text-white leading-none">Asistente IA</p>
+                  <p className="text-[9px] text-violet-400/60 font-bold uppercase tracking-widest leading-none mt-0.5">SmartFixOS · Llama 3.3</p>
+                </div>
               </div>
-              <button
-                onClick={() => setShowAiPopup(false)}
-                className="w-6 h-6 rounded-full bg-white/5 hover:bg-white/10 flex items-center justify-center transition-colors"
-              >
-                <X className="w-3.5 h-3.5 text-white/40" />
-              </button>
+              <div className="flex items-center gap-2">
+                {chatMessages.length > 0 && (
+                  <button onClick={() => setChatMessages([])} className="text-[9px] text-white/20 hover:text-white/50 font-bold uppercase tracking-widest transition-colors">
+                    Limpiar
+                  </button>
+                )}
+                <button onClick={() => setShowAiChat(false)} className="w-7 h-7 rounded-full bg-white/5 hover:bg-white/10 flex items-center justify-center transition-colors">
+                  <X className="w-3.5 h-3.5 text-white/40" />
+                </button>
+              </div>
             </div>
 
-            {/* Body */}
-            <div className="p-4">
-              {aiDayLoading ? (
-                <div className="flex items-center gap-3">
-                  <div className="flex gap-1">
+            {/* Mensajes */}
+            <div className="flex-1 overflow-y-auto px-4 py-3 space-y-3">
+              {chatMessages.length === 0 && (
+                <div className="h-full flex flex-col items-center justify-center text-center px-4 gap-3">
+                  <div className="w-12 h-12 rounded-2xl bg-violet-500/10 border border-violet-500/20 flex items-center justify-center">
+                    <span className="text-2xl">✨</span>
+                  </div>
+                  <p className="text-sm font-black text-white/60">Hola, soy tu asistente</p>
+                  <p className="text-xs text-white/25 leading-relaxed">Conozco tus órdenes, finanzas y equipo. Pregúntame lo que quieras.</p>
+                  <div className="flex flex-col gap-1.5 w-full mt-2">
+                    {[
+                      "¿Cómo va el negocio hoy?",
+                      "¿Qué órdenes son urgentes?",
+                      "¿Qué técnico tiene más carga?",
+                    ].map(q => (
+                      <button key={q} onClick={() => sendChatMessage(q)}
+                        className="text-left px-3 py-2 rounded-xl bg-white/[0.03] border border-white/[0.06] hover:bg-violet-500/10 hover:border-violet-500/20 text-xs text-white/40 hover:text-white/70 transition-all">
+                        {q}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {chatMessages.map((msg, i) => (
+                <div key={i} className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}>
+                  <div className={`max-w-[85%] px-4 py-2.5 rounded-2xl text-sm leading-relaxed ${
+                    msg.role === "user"
+                      ? "bg-violet-600 text-white rounded-br-md"
+                      : "bg-white/[0.06] border border-white/[0.08] text-white/85 rounded-bl-md"
+                  }`}>
+                    {msg.content}
+                  </div>
+                </div>
+              ))}
+
+              {chatLoading && (
+                <div className="flex justify-start">
+                  <div className="bg-white/[0.06] border border-white/[0.08] px-4 py-3 rounded-2xl rounded-bl-md flex gap-1">
                     <span className="w-1.5 h-1.5 rounded-full bg-violet-400 animate-bounce" style={{animationDelay:"0ms"}} />
                     <span className="w-1.5 h-1.5 rounded-full bg-violet-400 animate-bounce" style={{animationDelay:"150ms"}} />
                     <span className="w-1.5 h-1.5 rounded-full bg-violet-400 animate-bounce" style={{animationDelay:"300ms"}} />
                   </div>
-                  <span className="text-xs text-violet-400/60 font-bold">Analizando el negocio…</span>
-                </div>
-              ) : aiDaySummary ? (
-                <>
-                  <p className="text-sm text-white/80 leading-relaxed">{aiDaySummary}</p>
-                  <button
-                    onClick={() => { setAiDaySummary(""); fetchDaySummary(); }}
-                    className="mt-3 text-[9px] font-black text-violet-400/40 hover:text-violet-400/70 uppercase tracking-widest transition-colors"
-                  >
-                    ↺ Actualizar
-                  </button>
-                </>
-              ) : (
-                <div className="text-center py-2">
-                  <p className="text-xs text-white/30 mb-3">La IA analiza tus órdenes, ingresos y tareas del día</p>
-                  <button
-                    onClick={fetchDaySummary}
-                    className="px-5 py-2.5 rounded-2xl bg-violet-500/20 border border-violet-500/30 text-violet-300 text-xs font-black hover:bg-violet-500/30 transition-all active:scale-95"
-                  >
-                    ✨ Analizar ahora
-                  </button>
                 </div>
               )}
+              <div ref={chatEndRef} />
             </div>
-            <div className="px-4 pb-3">
-              <p className="text-[9px] text-white/15 font-bold uppercase tracking-widest">Llama 3.3 · SmartFixOS IA</p>
+
+            {/* Input */}
+            <div className="px-3 py-3 border-t border-white/[0.06] shrink-0">
+              <div className="flex gap-2 items-center bg-white/[0.04] border border-white/[0.08] rounded-2xl px-3 py-2 focus-within:border-violet-500/40 transition-colors">
+                <input
+                  type="text"
+                  value={chatInput}
+                  onChange={e => setChatInput(e.target.value)}
+                  onKeyDown={e => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); sendChatMessage(chatInput); }}}
+                  placeholder="Escribe algo…"
+                  className="flex-1 bg-transparent text-sm text-white placeholder-white/20 focus:outline-none"
+                  disabled={chatLoading}
+                />
+                <button
+                  onClick={() => sendChatMessage(chatInput)}
+                  disabled={chatLoading || !chatInput.trim()}
+                  className="w-7 h-7 rounded-xl bg-violet-600 hover:bg-violet-500 disabled:opacity-30 flex items-center justify-center transition-all active:scale-90 shrink-0"
+                >
+                  <ChevronRight className="w-4 h-4 text-white" />
+                </button>
+              </div>
             </div>
           </div>
         )}
 
         {/* Botón flotante */}
         <button
-          onClick={() => {
-            setShowAiPopup(p => !p);
-            if (!showAiPopup && !aiDaySummary && !aiDayLoading) fetchDaySummary();
-          }}
-          className={`w-14 h-14 rounded-full shadow-2xl flex items-center justify-center transition-all active:scale-90 ${
-            showAiPopup
-              ? "bg-violet-600 shadow-violet-900/50 rotate-12"
-              : "bg-gradient-to-br from-violet-600 to-purple-700 shadow-violet-900/50 hover:scale-110"
+          onClick={() => setShowAiChat(p => !p)}
+          className={`w-14 h-14 rounded-full flex items-center justify-center transition-all active:scale-90 ${
+            showAiChat ? "bg-violet-700 rotate-12" : "bg-gradient-to-br from-violet-600 to-purple-700 hover:scale-110"
           }`}
-          style={{ boxShadow: "0 8px 32px rgba(139,92,246,0.5)" }}
+          style={{ boxShadow: "0 8px 32px rgba(139,92,246,0.55)" }}
         >
-          {aiDayLoading ? (
-            <span className="text-xl animate-spin inline-block">⟳</span>
-          ) : (
-            <span className="text-xl">✨</span>
-          )}
+          {chatLoading
+            ? <span className="text-xl animate-spin inline-block">⟳</span>
+            : showAiChat
+              ? <X className="w-5 h-5 text-white" />
+              : <span className="text-xl">✨</span>
+          }
         </button>
       </div>
 
