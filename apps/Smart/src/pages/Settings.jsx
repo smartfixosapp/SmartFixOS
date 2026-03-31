@@ -282,7 +282,7 @@ export default function SettingsPage() {
              { id: "payment_methods", label: "Métodos de Pago", icon: "CreditCard", gradient: "from-green-600 to-emerald-600", view: "payment_methods", enabled: true, order: 2 },
              { id: "business_info", label: "Info del Negocio", icon: "Building2", gradient: "from-orange-600 to-amber-600", view: "business_info", enabled: true, order: 3 },
              { id: "financial", label: "Finanzas", icon: "Wallet", gradient: "from-purple-600 to-violet-600", type: "navigate", action: "Financial", enabled: true, order: 4 },
-             { id: "reports", label: "Reportes", icon: "BarChart3", gradient: "from-indigo-600 to-blue-600", type: "navigate", action: "Reports", enabled: true, order: 5 }
+             { id: "reports", label: "Reportes", icon: "BarChart3", gradient: "from-indigo-600 to-blue-600", type: "navigate", action: "Financial", enabled: true, order: 5 }
         ];
         setAdminPanelButtons(initialAdminButtons);
       }
@@ -821,7 +821,7 @@ export default function SettingsPage() {
           description: "Financieros y operacionales",
           color: "from-indigo-600 to-blue-700",
           isNavigation: true,
-          navigateTo: "Reports"
+          navigateTo: "Financial"
         },
         {
           id: "financial_nav",

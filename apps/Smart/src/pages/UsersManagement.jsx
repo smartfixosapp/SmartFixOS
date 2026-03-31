@@ -41,7 +41,7 @@ const ADMIN_CORE_PANEL_BUTTONS = [
   { id: "inventory", label: "Inventario", icon: "Package", gradient: "from-teal-500 to-cyan-600", action: "Inventory", type: "navigate", enabled: true, order: 4 },
   { id: "suppliers", label: "Suplidores", icon: "Package", gradient: "from-indigo-600 to-blue-600", action: "Inventory", type: "navigate", enabled: true, order: 5 },
   { id: "financial", label: "Finanzas", icon: "Wallet", gradient: "from-purple-600 to-violet-600", action: "Financial", type: "navigate", enabled: true, order: 6 },
-  { id: "reports", label: "Reportes", icon: "BarChart3", gradient: "from-indigo-600 to-blue-600", action: "Reports", type: "navigate", enabled: true, order: 7 },
+  { id: "reports", label: "Reportes", icon: "BarChart3", gradient: "from-indigo-600 to-blue-600", action: "Financial", type: "navigate", enabled: true, order: 7 },
   { id: "database", label: "Base de Datos", icon: "FileText", gradient: "from-slate-600 to-slate-800", action: "Settings", type: "navigate", enabled: true, order: 8 },
 ];
 

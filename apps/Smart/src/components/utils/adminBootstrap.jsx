@@ -4,7 +4,7 @@ const DASHBOARD_DEFAULTS = [
   { id: "customers", label: "Clientes", icon: "Users", gradient: "from-blue-600 to-indigo-700", action: "Customers", type: "navigate", enabled: true },
   { id: "inventory", label: "Inventario", icon: "Package", gradient: "from-teal-500 to-cyan-600", action: "Inventory", type: "navigate", enabled: true },
   { id: "financial", label: "Finanzas", icon: "Wallet", gradient: "from-emerald-600 to-green-700", action: "Financial", type: "navigate", enabled: true },
-  { id: "reports", label: "Reportes", icon: "BarChart3", gradient: "from-blue-600 to-indigo-700", action: "Reports", type: "navigate", enabled: true },
+  { id: "reports", label: "Reportes", icon: "BarChart3", gradient: "from-blue-600 to-indigo-700", action: "Financial", type: "navigate", enabled: true },
   { id: "recharges", label: "Recargas", icon: "Zap", gradient: "from-amber-500 to-yellow-600", action: "Recharges", type: "navigate", enabled: true },
   { id: "technicians", label: "Técnicos", icon: "Wrench", gradient: "from-cyan-500 to-blue-600", action: "Technicians", type: "navigate", enabled: true },
   { id: "notifications", label: "Notificaciones", icon: "Bell", gradient: "from-orange-500 to-red-600", action: "Notifications", type: "navigate", enabled: true },
@@ -20,7 +20,7 @@ const ADMIN_PANEL_DEFAULTS = [
   { id: "inventory", label: "Inventario", icon: "Package", gradient: "from-teal-500 to-cyan-600", action: "Inventory", type: "navigate", enabled: true },
   { id: "suppliers", label: "Suplidores", icon: "Package", gradient: "from-indigo-600 to-blue-600", action: "Inventory", type: "navigate", enabled: true },
   { id: "financial", label: "Finanzas", icon: "Wallet", gradient: "from-purple-600 to-violet-600", action: "Financial", type: "navigate", enabled: true },
-  { id: "reports", label: "Reportes", icon: "BarChart3", gradient: "from-indigo-600 to-blue-600", action: "Reports", type: "navigate", enabled: true },
+  { id: "reports", label: "Reportes", icon: "BarChart3", gradient: "from-indigo-600 to-blue-600", action: "Financial", type: "navigate", enabled: true },
   { id: "database", label: "Base de Datos", icon: "FileText", gradient: "from-slate-600 to-slate-800", action: "Settings", type: "navigate", enabled: true }
 ];
 

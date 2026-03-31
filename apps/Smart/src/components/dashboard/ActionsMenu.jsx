@@ -28,9 +28,8 @@ const menuItems = [
   { title: "POS", icon: ShoppingCart, page: "POS", roles: ["admin", "manager", "frontdesk"] },
   { title: "Inventario", icon: Package, page: "Inventory", roles: ["admin", "manager"] },
   { title: "Clientes", icon: Users, page: "Customers", roles: ["admin", "manager", "frontdesk"] },
-  { title: "Ponches", icon: Clock, page: "TimeTracking", roles: ["admin", "manager", "frontdesk", "technician"] },
+  { title: "Empleados", icon: Clock, page: "UsersManagement", roles: ["admin", "manager"] },
   { title: "Financiero", icon: DollarSign, page: "Financial", roles: ["admin", "manager"] },
-  { title: "Reportes", icon: BarChart3, page: "Reports", roles: ["admin", "manager"] },
 ];
 
 const adminItems = [

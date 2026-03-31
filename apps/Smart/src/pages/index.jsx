@@ -20,7 +20,6 @@ import POSDesktop from "./POSDesktop";
 import POSMobile from "./POSMobile";
 import PinAccess from "./PinAccess";
 import Recharges from "./Recharges";
-import Reports from "./Reports";
 import Settings from "./Settings";
 import SettingsGeneral from "./SettingsGeneral";
 import SettingsNav from "./SettingsNav";
@@ -28,7 +27,6 @@ import Setup from "./Setup";
 import SubscriptionManagement from "./SubscriptionManagement";
 import Technicians from "./Technicians";
 import TenantManagement from "./TenantManagement";
-import TimeTracking from "./TimeTracking";
 import UsersManagement from "./UsersManagement";
 import TenantActivate from "./TenantActivate";
 import VerifySetup from "./VerifySetup";
@@ -57,7 +55,6 @@ const PAGES = {
     POSMobile: POSMobile,
     PinAccess: PinAccess,
     Recharges: Recharges,
-    Reports: Reports,
     Settings: Settings,
     SettingsGeneral: SettingsGeneral,
     SettingsNav: SettingsNav,
@@ -65,7 +62,6 @@ const PAGES = {
     SubscriptionManagement: SubscriptionManagement,
     Technicians: Technicians,
     TenantManagement: TenantManagement,
-    TimeTracking: TimeTracking,
     UsersManagement: UsersManagement,
     VerifySetup: VerifySetup,
     Welcome: Welcome,
@@ -133,7 +129,7 @@ function ProtectedRoutes() {
                     <Route path="/POSMobile" element={<POSMobile />} />
                     <Route path="/PinAccess" element={<PinAccess />} />
                     <Route path="/Recharges" element={<Recharges />} />
-                    <Route path="/Reports" element={<Reports />} />
+                    <Route path="/Reports" element={<Financial />} />
                     <Route path="/Settings" element={<Settings />} />
                     <Route path="/SettingsGeneral" element={<SettingsGeneral />} />
                     <Route path="/SettingsNav" element={<SettingsNav />} />
@@ -141,7 +137,7 @@ function ProtectedRoutes() {
                     <Route path="/SubscriptionManagement" element={<SubscriptionManagement />} />
                     <Route path="/Technicians" element={<Technicians />} />
                     <Route path="/TenantManagement" element={<TenantManagement />} />
-                    <Route path="/TimeTracking" element={<TimeTracking />} />
+                    <Route path="/TimeTracking" element={<UsersManagement />} />
                     <Route path="/UsersManagement" element={<UsersManagement />} />
                     <Route path="/VerifySetup" element={<VerifySetup />} />
                     <Route path="/Welcome" element={<Welcome />} />
