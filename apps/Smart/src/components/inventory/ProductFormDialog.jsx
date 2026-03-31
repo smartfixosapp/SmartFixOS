@@ -501,21 +501,70 @@ export default function ProductFormDialog({ open, onClose, product = null, onSuc
                 <Button 
                   variant="outline" 
                   size="icon" 
-                  className="h-10 w-10 border-white/15 bg-blue-500/10 border-blue-500/30 hover:bg-blue-500/20"
+                  className="h-10 w-10 border-white/15 bg-blue-500/10 border-blue-500/30 hover:bg-blue-500/20 flex-shrink-0"
                   onClick={async () => {
-                    try {
-                      const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
-                      toast.success("📷 Cámara activada - función de escaneo en desarrollo");
-                      stream.getTracks().forEach(track => track.stop());
-                    } catch (err) {
-                      toast.error("No se pudo acceder a la cámara");
+                    // Intentar BarcodeDetector API (Chrome/Android WebView)
+                    if ('BarcodeDetector' in window) {
+                      try {
+                        const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
+                        // Crear video overlay temporal
+                        const overlay = document.createElement('div');
+                        overlay.style.cssText = 'position:fixed;inset:0;z-index:9999;background:#000;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;';
+                        const video = document.createElement('video');
+                        video.srcObject = stream;
+                        video.autoplay = true;
+                        video.playsInline = true;
+                        video.style.cssText = 'width:100%;max-width:400px;border-radius:12px;';
+                        const hint = document.createElement('p');
+                        hint.textContent = '📷 Apunta al código de barras...';
+                        hint.style.cssText = 'color:white;font-size:14px;font-weight:600;';
+                        const cancelBtn = document.createElement('button');
+                        cancelBtn.textContent = 'Cancelar';
+                        cancelBtn.style.cssText = 'background:#ef4444;color:white;border:none;padding:10px 24px;border-radius:20px;font-weight:700;cursor:pointer;font-size:14px;';
+                        overlay.append(video, hint, cancelBtn);
+                        document.body.appendChild(overlay);
+
+                        const detector = new window.BarcodeDetector({ formats: ['code_128','ean_13','ean_8','qr_code','upc_a','upc_e','code_39','data_matrix'] });
+                        let detected = false;
+
+                        const scan = async () => {
+                          if (detected) return;
+                          try {
+                            const barcodes = await detector.detect(video);
+                            if (barcodes.length > 0) {
+                              detected = true;
+                              const value = barcodes[0].rawValue;
+                              stream.getTracks().forEach(t => t.stop());
+                              document.body.removeChild(overlay);
+                              setFormData(prev => ({ ...prev, barcode: value }));
+                              toast.success(`✅ Código detectado: ${value}`);
+                              return;
+                            }
+                          } catch { /* no-op */ }
+                          if (!detected) requestAnimationFrame(scan);
+                        };
+
+                        video.addEventListener('play', () => requestAnimationFrame(scan));
+                        cancelBtn.addEventListener('click', () => {
+                          detected = true;
+                          stream.getTracks().forEach(t => t.stop());
+                          document.body.removeChild(overlay);
+                        });
+                      } catch (err) {
+                        console.warn('BarcodeDetector scan error:', err);
+                        toast.error('No se pudo acceder a la cámara');
+                      }
+                    } else {
+                      // Fallback: pedir al usuario que escriba manualmente
+                      toast.info('Escáner no disponible en este dispositivo. Escribe el código manualmente.');
                     }
                   }}
-                  title="Escanear código de barras / QR">
+                  title="Escanear código de barras / QR"
+                >
                   <QrCode className="w-5 h-5 text-blue-400" />
                 </Button>
               </div>
-              <p className="text-xs text-gray-500 mt-1">Puedes escanear códigos de barras o QR</p>
+              <p className="text-xs text-gray-500 mt-1">Puedes escanear códigos de barras o escribirlo manualmente</p>
             </div>
           </div>
 

@@ -18,14 +18,14 @@ const PUBLIC_PATHS = new Set([
 ]);
 
 // ─── Timeouts ──────────────────────────────────────────────────────────────
-/** Inactividad por defecto → PinAccess (si el usuario no configuró el suyo) */
-const DEFAULT_INACTIVITY_MS = 5 * 60 * 1000; // 5 minutos
+/** Inactividad por defecto → PinAccess (24h en nativo para IMMORTAL SESSION, 5 min en web) */
+const DEFAULT_INACTIVITY_MS = Capacitor.isNativePlatform() ? 24 * 60 * 60 * 1000 : 5 * 60 * 1000;
 
 /** Umbral "Nunca": si el usuario elige 0 o null → no hay timer */
 const NEVER_TIMEOUT = null;
 
-/** Mínimo grace en background para evitar kicks en cambios rápidos de app */
-const MIN_BACKGROUND_GRACE_MS = Capacitor.isNativePlatform() ? 24 * 60 * 60 * 1000 : 10 * 1000; // 24h en nativo, 10s en el navegador
+/** Mínimo grace en background para evitar kicks en cambios rápidos de app (24h en nativo) */
+const MIN_BACKGROUND_GRACE_MS = Capacitor.isNativePlatform() ? 24 * 60 * 60 * 1000 : 10 * 1000;
 
 /** Clave en localStorage para guardar cuándo fue el último "hide" */
 const BG_TS_KEY = "_sfos_bg_ts";
@@ -137,9 +137,17 @@ function readPinSession() {
 export default function AuthGate({ children }) {
   const navigate = useNavigate();
   const location = useLocation();
-  const [user, setUser] = React.useState(null);
-  const [isCheckingAuth, setIsCheckingAuth] = React.useState(true);
-  const inactivityTimerRef = React.useRef(null);
+  const [user, setUser] = React.useState(() => {
+    try {
+      return readPinSession();
+    } catch { return null; }
+  });
+  const [isCheckingAuth, setIsCheckingAuth] = React.useState(() => {
+    try {
+      return !readPinSession();
+    } catch { return true; }
+  });
+  const [isSyncing, setIsSyncing] = React.useState(false);
   // ── Timeout dinámico por usuario ─────────────────────────────────────
   // Ref para no crear stale closures en los callbacks del timer.
   const inactivityMsRef = React.useRef(DEFAULT_INACTIVITY_MS);
@@ -158,12 +166,9 @@ export default function AuthGate({ children }) {
     }
   }, []);
 
-  // 🔄 Refresh Auth (Backend Sync) con Delay de seguridad
+  // 🔄 Refresh Auth (Backend Sync) - Instantáneo para Zero Lag
   const refreshAuth = React.useCallback(async () => {
     try {
-      // Delay inicial para dar tiempo al entorno nativo/red móvil
-      await new Promise(resolve => setTimeout(resolve, 800));
-      
       const userData = await dataClient.auth.me();
       if (userData) {
         // Sincronizar usuario del backend con el estado global
@@ -261,8 +266,9 @@ export default function AuthGate({ children }) {
     // Limpiar cualquier _bg_ts que pudo haber quedado de un cierre previo.
     // IMPORTANTE: si sessionStorage ya tiene una sesión fresca (mismo tab/navegación),
     // ignorar BG_TS_KEY — el usuario acaba de hacer login en este tab.
-    // En nativo, sessionStorage se borra siempre al cerrar la app; usamos localStorage
-    const freshSS = Capacitor.isNativePlatform() ? false : sessionStorage.getItem("911-session");
+    // En nativo, si tenemos sesión en localStorage y no ha expirado, no pedimos PIN por defecto
+    const lsRaw = localStorage.getItem("employee_session");
+    const freshSS = Capacitor.isNativePlatform() ? !!lsRaw : sessionStorage.getItem("911-session");
     const bgTs = localStorage.getItem(BG_TS_KEY);
     if (bgTs && !freshSS) {
       const elapsed = Date.now() - parseInt(bgTs, 10);
@@ -405,9 +411,24 @@ export default function AuthGate({ children }) {
   }, []);
 
   // ─────────────────────────────────────────────────────────────────────
-  if (isCheckingAuth) return null;
+  // ─────────────────────────────────────────────────────────────────────
+  // No bloquear el renderizado con pantalla blanca si ya tenemos una sesión local probable.
+  // Esto elimina el "flicker" o parpadeo al cambiar de pantalla o arrancar la app.
+  const isLikelyAuthenticated = !!localStorage.getItem("employee_session");
+  const currentPath = window.location.pathname;
 
-  if (user) {
+  // Si estamos validando...
+  if (isCheckingAuth) {
+    // ... pero parece que estamos logueados o estamos en una ruta pública, mostramos el contenido.
+    if (isLikelyAuthenticated || isPublicPath(currentPath)) {
+      return <>{children}</>;
+    }
+    // Si no hay rastro de sesión, fondo sólido (negro) para evitar flash blanco.
+    return <div className="min-h-screen bg-black" />;
+  }
+
+  // Una vez validado:
+  if (user || isPublicPath(currentPath)) {
     return (
       <AuthContext.Provider value={{ user, handleLogout, updateSessionTimeout }}>
         {children}
@@ -415,7 +436,6 @@ export default function AuthGate({ children }) {
     );
   }
 
-  if (isPublicPath()) return <>{children}</>;
-
-  return null;
+  // Fallback de seguridad (no debería ocurrir con la lógica anterior)
+  return <div className="min-h-screen bg-black" />;
 }

@@ -69,11 +69,38 @@ export async function initCapacitor() {
     });
 
     // ── Bloqueo por multitarea / segundo plano (iOS & Android) ─────────
-    // Cuando el usuario manda la app al fondo (multitarea, home button,
-    // cambio de app), guardamos el timestamp. Al volver, si pasaron más
-    // de 5 minutos, limpiamos la sesión y redirigimos al PinAccess.
+    // Cuando el usuario manda la app al fondo, guardamos el timestamp.
+    // Al volver, verificamos cuánto tiempo estuvo en fondo y el timeout
+    // configurado por el usuario (24h por defecto en nativo → "Immortal Session").
     const BG_TS_KEY = "_sfos_bg_ts";
-    const BACKGROUND_GRACE_MS = 5 * 60 * 1000; // 5 minutos (era 30s — muy agresivo)
+    const DEFAULT_NATIVE_GRACE_MS = 24 * 60 * 60 * 1000; // 24h por defecto en nativo
+
+    /** Lee el timeout preferido del usuario desde localStorage */
+    function getEffectiveGraceMs() {
+      try {
+        const lsRaw = localStorage.getItem("employee_session");
+        const lsSession = lsRaw ? JSON.parse(lsRaw) : null;
+        if (!lsSession?.id) return DEFAULT_NATIVE_GRACE_MS;
+
+        // Leer preferencia local del dispositivo (clave igual que Auth.jsx)
+        const localKey = `_sfos_local_timeout_${lsSession.id}`;
+        const localRaw = localStorage.getItem(localKey);
+
+        if (localRaw === "null" || localRaw === "0") return null; // "Nunca" → no expulsar
+        if (localRaw !== null) {
+          const n = Number(localRaw);
+          if (Number.isFinite(n) && n > 0) return Math.max(DEFAULT_NATIVE_GRACE_MS, n);
+        }
+
+        // Sin preferencia local → usar el timeout guardado en la sesión
+        const sessionMs = lsSession.session_timeout_ms;
+        if (sessionMs === null || sessionMs === 0) return null; // "Nunca"
+        if (typeof sessionMs === 'number' && sessionMs > 0) {
+          return Math.max(DEFAULT_NATIVE_GRACE_MS, sessionMs);
+        }
+      } catch { /* no-op */ }
+      return DEFAULT_NATIVE_GRACE_MS;
+    }
 
     App.addListener('appStateChange', ({ isActive }) => {
       const PUBLIC = new Set(["/Welcome","/PinAccess","/Setup","/InitialSetup","/VerifySetup","/Activate","/TenantActivate","/returnlogin"]);
@@ -91,14 +118,21 @@ export async function initCapacitor() {
 
         if (bgTs) {
           const elapsed = Date.now() - parseInt(bgTs, 10);
-          // bgTs === "0" significa cierre definitivo (beforeunload lo puso así)
+          // bgTs === "0" significa cierre definitivo (beforeunload en web)
           const wasDefinitelyClosed = bgTs === "0";
-          if (wasDefinitelyClosed || elapsed >= BACKGROUND_GRACE_MS) {
-            // Limpiar sesión y volver al PIN
-            localStorage.removeItem("employee_session");
-            sessionStorage.removeItem("911-session");
-            if (!PUBLIC.has(currentPath)) {
-              window.location.href = "/PinAccess";
+          // Obtener el grace period real del usuario (null = "Nunca")
+          const graceMs = getEffectiveGraceMs();
+
+          if (wasDefinitelyClosed || (graceMs !== null && elapsed >= graceMs)) {
+            // Solo limpiar si no hay una orden activa abierta
+            const orderActive = typeof window.__sfos_setOrderActive !== 'undefined'
+              && (window._sfos_order_active_count || 0) > 0;
+            if (!orderActive) {
+              // No borrar employee_session en nativo — Auth.jsx maneja la sesión
+              sessionStorage.removeItem("911-session");
+              if (!PUBLIC.has(currentPath)) {
+                window.location.href = "/PinAccess";
+              }
             }
           }
         }

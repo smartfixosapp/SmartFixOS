@@ -98,14 +98,20 @@ export default function PinAccess() {
   const [sendingReset, setSendingReset] = useState(false);
   const [tenantId, setTenantId] = useState(null);
   const [formData, setFormData] = useState({
-    first_name: "",
-    last_name: "",
-    email: "",
-    password: "",
-    plan: "basic"   // basic | pro | enterprise
+    first_name: "", last_name: "", email: "", password: "",
+    store_name: "", plan: "basic", country: "US"
   });
-  const [showSignupPassword, setShowSignupPassword] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [isCheckingAuth, setIsCheckingAuth] = useState(true);
+
+  // ── Sincronización Inicial: Si ya hay sesión, no renderizar nada para evitar flicker y triggers de FaceID
+  // Esto evita que el sensor se active si ya estamos logueados
+  const hasProbableSession = !!localStorage.getItem("employee_session");
+  if (hasProbableSession && step === "welcome" && !loading) {
+    return <div className="min-h-screen bg-black" />;
+  }
+
+  const [showSignupPassword, setShowSignupPassword] = useState(false);
   const [biometricSupported, setBiometricSupported] = useState(false);
   const [biometricProfile, setBiometricProfile] = useState(null);
   const [biometricLoading, setBiometricLoading] = useState(false);

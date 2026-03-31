@@ -105,15 +105,6 @@ export class LowStockMonitor {
   }
 }
 
-// Auto-iniciar monitor cuando se importa este módulo
-if (typeof window !== 'undefined') {
-  // Ejecutar primera vez después de 5 segundos (dar tiempo a que cargue la app)
-  setTimeout(() => {
-    LowStockMonitor.checkLowStockProducts();
-  }, 5000);
-  
-  // Luego cada hora
-  setInterval(() => {
-    LowStockMonitor.checkLowStockProducts();
-  }, 60 * 60 * 1000);
-}
+// ⚠️ NO auto-iniciar aquí: el Layout.jsx lo llama manualmente solo para admin/manager
+// LowStockMonitor.checkLowStockProducts() se llama desde Layout.jsx con guard de rol.
+

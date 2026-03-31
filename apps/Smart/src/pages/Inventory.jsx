@@ -13,7 +13,8 @@ import {
   Search, Plus, Smartphone, Tablet, Laptop, AlertTriangle,
   FileText, Upload, Trash2, Edit, ChevronLeft, ChevronRight,
   Globe, Tag, CheckSquare, Monitor, Battery, Wrench, Box,
-  Sparkles, Settings, Package, Zap } from
+  Sparkles, Settings, Package, Zap, History, TrendingUp, TrendingDown,
+  Minus, ArrowUpDown } from
 "lucide-react";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter // 👈 DialogFooter añadido
@@ -119,7 +120,7 @@ const ICON_MAP = {
 };
 
 // === Tarjeta de inventario ===
-function InventoryCard({ item, onEdit, onDelete, onSelect, isSelected }) {
+function InventoryCard({ item, onEdit, onDelete, onSelect, isSelected, onQuickAdjust }) {
   const isService = item.part_type === 'servicio' || item.tipo_principal === 'servicios' || item.part_type === 'diagnostic';
   const stockStatus = isService ? null :
     item.stock <= 0 ? { tag: "Agotado", bg: "bg-red-500/15 border-red-500/30", text: "text-red-400" } :
@@ -205,11 +206,16 @@ function InventoryCard({ item, onEdit, onDelete, onSelect, isSelected }) {
           </p>
         </div>
         {stockStatus && (
-          <div className={`px-3 py-1.5 rounded-2xl border text-center min-w-[52px] ${stockStatus.bg}`}>
+          <button
+            onClick={e => { e.stopPropagation(); onQuickAdjust?.(item); }}
+            className={`px-3 py-1.5 rounded-2xl border text-center min-w-[52px] transition-all hover:scale-105 active:scale-95 ${stockStatus.bg}`}
+            title="Clic para ajustar stock rápido"
+          >
             <p className={`text-base font-black leading-none ${stockStatus.text}`}>{stockStatus.tag}</p>
             {item.stock <= 0 && <p className="text-[9px] text-red-400/60 font-bold mt-0.5">Agotado</p>}
             {item.stock > 0 && item.stock <= (item.min_stock || 0) && <p className="text-[9px] text-amber-400/60 font-bold mt-0.5">Bajo</p>}
-          </div>
+            {item.stock > 0 && item.stock > (item.min_stock || 0) && <p className="text-[9px] text-white/20 font-bold mt-0.5">ajustar</p>}
+          </button>
         )}
       </div>
 
@@ -217,6 +223,188 @@ function InventoryCard({ item, onEdit, onDelete, onSelect, isSelected }) {
         <p className="text-[10px] text-white/25 truncate">Compatible: {item.compatibility_models.join(", ")}</p>
       )}
     </div>
+  );
+}
+
+// === QuickStockAdjust — mini popup para ajustar stock sin abrir el form completo ===
+function QuickStockAdjust({ item, onClose, onSave }) {
+  const currentStock = Number(item.stock || 0);
+  const [mode, setMode] = React.useState("add"); // "add" | "remove" | "set"
+  const [qty, setQty] = React.useState("");
+  const [note, setNote] = React.useState("");
+  const [saving, setSaving] = React.useState(false);
+
+  const newStock = mode === "set"
+    ? Number(qty || 0)
+    : mode === "add"
+      ? currentStock + Number(qty || 0)
+      : Math.max(0, currentStock - Number(qty || 0));
+
+  const handleSave = async () => {
+    const n = Number(qty);
+    if (mode !== "set" && (!qty || n <= 0)) { toast.error("Ingresa una cantidad mayor a 0"); return; }
+    if (mode === "set" && qty === "") { toast.error("Ingresa el nuevo stock"); return; }
+    setSaving(true);
+    try {
+      await onSave({ item, newStock, previousStock: currentStock, mode, qty: n, note });
+      onClose();
+    } catch { /* error handled in parent */ }
+    finally { setSaving(false); }
+  };
+
+  return (
+    <div className="fixed inset-0 z-[200] flex items-end sm:items-center justify-center">
+      <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} />
+      <div className="relative w-full sm:w-96 bg-[#111114] border border-teal-500/30 rounded-[28px] rounded-b-none sm:rounded-[28px] p-5 shadow-[0_-8px_40px_rgba(0,0,0,0.5)] sm:shadow-[0_24px_60px_rgba(0,0,0,0.5)]">
+        <div className="flex items-center justify-between mb-4">
+          <div>
+            <p className="text-white font-black text-sm truncate max-w-[220px]">{item.name}</p>
+            <p className="text-white/40 text-xs mt-0.5">Stock actual: <span className="text-white font-bold">{currentStock}</span></p>
+          </div>
+          <button onClick={onClose} className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center text-white/50 hover:text-white">✕</button>
+        </div>
+
+        {/* Mode selector */}
+        <div className="grid grid-cols-3 gap-1.5 mb-4 bg-black/30 p-1 rounded-2xl">
+          {[{k:"add",label:"+ Agregar",color:"text-emerald-400"},{k:"remove",label:"− Quitar",color:"text-red-400"},{k:"set",label:"= Fijar",color:"text-cyan-400"}].map(({k,label,color}) => (
+            <button key={k} onClick={() => { setMode(k); setQty(""); }}
+              className={`py-2 px-2 rounded-xl text-[11px] font-black transition-all ${
+                mode === k ? `bg-white/10 ${color}` : "text-white/30 hover:text-white/60"
+              }`}>{label}</button>
+          ))}
+        </div>
+
+        <div className="flex items-center gap-3 mb-3">
+          <input
+            type="number"
+            min="0"
+            value={qty}
+            onChange={e => setQty(e.target.value)}
+            onKeyDown={e => e.key === "Enter" && handleSave()}
+            autoFocus
+            placeholder={mode === "set" ? "Nuevo stock" : "Cantidad"}
+            className="flex-1 h-12 px-4 rounded-2xl bg-black/30 border border-white/10 text-white text-lg font-black text-center focus:border-teal-500/50 focus:outline-none focus:ring-2 focus:ring-teal-500/20 transition-all"
+          />
+          {qty !== "" && (
+            <div className={`px-4 py-3 rounded-2xl border text-center min-w-[80px] ${
+              newStock < 0 ? "bg-red-500/15 border-red-500/30" :
+              newStock === 0 ? "bg-red-500/10 border-red-500/20" :
+              newStock <= (item.min_stock || 0) ? "bg-amber-500/15 border-amber-500/30" :
+              "bg-emerald-500/10 border-emerald-500/20"
+            }`}>
+              <p className="text-xs text-white/40 font-bold">→ quedará</p>
+              <p className={`text-xl font-black ${
+                newStock <= 0 ? "text-red-400" :
+                newStock <= (item.min_stock || 0) ? "text-amber-400" : "text-emerald-400"
+              }`}>{Math.max(0, newStock)}</p>
+            </div>
+          )}
+        </div>
+
+        <input
+          value={note}
+          onChange={e => setNote(e.target.value)}
+          placeholder="Nota (opcional): razón del ajuste..."
+          className="w-full h-9 px-3 rounded-xl bg-black/20 border border-white/[0.07] text-white/70 text-xs mb-4 focus:border-teal-500/30 focus:outline-none"
+        />
+
+        <button
+          onClick={handleSave}
+          disabled={saving}
+          className="w-full h-12 rounded-2xl bg-gradient-to-r from-teal-500 to-cyan-500 text-white font-black text-sm shadow-lg hover:opacity-90 active:scale-[0.98] transition-all disabled:opacity-50"
+        >
+          {saving ? "Guardando..." : "Guardar Ajuste"}
+        </button>
+      </div>
+    </div>
+  );
+}
+
+// === HistorialMovimientos — dialog con los últimos movimientos ===
+function HistorialMovimientosDialog({ open, onClose }) {
+  const [movements, setMovements] = React.useState([]);
+  const [loading, setLoading] = React.useState(true);
+  const [filterType, setFilterType] = React.useState("all");
+
+  React.useEffect(() => {
+    if (!open) return;
+    setLoading(true);
+    dataClient.entities.InventoryMovement.list("-created_date", 200)
+      .then(r => setMovements(r || []))
+      .catch(() => setMovements([]))
+      .finally(() => setLoading(false));
+  }, [open]);
+
+  if (!open) return null;
+
+  const TYPES = [
+    { k: "all", label: "Todos" },
+    { k: "adjustment", label: "Ajustes" },
+    { k: "sale", label: "Ventas" },
+    { k: "purchase", label: "Compras" },
+    { k: "order_add", label: "Órdenes" },
+  ];
+
+  const filtered = filterType === "all" ? movements : movements.filter(m => m.movement_type === filterType);
+
+  const typeLabel = (t) => ({ sale: "Venta", order_add: "Orden+", order_remove: "Orden-",
+    void_return: "Devolución", adjustment: "Ajuste", purchase: "Compra", initial: "Inicial" })[t] || t;
+
+  const typeColor = (t) => t === "sale" || t === "order_remove" ? "text-red-400 bg-red-500/10 border-red-500/20"
+    : t === "adjustment" ? "text-cyan-400 bg-cyan-500/10 border-cyan-500/20"
+    : "text-emerald-400 bg-emerald-500/10 border-emerald-500/20";
+
+  return (
+    <Dialog open={open} onOpenChange={onClose}>
+      <DialogContent className="bg-[#0f0f10] border border-cyan-500/20 max-w-2xl max-h-[85vh] p-0 gap-0 flex flex-col">
+        <DialogHeader className="px-5 pt-5 pb-3 border-b border-white/[0.07] flex-shrink-0">
+          <DialogTitle className="text-white font-black flex items-center gap-2">
+            <History className="w-5 h-5 text-cyan-400" />
+            Historial de Movimientos
+          </DialogTitle>
+        </DialogHeader>
+
+        <div className="flex items-center gap-1.5 px-5 py-3 border-b border-white/[0.05] overflow-x-auto flex-shrink-0">
+          {TYPES.map(t => (
+            <button key={t.k} onClick={() => setFilterType(t.k)}
+              className={`px-3 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all ${
+                filterType === t.k ? "bg-white/15 text-white" : "text-white/30 hover:text-white"
+              }`}>{t.label}</button>
+          ))}
+        </div>
+
+        <div className="flex-1 overflow-y-auto px-5 py-4 space-y-2">
+          {loading ? (
+            <div className="py-12 text-center text-white/30 text-sm">Cargando historial...</div>
+          ) : filtered.length === 0 ? (
+            <div className="py-12 text-center">
+              <History className="w-10 h-10 text-white/10 mx-auto mb-3" />
+              <p className="text-white/30 text-sm">No hay movimientos registrados aún</p>
+            </div>
+          ) : filtered.map((m, idx) => (
+            <div key={m.id || idx} className="flex items-center gap-3 p-3 bg-white/[0.03] border border-white/[0.05] rounded-2xl">
+              <div className={`w-9 h-9 rounded-xl border flex items-center justify-center flex-shrink-0 text-xs font-black ${typeColor(m.movement_type)}`}>
+                {Number(m.quantity) > 0 ? "+" : ""}{m.quantity}
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-white text-sm font-semibold truncate">{m.product_name || "Producto"}</p>
+                <p className="text-white/30 text-xs">
+                  {m.previous_stock ?? "—"} → {m.new_stock ?? "—"} unids
+                  {m.notes ? ` · ${m.notes}` : ""}
+                  {m.performed_by ? ` · ${m.performed_by}` : ""}
+                </p>
+              </div>
+              <div className="text-right flex-shrink-0">
+                <span className={`text-xs font-bold px-2 py-0.5 rounded-lg border ${typeColor(m.movement_type)}`}>{typeLabel(m.movement_type)}</span>
+                <p className="text-white/20 text-[10px] mt-1">
+                  {m.created_date ? new Date(m.created_date).toLocaleDateString("es-PR", { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" }) : ""}
+                </p>
+              </div>
+            </div>
+          ))}
+        </div>
+      </DialogContent>
+    </Dialog>
   );
 }
 
@@ -802,6 +990,10 @@ export default function Inventory() {
   const [showReports, setShowReports] = useState(false);
   const [showManageCategories, setShowManageCategories] = useState(false);
   const [viewMode, setViewMode] = useState("products"); // products | categories
+  // ── Ajuste Rápido de Stock ────────────────────────────────────────────
+  const [quickAdjustItem, setQuickAdjustItem] = useState(null);
+  // ── Historial de Movimientos ─────────────────────────────────────────
+  const [showHistorial, setShowHistorial] = useState(false);
   const pageSize = 24;
   const recentCreatedRef = useRef([]);
   const [pullStart, setPullStart] = useState(0);
@@ -981,14 +1173,16 @@ export default function Inventory() {
       return true;
     });
 
-    // Búsqueda por texto
+    // Búsqueda por texto (nombre + SKU + barcode + proveedor + modelos)
     if (q.trim()) {
       const t = q.toLowerCase();
       list = list.filter((it) =>
-      String(it.name || "").toLowerCase().includes(t) ||
-      String(it.supplier_name || "").toLowerCase().includes(t) ||
-      Array.isArray(it.compatibility_models) &&
-      it.compatibility_models.join(" ").toLowerCase().includes(t)
+        String(it.name || "").toLowerCase().includes(t) ||
+        String(it.sku || "").toLowerCase().includes(t) ||
+        String(it.barcode || "").toLowerCase().includes(t) ||
+        String(it.supplier_name || "").toLowerCase().includes(t) ||
+        (Array.isArray(it.compatibility_models) &&
+          it.compatibility_models.join(" ").toLowerCase().includes(t))
       );
     }
 
@@ -1013,10 +1207,84 @@ export default function Inventory() {
     }
   };
 
+  // ── Helper: registrar movimiento de inventario ─────────────────────
+  const recordMovement = async ({ product_id, product_name, movement_type, quantity, previous_stock, new_stock, notes, reference_type }) => {
+    try {
+      const sessionRaw = localStorage.getItem("employee_session") || sessionStorage.getItem("911-session");
+      const session = sessionRaw ? JSON.parse(sessionRaw) : null;
+      const performed_by = session?.full_name || session?.userName || session?.email || "Usuario";
+      await dataClient.entities.InventoryMovement.create({
+        product_id,
+        product_name,
+        movement_type,
+        quantity,
+        previous_stock,
+        new_stock,
+        notes: notes || "",
+        reference_type: reference_type || "adjustment",
+        performed_by,
+      });
+    } catch (e) {
+      console.warn("[Inventory] No se pudo registrar movimiento:", e);
+    }
+  };
+
+  // ── Ajuste Rápido de Stock ────────────────────────────────────────────
+  const handleQuickAdjust = async ({ item, newStock, previousStock, mode, qty, note }) => {
+    const clampedStock = Math.max(0, newStock);
+    try {
+      // Actualizar producto
+      await dataClient.entities.Product.update(item.id, { stock: clampedStock });
+      // Actualizar estado local inmediatamente
+      setItems(prev => prev.map(p => p.id === item.id ? { ...p, stock: clampedStock } : p));
+
+      // Registrar movimiento
+      const movQty = mode === "set" ? (clampedStock - previousStock)
+        : mode === "add" ? qty : -qty;
+      await recordMovement({
+        product_id: item.id,
+        product_name: item.name,
+        movement_type: "adjustment",
+        quantity: movQty,
+        previous_stock: previousStock,
+        new_stock: clampedStock,
+        notes: note || `Ajuste manual (${mode === "add" ? "+" : mode === "remove" ? "-" : "="}${Math.abs(movQty)})`,
+        reference_type: "adjustment",
+      });
+
+      // Alerta de stock bajo
+      if (clampedStock <= (item.min_stock || 0) && previousStock > (item.min_stock || 0)) {
+        const admins = await dataClient.entities.User.list();
+        for (const admin of (admins || []).filter(u => u.role === "admin" || u.role === "manager")) {
+          if (!admin.id || !admin.email) continue;
+          await NotificationService.createNotification({
+            userId: admin.id,
+            userEmail: admin.email,
+            type: "low_stock",
+            title: `⚠️ Stock bajo: ${item.name}`,
+            body: `Solo quedan ${clampedStock} unidades (mínimo: ${item.min_stock || 0})`,
+            relatedEntityType: "product",
+            relatedEntityId: item.id,
+            actionUrl: `/Inventory`,
+            actionLabel: "Ver inventario",
+            priority: clampedStock === 0 ? "urgent" : "high",
+          });
+        }
+      }
+
+      toast.success(`✅ Stock actualizado: ${item.name} → ${clampedStock}`);
+    } catch (err) {
+      console.error("[QuickAdjust] Error:", err);
+      toast.error("No se pudo actualizar el stock");
+      throw err;
+    }
+  };
+
   const handleSaveItem = async (payload, savedCategory, savedPartType) => {
     try {
       const normalizedPayload = normalizeProductPayload(payload);
-      const oldStock = payload.id ? items.find((i) => i.id === payload.id)?.stock : null;
+      const oldItem = payload.id ? items.find((i) => i.id === payload.id) : null;
+      const oldStock = oldItem?.stock ?? null;
 
       if (payload.id) {
         console.log("✏️ Actualizando pieza:", payload.id, normalizedPayload);
@@ -1061,6 +1329,20 @@ export default function Inventory() {
           }
         }
 
+        // Registrar movimiento si cambió el stock
+        if (oldStock !== null && oldStock !== newStock) {
+          await recordMovement({
+            product_id: payload.id,
+            product_name: payload.name,
+            movement_type: "adjustment",
+            quantity: newStock - oldStock,
+            previous_stock: oldStock,
+            new_stock: newStock,
+            notes: "Edición de producto",
+            reference_type: "adjustment",
+          });
+        }
+
         // Recargar inventario
         await loadInventory();
       } else {
@@ -1068,6 +1350,19 @@ export default function Inventory() {
         let created = null;
         try {
           created = await dataClient.entities.Product.create(normalizedPayload);
+          // Registrar movimiento inicial si tiene stock
+          if (created?.id && Number(normalizedPayload.stock || 0) > 0) {
+            await recordMovement({
+              product_id: created.id,
+              product_name: normalizedPayload.name,
+              movement_type: "initial",
+              quantity: Number(normalizedPayload.stock),
+              previous_stock: 0,
+              new_stock: Number(normalizedPayload.stock),
+              notes: "Stock inicial al crear producto",
+              reference_type: "adjustment",
+            });
+          }
         } catch (primaryError) {
           console.warn("[Inventory] Product.create failed, trying direct supabase fallback:", primaryError);
           const { data, error } = await supabase
@@ -1239,6 +1534,9 @@ export default function Inventory() {
             </div>
           </div>
           <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
+            <button onClick={() => setShowHistorial(true)} className="flex items-center gap-1.5 h-9 px-3 rounded-xl bg-white/5 hover:bg-white/10 border border-white/[0.08] text-white/50 hover:text-white transition-all text-xs font-semibold">
+              <History className="w-3.5 h-3.5" /> Historial
+            </button>
             <button onClick={() => setShowManageCategories(true)} className="flex items-center gap-1.5 h-9 px-3 rounded-xl bg-white/5 hover:bg-white/10 border border-white/[0.08] text-white/50 hover:text-white transition-all text-xs font-semibold">
               <Settings className="w-3.5 h-3.5" /> Categorías
             </button>
@@ -1432,7 +1730,7 @@ export default function Inventory() {
           <Input
             value={q}
             onChange={e => { setQ(e.target.value); setPage(1); }}
-            placeholder="Buscar productos, modelos, proveedores..."
+            placeholder="Buscar por nombre, SKU, código, proveedor, modelos..."
             className="pl-11 h-11 bg-[#111114]/60 border border-white/[0.08] rounded-2xl text-white text-sm placeholder:text-white/20 focus:bg-[#111114]/80 focus:border-teal-500/50 focus:ring-2 focus:ring-teal-500/20 transition-all"
           />
         </div>
@@ -1460,6 +1758,7 @@ export default function Inventory() {
                   onSelect={handleSelectProduct}
                   onEdit={it => { setEditing(it); setShowItemDialog(true); }}
                   onDelete={handleDeleteItem}
+                  onQuickAdjust={it => setQuickAdjustItem(it)}
                 />
               ))}
             </div>
@@ -1617,6 +1916,21 @@ export default function Inventory() {
             suppliers={suppliers}
           />
         )}
+
+        {/* ── Ajuste Rápido de Stock ─────────────────────────────── */}
+        {quickAdjustItem && (
+          <QuickStockAdjust
+            item={quickAdjustItem}
+            onClose={() => setQuickAdjustItem(null)}
+            onSave={handleQuickAdjust}
+          />
+        )}
+
+        {/* ── Historial de Movimientos ───────────────────────────── */}
+        <HistorialMovimientosDialog
+          open={showHistorial}
+          onClose={() => setShowHistorial(false)}
+        />
 
       </div>
     </div>
