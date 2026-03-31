@@ -1,0 +1,70 @@
+name: Deploy a Producción
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:   # También permite correr manualmente desde GitHub
+
+jobs:
+  deploy:
+    name: Deploy SmartFixOS
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout código
+        uses: actions/checkout@v4
+
+      - name: Conectar al servidor y actualizar
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.DEPLOY_HOST }}
+          username: ${{ secrets.DEPLOY_USER }}
+          key: ${{ secrets.DEPLOY_SSH_KEY }}
+          port: 22
+          timeout: 60s
+          script: |
+            set -e
+            DEPLOY_PATH="${{ secrets.DEPLOY_PATH }}"
+
+            echo "📁 Entrando a $DEPLOY_PATH"
+            cd "$DEPLOY_PATH"
+
+            # Guardar hash de package.json
+            OLD_HASH=$(md5sum apps/Smart/package.json 2>/dev/null | cut -d' ' -f1 || echo "none")
+
+            echo "📥 git pull origin main"
+            git pull origin main
+
+            # Verificar si package.json cambió
+            NEW_HASH=$(md5sum apps/Smart/package.json 2>/dev/null | cut -d' ' -f1 || echo "none")
+
+            if [ "$OLD_HASH" != "$NEW_HASH" ]; then
+              echo "📦 Instalando dependencias nuevas..."
+              cd apps/Smart
+              pnpm install --frozen-lockfile 2>/dev/null || pnpm install
+              cd ..
+
+              echo "🔄 Reiniciando servicios..."
+              pkill -f "vite" 2>/dev/null || true
+              pkill -f "deno.*8686" 2>/dev/null || true
+              sleep 2
+              cd apps/Smart
+              nohup bash start.sh > /tmp/smartfixos_start.log 2>&1 &
+              echo "Servicios reiniciados (PID: $!)"
+              sleep 3
+            else
+              echo "✅ Sin cambios en deps — Vite HMR se encarga"
+            fi
+
+            echo "🚀 Deploy completado: https://app-6504.ownmy.app"
+
+      - name: Notificar resultado
+        if: always()
+        run: |
+          if [ "${{ job.status }}" = "success" ]; then
+            echo "✅ Deploy exitoso"
+          else
+            echo "❌ Deploy falló — revisar logs arriba"
+          fi

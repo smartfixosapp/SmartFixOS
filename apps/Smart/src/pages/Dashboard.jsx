@@ -1080,35 +1080,52 @@ export default function Dashboard() {
                     >
                       <div className="flex items-center justify-between w-full">
                         <div className="w-9 h-9 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center shrink-0">
-                          <DollarSign className="w-4 h-4 text-emerald-400" />
+                          <TrendingUp className="w-4 h-4 text-emerald-400" />
                         </div>
-                        <span className="text-[9px] font-black text-emerald-400/50 uppercase tracking-widest">Ver →</span>
+                        <span className="text-[9px] font-black text-emerald-400/40 uppercase tracking-widest">Ver →</span>
                       </div>
-                      <div className="grid grid-cols-2 gap-x-4 gap-y-0.5">
-                        <div>
-                          <p className="text-[8px] text-white/25 font-black uppercase tracking-widest">Entró hoy</p>
-                          <p className="text-base font-black text-emerald-400 leading-tight">
-                            {kpiIncome.loading ? "…" : `$${(kpiIncome.today||0).toFixed(0)}`}
-                          </p>
-                        </div>
-                        <div>
-                          <p className="text-[8px] text-white/25 font-black uppercase tracking-widest">Salió hoy</p>
-                          <p className="text-base font-black text-red-400 leading-tight">
-                            {kpiIncome.loading ? "…" : `$${(kpiIncome.todayExpenses||0).toFixed(0)}`}
-                          </p>
-                        </div>
+                      <div>
+                        <p className="text-[8px] text-white/25 font-black uppercase tracking-widest mb-0.5">Entró hoy</p>
+                        <p className="text-xl font-black text-emerald-400 leading-tight">
+                          {kpiIncome.loading ? "…" : `$${(kpiIncome.today||0).toLocaleString("en-US",{maximumFractionDigits:0})}`}
+                        </p>
                       </div>
                       {!kpiIncome.loading && (
-                        <div className="w-full h-1.5 bg-white/5 rounded-full overflow-hidden flex">
-                          {(() => {
-                            const t = Math.max(kpiIncome.today, kpiIncome.todayExpenses, 1);
-                            return (
-                              <>
-                                <div className="h-full bg-emerald-500 rounded-full" style={{width:`${Math.min(100,(kpiIncome.today/t)*100)}%`}} />
-                                <div className="h-full bg-red-500/70 rounded-full ml-0.5" style={{width:`${Math.min(100,(kpiIncome.todayExpenses/t)*100)}%`}} />
-                              </>
-                            );
-                          })()}
+                        <div className="w-full">
+                          <svg viewBox="0 0 80 24" className="w-full h-6" preserveAspectRatio="none">
+                            <defs>
+                              <linearGradient id="sparkGradDesktop" x1="0%" y1="0%" x2="100%" y2="0%">
+                                <stop offset="0%" stopColor="#10b981" stopOpacity="0.2"/>
+                                <stop offset="100%" stopColor="#10b981" stopOpacity="1"/>
+                              </linearGradient>
+                            </defs>
+                            {(() => {
+                              const income = kpiIncome.today || 0;
+                              const expenses = kpiIncome.todayExpenses || 0;
+                              const max = Math.max(income, expenses, 1);
+                              const incPct = income / max;
+                              const endY = 22 - incPct * 20;
+                              return (
+                                <>
+                                  <polyline
+                                    points={`0,22 13,${22-incPct*4} 26,${22-incPct*8} 40,${22-incPct*12} 53,${22-incPct*15} 66,${22-incPct*18} 80,${endY}`}
+                                    fill="none"
+                                    stroke="url(#sparkGradDesktop)"
+                                    strokeWidth="2"
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                  />
+                                  <circle cx="80" cy={endY} r="2.5" fill="#10b981" />
+                                </>
+                              );
+                            })()}
+                          </svg>
+                          {kpiIncome.todayExpenses > 0 && (
+                            <div className="flex items-center gap-1 mt-1">
+                              <div className="w-1.5 h-1.5 rounded-full bg-red-500/60" />
+                              <span className="text-[9px] text-red-400/60 font-bold">${(kpiIncome.todayExpenses||0).toLocaleString("en-US",{maximumFractionDigits:0})} salió</span>
+                            </div>
+                          )}
                         </div>
                       )}
                     </button>
@@ -1147,9 +1164,9 @@ export default function Dashboard() {
                     </button>
                   )}
                 </div>
-                {(visibleFeedItems.length + lowStockProducts.length + pendingShiftTasks.length) > 0 && (
+                {(visibleFeedItems.length + pendingShiftTasks.length) > 0 && (
                   <span className="w-6 h-6 rounded-full flex items-center justify-center text-[11px] font-black text-white bg-red-500 shadow-[0_0_12px_rgba(239,68,68,0.4)]">
-                    {visibleFeedItems.length + lowStockProducts.length + pendingShiftTasks.length}
+                    {visibleFeedItems.length + pendingShiftTasks.length}
                   </span>
                 )}
               </div>
@@ -1218,30 +1235,6 @@ export default function Dashboard() {
                               ))}
                             </div>
                           ))}
-                          {/* Stock bajo — al fondo */}
-                          {lowStockProducts.length > 0 && (
-                            <div>
-                              <div className="flex items-center gap-2 px-5 pt-3 pb-1.5">
-                                <span className="text-[9px] font-black text-amber-400/50 uppercase tracking-widest">⚠️ Stock Bajo</span>
-                                <span className="text-[9px] font-black text-white/20">({lowStockProducts.length})</span>
-                                <div className="flex-1 h-px bg-white/[0.04]" />
-                              </div>
-                              {lowStockProducts.map(p => (
-                                <button key={p.id} onClick={() => handleNavigate("Inventory")}
-                                  className="w-full flex items-center gap-4 px-5 py-3 hover:bg-white/[0.04] transition-colors text-left border-t border-white/[0.04] first:border-0">
-                                  <div className="w-1 h-8 rounded-full shrink-0 bg-amber-500" />
-                                  <div className="w-8 h-8 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center shrink-0">
-                                    <Package className="w-4 h-4 text-amber-400" />
-                                  </div>
-                                  <div className="flex-1 min-w-0">
-                                    <p className="text-sm font-black text-white truncate">{p.name}</p>
-                                    <p className="text-[11px] text-amber-400/60 font-bold">{p.stock <= 0 ? 'Agotado' : `Stock: ${p.stock}`}{p.min_stock > 0 ? ` · Mín: ${p.min_stock}` : ''}</p>
-                                  </div>
-                                  <ChevronRight className="w-4 h-4 text-white/10 group-hover:text-white/30 shrink-0" />
-                                </button>
-                              ))}
-                            </div>
-                          )}
                         </>
                   )}
 
@@ -1329,27 +1322,48 @@ export default function Dashboard() {
                     onClick={() => handleNavigate("Financial")}
                     className="col-span-2 rounded-2xl border border-emerald-500/20 bg-gradient-to-r from-emerald-500/10 to-cyan-500/5 px-3 py-3 flex items-center gap-3 transition-all active:scale-95"
                   >
-                    <DollarSign className="w-4 h-4 text-emerald-400 shrink-0" />
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-3">
-                        <span className="text-sm font-black text-emerald-400">{kpiIncome.loading ? "…" : `$${(kpiIncome.today||0).toFixed(0)}`}</span>
-                        <span className="text-[9px] text-white/20 font-bold">entró</span>
-                        <span className="text-sm font-black text-red-400">{kpiIncome.loading ? "…" : `$${(kpiIncome.todayExpenses||0).toFixed(0)}`}</span>
-                        <span className="text-[9px] text-white/20 font-bold">salió</span>
-                      </div>
-                      {!kpiIncome.loading && (
-                        <div className="w-full h-1 bg-white/5 rounded-full overflow-hidden flex mt-1">
-                          {(() => {
-                            const t = Math.max(kpiIncome.today, kpiIncome.todayExpenses, 1);
-                            return (<>
-                              <div className="h-full bg-emerald-500 rounded-full" style={{width:`${Math.min(100,(kpiIncome.today/t)*100)}%`}} />
-                              <div className="h-full bg-red-500/70 rounded-full ml-0.5" style={{width:`${Math.min(100,(kpiIncome.todayExpenses/t)*100)}%`}} />
-                            </>);
-                          })()}
-                        </div>
+                    <div className="flex flex-col items-center gap-1 shrink-0">
+                      <TrendingUp className="w-4 h-4 text-emerald-400" />
+                      {!kpiIncome.loading && kpiIncome.todayExpenses > 0 && (
+                        <span className="text-[8px] font-black text-red-400/70">-${(kpiIncome.todayExpenses||0).toLocaleString("en-US",{maximumFractionDigits:0})}</span>
                       )}
                     </div>
-                    <span className="text-[9px] font-black text-emerald-400/40 shrink-0">→</span>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-[9px] text-white/25 font-black uppercase tracking-widest">Entró hoy</p>
+                      <p className="text-lg font-black text-emerald-400 leading-tight">
+                        {kpiIncome.loading ? "…" : `$${(kpiIncome.today||0).toLocaleString("en-US",{maximumFractionDigits:0})}`}
+                      </p>
+                    </div>
+                    {!kpiIncome.loading && (
+                      <svg viewBox="0 0 60 20" className="w-16 h-5 shrink-0" preserveAspectRatio="none">
+                        <defs>
+                          <linearGradient id="sparkGradMobile" x1="0%" y1="0%" x2="100%" y2="0%">
+                            <stop offset="0%" stopColor="#10b981" stopOpacity="0.2"/>
+                            <stop offset="100%" stopColor="#10b981" stopOpacity="1"/>
+                          </linearGradient>
+                        </defs>
+                        {(() => {
+                          const income = kpiIncome.today || 0;
+                          const expenses = kpiIncome.todayExpenses || 0;
+                          const max = Math.max(income, expenses, 1);
+                          const incPct = income / max;
+                          const endY = 18 - incPct * 16;
+                          return (
+                            <>
+                              <polyline
+                                points={`0,18 10,${18-incPct*3} 20,${18-incPct*7} 30,${18-incPct*10} 40,${18-incPct*13} 50,${18-incPct*15} 60,${endY}`}
+                                fill="none"
+                                stroke="url(#sparkGradMobile)"
+                                strokeWidth="2"
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                              />
+                              <circle cx="60" cy={endY} r="2" fill="#10b981" />
+                            </>
+                          );
+                        })()}
+                      </svg>
+                    )}
                   </button>
                 </div>
               );
@@ -1369,9 +1383,9 @@ export default function Dashboard() {
                     </button>
                   )}
                 </div>
-                {(visibleFeedItems.length + lowStockProducts.length + pendingShiftTasks.length) > 0 && (
+                {(visibleFeedItems.length + pendingShiftTasks.length) > 0 && (
                   <span className="w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-black text-white bg-red-500">
-                    {visibleFeedItems.length + lowStockProducts.length + pendingShiftTasks.length}
+                    {visibleFeedItems.length + pendingShiftTasks.length}
                   </span>
                 )}
               </div>
@@ -1409,30 +1423,6 @@ export default function Dashboard() {
                     ))}
                   </div>
                 ))}
-                {/* Stock bajo al fondo */}
-                {lowStockProducts.length > 0 && (
-                  <div>
-                    <div className="flex items-center gap-2 px-4 pt-2.5 pb-1">
-                      <span className="text-[8px] font-black text-amber-400/50 uppercase tracking-[0.18em]">⚠️ Stock Bajo</span>
-                      <div className="flex-1 h-px bg-white/[0.05]" />
-                      <span className="text-[8px] font-black text-white/20">{lowStockProducts.length}</span>
-                    </div>
-                    {lowStockProducts.map(p => (
-                      <button key={p.id} onClick={() => handleNavigate("Inventory")}
-                        className="w-full flex items-center gap-3 px-4 py-2.5 active:bg-white/[0.04] transition-colors text-left border-t border-white/[0.04] first:border-0">
-                        <div className="w-1 h-6 rounded-full shrink-0 bg-amber-500" />
-                        <div className="w-7 h-7 rounded-xl bg-amber-500/10 flex items-center justify-center shrink-0">
-                          <Package className="w-3.5 h-3.5 text-amber-400" />
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <p className="text-xs font-black text-white truncate">{p.name}</p>
-                          <p className="text-[10px] text-amber-400/60 font-bold">{p.stock <= 0 ? 'Agotado' : `Stock: ${p.stock}`}</p>
-                        </div>
-                        <ChevronRight className="w-3.5 h-3.5 text-white/15 shrink-0" />
-                      </button>
-                    ))}
-                  </div>
-                )}
 
                 {/* ── TAREAS ─── */}
                 {pendingShiftTasks.length > 0 && (
