@@ -1083,10 +1083,6 @@ export default function Dashboard() {
                 <Package className="w-4 h-4 text-orange-400 shrink-0" />
                 <span className="text-[11px] font-black text-orange-400/80 uppercase tracking-tight">Inventario</span>
               </button>
-              <button onClick={() => handleNavigate("Financial")} className="flex-1 min-h-[44px] bg-purple-500/10 border border-purple-500/20 rounded-xl flex items-center gap-3 px-4 hover:bg-purple-500/15 active:scale-95 transition-all">
-                <BarChart3 className="w-4 h-4 text-purple-400 shrink-0" />
-                <span className="text-[11px] font-black text-purple-400/80 uppercase tracking-tight">Finanzas</span>
-              </button>
             </div>
 
             {/* ── Panel derecho: Feed "Atención requerida" ── */}
@@ -1139,6 +1135,59 @@ export default function Dashboard() {
               {/* ── Lista de la categoría activa ── */}
               <div className="flex-1 bg-white/[0.02] border border-white/[0.06] rounded-[24px] overflow-hidden flex flex-col min-h-0">
                 <div className="flex-1 overflow-y-auto">
+
+                  {/* Finance summary card */}
+                  {widgetConfig.cashStatus !== false && (
+                    <button
+                      onClick={() => handleNavigate("Financial")}
+                      className="w-full mb-3 p-4 rounded-[22px] bg-gradient-to-br from-emerald-500/10 to-cyan-500/10 border border-emerald-500/20 hover:border-emerald-500/40 text-left transition-all active:scale-[0.98] group"
+                    >
+                      <div className="flex items-center justify-between mb-3">
+                        <div className="flex items-center gap-2">
+                          <div className="w-7 h-7 rounded-xl bg-emerald-500/20 flex items-center justify-center">
+                            <DollarSign className="w-3.5 h-3.5 text-emerald-400" />
+                          </div>
+                          <span className="text-[11px] font-black text-white/60 uppercase tracking-widest">Finanzas · Hoy</span>
+                        </div>
+                        <span className="text-[10px] font-black text-emerald-400/60 group-hover:text-emerald-400 transition-colors uppercase tracking-widest">Ver todo →</span>
+                      </div>
+                      <div className="grid grid-cols-3 gap-2 mb-3">
+                        <div>
+                          <p className="text-[9px] text-white/30 font-black uppercase tracking-widest">Entró</p>
+                          <p className="text-base font-black text-emerald-400 leading-tight">
+                            {kpiIncome.loading ? "…" : `$${(kpiIncome.today || 0).toFixed(0)}`}
+                          </p>
+                        </div>
+                        <div>
+                          <p className="text-[9px] text-white/30 font-black uppercase tracking-widest">Salió</p>
+                          <p className="text-base font-black text-red-400 leading-tight">
+                            {kpiIncome.loading ? "…" : `$${(kpiIncome.todayExpenses || 0).toFixed(0)}`}
+                          </p>
+                        </div>
+                        <div>
+                          <p className="text-[9px] text-white/30 font-black uppercase tracking-widest">Neto</p>
+                          <p className={`text-base font-black leading-tight ${((kpiIncome.today || 0) - (kpiIncome.todayExpenses || 0)) >= 0 ? "text-cyan-400" : "text-red-400"}`}>
+                            {kpiIncome.loading ? "…" : `$${Math.abs((kpiIncome.today || 0) - (kpiIncome.todayExpenses || 0)).toFixed(0)}`}
+                          </p>
+                        </div>
+                      </div>
+                      {!kpiIncome.loading && (kpiIncome.today > 0 || kpiIncome.todayExpenses > 0) && (
+                        <div className="w-full h-1.5 bg-white/5 rounded-full overflow-hidden flex gap-0.5">
+                          {(() => {
+                            const total = Math.max(kpiIncome.today, kpiIncome.todayExpenses) || 1;
+                            const incomePct = Math.min(100, (kpiIncome.today / total) * 100);
+                            const expensePct = Math.min(100, (kpiIncome.todayExpenses / total) * 100);
+                            return (
+                              <>
+                                <div className="h-full bg-emerald-500 rounded-full transition-all duration-700" style={{ width: `${incomePct}%` }} />
+                                <div className="h-full bg-red-500 rounded-full transition-all duration-700" style={{ width: `${expensePct}%` }} />
+                              </>
+                            );
+                          })()}
+                        </div>
+                      )}
+                    </button>
+                  )}
 
                   {/* ÓRDENES */}
                   {activeFeedCategory === 'orders' && (
@@ -1302,6 +1351,59 @@ export default function Dashboard() {
               </div>
               <div className="flex-1 overflow-y-auto">
 
+                {/* Finance summary card */}
+                {widgetConfig.cashStatus !== false && (
+                  <button
+                    onClick={() => handleNavigate("Financial")}
+                    className="w-full mb-3 p-4 rounded-[22px] bg-gradient-to-br from-emerald-500/10 to-cyan-500/10 border border-emerald-500/20 hover:border-emerald-500/40 text-left transition-all active:scale-[0.98] group"
+                  >
+                    <div className="flex items-center justify-between mb-3">
+                      <div className="flex items-center gap-2">
+                        <div className="w-7 h-7 rounded-xl bg-emerald-500/20 flex items-center justify-center">
+                          <DollarSign className="w-3.5 h-3.5 text-emerald-400" />
+                        </div>
+                        <span className="text-[11px] font-black text-white/60 uppercase tracking-widest">Finanzas · Hoy</span>
+                      </div>
+                      <span className="text-[10px] font-black text-emerald-400/60 group-hover:text-emerald-400 transition-colors uppercase tracking-widest">Ver todo →</span>
+                    </div>
+                    <div className="grid grid-cols-3 gap-2 mb-3">
+                      <div>
+                        <p className="text-[9px] text-white/30 font-black uppercase tracking-widest">Entró</p>
+                        <p className="text-base font-black text-emerald-400 leading-tight">
+                          {kpiIncome.loading ? "…" : `$${(kpiIncome.today || 0).toFixed(0)}`}
+                        </p>
+                      </div>
+                      <div>
+                        <p className="text-[9px] text-white/30 font-black uppercase tracking-widest">Salió</p>
+                        <p className="text-base font-black text-red-400 leading-tight">
+                          {kpiIncome.loading ? "…" : `$${(kpiIncome.todayExpenses || 0).toFixed(0)}`}
+                        </p>
+                      </div>
+                      <div>
+                        <p className="text-[9px] text-white/30 font-black uppercase tracking-widest">Neto</p>
+                        <p className={`text-base font-black leading-tight ${((kpiIncome.today || 0) - (kpiIncome.todayExpenses || 0)) >= 0 ? "text-cyan-400" : "text-red-400"}`}>
+                          {kpiIncome.loading ? "…" : `$${Math.abs((kpiIncome.today || 0) - (kpiIncome.todayExpenses || 0)).toFixed(0)}`}
+                        </p>
+                      </div>
+                    </div>
+                    {!kpiIncome.loading && (kpiIncome.today > 0 || kpiIncome.todayExpenses > 0) && (
+                      <div className="w-full h-1.5 bg-white/5 rounded-full overflow-hidden flex gap-0.5">
+                        {(() => {
+                          const total = Math.max(kpiIncome.today, kpiIncome.todayExpenses) || 1;
+                          const incomePct = Math.min(100, (kpiIncome.today / total) * 100);
+                          const expensePct = Math.min(100, (kpiIncome.todayExpenses / total) * 100);
+                          return (
+                            <>
+                              <div className="h-full bg-emerald-500 rounded-full transition-all duration-700" style={{ width: `${incomePct}%` }} />
+                              <div className="h-full bg-red-500 rounded-full transition-all duration-700" style={{ width: `${expensePct}%` }} />
+                            </>
+                          );
+                        })()}
+                      </div>
+                    )}
+                  </button>
+                )}
+
                 {/* ── ÓRDENES ─── */}
                 {visibleFeedItems.length > 0 && (
                   <>
@@ -1405,10 +1507,6 @@ export default function Dashboard() {
               <button onClick={() => handleNavigate("Inventory")} className="flex flex-col items-center justify-center gap-1.5 py-4 bg-orange-500/10 border border-orange-500/20 rounded-[20px] active:scale-95 transition-all">
                 <Package className="w-5 h-5 text-orange-400" />
                 <span className="text-[9px] font-black text-orange-400/80 uppercase tracking-tight">Inventario</span>
-              </button>
-              <button onClick={() => handleNavigate("Financial")} className="flex flex-col items-center justify-center gap-1.5 py-4 bg-purple-500/10 border border-purple-500/20 rounded-[20px] active:scale-95 transition-all">
-                <BarChart3 className="w-5 h-5 text-purple-400" />
-                <span className="text-[9px] font-black text-purple-400/80 uppercase tracking-tight">Finanzas</span>
               </button>
             </div>
           </div>
