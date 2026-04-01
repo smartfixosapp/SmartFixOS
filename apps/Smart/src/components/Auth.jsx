@@ -15,6 +15,7 @@ const PUBLIC_PATHS = new Set([
   "/Activate",
   "/TenantActivate",
   "/returnlogin",
+  "/CustomerApproval",
 ]);
 
 // ─── Timeouts ──────────────────────────────────────────────────────────────
