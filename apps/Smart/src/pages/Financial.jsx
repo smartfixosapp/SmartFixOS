@@ -935,7 +935,7 @@ Responde con: 1) resumen de 2 oraciones, 2) un punto positivo, 3) una recomendac
 
       {/* ── Header ── */}
       <div className="sticky top-0 z-30 bg-black/90 backdrop-blur-2xl border-b border-white/5 px-4 sm:px-6 py-3">
-        <div className="max-w-2xl mx-auto flex items-center justify-between gap-3">
+        <div className="max-w-7xl mx-auto flex items-center justify-between gap-3">
           <div className="flex items-center gap-2.5">
             <div className="w-9 h-9 rounded-2xl bg-gradient-to-br from-cyan-500 to-blue-600 flex items-center justify-center shadow-lg shadow-cyan-500/20 shrink-0">
               <DollarSign className="w-4 h-4 text-white" />
@@ -977,7 +977,7 @@ Responde con: 1) resumen de 2 oraciones, 2) un punto positivo, 3) una recomendac
           </div>
         </div>
         {dateFilter === "custom" && (
-          <div className="max-w-2xl mx-auto flex gap-2 mt-2 pt-2 border-t border-white/5">
+          <div className="max-w-7xl mx-auto flex gap-2 mt-2 pt-2 border-t border-white/5">
             <input type="date" value={customStartDate} onChange={e => setCustomStartDate(e.target.value)}
               className="flex-1 bg-black/40 border border-white/10 text-white text-xs h-9 rounded-xl px-3 focus:border-cyan-500/50 outline-none" />
             <span className="text-white/20 self-center text-xs">→</span>
@@ -988,7 +988,7 @@ Responde con: 1) resumen de 2 oraciones, 2) un punto positivo, 3) una recomendac
       </div>
 
       {/* ── KPIs siempre visibles ── */}
-      <div className="max-w-2xl mx-auto w-full px-4 sm:px-6 pt-4 pb-2">
+      <div className="max-w-7xl mx-auto w-full px-4 sm:px-6 pt-4 pb-2">
         {loadError && (
           <div className="flex items-center justify-between gap-3 p-3 mb-3 bg-red-950/40 border border-red-500/30 rounded-2xl">
             <div className="flex items-center gap-2 text-red-300 text-xs">
@@ -1070,7 +1070,7 @@ Responde con: 1) resumen de 2 oraciones, 2) un punto positivo, 3) una recomendac
       </div>
 
       {/* ── Contenido de tabs ── */}
-      <div className="max-w-2xl mx-auto w-full px-4 sm:px-6 pb-28 flex-1">
+      <div className="max-w-7xl mx-auto w-full px-4 sm:px-6 pb-28 flex-1">
 
         {/* Tab: Movimientos */}
         {activeTab === "movimientos" && (
