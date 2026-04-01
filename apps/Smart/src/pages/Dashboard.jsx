@@ -1344,14 +1344,14 @@ CONTEXTO ACTUAL DEL NEGOCIO (${businessName || "SmartFixOS"}):
           try {
             const STATUS_LABELS = { intake: "Diagnóstico/Entrada", in_progress: "En Reparación", waiting_parts: "Esperando Piezas", ready: "Listo para Recoger", completed: "Completado", cancelled: "Cancelado" };
             await dataClient.entities.Order.update(args.orden_id, { status: args.nuevo_estado });
-            await dataClient.entities.WorkOrderEvent.create({ order_id: args.orden_id, event_type: "status_change", description: args.nota || `Estado cambiado a: ${STATUS_LABELS[args.nuevo_estado] || args.nuevo_estado}`, created_by: session?.name || session?.email || "Asistente IA" });
+            await dataClient.entities.WorkOrderEvent.create({ order_id: args.orden_id, event_type: "status_change", description: args.nota || `Estado cambiado a: ${STATUS_LABELS[args.nuevo_estado] || args.nuevo_estado}`, created_by: session?.name || session?.email || "ARIA" });
             setChatMessages(m => [...m, { role: "assistant", type: "action", action: "orden_actualizada", data: { estado: STATUS_LABELS[args.nuevo_estado] || args.nuevo_estado, orden_id: args.orden_id } }]);
             return JSON.stringify({ exito: true, mensaje: `Estado actualizado a "${STATUS_LABELS[args.nuevo_estado] || args.nuevo_estado}"` });
           } catch (e) { return JSON.stringify({ error: e.message }); }
         }
         case "agregar_nota_orden": {
           try {
-            await dataClient.entities.WorkOrderEvent.create({ order_id: args.orden_id, event_type: "note", description: args.nota, created_by: session?.name || session?.email || "Asistente IA" });
+            await dataClient.entities.WorkOrderEvent.create({ order_id: args.orden_id, event_type: "note", description: args.nota, created_by: session?.name || session?.email || "ARIA" });
             return JSON.stringify({ exito: true, mensaje: "Nota agregada correctamente" });
           } catch (e) { return JSON.stringify({ error: e.message }); }
         }
@@ -2366,7 +2366,7 @@ REGLAS:
                   <span className="text-sm">✨</span>
                 </div>
                 <div>
-                  <p className="text-sm font-black text-white leading-none">Asistente IA</p>
+                  <p className="text-sm font-black text-white leading-none">ARIA</p>
                   <p className="text-[9px] text-violet-400/60 font-bold uppercase tracking-widest leading-none mt-0.5">SmartFixOS · {import.meta.env.VITE_ANTHROPIC_API_KEY ? "Claude Haiku" : "Llama 3.1"}</p>
                 </div>
               </div>
@@ -2389,8 +2389,8 @@ REGLAS:
                   <div className="w-12 h-12 rounded-2xl bg-violet-500/10 border border-violet-500/20 flex items-center justify-center">
                     <span className="text-2xl">✨</span>
                   </div>
-                  <p className="text-sm font-black text-white/60">Hola, soy tu asistente</p>
-                  <p className="text-xs text-white/25 leading-relaxed">Conozco tus órdenes, finanzas y equipo. Pregúntame lo que quieras.</p>
+                  <p className="text-sm font-black text-white/60">Hola, soy ARIA</p>
+                  <p className="text-xs text-white/25 leading-relaxed">Tu asistente inteligente. Creo órdenes, consulto precios, actualizo estados y mucho más.</p>
                   <div className="flex flex-col gap-1.5 w-full mt-2">
                     {[
                       "Crear orden: iPhone 14 Pro Max, cayó al agua, Juan García",
