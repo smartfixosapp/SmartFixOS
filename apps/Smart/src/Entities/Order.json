@@ -742,6 +742,16 @@
         "not_covered"
       ],
       "description": "Veredicto del tecnico: covered = cubierto, partial = cobertura parcial, not_covered = no aplica. Requerido para avanzar desde etapa warranty."
+    },
+    "customer_approval_status": {
+      "type": "string",
+      "enum": ["pending", "approved", "rejected"],
+      "description": "Respuesta del cliente al link de aprobación de cotización"
+    },
+    "customer_approval_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Fecha y hora en que el cliente respondió la cotización"
     }
   },
   "required": [
