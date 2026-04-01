@@ -1300,6 +1300,10 @@ Responde con: 1) resumen de 2 oraciones, 2) un punto positivo, 3) una recomendac
                 className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-indigo-500/15 border border-indigo-500/20 text-indigo-300 text-xs font-black hover:bg-indigo-500/25 transition-all active:scale-95">
                 <Download className="w-3.5 h-3.5" /> Exportar CSV
               </button>
+              <button onClick={exportAccountingCSV}
+                className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-emerald-500/10 border border-emerald-500/15 text-emerald-300 text-xs font-black hover:bg-emerald-500/20 transition-all active:scale-95">
+                <Download className="w-3.5 h-3.5" /> Contabilidad CSV
+              </button>
               <button onClick={() => setShowMonthlyReport(true)}
                 className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white/[0.04] border border-white/[0.08] text-white/50 text-xs font-black hover:text-white transition-all active:scale-95">
                 <PieChart className="w-3.5 h-3.5" /> Reporte Mensual
