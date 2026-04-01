@@ -1358,7 +1358,7 @@ export default function SettingsPage() {
             <div className="space-y-6">
               {/* ── Sección Biometría (solo en dispositivos con soporte) ── */}
               {(isMobileDevice || biometricSupported) && (
-                <div className="bg-gradient-to-br from-white/10 to-white/5 border border-white/10 rounded-[28px] p-7 backdrop-blur-xl shadow-2xl space-y-5">
+                <div className="bg-gradient-to-br from-white/10 to-white/5 border border-white/10 rounded-2xl p-4 sm:p-6 space-y-5">
                   <div className="flex items-center gap-3 mb-2">
                     <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-indigo-500/30 to-purple-500/20 border border-indigo-500/20 flex items-center justify-center">
                       <Fingerprint className="w-5 h-5 text-indigo-300" />
@@ -1433,7 +1433,7 @@ export default function SettingsPage() {
           {/* MÉTODOS DE PAGO */}
           {activeSection === "payment_methods" && (
             <div className="space-y-6">
-              <div className="bg-gradient-to-br from-white/10 to-white/5 border border-white/10 rounded-[28px] p-7 backdrop-blur-xl shadow-2xl space-y-5">
+              <div className="bg-gradient-to-br from-white/10 to-white/5 border border-white/10 rounded-2xl p-4 sm:p-6 space-y-5">
                 <div className="flex items-center gap-3 mb-4">
                   <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-green-500/30 to-teal-500/20 border border-green-500/20 flex items-center justify-center">
                     <CreditCard className="w-6 h-6 text-green-300" />
