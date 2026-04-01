@@ -688,7 +688,7 @@ export default function GastosOperacionalesWidget() {
   });
 
   return (
-    <div className="bg-white/[0.03] border border-white/[0.08] rounded-2xl p-4">
+    <div className="bg-white/[0.03] border border-white/[0.08] rounded-2xl p-4 space-y-3">
       {/* ── Header ───────────────────────────────────────────────────────── */}
       <div className="flex items-center justify-between mb-3">
         <div className="flex items-center gap-2">
