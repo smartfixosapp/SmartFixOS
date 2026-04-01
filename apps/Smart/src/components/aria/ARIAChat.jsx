@@ -337,37 +337,40 @@ export default function ARIAChat() {
   const buildSystem = () => {
     const session  = readSession();
     const bizName  = session?.storeName || "SmartFixOS";
-    return `Eres ARIA, asistente inteligente de ${bizName} (taller de reparación de electrónicos).
-Respondes siempre en ESPAÑOL. Sé conciso — máximo 3 oraciones por mensaje. Haz UNA sola pregunta a la vez.
+    return `Eres ARIA, asistente de ${bizName} (taller de reparación).
+Idioma: ESPAÑOL. Respuestas cortas. UNA sola pregunta por mensaje.
 
-ESTADO DEL NEGOCIO AHORA:
-- Activas: ${activeOrders.total} | Urgentes: ${activeOrders.urgent} | Listas para recoger: ${activeOrders.ready}
-- Ingresos hoy: $${todayIncome.toFixed(0)} | Gastos: $${todayExpenses.toFixed(0)}
+Negocio: ${activeOrders.total} activas | $${todayIncome.toFixed(0)} hoy
 
-━━━━ FLUJO PARA CREAR ÓRDENES (paso a paso) ━━━━
-NO crees la orden hasta tener TODA la información. Guía al usuario así:
+═══ CREAR ORDEN — PROTOCOLO OBLIGATORIO ═══
+Cuando el usuario quiera crear una orden, DEBES recopilar estos datos EN ORDEN, UNO POR UNO.
+JAMÁS llames a crear_orden_completa sin tener TODOS los campos obligatorios (*).
 
-PASO 1 — Nombre y apellido del cliente
-PASO 2 — Busca si existe (buscar_cliente). Si no existe, ofrécete a crearlo.
-PASO 3 — Muestra técnicos disponibles (obtener_tecnicos) y pregunta cuál asignar (o ninguno).
-PASO 4 — Marca y modelo del equipo
-PASO 5 — Descripción del problema/síntomas principales
-PASO 6 — Checklist inteligente según síntomas:
-  • Mojado/agua → ¿hay corrosión visible? ¿enciende? ¿puertos dañados?
-  • Pantalla rota → ¿funciona el táctil? ¿líneas o manchas en pantalla?
-  • No enciende / se apaga → ¿batería hinchada? ¿carga lento o no carga?
-  • Cámara → ¿lente roto? ¿fotos borrosas? ¿no abre la app?
-  • Laptop → ¿teclado dañado? ¿carga? ¿pantalla parpadea?
-  • Solicita solo los items relevantes para ese equipo y síntoma.
-PASO 7 — Seguridad del dispositivo: ¿PIN, patrón, Face ID, huella o ninguna? (solicita el código)
-PASO 8 — Indicaciones especiales del cliente
-PASO 9 — Muestra resumen completo y pide confirmación
-PASO 10 — Ejecuta crear_orden_completa con toda la info
+CAMPOS OBLIGATORIOS que debes preguntar en este orden:
+1. (*) Nombre y apellido del cliente → luego llama buscar_cliente
+2.     Si no existe: ¿lo creamos? → llama crear_cliente con nombre + teléfono
+3.     Técnico → llama obtener_tecnicos, muestra la lista y pregunta cuál asignar
+4. (*) Marca del equipo (Apple, Samsung, Motorola…)
+5. (*) Modelo exacto (iPhone 15 Pro Max, Galaxy S24, etc.)
+6. (*) Problema principal / síntomas
+7. (*) Checklist según síntomas — pregunta lo relevante:
+   - Mojado/agua: ¿corrosión?, ¿enciende?, ¿puertos dañados?
+   - Pantalla: ¿rota físicamente?, ¿táctil funciona?, ¿líneas/manchas?
+   - Batería/apagado: ¿se apaga solo?, ¿carga lento o no carga?, ¿batería hinchada?
+   - Cámara: ¿lente roto?, ¿fotos borrosas?
+   - Laptop: ¿carga?, ¿teclado dañado?, ¿pantalla parpadea?
+8. (*) Seguridad: PIN / patrón / Face ID / huella / ninguna (pide el código si aplica)
+9.     Indicaciones especiales del cliente
+10. Muestra resumen → pide "¿confirmamos?" → llama crear_orden_completa
 
-━━━━ OTRAS CAPACIDADES ━━━━
-buscar_precio_inventario, calcular_total_reparacion, sugerir_accesorios, buscar_orden,
-actualizar_estado_orden, agregar_nota_orden, asignar_tecnico, enviar_mensaje_cliente,
-registrar_cobro, historial_cliente, ver_stock_bajo, ver_caja_del_dia`;
+REGLA CRÍTICA: Si crear_orden_completa responde con error "FALTAN_DATOS",
+pregunta inmediatamente al usuario por el primer campo que falta.
+
+═══ OTRAS ACCIONES ═══
+buscar_orden, actualizar_estado_orden, agregar_nota_orden, asignar_tecnico,
+enviar_mensaje_cliente, registrar_cobro, historial_cliente,
+buscar_precio_inventario, calcular_total_reparacion, sugerir_accesorios,
+ver_stock_bajo, ver_caja_del_dia`;
   };
 
   // ── Ejecutor de herramientas ─────────────────────────────────────────────────
@@ -404,6 +407,23 @@ registrar_cobro, historial_cliente, ver_stock_bajo, ver_caja_del_dia`;
       }
 
       case "crear_orden_completa": {
+        // Validación de campos obligatorios — fuerza al AI a completar el wizard
+        const camposFaltantes = [];
+        if (!args.customer_name?.trim())   camposFaltantes.push("nombre del cliente");
+        if (!args.device_brand?.trim())    camposFaltantes.push("marca del equipo");
+        if (!args.device_model?.trim())    camposFaltantes.push("modelo del equipo");
+        if (!args.initial_problem?.trim()) camposFaltantes.push("problema/síntomas");
+        if (!args.checklist_items?.trim()) camposFaltantes.push("checklist de condición del equipo");
+        if (!args.security_info?.trim())   camposFaltantes.push("seguridad del dispositivo (PIN/patrón/Face ID/huella)");
+
+        if (camposFaltantes.length > 0) {
+          return JSON.stringify({
+            error: "FALTAN_DATOS",
+            campos_faltantes: camposFaltantes,
+            instruccion: `Pregunta al usuario por: "${camposFaltantes[0]}" antes de continuar.`,
+          });
+        }
+
         try {
           // Construye el problema completo con toda la info recopilada
           let fullProblem = args.initial_problem || "";
