@@ -1010,7 +1010,7 @@ export default function EmailTemplatesTab() {
             </div>
 
             {/* Advanced Toggle */}
-            <div className="bg-gradient-to-br from-white/10 to-white/5 border border-white/10 rounded-[28px] overflow-hidden backdrop-blur-xl shadow-2xl">
+            <div className="bg-gradient-to-br from-white/10 to-white/5 border border-white/10 rounded-2xl overflow-hidden">
               <button
                 type="button"
                 onClick={() => setShowAdvanced(v => !v)}
