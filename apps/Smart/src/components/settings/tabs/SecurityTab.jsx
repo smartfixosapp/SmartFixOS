@@ -362,7 +362,7 @@ export default function SecurityTab({ user }) {
         <Card className="bg-gradient-to-br from-zinc-900 to-black border-zinc-800 rounded-2xl overflow-hidden lg:col-span-2">
           <CardContent className="p-0">
             <div className="grid grid-cols-1 md:grid-cols-3">
-              <div className="p-8 md:col-span-2 space-y-6">
+              <div className="p-4 sm:p-6 md:col-span-2 space-y-6">
                 <div className="flex items-center gap-4">
                   <div className="w-12 h-12 rounded-full bg-emerald-500/10 flex items-center justify-center border border-emerald-500/20">
                     <ShieldCheck className="w-6 h-6 text-emerald-500" />
