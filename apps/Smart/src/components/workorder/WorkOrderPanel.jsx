@@ -1370,6 +1370,7 @@ export default function WorkOrderPanel({ orderId, onClose, onUpdate, onDelete, p
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState(null);
   const [showPrintDialog, setShowPrintDialog] = useState(false);
+  const [showShareMenu, setShowShareMenu] = useState(false);
 
   const o = order || {};
 
