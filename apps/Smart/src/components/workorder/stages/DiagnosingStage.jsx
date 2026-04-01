@@ -202,6 +202,44 @@ const DEVICE_TYPE_LABELS = {
   generic:       "🔧 Dispositivo General",
 };
 
+// ── Plantillas de diagnóstico por tipo de dispositivo ────────────────────────
+const DIAG_TEMPLATES = {
+  smartphone: [
+    { label: "Pantalla rota", text: "Se recibe equipo con pantalla fracturada. El LCD presenta daño físico con cracking visible en el panel. El digitalizador táctil no responde en zona afectada. Se requiere reemplazo del módulo de pantalla completo." },
+    { label: "Batería degradada", text: "Diagnóstico de batería: la batería presenta degradación avanzada (ciclos excesivos). El equipo se apaga de forma inesperada y muestra lectura de carga inconsistente. Se recomienda reemplazo de batería." },
+    { label: "No carga / Puerto", text: "El equipo no carga correctamente. Se verificó el cargador original sin resultado positivo. Se detecta acumulación de polvo/daño en puerto de carga. Se recomienda limpieza o reemplazo del puerto." },
+    { label: "Daño por agua", text: "Se recibe equipo con historial de contacto con líquidos. Se observan indicadores de humedad activos. Se realizará limpieza con ultrasonido y valoración de componentes afectados." },
+    { label: "Sin señal / IMEI", text: "El equipo no presenta señal celular. Se verificó configuración de red sin resultado. Se sospecha fallo en módulo de radio o antena. Se procederá a diagnóstico de placa." },
+  ],
+  tablet: [
+    { label: "Pantalla rota", text: "Se recibe tablet con pantalla fracturada y digitalizador dañado. El cristal presenta múltiples fisuras. Se requiere reemplazo del módulo de pantalla completo." },
+    { label: "No enciende", text: "La tablet no responde al botón de encendido. Se verificó carga sin resultado. Se procederá a diagnóstico de placa madre y batería." },
+    { label: "Botón Home roto", text: "El botón Home/físico no responde. Se verificó conector de flex sin resultado. Se requiere reemplazo del botón o módulo de pantalla (si integrado)." },
+  ],
+  laptop_windows: [
+    { label: "No enciende", text: "El equipo no responde al encendido. Se verificó adaptador de corriente y batería. Se realizará diagnóstico de placa madre, RAM y SSD. Posible fallo en chip EC/controlador de carga." },
+    { label: "Pantalla falla", text: "La pantalla presenta fallo: líneas verticales/horizontales, imagen distorsionada o sin imagen. Se verificó cable de video. Se recomienda diagnóstico de GPU o reemplazo de panel LCD." },
+    { label: "Disco duro lento/falla", text: "Se detecta rendimiento degradado del sistema. Diagnóstico de almacenamiento: SSD/HDD presenta sectores dañados o velocidades fuera de rango normal. Se recomienda reemplazo de unidad." },
+    { label: "Sobrecalentamiento", text: "El equipo se apaga por temperatura excesiva. Se detecta acumulación de polvo en sistema de refrigeración. Se realizará limpieza de ventiladores y reemplazo de pasta térmica." },
+  ],
+  macbook: [
+    { label: "No enciende", text: "MacBook no responde al botón de encendido. Se verificó cargador MagSafe/USB-C sin resultado. Se realizará diagnóstico con Apple Diagnostics y valoración de placa madre." },
+    { label: "Pantalla falla", text: "La pantalla Retina presenta fallo (flickering, líneas, imagen distorsionada). Se sospecha fallo en cable de video o panel LCD. Se recomienda diagnóstico completo antes de reemplazo." },
+    { label: "Teclado/Mariposa falla", text: "Teclas no responden o se activan de forma repetida. Fallo típico del mecanismo de mariposa. Se recomienda reemplazo del módulo de teclado completo." },
+    { label: "Líquido", text: "Se recibe MacBook con daño por líquido. Se detectan corrosiones en placa. Se realizará limpieza en ultrasonido y valoración de componentes para cotización de reparación microelectrónica." },
+  ],
+  desktop_pc: [
+    { label: "No enciende", text: "El PC no responde al botón de encendido. Se verificó cable de corriente y toma eléctrica. Se procederá a diagnóstico de fuente de poder, placa madre y RAM." },
+    { label: "Pantalla sin imagen", text: "El equipo enciende pero no hay imagen en pantalla. Se verificó conexión HDMI/DisplayPort. Posible fallo en tarjeta gráfica o RAM. Se realizará diagnóstico con GPU integrada." },
+    { label: "Sobrecalentamiento", text: "El sistema se apaga o reinicia por temperatura. Se detecta polvo excesivo en disipador y ventiladores. Se realizará limpieza interna y aplicación de pasta térmica nueva." },
+  ],
+  generic: [
+    { label: "Diagnóstico general", text: "Se recibe equipo para diagnóstico. Se realizará evaluación completa de componentes físicos y funcionales. Los resultados y cotización serán comunicados al cliente." },
+    { label: "Daño físico", text: "El equipo presenta daño físico externo. Se realizará valoración de componentes internos para determinar alcance del daño y viabilidad de reparación." },
+    { label: "Daño por líquido", text: "Se recibe equipo con contacto con líquidos. Se realizará limpieza y diagnóstico de circuitos. La cotización dependerá del nivel de corrosión encontrado." },
+  ],
+};
+
 // ── Detección automática del tipo de dispositivo ───────────────────────────────
 function detectDeviceCategory(order) {
   const raw = [
