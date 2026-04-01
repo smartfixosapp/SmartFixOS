@@ -143,7 +143,90 @@ function Toast({ toast, onClose }) {
 
 // -----------------------------------------
 
-// -----------------------------------------
+// ── Herramientas del Asistente IA ─────────────────────────────────────────────
+const CHAT_TOOLS = [
+  {
+    type: "function",
+    function: {
+      name: "buscar_cliente",
+      description: "Busca un cliente existente en la base de datos por nombre o teléfono.",
+      parameters: {
+        type: "object",
+        properties: {
+          consulta: { type: "string", description: "Nombre completo o número de teléfono del cliente" },
+        },
+        required: ["consulta"],
+      },
+    },
+  },
+  {
+    type: "function",
+    function: {
+      name: "crear_orden",
+      description: "Crea una nueva orden de trabajo en el sistema. Úsalo cuando el usuario quiera registrar una reparación.",
+      parameters: {
+        type: "object",
+        properties: {
+          customer_name:  { type: "string", description: "Nombre completo del cliente" },
+          customer_phone: { type: "string", description: "Teléfono del cliente (opcional)" },
+          customer_id:    { type: "string", description: "ID del cliente si se encontró previamente (opcional)" },
+          device_brand:   { type: "string", description: "Marca del dispositivo (Apple, Samsung, Motorola, etc.)" },
+          device_model:   { type: "string", description: "Modelo exacto (iPhone 14 Pro Max, Galaxy S23 Ultra, etc.)" },
+          device_type:    { type: "string", description: "Tipo: Phone, Tablet, Laptop, Smartwatch, Other" },
+          initial_problem:{ type: "string", description: "Descripción del problema o servicio solicitado" },
+        },
+        required: ["customer_name", "device_brand", "device_model", "initial_problem"],
+      },
+    },
+  },
+  {
+    type: "function",
+    function: {
+      name: "buscar_precio_inventario",
+      description: "Consulta el precio de una pieza, repuesto o servicio en el inventario del taller.",
+      parameters: {
+        type: "object",
+        properties: {
+          busqueda: { type: "string", description: "Nombre de la pieza a buscar (ej: 'pantalla iPhone 14 Pro Max', 'batería Galaxy S23')" },
+        },
+        required: ["busqueda"],
+      },
+    },
+  },
+  {
+    type: "function",
+    function: {
+      name: "calcular_total_reparacion",
+      description: "Calcula el costo total de una reparación: precio de pieza + mano de obra.",
+      parameters: {
+        type: "object",
+        properties: {
+          precio_pieza:      { type: "number", description: "Precio de la pieza o repuesto" },
+          costo_mano_obra:   { type: "number", description: "Costo de la mano de obra" },
+          nombre_pieza:      { type: "string", description: "Nombre de la pieza (opcional)" },
+          dispositivo:       { type: "string", description: "Modelo del dispositivo (opcional)" },
+        },
+        required: ["precio_pieza", "costo_mano_obra"],
+      },
+    },
+  },
+  {
+    type: "function",
+    function: {
+      name: "sugerir_accesorios",
+      description: "Sugiere accesorios complementarios (covers, protectores, cables, etc.) para ofrecer al cliente.",
+      parameters: {
+        type: "object",
+        properties: {
+          dispositivo: { type: "string", description: "Modelo del dispositivo" },
+          marca:       { type: "string", description: "Marca del dispositivo (opcional)" },
+        },
+        required: ["dispositivo"],
+      },
+    },
+  },
+];
+// ─────────────────────────────────────────────────────────────────────────────
 
 export default function Dashboard() {
   const { t } = useI18n();
@@ -236,6 +319,8 @@ export default function Dashboard() {
   const [chatInput, setChatInput] = useState("");
   const [chatLoading, setChatLoading] = useState(false);
   const chatEndRef = useRef(null);
+  const [chatStatus, setChatStatus] = useState("");
+  const [chatInventory, setChatInventory] = useState([]);
   // Widget extra data
   const [newCustomersCount, setNewCustomersCount] = useState(0);
   const [todayTxCount, setTodayTxCount] = useState(0);
@@ -946,6 +1031,15 @@ export default function Dashboard() {
     load();
   }, [session?.userId]);
 
+  // Carga inventario cuando se abre el chat (para consultas de precios)
+  useEffect(() => {
+    if (showAiChat && chatInventory.length === 0) {
+      dataClient.entities.Product.list("-created_date", 300)
+        .then(data => setChatInventory(data || []))
+        .catch(() => {});
+    }
+  }, [showAiChat]);
+
   // Construye el contexto del negocio para el sistema IA
   const buildBusinessContext = () => {
     const urgent = visibleFeedItems.filter(i => i.type === 'urgent').length;
@@ -971,43 +1065,150 @@ CONTEXTO ACTUAL DEL NEGOCIO (${businessName || "SmartFixOS"}):
   };
 
   const sendChatMessage = async (text) => {
-    if (!text.trim() || chatLoading) return;
+    if (!text?.trim() || chatLoading) return;
     const userMsg = { role: "user", content: text.trim() };
-    const updated = [...chatMessages, userMsg];
-    setChatMessages(updated);
+    const displayHistory = [...chatMessages, userMsg];
+    setChatMessages(displayHistory);
     setChatInput("");
     setChatLoading(true);
+    setChatStatus("");
     setTimeout(() => chatEndRef.current?.scrollIntoView({ behavior: "smooth" }), 50);
+
+    // ── Ejecutor de herramientas (captura chatInventory del cierre actual) ──
+    const executeToolCall = async (toolName, args) => {
+      switch (toolName) {
+        case "buscar_cliente": {
+          try {
+            const term = (args.consulta || "").toLowerCase();
+            const all = await dataClient.entities.Customer.list("-created_date", 200);
+            const results = (all || []).filter(c =>
+              c.full_name?.toLowerCase().includes(term) ||
+              c.phone?.includes(args.consulta) ||
+              c.email?.toLowerCase().includes(term)
+            );
+            if (!results.length) return JSON.stringify({ encontrado: false, mensaje: "No se encontró ningún cliente con ese nombre o teléfono." });
+            return JSON.stringify({ encontrado: true, clientes: results.slice(0, 3).map(c => ({ id: c.id, nombre: c.full_name, telefono: c.phone, email: c.email })) });
+          } catch (e) { return JSON.stringify({ error: e.message }); }
+        }
+        case "crear_orden": {
+          try {
+            const orderData = {
+              customer_name:   args.customer_name,
+              customer_phone:  args.customer_phone || "",
+              device_brand:    args.device_brand,
+              device_model:    args.device_model,
+              device_type:     args.device_type || "Phone",
+              initial_problem: args.initial_problem,
+              status:          "intake",
+              order_items:     [],
+              photos_metadata: [],
+            };
+            if (args.customer_id) orderData.customer_id = args.customer_id;
+            const created = await dataClient.entities.Order.create(orderData);
+            // Tarjeta visual de confirmación
+            setChatMessages(m => [...m, {
+              role: "assistant", type: "action", action: "order_created",
+              data: {
+                order_number: created.order_number || `#${created.id?.slice(-6)}`,
+                customer:     args.customer_name,
+                device:       `${args.device_brand} ${args.device_model}`,
+                problem:      args.initial_problem,
+              },
+            }]);
+            return JSON.stringify({ exito: true, orden_numero: created.order_number, mensaje: `Orden ${created.order_number} creada exitosamente` });
+          } catch (e) { return JSON.stringify({ error: e.message }); }
+        }
+        case "buscar_precio_inventario": {
+          const terminos = (args.busqueda || "").toLowerCase().split(" ").filter(t => t.length > 2);
+          const matches = chatInventory.filter(item => {
+            const n = (item.name || "").toLowerCase();
+            const compat = (item.compatibility_models || []).join(" ").toLowerCase();
+            return terminos.some(t => n.includes(t) || compat.includes(t));
+          }).slice(0, 5);
+          if (!matches.length) return JSON.stringify({ encontrado: false, mensaje: "No se encontró esa pieza en el inventario actual. Puedes pedir el precio manualmente." });
+          return JSON.stringify({ encontrado: true, piezas: matches.map(i => ({ nombre: i.name, precio: i.price, costo: i.cost, stock: i.stock, tipo: i.type })) });
+        }
+        case "calcular_total_reparacion": {
+          const total = (args.precio_pieza || 0) + (args.costo_mano_obra || 0);
+          return JSON.stringify({ pieza: args.nombre_pieza || "Pieza", dispositivo: args.dispositivo || "", precio_pieza: args.precio_pieza, mano_obra: args.costo_mano_obra, total });
+        }
+        case "sugerir_accesorios": {
+          return JSON.stringify({ dispositivo: args.dispositivo, accesorios: ["Funda/cover protectora", "Vidrio templado (protector de pantalla)", "Protector de cámara (lente)", "Cable cargador certificado", "Cargador inalámbrico (si compatible)"] });
+        }
+        default: return JSON.stringify({ error: `Herramienta desconocida: ${toolName}` });
+      }
+    };
 
     try {
       const GROQ_KEY = import.meta.env.VITE_GROQ_API_KEY;
       if (!GROQ_KEY) throw new Error("VITE_GROQ_API_KEY no configurada");
 
-      const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
-        method: "POST",
-        headers: { "Content-Type": "application/json", "Authorization": `Bearer ${GROQ_KEY}` },
-        body: JSON.stringify({
-          model: "llama-3.3-70b-versatile",
-          messages: [
-            { role: "system", content: buildBusinessContext() },
-            ...updated.slice(-10), // últimos 10 mensajes para contexto
-          ],
-          temperature: 0.5,
-          max_tokens: 350,
-        }),
-      });
+      const systemPrompt = buildBusinessContext() + `
 
-      const data = await res.json();
-      const reply = data?.choices?.[0]?.message?.content;
-      if (reply) {
-        setChatMessages(m => [...m, { role: "assistant", content: reply }]);
-      } else {
-        setChatMessages(m => [...m, { role: "assistant", content: "⚠️ " + (data?.error?.message || "Sin respuesta") }]);
+CAPACIDADES — puedes ejecutar acciones reales en el sistema:
+- buscar_cliente: busca clientes por nombre o teléfono
+- crear_orden: crea una orden de trabajo nueva
+- buscar_precio_inventario: consulta precios de piezas y repuestos en el inventario
+- calcular_total_reparacion: calcula costo total (pieza + mano de obra)
+- sugerir_accesorios: sugiere accesorios complementarios al cliente
+
+REGLAS:
+1. Para crear una orden: primero busca el cliente. Si no existe, crea la orden con los datos del usuario.
+2. Para precios: consulta el inventario primero. Si no hay coincidencia, pide el precio de pieza y mano de obra para calcular el total.
+3. Al reparar pantallas o carcasas, siempre sugiere accesorios al final.
+4. Responde siempre en ESPAÑOL, sé conciso y profesional.`;
+
+      // Solo mensajes usuario/asistente (sin tarjetas de acción internas)
+      let convMsgs = displayHistory
+        .filter(m => m.role === "user" || (m.role === "assistant" && !m.type))
+        .slice(-10)
+        .map(m => ({ role: m.role, content: m.content }));
+
+      const STATUS_MAP = { buscar_cliente: "Buscando cliente…", crear_orden: "Creando orden…", buscar_precio_inventario: "Consultando inventario…", calcular_total_reparacion: "Calculando total…", sugerir_accesorios: "Preparando sugerencias…" };
+
+      let maxIter = 6;
+      while (maxIter-- > 0) {
+        const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+          method: "POST",
+          headers: { "Content-Type": "application/json", "Authorization": `Bearer ${GROQ_KEY}` },
+          body: JSON.stringify({
+            model: "llama-3.3-70b-versatile",
+            messages: [{ role: "system", content: systemPrompt }, ...convMsgs],
+            tools: CHAT_TOOLS,
+            tool_choice: "auto",
+            temperature: 0.4,
+            max_tokens: 600,
+          }),
+        });
+        const data = await res.json();
+        if (data?.error) throw new Error(data.error.message || "Error de IA");
+
+        const choice = data?.choices?.[0];
+        const assistantMsg = choice?.message;
+
+        if (choice?.finish_reason === "tool_calls" && assistantMsg?.tool_calls?.length) {
+          const toolResults = [];
+          for (const tc of assistantMsg.tool_calls) {
+            const tName = tc.function.name;
+            let tArgs = {};
+            try { tArgs = JSON.parse(tc.function.arguments); } catch (_) {}
+            setChatStatus(STATUS_MAP[tName] || "Procesando…");
+            const result = await executeToolCall(tName, tArgs);
+            toolResults.push({ role: "tool", tool_call_id: tc.id, content: result });
+          }
+          convMsgs = [...convMsgs, assistantMsg, ...toolResults];
+          setChatStatus("");
+        } else {
+          const reply = assistantMsg?.content;
+          if (reply) setChatMessages(m => [...m, { role: "assistant", content: reply }]);
+          break;
+        }
       }
     } catch (err) {
       setChatMessages(m => [...m, { role: "assistant", content: "⚠️ " + err.message }]);
     } finally {
       setChatLoading(false);
+      setChatStatus("");
       setTimeout(() => chatEndRef.current?.scrollIntoView({ behavior: "smooth" }), 100);
     }
   };
@@ -1837,9 +2038,10 @@ CONTEXTO ACTUAL DEL NEGOCIO (${businessName || "SmartFixOS"}):
                   <p className="text-xs text-white/25 leading-relaxed">Conozco tus órdenes, finanzas y equipo. Pregúntame lo que quieras.</p>
                   <div className="flex flex-col gap-1.5 w-full mt-2">
                     {[
+                      "Crear orden: iPhone 14 Pro Max, cayó al agua, Juan García",
+                      "¿Precio pantalla iPhone 15 Pro Max?",
                       "¿Cómo va el negocio hoy?",
                       "¿Qué órdenes son urgentes?",
-                      "¿Qué técnico tiene más carga?",
                     ].map(q => (
                       <button key={q} onClick={() => sendChatMessage(q)}
                         className="text-left px-3 py-2 rounded-xl bg-white/[0.03] border border-white/[0.06] hover:bg-violet-500/10 hover:border-violet-500/20 text-xs text-white/40 hover:text-white/70 transition-all">
@@ -1850,24 +2052,46 @@ CONTEXTO ACTUAL DEL NEGOCIO (${businessName || "SmartFixOS"}):
                 </div>
               )}
 
-              {chatMessages.map((msg, i) => (
-                <div key={i} className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}>
-                  <div className={`max-w-[85%] px-4 py-2.5 rounded-2xl text-sm leading-relaxed ${
-                    msg.role === "user"
-                      ? "bg-violet-600 text-white rounded-br-md"
-                      : "bg-white/[0.06] border border-white/[0.08] text-white/85 rounded-bl-md"
-                  }`}>
-                    {msg.content}
+              {chatMessages.map((msg, i) => {
+                // Tarjeta de acción: orden creada
+                if (msg.type === "action" && msg.action === "order_created") {
+                  return (
+                    <div key={i} className="flex justify-start">
+                      <div className="max-w-[95%] rounded-2xl rounded-bl-md overflow-hidden border border-emerald-500/30 bg-emerald-900/20">
+                        <div className="flex items-center gap-2 px-4 py-2 bg-emerald-500/10 border-b border-emerald-500/20">
+                          <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+                          <span className="text-[10px] font-bold text-emerald-400 uppercase tracking-widest">Orden Creada</span>
+                          <span className="ml-auto text-xs text-emerald-300 font-mono font-bold">{msg.data.order_number}</span>
+                        </div>
+                        <div className="px-4 py-3 space-y-0.5">
+                          <p className="text-sm text-white/90 font-semibold">{msg.data.customer}</p>
+                          <p className="text-xs text-white/50">{msg.data.device}</p>
+                          <p className="text-xs text-white/35 italic mt-1">"{msg.data.problem}"</p>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                }
+                return (
+                  <div key={i} className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}>
+                    <div className={`max-w-[85%] px-4 py-2.5 rounded-2xl text-sm leading-relaxed ${
+                      msg.role === "user"
+                        ? "bg-violet-600 text-white rounded-br-md"
+                        : "bg-white/[0.06] border border-white/[0.08] text-white/85 rounded-bl-md"
+                    }`}>
+                      {msg.content}
+                    </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
 
               {chatLoading && (
                 <div className="flex justify-start">
-                  <div className="bg-white/[0.06] border border-white/[0.08] px-4 py-3 rounded-2xl rounded-bl-md flex gap-1">
+                  <div className="bg-white/[0.06] border border-white/[0.08] px-4 py-3 rounded-2xl rounded-bl-md flex items-center gap-1.5">
                     <span className="w-1.5 h-1.5 rounded-full bg-violet-400 animate-bounce" style={{animationDelay:"0ms"}} />
                     <span className="w-1.5 h-1.5 rounded-full bg-violet-400 animate-bounce" style={{animationDelay:"150ms"}} />
                     <span className="w-1.5 h-1.5 rounded-full bg-violet-400 animate-bounce" style={{animationDelay:"300ms"}} />
+                    {chatStatus && <span className="text-[10px] text-violet-400/70 ml-1 font-medium">{chatStatus}</span>}
                   </div>
                 </div>
               )}
