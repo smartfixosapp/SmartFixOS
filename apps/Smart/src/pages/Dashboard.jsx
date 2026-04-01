@@ -1442,9 +1442,10 @@ REGLAS:
 4. Responde siempre en ESPAÑOL, sé conciso y profesional.`;
 
       // Solo mensajes usuario/asistente (sin tarjetas de acción internas)
+      // Limitamos a 6 para no agotar el TPM del tier gratuito de Groq
       let convMsgs = displayHistory
         .filter(m => m.role === "user" || (m.role === "assistant" && !m.type))
-        .slice(-10)
+        .slice(-6)
         .map(m => ({ role: m.role, content: m.content }));
 
       const STATUS_MAP = { buscar_cliente: "Buscando cliente…", crear_orden: "Creando orden…", buscar_precio_inventario: "Consultando inventario…", calcular_total_reparacion: "Calculando total…", sugerir_accesorios: "Preparando sugerencias…", buscar_orden: "Buscando orden…", actualizar_estado_orden: "Actualizando estado…", agregar_nota_orden: "Guardando nota…", asignar_tecnico: "Asignando técnico…", enviar_mensaje_cliente: "Enviando mensaje…", registrar_cobro: "Registrando cobro…", crear_cliente: "Creando cliente…", historial_cliente: "Cargando historial…", ver_stock_bajo: "Revisando inventario…", ver_caja_del_dia: "Consultando caja…" };
@@ -1455,12 +1456,12 @@ REGLAS:
           method: "POST",
           headers: { "Content-Type": "application/json", "Authorization": `Bearer ${GROQ_KEY}` },
           body: JSON.stringify({
-            model: "llama-3.3-70b-versatile",
+            model: "llama-3.1-8b-instant",   // 20k TPM — más rápido y no satura el tier gratuito
             messages: [{ role: "system", content: systemPrompt }, ...convMsgs],
             tools: CHAT_TOOLS,
             tool_choice: "auto",
             temperature: 0.4,
-            max_tokens: 600,
+            max_tokens: 400,
           }),
         });
         const data = await res.json();
