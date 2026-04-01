@@ -102,6 +102,18 @@ export default function AwaitingApprovalStage({ order, onUpdate }) {
                 <p className="mb-1 text-[11px] font-semibold uppercase tracking-[0.24em] text-white/35">Items</p>
                 <p className="text-lg font-black text-white">{items.length}</p>
               </div>
+              {o.customer_approval_status && (
+                <div className={`rounded-[22px] border p-4 backdrop-blur-md ${
+                  o.customer_approval_status === "approved"
+                    ? "border-emerald-500/20 bg-emerald-500/5"
+                    : "border-red-500/20 bg-red-500/5"
+                }`}>
+                  <p className="mb-1 text-[11px] font-semibold uppercase tracking-[0.24em] text-white/35">Respuesta</p>
+                  <p className={`text-lg font-black ${o.customer_approval_status === "approved" ? "text-emerald-300" : "text-red-300"}`}>
+                    {o.customer_approval_status === "approved" ? "✅ Aprobado" : "❌ Rechazado"}
+                  </p>
+                </div>
+              )}
             </div>
           </div>
 
