@@ -4,8 +4,24 @@ import Layout from "./Layout.jsx";
 import { BrowserRouter as Router, Route, Routes, useLocation, useNavigate } from 'react-router-dom';
 import AuthGate, { useAuth } from '@/components/Auth';
 
+// Wrap lazy imports to auto-reload on chunk load failures (stale CDN cache)
+function lazyWithRetry(fn) {
+  return lazy(() =>
+    fn().catch((err) => {
+      // Chunk load error = old HTML referencing old hashes → reload once
+      const retried = sessionStorage.getItem('chunk-reload');
+      if (!retried) {
+        sessionStorage.setItem('chunk-reload', '1');
+        window.location.reload();
+        return new Promise(() => {}); // never resolves (page reloads)
+      }
+      throw err;
+    })
+  );
+}
+
 // Lazy-loaded pages — each becomes its own chunk
-const Activate              = lazy(() => import("./Activate"));
+const Activate              = lazyWithRetry(() => import("./Activate"));
 const SuperAdmin            = lazy(() => import("./SuperAdmin"));
 const AdminDashboard        = lazy(() => import("./AdminDashboard"));
 const AuditLog              = lazy(() => import("./AuditLog"));
