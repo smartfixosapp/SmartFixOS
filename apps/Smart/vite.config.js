@@ -70,6 +70,8 @@ export default defineConfig({
     }
   },
   resolve: {
+    // Ensure a single copy of React across all chunks (prevents Safari ESM interop issues)
+    dedupe: ['react', 'react-dom', 'react/jsx-runtime'],
     alias: {
       '@': path.resolve(__dirname, './src'),
       // Ensure appwrite resolves from this app's node_modules (used by lib/appwrite-client.js)
