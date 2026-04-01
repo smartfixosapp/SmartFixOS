@@ -135,13 +135,16 @@ export default function IntakeStage({ order, onUpdate, onOrderItemsUpdate, onRem
         subtitle="Si en recepción ya sabes qué hace falta, registra aquí piezas o servicios sin salir del flujo inicial."
       />
 
-      <WorkOrderUnifiedHub
-        order={o}
-        onUpdate={onUpdate}
-        title="Historial de Recepción"
-        subtitle="Sube fotos del equipo, revisa el historial y gestiona seguridad desde recepción"
-        accent="cyan"
-      />
+      <div ref={hubRef}>
+        <WorkOrderUnifiedHub
+          order={o}
+          onUpdate={onUpdate}
+          title="Historial de Recepción"
+          subtitle="Sube fotos del equipo, revisa el historial y gestiona seguridad desde recepción"
+          accent="cyan"
+          openTab={openHubTab}
+        />
+      </div>
 
       <Dialog open={Boolean(previewPhoto)} onOpenChange={(open) => !open && setPreviewPhoto(null)}>
         <DialogContent className="max-w-4xl border-white/10 bg-black/95 p-2">
