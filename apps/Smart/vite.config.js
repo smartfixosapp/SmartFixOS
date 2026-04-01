@@ -16,10 +16,13 @@ export default defineConfig({
       manifest: false, // usamos el manifest.json de /public
       selfDestroying: false,
       workbox: {
+        cacheId: 'sfos-v3', // bump to bust stale SW caches
         clientsClaim: true,
         skipWaiting: true,
-        globPatterns: ['**/*.{js,css,html,ico,png,svg,woff2}'],
+        // html excluded: index.html must always come from network (never SW cache)
+        globPatterns: ['**/*.{js,css,ico,png,svg,woff2}'],
         cleanupOutdatedCaches: true,
+        navigateFallback: null, // don't intercept navigation requests
         maximumFileSizeToCacheInBytes: 5 * 1024 * 1024, // 5 MiB
         runtimeCaching: [
           // Supabase API — Network First (datos siempre frescos)
