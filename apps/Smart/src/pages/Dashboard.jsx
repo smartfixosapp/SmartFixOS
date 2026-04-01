@@ -1460,69 +1460,12 @@ REGLAS:
         .slice(-6)
         .map(m => ({ role: m.role, content: m.content }));
 
-      let maxIter = 6;
-
-      if (ANTHROPIC_KEY) {
-        // ══════════════════════════════════════════════════════════════════════
-        // CLAUDE (Anthropic) — usa si VITE_ANTHROPIC_API_KEY está configurada
-        // ══════════════════════════════════════════════════════════════════════
-        const claudeTools = CHAT_TOOLS.map(t => ({
-          name:         t.function.name,
-          description:  t.function.description,
-          input_schema: t.function.parameters,
-        }));
-
-        let claudeMsgs = cleanHistory;
-
-        while (maxIter-- > 0) {
-          const res = await fetch("https://api.anthropic.com/v1/messages", {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              "x-api-key": ANTHROPIC_KEY,
-              "anthropic-version": "2023-06-01",
-              "anthropic-dangerous-direct-browser-access": "true",
-            },
-            body: JSON.stringify({
-              model: "claude-3-5-haiku-20241022",
-              max_tokens: 1024,
-              system: systemPrompt,
-              messages: claudeMsgs,
-              tools: claudeTools,
-              tool_choice: { type: "auto" },
-            }),
-          });
-          const data = await res.json();
-          if (data?.error) throw new Error(data.error.message || "Error de Claude");
-
-          if (data.stop_reason === "tool_use") {
-            const toolUses = data.content.filter(b => b.type === "tool_use");
-            const toolResultContents = [];
-            for (const tu of toolUses) {
-              setChatStatus(STATUS_MAP[tu.name] || "Procesando…");
-              const result = await executeToolCall(tu.name, tu.input || {});
-              toolResultContents.push({ type: "tool_result", tool_use_id: tu.id, content: result });
-            }
-            claudeMsgs = [
-              ...claudeMsgs,
-              { role: "assistant", content: data.content },
-              { role: "user",      content: toolResultContents },
-            ];
-            setChatStatus("");
-          } else {
-            const textBlock = data.content?.find(b => b.type === "text");
-            if (textBlock?.text) setChatMessages(m => [...m, { role: "assistant", content: textBlock.text }]);
-            break;
-          }
-        }
-
-      } else {
-        // ══════════════════════════════════════════════════════════════════════
-        // GROQ (fallback) — llama-3.1-8b-instant, 20k TPM gratis
-        // ══════════════════════════════════════════════════════════════════════
+      // ── Groq loop (reutilizable como fallback) ─────────────────────────────
+      const runGroq = async () => {
+        if (!GROQ_KEY) throw new Error("No hay API key de IA disponible");
         let convMsgs = cleanHistory;
-
-        while (maxIter-- > 0) {
+        let iter = 6;
+        while (iter-- > 0) {
           const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
             method: "POST",
             headers: { "Content-Type": "application/json", "Authorization": `Bearer ${GROQ_KEY}` },
@@ -1537,26 +1480,93 @@ REGLAS:
           });
           const data = await res.json();
           if (data?.error) throw new Error(data.error.message || "Error de IA");
-
-          const choice     = data?.choices?.[0];
-          const assistantMsg = choice?.message;
-
-          if (choice?.finish_reason === "tool_calls" && assistantMsg?.tool_calls?.length) {
+          const choice = data?.choices?.[0];
+          const aMsg   = choice?.message;
+          if (choice?.finish_reason === "tool_calls" && aMsg?.tool_calls?.length) {
             const toolResults = [];
-            for (const tc of assistantMsg.tool_calls) {
+            for (const tc of aMsg.tool_calls) {
               let tArgs = {};
               try { tArgs = JSON.parse(tc.function.arguments); } catch (_) {}
               setChatStatus(STATUS_MAP[tc.function.name] || "Procesando…");
               const result = await executeToolCall(tc.function.name, tArgs);
               toolResults.push({ role: "tool", tool_call_id: tc.id, content: result });
             }
-            convMsgs = [...convMsgs, assistantMsg, ...toolResults];
+            convMsgs = [...convMsgs, aMsg, ...toolResults];
             setChatStatus("");
           } else {
-            if (assistantMsg?.content) setChatMessages(m => [...m, { role: "assistant", content: assistantMsg.content }]);
+            if (aMsg?.content) setChatMessages(m => [...m, { role: "assistant", content: aMsg.content }]);
             break;
           }
         }
+      };
+
+      if (ANTHROPIC_KEY) {
+        // ════════════════════════════════════════════════════════════════════
+        // CLAUDE (Anthropic) — con fallback automático a Groq si sin créditos
+        // ════════════════════════════════════════════════════════════════════
+        const claudeTools = CHAT_TOOLS.map(t => ({
+          name:         t.function.name,
+          description:  t.function.description,
+          input_schema: t.function.parameters,
+        }));
+        let claudeMsgs = cleanHistory;
+        let claudeOk   = true;
+
+        try {
+          let iter = 6;
+          while (iter-- > 0) {
+            const res = await fetch("https://api.anthropic.com/v1/messages", {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                "x-api-key": ANTHROPIC_KEY,
+                "anthropic-version": "2023-06-01",
+                "anthropic-dangerous-direct-browser-access": "true",
+              },
+              body: JSON.stringify({
+                model: "claude-3-5-haiku-20241022",
+                max_tokens: 1024,
+                system: systemPrompt,
+                messages: claudeMsgs,
+                tools: claudeTools,
+                tool_choice: { type: "auto" },
+              }),
+            });
+            const data = await res.json();
+            // Si es error de créditos/billing → fallback a Groq silencioso
+            if (data?.error) {
+              const msg = data.error.message || "";
+              if (msg.includes("credit") || msg.includes("billing") || data.error.type === "authentication_error") {
+                claudeOk = false; break;
+              }
+              throw new Error(msg || "Error de Claude");
+            }
+            if (data.stop_reason === "tool_use") {
+              const toolUses = data.content.filter(b => b.type === "tool_use");
+              const toolResultContents = [];
+              for (const tu of toolUses) {
+                setChatStatus(STATUS_MAP[tu.name] || "Procesando…");
+                const result = await executeToolCall(tu.name, tu.input || {});
+                toolResultContents.push({ type: "tool_result", tool_use_id: tu.id, content: result });
+              }
+              claudeMsgs = [
+                ...claudeMsgs,
+                { role: "assistant", content: data.content },
+                { role: "user",      content: toolResultContents },
+              ];
+              setChatStatus("");
+            } else {
+              const textBlock = data.content?.find(b => b.type === "text");
+              if (textBlock?.text) setChatMessages(m => [...m, { role: "assistant", content: textBlock.text }]);
+              break;
+            }
+          }
+        } catch (_) { claudeOk = false; }
+
+        if (!claudeOk) await runGroq(); // fallback transparente
+
+      } else {
+        await runGroq();
       }
 
     } catch (err) {
