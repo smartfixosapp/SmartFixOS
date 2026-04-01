@@ -140,34 +140,33 @@ export default function ExpenseDialog({ open, onClose, onSuccess, drawer, defaul
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent className="max-w-md bg-[#0A0A0A]/95 backdrop-blur-3xl border border-white/10 rounded-[32px] shadow-2xl p-0 overflow-hidden">
-        {/* Top Accent line */}
-        <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-orange-600 to-red-800" />
-        
-        <div className="p-8">
-          <DialogHeader className="mb-8">
-            <div className="flex items-center gap-4">
-              <div className="w-12 h-12 rounded-2xl bg-orange-500/10 flex items-center justify-center border border-orange-500/20">
-                <TrendingDown className="w-6 h-6 text-orange-400" />
+      <DialogContent className="max-w-md bg-[#0A0A0A] border border-white/10 rounded-2xl p-0 overflow-hidden">
+        <div className="absolute top-0 left-0 w-full h-0.5 bg-gradient-to-r from-orange-600 to-red-800" />
+
+        <div className="p-5">
+          <DialogHeader className="mb-4">
+            <div className="flex items-center gap-3">
+              <div className="w-8 h-8 rounded-xl bg-orange-500/10 flex items-center justify-center border border-orange-500/20">
+                <TrendingDown className="w-4 h-4 text-orange-400" />
               </div>
-              <DialogTitle className="text-2xl font-black text-white tracking-tight text-left">
+              <DialogTitle className="text-xl font-black text-white tracking-tight text-left">
                 {defaultCategory === "payroll" ? "Pagar Nómina" : "Registrar Gasto"}
               </DialogTitle>
             </div>
           </DialogHeader>
 
-          <form onSubmit={handleSubmit} className="space-y-6">
+          <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
-              <label className="text-[10px] font-black text-white/40 uppercase tracking-widest ml-1">Monto del Gasto ($)</label>
+              <label className="text-[10px] font-black text-white/40 uppercase tracking-widest ml-1">Monto ($)</label>
               <div className="relative">
-                <DollarSign className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-orange-500/50" />
+                <DollarSign className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-orange-500/50" />
                 <Input
                   type="number"
                   step="0.01"
                   min="0"
                   value={formData.amount}
                   onChange={(e) => setFormData({ ...formData, amount: e.target.value })}
-                  className="bg-white/5 border-white/10 text-white text-3xl h-16 rounded-2xl pl-12 pr-5 focus:border-orange-500/50 font-black tracking-tighter"
+                  className="bg-white/5 border-white/10 text-white text-2xl h-12 rounded-2xl pl-10 pr-5 focus:border-orange-500/50 font-black tracking-tighter"
                   placeholder="0.00"
                   required
                 />
@@ -175,34 +174,31 @@ export default function ExpenseDialog({ open, onClose, onSuccess, drawer, defaul
             </div>
 
             <div className="space-y-2">
-              <label className="text-[10px] font-black text-white/40 uppercase tracking-widest ml-1">Descripción / Justificación</label>
+              <label className="text-[10px] font-black text-white/40 uppercase tracking-widest ml-1">Descripción</label>
               <Textarea
                 value={formData.description}
                 onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                className="bg-white/5 border-white/10 text-white min-h-[100px] rounded-2xl p-5 focus:border-orange-500/50 font-medium resize-none"
+                className="bg-white/5 border-white/10 text-white min-h-[80px] rounded-2xl p-4 focus:border-orange-500/50 font-medium resize-none"
                 placeholder="Ej: Pago de electricidad, repuestos de emergencia..."
                 required
               />
             </div>
 
-            {/* ✨ CATEGORIZACIÓN CON IA */}
-            <div className="px-1">
-              <AIExpenseCategorizor
-                description={formData.description}
-                amount={formData.amount}
-                onCategorySuggestion={handleCategorySuggestion}
-              />
-            </div>
+            <AIExpenseCategorizor
+              description={formData.description}
+              amount={formData.amount}
+              onCategorySuggestion={handleCategorySuggestion}
+            />
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="grid grid-cols-2 gap-3">
               <div className="space-y-2">
                 <label className="text-[10px] font-black text-white/40 uppercase tracking-widest ml-1">Categoría</label>
-                <Select 
-                  value={formData.category} 
+                <Select
+                  value={formData.category}
                   onValueChange={(value) => setFormData({ ...formData, category: value })}
                   disabled={!!defaultCategory}
                 >
-                  <SelectTrigger className="bg-white/5 border-white/10 text-white h-12 rounded-2xl px-5 focus:border-orange-500/50 font-bold disabled:opacity-50">
+                  <SelectTrigger className="bg-white/5 border-white/10 text-white h-11 rounded-2xl px-4 focus:border-orange-500/50 font-bold disabled:opacity-50">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent className="bg-[#111] border-white/10 text-white rounded-2xl">
@@ -220,26 +216,26 @@ export default function ExpenseDialog({ open, onClose, onSuccess, drawer, defaul
                 <Input
                   value={formData.reference}
                   onChange={(e) => setFormData({ ...formData, reference: e.target.value })}
-                  className="bg-white/5 border-white/10 text-white h-12 rounded-2xl px-5 focus:border-orange-500/50 font-bold"
+                  className="bg-white/5 border-white/10 text-white h-11 rounded-2xl px-4 focus:border-orange-500/50 font-bold"
                   placeholder="#Factura, ID..."
                 />
               </div>
             </div>
 
-            <div className="flex gap-4 pt-6">
+            <div className="flex gap-3 pt-2">
               <Button
                 type="button"
                 variant="ghost"
                 onClick={onClose}
                 disabled={loading}
-                className="flex-1 bg-white/5 text-white/40 hover:text-white hover:bg-white/10 h-14 rounded-2xl font-black uppercase tracking-widest transition-all"
+                className="flex-1 bg-white/5 text-white/40 hover:text-white hover:bg-white/10 h-12 rounded-2xl font-black uppercase tracking-widest transition-all"
               >
                 Cancelar
               </Button>
               <Button
                 type="submit"
                 disabled={loading}
-                className="flex-1 bg-gradient-to-r from-orange-600 to-red-800 hover:from-orange-500 hover:to-red-700 text-white h-14 rounded-2xl font-black uppercase tracking-widest shadow-xl shadow-orange-900/20 active:scale-95 transition-all"
+                className="flex-1 bg-gradient-to-r from-orange-600 to-red-800 hover:from-orange-500 hover:to-red-700 text-white h-12 rounded-2xl font-black uppercase tracking-widest active:scale-95 transition-all"
               >
                 {loading ? "Registrando..." : "Confirmar Gasto"}
               </Button>
