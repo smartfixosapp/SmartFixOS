@@ -190,52 +190,77 @@ export default function AlertasWidget() {
     return "⚠️";
   };
 
+  // Estado óptimo — solo una barra compacta
+  if (!loading && alerts.length === 0) {
+    return (
+      <>
+        <div className="flex items-center justify-between px-4 py-2.5 rounded-2xl bg-emerald-500/[0.07] border border-emerald-500/20">
+          <div className="flex items-center gap-2.5">
+            <span className="text-base">🛡️</span>
+            <div>
+              <p className="text-xs font-black text-emerald-400 uppercase tracking-widest leading-none">Todo en orden</p>
+              <p className="text-[10px] text-white/25">Sin alertas financieras</p>
+            </div>
+          </div>
+          <button onClick={() => setShowSettings(true)} className="w-7 h-7 rounded-lg bg-white/5 hover:bg-white/10 flex items-center justify-center text-white/30 hover:text-white transition-colors">
+            <Settings className="w-3.5 h-3.5" />
+          </button>
+        </div>
+        {showSettings && (
+          <Dialog open={showSettings} onOpenChange={setShowSettings}>
+            <DialogContent className="bg-gradient-to-br from-[#2B2B2B] to-black border-cyan-500/30">
+              <DialogHeader><DialogTitle className="text-white flex items-center gap-2"><Settings className="w-5 h-5 text-cyan-500" />Configurar Alertas</DialogTitle></DialogHeader>
+              <div className="space-y-4 mt-4">
+                <div>
+                  <Label className="text-gray-300">Umbral mensual de gastos ($)</Label>
+                  <Input type="number" step="0.01" value={thresholdConfig.monthly_expense_threshold} onChange={(e) => setThresholdConfig({ ...thresholdConfig, monthly_expense_threshold: parseFloat(e.target.value) || 0 })} className="bg-black/40 border-cyan-500/20 text-white mt-1" />
+                </div>
+                <div>
+                  <Label className="text-gray-300">Días de anticipación para vencimientos</Label>
+                  <Input type="number" min="1" max="30" value={thresholdConfig.days_before_due} onChange={(e) => setThresholdConfig({ ...thresholdConfig, days_before_due: parseInt(e.target.value) || 7 })} className="bg-black/40 border-cyan-500/20 text-white mt-1" />
+                </div>
+                <div className="flex gap-3 pt-2">
+                  <Button variant="outline" onClick={() => setShowSettings(false)} className="flex-1 border-white/15">Cancelar</Button>
+                  <Button onClick={saveSettings} className="flex-1 bg-gradient-to-r from-cyan-600 to-emerald-700">Guardar</Button>
+                </div>
+              </div>
+            </DialogContent>
+          </Dialog>
+        )}
+      </>
+    );
+  }
+
   return (
     <>
-      <div className="relative overflow-hidden bg-white/5 backdrop-blur-3xl border border-white/10 rounded-[40px] p-8 shadow-2xl group">
-        {/* Decorative Glow */}
-        <div className="absolute -right-10 -top-10 w-40 h-40 bg-amber-500/10 rounded-full blur-[80px] pointer-events-none" />
-        
-        <div className="relative flex items-center justify-between mb-8">
-          <div className="flex items-center gap-4">
-            <div className="w-12 h-12 rounded-2xl bg-amber-500/10 flex items-center justify-center border border-amber-500/20">
-              <Bell className="w-6 h-6 text-amber-400" />
+      <div className="relative overflow-hidden bg-white/5 backdrop-blur-3xl border border-white/10 rounded-[28px] p-5 shadow-2xl group">
+        <div className="relative flex items-center justify-between mb-5">
+          <div className="flex items-center gap-3">
+            <div className="w-9 h-9 rounded-2xl bg-amber-500/10 flex items-center justify-center border border-amber-500/20">
+              <Bell className="w-4 h-4 text-amber-400" />
             </div>
             <div>
-              <h3 className="text-xl font-black text-white tracking-tight flex items-center gap-2">
+              <h3 className="text-sm font-black text-white tracking-tight flex items-center gap-2">
                 Alertas Financieras
                 {alerts.length > 0 && (
-                  <span className="flex h-6 w-6 items-center justify-center rounded-full bg-red-600/30 text-[10px] font-black text-red-100 border border-red-500/40 animate-pulse">
+                  <span className="flex h-5 w-5 items-center justify-center rounded-full bg-red-600/30 text-[9px] font-black text-red-100 border border-red-500/40 animate-pulse">
                     {alerts.length}
                   </span>
                 )}
               </h3>
-              <p className="text-[10px] text-white/30 font-bold uppercase tracking-[0.2em]">Monitoreo en Tiempo Real</p>
+              <p className="text-[10px] text-white/30 font-bold uppercase tracking-widest">Monitoreo en tiempo real</p>
             </div>
           </div>
-          <Button
-            size="sm"
-            variant="ghost"
-            onClick={() => setShowSettings(true)}
-            className="w-10 h-10 rounded-xl bg-white/5 text-gray-400 hover:text-white hover:bg-white/10 transition-all"
-          >
-            <Settings className="w-5 h-5" />
-          </Button>
+          <button onClick={() => setShowSettings(true)} className="w-8 h-8 rounded-xl bg-white/5 text-gray-400 hover:text-white hover:bg-white/10 transition-all flex items-center justify-center">
+            <Settings className="w-4 h-4" />
+          </button>
         </div>
 
         <div className="relative">
           {loading ? (
-            <div className="flex flex-col items-center justify-center py-12 text-gray-400 italic">
-              <RefreshCw className="w-8 h-8 animate-spin mb-4 text-amber-500/30" />
-              <p className="text-xs font-bold uppercase tracking-widest text-white/20">Escaneando transacciones...</p>
-            </div>
-          ) : alerts.length === 0 ? (
-            <div className="text-center py-10 px-6 rounded-[32px] bg-white/[0.02] border border-white/5 border-dashed">
-              <div className="w-16 h-16 rounded-full bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center mx-auto mb-4">
-                <span className="text-3xl">🛡️</span>
-              </div>
-              <h4 className="text-emerald-400 font-black tracking-tight mb-1 uppercase text-sm">Estado Óptimo</h4>
-              <p className="text-white/20 text-[10px] font-bold uppercase tracking-widest">No se detectaron irregularidades</p>
+            <div className="flex items-center justify-center py-6 gap-2 text-white/20">
+              <RefreshCw className="w-4 h-4 animate-spin" />
+              <p className="text-xs font-bold uppercase tracking-widest">Escaneando…</p>
             </div>
           ) : (
             <div className="space-y-4">
