@@ -705,7 +705,7 @@ export default function GastosOperacionalesWidget() {
 
       {/* ── Summary strip ────────────────────────────────────────────────── */}
       {expenses.length > 0 && (
-        <div className="grid grid-cols-3 gap-1.5 mb-3">
+        <div className="grid grid-cols-3 gap-1.5">
           <div className="p-2.5 bg-white/[0.03] rounded-xl border border-white/[0.06]">
             <p className="text-[9px] font-black uppercase tracking-widest text-white/30 mb-0.5">Mensual</p>
             <p className="text-sm font-black text-white">${totalMonthly.toFixed(2)}</p>
