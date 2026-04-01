@@ -57,6 +57,7 @@ export default function CloseDrawerDialog({ isOpen, onClose, drawer, onSuccess }
   const [athTransactions, setAthTransactions] = useState([]);
   const [loadingATH, setLoadingATH] = useState(false);
   const [paymentMethodsList, setPaymentMethodsList] = useState(['cash','card','ath_movil']);
+  const [shiftOrderStats, setShiftOrderStats] = useState(null);
 
   // Refs para long press
   const pressTimer = useRef(null);
