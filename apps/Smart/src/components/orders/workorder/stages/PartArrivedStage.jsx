@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { ExternalLink, Plus, MapPin, Truck, CheckCircle2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
-import OrderItems from "@/components/workorder/sections/OrderItems";
+import OrderItems from "@/components/orders/workorder/WorkOrderItems";
 import OrderSecurity from "@/components/workorder/sections/OrderSecurity";
 import OrderMultimedia from "@/components/workorder/sections/OrderMultimedia";
 import OrderNotes from "@/components/workorder/sections/OrderNotes";
