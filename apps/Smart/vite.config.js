@@ -83,8 +83,12 @@ export default defineConfig({
     rollupOptions: {
       output: {
         manualChunks(id) {
-          // React core — smallest, most stable, best to isolate
-          if (id.includes('node_modules/react/') || id.includes('node_modules/react-dom/')) {
+          // React core + scheduler (react-dom dep) — must be same chunk to avoid circular deps
+          if (
+            id.includes('/node_modules/react/') ||
+            id.includes('/node_modules/react-dom/') ||
+            id.includes('/node_modules/scheduler/')
+          ) {
             return 'vendor-react';
           }
           // Framer Motion — heavy animation lib (~100KB)
