@@ -438,14 +438,16 @@ Devuelve solo clientes que deberían recibir recordatorio.`,
       this.checkLowStockWithAI(),
       this.checkOverduePurchaseOrders(),
       this.analyzeProfitabilityAndSuggest(),
-      this.sendMaintenanceReminders()
+      this.sendMaintenanceReminders(),
+      this.checkPickupReminders()
     ]);
 
     const summary = {
       low_stock: results[0].status === 'fulfilled' ? results[0].value : null,
       overdue_pos: results[1].status === 'fulfilled' ? results[1].value : null,
       profitability: results[2].status === 'fulfilled' ? results[2].value : null,
-      maintenance: results[3].status === 'fulfilled' ? results[3].value : null
+      maintenance: results[3].status === 'fulfilled' ? results[3].value : null,
+      pickup_reminders: results[4].status === 'fulfilled' ? results[4].value : null
     };
 
     console.log('✅ SmartNotificationsEngine: Análisis completado', summary);
