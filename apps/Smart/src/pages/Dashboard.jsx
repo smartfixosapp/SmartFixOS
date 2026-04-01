@@ -1823,8 +1823,8 @@ export default function Dashboard() {
           scrollbar-width: none;
         }
       `}</style>
-    </>)}
     </div>
+    </>)}
   </div>
 );
 }
