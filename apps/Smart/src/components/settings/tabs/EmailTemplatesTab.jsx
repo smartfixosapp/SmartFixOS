@@ -1422,7 +1422,7 @@ export default function EmailTemplatesTab() {
           const isOpen = openGroups[group.id];
 
           return (
-            <div key={group.id} className="bg-gradient-to-br from-white/10 to-white/5 border border-white/10 rounded-[24px] overflow-hidden backdrop-blur-xl">
+            <div key={group.id} className="bg-gradient-to-br from-white/10 to-white/5 border border-white/10 rounded-2xl overflow-hidden">
               <button
                 type="button"
                 onClick={() => setOpenGroups(prev => ({ ...prev, [group.id]: !prev[group.id] }))}
