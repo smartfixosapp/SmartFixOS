@@ -710,6 +710,27 @@ export default function DiagnosingStage({ order, onUpdate, user, onOrderItemsUpd
               })}
             </div>
 
+            {/* Diagnosis templates */}
+            {(DIAG_TEMPLATES[deviceCategory] || DIAG_TEMPLATES.generic).length > 0 && (
+              <div>
+                <p className="flex items-center gap-1.5 text-[10px] font-black text-white/25 uppercase tracking-widest mb-2">
+                  <FileText className="w-3 h-3" /> Plantillas rápidas
+                </p>
+                <div className="flex flex-wrap gap-1.5">
+                  {(DIAG_TEMPLATES[deviceCategory] || DIAG_TEMPLATES.generic).map(tpl => (
+                    <button
+                      key={tpl.label}
+                      type="button"
+                      onClick={() => setChecklistNotes(prev => prev ? `${prev}\n\n${tpl.text}` : tpl.text)}
+                      className="px-3 py-1.5 rounded-xl bg-purple-500/10 border border-purple-500/15 text-purple-300 text-[11px] font-bold hover:bg-purple-500/20 active:scale-95 transition-all"
+                    >
+                      {tpl.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
             {/* General notes */}
             <Textarea
               placeholder="Notas generales del diagnóstico (se incluyen en el email al cliente)..."
