@@ -46,7 +46,8 @@ import {
   Inbox,
   Check,
   Sunrise,
-  Sunset
+  Sunset,
+  Mic
 } from "lucide-react";
 
 import { format, startOfDay } from "date-fns";
@@ -225,6 +226,146 @@ const CHAT_TOOLS = [
       },
     },
   },
+  {
+    type: "function",
+    function: {
+      name: "buscar_orden",
+      description: "Busca una orden de trabajo por número de orden, nombre de cliente, dispositivo o problema.",
+      parameters: {
+        type: "object",
+        properties: {
+          consulta: { type: "string", description: "Número de orden, nombre del cliente, o modelo del dispositivo" },
+          estado:   { type: "string", description: "Filtrar por estado (opcional): intake, in_progress, waiting_parts, ready, completed, cancelled" },
+        },
+        required: ["consulta"],
+      },
+    },
+  },
+  {
+    type: "function",
+    function: {
+      name: "actualizar_estado_orden",
+      description: "Cambia el estado de una orden de trabajo. Úsalo cuando digan 'marca como lista', 'pasa a reparación', etc.",
+      parameters: {
+        type: "object",
+        properties: {
+          orden_id:     { type: "string", description: "ID de la orden (obtenerlo con buscar_orden primero)" },
+          nuevo_estado: { type: "string", enum: ["intake", "in_progress", "waiting_parts", "ready", "completed", "cancelled"], description: "Nuevo estado" },
+          nota:         { type: "string", description: "Nota opcional sobre el cambio (ej: 'Pantalla instalada, lista para prueba')" },
+        },
+        required: ["orden_id", "nuevo_estado"],
+      },
+    },
+  },
+  {
+    type: "function",
+    function: {
+      name: "agregar_nota_orden",
+      description: "Agrega una nota o comentario interno a una orden de trabajo.",
+      parameters: {
+        type: "object",
+        properties: {
+          orden_id: { type: "string", description: "ID de la orden" },
+          nota:     { type: "string", description: "Texto de la nota a agregar" },
+        },
+        required: ["orden_id", "nota"],
+      },
+    },
+  },
+  {
+    type: "function",
+    function: {
+      name: "asignar_tecnico",
+      description: "Asigna un técnico a una orden de trabajo.",
+      parameters: {
+        type: "object",
+        properties: {
+          orden_id:       { type: "string", description: "ID de la orden" },
+          nombre_tecnico: { type: "string", description: "Nombre del técnico a asignar" },
+        },
+        required: ["orden_id", "nombre_tecnico"],
+      },
+    },
+  },
+  {
+    type: "function",
+    function: {
+      name: "enviar_mensaje_cliente",
+      description: "Envía una notificación al cliente sobre su orden (listo para recoger, en reparación, etc.).",
+      parameters: {
+        type: "object",
+        properties: {
+          orden_id:             { type: "string", description: "ID de la orden" },
+          tipo_mensaje:         { type: "string", enum: ["listo_para_recoger", "en_reparacion", "esperando_piezas", "personalizado"], description: "Tipo de notificación" },
+          mensaje_personalizado:{ type: "string", description: "Texto personalizado (solo si tipo es 'personalizado')" },
+        },
+        required: ["orden_id", "tipo_mensaje"],
+      },
+    },
+  },
+  {
+    type: "function",
+    function: {
+      name: "registrar_cobro",
+      description: "Registra el pago de una reparación y marca la orden como completada.",
+      parameters: {
+        type: "object",
+        properties: {
+          orden_id:     { type: "string", description: "ID de la orden" },
+          monto:        { type: "number", description: "Monto cobrado" },
+          metodo_pago:  { type: "string", enum: ["efectivo", "tarjeta", "transferencia", "ath_movil"], description: "Método de pago" },
+        },
+        required: ["orden_id", "monto", "metodo_pago"],
+      },
+    },
+  },
+  {
+    type: "function",
+    function: {
+      name: "crear_cliente",
+      description: "Crea un nuevo cliente en la base de datos del taller.",
+      parameters: {
+        type: "object",
+        properties: {
+          nombre:   { type: "string", description: "Nombre completo del cliente" },
+          telefono: { type: "string", description: "Número de teléfono" },
+          email:    { type: "string", description: "Correo electrónico (opcional)" },
+        },
+        required: ["nombre", "telefono"],
+      },
+    },
+  },
+  {
+    type: "function",
+    function: {
+      name: "historial_cliente",
+      description: "Muestra el historial de reparaciones de un cliente.",
+      parameters: {
+        type: "object",
+        properties: {
+          nombre_cliente: { type: "string", description: "Nombre del cliente" },
+          cliente_id:     { type: "string", description: "ID del cliente (si se conoce)" },
+        },
+        required: ["nombre_cliente"],
+      },
+    },
+  },
+  {
+    type: "function",
+    function: {
+      name: "ver_stock_bajo",
+      description: "Muestra los productos del inventario con stock bajo o agotado.",
+      parameters: { type: "object", properties: {}, required: [] },
+    },
+  },
+  {
+    type: "function",
+    function: {
+      name: "ver_caja_del_dia",
+      description: "Muestra el resumen de ingresos, gastos y balance de caja del día.",
+      parameters: { type: "object", properties: {}, required: [] },
+    },
+  },
 ];
 // ─────────────────────────────────────────────────────────────────────────────
 
@@ -321,6 +462,10 @@ export default function Dashboard() {
   const chatEndRef = useRef(null);
   const [chatStatus, setChatStatus] = useState("");
   const [chatInventory, setChatInventory] = useState([]);
+  const [chatTechnicians, setChatTechnicians] = useState([]);
+  const [isListening, setIsListening] = useState(false);
+  const recognitionRef = useRef(null);
+  const dictTranscriptRef = useRef("");
   // Widget extra data
   const [newCustomersCount, setNewCustomersCount] = useState(0);
   const [todayTxCount, setTodayTxCount] = useState(0);
@@ -1031,11 +1176,17 @@ export default function Dashboard() {
     load();
   }, [session?.userId]);
 
-  // Carga inventario cuando se abre el chat (para consultas de precios)
+  // Carga datos de contexto cuando se abre el chat
   useEffect(() => {
-    if (showAiChat && chatInventory.length === 0) {
+    if (!showAiChat) return;
+    if (chatInventory.length === 0) {
       dataClient.entities.Product.list("-created_date", 300)
         .then(data => setChatInventory(data || []))
+        .catch(() => {});
+    }
+    if (chatTechnicians.length === 0) {
+      dataClient.entities.AppEmployee.list("full_name", 50)
+        .then(data => setChatTechnicians(data || []))
         .catch(() => {});
     }
   }, [showAiChat]);
@@ -1062,6 +1213,42 @@ CONTEXTO ACTUAL DEL NEGOCIO (${businessName || "SmartFixOS"}):
 - Órdenes destacadas: ${topOrders || "ninguna"}
 - Tareas pendientes del turno: ${pendingShiftTasks.length}
 - Clientes nuevos (semana): ${newCustomersCount}`;
+  };
+
+  const startDictation = () => {
+    if (isListening) {
+      recognitionRef.current?.stop();
+      setIsListening(false);
+      return;
+    }
+    const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SR) {
+      setChatMessages(m => [...m, { role: "assistant", content: "⚠️ Tu navegador no soporta dictado por voz. Usa Chrome o Safari." }]);
+      return;
+    }
+    dictTranscriptRef.current = "";
+    const recognition = new SR();
+    recognitionRef.current = recognition;
+    recognition.lang = "es";
+    recognition.continuous = false;
+    recognition.interimResults = true;
+    recognition.onstart = () => setIsListening(true);
+    recognition.onresult = (e) => {
+      const transcript = Array.from(e.results).map(r => r[0].transcript).join("");
+      dictTranscriptRef.current = transcript;
+      setChatInput(transcript);
+    };
+    recognition.onerror = () => setIsListening(false);
+    recognition.onend = () => {
+      setIsListening(false);
+      const text = dictTranscriptRef.current.trim();
+      if (text) {
+        dictTranscriptRef.current = "";
+        setChatInput("");
+        sendChatMessage(text);
+      }
+    };
+    recognition.start();
   };
 
   const sendChatMessage = async (text) => {
@@ -1135,6 +1322,102 @@ CONTEXTO ACTUAL DEL NEGOCIO (${businessName || "SmartFixOS"}):
         case "sugerir_accesorios": {
           return JSON.stringify({ dispositivo: args.dispositivo, accesorios: ["Funda/cover protectora", "Vidrio templado (protector de pantalla)", "Protector de cámara (lente)", "Cable cargador certificado", "Cargador inalámbrico (si compatible)"] });
         }
+        case "buscar_orden": {
+          try {
+            const term = (args.consulta || "").toLowerCase();
+            const all = await dataClient.entities.Order.list("-created_date", 150);
+            let results = (all || []).filter(o => {
+              if (args.estado && o.status !== args.estado) return false;
+              return (
+                o.customer_name?.toLowerCase().includes(term) ||
+                o.device_model?.toLowerCase().includes(term) ||
+                o.device_brand?.toLowerCase().includes(term) ||
+                o.order_number?.toLowerCase().includes(term) ||
+                o.initial_problem?.toLowerCase().includes(term)
+              );
+            }).slice(0, 5);
+            if (!results.length) return JSON.stringify({ encontrado: false, mensaje: "No se encontró ninguna orden con esa búsqueda." });
+            return JSON.stringify({ encontrado: true, ordenes: results.map(o => ({ id: o.id, numero: o.order_number, cliente: o.customer_name, dispositivo: `${o.device_brand} ${o.device_model}`, estado: o.status, problema: o.initial_problem })) });
+          } catch (e) { return JSON.stringify({ error: e.message }); }
+        }
+        case "actualizar_estado_orden": {
+          try {
+            const STATUS_LABELS = { intake: "Diagnóstico/Entrada", in_progress: "En Reparación", waiting_parts: "Esperando Piezas", ready: "Listo para Recoger", completed: "Completado", cancelled: "Cancelado" };
+            await dataClient.entities.Order.update(args.orden_id, { status: args.nuevo_estado });
+            await dataClient.entities.WorkOrderEvent.create({ order_id: args.orden_id, event_type: "status_change", description: args.nota || `Estado cambiado a: ${STATUS_LABELS[args.nuevo_estado] || args.nuevo_estado}`, created_by: session?.name || session?.email || "Asistente IA" });
+            setChatMessages(m => [...m, { role: "assistant", type: "action", action: "orden_actualizada", data: { estado: STATUS_LABELS[args.nuevo_estado] || args.nuevo_estado, orden_id: args.orden_id } }]);
+            return JSON.stringify({ exito: true, mensaje: `Estado actualizado a "${STATUS_LABELS[args.nuevo_estado] || args.nuevo_estado}"` });
+          } catch (e) { return JSON.stringify({ error: e.message }); }
+        }
+        case "agregar_nota_orden": {
+          try {
+            await dataClient.entities.WorkOrderEvent.create({ order_id: args.orden_id, event_type: "note", description: args.nota, created_by: session?.name || session?.email || "Asistente IA" });
+            return JSON.stringify({ exito: true, mensaje: "Nota agregada correctamente" });
+          } catch (e) { return JSON.stringify({ error: e.message }); }
+        }
+        case "asignar_tecnico": {
+          try {
+            const term = (args.nombre_tecnico || "").toLowerCase();
+            const tech = chatTechnicians.find(e => e.full_name?.toLowerCase().includes(term));
+            if (!tech) return JSON.stringify({ error: `No se encontró técnico con nombre "${args.nombre_tecnico}". Técnicos disponibles: ${chatTechnicians.map(t => t.full_name).join(", ")}` });
+            await dataClient.entities.Order.update(args.orden_id, { assigned_to: tech.id });
+            return JSON.stringify({ exito: true, tecnico: tech.full_name, mensaje: `Orden asignada a ${tech.full_name}` });
+          } catch (e) { return JSON.stringify({ error: e.message }); }
+        }
+        case "enviar_mensaje_cliente": {
+          try {
+            const order = await dataClient.entities.Order.get(args.orden_id);
+            if (!order) return JSON.stringify({ error: "Orden no encontrada" });
+            const textos = {
+              listo_para_recoger: `¡Hola ${order.customer_name}! Tu ${order.device_brand} ${order.device_model} está listo para recoger. ¡Gracias por confiar en nosotros!`,
+              en_reparacion: `¡Hola ${order.customer_name}! Tu ${order.device_brand} ${order.device_model} está en proceso de reparación. Te avisamos cuando esté listo.`,
+              esperando_piezas: `¡Hola ${order.customer_name}! Estamos esperando la pieza para tu ${order.device_brand} ${order.device_model}. Te mantenemos informado.`,
+              personalizado: args.mensaje_personalizado || "",
+            };
+            const texto = textos[args.tipo_mensaje];
+            await dataClient.entities.Notification.create({ title: `Mensaje a ${order.customer_name}`, message: texto, type: "sms", status: "sent", customer_id: order.customer_id });
+            return JSON.stringify({ exito: true, cliente: order.customer_name, mensaje_enviado: texto });
+          } catch (e) { return JSON.stringify({ error: e.message }); }
+        }
+        case "registrar_cobro": {
+          try {
+            const order = await dataClient.entities.Order.get(args.orden_id);
+            await dataClient.entities.Transaction.create({ order_id: args.orden_id, amount: args.monto, payment_method: args.metodo_pago, type: "income", description: `Reparación: ${order?.device_brand || ""} ${order?.device_model || ""}`, customer_name: order?.customer_name });
+            await dataClient.entities.Order.update(args.orden_id, { status: "completed" });
+            setChatMessages(m => [...m, { role: "assistant", type: "action", action: "cobro_registrado", data: { monto: args.monto, metodo: args.metodo_pago, cliente: order?.customer_name } }]);
+            return JSON.stringify({ exito: true, monto: args.monto, mensaje: `Cobro de $${args.monto} registrado` });
+          } catch (e) { return JSON.stringify({ error: e.message }); }
+        }
+        case "crear_cliente": {
+          try {
+            const created = await dataClient.entities.Customer.create({ full_name: args.nombre, phone: args.telefono, email: args.email || "" });
+            setChatMessages(m => [...m, { role: "assistant", type: "action", action: "cliente_creado", data: { nombre: args.nombre, telefono: args.telefono } }]);
+            return JSON.stringify({ exito: true, cliente_id: created.id, mensaje: `Cliente ${args.nombre} creado` });
+          } catch (e) { return JSON.stringify({ error: e.message }); }
+        }
+        case "historial_cliente": {
+          try {
+            const term = (args.nombre_cliente || "").toLowerCase();
+            const all = await dataClient.entities.Order.list("-created_date", 200);
+            const orders = (all || []).filter(o => {
+              if (args.cliente_id) return o.customer_id === args.cliente_id;
+              return o.customer_name?.toLowerCase().includes(term);
+            }).slice(0, 10);
+            if (!orders.length) return JSON.stringify({ encontrado: false, mensaje: "No se encontraron órdenes para este cliente." });
+            const total = orders.reduce((sum, o) => sum + (o.total_amount || 0), 0);
+            return JSON.stringify({ encontrado: true, total_reparaciones: orders.length, total_gastado: total, ordenes: orders.map(o => ({ numero: o.order_number, dispositivo: `${o.device_brand} ${o.device_model}`, estado: o.status, fecha: o.created_date?.slice(0, 10) })) });
+          } catch (e) { return JSON.stringify({ error: e.message }); }
+        }
+        case "ver_stock_bajo": {
+          const bajos = chatInventory.filter(i => i.stock != null && i.min_stock != null && i.stock <= i.min_stock);
+          if (!bajos.length) return JSON.stringify({ mensaje: "No hay productos con stock bajo. ¡Todo en orden!" });
+          return JSON.stringify({ total: bajos.length, items: bajos.map(i => ({ nombre: i.name, stock: i.stock, minimo: i.min_stock })) });
+        }
+        case "ver_caja_del_dia": {
+          const ingreso = kpiIncome?.today || 0;
+          const gasto = kpiIncome?.todayExpenses || 0;
+          return JSON.stringify({ ingresos: ingreso, gastos: gasto, neto: ingreso - gasto, meta: kpiDailyGoal || 0, avance_pct: kpiDailyGoal ? Math.round((ingreso / kpiDailyGoal) * 100) : null });
+        }
         default: return JSON.stringify({ error: `Herramienta desconocida: ${toolName}` });
       }
     };
@@ -1164,7 +1447,7 @@ REGLAS:
         .slice(-10)
         .map(m => ({ role: m.role, content: m.content }));
 
-      const STATUS_MAP = { buscar_cliente: "Buscando cliente…", crear_orden: "Creando orden…", buscar_precio_inventario: "Consultando inventario…", calcular_total_reparacion: "Calculando total…", sugerir_accesorios: "Preparando sugerencias…" };
+      const STATUS_MAP = { buscar_cliente: "Buscando cliente…", crear_orden: "Creando orden…", buscar_precio_inventario: "Consultando inventario…", calcular_total_reparacion: "Calculando total…", sugerir_accesorios: "Preparando sugerencias…", buscar_orden: "Buscando orden…", actualizar_estado_orden: "Actualizando estado…", agregar_nota_orden: "Guardando nota…", asignar_tecnico: "Asignando técnico…", enviar_mensaje_cliente: "Enviando mensaje…", registrar_cobro: "Registrando cobro…", crear_cliente: "Creando cliente…", historial_cliente: "Cargando historial…", ver_stock_bajo: "Revisando inventario…", ver_caja_del_dia: "Consultando caja…" };
 
       let maxIter = 6;
       while (maxIter-- > 0) {
@@ -2053,9 +2336,8 @@ REGLAS:
               )}
 
               {chatMessages.map((msg, i) => {
-                // Tarjeta de acción: orden creada
-                if (msg.type === "action" && msg.action === "order_created") {
-                  return (
+                if (msg.type === "action") {
+                  if (msg.action === "order_created") return (
                     <div key={i} className="flex justify-start">
                       <div className="max-w-[95%] rounded-2xl rounded-bl-md overflow-hidden border border-emerald-500/30 bg-emerald-900/20">
                         <div className="flex items-center gap-2 px-4 py-2 bg-emerald-500/10 border-b border-emerald-500/20">
@@ -2067,6 +2349,36 @@ REGLAS:
                           <p className="text-sm text-white/90 font-semibold">{msg.data.customer}</p>
                           <p className="text-xs text-white/50">{msg.data.device}</p>
                           <p className="text-xs text-white/35 italic mt-1">"{msg.data.problem}"</p>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                  if (msg.action === "orden_actualizada") return (
+                    <div key={i} className="flex justify-start">
+                      <div className="px-4 py-2.5 rounded-2xl rounded-bl-md border border-blue-500/30 bg-blue-900/20 flex items-center gap-2">
+                        <CheckCircle2 className="w-3.5 h-3.5 text-blue-400 shrink-0" />
+                        <span className="text-sm text-blue-300 font-medium">Estado → <strong>{msg.data.estado}</strong></span>
+                      </div>
+                    </div>
+                  );
+                  if (msg.action === "cobro_registrado") return (
+                    <div key={i} className="flex justify-start">
+                      <div className="px-4 py-2.5 rounded-2xl rounded-bl-md border border-emerald-500/30 bg-emerald-900/20 flex items-center gap-2">
+                        <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+                        <div>
+                          <p className="text-sm text-emerald-300 font-bold">${msg.data.monto} · {msg.data.metodo}</p>
+                          <p className="text-[11px] text-white/40">{msg.data.cliente}</p>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                  if (msg.action === "cliente_creado") return (
+                    <div key={i} className="flex justify-start">
+                      <div className="px-4 py-2.5 rounded-2xl rounded-bl-md border border-violet-500/30 bg-violet-900/20 flex items-center gap-2">
+                        <CheckCircle2 className="w-3.5 h-3.5 text-violet-400 shrink-0" />
+                        <div>
+                          <p className="text-sm text-violet-300 font-semibold">{msg.data.nombre}</p>
+                          <p className="text-[11px] text-white/40">{msg.data.telefono}</p>
                         </div>
                       </div>
                     </div>
@@ -2100,15 +2412,23 @@ REGLAS:
 
             {/* Input */}
             <div className="px-3 py-3 border-t border-white/[0.06] shrink-0">
-              <div className="flex gap-2 items-center bg-white/[0.04] border border-white/[0.08] rounded-2xl px-3 py-2 focus-within:border-violet-500/40 transition-colors">
+              <div className={`flex gap-2 items-center bg-white/[0.04] border rounded-2xl px-3 py-2 transition-colors ${isListening ? "border-red-500/50 bg-red-950/20" : "border-white/[0.08] focus-within:border-violet-500/40"}`}>
+                <button
+                  onClick={startDictation}
+                  disabled={chatLoading}
+                  className={`w-6 h-6 rounded-lg flex items-center justify-center shrink-0 transition-all ${isListening ? "bg-red-500 animate-pulse" : "hover:bg-white/[0.08]"}`}
+                  title={isListening ? "Detener dictado" : "Dictar por voz"}
+                >
+                  <Mic className={`w-3.5 h-3.5 ${isListening ? "text-white" : "text-white/30"}`} />
+                </button>
                 <input
                   type="text"
                   value={chatInput}
                   onChange={e => setChatInput(e.target.value)}
                   onKeyDown={e => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); sendChatMessage(chatInput); }}}
-                  placeholder="Escribe algo…"
+                  placeholder={isListening ? "Escuchando…" : "Escribe o dicta…"}
                   className="flex-1 bg-transparent text-sm text-white placeholder-white/20 focus:outline-none"
-                  disabled={chatLoading}
+                  disabled={chatLoading || isListening}
                 />
                 <button
                   onClick={() => sendChatMessage(chatInput)}
