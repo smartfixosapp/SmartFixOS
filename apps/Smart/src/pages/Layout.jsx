@@ -28,6 +28,7 @@ import { useRealtimeNotifications } from "@/components/notifications/RealtimeNot
 import { notificationEngine } from "@/components/notifications/AdvancedNotificationsEngine";
 import PWAMetaTags from "@/components/utils/PWAMetaTags";
 import GlobalPriceWidget from "@/components/layout/GlobalPriceWidget";
+import GlobalSearchPalette from "@/components/layout/GlobalSearchPalette";
 import { useHeartbeat } from "@/hooks/useHeartbeat";
 import ARIAChat from "@/components/aria/ARIAChat";
 import { usePushNotifications } from "@/hooks/usePushNotifications";
