@@ -605,6 +605,24 @@ export default function AddItemModal({
     if (saving) return;
     setSaving(true);
     try {
+      // ── Alertas de stock bajo ─────────────────────────────────────────
+      const lowStockItems = cartItems.filter(item => {
+        if (!item.from_inventory && item.__kind !== "product") return false;
+        const stock = toNum(item.stock, -1);
+        if (stock < 0) return false; // unknown stock, skip
+        const qty = toNum(item.qty, 1);
+        return stock - qty <= 1; // will be at or near 0 after this order
+      });
+      for (const item of lowStockItems) {
+        const remaining = Math.max(0, toNum(item.stock, 0) - toNum(item.qty, 1));
+        toast.warning(
+          remaining === 0
+            ? `⚠️ Stock agotado: "${item.name}" quedará sin unidades`
+            : `⚠️ Stock bajo: "${item.name}" quedará con ${remaining} unidad${remaining === 1 ? "" : "es"}`,
+          { duration: 5000 }
+        );
+      }
+
       const normalized = cartItems.map((raw) => {
         const item = normalizeCartItem(raw);
         return {
