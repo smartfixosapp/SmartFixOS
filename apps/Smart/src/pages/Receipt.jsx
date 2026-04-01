@@ -29,7 +29,8 @@ function currency(n) {
 
 export default function Receipt() {
   const [params] = useSearchParams();
-  const orderId = params.get("order_id");
+  const orderId  = params.get("order_id");
+  const autoPrint = params.get("print") === "1";
   const [order, setOrder]   = useState(null);
   const [txs, setTxs]       = useState([]);
   const [loading, setLoading] = useState(true);
@@ -74,6 +75,13 @@ export default function Receipt() {
     })();
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [orderId]);
+
+  // Auto-print cuando se carga con ?print=1
+  useEffect(() => {
+    if (!autoPrint || loading || !order) return;
+    const t = setTimeout(() => window.print(), 600);
+    return () => clearTimeout(t);
+  }, [autoPrint, loading, order]);
 
   if (loading) return (
     <div className="min-h-screen bg-black flex items-center justify-center">

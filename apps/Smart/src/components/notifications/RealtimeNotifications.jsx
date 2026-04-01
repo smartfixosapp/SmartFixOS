@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { dataClient } from '@/components/api/dataClient';
 import { toast } from 'sonner';
 import { Bell, UserCheck, CheckCircle, Package, AlertTriangle } from 'lucide-react';
+import { usePushNotifications } from '@/hooks/usePushNotifications';
 
 // ============================================
 // SERVICIO DE NOTIFICACIONES EN TIEMPO REAL
@@ -23,6 +24,7 @@ export function useRealtimeNotifications({ enabled = true } = {}) {
   const intervalRef = useRef(null);
   const processedIds = useRef(new Set());
   const networkFailCount = useRef(0);
+  const { notify } = usePushNotifications();
 
   useEffect(() => {
     if (!enabled) return undefined;
@@ -149,12 +151,9 @@ export function useRealtimeNotifications({ enabled = true } = {}) {
           <p className="text-sm text-gray-400">Orden #{event.order_number} entregada</p>
         </div>
       </div>,
-      {
-        duration: 6000,
-        position: 'top-right'
-      }
+      { duration: 6000, position: 'top-right' }
     );
-
+    notify({ title: "✅ Orden completada", body: `Orden #${event.order_number} entregada al cliente`, tag: `order-${event.order_id}`, url: "/Orders" });
     playNotificationSound();
   };
 
@@ -167,12 +166,9 @@ export function useRealtimeNotifications({ enabled = true } = {}) {
           <p className="text-sm text-gray-400">Orden #{event.order_number}</p>
         </div>
       </div>,
-      {
-        duration: 8000,
-        position: 'top-right'
-      }
+      { duration: 8000, position: 'top-right' }
     );
-
+    notify({ title: "📦 Lista para recoger", body: `Orden #${event.order_number} está lista`, tag: `ready-${event.order_id}`, url: "/Orders" });
     playNotificationSound();
   };
 

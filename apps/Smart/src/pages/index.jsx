@@ -32,6 +32,7 @@ import TenantActivate from "./TenantActivate";
 import VerifySetup from "./VerifySetup";
 import Welcome from "./Welcome";
 import Receipt from "./Receipt";
+import Appointments from "./Appointments";
 
 import { BrowserRouter as Router, Route, Routes, useLocation, useNavigate } from 'react-router-dom';
 
@@ -141,6 +142,7 @@ function ProtectedRoutes() {
                     <Route path="/TimeTracking" element={<UsersManagement />} />
                     <Route path="/UsersManagement" element={<UsersManagement />} />
                     <Route path="/VerifySetup" element={<VerifySetup />} />
+                    <Route path="/Appointments" element={<Appointments />} />
                     <Route path="/Welcome" element={<Welcome />} />
             </Routes>
         </AuthGate>

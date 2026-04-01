@@ -30,6 +30,7 @@ import PWAMetaTags from "@/components/utils/PWAMetaTags";
 import GlobalPriceWidget from "@/components/layout/GlobalPriceWidget";
 import { useHeartbeat } from "@/hooks/useHeartbeat";
 import ARIAChat from "@/components/aria/ARIAChat";
+import { usePushNotifications } from "@/hooks/usePushNotifications";
 
 export default function Layout({ children }) {
   const location = useLocation();
@@ -39,6 +40,8 @@ export default function Layout({ children }) {
   const [showPaymentScreen, setShowPaymentScreen] = useState(false);
   const { keyboardOpen } = useVirtualKeyboard();
   const mainRef = useRef(null);
+  const { requestPermission, permission } = usePushNotifications();
+  const [showPushBanner, setShowPushBanner] = useState(false);
   
   // 🔐 Validar estado del trial
   const { isTrialExpired, tenant: trialTenant, loading: trialLoading } = useTenantTrialStatus(tenant?.id);
@@ -188,6 +191,19 @@ export default function Layout({ children }) {
     return () => { alive = false; clearInterval(interval); };
   }, [user, isPinAccess, isWelcome, isSetupPage]);
 
+  // 🔔 Push notification permission prompt — once per session
+  useEffect(() => {
+    if (isPinAccess || isWelcome || isSetupPage || !user) return;
+    if (!("Notification" in window)) return;
+    if (Notification.permission !== "default") return;
+    if (sessionStorage.getItem("push_banner_shown")) return;
+    const t = setTimeout(() => {
+      setShowPushBanner(true);
+      sessionStorage.setItem("push_banner_shown", "1");
+    }, 5000);
+    return () => clearTimeout(t);
+  }, [user, isPinAccess, isWelcome, isSetupPage]);
+
   // ✅ Load theme on mount
   useEffect(() => {
     let isMounted = true;
@@ -269,6 +285,24 @@ export default function Layout({ children }) {
         }}
         richColors
       />
+
+      {/* 🔔 Push Notification Permission Banner */}
+      {showPushBanner && (
+        <div className="fixed top-4 left-1/2 -translate-x-1/2 z-[9998] w-[calc(100vw-2rem)] max-w-sm px-4 py-3 rounded-2xl bg-violet-950/95 backdrop-blur border border-violet-500/30 shadow-2xl flex items-center gap-3">
+          <span className="text-xl shrink-0">🔔</span>
+          <div className="flex-1 min-w-0">
+            <p className="text-sm font-bold text-white leading-none mb-0.5">Activar notificaciones</p>
+            <p className="text-[11px] text-white/45 leading-tight">Recibe alertas cuando cambie el estado de una orden</p>
+          </div>
+          <div className="flex gap-1.5 shrink-0">
+            <button onClick={() => setShowPushBanner(false)} className="text-[11px] text-white/30 hover:text-white/60 px-2 py-1 transition-colors">Ahora no</button>
+            <button onClick={async () => { await requestPermission(); setShowPushBanner(false); }}
+              className="text-[11px] font-bold text-white bg-violet-600 hover:bg-violet-500 px-3 py-1.5 rounded-xl transition-colors">
+              Activar
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* PWA Install Prompt - REMOVED */}
       

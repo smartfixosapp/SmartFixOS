@@ -99,6 +99,7 @@ import RechargesPanel from "@/components/recharges/RechargesPanel";
 import DashboardLinksConfig from "@/components/dashboard/DashboardLinksConfig";
 import DailyTransactionsModal from "@/components/dashboard/DailyTransactionsModal";
 import MonthlyReportModal, { shouldShowMonthlyReport } from "@/components/financial/MonthlyReportModal";
+import ExecutiveDashboard from "@/components/dashboard/ExecutiveDashboard";
 const DASHBOARD_WIDGETS_KEY = "smartfix_dashboard_widgets_v2";
 const CUSTOM_WIDGETS_KEY = "smartfix_custom_link_widgets";
 
@@ -1148,6 +1149,11 @@ export default function Dashboard() {
               </button>
             </div>
 
+            {/* ── Dashboard Ejecutivo (desktop) ── */}
+            <div className="hidden lg:block px-6 pb-4 mt-2">
+              <ExecutiveDashboard />
+            </div>
+
             {/* ── Panel derecho: Feed "Atención requerida" ── */}
             <div className="relative z-10 flex-1 flex flex-col min-h-0 p-6 lg:p-7">
               {/* Feed header */}
@@ -1366,6 +1372,25 @@ export default function Dashboard() {
                       </svg>
                     )}
                   </button>
+                </div>
+              );
+            })()}
+
+            {/* Dashboard Ejecutivo (móvil — colapsable) */}
+            {(() => {
+              const [showExec, setShowExec] = React.useState(false);
+              return (
+                <div className="mx-1 shrink-0">
+                  <button onClick={() => setShowExec(v => !v)}
+                    className="w-full flex items-center justify-between px-4 py-2.5 rounded-2xl bg-white/[0.03] border border-white/[0.06] hover:bg-white/[0.06] transition-colors">
+                    <span className="text-[11px] font-black text-white/40 uppercase tracking-widest">📊 Dashboard Ejecutivo</span>
+                    <span className="text-white/30 text-xs">{showExec ? "▲" : "▼"}</span>
+                  </button>
+                  {showExec && (
+                    <div className="mt-2">
+                      <ExecutiveDashboard />
+                    </div>
+                  )}
                 </div>
               );
             })()}

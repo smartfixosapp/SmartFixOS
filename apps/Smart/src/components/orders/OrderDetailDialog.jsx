@@ -196,6 +196,17 @@ export default function OrderDetailDialog({ order, open, onClose, onOrderUpdated
                 </p>
               </div>
               <div className="flex items-center gap-2">
+                {/* Botón imprimir ticket */}
+                <Button
+                  onClick={() => window.open(`${window.location.origin}/Receipt?order_id=${editedOrder?.id}&print=1`, "_blank")}
+                  variant="outline"
+                  size="icon"
+                  className="border-white/10 text-white/40 hover:bg-white/10"
+                  title="Imprimir ticket"
+                >
+                  <Printer className="w-4 h-4" />
+                </Button>
+
                 {/* Botón compartir recibo */}
                 <div className="relative">
                   <Button
