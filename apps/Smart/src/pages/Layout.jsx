@@ -380,6 +380,9 @@ export default function Layout({ children }) {
         <ARIAChat />
       )}
 
+      {/* 🔍 Búsqueda global Cmd+K */}
+      <GlobalSearchPalette open={searchOpen} onClose={() => setSearchOpen(false)} />
+
       {/* ===== CSS PARA OCULTAR BARRA BLANCA DE NAVEGADOR EN iOS ===== */}
       <style>{`
         @supports (-webkit-touch-callout: none) {
