@@ -81,10 +81,17 @@ export default function IntakeStage({ order, onUpdate, onOrderItemsUpdate, onRem
                     </div>
                   </div>
                 ) : (
-                  <div className="flex items-center gap-2">
-                    <AlertTriangle className="w-4 h-4 text-amber-400 shrink-0" />
-                    <p className="text-sm font-semibold text-amber-300">Se requiere al menos 1 foto para avanzar</p>
-                  </div>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setOpenHubTab("photos");
+                      setTimeout(() => hubRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }), 100);
+                    }}
+                    className="flex items-center gap-2 rounded-xl border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-left transition hover:bg-amber-500/20 active:scale-95"
+                  >
+                    <Camera className="w-4 h-4 text-amber-400 shrink-0" />
+                    <p className="text-sm font-semibold text-amber-300">Subir foto de recepción</p>
+                  </button>
                 )}
               </div>
             </div>
