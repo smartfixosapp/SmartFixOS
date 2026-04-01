@@ -206,23 +206,6 @@ function MonthTimeline({ expenses }) {
   );
 }
 
-// ── Empty state ───────────────────────────────────────────────────────────────
-
-function EmptyState({ onAdd }) {
-  return (
-    <div className="py-20 text-center bg-white/[0.02] border border-dashed border-white/10 rounded-[28px]">
-      <div className="w-16 h-16 mx-auto mb-4 rounded-3xl bg-white/5 flex items-center justify-center">
-        <Target className="w-8 h-8 text-white/20" />
-      </div>
-      <p className="text-xl font-black text-white/30 tracking-tight">Sin Gastos Operacionales</p>
-      <p className="text-sm text-white/20 mt-1 mb-8">Define tus gastos recurrentes para que el sistema calcule cuánto apartar diariamente.</p>
-      <Button onClick={onAdd} className="rounded-2xl bg-gradient-to-r from-cyan-600 to-blue-600 text-white px-8 h-12 font-bold">
-        <Plus className="w-4 h-4 mr-2" />
-        Agregar Primer Gasto
-      </Button>
-    </div>
-  );
-}
 
 // ── Manage Categories Dialog ──────────────────────────────────────────────────
 
