@@ -200,6 +200,22 @@ export default function CloseDrawerDialog({ isOpen, onClose, drawer, onSuccess }
         };
       }));
 
+      // Fetch orders completed/updated during this shift
+      try {
+        const allOrders = await base44.entities.Order.filter({}, "-updated_date", 500).catch(() => []);
+        const shiftOrders = (allOrders || []).filter(o => {
+          try { return new Date(o.updated_date || o.created_date) >= drawerOpenDate; } catch { return false; }
+        });
+        const completedStatuses = ["ready_for_pickup", "delivered", "completed", "warranty"];
+        const completedInShift = shiftOrders.filter(o => completedStatuses.includes(o.status || o.current_status));
+        const newInShift = shiftOrders.filter(o => new Date(o.created_date) >= drawerOpenDate);
+        setShiftOrderStats({
+          total: shiftOrders.length,
+          completed: completedInShift.length,
+          newOrders: newInShift.length,
+        });
+      } catch { /* silent */ }
+
       // Round to 2 decimals to avoid floating point artifacts
       setSalesSummary({
         totalCash: Math.round(totalCash * 100) / 100,
