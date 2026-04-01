@@ -57,14 +57,19 @@ export default function Layout({ children }) {
 
   // ⌨️ Cmd+K / Ctrl+K — abre el buscador global
   useEffect(() => {
-    const handler = (e) => {
+    const keyHandler = (e) => {
       if ((e.metaKey || e.ctrlKey) && e.key === "k") {
         e.preventDefault();
         setSearchOpen(prev => !prev);
       }
     };
-    window.addEventListener("keydown", handler);
-    return () => window.removeEventListener("keydown", handler);
+    const eventHandler = () => setSearchOpen(true);
+    window.addEventListener("keydown", keyHandler);
+    window.addEventListener("smartfix:open-search", eventHandler);
+    return () => {
+      window.removeEventListener("keydown", keyHandler);
+      window.removeEventListener("smartfix:open-search", eventHandler);
+    };
   }, []);
 
   // ✅ Detectar si estamos en el Dashboard
