@@ -803,13 +803,13 @@ ver_stock_bajo, ver_caja_del_dia`;
 
   // ── Render ───────────────────────────────────────────────────────────────────
   return (
-    <div className="fixed bottom-6 right-5 z-[9999] flex flex-col items-end gap-3 pointer-events-none">
+    <div className="fixed bottom-[104px] md:bottom-6 right-5 z-[9999] flex flex-col items-end gap-3 pointer-events-none">
 
       {/* Panel de chat */}
       {open && (
         <div
-          className="w-[340px] sm:w-[380px] bg-[#0e0e0e]/98 backdrop-blur-3xl border border-violet-500/20 rounded-[28px] shadow-2xl overflow-hidden flex flex-col pointer-events-auto"
-          style={{ height: "480px", boxShadow: "0 24px 80px rgba(139,92,246,0.25)" }}
+          className="w-[calc(100vw-2.5rem)] sm:w-[380px] bg-[#0e0e0e]/98 backdrop-blur-3xl border border-violet-500/20 rounded-[28px] shadow-2xl overflow-hidden flex flex-col pointer-events-auto"
+          style={{ height: "min(480px, calc(100dvh - 220px))", boxShadow: "0 24px 80px rgba(139,92,246,0.25)" }}
         >
           {/* Header */}
           <div className="flex items-center justify-between px-5 py-4 border-b border-white/[0.06] shrink-0">
