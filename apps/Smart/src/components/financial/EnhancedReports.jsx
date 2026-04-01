@@ -475,192 +475,145 @@ export default function EnhancedReports({ dateFilter, customStartDate, customEnd
 
   if (loading) {
     return (
-      <div className="flex flex-col items-center justify-center py-32 space-y-6">
-        <div className="relative">
-          <div className="w-20 h-20 border-4 border-cyan-500/20 rounded-full" />
-          <div className="absolute top-0 w-20 h-20 border-4 border-cyan-500 border-t-transparent rounded-full animate-spin" />
-          <PieChart className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-8 h-8 text-cyan-400" />
-        </div>
-        <div className="text-center">
-          <p className="text-xl font-black text-white tracking-tighter mb-2">Compilando Inteligencia Financiera</p>
-          <p className="text-sm text-white/30 uppercase tracking-[0.2em] font-bold">Analizando flujos de caja y distribución...</p>
-        </div>
+      <div className="flex items-center justify-center py-10 gap-3">
+        <BarChart3 className="w-4 h-4 text-cyan-400 animate-pulse" />
+        <p className="text-xs text-white/30 font-bold">Cargando reporte…</p>
       </div>
     );
   }
 
   return (
-    <div className="space-y-10 pt-8 animate-in fade-in slide-in-from-bottom-4 duration-1000">
-      
-      {/* 📊 RESUMEN EJECUTIVO */}
-      <div className="relative overflow-hidden bg-white/5 backdrop-blur-3xl border border-white/10 rounded-[40px] p-8 shadow-2xl group">
-        <div className="absolute -right-20 -top-20 w-80 h-80 bg-cyan-600/10 rounded-full blur-[100px]" />
-        
-        <div className="relative flex flex-col md:flex-row md:items-center justify-between gap-6 mb-10">
-          <div className="flex items-center gap-4">
-            <div className="w-14 h-14 rounded-2xl bg-cyan-500/10 flex items-center justify-center border border-cyan-500/20">
-              <BarChart3 className="w-7 h-7 text-cyan-400" />
-            </div>
-            <div>
-              <h3 className="text-2xl font-black text-white tracking-tight">Resumen de Inteligencia</h3>
-              <p className="text-xs text-white/30 font-bold uppercase tracking-[0.2em]">Visión General del Rendimiento</p>
-            </div>
-          </div>
-          
-          <div className="flex gap-3">
-            <Button
-              variant="outline"
-              onClick={exportToPDF}
-              className="bg-white/5 border-white/10 text-white hover:bg-cyan-500/20 hover:text-cyan-400 hover:border-cyan-500/30 rounded-xl font-bold uppercase tracking-widest text-[10px] h-10 px-4 transition-all"
-            >
-              <FileText className="w-4 h-4 mr-2" /> PDF
-            </Button>
-            <Button
-              variant="outline"
-              onClick={exportToExcel}
-              className="bg-white/5 border-white/10 text-white hover:bg-emerald-500/20 hover:text-emerald-400 hover:border-emerald-500/30 rounded-xl font-bold uppercase tracking-widest text-[10px] h-10 px-4 transition-all"
-            >
-              <Download className="w-4 h-4 mr-2" /> Excel
-            </Button>
-          </div>
-        </div>
+    <div className="space-y-3">
 
-        <div className="relative grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {/* Main Net Profit Card */}
-          <div className={`lg:col-span-3 p-8 rounded-[32px] border transition-all duration-500 ${netProfit >= 0 ? 'bg-emerald-500/5 border-emerald-500/20 shadow-lg shadow-emerald-500/5' : 'bg-red-500/5 border-red-500/20 shadow-lg shadow-red-500/5'}`}>
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
-              <div>
-                <p className={`text-xs font-black uppercase tracking-[0.3em] mb-2 ${netProfit >= 0 ? 'text-emerald-400/60' : 'text-red-400/60'}`}>Utilidad Neta del Período</p>
-                <h4 className={`text-6xl font-black tracking-tighter ${netProfit >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
-                  ${netProfit.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                </h4>
-              </div>
-              <div className="flex gap-4">
-                <div className="text-right">
-                  <p className="text-[10px] font-black text-white/30 uppercase tracking-widest mb-1">Transacciones</p>
-                  <p className="text-2xl font-black text-white">{filteredSales.length + filteredRecharges.length}</p>
-                </div>
-                <div className="w-px h-12 bg-white/10 mx-2 self-center" />
-                <div className="text-right">
-                  <p className="text-[10px] font-black text-white/30 uppercase tracking-widest mb-1">Efectividad</p>
-                  <p className="text-2xl font-black text-cyan-400">{totalNetRevenue > 0 ? Math.round((netProfit / totalNetRevenue) * 100) : 0}%</p>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {[
-            { label: 'Ingresos Brutos', value: totalGrossRevenue, color: 'emerald', icon: DollarSign, sub: 'Ventas + Comisiones' },
-            { label: 'Ingresos Netos', value: totalNetRevenue, color: 'cyan', icon: TrendingUp, sub: 'Excluyendo Impuestos' },
-            { label: 'IVU Recaudado', value: totalTaxCollected, color: 'blue', icon: Receipt, sub: 'Retención Gubernamental' },
-            { label: 'Total Gastos', value: totalExpenses, color: 'red', icon: TrendingDown, sub: 'Operativos + Fijos' },
-            { label: 'Ticket Promedio', value: filteredSales.length > 0 ? totalGrossRevenue / filteredSales.length : 0, color: 'amber', icon: Package, sub: 'Por Pedido' },
-            { label: 'Impacto Gastos', value: totalGrossRevenue > 0 ? (totalExpenses / totalGrossRevenue) * 100 : 0, color: 'purple', icon: Target, isPercent: true, sub: 'Sobre Ingresos' }
-          ].map((item, idx) => (
-            <div key={idx} className="bg-white/[0.03] border border-white/5 rounded-[32px] p-6 hover:bg-white/[0.05] hover:border-white/10 transition-all duration-300">
-              <div className="flex items-center gap-3 mb-4">
-                <div className={`w-10 h-10 rounded-xl bg-${item.color}-500/10 flex items-center justify-center border border-${item.color}-500/20`}>
-                  <item.icon className={`w-5 h-5 text-${item.color}-400`} />
-                </div>
-                <div>
-                  <p className="text-[10px] font-black text-white/30 uppercase tracking-widest">{item.label}</p>
-                  <p className="text-[9px] text-white/10 font-bold uppercase">{item.sub}</p>
-                </div>
-              </div>
-              <p className="text-3xl font-black text-white tracking-tight">
-                {item.isPercent ? '' : '$'}{item.value.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}{item.isPercent ? '%' : ''}
-              </p>
-            </div>
-          ))}
+      {/* Cabecera + exportar */}
+      <div className="flex items-center justify-between gap-2">
+        <p className="text-[10px] font-black text-white/30 uppercase tracking-widest">Resumen del período</p>
+        <div className="flex gap-1.5">
+          <button onClick={exportToPDF}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white/[0.04] border border-white/[0.08] text-white/40 text-[11px] font-black hover:text-white transition-colors">
+            <FileText className="w-3 h-3" /> PDF
+          </button>
+          <button onClick={exportToExcel}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white/[0.04] border border-white/[0.08] text-white/40 text-[11px] font-black hover:text-white transition-colors">
+            <Download className="w-3 h-3" /> Excel
+          </button>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        {/* 💳 INGRESOS POR MÉTODO DE PAGO */}
-        <div className="relative overflow-hidden bg-white/5 backdrop-blur-3xl border border-white/10 rounded-[40px] p-8 shadow-2xl">
-          <div className="flex items-center gap-4 mb-8">
-            <div className="w-12 h-12 rounded-2xl bg-emerald-500/10 flex items-center justify-center border border-emerald-500/20">
-              <CreditCard className="w-6 h-6 text-emerald-400" />
-            </div>
-            <div>
-              <h3 className="text-xl font-black text-white tracking-tight">Fuentes de Ingreso</h3>
-              <p className="text-xs text-white/30 font-bold uppercase tracking-widest">Distribución de Cobros</p>
-            </div>
+      {/* Neto + transacciones */}
+      <div className={`flex items-center justify-between p-4 rounded-2xl border ${netProfit >= 0 ? 'bg-emerald-500/[0.06] border-emerald-500/20' : 'bg-red-500/[0.06] border-red-500/20'}`}>
+        <div>
+          <p className={`text-[10px] font-black uppercase tracking-widest mb-0.5 ${netProfit >= 0 ? 'text-emerald-400/50' : 'text-red-400/50'}`}>Utilidad neta</p>
+          <p className={`text-3xl font-black tracking-tighter leading-none ${netProfit >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
+            ${netProfit.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+          </p>
+        </div>
+        <div className="flex gap-4 text-right">
+          <div>
+            <p className="text-[10px] text-white/25 font-black uppercase tracking-widest">Transacciones</p>
+            <p className="text-xl font-black text-white">{filteredSales.length + filteredRecharges.length}</p>
           </div>
+          <div>
+            <p className="text-[10px] text-white/25 font-black uppercase tracking-widest">Efectividad</p>
+            <p className="text-xl font-black text-cyan-400">{totalNetRevenue > 0 ? Math.round((netProfit / totalNetRevenue) * 100) : 0}%</p>
+          </div>
+        </div>
+      </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            {Object.entries(revenueByPaymentMethod).map(([method, data]) => {
-              const icons = { cash: Wallet, card: CreditCard, ath_movil: Landmark, transfer: DollarSign, mixed: Receipt };
-              const labels = { cash: 'Efectivo', card: 'Tarjeta', ath_movil: 'ATH Móvil', transfer: 'Transferencia', mixed: 'Mixto' };
-              const Icon = icons[method];
-              
-              return (
-                <div key={method} className="bg-white/[0.03] p-5 rounded-3xl border border-white/5 group hover:bg-emerald-500/5 hover:border-emerald-500/10 transition-all">
-                  <div className="flex items-center justify-between mb-3">
-                    <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 rounded-lg bg-black/40 flex items-center justify-center border border-white/5">
-                        <Icon className="w-4 h-4 text-emerald-400" />
+      {/* KPIs grid 2×3 */}
+      <div className="grid grid-cols-3 gap-1.5">
+        {[
+          { label: 'Brutos', value: totalGrossRevenue, color: 'emerald', icon: DollarSign },
+          { label: 'Netos', value: totalNetRevenue, color: 'cyan', icon: TrendingUp },
+          { label: 'IVU', value: totalTaxCollected, color: 'blue', icon: Receipt },
+          { label: 'Gastos', value: totalExpenses, color: 'red', icon: TrendingDown },
+          { label: 'Ticket avg', value: filteredSales.length > 0 ? totalGrossRevenue / filteredSales.length : 0, color: 'amber', icon: Package },
+          { label: '% Gastos', value: totalGrossRevenue > 0 ? (totalExpenses / totalGrossRevenue) * 100 : 0, color: 'purple', icon: Target, isPercent: true },
+        ].map((item, idx) => (
+          <div key={idx} className="bg-white/[0.03] border border-white/[0.06] rounded-xl p-3">
+            <item.icon className={`w-3 h-3 mb-1.5 ${
+              item.color === 'emerald' ? 'text-emerald-400' : item.color === 'cyan' ? 'text-cyan-400' :
+              item.color === 'blue' ? 'text-blue-400' : item.color === 'red' ? 'text-red-400' :
+              item.color === 'amber' ? 'text-amber-400' : 'text-purple-400'
+            }`} />
+            <p className={`text-base font-black leading-none ${
+              item.color === 'emerald' ? 'text-emerald-400' : item.color === 'cyan' ? 'text-cyan-400' :
+              item.color === 'blue' ? 'text-blue-400' : item.color === 'red' ? 'text-red-400' :
+              item.color === 'amber' ? 'text-amber-400' : 'text-purple-400'
+            }`}>
+              {item.isPercent ? '' : '$'}{item.value.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}{item.isPercent ? '%' : ''}
+            </p>
+            <p className="text-[9px] text-white/25 font-black uppercase tracking-widest mt-1">{item.label}</p>
+          </div>
+        ))}
+      </div>
+
+      {/* Fuentes de ingreso */}
+      {Object.values(revenueByPaymentMethod).some(d => d.amount > 0) && (
+        <div className="bg-white/[0.03] border border-white/[0.06] rounded-2xl p-4">
+          <div className="flex items-center gap-2 mb-3">
+            <CreditCard className="w-3.5 h-3.5 text-emerald-400" />
+            <p className="text-[10px] font-black text-white/40 uppercase tracking-widest">Fuentes de ingreso</p>
+          </div>
+          <div className="space-y-2">
+            {Object.entries(revenueByPaymentMethod)
+              .filter(([, data]) => data.amount > 0)
+              .map(([method, data]) => {
+                const icons = { cash: Wallet, card: CreditCard, ath_movil: Landmark, transfer: DollarSign, mixed: Receipt };
+                const labels = { cash: 'Efectivo', card: 'Tarjeta', ath_movil: 'ATH Móvil', transfer: 'Transferencia', mixed: 'Mixto' };
+                const Icon = icons[method];
+                const pct = totalGrossRevenue > 0 ? (data.amount / totalGrossRevenue) * 100 : 0;
+                return (
+                  <div key={method} className="flex items-center gap-2.5">
+                    <Icon className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center justify-between mb-0.5">
+                        <span className="text-xs font-bold text-white/70">{labels[method]}</span>
+                        <span className="text-xs font-black text-emerald-400">${data.amount.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
                       </div>
-                      <p className="text-[10px] font-black text-white/40 uppercase tracking-widest">{labels[method]}</p>
+                      <div className="w-full bg-white/5 rounded-full h-1">
+                        <div className="h-full rounded-full bg-emerald-500/50" style={{ width: `${pct}%` }} />
+                      </div>
                     </div>
-                    <span className="text-[10px] font-black text-white/20">{data.count} ops</span>
+                    <span className="text-[10px] text-white/25 font-bold w-7 text-right shrink-0">{pct.toFixed(0)}%</span>
                   </div>
-                  <p className="text-2xl font-black text-white">${data.amount.toLocaleString(undefined, { minimumFractionDigits: 2 })}</p>
-                  <div className="mt-2 h-1 bg-white/5 rounded-full overflow-hidden">
-                    <div 
-                      className="h-full bg-emerald-500/50 shadow-[0_0_8px_rgba(16,185,129,0.5)]" 
-                      style={{ width: `${totalGrossRevenue > 0 ? (data.amount / totalGrossRevenue) * 100 : 0}%` }}
-                    />
-                  </div>
-                </div>
-              );
-            })}
+                );
+              })}
           </div>
         </div>
+      )}
 
-        {/* 💸 GASTOS POR CATEGORÍA DETALLADOS */}
-        <div className="relative overflow-hidden bg-white/5 backdrop-blur-3xl border border-white/10 rounded-[40px] p-8 shadow-2xl">
-          <div className="flex items-center gap-4 mb-8">
-            <div className="w-12 h-12 rounded-2xl bg-red-500/10 flex items-center justify-center border border-red-500/20">
-              <PieChart className="w-6 h-6 text-red-400" />
-            </div>
-            <div>
-              <h3 className="text-xl font-black text-white tracking-tight">Análisis de Egresos</h3>
-              <p className="text-xs text-white/30 font-bold uppercase tracking-widest">Distribución de Gastos</p>
-            </div>
+      {/* Egresos por categoría */}
+      {totalExpenses > 0 && (
+        <div className="bg-white/[0.03] border border-white/[0.06] rounded-2xl p-4">
+          <div className="flex items-center gap-2 mb-3">
+            <TrendingDown className="w-3.5 h-3.5 text-red-400" />
+            <p className="text-[10px] font-black text-white/40 uppercase tracking-widest">Egresos por categoría</p>
           </div>
-
-          <div className="space-y-4">
-            {Object.entries(expensesByCategory).map(([key, cat]) => (
-              <div key={key} className="bg-white/[0.03] p-5 rounded-3xl border border-white/5 hover:bg-red-500/5 hover:border-red-500/10 transition-all">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-4">
-                    <div className="w-12 h-12 rounded-2xl bg-black/40 flex items-center justify-center text-2xl border border-white/5 shadow-inner">
-                      {cat.icon}
+          <div className="space-y-2.5">
+            {Object.entries(expensesByCategory)
+              .filter(([, cat]) => cat.total > 0)
+              .map(([key, cat]) => {
+                const pct = totalExpenses > 0 ? (cat.total / totalExpenses) * 100 : 0;
+                return (
+                  <div key={key} className="flex items-center gap-3">
+                    <span className="text-sm w-6 text-center shrink-0">{cat.icon}</span>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center justify-between mb-0.5">
+                        <span className="text-xs font-bold text-white/70 truncate">{cat.label}</span>
+                        <span className="text-xs font-black text-red-400 shrink-0 ml-2">${cat.total.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
+                      </div>
+                      <div className="w-full bg-white/5 rounded-full h-1">
+                        <div className="h-full rounded-full bg-red-500/50" style={{ width: `${pct}%` }} />
+                      </div>
                     </div>
-                    <div>
-                      <p className="text-sm font-black text-white uppercase tracking-tight">{cat.label}</p>
-                      <p className="text-[10px] text-white/40 font-bold uppercase tracking-widest">{cat.items.length} Entradas</p>
-                    </div>
+                    <span className="text-[10px] text-white/25 font-bold w-7 text-right shrink-0">{pct.toFixed(0)}%</span>
                   </div>
-                  <div className="text-right">
-                    <p className="text-2xl font-black text-red-400">${cat.total.toLocaleString(undefined, { minimumFractionDigits: 2 })}</p>
-                    <p className="text-[10px] font-black text-white/20 uppercase tracking-widest">
-                      {totalExpenses > 0 ? Math.round((cat.total / totalExpenses) * 100) : 0}% del total
-                    </p>
-                  </div>
-                </div>
-                <div className="mt-4 h-1.5 bg-white/5 rounded-full overflow-hidden">
-                  <div 
-                    className="h-full bg-red-500 shadow-[0_0_10px_rgba(239,68,68,0.5)]" 
-                    style={{ width: `${totalExpenses > 0 ? (cat.total / totalExpenses) * 100 : 0}%` }}
-                  />
-                </div>
-              </div>
-            ))}
+                );
+              })}
           </div>
         </div>
-      </div>
+      )}
     </div>
   );
 }
