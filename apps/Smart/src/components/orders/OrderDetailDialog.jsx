@@ -34,7 +34,9 @@ import {
   Trash2,
   ShoppingCart,
   AlertCircle,
-  MessageCircle
+  MessageCircle,
+  Share2,
+  Printer
 } from "lucide-react";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
@@ -65,6 +67,7 @@ export default function OrderDetailDialog({ order, open, onClose, onOrderUpdated
   const [saving, setSaving] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [showRefundModal, setShowRefundModal] = useState(false);
+  const [showShareMenu, setShowShareMenu] = useState(false);
   const [user, setUser] = useState(null);
 
   useEffect(() => {
@@ -193,6 +196,74 @@ export default function OrderDetailDialog({ order, open, onClose, onOrderUpdated
                 </p>
               </div>
               <div className="flex items-center gap-2">
+                {/* Botón compartir recibo */}
+                <div className="relative">
+                  <Button
+                    onClick={() => setShowShareMenu(v => !v)}
+                    variant="outline"
+                    size="icon"
+                    className="border-violet-500/30 text-violet-400 hover:bg-violet-900/20"
+                    title="Compartir recibo"
+                  >
+                    <Share2 className="w-4 h-4" />
+                  </Button>
+                  {showShareMenu && (
+                    <>
+                      {/* Overlay para cerrar al tocar fuera */}
+                      <div className="fixed inset-0 z-40" onClick={() => setShowShareMenu(false)} />
+                      <div className="absolute right-0 top-10 z-50 min-w-[180px] rounded-2xl bg-[#0e0e0e] border border-white/10 shadow-2xl shadow-black/60 overflow-hidden">
+                        <p className="text-[9px] font-black text-white/25 uppercase tracking-widest px-3 pt-2.5 pb-1">Compartir recibo</p>
+                        {/* WhatsApp */}
+                        {editedOrder?.customer_phone && (() => {
+                          const url  = `${window.location.origin}/Receipt?order_id=${editedOrder.id}`;
+                          const PAID = ["completed", "delivered", "picked_up"];
+                          const tipo = PAID.includes(editedOrder.status) ? "recibo de pago" : "recibo de recepción";
+                          const msg  = `¡Hola ${editedOrder.customer_name}! 🧾 Aquí está tu ${tipo}:\n\n${url}`;
+                          const wa   = `https://wa.me/${editedOrder.customer_phone.replace(/\D/g,"")}?text=${encodeURIComponent(msg)}`;
+                          return (
+                            <a href={wa} target="_blank" rel="noopener noreferrer"
+                              onClick={() => setShowShareMenu(false)}
+                              className="flex items-center gap-3 px-4 py-2.5 hover:bg-white/[0.06] transition-colors text-sm text-white/80">
+                              <span className="text-base">💬</span> WhatsApp
+                            </a>
+                          );
+                        })()}
+                        {/* Email */}
+                        {editedOrder?.customer_email && (() => {
+                          const url  = `${window.location.origin}/Receipt?order_id=${editedOrder.id}`;
+                          const subj = encodeURIComponent(`Tu recibo — ${editedOrder.order_number}`);
+                          const body = encodeURIComponent(`Hola ${editedOrder.customer_name},\n\nAquí está tu recibo:\n${url}\n\nGracias.`);
+                          return (
+                            <a href={`mailto:${editedOrder.customer_email}?subject=${subj}&body=${body}`}
+                              onClick={() => setShowShareMenu(false)}
+                              className="flex items-center gap-3 px-4 py-2.5 hover:bg-white/[0.06] transition-colors text-sm text-white/80">
+                              <Mail className="w-4 h-4 text-blue-400" /> Email
+                            </a>
+                          );
+                        })()}
+                        {/* Ver / Imprimir */}
+                        <button
+                          onClick={() => {
+                            setShowShareMenu(false);
+                            window.open(`${window.location.origin}/Receipt?order_id=${editedOrder.id}`, "_blank");
+                          }}
+                          className="w-full flex items-center gap-3 px-4 py-2.5 hover:bg-white/[0.06] transition-colors text-sm text-white/80">
+                          <Printer className="w-4 h-4 text-white/40" /> Ver / Imprimir
+                        </button>
+                        {/* Copiar link */}
+                        <button
+                          onClick={() => {
+                            navigator.clipboard.writeText(`${window.location.origin}/Receipt?order_id=${editedOrder.id}`);
+                            setShowShareMenu(false);
+                          }}
+                          className="w-full flex items-center gap-3 px-4 pb-3 pt-1 hover:bg-white/[0.06] transition-colors text-sm text-white/40 border-t border-white/[0.06] mt-1">
+                          <span className="text-base">🔗</span> Copiar link
+                        </button>
+                      </div>
+                    </>
+                  )}
+                </div>
+
                 {canDelete && (
                   <Button
                     onClick={() => setShowDeleteDialog(true)}
