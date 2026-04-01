@@ -33,6 +33,8 @@ import VerifySetup from "./VerifySetup";
 import Welcome from "./Welcome";
 import Receipt from "./Receipt";
 import Appointments from "./Appointments";
+import OrdersMobile from "./OrdersMobile";
+import Menu from "./Menu";
 
 import { BrowserRouter as Router, Route, Routes, useLocation, useNavigate } from 'react-router-dom';
 
