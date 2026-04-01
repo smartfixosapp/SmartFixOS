@@ -267,6 +267,11 @@ function readSession() {
   } catch { return null; }
 }
 
+const ACTIVE_ENGINE =
+  import.meta.env.VITE_ANTHROPIC_API_KEY ? "Claude Haiku" :
+  import.meta.env.VITE_OPENAI_API_KEY    ? "GPT-4o mini"  :
+  "Llama 3.1";
+
 export default function ARIAChat() {
   const location  = useLocation();
   const [open, setOpen]           = useState(false);
@@ -634,41 +639,40 @@ ver_stock_bajo, ver_caja_del_dia`;
 
     try {
       const ANTHROPIC_KEY = import.meta.env.VITE_ANTHROPIC_API_KEY;
+      const OPENAI_KEY    = import.meta.env.VITE_OPENAI_API_KEY;
       const GROQ_KEY      = import.meta.env.VITE_GROQ_API_KEY;
-      if (!ANTHROPIC_KEY && !GROQ_KEY) throw new Error("No hay API key de IA configurada. Agrega VITE_GROQ_API_KEY o VITE_ANTHROPIC_API_KEY.");
+      if (!ANTHROPIC_KEY && !OPENAI_KEY && !GROQ_KEY)
+        throw new Error("No hay API key configurada. Agrega VITE_OPENAI_API_KEY en Vercel.");
 
       const systemPrompt = buildSystem();
-      // Historial limpio (sin tarjetas de acción)
       const cleanHistory = history
         .filter(m => m.role === "user" || (m.role === "assistant" && !m.type))
         .slice(-8)
         .map(m => ({ role: m.role, content: m.content }));
 
-      // ── Groq loop ─────────────────────────────────────────────────────────
-      const runGroq = async () => {
-        if (!GROQ_KEY) throw new Error("No hay API key disponible.");
+      // ── Loop genérico para APIs compatibles con OpenAI (OpenAI + Groq) ────
+      const runOpenAICompat = async ({ url, key, model, maxTokens = 500 }) => {
         let conv = cleanHistory;
         let iter = 6;
         while (iter-- > 0) {
-          const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+          const res = await fetch(url, {
             method: "POST",
-            headers: { "Content-Type": "application/json", "Authorization": `Bearer ${GROQ_KEY}` },
+            headers: { "Content-Type": "application/json", "Authorization": `Bearer ${key}` },
             body: JSON.stringify({
-              model: "llama-3.1-8b-instant", // reemplazo oficial de llama3-8b-8192
+              model,
               messages: [{ role: "system", content: systemPrompt }, ...conv],
               tools: ARIA_TOOLS,
               tool_choice: "auto",
               temperature: 0.3,
-              max_tokens: 300,
+              max_tokens: maxTokens,
             }),
           });
           const data = await res.json();
           if (data?.error) {
             const errMsg = data.error.message || "";
-            // Rate limit: espera el tiempo sugerido y reintenta una vez
             if (data.error.type === "tokens" || errMsg.includes("rate_limit") || errMsg.toLowerCase().includes("rate limit")) {
               const wait = parseInt(errMsg.match(/(\d+(?:\.\d+)?)s/)?.[1] || "20") * 1000;
-              setStatus(`Límite de velocidad — reintentando en ${Math.ceil(wait/1000)}s…`);
+              setStatus(`Límite de velocidad — reintentando en ${Math.ceil(wait / 1000)}s…`);
               await new Promise(r => setTimeout(r, Math.min(wait, 25000)));
               setStatus("");
               continue;
@@ -695,7 +699,24 @@ ver_stock_bajo, ver_caja_del_dia`;
         }
       };
 
-      // ── Claude (Anthropic) con fallback automático a Groq ─────────────────
+      const runOpenAI = () => runOpenAICompat({
+        url: "https://api.openai.com/v1/chat/completions",
+        key: OPENAI_KEY,
+        model: "gpt-4o-mini",
+        maxTokens: 500,
+      });
+
+      const runGroq = () => {
+        if (!GROQ_KEY) throw new Error("No hay API key de IA disponible.");
+        return runOpenAICompat({
+          url: "https://api.groq.com/openai/v1/chat/completions",
+          key: GROQ_KEY,
+          model: "llama-3.1-8b-instant",
+          maxTokens: 300,
+        });
+      };
+
+      // ── Claude (Anthropic) con fallback a OpenAI → Groq ───────────────────
       if (ANTHROPIC_KEY) {
         const claudeTools = ARIA_TOOLS.map(t => ({
           name:         t.function.name,
@@ -753,7 +774,11 @@ ver_stock_bajo, ver_caja_del_dia`;
             }
           }
         } catch (_) { claudeOk = false; }
-        if (!claudeOk) await runGroq();
+        if (!claudeOk) {
+          if (OPENAI_KEY) await runOpenAI(); else await runGroq();
+        }
+      } else if (OPENAI_KEY) {
+        await runOpenAI();
       } else {
         await runGroq();
       }
@@ -785,7 +810,7 @@ ver_stock_bajo, ver_caja_del_dia`;
               <div>
                 <p className="text-sm font-black text-white leading-none">ARIA</p>
                 <p className="text-[9px] text-violet-400/60 font-bold uppercase tracking-widest leading-none mt-0.5">
-                  SmartFixOS · {import.meta.env.VITE_ANTHROPIC_API_KEY ? "Claude Haiku" : "Llama 3 8B"}
+                  SmartFixOS · {ACTIVE_ENGINE}
                 </p>
               </div>
             </div>
