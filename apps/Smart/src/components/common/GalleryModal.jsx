@@ -408,7 +408,7 @@ export default function GalleryModal({ open, photos = [], initialIndex = 0, onCl
                   {isCurrentVideo ? (
                     <video src={thumbSrc} className="w-full h-full object-cover pointer-events-none" muted playsInline />
                   ) : (
-                    <img src={thumbSrc} alt="" className="w-full h-full object-cover pointer-events-none" />
+                    <img src={thumbSrc} alt="" loading="lazy" decoding="async" className="w-full h-full object-cover pointer-events-none" />
                   )}
                   {selectionMode && isSelected && (
                     <div className="absolute inset-0 bg-green-500/30 flex items-center justify-center">
