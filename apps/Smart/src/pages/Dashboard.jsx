@@ -978,8 +978,17 @@ export default function Dashboard() {
     <div className="flex-1 min-h-0 overflow-hidden flex flex-col">
       <Toast toast={toast} onClose={() => setToast(null)} />
 
+      {/* Technician simplified view */}
+      {session?.userRole === "technician" && (
+        <TechnicianView
+          session={session}
+          onNewOrder={() => setShowOrderWizard(true)}
+        />
+      )}
+
       {/* Wizard primer inicio — solo para tenants nuevos */}
-      {showSetupWizard && (
+      {!session?.userRole || session.userRole !== "technician" ? null : null}
+      {(!session?.userRole || session.userRole !== "technician") && showSetupWizard && (
         <FirstTimeSetupWizard
           onComplete={() => {
             setShowSetupWizard(false);
