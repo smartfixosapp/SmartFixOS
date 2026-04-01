@@ -9,7 +9,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import {
   DollarSign, TrendingUp, TrendingDown, Wallet, Receipt,
   CreditCard, Landmark, RefreshCw, Plus, Target, PieChart,
-  Edit2, Trash2, Save, Calendar, Download, Filter, X, AlertTriangle, Sparkles
+  Edit2, Trash2, Save, Download, Filter, X, AlertTriangle, Sparkles
 } from "lucide-react";
 import { format, startOfDay, endOfDay, isWithinInterval } from "date-fns";
 import { es } from "date-fns/locale";
