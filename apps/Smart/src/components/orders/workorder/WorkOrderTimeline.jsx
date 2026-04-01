@@ -345,7 +345,7 @@ export default function WorkOrderTimeline({ order, onUpdate }) {
                     title={item.name}
                   >
                     {item.previewUrl ? (
-                      <img src={item.previewUrl} alt={item.name} className="w-full h-full object-cover" />
+                      <img src={item.previewUrl} alt={item.name} loading="lazy" decoding="async" className="w-full h-full object-cover" />
                     ) : (
                       <div className="w-full h-full grid place-items-center text-white/40 text-[10px] px-1 text-center">IMG</div>
                     )}
