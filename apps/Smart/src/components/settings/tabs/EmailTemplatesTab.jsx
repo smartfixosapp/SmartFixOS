@@ -865,7 +865,7 @@ export default function EmailTemplatesTab() {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Editor */}
           <div className="space-y-6">
-            <div className="bg-gradient-to-br from-white/10 to-white/5 border border-white/10 rounded-[28px] p-7 backdrop-blur-xl shadow-2xl space-y-5">
+            <div className="bg-gradient-to-br from-white/10 to-white/5 border border-white/10 rounded-2xl p-4 sm:p-6 space-y-5">
               <div className="space-y-2">
                 <label className="text-white/70 text-sm font-semibold">Nombre de la Plantilla *</label>
                 <Input
