@@ -4,7 +4,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import {
   Microscope, ShoppingCart, Send, PhoneCall, MessageCircle, Mail,
-  CheckCircle2, XCircle, AlertCircle, MinusCircle, Save, ClipboardCheck, ChevronDown, ChevronUp
+  CheckCircle2, XCircle, AlertCircle, MinusCircle, Save, ClipboardCheck, ChevronDown, ChevronUp,
+  FileText
 } from "lucide-react";
 import { base44 } from "@/api/base44Client";
 import { toast } from "sonner";
