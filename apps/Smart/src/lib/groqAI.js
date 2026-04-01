@@ -3,7 +3,7 @@
  * Uses Llama 3.3 70B via Groq (free tier, no expiry)
  */
 
-const GROQ_MODEL = "llama3-8b-8192"; // 30 000 TPM — evita rate limits
+const GROQ_MODEL = "llama-3.1-8b-instant"; // reemplazo oficial de llama3-8b-8192
 const GROQ_URL = "https://api.groq.com/openai/v1/chat/completions";
 
 export async function callGroqAI(prompt, { maxTokens = 300, temperature = 0.4 } = {}) {

@@ -634,7 +634,7 @@ registrar_cobro, historial_cliente, ver_stock_bajo, ver_caja_del_dia`;
             method: "POST",
             headers: { "Content-Type": "application/json", "Authorization": `Bearer ${GROQ_KEY}` },
             body: JSON.stringify({
-              model: "llama3-8b-8192",   // 30 000 TPM — mejor para function calling
+              model: "llama-3.1-8b-instant", // reemplazo oficial de llama3-8b-8192
               messages: [{ role: "system", content: systemPrompt }, ...conv],
               tools: ARIA_TOOLS,
               tool_choice: "auto",
@@ -643,7 +643,18 @@ registrar_cobro, historial_cliente, ver_stock_bajo, ver_caja_del_dia`;
             }),
           });
           const data = await res.json();
-          if (data?.error) throw new Error(data.error.message || "Error de IA");
+          if (data?.error) {
+            const errMsg = data.error.message || "";
+            // Rate limit: espera el tiempo sugerido y reintenta una vez
+            if (data.error.type === "tokens" || errMsg.includes("rate_limit") || errMsg.toLowerCase().includes("rate limit")) {
+              const wait = parseInt(errMsg.match(/(\d+(?:\.\d+)?)s/)?.[1] || "20") * 1000;
+              setStatus(`Límite de velocidad — reintentando en ${Math.ceil(wait/1000)}s…`);
+              await new Promise(r => setTimeout(r, Math.min(wait, 25000)));
+              setStatus("");
+              continue;
+            }
+            throw new Error(errMsg || "Error de IA");
+          }
           const choice = data?.choices?.[0];
           const aMsg   = choice?.message;
           if (choice?.finish_reason === "tool_calls" && aMsg?.tool_calls?.length) {
