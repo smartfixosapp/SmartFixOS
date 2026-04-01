@@ -1533,7 +1533,7 @@ export default function EmailTemplatesTab() {
       {/* Quick Preview Modal */}
       {previewTemplate && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm">
-          <div className="bg-[#0F172A] border border-white/10 rounded-[28px] w-full max-w-2xl max-h-[90vh] flex flex-col overflow-hidden shadow-2xl">
+          <div className="bg-[#0F172A] border border-white/10 rounded-2xl w-full max-w-2xl max-h-[90vh] flex flex-col overflow-hidden">
             <div className="flex items-center justify-between p-5 border-b border-white/10 shrink-0">
               <div className="flex items-center gap-3">
                 <div
