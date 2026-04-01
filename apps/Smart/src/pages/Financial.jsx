@@ -33,48 +33,6 @@ import {
 import { mergeSales, mergeTransactions, upsertLocalSale, upsertLocalTransactions } from "@/components/utils/localFinancialCache";
 import ErrorBoundary from "@/components/utils/ErrorBoundary";
 
-const StatCard = ({ title, value, icon: Icon, color, onClick, subtitle }) => (
-  <div 
-    onClick={onClick}
-    className={`relative overflow-hidden p-6 rounded-[28px] border transition-all duration-300 group ${
-      onClick ? 'cursor-pointer hover:scale-[1.02] active:scale-[0.98]' : ''
-    } ${
-      color === 'green' ? 'bg-emerald-500/10 border-emerald-500/20 hover:border-emerald-500/40 shadow-[0_8px_32px_rgba(16,185,129,0.1)]' :
-      color === 'red' ? 'bg-red-500/10 border-red-500/20 hover:border-red-500/40 shadow-[0_8px_32px_rgba(239,68,68,0.1)]' :
-      color === 'blue' ? 'bg-cyan-500/10 border-cyan-500/20 hover:border-cyan-500/40 shadow-[0_8px_32px_rgba(6,182,212,0.1)]' : 
-      'bg-white/5 border-white/10 hover:border-white/20 shadow-[0_8px_32px_rgba(0,0,0,0.2)]'
-    } backdrop-blur-xl`}
-  >
-    {/* Glow effect */}
-    <div className={`absolute -right-4 -top-4 w-24 h-24 rounded-full blur-[40px] opacity-20 transition-opacity group-hover:opacity-40 ${
-      color === 'green' ? 'bg-emerald-400' :
-      color === 'red' ? 'bg-red-400' :
-      color === 'blue' ? 'bg-cyan-400' : 'bg-white'
-    }`} />
-
-    <div className="relative flex justify-between items-start">
-      <div className="space-y-1">
-        <p className="text-[10px] font-black uppercase tracking-[0.2em] text-white/40">{title}</p>
-        <h3 className={`text-2xl sm:text-3xl font-black tracking-tight ${
-          color === 'green' ? 'text-emerald-400' :
-          color === 'red' ? 'text-red-400' :
-          color === 'blue' ? 'text-cyan-400' : 'text-white'
-        }`}>
-          {value}
-        </h3>
-        {subtitle && <p className="text-[10px] text-white/30 font-medium">{subtitle}</p>}
-      </div>
-      <div className={`p-3 rounded-2xl border transition-colors duration-300 ${
-        color === 'green' ? 'bg-emerald-500/20 border-emerald-500/30 text-emerald-400 group-hover:bg-emerald-500/30' :
-        color === 'red' ? 'bg-red-500/20 border-red-500/30 text-red-400 group-hover:bg-red-500/30' :
-        color === 'blue' ? 'bg-cyan-500/20 border-cyan-500/30 text-cyan-400 group-hover:bg-cyan-500/30' : 
-        'bg-white/10 border-white/10 text-white group-hover:bg-white/20'
-      }`}>
-        <Icon className="w-5 h-5 sm:w-6 sm:h-6" />
-      </div>
-    </div>
-  </div>
-);
 
 const getFrequencyDivisor = (frequency) => {
   const divisors = {
