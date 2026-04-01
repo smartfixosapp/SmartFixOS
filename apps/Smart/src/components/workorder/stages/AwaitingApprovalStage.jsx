@@ -117,16 +117,22 @@ export default function AwaitingApprovalStage({ order, onUpdate }) {
                 </div>
               </div>
               <div className="space-y-2">
-                {whatsappHref && (
-                  <a
-                    href={whatsappHref}
-                    target="_blank"
-                    rel="noopener noreferrer"
+                {/* Share approval link */}
+                <button
+                  onClick={copyLink}
+                  className="flex items-center gap-2 w-full rounded-xl border border-yellow-500/25 bg-yellow-500/10 px-4 py-2.5 text-sm font-semibold text-yellow-200 hover:bg-yellow-500/20 transition"
+                >
+                  {linkCopied ? <Check className="h-4 w-4 text-emerald-400" /> : <Link2 className="h-4 w-4" />}
+                  {linkCopied ? "¡Copiado!" : "Copiar link de aprobación"}
+                </button>
+                {o.customer_phone && (
+                  <button
+                    onClick={shareViaWhatsApp}
                     className="flex items-center gap-2 w-full rounded-xl border border-emerald-500/25 bg-emerald-500/10 px-4 py-2.5 text-sm font-semibold text-emerald-200 hover:bg-emerald-500/20 transition"
                   >
                     <Send className="h-4 w-4" />
-                    WhatsApp
-                  </a>
+                    Enviar por WhatsApp
+                  </button>
                 )}
                 {o.customer_phone && (
                   <a
