@@ -71,7 +71,7 @@ export default function IntakeStage({ order, onUpdate, onOrderItemsUpdate, onRem
                         onClick={() => setPreviewPhoto(src)}
                         className="h-14 w-14 overflow-hidden rounded-xl border border-white/10 bg-black/30 transition hover:scale-[1.03]"
                       >
-                        <img src={src} alt={`Foto ${idx + 1}`} className="h-full w-full object-cover" />
+                        <img src={src} alt={`Foto ${idx + 1}`} loading="lazy" decoding="async" className="h-full w-full object-cover" />
                       </button>
                     ))}
                     <div className="text-xs font-semibold text-violet-200">
