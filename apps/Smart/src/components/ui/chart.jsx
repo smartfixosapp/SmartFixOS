@@ -1,5 +1,6 @@
 "use client";
 import * as React from "react"
+import { createContext } from "react"
 import * as RechartsPrimitive from "recharts"
 
 import { cn } from "@/lib/utils"
@@ -10,7 +11,7 @@ const THEMES = {
   dark: ".dark"
 }
 
-const ChartContext = React.createContext(null)
+const ChartContext = createContext(null)
 
 function useChart() {
   const context = React.useContext(ChartContext)
