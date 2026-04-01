@@ -9,6 +9,31 @@ import WorkOrderUnifiedHub from "@/components/workorder/WorkOrderUnifiedHub";
 export default function AwaitingApprovalStage({ order, onUpdate }) {
   const o = order || {};
   const [showCatalog, setShowCatalog] = useState(false);
+  const [linkCopied, setLinkCopied] = useState(false);
+
+  function getApprovalLink() {
+    const base = window.location.origin;
+    const tenantId = localStorage.getItem("smartfix_tenant_id") || "";
+    return `${base}/CustomerApproval?order=${o.id}${tenantId ? `&t=${tenantId}` : ""}`;
+  }
+
+  function copyLink() {
+    navigator.clipboard.writeText(getApprovalLink()).then(() => {
+      setLinkCopied(true);
+      toast.success("Link copiado al portapapeles");
+      setTimeout(() => setLinkCopied(false), 2500);
+    });
+  }
+
+  function shareViaWhatsApp() {
+    const link = getApprovalLink();
+    const msg = encodeURIComponent(
+      `Hola ${o.customer_name ? o.customer_name.split(" ")[0] : ""}! 👋 Te enviamos la cotización de tu ${o.device_brand || "equipo"}${o.device_model ? " " + o.device_model : ""}.\n\nRevísala y apruébala aquí:\n${link}`
+    );
+    const phone = (o.customer_phone || "").replace(/\D/g, "");
+    const intl = phone.startsWith("1") ? phone : phone.length === 10 ? `1${phone}` : phone;
+    window.open(`https://wa.me/${intl}?text=${msg}`, "_blank");
+  }
 
   const items = useMemo(() => Array.isArray(o.order_items) ? o.order_items : [], [o.order_items]);
 
