@@ -1528,11 +1528,11 @@ export default function SettingsPage() {
           <div className="w-20 h-20 sm:w-28 sm:h-28 rounded-[28px] bg-gradient-to-br from-cyan-500 to-blue-600 flex items-center justify-center shadow-2xl border border-white/20 backdrop-blur-md transform hover:scale-105 transition-transform duration-500">
             <SettingsIcon className="w-10 h-10 sm:w-14 sm:h-14 text-white" strokeWidth={2.5} />
           </div>
-          <div className="flex-1 hidden sm:block">
-            <h1 className="text-3xl sm:text-5xl font-black text-white tracking-tighter mb-2">
+          <div className="flex-1">
+            <h1 className="text-2xl sm:text-5xl font-black text-white tracking-tighter mb-1">
               Configuración
             </h1>
-            <p className="text-white/70 text-base sm:text-xl font-semibold">
+            <p className="text-white/60 text-sm sm:text-xl font-semibold hidden sm:block">
               Personaliza tu experiencia SmartFixOS
             </p>
           </div>
