@@ -1523,7 +1523,7 @@ export default function EmailTemplatesTab() {
       </div>
 
       {templates.length === 0 &&
-      <div className="text-center py-20 bg-gradient-to-br from-white/5 to-white/3 border border-white/10 rounded-[28px]">
+      <div className="text-center py-12 bg-gradient-to-br from-white/5 to-white/3 border border-white/10 rounded-2xl">
           <Mail className="w-16 h-16 text-white/20 mx-auto mb-4" />
           <p className="text-white/60 text-lg font-semibold">No hay plantillas configuradas</p>
           <p className="text-white/40 text-sm mt-2">Crea plantillas personalizadas para cada estado de orden</p>
