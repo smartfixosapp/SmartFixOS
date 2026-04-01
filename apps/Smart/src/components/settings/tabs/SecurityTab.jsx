@@ -205,7 +205,7 @@ export default function SecurityTab({ user }) {
             <CardDescription className="text-gray-500">Reglas para el acceso y bloqueo de sesiones</CardDescription>
           </CardHeader>
           <CardContent className="space-y-6 pt-6">
-            <div className="grid grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label className="text-[10px] font-black uppercase text-gray-400 tracking-widest">Longitud de PIN</Label>
                 <Input
