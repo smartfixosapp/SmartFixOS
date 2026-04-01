@@ -987,90 +987,108 @@ Responde con: 1) resumen de 2 oraciones, 2) un punto positivo, 3) una recomendac
         )}
       </div>
 
-      {/* ── KPIs siempre visibles ── */}
-      <div className="max-w-7xl mx-auto w-full px-4 sm:px-6 pt-4 pb-2">
-        {loadError && (
-          <div className="flex items-center justify-between gap-3 p-3 mb-3 bg-red-950/40 border border-red-500/30 rounded-2xl">
-            <div className="flex items-center gap-2 text-red-300 text-xs">
-              <AlertTriangle className="w-4 h-4 shrink-0" />
-              <span>{loadError}</span>
+      {/* ── Layout principal ── */}
+      <div className="max-w-7xl mx-auto w-full px-4 sm:px-6 pt-4 pb-28 flex-1">
+        <div className="lg:flex lg:gap-5 lg:items-start">
+
+          {/* ── Sidebar (KPIs + acciones) — sticky en desktop ── */}
+          <div className="lg:w-64 xl:w-72 shrink-0 space-y-2 mb-4 lg:mb-0 lg:sticky lg:top-[72px]">
+            {loadError && (
+              <div className="flex items-center justify-between gap-3 p-3 bg-red-950/40 border border-red-500/30 rounded-2xl">
+                <div className="flex items-center gap-2 text-red-300 text-xs">
+                  <AlertTriangle className="w-4 h-4 shrink-0" />
+                  <span>{loadError}</span>
+                </div>
+                <button onClick={handleManualRefresh} className="text-xs font-black text-red-300 hover:text-red-100 uppercase tracking-widest">Reintentar</button>
+              </div>
+            )}
+            <ErrorBoundary><AlertasWidget /></ErrorBoundary>
+
+            {/* KPI strip */}
+            <div className="grid grid-cols-3 gap-2">
+              {[
+                { label: "Entró", value: totalRevenue, color: "emerald", icon: TrendingUp, onClick: () => { setActiveTab("movimientos"); setMovFilter("income"); } },
+                { label: "Salió", value: totalExpenses, color: "red", icon: TrendingDown, onClick: () => { setActiveTab("movimientos"); setMovFilter("expense"); } },
+                { label: netProfit >= 0 ? "Neto" : "Déficit", value: Math.abs(netProfit), color: netProfit >= 0 ? "cyan" : "red", icon: DollarSign },
+              ].map((k) => (
+                <button key={k.label} onClick={k.onClick}
+                  className={`p-3 rounded-2xl border text-left transition-all active:scale-95 ${
+                    k.color === "emerald" ? "bg-emerald-500/10 border-emerald-500/20" :
+                    k.color === "red" ? "bg-red-500/10 border-red-500/20" : "bg-cyan-500/10 border-cyan-500/20"
+                  } ${k.onClick ? "cursor-pointer" : "cursor-default"}`}
+                >
+                  <k.icon className={`w-3 h-3 mb-1 ${
+                    k.color === "emerald" ? "text-emerald-400" : k.color === "red" ? "text-red-400" : "text-cyan-400"
+                  }`} />
+                  <p className={`text-base font-black tracking-tighter leading-none ${
+                    k.color === "emerald" ? "text-emerald-400" : k.color === "red" ? "text-red-400" : "text-cyan-400"
+                  }`}>${k.value.toFixed(2)}</p>
+                  <p className="text-[9px] text-white/30 font-black uppercase tracking-widest mt-0.5">{k.label}</p>
+                </button>
+              ))}
             </div>
-            <button onClick={handleManualRefresh} className="text-xs font-black text-red-300 hover:text-red-100 uppercase tracking-widest">Reintentar</button>
+
+            {/* Acciones rápidas */}
+            <div className="grid grid-cols-2 gap-2">
+              <button onClick={() => drawerOpen ? setShowCloseDrawer(true) : setShowOpenDrawer(true)}
+                className={`flex items-center gap-2.5 p-3 rounded-2xl border transition-all active:scale-95 ${
+                  drawerOpen ? "bg-emerald-500/10 border-emerald-500/30" : "bg-white/5 border-white/10"
+                }`}
+              >
+                <div className={`w-7 h-7 rounded-xl flex items-center justify-center shrink-0 ${drawerOpen ? "bg-emerald-500/20 text-emerald-400" : "bg-white/10 text-white/30"}`}>
+                  <Wallet className="w-3.5 h-3.5" />
+                </div>
+                <div className="text-left min-w-0">
+                  <p className={`text-xs font-black truncate ${drawerOpen ? "text-emerald-400" : "text-white/40"}`}>{drawerOpen ? "Caja abierta" : "Caja cerrada"}</p>
+                </div>
+              </button>
+              <button onClick={() => { setExpenseDefaultCategory(null); setShowExpenseDialog(true); }}
+                className="flex items-center gap-2.5 p-3 rounded-2xl border border-orange-500/20 bg-orange-500/[0.08] transition-all active:scale-95">
+                <div className="w-7 h-7 rounded-xl bg-orange-500/20 text-orange-400 flex items-center justify-center shrink-0">
+                  <Plus className="w-3.5 h-3.5" />
+                </div>
+                <div className="text-left min-w-0">
+                  <p className="text-xs font-black text-orange-300 truncate">Nuevo gasto</p>
+                </div>
+              </button>
+            </div>
+
+            {/* Tab bar — solo visible en desktop en el sidebar */}
+            <div className="hidden lg:flex flex-col gap-1 p-1 bg-white/[0.04] rounded-2xl border border-white/[0.06]">
+              {[
+                { id: "movimientos", label: "Movimientos" },
+                { id: "compromisos", label: "Compromisos" },
+                { id: "reportes", label: "Reportes" },
+              ].map(t => (
+                <button key={t.id} onClick={() => setActiveTab(t.id)}
+                  className={`w-full py-2 rounded-xl text-xs font-black transition-all text-left px-3 ${
+                    activeTab === t.id
+                      ? "bg-gradient-to-r from-cyan-600 to-blue-600 text-white shadow"
+                      : "text-white/30 hover:text-white/60"
+                  }`}
+                >{t.label}</button>
+              ))}
+            </div>
           </div>
-        )}
-        <ErrorBoundary><AlertasWidget /></ErrorBoundary>
 
-        {/* KPI strip */}
-        <div className="grid grid-cols-3 gap-2 mt-3">
-          {[
-            { label: "Entró", value: totalRevenue, color: "emerald", icon: TrendingUp, onClick: () => { setActiveTab("movimientos"); setMovFilter("income"); } },
-            { label: "Salió", value: totalExpenses, color: "red", icon: TrendingDown, onClick: () => { setActiveTab("movimientos"); setMovFilter("expense"); } },
-            { label: netProfit >= 0 ? "Neto" : "Déficit", value: Math.abs(netProfit), color: netProfit >= 0 ? "cyan" : "red", icon: DollarSign },
-          ].map((k) => (
-            <button key={k.label} onClick={k.onClick}
-              className={`p-3.5 rounded-2xl border text-left transition-all active:scale-95 ${
-                k.color === "emerald" ? "bg-emerald-500/10 border-emerald-500/20" :
-                k.color === "red" ? "bg-red-500/10 border-red-500/20" : "bg-cyan-500/10 border-cyan-500/20"
-              } ${k.onClick ? "cursor-pointer" : "cursor-default"}`}
-            >
-              <k.icon className={`w-3.5 h-3.5 mb-1.5 ${
-                k.color === "emerald" ? "text-emerald-400" : k.color === "red" ? "text-red-400" : "text-cyan-400"
-              }`} />
-              <p className={`text-lg sm:text-xl font-black tracking-tighter leading-none ${
-                k.color === "emerald" ? "text-emerald-400" : k.color === "red" ? "text-red-400" : "text-cyan-400"
-              }`}>${k.value.toFixed(2)}</p>
-              <p className="text-[9px] text-white/30 font-black uppercase tracking-widest mt-1">{k.label}</p>
-            </button>
-          ))}
-        </div>
-
-        {/* Acciones rápidas */}
-        <div className="grid grid-cols-2 gap-2 mt-2">
-          <button onClick={() => drawerOpen ? setShowCloseDrawer(true) : setShowOpenDrawer(true)}
-            className={`flex items-center gap-3 p-3.5 rounded-2xl border transition-all active:scale-95 ${
-              drawerOpen ? "bg-emerald-500/10 border-emerald-500/30" : "bg-white/5 border-white/10"
-            }`}
-          >
-            <div className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 ${drawerOpen ? "bg-emerald-500/20 text-emerald-400" : "bg-white/10 text-white/30"}`}>
-              <Wallet className="w-4 h-4" />
+          {/* ── Contenido principal ── */}
+          <div className="flex-1 min-w-0">
+            {/* Tab bar — solo en móvil */}
+            <div className="flex lg:hidden gap-1 p-1 bg-white/[0.04] rounded-2xl border border-white/[0.06] mb-3">
+              {[
+                { id: "movimientos", label: "Movimientos" },
+                { id: "compromisos", label: "Compromisos" },
+                { id: "reportes", label: "Reportes" },
+              ].map(t => (
+                <button key={t.id} onClick={() => setActiveTab(t.id)}
+                  className={`flex-1 py-2 rounded-xl text-xs font-black transition-all ${
+                    activeTab === t.id
+                      ? "bg-gradient-to-r from-cyan-600 to-blue-600 text-white shadow"
+                      : "text-white/30 hover:text-white/60"
+                  }`}
+                >{t.label}</button>
+              ))}
             </div>
-            <div className="text-left min-w-0">
-              <p className={`text-sm font-black truncate ${drawerOpen ? "text-emerald-400" : "text-white/40"}`}>{drawerOpen ? "Caja Abierta" : "Caja Cerrada"}</p>
-              <p className="text-[10px] text-white/25">{drawerOpen ? "Toca para cerrar" : "Toca para abrir"}</p>
-            </div>
-          </button>
-          <button onClick={() => { setExpenseDefaultCategory(null); setShowExpenseDialog(true); }}
-            className="flex items-center gap-3 p-3.5 rounded-2xl border border-orange-500/20 bg-orange-500/[0.08] transition-all active:scale-95">
-            <div className="w-8 h-8 rounded-xl bg-orange-500/20 text-orange-400 flex items-center justify-center shrink-0">
-              <Plus className="w-4 h-4" />
-            </div>
-            <div className="text-left">
-              <p className="text-sm font-black text-orange-300">Nuevo Gasto</p>
-              <p className="text-[10px] text-white/25">Registrar salida</p>
-            </div>
-          </button>
-        </div>
-
-        {/* Tab bar */}
-        <div className="flex gap-1 p-1 bg-white/[0.04] rounded-2xl border border-white/[0.06] mt-3">
-          {[
-            { id: "movimientos", label: "Movimientos" },
-            { id: "compromisos", label: "Compromisos" },
-            { id: "reportes", label: "Reportes" },
-          ].map(t => (
-            <button key={t.id} onClick={() => setActiveTab(t.id)}
-              className={`flex-1 py-2 rounded-xl text-xs font-black transition-all ${
-                activeTab === t.id
-                  ? "bg-gradient-to-r from-cyan-600 to-blue-600 text-white shadow"
-                  : "text-white/30 hover:text-white/60"
-              }`}
-            >{t.label}</button>
-          ))}
-        </div>
-      </div>
-
-      {/* ── Contenido de tabs ── */}
-      <div className="max-w-7xl mx-auto w-full px-4 sm:px-6 pb-28 flex-1">
 
         {/* Tab: Movimientos */}
         {activeTab === "movimientos" && (
