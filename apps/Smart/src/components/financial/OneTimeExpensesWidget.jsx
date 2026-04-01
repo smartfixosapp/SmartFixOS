@@ -249,14 +249,13 @@ export default function OneTimeExpensesWidget() {
       </div>
 
       <Dialog open={showDialog} onOpenChange={resetForm}>
-        <DialogContent className="max-w-[95vw] sm:max-w-2xl bg-[#0A0A0A]/95 backdrop-blur-3xl border border-white/10 rounded-[32px] shadow-2xl p-0 overflow-hidden">
-          <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-amber-600 to-orange-600" />
-          
-          <div className="p-8 sm:p-10">
-            <DialogHeader className="mb-8">
-              <div className="flex items-center gap-4">
-                <div className="w-12 h-12 rounded-2xl bg-amber-500/10 flex items-center justify-center border border-amber-500/20">
-                  <Target className="w-6 h-6 text-amber-400" />
+        <DialogContent className="max-w-[95vw] sm:max-w-lg bg-[#0A0A0A] border border-white/10 rounded-2xl overflow-hidden p-0">
+          <div className="absolute top-0 left-0 w-full h-0.5 bg-gradient-to-r from-amber-500 to-orange-500" />
+          <div className="p-5">
+            <DialogHeader className="mb-4">
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 rounded-xl bg-amber-500/10 flex items-center justify-center border border-amber-500/20">
+                  <Target className="w-4 h-4 text-amber-400" />
                 </div>
                 <DialogTitle className="text-2xl font-black text-white tracking-tight text-left">
                   {editingExpense ? "Actualizar Meta" : "Forjar Nueva Meta"}
