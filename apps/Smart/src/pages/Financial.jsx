@@ -830,6 +830,101 @@ Responde con: 1) resumen de 2 oraciones, 2) un punto positivo, 3) una recomendac
     }
   };
 
+  const exportAccountingCSV = () => {
+    try {
+      const esc = (v) => {
+        const s = String(v ?? "").replace(/"/g, '""');
+        return s.includes(",") || s.includes('"') || s.includes("\n") ? `"${s}"` : s;
+      };
+      const row = (...cols) => cols.map(esc).join(",");
+
+      const periodLabel = dateFilter === "today" ? "Hoy"
+        : dateFilter === "week" ? "Últimos 7 días"
+        : dateFilter === "month" ? "Mes actual"
+        : dateFilter === "quarter" ? "Trimestre"
+        : dateFilter === "year" ? "Año"
+        : `${customStartDate} a ${customEndDate}`;
+
+      let csv = `LIBRO CONTABLE - ${periodLabel}\n`;
+      csv += `Exportado: ${format(new Date(), "dd/MM/yyyy HH:mm")}\n\n`;
+
+      // ── Journal entries (all movements) ──────────────────────────────
+      csv += "LIBRO DIARIO\n";
+      csv += row("Fecha","Hora","Tipo","Descripción","Referencia","Débito","Crédito","Método de Pago","Categoría") + "\n";
+
+      const allMovements = [
+        ...filteredSales.map(s => ({
+          date: getEntityDate(s),
+          tipo: "Ingreso",
+          desc: s.customer_name ? `Venta — ${s.customer_name}` : "Venta",
+          ref: s.sale_number || s.id?.slice(0, 8) || "",
+          debit: 0,
+          credit: Number(s.total || 0),
+          method: s.payment_method || "",
+          cat: "Ventas",
+        })),
+        ...filteredExpenses.map(e => ({
+          date: e.created_date || e.date,
+          tipo: "Gasto",
+          desc: e.description || e.name || "Gasto",
+          ref: e.id?.slice(0, 8) || "",
+          debit: getExpenseMagnitude(e.amount),
+          credit: 0,
+          method: e.payment_method || "",
+          cat: e.category || "Gasto General",
+        })),
+      ].sort((a, b) => new Date(a.date || 0) - new Date(b.date || 0));
+
+      allMovements.forEach(m => {
+        const d = m.date ? new Date(m.date) : null;
+        csv += row(
+          d ? format(d, "dd/MM/yyyy") : "",
+          d ? format(d, "HH:mm") : "",
+          m.tipo, m.desc, m.ref,
+          m.debit ? m.debit.toFixed(2) : "",
+          m.credit ? m.credit.toFixed(2) : "",
+          m.method, m.cat
+        ) + "\n";
+      });
+
+      // ── Summary by category ───────────────────────────────────────────
+      csv += "\nRESUMEN POR CATEGORÍA DE GASTO\n";
+      csv += row("Categoría", "Total") + "\n";
+      const catMap = {};
+      filteredExpenses.forEach(e => {
+        const cat = e.category || "other";
+        catMap[cat] = (catMap[cat] || 0) + getExpenseMagnitude(e.amount);
+      });
+      Object.entries(catMap).sort((a, b) => b[1] - a[1]).forEach(([cat, total]) => {
+        csv += row(cat, total.toFixed(2)) + "\n";
+      });
+
+      // ── Tax summary ───────────────────────────────────────────────────
+      const totalIVU = filteredSales.reduce((s, sale) => s + Number(sale.tax_amount || 0), 0);
+      const totalGrossIncome = filteredSales.reduce((s, sale) => s + Number(sale.total || 0), 0);
+      const totalNetIncome = totalGrossIncome - totalIVU;
+      const totalExpTotal = filteredExpenses.reduce((s, e) => s + getExpenseMagnitude(e.amount), 0);
+
+      csv += "\nRESUMEN FISCAL\n";
+      csv += row("Concepto", "Monto") + "\n";
+      csv += row("Ingresos Brutos", totalGrossIncome.toFixed(2)) + "\n";
+      csv += row("IVU Cobrado (11.5%)", totalIVU.toFixed(2)) + "\n";
+      csv += row("Ingresos Netos (sin IVU)", totalNetIncome.toFixed(2)) + "\n";
+      csv += row("Total de Gastos", totalExpTotal.toFixed(2)) + "\n";
+      csv += row("Utilidad Neta", (totalNetIncome - totalExpTotal).toFixed(2)) + "\n";
+
+      const blob = new Blob(["\ufeff" + csv], { type: "text/csv;charset=utf-8;" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `contabilidad_${format(new Date(), "yyyy-MM-dd")}.csv`;
+      a.click();
+      URL.revokeObjectURL(url);
+    } catch (e) {
+      console.error("exportAccountingCSV error:", e);
+    }
+  };
+
   const exportToCSV = () => {
     try {
       // Calcular detalles avanzados para la exportación
