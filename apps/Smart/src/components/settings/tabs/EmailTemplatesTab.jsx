@@ -1337,7 +1337,7 @@ export default function EmailTemplatesTab() {
           {/* Preview */}
           {showPreview &&
           <div className="lg:sticky lg:top-4 lg:max-h-[calc(100vh-2rem)]">
-              <div className="bg-gradient-to-br from-white/10 to-white/5 border border-white/10 rounded-[28px] p-7 backdrop-blur-xl shadow-2xl">
+              <div className="bg-gradient-to-br from-white/10 to-white/5 border border-white/10 rounded-2xl p-4 sm:p-6">
                 <h3 className="text-white font-bold text-lg mb-4 flex items-center gap-2">
                   <Eye className="w-5 h-5 text-cyan-400" />
                   Vista Previa del Email
