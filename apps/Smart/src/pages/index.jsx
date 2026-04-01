@@ -156,6 +156,7 @@ function PagesContent() {
                     <Route path="/TenantActivate" element={<TenantActivate />} />
                     <Route path="/returnlogin" element={<ReturnLogin />} />
                     <Route path="/Receipt" element={<Receipt />} />
+                    <Route path="/CustomerApproval" element={<CustomerApproval />} />
                     <Route path="/*" element={<ProtectedRoutes />} />
                 </Routes>
             </Suspense>
