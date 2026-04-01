@@ -1,4 +1,5 @@
 import './App.css'
+import React from "react"
 import Pages from "@/pages/index.jsx"
 import { Toaster } from "@/components/ui/toaster"
 import { QueryClient, QueryClientProvider, onlineManager } from "@tanstack/react-query"
@@ -8,6 +9,35 @@ import { Wifi, WifiOff } from "lucide-react"
 import { AnimatePresence, motion } from "framer-motion"
 import SplashLoader from "@/components/SplashLoader"
 import { SplashScreen } from '@capacitor/splash-screen'
+
+class AppErrorBoundary extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = { hasError: false, error: null };
+  }
+  static getDerivedStateFromError(error) {
+    return { hasError: true, error };
+  }
+  componentDidCatch(error, info) {
+    console.error("[AppErrorBoundary]", error, info?.componentStack);
+  }
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div style={{ position: "fixed", inset: 0, background: "#0a0a0a", color: "#fff", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: 24, fontFamily: "monospace", zIndex: 99999 }}>
+          <div style={{ maxWidth: 480, width: "100%", background: "#1a1a1a", borderRadius: 12, padding: 24, border: "1px solid #333" }}>
+            <p style={{ color: "#f87171", fontWeight: "bold", marginBottom: 12, fontSize: 16 }}>⚠️ Error al cargar SmartFixOS</p>
+            <pre style={{ fontSize: 11, color: "#fca5a5", whiteSpace: "pre-wrap", wordBreak: "break-all", maxHeight: 200, overflow: "auto" }}>{this.state.error?.toString()}</pre>
+            <button onClick={() => window.location.reload()} style={{ marginTop: 16, padding: "8px 16px", background: "#06b6d4", color: "#000", border: "none", borderRadius: 8, cursor: "pointer", fontWeight: "bold", fontSize: 13 }}>
+              Recargar app
+            </button>
+          </div>
+        </div>
+      );
+    }
+    return this.props.children;
+  }
+}
 
 // ── React Query — configuración optimizada para mobile ─────────────────────
 const queryClient = new QueryClient({
