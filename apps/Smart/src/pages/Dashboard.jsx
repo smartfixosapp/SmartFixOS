@@ -60,6 +60,7 @@ import { debounce, catalogCache } from "@/components/utils/dataCache";
 import WorkOrderWizard from "../components/workorder/WorkOrderWizard";
 import FirstTimeSetupWizard, { isSetupComplete } from "../components/onboarding/FirstTimeSetupWizard";
 import MobileMoreMenu from "../components/dashboard/MobileMoreMenu";
+import TechnicianView from "../components/dashboard/TechnicianView";
 import { useDeviceDetection } from "../components/utils/useDeviceDetection";
 import {
   Settings as SettingsIcon2,
