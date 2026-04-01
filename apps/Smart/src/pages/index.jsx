@@ -1,76 +1,52 @@
 
-import React from 'react';
+import React, { lazy, Suspense } from 'react';
 import Layout from "./Layout.jsx";
-import Activate from "./Activate";
-import SuperAdmin from "./SuperAdmin";
-import AdminDashboard from "./AdminDashboard";
-import AuditLog from "./AuditLog";
-import CashHistory from "./CashHistory";
-import CustomerDisplay from "./CustomerDisplay";
-import CustomerPortal from "./CustomerPortal";
-import Customers from "./Customers";
-import Dashboard from "./Dashboard";
-import Financial from "./Financial";
-import InitialSetup from "./InitialSetup";
-import Inventory from "./Inventory";
-import Notifications from "./Notifications";
-import Orders from "./Orders";
-import POS from "./POS";
-import POSDesktop from "./POSDesktop";
-import POSMobile from "./POSMobile";
-import PinAccess from "./PinAccess";
-import Recharges from "./Recharges";
-import Settings from "./Settings";
-import SettingsGeneral from "./SettingsGeneral";
-import SettingsNav from "./SettingsNav";
-import Setup from "./Setup";
-import SubscriptionManagement from "./SubscriptionManagement";
-import Technicians from "./Technicians";
-import TenantManagement from "./TenantManagement";
-import UsersManagement from "./UsersManagement";
-import TenantActivate from "./TenantActivate";
-import VerifySetup from "./VerifySetup";
-import Welcome from "./Welcome";
-import Receipt from "./Receipt";
-import Appointments from "./Appointments";
-import OrdersMobile from "./OrdersMobile";
-import Menu from "./Menu";
-
 import { BrowserRouter as Router, Route, Routes, useLocation, useNavigate } from 'react-router-dom';
-
 import AuthGate, { useAuth } from '@/components/Auth';
 
-const PAGES = {
-    Activate: Activate,
-    AdminDashboard: AdminDashboard,
-    AuditLog: AuditLog,
-    CashHistory: CashHistory,
-    CustomerDisplay: CustomerDisplay,
-    CustomerPortal: CustomerPortal,
-    Customers: Customers,
-    Dashboard: Dashboard,
-    Financial: Financial,
-    InitialSetup: InitialSetup,
-    Inventory: Inventory,
-    Notifications: Notifications,
-    Orders: Orders,
-    POS: POS,
-    POSDesktop: POSDesktop,
-    POSMobile: POSMobile,
-    PinAccess: PinAccess,
-    Recharges: Recharges,
-    Settings: Settings,
-    SettingsGeneral: SettingsGeneral,
-    SettingsNav: SettingsNav,
-    Setup: Setup,
-    SubscriptionManagement: SubscriptionManagement,
-    Technicians: Technicians,
-    TenantManagement: TenantManagement,
-    UsersManagement: UsersManagement,
-    VerifySetup: VerifySetup,
-    Welcome: Welcome,
-    OrdersMobile: OrdersMobile,
-    Menu: Menu,
+// Lazy-loaded pages — each becomes its own chunk
+const Activate              = lazy(() => import("./Activate"));
+const SuperAdmin            = lazy(() => import("./SuperAdmin"));
+const AdminDashboard        = lazy(() => import("./AdminDashboard"));
+const AuditLog              = lazy(() => import("./AuditLog"));
+const CashHistory           = lazy(() => import("./CashHistory"));
+const CustomerDisplay       = lazy(() => import("./CustomerDisplay"));
+const CustomerPortal        = lazy(() => import("./CustomerPortal"));
+const Customers             = lazy(() => import("./Customers"));
+const Dashboard             = lazy(() => import("./Dashboard"));
+const Financial             = lazy(() => import("./Financial"));
+const InitialSetup          = lazy(() => import("./InitialSetup"));
+const Inventory             = lazy(() => import("./Inventory"));
+const Notifications         = lazy(() => import("./Notifications"));
+const Orders                = lazy(() => import("./Orders"));
+const POS                   = lazy(() => import("./POS"));
+const POSDesktop            = lazy(() => import("./POSDesktop"));
+const POSMobile             = lazy(() => import("./POSMobile"));
+const PinAccess             = lazy(() => import("./PinAccess"));
+const Recharges             = lazy(() => import("./Recharges"));
+const Receipt               = lazy(() => import("./Receipt"));
+const Settings              = lazy(() => import("./Settings"));
+const SettingsGeneral       = lazy(() => import("./SettingsGeneral"));
+const SettingsNav           = lazy(() => import("./SettingsNav"));
+const Setup                 = lazy(() => import("./Setup"));
+const SubscriptionManagement = lazy(() => import("./SubscriptionManagement"));
+const Technicians           = lazy(() => import("./Technicians"));
+const TenantManagement      = lazy(() => import("./TenantManagement"));
+const TenantActivate        = lazy(() => import("./TenantActivate"));
+const UsersManagement       = lazy(() => import("./UsersManagement"));
+const VerifySetup           = lazy(() => import("./VerifySetup"));
+const Welcome               = lazy(() => import("./Welcome"));
+const Appointments          = lazy(() => import("./Appointments"));
+const OrdersMobile          = lazy(() => import("./OrdersMobile"));
+const Menu                  = lazy(() => import("./Menu"));
+
+// Minimal spinner shown while a lazy chunk loads
+function PageLoader() {
+  return (
+    <div className="flex items-center justify-center min-h-[60vh]">
+      <div className="w-6 h-6 border-2 border-white/20 border-t-white/70 rounded-full animate-spin" />
+    </div>
+  );
 }
 
 function _getCurrentPage(url) {
@@ -81,29 +57,33 @@ function _getCurrentPage(url) {
     if (urlLastPart.includes('?')) {
         urlLastPart = urlLastPart.split('?')[0];
     }
-    const pageName = Object.keys(PAGES).find(page => page.toLowerCase() === urlLastPart.toLowerCase());
-    return pageName || Object.keys(PAGES)[0];
+    const pageNames = [
+        'Activate','AdminDashboard','AuditLog','CashHistory','CustomerDisplay',
+        'CustomerPortal','Customers','Dashboard','Financial','InitialSetup',
+        'Inventory','Notifications','Orders','POS','POSDesktop','POSMobile',
+        'PinAccess','Recharges','Settings','SettingsGeneral','SettingsNav',
+        'Setup','SubscriptionManagement','Technicians','TenantManagement',
+        'UsersManagement','VerifySetup','Welcome','OrdersMobile','Menu','Appointments'
+    ];
+    return pageNames.find(p => p.toLowerCase() === urlLastPart.toLowerCase()) || 'Dashboard';
 }
 
-// Minimal redirect component for returnlogin - just shows AuthGate which handles auth UI
 function ReturnLoginInner() {
     const navigate = useNavigate();
     const { user } = useAuth();
-    
+
     React.useEffect(() => {
         if (user) {
-            // User is logged in, redirect to stored URL or default
             const redirectUrl = sessionStorage.getItem("redirectAfterLogin") || "/Dashboard";
             sessionStorage.removeItem("redirectAfterLogin");
             navigate(redirectUrl);
         }
     }, [user, navigate]);
-    
+
     return null;
 }
 
 function ReturnLogin() {
-    // AuthGate will show auth UI if not logged in, or render children if logged in
     return (
         <AuthGate>
             <ReturnLoginInner />
@@ -111,7 +91,6 @@ function ReturnLogin() {
     );
 }
 
-// Protected routes wrapper - single AuthGate instance for all protected routes
 function ProtectedRoutes() {
     return (
         <AuthGate>
@@ -155,34 +134,30 @@ function ProtectedRoutes() {
     );
 }
 
-// Wrapper component that conditionally applies Layout
 function LayoutWrapper({ children, currentPageName }) {
-const location = useLocation();
+    const location = useLocation();
 
-// Páginas standalone sin Layout
-if (location.pathname === '/returnlogin' || location.pathname === '/SuperAdmin' || location.pathname === '/Receipt') {
-    return <>{children}</>;
+    if (location.pathname === '/returnlogin' || location.pathname === '/SuperAdmin' || location.pathname === '/Receipt') {
+        return <>{children}</>;
+    }
+
+    return <Layout currentPageName={currentPageName}>{children}</Layout>;
 }
 
-return <Layout currentPageName={currentPageName}>{children}</Layout>;
-}
-
-// Create a wrapper component that uses useLocation inside the Router context
-// CRITICAL: Public routes (no AuthGate), protected routes share single AuthGate
 function PagesContent() {
     const location = useLocation();
     const currentPage = _getCurrentPage(location.pathname);
     return (
         <LayoutWrapper currentPageName={currentPage}>
-        <Routes>
-    {/* Ruta pública standalone — no necesita AuthGate */}
-    <Route path="/SuperAdmin" element={<SuperAdmin />} />
-    <Route path="/TenantActivate" element={<TenantActivate />} />
-    <Route path="/returnlogin" element={<ReturnLogin />} />
-    <Route path="/Receipt" element={<Receipt />} />
-
-    <Route path="/*" element={<ProtectedRoutes />} />
-</Routes>
+            <Suspense fallback={<PageLoader />}>
+                <Routes>
+                    <Route path="/SuperAdmin" element={<SuperAdmin />} />
+                    <Route path="/TenantActivate" element={<TenantActivate />} />
+                    <Route path="/returnlogin" element={<ReturnLogin />} />
+                    <Route path="/Receipt" element={<Receipt />} />
+                    <Route path="/*" element={<ProtectedRoutes />} />
+                </Routes>
+            </Suspense>
         </LayoutWrapper>
     );
 }
@@ -194,4 +169,3 @@ export default function Pages() {
         </Router>
     );
 }
-
