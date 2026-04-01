@@ -1423,8 +1423,9 @@ CONTEXTO ACTUAL DEL NEGOCIO (${businessName || "SmartFixOS"}):
     };
 
     try {
-      const GROQ_KEY = import.meta.env.VITE_GROQ_API_KEY;
-      if (!GROQ_KEY) throw new Error("VITE_GROQ_API_KEY no configurada");
+      const ANTHROPIC_KEY = import.meta.env.VITE_ANTHROPIC_API_KEY;
+      const GROQ_KEY      = import.meta.env.VITE_GROQ_API_KEY;
+      if (!ANTHROPIC_KEY && !GROQ_KEY) throw new Error("No hay API key de IA configurada");
 
       const systemPrompt = buildBusinessContext() + `
 
@@ -1434,60 +1435,130 @@ CAPACIDADES — puedes ejecutar acciones reales en el sistema:
 - buscar_precio_inventario: consulta precios de piezas y repuestos en el inventario
 - calcular_total_reparacion: calcula costo total (pieza + mano de obra)
 - sugerir_accesorios: sugiere accesorios complementarios al cliente
+- buscar_orden: encuentra órdenes por cliente, dispositivo o número
+- actualizar_estado_orden: cambia el estado de una orden
+- agregar_nota_orden: agrega una nota interna a una orden
+- asignar_tecnico: asigna un técnico a una orden
+- enviar_mensaje_cliente: notifica al cliente sobre su orden
+- registrar_cobro: registra un pago y completa la orden
+- crear_cliente: crea un cliente nuevo
+- historial_cliente: historial de reparaciones de un cliente
+- ver_stock_bajo: piezas con stock bajo o agotado
+- ver_caja_del_dia: ingresos, gastos y balance del día
 
 REGLAS:
-1. Para crear una orden: primero busca el cliente. Si no existe, crea la orden con los datos del usuario.
-2. Para precios: consulta el inventario primero. Si no hay coincidencia, pide el precio de pieza y mano de obra para calcular el total.
+1. Para crear una orden: primero busca el cliente. Si no existe, crea la orden directamente.
+2. Para precios: consulta el inventario primero. Si no hay coincidencia, pide precio de pieza y mano de obra.
 3. Al reparar pantallas o carcasas, siempre sugiere accesorios al final.
 4. Responde siempre en ESPAÑOL, sé conciso y profesional.`;
 
-      // Solo mensajes usuario/asistente (sin tarjetas de acción internas)
-      // Limitamos a 6 para no agotar el TPM del tier gratuito de Groq
-      let convMsgs = displayHistory
+      const STATUS_MAP = { buscar_cliente: "Buscando cliente…", crear_orden: "Creando orden…", buscar_precio_inventario: "Consultando inventario…", calcular_total_reparacion: "Calculando total…", sugerir_accesorios: "Preparando sugerencias…", buscar_orden: "Buscando orden…", actualizar_estado_orden: "Actualizando estado…", agregar_nota_orden: "Guardando nota…", asignar_tecnico: "Asignando técnico…", enviar_mensaje_cliente: "Enviando mensaje…", registrar_cobro: "Registrando cobro…", crear_cliente: "Creando cliente…", historial_cliente: "Cargando historial…", ver_stock_bajo: "Revisando inventario…", ver_caja_del_dia: "Consultando caja…" };
+
+      // ── Historial limpio (sin tarjetas de acción) ───────────────────────────
+      const cleanHistory = displayHistory
         .filter(m => m.role === "user" || (m.role === "assistant" && !m.type))
         .slice(-6)
         .map(m => ({ role: m.role, content: m.content }));
 
-      const STATUS_MAP = { buscar_cliente: "Buscando cliente…", crear_orden: "Creando orden…", buscar_precio_inventario: "Consultando inventario…", calcular_total_reparacion: "Calculando total…", sugerir_accesorios: "Preparando sugerencias…", buscar_orden: "Buscando orden…", actualizar_estado_orden: "Actualizando estado…", agregar_nota_orden: "Guardando nota…", asignar_tecnico: "Asignando técnico…", enviar_mensaje_cliente: "Enviando mensaje…", registrar_cobro: "Registrando cobro…", crear_cliente: "Creando cliente…", historial_cliente: "Cargando historial…", ver_stock_bajo: "Revisando inventario…", ver_caja_del_dia: "Consultando caja…" };
-
       let maxIter = 6;
-      while (maxIter-- > 0) {
-        const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
-          method: "POST",
-          headers: { "Content-Type": "application/json", "Authorization": `Bearer ${GROQ_KEY}` },
-          body: JSON.stringify({
-            model: "llama-3.1-8b-instant",   // 20k TPM — más rápido y no satura el tier gratuito
-            messages: [{ role: "system", content: systemPrompt }, ...convMsgs],
-            tools: CHAT_TOOLS,
-            tool_choice: "auto",
-            temperature: 0.4,
-            max_tokens: 400,
-          }),
-        });
-        const data = await res.json();
-        if (data?.error) throw new Error(data.error.message || "Error de IA");
 
-        const choice = data?.choices?.[0];
-        const assistantMsg = choice?.message;
+      if (ANTHROPIC_KEY) {
+        // ══════════════════════════════════════════════════════════════════════
+        // CLAUDE (Anthropic) — usa si VITE_ANTHROPIC_API_KEY está configurada
+        // ══════════════════════════════════════════════════════════════════════
+        const claudeTools = CHAT_TOOLS.map(t => ({
+          name:         t.function.name,
+          description:  t.function.description,
+          input_schema: t.function.parameters,
+        }));
 
-        if (choice?.finish_reason === "tool_calls" && assistantMsg?.tool_calls?.length) {
-          const toolResults = [];
-          for (const tc of assistantMsg.tool_calls) {
-            const tName = tc.function.name;
-            let tArgs = {};
-            try { tArgs = JSON.parse(tc.function.arguments); } catch (_) {}
-            setChatStatus(STATUS_MAP[tName] || "Procesando…");
-            const result = await executeToolCall(tName, tArgs);
-            toolResults.push({ role: "tool", tool_call_id: tc.id, content: result });
+        let claudeMsgs = cleanHistory;
+
+        while (maxIter-- > 0) {
+          const res = await fetch("https://api.anthropic.com/v1/messages", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              "x-api-key": ANTHROPIC_KEY,
+              "anthropic-version": "2023-06-01",
+              "anthropic-dangerous-direct-browser-access": "true",
+            },
+            body: JSON.stringify({
+              model: "claude-3-5-haiku-20241022",
+              max_tokens: 1024,
+              system: systemPrompt,
+              messages: claudeMsgs,
+              tools: claudeTools,
+              tool_choice: { type: "auto" },
+            }),
+          });
+          const data = await res.json();
+          if (data?.error) throw new Error(data.error.message || "Error de Claude");
+
+          if (data.stop_reason === "tool_use") {
+            const toolUses = data.content.filter(b => b.type === "tool_use");
+            const toolResultContents = [];
+            for (const tu of toolUses) {
+              setChatStatus(STATUS_MAP[tu.name] || "Procesando…");
+              const result = await executeToolCall(tu.name, tu.input || {});
+              toolResultContents.push({ type: "tool_result", tool_use_id: tu.id, content: result });
+            }
+            claudeMsgs = [
+              ...claudeMsgs,
+              { role: "assistant", content: data.content },
+              { role: "user",      content: toolResultContents },
+            ];
+            setChatStatus("");
+          } else {
+            const textBlock = data.content?.find(b => b.type === "text");
+            if (textBlock?.text) setChatMessages(m => [...m, { role: "assistant", content: textBlock.text }]);
+            break;
           }
-          convMsgs = [...convMsgs, assistantMsg, ...toolResults];
-          setChatStatus("");
-        } else {
-          const reply = assistantMsg?.content;
-          if (reply) setChatMessages(m => [...m, { role: "assistant", content: reply }]);
-          break;
+        }
+
+      } else {
+        // ══════════════════════════════════════════════════════════════════════
+        // GROQ (fallback) — llama-3.1-8b-instant, 20k TPM gratis
+        // ══════════════════════════════════════════════════════════════════════
+        let convMsgs = cleanHistory;
+
+        while (maxIter-- > 0) {
+          const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+            method: "POST",
+            headers: { "Content-Type": "application/json", "Authorization": `Bearer ${GROQ_KEY}` },
+            body: JSON.stringify({
+              model: "llama-3.1-8b-instant",
+              messages: [{ role: "system", content: systemPrompt }, ...convMsgs],
+              tools: CHAT_TOOLS,
+              tool_choice: "auto",
+              temperature: 0.4,
+              max_tokens: 400,
+            }),
+          });
+          const data = await res.json();
+          if (data?.error) throw new Error(data.error.message || "Error de IA");
+
+          const choice     = data?.choices?.[0];
+          const assistantMsg = choice?.message;
+
+          if (choice?.finish_reason === "tool_calls" && assistantMsg?.tool_calls?.length) {
+            const toolResults = [];
+            for (const tc of assistantMsg.tool_calls) {
+              let tArgs = {};
+              try { tArgs = JSON.parse(tc.function.arguments); } catch (_) {}
+              setChatStatus(STATUS_MAP[tc.function.name] || "Procesando…");
+              const result = await executeToolCall(tc.function.name, tArgs);
+              toolResults.push({ role: "tool", tool_call_id: tc.id, content: result });
+            }
+            convMsgs = [...convMsgs, assistantMsg, ...toolResults];
+            setChatStatus("");
+          } else {
+            if (assistantMsg?.content) setChatMessages(m => [...m, { role: "assistant", content: assistantMsg.content }]);
+            break;
+          }
         }
       }
+
     } catch (err) {
       setChatMessages(m => [...m, { role: "assistant", content: "⚠️ " + err.message }]);
     } finally {
@@ -2296,7 +2367,7 @@ REGLAS:
                 </div>
                 <div>
                   <p className="text-sm font-black text-white leading-none">Asistente IA</p>
-                  <p className="text-[9px] text-violet-400/60 font-bold uppercase tracking-widest leading-none mt-0.5">SmartFixOS · Llama 3.3</p>
+                  <p className="text-[9px] text-violet-400/60 font-bold uppercase tracking-widest leading-none mt-0.5">SmartFixOS · {import.meta.env.VITE_ANTHROPIC_API_KEY ? "Claude Haiku" : "Llama 3.1"}</p>
                 </div>
               </div>
               <div className="flex items-center gap-2">
