@@ -145,6 +145,8 @@ function ProtectedRoutes() {
                     <Route path="/UsersManagement" element={<UsersManagement />} />
                     <Route path="/VerifySetup" element={<VerifySetup />} />
                     <Route path="/Appointments" element={<Appointments />} />
+                    <Route path="/OrdersMobile" element={<OrdersMobile />} />
+                    <Route path="/Menu" element={<Menu />} />
                     <Route path="/Welcome" element={<Welcome />} />
             </Routes>
         </AuthGate>
