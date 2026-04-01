@@ -1,10 +1,10 @@
-import React from "react";
+import React, { createContext, useContext } from "react";
 import { Capacitor } from '@capacitor/core';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { dataClient } from "@/components/api/dataClient";
 
-export const AuthContext = React.createContext(null);
-export const useAuth = () => React.useContext(AuthContext);
+export const AuthContext = createContext(null);
+export const useAuth = () => useContext(AuthContext);
 
 const PUBLIC_PATHS = new Set([
   "/Welcome",
