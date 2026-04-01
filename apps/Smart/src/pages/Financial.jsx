@@ -1188,22 +1188,9 @@ Responde con: 1) resumen de 2 oraciones, 2) un punto positivo, 3) una recomendac
 
         {/* Tab: Compromisos */}
         {activeTab === "compromisos" && (
-          <div className="space-y-3 mt-1">
-            <div className="bg-white/[0.03] border border-white/[0.08] rounded-2xl overflow-hidden">
-              <div className="p-4 flex items-center gap-3 border-b border-white/5">
-                <div className="w-8 h-8 rounded-xl bg-amber-500/20 text-amber-400 flex items-center justify-center">
-                  <Calendar className="w-4 h-4" />
-                </div>
-                <div>
-                  <p className="text-sm font-black text-white">Gastos fijos y metas</p>
-                  <p className="text-[10px] text-white/30 font-bold uppercase tracking-widest">{format(new Date(), "MMMM yyyy", { locale: es })}</p>
-                </div>
-              </div>
-              <div className="p-4 space-y-3">
-                <ErrorBoundary><OneTimeExpensesWidget /></ErrorBoundary>
-                <ErrorBoundary><GastosOperacionalesWidget /></ErrorBoundary>
-              </div>
-            </div>
+          <div className="space-y-2 mt-1">
+            <ErrorBoundary><OneTimeExpensesWidget /></ErrorBoundary>
+            <ErrorBoundary><GastosOperacionalesWidget /></ErrorBoundary>
           </div>
         )}
 
