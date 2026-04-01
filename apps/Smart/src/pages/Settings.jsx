@@ -869,7 +869,7 @@ export default function SettingsPage() {
         
         <div className="max-w-5xl mx-auto">
           {/* Section Header Sequoia Style */}
-          <div className="mb-8">
+          <div className="mb-5">
             <button
               onClick={() => setActiveSection(null)}
               className="flex items-center gap-3 text-white/60 hover:text-white transition-all duration-300 mb-6 text-sm font-bold group"
