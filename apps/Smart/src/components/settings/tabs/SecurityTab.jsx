@@ -402,7 +402,7 @@ export default function SecurityTab({ user }) {
                 </div>
               </div>
               
-              <div className="bg-zinc-800/10 border-l border-white/5 p-8 flex flex-col justify-center items-center text-center space-y-4">
+              <div className="bg-zinc-800/10 border-t md:border-t-0 md:border-l border-white/5 p-4 sm:p-6 flex flex-col justify-center items-center text-center space-y-4">
                 <AlertTriangle className="w-12 h-12 text-zinc-700" />
                 <div>
                   <p className="text-xs font-black text-gray-500 uppercase tracking-widest mb-1">Nota Legal</p>
