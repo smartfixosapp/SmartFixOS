@@ -688,38 +688,35 @@ export default function GastosOperacionalesWidget() {
   });
 
   return (
-    <div className="space-y-6">
-      {/* ── Header + Summary ─────────────────────────────────────────────── */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <h4 className="text-lg font-black text-white tracking-tight">Gastos Operacionales</h4>
-          <p className="text-xs text-white/40 font-bold uppercase tracking-widest">
-            Sistema de ahorro inteligente · {expenses.length} gasto{expenses.length !== 1 ? "s" : ""}
-          </p>
+    <div className="bg-white/[0.03] border border-white/[0.08] rounded-2xl p-4">
+      {/* ── Header ───────────────────────────────────────────────────────── */}
+      <div className="flex items-center justify-between mb-3">
+        <div className="flex items-center gap-2">
+          <Target className="w-3.5 h-3.5 text-cyan-400" />
+          <p className="text-[10px] font-black text-white/40 uppercase tracking-widest">Gastos Operacionales</p>
         </div>
-        <Button
+        <button
           onClick={openAdd}
-          className="rounded-2xl bg-white/5 border border-white/10 hover:bg-white/10 text-white h-11 px-5 transition-all active:scale-95 group self-start sm:self-auto"
+          className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-cyan-500/10 border border-cyan-500/20 text-cyan-400 text-[11px] font-black hover:bg-cyan-500/20 transition-colors active:scale-95"
         >
-          <Plus className="w-4 h-4 mr-2 text-cyan-400 group-hover:text-white" />
-          <span className="font-bold">Agregar Gasto</span>
-        </Button>
+          <Plus className="w-3 h-3" /> Agregar
+        </button>
       </div>
 
-      {/* ── Summary Cards ─────────────────────────────────────────────────── */}
+      {/* ── Summary strip ────────────────────────────────────────────────── */}
       {expenses.length > 0 && (
-        <div className="grid grid-cols-3 gap-3">
-          <div className="p-4 bg-white/[0.03] rounded-2xl border border-white/[0.06]">
-            <p className="text-[9px] font-black uppercase tracking-widest text-white/30 mb-1">Total Mensual</p>
-            <p className="text-xl font-black text-white tracking-tight">${totalMonthly.toFixed(2)}</p>
+        <div className="grid grid-cols-3 gap-1.5 mb-3">
+          <div className="p-2.5 bg-white/[0.03] rounded-xl border border-white/[0.06]">
+            <p className="text-[9px] font-black uppercase tracking-widest text-white/30 mb-0.5">Mensual</p>
+            <p className="text-sm font-black text-white">${totalMonthly.toFixed(2)}</p>
           </div>
-          <div className="p-4 bg-cyan-500/10 rounded-2xl border border-cyan-500/20">
-            <p className="text-[9px] font-black uppercase tracking-widest text-cyan-400/60 mb-1">Meta Diaria</p>
-            <p className="text-xl font-black text-cyan-400 tracking-tight">${dailyGoal.toFixed(2)}</p>
+          <div className="p-2.5 bg-cyan-500/10 rounded-xl border border-cyan-500/20">
+            <p className="text-[9px] font-black uppercase tracking-widest text-cyan-400/60 mb-0.5">Meta/día</p>
+            <p className="text-sm font-black text-cyan-400">${dailyGoal.toFixed(2)}</p>
           </div>
-          <div className="p-4 bg-white/[0.03] rounded-2xl border border-white/[0.06]">
-            <p className="text-[9px] font-black uppercase tracking-widest text-white/30 mb-1">Días Lab./Mes</p>
-            <p className="text-xl font-black text-white/60 tracking-tight">{workingDays}d</p>
+          <div className="p-2.5 bg-white/[0.03] rounded-xl border border-white/[0.06]">
+            <p className="text-[9px] font-black uppercase tracking-widest text-white/30 mb-0.5">Días lab.</p>
+            <p className="text-sm font-black text-white/60">{workingDays}d</p>
           </div>
         </div>
       )}
