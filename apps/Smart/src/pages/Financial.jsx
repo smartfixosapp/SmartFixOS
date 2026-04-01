@@ -22,6 +22,7 @@ import EnhancedReports from "../components/financial/EnhancedReports";
 import OneTimeExpensesWidget from "../components/financial/OneTimeExpensesWidget";
 import GastosOperacionalesWidget from "../components/financial/GastosOperacionalesWidget";
 import MonthlyReportModal from "../components/financial/MonthlyReportModal";
+import TechnicianProductivityTab from "../components/financial/TechnicianProductivityTab";
 import { toast } from "sonner";
 import TransactionsModal from "../components/financial/TransactionsModal";
 import { useNavigate } from "react-router-dom";
