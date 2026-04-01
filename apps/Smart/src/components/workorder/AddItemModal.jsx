@@ -925,7 +925,12 @@ export default function AddItemModal({
                         </div>
                         <p className="text-[10px] font-black uppercase tracking-wider text-white/20 mb-1">{item.sku || "Sin código"}</p>
                         {item.stock > 0 && (
-                          <p className="text-[10px] font-black uppercase tracking-widest text-amber-500/40">Stock: {item.stock}</p>
+                          <p className={`text-[10px] font-black uppercase tracking-widest ${item.stock <= 2 ? "text-red-400/70" : "text-amber-500/40"}`}>
+                            {item.stock <= 2 ? `⚠️ Stock bajo: ${item.stock}` : `Stock: ${item.stock}`}
+                          </p>
+                        )}
+                        {item.stock === 0 && !isService(item) && (
+                          <p className="text-[10px] font-black uppercase tracking-widest text-red-400/70">Sin stock</p>
                         )}
                         <div className="mt-5 flex items-center justify-between pt-4 border-t border-white/[0.04]">
                           <p className="text-2xl font-black text-white tracking-tighter">${toNum(item.price).toFixed(2)}</p>
