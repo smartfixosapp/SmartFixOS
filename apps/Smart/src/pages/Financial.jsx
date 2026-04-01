@@ -973,391 +973,305 @@ Responde con: 1) resumen de 2 oraciones, 2) un punto positivo, 3) una recomendac
   };
 
   return (
-    <div className="min-h-screen bg-black/95 pb-16">
+    <div className="min-h-screen bg-black/95 flex flex-col">
+
       {/* ── Header ── */}
-      <div className="sticky top-0 z-30 bg-black/90 backdrop-blur-2xl border-b border-white/5 px-4 sm:px-8 py-4">
-        <div className="max-w-4xl mx-auto flex items-center justify-between gap-4">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-cyan-500 to-blue-600 flex items-center justify-center shadow-lg shadow-cyan-500/20">
-              <DollarSign className="w-5 h-5 text-white" />
+      <div className="sticky top-0 z-30 bg-black/90 backdrop-blur-2xl border-b border-white/5 px-4 sm:px-6 py-3">
+        <div className="max-w-2xl mx-auto flex items-center justify-between gap-3">
+          <div className="flex items-center gap-2.5">
+            <div className="w-9 h-9 rounded-2xl bg-gradient-to-br from-cyan-500 to-blue-600 flex items-center justify-center shadow-lg shadow-cyan-500/20 shrink-0">
+              <DollarSign className="w-4 h-4 text-white" />
             </div>
             <div>
-              <h1 className="text-xl font-black text-white tracking-tight leading-none">Finanzas</h1>
-              <p className="text-[10px] text-white/30 font-bold uppercase tracking-widest">
-                {loading ? "Cargando..." : `${filteredSales.length} ventas · ${filteredExpenses.length} gastos`}
+              <h1 className="text-base font-black text-white tracking-tight leading-none">Finanzas</h1>
+              <p className="text-[10px] text-white/30 font-bold uppercase tracking-widest leading-none mt-0.5">
+                {loading ? "Cargando…" : `${filteredSales.length + filteredExpenses.length} movimientos`}
               </p>
             </div>
           </div>
-          <div className="flex items-center gap-2">
-            <div className="flex items-center gap-1 p-1 bg-white/5 rounded-[16px] border border-white/10">
+          <div className="flex items-center gap-1.5">
+            {/* Filtro de período */}
+            <div className="flex items-center gap-0.5 p-1 bg-white/5 rounded-2xl border border-white/10">
               {[
                 { id: "today", label: "Hoy" },
-                { id: "week", label: "Semana" },
+                { id: "week", label: "7d" },
                 { id: "month", label: "Mes" },
                 { id: "all", label: "Todo" },
+                { id: "custom", label: "📅" },
               ].map((p) => (
-                <button
-                  key={p.id}
-                  onClick={() => setDateFilter(p.id)}
-                  className={`px-3 py-1.5 rounded-[12px] text-[11px] font-black transition-all ${
+                <button key={p.id} onClick={() => setDateFilter(p.id)}
+                  className={`px-2.5 py-1.5 rounded-xl text-[11px] font-black transition-all ${
                     dateFilter === p.id
                       ? "bg-gradient-to-r from-cyan-600 to-blue-600 text-white shadow"
                       : "text-white/30 hover:text-white/60"
                   }`}
-                >
-                  {p.label}
-                </button>
+                >{p.label}</button>
               ))}
-              <button
-                onClick={() => setDateFilter("custom")}
-                className={`px-3 py-1.5 rounded-[12px] text-[11px] font-black transition-all ${
-                  dateFilter === "custom"
-                    ? "bg-gradient-to-r from-cyan-600 to-blue-600 text-white shadow"
-                    : "text-white/30 hover:text-white/60"
-                }`}
-              >
-                📅
-              </button>
             </div>
-            <button
-              onClick={handleManualRefresh}
-              disabled={loading}
-              className="w-9 h-9 rounded-[14px] bg-white/5 border border-white/10 flex items-center justify-center text-white/40 hover:text-white transition-colors"
-            >
-              <RefreshCw className={`w-4 h-4 ${loading ? "animate-spin" : ""}`} />
+            <button onClick={handleManualRefresh} disabled={loading}
+              className="w-8 h-8 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-white/40 hover:text-white transition-colors shrink-0">
+              <RefreshCw className={`w-3.5 h-3.5 ${loading ? "animate-spin" : ""}`} />
             </button>
-            <button
-              onClick={() => navigate(-1)}
-              className="w-9 h-9 rounded-[14px] bg-white/5 border border-white/10 flex items-center justify-center text-white/40 hover:text-white transition-colors"
-            >
-              <X className="w-4 h-4" />
+            <button onClick={() => navigate(-1)}
+              className="w-8 h-8 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-white/40 hover:text-white transition-colors shrink-0">
+              <X className="w-3.5 h-3.5" />
             </button>
           </div>
         </div>
         {dateFilter === "custom" && (
-          <div className="max-w-4xl mx-auto flex gap-3 mt-3 pt-3 border-t border-white/5">
+          <div className="max-w-2xl mx-auto flex gap-2 mt-2 pt-2 border-t border-white/5">
             <input type="date" value={customStartDate} onChange={e => setCustomStartDate(e.target.value)}
-              className="flex-1 bg-black/40 border border-white/10 text-white text-sm h-10 rounded-2xl px-4 focus:border-cyan-500/50 outline-none" />
-            <span className="text-white/20 self-center font-bold">→</span>
+              className="flex-1 bg-black/40 border border-white/10 text-white text-xs h-9 rounded-xl px-3 focus:border-cyan-500/50 outline-none" />
+            <span className="text-white/20 self-center text-xs">→</span>
             <input type="date" value={customEndDate} onChange={e => setCustomEndDate(e.target.value)}
-              className="flex-1 bg-black/40 border border-white/10 text-white text-sm h-10 rounded-2xl px-4 focus:border-cyan-500/50 outline-none" />
+              className="flex-1 bg-black/40 border border-white/10 text-white text-xs h-9 rounded-xl px-3 focus:border-cyan-500/50 outline-none" />
           </div>
         )}
       </div>
 
-      <div className="max-w-4xl mx-auto px-4 sm:px-8 py-6 space-y-5">
-
-        <ErrorBoundary><AlertasWidget /></ErrorBoundary>
-
+      {/* ── KPIs siempre visibles ── */}
+      <div className="max-w-2xl mx-auto w-full px-4 sm:px-6 pt-4 pb-2">
         {loadError && (
-          <div className="flex items-center justify-between gap-3 p-4 bg-red-950/40 border border-red-500/30 rounded-[20px]">
-            <div className="flex items-center gap-2 text-red-300 text-sm">
+          <div className="flex items-center justify-between gap-3 p-3 mb-3 bg-red-950/40 border border-red-500/30 rounded-2xl">
+            <div className="flex items-center gap-2 text-red-300 text-xs">
               <AlertTriangle className="w-4 h-4 shrink-0" />
               <span>{loadError}</span>
             </div>
-            <button onClick={handleManualRefresh} className="text-xs font-black text-red-300 hover:text-red-100 uppercase tracking-widest transition-colors">
-              Reintentar
-            </button>
+            <button onClick={handleManualRefresh} className="text-xs font-black text-red-300 hover:text-red-100 uppercase tracking-widest">Reintentar</button>
           </div>
         )}
+        <ErrorBoundary><AlertasWidget /></ErrorBoundary>
 
-        {/* ── CARD IA: Resumen Inteligente ── */}
-        <div className="bg-white/[0.03] border border-violet-500/20 rounded-[28px] overflow-hidden">
-          <div className="p-5 flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="w-9 h-9 rounded-2xl bg-violet-500/20 text-violet-400 flex items-center justify-center">
-                <Sparkles className="w-5 h-5" />
-              </div>
-              <div>
-                <h2 className="text-base font-black text-white tracking-tight">Resumen IA</h2>
-                <p className="text-[10px] text-white/30 font-bold uppercase tracking-widest">Análisis automático del período</p>
-              </div>
-            </div>
-            <button
-              onClick={fetchAiSummary}
-              disabled={aiLoading}
-              className="flex items-center gap-2 px-4 py-2 rounded-[16px] bg-violet-500/15 border border-violet-500/20 text-violet-300 text-xs font-black hover:bg-violet-500/25 transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {aiLoading ? (
-                <><RefreshCw className="w-3.5 h-3.5 animate-spin" /> Analizando…</>
-              ) : (
-                <><Sparkles className="w-3.5 h-3.5" /> Analizar</>
-              )}
-            </button>
-          </div>
-          {(aiSummary || aiLoading) && (
-            <div className="px-5 pb-5">
-              {aiLoading && !aiSummary ? (
-                <div className="flex items-center gap-3 p-4 rounded-2xl bg-violet-500/5 border border-violet-500/10">
-                  <div className="flex gap-1">
-                    <span className="w-1.5 h-1.5 rounded-full bg-violet-400 animate-bounce" style={{animationDelay:"0ms"}} />
-                    <span className="w-1.5 h-1.5 rounded-full bg-violet-400 animate-bounce" style={{animationDelay:"150ms"}} />
-                    <span className="w-1.5 h-1.5 rounded-full bg-violet-400 animate-bounce" style={{animationDelay:"300ms"}} />
-                  </div>
-                  <span className="text-xs text-violet-400/60 font-bold">IA analizando tus finanzas…</span>
-                </div>
-              ) : (
-                <div className="p-4 rounded-2xl bg-violet-500/5 border border-violet-500/10">
-                  <p className="text-sm text-white/80 leading-relaxed whitespace-pre-line">{aiSummary}</p>
-                  <p className="text-[9px] text-white/20 font-bold uppercase tracking-widest mt-3">Generado por Llama 3.3 · SmartFixOS IA</p>
-                </div>
-              )}
-            </div>
-          )}
-          {!aiSummary && !aiLoading && (
-            <div className="px-5 pb-5">
-              <p className="text-xs text-white/20 font-bold">Presiona "Analizar" para que la IA te explique cómo va el negocio en este período.</p>
-            </div>
-          )}
-        </div>
-
-        {/* ── CARD 1: KPIs ── */}
-        <div className="grid grid-cols-3 gap-3">
+        {/* KPI strip */}
+        <div className="grid grid-cols-3 gap-2 mt-3">
           {[
-            { label: "Entró", value: totalRevenue, color: "emerald", icon: TrendingUp, onClick: () => setMovFilter("income") },
-            { label: "Salió", value: totalExpenses, color: "red", icon: TrendingDown, onClick: () => setMovFilter("expense") },
-            { label: netProfit >= 0 ? "Ganancia" : "Déficit", value: Math.abs(netProfit), color: netProfit >= 0 ? "cyan" : "red", icon: DollarSign },
+            { label: "Entró", value: totalRevenue, color: "emerald", icon: TrendingUp, onClick: () => { setActiveTab("movimientos"); setMovFilter("income"); } },
+            { label: "Salió", value: totalExpenses, color: "red", icon: TrendingDown, onClick: () => { setActiveTab("movimientos"); setMovFilter("expense"); } },
+            { label: netProfit >= 0 ? "Neto" : "Déficit", value: Math.abs(netProfit), color: netProfit >= 0 ? "cyan" : "red", icon: DollarSign },
           ].map((k) => (
-            <button
-              key={k.label}
-              onClick={k.onClick}
-              className={`p-4 rounded-[24px] border text-left transition-all active:scale-95 ${
+            <button key={k.label} onClick={k.onClick}
+              className={`p-3.5 rounded-2xl border text-left transition-all active:scale-95 ${
                 k.color === "emerald" ? "bg-emerald-500/10 border-emerald-500/20" :
-                k.color === "red" ? "bg-red-500/10 border-red-500/20" :
-                "bg-cyan-500/10 border-cyan-500/20"
+                k.color === "red" ? "bg-red-500/10 border-red-500/20" : "bg-cyan-500/10 border-cyan-500/20"
               } ${k.onClick ? "cursor-pointer" : "cursor-default"}`}
             >
-              <k.icon className={`w-4 h-4 mb-2 ${
-                k.color === "emerald" ? "text-emerald-400" :
-                k.color === "red" ? "text-red-400" : "text-cyan-400"
+              <k.icon className={`w-3.5 h-3.5 mb-1.5 ${
+                k.color === "emerald" ? "text-emerald-400" : k.color === "red" ? "text-red-400" : "text-cyan-400"
               }`} />
-              <p className={`text-xl sm:text-2xl font-black tracking-tighter ${
-                k.color === "emerald" ? "text-emerald-400" :
-                k.color === "red" ? "text-red-400" : "text-cyan-400"
-              }`}>
-                ${k.value.toFixed(2)}
-              </p>
-              <p className="text-[10px] text-white/30 font-black uppercase tracking-widest mt-0.5">{k.label}</p>
+              <p className={`text-lg sm:text-xl font-black tracking-tighter leading-none ${
+                k.color === "emerald" ? "text-emerald-400" : k.color === "red" ? "text-red-400" : "text-cyan-400"
+              }`}>${k.value.toFixed(2)}</p>
+              <p className="text-[9px] text-white/30 font-black uppercase tracking-widest mt-1">{k.label}</p>
             </button>
           ))}
         </div>
 
-        {/* ── CARD 2: Caja + Acciones rápidas ── */}
-        <div className="grid grid-cols-2 gap-3">
-          {/* Caja */}
-          <button
-            onClick={() => drawerOpen ? setShowCloseDrawer(true) : setShowOpenDrawer(true)}
-            className={`p-5 rounded-[24px] border text-left transition-all active:scale-95 ${
-              drawerOpen
-                ? "bg-emerald-500/10 border-emerald-500/30"
-                : "bg-white/5 border-white/10"
+        {/* Acciones rápidas */}
+        <div className="grid grid-cols-2 gap-2 mt-2">
+          <button onClick={() => drawerOpen ? setShowCloseDrawer(true) : setShowOpenDrawer(true)}
+            className={`flex items-center gap-3 p-3.5 rounded-2xl border transition-all active:scale-95 ${
+              drawerOpen ? "bg-emerald-500/10 border-emerald-500/30" : "bg-white/5 border-white/10"
             }`}
           >
-            <div className={`w-9 h-9 rounded-2xl flex items-center justify-center mb-3 ${
-              drawerOpen ? "bg-emerald-500/20 text-emerald-400" : "bg-white/10 text-white/30"
-            }`}>
-              <Wallet className="w-5 h-5" />
+            <div className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 ${drawerOpen ? "bg-emerald-500/20 text-emerald-400" : "bg-white/10 text-white/30"}`}>
+              <Wallet className="w-4 h-4" />
             </div>
-            <p className={`text-base font-black ${drawerOpen ? "text-emerald-400" : "text-white/40"}`}>
-              {drawerOpen ? "Caja Abierta" : "Caja Cerrada"}
-            </p>
-            <p className="text-[10px] font-bold text-white/25 mt-0.5">
-              {drawerOpen ? `Toca para cerrar` : "Toca para abrir"}
-            </p>
+            <div className="text-left min-w-0">
+              <p className={`text-sm font-black truncate ${drawerOpen ? "text-emerald-400" : "text-white/40"}`}>{drawerOpen ? "Caja Abierta" : "Caja Cerrada"}</p>
+              <p className="text-[10px] text-white/25">{drawerOpen ? "Toca para cerrar" : "Toca para abrir"}</p>
+            </div>
           </button>
-          {/* Nuevo Gasto */}
-          <button
-            onClick={() => { setExpenseDefaultCategory(null); setShowExpenseDialog(true); }}
-            className="p-5 rounded-[24px] border border-orange-500/20 bg-orange-500/8 text-left transition-all active:scale-95"
-          >
-            <div className="w-9 h-9 rounded-2xl bg-orange-500/20 text-orange-400 flex items-center justify-center mb-3">
-              <Plus className="w-5 h-5" />
+          <button onClick={() => { setExpenseDefaultCategory(null); setShowExpenseDialog(true); }}
+            className="flex items-center gap-3 p-3.5 rounded-2xl border border-orange-500/20 bg-orange-500/[0.08] transition-all active:scale-95">
+            <div className="w-8 h-8 rounded-xl bg-orange-500/20 text-orange-400 flex items-center justify-center shrink-0">
+              <Plus className="w-4 h-4" />
             </div>
-            <p className="text-base font-black text-orange-300">Nuevo Gasto</p>
-            <p className="text-[10px] font-bold text-white/25 mt-0.5">Registrar salida</p>
+            <div className="text-left">
+              <p className="text-sm font-black text-orange-300">Nuevo Gasto</p>
+              <p className="text-[10px] text-white/25">Registrar salida</p>
+            </div>
           </button>
         </div>
 
-        {/* ── CARD 3: Movimientos ── */}
-        <div className="bg-white/[0.03] border border-white/10 rounded-[28px] overflow-hidden">
-          <div className="p-5 border-b border-white/5 flex items-center justify-between">
-            <div>
-              <h2 className="text-base font-black text-white tracking-tight">Movimientos</h2>
-              <p className="text-[10px] text-white/30 font-bold uppercase tracking-widest mt-0.5">Entradas y salidas de dinero</p>
-            </div>
+        {/* Tab bar */}
+        <div className="flex gap-1 p-1 bg-white/[0.04] rounded-2xl border border-white/[0.06] mt-3">
+          {[
+            { id: "movimientos", label: "Movimientos" },
+            { id: "compromisos", label: "Compromisos" },
+            { id: "reportes", label: "Reportes" },
+          ].map(t => (
+            <button key={t.id} onClick={() => setActiveTab(t.id)}
+              className={`flex-1 py-2 rounded-xl text-xs font-black transition-all ${
+                activeTab === t.id
+                  ? "bg-gradient-to-r from-cyan-600 to-blue-600 text-white shadow"
+                  : "text-white/30 hover:text-white/60"
+              }`}
+            >{t.label}</button>
+          ))}
+        </div>
+      </div>
+
+      {/* ── Contenido de tabs ── */}
+      <div className="max-w-2xl mx-auto w-full px-4 sm:px-6 pb-28 flex-1">
+
+        {/* Tab: Movimientos */}
+        {activeTab === "movimientos" && (
+          <div className="space-y-3 mt-1">
             {/* Filter pills */}
-            <div className="flex gap-1 p-0.5 bg-black/30 rounded-[14px] border border-white/5">
+            <div className="flex gap-1.5 justify-end">
               {[
                 { id: "all", label: "Todos" },
-                { id: "income", label: "✅" },
-                { id: "expense", label: "🔴" },
+                { id: "income", label: "✅ Entradas" },
+                { id: "expense", label: "🔴 Salidas" },
               ].map(f => (
-                <button
-                  key={f.id}
-                  onClick={() => setMovFilter(f.id)}
-                  className={`px-3 py-1.5 rounded-[12px] text-[11px] font-black transition-all ${
+                <button key={f.id} onClick={() => setMovFilter(f.id)}
+                  className={`px-3 py-1.5 rounded-xl text-[11px] font-black transition-all border ${
                     movFilter === f.id
-                      ? f.id === "income" ? "bg-emerald-600 text-white"
-                        : f.id === "expense" ? "bg-red-600 text-white"
-                        : "bg-cyan-600 text-white"
-                      : "text-white/30 hover:text-white/60"
+                      ? f.id === "income" ? "bg-emerald-600 border-emerald-600 text-white"
+                        : f.id === "expense" ? "bg-red-600 border-red-600 text-white"
+                        : "bg-cyan-600 border-cyan-600 text-white"
+                      : "bg-white/[0.04] border-white/[0.08] text-white/30 hover:text-white/60"
                   }`}
-                >
-                  {f.label}
-                </button>
+                >{f.label}</button>
               ))}
             </div>
-          </div>
-          <div className="p-4 max-h-[480px] overflow-y-auto custom-scrollbar">
+
+            {/* Lista */}
             {loading ? (
-              <div className="py-10 text-center">
-                <RefreshCw className="w-6 h-6 animate-spin mx-auto mb-2 text-white/20" />
-                <p className="text-xs text-white/20 font-bold">Cargando...</p>
+              <div className="py-12 text-center">
+                <RefreshCw className="w-5 h-5 animate-spin mx-auto mb-2 text-white/20" />
+                <p className="text-xs text-white/20 font-bold">Cargando…</p>
               </div>
             ) : combinedMovements.filter(m => movFilter === "all" || m.kind === movFilter).length === 0 ? (
-              <div className="py-10 text-center">
-                <p className="text-white/25 font-bold">Sin movimientos</p>
+              <div className="py-12 text-center">
+                <p className="text-white/25 font-bold text-sm">Sin movimientos en este período</p>
               </div>
             ) : (
-              <div className="space-y-2">
-                {combinedMovements
-                  .filter(m => movFilter === "all" || m.kind === movFilter)
-                  .map((m) => (
-                    <div key={m.id} className="group flex items-center gap-3 p-3.5 rounded-[18px] hover:bg-white/5 transition-all">
-                      <div className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 ${
-                        m.kind === "income"
-                          ? "bg-emerald-500/15 text-emerald-400"
-                          : "bg-red-500/15 text-red-400"
-                      }`}>
-                        {m.kind === "income" ? <TrendingUp className="w-4 h-4" /> : <TrendingDown className="w-4 h-4" />}
+              <div className="space-y-1.5">
+                {combinedMovements.filter(m => movFilter === "all" || m.kind === movFilter).map((m) => (
+                  <div key={m.id} className="group flex items-center gap-3 p-3.5 rounded-2xl bg-white/[0.02] hover:bg-white/[0.05] border border-white/[0.04] transition-all">
+                    <div className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 ${
+                      m.kind === "income" ? "bg-emerald-500/15 text-emerald-400" : "bg-red-500/15 text-red-400"
+                    }`}>
+                      {m.kind === "income" ? <TrendingUp className="w-3.5 h-3.5" /> : <TrendingDown className="w-3.5 h-3.5" />}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-white font-bold text-sm truncate leading-tight">{m.title}</p>
+                      <p className="text-[11px] text-white/30 truncate">{m.subtitle}{m.date ? ` · ${format(new Date(m.date), "dd MMM HH:mm", { locale: es })}` : ""}</p>
+                    </div>
+                    <div className="flex items-center gap-1.5 shrink-0">
+                      <p className={`text-sm font-black ${m.kind === "income" ? "text-emerald-400" : "text-red-400"}`}>
+                        {m.kind === "income" ? "+" : "-"}${m.amount.toFixed(2)}
+                      </p>
+                      {m.canEdit && (
+                        <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                          <button onClick={() => handleEditExpense(m.raw)} className="w-6 h-6 rounded-lg bg-white/5 hover:bg-cyan-500/20 text-white/30 hover:text-cyan-400 flex items-center justify-center transition-colors">
+                            <Edit2 className="w-3 h-3" />
+                          </button>
+                          <button onClick={() => handleDeleteExpense(m.origId)} className="w-6 h-6 rounded-lg bg-white/5 hover:bg-red-500/20 text-white/30 hover:text-red-400 flex items-center justify-center transition-colors">
+                            <Trash2 className="w-3 h-3" />
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {/* Métodos de pago — solo si hay datos */}
+            {paymentMethodBreakdown.length > 0 && (
+              <div className="bg-white/[0.03] border border-white/10 rounded-2xl p-4 mt-2">
+                <p className="text-xs font-black text-white/50 uppercase tracking-widest mb-3">¿Cómo te pagaron?</p>
+                <div className="w-full h-2.5 rounded-full overflow-hidden flex mb-4">
+                  {paymentMethodBreakdown.map((m) => (
+                    <div key={m.key} className={`h-full ${m.colorBar}`} style={{ width: `${m.pct}%` }} />
+                  ))}
+                </div>
+                <div className="space-y-2.5">
+                  {paymentMethodBreakdown.map((m) => (
+                    <div key={m.key} className="flex items-center gap-2.5">
+                      <span className="text-base w-6 text-center">{m.emoji}</span>
+                      <div className="flex-1">
+                        <div className="flex items-center justify-between mb-0.5">
+                          <span className="text-xs font-bold text-white">{m.label}</span>
+                          <span className={`text-xs font-black ${m.colorText}`}>${m.total.toFixed(2)}</span>
+                        </div>
+                        <div className="w-full bg-white/5 rounded-full h-1">
+                          <div className={`h-full rounded-full ${m.colorBar}`} style={{ width: `${m.pct}%` }} />
+                        </div>
                       </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-white font-bold text-sm truncate leading-tight">{m.title}</p>
-                        <p className="text-[11px] text-white/30 truncate">{m.subtitle} · {m.date ? format(new Date(m.date), "dd MMM HH:mm", { locale: es }) : "—"}</p>
-                      </div>
-                      <div className="flex items-center gap-2 shrink-0">
-                        <p className={`text-base font-black ${m.kind === "income" ? "text-emerald-400" : "text-red-400"}`}>
-                          {m.kind === "income" ? "+" : "-"}${m.amount.toFixed(2)}
-                        </p>
-                        {m.canEdit && (
-                          <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                            <button onClick={() => handleEditExpense(m.raw)} className="w-7 h-7 rounded-lg bg-white/5 hover:bg-cyan-500/20 text-white/30 hover:text-cyan-400 flex items-center justify-center transition-colors">
-                              <Edit2 className="w-3 h-3" />
-                            </button>
-                            <button onClick={() => handleDeleteExpense(m.origId)} className="w-7 h-7 rounded-lg bg-white/5 hover:bg-red-500/20 text-white/30 hover:text-red-400 flex items-center justify-center transition-colors">
-                              <Trash2 className="w-3 h-3" />
-                            </button>
-                          </div>
-                        )}
-                      </div>
+                      <span className="text-[10px] text-white/30 font-bold w-8 text-right">{m.pct.toFixed(0)}%</span>
                     </div>
                   ))}
+                </div>
               </div>
             )}
           </div>
-        </div>
+        )}
 
-        {/* ── CARD 4: Métodos de pago ── */}
-        {paymentMethodBreakdown.length > 0 && (
-          <div className="bg-white/[0.03] border border-white/10 rounded-[28px] p-5">
-            <h2 className="text-base font-black text-white tracking-tight mb-1">¿Cómo te pagaron?</h2>
-            <p className="text-[10px] text-white/30 font-bold uppercase tracking-widest mb-5">Métodos de pago del período</p>
-            {/* Stacked bar */}
-            <div className="w-full h-3 rounded-full overflow-hidden flex mb-5">
-              {paymentMethodBreakdown.map((m) => (
-                <div key={m.key} className={`h-full ${m.colorBar}`} style={{ width: `${m.pct}%` }} />
-              ))}
-            </div>
-            <div className="space-y-3">
-              {paymentMethodBreakdown.map((m) => (
-                <div key={m.key} className="flex items-center gap-3">
-                  <span className="text-lg w-7 text-center">{m.emoji}</span>
-                  <div className="flex-1">
-                    <div className="flex items-center justify-between mb-1">
-                      <span className="text-sm font-bold text-white">{m.label}</span>
-                      <span className={`text-sm font-black ${m.colorText}`}>${m.total.toFixed(2)}</span>
-                    </div>
-                    <div className="w-full bg-white/5 rounded-full h-1.5">
-                      <div className={`h-full rounded-full ${m.colorBar}`} style={{ width: `${m.pct}%` }} />
-                    </div>
-                  </div>
-                  <span className="text-[11px] text-white/30 font-bold w-10 text-right">{m.pct.toFixed(0)}%</span>
+        {/* Tab: Compromisos */}
+        {activeTab === "compromisos" && (
+          <div className="space-y-3 mt-1">
+            <div className="bg-white/[0.03] border border-white/[0.08] rounded-2xl overflow-hidden">
+              <div className="p-4 flex items-center gap-3 border-b border-white/5">
+                <div className="w-8 h-8 rounded-xl bg-amber-500/20 text-amber-400 flex items-center justify-center">
+                  <Calendar className="w-4 h-4" />
                 </div>
-              ))}
+                <div>
+                  <p className="text-sm font-black text-white">Gastos fijos y metas</p>
+                  <p className="text-[10px] text-white/30 font-bold uppercase tracking-widest">{format(new Date(), "MMMM yyyy", { locale: es })}</p>
+                </div>
+              </div>
+              <div className="p-4 space-y-3">
+                <ErrorBoundary><OneTimeExpensesWidget /></ErrorBoundary>
+                <ErrorBoundary><GastosOperacionalesWidget /></ErrorBoundary>
+              </div>
             </div>
           </div>
         )}
 
-        {/* ── CARD 5: Compromisos ── */}
-        <div className="bg-white/[0.03] border border-white/10 rounded-[28px] overflow-hidden">
-          <div className="p-5 border-b border-white/5 flex items-center gap-3">
-            <div className="w-9 h-9 rounded-2xl bg-amber-500/20 text-amber-400 flex items-center justify-center">
-              <Calendar className="w-5 h-5" />
+        {/* Tab: Reportes — lazy mount */}
+        {activeTab === "reportes" && (
+          <div className="space-y-3 mt-1">
+            <div className="flex gap-2">
+              <button onClick={exportToCSV}
+                className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-indigo-500/15 border border-indigo-500/20 text-indigo-300 text-xs font-black hover:bg-indigo-500/25 transition-all active:scale-95">
+                <Download className="w-3.5 h-3.5" /> Exportar CSV
+              </button>
+              <button onClick={() => setShowMonthlyReport(true)}
+                className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white/[0.04] border border-white/[0.08] text-white/50 text-xs font-black hover:text-white transition-all active:scale-95">
+                <PieChart className="w-3.5 h-3.5" /> Reporte Mensual
+              </button>
+              <button onClick={fetchAiSummary} disabled={aiLoading}
+                className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-violet-500/15 border border-violet-500/20 text-violet-300 text-xs font-black hover:bg-violet-500/25 transition-all active:scale-95 disabled:opacity-50 ml-auto">
+                {aiLoading ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : <Sparkles className="w-3.5 h-3.5" />}
+                {aiLoading ? "Analizando…" : "Analizar IA"}
+              </button>
             </div>
-            <div>
-              <h2 className="text-base font-black text-white tracking-tight">Compromisos</h2>
-              <p className="text-[10px] text-white/30 font-bold uppercase tracking-widest">Gastos fijos y metas · {format(new Date(), "MMMM yyyy", { locale: es })}</p>
-            </div>
-          </div>
-          <div className="p-4 grid grid-cols-3 gap-3 border-b border-white/5">
-            <div className="p-3 bg-black/20 rounded-2xl text-center">
-              <p className="text-[9px] text-white/30 font-black uppercase tracking-widest">Ventas hoy</p>
-              <p className="text-lg font-black text-emerald-400">${todayRevenue.toFixed(2)}</p>
-            </div>
-            <div className="p-3 bg-black/20 rounded-2xl text-center">
-              <p className="text-[9px] text-white/30 font-black uppercase tracking-widest">Gastos hoy</p>
-              <p className="text-lg font-black text-red-400">-${todayExpenses.toFixed(2)}</p>
-            </div>
-            <div className={`p-3 rounded-2xl text-center ${todayNetProfit >= 0 ? "bg-cyan-500/10" : "bg-red-500/10"}`}>
-              <p className="text-[9px] text-white/30 font-black uppercase tracking-widest">Neto hoy</p>
-              <p className={`text-lg font-black ${todayNetProfit >= 0 ? "text-cyan-400" : "text-red-400"}`}>${todayNetProfit.toFixed(2)}</p>
-            </div>
-          </div>
-          <div className="p-4 space-y-3">
-            <ErrorBoundary><OneTimeExpensesWidget /></ErrorBoundary>
-            <ErrorBoundary><GastosOperacionalesWidget /></ErrorBoundary>
-          </div>
-        </div>
 
-        {/* ── CARD 6: Informe ── */}
-        <div className="bg-white/[0.03] border border-white/10 rounded-[28px] overflow-hidden">
-          <div className="p-5 border-b border-white/5 flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="w-9 h-9 rounded-2xl bg-indigo-500/20 text-indigo-400 flex items-center justify-center">
-                <PieChart className="w-5 h-5" />
+            {(aiSummary || aiLoading) && (
+              <div className="p-4 rounded-2xl bg-violet-500/5 border border-violet-500/20">
+                {aiLoading && !aiSummary ? (
+                  <div className="flex items-center gap-2">
+                    <span className="w-1.5 h-1.5 rounded-full bg-violet-400 animate-bounce" style={{animationDelay:"0ms"}} />
+                    <span className="w-1.5 h-1.5 rounded-full bg-violet-400 animate-bounce" style={{animationDelay:"150ms"}} />
+                    <span className="w-1.5 h-1.5 rounded-full bg-violet-400 animate-bounce" style={{animationDelay:"300ms"}} />
+                    <span className="text-xs text-violet-400/60 font-bold ml-1">Analizando…</span>
+                  </div>
+                ) : (
+                  <p className="text-sm text-white/80 leading-relaxed whitespace-pre-line">{aiSummary}</p>
+                )}
               </div>
-              <div>
-                <h2 className="text-base font-black text-white tracking-tight">Informe Detallado</h2>
-                <p className="text-[10px] text-white/30 font-bold uppercase tracking-widest">Análisis y exportación</p>
-              </div>
+            )}
+
+            <div className="bg-white/[0.03] border border-white/10 rounded-2xl p-4">
+              <ErrorBoundary>
+                <EnhancedReports dateFilter={dateFilter} customStartDate={customStartDate} customEndDate={customEndDate} />
+              </ErrorBoundary>
             </div>
-            <button
-              onClick={exportToCSV}
-              className="flex items-center gap-2 px-4 py-2 rounded-[16px] bg-indigo-500/15 border border-indigo-500/20 text-indigo-300 text-xs font-black hover:bg-indigo-500/25 transition-all active:scale-95"
-            >
-              <Download className="w-3.5 h-3.5" />
-              CSV
-            </button>
           </div>
-          <div className="p-4">
-            <ErrorBoundary>
-              <EnhancedReports
-                dateFilter={dateFilter}
-                customStartDate={customStartDate}
-                customEndDate={customEndDate}
-              />
-            </ErrorBoundary>
-          </div>
-          <div className="p-4 border-t border-white/5 flex justify-end">
-            <button
-              onClick={() => setShowMonthlyReport(true)}
-              className="flex items-center gap-2 px-4 py-2 rounded-[16px] bg-white/[0.03] hover:bg-white/[0.06] border border-white/[0.08] text-xs font-black text-white/40 hover:text-white transition-all"
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
-              Reporte Mensual PDF
-            </button>
-          </div>
-        </div>
+        )}
 
       </div>
 
