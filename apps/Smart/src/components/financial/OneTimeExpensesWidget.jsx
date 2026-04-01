@@ -183,119 +183,69 @@ export default function OneTimeExpensesWidget() {
 
   return (
     <>
-      <div className="relative overflow-hidden bg-white/5 backdrop-blur-2xl border border-white/10 rounded-[40px] p-8 shadow-2xl group">
-        <div className="absolute -right-20 -top-20 w-80 h-80 bg-orange-600/10 rounded-full blur-[100px] group-hover:bg-orange-600/20 transition-all duration-700" />
-        
-        <div className="relative flex flex-col md:flex-row md:items-center justify-between gap-8 mb-8">
-          <div className="flex items-center gap-6">
-            <div className="w-16 h-16 rounded-3xl bg-gradient-to-br from-amber-500 to-orange-600 flex items-center justify-center shadow-2xl shadow-orange-500/20 transform -rotate-3 hover:rotate-0 transition-transform duration-500">
-              <Target className="w-8 h-8 text-white" />
-            </div>
-            <div>
-              <h3 className="text-2xl font-black text-white tracking-tighter mb-1">Metas & Inversiones</h3>
-              <div className="flex items-center gap-2">
-                <span className="w-2 h-2 rounded-full bg-amber-500 animate-pulse" />
-                <p className="text-xs text-white/40 font-bold uppercase tracking-[0.2em]">Adquisiciones Planeadas</p>
-              </div>
-            </div>
+      <div className="bg-white/[0.03] border border-white/[0.08] rounded-2xl p-4">
+        <div className="flex items-center justify-between mb-3">
+          <div className="flex items-center gap-2">
+            <Target className="w-3.5 h-3.5 text-amber-400" />
+            <p className="text-[10px] font-black text-white/40 uppercase tracking-widest">Metas & Inversiones</p>
           </div>
-          <Button
-            size="lg"
+          <button
             onClick={() => { resetForm(); setShowDialog(true); }}
-            className="rounded-2xl bg-white/5 border border-white/10 hover:bg-white/10 text-white h-12 px-6 transition-all active:scale-95 font-bold"
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-400 text-[11px] font-black hover:bg-amber-500/20 transition-colors active:scale-95"
           >
-            <Plus className="w-5 h-5 mr-2 text-amber-500" />
-            Nueva Meta
-          </Button>
+            <Plus className="w-3 h-3" /> Nueva meta
+          </button>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-h-[600px] overflow-y-auto pr-2 custom-scrollbar">
-          {loading ? (
-            <div className="md:col-span-2 py-20 text-center">
-              <RefreshCw className="w-12 h-12 animate-spin mx-auto mb-4 text-amber-500/50" />
-              <p className="text-white/40 font-bold uppercase tracking-[0.2em] text-xs">Sincronizando Metas...</p>
-            </div>
-          ) : expenses.length === 0 ? (
-            <div className="md:col-span-2 py-20 text-center bg-white/5 border border-white/10 border-dashed rounded-[32px]">
-              <Target className="w-16 h-16 text-white/10 mx-auto mb-4" />
-              <p className="text-xl font-black text-white/40 tracking-tight">Sin Metas Activas</p>
-              <p className="text-sm text-white/20">Tu visionario está descansando. ¡Crea una nueva meta!</p>
-            </div>
-          ) : (
-            expenses.map((expense) => {
+        {loading ? (
+          <div className="flex items-center justify-center py-8 gap-2">
+            <RefreshCw className="w-3.5 h-3.5 animate-spin text-amber-400/50" />
+            <p className="text-xs text-white/25 font-bold">Cargando…</p>
+          </div>
+        ) : expenses.length === 0 ? (
+          <div className="py-8 text-center border border-white/[0.06] border-dashed rounded-xl">
+            <p className="text-sm font-black text-white/25">Sin metas activas</p>
+          </div>
+        ) : (
+          <div className="space-y-2">
+            {expenses.map((expense) => {
               const progress = (expense.saved_amount / expense.target_amount) * 100;
               const remaining = expense.target_amount - expense.saved_amount;
-
               return (
-                <div
-                  key={expense.id}
-                  className="group relative overflow-hidden bg-white/5 border border-white/10 rounded-[32px] p-6 hover:border-white/20 transition-all duration-300"
-                >
-                  <div className="flex items-start justify-between mb-6">
-                    <div className="flex items-center gap-4">
-                      <div className="w-14 h-14 rounded-2xl bg-black/40 border border-white/5 flex items-center justify-center text-3xl shadow-inner group-hover:scale-110 transition-transform duration-500">
-                        {getCategoryIcon(expense.category)}
-                      </div>
-                      <div className="min-w-0">
-                        <h4 className="text-white font-black tracking-tight text-lg">{expense.name}</h4>
-                        <div className="flex items-center gap-2">
-                          <span className="text-[10px] font-black text-amber-400/70 border border-amber-400/20 px-2 py-0.5 rounded-lg uppercase tracking-widest">{expense.category}</span>
-                          <span className="text-[10px] text-white/30 font-bold uppercase tracking-widest">{expense.vendor || "Directo"}</span>
-                        </div>
-                      </div>
+                <div key={expense.id} className="group flex items-center gap-3 p-3 rounded-xl bg-white/[0.02] hover:bg-white/[0.05] border border-white/[0.04] transition-all">
+                  <span className="text-lg w-7 text-center shrink-0">{getCategoryIcon(expense.category)}</span>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center justify-between mb-1">
+                      <p className="text-sm font-black text-white truncate">{expense.name}</p>
+                      <span className="text-xs font-black text-amber-400 shrink-0 ml-2">${expense.target_amount.toFixed(2)}</span>
                     </div>
-                    <div className="flex items-center gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity">
-                      <Button size="icon" onClick={() => handleEdit(expense)} className="w-9 h-9 rounded-xl bg-white/5 hover:bg-cyan-500/20 text-white/40 hover:text-cyan-400">
-                        <Edit2 className="w-4 h-4" />
-                      </Button>
-                      <Button size="icon" onClick={() => handleMarkPurchased(expense.id)} className="w-9 h-9 rounded-xl bg-white/5 hover:bg-emerald-500/20 text-white/40 hover:text-emerald-400">
-                        <CheckCircle2 className="w-4 h-4" />
-                      </Button>
-                      <Button size="icon" onClick={() => handleDelete(expense.id)} className="w-9 h-9 rounded-xl bg-white/5 hover:bg-red-500/20 text-white/40 hover:text-red-400">
-                        <Trash2 className="w-4 h-4" />
-                      </Button>
+                    <div className="w-full bg-white/5 rounded-full h-1.5 mb-1">
+                      <div className="h-full rounded-full bg-gradient-to-r from-amber-500/70 to-emerald-500/70 transition-all"
+                        style={{ width: `${Math.min(100, progress)}%` }} />
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-[10px] text-white/25">{Math.round(progress)}% · Faltan ${remaining.toFixed(2)}</span>
+                      {expense.target_date && (
+                        <span className="text-[10px] text-white/25">{format(new Date(expense.target_date), "dd MMM", { locale: es })}</span>
+                      )}
                     </div>
                   </div>
-
-                  <div className="space-y-6">
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="p-4 bg-white/[0.03] rounded-2xl border border-white/5">
-                        <p className="text-[10px] font-black text-white/30 uppercase tracking-widest mb-1">Objetivo Fijo</p>
-                        <p className="text-xl font-black text-white">${expense.target_amount.toFixed(2)}</p>
-                      </div>
-                      <div className="p-4 bg-emerald-500/5 rounded-2xl border border-emerald-500/10">
-                        <p className="text-[10px] font-black text-emerald-400/50 uppercase tracking-widest mb-1">Recaudado</p>
-                        <p className="text-xl font-black text-emerald-400">${expense.saved_amount.toFixed(2)}</p>
-                      </div>
-                    </div>
-
-                    <div className="space-y-2">
-                      <div className="flex justify-between items-center px-1">
-                        <span className="text-[10px] font-black text-white/40 uppercase tracking-widest">{Math.round(progress)}% Completado</span>
-                        <span className="text-xs font-bold text-amber-400 tracking-tight">Faltan ${remaining.toFixed(2)}</span>
-                      </div>
-                      <div className="h-3 bg-black/40 rounded-full overflow-hidden border border-white/5 relative">
-                        <div 
-                          className="absolute top-0 left-0 h-full bg-gradient-to-r from-amber-600 to-emerald-500 transition-all duration-1000 shadow-[0_0_15px_rgba(16,185,129,0.4)]"
-                          style={{ width: `${Math.min(100, progress)}%` }}
-                        />
-                      </div>
-                    </div>
-
-                    {expense.target_date && (
-                      <div className="flex items-center gap-2 px-3 py-1.5 bg-white/5 border border-white/5 rounded-xl w-fit">
-                        <Calendar className="w-3.5 h-3.5 text-white/40" />
-                        <span className="text-[10px] font-black text-white/50 uppercase tracking-widest">
-                          Meta: {format(new Date(expense.target_date), "dd MMMM", { locale: es })}
-                        </span>
-                      </div>
-                    )}
+                  <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity shrink-0">
+                    <button onClick={() => handleEdit(expense)} className="w-7 h-7 rounded-lg bg-white/5 hover:bg-cyan-500/20 text-white/30 hover:text-cyan-400 flex items-center justify-center transition-colors">
+                      <Edit2 className="w-3 h-3" />
+                    </button>
+                    <button onClick={() => handleMarkPurchased(expense.id)} className="w-7 h-7 rounded-lg bg-white/5 hover:bg-emerald-500/20 text-white/30 hover:text-emerald-400 flex items-center justify-center transition-colors">
+                      <CheckCircle2 className="w-3 h-3" />
+                    </button>
+                    <button onClick={() => handleDelete(expense.id)} className="w-7 h-7 rounded-lg bg-white/5 hover:bg-red-500/20 text-white/30 hover:text-red-400 flex items-center justify-center transition-colors">
+                      <Trash2 className="w-3 h-3" />
+                    </button>
                   </div>
                 </div>
               );
-            })
-          )}
-        </div>
+            })}
+          </div>
+        )}
       </div>
 
       <Dialog open={showDialog} onOpenChange={resetForm}>
