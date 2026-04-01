@@ -196,7 +196,7 @@ export default function SecurityTab({ user }) {
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         {/* Política de PIN */}
-        <Card className="bg-white/[0.01] border-white/10 shadow-2xl rounded-[32px] overflow-hidden">
+        <Card className="bg-white/[0.01] border-white/10 rounded-2xl overflow-hidden">
           <CardHeader className="border-b border-white/5 pb-4">
             <CardTitle className="text-white flex items-center gap-2">
               <KeyRound className="w-5 h-5 text-cyan-400" />
@@ -269,7 +269,7 @@ export default function SecurityTab({ user }) {
         </Card>
 
         {/* Acciones POS */}
-        <Card className="bg-white/[0.01] border-white/10 shadow-2xl rounded-[32px] overflow-hidden">
+        <Card className="bg-white/[0.01] border-white/10 rounded-2xl overflow-hidden">
           <CardHeader className="border-b border-white/5 pb-4">
             <CardTitle className="text-white flex items-center gap-2">
               <Lock className="w-5 h-5 text-red-400" />
@@ -314,7 +314,7 @@ export default function SecurityTab({ user }) {
         </Card>
 
         {/* Acciones de Órdenes */}
-        <Card className="bg-white/[0.01] border-white/10 shadow-2xl rounded-[32px] overflow-hidden lg:col-span-2">
+        <Card className="bg-white/[0.01] border-white/10 rounded-2xl overflow-hidden lg:col-span-2">
           <CardHeader className="border-b border-white/5 pb-4">
             <CardTitle className="text-white flex items-center gap-2">
               <FileEdit className="w-5 h-5 text-purple-400" />
@@ -359,7 +359,7 @@ export default function SecurityTab({ user }) {
         </Card>
 
         {/* Auditoría */}
-        <Card className="bg-gradient-to-br from-zinc-900 to-black border-zinc-800 shadow-2xl rounded-[32px] overflow-hidden lg:col-span-2">
+        <Card className="bg-gradient-to-br from-zinc-900 to-black border-zinc-800 rounded-2xl overflow-hidden lg:col-span-2">
           <CardContent className="p-0">
             <div className="grid grid-cols-1 md:grid-cols-3">
               <div className="p-8 md:col-span-2 space-y-6">
