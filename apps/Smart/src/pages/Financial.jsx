@@ -1060,6 +1060,7 @@ Responde con: 1) resumen de 2 oraciones, 2) un punto positivo, 3) una recomendac
                 { id: "movimientos", label: "Movimientos" },
                 { id: "compromisos", label: "Compromisos" },
                 { id: "reportes", label: "Reportes" },
+                { id: "tecnicos", label: "Técnicos" },
               ].map(t => (
                 <button key={t.id} onClick={() => setActiveTab(t.id)}
                   className={`w-full py-2 rounded-xl text-xs font-black transition-all text-left px-3 ${
@@ -1080,6 +1081,7 @@ Responde con: 1) resumen de 2 oraciones, 2) un punto positivo, 3) una recomendac
                 { id: "movimientos", label: "Movimientos" },
                 { id: "compromisos", label: "Compromisos" },
                 { id: "reportes", label: "Reportes" },
+                { id: "tecnicos", label: "Técnicos" },
               ].map(t => (
                 <button key={t.id} onClick={() => setActiveTab(t.id)}
                   className={`flex-1 py-2 rounded-xl text-xs font-black transition-all ${
