@@ -239,6 +239,105 @@ const ARIA_TOOLS = [
       parameters: { type: "object", properties: {}, required: [] },
     },
   },
+  {
+    type: "function",
+    function: {
+      name: "registrar_gasto",
+      description: "Registra un gasto de caja rápido (materiales, herramientas, limpieza, etc.).",
+      parameters: {
+        type: "object",
+        properties: {
+          descripcion: { type: "string", description: "Qué se compró o en qué se gastó" },
+          monto:       { type: "number", description: "Monto en dólares" },
+          categoria:   { type: "string", description: "Categoría: materiales, herramientas, servicios, limpieza, otro" },
+        },
+        required: ["descripcion", "monto"],
+      },
+    },
+  },
+  {
+    type: "function",
+    function: {
+      name: "ver_ordenes_listas",
+      description: "Muestra todas las órdenes listas para recoger que aún no han sido entregadas.",
+      parameters: { type: "object", properties: {}, required: [] },
+    },
+  },
+  {
+    type: "function",
+    function: {
+      name: "ver_ordenes_urgentes",
+      description: "Muestra órdenes urgentes, con prioridad alta o que llevan más de 3 días sin movimiento.",
+      parameters: { type: "object", properties: {}, required: [] },
+    },
+  },
+  {
+    type: "function",
+    function: {
+      name: "ajustar_stock",
+      description: "Suma o resta unidades de un producto en inventario (ej: llegaron piezas, se usó una pieza).",
+      parameters: {
+        type: "object",
+        properties: {
+          producto:  { type: "string", description: "Nombre del producto o pieza" },
+          cantidad:  { type: "number", description: "Cantidad a sumar (positivo) o restar (negativo)" },
+          motivo:    { type: "string", description: "Motivo: recepción de piezas, uso en reparación, ajuste, etc." },
+        },
+        required: ["producto", "cantidad"],
+      },
+    },
+  },
+  {
+    type: "function",
+    function: {
+      name: "agregar_producto_inventario",
+      description: "Agrega un producto o pieza nuevo al inventario del taller.",
+      parameters: {
+        type: "object",
+        properties: {
+          nombre:       { type: "string",  description: "Nombre del producto" },
+          precio_venta: { type: "number",  description: "Precio de venta al público" },
+          costo:        { type: "number",  description: "Costo de compra" },
+          stock:        { type: "number",  description: "Cantidad inicial en stock" },
+          categoria:    { type: "string",  description: "Categoría: pantalla, batería, cámara, cargador, accesorio, etc." },
+          compatibilidad: { type: "string", description: "Modelos compatibles (ej: iPhone 14, 14 Plus)" },
+        },
+        required: ["nombre", "precio_venta"],
+      },
+    },
+  },
+  {
+    type: "function",
+    function: {
+      name: "actualizar_precio_producto",
+      description: "Actualiza el precio de venta o costo de un producto en inventario.",
+      parameters: {
+        type: "object",
+        properties: {
+          producto:     { type: "string", description: "Nombre del producto" },
+          nuevo_precio: { type: "number", description: "Nuevo precio de venta" },
+          nuevo_costo:  { type: "number", description: "Nuevo costo (opcional)" },
+        },
+        required: ["producto", "nuevo_precio"],
+      },
+    },
+  },
+  {
+    type: "function",
+    function: {
+      name: "resumen_negocio",
+      description: "Muestra un resumen inteligente del negocio: ingresos de la semana, órdenes por estado, técnico más productivo.",
+      parameters: { type: "object", properties: {}, required: [] },
+    },
+  },
+  {
+    type: "function",
+    function: {
+      name: "carga_tecnicos",
+      description: "Muestra cuántas órdenes activas tiene asignada cada técnico.",
+      parameters: { type: "object", properties: {}, required: [] },
+    },
+  },
 ];
 
 const STATUS_MAP = {
@@ -256,8 +355,16 @@ const STATUS_MAP = {
   registrar_cobro:         "Registrando cobro…",
   crear_cliente:           "Creando cliente…",
   historial_cliente:       "Cargando historial…",
-  ver_stock_bajo:          "Revisando inventario…",
-  ver_caja_del_dia:        "Consultando caja…",
+  ver_stock_bajo:              "Revisando inventario…",
+  ver_caja_del_dia:            "Consultando caja…",
+  registrar_gasto:             "Registrando gasto…",
+  ver_ordenes_listas:          "Buscando órdenes listas…",
+  ver_ordenes_urgentes:        "Buscando órdenes urgentes…",
+  ajustar_stock:               "Ajustando stock…",
+  agregar_producto_inventario: "Agregando producto…",
+  actualizar_precio_producto:  "Actualizando precio…",
+  resumen_negocio:             "Analizando el negocio…",
+  carga_tecnicos:              "Consultando técnicos…",
 };
 
 function readSession() {
@@ -372,10 +479,11 @@ REGLA CRÍTICA: Si crear_orden_completa responde con error "FALTAN_DATOS",
 pregunta inmediatamente al usuario por el primer campo que falta.
 
 ═══ OTRAS ACCIONES ═══
-buscar_orden, actualizar_estado_orden, agregar_nota_orden, asignar_tecnico,
-enviar_mensaje_cliente, registrar_cobro, historial_cliente,
-buscar_precio_inventario, calcular_total_reparacion, sugerir_accesorios,
-ver_stock_bajo, ver_caja_del_dia`;
+• Órdenes: buscar_orden, actualizar_estado_orden, agregar_nota_orden, asignar_tecnico, ver_ordenes_listas, ver_ordenes_urgentes
+• Clientes: enviar_mensaje_cliente, historial_cliente
+• Cobros: registrar_cobro, registrar_gasto
+• Inventario: buscar_precio_inventario, calcular_total_reparacion, sugerir_accesorios, ajustar_stock, agregar_producto_inventario, actualizar_precio_producto, ver_stock_bajo
+• Caja/Reportes: ver_caja_del_dia, resumen_negocio, carga_tecnicos`;
   };
 
   // ── Ejecutor de herramientas ─────────────────────────────────────────────────
@@ -588,6 +696,166 @@ ver_stock_bajo, ver_caja_del_dia`;
 
       case "ver_caja_del_dia":
         return JSON.stringify({ ingresos: todayIncome, gastos: todayExpenses, neto: todayIncome - todayExpenses });
+
+      case "registrar_gasto": {
+        try {
+          await dataClient.entities.Transaction.create({
+            amount:       args.monto,
+            type:         "expense",
+            description:  args.descripcion,
+            category:     args.categoria || "otro",
+            payment_method: "efectivo",
+            created_by:   createdBy,
+          });
+          setMessages(m => [...m, { role: "assistant", type: "action", action: "gasto_registrado", data: { monto: args.monto, descripcion: args.descripcion } }]);
+          return JSON.stringify({ exito: true, mensaje: `Gasto de $${args.monto} registrado: ${args.descripcion}` });
+        } catch (e) { return JSON.stringify({ error: e.message }); }
+      }
+
+      case "ver_ordenes_listas": {
+        try {
+          const all   = await dataClient.entities.Order.list("-updated_date", 100);
+          const listas = (all || []).filter(o => o.status === "ready");
+          if (!listas.length) return JSON.stringify({ mensaje: "No hay órdenes listas para recoger." });
+          return JSON.stringify({
+            total: listas.length,
+            ordenes: listas.map(o => ({
+              numero:  o.order_number,
+              cliente: o.customer_name,
+              equipo:  `${o.device_brand} ${o.device_model}`,
+              desde:   o.updated_date?.slice(0, 10),
+              telefono: o.customer_phone,
+            })),
+          });
+        } catch (e) { return JSON.stringify({ error: e.message }); }
+      }
+
+      case "ver_ordenes_urgentes": {
+        try {
+          const all    = await dataClient.entities.Order.list("-updated_date", 150);
+          const CLOSED = ["completed", "cancelled", "delivered", "picked_up"];
+          const now    = Date.now();
+          const urgentes = (all || []).filter(o => {
+            if (CLOSED.includes(o.status)) return false;
+            const diasSinMov = o.updated_date
+              ? (now - new Date(o.updated_date).getTime()) / 86400000
+              : 99;
+            return o.priority === "high" || o.status === "waiting_parts" || diasSinMov > 3;
+          }).slice(0, 10);
+          if (!urgentes.length) return JSON.stringify({ mensaje: "¡Sin órdenes urgentes! Todo bajo control." });
+          return JSON.stringify({
+            total: urgentes.length,
+            ordenes: urgentes.map(o => {
+              const dias = o.updated_date
+                ? Math.floor((now - new Date(o.updated_date).getTime()) / 86400000)
+                : "?";
+              return { numero: o.order_number, cliente: o.customer_name, equipo: `${o.device_brand} ${o.device_model}`, estado: o.status, dias_sin_movimiento: dias, prioridad: o.priority };
+            }),
+          });
+        } catch (e) { return JSON.stringify({ error: e.message }); }
+      }
+
+      case "ajustar_stock": {
+        try {
+          const term = (args.producto || "").toLowerCase().split(" ").filter(t => t.length > 2);
+          const prod = inventory.find(i => term.some(t => (i.name || "").toLowerCase().includes(t)));
+          if (!prod) return JSON.stringify({ error: `No se encontró "${args.producto}" en inventario.` });
+          const nuevoStock = Math.max(0, (prod.stock || 0) + args.cantidad);
+          await dataClient.entities.Product.update(prod.id, { stock: nuevoStock });
+          setInventory(inv => inv.map(i => i.id === prod.id ? { ...i, stock: nuevoStock } : i));
+          return JSON.stringify({ exito: true, producto: prod.name, stock_anterior: prod.stock, stock_nuevo: nuevoStock, cambio: args.cantidad > 0 ? `+${args.cantidad}` : args.cantidad });
+        } catch (e) { return JSON.stringify({ error: e.message }); }
+      }
+
+      case "agregar_producto_inventario": {
+        try {
+          const created = await dataClient.entities.Product.create({
+            name:                  args.nombre,
+            price:                 args.precio_venta,
+            cost:                  args.costo || 0,
+            stock:                 args.stock || 0,
+            category:              args.categoria || "repuesto",
+            compatibility_models:  args.compatibilidad ? [args.compatibilidad] : [],
+            is_active:             true,
+          });
+          setInventory(inv => [...inv, created]);
+          setMessages(m => [...m, { role: "assistant", type: "action", action: "producto_creado", data: { nombre: args.nombre, precio: args.precio_venta } }]);
+          return JSON.stringify({ exito: true, id: created.id, mensaje: `"${args.nombre}" agregado al inventario a $${args.precio_venta}` });
+        } catch (e) { return JSON.stringify({ error: e.message }); }
+      }
+
+      case "actualizar_precio_producto": {
+        try {
+          const term = (args.producto || "").toLowerCase().split(" ").filter(t => t.length > 2);
+          const prod = inventory.find(i => term.some(t => (i.name || "").toLowerCase().includes(t)));
+          if (!prod) return JSON.stringify({ error: `No se encontró "${args.producto}" en inventario.` });
+          const updates = { price: args.nuevo_precio };
+          if (args.nuevo_costo != null) updates.cost = args.nuevo_costo;
+          await dataClient.entities.Product.update(prod.id, updates);
+          setInventory(inv => inv.map(i => i.id === prod.id ? { ...i, ...updates } : i));
+          return JSON.stringify({ exito: true, producto: prod.name, precio_anterior: prod.price, precio_nuevo: args.nuevo_precio });
+        } catch (e) { return JSON.stringify({ error: e.message }); }
+      }
+
+      case "resumen_negocio": {
+        try {
+          const [orders, txs] = await Promise.all([
+            dataClient.entities.Order.list("-created_date", 300),
+            dataClient.entities.Transaction.list("-created_date", 300),
+          ]);
+          const CLOSED = ["completed", "cancelled", "delivered"];
+          const now    = new Date();
+          const semana = new Date(now.getTime() - 7 * 86400000).toISOString().slice(0, 10);
+          const mes    = now.toISOString().slice(0, 7);
+
+          const ingSemana = (txs || [])
+            .filter(t => t.type === "income" && t.created_date?.slice(0, 10) >= semana)
+            .reduce((s, t) => s + (t.amount || 0), 0);
+          const ingMes = (txs || [])
+            .filter(t => t.type === "income" && t.created_date?.slice(0, 7) === mes)
+            .reduce((s, t) => s + (t.amount || 0), 0);
+          const gastMes = (txs || [])
+            .filter(t => t.type === "expense" && t.created_date?.slice(0, 7) === mes)
+            .reduce((s, t) => s + (t.amount || 0), 0);
+
+          const activas   = (orders || []).filter(o => !CLOSED.includes(o.status));
+          const porEstado = {};
+          activas.forEach(o => { porEstado[o.status] = (porEstado[o.status] || 0) + 1; });
+
+          // técnico más productivo del mes
+          const completadasMes = (orders || []).filter(o => o.status === "completed" && o.updated_date?.slice(0, 7) === mes);
+          const porTecnico = {};
+          completadasMes.forEach(o => { if (o.assigned_to) porTecnico[o.assigned_to] = (porTecnico[o.assigned_to] || 0) + 1; });
+          const topTechId = Object.entries(porTecnico).sort((a,b)=>b[1]-a[1])[0];
+          const topTech   = topTechId ? technicians.find(t => t.id === topTechId[0]) : null;
+
+          return JSON.stringify({
+            ingresos_semana: ingSemana,
+            ingresos_mes:    ingMes,
+            gastos_mes:      gastMes,
+            neto_mes:        ingMes - gastMes,
+            ordenes_activas: activas.length,
+            por_estado:      porEstado,
+            tecnico_top:     topTech ? { nombre: topTech.full_name, ordenes: topTechId[1] } : null,
+          });
+        } catch (e) { return JSON.stringify({ error: e.message }); }
+      }
+
+      case "carga_tecnicos": {
+        try {
+          const all    = await dataClient.entities.Order.list("-updated_date", 200);
+          const CLOSED = ["completed", "cancelled", "delivered", "picked_up"];
+          const activas = (all || []).filter(o => !CLOSED.includes(o.status) && o.assigned_to);
+          const conteo  = {};
+          activas.forEach(o => { conteo[o.assigned_to] = (conteo[o.assigned_to] || 0) + 1; });
+          const resultado = Object.entries(conteo).map(([id, total]) => {
+            const tech = technicians.find(t => t.id === id);
+            return { tecnico: tech?.full_name || id, ordenes_activas: total };
+          }).sort((a, b) => b.ordenes_activas - a.ordenes_activas);
+          const sinAsignar = (all || []).filter(o => !CLOSED.includes(o.status) && !o.assigned_to).length;
+          return JSON.stringify({ tecnicos: resultado, sin_asignar: sinAsignar });
+        } catch (e) { return JSON.stringify({ error: e.message }); }
+      }
 
       default:
         return JSON.stringify({ error: `Herramienta desconocida: ${toolName}` });
@@ -856,9 +1124,11 @@ ver_stock_bajo, ver_caja_del_dia`;
                 <div className="flex flex-col gap-1.5 w-full mt-2">
                   {[
                     "Quiero crear una nueva orden",
-                    "¿Precio pantalla iPhone 15 Pro Max?",
-                    "¿Cómo va el negocio hoy?",
                     "¿Qué órdenes están listas para recoger?",
+                    "¿Hay órdenes urgentes?",
+                    "Resumen del negocio esta semana",
+                    "¿Cómo va la carga de los técnicos?",
+                    "Gasté $30 en cable USB",
                   ].map(q => (
                     <button
                       key={q}
@@ -917,6 +1187,28 @@ ver_stock_bajo, ver_caja_del_dia`;
                       <div>
                         <p className="text-sm text-violet-300 font-semibold">{msg.data.nombre}</p>
                         <p className="text-[11px] text-white/40">{msg.data.telefono}</p>
+                      </div>
+                    </div>
+                  </div>
+                );
+                if (msg.action === "gasto_registrado") return (
+                  <div key={i} className="flex justify-start">
+                    <div className="px-4 py-2.5 rounded-2xl rounded-bl-md border border-red-500/30 bg-red-900/20 flex items-center gap-2">
+                      <CheckCircle2 className="w-3.5 h-3.5 text-red-400 shrink-0" />
+                      <div>
+                        <p className="text-sm text-red-300 font-semibold">-${msg.data.monto} registrado</p>
+                        <p className="text-[11px] text-white/40">{msg.data.descripcion}</p>
+                      </div>
+                    </div>
+                  </div>
+                );
+                if (msg.action === "producto_creado") return (
+                  <div key={i} className="flex justify-start">
+                    <div className="px-4 py-2.5 rounded-2xl rounded-bl-md border border-cyan-500/30 bg-cyan-900/20 flex items-center gap-2">
+                      <CheckCircle2 className="w-3.5 h-3.5 text-cyan-400 shrink-0" />
+                      <div>
+                        <p className="text-sm text-cyan-300 font-semibold">{msg.data.nombre}</p>
+                        <p className="text-[11px] text-white/40">${msg.data.precio} · Inventario actualizado</p>
                       </div>
                     </div>
                   </div>
