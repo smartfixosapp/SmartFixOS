@@ -70,6 +70,34 @@ export default defineConfig({
     },
     extensions: ['.mjs', '.js', '.jsx', '.ts', '.tsx', '.json']
   },
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks(id) {
+          // React core — smallest, most stable, best to isolate
+          if (id.includes('node_modules/react/') || id.includes('node_modules/react-dom/')) {
+            return 'vendor-react';
+          }
+          // Framer Motion — heavy animation lib (~100KB)
+          if (id.includes('node_modules/framer-motion')) {
+            return 'vendor-motion';
+          }
+          // Date utilities
+          if (id.includes('node_modules/date-fns')) {
+            return 'vendor-dates';
+          }
+          // Supabase client
+          if (id.includes('node_modules/@supabase')) {
+            return 'vendor-supabase';
+          }
+          // Remaining node_modules → single vendor chunk
+          if (id.includes('node_modules/')) {
+            return 'vendor';
+          }
+        },
+      },
+    },
+  },
   optimizeDeps: {
     include: ['appwrite'],
     esbuildOptions: {
