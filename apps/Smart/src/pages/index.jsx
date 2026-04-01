@@ -138,7 +138,7 @@ function ProtectedRoutes() {
 function LayoutWrapper({ children, currentPageName }) {
     const location = useLocation();
 
-    if (location.pathname === '/returnlogin' || location.pathname === '/SuperAdmin' || location.pathname === '/Receipt') {
+    if (location.pathname === '/returnlogin' || location.pathname === '/SuperAdmin' || location.pathname === '/Receipt' || location.pathname === '/CustomerApproval') {
         return <>{children}</>;
     }
 
