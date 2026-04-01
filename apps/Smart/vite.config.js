@@ -108,7 +108,7 @@ export default defineConfig({
     },
   },
   optimizeDeps: {
-    include: ['appwrite'],
+    include: ['react', 'react-dom', 'react/jsx-runtime', 'appwrite'],
     esbuildOptions: {
       loader: {
         '.js': 'jsx',
