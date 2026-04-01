@@ -896,7 +896,7 @@ export default function SettingsPage() {
             <div className="space-y-5">
 
               {/* ── Idioma ── */}
-              <div className="bg-gradient-to-br from-white/10 to-white/5 border border-white/10 rounded-[28px] p-7 backdrop-blur-xl shadow-2xl relative overflow-hidden">
+              <div className="bg-gradient-to-br from-white/10 to-white/5 border border-white/10 rounded-2xl p-4 sm:p-6 relative overflow-hidden">
                 <div className="absolute -right-20 -top-20 w-48 h-48 bg-gradient-to-br from-blue-500/20 to-cyan-500/10 rounded-full blur-[80px]" />
                 <div className="flex items-center gap-3 mb-6 relative z-10">
                   <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-blue-500/30 to-indigo-500/20 border border-blue-500/20 flex items-center justify-center">
@@ -943,7 +943,7 @@ export default function SettingsPage() {
               </div>
 
               {/* ── Zona Horaria ── */}
-              <div className="bg-gradient-to-br from-white/10 to-white/5 border border-white/10 rounded-[28px] p-7 backdrop-blur-xl shadow-2xl relative overflow-hidden">
+              <div className="bg-gradient-to-br from-white/10 to-white/5 border border-white/10 rounded-2xl p-4 sm:p-6 relative overflow-hidden">
                 <div className="flex items-center gap-3 mb-6">
                   <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-indigo-500/30 to-purple-500/20 border border-indigo-500/20 flex items-center justify-center">
                     <Clock className="w-5 h-5 text-indigo-300" />
@@ -1004,7 +1004,7 @@ export default function SettingsPage() {
             <div className="space-y-5">
 
               {/* ── 1. Identidad Visual ── */}
-              <div className="bg-gradient-to-br from-white/10 to-white/5 border border-white/10 rounded-[28px] p-7 backdrop-blur-xl shadow-2xl relative overflow-hidden">
+              <div className="bg-gradient-to-br from-white/10 to-white/5 border border-white/10 rounded-2xl p-4 sm:p-6 relative overflow-hidden">
                 <div className="absolute -right-20 -top-20 w-48 h-48 bg-gradient-to-br from-orange-500/20 to-amber-500/10 rounded-full blur-[80px]" />
                 <div className="flex items-center gap-3 mb-6 relative z-10">
                   <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-orange-500/30 to-amber-500/20 border border-orange-500/20 flex items-center justify-center">
@@ -1074,7 +1074,7 @@ export default function SettingsPage() {
               </div>
 
               {/* ── 2. Información de Contacto ── */}
-              <div className="bg-gradient-to-br from-white/10 to-white/5 border border-white/10 rounded-[28px] p-7 backdrop-blur-xl shadow-2xl relative overflow-hidden">
+              <div className="bg-gradient-to-br from-white/10 to-white/5 border border-white/10 rounded-2xl p-4 sm:p-6 relative overflow-hidden">
                 <div className="absolute -left-20 -bottom-20 w-48 h-48 bg-gradient-to-br from-blue-500/20 to-cyan-500/10 rounded-full blur-[80px]" />
                 <div className="flex items-center gap-3 mb-6 relative z-10">
                   <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-blue-500/30 to-cyan-500/20 border border-blue-500/20 flex items-center justify-center">
@@ -1109,7 +1109,7 @@ export default function SettingsPage() {
               </div>
 
               {/* ── 3. Horarios ── */}
-              <div className="bg-gradient-to-br from-white/10 to-white/5 border border-white/10 rounded-[28px] p-7 backdrop-blur-xl shadow-2xl relative overflow-hidden">
+              <div className="bg-gradient-to-br from-white/10 to-white/5 border border-white/10 rounded-2xl p-4 sm:p-6 relative overflow-hidden">
                 <div className="flex items-center gap-3 mb-6">
                   <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-emerald-500/30 to-green-500/20 border border-emerald-500/20 flex items-center justify-center">
                     <Clock className="w-5 h-5 text-emerald-300" />
@@ -1146,7 +1146,7 @@ export default function SettingsPage() {
               </div>
 
               {/* ── 4. Redes Sociales & Links ── */}
-              <div className="bg-gradient-to-br from-white/10 to-white/5 border border-white/10 rounded-[28px] p-7 backdrop-blur-xl shadow-2xl relative overflow-hidden">
+              <div className="bg-gradient-to-br from-white/10 to-white/5 border border-white/10 rounded-2xl p-4 sm:p-6 relative overflow-hidden">
                 <div className="absolute -right-20 -bottom-20 w-48 h-48 bg-gradient-to-br from-purple-500/20 to-pink-500/10 rounded-full blur-[80px]" />
                 <div className="flex items-center gap-3 mb-6 relative z-10">
                   <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-purple-500/30 to-pink-500/20 border border-purple-500/20 flex items-center justify-center">
@@ -1182,7 +1182,7 @@ export default function SettingsPage() {
               </div>
 
               {/* ── 5. Fiscal ── */}
-              <div className="bg-gradient-to-br from-white/10 to-white/5 border border-white/10 rounded-[28px] p-7 backdrop-blur-xl shadow-2xl relative overflow-hidden">
+              <div className="bg-gradient-to-br from-white/10 to-white/5 border border-white/10 rounded-2xl p-4 sm:p-6 relative overflow-hidden">
                 <div className="absolute -right-20 -bottom-20 w-48 h-48 bg-gradient-to-br from-emerald-500/20 to-teal-500/10 rounded-full blur-[80px]" />
                 <div className="flex items-center gap-3 mb-6 relative z-10">
                   <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-emerald-500/30 to-teal-500/20 border border-emerald-500/20 flex items-center justify-center">
@@ -1263,7 +1263,7 @@ export default function SettingsPage() {
             <div className="space-y-5">
 
               {/* Garantía Reparaciones */}
-              <div className="bg-gradient-to-br from-white/10 to-white/5 border border-white/10 rounded-[28px] p-7 backdrop-blur-xl shadow-2xl relative overflow-hidden">
+              <div className="bg-gradient-to-br from-white/10 to-white/5 border border-white/10 rounded-2xl p-4 sm:p-6 relative overflow-hidden">
                 <div className="absolute -right-20 -top-20 w-48 h-48 bg-gradient-to-br from-indigo-500/20 to-violet-500/10 rounded-full blur-[80px]" />
                 <div className="flex items-center gap-3 mb-5 relative z-10">
                   <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-indigo-500/30 to-violet-500/20 border border-indigo-500/20 flex items-center justify-center">
@@ -1284,7 +1284,7 @@ export default function SettingsPage() {
               </div>
 
               {/* Garantía Ventas */}
-              <div className="bg-gradient-to-br from-white/10 to-white/5 border border-white/10 rounded-[28px] p-7 backdrop-blur-xl shadow-2xl relative overflow-hidden">
+              <div className="bg-gradient-to-br from-white/10 to-white/5 border border-white/10 rounded-2xl p-4 sm:p-6 relative overflow-hidden">
                 <div className="absolute -left-20 -bottom-20 w-48 h-48 bg-gradient-to-br from-emerald-500/20 to-teal-500/10 rounded-full blur-[80px]" />
                 <div className="flex items-center gap-3 mb-5 relative z-10">
                   <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-emerald-500/30 to-teal-500/20 border border-emerald-500/20 flex items-center justify-center">
@@ -1305,7 +1305,7 @@ export default function SettingsPage() {
               </div>
 
               {/* Condiciones de Venta */}
-              <div className="bg-gradient-to-br from-white/10 to-white/5 border border-white/10 rounded-[28px] p-7 backdrop-blur-xl shadow-2xl relative overflow-hidden">
+              <div className="bg-gradient-to-br from-white/10 to-white/5 border border-white/10 rounded-2xl p-4 sm:p-6 relative overflow-hidden">
                 <div className="absolute -right-20 -bottom-20 w-48 h-48 bg-gradient-to-br from-amber-500/20 to-orange-500/10 rounded-full blur-[80px]" />
                 <div className="flex items-center gap-3 mb-5 relative z-10">
                   <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-amber-500/30 to-orange-500/20 border border-amber-500/20 flex items-center justify-center">
