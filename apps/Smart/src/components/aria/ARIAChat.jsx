@@ -670,13 +670,15 @@ ver_stock_bajo, ver_caja_del_dia`;
           const data = await res.json();
           if (data?.error) {
             const errMsg = data.error.message || "";
-            if (data.error.type === "tokens" || errMsg.includes("rate_limit") || errMsg.toLowerCase().includes("rate limit")) {
+            const errLow = errMsg.toLowerCase();
+            if (data.error.type === "tokens" || errLow.includes("rate_limit") || errLow.includes("rate limit")) {
               const wait = parseInt(errMsg.match(/(\d+(?:\.\d+)?)s/)?.[1] || "20") * 1000;
               setStatus(`Límite de velocidad — reintentando en ${Math.ceil(wait / 1000)}s…`);
               await new Promise(r => setTimeout(r, Math.min(wait, 25000)));
               setStatus("");
               continue;
             }
+            // Billing/quota errors — throw so caller can fallback to next engine
             throw new Error(errMsg || "Error de IA");
           }
           const choice = data?.choices?.[0];
@@ -778,7 +780,15 @@ ver_stock_bajo, ver_caja_del_dia`;
           if (OPENAI_KEY) await runOpenAI(); else await runGroq();
         }
       } else if (OPENAI_KEY) {
-        await runOpenAI();
+        let openaiOk = true;
+        try { await runOpenAI(); }
+        catch (e) {
+          const m = e.message?.toLowerCase() || "";
+          if (m.includes("billing") || m.includes("credit") || m.includes("quota") || m.includes("insufficient_quota")) {
+            openaiOk = false;
+          } else throw e;
+        }
+        if (!openaiOk) await runGroq();
       } else {
         await runGroq();
       }
