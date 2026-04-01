@@ -978,17 +978,25 @@ export default function Dashboard() {
     <div className="flex-1 min-h-0 overflow-hidden flex flex-col">
       <Toast toast={toast} onClose={() => setToast(null)} />
 
-      {/* Technician simplified view */}
-      {session?.userRole === "technician" && (
-        <TechnicianView
-          session={session}
-          onNewOrder={() => setShowOrderWizard(true)}
-        />
-      )}
+      {/* Technician simplified view — replaces full dashboard */}
+      {session?.userRole === "technician" ? (
+        <>
+          <TechnicianView
+            session={session}
+            onNewOrder={() => setShowWorkOrderWizard(true)}
+          />
+          {showWorkOrderWizard && (
+            <WorkOrderWizard
+              open={showWorkOrderWizard}
+              onClose={() => setShowWorkOrderWizard(false)}
+              onOrderCreated={() => { setShowWorkOrderWizard(false); }}
+            />
+          )}
+        </>
+      ) : (<>
 
       {/* Wizard primer inicio — solo para tenants nuevos */}
-      {!session?.userRole || session.userRole !== "technician" ? null : null}
-      {(!session?.userRole || session.userRole !== "technician") && showSetupWizard && (
+      {showSetupWizard && (
         <FirstTimeSetupWizard
           onComplete={() => {
             setShowSetupWizard(false);
