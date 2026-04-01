@@ -327,10 +327,7 @@ export default function Layout({ children }) {
       {/* Mobile Bottom Navigation */}
       {!isPinAccess && !isWelcome && !shouldShowTrialExpired && !showPaymentScreen && <MobileBottomNav />}
 
-      {/* Widget global de cotizacion */}
-      {!isPinAccess && !isWelcome && !isSetupPage && !shouldShowTrialExpired && !showPaymentScreen && (
-        <GlobalPriceWidget />
-      )}
+      {/* Widget global de cotizacion — desactivado, integrado en ARIA tab 🧮 */}
 
       {/* ✨ ARIA — Asistente IA global (visible en todas las páginas autenticadas) */}
       {!shouldShowTrialExpired && !showPaymentScreen && (

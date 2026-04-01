@@ -1,7 +1,10 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useMemo } from "react";
 import { useLocation } from "react-router-dom";
 import { dataClient } from "@/components/api/dataClient";
-import { X, Mic, ChevronRight, CheckCircle2 } from "lucide-react";
+import { X, Mic, ChevronRight, CheckCircle2, Calculator } from "lucide-react";
+
+const IVU_RATE = 0.115;
+function toNum(v) { const n = Number(v); return Number.isFinite(n) && n >= 0 ? n : 0; }
 
 // Páginas donde NO mostrar ARIA
 const HIDDEN_PATHS = [
@@ -392,9 +395,21 @@ export default function ARIAChat() {
   const [todayExpenses, setTodayExpenses] = useState(0);
   const [activeOrders, setActiveOrders]   = useState({ total: 0, urgent: 0, ready: 0 });
   const [isListening, setIsListening] = useState(false);
+  const [tab, setTab]               = useState("chat"); // "chat" | "calc"
+  const [calcParts, setCalcParts]   = useState("");
+  const [calcLabor, setCalcLabor]   = useState("");
+  const [calcTax, setCalcTax]       = useState(true);
   const recognitionRef = useRef(null);
   const dictRef        = useRef("");
   const endRef         = useRef(null);
+
+  const calcTotals = useMemo(() => {
+    const parts    = toNum(calcParts);
+    const labor    = toNum(calcLabor);
+    const subtotal = parts + labor;
+    const tax      = calcTax ? subtotal * IVU_RATE : 0;
+    return { parts, labor, subtotal, tax, total: subtotal + tax };
+  }, [calcParts, calcLabor, calcTax]);
 
   const isHidden = HIDDEN_PATHS.includes(location.pathname);
 
@@ -1080,7 +1095,7 @@ pregunta inmediatamente al usuario por el primer campo que falta.
           style={{ height: "min(480px, calc(100dvh - 220px))", boxShadow: "0 24px 80px rgba(139,92,246,0.25)" }}
         >
           {/* Header */}
-          <div className="flex items-center justify-between px-5 py-4 border-b border-white/[0.06] shrink-0">
+          <div className="flex items-center justify-between px-4 py-3 border-b border-white/[0.06] shrink-0">
             <div className="flex items-center gap-3">
               <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-violet-600 to-purple-700 flex items-center justify-center shadow-lg shadow-violet-900/50">
                 <span className="text-sm">✨</span>
@@ -1092,13 +1107,32 @@ pregunta inmediatamente al usuario por el primer campo que falta.
                 </p>
               </div>
             </div>
-            <div className="flex items-center gap-2">
-              {messages.length > 0 && (
+            {/* Tabs */}
+            <div className="flex items-center gap-1 bg-white/[0.04] rounded-xl p-1 mx-2">
+              <button
+                onClick={() => setTab("chat")}
+                className={`px-3 py-1 rounded-lg text-[11px] font-bold transition-all ${tab === "chat" ? "bg-violet-600 text-white shadow" : "text-white/30 hover:text-white/60"}`}
+              >💬</button>
+              <button
+                onClick={() => setTab("calc")}
+                className={`px-3 py-1 rounded-lg text-[11px] font-bold transition-all ${tab === "calc" ? "bg-cyan-600 text-white shadow" : "text-white/30 hover:text-white/60"}`}
+              >🧮</button>
+            </div>
+            <div className="flex items-center gap-1.5">
+              {tab === "chat" && messages.length > 0 && (
                 <button
                   onClick={() => setMessages([])}
                   className="text-[9px] text-white/20 hover:text-white/50 font-bold uppercase tracking-widest transition-colors"
                 >
                   Limpiar
+                </button>
+              )}
+              {tab === "calc" && (
+                <button
+                  onClick={() => { setCalcParts(""); setCalcLabor(""); }}
+                  className="text-[9px] text-white/20 hover:text-white/50 font-bold uppercase tracking-widest transition-colors"
+                >
+                  Reset
                 </button>
               )}
               <button
@@ -1110,8 +1144,75 @@ pregunta inmediatamente al usuario por el primer campo que falta.
             </div>
           </div>
 
-          {/* Mensajes */}
-          <div className="flex-1 overflow-y-auto px-4 py-3 space-y-3">
+          {/* ── Calculadora Tab ── */}
+          {tab === "calc" && (
+            <div className="flex-1 overflow-y-auto px-4 py-4 space-y-3">
+              <div className="space-y-1.5">
+                <label className="text-[11px] text-white/40 font-bold uppercase tracking-widest">Piezas / Partes</label>
+                <div className="relative">
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-white/30 text-sm">$</span>
+                  <input
+                    type="number" min="0" step="0.01" placeholder="0.00"
+                    value={calcParts}
+                    onChange={e => setCalcParts(e.target.value)}
+                    className="w-full pl-7 pr-3 py-2.5 rounded-xl bg-white/[0.06] border border-white/[0.08] text-white text-sm focus:outline-none focus:border-cyan-500/50"
+                  />
+                </div>
+              </div>
+              <div className="space-y-1.5">
+                <label className="text-[11px] text-white/40 font-bold uppercase tracking-widest">Mano de obra</label>
+                <div className="relative">
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-white/30 text-sm">$</span>
+                  <input
+                    type="number" min="0" step="0.01" placeholder="0.00"
+                    value={calcLabor}
+                    onChange={e => setCalcLabor(e.target.value)}
+                    className="w-full pl-7 pr-3 py-2.5 rounded-xl bg-white/[0.06] border border-white/[0.08] text-white text-sm focus:outline-none focus:border-cyan-500/50"
+                  />
+                </div>
+              </div>
+              <div className="flex gap-2">
+                <button
+                  onClick={() => setCalcTax(false)}
+                  className={`flex-1 py-2 rounded-xl text-xs font-bold transition-all ${!calcTax ? "bg-cyan-600 text-white" : "bg-white/[0.04] text-white/30 border border-white/[0.08]"}`}
+                >Sin IVU</button>
+                <button
+                  onClick={() => setCalcTax(true)}
+                  className={`flex-1 py-2 rounded-xl text-xs font-bold transition-all ${calcTax ? "bg-emerald-600 text-white" : "bg-white/[0.04] text-white/30 border border-white/[0.08]"}`}
+                >Con IVU 11.5%</button>
+              </div>
+              <div className="rounded-2xl border border-emerald-500/20 bg-gradient-to-br from-emerald-900/20 to-cyan-900/10 p-4 space-y-1.5">
+                {[
+                  ["Piezas",      `$${calcTotals.parts.toFixed(2)}`],
+                  ["Mano de obra", `$${calcTotals.labor.toFixed(2)}`],
+                  ["Subtotal",    `$${calcTotals.subtotal.toFixed(2)}`],
+                  ...(calcTax ? [["IVU (11.5%)", `$${calcTotals.tax.toFixed(2)}`]] : []),
+                ].map(([label, val]) => (
+                  <div key={label} className="flex justify-between text-sm text-white/60">
+                    <span>{label}</span><span>{val}</span>
+                  </div>
+                ))}
+                <div className="h-px bg-white/10 my-1" />
+                <div className="flex justify-between items-center">
+                  <span className="text-sm font-bold text-white">Total</span>
+                  <span className="text-2xl font-black text-emerald-300">${calcTotals.total.toFixed(2)}</span>
+                </div>
+              </div>
+              <button
+                onClick={() => {
+                  const txt = `Calcula reparación: piezas $${calcTotals.parts.toFixed(2)}, mano de obra $${calcTotals.labor.toFixed(2)}${calcTax ? ", con IVU" : ""}. Total: $${calcTotals.total.toFixed(2)}`;
+                  setTab("chat");
+                  setTimeout(() => sendMessage(txt), 100);
+                }}
+                className="w-full py-2.5 rounded-xl bg-violet-600 hover:bg-violet-500 text-white text-xs font-bold transition-colors"
+              >
+                ✨ Enviar a ARIA para registrar cobro
+              </button>
+            </div>
+          )}
+
+          {/* Mensajes — solo en tab chat */}
+          {tab === "chat" && <div className="flex-1 overflow-y-auto px-4 py-3 space-y-3">
             {messages.length === 0 && (
               <div className="h-full flex flex-col items-center justify-center text-center px-4 gap-3">
                 <div className="w-12 h-12 rounded-2xl bg-violet-500/10 border border-violet-500/20 flex items-center justify-center">
@@ -1240,10 +1341,10 @@ pregunta inmediatamente al usuario por el primer campo que falta.
               </div>
             )}
             <div ref={endRef} />
-          </div>
+          </div>}
 
-          {/* Input */}
-          <div className="px-3 py-3 border-t border-white/[0.06] shrink-0">
+          {/* Input — solo en tab chat */}
+          {tab === "chat" && <div className="px-3 py-3 border-t border-white/[0.06] shrink-0">
             <div className={`flex gap-2 items-center bg-white/[0.04] border rounded-2xl px-3 py-2 transition-colors ${
               isListening
                 ? "border-red-500/50 bg-red-950/20"
@@ -1276,7 +1377,7 @@ pregunta inmediatamente al usuario por el primer campo que falta.
                 <ChevronRight className="w-4 h-4 text-white" />
               </button>
             </div>
-          </div>
+          </div>}
         </div>
       )}
 
