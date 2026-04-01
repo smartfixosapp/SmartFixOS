@@ -2841,14 +2841,72 @@ export default function WorkOrderPanel({ orderId, onClose, onUpdate, onDelete, p
               </div>
 
               <div className="flex items-center gap-2 sm:gap-3 flex-shrink-0">
-                <Button
-                  variant="outline"
-                  size="icon"
-                  onClick={() => setShowPrintDialog(true)}
-                  className="w-10 h-10 rounded-full border border-white/10 bg-white/5 text-white/60 hover:text-blue-400 hover:bg-blue-500/10 hover:border-blue-500/30 transition-all duration-300"
-                >
-                  <Share2 className="w-4 h-4" />
-                </Button>
+                {/* Botón compartir recibo */}
+                <div className="relative">
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    onClick={() => setShowShareMenu(v => !v)}
+                    className="w-10 h-10 rounded-full border border-violet-500/30 bg-white/5 text-violet-400 hover:bg-violet-500/10 hover:border-violet-500/50 transition-all duration-300"
+                    title="Compartir recibo"
+                  >
+                    <Share2 className="w-4 h-4" />
+                  </Button>
+                  {showShareMenu && (
+                    <>
+                      <div className="fixed inset-0 z-40" onClick={() => setShowShareMenu(false)} />
+                      <div className="absolute right-0 top-12 z-50 min-w-[200px] rounded-2xl bg-[#0e0e0e] border border-white/10 shadow-2xl shadow-black/60 overflow-hidden">
+                        <p className="text-[9px] font-black text-white/25 uppercase tracking-widest px-3 pt-2.5 pb-1">Compartir recibo</p>
+                        {/* WhatsApp */}
+                        {order?.customer_phone && (() => {
+                          const url  = `${window.location.origin}/Receipt?order_id=${order.id}`;
+                          const PAID = ["completed", "delivered", "picked_up"];
+                          const tipo = PAID.includes(order.status) ? "recibo de pago" : "recibo de recepción";
+                          const msg  = `¡Hola ${order.customer_name}! 🧾 Aquí está tu ${tipo}:\n\n${url}`;
+                          const wa   = `https://wa.me/${order.customer_phone.replace(/\D/g,"")}?text=${encodeURIComponent(msg)}`;
+                          return (
+                            <a href={wa} target="_blank" rel="noopener noreferrer"
+                              onClick={() => setShowShareMenu(false)}
+                              className="flex items-center gap-3 px-4 py-2.5 hover:bg-white/[0.06] transition-colors text-sm text-white/80">
+                              <span className="text-base">💬</span> WhatsApp
+                            </a>
+                          );
+                        })()}
+                        {/* Email */}
+                        {order?.customer_email && (() => {
+                          const url  = `${window.location.origin}/Receipt?order_id=${order.id}`;
+                          const subj = encodeURIComponent(`Tu recibo — ${order.order_number}`);
+                          const body = encodeURIComponent(`Hola ${order.customer_name},\n\nAquí está tu recibo:\n${url}\n\nGracias.`);
+                          return (
+                            <a href={`mailto:${order.customer_email}?subject=${subj}&body=${body}`}
+                              onClick={() => setShowShareMenu(false)}
+                              className="flex items-center gap-3 px-4 py-2.5 hover:bg-white/[0.06] transition-colors text-sm text-white/80">
+                              <Mail className="w-4 h-4 text-blue-400" /> Email
+                            </a>
+                          );
+                        })()}
+                        {/* Imprimir */}
+                        <button
+                          onClick={() => { setShowShareMenu(false); window.open(`${window.location.origin}/Receipt?order_id=${order.id}&print=1`, "_blank"); }}
+                          className="w-full flex items-center gap-3 px-4 py-2.5 hover:bg-white/[0.06] transition-colors text-sm text-white/80">
+                          <Printer className="w-4 h-4 text-white/40" /> Imprimir recibo
+                        </button>
+                        {/* Ver recibo */}
+                        <button
+                          onClick={() => { setShowShareMenu(false); window.open(`${window.location.origin}/Receipt?order_id=${order.id}`, "_blank"); }}
+                          className="w-full flex items-center gap-3 px-4 py-2.5 hover:bg-white/[0.06] transition-colors text-sm text-white/80">
+                          <FileText className="w-4 h-4 text-white/40" /> Ver recibo
+                        </button>
+                        {/* Copiar link */}
+                        <button
+                          onClick={() => { navigator.clipboard.writeText(`${window.location.origin}/Receipt?order_id=${order.id}`); setShowShareMenu(false); }}
+                          className="w-full flex items-center gap-3 px-4 pb-3 pt-1 hover:bg-white/[0.06] transition-colors text-sm text-white/40 border-t border-white/[0.06] mt-1">
+                          <span className="text-base">🔗</span> Copiar link
+                        </button>
+                      </div>
+                    </>
+                  )}
+                </div>
                 
                 <Button
                   variant="outline"
