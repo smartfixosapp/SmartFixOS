@@ -341,6 +341,21 @@ const ARIA_TOOLS = [
       parameters: { type: "object", properties: {}, required: [] },
     },
   },
+  {
+    type: "function",
+    function: {
+      name: "enviar_recibo",
+      description: "Genera y envía por WhatsApp el recibo de una orden: recibo de entrada (cuando se recibe el equipo) o recibo de pago (cuando ya fue cobrado). Úsalo cuando el cliente pida su recibo.",
+      parameters: {
+        type: "object",
+        properties: {
+          orden_id:     { type: "string", description: "ID de la orden" },
+          tipo_recibo:  { type: "string", enum: ["entrada", "pago", "auto"], description: "'entrada' = recibo de recepción, 'pago' = recibo de pago cobrado, 'auto' = detectar según estado" },
+        },
+        required: ["orden_id"],
+      },
+    },
+  },
 ];
 
 const STATUS_MAP = {
@@ -368,6 +383,7 @@ const STATUS_MAP = {
   actualizar_precio_producto:  "Actualizando precio…",
   resumen_negocio:             "Analizando el negocio…",
   carga_tecnicos:              "Consultando técnicos…",
+  enviar_recibo:               "Generando recibo…",
 };
 
 function readSession() {
@@ -396,6 +412,8 @@ export default function ARIAChat() {
   const [activeOrders, setActiveOrders]   = useState({ total: 0, urgent: 0, ready: 0 });
   const [isListening, setIsListening] = useState(false);
   const [tab, setTab]               = useState("chat"); // "chat" | "calc"
+  const [proactiveCount, setProactiveCount] = useState(0); // badge en el botón
+  const proactiveCheckedRef = useRef(false); // solo chequear una vez por sesión
   const [calcParts, setCalcParts]   = useState("");
   const [calcLabor, setCalcLabor]   = useState("");
   const [calcTax, setCalcTax]       = useState(true);
@@ -457,6 +475,68 @@ export default function ARIAChat() {
   useEffect(() => {
     if (open) setTimeout(() => endRef.current?.scrollIntoView({ behavior: "smooth" }), 60);
   }, [messages, open]);
+
+  // ── Chequeo proactivo (1x por sesión, 30s después de montar) ─────────────
+  useEffect(() => {
+    if (isHidden) return;
+    const timer = setTimeout(async () => {
+      if (proactiveCheckedRef.current) return;
+      proactiveCheckedRef.current = true;
+      try {
+        const orders = await dataClient.entities.Order.list("-updated_date", 150);
+        const CLOSED = ["completed", "cancelled", "delivered", "picked_up"];
+        const now    = Date.now();
+        const activas = (orders || []).filter(o => !CLOSED.includes(o.status));
+        const listas  = activas.filter(o => o.status === "ready");
+        const stale   = activas.filter(o => {
+          const dias = o.updated_date
+            ? (now - new Date(o.updated_date).getTime()) / 86400000
+            : 0;
+          return dias >= 3 && o.status !== "ready";
+        });
+        const count = listas.length + stale.length;
+        if (count > 0) setProactiveCount(count);
+      } catch { /* silencioso */ }
+    }, 30000);
+    return () => clearTimeout(timer);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isHidden]);
+
+  // Resumen proactivo al abrir ARIA (si hay alertas y chat vacío)
+  useEffect(() => {
+    if (!open || messages.length > 0 || proactiveCount === 0) return;
+    const runProactive = async () => {
+      try {
+        const orders  = await dataClient.entities.Order.list("-updated_date", 150);
+        const CLOSED  = ["completed", "cancelled", "delivered", "picked_up"];
+        const now     = Date.now();
+        const activas = (orders || []).filter(o => !CLOSED.includes(o.status));
+        const listas  = activas.filter(o => o.status === "ready");
+        const stale   = activas.filter(o => {
+          const dias = o.updated_date
+            ? (now - new Date(o.updated_date).getTime()) / 86400000 : 0;
+          return dias >= 3 && o.status !== "ready";
+        });
+        const prods = inventory.length > 0
+          ? inventory
+          : await dataClient.entities.Product.list("-created_date", 200);
+        const sinStock = prods.filter(i => i.stock != null && i.min_stock != null && i.stock <= i.min_stock);
+
+        const partes = [];
+        if (listas.length > 0) partes.push(`📦 **${listas.length} orden${listas.length > 1 ? "es" : ""} lista${listas.length > 1 ? "s" : ""} para recoger** — ${listas.slice(0,3).map(o => o.customer_name).join(", ")}${listas.length > 3 ? "…" : ""}`);
+        if (stale.length > 0) partes.push(`⏰ **${stale.length} orden${stale.length > 1 ? "es" : ""} sin movimiento** hace más de 3 días — ${stale.slice(0,2).map(o => `${o.customer_name} (${o.device_brand} ${o.device_model})`).join(", ")}${stale.length > 2 ? "…" : ""}`);
+        if (sinStock.length > 0) partes.push(`⚠️ **${sinStock.length} producto${sinStock.length > 1 ? "s" : ""} con stock bajo** — ${sinStock.slice(0,2).map(i => i.name).join(", ")}${sinStock.length > 2 ? "…" : ""}`);
+
+        if (partes.length > 0) {
+          const msg = `Buenos días. Aquí está tu resumen:\n\n${partes.join("\n")}\n\n¿Quieres que tome acción en alguno de estos puntos?`;
+          setMessages([{ role: "assistant", content: msg }]);
+          setProactiveCount(0);
+        }
+      } catch { /* silencioso */ }
+    };
+    runProactive();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open]);
 
   if (isHidden) return null;
 
@@ -659,15 +739,22 @@ pregunta inmediatamente al usuario por el primer campo que falta.
         try {
           const order = await dataClient.entities.Order.get(args.orden_id);
           if (!order) return JSON.stringify({ error: "Orden no encontrada." });
+          // Link al recibo/estado online del cliente
+          const baseUrl  = window.location.origin;
+          const recibUrl = `${baseUrl}/CustomerPortal?order_id=${order.id}`;
           const textos = {
-            listo_para_recoger: `¡Hola ${order.customer_name}! Tu ${order.device_brand} ${order.device_model} está listo para recoger. ¡Gracias por confiar en nosotros!`,
-            en_reparacion:      `¡Hola ${order.customer_name}! Tu equipo está en proceso de reparación. Te avisamos cuando esté listo.`,
-            esperando_piezas:   `¡Hola ${order.customer_name}! Estamos esperando la pieza para tu equipo. Te mantenemos informado.`,
-            personalizado:      args.mensaje_personalizado || "",
+            listo_para_recoger: `¡Hola ${order.customer_name}! 🎉 Tu ${order.device_brand} ${order.device_model} está listo para recoger.\n\nVe tu recibo aquí: ${recibUrl}\n\n¡Gracias por confiar en nosotros!`,
+            en_reparacion:      `¡Hola ${order.customer_name}! 🔧 Tu equipo está en proceso de reparación. Te avisamos cuando esté listo.\n\nSeguimiento: ${recibUrl}`,
+            esperando_piezas:   `¡Hola ${order.customer_name}! ⏳ Estamos esperando la pieza para tu equipo. Te mantenemos informado.\n\nSeguimiento: ${recibUrl}`,
+            personalizado:      args.mensaje_personalizado ? `${args.mensaje_personalizado}\n\nVer orden: ${recibUrl}` : "",
           };
           const texto = textos[args.tipo_mensaje];
+          // Generar link de WhatsApp
+          const phone   = (order.customer_phone || "").replace(/\D/g, "");
+          const waUrl   = phone ? `https://wa.me/${phone}?text=${encodeURIComponent(texto)}` : null;
           await dataClient.entities.Notification.create({ title: `Mensaje a ${order.customer_name}`, message: texto, type: "sms", status: "sent", customer_id: order.customer_id });
-          return JSON.stringify({ exito: true, cliente: order.customer_name, mensaje_enviado: texto });
+          setMessages(m => [...m, { role: "assistant", type: "action", action: "mensaje_enviado", data: { cliente: order.customer_name, waUrl, recibUrl, texto } }]);
+          return JSON.stringify({ exito: true, cliente: order.customer_name, whatsapp_url: waUrl, recibo_url: recibUrl });
         } catch (e) { return JSON.stringify({ error: e.message }); }
       }
 
@@ -869,6 +956,33 @@ pregunta inmediatamente al usuario por el primer campo que falta.
           }).sort((a, b) => b.ordenes_activas - a.ordenes_activas);
           const sinAsignar = (all || []).filter(o => !CLOSED.includes(o.status) && !o.assigned_to).length;
           return JSON.stringify({ tecnicos: resultado, sin_asignar: sinAsignar });
+        } catch (e) { return JSON.stringify({ error: e.message }); }
+      }
+
+      case "enviar_recibo": {
+        try {
+          const order = await dataClient.entities.Order.get(args.orden_id);
+          if (!order) return JSON.stringify({ error: "Orden no encontrada." });
+
+          const baseUrl    = window.location.origin;
+          const reciboUrl  = `${baseUrl}/Receipt?order_id=${order.id}`;
+          const PAID       = ["completed", "delivered", "picked_up"];
+          const tipoAuto   = PAID.includes(order.status) ? "pago" : "entrada";
+          const tipo       = args.tipo_recibo === "auto" || !args.tipo_recibo ? tipoAuto : args.tipo_recibo;
+          const tipoLabel  = tipo === "pago" ? "recibo de pago" : "recibo de recepción";
+
+          const texto = tipo === "pago"
+            ? `¡Hola ${order.customer_name}! 🧾 Aquí está tu ${tipoLabel} de ${order.device_brand} ${order.device_model}:\n\n${reciboUrl}\n\n¡Gracias por confiar en nosotros! 🙌`
+            : `¡Hola ${order.customer_name}! 📋 Aquí está tu ${tipoLabel} de ${order.device_brand} ${order.device_model}. Confirma que recibimos tu equipo:\n\n${reciboUrl}\n\nTe avisamos cuando esté listo. ✅`;
+
+          const phone  = (order.customer_phone || "").replace(/\D/g, "");
+          const waUrl  = phone ? `https://wa.me/${phone}?text=${encodeURIComponent(texto)}` : null;
+
+          setMessages(m => [...m, {
+            role: "assistant", type: "action", action: "recibo_enviado",
+            data: { cliente: order.customer_name, tipo, reciboUrl, waUrl },
+          }]);
+          return JSON.stringify({ exito: true, tipo, recibo_url: reciboUrl, whatsapp_url: waUrl });
         } catch (e) { return JSON.stringify({ error: e.message }); }
       }
 
@@ -1226,7 +1340,7 @@ pregunta inmediatamente al usuario por el primer campo que falta.
                   {[
                     "Quiero crear una nueva orden",
                     "¿Qué órdenes están listas para recoger?",
-                    "¿Hay órdenes urgentes?",
+                    "Enviar recibo al cliente",
                     "Resumen del negocio esta semana",
                     "¿Cómo va la carga de los técnicos?",
                     "Gasté $30 en cable USB",
@@ -1314,6 +1428,54 @@ pregunta inmediatamente al usuario por el primer campo que falta.
                     </div>
                   </div>
                 );
+                if (msg.action === "recibo_enviado") return (
+                  <div key={i} className="flex justify-start">
+                    <div className="px-4 py-3 rounded-2xl rounded-bl-md border border-violet-500/30 bg-violet-900/20 space-y-2 max-w-[95%]">
+                      <div className="flex items-center gap-2">
+                        <CheckCircle2 className="w-3.5 h-3.5 text-violet-400 shrink-0" />
+                        <div>
+                          <p className="text-sm text-violet-300 font-semibold">Recibo {msg.data.tipo === "pago" ? "de pago" : "de entrada"}</p>
+                          <p className="text-[10px] text-white/35">{msg.data.cliente}</p>
+                        </div>
+                      </div>
+                      <div className="flex gap-2">
+                        {msg.data.waUrl && (
+                          <a href={msg.data.waUrl} target="_blank" rel="noopener noreferrer"
+                            className="flex-1 flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-xl bg-green-600 hover:bg-green-500 text-white text-xs font-bold transition-colors">
+                            💬 WhatsApp
+                          </a>
+                        )}
+                        <a href={msg.data.reciboUrl} target="_blank" rel="noopener noreferrer"
+                          className="flex-1 flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-xl bg-white/10 hover:bg-white/15 text-white text-xs font-bold transition-colors">
+                          🧾 Ver recibo
+                        </a>
+                      </div>
+                    </div>
+                  </div>
+                );
+                if (msg.action === "mensaje_enviado") return (
+                  <div key={i} className="flex justify-start">
+                    <div className="px-4 py-3 rounded-2xl rounded-bl-md border border-emerald-500/30 bg-emerald-900/20 space-y-2 max-w-[95%]">
+                      <div className="flex items-center gap-2">
+                        <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+                        <p className="text-sm text-emerald-300 font-semibold">Mensaje a {msg.data.cliente}</p>
+                      </div>
+                      {msg.data.waUrl && (
+                        <a
+                          href={msg.data.waUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-green-600 hover:bg-green-500 text-white text-xs font-bold transition-colors w-fit"
+                        >
+                          💬 Abrir en WhatsApp
+                        </a>
+                      )}
+                      {!msg.data.waUrl && (
+                        <p className="text-[11px] text-white/30">Sin teléfono — notificación interna guardada</p>
+                      )}
+                    </div>
+                  </div>
+                );
               }
               // Mensajes normales
               return (
@@ -1382,22 +1544,29 @@ pregunta inmediatamente al usuario por el primer campo que falta.
       )}
 
       {/* Botón flotante */}
-      <button
-        onClick={() => setOpen(p => !p)}
-        className={`w-14 h-14 rounded-full flex items-center justify-center transition-all active:scale-90 pointer-events-auto ${
-          open
-            ? "bg-violet-700 rotate-12"
-            : "bg-gradient-to-br from-violet-600 to-purple-700 hover:scale-110"
-        }`}
-        style={{ boxShadow: "0 8px 32px rgba(139,92,246,0.55)" }}
-      >
-        {loading
-          ? <span className="text-xl animate-spin inline-block">⟳</span>
-          : open
-            ? <X className="w-5 h-5 text-white" />
-            : <span className="text-xl">✨</span>
-        }
-      </button>
+      <div className="relative pointer-events-auto">
+        {proactiveCount > 0 && !open && (
+          <span className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-red-500 border-2 border-black flex items-center justify-center z-10">
+            <span className="text-[9px] font-black text-white leading-none">{proactiveCount > 9 ? "9+" : proactiveCount}</span>
+          </span>
+        )}
+        <button
+          onClick={() => setOpen(p => !p)}
+          className={`w-14 h-14 rounded-full flex items-center justify-center transition-all active:scale-90 ${
+            open
+              ? "bg-violet-700 rotate-12"
+              : "bg-gradient-to-br from-violet-600 to-purple-700 hover:scale-110"
+          }`}
+          style={{ boxShadow: "0 8px 32px rgba(139,92,246,0.55)" }}
+        >
+          {loading
+            ? <span className="text-xl animate-spin inline-block">⟳</span>
+            : open
+              ? <X className="w-5 h-5 text-white" />
+              : <span className="text-xl">✨</span>
+          }
+        </button>
+      </div>
     </div>
   );
 }

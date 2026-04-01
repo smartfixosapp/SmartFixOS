@@ -31,6 +31,7 @@ import UsersManagement from "./UsersManagement";
 import TenantActivate from "./TenantActivate";
 import VerifySetup from "./VerifySetup";
 import Welcome from "./Welcome";
+import Receipt from "./Receipt";
 
 import { BrowserRouter as Router, Route, Routes, useLocation, useNavigate } from 'react-router-dom';
 
@@ -150,8 +151,8 @@ function ProtectedRoutes() {
 function LayoutWrapper({ children, currentPageName }) {
 const location = useLocation();
 
-// /returnlogin y /SuperAdmin son standalone (sin Layout)
-if (location.pathname === '/returnlogin' || location.pathname === '/SuperAdmin') {
+// Páginas standalone sin Layout
+if (location.pathname === '/returnlogin' || location.pathname === '/SuperAdmin' || location.pathname === '/Receipt') {
     return <>{children}</>;
 }
 
@@ -170,6 +171,7 @@ function PagesContent() {
     <Route path="/SuperAdmin" element={<SuperAdmin />} />
     <Route path="/TenantActivate" element={<TenantActivate />} />
     <Route path="/returnlogin" element={<ReturnLogin />} />
+    <Route path="/Receipt" element={<Receipt />} />
 
     <Route path="/*" element={<ProtectedRoutes />} />
 </Routes>
