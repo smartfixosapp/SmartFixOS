@@ -43,6 +43,7 @@ export default function Layout({ children }) {
   const mainRef = useRef(null);
   const { requestPermission, permission } = usePushNotifications();
   const [showPushBanner, setShowPushBanner] = useState(false);
+  const [searchOpen, setSearchOpen] = useState(false);
   
   // 🔐 Validar estado del trial
   const { isTrialExpired, tenant: trialTenant, loading: trialLoading } = useTenantTrialStatus(tenant?.id);
