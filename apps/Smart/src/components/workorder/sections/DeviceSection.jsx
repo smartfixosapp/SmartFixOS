@@ -23,9 +23,11 @@ export default function DeviceSection({ order }) {
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="flex justify-center py-4">
-          <img 
-            src={iconUrl} 
-            alt="Device" 
+          <img
+            src={iconUrl}
+            alt="Device"
+            loading="lazy"
+            decoding="async"
             className="w-24 h-24 object-contain"
             onError={(e) => {
               // Fallback final
