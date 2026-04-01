@@ -83,30 +83,16 @@ export default defineConfig({
     rollupOptions: {
       output: {
         manualChunks(id) {
-          // React core + scheduler (react-dom dep) — must be same chunk to avoid circular deps
-          if (
-            id.includes('/node_modules/react/') ||
-            id.includes('/node_modules/react-dom/') ||
-            id.includes('/node_modules/scheduler/')
-          ) {
-            return 'vendor-react';
-          }
-          // Framer Motion — heavy animation lib (~100KB)
-          if (id.includes('node_modules/framer-motion')) {
-            return 'vendor-motion';
-          }
-          // Date utilities
-          if (id.includes('node_modules/date-fns')) {
-            return 'vendor-dates';
-          }
-          // Supabase client
-          if (id.includes('node_modules/@supabase')) {
-            return 'vendor-supabase';
-          }
-          // Remaining node_modules → single vendor chunk
-          if (id.includes('node_modules/')) {
-            return 'vendor';
-          }
+          if (!id.includes('node_modules/')) return;
+          // Framer Motion — heavy animation lib (~110KB), independent of React internals
+          if (id.includes('/node_modules/framer-motion/')) return 'vendor-motion';
+          // Date utilities — zero React deps, safe to isolate
+          if (id.includes('/node_modules/date-fns/')) return 'vendor-dates';
+          // Supabase client — large, standalone
+          if (id.includes('/node_modules/@supabase/')) return 'vendor-supabase';
+          // Everything else (React, react-dom, scheduler, lucide, etc.) → one stable vendor chunk
+          // NOTE: Do NOT split React from its internal deps (scheduler, etc.) — causes circular chunks
+          return 'vendor';
         },
       },
     },
