@@ -79,7 +79,10 @@ export default function IntakeStage({ order, onUpdate, onOrderItemsUpdate, onRem
                     </div>
                   </div>
                 ) : (
-                  <p className="truncate text-sm font-semibold text-violet-200">Sin fotos cargadas</p>
+                  <div className="flex items-center gap-2">
+                    <AlertTriangle className="w-4 h-4 text-amber-400 shrink-0" />
+                    <p className="text-sm font-semibold text-amber-300">Se requiere al menos 1 foto para avanzar</p>
+                  </div>
                 )}
               </div>
             </div>
