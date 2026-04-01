@@ -149,23 +149,13 @@ const appClientAdapter = {
       update: (id, data)     => appClient.entities.Tenant.update(id, data),
       delete: (id)           => appClient.entities.Tenant.delete(id),
     },
-    // AppEmployee — acceso global para queries de superadmin, etc.
+    // AppEmployee — scoped por tenant para evitar mezcla de usuarios entre tiendas
     AppEmployee: {
-      list:   (order, limit) => appClient.entities.AppEmployee.list(order, limit),
-      filter: (q, order)     => appClient.entities.AppEmployee.filter(q, order),
-      get:    (id)           => appClient.entities.AppEmployee.get(id),
-      create: (data)         => appClient.entities.AppEmployee.create(data),
-      update: (id, data)     => appClient.entities.AppEmployee.update(id, data),
-      delete: (id)           => appClient.entities.AppEmployee.delete(id),
+      ...tenantScoped(appClient.entities.AppEmployee),
+      get: (id) => appClient.entities.AppEmployee.get(id),
     },
-    // AppSettings y SystemConfig se acceden por slug; no filtrar por tenant_id
-    // para evitar romper registros existentes sin tenant_id asignado.
-    AppSettings: {
-      list: (order, limit) => appClient.entities.AppSettings.list(order, limit),
-      filter: (q, order) => appClient.entities.AppSettings.filter(q, order),
-      create: (data) => appClient.entities.AppSettings.create(data),
-      update: (id, data) => appClient.entities.AppSettings.update(id, data),
-    },
+    // AppSettings — scoped por tenant para aislar configuraciones por tienda
+    AppSettings: tenantScoped(appClient.entities.AppSettings),
     SystemConfig: {
       filter: (q, order) => appClient.entities.SystemConfig.filter(q, order),
       create: (data) => appClient.entities.SystemConfig.create(data),
