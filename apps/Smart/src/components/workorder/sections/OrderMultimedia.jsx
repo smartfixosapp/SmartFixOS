@@ -268,6 +268,7 @@ export default function OrderMultimedia({ order, onUpdate }) {
                             alt={photo.filename || group.label}
                             className="h-full w-full object-cover transition-transform duration-200 group-hover:scale-[1.03]"
                             loading="lazy"
+                            decoding="async"
                           />
                         </button>
                         <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/90 to-transparent p-2">
