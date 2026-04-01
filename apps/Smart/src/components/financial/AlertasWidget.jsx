@@ -233,90 +233,48 @@ export default function AlertasWidget() {
 
   return (
     <>
-      <div className="relative overflow-hidden bg-white/5 backdrop-blur-3xl border border-white/10 rounded-[28px] p-5 shadow-2xl group">
-        <div className="relative flex items-center justify-between mb-5">
-          <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-2xl bg-amber-500/10 flex items-center justify-center border border-amber-500/20">
-              <Bell className="w-4 h-4 text-amber-400" />
-            </div>
-            <div>
-              <h3 className="text-sm font-black text-white tracking-tight flex items-center gap-2">
-                Alertas Financieras
-                {alerts.length > 0 && (
-                  <span className="flex h-5 w-5 items-center justify-center rounded-full bg-red-600/30 text-[9px] font-black text-red-100 border border-red-500/40 animate-pulse">
-                    {alerts.length}
-                  </span>
-                )}
-              </h3>
-              <p className="text-[10px] text-white/30 font-bold uppercase tracking-widest">Monitoreo en tiempo real</p>
-            </div>
+      <div className="bg-white/[0.03] border border-white/[0.08] rounded-2xl p-3 space-y-2">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <Bell className="w-3.5 h-3.5 text-amber-400" />
+            <p className="text-[10px] font-black text-white/40 uppercase tracking-widest">Alertas</p>
+            <span className="flex h-4 w-4 items-center justify-center rounded-full bg-red-600/30 text-[8px] font-black text-red-300 border border-red-500/30 animate-pulse">
+              {alerts.length}
+            </span>
           </div>
-          <button onClick={() => setShowSettings(true)} className="w-8 h-8 rounded-xl bg-white/5 text-gray-400 hover:text-white hover:bg-white/10 transition-all flex items-center justify-center">
-            <Settings className="w-4 h-4" />
+          <button onClick={() => setShowSettings(true)} className="w-6 h-6 rounded-lg bg-white/5 hover:bg-white/10 flex items-center justify-center text-white/30 hover:text-white transition-colors">
+            <Settings className="w-3 h-3" />
           </button>
         </div>
 
-        <div className="relative">
-          {loading ? (
-            <div className="flex items-center justify-center py-6 gap-2 text-white/20">
-              <RefreshCw className="w-4 h-4 animate-spin" />
-              <p className="text-xs font-bold uppercase tracking-widest">Escaneando…</p>
-            </div>
-          ) : (
-            <div className="space-y-4">
-              {alerts.map(alert => (
-                <div
-                  key={alert.id}
-                  className={`group relative overflow-hidden bg-white/5 border rounded-[28px] p-6 transition-all duration-300 hover:bg-white/[0.08] ${
-                    alert.severity === 'urgent' ? 'border-red-500/30 shadow-[0_8px_32px_rgba(239,68,68,0.1)]' : 'border-amber-500/30 shadow-[0_8px_32px_rgba(245,158,11,0.1)]'
-                  }`}
-                >
-                  {/* Internal Glow */}
-                  <div className={`absolute -right-4 -top-4 w-20 h-20 rounded-full blur-[30px] opacity-20 transition-opacity group-hover:opacity-40 ${
-                    alert.severity === 'urgent' ? 'bg-red-500' : 'bg-amber-500'
-                  }`} />
-
-                  <div className="relative flex items-start justify-between gap-4">
-                    <div className="flex-1">
-                      <div className="flex items-center gap-3 mb-3">
-                        <div className={`w-10 h-10 rounded-xl flex items-center justify-center text-xl shadow-inner border ${
-                          alert.severity === 'urgent' ? 'bg-red-500/10 border-red-500/20' : 'bg-amber-500/10 border-amber-500/20'
-                        }`}>
-                          {getAlertIcon(alert.severity)}
-                        </div>
-                        <div>
-                          <h4 className="text-white font-black tracking-tight uppercase text-sm">{alert.title}</h4>
-                          <span className={`text-[10px] font-black uppercase tracking-widest ${
-                            alert.severity === 'urgent' ? 'text-red-400/60' : 'text-amber-400/60'
-                          }`}>Prioridad {alert.severity === 'urgent' ? 'Crítica' : 'Media'}</span>
-                        </div>
-                      </div>
-                      <p className="text-white/60 text-sm leading-relaxed mb-4">{alert.message}</p>
-                      {alert.amount && (
-                        <div className="flex items-center gap-2">
-                          <DollarSign className={`w-4 h-4 ${alert.severity === 'urgent' ? 'text-red-400' : 'text-amber-400'}`} />
-                          <p className={`text-2xl font-black tracking-tighter ${
-                            alert.severity === 'urgent' ? 'text-red-400' : 'text-amber-400'
-                          }`}>
-                            {alert.amount.toLocaleString(undefined, { minimumFractionDigits: 2 })}
-                          </p>
-                        </div>
-                      )}
-                    </div>
-                    <Button
-                      size="icon"
-                      variant="ghost"
-                      onClick={() => dismissAlert(alert.id)}
-                      className="w-10 h-10 rounded-xl text-white/20 hover:text-white hover:bg-white/10"
-                    >
-                      <X className="w-4 h-4" />
-                    </Button>
-                  </div>
+        {loading ? (
+          <div className="flex items-center gap-2 py-2 text-white/20">
+            <RefreshCw className="w-3 h-3 animate-spin" />
+            <p className="text-[10px] font-bold">Escaneando…</p>
+          </div>
+        ) : (
+          <div className="space-y-1.5">
+            {alerts.map(alert => (
+              <div key={alert.id} className={`flex items-start gap-2.5 p-2.5 rounded-xl border transition-all ${
+                alert.severity === 'urgent' ? 'bg-red-500/5 border-red-500/20' : 'bg-amber-500/5 border-amber-500/20'
+              }`}>
+                <span className="text-sm shrink-0 mt-0.5">{getAlertIcon(alert.severity)}</span>
+                <div className="flex-1 min-w-0">
+                  <p className={`text-xs font-black truncate ${alert.severity === 'urgent' ? 'text-red-300' : 'text-amber-300'}`}>{alert.title}</p>
+                  <p className="text-[10px] text-white/40 leading-tight mt-0.5">{alert.message}</p>
+                  {alert.amount && (
+                    <p className={`text-xs font-black mt-0.5 ${alert.severity === 'urgent' ? 'text-red-400' : 'text-amber-400'}`}>
+                      ${alert.amount.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                    </p>
+                  )}
                 </div>
-              ))}
-            </div>
-          )}
-        </div>
+                <button onClick={() => dismissAlert(alert.id)} className="w-5 h-5 rounded-md bg-white/5 hover:bg-white/10 flex items-center justify-center text-white/20 hover:text-white transition-colors shrink-0">
+                  <X className="w-2.5 h-2.5" />
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
 
 
