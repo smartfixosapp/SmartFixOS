@@ -1249,7 +1249,9 @@ Responde con: 1) resumen de 2 oraciones, 2) un punto positivo, 3) una recomendac
           </div>
         )}
 
-      </div>
+          </div>{/* fin main content */}
+        </div>{/* fin lg:flex */}
+      </div>{/* fin max-w-7xl outer */}
 
       {/* ── Dialogs ── */}
       {showOpenDrawer && <OpenDrawerDialog open={showOpenDrawer} onClose={() => setShowOpenDrawer(false)} onSuccess={handleActionSuccess} />}
