@@ -8,6 +8,8 @@ import SharedItemsSection from "@/components/workorder/SharedItemsSection";
 export default function IntakeStage({ order, onUpdate, onOrderItemsUpdate, onRemoteSaved, onPaymentClick }) {
   const o = order || {};
   const [previewPhoto, setPreviewPhoto] = useState(null);
+  const [openHubTab, setOpenHubTab] = useState(null);
+  const hubRef = useRef(null);
 
   const photos = useMemo(() => {
     const source = o.photos_metadata || o.device_photos || [];
