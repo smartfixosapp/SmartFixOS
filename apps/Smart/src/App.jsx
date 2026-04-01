@@ -155,14 +155,14 @@ function App() {
   }, []);
 
   return (
-    <>
+    <AppErrorBoundary>
       <QueryClientProvider client={queryClient}>
         <AppSyncListener />
         <NetworkStatusBanner />
         <Pages />
         <Toaster />
       </QueryClientProvider>
-    </>
+    </AppErrorBoundary>
   )
 }
 
