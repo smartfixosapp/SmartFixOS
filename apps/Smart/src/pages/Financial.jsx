@@ -1489,66 +1489,38 @@ function EditExpenseDialog({ open, onClose, onSave, expense }) {
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent className="max-w-md bg-[#0A0A0A]/95 backdrop-blur-3xl border border-red-500/20 rounded-[32px] shadow-2xl p-0 overflow-hidden">
-        <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-red-600 to-orange-600" />
-        <div className="p-8">
-          <DialogHeader className="mb-8">
-            <div className="flex items-center gap-4">
-              <div className="w-12 h-12 rounded-2xl bg-red-500/10 flex items-center justify-center border border-red-500/20">
-                <Receipt className="w-6 h-6 text-red-400" />
+      <DialogContent className="max-w-md bg-[#0A0A0A] border border-red-500/20 rounded-2xl p-0 overflow-hidden">
+        <div className="absolute top-0 left-0 w-full h-0.5 bg-gradient-to-r from-red-600 to-orange-600" />
+        <div className="p-5">
+          <DialogHeader className="mb-4">
+            <div className="flex items-center gap-3">
+              <div className="w-8 h-8 rounded-xl bg-red-500/10 flex items-center justify-center border border-red-500/20">
+                <Receipt className="w-4 h-4 text-red-400" />
               </div>
-              <DialogTitle className="text-2xl font-black text-white tracking-tight text-left">
+              <DialogTitle className="text-xl font-black text-white tracking-tight text-left">
                 Editar Movimiento
               </DialogTitle>
             </div>
           </DialogHeader>
 
-          <form onSubmit={handleSubmit} className="space-y-6">
+          <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
-              <label className="text-[10px] font-black text-white/40 uppercase tracking-widest ml-1">Monto del Gasto ($)</label>
-              <Input
-                type="number"
-                step="0.01"
-                min="0"
-                value={formData.amount}
-                onChange={(e) => setFormData({ ...formData, amount: e.target.value })}
-                className="bg-white/5 border-white/10 text-white h-12 rounded-2xl px-5 focus:border-red-500/50 font-bold"
-                required
-              />
+              <label className="text-[10px] font-black text-white/40 uppercase tracking-widest ml-1">Monto ($)</label>
+              <Input type="number" step="0.01" min="0" value={formData.amount} onChange={(e) => setFormData({ ...formData, amount: e.target.value })} className="bg-white/5 border-white/10 text-white h-11 rounded-2xl px-4 focus:border-red-500/50 font-bold" required />
             </div>
-
             <div className="space-y-2">
               <label className="text-[10px] font-black text-white/40 uppercase tracking-widest ml-1">Descripción</label>
-              <Input
-                value={formData.description}
-                onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                className="bg-white/5 border-white/10 text-white h-12 rounded-2xl px-5 focus:border-red-500/50 font-bold"
-                required
-              />
+              <Input value={formData.description} onChange={(e) => setFormData({ ...formData, description: e.target.value })} className="bg-white/5 border-white/10 text-white h-11 rounded-2xl px-4 focus:border-red-500/50 font-bold" required />
             </div>
-
             <div className="space-y-2">
               <label className="text-[10px] font-black text-white/40 uppercase tracking-widest ml-1">Categoría</label>
-              <select
-                value={formData.category}
-                onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-                className="w-full bg-white/5 border border-white/10 text-white rounded-2xl h-12 px-5 font-bold focus:outline-none focus:border-red-500/50 appearance-none cursor-pointer"
-              >
-                {categories.map((cat) => (
-                  <option key={cat.value} value={cat.value}>
-                    {cat.label}
-                  </option>
-                ))}
+              <select value={formData.category} onChange={(e) => setFormData({ ...formData, category: e.target.value })} className="w-full bg-white/5 border border-white/10 text-white rounded-2xl h-11 px-4 font-bold focus:outline-none focus:border-red-500/50 appearance-none cursor-pointer">
+                {categories.map((cat) => (<option key={cat.value} value={cat.value}>{cat.label}</option>))}
               </select>
             </div>
-
-            <div className="flex gap-4 pt-4">
-              <Button type="button" onClick={onClose} className="flex-1 bg-white/5 border border-white/10 text-white h-14 rounded-2xl font-black uppercase tracking-widest hover:bg-white/10 transition-all">
-                Cancelar
-              </Button>
-              <Button type="submit" className="flex-1 bg-gradient-to-r from-red-600 to-orange-600 text-white h-14 rounded-2xl font-black uppercase tracking-widest shadow-xl shadow-red-900/20 active:scale-95 transition-all">
-                Guardar Cambios
-              </Button>
+            <div className="flex gap-3 pt-2">
+              <Button type="button" onClick={onClose} className="flex-1 bg-white/5 border border-white/10 text-white h-12 rounded-2xl font-black uppercase tracking-widest hover:bg-white/10 transition-all">Cancelar</Button>
+              <Button type="submit" className="flex-1 bg-gradient-to-r from-red-600 to-orange-600 text-white h-12 rounded-2xl font-black uppercase tracking-widest active:scale-95 transition-all">Guardar</Button>
             </div>
           </form>
         </div>
