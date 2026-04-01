@@ -55,7 +55,17 @@ export default function Layout({ children }) {
   // 💓 Heartbeat de presencia — actualiza last_seen en tenant cada 2 min
   useHeartbeat();
 
-
+  // ⌨️ Cmd+K / Ctrl+K — abre el buscador global
+  useEffect(() => {
+    const handler = (e) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === "k") {
+        e.preventDefault();
+        setSearchOpen(prev => !prev);
+      }
+    };
+    window.addEventListener("keydown", handler);
+    return () => window.removeEventListener("keydown", handler);
+  }, []);
 
   // ✅ Detectar si estamos en el Dashboard
   const isDashboard = useMemo(() => 
