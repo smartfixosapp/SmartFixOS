@@ -363,6 +363,63 @@ Devuelve solo clientes que deberían recibir recordatorio.`,
   }
 
   /**
+   * 5️⃣ RECORDATORIOS DE RECOGIDA — órdenes listas 3+ días sin recoger
+   */
+  static async checkPickupReminders() {
+    try {
+      const threeDaysAgo = new Date(Date.now() - 3 * 24 * 60 * 60 * 1000);
+
+      const orders = await dataClient.entities.Order.filter({
+        status: "ready_for_pickup"
+      });
+
+      const stale = (orders || []).filter(o => {
+        // Use updated_date or status_changed_at, whichever exists
+        const changedAt = o.status_changed_at || o.updated_date || o.updated_at;
+        if (!changedAt) return false;
+        return new Date(changedAt) <= threeDaysAgo;
+      });
+
+      if (stale.length === 0) return null;
+
+      const admins = await dataClient.entities.AppEmployee.list();
+      const targetUsers = admins.filter(u => u.role === "admin" || u.role === "manager");
+
+      for (const order of stale) {
+        const changedAt = order.status_changed_at || order.updated_date || order.updated_at;
+        const daysWaiting = Math.floor((Date.now() - new Date(changedAt)) / (1000 * 60 * 60 * 24));
+
+        for (const user of targetUsers) {
+          await NotificationService.createNotification({
+            userId: user.id,
+            userEmail: user.email,
+            type: "pickup_reminder",
+            title: `📦 Orden esperando recogida: ${order.order_number || order.id?.slice(0, 8)}`,
+            body: `${daysWaiting} días lista sin recoger. Cliente: ${order.customer_name || "N/A"}. ${order.device_brand ? order.device_brand + " " : ""}${order.device_model || ""}`.trim(),
+            relatedEntityType: "order",
+            relatedEntityId: order.id,
+            actionUrl: `/Orders`,
+            actionLabel: "Ver orden",
+            priority: daysWaiting >= 7 ? "urgent" : "high",
+            metadata: {
+              order_number: order.order_number,
+              days_waiting: daysWaiting,
+              customer_name: order.customer_name,
+              customer_phone: order.customer_phone
+            }
+          });
+        }
+      }
+
+      console.log(`✅ SmartNotificationsEngine: ${stale.length} recordatorios de recogida generados`);
+      return stale;
+    } catch (error) {
+      console.error("Error en checkPickupReminders:", error);
+      return null;
+    }
+  }
+
+  /**
    * EJECUTAR TODAS LAS VERIFICACIONES
    */
   static async runAllChecks() {
