@@ -642,6 +642,27 @@ export default function CloseDrawerDialog({ isOpen, onClose, drawer, onSuccess }
                       </div>
                   </div>
 
+                  {/* Productividad del turno */}
+                  {shiftOrderStats && (
+                    <div className="border-t border-white/5 pt-4 mt-4">
+                      <p className="text-xs font-medium text-zinc-500 uppercase tracking-wider mb-3 flex items-center gap-1.5">
+                        <Receipt className="w-3.5 h-3.5 text-cyan-400" /> Productividad del Turno
+                      </p>
+                      <div className="grid grid-cols-3 gap-2">
+                        {[
+                          { label: "Órdenes activas", value: shiftOrderStats.total, color: "text-white" },
+                          { label: "Completadas", value: shiftOrderStats.completed, color: "text-emerald-400" },
+                          { label: "Nuevas", value: shiftOrderStats.newOrders, color: "text-cyan-400" },
+                        ].map(stat => (
+                          <div key={stat.label} className="bg-white/[0.03] border border-white/[0.07] rounded-xl p-2.5 text-center">
+                            <p className={`text-xl font-black ${stat.color}`}>{stat.value}</p>
+                            <p className="text-[10px] text-zinc-500 font-medium leading-tight mt-0.5">{stat.label}</p>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
                   {/* Gastos del turno */}
                   {dailyExpenses.length > 0 && (
                     <div className="border-t border-white/5 pt-4">
