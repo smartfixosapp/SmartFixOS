@@ -2116,6 +2116,21 @@ export default function WorkOrderPanel({ orderId, onClose, onUpdate, onDelete, p
 
     console.log("[ChangeStatus] Iniciando cambio:", prevStatusId, "→", nextId);
 
+    // Bloquear avance desde intake/received si no hay al menos 1 foto
+    if ((prevStatusId === "intake" || prevStatusId === "received") && nextId !== "cancelled") {
+      const prevOrder = getStatusConfig(prevStatusId).order || 0;
+      const nextOrder = getStatusConfig(nextId).order || 0;
+      if (nextOrder > prevOrder) {
+        const photoCount =
+          (Array.isArray(order?.photos_metadata) ? order.photos_metadata.length : 0) +
+          (Array.isArray(order?.device_photos) ? order.device_photos.length : 0);
+        if (photoCount === 0) {
+          toast("Agrega al menos 1 foto del equipo antes de avanzar la orden", { icon: "📷" });
+          return;
+        }
+      }
+    }
+
     // Bloquear avance desde in_progress si el checklist de cierre no está completo
     if (prevStatusId === "in_progress" && nextId !== "cancelled") {
       const prevOrder = getStatusConfig(prevStatusId).order || 0;
