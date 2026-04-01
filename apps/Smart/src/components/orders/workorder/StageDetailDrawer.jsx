@@ -88,7 +88,7 @@ export default function StageDetailDrawer({ open, onClose, stageId, order, onUpd
             {order.customer_signature ? (
               <div>
                 <p className="text-gray-300 mb-2">Firma del cliente:</p>
-                <img src={order.customer_signature} alt="Firma" className="bg-white rounded-md" />
+                <img src={order.customer_signature} alt="Firma" loading="lazy" decoding="async" className="bg-white rounded-md" />
               </div>
             ) : (
               <p className="text-gray-400">No se registró firma de entrega.</p>
