@@ -69,6 +69,8 @@ const PAGES = {
     UsersManagement: UsersManagement,
     VerifySetup: VerifySetup,
     Welcome: Welcome,
+    OrdersMobile: OrdersMobile,
+    Menu: Menu,
 }
 
 function _getCurrentPage(url) {
