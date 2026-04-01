@@ -690,7 +690,7 @@ export default function GastosOperacionalesWidget() {
   return (
     <div className="bg-white/[0.03] border border-white/[0.08] rounded-2xl p-4 space-y-3">
       {/* ── Header ───────────────────────────────────────────────────────── */}
-      <div className="flex items-center justify-between mb-3">
+      <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <Target className="w-3.5 h-3.5 text-cyan-400" />
           <p className="text-[10px] font-black text-white/40 uppercase tracking-widest">Gastos Operacionales</p>
