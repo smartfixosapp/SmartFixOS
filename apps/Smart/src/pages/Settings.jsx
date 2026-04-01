@@ -1539,7 +1539,7 @@ export default function SettingsPage() {
         </div>
 
         {/* Settings — grouped layout */}
-        <div className="space-y-8">
+        <div className="space-y-6">
           {sectionGroups.map(group => (
             <div key={group.groupId}>
               {/* Group label */}
