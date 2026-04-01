@@ -1346,123 +1346,88 @@ function FixedExpenseDialog({ open, onClose, onSave, expense }) {
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent className="max-w-[95vw] sm:max-w-2xl bg-[#0A0A0A]/95 backdrop-blur-3xl border border-white/10 rounded-[32px] shadow-2xl overflow-hidden p-0">
-        <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-cyan-600 to-blue-600" />
-        
-        <div className="p-8 sm:p-10">
-          <DialogHeader className="mb-8">
-            <div className="flex items-center gap-4">
-              <div className="w-12 h-12 rounded-2xl bg-cyan-500/10 flex items-center justify-center border border-cyan-500/20">
-                <Target className="w-6 h-6 text-cyan-400" />
+      <DialogContent className="max-w-[95vw] sm:max-w-lg bg-[#0A0A0A] border border-white/10 rounded-2xl overflow-hidden p-0">
+        <div className="absolute top-0 left-0 w-full h-0.5 bg-gradient-to-r from-cyan-600 to-blue-600" />
+
+        <div className="p-5">
+          <DialogHeader className="mb-4">
+            <div className="flex items-center gap-3">
+              <div className="w-8 h-8 rounded-xl bg-cyan-500/10 flex items-center justify-center border border-cyan-500/20">
+                <Target className="w-4 h-4 text-cyan-400" />
               </div>
-              <DialogTitle className="text-2xl font-black text-white tracking-tight text-left">
+              <DialogTitle className="text-xl font-black text-white tracking-tight text-left">
                 {expense ? "Configurar Distribución" : "Nueva Distribución"}
               </DialogTitle>
             </div>
           </DialogHeader>
 
-          <form onSubmit={handleSubmit} className="space-y-8">
-            <div className="space-y-6">
-              <div className="space-y-2">
-                <label className="text-[10px] font-black text-white/40 uppercase tracking-widest ml-1">Nombre del Gasto</label>
-                <Input 
-                  value={formData.name} 
-                  onChange={(e) => setFormData({ ...formData, name: e.target.value })} 
-                  placeholder="Ej. Renta del Local" 
-                  className="bg-white/5 border-white/10 text-white h-12 rounded-2xl px-5 focus:border-cyan-500/50 transition-all font-bold" 
-                  required 
-                />
-              </div>
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div className="space-y-2">
+              <label className="text-[10px] font-black text-white/40 uppercase tracking-widest ml-1">Nombre del Gasto</label>
+              <Input
+                value={formData.name}
+                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                placeholder="Ej. Renta del Local"
+                className="bg-white/5 border-white/10 text-white h-11 rounded-2xl px-4 focus:border-cyan-500/50 font-bold"
+                required
+              />
+            </div>
 
-              <div className="space-y-3">
-                <label className="text-[10px] font-black text-white/40 uppercase tracking-widest ml-1">Categoría</label>
-                <div className="grid grid-cols-5 gap-2">
-                  {categories.map(cat => (
-                    <button 
-                      key={cat.value} 
-                      type="button" 
-                      onClick={() => setFormData({ ...formData, category: cat.value, icon: cat.icon })}
-                      className={`group relative flex flex-col items-center justify-center p-3 rounded-2xl border transition-all duration-300 ${
-                        formData.category === cat.value 
-                          ? "bg-cyan-500/20 border-cyan-500/40 shadow-lg shadow-cyan-500/10" 
-                          : "bg-white/5 border-white/5 hover:border-white/20"
-                      }`}
-                    >
-                      <span className="text-2xl mb-1 filter drop-shadow-md group-hover:scale-110 transition-transform">{cat.icon}</span>
-                      <span className={`text-[9px] font-black uppercase tracking-tight ${formData.category === cat.value ? 'text-cyan-400' : 'text-white/40'}`}>
-                        {cat.label}
-                      </span>
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <label className="text-[10px] font-black text-white/40 uppercase tracking-widest ml-1">Aporte Fijo ($)</label>
-                  <Input 
-                    type="number" 
-                    step="0.01" 
-                    value={formData.fixed_amount} 
-                    onChange={(e) => setFormData({ ...formData, fixed_amount: e.target.value })} 
-                    placeholder="0.00" 
-                    className="bg-white/5 border-white/10 text-white h-12 rounded-2xl px-5 focus:border-cyan-500/50 font-bold" 
-                  />
-                </div>
-                <div className="space-y-2">
-                  <label className="text-[10px] font-black text-white/40 uppercase tracking-widest ml-1">Utilidad (%)</label>
-                  <Input 
-                    type="number" 
-                    step="0.1" 
-                    value={formData.percentage} 
-                    onChange={(e) => setFormData({ ...formData, percentage: e.target.value })} 
-                    placeholder="0" 
-                    className="bg-white/5 border-white/10 text-white h-12 rounded-2xl px-5 focus:border-cyan-500/50 font-bold" 
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <label className="text-[10px] font-black text-white/40 uppercase tracking-widest ml-1">Frecuencia</label>
-                  <select 
-                    value={formData.frequency} 
-                    onChange={(e) => setFormData({ ...formData, frequency: e.target.value })}
-                    className="w-full bg-white/5 border border-white/10 text-white rounded-2xl h-12 px-5 font-bold focus:outline-none focus:border-cyan-500/50 appearance-none cursor-pointer"
+            <div className="space-y-2">
+              <label className="text-[10px] font-black text-white/40 uppercase tracking-widest ml-1">Categoría</label>
+              <div className="grid grid-cols-5 gap-1.5">
+                {categories.map(cat => (
+                  <button
+                    key={cat.value}
+                    type="button"
+                    onClick={() => setFormData({ ...formData, category: cat.value, icon: cat.icon })}
+                    className={`flex flex-col items-center justify-center py-2.5 rounded-xl border transition-all text-[8px] font-black uppercase tracking-tight ${
+                      formData.category === cat.value
+                        ? "bg-cyan-500/20 border-cyan-500/40 text-cyan-400"
+                        : "bg-white/5 border-white/5 text-white/40 hover:border-white/20"
+                    }`}
                   >
-                    <option value="daily">Diario</option>
-                    <option value="weekly">Semanal</option>
-                    <option value="biweekly">Quincenal</option>
-                    <option value="monthly">Mensual</option>
-                    <option value="quarterly">Trimestral</option>
-                    <option value="yearly">Anual</option>
-                  </select>
-                </div>
-                <div className="space-y-2">
-                  <label className="text-[10px] font-black text-white/40 uppercase tracking-widest ml-1">Día de Cobro (1-31)</label>
-                  <Input 
-                    type="number" 
-                    value={formData.due_day} 
-                    onChange={(e) => setFormData({ ...formData, due_day: e.target.value })} 
-                    placeholder="Ej. 5" 
-                    className="bg-white/5 border-white/10 text-white h-12 rounded-2xl px-5 focus:border-cyan-500/50 font-bold" 
-                  />
-                </div>
+                    <span className="text-lg mb-0.5">{cat.icon}</span>
+                    {cat.label}
+                  </button>
+                ))}
               </div>
             </div>
 
-            <div className="flex gap-4 pt-4">
-              <Button 
-                type="button" 
-                onClick={onClose} 
-                className="flex-1 bg-white/5 border border-white/10 hover:bg-white/10 text-white h-14 rounded-2xl font-black uppercase tracking-widest active:scale-95 transition-all"
-              >
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-2">
+                <label className="text-[10px] font-black text-white/40 uppercase tracking-widest ml-1">Aporte Fijo ($)</label>
+                <Input type="number" step="0.01" value={formData.fixed_amount} onChange={(e) => setFormData({ ...formData, fixed_amount: e.target.value })} placeholder="0.00" className="bg-white/5 border-white/10 text-white h-11 rounded-2xl px-4 focus:border-cyan-500/50 font-bold" />
+              </div>
+              <div className="space-y-2">
+                <label className="text-[10px] font-black text-white/40 uppercase tracking-widest ml-1">Utilidad (%)</label>
+                <Input type="number" step="0.1" value={formData.percentage} onChange={(e) => setFormData({ ...formData, percentage: e.target.value })} placeholder="0" className="bg-white/5 border-white/10 text-white h-11 rounded-2xl px-4 focus:border-cyan-500/50 font-bold" />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-2">
+                <label className="text-[10px] font-black text-white/40 uppercase tracking-widest ml-1">Frecuencia</label>
+                <select value={formData.frequency} onChange={(e) => setFormData({ ...formData, frequency: e.target.value })} className="w-full bg-white/5 border border-white/10 text-white rounded-2xl h-11 px-4 font-bold focus:outline-none focus:border-cyan-500/50 appearance-none cursor-pointer">
+                  <option value="daily">Diario</option>
+                  <option value="weekly">Semanal</option>
+                  <option value="biweekly">Quincenal</option>
+                  <option value="monthly">Mensual</option>
+                  <option value="quarterly">Trimestral</option>
+                  <option value="yearly">Anual</option>
+                </select>
+              </div>
+              <div className="space-y-2">
+                <label className="text-[10px] font-black text-white/40 uppercase tracking-widest ml-1">Día de Cobro (1-31)</label>
+                <Input type="number" value={formData.due_day} onChange={(e) => setFormData({ ...formData, due_day: e.target.value })} placeholder="Ej. 5" className="bg-white/5 border-white/10 text-white h-11 rounded-2xl px-4 focus:border-cyan-500/50 font-bold" />
+              </div>
+            </div>
+
+            <div className="flex gap-3 pt-2">
+              <Button type="button" onClick={onClose} className="flex-1 bg-white/5 border border-white/10 hover:bg-white/10 text-white h-12 rounded-2xl font-black uppercase tracking-widest active:scale-95 transition-all">
                 Cancelar
               </Button>
-              <Button 
-                type="submit" 
-                className="flex-1 bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-white h-14 rounded-2xl font-black uppercase tracking-widest shadow-xl shadow-cyan-600/20 active:scale-95 transition-all"
-              >
+              <Button type="submit" className="flex-1 bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-white h-12 rounded-2xl font-black uppercase tracking-widest active:scale-95 transition-all">
                 {expense ? "Actualizar" : "Confirmar"}
               </Button>
             </div>
