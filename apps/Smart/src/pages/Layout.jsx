@@ -29,6 +29,7 @@ import { notificationEngine } from "@/components/notifications/AdvancedNotificat
 import PWAMetaTags from "@/components/utils/PWAMetaTags";
 import GlobalPriceWidget from "@/components/layout/GlobalPriceWidget";
 import { useHeartbeat } from "@/hooks/useHeartbeat";
+import ARIAChat from "@/components/aria/ARIAChat";
 
 export default function Layout({ children }) {
   const location = useLocation();
@@ -329,6 +330,11 @@ export default function Layout({ children }) {
       {/* Widget global de cotizacion */}
       {!isPinAccess && !isWelcome && !isSetupPage && !shouldShowTrialExpired && !showPaymentScreen && (
         <GlobalPriceWidget />
+      )}
+
+      {/* ✨ ARIA — Asistente IA global (visible en todas las páginas autenticadas) */}
+      {!shouldShowTrialExpired && !showPaymentScreen && (
+        <ARIAChat />
       )}
 
       {/* ===== CSS PARA OCULTAR BARRA BLANCA DE NAVEGADOR EN iOS ===== */}
