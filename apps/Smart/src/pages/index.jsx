@@ -36,6 +36,7 @@ const TenantActivate        = lazy(() => import("./TenantActivate"));
 const UsersManagement       = lazy(() => import("./UsersManagement"));
 const VerifySetup           = lazy(() => import("./VerifySetup"));
 const Welcome               = lazy(() => import("./Welcome"));
+const CustomerApproval      = lazy(() => import("./CustomerApproval"));
 const Appointments          = lazy(() => import("./Appointments"));
 const OrdersMobile          = lazy(() => import("./OrdersMobile"));
 const Menu                  = lazy(() => import("./Menu"));
