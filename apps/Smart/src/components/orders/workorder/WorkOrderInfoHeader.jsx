@@ -319,21 +319,32 @@ export default function WorkOrderPanel({ order, onUpdate, onClose, onDelete, onP
                         <a
                           target="_blank"
                           rel="noopener noreferrer"
-                          href={`https://wa.me/${rawPhone}?text=${encodeURIComponent(`Hola ${order?.customer_name || ""}, te escribimos de 911 SmartFix sobre tu orden ${order?.order_number || ""}.`)}`}
+                          href={(() => {
+                            const reciboUrl = `${window.location.origin}/Receipt?order_id=${order.id}`;
+                            const PAID = ["completed", "delivered", "picked_up"];
+                            const tipo = PAID.includes(order?.status) ? "recibo de pago" : "recibo de recepción";
+                            const msg  = `¡Hola ${order?.customer_name || ""}! 🧾 Aquí está tu ${tipo} de ${order?.device_brand || ""} ${order?.device_model || ""}:\n\n${reciboUrl}\n\n¡Gracias por confiar en nosotros!`;
+                            return `https://wa.me/${rawPhone}?text=${encodeURIComponent(msg)}`;
+                          })()}
                           className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-green-500/10 hover:bg-green-500/20 border border-green-500/20 text-xs font-medium text-green-400 transition-all active:scale-95"
                         >
-                          <MessageSquare className="w-3.5 h-3.5" /> 
+                          <MessageSquare className="w-3.5 h-3.5" />
                           WhatsApp Recibo
                         </a>
                       </>
                     )}
                     
                     {order?.customer_email ? (
-                      <a 
-                        href={`mailto:${order.customer_email}`} 
+                      <a
+                        href={(() => {
+                          const reciboUrl = `${window.location.origin}/Receipt?order_id=${order.id}`;
+                          const subj = encodeURIComponent(`Tu recibo — ${order?.order_number || "orden"}`);
+                          const body = encodeURIComponent(`Hola ${order?.customer_name || ""},\n\nAquí está tu recibo de ${order?.device_brand || ""} ${order?.device_model || ""}:\n\n${reciboUrl}\n\nGracias.`);
+                          return `mailto:${order.customer_email}?subject=${subj}&body=${body}`;
+                        })()}
                         className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-blue-500/10 hover:bg-blue-500/20 border border-blue-500/20 text-xs font-medium text-blue-400 transition-all active:scale-95"
                       >
-                        <Mail className="w-3.5 h-3.5" /> 
+                        <Mail className="w-3.5 h-3.5" />
                         Email Recibo
                       </a>
                     ) : (
