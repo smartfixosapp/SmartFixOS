@@ -1160,6 +1160,8 @@ export default function PinAccess() {
         const verified = await NativeBiometric.verifyIdentity({
           reason: "Vincular FaceID/TouchID para entrar rápido",
           title: "Vincular Biometría",
+          fallbackTitle: "",
+          negativeButtonText: "Cancelar",
         });
         if (!verified) throw new Error("Verificación nativa cancelada");
       } else {
