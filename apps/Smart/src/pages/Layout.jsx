@@ -126,7 +126,9 @@ export default function Layout({ children }) {
 
     if (!sessionRaw) {
       setUser(null);
-      window.location.href = "/Welcome";
+      // Usar React Router en lugar de hard-redirect — evita conflicto con AuthGate
+      // y previene pantalla negra en PWA/acceso directo
+      navigate("/PinAccess", { replace: true });
       return;
     }
 
@@ -162,7 +164,7 @@ export default function Layout({ children }) {
       setUser(null);
       localStorage.removeItem("employee_session");
       sessionStorage.removeItem("911-session");
-      window.location.href = "/Welcome";
+      navigate("/PinAccess", { replace: true });
     }
   }, [isPinAccess, isWelcome, isSetupPage]);
 
