@@ -1724,7 +1724,7 @@ pregunta inmediatamente al usuario por el primer campo que falta.
               <button
                 onClick={() => sendMessage(input)}
                 disabled={loading || !input.trim()}
-                className="w-7 h-7 rounded-xl bg-violet-600 hover:bg-violet-500 disabled:opacity-30 flex items-center justify-center transition-all active:scale-90 shrink-0"
+                className="w-7 h-7 rounded-xl bg-gradient-to-br from-blue-600 to-cyan-600 hover:from-blue-500 hover:to-cyan-500 disabled:opacity-30 flex items-center justify-center transition-all active:scale-90 shrink-0"
               >
                 <ChevronRight className="w-4 h-4 text-white" />
               </button>
