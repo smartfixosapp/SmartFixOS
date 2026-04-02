@@ -8,7 +8,7 @@ import { callGroqAI } from "@/lib/groqAI";
 const IVU_RATE = 0.115;
 function toNum(v) { const n = Number(v); return Number.isFinite(n) && n >= 0 ? n : 0; }
 
-// Páginas donde NO mostrar ARIA
+// Páginas donde NO mostrar NAIJELI
 const HIDDEN_PATHS = [
   "/Welcome", "/PinAccess", "/Setup", "/InitialSetup",
   "/VerifySetup", "/Activate", "/TenantActivate", "/returnlogin",
