@@ -1030,6 +1030,8 @@ export default function PinAccess() {
         const result = await NativeBiometric.verifyIdentity({
           reason: "Entrar a tu perfil",
           title: "Verificar Identidad",
+          fallbackTitle: "",
+          negativeButtonText: "Cancelar",
         });
         if (!result) throw new Error("No se pudo verificar biometría");
       } else {
