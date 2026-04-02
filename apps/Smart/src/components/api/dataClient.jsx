@@ -269,11 +269,4 @@ export const dataClient = appClientAdapter;
 // 👈 MIGRACIÓN: Helper para debugging
 export const getActiveBackend = () => "supabase";
 
-// 👈 MIGRACIÓN: Log de inicialización
-console.log(`
-╔════════════════════════════════════════╗
-║  🔄 DATA CLIENT INITIALIZATION        ║
-║  Backend: SUPABASE                    ║
-║  Mode: Unified SDK (Supabase)         ║
-╚════════════════════════════════════════╝
-`);
+// Data client initialized — backend: Supabase
