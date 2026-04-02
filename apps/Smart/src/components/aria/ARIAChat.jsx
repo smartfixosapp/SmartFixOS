@@ -456,7 +456,7 @@ export default function ARIAChat() {
       page: "/Financial", aiTopic: "finanzas de taller: ingresos, gastos, neto, reportes por período, flujo de caja" },
     { id: "done",      emoji: "🎉", color: "from-green-500 to-emerald-600",
       title: "¡Ya eres un experto!", subtitle: "Tour completado",
-      content: "Eso es todo lo básico. Recuerda que puedes volver a este tour aquí dentro de ARIA cuando quieras.",
+      content: "Eso es todo lo básico. Recuerda que puedes volver a este tour aquí dentro de NAIJELI cuando quieras.",
       page: null, aiTopic: null },
   ];
   const recognitionRef = useRef(null);
