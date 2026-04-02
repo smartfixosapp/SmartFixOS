@@ -78,6 +78,19 @@ function AppSyncListener() {
   return null;
 }
 
+// ── Banner de staging (solo visible cuando VITE_APP_ENV=staging) ─────────
+function StagingBanner() {
+  if (import.meta.env.VITE_APP_ENV !== 'staging') return null;
+  return (
+    <div
+      style={{ position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 99998, pointerEvents: 'none' }}
+      className="flex items-center justify-center gap-2 py-1 bg-amber-500/90 backdrop-blur-sm text-black text-[10px] font-black tracking-widest uppercase"
+    >
+      ⚠ STAGING — ambiente de pruebas, no usar datos reales ⚠
+    </div>
+  );
+}
+
 // ── Banner de estado de red (Offline / Online) ────────────────────────────
 function NetworkStatusBanner() {
   const [status, setStatus] = useState(null); // null | 'offline' | 'back-online'
