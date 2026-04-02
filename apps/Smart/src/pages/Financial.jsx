@@ -1031,30 +1031,30 @@ Responde con: 1) resumen de 2 oraciones, 2) un punto positivo, 3) una recomendac
 
       {/* ── Header ── */}
       <div className="sticky top-0 z-30 bg-black/90 backdrop-blur-2xl border-b border-white/5 px-4 sm:px-6 py-3">
-        <div className="max-w-7xl mx-auto flex items-center justify-between gap-3">
-          <div className="flex items-center gap-2.5">
-            <div className="w-9 h-9 rounded-2xl bg-gradient-to-br from-cyan-500 to-blue-600 flex items-center justify-center shadow-lg shadow-cyan-500/20 shrink-0">
-              <DollarSign className="w-4 h-4 text-white" />
+        <div className="max-w-7xl mx-auto flex items-center justify-between gap-2">
+          <div className="flex items-center gap-2 min-w-0">
+            <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-2xl bg-gradient-to-br from-cyan-500 to-blue-600 flex items-center justify-center shadow-lg shadow-cyan-500/20 shrink-0">
+              <DollarSign className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-white" />
             </div>
-            <div>
-              <h1 className="text-base font-black text-white tracking-tight leading-none">Finanzas</h1>
-              <p className="text-[10px] text-white/30 font-bold uppercase tracking-widest leading-none mt-0.5">
+            <div className="min-w-0">
+              <h1 className="text-sm sm:text-base font-black text-white tracking-tight leading-none">Finanzas</h1>
+              <p className="text-[10px] text-white/30 font-bold uppercase tracking-widest leading-none mt-0.5 truncate">
                 {loading ? "Cargando…" : `${filteredSales.length + filteredExpenses.length} movimientos`}
               </p>
             </div>
           </div>
-          <div className="flex items-center gap-1.5">
-            {/* Filtro de período */}
-            <div className="flex items-center gap-0.5 p-1 bg-white/5 rounded-2xl border border-white/10">
+          <div className="flex items-center gap-1 shrink-0">
+            {/* Filtro de período — etiquetas cortas en móvil */}
+            <div className="flex items-center gap-0.5 p-0.5 sm:p-1 bg-white/5 rounded-2xl border border-white/10">
               {[
-                { id: "today", label: "Hoy" },
-                { id: "week", label: "7d" },
-                { id: "month", label: "Mes" },
-                { id: "all", label: "Todo" },
-                { id: "custom", label: "📅" },
+                { id: "today", label: "Hoy",  labelSm: "Hoy" },
+                { id: "week",  label: "7d",   labelSm: "7d"  },
+                { id: "month", label: "Mes",  labelSm: "Mes" },
+                { id: "all",   label: "Todo", labelSm: "Todo"},
+                { id: "custom",label: "📅",   labelSm: "📅"  },
               ].map((p) => (
                 <button key={p.id} onClick={() => setDateFilter(p.id)}
-                  className={`px-2.5 py-1.5 rounded-xl text-[11px] font-black transition-all ${
+                  className={`px-1.5 sm:px-2.5 py-1 sm:py-1.5 rounded-xl text-[10px] sm:text-[11px] font-black transition-all ${
                     dateFilter === p.id
                       ? "bg-gradient-to-r from-cyan-600 to-blue-600 text-white shadow"
                       : "text-white/30 hover:text-white/60"
@@ -1063,12 +1063,12 @@ Responde con: 1) resumen de 2 oraciones, 2) un punto positivo, 3) una recomendac
               ))}
             </div>
             <button onClick={handleManualRefresh} disabled={loading}
-              className="w-8 h-8 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-white/40 hover:text-white transition-colors shrink-0">
-              <RefreshCw className={`w-3.5 h-3.5 ${loading ? "animate-spin" : ""}`} />
+              className="w-7 h-7 sm:w-8 sm:h-8 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-white/40 hover:text-white transition-colors shrink-0">
+              <RefreshCw className={`w-3 h-3 sm:w-3.5 sm:h-3.5 ${loading ? "animate-spin" : ""}`} />
             </button>
             <button onClick={() => navigate(-1)}
-              className="w-8 h-8 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-white/40 hover:text-white transition-colors shrink-0">
-              <X className="w-3.5 h-3.5" />
+              className="w-7 h-7 sm:w-8 sm:h-8 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-white/40 hover:text-white transition-colors shrink-0">
+              <X className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
             </button>
           </div>
         </div>
