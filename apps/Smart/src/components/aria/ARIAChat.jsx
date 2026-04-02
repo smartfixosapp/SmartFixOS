@@ -400,9 +400,13 @@ const ACTIVE_ENGINE =
   import.meta.env.VITE_OPENAI_API_KEY    ? "GPT-4o mini"  :
   "Llama 3.1";
 
+const NAJELIZ_TOURED_KEY = "smartfix_najeliz_toured";
+
 export default function ARIAChat() {
   const location  = useLocation();
   const [open, setOpen]           = useState(false);
+  // true = el usuario ya completó el tour → botón se esconde
+  const [toured, setToured] = useState(() => localStorage.getItem(NAJELIZ_TOURED_KEY) === "1");
   const [messages, setMessages]   = useState([]);
   const [input, setInput]         = useState("");
   const [loading, setLoading]     = useState(false);
