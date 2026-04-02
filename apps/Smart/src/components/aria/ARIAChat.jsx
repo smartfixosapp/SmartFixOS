@@ -1415,6 +1415,106 @@ pregunta inmediatamente al usuario por el primer campo que falta.
             </div>
           )}
 
+          {/* ── Tour Tab ─────────────────────────────────────────────────────── */}
+          {tab === "tour" && (() => {
+            const step = TOUR_STEPS[tourStep];
+            const isFirst = tourStep === 0;
+            const isLast  = tourStep === TOUR_STEPS.length - 1;
+            const tip     = tourTips[tourStep];
+            const progress = tourStep / (TOUR_STEPS.length - 1);
+            return (
+              <div className="flex-1 overflow-y-auto flex flex-col">
+                {/* Cabecera degradado del paso */}
+                <div className={`bg-gradient-to-r ${step.color} px-4 py-3 flex items-center gap-3 shrink-0`}>
+                  <span className="text-2xl">{step.emoji}</span>
+                  <div>
+                    <p className="text-white font-black text-sm leading-tight">{step.title}</p>
+                    <p className="text-white/70 text-[10px] font-semibold">{step.subtitle}</p>
+                  </div>
+                </div>
+
+                {/* Contenido del paso */}
+                <div className="flex-1 px-4 py-3 space-y-3">
+                  <AnimatePresence mode="wait">
+                    <motion.div key={tourStep}
+                      initial={{ opacity: 0, x: 10 }} animate={{ opacity: 1, x: 0 }}
+                      exit={{ opacity: 0, x: -10 }} transition={{ duration: 0.18 }}
+                      className="space-y-3"
+                    >
+                      <p className="text-white/80 text-sm leading-relaxed">{step.content}</p>
+
+                      {/* Tip IA */}
+                      <AnimatePresence>
+                        {(tip || tourTipLoading) && (
+                          <motion.div
+                            initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }}
+                            exit={{ opacity: 0, height: 0 }}
+                            className="rounded-xl bg-violet-500/10 border border-violet-500/20 p-3"
+                          >
+                            <div className="flex items-start gap-2">
+                              <Sparkles className="w-3.5 h-3.5 text-violet-400 mt-0.5 shrink-0" />
+                              {tourTipLoading ? (
+                                <div className="flex gap-1 items-center">
+                                  {[0,1,2].map(i => (
+                                    <span key={i} className="w-1.5 h-1.5 rounded-full bg-violet-400 animate-bounce"
+                                      style={{ animationDelay: `${i*150}ms` }} />
+                                  ))}
+                                </div>
+                              ) : (
+                                <p className="text-violet-200/90 text-[11px] leading-relaxed">{tip}</p>
+                              )}
+                            </div>
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
+                    </motion.div>
+                  </AnimatePresence>
+
+                  {/* Barra de progreso */}
+                  <div className="h-1 rounded-full bg-white/10 overflow-hidden">
+                    <motion.div className="h-full rounded-full bg-gradient-to-r from-violet-500 to-purple-500"
+                      animate={{ width: `${progress * 100}%` }}
+                      transition={{ type: "spring", stiffness: 200, damping: 20 }}
+                    />
+                  </div>
+
+                  {/* Puntos + contador */}
+                  <div className="flex items-center justify-between">
+                    <div className="flex gap-1">
+                      {TOUR_STEPS.map((_, i) => (
+                        <button key={i} onClick={() => setTourStep(i)}
+                          className={`rounded-full transition-all ${i === tourStep ? "w-4 h-1.5 bg-violet-400" : i < tourStep ? "w-1.5 h-1.5 bg-white/40" : "w-1.5 h-1.5 bg-white/15"}`}
+                        />
+                      ))}
+                    </div>
+                    <span className="text-white/30 text-[10px]">{tourStep + 1} / {TOUR_STEPS.length}</span>
+                  </div>
+
+                  {/* Botones navegación */}
+                  <div className="flex gap-2 pt-1">
+                    {!isFirst && (
+                      <button onClick={() => setTourStep(s => s - 1)}
+                        className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-white/5 hover:bg-white/10 text-white/50 text-xs font-bold transition-colors"
+                      >
+                        <ChevronLeft className="w-3.5 h-3.5" /> Atrás
+                      </button>
+                    )}
+                    <button
+                      onClick={() => isLast ? setTab("chat") : setTourStep(s => s + 1)}
+                      className={`flex-1 flex items-center justify-center gap-2 py-2 rounded-xl text-sm font-black transition-all ${
+                        isLast
+                          ? "bg-gradient-to-r from-green-500 to-emerald-500 text-white shadow-lg shadow-green-500/25"
+                          : "bg-gradient-to-r from-violet-500 to-purple-600 text-white shadow-lg shadow-violet-500/25 hover:shadow-violet-500/40"
+                      }`}
+                    >
+                      {isLast ? "🎉 ¡Listo! Ir al chat" : isFirst ? <>Empezar <ChevronRight className="w-4 h-4" /></> : <>Siguiente <ChevronRight className="w-4 h-4" /></>}
+                    </button>
+                  </div>
+                </div>
+              </div>
+            );
+          })()}
+
           {/* Mensajes — solo en tab chat */}
           {tab === "chat" && <div className="flex-1 overflow-y-auto px-4 py-3 space-y-3">
             {messages.length === 0 && (
