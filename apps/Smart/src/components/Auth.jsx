@@ -391,11 +391,18 @@ export default function AuthGate({ children }) {
   }, [user, requirePin]);
 
   // ── beforeunload: cerrar ventana / pestaña en escritorio ─────────────
-  // Limpia localStorage para que al reabrir no exista sesión persistente (solo en WEB).
+  // Solo limpia localStorage en web normal — NO en PWA standalone ni nativo.
+  // En PWA (acceso directo), beforeunload dispara al añadir el icono y borraría
+  // la sesión prematuramente, causando pantalla negra al reabrir.
   React.useEffect(() => {
     if (!isPublicPath() && !Capacitor.isNativePlatform()) {
       const handleBeforeUnload = () => {
         if (Capacitor.getPlatform() === 'web') {
+          // No borrar sesión si estamos corriendo como PWA instalada (acceso directo)
+          const isStandalone =
+            window.matchMedia?.("(display-mode: standalone)").matches ||
+            window.navigator.standalone === true;
+          if (isStandalone) return;
           localStorage.removeItem("employee_session");
           localStorage.setItem(BG_TS_KEY, "0");
         }
@@ -406,7 +413,12 @@ export default function AuthGate({ children }) {
   }, []);
 
   // ─────────────────────────────────────────────────────────────────────
-  if (isCheckingAuth) return null;
+  // Splash mientras se verifica auth — evita pantalla negra al abrir desde acceso directo
+  if (isCheckingAuth) return (
+    <div style={{ position: "fixed", inset: 0, background: "#000", display: "flex", alignItems: "center", justifyContent: "center" }}>
+      <div className="w-8 h-8 rounded-full border-[3px] border-white/10 border-t-cyan-400 animate-spin" />
+    </div>
+  );
 
   if (user) {
     return (
