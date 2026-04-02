@@ -191,14 +191,17 @@ function PagesContent() {
             </LayoutWrapper>
 
             {/* ── Botón flotante de ayuda (?) ───────────────────────── */}
+            {/* En mobile se coloca a la izquierda del botón de ARIA (right-5, w-14)
+                dejando un gap de ~8px: right = 5 + 14*4px + 8px ≈ right-20 (80px).
+                En desktop va a bottom-6 right-24 para no chocar con ARIA (right-5 w-14). */}
             {!isPublicPath && !isOpen && (
                 <button
                     onClick={open}
                     aria-label="Abrir tutorial guiado"
-                    className="fixed bottom-[5.5rem] right-4 z-[9980] w-10 h-10 rounded-full bg-violet-600 hover:bg-violet-500 active:scale-95 shadow-lg shadow-violet-500/30 flex items-center justify-center transition-all duration-150 border border-violet-400/30"
-                    style={{ bottom: 'calc(5.5rem + env(safe-area-inset-bottom, 0px))' }}
+                    className="fixed bottom-[104px] right-20 md:bottom-6 md:right-24 z-[9980] w-9 h-9 rounded-full bg-violet-600/90 hover:bg-violet-500 active:scale-95 shadow-lg shadow-violet-500/25 flex items-center justify-center transition-all duration-150 border border-violet-400/20"
+                    style={{ bottom: 'calc(104px + env(safe-area-inset-bottom, 0px))' }}
                 >
-                    <span className="text-white font-black text-base leading-none select-none">?</span>
+                    <span className="text-white font-black text-sm leading-none select-none">?</span>
                 </button>
             )}
 
