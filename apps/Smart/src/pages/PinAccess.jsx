@@ -600,8 +600,8 @@ export default function PinAccess() {
         setOauthInProgress(true);
 
         const { Browser } = await import('@capacitor/browser');
-        // IMPORTANT: Using the full path as requested by the user for precise Supabase matching
-        const redirectTo = `com.smartfixos.pr911://PinAccess`;
+        // Include gintent so PinAccess knows if this is login vs register after redirect
+        const redirectTo = `com.smartfixos.pr911://PinAccess?gintent=${intent}`;
 
         const { data, error } = await supabase.auth.signInWithOAuth({
           provider: "google",
@@ -621,10 +621,15 @@ export default function PinAccess() {
 
         if (data?.url) {
           await Browser.open({ url: data.url });
-          // Note: Browser.addListener('browserFinished') could be added here
-          // if we want to reset oauthInProgress when user manually closes.
+          // Reset loading/progress if user closes browser without completing OAuth
+          Browser.addListener('browserFinished', () => {
+            setLoading(false);
+            setOauthInProgress(false);
+            Browser.removeAllListeners();
+          });
         } else {
-          toast.error('🔴 [D2] No se recibió URL de OAuth');
+          console.warn('[OAuth] No URL received from Supabase signInWithOAuth');
+          toast.error("No se pudo iniciar con Google. Intenta de nuevo.");
           setLoading(false);
           setOauthInProgress(false);
         }
