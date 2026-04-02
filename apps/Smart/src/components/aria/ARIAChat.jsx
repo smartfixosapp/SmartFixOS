@@ -1516,7 +1516,16 @@ pregunta inmediatamente al usuario por el primer campo que falta.
                       </button>
                     )}
                     <button
-                      onClick={() => isLast ? setTab("chat") : setTourStep(s => s + 1)}
+                      onClick={() => {
+                        if (isLast) {
+                          // Tour completado — esconder el botón flotante permanentemente
+                          localStorage.setItem(NAJELIZ_TOURED_KEY, "1");
+                          setToured(true);
+                          setOpen(false);
+                        } else {
+                          setTourStep(s => s + 1);
+                        }
+                      }}
                       className={`flex-1 flex items-center justify-center gap-2 py-2 rounded-xl text-sm font-black transition-all ${
                         isLast
                           ? "bg-gradient-to-r from-green-500 to-emerald-500 text-white shadow-lg shadow-green-500/25"
