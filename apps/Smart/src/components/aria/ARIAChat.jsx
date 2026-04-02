@@ -1283,8 +1283,8 @@ pregunta inmediatamente al usuario por el primer campo que falta.
       {/* Panel de chat */}
       {open && (
         <div
-          className="w-[calc(100vw-2.5rem)] sm:w-[380px] bg-[#0e0e0e]/98 backdrop-blur-3xl border border-violet-500/20 rounded-[28px] shadow-2xl overflow-hidden flex flex-col pointer-events-auto"
-          style={{ height: "min(480px, calc(100dvh - 220px))", boxShadow: "0 24px 80px rgba(139,92,246,0.25)" }}
+          className="w-[calc(100vw-2.5rem)] sm:w-[380px] bg-[#0e0e0e]/98 backdrop-blur-3xl border border-blue-500/20 rounded-[28px] shadow-2xl overflow-hidden flex flex-col pointer-events-auto"
+          style={{ height: "min(480px, calc(100dvh - 220px))", boxShadow: "0 24px 80px rgba(59,130,246,0.20), 0 0 60px rgba(239,68,68,0.08), 0 0 80px rgba(234,179,8,0.06)" }}
         >
           {/* Header */}
           <div className="flex items-center justify-between px-4 py-3 border-b border-white/[0.06] shrink-0">
