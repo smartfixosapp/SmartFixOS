@@ -869,6 +869,8 @@ export default function PinAccess() {
           title: "Autenticar",
           subtitle: "Reconocimiento facial o huella",
           description: "Mira a la cámara para entrar",
+          fallbackTitle: "",        // iOS: oculta el botón "Ingresar contraseña del dispositivo"
+          negativeButtonText: "Cancelar",
         });
         
         if (!result) throw new Error("Verificación fallida");
