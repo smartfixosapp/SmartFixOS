@@ -1775,11 +1775,11 @@ pregunta inmediatamente al usuario por el primer campo que falta.
           }`}
           style={{
             background: open
-              ? undefined
-              : "linear-gradient(135deg, #ef4444 0%, #f59e0b 25%, #22c55e 50%, #3b82f6 75%, #8b5cf6 100%)",
+              ? "#1d4ed8"
+              : "conic-gradient(from 135deg, #ef4444 0deg, #ef4444 90deg, #f59e0b 90deg, #f59e0b 180deg, #22c55e 180deg, #22c55e 270deg, #3b82f6 270deg, #3b82f6 360deg)",
             boxShadow: open
-              ? "0 8px 32px rgba(59,130,246,0.55)"
-              : "0 8px 32px rgba(59,130,246,0.4), 0 0 20px rgba(239,68,68,0.2), 0 0 30px rgba(234,179,8,0.15)"
+              ? "0 8px 32px rgba(29,78,216,0.6)"
+              : "0 8px 28px rgba(59,130,246,0.45), 0 0 16px rgba(239,68,68,0.25), 0 0 20px rgba(34,197,94,0.15)"
           }}
         >
           {loading
