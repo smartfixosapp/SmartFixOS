@@ -1289,12 +1289,12 @@ pregunta inmediatamente al usuario por el primer campo que falta.
           {/* Header */}
           <div className="flex items-center justify-between px-4 py-3 border-b border-white/[0.06] shrink-0">
             <div className="flex items-center gap-3">
-              <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-violet-600 to-purple-700 flex items-center justify-center shadow-lg shadow-violet-900/50">
-                <span className="text-sm">✨</span>
+              <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-red-500 via-yellow-400 via-green-500 via-blue-500 to-violet-600 flex items-center justify-center shadow-lg shadow-blue-900/50">
+                <span className="text-sm">🌈</span>
               </div>
               <div>
-                <p className="text-sm font-black text-white leading-none">ARIA</p>
-                <p className="text-[9px] text-violet-400/60 font-bold uppercase tracking-widest leading-none mt-0.5">
+                <p className="text-sm font-black text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-cyan-400 to-teal-400 leading-none">NAIJELI</p>
+                <p className="text-[9px] text-blue-400/60 font-bold uppercase tracking-widest leading-none mt-0.5">
                   SmartFixOS · {ACTIVE_ENGINE}
                 </p>
               </div>
