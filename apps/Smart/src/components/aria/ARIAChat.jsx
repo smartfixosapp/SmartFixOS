@@ -471,6 +471,42 @@ export default function ARIAChat() {
     return { parts, labor, subtotal, tax, total: subtotal + tax };
   }, [calcParts, calcLabor, calcTax]);
 
+  // ── Tour: navegar a la página del paso ───────────────────────────────────
+  useEffect(() => {
+    if (tab !== "tour") return;
+    const step = TOUR_STEPS[tourStep];
+    if (step?.page && location.pathname !== step.page) {
+      navigate(step.page);
+    }
+  }, [tourStep, tab]);
+
+  // ── Tour: cargar tip IA para el paso actual ───────────────────────────────
+  useEffect(() => {
+    if (tab !== "tour") return;
+    const step = TOUR_STEPS[tourStep];
+    if (!step?.aiTopic || tourLoadedTips.current.has(tourStep)) return;
+    const load = async () => {
+      setTourTipLoading(true);
+      try {
+        const prompt = `Eres ARIA, asistente de SmartFixOS (taller de reparación). Da UN tip práctico y corto (máx 2 oraciones, máx 30 palabras) sobre: ${step.aiTopic}. Directo, sin saludos. En español.`;
+        const tip = await callGroqAI(prompt, { maxTokens: 80, temperature: 0.6 });
+        setTourTips(prev => ({ ...prev, [tourStep]: tip }));
+        tourLoadedTips.current.add(tourStep);
+      } catch { /* si falla la IA, sin tip extra */ }
+      finally { setTourTipLoading(false); }
+    };
+    load();
+  }, [tourStep, tab]);
+
+  // ── Tour: reset al abrir el tab ───────────────────────────────────────────
+  useEffect(() => {
+    if (tab === "tour") {
+      setTourStep(0);
+      setTourTips({});
+      tourLoadedTips.current.clear();
+    }
+  }, [tab]);
+
   const isHidden = HIDDEN_PATHS.includes(location.pathname);
 
   // Cargar contexto cuando se abre el chat
