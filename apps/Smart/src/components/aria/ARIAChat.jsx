@@ -450,7 +450,7 @@ export default function ARIAChat() {
       title: "Inventario", subtitle: "Piezas y productos",
       content: "Controla tu stock, recibe alertas de stock bajo y gestiona órdenes de compra.",
       page: "/Inventory", aiTopic: "inventario de taller: piezas, accesorios, alertas de stock bajo, órdenes de compra" },
-    { id: "financial", emoji: "📈", color: "from-indigo-500 to-violet-600",
+    { id: "financial", emoji: "📈", color: "from-indigo-500 to-blue-600",
       title: "Finanzas", subtitle: "Reportes y flujo de caja",
       content: "Ingresos, gastos y neto del día o del mes. Reportes por período y análisis de rentabilidad.",
       page: "/Financial", aiTopic: "finanzas de taller: ingresos, gastos, neto, reportes por período, flujo de caja" },
