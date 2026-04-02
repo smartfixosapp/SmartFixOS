@@ -350,35 +350,14 @@ export default function EditUserModal({ user, onClose, onUpdate, onResendInvite,
             </div>
           </div>
 
-          {/* Seguridad */}
+          {/* Seguridad — PIN con pad visual */}
           <div className="space-y-4">
             <h3 className="text-lg font-bold text-cyan-400 theme-light:text-gray-900">Seguridad</h3>
-            
-            <div>
-              <label className="text-xs text-cyan-300/60 mb-2 block theme-light:text-gray-600">
-                PIN de Acceso (4 dígitos)
-              </label>
-              <div className="relative">
-                <Input
-                  type={showPin ? "text" : "password"}
-                  value={formData.pin}
-                  onChange={(e) => {
-                    const val = e.target.value.replace(/\D/g, '').slice(0, 4);
-                    setFormData({...formData, pin: val});
-                  }}
-                  className="bg-slate-900/60 border-cyan-500/20 text-white h-12 rounded-xl font-mono text-xl pr-12 theme-light:bg-white theme-light:border-gray-300"
-                  placeholder="••••"
-                  maxLength={4}
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPin(!showPin)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-cyan-400 hover:text-cyan-300"
-                >
-                  {showPin ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
-                </button>
-              </div>
-            </div>
+
+            <PinPadSection
+              currentPin={formData.pin}
+              onPinChange={(pin) => setFormData(prev => ({ ...prev, pin }))}
+            />
 
             <div>
               <label className="text-xs text-cyan-300/60 mb-2 block theme-light:text-gray-600">Tarifa por Hora ($)</label>
