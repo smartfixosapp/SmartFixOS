@@ -1331,6 +1331,14 @@ pregunta inmediatamente al usuario por el primer campo que falta.
                   Reset
                 </button>
               )}
+              {tab === "tour" && tourStep > 0 && (
+                <button
+                  onClick={() => { setTourStep(0); setTourTips({}); tourLoadedTips.current.clear(); }}
+                  className="text-[9px] text-white/20 hover:text-white/50 font-bold uppercase tracking-widest transition-colors"
+                >
+                  Reiniciar
+                </button>
+              )}
               <button
                 onClick={() => setOpen(false)}
                 className="w-7 h-7 rounded-full bg-white/5 hover:bg-white/10 flex items-center justify-center transition-colors"
