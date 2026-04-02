@@ -3976,12 +3976,21 @@ Sé técnico pero claro. Máximo 120 palabras.`;
                 </Button>
               ) : (
                 <Button
-                  onClick={() => setMobileStep(s => Math.min(mobileStepsTotal - 1, s + 1))}
+                  onClick={() => {
+                    if (!canAdvanceMobileStep) {
+                      if (mobileStep === 1) toast.error(isB2B ? "Completa todos los campos de empresa" : "Nombre y teléfono son requeridos");
+                      else if ((mobileStep === 3 && !quickOrderMode) || (mobileStep === 2 && quickOrderMode)) toast.error("Selecciona marca y modelo del dispositivo");
+                      return;
+                    }
+                    setMobileStep(s => Math.min(mobileStepsTotal - 1, s + 1));
+                  }}
                   disabled={loading}
                   className={`w-full h-14 rounded-[20px] font-black uppercase text-sm tracking-widest active:scale-95 transition-all duration-300 ${
-                    quickOrderMode
-                      ? "bg-gradient-to-r from-amber-500/80 to-yellow-600/80 text-black"
-                      : "bg-gradient-to-r from-cyan-500/80 to-blue-600/80 text-white"
+                    !canAdvanceMobileStep
+                      ? "bg-white/10 text-white/30 cursor-not-allowed"
+                      : quickOrderMode
+                        ? "bg-gradient-to-r from-amber-500/80 to-yellow-600/80 text-black"
+                        : "bg-gradient-to-r from-cyan-500/80 to-blue-600/80 text-white"
                   }`}
                 >
                   Siguiente
