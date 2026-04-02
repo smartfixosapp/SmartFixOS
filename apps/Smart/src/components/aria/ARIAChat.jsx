@@ -1449,14 +1449,14 @@ pregunta inmediatamente al usuario por el primer campo que falta.
                           <motion.div
                             initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }}
                             exit={{ opacity: 0, height: 0 }}
-                            className="rounded-xl bg-violet-500/10 border border-violet-500/20 p-3"
+                            className="rounded-xl bg-blue-500/10 border border-blue-500/20 p-3"
                           >
                             <div className="flex items-start gap-2">
-                              <Sparkles className="w-3.5 h-3.5 text-violet-400 mt-0.5 shrink-0" />
+                              <Sparkles className="w-3.5 h-3.5 text-blue-400 mt-0.5 shrink-0" />
                               {tourTipLoading ? (
                                 <div className="flex gap-1 items-center">
                                   {[0,1,2].map(i => (
-                                    <span key={i} className="w-1.5 h-1.5 rounded-full bg-violet-400 animate-bounce"
+                                    <span key={i} className={`w-1.5 h-1.5 rounded-full animate-bounce ${["bg-red-400","bg-yellow-400","bg-blue-400"][i]}`}
                                       style={{ animationDelay: `${i*150}ms` }} />
                                   ))}
                                 </div>
