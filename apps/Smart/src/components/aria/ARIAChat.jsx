@@ -1587,10 +1587,10 @@ pregunta inmediatamente al usuario por el primer campo que falta.
                 );
                 if (msg.action === "cliente_creado") return (
                   <div key={i} className="flex justify-start">
-                    <div className="px-4 py-2.5 rounded-2xl rounded-bl-md border border-violet-500/30 bg-violet-900/20 flex items-center gap-2">
-                      <CheckCircle2 className="w-3.5 h-3.5 text-violet-400 shrink-0" />
+                    <div className="px-4 py-2.5 rounded-2xl rounded-bl-md border border-blue-500/30 bg-blue-900/20 flex items-center gap-2">
+                      <CheckCircle2 className="w-3.5 h-3.5 text-blue-400 shrink-0" />
                       <div>
-                        <p className="text-sm text-violet-300 font-semibold">{msg.data.nombre}</p>
+                        <p className="text-sm text-blue-300 font-semibold">{msg.data.nombre}</p>
                         <p className="text-[11px] text-white/40">{msg.data.telefono}</p>
                       </div>
                     </div>
