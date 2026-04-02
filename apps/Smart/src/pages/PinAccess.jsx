@@ -1360,7 +1360,8 @@ export default function PinAccess() {
           }
         }
       } catch (err) {
-        toast.error('🔴 [D-err] ' + err.message);
+        console.error('[OAuth] deeplink error:', err.message);
+        toast.error('Error de autenticación. Intenta de nuevo.');
         console.error('[PinAccess] deeplink OAuth error:', err);
       } finally {
         setCheckingUsers(false);
