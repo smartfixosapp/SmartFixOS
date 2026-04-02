@@ -162,56 +162,23 @@ function LayoutWrapper({ children, currentPageName }) {
     return <Layout currentPageName={currentPageName}>{children}</Layout>;
 }
 
-// Rutas públicas donde NO mostramos el botón de ayuda
-const PUBLIC_PATHS_TUTORIAL = ['/Welcome', '/PinAccess', '/Setup', '/InitialSetup', '/VerifySetup', '/Activate', '/returnlogin', '/SuperAdmin', '/Receipt', '/CustomerPortal', '/CustomerApproval', '/CustomerDisplay'];
-
 function PagesContent() {
     const location = useLocation();
     const currentPage = _getCurrentPage(location.pathname);
-    const { isOpen, open, close, complete } = useTutorial();
-
-    // Ocultar botón en rutas públicas
-    const isPublicPath = PUBLIC_PATHS_TUTORIAL.some(p =>
-        location.pathname.toLowerCase().includes(p.toLowerCase())
-    );
 
     return (
-        <>
-            <LayoutWrapper currentPageName={currentPage}>
-                <Suspense fallback={<PageLoader />}>
-                    <Routes>
-                        <Route path="/SuperAdmin" element={<SuperAdmin />} />
-                        <Route path="/TenantActivate" element={<TenantActivate />} />
-                        <Route path="/returnlogin" element={<ReturnLogin />} />
-                        <Route path="/Receipt" element={<Receipt />} />
-                        <Route path="/CustomerApproval" element={<CustomerApproval />} />
-                        <Route path="/*" element={<ProtectedRoutes />} />
-                    </Routes>
-                </Suspense>
-            </LayoutWrapper>
-
-            {/* ── Botón flotante de ayuda (?) ───────────────────────── */}
-            {/* En mobile se coloca a la izquierda del botón de ARIA (right-5, w-14)
-                dejando un gap de ~8px: right = 5 + 14*4px + 8px ≈ right-20 (80px).
-                En desktop va a bottom-6 right-24 para no chocar con ARIA (right-5 w-14). */}
-            {!isPublicPath && !isOpen && (
-                <button
-                    onClick={open}
-                    aria-label="Abrir tutorial guiado"
-                    className="fixed bottom-[104px] right-20 md:bottom-6 md:right-24 z-[9980] w-9 h-9 rounded-full bg-violet-600/90 hover:bg-violet-500 active:scale-95 shadow-lg shadow-violet-500/25 flex items-center justify-center transition-all duration-150 border border-violet-400/20"
-                    style={{ bottom: 'calc(104px + env(safe-area-inset-bottom, 0px))' }}
-                >
-                    <span className="text-white font-black text-sm leading-none select-none">?</span>
-                </button>
-            )}
-
-            {/* ── Panel del tutorial ─────────────────────────────────── */}
-            <TutorialTour
-                isOpen={isOpen}
-                onClose={close}
-                onComplete={complete}
-            />
-        </>
+        <LayoutWrapper currentPageName={currentPage}>
+            <Suspense fallback={<PageLoader />}>
+                <Routes>
+                    <Route path="/SuperAdmin" element={<SuperAdmin />} />
+                    <Route path="/TenantActivate" element={<TenantActivate />} />
+                    <Route path="/returnlogin" element={<ReturnLogin />} />
+                    <Route path="/Receipt" element={<Receipt />} />
+                    <Route path="/CustomerApproval" element={<CustomerApproval />} />
+                    <Route path="/*" element={<ProtectedRoutes />} />
+                </Routes>
+            </Suspense>
+        </LayoutWrapper>
     );
 }
 
