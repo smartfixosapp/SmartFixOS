@@ -513,6 +513,18 @@ export default function ARIAChat() {
 
   const isHidden = HIDDEN_PATHS.includes(location.pathname);
 
+  // ── Primera visita: abrir NAJELIZ en el tab del tour automáticamente ────────
+  useEffect(() => {
+    if (isHidden) return;
+    if (toured) return; // ya completó el tour antes
+    // Pequeño delay para que la página cargue primero
+    const timer = setTimeout(() => {
+      setOpen(true);
+      setTab("tour");
+    }, 1200);
+    return () => clearTimeout(timer);
+  }, [isHidden]);
+
   // Cargar contexto cuando se abre el chat
   useEffect(() => {
     if (!open || isHidden) return;
