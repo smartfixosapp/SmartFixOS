@@ -3,6 +3,7 @@ import React, { lazy, Suspense } from 'react';
 import Layout from "./Layout.jsx";
 import { BrowserRouter as Router, Route, Routes, useLocation, useNavigate } from 'react-router-dom';
 import AuthGate, { useAuth } from '@/components/Auth';
+import TutorialTour, { useTutorial } from '@/components/tutorial/TutorialTour';
 
 // Wrap lazy imports to auto-reload on chunk load failures (stale CDN cache)
 function lazyWithRetry(fn) {
