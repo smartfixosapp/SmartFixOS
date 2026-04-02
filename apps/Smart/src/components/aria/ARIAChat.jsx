@@ -1488,7 +1488,7 @@ pregunta inmediatamente al usuario por el primer campo que falta.
 
                   {/* Barra de progreso */}
                   <div className="h-1 rounded-full bg-white/10 overflow-hidden">
-                    <motion.div className="h-full rounded-full bg-gradient-to-r from-red-500 via-yellow-400 via-green-500 via-blue-500 to-violet-500"
+                    <motion.div className="h-full rounded-full bg-gradient-to-r from-red-500 via-yellow-400 via-green-500 to-blue-600"
                       animate={{ width: `${progress * 100}%` }}
                       transition={{ type: "spring", stiffness: 200, damping: 20 }}
                     />
