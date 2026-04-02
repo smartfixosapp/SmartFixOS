@@ -8,13 +8,13 @@ import { callGroqAI } from "@/lib/groqAI";
 const IVU_RATE = 0.115;
 function toNum(v) { const n = Number(v); return Number.isFinite(n) && n >= 0 ? n : 0; }
 
-// Páginas donde NO mostrar NAJELIZ
+// Páginas donde NO mostrar DARJENI
 const HIDDEN_PATHS = [
   "/Welcome", "/PinAccess", "/Setup", "/InitialSetup",
   "/VerifySetup", "/Activate", "/TenantActivate", "/returnlogin",
 ];
 
-// ── Herramientas del Asistente NAJELIZ ───────────────────────────────────────
+// ── Herramientas del Asistente DARJENI ───────────────────────────────────────
 const ARIA_TOOLS = [
   {
     type: "function",
@@ -400,13 +400,13 @@ const ACTIVE_ENGINE =
   import.meta.env.VITE_OPENAI_API_KEY    ? "GPT-4o mini"  :
   "Llama 3.1";
 
-const NAJELIZ_TOURED_KEY = "smartfix_najeliz_toured";
+const DARJENI_TOURED_KEY = "smartfix_najeliz_toured";
 
 export default function ARIAChat() {
   const location  = useLocation();
   const [open, setOpen]           = useState(false);
   // true = el usuario ya completó el tour → botón se esconde
-  const [toured, setToured] = useState(() => localStorage.getItem(NAJELIZ_TOURED_KEY) === "1");
+  const [toured, setToured] = useState(() => localStorage.getItem(DARJENI_TOURED_KEY) === "1");
   const [messages, setMessages]   = useState([]);
   const [input, setInput]         = useState("");
   const [loading, setLoading]     = useState(false);
@@ -431,7 +431,7 @@ export default function ARIAChat() {
   const tourLoadedTips = useRef(new Set());
   const TOUR_STEPS = [
     { id: "welcome",   emoji: "🌈", color: "from-blue-500 via-violet-500 to-rose-500",
-      title: "¡Hola! Soy NAJELIZ 👋",  subtitle: "Tour guiado · 7 pasos · ~2 min",
+      title: "¡Hola! Soy DARJENI 👋",  subtitle: "Tour guiado · 7 pasos · ~2 min",
       content: "Te voy a mostrar las funciones principales de SmartFixOS. Puedes volver aquí cuando quieras.",
       page: null, aiTopic: null },
     { id: "dashboard", emoji: "📊", color: "from-cyan-500 to-blue-600",
@@ -460,7 +460,7 @@ export default function ARIAChat() {
       page: "/Financial", aiTopic: "finanzas de taller: ingresos, gastos, neto, reportes por período, flujo de caja" },
     { id: "done",      emoji: "🎉", color: "from-green-500 to-emerald-600",
       title: "¡Ya eres un experto!", subtitle: "Tour completado",
-      content: "Eso es todo lo básico. Recuerda que puedes volver a este tour aquí dentro de NAJELIZ cuando quieras.",
+      content: "Eso es todo lo básico. Recuerda que puedes volver a este tour aquí dentro de DARJENI cuando quieras.",
       page: null, aiTopic: null },
   ];
   const recognitionRef = useRef(null);
@@ -492,7 +492,7 @@ export default function ARIAChat() {
     const load = async () => {
       setTourTipLoading(true);
       try {
-        const prompt = `Eres NAJELIZ, asistente de SmartFixOS (taller de reparación). Da UN tip práctico y corto (máx 2 oraciones, máx 30 palabras) sobre: ${step.aiTopic}. Directo, sin saludos. En español.`;
+        const prompt = `Eres DARJENI, asistente de SmartFixOS (taller de reparación). Da UN tip práctico y corto (máx 2 oraciones, máx 30 palabras) sobre: ${step.aiTopic}. Directo, sin saludos. En español.`;
         const tip = await callGroqAI(prompt, { maxTokens: 80, temperature: 0.6 });
         setTourTips(prev => ({ ...prev, [tourStep]: tip }));
         tourLoadedTips.current.add(tourStep);
@@ -513,7 +513,7 @@ export default function ARIAChat() {
 
   const isHidden = HIDDEN_PATHS.includes(location.pathname);
 
-  // ── Primera visita: abrir NAJELIZ en el tab del tour automáticamente ────────
+  // ── Primera visita: abrir DARJENI en el tab del tour automáticamente ────────
   useEffect(() => {
     if (isHidden) return;
     if (toured) return; // ya completó el tour antes
@@ -559,7 +559,7 @@ export default function ARIAChat() {
                                .reduce((s, t) => s + (t.amount || 0), 0);
         setTodayIncome(inc);
         setTodayExpenses(exp);
-      } catch (e) { console.error("NAJELIZ ctx:", e); }
+      } catch (e) { console.error("DARJENI ctx:", e); }
     };
     load();
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -596,7 +596,7 @@ export default function ARIAChat() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isHidden]);
 
-  // Resumen proactivo al abrir NAJELIZ (si hay alertas y chat vacío)
+  // Resumen proactivo al abrir DARJENI (si hay alertas y chat vacío)
   useEffect(() => {
     if (!open || messages.length > 0 || proactiveCount === 0) return;
     const runProactive = async () => {
@@ -638,7 +638,7 @@ export default function ARIAChat() {
   const buildSystem = () => {
     const session  = readSession();
     const bizName  = session?.storeName || "SmartFixOS";
-    return `Eres NAJELIZ, asistente de ${bizName} (taller de reparación).
+    return `Eres DARJENI, asistente de ${bizName} (taller de reparación).
 Idioma: ESPAÑOL. Respuestas cortas. UNA sola pregunta por mensaje.
 
 Negocio: ${activeOrders.total} activas | $${todayIncome.toFixed(0)} hoy
@@ -678,7 +678,7 @@ pregunta inmediatamente al usuario por el primer campo que falta.
   // ── Ejecutor de herramientas ─────────────────────────────────────────────────
   const executeToolCall = async (toolName, args) => {
     const session   = readSession();
-    const createdBy = session?.full_name || session?.userName || session?.email || "NAJELIZ";
+    const createdBy = session?.full_name || session?.userName || session?.email || "DARJENI";
 
     switch (toolName) {
       case "buscar_cliente": {
@@ -1309,7 +1309,7 @@ pregunta inmediatamente al usuario por el primer campo que falta.
                 <span className="text-sm">🌈</span>
               </div>
               <div>
-                <p className="text-sm font-black text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-cyan-400 to-teal-400 leading-none">NAJELIZ</p>
+                <p className="text-sm font-black text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-cyan-400 to-teal-400 leading-none">DARJENI</p>
                 <p className="text-[9px] text-blue-400/60 font-bold uppercase tracking-widest leading-none mt-0.5">
                   SmartFixOS · {ACTIVE_ENGINE}
                 </p>
@@ -1426,7 +1426,7 @@ pregunta inmediatamente al usuario por el primer campo que falta.
                 }}
                 className="w-full py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold transition-colors"
               >
-                🌈 Enviar a NAJELIZ para registrar cobro
+                🌈 Enviar a DARJENI para registrar cobro
               </button>
             </div>
           )}
@@ -1519,7 +1519,7 @@ pregunta inmediatamente al usuario por el primer campo que falta.
                       onClick={() => {
                         if (isLast) {
                           // Tour completado — esconder el botón flotante permanentemente
-                          localStorage.setItem(NAJELIZ_TOURED_KEY, "1");
+                          localStorage.setItem(DARJENI_TOURED_KEY, "1");
                           setToured(true);
                           setOpen(false);
                         } else {
@@ -1547,7 +1547,7 @@ pregunta inmediatamente al usuario por el primer campo que falta.
                 <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-red-500/20 via-blue-500/20 to-violet-500/20 border border-blue-500/20 flex items-center justify-center">
                   <span className="text-2xl">🌈</span>
                 </div>
-                <p className="text-sm font-black text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-cyan-400 to-teal-400">Hola, soy NAJELIZ</p>
+                <p className="text-sm font-black text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-cyan-400 to-teal-400">Hola, soy DARJENI</p>
                 <p className="text-xs text-white/25 leading-relaxed">
                   Tu asistente inteligente. Creo órdenes paso a paso, consulto precios, actualizo estados y más.
                 </p>
