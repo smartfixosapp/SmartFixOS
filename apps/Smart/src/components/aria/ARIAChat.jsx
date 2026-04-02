@@ -622,7 +622,7 @@ export default function ARIAChat() {
   const buildSystem = () => {
     const session  = readSession();
     const bizName  = session?.storeName || "SmartFixOS";
-    return `Eres ARIA, asistente de ${bizName} (taller de reparación).
+    return `Eres NAIJELI, asistente de ${bizName} (taller de reparación).
 Idioma: ESPAÑOL. Respuestas cortas. UNA sola pregunta por mensaje.
 
 Negocio: ${activeOrders.total} activas | $${todayIncome.toFixed(0)} hoy
