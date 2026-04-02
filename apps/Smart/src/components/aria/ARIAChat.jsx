@@ -1700,7 +1700,7 @@ pregunta inmediatamente al usuario por el primer campo que falta.
             <div className={`flex gap-2 items-center bg-white/[0.04] border rounded-2xl px-3 py-2 transition-colors ${
               isListening
                 ? "border-red-500/50 bg-red-950/20"
-                : "border-white/[0.08] focus-within:border-violet-500/40"
+                : "border-white/[0.08] focus-within:border-blue-500/40"
             }`}>
               <button
                 onClick={startDictation}
