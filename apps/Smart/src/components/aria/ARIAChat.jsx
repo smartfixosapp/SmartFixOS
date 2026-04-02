@@ -1483,7 +1483,7 @@ pregunta inmediatamente al usuario por el primer campo que falta.
                     <div className="flex gap-1">
                       {TOUR_STEPS.map((_, i) => (
                         <button key={i} onClick={() => setTourStep(i)}
-                          className={`rounded-full transition-all ${i === tourStep ? "w-4 h-1.5 bg-violet-400" : i < tourStep ? "w-1.5 h-1.5 bg-white/40" : "w-1.5 h-1.5 bg-white/15"}`}
+                          className={`rounded-full transition-all ${i === tourStep ? "w-4 h-1.5 bg-gradient-to-r from-blue-400 to-cyan-400" : i < tourStep ? "w-1.5 h-1.5 bg-blue-400/50" : "w-1.5 h-1.5 bg-white/15"}`}
                         />
                       ))}
                     </div>
