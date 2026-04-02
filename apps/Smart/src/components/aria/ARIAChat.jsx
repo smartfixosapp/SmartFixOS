@@ -1744,16 +1744,23 @@ pregunta inmediatamente al usuario por el primer campo que falta.
           onClick={() => setOpen(p => !p)}
           className={`w-14 h-14 rounded-full flex items-center justify-center transition-all active:scale-90 ${
             open
-              ? "bg-violet-700 rotate-12"
-              : "bg-gradient-to-br from-violet-600 to-purple-700 hover:scale-110"
+              ? "bg-blue-700 rotate-12"
+              : "hover:scale-110"
           }`}
-          style={{ boxShadow: "0 8px 32px rgba(139,92,246,0.55)" }}
+          style={{
+            background: open
+              ? undefined
+              : "linear-gradient(135deg, #ef4444 0%, #f59e0b 25%, #22c55e 50%, #3b82f6 75%, #8b5cf6 100%)",
+            boxShadow: open
+              ? "0 8px 32px rgba(59,130,246,0.55)"
+              : "0 8px 32px rgba(59,130,246,0.4), 0 0 20px rgba(239,68,68,0.2), 0 0 30px rgba(234,179,8,0.15)"
+          }}
         >
           {loading
             ? <span className="text-xl animate-spin inline-block">⟳</span>
             : open
               ? <X className="w-5 h-5 text-white" />
-              : <span className="text-xl">✨</span>
+              : <span className="text-xl">🌈</span>
           }
         </button>
       </div>
