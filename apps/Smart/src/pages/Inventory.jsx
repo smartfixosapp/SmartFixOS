@@ -1872,7 +1872,9 @@ Dime: qué comprar urgente, qué riesgo hay para el negocio, y una recomendació
           {pageItems.length === 0 ? (
             <div className="text-center py-20">
               <Box className="w-14 h-14 text-white/10 mx-auto mb-4" />
-              <p className="text-white/30 font-bold text-base">{q ? "Sin resultados para esa búsqueda" : "No hay productos en esta categoría"}</p>
+              <p className="text-white/30 font-bold text-sm sm:text-base text-center px-4">
+                {q ? `Sin resultados para "${q}"` : "No hay productos en esta categoría"}
+              </p>
               <button
                 onClick={() => { setEditing(null); setShowItemDialog(true); }}
                 className="mt-4 inline-flex items-center gap-2 px-5 py-2.5 rounded-2xl bg-teal-500/15 border border-teal-500/25 text-teal-400 text-sm font-bold hover:bg-teal-500/25 transition-all"
