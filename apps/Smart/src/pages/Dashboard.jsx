@@ -1494,7 +1494,7 @@ export default function Dashboard() {
                   </>
                 )}
 
-                {/* ── TODO EN ORDEN ─── */}
+                {/* ── Estado vacío: todo al día ─── */}
                 {visibleFeedItems.length === 0 && lowStockProducts.length === 0 && pendingShiftTasks.length === 0 && (
                   <div className="flex flex-col items-center justify-center py-8">
                     <CheckCircle2 className="w-8 h-8 text-emerald-500/30 mb-2" />
