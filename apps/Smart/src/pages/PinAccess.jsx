@@ -665,6 +665,10 @@ export default function PinAccess() {
         if (error) { toast.error("Error al iniciar con Apple: " + error.message); setLoading(false); return; }
         if (data?.url) {
           await Browser.open({ url: data.url });
+          Browser.addListener('browserFinished', () => {
+            setLoading(false);
+            Browser.removeAllListeners();
+          });
         }
       } else {
         const redirectTo = `${window.location.origin}/PinAccess?gintent=${intent}`;
