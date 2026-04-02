@@ -1504,7 +1504,7 @@ pregunta inmediatamente al usuario por el primer campo que falta.
                       className={`flex-1 flex items-center justify-center gap-2 py-2 rounded-xl text-sm font-black transition-all ${
                         isLast
                           ? "bg-gradient-to-r from-green-500 to-emerald-500 text-white shadow-lg shadow-green-500/25"
-                          : "bg-gradient-to-r from-violet-500 to-purple-600 text-white shadow-lg shadow-violet-500/25 hover:shadow-violet-500/40"
+                          : "bg-gradient-to-r from-blue-500 via-cyan-500 to-teal-400 text-white shadow-lg shadow-blue-500/25 hover:shadow-blue-500/40"
                       }`}
                     >
                       {isLast ? "🎉 ¡Listo! Ir al chat" : isFirst ? <>Empezar <ChevronRight className="w-4 h-4" /></> : <>Siguiente <ChevronRight className="w-4 h-4" /></>}
