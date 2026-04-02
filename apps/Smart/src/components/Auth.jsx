@@ -73,7 +73,10 @@ async function clearAllSessions(forceLogout = false) {
     localStorage.removeItem("employee_session");
     // También el perfil biométrico si es un logout total
     if (forceLogout) {
-      localStorage.removeItem("smartfix_biometric_profile");
+      // Limpiar todos los perfiles biométricos de este dispositivo (clave por-dispositivo)
+      const deviceId = localStorage.getItem("smartfix_device_id");
+      if (deviceId) localStorage.removeItem(`smartfix_biometric_${deviceId}`);
+      localStorage.removeItem("smartfix_biometric_profile"); // clave legada
     }
   }
   
