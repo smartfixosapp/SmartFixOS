@@ -1672,7 +1672,7 @@ pregunta inmediatamente al usuario por el primer campo que falta.
                 <div key={i} className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}>
                   <div className={`max-w-[85%] px-4 py-2.5 rounded-2xl text-sm leading-relaxed whitespace-pre-wrap ${
                     msg.role === "user"
-                      ? "bg-violet-600 text-white rounded-br-md"
+                      ? "bg-gradient-to-r from-blue-600 to-cyan-600 text-white rounded-br-md"
                       : "bg-white/[0.06] border border-white/[0.08] text-white/85 rounded-bl-md"
                   }`}>
                     {msg.content}
