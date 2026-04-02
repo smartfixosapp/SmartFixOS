@@ -1762,33 +1762,80 @@ pregunta inmediatamente al usuario por el primer campo que falta.
       {/* Botón flotante — se esconde tras completar el tour (salvo que haya alertas) */}
       {(!toured || proactiveCount > 0 || open) && (
       <div className="relative pointer-events-auto">
+        {/* Badge de notificaciones */}
         {proactiveCount > 0 && !open && (
           <span className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-red-500 border-2 border-black flex items-center justify-center z-10">
             <span className="text-[9px] font-black text-white leading-none">{proactiveCount > 9 ? "9+" : proactiveCount}</span>
           </span>
         )}
+
+        {/* Anillo exterior pulsante (solo cuando está cerrado) */}
+        {!open && (
+          <motion.div
+            className="absolute inset-0 rounded-full pointer-events-none"
+            animate={{ scale: [1, 1.18, 1], opacity: [0.5, 0, 0.5] }}
+            transition={{ duration: 2.5, repeat: Infinity, ease: "easeInOut" }}
+            style={{
+              background: "conic-gradient(from 0deg, #ef4444, #f59e0b, #22c55e, #3b82f6, #ef4444)",
+              filter: "blur(4px)",
+            }}
+          />
+        )}
+
         <button
           onClick={() => setOpen(p => !p)}
-          className={`w-14 h-14 rounded-full flex items-center justify-center transition-all active:scale-90 ${
-            open
-              ? "bg-blue-700 rotate-12"
-              : "hover:scale-110"
-          }`}
+          className="w-14 h-14 rounded-full flex items-center justify-center transition-all active:scale-90 hover:scale-105 relative overflow-hidden"
           style={{
-            background: open
-              ? "#1d4ed8"
-              : "conic-gradient(from 135deg, #ef4444 0deg, #ef4444 90deg, #f59e0b 90deg, #f59e0b 180deg, #22c55e 180deg, #22c55e 270deg, #3b82f6 270deg, #3b82f6 360deg)",
             boxShadow: open
               ? "0 8px 32px rgba(29,78,216,0.6)"
-              : "0 8px 28px rgba(59,130,246,0.45), 0 0 16px rgba(239,68,68,0.25), 0 0 20px rgba(34,197,94,0.15)"
+              : "0 6px 24px rgba(59,130,246,0.5), 0 0 12px rgba(239,68,68,0.3), 0 0 18px rgba(34,197,94,0.2)",
           }}
         >
-          {loading
-            ? <span className="text-xl animate-spin inline-block">⟳</span>
-            : open
-              ? <X className="w-5 h-5 text-white" />
-              : <span className="text-xl">🧩</span>
-          }
+          {/* Fondo sólido oscuro */}
+          <div className="absolute inset-0 rounded-full bg-[#0a0a0f]" />
+
+          {/* Gradiente giratorio — los 4 colores del autismo fluyendo */}
+          {!open && (
+            <motion.div
+              className="absolute rounded-full pointer-events-none"
+              style={{
+                width: "200%",
+                height: "200%",
+                top: "-50%",
+                left: "-50%",
+                background: "conic-gradient(from 0deg, #ef4444, #f59e0b, #22c55e, #3b82f6, #8b5cf6, #ef4444)",
+                opacity: 0.85,
+              }}
+              animate={{ rotate: 360 }}
+              transition={{ duration: 3, repeat: Infinity, ease: "linear" }}
+            />
+          )}
+
+          {/* Fondo cuando está abierto */}
+          {open && <div className="absolute inset-0 rounded-full bg-blue-700" />}
+
+          {/* Círculo interior oscuro para efecto de anillo */}
+          {!open && (
+            <div
+              className="absolute rounded-full bg-[#0e0e16]"
+              style={{ inset: "3px" }}
+            />
+          )}
+
+          {/* Icono centrado */}
+          <span className="relative z-10 flex items-center justify-center">
+            {loading ? (
+              <motion.span
+                className="text-lg"
+                animate={{ rotate: 360 }}
+                transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+              >⟳</motion.span>
+            ) : open ? (
+              <X className="w-5 h-5 text-white" />
+            ) : (
+              <span className="text-xl">🧩</span>
+            )}
+          </span>
         </button>
       </div>
       )}

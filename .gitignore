@@ -40,3 +40,4 @@ logs/
 # Temp / PID files
 /tmp/*.pid
 *.pid
+.vercel
