@@ -543,7 +543,7 @@ export default function ARIAChat() {
                                .reduce((s, t) => s + (t.amount || 0), 0);
         setTodayIncome(inc);
         setTodayExpenses(exp);
-      } catch (e) { console.error("ARIA ctx:", e); }
+      } catch (e) { console.error("NAIJELI ctx:", e); }
     };
     load();
   // eslint-disable-next-line react-hooks/exhaustive-deps
