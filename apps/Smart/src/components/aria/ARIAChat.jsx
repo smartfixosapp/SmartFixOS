@@ -488,7 +488,7 @@ export default function ARIAChat() {
     const load = async () => {
       setTourTipLoading(true);
       try {
-        const prompt = `Eres ARIA, asistente de SmartFixOS (taller de reparación). Da UN tip práctico y corto (máx 2 oraciones, máx 30 palabras) sobre: ${step.aiTopic}. Directo, sin saludos. En español.`;
+        const prompt = `Eres NAIJELI, asistente de SmartFixOS (taller de reparación). Da UN tip práctico y corto (máx 2 oraciones, máx 30 palabras) sobre: ${step.aiTopic}. Directo, sin saludos. En español.`;
         const tip = await callGroqAI(prompt, { maxTokens: 80, temperature: 0.6 });
         setTourTips(prev => ({ ...prev, [tourStep]: tip }));
         tourLoadedTips.current.add(tourStep);
