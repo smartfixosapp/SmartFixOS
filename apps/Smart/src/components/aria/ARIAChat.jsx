@@ -1519,10 +1519,10 @@ pregunta inmediatamente al usuario por el primer campo que falta.
           {tab === "chat" && <div className="flex-1 overflow-y-auto px-4 py-3 space-y-3">
             {messages.length === 0 && (
               <div className="h-full flex flex-col items-center justify-center text-center px-4 gap-3">
-                <div className="w-12 h-12 rounded-2xl bg-violet-500/10 border border-violet-500/20 flex items-center justify-center">
-                  <span className="text-2xl">✨</span>
+                <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-red-500/20 via-blue-500/20 to-violet-500/20 border border-blue-500/20 flex items-center justify-center">
+                  <span className="text-2xl">🌈</span>
                 </div>
-                <p className="text-sm font-black text-white/60">Hola, soy ARIA</p>
+                <p className="text-sm font-black text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-cyan-400 to-teal-400">Hola, soy NAIJELI</p>
                 <p className="text-xs text-white/25 leading-relaxed">
                   Tu asistente inteligente. Creo órdenes paso a paso, consulto precios, actualizo estados y más.
                 </p>
