@@ -1309,6 +1309,10 @@ pregunta inmediatamente al usuario por el primer campo que falta.
                 onClick={() => setTab("calc")}
                 className={`px-3 py-1 rounded-lg text-[11px] font-bold transition-all ${tab === "calc" ? "bg-cyan-600 text-white shadow" : "text-white/30 hover:text-white/60"}`}
               >🧮</button>
+              <button
+                onClick={() => setTab("tour")}
+                className={`px-3 py-1 rounded-lg text-[11px] font-bold transition-all ${tab === "tour" ? "bg-emerald-600 text-white shadow" : "text-white/30 hover:text-white/60"}`}
+              >🗺️</button>
             </div>
             <div className="flex items-center gap-1.5">
               {tab === "chat" && messages.length > 0 && (
