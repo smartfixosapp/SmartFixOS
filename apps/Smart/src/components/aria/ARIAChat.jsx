@@ -1538,7 +1538,7 @@ pregunta inmediatamente al usuario por el primer campo que falta.
                     <button
                       key={q}
                       onClick={() => sendMessage(q)}
-                      className="text-left px-3 py-2 rounded-xl bg-white/[0.03] border border-white/[0.06] hover:bg-violet-500/10 hover:border-violet-500/20 text-xs text-white/40 hover:text-white/70 transition-all"
+                      className="text-left px-3 py-2 rounded-xl bg-white/[0.03] border border-white/[0.06] hover:bg-blue-500/10 hover:border-blue-500/20 text-xs text-white/40 hover:text-white/70 transition-all"
                     >
                       {q}
                     </button>
