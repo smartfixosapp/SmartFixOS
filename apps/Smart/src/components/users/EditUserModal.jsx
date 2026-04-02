@@ -2,8 +2,170 @@ import React, { useState, useEffect } from "react";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { X, Check, Eye, EyeOff, Edit3, Send } from "lucide-react";
+import { X, Check, Edit3, Send, Delete, KeyRound, RotateCcw } from "lucide-react";
 import { toast } from "sonner";
+
+// ── PinPad visual para cambio de PIN ─────────────────────────────────────────
+function PinPadSection({ currentPin, onPinChange }) {
+  const [stage, setStage] = useState("idle"); // "idle" | "entering" | "confirming" | "done" | "mismatch"
+  const [newPin, setNewPin]       = useState("");
+  const [confirmPin, setConfirmPin] = useState("");
+
+  const handleKey = (key) => {
+    if (stage === "idle") return;
+    const isEntering  = stage === "entering";
+    const isConfirming = stage === "confirming";
+    const current = isEntering ? newPin : confirmPin;
+    const setter  = isEntering ? setNewPin : setConfirmPin;
+
+    if (key === "⌫") {
+      setter(current.slice(0, -1));
+      if (stage === "mismatch") setStage("confirming");
+      return;
+    }
+    if (current.length >= 4) return;
+
+    const next = current + String(key);
+    setter(next);
+
+    if (next.length === 4) {
+      if (isEntering) {
+        setStage("confirming");
+      } else {
+        // Confirmar
+        if (next === newPin) {
+          setStage("done");
+          onPinChange(next);
+          toast.success("PIN listo — recuerda guardar los cambios");
+        } else {
+          setStage("mismatch");
+          setConfirmPin("");
+          setTimeout(() => {
+            setStage("confirming");
+            setConfirmPin("");
+          }, 800);
+        }
+      }
+    }
+  };
+
+  const startChange = () => {
+    setStage("entering");
+    setNewPin("");
+    setConfirmPin("");
+  };
+
+  const cancel = () => {
+    setStage("idle");
+    setNewPin("");
+    setConfirmPin("");
+    onPinChange(currentPin); // revert
+  };
+
+  const displayPin  = stage === "confirming" || stage === "mismatch" ? confirmPin : newPin;
+  const numbers = [[1, 2, 3], [4, 5, 6], [7, 8, 9], [null, 0, "⌫"]];
+
+  // Estado idle — mostrar botón de cambio
+  if (stage === "idle") {
+    return (
+      <div className="flex items-center justify-between p-4 rounded-xl bg-violet-500/10 border border-violet-500/20">
+        <div>
+          <p className="text-white font-semibold text-sm theme-light:text-gray-900">PIN de Acceso</p>
+          <p className="text-violet-300/60 text-xs">
+            {currentPin ? "PIN configurado ••••" : "Sin PIN — el usuario no puede entrar"}
+          </p>
+        </div>
+        <button
+          type="button"
+          onClick={startChange}
+          className="flex items-center gap-2 px-3 py-2 rounded-xl bg-violet-600/80 hover:bg-violet-500 text-white text-xs font-bold transition-all"
+        >
+          <KeyRound className="w-3.5 h-3.5" />
+          {currentPin ? "Cambiar PIN" : "Asignar PIN"}
+        </button>
+      </div>
+    );
+  }
+
+  // Estado done
+  if (stage === "done") {
+    return (
+      <div className="flex items-center justify-between p-4 rounded-xl bg-emerald-500/10 border border-emerald-500/30">
+        <div className="flex items-center gap-3">
+          <div className="w-8 h-8 rounded-full bg-emerald-500/20 flex items-center justify-center">
+            <Check className="w-4 h-4 text-emerald-400" />
+          </div>
+          <div>
+            <p className="text-emerald-300 font-semibold text-sm">Nuevo PIN listo</p>
+            <p className="text-emerald-400/60 text-xs">Se guardará al hacer clic en "Actualizar"</p>
+          </div>
+        </div>
+        <button
+          type="button"
+          onClick={startChange}
+          className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-white/5 hover:bg-white/10 text-white/50 text-xs transition-all"
+        >
+          <RotateCcw className="w-3 h-3" />
+          Cambiar
+        </button>
+      </div>
+    );
+  }
+
+  // Estado entering / confirming / mismatch — mostrar pad
+  const isMismatch  = stage === "mismatch";
+  const isConfirming = stage === "confirming" || isMismatch;
+  const dotCount    = displayPin.length;
+
+  return (
+    <div className="rounded-xl bg-zinc-900/80 border border-violet-500/20 p-4 space-y-4">
+      {/* Encabezado */}
+      <div className="flex items-center justify-between">
+        <p className={`text-sm font-bold ${isMismatch ? "text-red-400" : isConfirming ? "text-amber-300" : "text-violet-300"}`}>
+          {isMismatch   ? "❌ PINs no coinciden — intenta de nuevo"
+          : isConfirming ? "Confirma el nuevo PIN"
+          : "Escribe el nuevo PIN (4 dígitos)"}
+        </p>
+        <button type="button" onClick={cancel} className="text-white/30 hover:text-white/60 transition-colors">
+          <X className="w-4 h-4" />
+        </button>
+      </div>
+
+      {/* Dots indicadores */}
+      <div className="flex justify-center gap-4">
+        {[0, 1, 2, 3].map((i) => (
+          <div key={i} className={`w-4 h-4 rounded-full border-2 transition-all duration-150 ${
+            i < dotCount
+              ? isMismatch ? "bg-red-400 border-red-400" : "bg-violet-400 border-violet-400 scale-110"
+              : "border-white/20 bg-transparent"
+          }`} />
+        ))}
+      </div>
+
+      {/* Teclado numérico */}
+      <div className="grid grid-cols-3 gap-2">
+        {numbers.flat().map((key, idx) => {
+          if (key === null) return <div key={idx} />;
+          const isBackspace = key === "⌫";
+          return (
+            <button
+              key={idx}
+              type="button"
+              onClick={() => handleKey(key)}
+              className={`h-12 rounded-xl font-bold text-lg transition-all active:scale-95 ${
+                isBackspace
+                  ? "bg-red-500/10 hover:bg-red-500/20 text-red-300 border border-red-500/20"
+                  : "bg-white/5 hover:bg-white/10 text-white border border-white/10"
+              }`}
+            >
+              {isBackspace ? <Delete className="w-4 h-4 mx-auto" /> : key}
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
 
 export default function EditUserModal({ user, onClose, onUpdate, onResendInvite, roles }) {
   const [formData, setFormData] = useState({
@@ -17,7 +179,6 @@ export default function EditUserModal({ user, onClose, onUpdate, onResendInvite,
     active: true,
     permissions: {}
   });
-  const [showPin, setShowPin] = useState(false);
   const [saving, setSaving] = useState(false);
   const [resending, setResending] = useState(false);
 
