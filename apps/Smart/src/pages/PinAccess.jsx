@@ -1348,7 +1348,8 @@ export default function PinAccess() {
             
             session = data?.session;
           } else {
-            toast.error('🔴 [D4] Hash inválido o incompleto');
+            console.warn('[OAuth] Hash inválido o incompleto — tokens no encontrados');
+            toast.error('No se completó el inicio de sesión. Intenta de nuevo.');
           }
         }
 
