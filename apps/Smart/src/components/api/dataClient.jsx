@@ -172,47 +172,60 @@ const appClientAdapter = {
     },
   },
   auth: {
-    me: async () => {
-      // 🔄 Inteligent Retry: Wait for Supabase session to settle on mobile
-      let attempts = 0;
-      const maxAttempts = 15; // 15 * 200ms = 3.0s total wait
-      
-      while (attempts < maxAttempts) {
-        try {
-          const user = await appClient.auth.me();
-          if (user) {
-            console.log("✅ Auth: me() success!");
-            return user;
-          }
-          
-          // Check for session evidence silently
-          const empKey = localStorage.getItem('employee_session');
-          const sbKey = Object.keys(localStorage).find(k => k.startsWith('sb-') && k.endsWith('-auth-token'));
-          
-          if (!empKey && !sbKey) break; 
-          
-          await new Promise(r => setTimeout(r, 200));
-          attempts++;
-        } catch (error) {
-          await new Promise(r => setTimeout(r, 200));
-          attempts++;
-        }
-      }
+    me: (() => {
+      // Backoff: tras un fallo de auth, no reintentar por 30s.
+      // Evita spam en consola y uso innecesario de batería en mobile.
+      let _lastFailTime = 0;
+      let _inFlight = null;
+      const PUBLIC_PATHS = ['/Welcome', '/PinAccess', '/Setup', '/InitialSetup', '/Activate'];
 
-      try {
-        const user = await appClient.auth.me();
-        return user || null;
-      } catch (error) {
-        // Only log CRITICAL error if we are NOT on a public/auth path
-        const publicPaths = ['/Welcome', '/PinAccess', '/Setup', '/InitialSetup', '/Activate'];
-        const isPublic = publicPaths.some(p => window.location.pathname.includes(p));
-        
-        if (!isPublic) {
-          console.error("🔴 CRITICAL: Auth connection failed:", error?.message || error);
+      return async () => {
+        // Deduplica llamadas concurrentes — una sola promesa en vuelo a la vez
+        if (_inFlight) return _inFlight;
+
+        const isPublic = PUBLIC_PATHS.some(p => window.location.pathname.includes(p));
+
+        // Backoff de 30s tras fallo reciente (evita spam de errores)
+        if (!isPublic && _lastFailTime && Date.now() - _lastFailTime < 30_000) {
+          return null;
         }
-        return null;
-      }
-    },
+
+        // 🔄 Retry: espera a que la sesión Supabase se establezca (útil en mobile)
+        _inFlight = (async () => {
+          let attempts = 0;
+          const maxAttempts = 15; // 15 × 200ms = 3s total
+
+          while (attempts < maxAttempts) {
+            try {
+              const user = await appClient.auth.me();
+              if (user) { _lastFailTime = 0; return user; }
+              const empKey = localStorage.getItem('employee_session');
+              const sbKey = Object.keys(localStorage).find(k => k.startsWith('sb-') && k.endsWith('-auth-token'));
+              if (!empKey && !sbKey) break;
+              await new Promise(r => setTimeout(r, 200));
+              attempts++;
+            } catch {
+              await new Promise(r => setTimeout(r, 200));
+              attempts++;
+            }
+          }
+
+          try {
+            const user = await appClient.auth.me();
+            if (user) { _lastFailTime = 0; return user; }
+            return null;
+          } catch (error) {
+            if (!isPublic) {
+              _lastFailTime = Date.now(); // activa backoff de 30s
+              console.warn("⚠️ Auth: sesión no disponible (reintento en 30s)", error?.message || error);
+            }
+            return null;
+          }
+        })();
+
+        try { return await _inFlight; } finally { _inFlight = null; }
+      };
+    })(),
     updateMe: async (data) => {
       try {
         return await appClient.auth.updateMe(data);
