@@ -580,7 +580,7 @@ export default function ARIAChat() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isHidden]);
 
-  // Resumen proactivo al abrir ARIA (si hay alertas y chat vacío)
+  // Resumen proactivo al abrir NAIJELI (si hay alertas y chat vacío)
   useEffect(() => {
     if (!open || messages.length > 0 || proactiveCount === 0) return;
     const runProactive = async () => {
