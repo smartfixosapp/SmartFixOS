@@ -162,22 +162,53 @@ function LayoutWrapper({ children, currentPageName }) {
     return <Layout currentPageName={currentPageName}>{children}</Layout>;
 }
 
+// Rutas públicas donde NO mostramos el botón de ayuda
+const PUBLIC_PATHS_TUTORIAL = ['/Welcome', '/PinAccess', '/Setup', '/InitialSetup', '/VerifySetup', '/Activate', '/returnlogin', '/SuperAdmin', '/Receipt', '/CustomerPortal', '/CustomerApproval', '/CustomerDisplay'];
+
 function PagesContent() {
     const location = useLocation();
     const currentPage = _getCurrentPage(location.pathname);
+    const { isOpen, open, close, complete } = useTutorial();
+
+    // Ocultar botón en rutas públicas
+    const isPublicPath = PUBLIC_PATHS_TUTORIAL.some(p =>
+        location.pathname.toLowerCase().includes(p.toLowerCase())
+    );
+
     return (
-        <LayoutWrapper currentPageName={currentPage}>
-            <Suspense fallback={<PageLoader />}>
-                <Routes>
-                    <Route path="/SuperAdmin" element={<SuperAdmin />} />
-                    <Route path="/TenantActivate" element={<TenantActivate />} />
-                    <Route path="/returnlogin" element={<ReturnLogin />} />
-                    <Route path="/Receipt" element={<Receipt />} />
-                    <Route path="/CustomerApproval" element={<CustomerApproval />} />
-                    <Route path="/*" element={<ProtectedRoutes />} />
-                </Routes>
-            </Suspense>
-        </LayoutWrapper>
+        <>
+            <LayoutWrapper currentPageName={currentPage}>
+                <Suspense fallback={<PageLoader />}>
+                    <Routes>
+                        <Route path="/SuperAdmin" element={<SuperAdmin />} />
+                        <Route path="/TenantActivate" element={<TenantActivate />} />
+                        <Route path="/returnlogin" element={<ReturnLogin />} />
+                        <Route path="/Receipt" element={<Receipt />} />
+                        <Route path="/CustomerApproval" element={<CustomerApproval />} />
+                        <Route path="/*" element={<ProtectedRoutes />} />
+                    </Routes>
+                </Suspense>
+            </LayoutWrapper>
+
+            {/* ── Botón flotante de ayuda (?) ───────────────────────── */}
+            {!isPublicPath && !isOpen && (
+                <button
+                    onClick={open}
+                    aria-label="Abrir tutorial guiado"
+                    className="fixed bottom-[5.5rem] right-4 z-[9980] w-10 h-10 rounded-full bg-violet-600 hover:bg-violet-500 active:scale-95 shadow-lg shadow-violet-500/30 flex items-center justify-center transition-all duration-150 border border-violet-400/30"
+                    style={{ bottom: 'calc(5.5rem + env(safe-area-inset-bottom, 0px))' }}
+                >
+                    <span className="text-white font-black text-base leading-none select-none">?</span>
+                </button>
+            )}
+
+            {/* ── Panel del tutorial ─────────────────────────────────── */}
+            <TutorialTour
+                isOpen={isOpen}
+                onClose={close}
+                onComplete={complete}
+            />
+        </>
     );
 }
 
