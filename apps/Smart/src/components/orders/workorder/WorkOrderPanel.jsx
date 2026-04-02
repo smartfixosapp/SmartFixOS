@@ -132,8 +132,8 @@ export default function WorkOrderPanel({ order, onClose, onUpdate, panelVersion 
   const [showPinPrompt, setShowPinPrompt] = useState(false);
   const [deleting, setDeleting] = useState(false);
   
-  // Mobile detection
-  const isMobile = typeof window !== "undefined" && window.innerWidth < 768;
+  // Mobile detection — reactive to resize/orientation changes
+  const isMobile = useIsMobile();
 
   const handleDeleteOrder = async () => {
     setDeleting(true);
