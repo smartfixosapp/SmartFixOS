@@ -426,8 +426,8 @@ export default function ARIAChat() {
   const [tourTipLoading, setTourTipLoading] = useState(false);
   const tourLoadedTips = useRef(new Set());
   const TOUR_STEPS = [
-    { id: "welcome",   emoji: "✨", color: "from-violet-500 to-purple-600",
-      title: "¡Hola! Soy ARIA 👋",  subtitle: "Tour guiado · 7 pasos · ~2 min",
+    { id: "welcome",   emoji: "🌈", color: "from-blue-500 via-violet-500 to-rose-500",
+      title: "¡Hola! Soy NAIJELI 👋",  subtitle: "Tour guiado · 7 pasos · ~2 min",
       content: "Te voy a mostrar las funciones principales de SmartFixOS. Puedes volver aquí cuando quieras.",
       page: null, aiTopic: null },
     { id: "dashboard", emoji: "📊", color: "from-cyan-500 to-blue-600",
