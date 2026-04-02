@@ -1408,9 +1408,9 @@ pregunta inmediatamente al usuario por el primer campo que falta.
                   setTab("chat");
                   setTimeout(() => sendMessage(txt), 100);
                 }}
-                className="w-full py-2.5 rounded-xl bg-violet-600 hover:bg-violet-500 text-white text-xs font-bold transition-colors"
+                className="w-full py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold transition-colors"
               >
-                ✨ Enviar a ARIA para registrar cobro
+                🌈 Enviar a NAIJELI para registrar cobro
               </button>
             </div>
           )}
