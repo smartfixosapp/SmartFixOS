@@ -1312,7 +1312,8 @@ export default function PinAccess() {
         if (code) {
           const { data, error } = await supabase.auth.exchangeCodeForSession(code);
           if (error) {
-            toast.error('🔴 [D4] Error exchange: ' + error.message);
+            console.error('[OAuth] exchangeCodeForSession error:', error.message);
+            toast.error('Error al completar inicio de sesión: ' + error.message);
             setCheckingUsers(false);
             setLoading(false);
             setOauthInProgress(false);
