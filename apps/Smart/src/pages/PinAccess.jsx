@@ -27,7 +27,17 @@ export default function PinAccess() {
     // NOTE: 911smartfix@gmail.com was removed — it's a valid tenant owner email
   ]);
   const STORE_EMAIL_KEY = "smartfix_store_email";
-  const BIOMETRIC_LOGIN_KEY = "smartfix_biometric_profile";
+  // Clave biométrica por dispositivo — cada equipo guarda su propio perfil de forma independiente
+  const BIOMETRIC_LOGIN_KEY = (() => {
+    let deviceId = localStorage.getItem("smartfix_device_id");
+    if (!deviceId) {
+      deviceId = (typeof crypto !== "undefined" && crypto.randomUUID)
+        ? crypto.randomUUID()
+        : Math.random().toString(36).slice(2, 16);
+      localStorage.setItem("smartfix_device_id", deviceId);
+    }
+    return `smartfix_biometric_${deviceId}`;
+  })();
   const DEFAULT_STORE_EMAIL = ""; // No default — cada usuario es único
   const ADMIN_PERMISSIONS = {
     can_view_orders: true,
