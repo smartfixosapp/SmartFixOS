@@ -1333,7 +1333,8 @@ export default function PinAccess() {
               refresh_token
             });
             if (error) {
-              toast.error('🔴 [D4] Error al establecer sesión: ' + error.message);
+              console.error('[OAuth] setSession error:', error.message);
+              toast.error('Error al establecer sesión: ' + error.message);
               setOauthInProgress(false);
               return;
             }
