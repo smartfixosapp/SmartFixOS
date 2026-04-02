@@ -190,7 +190,7 @@ export default function EditUserModal({ user, onClose, onUpdate, onResendInvite,
         full_name: user.full_name || "",
         email: user.email || "",
         phone: user.phone || "",
-        role: user.position || user.role || "technician", // Usar position como rol principal
+        role: user.position || user.role || "technician",
         employee_code: user.employee_code || "",
         pin: user.pin || "",
         hourly_rate: user.hourly_rate || "",
