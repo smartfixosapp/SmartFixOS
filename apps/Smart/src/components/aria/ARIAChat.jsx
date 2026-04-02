@@ -1305,7 +1305,8 @@ pregunta inmediatamente al usuario por el primer campo que falta.
           {/* Header */}
           <div className="flex items-center justify-between px-4 py-3 border-b border-white/[0.06] shrink-0">
             <div className="flex items-center gap-3">
-              <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-red-500 via-yellow-400 via-green-500 via-blue-500 to-violet-600 flex items-center justify-center shadow-lg shadow-blue-900/50">
+              <div className="w-8 h-8 rounded-xl flex items-center justify-center shadow-lg shadow-blue-900/50 overflow-hidden"
+                style={{ background: "conic-gradient(from 135deg, #ef4444 0deg, #ef4444 90deg, #f59e0b 90deg, #f59e0b 180deg, #22c55e 180deg, #22c55e 270deg, #3b82f6 270deg, #3b82f6 360deg)" }}>
                 <span className="text-sm">🧩</span>
               </div>
               <div>
