@@ -662,7 +662,7 @@ pregunta inmediatamente al usuario por el primer campo que falta.
   // ── Ejecutor de herramientas ─────────────────────────────────────────────────
   const executeToolCall = async (toolName, args) => {
     const session   = readSession();
-    const createdBy = session?.full_name || session?.userName || session?.email || "ARIA";
+    const createdBy = session?.full_name || session?.userName || session?.email || "NAIJELI";
 
     switch (toolName) {
       case "buscar_cliente": {
