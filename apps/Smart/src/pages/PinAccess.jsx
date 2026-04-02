@@ -2414,8 +2414,8 @@ export default function PinAccess() {
                       <div className="flex flex-col items-center mb-8">
                         <button onClick={() => setStep("user")} className="mb-4 group">
                           <div className="w-20 h-20 rounded-full bg-gradient-to-br from-cyan-500 to-blue-600 p-0.5 shadow-[0_0_20px_rgba(6,182,212,0.3)] group-active:scale-95 transition-transform">
-                            <div className="w-full h-full rounded-full bg-black flex items-center justify-center overflow-hidden">
-                              <span className="text-2xl font-black text-cyan-400">
+                            <div className="w-full h-full rounded-full bg-black flex items-center justify-center">
+                              <span className="text-2xl font-black text-cyan-400 leading-none select-none">
                                 {(selectedUser?.full_name || selectedUser?.userName || "?")[0].toUpperCase()}
                               </span>
                             </div>
