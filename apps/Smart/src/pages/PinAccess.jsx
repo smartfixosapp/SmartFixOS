@@ -280,19 +280,31 @@ export default function PinAccess() {
 
       const mergedRemote = [];
       const keyToIndex = new Map();
-      for (const candidate of [...(userRows || []), ...(employeeRows || [])]) {
+      // ⚠️ ORDEN IMPORTANTE: app_employee primero, users después.
+      // El PIN de app_employee es la fuente de verdad (UsersManagement actualiza app_employee).
+      // Si el usuario existe en ambas tablas, el PIN de app_employee gana en el merge via `||`.
+      for (const candidate of [...(employeeRows || []), ...(userRows || [])]) {
         if (!candidate || candidate.active === false || isSystemUserLike(candidate)) continue;
 
         const keys = getUserIdentityKeys(candidate);
         const existingIndex = keys.map((key) => keyToIndex.get(key)).find((idx) => Number.isInteger(idx));
 
         if (Number.isInteger(existingIndex)) {
+          // Elegir el PIN más reciente cuando ambas tablas tienen el usuario
+          const existingUpdatedAt = mergedRemote[existingIndex]?.updated_at || "";
+          const candidateUpdatedAt = candidate?.updated_at || "";
+          const preferCandidatePin = candidateUpdatedAt > existingUpdatedAt && candidate.pin;
           mergedRemote[existingIndex] = {
-            ...candidate,
             ...mergedRemote[existingIndex],
+            ...candidate,
+            // Restaurar campos del existente (app_employee) que no deben ser sobreescritos
+            id: mergedRemote[existingIndex]?.id || candidate.id,
             position: mergedRemote[existingIndex]?.position || candidate.position,
             employee_code: mergedRemote[existingIndex]?.employee_code || candidate.employee_code,
-            pin: mergedRemote[existingIndex]?.pin || candidate.pin,
+            // PIN: usar el más reciente (por updated_at) o el de app_employee (existingIndex)
+            pin: preferCandidatePin
+              ? candidate.pin
+              : (mergedRemote[existingIndex]?.pin || candidate.pin),
             permissions: mergedRemote[existingIndex]?.permissions || candidate.permissions,
             tenant_id: mergedRemote[existingIndex]?.tenant_id || candidate.tenant_id,
           };
