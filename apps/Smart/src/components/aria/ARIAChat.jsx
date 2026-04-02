@@ -1758,7 +1758,8 @@ pregunta inmediatamente al usuario por el primer campo que falta.
         </div>
       )}
 
-      {/* Botón flotante */}
+      {/* Botón flotante — se esconde tras completar el tour (salvo que haya alertas) */}
+      {(!toured || proactiveCount > 0 || open) && (
       <div className="relative pointer-events-auto">
         {proactiveCount > 0 && !open && (
           <span className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-red-500 border-2 border-black flex items-center justify-center z-10">
