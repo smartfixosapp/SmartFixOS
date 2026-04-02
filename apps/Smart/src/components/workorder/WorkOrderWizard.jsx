@@ -954,6 +954,26 @@ Sé técnico pero claro. Máximo 120 palabras.`;
   // Step 0 = type selector (Rápida vs Regular), then content steps
   const mobileStepsTotal = quickOrderMode ? 4 : 8;
   const isLastMobileStep = isCompactDevice && mobileStep === mobileStepsTotal - 1;
+
+  // Validation per step — prevents advancing without required fields
+  const canAdvanceMobileStep = useMemo(() => {
+    // Step 0 = type selector, always can advance once mode is set
+    if (mobileStep === 0) return true;
+    // Step 1 = Cliente
+    if (mobileStep === 1) {
+      if (isB2B) return !!(companyName?.trim() && billingContact?.trim() && customerPhone?.trim() && customerEmail?.trim());
+      return !!(customerName?.trim() && customerPhone?.trim());
+    }
+    // Step 2 = Técnico (normal) or Dispositivo (quick) — optional, always can advance
+    if (mobileStep === 2) return true;
+    // Step 3 = Dispositivo (normal) — brand + model required
+    if (mobileStep === 3 && !quickOrderMode) return !!(deviceBrand && deviceModel);
+    // Quick step 2 = Dispositivo — brand + model required
+    if (mobileStep === 2 && quickOrderMode) return !!(deviceBrand && deviceModel);
+    // All other steps are optional
+    return true;
+  }, [mobileStep, quickOrderMode, isB2B, companyName, billingContact, customerPhone, customerEmail, customerName, deviceBrand, deviceModel]);
+
   const mobileStepLabels = quickOrderMode
     ? ["Tipo", "Cliente", "Dispositivo", "Problema"]
     : ["Tipo", "Cliente", "Técnico", "Dispositivo", "Problema", "Seguridad", "Checklist", "Evidencia"];
