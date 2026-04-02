@@ -2,7 +2,7 @@
   "name": "SmartFixOS",
   "short_name": "SmartFixOS",
   "description": "Sistema de gestión integral para talleres de reparación",
-  "start_url": "/Dashboard",
+  "start_url": "/PinAccess",
   "display": "standalone",
   "display_override": ["window-controls-overlay", "standalone"],
   "orientation": "any",
