@@ -2408,8 +2408,8 @@ export default function PinAccess() {
 
             {/* ─── Pantalla de PIN ─── */}
             {step === "pin" && selectedUser && (
-                <div className="absolute inset-0 overflow-hidden">
-                  <div className="h-full flex flex-col items-center justify-center p-6">
+                <div className="absolute inset-0 overflow-y-auto">
+                  <div className="min-h-full flex flex-col items-center justify-center p-6 pb-safe">
                     <div className="w-full max-w-sm">
                       <div className="flex flex-col items-center mb-8">
                         <button onClick={() => setStep("user")} className="mb-4 group">
