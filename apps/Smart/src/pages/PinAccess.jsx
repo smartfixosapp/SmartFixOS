@@ -2387,8 +2387,8 @@ export default function PinAccess() {
                             }}
                             className="group relative flex flex-col items-center p-4 rounded-3xl bg-white/[0.03] border border-white/5 hover:bg-white/[0.08] hover:border-cyan-500/30 transition-all active:scale-95"
                           >
-                            <div className="w-16 h-16 rounded-full bg-gradient-to-br from-cyan-600/20 to-blue-600/20 border border-white/10 flex items-center justify-center mb-3">
-                              <span className="text-xl font-black text-white/40 group-hover:text-cyan-300 transition-colors">
+                            <div className="w-16 h-16 rounded-full bg-gradient-to-br from-cyan-600/20 to-blue-600/20 border border-white/10 flex items-center justify-center mb-3 flex-shrink-0">
+                              <span className="text-xl font-black text-white/40 group-hover:text-cyan-300 transition-colors leading-none select-none">
                                 {(u.full_name || u.userName || u.email || "?")[0].toUpperCase()}
                               </span>
                             </div>
