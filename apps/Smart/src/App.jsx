@@ -171,6 +171,7 @@ function App() {
     <AppErrorBoundary>
       <QueryClientProvider client={queryClient}>
         <AppSyncListener />
+        <StagingBanner />
         <NetworkStatusBanner />
         <Pages />
         <Toaster />
