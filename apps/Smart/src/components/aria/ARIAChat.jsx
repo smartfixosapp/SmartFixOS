@@ -14,7 +14,7 @@ const HIDDEN_PATHS = [
   "/VerifySetup", "/Activate", "/TenantActivate", "/returnlogin",
 ];
 
-// ── Herramientas del Asistente ARIA ──────────────────────────────────────────
+// ── Herramientas del Asistente NAIJELI ───────────────────────────────────────
 const ARIA_TOOLS = [
   {
     type: "function",
