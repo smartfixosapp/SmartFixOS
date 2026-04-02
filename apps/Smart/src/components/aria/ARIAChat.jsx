@@ -430,7 +430,7 @@ export default function ARIAChat() {
   const [tourTipLoading, setTourTipLoading] = useState(false);
   const tourLoadedTips = useRef(new Set());
   const TOUR_STEPS = [
-    { id: "welcome",   emoji: "🌈", color: "from-blue-500 via-violet-500 to-rose-500",
+    { id: "welcome",   emoji: "🧩", color: "from-blue-500 via-violet-500 to-rose-500",
       title: "¡Hola! Soy DARJENI 👋",  subtitle: "Tour guiado · 7 pasos · ~2 min",
       content: "Te voy a mostrar las funciones principales de SmartFixOS. Puedes volver aquí cuando quieras.",
       page: null, aiTopic: null },
@@ -1306,7 +1306,7 @@ pregunta inmediatamente al usuario por el primer campo que falta.
           <div className="flex items-center justify-between px-4 py-3 border-b border-white/[0.06] shrink-0">
             <div className="flex items-center gap-3">
               <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-red-500 via-yellow-400 via-green-500 via-blue-500 to-violet-600 flex items-center justify-center shadow-lg shadow-blue-900/50">
-                <span className="text-sm">🌈</span>
+                <span className="text-sm">🧩</span>
               </div>
               <div>
                 <p className="text-sm font-black text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-cyan-400 to-teal-400 leading-none">DARJENI</p>
@@ -1426,7 +1426,7 @@ pregunta inmediatamente al usuario por el primer campo que falta.
                 }}
                 className="w-full py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold transition-colors"
               >
-                🌈 Enviar a DARJENI para registrar cobro
+                🧩 Enviar a DARJENI para registrar cobro
               </button>
             </div>
           )}
@@ -1545,7 +1545,7 @@ pregunta inmediatamente al usuario por el primer campo que falta.
             {messages.length === 0 && (
               <div className="h-full flex flex-col items-center justify-center text-center px-4 gap-3">
                 <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-red-500/20 via-blue-500/20 to-violet-500/20 border border-blue-500/20 flex items-center justify-center">
-                  <span className="text-2xl">🌈</span>
+                  <span className="text-2xl">🧩</span>
                 </div>
                 <p className="text-sm font-black text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-cyan-400 to-teal-400">Hola, soy DARJENI</p>
                 <p className="text-xs text-white/25 leading-relaxed">
@@ -1786,7 +1786,7 @@ pregunta inmediatamente al usuario por el primer campo que falta.
             ? <span className="text-xl animate-spin inline-block">⟳</span>
             : open
               ? <X className="w-5 h-5 text-white" />
-              : <span className="text-xl">🌈</span>
+              : <span className="text-xl">🧩</span>
           }
         </button>
       </div>
