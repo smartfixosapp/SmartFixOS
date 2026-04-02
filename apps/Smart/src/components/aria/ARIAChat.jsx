@@ -1,7 +1,9 @@
-import React, { useState, useEffect, useRef, useMemo } from "react";
-import { useLocation } from "react-router-dom";
+import React, { useState, useEffect, useRef, useMemo, useCallback } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
 import { dataClient } from "@/components/api/dataClient";
-import { X, Mic, ChevronRight, CheckCircle2, Calculator } from "lucide-react";
+import { X, Mic, ChevronRight, CheckCircle2, ChevronLeft, Delete, Sparkles } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import { callGroqAI } from "@/lib/groqAI";
 
 const IVU_RATE = 0.115;
 function toNum(v) { const n = Number(v); return Number.isFinite(n) && n >= 0 ? n : 0; }
@@ -411,12 +413,52 @@ export default function ARIAChat() {
   const [todayExpenses, setTodayExpenses] = useState(0);
   const [activeOrders, setActiveOrders]   = useState({ total: 0, urgent: 0, ready: 0 });
   const [isListening, setIsListening] = useState(false);
-  const [tab, setTab]               = useState("chat"); // "chat" | "calc"
+  const [tab, setTab]               = useState("chat"); // "chat" | "calc" | "tour"
   const [proactiveCount, setProactiveCount] = useState(0); // badge en el botón
   const proactiveCheckedRef = useRef(false); // solo chequear una vez por sesión
   const [calcParts, setCalcParts]   = useState("");
   const [calcLabor, setCalcLabor]   = useState("");
   const [calcTax, setCalcTax]       = useState(true);
+  // ── Tour state ──────────────────────────────────────────────────────────────
+  const navigate = useNavigate();
+  const [tourStep, setTourStep]       = useState(0);
+  const [tourTips, setTourTips]       = useState({});
+  const [tourTipLoading, setTourTipLoading] = useState(false);
+  const tourLoadedTips = useRef(new Set());
+  const TOUR_STEPS = [
+    { id: "welcome",   emoji: "✨", color: "from-violet-500 to-purple-600",
+      title: "¡Hola! Soy ARIA 👋",  subtitle: "Tour guiado · 7 pasos · ~2 min",
+      content: "Te voy a mostrar las funciones principales de SmartFixOS. Puedes volver aquí cuando quieras.",
+      page: null, aiTopic: null },
+    { id: "dashboard", emoji: "📊", color: "from-cyan-500 to-blue-600",
+      title: "Dashboard", subtitle: "El centro de mando",
+      content: "Ve todo de un vistazo: órdenes activas, caja del día, alertas y KPIs del taller.",
+      page: "/Dashboard", aiTopic: "dashboard de un taller de reparación: órdenes activas, caja, alertas y KPIs" },
+    { id: "orders",    emoji: "🛠️", color: "from-emerald-500 to-green-600",
+      title: "Órdenes de Trabajo", subtitle: "El corazón del taller",
+      content: "Crea órdenes en segundos con el wizard: cliente, dispositivo, problema, técnico y evidencia.",
+      page: "/Dashboard", aiTopic: "órdenes de trabajo de reparación: wizard de pasos, estatus, técnicos asignados" },
+    { id: "pos",       emoji: "🛒", color: "from-amber-500 to-orange-600",
+      title: "POS — Punto de Venta", subtitle: "Caja y ventas",
+      content: "Abre la caja, agrega productos al carrito y cobra. Acepta efectivo, tarjeta o ambos.",
+      page: "/POS", aiTopic: "punto de venta para taller: abrir caja, agregar productos, cobrar, recibos" },
+    { id: "customers", emoji: "👥", color: "from-pink-500 to-rose-600",
+      title: "Clientes", subtitle: "Tu base de datos",
+      content: "Historial completo de reparaciones, balances pendientes y portal de seguimiento para el cliente.",
+      page: "/Customers", aiTopic: "gestión de clientes en taller: historial de reparaciones, portal, balance pendiente" },
+    { id: "inventory", emoji: "📦", color: "from-teal-500 to-cyan-600",
+      title: "Inventario", subtitle: "Piezas y productos",
+      content: "Controla tu stock, recibe alertas de stock bajo y gestiona órdenes de compra.",
+      page: "/Inventory", aiTopic: "inventario de taller: piezas, accesorios, alertas de stock bajo, órdenes de compra" },
+    { id: "financial", emoji: "📈", color: "from-indigo-500 to-violet-600",
+      title: "Finanzas", subtitle: "Reportes y flujo de caja",
+      content: "Ingresos, gastos y neto del día o del mes. Reportes por período y análisis de rentabilidad.",
+      page: "/Financial", aiTopic: "finanzas de taller: ingresos, gastos, neto, reportes por período, flujo de caja" },
+    { id: "done",      emoji: "🎉", color: "from-green-500 to-emerald-600",
+      title: "¡Ya eres un experto!", subtitle: "Tour completado",
+      content: "Eso es todo lo básico. Recuerda que puedes volver a este tour aquí dentro de ARIA cuando quieras.",
+      page: null, aiTopic: null },
+  ];
   const recognitionRef = useRef(null);
   const dictRef        = useRef("");
   const endRef         = useRef(null);
