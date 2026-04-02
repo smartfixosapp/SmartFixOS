@@ -758,7 +758,6 @@ export default function UsersManagement() {
 
   const handleUpdateUser = async (userId, userData) => {
     try {
-      // Preparar datos - role solo acepta 'admin' o 'user'
       const cleanData = {
         full_name: userData.full_name,
         email: userData.email,
@@ -768,10 +767,10 @@ export default function UsersManagement() {
         hourly_rate: parseFloat(userData.hourly_rate) || 0,
         active: userData.active !== false
       };
-      
-      // Solo agregar PIN si se proporcionó uno nuevo
-      if (userData.pin?.trim()) {
-        cleanData.pin = userData.pin;
+
+      const newPin = userData.pin?.trim();
+      if (newPin) {
+        cleanData.pin = newPin;
       }
 
       if (isLocalUserId(userId)) {
@@ -788,6 +787,27 @@ export default function UsersManagement() {
         if (updateError) throw updateError;
       } else {
         await dataClient.entities.User.update(userId, cleanData);
+      }
+
+      // ── Sincronizar PIN en AMBAS tablas ──────────────────────────────────
+      // Garantiza que el PIN nuevo funcione aunque el usuario exista en las
+      // dos tablas (users + app_employee), independientemente de cuál se
+      // actualizó arriba. Usa .eq("email") para no depender del source.
+      if (newPin) {
+        const email = String(userData.email || "").trim().toLowerCase();
+        const tenantId = getCurrentTenantId();
+        if (email && tenantId) {
+          await Promise.allSettled([
+            supabase.from("users")
+              .update({ pin: newPin })
+              .eq("email", email)
+              .eq("tenant_id", tenantId),
+            supabase.from("app_employee")
+              .update({ pin: newPin })
+              .eq("email", email)
+              .eq("tenant_id", tenantId),
+          ]);
+        }
       }
       toast.success("✅ Usuario actualizado");
       
