@@ -1461,7 +1461,7 @@ pregunta inmediatamente al usuario por el primer campo que falta.
                                   ))}
                                 </div>
                               ) : (
-                                <p className="text-violet-200/90 text-[11px] leading-relaxed">{tip}</p>
+                                <p className="text-blue-200/90 text-[11px] leading-relaxed">{tip}</p>
                               )}
                             </div>
                           </motion.div>
