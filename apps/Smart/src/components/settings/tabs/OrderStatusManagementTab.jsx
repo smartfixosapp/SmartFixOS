@@ -19,6 +19,7 @@ import {
   Copy
 } from "lucide-react";
 import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
+import { toast } from "sonner";
 
 const DEFAULT_STATUSES = [
   { id: "intake", label: "Recepción", color: "#3B82F6", isActive: true, isTerminal: false, isSystem: false },
