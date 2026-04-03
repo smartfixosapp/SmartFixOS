@@ -1047,7 +1047,7 @@ export default function PinAccess() {
       console.error("Biometric login error:", error);
       setHasCancelledBiometric(true);
       // No borrar perfil si hay error (ej. mismatch criptográfico temporal), forzamos PIN fallback
-      toast.error("Biometría no válida — inicia con PIN temporalmente");
+      toast.error(`Biometría no completada (${error?.name || "Error"}): Usa PIN`, { duration: 3000 });
     } finally {
       setBiometricLoading(false);
     }
@@ -1611,6 +1611,11 @@ export default function PinAccess() {
   useEffect(() => {
     if (!isReady || hasCancelledBiometric) return;
     if (!biometricSupported || !biometricProfile?.credentialId || !biometricProfile?.session) return;
+    
+    // Auto-trigger biométrico solo es posible en entornos Nativos vía plugin Capacitor.
+    // En Web (Safari/PWA), WebAuthn es muy estricto y bloquea peticiones automáticas sin click.
+    if (!Capacitor.isNativePlatform()) return;
+    
     const timer = setTimeout(() => handleEarlyBiometricLogin(), 500);
     return () => clearTimeout(timer);
   }, [isReady, biometricSupported, biometricProfile?.credentialId, hasCancelledBiometric]);
