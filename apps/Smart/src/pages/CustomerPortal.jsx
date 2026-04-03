@@ -18,7 +18,7 @@ import {
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { openWhatsApp, makeCall } from "@/components/utils/helpers";
-import { callGroqAI } from "@/lib/groqAI";
+import { callJENAI } from "@/lib/jenaiEngine";
 
 const statusColors = {
   intake: "bg-blue-500/20 text-blue-400 border-blue-500/30",
