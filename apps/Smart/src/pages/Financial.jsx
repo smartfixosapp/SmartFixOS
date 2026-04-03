@@ -1100,6 +1100,23 @@ Responde con: 1) resumen de 2 oraciones, 2) un punto positivo, 3) una recomendac
         )}
       </div>
 
+      {/* ── JENAI Financial Insights ── */}
+      <div className="max-w-7xl mx-auto w-full px-4 sm:px-6 pt-3">
+        <JENAIInsightBanner
+          context="financial"
+          data={{
+            todayIncome: todayRevenue || 0,
+            monthIncome: totalRevenue || 0,
+            monthExpenses: totalExpenses || 0,
+            netProfit: (totalRevenue || 0) - (totalExpenses || 0),
+            margin: totalRevenue > 0 ? Math.round(((totalRevenue - totalExpenses) / totalRevenue) * 100) : 0,
+            txCount: transactions?.length || 0,
+          }}
+          accentColor="emerald"
+          autoLoad={!loading}
+        />
+      </div>
+
       {/* ── Layout principal ── */}
       <div className="max-w-7xl mx-auto w-full px-4 sm:px-6 pt-4 pb-28 flex-1">
         <div className="lg:flex lg:gap-5 lg:items-start">
