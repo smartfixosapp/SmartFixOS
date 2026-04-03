@@ -315,7 +315,7 @@ export default function DiagnosticAI({ order, checklist = [], deviceCategory = "
               <div className="flex justify-start">
                 <div className="flex items-center gap-2 rounded-2xl border border-white/10 bg-white/[0.06] px-4 py-3">
                   <Loader2 className="h-4 w-4 animate-spin text-purple-400" />
-                  <span className="text-xs text-white/40">JENAI esta analizando...</span>
+                  <span className="text-xs text-white/40">JENAI esta pensando...</span>
                 </div>
               </div>
             )}
