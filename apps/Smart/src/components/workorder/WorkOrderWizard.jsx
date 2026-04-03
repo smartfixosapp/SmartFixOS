@@ -2769,7 +2769,10 @@ Reglas:
         status_metadata: {
           quick_order: quickOrderMode,
           flow_type: quickOrderMode ? "quick_repair" : "standard",
-          created_from: quickOrderMode ? "work_order_wizard_quick" : "work_order_wizard",
+          created_from: jenaiMode
+            ? (quickOrderMode ? "work_order_wizard_jenai_quick" : "work_order_wizard_jenai_normal")
+            : (quickOrderMode ? "work_order_wizard_quick" : "work_order_wizard"),
+          jenai_used: jenaiMode || false,
           additional_contact: {
             phone: customerAltPhone || "",
             email: customerAltEmail || "",
