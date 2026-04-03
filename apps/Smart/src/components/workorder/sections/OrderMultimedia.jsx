@@ -216,6 +216,7 @@ export default function OrderMultimedia({ order, onUpdate }) {
               ))}
             </select>
             {/* Botón de cámara — icono, siempre visible en móvil */}
+            <PlanGate feature="orders_photos" fallback={<UpgradePrompt feature="orders_photos" inline />}>
             <label
               className={`inline-flex items-center justify-center w-9 h-9 rounded-xl cursor-pointer transition-all hover:scale-105 active:scale-95 flex-shrink-0 ${
                 uploading
@@ -231,6 +232,7 @@ export default function OrderMultimedia({ order, onUpdate }) {
               )}
               <input type="file" accept="image/*,video/*" multiple onChange={handleUpload} className="hidden" disabled={uploading} />
             </label>
+            </PlanGate>
           </div>
         </div>
       </div>
