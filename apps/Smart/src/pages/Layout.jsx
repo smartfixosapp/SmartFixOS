@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from "react";
-import { Link, useLocation, useNavigate } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import { createPageUrl } from "@/components/utils/helpers";
 import { Toaster } from "sonner";
 // 👈 MIGRACIÓN: Usar dataClient unificado
