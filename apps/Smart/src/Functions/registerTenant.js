@@ -106,12 +106,12 @@ export async function registerTenantHandler(req) {
       return Response.json({ success: false, error: 'Email inválido' }, { status: 400 });
     }
 
-    const planMap = { basic: 'smartfixos', pro: 'pro', enterprise: 'enterprise' };
-    const plan = planMap[rawPlan] || 'smartfixos';
+    const planMap = { basic: 'starter', smartfixos: 'starter', pro: 'pro', enterprise: 'business', business: 'business' };
+    const plan = planMap[rawPlan] || 'starter';
     const PLANS = {
-      smartfixos: { max_users: 1,    monthly_cost: 55,  label: 'Basic'      },
-      pro:        { max_users: 3,    monthly_cost: 85,  label: 'Pro'        },
-      enterprise: { max_users: 9999, monthly_cost: 0,   label: 'Enterprise' },
+      starter:  { max_users: 1,  monthly_cost: 14.99, label: 'Starter'  },
+      pro:      { max_users: 5,  monthly_cost: 39.99, label: 'Pro'      },
+      business: { max_users: 10, monthly_cost: 79.99, label: 'Business' },
     };
     const planCfg = PLANS[plan];
 
