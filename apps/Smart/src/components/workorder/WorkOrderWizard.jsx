@@ -4217,7 +4217,12 @@ Reglas:
                 </Button>
                 {mobileStep > 0 && (
                   <Button
-                    onClick={() => setMobileStep(s => Math.max(0, s - 1))}
+                    onClick={() => {
+                      if (inJenaiInput && mobileStep === 1) {
+                        setJenaiMode(false); setJenaiSubMode(null); setJenaiInput(""); setJenaiPhotos([]); setJenaiError("");
+                      }
+                      setMobileStep(s => Math.max(0, s - 1));
+                    }}
                     variant="outline"
                     className="flex-1 border-white/15 bg-white/[0.07] text-white/80 hover:bg-white/[0.12] h-11 rounded-[16px] font-black uppercase text-[11px] tracking-widest active:scale-95 transition-all"
                     disabled={loading}
