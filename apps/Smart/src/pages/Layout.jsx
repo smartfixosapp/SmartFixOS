@@ -213,7 +213,7 @@ export default function Layout({ children }) {
   useEffect(() => {
     if (isPinAccess || isWelcome || isSetupPage || !user) return;
     if (!("Notification" in window)) return;
-    if (Notification.permission !== "default") return;
+    if (window.Notification?.permission !== "default") return;
     if (sessionStorage.getItem("push_banner_shown")) return;
     const t = setTimeout(() => {
       setShowPushBanner(true);
