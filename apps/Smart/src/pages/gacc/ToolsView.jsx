@@ -8,7 +8,8 @@ import {
   Wrench, Database, HardDrive, ToggleLeft, ToggleRight, Zap,
   Search, RefreshCw, Download, Trash2, Eye, Filter, Play,
   CheckCircle, XCircle, AlertTriangle, Building2, Clock,
-  Users, ShoppingBag, Mail, ArrowRight, Settings
+  Users, ShoppingBag, Mail, ArrowRight, Settings, UserCheck,
+  Activity, ExternalLink
 } from "lucide-react";
 import { useGACC, timeAgo, getPlanConfig } from "./gaccContext";
 import { toast } from "sonner";
