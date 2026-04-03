@@ -1259,13 +1259,11 @@ export default function PinAccess() {
       console.warn("PIN login: notificación no disponible (continuando login).", notifyError);
     }
 
-    toast.success(`¡Bienvenido, ${session.userName}!`, { duration: 1500 });
+    toast.success(`¡Bienvenido, ${session.userName}!`, { duration: 2000 });
 
-    // Redirección dura — bypasea cualquier estado de React Router o Service Worker
-    // La sesión ya está en localStorage, Auth.jsx la levanta en el nuevo load
-    setTimeout(() => {
-      window.location.replace("/Dashboard");
-    }, 600);
+    // Navegación SPA limpia — Auth.jsx tiene un guard de race-condition
+    // que muestra spinner si user state aún no se ha aplicado
+    navigate("/Dashboard", { replace: true });
   };
 
   const handleMasterValidate = async () => {
