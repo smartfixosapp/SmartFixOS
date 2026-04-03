@@ -114,9 +114,8 @@ export default function PinAccess() {
   const [submitting, setSubmitting] = useState(false);
   const [isCheckingAuth, setIsCheckingAuth] = useState(true);
 
-  // ── Sincronización Inicial: Si ya hay sesión, no renderizar nada para evitar flicker y triggers de FaceID
-  // Esto evita que el sensor se active si ya estamos logueados
-  const hasProbableSession = !!localStorage.getItem("employee_session");
+  // ── Sincronización Inicial: Si ya hay sesión verificada, no renderizar nada
+  const hasProbableSession = !!sessionStorage.getItem("911-session") && !!localStorage.getItem("employee_session");
   if (hasProbableSession && step === "welcome" && !loading) {
     return <div className="min-h-screen bg-black" />;
   }
@@ -1138,8 +1137,15 @@ export default function PinAccess() {
 
   // Navegar al Dashboard después de la oferta biométrica (o directamente)
   const finishLoginNavigation = () => {
+    const sess = pendingLoginSession;
     setShowBiometricOffer(false);
     setPendingLoginSession(null);
+    
+    if (sess) {
+      completeLogin(sess);
+      return;
+    }
+
     setShowSuccessBurst(true);
     setTimeout(() => {
       setShowSuccessBurst(false);
@@ -1446,13 +1452,15 @@ export default function PinAccess() {
         }
       }
 
-      // 1. Verificar sesión activa — con check de suspensión antes de redirigir
-      const session = localStorage.getItem("employee_session");
-      if (session) {
+      // 1. Verificar sesión activa — SOLO si está en sessionStorage
+      const lsSessionRaw = localStorage.getItem("employee_session");
+      const ssSessionRaw = sessionStorage.getItem("911-session");
+
+      if (lsSessionRaw) {
         try {
-          const parsed = JSON.parse(session);
+          const parsed = JSON.parse(lsSessionRaw);
           if (parsed && parsed.id) {
-            // Verificar que el tenant NO esté suspendido antes de dejar entrar
+            // Check suspension first
             const sessionTenantId = parsed.tenant_id || localStorage.getItem("smartfix_tenant_id");
             if (sessionTenantId) {
               try {
@@ -1462,25 +1470,29 @@ export default function PinAccess() {
                   .eq("id", sessionTenantId)
                   .single();
                 if (tenantCheck?.status === "suspended" || tenantCheck?.status === "cancelled") {
-                  console.log("⛔ Sesión existente bloqueada — tenant suspendido");
                   localStorage.removeItem("employee_session");
                   sessionStorage.removeItem("911-session");
                   clearSavedCreds();
                   localStorage.removeItem("smartfix_tenant_id");
-                  setTimeout(() => toast.error("⛔ Esta cuenta está suspendida. Contacta soporte en smartfixos.com", { duration: 8000 }), 300);
-                  // No redirigir — mostrar PinAccess con el mensaje
+                  setTimeout(() => toast.error("⛔ Esta cuenta está suspendida", { duration: 8000 }), 300);
                   setCheckingUsers(false);
                   setIsReady(true);
                   return;
                 }
-              } catch { /* Si falla la query, dejar pasar */ }
+              } catch { }
             }
-            console.log("✅ PinAccess: Sesión detectada, redirigiendo a Dashboard");
-            navigate("/Dashboard", { replace: true });
-            return;
+
+            // Si está en sessionStorage, la sesión está verificada y activa, ir al dashboard
+            if (ssSessionRaw) {
+              console.log("✅ PinAccess: Sesión detectada, redirigiendo a Dashboard");
+              navigate("/Dashboard", { replace: true });
+              return;
+            } else {
+              // NO redirigir. Dejar que caiga en Auto-login para que re-valide y pida PIN.
+              console.log("🔒 Sesión inactiva (background), requiriendo PIN...");
+            }
           }
         } catch (e) {
-          console.log("⚠️ PinAccess: Sesión corrupta, limpiando");
           localStorage.removeItem("employee_session");
           sessionStorage.removeItem("911-session");
         }
@@ -1563,7 +1575,26 @@ export default function PinAccess() {
           setIsAutoLogging(false);
           setCheckingUsers(false);
           setIsReady(true);
-          if (!ok) console.warn("Auto-login falló — mostrando formulario");
+          
+          if (ok) {
+            // Preseleccionar al usuario anterior si hay un pin de sesión
+            const prevSessionRaw = localStorage.getItem("employee_session");
+            if (prevSessionRaw) {
+              try {
+                const prev = JSON.parse(prevSessionRaw);
+                setAvailableUsers((currentUsers) => {
+                  const matched = currentUsers.find(u => u.id === prev.id);
+                  if (matched) {
+                    setSelectedUser(matched);
+                    setStep("pin");
+                  }
+                  return currentUsers;
+                });
+              } catch {}
+            }
+          } else {
+            console.warn("Auto-login falló — mostrando formulario");
+          }
           return;
         } else {
           // Sesión Supabase expirada o no coincide — limpiar credenciales guardadas
@@ -2422,29 +2453,41 @@ export default function PinAccess() {
 
                       {error && <p className="text-red-500 text-xs text-center mb-6 font-bold">{error}</p>}
 
-                      {/* Teclado Numérico */}
-                      <div className="grid grid-cols-3 gap-4">
+                      {/* Teclado Numérico modificado para evitar zoom excesivo en iOS */}
+                      <div className="grid grid-cols-3 gap-3 w-full max-w-[270px] mx-auto">
                         {[1, 2, 3, 4, 5, 6, 7, 8, 9].map((n) => (
-                          <button key={n} onClick={() => handleNumberClick(String(n))} className="w-full aspect-square rounded-2xl bg-white/5 text-2xl font-black text-white active:bg-white/15 active:scale-90 transition-all">{n}</button>
+                          <button key={n} onClick={() => handleNumberClick(String(n))} className="w-full h-[65px] rounded-2xl bg-white/5 text-2xl font-black text-white active:bg-white/15 active:scale-95 transition-all">{n}</button>
                         ))}
-                        <button onClick={() => setStep("user")} className="text-xs font-bold text-gray-500 active:text-white transition-colors">ESC</button>
-                        <button onClick={() => handleNumberClick("0")} className="w-full aspect-square rounded-2xl bg-white/5 text-2xl font-black text-white active:bg-white/15 active:scale-90 transition-all">0</button>
-                        <button onClick={handleBackspace} className="w-full aspect-square rounded-2xl bg-red-500/10 text-xl font-black text-white active:bg-red-500/20 active:scale-90 transition-all">⌫</button>
+                        <button onClick={() => setStep("user")} className="h-[65px] w-full flex items-center justify-center text-xs font-bold text-gray-500 active:text-white transition-colors">ESC</button>
+                        <button onClick={() => handleNumberClick("0")} className="w-full h-[65px] rounded-2xl bg-white/5 text-2xl font-black text-white active:bg-white/15 active:scale-95 transition-all">0</button>
+                        <button onClick={handleBackspace} className="w-full h-[65px] rounded-2xl bg-red-500/10 text-xl font-black text-white active:bg-red-500/20 active:scale-95 transition-all">⌫</button>
                       </div>
 
-                      {/* Opción Biométrica proactiva si está disponible para este usuario */}
-                      {isBiometricAvailableForSelectedUser && (
+                      {/* Opción Biométrica proactiva: botón visible siempre para activar o usar */}
+                      {biometricSupported && (
                         <button
-                          onClick={handleReattemptBiometric}
+                          onClick={() => {
+                            if (isBiometricAvailableForSelectedUser) {
+                              handleReattemptBiometric();
+                            } else {
+                              toast.info("Ingresa tu PIN primero para activar " + getBiometricType().label);
+                            }
+                          }}
                           disabled={loading || biometricLoading}
-                          className="w-full mt-8 py-4 rounded-3xl border border-cyan-500/30 bg-cyan-500/10 flex flex-col items-center gap-1 transition-all active:scale-95 disabled:opacity-40"
+                          className={`w-full max-w-[270px] mx-auto mt-6 py-3.5 rounded-3xl border transition-all active:scale-95 disabled:opacity-40 flex flex-col items-center gap-1 ${
+                            isBiometricAvailableForSelectedUser 
+                              ? "border-cyan-500/30 bg-cyan-500/10 hover:bg-cyan-500/20" 
+                              : "border-white/10 bg-white/5 hover:bg-white/10"
+                          }`}
                         >
                           {biometricLoading ? (
                              <div className="w-6 h-6 border-2 border-cyan-400/50 border-t-cyan-400 rounded-full animate-spin" />
                           ) : (
                             <>
-                              <BiometricIcon type={getBiometricType().type} size="md" className="text-cyan-300" />
-                              <span className="text-cyan-300 text-xs font-bold">Usar {getBiometricType().label}</span>
+                              <BiometricIcon type={getBiometricType().type} size="md" className={isBiometricAvailableForSelectedUser ? "text-cyan-300" : "text-white/40"} />
+                              <span className={`text-[11px] font-bold ${isBiometricAvailableForSelectedUser ? "text-cyan-300" : "text-white/50"}`}>
+                                {isBiometricAvailableForSelectedUser ? `Usar ${getBiometricType().label}` : `Activar ${getBiometricType().label}`}
+                              </span>
                             </>
                           )}
                         </button>
