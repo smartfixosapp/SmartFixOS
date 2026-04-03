@@ -26,6 +26,9 @@ import {
   Wrench } from
 "lucide-react";
 
+import { usePlanLimits } from "@/hooks/usePlanLimits";
+import { UpgradePrompt } from "@/components/plan/UpgradePrompt";
+
 const money = (n) => `$${Number(n || 0).toFixed(2)}`;
 
 export default function PurchaseOrderDialog({
@@ -37,6 +40,7 @@ export default function PurchaseOrderDialog({
   workOrders = [],
   initialProducts = []
 }) {
+  const { can: canPlan } = usePlanLimits();
   const isEditing = Boolean(purchaseOrder?.id);
 
   console.log("🔍 PurchaseOrderDialog abierto:", {
