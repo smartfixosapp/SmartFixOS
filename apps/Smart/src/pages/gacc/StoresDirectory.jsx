@@ -9,7 +9,8 @@ import {
   Search, Building2, Filter, ArrowUpDown, ChevronDown, ChevronRight,
   MoreHorizontal, Eye, PauseCircle, PlayCircle, Pencil, Trash2,
   Clock, Mail, UserPlus, Download, RefreshCw, Plus, StickyNote,
-  CreditCard, Users, ShoppingBag, Zap, KeyRound, ExternalLink
+  CreditCard, Users, ShoppingBag, Zap, KeyRound, ExternalLink,
+  XCircle, CheckCircle, Send
 } from "lucide-react";
 import { useGACC, getStatusBadge, presenceStatus, activityColor, timeAgo, getPlanConfig, PLAN_OPTIONS } from "./gaccContext";
 import appClient from "@/api/appClient";
