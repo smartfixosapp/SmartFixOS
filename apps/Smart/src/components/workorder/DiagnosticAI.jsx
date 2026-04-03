@@ -238,7 +238,7 @@ export default function DiagnosticAI({ order, checklist = [], deviceCategory = "
               </Badge>
             </div>
             <p className="text-[11px] text-white/40">
-              Preguntale a JENAI sobre el diagnostico
+              Preguntale a JENAI · Gemini 2.0 Flash
               {issueCount > 0 && <span className="ml-1 text-red-400">· {issueCount} problema{issueCount > 1 ? "s" : ""} detectado{issueCount > 1 ? "s" : ""}</span>}
               {warningCount > 0 && <span className="ml-1 text-amber-400">· {warningCount} a revisar</span>}
             </p>
