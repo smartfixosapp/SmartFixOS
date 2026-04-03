@@ -909,6 +909,97 @@ Responde con:
     }
   };
 
+  // ── JENAI: Parseo inteligente de texto + fotos ──────────────────────────────
+  const parseWithJenai = async () => {
+    if (!jenaiInput.trim() && jenaiPhotos.length === 0) return;
+    setJenaiProcessing(true);
+    setJenaiError("");
+
+    try {
+      const systemPrompt = `Eres JENAI, asistente de SmartFixOS para talleres de reparacion.
+El tecnico te da informacion de un cliente y su dispositivo en texto libre (y opcionalmente fotos).
+Extrae todos los campos posibles.
+
+Responde SOLO con JSON valido, sin markdown, sin explicaciones. Formato exacto:
+{"customer_name":"nombre","customer_last_name":"apellido","customer_phone":"telefono","customer_email":"email o null","device_brand":"marca","device_model":"modelo","device_type":"Phone|Tablet|Laptop|Watch|Console|Desktop|Other","problem":"descripcion del problema profesional","device_pin":"pin o null","device_password":"password o null","device_serial":"serial o null","device_color":"color o null","photo_analysis":"descripcion del dano visible en fotos o null"}
+
+Reglas:
+- Separa nombre y apellido si es posible
+- Normaliza marcas: "iphone"→"Apple", "samsung galaxy"→"Samsung", "pixel"→"Google", "macbook"→"Apple"
+- Para device_model, extrae el modelo especifico: "iPhone 15 Pro Max", "Galaxy S24 Ultra"
+- Infiere device_type del modelo: iPhone/Samsung/Pixel→"Phone", iPad→"Tablet", MacBook/Laptop→"Laptop"
+- Si hay fotos, analiza dano visible: grietas, lineas en pantalla, agua, golpes, dobleces, etc.
+- Escribe problem de forma profesional y concisa
+- Si no puedes determinar un campo, usa null
+- SOLO responde con el JSON, nada mas`;
+
+      const userPrompt = jenaiInput.trim() || "Analiza las fotos del dispositivo adjuntas.";
+      let aiResponse;
+
+      if (jenaiPhotos.length > 0) {
+        aiResponse = await callGeminiAIWithVision(userPrompt, {
+          maxTokens: 800,
+          temperature: 0.15,
+          systemPrompt,
+          images: jenaiPhotos,
+        });
+      } else {
+        aiResponse = await callGeminiAI(userPrompt, {
+          maxTokens: 800,
+          temperature: 0.15,
+          systemPrompt,
+        });
+      }
+
+      // Extract JSON from response (handle markdown code blocks)
+      let jsonStr = aiResponse.trim();
+      const jsonMatch = jsonStr.match(/```(?:json)?\s*([\s\S]*?)```/);
+      if (jsonMatch) jsonStr = jsonMatch[1].trim();
+      // Also try to find raw JSON object
+      const objMatch = jsonStr.match(/\{[\s\S]*\}/);
+      if (objMatch) jsonStr = objMatch[0];
+
+      const data = JSON.parse(jsonStr);
+
+      // Map parsed fields to existing state
+      if (data.customer_name) setCustomerName(data.customer_name);
+      if (data.customer_last_name) setCustomerLastName(data.customer_last_name);
+      if (data.customer_phone) setCustomerPhone(data.customer_phone);
+      if (data.customer_email) setCustomerEmail(data.customer_email);
+      if (data.device_brand) setDeviceBrand(data.device_brand);
+      if (data.device_model) setDeviceModel(data.device_model);
+      if (data.device_type) setDeviceType(data.device_type);
+      if (data.device_pin) setDevicePin(data.device_pin);
+      if (data.device_password) setDevicePassword(data.device_password);
+      if (data.device_serial) setDeviceSerial(data.device_serial);
+      if (data.device_color) setDeviceColor(data.device_color);
+
+      // Combine problem + photo analysis
+      let fullProblem = data.problem || "";
+      if (data.photo_analysis) {
+        fullProblem += (fullProblem ? "\n\nAnalisis visual: " : "Analisis visual: ") + data.photo_analysis;
+      }
+      if (fullProblem) setProblem(fullProblem);
+
+      // Transfer JENAI photos to main photos array
+      if (jenaiPhotos.length > 0) setPhotos(prev => [...prev, ...jenaiPhotos]);
+
+      // Set quick/normal mode
+      setQuickOrderMode(jenaiSubMode === "quick");
+
+      // Transition to review
+      setJenaiShowReview(true);
+      if (isCompactDevice) setMobileStep(1);
+
+      toast.success("JENAI lleno los campos. Revisa y confirma.");
+    } catch (err) {
+      console.error("JENAI parse error:", err);
+      setJenaiError("JENAI no pudo analizar la informacion. Verifica el texto e intenta de nuevo.");
+    } finally {
+      setJenaiProcessing(false);
+    }
+  };
+
   const handleDragEndCatalog = async (result) => {
     if (!result.destination) return;
     const { source, destination, droppableId } = result;
