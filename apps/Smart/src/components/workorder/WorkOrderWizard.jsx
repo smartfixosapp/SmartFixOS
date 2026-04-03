@@ -3341,21 +3341,46 @@ Reglas:
               )}
 
               {/* Main input area */}
-              {jenaiSubMode && (
+              {jenaiSubMode && !jenaiConfirm && (
                 <div className="space-y-4 relative z-10">
                   <div>
-                    <p className="text-sm font-bold text-white/60 mb-2">Escribe toda la informacion de la orden:</p>
+                    <div className="flex items-center justify-between mb-2">
+                      <p className="text-sm font-bold text-white/60">Escribe o dicta la informacion:</p>
+                      <button
+                        type="button"
+                        onClick={toggleVoice}
+                        className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition-all active:scale-95 ${
+                          jenaiListening
+                            ? "bg-red-500/20 border border-red-500/30 text-red-300 animate-pulse"
+                            : "bg-white/[0.06] border border-white/10 text-white/50 hover:bg-white/10"
+                        }`}
+                      >
+                        {jenaiListening ? <><MicOff className="w-3.5 h-3.5" /> Detener</> : <><Mic className="w-3.5 h-3.5" /> Dictar</>}
+                      </button>
+                    </div>
                     <textarea
                       value={jenaiInput}
                       onChange={(e) => setJenaiInput(e.target.value)}
                       placeholder={"Ejemplo: Jean Francis, 787-555-1234, jean@email.com, iPhone 15 Pro Max plateado, se le cayo al agua ayer y no enciende, password 1234"}
-                      className="w-full bg-black/30 border border-white/10 rounded-2xl px-4 py-3 text-white text-sm placeholder:text-white/20 resize-none focus:border-violet-400/30 focus:outline-none focus:ring-1 focus:ring-violet-500/20"
+                      className={`w-full bg-black/30 border rounded-2xl px-4 py-3 text-white text-sm placeholder:text-white/20 resize-none focus:outline-none focus:ring-1 ${
+                        jenaiListening
+                          ? "border-red-500/30 focus:border-red-400/40 focus:ring-red-500/20"
+                          : "border-white/10 focus:border-violet-400/30 focus:ring-violet-500/20"
+                      }`}
                       rows={5}
-                      autoFocus
+                      autoFocus={!jenaiListening}
                     />
-                    <p className="text-[10px] text-white/25 mt-1.5">
-                      Incluye: nombre, telefono, email, marca, modelo, problema, password/pin si aplica
-                    </p>
+                    {jenaiListening && (
+                      <p className="text-[10px] text-red-400/80 mt-1.5 flex items-center gap-1">
+                        <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
+                        Escuchando... habla la informacion del cliente y dispositivo
+                      </p>
+                    )}
+                    {!jenaiListening && (
+                      <p className="text-[10px] text-white/25 mt-1.5">
+                        Incluye: nombre, telefono, email, marca, modelo, problema, password/pin si aplica
+                      </p>
+                    )}
                   </div>
 
                   {/* Photo upload */}
@@ -3420,6 +3445,99 @@ Reglas:
                       <><Brain className="w-5 h-5" /> Analizar con JENAI</>
                     )}
                   </button>
+                </div>
+              )}
+
+              {/* ── JENAI Confirmacion de datos ── */}
+              {jenaiSubMode && jenaiConfirm && (
+                <div className="space-y-4 relative z-10">
+                  <div className="flex items-center gap-2 mb-1">
+                    <Check className="w-4 h-4 text-emerald-400" />
+                    <p className="text-sm font-bold text-emerald-300">JENAI detecto lo siguiente. Confirma:</p>
+                  </div>
+
+                  {/* Data cards */}
+                  <div className="grid gap-2">
+                    {/* Cliente */}
+                    <div className="rounded-xl border border-white/10 bg-white/[0.04] p-3">
+                      <p className="text-[10px] font-bold uppercase tracking-widest text-white/30 mb-1">Cliente</p>
+                      <p className="text-sm text-white font-semibold">
+                        {[jenaiConfirm.customer_name, jenaiConfirm.customer_last_name].filter(Boolean).join(" ") || "No detectado"}
+                      </p>
+                      {jenaiConfirm.customer_phone && <p className="text-xs text-white/50">{jenaiConfirm.customer_phone}</p>}
+                      {jenaiConfirm.customer_email && <p className="text-xs text-white/40">{jenaiConfirm.customer_email}</p>}
+                    </div>
+
+                    {/* Dispositivo */}
+                    <div className="rounded-xl border border-violet-500/20 bg-violet-500/[0.06] p-3">
+                      <p className="text-[10px] font-bold uppercase tracking-widest text-violet-400/60 mb-1">Dispositivo</p>
+                      <p className="text-sm text-white font-semibold">
+                        {[jenaiConfirm.device_brand, jenaiConfirm.device_model].filter(Boolean).join(" ") || "No detectado"}
+                      </p>
+                      <div className="flex flex-wrap gap-1.5 mt-1.5">
+                        {jenaiConfirm.device_category && (
+                          <span className="text-[10px] font-bold bg-violet-500/15 border border-violet-500/20 text-violet-300 rounded-full px-2 py-0.5">
+                            {jenaiConfirm.device_category}
+                          </span>
+                        )}
+                        {jenaiConfirm.device_color && (
+                          <span className="text-[10px] font-bold bg-white/10 border border-white/10 text-white/50 rounded-full px-2 py-0.5">
+                            {jenaiConfirm.device_color}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Problema */}
+                    <div className="rounded-xl border border-white/10 bg-white/[0.04] p-3">
+                      <p className="text-[10px] font-bold uppercase tracking-widest text-white/30 mb-1">Problema</p>
+                      <p className="text-xs text-white/70 leading-relaxed">{jenaiConfirm.problem || "No detectado"}</p>
+                      {jenaiConfirm.photo_analysis && (
+                        <p className="text-xs text-amber-300/70 mt-1.5 leading-relaxed">
+                          Fotos: {jenaiConfirm.photo_analysis}
+                        </p>
+                      )}
+                    </div>
+
+                    {/* Checklist sugerido */}
+                    {jenaiConfirm.suggested_checklist?.length > 0 && (
+                      <div className="rounded-xl border border-white/10 bg-white/[0.04] p-3">
+                        <p className="text-[10px] font-bold uppercase tracking-widest text-white/30 mb-1.5">Checklist sugerido</p>
+                        <div className="flex flex-wrap gap-1.5">
+                          {jenaiConfirm.suggested_checklist.map((item, i) => (
+                            <span key={i} className="text-[10px] font-semibold bg-emerald-500/10 border border-emerald-500/20 text-emerald-300 rounded-full px-2.5 py-0.5">
+                              {item}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Seguridad */}
+                    {(jenaiConfirm.device_pin || jenaiConfirm.device_password) && (
+                      <div className="rounded-xl border border-amber-500/20 bg-amber-500/[0.06] p-3">
+                        <p className="text-[10px] font-bold uppercase tracking-widest text-amber-400/60 mb-1">Seguridad</p>
+                        {jenaiConfirm.device_pin && <p className="text-xs text-white/60">PIN: ****</p>}
+                        {jenaiConfirm.device_password && <p className="text-xs text-white/60">Password: ****</p>}
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Action buttons */}
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => { setJenaiConfirm(null); setJenaiError(""); }}
+                      className="flex-1 h-12 rounded-xl border border-white/15 bg-white/[0.05] text-white/70 font-bold text-sm hover:bg-white/10 active:scale-95 transition-all"
+                    >
+                      Editar texto
+                    </button>
+                    <button
+                      onClick={() => applyJenaiData(jenaiConfirm)}
+                      className="flex-1 h-12 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-600 text-white font-black text-sm flex items-center justify-center gap-2 shadow-lg active:scale-95 transition-all"
+                    >
+                      <Check className="w-4 h-4" /> Confirmar
+                    </button>
+                  </div>
                 </div>
               )}
             </div>
