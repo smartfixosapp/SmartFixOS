@@ -28,7 +28,7 @@ import {
 } from "@/components/cash/CashRegisterService";
 import UniversalPrintDialog from "../components/printing/UniversalPrintDialog";
 import POSSaleActionsModal, { POSSaleHistoryModal } from "../components/pos/POSSaleActionsModal";
-import { callGroqAI } from "@/lib/groqAI";
+import { callJENAI } from "@/lib/jenaiEngine";
 
 const RECENT_CREATED_PRODUCTS_KEY = "smartfix_recent_created_products";
 
