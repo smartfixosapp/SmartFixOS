@@ -33,7 +33,7 @@ import InventoryReports from "../components/inventory/InventoryReports";
 import { catalogCache } from "@/components/utils/dataCache";
 import { loadSuppliersSafe } from "@/components/utils/suppliers";
 import { supabase } from "../../../../lib/supabase-client.js";
-import { callGroqAI } from "@/lib/groqAI";
+import { callJENAI } from "@/lib/jenaiEngine";
 
 const RECENT_CREATED_PRODUCTS_KEY = "smartfix_recent_created_products";
 
