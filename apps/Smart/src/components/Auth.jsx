@@ -433,5 +433,19 @@ export default function AuthGate({ children }) {
 
   if (isPublicPath()) return <>{children}</>;
 
+  // Race-condition guard: navigate() puede llegar antes de que setUser() se aplique.
+  // Si hay sesión en storage, mostrar spinner hasta que el estado de React se ponga al día.
+  const _hasStoredSession = !!(
+    sessionStorage.getItem("911-session") ||
+    localStorage.getItem("employee_session")
+  );
+  if (_hasStoredSession) {
+    return (
+      <div style={{ position: "fixed", inset: 0, background: "#000", display: "flex", alignItems: "center", justifyContent: "center" }}>
+        <div className="w-8 h-8 rounded-full border-[3px] border-white/10 border-t-cyan-400 animate-spin" />
+      </div>
+    );
+  }
+
   return null;
 }
