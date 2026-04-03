@@ -34,6 +34,7 @@ import { catalogCache } from "@/components/utils/dataCache";
 import { loadSuppliersSafe } from "@/components/utils/suppliers";
 import { supabase } from "../../../../lib/supabase-client.js";
 import { callJENAI } from "@/lib/jenaiEngine";
+import JENAIInsightBanner from "@/components/jenai/JENAIInsightBanner";
 
 const RECENT_CREATED_PRODUCTS_KEY = "smartfix_recent_created_products";
 
