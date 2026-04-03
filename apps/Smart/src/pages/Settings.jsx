@@ -142,12 +142,16 @@ export default function SettingsPage() {
         });
         
         // Save the profile info (session) - same structure as PinAccess expects
-        saveBiometricProfile({ 
-          userId: sessionData.id || sessionData.userId, 
-          tenantId: sessionData.tenant_id || null, 
+        // credentialId es REQUERIDO por PinAccess.loadBiometricProfile()
+        saveBiometricProfile({
+          credentialId: "native_stored",
+          isNative: true,
+          userId: sessionData.id || sessionData.userId,
+          tenantId: sessionData.tenant_id || null,
           session: sessionData,
           createdAt: new Date().toISOString(),
-          isNative: true // flag for identification
+          updatedAt: new Date().toISOString(),
+          deviceKey: navigator.userAgent.slice(0, 120),
         });
         toast.success("✅ Face ID / Huella activada correctamente");
       } else {
