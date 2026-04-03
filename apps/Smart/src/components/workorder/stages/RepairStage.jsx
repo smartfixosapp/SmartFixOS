@@ -14,6 +14,21 @@ import AddItemModal from "@/components/workorder/AddItemModal";
 import SharedItemsSection from "@/components/workorder/SharedItemsSection";
 import DiagnosticAI from "@/components/workorder/DiagnosticAI";
 
+function detectRepairDeviceCategory(order) {
+  const raw = [order?.device_type || "", order?.device_brand || "", order?.device_model || ""].join(" ").toLowerCase();
+  if (/imac/.test(raw)) return "imac";
+  if (/macbook|mac book/.test(raw)) return "macbook";
+  if (/iphone|galaxy|pixel|celular|smartphone|android|oneplus|motorola|xiaomi|huawei/.test(raw)) return "smartphone";
+  if (/ipad|tablet|kindle|surface(?!\s*pro)|samsung\s*tab/.test(raw)) return "tablet";
+  if (/apple\s*watch|smartwatch|galaxy\s*watch|fitbit/.test(raw)) return "smartwatch";
+  if (/airpods|headphone|audifonos|audífonos|headset|earbuds|beats|bose/.test(raw)) return "headphones";
+  if (/playstation|xbox|nintendo|ps4|ps5|switch|consola/.test(raw)) return "game_console";
+  if (/printer|impresora|epson|hp\s*(laserjet|deskjet)|canon\s*pixma|brother/.test(raw)) return "printer";
+  if (/desktop|torre|pc tower|all.in.one/.test(raw)) return "desktop_pc";
+  if (/laptop|notebook|chromebook|thinkpad|ideapad|inspiron|pavilion/.test(raw)) return "laptop_windows";
+  return "generic";
+}
+
 const CLOSE_CHECKLIST = [
   "Reparación completada y verificada",
   "Sin daños adicionales al equipo",
