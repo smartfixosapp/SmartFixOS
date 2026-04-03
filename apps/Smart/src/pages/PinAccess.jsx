@@ -117,7 +117,7 @@ export default function PinAccess() {
   const [tenantId, setTenantId] = useState(null);
   const [formData, setFormData] = useState({
     first_name: "", last_name: "", email: "", password: "",
-    store_name: "", plan: "basic", country: "US"
+    store_name: "", plan: "starter", country: "US"
   });
   const [submitting, setSubmitting] = useState(false);
   const [isCheckingAuth, setIsCheckingAuth] = useState(true);
@@ -3005,7 +3005,7 @@ export default function PinAccess() {
                       onClick={() => {
                         setShowSignup(false);
                         setSignupStep("form");
-                        setFormData({ full_name: "", email: "", password: "", plan: "basic" });
+                        setFormData({ full_name: "", email: "", password: "", plan: "starter" });
                         setSignupResult(null);
                         setStep("store");
                       }}
