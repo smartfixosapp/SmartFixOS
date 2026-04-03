@@ -7,7 +7,8 @@ import { motion } from "framer-motion";
 import {
   Building2, DollarSign, Clock, AlertTriangle, TrendingUp,
   CheckCircle, Timer, Wifi, Users, CreditCard, Activity,
-  ArrowUpRight, ArrowDownRight, RefreshCw, XCircle, Zap, Eye
+  ArrowUpRight, ArrowDownRight, RefreshCw, XCircle, Zap, Eye,
+  ArrowRight, ChevronRight
 } from "lucide-react";
 import { useGACC, timeAgo, getStatusBadge, presenceStatus, activityColor } from "./gaccContext";
 
