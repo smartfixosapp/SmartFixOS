@@ -912,6 +912,137 @@ Responde con:
     }
   };
 
+  // ── JENAI: Dictado por voz ───────────────────────────────────────────────────
+  const toggleVoice = () => {
+    if (jenaiListening) {
+      jenaiRecognitionRef.current?.stop();
+      setJenaiListening(false);
+      return;
+    }
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SpeechRecognition) { toast.error("Tu navegador no soporta dictado por voz"); return; }
+    const recognition = new SpeechRecognition();
+    recognition.lang = "es-US";
+    recognition.continuous = true;
+    recognition.interimResults = true;
+    let finalTranscript = jenaiInput;
+    recognition.onresult = (event) => {
+      let interim = "";
+      for (let i = event.resultIndex; i < event.results.length; i++) {
+        const t = event.results[i][0].transcript;
+        if (event.results[i].isFinal) { finalTranscript += (finalTranscript ? " " : "") + t; } else { interim = t; }
+      }
+      setJenaiInput(finalTranscript + (interim ? " " + interim : ""));
+    };
+    recognition.onerror = () => { setJenaiListening(false); };
+    recognition.onend = () => { setJenaiListening(false); };
+    recognition.start();
+    jenaiRecognitionRef.current = recognition;
+    setJenaiListening(true);
+    toast.success("Dictando... habla ahora");
+  };
+
+  // ── JENAI: Normalizar modelo de dispositivo ────────────────────────────────
+  const DEVICE_ALIASES = {
+    "play 5": { brand: "Sony", model: "PlayStation 5", type: "Console" },
+    "playstation 5": { brand: "Sony", model: "PlayStation 5", type: "Console" },
+    "ps5": { brand: "Sony", model: "PlayStation 5", type: "Console" },
+    "ps4": { brand: "Sony", model: "PlayStation 4", type: "Console" },
+    "xbox": { brand: "Microsoft", model: "Xbox", type: "Console" },
+    "switch": { brand: "Nintendo", model: "Nintendo Switch", type: "Console" },
+    "macbook": { brand: "Apple", model: "MacBook", type: "Laptop" },
+    "imac": { brand: "Apple", model: "iMac", type: "Desktop" },
+    "airpods": { brand: "Apple", model: "AirPods", type: "Accessory" },
+    "apple watch": { brand: "Apple", model: "Apple Watch", type: "Watch" },
+  };
+
+  const normalizeDevice = (data) => {
+    const raw = `${data.device_brand || ""} ${data.device_model || ""}`.toLowerCase().trim();
+    for (const [alias, override] of Object.entries(DEVICE_ALIASES)) {
+      if (raw.includes(alias)) {
+        return { ...data, device_brand: override.brand, device_model: data.device_model || override.model, device_type: override.type };
+      }
+    }
+    return data;
+  };
+
+  // ── JENAI: Auto-generar checklist items ────────────────────────────────────
+  const autoFillChecklist = (data) => {
+    const templateKey = resolveChecklistTemplate(data.device_type || "");
+    const available = CHECKLIST_LIBRARY[templateKey] || CHECKLIST_LIBRARY.celulares;
+    const problem = (data.problem || "").toLowerCase();
+    const photoAnalysis = (data.photo_analysis || "").toLowerCase();
+    const combined = problem + " " + photoAnalysis;
+
+    const matchRules = [
+      { keywords: ["pantalla rota", "pantalla quebrada", "cracked", "grieta", "screen crack", "rajada", "fisura"], key: "screen_broken", alt: "tablet_screen_broken" },
+      { keywords: ["sin imagen", "no image", "negra", "no display", "backlight"], key: "screen_no_image", alt: "pc_display_fail" },
+      { keywords: ["touch", "tactil", "digitalizador", "no responde al tacto"], key: "touch_not_working", alt: "tablet_touch_fail" },
+      { keywords: ["no carga", "no charge", "puerto", "port", "conector"], key: "battery_no_charge", alt: "tablet_no_charge" },
+      { keywords: ["puerto dañado", "damaged port", "micro usb", "usb-c", "lightning"], key: "port_damaged", alt: "tablet_port_fail" },
+      { keywords: ["camara", "camera", "lente", "lens"], key: "rear_camera_issue" },
+      { keywords: ["señal", "signal", "red", "network", "sim"], key: "signal_issue" },
+      { keywords: ["agua", "water", "liquido", "liquid", "mojado", "wet", "humedad"], key: "water_damage", alt: "acc_liquid_damage" },
+      { keywords: ["no enciende", "no power", "no prende", "muerto", "dead"], key: "pc_no_power" },
+      { keywords: ["lento", "slow", "rendimiento", "performance"], key: "pc_slow" },
+      { keywords: ["disco", "disk", "ssd", "hdd", "storage"], key: "pc_disk_fail" },
+      { keywords: ["sobrecalentamiento", "overheat", "caliente", "hot"], key: "pc_overheat" },
+      { keywords: ["teclado", "keyboard", "trackpad", "touchpad"], key: "pc_keyboard_fail" },
+      { keywords: ["lineas", "lines", "display", "video", "flickering"], key: "pc_display_fail" },
+    ];
+
+    const matched = [];
+    for (const rule of matchRules) {
+      if (rule.keywords.some(kw => combined.includes(kw))) {
+        const item = available.find(a => a.key === rule.key) || (rule.alt ? available.find(a => a.key === rule.alt) : null);
+        if (item && !matched.some(m => m.id === item.key)) {
+          matched.push({ id: item.key, label: item.label, status: "not_tested", source: "jenai_auto" });
+        }
+      }
+    }
+    return matched;
+  };
+
+  // ── JENAI: Confirmar y aplicar datos ────────────────────────────────────────
+  const applyJenaiData = (data) => {
+    if (data.customer_name) setCustomerName(data.customer_name);
+    if (data.customer_last_name) setCustomerLastName(data.customer_last_name);
+    if (data.customer_phone) setCustomerPhone(data.customer_phone);
+    if (data.customer_email) setCustomerEmail(data.customer_email);
+    if (data.device_brand) setDeviceBrand(data.device_brand);
+    if (data.device_model) setDeviceModel(data.device_model);
+    if (data.device_type) setDeviceType(data.device_type);
+    if (data.device_pin) setDevicePin(data.device_pin);
+    if (data.device_password) setDevicePassword(data.device_password);
+    if (data.device_serial) setDeviceSerial(data.device_serial);
+    if (data.device_color) setDeviceColor(data.device_color);
+
+    // Infer family
+    const family = inferFamily(data.device_type, data.device_brand, data.device_model);
+    if (family) setDeviceFamily(family);
+
+    // Problem + photo analysis
+    let fullProblem = data.problem || "";
+    if (data.photo_analysis) {
+      fullProblem += (fullProblem ? "\n\nAnalisis visual: " : "Analisis visual: ") + data.photo_analysis;
+    }
+    if (fullProblem) setProblem(fullProblem);
+
+    // Auto-fill checklist
+    const autoItems = autoFillChecklist(data);
+    if (autoItems.length > 0) setChecklist(autoItems);
+
+    // Transfer JENAI photos
+    if (jenaiPhotos.length > 0) setPhotos(prev => [...prev, ...jenaiPhotos]);
+
+    // Set mode
+    setQuickOrderMode(jenaiSubMode === "quick");
+    setJenaiConfirm(null);
+    setJenaiShowReview(true);
+    if (isCompactDevice) setMobileStep(1);
+    toast.success("JENAI lleno los campos. Revisa y confirma.");
+  };
+
   // ── JENAI: Parseo inteligente de texto + fotos ──────────────────────────────
   const parseWithJenai = async () => {
     if (!jenaiInput.trim() && jenaiPhotos.length === 0) return;
@@ -924,77 +1055,49 @@ El tecnico te da informacion de un cliente y su dispositivo en texto libre (y op
 Extrae todos los campos posibles.
 
 Responde SOLO con JSON valido, sin markdown, sin explicaciones. Formato exacto:
-{"customer_name":"nombre","customer_last_name":"apellido","customer_phone":"telefono","customer_email":"email o null","device_brand":"marca","device_model":"modelo","device_type":"Phone|Tablet|Laptop|Watch|Console|Desktop|Other","problem":"descripcion del problema profesional","device_pin":"pin o null","device_password":"password o null","device_serial":"serial o null","device_color":"color o null","photo_analysis":"descripcion del dano visible en fotos o null"}
+{"customer_name":"nombre","customer_last_name":"apellido","customer_phone":"telefono","customer_email":"email o null","device_brand":"marca","device_model":"modelo especifico","device_type":"Phone|Tablet|Laptop|Watch|Console|Desktop|Accessory|Other","device_category":"Celular|Tablet|Laptop|MacBook|PC Torre|Desktop|iMac|Consola de Juegos|Smartwatch|Audifonos|Impresora|Otro","problem":"descripcion profesional y concisa del problema","device_pin":"pin o null","device_password":"password o null","device_serial":"serial o null","device_color":"color o null","photo_analysis":"descripcion del dano visible en fotos o null","suggested_checklist":["item1","item2"]}
 
 Reglas:
-- Separa nombre y apellido si es posible
-- Normaliza marcas: "iphone"→"Apple", "samsung galaxy"→"Samsung", "pixel"→"Google", "macbook"→"Apple"
-- Para device_model, extrae el modelo especifico: "iPhone 15 Pro Max", "Galaxy S24 Ultra"
-- Infiere device_type del modelo: iPhone/Samsung/Pixel→"Phone", iPad→"Tablet", MacBook/Laptop→"Laptop"
-- Si hay fotos, analiza dano visible: grietas, lineas en pantalla, agua, golpes, dobleces, etc.
-- Escribe problem de forma profesional y concisa
-- Si no puedes determinar un campo, usa null
-- SOLO responde con el JSON, nada mas`;
+- Separa nombre y apellido
+- Normaliza: "iphone"→ brand:"Apple" model:"iPhone X", "play 5"→ brand:"Sony" model:"PlayStation 5", "samsung"→ brand:"Samsung"
+- device_category debe ser la categoria del taller (Celular, Laptop, MacBook, Consola de Juegos, etc.)
+- device_model debe ser especifico: "iPhone 15 Pro Max", "PlayStation 5", "Galaxy S24 Ultra"
+- problem debe ser profesional: "cayo al agua"→"Dispositivo con dano por contacto con liquido"
+- suggested_checklist: lista de problemas a revisar segun el problema descrito (ej: ["Pantalla rota", "Dano por liquido"])
+- Si hay fotos, describe el dano visible en photo_analysis
+- Si no sabes un campo, usa null
+- SOLO responde JSON`;
 
       const userPrompt = jenaiInput.trim() || "Analiza las fotos del dispositivo adjuntas.";
       let aiResponse;
 
       if (jenaiPhotos.length > 0) {
         aiResponse = await callGeminiAIWithVision(userPrompt, {
-          maxTokens: 800,
+          maxTokens: 1000,
           temperature: 0.15,
           systemPrompt,
           images: jenaiPhotos,
         });
       } else {
         aiResponse = await callGeminiAI(userPrompt, {
-          maxTokens: 800,
+          maxTokens: 1000,
           temperature: 0.15,
           systemPrompt,
         });
       }
 
-      // Extract JSON from response (handle markdown code blocks)
+      // Extract JSON
       let jsonStr = aiResponse.trim();
       const jsonMatch = jsonStr.match(/```(?:json)?\s*([\s\S]*?)```/);
       if (jsonMatch) jsonStr = jsonMatch[1].trim();
-      // Also try to find raw JSON object
       const objMatch = jsonStr.match(/\{[\s\S]*\}/);
       if (objMatch) jsonStr = objMatch[0];
 
-      const data = JSON.parse(jsonStr);
+      let data = JSON.parse(jsonStr);
+      data = normalizeDevice(data);
 
-      // Map parsed fields to existing state
-      if (data.customer_name) setCustomerName(data.customer_name);
-      if (data.customer_last_name) setCustomerLastName(data.customer_last_name);
-      if (data.customer_phone) setCustomerPhone(data.customer_phone);
-      if (data.customer_email) setCustomerEmail(data.customer_email);
-      if (data.device_brand) setDeviceBrand(data.device_brand);
-      if (data.device_model) setDeviceModel(data.device_model);
-      if (data.device_type) setDeviceType(data.device_type);
-      if (data.device_pin) setDevicePin(data.device_pin);
-      if (data.device_password) setDevicePassword(data.device_password);
-      if (data.device_serial) setDeviceSerial(data.device_serial);
-      if (data.device_color) setDeviceColor(data.device_color);
-
-      // Combine problem + photo analysis
-      let fullProblem = data.problem || "";
-      if (data.photo_analysis) {
-        fullProblem += (fullProblem ? "\n\nAnalisis visual: " : "Analisis visual: ") + data.photo_analysis;
-      }
-      if (fullProblem) setProblem(fullProblem);
-
-      // Transfer JENAI photos to main photos array
-      if (jenaiPhotos.length > 0) setPhotos(prev => [...prev, ...jenaiPhotos]);
-
-      // Set quick/normal mode
-      setQuickOrderMode(jenaiSubMode === "quick");
-
-      // Transition to review
-      setJenaiShowReview(true);
-      if (isCompactDevice) setMobileStep(1);
-
-      toast.success("JENAI lleno los campos. Revisa y confirma.");
+      // Show confirmation step instead of applying directly
+      setJenaiConfirm(data);
     } catch (err) {
       console.error("JENAI parse error:", err);
       setJenaiError("JENAI no pudo analizar la informacion. Verifica el texto e intenta de nuevo.");
