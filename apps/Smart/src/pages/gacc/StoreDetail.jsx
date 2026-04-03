@@ -867,8 +867,9 @@ export default function StoreDetail({ tenant, onBack }) {
       {/* Tab content */}
       <div>{tabContent[activeTab]}</div>
 
-      {/* Plan & Users modal */}
+      {/* Modals */}
       <ChangePlanModal tenant={tenant} open={showPlanModal} onClose={() => setShowPlanModal(false)} />
+      <EditStoreModal tenant={tenant} open={showEditModal} onClose={() => setShowEditModal(false)} />
     </div>
   );
 }
