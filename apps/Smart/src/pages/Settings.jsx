@@ -48,7 +48,7 @@ export default function SettingsPage() {
   const [loading, setLoading] = useState(false);
   const [activeSection, setActiveSection]   = useState(null);
   const [showPriceWidget, setShowPriceWidget] = useState(() => localStorage.getItem("smartfix_show_price_widget") !== "false");
-  const [jenaiEnabled, setJenaiEnabled] = useState(() => localStorage.getItem("smartfix_darjeni_disabled") !== "true");
+  const [jenaiEnabled, setJenaiEnabled] = useState(() => localStorage.getItem("smartfix_jenai_disabled") !== "true");
   const [showFeedback,  setShowFeedback]    = useState(false);
 
   // ── Sesión del usuario actual ──────────────────────────────────────────
@@ -1595,7 +1595,7 @@ export default function SettingsPage() {
                           if (section.id === "darjeni_toggle") {
                             const next = !jenaiEnabled;
                             setJenaiEnabled(next);
-                            localStorage.setItem("smartfix_darjeni_disabled", String(!next));
+                            localStorage.setItem("smartfix_jenai_disabled", String(!next));
                             window.dispatchEvent(new CustomEvent("smartfix:darjeni-toggle", { detail: { enabled: next } }));
                           }
                         } else if (section.isNavigation) {
