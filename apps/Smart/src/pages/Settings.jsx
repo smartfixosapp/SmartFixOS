@@ -1571,11 +1571,11 @@ export default function SettingsPage() {
                       key={section.id}
                       onClick={() => {
                         if (section.isToggle) {
-                          if (section.id === "calculator_widget") {
-                            const next = !showPriceWidget;
-                            setShowPriceWidget(next);
-                            localStorage.setItem("smartfix_show_price_widget", String(next));
-                            window.dispatchEvent(new CustomEvent("smartfix:price-widget-toggle", { detail: { enabled: next } }));
+                          if (section.id === "darjeni_toggle") {
+                            const next = !darjeniEnabled;
+                            setDarjeniEnabled(next);
+                            localStorage.setItem("smartfix_darjeni_disabled", String(!next));
+                            window.dispatchEvent(new CustomEvent("smartfix:darjeni-toggle", { detail: { enabled: next } }));
                           }
                         } else if (section.isNavigation) {
                           navigate(createPageUrl(section.navigateTo));
