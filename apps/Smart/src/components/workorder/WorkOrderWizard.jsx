@@ -4227,8 +4227,20 @@ Reglas:
                   </Button>
                 )}
               </div>
-              {/* Row 2: Siguiente / Confirmar — oculto en step 0 (tarjeta avanza sola) */}
-              {mobileStep === 0 ? null : isLastMobileStep ? (
+              {/* Row 2: Siguiente / Confirmar / JENAI Analizar — oculto en step 0 */}
+              {mobileStep === 0 ? null : inJenaiInput && mobileStep === 1 && jenaiSubMode ? (
+                <Button
+                  onClick={parseWithJenai}
+                  disabled={jenaiProcessing || (!jenaiInput.trim() && jenaiPhotos.length === 0)}
+                  className="w-full h-14 rounded-[20px] font-black uppercase text-sm tracking-widest active:scale-95 transition-all bg-gradient-to-r from-violet-500 to-purple-600 text-white shadow-[0_0_30px_rgba(139,92,246,0.25)]"
+                >
+                  {jenaiProcessing ? (
+                    <><Loader2 className="w-5 h-5 mr-3 animate-spin" /> JENAI analizando...</>
+                  ) : (
+                    <><Brain className="w-5 h-5 mr-3" /> Analizar con JENAI</>
+                  )}
+                </Button>
+              ) : isLastMobileStep ? (
                 <Button
                   onClick={handleSubmit}
                   disabled={loading}
