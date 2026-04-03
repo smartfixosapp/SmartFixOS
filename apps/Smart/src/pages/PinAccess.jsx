@@ -1054,17 +1054,20 @@ export default function PinAccess() {
 
     // 2. Fallback a WebAuthn (Escritorio/Navegador/PWA)
     const isIOS = /iPhone|iPad|iPod/.test(navigator.userAgent);
+    const isMac = /Mac/.test(navigator.userAgent) && !isIOS;
     const isStandalone = window.matchMedia?.("(display-mode: standalone)").matches || window.navigator.standalone === true;
-    
-    // Si es un PWA en iOS, asumir soporte (Safari PWA a veces bloquea isUserVerifyingPlatformAuthenticatorAvailable)
-    if (isIOS && isStandalone) return true;
+
+    // iOS (Safari o PWA) — asumir soporte en iPhones modernos (Face ID / Touch ID)
+    if (isIOS) return true;
+
+    // Mac — asumir soporte (Touch ID)
+    if (isMac) return true;
 
     if (!window.PublicKeyCredential?.isUserVerifyingPlatformAuthenticatorAvailable) return false;
-    
+
     try {
       return await window.PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable();
     } catch {
-      // Si tira error de permisos en PWA, solemos asumirlo soportado como fallback
       return isStandalone;
     }
   };
