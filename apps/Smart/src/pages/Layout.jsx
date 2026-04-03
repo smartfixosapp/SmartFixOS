@@ -163,7 +163,7 @@ export default function Layout({ children }) {
       setUser(null);
       localStorage.removeItem("employee_session");
       sessionStorage.removeItem("911-session");
-      navigate("/PinAccess", { replace: true });
+      // AuthGate maneja el redirect — no redirigir desde Layout
     }
   }, [isPinAccess, isWelcome, isSetupPage]);
 
