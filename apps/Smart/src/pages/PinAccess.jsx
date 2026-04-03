@@ -1446,8 +1446,16 @@ export default function PinAccess() {
   useEffect(() => {
     (async () => {
       const supported = await canUseBiometricLogin();
+      const profile = loadBiometricProfile();
+      console.log("[Biometric] Init →", {
+        supported,
+        hasProfile: !!profile,
+        credentialId: profile?.credentialId?.slice?.(0, 20) || profile?.credentialId,
+        hasSession: !!profile?.session,
+        isNative: Capacitor.isNativePlatform(),
+      });
       setBiometricSupported(supported);
-      setBiometricProfile(loadBiometricProfile());
+      setBiometricProfile(profile);
     })();
   }, []);
 
