@@ -3250,31 +3250,33 @@ export default function PinAccess() {
             {/* ── Biometric Quick Login (si hay perfil guardado) ── */}
             {biometricSupported && biometricProfile?.session && (
               <motion.div
-                initial={{ opacity: 0, scale: 0.97 }}
-                animate={{ opacity: 1, scale: 1 }}
-                className="rounded-3xl border border-emerald-500/30 bg-emerald-500/[0.07] p-5 backdrop-blur-xl flex items-center gap-4"
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.3 }}
               >
                 {(() => {
                   const { label, type } = getBiometricType();
                   return (
-                    <>
-                      <button
-                        onClick={handleEarlyBiometricLogin}
-                        disabled={biometricLoading}
-                        className="w-16 h-16 rounded-2xl bg-emerald-500/20 border border-emerald-500/30 flex flex-col items-center justify-center gap-1 flex-shrink-0 hover:bg-emerald-500/30 transition-all active:scale-95 disabled:opacity-50"
-                      >
+                    <button
+                      onClick={handleEarlyBiometricLogin}
+                      disabled={biometricLoading}
+                      className="w-full rounded-3xl border-2 border-emerald-500/40 bg-gradient-to-br from-emerald-500/15 via-emerald-600/10 to-cyan-500/10 p-6 backdrop-blur-xl flex flex-col items-center gap-3 hover:from-emerald-500/25 hover:via-emerald-600/15 hover:to-cyan-500/15 transition-all active:scale-[0.98] disabled:opacity-60 shadow-[0_0_30px_rgba(16,185,129,0.15)]"
+                    >
+                      <div className="w-20 h-20 rounded-full bg-emerald-500/20 border-2 border-emerald-400/40 flex items-center justify-center shadow-[0_0_25px_rgba(16,185,129,0.3)]">
                         {biometricLoading ? (
-                          <div className="w-6 h-6 border-2 border-emerald-400/50 border-t-emerald-400 rounded-full animate-spin" />
+                          <div className="w-10 h-10 border-3 border-emerald-400/30 border-t-emerald-400 rounded-full animate-spin" />
                         ) : (
-                          <BiometricIcon type={type} size="sm" className="text-emerald-300" />
+                          <BiometricIcon type={type} size="lg" className="text-emerald-300" />
                         )}
-                      </button>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-white font-black text-sm">Acceso rápido</p>
-                        <p className="text-emerald-300/70 text-xs truncate">{biometricProfile.session?.userName || "Usuario guardado"}</p>
-                        <p className="text-white/30 text-[10px] mt-0.5">{label}</p>
                       </div>
-                    </>
+                      <div className="text-center">
+                        <p className="text-white font-black text-lg">Toca para entrar</p>
+                        <p className="text-emerald-300/80 text-sm font-medium truncate max-w-[200px]">
+                          {biometricProfile.session?.userName || biometricProfile.session?.full_name || "Usuario guardado"}
+                        </p>
+                        <p className="text-white/30 text-xs mt-1">{label}</p>
+                      </div>
+                    </button>
                   );
                 })()}
               </motion.div>
