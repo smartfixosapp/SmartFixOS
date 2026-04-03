@@ -3580,7 +3580,7 @@ Reglas:
           )}
 
           {/* 📱 DISPOSITIVO */}
-          {(!isCompactDevice || (quickOrderMode ? mobileStep === 2 : mobileStep === 3)) && (
+          {!inJenaiInput && (!isCompactDevice || (quickOrderMode ? mobileStep === 2 : mobileStep === 3)) && (
           <div className="bg-white/[0.03] border border-white/[0.08] rounded-[28px] p-6 space-y-5 backdrop-blur-2xl shadow-[0_8px_32px_rgba(0,0,0,0.2)] relative overflow-hidden lg:col-span-5 transition-all hover:bg-white/[0.05] group">
             <div className="absolute -right-20 -top-20 w-40 h-40 bg-purple-500/5 rounded-full blur-[80px] group-hover:bg-purple-500/10 transition-colors duration-700" />
             <div className="flex items-center justify-between relative z-10">
