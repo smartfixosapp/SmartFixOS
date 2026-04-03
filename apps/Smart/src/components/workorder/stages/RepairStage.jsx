@@ -351,6 +351,7 @@ export default function RepairStage({ order, onUpdate, onOrderItemsUpdate, onRem
         order={order}
         checklist={Array.isArray(o.checklist_items) ? o.checklist_items : []}
         deviceCategory={detectRepairDeviceCategory(o)}
+        mode="repair"
       />
 
       {/* ── HISTORIAL / FOTOS / NOTAS ────────────────────────────────────── */}
