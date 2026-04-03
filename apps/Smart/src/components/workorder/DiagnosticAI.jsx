@@ -54,7 +54,7 @@ const QUICK_PROMPTS = {
 };
 
 // ── Build system prompt with full order context ──────────────────────────────
-function buildSystemPrompt(order, checklist, deviceCategory) {
+function buildSystemPrompt(order, checklist, deviceCategory, mode = "diagnosis") {
   const issues = checklist
     .filter(c => c.status === "issue")
     .map(c => `- ${c.label}${c.notes ? `: ${c.notes}` : ""}`)
