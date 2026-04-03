@@ -216,6 +216,19 @@ export default function SuppliersDialog({ open, onClose }) {
 
   });
 
+  if (!canPlan('inventory_suppliers')) {
+    return (
+      <Dialog open={open} onOpenChange={onClose}>
+        <DialogContent className="max-w-md bg-[#0f0f10] border border-white/10 text-white">
+          <DialogHeader>
+            <DialogTitle className="text-lg font-bold">Proveedores</DialogTitle>
+          </DialogHeader>
+          <UpgradePrompt feature="inventory_suppliers" message="Gestión de proveedores disponible en el plan Pro" />
+        </DialogContent>
+      </Dialog>
+    );
+  }
+
   return (
     <Dialog open={open} onOpenChange={onClose}>
       <DialogContent className="max-w-5xl max-h-[90vh] bg-[#0f0f10] border border-cyan-500/20 text-white shadow-[0_24px_80px_rgba(0,168,232,0.7)] theme-light:bg-white theme-light:border-gray-200 theme-light:text-gray-900">
