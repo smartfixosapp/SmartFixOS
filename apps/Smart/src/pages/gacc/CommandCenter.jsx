@@ -326,6 +326,39 @@ export default function CommandCenter() {
         </div>
       </div>
 
+      {/* Onboarding Pipeline */}
+      <motion.div
+        initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }}
+        className="rounded-2xl border border-white/[0.07] bg-white/[0.02] p-4"
+      >
+        <div className="flex items-center gap-2 mb-4">
+          <ArrowRight className="w-4 h-4 text-cyan-400" />
+          <p className="text-[13px] font-bold text-white">Onboarding Pipeline</p>
+        </div>
+        <div className="flex items-center gap-2">
+          {(() => {
+            const total = metrics.total || 1;
+            const steps = [
+              { label: "Registradas", value: metrics.total, color: "from-blue-500 to-cyan-500", pct: 100 },
+              { label: "Activadas", value: metrics.total - metrics.pending, color: "from-purple-500 to-violet-500", pct: Math.round(((metrics.total - metrics.pending) / total) * 100) },
+              { label: "En Trial/Activas", value: metrics.active, color: "from-amber-500 to-yellow-500", pct: Math.round((metrics.active / total) * 100) },
+              { label: "Pagando", value: metrics.paying, color: "from-emerald-500 to-green-500", pct: Math.round((metrics.paying / total) * 100) },
+            ];
+            return steps.map((step, i) => (
+              <React.Fragment key={step.label}>
+                <div className="flex-1 text-center">
+                  <div className={`h-2 rounded-full bg-gradient-to-r ${step.color} mb-2`} style={{ width: `${Math.max(step.pct, 10)}%`, marginLeft: "auto", marginRight: "auto" }} />
+                  <p className="text-xl font-black text-white">{step.value}</p>
+                  <p className="text-[10px] text-gray-600">{step.label}</p>
+                  <p className="text-[10px] text-gray-700">{step.pct}%</p>
+                </div>
+                {i < steps.length - 1 && <ChevronRight className="w-4 h-4 text-gray-700 flex-shrink-0" />}
+              </React.Fragment>
+            ));
+          })()}
+        </div>
+      </motion.div>
+
       {/* Quick Stats Row */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
         {[
