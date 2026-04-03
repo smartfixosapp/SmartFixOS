@@ -5,7 +5,7 @@ import {
   Brain, Send, Loader2, Sparkles, ChevronDown, ChevronUp,
   Wrench, Zap, AlertTriangle, Lightbulb, RotateCcw, Cpu
 } from "lucide-react";
-import { callGeminiAI } from "@/lib/geminiAI";
+import { callJENAI } from "@/lib/jenaiEngine";
 
 // ── Preguntas rapidas contextuales por tipo de dispositivo ────────────────────
 const QUICK_PROMPTS = {
