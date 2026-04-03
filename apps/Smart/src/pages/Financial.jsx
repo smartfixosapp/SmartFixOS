@@ -1113,65 +1113,99 @@ Responde con: 1) resumen de 2 oraciones, 2) un punto positivo, 3) una recomendac
             )}
             <ErrorBoundary><AlertasWidget /></ErrorBoundary>
 
-            {/* ── Navegación unificada (KPIs + tabs) ── */}
+            {/* ── Navegación unificada — todos los botones ── */}
             <div className="flex flex-col gap-2">
+              {(() => {
+                const NAV = [
+                  {
+                    id: "income",     tab: "movimientos", filter: "income",
+                    label: "Dinero que entró",    sublabel: "Cobros y pagos recibidos",
+                    value: totalRevenue,           icon: TrendingUp,
+                    active: activeTab === "movimientos" && movFilter === "income",
+                    scheme: "emerald",
+                  },
+                  {
+                    id: "expense",    tab: "movimientos", filter: "expense",
+                    label: "Dinero que salió",    sublabel: "Gastos del negocio",
+                    value: totalExpenses,          icon: TrendingDown,
+                    active: activeTab === "movimientos" && movFilter === "expense",
+                    scheme: "red",
+                  },
+                  {
+                    id: "desglose",   tab: "desglose",    filter: null,
+                    label: netProfit >= 0 ? "Ganancia neta" : "Déficit",
+                    sublabel: "Cobrado − piezas − IVU − gastos",
+                    value: Math.abs(netProfit),    icon: DollarSign,
+                    active: activeTab === "desglose",
+                    scheme: netProfit >= 0 ? "cyan" : "red",
+                  },
+                  {
+                    id: "todos",      tab: "movimientos", filter: "all",
+                    label: "Todos los movimientos", sublabel: "Entradas y salidas juntas",
+                    value: null,                   icon: Receipt,
+                    active: activeTab === "movimientos" && movFilter === "all",
+                    scheme: "slate",
+                  },
+                  {
+                    id: "compromisos", tab: "compromisos", filter: null,
+                    label: "Compromisos",          sublabel: "Gastos fijos y pendientes",
+                    value: null,                   icon: Target,
+                    active: activeTab === "compromisos",
+                    scheme: "slate",
+                  },
+                  {
+                    id: "reportes",   tab: "reportes",    filter: null,
+                    label: "Reportes",             sublabel: "Análisis y exportar datos",
+                    value: null,                   icon: PieChart,
+                    active: activeTab === "reportes",
+                    scheme: "slate",
+                  },
+                  {
+                    id: "tecnicos",   tab: "tecnicos",    filter: null,
+                    label: "Técnicos",             sublabel: "Productividad del equipo",
+                    value: null,                   icon: TrendingUp,
+                    active: activeTab === "tecnicos",
+                    scheme: "slate",
+                  },
+                ];
 
-              {/* Botones financieros con valor */}
-              {[
-                {
-                  id: "income", tab: "movimientos", filter: "income",
-                  label: "Dinero que entró", sublabel: "Ver cobros →",
-                  value: totalRevenue, icon: TrendingUp,
-                  active: activeTab === "movimientos" && movFilter === "income",
-                  scheme: "emerald",
-                },
-                {
-                  id: "expense", tab: "movimientos", filter: "expense",
-                  label: "Dinero que salió", sublabel: "Ver gastos →",
-                  value: totalExpenses, icon: TrendingDown,
-                  active: activeTab === "movimientos" && movFilter === "expense",
-                  scheme: "red",
-                },
-                {
-                  id: "desglose", tab: "desglose", filter: null,
-                  label: netProfit >= 0 ? "Ganancia neta" : "Déficit",
-                  sublabel: "Ver desglose →",
-                  value: Math.abs(netProfit), icon: DollarSign,
-                  active: activeTab === "desglose",
-                  scheme: netProfit >= 0 ? "cyan" : "red",
-                },
-              ].map(k => {
                 const colors = {
-                  emerald: { bg: k.active ? "bg-emerald-600" : "bg-emerald-500/10", border: "border-emerald-500/30", text: "text-emerald-400", sub: "text-emerald-300/60" },
-                  red:     { bg: k.active ? "bg-red-600"     : "bg-red-500/10",     border: "border-red-500/30",     text: "text-red-400",     sub: "text-red-300/60" },
-                  cyan:    { bg: k.active ? "bg-cyan-600"    : "bg-cyan-500/10",    border: "border-cyan-500/30",    text: "text-cyan-400",    sub: "text-cyan-300/60" },
+                  emerald: { bg: "bg-emerald-500/10", bgActive: "bg-emerald-600", border: "border-emerald-500/30", text: "text-emerald-400", sub: "text-emerald-300/50" },
+                  red:     { bg: "bg-red-500/10",     bgActive: "bg-red-600",     border: "border-red-500/30",     text: "text-red-400",     sub: "text-red-300/50" },
+                  cyan:    { bg: "bg-cyan-500/10",    bgActive: "bg-cyan-600",    border: "border-cyan-500/30",    text: "text-cyan-400",    sub: "text-cyan-300/50" },
+                  slate:   { bg: "bg-white/[0.04]",  bgActive: "bg-white/15",    border: "border-white/10",       text: "text-white/50",    sub: "text-white/25" },
                 };
-                const c = colors[k.scheme];
-                return (
-                  <button key={k.id}
-                    onClick={() => { setActiveTab(k.tab); if (k.filter) setMovFilter(k.filter); }}
-                    className={`w-full flex items-center justify-between gap-3 px-4 py-3.5 rounded-2xl border transition-all active:scale-[0.98] ${c.bg} ${c.border}`}
-                  >
-                    <div className="flex items-center gap-3 min-w-0">
-                      <div className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 ${k.active ? "bg-white/20" : "bg-white/[0.06]"}`}>
-                        <k.icon className={`w-4 h-4 ${k.active ? "text-white" : c.text}`} />
+
+                return NAV.map(k => {
+                  const c = colors[k.scheme];
+                  return (
+                    <button key={k.id}
+                      onClick={() => { setActiveTab(k.tab); if (k.filter !== null) setMovFilter(k.filter || "all"); }}
+                      className={`w-full flex items-center justify-between gap-3 px-4 py-3.5 rounded-2xl border transition-all active:scale-[0.98] ${k.active ? c.bgActive + " border-transparent" : c.bg + " " + c.border}`}
+                    >
+                      <div className="flex items-center gap-3 min-w-0">
+                        <div className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 ${k.active ? "bg-white/20" : "bg-white/[0.06]"}`}>
+                          <k.icon className={`w-4 h-4 ${k.active ? "text-white" : c.text}`} />
+                        </div>
+                        <div className="text-left min-w-0">
+                          <p className={`text-sm font-black leading-tight ${k.active ? "text-white" : "text-white/80"}`}>{k.label}</p>
+                          <p className={`text-[10px] font-bold leading-tight mt-0.5 ${k.active ? "text-white/60" : c.sub}`}>{k.sublabel}</p>
+                        </div>
                       </div>
-                      <div className="text-left min-w-0">
-                        <p className={`text-sm font-black leading-tight ${k.active ? "text-white" : "text-white/80"}`}>{k.label}</p>
-                        <p className={`text-[10px] font-bold ${k.active ? "text-white/60" : c.sub}`}>{k.sublabel}</p>
-                      </div>
-                    </div>
-                    <p className={`text-lg font-black tabular-nums shrink-0 ${k.active ? "text-white" : c.text}`}>
-                      ${k.value.toFixed(2)}
-                    </p>
-                  </button>
-                );
-              })}
+                      {k.value !== null && (
+                        <p className={`text-lg font-black tabular-nums shrink-0 ${k.active ? "text-white" : c.text}`}>
+                          ${k.value.toFixed(2)}
+                        </p>
+                      )}
+                    </button>
+                  );
+                });
+              })()}
 
               {/* Acciones de caja */}
-              <div className="grid grid-cols-2 gap-2 mt-1">
+              <div className="grid grid-cols-2 gap-2 pt-1 border-t border-white/[0.06]">
                 <button onClick={() => drawerOpen ? setShowCloseDrawer(true) : setShowOpenDrawer(true)}
-                  className={`flex items-center gap-2 px-3 py-2.5 rounded-2xl border transition-all active:scale-95 ${
+                  className={`flex items-center gap-2.5 px-3 py-3 rounded-2xl border transition-all active:scale-95 ${
                     drawerOpen ? "bg-emerald-500/10 border-emerald-500/30" : "bg-white/5 border-white/10"
                   }`}
                 >
@@ -1179,28 +1213,10 @@ Responde con: 1) resumen de 2 oraciones, 2) un punto positivo, 3) una recomendac
                   <p className={`text-xs font-black truncate ${drawerOpen ? "text-emerald-400" : "text-white/40"}`}>{drawerOpen ? "Caja abierta" : "Caja cerrada"}</p>
                 </button>
                 <button onClick={() => { setExpenseDefaultCategory(null); setShowExpenseDialog(true); }}
-                  className="flex items-center gap-2 px-3 py-2.5 rounded-2xl border border-orange-500/20 bg-orange-500/[0.08] transition-all active:scale-95">
+                  className="flex items-center gap-2.5 px-3 py-3 rounded-2xl border border-orange-500/20 bg-orange-500/[0.08] transition-all active:scale-95">
                   <Plus className="w-4 h-4 text-orange-400 shrink-0" />
                   <p className="text-xs font-black text-orange-300 truncate">Nuevo gasto</p>
                 </button>
-              </div>
-
-              {/* Tabs secundarios */}
-              <div className="hidden lg:flex flex-col gap-1 pt-1 border-t border-white/[0.06]">
-                {[
-                  { id: "movimientos", label: "Todos los movimientos" },
-                  { id: "compromisos", label: "Compromisos fijos" },
-                  { id: "reportes",    label: "Reportes y análisis" },
-                  { id: "tecnicos",    label: "Productividad técnicos" },
-                ].map(t => (
-                  <button key={t.id} onClick={() => { setActiveTab(t.id); if (t.id === "movimientos") setMovFilter("all"); }}
-                    className={`w-full py-2.5 px-3 rounded-xl text-sm font-bold transition-all text-left flex items-center gap-2 ${
-                      activeTab === t.id && (t.id !== "movimientos" || movFilter === "all")
-                        ? "bg-white/10 text-white"
-                        : "text-white/40 hover:text-white/70 hover:bg-white/[0.04]"
-                    }`}
-                  >{t.label}</button>
-                ))}
               </div>
             </div>
           </div>
