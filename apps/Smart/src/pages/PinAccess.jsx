@@ -1706,19 +1706,6 @@ export default function PinAccess() {
     })();
   }, [navigate]);
 
-  // ── Auto-trigger biométrico (NATIVO: Face ID / Touch ID) ────────────────
-  // En nativo (iOS/Android), NO esperamos isReady — lanzamos Face ID inmediatamente
-  // cuando el perfil biométrico está cargado. Es un diálogo del sistema que aparece
-  // encima de todo, no necesita que la UI esté completa.
-  useEffect(() => {
-    if (!Capacitor.isNativePlatform()) return;
-    if (hasCancelledBiometric) return;
-    if (!biometricSupported || !biometricProfile?.credentialId || !biometricProfile?.session) return;
-
-    const timer = setTimeout(() => handleEarlyBiometricLogin({ fromAutoTrigger: true }), 400);
-    return () => clearTimeout(timer);
-  }, [biometricSupported, biometricProfile?.credentialId, hasCancelledBiometric]);
-
   // ── Auto-trigger biométrico (WEB: Touch ID Mac via Conditional Mediation) ──
   // En web, sí esperamos isReady porque necesitamos que la página esté completa
   // para que el navegador permita Conditional Mediation.
