@@ -903,7 +903,7 @@ Responde con:
 2. **Diagnostico sugerido** (pasos concretos para confirmar)
 3. **Piezas posibles** (que podria necesitar)`;
 
-      const text = await callGeminiAI(prompt, { maxTokens: 400, systemPrompt });
+      const text = await callJENAI(prompt, { maxTokens: 400, systemPrompt });
       setAiDiagnosis(text);
     } catch (err) {
       setAiDiagnosis("No se pudo conectar con JENAI. Intenta de nuevo.");
@@ -1072,14 +1072,14 @@ Reglas:
       let aiResponse;
 
       if (jenaiPhotos.length > 0) {
-        aiResponse = await callGeminiAIWithVision(userPrompt, {
+        aiResponse = await callJENAIWithVision(userPrompt, {
           maxTokens: 1000,
           temperature: 0.15,
           systemPrompt,
           images: jenaiPhotos,
         });
       } else {
-        aiResponse = await callGeminiAI(userPrompt, {
+        aiResponse = await callJENAI(userPrompt, {
           maxTokens: 1000,
           temperature: 0.15,
           systemPrompt,
