@@ -1219,11 +1219,6 @@ export default function PinAccess() {
   };
 
   const completeLogin = async (session, fromBiometric = false) => {
-    // Cancelar cualquier conditional mediation pendiente
-    if (conditionalMediationAbortRef.current) {
-      conditionalMediationAbortRef.current.abort();
-      conditionalMediationAbortRef.current = null;
-    }
     localStorage.setItem("employee_session", JSON.stringify(session));
     sessionStorage.setItem("911-session", JSON.stringify(session));
     // Limpiar flag de cierre previo + notificar a AuthGate de la nueva sesión
