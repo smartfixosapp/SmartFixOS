@@ -414,6 +414,19 @@ export default function Financial() {
   const totalExpenses = filteredExpenses.reduce((sum, e) => sum + getExpenseMagnitude(e.amount), 0);
   const netProfit = totalRevenue - totalExpenses;
 
+  // ── Desglose financiero detallado ──────────────────────────────────────────
+  const totalIVU = filteredSales.reduce((s, sale) => s + Number(sale.tax_amount || 0), 0);
+  const totalRevenueBeforeTax = totalRevenue - totalIVU; // ingresos sin IVU
+  const totalPartsCost = filteredSales.reduce((sum, sale) => {
+    const items = Array.isArray(sale?.items) ? sale.items : [];
+    return sum + items.reduce((s, item) => {
+      const qty = Number(item?.quantity || 0);
+      return s + Number(item?.line_cost || (Number(item?.cost || 0) * qty));
+    }, 0);
+  }, 0);
+  const grossMargin = totalRevenueBeforeTax - totalPartsCost; // margen bruto
+  const trueNetProfit = grossMargin - totalExpenses; // ganancia neta real
+
   // Payment method breakdown
   const paymentMethodBreakdown = React.useMemo(() => {
     const methods = {
