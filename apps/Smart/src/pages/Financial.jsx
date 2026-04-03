@@ -1366,101 +1366,131 @@ Responde con: 1) resumen de 2 oraciones, 2) un punto positivo, 3) una recomendac
           </div>
         )}
 
-        {/* Tab: Desglose Neto */}
-        {activeTab === "desglose" && (
-          <div className="space-y-2 mt-1">
-            <p className="text-[10px] font-black text-white/25 uppercase tracking-widest px-1">Cómo se calcula tu ganancia real</p>
+        {/* Tab: Desglose Neto — tabla por venta */}
+        {activeTab === "desglose" && (() => {
+          const desgloseRows = filteredSales.map(sale => {
+            const items = Array.isArray(sale?.items) ? sale.items : [];
+            const salePartsCost = items.reduce((s, item) => {
+              const qty = Number(item?.quantity || 0);
+              return s + Number(item?.line_cost || (Number(item?.cost || 0) * qty));
+            }, 0);
+            const saleIVU = Number(sale.tax_amount || 0);
+            const saleCobrado = Number(sale.total || 0);
+            const saleNeta = saleCobrado - saleIVU - salePartsCost;
+            const desc = items.length > 0
+              ? items.map(i => i.name || i.service_name || i.product_name || "Artículo").join(", ")
+              : sale.notes || "Sin descripción";
+            return {
+              id: sale.id,
+              cliente: sale.customer_name || "Consumidor Final",
+              desc,
+              fecha: getEntityDate(sale),
+              cobrado: saleCobrado,
+              piezas: salePartsCost,
+              ivu: saleIVU,
+              neta: saleNeta,
+            };
+          });
 
-            {/* Tabla de desglose — mismo estilo que movimientos */}
-            <div className="rounded-2xl border border-white/[0.08] overflow-hidden">
-              {[
-                {
-                  label: "Ingresos brutos",
-                  sub: "Total cobrado a clientes",
-                  value: totalRevenue,
-                  sign: "+",
-                  color: "text-emerald-400",
-                  bg: "bg-emerald-500/[0.04]",
-                },
-                {
-                  label: "IVU / Impuesto cobrado",
-                  sub: "No es tuyo — se reporta al gobierno",
-                  value: totalIVU,
-                  sign: "−",
-                  color: "text-red-400",
-                  bg: "",
-                },
-                {
-                  label: "Ingresos sin IVU",
-                  sub: "Lo que realmente entraste",
-                  value: totalRevenueBeforeTax,
-                  sign: "=",
-                  color: "text-white",
-                  bg: "bg-white/[0.04]",
-                  divider: true,
-                },
-                {
-                  label: "Costo de piezas / servicios",
-                  sub: "Costo de inventario vendido",
-                  value: totalPartsCost,
-                  sign: "−",
-                  color: "text-orange-400",
-                  bg: "",
-                },
-                {
-                  label: "Margen bruto",
-                  sub: "Sin IVU ni costo de producto",
-                  value: grossMargin,
-                  sign: "=",
-                  color: grossMargin >= 0 ? "text-cyan-400" : "text-red-400",
-                  bg: "bg-white/[0.04]",
-                  divider: true,
-                },
-                {
-                  label: "Gastos operacionales",
-                  sub: "Renta, nómina, utilidades, etc.",
-                  value: totalExpenses,
-                  sign: "−",
-                  color: "text-red-400",
-                  bg: "",
-                },
-              ].map((row, i) => (
-                <div key={i} className={`flex items-center gap-3 px-4 py-3 ${row.bg} ${row.divider ? "border-t border-b border-white/[0.08]" : i > 0 ? "border-t border-white/[0.05]" : ""}`}>
-                  <span className={`text-xs font-black w-4 text-center shrink-0 ${row.color}`}>{row.sign}</span>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-bold text-white truncate">{row.label}</p>
-                    <p className="text-[10px] text-white/30">{row.sub}</p>
+          const totCobrado  = desgloseRows.reduce((s, r) => s + r.cobrado, 0);
+          const totPiezas   = desgloseRows.reduce((s, r) => s + r.piezas,  0);
+          const totIVU      = desgloseRows.reduce((s, r) => s + r.ivu,     0);
+          const totNeta     = desgloseRows.reduce((s, r) => s + r.neta,    0);
+
+          return (
+            <div className="space-y-1.5 mt-1">
+              {/* Cabecera de columnas */}
+              <div className="hidden sm:grid grid-cols-[1fr_auto_auto_auto_auto] gap-x-3 px-3.5 pb-1">
+                <span className="text-[9px] font-black text-white/20 uppercase tracking-widest">Cliente / Trabajo</span>
+                <span className="text-[9px] font-black text-white/20 uppercase tracking-widest text-right w-16">Cobrado</span>
+                <span className="text-[9px] font-black text-white/20 uppercase tracking-widest text-right w-14">Piezas</span>
+                <span className="text-[9px] font-black text-white/20 uppercase tracking-widest text-right w-12">IVU</span>
+                <span className="text-[9px] font-black text-cyan-400/50 uppercase tracking-widest text-right w-16">Neta</span>
+              </div>
+
+              {loading ? (
+                <div className="py-12 text-center">
+                  <RefreshCw className="w-5 h-5 animate-spin mx-auto mb-2 text-white/20" />
+                  <p className="text-xs text-white/20 font-bold">Cargando…</p>
+                </div>
+              ) : desgloseRows.length === 0 ? (
+                <div className="py-12 text-center">
+                  <p className="text-white/25 font-bold text-sm">Sin ventas en este período</p>
+                </div>
+              ) : (
+                desgloseRows.map(r => {
+                  const netaPositive = r.neta >= 0;
+                  return (
+                    <div key={r.id} className="flex items-center gap-3 p-3.5 rounded-2xl bg-white/[0.02] hover:bg-white/[0.05] border border-white/[0.04] transition-all">
+                      {/* Icono */}
+                      <div className="w-8 h-8 rounded-xl bg-emerald-500/15 text-emerald-400 flex items-center justify-center shrink-0">
+                        <TrendingUp className="w-3.5 h-3.5" />
+                      </div>
+
+                      {/* Info principal */}
+                      <div className="flex-1 min-w-0">
+                        <p className="text-white font-bold text-sm truncate leading-tight">{r.cliente}</p>
+                        <p className="text-[11px] text-white/30 truncate">
+                          {r.desc}{r.fecha ? ` · ${format(new Date(r.fecha), "dd MMM HH:mm", { locale: es })}` : ""}
+                        </p>
+                        {/* Desglose en móvil — segunda línea */}
+                        <div className="flex gap-2 mt-1 sm:hidden text-[10px] font-bold">
+                          <span className="text-emerald-400">${r.cobrado.toFixed(2)}</span>
+                          {r.piezas > 0 && <span className="text-orange-400">−${r.piezas.toFixed(2)} pzas</span>}
+                          {r.ivu > 0 && <span className="text-amber-400">−${r.ivu.toFixed(2)} IVU</span>}
+                        </div>
+                      </div>
+
+                      {/* Columnas numéricas — desktop */}
+                      <div className="hidden sm:flex items-center gap-0 shrink-0">
+                        <span className="text-sm font-black text-emerald-400 tabular-nums text-right w-16">${r.cobrado.toFixed(2)}</span>
+                        <span className="text-sm font-bold text-orange-400/80 tabular-nums text-right w-14">{r.piezas > 0 ? `$${r.piezas.toFixed(2)}` : "—"}</span>
+                        <span className="text-sm font-bold text-amber-400/80 tabular-nums text-right w-12">{r.ivu > 0 ? `$${r.ivu.toFixed(2)}` : "—"}</span>
+                        <span className={`text-sm font-black tabular-nums text-right w-16 ${netaPositive ? "text-cyan-400" : "text-red-400"}`}>
+                          {netaPositive ? "+" : "−"}${Math.abs(r.neta).toFixed(2)}
+                        </span>
+                      </div>
+
+                      {/* Neta en móvil */}
+                      <span className={`sm:hidden text-sm font-black tabular-nums shrink-0 ${netaPositive ? "text-cyan-400" : "text-red-400"}`}>
+                        {netaPositive ? "+" : "−"}${Math.abs(r.neta).toFixed(2)}
+                      </span>
+                    </div>
+                  );
+                })
+              )}
+
+              {/* Fila de totales */}
+              {desgloseRows.length > 0 && (
+                <div className={`flex items-center gap-3 p-3.5 rounded-2xl border-2 mt-2 ${totNeta >= 0 ? "bg-cyan-500/[0.06] border-cyan-500/25" : "bg-red-500/[0.06] border-red-500/25"}`}>
+                  <div className="w-8 h-8 rounded-xl bg-white/5 flex items-center justify-center shrink-0">
+                    <DollarSign className="w-3.5 h-3.5 text-white/30" />
                   </div>
-                  <p className={`text-sm font-black tabular-nums shrink-0 ${row.color}`}>
-                    ${Math.abs(row.value).toFixed(2)}
-                  </p>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-white font-black text-sm">Total del período</p>
+                    <p className="text-[10px] text-white/30">{desgloseRows.length} venta{desgloseRows.length !== 1 ? "s" : ""}</p>
+                    <div className="flex gap-2 mt-1 sm:hidden text-[10px] font-bold">
+                      <span className="text-emerald-400">${totCobrado.toFixed(2)}</span>
+                      {totPiezas > 0 && <span className="text-orange-400">−${totPiezas.toFixed(2)} pzas</span>}
+                      {totIVU > 0 && <span className="text-amber-400">−${totIVU.toFixed(2)} IVU</span>}
+                    </div>
+                  </div>
+                  <div className="hidden sm:flex items-center gap-0 shrink-0">
+                    <span className="text-sm font-black text-emerald-400 tabular-nums text-right w-16">${totCobrado.toFixed(2)}</span>
+                    <span className="text-sm font-black text-orange-400 tabular-nums text-right w-14">{totPiezas > 0 ? `$${totPiezas.toFixed(2)}` : "—"}</span>
+                    <span className="text-sm font-black text-amber-400 tabular-nums text-right w-12">{totIVU > 0 ? `$${totIVU.toFixed(2)}` : "—"}</span>
+                    <span className={`text-sm font-black tabular-nums text-right w-16 ${totNeta >= 0 ? "text-cyan-400" : "text-red-400"}`}>
+                      {totNeta >= 0 ? "+" : "−"}${Math.abs(totNeta).toFixed(2)}
+                    </span>
+                  </div>
+                  <span className={`sm:hidden text-base font-black tabular-nums shrink-0 ${totNeta >= 0 ? "text-cyan-400" : "text-red-400"}`}>
+                    {totNeta >= 0 ? "+" : "−"}${Math.abs(totNeta).toFixed(2)}
+                  </span>
                 </div>
-              ))}
-
-              {/* Ganancia neta real — fila destacada */}
-              <div className={`flex items-center gap-3 px-4 py-4 border-t-2 ${trueNetProfit >= 0 ? "border-emerald-500/30 bg-emerald-500/[0.07]" : "border-red-500/30 bg-red-500/[0.07]"}`}>
-                <span className={`text-sm font-black w-4 text-center shrink-0 ${trueNetProfit >= 0 ? "text-emerald-400" : "text-red-400"}`}>=</span>
-                <div className="flex-1 min-w-0">
-                  <p className="text-base font-black text-white">Ganancia neta real</p>
-                  <p className="text-[10px] text-white/30">Después de IVU, piezas y gastos</p>
-                </div>
-                <p className={`text-xl font-black tabular-nums shrink-0 ${trueNetProfit >= 0 ? "text-emerald-400" : "text-red-400"}`}>
-                  {trueNetProfit < 0 ? "−" : "+"}${Math.abs(trueNetProfit).toFixed(2)}
-                </p>
-              </div>
+              )}
             </div>
-
-            {/* Aviso si hay diferencia con el Neto del panel */}
-            {totalPartsCost > 0 && (
-              <div className="flex gap-3 p-3.5 rounded-2xl bg-amber-500/[0.07] border border-amber-500/20">
-                <span className="text-amber-400 text-base shrink-0">💡</span>
-                <p className="text-xs text-amber-300/80 leading-relaxed">
-                  El <strong>Neto</strong> del panel muestra <strong>${Math.abs(netProfit).toFixed(2)}</strong> (ingresos − gastos), pero no descuenta el costo de piezas. Tu ganancia real es <strong>${trueNetProfit.toFixed(2)}</strong>.
-                </p>
-              </div>
-            )}
-          </div>
-        )}
+          );
+        })()}
 
           </div>{/* fin main content */}
         </div>{/* fin lg:flex */}
