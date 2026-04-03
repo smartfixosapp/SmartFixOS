@@ -1694,6 +1694,23 @@ Dime: qué comprar urgente, qué riesgo hay para el negocio, y una recomendació
           );
         })()}
 
+        {/* ── JENAI Inventory Insights ── */}
+        <div className="mb-4">
+          <JENAIInsightBanner
+            context="inventory"
+            data={{
+              totalProducts: items.length,
+              outOfStock: items.filter(p => (p.stock || 0) <= 0).length,
+              lowStock: items.filter(p => (p.stock || 0) > 0 && (p.stock || 0) <= (p.min_stock || 3)).length,
+              healthy: items.filter(p => (p.stock || 0) > (p.min_stock || 3)).length,
+              totalValue: items.reduce((s, p) => s + (p.cost || 0) * (p.stock || 0), 0).toFixed(0),
+              criticalItems: items.filter(p => (p.stock || 0) <= 0).slice(0, 5).map(p => p.name).join(", "),
+            }}
+            accentColor="amber"
+            autoLoad={items.length > 0}
+          />
+        </div>
+
         {/* ── IA Inventario ── */}
         <div className="border border-violet-500/20 rounded-2xl overflow-hidden bg-white/[0.02] mb-4">
           <div className="flex items-center justify-between px-4 py-3">
