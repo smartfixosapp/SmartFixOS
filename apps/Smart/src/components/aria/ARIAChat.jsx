@@ -410,6 +410,8 @@ export default function ARIAChat() {
   const [toured, setToured] = useState(() => localStorage.getItem(DARJENI_TOURED_KEY) === "1");
   // true = el tour ya se auto-abrió una vez → no volver a abrir automáticamente
   const [tourAutoShown, setTourAutoShown] = useState(() => localStorage.getItem(DARJENI_SHOWN_KEY) === "1");
+  // respeta el toggle de Settings
+  const [enabled, setEnabled] = useState(() => localStorage.getItem("smartfix_darjeni_disabled") !== "true");
   const [messages, setMessages]   = useState([]);
   const [input, setInput]         = useState("");
   const [loading, setLoading]     = useState(false);
