@@ -3,7 +3,8 @@
  * Advanced tenant list with filters, sorting, health indicators, bulk actions
  */
 import React, { useState, useMemo } from "react";
-import { motion } from "framer-motion";
+import { createPortal } from "react-dom";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   Search, Building2, Filter, ArrowUpDown, ChevronDown, ChevronRight,
   MoreHorizontal, Eye, PauseCircle, PlayCircle, Pencil, Trash2,
