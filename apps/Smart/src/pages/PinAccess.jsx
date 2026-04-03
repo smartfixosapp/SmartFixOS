@@ -1261,20 +1261,7 @@ export default function PinAccess() {
 
     toast.success(`¡Bienvenido, ${session.userName}!`, { duration: 2000 });
 
-    // ── Ofrecer biometría si el dispositivo lo soporta y aún no está registrado ──
-    const alreadyHasBiometric =
-      biometricProfile?.credentialId &&
-      (biometricProfile?.userId === session.id || !biometricProfile?.userId);
-
-    if (!fromBiometric && biometricSupported && !alreadyHasBiometric) {
-      // Guardar sesión como pendiente y mostrar oferta de Touch ID / Face ID
-      setPendingLoginSession(session);
-      setShowBiometricOffer(true);
-      return; // No navegar todavía — esperamos la respuesta del usuario
-    }
-
-    // Navegación normal (ya tiene biometría o viene de login biométrico)
-    // Navegación instantánea (sin delay de burst)
+    // Siempre navegar al Dashboard — la oferta de biometría se puede hacer desde Settings
     navigate("/Dashboard", { replace: true });
   };
 
