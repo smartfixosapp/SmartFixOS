@@ -648,7 +648,14 @@ export default function ARIAChat() {
     return () => window.removeEventListener("smartfix:jenai-toggle", handler);
   }, []);
 
-  if (isHidden || !enabled) return null;
+  // Ocultar cuando hay orden de trabajo abierta (JENAI ya esta integrado dentro)
+  React.useEffect(() => {
+    const handler = (e) => setWorkOrderOpen(e.detail?.open === true);
+    window.addEventListener("smartfix:workorder-open", handler);
+    return () => window.removeEventListener("smartfix:workorder-open", handler);
+  }, []);
+
+  if (isHidden || !enabled || workOrderOpen) return null;
 
   // ── Construye el prompt de sistema ───────────────────────────────────────────
   const buildSystem = () => {
