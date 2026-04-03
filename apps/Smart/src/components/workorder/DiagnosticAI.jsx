@@ -164,7 +164,7 @@ export default function DiagnosticAI({ order, checklist = [], deviceCategory = "
     setLoading(true);
 
     try {
-      const systemPrompt = buildSystemPrompt(order, checklist, deviceCategory);
+      const systemPrompt = buildSystemPrompt(order, checklist, deviceCategory, mode);
 
       // Build conversation history for context (last 6 messages)
       const recentHistory = [...messages.slice(-6), userMsg]
