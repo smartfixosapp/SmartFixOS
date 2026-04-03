@@ -171,7 +171,7 @@ function PagesContent() {
         <LayoutWrapper currentPageName={currentPage}>
             <Suspense fallback={<PageLoader />}>
                 <Routes>
-                    <Route path="/SuperAdmin" element={<SuperAdmin />} />
+                    <Route path="/SuperAdmin" element={<GACC />} />
                     <Route path="/GACC" element={<GACC />} />
                     <Route path="/TenantActivate" element={<TenantActivate />} />
                     <Route path="/returnlogin" element={<ReturnLogin />} />
