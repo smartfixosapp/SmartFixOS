@@ -642,8 +642,8 @@ export default function ARIAChat() {
   // Escuchar cambios del toggle desde Settings
   React.useEffect(() => {
     const handler = (e) => setEnabled(e.detail?.enabled !== false);
-    window.addEventListener("smartfix:darjeni-toggle", handler);
-    return () => window.removeEventListener("smartfix:darjeni-toggle", handler);
+    window.addEventListener("smartfix:jenai-toggle", handler);
+    return () => window.removeEventListener("smartfix:jenai-toggle", handler);
   }, []);
 
   if (isHidden || !enabled) return null;
