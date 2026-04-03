@@ -12,7 +12,7 @@ import {
   User, Smartphone, Wrench, Shield, CheckSquare, Plus,
   X, Mail, Loader2, Camera, Check, Search, Eye, Grid3X3, Users, Save,
   Laptop, Tablet, Monitor, Watch, Gamepad2, Zap, Pencil, Trash2, ChevronDown,
-  Clock, SlidersHorizontal, ChevronLeft, ChevronRight
+  Clock, SlidersHorizontal, ChevronLeft, ChevronRight, Sparkles, Brain, ImagePlus
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
