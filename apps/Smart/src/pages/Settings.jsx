@@ -842,11 +842,11 @@ export default function SettingsPage() {
           color: "from-amber-500 to-orange-600",
         },
         {
-          id: "calculator_widget",
-          icon: Calculator,
-          title: "Calculadora de Precio",
-          description: "Widget flotante en todas las pantallas",
-          color: "from-cyan-500 to-emerald-600",
+          id: "darjeni_toggle",
+          icon: Bot,
+          title: "Asistente DARJENI",
+          description: "IA flotante en todas las pantallas",
+          color: "from-blue-500 to-violet-600",
           isToggle: true,
         },
         // Seguridad y Sesión — biometría + timeout, visible para TODOS
