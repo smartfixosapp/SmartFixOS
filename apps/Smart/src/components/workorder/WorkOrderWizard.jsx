@@ -3035,46 +3035,55 @@ Reglas:
         </div>
 
         {!isCompactDevice && (
-        <div className={`relative z-10 border-b border-white/[0.05] bg-white/[0.01] px-8 py-4`}>
+        <div className={`relative z-10 border-b border-white/[0.05] bg-white/[0.01] px-8 py-4 flex gap-3`}>
+          {/* Orden Rapida toggle */}
           <button
             type="button"
-            onClick={() => { setQuickOrderMode((prev) => !prev); if (isCompactDevice) setMobileStep(0); }}
-            className={`w-full group rounded-[24px] border transition-all duration-500 ${
+            onClick={() => { setQuickOrderMode(prev => !prev); setJenaiMode(false); setJenaiShowReview(false); }}
+            className={`flex-1 group rounded-[20px] border transition-all duration-500 ${
               quickOrderMode
-                ? "border-amber-400/30 bg-amber-500/10 shadow-[inner_0_0_20px_rgba(245,158,11,0.1)]"
+                ? "border-amber-400/30 bg-amber-500/10"
                 : "border-white/[0.05] bg-white/[0.02] hover:bg-white/[0.04]"
             }`}
           >
-            <div className="p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-              <div className="flex items-start gap-4">
-                <div className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl transition-all duration-500 ${
-                  quickOrderMode
-                    ? "bg-gradient-to-br from-amber-400 to-yellow-500 text-white shadow-lg"
-                    : "bg-white/5 text-white/30 group-hover:text-white/60"
-                }`}>
-                  <Zap className="h-6 w-6" strokeWidth={2.5} />
-                </div>
-                <div>
-                  <div className="flex items-center gap-3">
-                    <p className="text-sm font-black uppercase tracking-[0.25em] text-white">Orden rápida</p>
-                    {quickOrderMode && (
-                      <span className="rounded-full bg-amber-500 text-[10px] font-black uppercase tracking-wider text-black px-2.5 py-0.5">
-                        Express
-                      </span>
-                    )}
-                  </div>
-                  <p className="mt-1 text-sm text-white/40 leading-relaxed font-medium">
-                    Optimizado para cambios de pantalla y batería. Salta el diagnóstico.
-                  </p>
-                </div>
-              </div>
-              <div className={`shrink-0 rounded-full px-4 py-1.5 text-[10px] font-black uppercase tracking-[0.2em] border transition-all duration-500 ${
-                quickOrderMode
-                  ? "bg-amber-500/20 text-amber-200 border-amber-500/30"
-                  : "bg-white/5 text-white/40 border-white/10"
+            <div className="p-3 flex items-center gap-3">
+              <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl transition-all ${
+                quickOrderMode ? "bg-gradient-to-br from-amber-400 to-yellow-500 text-white shadow-lg" : "bg-white/5 text-white/30"
               }`}>
-                {quickOrderMode ? "Modo Activo" : "Estándar"}
+                <Zap className="h-5 w-5" strokeWidth={2.5} />
               </div>
+              <div className="text-left">
+                <p className="text-xs font-black uppercase tracking-wider text-white">Orden Rapida</p>
+                <p className="text-[10px] text-white/35">Express · 3 pasos</p>
+              </div>
+              {quickOrderMode && (
+                <span className="ml-auto rounded-full bg-amber-500 text-[9px] font-black uppercase text-black px-2 py-0.5">Activo</span>
+              )}
+            </div>
+          </button>
+          {/* Crear con JENAI toggle */}
+          <button
+            type="button"
+            onClick={() => { setJenaiMode(prev => !prev); setQuickOrderMode(false); if (!jenaiMode) { setJenaiShowReview(false); setJenaiSubMode(null); } }}
+            className={`flex-1 group rounded-[20px] border transition-all duration-500 ${
+              jenaiMode
+                ? "border-violet-400/30 bg-violet-500/10"
+                : "border-white/[0.05] bg-white/[0.02] hover:bg-white/[0.04]"
+            }`}
+          >
+            <div className="p-3 flex items-center gap-3">
+              <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl transition-all ${
+                jenaiMode ? "bg-gradient-to-br from-violet-400 to-purple-600 text-white shadow-lg" : "bg-white/5 text-white/30"
+              }`}>
+                <Sparkles className="h-5 w-5" strokeWidth={2.5} />
+              </div>
+              <div className="text-left">
+                <p className="text-xs font-black uppercase tracking-wider text-white">Crear con JENAI</p>
+                <p className="text-[10px] text-white/35">IA llena todo · 1 paso</p>
+              </div>
+              {jenaiMode && (
+                <span className="ml-auto rounded-full bg-violet-500 text-[9px] font-black uppercase text-white px-2 py-0.5">Activo</span>
+              )}
             </div>
           </button>
         </div>
