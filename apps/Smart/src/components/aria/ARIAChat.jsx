@@ -516,17 +516,19 @@ export default function ARIAChat() {
 
   const isHidden = HIDDEN_PATHS.includes(location.pathname);
 
-  // ── Primera visita: abrir DARJENI en el tab del tour automáticamente ────────
+  // ── Primera visita: abrir DARJENI en el tab del tour — solo UNA vez en toda la vida ──
   useEffect(() => {
     if (isHidden) return;
-    if (toured) return; // ya completó el tour antes
-    // Pequeño delay para que la página cargue primero
+    if (toured) return;        // ya completó el tour
+    if (tourAutoShown) return; // ya se mostró automáticamente alguna vez
     const timer = setTimeout(() => {
+      localStorage.setItem(DARJENI_SHOWN_KEY, "1");
+      setTourAutoShown(true);
       setOpen(true);
       setTab("tour");
     }, 1200);
     return () => clearTimeout(timer);
-  }, [isHidden]);
+  }, [isHidden, tourAutoShown]);
 
   // Cargar contexto cuando se abre el chat
   useEffect(() => {
