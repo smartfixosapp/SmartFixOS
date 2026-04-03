@@ -310,6 +310,7 @@ function mergeAdminPanelButtons(savedButtons = []) {
 
 export default function UsersManagement() {
   const navigate = useNavigate();
+  const { checkLimit, upgradeTo, can: canPlan } = usePlanLimits();
   const [authorized, setAuthorized] = useState(() => {
     try {
       const raw =
