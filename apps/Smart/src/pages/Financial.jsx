@@ -1398,16 +1398,7 @@ Responde con: 1) resumen de 2 oraciones, 2) un punto positivo, 3) una recomendac
           const totNeta     = desgloseRows.reduce((s, r) => s + r.neta,    0);
 
           return (
-            <div className="space-y-1.5 mt-1">
-              {/* Cabecera de columnas */}
-              <div className="hidden sm:grid grid-cols-[1fr_auto_auto_auto_auto] gap-x-3 px-3.5 pb-1">
-                <span className="text-[9px] font-black text-white/20 uppercase tracking-widest">Cliente / Trabajo</span>
-                <span className="text-[9px] font-black text-white/20 uppercase tracking-widest text-right w-16">Cobrado</span>
-                <span className="text-[9px] font-black text-white/20 uppercase tracking-widest text-right w-14">Piezas</span>
-                <span className="text-[9px] font-black text-white/20 uppercase tracking-widest text-right w-12">IVU</span>
-                <span className="text-[9px] font-black text-cyan-400/50 uppercase tracking-widest text-right w-16">Neta</span>
-              </div>
-
+            <div className="space-y-2 mt-1">
               {loading ? (
                 <div className="py-12 text-center">
                   <RefreshCw className="w-5 h-5 animate-spin mx-auto mb-2 text-white/20" />
@@ -1421,71 +1412,82 @@ Responde con: 1) resumen de 2 oraciones, 2) un punto positivo, 3) una recomendac
                 desgloseRows.map(r => {
                   const netaPositive = r.neta >= 0;
                   return (
-                    <div key={r.id} className="flex items-center gap-3 p-3.5 rounded-2xl bg-white/[0.02] hover:bg-white/[0.05] border border-white/[0.04] transition-all">
-                      {/* Icono */}
-                      <div className="w-8 h-8 rounded-xl bg-emerald-500/15 text-emerald-400 flex items-center justify-center shrink-0">
-                        <TrendingUp className="w-3.5 h-3.5" />
-                      </div>
-
-                      {/* Info principal */}
-                      <div className="flex-1 min-w-0">
-                        <p className="text-white font-bold text-sm truncate leading-tight">{r.cliente}</p>
-                        <p className="text-[11px] text-white/30 truncate">
-                          {r.desc}{r.fecha ? ` · ${format(new Date(r.fecha), "dd MMM HH:mm", { locale: es })}` : ""}
-                        </p>
-                        {/* Desglose en móvil — segunda línea */}
-                        <div className="flex gap-2 mt-1 sm:hidden text-[10px] font-bold">
-                          <span className="text-emerald-400">${r.cobrado.toFixed(2)}</span>
-                          {r.piezas > 0 && <span className="text-orange-400">−${r.piezas.toFixed(2)} pzas</span>}
-                          {r.ivu > 0 && <span className="text-amber-400">−${r.ivu.toFixed(2)} IVU</span>}
+                    <div key={r.id} className="p-4 rounded-2xl bg-white/[0.02] hover:bg-white/[0.04] border border-white/[0.06] transition-all space-y-3">
+                      {/* Fila superior: info secundaria + ganancia neta destacada */}
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="flex items-center gap-2.5 min-w-0">
+                          <div className="w-7 h-7 rounded-xl bg-emerald-500/15 text-emerald-400 flex items-center justify-center shrink-0">
+                            <TrendingUp className="w-3 h-3" />
+                          </div>
+                          <div className="min-w-0">
+                            <p className="text-white/60 font-bold text-xs truncate leading-tight">{r.cliente}</p>
+                            <p className="text-[10px] text-white/25 truncate">
+                              {r.desc}{r.fecha ? ` · ${format(new Date(r.fecha), "dd MMM, h:mm a", { locale: es })}` : ""}
+                            </p>
+                          </div>
+                        </div>
+                        {/* Ganancia neta — número prominente */}
+                        <div className="text-right shrink-0">
+                          <p className="text-[9px] font-black text-white/20 uppercase tracking-widest mb-0.5">Neta</p>
+                          <p className={`text-xl font-black tabular-nums leading-none ${netaPositive ? "text-cyan-400" : "text-red-400"}`}>
+                            {netaPositive ? "+" : "−"}${Math.abs(r.neta).toFixed(2)}
+                          </p>
                         </div>
                       </div>
 
-                      {/* Columnas numéricas — desktop */}
-                      <div className="hidden sm:flex items-center gap-0 shrink-0">
-                        <span className="text-sm font-black text-emerald-400 tabular-nums text-right w-16">${r.cobrado.toFixed(2)}</span>
-                        <span className="text-sm font-bold text-orange-400/80 tabular-nums text-right w-14">{r.piezas > 0 ? `$${r.piezas.toFixed(2)}` : "—"}</span>
-                        <span className="text-sm font-bold text-amber-400/80 tabular-nums text-right w-12">{r.ivu > 0 ? `$${r.ivu.toFixed(2)}` : "—"}</span>
-                        <span className={`text-sm font-black tabular-nums text-right w-16 ${netaPositive ? "text-cyan-400" : "text-red-400"}`}>
-                          {netaPositive ? "+" : "−"}${Math.abs(r.neta).toFixed(2)}
-                        </span>
+                      {/* Fila inferior: 3 chips de desglose */}
+                      <div className="grid grid-cols-3 gap-2">
+                        <div className="bg-emerald-500/[0.08] border border-emerald-500/15 rounded-xl px-3 py-2 text-center">
+                          <p className="text-[9px] font-black text-white/25 uppercase tracking-widest">Cobrado</p>
+                          <p className="text-sm font-black text-emerald-400 tabular-nums mt-0.5">${r.cobrado.toFixed(2)}</p>
+                        </div>
+                        <div className="bg-orange-500/[0.08] border border-orange-500/15 rounded-xl px-3 py-2 text-center">
+                          <p className="text-[9px] font-black text-white/25 uppercase tracking-widest">Piezas</p>
+                          <p className="text-sm font-black text-orange-400 tabular-nums mt-0.5">
+                            {r.piezas > 0 ? `$${r.piezas.toFixed(2)}` : "$0.00"}
+                          </p>
+                        </div>
+                        <div className="bg-amber-500/[0.08] border border-amber-500/15 rounded-xl px-3 py-2 text-center">
+                          <p className="text-[9px] font-black text-white/25 uppercase tracking-widest">IVU</p>
+                          <p className="text-sm font-black text-amber-400 tabular-nums mt-0.5">
+                            {r.ivu > 0 ? `$${r.ivu.toFixed(2)}` : "$0.00"}
+                          </p>
+                        </div>
                       </div>
-
-                      {/* Neta en móvil */}
-                      <span className={`sm:hidden text-sm font-black tabular-nums shrink-0 ${netaPositive ? "text-cyan-400" : "text-red-400"}`}>
-                        {netaPositive ? "+" : "−"}${Math.abs(r.neta).toFixed(2)}
-                      </span>
                     </div>
                   );
                 })
               )}
 
-              {/* Fila de totales */}
+              {/* Tarjeta de totales */}
               {desgloseRows.length > 0 && (
-                <div className={`flex items-center gap-3 p-3.5 rounded-2xl border-2 mt-2 ${totNeta >= 0 ? "bg-cyan-500/[0.06] border-cyan-500/25" : "bg-red-500/[0.06] border-red-500/25"}`}>
-                  <div className="w-8 h-8 rounded-xl bg-white/5 flex items-center justify-center shrink-0">
-                    <DollarSign className="w-3.5 h-3.5 text-white/30" />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-white font-black text-sm">Total del período</p>
-                    <p className="text-[10px] text-white/30">{desgloseRows.length} venta{desgloseRows.length !== 1 ? "s" : ""}</p>
-                    <div className="flex gap-2 mt-1 sm:hidden text-[10px] font-bold">
-                      <span className="text-emerald-400">${totCobrado.toFixed(2)}</span>
-                      {totPiezas > 0 && <span className="text-orange-400">−${totPiezas.toFixed(2)} pzas</span>}
-                      {totIVU > 0 && <span className="text-amber-400">−${totIVU.toFixed(2)} IVU</span>}
+                <div className={`p-4 rounded-2xl border-2 space-y-3 mt-1 ${totNeta >= 0 ? "bg-cyan-500/[0.06] border-cyan-500/25" : "bg-red-500/[0.06] border-red-500/25"}`}>
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-white font-black text-sm">Total del período</p>
+                      <p className="text-[10px] text-white/30">{desgloseRows.length} venta{desgloseRows.length !== 1 ? "s" : ""}</p>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-[9px] font-black text-white/20 uppercase tracking-widest mb-0.5">Neta total</p>
+                      <p className={`text-2xl font-black tabular-nums leading-none ${totNeta >= 0 ? "text-cyan-400" : "text-red-400"}`}>
+                        {totNeta >= 0 ? "+" : "−"}${Math.abs(totNeta).toFixed(2)}
+                      </p>
                     </div>
                   </div>
-                  <div className="hidden sm:flex items-center gap-0 shrink-0">
-                    <span className="text-sm font-black text-emerald-400 tabular-nums text-right w-16">${totCobrado.toFixed(2)}</span>
-                    <span className="text-sm font-black text-orange-400 tabular-nums text-right w-14">{totPiezas > 0 ? `$${totPiezas.toFixed(2)}` : "—"}</span>
-                    <span className="text-sm font-black text-amber-400 tabular-nums text-right w-12">{totIVU > 0 ? `$${totIVU.toFixed(2)}` : "—"}</span>
-                    <span className={`text-sm font-black tabular-nums text-right w-16 ${totNeta >= 0 ? "text-cyan-400" : "text-red-400"}`}>
-                      {totNeta >= 0 ? "+" : "−"}${Math.abs(totNeta).toFixed(2)}
-                    </span>
+                  <div className="grid grid-cols-3 gap-2">
+                    <div className="bg-emerald-500/[0.08] border border-emerald-500/15 rounded-xl px-3 py-2 text-center">
+                      <p className="text-[9px] font-black text-white/25 uppercase tracking-widest">Cobrado</p>
+                      <p className="text-sm font-black text-emerald-400 tabular-nums mt-0.5">${totCobrado.toFixed(2)}</p>
+                    </div>
+                    <div className="bg-orange-500/[0.08] border border-orange-500/15 rounded-xl px-3 py-2 text-center">
+                      <p className="text-[9px] font-black text-white/25 uppercase tracking-widest">Piezas</p>
+                      <p className="text-sm font-black text-orange-400 tabular-nums mt-0.5">${totPiezas.toFixed(2)}</p>
+                    </div>
+                    <div className="bg-amber-500/[0.08] border border-amber-500/15 rounded-xl px-3 py-2 text-center">
+                      <p className="text-[9px] font-black text-white/25 uppercase tracking-widest">IVU</p>
+                      <p className="text-sm font-black text-amber-400 tabular-nums mt-0.5">${totIVU.toFixed(2)}</p>
+                    </div>
                   </div>
-                  <span className={`sm:hidden text-base font-black tabular-nums shrink-0 ${totNeta >= 0 ? "text-cyan-400" : "text-red-400"}`}>
-                    {totNeta >= 0 ? "+" : "−"}${Math.abs(totNeta).toFixed(2)}
-                  </span>
                 </div>
               )}
             </div>
