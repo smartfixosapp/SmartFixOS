@@ -235,9 +235,7 @@ export default function GACCLayout({ activeSection, onSectionChange, onOpenPalet
               </kbd>
             </button>
 
-            <button className="p-2 rounded-xl text-gray-600 hover:text-white hover:bg-white/[0.05] transition-all relative">
-              <Bell className="w-4 h-4" />
-            </button>
+            <AlertsBell />
 
             <SessionTimer />
           </div>
