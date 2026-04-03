@@ -110,6 +110,7 @@ const routes = {
   '/sendAdminOtp': sendAdminOtpHandler,
   '/verifyAdminOtp': verifyAdminOtpHandler,
   '/manageTenant': manageTenantHandler,
+  '/checkPlanLimits': checkPlanLimitsHandler,
   '/notifyCashRegister': notifyCashRegisterHandler,
   '/handleOrderStatusChange': handleOrderStatusChangeHandler,
   '/notifyPickupReminder': notifyPickupReminderHandler,
