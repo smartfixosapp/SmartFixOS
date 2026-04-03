@@ -1672,22 +1672,16 @@ export default function PinAccess() {
     })();
   }, [navigate]);
 
-  // ── Auto-trigger biométrico (WEB: Touch ID Mac via Conditional Mediation) ──
-  // En web, sí esperamos isReady porque necesitamos que la página esté completa
-  // para que el navegador permita Conditional Mediation.
+  // ── Auto-trigger biométrico ─────────────────────────────────────────────
+  // Intenta lanzar Face ID / Touch ID automáticamente cuando la página está lista.
+  // En Safari iOS esto fallará con NotAllowedError (requiere tap), pero el botón queda visible.
+  // En app nativa Capacitor SÍ funciona automáticamente.
   useEffect(() => {
-    if (Capacitor.isNativePlatform()) return;
     if (!isReady || hasCancelledBiometric) return;
     if (!biometricSupported || !biometricProfile?.credentialId || !biometricProfile?.session) return;
 
-    const timer = setTimeout(() => handleEarlyBiometricLogin({ fromAutoTrigger: true }), 300);
-    return () => {
-      clearTimeout(timer);
-      if (conditionalMediationAbortRef.current) {
-        conditionalMediationAbortRef.current.abort();
-        conditionalMediationAbortRef.current = null;
-      }
-    };
+    const timer = setTimeout(() => handleEarlyBiometricLogin({ fromAutoTrigger: true }), 500);
+    return () => clearTimeout(timer);
   }, [isReady, biometricSupported, biometricProfile?.credentialId, hasCancelledBiometric]);
 
   const handleNumberClick = (num) => {
