@@ -13,6 +13,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { callJENAI } from "@/lib/jenaiEngine";
+import JENAIInsightBanner from "@/components/jenai/JENAIInsightBanner";
 
 import {
   ClipboardList,
