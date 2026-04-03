@@ -160,6 +160,144 @@ function StoreRow({ tenant, onSelect, onAction }) {
   );
 }
 
+// ── Export CSV ───────────────────────────────────────────────────────────────
+function exportToCSV(tenants, filename = "tiendas") {
+  const headers = ["Nombre", "Email", "Plan", "MRR", "Status", "Pais", "Creada", "Ultimo Login"];
+  const rows = tenants.map(t => [
+    t.name || "",
+    t.email || "",
+    getPlanConfig(t.effective_plan || t.plan).label,
+    t.effective_monthly_cost || 0,
+    t.status || "",
+    t.country || "",
+    t.created_date ? new Date(t.created_date).toLocaleDateString("es") : "",
+    t.last_login ? new Date(t.last_login).toLocaleDateString("es") : "Nunca",
+  ]);
+  const csv = [headers.join(","), ...rows.map(r => r.map(c => `"${c}"`).join(","))].join("\n");
+  const blob = new Blob([csv], { type: "text/csv" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url; a.download = `${filename}-${new Date().toISOString().slice(0, 10)}.csv`;
+  a.click(); URL.revokeObjectURL(url);
+  toast.success(`Exportado ${rows.length} tiendas a CSV`);
+}
+
+// ── Invite Store Modal ───────────────────────────────────────────────────────
+function InviteStoreModal({ open, onClose }) {
+  const { appClient, refresh } = useGACC();
+  const [form, setForm] = useState({ ownerName: "", email: "", businessName: "", plan: "smartfixos" });
+  const [sending, setSending] = useState(false);
+  const [result, setResult] = useState(null);
+
+  const update = (key, val) => setForm(prev => ({ ...prev, [key]: val }));
+
+  const handleInvite = async () => {
+    if (!form.email.trim() || !form.businessName.trim()) { toast.error("Email y nombre del negocio son requeridos"); return; }
+    setSending(true);
+    setResult(null);
+    try {
+      const res = await appClient.functions.createTenant({
+        ownerName: form.ownerName.trim(),
+        email: form.email.trim(),
+        businessName: form.businessName.trim(),
+        plan: form.plan,
+      });
+      setResult({ success: true, name: form.businessName });
+      toast.success(`Tienda "${form.businessName}" creada`);
+      refresh();
+    } catch (e) {
+      toast.error("Error: " + e.message);
+      setResult({ success: false, error: e.message });
+    } finally {
+      setSending(false);
+    }
+  };
+
+  const handleClose = () => {
+    setForm({ ownerName: "", email: "", businessName: "", plan: "smartfixos" });
+    setResult(null);
+    onClose();
+  };
+
+  if (!open) return null;
+
+  return createPortal(
+    <AnimatePresence>
+      <motion.div
+        initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+        className="fixed inset-0 z-[9999] bg-black/60 backdrop-blur-sm flex items-center justify-center p-4"
+        onClick={handleClose}
+      >
+        <motion.div
+          initial={{ opacity: 0, scale: 0.95, y: 10 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.95, y: 10 }}
+          className="w-full max-w-md bg-[#141416] border border-white/[0.1] rounded-2xl shadow-2xl overflow-hidden"
+          onClick={e => e.stopPropagation()}
+        >
+          <div className="flex items-center justify-between px-5 py-4 border-b border-white/[0.06]">
+            <p className="text-[14px] font-bold text-white">Invitar Nueva Tienda</p>
+            <button onClick={handleClose} className="p-1.5 rounded-lg text-gray-600 hover:text-white hover:bg-white/[0.05]">
+              <XCircle className="w-5 h-5" />
+            </button>
+          </div>
+
+          {result?.success ? (
+            <div className="px-5 py-8 text-center space-y-3">
+              <CheckCircle className="w-12 h-12 text-emerald-400 mx-auto" />
+              <p className="text-lg font-bold text-white">Tienda Creada</p>
+              <p className="text-[12px] text-gray-500">"{result.name}" esta lista con 15 dias de trial.</p>
+              <button onClick={handleClose} className="px-4 py-2 rounded-xl text-[12px] font-semibold bg-white/[0.05] text-white border border-white/[0.1] hover:bg-white/[0.1] transition-all">
+                Cerrar
+              </button>
+            </div>
+          ) : (
+            <>
+              <div className="px-5 py-4 space-y-3">
+                <div>
+                  <p className="text-[10px] text-gray-500 uppercase tracking-wide font-bold mb-1">Nombre del Negocio <span className="text-red-400">*</span></p>
+                  <input value={form.businessName} onChange={e => update("businessName", e.target.value)} placeholder="Mi Taller de Reparacion"
+                    className="w-full px-3 py-2.5 rounded-xl bg-white/[0.03] border border-white/[0.07] text-[13px] text-white placeholder:text-gray-700 focus:outline-none focus:border-purple-500/40" />
+                </div>
+                <div>
+                  <p className="text-[10px] text-gray-500 uppercase tracking-wide font-bold mb-1">Email <span className="text-red-400">*</span></p>
+                  <input type="email" value={form.email} onChange={e => update("email", e.target.value)} placeholder="dueño@taller.com"
+                    className="w-full px-3 py-2.5 rounded-xl bg-white/[0.03] border border-white/[0.07] text-[13px] text-white placeholder:text-gray-700 focus:outline-none focus:border-purple-500/40" />
+                </div>
+                <div>
+                  <p className="text-[10px] text-gray-500 uppercase tracking-wide font-bold mb-1">Nombre del Contacto</p>
+                  <input value={form.ownerName} onChange={e => update("ownerName", e.target.value)} placeholder="Juan Perez"
+                    className="w-full px-3 py-2.5 rounded-xl bg-white/[0.03] border border-white/[0.07] text-[13px] text-white placeholder:text-gray-700 focus:outline-none focus:border-purple-500/40" />
+                </div>
+                <div>
+                  <p className="text-[10px] text-gray-500 uppercase tracking-wide font-bold mb-1">Plan</p>
+                  <div className="flex gap-2">
+                    {PLAN_OPTIONS.map(p => (
+                      <button key={p.key} onClick={() => update("plan", p.key)}
+                        className={`flex-1 px-3 py-2 rounded-xl text-[11px] font-semibold border transition-all ${
+                          form.plan === p.key ? "border-purple-500/50 bg-purple-500/10 text-white" : "border-white/[0.06] text-gray-600 hover:text-white"
+                        }`}>
+                        {p.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </div>
+              <div className="flex items-center justify-end gap-2 px-5 py-4 border-t border-white/[0.06]">
+                <button onClick={handleClose} className="px-4 py-2 rounded-xl text-[12px] text-gray-500 hover:text-white transition-all">Cancelar</button>
+                <button onClick={handleInvite} disabled={sending}
+                  className="flex items-center gap-1.5 px-5 py-2 rounded-xl text-[12px] font-semibold bg-purple-500/20 text-purple-300 border border-purple-500/30 hover:bg-purple-500/30 transition-all disabled:opacity-50">
+                  {sending ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : <Send className="w-3.5 h-3.5" />}
+                  Crear Tienda
+                </button>
+              </div>
+            </>
+          )}
+        </motion.div>
+      </motion.div>
+    </AnimatePresence>,
+    document.body
+  );
+}
+
 // ── Main Stores Directory ────────────────────────────────────────────────────
 export default function StoresDirectory({ onSelectTenant }) {
   const { tenants, loading, metrics, refresh } = useGACC();
@@ -168,6 +306,7 @@ export default function StoresDirectory({ onSelectTenant }) {
   const [planFilter, setPlanFilter] = useState("all");
   const [sortBy, setSortBy] = useState("recent");
   const [showFilters, setShowFilters] = useState(false);
+  const [showInvite, setShowInvite] = useState(false);
 
   // Filter + sort
   const filtered = useMemo(() => {
