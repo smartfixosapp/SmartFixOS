@@ -26,6 +26,8 @@ import TechnicianProductivityTab from "../components/financial/TechnicianProduct
 import { toast } from "sonner";
 import TransactionsModal from "../components/financial/TransactionsModal";
 import { useNavigate } from "react-router-dom";
+import { usePlanLimits } from "@/hooks/usePlanLimits";
+import { PlanGate, UpgradePrompt } from "@/components/plan/UpgradePrompt";
 import {
   getCachedStatus,
   subscribeToCashRegister,
