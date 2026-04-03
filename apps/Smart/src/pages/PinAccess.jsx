@@ -1624,15 +1624,15 @@ export default function PinAccess() {
   // ── Auto-trigger biométrico ─────────────────────────────────────────────
   // Se activa tan pronto como la página está lista y hay un perfil biométrico guardado.
   // No espera la selección de usuario — entra directo al usuario al que pertenece la biometría.
+  // En Web (Mac Touch ID), intentamos auto-trigger igualmente — si el navegador lo bloquea
+  // por falta de gesto del usuario, el error se captura silenciosamente y queda el botón manual.
   useEffect(() => {
     if (!isReady || hasCancelledBiometric) return;
     if (!biometricSupported || !biometricProfile?.credentialId || !biometricProfile?.session) return;
-    
-    // Auto-trigger biométrico solo es posible en entornos Nativos vía plugin Capacitor.
-    // En Web (Safari/PWA), WebAuthn es muy estricto y bloquea peticiones automáticas sin click.
-    if (!Capacitor.isNativePlatform()) return;
-    
-    const timer = setTimeout(() => handleEarlyBiometricLogin(), 500);
+
+    // Delay ligeramente mayor en Web para dar tiempo al navegador a considerarlo "user activation" del page load
+    const delay = Capacitor.isNativePlatform() ? 500 : 800;
+    const timer = setTimeout(() => handleEarlyBiometricLogin(), delay);
     return () => clearTimeout(timer);
   }, [isReady, biometricSupported, biometricProfile?.credentialId, hasCancelledBiometric]);
 
