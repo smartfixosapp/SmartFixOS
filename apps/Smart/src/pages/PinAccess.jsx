@@ -63,8 +63,16 @@ export default function PinAccess() {
   };
   const navigate = useNavigate();
   const location = useLocation();
-  const [step, setStep] = useState("welcome");
   const [pin, setPin] = useState("");
+  const [step, setStep] = useState(() => {
+    // Si corre como PWA, ir directo a login (store) para evitar mostrar la página
+    // de marketing negra que parece que la app se quedó colgada.
+    const isStandalone = 
+      window.matchMedia?.("(display-mode: standalone)").matches || 
+      window.navigator.standalone === true ||
+      Capacitor.isNativePlatform();
+    return isStandalone ? "store" : "welcome";
+  });
   const [storeEmail, setStoreEmail] = useState(
     () => localStorage.getItem(STORE_EMAIL_KEY) || DEFAULT_STORE_EMAIL
   );
@@ -1002,12 +1010,20 @@ export default function PinAccess() {
       }
     }
 
-    // 2. Fallback a WebAuthn (Escritorio/Navegador)
+    // 2. Fallback a WebAuthn (Escritorio/Navegador/PWA)
+    const isIOS = /iPhone|iPad|iPod/.test(navigator.userAgent);
+    const isStandalone = window.matchMedia?.("(display-mode: standalone)").matches || window.navigator.standalone === true;
+    
+    // Si es un PWA en iOS, asumir soporte (Safari PWA a veces bloquea isUserVerifyingPlatformAuthenticatorAvailable)
+    if (isIOS && isStandalone) return true;
+
     if (!window.PublicKeyCredential?.isUserVerifyingPlatformAuthenticatorAvailable) return false;
+    
     try {
       return await window.PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable();
     } catch {
-      return false;
+      // Si tira error de permisos en PWA, solemos asumirlo soportado como fallback
+      return isStandalone;
     }
   };
 
@@ -2442,14 +2458,14 @@ export default function PinAccess() {
 
                       {error && <p className="text-red-500 text-xs text-center mb-6 font-bold">{error}</p>}
 
-                      {/* Teclado Numérico modificado para evitar zoom excesivo en iOS */}
+                      {/* Teclado Numérico ajustado para asegurar visibilidad en pantallas pequeñas iOS */}
                       <div className="grid grid-cols-3 gap-3 w-full max-w-[270px] mx-auto">
                         {[1, 2, 3, 4, 5, 6, 7, 8, 9].map((n) => (
-                          <button key={n} onClick={() => handleNumberClick(String(n))} className="w-full h-[65px] rounded-2xl bg-white/5 text-2xl font-black text-white active:bg-white/15 active:scale-95 transition-all">{n}</button>
+                          <button key={n} onClick={() => handleNumberClick(String(n))} className="w-full h-[55px] rounded-2xl bg-white/5 text-xl font-black text-white active:bg-white/15 active:scale-95 transition-all">{n}</button>
                         ))}
-                        <button onClick={() => setStep("user")} className="h-[65px] w-full flex items-center justify-center text-xs font-bold text-gray-500 active:text-white transition-colors">ESC</button>
-                        <button onClick={() => handleNumberClick("0")} className="w-full h-[65px] rounded-2xl bg-white/5 text-2xl font-black text-white active:bg-white/15 active:scale-95 transition-all">0</button>
-                        <button onClick={handleBackspace} className="w-full h-[65px] rounded-2xl bg-red-500/10 text-xl font-black text-white active:bg-red-500/20 active:scale-95 transition-all">⌫</button>
+                        <button onClick={() => setStep("user")} className="h-[55px] w-full flex items-center justify-center text-xs font-bold text-gray-500 active:text-white transition-colors">ESC</button>
+                        <button onClick={() => handleNumberClick("0")} className="w-full h-[55px] rounded-2xl bg-white/5 text-xl font-black text-white active:bg-white/15 active:scale-95 transition-all">0</button>
+                        <button onClick={handleBackspace} className="w-full h-[55px] rounded-2xl bg-red-500/10 text-xl font-black text-white active:bg-red-500/20 active:scale-95 transition-all">⌫</button>
                       </div>
 
                       {/* Opción Biométrica proactiva: botón visible siempre para activar o usar */}

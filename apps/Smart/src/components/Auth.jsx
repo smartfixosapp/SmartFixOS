@@ -100,10 +100,19 @@ function readPinSession() {
   if (!ssRaw && lsRaw) {
     const bgTs = localStorage.getItem(BG_TS_KEY);
     if (bgTs === "0") {
-      // Cierre explícito de pestaña en escritorio → re-login
-      localStorage.removeItem("employee_session");
-      localStorage.removeItem(BG_TS_KEY);
-      return null;
+      let localUserTimeout = undefined;
+      try {
+        const lsSession = JSON.parse(lsRaw);
+        if (lsSession?.id) localUserTimeout = readLocalTimeout(lsSession.id);
+      } catch {}
+      const shouldNever = localUserTimeout === null || localUserTimeout === 0;
+
+      if (!shouldNever) {
+        // Cierre explícito de pestaña en escritorio → re-login
+        localStorage.removeItem("employee_session");
+        localStorage.removeItem(BG_TS_KEY);
+        return null;
+      }
     }
     // Proceso matado por el SO → restaurar sessionStorage para esta sesión
     try { sessionStorage.setItem("911-session", lsRaw); } catch {}
@@ -406,7 +415,7 @@ export default function AuthGate({ children }) {
             window.matchMedia?.("(display-mode: standalone)").matches ||
             window.navigator.standalone === true;
           if (isStandalone) return;
-          localStorage.removeItem("employee_session");
+          // Guardamos un flag para que el próximo mount verifique la preferencia Local (ex: Timeout Nunca)
           localStorage.setItem(BG_TS_KEY, "0");
         }
       };
@@ -433,19 +442,7 @@ export default function AuthGate({ children }) {
 
   if (isPublicPath()) return <>{children}</>;
 
-  // Race-condition guard: navigate() puede llegar antes de que setUser() se aplique.
-  // Si hay sesión en storage, mostrar spinner hasta que el estado de React se ponga al día.
-  const _hasStoredSession = !!(
-    sessionStorage.getItem("911-session") ||
-    localStorage.getItem("employee_session")
-  );
-  if (_hasStoredSession) {
-    return (
-      <div style={{ position: "fixed", inset: 0, background: "#000", display: "flex", alignItems: "center", justifyContent: "center" }}>
-        <div className="w-8 h-8 rounded-full border-[3px] border-white/10 border-t-cyan-400 animate-spin" />
-      </div>
-    );
-  }
-
+  // Race-condition guard: no hacer blocking de render.
+  // Si llegamos aquí y es una ruta que necesita Auth, Layout interceptará el estado vacío.
   return null;
 }
