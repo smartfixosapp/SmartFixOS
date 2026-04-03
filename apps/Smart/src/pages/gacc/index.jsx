@@ -1,6 +1,6 @@
 /**
  * GACC — Global Admin Control Center (Main Entry Point)
- * Replaces the monolithic SuperAdmin.jsx with modular sub-views
+ * Full modular admin panel with all sections
  */
 import React, { useState, useCallback } from "react";
 import GACCLayout from "./GACCLayout";
@@ -8,12 +8,18 @@ import { GACCProvider } from "./gaccContext";
 import CommandCenter from "./CommandCenter";
 import StoresDirectory from "./StoresDirectory";
 import StoreDetail from "./StoreDetail";
-import { RevenueView, OperationsView, SupportView, SecurityView, ToolsView } from "./PlaceholderViews";
+import RevenueView from "./RevenueView";
+import OperationsView from "./OperationsView";
+import SupportView from "./SupportView";
+import SecurityView from "./SecurityView";
+import ToolsView from "./ToolsView";
+import CommandPalette from "./CommandPalette";
 
 export default function GACC() {
   const [activeSection, setActiveSection] = useState("command-center");
   const [selectedTenant, setSelectedTenant] = useState(null);
   const [storeAction, setStoreAction] = useState(null);
+  const [paletteOpen, setPaletteOpen] = useState(false);
 
   const handleSectionChange = useCallback((section) => {
     setActiveSection(section);
@@ -32,8 +38,12 @@ export default function GACC() {
     setStoreAction(null);
   }, []);
 
+  const handlePaletteClose = useCallback((action) => {
+    if (action === "toggle") { setPaletteOpen(prev => !prev); return; }
+    setPaletteOpen(false);
+  }, []);
+
   const renderContent = () => {
-    // If a tenant is selected, show store detail regardless of section
     if (selectedTenant) {
       return <StoreDetail tenant={selectedTenant} onBack={handleBackFromDetail} />;
     }
@@ -52,8 +62,18 @@ export default function GACC() {
 
   return (
     <GACCProvider>
-      <GACCLayout activeSection={activeSection} onSectionChange={handleSectionChange}>
+      <GACCLayout
+        activeSection={activeSection}
+        onSectionChange={handleSectionChange}
+        onOpenPalette={() => setPaletteOpen(true)}
+      >
         {renderContent()}
+        <CommandPalette
+          open={paletteOpen}
+          onClose={handlePaletteClose}
+          onNavigate={handleSectionChange}
+          onSelectTenant={handleSelectTenant}
+        />
       </GACCLayout>
     </GACCProvider>
   );
