@@ -77,6 +77,7 @@ export const createStripeCheckout = functionsClient.functions.createStripeChecko
 export const createStripeSubscription = functionsClient.functions.createStripeSubscription;
 export const registerTenant = functionsClient.functions.registerTenant;
 export const manageTenant = functionsClient.functions.manageTenant;
+export const checkPlanLimits = functionsClient.functions.checkPlanLimits;
 export const notifyCashRegister = functionsClient.functions.notifyCashRegister;
 export const populateInventory = functionsClient.functions.populateInventory;
 export const handleOrderStatusChange = functionsClient.functions.handleOrderStatusChange;
