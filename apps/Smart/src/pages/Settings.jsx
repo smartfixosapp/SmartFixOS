@@ -1409,7 +1409,7 @@ export default function SettingsPage() {
                     </div>
                     <div>
                       <p className="text-white font-bold text-lg">
-                        {/iphone|ipad|mac/i.test(navigator.userAgent) ? "Face ID" : "Huella digital"}
+                        {/iphone|ipad/i.test(navigator.userAgent) ? "Face ID / Touch ID" : /mac/i.test(navigator.userAgent) && !/iPhone|iPad|iPod/.test(navigator.userAgent) ? "Touch ID" : "Huella digital"}
                       </p>
                       <p className={`text-sm font-medium ${biometricProfile ? "text-emerald-400" : "text-white/40"}`}>
                         {biometricProfile ? "Activo en este dispositivo" : "No configurado"}
