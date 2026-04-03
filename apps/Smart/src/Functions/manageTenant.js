@@ -2,10 +2,12 @@ import { createClientFromRequest } from '../../../../lib/unified-custom-sdk-supa
 import Stripe from 'npm:stripe@14.19.0';
 
 const PLAN_MAP = {
-  smartfixos: { max_users: 1, monthly_cost: 55, label: 'Basic' },
-  basic: { max_users: 1, monthly_cost: 55, label: 'Basic' },
-  pro: { max_users: 3, monthly_cost: 85, label: 'Pro' },
-  enterprise: { max_users: 999, monthly_cost: 0, label: 'Enterprise' },
+  starter:    { max_users: 1,  monthly_cost: 14.99, label: 'Starter',  extra_user_cost: null },
+  smartfixos: { max_users: 1,  monthly_cost: 14.99, label: 'Starter',  extra_user_cost: null }, // legacy alias
+  basic:      { max_users: 1,  monthly_cost: 14.99, label: 'Starter',  extra_user_cost: null }, // legacy alias
+  pro:        { max_users: 5,  monthly_cost: 39.99, label: 'Pro',      extra_user_cost: 7 },
+  business:   { max_users: 10, monthly_cost: 79.99, label: 'Business', extra_user_cost: 5 },
+  enterprise: { max_users: 10, monthly_cost: 79.99, label: 'Business', extra_user_cost: 5 }, // legacy alias
 };
 
 function normalizePlan(plan) {
