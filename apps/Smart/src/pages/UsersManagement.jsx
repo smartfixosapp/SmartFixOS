@@ -580,57 +580,8 @@ export default function UsersManagement() {
   };
 
   const handleCreateUser = async (userData) => {
-    // ── Verificar límite de usuarios del plan ────────────────────────────────
-    try {
-      const tenantId = localStorage.getItem("smartfix_tenant_id");
-      if (tenantId) {
-        const { data: tenantData } = await supabase
-          .from("tenant")
-          .select("plan, metadata")
-          .eq("id", tenantId)
-          .single();
-
-        let subscriptionPlan = null;
-        try {
-          const { data: subscriptionData } = await supabase
-            .from("subscription")
-            .select("plan, status")
-            .eq("tenant_id", tenantId)
-            .eq("status", "active")
-            .order("created_at", { ascending: false })
-            .limit(1);
-          subscriptionPlan = subscriptionData?.[0]?.plan || null;
-        } catch {}
-
-        const metadataLimit = Number(tenantData?.metadata?.max_users || 0) || null;
-        const tenantPlanLimit = getPlanUserLimitFromKey(tenantData?.plan);
-        const subscriptionPlanLimit = getPlanUserLimitFromKey(subscriptionPlan);
-        const maxUsers = Math.max(
-          metadataLimit || 0,
-          tenantPlanLimit || 0,
-          subscriptionPlanLimit || 0
-        ) || 999;
-
-        if (maxUsers < 999) {
-          const currentUsers = await fetchTenantUsers();
-          const currentCount = (currentUsers || []).length;
-
-          if (currentCount >= maxUsers) {
-            const planLabels = { 1: "Basic (1 usuario)", 3: "Pro (3 usuarios)" };
-            const currentPlan = planLabels[maxUsers] || `tu plan actual`;
-            const nextStep = maxUsers === 1 ? "Pro ($85/mo)" : maxUsers === 3 ? "Enterprise" : "un plan superior";
-            toast.error(
-              `⚠️ Límite alcanzado: ${currentPlan} solo permite ${maxUsers} usuario${maxUsers === 1 ? "" : "s"}. Contacta al soporte para subir a ${nextStep}.`,
-              { duration: 8000 }
-            );
-            return;
-          }
-        }
-      }
-    } catch (limitErr) {
-      console.warn("No se pudo verificar límite del plan:", limitErr.message);
-      // No bloquear — si falla la verificación, dejar pasar
-    }
+    // ── Verificar límite de usuarios del plan (via usePlanLimits) ──
+    // Note: planCheck is from the hook instance declared in the component body
 
     try {
       const existing = await fetchTenantUsers().catch(() => []);
