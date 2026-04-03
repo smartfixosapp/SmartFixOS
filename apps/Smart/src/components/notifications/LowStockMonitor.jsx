@@ -3,10 +3,24 @@
 
 import { dataClient } from "@/components/api/dataClient";
 import NotificationService from "./NotificationService";
+import { canUsePlanFeature, normalizePlanId } from "@/lib/plans";
 
 export class LowStockMonitor {
   static async checkLowStockProducts() {
     try {
+      // Check plan before running stock alerts
+      const tenantId = localStorage.getItem("smartfix_tenant_id") || localStorage.getItem("current_tenant_id");
+      if (tenantId) {
+        try {
+          const tenants = await dataClient.entities.Tenant.filter({ id: tenantId });
+          const plan = normalizePlanId(tenants?.[0]?.plan);
+          if (!canUsePlanFeature(plan, 'inventory_alerts')) {
+            console.log("[LowStockMonitor] Alertas de stock no disponibles en plan", plan);
+            return;
+          }
+        } catch {}
+      }
+
       console.log("[LowStockMonitor] Iniciando verificación de stock bajo...");
       
       const products = await dataClient.entities.Product.filter({ active: true });
