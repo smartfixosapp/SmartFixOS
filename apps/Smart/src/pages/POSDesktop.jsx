@@ -1393,5 +1393,6 @@ Máximo 30 palabras en total.`;
         />
       )}
     </div>
+    </div>
   );
 }
