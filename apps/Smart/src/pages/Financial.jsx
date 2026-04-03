@@ -1207,20 +1207,19 @@ Responde con: 1) resumen de 2 oraciones, 2) un punto positivo, 3) una recomendac
 
           {/* ── Contenido principal ── */}
           <div className="flex-1 min-w-0">
-            {/* Tab bar — solo en móvil */}
-            <div className="flex lg:hidden gap-1 p-1 bg-white/[0.04] rounded-2xl border border-white/[0.06] mb-3">
+            {/* Tab bar secundaria — solo en móvil */}
+            <div className="flex lg:hidden gap-1.5 overflow-x-auto pb-1 mb-3 scrollbar-none">
               {[
-                { id: "movimientos", label: "Movimientos" },
+                { id: "movimientos", label: "Movimientos", filter: "all" },
                 { id: "compromisos", label: "Compromisos" },
-                { id: "reportes", label: "Reportes" },
-                { id: "tecnicos", label: "Técnicos" },
-                { id: "desglose", label: "Neto" },
+                { id: "reportes",    label: "Reportes" },
+                { id: "tecnicos",    label: "Técnicos" },
               ].map(t => (
-                <button key={t.id} onClick={() => setActiveTab(t.id)}
-                  className={`flex-1 py-2 rounded-xl text-xs font-black transition-all ${
-                    activeTab === t.id
-                      ? "bg-gradient-to-r from-cyan-600 to-blue-600 text-white shadow"
-                      : "text-white/30 hover:text-white/60"
+                <button key={t.id} onClick={() => { setActiveTab(t.id); if (t.filter) setMovFilter(t.filter); }}
+                  className={`shrink-0 px-4 py-2 rounded-xl text-sm font-black transition-all whitespace-nowrap ${
+                    activeTab === t.id && (t.id !== "movimientos" || movFilter === "all")
+                      ? "bg-white/15 text-white"
+                      : "bg-white/[0.04] text-white/40"
                   }`}
                 >{t.label}</button>
               ))}
