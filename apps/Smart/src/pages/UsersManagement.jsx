@@ -26,6 +26,7 @@ import { useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/components/utils/helpers";
 import { ensureTenantAdminUser } from "@/components/utils/adminBootstrap";
 import EmployeeProfileDrawer from "../components/users/EmployeeProfileDrawer";
+import { usePlanLimits } from "@/hooks/usePlanLimits";
 
 const ROLES = [
   { value: "admin",      label: "Administrador", color: "from-cyan-600 to-blue-600",   icon: Shield,     badge: "bg-cyan-500"  },
