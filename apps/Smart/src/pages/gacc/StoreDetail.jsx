@@ -648,7 +648,8 @@ function ChangePlanModal({ tenant, open, onClose }) {
           </div>
         </motion.div>
       </motion.div>
-    </AnimatePresence>
+    </AnimatePresence>,
+    document.body
   );
 }
 
