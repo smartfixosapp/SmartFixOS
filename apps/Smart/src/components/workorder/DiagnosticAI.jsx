@@ -75,7 +75,12 @@ function buildSystemPrompt(order, checklist, deviceCategory, mode = "diagnosis")
     .map(c => c.label)
     .join(", ");
 
-  return `Eres DARJENI, la asistente de diagnostico de SmartFixOS para talleres de reparacion de dispositivos electronicos.
+  const modeContext = mode === "repair"
+    ? `Eres DARJENI, la asistente de reparacion de SmartFixOS. El tecnico esta EN PROCESO DE REPARAR el dispositivo y necesita ayuda tecnica practica.
+Enfocate en: guias de reparacion paso a paso, soldadura, reemplazo de componentes, herramientas necesarias, precauciones, y solucion de problemas durante la reparacion.`
+    : `Eres DARJENI, la asistente de diagnostico de SmartFixOS para talleres de reparacion de dispositivos electronicos.`;
+
+  return `${modeContext}
 
 CONTEXTO DEL DISPOSITIVO:
 - Tipo: ${deviceCategory}
