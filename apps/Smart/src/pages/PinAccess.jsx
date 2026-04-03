@@ -851,12 +851,7 @@ export default function PinAccess() {
   const handleEarlyBiometricLogin = async () => {
     if (!biometricSupported || !biometricProfile?.session || hasCancelledBiometric) return;
     
-    // Si el perfil fue creado en otro dispositivo/navegador, limpiar silenciosamente
-    if (biometricProfile.deviceKey && biometricProfile.deviceKey !== navigator.userAgent.slice(0, 120)) {
-      console.warn("[Biometric] Device mismatch — clearing profile");
-      clearBiometricProfile();
-      return;
-    }
+    // Omitimos validación estricta de User-Agent por diferencias entre iOS Web y PWA
     
     setBiometricLoading(true);
     setError("");
@@ -894,12 +889,9 @@ export default function PinAccess() {
     } catch (error) {
       console.warn("[Biometric] Auto-trigger falló:", error?.name, error?.message);
       
-      // No borrar perfil si es cancelación o timeout común
-      if (error?.name === "NotAllowedError" || error?.name === "AbortError" || error?.name === "TimeoutError" || error?.message?.includes("cancel")) {
-        setHasCancelledBiometric(true);
-      } else {
-        clearBiometricProfile();
-      }
+      // No borrar el perfil ante errores de verificación (ej. FaceID fallido o cancelado),
+      // solo marcar como cancelado temporalmente para permitir PIN fallback.
+      setHasCancelledBiometric(true);
     } finally {
       setBiometricLoading(false);
     }
