@@ -125,6 +125,7 @@ const normalizeEntityRecord = (payload) => {
 
 export default function Financial() {
   const navigate = useNavigate();
+  const { can: canPlan } = usePlanLimits();
   const [sales, setSales] = useState([]);
   const [transactions, setTransactions] = useState([]);
   const [expenses, setExpenses] = useState([]);
