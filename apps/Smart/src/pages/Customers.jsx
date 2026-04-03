@@ -454,6 +454,12 @@ export default function Customers() {
         }}
       />
 
+      <BulkOfferModal
+        open={showBulkOffer}
+        onClose={() => setShowBulkOffer(false)}
+        customers={customers}
+      />
+
       {selectedCustomer && (
         <CustomerOrdersDialog
           open={showOrdersDialog}
