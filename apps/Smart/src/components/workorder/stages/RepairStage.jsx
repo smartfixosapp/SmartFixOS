@@ -12,6 +12,7 @@ import { base44 } from "@/api/base44Client";
 import WorkOrderUnifiedHub from "@/components/workorder/WorkOrderUnifiedHub";
 import AddItemModal from "@/components/workorder/AddItemModal";
 import SharedItemsSection from "@/components/workorder/SharedItemsSection";
+import DiagnosticAI from "@/components/workorder/DiagnosticAI";
 
 const CLOSE_CHECKLIST = [
   "Reparación completada y verificada",
