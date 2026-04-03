@@ -86,6 +86,19 @@ export default function SetDiscountDialog({ open, onClose, products, onSuccess }
 
   if (!products?.length) return null;
 
+  if (!canPlan('pos_discounts')) {
+    return (
+      <Dialog open={open} onOpenChange={onClose}>
+        <DialogContent className="max-w-md bg-[#0a0a0c] border border-white/10 text-white">
+          <DialogHeader>
+            <DialogTitle className="text-lg font-bold">Descuentos</DialogTitle>
+          </DialogHeader>
+          <UpgradePrompt feature="pos_discounts" message="Descuentos y ofertas disponibles en el plan Pro" />
+        </DialogContent>
+      </Dialog>
+    );
+  }
+
   return (
     <Dialog open={open} onOpenChange={onClose}>
       <DialogContent className="max-w-md bg-gradient-to-br from-black to-[#0D0D0D] border-orange-500/30 p-6">
