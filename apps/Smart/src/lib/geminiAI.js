@@ -1,45 +1,31 @@
 /**
- * Gemini AI utility for SmartFixOS — JENAI assistant
- * Uses Gemini 2.0 Flash via Google AI API
+ * JENAI AI utility for SmartFixOS
+ * Primary: Gemini 2.0 Flash | Fallback: Groq Llama 3.1 8B
  */
 
 const GEMINI_MODEL = "gemini-2.0-flash";
 const GEMINI_URL = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent`;
+const GROQ_URL = "https://api.groq.com/openai/v1/chat/completions";
+const GROQ_MODEL = "llama-3.1-8b-instant";
 
-export async function callGeminiAI(prompt, { maxTokens = 600, temperature = 0.35, systemPrompt = "" } = {}) {
+// ── Gemini call ──────────────────────────────────────────────────────────────
+async function tryGemini(prompt, { maxTokens, temperature, systemPrompt }) {
   const API_KEY = import.meta.env.VITE_GEMINI_API_KEY;
-  if (!API_KEY) throw new Error("VITE_GEMINI_API_KEY no configurada");
+  if (!API_KEY) return null;
 
   const contents = [];
-
-  // System instruction as first user/model exchange for better context
   if (systemPrompt) {
-    contents.push({
-      role: "user",
-      parts: [{ text: systemPrompt }],
-    });
-    contents.push({
-      role: "model",
-      parts: [{ text: "Entendido. Estoy lista para ayudarte con el diagnostico y reparacion." }],
-    });
+    contents.push({ role: "user", parts: [{ text: systemPrompt }] });
+    contents.push({ role: "model", parts: [{ text: "Entendido. Estoy lista para ayudar." }] });
   }
-
-  // User message
-  contents.push({
-    role: "user",
-    parts: [{ text: prompt }],
-  });
+  contents.push({ role: "user", parts: [{ text: prompt }] });
 
   const res = await fetch(`${GEMINI_URL}?key=${API_KEY}`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
       contents,
-      generationConfig: {
-        temperature,
-        maxOutputTokens: maxTokens,
-        topP: 0.95,
-      },
+      generationConfig: { temperature, maxOutputTokens: maxTokens, topP: 0.95 },
       safetySettings: [
         { category: "HARM_CATEGORY_HARASSMENT", threshold: "BLOCK_NONE" },
         { category: "HARM_CATEGORY_HATE_SPEECH", threshold: "BLOCK_NONE" },
@@ -49,13 +35,49 @@ export async function callGeminiAI(prompt, { maxTokens = 600, temperature = 0.35
     }),
   });
 
-  if (!res.ok) {
-    const err = await res.text();
-    throw new Error(`Gemini API error (${res.status}): ${err}`);
-  }
+  if (!res.ok) return null; // fallback to Groq
 
   const data = await res.json();
-  const text = data?.candidates?.[0]?.content?.parts?.[0]?.text;
-  if (!text) throw new Error(data?.error?.message || "Sin respuesta de Gemini");
+  return data?.candidates?.[0]?.content?.parts?.[0]?.text || null;
+}
+
+// ── Groq fallback ────────────────────────────────────────────────────────────
+async function tryGroq(prompt, { maxTokens, temperature, systemPrompt }) {
+  const GROQ_KEY = import.meta.env.VITE_GROQ_API_KEY;
+  if (!GROQ_KEY) throw new Error("Ni VITE_GEMINI_API_KEY ni VITE_GROQ_API_KEY estan configuradas");
+
+  const fullPrompt = systemPrompt ? `${systemPrompt}\n\n${prompt}` : prompt;
+
+  const res = await fetch(GROQ_URL, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "Authorization": `Bearer ${GROQ_KEY}`,
+    },
+    body: JSON.stringify({
+      model: GROQ_MODEL,
+      messages: [{ role: "user", content: fullPrompt }],
+      temperature,
+      max_tokens: maxTokens,
+    }),
+  });
+
+  const data = await res.json();
+  const text = data?.choices?.[0]?.message?.content;
+  if (!text) throw new Error(data?.error?.message || "Sin respuesta de IA");
   return text;
+}
+
+// ── Public API: Gemini first, Groq fallback ──────────────────────────────────
+export async function callGeminiAI(prompt, { maxTokens = 600, temperature = 0.35, systemPrompt = "" } = {}) {
+  const opts = { maxTokens, temperature, systemPrompt };
+
+  // Try Gemini first
+  try {
+    const geminiResult = await tryGemini(prompt, opts);
+    if (geminiResult) return geminiResult;
+  } catch { /* fall through */ }
+
+  // Fallback to Groq
+  return tryGroq(prompt, opts);
 }
