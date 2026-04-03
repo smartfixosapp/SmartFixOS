@@ -505,8 +505,15 @@ export default function OrderStatusManagementTab() {
           {/* Actions Bar */}
           <div className="flex flex-wrap items-center justify-between gap-3 p-4 bg-black/40 rounded-lg border border-white/10">
             <div className="flex items-center gap-2">
+              <PlanGate feature="workflow_custom" fallback={<UpgradePrompt feature="workflow_custom" inline />}>
               <Button
                 onClick={() => {
+                  const customCount = statuses.filter(s => !s.is_system).length;
+                  const { allowed, current, max } = checkLimit('max_custom_statuses', customCount);
+                  if (!allowed && max !== -1) {
+                    toast.error(`Límite: ${current}/${max} estados custom. Upgrade para más.`, { duration: 5000 });
+                    return;
+                  }
                   setEditingStatus(null);
                   setShowNewDialog(true);
                 }}
@@ -515,6 +522,7 @@ export default function OrderStatusManagementTab() {
                 <Plus className="w-4 h-4 mr-2" />
                 Nuevo Estado
               </Button>
+              </PlanGate>
 
               <Button
                 onClick={handleReset}
