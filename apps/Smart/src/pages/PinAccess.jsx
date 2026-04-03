@@ -3156,9 +3156,6 @@ export default function PinAccess() {
               </div>
             </div>
 
-            {/* Input oculto para Conditional Mediation (WebAuthn auto-trigger Touch ID) */}
-            <input type="hidden" autoComplete="webauthn" tabIndex={-1} />
-
             {/* ── Biometric Quick Login ── */}
             {biometricSupported && (
               <motion.div
