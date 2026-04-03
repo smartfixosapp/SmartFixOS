@@ -173,18 +173,19 @@ export default function DiagnosticAI({ order, checklist = [], deviceCategory = "
     setLoading(true);
 
     try {
-      const systemPrompt = buildSystemPrompt(order, checklist, deviceCategory, mode);
+      const sysPrompt = buildSystemPrompt(order, checklist, deviceCategory, mode);
 
       // Build conversation history for context (last 6 messages)
       const recentHistory = [...messages.slice(-6), userMsg]
         .map(m => `${m.role === "user" ? "Tecnico" : "JENAI"}: ${m.content}`)
         .join("\n\n");
 
-      const fullPrompt = `${systemPrompt}\n\n--- CONVERSACION ---\n${recentHistory}\n\nJENAI:`;
+      const userPrompt = `--- CONVERSACION ---\n${recentHistory}\n\nJENAI:`;
 
-      const response = await callGroqAI(fullPrompt, {
-        maxTokens: 600,
+      const response = await callGeminiAI(userPrompt, {
+        maxTokens: 700,
         temperature: 0.35,
+        systemPrompt: sysPrompt,
       });
 
       setMessages(prev => [...prev, { role: "assistant", content: response }]);
