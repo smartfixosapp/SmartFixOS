@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { X, Check, Eye, EyeOff, Zap } from "lucide-react";
 import { toast } from "sonner";
+import { PlanGate, UpgradePrompt } from "@/components/plan/UpgradePrompt";
 
 function generateEmployeeCode() {
   return `EMP${Date.now().toString().slice(-6)}`;
