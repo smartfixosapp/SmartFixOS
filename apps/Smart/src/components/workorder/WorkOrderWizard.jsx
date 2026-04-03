@@ -2115,6 +2115,13 @@ Reglas:
     setCustomerResults([]);
     setOrderItems([]);
     setQuickOrderMode(false);
+    setJenaiMode(false);
+    setJenaiSubMode(null);
+    setJenaiInput("");
+    setJenaiPhotos([]);
+    setJenaiProcessing(false);
+    setJenaiError("");
+    setJenaiShowReview(false);
   };
 
   const addItemToOrder = (item) => {
