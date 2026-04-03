@@ -3122,7 +3122,7 @@ Reglas:
               <p className="text-center text-white/40 text-[10px] font-black uppercase tracking-[0.2em] shrink-0 py-2">¿Qué tipo de orden vas a crear?</p>
               {/* Orden Regular */}
               <button
-                onClick={() => { setQuickOrderMode(false); setMobileStep(1); }}
+                onClick={() => { setQuickOrderMode(false); setJenaiMode(false); setMobileStep(1); }}
                 className="flex-1 min-h-0 bg-white/[0.03] border border-white/[0.1] rounded-[24px] p-5 flex flex-col items-center justify-center gap-3 active:scale-[0.97] transition-all hover:bg-white/[0.06] group"
               >
                 <div className="w-14 h-14 rounded-[18px] bg-gradient-to-br from-cyan-400 to-blue-600 flex items-center justify-center shadow-[0_8px_24px_rgba(6,182,212,0.35)] shrink-0">
