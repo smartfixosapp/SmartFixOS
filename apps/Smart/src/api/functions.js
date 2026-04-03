@@ -24,6 +24,7 @@ const functionPaths = {
   "createStripeSubscription": "/createStripeSubscription",
   "registerTenant": "/registerTenant",
   "manageTenant": "/manageTenant",
+  "checkPlanLimits": "/checkPlanLimits",
   "notifyCashRegister": "/notifyCashRegister",
   "populateInventory": "/populateInventory",
   "handleOrderStatusChange": "/handleOrderStatusChange",
