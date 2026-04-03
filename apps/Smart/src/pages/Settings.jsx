@@ -48,7 +48,7 @@ export default function SettingsPage() {
   const [loading, setLoading] = useState(false);
   const [activeSection, setActiveSection]   = useState(null);
   const [showPriceWidget, setShowPriceWidget] = useState(() => localStorage.getItem("smartfix_show_price_widget") !== "false");
-  const [darjeniEnabled, setDarjeniEnabled] = useState(() => localStorage.getItem("smartfix_darjeni_disabled") !== "true");
+  const [jenaiEnabled, setDarjeniEnabled] = useState(() => localStorage.getItem("smartfix_darjeni_disabled") !== "true");
   const [showFeedback,  setShowFeedback]    = useState(false);
 
   // ── Sesión del usuario actual ──────────────────────────────────────────
@@ -1584,7 +1584,7 @@ export default function SettingsPage() {
                 {group.sections.map(section => {
                   const Icon = section.icon;
                   const isOn = section.isToggle
-                    ? (section.id === "darjeni_toggle" ? darjeniEnabled : showPriceWidget)
+                    ? (section.id === "darjeni_toggle" ? jenaiEnabled : showPriceWidget)
                     : null;
 
                   return (
@@ -1593,7 +1593,7 @@ export default function SettingsPage() {
                       onClick={() => {
                         if (section.isToggle) {
                           if (section.id === "darjeni_toggle") {
-                            const next = !darjeniEnabled;
+                            const next = !jenaiEnabled;
                             setDarjeniEnabled(next);
                             localStorage.setItem("smartfix_darjeni_disabled", String(!next));
                             window.dispatchEvent(new CustomEvent("smartfix:darjeni-toggle", { detail: { enabled: next } }));
