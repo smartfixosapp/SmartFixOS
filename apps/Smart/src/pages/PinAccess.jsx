@@ -1045,12 +1045,9 @@ export default function PinAccess() {
       await completeLogin(session, true);
     } catch (error) {
       console.error("Biometric login error:", error);
-      if (error?.name === "NotAllowedError" || error?.message?.includes("cancel")) {
-        setHasCancelledBiometric(true);
-      } else {
-        clearBiometricProfile();
-        toast.error("Biometría no disponible — inicia con PIN");
-      }
+      setHasCancelledBiometric(true);
+      // No borrar perfil si hay error (ej. mismatch criptográfico temporal), forzamos PIN fallback
+      toast.error("Biometría no válida — inicia con PIN temporalmente");
     } finally {
       setBiometricLoading(false);
     }
@@ -1549,53 +1546,48 @@ export default function PinAccess() {
       }
 
       // 3. Auto-login con credenciales guardadas
-      // 🔒 Solo si hay sesión Supabase activa con el MISMO email — evita auto-login en dispositivos ajenos
+      // 🔄 Realiza login directo al servidor (ignora si la sesión local expiró por PWA restart)
       const saved = loadSavedCreds();
       if (saved?.email && saved?.pwd) {
-        let supabaseSessionEmail = null;
-        try {
-          const { data: { session: activeSession } } = await supabase.auth.getSession();
-          supabaseSessionEmail = activeSession?.user?.email?.toLowerCase() || null;
-        } catch { /* ignorar error */ }
-
-        if (supabaseSessionEmail && supabaseSessionEmail === saved.email.toLowerCase()) {
-          console.log("🔑 Auto-login (sesión verificada):", saved.email);
-          setIsAutoLogging(true);
-          setStoreEmail(saved.email);
-          setStorePassword(saved.pwd);
-          const ok = await performStoreAuth(saved.email, saved.pwd);
-          setIsAutoLogging(false);
-          setCheckingUsers(false);
-          setIsReady(true);
-          
-          if (ok) {
-            // Preseleccionar al usuario anterior si hay un pin de sesión
-            const prevSessionRaw = localStorage.getItem("employee_session");
-            if (prevSessionRaw) {
-              try {
-                const prev = JSON.parse(prevSessionRaw);
-                setAvailableUsers((currentUsers) => {
-                  const matched = currentUsers.find(u => u.id === prev.id);
-                  if (matched) {
-                    setSelectedUser(matched);
-                    setStep("pin");
-                  }
-                  return currentUsers;
-                });
-              } catch {}
-            }
-          } else {
-            console.warn("Auto-login falló — mostrando formulario");
+        console.log("🔑 Auto-login (credenciales recuperadas):", saved.email);
+        setIsAutoLogging(true);
+        setStoreEmail(saved.email);
+        setStorePassword(saved.pwd);
+        const ok = await performStoreAuth(saved.email, saved.pwd);
+        setIsAutoLogging(false);
+        setCheckingUsers(false);
+        setIsReady(true);
+        
+        if (ok) {
+          // Preseleccionar al usuario anterior si hay un pin de sesión
+          const prevSessionRaw = localStorage.getItem("employee_session");
+          if (prevSessionRaw) {
+            try {
+              const prev = JSON.parse(prevSessionRaw);
+              setAvailableUsers((currentUsers) => {
+                const matched = currentUsers.find(u => u.id === prev.id);
+                if (matched) {
+                  setSelectedUser(matched);
+                  setStep("pin");
+                }
+                return currentUsers;
+              });
+            } catch {}
           }
-          return;
         } else {
-          // Sesión Supabase expirada o no coincide — limpiar credenciales guardadas
-          console.log("🔒 Auto-login omitido — no hay sesión Supabase activa para", saved.email);
-          clearSavedCreds();
+          console.warn("Auto-login falló — mostrando formulario");
+          setStep("store"); // Evitar caer en welcome si el auto-login falla (ej. sin internet temporal)
         }
+        return;
       }
 
-      // 3. Verificar usuarios (para bypass detection)
+      // 3b. Recuperación: Si hay sesión previa pero se perdieron credenciales (AuthGate wipe)
+      // Saltamos directamente a la tienda para no mostrar el Landing Page negro publico
+      if (lsSessionRaw) {
+        setStep("store");
+      }
+
+      // 4. Verificar usuarios (para bypass detection)
       try {
         await supabase.from("users").select("id", { head: true, count: "exact" }).limit(1);
         setShowBypass(true);
