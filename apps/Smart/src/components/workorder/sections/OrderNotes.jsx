@@ -6,6 +6,7 @@ import { MessageSquare, Plus, Link as LinkIcon, Loader2, Activity } from "lucide
 import { base44 } from "@/api/base44Client";
 import { toast } from "sonner";
 import { LinkifiedText } from "@/components/utils/linkify";
+import { PlanGate, UpgradePrompt } from "@/components/plan/UpgradePrompt";
 
 export default function OrderNotes({ order, onUpdate }) {
   const o = order || {};
