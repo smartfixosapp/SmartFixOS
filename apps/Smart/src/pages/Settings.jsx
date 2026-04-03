@@ -1399,7 +1399,7 @@ export default function SettingsPage() {
                   {/* Status */}
                   <div className="flex items-center gap-4">
                     <div className={`w-16 h-16 rounded-2xl flex items-center justify-center ${biometricProfile ? "bg-emerald-500/20 border border-emerald-500/30" : "bg-white/5 border border-white/10"}`}>
-                      {/iphone|ipad|mac/i.test(navigator.userAgent) ? (
+                      {/iphone|ipad/i.test(navigator.userAgent) ? (
                         <svg viewBox="0 0 24 24" className={`w-8 h-8 ${biometricProfile ? "text-emerald-400" : "text-white/30"}`} fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round">
                           <path d="M9 3H5a2 2 0 00-2 2v4M9 3h6M15 3h4a2 2 0 012 2v4M3 15v4a2 2 0 002 2h4m6 0h4a2 2 0 002-2v-4M9 9h.01M15 9h.01M9 14.5s1 1.5 3 1.5 3-1.5 3-1.5" />
                         </svg>
