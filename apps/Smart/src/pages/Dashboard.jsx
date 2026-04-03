@@ -1196,6 +1196,24 @@ export default function Dashboard() {
                 )}
               </div>
 
+              {/* JENAI Insights */}
+              <div className="mb-3 shrink-0">
+                <JENAIInsightBanner
+                  context="dashboard"
+                  data={{
+                    todayIncome: kpiIncome.today,
+                    todayExpenses: kpiIncome.todayExpenses,
+                    monthIncome: kpiIncome.month,
+                    activeOrders: kpiStats.active,
+                    readyToPickup: kpiStats.readyToPickup,
+                    deliveredToday: kpiStats.deliveredToday,
+                    overdue: kpiStats.overdue,
+                  }}
+                  accentColor="purple"
+                  autoLoad={!kpiIncome.loading}
+                />
+              </div>
+
               {/* Feed list — scrollbar aparece automáticamente cuando overflow */}
               {/* ── Tarjetas selectoras de categoría ── */}
               <div className="grid grid-cols-2 gap-2 mb-3 shrink-0">
