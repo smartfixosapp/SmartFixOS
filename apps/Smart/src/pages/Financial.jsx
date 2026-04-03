@@ -1113,72 +1113,95 @@ Responde con: 1) resumen de 2 oraciones, 2) un punto positivo, 3) una recomendac
             )}
             <ErrorBoundary><AlertasWidget /></ErrorBoundary>
 
-            {/* KPI strip */}
-            <div className="grid grid-cols-3 gap-2">
-              {[
-                { label: "Entró", value: totalRevenue, color: "emerald", icon: TrendingUp, onClick: () => { setActiveTab("movimientos"); setMovFilter("income"); } },
-                { label: "Salió", value: totalExpenses, color: "red", icon: TrendingDown, onClick: () => { setActiveTab("movimientos"); setMovFilter("expense"); } },
-                { label: netProfit >= 0 ? "Neto" : "Déficit", value: Math.abs(netProfit), color: netProfit >= 0 ? "cyan" : "red", icon: DollarSign, onClick: () => setActiveTab("desglose") },
-              ].map((k) => (
-                <button key={k.label} onClick={k.onClick}
-                  className={`p-3 rounded-2xl border text-left transition-all active:scale-95 ${
-                    k.color === "emerald" ? "bg-emerald-500/10 border-emerald-500/20" :
-                    k.color === "red" ? "bg-red-500/10 border-red-500/20" : "bg-cyan-500/10 border-cyan-500/20"
-                  } ${k.onClick ? "cursor-pointer" : "cursor-default"}`}
-                >
-                  <k.icon className={`w-3 h-3 mb-1 ${
-                    k.color === "emerald" ? "text-emerald-400" : k.color === "red" ? "text-red-400" : "text-cyan-400"
-                  }`} />
-                  <p className={`text-base font-black tracking-tighter leading-none ${
-                    k.color === "emerald" ? "text-emerald-400" : k.color === "red" ? "text-red-400" : "text-cyan-400"
-                  }`}>${k.value.toFixed(2)}</p>
-                  <p className="text-[9px] text-white/30 font-black uppercase tracking-widest mt-0.5">{k.label}</p>
-                </button>
-              ))}
-            </div>
+            {/* ── Navegación unificada (KPIs + tabs) ── */}
+            <div className="flex flex-col gap-2">
 
-            {/* Acciones rápidas */}
-            <div className="grid grid-cols-2 gap-2">
-              <button onClick={() => drawerOpen ? setShowCloseDrawer(true) : setShowOpenDrawer(true)}
-                className={`flex items-center gap-2.5 p-3 rounded-2xl border transition-all active:scale-95 ${
-                  drawerOpen ? "bg-emerald-500/10 border-emerald-500/30" : "bg-white/5 border-white/10"
-                }`}
-              >
-                <div className={`w-7 h-7 rounded-xl flex items-center justify-center shrink-0 ${drawerOpen ? "bg-emerald-500/20 text-emerald-400" : "bg-white/10 text-white/30"}`}>
-                  <Wallet className="w-3.5 h-3.5" />
-                </div>
-                <div className="text-left min-w-0">
-                  <p className={`text-xs font-black truncate ${drawerOpen ? "text-emerald-400" : "text-white/40"}`}>{drawerOpen ? "Caja abierta" : "Caja cerrada"}</p>
-                </div>
-              </button>
-              <button onClick={() => { setExpenseDefaultCategory(null); setShowExpenseDialog(true); }}
-                className="flex items-center gap-2.5 p-3 rounded-2xl border border-orange-500/20 bg-orange-500/[0.08] transition-all active:scale-95">
-                <div className="w-7 h-7 rounded-xl bg-orange-500/20 text-orange-400 flex items-center justify-center shrink-0">
-                  <Plus className="w-3.5 h-3.5" />
-                </div>
-                <div className="text-left min-w-0">
-                  <p className="text-xs font-black text-orange-300 truncate">Nuevo gasto</p>
-                </div>
-              </button>
-            </div>
-
-            {/* Tab bar — solo visible en desktop en el sidebar */}
-            <div className="hidden lg:flex flex-col gap-1 p-1 bg-white/[0.04] rounded-2xl border border-white/[0.06]">
+              {/* Botones financieros con valor */}
               {[
-                { id: "movimientos", label: "Movimientos" },
-                { id: "compromisos", label: "Compromisos" },
-                { id: "reportes", label: "Reportes" },
-                { id: "tecnicos", label: "Técnicos" },
-                { id: "desglose", label: "Desglose Neto" },
-              ].map(t => (
-                <button key={t.id} onClick={() => setActiveTab(t.id)}
-                  className={`w-full py-2 rounded-xl text-xs font-black transition-all text-left px-3 ${
-                    activeTab === t.id
-                      ? "bg-gradient-to-r from-cyan-600 to-blue-600 text-white shadow"
-                      : "text-white/30 hover:text-white/60"
+                {
+                  id: "income", tab: "movimientos", filter: "income",
+                  label: "Dinero que entró", sublabel: "Ver cobros →",
+                  value: totalRevenue, icon: TrendingUp,
+                  active: activeTab === "movimientos" && movFilter === "income",
+                  scheme: "emerald",
+                },
+                {
+                  id: "expense", tab: "movimientos", filter: "expense",
+                  label: "Dinero que salió", sublabel: "Ver gastos →",
+                  value: totalExpenses, icon: TrendingDown,
+                  active: activeTab === "movimientos" && movFilter === "expense",
+                  scheme: "red",
+                },
+                {
+                  id: "desglose", tab: "desglose", filter: null,
+                  label: netProfit >= 0 ? "Ganancia neta" : "Déficit",
+                  sublabel: "Ver desglose →",
+                  value: Math.abs(netProfit), icon: DollarSign,
+                  active: activeTab === "desglose",
+                  scheme: netProfit >= 0 ? "cyan" : "red",
+                },
+              ].map(k => {
+                const colors = {
+                  emerald: { bg: k.active ? "bg-emerald-600" : "bg-emerald-500/10", border: "border-emerald-500/30", text: "text-emerald-400", sub: "text-emerald-300/60" },
+                  red:     { bg: k.active ? "bg-red-600"     : "bg-red-500/10",     border: "border-red-500/30",     text: "text-red-400",     sub: "text-red-300/60" },
+                  cyan:    { bg: k.active ? "bg-cyan-600"    : "bg-cyan-500/10",    border: "border-cyan-500/30",    text: "text-cyan-400",    sub: "text-cyan-300/60" },
+                };
+                const c = colors[k.scheme];
+                return (
+                  <button key={k.id}
+                    onClick={() => { setActiveTab(k.tab); if (k.filter) setMovFilter(k.filter); }}
+                    className={`w-full flex items-center justify-between gap-3 px-4 py-3.5 rounded-2xl border transition-all active:scale-[0.98] ${c.bg} ${c.border}`}
+                  >
+                    <div className="flex items-center gap-3 min-w-0">
+                      <div className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 ${k.active ? "bg-white/20" : "bg-white/[0.06]"}`}>
+                        <k.icon className={`w-4 h-4 ${k.active ? "text-white" : c.text}`} />
+                      </div>
+                      <div className="text-left min-w-0">
+                        <p className={`text-sm font-black leading-tight ${k.active ? "text-white" : "text-white/80"}`}>{k.label}</p>
+                        <p className={`text-[10px] font-bold ${k.active ? "text-white/60" : c.sub}`}>{k.sublabel}</p>
+                      </div>
+                    </div>
+                    <p className={`text-lg font-black tabular-nums shrink-0 ${k.active ? "text-white" : c.text}`}>
+                      ${k.value.toFixed(2)}
+                    </p>
+                  </button>
+                );
+              })}
+
+              {/* Acciones de caja */}
+              <div className="grid grid-cols-2 gap-2 mt-1">
+                <button onClick={() => drawerOpen ? setShowCloseDrawer(true) : setShowOpenDrawer(true)}
+                  className={`flex items-center gap-2 px-3 py-2.5 rounded-2xl border transition-all active:scale-95 ${
+                    drawerOpen ? "bg-emerald-500/10 border-emerald-500/30" : "bg-white/5 border-white/10"
                   }`}
-                >{t.label}</button>
-              ))}
+                >
+                  <Wallet className={`w-4 h-4 shrink-0 ${drawerOpen ? "text-emerald-400" : "text-white/30"}`} />
+                  <p className={`text-xs font-black truncate ${drawerOpen ? "text-emerald-400" : "text-white/40"}`}>{drawerOpen ? "Caja abierta" : "Caja cerrada"}</p>
+                </button>
+                <button onClick={() => { setExpenseDefaultCategory(null); setShowExpenseDialog(true); }}
+                  className="flex items-center gap-2 px-3 py-2.5 rounded-2xl border border-orange-500/20 bg-orange-500/[0.08] transition-all active:scale-95">
+                  <Plus className="w-4 h-4 text-orange-400 shrink-0" />
+                  <p className="text-xs font-black text-orange-300 truncate">Nuevo gasto</p>
+                </button>
+              </div>
+
+              {/* Tabs secundarios */}
+              <div className="hidden lg:flex flex-col gap-1 pt-1 border-t border-white/[0.06]">
+                {[
+                  { id: "movimientos", label: "Todos los movimientos" },
+                  { id: "compromisos", label: "Compromisos fijos" },
+                  { id: "reportes",    label: "Reportes y análisis" },
+                  { id: "tecnicos",    label: "Productividad técnicos" },
+                ].map(t => (
+                  <button key={t.id} onClick={() => { setActiveTab(t.id); if (t.id === "movimientos") setMovFilter("all"); }}
+                    className={`w-full py-2.5 px-3 rounded-xl text-sm font-bold transition-all text-left flex items-center gap-2 ${
+                      activeTab === t.id && (t.id !== "movimientos" || movFilter === "all")
+                        ? "bg-white/10 text-white"
+                        : "text-white/40 hover:text-white/70 hover:bg-white/[0.04]"
+                    }`}
+                  >{t.label}</button>
+                ))}
+              </div>
             </div>
           </div>
 
