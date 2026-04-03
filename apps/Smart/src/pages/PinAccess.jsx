@@ -896,10 +896,17 @@ export default function PinAccess() {
       await completeLogin(session, true);
     } catch (error) {
       console.warn("[Biometric] Auto-trigger falló:", error?.name, error?.message);
-      
-      // No borrar el perfil ante errores de verificación (ej. FaceID fallido o cancelado),
-      // solo marcar como cancelado temporalmente para permitir PIN fallback.
-      setHasCancelledBiometric(true);
+
+      // En Web, si el error es por falta de user gesture (NotAllowedError sin interacción),
+      // NO marcar como cancelado — el botón manual sigue disponible para un solo click.
+      const isWebAutoTriggerBlocked = !Capacitor.isNativePlatform() &&
+        (error?.name === "NotAllowedError" || error?.name === "SecurityError");
+
+      if (!isWebAutoTriggerBlocked) {
+        // Error real (usuario canceló, FaceID fallido, etc.) — marcar como cancelado para PIN fallback
+        setHasCancelledBiometric(true);
+      }
+      // Si fue bloqueado por el navegador, no hacemos nada — el botón de Touch ID queda listo
     } finally {
       setBiometricLoading(false);
     }
