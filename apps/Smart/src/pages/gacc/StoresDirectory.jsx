@@ -542,6 +542,9 @@ export default function StoresDirectory({ onSelectTenant }) {
           <span className="flex items-center gap-1"><span className="w-1.5 h-1.5 rounded-full bg-gray-600" /> Inactiva</span>
         </div>
       </div>
+
+      {/* Invite modal */}
+      <InviteStoreModal open={showInvite} onClose={() => setShowInvite(false)} />
     </div>
   );
 }
