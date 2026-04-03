@@ -177,13 +177,8 @@ function isLikelyNetworkError(error) {
   );
 }
 
-function getPlanUserLimitFromKey(plan) {
-  const normalized = String(plan || "").trim().toLowerCase();
-  if (normalized === "smartfixos" || normalized === "basic") return 1;
-  if (normalized === "pro") return 3;
-  if (normalized === "enterprise") return 999;
-  return null;
-}
+// Legacy — replaced by usePlanLimits().checkLimit('max_users', count)
+function getPlanUserLimitFromKey() { return null; }
 
 function isSystemUserLike(candidate) {
   const fullName = String(candidate?.full_name || candidate?.name || "").trim().toLowerCase();
