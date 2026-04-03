@@ -1596,7 +1596,7 @@ export default function SettingsPage() {
                             const next = !jenaiEnabled;
                             setJenaiEnabled(next);
                             localStorage.setItem("smartfix_jenai_disabled", String(!next));
-                            window.dispatchEvent(new CustomEvent("smartfix:darjeni-toggle", { detail: { enabled: next } }));
+                            window.dispatchEvent(new CustomEvent("smartfix:jenai-toggle", { detail: { enabled: next } }));
                           }
                         } else if (section.isNavigation) {
                           navigate(createPageUrl(section.navigateTo));
