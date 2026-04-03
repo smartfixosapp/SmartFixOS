@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate, useLocation } from "react-router-dom";
-import { callGroqAI } from "@/lib/groqAI";
+import { callJENAI } from "@/lib/jenaiEngine";
 import { cn } from "@/lib/utils";
 import {
   X, ChevronRight, ChevronLeft, Sparkles,
