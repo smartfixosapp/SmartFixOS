@@ -11,9 +11,9 @@ const PLAN_MAP = {
 };
 
 function normalizePlan(plan) {
+  const map = { smartfixos: 'starter', basic: 'starter', enterprise: 'business' };
   const normalized = String(plan || '').trim().toLowerCase();
-  if (normalized === 'basic') return 'smartfixos';
-  return normalized;
+  return map[normalized] || normalized || 'starter';
 }
 
 async function getLatestSubscription(base44, tenantId) {
