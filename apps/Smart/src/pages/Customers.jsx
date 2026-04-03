@@ -66,6 +66,7 @@ export default function Customers() {
   const [selectedCustomer, setSelectedCustomer] = useState(null);
   const [showOrdersDialog, setShowOrdersDialog] = useState(false);
   const [editingCustomer, setEditingCustomer] = useState(null);
+  const [showBulkOffer, setShowBulkOffer] = useState(false);
 
   const queryClient = useQueryClient();
 
