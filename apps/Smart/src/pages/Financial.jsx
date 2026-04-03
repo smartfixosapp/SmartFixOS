@@ -1207,7 +1207,13 @@ Responde con: 1) resumen de 2 oraciones, 2) un punto positivo, 3) una recomendac
 
               {/* Acciones de caja */}
               <div className="grid grid-cols-2 gap-2 pt-1 border-t border-white/[0.06]">
-                <button onClick={() => drawerOpen ? setShowCloseDrawer(true) : setShowOpenDrawer(true)}
+                <button onClick={() => {
+                    if (!canPlan('pos_cash_open_close')) {
+                      toast.error("Abrir/cerrar caja disponible en el plan Pro", { duration: 5000 });
+                      return;
+                    }
+                    drawerOpen ? setShowCloseDrawer(true) : setShowOpenDrawer(true);
+                  }}
                   className={`flex items-center gap-2.5 px-3 py-3 rounded-2xl border transition-all active:scale-95 ${
                     drawerOpen ? "bg-emerald-500/10 border-emerald-500/30" : "bg-white/5 border-white/10"
                   }`}
