@@ -3179,8 +3179,134 @@ Reglas:
             </>
           )}
 
+          {/* ✨ JENAI — Pantalla de entrada inteligente */}
+          {inJenaiInput && (!isCompactDevice || mobileStep === 1) && (
+            <div className="bg-violet-500/[0.03] border border-violet-500/20 rounded-[28px] p-6 space-y-5 backdrop-blur-xl shadow-[0_8px_32px_rgba(0,0,0,0.2)] relative overflow-hidden lg:col-span-12">
+              <div className="absolute -right-20 -top-20 w-40 h-40 bg-violet-500/8 rounded-full blur-[80px]" />
+
+              {/* Header */}
+              <div className="relative z-10 flex items-center gap-3">
+                <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-violet-400 to-purple-600 flex items-center justify-center shadow-lg">
+                  <Sparkles className="w-5 h-5 text-white" />
+                </div>
+                <div>
+                  <h3 className="text-white font-black text-lg uppercase tracking-tight">Crear con JENAI</h3>
+                  <p className="text-[10px] text-white/30">powered by SmartFixOS</p>
+                </div>
+              </div>
+
+              {/* Sub-mode selector */}
+              {!jenaiSubMode && (
+                <div className="space-y-3">
+                  <p className="text-sm text-white/50">Selecciona el tipo de orden:</p>
+                  <div className="grid grid-cols-2 gap-3">
+                    <button
+                      onClick={() => setJenaiSubMode("normal")}
+                      className="rounded-2xl border border-cyan-500/20 bg-cyan-500/8 p-4 text-center transition-all hover:bg-cyan-500/15 active:scale-95"
+                    >
+                      <Wrench className="w-6 h-6 text-cyan-400 mx-auto mb-2" />
+                      <p className="text-sm font-black text-white">Regular</p>
+                      <p className="text-[10px] text-white/35 mt-1">Diagnostico completo</p>
+                    </button>
+                    <button
+                      onClick={() => setJenaiSubMode("quick")}
+                      className="rounded-2xl border border-amber-500/20 bg-amber-500/8 p-4 text-center transition-all hover:bg-amber-500/15 active:scale-95"
+                    >
+                      <Zap className="w-6 h-6 text-amber-400 mx-auto mb-2" />
+                      <p className="text-sm font-black text-white">Rapida</p>
+                      <p className="text-[10px] text-white/35 mt-1">Cambio directo</p>
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {/* Main input area */}
+              {jenaiSubMode && (
+                <div className="space-y-4 relative z-10">
+                  <div>
+                    <p className="text-sm font-bold text-white/60 mb-2">Escribe toda la informacion de la orden:</p>
+                    <textarea
+                      value={jenaiInput}
+                      onChange={(e) => setJenaiInput(e.target.value)}
+                      placeholder={"Ejemplo: Jean Francis, 787-555-1234, jean@email.com, iPhone 15 Pro Max plateado, se le cayo al agua ayer y no enciende, password 1234"}
+                      className="w-full bg-black/30 border border-white/10 rounded-2xl px-4 py-3 text-white text-sm placeholder:text-white/20 resize-none focus:border-violet-400/30 focus:outline-none focus:ring-1 focus:ring-violet-500/20"
+                      rows={5}
+                      autoFocus
+                    />
+                    <p className="text-[10px] text-white/25 mt-1.5">
+                      Incluye: nombre, telefono, email, marca, modelo, problema, password/pin si aplica
+                    </p>
+                  </div>
+
+                  {/* Photo upload */}
+                  <div>
+                    <p className="text-sm font-bold text-white/60 mb-2">Fotos del equipo (opcional):</p>
+                    <input
+                      ref={jenaiFileRef}
+                      type="file"
+                      accept="image/*"
+                      multiple
+                      onChange={(e) => {
+                        const files = Array.from(e.target.files || []).filter(f => f.type?.startsWith("image/"));
+                        if (files.length) setJenaiPhotos(prev => [...prev, ...files]);
+                        e.target.value = "";
+                      }}
+                      className="hidden"
+                    />
+                    <div className="flex flex-wrap gap-2">
+                      <button
+                        type="button"
+                        onClick={() => jenaiFileRef.current?.click()}
+                        className="flex items-center gap-2 px-4 py-2.5 rounded-xl border border-dashed border-white/15 bg-white/[0.03] text-white/50 text-xs font-bold hover:bg-white/[0.06] transition-all"
+                      >
+                        <ImagePlus className="w-4 h-4" />
+                        Subir fotos
+                      </button>
+                      {jenaiPhotos.map((file, i) => (
+                        <div key={i} className="relative w-14 h-14 rounded-xl overflow-hidden border border-white/10">
+                          <img src={URL.createObjectURL(file)} alt="" className="w-full h-full object-cover" />
+                          <button
+                            onClick={() => setJenaiPhotos(prev => prev.filter((_, idx) => idx !== i))}
+                            className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-red-500 flex items-center justify-center"
+                          >
+                            <X className="w-3 h-3 text-white" />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                    {jenaiPhotos.length > 0 && (
+                      <p className="text-[10px] text-violet-400/60 mt-1.5">
+                        JENAI analizara {jenaiPhotos.length} foto{jenaiPhotos.length > 1 ? "s" : ""} para detectar dano visible
+                      </p>
+                    )}
+                  </div>
+
+                  {/* Error */}
+                  {jenaiError && (
+                    <div className="rounded-xl border border-red-500/20 bg-red-500/8 px-4 py-3">
+                      <p className="text-xs text-red-300">{jenaiError}</p>
+                    </div>
+                  )}
+
+                  {/* Analyze button */}
+                  <button
+                    onClick={parseWithJenai}
+                    disabled={(!jenaiInput.trim() && jenaiPhotos.length === 0) || jenaiProcessing}
+                    className="w-full h-14 rounded-2xl bg-gradient-to-r from-violet-500 to-purple-600 text-white font-black text-base flex items-center justify-center gap-2 shadow-[0_8px_24px_rgba(139,92,246,0.3)] hover:from-violet-400 hover:to-purple-500 active:scale-[0.98] transition-all disabled:opacity-40 disabled:cursor-not-allowed"
+                  >
+                    {jenaiProcessing ? (
+                      <><Loader2 className="w-5 h-5 animate-spin" /> JENAI analizando...</>
+                    ) : (
+                      <><Brain className="w-5 h-5" /> Analizar con JENAI</>
+                    )}
+                  </button>
+                </div>
+              )}
+            </div>
+          )}
+
           {/* 📋 CLIENTE */}
-          {(!isCompactDevice || mobileStep === 1) && (
+          {(!isCompactDevice || mobileStep === 1) && !inJenaiInput && (
           <div className="bg-white/[0.03] border border-white/[0.08] rounded-[28px] p-6 space-y-5 backdrop-blur-3xl shadow-[0_8px_32px_rgba(0,0,0,0.2)] relative overflow-hidden lg:col-span-4 transition-all hover:bg-white/[0.05] group">
             <div className="absolute -right-20 -top-20 w-40 h-40 bg-cyan-500/5 rounded-full blur-[80px] group-hover:bg-cyan-500/10 transition-colors duration-700" />
             <h3 className="text-white font-black text-lg flex items-center gap-3 relative z-10 uppercase tracking-tight">
