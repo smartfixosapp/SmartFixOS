@@ -1570,7 +1570,7 @@ RESUMEN:
 
 Dime: qué comprar urgente, qué riesgo hay para el negocio, y una recomendación concreta. Sé directo.`;
 
-      const text = await callGroqAI(prompt, { maxTokens: 250 });
+      const text = await callJENAI(prompt, { maxTokens: 250 });
       setAiInventoryAnalysis(text);
     } catch(err) {
       setAiInventoryAnalysis("⚠️ " + err.message);
