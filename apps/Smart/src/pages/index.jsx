@@ -172,6 +172,7 @@ function PagesContent() {
             <Suspense fallback={<PageLoader />}>
                 <Routes>
                     <Route path="/SuperAdmin" element={<SuperAdmin />} />
+                    <Route path="/GACC" element={<GACC />} />
                     <Route path="/TenantActivate" element={<TenantActivate />} />
                     <Route path="/returnlogin" element={<ReturnLogin />} />
                     <Route path="/Receipt" element={<Receipt />} />
