@@ -2314,7 +2314,7 @@ export default function PinAccess() {
   }
 
   // ── Kiosk full-screen: user grid + PIN ────────────────────────────────────
-  if (storeAuthenticated && (step === "user" || step === "pin")) {
+  if (storeAuthenticated && (step === "user" || step === "pin") && !showBiometricOffer) {
     return (
       <div className="pinaccess-fullscreen-container overflow-hidden">
         {/* Fondo decorativo */}
