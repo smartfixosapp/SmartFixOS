@@ -76,9 +76,9 @@ function buildSystemPrompt(order, checklist, deviceCategory, mode = "diagnosis")
     .join(", ");
 
   const modeContext = mode === "repair"
-    ? `Eres DARJENI, la asistente de reparacion de SmartFixOS. El tecnico esta EN PROCESO DE REPARAR el dispositivo y necesita ayuda tecnica practica.
+    ? `Eres JENAI, la asistente de reparacion de SmartFixOS. El tecnico esta EN PROCESO DE REPARAR el dispositivo y necesita ayuda tecnica practica.
 Enfocate en: guias de reparacion paso a paso, soldadura, reemplazo de componentes, herramientas necesarias, precauciones, y solucion de problemas durante la reparacion.`
-    : `Eres DARJENI, la asistente de diagnostico de SmartFixOS para talleres de reparacion de dispositivos electronicos.`;
+    : `Eres JENAI, la asistente de diagnostico de SmartFixOS para talleres de reparacion de dispositivos electronicos.`;
 
   return `${modeContext}
 
@@ -121,7 +121,7 @@ function ChatMessage({ msg }) {
         {msg.role === "assistant" && (
           <div className="flex items-center gap-1.5 mb-1.5">
             <Brain className="h-3.5 w-3.5 text-purple-400" />
-            <span className="text-[10px] font-bold uppercase tracking-widest text-purple-400">DARJENI</span>
+            <span className="text-[10px] font-bold uppercase tracking-widest text-purple-400">JENAI</span>
           </div>
         )}
         <div className="whitespace-pre-wrap">{msg.content}</div>
@@ -177,10 +177,10 @@ export default function DiagnosticAI({ order, checklist = [], deviceCategory = "
 
       // Build conversation history for context (last 6 messages)
       const recentHistory = [...messages.slice(-6), userMsg]
-        .map(m => `${m.role === "user" ? "Tecnico" : "DARJENI"}: ${m.content}`)
+        .map(m => `${m.role === "user" ? "Tecnico" : "JENAI"}: ${m.content}`)
         .join("\n\n");
 
-      const fullPrompt = `${systemPrompt}\n\n--- CONVERSACION ---\n${recentHistory}\n\nDARJENI:`;
+      const fullPrompt = `${systemPrompt}\n\n--- CONVERSACION ---\n${recentHistory}\n\nJENAI:`;
 
       const response = await callGroqAI(fullPrompt, {
         maxTokens: 600,
@@ -237,7 +237,7 @@ export default function DiagnosticAI({ order, checklist = [], deviceCategory = "
               </Badge>
             </div>
             <p className="text-[11px] text-white/40">
-              Preguntale a DARJENI sobre el diagnostico
+              Preguntale a JENAI sobre el diagnostico
               {issueCount > 0 && <span className="ml-1 text-red-400">· {issueCount} problema{issueCount > 1 ? "s" : ""} detectado{issueCount > 1 ? "s" : ""}</span>}
               {warningCount > 0 && <span className="ml-1 text-amber-400">· {warningCount} a revisar</span>}
             </p>
@@ -286,7 +286,7 @@ export default function DiagnosticAI({ order, checklist = [], deviceCategory = "
                   <Brain className="h-8 w-8 text-purple-400/50" />
                 </div>
                 <div className="text-center">
-                  <p className="text-sm font-bold text-white/50">Hola, soy DARJENI</p>
+                  <p className="text-sm font-bold text-white/50">Hola, soy JENAI</p>
                   <p className="mt-1 max-w-xs text-xs text-white/30">
                     Preguntame cualquier cosa sobre el diagnostico de este dispositivo. Tengo acceso al checklist y los datos de la orden.
                   </p>
@@ -314,7 +314,7 @@ export default function DiagnosticAI({ order, checklist = [], deviceCategory = "
               <div className="flex justify-start">
                 <div className="flex items-center gap-2 rounded-2xl border border-white/10 bg-white/[0.06] px-4 py-3">
                   <Loader2 className="h-4 w-4 animate-spin text-purple-400" />
-                  <span className="text-xs text-white/40">DARJENI esta analizando...</span>
+                  <span className="text-xs text-white/40">JENAI esta analizando...</span>
                 </div>
               </div>
             )}
