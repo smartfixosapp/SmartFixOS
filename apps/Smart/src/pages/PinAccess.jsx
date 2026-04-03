@@ -859,6 +859,13 @@ export default function PinAccess() {
 
   // ── Biometric early login (directo al usuario, sin seleccionar) ──────────
   const handleEarlyBiometricLogin = async ({ fromAutoTrigger = false } = {}) => {
+    console.log("[Biometric] handleEarlyBiometricLogin →", {
+      fromAutoTrigger,
+      biometricSupported,
+      hasProfile: !!biometricProfile?.session,
+      hasCancelled: hasCancelledBiometric,
+      isNative: Capacitor.isNativePlatform(),
+    });
     if (!biometricSupported || !biometricProfile?.session || hasCancelledBiometric) return;
 
     setBiometricLoading(true);
