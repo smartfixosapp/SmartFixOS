@@ -400,13 +400,16 @@ const ACTIVE_ENGINE =
   import.meta.env.VITE_OPENAI_API_KEY    ? "GPT-4o mini"  :
   "Llama 3.1";
 
-const DARJENI_TOURED_KEY = "smartfix_najeliz_toured";
+const DARJENI_TOURED_KEY    = "smartfix_najeliz_toured";
+const DARJENI_SHOWN_KEY     = "smartfix_najeliz_shown"; // se activa al primer auto-open (una sola vez)
 
 export default function ARIAChat() {
   const location  = useLocation();
   const [open, setOpen]           = useState(false);
   // true = el usuario ya completó el tour → botón se esconde
   const [toured, setToured] = useState(() => localStorage.getItem(DARJENI_TOURED_KEY) === "1");
+  // true = el tour ya se auto-abrió una vez → no volver a abrir automáticamente
+  const [tourAutoShown, setTourAutoShown] = useState(() => localStorage.getItem(DARJENI_SHOWN_KEY) === "1");
   const [messages, setMessages]   = useState([]);
   const [input, setInput]         = useState("");
   const [loading, setLoading]     = useState(false);
