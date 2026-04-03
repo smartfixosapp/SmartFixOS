@@ -2830,7 +2830,7 @@ export default function PinAccess() {
             <h2 className="text-3xl sm:text-4xl font-bold text-white text-center mb-3">
               Planes y <span className="bg-gradient-to-r from-cyan-400 to-emerald-400 bg-clip-text text-transparent">Precios</span>
             </h2>
-            <p className="text-center text-gray-400 text-sm mb-10">Sin contratos. Cancela cuando quieras. 15 días de prueba gratis.</p>
+            <p className="text-center text-gray-400 text-sm mb-10">Sin contratos. Cancela cuando quieras. 14 días de prueba gratis.</p>
 
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
 
@@ -2838,12 +2838,13 @@ export default function PinAccess() {
               <div className="relative flex flex-col bg-white/[0.03] border border-white/10 rounded-2xl p-6 hover:border-white/20 transition-all">
                 <p className="text-xs font-bold text-gray-500 uppercase tracking-widest mb-3">Starter</p>
                 <div className="flex items-end gap-1 mb-1">
-                  <span className="text-4xl font-black text-white">$49</span>
+                  <span className="text-4xl font-black text-white">$14</span>
+                  <span className="text-lg font-black text-white/60">.99</span>
                   <span className="text-gray-500 text-sm mb-1">/mes</span>
                 </div>
-                <p className="text-xs text-gray-500 mb-5">1 técnico · Taller individual</p>
+                <p className="text-xs text-gray-500 mb-5">1 usuario · Técnico independiente</p>
                 <ul className="space-y-2 flex-1">
-                  {["Órdenes de reparación ilimitadas","Clientes y historial","Inventario y stock","POS integrado","Panel financiero","Soporte por email"].map(f => (
+                  {["Hasta 50 órdenes activas","200 clientes","100 productos en inventario","POS básico (cobro en mostrador)","Dashboard de ingresos","Workflow estándar (4 estados)"].map(f => (
                     <li key={f} className="flex items-center gap-2 text-xs text-gray-300">
                       <CheckCircle className="w-3.5 h-3.5 text-cyan-400 flex-shrink-0" /> {f}
                     </li>
@@ -2866,12 +2867,13 @@ export default function PinAccess() {
                 </div>
                 <p className="text-xs font-bold text-cyan-400 uppercase tracking-widest mb-3">Pro</p>
                 <div className="flex items-end gap-1 mb-1">
-                  <span className="text-4xl font-black text-white">$89</span>
+                  <span className="text-4xl font-black text-white">$39</span>
+                  <span className="text-lg font-black text-white/60">.99</span>
                   <span className="text-gray-400 text-sm mb-1">/mes</span>
                 </div>
-                <p className="text-xs text-gray-400 mb-5">Hasta 5 técnicos · Equipos en crecimiento</p>
+                <p className="text-xs text-gray-400 mb-5">5 usuarios incluidos · +$7/extra</p>
                 <ul className="space-y-2 flex-1">
-                  {["Todo lo del plan Starter","Hasta 5 técnicos","Control de tiempo (ponche)","Notificaciones email y SMS","Portal del cliente","Reportes financieros avanzados","Soporte prioritario"].map(f => (
+                  {["Todo lo de Starter","Órdenes y clientes ilimitados","Asignar técnicos a órdenes","Notas internas y fotos","1,000 SKUs · Alertas de stock","Apertura/cierre de caja","Reportes por técnico y servicio","Exportar CSV · Proveedores","3 roles: Admin, Técnico, Cajero"].map(f => (
                     <li key={f} className="flex items-center gap-2 text-xs text-gray-200">
                       <CheckCircle className="w-3.5 h-3.5 text-cyan-400 flex-shrink-0" /> {f}
                     </li>
@@ -2885,26 +2887,28 @@ export default function PinAccess() {
                 </button>
               </div>
 
-              {/* ── Enterprise ── */}
+              {/* ── Business ── */}
               <div className="relative flex flex-col bg-gradient-to-b from-purple-950/40 to-black border border-purple-500/30 rounded-2xl p-6 hover:border-purple-400/50 transition-all">
-                <p className="text-xs font-bold text-purple-400 uppercase tracking-widest mb-3">Enterprise</p>
+                <p className="text-xs font-bold text-purple-400 uppercase tracking-widest mb-3">Business</p>
                 <div className="flex items-end gap-1 mb-1">
-                  <span className="text-3xl font-black text-white">Consultoría</span>
+                  <span className="text-4xl font-black text-white">$79</span>
+                  <span className="text-lg font-black text-white/60">.99</span>
+                  <span className="text-gray-500 text-sm mb-1">/mes</span>
                 </div>
-                <p className="text-xs text-gray-500 mb-5">Usuarios ilimitados · Cadenas y franquicias</p>
+                <p className="text-xs text-gray-500 mb-5">10 usuarios incluidos · +$5/extra</p>
                 <ul className="space-y-2 flex-1">
-                  {["Todo lo del plan Pro","Usuarios y locales ilimitados","Multi-sede centralizada","Integraciones personalizadas","Onboarding dedicado","SLA garantizado · Soporte 24/7"].map(f => (
+                  {["Todo lo de Pro","Inventario ilimitado","Hasta 3 cajas registradoras","Reportes financieros completos","Exportar PDF y CSV","Roles y permisos personalizados","Emails automáticos al cliente","Automatizaciones y triggers","Soporte prioritario (4h)"].map(f => (
                     <li key={f} className="flex items-center gap-2 text-xs text-gray-300">
                       <CheckCircle className="w-3.5 h-3.5 text-purple-400 flex-shrink-0" /> {f}
                     </li>
                   ))}
                 </ul>
-                <a
-                  href="mailto:smartfixosapp@gmail.com?subject=Enterprise%20SmartFixOS"
-                  className="mt-6 block text-center w-full py-2.5 rounded-xl border border-purple-500/40 text-purple-300 text-sm font-semibold hover:bg-purple-500/10 transition-all"
+                <button
+                  onClick={() => setShowSignup(true)}
+                  className="mt-6 w-full py-2.5 rounded-xl border border-purple-500/40 text-purple-300 text-sm font-bold hover:bg-purple-500/10 transition-all"
                 >
-                  Contactar ventas →
-                </a>
+                  Empezar gratis →
+                </button>
               </div>
 
             </div>
