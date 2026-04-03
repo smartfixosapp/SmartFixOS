@@ -97,13 +97,28 @@ export default function SettingsPage() {
           console.error("Biometric detection failed:", err);
           setBiometricSupported(false);
         }
-      } else if (window.PublicKeyCredential?.isUserVerifyingPlatformAuthenticatorAvailable) {
-        const available = await window.PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable();
-        setBiometricSupported(available);
+      } else {
+        // Desktop/browser — intentar WebAuthn (Mac Touch ID, Windows Hello, etc.)
+        try {
+          if (window.PublicKeyCredential?.isUserVerifyingPlatformAuthenticatorAvailable) {
+            const available = await window.PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable();
+            setBiometricSupported(available);
+          } else if (window.PublicKeyCredential) {
+            // API disponible pero sin isUserVerifyingPlatformAuthenticatorAvailable (navegadores viejos)
+            // En Mac, asumir que hay Touch ID si hay hardware
+            const isMac = /Mac/.test(navigator.platform || navigator.userAgent) && !/iPhone|iPad|iPod/.test(navigator.userAgent);
+            setBiometricSupported(isMac);
+          }
+        } catch (err) {
+          console.warn("WebAuthn check failed:", err);
+          // En Mac, si el check falla aún intentamos mostrar la opción
+          const isMac = /Mac/.test(navigator.platform || navigator.userAgent) && !/iPhone|iPad|iPod/.test(navigator.userAgent);
+          setBiometricSupported(isMac);
+        }
       }
     };
-    
-    checkBiometrics();
+
+    checkBiometrics().catch(console.warn);
   }, []);
 
   const handleEnableBiometric = async () => {
