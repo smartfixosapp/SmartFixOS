@@ -764,6 +764,13 @@ export default function DiagnosingStage({ order, onUpdate, user, onOrderItemsUpd
         </section>
       )}
 
+      {/* ── Asistente de Diagnostico IA ── */}
+      <DiagnosticAI
+        order={order}
+        checklist={checklist}
+        deviceCategory={deviceCategory}
+      />
+
       {/* ── Historia y Comentarios ── */}
       <WorkOrderUnifiedHub
         order={order}
