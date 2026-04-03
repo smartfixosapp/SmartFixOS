@@ -229,7 +229,9 @@ export default function DiagnosticAI({ order, checklist = [], deviceCategory = "
           </div>
           <div className="text-left">
             <div className="flex items-center gap-2">
-              <h3 className="text-base font-black tracking-tight text-white sm:text-lg">Asistente de Diagnostico</h3>
+              <h3 className="text-base font-black tracking-tight text-white sm:text-lg">
+                {mode === "repair" ? "Asistente de Reparacion" : "Asistente de Diagnostico"}
+              </h3>
               <Badge className="rounded-full border-0 bg-gradient-to-r from-purple-500/20 to-indigo-500/20 px-2 py-0.5 text-[9px] font-bold uppercase tracking-widest text-purple-300">
                 <Sparkles className="mr-1 h-2.5 w-2.5" />IA
               </Badge>
