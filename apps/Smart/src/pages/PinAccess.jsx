@@ -1140,22 +1140,12 @@ export default function PinAccess() {
     );
   };
 
-  // Navegar al Dashboard después de la oferta biométrica (o directamente)
+  // Navegar al Dashboard después de la oferta biométrica
+  // La sesión ya está en localStorage desde completeLogin — solo navegar
   const finishLoginNavigation = () => {
-    const sess = pendingLoginSession;
     setShowBiometricOffer(false);
     setPendingLoginSession(null);
-    
-    if (sess) {
-      completeLogin(sess);
-      return;
-    }
-
-    setShowSuccessBurst(true);
-    setTimeout(() => {
-      setShowSuccessBurst(false);
-      navigate("/Dashboard", { replace: true });
-    }, 500);
+    navigate("/Dashboard", { replace: true });
   };
 
   // Registrar credencial biométrica (Touch ID / Face ID) en este dispositivo
