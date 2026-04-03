@@ -182,7 +182,7 @@ export default function DiagnosticAI({ order, checklist = [], deviceCategory = "
 
       const userPrompt = `--- CONVERSACION ---\n${recentHistory}\n\nJENAI:`;
 
-      const response = await callGeminiAI(userPrompt, {
+      const response = await callJENAI(userPrompt, {
         maxTokens: 700,
         temperature: 0.35,
         systemPrompt: sysPrompt,
