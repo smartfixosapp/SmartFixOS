@@ -880,21 +880,20 @@ export default function WorkOrderWizard({ open, onClose, onSuccess, preloadedCus
         deviceModel || "",
       ].filter(Boolean).join(" ") || "dispositivo no especificado";
 
-      const prompt = `Eres un técnico experto en reparación de dispositivos electrónicos.
-El técnico describe este problema: "${problem}"
-Dispositivo: ${deviceInfo}
+      const systemPrompt = `Eres JENAI, asistente tecnica de SmartFixOS para talleres de reparacion.
+Responde SOLO en espanol, conciso y practico. Maximo 120 palabras.`;
 
-Responde en ESPAÑOL con:
-1. **Causas probables** (2-3 causas más comunes, una línea cada una)
-2. **Diagnóstico sugerido** (pasos concretos para confirmar el problema)
-3. **Piezas posibles** (qué podría necesitar)
+      const prompt = `El cliente trae un ${deviceInfo} con este problema: "${problem}"
 
-Sé técnico pero claro. Máximo 120 palabras.`;
+Responde con:
+1. **Causas probables** (2-3 causas mas comunes, una linea cada una)
+2. **Diagnostico sugerido** (pasos concretos para confirmar)
+3. **Piezas posibles** (que podria necesitar)`;
 
-      const text = await callGroqAI(prompt, { maxTokens: 350 });
+      const text = await callGeminiAI(prompt, { maxTokens: 400, systemPrompt });
       setAiDiagnosis(text);
     } catch (err) {
-      setAiDiagnosis("⚠️ " + err.message);
+      setAiDiagnosis("No se pudo conectar con JENAI. Intenta de nuevo.");
     } finally {
       setAiDiagnosisLoading(false);
     }
