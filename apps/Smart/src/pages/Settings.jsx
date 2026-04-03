@@ -1423,7 +1423,9 @@ export default function SettingsPage() {
                   <p className="text-white/50 text-sm">
                     {biometricSupported
                       ? "Activa el acceso biométrico para entrar sin escribir tu PIN cada vez."
-                      : "Este dispositivo no soporta autenticación biométrica."}
+                      : /mac/i.test(navigator.userAgent) && !/iPhone|iPad|iPod/.test(navigator.userAgent)
+                        ? "Asegúrate de tener Touch ID configurado en Ajustes del Sistema de macOS."
+                        : "Este dispositivo no soporta autenticación biométrica."}
                   </p>
 
                   {biometricSupported && (
