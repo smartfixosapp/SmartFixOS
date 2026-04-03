@@ -224,8 +224,9 @@ export default function GACCLayout({ activeSection, onSectionChange, onOpenPalet
           {/* Right: search hint + session + notifications */}
           <div className="flex items-center gap-3">
             <button
+              onClick={onOpenPalette}
               className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-xl bg-white/[0.03] border border-white/[0.07] text-[12px] text-gray-600 hover:text-gray-400 hover:border-white/[0.12] transition-all"
-              title="Buscar tienda"
+              title="Buscar tienda (Cmd+K)"
             >
               <Search className="w-3.5 h-3.5" />
               <span>Buscar...</span>
