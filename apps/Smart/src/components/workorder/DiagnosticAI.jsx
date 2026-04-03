@@ -153,7 +153,16 @@ export default function DiagnosticAI({ order, checklist = [], deviceCategory = "
     }
   }, [open]);
 
-  const quickPrompts = QUICK_PROMPTS[deviceCategory] || QUICK_PROMPTS.generic;
+  const REPAIR_PROMPTS = [
+    { icon: Wrench,        label: "Como desarmo",      prompt: `Como desarmo este ${order?.device_brand || ""} ${order?.device_model || ""}? Dame los pasos y herramientas necesarias.` },
+    { icon: AlertTriangle, label: "Precauciones",       prompt: `Que precauciones debo tomar al reparar este ${order?.device_brand || ""} ${order?.device_model || ""}?` },
+    { icon: Zap,           label: "No funciono el fix", prompt: "Ya reemplace el componente danado pero el problema persiste. Que mas puede estar fallando?" },
+    { icon: Lightbulb,     label: "Alternativa",        prompt: "Hay una solucion alternativa o temporal para esta reparacion?" },
+  ];
+
+  const quickPrompts = mode === "repair"
+    ? REPAIR_PROMPTS
+    : (QUICK_PROMPTS[deviceCategory] || QUICK_PROMPTS.generic);
 
   const sendMessage = async (text) => {
     if (!text.trim() || loading) return;
