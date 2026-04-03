@@ -184,6 +184,10 @@ export default function PinAccess() {
     try {
       const raw = localStorage.getItem(BIOMETRIC_LOGIN_KEY);
       const parsed = raw ? JSON.parse(raw) : null;
+      if (!parsed?.session) return null;
+      // Aceptar perfiles nativos (isNative) aunque no tengan credentialId,
+      // y perfiles web que SÍ deben tener credentialId
+      if (parsed.isNative) return { ...parsed, credentialId: parsed.credentialId || "native_stored" };
       return parsed?.credentialId ? parsed : null;
     } catch {
       return null;
