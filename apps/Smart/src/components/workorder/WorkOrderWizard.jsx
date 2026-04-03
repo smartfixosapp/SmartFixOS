@@ -5,7 +5,7 @@ import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
 import * as DialogPrimitive from "@radix-ui/react-dialog";
 import { base44 } from "@/api/base44Client";
 import { sendTemplatedEmail } from "@/api/functions";
-import { callGroqAI } from "@/lib/groqAI";
+import { callGeminiAI } from "@/lib/geminiAI";
 import NotificationService from "../notifications/NotificationService";
 import AddItemModal from "./AddItemModal";
 import {
