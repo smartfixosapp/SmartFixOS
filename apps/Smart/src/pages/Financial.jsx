@@ -1391,6 +1391,7 @@ Responde con: 1) resumen de 2 oraciones, 2) un punto positivo, 3) una recomendac
 
         {/* Tab: Técnicos */}
         {activeTab === "tecnicos" && (
+          <PlanGate feature="reports_by_technician" fallback={<UpgradePrompt feature="reports_by_technician" message="Reportes por técnico disponibles en el plan Pro" />}>
           <div className="mt-1">
             <ErrorBoundary>
               <TechnicianProductivityTab
@@ -1400,6 +1401,7 @@ Responde con: 1) resumen de 2 oraciones, 2) un punto positivo, 3) una recomendac
               />
             </ErrorBoundary>
           </div>
+          </PlanGate>
         )}
 
         {/* Tab: Desglose Neto — tabla por venta */}
