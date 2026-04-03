@@ -329,6 +329,12 @@ export default function EditUserModal({ user, onClose, onUpdate, onResendInvite,
           {/* Rol */}
           <div>
             <label className="text-lg font-bold text-cyan-400 mb-4 block theme-light:text-gray-900">Rol del Sistema</label>
+            <PlanGate feature="permissions_roles" fallback={
+              <div className="space-y-2">
+                <p className="text-sm text-white/50">Rol actual: <span className="text-white font-bold">{formData.role}</span></p>
+                <UpgradePrompt feature="permissions_roles" message="Cambio de roles disponible en el plan Pro" />
+              </div>
+            }>
             <div className="grid grid-cols-2 gap-3">
               {roles.map(role => {
                 const Icon = role.icon;
@@ -349,6 +355,7 @@ export default function EditUserModal({ user, onClose, onUpdate, onResendInvite,
                 );
               })}
             </div>
+            </PlanGate>
           </div>
 
           {/* Seguridad — PIN con pad visual */}
