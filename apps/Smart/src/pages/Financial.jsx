@@ -1118,7 +1118,7 @@ Responde con: 1) resumen de 2 oraciones, 2) un punto positivo, 3) una recomendac
               {[
                 { label: "Entró", value: totalRevenue, color: "emerald", icon: TrendingUp, onClick: () => { setActiveTab("movimientos"); setMovFilter("income"); } },
                 { label: "Salió", value: totalExpenses, color: "red", icon: TrendingDown, onClick: () => { setActiveTab("movimientos"); setMovFilter("expense"); } },
-                { label: netProfit >= 0 ? "Neto" : "Déficit", value: Math.abs(netProfit), color: netProfit >= 0 ? "cyan" : "red", icon: DollarSign, onClick: () => setShowNetoBreakdown(true) },
+                { label: netProfit >= 0 ? "Neto" : "Déficit", value: Math.abs(netProfit), color: netProfit >= 0 ? "cyan" : "red", icon: DollarSign, onClick: () => setActiveTab("desglose") },
               ].map((k) => (
                 <button key={k.label} onClick={k.onClick}
                   className={`p-3 rounded-2xl border text-left transition-all active:scale-95 ${
