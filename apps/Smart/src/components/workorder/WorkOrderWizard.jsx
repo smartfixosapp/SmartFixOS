@@ -3799,7 +3799,7 @@ Reglas:
           )}
 
           {/* 🔧 PROBLEMA */}
-          {(!isCompactDevice || (quickOrderMode ? mobileStep === 3 : mobileStep === 4)) && (
+          {!inJenaiInput && (!isCompactDevice || (quickOrderMode ? mobileStep === 3 : mobileStep === 4)) && (
           <div className="bg-white/[0.03] border border-white/[0.08] rounded-[28px] p-6 space-y-5 backdrop-blur-xl shadow-[0_8px_32px_rgba(0,0,0,0.2)] relative overflow-hidden lg:col-span-4 transition-all hover:bg-white/[0.05] group">
             <div className="absolute -right-20 -top-20 w-40 h-40 bg-orange-500/5 rounded-full blur-[80px] group-hover:bg-orange-500/10 transition-colors duration-700" />
             <h3 className="text-white font-black text-lg flex items-center gap-3 relative z-10 uppercase tracking-tight">
