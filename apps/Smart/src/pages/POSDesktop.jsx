@@ -876,8 +876,21 @@ Máximo 30 palabras en total.`;
   }
 
   return (
-    <div className="h-full flex gap-6 bg-black p-6">
-      
+    <div className="h-full flex flex-col bg-black p-6 gap-3">
+      {/* JENAI POS Insights */}
+      <JENAIInsightBanner
+        context="pos"
+        data={{
+          salesToday: 0,
+          totalToday: 0,
+          topProduct: products[0]?.name || "N/A",
+          readyToPay: 0,
+        }}
+        accentColor="cyan"
+        autoLoad={false}
+      />
+
+      <div className="flex-1 flex gap-6 min-h-0">
       {/* LEFT: Products */}
       <div className="flex-1 flex flex-col">
         <div className="mb-6 space-y-4">
