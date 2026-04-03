@@ -816,7 +816,17 @@ export default function WorkOrderWizard({ open, onClose, onSuccess, preloadedCus
   // Técnico
   const [assignedTo, setAssignedTo] = useState(null);
   const [quickOrderMode, setQuickOrderMode] = useState(false);
-  
+
+  // JENAI — Creacion inteligente
+  const [jenaiMode, setJenaiMode] = useState(false);
+  const [jenaiSubMode, setJenaiSubMode] = useState(null); // "quick" | "normal"
+  const [jenaiInput, setJenaiInput] = useState("");
+  const [jenaiPhotos, setJenaiPhotos] = useState([]);
+  const [jenaiProcessing, setJenaiProcessing] = useState(false);
+  const [jenaiError, setJenaiError] = useState("");
+  const [jenaiShowReview, setJenaiShowReview] = useState(false);
+  const jenaiFileRef = useRef(null);
+
   // Dispositivo
   const [deviceType, setDeviceType] = useState("");
   const [deviceBrand, setDeviceBrand] = useState(null);
