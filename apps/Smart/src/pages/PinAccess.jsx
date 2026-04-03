@@ -101,6 +101,8 @@ export default function PinAccess() {
   const pinSectionRef = useRef(null);
   // Ref so the capacitor:deeplink handler always calls the latest performOAuthAuth
   const performOAuthAuthRef = useRef(null);
+  // AbortController para cancelar conditional mediation si el usuario hace login por PIN u otro medio
+  const conditionalMediationAbortRef = useRef(null);
   const [isReady, setIsReady] = useState(false);
   const [checkingUsers, setCheckingUsers] = useState(true);
   const [showRequestAccess, setShowRequestAccess] = useState(false);
