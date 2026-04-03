@@ -1052,11 +1052,14 @@ Reglas:
   const [suggestedProducts, setSuggestedProducts] = useState([]);
   // Mobile step-by-step wizard (only on isCompactDevice)
   // Step 0 = type selector (Rápida vs Regular), then content steps
-  const mobileStepsTotal = quickOrderMode ? 4 : 8;
+  const effectiveQuickMode = jenaiMode ? jenaiSubMode === "quick" : quickOrderMode;
+  const inJenaiInput = jenaiMode && !jenaiShowReview;
+  const mobileStepsTotal = inJenaiInput ? 2 : (effectiveQuickMode ? 4 : 8);
   const isLastMobileStep = isCompactDevice && mobileStep === mobileStepsTotal - 1;
 
   // Validation per step — prevents advancing without required fields
   const canAdvanceMobileStep = useMemo(() => {
+    if (inJenaiInput) return mobileStep === 0 ? true : !!(jenaiInput.trim() || jenaiPhotos.length > 0);
     // Step 0 = type selector, always can advance once mode is set
     if (mobileStep === 0) return true;
     // Step 1 = Cliente
@@ -1072,11 +1075,13 @@ Reglas:
     if (mobileStep === 2 && quickOrderMode) return !!(deviceBrand && deviceModel);
     // All other steps are optional
     return true;
-  }, [mobileStep, quickOrderMode, isB2B, companyName, billingContact, customerPhone, customerEmail, customerName, deviceBrand, deviceModel]);
+  }, [mobileStep, quickOrderMode, inJenaiInput, isB2B, companyName, billingContact, customerPhone, customerEmail, customerName, deviceBrand, deviceModel, jenaiInput, jenaiPhotos.length]);
 
-  const mobileStepLabels = quickOrderMode
-    ? ["Tipo", "Cliente", "Dispositivo", "Problema"]
-    : ["Tipo", "Cliente", "Técnico", "Dispositivo", "Problema", "Seguridad", "Checklist", "Evidencia"];
+  const mobileStepLabels = inJenaiInput
+    ? ["Tipo", "JENAI"]
+    : effectiveQuickMode
+      ? ["Tipo", "Cliente", "Dispositivo", "Problema"]
+      : ["Tipo", "Cliente", "Técnico", "Dispositivo", "Problema", "Seguridad", "Checklist", "Evidencia"];
 
   const checklistTemplateKey = useMemo(() => resolveChecklistTemplate(deviceType), [deviceType]);
   const checklistTemplateItems = useMemo(
