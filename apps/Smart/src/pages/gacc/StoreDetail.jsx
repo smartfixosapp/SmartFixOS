@@ -832,6 +832,13 @@ export default function StoreDetail({ tenant, onBack }) {
               <CreditCard className="w-3.5 h-3.5" />
               Plan & Usuarios
             </button>
+            <button
+              onClick={() => setShowEditModal(true)}
+              className="p-2 rounded-xl text-gray-600 hover:text-white border border-white/[0.07] hover:border-white/[0.15] transition-all"
+              title="Editar tienda"
+            >
+              <Pencil className="w-4 h-4" />
+            </button>
             <button className="p-2 rounded-xl text-gray-600 hover:text-white border border-white/[0.07] hover:border-white/[0.15] transition-all" title="Enviar email">
               <Mail className="w-4 h-4" />
             </button>
