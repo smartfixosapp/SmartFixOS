@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { callGroqAI } from "@/lib/groqAI";
+import { callJENAI } from "@/lib/jenaiEngine";
 import {
   Dialog,
   DialogContent,
