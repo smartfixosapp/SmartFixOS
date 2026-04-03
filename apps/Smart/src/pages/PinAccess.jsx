@@ -863,13 +863,6 @@ export default function PinAccess() {
 
   // ── Biometric early login (directo al usuario, sin seleccionar) ──────────
   const handleEarlyBiometricLogin = async ({ fromAutoTrigger = false } = {}) => {
-    console.log("[Biometric] handleEarlyBiometricLogin →", {
-      fromAutoTrigger,
-      biometricSupported,
-      hasProfile: !!biometricProfile?.session,
-      hasCancelled: hasCancelledBiometric,
-      isNative: Capacitor.isNativePlatform(),
-    });
     if (!biometricSupported || !biometricProfile?.session || hasCancelledBiometric) return;
 
     setBiometricLoading(true);
@@ -881,49 +874,23 @@ export default function PinAccess() {
           reason: "Acceso rápido a SmartFixOS",
           title: "Autenticar",
           subtitle: "Reconocimiento facial o huella",
-          description: "Mira a la cámara para entrar",
-          fallbackTitle: "",        // iOS: oculta el botón "Ingresar contraseña del dispositivo"
+          description: "Usa Face ID o huella para entrar",
+          fallbackTitle: "",
           negativeButtonText: "Cancelar",
         });
-
         if (!result) throw new Error("Verificación fallida");
       } else {
-        // ── FLUJO WEB (Desktop): WebAuthn ──
-        // Usar Conditional Mediation si es auto-trigger (permite Touch ID sin click del usuario)
-        let useConditional = false;
-        if (fromAutoTrigger) {
-          try {
-            useConditional = typeof PublicKeyCredential !== "undefined" &&
-              typeof PublicKeyCredential.isConditionalMediationAvailable === "function" &&
-              await PublicKeyCredential.isConditionalMediationAvailable();
-          } catch { useConditional = false; }
-        }
-
-        // Cancelar cualquier conditional mediation previa
-        if (conditionalMediationAbortRef.current) {
-          conditionalMediationAbortRef.current.abort();
-          conditionalMediationAbortRef.current = null;
-        }
-
-        const abortController = new AbortController();
-        if (useConditional) conditionalMediationAbortRef.current = abortController;
-
+        // ── FLUJO WEB (Desktop/Safari): WebAuthn ──
         const assertion = await navigator.credentials.get({
-          ...(useConditional ? { mediation: "conditional" } : {}),
-          signal: abortController.signal,
           publicKey: {
             challenge: createChallenge(),
             allowCredentials: [{ id: base64ToUint8Array(biometricProfile.credentialId), type: "public-key" }],
             userVerification: "required",
-            rpId: window.location.hostname,
             timeout: 60000,
           },
         });
         if (!assertion?.rawId) throw new Error("No se pudo validar la biometría");
       }
-
-      // Cancelar conditional mediation si existe (ya autenticó)
-      conditionalMediationAbortRef.current = null;
 
       const session = biometricProfile.session;
       if (!session?.id) throw new Error("Sesión expirada");
@@ -931,19 +898,11 @@ export default function PinAccess() {
       saveBiometricProfile({ ...biometricProfile, updatedAt: new Date().toISOString() });
       await completeLogin(session, true);
     } catch (error) {
-      // Ignorar abort (es intencional cuando el usuario hace login por PIN)
-      if (error?.name === "AbortError") {
-        setBiometricLoading(false);
-        return;
-      }
-      console.warn("[Biometric] Auto-trigger falló:", error?.name, error?.message);
-
-      // En Web auto-trigger, si el error es por falta de user gesture (NotAllowedError),
-      // NO marcar como cancelado — el botón manual sigue disponible para un solo click.
-      const isWebAutoTriggerBlocked = fromAutoTrigger && !Capacitor.isNativePlatform() &&
+      console.warn("[Biometric] falló:", error?.name, error?.message);
+      // En auto-trigger web, NotAllowedError = navegador bloqueó (requiere tap) — NO cancelar
+      const browserBlocked = fromAutoTrigger && !Capacitor.isNativePlatform() &&
         (error?.name === "NotAllowedError" || error?.name === "SecurityError");
-
-      if (!isWebAutoTriggerBlocked) {
+      if (!browserBlocked) {
         setHasCancelledBiometric(true);
       }
     } finally {
