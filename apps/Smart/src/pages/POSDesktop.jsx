@@ -234,7 +234,7 @@ Sugiere un precio justo en USD basado en el mercado actual. Responde SOLO con:
 - Justificación: una línea breve
 
 Máximo 30 palabras en total.`;
-      const text = await callGroqAI(prompt, { maxTokens: 80 });
+      const text = await callJENAI(prompt, { maxTokens: 80 });
       setAiPriceSuggestion(text);
     } catch(err) {
       setAiPriceSuggestion("");
