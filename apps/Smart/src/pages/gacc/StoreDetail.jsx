@@ -3,6 +3,7 @@
  * Tabs: Overview, Subscription, Activity, Employees, Support Notes, Audit
  */
 import React, { useState, useEffect, useCallback, useMemo } from "react";
+import { createPortal } from "react-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   ArrowLeft, Building2, Mail, Phone, Globe, MapPin, Calendar,
