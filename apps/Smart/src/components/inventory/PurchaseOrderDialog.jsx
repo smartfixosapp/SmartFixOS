@@ -894,6 +894,19 @@ export default function PurchaseOrderDialog({
     </div>
   );
 
+  if (!canPlan('inventory_purchase_orders')) {
+    return (
+      <Dialog open={open} onOpenChange={(v) => !v && onClose?.(false)}>
+        <DialogContent className="max-w-md bg-[#0a0a0c] border border-white/10 text-white">
+          <DialogHeader>
+            <DialogTitle className="text-lg font-bold">Órdenes de Compra</DialogTitle>
+          </DialogHeader>
+          <UpgradePrompt feature="inventory_purchase_orders" message="Órdenes de compra disponibles en el plan Pro" />
+        </DialogContent>
+      </Dialog>
+    );
+  }
+
   return (
     <Dialog open={open} onOpenChange={(v) => !v && onClose?.(false)}>
       <DialogContent className="bg-[#0a0a0c] border border-white/[0.06] max-w-4xl text-white p-0 overflow-hidden">
