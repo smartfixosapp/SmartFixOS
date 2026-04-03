@@ -55,7 +55,7 @@ CLIENTE: ${customer?.full_name || customer?.name || "Cliente"}
 
 Dime: tipo de cliente (frecuente/ocasional/nuevo), su valor para el negocio, y una acción recomendada (ej: ofrecer descuento, llamar para seguimiento, etc).`;
 
-      const text = await callGroqAI(prompt, { maxTokens: 200 });
+      const text = await callJENAI(prompt, { maxTokens: 200 });
       setAiClientSummary(text);
     } catch(err) {
       setAiClientSummary("⚠️ " + err.message);
