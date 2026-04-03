@@ -115,7 +115,7 @@ function SessionTimer() {
 }
 
 // ── Main Layout ──────────────────────────────────────────────────────────────
-export default function GACCLayout({ activeSection, onSectionChange, children }) {
+export default function GACCLayout({ activeSection, onSectionChange, onOpenPalette, children }) {
   const navigate = useNavigate();
   const [authorized, setAuthorized] = useState(false);
   const [collapsed, setCollapsed] = useState(false);
