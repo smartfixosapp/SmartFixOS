@@ -1363,7 +1363,13 @@ export default function WorkOrderPanel({ orderId, onClose, onUpdate, onDelete, p
   // expulsa al técnico por inactividad (puede estar trabajando en silencio).
   useEffect(() => {
     window.__sfos_setOrderActive?.(true);
-    return () => { window.__sfos_setOrderActive?.(false); };
+    window.__sfos_workOrderOpen = true;
+    window.dispatchEvent(new CustomEvent("smartfix:workorder-open", { detail: { open: true } }));
+    return () => {
+      window.__sfos_setOrderActive?.(false);
+      window.__sfos_workOrderOpen = false;
+      window.dispatchEvent(new CustomEvent("smartfix:workorder-open", { detail: { open: false } }));
+    };
   }, []);
 
   const [order, setOrder] = useState(null);
