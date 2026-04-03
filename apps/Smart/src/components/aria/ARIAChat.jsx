@@ -639,7 +639,14 @@ export default function ARIAChat() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open]);
 
-  if (isHidden) return null;
+  // Escuchar cambios del toggle desde Settings
+  React.useEffect(() => {
+    const handler = (e) => setEnabled(e.detail?.enabled !== false);
+    window.addEventListener("smartfix:darjeni-toggle", handler);
+    return () => window.removeEventListener("smartfix:darjeni-toggle", handler);
+  }, []);
+
+  if (isHidden || !enabled) return null;
 
   // ── Construye el prompt de sistema ───────────────────────────────────────────
   const buildSystem = () => {
