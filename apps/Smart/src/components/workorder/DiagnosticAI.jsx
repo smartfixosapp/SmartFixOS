@@ -131,7 +131,7 @@ function ChatMessage({ msg }) {
 }
 
 // ── Main Component ───────────────────────────────────────────────────────────
-export default function DiagnosticAI({ order, checklist = [], deviceCategory = "generic" }) {
+export default function DiagnosticAI({ order, checklist = [], deviceCategory = "generic", mode = "diagnosis" }) {
   const [open, setOpen]         = useState(false);
   const [messages, setMessages] = useState([]);
   const [input, setInput]       = useState("");
