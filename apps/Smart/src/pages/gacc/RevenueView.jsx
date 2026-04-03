@@ -345,6 +345,59 @@ function PaymentHistory({ subscriptions, tenants }) {
   );
 }
 
+// ── MRR Growth Chart (simple bar chart) ──────────────────────────────────────
+function MRRChart({ tenants }) {
+  const months = useMemo(() => {
+    // Build MRR by month based on tenant created_date
+    const now = new Date();
+    const data = [];
+    for (let i = 5; i >= 0; i--) {
+      const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+      const label = d.toLocaleDateString("es", { month: "short", year: "2-digit" });
+      const endOfMonth = new Date(d.getFullYear(), d.getMonth() + 1, 0);
+
+      // Count tenants active by end of that month
+      const activeTenants = tenants.filter(t => {
+        if (!t.created_date) return false;
+        return new Date(t.created_date) <= endOfMonth && t.status !== "cancelled";
+      });
+      const mrr = activeTenants.reduce((sum, t) => sum + (t.effective_monthly_cost || 0), 0);
+      const count = activeTenants.length;
+      data.push({ label, mrr, count });
+    }
+    return data;
+  }, [tenants]);
+
+  const maxMRR = Math.max(...months.map(m => m.mrr), 1);
+
+  return (
+    <div className="rounded-2xl border border-white/[0.07] bg-white/[0.02] p-4">
+      <div className="flex items-center gap-2 mb-4">
+        <TrendingUp className="w-4 h-4 text-emerald-400" />
+        <p className="text-[13px] font-bold text-white">MRR Growth (6 meses)</p>
+      </div>
+      <div className="flex items-end gap-3 h-40">
+        {months.map((m, i) => {
+          const height = Math.max((m.mrr / maxMRR) * 100, 4);
+          return (
+            <div key={i} className="flex-1 flex flex-col items-center gap-1">
+              <p className="text-[11px] font-bold text-white tabular-nums">${m.mrr}</p>
+              <motion.div
+                initial={{ height: 0 }}
+                animate={{ height: `${height}%` }}
+                transition={{ duration: 0.5, delay: i * 0.08 }}
+                className="w-full rounded-t-lg bg-gradient-to-t from-purple-500/60 to-cyan-500/60 min-h-[4px]"
+              />
+              <p className="text-[10px] text-gray-600">{m.label}</p>
+              <p className="text-[9px] text-gray-700">{m.count} tiendas</p>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
 // ── Main Revenue View ────────────────────────────────────────────────────────
 export default function RevenueView() {
   const { tenants, subscriptions, loading, refresh } = useGACC();
