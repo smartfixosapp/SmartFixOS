@@ -2233,6 +2233,8 @@ Reglas:
     setJenaiProcessing(false);
     setJenaiError("");
     setJenaiShowReview(false);
+    setJenaiConfirm(null);
+    setJenaiListening(false);
   };
 
   const addItemToOrder = (item) => {
