@@ -371,6 +371,10 @@ export default function RevenueView() {
       </div>
 
       <MRRBreakdown tenants={tenants} subscriptions={subscriptions} />
+
+      {/* MRR Growth Chart */}
+      <MRRChart tenants={tenants} />
+
       <DunningQueue subscriptions={subscriptions} tenants={tenants} onAction={handleDunningAction} />
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
