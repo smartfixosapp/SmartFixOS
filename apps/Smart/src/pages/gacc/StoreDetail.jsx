@@ -653,10 +653,119 @@ function ChangePlanModal({ tenant, open, onClose }) {
   );
 }
 
+// ── Edit Store Modal ─────────────────────────────────────────────────────────
+function EditStoreModal({ tenant, open, onClose }) {
+  const { adminSupabase, refresh } = useGACC();
+  const [form, setForm] = useState({
+    name: tenant.name || "",
+    email: tenant.email || "",
+    admin_name: tenant.admin_name || "",
+    admin_phone: tenant.admin_phone || "",
+    country: tenant.country || "",
+    currency: tenant.currency || "USD",
+    timezone: tenant.timezone || "America/Puerto_Rico",
+    address: tenant.address || "",
+  });
+  const [saving, setSaving] = useState(false);
+
+  const update = (key, val) => setForm(prev => ({ ...prev, [key]: val }));
+
+  const handleSave = async () => {
+    if (!form.name.trim() || !form.email.trim()) { toast.error("Nombre y email son requeridos"); return; }
+    setSaving(true);
+    try {
+      const { error } = await adminSupabase.from("tenant").update(form).eq("id", tenant.id);
+      if (error) throw error;
+      toast.success("Tienda actualizada");
+      refresh();
+      onClose();
+    } catch (e) {
+      toast.error("Error: " + e.message);
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  if (!open) return null;
+
+  const fields = [
+    { key: "name", label: "Nombre", placeholder: "Nombre de la tienda", required: true },
+    { key: "email", label: "Email", placeholder: "email@ejemplo.com", type: "email", required: true },
+    { key: "admin_name", label: "Contacto / Admin", placeholder: "Nombre del administrador" },
+    { key: "admin_phone", label: "Telefono", placeholder: "+1 787 000 0000" },
+    { key: "country", label: "Pais", placeholder: "PR, US, MX..." },
+    { key: "address", label: "Direccion", placeholder: "Direccion fisica" },
+    { key: "timezone", label: "Timezone", placeholder: "America/Puerto_Rico" },
+  ];
+
+  return createPortal(
+    <AnimatePresence>
+      <motion.div
+        initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+        className="fixed inset-0 z-[9999] bg-black/60 backdrop-blur-sm flex items-center justify-center p-4"
+        onClick={onClose}
+      >
+        <motion.div
+          initial={{ opacity: 0, scale: 0.95, y: 10 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.95, y: 10 }}
+          className="w-full max-w-md bg-[#141416] border border-white/[0.1] rounded-2xl shadow-2xl overflow-hidden"
+          onClick={e => e.stopPropagation()}
+        >
+          <div className="flex items-center justify-between px-5 py-4 border-b border-white/[0.06]">
+            <div>
+              <p className="text-[14px] font-bold text-white">Editar Tienda</p>
+              <p className="text-[11px] text-gray-600">{tenant.name}</p>
+            </div>
+            <button onClick={onClose} className="p-1.5 rounded-lg text-gray-600 hover:text-white hover:bg-white/[0.05]">
+              <XCircle className="w-5 h-5" />
+            </button>
+          </div>
+
+          <div className="px-5 py-4 space-y-3 max-h-[60vh] overflow-y-auto">
+            {fields.map(f => (
+              <div key={f.key}>
+                <p className="text-[10px] text-gray-500 uppercase tracking-wide font-bold mb-1">
+                  {f.label} {f.required && <span className="text-red-400">*</span>}
+                </p>
+                <input
+                  type={f.type || "text"}
+                  value={form[f.key]}
+                  onChange={e => update(f.key, e.target.value)}
+                  placeholder={f.placeholder}
+                  className="w-full px-3 py-2.5 rounded-xl bg-white/[0.03] border border-white/[0.07] text-[13px] text-white placeholder:text-gray-700 focus:outline-none focus:border-purple-500/40"
+                />
+              </div>
+            ))}
+            <div>
+              <p className="text-[10px] text-gray-500 uppercase tracking-wide font-bold mb-1">Moneda</p>
+              <select
+                value={form.currency}
+                onChange={e => update("currency", e.target.value)}
+                className="w-full px-3 py-2.5 rounded-xl bg-white/[0.03] border border-white/[0.07] text-[13px] text-white outline-none cursor-pointer"
+              >
+                {["USD", "EUR", "MXN", "COP", "ARS", "BRL"].map(c => <option key={c} value={c}>{c}</option>)}
+              </select>
+            </div>
+          </div>
+
+          <div className="flex items-center justify-end gap-2 px-5 py-4 border-t border-white/[0.06]">
+            <button onClick={onClose} className="px-4 py-2 rounded-xl text-[12px] text-gray-500 hover:text-white transition-all">Cancelar</button>
+            <button onClick={handleSave} disabled={saving} className="flex items-center gap-1.5 px-5 py-2 rounded-xl text-[12px] font-semibold bg-purple-500/20 text-purple-300 border border-purple-500/30 hover:bg-purple-500/30 transition-all disabled:opacity-50">
+              {saving ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : <CheckCircle className="w-3.5 h-3.5" />}
+              Guardar
+            </button>
+          </div>
+        </motion.div>
+      </motion.div>
+    </AnimatePresence>,
+    document.body
+  );
+}
+
 // ── Main Store Detail ────────────────────────────────────────────────────────
 export default function StoreDetail({ tenant, onBack }) {
   const [activeTab, setActiveTab] = useState("overview");
   const [showPlanModal, setShowPlanModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
   const badge = getStatusBadge(tenant);
   const presence = presenceStatus(tenant.last_seen);
   const planConfig = getPlanConfig(tenant.effective_plan || tenant.plan);
