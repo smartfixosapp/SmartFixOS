@@ -1386,6 +1386,7 @@ Responde con: 1) resumen de 2 oraciones, 2) un punto positivo, 3) una recomendac
               </ErrorBoundary>
             </div>
           </div>
+          </PlanGate>
         )}
 
         {/* Tab: Técnicos */}
