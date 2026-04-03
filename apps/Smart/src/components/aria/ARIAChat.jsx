@@ -412,6 +412,8 @@ export default function ARIAChat() {
   const [tourAutoShown, setTourAutoShown] = useState(() => localStorage.getItem(JENAI_SHOWN_KEY) === "1");
   // respeta el toggle de Settings
   const [enabled, setEnabled] = useState(() => localStorage.getItem("smartfix_jenai_disabled") !== "true");
+  // ocultar cuando hay orden abierta (JENAI ya esta integrado dentro)
+  const [workOrderOpen, setWorkOrderOpen] = useState(() => !!window.__sfos_workOrderOpen);
   const [messages, setMessages]   = useState([]);
   const [input, setInput]         = useState("");
   const [loading, setLoading]     = useState(false);
