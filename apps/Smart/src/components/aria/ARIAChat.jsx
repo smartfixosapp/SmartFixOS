@@ -500,7 +500,7 @@ export default function ARIAChat() {
       setTourTipLoading(true);
       try {
         const prompt = `Eres JENAI, asistente de SmartFixOS (taller de reparación). Da UN tip práctico y corto (máx 2 oraciones, máx 30 palabras) sobre: ${step.aiTopic}. Directo, sin saludos. En español.`;
-        const tip = await callGroqAI(prompt, { maxTokens: 80, temperature: 0.6 });
+        const tip = await callJENAI(prompt, { maxTokens: 80, temperature: 0.6 });
         setTourTips(prev => ({ ...prev, [tourStep]: tip }));
         tourLoadedTips.current.add(tourStep);
       } catch { /* si falla la IA, sin tip extra */ }
