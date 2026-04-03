@@ -35,7 +35,6 @@ import { usePushNotifications } from "@/hooks/usePushNotifications";
 
 export default function Layout({ children }) {
   const location = useLocation();
-  const navigate = useNavigate();
   const [user, setUser] = useState(null);
   const [tenant, setTenant] = useState(null);
   const [theme, setTheme] = useState("dark");
