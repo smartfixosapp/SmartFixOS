@@ -863,7 +863,7 @@ export default function SettingsPage() {
         {
           id: "jenai_toggle",
           icon: Bot,
-          title: "Asistente DARJENI",
+          title: "Asistente JENAI",
           description: "IA flotante en todas las pantallas",
           color: "from-blue-500 to-violet-600",
           isToggle: true,
