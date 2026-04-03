@@ -331,6 +331,13 @@ export default function RepairStage({ order, onUpdate, onOrderItemsUpdate, onRem
         subtitle="Registra piezas y servicios que impactan esta reparación."
       />
 
+      {/* ── Asistente de Reparacion IA ── */}
+      <DiagnosticAI
+        order={order}
+        checklist={Array.isArray(o.checklist_items) ? o.checklist_items : []}
+        deviceCategory={detectRepairDeviceCategory(o)}
+      />
+
       {/* ── HISTORIAL / FOTOS / NOTAS ────────────────────────────────────── */}
       <WorkOrderUnifiedHub
         order={order}
