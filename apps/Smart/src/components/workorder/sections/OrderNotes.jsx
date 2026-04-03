@@ -121,10 +121,11 @@ export default function OrderNotes({ order, onUpdate }) {
           </CardTitle>
         </CardHeader>
         <CardContent className="pt-4 space-y-4">
+          <PlanGate feature="orders_internal_notes" fallback={<UpgradePrompt feature="orders_internal_notes" message="Notas internas disponibles en el plan Pro" />}>
           <div className="space-y-2">
             <label className="text-xs text-gray-500 font-medium">AÑADIR COMENTARIO</label>
             <div className="flex gap-2">
-              <Input 
+              <Input
                 value={note}
                 onChange={(e) => setNote(e.target.value)}
                 placeholder="Escribe un comentario..."
@@ -140,14 +141,14 @@ export default function OrderNotes({ order, onUpdate }) {
           <div className="space-y-2">
             <label className="text-xs text-gray-500 font-medium">AÑADIR LINK DE PIEZA</label>
             <div className="space-y-2">
-              <Input 
+              <Input
                 value={linkPart}
                 onChange={(e) => setLinkPart(e.target.value)}
                 placeholder="Nombre de la pieza *"
                 className="bg-black/40 border-white/10 text-white"
               />
               <div className="flex gap-2">
-                <Input 
+                <Input
                   value={linkUrl}
                   onChange={(e) => setLinkUrl(e.target.value)}
                   placeholder="https://proveedor.com/producto..."
@@ -159,6 +160,7 @@ export default function OrderNotes({ order, onUpdate }) {
               </div>
             </div>
           </div>
+          </PlanGate>
 
           {/* Comentarios */}
           {events.filter(e => e.event_type !== 'status_change').length > 0 && (
