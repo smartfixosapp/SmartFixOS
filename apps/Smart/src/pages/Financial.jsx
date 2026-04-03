@@ -1366,6 +1366,102 @@ Responde con: 1) resumen de 2 oraciones, 2) un punto positivo, 3) una recomendac
           </div>
         )}
 
+        {/* Tab: Desglose Neto */}
+        {activeTab === "desglose" && (
+          <div className="space-y-2 mt-1">
+            <p className="text-[10px] font-black text-white/25 uppercase tracking-widest px-1">Cómo se calcula tu ganancia real</p>
+
+            {/* Tabla de desglose — mismo estilo que movimientos */}
+            <div className="rounded-2xl border border-white/[0.08] overflow-hidden">
+              {[
+                {
+                  label: "Ingresos brutos",
+                  sub: "Total cobrado a clientes",
+                  value: totalRevenue,
+                  sign: "+",
+                  color: "text-emerald-400",
+                  bg: "bg-emerald-500/[0.04]",
+                },
+                {
+                  label: "IVU / Impuesto cobrado",
+                  sub: "No es tuyo — se reporta al gobierno",
+                  value: totalIVU,
+                  sign: "−",
+                  color: "text-red-400",
+                  bg: "",
+                },
+                {
+                  label: "Ingresos sin IVU",
+                  sub: "Lo que realmente entraste",
+                  value: totalRevenueBeforeTax,
+                  sign: "=",
+                  color: "text-white",
+                  bg: "bg-white/[0.04]",
+                  divider: true,
+                },
+                {
+                  label: "Costo de piezas / servicios",
+                  sub: "Costo de inventario vendido",
+                  value: totalPartsCost,
+                  sign: "−",
+                  color: "text-orange-400",
+                  bg: "",
+                },
+                {
+                  label: "Margen bruto",
+                  sub: "Sin IVU ni costo de producto",
+                  value: grossMargin,
+                  sign: "=",
+                  color: grossMargin >= 0 ? "text-cyan-400" : "text-red-400",
+                  bg: "bg-white/[0.04]",
+                  divider: true,
+                },
+                {
+                  label: "Gastos operacionales",
+                  sub: "Renta, nómina, utilidades, etc.",
+                  value: totalExpenses,
+                  sign: "−",
+                  color: "text-red-400",
+                  bg: "",
+                },
+              ].map((row, i) => (
+                <div key={i} className={`flex items-center gap-3 px-4 py-3 ${row.bg} ${row.divider ? "border-t border-b border-white/[0.08]" : i > 0 ? "border-t border-white/[0.05]" : ""}`}>
+                  <span className={`text-xs font-black w-4 text-center shrink-0 ${row.color}`}>{row.sign}</span>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-bold text-white truncate">{row.label}</p>
+                    <p className="text-[10px] text-white/30">{row.sub}</p>
+                  </div>
+                  <p className={`text-sm font-black tabular-nums shrink-0 ${row.color}`}>
+                    ${Math.abs(row.value).toFixed(2)}
+                  </p>
+                </div>
+              ))}
+
+              {/* Ganancia neta real — fila destacada */}
+              <div className={`flex items-center gap-3 px-4 py-4 border-t-2 ${trueNetProfit >= 0 ? "border-emerald-500/30 bg-emerald-500/[0.07]" : "border-red-500/30 bg-red-500/[0.07]"}`}>
+                <span className={`text-sm font-black w-4 text-center shrink-0 ${trueNetProfit >= 0 ? "text-emerald-400" : "text-red-400"}`}>=</span>
+                <div className="flex-1 min-w-0">
+                  <p className="text-base font-black text-white">Ganancia neta real</p>
+                  <p className="text-[10px] text-white/30">Después de IVU, piezas y gastos</p>
+                </div>
+                <p className={`text-xl font-black tabular-nums shrink-0 ${trueNetProfit >= 0 ? "text-emerald-400" : "text-red-400"}`}>
+                  {trueNetProfit < 0 ? "−" : "+"}${Math.abs(trueNetProfit).toFixed(2)}
+                </p>
+              </div>
+            </div>
+
+            {/* Aviso si hay diferencia con el Neto del panel */}
+            {totalPartsCost > 0 && (
+              <div className="flex gap-3 p-3.5 rounded-2xl bg-amber-500/[0.07] border border-amber-500/20">
+                <span className="text-amber-400 text-base shrink-0">💡</span>
+                <p className="text-xs text-amber-300/80 leading-relaxed">
+                  El <strong>Neto</strong> del panel muestra <strong>${Math.abs(netProfit).toFixed(2)}</strong> (ingresos − gastos), pero no descuenta el costo de piezas. Tu ganancia real es <strong>${trueNetProfit.toFixed(2)}</strong>.
+                </p>
+              </div>
+            )}
+          </div>
+        )}
+
           </div>{/* fin main content */}
         </div>{/* fin lg:flex */}
       </div>{/* fin max-w-7xl outer */}
