@@ -3250,8 +3250,8 @@ export default function PinAccess() {
             {/* Input oculto para Conditional Mediation (WebAuthn auto-trigger Touch ID) */}
             <input type="hidden" autoComplete="webauthn" tabIndex={-1} />
 
-            {/* ── Biometric Quick Login (si hay perfil guardado) ── */}
-            {biometricSupported && biometricProfile?.session && (
+            {/* ── Biometric Quick Login ── */}
+            {biometricSupported && (
               <motion.div
                 initial={{ opacity: 0, y: -10 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -3259,24 +3259,42 @@ export default function PinAccess() {
               >
                 {(() => {
                   const { label, type } = getBiometricType();
+                  const hasProfile = !!biometricProfile?.session;
                   return (
                     <button
-                      onClick={handleEarlyBiometricLogin}
-                      disabled={biometricLoading}
-                      className="w-full rounded-3xl border-2 border-emerald-500/40 bg-gradient-to-br from-emerald-500/15 via-emerald-600/10 to-cyan-500/10 p-6 backdrop-blur-xl flex flex-col items-center gap-3 hover:from-emerald-500/25 hover:via-emerald-600/15 hover:to-cyan-500/15 transition-all active:scale-[0.98] disabled:opacity-60 shadow-[0_0_30px_rgba(16,185,129,0.15)]"
+                      onClick={hasProfile ? handleEarlyBiometricLogin : undefined}
+                      disabled={biometricLoading || !hasProfile}
+                      className={`w-full rounded-3xl border-2 p-6 backdrop-blur-xl flex flex-col items-center gap-3 transition-all active:scale-[0.98] ${
+                        hasProfile
+                          ? "border-emerald-500/40 bg-gradient-to-br from-emerald-500/15 via-emerald-600/10 to-cyan-500/10 shadow-[0_0_30px_rgba(16,185,129,0.15)] hover:from-emerald-500/25"
+                          : "border-white/10 bg-white/[0.03]"
+                      } disabled:opacity-60`}
                     >
-                      <div className="w-20 h-20 rounded-full bg-emerald-500/20 border-2 border-emerald-400/40 flex items-center justify-center shadow-[0_0_25px_rgba(16,185,129,0.3)]">
+                      <div className={`w-20 h-20 rounded-full border-2 flex items-center justify-center ${
+                        hasProfile
+                          ? "bg-emerald-500/20 border-emerald-400/40 shadow-[0_0_25px_rgba(16,185,129,0.3)]"
+                          : "bg-white/5 border-white/15"
+                      }`}>
                         {biometricLoading ? (
                           <div className="w-10 h-10 border-3 border-emerald-400/30 border-t-emerald-400 rounded-full animate-spin" />
                         ) : (
-                          <BiometricIcon type={type} size="lg" className="text-emerald-300" />
+                          <BiometricIcon type={type} size="lg" className={hasProfile ? "text-emerald-300" : "text-white/40"} />
                         )}
                       </div>
                       <div className="text-center">
-                        <p className="text-white font-black text-lg">Toca para entrar</p>
-                        <p className="text-emerald-300/80 text-sm font-medium truncate max-w-[200px]">
-                          {biometricProfile.session?.userName || biometricProfile.session?.full_name || "Usuario guardado"}
-                        </p>
+                        {hasProfile ? (
+                          <>
+                            <p className="text-white font-black text-lg">Toca para entrar</p>
+                            <p className="text-emerald-300/80 text-sm font-medium truncate max-w-[200px]">
+                              {biometricProfile.session?.userName || biometricProfile.session?.full_name || "Usuario guardado"}
+                            </p>
+                          </>
+                        ) : (
+                          <>
+                            <p className="text-white/50 font-bold text-sm">{label} disponible</p>
+                            <p className="text-white/30 text-xs">Inicia sesión abajo para activar {label}</p>
+                          </>
+                        )}
                         <p className="text-white/30 text-xs mt-1">{label}</p>
                       </div>
                     </button>
