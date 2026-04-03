@@ -237,7 +237,7 @@ export default function TutorialTour({ isOpen, onClose, onComplete }) {
         const prompt = `Eres el asistente de SmartFixOS, un sistema para talleres de reparación.
 Da UN tip práctico y corto (máximo 2 oraciones) sobre: ${currentStep.aiTopic}.
 Empieza directamente con el tip, sin saludos. En español. Máximo 30 palabras.`;
-        const tip = await callGroqAI(prompt, { maxTokens: 80, temperature: 0.6 });
+        const tip = await callJENAI(prompt, { maxTokens: 80, temperature: 0.6 });
         setAiTips(prev => ({ ...prev, [step]: tip }));
         loadedTips.current.add(step);
       } catch {
