@@ -858,11 +858,9 @@ export default function PinAccess() {
   performOAuthAuthRef.current = performOAuthAuth;
 
   // ── Biometric early login (directo al usuario, sin seleccionar) ──────────
-  const handleEarlyBiometricLogin = async () => {
+  const handleEarlyBiometricLogin = async ({ fromAutoTrigger = false } = {}) => {
     if (!biometricSupported || !biometricProfile?.session || hasCancelledBiometric) return;
-    
-    // Omitimos validación estricta de User-Agent por diferencias entre iOS Web y PWA
-    
+
     setBiometricLoading(true);
     setError("");
     try {
@@ -876,20 +874,45 @@ export default function PinAccess() {
           fallbackTitle: "",        // iOS: oculta el botón "Ingresar contraseña del dispositivo"
           negativeButtonText: "Cancelar",
         });
-        
+
         if (!result) throw new Error("Verificación fallida");
       } else {
         // ── FLUJO WEB (Desktop): WebAuthn ──
+        // Usar Conditional Mediation si es auto-trigger (permite Touch ID sin click del usuario)
+        let useConditional = false;
+        if (fromAutoTrigger) {
+          try {
+            useConditional = typeof PublicKeyCredential !== "undefined" &&
+              typeof PublicKeyCredential.isConditionalMediationAvailable === "function" &&
+              await PublicKeyCredential.isConditionalMediationAvailable();
+          } catch { useConditional = false; }
+        }
+
+        // Cancelar cualquier conditional mediation previa
+        if (conditionalMediationAbortRef.current) {
+          conditionalMediationAbortRef.current.abort();
+          conditionalMediationAbortRef.current = null;
+        }
+
+        const abortController = new AbortController();
+        if (useConditional) conditionalMediationAbortRef.current = abortController;
+
         const assertion = await navigator.credentials.get({
+          ...(useConditional ? { mediation: "conditional" } : {}),
+          signal: abortController.signal,
           publicKey: {
             challenge: createChallenge(),
             allowCredentials: [{ id: base64ToUint8Array(biometricProfile.credentialId), type: "public-key" }],
             userVerification: "required",
+            rpId: window.location.hostname,
             timeout: 60000,
           },
         });
         if (!assertion?.rawId) throw new Error("No se pudo validar la biometría");
       }
+
+      // Cancelar conditional mediation si existe (ya autenticó)
+      conditionalMediationAbortRef.current = null;
 
       const session = biometricProfile.session;
       if (!session?.id) throw new Error("Sesión expirada");
@@ -897,18 +920,21 @@ export default function PinAccess() {
       saveBiometricProfile({ ...biometricProfile, updatedAt: new Date().toISOString() });
       await completeLogin(session, true);
     } catch (error) {
+      // Ignorar abort (es intencional cuando el usuario hace login por PIN)
+      if (error?.name === "AbortError") {
+        setBiometricLoading(false);
+        return;
+      }
       console.warn("[Biometric] Auto-trigger falló:", error?.name, error?.message);
 
-      // En Web, si el error es por falta de user gesture (NotAllowedError sin interacción),
+      // En Web auto-trigger, si el error es por falta de user gesture (NotAllowedError),
       // NO marcar como cancelado — el botón manual sigue disponible para un solo click.
-      const isWebAutoTriggerBlocked = !Capacitor.isNativePlatform() &&
+      const isWebAutoTriggerBlocked = fromAutoTrigger && !Capacitor.isNativePlatform() &&
         (error?.name === "NotAllowedError" || error?.name === "SecurityError");
 
       if (!isWebAutoTriggerBlocked) {
-        // Error real (usuario canceló, FaceID fallido, etc.) — marcar como cancelado para PIN fallback
         setHasCancelledBiometric(true);
       }
-      // Si fue bloqueado por el navegador, no hacemos nada — el botón de Touch ID queda listo
     } finally {
       setBiometricLoading(false);
     }
