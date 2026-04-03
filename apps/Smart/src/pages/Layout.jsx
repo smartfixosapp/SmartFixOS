@@ -126,9 +126,8 @@ export default function Layout({ children }) {
 
     if (!sessionRaw) {
       setUser(null);
-      // Usar React Router en lugar de hard-redirect — evita conflicto con AuthGate
-      // y previene pantalla negra en PWA/acceso directo
-      navigate("/PinAccess", { replace: true });
+      // No redirigir desde Layout — AuthGate es el guard de auth y maneja todos los redirects.
+      // Redirigir aquí crea un loop cuando completeLogin() navega al Dashboard.
       return;
     }
 
