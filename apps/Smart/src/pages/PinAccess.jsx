@@ -1657,11 +1657,6 @@ export default function PinAccess() {
     })();
   }, [navigate]);
 
-  useEffect(() => {
-    canUseBiometricLogin().then(setBiometricSupported).catch(() => setBiometricSupported(false));
-    setBiometricProfile(loadBiometricProfile());
-  }, []);
-
   // ── Auto-trigger biométrico ─────────────────────────────────────────────
   // Se activa tan pronto como la página está lista y hay un perfil biométrico guardado.
   // No espera la selección de usuario — entra directo al usuario al que pertenece la biometría.
