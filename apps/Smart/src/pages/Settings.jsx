@@ -48,6 +48,7 @@ export default function SettingsPage() {
   const [loading, setLoading] = useState(false);
   const [activeSection, setActiveSection]   = useState(null);
   const [showPriceWidget, setShowPriceWidget] = useState(() => localStorage.getItem("smartfix_show_price_widget") !== "false");
+  const [darjeniEnabled, setDarjeniEnabled] = useState(() => localStorage.getItem("smartfix_darjeni_disabled") !== "true");
   const [showFeedback,  setShowFeedback]    = useState(false);
 
   // ── Sesión del usuario actual ──────────────────────────────────────────
