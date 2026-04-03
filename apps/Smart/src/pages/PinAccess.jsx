@@ -1272,8 +1272,18 @@ export default function PinAccess() {
 
     toast.success(`¡Bienvenido, ${session.userName}!`, { duration: 2000 });
 
-    // Navegación SPA limpia — Auth.jsx tiene un guard de race-condition
-    // que muestra spinner si user state aún no se ha aplicado
+    // Si el dispositivo soporta biometría y aún no está configurada → ofrecer activarla
+    // El kiosk early-return ya tiene !showBiometricOffer, así que el modal es visible
+    const alreadyHasBiometric =
+      biometricProfile?.credentialId &&
+      (biometricProfile?.userId === session.id || !biometricProfile?.userId);
+
+    if (!fromBiometric && biometricSupported && !alreadyHasBiometric) {
+      setPendingLoginSession(session);
+      setShowBiometricOffer(true);
+      return; // navegar después de que el usuario responda el modal
+    }
+
     navigate("/Dashboard", { replace: true });
   };
 
