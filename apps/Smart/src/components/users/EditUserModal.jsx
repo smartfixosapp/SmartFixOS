@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { X, Check, Edit3, Send, Delete, KeyRound, RotateCcw } from "lucide-react";
 import { toast } from "sonner";
+import { PlanGate, UpgradePrompt } from "@/components/plan/UpgradePrompt";
 
 // ── PinPad visual para cambio de PIN ─────────────────────────────────────────
 function PinPadSection({ currentPin, onPinChange }) {
