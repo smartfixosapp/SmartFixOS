@@ -1457,54 +1457,13 @@ export default function PinAccess() {
   }, []); // set up once on mount
 
   // 🛡️ Initialize Biometric Support and Profile on mount
-  // En nativo: lanza Face ID/Touch ID DIRECTAMENTE aquí, sin esperar re-render de React.
   useEffect(() => {
-    let cancelled = false;
     (async () => {
       const supported = await canUseBiometricLogin();
       const profile = loadBiometricProfile();
-      console.log("[Biometric] Init →", {
-        supported,
-        hasProfile: !!profile,
-        credentialId: profile?.credentialId?.slice?.(0, 20) || profile?.credentialId,
-        hasSession: !!profile?.session,
-        isNative: Capacitor.isNativePlatform(),
-      });
       setBiometricSupported(supported);
       setBiometricProfile(profile);
-
-      // ── NATIVO: Auto-trigger Face ID / Touch ID directamente ──
-      // No esperamos a que React propague el state — usamos las variables locales.
-      if (cancelled) return;
-      if (!Capacitor.isNativePlatform()) return;
-      if (!supported || !profile?.credentialId || !profile?.session) return;
-
-      console.log("[Biometric] Launching native auto-trigger (Face ID / Touch ID)...");
-      setBiometricLoading(true);
-      try {
-        const result = await NativeBiometric.verifyIdentity({
-          reason: "Acceso rápido a SmartFixOS",
-          title: "Autenticar",
-          subtitle: "Reconocimiento facial o huella",
-          description: "Usa Face ID o huella para entrar",
-          fallbackTitle: "",
-          negativeButtonText: "Cancelar",
-        });
-        if (!result) throw new Error("Verificación fallida");
-
-        const session = profile.session;
-        if (!session?.id) throw new Error("Sesión expirada");
-
-        saveBiometricProfile({ ...profile, updatedAt: new Date().toISOString() });
-        if (!cancelled) await completeLogin(session, true);
-      } catch (err) {
-        console.warn("[Biometric] Native auto-trigger failed:", err?.name, err?.message);
-        if (!cancelled) setHasCancelledBiometric(true);
-      } finally {
-        if (!cancelled) setBiometricLoading(false);
-      }
     })();
-    return () => { cancelled = true; };
   }, []);
 
   useEffect(() => {
