@@ -24,6 +24,7 @@ function lazyWithRetry(fn) {
 // Lazy-loaded pages — each becomes its own chunk
 const Activate              = lazyWithRetry(() => import("./Activate"));
 const SuperAdmin            = lazyWithRetry(() => import("./SuperAdmin"));
+const GACC                  = lazyWithRetry(() => import("./gacc"));
 const AdminDashboard        = lazyWithRetry(() => import("./AdminDashboard"));
 const AuditLog              = lazyWithRetry(() => import("./AuditLog"));
 const CashHistory           = lazyWithRetry(() => import("./CashHistory"));
