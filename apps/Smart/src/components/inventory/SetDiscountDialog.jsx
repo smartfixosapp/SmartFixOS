@@ -7,8 +7,11 @@ import { Badge } from '@/components/ui/badge';
 import { dataClient } from '@/components/api/dataClient';
 import { Tag, Percent, Calendar, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
+import { usePlanLimits } from "@/hooks/usePlanLimits";
+import { UpgradePrompt } from "@/components/plan/UpgradePrompt";
 
 export default function SetDiscountDialog({ open, onClose, products, onSuccess }) {
+  const { can: canPlan } = usePlanLimits();
   const [formData, setFormData] = useState({
     discount_percentage: '',
     discount_label: '',
