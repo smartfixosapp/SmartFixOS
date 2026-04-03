@@ -318,7 +318,11 @@ function EditStatusDialog({ status, onSave, onCancel }) {
   );
 }
 
+import { usePlanLimits } from "@/hooks/usePlanLimits";
+import { PlanGate, UpgradePrompt } from "@/components/plan/UpgradePrompt";
+
 export default function OrderStatusManagementTab() {
+  const { can: canPlan, checkLimit } = usePlanLimits();
   const [statuses, setStatuses] = useState([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
