@@ -3,7 +3,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { dataClient } from "@/components/api/dataClient";
 import { X, Mic, ChevronRight, CheckCircle2, ChevronLeft, Delete, Sparkles } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
-import { callGroqAI } from "@/lib/groqAI";
+import { callJENAI } from "@/lib/jenaiEngine";
 
 const IVU_RATE = 0.115;
 function toNum(v) { const n = Number(v); return Number.isFinite(n) && n >= 0 ? n : 0; }
