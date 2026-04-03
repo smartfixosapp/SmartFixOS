@@ -825,7 +825,10 @@ export default function WorkOrderWizard({ open, onClose, onSuccess, preloadedCus
   const [jenaiProcessing, setJenaiProcessing] = useState(false);
   const [jenaiError, setJenaiError] = useState("");
   const [jenaiShowReview, setJenaiShowReview] = useState(false);
+  const [jenaiListening, setJenaiListening] = useState(false);
+  const [jenaiConfirm, setJenaiConfirm] = useState(null); // parsed data awaiting confirmation
   const jenaiFileRef = useRef(null);
+  const jenaiRecognitionRef = useRef(null);
 
   // Dispositivo
   const [deviceType, setDeviceType] = useState("");
