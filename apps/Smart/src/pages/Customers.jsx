@@ -158,13 +158,22 @@ export default function Customers() {
             <h1 className="text-[32px] font-black text-white tracking-tight leading-none">Clientes</h1>
             <p className="text-white/30 mt-1 text-[11px] font-bold uppercase tracking-widest">{customers.length} registrados</p>
           </div>
-          <button
-            onClick={() => { setEditingCustomer(null); setShowCreateDialog(true); }}
-            className="h-11 px-5 bg-blue-500 hover:bg-blue-400 text-white font-black text-sm rounded-full flex items-center gap-2 transition-all active:scale-95 shadow-[0_0_20px_rgba(59,130,246,0.35)]"
-          >
-            <Plus className="w-4 h-4" />
-            <span className="hidden sm:inline">Nuevo</span>
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setShowBulkOffer(true)}
+              className="h-11 px-4 bg-orange-500/20 hover:bg-orange-500/30 border border-orange-500/30 text-orange-300 font-black text-sm rounded-full flex items-center gap-2 transition-all active:scale-95"
+            >
+              <Megaphone className="w-4 h-4" />
+              <span className="hidden sm:inline">Oferta</span>
+            </button>
+            <button
+              onClick={() => { setEditingCustomer(null); setShowCreateDialog(true); }}
+              className="h-11 px-5 bg-blue-500 hover:bg-blue-400 text-white font-black text-sm rounded-full flex items-center gap-2 transition-all active:scale-95 shadow-[0_0_20px_rgba(59,130,246,0.35)]"
+            >
+              <Plus className="w-4 h-4" />
+              <span className="hidden sm:inline">Nuevo</span>
+            </button>
+          </div>
         </div>
 
         {/* ── STATS BAR ──────────────────────────────────── */}
