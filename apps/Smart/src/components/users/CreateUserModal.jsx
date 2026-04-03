@@ -146,6 +146,12 @@ export default function CreateUserModal({ onClose, onCreate, roles }) {
           {/* Rol */}
           <div>
             <label className="text-lg font-bold text-cyan-400 mb-4 block theme-light:text-gray-900">Rol del Sistema *</label>
+            <PlanGate feature="permissions_roles" fallback={
+              <div className="space-y-2">
+                <p className="text-sm text-white/50">Rol asignado: <span className="text-white font-bold">Técnico</span></p>
+                <UpgradePrompt feature="permissions_roles" message="Selección de roles disponible en el plan Pro" />
+              </div>
+            }>
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
               {roles.map(role => {
                 const Icon = role.icon;
@@ -166,6 +172,7 @@ export default function CreateUserModal({ onClose, onCreate, roles }) {
                 );
               })}
             </div>
+            </PlanGate>
           </div>
 
           {/* Seguridad */}
