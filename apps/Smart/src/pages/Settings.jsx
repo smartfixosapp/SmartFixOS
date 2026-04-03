@@ -29,7 +29,18 @@ import ShiftTasksManager from "@/components/settings/ShiftTasksManager";
 import { useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/components/utils/helpers";
 
-const BIOMETRIC_LOGIN_KEY = "smartfix_biometric_profile";
+// Clave por-dispositivo — debe coincidir exactamente con PinAccess.jsx
+function getBiometricKey() {
+  let deviceId = localStorage.getItem("smartfix_device_id");
+  if (!deviceId) {
+    deviceId = (typeof crypto !== "undefined" && crypto.randomUUID)
+      ? crypto.randomUUID()
+      : Math.random().toString(36).slice(2, 16);
+    localStorage.setItem("smartfix_device_id", deviceId);
+  }
+  return `smartfix_biometric_${deviceId}`;
+}
+const BIOMETRIC_LOGIN_KEY = getBiometricKey();
 
 export default function SettingsPage() {
   const { t, language, setLanguage } = useI18n();
