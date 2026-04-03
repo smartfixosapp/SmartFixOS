@@ -4,7 +4,7 @@ import { supabase } from "../../../../lib/supabase-client.js";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   Search, Plus, Phone, Mail, MessageCircle,
-  Star, Users, ChevronRight, Edit, Trash2
+  Star, Users, ChevronRight, Edit, Trash2, Megaphone
 } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { es } from "date-fns/locale";
