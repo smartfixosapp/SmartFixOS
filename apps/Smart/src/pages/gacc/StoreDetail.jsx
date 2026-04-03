@@ -449,9 +449,212 @@ function AuditTab({ tenant }) {
   );
 }
 
+// ── Change Plan & Users Modal ─────────────────────────────────────────────────
+function ChangePlanModal({ tenant, open, onClose }) {
+  const { adminSupabase, appClient, refresh } = useGACC();
+  const currentPlan = tenant.effective_plan || tenant.plan || "smartfixos";
+  const currentMaxUsers = tenant.effective_max_users || getPlanConfig(currentPlan).maxUsers || 1;
+  const currentCost = tenant.effective_monthly_cost || getPlanConfig(currentPlan).monthlyCost || 55;
+
+  const [selectedPlan, setSelectedPlan] = useState(currentPlan);
+  const [maxUsers, setMaxUsers] = useState(currentMaxUsers);
+  const [monthlyCost, setMonthlyCost] = useState(currentCost);
+  const [saving, setSaving] = useState(false);
+
+  // Sync cost when plan changes
+  const handlePlanChange = (planKey) => {
+    setSelectedPlan(planKey);
+    const config = getPlanConfig(planKey);
+    setMonthlyCost(config.monthlyCost);
+    setMaxUsers(config.maxUsers);
+  };
+
+  const handleSave = async () => {
+    setSaving(true);
+    try {
+      // Update tenant
+      const metadata = { ...(tenant.metadata || {}), max_users: maxUsers };
+      const { error: tenantErr } = await adminSupabase
+        .from("tenant")
+        .update({ plan: selectedPlan, monthly_cost: monthlyCost, metadata })
+        .eq("id", tenant.id);
+      if (tenantErr) throw tenantErr;
+
+      // Update subscription if exists
+      if (tenant.latest_subscription?.id) {
+        await adminSupabase
+          .from("subscription")
+          .update({ plan: selectedPlan, amount: monthlyCost })
+          .eq("id", tenant.latest_subscription.id);
+      }
+
+      // Also call manageTenant for plan change side-effects
+      try {
+        await appClient.functions.manageTenant({
+          tenantId: tenant.id,
+          action: "set_plan",
+          plan: selectedPlan,
+          monthlyCost: monthlyCost,
+        });
+      } catch {}
+
+      toast.success(`Plan actualizado a ${getPlanConfig(selectedPlan).label} ($${monthlyCost}/mo, ${maxUsers} usuarios)`);
+      refresh();
+      onClose();
+    } catch (e) {
+      toast.error("Error: " + e.message);
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  if (!open) return null;
+
+  return (
+    <AnimatePresence>
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        className="fixed inset-0 z-[60] bg-black/60 backdrop-blur-sm flex items-center justify-center p-4"
+        onClick={onClose}
+      >
+        <motion.div
+          initial={{ opacity: 0, scale: 0.95, y: 10 }}
+          animate={{ opacity: 1, scale: 1, y: 0 }}
+          exit={{ opacity: 0, scale: 0.95, y: 10 }}
+          className="w-full max-w-md bg-[#141416] border border-white/[0.1] rounded-2xl shadow-2xl overflow-hidden"
+          onClick={e => e.stopPropagation()}
+        >
+          {/* Header */}
+          <div className="flex items-center justify-between px-5 py-4 border-b border-white/[0.06]">
+            <div>
+              <p className="text-[14px] font-bold text-white">Cambiar Plan & Usuarios</p>
+              <p className="text-[11px] text-gray-600">{tenant.name}</p>
+            </div>
+            <button onClick={onClose} className="p-1.5 rounded-lg text-gray-600 hover:text-white hover:bg-white/[0.05]">
+              <XCircle className="w-5 h-5" />
+            </button>
+          </div>
+
+          <div className="px-5 py-4 space-y-5">
+            {/* Plan selector */}
+            <div>
+              <p className="text-[11px] text-gray-500 uppercase tracking-wide font-bold mb-2">Plan</p>
+              <div className="space-y-2">
+                {PLAN_OPTIONS.map(plan => (
+                  <button
+                    key={plan.key}
+                    onClick={() => handlePlanChange(plan.key)}
+                    className={`w-full flex items-center justify-between px-4 py-3 rounded-xl border transition-all ${
+                      selectedPlan === plan.key
+                        ? "border-purple-500/50 bg-purple-500/10"
+                        : "border-white/[0.06] bg-white/[0.02] hover:border-white/[0.12]"
+                    }`}
+                  >
+                    <div className="flex items-center gap-3">
+                      <span className={`w-3 h-3 rounded-full border-2 flex items-center justify-center ${
+                        selectedPlan === plan.key ? "border-purple-400" : "border-gray-600"
+                      }`}>
+                        {selectedPlan === plan.key && <span className="w-1.5 h-1.5 rounded-full bg-purple-400" />}
+                      </span>
+                      <div className="text-left">
+                        <p className="text-[13px] text-white font-semibold">{plan.label}</p>
+                        <p className="text-[10px] text-gray-600">{plan.sub}</p>
+                      </div>
+                    </div>
+                    <span className="text-[13px] font-bold text-white">${plan.monthlyCost || "Custom"}/mo</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Monthly cost override */}
+            <div>
+              <p className="text-[11px] text-gray-500 uppercase tracking-wide font-bold mb-2">Costo Mensual (USD)</p>
+              <input
+                type="number"
+                value={monthlyCost}
+                onChange={e => setMonthlyCost(Number(e.target.value) || 0)}
+                min={0}
+                className="w-full px-4 py-2.5 rounded-xl bg-white/[0.03] border border-white/[0.07] text-[14px] text-white font-bold focus:outline-none focus:border-purple-500/40 tabular-nums"
+              />
+              <p className="text-[10px] text-gray-700 mt-1">Puedes poner un precio custom diferente al del plan</p>
+            </div>
+
+            {/* Max users */}
+            <div>
+              <p className="text-[11px] text-gray-500 uppercase tracking-wide font-bold mb-2">Usuarios Maximos</p>
+              <div className="flex items-center gap-3">
+                <button
+                  onClick={() => setMaxUsers(Math.max(1, maxUsers - 1))}
+                  className="w-10 h-10 rounded-xl bg-white/[0.05] border border-white/[0.1] text-white font-bold text-lg hover:bg-white/[0.1] transition-all"
+                >
+                  -
+                </button>
+                <input
+                  type="number"
+                  value={maxUsers}
+                  onChange={e => setMaxUsers(Math.max(1, Number(e.target.value) || 1))}
+                  min={1}
+                  className="w-24 text-center px-3 py-2.5 rounded-xl bg-white/[0.03] border border-white/[0.07] text-[18px] text-white font-black focus:outline-none focus:border-purple-500/40 tabular-nums"
+                />
+                <button
+                  onClick={() => setMaxUsers(maxUsers + 1)}
+                  className="w-10 h-10 rounded-xl bg-white/[0.05] border border-white/[0.1] text-white font-bold text-lg hover:bg-white/[0.1] transition-all"
+                >
+                  +
+                </button>
+                <span className="text-[11px] text-gray-600">
+                  Plan default: {getPlanConfig(selectedPlan).maxUsers}
+                </span>
+              </div>
+            </div>
+
+            {/* Summary */}
+            <div className="rounded-xl bg-white/[0.03] border border-white/[0.06] px-4 py-3">
+              <p className="text-[10px] text-gray-600 uppercase tracking-wide font-bold mb-2">Resumen del cambio</p>
+              <div className="grid grid-cols-3 gap-3 text-center">
+                <div>
+                  <p className="text-[10px] text-gray-600">Plan</p>
+                  <p className="text-[13px] font-bold text-white">{getPlanConfig(selectedPlan).label}</p>
+                </div>
+                <div>
+                  <p className="text-[10px] text-gray-600">Costo</p>
+                  <p className="text-[13px] font-bold text-white">${monthlyCost}/mo</p>
+                </div>
+                <div>
+                  <p className="text-[10px] text-gray-600">Usuarios</p>
+                  <p className="text-[13px] font-bold text-white">{maxUsers}</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Footer */}
+          <div className="flex items-center justify-end gap-2 px-5 py-4 border-t border-white/[0.06]">
+            <button onClick={onClose} className="px-4 py-2 rounded-xl text-[12px] text-gray-500 hover:text-white transition-all">
+              Cancelar
+            </button>
+            <button
+              onClick={handleSave}
+              disabled={saving}
+              className="flex items-center gap-1.5 px-5 py-2 rounded-xl text-[12px] font-semibold bg-purple-500/20 text-purple-300 border border-purple-500/30 hover:bg-purple-500/30 transition-all disabled:opacity-50"
+            >
+              {saving ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : <CheckCircle className="w-3.5 h-3.5" />}
+              Guardar Cambios
+            </button>
+          </div>
+        </motion.div>
+      </motion.div>
+    </AnimatePresence>
+  );
+}
+
 // ── Main Store Detail ────────────────────────────────────────────────────────
 export default function StoreDetail({ tenant, onBack }) {
   const [activeTab, setActiveTab] = useState("overview");
+  const [showPlanModal, setShowPlanModal] = useState(false);
   const badge = getStatusBadge(tenant);
   const presence = presenceStatus(tenant.last_seen);
   const planConfig = getPlanConfig(tenant.effective_plan || tenant.plan);
