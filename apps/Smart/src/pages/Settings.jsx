@@ -861,7 +861,7 @@ export default function SettingsPage() {
           color: "from-amber-500 to-orange-600",
         },
         {
-          id: "darjeni_toggle",
+          id: "jenai_toggle",
           icon: Bot,
           title: "Asistente DARJENI",
           description: "IA flotante en todas las pantallas",
@@ -1584,7 +1584,7 @@ export default function SettingsPage() {
                 {group.sections.map(section => {
                   const Icon = section.icon;
                   const isOn = section.isToggle
-                    ? (section.id === "darjeni_toggle" ? jenaiEnabled : showPriceWidget)
+                    ? (section.id === "jenai_toggle" ? jenaiEnabled : showPriceWidget)
                     : null;
 
                   return (
@@ -1592,7 +1592,7 @@ export default function SettingsPage() {
                       key={section.id}
                       onClick={() => {
                         if (section.isToggle) {
-                          if (section.id === "darjeni_toggle") {
+                          if (section.id === "jenai_toggle") {
                             const next = !jenaiEnabled;
                             setJenaiEnabled(next);
                             localStorage.setItem("smartfix_jenai_disabled", String(!next));
