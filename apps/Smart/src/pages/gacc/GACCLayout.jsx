@@ -85,6 +85,95 @@ export const NAV_SECTIONS = [
   },
 ];
 
+// ── Alerts Bell ──────────────────────────────────────────────────────────────
+function AlertsBell() {
+  const [open, setOpen] = useState(false);
+  const [alerts] = useState(() => {
+    // Generate alerts from current state (will be reactive when connected to context)
+    const items = [];
+    return items;
+  });
+
+  // We'll read alerts from localStorage or generate them dynamically
+  const [dynamicAlerts, setDynamicAlerts] = useState([]);
+
+  useEffect(() => {
+    // Check for alerts every 30s
+    const check = () => {
+      const stored = JSON.parse(localStorage.getItem("gacc_alerts") || "[]");
+      const now = Date.now();
+      // Auto-generate system alerts
+      const generated = [];
+      const sess = JSON.parse(localStorage.getItem("smartfix_saas_session") || "{}");
+      if (sess.loginTime && (now - sess.loginTime) > 1.5 * 60 * 60 * 1000) {
+        generated.push({ id: "session-expiring", type: "warning", message: "Sesion expira en menos de 30 min", time: new Date().toISOString() });
+      }
+      setDynamicAlerts([...generated, ...stored].slice(0, 10));
+    };
+    check();
+    const iv = setInterval(check, 30000);
+    return () => clearInterval(iv);
+  }, []);
+
+  const count = dynamicAlerts.length;
+
+  return (
+    <div className="relative">
+      <button
+        onClick={() => setOpen(!open)}
+        className="p-2 rounded-xl text-gray-600 hover:text-white hover:bg-white/[0.05] transition-all relative"
+      >
+        <Bell className="w-4 h-4" />
+        {count > 0 && (
+          <span className="absolute -top-0.5 -right-0.5 w-4 h-4 rounded-full bg-red-500 text-[9px] text-white font-bold flex items-center justify-center">
+            {count}
+          </span>
+        )}
+      </button>
+
+      {open && (
+        <>
+          <div className="fixed inset-0 z-40" onClick={() => setOpen(false)} />
+          <div className="absolute right-0 top-full mt-2 z-50 w-72 rounded-xl bg-[#141416] border border-white/[0.1] shadow-2xl overflow-hidden">
+            <div className="px-3 py-2 border-b border-white/[0.06]">
+              <p className="text-[12px] font-bold text-white">Alertas</p>
+            </div>
+            {dynamicAlerts.length === 0 ? (
+              <div className="px-3 py-6 text-center">
+                <p className="text-[11px] text-gray-600">Sin alertas activas</p>
+              </div>
+            ) : (
+              <div className="max-h-64 overflow-y-auto">
+                {dynamicAlerts.map((alert, i) => (
+                  <div key={alert.id || i} className="px-3 py-2.5 border-b border-white/[0.04] hover:bg-white/[0.03]">
+                    <div className="flex items-start gap-2">
+                      <span className={`w-2 h-2 rounded-full mt-1 flex-shrink-0 ${
+                        alert.type === "error" ? "bg-red-500" : alert.type === "warning" ? "bg-amber-400" : "bg-blue-400"
+                      }`} />
+                      <div>
+                        <p className="text-[11px] text-white">{alert.message}</p>
+                        {alert.time && <p className="text-[9px] text-gray-700 mt-0.5">{new Date(alert.time).toLocaleTimeString("es", { hour: "2-digit", minute: "2-digit" })}</p>}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+            <div className="px-3 py-2 border-t border-white/[0.06]">
+              <button
+                onClick={() => { localStorage.setItem("gacc_alerts", "[]"); setDynamicAlerts([]); setOpen(false); }}
+                className="text-[10px] text-gray-600 hover:text-white transition-all"
+              >
+                Limpiar alertas
+              </button>
+            </div>
+          </div>
+        </>
+      )}
+    </div>
+  );
+}
+
 // ── Session timer display ────────────────────────────────────────────────────
 function SessionTimer() {
   const [remaining, setRemaining] = useState("");
