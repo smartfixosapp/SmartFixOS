@@ -73,7 +73,7 @@ Responde en ESPAÑOL de forma amable, profesional y breve (máximo 40 palabras).
 Si preguntan cuándo estará listo, di que el técnico los contactará pronto.
 Si preguntan por el estado, explica el estado actual de forma amigable.`;
 
-      const text = await callGroqAI(prompt, { maxTokens: 150 });
+      const text = await callJENAI(prompt, { maxTokens: 150 });
       setAiPortalResponse(text);
     } catch(err) {
       setAiPortalResponse("Lo sentimos, no pudimos procesar tu consulta en este momento.");
