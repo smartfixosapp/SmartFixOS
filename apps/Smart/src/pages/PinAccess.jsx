@@ -108,7 +108,7 @@ export default function PinAccess() {
   const [showSignup, setShowSignup] = useState(false);
   const [signupStep, setSignupStep] = useState("form"); // 'form' | 'success'
   const [signupResult, setSignupResult] = useState(null);
-  const [googleRegisterData, setGoogleRegisterData] = useState({ full_name: '', email: '', store_name: '', phone: '', plan: 'basic' });
+  const [googleRegisterData, setGoogleRegisterData] = useState({ full_name: '', email: '', store_name: '', phone: '', plan: 'starter' });
   const [googleRegisterSubmitting, setGoogleRegisterSubmitting] = useState(false);
   const [googleRegisterSuccess, setGoogleRegisterSuccess] = useState(null); // { tenantName, trialEndDate, email }
   const [storePassword, setStorePassword] = useState("");
@@ -782,7 +782,7 @@ export default function PinAccess() {
 
       // Intento de REGISTRO con Google — y aún no tiene cuenta → mostrar form de tienda
       if (intent === "register" && !tenantExists) {
-        setGoogleRegisterData({ full_name: googleName, email, store_name: '', phone: '', plan: 'basic' });
+        setGoogleRegisterData({ full_name: googleName, email, store_name: '', phone: '', plan: 'starter' });
         setStep("google_register");
         setUsersLoading(false);
         return;
@@ -803,7 +803,7 @@ export default function PinAccess() {
       // (Evita que nuevos usuarios vean datos de otros tenants)
       if (!resolvedTenantId && !tenantExists) {
         console.log("🆕 Email sin cuenta registrada — mostrando formulario de registro:", email);
-        setGoogleRegisterData({ full_name: googleName, email, store_name: '', phone: '', plan: 'basic' });
+        setGoogleRegisterData({ full_name: googleName, email, store_name: '', phone: '', plan: 'starter' });
         setStep("google_register");
         setUsersLoading(false);
         return;
