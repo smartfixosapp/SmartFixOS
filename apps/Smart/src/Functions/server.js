@@ -29,6 +29,7 @@ import { createStripeSubscriptionHandler } from './createStripeSubscription.js';
 import { stripeWebhookHandler } from './stripeWebhook.js';
 import { registerTenantHandler } from './registerTenant.js';
 import { manageTenantHandler } from './manageTenant.js';
+import { checkPlanLimitsHandler } from './checkPlanLimits.js';
 import { notifyCashRegisterHandler } from './notifyCashRegister.js';
 import { handleOrderStatusChangeHandler } from './handleOrderStatusChange.js';
 import { notifyPickupReminderHandler } from './notifyPickupReminder.js';
