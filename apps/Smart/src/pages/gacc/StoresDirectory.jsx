@@ -425,7 +425,17 @@ export default function StoresDirectory({ onSelectTenant }) {
           >
             <RefreshCw className={`w-4 h-4 ${loading ? "animate-spin" : ""}`} />
           </button>
-          <button className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-[12px] font-semibold bg-purple-500/20 text-purple-300 border border-purple-500/30 hover:bg-purple-500/30 transition-all">
+          <button
+            onClick={() => exportToCSV(filtered)}
+            className="p-2 rounded-xl text-gray-600 hover:text-white border border-white/[0.07] hover:border-white/[0.15] transition-all"
+            title="Exportar CSV"
+          >
+            <Download className="w-4 h-4" />
+          </button>
+          <button
+            onClick={() => setShowInvite(true)}
+            className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-[12px] font-semibold bg-purple-500/20 text-purple-300 border border-purple-500/30 hover:bg-purple-500/30 transition-all"
+          >
             <Plus className="w-3.5 h-3.5" />
             Invitar Tienda
           </button>
