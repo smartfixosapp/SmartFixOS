@@ -1560,7 +1560,15 @@ export default function UsersManagement() {
                 />
               </div>
               <Button
-                onClick={() => setShowCreateModal(true)}
+                onClick={() => {
+                  const { allowed, current, max } = checkLimit('max_users', users.length);
+                  if (!allowed) {
+                    const next = upgradeTo?.label || 'un plan superior';
+                    toast.error(`Límite alcanzado: ${current}/${max} usuarios. Upgrade a ${next} para agregar más.`, { duration: 6000 });
+                    return;
+                  }
+                  setShowCreateModal(true);
+                }}
                 className="w-full sm:w-auto h-12 bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-700 hover:to-blue-700 shadow-lg"
               >
                 <UserPlus className="w-5 h-5 mr-2" />
