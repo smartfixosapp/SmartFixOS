@@ -16,7 +16,7 @@ import {
   Smartphone, FileText, CreditCard, Wallet, UserCircle, Plus, Edit2, Trash2,
   X, Eye, EyeOff, Wrench, CheckSquare, Camera, Key, Lock, Search,
   Fingerprint, ShieldCheck, ShieldAlert, History, Download, AlertCircle,
-  BarChart3, ExternalLink, ChevronDown, Upload, MessageSquarePlus, Calculator
+  BarChart3, ExternalLink, ChevronDown, Upload, MessageSquarePlus, Bot
 } from "lucide-react";
 import { useI18n } from "@/components/utils/i18n";
 import ImportExportTab from "@/components/settings/ImportExportTab";
