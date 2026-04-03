@@ -11,8 +11,11 @@ import {
 "lucide-react";
 import { toast } from "sonner";
 import { loadSuppliersSafe, upsertSupplierInCache, removeSupplierFromCache } from "@/components/utils/suppliers";
+import { usePlanLimits } from "@/hooks/usePlanLimits";
+import { UpgradePrompt } from "@/components/plan/UpgradePrompt";
 
 export default function SuppliersDialog({ open, onClose }) {
+  const { can: canPlan } = usePlanLimits();
   const [suppliers, setSuppliers] = useState([]);
   const [loading, setLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
