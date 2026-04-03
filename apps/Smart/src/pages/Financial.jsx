@@ -153,6 +153,7 @@ export default function Financial() {
   const [activeTab, setActiveTab] = useState("resumen");
   const [aiSummary, setAiSummary] = useState("");
   const [aiLoading, setAiLoading] = useState(false);
+  const [showNetoBreakdown, setShowNetoBreakdown] = useState(false);
 
   const isFetching = useRef(false);
   const recentFixedExpenseMutationAt = useRef(0);
