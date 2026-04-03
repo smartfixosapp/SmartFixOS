@@ -1259,10 +1259,13 @@ export default function PinAccess() {
       console.warn("PIN login: notificación no disponible (continuando login).", notifyError);
     }
 
-    toast.success(`¡Bienvenido, ${session.userName}!`, { duration: 2000 });
+    toast.success(`¡Bienvenido, ${session.userName}!`, { duration: 1500 });
 
-    // Siempre navegar al Dashboard — la oferta de biometría se puede hacer desde Settings
-    navigate("/Dashboard", { replace: true });
+    // Redirección dura — bypasea cualquier estado de React Router o Service Worker
+    // La sesión ya está en localStorage, Auth.jsx la levanta en el nuevo load
+    setTimeout(() => {
+      window.location.replace("/Dashboard");
+    }, 600);
   };
 
   const handleMasterValidate = async () => {
