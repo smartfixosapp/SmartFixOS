@@ -1563,7 +1563,7 @@ export default function SettingsPage() {
                 {group.sections.map(section => {
                   const Icon = section.icon;
                   const isOn = section.isToggle
-                    ? (section.id === "calculator_widget" ? showPriceWidget : true)
+                    ? (section.id === "darjeni_toggle" ? darjeniEnabled : showPriceWidget)
                     : null;
 
                   return (
