@@ -397,16 +397,184 @@ function BulkActions() {
   );
 }
 
+// ── Impersonation Tool ───────────────────────────────────────────────────────
+function ImpersonationTool() {
+  const { tenants, adminSupabase } = useGACC();
+  const [selectedId, setSelectedId] = useState("");
+  const [tenantData, setTenantData] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [search, setSearch] = useState("");
+
+  const filtered = useMemo(() => {
+    if (!search) return tenants;
+    const q = search.toLowerCase();
+    return tenants.filter(t => (t.name || "").toLowerCase().includes(q) || (t.email || "").toLowerCase().includes(q));
+  }, [tenants, search]);
+
+  const loadTenantData = async (tenantId) => {
+    setLoading(true);
+    try {
+      const [orders, customers, employees, sales] = await Promise.all([
+        adminSupabase.from("order").select("id, order_number, status, created_date").eq("tenant_id", tenantId).order("created_date", { ascending: false }).limit(10),
+        adminSupabase.from("customer").select("id, full_name, email, phone").eq("tenant_id", tenantId).order("created_date", { ascending: false }).limit(10),
+        adminSupabase.from("app_employee").select("id, full_name, email, role, active").eq("tenant_id", tenantId),
+        adminSupabase.from("sale").select("id, sale_number, total, created_date").eq("tenant_id", tenantId).order("created_date", { ascending: false }).limit(10),
+      ]);
+      setTenantData({
+        orders: orders.data || [],
+        customers: customers.data || [],
+        employees: employees.data || [],
+        sales: sales.data || [],
+      });
+    } catch (e) {
+      toast.error("Error cargando datos: " + e.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const selectedTenant = tenants.find(t => t.id === selectedId);
+
+  return (
+    <div className="rounded-2xl border border-white/[0.07] bg-white/[0.02] p-4 space-y-4">
+      <div className="flex items-center gap-2">
+        <Eye className="w-4 h-4 text-amber-400" />
+        <p className="text-[13px] font-bold text-white">Impersonation (Read-Only)</p>
+      </div>
+
+      <div className="flex items-center gap-3">
+        <div className="relative flex-1 max-w-sm">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-600" />
+          <input
+            value={search}
+            onChange={e => setSearch(e.target.value)}
+            placeholder="Buscar tienda..."
+            className="w-full pl-9 pr-3 py-2 rounded-xl bg-white/[0.03] border border-white/[0.07] text-[12px] text-white placeholder:text-gray-700 focus:outline-none"
+          />
+        </div>
+        <select
+          value={selectedId}
+          onChange={e => { setSelectedId(e.target.value); setTenantData(null); }}
+          className="px-3 py-2 rounded-xl bg-white/[0.05] border border-white/[0.1] text-[12px] text-white outline-none cursor-pointer max-w-xs"
+        >
+          <option value="">Seleccionar tienda...</option>
+          {filtered.map(t => <option key={t.id} value={t.id}>{t.name} ({t.email})</option>)}
+        </select>
+        <button
+          onClick={() => selectedId && loadTenantData(selectedId)}
+          disabled={!selectedId || loading}
+          className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-[11px] font-semibold bg-amber-500/20 text-amber-300 border border-amber-500/30 hover:bg-amber-500/30 transition-all disabled:opacity-50"
+        >
+          {loading ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : <Eye className="w-3.5 h-3.5" />}
+          Ver datos
+        </button>
+      </div>
+
+      {selectedTenant && tenantData && (
+        <div className="space-y-3">
+          <div className="px-3 py-2 rounded-xl bg-amber-500/5 border border-amber-500/10">
+            <p className="text-[11px] text-amber-400 font-semibold">Viendo como: {selectedTenant.name} ({selectedTenant.email})</p>
+          </div>
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+            {[
+              { label: "Ordenes", value: tenantData.orders.length, color: "text-blue-400" },
+              { label: "Clientes", value: tenantData.customers.length, color: "text-cyan-400" },
+              { label: "Empleados", value: tenantData.employees.length, color: "text-purple-400" },
+              { label: "Ventas", value: tenantData.sales.length, color: "text-green-400" },
+            ].map(s => (
+              <div key={s.label} className="rounded-xl border border-white/[0.06] bg-white/[0.02] p-3 text-center">
+                <p className={`text-xl font-black ${s.color}`}>{s.value}</p>
+                <p className="text-[10px] text-gray-600">{s.label}</p>
+              </div>
+            ))}
+          </div>
+          {/* Recent orders */}
+          {tenantData.orders.length > 0 && (
+            <div className="rounded-xl border border-white/[0.06] bg-white/[0.02] p-3">
+              <p className="text-[11px] font-bold text-gray-400 mb-2">Ultimas Ordenes</p>
+              {tenantData.orders.map(o => (
+                <div key={o.id} className="flex items-center justify-between py-1.5 text-[11px]">
+                  <span className="text-white font-mono">{o.order_number || o.id?.slice(0, 8)}</span>
+                  <span className="text-gray-500">{o.status}</span>
+                  <span className="text-gray-600">{o.created_date ? new Date(o.created_date).toLocaleDateString("es") : ""}</span>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ── Admin Activity Log ───────────────────────────────────────────────────────
+function AdminActivityLog() {
+  const [log, setLog] = useState(() => {
+    return JSON.parse(localStorage.getItem("gacc_admin_log") || "[]");
+  });
+
+  // Auto-refresh
+  useEffect(() => {
+    const iv = setInterval(() => {
+      setLog(JSON.parse(localStorage.getItem("gacc_admin_log") || "[]"));
+    }, 5000);
+    return () => clearInterval(iv);
+  }, []);
+
+  return (
+    <div className="rounded-2xl border border-white/[0.07] bg-white/[0.02] p-4 space-y-4">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <Activity className="w-4 h-4 text-cyan-400" />
+          <p className="text-[13px] font-bold text-white">Admin Activity Log</p>
+        </div>
+        <button
+          onClick={() => { localStorage.setItem("gacc_admin_log", "[]"); setLog([]); toast.success("Log limpiado"); }}
+          className="text-[10px] text-gray-600 hover:text-white transition-all"
+        >
+          Limpiar
+        </button>
+      </div>
+
+      {log.length === 0 ? (
+        <div className="text-center py-6">
+          <p className="text-[11px] text-gray-600">Sin actividad registrada en esta sesion</p>
+          <p className="text-[10px] text-gray-700 mt-1">Las acciones de admin se registraran automaticamente</p>
+        </div>
+      ) : (
+        <div className="space-y-1 max-h-[400px] overflow-y-auto">
+          {log.map((entry, i) => (
+            <div key={i} className="flex items-center gap-3 px-3 py-2 rounded-xl hover:bg-white/[0.02] transition-colors">
+              <span className={`w-2 h-2 rounded-full flex-shrink-0 ${
+                entry.type === "danger" ? "bg-red-500" : entry.type === "warning" ? "bg-amber-400" : "bg-blue-400"
+              }`} />
+              <div className="flex-1 min-w-0">
+                <p className="text-[11px] text-white">{entry.action}</p>
+                {entry.target && <p className="text-[10px] text-gray-600">{entry.target}</p>}
+              </div>
+              <span className="text-[10px] text-gray-600 flex-shrink-0">
+                {entry.time ? new Date(entry.time).toLocaleTimeString("es", { hour: "2-digit", minute: "2-digit" }) : ""}
+              </span>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 // ── Main Tools View ──────────────────────────────────────────────────────────
 export default function ToolsView() {
-  const [tab, setTab] = useState("explorer"); // explorer | storage | flags | bulk | diagnostics
+  const [tab, setTab] = useState("explorer");
 
   const tabs = [
     { key: "explorer", label: "Data Explorer", icon: Database },
     { key: "storage", label: "Storage", icon: HardDrive },
     { key: "flags", label: "Feature Flags", icon: Settings },
+    { key: "impersonate", label: "Impersonation", icon: Eye },
     { key: "bulk", label: "Bulk Actions", icon: Zap },
     { key: "diagnostics", label: "Diagnostics", icon: AlertTriangle },
+    { key: "adminlog", label: "Admin Log", icon: Activity },
   ];
 
   return (
@@ -437,8 +605,10 @@ export default function ToolsView() {
       {tab === "explorer" && <DataExplorer />}
       {tab === "storage" && <StorageManager />}
       {tab === "flags" && <FeatureFlags />}
+      {tab === "impersonate" && <ImpersonationTool />}
       {tab === "bulk" && <BulkActions />}
       {tab === "diagnostics" && <Diagnostics />}
+      {tab === "adminlog" && <AdminActivityLog />}
     </div>
   );
 }
