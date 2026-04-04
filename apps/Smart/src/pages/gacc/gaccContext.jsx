@@ -24,15 +24,24 @@ export function getAdminClient() {
 }
 
 // ── Plan config ──────────────────────────────────────────────────────────────
+// Synced with /lib/plans.js — these are the canonical plan IDs
 export const PLAN_OPTIONS = [
-  { key: "smartfixos", label: "Basic", sub: "1 usuario", maxUsers: 1, monthlyCost: 55, color: "from-slate-500 to-slate-600" },
-  { key: "pro", label: "Pro", sub: "3 usuarios", maxUsers: 3, monthlyCost: 85, color: "from-blue-500 to-indigo-600" },
-  { key: "enterprise", label: "Enterprise", sub: "Ilimitado", maxUsers: 999, monthlyCost: 0, color: "from-purple-500 to-pink-600" },
+  { key: "starter", label: "Starter", sub: "1 usuario · $14.99/mo", maxUsers: 1, monthlyCost: 14.99, color: "from-slate-500 to-slate-600" },
+  { key: "pro", label: "Pro", sub: "5 usuarios · $39.99/mo", maxUsers: 5, monthlyCost: 39.99, color: "from-blue-500 to-indigo-600" },
+  { key: "business", label: "Business", sub: "10 usuarios · $79.99/mo", maxUsers: 10, monthlyCost: 79.99, color: "from-purple-500 to-pink-600" },
 ];
 
 export function normalizePlan(plan) {
-  const n = String(plan || "").trim().toLowerCase();
-  return n === "basic" ? "smartfixos" : n;
+  // Map all legacy plan names to canonical IDs (same as plans.js normalizePlanId)
+  const map = {
+    smartfixos: "starter",
+    basic: "starter",
+    starter: "starter",
+    pro: "pro",
+    enterprise: "business",
+    business: "business",
+  };
+  return map[String(plan || "").trim().toLowerCase()] || "starter";
 }
 
 export function getPlanConfig(plan) {
