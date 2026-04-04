@@ -1152,7 +1152,7 @@ Reglas:
   const bodyScrollRef = useRef(null);
   const swipeStateRef = useRef({ startY: 0, lastY: 0, active: false });
   const [isCompactDevice, setIsCompactDevice] = useState(false);
-  const [mobileStep, setMobileStep] = useState(0);
+  const [mobileStep, setMobileStep] = useState(startWithJenai ? 1 : 0);
 
   // Items (piezas y servicios)
   const [orderItems, setOrderItems] = useState([]);
