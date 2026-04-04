@@ -52,12 +52,14 @@
     "plan": {
       "type": "string",
       "enum": [
-        "smartfixos",
+        "starter",
         "pro",
+        "business",
+        "smartfixos",
         "enterprise"
       ],
-      "default": "smartfixos",
-      "description": "Plan de suscripci\u00f3n"
+      "default": "starter",
+      "description": "Plan de suscripcion (canonical: starter, pro, business)"
     },
     "monthly_cost": {
       "type": "number",
