@@ -6,7 +6,7 @@ import {
   Loader2, ExternalLink, Search, CheckSquare, Square
 } from "lucide-react";
 import { sendEmail } from "@/api/functions";
-import toast from "react-hot-toast";
+import { toast } from "sonner";
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
 
