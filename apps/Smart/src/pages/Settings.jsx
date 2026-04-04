@@ -19,7 +19,7 @@ import {
   BarChart3, ExternalLink, ChevronDown, Upload, MessageSquarePlus, Bot
 } from "lucide-react";
 import { useI18n } from "@/components/utils/i18n";
-import ImportExportTab from "@/components/settings/ImportExportTab";
+import SmartImportExport from "@/components/settings/SmartImportExport";
 import WizardConfigPanel from "@/components/settings/WizardConfigPanel";
 import DeviceCatalogManager from "@/components/settings/DeviceCatalogManager";
 import { WarrantySalesModal, WarrantyRepairsModal } from "@/components/settings/WarrantyConfigModals";
