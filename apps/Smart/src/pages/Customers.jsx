@@ -77,7 +77,7 @@ export default function Customers() {
       const local = readLocalCustomers();
       const tenantId = localStorage.getItem("smartfix_tenant_id");
       try {
-        let query = supabase.from("customer").select("*").order("created_at", { ascending: false });
+        let query = supabase.from("customer").select("*").order("name", { ascending: true });
         if (tenantId) query = query.or(`tenant_id.eq.${tenantId},tenant_id.is.null`);
         const { data: remote } = await query;
         const remoteList = remote || [];
