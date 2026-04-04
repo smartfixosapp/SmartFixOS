@@ -1056,7 +1056,7 @@ El tecnico te da informacion de un cliente y su dispositivo en texto libre (y op
 Extrae todos los campos posibles.
 
 Responde SOLO con JSON valido, sin markdown, sin explicaciones. Formato exacto:
-{"customer_name":"nombre","customer_last_name":"apellido","customer_phone":"telefono","customer_email":"email o null","device_brand":"marca","device_model":"modelo especifico","device_type":"Phone|Tablet|Laptop|Watch|Console|Desktop|Accessory|Other","device_category":"Celular|Tablet|Laptop|MacBook|PC Torre|Desktop|iMac|Consola de Juegos|Smartwatch|Audifonos|Impresora|Otro","problem":"descripcion profesional y concisa del problema","device_pin":"pin o null","device_password":"password o null","device_serial":"serial o null","device_color":"color o null","photo_analysis":"descripcion del dano visible en fotos o null","suggested_checklist":["item1","item2"],"suggested_parts":["pieza1","pieza2"],"suggested_diagnosis":"diagnostico preliminar breve"}
+{"customer_name":"nombre","customer_last_name":"apellido","customer_phone":"telefono","customer_email":"email o null","device_brand":"marca","device_model":"modelo especifico","device_type":"Phone|Tablet|Laptop|Watch|Console|Desktop|Accessory|Other","device_category":"Celular|Tablet|Laptop|MacBook|PC Torre|Desktop|iMac|Consola de Juegos|Smartwatch|Audifonos|Impresora|Otro","problem":"descripcion profesional y concisa del problema","device_pin":"pin o null","device_password":"password o null","device_serial":"serial o null","device_color":"color o null","photo_analysis":"descripcion del dano visible en fotos o null","suggested_checklist":["item1","item2"],"suggested_parts":["pieza1","pieza2"],"suggested_diagnosis":"diagnostico preliminar breve","is_quick_order":false}
 
 Reglas:
 - Separa nombre y apellido
