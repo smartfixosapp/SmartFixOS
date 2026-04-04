@@ -1220,7 +1220,7 @@ export default function Dashboard() {
                     overdue: kpiStats.overdue,
                   }}
                   accentColor="purple"
-                  autoLoad={!kpiIncome.loading}
+                  autoLoad={false}
                 />
               </div>
 
