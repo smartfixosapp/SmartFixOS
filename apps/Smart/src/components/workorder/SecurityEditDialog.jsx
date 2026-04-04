@@ -7,7 +7,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Lock, Hash, Grid3x3, Trash2 } from "lucide-react";
 import PatternLock from "../security/PatternLock";
 import { base44 } from "@/api/base44Client";
-import { toast } from "react-hot-toast";
+import { toast } from "sonner";
 
 export default function SecurityEditDialog({ open, onClose, order, onUpdate }) {
   const [pin, setPin] = useState("");
