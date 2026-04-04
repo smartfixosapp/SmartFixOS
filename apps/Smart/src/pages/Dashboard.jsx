@@ -1560,6 +1560,7 @@ export default function Dashboard() {
 
       {showWorkOrderWizard && (
         <WorkOrderWizard
+          key="normal-wizard"
           open={showWorkOrderWizard}
           onClose={() => setShowWorkOrderWizard(false)}
           onSuccess={() => loadFreshData()}
