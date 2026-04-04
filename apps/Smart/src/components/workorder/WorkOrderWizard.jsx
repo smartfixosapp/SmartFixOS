@@ -1037,8 +1037,8 @@ Responde con:
     if (jenaiPhotos.length > 0) setPhotos(prev => [...prev, ...jenaiPhotos]);
 
     // Set mode
-    // Use manual toggle if set, otherwise use AI auto-detection
-    const isQuick = jenaiQuickToggle || data.is_quick_order === true;
+    // AI auto-detects if quick or regular based on problem description
+    const isQuick = data.is_quick_order === true;
     setQuickOrderMode(isQuick);
     setJenaiSubMode(isQuick ? "quick" : "normal");
     setJenaiConfirm(null);
