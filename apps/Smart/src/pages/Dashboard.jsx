@@ -992,6 +992,7 @@ export default function Dashboard() {
               open={showWorkOrderWizard}
               onClose={() => setShowWorkOrderWizard(false)}
               onOrderCreated={() => { setShowWorkOrderWizard(false); }}
+              startWithJenai
             />
           )}
         </>
