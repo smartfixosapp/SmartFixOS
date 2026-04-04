@@ -1554,6 +1554,7 @@ export default function Dashboard() {
           open={showWorkOrderWizard}
           onClose={() => setShowWorkOrderWizard(false)}
           onSuccess={() => loadFreshData()}
+          startWithJenai
         />
       )}
 
