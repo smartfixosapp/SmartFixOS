@@ -778,16 +778,10 @@ export default function Financial() {
     setAiLoading(true);
     setAiSummary("");
     try {
-      const GROQ_KEY = import.meta.env.VITE_GROQ_API_KEY;
-      if (!GROQ_KEY) {
-        setAiSummary("⚠️ VITE_GROQ_API_KEY no está configurada en Vercel → Settings → Environment Variables");
-        return;
-      }
-
       const periodLabel =
         dateFilter === "today" ? "hoy" :
         dateFilter === "week"  ? "esta semana" :
-        dateFilter === "month" ? "este mes" : "todo el período";
+        dateFilter === "month" ? "este mes" : "todo el periodo";
 
       const categoryTotals = filteredExpenses.reduce((acc, e) => {
         const cat = e.category || "other_expense";
@@ -797,51 +791,43 @@ export default function Financial() {
 
       const topCategories = Object.entries(categoryTotals)
         .sort((a, b) => b[1] - a[1])
-        .slice(0, 3)
+        .slice(0, 5)
         .map(([cat, amount]) => ({ label: CATEGORY_LABELS[cat] || cat, amount }));
 
       const avgTicket = filteredSales.length > 0 ? totalRevenue / filteredSales.length : 0;
+      const margin = totalRevenue > 0 ? ((netProfit / totalRevenue) * 100).toFixed(1) : 0;
 
-      const prompt = `Eres el asistente financiero de SmartFixOS, un sistema para talleres de reparación.
-Analiza los siguientes datos y dame un resumen ejecutivo en ESPAÑOL, directo y útil para el dueño del negocio.
-
-PERÍODO: ${periodLabel}
+      const text = await callJENAI(
+`PERIODO: ${periodLabel}
 - Ingresos: $${totalRevenue.toFixed(2)}
 - Gastos: $${totalExpenses.toFixed(2)}
 - Ganancia neta: $${netProfit.toFixed(2)}
+- Margen: ${margin}%
 - Ventas/cobros: ${filteredSales.length}
 - Ticket promedio: $${avgTicket.toFixed(2)}
-${topCategories.length > 0 ? `- Top gastos: ${topCategories.map(c => `${c.label} $${c.amount.toFixed(0)}`).join(", ")}` : ""}
-${paymentMethodBreakdown.length > 0 ? `- Métodos de pago: ${paymentMethodBreakdown.map(p => `${p.label} $${p.total.toFixed(0)}`).join(", ")}` : ""}
+- Ingreso hoy: $${todayRevenue.toFixed(2)}
+- Gastos hoy: $${todayExpenses.toFixed(2)}
+${topCategories.length > 0 ? `- Top 5 gastos: ${topCategories.map(c => `${c.label} $${c.amount.toFixed(0)}`).join(", ")}` : ""}
+${paymentMethodBreakdown.length > 0 ? `- Metodos de pago: ${paymentMethodBreakdown.map(p => `${p.label} $${p.total.toFixed(0)}`).join(", ")}` : ""}
 
-Responde con: 1) resumen de 2 oraciones, 2) un punto positivo, 3) una recomendación. Máximo 100 palabras. Usa emojis con moderación.`;
-
-      const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${GROQ_KEY}`,
-        },
-        body: JSON.stringify({
-          model: "llama-3.3-70b-versatile",
-          messages: [{ role: "user", content: prompt }],
-          temperature: 0.4,
-          max_tokens: 300,
-        }),
-      });
-
-      const data = await res.json();
-      const text = data?.choices?.[0]?.message?.content;
-
-      if (text) {
-        setAiSummary(text);
-      } else {
-        const errMsg = data?.error?.message || "Respuesta inesperada";
-        setAiSummary(`⚠️ ${errMsg}`);
-      }
+Analiza como experto financiero de taller de reparacion.`,
+        {
+          maxTokens: 400,
+          temperature: 0.35,
+          systemPrompt: `Eres JENAI, analista financiero de SmartFixOS. Responde en espanol.
+Formato obligatorio:
+1. RESUMEN (2 oraciones del estado financiero)
+2. SALUD FINANCIERA: score del 1-10 con justificacion breve
+3. PUNTO FUERTE: algo positivo que destacar
+4. ALERTA: riesgo o problema a atender (si hay)
+5. ACCION RECOMENDADA: una accion concreta para mejorar
+Maximo 150 palabras. Texto plano, sin markdown.`
+        }
+      );
+      setAiSummary(text);
     } catch (err) {
       console.error("AI summary error:", err);
-      setAiSummary("⚠️ Error de conexión con Gemini. Revisa tu conexión a internet.");
+      setAiSummary("No se pudo conectar con JENAI.");
     } finally {
       setAiLoading(false);
     }
