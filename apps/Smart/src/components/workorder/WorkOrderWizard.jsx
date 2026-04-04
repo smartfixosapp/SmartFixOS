@@ -3266,26 +3266,7 @@ Reglas:
                   ))}
                 </div>
               </button>
-              <div className="shrink-0 h-2" />
-              {/* Crear con JENAI */}
-              <button
-                onClick={() => { setJenaiMode(true); setJenaiSubMode("normal"); setMobileStep(1); }}
-                className="flex-1 min-h-0 bg-violet-500/[0.06] border border-violet-500/25 rounded-[24px] p-5 flex flex-col items-center justify-center gap-3 active:scale-[0.97] transition-all hover:bg-violet-500/[0.12] group"
-              >
-                <div className="w-14 h-14 rounded-[18px] bg-gradient-to-br from-violet-400 to-purple-600 flex items-center justify-center shadow-[0_8px_24px_rgba(139,92,246,0.35)] shrink-0">
-                  <Sparkles className="w-7 h-7 text-white" strokeWidth={2.5} />
-                </div>
-                <div className="text-center">
-                  <p className="text-xl font-black text-white uppercase tracking-tight">Crear con JENAI</p>
-                  <p className="text-xs text-white/40 mt-1">IA llena todo por ti · 1 paso</p>
-                </div>
-                <div className="flex gap-1.5 flex-wrap justify-center">
-                  {["Texto libre","Fotos","Auto-fill"].map(s => (
-                    <span key={s} className="text-[9px] font-bold text-violet-400/70 bg-violet-500/10 border border-violet-500/20 rounded-full px-2 py-0.5">{s}</span>
-                  ))}
-                </div>
-              </button>
-              <div className="shrink-0 h-2" />
+              <div className="shrink-0 h-3" />
               {/* Orden Rápida */}
               <button
                 onClick={() => { setQuickOrderMode(true); setJenaiMode(false); setMobileStep(1); }}
