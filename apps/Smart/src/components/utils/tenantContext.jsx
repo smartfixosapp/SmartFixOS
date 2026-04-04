@@ -17,12 +17,18 @@ export function TenantProvider({ children }) {
     try {
       const user = await dataClient.auth.me();
       if (!user?.email) {
-        setCurrentTenant(null);
+        // No auth user — try to load tenant from employee session (PIN login)
+        const tenantFromSession = await loadTenantFromSession();
+        if (tenantFromSession) {
+          setCurrentTenant(tenantFromSession);
+        } else {
+          setCurrentTenant(null);
+        }
         setUserMemberships([]);
         setIsSuperAdmin(false);
         return;
       }
-      
+
       // Verificar si es super admin
       const superAdmin = user.email === "admin@smartfixos.com" || user.email === "911smartfix@gmail.com" || user.role === "super_admin" || user.position === "superadmin";
       setIsSuperAdmin(superAdmin);
@@ -38,26 +44,71 @@ export function TenantProvider({ children }) {
       }
 
       // Cargar membresías del usuario
-      const memberships = await dataClient.entities.TenantMembership.filter({
-        user_email: user.email,
-        status: "active"
-      });
+      let memberships = [];
+      try {
+        memberships = await dataClient.entities.TenantMembership.filter({
+          user_email: user.email,
+          status: "active"
+        });
+      } catch {}
 
       setUserMemberships(memberships || []);
 
       if (memberships?.length > 0) {
-        // Cargar tenant por defecto (primero en la lista)
         const storedTenantId = localStorage.getItem("current_tenant_id");
         const membership = memberships.find(m => m.tenant_id === storedTenantId) || memberships[0];
-        
+
         const tenant = await dataClient.entities.Tenant.get(membership.tenant_id);
         setCurrentTenant(tenant);
         localStorage.setItem("current_tenant_id", tenant.id);
+      } else {
+        // No memberships found — fallback to employee session tenant_id
+        const tenantFromSession = await loadTenantFromSession();
+        if (tenantFromSession) {
+          setCurrentTenant(tenantFromSession);
+        }
       }
     } catch (error) {
       console.warn("Tenant context no disponible en este modo:", error?.message || error);
+      // Last resort: try session-based tenant
+      try {
+        const tenantFromSession = await loadTenantFromSession();
+        if (tenantFromSession) setCurrentTenant(tenantFromSession);
+      } catch {}
     } finally {
       setLoading(false);
+    }
+  };
+
+  /**
+   * Resolve tenant from employee_session or localStorage tenant_id.
+   * This covers the common case where users login via PIN (no TenantMembership records).
+   */
+  const loadTenantFromSession = async () => {
+    try {
+      // Try employee_session first
+      const raw = localStorage.getItem("employee_session") || sessionStorage.getItem("911-session");
+      let tenantId = null;
+      if (raw) {
+        try {
+          const session = JSON.parse(raw);
+          tenantId = session?.tenant_id || session?.user?.tenant_id || session?.session?.tenant_id;
+        } catch {}
+      }
+      // Fallback to direct tenant_id keys
+      if (!tenantId) {
+        tenantId = localStorage.getItem("smartfix_tenant_id") || localStorage.getItem("current_tenant_id") || sessionStorage.getItem("current_tenant_id");
+      }
+      if (!tenantId) return null;
+
+      const tenant = await dataClient.entities.Tenant.get(tenantId);
+      if (tenant?.id) {
+        localStorage.setItem("current_tenant_id", tenant.id);
+        return tenant;
+      }
+      return null;
+    } catch {
+      return null;
     }
   };
 
