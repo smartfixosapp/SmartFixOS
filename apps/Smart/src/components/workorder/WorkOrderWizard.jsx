@@ -3153,31 +3153,43 @@ Reglas:
           </button>
         </div>
 
-        {!isCompactDevice && (
-        <div className={`relative z-10 border-b border-white/[0.05] bg-white/[0.01] px-8 py-4 flex gap-3`}>
+        {!isCompactDevice && !jenaiMode && (
+        <div className={`relative z-10 border-b px-8 py-3 transition-all duration-500 ${
+          quickOrderMode
+            ? "border-amber-500/20 bg-amber-500/[0.04]"
+            : "border-white/[0.05] bg-white/[0.01]"
+        }`}>
           {/* Orden Rapida toggle */}
           <button
             type="button"
-            onClick={() => { setQuickOrderMode(prev => !prev); setJenaiMode(false); setJenaiShowReview(false); }}
-            className={`flex-1 group rounded-[20px] border transition-all duration-500 ${
+            onClick={() => { setQuickOrderMode(prev => !prev); }}
+            className={`w-full group rounded-[20px] border transition-all duration-500 ${
               quickOrderMode
-                ? "border-amber-400/30 bg-amber-500/10"
+                ? "border-amber-400/30 bg-gradient-to-r from-amber-500/15 to-yellow-500/10 shadow-[0_0_20px_rgba(245,158,11,0.08)]"
                 : "border-white/[0.05] bg-white/[0.02] hover:bg-white/[0.04]"
             }`}
           >
             <div className="p-3 flex items-center gap-3">
-              <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl transition-all ${
-                quickOrderMode ? "bg-gradient-to-br from-amber-400 to-yellow-500 text-white shadow-lg" : "bg-white/5 text-white/30"
+              <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl transition-all duration-500 ${
+                quickOrderMode ? "bg-gradient-to-br from-amber-400 to-yellow-500 text-white shadow-lg shadow-amber-500/25" : "bg-white/5 text-white/30"
               }`}>
                 <Zap className="h-5 w-5" strokeWidth={2.5} />
               </div>
-              <div className="text-left">
-                <p className="text-xs font-black uppercase tracking-wider text-white">Orden Rapida</p>
-                <p className="text-[10px] text-white/35">Express · 3 pasos</p>
+              <div className="text-left flex-1">
+                <p className={`text-xs font-black uppercase tracking-wider transition-colors ${quickOrderMode ? "text-amber-200" : "text-white"}`}>
+                  {quickOrderMode ? "Modo: Orden Rapida" : "Modo: Orden Regular"}
+                </p>
+                <p className={`text-[10px] transition-colors ${quickOrderMode ? "text-amber-300/50" : "text-white/35"}`}>
+                  {quickOrderMode ? "Cambio directo · sin diagnostico" : "Diagnostico completo · click para cambiar"}
+                </p>
               </div>
-              {quickOrderMode && (
-                <span className="ml-auto rounded-full bg-amber-500 text-[9px] font-black uppercase text-black px-2 py-0.5">Activo</span>
-              )}
+              <div className={`w-11 h-6 rounded-full transition-all duration-300 flex items-center px-0.5 ${
+                quickOrderMode ? "bg-amber-500" : "bg-white/15"
+              }`}>
+                <div className={`w-5 h-5 rounded-full bg-white shadow-sm transition-all duration-300 ${
+                  quickOrderMode ? "translate-x-5" : "translate-x-0"
+                }`} />
+              </div>
             </div>
           </button>
         </div>
