@@ -151,7 +151,7 @@ export default function Customers() {
       <div className="fixed -top-40 -right-40 w-80 h-80 bg-blue-500/8 rounded-full blur-[120px] pointer-events-none" />
       <div className="fixed -bottom-40 -left-40 w-80 h-80 bg-cyan-500/8 rounded-full blur-[120px] pointer-events-none" />
 
-      <div className="max-w-4xl mx-auto px-3 sm:px-5 py-4 relative z-10">
+      <div className="max-w-full mx-auto px-3 sm:px-5 lg:px-8 py-4 relative z-10">
 
         {/* ── JENAI Customer Insights ── */}
         <div className="mb-4">
