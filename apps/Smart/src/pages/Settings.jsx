@@ -1391,6 +1391,9 @@ export default function SettingsPage() {
             </div>
           )}
 
+          {/* IMPORTAR / EXPORTAR */}
+          {activeSection === "data_tools" && <SmartImportExport />}
+
           {/* SEGURIDAD Y SESIÓN — biometría + timeout por usuario */}
           {activeSection === "biometric" && (
             <div className="space-y-6">
