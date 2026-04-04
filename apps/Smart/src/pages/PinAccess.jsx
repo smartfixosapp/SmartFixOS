@@ -1197,15 +1197,38 @@ export default function PinAccess() {
         credentialId = arrayBufferToBase64(credential.rawId);
       }
 
+      const userId = pendingLoginSession.id;
+      const tenantId = pendingLoginSession.tenant_id || null;
+      const deviceId = localStorage.getItem("smartfix_device_id");
+
+      // 1. Guardar en localStorage (acceso local rápido)
       saveBiometricProfile({
         credentialId,
         isNative,
-        userId: pendingLoginSession.id,
-        tenantId: pendingLoginSession.tenant_id || null,
+        userId,
+        tenantId,
         session: pendingLoginSession,
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
         deviceKey: navigator.userAgent.slice(0, 120),
+      });
+
+      // 2. Registrar dispositivo en la nube (Supabase) — fire and forget
+      const ua = navigator.userAgent;
+      const platform = isNative ? (/iPhone|iPad/.test(ua) ? "ios" : "android") : (/Mac/.test(ua) ? "mac" : "web");
+      supabase.from("biometric_credential").upsert({
+        user_id: userId,
+        user_name: pendingLoginSession.full_name || pendingLoginSession.userName || pendingLoginSession.email || "",
+        device_id: deviceId,
+        device_fingerprint: deviceId,
+        credential_id: credentialId,
+        public_key: credentialId === "native_stored" ? "native" : credentialId,
+        device_info: { platform, browser: ua.slice(0, 120), os: platform },
+        last_used: new Date().toISOString(),
+        active: true,
+        tenant_id: tenantId,
+      }, { onConflict: "device_id,user_id" }).then(({ error }) => {
+        if (error) console.warn("[Biometric] Cloud register failed:", error.message);
       });
 
       const { name } = getBiometricType();
