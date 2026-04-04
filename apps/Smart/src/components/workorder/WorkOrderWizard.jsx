@@ -4503,7 +4503,7 @@ Reglas:
                 >
                   <Check className="w-5 h-5 mr-3" /> Confirmar datos
                 </Button>
-              ) : inJenaiInput && mobileStep === 1 && jenaiSubMode ? (
+              ) : inJenaiInput && mobileStep === 1 ? (
                 <Button
                   onClick={parseWithJenai}
                   disabled={jenaiProcessing || (!jenaiInput.trim() && jenaiPhotos.length === 0)}
