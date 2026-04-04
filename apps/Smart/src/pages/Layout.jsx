@@ -347,6 +347,7 @@ export default function Layout({ children }) {
         <PaymentActivationScreen
           tenantId={tenant?.id}
           tenantName={tenant?.name}
+          tenantPlan={tenant?.plan}
           onPaymentSuccess={() => {
             setShowPaymentScreen(false);
             // Recargar tenant para validar nueva suscripción
