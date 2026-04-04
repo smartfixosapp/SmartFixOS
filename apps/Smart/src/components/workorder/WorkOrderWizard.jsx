@@ -2234,7 +2234,7 @@ Reglas:
     setOrderItems([]);
     setQuickOrderMode(false);
     setJenaiMode(false);
-    setJenaiSubMode(null);
+    setJenaiSubMode("normal");
     setJenaiInput("");
     setJenaiPhotos([]);
     setJenaiProcessing(false);
@@ -3182,7 +3182,7 @@ Reglas:
           {/* Crear con JENAI toggle */}
           <button
             type="button"
-            onClick={() => { setJenaiMode(prev => !prev); setQuickOrderMode(false); if (!jenaiMode) { setJenaiShowReview(false); setJenaiSubMode(null); } }}
+            onClick={() => { setJenaiMode(prev => !prev); setQuickOrderMode(false); if (!jenaiMode) { setJenaiShowReview(false); setJenaiSubMode("normal"); } }}
             className={`flex-1 group rounded-[20px] border transition-all duration-500 ${
               jenaiMode
                 ? "border-violet-400/30 bg-violet-500/10"
@@ -3268,7 +3268,7 @@ Reglas:
               <div className="shrink-0 h-2" />
               {/* Crear con JENAI */}
               <button
-                onClick={() => { setJenaiMode(true); setJenaiSubMode(null); setMobileStep(1); }}
+                onClick={() => { setJenaiMode(true); setJenaiSubMode("normal"); setMobileStep(1); }}
                 className="flex-1 min-h-0 bg-violet-500/[0.06] border border-violet-500/25 rounded-[24px] p-5 flex flex-col items-center justify-center gap-3 active:scale-[0.97] transition-all hover:bg-violet-500/[0.12] group"
               >
                 <div className="w-14 h-14 rounded-[18px] bg-gradient-to-br from-violet-400 to-purple-600 flex items-center justify-center shadow-[0_8px_24px_rgba(139,92,246,0.35)] shrink-0">
@@ -4482,7 +4482,7 @@ Reglas:
                   <Button
                     onClick={() => {
                       if (inJenaiInput && mobileStep === 1) {
-                        setJenaiMode(false); setJenaiSubMode(null); setJenaiInput(""); setJenaiPhotos([]); setJenaiError("");
+                        setJenaiMode(false); setJenaiSubMode("normal"); setJenaiInput(""); setJenaiPhotos([]); setJenaiError("");
                       }
                       setMobileStep(s => Math.max(0, s - 1));
                     }}
