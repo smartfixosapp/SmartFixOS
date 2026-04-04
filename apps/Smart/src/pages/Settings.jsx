@@ -125,37 +125,24 @@ export default function SettingsPage() {
     const raw = localStorage.getItem("employee_session") || sessionStorage.getItem("911-session");
     if (!raw) { toast.error("Inicia sesión primero"); return; }
     const sessionData = JSON.parse(raw);
-    
+    const deviceId = localStorage.getItem("smartfix_device_id");
+
     setBiometricLoading(true);
     try {
       const { Capacitor } = await import('@capacitor/core');
       const isNative = Capacitor.isNativePlatform();
+      let credId = "native_stored";
 
       if (isNative) {
         const { NativeBiometric } = await import('@capgo/capacitor-native-biometric');
-        // Simple verification to confirm identity before saving
         await NativeBiometric.verifyIdentity({
           reason: "Confirma tu identidad para activar el acceso rápido",
           title: "Activar Face ID / Huella",
           subtitle: "Usa tu biometría para guardar el perfil",
           description: "Esto te permitirá entrar sin PIN la próxima vez."
         });
-        
-        // Save the profile info (session) - same structure as PinAccess expects
-        // credentialId es REQUERIDO por PinAccess.loadBiometricProfile()
-        saveBiometricProfile({
-          credentialId: "native_stored",
-          isNative: true,
-          userId: sessionData.id || sessionData.userId,
-          tenantId: sessionData.tenant_id || null,
-          session: sessionData,
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString(),
-          deviceKey: navigator.userAgent.slice(0, 120),
-        });
-        toast.success("✅ Face ID / Huella activada correctamente");
       } else {
-        // Fallback for Web (WebAuthn)
+        // Web (WebAuthn)
         const challenge = new Uint8Array(32);
         crypto.getRandomValues(challenge);
         const credential = await navigator.credentials.create({
@@ -164,15 +151,49 @@ export default function SettingsPage() {
             rp: { name: "SmartFixOS", id: window.location.hostname },
             user: { id: new TextEncoder().encode(sessionData.id || sessionData.userId), name: sessionData.email || sessionData.userName, displayName: sessionData.full_name || sessionData.userName },
             pubKeyCredParams: [{ alg: -7, type: "public-key" }, { alg: -257, type: "public-key" }],
-            authenticatorSelection: { authenticatorAttachment: "platform", userVerification: "required" },
+            authenticatorSelection: { authenticatorAttachment: "platform", userVerification: "required", residentKey: "required", requireResidentKey: true },
             timeout: 60000,
+            attestation: "none",
           },
         });
         if (!credential?.rawId) throw new Error("No se pudo crear la credencial");
         const toB64 = (buf) => { const b = new Uint8Array(buf); let s = ""; for (const x of b) s += String.fromCharCode(x); return btoa(s); };
-        saveBiometricProfile({ credentialId: toB64(credential.rawId), userId: sessionData.id || sessionData.userId, tenantId: sessionData.tenant_id || null, session: sessionData, createdAt: new Date().toISOString() });
-        toast.success("✅ Biometría activada (Web)");
+        credId = toB64(credential.rawId);
       }
+
+      // 1. Guardar en localStorage (acceso local rápido)
+      const userId = sessionData.id || sessionData.userId;
+      const tenantId = sessionData.tenant_id || localStorage.getItem("smartfix_tenant_id") || null;
+      saveBiometricProfile({
+        credentialId: credId,
+        isNative,
+        userId,
+        tenantId,
+        session: sessionData,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+        deviceKey: navigator.userAgent.slice(0, 120),
+      });
+
+      // 2. Registrar dispositivo en la nube (Supabase) — fire and forget
+      const ua = navigator.userAgent;
+      const platform = isNative ? (/iPhone|iPad/.test(ua) ? "ios" : "android") : (/Mac/.test(ua) ? "mac" : "web");
+      supabase.from("biometric_credential").upsert({
+        user_id: userId,
+        user_name: sessionData.full_name || sessionData.userName || sessionData.email || "",
+        device_id: deviceId,
+        device_fingerprint: deviceId,
+        credential_id: credId,
+        public_key: credId === "native_stored" ? "native" : credId,
+        device_info: { platform, browser: ua.slice(0, 120), os: platform },
+        last_used: new Date().toISOString(),
+        active: true,
+        tenant_id: tenantId,
+      }, { onConflict: "device_id,user_id" }).then(({ error }) => {
+        if (error) console.warn("[Biometric] Cloud register failed:", error.message);
+      });
+
+      toast.success(isNative ? "✅ Face ID / Huella activada" : "✅ Biometría activada");
     } catch (err) {
       if (err?.name !== "NotAllowedError") toast.error("Error: " + (err?.message || "No se pudo activar"));
     } finally {
