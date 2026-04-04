@@ -3455,7 +3455,7 @@ Reglas:
               )}
 
               {/* ── JENAI Confirmacion de datos ── */}
-              {jenaiSubMode && jenaiConfirm && (
+              {jenaiConfirm && (
                 <div className="space-y-4 relative z-10">
                   <div className="flex items-center gap-2 mb-1">
                     <Check className="w-4 h-4 text-emerald-400" />
