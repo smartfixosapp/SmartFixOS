@@ -692,7 +692,7 @@ function EditStoreModal({ tenant, open, onClose }) {
       const { error } = await adminSupabase.from("tenant").update(form).eq("id", tenant.id);
       if (error) throw error;
       toast.success("Tienda actualizada");
-      refresh();
+      await refresh();
       onClose();
     } catch (e) {
       toast.error("Error: " + e.message);
