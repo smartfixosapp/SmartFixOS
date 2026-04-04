@@ -3207,9 +3207,9 @@ Reglas:
                   key={i}
                   className={`h-1.5 flex-1 rounded-full transition-all duration-300 ${
                     i < mobileStep
-                      ? quickOrderMode ? "bg-amber-400" : "bg-cyan-500"
+                      ? inJenaiInput ? "bg-violet-400" : quickOrderMode ? "bg-amber-400" : "bg-cyan-500"
                       : i === mobileStep
-                      ? quickOrderMode ? "bg-amber-400/80" : "bg-cyan-400"
+                      ? inJenaiInput ? "bg-violet-400/80" : quickOrderMode ? "bg-amber-400/80" : "bg-cyan-400"
                       : "bg-white/10"
                   }`}
                 />
