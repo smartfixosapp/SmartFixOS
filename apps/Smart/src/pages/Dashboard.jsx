@@ -1207,7 +1207,8 @@ export default function Dashboard() {
                 )}
               </div>
 
-              {/* JENAI Insights */}
+              {/* JENAI Insights — se oculta al abrir wizard/lista precios para más espacio */}
+              {!showWorkOrderWizard && !showJenaiWizard && !showPriceList && (
               <div className="mb-3 shrink-0">
                 <JENAIInsightBanner
                   context="dashboard"
