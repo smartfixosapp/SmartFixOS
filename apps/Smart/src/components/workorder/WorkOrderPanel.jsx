@@ -53,6 +53,7 @@ import AwaitingApprovalStage from "./stages/AwaitingApprovalStage";
 import { getLocalOrders, getUnsyncedLocalOrders, mergeOrders, removeLocalOrder } from "@/components/utils/localOrderCache";
 import { logWorkOrderPhotoEvent } from "@/components/workorder/utils/auditEvents";
 import { loadSuppliersSafe } from "@/components/utils/suppliers";
+import { canUsePlanFeature, normalizePlanId } from "@/lib/plans";
 import { loadOrderLinks } from "@/components/workorder/utils/orderLinksStore";
 
 
