@@ -1534,19 +1534,14 @@ export default function Dashboard() {
             </div>
 
             {/* Quick Nav */}
-            <div className="grid grid-cols-3 gap-2 px-1 pb-2 shrink-0">
-              <button onClick={() => { setShowWorkOrderWizard(true); setShowJenaiWizard(false); }} className="flex flex-col items-center justify-center gap-1.5 py-3 bg-blue-500/10 border border-blue-500/20 rounded-[20px] active:scale-95 transition-all">
+            <div className="grid grid-cols-2 gap-2 px-1 pb-2 shrink-0">
+              <button onClick={() => setShowWorkOrderWizard(true)} className="flex flex-col items-center justify-center gap-1.5 py-4 bg-blue-500/10 border border-blue-500/20 rounded-[20px] active:scale-95 transition-all">
                 <ClipboardList className="w-5 h-5 text-blue-400" />
                 <span className="text-[9px] font-black text-blue-400/80 uppercase tracking-tight">Nueva Orden</span>
               </button>
-              <button onClick={() => { setShowJenaiWizard(true); setShowWorkOrderWizard(false); }} className="flex flex-col items-center justify-center gap-1.5 py-3 bg-violet-500/10 border border-violet-500/20 rounded-[20px] active:scale-95 transition-all">
-                <Sparkles className="w-5 h-5 text-violet-400" />
-                <span className="text-[9px] font-black text-violet-400/80 uppercase tracking-tight">JENAI</span>
-                <span className="text-[7px] text-white/20 -mt-1">powered by SmartFixOS</span>
-              </button>
-              <button onClick={() => { setShowPriceList(true); setPriceListSearch(""); }} className="flex flex-col items-center justify-center gap-1.5 py-3 bg-violet-500/10 border border-violet-500/20 rounded-[20px] active:scale-95 transition-all">
+              <button onClick={() => { setShowPriceList(true); setPriceListSearch(""); }} className="flex flex-col items-center justify-center gap-1.5 py-4 bg-violet-500/10 border border-violet-500/20 rounded-[20px] active:scale-95 transition-all">
                 <Search className="w-5 h-5 text-violet-400" />
-                <span className="text-[9px] font-black text-violet-400/80 uppercase tracking-tight">Precios</span>
+                <span className="text-[9px] font-black text-violet-400/80 uppercase tracking-tight">Lista Precios</span>
               </button>
             </div>
           </div>
