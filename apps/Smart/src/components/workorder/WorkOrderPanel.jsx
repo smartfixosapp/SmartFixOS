@@ -1353,6 +1353,7 @@ export default function WorkOrderPanel({ orderId, onClose, onUpdate, onDelete, p
 
   const navigate = useNavigate();
   const { registerPanel, unregisterPanel } = usePanelState();
+  const { can: canPlan } = usePlanLimits();
 
   // ✅ Registrar panel cuando se abre
   useEffect(() => {
