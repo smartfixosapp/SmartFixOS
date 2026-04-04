@@ -3325,6 +3325,30 @@ Reglas:
               {/* Main input area */}
               {!jenaiConfirm && (
                 <div className="space-y-4 relative z-10">
+                  {/* Quick order toggle */}
+                  <button
+                    type="button"
+                    onClick={() => setJenaiQuickToggle(v => !v)}
+                    className={`w-full flex items-center justify-between px-4 py-2.5 rounded-xl border transition-all active:scale-[0.98] ${
+                      jenaiQuickToggle
+                        ? "border-amber-500/30 bg-amber-500/10"
+                        : "border-white/10 bg-white/[0.03] hover:bg-white/[0.05]"
+                    }`}
+                  >
+                    <div className="flex items-center gap-2">
+                      <Zap className={`w-4 h-4 ${jenaiQuickToggle ? "text-amber-400" : "text-white/30"}`} />
+                      <span className={`text-xs font-bold ${jenaiQuickToggle ? "text-amber-300" : "text-white/40"}`}>
+                        Orden Rapida
+                      </span>
+                      <span className="text-[9px] text-white/20">(cambio de pantalla, bateria, etc.)</span>
+                    </div>
+                    <div className={`w-8 h-4.5 rounded-full transition-all flex items-center ${
+                      jenaiQuickToggle ? "bg-amber-500 justify-end" : "bg-white/15 justify-start"
+                    }`}>
+                      <div className="w-3.5 h-3.5 rounded-full bg-white mx-0.5 shadow-sm" />
+                    </div>
+                  </button>
+
                   <div>
                     <div className="flex items-center justify-between mb-2">
                       <p className="text-sm font-bold text-white/60">Escribe o dicta la informacion:</p>
