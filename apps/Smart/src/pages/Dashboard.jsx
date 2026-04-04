@@ -1225,6 +1225,7 @@ export default function Dashboard() {
                   autoLoad={false}
                 />
               </div>
+              )}
 
               {/* Feed list — scrollbar aparece automáticamente cuando overflow */}
               {/* ── Tarjetas selectoras de categoría ── */}
