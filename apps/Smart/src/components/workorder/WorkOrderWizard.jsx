@@ -1293,7 +1293,7 @@ Reglas:
     } else {
       resetForm();
     }
-  }, [open, preloadedCustomer]);
+  }, [open, preloadedCustomer, startWithJenai]);
 
   useEffect(() => {
     if (deviceType) loadBrands();
