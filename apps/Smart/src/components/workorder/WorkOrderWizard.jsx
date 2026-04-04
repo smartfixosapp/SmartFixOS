@@ -4496,7 +4496,7 @@ Reglas:
                 )}
               </div>
               {/* Row 2: Siguiente / Confirmar / JENAI Analizar — oculto en step 0 */}
-              {mobileStep === 0 ? null : inJenaiInput && mobileStep === 1 && jenaiSubMode && jenaiConfirm ? (
+              {mobileStep === 0 ? null : inJenaiInput && mobileStep === 1 && jenaiConfirm ? (
                 <Button
                   onClick={() => applyJenaiData(jenaiConfirm)}
                   className="w-full h-14 rounded-[20px] font-black uppercase text-sm tracking-widest active:scale-95 transition-all bg-gradient-to-r from-emerald-500 to-teal-600 text-white shadow-[0_0_30px_rgba(16,185,129,0.25)]"
