@@ -792,7 +792,7 @@ async function reorderRemoteCatalogItems(level, newOrderedList) {
   );
 }
 
-export default function WorkOrderWizard({ open, onClose, onSuccess, preloadedCustomer }) {
+export default function WorkOrderWizard({ open, onClose, onSuccess, preloadedCustomer, startWithJenai = false }) {
   const [loading, setLoading] = useState(false);
   const [user, setUser] = useState(null);
   const [technicians, setTechnicians] = useState([]);
