@@ -1113,7 +1113,7 @@ Responde con: 1) resumen de 2 oraciones, 2) un punto positivo, 3) una recomendac
             txCount: transactions?.length || 0,
           }}
           accentColor="emerald"
-          autoLoad={!loading}
+          autoLoad={false}
         />
       </div>
 
