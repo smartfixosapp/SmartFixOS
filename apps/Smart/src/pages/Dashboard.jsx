@@ -1161,10 +1161,14 @@ export default function Dashboard() {
               <div className="border-t border-white/[0.06]" />
 
               {/* Accesos rápidos */}
-              <button onClick={() => setShowWorkOrderWizard(true)} className="flex-1 min-h-[44px] bg-violet-500/10 border border-violet-500/20 rounded-xl flex items-center gap-3 px-4 hover:bg-violet-500/15 active:scale-95 transition-all">
+              <button onClick={() => setShowWorkOrderWizard(true)} className="flex-1 min-h-[44px] bg-blue-500/10 border border-blue-500/20 rounded-xl flex items-center gap-3 px-4 hover:bg-blue-500/15 active:scale-95 transition-all">
+                <ClipboardList className="w-4 h-4 text-blue-400 shrink-0" />
+                <span className="text-[11px] font-black text-blue-400/80 uppercase tracking-tight">Nueva Orden</span>
+              </button>
+              <button onClick={() => setShowJenaiWizard(true)} className="flex-1 min-h-[44px] bg-violet-500/10 border border-violet-500/20 rounded-xl flex items-center gap-3 px-4 hover:bg-violet-500/15 active:scale-95 transition-all">
                 <Sparkles className="w-4 h-4 text-violet-400 shrink-0" />
                 <div className="flex flex-col">
-                  <span className="text-[11px] font-black text-violet-400/80 uppercase tracking-tight">Nueva Orden</span>
+                  <span className="text-[11px] font-black text-violet-400/80 uppercase tracking-tight">Crear con JENAI</span>
                   <span className="text-[8px] text-white/20">powered by SmartFixOS</span>
                 </div>
               </button>
