@@ -1067,6 +1067,7 @@ Reglas:
 - suggested_checklist: problemas a revisar segun el problema (ej: ["Pantalla rota", "Dano por liquido"])
 - suggested_parts: piezas que probablemente necesite (ej: ["Pantalla LCD iPhone 15 Pro Max", "Adhesivo frame", "Tornillos pentalobe"])
 - suggested_diagnosis: breve diagnostico preliminar basado en el problema (ej: "Requiere limpieza ultrasonido y evaluacion de placa madre por dano por liquido")
+- is_quick_order: true si el problema es simple y directo (cambio de pantalla, cambio de bateria, cambio de puerto de carga). false si requiere diagnostico completo (dano por agua, no enciende, problema desconocido)
 - Si hay fotos, describe el dano visible en photo_analysis
 - Si no sabes un campo, usa null
 - SOLO responde JSON`;
