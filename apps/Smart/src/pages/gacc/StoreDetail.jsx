@@ -473,11 +473,16 @@ function ChangePlanModal({ tenant, open, onClose }) {
   const handleSave = async () => {
     setSaving(true);
     try {
-      // Update tenant
+      // Update tenant — plan, cost, max_users, subscription_status
       const metadata = { ...(tenant.metadata || {}), max_users: maxUsers };
       const { error: tenantErr } = await adminSupabase
         .from("tenant")
-        .update({ plan: selectedPlan, monthly_cost: monthlyCost, metadata })
+        .update({
+          plan: selectedPlan,
+          monthly_cost: monthlyCost,
+          subscription_status: "active",
+          metadata,
+        })
         .eq("id", tenant.id);
       if (tenantErr) throw tenantErr;
 
@@ -485,8 +490,18 @@ function ChangePlanModal({ tenant, open, onClose }) {
       if (tenant.latest_subscription?.id) {
         await adminSupabase
           .from("subscription")
-          .update({ plan: selectedPlan, amount: monthlyCost })
+          .update({ plan: selectedPlan, amount: monthlyCost, status: "active" })
           .eq("id", tenant.latest_subscription.id);
+      } else {
+        // Create subscription record if none exists
+        await adminSupabase.from("subscription").insert({
+          tenant_id: tenant.id,
+          tenant_name: tenant.name,
+          plan: selectedPlan,
+          status: "active",
+          amount: monthlyCost,
+          payment_method: tenant.payment_method || "stripe",
+        });
       }
 
       // Also call manageTenant for plan change side-effects
@@ -500,7 +515,7 @@ function ChangePlanModal({ tenant, open, onClose }) {
       } catch {}
 
       toast.success(`Plan actualizado a ${getPlanConfig(selectedPlan).label} ($${monthlyCost}/mo, ${maxUsers} usuarios)`);
-      refresh();
+      await refresh();
       onClose();
     } catch (e) {
       toast.error("Error: " + e.message);
