@@ -169,7 +169,7 @@ export default function Customers() {
               topCustomer: [...customers].sort((a, b) => (b.total_orders || 0) - (a.total_orders || 0))[0]?.full_name || "N/A",
             }}
             accentColor="blue"
-            autoLoad={!isLoading && customers.length > 0}
+            autoLoad={false}
           />
         </div>
 
