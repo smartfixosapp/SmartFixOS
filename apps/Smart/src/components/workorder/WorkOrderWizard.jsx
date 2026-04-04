@@ -819,7 +819,8 @@ export default function WorkOrderWizard({ open, onClose, onSuccess, preloadedCus
 
   // JENAI — Creacion inteligente
   const [jenaiMode, setJenaiMode] = useState(startWithJenai);
-  const [jenaiSubMode, setJenaiSubMode] = useState(null); // "quick" | "normal"
+  const [jenaiSubMode, setJenaiSubMode] = useState("normal"); // "quick" | "normal" — default normal, toggle available
+  const [jenaiQuickToggle, setJenaiQuickToggle] = useState(false); // small toggle in JENAI screen
   const [jenaiInput, setJenaiInput] = useState("");
   const [jenaiPhotos, setJenaiPhotos] = useState([]);
   const [jenaiProcessing, setJenaiProcessing] = useState(false);
