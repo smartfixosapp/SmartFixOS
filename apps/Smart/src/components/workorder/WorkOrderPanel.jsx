@@ -2125,7 +2125,8 @@ export default function WorkOrderPanel({ orderId, onClose, onUpdate, onDelete, p
     console.log("[ChangeStatus] Iniciando cambio:", prevStatusId, "→", nextId);
 
     // Bloquear avance desde intake/received si no hay al menos 1 foto
-    if ((prevStatusId === "intake" || prevStatusId === "received") && nextId !== "cancelled") {
+    // Solo aplica si el plan permite fotos (orders_photos)
+    if (canPlan("orders_photos") && (prevStatusId === "intake" || prevStatusId === "received") && nextId !== "cancelled") {
       const prevOrder = getStatusConfig(prevStatusId).order || 0;
       const nextOrder = getStatusConfig(nextId).order || 0;
       if (nextOrder > prevOrder) {
