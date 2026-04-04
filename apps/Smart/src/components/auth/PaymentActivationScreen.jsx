@@ -82,7 +82,7 @@ export default function PaymentActivationScreen({
           <div className="space-y-4 mb-6 pb-6 border-b border-white/10">
             <div className="flex justify-between items-center">
               <span className="text-gray-400">Plan</span>
-              <span className="text-white font-semibold">Starter</span>
+              <span className="text-white font-semibold">{planInfo.label}</span>
             </div>
             <div className="flex justify-between items-center">
               <span className="text-gray-400">Tienda</span>
@@ -90,7 +90,7 @@ export default function PaymentActivationScreen({
             </div>
             <div className="flex justify-between items-center">
               <span className="text-gray-400">Precio mensual</span>
-              <span className="text-xl font-black text-emerald-400">$49.00 USD</span>
+              <span className="text-xl font-black text-emerald-400">${planInfo.price} USD</span>
             </div>
           </div>
 
