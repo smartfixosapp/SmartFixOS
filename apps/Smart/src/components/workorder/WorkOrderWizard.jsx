@@ -1269,12 +1269,19 @@ Reglas:
       loadUser();
       loadTechnicians();
       loadTypes();
-      
+
+      // Force JENAI mode when startWithJenai prop is true
+      if (startWithJenai) {
+        setJenaiMode(true);
+        setJenaiSubMode("normal");
+        setMobileStep(1);
+      }
+
       if (preloadedCustomer) {
         const parts = (preloadedCustomer.name || "").split(" ");
         const first = parts.slice(0, -1).join(" ") || parts[0] || "";
         const last = parts.length > 1 ? parts[parts.length - 1] : "";
-        
+
         setCustomerId(preloadedCustomer.id);
         setCustomerName(first);
         setCustomerLastName(last);
