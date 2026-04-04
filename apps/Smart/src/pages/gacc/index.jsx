@@ -15,26 +15,30 @@ import SecurityView from "./SecurityView";
 import ToolsView from "./ToolsView";
 import CommandPalette from "./CommandPalette";
 
-export default function GACC() {
+function GACCInner() {
+  const { tenants } = useGACC();
   const [activeSection, setActiveSection] = useState("command-center");
-  const [selectedTenant, setSelectedTenant] = useState(null);
+  const [selectedTenantId, setSelectedTenantId] = useState(null);
   const [storeAction, setStoreAction] = useState(null);
   const [paletteOpen, setPaletteOpen] = useState(false);
 
+  // Always resolve fresh tenant from context
+  const selectedTenant = selectedTenantId ? tenants.find(t => t.id === selectedTenantId) || null : null;
+
   const handleSectionChange = useCallback((section) => {
     setActiveSection(section);
-    setSelectedTenant(null);
+    setSelectedTenantId(null);
     setStoreAction(null);
   }, []);
 
   const handleSelectTenant = useCallback((tenant, action) => {
-    setSelectedTenant(tenant);
+    setSelectedTenantId(tenant.id);
     setStoreAction(action || null);
-    if (activeSection !== "stores") setActiveSection("stores");
-  }, [activeSection]);
+    setActiveSection("stores");
+  }, []);
 
   const handleBackFromDetail = useCallback(() => {
-    setSelectedTenant(null);
+    setSelectedTenantId(null);
     setStoreAction(null);
   }, []);
 
@@ -61,20 +65,26 @@ export default function GACC() {
   };
 
   return (
+    <GACCLayout
+      activeSection={activeSection}
+      onSectionChange={handleSectionChange}
+      onOpenPalette={() => setPaletteOpen(true)}
+    >
+      {renderContent()}
+      <CommandPalette
+        open={paletteOpen}
+        onClose={handlePaletteClose}
+        onNavigate={handleSectionChange}
+        onSelectTenant={handleSelectTenant}
+      />
+    </GACCLayout>
+  );
+}
+
+export default function GACC() {
+  return (
     <GACCProvider>
-      <GACCLayout
-        activeSection={activeSection}
-        onSectionChange={handleSectionChange}
-        onOpenPalette={() => setPaletteOpen(true)}
-      >
-        {renderContent()}
-        <CommandPalette
-          open={paletteOpen}
-          onClose={handlePaletteClose}
-          onNavigate={handleSectionChange}
-          onSelectTenant={handleSelectTenant}
-        />
-      </GACCLayout>
+      <GACCInner />
     </GACCProvider>
   );
 }
