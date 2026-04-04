@@ -3,14 +3,17 @@ import { Button } from "@/components/ui/button";
 import { CreditCard, Loader2, CheckCircle, ShieldCheck, ExternalLink } from "lucide-react";
 import { toast } from "sonner";
 import { createStripeSubscription } from "@/api/functions";
+import { getPlan, normalizePlanId } from "@/lib/plans";
 
 export default function PaymentActivationScreen({
   tenantId,
   tenantName,
+  tenantPlan,
   onPaymentSuccess,
   onPaymentError,
   onCancel
 }) {
+  const planInfo = getPlan(tenantPlan || "starter");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
