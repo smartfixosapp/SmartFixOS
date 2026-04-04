@@ -3457,9 +3457,18 @@ Reglas:
               {/* ── JENAI Confirmacion de datos ── */}
               {jenaiConfirm && (
                 <div className="space-y-4 relative z-10">
-                  <div className="flex items-center gap-2 mb-1">
-                    <Check className="w-4 h-4 text-emerald-400" />
-                    <p className="text-sm font-bold text-emerald-300">JENAI detecto lo siguiente. Confirma:</p>
+                  <div className="flex items-center justify-between mb-1">
+                    <div className="flex items-center gap-2">
+                      <Check className="w-4 h-4 text-emerald-400" />
+                      <p className="text-sm font-bold text-emerald-300">Confirma los datos:</p>
+                    </div>
+                    <span className={`text-[9px] font-black uppercase tracking-widest px-2.5 py-1 rounded-full ${
+                      jenaiQuickToggle || jenaiConfirm.is_quick_order
+                        ? "bg-amber-500/20 text-amber-300 border border-amber-500/25"
+                        : "bg-cyan-500/20 text-cyan-300 border border-cyan-500/25"
+                    }`}>
+                      {jenaiQuickToggle || jenaiConfirm.is_quick_order ? "Rapida" : "Regular"}
+                    </span>
                   </div>
 
                   {/* Data cards */}
