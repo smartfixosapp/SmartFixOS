@@ -868,6 +868,13 @@ export default function SettingsPage() {
           color: "from-blue-500 to-violet-600",
           isToggle: true,
         },
+        {
+          id: "data_tools",
+          icon: Database,
+          title: "Importar / Exportar",
+          description: "Migración de datos y respaldos",
+          color: "from-cyan-500 to-blue-600",
+        },
         // Seguridad y Sesión — biometría + timeout, visible para TODOS
         {
           id: "biometric",
