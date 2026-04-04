@@ -4,7 +4,7 @@
  */
 import React, { useState, useCallback } from "react";
 import GACCLayout from "./GACCLayout";
-import { GACCProvider } from "./gaccContext";
+import { GACCProvider, useGACC } from "./gaccContext";
 import CommandCenter from "./CommandCenter";
 import StoresDirectory from "./StoresDirectory";
 import StoreDetail from "./StoreDetail";
