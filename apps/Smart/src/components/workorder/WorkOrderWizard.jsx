@@ -3322,33 +3322,8 @@ Reglas:
                 </div>
               </div>
 
-              {/* Sub-mode selector */}
-              {!jenaiSubMode && (
-                <div className="space-y-3">
-                  <p className="text-sm text-white/50">Selecciona el tipo de orden:</p>
-                  <div className="grid grid-cols-2 gap-3">
-                    <button
-                      onClick={() => setJenaiSubMode("normal")}
-                      className="rounded-2xl border border-cyan-500/20 bg-cyan-500/8 p-4 text-center transition-all hover:bg-cyan-500/15 active:scale-95"
-                    >
-                      <Wrench className="w-6 h-6 text-cyan-400 mx-auto mb-2" />
-                      <p className="text-sm font-black text-white">Regular</p>
-                      <p className="text-[10px] text-white/35 mt-1">Diagnostico completo</p>
-                    </button>
-                    <button
-                      onClick={() => setJenaiSubMode("quick")}
-                      className="rounded-2xl border border-amber-500/20 bg-amber-500/8 p-4 text-center transition-all hover:bg-amber-500/15 active:scale-95"
-                    >
-                      <Zap className="w-6 h-6 text-amber-400 mx-auto mb-2" />
-                      <p className="text-sm font-black text-white">Rapida</p>
-                      <p className="text-[10px] text-white/35 mt-1">Cambio directo</p>
-                    </button>
-                  </div>
-                </div>
-              )}
-
               {/* Main input area */}
-              {jenaiSubMode && !jenaiConfirm && (
+              {!jenaiConfirm && (
                 <div className="space-y-4 relative z-10">
                   <div>
                     <div className="flex items-center justify-between mb-2">
