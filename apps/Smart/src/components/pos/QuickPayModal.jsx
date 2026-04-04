@@ -11,7 +11,7 @@ import {
   checkCashRegisterStatus
 } from "@/components/cash/CashRegisterService";
 import OpenDrawerDialog from "@/components/cash/OpenDrawerDialog";
-import { toast } from "react-hot-toast";
+import { toast } from "sonner";
 
 function toCurrencyNumber(v) {
   const n = Number(v);
