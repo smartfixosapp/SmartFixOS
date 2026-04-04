@@ -3501,6 +3501,28 @@ Reglas:
                       )}
                     </div>
 
+                    {/* Diagnostico preliminar */}
+                    {jenaiConfirm.suggested_diagnosis && (
+                      <div className="rounded-xl border border-cyan-500/20 bg-cyan-500/[0.06] p-3">
+                        <p className="text-[10px] font-bold uppercase tracking-widest text-cyan-400/60 mb-1">Diagnostico preliminar</p>
+                        <p className="text-xs text-white/65 leading-relaxed">{jenaiConfirm.suggested_diagnosis}</p>
+                      </div>
+                    )}
+
+                    {/* Piezas sugeridas */}
+                    {jenaiConfirm.suggested_parts?.length > 0 && (
+                      <div className="rounded-xl border border-lime-500/20 bg-lime-500/[0.06] p-3">
+                        <p className="text-[10px] font-bold uppercase tracking-widest text-lime-400/60 mb-1.5">Piezas que puede necesitar</p>
+                        <div className="flex flex-wrap gap-1.5">
+                          {jenaiConfirm.suggested_parts.map((part, i) => (
+                            <span key={i} className="text-[10px] font-semibold bg-lime-500/10 border border-lime-500/20 text-lime-300 rounded-full px-2.5 py-0.5">
+                              {part}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
                     {/* Checklist sugerido */}
                     {jenaiConfirm.suggested_checklist?.length > 0 && (
                       <div className="rounded-xl border border-white/10 bg-white/[0.04] p-3">
