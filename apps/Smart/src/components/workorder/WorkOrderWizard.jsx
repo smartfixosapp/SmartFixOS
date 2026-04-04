@@ -3442,7 +3442,7 @@ Reglas:
                     className="w-full h-14 rounded-2xl bg-gradient-to-r from-violet-500 to-purple-600 text-white font-black text-base flex items-center justify-center gap-2 shadow-[0_8px_24px_rgba(139,92,246,0.3)] hover:from-violet-400 hover:to-purple-500 active:scale-[0.98] transition-all disabled:opacity-40 disabled:cursor-not-allowed"
                   >
                     {jenaiProcessing ? (
-                      <><Loader2 className="w-5 h-5 animate-spin" /> JENAI analizando...</>
+                      <><Loader2 className="w-5 h-5 animate-spin" /> Creando orden...</>
                     ) : (
                       <><Brain className="w-5 h-5" /> Analizar con JENAI</>
                     )}
@@ -4497,7 +4497,7 @@ Reglas:
                   className="w-full h-14 rounded-[20px] font-black uppercase text-sm tracking-widest active:scale-95 transition-all bg-gradient-to-r from-violet-500 to-purple-600 text-white shadow-[0_0_30px_rgba(139,92,246,0.25)]"
                 >
                   {jenaiProcessing ? (
-                    <><Loader2 className="w-5 h-5 mr-3 animate-spin" /> JENAI analizando...</>
+                    <><Loader2 className="w-5 h-5 mr-3 animate-spin" /> Creando orden...</>
                   ) : (
                     <><Brain className="w-5 h-5 mr-3" /> Analizar con JENAI</>
                   )}
