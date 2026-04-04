@@ -73,7 +73,7 @@ export default function PaymentActivationScreen({
           <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-cyan-600 to-emerald-600 flex items-center justify-center mx-auto mb-6 shadow-[0_0_60px_rgba(6,182,212,0.3)]">
             <CreditCard className="w-10 h-10 text-white" />
           </div>
-          <h1 className="text-3xl font-black text-white mb-2">Activa tu plan Starter</h1>
+          <h1 className="text-3xl font-black text-white mb-2">Activa tu plan {planInfo.label}</h1>
           <p className="text-gray-400 text-sm">Pago seguro procesado por Stripe</p>
         </div>
 
