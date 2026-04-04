@@ -1707,7 +1707,7 @@ Dime: qué comprar urgente, qué riesgo hay para el negocio, y una recomendació
               criticalItems: items.filter(p => (p.stock || 0) <= 0).slice(0, 5).map(p => p.name).join(", "),
             }}
             accentColor="amber"
-            autoLoad={items.length > 0}
+            autoLoad={false}
           />
         </div>
 
