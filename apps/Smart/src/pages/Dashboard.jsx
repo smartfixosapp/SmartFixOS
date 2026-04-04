@@ -990,6 +990,7 @@ export default function Dashboard() {
           />
           {showWorkOrderWizard && (
             <WorkOrderWizard
+              key="normal-wizard-top"
               open={showWorkOrderWizard}
               onClose={() => setShowWorkOrderWizard(false)}
               onOrderCreated={() => { setShowWorkOrderWizard(false); }}
