@@ -2242,6 +2242,7 @@ Reglas:
     setJenaiShowReview(false);
     setJenaiConfirm(null);
     setJenaiListening(false);
+    setJenaiQuickToggle(false);
   };
 
   const addItemToOrder = (item) => {
