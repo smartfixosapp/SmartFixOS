@@ -1560,18 +1560,34 @@ export default function Inventory() {
         .slice(0, 5)
         .map(p => `${p.name} (stock: ${p.stock}, mín: ${p.min_stock||0})`);
 
-      const prompt = `Eres el asistente de inventario de SmartFixOS para un taller de reparación.
-Analiza este inventario en ESPAÑOL. Máximo 100 palabras.
+      const activeItems = allItems.filter(p => p.active !== false);
+      const totalValue = activeItems.reduce((s, p) => s + (Number(p.cost||0) * Number(p.stock||0)), 0);
+      const totalRetailValue = activeItems.reduce((s, p) => s + (Number(p.price||0) * Number(p.stock||0)), 0);
 
-RESUMEN:
-- Total de productos activos: ${allItems.filter(p=>p.active!==false).length}
-- Agotados: ${outOfStock.length}
-- Stock bajo (en o debajo del mínimo): ${lowStock.length}
-- Productos con menos stock: ${top.join(", ") || "ninguno"}
+      const prompt = `INVENTARIO DEL TALLER:
+- Total productos activos: ${activeItems.length}
+- Agotados (0 stock): ${outOfStock.length}
+- Stock bajo: ${lowStock.length}
+- Valor costo total: $${totalValue.toFixed(0)}
+- Valor venta total: $${totalRetailValue.toFixed(0)}
+- Margen potencial: $${(totalRetailValue - totalValue).toFixed(0)}
+- Productos criticos: ${top.join(", ") || "ninguno"}
+${outOfStock.length > 0 ? `- SIN STOCK: ${outOfStock.slice(0,5).map(p => p.name).join(", ")}` : ""}
 
-Dime: qué comprar urgente, qué riesgo hay para el negocio, y una recomendación concreta. Sé directo.`;
+Analiza como experto en gestion de inventario de taller de reparacion.`;
 
-      const text = await callJENAI(prompt, { maxTokens: 250 });
+      const text = await callJENAI(prompt, {
+        maxTokens: 300,
+        temperature: 0.35,
+        systemPrompt: `Eres JENAI, analista de inventario de SmartFixOS. Responde en espanol.
+Formato obligatorio:
+1. ESTADO: resumen de 2 oraciones del inventario
+2. URGENTE: que piezas comprar YA (si hay agotados)
+3. RIESGO: que puede pasar si no se actua
+4. VALOR: analisis del valor del inventario y margen
+5. ACCION: recomendacion concreta y priorizada
+Maximo 150 palabras. Texto plano, sin markdown.`
+      });
       setAiInventoryAnalysis(text);
     } catch(err) {
       setAiInventoryAnalysis("⚠️ " + err.message);
