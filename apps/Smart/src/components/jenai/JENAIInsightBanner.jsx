@@ -12,7 +12,7 @@ import { callJENAI } from "@/lib/jenaiEngine";
 export default function JENAIInsightBanner({ context = "dashboard", data = {}, accentColor = "purple", autoLoad = true }) {
   const [insight, setInsight] = useState("");
   const [loading, setLoading] = useState(false);
-  const [open, setOpen] = useState(true);
+  const [open, setOpen] = useState(false);
   const [hasLoaded, setHasLoaded] = useState(false);
 
   const PROMPTS = {
