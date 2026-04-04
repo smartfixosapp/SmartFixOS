@@ -27,7 +27,7 @@ import UniversalPrintDialog from "../printing/UniversalPrintDialog";
 import { LinkifiedText } from "@/components/utils/linkify";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useKeyboardScrollIntoView } from "@/components/utils/KeyboardAwareLayout";
-import { toast } from 'react-hot-toast';
+import { toast } from 'sonner';
 import AddItemModal from './AddItemModal';
 import PrintDialog from "../printing/PrintDialog";
 import { downloadWorkOrderPDF } from "../invoice/WorkOrderPDFGenerator";
