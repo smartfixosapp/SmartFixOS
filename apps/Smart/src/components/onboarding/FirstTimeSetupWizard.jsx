@@ -7,7 +7,7 @@ import {
   ChevronLeft, Star, Camera, MessageSquare, Globe, Hash, Sparkles,
   LayoutDashboard, DollarSign, Package, BarChart3, Timer, Bell, Check
 } from "lucide-react";
-import toast from "react-hot-toast";
+import { toast } from "sonner";
 
 const SETUP_KEY = "smartfix_setup_complete";
 
