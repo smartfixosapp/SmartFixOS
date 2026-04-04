@@ -48,6 +48,7 @@ import {
   Check,
   Sunrise,
   Sunset,
+  Sparkles,
 } from "lucide-react";
 
 import { format, startOfDay } from "date-fns";
