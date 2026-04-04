@@ -3180,31 +3180,6 @@ Reglas:
               )}
             </div>
           </button>
-          {/* Crear con JENAI toggle */}
-          <button
-            type="button"
-            onClick={() => { setJenaiMode(prev => !prev); setQuickOrderMode(false); if (!jenaiMode) { setJenaiShowReview(false); setJenaiSubMode("normal"); } }}
-            className={`flex-1 group rounded-[20px] border transition-all duration-500 ${
-              jenaiMode
-                ? "border-violet-400/30 bg-violet-500/10"
-                : "border-white/[0.05] bg-white/[0.02] hover:bg-white/[0.04]"
-            }`}
-          >
-            <div className="p-3 flex items-center gap-3">
-              <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl transition-all ${
-                jenaiMode ? "bg-gradient-to-br from-violet-400 to-purple-600 text-white shadow-lg" : "bg-white/5 text-white/30"
-              }`}>
-                <Sparkles className="h-5 w-5" strokeWidth={2.5} />
-              </div>
-              <div className="text-left">
-                <p className="text-xs font-black uppercase tracking-wider text-white">Crear con JENAI</p>
-                <p className="text-[10px] text-white/35">IA llena todo · 1 paso</p>
-              </div>
-              {jenaiMode && (
-                <span className="ml-auto rounded-full bg-violet-500 text-[9px] font-black uppercase text-white px-2 py-0.5">Activo</span>
-              )}
-            </div>
-          </button>
         </div>
         )}
 
