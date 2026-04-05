@@ -249,27 +249,45 @@ export default function DeliveryStage({
         </div>
       )}
 
+      {/* ── COMPACT: financial summary ─────────────────────────────────── */}
+      {compact && (
+        <div className="rounded-[22px] border border-white/10 bg-black/25 p-4">
+          <p className="mb-2 text-[11px] font-semibold uppercase tracking-[0.24em] text-white/35">Resumen financiero</p>
+          <div className="grid grid-cols-2 gap-2 text-sm">
+            <span className="text-white/50">Subtotal</span><span className="text-right font-semibold text-white/80">${subtotal.toFixed(2)}</span>
+            <span className="text-white/50">IVU (11.5%)</span><span className="text-right font-semibold text-white/80">${tax.toFixed(2)}</span>
+            <span className="text-white/50 font-bold">Total</span><span className="text-right font-bold text-emerald-200">${total.toFixed(2)}</span>
+            <span className="text-white/50">Pagado</span><span className="text-right font-semibold text-white/80">${amountPaid.toFixed(2)}</span>
+            <span className="text-white/50">Balance</span><span className={`text-right font-bold ${isSaldado ? "text-emerald-300" : "text-amber-300"}`}>${balanceDue.toFixed(2)}</span>
+          </div>
+        </div>
+      )}
+
       {/* ── PIEZAS Y COBRO ────────────────────────────────────────────────── */}
-      <SharedItemsSection
-        order={o}
-        onUpdate={onUpdate}
-        onOrderItemsUpdate={onOrderItemsUpdate}
-        onRemoteSaved={onRemoteSaved}
-        onClose={onClose}
-        accentColor="emerald"
-        subtitle="Confirma piezas y servicios finales antes de cerrar la orden."
-        catalogButtonLabel="Añadir ítem"
-        onPaymentClick={onPaymentClick}
-      />
+      {!compact && (
+        <SharedItemsSection
+          order={o}
+          onUpdate={onUpdate}
+          onOrderItemsUpdate={onOrderItemsUpdate}
+          onRemoteSaved={onRemoteSaved}
+          onClose={onClose}
+          accentColor="emerald"
+          subtitle="Confirma piezas y servicios finales antes de cerrar la orden."
+          catalogButtonLabel="Añadir ítem"
+          onPaymentClick={onPaymentClick}
+        />
+      )}
 
       {/* ── HISTORIAL ─────────────────────────────────────────────────────── */}
-      <WorkOrderUnifiedHub
-        order={order}
-        onUpdate={onUpdate}
-        accent="emerald"
-        title="Centro de Entrega"
-        subtitle="Historial, evidencias y actividad del cierre de orden."
-      />
+      {!compact && (
+        <WorkOrderUnifiedHub
+          order={order}
+          onUpdate={onUpdate}
+          accent="emerald"
+          title="Centro de Entrega"
+          subtitle="Historial, evidencias y actividad del cierre de orden."
+        />
+      )}
     </div>
   );
 }
