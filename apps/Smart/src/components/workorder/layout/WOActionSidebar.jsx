@@ -2,7 +2,7 @@ import React, { useMemo } from "react";
 import {
   ChevronRight, DollarSign, Printer, Phone, MessageCircle,
   Mail, Shield, Trash2, ChevronDown, Zap, Clock, Camera, Check,
-  ClipboardCheck, Package, Link2, Send, FileText, ShoppingCart
+  ClipboardCheck, Package, Link2, Send, FileText, ShoppingCart, Sparkles
 } from "lucide-react";
 import { getStatusConfig, normalizeStatusId } from "@/components/utils/statusRegistry";
 import { cn } from "@/lib/utils";
