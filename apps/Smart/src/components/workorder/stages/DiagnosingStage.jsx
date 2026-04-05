@@ -294,28 +294,21 @@ export default function DiagnosingStage({ order, onUpdate, user, onOrderItemsUpd
   const [showChecklist, setShowChecklist]   = useState(false);
   const [deviceCategory, setDeviceCategory] = useState("generic");
 
-  // Listen for sidebar action events
+  // Listen for sidebar action events (checklist toggle, links, quote)
   useEffect(() => {
     if (!compact) return;
-    const onChecklist = () => setShowChecklist(v => !v);
-    const onLinks = () => setActiveModal(prev => prev === "links" ? null : "links");
-    const onQuote = () => handleSendQuote();
-    document.addEventListener("wo:action", (e) => {
-      if (e.detail?.action === "checklist") onChecklist();
-      if (e.detail?.action === "links") onLinks();
-      if (e.detail?.action === "quote") onQuote();
-    });
     const handler = (e) => {
-      if (e.type === "wo:toggle-links") onLinks();
-      if (e.type === "wo:send-quote") onQuote();
+      const action = e.detail?.action;
+      if (action === "checklist") setShowChecklist(v => !v);
+      if (action === "links") setActiveModal(prev => prev === "links" ? null : "links");
     };
-    document.addEventListener("wo:toggle-links", handler);
-    document.addEventListener("wo:send-quote", handler);
+    document.addEventListener("wo:action", handler);
+    const onLinks = () => setActiveModal(prev => prev === "links" ? null : "links");
+    document.addEventListener("wo:toggle-links", onLinks);
     return () => {
-      document.removeEventListener("wo:toggle-links", handler);
-      document.removeEventListener("wo:send-quote", handler);
+      document.removeEventListener("wo:action", handler);
+      document.removeEventListener("wo:toggle-links", onLinks);
     };
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [compact]);
 
   const effectiveOrder = linkOrderPreview?.id === order?.id
