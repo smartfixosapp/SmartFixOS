@@ -2978,255 +2978,88 @@ export default function WorkOrderPanel({ orderId, onClose, onUpdate, onDelete, p
               </div>
             </div> :
 
-          <div className="flex-1 overflow-y-auto overflow-x-hidden scrollbar-thin wo-scrollable">
-              <div className="max-w-[1800px] mx-auto px-2 sm:px-6 py-3 sm:py-6 space-y-3 sm:space-y-6 wo-panel-content pb-12">
+          {/* ═══ 3-COLUMN LAYOUT ═══ */}
+          <div className="flex-1 overflow-hidden">
+            {/* DESKTOP: 3 columns */}
+            <div className="hidden lg:grid lg:grid-cols-[200px_1fr_320px] h-full">
+              {/* LEFT: Action sidebar */}
+              <div className="overflow-y-auto border-r border-white/[0.06] p-3 bg-[#0D0D0F]">
+                <WOActionSidebar
+                  order={o}
+                  status={status}
+                  activeStatuses={activeStatuses}
+                  closedStatuses={closedStatuses}
+                  changingStatus={changingStatus}
+                  onChangeStatus={(id) => changeStatus(id, "", {})}
+                  onPaymentClick={handlePaymentClick}
+                  onPrint={() => setShowPrintDialog(true)}
+                  onDelete={handleRequestDelete}
+                  onSecurityEdit={() => setShowSecurityDialog(true)}
+                />
+              </div>
 
-                <Card className="overflow-hidden border-white/[0.08] bg-[#121215] mobile-card-compact shadow-[0_24px_80px_rgba(0,0,0,0.4)] rounded-[32px]">
-                  <CardHeader className="border-b border-white/[0.05] p-5 sm:p-7">
-                    <CardTitle className="flex items-start justify-between gap-4 text-white">
-                      <div className="space-y-1">
-                        <div className="flex items-center gap-2.5">
-                          <div className="h-2 w-2 rounded-full bg-cyan-500 shadow-[0_0_10px_rgba(6,182,212,0.5)] animate-pulse" />
-                          <span className="text-lg font-black tracking-tight uppercase">Seguimiento</span>
-                        </div>
-                        <p className="text-[10px] font-black uppercase tracking-[0.2em] text-white/20">
-                          Flujo de reparación en tiempo real
-                        </p>
-                      </div>
-                      <CountdownBadge order={order} />
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="p-5 sm:p-7 space-y-4">
-                    {/* Accordion trigger — always visible */}
-                    <button
-                      onClick={() => setStagesOpen(v => !v)}
-                      className="w-full flex items-center justify-between px-4 py-3 rounded-2xl border border-white/10 bg-white/[0.03] hover:bg-white/[0.06] transition-all duration-200"
-                    >
-                      <div className="flex items-center gap-3">
-                        <div className={cn(
-                          "px-3 py-1.5 rounded-xl text-[11px] font-black uppercase tracking-wider border",
-                          getStatusConfig(status).colorClasses
-                        )}>
-                          {getStatusConfig(status).label}
-                        </div>
-                        <span className="text-[10px] font-black uppercase tracking-[0.15em] text-white/30">
-                          {activeStatuses.findIndex((s) => normalizeStatusId(status) === s.id) + 1 || 1}/{activeStatuses.length} · {Array.isArray(order?.checklist_items) ? order.checklist_items.length : 0} tareas
-                        </span>
-                      </div>
-                      <ChevronDown className={cn(
-                        "w-4 h-4 text-white/40 transition-transform duration-300",
-                        stagesOpen && "rotate-180"
-                      )} />
-                    </button>
+              {/* CENTER: Order details + stage content */}
+              <div className="overflow-y-auto p-4 space-y-4 wo-scrollable">
+                <WODetailCenter
+                  order={o}
+                  onUpdate={async () => { await clearEventCache(o.id); await loadEventsCallback(true); await handleRefresh(); onUpdate?.(); }}
+                  onOrderItemsUpdate={handleOrderItemsSaved}
+                  onRemoteSaved={async () => { await new Promise((r) => setTimeout(r, 1500)); await handleRefresh(); }}
+                  onPaymentClick={handlePaymentClick}
+                  onClose={handleClose}
+                >
+                  {renderStageContent()}
+                </WODetailCenter>
+              </div>
 
-                    {/* Accordion body */}
-                    {stagesOpen && (
-                      <div className="grid gap-6 xl:grid-cols-[1.2fr_0.8fr]">
-                        <div className="space-y-3">
-                          <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
-                            {/* Icono por status para reemplazar el número */}
-                            {(() => {
-                              const STATUS_ICON_MAP = {
-                                intake: <PackageOpen className="w-3.5 h-3.5" />,
-                                waiting_order: <ClipboardList className="w-3.5 h-3.5" />,
-                                diagnosing: <Search className="w-3.5 h-3.5" />,
-                                pending_order: <ShoppingCart className="w-3.5 h-3.5" />,
-                                waiting_parts: <PackageOpen className="w-3.5 h-3.5" />,
-                                part_arrived_waiting_device: <Check className="w-3.5 h-3.5" />,
-                                reparacion_externa: <Factory className="w-3.5 h-3.5" />,
-                                in_progress: <RefreshCw className="w-3.5 h-3.5" />,
-                                ready_for_pickup: <CheckCircle2 className="w-3.5 h-3.5" />,
-                                picked_up: <Check className="w-3.5 h-3.5" />,
-                                delivered: <Check className="w-3.5 h-3.5" />,
-                                completed: <CheckCircle2 className="w-3.5 h-3.5" />,
-                                cancelled: <X className="w-3.5 h-3.5" />,
-                                awaiting_approval: <ActivitySquare className="w-3.5 h-3.5" />,
-                                warranty: <Shield className="w-3.5 h-3.5" />,
-                              };
-                              return [...activeStatuses, ...closedStatuses]
-                                .slice()
-                                .sort((a, b) => (a.order || 0) - (b.order || 0))
-                                .map((s) => {
-                                  const currentOrder = getStatusConfig(status).order || 0;
-                                  const isCurrent = normalizeStatusId(status) === s.id;
-                                  const isPassed = (s.order || 0) < currentOrder && !getStatusConfig(s.id).isTerminal;
-                                  const statusClasses = getStatusConfig(s.id).colorClasses;
-                                  const statusIcon = STATUS_ICON_MAP[s.id] || <ActivitySquare className="w-3.5 h-3.5" />;
-                                  return (
-                                    <button
-                                      key={s.id}
-                                      onClick={() => {
-                                        if (!isCurrent) {
-                                          changeStatus(s.id, "", {});
-                                          setStagesOpen(false);
-                                        }
-                                      }}
-                                      disabled={changingStatus || isCurrent}
-                                      className={cn(
-                                        "group flex flex-col gap-2 rounded-[20px] border p-3 text-left transition-all duration-300 active:scale-95",
-                                        isCurrent && s.id === "cancelled"
-                                          ? "bg-red-600 text-white border-red-500 shadow-[0_8px_32px_rgba(220,38,38,0.5)] scale-[1.02] opacity-100"
-                                          : isCurrent
-                                          ? `${statusClasses} shadow-[0_8px_24px_rgba(0,0,0,0.3)] scale-[1.02] opacity-100`
-                                          : isPassed
-                                          ? "bg-white/5 border-white/10 text-white/90 hover:bg-white/10 opacity-60"
-                                          : `${statusClasses} opacity-30 hover:opacity-60`
-                                      )}
-                                    >
-                                      <div className="flex items-center justify-between">
-                                        <div className={cn(
-                                          "flex h-6 w-6 items-center justify-center rounded-lg",
-                                          isCurrent ? "bg-black/30 text-white" : "bg-black/20 text-white/60"
-                                        )}>
-                                          {statusIcon}
-                                        </div>
-                                        {isPassed && !isCurrent && <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />}
-                                      </div>
-                                      <p className="text-[12px] font-black leading-tight tracking-tight">
-                                        {s.label}
-                                      </p>
-                                    </button>
-                                  );
-                                });
-                            })()}
-                          </div>
-                        </div>
-
-                        <div className="grid gap-3 grid-cols-3 xl:grid-cols-1">
-                          <div className="rounded-[24px] border border-white/10 bg-white/[0.03] p-4 flex flex-col justify-between">
-                            <p className="text-[10px] font-black uppercase tracking-wider text-white/20">Fase</p>
-                            <p className="text-xl font-black text-white mt-1">
-                              {activeStatuses.findIndex((s) => normalizeStatusId(status) === s.id) + 1 || 1}
-                              <span className="text-white/20 font-medium ml-1">/ {activeStatuses.length}</span>
-                            </p>
-                          </div>
-                          <div className="rounded-[24px] border border-white/10 bg-white/[0.03] p-4 flex flex-col justify-between">
-                            <p className="text-[10px] font-black uppercase tracking-wider text-white/20">Tareas</p>
-                            <p className="text-xl font-black text-white mt-1">
-                              {Array.isArray(order?.checklist_items) ? order.checklist_items.length : 0}
-                            </p>
-                          </div>
-                          <div className="rounded-[24px] border border-white/10 bg-white/[0.03] p-4 flex flex-col justify-between">
-                            <p className="text-[10px] font-black uppercase tracking-wider text-white/20">Última act.</p>
-                            <p className="text-[13px] font-black text-white mt-1">
-                              {order?.updated_date ? format(new Date(order.updated_date), "dd MMM", { locale: es }) : "Hoy"}
-                            </p>
-                          </div>
-                        </div>
-                      </div>
-                    )}
-                  </CardContent>
-                </Card>
-
-                {/* ✅ STAGE-CENTRIC VIEW */}
-                  {(status === "intake" || status === "waiting_order") && (
-                    <IntakeStage
-                      order={o}
-                      onUpdate={async () => { await clearEventCache(o.id); await loadEventsCallback(true); onUpdate?.(); }}
-                      onOrderItemsUpdate={handleOrderItemsSaved}
-                      onPaymentClick={handlePaymentClick}
-                      onRemoteSaved={async () => {
-                        // Delay to allow DB to be consistent before reading back
-                        await new Promise((r) => setTimeout(r, 1500));
-                        await handleRefresh();
-                      }}
-                    />
-                  )}
-                  {status === "diagnosing" && (
-                    <DiagnosingStage
-                      order={o}
-                      onUpdate={async () => { await clearEventCache(o.id); await loadEventsCallback(true); await handleRefresh(); onUpdate?.(); }}
-                      onOrderItemsUpdate={handleOrderItemsSaved}
-                      onPaymentClick={handlePaymentClick}
-                      onRemoteSaved={async () => {
-                        await new Promise((r) => setTimeout(r, 1500));
-                        await handleRefresh();
-                      }}
-                    />
-                  )}
-                  {status === "pending_order" && (
-                    <PendingOrderStage
-                      order={o}
-                      onUpdate={async () => { await clearEventCache(o.id); await loadEventsCallback(true); await handleRefresh(); onUpdate?.(); }}
-                      onOrderItemsUpdate={handleOrderItemsSaved}
-                      onPaymentClick={handlePaymentClick}
-                      onRemoteSaved={async () => {
-                        await new Promise((r) => setTimeout(r, 1500));
-                        await handleRefresh();
-                      }}
-                    />
-                  )}
-                  {status === "waiting_parts" && (
-                    <WaitingPartsStage
-                      order={o}
-                      onUpdate={async () => { await clearEventCache(o.id); await loadEventsCallback(true); await handleRefresh(); onUpdate?.(); }}
-                      onOrderItemsUpdate={handleOrderItemsSaved}
-                      onPaymentClick={handlePaymentClick}
-                      onRemoteSaved={async () => {
-                        await new Promise((r) => setTimeout(r, 1500));
-                        await handleRefresh();
-                      }}
-                    />
-                  )}
-                  {status === "part_arrived_waiting_device" && (
-                    <PartArrivedStage
-                      order={o}
-                      onUpdate={async () => { await clearEventCache(o.id); await loadEventsCallback(true); onUpdate?.(); }}
-                      onOrderItemsUpdate={handleOrderItemsSaved}
-                      onPaymentClick={handlePaymentClick}
-                      onRemoteSaved={async () => {
-                        // Delay to allow DB to be consistent before reading back
-                        await new Promise((r) => setTimeout(r, 1500));
-                        await handleRefresh();
-                      }}
-                    />
-                  )}
-                  {status === "reparacion_externa" && (
-                    <ExternalRepairStage order={o} onUpdate={async () => { await clearEventCache(o.id); await loadEventsCallback(true); await handleRefresh(); onUpdate?.(); }} onPaymentClick={handlePaymentClick} />
-                  )}
-                  {status === "in_progress" && (
-                    <RepairStage order={o} onUpdate={async () => { await clearEventCache(o.id); await loadEventsCallback(true); await handleRefresh(); onUpdate?.(); }} onPaymentClick={handlePaymentClick} onOrderItemsUpdate={handleOrderItemsSaved} onRemoteSaved={async () => { await new Promise((r) => setTimeout(r, 1500)); await handleRefresh(); }} />
-                  )}
-                  {status === "warranty" && (
-                    <WarrantyStage
-                      order={o}
-                      onUpdate={async () => { await clearEventCache(o.id); await loadEventsCallback(true); await handleRefresh(); onUpdate?.(); }}
-                      onPaymentClick={handlePaymentClick}
-                      onOrderItemsUpdate={handleOrderItemsSaved}
-                      onRemoteSaved={async () => { await new Promise((r) => setTimeout(r, 1500)); await handleRefresh(); }}
-                      onClose={handleClose}
-                    />
-                  )}
-                  {status === "ready_for_pickup" && (
-                    <DeliveryStage
-                      order={o}
-                      onUpdate={async () => { await clearEventCache(o.id); await loadEventsCallback(true); await handleRefresh(); onUpdate?.(); }}
-                      onPaymentClick={handlePaymentClick}
-                      onOrderItemsUpdate={handleOrderItemsSaved}
-                      onRemoteSaved={async () => { await new Promise((r) => setTimeout(r, 1500)); await handleRefresh(); }}
-                      onClose={handleClose}
-                    />
-                  )}
-                  {(status === "picked_up" || status === "delivered" || status === "completed") && (
-                    <FinalizedStage order={o} onUpdate={async () => { await clearEventCache(o.id); await loadEventsCallback(true); await handleRefresh(); onUpdate?.(); }} onPaymentClick={handlePaymentClick} />
-                  )}
-                  {status === "cancelled" && (
-                    <CancelledStage order={o} onUpdate={async () => { await clearEventCache(o.id); await loadEventsCallback(true); await handleRefresh(); onUpdate?.(); }} />
-                  )}
-                  {status === "awaiting_approval" && (
-                    <AwaitingApprovalStage order={o} onUpdate={async () => { await clearEventCache(o.id); await loadEventsCallback(true); await handleRefresh(); onUpdate?.(); }} />
-                  )}
-
-                  {/* Default fallback – should never be reached for known statuses */}
-                  {!["intake", "waiting_order", "diagnosing", "pending_order", "waiting_parts", "part_arrived_waiting_device", "reparacion_externa", "in_progress", "ready_for_pickup", "picked_up", "delivered", "completed", "warranty", "cancelled", "awaiting_approval"].includes(status) && (
-                    <Card className="p-4 bg-gray-900 border-gray-800">
-                      <div className="text-gray-400 text-center">Vista estándar para estado: {status}</div>
-                    </Card>
-                  )}
-
-
+              {/* RIGHT: Tabbed panel */}
+              <div className="overflow-y-auto border-l border-white/[0.06] p-3 bg-[#0D0D0F]">
+                <WOTabPanel
+                  order={o}
+                  onUpdate={async () => { await clearEventCache(o.id); await loadEventsCallback(true); await handleRefresh(); onUpdate?.(); }}
+                />
               </div>
             </div>
+
+            {/* MOBILE: Stacked layout */}
+            <div className="lg:hidden overflow-y-auto h-full wo-scrollable">
+              {/* Sticky action bar */}
+              <div className="sticky top-0 z-10 bg-[#0D0D0F]/95 backdrop-blur border-b border-white/[0.06] px-3 py-2">
+                <div className="flex gap-2 overflow-x-auto no-scrollbar">
+                  <WOActionSidebar
+                    order={o}
+                    status={status}
+                    activeStatuses={activeStatuses}
+                    closedStatuses={closedStatuses}
+                    changingStatus={changingStatus}
+                    onChangeStatus={(id) => changeStatus(id, "", {})}
+                    onPaymentClick={handlePaymentClick}
+                    onPrint={() => setShowPrintDialog(true)}
+                    onDelete={handleRequestDelete}
+                    onSecurityEdit={() => setShowSecurityDialog(true)}
+                  />
+                </div>
+              </div>
+
+              <div className="px-3 py-4 space-y-4 pb-12">
+                <WODetailCenter
+                  order={o}
+                  onUpdate={async () => { await clearEventCache(o.id); await loadEventsCallback(true); await handleRefresh(); onUpdate?.(); }}
+                  onOrderItemsUpdate={handleOrderItemsSaved}
+                  onRemoteSaved={async () => { await new Promise((r) => setTimeout(r, 1500)); await handleRefresh(); }}
+                  onPaymentClick={handlePaymentClick}
+                  onClose={handleClose}
+                >
+                  {renderStageContent()}
+                </WODetailCenter>
+
+                <WOTabPanel
+                  order={o}
+                  onUpdate={async () => { await clearEventCache(o.id); await loadEventsCallback(true); await handleRefresh(); onUpdate?.(); }}
+                />
+              </div>
+            </div>
+          </div>
           }
         </div>
 
