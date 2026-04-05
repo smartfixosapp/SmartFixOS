@@ -9,7 +9,7 @@ import { usePushNotifications } from '@/hooks/usePushNotifications';
 // Polling inteligente cada 10 segundos
 // ============================================
 
-const POLL_INTERVAL = 10000; // 10 segundos
+const POLL_INTERVAL = 30000; // 30 segundos (reducido de 10s para ahorrar bateria)
 const NOTIFICATION_TYPES = {
   EMPLOYEE_LOGIN: 'employee_login',
   ORDER_COMPLETED: 'order_completed',
