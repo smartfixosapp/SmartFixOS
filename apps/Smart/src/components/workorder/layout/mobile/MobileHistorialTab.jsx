@@ -1,8 +1,7 @@
-import React, { useState, useEffect, useMemo, useCallback } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { Send, Loader2 } from "lucide-react";
 import { base44 } from "@/api/base44Client";
 import { toast } from "sonner";
-import { cn } from "@/lib/utils";
 import { dataClient } from "@/components/api/dataClient";
 import MobileVisualTimeline from "./MobileVisualTimeline";
 import { triggerHaptic } from "@/lib/capacitor";
@@ -14,14 +13,6 @@ export default function MobileHistorialTab({ order, onUpdate }) {
   const [posting, setPosting] = useState(false);
 
   const o = order || {};
-
-  // Financial summary
-  const ventasSummary = useMemo(() => {
-    const total = Number(o.total || o.cost_estimate || 0);
-    const paid = Number(o.amount_paid ?? o.total_paid ?? 0);
-    const balance = o.balance_due != null ? Math.max(0, Number(o.balance_due || 0)) : Math.max(0, total - paid);
-    return { total, paid, balance };
-  }, [o]);
 
   // Load events
   useEffect(() => {
@@ -76,20 +67,6 @@ export default function MobileHistorialTab({ order, onUpdate }) {
 
   return (
     <div className="space-y-4 pb-8">
-      {/* Financial summary banner */}
-      <div className="rounded-2xl bg-gradient-to-r from-emerald-600/20 to-emerald-500/10 border border-emerald-500/20 p-4">
-        <div className="flex items-center justify-between mb-1">
-          <span className="text-xs font-semibold text-emerald-300">Total pagado</span>
-          <span className="text-sm font-bold text-emerald-300">${ventasSummary.paid.toFixed(2)}</span>
-        </div>
-        <div className="flex items-center justify-between">
-          <span className="text-xs font-semibold text-white/60">Balance</span>
-          <span className={cn("text-sm font-bold", ventasSummary.balance > 0 ? "text-red-400" : "text-emerald-400")}>
-            ${ventasSummary.balance.toFixed(2)}
-          </span>
-        </div>
-      </div>
-
       {/* Note composer */}
       <div className="flex gap-2">
         <input
