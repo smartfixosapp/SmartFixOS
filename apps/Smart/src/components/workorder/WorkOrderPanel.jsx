@@ -2999,8 +2999,6 @@ export default function WorkOrderPanel({ orderId, onClose, onUpdate, onDelete, p
                 </div>
               </div>
             </div> :
-
-          {/* ═══ 3-COLUMN LAYOUT ═══ */}
           <div className="flex-1 overflow-hidden">
             {/* DESKTOP: 3 columns */}
             <div className="hidden lg:grid lg:grid-cols-[200px_1fr_320px] h-full">
