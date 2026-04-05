@@ -435,12 +435,20 @@ export default function AddItemModal({
     if (activeCategory === "suggestions") {
       const { categoryMatchesDevice, modelKey, familyKey, brandKey } = deviceSuggestionFilter;
       if (modelKey) {
-        // Piezas: SOLO las que coincidan con el modelo exacto (ej: "iPhone 15")
+        // Piezas: SOLO modelo exacto. "iPhone 15" NO matchea "iPhone 15 Pro Max" ni "iPhone 15 Plus"
+        const strictModelMatch = (text, model) => {
+          const idx = text.indexOf(model);
+          if (idx === -1) return false;
+          const after = text.substring(idx + model.length).trimStart();
+          // Si despues del modelo hay "pro", "max", "plus", "ultra", "mini", "se" → NO es match
+          if (/^(pro|max|plus|ultra|mini|se|lite)\b/i.test(after)) return false;
+          return true;
+        };
         const exactModelParts = base.filter((i) => {
           if (isService(i) || isAccessory(i)) return false;
           const name = String(i?.name || "").toLowerCase();
           const compatModels = Array.isArray(i?.compatibility_models) ? i.compatibility_models.map(m => String(m || "").toLowerCase()) : [];
-          return name.includes(modelKey) || compatModels.some(m => m.includes(modelKey));
+          return strictModelMatch(name, modelKey) || compatModels.some(m => strictModelMatch(m, modelKey));
         });
         // Servicios y accesorios: filtrar por tipo de dispositivo (smartphone, laptop, etc.)
         const nonParts = base.filter((i) => (isService(i) || isAccessory(i)) && categoryMatchesDevice(i));
