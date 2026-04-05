@@ -72,6 +72,7 @@ export default function MobileAccionesTab({
       case "print": onPrint?.(); break;
       case "security": onSecurityEdit?.(); break;
       case "notify": setShowNotifyOptions(v => !v); break;
+      case "note": onSwitchTab?.(2); break; // Switch to Historial tab
       default: break;
     }
   };
