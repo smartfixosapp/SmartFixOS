@@ -42,6 +42,53 @@ export default function MobileInformacionTab({
   const statusConfig = getStatusConfig(status);
   const photos = useMemo(() => o.photos_metadata || o.device_photos || [], [o.photos_metadata, o.device_photos]);
 
+  // Photo upload
+  const photoInputRef = useRef(null);
+  const [uploading, setUploading] = useState(false);
+
+  const handlePhotoUpload = useCallback(async (e) => {
+    const files = Array.from(e.target.files || []).filter(f => f.type?.startsWith("image/"));
+    if (!files.length || !o.id) return;
+    setUploading(true);
+    triggerHaptic("light");
+    try {
+      let me = null;
+      try { me = await base44.auth.me(); } catch {}
+      const newItems = [];
+      for (const file of files) {
+        try {
+          const { file_url } = await base44.integrations.Core.UploadFile({ file });
+          const versionedUrl = `${file_url}${file_url.includes("?") ? "&" : "?"}v=${Date.now()}`;
+          newItems.push({
+            id: `${Date.now()}-${file.name}`,
+            type: "image",
+            mime: file.type || "image/jpeg",
+            filename: file.name,
+            publicUrl: versionedUrl,
+            thumbUrl: versionedUrl,
+            stage_id: "general",
+            stage_label: "General",
+            captured_at: new Date().toISOString(),
+            captured_by: me?.full_name || me?.email || "Sistema",
+          });
+        } catch (err) {
+          console.error("Upload error:", err);
+        }
+      }
+      if (!newItems.length) throw new Error("No se pudo subir");
+      const merged = [...photos, ...newItems];
+      await base44.entities.Order.update(o.id, { photos_metadata: merged });
+      onUpdate?.();
+      triggerHaptic("success");
+      toast.success(`${newItems.length} foto(s) subida(s)`);
+    } catch {
+      toast.error("Error al subir fotos");
+    } finally {
+      setUploading(false);
+      e.target.value = "";
+    }
+  }, [o.id, photos, onUpdate]);
+
   // Security
   const sec = o.device_security || {};
   const hasPassword = !!sec.device_password;
