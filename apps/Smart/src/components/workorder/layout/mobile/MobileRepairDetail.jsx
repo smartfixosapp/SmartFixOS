@@ -199,7 +199,6 @@ export default function MobileRepairDetail({
                 onUpdate={onUpdate}
                 onPaymentClick={onPaymentClick}
                 onSecurityEdit={onSecurityEdit}
-                onPhotoClick={handlePhotoClick}
               />
             )}
             {activeTab === 2 && (
