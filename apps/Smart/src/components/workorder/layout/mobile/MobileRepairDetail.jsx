@@ -211,12 +211,6 @@ export default function MobileRepairDetail({
         </AnimatePresence>
       </div>
 
-      {/* ── QUICK CONTACT FAB ── */}
-      <MobileQuickContactFAB
-        phone={o.customer_phone || o.phone}
-        customerName={o.customer_name}
-        orderNumber={o.order_number}
-      />
     </div>
   );
 }
