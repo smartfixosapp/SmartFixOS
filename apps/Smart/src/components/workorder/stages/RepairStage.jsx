@@ -36,7 +36,7 @@ const CLOSE_CHECKLIST = [
   "Evidencia fotográfica tomada",
 ];
 
-export default function RepairStage({ order, onUpdate, onOrderItemsUpdate, onRemoteSaved, onPaymentClick }) {
+export default function RepairStage({ order, onUpdate, onOrderItemsUpdate, onRemoteSaved, onPaymentClick, compact }) {
   const o = order || {};
 
   // Checklist: si ya estaba done, iniciar con todo marcado
