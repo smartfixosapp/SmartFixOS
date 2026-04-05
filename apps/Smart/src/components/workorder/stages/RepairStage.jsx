@@ -140,6 +140,7 @@ export default function RepairStage({ order, onUpdate, onOrderItemsUpdate, onRem
     <div className="space-y-6">
 
       {/* ── HERO ─────────────────────────────────────────────────────────── */}
+      {!compact && (
       <section className="relative overflow-hidden rounded-[30px] border border-emerald-500/15 bg-[radial-gradient(circle_at_top_left,rgba(16,185,129,0.16),transparent_28%),radial-gradient(circle_at_bottom_right,rgba(34,197,94,0.12),transparent_30%),linear-gradient(135deg,rgba(8,24,18,0.98),rgba(10,14,24,0.96))] p-4 sm:p-6 shadow-[0_22px_70px_rgba(0,0,0,0.35)]">
         <div className="absolute inset-0 bg-[linear-gradient(120deg,transparent,rgba(255,255,255,0.03),transparent)]" />
         <div className="relative z-10 space-y-4">
@@ -207,6 +208,7 @@ export default function RepairStage({ order, onUpdate, onOrderItemsUpdate, onRem
           })()}
         </div>
       </section>
+      )}
 
       {/* ── AÑADIR PIEZA ─────────────────────────────────────────────────── */}
       <button
