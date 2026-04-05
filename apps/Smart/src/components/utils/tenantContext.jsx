@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect } from "react";
+import React, { createContext, useContext, useState, useEffect, useRef, useCallback } from "react";
 import { dataClient } from "@/components/api/dataClient";
 
 const TenantContext = createContext(null);
@@ -8,9 +8,33 @@ export function TenantProvider({ children }) {
   const [userMemberships, setUserMemberships] = useState([]);
   const [loading, setLoading] = useState(true);
   const [isSuperAdmin, setIsSuperAdmin] = useState(false);
+  const tenantRef = useRef(null); // track current tenant for refresh comparison
 
   useEffect(() => {
     loadTenantContext();
+  }, []);
+
+  // ── Auto-refresh tenant every 2 min to pick up plan changes from GACC ──
+  useEffect(() => {
+    const refreshTenant = async () => {
+      const tid = tenantRef.current?.id;
+      if (!tid) return;
+      try {
+        const fresh = await dataClient.entities.Tenant.get(tid);
+        if (fresh && fresh.plan !== tenantRef.current?.plan) {
+          // Plan changed externally (from GACC) — update in place
+          console.log(`[TenantContext] Plan changed: ${tenantRef.current?.plan} → ${fresh.plan}`);
+          setCurrentTenant(fresh);
+          tenantRef.current = fresh;
+        } else if (fresh) {
+          // Update silently (other fields may have changed too)
+          tenantRef.current = fresh;
+          setCurrentTenant(fresh);
+        }
+      } catch {}
+    };
+    const iv = setInterval(refreshTenant, 2 * 60 * 1000); // every 2 min
+    return () => clearInterval(iv);
   }, []);
 
   const loadTenantContext = async () => {
