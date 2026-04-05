@@ -674,7 +674,8 @@ export default function ARIAChat() {
   // Reset force-open when chat is closed
   React.useEffect(() => { if (!open) setForceOpen(false); }, [open]);
 
-  if (isHidden || !enabled || (workOrderOpen && !forceOpen)) return null;
+  if (forceOpen) { /* bypass all checks — sidebar requested JEANI */ }
+  else if (isHidden || !enabled || workOrderOpen) return null;
 
   // ── Construye el prompt de sistema ───────────────────────────────────────────
   const buildSystem = () => {
