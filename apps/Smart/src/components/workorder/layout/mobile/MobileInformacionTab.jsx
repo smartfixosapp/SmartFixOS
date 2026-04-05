@@ -1,8 +1,8 @@
-import React, { useState, useMemo, useCallback, useRef } from "react";
+import React, { useState, useMemo, useCallback } from "react";
 import {
   Smartphone, Laptop, Tablet, Watch, Gamepad2, Box, Pencil,
   Check, X, Phone, MessageCircle, Mail, Plus, Loader2, Shield,
-  Eye, EyeOff, Lock, Camera
+  Eye, EyeOff, Lock
 } from "lucide-react";
 import { base44 } from "@/api/base44Client";
 import { toast } from "sonner";
@@ -12,7 +12,6 @@ import { es } from "date-fns/locale";
 import { getStatusConfig } from "@/components/utils/statusRegistry";
 import MobilePhotosCarousel from "./MobilePhotosCarousel";
 import PatternDisplay from "@/components/security/PatternDisplay";
-import { triggerHaptic } from "@/lib/capacitor";
 
 const DEVICE_ICONS = {
   smartphone: Smartphone, phone: Smartphone, celular: Smartphone,
