@@ -512,6 +512,7 @@ export default function DiagnosingStage({ order, onUpdate, user, onOrderItemsUpd
     <div className="space-y-6">
 
       {/* ── Hero ── */}
+      {!compact && (
       <section className="relative overflow-hidden rounded-[30px] border border-purple-500/15 bg-[radial-gradient(circle_at_top_left,rgba(168,85,247,0.16),transparent_28%),radial-gradient(circle_at_bottom_right,rgba(59,130,246,0.14),transparent_30%),linear-gradient(135deg,rgba(16,12,30,0.98),rgba(10,18,30,0.96))] p-5 shadow-[0_22px_70px_rgba(0,0,0,0.35)] sm:p-6">
         <div className="absolute inset-0 bg-[linear-gradient(120deg,transparent,rgba(255,255,255,0.03),transparent)]" />
 
@@ -635,8 +636,10 @@ export default function DiagnosingStage({ order, onUpdate, user, onOrderItemsUpd
           );
         })()}
       </section>
+      )}
 
       {/* ── Piezas y Servicios ── */}
+      {!compact && (
       <SharedItemsSection
         order={effectiveOrder}
         onUpdate={onUpdate}
