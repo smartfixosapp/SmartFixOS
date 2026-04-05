@@ -193,23 +193,6 @@ export default function MobileAccionesTab({
         </div>
       )}
 
-      {/* Bottom CTAs */}
-      <div className="space-y-2 mt-6">
-        <button
-          onClick={() => { triggerHaptic("medium"); onChangeStatus?.("delivered"); }}
-          disabled={changingStatus}
-          className="w-full py-4 rounded-2xl bg-gradient-to-r from-red-600 to-red-700 text-white font-bold text-sm shadow-lg shadow-red-900/30 active:scale-[0.97] transition-transform disabled:opacity-50"
-        >
-          Cerrar reparacion
-        </button>
-        <button
-          onClick={() => handleAction("note")}
-          className="w-full py-3.5 rounded-2xl border border-white/10 bg-white/[0.03] text-white/70 font-semibold text-sm active:scale-[0.97] transition-transform"
-        >
-          Start Repair Log
-        </button>
-      </div>
-
       {/* Status dropdown */}
       <div className="mt-4">
         <button
