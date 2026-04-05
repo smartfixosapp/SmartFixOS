@@ -188,6 +188,7 @@ export default function MobileRepairDetail({
                 onPaymentClick={onPaymentClick}
                 onPrint={onPrint}
                 onSecurityEdit={onSecurityEdit}
+                onSwitchTab={switchTab}
                 stageContent={stageContent}
               />
             )}
