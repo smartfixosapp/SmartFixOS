@@ -2850,9 +2850,9 @@ export default function WorkOrderPanel({ orderId, onClose, onUpdate, onDelete, p
         `}</style>
 
         <div className="h-full flex flex-col bg-gradient-to-br from-[#0D0D0D] to-[#1A1A1A] theme-light:bg-gray-50 overflow-hidden">
-           {/* ✅ HEADER RESPONSIVE */}
+           {/* ✅ HEADER RESPONSIVE — hidden on mobile (MobileRepairDetail has its own header) */}
            <div
-            className="flex-shrink-0 border-b border-white/[0.08] bg-[#0D0D0F] wo-header"
+            className="flex-shrink-0 border-b border-white/[0.08] bg-[#0D0D0F] wo-header hidden lg:block"
             style={{ paddingTop: "calc(env(safe-area-inset-top, 20px) + 14px)" }}
           >
             <div className="max-w-[1800px] mx-auto px-4 sm:px-8 py-4 sm:py-5 flex items-center justify-between gap-4">
