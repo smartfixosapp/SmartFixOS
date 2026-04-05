@@ -649,13 +649,23 @@ export default function ARIAChat() {
   }, []);
 
   // Ocultar cuando hay orden de trabajo abierta (JENAI ya esta integrado dentro)
+  const [forceOpen, setForceOpen] = React.useState(false);
   React.useEffect(() => {
     const handler = (e) => setWorkOrderOpen(e.detail?.open === true);
     window.addEventListener("smartfix:workorder-open", handler);
-    return () => window.removeEventListener("smartfix:workorder-open", handler);
+    // Allow sidebar to force-open JEANI even during work order
+    const forceHandler = () => { setForceOpen(true); setOpen(true); };
+    window.addEventListener("wo:open-jeani", forceHandler);
+    return () => {
+      window.removeEventListener("smartfix:workorder-open", handler);
+      window.removeEventListener("wo:open-jeani", forceHandler);
+    };
   }, []);
 
-  if (isHidden || !enabled || workOrderOpen) return null;
+  // Reset force-open when chat is closed
+  React.useEffect(() => { if (!open) setForceOpen(false); }, [open]);
+
+  if (isHidden || !enabled || (workOrderOpen && !forceOpen)) return null;
 
   // ── Construye el prompt de sistema ───────────────────────────────────────────
   const buildSystem = () => {
