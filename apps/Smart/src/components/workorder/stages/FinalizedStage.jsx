@@ -457,6 +457,7 @@ export default function FinalizedStage({ order, onUpdate, onPaymentClick, compac
         </div>
       </section>
 
+      {!compact && (
       <WorkOrderUnifiedHub
         order={order}
         onUpdate={onUpdate}
@@ -464,6 +465,7 @@ export default function FinalizedStage({ order, onUpdate, onPaymentClick, compac
         title="Centro de Historial"
         subtitle="Actividad, fotos, seguridad y referencia final de la orden entregada."
       />
+      )}
       <AddItemModal
         open={showCatalog}
         onClose={() => setShowCatalog(false)}
