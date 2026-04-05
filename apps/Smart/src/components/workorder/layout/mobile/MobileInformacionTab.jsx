@@ -35,7 +35,6 @@ export default function MobileInformacionTab({
   onUpdate,
   onPaymentClick,
   onSecurityEdit,
-  onPhotoClick,
 }) {
   const o = order || {};
   const phone = o.customer_phone || o.phone;
