@@ -20,9 +20,14 @@ export default function NotificationDropdown({ user, onClose }) {
 
   useEffect(() => {
     loadNotifications();
-    
-    const interval = setInterval(loadNotifications, 30000);
-    return () => clearInterval(interval);
+
+    let interval = null;
+    const start = () => { if (!interval) interval = setInterval(loadNotifications, 60000); };
+    const stop = () => { if (interval) { clearInterval(interval); interval = null; } };
+    const onVis = () => { document.hidden ? stop() : (start(), loadNotifications()); };
+    if (!document.hidden) start();
+    document.addEventListener("visibilitychange", onVis);
+    return () => { stop(); document.removeEventListener("visibilitychange", onVis); };
   }, [user?.id]);
 
   const loadNotifications = async () => {
