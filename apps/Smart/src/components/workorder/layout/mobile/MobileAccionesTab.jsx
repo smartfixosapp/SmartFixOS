@@ -70,15 +70,34 @@ export default function MobileAccionesTab({
       case "parts": document.dispatchEvent(new CustomEvent("wo:open-catalog")); break;
       case "print": onPrint?.(); break;
       case "security": onSecurityEdit?.(); break;
-      case "notify": {
-        if (phone) {
-          const cleanPhone = phone.replace(/\D/g, "");
-          window.open(`https://wa.me/${cleanPhone}`, "_blank");
-        }
-        break;
-      }
+      case "notify": setShowNotifyOptions(v => !v); break;
       default: break;
     }
+  };
+
+  const handleNotify = (channel) => {
+    triggerHaptic("light");
+    const cleanPhone = (phone || "").replace(/\D/g, "");
+    const name = o.customer_name || "";
+    const orderNum = o.order_number || "";
+    const msg = `Hola ${name}, le contactamos de SmartFixOS sobre su orden #${orderNum}.`;
+
+    switch (channel) {
+      case "whatsapp":
+        if (cleanPhone) window.open(`https://wa.me/${cleanPhone}?text=${encodeURIComponent(msg)}`, "_blank");
+        break;
+      case "email":
+        if (o.customer_email) {
+          const subj = encodeURIComponent(`Actualizacion de orden #${orderNum}`);
+          const body = encodeURIComponent(msg);
+          window.open(`mailto:${o.customer_email}?subject=${subj}&body=${body}`);
+        }
+        break;
+      case "sms":
+        if (cleanPhone) window.open(`sms:${cleanPhone}&body=${encodeURIComponent(msg)}`);
+        break;
+    }
+    setShowNotifyOptions(false);
   };
 
   return (
