@@ -138,8 +138,8 @@ export default function MobileHistorialTab({ order, onUpdate }) {
         </div>
       )}
 
-      {/* Note composer (only on notas tab) */}
-      {activeSubTab === "notas" && (
+      {/* Note composer (on actividad tab) */}
+      {activeSubTab === "actividad" && (
         <div className="flex gap-2">
           <input
             value={comment}
