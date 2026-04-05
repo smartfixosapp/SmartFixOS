@@ -1647,11 +1647,13 @@ export default function PinAccess() {
     })();
   }, [navigate]);
 
-  // ── Auto-trigger biométrico ─────────────────────────────────────────────
-  // Intenta lanzar Face ID / Touch ID automáticamente cuando la página está lista.
-  // En Safari iOS esto fallará con NotAllowedError (requiere tap), pero el botón queda visible.
-  // En app nativa Capacitor SÍ funciona automáticamente.
+  // ── Auto-trigger biométrico (SOLO nativo) ──────────────────────────────
+  // Solo en apps nativas (Capacitor) se auto-lanza Face ID / Touch ID.
+  // En web/Safari/Mac NO auto-disparar — el usuario toca el botón manualmente.
+  // Razón: en web, WebAuthn muestra un diálogo del sistema molesto si la
+  // credencial no existe o expiró, en vez de Touch ID directo.
   useEffect(() => {
+    if (!Capacitor.isNativePlatform()) return;
     if (!isReady || hasCancelledBiometric) return;
     if (!biometricSupported || !biometricProfile?.credentialId || !biometricProfile?.session) return;
 
