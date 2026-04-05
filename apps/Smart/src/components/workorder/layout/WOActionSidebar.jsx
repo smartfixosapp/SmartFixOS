@@ -223,6 +223,7 @@ export default function WOActionSidebar({
 
       <div className="border-t border-white/[0.06] my-2" />
 
+      <ActionBtn icon={Sparkles} label="Asistente IA" color="text-purple-400" onClick={() => onContextAction?.("ai")} />
       <ActionBtn icon={Shield} label="Seguridad" onClick={onSecurityEdit} />
       <ActionBtn icon={Trash2} label="Eliminar" color="text-red-400" onClick={onDelete} />
     </div>
