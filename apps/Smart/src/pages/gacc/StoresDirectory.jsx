@@ -114,18 +114,28 @@ function StoreRow({ tenant, onSelect, onAction }) {
       </div>
 
       {/* Actions */}
-      <div className="relative flex-shrink-0">
+      <div className="flex-shrink-0">
         <button
-          onClick={() => setMenuOpen(!menuOpen)}
+          ref={btnRef}
+          onClick={() => {
+            if (!menuOpen && btnRef.current) {
+              const rect = btnRef.current.getBoundingClientRect();
+              setMenuPos({ top: rect.bottom + 4, left: rect.right - 192 });
+            }
+            setMenuOpen(!menuOpen);
+          }}
           className="p-1.5 rounded-lg text-gray-600 hover:text-white hover:bg-white/[0.06] transition-all opacity-0 group-hover:opacity-100"
         >
           <MoreHorizontal className="w-4 h-4" />
         </button>
 
-        {menuOpen && (
+        {menuOpen && createPortal(
           <>
-            <div className="fixed inset-0 z-40" onClick={() => setMenuOpen(false)} />
-            <div className="absolute right-0 top-full mt-1 z-50 w-48 rounded-xl bg-[#141416] border border-white/[0.1] shadow-2xl py-1">
+            <div className="fixed inset-0 z-[9998]" onClick={() => setMenuOpen(false)} />
+            <div
+              className="fixed z-[9999] w-48 rounded-xl bg-[#141416] border border-white/[0.1] shadow-2xl py-1"
+              style={{ top: menuPos.top, left: Math.max(8, menuPos.left) }}
+            >
               {[
                 { label: "Ver ficha", icon: Eye, action: "view" },
                 { label: "Editar", icon: Pencil, action: "edit" },
@@ -155,7 +165,8 @@ function StoreRow({ tenant, onSelect, onAction }) {
                 );
               })}
             </div>
-          </>
+          </>,
+          document.body
         )}
       </div>
     </div>
