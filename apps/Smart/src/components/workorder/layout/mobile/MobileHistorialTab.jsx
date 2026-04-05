@@ -54,8 +54,7 @@ export default function MobileHistorialTab({ order, onUpdate }) {
     const typeSet =
       activeSubTab === "ventas" ? VENTAS_TYPES
       : activeSubTab === "diagnostico" ? DIAG_TYPES
-      : activeSubTab === "estado" ? STATUS_TYPES
-      : NOTE_TYPES;
+      : ACTIVIDAD_TYPES;
 
     return events.filter(ev => typeSet.has(ev.event_type));
   }, [events, activeSubTab]);
