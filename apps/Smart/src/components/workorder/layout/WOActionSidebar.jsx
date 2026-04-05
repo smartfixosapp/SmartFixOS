@@ -48,6 +48,21 @@ export default function WOActionSidebar({
 }) {
   const o = order || {};
 
+  // Determine if current stage is "ready to advance"
+  const stageReady = useMemo(() => {
+    const s = normalizeStatusId(status);
+    if (s === "in_progress") return !!o.repair_checklist_done;
+    if (s === "warranty") return !!o.warranty_verdict;
+    if (s === "ready_for_pickup" || s === "delivered") {
+      const total = Number(o.total || o.cost_estimate || 0);
+      const paid = Number(o.amount_paid ?? o.total_paid ?? 0);
+      const balance = o.balance_due != null ? Number(o.balance_due || 0) : total - paid;
+      return balance <= 0.01;
+    }
+    // For other stages, always ready
+    return true;
+  }, [status, o]);
+
   // Find next logical status
   const nextStatus = useMemo(() => {
     const currentOrder = getStatusConfig(status).order || 0;
