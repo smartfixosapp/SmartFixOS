@@ -126,20 +126,61 @@ export default function MobileAccionesTab({
       {/* Quick Actions List */}
       <div className="space-y-1">
         {QUICK_ACTIONS.map(action => (
-          <button
-            key={action.id}
-            onClick={() => handleAction(action.id)}
-            className="w-full flex items-center gap-4 px-4 py-3.5 rounded-xl border border-white/[0.06] bg-white/[0.02] hover:bg-white/[0.05] active:scale-[0.98] transition-all"
-          >
-            <div className="w-9 h-9 rounded-xl bg-white/[0.06] flex items-center justify-center flex-shrink-0">
-              <action.icon className={cn("w-4.5 h-4.5", action.color)} />
-            </div>
-            <span className="flex-1 text-left text-sm font-semibold text-white/80">{action.label}</span>
-            {badges[action.badgeKey] && (
-              <div className="w-2.5 h-2.5 rounded-full bg-red-500 animate-pulse" />
+          <React.Fragment key={action.id}>
+            <button
+              onClick={() => handleAction(action.id)}
+              className="w-full flex items-center gap-4 px-4 py-3.5 rounded-xl border border-white/[0.06] bg-white/[0.02] hover:bg-white/[0.05] active:scale-[0.98] transition-all"
+            >
+              <div className="w-9 h-9 rounded-xl bg-white/[0.06] flex items-center justify-center flex-shrink-0">
+                <action.icon className={cn("w-4.5 h-4.5", action.color)} />
+              </div>
+              <span className="flex-1 text-left text-sm font-semibold text-white/80">{action.label}</span>
+              {badges[action.badgeKey] && (
+                <div className="w-2.5 h-2.5 rounded-full bg-red-500 animate-pulse" />
+              )}
+              {action.expandable ? (
+                <ChevronDown className={cn("w-4 h-4 text-white/20 transition-transform", showNotifyOptions && "rotate-180")} />
+              ) : (
+                <ChevronRight className="w-4 h-4 text-white/20" />
+              )}
+            </button>
+
+            {/* Notify sub-options */}
+            {action.id === "notify" && showNotifyOptions && (
+              <div className="ml-6 space-y-1 py-1">
+                {phone && (
+                  <button
+                    onClick={() => handleNotify("whatsapp")}
+                    className="w-full flex items-center gap-3 px-4 py-3 rounded-xl border border-green-500/20 bg-green-500/5 hover:bg-green-500/10 active:scale-[0.98] transition-all"
+                  >
+                    <MessageCircle className="w-4 h-4 text-green-400" />
+                    <span className="text-sm font-medium text-green-300">WhatsApp</span>
+                  </button>
+                )}
+                {o.customer_email && (
+                  <button
+                    onClick={() => handleNotify("email")}
+                    className="w-full flex items-center gap-3 px-4 py-3 rounded-xl border border-blue-500/20 bg-blue-500/5 hover:bg-blue-500/10 active:scale-[0.98] transition-all"
+                  >
+                    <Mail className="w-4 h-4 text-blue-400" />
+                    <span className="text-sm font-medium text-blue-300">Email</span>
+                  </button>
+                )}
+                {phone && (
+                  <button
+                    onClick={() => handleNotify("sms")}
+                    className="w-full flex items-center gap-3 px-4 py-3 rounded-xl border border-amber-500/20 bg-amber-500/5 hover:bg-amber-500/10 active:scale-[0.98] transition-all"
+                  >
+                    <Smartphone className="w-4 h-4 text-amber-400" />
+                    <span className="text-sm font-medium text-amber-300">Mensaje de texto</span>
+                  </button>
+                )}
+                {!phone && !o.customer_email && (
+                  <p className="text-xs text-white/30 px-4 py-2">Sin datos de contacto disponibles</p>
+                )}
+              </div>
             )}
-            <ChevronRight className="w-4 h-4 text-white/20" />
-          </button>
+          </React.Fragment>
         ))}
       </div>
 
