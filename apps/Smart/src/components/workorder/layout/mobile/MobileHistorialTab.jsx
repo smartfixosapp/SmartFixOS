@@ -35,9 +35,11 @@ export default function MobileHistorialTab({ order, onUpdate }) {
     const load = async () => {
       setLoading(true);
       try {
-        const result = await dataClient.entities.WorkOrderEvent.list("-created_date", 200, {
-          order_id: o.id,
-        });
+        const result = await dataClient.entities.WorkOrderEvent.filter(
+          { order_id: o.id },
+          "-created_date",
+          200
+        );
         if (!cancelled) setEvents(Array.isArray(result) ? result : []);
       } catch {
         if (!cancelled) setEvents([]);
