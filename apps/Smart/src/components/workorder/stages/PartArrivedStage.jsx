@@ -120,6 +120,7 @@ export default function PartArrivedStage({ order, onUpdate, onOrderItemsUpdate, 
 
   return (
     <div className="space-y-6">
+      {!compact && (
       <section className="relative overflow-hidden rounded-[30px] border border-amber-500/15 bg-[radial-gradient(circle_at_top_left,rgba(251,191,36,0.16),transparent_28%),radial-gradient(circle_at_bottom_right,rgba(249,115,22,0.14),transparent_30%),linear-gradient(135deg,rgba(33,20,8,0.98),rgba(20,16,10,0.96))] p-5 shadow-[0_22px_70px_rgba(0,0,0,0.35)] sm:p-6">
         <div className="absolute inset-0 bg-[linear-gradient(120deg,transparent,rgba(255,255,255,0.03),transparent)]" />
         <div className="relative z-10 grid gap-5 xl:grid-cols-[1.2fr_0.8fr] xl:items-start">
@@ -209,18 +210,57 @@ export default function PartArrivedStage({ order, onUpdate, onOrderItemsUpdate, 
           );
         })()}
       </section>
+      )}
 
-      <SharedItemsSection
-        order={o}
-        onUpdate={onUpdate}
-        onOrderItemsUpdate={onOrderItemsUpdate}
-        onRemoteSaved={onRemoteSaved}
-        onPaymentClick={onPaymentClick}
-        accentColor="amber"
-        subtitle="Aunque la pieza ya llegó, mantén a la vista los artículos, el costo y el balance antes de pasar a reparación."
-      />
+      {/* ── COMPACT: Location selector + financial summary ──────────────── */}
+      {compact && (
+        <div className="space-y-4">
+          <div className="rounded-[22px] border border-amber-500/15 bg-black/25 p-4">
+            <p className="mb-2 text-[11px] font-semibold uppercase tracking-[0.24em] text-white/35">Ubicación del equipo</p>
+            <p className="text-sm font-semibold text-white/75 mb-3">
+              {deviceLocation === "taller" ? "En Taller" : deviceLocation === "cliente" ? "Con Cliente" : "Sin confirmar"}
+            </p>
+            <div className="flex flex-wrap gap-2">
+              <Button onClick={() => updateDeviceLocation("taller")} size="sm" className="rounded-2xl border-0 bg-emerald-600 px-3 text-white hover:bg-emerald-500">
+                En Taller
+              </Button>
+              <Button onClick={() => updateDeviceLocation("cliente")} size="sm" className="rounded-2xl border-0 bg-amber-600 px-3 text-white hover:bg-amber-500">
+                Con Cliente
+              </Button>
+              {deviceLocation === "cliente" && (
+                <Button onClick={handleNotifyClient} variant="outline" size="sm" className="rounded-2xl border-white/10 bg-white/5 text-white hover:bg-white/10">
+                  <MessageSquare className="mr-1.5 h-3.5 w-3.5" />Notificar
+                </Button>
+              )}
+            </div>
+          </div>
+          <div className="rounded-[22px] border border-white/10 bg-black/25 p-4">
+            <p className="mb-2 text-[11px] font-semibold uppercase tracking-[0.24em] text-white/35">Resumen financiero</p>
+            <div className="grid grid-cols-2 gap-2 text-sm">
+              <span className="text-white/50">Subtotal</span><span className="text-right font-semibold text-white/80">${totals.subtotal.toFixed(2)}</span>
+              <span className="text-white/50">IVU (11.5%)</span><span className="text-right font-semibold text-white/80">${totals.tax.toFixed(2)}</span>
+              <span className="text-white/50 font-bold">Total</span><span className="text-right font-bold text-amber-200">${totals.total.toFixed(2)}</span>
+              <span className="text-white/50">Balance</span><span className="text-right font-bold text-amber-300">${totals.balance.toFixed(2)}</span>
+            </div>
+          </div>
+        </div>
+      )}
 
-      <WorkOrderUnifiedHub order={order} onUpdate={onUpdate} accent="amber" title="Centro de Historial" subtitle="Llegada de pieza, evidencia, seguridad y notas sincronizadas en un solo lugar." />
+      {!compact && (
+        <SharedItemsSection
+          order={o}
+          onUpdate={onUpdate}
+          onOrderItemsUpdate={onOrderItemsUpdate}
+          onRemoteSaved={onRemoteSaved}
+          onPaymentClick={onPaymentClick}
+          accentColor="amber"
+          subtitle="Aunque la pieza ya llegó, mantén a la vista los artículos, el costo y el balance antes de pasar a reparación."
+        />
+      )}
+
+      {!compact && (
+        <WorkOrderUnifiedHub order={order} onUpdate={onUpdate} accent="amber" title="Centro de Historial" subtitle="Llegada de pieza, evidencia, seguridad y notas sincronizadas en un solo lugar." />
+      )}
     </div>
   );
 }
