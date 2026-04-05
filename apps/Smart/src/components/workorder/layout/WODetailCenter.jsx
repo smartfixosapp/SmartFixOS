@@ -55,6 +55,12 @@ export default function WODetailCenter({
       if (action === "tracking") document.querySelector("[data-stage-tracking]")?.scrollIntoView({ behavior: "smooth", block: "start" });
       if (action === "links") document.querySelector("[data-stage-links]")?.scrollIntoView({ behavior: "smooth", block: "start" });
       if (action === "approval") document.querySelector("[data-stage-approval]")?.scrollIntoView({ behavior: "smooth", block: "start" });
+      // Open AI assistant
+      if (action === "ai") {
+        const btn = document.querySelector("[data-aria-trigger]");
+        if (btn) btn.click();
+        else window.dispatchEvent(new CustomEvent("open-aria-chat"));
+      }
     };
     document.addEventListener("wo:action", handler);
     return () => document.removeEventListener("wo:action", handler);
