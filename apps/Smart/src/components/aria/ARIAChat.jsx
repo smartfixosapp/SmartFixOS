@@ -1817,7 +1817,7 @@ pregunta inmediatamente al usuario por el primer campo que falta.
           <motion.div
             className="absolute inset-0 rounded-full pointer-events-none"
             animate={{ scale: [1, 1.18, 1], opacity: [0.5, 0, 0.5] }}
-            transition={{ duration: 2.5, repeat: Infinity, ease: "easeInOut" }}
+            transition={{ duration: 2.5, repeat: 2, ease: "easeInOut" }}
             style={{
               background: "conic-gradient(from 0deg, #ef4444, #f59e0b, #22c55e, #3b82f6, #ef4444)",
               filter: "blur(4px)",
