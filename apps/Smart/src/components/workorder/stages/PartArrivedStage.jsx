@@ -212,36 +212,25 @@ export default function PartArrivedStage({ order, onUpdate, onOrderItemsUpdate, 
       </section>
       )}
 
-      {/* ── COMPACT: Location selector + financial summary ──────────────── */}
+      {/* ── COMPACT: Location selector only (financial summary is in center column) */}
       {compact && (
-        <div className="space-y-4">
-          <div className="rounded-[22px] border border-amber-500/15 bg-black/25 p-4">
-            <p className="mb-2 text-[11px] font-semibold uppercase tracking-[0.24em] text-white/35">Ubicación del equipo</p>
-            <p className="text-sm font-semibold text-white/75 mb-3">
-              {deviceLocation === "taller" ? "En Taller" : deviceLocation === "cliente" ? "Con Cliente" : "Sin confirmar"}
-            </p>
-            <div className="flex flex-wrap gap-2">
-              <Button onClick={() => updateDeviceLocation("taller")} size="sm" className="rounded-2xl border-0 bg-emerald-600 px-3 text-white hover:bg-emerald-500">
-                En Taller
+        <div className="rounded-[22px] border border-amber-500/15 bg-black/25 p-4">
+          <p className="mb-2 text-[11px] font-semibold uppercase tracking-[0.24em] text-white/35">Ubicación del equipo</p>
+          <p className="text-sm font-semibold text-white/75 mb-3">
+            {deviceLocation === "taller" ? "En Taller" : deviceLocation === "cliente" ? "Con Cliente" : "Sin confirmar"}
+          </p>
+          <div className="flex flex-wrap gap-2">
+            <Button onClick={() => updateDeviceLocation("taller")} size="sm" className="rounded-2xl border-0 bg-emerald-600 px-3 text-white hover:bg-emerald-500">
+              En Taller
+            </Button>
+            <Button onClick={() => updateDeviceLocation("cliente")} size="sm" className="rounded-2xl border-0 bg-amber-600 px-3 text-white hover:bg-amber-500">
+              Con Cliente
+            </Button>
+            {deviceLocation === "cliente" && (
+              <Button onClick={handleNotifyClient} variant="outline" size="sm" className="rounded-2xl border-white/10 bg-white/5 text-white hover:bg-white/10">
+                <MessageSquare className="mr-1.5 h-3.5 w-3.5" />Notificar
               </Button>
-              <Button onClick={() => updateDeviceLocation("cliente")} size="sm" className="rounded-2xl border-0 bg-amber-600 px-3 text-white hover:bg-amber-500">
-                Con Cliente
-              </Button>
-              {deviceLocation === "cliente" && (
-                <Button onClick={handleNotifyClient} variant="outline" size="sm" className="rounded-2xl border-white/10 bg-white/5 text-white hover:bg-white/10">
-                  <MessageSquare className="mr-1.5 h-3.5 w-3.5" />Notificar
-                </Button>
-              )}
-            </div>
-          </div>
-          <div className="rounded-[22px] border border-white/10 bg-black/25 p-4">
-            <p className="mb-2 text-[11px] font-semibold uppercase tracking-[0.24em] text-white/35">Resumen financiero</p>
-            <div className="grid grid-cols-2 gap-2 text-sm">
-              <span className="text-white/50">Subtotal</span><span className="text-right font-semibold text-white/80">${totals.subtotal.toFixed(2)}</span>
-              <span className="text-white/50">IVU (11.5%)</span><span className="text-right font-semibold text-white/80">${totals.tax.toFixed(2)}</span>
-              <span className="text-white/50 font-bold">Total</span><span className="text-right font-bold text-amber-200">${totals.total.toFixed(2)}</span>
-              <span className="text-white/50">Balance</span><span className="text-right font-bold text-amber-300">${totals.balance.toFixed(2)}</span>
-            </div>
+            )}
           </div>
         </div>
       )}
