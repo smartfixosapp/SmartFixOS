@@ -489,11 +489,18 @@ export default function AddItemModal({
     const byType = inventoryItems.filter((item) => categoryMatchesDevice(item));
     let suggestions;
     if (modelKey) {
+      const strictModelMatch = (text, model) => {
+        const idx = text.indexOf(model);
+        if (idx === -1) return false;
+        const after = text.substring(idx + model.length).trimStart();
+        if (/^(pro|max|plus|ultra|mini|se|lite)\b/i.test(after)) return false;
+        return true;
+      };
       const exactParts = inventoryItems.filter((i) => {
         if (isService(i) || isAccessory(i)) return false;
         const name = String(i?.name || "").toLowerCase();
         const compat = Array.isArray(i?.compatibility_models) ? i.compatibility_models.map(m => String(m || "").toLowerCase()) : [];
-        return name.includes(modelKey) || compat.some(m => m.includes(modelKey));
+        return strictModelMatch(name, modelKey) || compat.some(m => strictModelMatch(m, modelKey));
       });
       const nonParts = byType.filter((i) => isService(i) || isAccessory(i));
       suggestions = exactParts.length + nonParts.length;
