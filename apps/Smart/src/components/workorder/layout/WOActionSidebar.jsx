@@ -1,7 +1,7 @@
 import React, { useMemo } from "react";
 import {
   ChevronRight, DollarSign, Printer, Phone, MessageCircle,
-  Mail, Shield, Trash2, ChevronDown, Zap, Clock, Camera,
+  Mail, Shield, Trash2, ChevronDown, Zap, Clock, Camera, Check,
   ClipboardCheck, Package, Link2, Send, FileText, ShoppingCart
 } from "lucide-react";
 import { getStatusConfig, normalizeStatusId } from "@/components/utils/statusRegistry";
