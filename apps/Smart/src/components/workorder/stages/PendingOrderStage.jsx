@@ -160,12 +160,13 @@ export default function PendingOrderStage({ order, onUpdate, user, onOrderItemsU
               Links {links.length > 0 ? `(${links.length})` : ""}
             </Button>
             <Button
-              onClick={() => setShowCatalog(true)}
+              onClick={() => setActiveModal("links")}
               size="sm"
-              className="rounded-xl bg-yellow-500 px-3 text-black hover:bg-yellow-400"
+              variant="outline"
+              className="rounded-xl border-white/15 text-white/70 hover:bg-white/10"
             >
-              <ShoppingCart className="w-3.5 h-3.5 mr-1.5" />
-              Piezas y Servicios
+              <Package className="w-3.5 h-3.5 mr-1.5" />
+              Gestionar
             </Button>
           </div>
           {links.length > 0 && (
