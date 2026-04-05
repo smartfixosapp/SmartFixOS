@@ -37,13 +37,63 @@ export default function WODetailCenter({
   const [comment, setComment] = useState("");
   const [posting, setPosting] = useState(false);
   const [timelineKey, setTimelineKey] = useState(0);
+  const [uploading, setUploading] = useState(false);
+  const photoInputRef = useRef(null);
 
-  // Listen for catalog open event from sidebar
+  // Listen for sidebar events
   useEffect(() => {
-    const handler = () => setShowCatalog(true);
-    document.addEventListener("wo:open-catalog", handler);
-    return () => document.removeEventListener("wo:open-catalog", handler);
+    const onCatalog = () => setShowCatalog(true);
+    const onPhotos = () => photoInputRef.current?.click();
+    document.addEventListener("wo:open-catalog", onCatalog);
+    document.addEventListener("wo:open-photos", onPhotos);
+    return () => {
+      document.removeEventListener("wo:open-catalog", onCatalog);
+      document.removeEventListener("wo:open-photos", onPhotos);
+    };
   }, []);
+
+  // Photo upload handler
+  const handlePhotoUpload = useCallback(async (e) => {
+    const files = Array.from(e.target.files || []).filter(f => f.type?.startsWith("image/"));
+    if (!files.length || !o.id) return;
+    setUploading(true);
+    try {
+      let me = null;
+      try { me = await base44.auth.me(); } catch {}
+      const newItems = [];
+      for (const file of files) {
+        try {
+          const { file_url } = await base44.integrations.Core.UploadFile({ file });
+          const versionedUrl = `${file_url}${file_url.includes("?") ? "&" : "?"}v=${Date.now()}`;
+          newItems.push({
+            id: `${Date.now()}-${file.name}`,
+            type: "image",
+            mime: file.type || "image/jpeg",
+            filename: file.name,
+            publicUrl: versionedUrl,
+            thumbUrl: versionedUrl,
+            stage_id: "general",
+            stage_label: "General",
+            captured_at: new Date().toISOString(),
+            captured_by: me?.full_name || me?.email || "Sistema"
+          });
+        } catch (err) {
+          console.error("Upload error:", err);
+        }
+      }
+      if (!newItems.length) throw new Error("No se pudo subir");
+      const existing = Array.isArray(o.photos_metadata) ? o.photos_metadata : [];
+      await base44.entities.Order.update(o.id, { photos_metadata: [...existing, ...newItems] });
+      onUpdate?.();
+      try { await logWorkOrderPhotoEvent({ order: o, count: newItems.length, source: "detail_center" }); } catch {}
+      toast.success(`${newItems.length} foto(s) subida(s)`);
+    } catch {
+      toast.error("Error al subir fotos");
+    } finally {
+      setUploading(false);
+      e.target.value = "";
+    }
+  }, [o, onUpdate]);
 
   const items = useMemo(() => Array.isArray(o.order_items) ? o.order_items : [], [o.order_items]);
 
