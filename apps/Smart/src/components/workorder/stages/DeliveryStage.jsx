@@ -19,6 +19,7 @@ export default function DeliveryStage({
   onOrderItemsUpdate,
   onRemoteSaved,
   onClose,
+  compact,
 }) {
   const o = order || {};
   const photoInputRef = useRef(null);
