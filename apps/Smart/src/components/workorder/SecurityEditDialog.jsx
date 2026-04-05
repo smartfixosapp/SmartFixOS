@@ -125,6 +125,9 @@ export default function SecurityEditDialog({ open, onClose, order, onUpdate }) {
               </Label>
               <Input
                 type="text"
+                inputMode="numeric"
+                pattern="[0-9]*"
+                autoFocus
                 value={pin}
                 onChange={(e) => setPin(e.target.value.replace(/\D/g, '').slice(0, 6))}
                 placeholder="Ingresa PIN..."
