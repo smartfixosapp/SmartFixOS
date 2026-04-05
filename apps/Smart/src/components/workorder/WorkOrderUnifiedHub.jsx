@@ -94,7 +94,7 @@ export default function WorkOrderUnifiedHub({
             <p className="text-[11px] font-semibold uppercase tracking-[0.28em] text-white/35">Módulo unificado</p>
             <div className="mt-1 flex flex-wrap items-center gap-3">
               <h3 className="text-xl font-black tracking-tight text-white">{title}</h3>
-              <Badge className="rounded-full border-white/10 bg-white/5 px-3 py-1 text-white/70">{photoCount} fotos</Badge>
+              {hasPhotos && <Badge className="rounded-full border-white/10 bg-white/5 px-3 py-1 text-white/70">{photoCount} fotos</Badge>}
               <Badge className="rounded-full border-white/10 bg-white/5 px-3 py-1 text-white/70">{securityCount} claves</Badge>
             </div>
             <p className="mt-2 text-sm leading-relaxed text-white/55">{subtitle}</p>
