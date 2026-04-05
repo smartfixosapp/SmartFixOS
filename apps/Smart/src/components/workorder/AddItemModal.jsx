@@ -433,29 +433,28 @@ export default function AddItemModal({
     let base = [...inventoryItems];
 
     if (activeCategory === "suggestions") {
-      // Smart: prioritize exact model matches, then family, then brand, then type
-      const { categoryMatchesDevice, matchesSpecificDevice, modelKey, familyKey, brandKey } = deviceSuggestionFilter;
-      const byType = base.filter((item) => categoryMatchesDevice(item));
-      if (modelKey || familyKey || brandKey) {
-        const parts    = byType.filter((i) => !isService(i) && !isAccessory(i));
-        const nonParts = byType.filter((i) =>  isService(i) ||  isAccessory(i));
-        const strictParts = parts.filter((i) => matchesSpecificDevice(i));
-        // Score and sort: exact model match > family > brand > generic
-        const scored = (strictParts.length > 0 ? strictParts : parts).map(item => {
-          const name = String(item?.name || "").toLowerCase();
-          let score = 0;
-          if (modelKey && name.includes(modelKey)) score += 100;
-          if (familyKey && name.includes(familyKey)) score += 50;
-          if (brandKey && name.includes(brandKey)) score += 25;
-          // Boost common repair parts
-          if (/pantalla|screen|lcd|oled/i.test(name)) score += 10;
-          if (/bateria|battery/i.test(name)) score += 8;
-          if (/puerto|port|charging/i.test(name)) score += 6;
-          return { ...item, _score: score };
-        }).sort((a, b) => b._score - a._score);
-        base = [...scored, ...nonParts];
+      const { categoryMatchesDevice, modelKey, familyKey, brandKey } = deviceSuggestionFilter;
+      if (modelKey) {
+        // Piezas: SOLO las que coincidan con el modelo exacto (ej: "iPhone 15")
+        const exactModelParts = base.filter((i) => {
+          if (isService(i) || isAccessory(i)) return false;
+          const name = String(i?.name || "").toLowerCase();
+          const compatModels = Array.isArray(i?.compatibility_models) ? i.compatibility_models.map(m => String(m || "").toLowerCase()) : [];
+          return name.includes(modelKey) || compatModels.some(m => m.includes(modelKey));
+        });
+        // Servicios y accesorios: filtrar por tipo de dispositivo (smartphone, laptop, etc.)
+        const nonParts = base.filter((i) => (isService(i) || isAccessory(i)) && categoryMatchesDevice(i));
+        base = [...exactModelParts, ...nonParts];
+      } else if (familyKey || brandKey) {
+        const matchKey = familyKey || brandKey;
+        const matchedParts = base.filter((i) => {
+          if (isService(i) || isAccessory(i)) return false;
+          return String(i?.name || "").toLowerCase().includes(matchKey);
+        });
+        const nonParts = base.filter((i) => (isService(i) || isAccessory(i)) && categoryMatchesDevice(i));
+        base = [...matchedParts, ...nonParts];
       } else {
-        base = byType;
+        base = base.filter((item) => categoryMatchesDevice(item));
       }
     } else {
       if (activeCategory === "services")    base = base.filter(isService);
