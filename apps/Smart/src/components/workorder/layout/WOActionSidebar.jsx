@@ -9,9 +9,6 @@ import { cn } from "@/lib/utils";
 
 // ── Contextual actions per stage ──
 const STAGE_ACTIONS = {
-  intake: [
-    { icon: Camera, label: "Subir foto", action: "photos" },
-  ],
   diagnosing: [
     { icon: ClipboardCheck, label: "Checklist", action: "checklist" },
   ],
@@ -23,7 +20,6 @@ const STAGE_ACTIONS = {
   ],
   in_progress: [
     { icon: ClipboardCheck, label: "Checklist cierre", action: "checklist" },
-    { icon: Camera, label: "Foto evidencia", action: "photos" },
   ],
   ready_for_pickup: [
     { icon: Send, label: "Notificar cliente", action: "notify" },
