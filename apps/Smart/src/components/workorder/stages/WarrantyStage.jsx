@@ -270,7 +270,9 @@ export default function WarrantyStage({
         </div>
       </section>
 
-      {/* ── ACCIONES RÁPIDAS: foto + nota ────────────────────────────────── */}
+      {/* ── ACCIONES RÁPIDAS: foto + nota — solo en modo completo ─────────── */}
+      {!compact && (
+      <>
       <div className="grid grid-cols-2 gap-2">
         <input
           ref={photoInputRef}
@@ -331,6 +333,8 @@ export default function WarrantyStage({
             </Button>
           </div>
         </div>
+      )}
+      </>
       )}
 
       {/* ── PIEZAS Y EXTRAS ──────────────────────────────────────────────── */}
