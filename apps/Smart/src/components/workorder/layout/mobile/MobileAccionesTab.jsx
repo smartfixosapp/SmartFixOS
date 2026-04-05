@@ -28,6 +28,7 @@ export default function MobileAccionesTab({
   onPaymentClick,
   onPrint,
   onSecurityEdit,
+  onSwitchTab,
   stageContent,
 }) {
   const [showAllStatuses, setShowAllStatuses] = useState(false);
