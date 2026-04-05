@@ -23,7 +23,7 @@ import AddItemModal from "@/components/workorder/AddItemModal";
 import { Button } from "@/components/ui/button";
 import { createPageUrl } from "@/components/utils/helpers";
 
-export default function FinalizedStage({ order, onUpdate, onPaymentClick }) {
+export default function FinalizedStage({ order, onUpdate, onPaymentClick, compact }) {
   const o = order || {};
   const navigate = useNavigate();
   const [showCatalog, setShowCatalog] = useState(false);
