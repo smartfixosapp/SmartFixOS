@@ -231,6 +231,41 @@ export default function WaitingPartsStage({ order, onUpdate, onOrderItemsUpdate,
       </section>
       )}
 
+      {/* ── COMPACT: Tracking info summary ─────────────────────────────────── */}
+      {compact && (
+        <div className="rounded-[22px] border border-orange-500/15 bg-black/25 p-4 space-y-3">
+          <div className="flex items-center justify-between gap-2">
+            <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-white/35">Detalles del pedido</p>
+            <Button variant="ghost" size="icon"
+              className="h-7 w-7 rounded-lg text-white/55 hover:bg-white/10 hover:text-white"
+              onClick={() => setEditingDetails(!editingDetails)}>
+              {editingDetails ? <X className="w-3.5 h-3.5" /> : <Pencil className="w-3.5 h-3.5" />}
+            </Button>
+          </div>
+          <div className="grid grid-cols-2 gap-2 text-sm">
+            <span className="text-white/50">Pieza</span>
+            <span className="text-right font-semibold text-white/80 truncate">{displayPartName}</span>
+            <span className="text-white/50">Suplidor</span>
+            <span className="text-right font-semibold text-white/80 truncate">{displaySupplier}</span>
+            <span className="text-white/50">Carrier</span>
+            <span className="text-right font-semibold text-white/80">{displayCarrier}</span>
+            <span className="text-white/50">Ubicación</span>
+            <span className="text-right font-semibold text-white/80">{location === "taller" ? "En Taller" : "Con Cliente"}</span>
+          </div>
+          {links.length > 0 && (
+            <div className="flex flex-wrap gap-1 pt-1">
+              {links.slice(0, 3).map((link, i) => (
+                <a key={i} href={link.url} target="_blank" rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1 rounded-lg border border-orange-400/20 bg-orange-500/10 px-2 py-0.5 text-[10px] font-semibold text-orange-300 hover:bg-orange-500/20">
+                  <ExternalLink className="w-2.5 h-2.5" />
+                  {link.partName || (() => { try { return new URL(link.url).hostname.replace("www.", ""); } catch { return "Link"; } })()}
+                </a>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+
       {/* ── EDICIÓN DETALLES DEL PEDIDO ────────────────────────────────────── */}
       {editingDetails && (
         <div className="overflow-hidden rounded-[28px] border border-cyan-500/15 bg-[linear-gradient(180deg,rgba(255,255,255,0.05),rgba(255,255,255,0.02))] shadow-[0_18px_50px_rgba(0,0,0,0.28)]">
