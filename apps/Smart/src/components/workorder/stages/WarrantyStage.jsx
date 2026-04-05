@@ -334,6 +334,7 @@ export default function WarrantyStage({
       )}
 
       {/* ── PIEZAS Y EXTRAS ──────────────────────────────────────────────── */}
+      {!compact && (
       <SharedItemsSection
         order={o}
         onUpdate={onUpdate}
@@ -345,8 +346,10 @@ export default function WarrantyStage({
         catalogButtonLabel="Añadir extras"
         onPaymentClick={onPaymentClick}
       />
+      )}
 
       {/* ── HISTORIAL ────────────────────────────────────────────────────── */}
+      {!compact && (
       <WorkOrderUnifiedHub
         order={order}
         onUpdate={onUpdate}
@@ -354,6 +357,7 @@ export default function WarrantyStage({
         title="Centro de Garantía"
         subtitle="Historial, notas y evidencias del reclamo."
       />
+      )}
     </div>
   );
 }
