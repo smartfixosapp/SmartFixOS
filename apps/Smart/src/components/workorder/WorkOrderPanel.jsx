@@ -54,6 +54,9 @@ import { getLocalOrders, getUnsyncedLocalOrders, mergeOrders, removeLocalOrder }
 import { logWorkOrderPhotoEvent } from "@/components/workorder/utils/auditEvents";
 import { loadSuppliersSafe } from "@/components/utils/suppliers";
 import { usePlanLimits } from "@/hooks/usePlanLimits";
+import WOActionSidebar from "@/components/workorder/layout/WOActionSidebar";
+import WODetailCenter from "@/components/workorder/layout/WODetailCenter";
+import WOTabPanel from "@/components/workorder/layout/WOTabPanel";
 import { loadOrderLinks } from "@/components/workorder/utils/orderLinksStore";
 
 
