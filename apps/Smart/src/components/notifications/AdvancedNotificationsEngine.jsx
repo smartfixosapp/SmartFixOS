@@ -15,10 +15,14 @@ class AdvancedNotificationsEngine {
   start() {
     if (this.isRunning) return;
     this.isRunning = true;
-    console.log("🚀 Advanced Notifications Engine started");
-    
+
     this.runEvaluation();
-    this.interval = setInterval(() => this.runEvaluation(), this.evaluationInterval);
+    this.interval = setInterval(() => {
+      // Solo evaluar si tab visible para ahorrar bateria
+      if (document.visibilityState === "visible") {
+        this.runEvaluation();
+      }
+    }, this.evaluationInterval);
   }
 
   // ✅ Detener motor
@@ -26,32 +30,23 @@ class AdvancedNotificationsEngine {
     this.isRunning = false;
     if (this.interval) {
       clearInterval(this.interval);
+      this.interval = null;
     }
-    console.log("🛑 Advanced Notifications Engine stopped");
   }
 
   // ✅ Ejecutar evaluación de todas las reglas activas
   async runEvaluation() {
     try {
       const rules = await dataClient.entities.NotificationRule.filter({ active: true });
-      
-      if (!rules || rules.length === 0) {
-        console.log("📋 No active notification rules found");
-        return;
-      }
 
-      console.log(`🔍 Evaluating ${rules.length} notification rules...`);
+      if (!rules || rules.length === 0) return;
 
       for (const rule of rules) {
         try {
           await this.evaluateRule(rule);
-        } catch (error) {
-          console.error(`❌ Error evaluating rule ${rule.name}:`, error);
-        }
+        } catch { /* skip failed rule */ }
       }
-    } catch (error) {
-      console.error("❌ Error in notification engine:", error);
-    }
+    } catch { /* silent */ }
   }
 
   // ✅ Evaluar una regla específica
