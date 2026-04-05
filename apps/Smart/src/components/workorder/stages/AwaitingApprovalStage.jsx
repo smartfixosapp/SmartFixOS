@@ -199,7 +199,8 @@ export default function AwaitingApprovalStage({ order, onUpdate, compact }) {
         </div>
       )}
 
-      {/* ── Piezas y Servicios ── */}
+      {/* ── Piezas y Servicios — only in full mode (center column has financial summary in compact) ── */}
+      {!compact && (
       <section className="relative overflow-hidden rounded-[30px] border border-yellow-500/15 bg-[radial-gradient(circle_at_top_left,rgba(234,179,8,0.08),transparent_24%),linear-gradient(180deg,rgba(24,24,27,0.98),rgba(10,10,12,0.98))] shadow-[0_22px_70px_rgba(0,0,0,0.35)]">
         <div className="absolute inset-0 bg-[linear-gradient(120deg,transparent,rgba(255,255,255,0.025),transparent)]" />
         <div className="relative z-10 border-b border-white/10 px-6 py-5">
@@ -265,6 +266,7 @@ export default function AwaitingApprovalStage({ order, onUpdate, compact }) {
           )}
         </div>
       </section>
+      )}
 
       {!compact && (
       <WorkOrderUnifiedHub
