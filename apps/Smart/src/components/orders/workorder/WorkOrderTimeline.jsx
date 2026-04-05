@@ -375,7 +375,7 @@ export default function WorkOrderTimeline({ order, onUpdate, hideComposer = fals
               </Button>
             </div>
           </div>
-        </div>
+        </div>}
 
         {/* Timeline */}
         {loading ? (
