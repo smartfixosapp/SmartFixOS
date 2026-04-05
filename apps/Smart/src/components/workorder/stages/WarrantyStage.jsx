@@ -151,6 +151,7 @@ export default function WarrantyStage({
     <div className="space-y-4">
 
       {/* ── HERO: dispositivo + estado + contacto ─────────────────────────── */}
+      {!compact && (
       <section className="relative overflow-hidden rounded-[28px] border border-amber-500/15 bg-[radial-gradient(circle_at_top_left,rgba(245,158,11,0.14),transparent_28%),linear-gradient(135deg,rgba(28,18,8,0.98),rgba(18,14,10,0.96))] p-5 shadow-[0_22px_70px_rgba(0,0,0,0.35)]">
         {/* badges */}
         <div className="flex flex-wrap items-center gap-2 mb-4">
@@ -208,6 +209,7 @@ export default function WarrantyStage({
           </div>
         )}
       </section>
+      )}
 
       {/* ── COMPARACIÓN: reclamo actual vs problema original ─────────────── */}
       <div className="grid gap-3 sm:grid-cols-2">
