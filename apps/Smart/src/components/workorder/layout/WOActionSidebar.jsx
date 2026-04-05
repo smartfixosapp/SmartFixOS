@@ -142,11 +142,13 @@ export default function WOActionSidebar({
           className={cn(
             "w-full flex items-center gap-2.5 px-3 py-3 rounded-xl font-bold text-sm transition-all active:scale-95",
             changingStatus ? "opacity-50 cursor-not-allowed" : "hover:brightness-110",
-            nextStatus.colorClasses || "bg-cyan-500/20 text-cyan-300 border-cyan-500/30",
+            stageReady
+              ? "bg-emerald-500/20 text-emerald-300 border-emerald-500/40 shadow-[0_0_12px_rgba(16,185,129,0.15)]"
+              : (nextStatus.colorClasses || "bg-cyan-500/20 text-cyan-300 border-cyan-500/30"),
             "border"
           )}
         >
-          <Zap className="w-4 h-4 shrink-0" />
+          {stageReady ? <Check className="w-4 h-4 shrink-0" /> : <Zap className="w-4 h-4 shrink-0" />}
           <span className="flex-1 text-left truncate">Pasar a {nextStatus.label}</span>
           <ChevronRight className="w-3.5 h-3.5 opacity-50" />
         </button>
