@@ -190,3 +190,16 @@ export default function PendingOrderStage({ order, onUpdate, user, onOrderItemsU
     </div>
   );
 }
+
+// Helper: listens for sidebar events in compact mode
+function PendingOrderSidebarListener({ onOpenLinks }) {
+  useEffect(() => {
+    const handler = (e) => {
+      const action = e.detail?.action;
+      if (action === "links") onOpenLinks?.();
+    };
+    document.addEventListener("wo:action", handler);
+    return () => document.removeEventListener("wo:action", handler);
+  }, [onOpenLinks]);
+  return null;
+}
