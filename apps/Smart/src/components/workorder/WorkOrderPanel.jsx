@@ -3070,10 +3070,6 @@ export default function WorkOrderPanel({ orderId, onClose, onUpdate, onDelete, p
                   {renderStageContent()}
                 </WODetailCenter>
 
-                <WOTabPanel
-                  order={o}
-                  onUpdate={async () => { await clearEventCache(o.id); await loadEventsCallback(true); await handleRefresh(); onUpdate?.(); }}
-                />
               </div>
             </div>
           </div>
