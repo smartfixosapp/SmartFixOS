@@ -208,6 +208,7 @@ export default function CancelledStage({ order, onUpdate, compact }) {
         </div>
       </section>
 
+      {!compact && (
       <WorkOrderUnifiedHub
         order={o}
         onUpdate={onUpdate}
@@ -215,6 +216,7 @@ export default function CancelledStage({ order, onUpdate, compact }) {
         title="Centro de Historial"
         subtitle="Notas, fotos, actividad y evidencia de la orden cancelada."
       />
+      )}
 
       <AddItemModal
         open={showCatalog}
