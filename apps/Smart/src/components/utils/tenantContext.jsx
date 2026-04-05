@@ -86,12 +86,14 @@ export function TenantProvider({ children }) {
 
         const tenant = await dataClient.entities.Tenant.get(membership.tenant_id);
         setCurrentTenant(tenant);
+        tenantRef.current = tenant;
         localStorage.setItem("current_tenant_id", tenant.id);
       } else {
         // No memberships found — fallback to employee session tenant_id
         const tenantFromSession = await loadTenantFromSession();
         if (tenantFromSession) {
           setCurrentTenant(tenantFromSession);
+          tenantRef.current = tenantFromSession;
         }
       }
     } catch (error) {
