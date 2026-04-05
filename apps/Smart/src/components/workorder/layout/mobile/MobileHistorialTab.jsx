@@ -99,8 +99,7 @@ export default function MobileHistorialTab({ order, onUpdate }) {
   const emptyMessages = {
     ventas: "No sales to show",
     diagnostico: "Sin diagnosticos registrados",
-    estado: "Sin cambios de estado",
-    notas: "Sin notas registradas",
+    actividad: "Sin actividad registrada",
   };
 
   return (
