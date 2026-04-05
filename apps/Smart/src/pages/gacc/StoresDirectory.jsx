@@ -64,6 +64,8 @@ function StoreRow({ tenant, onSelect, onAction }) {
   const planConfig = getPlanConfig(tenant.effective_plan || tenant.plan);
   const ago = timeAgo(tenant.last_seen || tenant.last_login);
   const [menuOpen, setMenuOpen] = useState(false);
+  const [menuPos, setMenuPos] = useState({ top: 0, left: 0 });
+  const btnRef = React.useRef(null);
 
   return (
     <div className="group flex items-center gap-3 px-4 py-3 hover:bg-white/[0.03] transition-colors border-b border-white/[0.04] last:border-0">
