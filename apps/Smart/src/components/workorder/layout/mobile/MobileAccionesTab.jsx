@@ -31,6 +31,7 @@ export default function MobileAccionesTab({
   stageContent,
 }) {
   const [showAllStatuses, setShowAllStatuses] = useState(false);
+  const [showNotifyOptions, setShowNotifyOptions] = useState(false);
   const o = order || {};
   const phone = o.customer_phone || o.phone;
 
