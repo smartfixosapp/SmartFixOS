@@ -3036,13 +3036,6 @@ export default function WorkOrderPanel({ orderId, onClose, onUpdate, onDelete, p
                 </WODetailCenter>
               </div>
 
-              {/* RIGHT: Tabbed panel */}
-              <div className="overflow-y-auto border-l border-white/[0.06] p-3 bg-[#0D0D0F]">
-                <WOTabPanel
-                  order={o}
-                  onUpdate={async () => { await clearEventCache(o.id); await loadEventsCallback(true); await handleRefresh(); onUpdate?.(); }}
-                />
-              </div>
             </div>
 
             {/* MOBILE: Stacked layout */}
