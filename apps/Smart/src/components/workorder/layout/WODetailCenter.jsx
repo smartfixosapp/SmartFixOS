@@ -60,11 +60,12 @@ export default function WODetailCenter({
       if (action === "links") document.dispatchEvent(new CustomEvent("wo:toggle-links"));
       if (action === "quote") document.dispatchEvent(new CustomEvent("wo:send-quote"));
       if (action === "approval") document.querySelector("[data-stage-approval]")?.scrollIntoView({ behavior: "smooth", block: "start" });
-      // Open AI assistant
-      if (action === "ai") {
-        const btn = document.querySelector("[data-aria-trigger]");
-        if (btn) btn.click();
-        else window.dispatchEvent(new CustomEvent("open-aria-chat"));
+      // Open JEANI assistant
+      if (action === "ai") window.dispatchEvent(new CustomEvent("wo:open-jeani"));
+      // Add note from sidebar
+      if (action === "add-note") {
+        const input = document.querySelector("[data-note-input]");
+        if (input) { input.focus(); input.scrollIntoView({ behavior: "smooth", block: "center" }); }
       }
     };
     document.addEventListener("wo:action", handler);
