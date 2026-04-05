@@ -7,7 +7,7 @@ import WorkOrderUnifiedHub from "@/components/workorder/WorkOrderUnifiedHub";
 import OrderLinksDialog from "@/components/workorder/OrderLinksDialog";
 import { loadOrderLinks } from "@/components/workorder/utils/orderLinksStore";
 
-export default function PendingOrderStage({ order, onUpdate, user, onOrderItemsUpdate, onRemoteSaved, onPaymentClick }) {
+export default function PendingOrderStage({ order, onUpdate, user, onOrderItemsUpdate, onRemoteSaved, onPaymentClick, compact }) {
   const [activeModal, setActiveModal] = useState(null);
   const [links, setLinks] = useState([]);
   
