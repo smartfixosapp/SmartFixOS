@@ -649,6 +649,7 @@ export default function DiagnosingStage({ order, onUpdate, user, onOrderItemsUpd
         accentColor="purple"
         subtitle="Añade piezas o servicios sugeridos para que la cotización salga lista desde esta misma etapa."
       />
+      )}
 
       {/* ── Checklist de Diagnóstico ── */}
       {showChecklist && (
