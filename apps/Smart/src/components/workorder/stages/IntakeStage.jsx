@@ -5,7 +5,7 @@ import WorkOrderUnifiedHub from "@/components/workorder/WorkOrderUnifiedHub";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import SharedItemsSection from "@/components/workorder/SharedItemsSection";
 
-export default function IntakeStage({ order, onUpdate, onOrderItemsUpdate, onRemoteSaved, onPaymentClick }) {
+export default function IntakeStage({ order, onUpdate, onOrderItemsUpdate, onRemoteSaved, onPaymentClick, compact }) {
   const o = order || {};
   const [previewPhoto, setPreviewPhoto] = useState(null);
   const [openHubTab, setOpenHubTab] = useState(null);
