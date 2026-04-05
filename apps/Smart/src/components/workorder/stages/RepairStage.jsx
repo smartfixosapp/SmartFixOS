@@ -211,6 +211,7 @@ export default function RepairStage({ order, onUpdate, onOrderItemsUpdate, onRem
       )}
 
       {/* ── AÑADIR PIEZA ─────────────────────────────────────────────────── */}
+      {!compact && (
       <button
         onClick={() => setShowCatalog(true)}
         className="w-full flex items-center justify-between gap-4 rounded-[22px] border border-amber-500/20 bg-amber-500/8 px-5 py-4 hover:bg-amber-500/14 transition-all group text-left"
@@ -232,6 +233,7 @@ export default function RepairStage({ order, onUpdate, onOrderItemsUpdate, onRem
           <Plus className="w-3.5 h-3.5" />Añadir
         </span>
       </button>
+      )}
 
       {/* ── CHECKLIST DE CIERRE ──────────────────────────────────────────── */}
       <div className="overflow-hidden rounded-[28px] border border-emerald-500/15 bg-[linear-gradient(180deg,rgba(255,255,255,0.04),rgba(255,255,255,0.01))] shadow-[0_18px_50px_rgba(0,0,0,0.25)]">
