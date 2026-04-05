@@ -205,7 +205,17 @@ export function GACCProvider({ children }) {
   const metrics = useMemo(() => {
     const now = Date.now();
     const active = tenants.filter(t => t.status === "active");
+
+    // Helper: has this tenant made a real payment?
+    const hasPaid = (t) => !!(t.last_payment_date || t.last_payment_amount > 0 ||
+      t.stripe_subscription_id || t.latest_subscription?.last_payment_status === "succeeded");
+
+    // Paying = active + has made a payment (regardless of trial_end_date)
+    const paying = tenants.filter(t => t.status === "active" && hasPaid(t));
+
+    // Trials = active + has trial_end_date in the future + has NOT paid yet
     const trials = tenants.filter(t => {
+      if (hasPaid(t)) return false; // already paying, not a trial
       const te = t.effective_trial_end_date || t.trial_end_date;
       return te && new Date(te) > new Date() && t.status === "active";
     });
@@ -215,10 +225,6 @@ export function GACCProvider({ children }) {
     });
     const suspended = tenants.filter(t => t.status === "suspended");
     const pending = tenants.filter(t => t.metadata?.setup_complete === false);
-    const paying = tenants.filter(t => {
-      const sub = t.effective_subscription_status || t.subscription_status;
-      return sub === "active" && t.status === "active" && !trials.includes(t);
-    });
     const mrr = tenants
       .filter(t => t.status === "active")
       .reduce((sum, t) => sum + (t.effective_monthly_cost || 0), 0);
