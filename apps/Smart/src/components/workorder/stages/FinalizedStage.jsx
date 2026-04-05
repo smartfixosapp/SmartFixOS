@@ -229,6 +229,41 @@ export default function FinalizedStage({ order, onUpdate, onPaymentClick, compac
       </section>
       )}
 
+      {/* ── COMPACT: simple badge summary ─────────────────────────────────── */}
+      {compact && (
+        <div className="rounded-[22px] border border-emerald-500/15 bg-black/25 p-4 space-y-3">
+          <div className="flex items-center gap-3">
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl border border-emerald-400/20 bg-emerald-500/15">
+              {isCompleted
+                ? <PartyPopper className="h-5 w-5 text-emerald-300" />
+                : <CheckCircle2 className="h-5 w-5 text-emerald-300" />
+              }
+            </div>
+            <div>
+              <Badge className="rounded-full border border-emerald-400/30 bg-emerald-500/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.25em] text-emerald-200">
+                {isCompleted ? "Completado" : "Entregado"}
+              </Badge>
+              {o.updated_date && (
+                <p className="mt-1 text-xs text-white/45">
+                  {new Date(o.updated_date).toLocaleDateString()}
+                </p>
+              )}
+            </div>
+          </div>
+          {warrantyActive && (
+            <div className="flex items-center gap-2 rounded-xl border border-emerald-400/15 bg-emerald-500/8 px-3 py-2">
+              <Shield className="h-4 w-4 text-emerald-300 flex-shrink-0" />
+              <span className="text-sm font-semibold text-emerald-200">
+                Garantia: {warrantyDays} dias restantes
+              </span>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* ── FULL: Resumen de salida cards ──────────────────────────────────── */}
+      {!compact && (
+      <>
       <div className="grid gap-6 xl:grid-cols-[1.04fr_0.96fr]">
         <section className="overflow-hidden rounded-[28px] border border-emerald-500/15 bg-[linear-gradient(180deg,rgba(255,255,255,0.05),rgba(255,255,255,0.02))] shadow-[0_18px_50px_rgba(0,0,0,0.28)]">
           <div className="border-b border-white/10 bg-gradient-to-r from-emerald-500/10 to-transparent p-5">
@@ -456,6 +491,8 @@ export default function FinalizedStage({ order, onUpdate, onPaymentClick, compac
           )}
         </div>
       </section>
+      </>
+      )}
 
       {!compact && (
       <WorkOrderUnifiedHub
