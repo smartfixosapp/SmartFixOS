@@ -64,6 +64,7 @@ export default function AwaitingApprovalStage({ order, onUpdate, compact }) {
   return (
     <div className="space-y-6">
       {/* ── Hero ── */}
+      {!compact && (
       <section className="relative overflow-hidden rounded-[30px] border border-yellow-500/15 bg-[radial-gradient(circle_at_top_left,rgba(234,179,8,0.14),transparent_28%),radial-gradient(circle_at_bottom_right,rgba(249,115,22,0.10),transparent_30%),linear-gradient(135deg,rgba(20,18,6,0.98),rgba(20,14,6,0.96))] p-5 shadow-[0_22px_70px_rgba(0,0,0,0.35)] sm:p-6">
         <div className="absolute inset-0 bg-[linear-gradient(120deg,transparent,rgba(255,255,255,0.025),transparent)]" />
         <div className="relative z-10 grid gap-5 xl:grid-cols-[1.2fr_0.8fr] xl:items-start">
@@ -160,6 +161,43 @@ export default function AwaitingApprovalStage({ order, onUpdate, compact }) {
           </div>
         </div>
       </section>
+      )}
+
+      {/* ── Quick actions (compact) ── */}
+      {compact && (
+        <div className="space-y-3">
+          {o.customer_approval_status && (
+            <div className={`rounded-[22px] border p-4 ${
+              o.customer_approval_status === "approved"
+                ? "border-emerald-500/20 bg-emerald-500/5"
+                : "border-red-500/20 bg-red-500/5"
+            }`}>
+              <p className="mb-1 text-[11px] font-semibold uppercase tracking-[0.24em] text-white/35">Respuesta del cliente</p>
+              <p className={`text-lg font-black ${o.customer_approval_status === "approved" ? "text-emerald-300" : "text-red-300"}`}>
+                {o.customer_approval_status === "approved" ? "Aprobado" : "Rechazado"}
+              </p>
+            </div>
+          )}
+          <div className="flex flex-wrap gap-2">
+            <button
+              onClick={copyLink}
+              className="flex items-center gap-2 rounded-xl border border-yellow-500/25 bg-yellow-500/10 px-4 py-2.5 text-sm font-semibold text-yellow-200 hover:bg-yellow-500/20 transition"
+            >
+              {linkCopied ? <Check className="h-4 w-4 text-emerald-400" /> : <Link2 className="h-4 w-4" />}
+              {linkCopied ? "Copiado" : "Copiar link"}
+            </button>
+            {o.customer_phone && (
+              <button
+                onClick={shareViaWhatsApp}
+                className="flex items-center gap-2 rounded-xl border border-emerald-500/25 bg-emerald-500/10 px-4 py-2.5 text-sm font-semibold text-emerald-200 hover:bg-emerald-500/20 transition"
+              >
+                <Send className="h-4 w-4" />
+                WhatsApp
+              </button>
+            )}
+          </div>
+        </div>
+      )}
 
       {/* ── Piezas y Servicios ── */}
       <section className="relative overflow-hidden rounded-[30px] border border-yellow-500/15 bg-[radial-gradient(circle_at_top_left,rgba(234,179,8,0.08),transparent_24%),linear-gradient(180deg,rgba(24,24,27,0.98),rgba(10,10,12,0.98))] shadow-[0_22px_70px_rgba(0,0,0,0.35)]">
