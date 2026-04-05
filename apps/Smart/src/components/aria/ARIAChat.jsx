@@ -1850,7 +1850,7 @@ pregunta inmediatamente al usuario por el primer campo que falta.
                 opacity: 0.85,
               }}
               animate={{ rotate: 360 }}
-              transition={{ duration: 3, repeat: Infinity, ease: "linear" }}
+              transition={{ duration: 3, repeat: 2, ease: "linear" }}
             />
           )}
 
