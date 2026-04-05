@@ -57,7 +57,8 @@ export default function WODetailCenter({
         if (el) { el.querySelector("button")?.click(); setTimeout(() => el.scrollIntoView({ behavior: "smooth", block: "start" }), 100); }
       }
       if (action === "tracking") document.querySelector("[data-stage-tracking]")?.scrollIntoView({ behavior: "smooth", block: "start" });
-      if (action === "links") document.querySelector("[data-stage-links]")?.scrollIntoView({ behavior: "smooth", block: "start" });
+      if (action === "links") document.dispatchEvent(new CustomEvent("wo:toggle-links"));
+      if (action === "quote") document.dispatchEvent(new CustomEvent("wo:send-quote"));
       if (action === "approval") document.querySelector("[data-stage-approval]")?.scrollIntoView({ behavior: "smooth", block: "start" });
       // Open AI assistant
       if (action === "ai") {
