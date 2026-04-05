@@ -266,6 +266,7 @@ export default function AwaitingApprovalStage({ order, onUpdate, compact }) {
         </div>
       </section>
 
+      {!compact && (
       <WorkOrderUnifiedHub
         order={o}
         onUpdate={onUpdate}
@@ -273,6 +274,7 @@ export default function AwaitingApprovalStage({ order, onUpdate, compact }) {
         title="Centro de Historial"
         subtitle="Seguimiento mientras el cliente aprueba o rechaza la cotización."
       />
+      )}
 
       <AddItemModal
         open={showCatalog}
