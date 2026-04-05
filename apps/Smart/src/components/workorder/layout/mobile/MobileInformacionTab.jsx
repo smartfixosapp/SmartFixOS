@@ -103,39 +103,15 @@ export default function MobileInformacionTab({
         )}
       </div>
 
-      {/* Photos Section */}
-      <div className="space-y-2">
-        <div className="flex items-center justify-between px-1">
-          <h4 className="text-[10px] font-black uppercase tracking-widest text-white/30">
-            Fotos {photos.length > 0 && `(${photos.length})`}
-            {uploading && <span className="ml-2 text-cyan-400 animate-pulse normal-case tracking-normal">subiendo...</span>}
+      {/* Photos */}
+      {photos.length > 0 && (
+        <div className="space-y-2">
+          <h4 className="text-[10px] font-black uppercase tracking-widest text-white/30 px-1">
+            Fotos ({photos.length})
           </h4>
-          <button
-            onClick={() => photoInputRef.current?.click()}
-            disabled={uploading}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-cyan-600 hover:bg-cyan-500 text-white text-[11px] font-bold transition-all active:scale-95 disabled:opacity-50"
-          >
-            {uploading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Camera className="w-3.5 h-3.5" />}
-            {uploading ? "Subiendo" : "Agregar"}
-          </button>
+          <MobilePhotosCarousel photos={photos} />
         </div>
-        <MobilePhotosCarousel
-          photos={photos}
-          onAddPhoto={() => photoInputRef.current?.click()}
-        />
-      </div>
-
-      {/* Hidden file input */}
-      <input
-        ref={photoInputRef}
-        type="file"
-        accept="image/*"
-        multiple
-        capture="environment"
-        className="hidden"
-        onChange={handlePhotoUpload}
-        disabled={uploading}
-      />
+      )}
 
       {/* Info Fields */}
       <div className="rounded-2xl border border-white/[0.08] bg-white/[0.03] divide-y divide-white/[0.06]">
