@@ -651,6 +651,37 @@ export default function DiagnosingStage({ order, onUpdate, user, onOrderItemsUpd
       />
       )}
 
+      {/* ── Compact toolbar: checklist + quote + links ── */}
+      {compact && (
+        <div className="flex flex-wrap gap-2">
+          <Button
+            onClick={() => setShowChecklist(v => !v)}
+            size="sm"
+            className="rounded-xl bg-purple-600 px-4 text-white hover:bg-purple-500"
+          >
+            <ClipboardCheck className="mr-1.5 h-3.5 w-3.5" />
+            {showChecklist ? "Cerrar checklist" : `Checklist (${checkedCount}/${checklist.length})`}
+          </Button>
+          <Button
+            onClick={() => setActiveModal(activeModal === "links" ? null : "links")}
+            size="sm"
+            className="rounded-xl bg-cyan-600 px-4 text-white hover:bg-cyan-500"
+          >
+            {links.length > 0 ? `Links (${links.length})` : "Añadir Link"}
+          </Button>
+          <Button
+            onClick={handleSendQuote}
+            disabled={sendingQuote}
+            size="sm"
+            variant="outline"
+            className="rounded-xl border-white/10 bg-white/5 text-white hover:bg-white/10"
+          >
+            <Send className="mr-1.5 h-3.5 w-3.5" />
+            {sendingQuote ? "Enviando..." : "Cotización"}
+          </Button>
+        </div>
+      )}
+
       {/* ── Checklist de Diagnóstico ── */}
       {showChecklist && (
         <section className="overflow-hidden rounded-[28px] border border-purple-500/15 bg-[radial-gradient(circle_at_top_left,rgba(168,85,247,0.12),transparent_28%),linear-gradient(180deg,rgba(255,255,255,0.04),rgba(255,255,255,0.02))] shadow-[0_20px_50px_rgba(0,0,0,0.28)]">
