@@ -769,13 +769,16 @@ export default function DiagnosingStage({ order, onUpdate, user, onOrderItemsUpd
       )}
 
       {/* ── Asistente de Diagnostico IA ── */}
+      {!compact && (
       <DiagnosticAI
         order={order}
         checklist={checklist}
         deviceCategory={deviceCategory}
       />
+      )}
 
       {/* ── Historia y Comentarios ── */}
+      {!compact && (
       <WorkOrderUnifiedHub
         order={order}
         onUpdate={onUpdate}
@@ -783,6 +786,7 @@ export default function DiagnosingStage({ order, onUpdate, user, onOrderItemsUpd
         title="Historia y Comentarios"
         subtitle="Notas técnicas, evidencia fotográfica y actividad de la orden."
       />
+      )}
 
       <OrderLinksDialog
         order={effectiveOrder}
