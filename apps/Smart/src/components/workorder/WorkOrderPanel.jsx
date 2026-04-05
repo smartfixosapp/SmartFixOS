@@ -3014,6 +3014,10 @@ export default function WorkOrderPanel({ orderId, onClose, onUpdate, onDelete, p
                   onPrint={() => setShowPrintDialog(true)}
                   onDelete={handleRequestDelete}
                   onSecurityEdit={() => setShowSecurityDialog(true)}
+                  onContextAction={(action) => {
+                    if (action === "photos") document.querySelector('[data-tab="photos"]')?.click();
+                    if (action === "notify") { const ph = o.customer_phone?.replace(/\D/g, ""); if (ph) window.open(`https://wa.me/${ph}`, "_blank"); }
+                  }}
                 />
               </div>
 
