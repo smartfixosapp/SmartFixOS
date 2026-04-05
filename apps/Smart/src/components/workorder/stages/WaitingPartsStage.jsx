@@ -352,19 +352,23 @@ export default function WaitingPartsStage({ order, onUpdate, onOrderItemsUpdate,
       )}
 
       {/* ── PIEZAS Y SERVICIOS ────────────────────────────────────────────── */}
-      <div>
-        <SharedItemsSection
-          order={o}
-          onUpdate={onUpdate}
-          onOrderItemsUpdate={onOrderItemsUpdate}
-          onRemoteSaved={onRemoteSaved}
-          onPaymentClick={onPaymentClick}
-          accentColor="orange"
-          subtitle="Mantén aquí la lista final de repuestos y servicios mientras el pedido está en tránsito."
-        />
-      </div>
+      {!compact && (
+        <div>
+          <SharedItemsSection
+            order={o}
+            onUpdate={onUpdate}
+            onOrderItemsUpdate={onOrderItemsUpdate}
+            onRemoteSaved={onRemoteSaved}
+            onPaymentClick={onPaymentClick}
+            accentColor="orange"
+            subtitle="Mantén aquí la lista final de repuestos y servicios mientras el pedido está en tránsito."
+          />
+        </div>
+      )}
 
-      <WorkOrderUnifiedHub order={order} onUpdate={onUpdate} accent="amber" title="Centro de Historial" subtitle="Pedido, fotos, seguridad y notas operativas consolidadas en una sola pieza." />
+      {!compact && (
+        <WorkOrderUnifiedHub order={order} onUpdate={onUpdate} accent="amber" title="Centro de Historial" subtitle="Pedido, fotos, seguridad y notas operativas consolidadas en una sola pieza." />
+      )}
     </div>
   );
 }
