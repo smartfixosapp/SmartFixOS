@@ -294,21 +294,16 @@ export default function DiagnosingStage({ order, onUpdate, user, onOrderItemsUpd
   const [showChecklist, setShowChecklist]   = useState(false);
   const [deviceCategory, setDeviceCategory] = useState("generic");
 
-  // Listen for sidebar action events (checklist toggle, links, quote)
+  // Listen for sidebar action events (checklist toggle, links)
   useEffect(() => {
     if (!compact) return;
     const handler = (e) => {
       const action = e.detail?.action;
       if (action === "checklist") setShowChecklist(v => !v);
-      if (action === "links") setActiveModal(prev => prev === "links" ? null : "links");
+      if (action === "links") setActiveModal("links");
     };
     document.addEventListener("wo:action", handler);
-    const onLinks = () => setActiveModal(prev => prev === "links" ? null : "links");
-    document.addEventListener("wo:toggle-links", onLinks);
-    return () => {
-      document.removeEventListener("wo:action", handler);
-      document.removeEventListener("wo:toggle-links", onLinks);
-    };
+    return () => document.removeEventListener("wo:action", handler);
   }, [compact]);
 
   const effectiveOrder = linkOrderPreview?.id === order?.id
