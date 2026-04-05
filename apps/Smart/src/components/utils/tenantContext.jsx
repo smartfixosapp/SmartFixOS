@@ -14,28 +14,45 @@ export function TenantProvider({ children }) {
     loadTenantContext();
   }, []);
 
-  // ── Auto-refresh tenant every 2 min to pick up plan changes from GACC ──
-  useEffect(() => {
-    const refreshTenant = async () => {
-      const tid = tenantRef.current?.id;
-      if (!tid) return;
-      try {
-        const fresh = await dataClient.entities.Tenant.get(tid);
-        if (fresh && fresh.plan !== tenantRef.current?.plan) {
-          // Plan changed externally (from GACC) — update in place
-          console.log(`[TenantContext] Plan changed: ${tenantRef.current?.plan} → ${fresh.plan}`);
-          setCurrentTenant(fresh);
-          tenantRef.current = fresh;
-        } else if (fresh) {
-          // Update silently (other fields may have changed too)
-          tenantRef.current = fresh;
-          setCurrentTenant(fresh);
+  // ── Auto-refresh tenant to pick up plan changes from GACC ──
+  const refreshTenantData = useCallback(async () => {
+    const tid = tenantRef.current?.id;
+    if (!tid) return;
+    try {
+      const fresh = await dataClient.entities.Tenant.get(tid);
+      if (fresh) {
+        if (fresh.plan !== tenantRef.current?.plan) {
+          console.log(`[TenantContext] Plan changed: ${tenantRef.current?.plan} -> ${fresh.plan}`);
         }
-      } catch {}
-    };
-    const iv = setInterval(refreshTenant, 2 * 60 * 1000); // every 2 min
-    return () => clearInterval(iv);
+        tenantRef.current = fresh;
+        setCurrentTenant(fresh);
+      }
+    } catch {}
   }, []);
+
+  useEffect(() => {
+    // Poll every 60s for plan changes
+    const iv = setInterval(refreshTenantData, 60 * 1000);
+
+    // Also listen for cross-tab signals (GACC writes this when changing plans)
+    const onStorage = (e) => {
+      if (e.key === "gacc_plan_updated") refreshTenantData();
+      if (e.key === "gacc_tenant_updated") refreshTenantData();
+    };
+    window.addEventListener("storage", onStorage);
+
+    // Also refresh when tab becomes visible (user switches back from GACC)
+    const onVisible = () => {
+      if (document.visibilityState === "visible") refreshTenantData();
+    };
+    document.addEventListener("visibilitychange", onVisible);
+
+    return () => {
+      clearInterval(iv);
+      window.removeEventListener("storage", onStorage);
+      document.removeEventListener("visibilitychange", onVisible);
+    };
+  }, [refreshTenantData]);
 
   const loadTenantContext = async () => {
     try {
