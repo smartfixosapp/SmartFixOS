@@ -58,6 +58,7 @@ import WOActionSidebar from "@/components/workorder/layout/WOActionSidebar";
 import WODetailCenter from "@/components/workorder/layout/WODetailCenter";
 import WOTabPanel from "@/components/workorder/layout/WOTabPanel";
 import { loadOrderLinks } from "@/components/workorder/utils/orderLinksStore";
+import MobileRepairDetail from "@/components/workorder/layout/mobile/MobileRepairDetail";
 
 
 // ✅ Función helper para validar y normalizar URLs
