@@ -16,6 +16,7 @@ export default function ExternalRepairStage({ order, onUpdate, compact }) {
 
   return (
     <div className="space-y-6">
+      {!compact && (
       <section className="relative overflow-hidden rounded-[30px] border border-fuchsia-500/15 bg-[radial-gradient(circle_at_top_left,rgba(217,70,239,0.16),transparent_28%),radial-gradient(circle_at_bottom_right,rgba(236,72,153,0.14),transparent_30%),linear-gradient(135deg,rgba(30,10,32,0.98),rgba(20,12,26,0.96))] p-5 shadow-[0_22px_70px_rgba(0,0,0,0.35)] sm:p-6">
         <div className="absolute inset-0 bg-[linear-gradient(120deg,transparent,rgba(255,255,255,0.03),transparent)]" />
         <div className="relative z-10 grid gap-5 xl:grid-cols-[1.2fr_0.8fr] xl:items-start">
@@ -112,6 +113,7 @@ export default function ExternalRepairStage({ order, onUpdate, compact }) {
           );
         })()}
       </section>
+      )}
 
       <div className="grid gap-6 xl:grid-cols-2">
         <section className="overflow-hidden rounded-[28px] border border-fuchsia-500/15 bg-[linear-gradient(180deg,rgba(255,255,255,0.05),rgba(255,255,255,0.02))] shadow-[0_18px_50px_rgba(0,0,0,0.28)]">
