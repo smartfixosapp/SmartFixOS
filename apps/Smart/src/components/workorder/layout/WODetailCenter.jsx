@@ -51,7 +51,11 @@ export default function WODetailCenter({
         if (ph) window.open(`https://wa.me/${ph}`, "_blank");
       }
       // Scroll to stage-specific sections
-      if (action === "checklist") document.querySelector("[data-stage-checklist]")?.scrollIntoView({ behavior: "smooth", block: "start" });
+      if (action === "checklist") {
+        // Click the checklist button to toggle it open, then scroll
+        const el = document.querySelector("[data-stage-checklist]");
+        if (el) { el.querySelector("button")?.click(); setTimeout(() => el.scrollIntoView({ behavior: "smooth", block: "start" }), 100); }
+      }
       if (action === "tracking") document.querySelector("[data-stage-tracking]")?.scrollIntoView({ behavior: "smooth", block: "start" });
       if (action === "links") document.querySelector("[data-stage-links]")?.scrollIntoView({ behavior: "smooth", block: "start" });
       if (action === "approval") document.querySelector("[data-stage-approval]")?.scrollIntoView({ behavior: "smooth", block: "start" });
