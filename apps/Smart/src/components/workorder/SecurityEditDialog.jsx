@@ -149,6 +149,8 @@ export default function SecurityEditDialog({ open, onClose, order, onUpdate }) {
               </Label>
               <Input
                 type="text"
+                inputMode="text"
+                autoComplete="off"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="Ingresa contrasena..."
