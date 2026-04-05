@@ -111,7 +111,7 @@ export default function SecurityEditDialog({ open, onClose, order, onUpdate }) {
             </DialogTitle>
           </DialogHeader>
 
-          <div className="space-y-5 p-6 sm:p-8">
+          <div className="space-y-5 p-6 sm:p-8 overflow-y-auto flex-1" style={{ WebkitOverflowScrolling: "touch" }}>
             {/* PIN */}
             <div className="space-y-3 rounded-[28px] border border-cyan-400/12 bg-[linear-gradient(180deg,rgba(255,255,255,0.04),rgba(255,255,255,0.025))] p-5 shadow-[inset_0_1px_0_rgba(255,255,255,0.05)]">
               <Label className="flex items-center gap-2 text-base font-bold text-slate-100">
