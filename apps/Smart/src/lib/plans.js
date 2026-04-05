@@ -238,9 +238,7 @@ export function normalizePlanId(raw) {
     enterprise: 'business',
     business: 'business',
   };
-  // If no plan is set (tenant not loaded), default to 'pro' to avoid blocking features
-  if (!raw) return 'pro';
-  return map[String(raw).trim().toLowerCase()] || 'pro';
+  return map[String(raw || '').trim().toLowerCase()] || 'starter';
 }
 
 /** Get plan config (metadata + limits + features) */
