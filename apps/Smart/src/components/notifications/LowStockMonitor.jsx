@@ -107,15 +107,25 @@ export class LowStockMonitor {
     }
   }
 
-  // Ejecutar verificación automática cada hora
+  // Ejecutar verificación automática cada hora (visibility-aware)
+  static _autoCheckInterval = null;
   static startAutoCheck() {
+    // Limpiar intervalo previo si existe
+    if (this._autoCheckInterval) clearInterval(this._autoCheckInterval);
     // Ejecutar inmediatamente
     this.checkLowStockProducts();
-    
-    // Luego cada hora
-    setInterval(() => {
-      this.checkLowStockProducts();
-    }, 60 * 60 * 1000); // 1 hora
+    // Luego cada hora, solo si tab visible
+    this._autoCheckInterval = setInterval(() => {
+      if (document.visibilityState === "visible") {
+        this.checkLowStockProducts();
+      }
+    }, 60 * 60 * 1000);
+  }
+  static stopAutoCheck() {
+    if (this._autoCheckInterval) {
+      clearInterval(this._autoCheckInterval);
+      this._autoCheckInterval = null;
+    }
   }
 }
 
