@@ -182,6 +182,7 @@ export default function MobileRepairDetail({
                 onPrint={onPrint}
                 onSecurityEdit={onSecurityEdit}
                 onSwitchTab={switchTab}
+                onUpdate={onUpdate}
                 stageContent={stageContent}
               />
             )}
