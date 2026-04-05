@@ -6,7 +6,6 @@ import { base44 } from "@/api/base44Client";
 import GalleryModal from "@/components/common/GalleryModal";
 import { toast } from "sonner";
 import { getOrderStageContext, logWorkOrderPhotoEvent } from "@/components/workorder/utils/auditEvents";
-import { PlanGate, UpgradePrompt } from "@/components/plan/UpgradePrompt";
 
 const PHOTO_STAGE_OPTIONS = [
   { id: "intake", label: "Recepcion" },
