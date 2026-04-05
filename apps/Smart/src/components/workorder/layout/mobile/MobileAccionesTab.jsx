@@ -197,9 +197,14 @@ export default function MobileAccionesTab({
               className="w-full flex items-center gap-4 px-4 py-3.5 rounded-xl border border-white/[0.06] bg-white/[0.02] hover:bg-white/[0.05] active:scale-[0.98] transition-all"
             >
               <div className="w-9 h-9 rounded-xl bg-white/[0.06] flex items-center justify-center flex-shrink-0">
-                <action.icon className={cn("w-4.5 h-4.5", action.color)} />
+                {action.id === "photos" && uploading
+                  ? <Loader2 className="w-4.5 h-4.5 text-cyan-400 animate-spin" />
+                  : <action.icon className={cn("w-4.5 h-4.5", action.color)} />
+                }
               </div>
-              <span className="flex-1 text-left text-sm font-semibold text-white/80">{action.label}</span>
+              <span className="flex-1 text-left text-sm font-semibold text-white/80">
+                {action.id === "photos" && uploading ? "Subiendo..." : action.label}
+              </span>
               {badges[action.badgeKey] && (
                 <div className="w-2.5 h-2.5 rounded-full bg-red-500 animate-pulse" />
               )}
