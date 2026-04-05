@@ -316,7 +316,7 @@ export default function WorkOrderTimeline({ order, onUpdate, hideComposer = fals
         )}
 
         {/* Composer */}
-        <div className="rounded-[24px] border border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.03),rgba(255,255,255,0.01))] p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.03)]">
+        {!hideComposer && <div className="rounded-[24px] border border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.03),rgba(255,255,255,0.01))] p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.03)]">
           <div className="mb-3 flex items-center justify-between gap-3">
             <div>
               <p className="text-[11px] font-semibold uppercase tracking-[0.28em] text-white/35">Nuevo comentario</p>
