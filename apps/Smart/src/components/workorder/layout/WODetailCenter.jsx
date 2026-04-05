@@ -97,10 +97,20 @@ export default function WODetailCenter({
 
   const items = useMemo(() => Array.isArray(o.order_items) ? o.order_items : [], [o.order_items]);
 
-  // Financial summary
+  // Financial summary (respects discount_percentage and taxable per item)
   const financial = useMemo(() => {
-    const subtotal = items.reduce((sum, item) => sum + (Number(item.price || 0) * Number(item.quantity || 1)), 0);
-    const tax = subtotal * IVU_RATE;
+    const subtotal = items.reduce((sum, item) => {
+      const base = Number(item.price || 0) * Number(item.quantity || item.qty || 1);
+      const discount = Number(item.discount_percentage || item.discount_percent || 0);
+      return sum + (base - base * (discount / 100));
+    }, 0);
+    const taxableBase = items.reduce((sum, item) => {
+      if (item.taxable === false) return sum;
+      const base = Number(item.price || 0) * Number(item.quantity || item.qty || 1);
+      const discount = Number(item.discount_percentage || item.discount_percent || 0);
+      return sum + (base - base * (discount / 100));
+    }, 0);
+    const tax = taxableBase * IVU_RATE;
     const total = Number(o.total || o.cost_estimate || 0) || (subtotal + tax);
     const paid = Number(o.amount_paid ?? o.total_paid ?? 0);
     const balance = o.balance_due != null ? Math.max(0, Number(o.balance_due || 0)) : Math.max(0, total - paid);
