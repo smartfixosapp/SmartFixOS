@@ -338,32 +338,38 @@ export default function RepairStage({ order, onUpdate, onOrderItemsUpdate, onRem
       </div>
 
       {/* ── PIEZAS Y SERVICIOS ───────────────────────────────────────────── */}
-      <SharedItemsSection
-        order={o}
-        onUpdate={onUpdate}
-        onOrderItemsUpdate={onOrderItemsUpdate}
-        onRemoteSaved={onRemoteSaved}
-        onPaymentClick={onPaymentClick}
-        accentColor="emerald"
-        subtitle="Registra piezas y servicios que impactan esta reparación."
-      />
+      {!compact && (
+        <SharedItemsSection
+          order={o}
+          onUpdate={onUpdate}
+          onOrderItemsUpdate={onOrderItemsUpdate}
+          onRemoteSaved={onRemoteSaved}
+          onPaymentClick={onPaymentClick}
+          accentColor="emerald"
+          subtitle="Registra piezas y servicios que impactan esta reparación."
+        />
+      )}
 
       {/* ── Asistente de Reparacion IA ── */}
-      <DiagnosticAI
-        order={order}
-        checklist={Array.isArray(o.checklist_items) ? o.checklist_items : []}
-        deviceCategory={detectRepairDeviceCategory(o)}
-        mode="repair"
-      />
+      {!compact && (
+        <DiagnosticAI
+          order={order}
+          checklist={Array.isArray(o.checklist_items) ? o.checklist_items : []}
+          deviceCategory={detectRepairDeviceCategory(o)}
+          mode="repair"
+        />
+      )}
 
       {/* ── HISTORIAL / FOTOS / NOTAS ────────────────────────────────────── */}
-      <WorkOrderUnifiedHub
-        order={order}
-        onUpdate={onUpdate}
-        accent="emerald"
-        title="Fotos · Notas · Historial"
-        subtitle="Historial completo, galería de evidencia y seguridad."
-      />
+      {!compact && (
+        <WorkOrderUnifiedHub
+          order={order}
+          onUpdate={onUpdate}
+          accent="emerald"
+          title="Fotos · Notas · Historial"
+          subtitle="Historial completo, galería de evidencia y seguridad."
+        />
+      )}
 
       <AddItemModal
         open={showCatalog}
