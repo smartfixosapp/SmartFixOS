@@ -1292,16 +1292,49 @@ export default function PinAccess() {
 
     toast.success(`¡Bienvenido, ${session.userName}!`, { duration: 2000 });
 
+    // ── Auto-restaurar perfil biométrico desde la nube si se perdió el local ──
+    // Si este dispositivo tiene un registro activo en Supabase pero no en localStorage,
+    // restaurar el perfil automáticamente para que Face ID/Touch ID siga funcionando.
+    const localProfile = loadBiometricProfile();
+    const deviceId = localStorage.getItem("smartfix_device_id");
+    const userId = session.id || session.userId;
+    if (!localProfile && deviceId && userId) {
+      supabase
+        .from("biometric_credential")
+        .select("credential_id, device_info")
+        .eq("device_id", deviceId)
+        .eq("user_id", userId)
+        .eq("active", true)
+        .limit(1)
+        .single()
+        .then(({ data }) => {
+          if (data?.credential_id) {
+            const isNative = data.device_info?.platform === "ios" || data.device_info?.platform === "android";
+            saveBiometricProfile({
+              credentialId: data.credential_id,
+              isNative,
+              userId,
+              tenantId: session.tenant_id || null,
+              session,
+              createdAt: new Date().toISOString(),
+              updatedAt: new Date().toISOString(),
+              deviceKey: navigator.userAgent.slice(0, 120),
+            });
+            console.log("[Biometric] Perfil restaurado desde la nube para este dispositivo");
+          }
+        })
+        .catch(() => {});
+    }
+
     // Si el dispositivo soporta biometría y aún no está configurada → ofrecer activarla
-    // El kiosk early-return ya tiene !showBiometricOffer, así que el modal es visible
     const alreadyHasBiometric =
-      biometricProfile?.credentialId &&
-      (biometricProfile?.userId === session.id || !biometricProfile?.userId);
+      (localProfile?.credentialId || false) &&
+      (localProfile?.userId === userId || !localProfile?.userId);
 
     if (!fromBiometric && biometricSupported && !alreadyHasBiometric) {
       setPendingLoginSession(session);
       setShowBiometricOffer(true);
-      return; // navegar después de que el usuario responda el modal
+      return;
     }
 
     navigate("/Dashboard", { replace: true });
