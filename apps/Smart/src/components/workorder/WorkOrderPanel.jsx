@@ -2999,8 +2999,8 @@ export default function WorkOrderPanel({ orderId, onClose, onUpdate, onDelete, p
                 </div>
               </div>
             </div> : <div className="flex-1 overflow-hidden">
-            {/* DESKTOP: 3 columns */}
-            <div className="hidden lg:grid lg:grid-cols-[200px_1fr_320px] h-full">
+            {/* DESKTOP: 2 columns */}
+            <div className="hidden lg:grid lg:grid-cols-[200px_1fr] h-full">
               {/* LEFT: Action sidebar */}
               <div className="overflow-y-auto border-r border-white/[0.06] p-3 bg-[#0D0D0F]">
                 <WOActionSidebar
