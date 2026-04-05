@@ -1,9 +1,10 @@
 import React, { useState, useMemo, useCallback, useEffect, useRef } from "react";
-import { Phone, MessageCircle, Mail, Smartphone, Laptop, Tablet, Watch, Gamepad2, Box, Pencil, Check, X, Plus, Send, Loader2 } from "lucide-react";
+import { Phone, MessageCircle, Mail, Smartphone, Laptop, Tablet, Watch, Gamepad2, Box, Pencil, Check, X, Plus, Send, Loader2, Camera, Image as ImageIcon } from "lucide-react";
 import { base44 } from "@/api/base44Client";
 import { toast } from "sonner";
 import AddItemModal from "@/components/workorder/AddItemModal";
 import WorkOrderTimeline from "@/components/orders/workorder/WorkOrderTimeline";
+import { logWorkOrderPhotoEvent } from "@/components/workorder/utils/auditEvents";
 
 const DEVICE_ICONS = {
   smartphone: Smartphone, phone: Smartphone, celular: Smartphone,
