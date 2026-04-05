@@ -1,8 +1,9 @@
-import React, { useState, useMemo, useCallback } from "react";
-import { Phone, MessageCircle, Mail, Smartphone, Laptop, Tablet, Watch, Gamepad2, Box, Pencil, Check, X } from "lucide-react";
-import SharedItemsSection from "@/components/workorder/SharedItemsSection";
+import React, { useState, useMemo, useCallback, useEffect, useRef } from "react";
+import { Phone, MessageCircle, Mail, Smartphone, Laptop, Tablet, Watch, Gamepad2, Box, Pencil, Check, X, Plus, Send, Loader2 } from "lucide-react";
 import { base44 } from "@/api/base44Client";
 import { toast } from "sonner";
+import AddItemModal from "@/components/workorder/AddItemModal";
+import WorkOrderTimeline from "@/components/orders/workorder/WorkOrderTimeline";
 
 const DEVICE_ICONS = {
   smartphone: Smartphone, phone: Smartphone, celular: Smartphone,
@@ -18,6 +19,8 @@ function DeviceIcon({ type }) {
   return <Icon className="w-4 h-4 text-white/40" />;
 }
 
+const IVU_RATE = 0.115;
+
 export default function WODetailCenter({
   order,
   onUpdate,
@@ -29,23 +32,48 @@ export default function WODetailCenter({
 }) {
   const o = order || {};
   const phone = o.customer_phone || o.phone;
+  const [showCatalog, setShowCatalog] = useState(false);
+  const [comment, setComment] = useState("");
+  const [posting, setPosting] = useState(false);
+  const [timelineKey, setTimelineKey] = useState(0);
 
-  const items = useMemo(() => {
-    return Array.isArray(o.order_items) ? o.order_items : [];
-  }, [o.order_items]);
-
-  const hasItems = items.length > 0;
+  const items = useMemo(() => Array.isArray(o.order_items) ? o.order_items : [], [o.order_items]);
 
   // Financial summary
   const financial = useMemo(() => {
     const subtotal = items.reduce((sum, item) => sum + (Number(item.price || 0) * Number(item.quantity || 1)), 0);
-    const taxRate = 0.115;
-    const tax = subtotal * taxRate;
-    const total = Number(o.total || o.cost_estimate || subtotal + tax || 0);
+    const tax = subtotal * IVU_RATE;
+    const total = Number(o.total || o.cost_estimate || 0) || (subtotal + tax);
     const paid = Number(o.amount_paid ?? o.total_paid ?? 0);
     const balance = o.balance_due != null ? Math.max(0, Number(o.balance_due || 0)) : Math.max(0, total - paid);
     return { subtotal, tax, total, paid, balance };
   }, [items, o.total, o.cost_estimate, o.amount_paid, o.total_paid, o.balance_due]);
+
+  // Post comment
+  const postComment = useCallback(async () => {
+    if (!comment.trim() || !o.id) return;
+    setPosting(true);
+    try {
+      let me = null;
+      try { me = await base44.auth.me(); } catch {}
+      await base44.entities.WorkOrderEvent.create({
+        order_id: o.id,
+        order_number: o.order_number,
+        event_type: "note",
+        description: comment.trim(),
+        user_name: me?.full_name || me?.email || "Sistema",
+        user_id: me?.id || null,
+      });
+      setComment("");
+      setTimelineKey(k => k + 1); // force timeline refresh
+      onUpdate?.();
+      toast.success("Nota agregada");
+    } catch {
+      toast.error("Error al guardar nota");
+    } finally {
+      setPosting(false);
+    }
+  }, [comment, o.id, o.order_number, onUpdate]);
 
   return (
     <div className="space-y-3">
@@ -53,13 +81,7 @@ export default function WODetailCenter({
       <div className="grid gap-3 sm:grid-cols-2">
         <div className="rounded-xl border border-white/[0.08] bg-[#121215] p-4 space-y-2">
           <h4 className="text-[10px] font-black uppercase tracking-widest text-white/30">Cliente</h4>
-          <EditableField
-            orderId={o.id}
-            field="customer_name"
-            value={o.customer_name}
-            onUpdate={onUpdate}
-            className="text-sm font-bold text-white"
-          />
+          <EditableField orderId={o.id} field="customer_name" value={o.customer_name} onUpdate={onUpdate} className="text-sm font-bold text-white" />
           {phone && (
             <div className="flex items-center gap-2 text-xs text-white/50">
               <Phone className="w-3 h-3" />
@@ -96,52 +118,114 @@ export default function WODetailCenter({
       {o.initial_problem && (
         <div className="rounded-xl border border-white/[0.08] bg-[#121215] p-4">
           <h4 className="text-[10px] font-black uppercase tracking-widest text-white/30 mb-1.5">Problema reportado</h4>
-          <EditableField
-            orderId={o.id}
-            field="initial_problem"
-            value={o.initial_problem}
-            onUpdate={onUpdate}
-            className="text-sm text-white/80 leading-relaxed"
-            multiline
-          />
+          <EditableField orderId={o.id} field="initial_problem" value={o.initial_problem} onUpdate={onUpdate} className="text-sm text-white/80 leading-relaxed" multiline />
         </div>
       )}
 
       {/* ── Stage-specific content ── */}
       {children}
 
-      {/* ── Items & Cost — only show full section if has items ── */}
-      <SharedItemsSection
-        order={order}
-        onUpdate={onUpdate}
-        onOrderItemsUpdate={onOrderItemsUpdate}
-        onRemoteSaved={onRemoteSaved}
-        onClose={onClose}
-        onPaymentClick={onPaymentClick}
-      />
-
-      {/* ── Sticky Financial Summary ── */}
-      {financial.total > 0 && (
-        <div className="sticky bottom-0 z-10 -mx-4 px-4 py-3 bg-[#0D0D0F]/95 backdrop-blur border-t border-white/[0.08]">
-          <div className="flex items-center justify-between gap-3">
-            <div className="flex items-center gap-4 text-xs">
-              <span className="text-white/40">Total: <span className="text-white font-bold">${financial.total.toFixed(2)}</span></span>
-              <span className="text-white/40">Pagado: <span className="text-emerald-400 font-bold">${financial.paid.toFixed(2)}</span></span>
-              {financial.balance > 0.01 && (
-                <span className="text-red-400 font-bold">Balance: ${financial.balance.toFixed(2)}</span>
-              )}
-            </div>
-            {financial.balance > 0.01 && (
-              <button
-                onClick={() => onPaymentClick?.("full")}
-                className="px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold transition-all active:scale-95"
-              >
-                Cobrar
-              </button>
-            )}
-          </div>
+      {/* ── Financial Summary ── */}
+      <div className="rounded-xl border border-white/[0.08] bg-[#121215] p-4">
+        <div className="flex items-center justify-between mb-3">
+          <h4 className="text-[10px] font-black uppercase tracking-widest text-white/30">Resumen financiero</h4>
+          <button
+            onClick={() => setShowCatalog(true)}
+            className="flex items-center gap-1 px-2.5 py-1 rounded-lg bg-cyan-600 hover:bg-cyan-500 text-white text-[11px] font-bold transition-all active:scale-95"
+          >
+            <Plus className="w-3 h-3" />
+            Agregar
+          </button>
         </div>
-      )}
+
+        {/* Items list */}
+        {items.length > 0 ? (
+          <div className="space-y-1 mb-3">
+            {items.map((item, i) => (
+              <div key={item.id || i} className="flex items-center justify-between text-xs">
+                <span className="text-white/70 truncate flex-1">
+                  {item.name || item.product_name || item.service_name || "Item"}
+                  {Number(item.quantity || 1) > 1 && <span className="text-white/30 ml-1">×{item.quantity}</span>}
+                </span>
+                <span className="text-white/90 font-semibold ml-3">${(Number(item.price || 0) * Number(item.quantity || 1)).toFixed(2)}</span>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <p className="text-xs text-white/30 mb-3">Sin items registrados</p>
+        )}
+
+        {/* Totals */}
+        <div className="border-t border-white/[0.06] pt-2 space-y-1 text-xs">
+          <div className="flex justify-between text-white/40">
+            <span>Subtotal</span><span>${financial.subtotal.toFixed(2)}</span>
+          </div>
+          <div className="flex justify-between text-white/40">
+            <span>IVU (11.5%)</span><span>${financial.tax.toFixed(2)}</span>
+          </div>
+          <div className="flex justify-between text-white font-bold text-sm pt-1">
+            <span>Total</span><span>${financial.total.toFixed(2)}</span>
+          </div>
+          {financial.paid > 0 && (
+            <div className="flex justify-between text-emerald-400">
+              <span>Pagado</span><span>${financial.paid.toFixed(2)}</span>
+            </div>
+          )}
+          {financial.balance > 0.01 && (
+            <div className="flex justify-between text-red-400 font-bold">
+              <span>Balance</span><span>${financial.balance.toFixed(2)}</span>
+            </div>
+          )}
+        </div>
+
+        {/* Pay button */}
+        {financial.balance > 0.01 && (
+          <button
+            onClick={() => onPaymentClick?.("full")}
+            className="w-full mt-3 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold transition-all active:scale-95"
+          >
+            Cobrar ${financial.balance.toFixed(2)}
+          </button>
+        )}
+      </div>
+
+      {/* ── Comment Input ── */}
+      <div className="rounded-xl border border-white/[0.08] bg-[#121215] p-4">
+        <h4 className="text-[10px] font-black uppercase tracking-widest text-white/30 mb-2">Agregar nota</h4>
+        <div className="flex gap-2">
+          <input
+            value={comment}
+            onChange={e => setComment(e.target.value)}
+            placeholder="Escribe un comentario..."
+            className="flex-1 bg-white/[0.05] border border-white/10 rounded-lg px-3 py-2 text-xs text-white placeholder:text-white/30 outline-none focus:border-cyan-500/50"
+            onKeyDown={e => { if (e.key === "Enter") postComment(); }}
+          />
+          <button
+            onClick={postComment}
+            disabled={posting || !comment.trim()}
+            className="px-3 py-2 rounded-lg bg-cyan-600 hover:bg-cyan-500 text-white text-xs font-bold transition-all active:scale-95 disabled:opacity-30"
+          >
+            {posting ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Send className="w-3.5 h-3.5" />}
+          </button>
+        </div>
+      </div>
+
+      {/* ── Timeline / History ── */}
+      <div className="rounded-xl border border-white/[0.08] bg-[#121215] overflow-hidden">
+        <WorkOrderTimeline key={timelineKey} order={order} onUpdate={onUpdate} hideComposer hideProblem />
+      </div>
+
+      {/* ── Add Item Modal ── */}
+      <AddItemModal
+        open={showCatalog}
+        onClose={() => setShowCatalog(false)}
+        order={o}
+        onItemsUpdated={(newItems) => {
+          onOrderItemsUpdate?.(newItems);
+          setShowCatalog(false);
+        }}
+        onRemoteSaved={onRemoteSaved}
+      />
     </div>
   );
 }
@@ -159,7 +243,7 @@ function EditableField({ orderId, field, value, onUpdate, className, multiline }
       await base44.entities.Order.update(orderId, { [field]: editValue });
       onUpdate?.();
       toast.success("Actualizado");
-    } catch (e) {
+    } catch {
       toast.error("Error al guardar");
     } finally {
       setSaving(false);
