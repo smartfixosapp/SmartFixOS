@@ -280,7 +280,7 @@ const STATUS_CFG = {
   warning:    { Icon: AlertCircle,  color: "text-amber-400",   ring: "border-amber-500/25 bg-amber-500/10",     label: "Revisar" },
 };
 
-export default function DiagnosingStage({ order, onUpdate, user, onOrderItemsUpdate, onRemoteSaved, onPaymentClick }) {
+export default function DiagnosingStage({ order, onUpdate, user, onOrderItemsUpdate, onRemoteSaved, onPaymentClick, compact }) {
   const [activeModal, setActiveModal]       = useState(null);
   const [showCatalog, setShowCatalog]       = useState(false);
   const [sendingQuote, setSendingQuote]     = useState(false);
