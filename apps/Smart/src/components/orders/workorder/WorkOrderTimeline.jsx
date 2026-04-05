@@ -42,7 +42,7 @@ function linkify(text = "") {
 const isImageUrl = (url = "") =>
   /\.(jpe?g|png|gif|webp|bmp|svg)(\?|$)/i.test(url);
 
-export default function WorkOrderTimeline({ order, onUpdate }) {
+export default function WorkOrderTimeline({ order, onUpdate, hideComposer = false, hideProblem = false }) {
   const [events, setEvents] = useState([]);
   const [loading, setLoading] = useState(true);
   const [me, setMe] = useState(null);
