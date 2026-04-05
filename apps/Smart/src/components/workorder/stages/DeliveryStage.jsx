@@ -104,6 +104,7 @@ export default function DeliveryStage({
     <div className="space-y-4">
 
       {/* ── HERO ───────────────────────────────────────────────────────────── */}
+      {!compact && (
       <section className="relative overflow-hidden rounded-[28px] border border-emerald-500/15 bg-[radial-gradient(circle_at_top_left,rgba(16,185,129,0.14),transparent_28%),linear-gradient(135deg,rgba(8,24,18,0.98),rgba(10,18,22,0.96))] p-5 shadow-[0_22px_70px_rgba(0,0,0,0.35)]">
 
         {/* badges */}
@@ -183,6 +184,7 @@ export default function DeliveryStage({
           </div>
         )}
       </section>
+      )}
 
       {/* ── ACCIONES RÁPIDAS: foto + nota ─────────────────────────────────── */}
       <div className="grid grid-cols-2 gap-2">
