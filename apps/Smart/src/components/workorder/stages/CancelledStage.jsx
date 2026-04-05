@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import AddItemModal from "@/components/workorder/AddItemModal";
 import WorkOrderUnifiedHub from "@/components/workorder/WorkOrderUnifiedHub";
 
-export default function CancelledStage({ order, onUpdate }) {
+export default function CancelledStage({ order, onUpdate, compact }) {
   const o = order || {};
   const [showCatalog, setShowCatalog] = useState(false);
 
