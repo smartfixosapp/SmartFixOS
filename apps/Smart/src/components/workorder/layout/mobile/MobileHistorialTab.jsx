@@ -10,14 +10,12 @@ import { triggerHaptic } from "@/lib/capacitor";
 const SUB_TABS = [
   { id: "ventas", label: "Ventas" },
   { id: "diagnostico", label: "Diagnostico" },
-  { id: "estado", label: "Estado" },
-  { id: "notas", label: "Notas" },
+  { id: "actividad", label: "Actividad" },
 ];
 
 const VENTAS_TYPES = new Set(["payment", "item_added", "item_removed", "sale", "refund"]);
 const DIAG_TYPES = new Set(["diagnostic", "initial_problem", "create", "checklist"]);
-const STATUS_TYPES = new Set(["status_change"]);
-const NOTE_TYPES = new Set(["note", "note_added", "comment"]);
+const ACTIVIDAD_TYPES = new Set(["status_change", "note", "note_added", "comment", "security_updated"]);
 
 export default function MobileHistorialTab({ order, onUpdate }) {
   const [activeSubTab, setActiveSubTab] = useState("ventas");
