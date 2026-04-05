@@ -1871,7 +1871,7 @@ pregunta inmediatamente al usuario por el primer campo que falta.
               <motion.span
                 className="text-lg"
                 animate={{ rotate: 360 }}
-                transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                transition={{ duration: 1, repeat: loading ? Infinity : 0, ease: "linear" }}
               >⟳</motion.span>
             ) : open ? (
               <X className="w-5 h-5 text-white" />
