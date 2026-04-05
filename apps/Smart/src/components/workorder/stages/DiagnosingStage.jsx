@@ -519,6 +519,15 @@ export default function DiagnosingStage({ order, onUpdate, user, onOrderItemsUpd
     }
   };
 
+  // Listen for quote event from sidebar
+  useEffect(() => {
+    if (!compact) return;
+    const handler = () => handleSendQuote();
+    document.addEventListener("wo:send-quote", handler);
+    return () => document.removeEventListener("wo:send-quote", handler);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [compact, order?.customer_email]);
+
   // Derived checklist stats
   const checkedCount  = checklist.filter(c => c.status !== "not_tested").length;
   const issueCount    = checklist.filter(c => c.status === "issue").length;
