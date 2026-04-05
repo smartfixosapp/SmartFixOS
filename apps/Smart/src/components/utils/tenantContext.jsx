@@ -45,8 +45,10 @@ export function TenantProvider({ children }) {
         const tenantFromSession = await loadTenantFromSession();
         if (tenantFromSession) {
           setCurrentTenant(tenantFromSession);
+          tenantRef.current = tenantFromSession;
         } else {
           setCurrentTenant(null);
+          tenantRef.current = null;
         }
         setUserMemberships([]);
         setIsSuperAdmin(false);
