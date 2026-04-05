@@ -111,7 +111,7 @@ export default function WOTabPanel({ order, onUpdate }) {
 
       {/* ── Tab content ── */}
       <div className="flex-1 overflow-y-auto">
-        {activeTab === "timeline" && <WorkOrderTimeline order={order} onUpdate={onUpdate} />}
+        {activeTab === "timeline" && <WorkOrderTimeline order={order} onUpdate={onUpdate} hideComposer hideProblem />}
         {activeTab === "photos" && canPlan("orders_photos") && <OrderMultimedia order={order} onUpdate={onUpdate} />}
         {activeTab === "security" && <OrderSecurity order={order} onUpdate={onUpdate} />}
       </div>
