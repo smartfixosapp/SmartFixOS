@@ -155,14 +155,6 @@ export default function MobileInformacionTab({
             <div className="flex justify-between text-red-400 font-bold"><span>Balance</span><span>${financial.balance.toFixed(2)}</span></div>
           )}
         </div>
-        {financial.balance > 0.01 && (
-          <button
-            onClick={() => onPaymentClick?.("full")}
-            className="w-full mt-3 py-3 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-sm font-bold transition-all active:scale-95"
-          >
-            Cobrar ${financial.balance.toFixed(2)}
-          </button>
-        )}
       </div>
 
       {/* Security Section */}
