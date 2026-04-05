@@ -61,7 +61,10 @@ export default function WODetailCenter({
       if (action === "quote") document.dispatchEvent(new CustomEvent("wo:send-quote"));
       if (action === "approval") document.querySelector("[data-stage-approval]")?.scrollIntoView({ behavior: "smooth", block: "start" });
       // Open JEANI assistant
-      if (action === "ai") window.dispatchEvent(new CustomEvent("wo:open-jeani"));
+      if (action === "ai") {
+        window.dispatchEvent(new CustomEvent("wo:open-jeani"));
+        document.dispatchEvent(new CustomEvent("wo:open-jeani"));
+      }
       // Add note from sidebar
       if (action === "add-note") {
         const input = document.querySelector("[data-note-input]");
