@@ -207,6 +207,7 @@ export default function WOActionSidebar({
       )}
 
       {/* ── Core Actions ── */}
+      <ActionBtn icon={Camera} label="Subir foto" color="text-cyan-400" onClick={() => onContextAction?.("photos")} />
       <ActionBtn icon={ShoppingCart} label="Piezas y Servicios" color="text-cyan-400" onClick={() => onContextAction?.("catalog")} />
       <ActionBtn icon={DollarSign} label="Cobrar" color="text-emerald-400" onClick={() => onPaymentClick?.("full")} />
       <ActionBtn icon={Printer} label="Imprimir" onClick={onPrint} />
