@@ -514,6 +514,10 @@ function ChangePlanModal({ tenant, open, onClose }) {
         });
       } catch {}
 
+      // Signal other tabs (app interna) that plan changed
+      localStorage.setItem("gacc_plan_updated", Date.now().toString());
+      localStorage.setItem("gacc_tenant_updated", Date.now().toString());
+
       toast.success(`Plan actualizado a ${getPlanConfig(selectedPlan).label} ($${monthlyCost}/mo, ${maxUsers} usuarios)`);
       await refresh();
       onClose();
