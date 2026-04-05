@@ -137,6 +137,8 @@ function TrialsExpiring({ tenants }) {
   const expiring = useMemo(() => {
     return tenants
       .filter(t => {
+        // Skip stores that are already paying
+        if (t.last_payment_date || t.last_payment_amount > 0 || t.stripe_subscription_id) return false;
         const te = t.effective_trial_end_date || t.trial_end_date;
         if (!te || t.status !== "active") return false;
         const days = Math.ceil((new Date(te) - new Date()) / 86400000);
