@@ -107,7 +107,6 @@ export default function MobileInformacionTab({
       {photos.length > 0 && (
         <MobilePhotosCarousel
           photos={photos}
-          onPhotoClick={onPhotoClick}
         />
       )}
 
