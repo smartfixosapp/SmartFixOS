@@ -101,7 +101,7 @@ export function TenantProvider({ children }) {
       // Last resort: try session-based tenant
       try {
         const tenantFromSession = await loadTenantFromSession();
-        if (tenantFromSession) setCurrentTenant(tenantFromSession);
+        if (tenantFromSession) { setCurrentTenant(tenantFromSession); tenantRef.current = tenantFromSession; }
       } catch {}
     } finally {
       setLoading(false);
