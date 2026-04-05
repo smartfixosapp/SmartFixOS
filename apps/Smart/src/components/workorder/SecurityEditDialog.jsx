@@ -95,7 +95,7 @@ export default function SecurityEditDialog({ open, onClose, order, onUpdate }) {
   return (
     <>
       <Dialog open={open} onOpenChange={onClose}>
-        <DialogContent className="max-w-2xl overflow-hidden border border-fuchsia-400/20 bg-[radial-gradient(circle_at_top_left,rgba(34,211,238,0.12),transparent_26%),radial-gradient(circle_at_top_right,rgba(168,85,247,0.14),transparent_30%),radial-gradient(circle_at_bottom_left,rgba(236,72,153,0.10),transparent_26%),linear-gradient(180deg,rgba(4,8,22,0.985),rgba(2,6,18,0.99))] p-0 shadow-[0_40px_140px_rgba(0,0,0,0.62)] max-h-[92vh] z-[99999]">
+        <DialogContent className="max-w-2xl overflow-hidden border border-fuchsia-400/20 bg-[radial-gradient(circle_at_top_left,rgba(34,211,238,0.12),transparent_26%),radial-gradient(circle_at_top_right,rgba(168,85,247,0.14),transparent_30%),radial-gradient(circle_at_bottom_left,rgba(236,72,153,0.10),transparent_26%),linear-gradient(180deg,rgba(4,8,22,0.985),rgba(2,6,18,0.99))] p-0 shadow-[0_40px_140px_rgba(0,0,0,0.62)] max-h-[92vh] z-[99999] flex flex-col">
           <DialogHeader className="border-b border-white/10 bg-[linear-gradient(90deg,rgba(6,182,212,0.10),rgba(124,58,237,0.12),rgba(236,72,153,0.05))] px-6 py-6 sm:px-8">
             <DialogTitle className="flex items-center gap-4 text-white">
               <div className="flex h-14 w-14 items-center justify-center rounded-[22px] border border-fuchsia-400/20 bg-[linear-gradient(180deg,rgba(124,58,237,0.18),rgba(236,72,153,0.14))] text-fuchsia-200 shadow-[0_16px_40px_rgba(124,58,237,0.18),inset_0_1px_0_rgba(255,255,255,0.08)]">
