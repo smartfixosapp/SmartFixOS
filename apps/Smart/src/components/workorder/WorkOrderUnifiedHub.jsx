@@ -167,7 +167,7 @@ export default function WorkOrderUnifiedHub({
         {activeTab && (
           <div className="mt-5">
             {activeTab === "timeline" && <WorkOrderTimeline order={order} onUpdate={onUpdate} />}
-            {activeTab === "photos" && <OrderMultimedia order={order} onUpdate={onUpdate} />}
+            {hasPhotos && activeTab === "photos" && <OrderMultimedia order={order} onUpdate={onUpdate} />}
             {activeTab === "security" && <OrderSecurity order={order} onUpdate={onUpdate} />}
           </div>
         )}
