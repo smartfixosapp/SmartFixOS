@@ -32,12 +32,59 @@ export default function MobileAccionesTab({
   onPrint,
   onSecurityEdit,
   onSwitchTab,
+  onUpdate,
   stageContent,
 }) {
   const [showAllStatuses, setShowAllStatuses] = useState(false);
   const [showNotifyOptions, setShowNotifyOptions] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const photoInputRef = useRef(null);
   const o = order || {};
   const phone = o.customer_phone || o.phone;
+
+  // Photo upload
+  const handlePhotoUpload = useCallback(async (e) => {
+    const files = Array.from(e.target.files || []).filter(f => f.type?.startsWith("image/"));
+    if (!files.length || !o.id) return;
+    setUploading(true);
+    triggerHaptic("light");
+    try {
+      let me = null;
+      try { me = await base44.auth.me(); } catch {}
+      const existing = o.photos_metadata || o.device_photos || [];
+      const newItems = [];
+      for (const file of files) {
+        try {
+          const { file_url } = await base44.integrations.Core.UploadFile({ file });
+          const versionedUrl = `${file_url}${file_url.includes("?") ? "&" : "?"}v=${Date.now()}`;
+          newItems.push({
+            id: `${Date.now()}-${file.name}`,
+            type: "image",
+            mime: file.type || "image/jpeg",
+            filename: file.name,
+            publicUrl: versionedUrl,
+            thumbUrl: versionedUrl,
+            stage_id: "general",
+            stage_label: "General",
+            captured_at: new Date().toISOString(),
+            captured_by: me?.full_name || me?.email || "Sistema",
+          });
+        } catch (err) {
+          console.error("Upload error:", err);
+        }
+      }
+      if (!newItems.length) throw new Error("No se pudo subir");
+      await base44.entities.Order.update(o.id, { photos_metadata: [...existing, ...newItems] });
+      onUpdate?.();
+      triggerHaptic("success");
+      toast.success(`${newItems.length} foto(s) subida(s)`);
+    } catch {
+      toast.error("Error al subir fotos");
+    } finally {
+      setUploading(false);
+      e.target.value = "";
+    }
+  }, [o, onUpdate]);
 
   // Badges
   const badges = useMemo(() => {
