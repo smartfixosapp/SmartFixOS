@@ -3039,39 +3039,25 @@ export default function WorkOrderPanel({ orderId, onClose, onUpdate, onDelete, p
 
             </div>
 
-            {/* MOBILE: Stacked layout */}
-            <div className="lg:hidden overflow-y-auto h-full wo-scrollable">
-              {/* Sticky action bar */}
-              <div className="sticky top-0 z-10 bg-[#0D0D0F]/95 backdrop-blur border-b border-white/[0.06] px-3 py-2">
-                <div className="flex gap-2 overflow-x-auto no-scrollbar">
-                  <WOActionSidebar
-                    order={o}
-                    status={status}
-                    activeStatuses={activeStatuses}
-                    closedStatuses={closedStatuses}
-                    changingStatus={changingStatus}
-                    onChangeStatus={(id) => changeStatus(id, "", {})}
-                    onPaymentClick={handlePaymentClick}
-                    onPrint={() => setShowPrintDialog(true)}
-                    onDelete={handleRequestDelete}
-                    onSecurityEdit={() => setShowSecurityDialog(true)}
-                  />
-                </div>
-              </div>
-
-              <div className="px-3 py-4 space-y-4 pb-12">
-                <WODetailCenter
-                  order={o}
-                  onUpdate={async () => { await clearEventCache(o.id); await loadEventsCallback(true); await handleRefresh(); onUpdate?.(); }}
-                  onOrderItemsUpdate={handleOrderItemsSaved}
-                  onRemoteSaved={async () => { await new Promise((r) => setTimeout(r, 1500)); await handleRefresh(); }}
-                  onPaymentClick={handlePaymentClick}
-                  onClose={handleClose}
-                >
-                  {renderStageContent()}
-                </WODetailCenter>
-
-              </div>
+            {/* MOBILE: New tabbed experience */}
+            <div className="lg:hidden h-full">
+              <MobileRepairDetail
+                order={o}
+                status={status}
+                activeStatuses={activeStatuses}
+                closedStatuses={closedStatuses}
+                changingStatus={changingStatus}
+                onChangeStatus={(id) => changeStatus(id, "", {})}
+                onPaymentClick={handlePaymentClick}
+                onPrint={() => setShowPrintDialog(true)}
+                onDelete={handleRequestDelete}
+                onSecurityEdit={() => setShowSecurityDialog(true)}
+                onClose={handleClose}
+                onUpdate={async () => { await clearEventCache(o.id); await loadEventsCallback(true); await handleRefresh(); onUpdate?.(); }}
+                onOrderItemsUpdate={handleOrderItemsSaved}
+                onRemoteSaved={async () => { await new Promise((r) => setTimeout(r, 1500)); await handleRefresh(); }}
+                stageContent={renderStageContent()}
+              />
             </div>
           </div>
           }
