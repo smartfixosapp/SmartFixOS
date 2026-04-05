@@ -1,0 +1,194 @@
+import React, { useMemo, useState } from "react";
+import {
+  DollarSign, Wallet, ShoppingCart, MessageSquare, ClipboardCheck,
+  Zap, Send, Printer, Shield, ChevronRight, ChevronDown, Camera,
+  Wrench, Bell, Flag, Clock as ClockIcon, Package
+} from "lucide-react";
+import { cn } from "@/lib/utils";
+import { getStatusConfig, normalizeStatusId } from "@/components/utils/statusRegistry";
+import { triggerHaptic } from "@/lib/capacitor";
+
+const QUICK_ACTIONS = [
+  { id: "checkout", icon: DollarSign, label: "Checkout", color: "text-emerald-400", badgeKey: "balance" },
+  { id: "deposit", icon: Wallet, label: "Deposito", color: "text-amber-400" },
+  { id: "warranty", icon: ClockIcon, label: "Garantia", color: "text-blue-400" },
+  { id: "parts", icon: ShoppingCart, label: "Piezas y accesorios", color: "text-cyan-400" },
+  { id: "note", icon: MessageSquare, label: "Agregar nota", color: "text-blue-400" },
+  { id: "diagnostic", icon: ClipboardCheck, label: "Nuevo diagnostico", color: "text-orange-400" },
+  { id: "priority", icon: Flag, label: "Actualizar prioridad", color: "text-red-400" },
+  { id: "notify", icon: Bell, label: "Notificar cliente", color: "text-violet-400" },
+  { id: "print", icon: Printer, label: "Imprimir", color: "text-white/60" },
+  { id: "security", icon: Shield, label: "Seguridad", color: "text-purple-400" },
+];
+
+export default function MobileAccionesTab({
+  order,
+  status,
+  activeStatuses,
+  closedStatuses,
+  changingStatus,
+  onChangeStatus,
+  onPaymentClick,
+  onPrint,
+  onSecurityEdit,
+  stageContent,
+}) {
+  const [showAllStatuses, setShowAllStatuses] = useState(false);
+  const o = order || {};
+  const phone = o.customer_phone || o.phone;
+
+  // Badges
+  const badges = useMemo(() => {
+    const b = {};
+    const total = Number(o.total || o.cost_estimate || 0);
+    const paid = Number(o.amount_paid ?? o.total_paid ?? 0);
+    const balance = o.balance_due != null ? Number(o.balance_due || 0) : Math.max(0, total - paid);
+    if (balance > 0.01) b.balance = true;
+    const photos = o.photos_metadata || o.device_photos || [];
+    if (photos.length === 0 && normalizeStatusId(status) === "intake") b.photos = true;
+    if (o.warranty_countdown?.days_remaining <= 3) b.warranty = true;
+    return b;
+  }, [o, status]);
+
+  // Next status
+  const nextStatus = useMemo(() => {
+    const currentOrder = getStatusConfig(status).order || 0;
+    return activeStatuses
+      .filter(s => (s.order || 0) > currentOrder && !s.isTerminal)
+      .sort((a, b) => (a.order || 0) - (b.order || 0))[0] || null;
+  }, [status, activeStatuses]);
+
+  const allStatuses = useMemo(() => {
+    return [...activeStatuses, ...(closedStatuses || [])]
+      .slice()
+      .sort((a, b) => (a.order || 0) - (b.order || 0));
+  }, [activeStatuses, closedStatuses]);
+
+  const handleAction = (id) => {
+    triggerHaptic("light");
+    switch (id) {
+      case "checkout": onPaymentClick?.("full"); break;
+      case "deposit": onPaymentClick?.("deposit"); break;
+      case "parts": document.dispatchEvent(new CustomEvent("wo:open-catalog")); break;
+      case "print": onPrint?.(); break;
+      case "security": onSecurityEdit?.(); break;
+      case "notify": {
+        if (phone) {
+          const cleanPhone = phone.replace(/\D/g, "");
+          window.open(`https://wa.me/${cleanPhone}`, "_blank");
+        }
+        break;
+      }
+      default: break;
+    }
+  };
+
+  return (
+    <div className="space-y-4 pb-8">
+      {/* Next Status CTA */}
+      {nextStatus && (
+        <button
+          onClick={() => { triggerHaptic("medium"); onChangeStatus?.(nextStatus.id); }}
+          disabled={changingStatus}
+          className={cn(
+            "w-full flex items-center gap-3 px-4 py-4 rounded-2xl font-bold text-sm transition-all active:scale-[0.97]",
+            changingStatus ? "opacity-50 cursor-not-allowed" : "hover:brightness-110",
+            nextStatus.colorClasses || "bg-cyan-500/20 text-cyan-300 border-cyan-500/30",
+            "border"
+          )}
+        >
+          <Zap className="w-5 h-5 shrink-0" />
+          <span className="flex-1 text-left">Pasar a {nextStatus.label}</span>
+          <ChevronRight className="w-4 h-4 opacity-50" />
+        </button>
+      )}
+
+      {/* Quick Actions heading */}
+      <h3 className="text-[10px] font-black uppercase tracking-widest text-white/30 px-1">Acciones rapidas</h3>
+
+      {/* Quick Actions List */}
+      <div className="space-y-1">
+        {QUICK_ACTIONS.map(action => (
+          <button
+            key={action.id}
+            onClick={() => handleAction(action.id)}
+            className="w-full flex items-center gap-4 px-4 py-3.5 rounded-xl border border-white/[0.06] bg-white/[0.02] hover:bg-white/[0.05] active:scale-[0.98] transition-all"
+          >
+            <div className="w-9 h-9 rounded-xl bg-white/[0.06] flex items-center justify-center flex-shrink-0">
+              <action.icon className={cn("w-4.5 h-4.5", action.color)} />
+            </div>
+            <span className="flex-1 text-left text-sm font-semibold text-white/80">{action.label}</span>
+            {badges[action.badgeKey] && (
+              <div className="w-2.5 h-2.5 rounded-full bg-red-500 animate-pulse" />
+            )}
+            <ChevronRight className="w-4 h-4 text-white/20" />
+          </button>
+        ))}
+      </div>
+
+      {/* Stage content */}
+      {stageContent && (
+        <div className="mt-4">
+          {stageContent}
+        </div>
+      )}
+
+      {/* Bottom CTAs */}
+      <div className="space-y-2 mt-6">
+        <button
+          onClick={() => { triggerHaptic("medium"); onChangeStatus?.("delivered"); }}
+          disabled={changingStatus}
+          className="w-full py-4 rounded-2xl bg-gradient-to-r from-red-600 to-red-700 text-white font-bold text-sm shadow-lg shadow-red-900/30 active:scale-[0.97] transition-transform disabled:opacity-50"
+        >
+          Cerrar reparacion
+        </button>
+        <button
+          onClick={() => handleAction("note")}
+          className="w-full py-3.5 rounded-2xl border border-white/10 bg-white/[0.03] text-white/70 font-semibold text-sm active:scale-[0.97] transition-transform"
+        >
+          Start Repair Log
+        </button>
+      </div>
+
+      {/* Status dropdown */}
+      <div className="mt-4">
+        <button
+          onClick={() => setShowAllStatuses(v => !v)}
+          className="w-full flex items-center justify-between px-4 py-3 rounded-xl border border-white/10 bg-white/[0.03] text-xs font-semibold text-white/50 transition-all"
+        >
+          <span>Cambiar estado...</span>
+          <ChevronDown className={cn("w-4 h-4 transition-transform", showAllStatuses && "rotate-180")} />
+        </button>
+
+        {showAllStatuses && (
+          <div className="mt-2 space-y-1 p-2 rounded-xl border border-white/10 bg-[#0D0D0F]">
+            {allStatuses.map(s => {
+              const isCurrent = normalizeStatusId(status) === s.id;
+              return (
+                <button
+                  key={s.id}
+                  onClick={() => {
+                    if (!isCurrent) {
+                      triggerHaptic("medium");
+                      onChangeStatus?.(s.id);
+                      setShowAllStatuses(false);
+                    }
+                  }}
+                  disabled={changingStatus || isCurrent}
+                  className={cn(
+                    "w-full flex items-center gap-2.5 px-3 py-2.5 rounded-lg text-xs font-semibold transition-all text-left",
+                    isCurrent ? "bg-white/10 text-white" : "text-white/60 hover:bg-white/[0.06] hover:text-white"
+                  )}
+                >
+                  <div className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: s.color || "#6B7280" }} />
+                  <span className="truncate flex-1">{s.label}</span>
+                  {isCurrent && <span className="text-[10px] text-white/30">actual</span>}
+                </button>
+              );
+            })}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
