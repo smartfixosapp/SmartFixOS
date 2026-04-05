@@ -1566,7 +1566,7 @@ export default function WorkOrderPanel({ orderId, onClose, onUpdate, onDelete, p
 
     try {
       const deviceLine = `${order.device_brand || ""} ${order.device_family || ""} ${order.device_model || ""}`.trim();
-      console.log("[Email] 🚀 Enviando email a /api/send-email...");
+      // [Email] log removed for perf
       const result = await sendTemplatedEmail({
         event_type: newStatusId,
         order_data: {
