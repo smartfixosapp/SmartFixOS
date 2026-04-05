@@ -8,7 +8,6 @@ import MobileProgressStepper from "./MobileProgressStepper";
 import MobileAccionesTab from "./MobileAccionesTab";
 import MobileInformacionTab from "./MobileInformacionTab";
 import MobileHistorialTab from "./MobileHistorialTab";
-import MobileQuickContactFAB from "./MobileQuickContactFAB";
 import usePullToRefresh from "./usePullToRefresh";
 
 const TABS = [
