@@ -134,6 +134,7 @@ export default function WaitingPartsStage({ order, onUpdate, onOrderItemsUpdate,
     <div className="space-y-6">
 
       {/* ── HERO ──────────────────────────────────────────────────────────── */}
+      {!compact && (
       <section className="relative overflow-hidden rounded-[30px] border border-orange-500/15 bg-[radial-gradient(circle_at_top_left,rgba(249,115,22,0.16),transparent_28%),radial-gradient(circle_at_bottom_right,rgba(239,68,68,0.14),transparent_30%),linear-gradient(135deg,rgba(32,16,10,0.98),rgba(20,12,10,0.96))] p-4 sm:p-6 shadow-[0_22px_70px_rgba(0,0,0,0.35)]">
         <div className="absolute inset-0 bg-[linear-gradient(120deg,transparent,rgba(255,255,255,0.03),transparent)]" />
         <div className="relative z-10 space-y-4">
@@ -228,6 +229,7 @@ export default function WaitingPartsStage({ order, onUpdate, onOrderItemsUpdate,
           );
         })()}
       </section>
+      )}
 
       {/* ── EDICIÓN DETALLES DEL PEDIDO ────────────────────────────────────── */}
       {editingDetails && (
