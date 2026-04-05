@@ -155,6 +155,18 @@ export default function MobileAccionesTab({
 
   return (
     <div className="space-y-4 pb-8">
+      {/* Hidden file input for photos */}
+      <input
+        ref={photoInputRef}
+        type="file"
+        accept="image/*"
+        multiple
+        capture="environment"
+        className="hidden"
+        onChange={handlePhotoUpload}
+        disabled={uploading}
+      />
+
       {/* Next Status CTA */}
       {nextStatus && (
         <button
