@@ -1032,35 +1032,63 @@ export default function AddItemModal({
               ) : (
                 <>
                   <div className="max-h-64 overflow-y-auto space-y-1 px-3 no-scrollbar">
-                    {cartItems.map((item, idx) => (
-                      <div key={`${item.id}-${idx}`} className="flex items-center gap-2 rounded-xl border border-white/8 bg-black/25 px-3 py-2">
-                        <div className="min-w-0 flex-1">
-                          <p className="text-xs font-semibold text-white truncate">{item.name}</p>
-                          <p className="text-[11px] text-white/40">${toNum(item.price).toFixed(2)} c/u</p>
+                    {cartItems.map((item, idx) => {
+                      const lineDiscount = toNum(item.discount_percentage, 0);
+                      const lineBase = toNum(item.price, 0) * toNum(item.qty, 1);
+                      const lineTotal = lineBase - lineBase * (lineDiscount / 100);
+                      return (
+                      <div key={`${item.id}-${idx}`} className="rounded-xl border border-white/8 bg-black/25 px-3 py-2 space-y-1.5">
+                        <div className="flex items-center gap-2">
+                          <div className="min-w-0 flex-1">
+                            <p className="text-xs font-semibold text-white truncate">{item.name}</p>
+                            <p className="text-[11px] text-white/40">
+                              ${toNum(item.price).toFixed(2)} c/u
+                              {lineDiscount > 0 && <span className="text-amber-400 ml-1">-{lineDiscount}%</span>}
+                              {item.taxable === false && <span className="text-cyan-400 ml-1">sin IVU</span>}
+                            </p>
+                          </div>
+                          <div className="flex items-center gap-1.5 shrink-0">
+                            <button onClick={() => changeQty(idx, -1)} className="h-6 w-6 rounded-lg border border-white/10 bg-white/5 text-white/70 hover:bg-white/15 grid place-items-center transition"><Minus className="w-3 h-3" /></button>
+                            <span className="w-5 text-center text-xs font-bold text-white">{item.qty}</span>
+                            <button onClick={() => changeQty(idx, 1)} className="h-6 w-6 rounded-lg border border-white/10 bg-white/5 text-white/70 hover:bg-white/15 grid place-items-center transition"><Plus className="w-3 h-3" /></button>
+                            <button onClick={() => removeItem(idx)} className="h-6 w-6 rounded-lg border border-red-500/25 bg-red-500/10 text-red-400 hover:bg-red-500/25 grid place-items-center transition"><Trash2 className="w-3 h-3" /></button>
+                          </div>
                         </div>
-                        <div className="flex items-center gap-1.5 shrink-0">
+                        {/* Discount + IVU controls */}
+                        <div className="flex items-center gap-2 pt-1 border-t border-white/[0.05]">
+                          <div className="flex items-center gap-1 flex-1">
+                            <span className="text-[10px] text-white/30">Desc:</span>
+                            <input
+                              type="number"
+                              min="0"
+                              max="100"
+                              value={lineDiscount || ""}
+                              placeholder="0"
+                              onChange={(e) => {
+                                const val = Math.max(0, Math.min(100, Number(e.target.value) || 0));
+                                setCartItems(prev => { const next = [...prev]; next[idx] = { ...next[idx], discount_percentage: val }; return next; });
+                              }}
+                              className="w-12 bg-white/5 border border-white/10 rounded px-1.5 py-0.5 text-[11px] text-white text-center outline-none focus:border-amber-500/50"
+                            />
+                            <span className="text-[10px] text-white/30">%</span>
+                          </div>
                           <button
-                            onClick={() => changeQty(idx, -1)}
-                            className="h-6 w-6 rounded-lg border border-white/10 bg-white/5 text-white/70 hover:bg-white/15 grid place-items-center transition"
+                            onClick={() => {
+                              setCartItems(prev => { const next = [...prev]; next[idx] = { ...next[idx], taxable: !(next[idx].taxable !== false) }; return next; });
+                            }}
+                            className={`px-2 py-0.5 rounded text-[10px] font-bold transition-all ${
+                              item.taxable !== false
+                                ? "bg-emerald-500/20 text-emerald-300 border border-emerald-500/30"
+                                : "bg-white/5 text-white/40 border border-white/10"
+                            }`}
                           >
-                            <Minus className="w-3 h-3" />
+                            IVU {item.taxable !== false ? "ON" : "OFF"}
                           </button>
-                          <span className="w-5 text-center text-xs font-bold text-white">{item.qty}</span>
-                          <button
-                            onClick={() => changeQty(idx, 1)}
-                            className="h-6 w-6 rounded-lg border border-white/10 bg-white/5 text-white/70 hover:bg-white/15 grid place-items-center transition"
-                          >
-                            <Plus className="w-3 h-3" />
-                          </button>
-                          <button
-                            onClick={() => removeItem(idx)}
-                            className="h-6 w-6 rounded-lg border border-red-500/25 bg-red-500/10 text-red-400 hover:bg-red-500/25 grid place-items-center transition"
-                          >
-                            <Trash2 className="w-3 h-3" />
-                          </button>
+                          <span className="text-[11px] font-semibold text-white/60">${lineTotal.toFixed(2)}</span>
                         </div>
                       </div>
-                    ))}
+                      );
+                    })}
                   </div>
 
                   {/* Totals & Save */}
