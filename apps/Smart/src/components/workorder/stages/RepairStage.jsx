@@ -280,7 +280,9 @@ export default function RepairStage({ order, onUpdate, onOrderItemsUpdate, onRem
             </button>
           ))}
 
-          {/* Acciones rápidas: Fotos y Nota */}
+          {/* Acciones rápidas: Fotos y Nota — solo en modo completo */}
+          {!compact && (
+          <>
           <div className="grid grid-cols-2 gap-2 pt-2">
             <button
               onClick={() => photoInputRef.current?.click()}
@@ -336,6 +338,8 @@ export default function RepairStage({ order, onUpdate, onOrderItemsUpdate, onRem
             onChange={handlePhotoUpload}
             className="hidden"
           />
+          </>
+          )}
         </div>
       </div>
 
