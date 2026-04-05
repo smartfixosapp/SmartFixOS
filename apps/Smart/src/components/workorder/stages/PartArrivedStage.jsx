@@ -6,7 +6,7 @@ import { base44 } from "@/api/base44Client";
 import WorkOrderUnifiedHub from "@/components/workorder/WorkOrderUnifiedHub";
 import SharedItemsSection from "@/components/workorder/SharedItemsSection";
 
-export default function PartArrivedStage({ order, onUpdate, onOrderItemsUpdate, onRemoteSaved, onPaymentClick }) {
+export default function PartArrivedStage({ order, onUpdate, onOrderItemsUpdate, onRemoteSaved, onPaymentClick, compact }) {
   const o = order || {};
   const [activeModal, setActiveModal] = useState(null);
   const [links, setLinks] = useState([]);
