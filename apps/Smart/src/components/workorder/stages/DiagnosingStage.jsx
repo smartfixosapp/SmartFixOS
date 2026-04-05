@@ -294,6 +294,30 @@ export default function DiagnosingStage({ order, onUpdate, user, onOrderItemsUpd
   const [showChecklist, setShowChecklist]   = useState(false);
   const [deviceCategory, setDeviceCategory] = useState("generic");
 
+  // Listen for sidebar action events
+  useEffect(() => {
+    if (!compact) return;
+    const onChecklist = () => setShowChecklist(v => !v);
+    const onLinks = () => setActiveModal(prev => prev === "links" ? null : "links");
+    const onQuote = () => handleSendQuote();
+    document.addEventListener("wo:action", (e) => {
+      if (e.detail?.action === "checklist") onChecklist();
+      if (e.detail?.action === "links") onLinks();
+      if (e.detail?.action === "quote") onQuote();
+    });
+    const handler = (e) => {
+      if (e.type === "wo:toggle-links") onLinks();
+      if (e.type === "wo:send-quote") onQuote();
+    };
+    document.addEventListener("wo:toggle-links", handler);
+    document.addEventListener("wo:send-quote", handler);
+    return () => {
+      document.removeEventListener("wo:toggle-links", handler);
+      document.removeEventListener("wo:send-quote", handler);
+    };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [compact]);
+
   const effectiveOrder = linkOrderPreview?.id === order?.id
     ? { ...order, ...linkOrderPreview, order_items: Array.isArray(linkOrderPreview?.order_items) ? linkOrderPreview.order_items : order?.order_items }
     : order;
