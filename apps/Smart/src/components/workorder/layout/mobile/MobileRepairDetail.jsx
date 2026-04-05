@@ -69,13 +69,6 @@ export default function MobileRepairDetail({
     }
   }, [activeTab, switchTab]);
 
-  // Lightbox handler for photos
-  const handlePhotoClick = useCallback((index) => {
-    // The parent WorkOrderPanel has the Lightbox component
-    // We trigger it via a custom event
-    document.dispatchEvent(new CustomEvent("wo:open-lightbox", { detail: { index } }));
-  }, []);
-
   return (
     <div className="h-full flex flex-col bg-[#0D0D0F] overflow-hidden">
       {/* ── HEADER ── */}
