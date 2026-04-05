@@ -1,0 +1,141 @@
+import React, { useMemo } from "react";
+import {
+  ChevronRight, DollarSign, Printer, Phone, MessageCircle,
+  Mail, Shield, Trash2, ChevronDown, Zap
+} from "lucide-react";
+import { getStatusConfig, normalizeStatusId } from "@/components/utils/statusRegistry";
+import { cn } from "@/lib/utils";
+
+export default function WOActionSidebar({
+  order,
+  status,
+  activeStatuses = [],
+  closedStatuses = [],
+  changingStatus,
+  onChangeStatus,
+  onPaymentClick,
+  onPrint,
+  onDelete,
+  onSecurityEdit,
+}) {
+  const o = order || {};
+
+  // Find next logical status
+  const nextStatus = useMemo(() => {
+    const currentOrder = getStatusConfig(status).order || 0;
+    return activeStatuses
+      .filter(s => (s.order || 0) > currentOrder && !s.isTerminal)
+      .sort((a, b) => (a.order || 0) - (b.order || 0))[0] || null;
+  }, [status, activeStatuses]);
+
+  const allStatuses = useMemo(() => {
+    return [...activeStatuses, ...closedStatuses]
+      .slice()
+      .sort((a, b) => (a.order || 0) - (b.order || 0));
+  }, [activeStatuses, closedStatuses]);
+
+  const phone = o.customer_phone || o.phone;
+  const customerName = o.customer_name || "Cliente";
+
+  const [showAllStatuses, setShowAllStatuses] = React.useState(false);
+
+  return (
+    <div className="space-y-2">
+      {/* ── Next Status Button ── */}
+      {nextStatus && (
+        <button
+          onClick={() => onChangeStatus?.(nextStatus.id)}
+          disabled={changingStatus}
+          className={cn(
+            "w-full flex items-center gap-2.5 px-3 py-3 rounded-xl font-bold text-sm transition-all active:scale-95",
+            changingStatus ? "opacity-50 cursor-not-allowed" : "hover:brightness-110",
+            nextStatus.colorClasses || "bg-cyan-500/20 text-cyan-300 border-cyan-500/30",
+            "border"
+          )}
+        >
+          <Zap className="w-4 h-4 shrink-0" />
+          <span className="flex-1 text-left truncate">{nextStatus.label}</span>
+          <ChevronRight className="w-3.5 h-3.5 opacity-50" />
+        </button>
+      )}
+
+      {/* ── Status Dropdown ── */}
+      <button
+        onClick={() => setShowAllStatuses(v => !v)}
+        className="w-full flex items-center justify-between px-3 py-2.5 rounded-xl border border-white/10 bg-white/[0.03] hover:bg-white/[0.06] text-xs font-semibold text-white/50 transition-all"
+      >
+        <span>Cambiar estado...</span>
+        <ChevronDown className={cn("w-3.5 h-3.5 transition-transform", showAllStatuses && "rotate-180")} />
+      </button>
+
+      {showAllStatuses && (
+        <div className="space-y-1 p-1 rounded-xl border border-white/10 bg-[#0D0D0F]">
+          {allStatuses.map(s => {
+            const isCurrent = normalizeStatusId(status) === s.id;
+            return (
+              <button
+                key={s.id}
+                onClick={() => { if (!isCurrent) { onChangeStatus?.(s.id); setShowAllStatuses(false); } }}
+                disabled={changingStatus || isCurrent}
+                className={cn(
+                  "w-full flex items-center gap-2 px-2.5 py-2 rounded-lg text-xs font-semibold transition-all text-left",
+                  isCurrent
+                    ? "bg-white/10 text-white cursor-default"
+                    : "text-white/60 hover:bg-white/[0.06] hover:text-white"
+                )}
+              >
+                <div className={cn("w-2 h-2 rounded-full shrink-0")} style={{ backgroundColor: s.color || "#6B7280" }} />
+                <span className="truncate">{s.label}</span>
+                {isCurrent && <span className="ml-auto text-[10px] text-white/30">actual</span>}
+              </button>
+            );
+          })}
+        </div>
+      )}
+
+      <div className="border-t border-white/[0.06] my-2" />
+
+      {/* ── Action Buttons ── */}
+      <ActionBtn icon={DollarSign} label="Cobrar" color="text-emerald-400" onClick={() => onPaymentClick?.("full")} />
+      <ActionBtn icon={Printer} label="Imprimir" onClick={onPrint} />
+
+      {phone && (
+        <>
+          <div className="border-t border-white/[0.06] my-2" />
+          <ActionBtn icon={Phone} label="Llamar" href={`tel:${phone}`} />
+          <ActionBtn icon={MessageCircle} label="WhatsApp" color="text-green-400" href={`https://wa.me/${phone.replace(/\D/g, "")}?text=${encodeURIComponent(`Hola ${customerName}, le contactamos de SmartFixOS sobre su orden #${o.order_number || ""}.`)}`} target="_blank" />
+          {o.customer_email && <ActionBtn icon={Mail} label="Email" href={`mailto:${o.customer_email}`} />}
+        </>
+      )}
+
+      <div className="border-t border-white/[0.06] my-2" />
+
+      <ActionBtn icon={Shield} label="Seguridad" onClick={onSecurityEdit} />
+      <ActionBtn icon={Trash2} label="Eliminar" color="text-red-400" onClick={onDelete} />
+    </div>
+  );
+}
+
+function ActionBtn({ icon: Icon, label, color, onClick, href, target }) {
+  const cls = cn(
+    "w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-xs font-semibold transition-all",
+    "border border-white/[0.06] hover:bg-white/[0.06] active:scale-95",
+    color || "text-white/70"
+  );
+
+  if (href) {
+    return (
+      <a href={href} target={target} rel="noopener noreferrer" className={cls}>
+        <Icon className="w-3.5 h-3.5 shrink-0" />
+        <span>{label}</span>
+      </a>
+    );
+  }
+
+  return (
+    <button onClick={onClick} className={cls}>
+      <Icon className="w-3.5 h-3.5 shrink-0" />
+      <span>{label}</span>
+    </button>
+  );
+}
