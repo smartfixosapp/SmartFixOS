@@ -228,16 +228,7 @@ export default function WODetailCenter({
 
       {/* ── Financial Summary ── */}
       <div className="rounded-xl border border-white/[0.08] bg-[#121215] p-4">
-        <div className="flex items-center justify-between mb-3">
-          <h4 className="text-[10px] font-black uppercase tracking-widest text-white/30">Resumen financiero</h4>
-          <button
-            onClick={() => setShowCatalog(true)}
-            className="flex items-center gap-1 px-2.5 py-1 rounded-lg bg-cyan-600 hover:bg-cyan-500 text-white text-[11px] font-bold transition-all active:scale-95"
-          >
-            <Plus className="w-3 h-3" />
-            Agregar
-          </button>
-        </div>
+        <h4 className="text-[10px] font-black uppercase tracking-widest text-white/30 mb-3">Resumen financiero</h4>
 
         {/* Items list */}
         {items.length > 0 ? (
