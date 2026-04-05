@@ -159,38 +159,41 @@ export default function SecurityEditDialog({ open, onClose, order, onUpdate }) {
             </div>
 
             {/* PATRÓN */}
-            <div className="space-y-4 rounded-[30px] border border-fuchsia-500/18 bg-[linear-gradient(180deg,rgba(76,29,149,0.16),rgba(10,10,18,0.52))] p-5 shadow-[0_20px_40px_rgba(0,0,0,0.18),inset_0_1px_0_rgba(255,255,255,0.05)]">
+            <div className="space-y-3 rounded-[28px] border border-fuchsia-500/18 bg-[linear-gradient(180deg,rgba(76,29,149,0.16),rgba(10,10,18,0.52))] p-5 shadow-[inset_0_1px_0_rgba(255,255,255,0.05)]">
               <Label className="flex items-center gap-2 text-base font-bold text-slate-100">
                 <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-purple-500/10">
                   <Grid3x3 className="h-4 w-4 text-purple-300" />
                 </div>
                 <div className="flex flex-col">
-                  <span>Patron de Bloqueo (Android)</span>
-                  <span className="text-[11px] font-semibold uppercase tracking-[0.22em] text-white/30">Trazo visual</span>
+                  <span>Patron de Bloqueo</span>
+                  <span className="text-[11px] font-semibold uppercase tracking-[0.22em] text-white/30">Android</span>
                 </div>
               </Label>
-              
+
               {patternImage ? (
-                <div className="rounded-[24px] border border-fuchsia-400/20 bg-[linear-gradient(180deg,rgba(3,7,18,0.85),rgba(8,10,18,0.7))] p-4 sm:p-5">
+                <div className="flex items-center gap-3">
                   <img
                     src={patternImage}
-                    alt="Patrón"
-                    className="mx-auto w-full max-w-[240px] rounded-[20px] border border-fuchsia-400/20 bg-black/35 p-2 shadow-[0_12px_30px_rgba(0,0,0,0.22)]"
+                    alt="Patron"
+                    className="w-20 h-20 rounded-xl border border-fuchsia-400/20 bg-black/35 p-1 object-contain"
                   />
-                  <div className="mt-4 flex gap-3">
+                  <div className="flex-1 flex flex-col gap-2">
                     <Button
                       onClick={() => setShowPatternDialog(true)}
+                      size="sm"
                       variant="outline"
-                      className="h-12 flex-1 rounded-2xl border-white/10 bg-white/95 text-base font-black text-slate-950 shadow-[0_10px_30px_rgba(255,255,255,0.08)] hover:bg-white"
+                      className="h-10 rounded-xl border-white/10 bg-white/95 text-sm font-bold text-slate-950 hover:bg-white"
                     >
-                      Cambiar Patron
+                      Cambiar
                     </Button>
                     <Button
                       onClick={handleClearPattern}
+                      size="sm"
                       variant="outline"
-                      className="h-12 rounded-2xl border-red-400/30 bg-white px-4 text-red-500 shadow-[0_10px_30px_rgba(255,255,255,0.07)] hover:bg-red-50"
+                      className="h-10 rounded-xl border-red-400/30 bg-red-500/10 text-sm text-red-400 hover:bg-red-500/20"
                     >
-                      <Trash2 className="w-4 h-4" />
+                      <Trash2 className="w-3.5 h-3.5 mr-1.5" />
+                      Borrar
                     </Button>
                   </div>
                 </div>
@@ -198,7 +201,7 @@ export default function SecurityEditDialog({ open, onClose, order, onUpdate }) {
                 <Button
                   onClick={() => setShowPatternDialog(true)}
                   variant="outline"
-                  className="h-14 w-full rounded-2xl border-white/10 bg-white/[0.04] text-base font-bold text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] hover:border-fuchsia-400/35 hover:bg-white/[0.06]"
+                  className="h-12 w-full rounded-2xl border-white/10 bg-white/[0.04] text-sm font-bold text-white hover:border-fuchsia-400/35 hover:bg-white/[0.06]"
                 >
                   <Grid3x3 className="w-4 h-4 mr-2" />
                   Configurar Patron
