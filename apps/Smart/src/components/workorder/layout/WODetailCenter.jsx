@@ -180,6 +180,49 @@ export default function WODetailCenter({
         </div>
       )}
 
+      {/* ── Hidden photo input ── */}
+      <input
+        ref={photoInputRef}
+        type="file"
+        accept="image/*"
+        multiple
+        className="hidden"
+        onChange={handlePhotoUpload}
+        disabled={uploading}
+      />
+
+      {/* ── Photos thumbnail strip ── */}
+      {(() => {
+        const allPhotos = (Array.isArray(o.photos_metadata) ? o.photos_metadata : [])
+          .map(p => p?.publicUrl || p?.thumbUrl || p?.url).filter(Boolean);
+        if (allPhotos.length === 0 && !uploading) return null;
+        return (
+          <div className="rounded-xl border border-white/[0.08] bg-[#121215] p-4">
+            <div className="flex items-center justify-between mb-2">
+              <h4 className="text-[10px] font-black uppercase tracking-widest text-white/30">Fotos ({allPhotos.length})</h4>
+              <button
+                onClick={() => photoInputRef.current?.click()}
+                disabled={uploading}
+                className="flex items-center gap-1 px-2.5 py-1 rounded-lg bg-cyan-600 hover:bg-cyan-500 text-white text-[11px] font-bold transition-all active:scale-95 disabled:opacity-50"
+              >
+                {uploading ? <Loader2 className="w-3 h-3 animate-spin" /> : <Camera className="w-3 h-3" />}
+                {uploading ? "Subiendo..." : "Subir"}
+              </button>
+            </div>
+            <div className="flex gap-2 overflow-x-auto">
+              {allPhotos.slice(0, 6).map((src, i) => (
+                <img key={`${src}-${i}`} src={src} alt={`Foto ${i + 1}`} className="h-14 w-14 rounded-lg object-cover border border-white/10 shrink-0" loading="lazy" />
+              ))}
+              {allPhotos.length > 6 && (
+                <div className="h-14 w-14 rounded-lg border border-white/10 bg-white/5 flex items-center justify-center text-xs text-white/40 shrink-0">
+                  +{allPhotos.length - 6}
+                </div>
+              )}
+            </div>
+          </div>
+        );
+      })()}
+
       {/* ── Stage-specific content ── */}
       {children}
 
