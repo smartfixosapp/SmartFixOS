@@ -653,7 +653,7 @@ export default function DiagnosingStage({ order, onUpdate, user, onOrderItemsUpd
 
       {/* ── Compact toolbar: checklist + quote + links ── */}
       {compact && (
-        <div className="flex flex-wrap gap-2">
+        <div className="flex flex-wrap gap-2" data-stage-checklist data-stage-links>
           <Button
             onClick={() => setShowChecklist(v => !v)}
             size="sm"
