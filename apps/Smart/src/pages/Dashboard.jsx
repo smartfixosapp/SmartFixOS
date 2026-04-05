@@ -378,7 +378,7 @@ export default function Dashboard() {
       const s = readSessionSync();
       setSession((prev) => (JSON.stringify(prev) !== JSON.stringify(s) ? s : prev));
     };
-    const iv = setInterval(tick, 5000);
+    const iv = setInterval(tick, 30000);
     return () => clearInterval(iv);
   }, []);
 
