@@ -1928,11 +1928,12 @@ export default function WorkOrderPanel({ orderId, onClose, onUpdate, onDelete, p
     }
   }, [order?.id, loadEventsCallback]);
 
+  // Auto-refresh: only when tab is visible, every 60s instead of 30s
   useEffect(() => {
-    if (!orderId) return;
-    if (loading) return;
+    if (!orderId || loading) return;
 
-    const iv = setInterval(async () => {
+    let iv = null;
+    const refresh = async () => {
       try {
         const fresh = await base44.entities.Order.get(orderId);
         if (fresh && fresh.updated_date !== order?.updated_date) {
@@ -1945,9 +1946,13 @@ export default function WorkOrderPanel({ orderId, onClose, onUpdate, onDelete, p
       } catch (e) {
         console.warn("[WO] Auto-refresh falló (no crítico):", e.message);
       }
-    }, 30000);
-
-    return () => clearInterval(iv);
+    };
+    const start = () => { if (!iv) iv = setInterval(refresh, 60000); };
+    const stop = () => { if (iv) { clearInterval(iv); iv = null; } };
+    const onVis = () => { document.hidden ? stop() : start(); };
+    if (!document.hidden) start();
+    document.addEventListener("visibilitychange", onVis);
+    return () => { stop(); document.removeEventListener("visibilitychange", onVis); };
   }, [orderId, loading, order?.updated_date, loadEventsCallback]);
 
   async function askDeleteNote(noteId) {
