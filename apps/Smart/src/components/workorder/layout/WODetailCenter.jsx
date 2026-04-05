@@ -60,7 +60,13 @@ export default function WODetailCenter({
     return () => document.removeEventListener("wo:action", handler);
   }, []);
 
-  // Photo upload handler
+  // Local photo state for instant display
+  const [localPhotos, setLocalPhotos] = useState([]);
+  useEffect(() => {
+    setLocalPhotos(Array.isArray(o.photos_metadata) ? o.photos_metadata : []);
+  }, [o.photos_metadata]);
+
+  // Photo upload handler with optimistic UI
   const handlePhotoUpload = useCallback(async (e) => {
     const files = Array.from(e.target.files || []).filter(f => f.type?.startsWith("image/"));
     if (!files.length || !o.id) return;
@@ -90,8 +96,11 @@ export default function WODetailCenter({
         }
       }
       if (!newItems.length) throw new Error("No se pudo subir");
-      const existing = Array.isArray(o.photos_metadata) ? o.photos_metadata : [];
-      await base44.entities.Order.update(o.id, { photos_metadata: [...existing, ...newItems] });
+      const merged = [...localPhotos, ...newItems];
+      // Optimistic: update local state immediately
+      setLocalPhotos(merged);
+      // Persist to DB
+      await base44.entities.Order.update(o.id, { photos_metadata: merged });
       onUpdate?.();
       try { await logWorkOrderPhotoEvent({ order: o, count: newItems.length, source: "detail_center" }); } catch {}
       toast.success(`${newItems.length} foto(s) subida(s)`);
@@ -101,7 +110,7 @@ export default function WODetailCenter({
       setUploading(false);
       e.target.value = "";
     }
-  }, [o, onUpdate]);
+  }, [o, onUpdate, localPhotos]);
 
   const items = useMemo(() => Array.isArray(o.order_items) ? o.order_items : [], [o.order_items]);
 
