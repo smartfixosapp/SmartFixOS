@@ -40,16 +40,24 @@ export default function WODetailCenter({
   const [uploading, setUploading] = useState(false);
   const photoInputRef = useRef(null);
 
-  // Listen for sidebar events
+  // Listen for ALL sidebar action events
   useEffect(() => {
-    const onCatalog = () => setShowCatalog(true);
-    const onPhotos = () => photoInputRef.current?.click();
-    document.addEventListener("wo:open-catalog", onCatalog);
-    document.addEventListener("wo:open-photos", onPhotos);
-    return () => {
-      document.removeEventListener("wo:open-catalog", onCatalog);
-      document.removeEventListener("wo:open-photos", onPhotos);
+    const handler = (e) => {
+      const action = e.detail?.action;
+      if (action === "catalog") setShowCatalog(true);
+      if (action === "photos") photoInputRef.current?.click();
+      if (action === "notify") {
+        const ph = (e.detail?.order?.customer_phone || "").replace(/\D/g, "");
+        if (ph) window.open(`https://wa.me/${ph}`, "_blank");
+      }
+      // Scroll to stage-specific sections
+      if (action === "checklist") document.querySelector("[data-stage-checklist]")?.scrollIntoView({ behavior: "smooth", block: "start" });
+      if (action === "tracking") document.querySelector("[data-stage-tracking]")?.scrollIntoView({ behavior: "smooth", block: "start" });
+      if (action === "links") document.querySelector("[data-stage-links]")?.scrollIntoView({ behavior: "smooth", block: "start" });
+      if (action === "approval") document.querySelector("[data-stage-approval]")?.scrollIntoView({ behavior: "smooth", block: "start" });
     };
+    document.addEventListener("wo:action", handler);
+    return () => document.removeEventListener("wo:action", handler);
   }, []);
 
   // Photo upload handler
