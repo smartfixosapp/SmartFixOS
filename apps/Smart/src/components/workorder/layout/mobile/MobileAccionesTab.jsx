@@ -119,6 +119,7 @@ export default function MobileAccionesTab({
       case "checkout": onPaymentClick?.("full"); break;
       case "deposit": onPaymentClick?.("deposit"); break;
       case "parts": document.dispatchEvent(new CustomEvent("wo:open-catalog")); break;
+      case "photos": photoInputRef.current?.click(); break;
       case "print": onPrint?.(); break;
       case "security": onSecurityEdit?.(); break;
       case "notify": setShowNotifyOptions(v => !v); break;
