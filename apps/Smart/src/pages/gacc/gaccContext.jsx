@@ -86,19 +86,36 @@ export function presenceStatus(lastSeenStr) {
 export function getStatusBadge(tenant) {
   const sub = tenant.effective_subscription_status || tenant.subscription_status;
   const trialDate = tenant.effective_trial_end_date || tenant.trial_end_date;
+
+  // Priority 1: setup incomplete
   if (tenant.metadata?.setup_complete === false)
     return { label: "Sin activar", cls: "bg-purple-500/20 text-purple-300 border-purple-500/40" };
+
+  // Priority 2: suspended / cancelled
   if (tenant.status === "suspended")
     return { label: "Suspendida", cls: "bg-red-500/20 text-red-300 border-red-500/30" };
   if (tenant.status === "cancelled")
     return { label: "Cancelada", cls: "bg-gray-500/20 text-gray-400 border-gray-500/30" };
+
+  // Priority 3: check if already paying (has made a payment or subscription is active with payment)
+  const hasPaid = !!(tenant.last_payment_date || tenant.last_payment_amount > 0 ||
+    tenant.stripe_subscription_id || tenant.latest_subscription?.last_payment_status === "succeeded");
+
+  // If already paying, show as active — trial is irrelevant
+  if (hasPaid && (sub === "active" || tenant.status === "active"))
+    return { label: "Activa", cls: "bg-green-500/20 text-green-300 border-green-500/30" };
+
+  // Priority 4: trial (only if NOT paying)
   const trialLeft = trialDate ? Math.ceil((new Date(trialDate) - new Date()) / 86400000) : null;
   if (trialLeft !== null && trialLeft > 0)
     return { label: `Trial (${trialLeft}d)`, cls: "bg-yellow-500/20 text-yellow-300 border-yellow-500/30" };
   if (trialLeft !== null && trialLeft <= 0)
     return { label: "Trial vencido", cls: "bg-orange-500/20 text-orange-300 border-orange-500/30" };
+
+  // Priority 5: active without trial
   if (sub === "active" || tenant.status === "active")
     return { label: "Activa", cls: "bg-green-500/20 text-green-300 border-green-500/30" };
+
   return { label: tenant.status || "--", cls: "bg-gray-500/20 text-gray-400 border-gray-500/30" };
 }
 
