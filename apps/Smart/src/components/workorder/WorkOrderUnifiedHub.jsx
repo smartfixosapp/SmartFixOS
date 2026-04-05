@@ -16,6 +16,8 @@ export default function WorkOrderUnifiedHub({
 }) {
   const o = order || {};
   const [activeTab, setActiveTab] = useState(null);
+  const { can: canPlan } = usePlanLimits();
+  const hasPhotos = canPlan("orders_photos");
 
   useEffect(() => {
     if (openTab) setActiveTab(openTab);
