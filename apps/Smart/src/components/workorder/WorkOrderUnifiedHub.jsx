@@ -4,6 +4,7 @@ import { Activity, Camera, ChevronDown, LockKeyhole, Sparkles } from "lucide-rea
 import OrderSecurity from "@/components/workorder/sections/OrderSecurity";
 import OrderMultimedia from "@/components/workorder/sections/OrderMultimedia";
 import WorkOrderTimeline from "@/components/orders/workorder/WorkOrderTimeline";
+import { usePlanLimits } from "@/hooks/usePlanLimits";
 
 export default function WorkOrderUnifiedHub({
   order,
