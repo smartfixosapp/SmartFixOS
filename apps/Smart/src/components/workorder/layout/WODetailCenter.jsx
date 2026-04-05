@@ -50,16 +50,8 @@ export default function WODetailCenter({
         const ph = (e.detail?.order?.customer_phone || "").replace(/\D/g, "");
         if (ph) window.open(`https://wa.me/${ph}`, "_blank");
       }
-      // Scroll to stage-specific sections
-      if (action === "checklist") {
-        // Click the checklist button to toggle it open, then scroll
-        const el = document.querySelector("[data-stage-checklist]");
-        if (el) { el.querySelector("button")?.click(); setTimeout(() => el.scrollIntoView({ behavior: "smooth", block: "start" }), 100); }
-      }
-      if (action === "tracking") document.querySelector("[data-stage-tracking]")?.scrollIntoView({ behavior: "smooth", block: "start" });
-      // links and quote are handled by the stage component listening to wo:action directly
+      // checklist, links, tracking, quote, approval — handled by stage components directly via wo:action
       if (action === "quote") document.dispatchEvent(new CustomEvent("wo:send-quote"));
-      if (action === "approval") document.querySelector("[data-stage-approval]")?.scrollIntoView({ behavior: "smooth", block: "start" });
       // Open JEANI assistant
       if (action === "ai") {
         window.dispatchEvent(new CustomEvent("wo:open-jeani"));
