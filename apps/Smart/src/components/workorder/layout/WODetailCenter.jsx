@@ -243,15 +243,23 @@ export default function WODetailCenter({
         {/* Items list */}
         {items.length > 0 ? (
           <div className="space-y-1 mb-3">
-            {items.map((item, i) => (
-              <div key={item.id || i} className="flex items-center justify-between text-xs">
-                <span className="text-white/70 truncate flex-1">
-                  {item.name || item.product_name || item.service_name || "Item"}
-                  {Number(item.quantity || 1) > 1 && <span className="text-white/30 ml-1">×{item.quantity}</span>}
-                </span>
-                <span className="text-white/90 font-semibold ml-3">${(Number(item.price || 0) * Number(item.quantity || 1)).toFixed(2)}</span>
-              </div>
-            ))}
+            {items.map((item, i) => {
+              const qty = Number(item.quantity || item.qty || 1);
+              const base = Number(item.price || 0) * qty;
+              const disc = Number(item.discount_percentage || item.discount_percent || 0);
+              const lineTotal = base - base * (disc / 100);
+              return (
+                <div key={item.id || i} className="flex items-center justify-between text-xs">
+                  <span className="text-white/70 truncate flex-1">
+                    {item.name || item.product_name || item.service_name || "Item"}
+                    {qty > 1 && <span className="text-white/30 ml-1">×{qty}</span>}
+                    {disc > 0 && <span className="text-amber-400 ml-1">-{disc}%</span>}
+                    {item.taxable === false && <span className="text-cyan-400/60 ml-1">sin IVU</span>}
+                  </span>
+                  <span className="text-white/90 font-semibold ml-3">${lineTotal.toFixed(2)}</span>
+                </div>
+              );
+            })}
           </div>
         ) : (
           <p className="text-xs text-white/30 mb-3">Sin items registrados</p>
