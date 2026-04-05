@@ -151,7 +151,9 @@ export default function ExternalRepairStage({ order, onUpdate, compact }) {
         </section>
       </div>
 
+      {!compact && (
       <WorkOrderUnifiedHub order={order} onUpdate={onUpdate} accent="fuchsia" title="Centro de Historial" subtitle="Seguimiento externo, evidencia, seguridad y notas en una sola vista." />
+      )}
 
       <AddItemModal open={showCatalog} onClose={() => setShowCatalog(false)} order={o} onUpdate={onUpdate} />
 
