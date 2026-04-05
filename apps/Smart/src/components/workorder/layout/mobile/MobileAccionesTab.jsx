@@ -1,8 +1,8 @@
 import React, { useMemo, useState } from "react";
 import {
-  DollarSign, Wallet, ShoppingCart, MessageSquare, ClipboardCheck,
-  Zap, Send, Printer, Shield, ChevronRight, ChevronDown, Camera,
-  Wrench, Bell, Flag, Clock as ClockIcon, Package
+  DollarSign, Wallet, ShoppingCart, MessageSquare,
+  Zap, Send, Printer, Shield, ChevronRight, ChevronDown,
+  MessageCircle, Mail, Phone, Smartphone
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { getStatusConfig, normalizeStatusId } from "@/components/utils/statusRegistry";
@@ -11,12 +11,9 @@ import { triggerHaptic } from "@/lib/capacitor";
 const QUICK_ACTIONS = [
   { id: "checkout", icon: DollarSign, label: "Checkout", color: "text-emerald-400", badgeKey: "balance" },
   { id: "deposit", icon: Wallet, label: "Deposito", color: "text-amber-400" },
-  { id: "warranty", icon: ClockIcon, label: "Garantia", color: "text-blue-400" },
   { id: "parts", icon: ShoppingCart, label: "Piezas y accesorios", color: "text-cyan-400" },
   { id: "note", icon: MessageSquare, label: "Agregar nota", color: "text-blue-400" },
-  { id: "diagnostic", icon: ClipboardCheck, label: "Nuevo diagnostico", color: "text-orange-400" },
-  { id: "priority", icon: Flag, label: "Actualizar prioridad", color: "text-red-400" },
-  { id: "notify", icon: Bell, label: "Notificar cliente", color: "text-violet-400" },
+  { id: "notify", icon: Send, label: "Notificar cliente", color: "text-violet-400", expandable: true },
   { id: "print", icon: Printer, label: "Imprimir", color: "text-white/60" },
   { id: "security", icon: Shield, label: "Seguridad", color: "text-purple-400" },
 ];
