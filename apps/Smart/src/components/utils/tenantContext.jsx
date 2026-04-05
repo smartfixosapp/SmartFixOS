@@ -144,6 +144,7 @@ export function TenantProvider({ children }) {
     try {
       const tenant = await dataClient.entities.Tenant.get(tenantId);
       setCurrentTenant(tenant);
+      tenantRef.current = tenant;
       localStorage.setItem("current_tenant_id", tenantId);
       window.location.reload(); // Recargar para aplicar contexto
     } catch (error) {
