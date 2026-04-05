@@ -37,6 +37,13 @@ export default function WODetailCenter({
   const [posting, setPosting] = useState(false);
   const [timelineKey, setTimelineKey] = useState(0);
 
+  // Listen for catalog open event from sidebar
+  useEffect(() => {
+    const handler = () => setShowCatalog(true);
+    document.addEventListener("wo:open-catalog", handler);
+    return () => document.removeEventListener("wo:open-catalog", handler);
+  }, []);
+
   const items = useMemo(() => Array.isArray(o.order_items) ? o.order_items : [], [o.order_items]);
 
   // Financial summary
