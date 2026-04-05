@@ -18,6 +18,20 @@ export default function IntakeStage({ order, onUpdate, onOrderItemsUpdate, onRem
       .filter(Boolean);
   }, [o.photos_metadata, o.device_photos]);
 
+  if (compact) {
+    return (
+      <>
+        <Dialog open={Boolean(previewPhoto)} onOpenChange={(open) => !open && setPreviewPhoto(null)}>
+          <DialogContent className="max-w-4xl border-white/10 bg-black/95 p-2">
+            {previewPhoto ? (
+              <img src={previewPhoto} alt="Vista previa" className="max-h-[80vh] w-full rounded-xl object-contain" />
+            ) : null}
+          </DialogContent>
+        </Dialog>
+      </>
+    );
+  }
+
   return (
     <div className="space-y-6">
       <section className="relative overflow-hidden rounded-[30px] border border-cyan-500/15 bg-[radial-gradient(circle_at_top_left,rgba(34,211,238,0.16),transparent_28%),radial-gradient(circle_at_bottom_right,rgba(168,85,247,0.16),transparent_30%),linear-gradient(135deg,rgba(11,22,36,0.98),rgba(18,12,32,0.96))] p-5 shadow-[0_22px_70px_rgba(0,0,0,0.35)] sm:p-6">
