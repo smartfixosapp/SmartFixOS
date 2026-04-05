@@ -88,7 +88,7 @@ export default function MobileHistorialTab({ order, onUpdate }) {
       });
       setComment("");
       // Reload events
-      const result = await dataClient.entities.WorkOrderEvent.list("-created_date", 200, { order_id: o.id });
+      const result = await dataClient.entities.WorkOrderEvent.filter({ order_id: o.id }, "-created_date", 200);
       setEvents(Array.isArray(result) ? result : []);
       onUpdate?.();
       toast.success("Nota agregada");
