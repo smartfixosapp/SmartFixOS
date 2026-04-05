@@ -480,10 +480,20 @@ export default function AddItemModal({
     const { categoryMatchesDevice, matchesSpecificDevice, modelKey, familyKey, brandKey } = deviceSuggestionFilter;
     const byType = inventoryItems.filter((item) => categoryMatchesDevice(item));
     let suggestions;
-    if (modelKey || familyKey || brandKey) {
-      const strictParts = byType.filter((i) => !isService(i) && !isAccessory(i) && matchesSpecificDevice(i));
+    if (modelKey) {
+      const exactParts = inventoryItems.filter((i) => {
+        if (isService(i) || isAccessory(i)) return false;
+        const name = String(i?.name || "").toLowerCase();
+        const compat = Array.isArray(i?.compatibility_models) ? i.compatibility_models.map(m => String(m || "").toLowerCase()) : [];
+        return name.includes(modelKey) || compat.some(m => m.includes(modelKey));
+      });
       const nonParts = byType.filter((i) => isService(i) || isAccessory(i));
-      suggestions = nonParts.length + strictParts.length;
+      suggestions = exactParts.length + nonParts.length;
+    } else if (familyKey || brandKey) {
+      const matchKey = familyKey || brandKey;
+      const matchedParts = inventoryItems.filter((i) => !isService(i) && !isAccessory(i) && String(i?.name || "").toLowerCase().includes(matchKey));
+      const nonParts = byType.filter((i) => isService(i) || isAccessory(i));
+      suggestions = matchedParts.length + nonParts.length;
     } else {
       suggestions = byType.length;
     }
