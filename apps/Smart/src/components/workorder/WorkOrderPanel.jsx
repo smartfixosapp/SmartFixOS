@@ -1558,7 +1558,7 @@ export default function WorkOrderPanel({ orderId, onClose, onUpdate, onDelete, p
       return;
     }
 
-    console.log("[Email] 📨 Intentando enviar email para:", { newStatusId, previousStatusId, customerEmail: order?.customer_email });
+    // [Email] log removed for perf
     if (!order?.customer_email) {
       console.warn("[Email] ⚠️ No hay email de cliente. Saltando.");
       return;
