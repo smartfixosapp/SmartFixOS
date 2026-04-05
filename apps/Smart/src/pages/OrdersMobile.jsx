@@ -242,7 +242,7 @@ export default function OrdersMobile() {
                   isSelected
                     ? "bg-gradient-to-r from-cyan-600 to-emerald-600 text-white scale-105"
                     : status.id === "pending_order"
-                    ? "bg-gradient-to-r from-red-600 to-red-800 text-white animate-pulse"
+                    ? "bg-gradient-to-r from-red-600 to-red-800 text-white"
                     : `${status.colorClasses} border`
                 }`}
               >

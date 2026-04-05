@@ -1579,7 +1579,7 @@ export default function WorkOrderPanel({ orderId, onClose, onUpdate, onDelete, p
           initial_problem: order.initial_problem || ""
         }
       });
-      console.log("[Email] ✅ Resultado de /api/send-email:", result);
+      // log removed for perf
       if (result?.success === false) {
         throw new Error(result?.message || "No hay plantilla activa para este estado");
       }
@@ -1937,7 +1937,7 @@ export default function WorkOrderPanel({ orderId, onClose, onUpdate, onDelete, p
       try {
         const fresh = await base44.entities.Order.get(orderId);
         if (fresh && fresh.updated_date !== order?.updated_date) {
-          console.log("[WO] Auto-refresh detectó cambios");
+          // log removed for perf
           setOrder(fresh);
           setStatus(normalizeStatusId(fresh?.status));
           clearEventCache(orderId);
@@ -2131,7 +2131,7 @@ export default function WorkOrderPanel({ orderId, onClose, onUpdate, onDelete, p
     const nextId = normalizeStatusId(newStatusRaw);
     const prevStatusId = getEffectiveOrderStatus(order || { status });
 
-    console.log("[ChangeStatus] Iniciando cambio:", prevStatusId, "→", nextId);
+    // log removed for perf
 
     // Bloquear avance desde intake/received si no hay al menos 1 foto
     // Solo aplica si el plan permite fotos (orders_photos)
@@ -2200,7 +2200,7 @@ export default function WorkOrderPanel({ orderId, onClose, onUpdate, onDelete, p
           ? Math.max(0, Number(order.balance_due || 0))
           : Math.max(0, total - totalPaid);
 
-      console.log("[ChangeStatus] Verificando balance para 'delivered' status:", { total, totalPaid, balance });
+      // log removed for perf
 
       if (balance > 0.01) {
         // ✅ Crear div temporal para alert con z-index máximo
@@ -2287,7 +2287,7 @@ export default function WorkOrderPanel({ orderId, onClose, onUpdate, onDelete, p
         });
         updateData.status_history = history;
 
-        console.log("[ChangeStatus] Actualizando orden en DB...");
+        // log removed for perf
         await base44.entities.Order.update(order.id, updateData);
 
         const optimisticOrder = {
@@ -2312,7 +2312,7 @@ export default function WorkOrderPanel({ orderId, onClose, onUpdate, onDelete, p
         }));
         onUpdate?.(optimisticOrder);
 
-        console.log("[ChangeStatus] Creando evento...");
+        // log removed for perf
         await base44.entities.WorkOrderEvent.create({
           order_id: order.id,
           order_number: order.order_number,
@@ -2332,7 +2332,7 @@ export default function WorkOrderPanel({ orderId, onClose, onUpdate, onDelete, p
             newStatus: nextId,
             previousStatus: prevStatusId
           });
-          console.log("[ChangeStatus] Contadores inicializados");
+          // log removed for perf
         } catch (counterError) {
           console.error("[ChangeStatus] Error inicializando contadores:", counterError);
         }
@@ -2433,7 +2433,7 @@ export default function WorkOrderPanel({ orderId, onClose, onUpdate, onDelete, p
 
         setShowStatusModal(false);
 
-        console.log("[ChangeStatus] ✅ Cambio de estado completado");
+        // log removed for perf
 
       } catch (err) {
         console.error("[ChangeStatus] ❌ Error:", err);
