@@ -10,7 +10,7 @@ export default function WorkOrderUnifiedHub({
   order,
   onUpdate,
   title = "Centro de Historial",
-  subtitle = "Historial, fotos y seguridad reunidos en un solo lugar",
+  subtitle: subtitleProp,
   accent = "cyan",
   openTab = null
 }) {
