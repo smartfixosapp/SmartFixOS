@@ -39,6 +39,7 @@ export default function PendingOrderStage({ order, onUpdate, user, onOrderItemsU
 
   return (
     <div className="space-y-6">
+      {!compact && (
       <section className="relative overflow-hidden rounded-[30px] border border-yellow-500/15 bg-[radial-gradient(circle_at_top_left,rgba(250,204,21,0.16),transparent_28%),radial-gradient(circle_at_bottom_right,rgba(249,115,22,0.14),transparent_30%),linear-gradient(135deg,rgba(34,24,8,0.98),rgba(22,16,10,0.96))] p-5 shadow-[0_22px_70px_rgba(0,0,0,0.35)] sm:p-6">
         <div className="absolute inset-0 bg-[linear-gradient(120deg,transparent,rgba(255,255,255,0.03),transparent)]" />
         <div className="relative z-10 grid gap-5 xl:grid-cols-[1.2fr_0.8fr] xl:items-start">
@@ -143,19 +144,24 @@ export default function PendingOrderStage({ order, onUpdate, user, onOrderItemsU
           );
         })()}
       </section>
+      )}
 
-      <SharedItemsSection
-        order={order}
-        onUpdate={onUpdate}
-        onOrderItemsUpdate={onOrderItemsUpdate}
-        onRemoteSaved={onRemoteSaved}
-        onPaymentClick={onPaymentClick}
-        accentColor="yellow"
-        subtitle="Centraliza costos, añade piezas y mantén el total visible antes de avanzar la orden."
-      />
+      {!compact && (
+        <SharedItemsSection
+          order={order}
+          onUpdate={onUpdate}
+          onOrderItemsUpdate={onOrderItemsUpdate}
+          onRemoteSaved={onRemoteSaved}
+          onPaymentClick={onPaymentClick}
+          accentColor="yellow"
+          subtitle="Centraliza costos, añade piezas y mantén el total visible antes de avanzar la orden."
+        />
+      )}
 
       {/* Modules Grid */}
-      <WorkOrderUnifiedHub order={order} onUpdate={onUpdate} accent="amber" title="Centro de Historial" subtitle="Compras, links, seguridad, fotos y notas agrupadas en un mismo centro." />
+      {!compact && (
+        <WorkOrderUnifiedHub order={order} onUpdate={onUpdate} accent="amber" title="Centro de Historial" subtitle="Compras, links, seguridad, fotos y notas agrupadas en un mismo centro." />
+      )}
 
       <OrderLinksDialog
         order={order}
