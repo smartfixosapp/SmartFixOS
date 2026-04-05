@@ -303,7 +303,7 @@ export default function WorkOrderTimeline({ order, onUpdate, hideComposer = fals
       </CardHeader>
 
       <CardContent className="space-y-5 p-5">
-        {(order?.initial_problem || order?.comments) && (
+        {!hideProblem && (order?.initial_problem || order?.comments) && (
           <div className="rounded-[22px] border border-orange-500/20 bg-[linear-gradient(135deg,rgba(249,115,22,0.10),rgba(255,255,255,0.02))] p-5 shadow-[inset_0_1px_0_rgba(255,255,255,0.02)]">
             <div className="mb-2 flex items-center justify-between gap-3">
               <p className="text-xs font-bold uppercase tracking-[0.24em] text-orange-200/70">Problema reportado</p>
