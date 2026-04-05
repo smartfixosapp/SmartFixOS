@@ -11,6 +11,8 @@ import { cn } from "@/lib/utils";
 const STAGE_ACTIONS = {
   diagnosing: [
     { icon: ClipboardCheck, label: "Checklist", action: "checklist" },
+    { icon: Link2, label: "Añadir link", action: "links" },
+    { icon: Send, label: "Cotización", action: "quote" },
   ],
   waiting_parts: [
     { icon: Package, label: "Tracking", action: "tracking" },
