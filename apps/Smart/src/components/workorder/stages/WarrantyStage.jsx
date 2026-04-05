@@ -47,6 +47,7 @@ export default function WarrantyStage({
   onOrderItemsUpdate,
   onRemoteSaved,
   onClose,
+  compact,
 }) {
   const o = order || {};
   const photoInputRef = useRef(null);
