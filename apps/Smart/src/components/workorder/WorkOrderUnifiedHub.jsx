@@ -123,6 +123,7 @@ export default function WorkOrderUnifiedHub({
             <ChevronDown className={`h-4 w-4 transition-transform ${activeTab === "timeline" ? "rotate-180" : ""}`} />
           </button>
 
+          {hasPhotos && (
           <button
             type="button"
             onClick={() => setActiveTab(activeTab === "photos" ? null : "photos")}
@@ -141,6 +142,7 @@ export default function WorkOrderUnifiedHub({
             </div>
             <ChevronDown className={`h-4 w-4 transition-transform ${activeTab === "photos" ? "rotate-180" : ""}`} />
           </button>
+          )}
 
           <button
             type="button"
