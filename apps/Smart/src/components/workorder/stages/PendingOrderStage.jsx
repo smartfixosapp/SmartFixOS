@@ -146,6 +146,42 @@ export default function PendingOrderStage({ order, onUpdate, user, onOrderItemsU
       </section>
       )}
 
+      {/* ── COMPACT: Quick actions toolbar ─────────────────────────────────── */}
+      {compact && (
+        <div className="rounded-[22px] border border-yellow-500/15 bg-black/25 p-4 space-y-3">
+          <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-white/35">Acciones rápidas</p>
+          <div className="flex flex-wrap gap-2">
+            <Button
+              onClick={() => setActiveModal("links")}
+              size="sm"
+              className="rounded-xl border border-yellow-500/25 bg-yellow-500/10 px-3 text-yellow-200 hover:bg-yellow-500/20"
+            >
+              <LinkIcon className="w-3.5 h-3.5 mr-1.5" />
+              Links {links.length > 0 ? `(${links.length})` : ""}
+            </Button>
+            <Button
+              onClick={() => setShowCatalog(true)}
+              size="sm"
+              className="rounded-xl bg-yellow-500 px-3 text-black hover:bg-yellow-400"
+            >
+              <ShoppingCart className="w-3.5 h-3.5 mr-1.5" />
+              Piezas y Servicios
+            </Button>
+          </div>
+          {links.length > 0 && (
+            <div className="flex flex-wrap gap-1">
+              {links.slice(0, 4).map((link, i) => (
+                <a key={i} href={link.url} target="_blank" rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1 rounded-lg border border-yellow-400/20 bg-yellow-500/10 px-2 py-0.5 text-[10px] font-semibold text-yellow-300 hover:bg-yellow-500/20 truncate max-w-[180px]">
+                  <ExternalLink className="w-2.5 h-2.5 flex-shrink-0" />
+                  {link.partName || (() => { try { return new URL(link.url).hostname.replace("www.", ""); } catch { return "Link"; } })()}
+                </a>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+
       {!compact && (
         <SharedItemsSection
           order={order}
