@@ -9,7 +9,7 @@ import OrderMultimedia from "@/components/workorder/sections/OrderMultimedia";
 import WorkOrderTimeline from "@/components/orders/workorder/WorkOrderTimeline";
 import WorkOrderUnifiedHub from "@/components/workorder/WorkOrderUnifiedHub";
 
-export default function ExternalRepairStage({ order, onUpdate }) {
+export default function ExternalRepairStage({ order, onUpdate, compact }) {
   const o = order || {};
   const [activeModal, setActiveModal] = useState(null);
   const [showCatalog, setShowCatalog] = useState(false);
