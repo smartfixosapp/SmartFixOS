@@ -45,7 +45,7 @@ function getTrackingUrl(trackingNumber, carrier) {
   return `https://www.google.com/search?q=${encodeURIComponent(t + " tracking")}`;
 }
 
-export default function WaitingPartsStage({ order, onUpdate, onOrderItemsUpdate, onRemoteSaved, onPaymentClick }) {
+export default function WaitingPartsStage({ order, onUpdate, onOrderItemsUpdate, onRemoteSaved, onPaymentClick, compact }) {
   const o = order || {};
   const location = o.device_location || "taller";
 
