@@ -163,7 +163,7 @@ export default function PendingOrderStage({ order, onUpdate, user, onOrderItemsU
               onClick={() => setActiveModal("links")}
               size="sm"
               variant="outline"
-              className="rounded-xl border-white/15 text-white/70 hover:bg-white/10"
+              className="rounded-xl border-white/15 bg-white/10 text-white hover:bg-white/20"
             >
               <Package className="w-3.5 h-3.5 mr-1.5" />
               Gestionar
