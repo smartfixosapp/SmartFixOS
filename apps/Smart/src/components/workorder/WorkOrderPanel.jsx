@@ -2632,6 +2632,28 @@ export default function WorkOrderPanel({ orderId, onClose, onUpdate, onDelete, p
 
 
 
+  // ── Stage content renderer (used by new 3-column layout) ──
+  const stageUpdateCb = async () => { await clearEventCache(o?.id); await loadEventsCallback(true); await handleRefresh(); onUpdate?.(); };
+  const stageRemoteSavedCb = async () => { await new Promise((r) => setTimeout(r, 1500)); await handleRefresh(); };
+
+  function renderStageContent() {
+    if (!o?.id) return null;
+    const sp = { order: o, onUpdate: stageUpdateCb, onOrderItemsUpdate: handleOrderItemsSaved, onPaymentClick: handlePaymentClick, onRemoteSaved: stageRemoteSavedCb, compact: true };
+    if (status === "intake" || status === "waiting_order") return <IntakeStage {...sp} />;
+    if (status === "diagnosing") return <DiagnosingStage {...sp} />;
+    if (status === "pending_order") return <PendingOrderStage {...sp} />;
+    if (status === "waiting_parts") return <WaitingPartsStage {...sp} />;
+    if (status === "part_arrived_waiting_device") return <PartArrivedStage {...sp} />;
+    if (status === "reparacion_externa") return <ExternalRepairStage {...sp} />;
+    if (status === "in_progress") return <RepairStage {...sp} />;
+    if (status === "warranty") return <WarrantyStage {...sp} onClose={handleClose} />;
+    if (status === "ready_for_pickup") return <DeliveryStage {...sp} onClose={handleClose} />;
+    if (status === "picked_up" || status === "delivered" || status === "completed") return <FinalizedStage {...sp} />;
+    if (status === "cancelled") return <CancelledStage {...sp} />;
+    if (status === "awaiting_approval") return <AwaitingApprovalStage {...sp} />;
+    return null;
+  }
+
   const eventStyle = (type) => {
     const t = String(type || "").toLowerCase();
     if (t === "note" || t === "note_added") return { pill: "bg-cyan-500/20 text-cyan-200 border-cyan-500/30 theme-light:bg-cyan-100 theme-light:text-cyan-700 theme-light:border-cyan-300", box: "border-cyan-500/30 bg-cyan-500/10 theme-light:border-cyan-200 theme-light:bg-cyan-50" };
