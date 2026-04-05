@@ -56,13 +56,17 @@ function notifyListeners() {
 
 function startPolling() {
   if (pollingInterval) return; // ya corriendo
-  pollingInterval = setInterval(() => checkCashRegisterStatus(), 30_000);
 
-  // Refresh cuando app vuelve al frente (iOS background → foreground)
+  // Only poll when tab is visible to save energy
+  const startIv = () => { if (!pollingInterval) pollingInterval = setInterval(() => checkCashRegisterStatus(), 60_000); };
+  const stopIv = () => { if (pollingInterval) { clearInterval(pollingInterval); pollingInterval = null; } };
+
   visibilityHandler = () => {
-    if (document.visibilityState === "visible") checkCashRegisterStatus();
+    if (document.visibilityState === "visible") { startIv(); checkCashRegisterStatus(); }
+    else stopIv();
   };
   document.addEventListener("visibilitychange", visibilityHandler);
+  if (!document.hidden) startIv();
 }
 
 function stopPolling() {
