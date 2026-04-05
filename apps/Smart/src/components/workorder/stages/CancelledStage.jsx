@@ -39,6 +39,7 @@ export default function CancelledStage({ order, onUpdate, compact }) {
   return (
     <div className="space-y-6">
       {/* ── Hero ── */}
+      {!compact && (
       <section className="relative overflow-hidden rounded-[30px] border border-red-500/15 bg-[radial-gradient(circle_at_top_left,rgba(239,68,68,0.14),transparent_28%),radial-gradient(circle_at_bottom_right,rgba(249,115,22,0.10),transparent_30%),linear-gradient(135deg,rgba(24,8,8,0.98),rgba(20,10,10,0.96))] p-5 shadow-[0_22px_70px_rgba(0,0,0,0.35)] sm:p-6">
         <div className="absolute inset-0 bg-[linear-gradient(120deg,transparent,rgba(255,255,255,0.025),transparent)]" />
         <div className="relative z-10 grid gap-5 xl:grid-cols-[1.2fr_0.8fr] xl:items-start">
@@ -125,6 +126,20 @@ export default function CancelledStage({ order, onUpdate, compact }) {
           );
         })()}
       </section>
+      )}
+
+      {/* ── Cancellation reason (compact) ── */}
+      {compact && (
+        <div className="rounded-[22px] border border-red-500/20 bg-red-500/5 p-4">
+          <div className="flex items-start gap-2">
+            <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-red-400" />
+            <div>
+              <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-white/35">Motivo de cancelación</p>
+              <p className="mt-1 text-sm font-semibold text-red-200 leading-relaxed">{cancelReason}</p>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* ── Piezas y Servicios ── */}
       <section className="relative overflow-hidden rounded-[30px] border border-red-500/15 bg-[radial-gradient(circle_at_top_left,rgba(239,68,68,0.08),transparent_24%),linear-gradient(180deg,rgba(24,24,27,0.98),rgba(10,10,12,0.98))] shadow-[0_22px_70px_rgba(0,0,0,0.35)]">
