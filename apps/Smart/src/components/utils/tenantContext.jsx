@@ -60,10 +60,10 @@ export function TenantProvider({ children }) {
       setIsSuperAdmin(superAdmin);
 
       if (superAdmin) {
-        // Super admin puede ver todos los tenants
         const tenants = await dataClient.entities.Tenant.filter({ status: "active" });
         if (tenants?.length) {
           setCurrentTenant(tenants[0]);
+          tenantRef.current = tenants[0];
         }
         setLoading(false);
         return;
