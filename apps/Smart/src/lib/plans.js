@@ -251,8 +251,13 @@ export function getPlan(planId) {
   };
 }
 
+// ── TEMPORARY: All plan restrictions disabled ──────────────────────
+// All features unlocked for all plans. Reverse when plan system is finalized.
+const PLAN_RESTRICTIONS_ENABLED = false;
+
 /** Check if a specific feature is enabled for a plan */
 export function canUsePlanFeature(planId, featureKey) {
+  if (!PLAN_RESTRICTIONS_ENABLED) return true; // bypass — unlock everything
   const id = normalizePlanId(planId);
   const features = PLAN_FEATURES[id];
   if (!features) return false;
@@ -261,6 +266,9 @@ export function canUsePlanFeature(planId, featureKey) {
 
 /** Check if a limit is exceeded. Returns { allowed: bool, current, max, upgradeNeeded } */
 export function checkPlanLimit(planId, limitKey, currentCount) {
+  if (!PLAN_RESTRICTIONS_ENABLED) {
+    return { allowed: true, current: currentCount, max: Infinity, upgradeNeeded: false };
+  }
   const id = normalizePlanId(planId);
   const limits = PLAN_LIMITS[id];
   if (!limits) return { allowed: false, current: currentCount, max: 0, upgradeNeeded: true };
