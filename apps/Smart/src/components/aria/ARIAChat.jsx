@@ -605,9 +605,9 @@ export default function ARIAChat() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isHidden]);
 
-  // Resumen proactivo al abrir JENAI (si hay alertas y chat vacío)
+  // Resumen proactivo al abrir JENAI (si hay alertas y chat vacío, NO cuando viene de orden)
   useEffect(() => {
-    if (!open || messages.length > 0 || proactiveCount === 0) return;
+    if (!open || messages.length > 0 || proactiveCount === 0 || forceOpen) return;
     const runProactive = async () => {
       try {
         const orders  = await dataClient.entities.Order.list("-updated_date", 150);
