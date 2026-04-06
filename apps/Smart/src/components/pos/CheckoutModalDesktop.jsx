@@ -159,7 +159,7 @@ export default function CheckoutModalDesktop({
               {enabledPaymentMethods.cash && (
                 <button
                   onClick={() => setPaymentMethod("cash")}
-                  className={`w-full p-5 rounded-[24px] border transition-all duration-300 flex items-center gap-5 group ${
+                  className={`w-full p-4 sm:p-5 rounded-[20px] sm:rounded-[24px] border transition-all duration-300 flex items-center gap-4 sm:gap-5 group ${
                     paymentMethod === "cash"
                       ? "bg-emerald-500/10 border-emerald-500/50 shadow-xl shadow-emerald-500/5 ring-1 ring-emerald-500/20"
                       : "bg-white/[0.03] border-white/10 hover:border-emerald-500/30 hover:bg-emerald-500/5"
@@ -189,7 +189,7 @@ export default function CheckoutModalDesktop({
               {enabledPaymentMethods.card && (
                 <button
                   onClick={() => setPaymentMethod("card")}
-                  className={`w-full p-5 rounded-[24px] border transition-all duration-300 flex items-center gap-5 group ${
+                  className={`w-full p-4 sm:p-5 rounded-[20px] sm:rounded-[24px] border transition-all duration-300 flex items-center gap-4 sm:gap-5 group ${
                     paymentMethod === "card"
                       ? "bg-blue-500/10 border-blue-500/50 shadow-xl shadow-blue-500/5 ring-1 ring-blue-500/20"
                       : "bg-white/[0.03] border-white/10 hover:border-blue-500/30 hover:bg-blue-500/5"
@@ -219,7 +219,7 @@ export default function CheckoutModalDesktop({
               {enabledPaymentMethods.ath_movil && (
                 <button
                   onClick={() => setPaymentMethod("ath_movil")}
-                  className={`w-full p-5 rounded-[24px] border transition-all duration-300 flex items-center gap-5 group ${
+                  className={`w-full p-4 sm:p-5 rounded-[20px] sm:rounded-[24px] border transition-all duration-300 flex items-center gap-4 sm:gap-5 group ${
                     paymentMethod === "ath_movil"
                       ? "bg-orange-500/10 border-orange-500/50 shadow-xl shadow-orange-500/5 ring-1 ring-orange-500/20"
                       : "bg-white/[0.03] border-white/10 hover:border-orange-500/30 hover:bg-orange-500/5"
@@ -249,7 +249,7 @@ export default function CheckoutModalDesktop({
               {enabledPaymentMethods.cash && enabledPaymentMethods.ath_movil && (
                 <button
                   onClick={() => setPaymentMethod("mixed")}
-                  className={`w-full p-5 rounded-[24px] border transition-all duration-300 flex items-center gap-5 group ${
+                  className={`w-full p-4 sm:p-5 rounded-[20px] sm:rounded-[24px] border transition-all duration-300 flex items-center gap-4 sm:gap-5 group ${
                     paymentMethod === "mixed"
                       ? "bg-purple-500/10 border-purple-500/50 shadow-xl shadow-purple-500/5 ring-1 ring-purple-500/20"
                       : "bg-white/[0.03] border-white/10 hover:border-purple-500/30 hover:bg-purple-500/5"
