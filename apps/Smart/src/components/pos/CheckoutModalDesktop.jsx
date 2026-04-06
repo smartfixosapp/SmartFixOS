@@ -381,9 +381,12 @@ export default function CheckoutModalDesktop({
                 } active:scale-[0.98]`}
               >
                 {processing ? <Loader2 className="w-6 h-6 animate-spin mr-3 inline" /> : null}
-                Finalizar Transacción
+                Finalizar Transaccion
               </Button>
             )}
+
+            {/* Safe area bottom padding for mobile */}
+            <div className="sm:hidden" style={{ height: "env(safe-area-inset-bottom, 20px)" }} />
           </div>
         </div>
       </div>
