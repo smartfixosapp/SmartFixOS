@@ -656,10 +656,13 @@ export default function ARIAChat() {
     return () => window.removeEventListener("smartfix:workorder-open", handler);
   }, []);
 
-  // Force-open JEANI from work order sidebar
+  // Force-open JEANI from work order sidebar (with order context)
+  const [orderContext, setOrderContext] = React.useState(null);
   React.useEffect(() => {
-    const forceHandler = () => {
+    const forceHandler = (e) => {
       console.log("[JEANI] Force-open from sidebar");
+      const orderData = e.detail?.order || null;
+      if (orderData) setOrderContext(orderData);
       setForceOpen(true);
       setOpen(true);
     };
