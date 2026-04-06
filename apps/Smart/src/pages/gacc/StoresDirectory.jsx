@@ -320,6 +320,71 @@ export default function StoresDirectory({ onSelectTenant }) {
   const [sortBy, setSortBy] = useState("recent");
   const [showFilters, setShowFilters] = useState(false);
   const [showInvite, setShowInvite] = useState(false);
+  const [selectedIds, setSelectedIds] = useState(new Set());
+  const [savedViews, setSavedViews] = useState(() => {
+    try { return JSON.parse(localStorage.getItem("gacc_saved_views") || "[]"); }
+    catch { return []; }
+  });
+  const [viewName, setViewName] = useState("");
+  const [showSaveView, setShowSaveView] = useState(false);
+
+  const toggleSelect = (id) => {
+    setSelectedIds(prev => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
+
+  const selectAll = () => {
+    if (selectedIds.size === filtered.length) setSelectedIds(new Set());
+    else setSelectedIds(new Set(filtered.map(t => t.id)));
+  };
+
+  const bulkAction = async (action) => {
+    const selected = tenants.filter(t => selectedIds.has(t.id));
+    if (selected.length === 0) return;
+    if (!confirm(`Ejecutar "${action}" en ${selected.length} tiendas?`)) return;
+
+    try {
+      for (const t of selected) {
+        try {
+          await appClient.functions.manageTenant({ tenantId: t.id, action });
+        } catch (e) { console.warn(`Error en ${t.name}:`, e.message); }
+      }
+      toast.success(`${action} ejecutado en ${selected.length} tiendas`);
+      setSelectedIds(new Set());
+      refresh();
+    } catch (e) {
+      toast.error("Error: " + e.message);
+    }
+  };
+
+  const saveView = () => {
+    if (!viewName.trim()) return;
+    const view = { name: viewName.trim(), search, statusFilter, planFilter, sortBy, id: Date.now().toString() };
+    const newViews = [...savedViews, view];
+    setSavedViews(newViews);
+    localStorage.setItem("gacc_saved_views", JSON.stringify(newViews));
+    setViewName("");
+    setShowSaveView(false);
+    toast.success(`Vista "${view.name}" guardada`);
+  };
+
+  const loadView = (view) => {
+    setSearch(view.search || "");
+    setStatusFilter(view.statusFilter || "all");
+    setPlanFilter(view.planFilter || "all");
+    setSortBy(view.sortBy || "recent");
+    toast.success(`Vista "${view.name}" aplicada`);
+  };
+
+  const deleteView = (id) => {
+    const newViews = savedViews.filter(v => v.id !== id);
+    setSavedViews(newViews);
+    localStorage.setItem("gacc_saved_views", JSON.stringify(newViews));
+  };
 
   // Filter + sort
   const filtered = useMemo(() => {
