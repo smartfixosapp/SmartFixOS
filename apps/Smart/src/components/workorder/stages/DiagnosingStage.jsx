@@ -817,8 +817,12 @@ export default function DiagnosingStage({ order, onUpdate, user, onOrderItemsUpd
         onLinkSaved={(nextOrder) => {
           if (nextOrder?.id === order?.id) {
             setLinkOrderPreview(nextOrder);
-            setOpenCatalogFromLink(true);
-            setShowCatalog(true);
+            // Propagate item changes upward so the WorkOrderPanel and financial summary refresh
+            if (Array.isArray(nextOrder.order_items)) {
+              onOrderItemsUpdate?.(nextOrder.order_items);
+            }
+            onUpdate?.();
+            toast.success("Link agregado como pieza — precio aplicado");
           }
         }}
         open={activeModal === "links"}
