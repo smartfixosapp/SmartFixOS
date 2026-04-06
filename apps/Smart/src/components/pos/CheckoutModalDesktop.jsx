@@ -41,6 +41,16 @@ export default function CheckoutModalDesktop({
   quickCashAmounts,
   orderTotal
 }) {
+  // Cash register status indicator
+  const [drawerOpen, setDrawerOpen] = useState(false);
+  useEffect(() => {
+    if (!open) return;
+    const unsub = subscribeToCashRegister((cache) => {
+      setDrawerOpen(!!cache?.isOpen);
+    });
+    return unsub;
+  }, [open]);
+
   if (!open) return null;
 
   const finalTotal = effectiveTotal || total || 0;
