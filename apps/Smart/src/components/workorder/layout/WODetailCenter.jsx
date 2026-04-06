@@ -284,23 +284,28 @@ export default function WODetailCenter({
 
         {/* Totals */}
         <div className="border-t border-white/[0.06] pt-2 space-y-1 text-xs">
-          <div className="flex justify-between text-white/40">
-            <span>Subtotal</span><span>${financial.subtotal.toFixed(2)}</span>
+          <div className="flex justify-between text-white/60">
+            <span>Subtotal</span><span className="font-semibold">${financial.subtotal.toFixed(2)}</span>
           </div>
-          <div className="flex justify-between text-white/40">
-            <span>IVU (11.5%)</span><span>${financial.tax.toFixed(2)}</span>
+          <div className="flex justify-between text-cyan-400/80">
+            <span>IVU (11.5%)</span><span className="font-semibold">+${financial.tax.toFixed(2)}</span>
           </div>
-          <div className="flex justify-between text-white font-bold text-sm pt-1">
-            <span>Total</span><span>${financial.total.toFixed(2)}</span>
+          <div className="flex justify-between text-white font-black text-base pt-2 border-t border-white/[0.06]">
+            <span>TOTAL</span><span>${financial.total.toFixed(2)}</span>
           </div>
           {financial.paid > 0 && (
-            <div className="flex justify-between text-emerald-400">
-              <span>Pagado</span><span>${financial.paid.toFixed(2)}</span>
+            <div className="flex justify-between text-emerald-400 pt-1">
+              <span>Pagado</span><span className="font-semibold">-${financial.paid.toFixed(2)}</span>
             </div>
           )}
           {financial.balance > 0.01 && (
-            <div className="flex justify-between text-red-400 font-bold">
-              <span>Balance</span><span>${financial.balance.toFixed(2)}</span>
+            <div className="flex justify-between text-red-400 font-black text-sm pt-1">
+              <span>BALANCE</span><span>${financial.balance.toFixed(2)}</span>
+            </div>
+          )}
+          {financial.balance <= 0.01 && financial.total > 0 && (
+            <div className="flex justify-center pt-1">
+              <span className="text-[10px] font-black uppercase tracking-widest text-emerald-400 bg-emerald-500/10 border border-emerald-500/30 rounded-full px-3 py-0.5">Saldado</span>
             </div>
           )}
         </div>
