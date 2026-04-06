@@ -892,20 +892,30 @@ export default function WorkOrderWizard({ open, onClose, onSuccess, preloadedCus
       const deviceInfo = [
         deviceBrand || "",
         deviceModel || "",
-      ].filter(Boolean).join(" ") || "dispositivo no especificado";
+      ].filter(Boolean).join(" ") || "dispositivo";
 
-      const systemPrompt = `Eres JENAI, asistente tecnica de SmartFixOS para talleres de reparacion.
-Responde SOLO en espanol, conciso y practico. Maximo 120 palabras.`;
+      const systemPrompt = `Eres un asistente profesional de un taller de reparación.
+Tu tarea: reescribir la queja del cliente en lenguaje técnico profesional para documentación del taller.
 
-      const prompt = `El cliente trae un ${deviceInfo} con este problema: "${problem}"
+REGLAS:
+- Máximo 2-3 oraciones.
+- Tono profesional, objetivo y legal.
+- Sin opiniones ni diagnósticos.
+- Cubre al taller de responsabilidades usando frases como "el cliente reporta", "el equipo fue recibido con", "de acuerdo a la información proporcionada por el cliente".
+- Si menciona mojado/agua: usa "exposición a líquido" o "daño por humedad".
+- Si menciona caída: usa "impacto físico" o "golpe".
+- Si menciona pantalla rota: usa "daño visible en pantalla".
+- NO inventes síntomas que el cliente no mencionó.
+- NO hagas diagnóstico ni sugieras causas.
+- Responde SOLO con el texto profesional reescrito, sin encabezados ni explicaciones.`;
 
-Responde con:
-1. **Causas probables** (2-3 causas mas comunes, una linea cada una)
-2. **Diagnostico sugerido** (pasos concretos para confirmar)
-3. **Piezas posibles** (que podria necesitar)`;
+      const prompt = `Dispositivo: ${deviceInfo}
+Cliente indica: "${problem}"
 
-      const text = await callJENAI(prompt, { maxTokens: 400, systemPrompt });
-      setAiDiagnosis(text);
+Reescribe en lenguaje profesional para documentación.`;
+
+      const text = await callJENAI(prompt, { maxTokens: 200, systemPrompt });
+      setAiDiagnosis((text || "").trim().replace(/^["']|["']$/g, ""));
     } catch (err) {
       setAiDiagnosis("No se pudo conectar con JENAI. Intenta de nuevo.");
     } finally {
