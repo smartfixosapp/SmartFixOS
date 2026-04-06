@@ -1474,7 +1474,11 @@ export default function Dashboard() {
           key="normal-wizard"
           open={showWorkOrderWizard}
           onClose={() => setShowWorkOrderWizard(false)}
-          onSuccess={() => loadFreshData()}
+          onSuccess={(createdOrder) => {
+            setShowWorkOrderWizard(false);
+            loadFreshData();
+            if (createdOrder?.id) setSelectedOrderId(createdOrder.id);
+          }}
         />
       )}
 
@@ -1483,7 +1487,11 @@ export default function Dashboard() {
           key="jenai-wizard"
           open={showJenaiWizard}
           onClose={() => setShowJenaiWizard(false)}
-          onSuccess={() => loadFreshData()}
+          onSuccess={(createdOrder) => {
+            setShowJenaiWizard(false);
+            loadFreshData();
+            if (createdOrder?.id) setSelectedOrderId(createdOrder.id);
+          }}
           startWithJenai
         />
       )}
