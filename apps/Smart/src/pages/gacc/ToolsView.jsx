@@ -745,6 +745,7 @@ export default function ToolsView() {
       {tab === "storage" && <StorageManager />}
       {tab === "flags" && <FeatureFlags />}
       {tab === "impersonate" && <ImpersonationTool />}
+      {tab === "backup" && <BackupTool />}
       {tab === "bulk" && <BulkActions />}
       {tab === "diagnostics" && <Diagnostics />}
       {tab === "adminlog" && <AdminActivityLog />}
