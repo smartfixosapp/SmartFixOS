@@ -56,7 +56,7 @@ const SORT_OPTIONS = [
 ];
 
 // ── Store Row ────────────────────────────────────────────────────────────────
-function StoreRow({ tenant, onSelect, onAction }) {
+function StoreRow({ tenant, onSelect, onAction, isSelected, onToggleSelect }) {
   const badge = getStatusBadge(tenant);
   const presence = presenceStatus(tenant.last_seen);
   const ac = activityColor(tenant.last_login);
