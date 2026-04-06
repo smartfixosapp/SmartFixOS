@@ -4327,14 +4327,19 @@ Reglas:
 
           {/* 📸 FOTOS */}
           {!quickOrderMode && !inJenaiInput && (!isCompactDevice || mobileStep === 7) && (
-          <div className="bg-white/[0.03] border border-white/[0.08] rounded-[28px] p-6 space-y-5 backdrop-blur-xl shadow-[0_8px_32px_rgba(0,0,0,0.2)] relative overflow-hidden lg:col-span-4 transition-all hover:bg-white/[0.05] group">
+          <div className="bg-white/[0.03] border border-white/[0.08] rounded-[28px] p-4 sm:p-6 space-y-3 sm:space-y-5 backdrop-blur-xl shadow-[0_8px_32px_rgba(0,0,0,0.2)] relative overflow-hidden lg:col-span-4 transition-all hover:bg-white/[0.05] group">
             <div className="absolute -right-20 -bottom-20 w-40 h-40 bg-pink-500/5 rounded-full blur-[80px] group-hover:bg-pink-500/10 transition-colors duration-700" />
-            <h3 className="text-white font-black text-lg flex items-center gap-3 relative z-10 uppercase tracking-tight">
-              <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-pink-400 to-rose-600 flex items-center justify-center shadow-lg">
-                <Camera className="w-5 h-5 text-white" strokeWidth={2.5} />
-              </div>
-              Evidencia
-            </h3>
+            <div className="flex items-center justify-between">
+              <h3 className="text-white font-black text-base sm:text-lg flex items-center gap-3 relative z-10 uppercase tracking-tight">
+                <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-gradient-to-br from-pink-400 to-rose-600 flex items-center justify-center shadow-lg">
+                  <Camera className="w-4 h-4 sm:w-5 sm:h-5 text-white" strokeWidth={2.5} />
+                </div>
+                Evidencia
+              </h3>
+              {photos.length > 0 && (
+                <span className="text-[10px] text-pink-300 bg-pink-500/10 px-2 py-0.5 rounded-full font-bold">{photos.length} fotos</span>
+              )}
+            </div>
 
             <input
               ref={cameraInputRef}
@@ -4355,39 +4360,38 @@ Reglas:
             />
 
             <div className="flex gap-2">
-              <Button
+              <button
                 type="button"
                 onClick={() => cameraInputRef.current?.click()}
-                className="flex-1 bg-gradient-to-r from-pink-600 to-rose-600"
+                className="flex-1 h-11 bg-gradient-to-r from-pink-600 to-rose-600 rounded-xl flex items-center justify-center gap-2 text-white text-sm font-bold active:scale-95 transition-all"
               >
-                <Camera className="w-4 h-4 mr-2" />
-                Tomar Foto
-              </Button>
-              <Button
+                <Camera className="w-4 h-4" />
+                Camara
+              </button>
+              <button
                 type="button"
                 onClick={() => fileInputRef.current?.click()}
-                variant="outline"
-                className="flex-1 border-white/20 text-gray-300"
+                className="flex-1 h-11 bg-white/[0.05] border border-white/10 rounded-xl flex items-center justify-center gap-2 text-white/60 text-sm font-bold active:scale-95 transition-all"
               >
-                📁 Subir
-              </Button>
+                Galeria
+              </button>
             </div>
 
             {photos.length > 0 && (
-              <div className="grid grid-cols-3 gap-2">
+              <div className="grid grid-cols-4 gap-1.5">
                 {photos.map((file, idx) => {
                   const url = file instanceof File ? URL.createObjectURL(file) : file.url || file.publicUrl;
                   return (
-                    <div key={idx} className="relative">
+                    <div key={idx} className="relative aspect-square">
                       <button
                         type="button"
                         onClick={() => setPreviewMedia(url)}
-                        className="block w-full"
+                        className="block w-full h-full"
                       >
                         <img
                           src={url}
                           alt={`foto-${idx}`}
-                          className="w-full h-20 object-cover rounded-lg"
+                          className="w-full h-full object-cover rounded-lg"
                         />
                       </button>
                       <button
