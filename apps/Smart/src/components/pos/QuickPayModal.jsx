@@ -142,15 +142,9 @@ export default function QuickPayModal({ order, paymentMode = "full", onClose, on
   const total = subtotal + tax;
 
   const totalPaid = toCurrencyNumber(order?.total_paid || order?.amount_paid || 0);
-  const orderTotal = toCurrencyNumber(order?.total ?? order?.grand_total ?? order?.total_amount ?? order?.cost_estimate ?? 0);
-  const orderBalance = Math.max(
-    0,
-    order?.balance_due != null && Number(order.balance_due) > 0
-      ? Number(order.balance_due)
-      : orderTotal - totalPaid > 0
-        ? orderTotal - totalPaid
-        : 0
-  );
+  // Use the recalculated total (with discounts) instead of stale order.total
+  const orderTotal = total;
+  const orderBalance = Math.max(0, orderTotal - totalPaid);
 
   const effectiveTotal = paymentMode === "deposit"
     ? Math.min(parseFloat(depositAmount) || 0, orderBalance)
