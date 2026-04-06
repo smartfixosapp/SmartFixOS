@@ -68,6 +68,7 @@ const corsHeaders = {
 const unwrappedRoutes = new Set([
   '/extract_file',
   '/ai/invoke',
+  '/ai/chat',
   '/ai/gemini-summary',
   '/ai/generate-image',
   '/sendEmailInternal',
