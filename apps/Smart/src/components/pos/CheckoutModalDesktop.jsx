@@ -68,9 +68,22 @@ export default function CheckoutModalDesktop({
             </div>
             <h3 className="text-xl sm:text-2xl font-black text-white uppercase tracking-tight">Finalizar Cobro</h3>
           </div>
-          <button onClick={onClose} className="w-10 h-10 rounded-full bg-white/5 hover:bg-white/10 text-zinc-500 hover:text-white transition-all flex items-center justify-center">
-            <X className="w-6 h-6" />
-          </button>
+          <div className="flex items-center gap-2">
+            {/* Cash register status indicator */}
+            <div
+              title={drawerOpen ? "Caja abierta" : "Caja cerrada — abre la caja para cobrar"}
+              className={`w-10 h-10 rounded-full flex items-center justify-center transition-all ${
+                drawerOpen
+                  ? "bg-emerald-500/15 text-emerald-400 shadow-[0_0_12px_rgba(16,185,129,0.4)]"
+                  : "bg-red-500/15 text-red-400 animate-pulse"
+              }`}
+            >
+              <Lightbulb className="w-5 h-5" />
+            </div>
+            <button onClick={onClose} className="w-10 h-10 rounded-full bg-white/5 hover:bg-white/10 text-zinc-500 hover:text-white transition-all flex items-center justify-center">
+              <X className="w-6 h-6" />
+            </button>
+          </div>
         </div>
 
         {/* Content: single scroll on mobile, two columns on desktop */}
