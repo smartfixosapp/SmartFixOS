@@ -368,7 +368,9 @@ export default function Dashboard() {
       }
     };
     runSmartChecks();
-    const interval = setInterval(runSmartChecks, 6 * 60 * 60 * 1000);
+    const interval = setInterval(() => {
+      if (document.visibilityState === "visible") runSmartChecks();
+    }, 6 * 60 * 60 * 1000);
     return () => clearInterval(interval);
   }, []);
 
