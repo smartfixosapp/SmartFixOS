@@ -1240,7 +1240,7 @@ pregunta inmediatamente al usuario por el primer campo que falta.
         .map(m => ({ role: m.role, content: m.content }));
 
       // ── Try server proxy first (avoids Safari CORS/energy issues) ────────
-      const FUNCTIONS_URL = import.meta.env.VITE_FUNCTIONS_URL || `${window.location.protocol}//${window.location.hostname}:8686`;
+      const FUNCTIONS_URL = import.meta.env.VITE_FUNCTION_URL || import.meta.env.VITE_API_URL || `${window.location.protocol}//${window.location.hostname}:8686`;
       let serverOk = false;
       try {
         const proxyRes = await fetch(`${FUNCTIONS_URL}/ai/chat`, {
