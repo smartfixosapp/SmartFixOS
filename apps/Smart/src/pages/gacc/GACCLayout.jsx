@@ -10,7 +10,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import {
   Shield, LayoutDashboard, Building2, DollarSign, Activity,
   HeadphonesIcon, Lock, Wrench, LogOut, ChevronLeft, ChevronRight,
-  Timer, Search, Command, Bell, Menu, X
+  Timer, Search, Command, Bell, Menu, X, TrendingUp, Sparkles
 } from "lucide-react";
 
 // ── Auth ─────────────────────────────────────────────────────────────────────
