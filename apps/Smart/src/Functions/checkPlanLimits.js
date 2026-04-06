@@ -67,6 +67,10 @@ function normalizePlan(raw) {
   return map[n] || n || 'starter';
 }
 
+// TEMPORARY: All plan restrictions disabled at the backend level too.
+// Every feature and limit check returns allowed:true. Revert when plan system is finalized.
+const PLAN_RESTRICTIONS_ENABLED = false;
+
 export async function checkPlanLimitsHandler(req) {
   if (req.method === 'OPTIONS') {
     return new Response(null, {
@@ -76,6 +80,24 @@ export async function checkPlanLimitsHandler(req) {
         'Access-Control-Allow-Headers': 'Content-Type, Authorization',
       }
     });
+  }
+
+  // Short-circuit: restrictions disabled globally
+  if (!PLAN_RESTRICTIONS_ENABLED) {
+    try {
+      const body = await req.json();
+      return Response.json({
+        allowed: true,
+        plan: 'business',
+        planLabel: 'Business',
+        max: -1,
+        current: body?.currentCount || 0,
+        upgradeNeeded: false,
+        upgradeTo: null,
+      });
+    } catch {
+      return Response.json({ allowed: true, plan: 'business', upgradeNeeded: false });
+    }
   }
 
   try {
@@ -91,7 +113,6 @@ export async function checkPlanLimitsHandler(req) {
       return Response.json({ allowed: false, error: 'tenantId, check, and key are required' }, { status: 400 });
     }
 
-    // Get tenant plan
     const tenant = await base44.asServiceRole.entities.Tenant.get(tenantId);
     if (!tenant) {
       return Response.json({ allowed: false, error: 'Tenant not found' }, { status: 404 });
@@ -100,7 +121,6 @@ export async function checkPlanLimitsHandler(req) {
     const planId = normalizePlan(tenant.plan);
     const nextPlanId = UPGRADE_MAP[planId];
 
-    // ── Feature check ──
     if (check === 'feature') {
       const features = PLAN_FEATURES[planId] || PLAN_FEATURES.starter;
       const allowed = features[key] === true;
@@ -114,7 +134,6 @@ export async function checkPlanLimitsHandler(req) {
       });
     }
 
-    // ── Limit check ──
     if (check === 'limit') {
       const limits = PLAN_LIMITS[planId] || PLAN_LIMITS.starter;
       const max = limits[key];
@@ -123,7 +142,6 @@ export async function checkPlanLimitsHandler(req) {
         return Response.json({ allowed: false, error: `Unknown limit key: ${key}` }, { status: 400 });
       }
 
-      // -1 = unlimited
       if (max === -1) {
         return Response.json({ allowed: true, plan: planId, max: -1, current: currentCount || 0, upgradeNeeded: false });
       }
