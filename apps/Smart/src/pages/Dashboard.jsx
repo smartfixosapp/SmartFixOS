@@ -374,13 +374,14 @@ export default function Dashboard() {
     return () => clearInterval(interval);
   }, []);
 
-  // Chequeo de sesión cada 5 segundos
+  // Chequeo de sesion cada 30s (solo si tab visible)
   useEffect(() => {
     const tick = () => {
+      if (document.hidden) return;
       const s = readSessionSync();
       setSession((prev) => (JSON.stringify(prev) !== JSON.stringify(s) ? s : prev));
     };
-    const iv = setInterval(tick, 30000);
+    const iv = setInterval(tick, 60000); // 60s en vez de 30s
     return () => clearInterval(iv);
   }, []);
 
