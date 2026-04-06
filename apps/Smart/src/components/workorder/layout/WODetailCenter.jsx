@@ -339,6 +339,16 @@ export default function WODetailCenter({
         }}
         onRemoteSaved={onRemoteSaved}
       />
+
+      {/* ── Photo Lightbox ── */}
+      {previewPhoto && (
+        <div className="fixed inset-0 z-[9999] bg-black/95 flex items-center justify-center p-4" onClick={() => setPreviewPhoto(null)}>
+          <button className="absolute top-4 right-4 w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center" onClick={() => setPreviewPhoto(null)}>
+            <X className="w-5 h-5" />
+          </button>
+          <img src={previewPhoto} alt="Vista previa" className="max-h-[90vh] max-w-[90vw] rounded-xl object-contain" onClick={e => e.stopPropagation()} />
+        </div>
+      )}
     </div>
   );
 }
