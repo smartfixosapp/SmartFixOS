@@ -217,36 +217,42 @@ export default function MobileAccionesTab({
 
             {/* Notify sub-options */}
             {action.id === "notify" && showNotifyOptions && (
-              <div className="ml-6 space-y-1 py-1">
+              <div className="rounded-xl border border-white/[0.06] bg-white/[0.02] overflow-hidden divide-y divide-white/[0.06]">
                 {phone && (
                   <button
                     onClick={() => handleNotify("whatsapp")}
-                    className="w-full flex items-center gap-3 px-4 py-3 rounded-xl border border-green-500/20 bg-green-500/5 hover:bg-green-500/10 active:scale-[0.98] transition-all"
+                    className="w-full flex items-center gap-4 px-4 py-3 hover:bg-green-500/5 active:scale-[0.98] transition-all"
                   >
-                    <MessageCircle className="w-4 h-4 text-green-400" />
+                    <div className="w-8 h-8 rounded-lg bg-green-500/10 flex items-center justify-center">
+                      <MessageCircle className="w-4 h-4 text-green-400" />
+                    </div>
                     <span className="text-sm font-medium text-green-300">WhatsApp</span>
                   </button>
                 )}
                 {o.customer_email && (
                   <button
                     onClick={() => handleNotify("email")}
-                    className="w-full flex items-center gap-3 px-4 py-3 rounded-xl border border-blue-500/20 bg-blue-500/5 hover:bg-blue-500/10 active:scale-[0.98] transition-all"
+                    className="w-full flex items-center gap-4 px-4 py-3 hover:bg-blue-500/5 active:scale-[0.98] transition-all"
                   >
-                    <Mail className="w-4 h-4 text-blue-400" />
+                    <div className="w-8 h-8 rounded-lg bg-blue-500/10 flex items-center justify-center">
+                      <Mail className="w-4 h-4 text-blue-400" />
+                    </div>
                     <span className="text-sm font-medium text-blue-300">Email</span>
                   </button>
                 )}
                 {phone && (
                   <button
                     onClick={() => handleNotify("sms")}
-                    className="w-full flex items-center gap-3 px-4 py-3 rounded-xl border border-amber-500/20 bg-amber-500/5 hover:bg-amber-500/10 active:scale-[0.98] transition-all"
+                    className="w-full flex items-center gap-4 px-4 py-3 hover:bg-amber-500/5 active:scale-[0.98] transition-all"
                   >
-                    <Smartphone className="w-4 h-4 text-amber-400" />
+                    <div className="w-8 h-8 rounded-lg bg-amber-500/10 flex items-center justify-center">
+                      <Smartphone className="w-4 h-4 text-amber-400" />
+                    </div>
                     <span className="text-sm font-medium text-amber-300">Mensaje de texto</span>
                   </button>
                 )}
                 {!phone && !o.customer_email && (
-                  <p className="text-xs text-white/30 px-4 py-2">Sin datos de contacto disponibles</p>
+                  <p className="text-xs text-white/30 px-4 py-3">Sin datos de contacto</p>
                 )}
               </div>
             )}
