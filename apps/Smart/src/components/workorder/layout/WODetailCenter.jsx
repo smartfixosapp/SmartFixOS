@@ -238,7 +238,9 @@ export default function WODetailCenter({
             </h4>
             <div className="flex gap-2 overflow-x-auto">
               {allPhotos.map((src, i) => (
-                <img key={`${src}-${i}`} src={src} alt={`Foto ${i + 1}`} className="h-14 w-14 rounded-lg object-cover border border-white/10 shrink-0" loading="lazy" />
+                <button key={`${src}-${i}`} type="button" onClick={() => setPreviewPhoto(src)} className="h-14 w-14 rounded-lg overflow-hidden border border-white/10 shrink-0 hover:scale-105 transition-transform active:scale-95">
+                  <img src={src} alt={`Foto ${i + 1}`} className="h-full w-full object-cover" loading="lazy" />
+                </button>
               ))}
             </div>
           </div>
