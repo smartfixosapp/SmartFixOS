@@ -586,7 +586,9 @@ export default function Dashboard() {
   }, []);
 
   useEffect(() => {
-    const interval = setInterval(loadUnreadNotifications, 30000);
+    const interval = setInterval(() => {
+      if (document.visibilityState === "visible") loadUnreadNotifications();
+    }, 60000);
     window.addEventListener('notification-created', loadUnreadNotifications);
     window.addEventListener('notification-read', loadUnreadNotifications);
     
