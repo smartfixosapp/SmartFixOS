@@ -4183,49 +4183,53 @@ Reglas:
 
           {/* 🔐 SEGURIDAD */}
           {!quickOrderMode && !inJenaiInput && (!isCompactDevice || mobileStep === 5) && (
-          <div className="bg-white/[0.03] border border-white/[0.08] rounded-[28px] p-6 space-y-5 backdrop-blur-xl shadow-[0_8px_32px_rgba(0,0,0,0.2)] relative overflow-hidden lg:col-span-4 transition-all hover:bg-white/[0.05] group">
+          <div className="bg-white/[0.03] border border-white/[0.08] rounded-[28px] p-4 sm:p-6 space-y-3 sm:space-y-5 backdrop-blur-xl shadow-[0_8px_32px_rgba(0,0,0,0.2)] relative overflow-hidden lg:col-span-4 transition-all hover:bg-white/[0.05] group">
             <div className="absolute -right-20 -top-20 w-40 h-40 bg-blue-500/5 rounded-full blur-[80px] group-hover:bg-blue-500/10 transition-colors duration-700" />
-            <h3 className="text-white font-black text-lg flex items-center gap-3 relative z-10 uppercase tracking-tight">
-              <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-blue-400 to-indigo-600 flex items-center justify-center shadow-lg">
-                <Shield className="w-5 h-5 text-white" strokeWidth={2.5} />
+            <h3 className="text-white font-black text-base sm:text-lg flex items-center gap-3 relative z-10 uppercase tracking-tight">
+              <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-gradient-to-br from-blue-400 to-indigo-600 flex items-center justify-center shadow-lg">
+                <Shield className="w-4 h-4 sm:w-5 sm:h-5 text-white" strokeWidth={2.5} />
               </div>
               Seguridad <span className="text-[10px] text-white/20 ml-1">(Opcional)</span>
             </h3>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div className="relative">
-                <label className="text-xs text-gray-300 mb-1 block">PIN (6 dígitos)</label>
+                <label className="text-[10px] font-bold text-white/40 uppercase tracking-wider mb-1 block">PIN numerico</label>
                 <input
                   value={devicePin}
                   onChange={(e) => setDevicePin(e.target.value.replace(/\D/g, '').slice(0, 6))}
                   type={showPin ? "text" : "password"}
-                  inputMode="text"
+                  inputMode="numeric"
+                  pattern="[0-9]*"
+                  autoComplete="off"
                   maxLength={6}
                   placeholder="123456"
-                  className="w-full bg-black/30 border border-white/10 rounded-lg px-3 py-2 pr-10 text-white text-sm"
+                  className="w-full bg-black/30 border border-white/10 rounded-xl px-3 py-3 pr-10 text-white text-lg font-bold tracking-widest"
                 />
                 <button
                   type="button"
                   onClick={() => setShowPin(!showPin)}
-                  className="absolute right-2 top-8 text-gray-400 hover:text-white"
+                  className="absolute right-3 top-9 text-gray-400 hover:text-white"
                 >
                   <Eye className="w-4 h-4" />
                 </button>
               </div>
 
               <div className="relative">
-                <label className="text-xs text-gray-300 mb-1 block">Password</label>
+                <label className="text-[10px] font-bold text-white/40 uppercase tracking-wider mb-1 block">Contrasena</label>
                 <input
                   value={devicePassword}
                   onChange={(e) => setDevicePassword(e.target.value)}
                   type={showPassword ? "text" : "password"}
-                  placeholder="MiPassword123"
-                  className="w-full bg-black/30 border border-white/10 rounded-lg px-3 py-2 pr-10 text-white text-sm"
+                  inputMode="text"
+                  autoComplete="off"
+                  placeholder="Contrasena del equipo"
+                  className="w-full bg-black/30 border border-white/10 rounded-xl px-3 py-3 pr-10 text-white text-sm"
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-2 top-8 text-gray-400 hover:text-white"
+                  className="absolute right-3 top-9 text-gray-400 hover:text-white"
                 >
                   <Eye className="w-4 h-4" />
                 </button>
@@ -4236,10 +4240,10 @@ Reglas:
               type="button"
               onClick={() => setPatternModalOpen(true)}
               variant="outline"
-              className="border-blue-500/30 text-blue-300 hover:bg-blue-600/20 w-full"
+              className="border-blue-500/30 text-blue-300 hover:bg-blue-600/20 w-full h-11 rounded-xl"
             >
               <Grid3X3 className="w-4 h-4 mr-2" />
-              {securityPattern?.path?.length ? `✓ Patrón (${securityPattern.path.length} puntos)` : "Capturar Patrón Android"}
+              {securityPattern?.path?.length ? `Patron (${securityPattern.path.length} puntos)` : "Capturar Patron"}
             </Button>
           </div>
           )}
