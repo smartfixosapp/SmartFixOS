@@ -58,7 +58,9 @@ function GACCInner() {
       case "command-center": return <CommandCenter />;
       case "stores": return <StoresDirectory onSelectTenant={handleSelectTenant} />;
       case "revenue": return <RevenueView />;
+      case "analytics": return <AnalyticsView />;
       case "operations": return <OperationsView />;
+      case "growth": return <GrowthView />;
       case "support": return <SupportView />;
       case "security": return <SecurityView />;
       case "tools": return <ToolsView />;
