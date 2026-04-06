@@ -1322,135 +1322,72 @@ export default function Dashboard() {
           </div>
 
           {/* === MÓVIL: PULSO === */}
-          <div className="md:hidden flex flex-col flex-1 min-h-0 gap-3">
-            {/* Header greeting */}
-            <div className="flex items-center justify-between px-2 pt-0 shrink-0">
-              <div className="flex flex-col">
-                <div className="flex items-center gap-2">
-                  <div className="w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse shadow-[0_0_8px_rgba(59,130,246,0.8)]" />
-                  <p className="text-[#8E8E93] text-[9px] font-black uppercase tracking-[0.25em]">SmartFix Pro</p>
-                </div>
-                <h2 className="text-3xl font-black text-white tracking-tighter mt-1">
-                  Hola, <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-indigo-400">{session?.userName?.split(' ')[0]}</span>
-                </h2>
-              </div>
-              <button onClick={() => setShowUserMenu(true)} className="w-12 h-12 rounded-2xl bg-white/[0.03] border border-white/[0.08] backdrop-blur-xl flex items-center justify-center shadow-lg active:scale-90 transition-all">
-                <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-blue-500 to-indigo-600 flex items-center justify-center text-xs font-black text-white shadow-inner">
-                  {session?.userName?.substring(0,2) || 'US'}
-                </div>
+          <div className="md:hidden flex flex-col flex-1 min-h-0 gap-2.5 overflow-y-auto" style={{ WebkitOverflowScrolling: "touch" }}>
+            {/* ── Header: greeting + avatar ── */}
+            <div className="flex items-center justify-between px-3 pt-1 shrink-0">
+              <h2 className="text-2xl font-black text-white tracking-tighter">
+                {(() => { const h = new Date().getHours(); return h < 12 ? "Buenos dias" : h < 18 ? "Buenas tardes" : "Buenas noches"; })()}, <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-blue-400">{session?.userName?.split(' ')[0]}</span>
+              </h2>
+              <button onClick={() => setShowUserMenu(true)} className="w-10 h-10 rounded-xl bg-gradient-to-tr from-blue-500 to-indigo-600 flex items-center justify-center text-xs font-black text-white active:scale-90 transition-all">
+                {session?.userName?.substring(0,2) || 'US'}
               </button>
             </div>
 
-            {/* Quick action bar */}
-            <div className="flex items-center gap-2 p-1.5 bg-white/[0.02] border border-white/[0.05] rounded-3xl backdrop-blur-2xl shrink-0">
-              <button onClick={handleCashButtonClick} className={cn("flex-1 h-12 rounded-2xl border flex items-center justify-center gap-2 transition-all active:scale-95", drawerOpen ? "bg-emerald-500/10 border-emerald-500/20 text-emerald-400" : "bg-red-500/10 border-red-500/20 text-red-400")}>
-                <Wallet className="w-5 h-5" strokeWidth={2.5} />
-                <span className="text-[10px] font-black uppercase tracking-widest">{drawerOpen ? "Caja Abierta" : "Caja Cerrada"}</span>
+            {/* ── Quick Actions: Nueva Orden (prominente) + Precios ── */}
+            <div className="flex gap-2 px-3 shrink-0">
+              <button onClick={() => setShowWorkOrderWizard(true)} className="flex-1 h-12 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-2xl flex items-center justify-center gap-2 active:scale-95 transition-all shadow-lg shadow-blue-500/20">
+                <ClipboardList className="w-5 h-5 text-white" />
+                <span className="text-sm font-black text-white">Nueva Orden</span>
               </button>
-              <PunchButton userId={session?.userId} userName={session?.userName} variant="mobile-icon" onPunchStatusChange={(status) => { if (status) showToast("👋 ¡Hola!", "Turno iniciado"); else showToast("👋 ¡Adiós!", "Turno finalizado"); }} />
+              <button onClick={() => { setShowPriceList(true); setPriceListSearch(""); }} className="h-12 px-4 bg-white/[0.05] border border-white/[0.08] rounded-2xl flex items-center justify-center gap-2 active:scale-95 transition-all">
+                <Search className="w-4 h-4 text-violet-400" />
+                <span className="text-xs font-bold text-white/60">Precios</span>
+              </button>
             </div>
 
-            {/* KPI chips — 3 compact */}
-            {(() => {
-              const fmt = (n) => `$${Number(n||0).toLocaleString("en-US",{maximumFractionDigits:0})}`;
-              const todayProfit = kpiIncome.today - kpiIncome.todayExpenses;
-              const goalPct = kpiDailyGoal > 0 ? Math.min(100, Math.round((kpiIncome.today / kpiDailyGoal) * 100)) : 0;
-              return (
-                <div className="grid grid-cols-2 gap-2 px-1 shrink-0">
-                  <button
-                    onClick={() => setFeedFilter(f => f === 'urgent' ? null : 'urgent')}
-                    className={cn("rounded-2xl border px-3 py-3 flex flex-col gap-1 transition-all active:scale-95", feedFilter === 'urgent' ? "border-indigo-400/50 bg-indigo-500/20 shadow-[0_0_16px_rgba(99,102,241,0.2)]" : "border-indigo-500/20 bg-indigo-500/10")}
-                  >
-                    <Wrench className="w-4 h-4 text-indigo-400" />
-                    <p className="text-lg font-black text-indigo-400 leading-tight">{kpiStats.active}</p>
-                    <p className="text-[9px] text-white/30 font-bold leading-tight">{feedFilter === 'urgent' ? 'filtrado ▾' : 'Órdenes Activas'}</p>
-                  </button>
-                  <button
-                    onClick={() => setFeedFilter(f => f === 'ready' ? null : 'ready')}
-                    className={cn("rounded-2xl border px-3 py-3 flex flex-col gap-1 transition-all active:scale-95", feedFilter === 'ready' ? "border-cyan-400/50 bg-cyan-500/20 shadow-[0_0_16px_rgba(6,182,212,0.2)]" : "border-cyan-500/20 bg-cyan-500/10")}
-                  >
-                    <PackageCheck className="w-4 h-4 text-cyan-400" />
-                    <p className="text-lg font-black text-cyan-400 leading-tight">{kpiStats.readyToPickup}</p>
-                    <p className="text-[9px] text-white/30 font-bold leading-tight">{feedFilter === 'ready' ? 'filtrado ▾' : 'Para recoger'}</p>
-                  </button>
-                  {/* Finance chip */}
-                  <button
-                    onClick={() => handleNavigate("Financial")}
-                    className="col-span-2 rounded-2xl border border-emerald-500/20 bg-gradient-to-r from-emerald-500/10 to-cyan-500/5 px-3 py-3 flex items-center gap-3 transition-all active:scale-95"
-                  >
-                    <div className="flex flex-col items-center gap-1 shrink-0">
-                      <TrendingUp className="w-4 h-4 text-emerald-400" />
-                      {!kpiIncome.loading && kpiIncome.todayExpenses > 0 && (
-                        <span className="text-[8px] font-black text-red-400/70">-${(kpiIncome.todayExpenses||0).toLocaleString("en-US",{maximumFractionDigits:0})}</span>
-                      )}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-[9px] text-white/25 font-black uppercase tracking-widest">Entró hoy</p>
-                      <p className="text-lg font-black text-emerald-400 leading-tight">
-                        {kpiIncome.loading ? "…" : `$${(kpiIncome.today||0).toLocaleString("en-US",{maximumFractionDigits:0})}`}
-                      </p>
-                    </div>
-                    {!kpiIncome.loading && (
-                      <svg viewBox="0 0 60 20" className="w-16 h-5 shrink-0" preserveAspectRatio="none">
-                        <defs>
-                          <linearGradient id="sparkGradMobile" x1="0%" y1="0%" x2="100%" y2="0%">
-                            <stop offset="0%" stopColor="#10b981" stopOpacity="0.2"/>
-                            <stop offset="100%" stopColor="#10b981" stopOpacity="1"/>
-                          </linearGradient>
-                        </defs>
-                        {(() => {
-                          const income = kpiIncome.today || 0;
-                          const expenses = kpiIncome.todayExpenses || 0;
-                          const max = Math.max(income, expenses, 1);
-                          const incPct = income / max;
-                          const endY = 18 - incPct * 16;
-                          return (
-                            <>
-                              <polyline
-                                points={`0,18 10,${18-incPct*3} 20,${18-incPct*7} 30,${18-incPct*10} 40,${18-incPct*13} 50,${18-incPct*15} 60,${endY}`}
-                                fill="none"
-                                stroke="url(#sparkGradMobile)"
-                                strokeWidth="2"
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                              />
-                              <circle cx="60" cy={endY} r="2" fill="#10b981" />
-                            </>
-                          );
-                        })()}
-                      </svg>
-                    )}
-                  </button>
-                </div>
-              );
-            })()}
+            {/* ── Status row: Caja + Punch ── */}
+            <div className="flex items-center gap-2 px-3 shrink-0">
+              <button onClick={handleCashButtonClick} className={cn("flex-1 h-10 rounded-xl border flex items-center justify-center gap-2 transition-all active:scale-95 text-xs font-bold", drawerOpen ? "bg-emerald-500/10 border-emerald-500/20 text-emerald-400" : "bg-red-500/10 border-red-500/20 text-red-400")}>
+                <Wallet className="w-4 h-4" />
+                {drawerOpen ? "Caja Abierta" : "Caja Cerrada"}
+              </button>
+              <PunchButton userId={session?.userId} userName={session?.userName} variant="mobile-icon" onPunchStatusChange={(status) => { if (status) showToast("Turno iniciado"); else showToast("Turno finalizado"); }} />
+            </div>
 
-            {/* Dashboard Ejecutivo (móvil — colapsable) */}
-            {(() => {
-              const [showExec, setShowExec] = React.useState(false);
-              return (
-                <div className="mx-1 shrink-0">
-                  <button onClick={() => setShowExec(v => !v)}
-                    className="w-full flex items-center justify-between px-4 py-2.5 rounded-2xl bg-white/[0.03] border border-white/[0.06] hover:bg-white/[0.06] transition-colors">
-                    <span className="text-[11px] font-black text-white/40 uppercase tracking-widest">📊 Dashboard Ejecutivo</span>
-                    <span className="text-white/30 text-xs">{showExec ? "▲" : "▼"}</span>
-                  </button>
-                  {showExec && (
-                    <div className="mt-2">
-                      <ExecutiveDashboard />
-                    </div>
-                  )}
-                </div>
-              );
-            })()}
+            {/* ── 3 Stats in row ── */}
+            <div className="grid grid-cols-3 gap-2 px-3 shrink-0">
+              <button
+                onClick={() => setFeedFilter(f => f === 'urgent' ? null : 'urgent')}
+                className={cn("rounded-xl border py-2.5 flex flex-col items-center gap-0.5 transition-all active:scale-95", feedFilter === 'urgent' ? "border-indigo-400/50 bg-indigo-500/15" : "border-white/[0.06] bg-white/[0.03]")}
+              >
+                <p className="text-xl font-black text-indigo-400">{kpiStats.active}</p>
+                <p className="text-[8px] text-white/30 font-bold">Activas</p>
+              </button>
+              <button
+                onClick={() => setFeedFilter(f => f === 'ready' ? null : 'ready')}
+                className={cn("rounded-xl border py-2.5 flex flex-col items-center gap-0.5 transition-all active:scale-95", feedFilter === 'ready' ? "border-cyan-400/50 bg-cyan-500/15" : "border-white/[0.06] bg-white/[0.03]")}
+              >
+                <p className="text-xl font-black text-cyan-400">{kpiStats.readyToPickup}</p>
+                <p className="text-[8px] text-white/30 font-bold">Recoger</p>
+              </button>
+              <button
+                onClick={() => handleNavigate("Financial")}
+                className="rounded-xl border border-white/[0.06] bg-white/[0.03] py-2.5 flex flex-col items-center gap-0.5 transition-all active:scale-95"
+              >
+                <p className="text-xl font-black text-emerald-400">
+                  {kpiIncome.loading ? "…" : `$${(kpiIncome.today||0).toLocaleString("en-US",{maximumFractionDigits:0})}`}
+                </p>
+                <p className="text-[8px] text-white/30 font-bold">Hoy</p>
+              </button>
+            </div>
 
-            {/* Priority Feed */}
-            <div className="bg-[#1C1C1E]/60 border border-white/[0.06] rounded-[28px] overflow-hidden mx-1 flex flex-col flex-1 min-h-0">
-              <div className="flex items-center justify-between px-4 py-3.5 border-b border-white/[0.05]">
+            {/* ── Atencion Requerida (feed) ── */}
+            <div className="bg-white/[0.02] border border-white/[0.06] rounded-2xl overflow-hidden mx-3 flex flex-col flex-1 min-h-0">
+              <div className="flex items-center justify-between px-3 py-2.5 border-b border-white/[0.05]">
                 <div className="flex items-center gap-2">
-                  <Bell className={cn("w-3.5 h-3.5 transition-colors", feedFilter ? "text-indigo-400" : "text-white/40")} />
-                  <span className="text-white font-black text-[11px] uppercase tracking-tight">
-                    {feedFilter === 'urgent' ? 'Órdenes urgentes' : feedFilter === 'ready' ? 'Para recoger' : 'Atención requerida'}
+                  <Bell className="w-3.5 h-3.5 text-white/30" />
+                  <span className="text-white font-bold text-xs">
+                    {feedFilter === 'urgent' ? 'Urgentes' : feedFilter === 'ready' ? 'Para recoger' : 'Atencion'}
                   </span>
                   {feedFilter && (
                     <button onClick={() => setFeedFilter(null)} className="w-4 h-4 rounded-full bg-white/10 flex items-center justify-center">
@@ -1459,92 +1396,69 @@ export default function Dashboard() {
                   )}
                 </div>
                 {(visibleFeedItems.length + pendingShiftTasks.length) > 0 && (
-                  <span className="w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-black text-white bg-red-500">
+                  <span className="min-w-[20px] h-5 rounded-full flex items-center justify-center text-[10px] font-black text-white bg-red-500 px-1.5">
                     {visibleFeedItems.length + pendingShiftTasks.length}
                   </span>
                 )}
               </div>
               <div className="flex-1 overflow-y-auto">
-
-                {/* Órdenes agrupadas por estado */}
+                {/* Feed items by group */}
                 {[
-                  { type: 'urgent', label: '🔴 Urgentes', items: visibleFeedItems.filter(i => i.type === 'urgent') },
-                  { type: 'ready',  label: '✅ Para Recoger', items: visibleFeedItems.filter(i => i.type === 'ready') },
-                  { type: 'intake', label: '📥 Diagnóstico', items: visibleFeedItems.filter(i => i.type === 'intake' || i.type === 'stale') },
-                  { type: 'parts',  label: '🛒 Piezas', items: visibleFeedItems.filter(i => i.type === 'parts') },
+                  { type: 'urgent', label: 'Urgentes', items: visibleFeedItems.filter(i => i.type === 'urgent') },
+                  { type: 'ready',  label: 'Para Recoger', items: visibleFeedItems.filter(i => i.type === 'ready') },
+                  { type: 'intake', label: 'Diagnostico', items: visibleFeedItems.filter(i => i.type === 'intake' || i.type === 'stale') },
+                  { type: 'parts',  label: 'Piezas', items: visibleFeedItems.filter(i => i.type === 'parts') },
                 ].filter(g => g.items.length > 0).map(group => (
                   <div key={group.type}>
-                    <div className="flex items-center gap-2 px-4 pt-2.5 pb-1">
-                      <span className="text-[8px] font-black text-white/20 uppercase tracking-[0.18em]">{group.label}</span>
-                      <div className="flex-1 h-px bg-white/[0.05]" />
-                      <span className="text-[8px] font-black text-white/20">{group.items.length}</span>
+                    <div className="flex items-center gap-2 px-3 pt-2 pb-1">
+                      <span className="text-[8px] font-bold text-white/20 uppercase tracking-wider">{group.label}</span>
+                      <div className="flex-1 h-px bg-white/[0.04]" />
+                      <span className="text-[8px] font-bold text-white/20">{group.items.length}</span>
                     </div>
                     {group.items.map(item => (
                       <button key={item.id} onClick={() => item.orderId ? handleOrderSelect(item.orderId) : null}
-                        className="w-full flex items-center gap-3 px-4 py-2.5 active:bg-white/[0.04] transition-colors text-left border-t border-white/[0.04] first:border-0">
-                        <div className={`w-1 h-6 rounded-full shrink-0 ${item.color === 'red' ? 'bg-red-500' : item.color === 'green' ? 'bg-emerald-500' : item.color === 'blue' ? 'bg-blue-500' : item.color === 'yellow' ? 'bg-yellow-500' : 'bg-orange-500'}`} />
-                        <div className={`w-7 h-7 rounded-xl flex items-center justify-center shrink-0 ${item.color === 'red' ? 'bg-red-500/10' : item.color === 'green' ? 'bg-emerald-500/10' : item.color === 'blue' ? 'bg-blue-500/10' : item.color === 'yellow' ? 'bg-yellow-500/10' : 'bg-orange-500/10'}`}>
-                          {item.type === 'urgent' && <AlertCircle className="w-3.5 h-3.5 text-red-400" />}
-                          {item.type === 'ready' && <PackageCheck className="w-3.5 h-3.5 text-emerald-400" />}
-                          {(item.type === 'intake' || item.type === 'stale') && <Search className="w-3.5 h-3.5 text-yellow-400" />}
-                          {item.type === 'parts' && <ShoppingCart className="w-3.5 h-3.5 text-orange-400" />}
-                        </div>
+                        className="w-full flex items-center gap-3 px-3 py-2 active:bg-white/[0.04] transition-colors text-left border-t border-white/[0.03] first:border-0">
+                        <div className={`w-1 h-5 rounded-full shrink-0 ${item.color === 'red' ? 'bg-red-500' : item.color === 'green' ? 'bg-emerald-500' : item.color === 'blue' ? 'bg-blue-500' : item.color === 'yellow' ? 'bg-yellow-500' : 'bg-orange-500'}`} />
                         <div className="flex-1 min-w-0">
-                          <p className="text-xs font-black text-white truncate">{item.title}</p>
-                          <p className="text-[10px] text-white/30 font-bold truncate">{item.sub}</p>
+                          <p className="text-xs font-bold text-white truncate">{item.title}</p>
+                          <p className="text-[10px] text-white/25 truncate">{item.sub}</p>
                         </div>
-                        <ChevronRight className="w-3.5 h-3.5 text-white/15 shrink-0" />
+                        <ChevronRight className="w-3 h-3 text-white/10 shrink-0" />
                       </button>
                     ))}
                   </div>
                 ))}
 
-                {/* ── TAREAS ─── */}
+                {/* Tareas */}
                 {pendingShiftTasks.length > 0 && (
                   <>
-                    <div className="flex items-center gap-2 px-4 pt-2.5 pb-1 mt-1">
-                      <span className="text-[8px] font-black text-white/20 uppercase tracking-[0.18em]">Tareas</span>
-                      <div className="flex-1 h-px bg-white/[0.05]" />
-                      <span className="text-[8px] font-black text-white/20">{pendingShiftTasks.length}</span>
+                    <div className="flex items-center gap-2 px-3 pt-2 pb-1">
+                      <span className="text-[8px] font-bold text-white/20 uppercase tracking-wider">Tareas</span>
+                      <div className="flex-1 h-px bg-white/[0.04]" />
                     </div>
                     {pendingShiftTasks.map(task => (
-                      <div key={task.id} className="flex items-center gap-3 px-4 py-2.5 border-t border-white/[0.04] first:border-0">
-                        <div className="w-1 h-6 rounded-full shrink-0 bg-indigo-500" />
-                        <div className={`w-7 h-7 rounded-xl flex items-center justify-center shrink-0 ${task.type === 'opening' ? 'bg-amber-500/10' : 'bg-indigo-500/10'}`}>
-                          {task.type === 'opening' ? <Sunrise className="w-3.5 h-3.5 text-amber-400" /> : <Sunset className="w-3.5 h-3.5 text-indigo-400" />}
-                        </div>
+                      <div key={task.id} className="flex items-center gap-3 px-3 py-2 border-t border-white/[0.03]">
+                        <div className="w-1 h-5 rounded-full shrink-0 bg-indigo-500" />
                         <div className="flex-1 min-w-0">
-                          <p className="text-xs font-black text-white truncate">{task.title}</p>
+                          <p className="text-xs font-bold text-white truncate">{task.title}</p>
                         </div>
                         <button onClick={() => handleCompleteTask(task)} disabled={completingTaskId === task.id}
-                          className={`w-7 h-7 rounded-full border flex items-center justify-center shrink-0 transition-all ${completingTaskId === task.id ? 'bg-emerald-500/20 border-emerald-500/30 animate-pulse' : 'bg-white/5 border-white/15 hover:bg-emerald-500/20 hover:border-emerald-500/40 hover:text-emerald-400'} text-white/30`}>
-                          <Check className="w-3.5 h-3.5" />
+                          className="w-6 h-6 rounded-full border border-white/15 bg-white/5 flex items-center justify-center shrink-0 text-white/30 active:bg-emerald-500/20">
+                          <Check className="w-3 h-3" />
                         </button>
                       </div>
                     ))}
                   </>
                 )}
 
-                {/* ── Estado vacío: todo al día ─── */}
-                {visibleFeedItems.length === 0 && lowStockProducts.length === 0 && pendingShiftTasks.length === 0 && (
-                  <div className="flex flex-col items-center justify-center py-8">
-                    <CheckCircle2 className="w-8 h-8 text-emerald-500/30 mb-2" />
-                    <p className="text-white/20 text-[10px] font-black uppercase tracking-widest">Todo en orden</p>
+                {/* Vacio */}
+                {visibleFeedItems.length === 0 && pendingShiftTasks.length === 0 && (
+                  <div className="flex flex-col items-center justify-center py-10">
+                    <CheckCircle2 className="w-8 h-8 text-emerald-500/20 mb-2" />
+                    <p className="text-white/15 text-[10px] font-bold uppercase tracking-widest">Todo en orden</p>
                   </div>
                 )}
               </div>
-            </div>
-
-            {/* Quick Nav */}
-            <div className="grid grid-cols-2 gap-2 px-1 pb-2 shrink-0">
-              <button onClick={() => setShowWorkOrderWizard(true)} className="flex flex-col items-center justify-center gap-1.5 py-4 bg-blue-500/10 border border-blue-500/20 rounded-[20px] active:scale-95 transition-all">
-                <ClipboardList className="w-5 h-5 text-blue-400" />
-                <span className="text-[9px] font-black text-blue-400/80 uppercase tracking-tight">Nueva Orden</span>
-              </button>
-              <button onClick={() => { setShowPriceList(true); setPriceListSearch(""); }} className="flex flex-col items-center justify-center gap-1.5 py-4 bg-violet-500/10 border border-violet-500/20 rounded-[20px] active:scale-95 transition-all">
-                <Search className="w-5 h-5 text-violet-400" />
-                <span className="text-[9px] font-black text-violet-400/80 uppercase tracking-tight">Lista Precios</span>
-              </button>
             </div>
           </div>
 
