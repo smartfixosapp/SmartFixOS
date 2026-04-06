@@ -122,12 +122,22 @@ export default function QuickPayModal({ order, paymentMode = "full", onClose, on
       quantity: item.qty || item.quantity || 1,
       type: item.type || "product",
       taxable: item.taxable !== false,
+      discount_percentage: toCurrencyNumber(item.discount_percentage || item.discount_percent || 0),
     }));
   }, [order]);
 
-  // ── Totales ───────────────────────────────────────────────────────────────
-  const subtotal = cart.reduce((s, i) => s + toCurrencyNumber(i.price) * toCurrencyNumber(i.quantity), 0);
-  const taxableSubtotal = cart.reduce((s, i) => s + (i.taxable !== false ? toCurrencyNumber(i.price) * toCurrencyNumber(i.quantity) : 0), 0);
+  // ── Totales (respeta descuentos y IVU por item) ─────────────────────────
+  const subtotal = cart.reduce((s, i) => {
+    const base = toCurrencyNumber(i.price) * toCurrencyNumber(i.quantity);
+    const disc = toCurrencyNumber(i.discount_percentage);
+    return s + (base - base * (disc / 100));
+  }, 0);
+  const taxableSubtotal = cart.reduce((s, i) => {
+    if (i.taxable === false) return s;
+    const base = toCurrencyNumber(i.price) * toCurrencyNumber(i.quantity);
+    const disc = toCurrencyNumber(i.discount_percentage);
+    return s + (base - base * (disc / 100));
+  }, 0);
   const tax = taxEnabled ? taxableSubtotal * taxRate : 0;
   const total = subtotal + tax;
 
