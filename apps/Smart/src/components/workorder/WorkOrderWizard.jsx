@@ -4055,7 +4055,7 @@ Reglas:
               className="w-full bg-black/30 border border-white/10 rounded-lg px-3 py-2 text-white text-sm min-h-[80px]"
             />
 
-              {/* JENAI — Pre-diagnóstico inteligente */}
+              {/* JENAI — Reescribir profesional */}
               {problem.trim().length > 10 && (
                 <div className="mt-3 space-y-2">
                   <button
@@ -4065,23 +4065,27 @@ Reglas:
                     className="flex items-center gap-2 px-4 py-2 rounded-xl bg-gradient-to-r from-purple-500/15 to-indigo-500/15 border border-purple-500/25 text-purple-300 text-xs font-black hover:from-purple-500/25 hover:to-indigo-500/25 transition-all active:scale-95 disabled:opacity-50"
                   >
                     {aiDiagnosisLoading ? (
-                      <><span className="animate-spin">⟳</span> JENAI analizando…</>
+                      <><span className="animate-spin">⟳</span> JENAI reescribiendo…</>
                     ) : (
                       <>
                         <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"/></svg>
-                        Pre-diagnóstico JENAI
+                        Reescribir profesional con JENAI
                       </>
                     )}
                   </button>
                   {aiDiagnosis && (
-                    <div className="p-4 rounded-2xl bg-purple-500/5 border border-purple-500/15 space-y-2">
-                      <div className="flex items-center gap-1.5">
+                    <button
+                      type="button"
+                      onClick={() => { setProblem(aiDiagnosis); setAiDiagnosis(""); toast.success("Texto profesional aplicado"); }}
+                      className="w-full text-left p-4 rounded-2xl bg-purple-500/5 border border-purple-500/25 hover:border-purple-400/50 hover:bg-purple-500/10 transition-all active:scale-[0.99] group"
+                    >
+                      <div className="flex items-center gap-1.5 mb-2">
                         <svg className="w-3 h-3 text-purple-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"/></svg>
-                        <span className="text-[10px] font-black uppercase tracking-widest text-purple-400">JENAI</span>
-                        <span className="text-[9px] text-white/20 ml-auto">powered by SmartFixOS</span>
+                        <span className="text-[10px] font-black uppercase tracking-widest text-purple-400">Versión Profesional</span>
+                        <span className="text-[9px] text-purple-300 ml-auto opacity-60 group-hover:opacity-100">Tap para aplicar ↓</span>
                       </div>
-                      <p className="text-xs text-white/70 leading-relaxed whitespace-pre-line">{aiDiagnosis}</p>
-                    </div>
+                      <p className="text-xs text-white/85 leading-relaxed whitespace-pre-line">{aiDiagnosis}</p>
+                    </button>
                   )}
                 </div>
               )}
