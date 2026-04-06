@@ -370,7 +370,7 @@ export default function CheckoutModalDesktop({
               <Button
                 onClick={onConfirmPayment}
                 disabled={processing || !isPaymentValid}
-                className={`w-full h-20 text-xl font-black rounded-[24px] shadow-2xl transition-all duration-500 uppercase tracking-widest mt-auto border-t border-white/10 ${
+                className={`w-full h-16 sm:h-20 text-lg sm:text-xl font-black rounded-[24px] shadow-2xl transition-all duration-500 uppercase tracking-widest mt-auto border-t border-white/10 ${
                   paymentMethod === "cash"
                     ? "bg-emerald-600 hover:bg-emerald-500 shadow-emerald-500/20"
                     : paymentMethod === "card"
