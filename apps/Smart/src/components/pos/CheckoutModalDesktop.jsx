@@ -146,124 +146,93 @@ export default function CheckoutModalDesktop({
 
           {/* RIGHT COLUMN - PAGO */}
           <div className="flex-1 p-4 sm:p-6 space-y-5 sm:space-y-7 sm:overflow-y-auto flex flex-col bg-transparent">
-            {/* Métodos de Pago */}
-             <div className="space-y-3">
+            {/* Métodos de Pago — icon row on mobile, full cards on desktop */}
+            <div>
+              <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-500 mb-2 sm:hidden">Metodo de pago</p>
+              {/* MOBILE: horizontal icon row */}
+              <div className="flex gap-2 sm:hidden">
+                {[
+                  { id: "cash", icon: Banknote, label: "Efectivo", color: "emerald", enabled: enabledPaymentMethods.cash },
+                  { id: "card", icon: CreditCard, label: "Tarjeta", color: "blue", enabled: enabledPaymentMethods.card },
+                  { id: "ath_movil", icon: Smartphone, label: "ATH", color: "orange", enabled: enabledPaymentMethods.ath_movil },
+                  { id: "mixed", icon: CreditCard, label: "Dividido", color: "purple", enabled: enabledPaymentMethods.cash && enabledPaymentMethods.ath_movil },
+                ].filter(m => m.enabled).map(m => {
+                  const selected = paymentMethod === m.id;
+                  return (
+                    <button
+                      key={m.id}
+                      onClick={() => setPaymentMethod(m.id)}
+                      className={`flex-1 flex flex-col items-center gap-1.5 py-3 rounded-2xl border transition-all active:scale-95 ${
+                        selected
+                          ? `bg-${m.color}-500/15 border-${m.color}-500/50`
+                          : "bg-white/[0.03] border-white/10"
+                      }`}
+                      style={selected ? { backgroundColor: `var(--color-${m.color})`, borderColor: `var(--color-${m.color})` } : undefined}
+                    >
+                      <div className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all ${
+                        selected ? `bg-${m.color}-500 text-white` : `bg-white/[0.06] text-zinc-400`
+                      }`}
+                        style={selected ? { backgroundColor: { emerald: "#10b981", blue: "#3b82f6", orange: "#f97316", purple: "#a855f7" }[m.color] } : undefined}
+                      >
+                        <m.icon className="w-5 h-5" />
+                      </div>
+                      <span className={`text-[10px] font-bold ${selected ? "text-white" : "text-zinc-500"}`}>{m.label}</span>
+                    </button>
+                  );
+                })}
+              </div>
 
-              {enabledPaymentMethods.cash && (
-                <button
-                  onClick={() => setPaymentMethod("cash")}
-                  className={`w-full p-4 sm:p-5 rounded-[20px] sm:rounded-[24px] border transition-all duration-300 flex items-center gap-4 sm:gap-5 group ${
-                    paymentMethod === "cash"
-                      ? "bg-emerald-500/10 border-emerald-500/50 shadow-xl shadow-emerald-500/5 ring-1 ring-emerald-500/20"
-                      : "bg-white/[0.03] border-white/10 hover:border-emerald-500/30 hover:bg-emerald-500/5"
-                  }`}
-                >
-                  <div
-                    className={`w-14 h-14 rounded-[18px] flex items-center justify-center transition-all duration-500 shadow-inner ${
-                      paymentMethod === "cash"
-                        ? "bg-emerald-500 text-white scale-110"
-                        : "bg-emerald-500/10 text-emerald-500"
-                    }`}
-                  >
-                    <Banknote className="w-7 h-7" />
-                  </div>
-                  <div className="text-left flex-1">
-                    <div className="flex items-center gap-2">
-                       <p className={`font-black text-lg uppercase tracking-tight ${paymentMethod === "cash" ? "text-white" : "text-zinc-300"}`}>
-                        Efectivo
-                      </p>
-                      {paymentMethod === "cash" && <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />}
+              {/* DESKTOP: full card buttons */}
+              <div className="hidden sm:block space-y-3">
+                {enabledPaymentMethods.cash && (
+                  <button onClick={() => setPaymentMethod("cash")}
+                    className={`w-full p-5 rounded-[24px] border transition-all duration-300 flex items-center gap-5 ${paymentMethod === "cash" ? "bg-emerald-500/10 border-emerald-500/50 ring-1 ring-emerald-500/20" : "bg-white/[0.03] border-white/10 hover:border-emerald-500/30"}`}>
+                    <div className={`w-14 h-14 rounded-[18px] flex items-center justify-center ${paymentMethod === "cash" ? "bg-emerald-500 text-white" : "bg-emerald-500/10 text-emerald-500"}`}>
+                      <Banknote className="w-7 h-7" />
                     </div>
-                    <p className="text-xs text-zinc-500 uppercase tracking-widest font-bold">Monto Recibido</p>
-                  </div>
-                </button>
-              )}
-
-              {enabledPaymentMethods.card && (
-                <button
-                  onClick={() => setPaymentMethod("card")}
-                  className={`w-full p-4 sm:p-5 rounded-[20px] sm:rounded-[24px] border transition-all duration-300 flex items-center gap-4 sm:gap-5 group ${
-                    paymentMethod === "card"
-                      ? "bg-blue-500/10 border-blue-500/50 shadow-xl shadow-blue-500/5 ring-1 ring-blue-500/20"
-                      : "bg-white/[0.03] border-white/10 hover:border-blue-500/30 hover:bg-blue-500/5"
-                  }`}
-                >
-                  <div
-                    className={`w-14 h-14 rounded-[18px] flex items-center justify-center transition-all duration-500 shadow-inner ${
-                      paymentMethod === "card"
-                        ? "bg-blue-500 text-white scale-110"
-                        : "bg-blue-500/10 text-blue-500"
-                    }`}
-                  >
-                    <CreditCard className="w-7 h-7" />
-                  </div>
-                  <div className="text-left flex-1">
-                    <div className="flex items-center gap-2">
-                      <p className={`font-black text-lg uppercase tracking-tight ${paymentMethod === "card" ? "text-white" : "text-zinc-300"}`}>
-                        Tarjeta
-                      </p>
-                      {paymentMethod === "card" && <div className="w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse" />}
+                    <div className="text-left flex-1">
+                      <p className={`font-black text-lg uppercase tracking-tight ${paymentMethod === "cash" ? "text-white" : "text-zinc-300"}`}>Efectivo</p>
+                      <p className="text-xs text-zinc-500 uppercase tracking-widest font-bold">Monto Recibido</p>
                     </div>
-                    <p className="text-xs text-zinc-500 uppercase tracking-widest font-bold">Exacto: ${(Number(finalTotal) || 0).toFixed(2)}</p>
-                  </div>
-                </button>
-              )}
-
-              {enabledPaymentMethods.ath_movil && (
-                <button
-                  onClick={() => setPaymentMethod("ath_movil")}
-                  className={`w-full p-4 sm:p-5 rounded-[20px] sm:rounded-[24px] border transition-all duration-300 flex items-center gap-4 sm:gap-5 group ${
-                    paymentMethod === "ath_movil"
-                      ? "bg-orange-500/10 border-orange-500/50 shadow-xl shadow-orange-500/5 ring-1 ring-orange-500/20"
-                      : "bg-white/[0.03] border-white/10 hover:border-orange-500/30 hover:bg-orange-500/5"
-                  }`}
-                >
-                  <div
-                    className={`w-14 h-14 rounded-[18px] flex items-center justify-center transition-all duration-500 shadow-inner ${
-                      paymentMethod === "ath_movil"
-                        ? "bg-orange-500 text-white scale-110"
-                        : "bg-orange-500/10 text-orange-500"
-                    }`}
-                  >
-                    <Smartphone className="w-7 h-7" />
-                  </div>
-                  <div className="text-left flex-1">
-                    <div className="flex items-center gap-2">
-                      <p className={`font-black text-lg uppercase tracking-tight ${paymentMethod === "ath_movil" ? "text-white" : "text-zinc-300"}`}>
-                        ATH Móvil
-                      </p>
-                      {paymentMethod === "ath_movil" && <div className="w-1.5 h-1.5 rounded-full bg-orange-500 animate-pulse" />}
+                  </button>
+                )}
+                {enabledPaymentMethods.card && (
+                  <button onClick={() => setPaymentMethod("card")}
+                    className={`w-full p-5 rounded-[24px] border transition-all duration-300 flex items-center gap-5 ${paymentMethod === "card" ? "bg-blue-500/10 border-blue-500/50 ring-1 ring-blue-500/20" : "bg-white/[0.03] border-white/10 hover:border-blue-500/30"}`}>
+                    <div className={`w-14 h-14 rounded-[18px] flex items-center justify-center ${paymentMethod === "card" ? "bg-blue-500 text-white" : "bg-blue-500/10 text-blue-500"}`}>
+                      <CreditCard className="w-7 h-7" />
                     </div>
-                    <p className="text-xs text-zinc-500 uppercase tracking-widest font-bold">Pago Exacto</p>
-                  </div>
-                </button>
-              )}
-
-              {enabledPaymentMethods.cash && enabledPaymentMethods.ath_movil && (
-                <button
-                  onClick={() => setPaymentMethod("mixed")}
-                  className={`w-full p-4 sm:p-5 rounded-[20px] sm:rounded-[24px] border transition-all duration-300 flex items-center gap-4 sm:gap-5 group ${
-                    paymentMethod === "mixed"
-                      ? "bg-purple-500/10 border-purple-500/50 shadow-xl shadow-purple-500/5 ring-1 ring-purple-500/20"
-                      : "bg-white/[0.03] border-white/10 hover:border-purple-500/30 hover:bg-purple-500/5"
-                  }`}
-                >
-                  <div className={`w-14 h-14 rounded-[18px] flex items-center justify-center transition-all duration-500 shadow-inner ${
-                    paymentMethod === "mixed" ? "bg-purple-500 text-white scale-110" : "bg-purple-500/10 text-purple-400"
-                  }`}>
-                    <CreditCard className="w-7 h-7" />
-                  </div>
-                  <div className="text-left flex-1">
-                    <div className="flex items-center gap-2">
-                      <p className={`font-black text-lg uppercase tracking-tight ${paymentMethod === "mixed" ? "text-white" : "text-zinc-300"}`}>
-                        Dividido
-                      </p>
-                      {paymentMethod === "mixed" && <div className="w-1.5 h-1.5 rounded-full bg-purple-500 animate-pulse" />}
+                    <div className="text-left flex-1">
+                      <p className={`font-black text-lg uppercase tracking-tight ${paymentMethod === "card" ? "text-white" : "text-zinc-300"}`}>Tarjeta</p>
+                      <p className="text-xs text-zinc-500 uppercase tracking-widest font-bold">Exacto: ${(Number(finalTotal) || 0).toFixed(2)}</p>
                     </div>
-                    <p className="text-xs text-zinc-500 uppercase tracking-widest font-bold">Efectivo + ATH</p>
-                  </div>
-                </button>
-              )}
+                  </button>
+                )}
+                {enabledPaymentMethods.ath_movil && (
+                  <button onClick={() => setPaymentMethod("ath_movil")}
+                    className={`w-full p-5 rounded-[24px] border transition-all duration-300 flex items-center gap-5 ${paymentMethod === "ath_movil" ? "bg-orange-500/10 border-orange-500/50 ring-1 ring-orange-500/20" : "bg-white/[0.03] border-white/10 hover:border-orange-500/30"}`}>
+                    <div className={`w-14 h-14 rounded-[18px] flex items-center justify-center ${paymentMethod === "ath_movil" ? "bg-orange-500 text-white" : "bg-orange-500/10 text-orange-500"}`}>
+                      <Smartphone className="w-7 h-7" />
+                    </div>
+                    <div className="text-left flex-1">
+                      <p className={`font-black text-lg uppercase tracking-tight ${paymentMethod === "ath_movil" ? "text-white" : "text-zinc-300"}`}>ATH Movil</p>
+                      <p className="text-xs text-zinc-500 uppercase tracking-widest font-bold">Pago Exacto</p>
+                    </div>
+                  </button>
+                )}
+                {enabledPaymentMethods.cash && enabledPaymentMethods.ath_movil && (
+                  <button onClick={() => setPaymentMethod("mixed")}
+                    className={`w-full p-5 rounded-[24px] border transition-all duration-300 flex items-center gap-5 ${paymentMethod === "mixed" ? "bg-purple-500/10 border-purple-500/50 ring-1 ring-purple-500/20" : "bg-white/[0.03] border-white/10 hover:border-purple-500/30"}`}>
+                    <div className={`w-14 h-14 rounded-[18px] flex items-center justify-center ${paymentMethod === "mixed" ? "bg-purple-500 text-white" : "bg-purple-500/10 text-purple-400"}`}>
+                      <CreditCard className="w-7 h-7" />
+                    </div>
+                    <div className="text-left flex-1">
+                      <p className={`font-black text-lg uppercase tracking-tight ${paymentMethod === "mixed" ? "text-white" : "text-zinc-300"}`}>Dividido</p>
+                      <p className="text-xs text-zinc-500 uppercase tracking-widest font-bold">Efectivo + ATH</p>
+                    </div>
+                  </button>
+                )}
+              </div>
             </div>
 
             {/* Inputs Dinámicos */}
