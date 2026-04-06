@@ -1,4 +1,4 @@
-import React, { useState, useRef, useCallback } from "react";
+import React, { useState, useRef, useCallback, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ChevronLeft, Trash2, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -9,6 +9,7 @@ import MobileAccionesTab from "./MobileAccionesTab";
 import MobileInformacionTab from "./MobileInformacionTab";
 import MobileHistorialTab from "./MobileHistorialTab";
 import usePullToRefresh from "./usePullToRefresh";
+import AddItemModal from "@/components/workorder/AddItemModal";
 
 const TABS = [
   { id: "acciones", label: "Acciones" },
