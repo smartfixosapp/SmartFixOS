@@ -1461,7 +1461,7 @@ pregunta inmediatamente al usuario por el primer campo que falta.
               <div>
                 <p className="text-sm font-black text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-cyan-400 to-teal-400 leading-none">JENAI</p>
                 <p className="text-[9px] text-blue-400/60 font-bold uppercase tracking-widest leading-none mt-0.5">
-                  SmartFixOS · {ACTIVE_ENGINE}
+                  SmartFixOS
                 </p>
               </div>
             </div>
