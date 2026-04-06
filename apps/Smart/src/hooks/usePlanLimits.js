@@ -36,7 +36,8 @@ export function usePlanLimits() {
   }, [planId]);
 
   /** Get upgrade plan info (null if already on highest plan) */
-  const upgradeTo = useMemo(() => getUpgradePlan(planId), [planId]);
+  // TEMPORARY: always null — upgrade messaging disabled while restrictions are off
+  const upgradeTo = null;
 
   return {
     plan: planConfig,
@@ -45,8 +46,9 @@ export function usePlanLimits() {
     limitOf,
     checkLimit: checkLimitFn,
     upgradeTo,
-    isStarter: planId === 'starter',
-    isPro: planId === 'pro',
-    isBusiness: planId === 'business',
+    // While restrictions are disabled, behave as if every tenant is on business
+    isStarter: false,
+    isPro: false,
+    isBusiness: true,
   };
 }
