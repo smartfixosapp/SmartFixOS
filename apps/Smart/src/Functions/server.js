@@ -3,6 +3,7 @@
 import { extractFileHandler } from './extractFile.js';
 import { generateImageHandler } from './generateImage.js';
 import { invokeLLMHandler } from './invokeLLM.js';
+import { aiChatHandler } from './aiChat.js';
 import { sendEmailInternalHandler } from './sendEmailInternal.js';
 import { runScheduledFnTriggersHandler } from './runScheduledFnTriggers.js';
 import { onEntityFnTriggerHandler } from './onEntityFnTrigger.js';
