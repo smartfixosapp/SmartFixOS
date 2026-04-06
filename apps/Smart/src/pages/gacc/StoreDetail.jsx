@@ -898,7 +898,16 @@ export default function StoreDetail({ tenant, onBack }) {
           </div>
 
           {/* Quick actions */}
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 flex-wrap">
+            <button
+              onClick={handleAccessStore}
+              disabled={accessing}
+              className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-[11px] font-semibold bg-cyan-500/15 text-cyan-300 border border-cyan-500/30 hover:bg-cyan-500/25 transition-all disabled:opacity-50"
+              title="Acceder a esta tienda como admin"
+            >
+              {accessing ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : <ExternalLink className="w-3.5 h-3.5" />}
+              Acceder
+            </button>
             <button
               onClick={() => setShowPlanModal(true)}
               className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-[11px] font-semibold bg-purple-500/15 text-purple-300 border border-purple-500/30 hover:bg-purple-500/25 transition-all"
@@ -916,6 +925,13 @@ export default function StoreDetail({ tenant, onBack }) {
             </button>
             <button className="p-2 rounded-xl text-gray-600 hover:text-white border border-white/[0.07] hover:border-white/[0.15] transition-all" title="Enviar email">
               <Mail className="w-4 h-4" />
+            </button>
+            <button
+              onClick={() => setShowDeleteModal(true)}
+              className="p-2 rounded-xl text-gray-600 hover:text-red-400 border border-white/[0.07] hover:border-red-500/30 hover:bg-red-500/5 transition-all"
+              title="Eliminar tienda permanentemente"
+            >
+              <Trash2 className="w-4 h-4" />
             </button>
           </div>
         </div>
