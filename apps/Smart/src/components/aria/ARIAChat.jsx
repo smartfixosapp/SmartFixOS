@@ -1233,17 +1233,63 @@ pregunta inmediatamente al usuario por el primer campo que falta.
     setStatus("");
 
     try {
-      const ANTHROPIC_KEY = import.meta.env.VITE_ANTHROPIC_API_KEY;
-      const OPENAI_KEY    = import.meta.env.VITE_OPENAI_API_KEY;
-      const GROQ_KEY      = import.meta.env.VITE_GROQ_API_KEY;
-      if (!ANTHROPIC_KEY && !OPENAI_KEY && !GROQ_KEY)
-        throw new Error("No hay API key configurada. Agrega VITE_OPENAI_API_KEY en Vercel.");
-
       const systemPrompt = buildSystem();
       const cleanHistory = history
         .filter(m => m.role === "user" || (m.role === "assistant" && !m.type))
         .slice(-8)
         .map(m => ({ role: m.role, content: m.content }));
+
+      // ── Try server proxy first (avoids Safari CORS/energy issues) ────────
+      const FUNCTIONS_URL = import.meta.env.VITE_FUNCTIONS_URL || `${window.location.protocol}//${window.location.hostname}:8686`;
+      let serverOk = false;
+      try {
+        const proxyRes = await fetch(`${FUNCTIONS_URL}/ai/chat`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            messages: cleanHistory,
+            system: systemPrompt,
+            tools: ARIA_TOOLS,
+          }),
+        });
+        if (proxyRes.ok) {
+          const data = await proxyRes.json();
+          const msg = data.choices?.[0]?.message;
+          if (msg) {
+            // Handle tool calls
+            if (msg.tool_calls?.length > 0) {
+              let conv = cleanHistory;
+              conv.push(msg);
+              for (const tc of msg.tool_calls) {
+                const result = await executeToolCall(tc.function.name, JSON.parse(tc.function.arguments || "{}"));
+                conv.push({ role: "tool", tool_call_id: tc.id, content: typeof result === "string" ? result : JSON.stringify(result) });
+              }
+              // Get final response after tools
+              const finalRes = await fetch(`${FUNCTIONS_URL}/ai/chat`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ messages: conv, system: systemPrompt }),
+              });
+              const finalData = await finalRes.json();
+              const finalMsg = finalData.choices?.[0]?.message?.content;
+              if (finalMsg) setMessages(m => [...m, { role: "assistant", content: finalMsg }]);
+            } else if (msg.content) {
+              setMessages(m => [...m, { role: "assistant", content: msg.content }]);
+            }
+            serverOk = true;
+          }
+        }
+      } catch (proxyErr) {
+        console.warn("[JEANI] Server proxy failed, falling back to direct API:", proxyErr.message);
+      }
+      if (serverOk) { setLoading(false); setStatus(""); return; }
+
+      // ── Fallback: direct API calls ────────────────────────────────────────
+      const ANTHROPIC_KEY = import.meta.env.VITE_ANTHROPIC_API_KEY;
+      const OPENAI_KEY    = import.meta.env.VITE_OPENAI_API_KEY;
+      const GROQ_KEY      = import.meta.env.VITE_GROQ_API_KEY;
+      if (!ANTHROPIC_KEY && !OPENAI_KEY && !GROQ_KEY)
+        throw new Error("No hay API key configurada.");
 
       // ── Loop genérico para APIs compatibles con OpenAI (OpenAI + Groq) ────
       const runOpenAICompat = async ({ url, key, model, maxTokens = 500 }) => {
