@@ -3747,20 +3747,20 @@ Reglas:
 
           {/* 👤 TÉCNICO */}
           {!quickOrderMode && !inJenaiInput && (!isCompactDevice || mobileStep === 2) && (
-          <div className="bg-white/[0.03] border border-white/[0.08] rounded-[28px] p-6 space-y-5 backdrop-blur-3xl shadow-[0_8px_32px_rgba(0,0,0,0.2)] relative overflow-hidden lg:col-span-3 transition-all hover:bg-white/[0.05] group">
+          <div className="bg-white/[0.03] border border-white/[0.08] rounded-[28px] p-4 sm:p-6 space-y-3 sm:space-y-5 backdrop-blur-3xl shadow-[0_8px_32px_rgba(0,0,0,0.2)] relative overflow-hidden lg:col-span-3 transition-all hover:bg-white/[0.05] group">
             <div className="absolute -right-20 -bottom-20 w-40 h-40 bg-emerald-500/5 rounded-full blur-[80px] group-hover:bg-emerald-500/10 transition-colors duration-700" />
-            <h3 className="text-white font-black text-lg flex items-center gap-3 relative z-10 uppercase tracking-tight">
-              <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-emerald-400 to-green-600 flex items-center justify-center shadow-lg">
-                <Users className="w-5 h-5 text-white" strokeWidth={2.5} />
+            <h3 className="text-white font-black text-base sm:text-lg flex items-center gap-3 relative z-10 uppercase tracking-tight">
+              <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-gradient-to-br from-emerald-400 to-green-600 flex items-center justify-center shadow-lg">
+                <Users className="w-4 h-4 sm:w-5 sm:h-5 text-white" strokeWidth={2.5} />
               </div>
               Técnico <span className="text-[10px] text-white/20 ml-1">(Opcional)</span>
             </h3>
 
-            <div className="space-y-3">
+            <div className="space-y-2">
               <button
                 onClick={() => setAssignedTo(null)}
                 className={`w-full px-3 py-2 rounded-lg text-xs border transition-all ${
-                  !assignedTo 
+                  !assignedTo
                     ? "bg-gradient-to-r from-emerald-600 to-green-600 border-emerald-400 text-white"
                     : "bg-black/20 border-white/10 text-gray-300 hover:bg-white/5"
                 }`}
@@ -3768,35 +3768,35 @@ Reglas:
                 Sin asignar
               </button>
 
-              <div className="space-y-2">
+              <div className="space-y-1.5">
                 <div className="flex items-center justify-between">
-                  <p className="text-[11px] uppercase tracking-[0.2em] text-emerald-300/80">Técnicos</p>
+                  <p className="text-[10px] uppercase tracking-[0.2em] text-emerald-300/80">Técnicos</p>
                   <span className="text-[10px] text-white/45">{technicians.length}</span>
                 </div>
-                <div className="grid grid-cols-1 gap-2">
+                <div className="grid grid-cols-1 gap-1.5">
                   {technicians.length === 0 && (
                     <div className="rounded-lg border border-white/10 bg-black/20 px-3 py-2 text-xs text-white/45">
-                      No hay técnicos disponibles para asignar ahora mismo
+                      No hay técnicos disponibles
                     </div>
                   )}
                   {technicians.map((tech) => (
                     <button
                       key={tech.id}
                       onClick={() => setAssignedTo(tech)}
-                      className={`px-3 py-2 rounded-lg text-xs border transition-all flex items-center gap-2 justify-between ${
+                      className={`px-3 py-2 rounded-lg text-xs border transition-all flex items-center gap-2 justify-between active:scale-[0.98] ${
                         assignedTo?.id === tech.id
                           ? "bg-gradient-to-r from-emerald-600 to-green-600 border-emerald-400 text-white"
                           : "bg-emerald-600/10 border-emerald-500/30 text-white hover:bg-emerald-500/15"
                       }`}
                     >
                       <div className="flex items-center gap-2 min-w-0">
-                        <div className="w-5 h-5 rounded-full bg-cyan-600 flex items-center justify-center text-white text-[10px] font-bold">
+                        <div className="w-6 h-6 rounded-full bg-emerald-600 flex items-center justify-center text-white text-[10px] font-bold flex-shrink-0">
                           {(tech.full_name || tech.email || "?")[0].toUpperCase()}
                         </div>
-                        <span className="truncate">{tech.full_name || tech.email}</span>
+                        <span className="truncate text-sm">{tech.full_name || tech.email}</span>
                       </div>
-                      <span className="text-[10px] text-emerald-200 capitalize">
-                        {String(tech.role || tech.position || "technician").replace("_", " ")}
+                      <span className="text-[9px] text-emerald-200/60 capitalize flex-shrink-0 bg-emerald-500/10 px-1.5 py-0.5 rounded">
+                        {String(tech.role || tech.position || "tech").replace("_", " ")}
                       </span>
                     </button>
                   ))}
