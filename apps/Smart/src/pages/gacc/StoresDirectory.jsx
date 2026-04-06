@@ -68,9 +68,19 @@ function StoreRow({ tenant, onSelect, onAction, isSelected, onToggleSelect }) {
   const btnRef = React.useRef(null);
 
   return (
-    <div className="group flex items-center gap-3 px-4 py-3 hover:bg-white/[0.03] transition-colors border-b border-white/[0.04] last:border-0">
+    <div className={`group flex items-center gap-3 px-4 py-3 transition-colors border-b border-white/[0.04] last:border-0 ${
+      isSelected ? "bg-purple-500/[0.05]" : "hover:bg-white/[0.03]"
+    }`}>
+      {/* Checkbox */}
+      <input
+        type="checkbox"
+        checked={isSelected}
+        onChange={e => { e.stopPropagation(); onToggleSelect?.(tenant.id); }}
+        onClick={e => e.stopPropagation()}
+        className="w-3 h-3 accent-purple-500 cursor-pointer flex-shrink-0"
+      />
       {/* Health dot */}
-      <span className={`w-2.5 h-2.5 rounded-full flex-shrink-0 ${health.color}`} title={health.label} />
+      <span className={`w-2 h-2 rounded-full flex-shrink-0 ${health.color}`} title={health.label} />
 
       {/* Store info */}
       <div className="flex-1 min-w-0 cursor-pointer" onClick={() => onSelect(tenant)}>
