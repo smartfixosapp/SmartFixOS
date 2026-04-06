@@ -575,9 +575,68 @@ export default function StoresDirectory({ onSelectTenant }) {
         </div>
       </div>
 
+      {/* Saved Views + Bulk Actions Bar */}
+      <div className="flex items-center justify-between flex-wrap gap-2">
+        <div className="flex items-center gap-1.5 flex-wrap">
+          {savedViews.length > 0 && (
+            <>
+              <span className="text-[10px] text-gray-600 uppercase tracking-wide font-bold">Vistas:</span>
+              {savedViews.map(v => (
+                <div key={v.id} className="group flex items-center gap-1 px-2 py-1 rounded-lg bg-white/[0.03] border border-white/[0.06] hover:bg-white/[0.06]">
+                  <button onClick={() => loadView(v)} className="text-[10px] text-gray-400 hover:text-white font-semibold">
+                    {v.name}
+                  </button>
+                  <button onClick={() => deleteView(v.id)} className="opacity-0 group-hover:opacity-100 text-gray-600 hover:text-red-400">
+                    <XCircle className="w-3 h-3" />
+                  </button>
+                </div>
+              ))}
+            </>
+          )}
+          {!showSaveView ? (
+            <button onClick={() => setShowSaveView(true)} className="flex items-center gap-1 px-2 py-1 rounded-lg text-[10px] text-gray-600 hover:text-white border border-white/[0.06] hover:border-white/[0.12] transition-all">
+              <Plus className="w-3 h-3" /> Guardar vista
+            </button>
+          ) : (
+            <div className="flex items-center gap-1">
+              <input value={viewName} onChange={e => setViewName(e.target.value)} placeholder="Nombre..." autoFocus className="w-28 px-2 py-1 rounded-lg bg-white/[0.05] border border-white/[0.1] text-[10px] text-white outline-none" />
+              <button onClick={saveView} className="p-1 rounded-lg text-emerald-400 hover:bg-emerald-500/10">
+                <CheckCircle className="w-3 h-3" />
+              </button>
+              <button onClick={() => { setShowSaveView(false); setViewName(""); }} className="p-1 rounded-lg text-gray-600 hover:text-white">
+                <XCircle className="w-3 h-3" />
+              </button>
+            </div>
+          )}
+        </div>
+
+        {selectedIds.size > 0 && (
+          <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-purple-500/10 border border-purple-500/30">
+            <span className="text-[11px] text-purple-300 font-semibold">{selectedIds.size} seleccionadas</span>
+            <button onClick={() => bulkAction("suspend")} className="text-[10px] px-2 py-1 rounded-lg bg-amber-500/15 text-amber-400 border border-amber-500/30 hover:bg-amber-500/25">
+              Suspender
+            </button>
+            <button onClick={() => bulkAction("reactivate")} className="text-[10px] px-2 py-1 rounded-lg bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 hover:bg-emerald-500/25">
+              Reactivar
+            </button>
+            <button onClick={() => bulkAction("extend_trial")} className="text-[10px] px-2 py-1 rounded-lg bg-blue-500/15 text-blue-400 border border-blue-500/30 hover:bg-blue-500/25">
+              Extender Trial
+            </button>
+            <button onClick={() => setSelectedIds(new Set())} className="text-[10px] px-2 py-1 rounded-lg text-gray-500 hover:text-white">
+              Limpiar
+            </button>
+          </div>
+        )}
+      </div>
+
       {/* Table header */}
       <div className="hidden sm:flex items-center gap-3 px-4 py-2 text-[10px] text-gray-600 uppercase tracking-wide font-bold border-b border-white/[0.06]">
-        <span className="w-2.5" />
+        <input
+          type="checkbox"
+          checked={selectedIds.size > 0 && selectedIds.size === filtered.length}
+          onChange={selectAll}
+          className="w-3 h-3 accent-purple-500 cursor-pointer"
+        />
         <span className="flex-1">Tienda</span>
         <span className="w-20 text-center">Plan</span>
         <span className="w-24 text-right">Estado</span>
