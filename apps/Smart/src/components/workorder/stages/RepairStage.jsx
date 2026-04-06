@@ -50,7 +50,18 @@ export default function RepairStage({ order, onUpdate, onOrderItemsUpdate, onRem
 
   const allDone = checked.length === CLOSE_CHECKLIST.length;
 
+  const photoCount = (Array.isArray(o.photos_metadata) ? o.photos_metadata.length : 0) +
+                     (Array.isArray(o.device_photos) ? o.device_photos.length : 0);
+
   const toggle = async (i) => {
+    // Item 3 = "Evidencia fotográfica tomada" — require at least 1 photo
+    if (i === 3 && !checked.includes(i) && photoCount === 0) {
+      toast("Sube al menos 1 foto antes de marcar evidencia fotográfica", { icon: "📷" });
+      // Trigger photo upload
+      document.dispatchEvent(new CustomEvent("wo:action", { detail: { action: "photos" } }));
+      return;
+    }
+
     const next = checked.includes(i)
       ? checked.filter(x => x !== i)
       : [...checked, i];
