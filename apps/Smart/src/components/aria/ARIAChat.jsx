@@ -682,15 +682,25 @@ export default function ARIAChat() {
     }
   }, [open]);
 
-  // Auto-greet with order context when opened from sidebar
+  // Auto-greet with order context when opened from sidebar (runs AFTER proactive check with delay)
   React.useEffect(() => {
     if (!forceOpen || !orderContext || !open) return;
-    const oc = orderContext;
-    const greeting = `Estoy viendo la orden **#${oc.order_number || ""}** de **${oc.customer_name || "cliente"}** — ${oc.device_brand || ""} ${oc.device_model || ""}.\n\nProblema: *${oc.initial_problem || "no especificado"}*\n\n¿En qué te ayudo? Puedo sugerir diagnósticos, recomendar piezas, estimar costos, o analizar fotos.`;
-    setMessages([{ role: "assistant", content: greeting }]);
-    setTab("chat");
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [forceOpen, open]);
+    // Small delay to override the proactive greeting
+    const timer = setTimeout(() => {
+      const oc = orderContext;
+      const items = Array.isArray(oc.order_items) ? oc.order_items : [];
+      const photos = Array.isArray(oc.photos_metadata) ? oc.photos_metadata : [];
+      let greeting = `Estoy viendo la orden **#${oc.order_number || ""}** de **${oc.customer_name || "cliente"}** — ${oc.device_brand || ""} ${oc.device_model || ""}.`;
+      greeting += `\n\n**Problema:** ${oc.initial_problem || "no especificado"}`;
+      greeting += `\n**Estado:** ${oc.status || "desconocido"}`;
+      if (items.length > 0) greeting += `\n**Items:** ${items.map(i => i.name || "Item").join(", ")}`;
+      if (photos.length > 0) greeting += `\n**Fotos:** ${photos.length} evidencia(s)`;
+      greeting += `\n\n¿En qué te ayudo? Puedo sugerir diagnósticos, recomendar piezas, estimar costos, o redactar notas técnicas.`;
+      setMessages([{ role: "assistant", content: greeting }]);
+      setTab("chat");
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [forceOpen, open, orderContext]);
 
   if (forceOpen) { /* bypass all checks — sidebar requested JEANI */ }
   else if (isHidden || !enabled || workOrderOpen) return null;
