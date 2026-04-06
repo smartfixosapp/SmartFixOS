@@ -282,8 +282,25 @@ export default function WaitingPartsStage({ order, onUpdate, onOrderItemsUpdate,
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               <div>
-                <p className="text-xs text-gray-400 uppercase font-bold tracking-wider mb-2">Suplidor</p>
-                {loadingSuppliers ? (
+                <div className="flex items-center justify-between mb-2">
+                  <p className="text-xs text-gray-400 uppercase font-bold tracking-wider">Suplidor</p>
+                  <button
+                    type="button"
+                    onClick={() => setEditForm(p => ({ ...p, supplier: "", _manualSupplier: !p._manualSupplier }))}
+                    className="text-[10px] font-bold text-cyan-400 hover:text-cyan-300"
+                  >
+                    {editForm._manualSupplier ? "Usar lista" : "Manual"}
+                  </button>
+                </div>
+                {editForm._manualSupplier ? (
+                  <Input
+                    value={editForm.supplier}
+                    onChange={e => setEditForm(p => ({ ...p, supplier: e.target.value }))}
+                    placeholder="Nombre del suplidor..."
+                    className="bg-black/40 border-white/15 text-white h-10"
+                    autoComplete="off"
+                  />
+                ) : loadingSuppliers ? (
                   <div className="flex items-center justify-center h-10 bg-black/40 rounded-md border border-white/15">
                     <Loader2 className="w-4 h-4 animate-spin text-white/60" />
                   </div>
@@ -299,12 +316,31 @@ export default function WaitingPartsStage({ order, onUpdate, onOrderItemsUpdate,
                 )}
               </div>
               <div>
-                <p className="text-xs text-gray-400 uppercase font-bold tracking-wider mb-2">Carrier</p>
-                <select value={editForm.carrier} onChange={e => setEditForm(p => ({ ...p, carrier: e.target.value }))}
-                  className="w-full h-10 px-3 rounded-md bg-black/40 border border-white/15 text-white">
-                  <option value="">Auto-detectar</option>
-                  {["USPS","FedEx","UPS","DHL","Amazon","Otro"].map(c => <option key={c} value={c}>{c}</option>)}
-                </select>
+                <div className="flex items-center justify-between mb-2">
+                  <p className="text-xs text-gray-400 uppercase font-bold tracking-wider">Carrier</p>
+                  <button
+                    type="button"
+                    onClick={() => setEditForm(p => ({ ...p, carrier: "", _manualCarrier: !p._manualCarrier }))}
+                    className="text-[10px] font-bold text-cyan-400 hover:text-cyan-300"
+                  >
+                    {editForm._manualCarrier ? "Usar lista" : "Manual"}
+                  </button>
+                </div>
+                {editForm._manualCarrier ? (
+                  <Input
+                    value={editForm.carrier}
+                    onChange={e => setEditForm(p => ({ ...p, carrier: e.target.value }))}
+                    placeholder="Nombre del carrier..."
+                    className="bg-black/40 border-white/15 text-white h-10"
+                    autoComplete="off"
+                  />
+                ) : (
+                  <select value={editForm.carrier} onChange={e => setEditForm(p => ({ ...p, carrier: e.target.value }))}
+                    className="w-full h-10 px-3 rounded-md bg-black/40 border border-white/15 text-white">
+                    <option value="">Auto-detectar</option>
+                    {["USPS","FedEx","UPS","DHL","Amazon","Otro"].map(c => <option key={c} value={c}>{c}</option>)}
+                  </select>
+                )}
               </div>
               <div>
                 <p className="text-xs text-gray-400 uppercase font-bold tracking-wider mb-2">Tracking #</p>
