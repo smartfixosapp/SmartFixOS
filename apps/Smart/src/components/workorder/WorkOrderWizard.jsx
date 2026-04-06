@@ -4246,43 +4246,43 @@ Reglas:
 
           {/* ✅ CHECKLIST */}
           {!quickOrderMode && !inJenaiInput && (!isCompactDevice || mobileStep === 6) && (
-          <div className="bg-white/[0.03] border border-white/[0.08] rounded-[28px] p-6 space-y-5 backdrop-blur-xl shadow-[0_8px_32px_rgba(0,0,0,0.2)] relative overflow-hidden lg:col-span-4 transition-all hover:bg-white/[0.05] group">
+          <div className="bg-white/[0.03] border border-white/[0.08] rounded-[28px] p-4 sm:p-6 space-y-3 sm:space-y-5 backdrop-blur-xl shadow-[0_8px_32px_rgba(0,0,0,0.2)] relative overflow-hidden lg:col-span-4 transition-all hover:bg-white/[0.05] group">
             <div className="absolute -left-20 -top-20 w-40 h-40 bg-green-500/5 rounded-full blur-[80px] group-hover:bg-green-500/10 transition-colors duration-700" />
-            <h3 className="text-white font-black text-lg flex items-center gap-3 relative z-10 uppercase tracking-tight">
-              <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-green-400 to-emerald-600 flex items-center justify-center shadow-lg">
-                <CheckSquare className="w-5 h-5 text-white" strokeWidth={2.5} />
-              </div>
-              Checklist
-            </h3>
-
-            <div className="flex items-center justify-between gap-3 flex-wrap">
-              <div className="inline-flex items-center rounded-full border border-green-500/30 bg-black/30 p-1">
-                {[
-                  { key: "celulares", label: "Celulares" },
-                  { key: "tabletas", label: "Tabletas" },
-                  { key: "computadoras", label: "Computadoras" },
-                  { key: "accesorios", label: "Accesorios" }
-                ].map((opt) => {
-                  const active = checklistTemplateKey === opt.key;
-                  return (
-                    <span
-                      key={opt.key}
-                      className={`px-3 py-1 rounded-full text-[11px] font-semibold ${
-                        active ? "bg-green-500/25 text-green-100" : "text-green-200/60"
-                      }`}
-                    >
-                      {opt.label}
-                    </span>
-                  );
-                })}
-              </div>
-              <span className="text-[11px] text-green-200/80">
-                {checklist.length} marcado{checklist.length === 1 ? "" : "s"}
+            <div className="flex items-center justify-between">
+              <h3 className="text-white font-black text-base sm:text-lg flex items-center gap-3 relative z-10 uppercase tracking-tight">
+                <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-gradient-to-br from-green-400 to-emerald-600 flex items-center justify-center shadow-lg">
+                  <CheckSquare className="w-4 h-4 sm:w-5 sm:h-5 text-white" strokeWidth={2.5} />
+                </div>
+                Checklist
+              </h3>
+              <span className="text-[10px] text-green-300 bg-green-500/10 px-2 py-0.5 rounded-full font-bold">
+                {checklist.length} marcados
               </span>
             </div>
 
-            <div className="rounded-xl border border-green-500/25 bg-black/30 p-3 space-y-3">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 lg:max-h-[260px] lg:overflow-y-auto pr-1">
+            <div className="flex gap-1.5 overflow-x-auto no-scrollbar">
+              {[
+                { key: "celulares", label: "Celulares" },
+                { key: "tabletas", label: "Tabletas" },
+                { key: "computadoras", label: "Computadoras" },
+                { key: "accesorios", label: "Accesorios" }
+              ].map((opt) => {
+                const active = checklistTemplateKey === opt.key;
+                return (
+                  <span
+                    key={opt.key}
+                    className={`flex-shrink-0 px-3 py-1.5 rounded-full text-[10px] font-semibold border transition-all ${
+                      active ? "bg-green-500/20 text-green-100 border-green-500/40" : "text-green-200/50 border-white/[0.06]"
+                    }`}
+                  >
+                    {opt.label}
+                  </span>
+                );
+              })}
+            </div>
+
+            <div className="rounded-xl border border-green-500/20 bg-black/30 p-2 sm:p-3 space-y-2">
+              <div className="grid grid-cols-1 gap-1.5 max-h-[240px] overflow-y-auto pr-1" style={{ WebkitOverflowScrolling: "touch" }}>
                 {checklistTemplateItems.map((item) => {
                   const isSelected = checklist.some((c) => c.id === item.key);
                   return (
@@ -4290,7 +4290,7 @@ Reglas:
                       key={item.key}
                       type="button"
                       onClick={() => toggleChecklistItem(item.key, item.label)}
-                      className={`px-3 py-2 rounded-lg text-xs border transition-all text-left ${
+                      className={`px-3 py-2 rounded-lg text-xs border transition-all text-left active:scale-[0.98] ${
                         isSelected
                           ? "bg-gradient-to-r from-green-600 to-emerald-600 border-green-400 text-white"
                           : "bg-black/20 border-white/10 text-gray-300 hover:bg-white/5"
@@ -4313,19 +4313,11 @@ Reglas:
                       addQuickChecklistItem();
                     }
                   }}
-                  placeholder="Añadir condición manual y Enter..."
+                  placeholder="Añadir condicion manual..."
                   className="w-full bg-black/30 border border-white/10 rounded-lg px-3 py-2 text-white text-xs"
                 />
               </div>
             </div>
-            
-            {checklist.length > 0 && (
-              <div className="bg-green-600/10 border border-green-500/30 rounded-lg p-2 text-center">
-                <p className="text-xs text-green-300">
-                  ✓ {checklist.length} condición{checklist.length !== 1 ? 'es' : ''} marcada{checklist.length !== 1 ? 's' : ''}
-                </p>
-              </div>
-            )}
           </div>
           )}
 
