@@ -41,48 +41,15 @@ function checkSession(navigate) {
 
 // ── Navigation config ────────────────────────────────────────────────────────
 export const NAV_SECTIONS = [
-  {
-    id: "command-center",
-    label: "Command Center",
-    icon: LayoutDashboard,
-    shortLabel: "HQ",
-  },
-  {
-    id: "stores",
-    label: "Stores",
-    icon: Building2,
-    shortLabel: "Stores",
-  },
-  {
-    id: "revenue",
-    label: "Revenue",
-    icon: DollarSign,
-    shortLabel: "Revenue",
-  },
-  {
-    id: "operations",
-    label: "Operations",
-    icon: Activity,
-    shortLabel: "Ops",
-  },
-  {
-    id: "support",
-    label: "Support",
-    icon: HeadphonesIcon,
-    shortLabel: "Support",
-  },
-  {
-    id: "security",
-    label: "Security",
-    icon: Lock,
-    shortLabel: "Security",
-  },
-  {
-    id: "tools",
-    label: "Tools",
-    icon: Wrench,
-    shortLabel: "Tools",
-  },
+  { id: "command-center", label: "Command Center", icon: LayoutDashboard, shortLabel: "HQ", key: "h" },
+  { id: "stores", label: "Stores", icon: Building2, shortLabel: "Stores", key: "s" },
+  { id: "revenue", label: "Revenue", icon: DollarSign, shortLabel: "Revenue", key: "r" },
+  { id: "analytics", label: "Analytics", icon: TrendingUp, shortLabel: "Analytics", key: "a" },
+  { id: "operations", label: "Operations", icon: Activity, shortLabel: "Ops", key: "o" },
+  { id: "growth", label: "Growth", icon: Sparkles, shortLabel: "Growth", key: "g" },
+  { id: "support", label: "Support", icon: HeadphonesIcon, shortLabel: "Support", key: "u" },
+  { id: "security", label: "Security", icon: Lock, shortLabel: "Security", key: "e" },
+  { id: "tools", label: "Tools", icon: Wrench, shortLabel: "Tools", key: "t" },
 ];
 
 // ── Alerts Bell ──────────────────────────────────────────────────────────────
