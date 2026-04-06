@@ -107,25 +107,29 @@ export default function MobileRepairDetail({
       {/* ── TAB BAR ── */}
       <div className="flex-shrink-0 border-b border-white/[0.08] bg-[#0D0D0F]">
         <div className="flex">
-          {TABS.map((tab, i) => (
-            <button
-              key={tab.id}
-              onClick={() => switchTab(i)}
-              className={cn(
-                "flex-1 py-3 text-sm font-semibold transition-all relative",
-                activeTab === i ? "text-white" : "text-white/40"
-              )}
-            >
-              {tab.label}
-              {activeTab === i && (
-                <motion.div
-                  layoutId="tab-indicator"
-                  className="absolute bottom-0 left-4 right-4 h-0.5 bg-cyan-500 rounded-full"
-                  transition={{ type: "spring", stiffness: 500, damping: 30 }}
-                />
-              )}
-            </button>
-          ))}
+          {TABS.map((tab, i) => {
+            const Icon = tab.icon;
+            return (
+              <button
+                key={tab.id}
+                onClick={() => switchTab(i)}
+                className={cn(
+                  "flex-1 py-2 flex flex-col items-center gap-0.5 transition-all relative",
+                  activeTab === i ? "text-white" : "text-white/35"
+                )}
+              >
+                <Icon className={cn("w-5 h-5", activeTab === i ? "text-cyan-400" : "text-white/35")} />
+                <span className="text-[10px] font-semibold">{tab.label}</span>
+                {activeTab === i && (
+                  <motion.div
+                    layoutId="tab-indicator"
+                    className="absolute bottom-0 left-4 right-4 h-0.5 bg-cyan-500 rounded-full"
+                    transition={{ type: "spring", stiffness: 500, damping: 30 }}
+                  />
+                )}
+              </button>
+            );
+          })}
         </div>
       </div>
 
