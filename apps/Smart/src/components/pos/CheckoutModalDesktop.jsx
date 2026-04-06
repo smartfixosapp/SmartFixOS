@@ -62,10 +62,10 @@ export default function CheckoutModalDesktop({
           </button>
         </div>
 
-        {/* Two Column Layout */}
-        <div className="flex flex-col sm:flex-row flex-1 overflow-hidden pt-24">
+        {/* Content: single scroll on mobile, two columns on desktop */}
+        <div className="flex-1 overflow-y-auto sm:overflow-hidden sm:flex sm:flex-row" style={{ WebkitOverflowScrolling: "touch" }}>
           {/* LEFT COLUMN - RESUMEN */}
-          <div className="w-full sm:w-[40%] sm:border-r border-white/10 p-6 space-y-6 overflow-y-auto bg-black/20">
+          <div className="w-full sm:w-[40%] sm:border-r border-white/10 p-4 sm:p-6 space-y-4 sm:space-y-6 sm:overflow-y-auto bg-black/20">
             {/* Resumen de Compra */}
             <div className="bg-[#18181B] rounded-2xl p-4 border border-white/5">
               <div className="flex items-center gap-2 mb-4">
