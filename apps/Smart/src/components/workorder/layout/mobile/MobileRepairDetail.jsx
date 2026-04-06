@@ -214,6 +214,17 @@ export default function MobileRepairDetail({
         </AnimatePresence>
       </div>
 
+      {/* ── ADD ITEM MODAL ── */}
+      <AddItemModal
+        open={showCatalog}
+        onClose={() => setShowCatalog(false)}
+        order={o}
+        onItemsUpdated={(newItems) => {
+          onOrderItemsUpdate?.(newItems);
+          setShowCatalog(false);
+        }}
+        onRemoteSaved={onRemoteSaved}
+      />
     </div>
   );
 }
