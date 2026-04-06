@@ -3134,29 +3134,31 @@ Reglas:
             ? "bg-[#1A1608]"
             : "bg-white/[0.03]"
         } ${
-          isCompactDevice ? "px-6 py-5" : "px-8 py-5"
+          isCompactDevice ? "px-4 py-3" : "px-8 py-5"
         }`}>
-          <div className="flex items-center gap-4 sm:gap-6">
-            <div className={`${isCompactDevice ? "w-14 h-14 rounded-[22px]" : "w-14 h-14 rounded-[22px]"} ${
+          <div className="flex items-center gap-3 sm:gap-6">
+            <div className={`${isCompactDevice ? "w-11 h-11 rounded-[16px]" : "w-14 h-14 rounded-[22px]"} ${
               quickOrderMode
                 ? "bg-gradient-to-br from-amber-400 to-yellow-600"
                 : "bg-gradient-to-br from-cyan-400 to-blue-600"
-            } flex items-center justify-center shadow-[0_8px_24px_rgba(0,0,0,0.3)]`}>
-              <Wrench className={`${isCompactDevice ? "w-7 h-7" : "w-7 h-7"} text-white`} strokeWidth={2.5} />
+            } flex items-center justify-center shadow-lg`}>
+              <Wrench className={`${isCompactDevice ? "w-5 h-5" : "w-7 h-7"} text-white`} strokeWidth={2.5} />
             </div>
             <div>
-              <h2 className={`${isCompactDevice ? "text-2xl" : "text-2xl"} font-black text-white tracking-tighter uppercase`}>Nueva Orden</h2>
-              <div className="flex items-center gap-2 mt-0.5">
-                <div className="h-1.5 w-1.5 rounded-full bg-cyan-500 animate-pulse" />
-                <p className="text-[11px] font-black uppercase tracking-[0.2em] text-white/40">Portal de Ingreso</p>
-              </div>
+              <h2 className={`${isCompactDevice ? "text-xl" : "text-2xl"} font-black text-white tracking-tighter uppercase`}>Nueva Orden</h2>
+              {!isCompactDevice && (
+                <div className="flex items-center gap-2 mt-0.5">
+                  <div className="h-1.5 w-1.5 rounded-full bg-cyan-500" />
+                  <p className="text-[11px] font-black uppercase tracking-[0.2em] text-white/40">Portal de Ingreso</p>
+                </div>
+              )}
             </div>
           </div>
-          <button 
-            onClick={onClose} 
-            className="w-11 h-11 rounded-full bg-white/5 border border-white/10 transition-all hover:bg-white/10 active:scale-95 group flex items-center justify-center"
+          <button
+            onClick={onClose}
+            className={`${isCompactDevice ? "w-9 h-9" : "w-11 h-11"} rounded-full bg-white/5 border border-white/10 transition-all hover:bg-white/10 active:scale-95 group flex items-center justify-center`}
           >
-            <X className="w-5 h-5 text-white/60 group-hover:rotate-90 transition-transform duration-300 group-hover:text-white" />
+            <X className={`${isCompactDevice ? "w-4 h-4" : "w-5 h-5"} text-white/60 group-hover:text-white`} />
           </button>
         </div>
 
