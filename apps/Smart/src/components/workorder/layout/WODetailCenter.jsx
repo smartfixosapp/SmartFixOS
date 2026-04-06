@@ -55,8 +55,9 @@ export default function WODetailCenter({
       if (action === "quote") document.dispatchEvent(new CustomEvent("wo:send-quote"));
       // Open JEANI assistant
       if (action === "ai") {
-        window.dispatchEvent(new CustomEvent("wo:open-jeani"));
-        document.dispatchEvent(new CustomEvent("wo:open-jeani"));
+        const evt = new CustomEvent("wo:open-jeani", { detail: { order: e.detail?.order } });
+        window.dispatchEvent(evt);
+        document.dispatchEvent(evt);
       }
       // Add note from sidebar
       if (action === "add-note") {
