@@ -785,9 +785,65 @@ export default function StoreDetail({ tenant, onBack }) {
   const [activeTab, setActiveTab] = useState("overview");
   const [showPlanModal, setShowPlanModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [accessing, setAccessing] = useState(false);
+  const { appClient, adminSupabase, refresh } = useGACC();
   const badge = getStatusBadge(tenant);
   const presence = presenceStatus(tenant.last_seen);
   const planConfig = getPlanConfig(tenant.effective_plan || tenant.plan);
+
+  // Access the store as its owner
+  const handleAccessStore = async () => {
+    setAccessing(true);
+    try {
+      // Find the admin/owner employee
+      const { data: employees } = await adminSupabase
+        .from("app_employee")
+        .select("*")
+        .eq("tenant_id", tenant.id)
+        .eq("active", true)
+        .order("created_date", { ascending: true });
+
+      const owner = employees?.find(e => e.role === "admin" || e.position === "admin") || employees?.[0];
+
+      if (!owner) {
+        toast.error("Esta tienda no tiene empleados registrados");
+        setAccessing(false);
+        return;
+      }
+
+      // Build session object that matches what PinAccess creates
+      const session = {
+        tenant_id: tenant.id,
+        employee_id: owner.id,
+        user_id: owner.id,
+        full_name: owner.full_name,
+        email: owner.email,
+        role: owner.role || owner.position || "admin",
+        position: owner.position || owner.role || "admin",
+        permissions: ["all"],
+        tenant: {
+          id: tenant.id,
+          name: tenant.name,
+          slug: tenant.slug,
+          plan: tenant.plan,
+        },
+        _impersonated_by: "gacc_admin",
+        _impersonation_started: new Date().toISOString(),
+      };
+
+      localStorage.setItem("employee_session", JSON.stringify(session));
+      sessionStorage.setItem("911-session", JSON.stringify(session));
+      localStorage.setItem("smartfix_tenant_id", tenant.id);
+      localStorage.setItem("current_tenant_id", tenant.id);
+
+      toast.success(`Accediendo como ${owner.full_name || owner.email}...`);
+      setTimeout(() => { window.location.href = "/Dashboard"; }, 600);
+    } catch (e) {
+      toast.error("Error: " + e.message);
+      setAccessing(false);
+    }
+  };
 
   const tabContent = {
     overview: <OverviewTab tenant={tenant} />,
