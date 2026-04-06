@@ -132,19 +132,24 @@ export default function CheckoutModalDesktop({
 
             {/* Toggle IVU */}
             <div className="flex items-center justify-between p-4 bg-white/[0.03] rounded-[20px] border border-white/[0.08]">
-              <div>
-                <p className="text-[11px] font-black text-white uppercase tracking-wider">IVU (Impuesto 11.5%)</p>
-                <p className="text-[10px] text-zinc-500 mt-0.5">Aplicar impuesto local</p>
+              <div className="flex items-center gap-3">
+                <div className={`w-9 h-9 rounded-xl flex items-center justify-center transition-colors ${taxEnabled ? "bg-emerald-500/15" : "bg-zinc-800"}`}>
+                  <span className="text-lg">{taxEnabled ? "✓" : "○"}</span>
+                </div>
+                <div>
+                  <p className="text-xs font-bold text-white">IVU 11.5%</p>
+                  <p className="text-[10px] text-zinc-500">{taxEnabled ? "Impuesto aplicado" : "Sin impuesto"}</p>
+                </div>
               </div>
               <button
                 onClick={() => setTaxEnabled(!taxEnabled)}
-                className={`relative w-14 h-8 rounded-full transition-all duration-500 ${
-                  taxEnabled ? "bg-cyan-500 shadow-[0_0_15px_rgba(6,182,212,0.4)]" : "bg-zinc-800"
+                className={`relative w-[52px] h-[30px] rounded-full transition-all duration-300 ${
+                  taxEnabled ? "bg-emerald-500" : "bg-zinc-700"
                 }`}
               >
                 <span
-                  className={`absolute top-1 left-1 w-6 h-6 bg-white rounded-full transition-transform duration-500 shadow-md ${
-                    taxEnabled ? "translate-x-6 scale-110" : "scale-90"
+                  className={`absolute top-[3px] left-[3px] w-6 h-6 bg-white rounded-full transition-transform duration-300 shadow-sm ${
+                    taxEnabled ? "translate-x-[22px]" : ""
                   }`}
                 />
               </button>
