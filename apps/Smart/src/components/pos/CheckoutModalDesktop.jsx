@@ -152,27 +152,25 @@ export default function CheckoutModalDesktop({
               {/* MOBILE: horizontal icon row */}
               <div className="flex gap-2 sm:hidden">
                 {[
-                  { id: "cash", icon: Banknote, label: "Efectivo", color: "emerald", enabled: enabledPaymentMethods.cash },
-                  { id: "card", icon: CreditCard, label: "Tarjeta", color: "blue", enabled: enabledPaymentMethods.card },
-                  { id: "ath_movil", icon: Smartphone, label: "ATH", color: "orange", enabled: enabledPaymentMethods.ath_movil },
-                  { id: "mixed", icon: CreditCard, label: "Dividido", color: "purple", enabled: enabledPaymentMethods.cash && enabledPaymentMethods.ath_movil },
+                  { id: "cash", icon: Banknote, label: "Efectivo", hex: "#10b981", enabled: enabledPaymentMethods.cash },
+                  { id: "card", icon: CreditCard, label: "Tarjeta", hex: "#3b82f6", enabled: enabledPaymentMethods.card },
+                  { id: "ath_movil", icon: Smartphone, label: "ATH", hex: "#f97316", enabled: enabledPaymentMethods.ath_movil },
+                  { id: "mixed", icon: CreditCard, label: "Dividido", hex: "#a855f7", enabled: enabledPaymentMethods.cash && enabledPaymentMethods.ath_movil },
                 ].filter(m => m.enabled).map(m => {
                   const selected = paymentMethod === m.id;
                   return (
                     <button
                       key={m.id}
                       onClick={() => setPaymentMethod(m.id)}
-                      className={`flex-1 flex flex-col items-center gap-1.5 py-3 rounded-2xl border transition-all active:scale-95 ${
-                        selected
-                          ? `bg-${m.color}-500/15 border-${m.color}-500/50`
-                          : "bg-white/[0.03] border-white/10"
-                      }`}
-                      style={selected ? { backgroundColor: `var(--color-${m.color})`, borderColor: `var(--color-${m.color})` } : undefined}
+                      className="flex-1 flex flex-col items-center gap-1.5 py-3 rounded-2xl border transition-all active:scale-95"
+                      style={{
+                        backgroundColor: selected ? `${m.hex}15` : "rgba(255,255,255,0.03)",
+                        borderColor: selected ? `${m.hex}80` : "rgba(255,255,255,0.1)",
+                      }}
                     >
-                      <div className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all ${
-                        selected ? `bg-${m.color}-500 text-white` : `bg-white/[0.06] text-zinc-400`
-                      }`}
-                        style={selected ? { backgroundColor: { emerald: "#10b981", blue: "#3b82f6", orange: "#f97316", purple: "#a855f7" }[m.color] } : undefined}
+                      <div
+                        className="w-10 h-10 rounded-xl flex items-center justify-center transition-all"
+                        style={{ backgroundColor: selected ? m.hex : "rgba(255,255,255,0.06)", color: selected ? "#fff" : "#a1a1aa" }}
                       >
                         <m.icon className="w-5 h-5" />
                       </div>
