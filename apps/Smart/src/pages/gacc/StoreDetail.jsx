@@ -961,6 +961,155 @@ export default function StoreDetail({ tenant, onBack }) {
       {/* Modals */}
       <ChangePlanModal tenant={tenant} open={showPlanModal} onClose={() => setShowPlanModal(false)} />
       <EditStoreModal tenant={tenant} open={showEditModal} onClose={() => setShowEditModal(false)} />
+      <DeleteStoreModal tenant={tenant} open={showDeleteModal} onClose={() => setShowDeleteModal(false)} onDeleted={onBack} />
     </div>
+  );
+}
+
+// ── Delete Store Modal ───────────────────────────────────────────────────────
+function DeleteStoreModal({ tenant, open, onClose, onDeleted }) {
+  const { appClient, adminSupabase, refresh } = useGACC();
+  const [confirmText, setConfirmText] = useState("");
+  const [deleting, setDeleting] = useState(false);
+  const [step, setStep] = useState(1);
+  const canDelete = confirmText.trim().toLowerCase() === (tenant?.name || "").toLowerCase();
+
+  const handleClose = () => {
+    setConfirmText("");
+    setStep(1);
+    onClose();
+  };
+
+  const handleDelete = async () => {
+    if (!canDelete) return;
+    setDeleting(true);
+    try {
+      // Try manageTenant function first (preferred — cleans everything)
+      let success = false;
+      try {
+        await appClient.functions.manageTenant({ tenantId: tenant.id, action: "delete" });
+        success = true;
+      } catch (e) {
+        console.warn("manageTenant delete failed, trying direct delete:", e.message);
+      }
+
+      // Fallback: direct delete of tenant and related data
+      if (!success) {
+        // Delete related data first
+        await adminSupabase.from("app_employee").delete().eq("tenant_id", tenant.id);
+        await adminSupabase.from("subscription").delete().eq("tenant_id", tenant.id);
+        await adminSupabase.from("tenant_membership").delete().eq("tenant_id", tenant.id);
+        // Delete the tenant itself
+        const { error } = await adminSupabase.from("tenant").delete().eq("id", tenant.id);
+        if (error) throw error;
+      }
+
+      // Log admin action
+      try {
+        const log = JSON.parse(localStorage.getItem("gacc_admin_log") || "[]");
+        log.unshift({
+          action: `Tienda eliminada: ${tenant.name}`,
+          target: tenant.email,
+          type: "danger",
+          time: new Date().toISOString(),
+        });
+        localStorage.setItem("gacc_admin_log", JSON.stringify(log.slice(0, 50)));
+      } catch {}
+
+      toast.success(`Tienda "${tenant.name}" eliminada permanentemente`);
+      await refresh();
+      handleClose();
+      onDeleted?.();
+    } catch (e) {
+      toast.error("Error eliminando: " + e.message);
+    } finally {
+      setDeleting(false);
+    }
+  };
+
+  if (!open) return null;
+
+  return createPortal(
+    <AnimatePresence>
+      <motion.div
+        initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+        className="fixed inset-0 z-[9999] bg-black/70 backdrop-blur-sm flex items-center justify-center p-4"
+        onClick={handleClose}
+      >
+        <motion.div
+          initial={{ opacity: 0, scale: 0.95, y: 10 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.95, y: 10 }}
+          className="w-full max-w-md bg-[#141416] border border-red-500/30 rounded-2xl shadow-2xl overflow-hidden"
+          onClick={e => e.stopPropagation()}
+        >
+          <div className="flex items-center justify-between px-5 py-4 border-b border-red-500/20 bg-red-500/[0.03]">
+            <div className="flex items-center gap-2">
+              <AlertTriangle className="w-5 h-5 text-red-400" />
+              <p className="text-[14px] font-bold text-white">Eliminar Tienda</p>
+            </div>
+            <button onClick={handleClose} className="p-1.5 rounded-lg text-gray-600 hover:text-white hover:bg-white/[0.05]">
+              <XCircle className="w-5 h-5" />
+            </button>
+          </div>
+
+          {step === 1 ? (
+            <div className="px-5 py-5 space-y-4">
+              <div className="rounded-xl bg-red-500/10 border border-red-500/20 p-4">
+                <p className="text-[13px] text-red-300 font-bold mb-2">Esta accion NO se puede deshacer</p>
+                <ul className="text-[11px] text-gray-400 space-y-1 list-disc pl-4">
+                  <li>Se eliminara la tienda <strong className="text-white">{tenant.name}</strong></li>
+                  <li>Se eliminaran todos los empleados registrados</li>
+                  <li>Se cancelaran las suscripciones</li>
+                  <li>Los datos historicos (ordenes, ventas, clientes) pueden persistir</li>
+                  <li>El email <strong className="text-white">{tenant.email}</strong> podra registrarse nuevamente</li>
+                </ul>
+              </div>
+              <div className="flex items-center justify-end gap-2">
+                <button onClick={handleClose} className="px-4 py-2 rounded-xl text-[12px] text-gray-500 hover:text-white transition-all">
+                  Cancelar
+                </button>
+                <button
+                  onClick={() => setStep(2)}
+                  className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-[12px] font-semibold bg-red-500/20 text-red-300 border border-red-500/30 hover:bg-red-500/30 transition-all"
+                >
+                  Continuar
+                </button>
+              </div>
+            </div>
+          ) : (
+            <div className="px-5 py-5 space-y-4">
+              <div>
+                <p className="text-[12px] text-gray-400 mb-2">
+                  Para confirmar, escribe el nombre exacto de la tienda:
+                </p>
+                <p className="text-[13px] text-white font-mono bg-white/[0.05] px-3 py-2 rounded-lg border border-white/[0.08] mb-3">
+                  {tenant.name}
+                </p>
+                <input
+                  value={confirmText}
+                  onChange={e => setConfirmText(e.target.value)}
+                  placeholder="Escribe el nombre de la tienda"
+                  autoFocus
+                  className="w-full px-3 py-2.5 rounded-xl bg-white/[0.03] border border-white/[0.07] text-[13px] text-white placeholder:text-gray-700 focus:outline-none focus:border-red-500/40"
+                />
+              </div>
+              <div className="flex items-center justify-end gap-2">
+                <button onClick={() => setStep(1)} className="px-4 py-2 rounded-xl text-[12px] text-gray-500 hover:text-white transition-all">
+                  Atras
+                </button>
+                <button
+                  onClick={handleDelete}
+                  disabled={!canDelete || deleting}
+                  className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-[12px] font-semibold bg-red-500/20 text-red-300 border border-red-500/30 hover:bg-red-500/30 transition-all disabled:opacity-40 disabled:cursor-not-allowed"
+                >
+                  {deleting ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : <Trash2 className="w-3.5 h-3.5" />}
+                  Eliminar Permanentemente
+                </button>
+              </div>
+            </div>
+          )}
+        </motion.div>
+      </motion.div>
+    </AnimatePresence>,
+    document.body
   );
 }
