@@ -184,6 +184,49 @@ export default function GACCLayout({ activeSection, onSectionChange, onOpenPalet
     return () => clearInterval(iv);
   }, []);
 
+  // ── Keyboard shortcuts (g + letter for nav, ? for help) ──
+  useEffect(() => {
+    let gPressed = false;
+    let gTimeout = null;
+
+    const handler = (e) => {
+      // Ignore if typing in input/textarea
+      if (["INPUT", "TEXTAREA", "SELECT"].includes(e.target.tagName) || e.target.isContentEditable) return;
+      if (e.metaKey || e.ctrlKey || e.altKey) return;
+
+      if (e.key === "g") {
+        gPressed = true;
+        clearTimeout(gTimeout);
+        gTimeout = setTimeout(() => { gPressed = false; }, 1000);
+        return;
+      }
+
+      if (gPressed) {
+        const section = NAV_SECTIONS.find(s => s.key === e.key.toLowerCase());
+        if (section) {
+          e.preventDefault();
+          onSectionChange(section.id);
+          gPressed = false;
+          clearTimeout(gTimeout);
+        }
+      }
+
+      // ? = help
+      if (e.key === "?") {
+        e.preventDefault();
+        import("sonner").then(({ toast }) => {
+          toast.info("Shortcuts: g+h (HQ), g+s (Stores), g+r (Revenue), g+a (Analytics), g+o (Ops), g+g (Growth), g+u (Support), g+e (Security), g+t (Tools), Cmd+K (Search)", { duration: 6000 });
+        });
+      }
+    };
+
+    document.addEventListener("keydown", handler);
+    return () => {
+      document.removeEventListener("keydown", handler);
+      clearTimeout(gTimeout);
+    };
+  }, [onSectionChange]);
+
   const handleLogout = () => {
     localStorage.removeItem(SUPER_SESSION_KEY);
     toast.success("Sesion cerrada");
