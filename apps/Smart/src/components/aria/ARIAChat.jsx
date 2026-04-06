@@ -1368,12 +1368,11 @@ pregunta inmediatamente al usuario por el primer campo que falta.
         let openaiOk = true;
         try { await runOpenAI(); }
         catch (e) {
-          const m = e.message?.toLowerCase() || "";
-          if (m.includes("billing") || m.includes("credit") || m.includes("quota") || m.includes("insufficient_quota")) {
-            openaiOk = false;
-          } else throw e;
+          console.warn("[JEANI] OpenAI failed, falling back to Groq:", e.message);
+          openaiOk = false;
         }
-        if (!openaiOk) await runGroq();
+        if (!openaiOk && GROQ_KEY) await runGroq();
+        else if (!openaiOk) throw new Error("No hay API de IA disponible");
       } else {
         await runGroq();
       }
