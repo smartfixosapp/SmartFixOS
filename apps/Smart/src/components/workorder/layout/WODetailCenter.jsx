@@ -38,6 +38,7 @@ export default function WODetailCenter({
   const [posting, setPosting] = useState(false);
   const [timelineKey, setTimelineKey] = useState(0);
   const [uploading, setUploading] = useState(false);
+  const [previewPhoto, setPreviewPhoto] = useState(null);
   const photoInputRef = useRef(null);
 
   // Listen for ALL sidebar action events
