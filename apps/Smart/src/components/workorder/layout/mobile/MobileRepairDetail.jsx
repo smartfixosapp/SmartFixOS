@@ -44,8 +44,16 @@ export default function MobileRepairDetail({
 }) {
   const [activeTab, setActiveTab] = useState(0);
   const [direction, setDirection] = useState(0);
+  const [showCatalog, setShowCatalog] = useState(false);
   const scrollRef = useRef(null);
   const o = order || {};
+
+  // Listen for catalog open event from MobileAccionesTab
+  useEffect(() => {
+    const handler = () => setShowCatalog(true);
+    document.addEventListener("wo:open-catalog", handler);
+    return () => document.removeEventListener("wo:open-catalog", handler);
+  }, []);
 
   // Pull to refresh
   const { pullDistance, isRefreshing, onTouchStart, onTouchMove, onTouchEnd } = usePullToRefresh(onUpdate);
