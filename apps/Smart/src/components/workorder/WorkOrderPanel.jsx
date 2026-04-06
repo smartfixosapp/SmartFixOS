@@ -1933,27 +1933,30 @@ export default function WorkOrderPanel({ orderId, onClose, onUpdate, onDelete, p
     if (!orderId || loading) return;
 
     let iv = null;
+    const lastUpdatedRef = { current: order?.updated_date };
     const refresh = async () => {
+      if (document.hidden) return;
       try {
         const fresh = await base44.entities.Order.get(orderId);
-        if (fresh && fresh.updated_date !== order?.updated_date) {
-          // log removed for perf
+        if (fresh && fresh.updated_date !== lastUpdatedRef.current) {
+          lastUpdatedRef.current = fresh.updated_date;
           setOrder(fresh);
           setStatus(normalizeStatusId(fresh?.status));
           clearEventCache(orderId);
           loadEventsCallback(true);
         }
       } catch (e) {
-        console.warn("[WO] Auto-refresh falló (no crítico):", e.message);
+        // silent
       }
     };
-    const start = () => { if (!iv) iv = setInterval(refresh, 60000); };
+    const start = () => { if (!iv) iv = setInterval(refresh, 120000); };
     const stop = () => { if (iv) { clearInterval(iv); iv = null; } };
     const onVis = () => { document.hidden ? stop() : start(); };
     if (!document.hidden) start();
     document.addEventListener("visibilitychange", onVis);
     return () => { stop(); document.removeEventListener("visibilitychange", onVis); };
-  }, [orderId, loading, order?.updated_date, loadEventsCallback]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [orderId, loading]);
 
   async function askDeleteNote(noteId) {
     setPinModal({ open: true, targetNoteId: noteId, forOrder: false });
