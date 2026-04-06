@@ -1067,10 +1067,12 @@ export default function OrdersPage() {
           if (newOrder) {
             upsertLocalOrder(newOrder);
             setOrders(prev => mergeOrders(prev, [newOrder]));
+            // Abrir la orden recién creada
+            if (newOrder.id) setSelectedOrderId(newOrder.id);
           } else {
             loadOrders();
           }
-          toast.success("✅ Orden creada");
+          toast.success("Orden creada");
         }} />
 
       }
