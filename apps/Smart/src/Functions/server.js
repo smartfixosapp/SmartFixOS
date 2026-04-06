@@ -82,6 +82,7 @@ const unwrappedRoutes = new Set([
 const routes = {
 '/extract_file': extractFileHandler,
 '/ai/invoke': invokeLLMHandler,
+'/ai/chat': aiChatHandler,
 '/ai/generate-image': generateImageHandler,
 '/sendEmailInternal': sendEmailInternalHandler,
 '/runScheduledFnTriggers': runScheduledFnTriggersHandler,
