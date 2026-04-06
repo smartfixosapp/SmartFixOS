@@ -1449,7 +1449,16 @@ pregunta inmediatamente al usuario por el primer campo que falta.
       }
 
     } catch (err) {
-      setMessages(m => [...m, { role: "assistant", content: "⚠️ " + err.message }]);
+      // Friendlier error messages
+      let friendlyMsg = err.message;
+      if (err.message === "Load failed" || err.message?.includes("fetch")) {
+        friendlyMsg = "No pude conectar con el asistente. Verifica tu conexión a internet e inténtalo de nuevo.";
+      } else if (err.message?.includes("401") || err.message?.includes("Incorrect API key")) {
+        friendlyMsg = "La API key del asistente expiró. Contacta al administrador.";
+      } else if (err.message?.includes("quota") || err.message?.includes("billing")) {
+        friendlyMsg = "Se agotó el crédito del asistente. Contacta al administrador.";
+      }
+      setMessages(m => [...m, { role: "assistant", content: "⚠️ " + friendlyMsg }]);
     } finally {
       setLoading(false);
       setStatus("");
