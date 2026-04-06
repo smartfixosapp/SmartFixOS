@@ -674,6 +674,8 @@ export default function StoresDirectory({ onSelectTenant }) {
               tenant={tenant}
               onSelect={t => onSelectTenant?.(t)}
               onAction={handleAction}
+              isSelected={selectedIds.has(tenant.id)}
+              onToggleSelect={toggleSelect}
             />
           ))
         )}
