@@ -124,6 +124,7 @@ export default function WODetailCenter({
   const items = useMemo(() => Array.isArray(o.order_items) ? o.order_items : [], [o.order_items]);
 
   // Financial summary (respects discount_percentage and taxable per item)
+  // Always calculated from items — never trust stale DB values
   const financial = useMemo(() => {
     const subtotal = items.reduce((sum, item) => {
       const base = Number(item.price || 0) * Number(item.quantity || item.qty || 1);
@@ -137,11 +138,12 @@ export default function WODetailCenter({
       return sum + (base - base * (discount / 100));
     }, 0);
     const tax = taxableBase * IVU_RATE;
-    const total = Number(o.total || o.cost_estimate || 0) || (subtotal + tax);
-    const paid = Number(o.amount_paid ?? o.total_paid ?? 0);
-    const balance = o.balance_due != null ? Math.max(0, Number(o.balance_due || 0)) : Math.max(0, total - paid);
+    // Always calculate total as subtotal + tax, not from stale DB value
+    const total = subtotal + tax;
+    const paid = Number(o.amount_paid ?? o.total_paid ?? o.deposit_amount ?? 0);
+    const balance = Math.max(0, total - paid);
     return { subtotal, tax, total, paid, balance };
-  }, [items, o.total, o.cost_estimate, o.amount_paid, o.total_paid, o.balance_due]);
+  }, [items, o.amount_paid, o.total_paid, o.deposit_amount]);
 
   // Post comment
   const postComment = useCallback(async () => {
