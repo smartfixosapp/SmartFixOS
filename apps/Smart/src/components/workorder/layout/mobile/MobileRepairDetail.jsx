@@ -12,9 +12,9 @@ import usePullToRefresh from "./usePullToRefresh";
 import AddItemModal from "@/components/workorder/AddItemModal";
 
 const TABS = [
-  { id: "acciones", label: "Acciones" },
-  { id: "informacion", label: "Informacion" },
-  { id: "historial", label: "Historial" },
+  { id: "acciones", label: "Acciones", icon: Zap },
+  { id: "informacion", label: "Info", icon: Info },
+  { id: "historial", label: "Historial", icon: Clock },
 ];
 
 const SWIPE_THRESHOLD = 50;
