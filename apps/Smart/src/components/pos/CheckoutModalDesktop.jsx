@@ -48,9 +48,9 @@ export default function CheckoutModalDesktop({
     <div className="fixed inset-0 z-[100] flex items-center justify-center sm:p-4 p-0">
       <div className="absolute inset-0 bg-[#000000]/95" onClick={onClose} />
 
-      <div className="relative w-full h-[100dvh] sm:h-auto sm:max-h-[90vh] sm:max-w-4xl bg-[#0F0F12] border-x sm:border border-white/10 sm:rounded-[32px] overflow-hidden shadow-2xl animate-in fade-in zoom-in-95 duration-300 flex flex-col sm:flex-row">
+      <div className="relative w-full h-[100dvh] sm:h-auto sm:max-h-[90vh] sm:max-w-4xl bg-[#0F0F12] border-x sm:border border-white/10 sm:rounded-[32px] overflow-hidden shadow-2xl animate-in fade-in zoom-in-95 duration-300 flex flex-col">
         {/* Header */}
-        <div className="absolute top-0 left-0 right-0 flex items-center justify-between p-6 pb-4 z-20 bg-[#0F0F12]/80 backdrop-blur-xl border-b border-white/5">
+        <div className="sticky top-0 left-0 right-0 flex items-center justify-between p-4 sm:p-6 pb-3 sm:pb-4 z-20 bg-[#0F0F12]/95 backdrop-blur-xl border-b border-white/5 flex-shrink-0" style={{ paddingTop: "calc(env(safe-area-inset-top, 12px) + 12px)" }}>
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-2xl bg-blue-500/20 flex items-center justify-center text-blue-500">
               <CreditCard className="w-5 h-5" />
