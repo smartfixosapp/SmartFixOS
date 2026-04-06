@@ -675,7 +675,22 @@ export default function ARIAChat() {
   }, []);
 
   // Reset force-open when chat is closed
-  React.useEffect(() => { if (!open) setForceOpen(false); }, [open]);
+  React.useEffect(() => {
+    if (!open) {
+      setForceOpen(false);
+      setOrderContext(null);
+    }
+  }, [open]);
+
+  // Auto-greet with order context when opened from sidebar
+  React.useEffect(() => {
+    if (!forceOpen || !orderContext || !open) return;
+    const oc = orderContext;
+    const greeting = `Estoy viendo la orden **#${oc.order_number || ""}** de **${oc.customer_name || "cliente"}** — ${oc.device_brand || ""} ${oc.device_model || ""}.\n\nProblema: *${oc.initial_problem || "no especificado"}*\n\n¿En qué te ayudo? Puedo sugerir diagnósticos, recomendar piezas, estimar costos, o analizar fotos.`;
+    setMessages([{ role: "assistant", content: greeting }]);
+    setTab("chat");
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [forceOpen, open]);
 
   if (forceOpen) { /* bypass all checks — sidebar requested JEANI */ }
   else if (isHidden || !enabled || workOrderOpen) return null;
