@@ -507,8 +507,9 @@ export default function Dashboard() {
 
     loadFreshData();
     loadUnreadNotifications();
-    // ✅ OPTIMIZACIÓN: Aumentar intervalo a 5 minutos para reducir carga
-    const iv = setInterval(() => loadFreshData(), 300000);
+    const iv = setInterval(() => {
+      if (document.visibilityState === "visible") loadFreshData();
+    }, 300000);
     return () => clearInterval(iv);
   }, [session, loadFreshData]);
 
