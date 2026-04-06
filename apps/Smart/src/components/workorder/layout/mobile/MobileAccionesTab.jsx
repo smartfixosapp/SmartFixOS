@@ -206,7 +206,7 @@ export default function MobileAccionesTab({
                 {action.id === "photos" && uploading ? "Subiendo..." : action.label}
               </span>
               {badges[action.badgeKey] && (
-                <div className="w-2.5 h-2.5 rounded-full bg-red-500 animate-pulse" />
+                <div className="w-2.5 h-2.5 rounded-full bg-red-500" />
               )}
               {action.expandable ? (
                 <ChevronDown className={cn("w-4 h-4 text-white/20 transition-transform", showNotifyOptions && "rotate-180")} />
