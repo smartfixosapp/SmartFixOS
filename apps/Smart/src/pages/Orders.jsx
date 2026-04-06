@@ -1068,7 +1068,7 @@ export default function OrdersPage() {
             upsertLocalOrder(newOrder);
             setOrders(prev => mergeOrders(prev, [newOrder]));
             // Abrir la orden recién creada
-            if (newOrder.id) setSelectedOrderId(newOrder.id);
+            if (newOrder.id) setSelectedOrder(newOrder);
           } else {
             loadOrders();
           }
