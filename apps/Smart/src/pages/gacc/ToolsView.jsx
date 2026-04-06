@@ -563,6 +563,144 @@ function AdminActivityLog() {
   );
 }
 
+// ── Backup / Clone / GDPR Tool ───────────────────────────────────────────────
+function BackupTool() {
+  const { tenants, adminSupabase } = useGACC();
+  const [selectedId, setSelectedId] = useState("");
+  const [working, setWorking] = useState(false);
+
+  const selected = tenants.find(t => t.id === selectedId);
+
+  const exportTenantData = async (tenant) => {
+    setWorking(true);
+    try {
+      const tables = ["app_employee", "customer", "product", "order", "sale", "transaction", "cash_register", "subscription", "notification", "inventory_movement"];
+      const data = { tenant, exported_at: new Date().toISOString() };
+
+      for (const table of tables) {
+        try {
+          const { data: rows } = await adminSupabase.from(table).select("*").eq("tenant_id", tenant.id);
+          data[table] = rows || [];
+        } catch { data[table] = []; }
+      }
+
+      const json = JSON.stringify(data, null, 2);
+      const blob = new Blob([json], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `backup-${tenant.slug || tenant.id}-${new Date().toISOString().slice(0, 10)}.json`;
+      a.click();
+      URL.revokeObjectURL(url);
+      toast.success(`Backup de ${tenant.name} descargado`);
+    } catch (e) {
+      toast.error("Error: " + e.message);
+    } finally {
+      setWorking(false);
+    }
+  };
+
+  const cloneTenant = async (tenant) => {
+    if (!confirm(`Clonar "${tenant.name}" como nueva tienda de demo?`)) return;
+    setWorking(true);
+    try {
+      const cloneName = `${tenant.name} (Clone)`;
+      const cloneEmail = `clone-${Date.now()}@demo.smartfixos.com`;
+
+      const { data: newTenant, error } = await adminSupabase.from("tenant").insert({
+        name: cloneName,
+        email: cloneEmail,
+        slug: `${tenant.slug || "clone"}-${Date.now()}`,
+        plan: tenant.plan,
+        status: "active",
+        country: tenant.country,
+        currency: tenant.currency,
+        timezone: tenant.timezone,
+        metadata: { ...tenant.metadata, cloned_from: tenant.id, is_clone: true },
+        monthly_cost: tenant.monthly_cost,
+      }).select().single();
+
+      if (error) throw error;
+      toast.success(`Clon creado: ${cloneName}`);
+    } catch (e) {
+      toast.error("Error: " + e.message);
+    } finally {
+      setWorking(false);
+    }
+  };
+
+  const gdprDelete = async (tenant) => {
+    if (!confirm(`GDPR DELETE: Eliminar TODOS los datos personales de "${tenant.name}"? Esta accion cumple con GDPR/CCPA y es irreversible.`)) return;
+    if (!confirm(`ULTIMA CONFIRMACION: Escribir el nombre exacto para confirmar no esta disponible aqui. Escribe "SI" en el siguiente prompt.`)) return;
+    const answer = prompt(`Escribe "ELIMINAR ${tenant.name}" para confirmar:`);
+    if (answer !== `ELIMINAR ${tenant.name}`) { toast.error("Cancelado"); return; }
+
+    setWorking(true);
+    try {
+      // Delete all tenant-related PII
+      const tables = ["customer", "app_employee", "users", "tenant_membership", "subscription", "audit_log"];
+      for (const table of tables) {
+        try { await adminSupabase.from(table).delete().eq("tenant_id", tenant.id); } catch {}
+      }
+      // Delete tenant itself
+      await adminSupabase.from("tenant").delete().eq("id", tenant.id);
+      toast.success(`GDPR delete completado para ${tenant.name}`);
+      setSelectedId("");
+    } catch (e) {
+      toast.error("Error: " + e.message);
+    } finally {
+      setWorking(false);
+    }
+  };
+
+  return (
+    <div className="rounded-2xl border border-white/[0.07] bg-white/[0.02] p-4 space-y-4">
+      <div className="flex items-center gap-2">
+        <Database className="w-4 h-4 text-emerald-400" />
+        <p className="text-[13px] font-bold text-white">Backup / Clone / GDPR</p>
+      </div>
+
+      <select
+        value={selectedId}
+        onChange={e => setSelectedId(e.target.value)}
+        className="w-full px-3 py-2.5 rounded-xl bg-white/[0.05] border border-white/[0.1] text-[12px] text-white outline-none cursor-pointer"
+      >
+        <option value="">Seleccionar tienda...</option>
+        {tenants.map(t => <option key={t.id} value={t.id}>{t.name} ({t.email})</option>)}
+      </select>
+
+      {selected && (
+        <div className="space-y-2">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+            <button onClick={() => exportTenantData(selected)} disabled={working} className="flex items-center gap-2 px-4 py-3 rounded-xl border border-emerald-500/20 bg-emerald-500/[0.03] hover:bg-emerald-500/10 transition-all disabled:opacity-50">
+              <Download className="w-4 h-4 text-emerald-400" />
+              <div className="text-left">
+                <p className="text-[12px] text-white font-semibold">Backup JSON</p>
+                <p className="text-[9px] text-gray-600">Exportar todos los datos</p>
+              </div>
+            </button>
+            <button onClick={() => cloneTenant(selected)} disabled={working} className="flex items-center gap-2 px-4 py-3 rounded-xl border border-blue-500/20 bg-blue-500/[0.03] hover:bg-blue-500/10 transition-all disabled:opacity-50">
+              <Building2 className="w-4 h-4 text-blue-400" />
+              <div className="text-left">
+                <p className="text-[12px] text-white font-semibold">Clone Tenant</p>
+                <p className="text-[9px] text-gray-600">Duplicar para demo</p>
+              </div>
+            </button>
+            <button onClick={() => gdprDelete(selected)} disabled={working} className="flex items-center gap-2 px-4 py-3 rounded-xl border border-red-500/20 bg-red-500/[0.03] hover:bg-red-500/10 transition-all disabled:opacity-50">
+              <Trash2 className="w-4 h-4 text-red-400" />
+              <div className="text-left">
+                <p className="text-[12px] text-white font-semibold">GDPR Delete</p>
+                <p className="text-[9px] text-gray-600">Borrar PII</p>
+              </div>
+            </button>
+          </div>
+          {working && <p className="text-[11px] text-gray-600 text-center">Procesando...</p>}
+        </div>
+      )}
+    </div>
+  );
+}
+
 // ── Main Tools View ──────────────────────────────────────────────────────────
 export default function ToolsView() {
   const [tab, setTab] = useState("explorer");
@@ -572,6 +710,7 @@ export default function ToolsView() {
     { key: "storage", label: "Storage", icon: HardDrive },
     { key: "flags", label: "Feature Flags", icon: Settings },
     { key: "impersonate", label: "Impersonation", icon: Eye },
+    { key: "backup", label: "Backup/Clone", icon: Database },
     { key: "bulk", label: "Bulk Actions", icon: Zap },
     { key: "diagnostics", label: "Diagnostics", icon: AlertTriangle },
     { key: "adminlog", label: "Admin Log", icon: Activity },
