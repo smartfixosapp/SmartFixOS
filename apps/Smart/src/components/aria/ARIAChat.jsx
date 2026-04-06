@@ -684,10 +684,43 @@ export default function ARIAChat() {
   const buildSystem = () => {
     const session  = readSession();
     const bizName  = session?.storeName || "SmartFixOS";
+
+    // Build order context if available
+    let orderBlock = "";
+    if (orderContext) {
+      const oc = orderContext;
+      const items = Array.isArray(oc.order_items) ? oc.order_items : [];
+      const photos = Array.isArray(oc.photos_metadata) ? oc.photos_metadata : [];
+      const history = Array.isArray(oc.status_history) ? oc.status_history : [];
+      orderBlock = `
+
+═══ ORDEN ACTUAL (estás asistiendo con esta orden) ═══
+Orden: #${oc.order_number || "N/A"}
+Estado: ${oc.status || "desconocido"}
+Cliente: ${oc.customer_name || "N/A"} | Tel: ${oc.customer_phone || "N/A"} | Email: ${oc.customer_email || "N/A"}
+Dispositivo: ${oc.device_brand || ""} ${oc.device_model || ""} (${oc.device_type || "N/A"})
+Color: ${oc.device_color || "N/A"} | IMEI: ${oc.device_imei || "N/A"}
+Problema reportado: ${oc.initial_problem || "No especificado"}
+${items.length > 0 ? `Items (${items.length}): ${items.map(i => `${i.name || "Item"} $${Number(i.price || 0).toFixed(2)}`).join(", ")}` : "Sin items registrados"}
+Total: $${Number(oc.total || oc.cost_estimate || 0).toFixed(2)} | Pagado: $${Number(oc.amount_paid || oc.total_paid || 0).toFixed(2)} | Balance: $${Number(oc.balance_due || 0).toFixed(2)}
+Fotos: ${photos.length} foto(s) adjunta(s)
+${oc.repair_checklist_done ? "Checklist de cierre: COMPLETO" : ""}
+${oc.warranty_verdict ? `Veredicto garantía: ${oc.warranty_verdict}` : ""}
+Historial: ${history.length} cambios de estado
+
+Con esta información puedes:
+- Sugerir diagnósticos basados en el problema y tipo de dispositivo
+- Recomendar piezas necesarias para la reparación
+- Estimar costos de reparación
+- Explicar el estado actual de la orden
+- Ayudar a redactar notas técnicas
+- Analizar fotos si el usuario las comparte`;
+    }
+
     return `Eres JENAI, asistente de ${bizName} (taller de reparación).
 Idioma: ESPAÑOL. Respuestas cortas. UNA sola pregunta por mensaje.
 
-Negocio: ${activeOrders.total} activas | $${todayIncome.toFixed(0)} hoy
+Negocio: ${activeOrders.total} activas | $${todayIncome.toFixed(0)} hoy${orderBlock}
 
 ═══ CREAR ORDEN — PROTOCOLO OBLIGATORIO ═══
 Cuando el usuario quiera crear una orden, DEBES recopilar estos datos EN ORDEN, UNO POR UNO.
