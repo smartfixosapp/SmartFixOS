@@ -98,16 +98,33 @@ export default function CheckoutModalDesktop({
               </div>
 
               <div className="space-y-2 mb-4 max-h-40 overflow-y-auto pr-2">
-                {cart.map((item, idx) => (
-                  <div key={idx} className="flex justify-between text-sm">
-                    <span className="text-zinc-400 truncate pr-4">
-                      {item.quantity}x {item.name}
-                    </span>
-                    <span className="text-white font-medium whitespace-nowrap">
-                      ${(item.price * item.quantity).toFixed(2)}
-                    </span>
-                  </div>
-                ))}
+                {cart.map((item, idx) => {
+                  const base = Number(item.price || 0) * Number(item.quantity || 1);
+                  const disc = Number(item.discount_percentage || item.discount_percent || 0);
+                  const lineTotal = base - base * (disc / 100);
+                  const hasDiscount = disc > 0;
+                  const isFullDiscount = disc >= 100;
+                  return (
+                    <div key={idx} className="flex justify-between text-sm items-start">
+                      <span className="text-zinc-400 truncate pr-4">
+                        {item.quantity}x {item.name}
+                        {hasDiscount && (
+                          <span className="ml-1 text-[10px] font-bold text-amber-400">
+                            -{disc}%{isFullDiscount && " CORTESÍA"}
+                          </span>
+                        )}
+                      </span>
+                      <span className="whitespace-nowrap flex items-center gap-1.5">
+                        {hasDiscount && (
+                          <span className="text-zinc-600 line-through text-xs">${base.toFixed(2)}</span>
+                        )}
+                        <span className={`font-medium ${isFullDiscount ? "text-emerald-400" : "text-white"}`}>
+                          {isFullDiscount ? "GRATIS" : `$${lineTotal.toFixed(2)}`}
+                        </span>
+                      </span>
+                    </div>
+                  );
+                })}
               </div>
 
               <div className="space-y-1 pt-3 border-t border-white/5">
