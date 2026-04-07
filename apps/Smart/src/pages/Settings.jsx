@@ -882,6 +882,13 @@ export default function SettingsPage() {
           description: "Tareas de apertura y cierre por empleado",
           color: "from-amber-500 to-orange-600",
         },
+        ...(isAdmin ? [{
+          id: "employee_schedules",
+          icon: Clock,
+          title: "Horarios de Empleados",
+          description: "Define entrada y salida por día para cada empleado",
+          color: "from-emerald-600 to-teal-600",
+        }] : []),
         {
           id: "jenai_toggle",
           icon: Bot,
