@@ -78,7 +78,9 @@ function AlertsBell() {
       setDynamicAlerts([...generated, ...stored].slice(0, 10));
     };
     check();
-    const iv = setInterval(check, 30000);
+    const iv = setInterval(() => {
+      if (document.visibilityState === "visible") check();
+    }, 2 * 60 * 1000);
     return () => clearInterval(iv);
   }, []);
 
