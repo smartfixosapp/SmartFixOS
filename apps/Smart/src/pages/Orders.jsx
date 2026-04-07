@@ -238,13 +238,18 @@ export default function OrdersPage() {
   const pendingOpenOrderIdRef = useRef(null);
 
   const openQuickOrderModal = useCallback(() => {
-    // Plan limit check — count active orders (not closed/delivered/cancelled)
-    const closedStatuses = ["picked_up", "completed", "cancelled", "delivered"];
-    const activeCount = orders.filter((o) => !o.deleted && !closedStatuses.includes(getEffectiveOrderStatus(o))).length;
-    const { allowed, current, max } = checkLimit('max_active_orders', activeCount);
+    // Plan limit check — count orders created in the current calendar month
+    const now = new Date();
+    const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+    const monthlyCount = orders.filter((o) => {
+      if (o.deleted) return false;
+      const created = new Date(o.created_date || o.created_at || 0);
+      return created >= monthStart;
+    }).length;
+    const { allowed, current, max } = checkLimit('max_orders_monthly', monthlyCount);
     if (!allowed) {
       const next = upgradeTo?.label || 'Pro';
-      toast.error(`Límite alcanzado: ${current}/${max} órdenes activas. Upgrade a ${next} ($${upgradeTo?.price || '39.99'}/mes) para órdenes ilimitadas.`, { duration: 7000 });
+      toast.error(`Límite mensual alcanzado: ${current}/${max} órdenes este mes. Upgrade a ${next} ($${upgradeTo?.price || '39.99'}/mes) para órdenes ilimitadas.`, { duration: 7000 });
       return;
     }
     setShowQuickModal(true);
