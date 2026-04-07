@@ -2108,9 +2108,8 @@ export default function PinAccess() {
     }
 
     const PLANS_GR = [
-      { id: "starter",    label: "Starter",    price: "$14.99/mes", sub: "1 técnico",   color: "cyan"    },
-      { id: "pro",        label: "Pro",         price: "$39.99/mes", sub: "5 técnicos",  color: "emerald", popular: true },
-      { id: "business",   label: "Business",    price: "$79.99/mes", sub: "10 técnicos", color: "purple"  },
+      { id: "starter", label: "Starter", price: "$14.99/mes", sub: "Para empezar",   color: "cyan"   },
+      { id: "pro",     label: "Pro",      price: "$39.99/mes", sub: "Sin límites",    color: "emerald", popular: true },
     ];
     return (
       <div className="pinaccess-fullscreen-container">
