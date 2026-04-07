@@ -47,7 +47,10 @@ export default function Technicians() {
 
   useEffect(() => {
     loadData();
-    const interval = setInterval(loadData, 60000); // Refresh cada minuto
+    // Refresh cada 5 min y solo si tab visible
+    const interval = setInterval(() => {
+      if (document.visibilityState === "visible") loadData();
+    }, 5 * 60 * 1000);
     return () => clearInterval(interval);
   }, []);
 
