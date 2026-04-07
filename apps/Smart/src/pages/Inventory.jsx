@@ -23,6 +23,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 
 import SuppliersDialog from "../components/inventory/SuppliersDialog";
 import PurchaseOrderDialog from "../components/inventory/PurchaseOrderDialog";
+import { usePlanLimits } from "@/hooks/usePlanLimits";
 import PurchaseOrderDetailDialog from "../components/inventory/PurchaseOrderDetailDialog";
 import NotificationService from "../components/notifications/NotificationService";
 import DiscountBadge, { formatPriceWithDiscount } from "../components/inventory/DiscountBadge";
