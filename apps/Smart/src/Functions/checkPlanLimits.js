@@ -10,8 +10,8 @@
 import { createClientFromRequest } from '../../../../lib/unified-custom-sdk-supabase.js';
 
 const PLAN_LIMITS = {
-  starter: { max_active_orders: 50, max_customers: 100, max_skus: 50 },
-  pro:     { max_active_orders: -1, max_customers: -1,  max_skus: -1 },
+  starter: { max_orders_monthly: 50, max_skus: 50 },
+  pro:     { max_orders_monthly: -1, max_skus: -1 },
 };
 
 const PLAN_INFO = {
