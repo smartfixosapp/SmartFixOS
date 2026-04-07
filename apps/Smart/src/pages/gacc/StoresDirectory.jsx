@@ -208,7 +208,7 @@ function exportToCSV(tenants, filename = "tiendas") {
 // ── Invite Store Modal ───────────────────────────────────────────────────────
 function InviteStoreModal({ open, onClose }) {
   const { appClient, refresh } = useGACC();
-  const [form, setForm] = useState({ ownerName: "", email: "", businessName: "", plan: "smartfixos" });
+  const [form, setForm] = useState({ ownerName: "", email: "", businessName: "", plan: "starter" });
   const [sending, setSending] = useState(false);
   const [result, setResult] = useState(null);
 
@@ -237,7 +237,7 @@ function InviteStoreModal({ open, onClose }) {
   };
 
   const handleClose = () => {
-    setForm({ ownerName: "", email: "", businessName: "", plan: "smartfixos" });
+    setForm({ ownerName: "", email: "", businessName: "", plan: "starter" });
     setResult(null);
     onClose();
   };
