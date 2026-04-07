@@ -2939,96 +2939,93 @@ Reglas:
         }
       }
 
-      // 6. Email
-      if (customerEmail) {
-        try {
-          let persistedOrder = null;
+      // 6 + 7. Email + Notificaciones — FIRE-AND-FORGET (no bloquean la creación)
+      // Estas tareas corren en background. La orden ya existe en DB, el usuario no necesita esperar.
+      (async () => {
+        // Email al cliente
+        if (customerEmail) {
           try {
-            persistedOrder = await base44.entities.Order.get(newOrder.id);
-          } catch {
-            persistedOrder = null;
-          }
-          const finalPhotoUrls = extractEmailPhotoUrls(
-            persistedOrder || newOrder || {},
-            [...(photosMetadata || []), ...(photoUrls || [])]
+            const finalPhotoUrls = extractEmailPhotoUrls(newOrder || {}, [...(photosMetadata || []), ...(photoUrls || [])]);
+            await sendTemplatedEmail({
+              event_type: "intake",
+              order_data: {
+                order_number: newOrder.order_number,
+                customer_name: customerName || companyName || "Cliente",
+                customer_email: customerEmail,
+                device_info: `${brandName} ${deviceModel}`.trim(),
+                checklist_items: checklist.map((c) => ({ label: c.label, status: "ok" })),
+                photos_metadata: newOrder.photos_metadata?.length
+                  ? newOrder.photos_metadata
+                  : finalPhotoUrls.map((url) => ({ publicUrl: url, thumbUrl: url, visible_to_customer: true })),
+                initial_problem: problem || ""
+              }
+            });
+          } catch (err) { console.error("Error sending email:", err); }
+        }
+
+        // Notificaciones a admins/manager + técnico — todo en paralelo
+        try {
+          const admins = await base44.entities.User.filter({});
+          const eligible = (admins || []).filter(u => u.role === "admin" || u.role === "manager");
+
+          const notificationPromises = eligible.map(admin =>
+            NotificationService.createNotification({
+              userId: admin.id,
+              userEmail: admin.email,
+              type: "new_order",
+              title: `Nueva orden #${newOrder.order_number}`,
+              body: `${fullName} - ${brandName} ${deviceModel}`,
+              relatedEntityType: "order",
+              relatedEntityId: newOrder.id,
+              relatedEntityNumber: newOrder.order_number,
+              actionUrl: `/Orders?order=${newOrder.id}`,
+              actionLabel: "Ver orden",
+              priority: "normal"
+            }).catch(e => console.warn("notif admin failed:", e))
           );
-          await sendTemplatedEmail({
-            event_type: "intake",
-            order_data: {
-              order_number: newOrder.order_number,
-              customer_name: customerName || companyName || "Cliente",
-              customer_email: customerEmail,
-              device_info: `${brandName} ${deviceModel}`.trim(),
-              checklist_items: checklist.map((c) => ({ label: c.label, status: "ok" })),
-              photos_metadata: (persistedOrder || newOrder || {}).photos_metadata?.length
-                ? (persistedOrder || newOrder || {}).photos_metadata
-                : finalPhotoUrls.map((url) => ({ publicUrl: url, thumbUrl: url, visible_to_customer: true })),
-              initial_problem: problem || ""
-            }
-          });
-        } catch (err) {
-          console.error("Error sending email:", err);
-        }
-      }
 
-      // 7. Notificaciones
-      try {
-        const admins = await base44.entities.User.filter({});
-        const eligible = admins.filter(u => u.role === "admin" || u.role === "manager");
-        
-        for (const admin of eligible) {
-          await NotificationService.createNotification({
-            userId: admin.id,
-            userEmail: admin.email,
-            type: "new_order",
-            title: `Nueva orden #${newOrder.order_number}`,
-            body: `${fullName} - ${brandName} ${deviceModel}`,
-            relatedEntityType: "order",
-            relatedEntityId: newOrder.id,
-            relatedEntityNumber: newOrder.order_number,
-            actionUrl: `/Orders?order=${newOrder.id}`,
-            actionLabel: "Ver orden",
-            priority: "normal"
-          });
-        }
-
-        await sendAdminNewOrderEmail({
-          recipients: eligible,
-          orderNumber: newOrder.order_number,
-          customerName: fullName,
-          deviceInfo: `${brandName} ${deviceModel}`.trim(),
-          orderId: newOrder.id,
-        });
-
-        if (assignedTo?.id) {
-          await NotificationService.createNotification({
-            userId: assignedTo.id,
-            userEmail: assignedTo.email,
-            type: "assignment",
-            title: `Se te asignó la orden #${newOrder.order_number}`,
-            body: `${fullName} - ${brandName} ${deviceModel}`,
-            relatedEntityType: "order",
-            relatedEntityId: newOrder.id,
-            relatedEntityNumber: newOrder.order_number,
-            actionUrl: `/Orders?order=${newOrder.id}`,
-            actionLabel: "Abrir orden",
-            priority: "high",
-            metadata: {
-              assigned_by: user?.full_name || user?.email || "System"
-            }
-          });
-
-          await sendTechnicianAssignmentEmail({
-            recipient: assignedTo,
+          const adminEmailPromise = sendAdminNewOrderEmail({
+            recipients: eligible,
             orderNumber: newOrder.order_number,
             customerName: fullName,
             deviceInfo: `${brandName} ${deviceModel}`.trim(),
             orderId: newOrder.id,
-          });
+          }).catch(e => console.warn("admin email failed:", e));
+
+          const techPromises = [];
+          if (assignedTo?.id) {
+            techPromises.push(
+              NotificationService.createNotification({
+                userId: assignedTo.id,
+                userEmail: assignedTo.email,
+                type: "assignment",
+                title: `Se te asignó la orden #${newOrder.order_number}`,
+                body: `${fullName} - ${brandName} ${deviceModel}`,
+                relatedEntityType: "order",
+                relatedEntityId: newOrder.id,
+                relatedEntityNumber: newOrder.order_number,
+                actionUrl: `/Orders?order=${newOrder.id}`,
+                actionLabel: "Abrir orden",
+                priority: "high",
+                metadata: { assigned_by: user?.full_name || user?.email || "System" }
+              }).catch(e => console.warn("tech notif failed:", e))
+            );
+            techPromises.push(
+              sendTechnicianAssignmentEmail({
+                recipient: assignedTo,
+                orderNumber: newOrder.order_number,
+                customerName: fullName,
+                deviceInfo: `${brandName} ${deviceModel}`.trim(),
+                orderId: newOrder.id,
+              }).catch(e => console.warn("tech email failed:", e))
+            );
+          }
+
+          await Promise.allSettled([...notificationPromises, adminEmailPromise, ...techPromises]);
+        } catch (err) {
+          console.error("Error notifications:", err);
         }
-      } catch (err) {
-        console.error("Error notifications:", err);
-      }
+      })();
 
       // 8. Eventos
       try {
