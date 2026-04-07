@@ -20,20 +20,11 @@ const DAYS = [
 const DEFAULT_DAY = { start: "09:00", end: "18:00", off: false };
 const DEFAULT_WEEK = DAYS.reduce((acc, d) => ({ ...acc, [d.key]: { ...DEFAULT_DAY } }), {});
 
-const SYSTEM_USER_EMAILS = new Set([
-  "admin@smartfixos.com",
-  "911smartfix@gmail.com",
-  "smartfixosapp@gmail.com",
-]);
-
 function isSystemUserLike(emp) {
-  const fullName = String(emp?.full_name || "").trim().toLowerCase();
+  // Solo excluimos cuentas internas SaaS (super_admin/saas_owner).
+  // El dueño del taller (admin) SÍ debe poder asignarse horario.
   const role = String(emp?.role || "").trim().toLowerCase();
-  const email = String(emp?.email || "").trim().toLowerCase();
-  if (SYSTEM_USER_EMAILS.has(email)) return true;
   if (role === "super_admin" || role === "saas_owner" || role === "superadmin") return true;
-  if (fullName.includes("smartfixos")) return true;
-  if (fullName.includes("super admin")) return true;
   return false;
 }
 
