@@ -76,7 +76,6 @@ function AnnouncementsManager() {
               <option value="all">Todas las tiendas</option>
               <option value="starter">Solo Starter</option>
               <option value="pro">Solo Pro</option>
-              <option value="business">Solo Business</option>
               <option value="trial">Solo en Trial</option>
             </select>
             <button onClick={create} className="flex items-center gap-1 px-3 py-1.5 rounded-lg text-[11px] font-semibold bg-cyan-500/20 text-cyan-300 border border-cyan-500/30 hover:bg-cyan-500/30 transition-all">
