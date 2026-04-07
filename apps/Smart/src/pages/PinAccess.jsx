@@ -2882,68 +2882,162 @@ export default function PinAccess() {
 
           </div>
 
-          {/* Pricing Section — 3 planes */}
-          <div className="mt-16 mb-12">
-            <h2 className="text-3xl sm:text-4xl font-bold text-white text-center mb-3">
-              Planes y <span className="bg-gradient-to-r from-cyan-400 to-emerald-400 bg-clip-text text-transparent">Precios</span>
+          {/* Pricing Section — 2 planes con punch */}
+          <div className="mt-20 mb-12">
+            {/* Hook emocional */}
+            <div className="text-center mb-3">
+              <span className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-cyan-500/10 border border-cyan-500/20 text-cyan-300 text-xs font-black uppercase tracking-widest">
+                <Sparkles className="w-3.5 h-3.5" />
+                Sin contratos · 14 días gratis
+              </span>
+            </div>
+            <h2 className="text-4xl sm:text-5xl font-black text-white text-center mb-3 tracking-tight">
+              Deja la libreta.
+              <br />
+              <span className="bg-gradient-to-r from-cyan-400 via-blue-400 to-emerald-400 bg-clip-text text-transparent">
+                Profesionaliza tu taller hoy.
+              </span>
             </h2>
-            <p className="text-center text-gray-400 text-sm mb-10">Sin contratos. Cancela cuando quieras. 14 días de prueba gratis.</p>
+            <p className="text-center text-gray-400 text-base mb-12 max-w-xl mx-auto">
+              Dos planes. Cero complicaciones. Empieza en 2 minutos.
+            </p>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 max-w-3xl mx-auto">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl mx-auto items-stretch">
 
               {/* ── Starter ── */}
-              <div className="relative flex flex-col bg-white/[0.03] border border-white/10 rounded-2xl p-6 hover:border-white/20 transition-all">
-                <p className="text-xs font-bold text-gray-500 uppercase tracking-widest mb-3">Starter</p>
-                <div className="flex items-end gap-1 mb-1">
-                  <span className="text-4xl font-black text-white">$14</span>
-                  <span className="text-lg font-black text-white/60">.99</span>
-                  <span className="text-gray-500 text-sm mb-1">/mes</span>
+              <div className="relative flex flex-col bg-gradient-to-b from-white/[0.06] to-white/[0.02] border border-white/15 rounded-3xl p-7 hover:border-white/30 hover:scale-[1.01] transition-all duration-300 group">
+                {/* Header */}
+                <div className="flex items-center gap-2 mb-4">
+                  <div className="w-9 h-9 rounded-xl bg-white/10 border border-white/15 flex items-center justify-center">
+                    <Wrench className="w-4 h-4 text-white/70" />
+                  </div>
+                  <p className="text-sm font-black text-white uppercase tracking-wider">Starter</p>
                 </div>
-                <p className="text-xs text-gray-500 mb-5">Para empezar tu taller</p>
-                <ul className="space-y-2 flex-1">
-                  {["Hasta 50 órdenes por mes","Hasta 50 productos en inventario","Clientes ilimitados","Todas las funciones desbloqueadas","POS, reportes, caja, empleados","Workflow personalizable","Sin límite de usuarios"].map(f => (
-                    <li key={f} className="flex items-center gap-2 text-xs text-gray-300">
-                      <CheckCircle className="w-3.5 h-3.5 text-cyan-400 flex-shrink-0" /> {f}
+
+                {/* Price */}
+                <div className="mb-2">
+                  <div className="flex items-baseline gap-1">
+                    <span className="text-6xl font-black text-white tracking-tight">$14</span>
+                    <span className="text-2xl font-black text-white/50">.99</span>
+                    <span className="text-gray-500 text-base ml-1">/mes</span>
+                  </div>
+                  <p className="text-xs text-cyan-400/80 font-bold mt-1">≈ 50¢ por día · Menos que un café</p>
+                </div>
+
+                <div className="h-px bg-white/10 my-5" />
+
+                {/* Subtítulo emocional */}
+                <p className="text-sm text-white/80 font-bold mb-1">Perfecto para arrancar</p>
+                <p className="text-xs text-gray-400 mb-5">Tu primer mes profesional sin riesgo</p>
+
+                {/* Features */}
+                <ul className="space-y-2.5 flex-1">
+                  {[
+                    { t: "50 órdenes nuevas por mes", strong: true },
+                    { t: "50 productos en inventario", strong: true },
+                    { t: "Clientes ilimitados", strong: false },
+                    { t: "POS, caja, reportes — todo incluido", strong: false },
+                    { t: "Empleados ilimitados", strong: false },
+                    { t: "Workflow personalizable", strong: false },
+                  ].map(f => (
+                    <li key={f.t} className="flex items-start gap-2.5 text-sm">
+                      <CheckCircle className="w-4 h-4 text-cyan-400 flex-shrink-0 mt-0.5" />
+                      <span className={f.strong ? "text-white font-semibold" : "text-gray-300"}>{f.t}</span>
                     </li>
                   ))}
                 </ul>
+
                 <button
                   onClick={() => setShowSignup(true)}
-                  className="mt-6 w-full py-2.5 rounded-xl border border-white/15 text-white text-sm font-semibold hover:bg-white/10 transition-all"
+                  className="mt-7 w-full py-3.5 rounded-2xl border-2 border-white/20 text-white text-sm font-black hover:bg-white/10 hover:border-white/40 transition-all group-hover:border-cyan-500/40"
                 >
                   Empezar gratis →
                 </button>
               </div>
 
-              {/* ── Pro — featured ── */}
-              <div className="relative flex flex-col bg-gradient-to-b from-cyan-950/60 to-blue-950/60 border-2 border-cyan-500/50 rounded-2xl p-6 shadow-[0_0_40px_rgba(6,182,212,0.15)] hover:shadow-[0_0_60px_rgba(6,182,212,0.25)] transition-all">
-                <div className="absolute -top-3 left-1/2 -translate-x-1/2">
-                  <span className="bg-gradient-to-r from-cyan-400 to-blue-500 text-black text-[11px] font-black px-3 py-1 rounded-full uppercase tracking-wider">
-                    Recomendado
-                  </span>
+              {/* ── Pro — DOMINANT ── */}
+              <div className="relative flex flex-col bg-gradient-to-br from-cyan-950/80 via-blue-950/80 to-emerald-950/40 border-2 border-cyan-400/60 rounded-3xl p-7 shadow-[0_0_60px_rgba(6,182,212,0.25)] hover:shadow-[0_0_100px_rgba(6,182,212,0.45)] hover:scale-[1.02] transition-all duration-300 group overflow-hidden">
+                {/* Glow background */}
+                <div className="absolute inset-0 bg-gradient-to-br from-cyan-500/[0.08] via-transparent to-emerald-500/[0.08] pointer-events-none" />
+                <div className="absolute -top-20 -right-20 w-40 h-40 bg-cyan-500/20 rounded-full blur-3xl pointer-events-none animate-pulse" />
+
+                {/* Badge */}
+                <div className="absolute -top-4 left-1/2 -translate-x-1/2 z-10">
+                  <div className="bg-gradient-to-r from-cyan-400 via-blue-400 to-emerald-400 text-black text-[11px] font-black px-4 py-1.5 rounded-full uppercase tracking-widest shadow-[0_4px_20px_rgba(6,182,212,0.6)] flex items-center gap-1.5">
+                    <Sparkles className="w-3 h-3" />
+                    El elegido por talleres
+                  </div>
                 </div>
-                <p className="text-xs font-bold text-cyan-400 uppercase tracking-widest mb-3">Pro</p>
-                <div className="flex items-end gap-1 mb-1">
-                  <span className="text-4xl font-black text-white">$39</span>
-                  <span className="text-lg font-black text-white/60">.99</span>
-                  <span className="text-gray-400 text-sm mb-1">/mes</span>
+
+                {/* Header */}
+                <div className="flex items-center gap-2 mb-4 relative">
+                  <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-cyan-400 to-blue-500 flex items-center justify-center shadow-lg shadow-cyan-500/30">
+                    <Zap className="w-4 h-4 text-white" />
+                  </div>
+                  <p className="text-sm font-black text-cyan-300 uppercase tracking-wider">Pro</p>
                 </div>
-                <p className="text-xs text-gray-400 mb-5">Sin límites · Para crecer sin freno</p>
-                <ul className="space-y-2 flex-1">
-                  {["Órdenes ilimitadas por mes","Inventario ilimitado","Clientes ilimitados","Todas las funciones de Starter","Soporte prioritario","Sin sorpresas, sin límites"].map(f => (
-                    <li key={f} className="flex items-center gap-2 text-xs text-gray-200">
-                      <CheckCircle className="w-3.5 h-3.5 text-cyan-400 flex-shrink-0" /> {f}
+
+                {/* Price */}
+                <div className="mb-2 relative">
+                  <div className="flex items-baseline gap-1">
+                    <span className="text-6xl font-black text-white tracking-tight">$39</span>
+                    <span className="text-2xl font-black text-white/60">.99</span>
+                    <span className="text-gray-300 text-base ml-1">/mes</span>
+                  </div>
+                  <p className="text-xs text-emerald-300/90 font-bold mt-1">≈ Una pantalla de iPhone al mes</p>
+                </div>
+
+                <div className="h-px bg-cyan-400/20 my-5" />
+
+                {/* Subtítulo emocional */}
+                <p className="text-sm text-white font-bold mb-1">Métele mano sin freno</p>
+                <p className="text-xs text-cyan-200/70 mb-5">Para el técnico que ya está creciendo</p>
+
+                {/* Features */}
+                <ul className="space-y-2.5 flex-1 relative">
+                  {[
+                    { t: "Órdenes ILIMITADAS por mes", strong: true },
+                    { t: "Inventario ILIMITADO", strong: true },
+                    { t: "Clientes ilimitados", strong: false },
+                    { t: "Todo lo de Starter", strong: false },
+                    { t: "Soporte prioritario · 24h", strong: false },
+                    { t: "Cero límites, cero sorpresas", strong: true },
+                  ].map(f => (
+                    <li key={f.t} className="flex items-start gap-2.5 text-sm">
+                      <div className="w-4 h-4 rounded-full bg-gradient-to-br from-cyan-400 to-emerald-400 flex items-center justify-center flex-shrink-0 mt-0.5 shadow-lg shadow-cyan-500/30">
+                        <Check className="w-2.5 h-2.5 text-black stroke-[3]" />
+                      </div>
+                      <span className={f.strong ? "text-white font-bold" : "text-cyan-100/90"}>{f.t}</span>
                     </li>
                   ))}
                 </ul>
+
                 <button
                   onClick={() => setShowSignup(true)}
-                  className="mt-6 w-full py-2.5 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 text-white text-sm font-bold hover:opacity-90 transition-all shadow-lg"
+                  className="mt-7 w-full py-3.5 rounded-2xl bg-gradient-to-r from-cyan-400 via-blue-500 to-emerald-500 text-white text-sm font-black hover:scale-[1.02] active:scale-95 transition-all shadow-[0_8px_30px_rgba(6,182,212,0.4)] hover:shadow-[0_12px_40px_rgba(6,182,212,0.6)] relative"
                 >
-                  Empezar gratis →
+                  Métele mano ahora →
                 </button>
               </div>
 
+            </div>
+
+            {/* Trust strip */}
+            <div className="mt-10 flex flex-wrap items-center justify-center gap-x-8 gap-y-3 text-xs text-gray-400">
+              <div className="flex items-center gap-2">
+                <Shield className="w-4 h-4 text-emerald-400" />
+                <span className="font-semibold">14 días gratis · Sin tarjeta</span>
+              </div>
+              <div className="hidden sm:block w-px h-4 bg-white/10" />
+              <div className="flex items-center gap-2">
+                <Zap className="w-4 h-4 text-cyan-400" />
+                <span className="font-semibold">Listo en 2 minutos</span>
+              </div>
+              <div className="hidden sm:block w-px h-4 bg-white/10" />
+              <div className="flex items-center gap-2">
+                <CheckCircle className="w-4 h-4 text-blue-400" />
+                <span className="font-semibold">Cancela cuando quieras</span>
+              </div>
             </div>
           </div>
 
