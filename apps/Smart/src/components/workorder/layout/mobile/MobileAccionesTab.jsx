@@ -151,6 +151,18 @@ export default function MobileAccionesTab({
     }
   };
 
+  // Acciones contextuales del stage actual (checklist, links, etc.)
+  const stageActions = useMemo(() => {
+    const s = normalizeStatusId(status);
+    return STAGE_ACTIONS[s] || [];
+  }, [status]);
+
+  const handleStageAction = (actionId) => {
+    triggerHaptic("light");
+    // Disparar evento que el stage component esta escuchando (compact mode)
+    document.dispatchEvent(new CustomEvent("wo:action", { detail: { action: actionId, order: o } }));
+  };
+
   const handleNotify = (channel) => {
     triggerHaptic("light");
     const cleanPhone = (phone || "").replace(/\D/g, "");
