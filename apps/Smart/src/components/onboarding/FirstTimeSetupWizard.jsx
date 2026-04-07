@@ -239,8 +239,8 @@ export default function FirstTimeSetupWizard({ onComplete }) {
     onComplete?.();
   };
 
-  const planKey  = tenantInfo?.plan || "basic";
-  const planData = PLAN_INFO[planKey] || PLAN_INFO.basic;
+  const planKey  = tenantInfo?.plan || "starter";
+  const planData = PLAN_INFO[planKey] || PLAN_INFO.starter;
   const maxUsers = tenantInfo?.metadata?.max_users ?? planData.max_users;
   const trialEnd = tenantInfo?.trial_end_date ? new Date(tenantInfo.trial_end_date) : null;
   const trialDaysLeft = trialEnd ? Math.max(0, Math.ceil((trialEnd - new Date()) / (1000 * 60 * 60 * 24))) : null;
