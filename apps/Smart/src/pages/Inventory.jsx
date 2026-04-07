@@ -984,6 +984,7 @@ function InventoryItemDialog({
 
 // === Componente principal ===
 export default function Inventory() {
+  const { checkLimit, upgradeTo } = usePlanLimits();
   const [items, setItems] = useState([]);
   const [poList, setPoList] = useState([]);
   const [suppliers, setSuppliers] = useState([]);
