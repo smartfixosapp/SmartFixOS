@@ -1,13 +1,16 @@
 import { createClientFromRequest } from '../../../../lib/unified-custom-sdk-supabase.js';
 import Stripe from 'npm:stripe@14.19.0';
 
+// Solo 2 planes oficiales: starter ($14.99) y pro ($39.99)
+// Los aliases legacy se mantienen para no romper tenants viejos en DB
 const PLAN_MAP = {
   starter:    { max_users: 999, monthly_cost: 14.99, label: 'Starter' },
-  smartfixos: { max_users: 999, monthly_cost: 14.99, label: 'Starter' }, // legacy alias
-  basic:      { max_users: 999, monthly_cost: 14.99, label: 'Starter' }, // legacy alias
   pro:        { max_users: 999, monthly_cost: 39.99, label: 'Pro'     },
-  business:   { max_users: 999, monthly_cost: 39.99, label: 'Pro'     }, // legacy alias
-  enterprise: { max_users: 999, monthly_cost: 39.99, label: 'Pro'     }, // legacy alias
+  // Legacy aliases — mapean al plan equivalente
+  smartfixos: { max_users: 999, monthly_cost: 14.99, label: 'Starter' },
+  basic:      { max_users: 999, monthly_cost: 14.99, label: 'Starter' },
+  business:   { max_users: 999, monthly_cost: 39.99, label: 'Pro'     },
+  enterprise: { max_users: 999, monthly_cost: 39.99, label: 'Pro'     },
 };
 
 function normalizePlan(plan) {
