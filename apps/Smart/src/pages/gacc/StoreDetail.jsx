@@ -450,15 +450,13 @@ function AuditTab({ tenant }) {
   );
 }
 
-// ── Change Plan & Users Modal ─────────────────────────────────────────────────
+// ── Change Plan Modal ─────────────────────────────────────────────────────────
 function ChangePlanModal({ tenant, open, onClose }) {
   const { adminSupabase, appClient, refresh } = useGACC();
-  const currentPlan = tenant.effective_plan || tenant.plan || "smartfixos";
-  const currentMaxUsers = tenant.effective_max_users || getPlanConfig(currentPlan).maxUsers || 1;
-  const currentCost = tenant.effective_monthly_cost || getPlanConfig(currentPlan).monthlyCost || 55;
+  const currentPlan = normalizePlan(tenant.effective_plan || tenant.plan || "starter");
+  const currentCost = tenant.effective_monthly_cost || getPlanConfig(currentPlan).monthlyCost || 14.99;
 
   const [selectedPlan, setSelectedPlan] = useState(currentPlan);
-  const [maxUsers, setMaxUsers] = useState(currentMaxUsers);
   const [monthlyCost, setMonthlyCost] = useState(currentCost);
   const [saving, setSaving] = useState(false);
 
@@ -467,14 +465,15 @@ function ChangePlanModal({ tenant, open, onClose }) {
     setSelectedPlan(planKey);
     const config = getPlanConfig(planKey);
     setMonthlyCost(config.monthlyCost);
-    setMaxUsers(config.maxUsers);
   };
 
   const handleSave = async () => {
     setSaving(true);
     try {
-      // Update tenant — plan, cost, max_users, subscription_status
-      const metadata = { ...(tenant.metadata || {}), max_users: maxUsers };
+      // Clean metadata: remove legacy max_users field
+      const metadata = { ...(tenant.metadata || {}) };
+      delete metadata.max_users;
+
       const { error: tenantErr } = await adminSupabase
         .from("tenant")
         .update({
@@ -493,7 +492,6 @@ function ChangePlanModal({ tenant, open, onClose }) {
           .update({ plan: selectedPlan, amount: monthlyCost, status: "active" })
           .eq("id", tenant.latest_subscription.id);
       } else {
-        // Create subscription record if none exists
         await adminSupabase.from("subscription").insert({
           tenant_id: tenant.id,
           tenant_name: tenant.name,
@@ -504,7 +502,6 @@ function ChangePlanModal({ tenant, open, onClose }) {
         });
       }
 
-      // Also call manageTenant for plan change side-effects
       try {
         await appClient.functions.manageTenant({
           tenantId: tenant.id,
@@ -518,7 +515,7 @@ function ChangePlanModal({ tenant, open, onClose }) {
       localStorage.setItem("gacc_plan_updated", Date.now().toString());
       localStorage.setItem("gacc_tenant_updated", Date.now().toString());
 
-      toast.success(`Plan actualizado a ${getPlanConfig(selectedPlan).label} ($${monthlyCost}/mo, ${maxUsers} usuarios)`);
+      toast.success(`Plan actualizado a ${getPlanConfig(selectedPlan).label} ($${monthlyCost}/mo)`);
       await refresh();
       onClose();
     } catch (e) {
