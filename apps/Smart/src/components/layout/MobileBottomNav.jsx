@@ -43,8 +43,10 @@ function useBadgeCounts() {
 
   useEffect(() => {
     load();
-    // Refrescar cada 2 minutos
-    timerRef.current = setInterval(load, 2 * 60 * 1000);
+    // Refrescar cada 5 min, solo si visible
+    timerRef.current = setInterval(() => {
+      if (document.visibilityState === "visible") load();
+    }, 5 * 60 * 1000);
     return () => clearInterval(timerRef.current);
   }, []);
 
