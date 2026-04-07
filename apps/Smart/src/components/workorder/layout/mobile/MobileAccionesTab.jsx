@@ -220,6 +220,30 @@ export default function MobileAccionesTab({
         </button>
       )}
 
+      {/* Stage Actions (contextual al estado actual) */}
+      {stageActions.length > 0 && (
+        <>
+          <h3 className="text-[10px] font-black uppercase tracking-widest text-purple-300/60 px-1">
+            Acciones de {getStatusConfig(status).label}
+          </h3>
+          <div className="space-y-1">
+            {stageActions.map(action => (
+              <button
+                key={action.id}
+                onClick={() => handleStageAction(action.id)}
+                className="w-full flex items-center gap-4 px-4 py-3.5 rounded-xl border border-purple-500/15 bg-purple-500/[0.05] active:scale-[0.98] transition-all"
+              >
+                <div className="w-9 h-9 rounded-xl bg-purple-500/10 flex items-center justify-center flex-shrink-0">
+                  <action.icon className={cn("w-4.5 h-4.5", action.color)} />
+                </div>
+                <span className="flex-1 text-left text-sm font-semibold text-white/85">{action.label}</span>
+                <ChevronRight className="w-4 h-4 text-white/20" />
+              </button>
+            ))}
+          </div>
+        </>
+      )}
+
       {/* Quick Actions heading */}
       <h3 className="text-[10px] font-black uppercase tracking-widest text-white/30 px-1">Acciones rapidas</h3>
 
