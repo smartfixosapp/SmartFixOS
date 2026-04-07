@@ -32,10 +32,16 @@ const DEFAULT_SCHEDULE = {
   sun: { open: false, from: "09:00", to: "17:00" },
 };
 
+// Solo 2 planes: Starter ($14.99) y Pro ($39.99)
+// Legacy keys (basic/business/enterprise) mapean a starter o pro
 const PLAN_INFO = {
-  basic:      { label: "Basic",      color: "cyan",    max_users: 1,    price: "$55/mes"  },
-  pro:        { label: "Pro",        color: "emerald", max_users: 3,    price: "$85/mes"  },
-  enterprise: { label: "Enterprise", color: "purple",  max_users: 9999, price: "Custom"   },
+  starter:    { label: "Starter",    color: "cyan",    max_users: 999, price: "$14.99/mes" },
+  pro:        { label: "Pro",        color: "emerald", max_users: 999, price: "$39.99/mes" },
+  // Legacy aliases — mismas configuraciones, solo distintos keys
+  basic:      { label: "Starter",    color: "cyan",    max_users: 999, price: "$14.99/mes" },
+  smartfixos: { label: "Starter",    color: "cyan",    max_users: 999, price: "$14.99/mes" },
+  business:   { label: "Pro",        color: "emerald", max_users: 999, price: "$39.99/mes" },
+  enterprise: { label: "Pro",        color: "emerald", max_users: 999, price: "$39.99/mes" },
 };
 
 const STEPS = [
