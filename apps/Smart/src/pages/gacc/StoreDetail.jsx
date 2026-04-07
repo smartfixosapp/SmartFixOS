@@ -27,11 +27,37 @@ const TABS = [
 
 // ── Overview Tab ─────────────────────────────────────────────────────────────
 function OverviewTab({ tenant }) {
+  const { adminSupabase } = useGACC();
   const planConfig = getPlanConfig(tenant.effective_plan || tenant.plan);
   const badge = getStatusBadge(tenant);
   const daysAsCustomer = tenant.created_date
     ? Math.floor((Date.now() - new Date(tenant.created_date).getTime()) / 86400000)
     : 0;
+
+  // ── Monthly orders counter ──
+  const [monthlyOrders, setMonthlyOrders] = useState(null);
+  const [skuCount, setSkuCount] = useState(null);
+  useEffect(() => {
+    (async () => {
+      try {
+        const now = new Date();
+        const monthStart = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
+        const [{ count: orderCount }, { count: products }] = await Promise.all([
+          adminSupabase.from("order").select("id", { count: "exact", head: true }).eq("tenant_id", tenant.id).gte("created_date", monthStart),
+          adminSupabase.from("product").select("id", { count: "exact", head: true }).eq("tenant_id", tenant.id),
+        ]);
+        setMonthlyOrders(orderCount || 0);
+        setSkuCount(products || 0);
+      } catch (e) {
+        console.error("Error loading usage:", e);
+      }
+    })();
+  }, [tenant.id]);
+
+  const ordersLimit = planConfig.maxOrdersMonthly;
+  const skusLimit = planConfig.maxSkus;
+  const ordersPct = ordersLimit > 0 && monthlyOrders !== null ? Math.min(100, (monthlyOrders / ordersLimit) * 100) : 0;
+  const skusPct = skusLimit > 0 && skuCount !== null ? Math.min(100, (skuCount / skusLimit) * 100) : 0;
 
   return (
     <div className="space-y-6">
@@ -41,7 +67,7 @@ function OverviewTab({ tenant }) {
           { label: "Plan", value: planConfig.label, sub: `$${tenant.effective_monthly_cost || 0}/mo` },
           { label: "Dias como cliente", value: daysAsCustomer, sub: tenant.created_date ? new Date(tenant.created_date).toLocaleDateString("es") : "--" },
           { label: "Ultimo acceso", value: timeAgo(tenant.last_login) || "Nunca", sub: tenant.last_login ? new Date(tenant.last_login).toLocaleDateString("es") : "" },
-          { label: "Empleados max", value: tenant.effective_max_users || "--", sub: `Plan: ${planConfig.maxUsers}` },
+          { label: "Estado pago", value: tenant.last_payment_date ? "Al dia" : "Sin pagos", sub: tenant.last_payment_date ? `$${tenant.last_payment_amount || 0}` : "Trial activo" },
         ].map(k => (
           <div key={k.label} className="rounded-xl border border-white/[0.06] bg-white/[0.02] p-3">
             <p className="text-[10px] text-gray-600 uppercase tracking-wide font-bold">{k.label}</p>
@@ -49,6 +75,73 @@ function OverviewTab({ tenant }) {
             {k.sub && <p className="text-[10px] text-gray-600">{k.sub}</p>}
           </div>
         ))}
+      </div>
+
+      {/* Usage limits — orders monthly + SKUs */}
+      <div className="rounded-xl border border-white/[0.06] bg-white/[0.02] p-4 space-y-4">
+        <p className="text-[12px] font-bold text-gray-400 uppercase tracking-wide">Uso del Plan</p>
+
+        {/* Monthly orders */}
+        <div>
+          <div className="flex items-center justify-between mb-1.5">
+            <div className="flex items-center gap-2">
+              <p className="text-[12px] text-white font-semibold">Ordenes este mes</p>
+              <span className="text-[9px] text-gray-700">renueva el dia 1</span>
+            </div>
+            <p className="text-[12px] font-bold text-white tabular-nums">
+              {monthlyOrders === null ? "--" : monthlyOrders}
+              <span className="text-gray-600 mx-1">/</span>
+              <span className="text-gray-500">{ordersLimit === -1 ? "∞" : ordersLimit}</span>
+            </p>
+          </div>
+          {ordersLimit > 0 ? (
+            <div className="h-2 rounded-full bg-white/[0.05] overflow-hidden">
+              <motion.div
+                initial={{ width: 0 }}
+                animate={{ width: `${ordersPct}%` }}
+                transition={{ duration: 0.6 }}
+                className={`h-full rounded-full ${
+                  ordersPct >= 90 ? "bg-gradient-to-r from-amber-500 to-red-500" :
+                  ordersPct >= 70 ? "bg-gradient-to-r from-yellow-500 to-amber-500" :
+                  "bg-gradient-to-r from-emerald-500 to-cyan-500"
+                }`}
+              />
+            </div>
+          ) : (
+            <p className="text-[10px] text-emerald-400">Sin limite</p>
+          )}
+        </div>
+
+        {/* SKUs */}
+        <div>
+          <div className="flex items-center justify-between mb-1.5">
+            <div className="flex items-center gap-2">
+              <p className="text-[12px] text-white font-semibold">SKUs en inventario</p>
+              <span className="text-[9px] text-gray-700">total acumulado</span>
+            </div>
+            <p className="text-[12px] font-bold text-white tabular-nums">
+              {skuCount === null ? "--" : skuCount}
+              <span className="text-gray-600 mx-1">/</span>
+              <span className="text-gray-500">{skusLimit === -1 ? "∞" : skusLimit}</span>
+            </p>
+          </div>
+          {skusLimit > 0 ? (
+            <div className="h-2 rounded-full bg-white/[0.05] overflow-hidden">
+              <motion.div
+                initial={{ width: 0 }}
+                animate={{ width: `${skusPct}%` }}
+                transition={{ duration: 0.6 }}
+                className={`h-full rounded-full ${
+                  skusPct >= 90 ? "bg-gradient-to-r from-amber-500 to-red-500" :
+                  skusPct >= 70 ? "bg-gradient-to-r from-yellow-500 to-amber-500" :
+                  "bg-gradient-to-r from-blue-500 to-purple-500"
+                }`}
+              />
+            </div>
+          ) : (
+            <p className="text-[10px] text-emerald-400">Sin limite</p>
+          )}
+        </div>
       </div>
 
       {/* Contact info */}
