@@ -599,39 +599,34 @@ function ChangePlanModal({ tenant, open, onClose }) {
               <p className="text-[10px] text-gray-700 mt-1">Puedes poner un precio custom diferente al del plan</p>
             </div>
 
-            {/* Max users */}
-            <div>
-              <p className="text-[11px] text-gray-500 uppercase tracking-wide font-bold mb-2">Usuarios Maximos</p>
-              <div className="flex items-center gap-3">
-                <button
-                  onClick={() => setMaxUsers(Math.max(1, maxUsers - 1))}
-                  className="w-10 h-10 rounded-xl bg-white/[0.05] border border-white/[0.1] text-white font-bold text-lg hover:bg-white/[0.1] transition-all"
-                >
-                  -
-                </button>
-                <input
-                  type="number"
-                  value={maxUsers}
-                  onChange={e => setMaxUsers(Math.max(1, Number(e.target.value) || 1))}
-                  min={1}
-                  className="w-24 text-center px-3 py-2.5 rounded-xl bg-white/[0.03] border border-white/[0.07] text-[18px] text-white font-black focus:outline-none focus:border-purple-500/40 tabular-nums"
-                />
-                <button
-                  onClick={() => setMaxUsers(maxUsers + 1)}
-                  className="w-10 h-10 rounded-xl bg-white/[0.05] border border-white/[0.1] text-white font-bold text-lg hover:bg-white/[0.1] transition-all"
-                >
-                  +
-                </button>
-                <span className="text-[11px] text-gray-600">
-                  Plan default: {getPlanConfig(selectedPlan).maxUsers}
-                </span>
+            {/* Plan Limits Info */}
+            <div className="rounded-xl bg-white/[0.03] border border-white/[0.06] px-4 py-3">
+              <p className="text-[10px] text-gray-600 uppercase tracking-wide font-bold mb-2">Limites del plan {getPlanConfig(selectedPlan).label}</p>
+              <div className="grid grid-cols-2 gap-3">
+                <div className="rounded-lg bg-white/[0.02] border border-white/[0.04] px-3 py-2">
+                  <p className="text-[10px] text-gray-600">Ordenes / mes</p>
+                  <p className="text-[14px] font-black text-white">
+                    {getPlanConfig(selectedPlan).maxOrdersMonthly === -1 ? "Ilimitado" : getPlanConfig(selectedPlan).maxOrdersMonthly}
+                  </p>
+                  <p className="text-[9px] text-gray-700">Renueva cada mes</p>
+                </div>
+                <div className="rounded-lg bg-white/[0.02] border border-white/[0.04] px-3 py-2">
+                  <p className="text-[10px] text-gray-600">SKUs en inventario</p>
+                  <p className="text-[14px] font-black text-white">
+                    {getPlanConfig(selectedPlan).maxSkus === -1 ? "Ilimitado" : getPlanConfig(selectedPlan).maxSkus}
+                  </p>
+                  <p className="text-[9px] text-gray-700">Total acumulado</p>
+                </div>
+              </div>
+              <div className="mt-2 px-2 py-1.5 rounded-lg bg-emerald-500/5 border border-emerald-500/10">
+                <p className="text-[10px] text-emerald-400">Todas las features estan desbloqueadas en ambos planes</p>
               </div>
             </div>
 
             {/* Summary */}
             <div className="rounded-xl bg-white/[0.03] border border-white/[0.06] px-4 py-3">
               <p className="text-[10px] text-gray-600 uppercase tracking-wide font-bold mb-2">Resumen del cambio</p>
-              <div className="grid grid-cols-3 gap-3 text-center">
+              <div className="grid grid-cols-2 gap-3 text-center">
                 <div>
                   <p className="text-[10px] text-gray-600">Plan</p>
                   <p className="text-[13px] font-bold text-white">{getPlanConfig(selectedPlan).label}</p>
@@ -639,10 +634,6 @@ function ChangePlanModal({ tenant, open, onClose }) {
                 <div>
                   <p className="text-[10px] text-gray-600">Costo</p>
                   <p className="text-[13px] font-bold text-white">${monthlyCost}/mo</p>
-                </div>
-                <div>
-                  <p className="text-[10px] text-gray-600">Usuarios</p>
-                  <p className="text-[13px] font-bold text-white">{maxUsers}</p>
                 </div>
               </div>
             </div>
