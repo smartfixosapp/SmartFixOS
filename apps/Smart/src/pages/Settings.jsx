@@ -26,6 +26,7 @@ import { WarrantySalesModal, WarrantyRepairsModal } from "@/components/settings/
 import EmailTemplatesTab from "@/components/settings/tabs/EmailTemplatesTab";
 import POSReceiptTab from "@/components/settings/tabs/POSReceiptTab";
 import ShiftTasksManager from "@/components/settings/ShiftTasksManager";
+import EmployeeSchedulesManager from "@/components/settings/EmployeeSchedulesManager";
 import { useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/components/utils/helpers";
 
