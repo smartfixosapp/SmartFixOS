@@ -2889,7 +2889,7 @@ export default function PinAccess() {
             </h2>
             <p className="text-center text-gray-400 text-sm mb-10">Sin contratos. Cancela cuando quieras. 14 días de prueba gratis.</p>
 
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 max-w-3xl mx-auto">
 
               {/* ── Starter ── */}
               <div className="relative flex flex-col bg-white/[0.03] border border-white/10 rounded-2xl p-6 hover:border-white/20 transition-all">
@@ -2899,9 +2899,9 @@ export default function PinAccess() {
                   <span className="text-lg font-black text-white/60">.99</span>
                   <span className="text-gray-500 text-sm mb-1">/mes</span>
                 </div>
-                <p className="text-xs text-gray-500 mb-5">1 usuario · Técnico independiente</p>
+                <p className="text-xs text-gray-500 mb-5">Para empezar tu taller</p>
                 <ul className="space-y-2 flex-1">
-                  {["Hasta 50 órdenes activas","200 clientes","100 productos en inventario","POS básico (cobro en mostrador)","Dashboard de ingresos","Workflow estándar (4 estados)"].map(f => (
+                  {["Hasta 50 órdenes activas","Hasta 100 clientes","Hasta 50 productos en inventario","Todas las funciones desbloqueadas","POS, reportes, caja, empleados","Workflow personalizable","Sin límite de usuarios"].map(f => (
                     <li key={f} className="flex items-center gap-2 text-xs text-gray-300">
                       <CheckCircle className="w-3.5 h-3.5 text-cyan-400 flex-shrink-0" /> {f}
                     </li>
@@ -2919,7 +2919,7 @@ export default function PinAccess() {
               <div className="relative flex flex-col bg-gradient-to-b from-cyan-950/60 to-blue-950/60 border-2 border-cyan-500/50 rounded-2xl p-6 shadow-[0_0_40px_rgba(6,182,212,0.15)] hover:shadow-[0_0_60px_rgba(6,182,212,0.25)] transition-all">
                 <div className="absolute -top-3 left-1/2 -translate-x-1/2">
                   <span className="bg-gradient-to-r from-cyan-400 to-blue-500 text-black text-[11px] font-black px-3 py-1 rounded-full uppercase tracking-wider">
-                    Más popular
+                    Recomendado
                   </span>
                 </div>
                 <p className="text-xs font-bold text-cyan-400 uppercase tracking-widest mb-3">Pro</p>
@@ -2928,9 +2928,9 @@ export default function PinAccess() {
                   <span className="text-lg font-black text-white/60">.99</span>
                   <span className="text-gray-400 text-sm mb-1">/mes</span>
                 </div>
-                <p className="text-xs text-gray-400 mb-5">5 usuarios incluidos · +$7/extra</p>
+                <p className="text-xs text-gray-400 mb-5">Sin límites · Para crecer sin freno</p>
                 <ul className="space-y-2 flex-1">
-                  {["Todo lo de Starter","Órdenes y clientes ilimitados","Asignar técnicos a órdenes","Notas internas y fotos","1,000 SKUs · Alertas de stock","Apertura/cierre de caja","Reportes por técnico y servicio","Exportar CSV · Proveedores","3 roles: Admin, Técnico, Cajero"].map(f => (
+                  {["Órdenes activas ilimitadas","Clientes ilimitados","Inventario ilimitado","Todas las funciones de Starter","Soporte prioritario","Sin sorpresas, sin límites"].map(f => (
                     <li key={f} className="flex items-center gap-2 text-xs text-gray-200">
                       <CheckCircle className="w-3.5 h-3.5 text-cyan-400 flex-shrink-0" /> {f}
                     </li>
@@ -2939,30 +2939,6 @@ export default function PinAccess() {
                 <button
                   onClick={() => setShowSignup(true)}
                   className="mt-6 w-full py-2.5 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 text-white text-sm font-bold hover:opacity-90 transition-all shadow-lg"
-                >
-                  Empezar gratis →
-                </button>
-              </div>
-
-              {/* ── Business ── */}
-              <div className="relative flex flex-col bg-gradient-to-b from-purple-950/40 to-black border border-purple-500/30 rounded-2xl p-6 hover:border-purple-400/50 transition-all">
-                <p className="text-xs font-bold text-purple-400 uppercase tracking-widest mb-3">Business</p>
-                <div className="flex items-end gap-1 mb-1">
-                  <span className="text-4xl font-black text-white">$79</span>
-                  <span className="text-lg font-black text-white/60">.99</span>
-                  <span className="text-gray-500 text-sm mb-1">/mes</span>
-                </div>
-                <p className="text-xs text-gray-500 mb-5">10 usuarios incluidos · +$5/extra</p>
-                <ul className="space-y-2 flex-1">
-                  {["Todo lo de Pro","Inventario ilimitado","Hasta 3 cajas registradoras","Reportes financieros completos","Exportar PDF y CSV","Roles y permisos personalizados","Emails automáticos al cliente","Automatizaciones y triggers","Soporte prioritario (4h)"].map(f => (
-                    <li key={f} className="flex items-center gap-2 text-xs text-gray-300">
-                      <CheckCircle className="w-3.5 h-3.5 text-purple-400 flex-shrink-0" /> {f}
-                    </li>
-                  ))}
-                </ul>
-                <button
-                  onClick={() => setShowSignup(true)}
-                  className="mt-6 w-full py-2.5 rounded-xl border border-purple-500/40 text-purple-300 text-sm font-bold hover:bg-purple-500/10 transition-all"
                 >
                   Empezar gratis →
                 </button>
