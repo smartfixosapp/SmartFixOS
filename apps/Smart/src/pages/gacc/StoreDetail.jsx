@@ -546,7 +546,7 @@ function ChangePlanModal({ tenant, open, onClose }) {
           {/* Header */}
           <div className="flex items-center justify-between px-5 py-4 border-b border-white/[0.06]">
             <div>
-              <p className="text-[14px] font-bold text-white">Cambiar Plan & Usuarios</p>
+              <p className="text-[14px] font-bold text-white">Cambiar Plan</p>
               <p className="text-[11px] text-gray-600">{tenant.name}</p>
             </div>
             <button onClick={onClose} className="p-1.5 rounded-lg text-gray-600 hover:text-white hover:bg-white/[0.05]">
