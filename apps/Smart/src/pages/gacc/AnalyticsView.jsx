@@ -401,12 +401,13 @@ function FeatureAdoption({ tenants }) {
   const adoption = useMemo(() => {
     const total = tenants.filter(t => t.status === "active").length || 1;
     const features = [
-      { key: "pos_basic", label: "POS", plans: ["starter", "pro", "business"] },
-      { key: "inventory_basic", label: "Inventario", plans: ["starter", "pro", "business"] },
-      { key: "orders_photos", label: "Fotos en Ordenes", plans: ["pro", "business"] },
-      { key: "permissions_roles", label: "Roles y Permisos", plans: ["pro", "business"] },
-      { key: "reports_financial", label: "Reportes Financieros", plans: ["business"] },
-      { key: "automations_triggers", label: "Automatizaciones", plans: ["business"] },
+      // Todas las features estan disponibles en ambos planes (starter y pro)
+      { key: "pos", label: "POS", plans: ["starter", "pro"] },
+      { key: "inventory", label: "Inventario", plans: ["starter", "pro"] },
+      { key: "orders_photos", label: "Fotos en Ordenes", plans: ["starter", "pro"] },
+      { key: "suppliers", label: "Proveedores", plans: ["starter", "pro"] },
+      { key: "reports", label: "Reportes Financieros", plans: ["starter", "pro"] },
+      { key: "automations", label: "Automatizaciones", plans: ["starter", "pro"] },
     ];
 
     return features.map(f => {
