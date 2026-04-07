@@ -62,7 +62,7 @@ function timeAgo(dateStr) {
 function activityColor(dateStr) {
   if (!dateStr) return { dot: "bg-gray-700", badge: "bg-gray-500/15 text-gray-500", label: "Nunca" };
   const days = (Date.now() - new Date(dateStr).getTime()) / 86400000;
-  if (days < 1)  return { dot: "bg-emerald-400 animate-pulse", badge: "bg-emerald-500/15 text-emerald-400", label: "Hoy" };
+  if (days < 1)  return { dot: "bg-emerald-400", badge: "bg-emerald-500/15 text-emerald-400", label: "Hoy" };
   if (days < 3)  return { dot: "bg-lime-400",   badge: "bg-lime-500/15 text-lime-400",   label: "Reciente" };
   if (days < 7)  return { dot: "bg-amber-400",  badge: "bg-amber-500/15 text-amber-400", label: "Esta semana" };
   if (days < 30) return { dot: "bg-orange-400", badge: "bg-orange-500/15 text-orange-400", label: "Este mes" };
