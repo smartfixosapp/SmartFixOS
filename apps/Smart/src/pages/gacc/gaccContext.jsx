@@ -192,7 +192,6 @@ export function GACCProvider({ children }) {
         const latestSub = subscriptionsByTenant.get(tenant.id) || null;
         const effectivePlan = normalizePlan(latestSub?.plan || tenant.plan);
         const planConfig = getPlanConfig(effectivePlan);
-        const metadataLimit = Number(tenant?.metadata?.max_users || 0) || 0;
         return {
           ...tenant,
           latest_subscription: latestSub,
@@ -200,7 +199,8 @@ export function GACCProvider({ children }) {
           effective_subscription_status: latestSub?.status || tenant.subscription_status,
           effective_monthly_cost: Number(latestSub?.amount ?? tenant.monthly_cost ?? planConfig.monthlyCost) || planConfig.monthlyCost,
           effective_trial_end_date: latestSub?.trial_end_date || tenant.trial_end_date || null,
-          effective_max_users: Math.max(metadataLimit, planConfig.maxUsers || 0),
+          effective_max_orders_monthly: planConfig.maxOrdersMonthly,
+          effective_max_skus: planConfig.maxSkus,
         };
       });
 
