@@ -160,7 +160,10 @@ function SessionTimer() {
       } catch { setRemaining("--:--"); }
     };
     update();
-    const iv = setInterval(update, 1000);
+    // Update every 30s instead of 1s — battery saver
+    const iv = setInterval(() => {
+      if (document.visibilityState === "visible") update();
+    }, 30000);
     return () => clearInterval(iv);
   }, []);
 
