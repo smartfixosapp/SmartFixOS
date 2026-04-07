@@ -12,7 +12,7 @@ import {
   ChevronRight, RefreshCw, Copy, ExternalLink, Eye, StickyNote,
   Send, CheckCircle, XCircle, AlertTriangle, MoreHorizontal
 } from "lucide-react";
-import { useGACC, getStatusBadge, presenceStatus, timeAgo, getPlanConfig, PLAN_OPTIONS } from "./gaccContext";
+import { useGACC, getStatusBadge, presenceStatus, timeAgo, getPlanConfig, PLAN_OPTIONS, normalizePlan } from "./gaccContext";
 import { toast } from "sonner";
 
 // ── Tab config ───────────────────────────────────────────────────────────────
