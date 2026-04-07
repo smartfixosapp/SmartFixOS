@@ -13,8 +13,6 @@ import CreateCustomerDialog from "../components/customers/CreateCustomerDialog";
 import CustomerOrdersDialog from "../components/customers/CustomerOrdersDialog";
 import BulkOfferModal from "../components/customers/BulkOfferModal";
 import JENAIInsightBanner from "@/components/jenai/JENAIInsightBanner";
-import { toast } from "sonner";
-import { usePlanLimits } from "@/hooks/usePlanLimits";
 
 const LOCAL_CUSTOMERS_KEY = "smartfix_local_customers";
 
