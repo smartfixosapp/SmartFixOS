@@ -205,7 +205,10 @@ export default function Layout({ children }) {
     };
 
     checkTenantStatus(); // Verificación inmediata al cargar
-    const interval = setInterval(checkTenantStatus, 2 * 60 * 1000); // Cada 2 minutos
+    // Cada 5 min, solo si tab visible
+    const interval = setInterval(() => {
+      if (document.visibilityState === "visible") checkTenantStatus();
+    }, 5 * 60 * 1000);
     return () => { alive = false; clearInterval(interval); };
   }, [user, isPinAccess, isWelcome, isSetupPage]);
 
