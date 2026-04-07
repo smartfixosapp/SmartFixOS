@@ -56,6 +56,9 @@ export default function Layout({ children }) {
   // 💓 Heartbeat de presencia — actualiza last_seen en tenant cada 2 min
   useHeartbeat();
 
+  // ⏰ Recordatorios de ponche según horario semanal del empleado
+  usePunchReminders();
+
   // ⌨️ Cmd+K / Ctrl+K — abre el buscador global
   useEffect(() => {
     const keyHandler = (e) => {
