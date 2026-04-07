@@ -213,10 +213,12 @@ export function GACCProvider({ children }) {
     }
   }, []);
 
-  // Initial load + auto-refresh every 30s
+  // Initial load + auto-refresh every 2 min (visibility-aware)
   useEffect(() => {
     loadTenants();
-    const iv = setInterval(loadTenants, 30 * 1000);
+    const iv = setInterval(() => {
+      if (document.visibilityState === "visible") loadTenants();
+    }, 2 * 60 * 1000);
     return () => clearInterval(iv);
   }, [loadTenants]);
 
