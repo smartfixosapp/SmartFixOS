@@ -2,7 +2,8 @@ import React, { useMemo, useState, useRef, useCallback } from "react";
 import {
   DollarSign, Wallet, ShoppingCart, MessageSquare, Camera,
   Zap, Send, Printer, Shield, ChevronRight, ChevronDown,
-  MessageCircle, Mail, Phone, Smartphone, Loader2
+  MessageCircle, Mail, Phone, Smartphone, Loader2,
+  ClipboardCheck, Link2, Package, FileText
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { getStatusConfig, normalizeStatusId } from "@/components/utils/statusRegistry";
@@ -20,6 +21,28 @@ const QUICK_ACTIONS = [
   { id: "print", icon: Printer, label: "Imprimir", color: "text-white/60" },
   { id: "security", icon: Shield, label: "Seguridad", color: "text-purple-400" },
 ];
+
+// Acciones contextuales por estado — disparan eventos `wo:action` que escuchan los stage components
+const STAGE_ACTIONS = {
+  diagnosing: [
+    { id: "checklist", icon: ClipboardCheck, label: "Checklist diagnostico", color: "text-purple-400" },
+    { id: "links", icon: Link2, label: "Anadir link", color: "text-cyan-400" },
+    { id: "quote", icon: Send, label: "Enviar cotizacion", color: "text-blue-400" },
+  ],
+  waiting_parts: [
+    { id: "tracking", icon: Package, label: "Tracking de piezas", color: "text-amber-400" },
+  ],
+  pending_order: [
+    { id: "links", icon: Link2, label: "Agregar link", color: "text-yellow-400" },
+  ],
+  in_progress: [
+    { id: "checklist", icon: ClipboardCheck, label: "Checklist de cierre", color: "text-emerald-400" },
+  ],
+  ready_for_pickup: [],
+  awaiting_approval: [
+    { id: "approval", icon: FileText, label: "Link aprobacion", color: "text-blue-400" },
+  ],
+};
 
 export default function MobileAccionesTab({
   order,
