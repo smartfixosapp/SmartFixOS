@@ -294,13 +294,15 @@ export default function SuperAdmin() {
     setAuthorized(true);
     loadTenants();
 
-    // Revisar expiración cada 5 minutos
-    const sessionInterval = setInterval(() => { checkSession(); }, 5 * 60 * 1000);
+    // Revisar expiración cada 5 minutos (solo si visible)
+    const sessionInterval = setInterval(() => {
+      if (document.visibilityState === "visible") checkSession();
+    }, 5 * 60 * 1000);
 
-    // Auto-refresh de presencia cada 30 segundos (para ver tiendas online en tiempo real)
+    // Auto-refresh de presencia cada 2 minutos (reducido de 30s) y solo si visible
     const presenceInterval = setInterval(() => {
-      loadTenants();
-    }, 30 * 1000);
+      if (document.visibilityState === "visible") loadTenants();
+    }, 2 * 60 * 1000);
 
     return () => {
       clearInterval(sessionInterval);
