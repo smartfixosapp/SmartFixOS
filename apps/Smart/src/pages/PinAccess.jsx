@@ -2170,7 +2170,7 @@ export default function PinAccess() {
 
           {/* Selector de plan */}
           <label className="block text-gray-400 text-xs font-medium mb-2 w-full">Plan</label>
-          <div className="grid grid-cols-3 gap-2 w-full mb-5">
+          <div className="grid grid-cols-2 gap-2 w-full mb-5">
             {PLANS_GR.map(p => (
               <button
                 key={p.id}
