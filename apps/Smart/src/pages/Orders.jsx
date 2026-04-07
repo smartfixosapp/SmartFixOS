@@ -238,9 +238,18 @@ export default function OrdersPage() {
   const pendingOpenOrderIdRef = useRef(null);
 
   const openQuickOrderModal = useCallback(() => {
+    // Plan limit check — count active orders (not closed/delivered/cancelled)
+    const closedStatuses = ["picked_up", "completed", "cancelled", "delivered"];
+    const activeCount = orders.filter((o) => !o.deleted && !closedStatuses.includes(getEffectiveOrderStatus(o))).length;
+    const { allowed, current, max } = checkLimit('max_active_orders', activeCount);
+    if (!allowed) {
+      const next = upgradeTo?.label || 'Pro';
+      toast.error(`Límite alcanzado: ${current}/${max} órdenes activas. Upgrade a ${next} ($${upgradeTo?.price || '39.99'}/mes) para órdenes ilimitadas.`, { duration: 7000 });
+      return;
+    }
     setShowQuickModal(true);
     setShowStatusDropdown(false);
-  }, []);
+  }, [orders, checkLimit, upgradeTo]);
 
   useEffect(() => {
     try {
