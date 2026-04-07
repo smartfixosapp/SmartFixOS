@@ -25,7 +25,10 @@ export default function AlertasWidget() {
     loadAlerts();
     loadSettings();
     
-    const interval = setInterval(loadAlerts, 300000); // Cada 5 minutos
+    // Cada 10 min, solo si tab visible
+    const interval = setInterval(() => {
+      if (document.visibilityState === "visible") loadAlerts();
+    }, 10 * 60 * 1000);
     return () => clearInterval(interval);
   }, []);
 
