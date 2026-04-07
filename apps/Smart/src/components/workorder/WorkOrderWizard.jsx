@@ -2746,38 +2746,26 @@ Reglas:
         finalCustomerId = localCustomer.id;
       }
 
-      // 2. Catálogos
+      // 2. Catálogos — fire-and-forget (no bloquea la creación de orden)
       const typeName = deviceType;
       const brandName = typeof deviceBrand === "string" ? deviceBrand : deviceBrand?.name || "";
       const modelName = deviceModel;
 
-      let brandId = null;
-
-      try {
-        if (brandName) {
-          const foundBrand = await base44.entities.Brand.filter({ name: brandName }).catch(() => []);
-          if (foundBrand?.length) {
-            brandId = foundBrand[0].id;
+      // Sync de catálogo en background, no esperamos
+      (async () => {
+        try {
+          if (brandName) {
+            const foundBrand = await base44.entities.Brand.filter({ name: brandName }).catch(() => []);
+            const brandId = foundBrand?.[0]?.id;
+            if (modelName && brandId) {
+              const foundFamily = await base44.entities.DeviceFamily.filter({ name: modelName, brand_id: brandId }).catch(() => []);
+              if (!foundFamily?.length) {
+                await base44.entities.DeviceFamily.create({ name: modelName, brand_id: brandId, active: true, order: 1 }).catch(() => null);
+              }
+            }
           }
-        }
-
-        if (modelName && brandId) {
-          const foundFamily = await base44.entities.DeviceFamily.filter({
-            name: modelName,
-            brand_id: brandId
-          }).catch(() => []);
-          if (!foundFamily?.length) {
-            await base44.entities.DeviceFamily.create({
-              name: modelName,
-              brand_id: brandId,
-              active: true,
-              order: 1
-            }).catch(() => null);
-          }
-        }
-      } catch (catalogError) {
-        console.warn("Device catalog sync skipped during order creation:", catalogError);
-      }
+        } catch (e) { console.warn("Device catalog sync skipped:", e); }
+      })();
 
       // 3. Fotos — subir EN PARALELO (mucho más rápido)
       const photosMetadata = [];
