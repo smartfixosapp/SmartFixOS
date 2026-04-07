@@ -31,8 +31,11 @@ export function TenantProvider({ children }) {
   }, []);
 
   useEffect(() => {
-    // Poll every 60s for plan changes
-    const iv = setInterval(refreshTenantData, 60 * 1000);
+    // Poll every 5 min for plan changes (visibility-aware)
+    // El listener de visibilitychange ya refresca cuando el usuario vuelve
+    const iv = setInterval(() => {
+      if (document.visibilityState === "visible") refreshTenantData();
+    }, 5 * 60 * 1000);
 
     // Also listen for cross-tab signals (GACC writes this when changing plans)
     const onStorage = (e) => {
