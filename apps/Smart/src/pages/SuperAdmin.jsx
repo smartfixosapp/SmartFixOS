@@ -37,10 +37,10 @@ const adminSupabase = getAdminClient();
 const SUPER_SESSION_KEY   = "smartfix_saas_session";
 const SUPER_ADMIN_EMAIL   = "smartfixosapp@gmail.com";
 const SESSION_TIMEOUT_MS  = 2 * 60 * 60 * 1000; // 2 horas
+// LEGACY: /SuperAdmin redirige a /GACC. Solo 2 planes: Starter $14.99 y Pro $39.99.
 const PLAN_OPTIONS = [
-  { key: "smartfixos", label: "Basic", sub: "1 usuario · $55/mo", maxUsers: 1, monthlyCost: 55, color: "from-slate-500 to-slate-600" },
-  { key: "pro", label: "Pro", sub: "3 usuarios · $85/mo", maxUsers: 3, monthlyCost: 85, color: "from-blue-500 to-indigo-600" },
-  { key: "enterprise", label: "Enterprise", sub: "Ilimitado · Consultoría", maxUsers: 999, monthlyCost: 0, color: "from-purple-500 to-pink-600" },
+  { key: "starter", label: "Starter", sub: "$14.99/mo · 50 ordenes/mes", maxUsers: 999, monthlyCost: 14.99, color: "from-slate-500 to-slate-600" },
+  { key: "pro", label: "Pro", sub: "$39.99/mo · Sin limites", maxUsers: 999, monthlyCost: 39.99, color: "from-blue-500 to-indigo-600" },
 ];
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
