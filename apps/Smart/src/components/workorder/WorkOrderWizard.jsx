@@ -2779,27 +2779,32 @@ Reglas:
         console.warn("Device catalog sync skipped during order creation:", catalogError);
       }
 
-      // 3. Fotos
+      // 3. Fotos — subir EN PARALELO (mucho más rápido)
       const photosMetadata = [];
       const photoUrls = [];
-      for (const item of photos) {
-        try {
-          const sourceFile =
-            item instanceof File || item instanceof Blob
-              ? item
-              : (item?.file instanceof File || item?.file instanceof Blob)
-              ? item.file
-              : null;
-          if (!sourceFile) continue;
+      const photoFiles = photos
+        .map(item => {
+          if (item instanceof File || item instanceof Blob) return item;
+          if (item?.file instanceof File || item?.file instanceof Blob) return item.file;
+          return null;
+        })
+        .filter(Boolean);
 
-          const uploadResult = await base44.integrations.Core.UploadFile({ file: sourceFile });
-          const baseUrl = pickUploadUrl(uploadResult);
-          if (!baseUrl) {
-            throw new Error("Upload sin URL pública válida");
+      if (photoFiles.length > 0) {
+        const uploadResults = await Promise.allSettled(
+          photoFiles.map(file => base44.integrations.Core.UploadFile({ file }))
+        );
+        uploadResults.forEach((res, i) => {
+          if (res.status !== "fulfilled") {
+            console.warn("Error uploading photo:", res.reason);
+            return;
           }
+          const sourceFile = photoFiles[i];
+          const baseUrl = pickUploadUrl(res.value);
+          if (!baseUrl) return;
           const url = `${baseUrl}${baseUrl.includes("?") ? "&" : "?"}v=${Date.now()}`;
           photosMetadata.push({
-            id: `${Date.now()}-${(sourceFile && sourceFile.name) || "photo"}`,
+            id: `${Date.now()}-${i}-${sourceFile.name || "photo"}`,
             type: sourceFile.type?.startsWith("video") ? "video" : "image",
             mime: sourceFile.type || "image/jpeg",
             filename: sourceFile.name || "photo.jpg",
@@ -2807,9 +2812,7 @@ Reglas:
             thumbUrl: url
           });
           photoUrls.push(url);
-        } catch (err) {
-          console.warn("Error uploading photo:", err);
-        }
+        });
       }
 
       // 4. Seguridad
