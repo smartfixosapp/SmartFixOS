@@ -899,10 +899,10 @@ export default function StoreDetail({ tenant, onBack }) {
             <button
               onClick={() => setShowPlanModal(true)}
               className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-[11px] font-semibold bg-purple-500/15 text-purple-300 border border-purple-500/30 hover:bg-purple-500/25 transition-all"
-              title="Cambiar plan y usuarios"
+              title="Cambiar plan"
             >
               <CreditCard className="w-3.5 h-3.5" />
-              Plan & Usuarios
+              Cambiar Plan
             </button>
             <button
               onClick={() => setShowEditModal(true)}
