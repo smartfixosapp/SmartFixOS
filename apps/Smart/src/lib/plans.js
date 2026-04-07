@@ -36,13 +36,11 @@ export const PLANS = {
 
 export const PLAN_LIMITS = {
   starter: {
-    max_active_orders:   50,
-    max_customers:       100,
-    max_skus:            50,
+    max_orders_monthly:  50,  // se reinicia cada mes calendario
+    max_skus:            50,  // total acumulado en inventario
   },
   pro: {
-    max_active_orders:   -1,
-    max_customers:       -1,
+    max_orders_monthly:  -1,
     max_skus:            -1,
   },
 };
