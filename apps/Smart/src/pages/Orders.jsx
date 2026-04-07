@@ -28,6 +28,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import CountdownBadge from "@/components/orders/CountdownBadge";
 
 import UnlocksPanel from "@/components/unlocks/UnlocksPanel";
+import { usePlanLimits } from "@/hooks/usePlanLimits";
 import EditDeviceModal from "@/components/orders/EditDeviceModal";
 import { getLocalOrders, getUnsyncedLocalOrders, mergeOrders, upsertLocalOrder } from "@/components/utils/localOrderCache";
 
