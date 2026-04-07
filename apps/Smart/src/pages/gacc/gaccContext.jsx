@@ -24,22 +24,41 @@ export function getAdminClient() {
 }
 
 // ── Plan config ──────────────────────────────────────────────────────────────
-// Synced with /lib/plans.js — these are the canonical plan IDs
+// Synced with /lib/plans.js — solo 2 planes, todas las features desbloqueadas,
+// solo limita ordenes mensuales y SKUs en el plan Starter
 export const PLAN_OPTIONS = [
-  { key: "starter", label: "Starter", sub: "1 usuario · $14.99/mo", maxUsers: 1, monthlyCost: 14.99, color: "from-slate-500 to-slate-600" },
-  { key: "pro", label: "Pro", sub: "5 usuarios · $39.99/mo", maxUsers: 5, monthlyCost: 39.99, color: "from-blue-500 to-indigo-600" },
-  { key: "business", label: "Business", sub: "10 usuarios · $79.99/mo", maxUsers: 10, monthlyCost: 79.99, color: "from-purple-500 to-pink-600" },
+  {
+    key: "starter",
+    label: "Starter",
+    sub: "$14.99/mo · 50 ordenes/mes · 50 SKUs",
+    monthlyCost: 14.99,
+    maxOrdersMonthly: 50,
+    maxSkus: 50,
+    color: "from-slate-500 to-slate-600",
+    tagline: "Para tecnicos independientes",
+  },
+  {
+    key: "pro",
+    label: "Pro",
+    sub: "$39.99/mo · Sin limites",
+    monthlyCost: 39.99,
+    maxOrdersMonthly: -1,
+    maxSkus: -1,
+    color: "from-blue-500 to-indigo-600",
+    tagline: "Sin limites en nada",
+  },
 ];
 
 export function normalizePlan(plan) {
-  // Map all legacy plan names to canonical IDs (same as plans.js normalizePlanId)
+  // Solo 2 planes canonicos: starter y pro
+  // Legacy: smartfixos/basic → starter, business/enterprise → pro
   const map = {
     smartfixos: "starter",
     basic: "starter",
     starter: "starter",
     pro: "pro",
-    enterprise: "business",
-    business: "business",
+    business: "pro",
+    enterprise: "pro",
   };
   return map[String(plan || "").trim().toLowerCase()] || "starter";
 }
