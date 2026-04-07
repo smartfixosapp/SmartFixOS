@@ -513,11 +513,14 @@ function AdminActivityLog() {
     return JSON.parse(localStorage.getItem("gacc_admin_log") || "[]");
   });
 
-  // Auto-refresh
+  // Auto-refresh (visibility-aware, 30s instead of 5s)
   useEffect(() => {
     const iv = setInterval(() => {
-      setLog(JSON.parse(localStorage.getItem("gacc_admin_log") || "[]"));
-    }, 5000);
+      if (document.visibilityState !== "visible") return;
+      try {
+        setLog(JSON.parse(localStorage.getItem("gacc_admin_log") || "[]"));
+      } catch {}
+    }, 30000);
     return () => clearInterval(iv);
   }, []);
 
