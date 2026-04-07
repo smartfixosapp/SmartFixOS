@@ -191,7 +191,16 @@ export default function Customers() {
               <span className="hidden sm:inline">Oferta</span>
             </button>
             <button
-              onClick={() => { setEditingCustomer(null); setShowCreateDialog(true); }}
+              onClick={() => {
+                const { allowed, current, max } = checkLimit('max_customers', customers.length);
+                if (!allowed) {
+                  const next = upgradeTo?.label || 'Pro';
+                  toast.error(`Límite alcanzado: ${current}/${max} clientes. Upgrade a ${next} ($${upgradeTo?.price || '39.99'}/mes) para clientes ilimitados.`, { duration: 7000 });
+                  return;
+                }
+                setEditingCustomer(null);
+                setShowCreateDialog(true);
+              }}
               className="h-11 px-5 bg-blue-500 hover:bg-blue-400 text-white font-black text-sm rounded-full flex items-center gap-2 transition-all active:scale-95 shadow-[0_0_20px_rgba(59,130,246,0.35)]"
             >
               <Plus className="w-4 h-4" />
