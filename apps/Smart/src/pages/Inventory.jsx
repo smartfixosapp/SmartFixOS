@@ -1675,7 +1675,16 @@ Maximo 150 palabras. Texto plano, sin markdown.`
             </div>
 
             <button
-              onClick={() => { setEditing(null); setShowItemDialog(true); }}
+              onClick={() => {
+                const { allowed, current, max } = checkLimit('max_skus', items.length);
+                if (!allowed) {
+                  const next = upgradeTo?.label || 'Pro';
+                  toast.error(`Límite alcanzado: ${current}/${max} productos. Upgrade a ${next} ($${upgradeTo?.price || '39.99'}/mes) para inventario ilimitado.`, { duration: 7000 });
+                  return;
+                }
+                setEditing(null);
+                setShowItemDialog(true);
+              }}
               className="flex items-center gap-2 h-9 px-4 rounded-xl bg-gradient-to-r from-teal-500 to-cyan-500 text-white font-bold text-xs shadow-[0_6px_16px_rgba(20,184,166,0.3)] hover:opacity-90 transition-all active:scale-95"
             >
               <Plus className="w-4 h-4" /> Nuevo
