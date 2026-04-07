@@ -1414,6 +1414,8 @@ export default function SettingsPage() {
           {activeSection === "pos_receipt" && <POSReceiptTab />}
 
           {/* TAREAS DE TURNO */}
+          {activeSection === "employee_schedules" && <EmployeeSchedulesManager />}
+
           {activeSection === "shift_tasks" && (
             <div className="space-y-6">
               <ShiftTasksManager />
