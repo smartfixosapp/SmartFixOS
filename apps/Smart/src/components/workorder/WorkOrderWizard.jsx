@@ -3054,12 +3054,18 @@ Reglas:
         return;
       }
 
-      toast.success(quickOrderMode ? "✅ Orden rápida creada y enviada a reparación" : "✅ Orden creada exitosamente");
+      toast.success(quickOrderMode ? "Orden rapida creada" : "Orden creada");
+
+      // En mobile: cerrar directo sin mostrar Print Dialog (no se imprime desde celular)
+      if (isCompactDevice) {
+        setLoading(false);
+        onSuccess?.(newOrder);
+        return;
+      }
+
+      // En desktop: mostrar Print Dialog y cerrar cuando se cierre ese dialog
       setPrintData(newOrder);
       setShowPrintDialog(true);
-      // We don't call onSuccess(newOrder) here yet, we wait for the print dialog to close
-      // if printing is desired. 
-      // If we call it, the parent (Orders.jsx) will close this modal, destroying the print dialog.
     } catch (err) {
       console.error("Error creating order:", err);
       toast.error("No se pudo crear la orden: " + err.message);
