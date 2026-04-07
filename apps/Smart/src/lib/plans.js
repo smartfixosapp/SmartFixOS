@@ -1,10 +1,14 @@
 /**
  * SmartFixOS — Plan Definitions (Simplified)
  *
- * Solo 2 planes. Solo 3 limites de cantidad. Todo lo demas desbloqueado.
+ * Solo 2 planes. Solo 2 limites de cantidad. Todo lo demas desbloqueado.
  *
- *   starter — $14.99/mes — 50 ordenes activas / 100 clientes / 50 productos
+ *   starter — $14.99/mes — 50 ordenes/mes (renovable) / 50 productos en inventario
  *   pro     — $39.99/mes — ilimitado en todo
+ *
+ * Nota: las ordenes son por ciclo mensual (renueva cada mes), no acumulado.
+ * Los clientes son ilimitados en ambos planes (cada orden crea un cliente,
+ * van de la mano).
  */
 
 // ── Plan definitions ─────────────────────────────────────────────
