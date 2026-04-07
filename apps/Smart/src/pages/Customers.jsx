@@ -62,7 +62,6 @@ function avatarColor(name = "") {
 }
 
 export default function Customers() {
-  const { checkLimit, upgradeTo } = usePlanLimits();
   const [searchQuery, setSearchQuery] = useState("");
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [selectedCustomer, setSelectedCustomer] = useState(null);
