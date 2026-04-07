@@ -30,6 +30,7 @@ import PWAMetaTags from "@/components/utils/PWAMetaTags";
 import GlobalPriceWidget from "@/components/layout/GlobalPriceWidget";
 import GlobalSearchPalette from "@/components/layout/GlobalSearchPalette";
 import { useHeartbeat } from "@/hooks/useHeartbeat";
+import { usePunchReminders } from "@/hooks/usePunchReminders";
 import ARIAChat from "@/components/aria/ARIAChat";
 import { usePushNotifications } from "@/hooks/usePushNotifications";
 
