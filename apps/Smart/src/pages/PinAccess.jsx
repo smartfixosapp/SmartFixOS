@@ -2901,7 +2901,7 @@ export default function PinAccess() {
                 </div>
                 <p className="text-xs text-gray-500 mb-5">Para empezar tu taller</p>
                 <ul className="space-y-2 flex-1">
-                  {["Hasta 50 órdenes activas","Hasta 100 clientes","Hasta 50 productos en inventario","Todas las funciones desbloqueadas","POS, reportes, caja, empleados","Workflow personalizable","Sin límite de usuarios"].map(f => (
+                  {["Hasta 50 órdenes por mes","Hasta 50 productos en inventario","Clientes ilimitados","Todas las funciones desbloqueadas","POS, reportes, caja, empleados","Workflow personalizable","Sin límite de usuarios"].map(f => (
                     <li key={f} className="flex items-center gap-2 text-xs text-gray-300">
                       <CheckCircle className="w-3.5 h-3.5 text-cyan-400 flex-shrink-0" /> {f}
                     </li>
