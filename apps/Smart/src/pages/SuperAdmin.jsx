@@ -73,7 +73,7 @@ function activityColor(dateStr) {
 function presenceStatus(lastSeenStr) {
   if (!lastSeenStr) return null; // sin datos de presencia
   const mins = (Date.now() - new Date(lastSeenStr).getTime()) / 60000;
-  if (mins < 4)   return { label: "Online",   dot: "bg-emerald-400 animate-pulse shadow-[0_0_6px_rgba(52,211,153,0.8)]", badge: "bg-emerald-500/20 text-emerald-300 border-emerald-500/40", icon: "🟢" };
+  if (mins < 4)   return { label: "Online",   dot: "bg-emerald-400 shadow-[0_0_6px_rgba(52,211,153,0.8)]", badge: "bg-emerald-500/20 text-emerald-300 border-emerald-500/40", icon: "🟢" };
   if (mins < 30)  return { label: "Reciente",  dot: "bg-amber-400",   badge: "bg-amber-500/15 text-amber-300 border-amber-500/30",   icon: "🟡" };
   return null; // offline = sin badge de presencia
 }
