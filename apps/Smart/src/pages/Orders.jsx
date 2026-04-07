@@ -214,6 +214,7 @@ const OrderCard = React.memo(function OrderCard({ order, onClick, onEditDevice }
 export default function OrdersPage() {
   const location = useLocation();
   const navigate = useNavigate();
+  const { checkLimit, upgradeTo } = usePlanLimits();
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
