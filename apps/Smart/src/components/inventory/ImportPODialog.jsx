@@ -910,8 +910,16 @@ export default function ImportPODialog({ open, onClose, suppliers = [], products
         }
       }
 
-      // Si la usuario marcó "Ya pagué" → registrar el gasto en Finanzas
-      if (paidAtOrder && totalAmount > 0) {
+      // Si requiere aprobación, NO crear el gasto todavía (esperar al admin)
+      if (requiresApproval) {
+        toast.warning(
+          `🔒 OC creada como PENDIENTE DE APROBACIÓN ($${totalAmount.toFixed(2)} > $${APPROVAL_THRESHOLD}). Un admin debe aprobarla.`,
+          { duration: 8000 },
+        );
+      }
+
+      // Si la usuario marcó "Ya pagué" Y no requiere aprobación → registrar el gasto en Finanzas
+      if (paidAtOrder && totalAmount > 0 && !requiresApproval) {
         try {
           const itemsDesc = lineItems
             .map((it) => `${it.product_name} x${it.quantity}`)
