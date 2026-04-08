@@ -400,7 +400,7 @@ function EditableField({ orderId, field, value, onUpdate, className, multiline }
   return (
     <div className="group flex items-start gap-1.5 cursor-pointer" onClick={() => { setEditValue(value || ""); setEditing(true); }}>
       <span className={className}>{value || "—"}</span>
-      <Pencil className="w-3 h-3 text-white/20 opacity-0 group-hover:opacity-100 transition-opacity mt-0.5 shrink-0" />
+      <Pencil className="w-3 h-3 text-white/50 opacity-0 group-hover:opacity-100 transition-opacity mt-0.5 shrink-0" />
     </div>
   );
 }

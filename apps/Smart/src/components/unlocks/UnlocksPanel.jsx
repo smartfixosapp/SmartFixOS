@@ -511,7 +511,7 @@ export default function UnlocksPanel() {
                               <p className="font-semibold text-white text-sm truncate">{customer.name}</p>
                               <p className="text-xs text-white/35 truncate">{customer.phone || customer.email || "Sin contacto"}</p>
                             </div>
-                            <ChevronRight className="w-4 h-4 text-white/20 group-hover:text-violet-400 group-hover:translate-x-0.5 transition-all" />
+                            <ChevronRight className="w-4 h-4 text-white/50 group-hover:text-violet-400 group-hover:translate-x-0.5 transition-all" />
                           </button>
                         );
                       })}
@@ -609,7 +609,7 @@ export default function UnlocksPanel() {
                     value={formData.device_brand}
                     onChange={(e) => setFormData({ ...formData, device_brand: e.target.value })}
                     placeholder="Apple, Samsung…"
-                    className="w-full h-11 px-4 bg-white/[0.05] border border-white/[0.08] text-white text-sm rounded-xl focus:outline-none focus:ring-2 focus:ring-violet-500/40 placeholder:text-white/20 transition-all"
+                    className="w-full h-11 px-4 bg-white/[0.05] border border-white/[0.08] text-white text-sm rounded-xl focus:outline-none focus:ring-2 focus:ring-violet-500/40 placeholder:text-white/50 transition-all"
                   />
                 </div>
                 <div className="space-y-1.5">
@@ -618,7 +618,7 @@ export default function UnlocksPanel() {
                     value={formData.device_model}
                     onChange={(e) => setFormData({ ...formData, device_model: e.target.value })}
                     placeholder="iPhone 15 Pro…"
-                    className="w-full h-11 px-4 bg-white/[0.05] border border-white/[0.08] text-white text-sm rounded-xl focus:outline-none focus:ring-2 focus:ring-violet-500/40 placeholder:text-white/20 transition-all"
+                    className="w-full h-11 px-4 bg-white/[0.05] border border-white/[0.08] text-white text-sm rounded-xl focus:outline-none focus:ring-2 focus:ring-violet-500/40 placeholder:text-white/50 transition-all"
                   />
                 </div>
               </div>
@@ -632,7 +632,7 @@ export default function UnlocksPanel() {
                     onChange={(e) => handleImeiChange(e.target.value)}
                     placeholder="354800000000000"
                     maxLength={15}
-                    className={`w-full h-11 px-4 pr-32 bg-white/[0.05] border text-white text-sm rounded-xl font-mono focus:outline-none focus:ring-2 focus:ring-violet-500/40 placeholder:text-white/20 transition-all ${
+                    className={`w-full h-11 px-4 pr-32 bg-white/[0.05] border text-white text-sm rounded-xl font-mono focus:outline-none focus:ring-2 focus:ring-violet-500/40 placeholder:text-white/50 transition-all ${
                       imeiValid ? "border-emerald-500/40" : "border-white/[0.08]"
                     }`}
                   />
@@ -715,7 +715,7 @@ export default function UnlocksPanel() {
                       value={formData.price}
                       onChange={(e) => setFormData({ ...formData, price: e.target.value })}
                       placeholder="0.00"
-                      className="w-full h-11 pl-8 pr-4 bg-white/[0.05] border border-white/[0.08] text-white text-sm rounded-xl font-bold focus:outline-none focus:ring-2 focus:ring-violet-500/40 placeholder:text-white/20 transition-all"
+                      className="w-full h-11 pl-8 pr-4 bg-white/[0.05] border border-white/[0.08] text-white text-sm rounded-xl font-bold focus:outline-none focus:ring-2 focus:ring-violet-500/40 placeholder:text-white/50 transition-all"
                     />
                   </div>
                 </div>
@@ -725,7 +725,7 @@ export default function UnlocksPanel() {
                     value={formData.notes}
                     onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
                     placeholder="Opcional…"
-                    className="w-full h-11 px-4 bg-white/[0.05] border border-white/[0.08] text-white text-sm rounded-xl focus:outline-none focus:ring-2 focus:ring-violet-500/40 placeholder:text-white/20 transition-all"
+                    className="w-full h-11 px-4 bg-white/[0.05] border border-white/[0.08] text-white text-sm rounded-xl focus:outline-none focus:ring-2 focus:ring-violet-500/40 placeholder:text-white/50 transition-all"
                   />
                 </div>
               </div>

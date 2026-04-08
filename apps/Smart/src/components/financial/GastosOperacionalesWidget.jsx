@@ -181,7 +181,7 @@ function MonthTimeline({ expenses }) {
               } ${dotColor}`} />
               {/* Day number */}
               {(d === 1 || d === 5 || d === 10 || d === 15 || d === 20 || d === 25 || d === daysInMonth || isToday) && (
-                <span className={`text-[8px] font-bold ${isToday ? "text-white" : "text-white/20"}`}>{d}</span>
+                <span className={`text-[8px] font-bold ${isToday ? "text-white" : "text-white/50"}`}>{d}</span>
               )}
               {/* Today marker */}
               {isToday && (
@@ -329,7 +329,7 @@ function ManageCategoriesDialog({ open, onClose, onChanged }) {
               value={newLabel}
               onChange={(e) => setNewLabel(e.target.value)}
               placeholder="Ej: Transporte, Limpieza..."
-              className="bg-white/5 border-white/10 text-white placeholder:text-white/20 rounded-xl h-10 text-sm"
+              className="bg-white/5 border-white/10 text-white placeholder:text-white/50 rounded-xl h-10 text-sm"
               onKeyDown={(e) => e.key === "Enter" && handleAdd()}
             />
             {/* Color picker */}
@@ -455,7 +455,7 @@ function ExpenseFormDialog({ open, onClose, initial, onSave, allCategoryMeta }) 
                 value={form.name}
                 onChange={(e) => set("name", e.target.value)}
                 placeholder="Ej: Renta local, Internet, Luz..."
-                className="bg-white/5 border-white/10 text-white placeholder:text-white/20 rounded-xl h-11"
+                className="bg-white/5 border-white/10 text-white placeholder:text-white/50 rounded-xl h-11"
               />
             </div>
 
@@ -505,7 +505,7 @@ function ExpenseFormDialog({ open, onClose, initial, onSave, allCategoryMeta }) 
                   value={form.amount}
                   onChange={(e) => set("amount", e.target.value)}
                   placeholder="0.00"
-                  className="bg-white/5 border-white/10 text-white placeholder:text-white/20 rounded-xl h-11 pl-7"
+                  className="bg-white/5 border-white/10 text-white placeholder:text-white/50 rounded-xl h-11 pl-7"
                 />
               </div>
             </div>
@@ -521,7 +521,7 @@ function ExpenseFormDialog({ open, onClose, initial, onSave, allCategoryMeta }) 
                   value={form.due_day}
                   onChange={(e) => set("due_day", e.target.value)}
                   placeholder="Ej: 1"
-                  className="bg-white/5 border-white/10 text-white placeholder:text-white/20 rounded-xl h-11"
+                  className="bg-white/5 border-white/10 text-white placeholder:text-white/50 rounded-xl h-11"
                 />
               </div>
               <div className="space-y-1.5">
@@ -533,7 +533,7 @@ function ExpenseFormDialog({ open, onClose, initial, onSave, allCategoryMeta }) 
                   value={form.due_day_end}
                   onChange={(e) => set("due_day_end", e.target.value)}
                   placeholder={form.due_day || "Ej: 5"}
-                  className="bg-white/5 border-white/10 text-white placeholder:text-white/20 rounded-xl h-11"
+                  className="bg-white/5 border-white/10 text-white placeholder:text-white/50 rounded-xl h-11"
                 />
               </div>
             </div>
@@ -550,7 +550,7 @@ function ExpenseFormDialog({ open, onClose, initial, onSave, allCategoryMeta }) 
                 max="31"
                 value={form.working_days_per_month}
                 onChange={(e) => set("working_days_per_month", e.target.value)}
-                className="bg-white/5 border-white/10 text-white placeholder:text-white/20 rounded-xl h-11"
+                className="bg-white/5 border-white/10 text-white placeholder:text-white/50 rounded-xl h-11"
               />
               <p className="text-[10px] text-white/25">Usado para calcular la meta diaria mínima.</p>
             </div>
@@ -562,7 +562,7 @@ function ExpenseFormDialog({ open, onClose, initial, onSave, allCategoryMeta }) 
                 value={form.notes}
                 onChange={(e) => set("notes", e.target.value)}
                 placeholder="Notas opcionales..."
-                className="bg-white/5 border-white/10 text-white placeholder:text-white/20 rounded-xl h-11"
+                className="bg-white/5 border-white/10 text-white placeholder:text-white/50 rounded-xl h-11"
               />
             </div>
 

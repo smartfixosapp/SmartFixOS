@@ -580,7 +580,7 @@ export default function PurchaseOrderDetailDialog({
                     value={form.supplier_name}
                     onChange={(e) => setForm((f) => ({ ...f, supplier_name: e.target.value }))}
                     placeholder="O escribe un nombre manual"
-                    className="w-full bg-[#111114]/60 border border-white/[0.08] rounded-xl px-4 py-3 text-white text-sm placeholder:text-white/20 focus:outline-none focus:border-teal-500/50"
+                    className="w-full bg-[#111114]/60 border border-white/[0.08] rounded-xl px-4 py-3 text-white text-sm placeholder:text-white/50 focus:outline-none focus:border-teal-500/50"
                   />
                 </div>
               ) : (
@@ -897,7 +897,7 @@ export default function PurchaseOrderDetailDialog({
                   value={form.tracking_number}
                   onChange={(e) => setForm((f) => ({ ...f, tracking_number: e.target.value }))}
                   placeholder="Número de tracking (USPS, UPS, FedEx, DHL, etc.)"
-                  className="w-full bg-[#111114]/60 border border-white/[0.08] rounded-xl px-4 py-3 text-white text-sm placeholder:text-white/20 focus:outline-none focus:border-teal-500/50"
+                  className="w-full bg-[#111114]/60 border border-white/[0.08] rounded-xl px-4 py-3 text-white text-sm placeholder:text-white/50 focus:outline-none focus:border-teal-500/50"
                 />
               ) : form.tracking_number ? (() => {
                 const tn = form.tracking_number.trim();
@@ -983,7 +983,7 @@ export default function PurchaseOrderDetailDialog({
                   value={form.notes}
                   onChange={(e) => setForm((f) => ({ ...f, notes: e.target.value }))}
                   rows={3}
-                  className="w-full bg-[#111114]/60 border border-white/[0.08] rounded-xl px-4 py-3 text-white text-sm placeholder:text-white/20 focus:outline-none focus:border-teal-500/50 resize-none"
+                  className="w-full bg-[#111114]/60 border border-white/[0.08] rounded-xl px-4 py-3 text-white text-sm placeholder:text-white/50 focus:outline-none focus:border-teal-500/50 resize-none"
                 />
               ) : (() => {
                 const cleanNotes = (form.notes || "")

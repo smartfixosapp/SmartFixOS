@@ -771,7 +771,7 @@ function EmployeeDetailModal({ open, onClose, employee, entries, formatHM, forma
               <input type="date" value={from.toISOString().slice(0,10)}
                 onChange={(e) => { setFrom(new Date(e.target.value)); setTimeout(loadEntries, 100); }}
                 className="flex-1 bg-white/[0.03] border border-white/[0.08] text-white/70 text-xs rounded-xl px-3 py-2 outline-none focus:border-cyan-500/50" />
-              <span className="text-white/20 font-bold">→</span>
+              <span className="text-white/50 font-bold">→</span>
               <input type="date" value={to.toISOString().slice(0,10)}
                 onChange={(e) => { setTo(new Date(e.target.value)); setTimeout(loadEntries, 100); }}
                 className="flex-1 bg-white/[0.03] border border-white/[0.08] text-white/70 text-xs rounded-xl px-3 py-2 outline-none focus:border-cyan-500/50" />
@@ -784,12 +784,12 @@ function EmployeeDetailModal({ open, onClose, employee, entries, formatHM, forma
               <div className="text-center">
                 <p className="text-[9px] font-black uppercase tracking-widest text-white/30 mb-1">Horas</p>
                 <p className="text-2xl font-black text-white tracking-tight">{totalHours.toFixed(2)}</p>
-                <p className="text-[9px] text-white/20">h trabajadas</p>
+                <p className="text-[9px] text-white/50">h trabajadas</p>
               </div>
               <div className="text-center border-x border-white/[0.06]">
                 <p className="text-[9px] font-black uppercase tracking-widest text-white/30 mb-1">Tarifa</p>
                 <p className="text-2xl font-black text-white tracking-tight">${hourlyRate.toFixed(0)}</p>
-                <p className="text-[9px] text-white/20">por hora</p>
+                <p className="text-[9px] text-white/50">por hora</p>
               </div>
               <div className="text-center">
                 <p className="text-[9px] font-black uppercase tracking-widest text-emerald-400/60 mb-1">Total</p>
@@ -846,7 +846,7 @@ function EmployeeDetailModal({ open, onClose, employee, entries, formatHM, forma
                   <input type="date" value={from.toISOString().slice(0,10)}
                     onChange={(e) => { setFrom(new Date(e.target.value)); setTimeout(loadEntries, 100); }}
                     className="flex-1 bg-white/[0.03] border border-white/[0.08] text-white/60 text-xs rounded-xl px-3 py-2 outline-none focus:border-cyan-500/40" />
-                  <span className="text-white/20">→</span>
+                  <span className="text-white/50">→</span>
                   <input type="date" value={to.toISOString().slice(0,10)}
                     onChange={(e) => { setTo(new Date(e.target.value)); setTimeout(loadEntries, 100); }}
                     className="flex-1 bg-white/[0.03] border border-white/[0.08] text-white/60 text-xs rounded-xl px-3 py-2 outline-none focus:border-cyan-500/40" />
@@ -862,7 +862,7 @@ function EmployeeDetailModal({ open, onClose, employee, entries, formatHM, forma
               <div>
                 <p className="text-[9px] font-black uppercase tracking-widest text-white/30 mb-3">Jornadas por semana</p>
                 {weekGroups.length === 0 ? (
-                  <div className="text-center py-6 text-white/20">
+                  <div className="text-center py-6 text-white/50">
                     <Clock className="w-7 h-7 mx-auto mb-2 opacity-30" />
                     <p className="text-xs">Sin jornadas en este periodo</p>
                   </div>
@@ -913,7 +913,7 @@ function EmployeeDetailModal({ open, onClose, employee, entries, formatHM, forma
                                     <div className="text-right flex-shrink-0">
                                       <p className={`text-xs font-black ${isOpen ? "text-emerald-400" : "text-white/50"}`}>{formatHM(ms)}</p>
                                       {hourlyRate > 0 && !isOpen && (
-                                        <p className="text-[9px] text-white/20">${((ms / 3600000) * hourlyRate).toFixed(2)}</p>
+                                        <p className="text-[9px] text-white/50">${((ms / 3600000) * hourlyRate).toFixed(2)}</p>
                                       )}
                                     </div>
                                   </div>
@@ -937,8 +937,8 @@ function EmployeeDetailModal({ open, onClose, employee, entries, formatHM, forma
                   </div>
                 ) : paymentHistory.length === 0 ? (
                   <div className="text-center py-6">
-                    <DollarSign className="w-7 h-7 mx-auto mb-2 text-white/10" />
-                    <p className="text-xs text-white/20">Sin pagos registrados</p>
+                    <DollarSign className="w-7 h-7 mx-auto mb-2 text-white/40" />
+                    <p className="text-xs text-white/50">Sin pagos registrados</p>
                   </div>
                 ) : (
                   <div className="space-y-2">
@@ -955,7 +955,7 @@ function EmployeeDetailModal({ open, onClose, employee, entries, formatHM, forma
                               ? `${new Date(pmt.period_start).toLocaleDateString("es-PR")} – ${new Date(pmt.period_end).toLocaleDateString("es-PR")}`
                               : pmt.created_date ? new Date(pmt.created_date).toLocaleDateString("es-PR", { year:"numeric", month:"short", day:"numeric" }) : "—"}
                           </p>
-                          {pmt.notes && <p className="text-[10px] text-white/20 truncate mt-0.5">{pmt.notes}</p>}
+                          {pmt.notes && <p className="text-[10px] text-white/50 truncate mt-0.5">{pmt.notes}</p>}
                         </div>
                         <span className="text-[9px] font-black px-2 py-1 rounded-full bg-emerald-500/10 text-emerald-400/80 border border-emerald-500/10 flex-shrink-0">
                           {pmtTypeLabel[pmt.payment_type] || pmt.payment_type || "Salario"}

@@ -797,7 +797,7 @@ export default function CloseDrawerDialog({ isOpen, onClose, drawer, onSuccess }
             <div className="p-4 overflow-y-auto max-h-[calc(80vh-120px)]">
               {athTransactions.length === 0 ? (
                 <div className="text-center py-8">
-                  <ArrowUpCircle className="w-10 h-10 text-white/10 mx-auto mb-3" />
+                  <ArrowUpCircle className="w-10 h-10 text-white/40 mx-auto mb-3" />
                   <p className="text-white/30 font-bold">Sin transacciones ATH Móvil</p>
                   <p className="text-white/15 text-xs mt-1">en este turno</p>
                 </div>

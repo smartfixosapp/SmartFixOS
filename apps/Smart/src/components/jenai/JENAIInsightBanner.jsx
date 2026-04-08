@@ -125,7 +125,7 @@ Analiza retencion y sugiere acciones.`,
         <div className="flex items-center gap-2">
           <Brain className={`w-4 h-4 ${c.icon}`} />
           <span className={`text-[10px] font-black uppercase tracking-widest ${c.text}`}>JENAI Insights</span>
-          <span className="text-[8px] text-white/20">powered by SmartFixOS</span>
+          <span className="text-[8px] text-white/50">powered by SmartFixOS</span>
         </div>
         <div className="flex items-center gap-1.5">
           {hasLoaded && (

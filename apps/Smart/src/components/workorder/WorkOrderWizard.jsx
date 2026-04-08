@@ -3326,7 +3326,7 @@ Reglas:
                       value={jenaiInput}
                       onChange={(e) => setJenaiInput(e.target.value)}
                       placeholder={"Ejemplo: Jean Francis, 787-555-1234, jean@email.com, iPhone 15 Pro Max plateado, se le cayo al agua ayer y no enciende, password 1234"}
-                      className={`w-full bg-black/30 border rounded-2xl px-4 py-3 text-white text-sm placeholder:text-white/20 resize-none focus:outline-none focus:ring-1 ${
+                      className={`w-full bg-black/30 border rounded-2xl px-4 py-3 text-white text-sm placeholder:text-white/50 resize-none focus:outline-none focus:ring-1 ${
                         jenaiListening
                           ? "border-red-500/30 focus:border-red-400/40 focus:ring-red-500/20"
                           : "border-white/10 focus:border-violet-400/30 focus:ring-violet-500/20"
@@ -3759,7 +3759,7 @@ Reglas:
               <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-gradient-to-br from-emerald-400 to-green-600 flex items-center justify-center shadow-lg">
                 <Users className="w-4 h-4 sm:w-5 sm:h-5 text-white" strokeWidth={2.5} />
               </div>
-              Técnico <span className="text-[10px] text-white/20 ml-1">(Opcional)</span>
+              Técnico <span className="text-[10px] text-white/50 ml-1">(Opcional)</span>
             </h3>
 
             <div className="space-y-2">
@@ -4199,7 +4199,7 @@ Reglas:
               <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-gradient-to-br from-blue-400 to-indigo-600 flex items-center justify-center shadow-lg">
                 <Shield className="w-4 h-4 sm:w-5 sm:h-5 text-white" strokeWidth={2.5} />
               </div>
-              Seguridad <span className="text-[10px] text-white/20 ml-1">(Opcional)</span>
+              Seguridad <span className="text-[10px] text-white/50 ml-1">(Opcional)</span>
             </h3>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">

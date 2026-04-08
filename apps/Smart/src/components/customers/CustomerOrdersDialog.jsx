@@ -134,7 +134,7 @@ Dime: tipo de cliente (frecuente/ocasional/nuevo), su valor para el negocio, y u
           )}
           {!aiClientSummary && !aiClientLoading && (
             <div className="px-4 pb-2">
-              <p className="text-[10px] text-white/20">Presiona "Analizar" para ver el perfil IA del cliente</p>
+              <p className="text-[10px] text-white/50">Presiona "Analizar" para ver el perfil IA del cliente</p>
             </div>
           )}
         </div>

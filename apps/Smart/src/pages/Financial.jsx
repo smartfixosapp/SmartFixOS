@@ -1216,7 +1216,7 @@ Maximo 150 palabras. Texto plano, sin markdown.`
           <div className="max-w-7xl mx-auto flex gap-2 mt-2 pt-2 border-t border-white/5">
             <input type="date" value={customStartDate} onChange={e => setCustomStartDate(e.target.value)}
               className="flex-1 bg-black/40 border border-white/10 text-white text-xs h-9 rounded-xl px-3 focus:border-cyan-500/50 outline-none" />
-            <span className="text-white/20 self-center text-xs">→</span>
+            <span className="text-white/50 self-center text-xs">→</span>
             <input type="date" value={customEndDate} onChange={e => setCustomEndDate(e.target.value)}
               className="flex-1 bg-black/40 border border-white/10 text-white text-xs h-9 rounded-xl px-3 focus:border-cyan-500/50 outline-none" />
           </div>
@@ -1447,8 +1447,8 @@ Maximo 150 palabras. Texto plano, sin markdown.`
             {/* Lista */}
             {loading ? (
               <div className="py-12 text-center">
-                <RefreshCw className="w-5 h-5 animate-spin mx-auto mb-2 text-white/20" />
-                <p className="text-xs text-white/20 font-bold">Cargando…</p>
+                <RefreshCw className="w-5 h-5 animate-spin mx-auto mb-2 text-white/50" />
+                <p className="text-xs text-white/50 font-bold">Cargando…</p>
               </div>
             ) : combinedMovements.filter(m => movFilter === "all" || m.kind === movFilter).length === 0 ? (
               <div className="py-12 text-center">
@@ -1907,12 +1907,12 @@ Maximo 150 palabras. Texto plano, sin markdown.`
               {/* Lista */}
               {loading ? (
                 <div className="py-12 text-center">
-                  <RefreshCw className="w-5 h-5 animate-spin mx-auto mb-2 text-white/20" />
-                  <p className="text-xs text-white/20 font-bold">Cargando órdenes…</p>
+                  <RefreshCw className="w-5 h-5 animate-spin mx-auto mb-2 text-white/50" />
+                  <p className="text-xs text-white/50 font-bold">Cargando órdenes…</p>
                 </div>
               ) : displayPOs.length === 0 ? (
                 <div className="py-16 text-center bg-white/[0.02] border border-dashed border-white/10 rounded-2xl">
-                  <ShoppingCart className="w-10 h-10 mx-auto mb-3 text-white/20" />
+                  <ShoppingCart className="w-10 h-10 mx-auto mb-3 text-white/50" />
                   {allPOs.length === 0 ? (
                     <>
                       <p className="text-white font-black text-base">Aún no hay órdenes de compra</p>
@@ -2296,8 +2296,8 @@ Maximo 150 palabras. Texto plano, sin markdown.`
             <div className="space-y-2 mt-1">
               {loading ? (
                 <div className="py-12 text-center">
-                  <RefreshCw className="w-5 h-5 animate-spin mx-auto mb-2 text-white/20" />
-                  <p className="text-xs text-white/20 font-bold">Cargando…</p>
+                  <RefreshCw className="w-5 h-5 animate-spin mx-auto mb-2 text-white/50" />
+                  <p className="text-xs text-white/50 font-bold">Cargando…</p>
                 </div>
               ) : desgloseRows.length === 0 ? (
                 <div className="py-12 text-center">
@@ -2323,7 +2323,7 @@ Maximo 150 palabras. Texto plano, sin markdown.`
                         </div>
                         {/* Ganancia neta — número prominente */}
                         <div className="text-right shrink-0">
-                          <p className="text-[9px] font-black text-white/20 uppercase tracking-widest mb-0.5">Neta</p>
+                          <p className="text-[9px] font-black text-white/50 uppercase tracking-widest mb-0.5">Neta</p>
                           <p className={`text-xl font-black tabular-nums leading-none ${netaPositive ? "text-cyan-400" : "text-red-400"}`}>
                             {netaPositive ? "+" : "−"}${Math.abs(r.neta).toFixed(2)}
                           </p>
@@ -2363,7 +2363,7 @@ Maximo 150 palabras. Texto plano, sin markdown.`
                       <p className="text-[10px] text-white/30">{desgloseRows.length} venta{desgloseRows.length !== 1 ? "s" : ""}</p>
                     </div>
                     <div className="text-right">
-                      <p className="text-[9px] font-black text-white/20 uppercase tracking-widest mb-0.5">Neta total</p>
+                      <p className="text-[9px] font-black text-white/50 uppercase tracking-widest mb-0.5">Neta total</p>
                       <p className={`text-2xl font-black tabular-nums leading-none ${totNeta >= 0 ? "text-cyan-400" : "text-red-400"}`}>
                         {totNeta >= 0 ? "+" : "−"}${Math.abs(totNeta).toFixed(2)}
                       </p>

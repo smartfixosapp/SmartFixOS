@@ -56,7 +56,7 @@ const SplashLoader = () => {
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ delay: 1, duration: 1 }}
-        className="absolute bottom-10 text-white/10 text-[10px] uppercase tracking-widest font-bold"
+        className="absolute bottom-10 text-white/40 text-[10px] uppercase tracking-widest font-bold"
       >
         911 SmartFix © 2026
       </motion.div>

@@ -283,7 +283,7 @@ export default function RepairStage({ order, onUpdate, onOrderItemsUpdate, onRem
             >
               {checked.includes(i)
                 ? <CheckCircle2 className="w-5 h-5 text-emerald-400 flex-shrink-0" />
-                : <Circle className="w-5 h-5 text-white/20 flex-shrink-0" />
+                : <Circle className="w-5 h-5 text-white/50 flex-shrink-0" />
               }
               <span className={`text-sm font-semibold ${checked.includes(i) ? "text-emerald-200" : "text-white/60"}`}>
                 {label}

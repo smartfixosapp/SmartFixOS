@@ -81,13 +81,13 @@ export default function WOTabPanel({ order, onUpdate }) {
             disabled={posting || !comment.trim()}
             className={cn(
               "self-end p-2 rounded-lg transition-all active:scale-95",
-              comment.trim() ? "bg-cyan-600 hover:bg-cyan-500 text-white" : "bg-white/[0.05] text-white/20"
+              comment.trim() ? "bg-cyan-600 hover:bg-cyan-500 text-white" : "bg-white/[0.05] text-white/50"
             )}
           >
             {posting ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Send className="w-3.5 h-3.5" />}
           </button>
         </div>
-        <p className="text-[9px] text-white/20 mt-1">Enter para enviar, Shift+Enter nueva línea</p>
+        <p className="text-[9px] text-white/50 mt-1">Enter para enviar, Shift+Enter nueva línea</p>
       </div>
 
       {/* ── Tab bar ── */}

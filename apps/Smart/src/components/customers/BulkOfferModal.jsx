@@ -246,7 +246,7 @@ export default function BulkOfferModal({ open, onClose, customers = [] }) {
                 {/* Search + acciones */}
                 <div className="px-3 pt-3 pb-2 space-y-2">
                   <div className="relative">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-white/20" />
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-white/50" />
                     <input
                       value={manualSearch}
                       onChange={e => setManualSearch(e.target.value)}
@@ -264,7 +264,7 @@ export default function BulkOfferModal({ open, onClose, customers = [] }) {
                       </button>
                       {selectedIds.size > 0 && (
                         <>
-                          <span className="text-white/10">·</span>
+                          <span className="text-white/40">·</span>
                           <button onClick={clearAll} className="text-[10px] text-white/30 hover:text-white/60 font-bold transition-colors">
                             Limpiar
                           </button>
@@ -277,7 +277,7 @@ export default function BulkOfferModal({ open, onClose, customers = [] }) {
                 {/* Lista con checkboxes */}
                 <div className="max-h-44 overflow-y-auto px-2 pb-2 space-y-0.5">
                   {manualPickerList.length === 0 ? (
-                    <p className="text-center text-white/20 text-xs py-4">Sin resultados</p>
+                    <p className="text-center text-white/50 text-xs py-4">Sin resultados</p>
                   ) : manualPickerList.map(c => {
                     const checked = selectedIds.has(c.id);
                     return (
@@ -340,7 +340,7 @@ export default function BulkOfferModal({ open, onClose, customers = [] }) {
                 placeholder="Escribe tu mensaje..."
                 className="w-full bg-white/[0.04] border border-white/[0.08] rounded-2xl px-4 py-3 text-white text-sm placeholder-white/20 outline-none focus:border-blue-500/40 transition-colors resize-none font-mono"
               />
-              <p className="text-white/20 text-[10px] mt-1 px-1">Clic en una variable para insertarla en el cursor</p>
+              <p className="text-white/50 text-[10px] mt-1 px-1">Clic en una variable para insertarla en el cursor</p>
             </div>
 
             {/* ── Tabs Email / WhatsApp ── */}
@@ -365,7 +365,7 @@ export default function BulkOfferModal({ open, onClose, customers = [] }) {
               {tab === "email" && (
                 <div className="space-y-3">
                   {emailList.length === 0 ? (
-                    <div className="text-center py-6 text-white/20">
+                    <div className="text-center py-6 text-white/50">
                       <Mail className="w-8 h-8 mx-auto mb-2 opacity-30" />
                       <p className="text-sm">
                         {filter === "manual" && selectedIds.size === 0
@@ -430,7 +430,7 @@ export default function BulkOfferModal({ open, onClose, customers = [] }) {
               {tab === "whatsapp" && (
                 <div className="space-y-3">
                   {waAll.length === 0 ? (
-                    <div className="text-center py-6 text-white/20">
+                    <div className="text-center py-6 text-white/50">
                       <MessageCircle className="w-8 h-8 mx-auto mb-2 opacity-30" />
                       <p className="text-sm">
                         {filter === "manual" && selectedIds.size === 0
@@ -446,7 +446,7 @@ export default function BulkOfferModal({ open, onClose, customers = [] }) {
                           {copied ? <CheckCircle className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
                           {copied ? "Copiado" : "Copiar mensaje"}
                         </button>
-                        <p className="text-white/20 text-[10px]">Abre cada contacto para enviar</p>
+                        <p className="text-white/50 text-[10px]">Abre cada contacto para enviar</p>
                       </div>
 
                       <div className="max-h-48 overflow-y-auto space-y-1.5 pr-1">

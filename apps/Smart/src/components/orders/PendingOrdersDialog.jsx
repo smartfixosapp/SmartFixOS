@@ -187,7 +187,7 @@ export default function PendingOrdersDialog({ open, onClose }) {
                     className="py-16 text-center border border-dashed border-white/10 rounded-3xl bg-white/5"
                 >
                   <div className="w-16 h-16 bg-white/5 rounded-full flex items-center justify-center mx-auto mb-4">
-                    <Clock className="w-8 h-8 text-white/20" />
+                    <Clock className="w-8 h-8 text-white/50" />
                   </div>
                   <p className="text-white font-medium text-lg">¡Todo limpio!</p>
                   <p className="text-white/40 text-sm mt-1">No hay equipos listos para recoger.</p>

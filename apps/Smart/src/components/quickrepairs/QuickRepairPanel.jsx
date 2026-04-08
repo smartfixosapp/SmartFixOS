@@ -397,17 +397,17 @@ export default function QuickRepairPanel({ open, onClose, onSuccess }) {
                                     <p className="text-white/40 text-sm">{c.phone}</p>
                                   </div>
                                 </div>
-                                <ChevronRight className="w-5 h-5 text-white/20 group-hover:text-white transition-colors" />
+                                <ChevronRight className="w-5 h-5 text-white/50 group-hover:text-white transition-colors" />
                               </div>
                             </button>
                           ))
                         ) : (
                           <div className="text-center py-12 flex flex-col items-center">
                             <div className="w-16 h-16 bg-white/5 rounded-full flex items-center justify-center mb-4">
-                              <User className="w-8 h-8 text-white/20" />
+                              <User className="w-8 h-8 text-white/50" />
                             </div>
                             <p className="text-white/40 text-base font-medium mb-1">No se encontraron clientes</p>
-                            <p className="text-white/20 text-sm">Prueba buscar con otro término</p>
+                            <p className="text-white/50 text-sm">Prueba buscar con otro término</p>
                           </div>
                         )}
                       </div>
@@ -609,7 +609,7 @@ export default function QuickRepairPanel({ open, onClose, onSuccess }) {
                           </div>
                           <div className="flex items-center gap-3">
                             <span className="text-sm font-bold text-white">{money(item.price * item.quantity)}</span>
-                            <button onClick={() => handleRemoveItem(item.id)} className="text-white/20 hover:text-red-400 transition-colors">
+                            <button onClick={() => handleRemoveItem(item.id)} className="text-white/50 hover:text-red-400 transition-colors">
                               <X className="w-4 h-4" />
                             </button>
                           </div>

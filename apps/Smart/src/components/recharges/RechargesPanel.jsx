@@ -232,7 +232,7 @@ export default function RechargesPanel() {
         </div>
       ) : filteredRecharges.length === 0 ? (
         <div className="bg-[#1c1c1e] border border-white/10 rounded-[32px] p-20 text-center">
-          <Zap className="w-20 h-20 text-white/10 mx-auto mb-6" />
+          <Zap className="w-20 h-20 text-white/40 mx-auto mb-6" />
           <h3 className="text-xl font-bold text-white mb-2">No hay recargas</h3>
           <p className="text-gray-500">No se encontraron transacciones con los filtros actuales.</p>
         </div>

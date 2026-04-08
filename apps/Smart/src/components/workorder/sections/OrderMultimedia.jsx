@@ -236,7 +236,7 @@ export default function OrderMultimedia({ order, onUpdate }) {
       <div className="p-5">
         {photos.length === 0 ? (
             <div className="text-center py-8 border-2 border-dashed border-white/10 rounded-2xl bg-black/20">
-              <ImageIcon className="w-10 h-10 mx-auto text-white/20 mb-2" />
+              <ImageIcon className="w-10 h-10 mx-auto text-white/50 mb-2" />
               <p className="text-white/40 text-sm">No hay fotos cargadas</p>
             </div>
           ) : (

@@ -369,7 +369,7 @@ export default function MonthlyReportModal({ open, onClose, targetMonth }) {
 
               {/* ── Footer ── */}
               <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-2 border-t border-white/[0.06]">
-                <p className="text-[9px] text-white/20 font-bold uppercase tracking-widest">
+                <p className="text-[9px] text-white/50 font-bold uppercase tracking-widest">
                   SmartFixOS · Reporte {monthLabel} · Generado {format(new Date(), "dd/MM/yyyy HH:mm")}
                 </p>
                 <button

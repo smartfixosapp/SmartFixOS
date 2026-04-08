@@ -150,7 +150,7 @@ const OrderCard = React.memo(function OrderCard({ order, onClick, onEditDevice }
               {isB2B && <span className="ml-1 text-[11px]">🏢</span>}
             </h3>
             <p className="text-[10px] text-white/30 font-medium truncate mt-0.5">
-              {deviceInfo || order.device_type || "Dispositivo"} · <span className="text-white/20">{order.order_number || "LOCAL"}</span>
+              {deviceInfo || order.device_type || "Dispositivo"} · <span className="text-white/50">{order.order_number || "LOCAL"}</span>
             </p>
           </div>
 
@@ -939,7 +939,7 @@ export default function OrdersPage() {
           {/* Búsqueda estilo Sequoia */}
           <div className="relative group/search">
             <div className="absolute inset-y-0 left-0 pl-5 flex items-center pointer-events-none">
-              <Search className="h-5 w-5 text-white/20 group-focus-within/search:text-cyan-400 group-focus-within/search:scale-110 transition-all duration-500" />
+              <Search className="h-5 w-5 text-white/50 group-focus-within/search:text-cyan-400 group-focus-within/search:scale-110 transition-all duration-500" />
             </div>
             <input
               value={searchQuery}

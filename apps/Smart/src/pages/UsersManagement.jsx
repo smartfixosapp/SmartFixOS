@@ -1634,7 +1634,7 @@ export default function UsersManagement() {
 
             {users.length === 0 ? (
               <div className="text-center py-12">
-                <DollarSign className="w-10 h-10 text-white/10 mx-auto mb-3" />
+                <DollarSign className="w-10 h-10 text-white/40 mx-auto mb-3" />
                 <p className="text-white/30 text-sm font-semibold">Sin empleados registrados</p>
               </div>
             ) : (
@@ -1668,7 +1668,7 @@ export default function UsersManagement() {
                       <p className={`font-black text-base ${amount > 0 ? "text-emerald-400" : "text-white/30"}`}>
                         ${amount.toFixed(2)}
                       </p>
-                      <p className="text-white/20 text-[10px]">esta semana</p>
+                      <p className="text-white/50 text-[10px]">esta semana</p>
                     </div>
                   </div>
                 );
@@ -1704,7 +1704,7 @@ export default function UsersManagement() {
 
             {users.length === 0 ? (
               <div className="text-center py-12">
-                <Clock className="w-10 h-10 text-white/10 mx-auto mb-3" />
+                <Clock className="w-10 h-10 text-white/40 mx-auto mb-3" />
                 <p className="text-white/30 text-sm font-semibold">Sin empleados</p>
               </div>
             ) : (

@@ -134,7 +134,7 @@ export default function ModernTopNav() {
                   </div>
                   <span className={cn(
                     "text-[9px] font-bold tracking-tight transition-all duration-500",
-                    isActive ? item.color : "text-white/20 group-hover:text-white/40"
+                    isActive ? item.color : "text-white/50 group-hover:text-white/40"
                   )}>
                     {item.label}
                   </span>

@@ -94,7 +94,7 @@ export default function QuickOrderDialog({ open, onClose, workOrders = [], suppl
                 value={partName}
                 onChange={e => setPartName(e.target.value)}
                 placeholder="Ej: Pantalla iPhone XR LCD"
-                className="w-full bg-[#111114]/60 border border-white/[0.08] rounded-xl px-4 py-3 text-white text-sm placeholder:text-white/20 focus:outline-none focus:border-violet-500/50 focus:ring-2 focus:ring-violet-500/15"
+                className="w-full bg-[#111114]/60 border border-white/[0.08] rounded-xl px-4 py-3 text-white text-sm placeholder:text-white/50 focus:outline-none focus:border-violet-500/50 focus:ring-2 focus:ring-violet-500/15"
               />
             </div>
             <div className="grid grid-cols-2 gap-3">
@@ -105,7 +105,7 @@ export default function QuickOrderDialog({ open, onClose, workOrders = [], suppl
                   value={partCost}
                   onChange={e => setPartCost(e.target.value)}
                   placeholder="0.00"
-                  className="w-full bg-[#111114]/60 border border-white/[0.08] rounded-xl px-4 py-3 text-white text-sm placeholder:text-white/20 focus:outline-none focus:border-violet-500/50"
+                  className="w-full bg-[#111114]/60 border border-white/[0.08] rounded-xl px-4 py-3 text-white text-sm placeholder:text-white/50 focus:outline-none focus:border-violet-500/50"
                 />
               </div>
               <div>
@@ -115,7 +115,7 @@ export default function QuickOrderDialog({ open, onClose, workOrders = [], suppl
                   value={supplierName}
                   onChange={e => setSupplierName(e.target.value)}
                   placeholder="MobilSentrix..."
-                  className="w-full bg-[#111114]/60 border border-white/[0.08] rounded-xl px-4 py-3 text-white text-sm placeholder:text-white/20 focus:outline-none focus:border-violet-500/50"
+                  className="w-full bg-[#111114]/60 border border-white/[0.08] rounded-xl px-4 py-3 text-white text-sm placeholder:text-white/50 focus:outline-none focus:border-violet-500/50"
                 />
               </div>
             </div>
@@ -126,7 +126,7 @@ export default function QuickOrderDialog({ open, onClose, workOrders = [], suppl
                 onChange={e => setNotes(e.target.value)}
                 placeholder="Detalles adicionales..."
                 rows={2}
-                className="w-full bg-[#111114]/60 border border-white/[0.08] rounded-xl px-4 py-3 text-white text-sm placeholder:text-white/20 focus:outline-none focus:border-violet-500/50 resize-none"
+                className="w-full bg-[#111114]/60 border border-white/[0.08] rounded-xl px-4 py-3 text-white text-sm placeholder:text-white/50 focus:outline-none focus:border-violet-500/50 resize-none"
               />
             </div>
             <button

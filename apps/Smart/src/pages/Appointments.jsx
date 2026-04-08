@@ -127,7 +127,7 @@ export default function Appointments() {
           <div key={hour} className="grid grid-cols-8 border-b border-white/[0.04] min-h-[56px]">
             {/* Etiqueta hora */}
             <div className="flex items-start justify-end pr-2 pt-1">
-              <span className="text-[9px] text-white/20 font-bold">
+              <span className="text-[9px] text-white/50 font-bold">
                 {hour % 12 || 12}{hour < 12 ? "am" : "pm"}
               </span>
             </div>

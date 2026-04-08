@@ -1922,7 +1922,7 @@ export default function PinAccess() {
               onChange={e => setOtpInput(e.target.value.replace(/\D/g, "").slice(0, 6))}
               onKeyDown={e => e.key === "Enter" && otpInput.length === 6 && handleOtpVerify()}
               placeholder="000000"
-              className="w-full bg-transparent border-b-2 border-cyan-500/40 focus:border-cyan-400 outline-none text-center text-4xl font-mono font-bold text-white tracking-[0.4em] pb-2 placeholder:text-white/20 transition-colors"
+              className="w-full bg-transparent border-b-2 border-cyan-500/40 focus:border-cyan-400 outline-none text-center text-4xl font-mono font-bold text-white tracking-[0.4em] pb-2 placeholder:text-white/50 transition-colors"
               autoFocus
             />
           </div>
@@ -1939,7 +1939,7 @@ export default function PinAccess() {
                 onChange={e => setAdminPin(e.target.value)}
                 onKeyDown={e => e.key === "Enter" && otpInput.length === 6 && adminPin.length >= 4 && handleOtpVerify()}
                 placeholder="Tu PIN secreto"
-                className="w-full bg-transparent border-b-2 border-cyan-500/40 focus:border-cyan-400 outline-none text-white text-lg font-mono pb-2 pr-10 placeholder:text-white/20 transition-colors"
+                className="w-full bg-transparent border-b-2 border-cyan-500/40 focus:border-cyan-400 outline-none text-white text-lg font-mono pb-2 pr-10 placeholder:text-white/50 transition-colors"
               />
               <button
                 type="button"

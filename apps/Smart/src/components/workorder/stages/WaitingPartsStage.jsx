@@ -410,7 +410,7 @@ export default function WaitingPartsStage({ order, onUpdate, onOrderItemsUpdate,
         </a>
       ) : (
         <div className="rounded-[22px] border border-white/8 bg-white/3 p-5 flex items-center gap-4">
-          <MapPin className="w-8 h-8 text-white/20 flex-shrink-0" />
+          <MapPin className="w-8 h-8 text-white/50 flex-shrink-0" />
           <div>
             <p className="text-sm font-semibold text-white/50">Sin número de tracking aún</p>
             <p className="text-xs text-white/30">Edita los detalles del pedido y agrega el número de tracking.</p>

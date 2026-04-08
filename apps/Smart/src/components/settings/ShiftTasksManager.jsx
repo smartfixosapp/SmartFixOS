@@ -271,7 +271,7 @@ export default function ShiftTasksManager() {
                 <p className="text-xs text-white/35 mt-0.5 truncate">{task.description}</p>
               )}
               <div className="flex items-center gap-1 mt-1">
-                <Users className="w-2.5 h-2.5 text-white/20" />
+                <Users className="w-2.5 h-2.5 text-white/50" />
                 <p className="text-[10px] text-white/30">{getAssignedLabel(task)}</p>
               </div>
             </div>
@@ -331,7 +331,7 @@ export default function ShiftTasksManager() {
               value={form.title}
               onChange={e => setForm(p => ({ ...p, title: e.target.value }))}
               placeholder="Ej: Verificar emails del día"
-              className="w-full bg-black/30 border border-white/[0.08] rounded-xl px-4 py-3 text-white text-sm placeholder:text-white/20 focus:outline-none focus:border-teal-500/50"
+              className="w-full bg-black/30 border border-white/[0.08] rounded-xl px-4 py-3 text-white text-sm placeholder:text-white/50 focus:outline-none focus:border-teal-500/50"
             />
           </div>
 
@@ -342,7 +342,7 @@ export default function ShiftTasksManager() {
               onChange={e => setForm(p => ({ ...p, description: e.target.value }))}
               rows={2}
               placeholder="Instrucciones adicionales para el empleado..."
-              className="w-full bg-black/30 border border-white/[0.08] rounded-xl px-4 py-3 text-white text-sm placeholder:text-white/20 focus:outline-none focus:border-teal-500/50 resize-none"
+              className="w-full bg-black/30 border border-white/[0.08] rounded-xl px-4 py-3 text-white text-sm placeholder:text-white/50 focus:outline-none focus:border-teal-500/50 resize-none"
             />
           </div>
 

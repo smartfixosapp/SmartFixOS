@@ -269,7 +269,7 @@ export default function FirstTimeSetupWizard({ onComplete }) {
     </div>
   );
 
-  const inputCls = "w-full bg-black/30 border border-white/10 text-white text-sm rounded-xl px-3 h-10 focus:outline-none focus:border-cyan-500/50 placeholder:text-white/20";
+  const inputCls = "w-full bg-black/30 border border-white/10 text-white text-sm rounded-xl px-3 h-10 focus:outline-none focus:border-cyan-500/50 placeholder:text-white/50";
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 backdrop-blur-sm p-4 overflow-y-auto">
@@ -517,7 +517,7 @@ export default function FirstTimeSetupWizard({ onComplete }) {
                     <div>
                       <label className="text-white/50 text-xs mb-1 block">Nota en recibos y órdenes de trabajo</label>
                       <textarea
-                        className="w-full bg-black/30 border border-white/10 text-white text-xs rounded-xl px-3 py-2.5 focus:outline-none focus:border-cyan-500/50 placeholder:text-white/20 resize-none"
+                        className="w-full bg-black/30 border border-white/10 text-white text-xs rounded-xl px-3 py-2.5 focus:outline-none focus:border-cyan-500/50 placeholder:text-white/50 resize-none"
                         rows={3} value={form.receipt_note}
                         onChange={e => set("receipt_note", e.target.value)}
                         placeholder="Términos y condiciones que aparecerán en tus recibos..." />

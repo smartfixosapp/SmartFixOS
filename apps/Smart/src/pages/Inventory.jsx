@@ -400,7 +400,7 @@ function HistorialMovimientosDialog({ open, onClose }) {
             <div className="py-12 text-center text-white/30 text-sm">Cargando historial...</div>
           ) : filtered.length === 0 ? (
             <div className="py-12 text-center">
-              <History className="w-10 h-10 text-white/10 mx-auto mb-3" />
+              <History className="w-10 h-10 text-white/40 mx-auto mb-3" />
               <p className="text-white/30 text-sm">No hay movimientos registrados aún</p>
             </div>
           ) : filtered.map((m, idx) => (
@@ -418,7 +418,7 @@ function HistorialMovimientosDialog({ open, onClose }) {
               </div>
               <div className="text-right flex-shrink-0">
                 <span className={`text-xs font-bold px-2 py-0.5 rounded-lg border ${typeColor(m.movement_type)}`}>{typeLabel(m.movement_type)}</span>
-                <p className="text-white/20 text-[10px] mt-1">
+                <p className="text-white/50 text-[10px] mt-1">
                   {m.created_date ? new Date(m.created_date).toLocaleDateString("es-PR", { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" }) : ""}
                 </p>
               </div>
@@ -1624,7 +1624,7 @@ Maximo 150 palabras. Texto plano, sin markdown.`
             <div className="min-w-0">
               <h1 className="text-xl font-black text-white tracking-tight leading-none">Inventario</h1>
               <p className="text-white/30 text-[11px] font-medium mt-0.5 truncate">
-                {items.length} productos · <span className={items.filter(i => i.part_type !== 'servicio' && Number(i.stock||0) <= 0).length > 0 ? 'text-red-400/70' : 'text-white/20'}>{items.filter(i => i.part_type !== 'servicio' && Number(i.stock||0) <= 0).length} agotados</span>
+                {items.length} productos · <span className={items.filter(i => i.part_type !== 'servicio' && Number(i.stock||0) <= 0).length > 0 ? 'text-red-400/70' : 'text-white/50'}>{items.filter(i => i.part_type !== 'servicio' && Number(i.stock||0) <= 0).length} agotados</span>
               </p>
             </div>
           </div>
@@ -1908,7 +1908,7 @@ Maximo 150 palabras. Texto plano, sin markdown.`
             value={q}
             onChange={e => { setQ(e.target.value); setPage(1); }}
             placeholder="Buscar por nombre, SKU, código, proveedor, modelos..."
-            className="pl-11 h-11 bg-[#111114]/60 border border-white/[0.08] rounded-2xl text-white text-sm placeholder:text-white/20 focus:bg-[#111114]/80 focus:border-teal-500/50 focus:ring-2 focus:ring-teal-500/20 transition-all"
+            className="pl-11 h-11 bg-[#111114]/60 border border-white/[0.08] rounded-2xl text-white text-sm placeholder:text-white/50 focus:bg-[#111114]/80 focus:border-teal-500/50 focus:ring-2 focus:ring-teal-500/20 transition-all"
           />
         </div>
 
@@ -1916,7 +1916,7 @@ Maximo 150 palabras. Texto plano, sin markdown.`
         <div className="min-h-[300px]">
           {pageItems.length === 0 ? (
             <div className="text-center py-20">
-              <Box className="w-14 h-14 text-white/10 mx-auto mb-4" />
+              <Box className="w-14 h-14 text-white/40 mx-auto mb-4" />
               <p className="text-white/30 font-bold text-sm sm:text-base text-center px-4">
                 {q ? `Sin resultados para "${q}"` : "No hay productos en esta categoría"}
               </p>

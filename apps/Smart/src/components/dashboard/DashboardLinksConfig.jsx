@@ -422,7 +422,7 @@ export default function DashboardLinksConfig({ open, onClose }) {
                                     {/* Drag handle */}
                                     <div
                                       {...provided.dragHandleProps}
-                                      className="text-white/20 hover:text-white/50 transition-colors cursor-grab active:cursor-grabbing flex-shrink-0"
+                                      className="text-white/50 hover:text-white/50 transition-colors cursor-grab active:cursor-grabbing flex-shrink-0"
                                     >
                                       <GripVertical className="w-4 h-4" />
                                     </div>
@@ -476,7 +476,7 @@ export default function DashboardLinksConfig({ open, onClose }) {
                     placeholder="1000"
                     className="flex-1 bg-transparent text-white text-sm font-black outline-none placeholder-white/20 min-w-0"
                   />
-                  <span className="text-[10px] text-white/20 font-bold">USD/día</span>
+                  <span className="text-[10px] text-white/50 font-bold">USD/día</span>
                 </div>
               </div>
 
@@ -535,8 +535,8 @@ export default function DashboardLinksConfig({ open, onClose }) {
                 {customWidgets.length === 0 && !showAddCustom && (
                   <div className="text-center py-6 bg-white/[0.02] border border-dashed border-white/[0.08] rounded-2xl">
                     <ExternalLink className="w-6 h-6 text-white/15 mx-auto mb-2" />
-                    <p className="text-white/20 text-xs font-bold">Sin widgets personalizados</p>
-                    <p className="text-white/10 text-[10px] mt-0.5">Agrega links externos como accesos rápidos</p>
+                    <p className="text-white/50 text-xs font-bold">Sin widgets personalizados</p>
+                    <p className="text-white/40 text-[10px] mt-0.5">Agrega links externos como accesos rápidos</p>
                   </div>
                 )}
 

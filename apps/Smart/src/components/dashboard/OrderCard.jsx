@@ -92,7 +92,7 @@ const SimplifiedOrderCard = ({ order, onSelect }) => {
           <span className="text-[12px] font-semibold text-white/70 truncate">
             {`${safe(order?.device_brand)} ${safe(order?.device_model)}`.trim() || "Modelo no especificado"}
           </span>
-          <span className="text-[10px] font-black text-white/20 uppercase whitespace-nowrap">{created}</span>
+          <span className="text-[10px] font-black text-white/50 uppercase whitespace-nowrap">{created}</span>
         </div>
       </div>
     </button>

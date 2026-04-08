@@ -265,7 +265,7 @@ export default function Receipt() {
         </div>
 
         {/* Footer */}
-        <p className="text-center text-[10px] text-white/20 print:text-gray-400">
+        <p className="text-center text-[10px] text-white/50 print:text-gray-400">
           Powered by SmartFixOS · {new Date().getFullYear()}
         </p>
       </div>

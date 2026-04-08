@@ -1090,7 +1090,7 @@ export default function SettingsPage() {
                       {businessBranding.logo_url ? (
                         <img src={businessBranding.logo_url} alt="Logo" className="w-full h-full object-contain p-2" />
                       ) : (
-                        <Building2 className="w-8 h-8 text-white/20" />
+                        <Building2 className="w-8 h-8 text-white/50" />
                       )}
                     </div>
                     <div className="flex-1 space-y-2">
@@ -1659,7 +1659,7 @@ export default function SettingsPage() {
                           <div className={`absolute top-0.5 w-5 h-5 rounded-full bg-white shadow transition-transform duration-300 ${isOn ? "translate-x-5" : "translate-x-0.5"}`} />
                         </div>
                       ) : (
-                        <ChevronRight className="w-4 h-4 text-white/20 group-hover:text-white/50 flex-shrink-0 transition-colors" />
+                        <ChevronRight className="w-4 h-4 text-white/50 group-hover:text-white/50 flex-shrink-0 transition-colors" />
                       )}
                     </button>
                   );

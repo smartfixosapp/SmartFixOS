@@ -237,7 +237,7 @@ export default function MobileAccionesTab({
                   <action.icon className={cn("w-4.5 h-4.5", action.color)} />
                 </div>
                 <span className="flex-1 text-left text-sm font-semibold text-white/85">{action.label}</span>
-                <ChevronRight className="w-4 h-4 text-white/20" />
+                <ChevronRight className="w-4 h-4 text-white/50" />
               </button>
             ))}
           </div>
@@ -268,9 +268,9 @@ export default function MobileAccionesTab({
                 <div className="w-2.5 h-2.5 rounded-full bg-red-500" />
               )}
               {action.expandable ? (
-                <ChevronDown className={cn("w-4 h-4 text-white/20 transition-transform", showNotifyOptions && "rotate-180")} />
+                <ChevronDown className={cn("w-4 h-4 text-white/50 transition-transform", showNotifyOptions && "rotate-180")} />
               ) : (
-                <ChevronRight className="w-4 h-4 text-white/20" />
+                <ChevronRight className="w-4 h-4 text-white/50" />
               )}
             </button>
 

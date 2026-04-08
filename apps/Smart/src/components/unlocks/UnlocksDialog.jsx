@@ -406,7 +406,7 @@ export default function UnlocksDialog({ open, onClose, onSuccess, initialTab = "
                               <p className="font-semibold text-white">{customer.name}</p>
                               <p className="text-xs text-white/40">{customer.phone}</p>
                             </div>
-                            <User className="w-4 h-4 text-white/20 group-hover:text-white transition-colors" />
+                            <User className="w-4 h-4 text-white/50 group-hover:text-white transition-colors" />
                           </button>
                         ))}
                       </div>
@@ -585,10 +585,10 @@ export default function UnlocksDialog({ open, onClose, onSuccess, initialTab = "
               {pendingUnlocks.length === 0 ? (
                 <div className="text-center py-20 bg-[#2c2c2e]/30 rounded-[32px] border border-white/5 border-dashed">
                   <div className="w-16 h-16 bg-white/5 rounded-full flex items-center justify-center mx-auto mb-4">
-                    <CheckCircle2 className="w-8 h-8 text-white/20" />
+                    <CheckCircle2 className="w-8 h-8 text-white/50" />
                   </div>
                   <p className="text-white/40 font-medium">Todo al día</p>
-                  <p className="text-white/20 text-sm">No hay desbloqueos en progreso</p>
+                  <p className="text-white/50 text-sm">No hay desbloqueos en progreso</p>
                 </div>
               ) : (
                 <div className="space-y-3 max-h-[500px] overflow-y-auto pr-2 custom-scrollbar">
@@ -651,7 +651,7 @@ export default function UnlocksDialog({ open, onClose, onSuccess, initialTab = "
                               setOrderToDelete(order);
                               setShowPinPrompt(true);
                             }}
-                            className="h-10 w-10 text-white/20 hover:text-red-400 hover:bg-red-500/10 rounded-xl"
+                            className="h-10 w-10 text-white/50 hover:text-red-400 hover:bg-red-500/10 rounded-xl"
                           >
                             <Trash2 className="w-5 h-5" />
                           </Button>

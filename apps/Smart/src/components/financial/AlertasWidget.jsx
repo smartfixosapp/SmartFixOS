@@ -251,7 +251,7 @@ export default function AlertasWidget() {
         </div>
 
         {loading ? (
-          <div className="flex items-center gap-2 py-2 text-white/20">
+          <div className="flex items-center gap-2 py-2 text-white/50">
             <RefreshCw className="w-3 h-3 animate-spin" />
             <p className="text-[10px] font-bold">Escaneando…</p>
           </div>
@@ -271,7 +271,7 @@ export default function AlertasWidget() {
                     </p>
                   )}
                 </div>
-                <button onClick={() => dismissAlert(alert.id)} className="w-5 h-5 rounded-md bg-white/5 hover:bg-white/10 flex items-center justify-center text-white/20 hover:text-white transition-colors shrink-0">
+                <button onClick={() => dismissAlert(alert.id)} className="w-5 h-5 rounded-md bg-white/5 hover:bg-white/10 flex items-center justify-center text-white/50 hover:text-white transition-colors shrink-0">
                   <X className="w-2.5 h-2.5" />
                 </button>
               </div>

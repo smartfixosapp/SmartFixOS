@@ -101,7 +101,7 @@ export default function TechnicianProductivityTab({ dateFilter, customStartDate,
   if (loading) {
     return (
       <div className="flex items-center justify-center py-16">
-        <RefreshCw className="w-5 h-5 text-white/20 animate-spin" />
+        <RefreshCw className="w-5 h-5 text-white/50 animate-spin" />
       </div>
     );
   }
@@ -109,7 +109,7 @@ export default function TechnicianProductivityTab({ dateFilter, customStartDate,
   if (techStats.length === 0) {
     return (
       <div className="py-16 text-center">
-        <Users className="w-8 h-8 text-white/10 mx-auto mb-2" />
+        <Users className="w-8 h-8 text-white/40 mx-auto mb-2" />
         <p className="text-white/30 text-sm font-medium">Sin datos en el período seleccionado</p>
       </div>
     );
@@ -157,7 +157,7 @@ export default function TechnicianProductivityTab({ dateFilter, customStartDate,
                 <div className="flex items-center gap-3">
                   {/* Avatar */}
                   <div className={`w-9 h-9 rounded-full flex items-center justify-center shrink-0 font-black text-sm ${
-                    tech.id === "__unassigned__" ? "bg-white/5 text-white/20" : "bg-gradient-to-br from-cyan-500/20 to-blue-500/20 text-cyan-300"
+                    tech.id === "__unassigned__" ? "bg-white/5 text-white/50" : "bg-gradient-to-br from-cyan-500/20 to-blue-500/20 text-cyan-300"
                   }`}>
                     {tech.name[0].toUpperCase()}
                   </div>
@@ -185,20 +185,20 @@ export default function TechnicianProductivityTab({ dateFilter, customStartDate,
                   <div className="hidden sm:flex items-center gap-4 shrink-0">
                     <div className="text-center">
                       <p className="text-xs font-black text-emerald-400">{tech.completed}</p>
-                      <p className="text-[9px] text-white/20">Completadas</p>
+                      <p className="text-[9px] text-white/50">Completadas</p>
                     </div>
                     <div className="text-center">
                       <p className="text-xs font-black text-amber-400">{tech.in_progress}</p>
-                      <p className="text-[9px] text-white/20">En progreso</p>
+                      <p className="text-[9px] text-white/50">En progreso</p>
                     </div>
                     <div className="text-center">
                       <p className="text-xs font-black text-white/50">{tech.total}</p>
-                      <p className="text-[9px] text-white/20">Total</p>
+                      <p className="text-[9px] text-white/50">Total</p>
                     </div>
                     {tech.revenue > 0 && (
                       <div className="text-center">
                         <p className="text-xs font-black text-violet-400">${tech.revenue.toFixed(0)}</p>
-                        <p className="text-[9px] text-white/20">Ingresos</p>
+                        <p className="text-[9px] text-white/50">Ingresos</p>
                       </div>
                     )}
                   </div>
@@ -214,7 +214,7 @@ export default function TechnicianProductivityTab({ dateFilter, customStartDate,
               {/* Expanded order list */}
               {isSelected && (
                 <div className="mt-1 ml-3 p-3 rounded-2xl bg-white/[0.02] border border-white/[0.05] space-y-1.5">
-                  <p className="text-[10px] font-black text-white/20 uppercase tracking-widest mb-2">Órdenes del período</p>
+                  <p className="text-[10px] font-black text-white/50 uppercase tracking-widest mb-2">Órdenes del período</p>
                   {tech.orders.slice(0, 15).map(o => {
                     const s = o.status || o.current_status;
                     return (
@@ -235,7 +235,7 @@ export default function TechnicianProductivityTab({ dateFilter, customStartDate,
                     );
                   })}
                   {tech.orders.length > 15 && (
-                    <p className="text-[10px] text-white/20 pt-1">+{tech.orders.length - 15} más</p>
+                    <p className="text-[10px] text-white/50 pt-1">+{tech.orders.length - 15} más</p>
                   )}
                 </div>
               )}

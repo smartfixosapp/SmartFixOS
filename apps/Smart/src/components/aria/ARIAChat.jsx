@@ -1508,7 +1508,7 @@ pregunta inmediatamente al usuario por el primer campo que falta.
               {tab === "chat" && messages.length > 0 && (
                 <button
                   onClick={() => setMessages([])}
-                  className="text-[9px] text-white/20 hover:text-white/50 font-bold uppercase tracking-widest transition-colors"
+                  className="text-[9px] text-white/50 hover:text-white/50 font-bold uppercase tracking-widest transition-colors"
                 >
                   Limpiar
                 </button>
@@ -1516,7 +1516,7 @@ pregunta inmediatamente al usuario por el primer campo que falta.
               {tab === "calc" && (
                 <button
                   onClick={() => { setCalcParts(""); setCalcLabor(""); }}
-                  className="text-[9px] text-white/20 hover:text-white/50 font-bold uppercase tracking-widest transition-colors"
+                  className="text-[9px] text-white/50 hover:text-white/50 font-bold uppercase tracking-widest transition-colors"
                 >
                   Reset
                 </button>
@@ -1524,7 +1524,7 @@ pregunta inmediatamente al usuario por el primer campo que falta.
               {tab === "tour" && tourStep > 0 && (
                 <button
                   onClick={() => { setTourStep(0); setTourTips({}); tourLoadedTips.current.clear(); }}
-                  className="text-[9px] text-white/20 hover:text-white/50 font-bold uppercase tracking-widest transition-colors"
+                  className="text-[9px] text-white/50 hover:text-white/50 font-bold uppercase tracking-widest transition-colors"
                 >
                   Reiniciar
                 </button>

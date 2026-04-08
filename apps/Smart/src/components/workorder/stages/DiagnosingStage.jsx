@@ -728,7 +728,7 @@ export default function DiagnosingStage({ order, onUpdate, user, onOrderItemsUpd
                           placeholder="Nota opcional..."
                           value={item.notes || ""}
                           onChange={e => setItemNote(item.id, e.target.value)}
-                          className="w-full bg-transparent text-xs text-white/60 placeholder:text-white/20 outline-none"
+                          className="w-full bg-transparent text-xs text-white/60 placeholder:text-white/50 outline-none"
                         />
                       </div>
                     )}
@@ -761,7 +761,7 @@ export default function DiagnosingStage({ order, onUpdate, user, onOrderItemsUpd
             {/* General notes */}
             <Textarea
               placeholder="Notas generales del diagnóstico (se incluyen en el email al cliente)..."
-              className="min-h-[100px] resize-none rounded-[22px] border-white/10 bg-black/30 text-white placeholder:text-white/20 focus:border-purple-400/40 focus:ring-purple-500/40"
+              className="min-h-[100px] resize-none rounded-[22px] border-white/10 bg-black/30 text-white placeholder:text-white/50 focus:border-purple-400/40 focus:ring-purple-500/40"
               value={checklistNotes}
               onChange={e => setChecklistNotes(e.target.value)}
             />

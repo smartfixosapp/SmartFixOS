@@ -1052,7 +1052,7 @@ export default function Dashboard() {
                   <Wallet className="w-4 h-4" strokeWidth={2.5} />
                 </button>
                 <button onClick={() => setShowLogoutModal(true)} className="flex-1 h-10 rounded-xl bg-white/5 hover:bg-rose-500/10 border border-white/10 hover:border-rose-500/20 flex items-center justify-center transition-all active:scale-90 group" title="Cerrar Sesión">
-                  <LogOut className="w-4 h-4 text-white/20 group-hover:text-rose-400 transition-all duration-500" />
+                  <LogOut className="w-4 h-4 text-white/50 group-hover:text-rose-400 transition-all duration-500" />
                 </button>
               </div>
 
@@ -1175,7 +1175,7 @@ export default function Dashboard() {
                 <Sparkles className="w-4 h-4 text-violet-400 shrink-0" />
                 <div className="flex flex-col">
                   <span className="text-[11px] font-black text-violet-400/80 uppercase tracking-tight">Crear con JENAI</span>
-                  <span className="text-[8px] text-white/20">powered by SmartFixOS</span>
+                  <span className="text-[8px] text-white/50">powered by SmartFixOS</span>
                 </div>
               </button>
               <button onClick={() => { setShowPriceList(true); setPriceListSearch(""); }} className="flex-1 min-h-[44px] bg-violet-500/10 border border-violet-500/20 rounded-xl flex items-center gap-3 px-4 hover:bg-violet-500/15 active:scale-95 transition-all">
@@ -1247,8 +1247,8 @@ export default function Dashboard() {
                       onClick={() => setActiveFeedCategory(id)}
                       className={`flex flex-col items-start p-3 rounded-2xl border transition-all active:scale-95 ${active ? activeBg : 'bg-white/[0.03] border-white/[0.07] hover:bg-white/[0.06]'}`}
                     >
-                      <Icon className={`w-4 h-4 mb-2 transition-colors ${active ? iconActive : 'text-white/20'}`} />
-                      <p className={`text-[9px] font-black uppercase tracking-wider leading-none transition-colors ${active ? 'text-white/60' : 'text-white/20'}`}>{label}</p>
+                      <Icon className={`w-4 h-4 mb-2 transition-colors ${active ? iconActive : 'text-white/50'}`} />
+                      <p className={`text-[9px] font-black uppercase tracking-wider leading-none transition-colors ${active ? 'text-white/60' : 'text-white/50'}`}>{label}</p>
                       <p className={`text-2xl font-black leading-tight mt-0.5 transition-colors ${active ? numActive : count > 0 ? 'text-white/50' : 'text-white/15'}`}>{count}</p>
                     </button>
                   );
@@ -1262,7 +1262,7 @@ export default function Dashboard() {
                   {/* ÓRDENES — agrupadas por estado */}
                   {activeFeedCategory === 'orders' && (
                     visibleFeedItems.length === 0 && lowStockProducts.length === 0
-                      ? <div className="flex flex-col items-center justify-center py-14 h-full"><CheckCircle2 className="w-10 h-10 text-emerald-500/30 mb-3" /><p className="text-white/20 text-xs font-black uppercase tracking-widest">Sin órdenes pendientes</p></div>
+                      ? <div className="flex flex-col items-center justify-center py-14 h-full"><CheckCircle2 className="w-10 h-10 text-emerald-500/30 mb-3" /><p className="text-white/50 text-xs font-black uppercase tracking-widest">Sin órdenes pendientes</p></div>
                       : <>
                           {/* Group orders by type */}
                           {[
@@ -1274,7 +1274,7 @@ export default function Dashboard() {
                             <div key={group.type}>
                               <div className="flex items-center gap-2 px-5 pt-3 pb-1.5">
                                 <span className="text-[9px] font-black text-white/30 uppercase tracking-widest">{group.label}</span>
-                                <span className="text-[9px] font-black text-white/20">({group.items.length})</span>
+                                <span className="text-[9px] font-black text-white/50">({group.items.length})</span>
                                 <div className="flex-1 h-px bg-white/[0.04]" />
                               </div>
                               {group.items.map(item => (
@@ -1291,8 +1291,8 @@ export default function Dashboard() {
                                     <p className="text-sm font-black text-white truncate">{item.title}</p>
                                     <p className="text-[11px] text-white/30 font-bold truncate">{item.sub}</p>
                                   </div>
-                                  {item.number && <span className="text-[10px] font-black text-white/20 shrink-0">#{item.number?.split('-')?.pop()}</span>}
-                                  <ChevronRight className="w-4 h-4 text-white/10 group-hover:text-white/30 transition-colors shrink-0" />
+                                  {item.number && <span className="text-[10px] font-black text-white/50 shrink-0">#{item.number?.split('-')?.pop()}</span>}
+                                  <ChevronRight className="w-4 h-4 text-white/40 group-hover:text-white/30 transition-colors shrink-0" />
                                 </button>
                               ))}
                             </div>
@@ -1303,7 +1303,7 @@ export default function Dashboard() {
                   {/* TAREAS */}
                   {activeFeedCategory === 'tasks' && (
                     pendingShiftTasks.length === 0
-                      ? <div className="flex flex-col items-center justify-center py-14 h-full"><CheckCircle2 className="w-10 h-10 text-emerald-500/30 mb-3" /><p className="text-white/20 text-xs font-black uppercase tracking-widest">Tareas completadas</p></div>
+                      ? <div className="flex flex-col items-center justify-center py-14 h-full"><CheckCircle2 className="w-10 h-10 text-emerald-500/30 mb-3" /><p className="text-white/50 text-xs font-black uppercase tracking-widest">Tareas completadas</p></div>
                       : pendingShiftTasks.map(task => (
                           <div key={task.id} className="flex items-center gap-4 px-5 py-3.5 border-t border-white/[0.04] first:border-0">
                             <div className="w-1 h-8 rounded-full shrink-0 bg-indigo-500" />
@@ -1417,9 +1417,9 @@ export default function Dashboard() {
                 ].filter(g => g.items.length > 0).map(group => (
                   <div key={group.type}>
                     <div className="flex items-center gap-2 px-3 pt-2 pb-1">
-                      <span className="text-[8px] font-bold text-white/20 uppercase tracking-wider">{group.label}</span>
+                      <span className="text-[8px] font-bold text-white/50 uppercase tracking-wider">{group.label}</span>
                       <div className="flex-1 h-px bg-white/[0.04]" />
-                      <span className="text-[8px] font-bold text-white/20">{group.items.length}</span>
+                      <span className="text-[8px] font-bold text-white/50">{group.items.length}</span>
                     </div>
                     {group.items.map(item => (
                       <button key={item.id} onClick={() => item.orderId ? handleOrderSelect(item.orderId) : null}
@@ -1429,7 +1429,7 @@ export default function Dashboard() {
                           <p className="text-xs font-bold text-white truncate">{item.title}</p>
                           <p className="text-[10px] text-white/25 truncate">{item.sub}</p>
                         </div>
-                        <ChevronRight className="w-3 h-3 text-white/10 shrink-0" />
+                        <ChevronRight className="w-3 h-3 text-white/40 shrink-0" />
                       </button>
                     ))}
                   </div>
@@ -1439,7 +1439,7 @@ export default function Dashboard() {
                 {pendingShiftTasks.length > 0 && (
                   <>
                     <div className="flex items-center gap-2 px-3 pt-2 pb-1">
-                      <span className="text-[8px] font-bold text-white/20 uppercase tracking-wider">Tareas</span>
+                      <span className="text-[8px] font-bold text-white/50 uppercase tracking-wider">Tareas</span>
                       <div className="flex-1 h-px bg-white/[0.04]" />
                     </div>
                     {pendingShiftTasks.map(task => (
@@ -1709,7 +1709,7 @@ export default function Dashboard() {
             <div className="max-h-[50vh] overflow-y-auto pb-4">
               {priceListFiltered.length === 0 ? (
                 <div className="py-10 text-center">
-                  <p className="text-white/20 font-bold text-sm">Sin resultados</p>
+                  <p className="text-white/50 font-bold text-sm">Sin resultados</p>
                 </div>
               ) : (
                 priceListFiltered.map(item => (

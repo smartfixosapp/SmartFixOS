@@ -136,7 +136,7 @@ export default function TechnicianView({ session, onNewOrder }) {
               {f.label}
             </button>
           ))}
-          <button onClick={load} className="shrink-0 px-2 py-1.5 rounded-xl bg-white/[0.03] border border-white/[0.06] text-white/20 hover:text-white/50 transition-colors ml-auto">
+          <button onClick={load} className="shrink-0 px-2 py-1.5 rounded-xl bg-white/[0.03] border border-white/[0.06] text-white/50 hover:text-white/50 transition-colors ml-auto">
             <RefreshCw className="w-3.5 h-3.5" />
           </button>
         </div>
@@ -144,11 +144,11 @@ export default function TechnicianView({ session, onNewOrder }) {
         {/* Orders list */}
         {loading ? (
           <div className="py-12 flex items-center justify-center">
-            <RefreshCw className="w-5 h-5 text-white/20 animate-spin" />
+            <RefreshCw className="w-5 h-5 text-white/50 animate-spin" />
           </div>
         ) : filtered.length === 0 ? (
           <div className="py-12 text-center">
-            <CheckCircle2 className="w-8 h-8 text-white/10 mx-auto mb-2" />
+            <CheckCircle2 className="w-8 h-8 text-white/40 mx-auto mb-2" />
             <p className="text-white/25 text-sm font-medium">Sin órdenes en esta categoría</p>
           </div>
         ) : (
@@ -182,9 +182,9 @@ export default function TechnicianView({ session, onNewOrder }) {
                     </div>
                     <div className="shrink-0 text-right">
                       {updatedAt && (
-                        <p className="text-[9px] text-white/20">{format(updatedAt, "d MMM", { locale: es })}</p>
+                        <p className="text-[9px] text-white/50">{format(updatedAt, "d MMM", { locale: es })}</p>
                       )}
-                      <ChevronRight className="w-3.5 h-3.5 text-white/20 ml-auto mt-1" />
+                      <ChevronRight className="w-3.5 h-3.5 text-white/50 ml-auto mt-1" />
                     </div>
                   </div>
                   {order.initial_problem && (

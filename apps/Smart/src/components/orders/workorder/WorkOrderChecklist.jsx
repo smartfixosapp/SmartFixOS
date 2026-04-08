@@ -115,7 +115,7 @@ export default function WorkOrderChecklist({ order, onUpdate, user }) {
                 w-6 h-6 rounded-full flex items-center justify-center transition-all
                 ${item.status === 'ok' ? 'bg-green-500 text-black' : 
                   item.status === 'damaged' ? 'bg-red-500 text-white' : 
-                  'bg-white/10 text-white/20'}
+                  'bg-white/10 text-white/50'}
               `}>
                 {statusConfig[item.status || 'not_tested'].icon({ className: "w-3.5 h-3.5" })}
               </div>

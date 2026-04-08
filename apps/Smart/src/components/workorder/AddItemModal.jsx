@@ -906,7 +906,7 @@ export default function AddItemModal({
             {/* Search */}
             <div className="border-b border-white/8 p-4 bg-black/10">
               <div className="relative w-full max-w-xl mx-auto">
-                <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-white/20" />
+                <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-white/50" />
                 <Input
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
@@ -963,7 +963,7 @@ export default function AddItemModal({
                             {typeLabel}
                           </span>
                         </div>
-                        <p className="text-[10px] font-black uppercase tracking-wider text-white/20 mb-1">{item.sku || "Sin código"}</p>
+                        <p className="text-[10px] font-black uppercase tracking-wider text-white/50 mb-1">{item.sku || "Sin código"}</p>
                         {item.stock > 0 && (
                           <p className={`text-[10px] font-black uppercase tracking-widest ${item.stock <= 2 ? "text-red-400/70" : "text-amber-500/40"}`}>
                             {item.stock <= 2 ? `⚠️ Stock bajo: ${item.stock}` : `Stock: ${item.stock}`}

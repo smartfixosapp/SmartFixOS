@@ -370,7 +370,7 @@ export default function EmployeeProfileDrawer({
 
               {/* ── Registros de tiempo ── */}
               {loadingTime ? (
-                <div className="flex justify-center py-6"><Loader2 className="w-5 h-5 animate-spin text-white/20" /></div>
+                <div className="flex justify-center py-6"><Loader2 className="w-5 h-5 animate-spin text-white/50" /></div>
               ) : timeEntries.length === 0 ? (
                 <div className="bg-white/[0.03] rounded-2xl px-4 py-6 text-center">
                   <p className="text-white/25 text-sm">Sin horas registradas (últimos 14 días)</p>
@@ -468,10 +468,10 @@ export default function EmployeeProfileDrawer({
           {/* ── HISTORIAL DE PAGOS ── */}
           {tab === "pagos" && (
             loadingPayments ? (
-              <div className="flex justify-center py-16"><Loader2 className="w-6 h-6 animate-spin text-white/20" /></div>
+              <div className="flex justify-center py-16"><Loader2 className="w-6 h-6 animate-spin text-white/50" /></div>
             ) : payments.length === 0 ? (
               <div className="text-center py-16">
-                <DollarSign className="w-10 h-10 text-white/10 mx-auto mb-3" />
+                <DollarSign className="w-10 h-10 text-white/40 mx-auto mb-3" />
                 <p className="text-white/30 text-sm font-semibold">Sin pagos registrados</p>
                 <button onClick={() => setTab("pagar")}
                   className="mt-4 px-4 py-2 rounded-xl bg-emerald-500/15 border border-emerald-500/25 text-emerald-400 text-sm font-bold hover:bg-emerald-500/25 transition-all">

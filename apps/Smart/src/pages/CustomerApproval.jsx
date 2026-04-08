@@ -274,7 +274,7 @@ export default function CustomerApproval() {
           </button>
         </div>
 
-        <p className="text-center text-white/20 text-xs pb-4">
+        <p className="text-center text-white/50 text-xs pb-4">
           Tu respuesta será notificada al taller inmediatamente.
         </p>
       </div>

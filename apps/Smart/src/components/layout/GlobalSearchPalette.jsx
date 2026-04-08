@@ -152,7 +152,7 @@ export default function GlobalSearchPalette({ open, onClose }) {
           {loading && (
             <div className="w-4 h-4 border-2 border-white/20 border-t-white/50 rounded-full animate-spin shrink-0" />
           )}
-          <button onClick={onClose} className="text-white/20 hover:text-white/50 transition-colors shrink-0">
+          <button onClick={onClose} className="text-white/50 hover:text-white/50 transition-colors shrink-0">
             <X className="w-4 h-4" />
           </button>
         </div>
@@ -164,7 +164,7 @@ export default function GlobalSearchPalette({ open, onClose }) {
           {navResults.length > 0 && (
             <div>
               {query.length < 2 && (
-                <p className="text-[10px] font-black uppercase tracking-widest text-white/20 px-4 pt-2 pb-1">Navegación</p>
+                <p className="text-[10px] font-black uppercase tracking-widest text-white/50 px-4 pt-2 pb-1">Navegación</p>
               )}
               {navResults.map(n => {
                 const Icon = n.icon;
@@ -181,7 +181,7 @@ export default function GlobalSearchPalette({ open, onClose }) {
                       <Icon className="w-3.5 h-3.5 text-white/50" />
                     </div>
                     <span className="text-sm font-medium text-white/70">{n.label}</span>
-                    <ArrowRight className="w-3 h-3 text-white/20 ml-auto" />
+                    <ArrowRight className="w-3 h-3 text-white/50 ml-auto" />
                   </button>
                 );
               })}
@@ -191,7 +191,7 @@ export default function GlobalSearchPalette({ open, onClose }) {
           {/* Orders */}
           {orders.length > 0 && (
             <div>
-              <p className="text-[10px] font-black uppercase tracking-widest text-white/20 px-4 pt-3 pb-1">Órdenes</p>
+              <p className="text-[10px] font-black uppercase tracking-widest text-white/50 px-4 pt-3 pb-1">Órdenes</p>
               {orders.map(o => {
                 const DevIcon = DEVICE_ICON(o.device_type || o.device_family);
                 const isSelected = flatIdx === selectedIdx;
@@ -226,7 +226,7 @@ export default function GlobalSearchPalette({ open, onClose }) {
           {/* Customers */}
           {customers.length > 0 && (
             <div>
-              <p className="text-[10px] font-black uppercase tracking-widest text-white/20 px-4 pt-3 pb-1">Clientes</p>
+              <p className="text-[10px] font-black uppercase tracking-widest text-white/50 px-4 pt-3 pb-1">Clientes</p>
               {customers.map(c => {
                 const isSelected = flatIdx === selectedIdx;
                 const currentIdx = flatIdx++;
@@ -260,13 +260,13 @@ export default function GlobalSearchPalette({ open, onClose }) {
           {/* Default empty */}
           {query.length === 0 && (
             <div className="py-6 text-center">
-              <p className="text-white/20 text-xs font-medium">Escribe para buscar órdenes, clientes o navegar</p>
+              <p className="text-white/50 text-xs font-medium">Escribe para buscar órdenes, clientes o navegar</p>
             </div>
           )}
         </div>
 
         {/* Footer hint */}
-        <div className="flex items-center gap-3 px-4 py-2 border-t border-white/[0.05] text-[10px] text-white/20 font-medium">
+        <div className="flex items-center gap-3 px-4 py-2 border-t border-white/[0.05] text-[10px] text-white/50 font-medium">
           <span>↑↓ navegar</span>
           <span>↵ abrir</span>
           <span>esc cerrar</span>

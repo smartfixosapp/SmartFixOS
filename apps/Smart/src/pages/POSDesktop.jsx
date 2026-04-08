@@ -897,7 +897,7 @@ Máximo 30 palabras en total.`;
           <div className="flex items-center gap-3">
           <div className="relative group/search flex-1">
             <div className="absolute inset-y-0 left-0 pl-5 flex items-center pointer-events-none">
-              <Search className="h-5 w-5 text-white/20 group-focus-within/search:text-cyan-400 group-focus-within/search:scale-110 transition-all duration-500" />
+              <Search className="h-5 w-5 text-white/50 group-focus-within/search:text-cyan-400 group-focus-within/search:scale-110 transition-all duration-500" />
             </div>
             <input
               value={searchQuery}
@@ -1011,7 +1011,7 @@ Máximo 30 palabras en total.`;
                             ${finalPrice.toFixed(2)}
                           </span>
                           {!isService && (
-                             <span className={cn("text-[9px] font-bold mt-1", (item.stock || 0) < 5 ? "text-amber-400" : "text-white/20")}>
+                             <span className={cn("text-[9px] font-bold mt-1", (item.stock || 0) < 5 ? "text-amber-400" : "text-white/50")}>
                                {item.stock} en stock
                              </span>
                           )}
@@ -1061,7 +1061,7 @@ Máximo 30 palabras en total.`;
               </div>
               <button
                 onClick={() => setSelectedCustomer(null)}
-                className="w-8 h-8 rounded-full bg-white/5 text-white/20 hover:text-red-400 hover:bg-red-400/10 flex items-center justify-center transition-all"
+                className="w-8 h-8 rounded-full bg-white/5 text-white/50 hover:text-red-400 hover:bg-red-400/10 flex items-center justify-center transition-all"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -1079,7 +1079,7 @@ Máximo 30 palabras en total.`;
 
         <div className="flex-1 overflow-y-auto p-6 space-y-4 no-scrollbar">
           {safeCart.length === 0 ? (
-            <div className="flex flex-col items-center justify-center h-full text-white/10 py-12">
+            <div className="flex flex-col items-center justify-center h-full text-white/40 py-12">
               <div className="w-20 h-20 rounded-full bg-white/[0.02] border border-white/[0.05] flex items-center justify-center mb-6">
                 <ShoppingCart className="w-8 h-8 opacity-20" />
               </div>
@@ -1101,7 +1101,7 @@ Máximo 30 palabras en total.`;
                   </div>
                   <button
                     onClick={() => removeItem(idx)}
-                    className="w-8 h-8 rounded-full bg-white/5 text-white/20 hover:text-red-400 hover:bg-red-400/10 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all active:scale-95"
+                    className="w-8 h-8 rounded-full bg-white/5 text-white/50 hover:text-red-400 hover:bg-red-400/10 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all active:scale-95"
                   >
                     <Trash2 className="w-4 h-4" />
                   </button>

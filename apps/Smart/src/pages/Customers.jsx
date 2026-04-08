@@ -241,7 +241,7 @@ export default function Customers() {
           </div>
         ) : filteredCustomers.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-20">
-            <Users className="w-12 h-12 text-white/10 mb-4" />
+            <Users className="w-12 h-12 text-white/40 mb-4" />
             <p className="text-white/30 text-sm font-bold mb-4">
               {searchQuery ? "Sin resultados" : "Sin clientes registrados"}
             </p>
@@ -401,7 +401,7 @@ export default function Customers() {
                             {customer.phone && (
                               <div className="flex items-center gap-2">
                                 <span className="text-white/60 text-xs font-medium">{customer.phone}</span>
-                                <a href={`tel:${customer.phone}`} onClick={e => e.stopPropagation()} className="text-white/20 hover:text-white/60 transition-colors">
+                                <a href={`tel:${customer.phone}`} onClick={e => e.stopPropagation()} className="text-white/50 hover:text-white/60 transition-colors">
                                   <Phone className="w-3.5 h-3.5" />
                                 </a>
                                 <a href={getWhatsAppUrl(customer.phone)} target="_blank" rel="noopener noreferrer" onClick={e => e.stopPropagation()} className="text-green-400/30 hover:text-green-400/80 transition-colors">
@@ -421,7 +421,7 @@ export default function Customers() {
                           <span className={`inline-block px-2.5 py-1 rounded-lg text-xs font-black border ${
                             (customer.total_orders || 0) > 0
                               ? "bg-blue-500/10 text-blue-400 border-blue-500/20"
-                              : "bg-white/5 text-white/20 border-white/10"
+                              : "bg-white/5 text-white/50 border-white/10"
                           }`}>
                             {customer.total_orders || 0}
                           </span>

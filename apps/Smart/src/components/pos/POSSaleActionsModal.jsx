@@ -249,7 +249,7 @@ export default function POSSaleActionsModal({ open, onClose, sale, customer, car
         <p className="text-white font-bold text-sm">{label}</p>
         <p className="text-white/40 text-xs mt-0.5 truncate">{sublabel}</p>
       </div>
-      <ChevronRight className="w-4 h-4 text-white/20 flex-shrink-0" />
+      <ChevronRight className="w-4 h-4 text-white/50 flex-shrink-0" />
     </button>
   );
 
@@ -368,7 +368,7 @@ export function POSSaleHistoryModal({ open, onClose, onReopen }) {
                   {new Date(entry.date).toLocaleString("es-PR", { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" })}
                 </p>
               </div>
-              <ChevronRight className="w-4 h-4 text-white/20 flex-shrink-0" />
+              <ChevronRight className="w-4 h-4 text-white/50 flex-shrink-0" />
             </button>
           ))}
         </div>

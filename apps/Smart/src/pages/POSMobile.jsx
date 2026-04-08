@@ -858,7 +858,7 @@ export default function POSMobile() {
 
         <div className="relative group/search mb-5">
           <div className="absolute inset-y-0 left-0 pl-5 flex items-center pointer-events-none">
-            <Search className="h-5 w-5 text-white/20 group-focus-within/search:text-cyan-400 transition-all duration-300" />
+            <Search className="h-5 w-5 text-white/50 group-focus-within/search:text-cyan-400 transition-all duration-300" />
           </div>
           <input
             value={searchQuery}
@@ -982,11 +982,11 @@ export default function POSMobile() {
         <div className="flex-shrink-0 bg-[#0D0D0F] border-t border-white/[0.08] px-6 py-7 rounded-t-[40px] space-y-6 shadow-[0_-25px_50px_rgba(0,0,0,0.6)] relative z-30">
           <div className="space-y-2">
             <div className="flex justify-between items-center px-1">
-              <span className="text-[10px] font-black text-white/20 uppercase tracking-[0.2em]">Subtotal</span>
+              <span className="text-[10px] font-black text-white/50 uppercase tracking-[0.2em]">Subtotal</span>
               <span className="text-sm font-black text-white/60 tracking-tight">${subtotal.toFixed(2)}</span>
             </div>
             <div className="flex justify-between items-center px-1">
-              <span className="text-[10px] font-black text-white/20 uppercase tracking-[0.2em]">IVU (11.5%)</span>
+              <span className="text-[10px] font-black text-white/50 uppercase tracking-[0.2em]">IVU (11.5%)</span>
               <span className="text-sm font-black text-white/60 tracking-tight">${tax.toFixed(2)}</span>
             </div>
             <div className="flex justify-between items-end pt-4 mt-2 border-t border-white/[0.05]">

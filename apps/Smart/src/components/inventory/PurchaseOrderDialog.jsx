@@ -439,7 +439,7 @@ export default function PurchaseOrderDialog({
         <p className="text-[10px] font-black text-white/30 uppercase tracking-widest">Selecciona el suplidor</p>
         {poNumber && (
           <span className="text-[11px] text-white/30 font-mono">
-            <span className="text-white/20 mr-1">PO:</span>{poNumber}
+            <span className="text-white/50 mr-1">PO:</span>{poNumber}
           </span>
         )}
       </div>
@@ -482,9 +482,9 @@ export default function PurchaseOrderDialog({
           value={supplierName}
           onChange={(e) => setSupplierName(e.target.value)}
           placeholder="Ej: Proveedor nuevo sin registrar"
-          className="w-full bg-[#111114]/60 border border-white/[0.08] rounded-xl px-4 py-3 text-white text-sm placeholder:text-white/20 focus:outline-none focus:border-teal-500/50 focus:ring-2 focus:ring-teal-500/10"
+          className="w-full bg-[#111114]/60 border border-white/[0.08] rounded-xl px-4 py-3 text-white text-sm placeholder:text-white/50 focus:outline-none focus:border-teal-500/50 focus:ring-2 focus:ring-teal-500/10"
         />
-        <p className="text-[11px] text-white/20 mt-1">
+        <p className="text-[11px] text-white/50 mt-1">
           Si seleccionas un suplidor de la lista, este nombre se rellenará automáticamente.
         </p>
       </div>
@@ -498,7 +498,7 @@ export default function PurchaseOrderDialog({
         value={searchProduct}
         onChange={(e) => setSearchProduct(e.target.value)}
         placeholder="Buscar producto por nombre, modelo compatible..."
-        className="w-full bg-[#111114]/60 border border-white/[0.08] rounded-xl px-4 py-3 text-white text-sm placeholder:text-white/20 focus:outline-none focus:border-teal-500/50"
+        className="w-full bg-[#111114]/60 border border-white/[0.08] rounded-xl px-4 py-3 text-white text-sm placeholder:text-white/50 focus:outline-none focus:border-teal-500/50"
       />
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -662,9 +662,9 @@ export default function PurchaseOrderDialog({
           value={shippingCost}
           onChange={(e) => setShippingCost(Number(e.target.value) || 0)}
           placeholder="0.00"
-          className="w-full bg-[#111114]/60 border border-white/[0.08] rounded-xl px-4 py-3 text-white text-sm placeholder:text-white/20 focus:outline-none focus:border-teal-500/50"
+          className="w-full bg-[#111114]/60 border border-white/[0.08] rounded-xl px-4 py-3 text-white text-sm placeholder:text-white/50 focus:outline-none focus:border-teal-500/50"
         />
-        <p className="text-[11px] text-white/20 mt-1">Se sumará al total de la orden</p>
+        <p className="text-[11px] text-white/50 mt-1">Se sumará al total de la orden</p>
       </div>
 
       <div>
@@ -674,7 +674,7 @@ export default function PurchaseOrderDialog({
           onChange={(e) => setNotes(e.target.value)}
           rows={3}
           placeholder="Comentarios adicionales sobre la orden (opcional)"
-          className="w-full bg-[#111114]/60 border border-white/[0.08] rounded-xl px-4 py-3 text-white text-sm placeholder:text-white/20 focus:outline-none focus:border-teal-500/50 resize-none"
+          className="w-full bg-[#111114]/60 border border-white/[0.08] rounded-xl px-4 py-3 text-white text-sm placeholder:text-white/50 focus:outline-none focus:border-teal-500/50 resize-none"
         />
       </div>
     </div>
@@ -728,13 +728,13 @@ export default function PurchaseOrderDialog({
               );
             })}
           </div>
-          <p className="text-[10px] text-white/20 mt-1.5">Toca una tarjeta para enlazar/desenlazar todos los productos a esa orden.</p>
+          <p className="text-[10px] text-white/50 mt-1.5">Toca una tarjeta para enlazar/desenlazar todos los productos a esa orden.</p>
         </div>
       )}
 
       {suggestedWorkOrders.length === 0 && (
         <div className="flex items-center gap-3 p-3 bg-white/[0.02] border border-white/[0.05] rounded-2xl">
-          <Wrench className="w-4 h-4 text-white/20 flex-shrink-0" />
+          <Wrench className="w-4 h-4 text-white/50 flex-shrink-0" />
           <p className="text-xs text-white/30">No hay órdenes de trabajo esperando piezas en este momento.</p>
         </div>
       )}
