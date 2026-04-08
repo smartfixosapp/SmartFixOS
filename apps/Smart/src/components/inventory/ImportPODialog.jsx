@@ -962,8 +962,8 @@ export default function ImportPODialog({ open, onClose, suppliers = [], products
       }
 
       // ── Inyectar items en las Órdenes de Trabajo enlazadas ──────────────
-      // Usa el unit_price de la fila (lo que el usuario puso explícitamente
-      // en la columna "Precio venta" de cada línea).
+      // Los items se añaden al array `parts_needed` de la WO. El componente
+      // WorkOrderItems lo lee y los muestra en el resumen financiero.
       const woGroups = new Map(); // wo_id → array de items
       for (const r of reviewRows) {
         if (!r.work_order_id) continue;
@@ -975,12 +975,19 @@ export default function ImportPODialog({ open, onClose, suppliers = [], products
             ? Number(product.price)
             : Math.round(Number(r.unit_cost || 0) * 1.5 * 100) / 100;
         }
+        const supplierName = supplier?.name || extracted?.supplier_name || "";
         const item = {
           id: `wo-part-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
           type: "product",
           name: r.product_name || r.raw_name,
           quantity: Number(r.quantity || 0),
           price: sellPrice,
+          cost: Number(r.unit_cost || 0),
+          source: "purchase_order",
+          supplier: supplierName,
+          po_number: poNumber, // referencia a la OC que lo trajo
+          po_id: null, // se setea más abajo tras crear la PO
+          product_id: r.product_id || null,
         };
         const list = woGroups.get(r.work_order_id) || [];
         list.push(item);
@@ -988,23 +995,35 @@ export default function ImportPODialog({ open, onClose, suppliers = [], products
       }
 
       let woUpdated = 0;
+      let woFailed = [];
       for (const [woId, newItems] of woGroups) {
         try {
+          console.log(`🔗 Enlazando ${newItems.length} items a Work Order ${woId}`);
           const wo = await base44.entities.Order.get(woId);
+          if (!wo) {
+            console.warn(`Work Order ${woId} no encontrada`);
+            woFailed.push(woId);
+            continue;
+          }
           const existing = Array.isArray(wo?.parts_needed) ? wo.parts_needed : [];
-          await base44.entities.Order.update(woId, {
-            parts_needed: [...existing, ...newItems],
+          const merged = [...existing, ...newItems];
+          const updateResult = await base44.entities.Order.update(woId, {
+            parts_needed: merged,
           });
+          console.log(`✅ WO ${wo.order_number || woId} actualizada · parts_needed: ${existing.length} → ${merged.length}`);
           woUpdated++;
         } catch (err) {
-          console.warn(`No se pudo enlazar items a WO ${woId}:`, err);
+          console.error(`❌ No se pudo enlazar items a WO ${woId}:`, err);
+          woFailed.push(woId);
         }
       }
       if (woGroups.size > 0) {
         if (woUpdated === woGroups.size) {
-          toast.success(`Items enlazados a ${woUpdated} orden${woUpdated === 1 ? "" : "es"} de trabajo`);
+          toast.success(`✅ Items enlazados a ${woUpdated} orden${woUpdated === 1 ? "" : "es"} de trabajo`);
+        } else if (woUpdated > 0) {
+          toast.warning(`Solo ${woUpdated}/${woGroups.size} órdenes de trabajo se actualizaron`);
         } else {
-          toast.warning(`Solo ${woUpdated}/${woGroups.size} órdenes de trabajo se pudieron actualizar`);
+          toast.error(`❌ No se pudo enlazar items a las órdenes de trabajo. Revisa la consola.`);
         }
       }
 
