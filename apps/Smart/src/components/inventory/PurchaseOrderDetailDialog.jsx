@@ -527,6 +527,77 @@ export default function PurchaseOrderDetailDialog({
               </div>
             </div>
 
+            {/* Timeline visual del estado */}
+            {!editing && (
+              <div className="bg-[#111114]/80 border border-white/[0.06] rounded-[24px] p-5">
+                <p className="text-[10px] font-black text-white/30 uppercase tracking-widest mb-4">
+                  Progreso
+                </p>
+                {(() => {
+                  const steps = [
+                    { key: "draft", label: "Borrador", icon: "📝" },
+                    { key: "ordered", label: "Enviada", icon: "📤" },
+                    { key: "partial", label: "Parcial", icon: "📦", optional: true },
+                    { key: "received", label: "Recibida", icon: "✅" },
+                  ];
+                  const order = ["draft", "ordered", "partial", "received"];
+                  const currentIdx = order.indexOf(form.status || "draft");
+                  const isCancelled = form.status === "cancelled";
+                  return (
+                    <div className="flex items-start gap-1">
+                      {steps.map((step, idx) => {
+                        const isActive = !isCancelled && order.indexOf(step.key) <= currentIdx;
+                        const isCurrent = step.key === form.status;
+                        // Skip partial si no aplica
+                        if (step.key === "partial" && form.status !== "partial" && currentIdx > 2) return null;
+                        return (
+                          <React.Fragment key={step.key}>
+                            <div className="flex flex-col items-center flex-1 min-w-0">
+                              <div className={`w-10 h-10 rounded-full flex items-center justify-center text-lg border-2 transition-all ${
+                                isCurrent
+                                  ? "bg-cyan-500/30 border-cyan-400 scale-110"
+                                  : isActive
+                                    ? "bg-emerald-500/20 border-emerald-500/50"
+                                    : "bg-white/[0.04] border-white/10"
+                              }`}>
+                                {step.icon}
+                              </div>
+                              <p className={`text-[10px] font-black mt-1.5 text-center ${
+                                isCurrent ? "text-cyan-300" : isActive ? "text-emerald-400" : "text-white/30"
+                              }`}>
+                                {step.label}
+                              </p>
+                            </div>
+                            {idx < steps.length - 1 && (
+                              <div className={`h-0.5 flex-1 mt-5 transition-all ${
+                                isActive && order.indexOf(steps[idx + 1].key) <= currentIdx
+                                  ? "bg-emerald-500/50"
+                                  : "bg-white/10"
+                              }`} />
+                            )}
+                          </React.Fragment>
+                        );
+                      })}
+                      {isCancelled && (
+                        <div className="flex flex-col items-center flex-1">
+                          <div className="w-10 h-10 rounded-full flex items-center justify-center text-lg border-2 bg-red-500/20 border-red-500/50">
+                            ❌
+                          </div>
+                          <p className="text-[10px] font-black mt-1.5 text-red-400">Cancelada</p>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })()}
+                {poData?.order_date && (
+                  <p className="text-[10px] text-white/30 mt-3 text-center">
+                    Ordenada el {new Date(poData.order_date).toLocaleDateString("es-ES", { day: "2-digit", month: "short", year: "numeric" })}
+                    {poData.expected_date && ` · Esperada el ${new Date(poData.expected_date).toLocaleDateString("es-ES", { day: "2-digit", month: "short" })}`}
+                  </p>
+                )}
+              </div>
+            )}
+
             {/* Products */}
             <div className="bg-[#111114]/80 border border-white/[0.06] rounded-[24px] p-5">
               <div className="flex items-center gap-2 mb-4">
