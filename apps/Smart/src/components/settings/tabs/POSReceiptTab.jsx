@@ -476,7 +476,7 @@ export default function POSReceiptTab() {
 
         {/* ── Panel derecho: vista previa ───────────────────────────── */}
         {showPreview && (
-          <div className="w-[340px] flex-shrink-0">
+          <div className="w-full lg:w-[340px] lg:flex-shrink-0">
             <div className="sticky top-4">
               {/* Tab switcher */}
               <div className="flex items-center gap-1 mb-3 bg-white/5 border border-white/10 rounded-2xl p-1">
