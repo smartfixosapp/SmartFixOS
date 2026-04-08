@@ -1027,7 +1027,7 @@ export default function Dashboard() {
         <div className="max-w-[2560px] mx-auto w-full flex-1 min-h-0 flex flex-col">
           
           {/* === DESKTOP: PULSO — layout horizontal (left panel | right feed) === */}
-          <div className="hidden md:flex md:flex-row md:flex-1 md:min-h-0 bg-[#121215]/40 backdrop-blur-[40px] border border-white/10 rounded-[40px] shadow-[0_32px_80px_rgba(0,0,0,0.45)] relative overflow-hidden">
+          <div className="liquid-glass-floating hidden md:flex md:flex-row md:flex-1 md:min-h-0 rounded-[40px] relative overflow-hidden">
             <div className="absolute inset-0 bg-gradient-to-br from-white/[0.04] to-transparent pointer-events-none" />
             <div className="absolute inset-0 border border-white/10 rounded-[40px] pointer-events-none shadow-[inset_0_1px_1px_rgba(255,255,255,0.1)]" />
 
