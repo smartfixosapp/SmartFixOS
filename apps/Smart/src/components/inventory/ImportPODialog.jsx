@@ -698,7 +698,7 @@ export default function ImportPODialog({ open, onClose, suppliers = [], products
             </div>
 
             {/* Stats matching */}
-            <div className="flex items-center gap-2 text-[11px]">
+            <div className="flex items-center gap-2 text-[11px] flex-wrap">
               <span className="px-2 py-1 rounded-md bg-emerald-500/10 text-emerald-300 border border-emerald-500/20 font-black">
                 <CheckCircle2 className="w-3 h-3 inline mr-1" />
                 {matchedCount} matcheados
@@ -709,6 +709,15 @@ export default function ImportPODialog({ open, onClose, suppliers = [], products
                   {unmatchedCount} sin match
                 </span>
               )}
+              <button
+                onClick={runAIMatching}
+                disabled={aiMatching || reviewRows.length === 0}
+                title="Usa IA para entender jerga, abreviaturas y nombres en otro idioma"
+                className="px-2 py-1 rounded-md bg-violet-500/15 text-violet-300 border border-violet-500/25 font-black hover:bg-violet-500/25 disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-1"
+              >
+                {aiMatching ? <Loader2 className="w-3 h-3 animate-spin" /> : <Sparkles className="w-3 h-3" />}
+                {aiMatching ? "Matcheando…" : "Mejorar matches con Jeani"}
+              </button>
               <button
                 onClick={() => { setExtracted(null); setReviewRows([]); }}
                 className="ml-auto text-[11px] text-white/40 hover:text-white/70 flex items-center gap-1"
