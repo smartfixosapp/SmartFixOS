@@ -185,6 +185,8 @@ export default function Financial() {
   const [deletingPOId, setDeletingPOId] = useState(null);
   const [showReorderModal, setShowReorderModal] = useState(false);
   const [creatingReorderPO, setCreatingReorderPO] = useState(null);
+  const [aiSuggestLoading, setAiSuggestLoading] = useState(false);
+  const [aiSuggestText, setAiSuggestText] = useState("");
 
   // Permisos: solo admin/owner pueden borrar OCs.
   // Cualquier usuario puede crear/editar/marcar recibidas.
