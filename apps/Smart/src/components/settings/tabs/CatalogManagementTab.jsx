@@ -182,6 +182,7 @@ export default function CatalogManagementTab({ user }) {
                         size="icon"
                         variant="ghost"
                         className="h-8 w-8"
+                        aria-label={`Editar categoría ${cat.name}`}
                         onClick={() => {
                           setEditingItem(cat);
                           setShowCategoryDialog(true);
@@ -193,6 +194,7 @@ export default function CatalogManagementTab({ user }) {
                         size="icon"
                         variant="ghost"
                         className="h-8 w-8"
+                        aria-label={`Eliminar categoría ${cat.name}`}
                         onClick={() => handleDeleteCategory(cat.id)}
                       >
                         <Trash2 className="w-4 h-4 text-red-400" />
