@@ -707,6 +707,56 @@ export default function PurchaseOrderDetailDialog({
               </div>
             </div>
 
+            {/* Tracking del envío */}
+            <div className="bg-[#111114]/80 border border-white/[0.06] rounded-[24px] p-5">
+              <p className="text-[10px] font-black text-white/30 uppercase tracking-widest mb-3">
+                📦 Tracking del envío
+              </p>
+              {editing ? (
+                <input
+                  type="text"
+                  value={form.tracking_number}
+                  onChange={(e) => setForm((f) => ({ ...f, tracking_number: e.target.value }))}
+                  placeholder="Número de tracking (USPS, UPS, FedEx, DHL, etc.)"
+                  className="w-full bg-[#111114]/60 border border-white/[0.08] rounded-xl px-4 py-3 text-white text-sm placeholder:text-white/20 focus:outline-none focus:border-teal-500/50"
+                />
+              ) : form.tracking_number ? (() => {
+                const tn = form.tracking_number.trim();
+                // Detectar carrier por patrón
+                const detectCarrier = (n) => {
+                  const x = n.replace(/\s/g, "");
+                  // USPS: 20-22 digits, starts with 9
+                  if (/^9[0-9]{15,21}$/.test(x)) return { name: "USPS", url: `https://tools.usps.com/go/TrackConfirmAction?tLabels=${x}` };
+                  // UPS: 1Z + 16 chars
+                  if (/^1Z[0-9A-Z]{16}$/i.test(x)) return { name: "UPS", url: `https://www.ups.com/track?tracknum=${x}` };
+                  // FedEx: 12 or 15 digits
+                  if (/^[0-9]{12}$/.test(x) || /^[0-9]{15}$/.test(x)) return { name: "FedEx", url: `https://www.fedex.com/fedextrack/?trknbr=${x}` };
+                  // DHL: 10 or 11 digits
+                  if (/^[0-9]{10,11}$/.test(x)) return { name: "DHL", url: `https://www.dhl.com/us-en/home/tracking/tracking-express.html?submit=1&tracking-id=${x}` };
+                  return { name: "Desconocido", url: `https://www.google.com/search?q=tracking+${encodeURIComponent(tn)}` };
+                };
+                const carrier = detectCarrier(tn);
+                return (
+                  <div className="flex items-center gap-3">
+                    <div className="flex-1 min-w-0">
+                      <p className="text-white font-bold text-sm font-mono truncate">{tn}</p>
+                      <p className="text-[10px] text-white/40">Detectado: {carrier.name}</p>
+                    </div>
+                    <a
+                      href={carrier.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="px-3 py-2 rounded-lg bg-cyan-500/15 border border-cyan-500/25 text-cyan-300 text-xs font-black hover:bg-cyan-500/25 flex items-center gap-1.5"
+                    >
+                      🔍 Rastrear
+                    </a>
+                  </div>
+                );
+              })() : (
+                <p className="text-white/30 text-xs">Sin tracking registrado · Edita para añadir</p>
+              )}
+            </div>
+
             {/* Archivo importado — extraer URL del marcador en notes */}
             {(() => {
               const match = /📎\s*Archivo importado:\s*(\S+)/.exec(form.notes || "");
