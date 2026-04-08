@@ -173,7 +173,8 @@ export default function B2BContactsManager({ customer, onUpdate }) {
                       variant="ghost"
                       onClick={() => handleSetPrimary(index)}
                       className="h-7 w-7 text-purple-400 hover:bg-purple-600/20"
-                      title="Marcar como principal">
+                      title="Marcar como principal"
+                      aria-label={`Marcar ${contact.name} como contacto principal`}>
                       <Star className="w-4 h-4" />
                     </Button>
                   )}
