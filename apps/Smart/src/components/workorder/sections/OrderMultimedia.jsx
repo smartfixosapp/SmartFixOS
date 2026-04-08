@@ -282,6 +282,7 @@ export default function OrderMultimedia({ order, onUpdate }) {
                               variant="ghost"
                               className="h-8 w-8 rounded-full bg-white/10 text-white hover:bg-white/20"
                               onClick={() => handleShare(photo)}
+                              aria-label={`Compartir foto ${photo.filename || ""}`}
                             >
                               <Share2 className="h-4 w-4" />
                             </Button>
