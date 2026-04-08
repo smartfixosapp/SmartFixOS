@@ -74,6 +74,18 @@
       "type": "number",
       "default": 0,
       "description": "Total gastado con este proveedor"
+    },
+    "default_payment_method": {
+      "type": "string",
+      "enum": [
+        "paypal",
+        "check",
+        "card",
+        "cash",
+        "transfer",
+        "other"
+      ],
+      "description": "M\u00e9todo de pago usado normalmente con este proveedor"
     }
   },
   "required": [
