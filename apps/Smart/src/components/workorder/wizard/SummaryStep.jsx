@@ -406,7 +406,7 @@ export default function SummaryStep({ formData, updateFormData, technicians, onB
                     <Button
                       size="icon"
                       variant="ghost"
-                      className="h-7 w-7 text-red-400 hover:text-red-300"
+                      className="h-11 w-11 text-red-400 hover:text-red-300"
                       onClick={() => removeItem(idx)}
                       aria-label={`Eliminar ${item.name}`}
                     >
