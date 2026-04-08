@@ -1543,7 +1543,7 @@ export default function SettingsPage() {
                     <p className="text-white/40 text-xs font-bold uppercase tracking-wider">Personalizados</p>
                     {customPaymentMethods.map((method, i) => (
                       <div key={i} className="flex items-center justify-between py-2">
-                        <span className="text-white font-semibold">✨ {method}</span>
+                        <span className="text-white font-semibold flex items-center gap-2"><Sparkles className="w-4 h-4 text-amber-400" /> {method}</span>
                         <button
                           onClick={() => removeCustomMethod(i)}
                           className="text-red-400 hover:text-red-300 p-1 rounded-lg hover:bg-red-500/10 transition-all"
