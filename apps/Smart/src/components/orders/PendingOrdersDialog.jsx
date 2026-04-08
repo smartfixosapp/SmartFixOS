@@ -85,7 +85,7 @@ export default function PendingOrdersDialog({ open, onClose }) {
               </p>
             </div>
             
-            <Button variant="ghost" size="icon" onClick={onClose} className="rounded-full hover:bg-white/10">
+            <Button variant="ghost" size="icon" onClick={onClose} aria-label="Cerrar diálogo" className="rounded-full hover:bg-white/10">
                {/* Close button handled by Dialog primitive usually, but good to have explicit close if needed */}
             </Button>
           </div>
