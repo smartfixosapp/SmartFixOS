@@ -97,29 +97,37 @@ export default function PurchaseOrderDetailDialog({
 
   const handleSave = async () => {
     try {
+      // El schema de PurchaseOrder usa `line_items` (no `items`) y nombres
+      // específicos para cada línea (`inventory_item_id`, `line_total`).
+      const lineItems = form.items.map((it, i) => {
+        const qty = Number(it.quantity || 1);
+        const cost = Number(it.unit_cost || 0);
+        return {
+          id: `li-${Date.now()}-${i}`,
+          inventory_item_id: it.product_id || undefined,
+          product_name: it.product_name || "",
+          quantity: qty,
+          unit_cost: cost,
+          line_total: qty * cost,
+          linked_work_order_id: it.work_order_id || undefined,
+        };
+      });
+
+      const subtotal = lineItems.reduce((sum, it) => sum + (it.line_total || 0), 0);
+
       const payload = {
         po_number: form.po_number,
-        supplier_id: form.supplier_id || null,
+        supplier_id: form.supplier_id || "",
         supplier_name: form.supplier_name || "",
         status: form.status,
         order_date: form.order_date || null,
         expected_date: form.expected_date || null,
         notes: form.notes || "",
         shipping_cost: Number(form.shipping_cost || 0),
-        items: form.items.map((it) => ({
-          product_id: it.product_id,
-          product_name: it.product_name,
-          quantity: Number(it.quantity || 1),
-          unit_cost: Number(it.unit_cost || 0),
-          work_order_id: it.work_order_id || null
-        }))
+        line_items: lineItems,
+        subtotal,
+        total_amount: subtotal + Number(form.shipping_cost || 0),
       };
-
-      const subtotal = form.items.reduce(
-        (sum, it) => sum + Number(it.unit_cost || 0) * Number(it.quantity || 0),
-        0
-      );
-      payload.total_amount = subtotal + Number(form.shipping_cost || 0);
 
       const previousStatus = poData?.status;
       await base44.entities.PurchaseOrder.update(purchaseOrder.id, payload);
