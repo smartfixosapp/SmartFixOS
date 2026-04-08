@@ -1471,6 +1471,7 @@ export default function UsersManagement() {
                         variant="ghost"
                         size="icon"
                         onClick={() => removeCustomMethod(index)}
+                        aria-label={`Eliminar método de pago ${method}`}
                         className="text-red-400 hover:text-red-300 hover:bg-red-600/20"
                       >
                         <Trash2 className="w-4 h-4" />
