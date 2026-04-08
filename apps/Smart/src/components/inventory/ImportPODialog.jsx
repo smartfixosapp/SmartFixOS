@@ -984,13 +984,25 @@ export default function ImportPODialog({ open, onClose, suppliers = [], products
                     : "Arrastra el archivo aquí o haz click"}
               </p>
               <p className="text-[11px] text-white/40 mt-1">
-                Imagen (JPG/PNG), PDF o CSV · máx 15 MB
+                Imagen (JPG/PNG), PDF o CSV · máx 15 MB · multi-archivo
               </p>
               {file && !dragOver && (
                 <p className="text-[10px] text-white/50 mt-1">
                   {(file.size / 1024).toFixed(1)} KB · {file.type || "archivo"}
                 </p>
               )}
+            </label>
+
+            {/* Cámara — funciona nativo en iOS/Android y en Capacitor WebView */}
+            <label className="flex items-center justify-center gap-2 px-4 py-2 rounded-xl bg-cyan-500/10 border border-cyan-500/20 text-cyan-300 text-xs font-black hover:bg-cyan-500/20 cursor-pointer transition-all active:scale-95">
+              <input
+                type="file"
+                accept="image/*"
+                capture="environment"
+                onChange={handleFilePick}
+                className="hidden"
+              />
+              📷 Tomar foto con la cámara
             </label>
 
             {isExcel && (
