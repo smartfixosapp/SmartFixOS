@@ -942,22 +942,46 @@ export default function ImportPODialog({ open, onClose, suppliers = [], products
 
       // Si la usuario marcó "Ya pagué" Y no requiere aprobación → registrar el gasto en Finanzas
       if (paidAtOrder && totalAmount > 0 && !requiresApproval) {
+        // Mapear el método de pago del UI al enum válido de la tabla transaction.
+        // El enum solo acepta: cash, card, transfer, ath_movil.
+        // Preservamos el método real del user en la descripción.
+        const mapPaymentMethod = (m) => {
+          switch (m) {
+            case "cash": return "cash";
+            case "card": return "card";
+            case "ath_movil": return "ath_movil";
+            case "transfer": return "transfer";
+            case "paypal": return "transfer"; // PayPal se mapea a transfer
+            case "check": return "transfer";  // Cheque se mapea a transfer
+            default: return "transfer";
+          }
+        };
         try {
           const itemsDesc = lineItems
             .map((it) => `${it.product_name} x${it.quantity}`)
             .join(", ");
-          await base44.entities.Transaction.create({
+          const methodLabel = {
+            paypal: "PayPal",
+            check: "Cheque",
+            card: "Tarjeta",
+            cash: "Efectivo",
+            transfer: "Transferencia",
+            other: "Otro",
+          }[paymentMethod] || paymentMethod;
+          const payload = {
             type: "expense",
             category: "parts",
             amount: Math.round(totalAmount * 100) / 100,
-            description: `OC ${poNumber}${supplier?.name ? ` — ${supplier.name}` : extracted?.supplier_name ? ` — ${extracted.supplier_name}` : ""}. ${itemsDesc}`.slice(0, 500),
-            payment_method: paymentMethod,
+            description: `OC ${poNumber}${supplier?.name ? ` — ${supplier.name}` : extracted?.supplier_name ? ` — ${extracted.supplier_name}` : ""} · Pago: ${methodLabel}. ${itemsDesc}`.slice(0, 500),
+            payment_method: mapPaymentMethod(paymentMethod),
             order_number: poNumber,
-            notes: `Gasto auto-registrado al importar OC. Pago: ${paymentMethod}`,
-          });
+          };
+          console.log("📝 Creando Transaction expense:", payload);
+          const created = await base44.entities.Transaction.create(payload);
+          console.log("✅ Transaction creada:", created?.id);
         } catch (txErr) {
-          console.warn("No se pudo registrar el gasto auto:", txErr);
-          toast.warning("OC creada, pero el gasto no se registró: " + (txErr?.message || ""));
+          console.error("❌ No se pudo registrar el gasto auto:", txErr);
+          toast.warning("OC creada, pero el gasto no se registró: " + (txErr?.message || txErr));
         }
       }
 
