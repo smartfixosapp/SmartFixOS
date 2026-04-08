@@ -54,6 +54,7 @@ export default function SecuritySection({ order }) {
                   variant="outline"
                   size="icon"
                   onClick={() => setShowPassword(!showPassword)}
+                  aria-label={showPassword ? "Ocultar contraseña" : "Mostrar contraseña"}
                   className="border-gray-700"
                 >
                   {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
