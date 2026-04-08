@@ -87,7 +87,7 @@ export default function ServiceSelectorModal({ open, onClose, onSelect, deviceMo
               <Search className="w-5 h-5 text-cyan-400" />
               Selector de Servicios y Piezas
             </DialogTitle>
-            <Button variant="ghost" size="icon" onClick={onClose} className="h-8 w-8 text-gray-400 hover:text-white">
+            <Button variant="ghost" size="icon" onClick={onClose} aria-label="Cerrar selector de servicios" className="h-8 w-8 text-gray-400 hover:text-white">
               <X className="w-5 h-5" />
             </Button>
           </div>
