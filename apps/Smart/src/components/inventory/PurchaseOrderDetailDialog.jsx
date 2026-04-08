@@ -120,11 +120,25 @@ export default function PurchaseOrderDetailDialog({
 
       const subtotal = lineItems.reduce((sum, it) => sum + (it.line_total || 0), 0);
 
+      // Auto-detectar status partial si el usuario dice "recibida" pero algunas
+      // líneas tienen received_quantity < quantity.
+      let effectiveStatus = form.status;
+      if (form.status === "received") {
+        const hasAnyMissing = lineItems.some(
+          (it) => Number(it.received_quantity || 0) < Number(it.quantity || 0),
+        );
+        const hasAnyReceived = lineItems.some(
+          (it) => Number(it.received_quantity || 0) > 0,
+        );
+        if (hasAnyMissing && hasAnyReceived) effectiveStatus = "partial";
+        else if (!hasAnyReceived) effectiveStatus = "ordered";
+      }
+
       const payload = {
         po_number: form.po_number,
         supplier_id: form.supplier_id || "",
         supplier_name: form.supplier_name || "",
-        status: form.status,
+        status: effectiveStatus,
         order_date: form.order_date || null,
         expected_date: form.expected_date || null,
         notes: form.notes || "",
