@@ -45,10 +45,11 @@ export default function MenuPage() {
           <h1 className="text-3xl font-bold text-white">Menú</h1>
           <p className="text-sm text-gray-400">Navegación rápida</p>
         </div>
-        <Button 
-          size="icon" 
-          variant="ghost" 
-          onClick={() => navigate(-1)} 
+        <Button
+          size="icon"
+          variant="ghost"
+          onClick={() => navigate(-1)}
+          aria-label="Cerrar menú"
           className="h-12 w-12 rounded-full bg-white/10 hover:bg-white/20 text-white"
         >
           <X className="w-7 h-7" />
