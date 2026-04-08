@@ -1518,6 +1518,7 @@ export default function UsersManagement() {
             onClick={() => navigate(-1)}
             size="icon"
             variant="ghost"
+            aria-label="Volver a la página anterior"
             className="w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 text-white"
           >
             <X className="w-5 h-5" />
