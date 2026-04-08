@@ -179,6 +179,8 @@ export default function Financial() {
   const [poSortBy, setPoSortBy] = useState("date"); // date | total | supplier
   const [poSortDir, setPoSortDir] = useState("desc"); // asc | desc
   const [deletingPOId, setDeletingPOId] = useState(null);
+  const [showReorderModal, setShowReorderModal] = useState(false);
+  const [creatingReorderPO, setCreatingReorderPO] = useState(null);
 
   const isFetching = useRef(false);
   const recentFixedExpenseMutationAt = useRef(0);
