@@ -42,6 +42,7 @@ export default function PurchaseOrderDetailDialog({
     expected_date: "",
     notes: "",
     shipping_cost: 0,
+    tracking_number: "",
     items: []
   });
 
