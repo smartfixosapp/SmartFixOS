@@ -175,6 +175,9 @@ export default function Financial() {
   const [viewingPO, setViewingPO] = useState(null);
   const [poSearch, setPoSearch] = useState("");
   const [poStatusFilter, setPoStatusFilter] = useState("all");
+  const [poQuickFilter, setPoQuickFilter] = useState("all"); // all | week | overdue | unpaid | drafts
+  const [poSortBy, setPoSortBy] = useState("date"); // date | total | supplier
+  const [poSortDir, setPoSortDir] = useState("desc"); // asc | desc
   const [deletingPOId, setDeletingPOId] = useState(null);
 
   const isFetching = useRef(false);
