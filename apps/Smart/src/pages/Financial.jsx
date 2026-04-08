@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef, useMemo } from "react";
 import JENAIInsightBanner from "@/components/jenai/JENAIInsightBanner";
 import { callJENAI } from "@/lib/jenaiEngine";
 import { dataClient } from "@/components/api/dataClient";
+import { base44 } from "@/api/base44Client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
