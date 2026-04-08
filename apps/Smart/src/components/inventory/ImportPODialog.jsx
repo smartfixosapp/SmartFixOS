@@ -169,6 +169,7 @@ export default function ImportPODialog({ open, onClose, suppliers = [], products
   const [notes, setNotes] = useState("");
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
+  const [dragOver, setDragOver] = useState(false);
 
   useEffect(() => {
     if (!open) {
