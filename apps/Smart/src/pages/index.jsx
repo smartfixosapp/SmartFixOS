@@ -60,13 +60,44 @@ const Appointments          = lazyWithRetry(() => import("./Appointments"));
 const OrdersMobile          = lazyWithRetry(() => import("./OrdersMobile"));
 const Menu                  = lazyWithRetry(() => import("./Menu"));
 
-// Minimal spinner shown while a lazy chunk loads
+// Minimal spinner shown while a lazy chunk loads.
+// Uses full-screen dark bg so any brief Suspense gap blends with the
+// rest of the dark UI instead of flashing white.
 function PageLoader() {
   return (
-    <div className="flex items-center justify-center min-h-[60vh]">
+    <div className="flex items-center justify-center min-h-screen bg-[#0a0a0c]">
       <div className="w-6 h-6 border-2 border-white/20 border-t-white/70 rounded-full animate-spin" />
     </div>
   );
+}
+
+// Pre-load the chunks for the top-level pages once the app has mounted.
+// This prevents the Suspense fallback (and the visible flash) from kicking
+// in when the user taps a tab in the nav bar — the chunk is already
+// in memory by the time they navigate.
+//
+// Runs in the browser idle callback so it doesn't compete with the
+// initial render and Time-to-Interactive.
+function usePreloadMainRoutes() {
+  React.useEffect(() => {
+    const idle = window.requestIdleCallback || ((cb) => setTimeout(cb, 200));
+    const handle = idle(() => {
+      // Top-level routes most likely to be navigated to first
+      import("./Dashboard");
+      import("./POS");
+      import("./POSDesktop");
+      import("./POSMobile");
+      import("./Orders");
+      import("./OrdersMobile");
+      import("./Customers");
+      import("./Settings");
+      import("./Inventory");
+      import("./Financial");
+    });
+    return () => {
+      if (window.cancelIdleCallback) window.cancelIdleCallback(handle);
+    };
+  }, []);
 }
 
 function _getCurrentPage(url) {
