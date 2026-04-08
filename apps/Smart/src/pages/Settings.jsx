@@ -1233,7 +1233,7 @@ export default function SettingsPage() {
                       <Input value={appConfig.facebook_url || ""} onChange={(e) => setAppConfig({ ...appConfig, facebook_url: e.target.value })} placeholder="https://facebook.com/tutienda" className="bg-white/5 border-white/10 text-white rounded-xl h-11 focus:bg-white/10" />
                     </div>
                     <div className="space-y-1.5">
-                      <label className="text-white/60 text-xs font-semibold ml-1">📸 Instagram</label>
+                      <label className="text-white/60 text-xs font-semibold ml-1 flex items-center gap-1.5"><Instagram className="w-3.5 h-3.5" /> Instagram</label>
                       <Input value={appConfig.instagram_url || ""} onChange={(e) => setAppConfig({ ...appConfig, instagram_url: e.target.value })} placeholder="https://instagram.com/tutienda" className="bg-white/5 border-white/10 text-white rounded-xl h-11 focus:bg-white/10" />
                     </div>
                   </div>
