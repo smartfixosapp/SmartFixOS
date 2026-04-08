@@ -426,7 +426,7 @@ export default function WorkOrderPanel({ order, onUpdate, onClose, onDelete, onP
                       onChange={(e) => setPass(e.target.value)}
                       className="bg-black/40 border-white/10"
                     />
-                    <Button size="icon" variant="ghost" className="h-9 w-9" onClick={() => setShowPass(s => !s)} title={showPass ? "Ocultar" : "Mostrar"}>
+                    <Button size="icon" variant="ghost" className="h-9 w-9" onClick={() => setShowPass(s => !s)} title={showPass ? "Ocultar" : "Mostrar"} aria-label={showPass ? "Ocultar contraseña" : "Mostrar contraseña"}>
                       {showPass ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                     </Button>
                     <Button size="icon" variant="ghost" className="h-9 w-9" onClick={() => copyToClipboard(pass)} title="Copiar password">
