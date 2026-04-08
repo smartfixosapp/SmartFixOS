@@ -596,21 +596,39 @@ export default function ImportPODialog({ open, onClose, suppliers = [], products
                     <div className="grid grid-cols-12 gap-2 mt-2">
                       <div className="col-span-12 md:col-span-6">
                         <p className="text-[10px] text-white/30 font-black uppercase mb-0.5">Producto en inventario</p>
-                        <select
-                          value={row.product_id}
-                          onChange={(e) => onPickProduct(idx, e.target.value)}
-                          className="w-full bg-zinc-900 border border-white/10 rounded-lg px-2 py-1.5 text-xs text-white"
-                        >
-                          <option value="">— Sin match (se creará como descripción) —</option>
-                          {products.map((p) => (
-                            <option key={p.id} value={p.id}>
-                              {p.name}{p.sku ? ` · ${p.sku}` : ""}
-                            </option>
-                          ))}
-                        </select>
+                        <div className="flex gap-1">
+                          <select
+                            value={row.product_id}
+                            onChange={(e) => onPickProduct(idx, e.target.value)}
+                            className="flex-1 min-w-0 bg-zinc-900 border border-white/10 rounded-lg px-2 py-1.5 text-xs text-white"
+                          >
+                            <option value="">— Sin match —</option>
+                            {liveProducts.map((p) => (
+                              <option key={p.id} value={p.id}>
+                                {p.name}{p.sku ? ` · ${p.sku}` : ""}
+                              </option>
+                            ))}
+                          </select>
+                          {!row.product_id && (
+                            <button
+                              type="button"
+                              onClick={() => createProductFromRow(idx)}
+                              disabled={creatingProductIdx === idx || !row.raw_name}
+                              title="Crear este item como producto nuevo en inventario"
+                              className="shrink-0 px-2 rounded-lg bg-emerald-500/15 border border-emerald-500/25 text-emerald-300 text-[10px] font-black hover:bg-emerald-500/25 disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-1"
+                            >
+                              {creatingProductIdx === idx ? (
+                                <Loader2 className="w-3 h-3 animate-spin" />
+                              ) : (
+                                <Plus className="w-3 h-3" />
+                              )}
+                              Crear nuevo
+                            </button>
+                          )}
+                        </div>
                         {row.matchScore > 0 && (
                           <p className={`text-[10px] mt-0.5 font-black ${scoreColor}`}>
-                            Confianza: {(row.matchScore * 100).toFixed(0)}%
+                            {row.product_id ? `Confianza: ${(row.matchScore * 100).toFixed(0)}%` : ""}
                           </p>
                         )}
                       </div>
