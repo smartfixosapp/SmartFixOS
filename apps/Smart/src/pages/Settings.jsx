@@ -1520,14 +1520,14 @@ export default function SettingsPage() {
                 </div>
 
                 {[
-                  { key: "cash",          label: "Efectivo",         icon: "💵" },
-                  { key: "card",          label: "Tarjeta",          icon: "💳" },
-                  { key: "ath_movil",     label: "ATH Móvil",        icon: "📱" },
-                  { key: "bank_transfer", label: "Transferencia",    icon: "🏦" },
-                  { key: "check",         label: "Cheque",           icon: "📝" },
-                ].map(({ key, label, icon }) => (
+                  { key: "cash",          label: "Efectivo",         Icon: DollarSign },
+                  { key: "card",          label: "Tarjeta",          Icon: CreditCard },
+                  { key: "ath_movil",     label: "ATH Móvil",        Icon: Smartphone },
+                  { key: "bank_transfer", label: "Transferencia",    Icon: Landmark },
+                  { key: "check",         label: "Cheque",           Icon: FileText },
+                ].map(({ key, label, Icon }) => (
                   <div key={key} className="flex items-center justify-between py-3 border-b border-white/5 last:border-0">
-                    <span className="text-white font-semibold text-base">{icon} {label}</span>
+                    <span className="text-white font-semibold text-base flex items-center gap-2"><Icon className="w-4 h-4 text-white/70" /> {label}</span>
                     <button
                       onClick={() => setPaymentMethods({ ...paymentMethods, [key]: !paymentMethods[key] })}
                       className={`w-12 h-7 rounded-full transition-colors relative flex items-center px-1 ${paymentMethods[key] ? "bg-green-500" : "bg-white/10"}`}
