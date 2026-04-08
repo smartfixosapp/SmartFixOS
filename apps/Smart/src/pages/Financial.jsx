@@ -1906,6 +1906,61 @@ Maximo 150 palabras. Texto plano, sin markdown.`
                   })}
                 </div>
               )}
+
+              {/* Spend Analytics — por proveedor */}
+              {allPOs.length >= 2 && (() => {
+                const bySup = new Map();
+                for (const po of allPOs) {
+                  const name = po.supplier_name || "Sin proveedor";
+                  const amt = Number(po.total_amount || 0);
+                  bySup.set(name, (bySup.get(name) || 0) + amt);
+                }
+                const chartData = Array.from(bySup.entries())
+                  .map(([name, total]) => ({ name: name.length > 18 ? name.slice(0, 16) + "…" : name, total }))
+                  .sort((a, b) => b.total - a.total)
+                  .slice(0, 10);
+                if (chartData.length < 2) return null;
+                const colors = ["#06b6d4", "#8b5cf6", "#10b981", "#f59e0b", "#ef4444", "#ec4899", "#14b8a6", "#6366f1", "#84cc16", "#f97316"];
+                return (
+                  <div className="mt-4 p-4 rounded-2xl bg-white/[0.02] border border-white/[0.06]">
+                    <div className="flex items-center justify-between mb-3">
+                      <p className="text-xs font-black text-white/60 uppercase tracking-wider">
+                        💰 Gasto por proveedor (histórico)
+                      </p>
+                      <p className="text-[10px] text-white/30">Top {chartData.length}</p>
+                    </div>
+                    <ResponsiveContainer width="100%" height={240}>
+                      <BarChart data={chartData} layout="vertical" margin={{ top: 5, right: 30, left: 10, bottom: 5 }}>
+                        <XAxis type="number" tick={{ fill: "#ffffff60", fontSize: 10 }} axisLine={{ stroke: "#ffffff10" }} tickFormatter={(v) => `$${v.toFixed(0)}`} />
+                        <YAxis type="category" dataKey="name" width={130} tick={{ fill: "#ffffff80", fontSize: 11 }} axisLine={{ stroke: "#ffffff10" }} />
+                        <Tooltip
+                          cursor={{ fill: "#ffffff08" }}
+                          contentStyle={{ background: "#111114", border: "1px solid #ffffff20", borderRadius: "8px", fontSize: "11px" }}
+                          formatter={(v) => [`$${Number(v).toFixed(2)}`, "Total"]}
+                        />
+                        <Bar dataKey="total" radius={[0, 4, 4, 0]}>
+                          {chartData.map((_, i) => (
+                            <Cell key={i} fill={colors[i % colors.length]} />
+                          ))}
+                        </Bar>
+                      </BarChart>
+                    </ResponsiveContainer>
+                    {/* Insight */}
+                    {(() => {
+                      const top = chartData[0];
+                      const totalAll = chartData.reduce((s, d) => s + d.total, 0);
+                      const pctTop = totalAll > 0 ? (top.total / totalAll) * 100 : 0;
+                      return (
+                        <p className="text-[11px] text-white/50 mt-2">
+                          💡 <span className="text-white/80 font-bold">{top.name}</span> representa el{" "}
+                          <span className="text-cyan-300 font-black">{pctTop.toFixed(0)}%</span>{" "}
+                          de tus compras (${top.total.toFixed(0)} de ${totalAll.toFixed(0)} total)
+                        </p>
+                      );
+                    })()}
+                  </div>
+                );
+              })()}
             </div>
           );
         })()}
