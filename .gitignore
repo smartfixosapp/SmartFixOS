@@ -24,7 +24,14 @@ logs/
 .idea/
 *.suo
 *.sw?
-.claude/
+.claude/*
+!.claude/skills/
+!.claude/agents/
+!.claude/commands/
+!.claude/launch.json
+
+# MCP server config (contains API keys)
+.mcp.json
 
 # Certificates / keys
 *.pem
