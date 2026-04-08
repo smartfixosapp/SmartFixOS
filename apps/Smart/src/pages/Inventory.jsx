@@ -1952,6 +1952,7 @@ Maximo 150 palabras. Texto plano, sin markdown.`
             </p>
             <div className="flex items-center gap-3">
               <Button size="icon" variant="ghost" disabled={page <= 1} onClick={() => setPage(p => Math.max(1, p - 1))}
+                aria-label="Página anterior"
                 className="h-9 w-9 rounded-full bg-white/5 hover:bg-white/10 border border-white/10 disabled:opacity-30 transition-all">
                 <ChevronLeft className="w-4 h-4" />
               </Button>
