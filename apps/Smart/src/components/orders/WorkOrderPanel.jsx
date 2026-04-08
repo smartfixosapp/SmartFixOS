@@ -413,6 +413,7 @@ export default function WorkOrderPanelV2({ orderId, onClose, onUpdate, user }) {
                 variant="ghost"
                 size="icon"
                 onClick={() => setShowShareMenu(v => !v)}
+                aria-label="Compartir recibo"
                 className="text-violet-400 hover:text-violet-300 hover:bg-violet-500/10"
                 title="Compartir recibo"
               >
