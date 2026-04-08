@@ -1061,7 +1061,8 @@ Máximo 30 palabras en total.`;
               </div>
               <button
                 onClick={() => setSelectedCustomer(null)}
-                className="w-8 h-8 rounded-full bg-white/5 text-white/50 hover:text-red-400 hover:bg-red-400/10 flex items-center justify-center transition-all"
+                aria-label="Quitar cliente seleccionado"
+                className="w-11 h-11 rounded-full bg-white/5 text-white/50 hover:text-red-400 hover:bg-red-400/10 flex items-center justify-center transition-all"
               >
                 <X className="w-4 h-4" />
               </button>
