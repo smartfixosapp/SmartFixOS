@@ -154,7 +154,7 @@ export default function OrderNotes({ order, onUpdate }) {
                   placeholder="https://proveedor.com/producto..."
                   className="bg-black/40 border-white/10 text-white"
                 />
-                <Button onClick={addLink} disabled={loading || !linkPart.trim() || !linkUrl.trim()} size="icon" className="bg-blue-600 hover:bg-blue-700 shrink-0">
+                <Button onClick={addLink} disabled={loading || !linkPart.trim() || !linkUrl.trim()} size="icon" aria-label="Agregar link de pieza" className="bg-blue-600 hover:bg-blue-700 shrink-0">
                   <LinkIcon className="w-4 h-4" />
                 </Button>
               </div>
