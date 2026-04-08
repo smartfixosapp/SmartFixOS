@@ -111,10 +111,23 @@ function ReturnLogin() {
     );
 }
 
-function ProtectedRoutes() {
+// Wrapper that animates page transitions with framer-motion.
+// AnimatePresence mode="wait" → old page fully exits before new one enters,
+// preventing the white/dark flash when navigating.
+// User preference for reduced motion is respected automatically by framer-motion.
+function AnimatedRoutes() {
+    const location = useLocation();
     return (
-        <AuthGate>
-            <Routes>
+        <AnimatePresence mode="wait" initial={false}>
+            <motion.div
+                key={location.pathname}
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.18, ease: [0.4, 0, 0.2, 1] }}
+                style={{ minHeight: '100%' }}
+            >
+                <Routes location={location}>
                     <Route path="/" element={<Dashboard />} />
                     <Route path="/Activate" element={<Activate />} />
                     <Route path="/AdminDashboard" element={<AdminDashboard />} />
@@ -149,7 +162,16 @@ function ProtectedRoutes() {
                     <Route path="/OrdersMobile" element={<OrdersMobile />} />
                     <Route path="/Menu" element={<Menu />} />
                     <Route path="/Welcome" element={<Welcome />} />
-            </Routes>
+                </Routes>
+            </motion.div>
+        </AnimatePresence>
+    );
+}
+
+function ProtectedRoutes() {
+    return (
+        <AuthGate>
+            <AnimatedRoutes />
         </AuthGate>
     );
 }
