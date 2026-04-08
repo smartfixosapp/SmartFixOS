@@ -1609,6 +1609,23 @@ Maximo 150 palabras. Texto plano, sin markdown.`
                 >
                   <Sparkles className="w-3.5 h-3.5" /> Importar con Jeani
                 </button>
+                {(() => {
+                  const lowStock = (poProducts || []).filter((p) => {
+                    const s = Number(p.stock || 0);
+                    const m = Number(p.min_stock || 0);
+                    return m > 0 && s < m && p.active !== false;
+                  });
+                  if (lowStock.length === 0) return null;
+                  return (
+                    <button
+                      onClick={() => setShowReorderModal(true)}
+                      className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-amber-500/15 border border-amber-500/20 text-amber-300 text-xs font-black hover:bg-amber-500/25 transition-all active:scale-95"
+                      title="Productos con stock bajo del mínimo"
+                    >
+                      <AlertTriangle className="w-3.5 h-3.5" /> Reordenar ({lowStock.length})
+                    </button>
+                  );
+                })()}
                 <div className="ml-auto flex items-center gap-2 text-xs">
                   <span className="text-white/40 font-bold">Filtradas:</span>
                   <span className="text-amber-300 font-black tabular-nums">${totalPending.toFixed(2)}</span>
