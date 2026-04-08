@@ -441,7 +441,7 @@ export default function ImportPODialog({ open, onClose, suppliers = [], products
   const addEmptyRow = () => {
     setReviewRows((rows) => [
       ...rows,
-      { raw_name: "", product_id: "", product_name: "", quantity: 1, unit_cost: 0, matchScore: 0 },
+      { raw_name: "", product_id: "", product_name: "", quantity: 1, unit_cost: 0, matchScore: 0, work_order_id: "" },
     ]);
   };
   const onPickProduct = (idx, productId) => {
