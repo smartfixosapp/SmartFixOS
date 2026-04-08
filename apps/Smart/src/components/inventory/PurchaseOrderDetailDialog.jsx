@@ -229,7 +229,19 @@ export default function PurchaseOrderDetailDialog({
     const n = Math.max(1, Number(qty || 1));
     setForm((f) => ({
       ...f,
-      items: f.items.map((it, i) => i === idx ? { ...it, quantity: n } : it)
+      items: f.items.map((it, i) =>
+        i === idx ? { ...it, quantity: n, received_quantity: n } : it,
+      ),
+    }));
+  };
+
+  const handleChangeItemReceivedQty = (idx, qty) => {
+    const n = Math.max(0, Number(qty || 0));
+    setForm((f) => ({
+      ...f,
+      items: f.items.map((it, i) =>
+        i === idx ? { ...it, received_quantity: Math.min(n, Number(it.quantity || 1)) } : it,
+      ),
     }));
   };
 
