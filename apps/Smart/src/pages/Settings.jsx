@@ -1264,7 +1264,7 @@ export default function SettingsPage() {
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 relative z-10">
                   <div className="space-y-1.5">
-                    <label className="text-white/60 text-xs font-semibold ml-1">💵 Moneda</label>
+                    <label className="text-white/60 text-xs font-semibold ml-1 flex items-center gap-1.5"><DollarSign className="w-3.5 h-3.5" /> Moneda</label>
                     <select
                       value={appConfig.currency || "USD"}
                       onChange={(e) => setAppConfig({ ...appConfig, currency: e.target.value })}
