@@ -1378,6 +1378,146 @@ Maximo 150 palabras. Texto plano, sin markdown.`
           </div>
         )}
 
+        {/* Tab: Órdenes de Compra */}
+        {activeTab === "compras" && (() => {
+          const statusLabel = (s) => ({
+            draft: "Borrador", pending: "Pendiente", ordered: "Enviada",
+            partial: "Parcial", received: "Recibida", cancelled: "Cancelada",
+          })[s] || s || "—";
+          const statusColor = (s) => ({
+            draft:     "bg-white/[0.06] text-white/60 border-white/10",
+            pending:   "bg-amber-500/15 text-amber-300 border-amber-500/20",
+            ordered:   "bg-cyan-500/15 text-cyan-300 border-cyan-500/20",
+            partial:   "bg-violet-500/15 text-violet-300 border-violet-500/20",
+            received:  "bg-emerald-500/15 text-emerald-300 border-emerald-500/20",
+            cancelled: "bg-red-500/15 text-red-300 border-red-500/20",
+          })[s] || "bg-white/[0.06] text-white/60 border-white/10";
+
+          const q = poSearch.trim().toLowerCase();
+          const filteredPOs = (purchaseOrders || []).filter((po) => {
+            if (poStatusFilter !== "all" && (po.status || "draft") !== poStatusFilter) return false;
+            if (!q) return true;
+            return (
+              String(po.po_number || "").toLowerCase().includes(q) ||
+              String(po.supplier_name || "").toLowerCase().includes(q) ||
+              String(po.notes || "").toLowerCase().includes(q)
+            );
+          });
+
+          const totalPending = filteredPOs
+            .filter((po) => !["received", "cancelled"].includes(po.status || "draft"))
+            .reduce((s, po) => s + Number(po.total_amount || 0), 0);
+
+          return (
+            <div className="space-y-3 mt-1">
+              {/* Header acciones */}
+              <div className="flex flex-wrap items-center gap-2">
+                <button
+                  onClick={() => { setEditingPO(null); setShowPODialog(true); }}
+                  className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-cyan-500/15 border border-cyan-500/20 text-cyan-300 text-xs font-black hover:bg-cyan-500/25 transition-all active:scale-95"
+                >
+                  <Plus className="w-3.5 h-3.5" /> Nueva orden de compra
+                </button>
+                <div className="ml-auto flex items-center gap-2 text-xs">
+                  <span className="text-white/40 font-bold">Pendiente por pagar:</span>
+                  <span className="text-amber-300 font-black tabular-nums">${totalPending.toFixed(2)}</span>
+                </div>
+              </div>
+
+              {/* Filtros */}
+              <div className="flex flex-wrap gap-2 items-center">
+                <Input
+                  value={poSearch}
+                  onChange={(e) => setPoSearch(e.target.value)}
+                  placeholder="Buscar por número, proveedor o nota…"
+                  className="max-w-xs bg-white/[0.04] border-white/10 text-white text-xs"
+                />
+                <div className="flex gap-1.5 flex-wrap">
+                  {[
+                    { id: "all", label: "Todas" },
+                    { id: "draft", label: "Borrador" },
+                    { id: "pending", label: "Pendiente" },
+                    { id: "ordered", label: "Enviada" },
+                    { id: "partial", label: "Parcial" },
+                    { id: "received", label: "Recibida" },
+                  ].map((f) => (
+                    <button
+                      key={f.id}
+                      onClick={() => setPoStatusFilter(f.id)}
+                      className={`px-3 py-1.5 rounded-xl text-[11px] font-black transition-all border ${
+                        poStatusFilter === f.id
+                          ? "bg-cyan-600 border-cyan-600 text-white"
+                          : "bg-white/[0.04] border-white/[0.08] text-white/40 hover:text-white/70"
+                      }`}
+                    >
+                      {f.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Lista */}
+              {loading ? (
+                <div className="py-12 text-center">
+                  <RefreshCw className="w-5 h-5 animate-spin mx-auto mb-2 text-white/20" />
+                  <p className="text-xs text-white/20 font-bold">Cargando órdenes…</p>
+                </div>
+              ) : filteredPOs.length === 0 ? (
+                <div className="py-16 text-center bg-white/[0.02] border border-dashed border-white/10 rounded-2xl">
+                  <ShoppingCart className="w-8 h-8 mx-auto mb-2 text-white/20" />
+                  <p className="text-white/40 font-bold text-sm">
+                    {(purchaseOrders || []).length === 0
+                      ? "Aún no hay órdenes de compra"
+                      : "Sin resultados con los filtros actuales"}
+                  </p>
+                  <p className="text-white/25 text-[11px] mt-1">
+                    Crea la primera con “Nueva orden de compra”
+                  </p>
+                </div>
+              ) : (
+                <div className="space-y-1.5">
+                  {filteredPOs.map((po) => {
+                    const itemsCount = (po.items || po.line_items || []).length;
+                    const date = po.created_date || po.created_at || po.order_date;
+                    const status = po.status || "draft";
+                    return (
+                      <button
+                        key={po.id}
+                        onClick={() => setViewingPO(po)}
+                        className="w-full text-left flex items-center gap-3 p-3.5 rounded-2xl bg-white/[0.03] hover:bg-white/[0.06] border border-white/[0.06] transition-all"
+                      >
+                        <div className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0 bg-cyan-500/10 text-cyan-400">
+                          <Truck className="w-4 h-4" />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2">
+                            <p className="text-white font-black text-sm truncate">
+                              {po.po_number || `OC-${String(po.id || "").slice(-6)}`}
+                            </p>
+                            <span className={`px-2 py-0.5 rounded-md text-[10px] font-black border ${statusColor(status)}`}>
+                              {statusLabel(status)}
+                            </span>
+                          </div>
+                          <p className="text-[11px] text-white/40 truncate">
+                            {po.supplier_name || "Suplidor no definido"} · {itemsCount} productos
+                            {date ? ` · ${format(new Date(date), "dd MMM yyyy", { locale: es })}` : ""}
+                          </p>
+                        </div>
+                        <div className="flex items-center gap-2 shrink-0">
+                          <p className="text-sm font-black text-white tabular-nums">
+                            ${Number(po.total_amount || 0).toFixed(2)}
+                          </p>
+                          <Eye className="w-4 h-4 text-white/30" />
+                        </div>
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          );
+        })()}
+
         {/* Tab: Reportes — lazy mount */}
         {activeTab === "reportes" && (
           <PlanGate feature="reports_financial" fallback={<UpgradePrompt feature="reports_financial" message="Reportes financieros disponibles en el plan Business" />}>
