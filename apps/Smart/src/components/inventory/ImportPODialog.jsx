@@ -435,6 +435,7 @@ export default function ImportPODialog({ open, onClose, suppliers = [], products
         unit_cost: Number(it.unit_price || 0),
         matchScore: match?.score || 0,
         work_order_id: "",
+        ai_category: it.category || "other", // Categoría sugerida por Jeani
       };
     });
     setReviewRows(rows);
