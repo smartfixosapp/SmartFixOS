@@ -2972,6 +2972,7 @@ export default function WorkOrderPanel({ orderId, onClose, onUpdate, onDelete, p
                   size="icon"
                   onClick={handleRequestDelete}
                   disabled={deleting}
+                  aria-label="Eliminar orden"
                   className="w-10 h-10 rounded-full border border-white/10 bg-white/5 text-white/60 hover:text-red-400 hover:bg-red-500/10 hover:border-red-500/30 transition-all duration-300"
                 >
                   <Trash2 className="w-4 h-4" />
