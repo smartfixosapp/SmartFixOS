@@ -256,6 +256,7 @@ export default function CreateCustomerDialog({ open, onClose, onSuccess, custome
                         }}
                         size="icon"
                         variant="ghost"
+                        aria-label="Eliminar teléfono adicional"
                         className="h-10 w-10 text-red-500 hover:bg-red-500/10"
                       >
                         <X className="w-4 h-4" />
