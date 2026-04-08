@@ -844,9 +844,9 @@ export default function ImportPODialog({ open, onClose, suppliers = [], products
                           {!row.product_id && (
                             <button
                               type="button"
-                              onClick={() => createProductFromRow(idx)}
+                              onClick={() => openCreateProductModal(idx)}
                               disabled={creatingProductIdx === idx || !row.raw_name}
-                              title="Crear este item como producto nuevo en inventario"
+                              title="Crear este item como producto nuevo en inventario (te pide el precio de venta primero)"
                               className="shrink-0 px-2 rounded-lg bg-emerald-500/15 border border-emerald-500/25 text-emerald-300 text-[10px] font-black hover:bg-emerald-500/25 disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-1"
                             >
                               {creatingProductIdx === idx ? (
