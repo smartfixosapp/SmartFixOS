@@ -478,7 +478,7 @@ export default function ImportPODialog({ open, onClose, suppliers = [], products
       name: row.raw_name.trim(),
       cost,
       price: cost > 0 ? Math.round(cost * 1.5 * 100) / 100 : "", // sugerencia 50% margen
-      category: "screen",
+      category: row.ai_category || "screen",
       tipo_principal: "dispositivos",
     });
   };
