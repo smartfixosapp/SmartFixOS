@@ -491,6 +491,107 @@ export default function ImportPODialog({ open, onClose, suppliers = [], products
     });
   };
 
+  // Crea productos en masa para todos los items sin match, usando el margen global.
+  const bulkCreateNewProducts = async () => {
+    const toCreate = reviewRows
+      .map((r, i) => ({ row: r, idx: i }))
+      .filter(({ row }) => !row.product_id && row.raw_name);
+    if (toCreate.length === 0) {
+      toast.info("No hay items sin match para crear");
+      return;
+    }
+    const ok = window.confirm(
+      `¿Crear ${toCreate.length} producto${toCreate.length === 1 ? "" : "s"} nuevo${toCreate.length === 1 ? "" : "s"} en inventario con margen de ${bulkMarginPct}%?`
+    );
+    if (!ok) return;
+    setBulkCreating(true);
+    const supplier = suppliers.find((s) => s.id === supplierId);
+    const created = [];
+    let failed = 0;
+    for (const { row, idx } of toCreate) {
+      const cost = Number(row.unit_cost || 0);
+      const price = cost > 0 ? Math.round(cost * (1 + bulkMarginPct / 100) * 100) / 100 : 0;
+      try {
+        const product = await base44.entities.Product.create({
+          name: row.raw_name.trim(),
+          type: "product",
+          cost,
+          price,
+          stock: 0,
+          min_stock: 5,
+          active: true,
+          supplier_id: supplier?.id || "",
+          supplier_name: supplier?.name || extracted?.supplier_name || "",
+          category: row.ai_category || "other",
+          tipo_principal: "dispositivos",
+        });
+        if (product?.id) {
+          created.push({ idx, product });
+        }
+      } catch (err) {
+        console.warn(`No se pudo crear ${row.raw_name}:`, err);
+        failed++;
+      }
+    }
+    // Aplicar los matches
+    setLiveProducts((list) => [...created.map((c) => c.product), ...list]);
+    setReviewRows((rows) =>
+      rows.map((r, i) => {
+        const hit = created.find((c) => c.idx === i);
+        if (!hit) return r;
+        return {
+          ...r,
+          product_id: hit.product.id,
+          product_name: hit.product.name,
+          matchScore: 1,
+        };
+      })
+    );
+    setBulkCreating(false);
+    if (failed > 0) {
+      toast.warning(`Creados ${created.length}, fallaron ${failed}`);
+    } else {
+      toast.success(`${created.length} producto${created.length === 1 ? "" : "s"} creado${created.length === 1 ? "" : "s"} con ${bulkMarginPct}% de margen`);
+    }
+  };
+
+  // Carga el historial de precios (últimas compras) para los productos matcheados
+  const loadPriceHistory = async () => {
+    const productIds = Array.from(
+      new Set(reviewRows.filter((r) => r.product_id).map((r) => r.product_id))
+    );
+    if (productIds.length === 0) return;
+    const history = {};
+    // Por cada producto, pedimos los últimos movimientos "purchase"
+    await Promise.all(
+      productIds.map(async (pid) => {
+        try {
+          const movements = await base44.entities.InventoryMovement.filter
+            ? await base44.entities.InventoryMovement.filter(
+                { product_id: pid, movement_type: "purchase" },
+                "-created_date",
+                5
+              )
+            : [];
+          // Cada movimiento no tiene el costo directo; lo inferimos de las notas o skip
+          // Si tu InventoryMovement no guarda costo, esto quedará vacío y no mostramos nada.
+          if (Array.isArray(movements) && movements.length > 0) {
+            history[pid] = movements;
+          }
+        } catch { /* silent */ }
+      })
+    );
+    setPriceHistory(history);
+  };
+
+  useEffect(() => {
+    // Cargar historial cuando cambian las filas matcheadas
+    if (extracted && reviewRows.some((r) => r.product_id)) {
+      loadPriceHistory();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [extracted]);
+
   // Confirma la creación desde el sub-modal
   const confirmCreateProduct = async () => {
     const draft = newProductForRow;
