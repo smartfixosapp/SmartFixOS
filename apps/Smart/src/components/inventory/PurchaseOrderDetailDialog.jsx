@@ -359,9 +359,10 @@ export default function PurchaseOrderDetailDialog({
 
   const statusConfig = {
     draft: { label: "Borrador", cls: "bg-slate-600/20 text-slate-300 border-slate-600/40" },
-    ordered: { label: "Ordenado", cls: "bg-blue-500/20 text-blue-300 border-blue-500/40" },
-    received: { label: "Recibido", cls: "bg-emerald-500/20 text-emerald-300 border-emerald-500/40" },
-    cancelled: { label: "Cancelado", cls: "bg-red-500/20 text-red-300 border-red-500/40" }
+    ordered: { label: "Enviada", cls: "bg-blue-500/20 text-blue-300 border-blue-500/40" },
+    partial: { label: "Parcial", cls: "bg-violet-500/20 text-violet-300 border-violet-500/40" },
+    received: { label: "Recibida", cls: "bg-emerald-500/20 text-emerald-300 border-emerald-500/40" },
+    cancelled: { label: "Cancelada", cls: "bg-red-500/20 text-red-300 border-red-500/40" }
   };
 
   return (
