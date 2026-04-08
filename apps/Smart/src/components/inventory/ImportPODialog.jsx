@@ -860,6 +860,26 @@ export default function ImportPODialog({ open, onClose, suppliers = [], products
           ? `OC importada · ${lineItems.length} items · Gasto $${totalAmount.toFixed(2)} registrado`
           : `OC importada · ${lineItems.length} items (borrador)`,
       );
+
+      // Insight opcional de Jeani: comparar con compras recientes del mismo proveedor
+      try {
+        const supName = supplier?.name || extracted?.supplier_name || "";
+        const recentSameSupplier = (existingPOs || [])
+          .filter((po) => (po.supplier_name || "").toLowerCase() === supName.toLowerCase())
+          .slice(0, 5);
+        if (supName && recentSameSupplier.length >= 1) {
+          const avgRecent = recentSameSupplier.reduce((s, p) => s + Number(p.total_amount || 0), 0) / recentSameSupplier.length;
+          const diffPct = avgRecent > 0 ? ((totalAmount - avgRecent) / avgRecent) * 100 : 0;
+          if (Math.abs(diffPct) >= 15) {
+            const direction = diffPct > 0 ? "más" : "menos";
+            toast(
+              `💡 Jeani: Gastaste ${Math.abs(diffPct).toFixed(0)}% ${direction} que tu promedio con ${supName} (últimas ${recentSameSupplier.length} OCs: $${avgRecent.toFixed(0)} prom.)`,
+              { duration: 8000 },
+            );
+          }
+        }
+      } catch { /* insight no-critical */ }
+
       onClose?.();
     } catch (err) {
       console.error("Create PO error:", err);
