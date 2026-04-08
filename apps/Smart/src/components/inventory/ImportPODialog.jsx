@@ -791,11 +791,17 @@ export default function ImportPODialog({ open, onClose, suppliers = [], products
           const p = liveProducts.find((x) => x.id === m.product_id);
           if (!p) return r;
           updated++;
+          const newCost = r.unit_cost || (p.cost != null ? Number(p.cost) : 0);
+          // Si el producto tiene precio, usarlo. Sino, mantener el actual o 1.5x cost.
+          const newPrice = p.price != null && Number(p.price) > 0
+            ? Number(p.price)
+            : (r.unit_price > 0 ? r.unit_price : (newCost > 0 ? Math.round(newCost * 1.5 * 100) / 100 : 0));
           return {
             ...r,
             product_id: p.id,
             product_name: p.name,
-            unit_cost: r.unit_cost || (p.cost != null ? Number(p.cost) : 0),
+            unit_cost: newCost,
+            unit_price: newPrice,
             matchScore: m.confidence || 0.9,
           };
         }),
