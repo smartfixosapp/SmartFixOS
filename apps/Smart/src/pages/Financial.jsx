@@ -1335,7 +1335,22 @@ Maximo 150 palabras. Texto plano, sin markdown.`
                     </div>
                     <div className="flex-1 min-w-0">
                       <p className="text-white font-bold text-sm truncate leading-tight">{m.title}</p>
-                      <p className="text-[11px] text-white/30 truncate">{m.subtitle}{m.date ? ` · ${format(new Date(m.date), "dd MMM HH:mm", { locale: es })}` : ""}</p>
+                      <p className="text-[11px] text-white/30 truncate">
+                        {m.subtitle}
+                        {m.date ? ` · ${format(new Date(m.date), "dd MMM HH:mm", { locale: es })}` : ""}
+                        {m.linkedPO && (
+                          <>
+                            {" · "}
+                            <button
+                              onClick={() => { setActiveTab("compras"); setViewingPO(m.linkedPO); }}
+                              className="text-cyan-400 hover:text-cyan-300 font-black underline decoration-dotted"
+                              title="Ver orden de compra"
+                            >
+                              🛒 {m.linkedPO.po_number}
+                            </button>
+                          </>
+                        )}
+                      </p>
                     </div>
                     <div className="flex items-center gap-1.5 shrink-0">
                       <p className={`text-sm font-black ${m.kind === "income" ? "text-emerald-400" : "text-red-400"}`}>
