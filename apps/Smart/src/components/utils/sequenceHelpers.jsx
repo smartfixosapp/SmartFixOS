@@ -64,7 +64,29 @@ async function generateLocalCustomerNumberFallback() {
 }
 
 async function generateLocalOrderNumberFallback() {
-  // Numeración estrictamente local y consecutiva para entorno offline/local.
+  // Consulta la DB real y busca el primer número disponible (reusa gaps de
+  // órdenes borradas). Si la DB no responde, cae a localStorage como último recurso.
+  try {
+    const orders = await appClient.entities.Order.list("-created_date", 10000);
+    const usedNumbers = new Set();
+    for (const o of orders || []) {
+      const m = String(o?.order_number || "").match(/^WO-(\d+)$/i);
+      if (m) {
+        const n = Number(m[1]);
+        if (Number.isFinite(n) && n > 0) usedNumbers.add(n);
+      }
+    }
+    // Buscar el menor número positivo NO usado (rellena gaps)
+    let next = 1;
+    while (usedNumbers.has(next)) next++;
+    // Persistir en localStorage como espejo (solo para fallback offline)
+    try { localStorage.setItem("smartfix_local_seq_order", String(next)); } catch { /* no-op */ }
+    return formatSimpleOrderNumber(next);
+  } catch (err) {
+    console.warn("generateOrderNumber: DB unavailable, fallback a localStorage:", err?.message || err);
+  }
+
+  // Fallback offline: localStorage counter (último recurso)
   const seqKey = "smartfix_local_seq_order";
   const ordersKey = "smartfix_local_orders";
   let ordersCount = 0;
