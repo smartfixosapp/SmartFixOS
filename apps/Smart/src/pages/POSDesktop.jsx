@@ -1039,7 +1039,7 @@ Máximo 30 palabras en total.`;
       </div>
 
       {/* RIGHT: Cart & Checkout */}
-      <div className="w-full md:w-[340px] lg:w-[380px] xl:w-[420px] flex-shrink-0 bg-[#0D0D0F]/60 backdrop-blur-[32px] rounded-[32px] border border-white/[0.08] flex flex-col overflow-hidden shadow-[0_30px_60px_rgba(0,0,0,0.5)]">
+      <div className="liquid-glass-strong w-full md:w-[340px] lg:w-[380px] xl:w-[420px] flex-shrink-0 rounded-[32px] flex flex-col overflow-hidden">
         <div className="p-8 border-b border-white/[0.05]">
           <div className="flex items-center justify-between mb-6">
             <h2 className="text-2xl font-black text-white tracking-tighter uppercase">Carrito</h2>
