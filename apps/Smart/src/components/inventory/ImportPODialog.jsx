@@ -1018,6 +1018,41 @@ export default function ImportPODialog({ open, onClose, suppliers = [], products
               </button>
             </div>
 
+            {/* Bulk create — aparece solo si hay items sin match */}
+            {unmatchedCount > 0 && (
+              <div className="p-3 rounded-xl bg-emerald-500/[0.05] border border-emerald-500/20 flex items-center gap-3 flex-wrap">
+                <div className="flex-1 min-w-0">
+                  <p className="text-xs font-black text-white">
+                    Crear los {unmatchedCount} sin match como productos nuevos
+                  </p>
+                  <p className="text-[10px] text-white/40 mt-0.5">
+                    Se crean con el margen global. Puedes ajustarlo después en Inventario.
+                  </p>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-[10px] text-white/50 font-black uppercase">Margen:</span>
+                  <input
+                    type="range"
+                    min="10"
+                    max="150"
+                    step="5"
+                    value={bulkMarginPct}
+                    onChange={(e) => setBulkMarginPct(Number(e.target.value))}
+                    className="w-24 accent-emerald-500"
+                  />
+                  <span className="text-sm font-black text-emerald-300 tabular-nums w-10">{bulkMarginPct}%</span>
+                </div>
+                <button
+                  onClick={bulkCreateNewProducts}
+                  disabled={bulkCreating}
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-500/20 border border-emerald-500/30 text-emerald-200 text-xs font-black hover:bg-emerald-500/30 disabled:opacity-40"
+                >
+                  {bulkCreating ? <Loader2 className="w-3 h-3 animate-spin" /> : <Plus className="w-3 h-3" />}
+                  Crear todos
+                </button>
+              </div>
+            )}
+
             {/* Tabla review */}
             <div className="space-y-1.5 max-h-[45vh] overflow-y-auto pr-1">
               {reviewRows.map((row, idx) => {
