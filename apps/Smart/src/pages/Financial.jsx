@@ -1749,6 +1749,63 @@ Maximo 150 palabras. Texto plano, sin markdown.`
                     </>
                   )}
                 </div>
+              ) : poViewMode === "grouped" ? (
+                <div className="space-y-3">
+                  {(() => {
+                    const groups = new Map();
+                    for (const po of displayPOs) {
+                      const key = po.supplier_name || "Sin proveedor";
+                      if (!groups.has(key)) groups.set(key, []);
+                      groups.get(key).push(po);
+                    }
+                    const arr = Array.from(groups.entries()).sort((a, b) => {
+                      const tA = a[1].reduce((s, po) => s + Number(po.total_amount || 0), 0);
+                      const tB = b[1].reduce((s, po) => s + Number(po.total_amount || 0), 0);
+                      return tB - tA;
+                    });
+                    return arr.map(([name, items]) => {
+                      const total = items.reduce((s, po) => s + Number(po.total_amount || 0), 0);
+                      const pending = items.filter((po) => !["received", "cancelled"].includes(po.status || "draft"));
+                      return (
+                        <div key={name} className="bg-white/[0.02] border border-white/[0.06] rounded-2xl p-3">
+                          <div className="flex items-center justify-between gap-2 mb-2 pb-2 border-b border-white/[0.06]">
+                            <div className="flex-1 min-w-0">
+                              <p className="text-sm font-black text-white truncate">📦 {name}</p>
+                              <p className="text-[10px] text-white/40">
+                                {items.length} orden{items.length === 1 ? "" : "es"}
+                                {pending.length > 0 && ` · ${pending.length} pendiente${pending.length === 1 ? "" : "s"}`}
+                              </p>
+                            </div>
+                            <p className="text-base font-black text-white tabular-nums shrink-0">${total.toFixed(2)}</p>
+                          </div>
+                          <div className="space-y-1">
+                            {items.map((po) => {
+                              const st = po.status || "draft";
+                              return (
+                                <button
+                                  key={po.id}
+                                  onClick={() => setViewingPO(po)}
+                                  className="w-full flex items-center gap-2 py-1.5 px-2 rounded-lg hover:bg-white/[0.04] transition-colors text-left"
+                                >
+                                  <span className={`px-1.5 py-0.5 rounded text-[9px] font-black border ${statusColor(st)}`}>
+                                    {statusLabel(st)}
+                                  </span>
+                                  <span className="flex-1 min-w-0 text-xs text-white/70 truncate">
+                                    {po.po_number || `OC-${String(po.id || "").slice(-6)}`}
+                                  </span>
+                                  {isOverdue(po) && (
+                                    <span className="text-[9px] text-red-400 font-black">⚠ Vencida</span>
+                                  )}
+                                  <span className="text-xs font-black text-white tabular-nums">${Number(po.total_amount || 0).toFixed(2)}</span>
+                                </button>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      );
+                    });
+                  })()}
+                </div>
               ) : (
                 <div className="space-y-1.5">
                   {displayPOs.map((po) => {
