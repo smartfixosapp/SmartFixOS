@@ -369,8 +369,8 @@ export default function ImportPODialog({ open, onClose, suppliers = [], products
     e.preventDefault();
     e.stopPropagation();
     setDragOver(false);
-    const f = e.dataTransfer?.files?.[0];
-    if (f) acceptFile(f);
+    const files = e.dataTransfer?.files;
+    if (files && files.length > 0) acceptFiles(files);
   };
 
   const isImage = file && /^image\//.test(file.type);
