@@ -514,18 +514,25 @@ export default function Financial() {
       raw: s,
       canEdit: false
     }));
-    const expns = (Array.isArray(filteredExpenses) ? filteredExpenses : []).map(e => ({
-      id: `expense-${e.id}`,
-      kind: "expense",
-      date: getEntityDate(e),
-      title: e.description || "Gasto",
-      subtitle: CATEGORY_LABELS[e.category] || e.category || "Misceláneo",
-      amount: getExpenseMagnitude(e.amount),
-      method: e.payment_method || "cash",
-      raw: e,
-      canEdit: e._source === "transaction",
-      origId: e.id
-    }));
+    const expns = (Array.isArray(filteredExpenses) ? filteredExpenses : []).map(e => {
+      // Buscar PO enlazada por order_number (OC PO-XXX)
+      const poRef = e.order_number && String(e.order_number).startsWith("PO-")
+        ? purchaseOrders.find((po) => po.po_number === e.order_number)
+        : null;
+      return {
+        id: `expense-${e.id}`,
+        kind: "expense",
+        date: getEntityDate(e),
+        title: e.description || "Gasto",
+        subtitle: CATEGORY_LABELS[e.category] || e.category || "Misceláneo",
+        amount: getExpenseMagnitude(e.amount),
+        method: e.payment_method || "cash",
+        raw: e,
+        canEdit: e._source === "transaction",
+        origId: e.id,
+        linkedPO: poRef || null,
+      };
+    });
     return [...income, ...expns].sort((a, b) => {
       if (!a.date) return 1;
       if (!b.date) return -1;
