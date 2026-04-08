@@ -254,6 +254,7 @@ export default function FullNotificationPanel({ user, onClose }) {
               size="icon"
               variant="ghost"
               onClick={onClose}
+              aria-label="Cerrar panel de notificaciones"
               className="text-gray-400 hover:text-white"
             >
               <X className="w-5 h-5" />
