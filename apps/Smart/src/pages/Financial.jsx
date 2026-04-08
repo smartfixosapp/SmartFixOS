@@ -1486,6 +1486,32 @@ Maximo 150 palabras. Texto plano, sin markdown.`
 
           return (
             <div className="space-y-3 mt-1">
+              {/* Stats bar */}
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+                <div className="p-3 rounded-xl bg-white/[0.03] border border-white/[0.08]">
+                  <p className="text-[10px] text-white/40 uppercase font-black tracking-wider">Este mes</p>
+                  <p className="text-white text-lg font-black tabular-nums mt-1">${monthTotal.toFixed(2)}</p>
+                  <p className="text-[10px] text-white/30 font-bold">{monthPOs.length} orden{monthPOs.length === 1 ? "" : "es"}</p>
+                </div>
+                <div className="p-3 rounded-xl bg-amber-500/[0.05] border border-amber-500/20">
+                  <p className="text-[10px] text-amber-400/70 uppercase font-black tracking-wider">Pendiente</p>
+                  <p className="text-amber-300 text-lg font-black tabular-nums mt-1">${pendingTotal.toFixed(2)}</p>
+                  <p className="text-[10px] text-amber-400/50 font-bold">{pendingPOs.length} sin recibir</p>
+                </div>
+                <div className={`p-3 rounded-xl border ${overduePOs.length > 0 ? "bg-red-500/[0.05] border-red-500/25" : "bg-white/[0.03] border-white/[0.08]"}`}>
+                  <p className={`text-[10px] uppercase font-black tracking-wider ${overduePOs.length > 0 ? "text-red-400/70" : "text-white/40"}`}>Vencidas</p>
+                  <p className={`text-lg font-black tabular-nums mt-1 ${overduePOs.length > 0 ? "text-red-300" : "text-white/40"}`}>{overduePOs.length}</p>
+                  <p className={`text-[10px] font-bold ${overduePOs.length > 0 ? "text-red-400/50" : "text-white/30"}`}>
+                    {overduePOs.length > 0 ? "requieren atención" : "todo al día"}
+                  </p>
+                </div>
+                <div className="p-3 rounded-xl bg-white/[0.03] border border-white/[0.08]">
+                  <p className="text-[10px] text-white/40 uppercase font-black tracking-wider">Total OCs</p>
+                  <p className="text-white text-lg font-black tabular-nums mt-1">{allPOs.length}</p>
+                  <p className="text-[10px] text-white/30 font-bold">registradas</p>
+                </div>
+              </div>
+
               {/* Header acciones */}
               <div className="flex flex-wrap items-center gap-2">
                 <button
@@ -1502,9 +1528,33 @@ Maximo 150 palabras. Texto plano, sin markdown.`
                   <Sparkles className="w-3.5 h-3.5" /> Importar con Jeani
                 </button>
                 <div className="ml-auto flex items-center gap-2 text-xs">
-                  <span className="text-white/40 font-bold">Pendiente por pagar:</span>
+                  <span className="text-white/40 font-bold">Filtradas:</span>
                   <span className="text-amber-300 font-black tabular-nums">${totalPending.toFixed(2)}</span>
                 </div>
+              </div>
+
+              {/* Quick filter chips */}
+              <div className="flex gap-1.5 flex-wrap">
+                {[
+                  { id: "all", label: "Todas", count: allPOs.length },
+                  { id: "week", label: "Esta semana", count: allPOs.filter((po) => { const d = String(po.created_date || po.created_at || po.order_date || "").slice(0, 10); return d >= weekAgo; }).length },
+                  { id: "overdue", label: "⚠ Vencidas", count: overduePOs.length },
+                  { id: "unpaid", label: "Sin pagar", count: allPOs.filter((po) => !["received", "cancelled"].includes(po.status || "draft") && !/\[PAID:[^\]]+\]/.test(po.notes || "")).length },
+                  { id: "drafts", label: "Borradores", count: allPOs.filter((po) => (po.status || "draft") === "draft").length },
+                ].map((f) => (
+                  <button
+                    key={f.id}
+                    onClick={() => setPoQuickFilter(f.id)}
+                    className={`px-3 py-1.5 rounded-xl text-[11px] font-black border transition-all ${
+                      poQuickFilter === f.id
+                        ? f.id === "overdue" ? "bg-red-600 border-red-600 text-white"
+                          : "bg-cyan-600 border-cyan-600 text-white"
+                        : "bg-white/[0.04] border-white/[0.08] text-white/50 hover:text-white/80"
+                    }`}
+                  >
+                    {f.label} {f.count > 0 && <span className="opacity-70">({f.count})</span>}
+                  </button>
+                ))}
               </div>
 
               {/* Filtros */}
