@@ -2010,36 +2010,38 @@ Maximo 150 palabras. Texto plano, sin markdown.`
                           </div>
                           <Eye className="w-4 h-4 text-white/30 shrink-0" />
                         </button>
-                        <button
-                          type="button"
-                          onClick={async (e) => {
-                            e.stopPropagation();
-                            const ok = window.confirm(
-                              `¿Borrar la orden de compra ${po.po_number || ""}?\n\nEsto NO borra los gastos ya registrados en Finanzas (esos hay que borrarlos por separado si existen).`,
-                            );
-                            if (!ok) return;
-                            setDeletingPOId(po.id);
-                            try {
-                              await dataClient.entities.PurchaseOrder.delete(po.id);
-                              setPurchaseOrders((list) => list.filter((x) => x.id !== po.id));
-                              toast.success("Orden de compra borrada");
-                            } catch (err) {
-                              console.error("Delete PO error:", err);
-                              toast.error("No se pudo borrar: " + (err?.message || ""));
-                            } finally {
-                              setDeletingPOId(null);
-                            }
-                          }}
-                          disabled={isDeletingThis}
-                          title="Borrar orden de compra"
-                          className="shrink-0 w-8 h-8 rounded-lg bg-white/[0.04] hover:bg-red-500/20 text-white/30 hover:text-red-400 flex items-center justify-center transition-colors opacity-0 group-hover:opacity-100 disabled:opacity-40"
-                        >
-                          {isDeletingThis ? (
-                            <RefreshCw className="w-3.5 h-3.5 animate-spin" />
-                          ) : (
-                            <Trash2 className="w-3.5 h-3.5" />
-                          )}
-                        </button>
+                        {canDeletePO && (
+                          <button
+                            type="button"
+                            onClick={async (e) => {
+                              e.stopPropagation();
+                              const ok = window.confirm(
+                                `¿Borrar la orden de compra ${po.po_number || ""}?\n\nEsto NO borra los gastos ya registrados en Finanzas (esos hay que borrarlos por separado si existen).`,
+                              );
+                              if (!ok) return;
+                              setDeletingPOId(po.id);
+                              try {
+                                await dataClient.entities.PurchaseOrder.delete(po.id);
+                                setPurchaseOrders((list) => list.filter((x) => x.id !== po.id));
+                                toast.success("Orden de compra borrada");
+                              } catch (err) {
+                                console.error("Delete PO error:", err);
+                                toast.error("No se pudo borrar: " + (err?.message || ""));
+                              } finally {
+                                setDeletingPOId(null);
+                              }
+                            }}
+                            disabled={isDeletingThis}
+                            title="Borrar orden de compra (solo admin)"
+                            className="shrink-0 w-8 h-8 rounded-lg bg-white/[0.04] hover:bg-red-500/20 text-white/30 hover:text-red-400 flex items-center justify-center transition-colors opacity-0 group-hover:opacity-100 disabled:opacity-40"
+                          >
+                            {isDeletingThis ? (
+                              <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+                            ) : (
+                              <Trash2 className="w-3.5 h-3.5" />
+                            )}
+                          </button>
+                        )}
                       </div>
                     );
                   })}
