@@ -86,6 +86,7 @@ export default function PurchaseOrderDetailDialog({
           expected_date: po.expected_date || "",
           notes: po.notes || "",
           shipping_cost: Number(po.shipping_cost || 0),
+          tracking_number: po.tracking_number || "",
           items: mappedItems
         });
       } catch (err) {
