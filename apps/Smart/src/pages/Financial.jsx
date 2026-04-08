@@ -2448,7 +2448,7 @@ Maximo 150 palabras. Texto plano, sin markdown.`
           try {
             const supplier = suppliers.find((s) => s.id === supplierId);
             const lineItems = items.map((p, i) => {
-              const needed = Math.max(1, Number(p.min_stock || 5) * 2 - Number(p.stock || 0));
+              const needed = smartSuggestQty(p);
               const cost = Number(p.cost || 0);
               return {
                 id: `li-${Date.now()}-${i}`,
