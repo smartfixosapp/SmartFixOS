@@ -157,6 +157,105 @@ Reglas:
   }
 }
 
+// Pide al LLM que matchee semánticamente cada item extraído contra el catálogo.
+// Le pasamos solo los TOP-K candidatos por fuzzy para mantener el prompt corto.
+// Devuelve un Map<rawName, productId|null>.
+async function matchItemsWithAI(rawItems, products) {
+  if (!rawItems?.length || !products?.length) return new Map();
+
+  // Para cada item, escogemos los top 8 candidatos por fuzzy y unimos.
+  // Eso reduce muchísimo el catálogo enviado al LLM.
+  const candidateIds = new Set();
+  for (const it of rawItems) {
+    const scored = products
+      .map((p) => ({ p, s: matchScore(it.raw_name, p.name) +
+                            matchScore(it.raw_name, p.sku || "") * 0.5 }))
+      .sort((a, b) => b.s - a.s)
+      .slice(0, 8);
+    for (const c of scored) candidateIds.add(c.p.id);
+  }
+  // Si el catálogo es chico (<60), mandamos todo
+  let slimCatalog;
+  if (products.length <= 60) {
+    slimCatalog = products;
+  } else {
+    slimCatalog = products.filter((p) => candidateIds.has(p.id));
+  }
+  if (slimCatalog.length === 0) return new Map();
+
+  const catalogText = slimCatalog
+    .map((p) => `${p.id}|${p.name}${p.sku ? ` [${p.sku}]` : ""}`)
+    .join("\n");
+
+  const itemsText = rawItems
+    .map((it, i) => `${i + 1}. ${it.raw_name}`)
+    .join("\n");
+
+  const prompt = `Eres Jeani, asistente experto en piezas y accesorios de reparación de electrónicos para SmartFixOS.
+
+Tengo una orden de compra con estos items (cada uno tiene su número):
+${itemsText}
+
+Y este es mi catálogo de productos en inventario (formato: id|nombre [sku]):
+${catalogText}
+
+Tu tarea: para cada item de la orden, encontrar el producto del catálogo que más probablemente sea EL MISMO ARTÍCULO, aunque el nombre sea distinto, esté en otro idioma, use jerga, abreviaturas o nombres en clave.
+Ejemplos de matching válido:
+- "Tiger Diaples 15" ↔ "Pantalla iPhone 15 LCD"  (jerga de proveedor)
+- "iPhone 15 Pro Max battery OEM" ↔ "Bateria iPhone 15 Pro Max"
+- "S23 Ultra screen incell" ↔ "Pantalla Samsung S23 Ultra"
+- "USB-C type C cable 1m black" ↔ "Cable USB-C 1m negro"
+
+Reglas estrictas:
+- Solo matchea si estás SEGURO de que es el mismo artículo. Si dudas, devuelve null.
+- No inventes IDs. Solo usa IDs del catálogo que te di.
+- Devuelve SOLO un JSON con esta forma exacta, sin texto adicional, sin markdown:
+
+{
+  "matches": [
+    { "item_number": 1, "product_id": "uuid-o-null", "confidence": 0.95, "reason": "explicación breve" }
+  ]
+}`;
+
+  let raw;
+  try {
+    raw = await base44.integrations.Core.InvokeLLM({ prompt });
+  } catch (err) {
+    throw new Error("Jeani no pudo matchear los items: " + (err?.message || ""));
+  }
+
+  let text = "";
+  if (typeof raw === "string") text = raw;
+  else if (raw?.response) text = raw.response;
+  else if (raw?.data?.message) text = typeof raw.data.message === "string" ? raw.data.message : JSON.stringify(raw.data.message);
+  else if (typeof raw === "object") text = JSON.stringify(raw);
+
+  text = String(text || "").replace(/^```(?:json)?\s*/i, "").replace(/\s*```$/i, "").trim();
+  const s = text.indexOf("{");
+  const e = text.lastIndexOf("}");
+  if (s === -1 || e === -1) throw new Error("Jeani no devolvió JSON al matchear");
+  let parsed;
+  try {
+    parsed = JSON.parse(text.slice(s, e + 1));
+  } catch (err) {
+    throw new Error("JSON de matching inválido: " + err.message);
+  }
+
+  const result = new Map();
+  for (const m of parsed?.matches || []) {
+    const idx = Number(m.item_number) - 1;
+    if (idx < 0 || idx >= rawItems.length) continue;
+    const item = rawItems[idx];
+    if (m.product_id && slimCatalog.some((p) => p.id === m.product_id)) {
+      result.set(item.raw_name, {
+        product_id: m.product_id,
+        confidence: Number(m.confidence || 0.9),
+      });
+    }
+  }
+  return result;
+}
+
 export default function ImportPODialog({ open, onClose, suppliers = [], products = [] }) {
   const [file, setFile] = useState(null);
   const [fileUrl, setFileUrl] = useState("");
