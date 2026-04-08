@@ -289,6 +289,7 @@ export default function ImportPODialog({ open, onClose, suppliers = [], products
       setReviewRows([]);
       setSupplierId("");
       setOrderDate(new Date().toISOString().slice(0, 10));
+      setExpectedDate("");
       setNotes("");
       setError("");
       setUploading(false);
