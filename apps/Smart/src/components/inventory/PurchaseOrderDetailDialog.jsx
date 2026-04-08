@@ -50,6 +50,11 @@ export default function PurchaseOrderDetailDialog({
   const [showReceiveFlow, setShowReceiveFlow] = useState(false);
   const [receiveItems, setReceiveItems] = useState([]);
   const [receiving, setReceiving] = useState(false);
+  // Return to supplier
+  const [showReturnDialog, setShowReturnDialog] = useState(false);
+  const [returnItems, setReturnItems] = useState({}); // {idx: qty}
+  const [returnReason, setReturnReason] = useState("");
+  const [processingReturn, setProcessingReturn] = useState(false);
 
   useEffect(() => {
     if (!open || !purchaseOrder?.id) return;
