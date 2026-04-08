@@ -291,6 +291,8 @@ export default function ImportPODialog({ open, onClose, suppliers = [], products
       setUploading(false);
       setExtracting(false);
       setSaving(false);
+      setPaidAtOrder(true);
+      setPaymentMethod("paypal");
     }
   }, [open]);
 
