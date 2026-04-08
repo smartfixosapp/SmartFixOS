@@ -229,7 +229,7 @@ export default function CashHistory() {
                         </p>
                       </div>
                       <div className="opacity-0 group-hover:opacity-100 transition-opacity hidden sm:block">
-                        <Button variant="ghost" size="icon" className="text-gray-400 hover:text-white">
+                        <Button variant="ghost" size="icon" aria-label="Ver detalle de cierre" className="text-gray-400 hover:text-white">
                           <Eye className="w-5 h-5" />
                         </Button>
                       </div>
