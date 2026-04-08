@@ -162,7 +162,7 @@ export default function PurchaseOrderDetailDialog({
       onClose?.(true);
     } catch (err) {
       console.error("Error actualizando:", err);
-      toast.error("No se pudo actualizar");
+      toast.error("No se pudo actualizar: " + (err?.message || "error desconocido"));
     }
   };
 
