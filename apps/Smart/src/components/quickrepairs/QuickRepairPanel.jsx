@@ -373,6 +373,7 @@ export default function QuickRepairPanel({ open, onClose, onSuccess }) {
                           variant="ghost"
                           size="icon"
                           onClick={() => setSelectedCustomer(null)}
+                          aria-label="Quitar cliente seleccionado"
                           className="text-white/40 hover:text-white hover:bg-white/10 rounded-full h-10 w-10"
                         >
                           <X className="w-5 h-5" />
