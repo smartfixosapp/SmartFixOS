@@ -319,13 +319,56 @@ export default function ImportPODialog({ open, onClose, suppliers = [], products
     ]);
   };
   const onPickProduct = (idx, productId) => {
-    const p = products.find((x) => x.id === productId);
+    const p = liveProducts.find((x) => x.id === productId);
     updateRow(idx, {
       product_id: productId,
       product_name: p?.name || "",
       unit_cost: p?.cost != null ? Number(p.cost) : reviewRows[idx].unit_cost,
       matchScore: 1,
     });
+  };
+
+  // Crea un nuevo producto en inventario a partir de la línea extraída.
+  // Útil cuando es la primera vez que se compra ese item.
+  const createProductFromRow = async (idx) => {
+    const row = reviewRows[idx];
+    if (!row?.raw_name) {
+      toast.error("Esta línea no tiene nombre — añádelo primero");
+      return;
+    }
+    setCreatingProductIdx(idx);
+    try {
+      const supplier = suppliers.find((s) => s.id === supplierId);
+      const payload = {
+        name: row.raw_name.trim(),
+        type: "product",
+        cost: Number(row.unit_cost || 0),
+        // Sugerencia: precio de venta = costo * 1.5 (margen 50%)
+        // El usuario lo ajusta luego en Inventario.
+        price: Number(row.unit_cost || 0) * 1.5,
+        stock: 0, // El stock se incrementará cuando se marque la OC como recibida
+        active: true,
+        supplier_id: supplier?.id || "",
+        supplier_name: supplier?.name || extracted?.supplier_name || "",
+        tipo_principal: "dispositivos",
+      };
+      const created = await base44.entities.Product.create(payload);
+      if (!created?.id) throw new Error("No se devolvió el ID del producto creado");
+
+      // Añadirlo al catálogo vivo y enlazarlo a esta línea
+      setLiveProducts((list) => [created, ...list]);
+      updateRow(idx, {
+        product_id: created.id,
+        product_name: created.name,
+        matchScore: 1,
+      });
+      toast.success(`Producto "${created.name}" creado en inventario`);
+    } catch (err) {
+      console.error("Create product error:", err);
+      toast.error(err?.message || "No se pudo crear el producto");
+    } finally {
+      setCreatingProductIdx(null);
+    }
   };
 
   const subtotal = useMemo(
