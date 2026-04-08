@@ -207,6 +207,7 @@ export default function CarriersConfigDialog({ open, onClose, onSave }) {
                       onClick={() => removeCarrier(index)}
                       size="icon"
                       variant="ghost"
+                      aria-label={`Eliminar carrier ${carrier.name}`}
                       className="text-red-400 hover:text-red-300 h-8 w-8"
                     >
                       <Trash2 className="w-4 h-4" />
