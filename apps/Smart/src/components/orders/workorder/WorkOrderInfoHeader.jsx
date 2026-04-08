@@ -284,7 +284,7 @@ export default function WorkOrderPanel({ order, onUpdate, onClose, onDelete, onP
             </Button>
 
             {user && ["admin", "manager"].includes(user.role) && (
-              <Button onClick={() => setShowDeleteDialog(true)} size="icon" variant="destructive" className="h-9 w-9" title="Eliminar">
+              <Button onClick={() => setShowDeleteDialog(true)} size="icon" variant="destructive" className="h-9 w-9" title="Eliminar" aria-label="Eliminar orden de trabajo">
                 <Trash2 className="w-4 h-4" />
               </Button>
             )}
