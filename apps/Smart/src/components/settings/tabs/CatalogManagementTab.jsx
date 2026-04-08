@@ -284,6 +284,7 @@ export default function CatalogManagementTab({ user }) {
                       size="icon"
                       variant="ghost"
                       className="h-8 w-8"
+                      aria-label={`Editar modelo ${model.name}`}
                       onClick={() => {
                         setEditingItem(model);
                         setShowModelDialog(true);
@@ -295,6 +296,7 @@ export default function CatalogManagementTab({ user }) {
                       size="icon"
                       variant="ghost"
                       className="h-8 w-8"
+                      aria-label={`Eliminar modelo ${model.name}`}
                       onClick={() => handleDeleteModel(model.id)}
                     >
                       <Trash2 className="w-4 h-4 text-red-400" />
