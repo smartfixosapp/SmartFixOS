@@ -11,7 +11,7 @@ const config: CapacitorConfig = {
     androidScheme: 'https',
     allowNavigation: [
       'smart-fix-os-smart.vercel.app',
-      'smartfixos-api.onrender.com',
+      'smartfixos.onrender.com',
       'idntuvtabecwubzswpwi.supabase.co',
       '*.supabase.co',
     ],
