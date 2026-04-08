@@ -568,29 +568,62 @@ export default function ImportPODialog({ open, onClose, suppliers = [], products
         unit_cost: Number(r.unit_cost || 0),
         line_total: Number(r.quantity || 0) * Number(r.unit_cost || 0),
       }));
+      const totalAmount = subtotal + Number(extracted?.tax || 0) + Number(extracted?.shipping || 0);
+      const poNumber = genPoNumber();
+
       // El schema actual de purchase_order no tiene columna attachment_url,
       // así que guardamos el URL del archivo dentro de notes para no perderlo.
-      const notesWithFile = [
+      // También guardamos un marcador "PAID:method" para que el dialog de detalle
+      // sepa que ya se pagó y NO duplique el gasto cuando se reciba.
+      const notesParts = [
         notes || "",
-        fileUrl ? `\n📎 Archivo importado: ${fileUrl}` : "",
-      ].join("").trim();
+        paidAtOrder ? `[PAID:${paymentMethod}]` : "",
+        fileUrl ? `📎 Archivo importado: ${fileUrl}` : "",
+      ].filter(Boolean);
+      const notesWithMeta = notesParts.join("\n").trim();
 
       const payload = {
-        po_number: genPoNumber(),
+        po_number: poNumber,
         supplier_id: supplierId || "",
         supplier_name: supplier?.name || extracted?.supplier_name || "",
-        status: "draft",
+        status: paidAtOrder ? "ordered" : "draft",
         order_date: orderDate,
         line_items: lineItems,
         subtotal,
         tax_amount: Number(extracted?.tax || 0),
         shipping_cost: Number(extracted?.shipping || 0),
-        total_amount: subtotal + Number(extracted?.tax || 0) + Number(extracted?.shipping || 0),
+        total_amount: totalAmount,
         currency: extracted?.currency || "USD",
-        notes: notesWithFile,
+        notes: notesWithMeta,
       };
       await base44.entities.PurchaseOrder.create(payload);
-      toast.success(`Orden de compra importada · ${lineItems.length} items`);
+
+      // Si la usuario marcó "Ya pagué" → registrar el gasto en Finanzas
+      if (paidAtOrder && totalAmount > 0) {
+        try {
+          const itemsDesc = lineItems
+            .map((it) => `${it.product_name} x${it.quantity}`)
+            .join(", ");
+          await base44.entities.Transaction.create({
+            type: "expense",
+            category: "parts",
+            amount: Math.round(totalAmount * 100) / 100,
+            description: `OC ${poNumber}${supplier?.name ? ` — ${supplier.name}` : extracted?.supplier_name ? ` — ${extracted.supplier_name}` : ""}. ${itemsDesc}`.slice(0, 500),
+            payment_method: paymentMethod,
+            order_number: poNumber,
+            notes: `Gasto auto-registrado al importar OC. Pago: ${paymentMethod}`,
+          });
+        } catch (txErr) {
+          console.warn("No se pudo registrar el gasto auto:", txErr);
+          toast.warning("OC creada, pero el gasto no se registró: " + (txErr?.message || ""));
+        }
+      }
+
+      toast.success(
+        paidAtOrder
+          ? `OC importada · ${lineItems.length} items · Gasto $${totalAmount.toFixed(2)} registrado`
+          : `OC importada · ${lineItems.length} items (borrador)`,
+      );
       onClose?.();
     } catch (err) {
       console.error("Create PO error:", err);
