@@ -1420,6 +1420,13 @@ Maximo 150 palabras. Texto plano, sin markdown.`
                 >
                   <Plus className="w-3.5 h-3.5" /> Nueva orden de compra
                 </button>
+                <button
+                  onClick={() => setShowImportPO(true)}
+                  className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-violet-500/15 border border-violet-500/20 text-violet-300 text-xs font-black hover:bg-violet-500/25 transition-all active:scale-95"
+                  title="Sube una foto, PDF o CSV y Jeani la convierte en orden de compra"
+                >
+                  <Sparkles className="w-3.5 h-3.5" /> Importar con Jeani
+                </button>
                 <div className="ml-auto flex items-center gap-2 text-xs">
                   <span className="text-white/40 font-bold">Pendiente por pagar:</span>
                   <span className="text-amber-300 font-black tabular-nums">${totalPending.toFixed(2)}</span>
