@@ -219,7 +219,7 @@ export default function RechargesPanel() {
             <Button onClick={loadRecharges} variant="ghost" size="icon" aria-label="Recargar lista" className="h-12 w-12 rounded-xl text-gray-400 hover:text-white hover:bg-white/10">
               <RefreshCw className="w-5 h-5" />
             </Button>
-            <Button onClick={exportToCSV} variant="ghost" size="icon" className="h-12 w-12 rounded-xl text-gray-400 hover:text-white hover:bg-white/10">
+            <Button onClick={exportToCSV} variant="ghost" size="icon" aria-label="Exportar a CSV" className="h-12 w-12 rounded-xl text-gray-400 hover:text-white hover:bg-white/10">
               <Download className="w-5 h-5" />
             </Button>
         </div>
