@@ -1238,7 +1238,7 @@ export default function SettingsPage() {
                     </div>
                   </div>
                   <div className="space-y-1.5">
-                    <label className="text-white/60 text-xs font-semibold ml-1">⭐ Google Reviews</label>
+                    <label className="text-white/60 text-xs font-semibold ml-1 flex items-center gap-1.5"><Star className="w-3.5 h-3.5" /> Google Reviews</label>
                     <Input value={appConfig.google_review_link || ""} onChange={(e) => setAppConfig({ ...appConfig, google_review_link: e.target.value })} placeholder="https://g.page/r/..." className="bg-white/5 border-white/10 text-white rounded-xl h-11 focus:bg-white/10" />
                     <p className="text-white/25 text-xs ml-1">Los clientes pueden dejar una reseña desde su recibo</p>
                   </div>
