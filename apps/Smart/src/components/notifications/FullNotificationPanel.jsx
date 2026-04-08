@@ -350,6 +350,7 @@ export default function FullNotificationPanel({ user, onClose }) {
                                 size="icon"
                                 variant="ghost"
                                 onClick={() => handleMarkAsRead(notification.id)}
+                                aria-label="Marcar como leído"
                                 className="h-8 w-8 text-emerald-400 hover:bg-emerald-600/20"
                               >
                                 <CheckCircle2 className="w-4 h-4" />
