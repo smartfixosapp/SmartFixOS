@@ -393,7 +393,24 @@ export default function ImportPODialog({ open, onClose, suppliers = [], products
         const sc = matchScore(data.supplier_name, s.name);
         if (sc > bestSupScore) { bestSupScore = sc; bestSup = s; }
       }
-      if (bestSup && bestSupScore >= 0.5) setSupplierId(bestSup.id);
+      if (bestSup && bestSupScore >= 0.5) {
+        setSupplierId(bestSup.id);
+        // Sugerir método de pago según el proveedor
+        const supName = norm(bestSup.name + " " + (data.supplier_name || ""));
+        if (supName.includes("waves") || supName.includes("pr mobile") || supName.includes("prmobile")) {
+          setPaymentMethod("check");
+        } else {
+          setPaymentMethod("paypal");
+        }
+      }
+    } else if (data.supplier_name) {
+      // Sugerir método sin tener proveedor matcheado
+      const supName = norm(data.supplier_name);
+      if (supName.includes("waves") || supName.includes("pr mobile") || supName.includes("prmobile")) {
+        setPaymentMethod("check");
+      } else {
+        setPaymentMethod("paypal");
+      }
     }
 
     // Crear filas de review con matches
