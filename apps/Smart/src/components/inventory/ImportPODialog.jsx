@@ -583,15 +583,20 @@ export default function ImportPODialog({ open, onClose, suppliers = [], products
     const supplier = suppliers.find((s) => s.id === supplierId);
     setSaving(true);
     try {
-      const lineItems = reviewRows.map((r, i) => ({
-        id: `li-${Date.now()}-${i}`,
-        inventory_item_id: r.product_id || undefined,
-        product_name: r.product_name || r.raw_name,
-        description: r.raw_name && r.raw_name !== r.product_name ? r.raw_name : "",
-        quantity: Number(r.quantity || 0),
-        unit_cost: Number(r.unit_cost || 0),
-        line_total: Number(r.quantity || 0) * Number(r.unit_cost || 0),
-      }));
+      const lineItems = reviewRows.map((r, i) => {
+        const wo = r.work_order_id ? workOrders.find((w) => w.id === r.work_order_id) : null;
+        return {
+          id: `li-${Date.now()}-${i}`,
+          inventory_item_id: r.product_id || undefined,
+          product_name: r.product_name || r.raw_name,
+          description: r.raw_name && r.raw_name !== r.product_name ? r.raw_name : "",
+          quantity: Number(r.quantity || 0),
+          unit_cost: Number(r.unit_cost || 0),
+          line_total: Number(r.quantity || 0) * Number(r.unit_cost || 0),
+          linked_work_order_id: r.work_order_id || undefined,
+          linked_work_order_number: wo?.order_number || undefined,
+        };
+      });
       const totalAmount = subtotal + Number(extracted?.tax || 0) + Number(extracted?.shipping || 0);
       const poNumber = genPoNumber();
 
