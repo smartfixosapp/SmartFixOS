@@ -2501,7 +2501,7 @@ Maximo 150 palabras. Texto plano, sin markdown.`
                   const supplier = suppliers.find((s) => s.id === supId);
                   const name = supplier?.name || "Sin proveedor asignado";
                   const totalCost = items.reduce((s, p) => {
-                    const needed = Math.max(1, Number(p.min_stock || 5) * 2 - Number(p.stock || 0));
+                    const needed = smartSuggestQty(p);
                     return s + Number(p.cost || 0) * needed;
                   }, 0);
                   return (
