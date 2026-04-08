@@ -240,6 +240,7 @@ export default function SummarySection({ order, events, onUpdate }) {
                       size="icon"
                       variant="outline"
                       onClick={() => updateQuantity(item.id, 1)}
+                      aria-label={`Aumentar cantidad de ${item.name}`}
                       className="h-8 w-8 border-gray-700"
                     >
                       <Plus className="w-3 h-3" />
