@@ -1154,6 +1154,20 @@ export default function ImportPODialog({ open, onClose, suppliers = [], products
                           onChange={(e) => updateRow(idx, { unit_cost: Number(e.target.value || 0) })}
                           className="bg-white/[0.04] border-white/10 text-white text-xs h-8"
                         />
+                        {row.product_id && (() => {
+                          const prod = liveProducts.find((p) => p.id === row.product_id);
+                          const lastCost = prod?.cost != null ? Number(prod.cost) : null;
+                          if (lastCost == null || lastCost <= 0) return null;
+                          const diff = Number(row.unit_cost || 0) - lastCost;
+                          const pct = lastCost > 0 ? (diff / lastCost) * 100 : 0;
+                          const color = diff > 0.01 ? "text-red-400" : diff < -0.01 ? "text-emerald-400" : "text-white/40";
+                          return (
+                            <p className={`text-[9px] mt-0.5 font-black ${color}`} title="Último costo registrado en este producto">
+                              Antes: ${lastCost.toFixed(2)}
+                              {Math.abs(pct) >= 1 && ` (${pct > 0 ? "+" : ""}${pct.toFixed(0)}%)`}
+                            </p>
+                          );
+                        })()}
                       </div>
                       <div className="col-span-4 md:col-span-2 flex items-end">
                         <p className="text-sm font-black text-white tabular-nums">
