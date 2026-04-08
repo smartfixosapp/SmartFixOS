@@ -99,6 +99,7 @@ async function extractWithAI(fileUrl) {
   "tax": 0,
   "shipping": 0,
   "total_amount": 0,
+  "payment_method": "paypal",
   "notes": "",
   "items": [
     { "raw_name": "nombre tal cual aparece", "sku": "", "quantity": 1, "unit_price": 0, "total": 0, "category": "screen" }
