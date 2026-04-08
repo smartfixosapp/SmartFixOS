@@ -85,53 +85,76 @@ function parseCSV(text) {
   return items;
 }
 
-// Llama al LLM con visión para extraer la OC en JSON estricto.
+// Llama al LLM con visión para extraer la OC.
+// Pedimos JSON en el prompt y lo parseamos en cliente: es más permisivo
+// que los structured outputs y evita errores de schema strict.
 async function extractWithAI(fileUrl) {
-  const schema = {
-    type: "object",
-    properties: {
-      supplier_name: { type: "string" },
-      order_date:    { type: "string" },
-      currency:      { type: "string" },
-      subtotal:      { type: "number" },
-      tax:           { type: "number" },
-      shipping:      { type: "number" },
-      total_amount:  { type: "number" },
-      notes:         { type: "string" },
-      items: {
-        type: "array",
-        items: {
-          type: "object",
-          properties: {
-            raw_name:   { type: "string", description: "Texto tal cual aparece en la orden" },
-            sku:        { type: "string" },
-            quantity:   { type: "number" },
-            unit_price: { type: "number" },
-            total:      { type: "number" },
-          },
-          required: ["raw_name", "quantity"],
-        },
-      },
-    },
-    required: ["items"],
-  };
+  const prompt = `Eres Jeani, asistente de SmartFixOS. Lee esta orden de compra / factura / proforma de proveedor y devuelve SOLO un objeto JSON válido (sin texto antes ni después, sin markdown, sin \`\`\`) con esta forma:
 
-  const prompt = `Eres Jeani, el asistente de SmartFixOS. Lee esta orden de compra (factura/invoice/proforma de un proveedor) y extrae los datos en JSON exactamente con el esquema.
+{
+  "supplier_name": "string",
+  "order_date": "YYYY-MM-DD",
+  "currency": "USD",
+  "subtotal": 0,
+  "tax": 0,
+  "shipping": 0,
+  "total_amount": 0,
+  "notes": "",
+  "items": [
+    { "raw_name": "nombre tal cual aparece", "sku": "", "quantity": 1, "unit_price": 0, "total": 0 }
+  ]
+}
+
 Reglas:
-- "raw_name" debe ser el nombre del producto tal cual aparece, completo.
-- Si un valor no aparece, usa 0 para números y "" para strings (no inventes).
-- "currency" default "USD" si no se indica.
-- No incluyas líneas de subtotal/impuestos/total dentro de "items" — van en sus propios campos.
-- Si la orden no es legible o no es una orden de compra, devuelve items vacío.`;
+- raw_name = nombre del producto tal cual aparece en la línea, completo.
+- Si un valor no aparece, usa 0 para números y "" para strings. NO inventes datos.
+- NO incluyas filas de subtotal/impuesto/envío/total dentro de items — van en sus campos.
+- Si el archivo no es legible o no es una orden de compra, devuelve {"items": []}.
+- Devuelve EXCLUSIVAMENTE el JSON. Nada más.`;
 
-  const result = await base44.integrations.Core.InvokeLLM({
-    prompt,
-    file_urls: [fileUrl],
-    response_json_schema: schema,
-  });
+  let raw;
+  try {
+    raw = await base44.integrations.Core.InvokeLLM({
+      prompt,
+      file_urls: [fileUrl],
+    });
+  } catch (err) {
+    throw new Error(
+      err?.message?.includes("LLM invocation failed")
+        ? "Jeani no pudo procesar el archivo (servidor IA no disponible). Verifica que el OPENAI_API_KEY esté configurado en el servidor de funciones."
+        : err?.message || "Falló la llamada a Jeani",
+    );
+  }
 
-  // InvokeLLM devuelve el objeto directamente cuando hay schema
-  return result || { items: [] };
+  // InvokeLLM puede devolver: string, {response: string}, o un objeto ya parseado
+  let text = "";
+  if (typeof raw === "string") text = raw;
+  else if (raw?.response) text = raw.response;
+  else if (raw?.data?.message) {
+    if (typeof raw.data.message === "string") text = raw.data.message;
+    else return raw.data.message;
+  } else if (typeof raw === "object") {
+    return raw;
+  }
+
+  // Limpiar markdown / fences si los hay
+  text = String(text || "")
+    .replace(/^```(?:json)?\s*/i, "")
+    .replace(/\s*```$/i, "")
+    .trim();
+
+  // Buscar el primer { y el último }
+  const start = text.indexOf("{");
+  const end = text.lastIndexOf("}");
+  if (start === -1 || end === -1 || end < start) {
+    throw new Error("Jeani devolvió texto pero no JSON válido. Prueba con otra foto más clara.");
+  }
+  const jsonText = text.slice(start, end + 1);
+  try {
+    return JSON.parse(jsonText);
+  } catch (e) {
+    throw new Error("No se pudo parsear el JSON de Jeani: " + e.message);
+  }
 }
 
 export default function ImportPODialog({ open, onClose, suppliers = [], products = [] }) {
