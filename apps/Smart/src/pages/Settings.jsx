@@ -1104,7 +1104,7 @@ export default function SettingsPage() {
                           {uploadingLogo ? <><Loader2 className="w-4 h-4 mr-1.5 animate-spin" />Subiendo...</> : <><Upload className="w-4 h-4 mr-1.5" />{businessBranding.logo_url ? "Cambiar" : "Subir Logo"}</>}
                         </Button>
                         {businessBranding.logo_url && (
-                          <Button variant="ghost" size="icon" onClick={() => setBusinessBranding({ ...businessBranding, logo_url: "" })} className="text-red-400 hover:text-red-300 hover:bg-red-500/10 rounded-xl h-9 w-9">
+                          <Button variant="ghost" size="icon" onClick={() => setBusinessBranding({ ...businessBranding, logo_url: "" })} aria-label="Eliminar logo del negocio" className="text-red-400 hover:text-red-300 hover:bg-red-500/10 rounded-xl h-9 w-9">
                             <Trash2 className="w-4 h-4" />
                           </Button>
                         )}
