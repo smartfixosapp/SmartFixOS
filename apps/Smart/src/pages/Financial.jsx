@@ -163,6 +163,16 @@ export default function Financial() {
   const [aiSummary, setAiSummary] = useState("");
   const [aiLoading, setAiLoading] = useState(false);
 
+  // ── Órdenes de Compra (movido desde Inventario) ──
+  const [purchaseOrders, setPurchaseOrders] = useState([]);
+  const [suppliers, setSuppliers] = useState([]);
+  const [poProducts, setPoProducts] = useState([]);
+  const [showPODialog, setShowPODialog] = useState(false);
+  const [editingPO, setEditingPO] = useState(null);
+  const [viewingPO, setViewingPO] = useState(null);
+  const [poSearch, setPoSearch] = useState("");
+  const [poStatusFilter, setPoStatusFilter] = useState("all");
+
   const isFetching = useRef(false);
   const recentFixedExpenseMutationAt = useRef(0);
 
