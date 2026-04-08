@@ -102,10 +102,11 @@ export default function CashHistory() {
         {/* Header */}
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <div className="flex items-center gap-4">
-            <Button 
-              variant="ghost" 
-              size="icon" 
+            <Button
+              variant="ghost"
+              size="icon"
               onClick={() => navigate(-1)}
+              aria-label="Volver"
               className="text-white hover:bg-white/10"
             >
               <ChevronLeft className="w-6 h-6" />
