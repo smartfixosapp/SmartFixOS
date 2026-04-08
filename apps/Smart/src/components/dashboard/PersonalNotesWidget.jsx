@@ -131,6 +131,7 @@ export default function PersonalNotesWidget() {
             <Button
               size="icon"
               onClick={() => setShowCreateDialog(true)}
+              aria-label="Crear nueva nota"
               className="w-10 h-10 rounded-xl bg-white/5 hover:bg-yellow-500/20 border border-white/5 hover:border-yellow-500/30 text-white/50 hover:text-yellow-400 transition-all"
             >
               <Plus className="w-5 h-5" />
