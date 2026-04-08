@@ -232,6 +232,7 @@ export default function CatalogManagementTab({ user }) {
                         size="icon"
                         variant="ghost"
                         className="h-6 w-6"
+                        aria-label={`Editar marca ${brand.name}`}
                         onClick={() => {
                           setEditingItem(brand);
                           setShowBrandDialog(true);
@@ -243,6 +244,7 @@ export default function CatalogManagementTab({ user }) {
                         size="icon"
                         variant="ghost"
                         className="h-6 w-6"
+                        aria-label={`Eliminar marca ${brand.name}`}
                         onClick={() => handleDeleteBrand(brand.id)}
                       >
                         <Trash2 className="w-3 h-3 text-red-400" />
