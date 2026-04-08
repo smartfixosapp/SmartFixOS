@@ -216,7 +216,7 @@ export default function RechargesPanel() {
           </select>
 
           <div className="flex gap-2 ml-auto">
-            <Button onClick={loadRecharges} variant="ghost" size="icon" className="h-12 w-12 rounded-xl text-gray-400 hover:text-white hover:bg-white/10">
+            <Button onClick={loadRecharges} variant="ghost" size="icon" aria-label="Recargar lista" className="h-12 w-12 rounded-xl text-gray-400 hover:text-white hover:bg-white/10">
               <RefreshCw className="w-5 h-5" />
             </Button>
             <Button onClick={exportToCSV} variant="ghost" size="icon" className="h-12 w-12 rounded-xl text-gray-400 hover:text-white hover:bg-white/10">
