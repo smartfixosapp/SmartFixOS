@@ -252,6 +252,7 @@ export default function NotificationCenter() {
                       size="icon"
                       variant="ghost"
                       onClick={() => handleDelete(notification.id)}
+                      aria-label="Eliminar notificación"
                       className="h-8 w-8 text-red-400 hover:bg-red-600/20"
                     >
                       <Trash2 className="w-4 h-4" />
