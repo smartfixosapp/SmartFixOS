@@ -402,6 +402,13 @@ export default function ImportPODialog({ open, onClose, suppliers = [], products
         unit_cost: Number(r.unit_cost || 0),
         line_total: Number(r.quantity || 0) * Number(r.unit_cost || 0),
       }));
+      // El schema actual de purchase_order no tiene columna attachment_url,
+      // así que guardamos el URL del archivo dentro de notes para no perderlo.
+      const notesWithFile = [
+        notes || "",
+        fileUrl ? `\n📎 Archivo importado: ${fileUrl}` : "",
+      ].join("").trim();
+
       const payload = {
         po_number: genPoNumber(),
         supplier_id: supplierId || "",
@@ -414,8 +421,7 @@ export default function ImportPODialog({ open, onClose, suppliers = [], products
         shipping_cost: Number(extracted?.shipping || 0),
         total_amount: subtotal + Number(extracted?.tax || 0) + Number(extracted?.shipping || 0),
         currency: extracted?.currency || "USD",
-        notes: notes || "",
-        attachment_url: fileUrl || undefined,
+        notes: notesWithFile,
       };
       await base44.entities.PurchaseOrder.create(payload);
       toast.success(`Orden de compra importada · ${lineItems.length} items`);
