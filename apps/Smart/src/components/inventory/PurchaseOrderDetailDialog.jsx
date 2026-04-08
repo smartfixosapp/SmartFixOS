@@ -529,6 +529,11 @@ export default function PurchaseOrderDetailDialog({
                       {!editing && (
                         <p className="text-white/30 text-xs mt-0.5">
                           {it.quantity} × {money(it.unit_cost)} = {money((it.unit_cost || 0) * (it.quantity || 0))}
+                          {it.received_quantity != null && it.received_quantity < it.quantity && (
+                            <span className="ml-2 px-1.5 py-0.5 rounded bg-amber-500/15 text-amber-300 font-black">
+                              Recibidas: {it.received_quantity}/{it.quantity}
+                            </span>
+                          )}
                         </p>
                       )}
                     </div>
@@ -542,6 +547,18 @@ export default function PurchaseOrderDetailDialog({
                             value={it.quantity}
                             onChange={(e) => handleChangeItemQty(idx, e.target.value)}
                             className="h-8 w-16 text-right bg-white/5 border border-white/10 rounded-lg text-white text-xs focus:outline-none focus:border-teal-500/50 px-2"
+                          />
+                        </div>
+                        <div className="flex flex-col items-end gap-1">
+                          <label className="text-[9px] text-emerald-400/70 font-bold">Recib.</label>
+                          <input
+                            type="number"
+                            min={0}
+                            max={it.quantity}
+                            value={it.received_quantity ?? it.quantity}
+                            onChange={(e) => handleChangeItemReceivedQty(idx, e.target.value)}
+                            title="Cantidad físicamente recibida (recepción parcial)"
+                            className="h-8 w-16 text-right bg-emerald-500/[0.05] border border-emerald-500/20 rounded-lg text-white text-xs focus:outline-none focus:border-emerald-500/50 px-2"
                           />
                         </div>
                         <div className="flex flex-col items-end gap-1">
