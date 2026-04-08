@@ -169,6 +169,7 @@ export default function Financial() {
   const [suppliers, setSuppliers] = useState([]);
   const [poProducts, setPoProducts] = useState([]);
   const [showPODialog, setShowPODialog] = useState(false);
+  const [showImportPO, setShowImportPO] = useState(false);
   const [editingPO, setEditingPO] = useState(null);
   const [viewingPO, setViewingPO] = useState(null);
   const [poSearch, setPoSearch] = useState("");
