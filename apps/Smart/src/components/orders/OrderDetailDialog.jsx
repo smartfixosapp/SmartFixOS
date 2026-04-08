@@ -283,6 +283,7 @@ export default function OrderDetailDialog({ order, open, onClose, onOrderUpdated
                     variant="outline"
                     size="icon"
                     className="border-red-500/30 text-red-400 hover:bg-red-900/20"
+                    aria-label="Eliminar orden"
                   >
                     <Trash2 className="w-4 h-4" />
                   </Button>
