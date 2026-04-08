@@ -941,6 +941,16 @@ export default function ImportPODialog({ open, onClose, suppliers = [], products
           <DialogTitle className="flex items-center gap-2 text-white">
             <Sparkles className="w-5 h-5 text-violet-400" />
             Importar orden de compra con Jeani
+            {fileQueue.length > 0 && (
+              <span className="ml-2 px-2 py-0.5 rounded-md bg-violet-500/15 text-violet-300 border border-violet-500/25 text-[11px] font-black">
+                📚 {fileQueue.length} en cola
+              </span>
+            )}
+            {batchProgress && (
+              <span className="ml-2 px-2 py-0.5 rounded-md bg-cyan-500/15 text-cyan-300 border border-cyan-500/25 text-[11px] font-black">
+                Archivo {batchProgress.current}/{batchProgress.total}
+              </span>
+            )}
           </DialogTitle>
         </DialogHeader>
 
