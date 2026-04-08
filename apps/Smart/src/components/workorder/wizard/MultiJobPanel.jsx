@@ -112,6 +112,7 @@ export default function MultiJobPanel({ jobs = [], onJobsChange }) {
                     size="icon"
                     variant="ghost"
                     onClick={() => handleEdit(index)}
+                    aria-label="Editar trabajo"
                     className="h-8 w-8 text-purple-400 hover:bg-purple-600/20">
                     <Edit2 className="w-4 h-4" />
                   </Button>
