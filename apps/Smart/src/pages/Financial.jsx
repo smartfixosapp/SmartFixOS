@@ -2524,12 +2524,20 @@ Maximo 150 palabras. Texto plano, sin markdown.`
                       </div>
                       <div className="space-y-1">
                         {items.map((p) => {
-                          const needed = Math.max(1, Number(p.min_stock || 5) * 2 - Number(p.stock || 0));
+                          const needed = smartSuggestQty(p);
+                          const sold30 = salesVelocity.get(p.id) || 0;
                           return (
                             <div key={p.id} className="flex items-center gap-2 text-[11px] py-1">
-                              <span className="flex-1 text-white/70 truncate">{p.name}</span>
+                              <div className="flex-1 min-w-0">
+                                <p className="text-white/70 truncate">{p.name}</p>
+                                {sold30 > 0 && (
+                                  <p className="text-[9px] text-cyan-400/70">📊 Vendidas en 30d: {sold30}</p>
+                                )}
+                              </div>
                               <span className="text-red-400 font-bold tabular-nums">Stock: {p.stock || 0}/{p.min_stock}</span>
-                              <span className="text-emerald-400 font-black tabular-nums w-16 text-right">Pedir: {needed}</span>
+                              <span className="text-emerald-400 font-black tabular-nums w-16 text-right" title="Sugerido por velocidad de venta">
+                                Pedir: {needed}
+                              </span>
                             </div>
                           );
                         })}
