@@ -2495,9 +2495,42 @@ Maximo 150 palabras. Texto plano, sin markdown.`
               </DialogHeader>
               <p className="text-xs text-white/50">
                 {lowStock.length} producto{lowStock.length === 1 ? "" : "s"} con stock por debajo del mínimo,
-                agrupados por proveedor. Crea un borrador de OC por cada proveedor con la cantidad sugerida
-                (2× el stock mínimo).
+                agrupados por proveedor. Cantidad sugerida basada en velocidad de venta (2× ventas/30d
+                o 2× stock mínimo, lo que sea mayor).
               </p>
+              <div className="flex justify-end">
+                <button
+                  onClick={async () => {
+                    setAiSuggestLoading(true);
+                    setAiSuggestText("");
+                    try {
+                      const summary = lowStock.slice(0, 30).map((p) => {
+                        const sold = salesVelocity.get(p.id) || 0;
+                        return `${p.name}: stock ${p.stock || 0}/${p.min_stock}, vendido 30d=${sold}, costo $${Number(p.cost || 0).toFixed(2)}`;
+                      }).join("\n");
+                      const prompt = `Eres Jeani, asistente de SmartFixOS. Soy dueño de un taller de reparación de móviles. Tengo estos productos con stock bajo:\n\n${summary}\n\nDame UNA recomendación corta (máx 3 frases) priorizando qué pedir primero según velocidad de venta y costo. Sé práctico y directo, en español, sin markdown.`;
+                      const result = await base44.integrations.Core.InvokeLLM({ prompt });
+                      const text = typeof result === "string" ? result : (result?.response || result?.data?.message || JSON.stringify(result));
+                      setAiSuggestText(String(text || "").trim());
+                    } catch (err) {
+                      toast.error("Jeani no pudo analizar: " + (err?.message || ""));
+                    } finally {
+                      setAiSuggestLoading(false);
+                    }
+                  }}
+                  disabled={aiSuggestLoading}
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-violet-500/15 border border-violet-500/25 text-violet-300 text-[11px] font-black hover:bg-violet-500/25 disabled:opacity-40"
+                >
+                  {aiSuggestLoading ? <RefreshCw className="w-3 h-3 animate-spin" /> : <Sparkles className="w-3 h-3" />}
+                  {aiSuggestLoading ? "Analizando…" : "Pedir consejo a Jeani"}
+                </button>
+              </div>
+              {aiSuggestText && (
+                <div className="p-3 rounded-xl bg-violet-500/[0.08] border border-violet-500/20">
+                  <p className="text-[10px] text-violet-400/80 font-black uppercase mb-1">💡 Consejo de Jeani</p>
+                  <p className="text-xs text-white/80 leading-relaxed">{aiSuggestText}</p>
+                </div>
+              )}
               <div className="space-y-3 mt-2">
                 {Array.from(bySupplier.entries()).map(([supId, items]) => {
                   const supplier = suppliers.find((s) => s.id === supId);
