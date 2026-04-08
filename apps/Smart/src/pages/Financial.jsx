@@ -1557,7 +1557,7 @@ Maximo 150 palabras. Texto plano, sin markdown.`
                 ))}
               </div>
 
-              {/* Filtros */}
+              {/* Búsqueda + sort */}
               <div className="flex flex-wrap gap-2 items-center">
                 <Input
                   value={poSearch}
@@ -1565,27 +1565,24 @@ Maximo 150 palabras. Texto plano, sin markdown.`
                   placeholder="Buscar por número, proveedor o nota…"
                   className="max-w-xs bg-white/[0.04] border-white/10 text-white text-xs"
                 />
-                <div className="flex gap-1.5 flex-wrap">
-                  {[
-                    { id: "all", label: "Todas" },
-                    { id: "draft", label: "Borrador" },
-                    { id: "pending", label: "Pendiente" },
-                    { id: "ordered", label: "Enviada" },
-                    { id: "partial", label: "Parcial" },
-                    { id: "received", label: "Recibida" },
-                  ].map((f) => (
-                    <button
-                      key={f.id}
-                      onClick={() => setPoStatusFilter(f.id)}
-                      className={`px-3 py-1.5 rounded-xl text-[11px] font-black transition-all border ${
-                        poStatusFilter === f.id
-                          ? "bg-cyan-600 border-cyan-600 text-white"
-                          : "bg-white/[0.04] border-white/[0.08] text-white/40 hover:text-white/70"
-                      }`}
-                    >
-                      {f.label}
-                    </button>
-                  ))}
+                <div className="flex gap-1 items-center ml-auto">
+                  <span className="text-[10px] text-white/40 font-black uppercase">Ordenar:</span>
+                  <select
+                    value={poSortBy}
+                    onChange={(e) => setPoSortBy(e.target.value)}
+                    className="bg-white/[0.04] border border-white/10 rounded-lg px-2 py-1 text-[11px] text-white font-bold"
+                  >
+                    <option value="date">Fecha</option>
+                    <option value="total">Total</option>
+                    <option value="supplier">Proveedor</option>
+                  </select>
+                  <button
+                    onClick={() => setPoSortDir((d) => (d === "asc" ? "desc" : "asc"))}
+                    className="px-2 py-1 rounded-lg bg-white/[0.04] border border-white/10 text-white/60 text-[11px] font-bold hover:text-white"
+                    title={poSortDir === "asc" ? "Ascendente" : "Descendente"}
+                  >
+                    {poSortDir === "asc" ? "↑" : "↓"}
+                  </button>
                 </div>
               </div>
 
