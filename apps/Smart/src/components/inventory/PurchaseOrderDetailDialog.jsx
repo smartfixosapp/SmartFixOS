@@ -1009,13 +1009,28 @@ export default function PurchaseOrderDetailDialog({
             <div className="flex gap-2 w-full flex-wrap">
               <button
                 onClick={async () => {
+                  // Contar items enlazados a WOs para avisar al usuario
+                  const linkedItems = form.items.filter((it) => it.work_order_id);
+                  const linkedWoIds = [...new Set(linkedItems.map((it) => it.work_order_id))];
+                  const extraMsg = linkedWoIds.length > 0
+                    ? `\n\n⚠️ Se removerán ${linkedItems.length} items de ${linkedWoIds.length} orden${linkedWoIds.length === 1 ? "" : "es"} de trabajo enlazada${linkedWoIds.length === 1 ? "" : "s"}.`
+                    : "";
                   const ok = window.confirm(
-                    `¿Borrar la orden de compra ${form.po_number || ""}?\n\nNo se borran los gastos ya registrados en Finanzas (esos hay que borrarlos por separado si existen).`,
+                    `¿Borrar la orden de compra ${form.po_number || ""}?${extraMsg}\n\nNo se borran los gastos ya registrados en Finanzas (esos hay que borrarlos por separado si existen).`,
                   );
                   if (!ok) return;
                   try {
+                    // Primero limpiar items de las WOs enlazadas
+                    for (const woId of linkedWoIds) {
+                      await removeItemsFromWO(woId, (i) => i.po_id === purchaseOrder.id);
+                    }
+                    // Luego borrar la PO
                     await base44.entities.PurchaseOrder.delete(purchaseOrder.id);
-                    toast.success("Orden de compra borrada");
+                    toast.success(
+                      linkedWoIds.length > 0
+                        ? `Orden borrada · ${linkedItems.length} items removidos de ${linkedWoIds.length} WO${linkedWoIds.length === 1 ? "" : "s"}`
+                        : "Orden de compra borrada",
+                    );
                     onClose?.(true);
                   } catch (err) {
                     console.error("Delete PO error:", err);
