@@ -313,19 +313,21 @@ export default function PurchaseOrderDetailDialog({
           const itemsDesc = form.items
             .map(it => `${it.product_name} x${it.quantity} @ $${Number(it.unit_cost).toFixed(2)}`)
             .join(", ");
-          await base44.entities.Transaction.create({
+          const txPayload = {
             type: "expense",
             category: "parts",
             amount: totalAmount,
-            description: `Orden de Compra ${form.po_number}${form.supplier_name ? ` — ${form.supplier_name}` : ""}. ${itemsDesc}`,
-            payment_method: "cash",
+            // Sin campo `notes` — no existe en la tabla transaction
+            description: `Orden de Compra ${form.po_number}${form.supplier_name ? ` — ${form.supplier_name}` : ""} · Recibida. ${itemsDesc}`.slice(0, 500),
+            payment_method: "cash", // enum: cash/card/transfer/ath_movil
             order_number: form.po_number,
-            notes: `Generado automáticamente al recibir la orden ${form.po_number}`
-          });
+          };
+          console.log("📝 Creando Transaction al recibir:", txPayload);
+          await base44.entities.Transaction.create(txPayload);
           toast.success(`✅ Orden recibida · Gasto de $${totalAmount.toFixed(2)} registrado en Finanzas`);
         } catch (expErr) {
-          console.warn("No se pudo registrar el gasto automático:", expErr);
-          toast.success("Orden actualizada");
+          console.error("❌ No se pudo registrar el gasto automático:", expErr);
+          toast.warning("Orden actualizada, pero el gasto no se registró: " + (expErr?.message || expErr));
         }
       } else if (form.status === "received" && previousStatus !== "received" && alreadyPaid) {
         // Ya se pagó al ordenar, no duplicamos el gasto
