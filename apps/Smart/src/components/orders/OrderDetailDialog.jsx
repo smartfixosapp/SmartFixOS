@@ -203,6 +203,7 @@ export default function OrderDetailDialog({ order, open, onClose, onOrderUpdated
                   size="icon"
                   className="border-white/10 text-white/40 hover:bg-white/10"
                   title="Imprimir ticket"
+                  aria-label="Imprimir ticket de la orden"
                 >
                   <Printer className="w-4 h-4" />
                 </Button>
