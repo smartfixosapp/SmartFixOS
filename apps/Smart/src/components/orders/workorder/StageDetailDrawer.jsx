@@ -120,7 +120,7 @@ export default function StageDetailDrawer({ open, onClose, stageId, order, onUpd
                     </SheetDescription>
                   )}
                 </div>
-                <Button variant="ghost" size="icon" onClick={onClose} className="text-gray-400 hover:text-white hover:bg-red-900/30">
+                <Button variant="ghost" size="icon" onClick={onClose} aria-label="Cerrar detalle de etapa" className="text-gray-400 hover:text-white hover:bg-red-900/30">
                   <X className="w-5 h-5" />
                 </Button>
               </div>
