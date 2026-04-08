@@ -426,6 +426,7 @@ export default function ImportPODialog({ open, onClose, suppliers = [], products
         quantity: Number(it.quantity || 1),
         unit_cost: Number(it.unit_price || 0),
         matchScore: match?.score || 0,
+        work_order_id: "",
       };
     });
     setReviewRows(rows);
