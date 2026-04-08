@@ -380,11 +380,12 @@ export default function SummaryStep({ formData, updateFormData, technicians, onB
 
                   <div className="flex items-center gap-3">
                     <div className="flex items-center gap-1">
-                      <Button 
-                        size="icon" 
-                        variant="ghost" 
-                        className="h-6 w-6 text-gray-400 hover:text-white" 
+                      <Button
+                        size="icon"
+                        variant="ghost"
+                        className="h-6 w-6 text-gray-400 hover:text-white"
                         onClick={() => updateItemQuantity(idx, item.quantity - 1)}
+                        aria-label={`Disminuir cantidad de ${item.name}`}
                       >
                         <span className="text-lg">−</span>
                       </Button>
