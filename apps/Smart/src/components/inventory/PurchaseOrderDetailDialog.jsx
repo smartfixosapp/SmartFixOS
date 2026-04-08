@@ -1036,6 +1036,22 @@ export default function PurchaseOrderDetailDialog({
               >
                 🖨️ Imprimir
               </button>
+              {(form.status === "received" || form.status === "partial") && (
+                <button
+                  onClick={() => {
+                    // Pre-fill con todas las cantidades en 0
+                    const initial = {};
+                    form.items.forEach((_, idx) => { initial[idx] = 0; });
+                    setReturnItems(initial);
+                    setReturnReason("");
+                    setShowReturnDialog(true);
+                  }}
+                  className="px-3 py-2.5 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-300 text-xs font-bold hover:bg-amber-500/20 transition-all flex items-center justify-center gap-1.5"
+                  title="Marcar items defectuosos / devolver al proveedor"
+                >
+                  ↩️ Devolver
+                </button>
+              )}
               <button
                 onClick={() => onClose?.(false)}
                 className="flex-1 py-2.5 rounded-xl bg-white/5 border border-white/10 text-white/50 text-sm font-bold hover:bg-white/10 transition-all"
