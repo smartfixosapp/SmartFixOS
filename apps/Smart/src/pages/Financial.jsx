@@ -1630,6 +1630,49 @@ Maximo 150 palabras. Texto plano, sin markdown.`
                     </button>
                   );
                 })()}
+                {displayPOs.length > 0 && (
+                  <button
+                    onClick={() => {
+                      const rows = [
+                        ["PO Number", "Proveedor", "Estado", "Fecha orden", "Fecha esperada", "Items", "Subtotal", "Impuesto", "Envío", "Total", "Notas"].join(","),
+                        ...displayPOs.map((po) => {
+                          const notes = String(po.notes || "")
+                            .replace(/\[PAID:[^\]]+\]/g, "")
+                            .replace(/\[STOCKED\]/g, "")
+                            .replace(/📎\s*Archivo importado:\s*\S+/g, "")
+                            .replace(/"/g, '""')
+                            .replace(/[\r\n]+/g, " ")
+                            .trim();
+                          return [
+                            `"${po.po_number || ""}"`,
+                            `"${(po.supplier_name || "").replace(/"/g, '""')}"`,
+                            po.status || "draft",
+                            String(po.order_date || "").slice(0, 10),
+                            String(po.expected_date || "").slice(0, 10),
+                            (po.line_items || po.items || []).length,
+                            Number(po.subtotal || 0).toFixed(2),
+                            Number(po.tax_amount || 0).toFixed(2),
+                            Number(po.shipping_cost || 0).toFixed(2),
+                            Number(po.total_amount || 0).toFixed(2),
+                            `"${notes}"`,
+                          ].join(",");
+                        }),
+                      ].join("\n");
+                      const blob = new Blob(["\ufeff" + rows], { type: "text/csv;charset=utf-8" });
+                      const url = URL.createObjectURL(blob);
+                      const a = document.createElement("a");
+                      a.href = url;
+                      a.download = `ordenes_compra_${new Date().toISOString().slice(0, 10)}.csv`;
+                      a.click();
+                      URL.revokeObjectURL(url);
+                      toast.success(`Exportadas ${displayPOs.length} órdenes a CSV`);
+                    }}
+                    className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white/[0.04] border border-white/[0.08] text-white/60 text-xs font-black hover:text-white transition-all active:scale-95"
+                    title="Descargar las OCs filtradas como CSV"
+                  >
+                    <Download className="w-3.5 h-3.5" /> Exportar CSV
+                  </button>
+                )}
                 <div className="ml-auto flex items-center gap-2 text-xs">
                   <span className="text-white/40 font-bold">Filtradas:</span>
                   <span className="text-amber-300 font-black tabular-nums">${totalPending.toFixed(2)}</span>
