@@ -1005,12 +1005,17 @@ export default function ImportPODialog({ open, onClose, suppliers = [], products
             woFailed.push(woId);
             continue;
           }
-          const existing = Array.isArray(wo?.parts_needed) ? wo.parts_needed : [];
-          const merged = [...existing, ...newItems];
+          // Escribir a AMBOS campos: parts_needed (usado por WorkOrderItems.jsx)
+          // y order_items (usado por WODetailCenter.jsx "Resumen Financiero")
+          const existingParts = Array.isArray(wo?.parts_needed) ? wo.parts_needed : [];
+          const existingOrderItems = Array.isArray(wo?.order_items) ? wo.order_items : [];
+          const mergedParts = [...existingParts, ...newItems];
+          const mergedOrderItems = [...existingOrderItems, ...newItems];
           const updateResult = await base44.entities.Order.update(woId, {
-            parts_needed: merged,
+            parts_needed: mergedParts,
+            order_items: mergedOrderItems,
           });
-          console.log(`✅ WO ${wo.order_number || woId} actualizada · parts_needed: ${existing.length} → ${merged.length}`);
+          console.log(`✅ WO ${wo.order_number || woId} actualizada · parts_needed: ${existingParts.length} → ${mergedParts.length} · order_items: ${existingOrderItems.length} → ${mergedOrderItems.length}`);
           woUpdated++;
         } catch (err) {
           console.error(`❌ No se pudo enlazar items a WO ${woId}:`, err);
