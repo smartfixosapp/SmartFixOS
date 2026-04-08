@@ -198,6 +198,7 @@ export default function CarriersConfigDialog({ open, onClose, onSave }) {
                       onClick={() => startEdit(index)}
                       size="icon"
                       variant="ghost"
+                      aria-label={`Editar carrier ${carrier.name}`}
                       className="text-cyan-400 hover:text-cyan-300 h-8 w-8"
                     >
                       <Edit2 className="w-4 h-4" />
