@@ -361,6 +361,7 @@ export default function SuppliersDialog({ open, onClose }) {
                     onClick={() => handleDelete(supplier)}
                     className="border-cyan-600/30 text-cyan-400 hover:bg-cyan-600/20 theme-light:border-cyan-500 theme-light:text-cyan-600 theme-light:hover:bg-cyan-50"
                     disabled={supplier.is_virtual}
+                    aria-label={`Eliminar proveedor ${supplier.name}`}
                     title={supplier.is_virtual ? "Proveedor detectado desde compras. No se elimina desde aquí." : "Eliminar proveedor"}>
 
                           <Trash2 className="w-4 h-4" />
