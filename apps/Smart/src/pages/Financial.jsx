@@ -1747,6 +1747,26 @@ Maximo 150 palabras. Texto plano, sin markdown.`
         onClose={() => setShowMonthlyReport(false)}
       />
 
+      {/* ── Órdenes de Compra ── */}
+      {showPODialog && (
+        <PurchaseOrderDialog
+          open={showPODialog}
+          onClose={() => { setShowPODialog(false); setEditingPO(null); loadData(); }}
+          purchaseOrder={editingPO}
+          suppliers={suppliers}
+          products={poProducts}
+        />
+      )}
+      {viewingPO && (
+        <PurchaseOrderDetailDialog
+          open={Boolean(viewingPO)}
+          onClose={() => { setViewingPO(null); loadData(); }}
+          purchaseOrder={viewingPO}
+          suppliers={suppliers}
+          products={poProducts}
+        />
+      )}
+
     </div>
   );
 }
