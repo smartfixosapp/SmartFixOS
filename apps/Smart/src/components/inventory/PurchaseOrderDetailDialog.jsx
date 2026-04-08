@@ -273,6 +273,15 @@ export default function PurchaseOrderDetailDialog({
     }));
   };
 
+  const handleChangeItemWorkOrder = (idx, workOrderId) => {
+    setForm((f) => ({
+      ...f,
+      items: f.items.map((it, i) =>
+        i === idx ? { ...it, work_order_id: workOrderId || "" } : it,
+      ),
+    }));
+  };
+
   const handleChangeItemCost = (idx, cost) => {
     const n = Math.max(0, Number(cost || 0));
     setForm((f) => ({
