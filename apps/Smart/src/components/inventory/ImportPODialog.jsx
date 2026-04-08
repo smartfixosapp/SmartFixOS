@@ -256,7 +256,7 @@ Reglas estrictas:
   return result;
 }
 
-export default function ImportPODialog({ open, onClose, suppliers = [], products = [], workOrders = [] }) {
+export default function ImportPODialog({ open, onClose, suppliers = [], products = [], workOrders = [], existingPOs = [] }) {
   const [file, setFile] = useState(null);
   const [fileUrl, setFileUrl] = useState("");
   const [uploading, setUploading] = useState(false);
