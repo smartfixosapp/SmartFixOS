@@ -1222,6 +1222,21 @@ export default function PurchaseOrderDetailDialog({
               >
                 🖨️ Imprimir
               </button>
+              {/* Registrar pago manual — visible si no hay marcador [PAID:...] en notes */}
+              {!/\[PAID:[^\]]+\]/.test(form.notes || "") && form.status !== "cancelled" && form.status !== "draft" && (
+                <button
+                  onClick={() => {
+                    // Pre-seleccionar método del supplier si tiene default
+                    const sup = suppliers.find((s) => s.id === form.supplier_id);
+                    setPayMethod(sup?.default_payment_method || "paypal");
+                    setShowPayDialog(true);
+                  }}
+                  className="px-3 py-2.5 rounded-xl bg-emerald-500/15 border border-emerald-500/25 text-emerald-300 text-xs font-bold hover:bg-emerald-500/25 transition-all flex items-center justify-center gap-1.5"
+                  title="Registrar el pago de esta orden en gastos diarios"
+                >
+                  💰 Registrar pago
+                </button>
+              )}
               {form.status === "pending" && isAdminUser && (
                 <button
                   onClick={async () => {
