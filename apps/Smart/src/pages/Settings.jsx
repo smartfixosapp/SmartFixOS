@@ -1229,7 +1229,7 @@ export default function SettingsPage() {
                 <div className="space-y-4 relative z-10">
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div className="space-y-1.5">
-                      <label className="text-white/60 text-xs font-semibold ml-1">📘 Facebook</label>
+                      <label className="text-white/60 text-xs font-semibold ml-1 flex items-center gap-1.5"><Facebook className="w-3.5 h-3.5" /> Facebook</label>
                       <Input value={appConfig.facebook_url || ""} onChange={(e) => setAppConfig({ ...appConfig, facebook_url: e.target.value })} placeholder="https://facebook.com/tutienda" className="bg-white/5 border-white/10 text-white rounded-xl h-11 focus:bg-white/10" />
                     </div>
                     <div className="space-y-1.5">
