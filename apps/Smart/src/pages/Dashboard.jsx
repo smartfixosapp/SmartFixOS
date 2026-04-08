@@ -1035,7 +1035,7 @@ export default function Dashboard() {
             <div className="relative z-10 w-[260px] xl:w-[300px] shrink-0 flex flex-col gap-3 p-6 lg:p-7 border-r border-white/[0.07]">
 
               {/* Usuario */}
-              <div className="flex items-center gap-3 bg-white/5 border border-white/10 rounded-2xl pl-2 pr-4 py-2 backdrop-blur-2xl shadow-[inset_0_1px_0_rgba(255,255,255,0.08)]">
+              <div className="liquid-glass flex items-center gap-3 rounded-2xl pl-2 pr-4 py-2">
                 <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-sky-400 via-blue-500 to-indigo-600 flex items-center justify-center shadow-[0_4px_12px_rgba(14,165,233,0.3)] border border-white/20 shrink-0">
                   <span className="text-sm font-black text-white uppercase tracking-tighter">{session?.userName?.substring(0,2) || 'US'}</span>
                 </div>
