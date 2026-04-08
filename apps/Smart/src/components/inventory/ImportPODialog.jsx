@@ -112,6 +112,7 @@ Reglas:
 - NO incluyas filas de subtotal/impuesto/envío/total dentro de items — van en sus campos.
 - Si el archivo no es legible o no es una orden de compra, devuelve {"items": []}.
 - category debe ser UNO de: "screen" (pantallas/LCD/OLED/display), "battery" (baterías/batt), "charger" (cargadores/adapters), "cable" (cables USB/lightning/type-c), "case" (fundas/covers/protectores), "diagnostic" (herramientas/equipos de diagnóstico), "other" (cualquier otra cosa como tornillos, flex, parlantes, cámaras, etc.)
+- payment_method detecta cómo fue pagada la orden si aparece en el documento (busca "Payment", "Paid by", "Method", logos de PayPal/Visa/Mastercard, "Check", "Wire", etc). Valores permitidos: "paypal", "check", "card", "cash", "transfer", "other". Si NO aparece, usa "" (string vacío).
 - Devuelve EXCLUSIVAMENTE el JSON. Nada más.`;
 
   let raw;
