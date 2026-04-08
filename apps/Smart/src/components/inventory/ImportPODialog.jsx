@@ -339,6 +339,75 @@ export default function ImportPODialog({ open, onClose, suppliers = [], products
     setReviewRows([]);
   };
 
+  const saveCurrentAsTemplate = () => {
+    if (reviewRows.length === 0) {
+      toast.error("No hay items para guardar");
+      return;
+    }
+    const supplier = suppliers.find((s) => s.id === supplierId);
+    const name = window.prompt(
+      "Nombre del template:",
+      `Compra típica ${supplier?.name || "OC"}`
+    );
+    if (!name?.trim()) return;
+    setSavingTemplate(true);
+    try {
+      const tpl = {
+        id: `tpl-${Date.now()}`,
+        name: name.trim(),
+        supplier_id: supplierId,
+        supplier_name: supplier?.name || extracted?.supplier_name || "",
+        items: reviewRows.map((r) => ({
+          raw_name: r.raw_name,
+          product_id: r.product_id,
+          product_name: r.product_name,
+          quantity: r.quantity,
+          unit_cost: r.unit_cost,
+        })),
+        created_at: new Date().toISOString(),
+      };
+      const next = [tpl, ...templates].slice(0, 20); // máx 20 templates
+      localStorage.setItem("po_templates", JSON.stringify(next));
+      setTemplates(next);
+      toast.success(`Template "${tpl.name}" guardado`);
+    } catch (err) {
+      toast.error("No se pudo guardar el template");
+    } finally {
+      setSavingTemplate(false);
+    }
+  };
+
+  const loadTemplate = (tpl) => {
+    setSupplierId(tpl.supplier_id || "");
+    setExtracted({
+      supplier_name: tpl.supplier_name || "",
+      items: tpl.items.map((it) => ({ raw_name: it.raw_name })),
+      currency: "USD",
+    });
+    setReviewRows(
+      tpl.items.map((it) => ({
+        raw_name: it.raw_name || "",
+        product_id: it.product_id || "",
+        product_name: it.product_name || it.raw_name || "",
+        quantity: Number(it.quantity || 1),
+        unit_cost: Number(it.unit_cost || 0),
+        matchScore: it.product_id ? 1 : 0,
+        work_order_id: "",
+        ai_category: "other",
+      }))
+    );
+    setShowTemplates(false);
+    toast.success(`Template "${tpl.name}" cargado`);
+  };
+
+  const deleteTemplate = (id) => {
+    if (!window.confirm("¿Borrar este template?")) return;
+    const next = templates.filter((t) => t.id !== id);
+    localStorage.setItem("po_templates", JSON.stringify(next));
+    setTemplates(next);
+    toast.success("Template borrado");
+  };
+
   const acceptFiles = (files) => {
     if (!files || files.length === 0) return;
     if (files.length === 1) {
