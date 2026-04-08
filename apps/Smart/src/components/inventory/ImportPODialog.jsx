@@ -943,6 +943,7 @@ export default function ImportPODialog({ open, onClose, suppliers = [], products
             >
               <input
                 type="file"
+                multiple
                 accept="image/*,application/pdf,.pdf,.csv,.xlsx,.xls"
                 onChange={handleFilePick}
                 className="hidden"
