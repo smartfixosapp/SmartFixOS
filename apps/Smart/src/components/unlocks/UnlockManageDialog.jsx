@@ -126,6 +126,7 @@ export default function UnlockManageDialog({ unlock, onClose, onPaymentOption, o
               onClick={() => setEditMode(!editMode)}
               size="icon"
               variant="ghost"
+              aria-label={editMode ? "Cancelar edición" : "Editar desbloqueo"}
               className="text-cyan-400 hover:text-cyan-300 hover:bg-cyan-600/10"
             >
               {editMode ? <X className="w-5 h-5" /> : <Edit2 className="w-5 h-5" />}
