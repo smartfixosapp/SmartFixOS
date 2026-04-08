@@ -216,6 +216,7 @@ export default function OrderDetailDialog({ order, open, onClose, onOrderUpdated
                     size="icon"
                     className="border-violet-500/30 text-violet-400 hover:bg-violet-900/20"
                     title="Compartir recibo"
+                    aria-label="Compartir recibo"
                   >
                     <Share2 className="w-4 h-4" />
                   </Button>
