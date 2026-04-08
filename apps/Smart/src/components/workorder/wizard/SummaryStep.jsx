@@ -390,11 +390,12 @@ export default function SummaryStep({ formData, updateFormData, technicians, onB
                         <span className="text-lg">−</span>
                       </Button>
                       <span className="text-white text-sm w-8 text-center font-medium">{item.quantity}</span>
-                      <Button 
-                        size="icon" 
-                        variant="ghost" 
-                        className="h-6 w-6 text-gray-400 hover:text-white" 
+                      <Button
+                        size="icon"
+                        variant="ghost"
+                        className="h-6 w-6 text-gray-400 hover:text-white"
                         onClick={() => updateItemQuantity(idx, item.quantity + 1)}
+                        aria-label={`Aumentar cantidad de ${item.name}`}
                       >
                         <span className="text-lg">+</span>
                       </Button>
