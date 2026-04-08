@@ -1352,6 +1352,112 @@ export default function PurchaseOrderDetailDialog({
         )}
       </DialogContent>
 
+      {/* Modal — Registrar pago manual */}
+      <Dialog open={showPayDialog} onOpenChange={(v) => !v && setShowPayDialog(false)}>
+        <DialogContent className="max-w-md bg-zinc-950 border-white/10 text-white">
+          <DialogHeader>
+            <DialogTitle className="text-white flex items-center gap-2">
+              💰 Registrar pago de OC
+            </DialogTitle>
+          </DialogHeader>
+          {(() => {
+            const total = form.items.reduce((s, it) => s + (Number(it.unit_cost || 0) * Number(it.quantity || 0)), 0) + Number(form.shipping_cost || 0);
+            return (
+              <div className="space-y-3">
+                <div className="p-3 rounded-xl bg-white/[0.03] border border-white/[0.08]">
+                  <p className="text-[10px] text-white/40 font-black uppercase">OC</p>
+                  <p className="text-sm text-white font-bold">{form.po_number}</p>
+                  <p className="text-[11px] text-white/50">{form.supplier_name || "Sin proveedor"}</p>
+                </div>
+                <div className="p-3 rounded-xl bg-emerald-500/[0.05] border border-emerald-500/20">
+                  <p className="text-[10px] text-emerald-400/80 font-black uppercase">Monto a registrar</p>
+                  <p className="text-2xl text-emerald-300 font-black tabular-nums">${total.toFixed(2)}</p>
+                </div>
+                <div>
+                  <p className="text-[10px] text-white/40 font-black uppercase mb-1">Pagué con</p>
+                  <select
+                    value={payMethod}
+                    onChange={(e) => setPayMethod(e.target.value)}
+                    className="w-full bg-zinc-900 border border-white/10 rounded-lg px-3 py-2 text-sm text-white font-bold"
+                  >
+                    <option value="paypal">💳 PayPal</option>
+                    <option value="check">🧾 Cheque</option>
+                    <option value="card">💳 Tarjeta</option>
+                    <option value="cash">💵 Efectivo</option>
+                    <option value="transfer">🏦 Transferencia</option>
+                    <option value="other">Otro</option>
+                  </select>
+                </div>
+                <p className="text-[10px] text-white/40">
+                  Esto crea un gasto en Finanzas con el monto total y el método elegido. La OC quedará marcada como pagada.
+                </p>
+              </div>
+            );
+          })()}
+          <DialogFooter className="gap-2">
+            <button
+              onClick={() => setShowPayDialog(false)}
+              disabled={processingPay}
+              className="px-4 py-2 rounded-xl bg-white/[0.04] border border-white/10 text-white/60 text-xs font-bold disabled:opacity-40"
+            >
+              Cancelar
+            </button>
+            <button
+              onClick={async () => {
+                setProcessingPay(true);
+                try {
+                  const total = form.items.reduce((s, it) => s + (Number(it.unit_cost || 0) * Number(it.quantity || 0)), 0) + Number(form.shipping_cost || 0);
+                  const mapPaymentMethod = (m) => {
+                    switch (m) {
+                      case "cash": return "cash";
+                      case "card": return "card";
+                      case "ath_movil": return "ath_movil";
+                      case "transfer": return "transfer";
+                      case "paypal": return "transfer";
+                      case "check": return "transfer";
+                      default: return "transfer";
+                    }
+                  };
+                  const methodLabel = {
+                    paypal: "PayPal", check: "Cheque", card: "Tarjeta",
+                    cash: "Efectivo", transfer: "Transferencia", other: "Otro",
+                  }[payMethod] || payMethod;
+                  const itemsDesc = form.items
+                    .map((it) => `${it.product_name} x${it.quantity}`)
+                    .join(", ");
+                  const txPayload = {
+                    type: "expense",
+                    category: "parts",
+                    amount: Math.round(total * 100) / 100,
+                    description: `OC ${form.po_number}${form.supplier_name ? ` — ${form.supplier_name}` : ""} · Pago: ${methodLabel}. ${itemsDesc}`.slice(0, 500),
+                    payment_method: mapPaymentMethod(payMethod),
+                    order_number: form.po_number,
+                  };
+                  console.log("📝 Creando Transaction (pago manual):", txPayload);
+                  await base44.entities.Transaction.create(txPayload);
+                  // Marcar la OC como pagada en notes
+                  const newNotes = (form.notes || "").trim() + (form.notes ? "\n" : "") + `[PAID:${payMethod}]`;
+                  await base44.entities.PurchaseOrder.update(purchaseOrder.id, { notes: newNotes });
+                  setForm((f) => ({ ...f, notes: newNotes }));
+                  toast.success(`✅ Pago de $${total.toFixed(2)} registrado en Finanzas`);
+                  setShowPayDialog(false);
+                  onClose?.(true);
+                } catch (err) {
+                  console.error("Pay error:", err);
+                  toast.error("No se pudo registrar el pago: " + (err?.message || err));
+                } finally {
+                  setProcessingPay(false);
+                }
+              }}
+              disabled={processingPay}
+              className="px-4 py-2 rounded-xl bg-emerald-500/20 border border-emerald-500/30 text-emerald-200 text-xs font-black hover:bg-emerald-500/30 disabled:opacity-40"
+            >
+              {processingPay ? "Procesando..." : "Confirmar pago"}
+            </button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
       {/* Modal — Devolver al proveedor */}
       <Dialog open={showReturnDialog} onOpenChange={(v) => !v && setShowReturnDialog(false)}>
         <DialogContent className="max-w-lg bg-zinc-950 border-white/10 text-white">
