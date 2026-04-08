@@ -1721,30 +1721,33 @@ Maximo 150 palabras. Texto plano, sin markdown.`
                     {bulkActionLoading ? <RefreshCw className="w-3 h-3 animate-spin" /> : "✅"}
                     Marcar recibidas
                   </button>
-                  <button
-                    onClick={async () => {
-                      if (!window.confirm(`¿Borrar ${selectedPOIds.size} orden${selectedPOIds.size === 1 ? "" : "es"} de compra? Esta acción no se puede deshacer.`)) return;
-                      setBulkActionLoading(true);
-                      let ok = 0;
-                      for (const id of selectedPOIds) {
-                        try {
-                          await dataClient.entities.PurchaseOrder.delete(id);
-                          ok++;
-                        } catch (err) {
-                          console.warn("Bulk delete failed for", id, err);
+                  {canDeletePO && (
+                    <button
+                      onClick={async () => {
+                        if (!window.confirm(`¿Borrar ${selectedPOIds.size} orden${selectedPOIds.size === 1 ? "" : "es"} de compra? Esta acción no se puede deshacer.`)) return;
+                        setBulkActionLoading(true);
+                        let ok = 0;
+                        for (const id of selectedPOIds) {
+                          try {
+                            await dataClient.entities.PurchaseOrder.delete(id);
+                            ok++;
+                          } catch (err) {
+                            console.warn("Bulk delete failed for", id, err);
+                          }
                         }
-                      }
-                      setBulkActionLoading(false);
-                      setSelectedPOIds(new Set());
-                      toast.success(`${ok} orden${ok === 1 ? "" : "es"} borrada${ok === 1 ? "" : "s"}`);
-                      loadData();
-                    }}
-                    disabled={bulkActionLoading}
-                    className="flex items-center gap-1 px-3 py-1.5 rounded-lg bg-red-500/10 border border-red-500/25 text-red-300 text-[11px] font-black hover:bg-red-500/20 disabled:opacity-40"
-                  >
-                    <Trash2 className="w-3 h-3" />
-                    Borrar
-                  </button>
+                        setBulkActionLoading(false);
+                        setSelectedPOIds(new Set());
+                        toast.success(`${ok} orden${ok === 1 ? "" : "es"} borrada${ok === 1 ? "" : "s"}`);
+                        loadData();
+                      }}
+                      disabled={bulkActionLoading}
+                      title="Borrar (solo admin)"
+                      className="flex items-center gap-1 px-3 py-1.5 rounded-lg bg-red-500/10 border border-red-500/25 text-red-300 text-[11px] font-black hover:bg-red-500/20 disabled:opacity-40"
+                    >
+                      <Trash2 className="w-3 h-3" />
+                      Borrar
+                    </button>
+                  )}
                   <button
                     onClick={() => setSelectedPOIds(new Set())}
                     className="ml-auto px-2 py-1 text-[10px] text-white/50 hover:text-white font-bold"
