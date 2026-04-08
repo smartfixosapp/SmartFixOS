@@ -1653,7 +1653,7 @@ Maximo 150 palabras. Texto plano, sin markdown.`
                     { label: 'Historial de movimientos', Icon: History, action: () => { setShowHistorial(true); setShowMoreMenu(false); } },
                     { label: 'Gestionar categorías', Icon: Settings, action: () => { setShowManageCategories(true); setShowMoreMenu(false); } },
                     { label: 'Proveedores', Icon: Globe, action: () => { setShowSuppliers(true); setShowMoreMenu(false); } },
-                    { label: 'Órdenes de compra', Icon: FileText, action: () => { setShowPOMenu(true); setShowMoreMenu(false); } },
+                    // "Órdenes de compra" se movió a Finanzas → Órdenes de compra
                     null, // separador
                     { label: 'Orden especial', Icon: Zap, action: () => { setShowQuickOrder(true); setShowMoreMenu(false); }, accent: 'text-violet-400' },
                   ].map((item, i) =>
