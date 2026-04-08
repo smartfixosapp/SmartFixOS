@@ -190,6 +190,7 @@ export default function B2BContactsManager({ customer, onUpdate }) {
                     size="icon"
                     variant="ghost"
                     onClick={() => handleRemove(index)}
+                    aria-label={`Eliminar contacto ${contact.name}`}
                     className="h-7 w-7 text-red-400 hover:bg-red-600/20">
                     <Trash2 className="w-4 h-4" />
                   </Button>
