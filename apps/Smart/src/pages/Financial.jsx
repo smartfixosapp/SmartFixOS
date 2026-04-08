@@ -1524,13 +1524,27 @@ Maximo 150 palabras. Texto plano, sin markdown.`
                             <Truck className="w-4 h-4" />
                           </div>
                           <div className="flex-1 min-w-0">
-                            <div className="flex items-center gap-2">
+                            <div className="flex items-center gap-2 flex-wrap">
                               <p className="text-white font-black text-sm truncate">
                                 {po.po_number || `OC-${String(po.id || "").slice(-6)}`}
                               </p>
                               <span className={`px-2 py-0.5 rounded-md text-[10px] font-black border ${statusColor(status)}`}>
                                 {statusLabel(status)}
                               </span>
+                              {isOverdue(po) && (
+                                <span className="px-2 py-0.5 rounded-md text-[10px] font-black bg-red-500/20 text-red-300 border border-red-500/30">
+                                  ⚠ Vencida {Math.abs(daysUntilExpected(po))}d
+                                </span>
+                              )}
+                              {!isOverdue(po) && po.expected_date && !["received", "cancelled"].includes(status) && (() => {
+                                const d = daysUntilExpected(po);
+                                if (d == null) return null;
+                                return (
+                                  <span className="px-2 py-0.5 rounded-md text-[10px] font-black bg-cyan-500/10 text-cyan-300 border border-cyan-500/20">
+                                    Llega en {d === 0 ? "hoy" : `${d}d`}
+                                  </span>
+                                );
+                              })()}
                             </div>
                             <p className="text-[11px] text-white/40 truncate">
                               {po.supplier_name || "Suplidor no definido"} · {itemsCount} productos
