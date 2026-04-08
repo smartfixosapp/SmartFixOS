@@ -908,6 +908,23 @@ export default function ImportPODialog({ open, onClose, suppliers = [], products
         }
       } catch { /* insight no-critical */ }
 
+      // Multi-file: pasar al siguiente archivo de la cola
+      if (fileQueue.length > 0) {
+        const [next, ...rest] = fileQueue;
+        setFileQueue(rest);
+        setBatchProgress({ current: (batchProgress?.current || 0) + 1, total: (batchProgress?.total || fileQueue.length + 1) });
+        // Reset para el siguiente archivo
+        setFile(next);
+        setFileUrl("");
+        setExtracted(null);
+        setReviewRows([]);
+        setError("");
+        setNotes("");
+        toast.info(`Siguiente archivo: ${next.name} (${rest.length} en cola)`);
+        setSaving(false);
+        return;
+      }
+      setBatchProgress(null);
       onClose?.();
     } catch (err) {
       console.error("Create PO error:", err);
