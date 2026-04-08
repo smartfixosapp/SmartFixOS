@@ -132,7 +132,7 @@ export default function OrderNotes({ order, onUpdate }) {
                 className="bg-black/40 border-white/10 text-white"
                 onKeyDown={(e) => e.key === 'Enter' && addNote()}
               />
-              <Button onClick={addNote} disabled={loading || !note.trim()} size="icon" className="bg-emerald-600 hover:bg-emerald-700 shrink-0">
+              <Button onClick={addNote} disabled={loading || !note.trim()} size="icon" aria-label="Agregar comentario" className="bg-emerald-600 hover:bg-emerald-700 shrink-0">
                 <Plus className="w-4 h-4" />
               </Button>
             </div>
