@@ -60,6 +60,7 @@ export default function PurchaseOrderDetailDialog({
         console.log("📦 PO cargada:", po);
         setPoData(po);
 
+        // Cargar tracking_number del PO si existe
         const rawItems = po.items || po.line_items || [];
         const mappedItems = rawItems.map((it) => {
           const prodId = it.product_id || it.inventory_item_id;
