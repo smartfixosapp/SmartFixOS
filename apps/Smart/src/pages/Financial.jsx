@@ -1495,36 +1495,72 @@ Maximo 150 palabras. Texto plano, sin markdown.`
                     const itemsCount = (po.items || po.line_items || []).length;
                     const date = po.created_date || po.created_at || po.order_date;
                     const status = po.status || "draft";
+                    const isDeletingThis = deletingPOId === po.id;
                     return (
-                      <button
+                      <div
                         key={po.id}
-                        onClick={() => setViewingPO(po)}
-                        className="w-full text-left flex items-center gap-3 p-3.5 rounded-2xl bg-white/[0.03] hover:bg-white/[0.06] border border-white/[0.06] transition-all"
+                        className="group flex items-center gap-3 p-3.5 rounded-2xl bg-white/[0.03] hover:bg-white/[0.06] border border-white/[0.06] transition-all"
                       >
-                        <div className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0 bg-cyan-500/10 text-cyan-400">
-                          <Truck className="w-4 h-4" />
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-2">
-                            <p className="text-white font-black text-sm truncate">
-                              {po.po_number || `OC-${String(po.id || "").slice(-6)}`}
-                            </p>
-                            <span className={`px-2 py-0.5 rounded-md text-[10px] font-black border ${statusColor(status)}`}>
-                              {statusLabel(status)}
-                            </span>
+                        <button
+                          type="button"
+                          onClick={() => setViewingPO(po)}
+                          className="flex-1 min-w-0 flex items-center gap-3 text-left"
+                        >
+                          <div className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0 bg-cyan-500/10 text-cyan-400">
+                            <Truck className="w-4 h-4" />
                           </div>
-                          <p className="text-[11px] text-white/40 truncate">
-                            {po.supplier_name || "Suplidor no definido"} · {itemsCount} productos
-                            {date ? ` · ${format(new Date(date), "dd MMM yyyy", { locale: es })}` : ""}
-                          </p>
-                        </div>
-                        <div className="flex items-center gap-2 shrink-0">
-                          <p className="text-sm font-black text-white tabular-nums">
-                            ${Number(po.total_amount || 0).toFixed(2)}
-                          </p>
-                          <Eye className="w-4 h-4 text-white/30" />
-                        </div>
-                      </button>
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2">
+                              <p className="text-white font-black text-sm truncate">
+                                {po.po_number || `OC-${String(po.id || "").slice(-6)}`}
+                              </p>
+                              <span className={`px-2 py-0.5 rounded-md text-[10px] font-black border ${statusColor(status)}`}>
+                                {statusLabel(status)}
+                              </span>
+                            </div>
+                            <p className="text-[11px] text-white/40 truncate">
+                              {po.supplier_name || "Suplidor no definido"} · {itemsCount} productos
+                              {date ? ` · ${format(new Date(date), "dd MMM yyyy", { locale: es })}` : ""}
+                            </p>
+                          </div>
+                          <div className="flex items-center gap-2 shrink-0">
+                            <p className="text-sm font-black text-white tabular-nums">
+                              ${Number(po.total_amount || 0).toFixed(2)}
+                            </p>
+                            <Eye className="w-4 h-4 text-white/30" />
+                          </div>
+                        </button>
+                        <button
+                          type="button"
+                          onClick={async (e) => {
+                            e.stopPropagation();
+                            const ok = window.confirm(
+                              `¿Borrar la orden de compra ${po.po_number || ""}?\n\nEsto NO borra los gastos ya registrados en Finanzas (esos hay que borrarlos por separado si existen).`,
+                            );
+                            if (!ok) return;
+                            setDeletingPOId(po.id);
+                            try {
+                              await dataClient.entities.PurchaseOrder.delete(po.id);
+                              setPurchaseOrders((list) => list.filter((x) => x.id !== po.id));
+                              toast.success("Orden de compra borrada");
+                            } catch (err) {
+                              console.error("Delete PO error:", err);
+                              toast.error("No se pudo borrar: " + (err?.message || ""));
+                            } finally {
+                              setDeletingPOId(null);
+                            }
+                          }}
+                          disabled={isDeletingThis}
+                          title="Borrar orden de compra"
+                          className="shrink-0 w-8 h-8 rounded-lg bg-white/[0.04] hover:bg-red-500/20 text-white/30 hover:text-red-400 flex items-center justify-center transition-colors opacity-0 group-hover:opacity-100 disabled:opacity-40"
+                        >
+                          {isDeletingThis ? (
+                            <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+                          ) : (
+                            <Trash2 className="w-3.5 h-3.5" />
+                          )}
+                        </button>
+                      </div>
                     );
                   })}
                 </div>
