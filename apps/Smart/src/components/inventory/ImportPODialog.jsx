@@ -578,15 +578,23 @@ export default function ImportPODialog({ open, onClose, suppliers = [], products
   const addEmptyRow = () => {
     setReviewRows((rows) => [
       ...rows,
-      { raw_name: "", product_id: "", product_name: "", quantity: 1, unit_cost: 0, matchScore: 0, work_order_id: "" },
+      { raw_name: "", product_id: "", product_name: "", quantity: 1, unit_cost: 0, unit_price: 0, matchScore: 0, work_order_id: "" },
     ]);
   };
   const onPickProduct = (idx, productId) => {
     const p = liveProducts.find((x) => x.id === productId);
+    const currentRow = reviewRows[idx];
+    const newCost = p?.cost != null ? Number(p.cost) : currentRow.unit_cost;
+    // Si el producto matcheado tiene price, usarlo. Sino, mantener el precio actual
+    // o calcular cost * 1.5 si está en 0.
+    const newPrice = p?.price != null && Number(p.price) > 0
+      ? Number(p.price)
+      : (currentRow.unit_price > 0 ? currentRow.unit_price : (newCost > 0 ? Math.round(newCost * 1.5 * 100) / 100 : 0));
     updateRow(idx, {
       product_id: productId,
       product_name: p?.name || "",
-      unit_cost: p?.cost != null ? Number(p.cost) : reviewRows[idx].unit_cost,
+      unit_cost: newCost,
+      unit_price: newPrice,
       matchScore: 1,
     });
   };
