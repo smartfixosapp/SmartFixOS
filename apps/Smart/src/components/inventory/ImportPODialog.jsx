@@ -968,6 +968,9 @@ export default function ImportPODialog({ open, onClose, suppliers = [], products
             transfer: "Transferencia",
             other: "Otro",
           }[paymentMethod] || paymentMethod;
+          // CRÍTICO: pasar tenant_id explícito para garantizar visibilidad
+          let tenantId = null;
+          try { tenantId = localStorage.getItem("smartfix_tenant_id"); } catch { /* */ }
           const payload = {
             type: "expense",
             category: "parts",
@@ -975,6 +978,7 @@ export default function ImportPODialog({ open, onClose, suppliers = [], products
             description: `OC ${poNumber}${supplier?.name ? ` — ${supplier.name}` : extracted?.supplier_name ? ` — ${extracted.supplier_name}` : ""} · Pago: ${methodLabel}. ${itemsDesc}`.slice(0, 500),
             payment_method: mapPaymentMethod(paymentMethod),
             order_number: poNumber,
+            ...(tenantId ? { tenant_id: tenantId } : {}),
           };
           console.log("📝 Creando Transaction expense:", payload);
           const created = await base44.entities.Transaction.create(payload);
