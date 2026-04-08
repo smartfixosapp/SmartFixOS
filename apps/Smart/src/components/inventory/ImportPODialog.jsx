@@ -863,6 +863,27 @@ export default function ImportPODialog({ open, onClose, suppliers = [], products
                             {row.product_id ? `Confianza: ${(row.matchScore * 100).toFixed(0)}%` : ""}
                           </p>
                         )}
+                        {/* Enlazar a una orden de trabajo (opcional) */}
+                        {workOrders.length > 0 && (
+                          <div className="mt-1">
+                            <p className="text-[9px] text-white/30 font-black uppercase mb-0.5">
+                              Enlazar a orden de trabajo (opcional)
+                            </p>
+                            <select
+                              value={row.work_order_id || ""}
+                              onChange={(e) => updateRow(idx, { work_order_id: e.target.value })}
+                              className="w-full bg-zinc-900 border border-white/10 rounded-lg px-2 py-1 text-[11px] text-white"
+                            >
+                              <option value="">— Sin orden de trabajo —</option>
+                              {workOrders.slice(0, 100).map((wo) => (
+                                <option key={wo.id} value={wo.id}>
+                                  {wo.order_number || wo.id?.slice(-6)}
+                                  {wo.customer_name ? ` · ${wo.customer_name}` : ""}
+                                </option>
+                              ))}
+                            </select>
+                          </div>
+                        )}
                       </div>
                       <div className="col-span-4 md:col-span-2">
                         <p className="text-[10px] text-white/30 font-black uppercase mb-0.5">Cant.</p>
