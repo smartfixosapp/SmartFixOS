@@ -133,7 +133,10 @@ export default function PurchaseOrderDetailDialog({
       await base44.entities.PurchaseOrder.update(purchaseOrder.id, payload);
 
       // ── AUTO-GASTO: cuando PO se marca como recibida ──────────────────────
-      if (form.status === "received" && previousStatus !== "received") {
+      // Pero NO duplicar si ya se pagó al ordenar (marcador [PAID:method] en notes
+      // que añade ImportPODialog cuando el usuario marca "Ya pagué").
+      const alreadyPaid = /\[PAID:[^\]]+\]/.test(form.notes || "");
+      if (form.status === "received" && previousStatus !== "received" && !alreadyPaid) {
         try {
           const totalAmount = Math.round(payload.total_amount * 100) / 100;
           const itemsDesc = form.items
