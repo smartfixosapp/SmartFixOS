@@ -389,7 +389,7 @@ export default function POSReceiptTab() {
       )}
 
       {/* Layout principal: editor + preview */}
-      <div className={`flex gap-6 ${showPreview ? "items-start" : ""}`}>
+      <div className={`flex flex-col lg:flex-row gap-6 ${showPreview ? "items-start" : ""}`}>
 
         {/* ── Panel izquierdo: editor ────────────────────────────────── */}
         <div className="flex-1 min-w-0 space-y-4">
