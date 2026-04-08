@@ -1279,7 +1279,7 @@ export default function SettingsPage() {
                     </select>
                   </div>
                   <div className="space-y-1.5">
-                    <label className="text-white/60 text-xs font-semibold ml-1">🧾 IVU / Impuesto (%)</label>
+                    <label className="text-white/60 text-xs font-semibold ml-1 flex items-center gap-1.5"><Receipt className="w-3.5 h-3.5" /> IVU / Impuesto (%)</label>
                     <Input
                       type="number"
                       min="0"
