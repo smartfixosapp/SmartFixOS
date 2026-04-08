@@ -751,6 +751,7 @@ export default function ImportPODialog({ open, onClose, suppliers = [], products
       updateRow(draft.idx, {
         product_id: created.id,
         product_name: created.name,
+        unit_price: Number(draft.price),
         matchScore: 1,
       });
       toast.success(`Producto "${created.name}" creado · Precio venta $${Number(draft.price).toFixed(2)}`);
