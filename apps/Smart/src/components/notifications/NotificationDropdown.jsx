@@ -163,6 +163,7 @@ export default function NotificationDropdown({ user, onClose }) {
             size="icon"
             variant="ghost"
             onClick={onClose}
+            aria-label="Cerrar notificaciones"
             className="text-gray-400 hover:text-white theme-light:text-gray-600 theme-light:hover:text-gray-900"
           >
             <X className="w-5 h-5" />
