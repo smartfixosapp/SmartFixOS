@@ -60,6 +60,7 @@ export default function EditDenominationModal({
               size="icon"
               className="h-12 w-12 rounded-full border-zinc-700 hover:bg-zinc-800"
               onClick={() => setQty(qty + 1)}
+              aria-label="Aumentar cantidad"
             >
               <Plus className="h-6 w-6" />
             </Button>
