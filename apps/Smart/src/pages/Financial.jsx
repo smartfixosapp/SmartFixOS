@@ -324,6 +324,43 @@ export default function Financial() {
       setPoProducts(Array.isArray(productsData) ? productsData : []);
       setPoWorkOrders(Array.isArray(workOrdersData) ? workOrdersData : []);
 
+      // Notificaciones de OCs vencidas — máximo 1 por OC cada 24h
+      try {
+        const todayKey = new Date().toISOString().slice(0, 10);
+        const notifyKey = `po_overdue_notify_${todayKey}`;
+        const alreadyNotified = JSON.parse(localStorage.getItem(notifyKey) || "[]");
+        const overdueNew = (purchaseOrdersData || []).filter((po) => {
+          if (!po.expected_date) return false;
+          if (["received", "cancelled"].includes(po.status)) return false;
+          if (String(po.expected_date).slice(0, 10) >= todayKey) return false;
+          return !alreadyNotified.includes(po.id);
+        });
+        if (overdueNew.length > 0 && dataClient.entities.Notification?.create) {
+          const newIds = [...alreadyNotified];
+          for (const po of overdueNew) {
+            try {
+              await dataClient.entities.Notification.create({
+                type: "warning",
+                title: `OC vencida: ${po.po_number}`,
+                message: `${po.supplier_name || "Sin proveedor"} · esperada el ${po.expected_date} · $${Number(po.total_amount || 0).toFixed(2)}`,
+                read: false,
+                category: "purchase_order",
+                reference_id: po.id,
+              });
+              newIds.push(po.id);
+            } catch (notifErr) {
+              console.warn("No se pudo crear notificación:", notifErr);
+            }
+          }
+          try { localStorage.setItem(notifyKey, JSON.stringify(newIds)); } catch { /* */ }
+          if (overdueNew.length > 0) {
+            toast.warning(`${overdueNew.length} orden${overdueNew.length === 1 ? "" : "es"} de compra vencida${overdueNew.length === 1 ? "" : "s"}`);
+          }
+        }
+      } catch (overdueErr) {
+        console.warn("Overdue check error:", overdueErr);
+      }
+
       const validSales = (salesData || []).filter(s => !s.voided);
       const expenseTransactions = (transactionsData || [])
         .filter(t => t.type === 'expense')
