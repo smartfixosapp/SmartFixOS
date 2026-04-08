@@ -879,6 +879,44 @@ export default function ImportPODialog({ open, onClose, suppliers = [], products
               </button>
             </div>
 
+            {/* Pago — registrar gasto al importar */}
+            <div className="p-3 rounded-xl bg-emerald-500/[0.05] border border-emerald-500/20">
+              <label className="flex items-start gap-2 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={paidAtOrder}
+                  onChange={(e) => setPaidAtOrder(e.target.checked)}
+                  className="mt-0.5 w-4 h-4 accent-emerald-500"
+                />
+                <div className="flex-1 min-w-0">
+                  <p className="text-xs font-black text-white">
+                    Ya pagué esta orden — registrar gasto en Finanzas
+                  </p>
+                  <p className="text-[10px] text-white/40 mt-0.5">
+                    Marcado: crea el gasto al toque y la OC nace en estado <b>Enviada</b>.
+                    Sin marcar: la OC nace como <b>Borrador</b> y el gasto se crea cuando la marques como <b>Recibida</b>.
+                  </p>
+                </div>
+              </label>
+              {paidAtOrder && (
+                <div className="mt-2 flex items-center gap-2 ml-6">
+                  <span className="text-[10px] text-white/40 font-black uppercase">Pagué con:</span>
+                  <select
+                    value={paymentMethod}
+                    onChange={(e) => setPaymentMethod(e.target.value)}
+                    className="bg-zinc-900 border border-white/10 rounded-lg px-2 py-1 text-xs text-white font-bold"
+                  >
+                    <option value="paypal">💳 PayPal</option>
+                    <option value="check">🧾 Cheque</option>
+                    <option value="card">💳 Tarjeta</option>
+                    <option value="cash">💵 Efectivo</option>
+                    <option value="transfer">🏦 Transferencia</option>
+                    <option value="other">Otro</option>
+                  </select>
+                </div>
+              )}
+            </div>
+
             {/* Notas */}
             <div>
               <p className="text-[10px] text-white/30 font-black uppercase mb-1">Notas</p>
