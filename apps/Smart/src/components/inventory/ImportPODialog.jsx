@@ -671,6 +671,7 @@ export default function ImportPODialog({ open, onClose, suppliers = [], products
           ...r,
           product_id: hit.product.id,
           product_name: hit.product.name,
+          unit_price: Number(hit.product.price || 0),
           matchScore: 1,
         };
       })
