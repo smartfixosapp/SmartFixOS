@@ -156,6 +156,9 @@ export default function PurchaseOrderDetailDialog({
           console.warn("No se pudo registrar el gasto automático:", expErr);
           toast.success("Orden actualizada");
         }
+      } else if (form.status === "received" && previousStatus !== "received" && alreadyPaid) {
+        // Ya se pagó al ordenar, no duplicamos el gasto
+        toast.success("Orden recibida ✅ (gasto ya estaba registrado al ordenar)");
       } else {
         toast.success("Orden actualizada");
       }
