@@ -538,7 +538,7 @@ export default function Financial() {
       if (!b.date) return -1;
       return new Date(b.date) - new Date(a.date);
     });
-  }, [filteredSales, filteredExpenses]);
+  }, [filteredSales, filteredExpenses, purchaseOrders]);
 
   const todayStart = startOfDay(new Date());
   const todayEnd = endOfDay(new Date());
