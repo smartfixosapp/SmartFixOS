@@ -1419,7 +1419,26 @@ Maximo 150 palabras. Texto plano, sin markdown.`
           };
 
           const q = poSearch.trim().toLowerCase();
+          const weekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10);
+
+          const matchesQuick = (po) => {
+            const st = po.status || "draft";
+            switch (poQuickFilter) {
+              case "week": {
+                const d = String(po.created_date || po.created_at || po.order_date || "").slice(0, 10);
+                return d >= weekAgo;
+              }
+              case "overdue": return isOverdue(po);
+              case "unpaid":
+                return !["received", "cancelled"].includes(st) &&
+                       !/\[PAID:[^\]]+\]/.test(po.notes || "");
+              case "drafts": return st === "draft";
+              default: return true;
+            }
+          };
+
           const filteredPOs = (purchaseOrders || []).filter((po) => {
+            if (!matchesQuick(po)) return false;
             if (poStatusFilter !== "all" && (po.status || "draft") !== poStatusFilter) return false;
             if (!q) return true;
             return (
@@ -1429,7 +1448,39 @@ Maximo 150 palabras. Texto plano, sin markdown.`
             );
           });
 
-          const totalPending = filteredPOs
+          // Sort
+          const sortedPOs = [...filteredPOs].sort((a, b) => {
+            const dir = poSortDir === "asc" ? 1 : -1;
+            switch (poSortBy) {
+              case "total":
+                return (Number(a.total_amount || 0) - Number(b.total_amount || 0)) * dir;
+              case "supplier":
+                return String(a.supplier_name || "").localeCompare(String(b.supplier_name || "")) * dir;
+              case "date":
+              default: {
+                const da = new Date(a.created_date || a.created_at || a.order_date || 0).getTime();
+                const db = new Date(b.created_date || b.created_at || b.order_date || 0).getTime();
+                return (da - db) * dir;
+              }
+            }
+          });
+          const displayPOs = sortedPOs;
+
+          // Stats globales (sobre todas las POs, no filtradas)
+          const allPOs = purchaseOrders || [];
+          const monthStart = new Date();
+          monthStart.setDate(1);
+          monthStart.setHours(0, 0, 0, 0);
+          const monthPOs = allPOs.filter((po) => {
+            const d = new Date(po.created_date || po.created_at || po.order_date || 0);
+            return d >= monthStart;
+          });
+          const monthTotal = monthPOs.reduce((s, po) => s + Number(po.total_amount || 0), 0);
+          const pendingPOs = allPOs.filter((po) => !["received", "cancelled"].includes(po.status || "draft"));
+          const pendingTotal = pendingPOs.reduce((s, po) => s + Number(po.total_amount || 0), 0);
+          const overduePOs = allPOs.filter(isOverdue);
+
+          const totalPending = sortedPOs
             .filter((po) => !["received", "cancelled"].includes(po.status || "draft"))
             .reduce((s, po) => s + Number(po.total_amount || 0), 0);
 
