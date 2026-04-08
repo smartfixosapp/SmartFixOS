@@ -111,6 +111,72 @@ export default function PurchaseOrderDetailDialog({
     loadPO();
   }, [open, purchaseOrder?.id, products]);
 
+  // Helper: remueve items de una WO que vengan de una PO específica
+  // (identificados por `po_number` o por `id` match exacto)
+  const removeItemsFromWO = async (woId, predicate) => {
+    try {
+      const wo = await base44.entities.Order.get(woId);
+      if (!wo) return false;
+      const parts = Array.isArray(wo.parts_needed) ? wo.parts_needed : [];
+      const orderItems = Array.isArray(wo.order_items) ? wo.order_items : [];
+      const newParts = parts.filter((i) => !predicate(i));
+      const newOrderItems = orderItems.filter((i) => !predicate(i));
+      if (newParts.length === parts.length && newOrderItems.length === orderItems.length) {
+        return false; // nothing to remove
+      }
+      await base44.entities.Order.update(woId, {
+        parts_needed: newParts,
+        order_items: newOrderItems,
+      });
+      console.log(`🗑 Removidos items de WO ${wo.order_number || woId}: parts_needed ${parts.length}→${newParts.length}, order_items ${orderItems.length}→${newOrderItems.length}`);
+      return true;
+    } catch (err) {
+      console.warn(`No se pudo limpiar WO ${woId}:`, err);
+      return false;
+    }
+  };
+
+  // Helper: añadir un item a una WO (escribe a ambos campos)
+  const addItemToWO = async (woId, item) => {
+    try {
+      const wo = await base44.entities.Order.get(woId);
+      if (!wo) return false;
+      const parts = Array.isArray(wo.parts_needed) ? wo.parts_needed : [];
+      const orderItems = Array.isArray(wo.order_items) ? wo.order_items : [];
+      await base44.entities.Order.update(woId, {
+        parts_needed: [...parts, item],
+        order_items: [...orderItems, item],
+      });
+      console.log(`➕ Añadido item a WO ${wo.order_number || woId}`);
+      return true;
+    } catch (err) {
+      console.warn(`No se pudo añadir item a WO ${woId}:`, err);
+      return false;
+    }
+  };
+
+  // Build an item payload from a row + PO metadata
+  const buildWOItem = (it) => {
+    const sellPrice = Number(it.unit_price || 0) > 0
+      ? Number(it.unit_price)
+      : (Number(it.unit_cost || 0) > 0
+          ? Math.round(Number(it.unit_cost) * 1.5 * 100) / 100
+          : 0);
+    return {
+      id: `po-${purchaseOrder.id}-${it.id || Math.random().toString(36).slice(2, 9)}`,
+      type: "product",
+      name: it.product_name || "",
+      quantity: Number(it.quantity || 0),
+      price: sellPrice,
+      cost: Number(it.unit_cost || 0),
+      source: "purchase_order",
+      supplier: form.supplier_name || "",
+      po_number: form.po_number,
+      po_id: purchaseOrder.id,
+      product_id: it.product_id || null,
+    };
+  };
+
   const handleSave = async () => {
     try {
       // El schema de PurchaseOrder usa `line_items` (no `items`) y nombres
