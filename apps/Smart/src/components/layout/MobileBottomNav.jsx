@@ -166,8 +166,8 @@ export default function MobileBottomNav() {
             : "translate-y-0 opacity-100"
         )}
       >
-        {/* Glass Background */}
-        <div className="absolute inset-0 bg-[#0A0A0C]/90 backdrop-blur-2xl border-t border-white/[0.06]" />
+        {/* Liquid Glass Background */}
+        <div className="liquid-glass-strong absolute inset-0 border-t border-white/[0.06]" />
 
         {/* Subtle top glow line */}
         <div className="absolute top-0 left-[15%] right-[15%] h-[1px] bg-gradient-to-r from-transparent via-white/10 to-transparent" />
