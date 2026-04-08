@@ -231,6 +231,30 @@ export default function PurchaseOrderDetailDialog({
       const previousStatus = poData?.status;
       await base44.entities.PurchaseOrder.update(purchaseOrder.id, payload);
 
+      // ── Sincronizar cambios de work_order_id por item ──────────────────
+      // Para cada item, si cambió el work_order_id:
+      //  - Remover de la WO anterior (si tenía una)
+      //  - Añadir a la nueva WO (si tiene una)
+      try {
+        for (const it of form.items) {
+          const originalWoId = it._original_work_order_id || "";
+          const newWoId = it.work_order_id || "";
+          if (originalWoId === newWoId) continue; // sin cambios
+
+          if (originalWoId) {
+            // Remover de la WO antigua los items de esta PO con el mismo nombre
+            await removeItemsFromWO(originalWoId, (i) =>
+              i.po_id === purchaseOrder.id && i.name === it.product_name,
+            );
+          }
+          if (newWoId) {
+            await addItemToWO(newWoId, buildWOItem(it));
+          }
+        }
+      } catch (syncErr) {
+        console.warn("Error sincronizando cambios de WO:", syncErr);
+      }
+
       // ── AUTO-STOCK: al transicionar a "received" incrementar el inventario ────
       // Marcador [STOCKED] en notes para no duplicar si se re-guarda.
       const alreadyStocked = /\[STOCKED\]/.test(form.notes || "");
