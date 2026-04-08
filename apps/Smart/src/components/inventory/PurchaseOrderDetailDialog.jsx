@@ -1125,6 +1125,115 @@ export default function PurchaseOrderDetailDialog({
           </div>
         )}
       </DialogContent>
+
+      {/* Modal — Devolver al proveedor */}
+      <Dialog open={showReturnDialog} onOpenChange={(v) => !v && setShowReturnDialog(false)}>
+        <DialogContent className="max-w-lg bg-zinc-950 border-white/10 text-white">
+          <DialogHeader>
+            <DialogTitle className="text-white flex items-center gap-2">
+              ↩️ Devolver al proveedor
+            </DialogTitle>
+          </DialogHeader>
+          <p className="text-xs text-white/50">
+            Marca la cantidad de cada item que estás devolviendo. El stock se decrementará automáticamente
+            y se registrará un movimiento de inventario tipo "ajuste".
+          </p>
+          <div className="space-y-2 max-h-[40vh] overflow-y-auto pr-1">
+            {form.items.map((it, idx) => (
+              <div key={idx} className="flex items-center gap-2 p-2 rounded-lg bg-white/[0.03] border border-white/[0.06]">
+                <div className="flex-1 min-w-0">
+                  <p className="text-xs text-white truncate">{it.product_name}</p>
+                  <p className="text-[10px] text-white/40">Recibido: {it.received_quantity ?? it.quantity}</p>
+                </div>
+                <input
+                  type="number"
+                  min="0"
+                  max={it.received_quantity ?? it.quantity}
+                  value={returnItems[idx] || 0}
+                  onChange={(e) => setReturnItems((r) => ({ ...r, [idx]: Math.min(Number(e.target.value || 0), it.received_quantity ?? it.quantity) }))}
+                  className="w-16 h-8 text-center bg-white/[0.04] border border-white/10 rounded text-white text-xs"
+                />
+              </div>
+            ))}
+          </div>
+          <div>
+            <p className="text-[10px] text-white/40 font-black uppercase mb-1">Razón</p>
+            <input
+              type="text"
+              value={returnReason}
+              onChange={(e) => setReturnReason(e.target.value)}
+              placeholder="Ej: defectuoso, equivocado, dañado..."
+              className="w-full bg-white/[0.04] border border-white/10 rounded-lg px-3 py-2 text-white text-xs"
+            />
+          </div>
+          <DialogFooter>
+            <button
+              onClick={() => setShowReturnDialog(false)}
+              disabled={processingReturn}
+              className="px-4 py-2 rounded-xl bg-white/[0.04] border border-white/10 text-white/60 text-xs font-bold"
+            >
+              Cancelar
+            </button>
+            <button
+              onClick={async () => {
+                const toReturn = Object.entries(returnItems).filter(([_, q]) => Number(q) > 0);
+                if (toReturn.length === 0) {
+                  toast.error("Marca al menos un item para devolver");
+                  return;
+                }
+                setProcessingReturn(true);
+                let ok = 0;
+                const performedBy = (() => {
+                  try { return JSON.parse(localStorage.getItem("employee_session") || "{}")?.name || "Sistema"; }
+                  catch { return "Sistema"; }
+                })();
+                for (const [idxStr, qty] of toReturn) {
+                  const idx = Number(idxStr);
+                  const item = form.items[idx];
+                  const pid = item?.product_id;
+                  if (!pid) continue;
+                  try {
+                    const product = await base44.entities.Product.get(pid);
+                    const prev = Number(product?.stock || 0);
+                    const next = Math.max(0, prev - Number(qty));
+                    await base44.entities.Product.update(pid, { stock: next });
+                    await base44.entities.InventoryMovement.create({
+                      product_id: pid,
+                      product_name: product?.name || item.product_name,
+                      movement_type: "adjustment",
+                      quantity: -Number(qty),
+                      previous_stock: prev,
+                      new_stock: next,
+                      reference_type: "purchase",
+                      reference_id: purchaseOrder.id,
+                      reference_number: form.po_number || "",
+                      notes: `Devolución a proveedor (OC ${form.po_number})${returnReason ? ` · ${returnReason}` : ""}`,
+                      performed_by: performedBy,
+                    });
+                    ok++;
+                  } catch (err) {
+                    console.warn("Return item error:", err);
+                  }
+                }
+                // Añadir nota a la PO con el resumen del retorno
+                try {
+                  const summary = `[RETURN ${new Date().toISOString().slice(0, 10)}] ${ok} item(s)${returnReason ? ` · ${returnReason}` : ""}`;
+                  const newNotes = (form.notes || "").trim() + (form.notes ? "\n" : "") + summary;
+                  await base44.entities.PurchaseOrder.update(purchaseOrder.id, { notes: newNotes });
+                  setForm((f) => ({ ...f, notes: newNotes }));
+                } catch { /* */ }
+                setProcessingReturn(false);
+                setShowReturnDialog(false);
+                toast.success(`Devolución registrada · ${ok} producto${ok === 1 ? "" : "s"} ajustado${ok === 1 ? "" : "s"}`);
+              }}
+              disabled={processingReturn}
+              className="px-4 py-2 rounded-xl bg-amber-500/20 border border-amber-500/30 text-amber-200 text-xs font-black hover:bg-amber-500/30 disabled:opacity-40"
+            >
+              {processingReturn ? "Procesando..." : "Confirmar devolución"}
+            </button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </Dialog>
   );
 }
