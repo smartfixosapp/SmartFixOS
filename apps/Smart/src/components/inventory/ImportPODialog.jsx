@@ -270,6 +270,7 @@ export default function ImportPODialog({ open, onClose, suppliers = [], products
   const [error, setError] = useState("");
   const [dragOver, setDragOver] = useState(false);
   const [creatingProductIdx, setCreatingProductIdx] = useState(null);
+  const [aiMatching, setAiMatching] = useState(false);
   // Catálogo "vivo" — incluye los productos recién creados desde este diálogo
   const [liveProducts, setLiveProducts] = useState(products);
   useEffect(() => { setLiveProducts(products); }, [products]);
