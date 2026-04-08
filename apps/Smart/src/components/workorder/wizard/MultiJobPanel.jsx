@@ -120,6 +120,7 @@ export default function MultiJobPanel({ jobs = [], onJobsChange }) {
                     size="icon"
                     variant="ghost"
                     onClick={() => handleRemove(index)}
+                    aria-label="Eliminar trabajo"
                     className="h-8 w-8 text-red-400 hover:bg-red-600/20">
                     <Trash2 className="w-4 h-4" />
                   </Button>
