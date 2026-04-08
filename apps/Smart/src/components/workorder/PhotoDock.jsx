@@ -146,7 +146,7 @@ export default function PhotoDock({ order, onUpdate }) {
                     <div key={i} className="relative aspect-square rounded-lg overflow-hidden group">
                         <img src={url} alt={`attachment-${i}`} loading="lazy" decoding="async" className="w-full h-full object-cover" />
                         <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                            <Button size="icon" variant="destructive" className="h-8 w-8" onClick={() => deletePersisted(url)} disabled={busy}><Trash2 className="w-4 h-4" /></Button>
+                            <Button size="icon" variant="destructive" className="h-8 w-8" onClick={() => deletePersisted(url)} disabled={busy} aria-label="Eliminar foto"><Trash2 className="w-4 h-4" /></Button>
                         </div>
                     </div>
                 ))}
