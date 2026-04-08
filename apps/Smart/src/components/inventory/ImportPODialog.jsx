@@ -330,7 +330,30 @@ export default function ImportPODialog({ open, onClose, suppliers = [], products
     setReviewRows([]);
   };
 
-  const handleFilePick = (e) => acceptFile(e.target.files?.[0]);
+  const acceptFiles = (files) => {
+    if (!files || files.length === 0) return;
+    if (files.length === 1) {
+      acceptFile(files[0]);
+      setFileQueue([]);
+      return;
+    }
+    // Multi-file: acepta el primero como actual y encola el resto
+    const arr = Array.from(files);
+    const max = 15 * 1024 * 1024;
+    const valid = arr.filter((f) => f.size <= max);
+    if (valid.length === 0) {
+      toast.error("Ningún archivo válido (máx 15 MB cada uno)");
+      return;
+    }
+    if (valid.length < arr.length) {
+      toast.warning(`${arr.length - valid.length} archivo(s) omitidos por tamaño`);
+    }
+    acceptFile(valid[0]);
+    setFileQueue(valid.slice(1));
+    toast.info(`📚 Cola de ${valid.length} archivos · Procesa el actual y luego pasamos al siguiente`);
+  };
+
+  const handleFilePick = (e) => acceptFiles(e.target.files);
 
   const handleDragOver = (e) => {
     e.preventDefault();
