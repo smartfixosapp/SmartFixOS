@@ -1882,8 +1882,27 @@ Maximo 150 palabras. Texto plano, sin markdown.`
                     return (
                       <div
                         key={po.id}
-                        className="group flex items-center gap-3 p-3.5 rounded-2xl bg-white/[0.03] hover:bg-white/[0.06] border border-white/[0.06] transition-all"
+                        className={`group flex items-center gap-3 p-3.5 rounded-2xl border transition-all ${
+                          selectedPOIds.has(po.id)
+                            ? "bg-cyan-500/[0.08] border-cyan-500/30"
+                            : "bg-white/[0.03] hover:bg-white/[0.06] border-white/[0.06]"
+                        }`}
                       >
+                        <input
+                          type="checkbox"
+                          checked={selectedPOIds.has(po.id)}
+                          onChange={(e) => {
+                            e.stopPropagation();
+                            setSelectedPOIds((prev) => {
+                              const next = new Set(prev);
+                              if (next.has(po.id)) next.delete(po.id);
+                              else next.add(po.id);
+                              return next;
+                            });
+                          }}
+                          onClick={(e) => e.stopPropagation()}
+                          className="w-4 h-4 accent-cyan-500 shrink-0 cursor-pointer"
+                        />
                         <button
                           type="button"
                           onClick={() => setViewingPO(po)}
