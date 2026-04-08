@@ -454,41 +454,61 @@ export default function ImportPODialog({ open, onClose, suppliers = [], products
     });
   };
 
-  // Crea un nuevo producto en inventario a partir de la línea extraída.
-  // Útil cuando es la primera vez que se compra ese item.
-  const createProductFromRow = async (idx) => {
+  // Abre el sub-modal para crear un producto nuevo a partir de la línea extraída.
+  // El sub-modal pide el PRECIO DE VENTA antes de crearlo (importante porque
+  // luego podríamos enlazarlo a una orden de trabajo y facturarlo al cliente).
+  const openCreateProductModal = (idx) => {
     const row = reviewRows[idx];
     if (!row?.raw_name) {
       toast.error("Esta línea no tiene nombre — añádelo primero");
       return;
     }
-    setCreatingProductIdx(idx);
+    const cost = Number(row.unit_cost || 0);
+    setNewProductForRow({
+      idx,
+      name: row.raw_name.trim(),
+      cost,
+      price: cost > 0 ? Math.round(cost * 1.5 * 100) / 100 : "", // sugerencia 50% margen
+      category: "screen",
+      tipo_principal: "dispositivos",
+    });
+  };
+
+  // Confirma la creación desde el sub-modal
+  const confirmCreateProduct = async () => {
+    const draft = newProductForRow;
+    if (!draft?.name?.trim()) { toast.error("Falta el nombre"); return; }
+    if (!draft.price || Number(draft.price) <= 0) {
+      toast.error("Pon el precio de venta antes de crear el producto");
+      return;
+    }
+    setCreatingProductIdx(draft.idx);
     try {
       const supplier = suppliers.find((s) => s.id === supplierId);
       const payload = {
-        name: row.raw_name.trim(),
+        name: draft.name.trim(),
         type: "product",
-        cost: Number(row.unit_cost || 0),
-        // Sugerencia: precio de venta = costo * 1.5 (margen 50%)
-        // El usuario lo ajusta luego en Inventario.
-        price: Number(row.unit_cost || 0) * 1.5,
-        stock: 0, // El stock se incrementará cuando se marque la OC como recibida
+        cost: Number(draft.cost || 0),
+        price: Number(draft.price),
+        stock: 0,
+        min_stock: 5,
         active: true,
         supplier_id: supplier?.id || "",
         supplier_name: supplier?.name || extracted?.supplier_name || "",
-        tipo_principal: "dispositivos",
+        category: draft.category || undefined,
+        tipo_principal: draft.tipo_principal || "dispositivos",
       };
       const created = await base44.entities.Product.create(payload);
       if (!created?.id) throw new Error("No se devolvió el ID del producto creado");
 
-      // Añadirlo al catálogo vivo y enlazarlo a esta línea
       setLiveProducts((list) => [created, ...list]);
-      updateRow(idx, {
+      updateRow(draft.idx, {
         product_id: created.id,
         product_name: created.name,
         matchScore: 1,
       });
-      toast.success(`Producto "${created.name}" creado en inventario`);
+      toast.success(`Producto "${created.name}" creado · Precio venta $${Number(draft.price).toFixed(2)}`);
+      setNewProductForRow(null);
     } catch (err) {
       console.error("Create product error:", err);
       toast.error(err?.message || "No se pudo crear el producto");
