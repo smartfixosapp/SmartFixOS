@@ -288,6 +288,9 @@ export default function ImportPODialog({ open, onClose, suppliers = [], products
   // Catálogo "vivo" — incluye los productos recién creados desde este diálogo
   const [liveProducts, setLiveProducts] = useState(products);
   useEffect(() => { setLiveProducts(products); }, [products]);
+  // Multi-file queue
+  const [fileQueue, setFileQueue] = useState([]); // pending files
+  const [batchProgress, setBatchProgress] = useState(null); // { current, total }
 
   useEffect(() => {
     if (!open) {
