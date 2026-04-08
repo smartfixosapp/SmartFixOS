@@ -135,6 +135,7 @@ export default function UnlockManageDialog({ unlock, onClose, onPaymentOption, o
               onClick={onClose}
               size="icon"
               variant="ghost"
+              aria-label="Cerrar diálogo de desbloqueo"
               className="text-white/40 hover:text-white hover:bg-white/10"
             >
               <X className="w-5 h-5" />
