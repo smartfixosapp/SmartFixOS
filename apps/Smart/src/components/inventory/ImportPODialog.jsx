@@ -811,8 +811,8 @@ export default function ImportPODialog({ open, onClose, suppliers = [], products
         {extracted && (
           <div className="space-y-3">
             {/* Resumen del archivo leído */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
-              <div className="p-3 rounded-xl bg-white/[0.03] border border-white/[0.08]">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+              <div className="p-3 rounded-xl bg-white/[0.03] border border-white/[0.08] col-span-2 md:col-span-1">
                 <p className="text-[10px] text-white/40 uppercase font-black tracking-wider">Proveedor</p>
                 <select
                   value={supplierId}
@@ -830,11 +830,20 @@ export default function ImportPODialog({ open, onClose, suppliers = [], products
                 </select>
               </div>
               <div className="p-3 rounded-xl bg-white/[0.03] border border-white/[0.08]">
-                <p className="text-[10px] text-white/40 uppercase font-black tracking-wider">Fecha</p>
+                <p className="text-[10px] text-white/40 uppercase font-black tracking-wider">Fecha orden</p>
                 <Input
                   type="date"
                   value={orderDate}
                   onChange={(e) => setOrderDate(e.target.value)}
+                  className="mt-1 bg-transparent border-0 text-white text-sm font-bold p-0 h-auto"
+                />
+              </div>
+              <div className="p-3 rounded-xl bg-white/[0.03] border border-white/[0.08]">
+                <p className="text-[10px] text-white/40 uppercase font-black tracking-wider">Llega el (opcional)</p>
+                <Input
+                  type="date"
+                  value={expectedDate}
+                  onChange={(e) => setExpectedDate(e.target.value)}
                   className="mt-1 bg-transparent border-0 text-white text-sm font-bold p-0 h-auto"
                 />
               </div>
