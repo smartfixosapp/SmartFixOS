@@ -187,8 +187,7 @@ export default function ImportPODialog({ open, onClose, suppliers = [], products
     }
   }, [open]);
 
-  const handleFilePick = (e) => {
-    const f = e.target.files?.[0];
+  const acceptFile = (f) => {
     if (!f) return;
     const max = 15 * 1024 * 1024;
     if (f.size > max) {
@@ -199,6 +198,26 @@ export default function ImportPODialog({ open, onClose, suppliers = [], products
     setError("");
     setExtracted(null);
     setReviewRows([]);
+  };
+
+  const handleFilePick = (e) => acceptFile(e.target.files?.[0]);
+
+  const handleDragOver = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (!dragOver) setDragOver(true);
+  };
+  const handleDragLeave = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setDragOver(false);
+  };
+  const handleDrop = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setDragOver(false);
+    const f = e.dataTransfer?.files?.[0];
+    if (f) acceptFile(f);
   };
 
   const isImage = file && /^image\//.test(file.type);
