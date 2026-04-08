@@ -474,6 +474,7 @@ export default function WorkOrderPanelV2({ orderId, onClose, onUpdate, user }) {
               variant="ghost"
               size="icon"
               onClick={handleClose}
+              aria-label="Cerrar orden de trabajo"
               className="text-gray-400 hover:text-white hover:bg-white/10"
             >
               <X className="w-6 h-6" />
