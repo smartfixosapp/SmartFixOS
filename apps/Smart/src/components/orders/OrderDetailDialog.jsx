@@ -288,7 +288,7 @@ export default function OrderDetailDialog({ order, open, onClose, onOrderUpdated
                     <Trash2 className="w-4 h-4" />
                   </Button>
                 )}
-                <Button onClick={onClose} variant="ghost" size="icon" className="text-gray-400 hover:text-white">
+                <Button onClick={onClose} variant="ghost" size="icon" aria-label="Cerrar diálogo" className="text-gray-400 hover:text-white">
                   <X className="w-4 h-4" />
                 </Button>
               </div>
