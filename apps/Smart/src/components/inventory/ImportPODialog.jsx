@@ -962,16 +962,19 @@ export default function ImportPODialog({ open, onClose, suppliers = [], products
       }
 
       // ── Inyectar items en las Órdenes de Trabajo enlazadas ──────────────
-      // Para que aparezcan en el resumen financiero de cada WO con su precio venta.
+      // Usa el unit_price de la fila (lo que el usuario puso explícitamente
+      // en la columna "Precio venta" de cada línea).
       const woGroups = new Map(); // wo_id → array de items
       for (const r of reviewRows) {
         if (!r.work_order_id) continue;
-        const product = liveProducts.find((p) => p.id === r.product_id);
-        // Precio venta: del producto (si existe) o costo*1.5 como fallback
-        const sellPrice =
-          product?.price != null && Number(product.price) > 0
+        // Prioridad: unit_price de la fila > product.price > costo*1.5
+        let sellPrice = Number(r.unit_price || 0);
+        if (sellPrice <= 0) {
+          const product = liveProducts.find((p) => p.id === r.product_id);
+          sellPrice = product?.price != null && Number(product.price) > 0
             ? Number(product.price)
             : Math.round(Number(r.unit_cost || 0) * 1.5 * 100) / 100;
+        }
         const item = {
           id: `wo-part-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
           type: "product",
