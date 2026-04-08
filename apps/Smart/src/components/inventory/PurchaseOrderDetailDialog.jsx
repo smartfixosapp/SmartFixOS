@@ -146,6 +146,7 @@ export default function PurchaseOrderDetailDialog({
         expected_date: form.expected_date || null,
         notes: form.notes || "",
         shipping_cost: Number(form.shipping_cost || 0),
+        tracking_number: form.tracking_number || "",
         line_items: lineItems,
         subtotal,
         total_amount: subtotal + Number(form.shipping_cost || 0),
