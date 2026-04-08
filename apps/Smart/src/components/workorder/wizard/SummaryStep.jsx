@@ -383,7 +383,7 @@ export default function SummaryStep({ formData, updateFormData, technicians, onB
                       <Button
                         size="icon"
                         variant="ghost"
-                        className="h-6 w-6 text-gray-400 hover:text-white"
+                        className="h-11 w-11 text-gray-400 hover:text-white"
                         onClick={() => updateItemQuantity(idx, item.quantity - 1)}
                         aria-label={`Disminuir cantidad de ${item.name}`}
                       >
@@ -393,7 +393,7 @@ export default function SummaryStep({ formData, updateFormData, technicians, onB
                       <Button
                         size="icon"
                         variant="ghost"
-                        className="h-6 w-6 text-gray-400 hover:text-white"
+                        className="h-11 w-11 text-gray-400 hover:text-white"
                         onClick={() => updateItemQuantity(idx, item.quantity + 1)}
                         aria-label={`Aumentar cantidad de ${item.name}`}
                       >
