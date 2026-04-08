@@ -105,6 +105,7 @@ export default function B2BSettingsPanel({ customer, onUpdate }) {
                       size="icon"
                       variant="ghost"
                       onClick={handleCopyToken}
+                      aria-label={copied ? "Token copiado" : "Copiar token al portapapeles"}
                       className="h-8 w-8 text-purple-400 hover:bg-purple-600/20">
                       {copied ? <CheckCircle className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
                     </Button>
