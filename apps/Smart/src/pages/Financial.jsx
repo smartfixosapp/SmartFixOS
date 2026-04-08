@@ -1718,12 +1718,21 @@ Maximo 150 palabras. Texto plano, sin markdown.`
                               {date ? ` · ${format(new Date(date), "dd MMM yyyy", { locale: es })}` : ""}
                             </p>
                           </div>
-                          <div className="flex items-center gap-2 shrink-0">
+                          <div className="flex flex-col items-end gap-0.5 shrink-0">
                             <p className="text-sm font-black text-white tabular-nums">
                               ${Number(po.total_amount || 0).toFixed(2)}
                             </p>
-                            <Eye className="w-4 h-4 text-white/30" />
+                            {(() => {
+                              const m = estimatedMargin(po);
+                              if (m.margin <= 0) return null;
+                              return (
+                                <p className="text-[10px] font-black text-emerald-400 tabular-nums" title={`Ingreso estimado: $${m.revenue.toFixed(2)}`}>
+                                  +${m.margin.toFixed(0)} ({m.pct.toFixed(0)}%)
+                                </p>
+                              );
+                            })()}
                           </div>
+                          <Eye className="w-4 h-4 text-white/30 shrink-0" />
                         </button>
                         <button
                           type="button"
