@@ -265,6 +265,7 @@ export default function ImportPODialog({ open, onClose, suppliers = [], products
   const [reviewRows, setReviewRows] = useState([]); // [{ raw_name, product_id, product_name, quantity, unit_cost, matchScore }]
   const [supplierId, setSupplierId] = useState("");
   const [orderDate, setOrderDate] = useState(() => new Date().toISOString().slice(0, 10));
+  const [expectedDate, setExpectedDate] = useState("");
   const [notes, setNotes] = useState("");
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
