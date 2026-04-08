@@ -368,11 +368,20 @@ export default function PurchaseOrderDetailDialog({
 
   const statusConfig = {
     draft: { label: "Borrador", cls: "bg-slate-600/20 text-slate-300 border-slate-600/40" },
+    pending: { label: "🔒 Pendiente aprobación", cls: "bg-amber-500/20 text-amber-300 border-amber-500/40" },
     ordered: { label: "Enviada", cls: "bg-blue-500/20 text-blue-300 border-blue-500/40" },
     partial: { label: "Parcial", cls: "bg-violet-500/20 text-violet-300 border-violet-500/40" },
     received: { label: "Recibida", cls: "bg-emerald-500/20 text-emerald-300 border-emerald-500/40" },
     cancelled: { label: "Cancelada", cls: "bg-red-500/20 text-red-300 border-red-500/40" }
   };
+
+  const isAdminUser = (() => {
+    try {
+      const session = JSON.parse(localStorage.getItem("employee_session") || "{}");
+      const role = String(session?.role || "user").toLowerCase();
+      return ["admin", "owner", "manager", "superadmin"].includes(role);
+    } catch { return false; }
+  })();
 
   return (
     <Dialog open={open} onOpenChange={(v) => !v && onClose?.(false)}>
