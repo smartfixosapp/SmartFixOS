@@ -2092,6 +2092,128 @@ Maximo 150 palabras. Texto plano, sin markdown.`
         />
       )}
 
+      {/* Modal — Reorden de productos con stock bajo */}
+      {showReorderModal && (() => {
+        const lowStock = (poProducts || []).filter((p) => {
+          const s = Number(p.stock || 0);
+          const m = Number(p.min_stock || 0);
+          return m > 0 && s < m && p.active !== false;
+        });
+        // Agrupar por supplier_id (los sin proveedor van a "sin proveedor")
+        const bySupplier = new Map();
+        for (const p of lowStock) {
+          const key = p.supplier_id || "__none__";
+          if (!bySupplier.has(key)) bySupplier.set(key, []);
+          bySupplier.get(key).push(p);
+        }
+        const createReorderPO = async (supplierId, items) => {
+          setCreatingReorderPO(supplierId);
+          try {
+            const supplier = suppliers.find((s) => s.id === supplierId);
+            const lineItems = items.map((p, i) => {
+              const needed = Math.max(1, Number(p.min_stock || 5) * 2 - Number(p.stock || 0));
+              const cost = Number(p.cost || 0);
+              return {
+                id: `li-${Date.now()}-${i}`,
+                inventory_item_id: p.id,
+                product_name: p.name,
+                quantity: needed,
+                unit_cost: cost,
+                line_total: needed * cost,
+              };
+            });
+            const subtotal = lineItems.reduce((s, it) => s + it.line_total, 0);
+            const poNumber = `PO-${new Date().toISOString().slice(2, 10).replace(/-/g, "")}-${Math.floor(Math.random() * 900 + 100)}`;
+            await dataClient.entities.PurchaseOrder.create({
+              po_number: poNumber,
+              supplier_id: supplierId && supplierId !== "__none__" ? supplierId : "",
+              supplier_name: supplier?.name || "Sin proveedor",
+              status: "draft",
+              order_date: new Date().toISOString().slice(0, 10),
+              line_items: lineItems,
+              subtotal,
+              total_amount: subtotal,
+              currency: "USD",
+              notes: `Reorden automática de ${items.length} producto${items.length === 1 ? "" : "s"} con stock bajo`,
+            });
+            toast.success(`Borrador creado: ${poNumber} con ${items.length} items`);
+            await loadData();
+          } catch (err) {
+            console.error("Reorder PO error:", err);
+            toast.error("No se pudo crear: " + (err?.message || ""));
+          } finally {
+            setCreatingReorderPO(null);
+          }
+        };
+        return (
+          <Dialog open={showReorderModal} onOpenChange={(v) => !v && setShowReorderModal(false)}>
+            <DialogContent className="max-w-3xl max-h-[85vh] overflow-y-auto bg-zinc-950 border-white/10 text-white">
+              <DialogHeader>
+                <DialogTitle className="text-white flex items-center gap-2">
+                  <AlertTriangle className="w-4 h-4 text-amber-400" />
+                  Reordenar productos con stock bajo
+                </DialogTitle>
+              </DialogHeader>
+              <p className="text-xs text-white/50">
+                {lowStock.length} producto{lowStock.length === 1 ? "" : "s"} con stock por debajo del mínimo,
+                agrupados por proveedor. Crea un borrador de OC por cada proveedor con la cantidad sugerida
+                (2× el stock mínimo).
+              </p>
+              <div className="space-y-3 mt-2">
+                {Array.from(bySupplier.entries()).map(([supId, items]) => {
+                  const supplier = suppliers.find((s) => s.id === supId);
+                  const name = supplier?.name || "Sin proveedor asignado";
+                  const totalCost = items.reduce((s, p) => {
+                    const needed = Math.max(1, Number(p.min_stock || 5) * 2 - Number(p.stock || 0));
+                    return s + Number(p.cost || 0) * needed;
+                  }, 0);
+                  return (
+                    <div key={supId} className="p-3 rounded-xl bg-white/[0.03] border border-white/[0.08]">
+                      <div className="flex items-center justify-between gap-3 mb-2">
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-black text-white truncate">{name}</p>
+                          <p className="text-[11px] text-white/40">
+                            {items.length} producto{items.length === 1 ? "" : "s"} · Total estimado ${totalCost.toFixed(2)}
+                          </p>
+                        </div>
+                        <button
+                          onClick={() => createReorderPO(supId, items)}
+                          disabled={creatingReorderPO === supId}
+                          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-cyan-500/20 border border-cyan-500/30 text-cyan-200 text-xs font-black hover:bg-cyan-500/30 disabled:opacity-40"
+                        >
+                          {creatingReorderPO === supId ? <RefreshCw className="w-3 h-3 animate-spin" /> : <Plus className="w-3 h-3" />}
+                          Crear OC
+                        </button>
+                      </div>
+                      <div className="space-y-1">
+                        {items.map((p) => {
+                          const needed = Math.max(1, Number(p.min_stock || 5) * 2 - Number(p.stock || 0));
+                          return (
+                            <div key={p.id} className="flex items-center gap-2 text-[11px] py-1">
+                              <span className="flex-1 text-white/70 truncate">{p.name}</span>
+                              <span className="text-red-400 font-bold tabular-nums">Stock: {p.stock || 0}/{p.min_stock}</span>
+                              <span className="text-emerald-400 font-black tabular-nums w-16 text-right">Pedir: {needed}</span>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+              <DialogFooter>
+                <button
+                  onClick={() => setShowReorderModal(false)}
+                  className="px-4 py-2 rounded-xl bg-white/[0.04] border border-white/10 text-white/60 text-xs font-bold hover:text-white"
+                >
+                  Cerrar
+                </button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+        );
+      })()}
+
     </div>
   );
 }
