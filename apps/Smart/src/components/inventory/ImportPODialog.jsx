@@ -588,6 +588,31 @@ export default function ImportPODialog({ open, onClose, suppliers = [], products
       return;
     }
     const supplier = suppliers.find((s) => s.id === supplierId);
+
+    // Detectar posibles duplicados: mismo proveedor, misma fecha, mismo total (±$1)
+    const candidateTotal = subtotal + Number(extracted?.tax || 0) + Number(extracted?.shipping || 0);
+    const nameForMatch = (supplier?.name || extracted?.supplier_name || "").toLowerCase().trim();
+    const duplicate = (existingPOs || []).find((po) => {
+      if (!nameForMatch) return false;
+      const supMatch = (po.supplier_name || "").toLowerCase().trim() === nameForMatch;
+      if (!supMatch) return false;
+      const dateMatch = String(po.order_date || "").slice(0, 10) === orderDate;
+      if (!dateMatch) return false;
+      const totalDiff = Math.abs(Number(po.total_amount || 0) - candidateTotal);
+      return totalDiff <= 1;
+    });
+    if (duplicate) {
+      const ok = window.confirm(
+        `⚠️ Posible duplicado detectado\n\n` +
+        `Ya existe una orden con los mismos datos:\n` +
+        `• ${duplicate.po_number}\n` +
+        `• ${duplicate.supplier_name}\n` +
+        `• ${duplicate.order_date} · $${Number(duplicate.total_amount || 0).toFixed(2)}\n\n` +
+        `¿Quieres crearla de todos modos?`
+      );
+      if (!ok) return;
+    }
+
     setSaving(true);
     try {
       const lineItems = reviewRows.map((r, i) => {
