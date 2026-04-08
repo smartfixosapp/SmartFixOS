@@ -394,21 +394,35 @@ export default function ImportPODialog({ open, onClose, suppliers = [], products
         {/* Paso 1 — selección de archivo */}
         {!extracted && (
           <div className="space-y-4">
-            <label className="block border-2 border-dashed border-white/15 rounded-2xl p-8 text-center cursor-pointer hover:bg-white/[0.03] transition-all">
+            <label
+              onDragOver={handleDragOver}
+              onDragEnter={handleDragOver}
+              onDragLeave={handleDragLeave}
+              onDrop={handleDrop}
+              className={`block border-2 border-dashed rounded-2xl p-8 text-center cursor-pointer transition-all ${
+                dragOver
+                  ? "border-violet-400/60 bg-violet-500/10 scale-[1.01]"
+                  : "border-white/15 hover:bg-white/[0.03]"
+              }`}
+            >
               <input
                 type="file"
                 accept="image/*,application/pdf,.pdf,.csv,.xlsx,.xls"
                 onChange={handleFilePick}
                 className="hidden"
               />
-              <Upload className="w-10 h-10 mx-auto mb-2 text-white/30" />
-              <p className="text-white/80 font-black text-sm">
-                {file ? file.name : "Arrastra o haz click para elegir archivo"}
+              <Upload className={`w-10 h-10 mx-auto mb-2 transition-colors ${dragOver ? "text-violet-300" : "text-white/30"}`} />
+              <p className={`font-black text-sm transition-colors ${dragOver ? "text-violet-200" : "text-white/80"}`}>
+                {dragOver
+                  ? "Suelta el archivo aquí"
+                  : file
+                    ? file.name
+                    : "Arrastra el archivo aquí o haz click"}
               </p>
               <p className="text-[11px] text-white/40 mt-1">
                 Imagen (JPG/PNG), PDF o CSV · máx 15 MB
               </p>
-              {file && (
+              {file && !dragOver && (
                 <p className="text-[10px] text-white/50 mt-1">
                   {(file.size / 1024).toFixed(1)} KB · {file.type || "archivo"}
                 </p>
