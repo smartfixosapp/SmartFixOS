@@ -178,6 +178,7 @@ export default function Financial() {
   const [poQuickFilter, setPoQuickFilter] = useState("all"); // all | week | overdue | unpaid | drafts
   const [poSortBy, setPoSortBy] = useState("date"); // date | total | supplier
   const [poSortDir, setPoSortDir] = useState("desc"); // asc | desc
+  const [poViewMode, setPoViewMode] = useState("list"); // list | grouped
   const [deletingPOId, setDeletingPOId] = useState(null);
   const [showReorderModal, setShowReorderModal] = useState(false);
   const [creatingReorderPO, setCreatingReorderPO] = useState(null);
