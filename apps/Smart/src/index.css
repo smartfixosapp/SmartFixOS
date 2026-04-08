@@ -16,6 +16,16 @@ html, body, #root {
   -webkit-overflow-scrolling: touch;
 }
 
+/* Dark base surface — prevents white flash during route transitions
+ * (SmartFixOS is dark-first; light-themed pages paint over this) */
+html {
+  background-color: #0a0a0c;
+}
+html.theme-light,
+html.theme-light body {
+  background-color: #f8fafc;
+}
+
 body {
   /* Prevent pull-to-refresh bounce on iOS */
   overscroll-behavior-y: none;
