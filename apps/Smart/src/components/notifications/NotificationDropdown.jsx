@@ -241,6 +241,7 @@ export default function NotificationDropdown({ user, onClose }) {
                           size="icon"
                           variant="ghost"
                           onClick={(e) => handleDelete(notification.id, e)}
+                          aria-label="Eliminar notificación"
                           className="h-7 w-7 text-gray-500 hover:text-red-400 theme-light:hover:text-red-600"
                         >
                           <Trash2 className="w-3 h-3" />
