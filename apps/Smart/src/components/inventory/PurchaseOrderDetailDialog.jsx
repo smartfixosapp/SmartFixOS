@@ -317,6 +317,8 @@ export default function PurchaseOrderDetailDialog({
           const itemsDesc = form.items
             .map(it => `${it.product_name} x${it.quantity} @ $${Number(it.unit_cost).toFixed(2)}`)
             .join(", ");
+          let tenantId = null;
+          try { tenantId = localStorage.getItem("smartfix_tenant_id"); } catch { /* */ }
           const txPayload = {
             type: "expense",
             category: "parts",
@@ -325,6 +327,7 @@ export default function PurchaseOrderDetailDialog({
             description: `Orden de Compra ${form.po_number}${form.supplier_name ? ` — ${form.supplier_name}` : ""} · Recibida. ${itemsDesc}`.slice(0, 500),
             payment_method: "cash", // enum: cash/card/transfer/ath_movil
             order_number: form.po_number,
+            ...(tenantId ? { tenant_id: tenantId } : {}),
           };
           console.log("📝 Creando Transaction al recibir:", txPayload);
           await base44.entities.Transaction.create(txPayload);
