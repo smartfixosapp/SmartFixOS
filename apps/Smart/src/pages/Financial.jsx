@@ -189,6 +189,37 @@ export default function Financial() {
   const [aiSuggestLoading, setAiSuggestLoading] = useState(false);
   const [aiSuggestText, setAiSuggestText] = useState("");
 
+  // Helper: borra una PO Y limpia sus items de las WOs enlazadas
+  const deletePOWithWOCleanup = async (po) => {
+    const lineItems = po.line_items || po.items || [];
+    const linkedWoIds = [...new Set(lineItems
+      .map((it) => it.linked_work_order_id || it.work_order_id)
+      .filter(Boolean))];
+
+    // Para cada WO enlazada: remover items con po_id == po.id
+    for (const woId of linkedWoIds) {
+      try {
+        const wo = await base44.entities.Order.get(woId);
+        if (!wo) continue;
+        const parts = Array.isArray(wo.parts_needed) ? wo.parts_needed : [];
+        const orderItems = Array.isArray(wo.order_items) ? wo.order_items : [];
+        const newParts = parts.filter((i) => i.po_id !== po.id);
+        const newOrderItems = orderItems.filter((i) => i.po_id !== po.id);
+        if (newParts.length !== parts.length || newOrderItems.length !== orderItems.length) {
+          await base44.entities.Order.update(woId, {
+            parts_needed: newParts,
+            order_items: newOrderItems,
+          });
+          console.log(`🗑 WO ${wo.order_number || woId} limpia: parts ${parts.length}→${newParts.length}, order_items ${orderItems.length}→${newOrderItems.length}`);
+        }
+      } catch (err) {
+        console.warn(`No se pudo limpiar WO ${woId} al borrar PO:`, err);
+      }
+    }
+    await dataClient.entities.PurchaseOrder.delete(po.id);
+    return { linkedItems: lineItems.filter((it) => it.linked_work_order_id || it.work_order_id).length, linkedWoIds: linkedWoIds.length };
+  };
+
   // Permisos: solo admin/owner pueden borrar OCs.
   // Cualquier usuario puede crear/editar/marcar recibidas.
   const canDeletePO = useMemo(() => {
