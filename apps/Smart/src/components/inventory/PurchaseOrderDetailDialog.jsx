@@ -64,10 +64,13 @@ export default function PurchaseOrderDetailDialog({
         const mappedItems = rawItems.map((it) => {
           const prodId = it.product_id || it.inventory_item_id;
           const prod = products.find((p) => p.id === prodId);
+          const qty = Number(it.quantity || 1);
           return {
             product_id: prodId,
             product_name: it.product_name || prod?.name || "",
-            quantity: Number(it.quantity || 1),
+            quantity: qty,
+            // Recepción parcial: cuántas unidades llegaron físicamente
+            received_quantity: it.received_quantity != null ? Number(it.received_quantity) : qty,
             unit_cost: Number(it.unit_cost || it.cost || prod?.cost || 0),
             work_order_id: it.work_order_id || it.linked_work_order_id || ""
           };
