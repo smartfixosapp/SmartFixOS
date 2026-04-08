@@ -168,12 +168,14 @@ export default function Financial() {
   const [purchaseOrders, setPurchaseOrders] = useState([]);
   const [suppliers, setSuppliers] = useState([]);
   const [poProducts, setPoProducts] = useState([]);
+  const [poWorkOrders, setPoWorkOrders] = useState([]);
   const [showPODialog, setShowPODialog] = useState(false);
   const [showImportPO, setShowImportPO] = useState(false);
   const [editingPO, setEditingPO] = useState(null);
   const [viewingPO, setViewingPO] = useState(null);
   const [poSearch, setPoSearch] = useState("");
   const [poStatusFilter, setPoStatusFilter] = useState("all");
+  const [deletingPOId, setDeletingPOId] = useState(null);
 
   const isFetching = useRef(false);
   const recentFixedExpenseMutationAt = useRef(0);
