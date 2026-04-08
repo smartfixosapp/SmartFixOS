@@ -2089,15 +2089,24 @@ Maximo 150 palabras. Texto plano, sin markdown.`
                             type="button"
                             onClick={async (e) => {
                               e.stopPropagation();
+                              const lineItems = po.line_items || po.items || [];
+                              const linkedCount = lineItems.filter((it) => it.linked_work_order_id || it.work_order_id).length;
+                              const extraMsg = linkedCount > 0
+                                ? `\n\n⚠️ Se removerán ${linkedCount} items de las órdenes de trabajo enlazadas.`
+                                : "";
                               const ok = window.confirm(
-                                `¿Borrar la orden de compra ${po.po_number || ""}?\n\nEsto NO borra los gastos ya registrados en Finanzas (esos hay que borrarlos por separado si existen).`,
+                                `¿Borrar la orden de compra ${po.po_number || ""}?${extraMsg}\n\nEsto NO borra los gastos ya registrados en Finanzas (esos hay que borrarlos por separado si existen).`,
                               );
                               if (!ok) return;
                               setDeletingPOId(po.id);
                               try {
-                                await dataClient.entities.PurchaseOrder.delete(po.id);
+                                const result = await deletePOWithWOCleanup(po);
                                 setPurchaseOrders((list) => list.filter((x) => x.id !== po.id));
-                                toast.success("Orden de compra borrada");
+                                toast.success(
+                                  result.linkedWoIds > 0
+                                    ? `OC borrada · ${result.linkedItems} items removidos de ${result.linkedWoIds} WO${result.linkedWoIds === 1 ? "" : "s"}`
+                                    : "Orden de compra borrada",
+                                );
                               } catch (err) {
                                 console.error("Delete PO error:", err);
                                 toast.error("No se pudo borrar: " + (err?.message || ""));
