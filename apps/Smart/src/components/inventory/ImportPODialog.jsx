@@ -549,12 +549,18 @@ export default function ImportPODialog({ open, onClose, suppliers = [], products
     // Crear filas de review con matches
     const rows = (data.items || []).map((it) => {
       const match = findBestProductMatch(it.raw_name, liveProducts);
+      const cost = Number(it.unit_price || 0);
+      // Precio venta inicial: del producto matcheado, o cost * 1.5 (50% margen sugerido)
+      const initialUnitPrice = match?.product?.price != null && Number(match.product.price) > 0
+        ? Number(match.product.price)
+        : (cost > 0 ? Math.round(cost * 1.5 * 100) / 100 : 0);
       return {
         raw_name: it.raw_name || "",
         product_id: match?.product?.id || "",
         product_name: match?.product?.name || it.raw_name || "",
         quantity: Number(it.quantity || 1),
-        unit_cost: Number(it.unit_price || 0),
+        unit_cost: cost,
+        unit_price: initialUnitPrice, // ← precio de venta al cliente
         matchScore: match?.score || 0,
         work_order_id: "",
         ai_category: it.category || "other", // Categoría sugerida por Jeani
