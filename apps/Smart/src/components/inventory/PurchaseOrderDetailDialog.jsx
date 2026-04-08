@@ -1059,6 +1059,31 @@ export default function PurchaseOrderDetailDialog({
               >
                 🖨️ Imprimir
               </button>
+              {form.status === "pending" && isAdminUser && (
+                <button
+                  onClick={async () => {
+                    if (!window.confirm(`¿Aprobar esta OC de $${form.items.reduce((s, it) => s + Number(it.unit_cost || 0) * Number(it.quantity || 0), 0).toFixed(2)}?`)) return;
+                    try {
+                      const performedBy = (() => {
+                        try { return JSON.parse(localStorage.getItem("employee_session") || "{}")?.name || "Admin"; }
+                        catch { return "Admin"; }
+                      })();
+                      await base44.entities.PurchaseOrder.update(purchaseOrder.id, {
+                        status: "ordered",
+                        notes: ((form.notes || "") + `\n[APPROVED ${new Date().toISOString().slice(0, 10)} by ${performedBy}]`).trim(),
+                      });
+                      toast.success("✅ OC aprobada y enviada");
+                      onClose?.(true);
+                    } catch (err) {
+                      toast.error("No se pudo aprobar: " + (err?.message || ""));
+                    }
+                  }}
+                  className="px-3 py-2.5 rounded-xl bg-emerald-500/15 border border-emerald-500/25 text-emerald-300 text-xs font-bold hover:bg-emerald-500/25 transition-all flex items-center justify-center gap-1.5"
+                  title="Aprobar esta OC pendiente"
+                >
+                  ✅ Aprobar
+                </button>
+              )}
               {(form.status === "received" || form.status === "partial") && (
                 <button
                   onClick={() => {
