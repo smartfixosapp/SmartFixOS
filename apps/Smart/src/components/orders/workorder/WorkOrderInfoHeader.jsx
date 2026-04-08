@@ -410,7 +410,7 @@ export default function WorkOrderPanel({ order, onUpdate, onClose, onDelete, onP
                     <Button size="icon" variant="ghost" className="h-9 w-9" onClick={() => setShowPin(s => !s)} title={showPin ? "Ocultar" : "Mostrar"} aria-label={showPin ? "Ocultar PIN" : "Mostrar PIN"}>
                       {showPin ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                     </Button>
-                    <Button size="icon" variant="ghost" className="h-9 w-9" onClick={() => copyToClipboard(pin)} title="Copiar PIN">
+                    <Button size="icon" variant="ghost" className="h-9 w-9" onClick={() => copyToClipboard(pin)} title="Copiar PIN" aria-label="Copiar PIN al portapapeles">
                       <Copy className="w-4 h-4" />
                     </Button>
                   </div>
