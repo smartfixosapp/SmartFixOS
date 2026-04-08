@@ -238,7 +238,7 @@ export default function MaintenanceReminders() {
                     
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="icon" className="h-8 w-8 text-gray-400 hover:text-white">
+                        <Button variant="ghost" size="icon" aria-label="Acciones del recordatorio" className="h-8 w-8 text-gray-400 hover:text-white">
                           <MoreHorizontal className="w-4 h-4" />
                         </Button>
                       </DropdownMenuTrigger>
