@@ -304,6 +304,9 @@ export default function ImportPODialog({ open, onClose, suppliers = [], products
       setPaidAtOrder(true);
       setPaymentMethod("paypal");
       setNewProductForRow(null);
+      setBulkMarginPct(50);
+      setBulkCreating(false);
+      setPriceHistory({});
     }
   }, [open]);
 
