@@ -1426,6 +1426,23 @@ Maximo 150 palabras. Texto plano, sin markdown.`
             cancelled: "bg-red-500/15 text-red-300 border-red-500/20",
           })[s] || "bg-white/[0.06] text-white/60 border-white/10";
 
+          // Margen esperado: Σ(price venta × qty) − Σ(costo × qty)
+          const estimatedMargin = (po) => {
+            const items = po.line_items || po.items || [];
+            let revenue = 0;
+            let cost = 0;
+            for (const it of items) {
+              const qty = Number(it.quantity || 0);
+              const unitCost = Number(it.unit_cost || it.cost || 0);
+              cost += unitCost * qty;
+              const prodId = it.inventory_item_id || it.product_id;
+              const prod = poProducts.find((p) => p.id === prodId);
+              const price = prod?.price != null ? Number(prod.price) : unitCost * 1.5;
+              revenue += price * qty;
+            }
+            return { revenue, cost, margin: revenue - cost, pct: cost > 0 ? ((revenue - cost) / cost) * 100 : 0 };
+          };
+
           // Helpers para fecha esperada
           const todayStr = new Date().toISOString().slice(0, 10);
           const isOverdue = (po) => {
