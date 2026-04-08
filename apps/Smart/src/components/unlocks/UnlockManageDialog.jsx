@@ -115,6 +115,7 @@ export default function UnlockManageDialog({ unlock, onClose, onPaymentOption, o
                 onClick={() => window.open(unlock.tracking_url, '_blank')}
                 size="icon"
                 variant="ghost"
+                aria-label="Ver estado del desbloqueo en sitio externo"
                 className="text-blue-400 hover:text-blue-300 hover:bg-blue-600/10"
                 title="Ver estado del desbloqueo"
               >
