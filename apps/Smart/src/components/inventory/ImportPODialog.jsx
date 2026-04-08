@@ -401,6 +401,12 @@ export default function ImportPODialog({ open, onClose, suppliers = [], products
     if (data.order_date) setOrderDate(String(data.order_date).slice(0, 10));
     if (data.notes) setNotes(data.notes);
 
+    // Método de pago — prioridad: lo que Jeani detectó del PDF > default del supplier > heurística
+    const validMethods = ["paypal", "check", "card", "cash", "transfer", "other"];
+    if (data.payment_method && validMethods.includes(data.payment_method)) {
+      setPaymentMethod(data.payment_method);
+    }
+
     // Intentar match de proveedor
     if (data.supplier_name && suppliers?.length) {
       let bestSup = null;
@@ -411,21 +417,21 @@ export default function ImportPODialog({ open, onClose, suppliers = [], products
       }
       if (bestSup && bestSupScore >= 0.5) {
         setSupplierId(bestSup.id);
-        // Método de pago: primero el default guardado del proveedor, si no,
-        // heurística por nombre, si no, PayPal por defecto.
-        if (bestSup.default_payment_method) {
-          setPaymentMethod(bestSup.default_payment_method);
-        } else {
-          const supName = norm(bestSup.name + " " + (data.supplier_name || ""));
-          if (supName.includes("waves") || supName.includes("pr mobile") || supName.includes("prmobile")) {
-            setPaymentMethod("check");
+        // Solo fallback: si Jeani NO detectó el método, usar el default del supplier o heurística
+        if (!data.payment_method || !validMethods.includes(data.payment_method)) {
+          if (bestSup.default_payment_method) {
+            setPaymentMethod(bestSup.default_payment_method);
           } else {
-            setPaymentMethod("paypal");
+            const supName = norm(bestSup.name + " " + (data.supplier_name || ""));
+            if (supName.includes("waves") || supName.includes("pr mobile") || supName.includes("prmobile")) {
+              setPaymentMethod("check");
+            } else {
+              setPaymentMethod("paypal");
+            }
           }
         }
       }
-    } else if (data.supplier_name) {
-      // Sugerir método sin tener proveedor matcheado
+    } else if (data.supplier_name && (!data.payment_method || !validMethods.includes(data.payment_method))) {
       const supName = norm(data.supplier_name);
       if (supName.includes("waves") || supName.includes("pr mobile") || supName.includes("prmobile")) {
         setPaymentMethod("check");
