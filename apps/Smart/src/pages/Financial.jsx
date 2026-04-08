@@ -1787,6 +1787,7 @@ Maximo 150 palabras. Texto plano, sin markdown.`
           onClose={() => { setShowImportPO(false); loadData(); }}
           suppliers={suppliers}
           products={poProducts}
+          workOrders={poWorkOrders}
         />
       )}
 
