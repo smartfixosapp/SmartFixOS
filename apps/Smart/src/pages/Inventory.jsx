@@ -1962,6 +1962,7 @@ Maximo 150 palabras. Texto plano, sin markdown.`
                 <span className="text-white/50 font-semibold text-sm">{pageCount}</span>
               </div>
               <Button size="icon" variant="ghost" disabled={page >= pageCount} onClick={() => setPage(p => Math.min(pageCount, p + 1))}
+                aria-label="Página siguiente"
                 className="h-9 w-9 rounded-full bg-white/5 hover:bg-white/10 border border-white/10 disabled:opacity-30 transition-all">
                 <ChevronRight className="w-4 h-4" />
               </Button>
