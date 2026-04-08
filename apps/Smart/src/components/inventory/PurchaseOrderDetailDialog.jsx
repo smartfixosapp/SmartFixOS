@@ -1425,6 +1425,9 @@ export default function PurchaseOrderDetailDialog({
                   const itemsDesc = form.items
                     .map((it) => `${it.product_name} x${it.quantity}`)
                     .join(", ");
+                  // CRÍTICO: pasar tenant_id explícito para garantizar visibilidad
+                  let tenantId = null;
+                  try { tenantId = localStorage.getItem("smartfix_tenant_id"); } catch { /* */ }
                   const txPayload = {
                     type: "expense",
                     category: "parts",
@@ -1432,6 +1435,7 @@ export default function PurchaseOrderDetailDialog({
                     description: `OC ${form.po_number}${form.supplier_name ? ` — ${form.supplier_name}` : ""} · Pago: ${methodLabel}. ${itemsDesc}`.slice(0, 500),
                     payment_method: mapPaymentMethod(payMethod),
                     order_number: form.po_number,
+                    ...(tenantId ? { tenant_id: tenantId } : {}),
                   };
                   console.log("📝 Creando Transaction (pago manual):", txPayload);
                   await base44.entities.Transaction.create(txPayload);
