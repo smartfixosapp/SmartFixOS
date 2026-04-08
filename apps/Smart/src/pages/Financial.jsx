@@ -271,14 +271,29 @@ export default function Financial() {
         }
       };
 
-      const [salesData, transactionsData, fixedExpensesData, oneTimeExpensesData, cashMovementsData, cashStatus] = await Promise.all([
+      const [
+        salesData, transactionsData, fixedExpensesData, oneTimeExpensesData,
+        cashMovementsData, cashStatus, purchaseOrdersData, suppliersData, productsData
+      ] = await Promise.all([
         safeList(dataClient.entities.Sale, 500),
         safeList(dataClient.entities.Transaction, 500),
         safeList(dataClient.entities.FixedExpense, 100),
         safeList(dataClient.entities.OneTimeExpense, 100),
         safeList(dataClient.entities.CashDrawerMovement, 500),
-        checkCashRegisterStatus().catch(() => getCachedStatus())
+        checkCashRegisterStatus().catch(() => getCachedStatus()),
+        (dataClient.entities.PurchaseOrder?.list
+          ? dataClient.entities.PurchaseOrder.list("-created_date", 200).catch(() =>
+              dataClient.entities.PurchaseOrder.list("-created_at", 200).catch(() => []))
+          : Promise.resolve([])),
+        loadSuppliersSafe().catch(() => []),
+        (dataClient.entities.Product?.list
+          ? dataClient.entities.Product.list("-created_date", 500).catch(() => [])
+          : Promise.resolve([]))
       ]);
+
+      setPurchaseOrders(Array.isArray(purchaseOrdersData) ? purchaseOrdersData : []);
+      setSuppliers(Array.isArray(suppliersData) ? suppliersData : []);
+      setPoProducts(Array.isArray(productsData) ? productsData : []);
 
       const validSales = (salesData || []).filter(s => !s.voided);
       const expenseTransactions = (transactionsData || [])
