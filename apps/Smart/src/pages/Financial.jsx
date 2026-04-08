@@ -1191,6 +1191,13 @@ Maximo 150 palabras. Texto plano, sin markdown.`
                     scheme: "slate",
                   },
                   {
+                    id: "compras",    tab: "compras",     filter: null,
+                    label: "Órdenes de compra",    sublabel: "Compras a proveedores",
+                    value: null,                   icon: ShoppingCart,
+                    active: activeTab === "compras",
+                    scheme: "slate",
+                  },
+                  {
                     id: "reportes",   tab: "reportes",    filter: null,
                     label: "Reportes",             sublabel: "Análisis y exportar datos",
                     value: null,                   icon: PieChart,
