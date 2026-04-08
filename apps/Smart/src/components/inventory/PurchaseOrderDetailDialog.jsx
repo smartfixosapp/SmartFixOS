@@ -132,6 +132,54 @@ export default function PurchaseOrderDetailDialog({
       const previousStatus = poData?.status;
       await base44.entities.PurchaseOrder.update(purchaseOrder.id, payload);
 
+      // ── AUTO-STOCK: al transicionar a "received" incrementar el inventario ────
+      // Marcador [STOCKED] en notes para no duplicar si se re-guarda.
+      const alreadyStocked = /\[STOCKED\]/.test(form.notes || "");
+      if (form.status === "received" && previousStatus !== "received" && !alreadyStocked) {
+        let stockedCount = 0;
+        const performedBy = (() => {
+          try { return JSON.parse(localStorage.getItem("employee_session") || "{}")?.name || "Sistema"; }
+          catch { return "Sistema"; }
+        })();
+        for (const it of lineItems) {
+          const pid = it.inventory_item_id;
+          const qty = Number(it.quantity || 0);
+          // received_quantity es opcional (recepción parcial): si está seteado, usarlo
+          const receivedQty = it.received_quantity != null ? Number(it.received_quantity) : qty;
+          if (!pid || receivedQty <= 0) continue;
+          try {
+            const product = await base44.entities.Product.get(pid);
+            const prev = Number(product?.stock || 0);
+            const next = prev + receivedQty;
+            await base44.entities.Product.update(pid, { stock: next });
+            await base44.entities.InventoryMovement.create({
+              product_id: pid,
+              product_name: product?.name || it.product_name || "",
+              movement_type: "purchase",
+              quantity: receivedQty,
+              previous_stock: prev,
+              new_stock: next,
+              reference_type: "purchase",
+              reference_id: purchaseOrder.id,
+              reference_number: form.po_number || "",
+              notes: `Recibido de OC ${form.po_number || ""}`,
+              performed_by: performedBy,
+            });
+            stockedCount++;
+          } catch (stockErr) {
+            console.warn(`No se pudo actualizar stock de ${pid}:`, stockErr);
+          }
+        }
+        if (stockedCount > 0) {
+          // Añadir marcador [STOCKED] a las notes del PO para no duplicar
+          try {
+            const newNotes = (form.notes || "").trim() + (form.notes ? "\n" : "") + "[STOCKED]";
+            await base44.entities.PurchaseOrder.update(purchaseOrder.id, { notes: newNotes });
+          } catch { /* no-op */ }
+          toast.success(`📦 Stock actualizado en ${stockedCount} producto${stockedCount === 1 ? "" : "s"}`);
+        }
+      }
+
       // ── AUTO-GASTO: cuando PO se marca como recibida ──────────────────────
       // Pero NO duplicar si ya se pagó al ordenar (marcador [PAID:method] en notes
       // que añade ImportPODialog cuando el usuario marca "Ya pagué").
