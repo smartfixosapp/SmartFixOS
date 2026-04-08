@@ -659,14 +659,52 @@ export default function PurchaseOrderDetailDialog({
                     <div className="flex-1 min-w-0">
                       <p className="text-white font-bold text-sm truncate">{it.product_name}</p>
                       {!editing && (
-                        <p className="text-white/30 text-xs mt-0.5">
-                          {it.quantity} × {money(it.unit_cost)} = {money((it.unit_cost || 0) * (it.quantity || 0))}
-                          {it.received_quantity != null && it.received_quantity < it.quantity && (
-                            <span className="ml-2 px-1.5 py-0.5 rounded bg-amber-500/15 text-amber-300 font-black">
-                              Recibidas: {it.received_quantity}/{it.quantity}
-                            </span>
-                          )}
-                        </p>
+                        <>
+                          <p className="text-white/30 text-xs mt-0.5">
+                            {it.quantity} × {money(it.unit_cost)} = {money((it.unit_cost || 0) * (it.quantity || 0))}
+                            {it.received_quantity != null && it.received_quantity < it.quantity && (
+                              <span className="ml-2 px-1.5 py-0.5 rounded bg-amber-500/15 text-amber-300 font-black">
+                                Recibidas: {it.received_quantity}/{it.quantity}
+                              </span>
+                            )}
+                          </p>
+                          {it.work_order_id && (() => {
+                            const wo = workOrders.find((w) => w.id === it.work_order_id);
+                            if (!wo) {
+                              return (
+                                <p className="text-[10px] text-amber-400/70 mt-1">
+                                  🔗 WO enlazada (no disponible en catálogo actual)
+                                </p>
+                              );
+                            }
+                            return (
+                              <p className="text-[10px] mt-1 text-cyan-300 font-bold">
+                                🔗 Para: {wo.order_number || wo.id?.slice(-6)}
+                                {wo.customer_name ? ` · ${wo.customer_name}` : ""}
+                              </p>
+                            );
+                          })()}
+                        </>
+                      )}
+                      {editing && (
+                        <div className="mt-1">
+                          <p className="text-[9px] text-white/30 font-black uppercase mb-0.5">
+                            🔗 Enlazar a orden de trabajo
+                          </p>
+                          <select
+                            value={it.work_order_id || ""}
+                            onChange={(e) => handleChangeItemWorkOrder(idx, e.target.value)}
+                            className="w-full bg-zinc-900 border border-white/10 rounded-lg px-2 py-1 text-[11px] text-white"
+                          >
+                            <option value="">— Sin orden de trabajo —</option>
+                            {workOrders.slice(0, 200).map((wo) => (
+                              <option key={wo.id} value={wo.id}>
+                                {wo.order_number || wo.id?.slice(-6)}
+                                {wo.customer_name ? ` · ${wo.customer_name}` : ""}
+                              </option>
+                            ))}
+                          </select>
+                        </div>
                       )}
                     </div>
                     {editing && (
