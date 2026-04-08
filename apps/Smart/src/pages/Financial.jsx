@@ -277,7 +277,7 @@ export default function Financial() {
 
       const [
         salesData, transactionsData, fixedExpensesData, oneTimeExpensesData,
-        cashMovementsData, cashStatus, purchaseOrdersData, suppliersData, productsData
+        cashMovementsData, cashStatus, purchaseOrdersData, suppliersData, productsData, workOrdersData
       ] = await Promise.all([
         safeList(dataClient.entities.Sale, 500),
         safeList(dataClient.entities.Transaction, 500),
@@ -292,12 +292,16 @@ export default function Financial() {
         loadSuppliersSafe().catch(() => []),
         (dataClient.entities.Product?.list
           ? dataClient.entities.Product.list("-created_date", 500).catch(() => [])
+          : Promise.resolve([])),
+        (dataClient.entities.Order?.list
+          ? dataClient.entities.Order.list("-created_date", 200).catch(() => [])
           : Promise.resolve([]))
       ]);
 
       setPurchaseOrders(Array.isArray(purchaseOrdersData) ? purchaseOrdersData : []);
       setSuppliers(Array.isArray(suppliersData) ? suppliersData : []);
       setPoProducts(Array.isArray(productsData) ? productsData : []);
+      setPoWorkOrders(Array.isArray(workOrdersData) ? workOrdersData : []);
 
       const validSales = (salesData || []).filter(s => !s.voided);
       const expenseTransactions = (transactionsData || [])
