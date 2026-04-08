@@ -312,6 +312,8 @@ export default function ImportPODialog({ open, onClose, suppliers = [], products
       setBulkMarginPct(50);
       setBulkCreating(false);
       setPriceHistory({});
+      setFileQueue([]);
+      setBatchProgress(null);
     }
   }, [open]);
 
