@@ -193,7 +193,8 @@ export default function WaitingPartsStage({ order, onUpdate, onOrderItemsUpdate,
                 </div>
                 <Button variant="ghost" size="icon"
                   className="flex-shrink-0 h-8 w-8 rounded-lg text-white/55 hover:bg-white/10 hover:text-white"
-                  onClick={() => setEditingDetails(!editingDetails)}>
+                  onClick={() => setEditingDetails(!editingDetails)}
+                  aria-label={editingDetails ? "Cancelar edición de detalles" : "Editar detalles del pedido"}>
                   {editingDetails ? <X className="w-4 h-4" /> : <Pencil className="w-4 h-4" />}
                 </Button>
               </div>
