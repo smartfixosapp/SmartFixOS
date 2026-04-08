@@ -182,6 +182,7 @@ export default function B2BContactsManager({ customer, onUpdate }) {
                     size="icon"
                     variant="ghost"
                     onClick={() => handleEdit(index)}
+                    aria-label={`Editar contacto ${contact.name}`}
                     className="h-7 w-7 text-cyan-400 hover:bg-cyan-600/20">
                     <Edit2 className="w-4 h-4" />
                   </Button>
