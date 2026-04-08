@@ -624,6 +624,7 @@ export default function ImportPODialog({ open, onClose, suppliers = [], products
         supplier_name: supplier?.name || extracted?.supplier_name || "",
         status: paidAtOrder ? "ordered" : "draft",
         order_date: orderDate,
+        expected_date: expectedDate || null,
         line_items: lineItems,
         subtotal,
         tax_amount: Number(extracted?.tax || 0),
