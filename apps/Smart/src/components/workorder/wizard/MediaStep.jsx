@@ -91,6 +91,7 @@ export default function MediaStep({ formData, updateFormData, config }) {
                 onClick={() => removeFile(file.id)}
                 size="icon"
                 variant="destructive"
+                aria-label="Eliminar archivo"
                 className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity"
               >
                 <X className="w-4 h-4" />
