@@ -77,6 +77,7 @@ export default function SecuritySection({ order }) {
                   variant="outline"
                   size="icon"
                   onClick={() => setShowPin(!showPin)}
+                  aria-label={showPin ? "Ocultar PIN" : "Mostrar PIN"}
                   className="border-gray-700"
                 >
                   {showPin ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
