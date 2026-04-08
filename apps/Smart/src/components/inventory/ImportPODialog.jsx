@@ -89,7 +89,7 @@ function parseCSV(text) {
 // Pedimos JSON en el prompt y lo parseamos en cliente: es más permisivo
 // que los structured outputs y evita errores de schema strict.
 async function extractWithAI(fileUrl) {
-  const prompt = `Eres Jeani, asistente de SmartFixOS. Lee esta orden de compra / factura / proforma de proveedor y devuelve SOLO un objeto JSON válido (sin texto antes ni después, sin markdown, sin \`\`\`) con esta forma:
+  const prompt = `Eres Jeani, asistente de SmartFixOS (sistema para talleres de reparación de electrónicos). Lee esta orden de compra / factura / proforma de proveedor y devuelve SOLO un objeto JSON válido (sin texto antes ni después, sin markdown, sin \`\`\`) con esta forma:
 
 {
   "supplier_name": "string",
@@ -101,7 +101,7 @@ async function extractWithAI(fileUrl) {
   "total_amount": 0,
   "notes": "",
   "items": [
-    { "raw_name": "nombre tal cual aparece", "sku": "", "quantity": 1, "unit_price": 0, "total": 0 }
+    { "raw_name": "nombre tal cual aparece", "sku": "", "quantity": 1, "unit_price": 0, "total": 0, "category": "screen" }
   ]
 }
 
@@ -110,6 +110,7 @@ Reglas:
 - Si un valor no aparece, usa 0 para números y "" para strings. NO inventes datos.
 - NO incluyas filas de subtotal/impuesto/envío/total dentro de items — van en sus campos.
 - Si el archivo no es legible o no es una orden de compra, devuelve {"items": []}.
+- category debe ser UNO de: "screen" (pantallas/LCD/OLED/display), "battery" (baterías/batt), "charger" (cargadores/adapters), "cable" (cables USB/lightning/type-c), "case" (fundas/covers/protectores), "diagnostic" (herramientas/equipos de diagnóstico), "other" (cualquier otra cosa como tornillos, flex, parlantes, cámaras, etc.)
 - Devuelve EXCLUSIVAMENTE el JSON. Nada más.`;
 
   let raw;
