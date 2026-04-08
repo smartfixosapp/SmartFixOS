@@ -850,6 +850,52 @@ export default function PurchaseOrderDetailDialog({
                 📋 Duplicar
               </button>
               <button
+                onClick={async () => {
+                  const supplier = suppliers.find((s) => s.id === form.supplier_id);
+                  const supplierEmail = supplier?.email;
+                  if (!supplierEmail) {
+                    toast.error("El proveedor no tiene email registrado. Edita el proveedor primero.");
+                    return;
+                  }
+                  const ok = window.confirm(`¿Enviar esta OC por email a ${supplierEmail}?`);
+                  if (!ok) return;
+                  try {
+                    const total = form.items.reduce((s, it) => s + (Number(it.unit_cost || 0) * Number(it.quantity || 0)), 0) + Number(form.shipping_cost || 0);
+                    const itemsRows = form.items
+                      .map((it) => `<tr><td>${String(it.product_name || "").replace(/</g, "&lt;")}</td><td style="text-align:right">${it.quantity || 0}</td><td style="text-align:right">$${Number(it.unit_cost || 0).toFixed(2)}</td><td style="text-align:right">$${(Number(it.unit_cost || 0) * Number(it.quantity || 0)).toFixed(2)}</td></tr>`)
+                      .join("");
+                    const html = `
+                      <div style="font-family:-apple-system,sans-serif;max-width:600px;margin:0 auto;padding:20px;color:#222">
+                        <h2 style="border-bottom:3px solid #0891b2;padding-bottom:10px">Orden de Compra ${form.po_number}</h2>
+                        <p>Hola ${supplier?.contact_name || supplier?.name || "equipo"},</p>
+                        <p>Adjunto los detalles de nuestra orden de compra:</p>
+                        <p><strong>Fecha:</strong> ${form.order_date || "—"}<br>
+                           <strong>Fecha esperada:</strong> ${form.expected_date || "—"}</p>
+                        <table style="width:100%;border-collapse:collapse;margin:20px 0">
+                          <thead><tr style="background:#f5f5f5"><th style="padding:8px;text-align:left">Producto</th><th style="padding:8px;text-align:right">Cant</th><th style="padding:8px;text-align:right">Costo u.</th><th style="padding:8px;text-align:right">Total</th></tr></thead>
+                          <tbody>${itemsRows}</tbody>
+                          <tfoot><tr><td colspan="3" style="padding:8px;text-align:right;border-top:2px solid #222"><strong>TOTAL</strong></td><td style="padding:8px;text-align:right;border-top:2px solid #222"><strong>$${total.toFixed(2)}</strong></td></tr></tfoot>
+                        </table>
+                        <p>Gracias.</p>
+                      </div>
+                    `;
+                    await base44.integrations.Core.SendEmail({
+                      to: supplierEmail,
+                      subject: `Orden de Compra ${form.po_number}`,
+                      html,
+                    });
+                    toast.success(`Email enviado a ${supplierEmail}`);
+                  } catch (err) {
+                    console.error("Send email error:", err);
+                    toast.error("No se pudo enviar: " + (err?.message || ""));
+                  }
+                }}
+                className="px-3 py-2.5 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-300 text-xs font-bold hover:bg-emerald-500/20 transition-all flex items-center justify-center gap-1.5"
+                title="Enviar esta OC por email al proveedor"
+              >
+                ✉️ Email proveedor
+              </button>
+              <button
                 onClick={() => {
                   const total = form.items.reduce((s, it) => s + (Number(it.unit_cost || 0) * Number(it.quantity || 0)), 0) + Number(form.shipping_cost || 0);
                   const win = window.open("", "_blank");
