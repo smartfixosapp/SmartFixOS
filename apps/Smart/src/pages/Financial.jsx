@@ -1592,21 +1592,48 @@ Maximo 150 palabras. Texto plano, sin markdown.`
                   <RefreshCw className="w-5 h-5 animate-spin mx-auto mb-2 text-white/20" />
                   <p className="text-xs text-white/20 font-bold">Cargando órdenes…</p>
                 </div>
-              ) : filteredPOs.length === 0 ? (
+              ) : displayPOs.length === 0 ? (
                 <div className="py-16 text-center bg-white/[0.02] border border-dashed border-white/10 rounded-2xl">
-                  <ShoppingCart className="w-8 h-8 mx-auto mb-2 text-white/20" />
-                  <p className="text-white/40 font-bold text-sm">
-                    {(purchaseOrders || []).length === 0
-                      ? "Aún no hay órdenes de compra"
-                      : "Sin resultados con los filtros actuales"}
-                  </p>
-                  <p className="text-white/25 text-[11px] mt-1">
-                    Crea la primera con “Nueva orden de compra”
-                  </p>
+                  <ShoppingCart className="w-10 h-10 mx-auto mb-3 text-white/20" />
+                  {allPOs.length === 0 ? (
+                    <>
+                      <p className="text-white font-black text-base">Aún no hay órdenes de compra</p>
+                      <p className="text-white/40 text-xs mt-1 mb-4">
+                        Crea una manualmente o importa una foto/PDF con Jeani
+                      </p>
+                      <div className="flex items-center justify-center gap-2">
+                        <button
+                          onClick={() => { setEditingPO(null); setShowPODialog(true); }}
+                          className="flex items-center gap-2 px-4 py-2 rounded-xl bg-cyan-500/15 border border-cyan-500/25 text-cyan-300 text-xs font-black hover:bg-cyan-500/25"
+                        >
+                          <Plus className="w-3.5 h-3.5" /> Crear manual
+                        </button>
+                        <button
+                          onClick={() => setShowImportPO(true)}
+                          className="flex items-center gap-2 px-4 py-2 rounded-xl bg-violet-500/20 border border-violet-500/30 text-violet-200 text-xs font-black hover:bg-violet-500/30"
+                        >
+                          <Sparkles className="w-3.5 h-3.5" /> Importar con Jeani
+                        </button>
+                      </div>
+                    </>
+                  ) : (
+                    <>
+                      <p className="text-white/60 font-black text-sm">Sin resultados</p>
+                      <p className="text-white/30 text-[11px] mt-1">
+                        Ajusta los filtros o busca con otros términos
+                      </p>
+                      <button
+                        onClick={() => { setPoQuickFilter("all"); setPoSearch(""); setPoStatusFilter("all"); }}
+                        className="mt-3 px-3 py-1.5 rounded-lg bg-white/[0.04] border border-white/10 text-white/60 text-[11px] font-bold hover:text-white"
+                      >
+                        Limpiar filtros
+                      </button>
+                    </>
+                  )}
                 </div>
               ) : (
                 <div className="space-y-1.5">
-                  {filteredPOs.map((po) => {
+                  {displayPOs.map((po) => {
                     const itemsCount = (po.items || po.line_items || []).length;
                     const date = po.created_date || po.created_at || po.order_date;
                     const status = po.status || "draft";
