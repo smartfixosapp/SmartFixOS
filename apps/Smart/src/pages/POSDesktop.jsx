@@ -1111,16 +1111,18 @@ Máximo 30 palabras en total.`;
                   <div className="flex items-center gap-1.5 bg-black/40 rounded-xl p-1.5 border border-white/5">
                     <button
                       onClick={() => updateQuantity(idx, -1)}
-                      className="w-8 h-8 rounded-lg bg-white/5 hover:bg-white/10 flex items-center justify-center text-white transition-all active:scale-90"
+                      aria-label={`Disminuir cantidad de ${item.name}`}
+                      className="w-11 h-11 rounded-lg bg-white/5 hover:bg-white/10 flex items-center justify-center text-white transition-all active:scale-90"
                     >
-                      <Minus className="w-3.5 h-3.5" />
+                      <Minus className="w-4 h-4" />
                     </button>
-                    <span className="w-8 text-center text-white text-[13px] font-black">{item.quantity}</span>
+                    <span className="w-10 text-center text-white text-sm font-black">{item.quantity}</span>
                     <button
                       onClick={() => updateQuantity(idx, 1)}
-                      className="w-8 h-8 rounded-lg bg-white/5 hover:bg-white/10 flex items-center justify-center text-white transition-all active:scale-90"
+                      aria-label={`Aumentar cantidad de ${item.name}`}
+                      className="w-11 h-11 rounded-lg bg-white/5 hover:bg-white/10 flex items-center justify-center text-white transition-all active:scale-90"
                     >
-                      <Plus className="w-3.5 h-3.5" />
+                      <Plus className="w-4 h-4" />
                     </button>
                   </div>
                   <span className="text-white font-black text-base tracking-tighter">${(toCurrencyNumber(item.price) * toCurrencyNumber(item.quantity)).toFixed(2)}</span>
