@@ -1665,8 +1665,26 @@ Maximo 150 palabras. Texto plano, sin markdown.`
                   placeholder="Buscar por número, proveedor o nota…"
                   className="max-w-xs bg-white/[0.04] border-white/10 text-white text-xs"
                 />
-                <div className="flex gap-1 items-center ml-auto">
-                  <span className="text-[10px] text-white/40 font-black uppercase">Ordenar:</span>
+                <div className="flex gap-1 items-center ml-auto flex-wrap">
+                  <div className="flex gap-0.5 bg-white/[0.04] border border-white/10 rounded-lg p-0.5">
+                    <button
+                      onClick={() => setPoViewMode("list")}
+                      className={`px-2 py-1 rounded text-[10px] font-black transition-all ${
+                        poViewMode === "list" ? "bg-white/15 text-white" : "text-white/40 hover:text-white/70"
+                      }`}
+                    >
+                      Lista
+                    </button>
+                    <button
+                      onClick={() => setPoViewMode("grouped")}
+                      className={`px-2 py-1 rounded text-[10px] font-black transition-all ${
+                        poViewMode === "grouped" ? "bg-white/15 text-white" : "text-white/40 hover:text-white/70"
+                      }`}
+                    >
+                      Por proveedor
+                    </button>
+                  </div>
+                  <span className="text-[10px] text-white/40 font-black uppercase ml-2">Ordenar:</span>
                   <select
                     value={poSortBy}
                     onChange={(e) => setPoSortBy(e.target.value)}
