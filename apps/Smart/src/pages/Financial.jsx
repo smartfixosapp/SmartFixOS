@@ -1775,6 +1775,14 @@ Maximo 150 palabras. Texto plano, sin markdown.`
           products={poProducts}
         />
       )}
+      {showImportPO && (
+        <ImportPODialog
+          open={showImportPO}
+          onClose={() => { setShowImportPO(false); loadData(); }}
+          suppliers={suppliers}
+          products={poProducts}
+        />
+      )}
 
     </div>
   );
