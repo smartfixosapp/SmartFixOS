@@ -105,11 +105,13 @@ export default function PurchaseOrderDetailDialog({
       const lineItems = form.items.map((it, i) => {
         const qty = Number(it.quantity || 1);
         const cost = Number(it.unit_cost || 0);
+        const receivedQty = it.received_quantity != null ? Number(it.received_quantity) : qty;
         return {
           id: `li-${Date.now()}-${i}`,
           inventory_item_id: it.product_id || undefined,
           product_name: it.product_name || "",
           quantity: qty,
+          received_quantity: receivedQty,
           unit_cost: cost,
           line_total: qty * cost,
           linked_work_order_id: it.work_order_id || undefined,
