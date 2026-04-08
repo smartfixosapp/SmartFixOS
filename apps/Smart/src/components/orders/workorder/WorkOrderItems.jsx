@@ -11,34 +11,50 @@ const currency = (n) => `$${Number(n || 0).toFixed(2)}`;
 
 const PartCard = ({ item, onRemove, onMarkAsReceived }) => {
   const isFromWizard = item.source === 'wizard';
+  const isFromPO = item.source === 'purchase_order';
   const waitingForSupplier = item.status === 'waiting_supplier';
 
+  const sourceBadge = () => {
+    if (isFromWizard) return { label: 'Desde Wizard', cls: 'border-purple-500/50 bg-purple-900/50 text-purple-300' };
+    if (isFromPO) return { label: `🛒 OC ${item.po_number || ''}`.trim(), cls: 'border-cyan-500/50 bg-cyan-900/50 text-cyan-300' };
+    if (item.source === 'inventory') return { label: 'Inventario', cls: 'border-blue-500/50 bg-blue-900/50 text-blue-300' };
+    return { label: 'Manual', cls: 'border-blue-500/50 bg-blue-900/50 text-blue-300' };
+  };
+  const sb = sourceBadge();
+
   return (
-    <div className="bg-gray-800/50 p-3 rounded-lg border border-gray-700 space-y-2">
+    <div className={`p-3 rounded-lg border space-y-2 ${
+      isFromPO ? 'bg-cyan-950/30 border-cyan-700/40' : 'bg-gray-800/50 border-gray-700'
+    }`}>
       <div className="flex justify-between items-start">
         <div className="flex-1">
           <p className="font-bold text-white flex items-center gap-2">
-            {isFromWizard ? <LinkIcon className="w-4 h-4 text-purple-400" /> : <Briefcase className="w-4 h-4 text-blue-400" />}
+            {isFromWizard ? <LinkIcon className="w-4 h-4 text-purple-400" /> :
+             isFromPO ? <span className="text-cyan-400">🛒</span> :
+             <Briefcase className="w-4 h-4 text-blue-400" />}
             {item.name}
           </p>
           <p className="text-lg font-semibold text-green-400">
             {currency(item.price)}
           </p>
-          {typeof item.cost === 'number' && (
-            <p className="text-xs text-gray-400">Costo: {currency(item.cost)}</p>
+          {typeof item.cost === 'number' && item.cost > 0 && (
+            <p className="text-xs text-gray-400">
+              Costo: {currency(item.cost)}
+              {isFromPO && item.price > item.cost && (
+                <span className="text-emerald-400 ml-1">
+                  · Ganancia: {currency((item.price - item.cost) * (item.quantity || 1))}
+                </span>
+              )}
+            </p>
+          )}
+          {isFromPO && item.supplier && (
+            <p className="text-[10px] text-cyan-300/70">Proveedor: {item.supplier}</p>
           )}
         </div>
         <div className="flex flex-col items-end gap-1">
           <p className="text-sm text-gray-300">Cant: {item.quantity}</p>
-          <Badge
-            variant={isFromWizard ? 'secondary' : 'outline'}
-            className={
-              isFromWizard
-                ? 'border-purple-500/50 bg-purple-900/50 text-purple-300'
-                : 'border-blue-500/50 bg-blue-900/50 text-blue-300'
-            }
-          >
-            {isFromWizard ? 'Desde Wizard' : (item.source === 'inventory' ? 'Inventario' : 'Manual')}
+          <Badge variant="outline" className={sb.cls}>
+            {sb.label}
           </Badge>
         </div>
       </div>
