@@ -214,6 +214,7 @@ export default function InventoryAssistant() {
             disabled={loading || !input.trim()}
             className="bg-gradient-to-r from-cyan-500 to-emerald-500 hover:from-cyan-600 hover:to-emerald-600 text-white"
             size="icon"
+            aria-label="Enviar mensaje al asistente"
           >
             <Send className="w-4 h-4" />
           </Button>
