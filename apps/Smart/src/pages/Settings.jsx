@@ -1161,7 +1161,7 @@ export default function SettingsPage() {
                       <Input value={appConfig.business_phone} onChange={(e) => setAppConfig({ ...appConfig, business_phone: e.target.value })} placeholder="(787) 123-4567" className="bg-white/5 border-white/10 text-white rounded-xl h-11 focus:bg-white/10" />
                     </div>
                     <div className="space-y-1.5">
-                      <label className="text-white/60 text-xs font-semibold ml-1">💬 WhatsApp</label>
+                      <label className="text-white/60 text-xs font-semibold ml-1 flex items-center gap-1.5"><MessageCircle className="w-3.5 h-3.5" /> WhatsApp</label>
                       <Input value={appConfig.business_whatsapp} onChange={(e) => setAppConfig({ ...appConfig, business_whatsapp: e.target.value })} placeholder="(787) 123-4567" className="bg-white/5 border-white/10 text-white rounded-xl h-11 focus:bg-white/10" />
                     </div>
                   </div>
