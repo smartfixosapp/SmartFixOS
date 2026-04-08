@@ -180,6 +180,8 @@ export default function Financial() {
   const [poSortBy, setPoSortBy] = useState("date"); // date | total | supplier
   const [poSortDir, setPoSortDir] = useState("desc"); // asc | desc
   const [poViewMode, setPoViewMode] = useState("list"); // list | grouped
+  const [selectedPOIds, setSelectedPOIds] = useState(new Set());
+  const [bulkActionLoading, setBulkActionLoading] = useState(false);
   const [deletingPOId, setDeletingPOId] = useState(null);
   const [showReorderModal, setShowReorderModal] = useState(false);
   const [creatingReorderPO, setCreatingReorderPO] = useState(null);
