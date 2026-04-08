@@ -2,6 +2,7 @@
 import React, { lazy, Suspense } from 'react';
 import Layout from "./Layout.jsx";
 import { BrowserRouter as Router, Route, Routes, useLocation, useNavigate } from 'react-router-dom';
+import { AnimatePresence, motion } from 'framer-motion';
 import AuthGate, { useAuth } from '@/components/Auth';
 // TutorialTour ahora está integrado dentro de ARIAChat como tab 🗺️
 
