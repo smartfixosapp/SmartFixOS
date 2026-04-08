@@ -421,6 +421,7 @@ export default function TechnicianProfileDialog({ open, onClose, technician, use
                       size="icon"
                       variant="ghost"
                       onClick={() => removeCertification(idx)}
+                      aria-label="Eliminar certificación"
                       className="h-8 w-8"
                     >
                       <X className="w-4 h-4" />
