@@ -251,7 +251,7 @@ export default function SummarySection({ order, events, onUpdate }) {
                       variant="outline"
                       onClick={() => removeFromCart(item.id)}
                       aria-label={`Eliminar ${item.name} del carrito`}
-                      className="h-8 w-8 border-red-800 text-red-400 hover:bg-red-900/30 ml-1"
+                      className="h-11 w-11 border-red-800 text-red-400 hover:bg-red-900/30 ml-1"
                     >
                       <Trash2 className="w-3 h-3" />
                     </Button>
