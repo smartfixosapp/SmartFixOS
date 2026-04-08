@@ -2395,6 +2395,7 @@ Maximo 150 palabras. Texto plano, sin markdown.`
           purchaseOrder={viewingPO}
           suppliers={suppliers}
           products={poProducts}
+          workOrders={poWorkOrders}
         />
       )}
       {showImportPO && (
