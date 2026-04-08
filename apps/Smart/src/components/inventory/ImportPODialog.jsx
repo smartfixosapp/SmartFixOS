@@ -293,7 +293,7 @@ export default function ImportPODialog({ open, onClose, suppliers = [], products
 
     // Crear filas de review con matches
     const rows = (data.items || []).map((it) => {
-      const match = findBestProductMatch(it.raw_name, products);
+      const match = findBestProductMatch(it.raw_name, liveProducts);
       return {
         raw_name: it.raw_name || "",
         product_id: match?.product?.id || "",
