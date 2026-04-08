@@ -1552,6 +1552,7 @@ export default function EmailTemplatesTab() {
                 onClick={() => setPreviewTemplate(null)}
                 variant="ghost"
                 size="icon"
+                aria-label="Cerrar vista previa"
                 className="text-white/60 hover:text-white hover:bg-white/10"
               >
                 <X className="w-5 h-5" />
