@@ -229,7 +229,7 @@ export default function SummarySection({ order, events, onUpdate }) {
                       variant="outline"
                       onClick={() => updateQuantity(item.id, -1)}
                       aria-label={`Disminuir cantidad de ${item.name}`}
-                      className="h-8 w-8 border-gray-700"
+                      className="h-11 w-11 border-gray-700"
                     >
                       <Minus className="w-3 h-3" />
                     </Button>
@@ -241,7 +241,7 @@ export default function SummarySection({ order, events, onUpdate }) {
                       variant="outline"
                       onClick={() => updateQuantity(item.id, 1)}
                       aria-label={`Aumentar cantidad de ${item.name}`}
-                      className="h-8 w-8 border-gray-700"
+                      className="h-11 w-11 border-gray-700"
                     >
                       <Plus className="w-3 h-3" />
                     </Button>
