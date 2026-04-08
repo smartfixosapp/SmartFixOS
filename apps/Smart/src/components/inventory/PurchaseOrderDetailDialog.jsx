@@ -55,6 +55,10 @@ export default function PurchaseOrderDetailDialog({
   const [returnItems, setReturnItems] = useState({}); // {idx: qty}
   const [returnReason, setReturnReason] = useState("");
   const [processingReturn, setProcessingReturn] = useState(false);
+  // Manual payment registration
+  const [showPayDialog, setShowPayDialog] = useState(false);
+  const [payMethod, setPayMethod] = useState("paypal");
+  const [processingPay, setProcessingPay] = useState(false);
 
   useEffect(() => {
     if (!open || !purchaseOrder?.id) return;
