@@ -1397,7 +1397,7 @@ export default function ImportPODialog({ open, onClose, suppliers = [], products
                           </div>
                         )}
                       </div>
-                      <div className="col-span-4 md:col-span-2">
+                      <div className="col-span-3 md:col-span-1">
                         <p className="text-[10px] text-white/30 font-black uppercase mb-0.5">Cant.</p>
                         <Input
                           type="number"
@@ -1408,7 +1408,7 @@ export default function ImportPODialog({ open, onClose, suppliers = [], products
                           className="bg-white/[0.04] border-white/10 text-white text-xs h-8"
                         />
                       </div>
-                      <div className="col-span-4 md:col-span-2">
+                      <div className="col-span-3 md:col-span-2">
                         <p className="text-[10px] text-white/30 font-black uppercase mb-0.5">Costo u.</p>
                         <Input
                           type="number"
@@ -1433,8 +1433,31 @@ export default function ImportPODialog({ open, onClose, suppliers = [], products
                           );
                         })()}
                       </div>
-                      <div className="col-span-4 md:col-span-2 flex items-end">
-                        <p className="text-sm font-black text-white tabular-nums">
+                      <div className="col-span-3 md:col-span-2">
+                        <p className="text-[10px] text-emerald-400/80 font-black uppercase mb-0.5">Precio venta ⭐</p>
+                        <Input
+                          type="number"
+                          min="0"
+                          step="0.01"
+                          value={row.unit_price}
+                          onChange={(e) => updateRow(idx, { unit_price: Number(e.target.value || 0) })}
+                          className="bg-emerald-500/[0.05] border-emerald-500/25 text-white text-xs h-8 font-black"
+                          title="Precio al cliente. Es el que se factura cuando enlazas con una orden de trabajo."
+                        />
+                        {Number(row.unit_cost || 0) > 0 && Number(row.unit_price || 0) > 0 && (() => {
+                          const margin = Number(row.unit_price) - Number(row.unit_cost);
+                          const pct = (margin / Number(row.unit_cost)) * 100;
+                          const color = margin > 0 ? "text-emerald-400" : "text-red-400";
+                          return (
+                            <p className={`text-[9px] mt-0.5 font-black ${color}`} title={`Ganancia por unidad: $${margin.toFixed(2)}`}>
+                              {pct >= 0 ? "+" : ""}{pct.toFixed(0)}% margen
+                            </p>
+                          );
+                        })()}
+                      </div>
+                      <div className="col-span-3 md:col-span-1 flex flex-col items-end">
+                        <p className="text-[10px] text-white/30 font-black uppercase mb-0.5">Total</p>
+                        <p className="text-sm font-black text-white tabular-nums leading-8">
                           {money(Number(row.quantity || 0) * Number(row.unit_cost || 0))}
                         </p>
                       </div>
