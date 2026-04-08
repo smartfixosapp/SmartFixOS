@@ -998,6 +998,111 @@ export default function ImportPODialog({ open, onClose, suppliers = [], products
           </div>
         )}
       </DialogContent>
+
+      {/* Sub-modal — Crear producto nuevo (pide precio venta) */}
+      <Dialog open={!!newProductForRow} onOpenChange={(v) => !v && setNewProductForRow(null)}>
+        <DialogContent className="max-w-md bg-zinc-950 border-white/10 text-white">
+          <DialogHeader>
+            <DialogTitle className="text-white flex items-center gap-2">
+              <Plus className="w-4 h-4 text-emerald-400" />
+              Crear producto nuevo en inventario
+            </DialogTitle>
+          </DialogHeader>
+          {newProductForRow && (
+            <div className="space-y-3">
+              <div>
+                <p className="text-[10px] text-white/40 font-black uppercase mb-1">Nombre</p>
+                <Input
+                  value={newProductForRow.name}
+                  onChange={(e) => setNewProductForRow((d) => ({ ...d, name: e.target.value }))}
+                  className="bg-white/[0.04] border-white/10 text-white text-sm"
+                />
+              </div>
+              <div className="grid grid-cols-2 gap-2">
+                <div>
+                  <p className="text-[10px] text-white/40 font-black uppercase mb-1">Costo (lo que pagas)</p>
+                  <Input
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    value={newProductForRow.cost}
+                    onChange={(e) => setNewProductForRow((d) => ({ ...d, cost: Number(e.target.value || 0) }))}
+                    className="bg-white/[0.04] border-white/10 text-white text-sm"
+                  />
+                </div>
+                <div>
+                  <p className="text-[10px] text-emerald-400 font-black uppercase mb-1">Precio venta *</p>
+                  <Input
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    placeholder="$0.00"
+                    value={newProductForRow.price}
+                    onChange={(e) => setNewProductForRow((d) => ({ ...d, price: e.target.value }))}
+                    className="bg-emerald-500/[0.05] border-emerald-500/30 text-white text-sm font-black"
+                  />
+                </div>
+              </div>
+              {Number(newProductForRow.cost) > 0 && Number(newProductForRow.price) > 0 && (
+                <p className="text-[11px] text-white/50">
+                  Margen: <span className="font-black text-emerald-300">
+                    {(((Number(newProductForRow.price) - Number(newProductForRow.cost)) / Number(newProductForRow.cost)) * 100).toFixed(0)}%
+                  </span>
+                  {" · "}
+                  Ganancia por unidad: <span className="font-black text-emerald-300">
+                    ${(Number(newProductForRow.price) - Number(newProductForRow.cost)).toFixed(2)}
+                  </span>
+                </p>
+              )}
+              <div className="grid grid-cols-2 gap-2">
+                <div>
+                  <p className="text-[10px] text-white/40 font-black uppercase mb-1">Categoría</p>
+                  <select
+                    value={newProductForRow.category}
+                    onChange={(e) => setNewProductForRow((d) => ({ ...d, category: e.target.value }))}
+                    className="w-full bg-zinc-900 border border-white/10 rounded-lg px-2 py-2 text-xs text-white"
+                  >
+                    <option value="screen">Pantalla</option>
+                    <option value="battery">Batería</option>
+                    <option value="charger">Cargador</option>
+                    <option value="cable">Cable</option>
+                    <option value="case">Case / Funda</option>
+                    <option value="diagnostic">Diagnóstico</option>
+                    <option value="other">Otro</option>
+                  </select>
+                </div>
+                <div>
+                  <p className="text-[10px] text-white/40 font-black uppercase mb-1">Tipo</p>
+                  <select
+                    value={newProductForRow.tipo_principal}
+                    onChange={(e) => setNewProductForRow((d) => ({ ...d, tipo_principal: e.target.value }))}
+                    className="w-full bg-zinc-900 border border-white/10 rounded-lg px-2 py-2 text-xs text-white"
+                  >
+                    <option value="dispositivos">Dispositivos / Piezas</option>
+                    <option value="accesorios">Accesorios</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+          )}
+          <DialogFooter className="gap-2">
+            <button
+              onClick={() => setNewProductForRow(null)}
+              className="px-4 py-2 rounded-xl bg-white/[0.04] border border-white/10 text-white/60 text-xs font-bold hover:text-white"
+            >
+              Cancelar
+            </button>
+            <button
+              onClick={confirmCreateProduct}
+              disabled={creatingProductIdx !== null || !newProductForRow?.price}
+              className="flex items-center gap-2 px-4 py-2 rounded-xl bg-emerald-500/20 border border-emerald-500/30 text-emerald-200 text-xs font-black hover:bg-emerald-500/30 disabled:opacity-40"
+            >
+              {creatingProductIdx !== null ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Plus className="w-3.5 h-3.5" />}
+              Crear producto
+            </button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </Dialog>
   );
 }
