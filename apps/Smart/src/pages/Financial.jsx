@@ -1401,6 +1401,20 @@ Maximo 150 palabras. Texto plano, sin markdown.`
             cancelled: "bg-red-500/15 text-red-300 border-red-500/20",
           })[s] || "bg-white/[0.06] text-white/60 border-white/10";
 
+          // Helpers para fecha esperada
+          const todayStr = new Date().toISOString().slice(0, 10);
+          const isOverdue = (po) => {
+            if (!po.expected_date) return false;
+            if (["received", "cancelled"].includes(po.status)) return false;
+            return String(po.expected_date).slice(0, 10) < todayStr;
+          };
+          const daysUntilExpected = (po) => {
+            if (!po.expected_date) return null;
+            const exp = new Date(po.expected_date);
+            const now = new Date();
+            return Math.ceil((exp - now) / (1000 * 60 * 60 * 24));
+          };
+
           const q = poSearch.trim().toLowerCase();
           const filteredPOs = (purchaseOrders || []).filter((po) => {
             if (poStatusFilter !== "all" && (po.status || "draft") !== poStatusFilter) return false;
