@@ -1166,7 +1166,7 @@ export default function SettingsPage() {
                     </div>
                   </div>
                   <div className="space-y-1.5">
-                    <label className="text-white/60 text-xs font-semibold ml-1">✉️ Email del Negocio</label>
+                    <label className="text-white/60 text-xs font-semibold ml-1 flex items-center gap-1.5"><Mail className="w-3.5 h-3.5" /> Email del Negocio</label>
                     <Input value={appConfig.business_email} onChange={(e) => setAppConfig({ ...appConfig, business_email: e.target.value })} placeholder="info@smartfix.com" className="bg-white/5 border-white/10 text-white rounded-xl h-11 focus:bg-white/10" />
                   </div>
                   <div className="space-y-1.5">
