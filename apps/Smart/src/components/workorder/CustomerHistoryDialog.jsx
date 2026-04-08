@@ -176,6 +176,7 @@ export default function CustomerHistoryDialog({ open, onClose, customerId, custo
                         <Button
                           variant="ghost"
                           size="icon"
+                          aria-label={`Abrir orden ${order.order_number || order.id}`}
                           className="opacity-0 group-hover:opacity-100 transition-opacity"
                           onClick={(e) => {
                             e.stopPropagation();
