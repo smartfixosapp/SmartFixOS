@@ -1223,6 +1223,14 @@ export default function ImportPODialog({ open, onClose, suppliers = [], products
                 {aiMatching ? "Matcheando…" : "Mejorar matches con Jeani"}
               </button>
               <button
+                onClick={saveCurrentAsTemplate}
+                disabled={savingTemplate || reviewRows.length === 0}
+                className="px-2 py-1 rounded-md bg-white/[0.04] text-white/50 border border-white/[0.08] font-black hover:text-white hover:bg-white/[0.08] disabled:opacity-40 flex items-center gap-1"
+                title="Guardar este combo como template para reutilizar"
+              >
+                💾 Guardar template
+              </button>
+              <button
                 onClick={() => { setExtracted(null); setReviewRows([]); }}
                 className="ml-auto text-[11px] text-white/40 hover:text-white/70 flex items-center gap-1"
               >
