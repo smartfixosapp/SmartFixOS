@@ -82,10 +82,11 @@ export default function SettingsNav() {
       style={{ paddingTop: "10px" }}
     >
       <div className="flex items-center gap-3 mb-8">
-        <Button 
-          variant="ghost" 
-          size="icon" 
+        <Button
+          variant="ghost"
+          size="icon"
           onClick={() => navigate("/SettingsMobile")}
+          aria-label="Volver a configuración"
           className="text-white/70 hover:text-white hover:bg-white/10"
         >
           <ChevronLeft className="w-6 h-6" />
