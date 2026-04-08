@@ -782,7 +782,7 @@ export default function PurchaseOrderDetailDialog({
               </button>
             </div>
           ) : (
-            <div className="flex gap-2 w-full">
+            <div className="flex gap-2 w-full flex-wrap">
               <button
                 onClick={async () => {
                   const ok = window.confirm(
@@ -798,11 +798,138 @@ export default function PurchaseOrderDetailDialog({
                     toast.error("No se pudo borrar: " + (err?.message || ""));
                   }
                 }}
-                className="px-4 py-2.5 rounded-xl bg-red-500/10 border border-red-500/20 text-red-300 text-sm font-bold hover:bg-red-500/20 transition-all flex items-center justify-center gap-2"
+                className="px-3 py-2.5 rounded-xl bg-red-500/10 border border-red-500/20 text-red-300 text-xs font-bold hover:bg-red-500/20 transition-all flex items-center justify-center gap-1.5"
                 title="Borrar orden de compra"
               >
-                <X className="w-4 h-4" />
+                <X className="w-3.5 h-3.5" />
                 Borrar
+              </button>
+              <button
+                onClick={async () => {
+                  try {
+                    const now = new Date();
+                    const datePart = now.toISOString().slice(2, 10).replace(/-/g, "");
+                    const rand = Math.floor(Math.random() * 900 + 100);
+                    const newPoNumber = `PO-${datePart}-${rand}`;
+                    const cleanNotes = (form.notes || "")
+                      .replace(/\[PAID:[^\]]+\]/g, "")
+                      .replace(/\[STOCKED\]/g, "")
+                      .replace(/📎\s*Archivo importado:\s*\S+/g, "")
+                      .trim();
+                    const newLineItems = form.items.map((it, i) => ({
+                      id: `li-${Date.now()}-${i}`,
+                      inventory_item_id: it.product_id || undefined,
+                      product_name: it.product_name || "",
+                      quantity: Number(it.quantity || 1),
+                      unit_cost: Number(it.unit_cost || 0),
+                      line_total: Number(it.quantity || 1) * Number(it.unit_cost || 0),
+                    }));
+                    const subtotal = newLineItems.reduce((s, it) => s + (it.line_total || 0), 0);
+                    await base44.entities.PurchaseOrder.create({
+                      po_number: newPoNumber,
+                      supplier_id: form.supplier_id || "",
+                      supplier_name: form.supplier_name || "",
+                      status: "draft",
+                      order_date: now.toISOString().slice(0, 10),
+                      line_items: newLineItems,
+                      subtotal,
+                      shipping_cost: Number(form.shipping_cost || 0),
+                      total_amount: subtotal + Number(form.shipping_cost || 0),
+                      notes: `Duplicada de ${form.po_number}${cleanNotes ? "\n" + cleanNotes : ""}`,
+                    });
+                    toast.success(`Duplicada como ${newPoNumber}`);
+                    onClose?.(true);
+                  } catch (err) {
+                    console.error("Duplicate PO error:", err);
+                    toast.error("No se pudo duplicar: " + (err?.message || ""));
+                  }
+                }}
+                className="px-3 py-2.5 rounded-xl bg-violet-500/10 border border-violet-500/20 text-violet-300 text-xs font-bold hover:bg-violet-500/20 transition-all flex items-center justify-center gap-1.5"
+                title="Crear una copia como borrador nuevo"
+              >
+                📋 Duplicar
+              </button>
+              <button
+                onClick={() => {
+                  const total = form.items.reduce((s, it) => s + (Number(it.unit_cost || 0) * Number(it.quantity || 0)), 0) + Number(form.shipping_cost || 0);
+                  const win = window.open("", "_blank");
+                  if (!win) { toast.error("Tu navegador bloqueó la ventana de impresión"); return; }
+                  const cleanNotes = (form.notes || "")
+                    .replace(/\[PAID:[^\]]+\]/g, "")
+                    .replace(/\[STOCKED\]/g, "")
+                    .replace(/📎\s*Archivo importado:\s*\S+/g, "")
+                    .trim();
+                  win.document.write(`
+<!DOCTYPE html>
+<html><head><title>OC ${form.po_number}</title>
+<style>
+  body { font-family: -apple-system, BlinkMacSystemFont, sans-serif; max-width: 800px; margin: 40px auto; padding: 20px; color: #222; }
+  h1 { border-bottom: 3px solid #222; padding-bottom: 10px; }
+  .header { display: flex; justify-content: space-between; margin: 20px 0; }
+  .header div { flex: 1; }
+  .label { color: #666; font-size: 11px; text-transform: uppercase; font-weight: bold; }
+  .value { font-size: 16px; margin-top: 2px; }
+  table { width: 100%; border-collapse: collapse; margin: 20px 0; }
+  th, td { padding: 10px; text-align: left; border-bottom: 1px solid #ddd; }
+  th { background: #f5f5f5; font-size: 12px; text-transform: uppercase; color: #666; }
+  .total-row td { font-weight: bold; border-top: 2px solid #222; border-bottom: none; }
+  .right { text-align: right; }
+  .notes { margin-top: 30px; padding: 15px; background: #f9f9f9; border-left: 4px solid #0891b2; font-size: 13px; }
+  @media print { body { margin: 20px; } }
+</style></head>
+<body>
+  <h1>Orden de Compra — ${form.po_number}</h1>
+  <div class="header">
+    <div>
+      <div class="label">Proveedor</div>
+      <div class="value">${(form.supplier_name || "").replace(/</g, "&lt;")}</div>
+    </div>
+    <div>
+      <div class="label">Estado</div>
+      <div class="value">${(statusConfig[form.status] || statusConfig.draft).label}</div>
+    </div>
+    <div>
+      <div class="label">Fecha orden</div>
+      <div class="value">${form.order_date || "—"}</div>
+    </div>
+    <div>
+      <div class="label">Fecha esperada</div>
+      <div class="value">${form.expected_date || "—"}</div>
+    </div>
+  </div>
+  <table>
+    <thead>
+      <tr><th>#</th><th>Producto</th><th class="right">Cant</th><th class="right">Costo u.</th><th class="right">Total</th></tr>
+    </thead>
+    <tbody>
+      ${form.items.map((it, i) => `
+        <tr>
+          <td>${i + 1}</td>
+          <td>${String(it.product_name || "").replace(/</g, "&lt;")}</td>
+          <td class="right">${it.quantity || 0}</td>
+          <td class="right">$${Number(it.unit_cost || 0).toFixed(2)}</td>
+          <td class="right">$${(Number(it.unit_cost || 0) * Number(it.quantity || 0)).toFixed(2)}</td>
+        </tr>
+      `).join("")}
+      ${Number(form.shipping_cost || 0) > 0 ? `
+        <tr><td colspan="4" class="right">Envío</td><td class="right">$${Number(form.shipping_cost).toFixed(2)}</td></tr>
+      ` : ""}
+      <tr class="total-row">
+        <td colspan="4" class="right">TOTAL</td>
+        <td class="right">$${total.toFixed(2)}</td>
+      </tr>
+    </tbody>
+  </table>
+  ${cleanNotes ? `<div class="notes"><div class="label">Notas</div><div>${cleanNotes.replace(/</g, "&lt;").replace(/\n/g, "<br>")}</div></div>` : ""}
+  <script>window.addEventListener('load', () => { window.print(); });</script>
+</body></html>
+                  `);
+                  win.document.close();
+                }}
+                className="px-3 py-2.5 rounded-xl bg-cyan-500/10 border border-cyan-500/20 text-cyan-300 text-xs font-bold hover:bg-cyan-500/20 transition-all flex items-center justify-center gap-1.5"
+                title="Imprimir orden de compra"
+              >
+                🖨️ Imprimir
               </button>
               <button
                 onClick={() => onClose?.(false)}
