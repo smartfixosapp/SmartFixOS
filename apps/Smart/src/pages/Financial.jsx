@@ -1168,6 +1168,47 @@ Maximo 150 palabras. Texto plano, sin markdown.`
             )}
             <ErrorBoundary><AlertasWidget /></ErrorBoundary>
 
+            {/* Card: Compras pendientes — visible en cualquier tab */}
+            {(() => {
+              const pending = (purchaseOrders || []).filter((po) => !["received", "cancelled"].includes(po.status || "draft"));
+              if (pending.length === 0) return null;
+              const total = pending.reduce((s, po) => s + Number(po.total_amount || 0), 0);
+              const overdue = pending.filter((po) => {
+                if (!po.expected_date) return false;
+                return String(po.expected_date).slice(0, 10) < new Date().toISOString().slice(0, 10);
+              });
+              return (
+                <button
+                  onClick={() => setActiveTab("compras")}
+                  className={`w-full text-left p-3 rounded-2xl border transition-all hover:scale-[1.01] active:scale-[0.99] ${
+                    overdue.length > 0
+                      ? "bg-red-500/[0.06] border-red-500/25 hover:bg-red-500/10"
+                      : "bg-amber-500/[0.05] border-amber-500/20 hover:bg-amber-500/10"
+                  }`}
+                >
+                  <div className="flex items-center gap-3">
+                    <div className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 ${
+                      overdue.length > 0 ? "bg-red-500/15 text-red-400" : "bg-amber-500/15 text-amber-400"
+                    }`}>
+                      <ShoppingCart className="w-4 h-4" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className={`text-xs font-black ${overdue.length > 0 ? "text-red-300" : "text-amber-300"}`}>
+                        Compras pendientes
+                      </p>
+                      <p className="text-[10px] text-white/50 truncate">
+                        {pending.length} orden{pending.length === 1 ? "" : "es"} por recibir
+                        {overdue.length > 0 && ` · ⚠ ${overdue.length} vencida${overdue.length === 1 ? "" : "s"}`}
+                      </p>
+                    </div>
+                    <p className={`text-lg font-black tabular-nums shrink-0 ${overdue.length > 0 ? "text-red-300" : "text-amber-300"}`}>
+                      ${total.toFixed(2)}
+                    </p>
+                  </div>
+                </button>
+              );
+            })()}
+
             {/* ── Navegación unificada — todos los botones ── */}
             <div className="flex flex-col gap-2">
               {(() => {
