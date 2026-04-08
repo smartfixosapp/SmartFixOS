@@ -308,13 +308,14 @@ export default function CreateCustomerDialog({ open, onClose, onSuccess, custome
                       <Button
                         type="button"
                         onClick={() => {
-                          const updated = formData.additional_contact_info.filter((c, i) => 
+                          const updated = formData.additional_contact_info.filter((c, i) =>
                             !(c.type === 'email' && formData.additional_contact_info.filter(x => x.type === 'email').indexOf(c) === idx)
                           );
                           setFormData({...formData, additional_contact_info: updated});
                         }}
                         size="icon"
                         variant="ghost"
+                        aria-label="Eliminar email adicional"
                         className="h-10 w-10 text-red-500 hover:bg-red-500/10"
                       >
                         <X className="w-4 h-4" />
