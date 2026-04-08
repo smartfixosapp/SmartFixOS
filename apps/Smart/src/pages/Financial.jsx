@@ -186,6 +186,18 @@ export default function Financial() {
   const [showReorderModal, setShowReorderModal] = useState(false);
   const [creatingReorderPO, setCreatingReorderPO] = useState(null);
 
+  // Permisos: solo admin/owner pueden borrar OCs.
+  // Cualquier usuario puede crear/editar/marcar recibidas.
+  const canDeletePO = useMemo(() => {
+    try {
+      const session = JSON.parse(localStorage.getItem("employee_session") || "{}");
+      const role = String(session?.role || "user").toLowerCase();
+      return ["admin", "owner", "manager", "superadmin"].includes(role);
+    } catch {
+      return false;
+    }
+  }, []);
+
   const isFetching = useRef(false);
   const recentFixedExpenseMutationAt = useRef(0);
 
