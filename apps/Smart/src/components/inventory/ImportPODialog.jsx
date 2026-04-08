@@ -291,6 +291,15 @@ export default function ImportPODialog({ open, onClose, suppliers = [], products
   // Multi-file queue
   const [fileQueue, setFileQueue] = useState([]); // pending files
   const [batchProgress, setBatchProgress] = useState(null); // { current, total }
+  // Templates
+  const [templates, setTemplates] = useState([]);
+  const [showTemplates, setShowTemplates] = useState(false);
+  const [savingTemplate, setSavingTemplate] = useState(false);
+  useEffect(() => {
+    try {
+      setTemplates(JSON.parse(localStorage.getItem("po_templates") || "[]"));
+    } catch { setTemplates([]); }
+  }, [open]);
 
   useEffect(() => {
     if (!open) {
