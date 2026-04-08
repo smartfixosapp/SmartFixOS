@@ -632,6 +632,17 @@ export default function ImportPODialog({ open, onClose, suppliers = [], products
       };
       await base44.entities.PurchaseOrder.create(payload);
 
+      // Aprender el método de pago del proveedor para la próxima vez
+      if (paidAtOrder && supplier?.id && supplier.default_payment_method !== paymentMethod) {
+        try {
+          await base44.entities.Supplier.update(supplier.id, {
+            default_payment_method: paymentMethod,
+          });
+        } catch (supErr) {
+          console.warn("No se pudo guardar el método de pago del proveedor:", supErr);
+        }
+      }
+
       // Si la usuario marcó "Ya pagué" → registrar el gasto en Finanzas
       if (paidAtOrder && totalAmount > 0) {
         try {
