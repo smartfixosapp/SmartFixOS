@@ -278,6 +278,11 @@ export default function ImportPODialog({ open, onClose, suppliers = [], products
   const [paymentMethod, setPaymentMethod] = useState("paypal");
   // Sub-modal: crear producto nuevo (pide precio antes)
   const [newProductForRow, setNewProductForRow] = useState(null); // { idx, name, cost, price, category }
+  // Bulk create
+  const [bulkMarginPct, setBulkMarginPct] = useState(50);
+  const [bulkCreating, setBulkCreating] = useState(false);
+  // Historial de precios — Map<product_id, [{date, cost}]>
+  const [priceHistory, setPriceHistory] = useState({});
   // Catálogo "vivo" — incluye los productos recién creados desde este diálogo
   const [liveProducts, setLiveProducts] = useState(products);
   useEffect(() => { setLiveProducts(products); }, [products]);
