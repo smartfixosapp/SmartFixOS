@@ -632,7 +632,46 @@ export default function PurchaseOrderDetailDialog({
               </div>
             </div>
 
-            {/* Notes */}
+            {/* Archivo importado — extraer URL del marcador en notes */}
+            {(() => {
+              const match = /📎\s*Archivo importado:\s*(\S+)/.exec(form.notes || "");
+              if (!match) return null;
+              const url = match[1];
+              const isImage = /\.(jpg|jpeg|png|webp|gif|heic)(\?|$)/i.test(url);
+              return (
+                <div className="bg-[#111114]/80 border border-white/[0.06] rounded-[24px] p-5">
+                  <p className="text-[10px] font-black text-white/30 uppercase tracking-widest mb-3">
+                    📎 Archivo original
+                  </p>
+                  {isImage ? (
+                    <a
+                      href={url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="block rounded-xl overflow-hidden border border-white/10 hover:border-cyan-500/40 transition-colors"
+                    >
+                      <img
+                        src={url}
+                        alt="OC original"
+                        className="w-full max-h-80 object-contain bg-black/40"
+                      />
+                    </a>
+                  ) : (
+                    <a
+                      href={url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center gap-2 px-4 py-3 rounded-xl bg-cyan-500/10 border border-cyan-500/20 text-cyan-300 text-sm font-black hover:bg-cyan-500/20"
+                    >
+                      <FileText className="w-4 h-4" />
+                      Abrir archivo original
+                    </a>
+                  )}
+                </div>
+              );
+            })()}
+
+            {/* Notes — limpiamos los marcadores internos para la vista */}
             <div className="bg-[#111114]/80 border border-white/[0.06] rounded-[24px] p-5">
               <p className="text-[10px] font-black text-white/30 uppercase tracking-widest mb-3">Notas</p>
               {editing ? (
@@ -642,9 +681,14 @@ export default function PurchaseOrderDetailDialog({
                   rows={3}
                   className="w-full bg-[#111114]/60 border border-white/[0.08] rounded-xl px-4 py-3 text-white text-sm placeholder:text-white/20 focus:outline-none focus:border-teal-500/50 resize-none"
                 />
-              ) : (
-                <p className="text-white/60 text-sm">{form.notes || "Sin notas"}</p>
-              )}
+              ) : (() => {
+                const cleanNotes = (form.notes || "")
+                  .replace(/\[PAID:[^\]]+\]/g, "")
+                  .replace(/\[STOCKED\]/g, "")
+                  .replace(/📎\s*Archivo importado:\s*\S+/g, "")
+                  .trim();
+                return <p className="text-white/60 text-sm whitespace-pre-line">{cleanNotes || "Sin notas"}</p>;
+              })()}
             </div>
           </div>
         )}
