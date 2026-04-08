@@ -136,12 +136,13 @@ export default function PartArrivedStage({ order, onUpdate }) {
                 <Truck className="w-4 h-4 text-gray-400" />
                 Detalles del Pedido
               </h3>
-              <Button 
-                variant="ghost" 
-                size="icon" 
+              <Button
+                variant="ghost"
+                size="icon"
                 className="h-8 w-8 text-gray-400 hover:text-white hover:bg-white/10 rounded-lg transition-all"
                 onClick={() => setActiveModal('notes')}
                 title="Añadir/Editar Info (Links)"
+                aria-label="Añadir o editar links del pedido"
               >
                 <Plus className="w-4 h-4" />
               </Button>
