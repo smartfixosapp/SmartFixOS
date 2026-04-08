@@ -471,6 +471,50 @@ export default function ImportPODialog({ open, onClose, suppliers = [], products
     }
   };
 
+  // Pide al LLM que matchee los items extraídos contra el catálogo
+  // usando comprensión semántica (entiende jerga, abreviaturas, etc.).
+  const runAIMatching = async () => {
+    if (reviewRows.length === 0) return;
+    if (liveProducts.length === 0) {
+      toast.error("No hay productos en el catálogo para matchear");
+      return;
+    }
+    setAiMatching(true);
+    try {
+      const rawItems = reviewRows.map((r) => ({ raw_name: r.raw_name }));
+      const matches = await matchItemsWithAI(rawItems, liveProducts);
+      if (matches.size === 0) {
+        toast.info("Jeani no encontró matches nuevos seguros");
+        return;
+      }
+      let updated = 0;
+      setReviewRows((rows) =>
+        rows.map((r) => {
+          // No sobreescribimos matches manuales (los que ya tienen score >= 1)
+          if (r.product_id && r.matchScore >= 1) return r;
+          const m = matches.get(r.raw_name);
+          if (!m) return r;
+          const p = liveProducts.find((x) => x.id === m.product_id);
+          if (!p) return r;
+          updated++;
+          return {
+            ...r,
+            product_id: p.id,
+            product_name: p.name,
+            unit_cost: r.unit_cost || (p.cost != null ? Number(p.cost) : 0),
+            matchScore: m.confidence || 0.9,
+          };
+        }),
+      );
+      toast.success(`Jeani matcheó ${updated} item${updated === 1 ? "" : "s"} más`);
+    } catch (err) {
+      console.error("AI matching error:", err);
+      toast.error(err?.message || "Falló el matching con IA");
+    } finally {
+      setAiMatching(false);
+    }
+  };
+
   const subtotal = useMemo(
     () => reviewRows.reduce((s, r) => s + Number(r.quantity || 0) * Number(r.unit_cost || 0), 0),
     [reviewRows],
