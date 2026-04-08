@@ -73,7 +73,7 @@ export default function ModernTopNav() {
 
   return (
     <div className="px-4 py-3 sm:py-4">
-      <div className="relative bg-[#0D0D0F]/65 backdrop-blur-[32px] border border-white/10 rounded-full h-15 shadow-[0_22px_70px_rgba(0,0,0,0.6)] flex items-center justify-between px-2 sm:px-4 max-w-sm sm:max-w-md lg:max-w-2xl mx-auto transition-all duration-500 hover:border-white/20 hover:bg-[#0D0D0F]/80">
+      <div className="liquid-glass-strong relative rounded-full h-15 flex items-center justify-between px-2 sm:px-4 max-w-sm sm:max-w-md lg:max-w-2xl mx-auto transition-all duration-500">
         
         {/* Glass Glow Effect */}
         <div className="absolute inset-0 rounded-full bg-gradient-to-b from-white/[0.08] to-transparent pointer-events-none" />
