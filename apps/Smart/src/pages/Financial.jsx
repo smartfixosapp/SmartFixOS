@@ -2412,6 +2412,30 @@ Maximo 150 palabras. Texto plano, sin markdown.`
           const m = Number(p.min_stock || 0);
           return m > 0 && s < m && p.active !== false;
         });
+
+        // Calcula velocidad de venta últimos 30 días por producto desde sales
+        const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
+        const salesVelocity = new Map();
+        for (const sale of (sales || [])) {
+          const dt = new Date(sale.created_date || sale.created_at || 0);
+          if (dt < thirtyDaysAgo) continue;
+          for (const item of (sale.items || [])) {
+            const pid = item.product_id || item.id;
+            if (!pid) continue;
+            const qty = Number(item.quantity || 0);
+            salesVelocity.set(pid, (salesVelocity.get(pid) || 0) + qty);
+          }
+        }
+        // Sugerencia inteligente: pedir 2x lo vendido en 30 días, mínimo lo que falta para min_stock
+        const smartSuggestQty = (p) => {
+          const sold30 = salesVelocity.get(p.id) || 0;
+          const min = Number(p.min_stock || 5);
+          const stock = Number(p.stock || 0);
+          // Stock objetivo = max(2x velocidad, min_stock × 2)
+          const target = Math.max(sold30 * 2, min * 2);
+          return Math.max(1, target - stock);
+        };
+
         // Agrupar por supplier_id (los sin proveedor van a "sin proveedor")
         const bySupplier = new Map();
         for (const p of lowStock) {
