@@ -857,6 +857,18 @@ export default function ImportPODialog({ open, onClose, suppliers = [], products
       const totalAmount = subtotal + Number(extracted?.tax || 0) + Number(extracted?.shipping || 0);
       const poNumber = genPoNumber();
 
+      // Approval workflow: si user no es admin Y total > $500, requiere aprobación
+      const APPROVAL_THRESHOLD = 500;
+      let userRole = "user";
+      let userName = "Sistema";
+      try {
+        const session = JSON.parse(localStorage.getItem("employee_session") || "{}");
+        userRole = String(session?.role || "user").toLowerCase();
+        userName = session?.name || "Sistema";
+      } catch { /* */ }
+      const isAdmin = ["admin", "owner", "manager", "superadmin"].includes(userRole);
+      const requiresApproval = !isAdmin && totalAmount > APPROVAL_THRESHOLD;
+
       // El schema actual de purchase_order no tiene columna attachment_url,
       // así que guardamos el URL del archivo dentro de notes para no perderlo.
       // También guardamos un marcador "PAID:method" para que el dialog de detalle
