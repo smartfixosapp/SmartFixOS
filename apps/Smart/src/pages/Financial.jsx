@@ -1795,12 +1795,17 @@ Maximo 150 palabras. Texto plano, sin markdown.`
                   {canDeletePO && (
                     <button
                       onClick={async () => {
-                        if (!window.confirm(`¿Borrar ${selectedPOIds.size} orden${selectedPOIds.size === 1 ? "" : "es"} de compra? Esta acción no se puede deshacer.`)) return;
+                        if (!window.confirm(`¿Borrar ${selectedPOIds.size} orden${selectedPOIds.size === 1 ? "" : "es"} de compra? Esta acción no se puede deshacer.\n\nSi alguna tiene items enlazados a órdenes de trabajo, también se removerán de esas.`)) return;
                         setBulkActionLoading(true);
                         let ok = 0;
                         for (const id of selectedPOIds) {
                           try {
-                            await dataClient.entities.PurchaseOrder.delete(id);
+                            const po = purchaseOrders.find((x) => x.id === id);
+                            if (po) {
+                              await deletePOWithWOCleanup(po);
+                            } else {
+                              await dataClient.entities.PurchaseOrder.delete(id);
+                            }
                             ok++;
                           } catch (err) {
                             console.warn("Bulk delete failed for", id, err);
