@@ -475,6 +475,7 @@ export default function SuppliersDialog({ open, onClose }) {
                     size="icon"
                     variant="outline"
                     onClick={() => removeExternalLink(idx)}
+                    aria-label="Eliminar enlace externo"
                     className="border-cyan-600/30 text-cyan-400 hover:bg-cyan-600/20 theme-light:border-cyan-500 theme-light:text-cyan-600 theme-light:hover:bg-cyan-50">
 
                         <Trash2 className="w-4 h-4" />
