@@ -441,6 +441,7 @@ export default function UnlocksDialog({ open, onClose, onSuccess, initialTab = "
                       }}
                       size="icon"
                       variant="ghost"
+                      aria-label="Cerrar selección de cliente"
                       className="text-white/40 hover:text-white rounded-full hover:bg-white/10"
                     >
                       <X className="w-5 h-5" />
