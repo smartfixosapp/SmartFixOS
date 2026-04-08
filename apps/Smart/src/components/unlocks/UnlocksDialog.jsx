@@ -652,6 +652,7 @@ export default function UnlocksDialog({ open, onClose, onSuccess, initialTab = "
                               setOrderToDelete(order);
                               setShowPinPrompt(true);
                             }}
+                            aria-label="Eliminar desbloqueo"
                             className="h-10 w-10 text-white/50 hover:text-red-400 hover:bg-red-500/10 rounded-xl"
                           >
                             <Trash2 className="w-5 h-5" />
