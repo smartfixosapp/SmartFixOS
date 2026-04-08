@@ -220,6 +220,7 @@ function LayoutWrapper({ children, currentPageName }) {
 function PagesContent() {
     const location = useLocation();
     const currentPage = _getCurrentPage(location.pathname);
+    usePreloadMainRoutes();
 
     return (
         <LayoutWrapper currentPageName={currentPage}>
