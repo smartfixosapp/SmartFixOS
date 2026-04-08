@@ -1241,6 +1241,7 @@ export default function EmailTemplatesTab() {
                     }}
                     variant="ghost"
                     size="icon"
+                    aria-label="Eliminar paso"
                     className="text-red-400 hover:bg-red-500/10">
 
                         <X className="w-4 h-4" />
