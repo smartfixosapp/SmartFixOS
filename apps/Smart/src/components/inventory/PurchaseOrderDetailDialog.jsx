@@ -604,6 +604,20 @@ export default function PurchaseOrderDetailDialog({
                     {poData.expected_date && ` · Esperada el ${new Date(poData.expected_date).toLocaleDateString("es-ES", { day: "2-digit", month: "short" })}`}
                   </p>
                 )}
+                {/* Audit log */}
+                {(poData?.created_by_name || poData?.received_by_name || poData?.created_date) && (
+                  <div className="mt-3 pt-3 border-t border-white/[0.05] flex flex-wrap gap-3 justify-center text-[10px] text-white/30">
+                    {poData?.created_by_name && (
+                      <span>📝 Creada por <span className="text-white/60 font-bold">{poData.created_by_name}</span></span>
+                    )}
+                    {poData?.created_date && (
+                      <span>el {new Date(poData.created_date).toLocaleDateString("es-ES", { day: "2-digit", month: "short", year: "2-digit" })}</span>
+                    )}
+                    {poData?.received_by_name && (
+                      <span>· ✅ Recibida por <span className="text-emerald-400 font-bold">{poData.received_by_name}</span></span>
+                    )}
+                  </div>
+                )}
               </div>
             )}
 
