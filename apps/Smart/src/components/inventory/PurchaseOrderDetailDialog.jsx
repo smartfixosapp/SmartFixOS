@@ -570,12 +570,35 @@ export default function PurchaseOrderDetailDialog({
               </button>
             </div>
           ) : (
-            <button
-              onClick={() => onClose?.(false)}
-              className="w-full py-2.5 rounded-xl bg-white/5 border border-white/10 text-white/50 text-sm font-bold hover:bg-white/10 transition-all"
-            >
-              Cerrar
-            </button>
+            <div className="flex gap-2 w-full">
+              <button
+                onClick={async () => {
+                  const ok = window.confirm(
+                    `¿Borrar la orden de compra ${form.po_number || ""}?\n\nNo se borran los gastos ya registrados en Finanzas (esos hay que borrarlos por separado si existen).`,
+                  );
+                  if (!ok) return;
+                  try {
+                    await base44.entities.PurchaseOrder.delete(purchaseOrder.id);
+                    toast.success("Orden de compra borrada");
+                    onClose?.(true);
+                  } catch (err) {
+                    console.error("Delete PO error:", err);
+                    toast.error("No se pudo borrar: " + (err?.message || ""));
+                  }
+                }}
+                className="px-4 py-2.5 rounded-xl bg-red-500/10 border border-red-500/20 text-red-300 text-sm font-bold hover:bg-red-500/20 transition-all flex items-center justify-center gap-2"
+                title="Borrar orden de compra"
+              >
+                <X className="w-4 h-4" />
+                Borrar
+              </button>
+              <button
+                onClick={() => onClose?.(false)}
+                className="flex-1 py-2.5 rounded-xl bg-white/5 border border-white/10 text-white/50 text-sm font-bold hover:bg-white/10 transition-all"
+              >
+                Cerrar
+              </button>
+            </div>
           )}
         </DialogFooter>
 
