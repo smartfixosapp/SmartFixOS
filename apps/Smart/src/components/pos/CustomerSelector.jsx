@@ -199,6 +199,7 @@ export default function CustomerSelector({ open, onClose, selectedCustomer, onSe
                       className="h-10 w-10 border-white/15 flex-shrink-0"
                       onClick={() => loadCustomerHistory(customer.id)}
                       title="Ver historial"
+                      aria-label={`Ver historial de ${customer.name}`}
                     >
                       <History className="w-4 h-4" />
                     </Button>
