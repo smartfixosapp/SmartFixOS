@@ -1479,6 +1479,7 @@ export default function QuickOrderModal({ open, onClose, onSuccess }) {
                 size="icon"
                 variant="outline"
                 onClick={() => setShowServiceSelector(true)}
+                aria-label="Agregar pieza o servicio"
                 className="h-8 w-8 rounded-full border-purple-500/50 text-purple-400 hover:bg-purple-500/20 hover:text-white transition-all shadow-[0_0_10px_rgba(168,85,247,0.2)]">
 
                 <Plus className="w-5 h-5" />
