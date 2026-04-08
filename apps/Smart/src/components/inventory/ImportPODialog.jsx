@@ -1083,6 +1083,44 @@ export default function ImportPODialog({ open, onClose, suppliers = [], products
               📷 Tomar foto con la cámara
             </label>
 
+            {/* Templates */}
+            {templates.length > 0 && (
+              <div className="border-t border-white/[0.06] pt-3">
+                <div className="flex items-center justify-between mb-2">
+                  <p className="text-[10px] text-white/40 font-black uppercase">📋 Templates guardados</p>
+                  <button
+                    onClick={() => setShowTemplates((v) => !v)}
+                    className="text-[10px] text-white/50 hover:text-white font-bold"
+                  >
+                    {showTemplates ? "Ocultar" : `Ver ${templates.length}`}
+                  </button>
+                </div>
+                {showTemplates && (
+                  <div className="space-y-1 max-h-40 overflow-y-auto">
+                    {templates.map((tpl) => (
+                      <div key={tpl.id} className="flex items-center gap-2 p-2 rounded-lg bg-white/[0.03] border border-white/[0.06]">
+                        <button
+                          onClick={() => loadTemplate(tpl)}
+                          className="flex-1 min-w-0 text-left"
+                        >
+                          <p className="text-xs text-white font-bold truncate">{tpl.name}</p>
+                          <p className="text-[10px] text-white/40 truncate">
+                            {tpl.supplier_name} · {tpl.items.length} items
+                          </p>
+                        </button>
+                        <button
+                          onClick={() => deleteTemplate(tpl.id)}
+                          className="w-7 h-7 rounded-lg bg-white/[0.04] hover:bg-red-500/20 text-white/30 hover:text-red-400 flex items-center justify-center"
+                        >
+                          <Trash2 className="w-3 h-3" />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+
             {isExcel && (
               <div className="flex items-center gap-2 p-3 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-300 text-xs">
                 <AlertCircle className="w-4 h-4 shrink-0" />
