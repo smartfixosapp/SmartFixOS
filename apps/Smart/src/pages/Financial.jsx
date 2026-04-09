@@ -1356,6 +1356,13 @@ Maximo 150 palabras. Texto plano, sin markdown.`
                     scheme: "slate",
                   },
                   {
+                    id: "diferidos",  tab: "diferidos",   filter: null,
+                    label: "Pagos diferidos",      sublabel: "Por salir del banco",
+                    value: unsettledTotal,         icon: Clock,
+                    active: activeTab === "diferidos",
+                    scheme: unsettledTotal > 0 ? "amber" : "slate",
+                  },
+                  {
                     id: "reportes",   tab: "reportes",    filter: null,
                     label: "Reportes",             sublabel: "Análisis y exportar datos",
                     value: null,                   icon: PieChart,
