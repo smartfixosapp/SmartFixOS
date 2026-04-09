@@ -1637,17 +1637,49 @@ export default function PurchaseOrderDetailDialog({
                   <p className="text-[10px] text-white/40 font-black uppercase mb-1">Pagué con</p>
                   <select
                     value={payMethod}
-                    onChange={(e) => setPayMethod(e.target.value)}
+                    onChange={(e) => {
+                      const m = e.target.value;
+                      setPayMethod(m);
+                      // Auto-sugerir fecha de débito si es diferido
+                      const deferredAlias = m === "paypal" ? "paypal_credit" : m;
+                      if (isDeferredMethod(deferredAlias)) {
+                        setPaySettlesOn(defaultSettlementDate(deferredAlias));
+                      } else {
+                        setPaySettlesOn("");
+                      }
+                    }}
                     className="w-full bg-zinc-900 border border-white/10 rounded-lg px-3 py-2 text-sm text-white font-bold"
                   >
-                    <option value="paypal">💳 PayPal</option>
-                    <option value="check">🧾 Cheque</option>
-                    <option value="card">💳 Tarjeta</option>
-                    <option value="cash">💵 Efectivo</option>
-                    <option value="transfer">🏦 Transferencia</option>
-                    <option value="other">Otro</option>
+                    <optgroup label="Sale del banco al instante">
+                      <option value="cash">💵 Efectivo</option>
+                      <option value="card">💳 Débito</option>
+                      <option value="transfer">🏦 Transferencia</option>
+                      <option value="ath_movil">📱 ATH Móvil</option>
+                    </optgroup>
+                    <optgroup label="⏳ Sale del banco después">
+                      <option value="credit_card">💳 Tarjeta de crédito</option>
+                      <option value="klarna">🛍️ Klarna</option>
+                      <option value="check">📄 Cheque</option>
+                      <option value="paypal_credit">🅿️ PayPal crédito</option>
+                    </optgroup>
                   </select>
                 </div>
+                {(isDeferredMethod(payMethod) || payMethod === "paypal") && (
+                  <div className="rounded-xl bg-amber-500/[0.05] border border-amber-500/20 p-3 space-y-1.5">
+                    <label className="text-[10px] font-black text-amber-300 uppercase tracking-widest flex items-center gap-1.5">
+                      📅 ¿Cuándo saldrá del banco?
+                    </label>
+                    <input
+                      type="date"
+                      value={paySettlesOn}
+                      onChange={(e) => setPaySettlesOn(e.target.value)}
+                      className="w-full bg-white/5 border border-amber-500/20 rounded-lg px-3 py-2 text-sm text-white font-bold focus:outline-none focus:border-amber-500/50"
+                    />
+                    <p className="text-[10px] text-amber-300/60 leading-tight">
+                      Este gasto irá a "Pagos diferidos" y no se descontará del efectivo hoy. Lo marcarás como pagado cuando veas el cargo en tu estado de cuenta.
+                    </p>
+                  </div>
+                )}
                 <p className="text-[10px] text-white/40">
                   Esto crea un gasto en Finanzas con el monto total y el método elegido. La OC quedará marcada como pagada.
                 </p>
