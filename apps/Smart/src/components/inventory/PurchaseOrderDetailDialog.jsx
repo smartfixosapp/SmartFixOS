@@ -64,7 +64,8 @@ export default function PurchaseOrderDetailDialog({
   const [processingReturn, setProcessingReturn] = useState(false);
   // Manual payment registration
   const [showPayDialog, setShowPayDialog] = useState(false);
-  const [payMethod, setPayMethod] = useState("paypal");
+  const [payMethod, setPayMethod] = useState("paypal_credit");
+  const [paySettlesOn, setPaySettlesOn] = useState("");
   const [processingPay, setProcessingPay] = useState(false);
 
   // Edición inline rápida del tracking (sin entrar al modo Editar completo)
