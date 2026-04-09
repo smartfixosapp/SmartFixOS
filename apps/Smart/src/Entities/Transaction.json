@@ -44,9 +44,23 @@
         "cash",
         "card",
         "transfer",
-        "ath_movil"
+        "ath_movil",
+        "credit_card",
+        "klarna",
+        "check",
+        "paypal_credit"
       ],
-      "description": "Payment method"
+      "description": "Payment method. Deferred methods (credit_card, klarna, check, paypal_credit) should set is_settled=false and settles_on=<expected debit date>."
+    },
+    "is_settled": {
+      "type": "boolean",
+      "default": true,
+      "description": "TRUE = money already left the bank. FALSE = deferred (will be debited on settles_on)."
+    },
+    "settles_on": {
+      "type": "string",
+      "format": "date",
+      "description": "Expected bank debit date for deferred payments (ISO YYYY-MM-DD)."
     },
     "recorded_by": {
       "type": "string",
