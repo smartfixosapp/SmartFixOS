@@ -1,4 +1,5 @@
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect, useMemo, memo } from "react";
+import { useVisibleInterval } from "@/hooks/useVisibleInterval";
 import { dataClient } from "@/components/api/dataClient";
 import {
   TrendingUp, TrendingDown, Clock, CheckCircle2, AlertTriangle,
