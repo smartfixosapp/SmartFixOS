@@ -308,7 +308,8 @@ export default function ImportPODialog({ open, onClose, suppliers = [], products
   const [aiMatching, setAiMatching] = useState(false);
   // Pago — para registrar el gasto en Finanzas al momento de importar
   const [paidAtOrder, setPaidAtOrder] = useState(true); // por defecto sí pagaste (PayPal/cheque)
-  const [paymentMethod, setPaymentMethod] = useState("paypal");
+  const [paymentMethod, setPaymentMethod] = useState("paypal_credit");
+  const [settlesOn, setSettlesOn] = useState("");
   // Sub-modal: crear producto nuevo (pide precio antes)
   const [newProductForRow, setNewProductForRow] = useState(null); // { idx, name, cost, price, category }
   // Bulk create
