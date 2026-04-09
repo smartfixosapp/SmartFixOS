@@ -244,6 +244,26 @@ export default function PurchaseOrderDetailDialog({
       const previousStatus = poData?.status;
       await base44.entities.PurchaseOrder.update(purchaseOrder.id, payload);
 
+      // ── Sincronizar categoría del producto si cambió en la OC ───────────────
+      // Esto corre siempre (no solo al recibir) para que los cambios de
+      // categoría se reflejen de inmediato en la gráfica de Stock por categoría.
+      try {
+        for (const it of form.items) {
+          if (!it.product_id) continue;
+          if (it.is_tool) continue; // las herramientas no tocan inventario
+          const newCat = it.category || "other";
+          const origCat = it._original_category || "";
+          if (newCat === origCat) continue;
+          try {
+            await base44.entities.Product.update(it.product_id, { category: newCat });
+          } catch (catErr) {
+            console.warn(`No se pudo actualizar categoría de ${it.product_id}:`, catErr);
+          }
+        }
+      } catch (catSyncErr) {
+        console.warn("Error sincronizando categorías:", catSyncErr);
+      }
+
       // ── Sincronizar cambios de work_order_id por item ──────────────────
       // Para cada item, si cambió el work_order_id:
       //  - Remover de la WO anterior (si tenía una)
