@@ -223,7 +223,13 @@ export default function OrdersPage() {
   const [selectedStatus, setSelectedStatus] = useState("active"); // Default to "active" (Todos/Activos)
   const [selectedOrder, setSelectedOrder] = useState(null);
   const [showQuickModal, setShowQuickModal] = useState(false);
-  const [viewMode, setViewMode] = useState("grid"); // grid o list
+  const [viewMode, setViewMode] = useState(() => {
+    try { return localStorage.getItem("smartfix_orders_view") || "grid"; }
+    catch { return "grid"; }
+  }); // grid | kanban
+  useEffect(() => {
+    try { localStorage.setItem("smartfix_orders_view", viewMode); } catch {}
+  }, [viewMode]);
   const [refreshTick, setRefreshTick] = useState(0);
   const [showB2BOnly, setShowB2BOnly] = useState(false);
   const [showCreateInvoice, setShowCreateInvoice] = useState(false);
