@@ -60,6 +60,11 @@ export default function PurchaseOrderDetailDialog({
   const [payMethod, setPayMethod] = useState("paypal");
   const [processingPay, setProcessingPay] = useState(false);
 
+  // Edición inline rápida del tracking (sin entrar al modo Editar completo)
+  const [trackingEditing, setTrackingEditing] = useState(false);
+  const [trackingDraft, setTrackingDraft] = useState("");
+  const [trackingSaving, setTrackingSaving] = useState(false);
+
   useEffect(() => {
     if (!open || !purchaseOrder?.id) return;
 
