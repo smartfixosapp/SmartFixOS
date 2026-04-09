@@ -643,7 +643,6 @@ export default function PurchaseOrderDetailDialog({
   return (
     <Dialog open={open} onOpenChange={(v) => !v && onClose?.(false)}>
       <DialogContent className="bg-[#0a0a0c] border border-white/[0.06] max-w-4xl max-h-[90vh] overflow-hidden flex flex-col text-white p-0">
-        <ErrorBoundary>
         {/* Header */}
         <div className="px-6 pt-6 pb-4 border-b border-white/[0.05]">
           <div className="flex items-center justify-between gap-3">
