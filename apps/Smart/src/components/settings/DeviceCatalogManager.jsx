@@ -1593,10 +1593,39 @@ export default function DeviceCatalogManager() {
                             >
                               <div
                                 {...dragProvided.dragHandleProps}
-                                className="absolute left-3 top-3 flex h-7 w-7 items-center justify-center rounded-full border border-white/10 bg-black/25 text-white/45 transition-colors hover:text-white/80"
+                                className="absolute left-3 top-3 hidden sm:flex h-7 w-7 items-center justify-center rounded-full border border-white/10 bg-black/25 text-white/45 transition-colors hover:text-white/80"
                                 title="Mantén y arrastra para reorganizar"
                               >
                                 <GripVertical className="h-3.5 w-3.5" />
+                              </div>
+                              {/* Botones move up/down (móvil táctil) */}
+                              <div className="absolute left-2 top-2 sm:hidden flex flex-col gap-1 z-10">
+                                <button
+                                  type="button"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    if (index === 0) return;
+                                    handleCatalogDragEnd({ source: { index }, destination: { index: index - 1 } });
+                                  }}
+                                  disabled={index === 0}
+                                  className="w-7 h-6 rounded bg-black/40 border border-white/15 text-white/70 text-xs flex items-center justify-center disabled:opacity-20 disabled:pointer-events-none active:scale-95"
+                                  aria-label="Mover arriba"
+                                >
+                                  ▲
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    if (index >= currentItems.length - 1) return;
+                                    handleCatalogDragEnd({ source: { index }, destination: { index: index + 1 } });
+                                  }}
+                                  disabled={index >= currentItems.length - 1}
+                                  className="w-7 h-6 rounded bg-black/40 border border-white/15 text-white/70 text-xs flex items-center justify-center disabled:opacity-20 disabled:pointer-events-none active:scale-95"
+                                  aria-label="Mover abajo"
+                                >
+                                  ▼
+                                </button>
                               </div>
                               <div className="flex items-start justify-between gap-4">
                                 <div>
