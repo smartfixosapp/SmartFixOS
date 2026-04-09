@@ -4,6 +4,7 @@ import Layout from "./Layout.jsx";
 import { BrowserRouter as Router, Route, Routes, useLocation, useNavigate } from 'react-router-dom';
 import { AnimatePresence, motion } from 'framer-motion';
 import AuthGate, { useAuth } from '@/components/Auth';
+import { PageSpinner } from "@/components/ui/spinner";
 // TutorialTour ahora está integrado dentro de ARIAChat como tab 🗺️
 
 // Wrap lazy imports to auto-reload on chunk load failures (stale CDN cache)
