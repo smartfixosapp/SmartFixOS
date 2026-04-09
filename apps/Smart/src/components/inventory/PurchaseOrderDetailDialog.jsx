@@ -1604,6 +1604,7 @@ export default function PurchaseOrderDetailDialog({
             </div>
           </div>
         )}
+        </ErrorBoundary>
       </DialogContent>
 
       {/* Modal — Registrar pago manual */}
