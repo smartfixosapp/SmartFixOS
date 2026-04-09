@@ -635,9 +635,12 @@ export default function OrderStatusManagementTab() {
                         key={status.id}
                         status={status}
                         index={index}
+                        total={statuses.length}
                         onEdit={handleEdit}
                         onDelete={handleDelete}
                         onToggleActive={handleToggleActive}
+                        onMoveUp={handleMoveUp}
+                        onMoveDown={handleMoveDown}
                         isEditing={editingStatus?.id || (showNewDialog ? "new" : null)}
                       />
                     ))}
