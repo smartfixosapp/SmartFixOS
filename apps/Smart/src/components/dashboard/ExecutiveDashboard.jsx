@@ -57,6 +57,8 @@ function ExecutiveDashboardImpl() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => { load(); }, []);
+  // Auto-refresh cada 5 min, solo si pestaña visible
+  useVisibleInterval(() => load(), 5 * 60_000, []);
 
   const load = async () => {
     try {
