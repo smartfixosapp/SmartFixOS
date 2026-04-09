@@ -378,6 +378,10 @@ export default function Layout({ children }) {
         data-pointer-overlay="off"
         style={{ WebkitOverflowScrolling: 'touch', scrollBehavior: 'smooth' }}
       >
+        {/* Banner persistente de recordatorio de ponche (entrada/salida) */}
+        {!isPinAccess && !isWelcome && !isSetupPage && !shouldShowTrialExpired && !showPaymentScreen && (
+          <PunchReminderBanner />
+        )}
         <div data-pointer-target="on">
           <div className="h-full">
             {children}
