@@ -31,6 +31,8 @@ import UnlocksPanel from "@/components/unlocks/UnlocksPanel";
 import { usePlanLimits } from "@/hooks/usePlanLimits";
 import EditDeviceModal from "@/components/orders/EditDeviceModal";
 import { getLocalOrders, getUnsyncedLocalOrders, mergeOrders, upsertLocalOrder } from "@/components/utils/localOrderCache";
+import OrdersKanban from "@/components/orders/OrdersKanban";
+import { LayoutGrid, Columns3 } from "lucide-react";
 
 const DEVICE_ICONS = {
   phone: Smartphone,
