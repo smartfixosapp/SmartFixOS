@@ -1500,8 +1500,8 @@ export default function UsersManagement() {
   }
 
   return (
-    <div className="min-h-screen bg-black/95 p-4 sm:p-6 lg:p-8 pb-24">
-      <div className="max-w-7xl mx-auto space-y-6">
+    <div className="min-h-screen bg-black/95 py-4 sm:py-6 lg:py-8 pb-24">
+      <div className="app-container space-y-6">
         
         {/* Header Apple Style */}
         <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-[32px] p-6 shadow-2xl flex justify-between items-center mb-8">
