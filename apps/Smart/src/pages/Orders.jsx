@@ -1069,21 +1069,29 @@ export default function OrdersPage() {
              </div>
             )} */}
 
-            {/* Grid de órdenes con animaciones */}
-            <motion.div
-              layout
-              className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-3 md:gap-4"
-            >
-              <AnimatePresence mode="popLayout">
-                {displayOrders.map((order) =>
-                  <OrderCard
-                    key={order.id}
-                    order={order}
-                    onClick={() => tryOpenOrderWithGlobalGate(order)}
-                    onEditDevice={setEditingDeviceOrder} />
-                )}
-              </AnimatePresence>
-            </motion.div>
+            {/* Vista Grid o Kanban */}
+            {viewMode === "kanban" ? (
+              <OrdersKanban
+                orders={displayOrders}
+                onCardClick={(order) => tryOpenOrderWithGlobalGate(order)}
+                onOrderUpdated={handleOrderUpdated}
+              />
+            ) : (
+              <motion.div
+                layout
+                className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-3 md:gap-4"
+              >
+                <AnimatePresence mode="popLayout">
+                  {displayOrders.map((order) =>
+                    <OrderCard
+                      key={order.id}
+                      order={order}
+                      onClick={() => tryOpenOrderWithGlobalGate(order)}
+                      onEditDevice={setEditingDeviceOrder} />
+                  )}
+                </AnimatePresence>
+              </motion.div>
+            )}
           </>
         }
         </>
