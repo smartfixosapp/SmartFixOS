@@ -120,7 +120,7 @@ export default function MobileBottomNav() {
       tabHistory[tab.id] = [tab.path];
     } else {
       const lastRoute = tabHistory[tab.id][tabHistory[tab.id].length - 1] || tab.path;
-      window.location.assign(lastRoute);
+      navigate(lastRoute);
     }
   };
 
