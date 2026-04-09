@@ -122,10 +122,13 @@ export default function PinAccess() {
   const [submitting, setSubmitting] = useState(false);
   const [isCheckingAuth, setIsCheckingAuth] = useState(true);
 
-  // ── Sincronización Inicial: Si ya hay sesión verificada, no renderizar nada
+  // ── Sincronización Inicial: Si ya hay sesión verificada, mostrar spinner
+  // mientras AuthGate redirige al Dashboard. Si pasan >3s sin redirección,
+  // asumimos que la sesión está corrupta (refresh token muerto, etc.) y la
+  // limpiamos automáticamente para que el usuario pueda hacer login fresh.
   const hasProbableSession = !!sessionStorage.getItem("911-session") && !!localStorage.getItem("employee_session");
   if (hasProbableSession && step === "welcome" && !loading) {
-    return <div className="min-h-screen bg-black" />;
+    return <StuckSessionRecovery />;
   }
 
   const [showSignupPassword, setShowSignupPassword] = useState(false);
