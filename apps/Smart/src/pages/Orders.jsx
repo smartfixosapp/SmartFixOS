@@ -944,37 +944,6 @@ export default function OrdersPage() {
             </div>
           </div>
 
-          {/* Toggle Vista (Grid / Kanban) */}
-          <div className="hidden sm:flex items-center justify-end gap-1 mt-3 mb-2">
-            <div className="inline-flex items-center gap-1 p-1 rounded-full bg-white/5 border border-white/10">
-              <button
-                onClick={() => setViewMode("grid")}
-                className={cn(
-                  "h-8 px-3 rounded-full text-[11px] font-black uppercase tracking-wider flex items-center gap-1.5 transition-all",
-                  viewMode === "grid"
-                    ? "bg-white text-black shadow"
-                    : "text-white/50 hover:text-white"
-                )}
-                title="Vista en cuadrícula"
-              >
-                <LayoutGrid className="w-3.5 h-3.5" />
-                Grid
-              </button>
-              <button
-                onClick={() => setViewMode("kanban")}
-                className={cn(
-                  "h-8 px-3 rounded-full text-[11px] font-black uppercase tracking-wider flex items-center gap-1.5 transition-all",
-                  viewMode === "kanban"
-                    ? "bg-violet-500 text-white shadow"
-                    : "text-white/50 hover:text-white"
-                )}
-                title="Vista Kanban"
-              >
-                <Columns3 className="w-3.5 h-3.5" />
-                Kanban
-              </button>
-            </div>
-          </div>
 
           {/* Búsqueda estilo Sequoia */}
           <div className="relative group/search">
