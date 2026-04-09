@@ -558,6 +558,23 @@ export default function Financial() {
   const totalExpenses = filteredExpenses.reduce((sum, e) => sum + getExpenseMagnitude(e.amount), 0);
   const netProfit = totalRevenue - totalExpenses;
 
+  // ── Pagos diferidos (no liquidados aún) ─────────────────────────────
+  // Separa los gastos que YA salieron del banco (settled) de los que SALDRÁN
+  // después (credit_card, Klarna, cheque, PayPal crédito).
+  // NOTE: usa todas las expenses sin filtro de fecha — los pagos diferidos
+  // viven en su propia lógica temporal (cuando sale del banco, no cuando se creó).
+  const unsettledExpenses = (expenses || []).filter(
+    (e) => e?.is_settled === false && !e?.is_deleted,
+  );
+  const unsettledTotal = unsettledExpenses.reduce(
+    (sum, e) => sum + getExpenseMagnitude(e.amount),
+    0,
+  );
+  // Gastos del periodo que YA salieron del banco (excluye diferidos pendientes)
+  const settledExpensesTotal = filteredExpenses
+    .filter((e) => e?.is_settled !== false)
+    .reduce((sum, e) => sum + getExpenseMagnitude(e.amount), 0);
+
   // ── Desglose financiero detallado ──────────────────────────────────────────
   const totalIVU = filteredSales.reduce((s, sale) => s + Number(sale.tax_amount || 0), 0);
   const totalRevenueBeforeTax = totalRevenue - totalIVU; // ingresos sin IVU
