@@ -1096,10 +1096,10 @@ export default function AddItemModal({
                   </div>
 
                   {/* Totals & Save */}
-                  <div className="px-6 py-5 bg-white/[0.02] border-t border-white/[0.05] space-y-4 mt-2">
-                    <div className="flex justify-between items-center text-[10px] font-black uppercase tracking-widest text-white/30">
+                  <div className="px-6 py-5 bg-white/[0.02] border-t border-white/[0.05] space-y-4 mt-2 lg:px-8 lg:py-6 lg:mt-0 lg:shrink-0">
+                    <div className="flex justify-between items-center text-[10px] font-black uppercase tracking-widest text-white/30 lg:text-sm">
                       <span>Total Parcial (IVU Inc.)</span>
-                      <span>${totals.total.toFixed(2)}</span>
+                      <span className="lg:text-2xl lg:text-emerald-400 lg:normal-case lg:tracking-normal">${totals.total.toFixed(2)}</span>
                     </div>
                     <Button
                       onClick={saveToOrder}
