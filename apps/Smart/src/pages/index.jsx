@@ -65,7 +65,6 @@ const Menu                  = lazyWithRetry(() => import("./Menu"));
 // Uses full-screen dark bg so any brief Suspense gap blends with the
 // rest of the dark UI instead of flashing white.
 // Delegates to <PageSpinner> for consistency with the rest of the app.
-import { PageSpinner } from "@/components/ui/spinner";
 function PageLoader() {
   return <PageSpinner />;
 }
