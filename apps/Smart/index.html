@@ -11,12 +11,17 @@
       name="viewport"
       content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover"
     />
+    <!-- Prevent iOS Safari from auto-linking phone numbers, dates, addresses
+         (critical for POS: $1,500.00 was being turned into a tel: link) -->
+    <meta name="format-detection" content="telephone=no, date=no, address=no, email=no" />
     <!-- iOS specific -->
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <meta name="apple-mobile-web-app-title" content="SmartFixOS" />
     <!-- Apple Touch Icons (home screen shortcut en iPhone/iPad) -->
     <link rel="apple-touch-icon" href="/icons/icon-180.png" />
+    <link rel="apple-touch-icon" sizes="152x152" href="/icons/icon-152.png" />
+    <link rel="apple-touch-icon" sizes="167x167" href="/icons/icon-167.png" />
     <link rel="apple-touch-icon" sizes="180x180" href="/icons/icon-180.png" />
     <link rel="apple-touch-icon" sizes="192x192" href="/icons/icon-192.png" />
     <!-- Android / PWA -->
