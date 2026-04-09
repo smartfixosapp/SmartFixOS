@@ -373,15 +373,12 @@ export default function Layout({ children }) {
           keep 8px so the page wrappers don't kiss the screen edges. */}
       <main
         ref={mainRef}
-        className={isDashboard
-          ? 'flex-1 overflow-hidden overflow-x-hidden flex flex-col relative'
-          : 'flex-1 overflow-y-auto overflow-x-hidden px-2 sm:px-2 md:px-0 pt-[calc(env(safe-area-inset-top,0px)+8px)] md:pt-4 pb-[calc(88px+env(safe-area-inset-bottom,0px))] md:pb-4 relative'
-        }
+        className={'flex-1 overflow-y-auto overflow-x-hidden px-2 sm:px-2 md:px-0 pt-[calc(env(safe-area-inset-top,0px)+8px)] md:pt-4 pb-[calc(88px+env(safe-area-inset-bottom,0px))] md:pb-4 relative'}
         data-pointer-overlay="off"
-        style={{ WebkitOverflowScrolling: isDashboard ? 'auto' : 'touch', scrollBehavior: 'smooth' }}
+        style={{ WebkitOverflowScrolling: 'touch', scrollBehavior: 'smooth' }}
       >
-        <div data-pointer-target="on" className={isDashboard ? 'flex flex-col flex-1 min-h-0' : ''}>
-          <div className={isDashboard ? "flex flex-col flex-1 min-h-0" : "h-full"}>
+        <div data-pointer-target="on">
+          <div className="h-full">
             {children}
           </div>
         </div>
