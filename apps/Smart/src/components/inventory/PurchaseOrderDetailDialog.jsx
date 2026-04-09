@@ -276,6 +276,8 @@ export default function PurchaseOrderDetailDialog({
           catch { return "Sistema"; }
         })();
         for (const it of lineItems) {
+          // Las herramientas no entran al inventario
+          if (it.is_tool) continue;
           const pid = it.inventory_item_id;
           const qty = Number(it.quantity || 0);
           // received_quantity es opcional (recepción parcial): si está seteado, usarlo
@@ -285,7 +287,15 @@ export default function PurchaseOrderDetailDialog({
             const product = await base44.entities.Product.get(pid);
             const prev = Number(product?.stock || 0);
             const next = prev + receivedQty;
-            await base44.entities.Product.update(pid, { stock: next });
+            // Sincronizar costo y precio de venta del producto si cambiaron en la OC
+            const productPatch = { stock: next };
+            if (Number(it.unit_cost || 0) > 0 && Number(it.unit_cost) !== Number(product?.cost || 0)) {
+              productPatch.cost = Number(it.unit_cost);
+            }
+            if (Number(it.unit_price || 0) > 0 && Number(it.unit_price) !== Number(product?.price || 0)) {
+              productPatch.price = Number(it.unit_price);
+            }
+            await base44.entities.Product.update(pid, productPatch);
             await base44.entities.InventoryMovement.create({
               product_id: pid,
               product_name: product?.name || it.product_name || "",
