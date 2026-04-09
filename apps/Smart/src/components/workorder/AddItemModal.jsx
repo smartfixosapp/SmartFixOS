@@ -1032,20 +1032,20 @@ export default function AddItemModal({
 
               {/* Cart items */}
               {cartItems.length === 0 ? (
-                <div className="mx-3 mb-3 rounded-xl border border-white/8 bg-black/20 p-3 text-center text-xs text-white/40">El carrito está vacío</div>
+                <div className="mx-3 mb-3 rounded-xl border border-white/8 bg-black/20 p-3 text-center text-xs text-white/40 lg:p-8 lg:text-sm">El carrito está vacío</div>
               ) : (
                 <>
-                  <div className="max-h-64 overflow-y-auto space-y-1 px-3 no-scrollbar">
+                  <div className="max-h-64 overflow-y-auto space-y-1 px-3 no-scrollbar lg:max-h-none lg:flex-1 lg:space-y-2 lg:px-6 lg:py-4">
                     {cartItems.map((item, idx) => {
                       const lineDiscount = toNum(item.discount_percentage, 0);
                       const lineBase = toNum(item.price, 0) * toNum(item.qty, 1);
                       const lineTotal = lineBase - lineBase * (lineDiscount / 100);
                       return (
-                      <div key={`${item.id}-${idx}`} className="rounded-xl border border-white/8 bg-black/25 px-3 py-2 space-y-1.5">
-                        <div className="flex items-center gap-2">
+                      <div key={`${item.id}-${idx}`} className="rounded-xl border border-white/8 bg-black/25 px-3 py-2 space-y-1.5 lg:rounded-2xl lg:px-5 lg:py-4 lg:space-y-3">
+                        <div className="flex items-center gap-2 lg:gap-3">
                           <div className="min-w-0 flex-1">
-                            <p className="text-xs font-semibold text-white truncate">{item.name}</p>
-                            <p className="text-[11px] text-white/40">
+                            <p className="text-xs font-semibold text-white truncate lg:text-base lg:font-bold">{item.name}</p>
+                            <p className="text-[11px] text-white/40 lg:text-xs lg:mt-0.5">
                               ${toNum(item.price).toFixed(2)} c/u
                               {lineDiscount > 0 && <span className="text-amber-400 ml-1">-{lineDiscount}%</span>}
                               {item.taxable === false && <span className="text-cyan-400 ml-1">sin IVU</span>}
