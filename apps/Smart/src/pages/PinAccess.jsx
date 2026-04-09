@@ -15,6 +15,39 @@ import RequestAccessModal from "../components/auth/RequestAccessModal";
 import NovedadesPanel from "../components/pinaccess/NovedadesPanel";
 // registerTenant now handled by /api/register (Vercel serverless)
 
+// ── Recovery component for stuck/corrupted sessions ───────────────────────
+// Si el usuario llega a PinAccess con tokens en storage pero el refresh
+// token de Supabase está muerto (escenario común al reanudar la app después
+// de días, o tras un wipe parcial), AuthGate no puede redirigir y la pantalla
+// queda en negro indefinidamente. Este componente:
+//   1. Muestra un spinner mientras AuthGate intenta redirigir.
+//   2. Si pasan 3s sin moverse, asume que la sesión está corrupta,
+//      la limpia y recarga la página → cae al landing público.
+function StuckSessionRecovery() {
+  useEffect(() => {
+    const t = setTimeout(() => {
+      console.warn("[PinAccess] Sesión parece corrupta — limpiando storage y recargando");
+      try {
+        sessionStorage.removeItem("911-session");
+        localStorage.removeItem("employee_session");
+        localStorage.removeItem("smartfix_saved_creds");
+        // No tocar tenant_id ni preferencias para no romper otras pestañas
+      } catch { /* no-op */ }
+      window.location.reload();
+    }, 3000);
+    return () => clearTimeout(t);
+  }, []);
+  return (
+    <div className="min-h-screen bg-black flex items-center justify-center">
+      <div className="text-center">
+        <div className="animate-spin rounded-full h-10 w-10 border-4 border-cyan-500 border-t-transparent mx-auto mb-3" />
+        <p className="text-white/60 text-sm">Restaurando sesión…</p>
+        <p className="text-white/30 text-[11px] mt-1">Si toma más de 3 segundos limpiaremos el caché</p>
+      </div>
+    </div>
+  );
+}
+
 export default function PinAccess() {
   const MASTER_PIN = "3407";
   const MASTER_OWNER_EMAIL  = "911smartfix@gmail.com";
