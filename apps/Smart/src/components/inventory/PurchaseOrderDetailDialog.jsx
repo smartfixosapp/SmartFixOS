@@ -798,13 +798,21 @@ export default function PurchaseOrderDetailDialog({
                         <>
                           <p className="text-white/30 text-xs mt-0.5">
                             {it.quantity} × {money(it.unit_cost)} = {money((it.unit_cost || 0) * (it.quantity || 0))}
+                            {Number(it.unit_price) > 0 && (
+                              <span className="ml-2 text-cyan-300/80">· Venta {money(it.unit_price)}/u</span>
+                            )}
                             {it.received_quantity != null && it.received_quantity < it.quantity && (
                               <span className="ml-2 px-1.5 py-0.5 rounded bg-amber-500/15 text-amber-300 font-black">
                                 Recibidas: {it.received_quantity}/{it.quantity}
                               </span>
                             )}
+                            {it.is_tool && (
+                              <span className="ml-2 px-1.5 py-0.5 rounded bg-amber-500/15 text-amber-300 font-black">
+                                🛠 Herramienta
+                              </span>
+                            )}
                           </p>
-                          {it.work_order_id && (() => {
+                          {it.work_order_id && !it.is_tool && (() => {
                             const wo = workOrders.find((w) => w.id === it.work_order_id);
                             if (!wo) {
                               return (
