@@ -1488,7 +1488,11 @@ export default function PurchaseOrderDetailDialog({
                   onClick={() => {
                     // Pre-seleccionar método del supplier si tiene default
                     const sup = suppliers.find((s) => s.id === form.supplier_id);
-                    setPayMethod(sup?.default_payment_method || "paypal");
+                    const defaultMethod = sup?.default_payment_method || "paypal_credit";
+                    setPayMethod(defaultMethod);
+                    // Si el método por defecto es diferido, pre-rellenar fecha
+                    const alias = defaultMethod === "paypal" ? "paypal_credit" : defaultMethod;
+                    setPaySettlesOn(isDeferredMethod(alias) ? defaultSettlementDate(alias) : "");
                     setShowPayDialog(true);
                   }}
                   className="px-3 py-2.5 rounded-xl bg-emerald-500/15 border border-emerald-500/25 text-emerald-300 text-xs font-bold hover:bg-emerald-500/25 transition-all flex items-center justify-center gap-1.5"
