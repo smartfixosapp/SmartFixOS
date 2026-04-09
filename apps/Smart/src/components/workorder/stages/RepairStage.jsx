@@ -105,7 +105,22 @@ export default function RepairStage({ order, onUpdate, onOrderItemsUpdate, onRem
       if (newItems.length) {
         const existing = Array.isArray(o.photos_metadata) ? o.photos_metadata : [];
         await base44.entities.Order.update(order.id, { photos_metadata: [...existing, ...newItems] });
-        toast.success(`${newItems.length} foto${newItems.length > 1 ? "s" : ""} subida${newItems.length > 1 ? "s" : ""}`);
+        // Auto-marcar "Evidencia fotográfica tomada" (item 3) si no estaba marcado
+        if (!checked.includes(3)) {
+          const next = [...checked, 3];
+          setChecked(next);
+          const nowAllDone = next.length === CLOSE_CHECKLIST.length;
+          if (nowAllDone) {
+            try {
+              await base44.entities.Order.update(order.id, { repair_checklist_done: true });
+              toast.success("Foto subida — checklist completo");
+            } catch {}
+          } else {
+            toast.success(`${newItems.length} foto${newItems.length > 1 ? "s" : ""} subida${newItems.length > 1 ? "s" : ""} — evidencia marcada`);
+          }
+        } else {
+          toast.success(`${newItems.length} foto${newItems.length > 1 ? "s" : ""} subida${newItems.length > 1 ? "s" : ""}`);
+        }
         if (onUpdate) onUpdate();
       }
     } catch { toast.error("Error al subir foto"); }
