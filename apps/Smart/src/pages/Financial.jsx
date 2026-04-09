@@ -33,6 +33,7 @@ import TransactionsModal from "../components/financial/TransactionsModal";
 import PurchaseOrderDialog from "../components/inventory/PurchaseOrderDialog";
 import PurchaseOrderDetailDialog from "../components/inventory/PurchaseOrderDetailDialog";
 import ImportPODialog from "../components/inventory/ImportPODialog";
+import FinancialCharts from "../components/financial/FinancialCharts";
 import { loadSuppliersSafe } from "@/components/utils/suppliers";
 import { useNavigate } from "react-router-dom";
 import { usePlanLimits } from "@/hooks/usePlanLimits";
