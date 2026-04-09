@@ -67,8 +67,29 @@ function StatusItem({ status, index, total, onEdit, onDelete, onToggleActive, is
           `}
         >
           <div className="flex items-center gap-3">
-            <div {...provided.dragHandleProps} className={`cursor-grab active:cursor-grabbing ${textOpacity}`}>
-              <GripVertical className="w-5 h-5" />
+            {/* Drag handle (escritorio) + botones up/down (móvil táctil) */}
+            <div className="flex flex-col items-center gap-0.5">
+              <button
+                type="button"
+                onClick={() => onMoveUp?.(index)}
+                disabled={index === 0}
+                className="sm:hidden w-7 h-6 rounded bg-white/5 border border-white/10 flex items-center justify-center text-white/60 hover:bg-white/10 active:scale-95 disabled:opacity-20 disabled:pointer-events-none"
+                aria-label="Mover arriba"
+              >
+                ▲
+              </button>
+              <div {...provided.dragHandleProps} className={`hidden sm:block cursor-grab active:cursor-grabbing ${textOpacity}`}>
+                <GripVertical className="w-5 h-5" />
+              </div>
+              <button
+                type="button"
+                onClick={() => onMoveDown?.(index)}
+                disabled={index >= (total - 1)}
+                className="sm:hidden w-7 h-6 rounded bg-white/5 border border-white/10 flex items-center justify-center text-white/60 hover:bg-white/10 active:scale-95 disabled:opacity-20 disabled:pointer-events-none"
+                aria-label="Mover abajo"
+              >
+                ▼
+              </button>
             </div>
 
             <div className="flex-1 flex items-center gap-3">
