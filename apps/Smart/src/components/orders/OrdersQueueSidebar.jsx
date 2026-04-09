@@ -48,10 +48,11 @@ function timeSince(date) {
 
 export default function OrdersQueueSidebar({ orders = [], selectedOrderId, onSelectOrder }) {
   // Lista plana ordenada por # de orden ascendente (las más viejas primero)
+  // Solo muestra órdenes ACCIONABLES (no las que esperan clientes/proveedores)
   const queue = useMemo(() => {
     const active = (orders || []).filter(o => {
       const st = getEffectiveOrderStatus(o);
-      return !DONE_STATUSES.has(st);
+      return ACTIONABLE_STATUSES.has(st);
     });
 
     return active.sort((a, b) => {
