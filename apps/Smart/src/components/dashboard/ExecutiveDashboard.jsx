@@ -430,3 +430,5 @@ function ExecutiveDashboardImpl() {
     </div>
   );
 }
+
+export default memo(ExecutiveDashboardImpl);
