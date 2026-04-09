@@ -525,40 +525,7 @@ export default function OrdersPage() {
 
   const tryOpenOrderWithGlobalGate = useCallback(async (targetOrder) => {
     if (!targetOrder?.id) return;
-    const currentSeq = extractOrderSequence(targetOrder.order_number);
-    if (currentSeq <= 0) {
-      setSelectedOrder(targetOrder);
-      return;
-    }
-
-    const blockingStatuses = new Set(["intake"]);
-    let remoteOrders = [];
-    try {
-      remoteOrders = await fetchTenantOrders();
-    } catch {
-      remoteOrders = [];
-    }
-
-    const merged = mergeOrders(remoteOrders, getUnsyncedLocalOrders(remoteOrders));
-    const blockers = (merged || []).filter((ord) => {
-      if (!ord || ord.deleted) return false; // órdenes borradas no bloquean
-      if (String(ord.id || "") === String(targetOrder.id || "")) return false;
-      const seq = extractOrderSequence(ord.order_number);
-      if (seq <= 0 || seq >= currentSeq) return false;
-        const st = getEffectiveOrderStatus(ord);
-        return blockingStatuses.has(st);
-    });
-
-    if (blockers.length > 0) {
-      const list = blockers
-        .sort((a, b) => extractOrderSequence(a.order_number) - extractOrderSequence(b.order_number))
-        .slice(0, 5)
-        .map((b) => b.order_number || b.id)
-        .join(", ");
-      showGlobalGateToast(`Primero trabaja boletos anteriores en Recepcion (${list}).`);
-      return;
-    }
-
+    // Abrir directamente — sin bloqueo. El warning se muestra dentro del WorkOrderPanel si hay órdenes pendientes en Recepción.
     setSelectedOrder(targetOrder);
   }, []);
 
