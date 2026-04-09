@@ -417,6 +417,13 @@ export default function PurchaseOrderDetailDialog({
     }));
   };
 
+  const handleChangeItemCategory = (idx, category) => {
+    setForm((f) => ({
+      ...f,
+      items: f.items.map((it, i) => i === idx ? { ...it, category: category || "other" } : it)
+    }));
+  };
+
   // Toggle "herramienta": al activar, desvincula la OT y marca para excluir de inventario
   const handleToggleItemTool = (idx, isTool) => {
     setForm((f) => ({
