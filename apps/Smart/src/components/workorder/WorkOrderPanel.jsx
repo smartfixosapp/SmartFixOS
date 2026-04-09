@@ -1863,9 +1863,8 @@ export default function WorkOrderPanel({ orderId, onClose, onUpdate, onDelete, p
           return;
         }
 
-        // Regla GLOBAL de secuencia:
-        // no permitir abrir una orden más alta si existe cualquier orden anterior
-        // en recepción.
+        // Regla GLOBAL de secuencia (WARNING, no bloqueante):
+        // Avisar si hay boletos anteriores pendientes en Recepción, pero permitir abrir la orden.
         const currentSeq = extractOrderSequence(data.order_number);
         const currentIsQuickOrder = data?.status_metadata?.quick_order === true;
         if (currentSeq > 0 && !currentIsQuickOrder) {
@@ -1888,15 +1887,12 @@ export default function WorkOrderPanel({ orderId, onClose, onUpdate, onDelete, p
             return blockingStatuses.has(st);
           });
 
+          // Solo mostrar warning — NO bloquea
           if (blockers.length > 0) {
             const blockersSorted = blockers.sort((a, b) => extractOrderSequence(a.order_number) - extractOrderSequence(b.order_number));
-            const list = blockersSorted.slice(0, 5).map((b) => b.order_number || b.id).join(", ");
-            const msg = `Regla global activa: primero debes mover boletos anteriores en Recepcion (${list}) antes de abrir ${data.order_number}.`;
-            toast.error(msg);
-            setOrder(null);
-            setLoading(false);
-            setLoadError(msg);
-            return;
+            const list = blockersSorted.slice(0, 3).map((b) => b.order_number || b.id).join(", ");
+            const extra = blockers.length > 3 ? ` y ${blockers.length - 3} más` : "";
+            toast(`⚠️ Hay ${blockers.length} orden${blockers.length > 1 ? "es" : ""} en Recepción antes que esta: ${list}${extra}`, { icon: "⚠️", duration: 5000 });
           }
         }
 
