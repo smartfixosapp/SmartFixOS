@@ -36,7 +36,7 @@ export function OrderCardSkeleton() {
 
 export function DashboardCardSkeleton() {
   return (
-    <div className="liquid-glass-subtle rounded-[28px] p-7 shadow-xl relative overflow-hidden aspect-[1.4/1]">
+    <div className="liquid-glass-subtle rounded-[28px] p-7 relative overflow-hidden aspect-[1.4/1]">
       <ShimmerOverlay />
       <div className="relative z-10 h-full flex flex-col justify-between">
         <div className="flex justify-between">
