@@ -1,0 +1,75 @@
+name: CI
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+jobs:
+  quality:
+    name: Lint & Type Check
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    continue-on-error: true  # Non-blocking during development
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9.7.0
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        working-directory: apps/Smart
+        run: pnpm install --frozen-lockfile
+
+      - name: Lint
+        working-directory: apps/Smart
+        run: pnpm lint || echo "::warning::Lint issues found"
+
+      - name: Type check
+        working-directory: apps/Smart
+        run: pnpm tsc --noEmit || echo "::warning::Type errors found"
+
+  security:
+    name: Security Audit
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9.7.0
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        working-directory: apps/Smart
+        run: pnpm install --frozen-lockfile
+
+      - name: Audit dependencies
+        working-directory: apps/Smart
+        run: pnpm audit --audit-level=high || echo "::warning::Security vulnerabilities found"
+
+      - name: Check for secrets
+        uses: gitleaks/gitleaks-action@v2
+        continue-on-error: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
