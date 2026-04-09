@@ -190,6 +190,7 @@ export default function PurchaseOrderDetailDialog({
       const lineItems = form.items.map((it, i) => {
         const qty = Number(it.quantity || 1);
         const cost = Number(it.unit_cost || 0);
+        const price = Number(it.unit_price || 0);
         const receivedQty = it.received_quantity != null ? Number(it.received_quantity) : qty;
         return {
           id: `li-${Date.now()}-${i}`,
@@ -198,8 +199,11 @@ export default function PurchaseOrderDetailDialog({
           quantity: qty,
           received_quantity: receivedQty,
           unit_cost: cost,
+          unit_price: price,
+          is_tool: !!it.is_tool,
           line_total: qty * cost,
-          linked_work_order_id: it.work_order_id || undefined,
+          // Las herramientas nunca se enlazan a una OT
+          linked_work_order_id: it.is_tool ? undefined : (it.work_order_id || undefined),
         };
       });
 
