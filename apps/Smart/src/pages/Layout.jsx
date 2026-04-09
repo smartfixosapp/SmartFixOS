@@ -367,12 +367,15 @@ export default function Layout({ children }) {
         />
       )}
 
-      {/* === Contenido === */}
+      {/* === Contenido ===
+          Note: no horizontal padding on md+ — pages use .app-container which
+          handles its own fluid padding (clamp 1rem → 3.5rem). On mobile we
+          keep 8px so the page wrappers don't kiss the screen edges. */}
       <main
         ref={mainRef}
         className={isDashboard
           ? 'flex-1 overflow-hidden overflow-x-hidden flex flex-col relative'
-          : 'flex-1 overflow-y-auto overflow-x-hidden px-2 sm:px-4 md:px-5 pt-[calc(env(safe-area-inset-top,0px)+8px)] md:pt-4 pb-[calc(88px+env(safe-area-inset-bottom,0px))] md:pb-4 relative'
+          : 'flex-1 overflow-y-auto overflow-x-hidden px-2 sm:px-2 md:px-0 pt-[calc(env(safe-area-inset-top,0px)+8px)] md:pt-4 pb-[calc(88px+env(safe-area-inset-bottom,0px))] md:pb-4 relative'
         }
         data-pointer-overlay="off"
         style={{ WebkitOverflowScrolling: isDashboard ? 'auto' : 'touch', scrollBehavior: 'smooth' }}
