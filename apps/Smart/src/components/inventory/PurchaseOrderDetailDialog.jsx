@@ -823,23 +823,39 @@ export default function PurchaseOrderDetailDialog({
                         </>
                       )}
                       {editing && (
-                        <div className="mt-1">
-                          <p className="text-[9px] text-white/30 font-black uppercase mb-0.5">
-                            🔗 Enlazar a orden de trabajo
-                          </p>
-                          <select
-                            value={it.work_order_id || ""}
-                            onChange={(e) => handleChangeItemWorkOrder(idx, e.target.value)}
-                            className="w-full bg-zinc-900 border border-white/10 rounded-lg px-2 py-1 text-[11px] text-white"
-                          >
-                            <option value="">— Sin orden de trabajo —</option>
-                            {workOrders.slice(0, 200).map((wo) => (
-                              <option key={wo.id} value={wo.id}>
-                                {wo.order_number || wo.id?.slice(-6)}
-                                {wo.customer_name ? ` · ${wo.customer_name}` : ""}
-                              </option>
-                            ))}
-                          </select>
+                        <div className="mt-1 space-y-1.5">
+                          {/* Toggle: marcar como herramienta (sin inventario, sin OT, solo gasto) */}
+                          <label className="flex items-center gap-2 cursor-pointer select-none">
+                            <input
+                              type="checkbox"
+                              checked={!!it.is_tool}
+                              onChange={(e) => handleToggleItemTool(idx, e.target.checked)}
+                              className="w-3.5 h-3.5 rounded border-white/20 bg-white/5 accent-amber-500"
+                            />
+                            <span className="text-[10px] font-black uppercase text-amber-300/80">
+                              🛠 Herramienta (no entra a inventario, solo gasto)
+                            </span>
+                          </label>
+                          {!it.is_tool && (
+                            <div>
+                              <p className="text-[9px] text-white/30 font-black uppercase mb-0.5">
+                                🔗 Enlazar a orden de trabajo
+                              </p>
+                              <select
+                                value={it.work_order_id || ""}
+                                onChange={(e) => handleChangeItemWorkOrder(idx, e.target.value)}
+                                className="w-full bg-zinc-900 border border-white/10 rounded-lg px-2 py-1 text-[11px] text-white"
+                              >
+                                <option value="">— Sin orden de trabajo —</option>
+                                {workOrders.slice(0, 200).map((wo) => (
+                                  <option key={wo.id} value={wo.id}>
+                                    {wo.order_number || wo.id?.slice(-6)}
+                                    {wo.customer_name ? ` · ${wo.customer_name}` : ""}
+                                  </option>
+                                ))}
+                              </select>
+                            </div>
+                          )}
                         </div>
                       )}
                     </div>
