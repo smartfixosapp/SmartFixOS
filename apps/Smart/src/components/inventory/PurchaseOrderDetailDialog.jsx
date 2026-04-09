@@ -9,6 +9,7 @@ import {
   DialogTitle,
   DialogFooter } from
 "@/components/ui/dialog";
+import ErrorBoundary from "@/components/utils/ErrorBoundary";
 import { toast } from "sonner";
 import {
   Calendar,
