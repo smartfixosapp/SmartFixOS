@@ -64,10 +64,28 @@ export default function WODetailCenter({
         const input = document.querySelector("[data-note-input]");
         if (input) { input.focus(); input.scrollIntoView({ behavior: "smooth", block: "center" }); }
       }
+      // Mark order as quick (saltar regla secuencial)
+      if (action === "mark-quick") {
+        const ord = e.detail?.order;
+        if (!ord?.id) return;
+        (async () => {
+          try {
+            const prevMeta = ord.status_metadata && typeof ord.status_metadata === "object" ? ord.status_metadata : {};
+            await base44.entities.Order.update(ord.id, {
+              status_metadata: { ...prevMeta, quick_order: true, marked_quick_at: new Date().toISOString() }
+            });
+            toast.success("⚡ Marcada como reparación rápida — ya no bloquea el flujo");
+            onUpdate?.();
+          } catch (err) {
+            toast.error("No se pudo marcar como rápida");
+            console.error(err);
+          }
+        })();
+      }
     };
     document.addEventListener("wo:action", handler);
     return () => document.removeEventListener("wo:action", handler);
-  }, []);
+  }, [onUpdate]);
 
   // Local photo state for instant display
   const [localPhotos, setLocalPhotos] = useState([]);
