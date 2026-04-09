@@ -1038,17 +1038,21 @@ export default function OrdersPage() {
              </div>
             )} */}
 
-            {/* Vista Grid o Kanban */}
-            {viewMode === "kanban" ? (
-              <OrdersKanban
-                orders={displayOrders}
-                onCardClick={(order) => tryOpenOrderWithGlobalGate(order)}
-                onOrderUpdated={handleOrderUpdated}
-              />
-            ) : (
+            {/* Layout: Sidebar de cola + Grid de cards */}
+            <div className="flex gap-4">
+              {/* Sidebar lateral con cola de trabajo (desktop only) */}
+              <aside className="hidden lg:block w-[280px] shrink-0 rounded-[20px] border border-white/[0.08] bg-[#0D0D0F]/60 backdrop-blur-xl overflow-hidden sticky top-4 h-[calc(100vh-8rem)]">
+                <OrdersQueueSidebar
+                  orders={orders}
+                  selectedOrderId={selectedOrder?.id}
+                  onSelectOrder={(order) => tryOpenOrderWithGlobalGate(order)}
+                />
+              </aside>
+
+              {/* Grid de órdenes */}
               <motion.div
                 layout
-                className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-3 md:gap-4"
+                className="flex-1 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-3 md:gap-4"
               >
                 <AnimatePresence mode="popLayout">
                   {displayOrders.map((order) =>
@@ -1060,7 +1064,7 @@ export default function OrdersPage() {
                   )}
                 </AnimatePresence>
               </motion.div>
-            )}
+            </div>
           </>
         }
         </>
