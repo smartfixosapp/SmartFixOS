@@ -53,6 +53,14 @@ export default function RepairStage({ order, onUpdate, onOrderItemsUpdate, onRem
   const photoCount = (Array.isArray(o.photos_metadata) ? o.photos_metadata.length : 0) +
                      (Array.isArray(o.device_photos) ? o.device_photos.length : 0);
 
+  // Auto-marcar "Evidencia fotográfica tomada" cuando hay fotos (sincroniza con uploads externos del sidebar)
+  useEffect(() => {
+    if (photoCount > 0 && !checked.includes(3)) {
+      setChecked(prev => prev.includes(3) ? prev : [...prev, 3]);
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [photoCount]);
+
   const toggle = async (i) => {
     // Item 3 = "Evidencia fotográfica tomada" — require at least 1 photo
     if (i === 3 && !checked.includes(i) && photoCount === 0) {
