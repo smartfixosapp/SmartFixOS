@@ -1008,9 +1008,9 @@ export default function AddItemModal({
 
         {/* ── Floating Cart ── */}
         {showCart && (
-          <div className="pointer-events-none absolute inset-x-0 bottom-4 px-4 z-[100] sm:bottom-6 sm:px-6 lg:inset-0 lg:p-0 lg:flex lg:items-center lg:justify-center">
+          <div className="pointer-events-none absolute inset-x-0 bottom-4 px-4 z-[100] sm:bottom-6 sm:px-6 lg:inset-0 lg:bottom-0 lg:top-0 lg:left-0 lg:right-0 lg:p-0 lg:px-0 lg:flex lg:items-center lg:justify-center lg:bg-black/60">
             {/* Mobile: floating bottom sheet | Desktop: centered large panel */}
-            <div className="pointer-events-auto ml-auto w-full max-w-[480px] rounded-[28px] border border-emerald-500/30 bg-[#0A0C0B]/95 shadow-[0_30px_60px_rgba(0,0,0,0.65)] ring-1 ring-emerald-500/10 overflow-hidden backdrop-blur-3xl lg:ml-0 lg:max-w-[720px] lg:max-h-[85vh] lg:flex lg:flex-col">
+            <div className="pointer-events-auto ml-auto w-full max-w-[480px] rounded-[28px] border border-emerald-500/30 bg-[#0A0C0B]/95 shadow-[0_30px_60px_rgba(0,0,0,0.65)] ring-1 ring-emerald-500/10 overflow-hidden backdrop-blur-3xl lg:mx-auto lg:ml-auto lg:mr-auto lg:w-[720px] lg:max-w-[720px] lg:max-h-[85vh] lg:flex lg:flex-col">
               {/* Cart header */}
               <div className="flex items-center justify-between px-6 pt-5 pb-3 lg:px-8 lg:pt-6 lg:pb-4 lg:border-b lg:border-white/[0.06] lg:shrink-0">
                 <div>
