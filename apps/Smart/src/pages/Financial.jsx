@@ -1234,7 +1234,7 @@ Maximo 150 palabras. Texto plano, sin markdown.`
       </div>
 
       {/* ── JENAI Financial Insights ── */}
-      <div className="max-w-7xl mx-auto w-full px-4 sm:px-6 pt-3">
+      <div className="app-container pt-3">
         <JENAIInsightBanner
           context="financial"
           data={{
