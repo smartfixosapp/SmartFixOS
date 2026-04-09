@@ -132,8 +132,8 @@ export default function Recharges() {
   };
 
   return (
-    <div className="min-h-screen bg-[radial-gradient(circle_at_top,#0f172a_0%,#020617_45%,#000_90%)] theme-light:bg-gray-50 p-3 sm:p-6">
-      <div className="max-w-7xl mx-auto">
+    <div className="min-h-screen bg-[radial-gradient(circle_at_top,#0f172a_0%,#020617_45%,#000_90%)] theme-light:bg-gray-50 py-3 sm:py-6">
+      <div className="app-container">
         {/* Header con estadísticas */}
         <div className="bg-gradient-to-br from-cyan-600/10 to-emerald-600/10 backdrop-blur-xl border border-cyan-500/20 rounded-2xl p-6 mb-6 shadow-[0_8px_32px_rgba(0,168,232,0.3)] theme-light:bg-white theme-light:border-gray-200">
           <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4 mb-6">
