@@ -894,6 +894,18 @@ export default function PurchaseOrderDetailDialog({
                             className="h-8 w-24 text-right bg-white/5 border border-white/10 rounded-lg text-white text-xs focus:outline-none focus:border-teal-500/50 px-2"
                           />
                         </div>
+                        <div className="flex flex-col items-end gap-1">
+                          <label className="text-[9px] text-cyan-300/70 font-bold" title="Precio de venta al cliente">Venta</label>
+                          <input
+                            type="number"
+                            step="0.01"
+                            min={0}
+                            value={it.unit_price ?? 0}
+                            onChange={(e) => handleChangeItemPrice(idx, e.target.value)}
+                            title="Precio de venta (se aplica al producto y a la OT enlazada)"
+                            className="h-8 w-24 text-right bg-cyan-500/[0.05] border border-cyan-500/20 rounded-lg text-white text-xs focus:outline-none focus:border-cyan-500/50 px-2"
+                          />
+                        </div>
                         <button
                           onClick={() => handleRemoveItem(idx)}
                           className="w-8 h-8 mt-4 rounded-xl bg-red-500/10 border border-red-500/20 flex items-center justify-center text-red-400 hover:bg-red-500/20 transition-all"
