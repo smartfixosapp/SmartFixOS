@@ -19,7 +19,7 @@ export default function ModernTopNav() {
 
   const hardNavigate = (path) => {
     if (location.pathname === path) return;
-    window.location.assign(path);
+    navigate(path);
   };
 
   const navItems = [
