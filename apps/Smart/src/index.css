@@ -232,7 +232,9 @@ button:focus-visible {
 .liquid-glass-subtle,
 .liquid-glass-strong,
 .liquid-glass-floating {
-  position: relative;
+  /* NOTE: No `position: relative` here — it would override `position: fixed`
+     on Radix Dialog/Sheet/AlertDialog content and break modal centering.
+     Callers that need relative positioning should add it explicitly. */
   isolation: isolate;
   -webkit-backdrop-filter: blur(20px) saturate(180%);
           backdrop-filter: blur(20px) saturate(180%);
