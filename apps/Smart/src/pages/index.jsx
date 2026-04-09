@@ -63,12 +63,10 @@ const Menu                  = lazyWithRetry(() => import("./Menu"));
 // Minimal spinner shown while a lazy chunk loads.
 // Uses full-screen dark bg so any brief Suspense gap blends with the
 // rest of the dark UI instead of flashing white.
+// Delegates to <PageSpinner> for consistency with the rest of the app.
+import { PageSpinner } from "@/components/ui/spinner";
 function PageLoader() {
-  return (
-    <div className="flex items-center justify-center min-h-screen bg-[#0a0a0c]">
-      <div className="w-6 h-6 border-2 border-white/20 border-t-white/70 rounded-full animate-spin" />
-    </div>
-  );
+  return <PageSpinner />;
 }
 
 // Pre-load the chunks for the top-level pages once the app has mounted.
