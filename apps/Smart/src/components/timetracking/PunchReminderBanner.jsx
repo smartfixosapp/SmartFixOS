@@ -11,6 +11,7 @@ import React, { useEffect, useState, useCallback } from "react";
 import { dataClient } from "@/components/api/dataClient";
 import { Clock, AlertTriangle, X } from "lucide-react";
 import { toast } from "sonner";
+import { useVisibleInterval } from "@/hooks/useVisibleInterval";
 
 const DAY_KEYS = ["sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday"];
 
