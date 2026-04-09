@@ -203,6 +203,7 @@ export default function PurchaseOrderDetailDialog({
           received_quantity: receivedQty,
           unit_cost: cost,
           unit_price: price,
+          category: it.category || "other",
           is_tool: !!it.is_tool,
           line_total: qty * cost,
           // Las herramientas nunca se enlazan a una OT
