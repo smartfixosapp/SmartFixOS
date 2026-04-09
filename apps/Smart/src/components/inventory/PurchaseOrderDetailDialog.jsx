@@ -248,7 +248,8 @@ export default function PurchaseOrderDetailDialog({
       try {
         for (const it of form.items) {
           const originalWoId = it._original_work_order_id || "";
-          const newWoId = it.work_order_id || "";
+          // Las herramientas nunca se enlazan a OT
+          const newWoId = it.is_tool ? "" : (it.work_order_id || "");
           if (originalWoId === newWoId) continue; // sin cambios
 
           if (originalWoId) {
