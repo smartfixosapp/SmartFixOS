@@ -360,6 +360,14 @@ export default function Financial() {
       setPoProducts(Array.isArray(productsData) ? productsData : []);
       setPoWorkOrders(Array.isArray(workOrdersData) ? workOrdersData : []);
 
+      // Cargar clientes para gráfica de nuevos clientes por semana
+      try {
+        const customersData = dataClient.entities.Customer?.list
+          ? await dataClient.entities.Customer.list("-created_date", 500).catch(() => [])
+          : [];
+        setCustomersList(Array.isArray(customersData) ? customersData : []);
+      } catch { /* no-op */ }
+
       // Notificaciones de OCs vencidas — máximo 1 por OC cada 24h
       try {
         const todayKey = new Date().toISOString().slice(0, 10);
