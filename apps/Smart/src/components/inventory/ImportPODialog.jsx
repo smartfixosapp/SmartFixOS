@@ -6,6 +6,12 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { base44 } from "@/api/base44Client";
 import {
+  isDeferredMethod,
+  defaultSettlementDate,
+  buildSettlementFields,
+  PAYMENT_METHOD_LABELS,
+} from "@/components/utils/deferredPayments";
+import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
