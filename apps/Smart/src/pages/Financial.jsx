@@ -1577,6 +1577,19 @@ Maximo 150 palabras. Texto plano, sin markdown.`
           </div>
         )}
 
+        {/* Tab: Pagos diferidos */}
+        {activeTab === "diferidos" && (
+          <div className="mt-1">
+            <ErrorBoundary>
+              <DeferredPaymentsPanel
+                transactions={expenses}
+                mode="full"
+                onTransactionsChanged={loadData}
+              />
+            </ErrorBoundary>
+          </div>
+        )}
+
         {/* Tab: Órdenes de Compra */}
         {activeTab === "compras" && (() => {
           const statusLabel = (s) => ({
