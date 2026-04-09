@@ -241,6 +241,79 @@ export default function ExpenseDialog({ open, onClose, onSuccess, drawer, defaul
               </div>
             </div>
 
+            {/* Método de pago + detección de pago diferido */}
+            <div className="space-y-2">
+              <label className="text-[10px] font-black text-white/40 uppercase tracking-widest ml-1">
+                Método de pago
+              </label>
+              <Select
+                value={formData.payment_method}
+                onValueChange={(value) =>
+                  setFormData((prev) => ({
+                    ...prev,
+                    payment_method: value,
+                    settles_on: isDeferredMethod(value)
+                      ? (prev.settles_on || defaultSettlementDate(value))
+                      : "",
+                  }))
+                }
+              >
+                <SelectTrigger className="bg-white/5 border-white/10 text-white h-11 rounded-2xl px-4 focus:border-orange-500/50 font-bold">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent className="bg-[#111] border-white/10 text-white rounded-2xl">
+                  <SelectItem value="cash" className="focus:bg-orange-500/20 rounded-xl mx-1 my-0.5">
+                    {PAYMENT_METHOD_ICONS.cash} {PAYMENT_METHOD_LABELS.cash}
+                  </SelectItem>
+                  <SelectItem value="card" className="focus:bg-orange-500/20 rounded-xl mx-1 my-0.5">
+                    {PAYMENT_METHOD_ICONS.card} {PAYMENT_METHOD_LABELS.card}
+                  </SelectItem>
+                  <SelectItem value="transfer" className="focus:bg-orange-500/20 rounded-xl mx-1 my-0.5">
+                    {PAYMENT_METHOD_ICONS.transfer} {PAYMENT_METHOD_LABELS.transfer}
+                  </SelectItem>
+                  <SelectItem value="ath_movil" className="focus:bg-orange-500/20 rounded-xl mx-1 my-0.5">
+                    {PAYMENT_METHOD_ICONS.ath_movil} {PAYMENT_METHOD_LABELS.ath_movil}
+                  </SelectItem>
+                  <div className="my-1 border-t border-white/10" />
+                  <div className="px-3 py-1 text-[9px] uppercase tracking-widest text-amber-400/60 font-black">
+                    ⏳ Sale del banco después
+                  </div>
+                  <SelectItem value="credit_card" className="focus:bg-amber-500/20 rounded-xl mx-1 my-0.5">
+                    {PAYMENT_METHOD_ICONS.credit_card} {PAYMENT_METHOD_LABELS.credit_card}
+                  </SelectItem>
+                  <SelectItem value="klarna" className="focus:bg-amber-500/20 rounded-xl mx-1 my-0.5">
+                    {PAYMENT_METHOD_ICONS.klarna} {PAYMENT_METHOD_LABELS.klarna}
+                  </SelectItem>
+                  <SelectItem value="check" className="focus:bg-amber-500/20 rounded-xl mx-1 my-0.5">
+                    {PAYMENT_METHOD_ICONS.check} {PAYMENT_METHOD_LABELS.check}
+                  </SelectItem>
+                  <SelectItem value="paypal_credit" className="focus:bg-amber-500/20 rounded-xl mx-1 my-0.5">
+                    {PAYMENT_METHOD_ICONS.paypal_credit} {PAYMENT_METHOD_LABELS.paypal_credit}
+                  </SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            {isDeferredMethod(formData.payment_method) && (
+              <div className="space-y-2 rounded-2xl bg-amber-500/[0.05] border border-amber-500/20 p-4">
+                <label className="text-[10px] font-black text-amber-300 uppercase tracking-widest flex items-center gap-2">
+                  <Calendar className="w-3 h-3" />
+                  ¿Cuándo saldrá del banco?
+                </label>
+                <Input
+                  type="date"
+                  value={formData.settles_on}
+                  onChange={(e) => setFormData({ ...formData, settles_on: e.target.value })}
+                  className="bg-white/5 border-amber-500/20 text-white h-11 rounded-xl px-4 focus:border-amber-500/50 font-bold"
+                />
+                <p className="text-[10px] text-amber-300/60 leading-relaxed">
+                  Este gasto NO se descontará del efectivo/banco hoy. Aparecerá en
+                  "Pagos diferidos" hasta la fecha seleccionada, donde podrás
+                  marcarlo como pagado cuando veas el cargo en tu estado de cuenta.
+                </p>
+              </div>
+            )}
+
             <div className="flex gap-3 pt-2">
               <Button
                 type="button"
