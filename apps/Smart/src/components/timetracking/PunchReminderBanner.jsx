@@ -130,16 +130,17 @@ export default function PunchReminderBanner() {
 
   useEffect(() => {
     evaluate();
-    const interval = setInterval(evaluate, 60_000);
     const onUpdate = () => evaluate();
     window.addEventListener("employee-schedules-updated", onUpdate);
     window.addEventListener("punch-status-changed", onUpdate);
     return () => {
-      clearInterval(interval);
       window.removeEventListener("employee-schedules-updated", onUpdate);
       window.removeEventListener("punch-status-changed", onUpdate);
     };
   }, [evaluate]);
+
+  // Pausa cuando la pestaña está oculta — ahorra batería
+  useVisibleInterval(evaluate, 60_000, [evaluate]);
 
   const handlePunch = async () => {
     if (busy) return;
