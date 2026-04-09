@@ -50,7 +50,7 @@ const COLOR_PRESETS = [
   { name: "Fucsia", value: "#D946EF" }
 ];
 
-function StatusItem({ status, index, onEdit, onDelete, onToggleActive, isEditing }) {
+function StatusItem({ status, index, total, onEdit, onDelete, onToggleActive, isEditing, onMoveUp, onMoveDown }) {
   const bgOpacity = status.isActive ? "20" : "10";
   const textOpacity = status.isActive ? "text-white" : "text-gray-500";
   
