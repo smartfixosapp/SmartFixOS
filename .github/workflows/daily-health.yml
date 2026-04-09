@@ -1,0 +1,87 @@
+name: Daily Health Check
+
+on:
+  schedule:
+    # 6:17 AM America/Santo_Domingo = 10:17 UTC
+    - cron: '17 10 * * *'
+  workflow_dispatch:
+
+jobs:
+  security:
+    name: Security & Secrets
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9.7.0
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        working-directory: apps/Smart
+        run: pnpm install --frozen-lockfile
+
+      - name: npm audit (high+critical only)
+        working-directory: apps/Smart
+        run: pnpm audit --audit-level=high
+
+      - name: Scan for secrets
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  quality:
+    name: Lint & Types
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9.7.0
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        working-directory: apps/Smart
+        run: pnpm install --frozen-lockfile
+
+      - name: Lint
+        working-directory: apps/Smart
+        run: pnpm lint
+
+      - name: Type check
+        working-directory: apps/Smart
+        run: pnpm tsc --noEmit
+
+  supabase-health:
+    name: Supabase API Health
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Ping Supabase REST API
+        run: |
+          STATUS=$(curl -s -o /dev/null -w "%{http_code}" "https://idntuvtabecwubzswpwi.supabase.co/rest/v1/?apikey=${{ secrets.SUPABASE_ANON_KEY }}")
+          echo "Supabase status: $STATUS"
+          if [ "$STATUS" -ge 500 ]; then
+            echo "::error::Supabase returned 5xx status"
+            exit 1
+          fi
