@@ -1154,8 +1154,8 @@ export default function UsersManagement() {
   // Vista de Control de Tiempo
   if (activeView === "time") {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-950 via-emerald-950 to-slate-900 p-4">
-        <div className="max-w-7xl mx-auto">
+      <div className="min-h-screen bg-gradient-to-br from-slate-950 via-emerald-950 to-slate-900 py-4">
+        <div className="app-container">
           <button
             onClick={() => setActiveView("users")}
             className="flex items-center gap-2 text-white/50 hover:text-white mb-6 text-sm font-bold transition-colors"
