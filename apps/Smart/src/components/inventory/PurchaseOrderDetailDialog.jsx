@@ -876,24 +876,44 @@ export default function PurchaseOrderDetailDialog({
                             </span>
                           </label>
                           {!it.is_tool && (
-                            <div>
-                              <p className="text-[9px] text-white/30 font-black uppercase mb-0.5">
-                                🔗 Enlazar a orden de trabajo
-                              </p>
-                              <select
-                                value={it.work_order_id || ""}
-                                onChange={(e) => handleChangeItemWorkOrder(idx, e.target.value)}
-                                className="w-full bg-zinc-900 border border-white/10 rounded-lg px-2 py-1 text-[11px] text-white"
-                              >
-                                <option value="">— Sin orden de trabajo —</option>
-                                {workOrders.slice(0, 200).map((wo) => (
-                                  <option key={wo.id} value={wo.id}>
-                                    {wo.order_number || wo.id?.slice(-6)}
-                                    {wo.customer_name ? ` · ${wo.customer_name}` : ""}
-                                  </option>
-                                ))}
-                              </select>
-                            </div>
+                            <>
+                              <div>
+                                <p className="text-[9px] text-white/30 font-black uppercase mb-0.5">
+                                  📦 Categoría
+                                </p>
+                                <select
+                                  value={it.category || "other"}
+                                  onChange={(e) => handleChangeItemCategory(idx, e.target.value)}
+                                  className="w-full bg-zinc-900 border border-white/10 rounded-lg px-2 py-1 text-[11px] text-white"
+                                >
+                                  <option value="screen">Pantallas</option>
+                                  <option value="battery">Baterías</option>
+                                  <option value="charger">Cargadores</option>
+                                  <option value="cable">Cables</option>
+                                  <option value="case">Cases</option>
+                                  <option value="diagnostic">Diagnóstico</option>
+                                  <option value="other">Otros</option>
+                                </select>
+                              </div>
+                              <div>
+                                <p className="text-[9px] text-white/30 font-black uppercase mb-0.5">
+                                  🔗 Enlazar a orden de trabajo
+                                </p>
+                                <select
+                                  value={it.work_order_id || ""}
+                                  onChange={(e) => handleChangeItemWorkOrder(idx, e.target.value)}
+                                  className="w-full bg-zinc-900 border border-white/10 rounded-lg px-2 py-1 text-[11px] text-white"
+                                >
+                                  <option value="">— Sin orden de trabajo —</option>
+                                  {workOrders.slice(0, 200).map((wo) => (
+                                    <option key={wo.id} value={wo.id}>
+                                      {wo.order_number || wo.id?.slice(-6)}
+                                      {wo.customer_name ? ` · ${wo.customer_name}` : ""}
+                                    </option>
+                                  ))}
+                                </select>
+                              </div>
+                            </>
                           )}
                         </div>
                       )}
