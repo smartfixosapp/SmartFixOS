@@ -2754,7 +2754,7 @@ export default function PinAccess() {
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.3 }}
-            className="bg-gradient-to-br from-slate-900/60 to-black/60 backdrop-blur-2xl border border-white/10 rounded-3xl p-8 sm:p-12 mb-16">
+            className="liquid-glass-strong rounded-3xl p-8 sm:p-12 mb-16">
 
             <div className="grid lg:grid-cols-2 gap-12 items-center">
               {/* Photos Gallery */}
