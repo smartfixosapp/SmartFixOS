@@ -14,7 +14,7 @@ import {
   DollarSign, TrendingUp, TrendingDown, Wallet, Receipt,
   CreditCard, Landmark, RefreshCw, Plus, Target, PieChart,
   Edit2, Trash2, Save, Download, Filter, X, AlertTriangle, Sparkles,
-  ShoppingCart, Eye, Truck
+  ShoppingCart, Eye, Truck, Clock
 } from "lucide-react";
 import { format, startOfDay, endOfDay, isWithinInterval } from "date-fns";
 import { es } from "date-fns/locale";
@@ -34,6 +34,7 @@ import PurchaseOrderDialog from "../components/inventory/PurchaseOrderDialog";
 import PurchaseOrderDetailDialog from "../components/inventory/PurchaseOrderDetailDialog";
 import ImportPODialog from "../components/inventory/ImportPODialog";
 import FinancialCharts from "../components/financial/FinancialCharts";
+import DeferredPaymentsPanel from "../components/financial/DeferredPaymentsPanel";
 import { loadSuppliersSafe } from "@/components/utils/suppliers";
 import { useNavigate } from "react-router-dom";
 import { usePlanLimits } from "@/hooks/usePlanLimits";
