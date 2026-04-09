@@ -17,15 +17,12 @@ function DeviceIcon({ type, brand, model }) {
   return <Icon className="w-3.5 h-3.5 text-white/50 shrink-0" />;
 }
 
-// Estados ACCIONABLES — lo que puedes trabajar AHORA
-// Se excluyen los que dependen de terceros: esperando piezas, esperando aprobación,
-// esperando cliente, reparación externa, listo para recoger, cancelado, etc.
+// Estados ACCIONABLES — solo los que estamos trabajando en el momento
 const ACTIONABLE_STATUSES = new Set([
-  "intake",         // Recepción — hay que empezar
-  "diagnosing",     // Diagnóstico — trabajo activo
-  "in_progress",    // En Reparación — trabajo activo
-  "pending_order",  // Pendiente a Ordenar — hay que ordenar la pieza
-  "warranty",       // Garantía — hay que evaluar
+  "intake",       // Recepción
+  "diagnosing",   // Diagnóstico
+  "in_progress",  // En Reparación
+  "warranty",     // Garantía
 ]);
 
 function extractSeq(orderNumber) {
