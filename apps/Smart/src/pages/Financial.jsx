@@ -1350,7 +1350,10 @@ Maximo 150 palabras. Texto plano, sin markdown.`
                   },
                   {
                     id: "expense",    tab: "movimientos", filter: "expense",
-                    label: "Dinero que salió",    sublabel: "Gastos del negocio",
+                    label: "Dinero que salió",
+                    sublabel: unsettledTotal > 0
+                      ? `Del banco: $${settledExpensesTotal.toFixed(2)} · Pendiente: $${unsettledTotal.toFixed(2)}`
+                      : "Gastos del negocio",
                     value: totalExpenses,          icon: TrendingDown,
                     active: activeTab === "movimientos" && movFilter === "expense",
                     scheme: "red",
