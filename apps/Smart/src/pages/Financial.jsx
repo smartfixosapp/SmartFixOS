@@ -2767,13 +2767,13 @@ function FixedExpenseDialog({ open, onClose, onSave, expense }) {
 
             <div className="space-y-2">
               <label className="text-[10px] font-black text-white/40 uppercase tracking-widest ml-1">Categoría</label>
-              <div className="grid grid-cols-5 gap-1.5">
+              <div className="grid grid-cols-3 sm:grid-cols-5 gap-1.5">
                 {categories.map(cat => (
                   <button
                     key={cat.value}
                     type="button"
                     onClick={() => setFormData({ ...formData, category: cat.value, icon: cat.icon })}
-                    className={`flex flex-col items-center justify-center py-2.5 rounded-xl border transition-all text-[8px] font-black uppercase tracking-tight ${
+                    className={`flex flex-col items-center justify-center py-2.5 rounded-xl border transition-all text-[9px] sm:text-[8px] font-black uppercase tracking-tight ${
                       formData.category === cat.value
                         ? "bg-cyan-500/20 border-cyan-500/40 text-cyan-400"
                         : "bg-white/5 border-white/5 text-white/40 hover:border-white/20"
