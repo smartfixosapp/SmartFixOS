@@ -1087,9 +1087,22 @@ export default function PurchaseOrderDetailDialog({
 
             {/* Tracking del envío */}
             <div className="bg-[#111114]/80 border border-white/[0.06] rounded-[24px] p-5">
-              <p className="text-[10px] font-black text-white/30 uppercase tracking-widest mb-3">
-                📦 Tracking del envío
-              </p>
+              <div className="flex items-center justify-between mb-3">
+                <p className="text-[10px] font-black text-white/30 uppercase tracking-widest">
+                  📦 Tracking del envío
+                </p>
+                {!editing && !trackingEditing && (
+                  <button
+                    onClick={() => {
+                      setTrackingDraft(form.tracking_number || "");
+                      setTrackingEditing(true);
+                    }}
+                    className="text-[10px] font-black text-cyan-300 hover:text-cyan-200 uppercase tracking-wider"
+                  >
+                    {form.tracking_number ? "✏️ Editar" : "+ Añadir"}
+                  </button>
+                )}
+              </div>
               {editing ? (
                 <input
                   type="text"
@@ -1098,6 +1111,43 @@ export default function PurchaseOrderDetailDialog({
                   placeholder="Número de tracking (USPS, UPS, FedEx, DHL, etc.)"
                   className="w-full bg-[#111114]/60 border border-white/[0.08] rounded-xl px-4 py-3 text-white text-sm placeholder:text-white/50 focus:outline-none focus:border-teal-500/50"
                 />
+              ) : trackingEditing ? (
+                <div className="space-y-2">
+                  <input
+                    type="text"
+                    autoFocus
+                    value={trackingDraft}
+                    onChange={(e) => setTrackingDraft(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") handleSaveTrackingInline();
+                      if (e.key === "Escape") { setTrackingEditing(false); setTrackingDraft(""); }
+                    }}
+                    placeholder="Número de tracking (USPS, UPS, FedEx, DHL, etc.)"
+                    className="w-full bg-[#111114]/60 border border-cyan-500/30 rounded-xl px-4 py-3 text-white text-sm placeholder:text-white/50 focus:outline-none focus:border-cyan-500/60"
+                  />
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={handleSaveTrackingInline}
+                      disabled={trackingSaving}
+                      className="px-3 py-1.5 rounded-lg bg-emerald-500/15 border border-emerald-500/25 text-emerald-300 text-[11px] font-black hover:bg-emerald-500/25 disabled:opacity-50"
+                    >
+                      {trackingSaving ? "Guardando…" : "💾 Guardar"}
+                    </button>
+                    <button
+                      onClick={() => { setTrackingEditing(false); setTrackingDraft(""); }}
+                      disabled={trackingSaving}
+                      className="px-3 py-1.5 rounded-lg bg-white/5 border border-white/10 text-white/60 text-[11px] font-black hover:bg-white/10"
+                    >
+                      Cancelar
+                    </button>
+                    <p className="text-[10px] text-white/30 ml-auto">
+                      Enter para guardar · Esc cancelar
+                    </p>
+                  </div>
+                  <p className="text-[10px] text-amber-300/70 mt-1">
+                    💡 Al guardar, las OTs enlazadas pasarán a "Esperando piezas"
+                  </p>
+                </div>
               ) : form.tracking_number ? (() => {
                 const tn = form.tracking_number.trim();
                 // Detectar carrier por patrón
