@@ -1051,17 +1051,17 @@ export default function AddItemModal({
                               {item.taxable === false && <span className="text-cyan-400 ml-1">sin IVU</span>}
                             </p>
                           </div>
-                          <div className="flex items-center gap-1.5 shrink-0">
-                            <button onClick={() => changeQty(idx, -1)} className="h-6 w-6 rounded-lg border border-white/10 bg-white/5 text-white/70 hover:bg-white/15 grid place-items-center transition"><Minus className="w-3 h-3" /></button>
-                            <span className="w-5 text-center text-xs font-bold text-white">{item.qty}</span>
-                            <button onClick={() => changeQty(idx, 1)} className="h-6 w-6 rounded-lg border border-white/10 bg-white/5 text-white/70 hover:bg-white/15 grid place-items-center transition"><Plus className="w-3 h-3" /></button>
-                            <button onClick={() => removeItem(idx)} className="h-6 w-6 rounded-lg border border-red-500/25 bg-red-500/10 text-red-400 hover:bg-red-500/25 grid place-items-center transition"><Trash2 className="w-3 h-3" /></button>
+                          <div className="flex items-center gap-1.5 shrink-0 lg:gap-2">
+                            <button onClick={() => changeQty(idx, -1)} className="h-6 w-6 lg:h-9 lg:w-9 rounded-lg border border-white/10 bg-white/5 text-white/70 hover:bg-white/15 grid place-items-center transition"><Minus className="w-3 h-3 lg:w-4 lg:h-4" /></button>
+                            <span className="w-5 lg:w-8 text-center text-xs lg:text-base font-bold text-white">{item.qty}</span>
+                            <button onClick={() => changeQty(idx, 1)} className="h-6 w-6 lg:h-9 lg:w-9 rounded-lg border border-white/10 bg-white/5 text-white/70 hover:bg-white/15 grid place-items-center transition"><Plus className="w-3 h-3 lg:w-4 lg:h-4" /></button>
+                            <button onClick={() => removeItem(idx)} className="h-6 w-6 lg:h-9 lg:w-9 rounded-lg border border-red-500/25 bg-red-500/10 text-red-400 hover:bg-red-500/25 grid place-items-center transition"><Trash2 className="w-3 h-3 lg:w-4 lg:h-4" /></button>
                           </div>
                         </div>
                         {/* Discount + IVU controls */}
-                        <div className="flex items-center gap-2 pt-1 border-t border-white/[0.05]">
-                          <div className="flex items-center gap-1 flex-1">
-                            <span className="text-[10px] text-white/30">Desc:</span>
+                        <div className="flex items-center gap-2 pt-1 border-t border-white/[0.05] lg:pt-3 lg:gap-4">
+                          <div className="flex items-center gap-1 flex-1 lg:gap-2">
+                            <span className="text-[10px] text-white/30 lg:text-xs lg:font-bold lg:uppercase lg:tracking-wider">Desc:</span>
                             <input
                               type="number"
                               min="0"
@@ -1072,15 +1072,15 @@ export default function AddItemModal({
                                 const val = Math.max(0, Math.min(100, Number(e.target.value) || 0));
                                 setCartItems(prev => { const next = [...prev]; next[idx] = { ...next[idx], discount_percentage: val }; return next; });
                               }}
-                              className="w-12 bg-white/5 border border-white/10 rounded px-1.5 py-0.5 text-[11px] text-white text-center outline-none focus:border-amber-500/50"
+                              className="w-12 lg:w-16 bg-white/5 border border-white/10 rounded px-1.5 py-0.5 lg:px-2 lg:py-1.5 text-[11px] lg:text-sm text-white text-center outline-none focus:border-amber-500/50"
                             />
-                            <span className="text-[10px] text-white/30">%</span>
+                            <span className="text-[10px] text-white/30 lg:text-xs">%</span>
                           </div>
                           <button
                             onClick={() => {
                               setCartItems(prev => { const next = [...prev]; next[idx] = { ...next[idx], taxable: !(next[idx].taxable !== false) }; return next; });
                             }}
-                            className={`px-2 py-0.5 rounded text-[10px] font-bold transition-all ${
+                            className={`px-2 py-0.5 lg:px-3 lg:py-1.5 rounded text-[10px] lg:text-xs font-bold transition-all ${
                               item.taxable !== false
                                 ? "bg-emerald-500/20 text-emerald-300 border border-emerald-500/30"
                                 : "bg-white/5 text-white/40 border border-white/10"
@@ -1088,7 +1088,7 @@ export default function AddItemModal({
                           >
                             IVU {item.taxable !== false ? "ON" : "OFF"}
                           </button>
-                          <span className="text-[11px] font-semibold text-white/60">${lineTotal.toFixed(2)}</span>
+                          <span className="text-[11px] lg:text-base font-semibold lg:font-bold text-white/60 lg:text-white">${lineTotal.toFixed(2)}</span>
                         </div>
                       </div>
                       );
