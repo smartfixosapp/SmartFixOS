@@ -1223,7 +1223,7 @@ Maximo 150 palabras. Texto plano, sin markdown.`
           </div>
         </div>
         {dateFilter === "custom" && (
-          <div className="max-w-7xl mx-auto flex gap-2 mt-2 pt-2 border-t border-white/5">
+          <div className="app-container flex gap-2 mt-2 pt-2 border-t border-white/5">
             <input type="date" value={customStartDate} onChange={e => setCustomStartDate(e.target.value)}
               className="flex-1 bg-black/40 border border-white/10 text-white text-xs h-9 rounded-xl px-3 focus:border-cyan-500/50 outline-none" />
             <span className="text-white/50 self-center text-xs">→</span>
