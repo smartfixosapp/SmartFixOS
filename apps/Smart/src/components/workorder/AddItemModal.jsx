@@ -1008,20 +1008,24 @@ export default function AddItemModal({
 
         {/* ── Floating Cart ── */}
         {showCart && (
-          <div className="pointer-events-none absolute inset-x-0 bottom-4 px-4 z-[100] sm:bottom-6 sm:px-6">
-            <div className="pointer-events-auto ml-auto w-full max-w-[480px] rounded-[28px] border border-emerald-500/30 bg-[#0A0C0B]/95 shadow-[0_30px_60px_rgba(0,0,0,0.65)] ring-1 ring-emerald-500/10 overflow-hidden backdrop-blur-3xl">
+          <div className="pointer-events-none absolute inset-x-0 bottom-4 px-4 z-[100] sm:bottom-6 sm:px-6 lg:inset-0 lg:p-0 lg:flex lg:items-center lg:justify-center">
+            {/* Mobile: floating bottom sheet | Desktop: centered large panel */}
+            <div className="pointer-events-auto ml-auto w-full max-w-[480px] rounded-[28px] border border-emerald-500/30 bg-[#0A0C0B]/95 shadow-[0_30px_60px_rgba(0,0,0,0.65)] ring-1 ring-emerald-500/10 overflow-hidden backdrop-blur-3xl lg:ml-0 lg:max-w-[720px] lg:max-h-[85vh] lg:flex lg:flex-col">
               {/* Cart header */}
-              <div className="flex items-center justify-between px-6 pt-5 pb-3">
-                <p className="text-[10px] font-black uppercase tracking-[0.25em] text-white/40">
-                  Items en Orden <span className="text-emerald-400 ml-1">({countInCart})</span>
-                </p>
-                <div className="flex items-center gap-4">
-                  <p className="text-2xl font-black text-emerald-400 tracking-tighter shadow-sm">${totals.total.toFixed(2)}</p>
+              <div className="flex items-center justify-between px-6 pt-5 pb-3 lg:px-8 lg:pt-6 lg:pb-4 lg:border-b lg:border-white/[0.06] lg:shrink-0">
+                <div>
+                  <p className="text-[10px] font-black uppercase tracking-[0.25em] text-white/40 lg:text-xs">
+                    Items en Orden <span className="text-emerald-400 ml-1">({countInCart})</span>
+                  </p>
+                  <p className="hidden lg:block text-[10px] text-white/30 mt-1">Ajusta cantidades, descuentos e IVU antes de aplicar</p>
+                </div>
+                <div className="flex items-center gap-4 lg:gap-6">
+                  <p className="text-2xl font-black text-emerald-400 tracking-tighter shadow-sm lg:text-4xl">${totals.total.toFixed(2)}</p>
                   <button
                     onClick={() => setShowCart(false)}
-                    className="flex h-6 w-6 items-center justify-center rounded-lg bg-white/8 hover:bg-white/15 text-white/60 hover:text-white transition"
+                    className="flex h-6 w-6 lg:h-9 lg:w-9 items-center justify-center rounded-lg bg-white/8 hover:bg-white/15 text-white/60 hover:text-white transition"
                   >
-                    <X className="w-3.5 h-3.5" />
+                    <X className="w-3.5 h-3.5 lg:w-5 lg:h-5" />
                   </button>
                 </div>
               </div>
