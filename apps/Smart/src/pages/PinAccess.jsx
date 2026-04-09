@@ -2664,7 +2664,7 @@ export default function PinAccess() {
     initial={{ opacity: 0, y: 20, scale: 0.95 }}
     animate={{ opacity: 1, y: 0, scale: 1 }}
     transition={{ duration: 0.5, delay, type: "spring", stiffness: 100 }}
-    className={`relative overflow-hidden rounded-[2rem] bg-white/[0.03] backdrop-blur-xl border border-white/[0.05] hover:bg-white/[0.06] transition-colors p-6 sm:p-8 flex flex-col ${className}`}>
+    className={`liquid-glass relative overflow-hidden rounded-[2rem] hover:bg-white/[0.09] transition-colors p-6 sm:p-8 flex flex-col ${className}`}>
 
       {children}
     </motion.div>;
