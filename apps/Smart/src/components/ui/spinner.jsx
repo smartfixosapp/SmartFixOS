@@ -43,7 +43,9 @@ export function Spinner({ size = "md", className, ...props }) {
       aria-label="Cargando"
       className={cn(
         "inline-block rounded-full animate-spin",
-        "border-current/20 border-t-current",
+        // Track is a faint white, head is solid white. On light surfaces
+        // override via className (e.g. "border-slate-200 border-t-slate-700")
+        "border-white/15 border-t-white/80",
         sizes[size] || sizes.md,
         className
       )}
