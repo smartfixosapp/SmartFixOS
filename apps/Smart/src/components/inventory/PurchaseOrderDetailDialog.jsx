@@ -86,6 +86,9 @@ export default function PurchaseOrderDetailDialog({
             received_quantity: it.received_quantity != null ? Number(it.received_quantity) : qty,
             unit_cost: Number(it.unit_cost || it.cost || prod?.cost || 0),
             unit_price: Number(it.unit_price || prod?.price || 0),
+            // Categoría del producto (para gráfica Stock por categoría)
+            category: it.category || prod?.category || "other",
+            _original_category: prod?.category || "",
             // Marcador "herramienta": NO se aplica a inventario ni a OT, solo va a gastos
             is_tool: !!it.is_tool,
             work_order_id: workOrderId,
