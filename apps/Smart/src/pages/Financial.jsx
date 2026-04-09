@@ -1251,7 +1251,7 @@ Maximo 150 palabras. Texto plano, sin markdown.`
       </div>
 
       {/* ── Layout principal ── */}
-      <div className="max-w-7xl mx-auto w-full px-4 sm:px-6 pt-4 pb-28 flex-1">
+      <div className="app-container pt-4 pb-28 flex-1">
         <div className="lg:flex lg:gap-5 lg:items-start">
 
           {/* ── Sidebar (KPIs + acciones) — sticky en desktop ── */}
