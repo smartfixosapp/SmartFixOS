@@ -447,6 +447,17 @@ export default function OrderStatusManagementTab() {
     setHasChanges(true);
   };
 
+  const moveItem = (from, to) => {
+    if (from === to || from < 0 || to < 0 || from >= statuses.length || to >= statuses.length) return;
+    const items = Array.from(statuses);
+    const [m] = items.splice(from, 1);
+    items.splice(to, 0, m);
+    setStatuses(items);
+    setHasChanges(true);
+  };
+  const handleMoveUp = (index) => moveItem(index, index - 1);
+  const handleMoveDown = (index) => moveItem(index, index + 1);
+
   const handleToggleActive = (statusId) => {
     setStatuses(prev => prev.map(s => 
       s.id === statusId ? { ...s, isActive: !s.isActive } : s
