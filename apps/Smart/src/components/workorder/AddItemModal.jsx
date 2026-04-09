@@ -1045,11 +1045,24 @@ export default function AddItemModal({
                         <div className="flex items-center gap-2 lg:gap-3">
                           <div className="min-w-0 flex-1">
                             <p className="text-xs font-semibold text-white truncate lg:text-base lg:font-bold">{item.name}</p>
-                            <p className="text-[11px] text-white/40 lg:text-xs lg:mt-0.5">
-                              ${toNum(item.price).toFixed(2)} c/u
+                            <div className="flex items-center gap-1 text-[11px] text-white/40 lg:text-xs lg:mt-0.5">
+                              <span>$</span>
+                              <input
+                                type="number"
+                                min="0"
+                                step="0.01"
+                                value={toNum(item.price, 0)}
+                                onChange={(e) => {
+                                  const val = Math.max(0, Number(e.target.value) || 0);
+                                  setCartItems(prev => { const next = [...prev]; next[idx] = { ...next[idx], price: val }; return next; });
+                                }}
+                                onFocus={(e) => e.target.select()}
+                                className="w-14 lg:w-20 bg-white/5 border border-white/10 rounded px-1.5 py-0.5 lg:px-2 lg:py-1 text-[11px] lg:text-sm text-white outline-none focus:border-emerald-500/50 hover:bg-white/10 transition"
+                              />
+                              <span>c/u</span>
                               {lineDiscount > 0 && <span className="text-amber-400 ml-1">-{lineDiscount}%</span>}
                               {item.taxable === false && <span className="text-cyan-400 ml-1">sin IVU</span>}
-                            </p>
+                            </div>
                           </div>
                           <div className="flex items-center gap-1.5 shrink-0 lg:gap-2">
                             <button onClick={() => changeQty(idx, -1)} className="h-6 w-6 lg:h-9 lg:w-9 rounded-lg border border-white/10 bg-white/5 text-white/70 hover:bg-white/15 grid place-items-center transition"><Minus className="w-3 h-3 lg:w-4 lg:h-4" /></button>
