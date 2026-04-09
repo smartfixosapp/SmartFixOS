@@ -1326,6 +1326,17 @@ Maximo 150 palabras. Texto plano, sin markdown.`
               );
             })()}
 
+            {/* Widget: Pagos diferidos — sólo se muestra si hay alguno */}
+            {unsettledExpenses.length > 0 && (
+              <ErrorBoundary>
+                <DeferredPaymentsPanel
+                  transactions={expenses}
+                  mode="widget"
+                  onTransactionsChanged={loadData}
+                />
+              </ErrorBoundary>
+            )}
+
             {/* ── Navegación unificada — todos los botones ── */}
             <div className="flex flex-col gap-2">
               {(() => {
