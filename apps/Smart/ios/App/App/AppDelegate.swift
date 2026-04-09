@@ -60,9 +60,28 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 class SceneDelegate: UIResponder, UIWindowSceneDelegate {
     var window: UIWindow?
 
+    // Cold-start: app was killed and is being launched fresh by a URL open.
+    // The URL arrives in connectionOptions.urlContexts here, NOT in openURLContexts.
+    // Without forwarding it, the OAuth deep link is silently dropped on cold start.
+    func scene(_ scene: UIScene, willConnectTo session: UISceneSession, options connectionOptions: UIScene.ConnectionOptions) {
+        if let urlContext = connectionOptions.urlContexts.first {
+            let url = urlContext.url
+            print("⚡️ [SceneDelegate] willConnectTo cold-start URL → \(url.absoluteString)")
+            // Defer slightly so Capacitor finishes bootstrapping before we hand it the URL.
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                _ = ApplicationDelegateProxy.shared.application(
+                    UIApplication.shared,
+                    open: url,
+                    options: [:]
+                )
+            }
+        }
+    }
+
     // Forward custom URL scheme opens (e.g. com.smartfixos.pr911://) to Capacitor.
     // With the scene-based lifecycle (iOS 13+), URL opens arrive here — NOT in
-    // AppDelegate.application(_:open:options:). Without this, appUrlOpen never fires.
+    // AppDelegate.application(_:open:options:). Without this, appUrlOpen never fires
+    // when the app was already running in background.
     func scene(_ scene: UIScene, openURLContexts URLContexts: Set<UIOpenURLContext>) {
         guard let url = URLContexts.first?.url else {
             print("⚡️ [SceneDelegate] openURLContexts called but no URL found")
@@ -73,6 +92,16 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
             UIApplication.shared,
             open: url,
             options: [:]
+        )
+    }
+
+    // Universal Links cold-start support (in case OAuth provider issues a Universal Link).
+    func scene(_ scene: UIScene, continue userActivity: NSUserActivity) {
+        print("⚡️ [SceneDelegate] continue userActivity → \(userActivity.activityType)")
+        _ = ApplicationDelegateProxy.shared.application(
+            UIApplication.shared,
+            continue: userActivity,
+            restorationHandler: { _ in }
         )
     }
 }
