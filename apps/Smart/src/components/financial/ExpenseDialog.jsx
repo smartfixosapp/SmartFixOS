@@ -72,14 +72,21 @@ export default function ExpenseDialog({ open, onClose, onSuccess, drawer, defaul
       let me = null;
       try { me = await base44.auth.me(); } catch {}
 
+      // Determinar si el pago es diferido (sale del banco después)
+      const settlementFields = buildSettlementFields({
+        method: formData.payment_method,
+        settlesOn: formData.settles_on,
+      });
+
       // Crear transacción de gasto en el mismo cliente que usa Finanzas
       const createdTransaction = await dataClient.entities.Transaction.create({
         type: "expense",
         amount: amount,
         description: formData.description,
         category: normalizeCategory(formData.category),
-        payment_method: "cash",
-        recorded_by: me?.full_name || me?.email || "Sistema"
+        payment_method: formData.payment_method,
+        recorded_by: me?.full_name || me?.email || "Sistema",
+        ...settlementFields,
       });
       const createdExpensePayload = createdTransaction || {
         id: `local-expense-${Date.now()}`,
@@ -87,9 +94,10 @@ export default function ExpenseDialog({ open, onClose, onSuccess, drawer, defaul
         amount,
         description: formData.description,
         category: normalizeCategory(formData.category),
-        payment_method: "cash",
+        payment_method: formData.payment_method,
         recorded_by: me?.full_name || me?.email || "Sistema",
         created_date: new Date().toISOString(),
+        ...settlementFields,
         _source: "transaction"
       };
 
