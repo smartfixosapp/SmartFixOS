@@ -145,7 +145,9 @@ export default function ExpenseDialog({ open, onClose, onSuccess, drawer, defaul
         amount: "",
         description: "",
         category: "other_expense",
-        reference: ""
+        reference: "",
+        payment_method: "cash",
+        settles_on: "",
       });
       
     } catch (error) {
