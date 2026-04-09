@@ -212,20 +212,18 @@ button:focus-visible {
 /* ──────────────────────────────────────────────────────────────────────────
  * Fluid container — adapts to ANY screen size without dead space
  *
- * Problem: max-w-7xl (1280px) leaves giant empty margins on 22-27" monitors
- * but is fine on 14" laptops. The "valley" between mobile and ultrawide
- * monitors was unhandled.
- *
- * Solution: clamp() based fluid sizing.
- *   - Always uses ~92% of viewport width
- *   - Caps at 120rem (1920px) so 4K monitors don't feel diluted
- *   - Padding scales fluidly from 1rem (mobile) to 2.5rem (desktop)
+ * Strategy: edge-to-edge with breathing padding.
+ *   - Width is 100% (full viewport)
+ *   - Max-width caps at 132rem (2112px) so ultrawide doesn't feel diluted
+ *   - Horizontal padding scales fluidly with viewport (16px mobile → 56px desktop)
+ *   - The padding IS the margin — no extra "frame" effect
  *
  * Result by screen size:
- *   14" laptop  (1366px) → ~1257px content, breathing room
- *   22" monitor (1920px) → ~1766px content, no more frame effect
- *   27" monitor (2560px) → 1920px content (capped), still uses real space
- *   37" monitor (3840px) → 1920px content (capped), centered comfortably
+ *   iPhone     (375px)  → 16px padding each side, 343px content
+ *   14" laptop (1366px) → 38px padding each side, 1290px content
+ *   22" monitor(1920px) → 53px padding each side, 1814px content
+ *   27" monitor(2560px) → 56px padding each side, 2448px content (capped)
+ *   37" monitor(3840px) → 56px padding each side, content fills 132rem cap
  *
  * Usage: drop-in replacement for `max-w-7xl mx-auto px-4 sm:px-6`
  *   <div class="app-container">…</div>
@@ -233,25 +231,25 @@ button:focus-visible {
 
 .app-container {
   width: 100%;
-  max-width: clamp(20rem, 92vw, 120rem);
+  max-width: 132rem; /* 2112px — only kicks in on very large monitors */
   margin-inline: auto;
-  padding-inline: clamp(1rem, 2.5vw, 2.5rem);
+  padding-inline: clamp(1rem, 3vw, 3.5rem);
 }
 
 /* Tighter variant for forms / settings / reading-width content */
 .app-container-narrow {
   width: 100%;
-  max-width: clamp(20rem, 88vw, 80rem);
+  max-width: 80rem; /* 1280px */
   margin-inline: auto;
-  padding-inline: clamp(1rem, 2.5vw, 2.5rem);
+  padding-inline: clamp(1rem, 3vw, 3.5rem);
 }
 
 /* Wide variant for dashboards with lots of widgets */
 .app-container-wide {
   width: 100%;
-  max-width: clamp(20rem, 95vw, 140rem);
+  max-width: 152rem; /* 2432px */
   margin-inline: auto;
-  padding-inline: clamp(1rem, 2vw, 2rem);
+  padding-inline: clamp(1rem, 2.5vw, 3rem);
 }
 
 /* ──────────────────────────────────────────────────────────────────────────
