@@ -20,7 +20,7 @@ function ShimmerOverlay({ via = "white/5" }) {
 
 export function OrderCardSkeleton() {
   return (
-    <div className="liquid-glass-subtle rounded-[28px] p-6 shadow-xl relative overflow-hidden">
+    <div className="liquid-glass-subtle rounded-[28px] p-6 relative overflow-hidden">
       <ShimmerOverlay />
       <div className="flex items-start gap-4 relative z-10">
         <div className="w-14 h-14 rounded-[20px] bg-white/10" />
