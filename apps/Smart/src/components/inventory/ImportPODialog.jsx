@@ -1002,17 +1002,20 @@ export default function ImportPODialog({ open, onClose, suppliers = [], products
 
       // Si la usuario marcó "Ya pagué" Y no requiere aprobación → registrar el gasto en Finanzas
       if (paidAtOrder && totalAmount > 0 && !requiresApproval) {
-        // Mapear el método de pago del UI al enum válido de la tabla transaction.
-        // El enum solo acepta: cash, card, transfer, ath_movil.
-        // Preservamos el método real del user en la descripción.
+        // Mapear método del UI al enum válido de la tabla transaction.
+        // Ahora soportamos métodos diferidos (credit_card, klarna, check, paypal_credit)
+        // con los campos is_settled y settles_on.
         const mapPaymentMethod = (m) => {
           switch (m) {
             case "cash": return "cash";
             case "card": return "card";
             case "ath_movil": return "ath_movil";
             case "transfer": return "transfer";
-            case "paypal": return "transfer"; // PayPal se mapea a transfer
-            case "check": return "transfer";  // Cheque se mapea a transfer
+            case "paypal": return "paypal_credit"; // PayPal → crédito diferido
+            case "check": return "check";          // Cheque → diferido
+            case "credit_card": return "credit_card";
+            case "klarna": return "klarna";
+            case "paypal_credit": return "paypal_credit";
             default: return "transfer";
           }
         };
@@ -1020,24 +1023,24 @@ export default function ImportPODialog({ open, onClose, suppliers = [], products
           const itemsDesc = lineItems
             .map((it) => `${it.product_name} x${it.quantity}`)
             .join(", ");
-          const methodLabel = {
-            paypal: "PayPal",
-            check: "Cheque",
-            card: "Tarjeta",
-            cash: "Efectivo",
-            transfer: "Transferencia",
-            other: "Otro",
-          }[paymentMethod] || paymentMethod;
+          const mappedMethod = mapPaymentMethod(paymentMethod);
+          const methodLabel = PAYMENT_METHOD_LABELS[mappedMethod] || mappedMethod;
           // CRÍTICO: pasar tenant_id explícito para garantizar visibilidad
           let tenantId = null;
           try { tenantId = localStorage.getItem("smartfix_tenant_id"); } catch { /* */ }
+          // Campos de liquidación: si es método diferido, marcar como no liquidado
+          const settlementFields = buildSettlementFields({
+            method: mappedMethod,
+            settlesOn: settlesOn,
+          });
           const payload = {
             type: "expense",
             category: "parts",
             amount: Math.round(totalAmount * 100) / 100,
             description: `OC ${poNumber}${supplier?.name ? ` — ${supplier.name}` : extracted?.supplier_name ? ` — ${extracted.supplier_name}` : ""} · Pago: ${methodLabel}. ${itemsDesc}`.slice(0, 500),
-            payment_method: mapPaymentMethod(paymentMethod),
+            payment_method: mappedMethod,
             order_number: poNumber,
+            ...settlementFields,
             ...(tenantId ? { tenant_id: tenantId } : {}),
           };
           console.log("📝 Creando Transaction expense:", payload);
