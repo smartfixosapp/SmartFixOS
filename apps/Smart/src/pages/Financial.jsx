@@ -1382,6 +1382,7 @@ Maximo 150 palabras. Texto plano, sin markdown.`
                   emerald: { bg: "bg-emerald-500/10", bgActive: "bg-emerald-600", border: "border-emerald-500/30", text: "text-emerald-400", sub: "text-emerald-300/50" },
                   red:     { bg: "bg-red-500/10",     bgActive: "bg-red-600",     border: "border-red-500/30",     text: "text-red-400",     sub: "text-red-300/50" },
                   cyan:    { bg: "bg-cyan-500/10",    bgActive: "bg-cyan-600",    border: "border-cyan-500/30",    text: "text-cyan-400",    sub: "text-cyan-300/50" },
+                  amber:   { bg: "bg-amber-500/10",   bgActive: "bg-amber-600",   border: "border-amber-500/30",   text: "text-amber-400",   sub: "text-amber-300/50" },
                   slate:   { bg: "bg-white/[0.04]",  bgActive: "bg-white/15",    border: "border-white/10",       text: "text-white/50",    sub: "text-white/25" },
                 };
 
