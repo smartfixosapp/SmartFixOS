@@ -1486,6 +1486,7 @@ export default function PinAccess() {
         }
 
         if (session?.user) {
+          toast.success("🟢 [D5] Sesión establecida", { duration: 4000 });
           const handler = performOAuthAuthRef.current;
           if (handler) {
             await handler(session.user);
