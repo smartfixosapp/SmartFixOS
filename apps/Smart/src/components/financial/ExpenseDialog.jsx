@@ -7,9 +7,16 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { TrendingDown, DollarSign } from "lucide-react";
+import { TrendingDown, DollarSign, Calendar } from "lucide-react";
 import AIExpenseCategorizor from "./AIExpenseCategorizor";
 import { toast } from "sonner";
+import {
+  PAYMENT_METHOD_LABELS,
+  PAYMENT_METHOD_ICONS,
+  isDeferredMethod,
+  defaultSettlementDate,
+  buildSettlementFields,
+} from "@/components/utils/deferredPayments";
 
 export default function ExpenseDialog({ open, onClose, onSuccess, drawer, defaultCategory }) {
   const [loading, setLoading] = useState(false);
@@ -17,7 +24,9 @@ export default function ExpenseDialog({ open, onClose, onSuccess, drawer, defaul
     amount: "",
     description: "",
     category: defaultCategory || "other_expense",
-    reference: ""
+    reference: "",
+    payment_method: "cash",
+    settles_on: "",
   });
 
   const categories = [
