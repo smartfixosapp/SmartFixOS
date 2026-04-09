@@ -513,7 +513,29 @@ export default function ImportPODialog({ open, onClose, suppliers = [], products
 
       // Caso 2: imagen o PDF — subir a Storage y llamar a la IA
       setUploading(true);
-      const upl = await base44.integrations.Core.UploadFile({ file, category: "purchase-orders" });
+
+      // Si es PDF, lo convertimos a PNG en el browser primero
+      // (OpenAI vision NO procesa PDFs nativamente — solo imágenes)
+      let fileToUpload = file;
+      if (isPdf) {
+        try {
+          const pngBlob = await pdfFileToPngBlob(file);
+          fileToUpload = new File(
+            [pngBlob],
+            file.name.replace(/\.pdf$/i, ".png"),
+            { type: "image/png" },
+          );
+          console.log("✅ PDF→PNG:", fileToUpload.name, fileToUpload.size, "bytes");
+        } catch (pdfErr) {
+          setUploading(false);
+          throw new Error(
+            "No se pudo leer el PDF: " + (pdfErr?.message || pdfErr) +
+            ". Conviértelo a JPG/PNG manualmente (Preview → Exportar como JPEG).",
+          );
+        }
+      }
+
+      const upl = await base44.integrations.Core.UploadFile({ file: fileToUpload, category: "purchase-orders" });
       setUploading(false);
       if (!upl?.file_url) throw new Error("No se pudo subir el archivo");
       setFileUrl(upl.file_url);
