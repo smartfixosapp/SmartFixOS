@@ -1180,8 +1180,8 @@ Maximo 150 palabras. Texto plano, sin markdown.`
     <div className="min-h-screen bg-black/95 flex flex-col">
 
       {/* ── Header ── */}
-      <div className="sticky top-0 z-30 bg-black/90 backdrop-blur-2xl border-b border-white/5 px-4 sm:px-6 py-3">
-        <div className="max-w-7xl mx-auto flex items-center justify-between gap-2">
+      <div className="sticky top-0 z-30 bg-black/90 backdrop-blur-2xl border-b border-white/5 py-3">
+        <div className="app-container flex items-center justify-between gap-2">
           <div className="flex items-center gap-2 min-w-0">
             <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-2xl bg-gradient-to-br from-cyan-500 to-blue-600 flex items-center justify-center shadow-lg shadow-cyan-500/20 shrink-0">
               <DollarSign className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-white" />
