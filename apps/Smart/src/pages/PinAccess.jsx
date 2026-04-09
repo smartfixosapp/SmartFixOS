@@ -1427,7 +1427,9 @@ export default function PinAccess() {
   useEffect(() => {
     const handleDeepLink = async (e) => {
       const { code, gintent, hash, search } = e.detail || {};
-      
+
+      toast.message("🟢 [D3] capacitor:deeplink recibido", { duration: 4000 });
+
       // Force close browser one last time just in case capacitor.js missed it
       try {
         const { Browser } = await import('@capacitor/browser');
@@ -1439,6 +1441,7 @@ export default function PinAccess() {
         let session = null;
 
         if (code) {
+          toast.message("🟡 [D4] Intercambiando código PKCE", { duration: 4000 });
           const { data, error } = await supabase.auth.exchangeCodeForSession(code);
           if (error) {
             console.error('[OAuth] exchangeCodeForSession error:', error.message);
