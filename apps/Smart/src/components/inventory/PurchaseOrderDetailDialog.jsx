@@ -391,6 +391,26 @@ export default function PurchaseOrderDetailDialog({
     }));
   };
 
+  const handleChangeItemPrice = (idx, price) => {
+    const n = Math.max(0, Number(price || 0));
+    setForm((f) => ({
+      ...f,
+      items: f.items.map((it, i) => i === idx ? { ...it, unit_price: n } : it)
+    }));
+  };
+
+  // Toggle "herramienta": al activar, desvincula la OT y marca para excluir de inventario
+  const handleToggleItemTool = (idx, isTool) => {
+    setForm((f) => ({
+      ...f,
+      items: f.items.map((it, i) =>
+        i === idx
+          ? { ...it, is_tool: !!isTool, work_order_id: isTool ? "" : it.work_order_id }
+          : it,
+      ),
+    }));
+  };
+
   const handleRemoveItem = (idx) => {
     setForm((f) => ({
       ...f,
