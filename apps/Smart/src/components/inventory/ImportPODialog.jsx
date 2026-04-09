@@ -85,6 +85,37 @@ function parseCSV(text) {
   return items;
 }
 
+// Renderiza la primera página de un PDF a PNG (Blob).
+// Usa pdfjs-dist desde CDN — no añade dependencias ni bundle weight.
+// OpenAI Vision NO procesa PDFs nativamente (solo imágenes), por eso
+// convertimos en cliente antes de subir.
+async function pdfFileToPngBlob(pdfFile) {
+  const PDFJS_VERSION = "4.10.38";
+  const PDFJS_CDN = `https://cdn.jsdelivr.net/npm/pdfjs-dist@${PDFJS_VERSION}/build/pdf.min.mjs`;
+  const PDFJS_WORKER = `https://cdn.jsdelivr.net/npm/pdfjs-dist@${PDFJS_VERSION}/build/pdf.worker.min.mjs`;
+
+  const pdfjs = await import(/* @vite-ignore */ PDFJS_CDN);
+  if (!pdfjs.GlobalWorkerOptions.workerSrc) {
+    pdfjs.GlobalWorkerOptions.workerSrc = PDFJS_WORKER;
+  }
+
+  const arrayBuffer = await pdfFile.arrayBuffer();
+  const pdf = await pdfjs.getDocument({ data: arrayBuffer }).promise;
+  const page = await pdf.getPage(1); // primera página solamente
+  const viewport = page.getViewport({ scale: 2 }); // 2x para mejor OCR
+  const canvas = document.createElement("canvas");
+  canvas.width = viewport.width;
+  canvas.height = viewport.height;
+  const ctx = canvas.getContext("2d");
+  await page.render({ canvasContext: ctx, viewport }).promise;
+  return new Promise((resolve, reject) => {
+    canvas.toBlob(
+      (b) => (b ? resolve(b) : reject(new Error("Canvas toBlob falló"))),
+      "image/png",
+    );
+  });
+}
+
 // Llama al LLM con visión para extraer la OC.
 // Pedimos JSON en el prompt y lo parseamos en cliente: es más permisivo
 // que los structured outputs y evita errores de schema strict.
