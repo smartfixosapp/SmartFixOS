@@ -2252,6 +2252,16 @@ Maximo 150 palabras. Texto plano, sin markdown.`
                 <EnhancedReports dateFilter={dateFilter} customStartDate={customStartDate} customEndDate={customEndDate} />
               </ErrorBoundary>
             </div>
+
+            <ErrorBoundary>
+              <FinancialCharts
+                sales={sales}
+                expenses={expenses}
+                orders={poWorkOrders}
+                products={poProducts}
+                customers={customersList}
+              />
+            </ErrorBoundary>
           </div>
           </PlanGate>
         )}
