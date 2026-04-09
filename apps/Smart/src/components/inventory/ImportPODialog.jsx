@@ -1611,20 +1611,53 @@ export default function ImportPODialog({ open, onClose, suppliers = [], products
                 </div>
               </label>
               {paidAtOrder && (
-                <div className="mt-2 flex items-center gap-2 ml-6">
-                  <span className="text-[10px] text-white/40 font-black uppercase">Pagué con:</span>
-                  <select
-                    value={paymentMethod}
-                    onChange={(e) => setPaymentMethod(e.target.value)}
-                    className="bg-zinc-900 border border-white/10 rounded-lg px-2 py-1 text-xs text-white font-bold"
-                  >
-                    <option value="paypal">💳 PayPal</option>
-                    <option value="check">🧾 Cheque</option>
-                    <option value="card">💳 Tarjeta</option>
-                    <option value="cash">💵 Efectivo</option>
-                    <option value="transfer">🏦 Transferencia</option>
-                    <option value="other">Otro</option>
-                  </select>
+                <div className="mt-2 ml-6 space-y-2">
+                  <div className="flex items-center gap-2">
+                    <span className="text-[10px] text-white/40 font-black uppercase">Pagué con:</span>
+                    <select
+                      value={paymentMethod}
+                      onChange={(e) => {
+                        const m = e.target.value;
+                        setPaymentMethod(m);
+                        // Auto-sugerir fecha de débito si es diferido
+                        if (isDeferredMethod(m) || m === "paypal" || m === "check") {
+                          setSettlesOn(defaultSettlementDate(m === "paypal" ? "paypal_credit" : m));
+                        } else {
+                          setSettlesOn("");
+                        }
+                      }}
+                      className="bg-zinc-900 border border-white/10 rounded-lg px-2 py-1 text-xs text-white font-bold"
+                    >
+                      <optgroup label="Sale del banco al instante">
+                        <option value="cash">💵 Efectivo</option>
+                        <option value="card">💳 Débito</option>
+                        <option value="transfer">🏦 Transferencia</option>
+                        <option value="ath_movil">📱 ATH Móvil</option>
+                      </optgroup>
+                      <optgroup label="⏳ Sale del banco después">
+                        <option value="credit_card">💳 Tarjeta de crédito</option>
+                        <option value="klarna">🛍️ Klarna</option>
+                        <option value="check">📄 Cheque</option>
+                        <option value="paypal_credit">🅿️ PayPal crédito</option>
+                      </optgroup>
+                    </select>
+                  </div>
+                  {(isDeferredMethod(paymentMethod) || paymentMethod === "paypal" || paymentMethod === "check") && (
+                    <div className="rounded-xl bg-amber-500/[0.05] border border-amber-500/20 p-3 space-y-1.5">
+                      <label className="text-[9px] font-black text-amber-300 uppercase tracking-widest flex items-center gap-1.5">
+                        📅 ¿Cuándo saldrá del banco?
+                      </label>
+                      <input
+                        type="date"
+                        value={settlesOn}
+                        onChange={(e) => setSettlesOn(e.target.value)}
+                        className="bg-white/5 border border-amber-500/20 rounded-lg px-2 py-1 text-xs text-white font-bold focus:outline-none focus:border-amber-500/50"
+                      />
+                      <p className="text-[9px] text-amber-300/60 leading-tight">
+                        Este pago irá a "Pagos diferidos". Lo marcas como pagado cuando veas el cargo en tu estado de cuenta.
+                      </p>
+                    </div>
+                  )}
                 </div>
               )}
             </div>
