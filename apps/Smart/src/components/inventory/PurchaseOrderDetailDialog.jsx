@@ -469,6 +469,76 @@ export default function PurchaseOrderDetailDialog({
     }));
   };
 
+  // Guardar tracking rápido (sin entrar al modo editar completo) y,
+  // si hay items enlazados a OTs, mover esas OTs a `waiting_parts`.
+  const handleSaveTrackingInline = async () => {
+    const newTracking = (trackingDraft || "").trim();
+    const prevTracking = (form.tracking_number || "").trim();
+    if (newTracking === prevTracking) {
+      setTrackingEditing(false);
+      return;
+    }
+    setTrackingSaving(true);
+    try {
+      await base44.entities.PurchaseOrder.update(purchaseOrder.id, {
+        tracking_number: newTracking,
+      });
+      setForm((f) => ({ ...f, tracking_number: newTracking }));
+
+      // Cuando añades un tracking por primera vez, mover las OTs enlazadas
+      // a estado "waiting_parts" (esperando piezas) — sólo si no están ya
+      // en un estado de recepción/entrega más avanzado.
+      if (newTracking && !prevTracking) {
+        const linkedWoIds = Array.from(
+          new Set(
+            (form.items || [])
+              .map((it) => it.work_order_id)
+              .filter((id) => !!id),
+          ),
+        );
+        let transitioned = 0;
+        for (const woId of linkedWoIds) {
+          try {
+            const wo = await base44.entities.Order.get(woId);
+            if (!wo) continue;
+            // No pisar estados finales/avanzados
+            const skipStatuses = [
+              "part_arrived_waiting_device",
+              "in_progress",
+              "ready_for_pickup",
+              "picked_up",
+              "delivered",
+              "cancelled",
+              "completed",
+            ];
+            if (skipStatuses.includes(wo.status)) continue;
+            await base44.entities.Order.update(woId, { status: "waiting_parts" });
+            transitioned++;
+          } catch (woErr) {
+            console.warn(`No se pudo transicionar WO ${woId}:`, woErr);
+          }
+        }
+        if (transitioned > 0) {
+          toast.success(
+            `📦 Tracking guardado · ${transitioned} orden${transitioned === 1 ? "" : "es"} de trabajo movida${transitioned === 1 ? "" : "s"} a "Esperando piezas"`,
+          );
+        } else {
+          toast.success("📦 Tracking guardado");
+        }
+      } else if (!newTracking && prevTracking) {
+        toast.success("Tracking eliminado");
+      } else {
+        toast.success("Tracking actualizado");
+      }
+      setTrackingEditing(false);
+    } catch (err) {
+      console.error("Error guardando tracking:", err);
+      toast.error("No se pudo guardar el tracking: " + (err?.message || "error"));
+    } finally {
+      setTrackingSaving(false);
+    }
+  };
+
   // ── Receive flow handlers ──────────────────────────────────────────────────
   const handleOpenReceiveFlow = () => {
     const currentItems = form.items || poData?.items || poData?.line_items || [];
