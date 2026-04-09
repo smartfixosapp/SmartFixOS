@@ -668,6 +668,8 @@ export default function PinAccess() {
         if (oauthInProgress) return;
         setOauthInProgress(true);
 
+        toast.message("🔵 [D1] Google OAuth iniciando", { duration: 4000 });
+
         const { Browser } = await import('@capacitor/browser');
         // Include gintent so PinAccess knows if this is login vs register after redirect
         const redirectTo = `com.smartfixos.pr911://PinAccess?gintent=${intent}`;
@@ -689,6 +691,7 @@ export default function PinAccess() {
         }
 
         if (data?.url) {
+          toast.message("🔵 [D2] URL recibida de Supabase", { duration: 4000 });
           await Browser.open({ url: data.url });
           // Reset loading/progress if user closes browser without completing OAuth
           Browser.addListener('browserFinished', () => {
