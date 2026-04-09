@@ -10,6 +10,12 @@ import {
   DialogFooter } from
 "@/components/ui/dialog";
 import ErrorBoundary from "@/components/utils/ErrorBoundary";
+import {
+  isDeferredMethod,
+  defaultSettlementDate,
+  buildSettlementFields,
+  PAYMENT_METHOD_LABELS,
+} from "@/components/utils/deferredPayments";
 import { toast } from "sonner";
 import {
   Calendar,
