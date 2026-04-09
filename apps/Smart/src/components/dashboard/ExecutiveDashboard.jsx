@@ -51,7 +51,7 @@ function fmtDay(d) {
   return d.toLocaleDateString("es-ES", { day: "2-digit", month: "short" });
 }
 
-export default function ExecutiveDashboard() {
+function ExecutiveDashboardImpl() {
   const navigate = useNavigate();
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
