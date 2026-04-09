@@ -204,6 +204,19 @@ export default function WOActionSidebar({
         </>
       )}
 
+      {/* ── Quick Mark (saltar regla secuencial) — solo si NO es ya quick ── */}
+      {o?.status_metadata?.quick_order !== true && (
+        <>
+          <ActionBtn
+            icon={Rocket}
+            label="⚡ Reparación rápida"
+            color="text-amber-300"
+            onClick={() => onContextAction?.("mark-quick")}
+          />
+          <div className="border-t border-white/[0.06] my-2" />
+        </>
+      )}
+
       {/* ── Core Actions ── */}
       <ActionBtn icon={Camera} label="Subir foto" color="text-cyan-400" onClick={() => onContextAction?.("photos")} />
       <ActionBtn icon={ShoppingCart} label="Piezas y Servicios" color="text-cyan-400" onClick={() => onContextAction?.("catalog")} />
