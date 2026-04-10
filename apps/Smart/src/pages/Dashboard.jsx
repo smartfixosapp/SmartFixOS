@@ -202,7 +202,6 @@ export default function Dashboard() {
   const [pendingShiftTasks, setPendingShiftTasks] = useState([]);
   const [completingTaskId, setCompletingTaskId] = useState(null);
   // Categoría activa en el panel de atención
-  const [activeFeedCategory, setActiveFeedCategory] = useState('orders');
   const [showUnlocksFilter, setShowUnlocksFilter] = useState(false);
   const [showTimeTracking, setShowTimeTracking] = useState(false);
   const [showLogoutModal, setShowLogoutModal] = useState(false);
