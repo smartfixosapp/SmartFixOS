@@ -36,7 +36,6 @@ import {
   CheckCircle2,
   Shield,
   ArrowUpRight,
-  TrendingUp,
   DollarSign,
   PackageCheck,
   Timer,
