@@ -1042,16 +1042,18 @@ export default function OrdersPage() {
       {/* Modal de orden seleccionada */}
       {selectedOrder &&
       <div className="fixed inset-0 z-[9999] bg-black/80 backdrop-blur-sm">
-          <WorkOrderPanelErrorBoundary onClose={() => setSelectedOrder(null)} onReset={() => setSelectedOrder(null)}>
+          <WorkOrderPanelErrorBoundary onClose={() => { setSelectedOrder(null); clearOrderUrl(); }} onReset={() => { setSelectedOrder(null); clearOrderUrl(); }}>
           <WorkOrderPanel
           orderId={selectedOrder.id}
           onClose={() => {
             setSelectedOrder(null);
+            clearOrderUrl();
           }}
           onUpdate={handleOrderUpdated}
           onDelete={(deletedOrderId) => {
             console.log("[Orders] Orden eliminada:", deletedOrderId);
             setSelectedOrder(null);
+            clearOrderUrl();
             setOrders((prev) => prev.filter((o) => o.id !== deletedOrderId));
           }} />
           </WorkOrderPanelErrorBoundary>
