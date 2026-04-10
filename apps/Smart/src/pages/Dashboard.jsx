@@ -32,6 +32,7 @@ import {
   LayoutGrid,
   X,
   CheckCircle2,
+  AlertTriangle,
   Shield,
   ArrowUpRight,
   DollarSign,
