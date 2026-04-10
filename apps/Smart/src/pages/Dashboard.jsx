@@ -973,31 +973,6 @@ export default function Dashboard() {
                       </div>
                     </div>
 
-                    <button
-                      onClick={() => setFeedFilter(f => f === 'urgent' ? null : 'urgent')}
-                      className={cn("rounded-2xl border px-4 py-3 flex items-center gap-3 transition-all active:scale-95", feedFilter === 'urgent' ? "border-indigo-400/50 bg-indigo-500/20 shadow-[0_0_20px_rgba(99,102,241,0.2)]" : "border-indigo-500/20 bg-indigo-500/10 hover:bg-indigo-500/15")}
-                    >
-                      <div className="w-9 h-9 rounded-xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center shrink-0">
-                        <Wrench className="w-4 h-4 text-indigo-400" />
-                      </div>
-                      <div className="text-left">
-                        <p className="text-lg font-black text-indigo-400 leading-tight">{kpiStats.active}</p>
-                        <p className="text-[10px] text-white/30 font-bold">{feedFilter === 'urgent' ? '▾ filtrado en feed' : 'Órdenes activas'}</p>
-                      </div>
-                    </button>
-
-                    <button
-                      onClick={() => setFeedFilter(f => f === 'ready' ? null : 'ready')}
-                      className={cn("rounded-2xl border px-4 py-3 flex items-center gap-3 transition-all active:scale-95", feedFilter === 'ready' ? "border-cyan-400/50 bg-cyan-500/20 shadow-[0_0_20px_rgba(6,182,212,0.2)]" : "border-cyan-500/20 bg-cyan-500/10 hover:bg-cyan-500/15")}
-                    >
-                      <div className="w-9 h-9 rounded-xl bg-cyan-500/10 border border-cyan-500/20 flex items-center justify-center shrink-0">
-                        <PackageCheck className="w-4 h-4 text-cyan-400" />
-                      </div>
-                      <div className="text-left">
-                        <p className="text-lg font-black text-cyan-400 leading-tight">{kpiStats.readyToPickup}</p>
-                        <p className="text-[10px] text-white/30 font-bold">{feedFilter === 'ready' ? '▾ filtrado en feed' : 'Para recoger'}</p>
-                      </div>
-                    </button>
                   </>
                 );
               })()}
