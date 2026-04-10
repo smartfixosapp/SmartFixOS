@@ -523,6 +523,16 @@ export default function OrdersPage() {
     return filteredOrders;
   }, [filteredOrders]);
 
+  const clearOrderUrl = useCallback(() => {
+    try {
+      const params = new URLSearchParams(location.search);
+      params.delete("order");
+      params.delete("openOrderId");
+      const search = params.toString();
+      navigate({ pathname: location.pathname, search: search ? `?${search}` : "" }, { replace: true });
+    } catch {}
+  }, [navigate, location]);
+
   const tryOpenOrderWithGlobalGate = useCallback(async (targetOrder) => {
     if (!targetOrder?.id) return;
     setSelectedOrder(targetOrder);
