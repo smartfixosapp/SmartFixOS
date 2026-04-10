@@ -977,6 +977,41 @@ export default function Dashboard() {
                   }
                 </div>
               </div>
+
+              {/* Resumen rápido */}
+              <div className="grid grid-cols-2 gap-2 mt-4 shrink-0">
+                <button onClick={() => handleNavigate("Orders")}
+                  className={`flex items-center gap-2.5 px-3 py-2.5 rounded-2xl border transition-colors ${quickStats.listas > 0 ? "bg-emerald-500/[0.08] border-emerald-500/25 hover:bg-emerald-500/[0.14]" : "bg-white/[0.03] border-white/[0.06]"}`}>
+                  <CheckCircle2 className={`w-4 h-4 shrink-0 ${quickStats.listas > 0 ? "text-emerald-400" : "text-white/30"}`} />
+                  <div className="text-left">
+                    <p className={`text-base font-black leading-none ${quickStats.listas > 0 ? "text-emerald-300" : "text-white/20"}`}>{quickStats.listas}</p>
+                    <p className="text-[9px] text-white/30 font-bold mt-0.5">Listas</p>
+                  </div>
+                </button>
+                <button onClick={() => handleNavigate("Orders")}
+                  className={`flex items-center gap-2.5 px-3 py-2.5 rounded-2xl border transition-colors ${quickStats.retrasadas > 0 ? "bg-orange-500/[0.08] border-orange-500/25 hover:bg-orange-500/[0.14]" : "bg-white/[0.03] border-white/[0.06]"}`}>
+                  <Clock className={`w-4 h-4 shrink-0 ${quickStats.retrasadas > 0 ? "text-orange-400" : "text-white/30"}`} />
+                  <div className="text-left">
+                    <p className={`text-base font-black leading-none ${quickStats.retrasadas > 0 ? "text-orange-300" : "text-white/20"}`}>{quickStats.retrasadas}</p>
+                    <p className="text-[9px] text-white/30 font-bold mt-0.5">Retrasadas</p>
+                  </div>
+                </button>
+                <button onClick={() => handleNavigate("Inventory")}
+                  className={`flex items-center gap-2.5 px-3 py-2.5 rounded-2xl border transition-colors ${quickStats.stockCrit > 0 ? "bg-red-500/[0.08] border-red-500/25 hover:bg-red-500/[0.14]" : "bg-white/[0.03] border-white/[0.06]"}`}>
+                  <AlertTriangle className={`w-4 h-4 shrink-0 ${quickStats.stockCrit > 0 ? "text-red-400" : "text-white/30"}`} />
+                  <div className="text-left">
+                    <p className={`text-base font-black leading-none ${quickStats.stockCrit > 0 ? "text-red-300" : "text-white/20"}`}>{quickStats.stockCrit}</p>
+                    <p className="text-[9px] text-white/30 font-bold mt-0.5">Stock critico</p>
+                  </div>
+                </button>
+                <div className="flex items-center gap-2.5 px-3 py-2.5 rounded-2xl border bg-white/[0.03] border-white/[0.06]">
+                  <Package className="w-4 h-4 text-white/30 shrink-0" />
+                  <div className="text-left">
+                    <p className="text-base font-black leading-none text-white/50">{quickStats.avgDays}d</p>
+                    <p className="text-[9px] text-white/30 font-bold mt-0.5">Tiempo prom.</p>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
 
