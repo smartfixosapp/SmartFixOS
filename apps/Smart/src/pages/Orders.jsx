@@ -525,9 +525,14 @@ export default function OrdersPage() {
 
   const tryOpenOrderWithGlobalGate = useCallback(async (targetOrder) => {
     if (!targetOrder?.id) return;
-    // Abrir directamente — sin bloqueo. El warning se muestra dentro del WorkOrderPanel si hay órdenes pendientes en Recepción.
     setSelectedOrder(targetOrder);
-  }, []);
+    // Persist order ID in URL so Cmd+R keeps the order open
+    try {
+      const params = new URLSearchParams(location.search);
+      params.set("order", targetOrder.id);
+      navigate({ pathname: location.pathname, search: `?${params.toString()}` }, { replace: true });
+    } catch {}
+  }, [navigate, location]);
 
   // Contadores por estado
   const statusCounts = useMemo(() => {
