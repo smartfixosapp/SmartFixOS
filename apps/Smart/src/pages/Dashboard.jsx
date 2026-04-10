@@ -1074,108 +1074,48 @@ export default function Dashboard() {
               <PunchButton userId={session?.userId} userName={session?.userName} variant="mobile-icon" onPunchStatusChange={(status) => { if (status) showToast("Turno iniciado"); else showToast("Turno finalizado"); }} />
             </div>
 
-            {/* ── 3 Stats in row ── */}
-            <div className="grid grid-cols-3 gap-2 px-3 shrink-0">
-              <button
-                onClick={() => setFeedFilter(f => f === 'urgent' ? null : 'urgent')}
-                className={cn("rounded-xl border py-2.5 flex flex-col items-center gap-0.5 transition-all active:scale-95", feedFilter === 'urgent' ? "border-indigo-400/50 bg-indigo-500/15" : "border-white/[0.06] bg-white/[0.03]")}
-              >
-                <p className="text-xl font-black text-indigo-400">{kpiStats.active}</p>
-                <p className="text-[8px] text-white/30 font-bold">Activas</p>
-              </button>
-              <button
-                onClick={() => setFeedFilter(f => f === 'ready' ? null : 'ready')}
-                className={cn("rounded-xl border py-2.5 flex flex-col items-center gap-0.5 transition-all active:scale-95", feedFilter === 'ready' ? "border-cyan-400/50 bg-cyan-500/15" : "border-white/[0.06] bg-white/[0.03]")}
-              >
-                <p className="text-xl font-black text-cyan-400">{kpiStats.readyToPickup}</p>
-                <p className="text-[8px] text-white/30 font-bold">Recoger</p>
-              </button>
+            {/* ── Ingresos hoy ── */}
+            <div className="px-3 shrink-0">
               <button
                 onClick={() => handleNavigate("Financial")}
-                className="rounded-xl border border-white/[0.06] bg-white/[0.03] py-2.5 flex flex-col items-center gap-0.5 transition-all active:scale-95"
+                className="w-full rounded-xl border border-emerald-500/20 bg-emerald-500/10 py-2.5 flex flex-col items-center gap-0.5 transition-all active:scale-95"
               >
                 <p className="text-xl font-black text-emerald-400">
                   {kpiIncome.loading ? "…" : `$${(kpiIncome.today||0).toLocaleString("en-US",{maximumFractionDigits:0})}`}
                 </p>
-                <p className="text-[8px] text-white/30 font-bold">Hoy</p>
+                <p className="text-[8px] text-white/30 font-bold">Ingresos hoy</p>
               </button>
             </div>
 
-            {/* ── Atencion Requerida (feed) ── */}
+            {/* ── Tareas del turno ── */}
             <div className="bg-white/[0.02] border border-white/[0.06] rounded-2xl overflow-hidden mx-3 flex flex-col flex-1 min-h-0">
               <div className="flex items-center justify-between px-3 py-2.5 border-b border-white/[0.05]">
                 <div className="flex items-center gap-2">
-                  <Bell className="w-3.5 h-3.5 text-white/30" />
-                  <span className="text-white font-bold text-xs">
-                    {feedFilter === 'urgent' ? 'Urgentes' : feedFilter === 'ready' ? 'Para recoger' : 'Atencion'}
-                  </span>
-                  {feedFilter && (
-                    <button onClick={() => setFeedFilter(null)} className="w-4 h-4 rounded-full bg-white/10 flex items-center justify-center">
-                      <X className="w-2.5 h-2.5 text-white/50" />
-                    </button>
-                  )}
+                  <ClipboardList className="w-3.5 h-3.5 text-indigo-400" />
+                  <span className="text-white font-bold text-xs">Tareas del turno</span>
                 </div>
-                {(visibleFeedItems.length + pendingShiftTasks.length) > 0 && (
-                  <span className="min-w-[20px] h-5 rounded-full flex items-center justify-center text-[10px] font-black text-white bg-red-500 px-1.5">
-                    {visibleFeedItems.length + pendingShiftTasks.length}
+                {pendingShiftTasks.length > 0 && (
+                  <span className="min-w-[20px] h-5 rounded-full flex items-center justify-center text-[10px] font-black text-white bg-indigo-500 px-1.5">
+                    {pendingShiftTasks.length}
                   </span>
                 )}
               </div>
               <div className="flex-1 overflow-y-auto">
-                {/* Feed items by group */}
-                {[
-                  { type: 'urgent', label: 'Urgentes', items: visibleFeedItems.filter(i => i.type === 'urgent') },
-                  { type: 'ready',  label: 'Para Recoger', items: visibleFeedItems.filter(i => i.type === 'ready') },
-                  { type: 'intake', label: 'Diagnostico', items: visibleFeedItems.filter(i => i.type === 'intake' || i.type === 'stale') },
-                  { type: 'parts',  label: 'Piezas', items: visibleFeedItems.filter(i => i.type === 'parts') },
-                ].filter(g => g.items.length > 0).map(group => (
-                  <div key={group.type}>
-                    <div className="flex items-center gap-2 px-3 pt-2 pb-1">
-                      <span className="text-[8px] font-bold text-white/50 uppercase tracking-wider">{group.label}</span>
-                      <div className="flex-1 h-px bg-white/[0.04]" />
-                      <span className="text-[8px] font-bold text-white/50">{group.items.length}</span>
+                {pendingShiftTasks.length > 0 ? pendingShiftTasks.map(task => (
+                  <div key={task.id} className="flex items-center gap-3 px-3 py-2 border-t border-white/[0.03] first:border-0">
+                    <div className="w-1 h-5 rounded-full shrink-0 bg-indigo-500" />
+                    <div className="flex-1 min-w-0">
+                      <p className="text-xs font-bold text-white truncate">{task.title}</p>
                     </div>
-                    {group.items.map(item => (
-                      <button key={item.id} onClick={() => item.orderId ? handleOrderSelect(item.orderId) : null}
-                        className="w-full flex items-center gap-3 px-3 py-2 active:bg-white/[0.04] transition-colors text-left border-t border-white/[0.03] first:border-0">
-                        <div className={`w-1 h-5 rounded-full shrink-0 ${item.color === 'red' ? 'bg-red-500' : item.color === 'green' ? 'bg-emerald-500' : item.color === 'blue' ? 'bg-blue-500' : item.color === 'yellow' ? 'bg-yellow-500' : 'bg-orange-500'}`} />
-                        <div className="flex-1 min-w-0">
-                          <p className="text-xs font-bold text-white truncate">{item.title}</p>
-                          <p className="text-[10px] text-white/25 truncate">{item.sub}</p>
-                        </div>
-                        <ChevronRight className="w-3 h-3 text-white/40 shrink-0" />
-                      </button>
-                    ))}
+                    <button onClick={() => handleCompleteTask(task)} disabled={completingTaskId === task.id}
+                      className="w-6 h-6 rounded-full border border-white/15 bg-white/5 flex items-center justify-center shrink-0 text-white/30 active:bg-emerald-500/20">
+                      <Check className="w-3 h-3" />
+                    </button>
                   </div>
-                ))}
-
-                {/* Tareas */}
-                {pendingShiftTasks.length > 0 && (
-                  <>
-                    <div className="flex items-center gap-2 px-3 pt-2 pb-1">
-                      <span className="text-[8px] font-bold text-white/50 uppercase tracking-wider">Tareas</span>
-                      <div className="flex-1 h-px bg-white/[0.04]" />
-                    </div>
-                    {pendingShiftTasks.map(task => (
-                      <div key={task.id} className="flex items-center gap-3 px-3 py-2 border-t border-white/[0.03]">
-                        <div className="w-1 h-5 rounded-full shrink-0 bg-indigo-500" />
-                        <div className="flex-1 min-w-0">
-                          <p className="text-xs font-bold text-white truncate">{task.title}</p>
-                        </div>
-                        <button onClick={() => handleCompleteTask(task)} disabled={completingTaskId === task.id}
-                          className="w-6 h-6 rounded-full border border-white/15 bg-white/5 flex items-center justify-center shrink-0 text-white/30 active:bg-emerald-500/20">
-                          <Check className="w-3 h-3" />
-                        </button>
-                      </div>
-                    ))}
-                  </>
-                )}
-
-                {/* Vacio */}
-                {visibleFeedItems.length === 0 && pendingShiftTasks.length === 0 && (
+                )) : (
                   <div className="flex flex-col items-center justify-center py-10">
                     <CheckCircle2 className="w-8 h-8 text-emerald-500/20 mb-2" />
-                    <p className="text-white/15 text-[10px] font-bold uppercase tracking-widest">Todo en orden</p>
+                    <p className="text-white/15 text-[10px] font-bold uppercase tracking-widest">Tareas completadas</p>
                   </div>
                 )}
               </div>
