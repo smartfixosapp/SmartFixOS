@@ -198,7 +198,6 @@ export default function Dashboard() {
   // ⭐️ ESTADO FILTRO PARA ÓRDENES
   const [selectedStatusFilter, setSelectedStatusFilter] = useState(null);
   // Filtro del feed de atención (null | 'urgent' | 'ready')
-  const [feedFilter, setFeedFilter] = useState(null);
   // Feed categorías: tareas de turno
   const [pendingShiftTasks, setPendingShiftTasks] = useState([]);
   const [completingTaskId, setCompletingTaskId] = useState(null);
