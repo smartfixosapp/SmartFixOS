@@ -260,7 +260,7 @@ export default function OrdersPage() {
   useEffect(() => {
     try {
       const params = new URLSearchParams(location.search);
-      const openOrderId = params.get("openOrderId");
+      const openOrderId = params.get("openOrderId") || params.get("order");
       pendingOpenOrderIdRef.current = openOrderId || null;
     } catch {
       pendingOpenOrderIdRef.current = null;
