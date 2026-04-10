@@ -22,7 +22,6 @@ import {
   Settings as SettingsIcon,
   Users,
   Wrench,
-  Bell,
   Smartphone,
   Zap,
   LogOut,
