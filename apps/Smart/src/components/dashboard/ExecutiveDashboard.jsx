@@ -98,7 +98,7 @@ function ExecutiveDashboardImpl() {
         const d = new Date(now.getTime() - i * 86400000);
         const key = d.toISOString().slice(0, 10);
         const day = allTxs
-          .filter(t => t.type === "income" && t.created_date?.slice(0, 10) === key)
+          .filter(t => isIncome(t) && t.created_date?.slice(0, 10) === key)
           .reduce((s, t) => s + (t.amount || 0), 0);
         series.push({ day: fmtDay(d), ingresos: Math.round(day) });
       }
