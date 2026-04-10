@@ -1100,62 +1100,6 @@ export default function Dashboard() {
                         <p className="text-[10px] text-white/30 font-bold">{feedFilter === 'ready' ? '▾ filtrado en feed' : 'Para recoger'}</p>
                       </div>
                     </button>
-                    {/* Finance KPI card */}
-                    <button
-                      onClick={() => handleNavigate("Financial")}
-                      className="rounded-2xl border border-emerald-500/20 bg-gradient-to-br from-emerald-500/10 to-cyan-500/5 px-4 py-3 flex flex-col gap-2 transition-all active:scale-95 hover:border-emerald-500/40 text-left"
-                    >
-                      <div className="flex items-center justify-between w-full">
-                        <div className="w-9 h-9 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center shrink-0">
-                          <TrendingUp className="w-4 h-4 text-emerald-400" />
-                        </div>
-                        <span className="text-[9px] font-black text-emerald-400/40 uppercase tracking-widest">Ver →</span>
-                      </div>
-                      <div>
-                        <p className="text-[8px] text-white/25 font-black uppercase tracking-widest mb-0.5">Entró hoy</p>
-                        <p className="text-xl font-black text-emerald-400 leading-tight">
-                          {kpiIncome.loading ? "…" : `$${(kpiIncome.today||0).toLocaleString("en-US",{maximumFractionDigits:0})}`}
-                        </p>
-                      </div>
-                      {!kpiIncome.loading && (
-                        <div className="w-full">
-                          <svg viewBox="0 0 80 24" className="w-full h-6" preserveAspectRatio="none">
-                            <defs>
-                              <linearGradient id="sparkGradDesktop" x1="0%" y1="0%" x2="100%" y2="0%">
-                                <stop offset="0%" stopColor="#10b981" stopOpacity="0.2"/>
-                                <stop offset="100%" stopColor="#10b981" stopOpacity="1"/>
-                              </linearGradient>
-                            </defs>
-                            {(() => {
-                              const income = kpiIncome.today || 0;
-                              const expenses = kpiIncome.todayExpenses || 0;
-                              const max = Math.max(income, expenses, 1);
-                              const incPct = income / max;
-                              const endY = 22 - incPct * 20;
-                              return (
-                                <>
-                                  <polyline
-                                    points={`0,22 13,${22-incPct*4} 26,${22-incPct*8} 40,${22-incPct*12} 53,${22-incPct*15} 66,${22-incPct*18} 80,${endY}`}
-                                    fill="none"
-                                    stroke="url(#sparkGradDesktop)"
-                                    strokeWidth="2"
-                                    strokeLinecap="round"
-                                    strokeLinejoin="round"
-                                  />
-                                  <circle cx="80" cy={endY} r="2.5" fill="#10b981" />
-                                </>
-                              );
-                            })()}
-                          </svg>
-                          {kpiIncome.todayExpenses > 0 && (
-                            <div className="flex items-center gap-1 mt-1">
-                              <div className="w-1.5 h-1.5 rounded-full bg-red-500/60" />
-                              <span className="text-[9px] text-red-400/60 font-bold">${(kpiIncome.todayExpenses||0).toLocaleString("en-US",{maximumFractionDigits:0})} salió</span>
-                            </div>
-                          )}
-                        </div>
-                      )}
-                    </button>
                   </>
                 );
               })()}
