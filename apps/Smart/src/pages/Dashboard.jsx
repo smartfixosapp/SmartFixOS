@@ -821,58 +821,6 @@ export default function Dashboard() {
     return counts;
   }, [recentOrders]);
 
-  // ── Priority Feed: unified list of items needing attention
-  const priorityFeedItems = useMemo(() => {
-    // Safe date helper — returns null for null/invalid/epoch dates
-    const safeDate = (raw) => {
-      if (!raw) return null;
-      const d = new Date(raw);
-      if (isNaN(d.getTime())) return null;
-      // Reject epoch (1970) — means DB date field was null and got converted to 0
-      if (d.getFullYear() < 2000) return null;
-      return d;
-    };
-    const orderDate = (o) => safeDate(o.updated_date) || safeDate(o.created_date) || new Date();
-    const daysSince = (o) => Math.max(0, Math.round((Date.now() - orderDate(o)) / 86400000));
-    const hrsSince  = (o) => Math.max(0, Math.round((Date.now() - orderDate(o)) / 3600000));
-
-    const items = [];
-    urgentOrdersList.forEach(o => {
-      const d = daysSince(o);
-      items.push({ type: 'urgent', priority: 1, id: `urgent-${o.id}`, title: o.customer_name || "Cliente", sub: `${o.device_model || "Dispositivo"} · ${d === 0 ? 'hoy sin actualizar' : `${d}d sin actualizar`}`, number: o.order_number, color: 'red', orderId: o.id });
-    });
-    readyPickupList.forEach(o => {
-      const d = daysSince(o);
-      items.push({ type: 'ready', priority: 2, id: `ready-${o.id}`, title: o.customer_name || "Cliente", sub: `${o.device_model || "Dispositivo"} · ${d === 0 ? 'listo hoy' : `esperando ${d}d`}`, number: o.order_number, color: 'green', orderId: o.id });
-    });
-    intakeOrdersList.forEach(o => {
-      const h = hrsSince(o);
-      const label = h < 1 ? 'ahora' : h < 24 ? `hace ${h}h` : `hace ${Math.round(h/24)}d`;
-      items.push({ type: 'intake', priority: 3, id: `intake-${o.id}`, title: o.customer_name || "Cliente", sub: `${o.device_model || "Dispositivo"} · recibido ${label}`, number: o.order_number, color: 'blue', orderId: o.id });
-    });
-    pendingPartsList.forEach(o => {
-      items.push({ type: 'parts', priority: 4, id: `parts-${o.id}`, title: o.customer_name || "Cliente", sub: `${o.device_model || "Dispositivo"} · pendiente ordenar`, number: o.order_number, color: 'orange', orderId: o.id });
-    });
-    staleDiagnosisList.forEach(o => {
-      const d = daysSince(o);
-      items.push({ type: 'stale', priority: 5, id: `stale-${o.id}`, title: o.customer_name || "Cliente", sub: `${o.device_model || "Dispositivo"} · ${d === 0 ? 'sin diagnóstico hoy' : `${d}d sin diagnóstico`}`, number: o.order_number, color: 'yellow', orderId: o.id });
-    });
-    return items.slice(0, 18);
-  }, [urgentOrdersList, readyPickupList, intakeOrdersList, pendingPartsList, staleDiagnosisList]);
-
-  // Feed filtrado según chip activo
-  const visibleFeedItems = useMemo(() => {
-    if (!feedFilter) return priorityFeedItems;
-    return priorityFeedItems.filter(item => item.type === feedFilter);
-  }, [priorityFeedItems, feedFilter]);
-
-  // Stock bajo — derivado de priceListItems (ya cargado)
-  const lowStockProducts = useMemo(() => {
-    return priceListItems
-      .filter(p => p.type === 'product' && typeof p.stock === 'number' &&
-        (p.stock <= 0 || (p.min_stock > 0 && p.stock <= p.min_stock)))
-      .slice(0, 8);
-  }, [priceListItems]);
 
   // Tareas de turno pendientes del usuario
   useEffect(() => {
