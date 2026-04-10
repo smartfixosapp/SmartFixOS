@@ -792,6 +792,33 @@ export default function Dashboard() {
 
   if (!session) return null;
 
+  // Resumen rápido — datos derivados de recentOrders y priceListItems (ya cargados)
+  const quickStats = useMemo(() => {
+    const closedStatuses = ["picked_up", "completed", "cancelled", "delivered"];
+    const listas = recentOrders.filter(o => {
+      const s = getEffectiveOrderStatus(o);
+      return s === "ready" || s === "ready_for_pickup";
+    }).length;
+    const retrasadas = recentOrders.filter(o => {
+      const s = getEffectiveOrderStatus(o);
+      if (closedStatuses.includes(s)) return false;
+      const d = new Date(o.updated_date || o.created_date);
+      return (Date.now() - d.getTime()) / 86400000 >= 3;
+    }).length;
+    const stockCrit = priceListItems.filter(p =>
+      p.type === "product" && typeof p.stock === "number" &&
+      (p.stock <= 0 || (p.min_stock > 0 && p.stock <= p.min_stock))
+    ).length;
+    const completed = recentOrders.filter(o => {
+      const s = getEffectiveOrderStatus(o);
+      return ["delivered", "completed", "picked_up"].includes(s) && o.created_date && o.updated_date;
+    });
+    const avgDays = completed.length > 0
+      ? completed.reduce((sum, o) => sum + Math.max(0, (new Date(o.updated_date) - new Date(o.created_date)) / 86400000), 0) / completed.length
+      : 0;
+    return { listas, retrasadas, stockCrit, avgDays: Math.round(avgDays * 10) / 10 };
+  }, [recentOrders, priceListItems]);
+
   return (
     <div className="flex-1 min-h-0 overflow-hidden flex flex-col">
       <Toast toast={toast} onClose={() => setToast(null)} />
