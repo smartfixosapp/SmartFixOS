@@ -746,52 +746,6 @@ export default function Dashboard() {
   }, [recentOrders]);
 
   // Widget: Órdenes urgentes (active orders not updated in 5+ days)
-  const urgentOrdersList = useMemo(() => {
-    const fiveDaysAgo = new Date(Date.now() - 5 * 24 * 60 * 60 * 1000);
-    const activeStatuses = ["pending", "in_progress", "waiting_parts", "diagnosed", "intake"];
-    return recentOrders.filter(o => {
-      const s = getEffectiveOrderStatus(o);
-      if (!activeStatuses.includes(s)) return false;
-      const d = new Date(o.updated_date || o.created_date);
-      return d < fiveDaysAgo;
-    }).slice(0, 8);
-  }, [recentOrders]);
-
-  // Widget: Listos para recoger
-  const readyPickupList = useMemo(() =>
-    recentOrders.filter(o => getEffectiveOrderStatus(o) === "ready_for_pickup").slice(0, 8)
-  , [recentOrders]);
-
-  // Widget: Órdenes en recepción (intake) — recién llegadas, sin iniciar
-  const intakeOrdersList = useMemo(() =>
-    recentOrders.filter(o =>
-      getEffectiveOrderStatus(o) === "intake" &&
-      o.device_type !== "Software" &&
-      !(o.order_number && o.order_number.startsWith("SW-"))
-    ).slice(0, 8)
-  , [recentOrders]);
-
-  // Widget: Pendiente de ordenar partes
-  const pendingPartsList = useMemo(() =>
-    recentOrders.filter(o => {
-      const s = getEffectiveOrderStatus(o);
-      return (s === "pending_order" || s === "waiting_parts") &&
-        o.device_type !== "Software" &&
-        !(o.order_number && o.order_number.startsWith("SW-"));
-    }).slice(0, 8)
-  , [recentOrders]);
-
-  // Widget: Diagnóstico estancado (3+ días en estado diagnosing sin actualizar)
-  const staleDiagnosisList = useMemo(() => {
-    const threeDaysAgo = new Date(Date.now() - 3 * 24 * 60 * 60 * 1000);
-    return recentOrders.filter(o => {
-      const s = getEffectiveOrderStatus(o);
-      if (s !== "diagnosing") return false;
-      if (o.device_type === "Software" || (o.order_number && o.order_number.startsWith("SW-"))) return false;
-      const d = new Date(o.updated_date || o.created_date);
-      return d < threeDaysAgo;
-    }).slice(0, 6);
-  }, [recentOrders]);
 
   // Widget: Tiempo promedio de reparación (days from created to delivered, last 30 orders)
   const avgRepairTime = useMemo(() => {
