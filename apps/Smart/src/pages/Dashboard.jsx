@@ -1403,19 +1403,6 @@ export default function Dashboard() {
         />
       )}
 
-      {showJenaiWizard && (
-        <WorkOrderWizard
-          key="jenai-wizard"
-          open={showJenaiWizard}
-          onClose={() => setShowJenaiWizard(false)}
-          onSuccess={(createdOrder) => {
-            setShowJenaiWizard(false);
-            loadFreshData();
-            if (createdOrder?.id) setSelectedOrderId(createdOrder.id);
-          }}
-          startWithJenai
-        />
-      )}
 
       {showOpenDrawer && (
         <OpenDrawerDialog
