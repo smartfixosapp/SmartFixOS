@@ -77,15 +77,16 @@ function ExecutiveDashboardImpl() {
       const allOrders = orders || [];
       const allTxs = txs || [];
 
-      // Ingresos
+      // Ingresos — acepta "revenue" (schema actual) e "income" (legacy)
+      const isIncome = (t) => t.type === "income" || t.type === "revenue";
       const incToday = allTxs
-        .filter(t => t.type === "income" && t.created_date?.slice(0, 10) === today)
+        .filter(t => isIncome(t) && t.created_date?.slice(0, 10) === today)
         .reduce((s, t) => s + (t.amount || 0), 0);
       const incWeek = allTxs
-        .filter(t => t.type === "income" && t.created_date?.slice(0, 10) >= week)
+        .filter(t => isIncome(t) && t.created_date?.slice(0, 10) >= week)
         .reduce((s, t) => s + (t.amount || 0), 0);
       const incMonth = allTxs
-        .filter(t => t.type === "income" && t.created_date?.slice(0, 7) === month)
+        .filter(t => isIncome(t) && t.created_date?.slice(0, 7) === month)
         .reduce((s, t) => s + (t.amount || 0), 0);
       const expMonth = allTxs
         .filter(t => t.type === "expense" && t.created_date?.slice(0, 7) === month)
