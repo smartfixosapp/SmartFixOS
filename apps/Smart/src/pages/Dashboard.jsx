@@ -1210,25 +1210,6 @@ export default function Dashboard() {
                 )}
               </div>
 
-              {/* JENAI Insights — se oculta al abrir wizard/lista precios para más espacio */}
-              {!showWorkOrderWizard && !showJenaiWizard && !showPriceList && (
-              <div className="mb-3 shrink-0">
-                <JENAIInsightBanner
-                  context="dashboard"
-                  data={{
-                    todayIncome: kpiIncome.today,
-                    todayExpenses: kpiIncome.todayExpenses,
-                    monthIncome: kpiIncome.month,
-                    activeOrders: kpiStats.active,
-                    readyToPickup: kpiStats.readyToPickup,
-                    deliveredToday: kpiStats.deliveredToday,
-                    overdue: kpiStats.overdue,
-                  }}
-                  accentColor="purple"
-                  autoLoad={false}
-                />
-              </div>
-              )}
 
               {/* Feed list — scrollbar aparece automáticamente cuando overflow */}
               {/* ── Tarjetas selectoras de categoría ── */}
