@@ -65,7 +65,6 @@ import SoftwareServiceDialog from "../components/orders/SoftwareServiceDialog";
 import UnlocksDialog from "../components/unlocks/UnlocksDialog";
 
 import {
-  ORDER_STATUSES,
   getStatusConfig,
   getEffectiveOrderStatus,
   normalizeStatusId
