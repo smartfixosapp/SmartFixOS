@@ -180,7 +180,6 @@ export default function Dashboard() {
   const [priceSearch, setPriceSearch] = useState("");
 
   const [showWorkOrderWizard, setShowWorkOrderWizard] = useState(false);
-  const [showJenaiWizard, setShowJenaiWizard] = useState(false);
   const [showOpenDrawer, setShowOpenDrawer] = useState(false);
   const [showCloseDrawer, setShowCloseDrawer] = useState(false);
 
