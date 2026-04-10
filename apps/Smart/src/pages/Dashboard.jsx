@@ -707,39 +707,6 @@ export default function Dashboard() {
   }, [priceListItems, priceListSearch]);
 
   // ── KPI stats computed from already-loaded orders ──────────────────────────
-  const kpiStats = useMemo(() => {
-    const todayStart = new Date();
-    todayStart.setHours(0, 0, 0, 0);
-    const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
-    // Closed = ya no requieren trabajo activo
-    const closedStatuses = ["picked_up", "completed", "cancelled", "delivered"];
-
-    const active = recentOrders.filter(o => {
-      const s = getEffectiveOrderStatus(o);
-      return !closedStatuses.includes(s) &&
-        s !== "warranty" &&
-        o.device_type !== "Software" &&
-        !(o.order_number && o.order_number.startsWith("SW-"));
-    });
-    const readyToPickup = recentOrders.filter(o =>
-      getEffectiveOrderStatus(o) === "ready_for_pickup"
-    );
-    const deliveredToday = recentOrders.filter(o => {
-      const s = getEffectiveOrderStatus(o);
-      if (!["delivered", "completed", "picked_up"].includes(s)) return false;
-      const d = new Date(o.updated_date || o.created_date);
-      return d >= todayStart;
-    });
-    const overdue = recentOrders.filter(o => {
-      const s = getEffectiveOrderStatus(o);
-      if (closedStatuses.includes(s)) return false;
-      const d = new Date(o.updated_date || o.created_date);
-      return d < sevenDaysAgo;
-    });
-    return { active: active.length, readyToPickup: readyToPickup.length, deliveredToday: deliveredToday.length, overdue: overdue.length };
-  }, [recentOrders]);
-
-  // Widget: Órdenes urgentes (active orders not updated in 5+ days)
 
   // Widget: Tiempo promedio de reparación (days from created to delivered, last 30 orders)
   const avgRepairTime = useMemo(() => {
