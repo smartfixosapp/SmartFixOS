@@ -1168,13 +1168,6 @@ export default function Dashboard() {
                 <ClipboardList className="w-4 h-4 text-blue-400 shrink-0" />
                 <span className="text-[11px] font-black text-blue-400/80 uppercase tracking-tight">Nueva Orden</span>
               </button>
-              <button onClick={() => { setShowJenaiWizard(true); setShowWorkOrderWizard(false); }} className="flex-1 min-h-[44px] bg-violet-500/10 border border-violet-500/20 rounded-xl flex items-center gap-3 px-4 hover:bg-violet-500/15 active:scale-95 transition-all">
-                <Sparkles className="w-4 h-4 text-violet-400 shrink-0" />
-                <div className="flex flex-col">
-                  <span className="text-[11px] font-black text-violet-400/80 uppercase tracking-tight">Crear con JENAI</span>
-                  <span className="text-[8px] text-white/50">powered by SmartFixOS</span>
-                </div>
-              </button>
               <button onClick={() => { setShowPriceList(true); setPriceListSearch(""); }} className="flex-1 min-h-[44px] bg-violet-500/10 border border-violet-500/20 rounded-xl flex items-center gap-3 px-4 hover:bg-violet-500/15 active:scale-95 transition-all">
                 <Search className="w-4 h-4 text-violet-400 shrink-0" />
                 <span className="text-[11px] font-black text-violet-400/80 uppercase tracking-tight">Lista Precios</span>
