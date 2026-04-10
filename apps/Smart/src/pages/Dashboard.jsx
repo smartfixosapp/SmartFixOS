@@ -735,52 +735,6 @@ export default function Dashboard() {
     return Object.entries(map).sort((a, b) => b[1] - a[1]).slice(0, 6);
   }, [recentOrders]);
 
-  const stockPill = (item) => {
-    if (item.type !== "product" || typeof item.stock !== "number") return null;
-    const cls =
-      item.stock <= 0
-        ? "bg-red-600/20 text-red-300 border-red-600/30"
-        : item.stock <= (item.min_stock || 0)
-        ? "bg-yellow-600/20 text-yellow-300"
-        : "bg-emerald-600/20 text-emerald-300";
-
-    return (
-      <span className={`px-2 py-0.5 rounded-md border text-xs ${cls}`}>
-        {item.stock <= 0 ? t("outOfStock") : item.stock}
-      </span>
-    );
-  };
-
-  const statusCounts = useMemo(() => {
-    const counts = {};
-    ORDER_STATUSES.filter((s) => s.isActive).forEach((s) => {
-      counts[s.id] = 0;
-    });
-
-    // ✅ Filtrar desbloqueos también en el conteo
-    const filteredRecentOrders = recentOrders.filter(
-      (o) => o.device_type !== "Software" && 
-             !(o.order_number && o.order_number.startsWith("SW-"))
-    );
-
-    filteredRecentOrders.forEach((order) => {
-      const normalized = getEffectiveOrderStatus(order);
-      if (counts.hasOwnProperty(normalized)) counts[normalized]++;
-    });
-
-    // Contar desbloqueos
-    counts.unlocks = recentOrders.filter(
-      (o) => o.device_type === "Software" ||
-             (o.order_number && o.order_number.startsWith("SW-"))
-    ).length;
-
-    // Contar garantías
-    counts.warranty = recentOrders.filter(
-      (o) => getEffectiveOrderStatus(o) === "warranty"
-    ).length;
-
-    return counts;
-  }, [recentOrders]);
 
 
   // Tareas de turno pendientes del usuario
