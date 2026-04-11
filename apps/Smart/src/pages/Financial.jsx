@@ -1269,11 +1269,11 @@ Maximo 150 palabras. Texto plano, sin markdown.`
       </div>
 
       {/* ── Layout principal ── */}
-      <div className="app-container pt-4 pb-28 flex-1">
-        <div className="lg:flex lg:gap-5 lg:items-start">
+      <div className="app-container pt-5 pb-28 flex-1">
+        <div className="lg:flex lg:gap-6 lg:items-start">
 
           {/* ── Sidebar (KPIs + acciones) — sticky en desktop ── */}
-          <div className="lg:w-64 xl:w-72 shrink-0 space-y-2 mb-4 lg:mb-0 lg:sticky lg:top-[72px]">
+          <div className="lg:w-64 xl:w-72 shrink-0 space-y-3 mb-5 lg:mb-0 lg:sticky lg:top-[72px]">
             {loadError && (
               <div className="flex items-center justify-between gap-3 p-3 bg-red-950/40 border border-red-500/30 rounded-2xl">
                 <div className="flex items-center gap-2 text-red-300 text-xs">
