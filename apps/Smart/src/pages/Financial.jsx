@@ -1437,7 +1437,7 @@ Maximo 150 palabras. Texto plano, sin markdown.`
 
         {/* Tab: Movimientos */}
         {activeTab === "movimientos" && (
-          <div className="space-y-3 mt-1">
+          <div className="space-y-4 mt-1">
             {/* Filter pills */}
             <div className="flex gap-1.5 justify-end">
               {[
