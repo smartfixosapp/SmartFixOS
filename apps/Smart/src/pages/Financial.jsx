@@ -1930,6 +1930,9 @@ Maximo 150 palabras. Texto plano, sin markdown.`
                 </div>
               </div>
 
+              {/* Separador visual */}
+              <div className="border-t border-white/[0.06]" />
+
               {/* Lista */}
               {loading ? (
                 <div className="py-12 text-center">
