@@ -1337,135 +1337,98 @@ Maximo 150 palabras. Texto plano, sin markdown.`
               </ErrorBoundary>
             )}
 
-            {/* ── Navegación unificada — todos los botones ── */}
-            <div className="flex flex-col gap-2">
-              {(() => {
-                const NAV = [
-                  {
-                    id: "income",     tab: "movimientos", filter: "income",
-                    label: "Dinero que entró",    sublabel: "Cobros y pagos recibidos",
-                    value: totalRevenue,           icon: TrendingUp,
-                    active: activeTab === "movimientos" && movFilter === "income",
-                    scheme: "emerald",
-                  },
-                  {
-                    id: "expense",    tab: "movimientos", filter: "expense",
-                    label: "Dinero que salió",
-                    sublabel: unsettledTotal > 0
-                      ? `Del banco: $${settledExpensesTotal.toFixed(2)} · Pendiente: $${unsettledTotal.toFixed(2)}`
-                      : "Gastos del negocio",
-                    value: totalExpenses,          icon: TrendingDown,
-                    active: activeTab === "movimientos" && movFilter === "expense",
-                    scheme: "red",
-                  },
-                  {
-                    id: "desglose",   tab: "desglose",    filter: null,
-                    label: netProfit >= 0 ? "Ganancia neta" : "Déficit",
-                    sublabel: "Cobrado − piezas − IVU − gastos",
-                    value: Math.abs(netProfit),    icon: DollarSign,
-                    active: activeTab === "desglose",
-                    scheme: netProfit >= 0 ? "cyan" : "red",
-                  },
-                  {
-                    id: "todos",      tab: "movimientos", filter: "all",
-                    label: "Todos los movimientos", sublabel: "Entradas y salidas juntas",
-                    value: null,                   icon: Receipt,
-                    active: activeTab === "movimientos" && movFilter === "all",
-                    scheme: "slate",
-                  },
-                  {
-                    id: "compromisos", tab: "compromisos", filter: null,
-                    label: "Compromisos",          sublabel: "Gastos fijos y pendientes",
-                    value: null,                   icon: Target,
-                    active: activeTab === "compromisos",
-                    scheme: "slate",
-                  },
-                  {
-                    id: "compras",    tab: "compras",     filter: null,
-                    label: "Órdenes de compra",    sublabel: "Compras a proveedores",
-                    value: null,                   icon: ShoppingCart,
-                    active: activeTab === "compras",
-                    scheme: "slate",
-                  },
-                  {
-                    id: "diferidos",  tab: "diferidos",   filter: null,
-                    label: "Pagos diferidos",      sublabel: "Por salir del banco",
-                    value: unsettledTotal,         icon: Clock,
-                    active: activeTab === "diferidos",
-                    scheme: unsettledTotal > 0 ? "amber" : "slate",
-                  },
-                  {
-                    id: "reportes",   tab: "reportes",    filter: null,
-                    label: "Reportes",             sublabel: "Análisis y exportar datos",
-                    value: null,                   icon: PieChart,
-                    active: activeTab === "reportes",
-                    scheme: "slate",
-                  },
-                  {
-                    id: "tecnicos",   tab: "tecnicos",    filter: null,
-                    label: "Técnicos",             sublabel: "Productividad del equipo",
-                    value: null,                   icon: TrendingUp,
-                    active: activeTab === "tecnicos",
-                    scheme: "slate",
-                  },
-                ];
+            {/* ── KPI Resumen rápido ── */}
+            <div className="grid grid-cols-2 gap-2">
+              <button onClick={() => { setActiveTab("movimientos"); setMovFilter("income"); }}
+                className={`text-left p-3 rounded-2xl border transition-all active:scale-[0.97] ${
+                  activeTab === "movimientos" && movFilter === "income" ? "bg-emerald-600 border-transparent" : "bg-emerald-500/[0.08] border-emerald-500/20"
+                }`}>
+                <TrendingUp className={`w-4 h-4 mb-1.5 ${activeTab === "movimientos" && movFilter === "income" ? "text-white/70" : "text-emerald-400"}`} />
+                <p className={`text-lg font-black tabular-nums leading-none ${activeTab === "movimientos" && movFilter === "income" ? "text-white" : "text-emerald-400"}`}>${totalRevenue.toFixed(2)}</p>
+                <p className={`text-[10px] font-bold mt-1 ${activeTab === "movimientos" && movFilter === "income" ? "text-white/60" : "text-emerald-400/50"}`}>Entradas</p>
+              </button>
+              <button onClick={() => { setActiveTab("movimientos"); setMovFilter("expense"); }}
+                className={`text-left p-3 rounded-2xl border transition-all active:scale-[0.97] ${
+                  activeTab === "movimientos" && movFilter === "expense" ? "bg-red-600 border-transparent" : "bg-red-500/[0.08] border-red-500/20"
+                }`}>
+                <TrendingDown className={`w-4 h-4 mb-1.5 ${activeTab === "movimientos" && movFilter === "expense" ? "text-white/70" : "text-red-400"}`} />
+                <p className={`text-lg font-black tabular-nums leading-none ${activeTab === "movimientos" && movFilter === "expense" ? "text-white" : "text-red-400"}`}>${totalExpenses.toFixed(2)}</p>
+                <p className={`text-[10px] font-bold mt-1 ${activeTab === "movimientos" && movFilter === "expense" ? "text-white/60" : "text-red-400/50"}`}>Salidas</p>
+              </button>
+            </div>
 
-                const colors = {
-                  emerald: { bg: "bg-emerald-500/10", bgActive: "bg-emerald-600", border: "border-emerald-500/30", text: "text-emerald-400", sub: "text-emerald-300/50" },
-                  red:     { bg: "bg-red-500/10",     bgActive: "bg-red-600",     border: "border-red-500/30",     text: "text-red-400",     sub: "text-red-300/50" },
-                  cyan:    { bg: "bg-cyan-500/10",    bgActive: "bg-cyan-600",    border: "border-cyan-500/30",    text: "text-cyan-400",    sub: "text-cyan-300/50" },
-                  amber:   { bg: "bg-amber-500/10",   bgActive: "bg-amber-600",   border: "border-amber-500/30",   text: "text-amber-400",   sub: "text-amber-300/50" },
-                  slate:   { bg: "bg-white/[0.04]",  bgActive: "bg-white/15",    border: "border-white/10",       text: "text-white/50",    sub: "text-white/25" },
-                };
+            {/* Ganancia neta — card destacada */}
+            <button onClick={() => setActiveTab("desglose")}
+              className={`w-full text-left p-3.5 rounded-2xl border transition-all active:scale-[0.97] ${
+                activeTab === "desglose"
+                  ? (netProfit >= 0 ? "bg-cyan-600 border-transparent" : "bg-red-600 border-transparent")
+                  : (netProfit >= 0 ? "bg-cyan-500/[0.08] border-cyan-500/20" : "bg-red-500/[0.08] border-red-500/20")
+              }`}>
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className={`text-[10px] font-black uppercase tracking-widest ${activeTab === "desglose" ? "text-white/50" : "text-white/30"}`}>
+                    {netProfit >= 0 ? "Ganancia Neta" : "Déficit"}
+                  </p>
+                  <p className={`text-2xl font-black tabular-nums leading-none mt-1 ${
+                    activeTab === "desglose" ? "text-white" : (netProfit >= 0 ? "text-cyan-400" : "text-red-400")
+                  }`}>${Math.abs(netProfit).toFixed(2)}</p>
+                </div>
+                <DollarSign className={`w-6 h-6 ${activeTab === "desglose" ? "text-white/30" : "text-white/10"}`} />
+              </div>
+            </button>
 
-                return NAV.map(k => {
-                  const c = colors[k.scheme];
+            {/* ── Navegación — compacta ── */}
+            <div className="pt-1">
+              <p className="text-[9px] font-black text-white/20 uppercase tracking-[0.2em] mb-2 px-1">Secciones</p>
+              <div className="flex flex-col gap-1">
+                {[
+                  { id: "todos",       tab: "movimientos", filter: "all",  label: "Movimientos",      icon: Receipt,      scheme: "slate" },
+                  { id: "compromisos", tab: "compromisos", filter: null,   label: "Compromisos",      icon: Target,       scheme: "slate" },
+                  { id: "compras",     tab: "compras",     filter: null,   label: "Órdenes de compra",icon: ShoppingCart,  scheme: "slate" },
+                  { id: "diferidos",   tab: "diferidos",   filter: null,   label: "Pagos diferidos",  icon: Clock,        scheme: unsettledTotal > 0 ? "amber" : "slate", badge: unsettledTotal > 0 ? `$${unsettledTotal.toFixed(0)}` : null },
+                  { id: "reportes",    tab: "reportes",    filter: null,   label: "Reportes",         icon: PieChart,     scheme: "slate" },
+                  { id: "tecnicos",    tab: "tecnicos",    filter: null,   label: "Técnicos",         icon: TrendingUp,   scheme: "slate" },
+                ].map(k => {
+                  const isActive = k.filter !== null ? (activeTab === k.tab && movFilter === k.filter) : activeTab === k.tab;
                   return (
                     <button key={k.id}
                       onClick={() => { setActiveTab(k.tab); if (k.filter !== null) setMovFilter(k.filter || "all"); }}
-                      className={`w-full flex items-center justify-between gap-3 px-4 py-3.5 rounded-2xl border transition-all active:scale-[0.98] ${k.active ? c.bgActive + " border-transparent" : c.bg + " " + c.border}`}
+                      className={`w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl transition-all active:scale-[0.98] ${
+                        isActive ? "bg-white/[0.12] text-white" : "text-white/50 hover:bg-white/[0.04] hover:text-white/70"
+                      }`}
                     >
-                      <div className="flex items-center gap-3 min-w-0">
-                        <div className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 ${k.active ? "bg-white/20" : "bg-white/[0.06]"}`}>
-                          <k.icon className={`w-4 h-4 ${k.active ? "text-white" : c.text}`} />
-                        </div>
-                        <div className="text-left min-w-0">
-                          <p className={`text-sm font-black leading-tight ${k.active ? "text-white" : "text-white/80"}`}>{k.label}</p>
-                          <p className={`text-[10px] font-bold leading-tight mt-0.5 ${k.active ? "text-white/60" : c.sub}`}>{k.sublabel}</p>
-                        </div>
-                      </div>
-                      {k.value !== null && (
-                        <p className={`text-lg font-black tabular-nums shrink-0 ${k.active ? "text-white" : c.text}`}>
-                          ${k.value.toFixed(2)}
-                        </p>
+                      <k.icon className={`w-4 h-4 shrink-0 ${isActive ? "text-white" : "text-white/30"}`} />
+                      <span className={`text-xs font-bold flex-1 text-left ${isActive ? "text-white" : ""}`}>{k.label}</span>
+                      {k.badge && (
+                        <span className="text-[10px] font-black text-amber-400 tabular-nums">{k.badge}</span>
                       )}
                     </button>
                   );
-                });
-              })()}
-
-              {/* Acciones de caja */}
-              <div className="grid grid-cols-2 gap-2 pt-1 border-t border-white/[0.06]">
-                <button onClick={() => {
-                    if (!canPlan('pos_cash_open_close')) {
-                      toast.error("Abrir/cerrar caja disponible en el plan Pro", { duration: 5000 });
-                      return;
-                    }
-                    drawerOpen ? setShowCloseDrawer(true) : setShowOpenDrawer(true);
-                  }}
-                  className={`flex items-center gap-2.5 px-3 py-3 rounded-2xl border transition-all active:scale-95 ${
-                    drawerOpen ? "bg-emerald-500/10 border-emerald-500/30" : "bg-white/5 border-white/10"
-                  }`}
-                >
-                  <Wallet className={`w-4 h-4 shrink-0 ${drawerOpen ? "text-emerald-400" : "text-white/30"}`} />
-                  <p className={`text-xs font-black truncate ${drawerOpen ? "text-emerald-400" : "text-white/40"}`}>{drawerOpen ? "Caja abierta" : "Caja cerrada"}</p>
-                </button>
-                <button onClick={() => { setExpenseDefaultCategory(null); setShowExpenseDialog(true); }}
-                  className="flex items-center gap-2.5 px-3 py-3 rounded-2xl border border-orange-500/20 bg-orange-500/[0.08] transition-all active:scale-95">
-                  <Plus className="w-4 h-4 text-orange-400 shrink-0" />
-                  <p className="text-xs font-black text-orange-300 truncate">Nuevo gasto</p>
-                </button>
+                })}
               </div>
+            </div>
+
+            {/* Acciones de caja */}
+            <div className="grid grid-cols-2 gap-2 pt-3 mt-1 border-t border-white/[0.06]">
+              <button onClick={() => {
+                  if (!canPlan('pos_cash_open_close')) {
+                    toast.error("Abrir/cerrar caja disponible en el plan Pro", { duration: 5000 });
+                    return;
+                  }
+                  drawerOpen ? setShowCloseDrawer(true) : setShowOpenDrawer(true);
+                }}
+                className={`flex items-center gap-2 px-3 py-2.5 rounded-xl border transition-all active:scale-95 ${
+                  drawerOpen ? "bg-emerald-500/10 border-emerald-500/30" : "bg-white/5 border-white/10"
+                }`}
+              >
+                <Wallet className={`w-3.5 h-3.5 shrink-0 ${drawerOpen ? "text-emerald-400" : "text-white/30"}`} />
+                <p className={`text-[11px] font-black truncate ${drawerOpen ? "text-emerald-400" : "text-white/40"}`}>{drawerOpen ? "Caja abierta" : "Caja cerrada"}</p>
+              </button>
+              <button onClick={() => { setExpenseDefaultCategory(null); setShowExpenseDialog(true); }}
+                className="flex items-center gap-2 px-3 py-2.5 rounded-xl border border-orange-500/20 bg-orange-500/[0.08] transition-all active:scale-95">
+                <Plus className="w-3.5 h-3.5 text-orange-400 shrink-0" />
+                <p className="text-[11px] font-black text-orange-300 truncate">Nuevo gasto</p>
+              </button>
             </div>
           </div>
 
