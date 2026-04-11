@@ -1680,35 +1680,35 @@ Maximo 150 palabras. Texto plano, sin markdown.`
             .reduce((s, po) => s + Number(po.total_amount || 0), 0);
 
           return (
-            <div className="space-y-3 mt-1">
+            <div className="space-y-5 mt-1">
               {/* Stats bar */}
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
-                <div className="p-3 rounded-xl bg-white/[0.03] border border-white/[0.08]">
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                <div className="p-4 rounded-2xl bg-white/[0.03] border border-white/[0.08]">
                   <p className="text-[10px] text-white/40 uppercase font-black tracking-wider">Este mes</p>
-                  <p className="text-white text-lg font-black tabular-nums mt-1">${monthTotal.toFixed(2)}</p>
-                  <p className="text-[10px] text-white/30 font-bold">{monthPOs.length} orden{monthPOs.length === 1 ? "" : "es"}</p>
+                  <p className="text-white text-xl font-black tabular-nums mt-1.5">${monthTotal.toFixed(2)}</p>
+                  <p className="text-[10px] text-white/30 font-bold mt-1">{monthPOs.length} orden{monthPOs.length === 1 ? "" : "es"}</p>
                 </div>
-                <div className="p-3 rounded-xl bg-amber-500/[0.05] border border-amber-500/20">
+                <div className="p-4 rounded-2xl bg-amber-500/[0.05] border border-amber-500/20">
                   <p className="text-[10px] text-amber-400/70 uppercase font-black tracking-wider">Pendiente</p>
-                  <p className="text-amber-300 text-lg font-black tabular-nums mt-1">${pendingTotal.toFixed(2)}</p>
-                  <p className="text-[10px] text-amber-400/50 font-bold">{pendingPOs.length} sin recibir</p>
+                  <p className="text-amber-300 text-xl font-black tabular-nums mt-1.5">${pendingTotal.toFixed(2)}</p>
+                  <p className="text-[10px] text-amber-400/50 font-bold mt-1">{pendingPOs.length} sin recibir</p>
                 </div>
-                <div className={`p-3 rounded-xl border ${overduePOs.length > 0 ? "bg-red-500/[0.05] border-red-500/25" : "bg-white/[0.03] border-white/[0.08]"}`}>
+                <div className={`p-4 rounded-2xl border ${overduePOs.length > 0 ? "bg-red-500/[0.05] border-red-500/25" : "bg-white/[0.03] border-white/[0.08]"}`}>
                   <p className={`text-[10px] uppercase font-black tracking-wider ${overduePOs.length > 0 ? "text-red-400/70" : "text-white/40"}`}>Vencidas</p>
-                  <p className={`text-lg font-black tabular-nums mt-1 ${overduePOs.length > 0 ? "text-red-300" : "text-white/40"}`}>{overduePOs.length}</p>
-                  <p className={`text-[10px] font-bold ${overduePOs.length > 0 ? "text-red-400/50" : "text-white/30"}`}>
+                  <p className={`text-xl font-black tabular-nums mt-1.5 ${overduePOs.length > 0 ? "text-red-300" : "text-white/40"}`}>{overduePOs.length}</p>
+                  <p className={`text-[10px] font-bold mt-1 ${overduePOs.length > 0 ? "text-red-400/50" : "text-white/30"}`}>
                     {overduePOs.length > 0 ? "requieren atención" : "todo al día"}
                   </p>
                 </div>
-                <div className="p-3 rounded-xl bg-white/[0.03] border border-white/[0.08]">
+                <div className="p-4 rounded-2xl bg-white/[0.03] border border-white/[0.08]">
                   <p className="text-[10px] text-white/40 uppercase font-black tracking-wider">Total OCs</p>
-                  <p className="text-white text-lg font-black tabular-nums mt-1">{allPOs.length}</p>
-                  <p className="text-[10px] text-white/30 font-bold">registradas</p>
+                  <p className="text-white text-xl font-black tabular-nums mt-1.5">{allPOs.length}</p>
+                  <p className="text-[10px] text-white/30 font-bold mt-1">registradas</p>
                 </div>
               </div>
 
               {/* Header acciones */}
-              <div className="flex flex-wrap items-center gap-2">
+              <div className="flex flex-wrap items-center gap-2 pt-1">
                 <button
                   onClick={() => { setEditingPO(null); setShowPODialog(true); }}
                   className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-cyan-500/15 border border-cyan-500/20 text-cyan-300 text-xs font-black hover:bg-cyan-500/25 transition-all active:scale-95"
