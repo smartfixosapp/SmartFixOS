@@ -2013,54 +2013,110 @@ Maximo 150 palabras. Texto plano, sin markdown.`
                   )}
                 </div>
               ) : poViewMode === "grouped" ? (
-                <div className="space-y-3">
+                <div className="space-y-4">
                   {(() => {
-                    const groups = new Map();
+                    // Group by supplier
+                    const supplierGroups = new Map();
                     for (const po of displayPOs) {
                       const key = po.supplier_name || "Sin proveedor";
-                      if (!groups.has(key)) groups.set(key, []);
-                      groups.get(key).push(po);
+                      if (!supplierGroups.has(key)) supplierGroups.set(key, []);
+                      supplierGroups.get(key).push(po);
                     }
-                    const arr = Array.from(groups.entries()).sort((a, b) => {
+                    // Sort suppliers by total spend desc
+                    const sortedSuppliers = Array.from(supplierGroups.entries()).sort((a, b) => {
                       const tA = a[1].reduce((s, po) => s + Number(po.total_amount || 0), 0);
                       const tB = b[1].reduce((s, po) => s + Number(po.total_amount || 0), 0);
                       return tB - tA;
                     });
-                    return arr.map(([name, items]) => {
-                      const total = items.reduce((s, po) => s + Number(po.total_amount || 0), 0);
-                      const pending = items.filter((po) => !["received", "cancelled"].includes(po.status || "draft"));
+
+                    const MONTH_NAMES = ["Enero","Febrero","Marzo","Abril","Mayo","Junio","Julio","Agosto","Septiembre","Octubre","Noviembre","Diciembre"];
+
+                    return sortedSuppliers.map(([supplierName, supplierPOs]) => {
+                      const supplierTotal = supplierPOs.reduce((s, po) => s + Number(po.total_amount || 0), 0);
+                      const pending = supplierPOs.filter((po) => !["received", "cancelled"].includes(po.status || "draft"));
+
+                      // Sub-group by month (YYYY-MM)
+                      const monthGroups = new Map();
+                      for (const po of supplierPOs) {
+                        const d = po.created_date || po.created_at || po.order_date;
+                        const dt = d ? new Date(d) : null;
+                        const monthKey = dt ? `${dt.getFullYear()}-${String(dt.getMonth()).padStart(2, "0")}` : "sin-fecha";
+                        const monthLabel = dt ? `${MONTH_NAMES[dt.getMonth()]} ${dt.getFullYear()}` : "Sin fecha";
+                        if (!monthGroups.has(monthKey)) monthGroups.set(monthKey, { label: monthLabel, items: [] });
+                        monthGroups.get(monthKey).items.push(po);
+                      }
+                      // Sort months desc (most recent first)
+                      const sortedMonths = Array.from(monthGroups.entries()).sort((a, b) => b[0].localeCompare(a[0]));
+
                       return (
-                        <div key={name} className="bg-white/[0.02] border border-white/[0.06] rounded-2xl p-3">
-                          <div className="flex items-center justify-between gap-2 mb-2 pb-2 border-b border-white/[0.06]">
+                        <div key={supplierName} className="bg-white/[0.02] border border-white/[0.06] rounded-2xl overflow-hidden">
+                          {/* Supplier header */}
+                          <div className="flex items-center justify-between gap-2 px-4 py-3 bg-white/[0.03] border-b border-white/[0.06]">
                             <div className="flex-1 min-w-0">
-                              <p className="text-sm font-black text-white truncate">📦 {name}</p>
+                              <p className="text-sm font-black text-white truncate">📦 {supplierName}</p>
                               <p className="text-[10px] text-white/40">
-                                {items.length} orden{items.length === 1 ? "" : "es"}
+                                {supplierPOs.length} orden{supplierPOs.length === 1 ? "" : "es"}
                                 {pending.length > 0 && ` · ${pending.length} pendiente${pending.length === 1 ? "" : "s"}`}
                               </p>
                             </div>
-                            <p className="text-base font-black text-white tabular-nums shrink-0">${total.toFixed(2)}</p>
+                            <p className="text-base font-black text-white tabular-nums shrink-0">${supplierTotal.toFixed(2)}</p>
                           </div>
-                          <div className="space-y-1">
-                            {items.map((po) => {
-                              const st = po.status || "draft";
+
+                          {/* Month sub-groups */}
+                          <div className="divide-y divide-white/[0.04]">
+                            {sortedMonths.map(([monthKey, { label: monthLabel, items: monthPOs }]) => {
+                              const monthTotal = monthPOs.reduce((s, po) => s + Number(po.total_amount || 0), 0);
+                              // Sort orders within month by date desc
+                              const sortedPOs = [...monthPOs].sort((a, b) => {
+                                const dA = new Date(a.created_date || a.created_at || a.order_date || 0).getTime();
+                                const dB = new Date(b.created_date || b.created_at || b.order_date || 0).getTime();
+                                return dB - dA;
+                              });
+
                               return (
-                                <button
-                                  key={po.id}
-                                  onClick={() => setViewingPO(po)}
-                                  className="w-full flex items-center gap-2 py-1.5 px-2 rounded-lg hover:bg-white/[0.04] transition-colors text-left"
-                                >
-                                  <span className={`px-1.5 py-0.5 rounded text-[9px] font-black border ${statusColor(st)}`}>
-                                    {statusLabel(st)}
-                                  </span>
-                                  <span className="flex-1 min-w-0 text-xs text-white/70 truncate">
-                                    {po.po_number || `OC-${String(po.id || "").slice(-6)}`}
-                                  </span>
-                                  {isOverdue(po) && (
-                                    <span className="text-[9px] text-red-400 font-black">⚠ Vencida</span>
-                                  )}
-                                  <span className="text-xs font-black text-white tabular-nums">${Number(po.total_amount || 0).toFixed(2)}</span>
-                                </button>
+                                <div key={monthKey} className="px-4 py-2">
+                                  {/* Month header */}
+                                  <div className="flex items-center justify-between gap-2 py-1.5 mb-1">
+                                    <div className="flex items-center gap-2">
+                                      <span className="text-[10px] text-cyan-400/70 font-black uppercase tracking-widest">📅 {monthLabel}</span>
+                                      <span className="text-[10px] text-white/25 font-bold">
+                                        {monthPOs.length} orden{monthPOs.length === 1 ? "" : "es"}
+                                      </span>
+                                    </div>
+                                    <span className="text-xs font-black text-cyan-400/80 tabular-nums">${monthTotal.toFixed(2)}</span>
+                                  </div>
+
+                                  {/* Orders list */}
+                                  <div className="space-y-0.5">
+                                    {sortedPOs.map((po) => {
+                                      const st = po.status || "draft";
+                                      const d = po.created_date || po.created_at || po.order_date;
+                                      const dayLabel = d ? format(new Date(d), "dd MMM", { locale: es }) : "";
+                                      return (
+                                        <button
+                                          key={po.id}
+                                          onClick={() => setViewingPO(po)}
+                                          className="w-full flex items-center gap-2 py-2 px-2.5 rounded-xl hover:bg-white/[0.04] transition-colors text-left group"
+                                        >
+                                          <span className={`px-1.5 py-0.5 rounded text-[9px] font-black border shrink-0 ${statusColor(st)}`}>
+                                            {statusLabel(st)}
+                                          </span>
+                                          <span className="flex-1 min-w-0 text-xs text-white/70 truncate">
+                                            {po.po_number || `OC-${String(po.id || "").slice(-6)}`}
+                                          </span>
+                                          {dayLabel && (
+                                            <span className="text-[10px] text-white/25 font-bold shrink-0">{dayLabel}</span>
+                                          )}
+                                          {isOverdue(po) && (
+                                            <span className="text-[9px] text-red-400 font-black shrink-0">⚠ Vencida</span>
+                                          )}
+                                          <span className="text-xs font-black text-white tabular-nums shrink-0">${Number(po.total_amount || 0).toFixed(2)}</span>
+                                          <Eye className="w-3.5 h-3.5 text-white/20 group-hover:text-white/50 shrink-0 transition-colors" />
+                                        </button>
+                                      );
+                                    })}
+                                  </div>
+                                </div>
                               );
                             })}
                           </div>
