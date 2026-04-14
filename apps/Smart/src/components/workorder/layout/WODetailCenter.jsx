@@ -286,18 +286,40 @@ export default function WODetailCenter({
               {validAttachments.map((file, i) => {
                 const src = file.publicUrl || file.thumbUrl || file.url;
                 const mime = file.mime || "";
+                const filename = file.filename || `Archivo ${i + 1}`;
                 const isImage = file.type === "image" || mime.startsWith("image/");
                 const isVideo = file.type === "video" || mime.startsWith("video/");
-                const isPdf = file.type === "pdf" || mime === "application/pdf" || /\.pdf$/i.test(file.filename || "");
-                const filename = file.filename || `Archivo ${i + 1}`;
+                const isPdf = file.type === "pdf" || mime === "application/pdf" || /\.pdf$/i.test(filename);
+                const isHtml = mime === "text/html" || /\.(html|htm)$/i.test(filename);
+
+                const handleClick = async () => {
+                  if (isImage) {
+                    setPreviewPhoto(src);
+                    return;
+                  }
+                  // Para HTML: fetch contenido y abrir como blob para que el browser lo renderice como HTML
+                  if (isHtml) {
+                    try {
+                      const res = await fetch(src);
+                      const text = await res.text();
+                      const blob = new Blob([text], { type: "text/html" });
+                      const blobUrl = URL.createObjectURL(blob);
+                      window.open(blobUrl, "_blank", "noopener,noreferrer");
+                      setTimeout(() => URL.revokeObjectURL(blobUrl), 60000);
+                      return;
+                    } catch (err) {
+                      console.warn("HTML blob render failed, fallback to direct URL:", err);
+                    }
+                  }
+                  // Default: abrir directamente
+                  window.open(src, "_blank", "noopener,noreferrer");
+                };
+
                 return (
                   <button
                     key={`${src}-${i}`}
                     type="button"
-                    onClick={() => {
-                      if (isImage) setPreviewPhoto(src);
-                      else window.open(src, "_blank", "noopener,noreferrer");
-                    }}
+                    onClick={handleClick}
                     title={filename}
                     className="h-14 w-14 rounded-lg overflow-hidden border border-white/10 shrink-0 hover:scale-105 transition-transform active:scale-95 relative bg-white/5"
                   >
@@ -312,6 +334,11 @@ export default function WODetailCenter({
                       <div className="h-full w-full flex flex-col items-center justify-center bg-gradient-to-br from-red-900/50 to-red-950/50 text-red-300">
                         <span className="text-lg">📄</span>
                         <span className="text-[8px] font-bold mt-0.5">PDF</span>
+                      </div>
+                    ) : isHtml ? (
+                      <div className="h-full w-full flex flex-col items-center justify-center bg-gradient-to-br from-orange-900/50 to-orange-950/50 text-orange-300">
+                        <span className="text-lg">🌐</span>
+                        <span className="text-[8px] font-bold mt-0.5">HTML</span>
                       </div>
                     ) : (
                       <div className="h-full w-full flex flex-col items-center justify-center bg-gradient-to-br from-cyan-900/50 to-cyan-950/50 text-cyan-300">
