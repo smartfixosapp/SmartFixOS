@@ -23,6 +23,7 @@ const STAGE_ACTIONS = {
   ],
   in_progress: [
     { icon: ClipboardCheck, label: "Checklist cierre", action: "checklist" },
+    { icon: Sparkles, label: "Diagnóstico IA", action: "diagnostico-ia" },
   ],
   ready_for_pickup: [
     { icon: Send, label: "Notificar cliente", action: "notify" },
