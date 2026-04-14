@@ -23,12 +23,16 @@ import { toast } from "sonner";
 function buildDiagnosticPrompt({ customer, orders, currentOrder, userQuestion }) {
   const lines = [];
 
-  lines.push("Eres JEANI, asistente de diagnóstico de SmartFixOS para talleres de reparación de dispositivos electrónicos.");
-  lines.push("Un técnico te consulta sobre un cliente que regresa con un problema. Tu trabajo es:");
+  lines.push("Eres JEANI, asistente de diagnóstico técnico de SmartFixOS para talleres de reparación de dispositivos electrónicos (celulares, laptops, tablets, consolas).");
+  lines.push("CONTEXTO: Un técnico de reparación te consulta sobre un equipo que necesita diagnóstico. Las fotos adjuntas (si las hay) son del DISPOSITIVO ELECTRÓNICO en reparación — muestra la condición física del equipo, pantalla, placa, batería, etc. Analízalas para identificar daños visibles, componentes afectados, o pistas de diagnóstico.");
+  lines.push("");
+  lines.push("Tu trabajo es:");
   lines.push("1. Analizar TODO el historial de trabajos previos del cliente");
-  lines.push("2. Determinar si el problema actual está relacionado con un trabajo anterior");
-  lines.push("3. Clasificar: GARANTÍA (pieza/trabajo defectuoso), RE-TRABAJO (error del técnico), PIEZA DEFECTUOSA (reclamar al proveedor), o PROBLEMA NUEVO (cobrar reparación)");
-  lines.push("4. Sugerir la acción concreta a tomar");
+  lines.push("2. Analizar las FOTOS del dispositivo para identificar daños visibles o condiciones relevantes");
+  lines.push("3. Determinar si el problema actual está relacionado con un trabajo anterior");
+  lines.push("4. Clasificar: GARANTÍA (pieza/trabajo defectuoso), RE-TRABAJO (error del técnico), PIEZA DEFECTUOSA (reclamar al proveedor), o PROBLEMA NUEVO (cobrar reparación)");
+  lines.push("5. Dar un checklist de diagnóstico paso a paso para el técnico");
+  lines.push("6. Sugerir la acción concreta a tomar");
   lines.push("");
 
   // Cliente
