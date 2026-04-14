@@ -1,4 +1,4 @@
-import React, { useMemo } from "react";
+import React, { useMemo, memo } from "react";
 import { Clock } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { getStatusConfig, normalizeStatusId } from "@/components/utils/statusRegistry";
