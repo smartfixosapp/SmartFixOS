@@ -141,6 +141,24 @@ Dime: tipo de cliente (frecuente/ocasional/nuevo), su valor para el negocio, y u
           )}
         </div>
 
+        {/* Diagnóstico IA — analizar historial completo del cliente */}
+        <div className="mx-4 mb-3">
+          {!showDiagnostic ? (
+            <button
+              onClick={() => setShowDiagnostic(true)}
+              className="w-full flex items-center justify-center gap-2 py-3 rounded-xl bg-violet-500/[0.08] border border-violet-500/20 text-violet-300 text-xs font-black hover:bg-violet-500/15 transition-all active:scale-[0.98]"
+            >
+              <Brain className="w-4 h-4" />
+              🧠 Diagnóstico IA — Cliente regresa con problema
+            </button>
+          ) : (
+            <JeaniDiagnosticPanel
+              customer={customer}
+              onClose={() => setShowDiagnostic(false)}
+            />
+          )}
+        </div>
+
         {ordersList.length === 0 ? (
           <div className="text-center py-12">
             <Package className="w-12 h-12 sm:w-16 sm:h-16 mx-auto text-slate-500 mb-4" />
