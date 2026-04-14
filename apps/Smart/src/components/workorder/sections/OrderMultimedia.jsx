@@ -235,7 +235,7 @@ export default function OrderMultimedia({ order, onUpdate }) {
               ) : (
                 <Camera className="w-4 h-4" />
               )}
-              <input type="file" accept="image/*,video/*,.pdf,.doc,.docx,.xls,.xlsx,.txt,.html,.htm,.csv,.rtf,.odt,.ods" multiple onChange={handleUpload} className="hidden" disabled={uploading} />
+              <input type="file" multiple onChange={handleUpload} className="hidden" disabled={uploading} />
             </label>
           </div>
         </div>
