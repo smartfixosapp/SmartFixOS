@@ -812,6 +812,18 @@ export default function DiagnosingStage({ order, onUpdate, user, onOrderItemsUpd
       />
       )}
 
+      {showJeaniReport && (
+        <JeaniStageReportPanel
+          order={effectiveOrder}
+          checklist={checklist}
+          checklistNotes={checklistNotes}
+          stageId="diagnosing"
+          stageLabel="Diagnóstico"
+          onClose={() => setShowJeaniReport(false)}
+          onApplyAsNote={() => { setShowJeaniReport(false); onUpdate?.(); }}
+        />
+      )}
+
       <OrderLinksDialog
         order={effectiveOrder}
         user={user}
