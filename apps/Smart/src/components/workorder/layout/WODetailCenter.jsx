@@ -342,6 +342,7 @@ export default function WODetailCenter({
                 const stageColorMap = {
                   intake: "bg-blue-500/20 text-blue-300 border-blue-500/30",
                   diagnosing: "bg-purple-500/20 text-purple-300 border-purple-500/30",
+                  waiting_customer: "bg-rose-500/20 text-rose-300 border-rose-500/30",
                   in_progress: "bg-cyan-500/20 text-cyan-300 border-cyan-500/30",
                   waiting_parts: "bg-orange-500/20 text-orange-300 border-orange-500/30",
                   pending_order: "bg-yellow-500/20 text-yellow-300 border-yellow-500/30",
