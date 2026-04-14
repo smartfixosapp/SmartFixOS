@@ -28,6 +28,7 @@ export default function CustomerOrdersDialog({ customer, orders = [], open, onCl
   const navigate = useNavigate();
   const [aiClientSummary, setAiClientSummary] = useState("");
   const [aiClientLoading, setAiClientLoading] = useState(false);
+  const [showDiagnostic, setShowDiagnostic] = useState(false);
 
   const handleOrderClick = (orderId) => {
     navigate(createPageUrl(`Orders?order=${orderId}`));
