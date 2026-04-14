@@ -84,3 +84,5 @@ function MobileProgressStepper({ activeStatuses, status, order }) {
     </div>
   );
 }
+
+export default memo(MobileProgressStepper);
