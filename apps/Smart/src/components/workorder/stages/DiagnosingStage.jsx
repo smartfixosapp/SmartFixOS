@@ -793,14 +793,7 @@ export default function DiagnosingStage({ order, onUpdate, user, onOrderItemsUpd
         </section>
       )}
 
-      {/* ── Asistente de Diagnostico IA ── */}
-      {!compact && (
-      <DiagnosticAI
-        order={order}
-        checklist={checklist}
-        deviceCategory={deviceCategory}
-      />
-      )}
+      {/* ── DiagnosticAI viejo eliminado — usar Diagnóstico IA del sidebar ── */}
 
       {/* ── Historia y Comentarios ── */}
       {!compact && (
