@@ -273,22 +273,58 @@ export default function WODetailCenter({
         disabled={uploading}
       />
 
-      {/* ── Photos thumbnail strip (read-only, upload via sidebar) ── */}
+      {/* ── Attachments thumbnail strip (imágenes + documentos) ── */}
       {(() => {
-        const allPhotos = localPhotos.map(p => p?.publicUrl || p?.thumbUrl || p?.url).filter(Boolean);
-        if (allPhotos.length === 0) return null;
+        const validAttachments = localPhotos.filter(p => p?.publicUrl || p?.thumbUrl || p?.url);
+        if (validAttachments.length === 0) return null;
         return (
           <div className="rounded-xl border border-white/[0.08] bg-[#121215] p-4">
             <h4 className="text-[10px] font-black uppercase tracking-widest text-white/30 mb-2">
-              Fotos ({allPhotos.length})
+              Archivos ({validAttachments.length})
               {uploading && <span className="ml-2 text-cyan-400 animate-pulse">subiendo...</span>}
             </h4>
             <div className="flex gap-2 overflow-x-auto">
-              {allPhotos.map((src, i) => (
-                <button key={`${src}-${i}`} type="button" onClick={() => setPreviewPhoto(src)} className="h-14 w-14 rounded-lg overflow-hidden border border-white/10 shrink-0 hover:scale-105 transition-transform active:scale-95">
-                  <img src={src} alt={`Foto ${i + 1}`} className="h-full w-full object-cover" loading="lazy" />
-                </button>
-              ))}
+              {validAttachments.map((file, i) => {
+                const src = file.publicUrl || file.thumbUrl || file.url;
+                const mime = file.mime || "";
+                const isImage = file.type === "image" || mime.startsWith("image/");
+                const isVideo = file.type === "video" || mime.startsWith("video/");
+                const isPdf = file.type === "pdf" || mime === "application/pdf" || /\.pdf$/i.test(file.filename || "");
+                const filename = file.filename || `Archivo ${i + 1}`;
+                return (
+                  <button
+                    key={`${src}-${i}`}
+                    type="button"
+                    onClick={() => {
+                      if (isImage) setPreviewPhoto(src);
+                      else window.open(src, "_blank", "noopener,noreferrer");
+                    }}
+                    title={filename}
+                    className="h-14 w-14 rounded-lg overflow-hidden border border-white/10 shrink-0 hover:scale-105 transition-transform active:scale-95 relative bg-white/5"
+                  >
+                    {isImage ? (
+                      <img src={src} alt={filename} className="h-full w-full object-cover" loading="lazy" />
+                    ) : isVideo ? (
+                      <div className="h-full w-full flex flex-col items-center justify-center bg-gradient-to-br from-purple-900/50 to-purple-950/50 text-purple-300">
+                        <span className="text-lg">🎬</span>
+                        <span className="text-[8px] font-bold mt-0.5">VIDEO</span>
+                      </div>
+                    ) : isPdf ? (
+                      <div className="h-full w-full flex flex-col items-center justify-center bg-gradient-to-br from-red-900/50 to-red-950/50 text-red-300">
+                        <span className="text-lg">📄</span>
+                        <span className="text-[8px] font-bold mt-0.5">PDF</span>
+                      </div>
+                    ) : (
+                      <div className="h-full w-full flex flex-col items-center justify-center bg-gradient-to-br from-cyan-900/50 to-cyan-950/50 text-cyan-300">
+                        <span className="text-lg">📎</span>
+                        <span className="text-[8px] font-bold mt-0.5 truncate px-1 w-full text-center">
+                          {(filename.split(".").pop() || "FILE").toUpperCase().slice(0, 4)}
+                        </span>
+                      </div>
+                    )}
+                  </button>
+                );
+              })}
             </div>
           </div>
         );
