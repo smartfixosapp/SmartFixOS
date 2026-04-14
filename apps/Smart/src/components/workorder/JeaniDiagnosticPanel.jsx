@@ -15,7 +15,7 @@
 import React, { useState, useCallback } from "react";
 import { base44 } from "@/api/base44Client";
 import { dataClient } from "@/components/api/dataClient";
-import { Brain, Loader2, AlertTriangle, CheckCircle2, RefreshCw, X, ChevronDown, ChevronUp } from "lucide-react";
+import { Brain, Loader2, AlertTriangle, CheckCircle2, RefreshCw, X, ChevronDown, ChevronUp, StickyNote } from "lucide-react";
 import { toast } from "sonner";
 
 // ── Build the AI prompt from customer history ───────────────────────────
