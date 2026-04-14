@@ -66,16 +66,39 @@ export default function JeaniStageReportPanel({
         } catch {}
       }
 
-      const deviceInfo = [o.device_brand, o.device_model].filter(Boolean).join(" ") || "dispositivo";
+      const deviceInfo = [o.device_brand, o.device_model, o.device_color].filter(Boolean).join(" ") || "dispositivo";
       const checklistSummary = testedItems.length > 0
-        ? testedItems.map(c => `- ${c.label}: ${c.status === "ok" ? "OK" : c.status === "issue" ? "PROBLEMA" : "Requiere revisión"}${c.notes ? ` (${c.notes})` : ""}`).join("\n")
+        ? testedItems.map(c => `- ${c.label}: ${c.status === "ok" ? "OK" : c.status === "issue" ? "PROBLEMA DETECTADO" : "Requiere revisión"}${c.notes ? ` — ${c.notes}` : ""}`).join("\n")
         : "Sin checklist documentado";
 
-      const attachmentsBlock = textContents.length > 0
-        ? "\n\n═══ REPORTES ADJUNTOS ═══\n" + textContents.map((a, i) => `--- ${i + 1}. ${a.filename} ---\n${a.content}`).join("\n\n")
-        : "";
+      // Solo problemas detectados, separados para mayor énfasis
+      const issuesOnly = testedItems
+        .filter(c => c.status === "issue")
+        .map(c => `• ${c.label}${c.notes ? ` (${c.notes})` : ""}`)
+        .join("\n");
 
-      const imagesNote = images.length > 0 ? `\n\nNOTA: Hay ${images.length} foto(s) adjunta(s) documentando evidencia visual.` : "";
+      // Cargar comentarios/notas previas de la orden
+      const commentsArr = Array.isArray(o.comments) ? o.comments : [];
+      const previousNotes = commentsArr
+        .map(c => (c?.text || c?.description || ""))
+        .filter(Boolean)
+        .slice(-5)
+        .join("\n• ");
+
+      // Items registrados (piezas/servicios)
+      const itemsArr = Array.isArray(o.order_items) ? o.order_items : [];
+      const itemsSummary = itemsArr.length > 0
+        ? itemsArr.map(i => `- ${i.name || "Item"} (${i.type || "pieza"})`).join("\n")
+        : "Ninguno aún";
+
+      // Foto descripción para imágenes
+      const imagesDescription = images.length > 0
+        ? images.map((img, i) => `Foto ${i + 1}: ${img.filename || "imagen"} (${img.stage_label || "sin etiqueta"})`).join("\n")
+        : "Sin fotos";
+
+      const attachmentsBlock = textContents.length > 0
+        ? "\n\n═══ CONTENIDO COMPLETO DE REPORTES ADJUNTOS ═══\n" + textContents.map((a, i) => `--- ${i + 1}. ${a.filename} ---\n${a.content}`).join("\n\n")
+        : "";
 
       const systemPrompt = `Eres un técnico experto de taller de reparación.
 Tu tarea: analizar la información del ${stageLabel.toLowerCase()} y generar un REPORTE TÉCNICO PROFESIONAL en español.
