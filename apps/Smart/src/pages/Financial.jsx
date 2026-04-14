@@ -1421,6 +1421,13 @@ Maximo 150 palabras. Texto plano, sin markdown.`
         {/* ── Content area ── */}
         <div>
 
+        {/* Tab: Resumen — overview ejecutivo con graficos y KPIs */}
+        {activeTab === "resumen" && (
+          <div className="py-2">
+            <ExecutiveDashboard />
+          </div>
+        )}
+
         {/* Tab: Movimientos */}
         {activeTab === "movimientos" && (
           <div className="space-y-4">
