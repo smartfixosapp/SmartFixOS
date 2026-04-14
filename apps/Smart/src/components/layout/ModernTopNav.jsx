@@ -66,7 +66,7 @@ export default function ModernTopNav() {
     if (currentPath === "/" || currentPath === "/Dashboard") setActiveTab("home");
     else if (currentPath.includes("Orders")) setActiveTab("orders");
     else if (currentPath.includes("POS")) setActiveTab("pos");
-    else if (currentPath.includes("Customers")) setActiveTab("customers");
+    else if (currentPath.includes("Financial")) setActiveTab("financial");
     else if (currentPath.includes("Settings")) setActiveTab("settings");
     else setActiveTab("");
   }, [location.pathname]);
