@@ -25,6 +25,16 @@ const DEFAULT_ORDER_STATUSES = [
     isActive: true,
     isTerminal: false
   },
+  {
+    id: "waiting_customer",
+    label: "Esperando Cliente",
+    order: 3,
+    colorClass: "bg-rose-500/20 text-rose-300 border-rose-500/30",
+    colorClasses: "bg-rose-500/20 text-rose-300 border-rose-500/30",
+    color: "#F43F5E",
+    isActive: true,
+    isTerminal: false
+  },
 
   {
     id: "pending_order",
