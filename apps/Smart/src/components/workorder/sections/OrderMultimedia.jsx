@@ -115,10 +115,17 @@ export default function OrderMultimedia({ order, onUpdate }) {
         try {
           const { file_url } = await base44.integrations.Core.UploadFile({ file });
           const versionedUrl = `${file_url}${file_url.includes("?") ? "&" : "?"}v=${Date.now()}`;
+          // Detectar tipo de archivo
+          const mime = file.type || "application/octet-stream";
+          let fileType = "file";
+          if (mime.startsWith("image/")) fileType = "image";
+          else if (mime.startsWith("video/")) fileType = "video";
+          else if (mime === "application/pdf") fileType = "pdf";
+          else if (mime.includes("document") || mime.includes("word")) fileType = "document";
           newItems.push({
             id: `${Date.now()}-${file.name}`,
-            type: "image",
-            mime: file.type || "image/jpeg",
+            type: fileType,
+            mime,
             filename: file.name,
             publicUrl: versionedUrl,
             thumbUrl: versionedUrl,
