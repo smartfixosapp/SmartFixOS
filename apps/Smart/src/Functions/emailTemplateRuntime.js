@@ -32,6 +32,7 @@ function getHeaderGradient(eventType) {
     diagnosing:                   'linear-gradient(135deg,#3B82F6 0%,#1D4ED8 100%)',
     awaiting_approval:            'linear-gradient(135deg,#F59E0B 0%,#B45309 100%)',
     waiting_parts:                'linear-gradient(135deg,#F97316 0%,#C2410C 100%)',
+    waiting_customer:             'linear-gradient(135deg,#F43F5E 0%,#9F1239 100%)',
     pending_order:                'linear-gradient(135deg,#F59E0B 0%,#92400E 100%)',
     part_arrived_waiting_device:  'linear-gradient(135deg,#0EA5E9 0%,#0369A1 100%)',
     reparacion_externa:           'linear-gradient(135deg,#8B5CF6 0%,#6D28D9 100%)',
