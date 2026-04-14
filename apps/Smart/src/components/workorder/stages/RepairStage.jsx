@@ -409,15 +409,7 @@ export default function RepairStage({ order, onUpdate, onOrderItemsUpdate, onRem
         />
       )}
 
-      {/* ── Asistente de Reparacion IA ── */}
-      {!compact && (
-        <DiagnosticAI
-          order={order}
-          checklist={Array.isArray(o.checklist_items) ? o.checklist_items : []}
-          deviceCategory={detectRepairDeviceCategory(o)}
-          mode="repair"
-        />
-      )}
+      {/* ── DiagnosticAI viejo eliminado — usar Diagnóstico IA del sidebar ── */}
 
       {/* ── HISTORIAL / FOTOS / NOTAS ────────────────────────────────────── */}
       {!compact && (
