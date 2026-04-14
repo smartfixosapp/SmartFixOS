@@ -20,7 +20,6 @@ const NOTIFICATION_TYPES = {
 
 export function useRealtimeNotifications({ enabled = true } = {}) {
   const [lastCheck, setLastCheck] = useState(Date.now());
-  const [isActive, setIsActive] = useState(true);
   const intervalRef = useRef(null);
   const processedIds = useRef(new Set());
   const networkFailCount = useRef(0);
@@ -30,24 +29,18 @@ export function useRealtimeNotifications({ enabled = true } = {}) {
     if (!enabled) return undefined;
 
     checkNotifications();
-    
+
+    // Use ref-based visibility check to avoid re-creating interval on state change
     intervalRef.current = setInterval(() => {
-      if (isActive && document.visibilityState === 'visible') {
+      if (document.visibilityState === 'visible') {
         checkNotifications();
       }
     }, POLL_INTERVAL);
 
-    // Pausar cuando la pestaña no está visible
-    const handleVisibilityChange = () => {
-      setIsActive(document.visibilityState === 'visible');
-    };
-    document.addEventListener('visibilitychange', handleVisibilityChange);
-
     return () => {
       if (intervalRef.current) clearInterval(intervalRef.current);
-      document.removeEventListener('visibilitychange', handleVisibilityChange);
     };
-  }, [isActive, enabled]);
+  }, [enabled]);
 
   const checkNotifications = async () => {
     try {
