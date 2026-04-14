@@ -146,6 +146,7 @@ function colorToClasses(hexColor) {
     "#F97316": "bg-orange-500/20 text-orange-300 border-orange-500/30",
     "#DC2626": "bg-red-600/20 text-red-300 border-red-600/30",
     "#EC4899": "bg-pink-500/20 text-pink-300 border-pink-500/30",
+    "#F43F5E": "bg-rose-500/20 text-rose-300 border-rose-500/30",
     "#FACC15": "bg-yellow-400/20 text-yellow-200 border-yellow-400/30",
     "#06B6D4": "bg-cyan-500/20 text-cyan-300 border-cyan-500/30",
     "#10B981": "bg-green-600/20 text-green-300 border-green-600/30",
