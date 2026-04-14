@@ -239,6 +239,8 @@ const STATUS_SYNONYMS = {
   "esperando_aprobacion": "awaiting_approval",
   "pendiente_ordenar": "pending_order",
   "esperando_piezas": "waiting_parts",
+  "esperando_cliente": "waiting_customer",
+  "esperando_por_cliente": "waiting_customer",
   "taller_externo": "reparacion_externa",
   "en_reparacion": "in_progress",
   "en_progreso": "in_progress",
