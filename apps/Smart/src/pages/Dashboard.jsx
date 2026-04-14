@@ -92,7 +92,6 @@ import RechargesPanel from "@/components/recharges/RechargesPanel";
 import DashboardLinksConfig from "@/components/dashboard/DashboardLinksConfig";
 import DailyTransactionsModal from "@/components/dashboard/DailyTransactionsModal";
 import MonthlyReportModal, { shouldShowMonthlyReport } from "@/components/financial/MonthlyReportModal";
-import ExecutiveDashboard from "@/components/dashboard/ExecutiveDashboard";
 const DASHBOARD_WIDGETS_KEY = "smartfix_dashboard_widgets_v2";
 const CUSTOM_WIDGETS_KEY = "smartfix_custom_link_widgets";
 
