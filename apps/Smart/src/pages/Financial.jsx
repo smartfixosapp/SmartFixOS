@@ -14,7 +14,7 @@ import {
   DollarSign, TrendingUp, TrendingDown, Wallet, Receipt,
   CreditCard, Landmark, RefreshCw, Plus, Target, PieChart,
   Edit2, Trash2, Save, Download, Filter, X, AlertTriangle, Sparkles,
-  ShoppingCart, Eye, Truck, Clock
+  ShoppingCart, Eye, Truck, Clock, BarChart3
 } from "lucide-react";
 import { format, startOfDay, endOfDay, isWithinInterval } from "date-fns";
 import { es } from "date-fns/locale";
