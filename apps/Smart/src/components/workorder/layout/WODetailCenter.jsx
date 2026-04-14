@@ -262,11 +262,10 @@ export default function WODetailCenter({
         />
       )}
 
-      {/* ── Hidden file input (imágenes, videos, PDFs, documentos, HTML, etc) ── */}
+      {/* ── Hidden file input — acepta cualquier archivo ── */}
       <input
         ref={photoInputRef}
         type="file"
-        accept="image/*,video/*,.pdf,.doc,.docx,.xls,.xlsx,.txt,.html,.htm,.csv,.rtf,.odt,.ods"
         multiple
         className="hidden"
         onChange={handlePhotoUpload}
