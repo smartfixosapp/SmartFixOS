@@ -95,9 +95,10 @@ export default function WODetailCenter({
     setLocalPhotos(Array.isArray(o.photos_metadata) ? o.photos_metadata : []);
   }, [o.photos_metadata]);
 
-  // Photo upload handler with optimistic UI
+  // Photo/file upload handler with optimistic UI
+  // Acepta imágenes, videos, PDFs, documentos, y otros archivos
   const handlePhotoUpload = useCallback(async (e) => {
-    const files = Array.from(e.target.files || []).filter(f => f.type?.startsWith("image/"));
+    const files = Array.from(e.target.files || []);
     if (!files.length || !o.id) return;
     setUploading(true);
     try {
@@ -108,10 +109,17 @@ export default function WODetailCenter({
         try {
           const { file_url } = await base44.integrations.Core.UploadFile({ file });
           const versionedUrl = `${file_url}${file_url.includes("?") ? "&" : "?"}v=${Date.now()}`;
+          // Detectar tipo de archivo
+          const mime = file.type || "application/octet-stream";
+          let fileType = "file";
+          if (mime.startsWith("image/")) fileType = "image";
+          else if (mime.startsWith("video/")) fileType = "video";
+          else if (mime === "application/pdf") fileType = "pdf";
+          else if (mime.includes("document") || mime.includes("word")) fileType = "document";
           newItems.push({
             id: `${Date.now()}-${file.name}`,
-            type: "image",
-            mime: file.type || "image/jpeg",
+            type: fileType,
+            mime,
             filename: file.name,
             publicUrl: versionedUrl,
             thumbUrl: versionedUrl,
