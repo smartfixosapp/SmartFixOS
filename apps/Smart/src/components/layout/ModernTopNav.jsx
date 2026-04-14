@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import { 
-  Home, 
-  ClipboardList, 
-  Wallet, 
-  Users, 
+import {
+  Home,
+  ClipboardList,
+  Wallet,
+  DollarSign,
   Settings,
   LayoutGrid
 } from "lucide-react";
