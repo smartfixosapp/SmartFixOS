@@ -55,11 +55,44 @@ export default function WODetailCenter({
       }
       // checklist, links, tracking, quote, approval — handled by stage components directly via wo:action
       if (action === "quote") document.dispatchEvent(new CustomEvent("wo:send-quote"));
-      // Open JEANI assistant
+      // Open JEANI assistant — carga contenido de archivos HTML/TXT adjuntos primero
       if (action === "ai") {
-        const evt = new CustomEvent("wo:open-jeani", { detail: { order: e.detail?.order } });
-        window.dispatchEvent(evt);
-        document.dispatchEvent(evt);
+        (async () => {
+          const ord = e.detail?.order || {};
+          const photos = Array.isArray(ord.photos_metadata) ? ord.photos_metadata : [];
+          // Extraer contenido de archivos HTML/TXT para que JEANI los pueda analizar
+          const textAttachments = [];
+          for (const f of photos) {
+            const mime = f?.mime || "";
+            const name = f?.filename || "";
+            const url = f?.publicUrl || f?.thumbUrl || f?.url;
+            if (!url) continue;
+            const isHtml = mime === "text/html" || /\.(html|htm)$/i.test(name);
+            const isText = mime.startsWith("text/") || /\.(txt|csv|log|json)$/i.test(name);
+            if (!isHtml && !isText) continue;
+            try {
+              const res = await fetch(url);
+              let content = await res.text();
+              // Si es HTML, extraer solo el texto visible (sin tags)
+              if (isHtml) {
+                const tmp = document.createElement("div");
+                tmp.innerHTML = content;
+                // Remover scripts y styles
+                tmp.querySelectorAll("script,style").forEach(el => el.remove());
+                content = (tmp.innerText || tmp.textContent || "").trim();
+              }
+              // Limitar tamaño para no sobrecargar el prompt
+              if (content.length > 6000) content = content.slice(0, 6000) + "\n...[truncado]";
+              textAttachments.push({ filename: name, type: isHtml ? "HTML" : "Texto", content });
+            } catch (err) {
+              console.warn("[JEANI] No se pudo leer adjunto:", name, err);
+            }
+          }
+          const orderWithAttachments = { ...ord, _textAttachments: textAttachments };
+          const evt = new CustomEvent("wo:open-jeani", { detail: { order: orderWithAttachments } });
+          window.dispatchEvent(evt);
+          document.dispatchEvent(evt);
+        })();
       }
       // Add note from sidebar
       if (action === "add-note") {
