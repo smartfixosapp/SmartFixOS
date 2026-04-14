@@ -47,9 +47,46 @@ export default function PunchReminderBanner() {
     if (dismissed) { setState({ visible: false }); return; }
 
     const session = readSession();
-    const employeeId = session?.employee_id || session?.id || session?.user?.id;
-    const employeeName = session?.full_name || session?.name || session?.user?.full_name || "Empleado";
+    const employeeId = session?.employee_id || session?.userId || session?.id || session?.user?.id;
+    const employeeName = session?.full_name || session?.userName || session?.name || session?.user?.full_name || "Empleado";
     if (!employeeId) { setState({ visible: false }); return; }
+
+    // Quick check: si PunchButton acaba de ponchar, dejo timeEntryId en sessionStorage.
+    // Si existe, asumimos que esta ponchado y evitamos un evento de carrera con la query.
+    try {
+      const cachedId = sessionStorage.getItem("timeEntryId");
+      if (cachedId) {
+        const entry = await dataClient.entities.TimeEntry.get(cachedId).catch(() => null);
+        if (entry && !entry.clock_out) {
+          // Esta ponchado — solo evaluar caso 2 (recordatorio de salida)
+          const today = await (async () => {
+            const settings = await dataClient.entities.AppSettings.filter({ slug: "employee-schedules" }).catch(() => []);
+            const week = settings?.[0]?.payload?.[employeeId];
+            return week?.[DAY_KEYS[new Date().getDay()]] || null;
+          })();
+          if (today && !today.off && today.end) {
+            const minsToEnd = minsBetween(today.end, nowHHMM());
+            if (minsToEnd <= 0 && minsToEnd > -30) {
+              setState({
+                visible: true,
+                severity: "info",
+                mode: "out",
+                shift: today,
+                employeeId,
+                employeeName,
+                openEntryId: entry.id,
+                message: `Tu turno terminó a las ${today.end}. ¿Ponchar salida?`,
+              });
+            } else {
+              setState({ visible: false });
+            }
+          } else {
+            setState({ visible: false });
+          }
+          return;
+        }
+      }
+    } catch {}
 
     try {
       // Cargar horarios
