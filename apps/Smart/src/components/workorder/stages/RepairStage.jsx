@@ -13,6 +13,7 @@ import WorkOrderUnifiedHub from "@/components/workorder/WorkOrderUnifiedHub";
 import AddItemModal from "@/components/workorder/AddItemModal";
 import SharedItemsSection from "@/components/workorder/SharedItemsSection";
 import DiagnosticAI from "@/components/workorder/DiagnosticAI";
+import JeaniStageReportPanel from "@/components/workorder/JeaniStageReportPanel";
 
 function detectRepairDeviceCategory(order) {
   const raw = [order?.device_type || "", order?.device_brand || "", order?.device_model || ""].join(" ").toLowerCase();
