@@ -232,6 +232,7 @@ export default function JeaniDiagnosticPanel({
   const [question, setQuestion] = useState("");
   const [historyLoaded, setHistoryLoaded] = useState(null); // { orders, customer }
   const [showHistory, setShowHistory] = useState(false);
+  const [addingNote, setAddingNote] = useState(false);
 
   const customerName = order?.customer_name || customer?.name || customer?.full_name || "";
   const customerPhone = order?.customer_phone || customer?.phone || "";
