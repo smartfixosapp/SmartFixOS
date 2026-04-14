@@ -15,7 +15,7 @@ function timeSince(date) {
   return `${days}d`;
 }
 
-export default function MobileProgressStepper({ activeStatuses, status, order }) {
+function MobileProgressStepper({ activeStatuses, status, order }) {
   const currentIdx = activeStatuses.findIndex(s => normalizeStatusId(status) === s.id);
   const currentConfig = getStatusConfig(status);
 
