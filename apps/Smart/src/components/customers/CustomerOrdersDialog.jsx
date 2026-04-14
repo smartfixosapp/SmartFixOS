@@ -10,8 +10,9 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { format } from "date-fns";
-import { ArrowRight, Package, Trash2, Star } from "lucide-react";
+import { ArrowRight, Package, Trash2, Star, Brain } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import JeaniDiagnosticPanel from "@/components/workorder/JeaniDiagnosticPanel";
 import { createPageUrl } from "@/utils";
 
 const statusColors = {
