@@ -1251,8 +1251,21 @@ Maximo 150 palabras. Texto plano, sin markdown.`
         )}
       </div>
 
-      {/* ── JENAI Financial Insights ── */}
-      <div className="app-container pt-3">
+      {/* ── Layout principal — full width, no sidebar ── */}
+      <div className="app-container pt-4 pb-28 flex-1 space-y-5">
+
+        {/* ── Error banner ── */}
+        {loadError && (
+          <div className="flex items-center justify-between gap-3 p-3 bg-red-950/40 border border-red-500/30 rounded-2xl">
+            <div className="flex items-center gap-2 text-red-300 text-xs">
+              <AlertTriangle className="w-4 h-4 shrink-0" />
+              <span>{loadError}</span>
+            </div>
+            <button onClick={handleManualRefresh} className="text-xs font-black text-red-300 hover:text-red-100 uppercase tracking-widest">Reintentar</button>
+          </div>
+        )}
+
+        {/* ── JENAI Insights — collapsible ── */}
         <JENAIInsightBanner
           context="financial"
           data={{
@@ -1266,192 +1279,163 @@ Maximo 150 palabras. Texto plano, sin markdown.`
           accentColor="emerald"
           autoLoad={false}
         />
-      </div>
 
-      {/* ── Layout principal ── */}
-      <div className="app-container pt-5 pb-28 flex-1">
-        <div className="lg:flex lg:gap-6 lg:items-start">
-
-          {/* ── Sidebar (KPIs + acciones) — sticky en desktop ── */}
-          <div className="lg:w-64 xl:w-72 shrink-0 space-y-3 mb-5 lg:mb-0 lg:sticky lg:top-[72px]">
-            {loadError && (
-              <div className="flex items-center justify-between gap-3 p-3 bg-red-950/40 border border-red-500/30 rounded-2xl">
-                <div className="flex items-center gap-2 text-red-300 text-xs">
-                  <AlertTriangle className="w-4 h-4 shrink-0" />
-                  <span>{loadError}</span>
-                </div>
-                <button onClick={handleManualRefresh} className="text-xs font-black text-red-300 hover:text-red-100 uppercase tracking-widest">Reintentar</button>
+        {/* ── KPI Cards — 3 cards en fila ── */}
+        <div className="grid grid-cols-3 gap-3">
+          {/* Entradas */}
+          <button onClick={() => { setActiveTab("movimientos"); setMovFilter("income"); }}
+            className={`text-left p-4 sm:p-5 rounded-2xl border transition-all active:scale-[0.98] ${
+              activeTab === "movimientos" && movFilter === "income"
+                ? "bg-emerald-600 border-emerald-500/50 shadow-lg shadow-emerald-500/10"
+                : "bg-white/[0.03] border-white/[0.06] hover:bg-white/[0.05]"
+            }`}>
+            <div className="flex items-center gap-2 mb-2">
+              <div className={`w-7 h-7 rounded-lg flex items-center justify-center ${
+                activeTab === "movimientos" && movFilter === "income" ? "bg-white/20" : "bg-emerald-500/15"
+              }`}>
+                <TrendingUp className={`w-3.5 h-3.5 ${activeTab === "movimientos" && movFilter === "income" ? "text-white" : "text-emerald-400"}`} />
               </div>
-            )}
-            <ErrorBoundary><AlertasWidget /></ErrorBoundary>
+              <span className={`text-[10px] font-black uppercase tracking-widest ${
+                activeTab === "movimientos" && movFilter === "income" ? "text-white/60" : "text-white/30"
+              }`}>Entradas</span>
+            </div>
+            <p className={`text-xl sm:text-2xl font-black tabular-nums leading-none ${
+              activeTab === "movimientos" && movFilter === "income" ? "text-white" : "text-emerald-400"
+            }`}>${totalRevenue.toFixed(2)}</p>
+            <p className={`text-[10px] font-bold mt-1.5 ${
+              activeTab === "movimientos" && movFilter === "income" ? "text-white/50" : "text-white/25"
+            }`}>Hoy: ${todayRevenue.toFixed(2)}</p>
+          </button>
 
-            {/* Card: Compras pendientes — visible en cualquier tab */}
-            {(() => {
-              const pending = (purchaseOrders || []).filter((po) => !["received", "cancelled"].includes(po.status || "draft"));
-              if (pending.length === 0) return null;
-              const total = pending.reduce((s, po) => s + Number(po.total_amount || 0), 0);
-              const overdue = pending.filter((po) => {
-                if (!po.expected_date) return false;
-                return String(po.expected_date).slice(0, 10) < new Date().toISOString().slice(0, 10);
-              });
+          {/* Salidas */}
+          <button onClick={() => { setActiveTab("movimientos"); setMovFilter("expense"); }}
+            className={`text-left p-4 sm:p-5 rounded-2xl border transition-all active:scale-[0.98] ${
+              activeTab === "movimientos" && movFilter === "expense"
+                ? "bg-red-600 border-red-500/50 shadow-lg shadow-red-500/10"
+                : "bg-white/[0.03] border-white/[0.06] hover:bg-white/[0.05]"
+            }`}>
+            <div className="flex items-center gap-2 mb-2">
+              <div className={`w-7 h-7 rounded-lg flex items-center justify-center ${
+                activeTab === "movimientos" && movFilter === "expense" ? "bg-white/20" : "bg-red-500/15"
+              }`}>
+                <TrendingDown className={`w-3.5 h-3.5 ${activeTab === "movimientos" && movFilter === "expense" ? "text-white" : "text-red-400"}`} />
+              </div>
+              <span className={`text-[10px] font-black uppercase tracking-widest ${
+                activeTab === "movimientos" && movFilter === "expense" ? "text-white/60" : "text-white/30"
+              }`}>Salidas</span>
+            </div>
+            <p className={`text-xl sm:text-2xl font-black tabular-nums leading-none ${
+              activeTab === "movimientos" && movFilter === "expense" ? "text-white" : "text-red-400"
+            }`}>${totalExpenses.toFixed(2)}</p>
+            <p className={`text-[10px] font-bold mt-1.5 ${
+              activeTab === "movimientos" && movFilter === "expense" ? "text-white/50" : "text-white/25"
+            }`}>Hoy: ${todayExpenses.toFixed(2)}</p>
+          </button>
+
+          {/* Ganancia Neta */}
+          <button onClick={() => setActiveTab("desglose")}
+            className={`text-left p-4 sm:p-5 rounded-2xl border transition-all active:scale-[0.98] ${
+              activeTab === "desglose"
+                ? (netProfit >= 0 ? "bg-cyan-600 border-cyan-500/50 shadow-lg shadow-cyan-500/10" : "bg-red-600 border-red-500/50")
+                : "bg-white/[0.03] border-white/[0.06] hover:bg-white/[0.05]"
+            }`}>
+            <div className="flex items-center gap-2 mb-2">
+              <div className={`w-7 h-7 rounded-lg flex items-center justify-center ${
+                activeTab === "desglose" ? "bg-white/20" : (netProfit >= 0 ? "bg-cyan-500/15" : "bg-red-500/15")
+              }`}>
+                <DollarSign className={`w-3.5 h-3.5 ${activeTab === "desglose" ? "text-white" : (netProfit >= 0 ? "text-cyan-400" : "text-red-400")}`} />
+              </div>
+              <span className={`text-[10px] font-black uppercase tracking-widest ${
+                activeTab === "desglose" ? "text-white/60" : "text-white/30"
+              }`}>{netProfit >= 0 ? "Ganancia" : "Deficit"}</span>
+            </div>
+            <p className={`text-xl sm:text-2xl font-black tabular-nums leading-none ${
+              activeTab === "desglose" ? "text-white" : (netProfit >= 0 ? "text-cyan-400" : "text-red-400")
+            }`}>${Math.abs(netProfit).toFixed(2)}</p>
+            <p className={`text-[10px] font-bold mt-1.5 ${
+              activeTab === "desglose" ? "text-white/50" : "text-white/25"
+            }`}>{filteredSales.length} venta{filteredSales.length !== 1 ? "s" : ""}</p>
+          </button>
+        </div>
+
+        {/* ── Tab navigation — horizontal pills ── */}
+        <div className="flex items-center gap-2 overflow-x-auto no-scrollbar">
+          <div className="flex items-center gap-1 p-1 bg-white/[0.03] rounded-2xl border border-white/[0.06] shrink-0">
+            {[
+              { id: "movimientos", tab: "movimientos", filter: "all",  label: "Movimientos", icon: Receipt },
+              { id: "compromisos", tab: "compromisos", filter: null,   label: "Compromisos", icon: Target },
+              { id: "compras",     tab: "compras",     filter: null,   label: "Compras",     icon: ShoppingCart },
+              { id: "diferidos",   tab: "diferidos",   filter: null,   label: "Diferidos",   icon: Clock, badge: unsettledTotal > 0 ? unsettledTotal : null },
+              { id: "reportes",    tab: "reportes",    filter: null,   label: "Reportes",    icon: PieChart },
+              { id: "tecnicos",    tab: "tecnicos",    filter: null,   label: "Equipo",      icon: TrendingUp },
+            ].map(k => {
+              const isActive = k.tab === activeTab;
               return (
-                <button
-                  onClick={() => setActiveTab("compras")}
-                  className={`w-full text-left p-3 rounded-2xl border transition-all hover:scale-[1.01] active:scale-[0.99] ${
-                    overdue.length > 0
-                      ? "bg-red-500/[0.06] border-red-500/25 hover:bg-red-500/10"
-                      : "bg-amber-500/[0.05] border-amber-500/20 hover:bg-amber-500/10"
+                <button key={k.id}
+                  onClick={() => { setActiveTab(k.tab); if (k.filter !== null) setMovFilter(k.filter); }}
+                  className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold transition-all whitespace-nowrap ${
+                    isActive
+                      ? "bg-white/[0.12] text-white shadow-sm"
+                      : "text-white/40 hover:text-white/60"
                   }`}
                 >
-                  <div className="flex items-center gap-3">
-                    <div className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 ${
-                      overdue.length > 0 ? "bg-red-500/15 text-red-400" : "bg-amber-500/15 text-amber-400"
-                    }`}>
-                      <ShoppingCart className="w-4 h-4" />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className={`text-xs font-black ${overdue.length > 0 ? "text-red-300" : "text-amber-300"}`}>
-                        Compras pendientes
-                      </p>
-                      <p className="text-[10px] text-white/50 truncate">
-                        {pending.length} orden{pending.length === 1 ? "" : "es"} por recibir
-                        {overdue.length > 0 && ` · ⚠ ${overdue.length} vencida${overdue.length === 1 ? "" : "s"}`}
-                      </p>
-                    </div>
-                    <p className={`text-lg font-black tabular-nums shrink-0 ${overdue.length > 0 ? "text-red-300" : "text-amber-300"}`}>
-                      ${total.toFixed(2)}
-                    </p>
-                  </div>
+                  <k.icon className="w-3.5 h-3.5" />
+                  {k.label}
+                  {k.badge != null && (
+                    <span className="text-[9px] font-black text-amber-400 tabular-nums ml-0.5">${k.badge.toFixed(0)}</span>
+                  )}
                 </button>
               );
-            })()}
-
-            {/* Widget: Pagos diferidos — sólo se muestra si hay alguno */}
-            {unsettledExpenses.length > 0 && (
-              <ErrorBoundary>
-                <DeferredPaymentsPanel
-                  transactions={expenses}
-                  mode="widget"
-                  onTransactionsChanged={loadData}
-                />
-              </ErrorBoundary>
-            )}
-
-            {/* ── KPI Resumen rápido ── */}
-            <div className="grid grid-cols-2 gap-2">
-              <button onClick={() => { setActiveTab("movimientos"); setMovFilter("income"); }}
-                className={`text-left p-3 rounded-2xl border transition-all active:scale-[0.97] ${
-                  activeTab === "movimientos" && movFilter === "income" ? "bg-emerald-600 border-transparent" : "bg-emerald-500/[0.08] border-emerald-500/20"
-                }`}>
-                <TrendingUp className={`w-4 h-4 mb-1.5 ${activeTab === "movimientos" && movFilter === "income" ? "text-white/70" : "text-emerald-400"}`} />
-                <p className={`text-lg font-black tabular-nums leading-none ${activeTab === "movimientos" && movFilter === "income" ? "text-white" : "text-emerald-400"}`}>${totalRevenue.toFixed(2)}</p>
-                <p className={`text-[10px] font-bold mt-1 ${activeTab === "movimientos" && movFilter === "income" ? "text-white/60" : "text-emerald-400/50"}`}>Entradas</p>
-              </button>
-              <button onClick={() => { setActiveTab("movimientos"); setMovFilter("expense"); }}
-                className={`text-left p-3 rounded-2xl border transition-all active:scale-[0.97] ${
-                  activeTab === "movimientos" && movFilter === "expense" ? "bg-red-600 border-transparent" : "bg-red-500/[0.08] border-red-500/20"
-                }`}>
-                <TrendingDown className={`w-4 h-4 mb-1.5 ${activeTab === "movimientos" && movFilter === "expense" ? "text-white/70" : "text-red-400"}`} />
-                <p className={`text-lg font-black tabular-nums leading-none ${activeTab === "movimientos" && movFilter === "expense" ? "text-white" : "text-red-400"}`}>${totalExpenses.toFixed(2)}</p>
-                <p className={`text-[10px] font-bold mt-1 ${activeTab === "movimientos" && movFilter === "expense" ? "text-white/60" : "text-red-400/50"}`}>Salidas</p>
-              </button>
-            </div>
-
-            {/* Ganancia neta — card destacada */}
-            <button onClick={() => setActiveTab("desglose")}
-              className={`w-full text-left p-3.5 rounded-2xl border transition-all active:scale-[0.97] ${
-                activeTab === "desglose"
-                  ? (netProfit >= 0 ? "bg-cyan-600 border-transparent" : "bg-red-600 border-transparent")
-                  : (netProfit >= 0 ? "bg-cyan-500/[0.08] border-cyan-500/20" : "bg-red-500/[0.08] border-red-500/20")
-              }`}>
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className={`text-[10px] font-black uppercase tracking-widest ${activeTab === "desglose" ? "text-white/50" : "text-white/30"}`}>
-                    {netProfit >= 0 ? "Ganancia Neta" : "Déficit"}
-                  </p>
-                  <p className={`text-2xl font-black tabular-nums leading-none mt-1 ${
-                    activeTab === "desglose" ? "text-white" : (netProfit >= 0 ? "text-cyan-400" : "text-red-400")
-                  }`}>${Math.abs(netProfit).toFixed(2)}</p>
-                </div>
-                <DollarSign className={`w-6 h-6 ${activeTab === "desglose" ? "text-white/30" : "text-white/10"}`} />
-              </div>
-            </button>
-
-            {/* ── Navegación — compacta ── */}
-            <div className="pt-1">
-              <p className="text-[9px] font-black text-white/20 uppercase tracking-[0.2em] mb-2 px-1">Secciones</p>
-              <div className="flex flex-col gap-1">
-                {[
-                  { id: "todos",       tab: "movimientos", filter: "all",  label: "Movimientos",      icon: Receipt,      scheme: "slate" },
-                  { id: "compromisos", tab: "compromisos", filter: null,   label: "Compromisos",      icon: Target,       scheme: "slate" },
-                  { id: "compras",     tab: "compras",     filter: null,   label: "Órdenes de compra",icon: ShoppingCart,  scheme: "slate" },
-                  { id: "diferidos",   tab: "diferidos",   filter: null,   label: "Pagos diferidos",  icon: Clock,        scheme: unsettledTotal > 0 ? "amber" : "slate", badge: unsettledTotal > 0 ? `$${unsettledTotal.toFixed(0)}` : null },
-                  { id: "reportes",    tab: "reportes",    filter: null,   label: "Reportes",         icon: PieChart,     scheme: "slate" },
-                  { id: "tecnicos",    tab: "tecnicos",    filter: null,   label: "Técnicos",         icon: TrendingUp,   scheme: "slate" },
-                ].map(k => {
-                  const isActive = k.filter !== null ? (activeTab === k.tab && movFilter === k.filter) : activeTab === k.tab;
-                  return (
-                    <button key={k.id}
-                      onClick={() => { setActiveTab(k.tab); if (k.filter !== null) setMovFilter(k.filter || "all"); }}
-                      className={`w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl transition-all active:scale-[0.98] ${
-                        isActive ? "bg-white/[0.12] text-white" : "text-white/50 hover:bg-white/[0.04] hover:text-white/70"
-                      }`}
-                    >
-                      <k.icon className={`w-4 h-4 shrink-0 ${isActive ? "text-white" : "text-white/30"}`} />
-                      <span className={`text-xs font-bold flex-1 text-left ${isActive ? "text-white" : ""}`}>{k.label}</span>
-                      {k.badge && (
-                        <span className="text-[10px] font-black text-amber-400 tabular-nums">{k.badge}</span>
-                      )}
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-
-            {/* Acciones de caja */}
-            <div className="grid grid-cols-2 gap-2 pt-3 mt-1 border-t border-white/[0.06]">
-              <button onClick={() => {
-                  if (!canPlan('pos_cash_open_close')) {
-                    toast.error("Abrir/cerrar caja disponible en el plan Pro", { duration: 5000 });
-                    return;
-                  }
-                  drawerOpen ? setShowCloseDrawer(true) : setShowOpenDrawer(true);
-                }}
-                className={`flex items-center gap-2 px-3 py-2.5 rounded-xl border transition-all active:scale-95 ${
-                  drawerOpen ? "bg-emerald-500/10 border-emerald-500/30" : "bg-white/5 border-white/10"
-                }`}
-              >
-                <Wallet className={`w-3.5 h-3.5 shrink-0 ${drawerOpen ? "text-emerald-400" : "text-white/30"}`} />
-                <p className={`text-[11px] font-black truncate ${drawerOpen ? "text-emerald-400" : "text-white/40"}`}>{drawerOpen ? "Caja abierta" : "Caja cerrada"}</p>
-              </button>
-              <button onClick={() => { setExpenseDefaultCategory(null); setShowExpenseDialog(true); }}
-                className="flex items-center gap-2 px-3 py-2.5 rounded-xl border border-orange-500/20 bg-orange-500/[0.08] transition-all active:scale-95">
-                <Plus className="w-3.5 h-3.5 text-orange-400 shrink-0" />
-                <p className="text-[11px] font-black text-orange-300 truncate">Nuevo gasto</p>
-              </button>
-            </div>
+            })}
           </div>
 
-          {/* ── Contenido principal ── */}
-          <div className="flex-1 min-w-0">
+          {/* Quick actions */}
+          <div className="flex items-center gap-1.5 ml-auto shrink-0">
+            <button onClick={() => {
+                if (!canPlan('pos_cash_open_close')) {
+                  toast.error("Abrir/cerrar caja disponible en el plan Pro", { duration: 5000 });
+                  return;
+                }
+                drawerOpen ? setShowCloseDrawer(true) : setShowOpenDrawer(true);
+              }}
+              className={`flex items-center gap-1.5 px-3 py-2 rounded-xl border text-xs font-bold transition-all active:scale-95 ${
+                drawerOpen ? "bg-emerald-500/10 border-emerald-500/30 text-emerald-400" : "bg-white/[0.03] border-white/[0.06] text-white/40"
+              }`}
+            >
+              <Wallet className="w-3.5 h-3.5" />
+              <span className="hidden sm:inline">{drawerOpen ? "Caja abierta" : "Caja"}</span>
+            </button>
+            <button onClick={() => { setExpenseDefaultCategory(null); setShowExpenseDialog(true); }}
+              className="flex items-center gap-1.5 px-3 py-2 rounded-xl border border-orange-500/20 bg-orange-500/[0.06] text-orange-400 text-xs font-bold transition-all active:scale-95">
+              <Plus className="w-3.5 h-3.5" />
+              <span className="hidden sm:inline">Gasto</span>
+            </button>
+          </div>
+        </div>
+
+        {/* ── Alertas context — solo si hay algo urgente ── */}
+        <ErrorBoundary><AlertasWidget /></ErrorBoundary>
+
+        {/* ── Content area ── */}
+        <div>
 
         {/* Tab: Movimientos */}
         {activeTab === "movimientos" && (
-          <div className="space-y-4 mt-1">
+          <div className="space-y-4">
             {/* Filter pills */}
-            <div className="flex gap-1.5 justify-end">
+            <div className="flex gap-1.5">
               {[
                 { id: "all", label: "Todos" },
-                { id: "income", label: "✅ Entradas" },
-                { id: "expense", label: "🔴 Salidas" },
+                { id: "income", label: "Entradas" },
+                { id: "expense", label: "Salidas" },
               ].map(f => (
                 <button key={f.id} onClick={() => setMovFilter(f.id)}
                   className={`px-3 py-1.5 rounded-xl text-[11px] font-black transition-all border ${
                     movFilter === f.id
                       ? f.id === "income" ? "bg-emerald-600 border-emerald-600 text-white"
                         : f.id === "expense" ? "bg-red-600 border-red-600 text-white"
-                        : "bg-cyan-600 border-cyan-600 text-white"
-                      : "bg-white/[0.04] border-white/[0.08] text-white/30 hover:text-white/60"
+                        : "bg-white/[0.12] border-white/[0.12] text-white"
+                      : "bg-white/[0.03] border-white/[0.06] text-white/30 hover:text-white/60"
                   }`}
                 >{f.label}</button>
               ))}
