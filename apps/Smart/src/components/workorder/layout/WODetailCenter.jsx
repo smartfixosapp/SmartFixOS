@@ -149,6 +149,22 @@ export default function WODetailCenter({
           else if (mime.startsWith("video/")) fileType = "video";
           else if (mime === "application/pdf") fileType = "pdf";
           else if (mime.includes("document") || mime.includes("word")) fileType = "document";
+          // Detectar stage actual de la orden para categorizar el archivo
+          const currentStatus = o.status || "intake";
+          const stageLabelMap = {
+            intake: "Recepción",
+            diagnosing: "Diagnóstico",
+            in_progress: "Reparación",
+            waiting_parts: "Esperando Piezas",
+            pending_order: "Pendiente Ordenar",
+            part_arrived_waiting_device: "Pieza Lista",
+            ready_for_pickup: "Listo Recoger",
+            delivered: "Entregado",
+            completed: "Completado",
+            warranty: "Garantía",
+            reparacion_externa: "Reparación Externa",
+            awaiting_approval: "Esperando Aprobación",
+          };
           newItems.push({
             id: `${Date.now()}-${file.name}`,
             type: fileType,
@@ -156,8 +172,8 @@ export default function WODetailCenter({
             filename: file.name,
             publicUrl: versionedUrl,
             thumbUrl: versionedUrl,
-            stage_id: "general",
-            stage_label: "General",
+            stage_id: currentStatus,
+            stage_label: stageLabelMap[currentStatus] || "General",
             captured_at: new Date().toISOString(),
             captured_by: me?.full_name || me?.email || "Sistema"
           });
