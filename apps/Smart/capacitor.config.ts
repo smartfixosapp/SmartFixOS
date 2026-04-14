@@ -16,6 +16,14 @@ const config: CapacitorConfig = {
       '*.supabase.co',
     ],
   },
+  ios: {
+    contentInset: 'automatic',
+    allowsLinkPreview: false,
+    scrollEnabled: false,
+  },
+  android: {
+    overScrollMode: 'never',
+  },
   plugins: {
     SplashScreen: {
       launchShowDuration: 2500,
