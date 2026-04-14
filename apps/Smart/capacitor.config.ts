@@ -19,10 +19,6 @@ const config: CapacitorConfig = {
   ios: {
     contentInset: 'automatic',
     allowsLinkPreview: false,
-    scrollEnabled: false,
-  },
-  android: {
-    overScrollMode: 'never',
   },
   plugins: {
     SplashScreen: {
