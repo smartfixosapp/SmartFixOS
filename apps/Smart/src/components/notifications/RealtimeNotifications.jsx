@@ -189,7 +189,6 @@ export function useRealtimeNotifications({ enabled = true } = {}) {
   };
 
   return {
-    isActive,
     lastCheck
   };
 }
