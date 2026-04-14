@@ -437,6 +437,18 @@ export default function RepairStage({ order, onUpdate, onOrderItemsUpdate, onRem
         order={o}
         onUpdate={onUpdate}
       />
+
+      {showJeaniReport && (
+        <JeaniStageReportPanel
+          order={o}
+          checklist={jeaniChecklist}
+          checklistNotes={noteText}
+          stageId="in_progress"
+          stageLabel="Reparación"
+          onClose={() => setShowJeaniReport(false)}
+          onApplyAsNote={() => { setShowJeaniReport(false); onUpdate?.(); }}
+        />
+      )}
     </div>
   );
 }
