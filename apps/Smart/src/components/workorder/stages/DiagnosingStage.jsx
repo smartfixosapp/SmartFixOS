@@ -296,13 +296,14 @@ export default function DiagnosingStage({ order, onUpdate, user, onOrderItemsUpd
   const [showChecklist, setShowChecklist]   = useState(false);
   const [deviceCategory, setDeviceCategory] = useState("generic");
 
-  // Listen for sidebar action events (checklist toggle, links)
+  // Listen for sidebar action events (checklist toggle, links, diagnóstico IA)
   useEffect(() => {
     if (!compact) return;
     const handler = (e) => {
       const action = e.detail?.action;
       if (action === "checklist") setShowChecklist(v => !v);
       if (action === "links") setActiveModal("links");
+      if (action === "diagnostico-ia") setShowJeaniReport(true);
     };
     document.addEventListener("wo:action", handler);
     return () => document.removeEventListener("wo:action", handler);
