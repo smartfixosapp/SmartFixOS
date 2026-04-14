@@ -928,6 +928,10 @@ export default function Dashboard() {
                 <Search className="w-4 h-4 text-violet-400 shrink-0" />
                 <span className="text-[11px] font-black text-violet-400/80 uppercase tracking-tight">Lista Precios</span>
               </button>
+              <button onClick={() => handleNavigate("Customers")} className="min-h-[44px] bg-purple-500/10 border border-purple-500/20 rounded-xl flex items-center gap-3 px-4 hover:bg-purple-500/15 active:scale-95 transition-all">
+                <Users className="w-4 h-4 text-purple-400 shrink-0" />
+                <span className="text-[11px] font-black text-purple-400/80 uppercase tracking-tight">Clientes</span>
+              </button>
             </div>
 
             {/* ── Dashboard Ejecutivo (desktop) ── */}
