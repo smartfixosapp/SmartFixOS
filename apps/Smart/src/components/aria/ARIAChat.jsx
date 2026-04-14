@@ -717,6 +717,18 @@ export default function ARIAChat() {
       const items = Array.isArray(oc.order_items) ? oc.order_items : [];
       const photos = Array.isArray(oc.photos_metadata) ? oc.photos_metadata : [];
       const history = Array.isArray(oc.status_history) ? oc.status_history : [];
+      const textAttachments = Array.isArray(oc._textAttachments) ? oc._textAttachments : [];
+
+      // Bloque de contenido de archivos adjuntos (HTML/TXT)
+      let attachmentsBlock = "";
+      if (textAttachments.length > 0) {
+        attachmentsBlock = "\n\n═══ ARCHIVOS ADJUNTOS LEGIBLES ═══\n";
+        textAttachments.forEach((att, i) => {
+          attachmentsBlock += `\n--- Archivo ${i + 1}: ${att.filename} (${att.type}) ---\n${att.content}\n`;
+        });
+        attachmentsBlock += "\n[Fin de archivos adjuntos]\n";
+      }
+
       orderBlock = `
 
 ═══ ORDEN ACTUAL (estás asistiendo con esta orden) ═══
@@ -729,9 +741,10 @@ Problema reportado: ${oc.initial_problem || "No especificado"}
 ${items.length > 0 ? `Items (${items.length}): ${items.map(i => `${i.name || "Item"} $${Number(i.price || 0).toFixed(2)}`).join(", ")}` : "Sin items registrados"}
 Total: $${Number(oc.total || oc.cost_estimate || 0).toFixed(2)} | Pagado: $${Number(oc.amount_paid || oc.total_paid || 0).toFixed(2)} | Balance: $${Number(oc.balance_due || 0).toFixed(2)}
 Fotos: ${photos.length} foto(s) adjunta(s)
+${textAttachments.length > 0 ? `Archivos de reporte leídos: ${textAttachments.length} (contenido abajo)` : ""}
 ${oc.repair_checklist_done ? "Checklist de cierre: COMPLETO" : ""}
 ${oc.warranty_verdict ? `Veredicto garantía: ${oc.warranty_verdict}` : ""}
-Historial: ${history.length} cambios de estado
+Historial: ${history.length} cambios de estado${attachmentsBlock}
 
 Con esta información puedes:
 - Sugerir diagnósticos basados en el problema y tipo de dispositivo
@@ -739,7 +752,7 @@ Con esta información puedes:
 - Estimar costos de reparación
 - Explicar el estado actual de la orden
 - Ayudar a redactar notas técnicas
-- Analizar fotos si el usuario las comparte`;
+- Analizar reportes adjuntos (baterías, logs, etc.) y extraer hallazgos clave`;
     }
 
     return `Eres JENAI, asistente de ${bizName} (taller de reparación).
