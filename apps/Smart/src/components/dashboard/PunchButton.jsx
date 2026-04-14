@@ -351,6 +351,7 @@ export default function PunchButton({ userId, userName, variant = "default", onP
       }
 
       window.dispatchEvent(new Event("force-refresh"));
+      window.dispatchEvent(new Event("punch-status-changed"));
     } catch (error) {
       console.error("Error toggling punch:", error);
       toast.error("Error al registrar ponche");
