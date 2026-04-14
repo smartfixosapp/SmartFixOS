@@ -10,16 +10,21 @@
   --sal: env(safe-area-inset-left, 0px);
 }
 
+/* Dark base surface — prevents white flash during route transitions
+ * (SmartFixOS is dark-first; light-themed pages paint over this) */
 html {
   height: 100%;
   overflow: hidden;
   overscroll-behavior: none;
+  background-color: #0a0a0c;
 }
 
 body {
   height: 100%;
+  margin: 0;
   overflow: hidden;
   overscroll-behavior: none;
+  background-color: #0a0a0c;
 }
 
 #root {
@@ -27,23 +32,13 @@ body {
   overflow-y: auto;
   overscroll-behavior-y: none;
   -webkit-overflow-scrolling: touch;
-}
-
-/* Dark base surface — prevents white flash during route transitions
- * (SmartFixOS is dark-first; light-themed pages paint over this) */
-html {
   background-color: #0a0a0c;
 }
-html.theme-light,
-html.theme-light body {
-  background-color: #f8fafc;
-}
 
-body {
-  /* Safe-area se maneja en Layout <main> */
-  padding-bottom: env(safe-area-inset-bottom);
-  padding-left: env(safe-area-inset-left);
-  padding-right: env(safe-area-inset-right);
+html.theme-light,
+html.theme-light body,
+html.theme-light #root {
+  background-color: #f8fafc;
 }
 
 /* When keyboard is open, reset bottom padding */
