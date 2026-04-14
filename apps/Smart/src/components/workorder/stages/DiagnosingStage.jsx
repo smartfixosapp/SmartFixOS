@@ -15,6 +15,7 @@ import OrderLinksDialog from "@/components/workorder/OrderLinksDialog";
 import { loadOrderLinks } from "@/components/workorder/utils/orderLinksStore";
 import SharedItemsSection from "@/components/workorder/SharedItemsSection";
 import DiagnosticAI from "@/components/workorder/DiagnosticAI";
+import JeaniStageReportPanel from "@/components/workorder/JeaniStageReportPanel";
 
 // ── Checklists por tipo de dispositivo ────────────────────────────────────────
 const DEVICE_CHECKLISTS = {
