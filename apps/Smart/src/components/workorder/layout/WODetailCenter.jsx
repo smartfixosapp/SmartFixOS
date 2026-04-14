@@ -336,6 +336,17 @@ export default function WODetailCenter({
                 const src = file.publicUrl || file.thumbUrl || file.url;
                 const mime = file.mime || "";
                 const filename = file.filename || `Archivo ${i + 1}`;
+                const stageLabel = file.stage_label || "";
+                const stageId = file.stage_id || "";
+                const stageColorMap = {
+                  intake: "bg-blue-500/20 text-blue-300 border-blue-500/30",
+                  diagnosing: "bg-purple-500/20 text-purple-300 border-purple-500/30",
+                  in_progress: "bg-cyan-500/20 text-cyan-300 border-cyan-500/30",
+                  waiting_parts: "bg-orange-500/20 text-orange-300 border-orange-500/30",
+                  pending_order: "bg-yellow-500/20 text-yellow-300 border-yellow-500/30",
+                  warranty: "bg-amber-500/20 text-amber-300 border-amber-500/30",
+                };
+                const stageBadgeClass = stageColorMap[stageId] || "bg-white/10 text-white/60 border-white/15";
                 const isImage = file.type === "image" || mime.startsWith("image/");
                 const isVideo = file.type === "video" || mime.startsWith("video/");
                 const isPdf = file.type === "pdf" || mime === "application/pdf" || /\.pdf$/i.test(filename);
