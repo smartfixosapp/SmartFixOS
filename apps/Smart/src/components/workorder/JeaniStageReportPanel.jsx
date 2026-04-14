@@ -130,16 +130,34 @@ REGLAS:
 - Si los datos son insuficientes, dilo explícitamente`;
 
       const userPrompt = `═══ DATOS DE LA ORDEN ═══
+Orden: #${o.order_number || "N/A"}
 Dispositivo: ${deviceInfo}
-Cliente reporta: "${o.initial_problem || "No especificado"}"
+Tipo: ${o.device_type || "N/A"}
+IMEI/Serial: ${o.device_imei || "N/A"}
 
-═══ CHECKLIST ${stageLabel.toUpperCase()} ═══
+═══ POR QUÉ LLEGÓ AL TALLER (texto del cliente) ═══
+"${o.initial_problem || "No especificado"}"
+
+═══ CHECKLIST DE ${stageLabel.toUpperCase()} (lo que se evaluó) ═══
 ${checklistSummary}
 
-═══ NOTAS DEL TÉCNICO ═══
-${checklistNotes || "Sin notas adicionales"}${attachmentsBlock}${imagesNote}
+${issuesOnly ? `═══ ⚠️ PROBLEMAS DETECTADOS EN EL CHECKLIST ═══\n${issuesOnly}\n` : ""}
+═══ NOTAS DEL TÉCNICO EN ESTE STAGE ═══
+${checklistNotes || "Sin notas en este stage"}
 
-Genera el reporte técnico profesional siguiendo el formato indicado.`;
+${previousNotes ? `═══ NOTAS/COMENTARIOS PREVIOS DE LA ORDEN ═══\n• ${previousNotes}\n` : ""}
+═══ PIEZAS/SERVICIOS YA AGREGADOS ═══
+${itemsSummary}
+
+═══ FOTOS DE EVIDENCIA EN ESTE STAGE ═══
+${imagesDescription}${attachmentsBlock}
+
+═══ INSTRUCCIONES ═══
+Analiza TODA la información anterior. Para cada hallazgo, CITA la fuente (ej: "según el reporte de batería", "el cliente menciona", "checklist marca X como problema").
+
+NO repitas el checklist como hallazgo si todo salió OK. Solo destaca lo que REALMENTE necesita atención.
+
+Genera el reporte técnico profesional siguiendo el formato de 3 secciones indicado en el system prompt.`;
 
       const text = await callJENAI(userPrompt, { maxTokens: 1200, systemPrompt });
       setReport(text);
