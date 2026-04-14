@@ -187,7 +187,7 @@ export default function OrdersMobile() {
   const activeStatuses = ORDER_STATUSES.filter(s => s.isActive);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-950 to-slate-900 pb-20">
+    <div className="min-h-screen bg-gradient-to-br from-slate-950 to-slate-900 pb-20 overscroll-none" style={{ overscrollBehavior: "none" }}>
       {/* Header */}
       <div className="sticky top-0 z-20 bg-gradient-to-r from-slate-950 to-slate-900 border-b border-cyan-500/20 px-4 py-3">
         <div className="flex items-center justify-between mb-3">
