@@ -45,12 +45,12 @@ export default function ModernTopNav() {
       color: "text-cyan-400",
       isCenter: true
     },
-    { 
-      id: "customers", 
-      icon: Users, 
-      label: "Clientes", 
-      path: "/Customers",
-      color: "text-purple-400"
+    {
+      id: "financial",
+      icon: DollarSign,
+      label: "Finanzas",
+      path: "/Financial",
+      color: "text-emerald-400"
     },
     { 
       id: "settings", 
