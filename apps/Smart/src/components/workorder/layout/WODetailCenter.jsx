@@ -238,6 +238,22 @@ export default function WODetailCenter({
         </div>
       )}
 
+      {/* ── Diagnóstico IA — botón + panel ── */}
+      {!showDiagnostic ? (
+        <button
+          onClick={() => setShowDiagnostic(true)}
+          className="w-full flex items-center justify-center gap-2 py-3 rounded-xl bg-violet-500/[0.08] border border-violet-500/20 text-violet-300 text-xs font-black hover:bg-violet-500/15 transition-all active:scale-[0.98]"
+        >
+          <Brain className="w-4 h-4" />
+          🧠 Diagnóstico IA — Analizar historial del cliente
+        </button>
+      ) : (
+        <JeaniDiagnosticPanel
+          order={o}
+          onClose={() => setShowDiagnostic(false)}
+        />
+      )}
+
       {/* ── Hidden photo input ── */}
       <input
         ref={photoInputRef}
