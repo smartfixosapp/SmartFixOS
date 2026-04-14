@@ -154,6 +154,7 @@ export default function WODetailCenter({
           const stageLabelMap = {
             intake: "Recepción",
             diagnosing: "Diagnóstico",
+            waiting_customer: "Esperando Cliente",
             in_progress: "Reparación",
             waiting_parts: "Esperando Piezas",
             pending_order: "Pendiente Ordenar",
