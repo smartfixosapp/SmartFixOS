@@ -2363,6 +2363,7 @@ export default function WorkOrderPanel({ orderId, onClose, onUpdate, onDelete, p
             const statusLabels = {
               intake: "Recepción",
               diagnosing: "Diagnóstico",
+              waiting_customer: "Esperando Cliente",
               awaiting_approval: "Esperando aprobación",
               waiting_parts: "Esperando piezas",
               waiting_order: "Esperando orden",
