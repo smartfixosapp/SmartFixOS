@@ -99,7 +99,7 @@ export default function OrderMultimedia({ order, onUpdate }) {
   }, [photos]);
 
   async function handleUpload(e) {
-    const files = Array.from(e.target.files || []).filter((file) => file.type?.startsWith("image/"));
+    const files = Array.from(e.target.files || []);
     if (!files.length || !o?.id) return;
 
     setUploading(true);
