@@ -690,12 +690,18 @@ export default function ARIAChat() {
       const oc = orderContext;
       const items = Array.isArray(oc.order_items) ? oc.order_items : [];
       const photos = Array.isArray(oc.photos_metadata) ? oc.photos_metadata : [];
+      const textAttachments = Array.isArray(oc._textAttachments) ? oc._textAttachments : [];
       let greeting = `Estoy viendo la orden **#${oc.order_number || ""}** de **${oc.customer_name || "cliente"}** — ${oc.device_brand || ""} ${oc.device_model || ""}.`;
       greeting += `\n\n**Problema:** ${oc.initial_problem || "no especificado"}`;
       greeting += `\n**Estado:** ${oc.status || "desconocido"}`;
       if (items.length > 0) greeting += `\n**Items:** ${items.map(i => i.name || "Item").join(", ")}`;
       if (photos.length > 0) greeting += `\n**Fotos:** ${photos.length} evidencia(s)`;
-      greeting += `\n\n¿En qué te ayudo? Puedo sugerir diagnósticos, recomendar piezas, estimar costos, o redactar notas técnicas.`;
+      if (textAttachments.length > 0) {
+        greeting += `\n**📄 Reportes leídos:** ${textAttachments.map(a => a.filename).join(", ")}`;
+        greeting += `\n\nYa leí el contenido de los reportes adjuntos. Puedo analizarlos y resumir los hallazgos clave.`;
+      } else {
+        greeting += `\n\n¿En qué te ayudo? Puedo sugerir diagnósticos, recomendar piezas, estimar costos, o redactar notas técnicas.`;
+      }
       setMessages([{ role: "assistant", content: greeting }]);
       setTab("chat");
     }, 300);
