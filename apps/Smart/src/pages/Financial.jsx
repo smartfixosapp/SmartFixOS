@@ -1358,8 +1358,8 @@ Maximo 150 palabras. Texto plano, sin markdown.`
           </button>
         </div>
 
-        {/* ── Tab navigation — horizontal pills ── */}
-        <div className="flex items-center gap-2 overflow-x-auto no-scrollbar">
+        {/* ── Tab navigation — horizontal pills, sticky below header ── */}
+        <div className="flex items-center gap-2 overflow-x-auto no-scrollbar sticky top-[52px] z-30 bg-black py-2 -mx-3 px-3 sm:-mx-4 sm:px-4 md:-mx-6 md:px-6">
           <div className="flex items-center gap-1 p-1 bg-white/[0.03] rounded-2xl border border-white/[0.06] shrink-0">
             {[
               { id: "movimientos", tab: "movimientos", filter: "all",  label: "Movimientos", icon: Receipt },
