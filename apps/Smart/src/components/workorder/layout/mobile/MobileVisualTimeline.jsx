@@ -27,7 +27,7 @@ function getEventStyle(type) {
   return EVENT_STYLES[type] || EVENT_STYLES.note;
 }
 
-export default function MobileVisualTimeline({ events = [], emptyMessage = "Sin eventos" }) {
+function MobileVisualTimeline({ events = [], emptyMessage = "Sin eventos" }) {
   if (events.length === 0) {
     return (
       <div className="flex items-center justify-center py-12">
