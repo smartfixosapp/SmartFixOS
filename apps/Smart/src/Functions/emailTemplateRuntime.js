@@ -7,6 +7,7 @@ function getAlertColorForStatus(status) {
     diagnosing: { bg: "#EFF6FF", border: "#3B82F6", title: "#1E40AF", text: "#1E3A8A" },
     awaiting_approval: { bg: "#FFFBEB", border: "#F59E0B", title: "#B45309", text: "#78350F" },
     waiting_parts: { bg: "#FFF7ED", border: "#F97316", title: "#C2410C", text: "#7C2D12" },
+    waiting_customer: { bg: "#FFF1F2", border: "#F43F5E", title: "#9F1239", text: "#881337" },
     pending_order: { bg: "#FEF3C7", border: "#F59E0B", title: "#92400E", text: "#78350F" },
     part_arrived_waiting_device: { bg: "#F0F9FF", border: "#0EA5E9", title: "#0369A1", text: "#075985" },
     in_progress: { bg: "#EFF6FF", border: "#3B82F6", title: "#1E40AF", text: "#1E3A8A" },
