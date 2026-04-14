@@ -233,7 +233,8 @@ export default function JeaniDiagnosticPanel({
   const [loading, setLoading] = useState(false);
   const [diagnosis, setDiagnosis] = useState(null);
   const [error, setError] = useState(null);
-  const [question, setQuestion] = useState("");
+  // Pre-rellenar con el problema reportado de la WO (generado por IA al recibir el equipo)
+  const [question, setQuestion] = useState(order?.initial_problem || "");
   const [historyLoaded, setHistoryLoaded] = useState(null); // { orders, customer }
   const [showHistory, setShowHistory] = useState(false);
   const [addingNote, setAddingNote] = useState(false);
