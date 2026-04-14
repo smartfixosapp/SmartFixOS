@@ -283,6 +283,7 @@ const STATUS_CFG = {
 
 export default function DiagnosingStage({ order, onUpdate, user, onOrderItemsUpdate, onRemoteSaved, onPaymentClick, compact }) {
   const [activeModal, setActiveModal]       = useState(null);
+  const [showJeaniReport, setShowJeaniReport] = useState(false);
   const [showCatalog, setShowCatalog]       = useState(false);
   const [sendingQuote, setSendingQuote]     = useState(false);
   const [links, setLinks]                   = useState([]);
