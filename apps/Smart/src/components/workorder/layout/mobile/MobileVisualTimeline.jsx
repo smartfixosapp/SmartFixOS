@@ -87,3 +87,5 @@ function MobileVisualTimeline({ events = [], emptyMessage = "Sin eventos" }) {
     </div>
   );
 }
+
+export default memo(MobileVisualTimeline);
