@@ -2468,9 +2468,8 @@ Maximo 150 palabras. Texto plano, sin markdown.`
           );
         })()}
 
-          </div>{/* fin main content */}
-        </div>{/* fin lg:flex */}
-      </div>{/* fin max-w-7xl outer */}
+        </div>{/* fin content area */}
+      </div>{/* fin layout principal */}
 
       {/* ── Dialogs ── */}
       {showOpenDrawer && <OpenDrawerDialog open={showOpenDrawer} onClose={() => setShowOpenDrawer(false)} onSuccess={handleActionSuccess} />}
