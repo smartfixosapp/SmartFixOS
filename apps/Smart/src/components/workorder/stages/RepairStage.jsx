@@ -47,7 +47,25 @@ export default function RepairStage({ order, onUpdate, onOrderItemsUpdate, onRem
   const [noteText,     setNoteText]     = useState("");
   const [savingNote,   setSavingNote]   = useState(false);
   const [uploadingPhoto, setUploadingPhoto] = useState(false);
+  const [showJeaniReport, setShowJeaniReport] = useState(false);
   const photoInputRef = useRef(null);
+
+  // Listen for sidebar action (Diagnóstico IA)
+  useEffect(() => {
+    if (!compact) return;
+    const handler = (e) => {
+      if (e.detail?.action === "diagnostico-ia") setShowJeaniReport(true);
+    };
+    document.addEventListener("wo:action", handler);
+    return () => document.removeEventListener("wo:action", handler);
+  }, [compact]);
+
+  // Build a minimal checklist for JEANI (based on closure items + photos)
+  const jeaniChecklist = useMemo(() => CLOSE_CHECKLIST.map((label, i) => ({
+    id: `repair-${i}`,
+    label,
+    status: checked.includes(i) ? "ok" : "not_tested",
+  })), [checked]);
 
   const allDone = checked.length === CLOSE_CHECKLIST.length;
 
