@@ -1,8 +1,9 @@
 import React, { useState, useMemo, useCallback, useEffect, useRef } from "react";
-import { Phone, MessageCircle, Mail, Smartphone, Laptop, Tablet, Watch, Gamepad2, Box, Pencil, Check, X, Plus, Send, Loader2, Camera, Image as ImageIcon } from "lucide-react";
+import { Phone, MessageCircle, Mail, Smartphone, Laptop, Tablet, Watch, Gamepad2, Box, Pencil, Check, X, Plus, Send, Loader2, Camera, Image as ImageIcon, Brain } from "lucide-react";
 import { base44 } from "@/api/base44Client";
 import { toast } from "sonner";
 import AddItemModal from "@/components/workorder/AddItemModal";
+import JeaniDiagnosticPanel from "@/components/workorder/JeaniDiagnosticPanel";
 import WorkOrderTimeline from "@/components/orders/workorder/WorkOrderTimeline";
 import { logWorkOrderPhotoEvent } from "@/components/workorder/utils/auditEvents";
 
