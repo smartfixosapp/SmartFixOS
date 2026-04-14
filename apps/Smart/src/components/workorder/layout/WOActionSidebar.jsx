@@ -12,6 +12,7 @@ const STAGE_ACTIONS = {
   diagnosing: [
     { icon: ClipboardCheck, label: "Checklist", action: "checklist" },
     { icon: Link2, label: "Añadir link", action: "links" },
+    { icon: Sparkles, label: "Diagnóstico IA", action: "diagnostico-ia" },
     { icon: Send, label: "Cotización", action: "quote" },
   ],
   waiting_parts: [
