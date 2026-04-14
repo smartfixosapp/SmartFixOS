@@ -456,6 +456,23 @@ export default function JeaniDiagnosticPanel({
               <div className="text-sm text-white/90 leading-relaxed whitespace-pre-line">
                 {diagnosis}
               </div>
+
+              {/* Acciones post-diagnóstico */}
+              {order?.id && (
+                <div className="mt-4 pt-3 border-t border-violet-500/10 flex flex-wrap gap-2">
+                  <button
+                    onClick={handleAddNoteToWO}
+                    disabled={addingNote}
+                    className="flex items-center gap-2 px-4 py-2 rounded-xl bg-emerald-500/15 border border-emerald-500/25 text-emerald-300 text-xs font-black hover:bg-emerald-500/25 transition-all disabled:opacity-40"
+                  >
+                    <StickyNote className="w-3.5 h-3.5" />
+                    {addingNote ? "Guardando..." : "📝 Añadir nota a la WO"}
+                  </button>
+                  <p className="text-[10px] text-white/30 self-center">
+                    Guarda el diagnóstico como comentario en la orden de trabajo
+                  </p>
+                </div>
+              )}
             </div>
 
             {/* Historial cargado — expandible */}
