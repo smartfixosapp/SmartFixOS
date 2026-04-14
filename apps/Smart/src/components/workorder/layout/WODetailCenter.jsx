@@ -380,9 +380,15 @@ export default function WODetailCenter({
                     key={`${src}-${i}`}
                     type="button"
                     onClick={handleClick}
-                    title={filename}
-                    className="h-14 w-14 rounded-lg overflow-hidden border border-white/10 shrink-0 hover:scale-105 transition-transform active:scale-95 relative bg-white/5"
+                    title={`${filename}${stageLabel ? ` · ${stageLabel}` : ""}`}
+                    className="h-14 w-14 rounded-lg overflow-hidden border border-white/10 shrink-0 hover:scale-105 transition-transform active:scale-95 relative bg-white/5 group"
                   >
+                    {/* Badge de stage en esquina inferior */}
+                    {stageLabel && (
+                      <div className={`absolute bottom-0 left-0 right-0 text-[7px] font-black uppercase tracking-wider text-center py-0.5 border-t ${stageBadgeClass}`}>
+                        {stageLabel.slice(0, 5)}
+                      </div>
+                    )}
                     {isImage ? (
                       <img src={src} alt={filename} className="h-full w-full object-cover" loading="lazy" />
                     ) : isVideo ? (
