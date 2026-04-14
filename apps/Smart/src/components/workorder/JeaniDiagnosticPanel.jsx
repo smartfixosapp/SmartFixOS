@@ -298,6 +298,49 @@ export default function JeaniDiagnosticPanel({
     }
   }, [question, order, customer, customerId, customerName, customerPhone]);
 
+  // ── Add diagnosis as note to WO ────────────────────────────────────────
+  const handleAddNoteToWO = useCallback(async () => {
+    if (!order?.id || !diagnosis) return;
+    setAddingNote(true);
+    try {
+      // Get current comments array from WO
+      let currentComments = [];
+      try {
+        const wo = await dataClient.entities.Order.get(order.id);
+        currentComments = Array.isArray(wo?.comments) ? wo.comments : [];
+      } catch { /* start fresh */ }
+
+      // Get current user name
+      let authorName = "JEANI";
+      try {
+        const session = JSON.parse(localStorage.getItem("employee_session") || "{}");
+        authorName = session?.name || "JEANI";
+      } catch { /* no-op */ }
+
+      // Build note text (truncated to keep it manageable)
+      const noteText = `🧠 DIAGNÓSTICO IA (${new Date().toLocaleDateString("es-ES", { day: "2-digit", month: "short", year: "numeric" })})\n\nConsulta: ${question || "Diagnóstico general"}\n\n${diagnosis.slice(0, 1500)}`;
+
+      const newComment = {
+        id: `diag-${Date.now()}`,
+        text: noteText,
+        author: authorName,
+        author_role: "ai_diagnostic",
+        timestamp: new Date().toISOString(),
+      };
+
+      await dataClient.entities.Order.update(order.id, {
+        comments: [...currentComments, newComment],
+      });
+
+      toast.success("📝 Diagnóstico añadido como nota a la orden de trabajo");
+    } catch (err) {
+      console.error("Error adding diagnostic note:", err);
+      toast.error("No se pudo añadir la nota: " + (err?.message || "error"));
+    } finally {
+      setAddingNote(false);
+    }
+  }, [order, diagnosis, question]);
+
   // ── Render ────────────────────────────────────────────────────────────
 
   return (
