@@ -934,11 +934,6 @@ export default function Dashboard() {
               </button>
             </div>
 
-            {/* ── Dashboard Ejecutivo (desktop) ── */}
-            <div className="hidden lg:block px-6 pb-4 mt-2">
-              <ExecutiveDashboard />
-            </div>
-
             {/* ── Panel derecho: Tareas del turno ── */}
             <div className="relative z-10 flex-1 flex flex-col min-h-0 p-6 lg:p-7">
               {/* Header */}
