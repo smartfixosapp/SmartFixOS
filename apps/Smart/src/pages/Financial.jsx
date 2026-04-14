@@ -28,6 +28,7 @@ import OneTimeExpensesWidget from "../components/financial/OneTimeExpensesWidget
 import GastosOperacionalesWidget from "../components/financial/GastosOperacionalesWidget";
 import MonthlyReportModal from "../components/financial/MonthlyReportModal";
 import TechnicianProductivityTab from "../components/financial/TechnicianProductivityTab";
+import ExecutiveDashboard from "../components/dashboard/ExecutiveDashboard";
 import { toast } from "sonner";
 import TransactionsModal from "../components/financial/TransactionsModal";
 import PurchaseOrderDialog from "../components/inventory/PurchaseOrderDialog";
