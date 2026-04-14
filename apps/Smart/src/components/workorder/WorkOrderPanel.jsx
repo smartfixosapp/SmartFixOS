@@ -1924,7 +1924,11 @@ export default function WorkOrderPanel({ orderId, onClose, onUpdate, onDelete, p
     }
   }, [order?.id, loadEventsCallback]);
 
-  // Auto-refresh: only when tab is visible, every 60s instead of 30s
+  // Auto-refresh: only when tab is visible, every 2 min
+  // Uses ref to avoid stale closures with loadEventsCallback
+  const loadEventsRef = useRef(loadEventsCallback);
+  useEffect(() => { loadEventsRef.current = loadEventsCallback; }, [loadEventsCallback]);
+
   useEffect(() => {
     if (!orderId || loading) return;
 
@@ -1939,9 +1943,9 @@ export default function WorkOrderPanel({ orderId, onClose, onUpdate, onDelete, p
           setOrder(fresh);
           setStatus(normalizeStatusId(fresh?.status));
           clearEventCache(orderId);
-          loadEventsCallback(true);
+          loadEventsRef.current?.(true);
         }
-      } catch (e) {
+      } catch {
         // silent
       }
     };
