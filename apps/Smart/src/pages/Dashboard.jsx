@@ -977,7 +977,7 @@ export default function Dashboard() {
               </div>
 
               {/* Resumen rápido */}
-              <div className="grid grid-cols-2 gap-2 mt-4 shrink-0">
+              <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 mt-4 shrink-0">
                 <button onClick={() => handleNavigate("Orders")}
                   className={`flex items-center gap-2.5 px-3 py-2.5 rounded-2xl border transition-colors ${quickStats.listas > 0 ? "bg-emerald-500/[0.08] border-emerald-500/25 hover:bg-emerald-500/[0.14]" : "bg-white/[0.03] border-white/[0.06]"}`}>
                   <CheckCircle2 className={`w-4 h-4 shrink-0 ${quickStats.listas > 0 ? "text-emerald-400" : "text-white/30"}`} />
