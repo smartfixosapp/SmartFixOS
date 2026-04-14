@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from "react";
 import { X, Sparkles, Loader2, FileText, Camera, Paperclip, CheckCircle2, Copy, Send } from "lucide-react";
 import { toast } from "sonner";
-import { callJENAI } from "@/components/aria/jenaiClient";
+import { callJENAI } from "@/lib/jenaiEngine";
 import { base44 } from "@/api/base44Client";
 
 /**
