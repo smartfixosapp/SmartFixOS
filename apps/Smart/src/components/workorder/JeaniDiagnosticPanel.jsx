@@ -273,22 +273,54 @@ export default function JeaniDiagnosticPanel({
       console.log("🧠 [JeaniDiagnostic] Prompt length:", prompt.length, "chars, orders:", allOrders.length);
 
       // Step 3: Send to AI
-      // Collect photo URLs for multimodal analysis (up to 3 most recent from current order)
+      // Collect photo URLs for multimodal analysis (up to 5 from current order)
       let fileUrls = null;
       if (order?.photos_metadata?.length) {
         const urls = order.photos_metadata
           .filter((p) => p.publicUrl)
-          .slice(0, 3)
+          .slice(0, 5)
           .map((p) => p.publicUrl);
         if (urls.length) fileUrls = urls;
       }
+      // Also check legacy device_photos array
+      if (!fileUrls && Array.isArray(order?.device_photos) && order.device_photos.length) {
+        fileUrls = order.device_photos.filter(Boolean).slice(0, 5);
+      }
 
-      const result = await base44.integrations.Core.InvokeLLM({
-        prompt,
-        file_urls: fileUrls,
-      });
+      let result;
+      try {
+        result = await base44.integrations.Core.InvokeLLM({
+          prompt,
+          file_urls: fileUrls,
+        });
+      } catch (firstErr) {
+        // Si falla con fotos (IA rechaza imágenes), reintentar sin fotos
+        if (fileUrls && fileUrls.length > 0) {
+          console.warn("🧠 [JeaniDiagnostic] Reintentando sin fotos:", firstErr?.message);
+          toast.warning("IA no pudo analizar las fotos — reintentando solo con historial");
+          result = await base44.integrations.Core.InvokeLLM({
+            prompt: prompt + "\n\n(NOTA: las fotos no pudieron ser analizadas. Basa tu diagnóstico solo en el historial y la descripción del problema.)",
+          });
+        } else {
+          throw firstErr;
+        }
+      }
 
       if (!result) throw new Error("No se recibió respuesta del servidor IA");
+
+      // Si la IA rechazó las fotos pero respondió con un mensaje de rechazo, reintentar sin fotos
+      if (typeof result === "string" && /can't assist|cannot assist|identifying.*individuals|no puedo.*identificar/i.test(result)) {
+        console.warn("🧠 [JeaniDiagnostic] IA rechazó fotos, reintentando sin ellas");
+        toast.warning("IA rechazó las fotos (detectó personas) — analizando solo historial");
+        const retryResult = await base44.integrations.Core.InvokeLLM({
+          prompt: prompt + "\n\n(NOTA: ignora las fotos. Basa tu diagnóstico solo en el historial escrito y la descripción del problema.)",
+        });
+        if (retryResult) {
+          setDiagnosis(retryResult);
+          toast.success("🧠 Diagnóstico completado (sin fotos)");
+          return;
+        }
+      }
 
       setDiagnosis(result);
       toast.success("🧠 Diagnóstico completado");
