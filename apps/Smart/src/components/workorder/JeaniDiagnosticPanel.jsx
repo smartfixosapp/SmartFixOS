@@ -166,19 +166,22 @@ function buildDiagnosticPrompt({ customer, orders, currentOrder, userQuestion })
   lines.push("");
 
   lines.push("═══ INSTRUCCIONES DE RESPUESTA ═══");
-  lines.push("Responde en español. Formato:");
+  lines.push("Responde en español. Sé conciso y práctico — esto lo lee un técnico ocupado. Formato:");
   lines.push("");
   lines.push("🔍 DIAGNÓSTICO:");
-  lines.push("(Explica qué puede estar pasando basándote en el historial)");
+  lines.push("(Explica qué puede estar pasando basándote en el historial. Sé específico — menciona piezas, fechas, técnicos por nombre si aplica)");
   lines.push("");
   lines.push("📋 CLASIFICACIÓN: [GARANTÍA / RE-TRABAJO / PIEZA DEFECTUOSA / PROBLEMA NUEVO]");
-  lines.push("(Justifica por qué elegiste esta clasificación)");
+  lines.push("(Una línea justificando por qué)");
+  lines.push("");
+  lines.push("🔧 CHECKLIST DE DIAGNÓSTICO:");
+  lines.push("(Lista numerada de pasos concretos que el técnico debe verificar AHORA MISMO en el taller, en orden de más probable a menos probable. Cada paso debe ser accionable — no genérico. Ejemplo: '1. Verificar voltaje de la batería con multímetro — debe dar 3.7-4.2V' en vez de '1. Revisar la batería')");
   lines.push("");
   lines.push("✅ ACCIÓN RECOMENDADA:");
-  lines.push("(Pasos concretos: qué hacer, a quién contactar, qué reclamar)");
+  lines.push("(Qué hacer después del diagnóstico: reclamar garantía a X proveedor con OC Y, re-trabajar gratis, cobrar nueva reparación, etc.)");
   lines.push("");
-  lines.push("⚠️ NOTAS ADICIONALES:");
-  lines.push("(Cosas a verificar, banderas rojas, info que falta)");
+  lines.push("⚠️ BANDERAS ROJAS:");
+  lines.push("(Cosas que podrían indicar un problema más serio, patrones de fallo recurrente, o riesgos si no se atiende)");
 
   return lines.join("\n");
 }
