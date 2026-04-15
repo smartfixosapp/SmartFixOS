@@ -4,7 +4,7 @@ import {
   LayoutGrid,
   Wallet,
   ClipboardList,
-  Users,
+  TrendingUp,
   Settings
 } from "lucide-react";
 import { cn } from "@/lib/utils";
