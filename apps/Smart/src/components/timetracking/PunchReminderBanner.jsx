@@ -51,10 +51,16 @@ export default function PunchReminderBanner() {
     const employeeName = session?.full_name || session?.userName || session?.name || session?.user?.full_name || "Empleado";
     if (!employeeId) { setState({ visible: false }); return; }
 
+    // Optimistic hide: si hay timeEntryId, asumimos que esta ponchado → oculto de inmediato
+    // y luego validamos contra la red sin bloquear la UI.
+    const cachedId = sessionStorage.getItem("timeEntryId");
+    if (cachedId) {
+      setState({ visible: false });
+    }
+
     // Quick check: si PunchButton acaba de ponchar, dejo timeEntryId en sessionStorage.
     // Si existe, asumimos que esta ponchado y evitamos un evento de carrera con la query.
     try {
-      const cachedId = sessionStorage.getItem("timeEntryId");
       if (cachedId) {
         const entry = await dataClient.entities.TimeEntry.get(cachedId).catch(() => null);
         if (entry && !entry.clock_out) {
