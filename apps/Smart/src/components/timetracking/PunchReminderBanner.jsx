@@ -173,7 +173,13 @@ export default function PunchReminderBanner() {
 
   useEffect(() => {
     evaluate();
-    const onUpdate = () => evaluate();
+    const onUpdate = () => {
+      // Ocultar inmediatamente en entrada — el evento llega al instante del ponche
+      if (sessionStorage.getItem("timeEntryId")) {
+        setState({ visible: false });
+      }
+      evaluate();
+    };
     window.addEventListener("employee-schedules-updated", onUpdate);
     window.addEventListener("punch-status-changed", onUpdate);
     return () => {
