@@ -1060,7 +1060,10 @@ export default function Dashboard() {
             </div>
 
             {/* ── Tareas del turno ── */}
-            <div className="bg-white/[0.02] border border-white/[0.06] rounded-2xl overflow-hidden mx-3 flex flex-col flex-1 min-h-0">
+            <div className={cn(
+              "bg-white/[0.02] border border-white/[0.06] rounded-2xl overflow-hidden mx-3 flex flex-col",
+              pendingShiftTasks.length > 0 ? "flex-1 min-h-0" : ""
+            )}>
               <div className="flex items-center justify-between px-3 py-2.5 border-b border-white/[0.05]">
                 <div className="flex items-center gap-2">
                   <ClipboardList className="w-3.5 h-3.5 text-indigo-400" />
@@ -1072,25 +1075,27 @@ export default function Dashboard() {
                   </span>
                 )}
               </div>
-              <div className="flex-1 overflow-y-auto">
-                {pendingShiftTasks.length > 0 ? pendingShiftTasks.map(task => (
-                  <div key={task.id} className="flex items-center gap-3 px-3 py-2 border-t border-white/[0.03] first:border-0">
-                    <div className="w-1 h-5 rounded-full shrink-0 bg-indigo-500" />
-                    <div className="flex-1 min-w-0">
-                      <p className="text-xs font-bold text-white truncate">{task.title}</p>
+              {pendingShiftTasks.length > 0 ? (
+                <div className="flex-1 overflow-y-auto">
+                  {pendingShiftTasks.map(task => (
+                    <div key={task.id} className="flex items-center gap-3 px-3 py-2 border-t border-white/[0.03] first:border-0">
+                      <div className="w-1 h-5 rounded-full shrink-0 bg-indigo-500" />
+                      <div className="flex-1 min-w-0">
+                        <p className="text-xs font-bold text-white truncate">{task.title}</p>
+                      </div>
+                      <button onClick={() => handleCompleteTask(task)} disabled={completingTaskId === task.id}
+                        className="w-6 h-6 rounded-full border border-white/15 bg-white/5 flex items-center justify-center shrink-0 text-white/30 active:bg-emerald-500/20">
+                        <Check className="w-3 h-3" />
+                      </button>
                     </div>
-                    <button onClick={() => handleCompleteTask(task)} disabled={completingTaskId === task.id}
-                      className="w-6 h-6 rounded-full border border-white/15 bg-white/5 flex items-center justify-center shrink-0 text-white/30 active:bg-emerald-500/20">
-                      <Check className="w-3 h-3" />
-                    </button>
-                  </div>
-                )) : (
-                  <div className="flex flex-col items-center justify-center py-10">
-                    <CheckCircle2 className="w-8 h-8 text-emerald-500/20 mb-2" />
-                    <p className="text-white/15 text-[10px] font-bold uppercase tracking-widest">Tareas completadas</p>
-                  </div>
-                )}
-              </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="flex items-center justify-center gap-2 py-3">
+                  <CheckCircle2 className="w-4 h-4 text-emerald-500/40" />
+                  <p className="text-white/25 text-[10px] font-bold uppercase tracking-wider">Tareas completadas</p>
+                </div>
+              )}
             </div>
           </div>
 
