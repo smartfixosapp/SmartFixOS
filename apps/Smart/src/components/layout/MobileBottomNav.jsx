@@ -18,7 +18,7 @@ const tabHistory = {
   home:      ["/Dashboard"],
   orders:    ["/Orders"],
   pos:       ["/POS"],
-  customers: ["/Customers"],
+  financial: ["/Financial"],
   settings:  ["/Settings"],
 };
 
