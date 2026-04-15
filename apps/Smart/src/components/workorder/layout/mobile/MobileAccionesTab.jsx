@@ -305,7 +305,7 @@ export default function MobileAccionesTab({
                   className="w-full flex items-center gap-4 px-4 py-3 hover:bg-violet-500/5 active:scale-[0.98] transition-all"
                 >
                   <div className="w-8 h-8 rounded-lg bg-violet-500/10 flex items-center justify-center">
-                    <ShoppingCart className="w-4 h-4 text-violet-400" />
+                    <ImageIcon className="w-4 h-4 text-violet-400" />
                   </div>
                   <span className="text-sm font-medium text-violet-300">Elegir de galeria</span>
                 </button>
