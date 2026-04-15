@@ -38,8 +38,13 @@ function minsBetween(hhmmA, hhmmB) {
 export default function PunchReminderBanner() {
   const [state, setState] = useState({ visible: false });
   const [dismissed, setDismissed] = useState(() => {
-    try { return sessionStorage.getItem("punch_banner_dismissed_today") === new Date().toDateString(); }
-    catch { return false; }
+    try {
+      const today = new Date().toDateString();
+      return (
+        sessionStorage.getItem("punch_banner_dismissed_today") === today ||
+        localStorage.getItem("punch_banner_dismissed_today") === today
+      );
+    } catch { return false; }
   });
   const [busy, setBusy] = useState(false);
 
