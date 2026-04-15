@@ -220,7 +220,11 @@ export default function PunchReminderBanner() {
   };
 
   const handleDismiss = () => {
-    try { sessionStorage.setItem("punch_banner_dismissed_today", new Date().toDateString()); } catch {}
+    try {
+      sessionStorage.setItem("punch_banner_dismissed_today", new Date().toDateString());
+      // Persistir por el dia completo en localStorage
+      localStorage.setItem("punch_banner_dismissed_today", new Date().toDateString());
+    } catch {}
     setDismissed(true);
     setState({ visible: false });
   };
