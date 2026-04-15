@@ -192,13 +192,22 @@ export default function MobileAccionesTab({
 
   return (
     <div className="space-y-4 pb-8">
-      {/* Hidden file input for photos */}
+      {/* Hidden inputs — camera + gallery */}
       <input
         ref={photoInputRef}
         type="file"
         accept="image/*"
         multiple
         capture="environment"
+        className="hidden"
+        onChange={handlePhotoUpload}
+        disabled={uploading}
+      />
+      <input
+        ref={galleryInputRef}
+        type="file"
+        accept="image/*"
+        multiple
         className="hidden"
         onChange={handlePhotoUpload}
         disabled={uploading}
