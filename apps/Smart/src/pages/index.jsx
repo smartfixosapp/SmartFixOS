@@ -140,60 +140,52 @@ function ReturnLogin() {
     );
 }
 
-// Wrapper that animates page transitions with framer-motion.
-// AnimatePresence mode="wait" → old page fully exits before new one enters,
-// preventing the white/dark flash when navigating.
-// User preference for reduced motion is respected automatically by framer-motion.
+// Plain route outlet — NO framer-motion animation wrapper.
+// The previous AnimatePresence + motion.div with opacity: 0 initial state caused
+// an intermittent blank-page bug: when a lazy-loaded page chunk took longer than
+// the 0.18s fade, the new page could mount stuck at opacity: 0 (DOM interactive
+// but visually invisible). Removing the animation makes transitions rock solid.
 function AnimatedRoutes() {
     const location = useLocation();
     return (
-        <AnimatePresence mode="wait" initial={false}>
-            <motion.div
-                key={location.pathname}
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                transition={{ duration: 0.18, ease: [0.4, 0, 0.2, 1] }}
-                style={{ minHeight: '100%' }}
-            >
-                <Routes location={location}>
-                    <Route path="/" element={<Dashboard />} />
-                    <Route path="/Activate" element={<Activate />} />
-                    <Route path="/AdminDashboard" element={<AdminDashboard />} />
-                    <Route path="/AuditLog" element={<AuditLog />} />
-                    <Route path="/CashHistory" element={<CashHistory />} />
-                    <Route path="/CustomerDisplay" element={<CustomerDisplay />} />
-                    <Route path="/CustomerPortal" element={<CustomerPortal />} />
-                    <Route path="/Customers" element={<Customers />} />
-                    <Route path="/Dashboard" element={<Dashboard />} />
-                    <Route path="/Financial" element={<Financial />} />
-                    <Route path="/InitialSetup" element={<InitialSetup />} />
-                    <Route path="/Inventory" element={<Inventory />} />
-                    <Route path="/Notifications" element={<Notifications />} />
-                    <Route path="/Orders" element={<Orders />} />
-                    <Route path="/POS" element={<POS />} />
-                    <Route path="/POSDesktop" element={<POSDesktop />} />
-                    <Route path="/POSMobile" element={<POSMobile />} />
-                    <Route path="/PinAccess" element={<PinAccess />} />
-                    <Route path="/Recharges" element={<Recharges />} />
-                    <Route path="/Reports" element={<Financial />} />
-                    <Route path="/Settings" element={<Settings />} />
-                    <Route path="/SettingsGeneral" element={<SettingsGeneral />} />
-                    <Route path="/SettingsNav" element={<SettingsNav />} />
-                    <Route path="/Setup" element={<Setup />} />
-                    <Route path="/SubscriptionManagement" element={<SubscriptionManagement />} />
-                    <Route path="/Technicians" element={<Technicians />} />
-                    <Route path="/TenantManagement" element={<TenantManagement />} />
-                    <Route path="/TimeTracking" element={<UsersManagement />} />
-                    <Route path="/UsersManagement" element={<UsersManagement />} />
-                    <Route path="/VerifySetup" element={<VerifySetup />} />
-                    <Route path="/Appointments" element={<Appointments />} />
-                    <Route path="/OrdersMobile" element={<OrdersMobile />} />
-                    <Route path="/Menu" element={<Menu />} />
-                    <Route path="/Welcome" element={<Welcome />} />
-                </Routes>
-            </motion.div>
-        </AnimatePresence>
+        <div style={{ minHeight: '100%' }}>
+            <Routes location={location}>
+                <Route path="/" element={<Dashboard />} />
+                <Route path="/Activate" element={<Activate />} />
+                <Route path="/AdminDashboard" element={<AdminDashboard />} />
+                <Route path="/AuditLog" element={<AuditLog />} />
+                <Route path="/CashHistory" element={<CashHistory />} />
+                <Route path="/CustomerDisplay" element={<CustomerDisplay />} />
+                <Route path="/CustomerPortal" element={<CustomerPortal />} />
+                <Route path="/Customers" element={<Customers />} />
+                <Route path="/Dashboard" element={<Dashboard />} />
+                <Route path="/Financial" element={<Financial />} />
+                <Route path="/InitialSetup" element={<InitialSetup />} />
+                <Route path="/Inventory" element={<Inventory />} />
+                <Route path="/Notifications" element={<Notifications />} />
+                <Route path="/Orders" element={<Orders />} />
+                <Route path="/POS" element={<POS />} />
+                <Route path="/POSDesktop" element={<POSDesktop />} />
+                <Route path="/POSMobile" element={<POSMobile />} />
+                <Route path="/PinAccess" element={<PinAccess />} />
+                <Route path="/Recharges" element={<Recharges />} />
+                <Route path="/Reports" element={<Financial />} />
+                <Route path="/Settings" element={<Settings />} />
+                <Route path="/SettingsGeneral" element={<SettingsGeneral />} />
+                <Route path="/SettingsNav" element={<SettingsNav />} />
+                <Route path="/Setup" element={<Setup />} />
+                <Route path="/SubscriptionManagement" element={<SubscriptionManagement />} />
+                <Route path="/Technicians" element={<Technicians />} />
+                <Route path="/TenantManagement" element={<TenantManagement />} />
+                <Route path="/TimeTracking" element={<UsersManagement />} />
+                <Route path="/UsersManagement" element={<UsersManagement />} />
+                <Route path="/VerifySetup" element={<VerifySetup />} />
+                <Route path="/Appointments" element={<Appointments />} />
+                <Route path="/OrdersMobile" element={<OrdersMobile />} />
+                <Route path="/Menu" element={<Menu />} />
+                <Route path="/Welcome" element={<Welcome />} />
+            </Routes>
+        </div>
     );
 }
 
