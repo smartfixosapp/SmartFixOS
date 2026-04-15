@@ -60,8 +60,10 @@ export default function MobileAccionesTab({
 }) {
   const [showAllStatuses, setShowAllStatuses] = useState(false);
   const [showNotifyOptions, setShowNotifyOptions] = useState(false);
+  const [showPhotoOptions, setShowPhotoOptions] = useState(false);
   const [uploading, setUploading] = useState(false);
   const photoInputRef = useRef(null);
+  const galleryInputRef = useRef(null);
   const o = order || {};
   const phone = o.customer_phone || o.phone;
 
