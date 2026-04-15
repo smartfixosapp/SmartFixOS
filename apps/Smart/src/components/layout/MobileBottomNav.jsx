@@ -153,7 +153,7 @@ export default function MobileBottomNav() {
       {/* Spacer */}
       <div className={cn(
         "md:hidden w-full flex-shrink-0 transition-all duration-300",
-        hasPanelsOpen ? "h-0" : "h-[88px]"
+        hasPanelsOpen ? "h-0" : "h-[72px]"
       )} />
 
       {/* Premium Tab Bar */}
