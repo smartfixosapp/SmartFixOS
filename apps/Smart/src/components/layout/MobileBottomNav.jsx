@@ -173,7 +173,7 @@ export default function MobileBottomNav() {
         <div className="absolute top-0 left-[15%] right-[15%] h-[1px] bg-gradient-to-r from-transparent via-white/10 to-transparent" />
 
         {/* Tab Items */}
-        <div className="relative flex items-end justify-around px-1 pb-[max(env(safe-area-inset-bottom),16px)] pt-2 h-[88px]">
+        <div className="relative flex items-end justify-around px-1 pb-[max(env(safe-area-inset-bottom),8px)] pt-1.5">
           {tabs.map((tab) => {
             const isActive = activeTab === tab.id;
             const Icon     = tab.icon;
