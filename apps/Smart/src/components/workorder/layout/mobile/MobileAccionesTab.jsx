@@ -15,7 +15,7 @@ const QUICK_ACTIONS = [
   { id: "checkout", icon: DollarSign, label: "Checkout", color: "text-emerald-400", badgeKey: "balance" },
   { id: "deposit", icon: Wallet, label: "Deposito", color: "text-amber-400" },
   { id: "parts", icon: ShoppingCart, label: "Piezas y accesorios", color: "text-cyan-400" },
-  { id: "photos", icon: Camera, label: "Subir fotos", color: "text-cyan-400" },
+  { id: "photos", icon: Camera, label: "Subir fotos", color: "text-cyan-400", expandable: true },
   { id: "note", icon: MessageSquare, label: "Agregar nota", color: "text-blue-400" },
   { id: "notify", icon: Send, label: "Notificar cliente", color: "text-violet-400", expandable: true },
   { id: "print", icon: Printer, label: "Imprimir", color: "text-white/60" },
