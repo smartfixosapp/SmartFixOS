@@ -16,7 +16,7 @@ export default defineConfig({
       manifest: false, // usamos el manifest.json de /public
       selfDestroying: false,
       workbox: {
-        cacheId: 'sfos-v3', // bump to bust stale SW caches
+        cacheId: 'sfos-v4', // bump to bust stale SW caches
         clientsClaim: true,
         skipWaiting: true,
         // html excluded: index.html must always come from network (never SW cache)
