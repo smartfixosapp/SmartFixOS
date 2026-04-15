@@ -279,11 +279,38 @@ export default function MobileAccionesTab({
                 <div className="w-2.5 h-2.5 rounded-full bg-red-500" />
               )}
               {action.expandable ? (
-                <ChevronDown className={cn("w-4 h-4 text-white/50 transition-transform", showNotifyOptions && "rotate-180")} />
+                <ChevronDown className={cn(
+                  "w-4 h-4 text-white/50 transition-transform",
+                  ((action.id === "notify" && showNotifyOptions) || (action.id === "photos" && showPhotoOptions)) && "rotate-180"
+                )} />
               ) : (
                 <ChevronRight className="w-4 h-4 text-white/50" />
               )}
             </button>
+
+            {/* Photo sub-options (Camara / Galeria) */}
+            {action.id === "photos" && showPhotoOptions && (
+              <div className="rounded-xl border border-white/[0.06] bg-white/[0.02] overflow-hidden divide-y divide-white/[0.06]">
+                <button
+                  onClick={() => { triggerHaptic("light"); setShowPhotoOptions(false); photoInputRef.current?.click(); }}
+                  className="w-full flex items-center gap-4 px-4 py-3 hover:bg-cyan-500/5 active:scale-[0.98] transition-all"
+                >
+                  <div className="w-8 h-8 rounded-lg bg-cyan-500/10 flex items-center justify-center">
+                    <Camera className="w-4 h-4 text-cyan-400" />
+                  </div>
+                  <span className="text-sm font-medium text-cyan-300">Tomar foto</span>
+                </button>
+                <button
+                  onClick={() => { triggerHaptic("light"); setShowPhotoOptions(false); galleryInputRef.current?.click(); }}
+                  className="w-full flex items-center gap-4 px-4 py-3 hover:bg-violet-500/5 active:scale-[0.98] transition-all"
+                >
+                  <div className="w-8 h-8 rounded-lg bg-violet-500/10 flex items-center justify-center">
+                    <ShoppingCart className="w-4 h-4 text-violet-400" />
+                  </div>
+                  <span className="text-sm font-medium text-violet-300">Elegir de galeria</span>
+                </button>
+              </div>
+            )}
 
             {/* Notify sub-options */}
             {action.id === "notify" && showNotifyOptions && (
