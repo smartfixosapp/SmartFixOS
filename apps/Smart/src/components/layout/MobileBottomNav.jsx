@@ -139,8 +139,8 @@ export default function MobileBottomNav() {
       gradient: "from-blue-500 to-indigo-500", isCenter: true,
     },
     {
-      id: "customers", label: "Clientes", icon: Users,         path: "/Customers",
-      gradient: "from-purple-500 to-fuchsia-500",
+      id: "financial", label: "Finanzas", icon: TrendingUp,    path: "/Financial",
+      gradient: "from-emerald-500 to-green-500",
     },
     {
       id: "settings",  label: "Ajustes",  icon: Settings,      path: "/Settings",
