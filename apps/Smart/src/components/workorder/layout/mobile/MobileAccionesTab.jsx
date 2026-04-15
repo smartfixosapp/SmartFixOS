@@ -3,7 +3,7 @@ import {
   DollarSign, Wallet, ShoppingCart, MessageSquare, Camera,
   Zap, Send, Printer, Shield, ChevronRight, ChevronDown,
   MessageCircle, Mail, Phone, Smartphone, Loader2,
-  ClipboardCheck, Link2, Package, FileText
+  ClipboardCheck, Link2, Package, FileText, Image as ImageIcon
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { getStatusConfig, normalizeStatusId } from "@/components/utils/statusRegistry";
