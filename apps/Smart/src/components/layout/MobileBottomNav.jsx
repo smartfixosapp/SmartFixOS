@@ -91,7 +91,7 @@ export default function MobileBottomNav() {
     if (p === "/" || p === "/Dashboard") currentTab = "home";
     else if (p.includes("POS"))       currentTab = "pos";
     else if (p.includes("Orders"))    currentTab = "orders";
-    else if (p.includes("Customers")) currentTab = "customers";
+    else if (p.includes("Financial")) currentTab = "financial";
     else if (p.includes("Settings"))  currentTab = "settings";
 
     setActiveTab(currentTab);
