@@ -279,6 +279,32 @@ export default function QuickPayModal({ order, paymentMode = "full", onClose, on
 
       toast.success(`✅ Venta procesada - ${saleNumber}`);
 
+      // 📧 Enviar recibo por email al cliente (si tiene email registrado)
+      if (order?.customer_email) {
+        const isDeposit = paymentMode === "deposit" || (newBalance > 0.01);
+        const eventType = isDeposit ? "deposit_received" : "payment_received";
+        const deviceLine = [order.device_brand, order.device_model].filter(Boolean).join(" ") || order.device_type || "tu equipo";
+        const paymentMethodLabel = paymentMethod === "cash" ? "Efectivo"
+          : paymentMethod === "card" ? "Tarjeta"
+          : paymentMethod === "ath_movil" ? "ATH Móvil"
+          : paymentMethod === "mixed" ? "Pago Mixto"
+          : paymentMethod || "";
+        sendTemplatedEmail({
+          event_type: eventType,
+          order_data: {
+            order_number: order.order_number,
+            customer_name: order.customer_name || "Cliente",
+            customer_email: order.customer_email,
+            device_info: deviceLine,
+            sale_number: saleNumber,
+            amount: effectiveTotal,
+            total_paid: amountPaid,
+            balance: newBalance,
+            payment_method: paymentMethodLabel,
+          }
+        }).catch(err => console.warn("[QuickPayModal] email recibo falló:", err?.message || err));
+      }
+
       window.dispatchEvent(new CustomEvent("sale-completed", {
         detail: { sale, order: updatedOrder, transactions: createdTransactions, orderId: order?.id, amountPaid, paymentMode },
       }));
