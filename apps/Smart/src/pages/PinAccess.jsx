@@ -24,25 +24,39 @@ import NovedadesPanel from "../components/pinaccess/NovedadesPanel";
 //   2. Si pasan 3s sin moverse, asume que la sesión está corrupta,
 //      la limpia y recarga la página → cae al landing público.
 function StuckSessionRecovery() {
+  const [showManual, setShowManual] = useState(false);
+
+  const clearAndReload = () => {
+    try {
+      sessionStorage.removeItem("911-session");
+      localStorage.removeItem("employee_session");
+      localStorage.removeItem("smartfix_saved_creds");
+    } catch {}
+    window.location.reload();
+  };
+
   useEffect(() => {
-    const t = setTimeout(() => {
-      console.warn("[PinAccess] Sesión parece corrupta — limpiando storage y recargando");
-      try {
-        sessionStorage.removeItem("911-session");
-        localStorage.removeItem("employee_session");
-        localStorage.removeItem("smartfix_saved_creds");
-        // No tocar tenant_id ni preferencias para no romper otras pestañas
-      } catch { /* no-op */ }
-      window.location.reload();
-    }, 3000);
-    return () => clearTimeout(t);
+    // Auto-clear after 2 seconds
+    const t = setTimeout(clearAndReload, 2000);
+    // Show manual button after 1.5s in case auto fails
+    const t2 = setTimeout(() => setShowManual(true), 1500);
+    return () => { clearTimeout(t); clearTimeout(t2); };
   }, []);
+
   return (
     <div className="min-h-screen bg-black flex items-center justify-center">
       <div className="text-center">
         <div className="animate-spin rounded-full h-10 w-10 border-4 border-cyan-500 border-t-transparent mx-auto mb-3" />
-        <p className="text-white/60 text-sm">Restaurando sesión…</p>
-        <p className="text-white/30 text-[11px] mt-1">Si toma más de 3 segundos limpiaremos el caché</p>
+        <p className="text-white/60 text-sm">Restaurando sesion...</p>
+        <p className="text-white/30 text-[11px] mt-1">Espera un momento</p>
+        {showManual && (
+          <button
+            onClick={clearAndReload}
+            className="mt-4 px-4 py-2 rounded-xl bg-cyan-600 text-white text-xs font-bold active:scale-95"
+          >
+            Reiniciar manualmente
+          </button>
+        )}
       </div>
     </div>
   );
