@@ -11,12 +11,23 @@
 }
 
 /* Dark base surface — prevents white flash during route transitions
- * (SmartFixOS is dark-first; light-themed pages paint over this) */
+ * (SmartFixOS is dark-first; light-themed pages paint over this)
+ *
+ * ⚠️ IMPORTANTE para iOS Safari bottom gap fix:
+ * El `<html>` bg es gris-sys-6 (#1C1C1E dark / #F2F2F7 light), el mismo
+ * color que el tab bar inferior. De este modo, cualquier espacio que
+ * Safari reserve para su chrome (aunque esté oculto) queda VISUALMENTE
+ * CONTINUO con el tab bar, eliminando la franja negra visible.
+ *
+ * El `<body>` y `#root` cubren el html con el bg real de la app
+ * (#0a0a0c dark / #f8fafc light), así que las páginas normales NO se
+ * ven afectadas — solo el área del viewport por debajo del nav.
+ */
 html {
   height: 100%;
   overflow: hidden;
   overscroll-behavior: none;
-  background-color: #0a0a0c;
+  background-color: #1C1C1E; /* sys-gray-6 dark (coincide con tab bar) */
 }
 
 body {
@@ -24,7 +35,7 @@ body {
   margin: 0;
   overflow: hidden;
   overscroll-behavior: none;
-  background-color: #0a0a0c;
+  background-color: #0a0a0c; /* bg real de la app */
 }
 
 #root {
@@ -35,7 +46,9 @@ body {
   background-color: #0a0a0c;
 }
 
-html.theme-light,
+html.theme-light {
+  background-color: #F2F2F7; /* sys-gray-6 light */
+}
 html.theme-light body,
 html.theme-light #root {
   background-color: #f8fafc;

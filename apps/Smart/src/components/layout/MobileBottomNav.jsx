@@ -144,7 +144,7 @@ export default function MobileBottomNav() {
         "md:hidden w-full flex-shrink-0 transition-all duration-300",
         hasPanelsOpen ? "h-0" : ""
       )}
-      style={!hasPanelsOpen ? { height: "calc(64px + max(env(safe-area-inset-bottom, 0px), 34px))" } : undefined}
+      style={!hasPanelsOpen ? { height: "calc(64px + clamp(20px, env(safe-area-inset-bottom, 34px), 40px))" } : undefined}
     />
   );
 
@@ -166,10 +166,16 @@ export default function MobileBottomNav() {
         WebkitBackdropFilter: "blur(20px) saturate(180%)",
         backdropFilter: "blur(20px) saturate(180%)",
         borderTop: "0.5px solid rgb(var(--separator) / 0.50)",
-        // Fuerza un mínimo de 34px para el área del home indicator iOS
-        // incluso si env(safe-area-inset-bottom) reporta 0 o valores bajos.
-        // Esto garantiza que la barra se extienda bajo el home indicator.
-        paddingBottom: "max(env(safe-area-inset-bottom, 0px), 34px)",
+        // clamp(min, preferred, max) — iOS Safari en modo browser a veces
+        // reporta env(safe-area-inset-bottom) con valores INFLADOS que
+        // incluyen espacio fantasma para su toolbar (incluso cuando está
+        // oculto). Resultado: gap negro debajo del tab bar.
+        //
+        // clamp asegura que SIEMPRE estemos entre 20px y 40px:
+        //   - Si env reporta 0 (PWA sin notch): usamos 20px mínimo
+        //   - Si env reporta 34 (home indicator iPhone): usamos 34 real
+        //   - Si env reporta 80+ (Safari chrome fantasma): capamos a 40
+        paddingBottom: "clamp(20px, env(safe-area-inset-bottom, 34px), 40px)",
       }}
     >
       {/* Tab items */}
