@@ -287,19 +287,33 @@ export default function PaymentDialog({ open, onClose, order, onSuccess, isCreat
     setLoading(false);
   };
 
+  const parsedAmount = parseFloat(amount) || 0;
+  const quickAmounts = [20, 50, 100];
+
   return (
     <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent className="max-w-md bg-gradient-to-br from-[#2B2B2B] to-black border-[#FF0000]/30">
-        <DialogHeader>
-          <DialogTitle className="text-2xl font-bold text-white flex items-center gap-2">
-            <DollarSign className="w-6 h-6 text-[#FF0000]" />
+      <DialogContent className="max-w-md apple-surface-elevated rounded-apple-lg shadow-apple-lg border-0 p-0 overflow-hidden">
+        <DialogHeader className="px-6 pt-6 pb-4" style={{ borderBottom: "0.5px solid rgb(var(--separator) / 0.29)" }}>
+          <DialogTitle className="apple-text-title2 apple-label-primary flex items-center gap-2.5 m-0">
+            <span className="w-9 h-9 rounded-apple-sm bg-apple-green/15 flex items-center justify-center">
+              <DollarSign className="w-5 h-5 text-apple-green" />
+            </span>
             Registrar Pago
           </DialogTitle>
         </DialogHeader>
 
-        <div className="space-y-4">
-          <div className="space-y-2">
-            <Label className="text-gray-300">Monto a Pagar</Label>
+        <div className="px-6 py-5 space-y-5">
+          {/* Amount display */}
+          <div className="flex flex-col items-center py-2">
+            <span className="apple-text-footnote apple-label-tertiary">Monto a Pagar</span>
+            <span className="apple-text-title1 apple-label-primary tabular-nums mt-1">
+              ${parsedAmount.toFixed(2)}
+            </span>
+          </div>
+
+          {/* Amount input */}
+          <div className="space-y-1.5">
+            <Label className="apple-text-footnote apple-label-secondary">Cantidad</Label>
             <Input
               type="number"
               step="0.01"
@@ -307,56 +321,82 @@ export default function PaymentDialog({ open, onClose, order, onSuccess, isCreat
               value={amount}
               onChange={(e) => setAmount(e.target.value)}
               placeholder="0.00"
-              className="bg-black border-gray-700 text-white text-lg"
+              className="apple-input tabular-nums"
               autoFocus
             />
           </div>
 
-          <div className="space-y-2">
-            <Label className="text-gray-300">Método de Pago</Label>
-            <Select value={paymentMethod} onValueChange={setPaymentMethod}>
-              <SelectTrigger className="bg-black border-gray-700 text-white">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="cash">
-                  <div className="flex items-center gap-2">
-                    <DollarSign className="w-4 h-4" />
-                    Efectivo
-                  </div>
-                </SelectItem>
-                <SelectItem value="card">
-                  <div className="flex items-center gap-2">
-                    <CreditCard className="w-4 h-4" />
-                    Tarjeta
-                  </div>
-                </SelectItem>
-                <SelectItem value="transfer">
-                  <div className="flex items-center gap-2">
-                    <Smartphone className="w-4 h-4" />
-                    ATH Móvil
-                  </div>
-                </SelectItem>
-              </SelectContent>
-            </Select>
+          {/* Quick amount buttons */}
+          <div className="flex gap-2">
+            {quickAmounts.map((qa) => (
+              <button
+                key={qa}
+                type="button"
+                onClick={() => setAmount(String(qa))}
+                className="apple-btn apple-btn-tinted apple-press flex-1 tabular-nums"
+              >
+                ${qa}
+              </button>
+            ))}
           </div>
 
-          <div className="space-y-2">
-            <Label className="text-gray-300">Notas (opcional)</Label>
+          {/* Payment method - apple list rows */}
+          <div className="space-y-1.5">
+            <Label className="apple-text-footnote apple-label-secondary">Método de Pago</Label>
+            <div className="apple-list">
+              <button
+                type="button"
+                onClick={() => setPaymentMethod("cash")}
+                className={`apple-list-row apple-press w-full text-left ${paymentMethod === "cash" ? "bg-apple-blue/12" : ""}`}
+              >
+                <span className="w-8 h-8 rounded-apple-sm bg-apple-green/15 flex items-center justify-center">
+                  <DollarSign className="w-4 h-4 text-apple-green" />
+                </span>
+                <span className="apple-text-body apple-label-primary flex-1">Efectivo</span>
+                {paymentMethod === "cash" && <span className="apple-text-subheadline text-apple-blue">Seleccionado</span>}
+              </button>
+              <button
+                type="button"
+                onClick={() => setPaymentMethod("card")}
+                className={`apple-list-row apple-press w-full text-left ${paymentMethod === "card" ? "bg-apple-blue/12" : ""}`}
+              >
+                <span className="w-8 h-8 rounded-apple-sm bg-apple-blue/12 flex items-center justify-center">
+                  <CreditCard className="w-4 h-4 text-apple-blue" />
+                </span>
+                <span className="apple-text-body apple-label-primary flex-1">Tarjeta</span>
+                {paymentMethod === "card" && <span className="apple-text-subheadline text-apple-blue">Seleccionado</span>}
+              </button>
+              <button
+                type="button"
+                onClick={() => setPaymentMethod("transfer")}
+                className={`apple-list-row apple-press w-full text-left ${paymentMethod === "transfer" ? "bg-apple-blue/12" : ""}`}
+              >
+                <span className="w-8 h-8 rounded-apple-sm bg-apple-purple/12 flex items-center justify-center">
+                  <Smartphone className="w-4 h-4 text-apple-purple" />
+                </span>
+                <span className="apple-text-body apple-label-primary flex-1">ATH Móvil</span>
+                {paymentMethod === "transfer" && <span className="apple-text-subheadline text-apple-blue">Seleccionado</span>}
+              </button>
+            </div>
+          </div>
+
+          {/* Notes */}
+          <div className="space-y-1.5">
+            <Label className="apple-text-footnote apple-label-secondary">Notas (opcional)</Label>
             <Textarea
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
               placeholder="Detalles adicionales del pago..."
-              className="bg-black border-gray-700 text-white"
+              className="apple-input"
               rows={3}
             />
           </div>
 
-          <div className="flex gap-3">
+          {/* Actions */}
+          <div className="flex gap-2.5 pt-1">
             <Button
-              variant="outline"
               onClick={onClose}
-              className="flex-1 border-gray-700 text-gray-300 hover:bg-gray-800"
+              className="apple-btn apple-btn-secondary apple-btn-lg apple-press flex-1"
               disabled={loading}
             >
               Cancelar
@@ -364,9 +404,9 @@ export default function PaymentDialog({ open, onClose, order, onSuccess, isCreat
             <Button
               onClick={handleSubmit}
               disabled={loading || !amount}
-              className="flex-1 bg-gradient-to-r from-[#FF0000] to-red-800 hover:from-red-700 hover:to-red-900"
+              className="apple-btn apple-btn-primary apple-btn-lg apple-press flex-1"
             >
-              {loading ? "Procesando..." : "Confirmar Pago"}
+              {loading ? "Procesando..." : "Pagar"}
             </Button>
           </div>
         </div>

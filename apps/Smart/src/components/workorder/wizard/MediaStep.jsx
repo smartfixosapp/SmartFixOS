@@ -11,7 +11,7 @@ export default function MediaStep({ formData, updateFormData, config }) {
 
   const handleFileSelect = async (e) => {
     const files = Array.from(e.target.files || []);
-    
+
     if (formData.media_files.length + files.length > maxFiles) {
       alert(`Máximo ${maxFiles} archivos permitidos`);
       return;
@@ -42,10 +42,10 @@ export default function MediaStep({ formData, updateFormData, config }) {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="apple-type space-y-6">
       <div>
-        <h3 className="text-xl font-bold text-white mb-2">Fotos y videos</h3>
-        <p className="text-gray-400 text-sm">
+        <h3 className="apple-text-title2 apple-label-primary mb-2 font-semibold">Fotos y videos</h3>
+        <p className="apple-text-subheadline apple-label-secondary tabular-nums">
           Documenta el estado del equipo (máx. {maxFiles} archivos, {maxSizeMB}MB c/u)
         </p>
       </div>
@@ -62,12 +62,14 @@ export default function MediaStep({ formData, updateFormData, config }) {
         <Button
           type="button"
           variant="outline"
-          className="w-full h-24 border-gray-700 hover:bg-gray-800 cursor-pointer"
+          className="apple-btn apple-btn-secondary apple-press w-full h-24 cursor-pointer"
           asChild
         >
           <div>
-            <Camera className="w-6 h-6 mb-2 text-gray-300" />
-            <p className="text-sm">Capturar evidencia</p>
+            <div className="w-10 h-10 rounded-apple-sm bg-apple-blue/15 text-apple-blue flex items-center justify-center mb-2">
+              <Camera className="w-5 h-5" />
+            </div>
+            <p className="apple-text-subheadline apple-label-primary font-medium">Capturar evidencia</p>
           </div>
         </Button>
       </label>
@@ -75,10 +77,10 @@ export default function MediaStep({ formData, updateFormData, config }) {
       {formData.media_files.length > 0 && (
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
           {formData.media_files.map(file => (
-            <Card key={file.id} className="relative group overflow-hidden bg-gray-900 border-gray-800">
+            <Card key={file.id} className="apple-press relative group overflow-hidden bg-gray-sys6 dark:bg-gray-sys5 rounded-apple-lg border-0">
               {file.type === 'video' ? (
-                <div className="aspect-square flex items-center justify-center bg-black">
-                  <Video className="w-12 h-12 text-gray-500" />
+                <div className="aspect-square flex items-center justify-center bg-gray-sys5 dark:bg-gray-sys4">
+                  <Video className="w-12 h-12 apple-label-tertiary" />
                 </div>
               ) : (
                 <img
@@ -92,7 +94,7 @@ export default function MediaStep({ formData, updateFormData, config }) {
                 size="icon"
                 variant="destructive"
                 aria-label="Eliminar archivo"
-                className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity"
+                className="apple-btn apple-btn-destructive apple-press absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity"
               >
                 <X className="w-4 h-4" />
               </Button>
@@ -102,16 +104,18 @@ export default function MediaStep({ formData, updateFormData, config }) {
       )}
 
       {formData.media_files.length === 0 && (
-        <div className="text-center py-12 border-2 border-dashed border-gray-800 rounded-lg">
-          <Camera className="w-12 h-12 mx-auto text-gray-600 mb-3" />
-          <p className="text-gray-500">No hay archivos adjuntos</p>
-          <p className="text-sm text-gray-600 mt-1">
+        <div className="apple-card text-center py-12">
+          <div className="w-14 h-14 rounded-apple-sm bg-apple-blue/15 text-apple-blue flex items-center justify-center mx-auto mb-3">
+            <Camera className="w-7 h-7" />
+          </div>
+          <p className="apple-text-body apple-label-secondary">No hay archivos adjuntos</p>
+          <p className="apple-text-subheadline apple-label-tertiary mt-1">
             Las fotos ayudan a documentar el estado del equipo
           </p>
         </div>
       )}
 
-      <div className="text-xs text-gray-500">
+      <div className="apple-text-caption1 apple-label-tertiary tabular-nums">
         {formData.media_files.length} / {maxFiles} archivos
       </div>
     </div>

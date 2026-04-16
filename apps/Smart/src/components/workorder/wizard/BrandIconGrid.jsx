@@ -70,21 +70,21 @@ export default function BrandIconGrid({ formData, updateFormData, onAutoAdvance,
   if (loading) {
     return (
       <div className="flex items-center justify-center py-12">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-red-600" />
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-apple-blue" />
       </div>
     );
   }
 
   return (
-    <div className="space-y-4">
+    <div className="apple-surface apple-type space-y-4">
       <div className="relative">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 w-5 h-5 pointer-events-none" />
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 apple-label-tertiary w-5 h-5 pointer-events-none" />
         <Input
           type="text"
           placeholder="Buscar marca…"
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
-          className="w-full h-12 px-4 pl-10 rounded-lg bg-black/40 border border-white/15 text-slate-100"
+          className="w-full h-12 px-4 pl-10 rounded-apple-md bg-gray-sys6 dark:bg-gray-sys5 border-0 apple-label-primary"
         />
       </div>
 
@@ -96,31 +96,31 @@ export default function BrandIconGrid({ formData, updateFormData, onAutoAdvance,
               key={brand.id}
               onClick={() => handleSelect(brand)}
               className={`
-                flex flex-col items-center gap-2 p-4 rounded-xl transition-all min-h-[120px]
+                apple-press rounded-apple-md flex flex-col items-center gap-2 p-4 min-h-[120px]
                 ${isSelected
-                  ? "bg-gradient-to-br from-red-600 to-red-800 border-2 border-red-500 shadow-lg shadow-red-600/40"
-                  : "bg-black/40 border-2 border-white/10 hover:border-red-600/50"}
+                  ? "bg-apple-blue/12 ring-2 ring-apple-blue/70"
+                  : "bg-gray-sys6 dark:bg-gray-sys5"}
               `}
             >
               {brand.icon_url ? (
                 <img
                   src={brand.icon_url}
                   alt={brand.name}
-                  className={`w-12 h-12 object-contain ${isSelected ? "" : "brightness-[0] invert-[1]"}`}
+                  className="w-12 h-12 object-contain"
                 />
               ) : (
-                <div className={`w-12 h-12 rounded-full grid place-items-center ${isSelected ? "bg-white" : "bg-white/10"}`}>
-                  <Smartphone className={`w-6 h-6 ${isSelected ? "text-red-800" : "text-white/60"}`} />
+                <div className={`w-12 h-12 rounded-apple-sm grid place-items-center ${isSelected ? "bg-apple-blue/12" : "bg-gray-sys5 dark:bg-gray-sys4"}`}>
+                  <Smartphone className={`w-6 h-6 ${isSelected ? "text-apple-blue" : "apple-label-secondary"}`} />
                 </div>
               )}
-              <span className="text-sm text-white text-center line-clamp-2">{brand.name}</span>
+              <span className="apple-text-footnote apple-label-primary text-center line-clamp-2">{brand.name}</span>
             </button>
           );
         })}
       </div>
 
       {filteredBrands.length === 0 && (
-        <div className="text-center py-8 text-gray-400">
+        <div className="text-center py-8 apple-text-footnote apple-label-tertiary">
           No se encontraron marcas
         </div>
       )}

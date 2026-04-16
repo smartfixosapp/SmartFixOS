@@ -109,24 +109,24 @@ export default function FamilyIconGrid({ formData, updateFormData, onAutoAdvance
   if (loading) {
     return (
       <div className="flex items-center justify-center py-12">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-red-600" />
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-apple-blue" />
       </div>
     );
   }
 
   if (families.length === 0 && !loading) {
     return (
-      <div className="text-center py-12 space-y-4">
-        <p className="text-gray-400 mb-4">
+      <div className="apple-surface apple-type text-center py-12 space-y-4">
+        <p className="apple-text-callout apple-label-secondary mb-1">
           No hay modelos para {selectedBrand.name}
         </p>
-        <p className="text-xs text-gray-500 mb-4">
+        <p className="apple-text-caption1 apple-label-tertiary mb-4">
           Configura modelos en Settings → Catálogo de Dispositivos
         </p>
-        
+
         {/* Input manual para agregar modelo nuevo */}
         <div className="max-w-md mx-auto">
-          <p className="text-xs text-gray-400 mb-2">O escribe un modelo nuevo:</p>
+          <p className="apple-text-caption1 apple-label-secondary mb-2">O escribe un modelo nuevo:</p>
           <Input
             type="text"
             placeholder="Ej: MacBook Pro, iPhone 12, Galaxy S23..."
@@ -139,7 +139,7 @@ export default function FamilyIconGrid({ formData, updateFormData, onAutoAdvance
                 }
               }
             }}
-            className="w-full h-12 px-4 rounded-lg bg-black/40 border border-white/15 text-slate-100"
+            className="w-full h-12 px-4 rounded-apple-md bg-gray-sys6 dark:bg-gray-sys5 border-0 apple-label-primary"
           />
         </div>
       </div>
@@ -147,22 +147,22 @@ export default function FamilyIconGrid({ formData, updateFormData, onAutoAdvance
   }
 
   return (
-    <div className="space-y-4">
+    <div className="apple-surface apple-type space-y-4">
       <div>
-        <h3 className="text-xl font-bold text-white mb-1">📦 Modelo</h3>
-        <p className="text-sm text-gray-400">
+        <h3 className="apple-text-title3 apple-label-primary mb-1">Modelo</h3>
+        <p className="apple-text-footnote apple-label-secondary">
           {selectedCategory?.name} → {selectedBrand?.name}
         </p>
       </div>
 
       <div className="relative">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 w-5 h-5 pointer-events-none" />
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 apple-label-tertiary w-5 h-5 pointer-events-none" />
         <Input
           type="text"
           placeholder="Buscar modelo..."
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
-          className="w-full h-12 px-4 pl-10 rounded-lg bg-black/40 border border-white/15 text-slate-100"
+          className="w-full h-12 px-4 pl-10 rounded-apple-md bg-gray-sys6 dark:bg-gray-sys5 border-0 apple-label-primary"
         />
       </div>
 
@@ -174,38 +174,38 @@ export default function FamilyIconGrid({ formData, updateFormData, onAutoAdvance
               key={family.id}
               onClick={() => handleSelect(family)}
               className={`
-                flex flex-col items-center gap-2 p-4 rounded-xl transition-all min-h-[120px]
+                apple-press rounded-apple-md flex flex-col items-center gap-2 p-4 min-h-[120px]
                 ${isSelected
-                  ? "bg-gradient-to-br from-red-600 to-red-800 border-2 border-red-500 shadow-lg shadow-red-600/40"
-                  : "bg-black/40 border-2 border-white/10 hover:border-red-600/50"}
+                  ? "bg-apple-blue/12 ring-2 ring-apple-blue/70"
+                  : "bg-gray-sys6 dark:bg-gray-sys5"}
               `}
             >
               {family.icon_url ? (
                 <img
                   src={family.icon_url}
                   alt={family.name}
-                  className={`w-12 h-12 object-contain ${isSelected ? "" : "brightness-[0] invert-[1]"}`}
+                  className="w-12 h-12 object-contain"
                 />
               ) : (
-                <div className={`w-12 h-12 rounded-full grid place-items-center ${isSelected ? "bg-white" : "bg-white/10"}`}>
-                  <Smartphone className={`w-6 h-6 ${isSelected ? "text-red-800" : "text-white/60"}`} />
+                <div className={`w-12 h-12 rounded-apple-sm grid place-items-center ${isSelected ? "bg-apple-blue/12" : "bg-gray-sys5 dark:bg-gray-sys4"}`}>
+                  <Smartphone className={`w-6 h-6 ${isSelected ? "text-apple-blue" : "apple-label-secondary"}`} />
                 </div>
               )}
-              <span className="text-sm text-white text-center line-clamp-2">{family.name}</span>
+              <span className="apple-text-footnote apple-label-primary text-center line-clamp-2">{family.name}</span>
             </button>
           );
         })}
       </div>
 
       {filteredFamilies.length === 0 && (
-        <div className="text-center py-8 text-gray-400">
+        <div className="text-center py-8 apple-text-footnote apple-label-tertiary">
           No se encontraron modelos
         </div>
       )}
-      
+
       {/* Input manual para agregar modelo nuevo */}
-      <div className="mt-4 pt-4 border-t border-white/10">
-        <p className="text-xs text-gray-400 mb-2">O escribe un modelo nuevo:</p>
+      <div className="mt-4 pt-4 border-t border-gray-sys5 dark:border-gray-sys4">
+        <p className="apple-text-caption1 apple-label-secondary mb-2">O escribe un modelo nuevo:</p>
         <Input
           type="text"
           placeholder="Ej: MacBook Pro, iPhone 12, Galaxy S23..."
@@ -218,7 +218,7 @@ export default function FamilyIconGrid({ formData, updateFormData, onAutoAdvance
               }
             }
           }}
-          className="w-full h-12 px-4 rounded-lg bg-black/40 border border-white/15 text-slate-100"
+          className="w-full h-12 px-4 rounded-apple-md bg-gray-sys6 dark:bg-gray-sys5 border-0 apple-label-primary"
         />
       </div>
     </div>

@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Search, User, X, Plus } from "lucide-react";
+import { Search, User, X, Plus, Building2 } from "lucide-react";
 
 export default function CustomerStep({ formData, updateFormData }) {
   const [searchQuery, setSearchQuery] = useState("");
@@ -14,7 +14,7 @@ export default function CustomerStep({ formData, updateFormData }) {
   const [searching, setSearching] = useState(false);
 
   const [phoneRaw, setPhoneRaw] = useState(formData.customer?.phone || "");
-  
+
   // AI FIX: b2b customer support - B2B toggle state
   const [isB2B, setIsB2B] = useState(formData.customer?.is_b2b || false);
 
@@ -146,28 +146,29 @@ export default function CustomerStep({ formData, updateFormData }) {
   };
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-4 bg-apple-surface">
       {/* AI FIX: b2b in WorkOrderWizard - B2B Toggle at top */}
-      <div className="bg-gradient-to-r from-purple-600/10 to-pink-600/10 border-2 border-purple-500/40 rounded-xl p-4 mb-4">
+      <div className="apple-card p-4 mb-4">
         <div className="flex items-center justify-between gap-3">
           <div className="flex-1">
-            <label className="text-white font-bold text-base flex items-center gap-2">
-              🏢 Cliente Empresarial (B2B)
+            <label className="apple-text-headline text-apple-label-primary flex items-center gap-2">
+              <Building2 className="w-4 h-4 text-apple-purple" />
+              Cliente Empresarial (B2B)
             </label>
-            <p className="text-xs text-gray-400 mt-1">
+            <p className="apple-text-footnote text-apple-label-secondary mt-1">
               Permite crear múltiples trabajos de una vez y facturación agrupada
             </p>
           </div>
           <button
             type="button"
             onClick={() => handleB2BToggle(!isB2B)}
-            className={`relative w-16 h-8 rounded-full transition-all ${
-              isB2B ? "bg-gradient-to-r from-purple-600 to-pink-600 shadow-lg shadow-purple-500/50" : "bg-gray-600"
+            className={`apple-press relative w-[51px] h-[31px] rounded-full transition-colors duration-200 ${
+              isB2B ? "bg-apple-green" : "bg-gray-sys5 dark:bg-gray-sys4"
             }`}
           >
             <span
-              className={`absolute top-1 left-1 w-6 h-6 bg-white rounded-full transition-transform shadow-md ${
-                isB2B ? "translate-x-8" : ""
+              className={`absolute top-[2px] left-[2px] w-[27px] h-[27px] bg-white rounded-full shadow-apple-sm transition-transform duration-200 ${
+                isB2B ? "translate-x-[20px]" : ""
               }`}
             />
           </button>
@@ -176,14 +177,14 @@ export default function CustomerStep({ formData, updateFormData }) {
 
       {/* AI FIX: b2b in WorkOrderWizard - B2B Fields shown first when enabled */}
       {isB2B && (
-        <div className="space-y-4 bg-purple-600/5 border-2 border-purple-500/30 rounded-xl p-4 mb-4">
-          <h3 className="text-purple-300 font-bold text-sm uppercase tracking-wide flex items-center gap-2">
-            <span className="w-2 h-2 bg-purple-500 rounded-full animate-pulse"></span>
+        <div className="apple-card p-4 mb-4 space-y-4">
+          <h3 className="apple-text-headline text-apple-label-primary flex items-center gap-2">
+            <span className="w-2 h-2 bg-apple-purple rounded-full" />
             Información Empresarial
           </h3>
-          
+
           <div className="space-y-2">
-            <Label htmlFor="company-name" className="text-gray-300 font-semibold">Nombre de la Empresa *</Label>
+            <Label htmlFor="company-name" className="apple-text-subheadline text-apple-label-secondary">Nombre de la Empresa *</Label>
             <Input
               id="company-name"
               name="companyName"
@@ -195,13 +196,13 @@ export default function CustomerStep({ formData, updateFormData }) {
               onKeyDown={stopEnterPropagation}
               onFocus={ensureVisible}
               placeholder="Tech Solutions Corp"
-              className="bg-black border-purple-700/50 text-white h-12 text-base"
+              className="apple-input"
             />
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="company-tax-id" className="text-gray-300">RUT / Tax ID / RNC</Label>
+              <Label htmlFor="company-tax-id" className="apple-text-subheadline text-apple-label-secondary">RUT / Tax ID / RNC</Label>
               <Input
                 id="company-tax-id"
                 name="companyTaxId"
@@ -212,12 +213,12 @@ export default function CustomerStep({ formData, updateFormData }) {
                 onKeyDown={stopEnterPropagation}
                 onFocus={ensureVisible}
                 placeholder="12-3456789-0"
-                className="bg-black border-purple-700/50 text-white h-12 text-base"
+                className="apple-input tabular-nums"
               />
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="billing-contact" className="text-gray-300">Persona de Contacto</Label>
+              <Label htmlFor="billing-contact" className="apple-text-subheadline text-apple-label-secondary">Persona de Contacto</Label>
               <Input
                 id="billing-contact"
                 name="billingContact"
@@ -228,14 +229,14 @@ export default function CustomerStep({ formData, updateFormData }) {
                 onKeyDown={stopEnterPropagation}
                 onFocus={ensureVisible}
                 placeholder="María López (CFO)"
-                className="bg-black border-purple-700/50 text-white h-12 text-base"
+                className="apple-input"
               />
             </div>
           </div>
 
-          <div className="bg-purple-600/10 border border-purple-500/20 rounded-lg p-3">
-            <p className="text-purple-300 text-xs">
-              💡 Podrás crear múltiples trabajos para esta empresa en un solo proceso y agrupar facturas
+          <div className="bg-apple-purple/12 rounded-apple-md p-3">
+            <p className="apple-text-footnote text-apple-purple">
+              Podrás crear múltiples trabajos para esta empresa en un solo proceso y agrupar facturas
             </p>
           </div>
         </div>
@@ -243,7 +244,7 @@ export default function CustomerStep({ formData, updateFormData }) {
 
       {/* Buscar cliente */}
       <div className="relative">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 w-5 h-5" />
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-apple-label-tertiary w-5 h-5 pointer-events-none" />
         <Input
           id="customer-search"
           name="customerSearch"
@@ -253,40 +254,45 @@ export default function CustomerStep({ formData, updateFormData }) {
           onKeyDown={stopEnterPropagation}
           onFocus={ensureVisible}
           placeholder="Buscar por teléfono, nombre o email..."
-          className="pl-10 bg-black border-gray-700 text-white h-12 text-base"
+          className="apple-input pl-10"
         />
 
         {showResults && searchResults.length > 0 && (
-          <div className="absolute top-full left-0 right-0 mt-2 bg-[#2B2B2B] border border-red-900/30 rounded-lg shadow-xl z-50 max-h-64 overflow-y-auto custom-scrollbar">
-            {searchResults.map((customer) => (
+          <div className="apple-list absolute top-full left-0 right-0 mt-2 shadow-apple-lg z-50 max-h-64 overflow-y-auto">
+            {searchResults.map((customer, idx) => (
               <button
                 key={customer.id}
                 type="button"
                 onClick={() => handleSelectCustomer(customer)}
-                className="w-full text-left p-3 hover:bg-gray-800 cursor-pointer border-b border-gray-800 last:border-b-0 flex items-center gap-3"
+                className="apple-list-row apple-press w-full text-left flex items-center gap-3"
+                style={idx !== searchResults.length - 1 ? { borderBottom: "0.5px solid rgb(var(--separator) / 0.29)" } : undefined}
               >
-                <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-blue-700 rounded-full grid place-items-center flex-shrink-0">
-                  <User className="w-5 h-5 text-white" />
+                <div className="apple-list-row-icon bg-apple-blue/12 grid place-items-center flex-shrink-0">
+                  <User className="w-5 h-5 text-apple-blue" />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-white font-medium truncate">{customer.name}</p>
-                  {customer.phone && <p className="text-xs text-gray-400">{formatPhonePretty(customer.phone)}</p>}
+                  <p className="apple-list-row-title apple-text-body text-apple-label-primary truncate">{customer.name}</p>
+                  {customer.phone && (
+                    <p className="apple-text-footnote text-apple-label-secondary tabular-nums">{formatPhonePretty(customer.phone)}</p>
+                  )}
                   {customer.email && (
-                    <p className="text-xs text-gray-500 truncate">{customer.email}</p>
+                    <p className="apple-text-footnote text-apple-label-tertiary truncate">{customer.email}</p>
                   )}
                   {/* AI FIX: b2b in WorkOrderWizard - Show B2B badge in search results */}
                   {customer.is_b2b && customer.company_name && (
-                    <p className="text-xs text-purple-400 truncate">🏢 {customer.company_name}</p>
+                    <p className="apple-text-footnote text-apple-purple truncate flex items-center gap-1">
+                      <Building2 className="w-3 h-3" /> {customer.company_name}
+                    </p>
                   )}
                 </div>
                 <div className="flex flex-col items-end gap-1">
-                  <Badge className="bg-blue-500/20 text-blue-400 border-blue-500/30 text-xs">
+                  <span className="bg-apple-blue/12 text-apple-blue apple-text-caption2 px-2 py-0.5 rounded-apple-xs tabular-nums">
                     {customer.total_orders || 0} órdenes
-                  </Badge>
+                  </span>
                   {customer.is_b2b && (
-                    <Badge className="bg-purple-500/20 text-purple-400 border-purple-500/30 text-xs">
+                    <span className="bg-apple-purple/12 text-apple-purple apple-text-caption2 px-2 py-0.5 rounded-apple-xs">
                       B2B
-                    </Badge>
+                    </span>
                   )}
                 </div>
               </button>
@@ -300,7 +306,7 @@ export default function CustomerStep({ formData, updateFormData }) {
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           {/* NOMBRE */}
           <div className="space-y-2">
-            <Label htmlFor="first-name" className="text-gray-300">Nombre *</Label>
+            <Label htmlFor="first-name" className="apple-text-subheadline text-apple-label-secondary">Nombre *</Label>
             <Input
               id="first-name"
               name="firstName"
@@ -313,13 +319,13 @@ export default function CustomerStep({ formData, updateFormData }) {
               onKeyDown={stopEnterPropagation}
               onFocus={ensureVisible}
               placeholder="Juan"
-              className="bg-black border-gray-700 text-white h-12 text-base"
+              className="apple-input"
             />
           </div>
 
           {/* APELLIDO */}
           <div className="space-y-2">
-            <Label htmlFor="last-name" className="text-gray-300">Apellido *</Label>
+            <Label htmlFor="last-name" className="apple-text-subheadline text-apple-label-secondary">Apellido *</Label>
             <Input
               id="last-name"
               name="lastName"
@@ -331,14 +337,14 @@ export default function CustomerStep({ formData, updateFormData }) {
               onKeyDown={stopEnterPropagation}
               onFocus={ensureVisible}
               placeholder="Pérez"
-              className="bg-black border-gray-700 text-white h-12 text-base"
+              className="apple-input"
             />
           </div>
         </div>
 
         {/* TELÉFONO */}
         <div className="space-y-2">
-          <Label htmlFor="main-phone" className="text-gray-300">Teléfono Principal *</Label>
+          <Label htmlFor="main-phone" className="apple-text-subheadline text-apple-label-secondary">Teléfono Principal *</Label>
           <Input
             id="main-phone"
             name="phone"
@@ -363,7 +369,7 @@ export default function CustomerStep({ formData, updateFormData }) {
               ensureVisible(e);
             }}
             placeholder="787-555-0123"
-            className="bg-black border-gray-700 text-white h-12 text-base tracking-wide"
+            className="apple-input tabular-nums"
             maxLength={14}
           />
         </div>
@@ -371,7 +377,7 @@ export default function CustomerStep({ formData, updateFormData }) {
         {/* TELÉFONOS ADICIONALES */}
         {(formData.customer.additional_phones || []).length > 0 && (
           <div className="space-y-2">
-            <Label className="text-gray-300">Teléfonos Adicionales</Label>
+            <Label className="apple-text-subheadline text-apple-label-secondary">Teléfonos Adicionales</Label>
             {formData.customer.additional_phones.map((phone, index) => (
               <div key={index} className="flex gap-2">
                 <Input
@@ -383,14 +389,13 @@ export default function CustomerStep({ formData, updateFormData }) {
                   onKeyDown={stopEnterPropagation}
                   onFocus={ensureVisible}
                   placeholder="7875550456"
-                  className="bg-black border-gray-700 text-white h-12 text-base flex-1"
+                  className="apple-input tabular-nums flex-1"
                   maxLength={10}
                 />
                 <Button
                   type="button"
-                  variant="outline"
                   onClick={() => handleRemovePhone(index)}
-                  className="border-gray-700 text-gray-300 hover:border-red-500 hover:text-red-400"
+                  className="apple-btn apple-btn-destructive apple-press"
                 >
                   <X className="w-4 h-4" />
                 </Button>
@@ -401,9 +406,8 @@ export default function CustomerStep({ formData, updateFormData }) {
 
         <Button
           type="button"
-          variant="outline"
           onClick={handleAddPhone}
-          className="bg-background px-4 h-11 w-full border-gray-700 hover:border-[#FF0000] hover:text-[#FF0000]"
+          className="apple-btn apple-btn-tinted apple-press w-full"
         >
           <Plus className="w-4 h-4 mr-2" />
           Añadir Teléfono Adicional
@@ -411,7 +415,7 @@ export default function CustomerStep({ formData, updateFormData }) {
 
         {/* EMAIL */}
         <div className="space-y-2">
-          <Label htmlFor="email" className="text-gray-300">Email (opcional)</Label>
+          <Label htmlFor="email" className="apple-text-subheadline text-apple-label-secondary">Email (opcional)</Label>
           <Input
             id="email"
             name="email"
@@ -425,14 +429,18 @@ export default function CustomerStep({ formData, updateFormData }) {
             onKeyDown={stopEnterPropagation}
             onFocus={ensureVisible}
             placeholder="cliente@example.com"
-            className="bg-black border-gray-700 text-white h-12 text-base"
+            className="apple-input"
           />
         </div>
 
-        <div className="bg-amber-600/10 border border-amber-500/30 rounded-lg p-3 mt-4">
-          <p className="text-xs text-amber-300 theme-light:text-amber-700">
+        <div className="bg-apple-yellow/15 rounded-apple-md p-3 mt-4">
+          <p className="apple-text-footnote text-apple-orange">
             * Campos obligatorios
-            {isB2B && <span className="ml-2 text-purple-400 font-bold">🏢 Modo Empresarial Activo</span>}
+            {isB2B && (
+              <span className="ml-2 text-apple-purple font-semibold inline-flex items-center gap-1">
+                <Building2 className="w-3 h-3" /> Modo Empresarial Activo
+              </span>
+            )}
           </p>
         </div>
       </div>

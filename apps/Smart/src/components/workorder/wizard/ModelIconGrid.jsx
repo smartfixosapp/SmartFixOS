@@ -116,34 +116,34 @@ export default function ModelIconGrid({ formData, updateFormData, onAutoAdvance,
   if (loading) {
     return (
       <div className="flex items-center justify-center py-12">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-red-600" />
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-apple-blue" />
       </div>
     );
   }
 
   return (
-    <div className="space-y-4">
+    <div className="apple-surface apple-type space-y-4">
       <div>
-        <h3 className="text-xl font-bold text-white mb-1">Modelo</h3>
-        <p className="text-sm text-gray-400">
+        <h3 className="apple-text-title3 apple-label-primary mb-1">Modelo</h3>
+        <p className="apple-text-footnote apple-label-secondary">
           {selectedBrand?.name} → {selectedSubcat?.name} → {selectedFamily?.name}
         </p>
       </div>
 
       {/* Search */}
       <div className="relative">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 w-5 h-5 pointer-events-none" />
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 apple-label-tertiary w-5 h-5 pointer-events-none" />
         <Input
           type="text"
           placeholder="Buscar modelo…"
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
-          className="w-full h-12 px-4 pl-10 rounded-lg bg-black/40 border border-white/15 text-slate-100"
+          className="w-full h-12 px-4 pl-10 rounded-apple-md bg-gray-sys6 dark:bg-gray-sys5 border-0 apple-label-primary"
         />
       </div>
 
       {/* Nota de orden */}
-      <div className="text-xs text-gray-500 text-center">
+      <div className="apple-text-caption1 apple-label-tertiary text-center">
         Ordenado por más reciente primero; si no hay fecha, por nombre.
       </div>
 
@@ -153,10 +153,10 @@ export default function ModelIconGrid({ formData, updateFormData, onAutoAdvance,
           <button
             key={model.id}
             onClick={() => handleSelect(model)}
-            className={`flex flex-col items-center gap-2 p-4 rounded-xl bg-black/40 border-2 transition-all min-h-[120px] 
+            className={`apple-press rounded-apple-md flex flex-col items-center gap-2 p-4 min-h-[120px]
               ${formData.device_model === (model.name || model.label)
-                ? "border-red-600 ring-2 ring-red-600"
-                : "border-white/10 hover:border-red-600/50"
+                ? "bg-apple-blue/12 ring-2 ring-apple-blue/70"
+                : "bg-gray-sys6 dark:bg-gray-sys5"
               }`}
           >
             <img
@@ -165,11 +165,11 @@ export default function ModelIconGrid({ formData, updateFormData, onAutoAdvance,
               className="w-12 h-12 object-contain"
               draggable={false}
             />
-            <span className="text-sm text-white text-center line-clamp-2">
+            <span className="apple-text-footnote apple-label-primary text-center line-clamp-2">
               {model.name || model.label}
             </span>
             {model.release_date && (
-              <span className="text-[10px] text-gray-500">
+              <span className="apple-text-caption2 apple-label-tertiary">
                 {new Date(model.release_date).getFullYear()}
               </span>
             )}
@@ -179,14 +179,14 @@ export default function ModelIconGrid({ formData, updateFormData, onAutoAdvance,
 
       {filteredModels.length === 0 && (
         <div className="text-center py-12 space-y-3">
-          <p className="text-gray-400">No hay modelos para esta familia</p>
-          <p className="text-xs text-gray-500">Puedes escribir el nombre del modelo abajo</p>
+          <p className="apple-text-callout apple-label-secondary">No hay modelos para esta familia</p>
+          <p className="apple-text-caption1 apple-label-tertiary">Puedes escribir el nombre del modelo abajo</p>
         </div>
       )}
-      
+
       {/* Opción para agregar modelo manual */}
-      <div className="mt-4 pt-4 border-t border-white/10">
-        <p className="text-xs text-gray-400 mb-2">O escribe un modelo nuevo:</p>
+      <div className="mt-4 pt-4 border-t border-gray-sys5 dark:border-gray-sys4">
+        <p className="apple-text-caption1 apple-label-secondary mb-2">O escribe un modelo nuevo:</p>
         <Input
           type="text"
           placeholder="Ej: iPhone 12 Pro Max, Galaxy S23..."
@@ -198,7 +198,7 @@ export default function ModelIconGrid({ formData, updateFormData, onAutoAdvance,
               }
             }
           }}
-          className="w-full h-12 px-4 rounded-lg bg-black/40 border border-white/15 text-slate-100"
+          className="w-full h-12 px-4 rounded-apple-md bg-gray-sys6 dark:bg-gray-sys5 border-0 apple-label-primary"
         />
       </div>
     </div>
