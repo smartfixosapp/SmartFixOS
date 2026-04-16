@@ -215,12 +215,26 @@ export default function PinAccess() {
   const [submitting, setSubmitting] = useState(false);
   const [isCheckingAuth, setIsCheckingAuth] = useState(true);
 
-  // ── Sincronización Inicial: Si ya hay sesión verificada, mostrar spinner
-  // mientras AuthGate redirige al Dashboard. Si pasan >3s sin redirección,
-  // asumimos que la sesión está corrupta (refresh token muerto, etc.) y la
-  // limpiamos automáticamente para que el usuario pueda hacer login fresh.
+  // ── Detección de sesión atascada ──────────────────────────────────────
+  // ⚠️ IMPORTANTE: solo activar tras un GRACE PERIOD de 3s. Si chequeáramos
+  // inmediatamente (como antes), después de un login exitoso el flujo era:
+  //   1. completeLogin() guarda sesión en storage
+  //   2. React re-renderiza PinAccess antes del navigate("/Dashboard")
+  //   3. hasProbableSession=true → renderiza StuckSessionRecovery
+  //   4. Recovery auto-clears + reloads → pierde la sesión recién creada
+  //   5. Loop infinito: el usuario nunca logra entrar al Dashboard
+  //
+  // La solución: dejar que AuthGate tenga 3s para redirigir antes de
+  // considerar que la sesión está atascada.
   const hasProbableSession = !!sessionStorage.getItem("911-session") && !!localStorage.getItem("employee_session");
-  if (hasProbableSession && step === "welcome" && !loading) {
+  const [gracePeriodExpired, setGracePeriodExpired] = useState(false);
+  useEffect(() => {
+    if (!hasProbableSession) return;
+    const t = setTimeout(() => setGracePeriodExpired(true), 3000);
+    return () => clearTimeout(t);
+  }, [hasProbableSession]);
+
+  if (hasProbableSession && gracePeriodExpired && step === "welcome" && !loading) {
     return <StuckSessionRecovery />;
   }
 
