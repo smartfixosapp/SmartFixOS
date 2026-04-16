@@ -134,13 +134,16 @@ export default function MobileBottomNav() {
 
   return (
     <>
-      {/* Spacer */}
-      <div className={cn(
-        "md:hidden w-full flex-shrink-0 transition-all duration-300",
-        hasPanelsOpen ? "h-0" : "h-[72px]"
-      )} />
+      {/* Spacer — reserva el alto del tab bar + home indicator */}
+      <div
+        className={cn(
+          "md:hidden w-full flex-shrink-0 transition-all duration-300",
+          hasPanelsOpen ? "h-0" : ""
+        )}
+        style={!hasPanelsOpen ? { height: "calc(64px + env(safe-area-inset-bottom, 0px))" } : undefined}
+      />
 
-      {/* Tab Bar estilo iOS — translúcido con blur, uniforme */}
+      {/* Tab Bar estilo iOS — translúcido con blur, se extiende hasta el fondo */}
       <nav
         data-global-dock
         className={cn(
@@ -149,19 +152,18 @@ export default function MobileBottomNav() {
             ? "translate-y-full opacity-0 pointer-events-none"
             : "translate-y-0 opacity-100"
         )}
+        style={{
+          // Fondo y blur directamente en el <nav> para que cubra todo
+          // incluyendo el safe-area-inset-bottom (home indicator del iPhone)
+          backgroundColor: "rgb(var(--surface-elevated) / 0.88)",
+          WebkitBackdropFilter: "blur(28px) saturate(190%)",
+          backdropFilter: "blur(28px) saturate(190%)",
+          borderTop: "0.5px solid rgb(var(--separator) / 0.29)",
+          paddingBottom: "env(safe-area-inset-bottom, 0px)",
+        }}
       >
-        {/* Fondo translúcido Apple (vibrancy) */}
-        <div
-          className="absolute inset-0 border-t border-[rgb(var(--separator)/0.29)]"
-          style={{
-            backgroundColor: "rgb(var(--surface-elevated) / 0.72)",
-            WebkitBackdropFilter: "blur(28px) saturate(190%)",
-            backdropFilter: "blur(28px) saturate(190%)",
-          }}
-        />
-
         {/* Tab items */}
-        <div className="relative flex items-stretch justify-around px-1 pb-[max(env(safe-area-inset-bottom),6px)] pt-1.5">
+        <div className="relative flex items-stretch justify-around px-1 pt-1.5 pb-1.5 h-[58px]">
           {tabs.map((tab) => {
             const isActive = activeTab === tab.id;
             const Icon     = tab.icon;

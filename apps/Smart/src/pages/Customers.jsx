@@ -9,6 +9,7 @@ import {
 import { formatDistanceToNow } from "date-fns";
 import { es } from "date-fns/locale";
 import { motion } from "framer-motion";
+import { cn } from "@/lib/utils";
 import CreateCustomerDialog from "../components/customers/CreateCustomerDialog";
 import CustomerOrdersDialog from "../components/customers/CustomerOrdersDialog";
 import BulkOfferModal from "../components/customers/BulkOfferModal";
@@ -144,14 +145,10 @@ export default function Customers() {
 
   return (
     <div
-      className="min-h-screen bg-black pb-28"
-      style={{ paddingTop: "6px" }}
+      className="min-h-screen apple-surface apple-type pb-28"
+      style={{ paddingTop: "calc(env(safe-area-inset-top, 0px) + 6px)" }}
     >
-      {/* Ambient glow */}
-      <div className="fixed -top-40 -right-40 w-80 h-80 bg-blue-500/8 rounded-full blur-[120px] pointer-events-none" />
-      <div className="fixed -bottom-40 -left-40 w-80 h-80 bg-cyan-500/8 rounded-full blur-[120px] pointer-events-none" />
-
-      <div className="max-w-full mx-auto px-3 sm:px-5 lg:px-8 py-4 relative z-10">
+      <div className="max-w-full mx-auto px-4 sm:px-5 lg:px-8 py-4 relative z-10">
 
         {/* ── JENAI Customer Insights ── */}
         <div className="mb-4">
@@ -173,83 +170,86 @@ export default function Customers() {
           />
         </div>
 
-        {/* ── HEADER ─────────────────────────────────────── */}
-        <div className="flex items-center justify-between mb-5">
-          <div>
-            <h1 className="text-[32px] font-black text-white tracking-tight leading-none">Clientes</h1>
-            <p className="text-white/30 mt-1 text-[11px] font-bold uppercase tracking-widest">{customers.length} registrados</p>
+        {/* ── HEADER estilo iOS ────────────────────────────── */}
+        <div className="flex items-end justify-between gap-3 mb-5">
+          <div className="min-w-0">
+            <h1 className="apple-text-large-title apple-label-primary">Clientes</h1>
+            <p className="apple-text-footnote apple-label-secondary mt-0.5 tabular-nums">{customers.length} registrados</p>
           </div>
           <div className="flex items-center gap-2">
             <button
               onClick={() => setShowBulkOffer(true)}
-              className="h-11 px-4 bg-orange-500/20 hover:bg-orange-500/30 border border-orange-500/30 text-orange-300 font-black text-sm rounded-full flex items-center gap-2 transition-all active:scale-95"
+              className="apple-btn text-[15px] min-h-9 px-3.5 bg-apple-orange/15 text-apple-orange"
             >
-              <Megaphone className="w-4 h-4" />
+              <Megaphone className="w-[18px] h-[18px]" />
               <span className="hidden sm:inline">Oferta</span>
             </button>
             <button
               onClick={() => { setEditingCustomer(null); setShowCreateDialog(true); }}
-              className="h-11 px-5 bg-blue-500 hover:bg-blue-400 text-white font-black text-sm rounded-full flex items-center gap-2 transition-all active:scale-95 shadow-[0_0_20px_rgba(59,130,246,0.35)]"
+              className="apple-btn apple-btn-primary text-[15px] min-h-9 px-3.5"
             >
-              <Plus className="w-4 h-4" />
+              <Plus className="w-[18px] h-[18px]" />
               <span className="hidden sm:inline">Nuevo</span>
             </button>
           </div>
         </div>
 
-        {/* ── STATS BAR ──────────────────────────────────── */}
-        <div className="flex gap-2 mb-4">
-          <div className="flex-1 bg-white/[0.03] border border-white/[0.06] rounded-2xl px-4 py-3 flex items-center gap-3">
-            <Users className="w-4 h-4 text-blue-400 shrink-0" />
-            <div>
-              <p className="text-lg font-black text-white leading-none">{stats.total}</p>
-              <p className="text-[10px] text-white/30 font-bold">Total</p>
+        {/* ── STATS BAR (apple-cards) ──────────────────────── */}
+        <div className="grid grid-cols-3 gap-2 mb-4">
+          <div className="apple-card p-3 flex items-center gap-2.5">
+            <Users className="w-4 h-4 text-apple-blue shrink-0" />
+            <div className="min-w-0">
+              <p className="apple-text-headline apple-label-primary leading-tight tabular-nums">{stats.total}</p>
+              <p className="apple-text-caption2 apple-label-secondary">Total</p>
             </div>
           </div>
-          <div className="flex-1 bg-white/[0.03] border border-white/[0.06] rounded-2xl px-4 py-3 flex items-center gap-3">
-            <Star className="w-4 h-4 text-yellow-400 shrink-0" />
-            <div>
-              <p className="text-lg font-black text-yellow-400 leading-none">{stats.vip}</p>
-              <p className="text-[10px] text-white/30 font-bold">VIP (3+ órdenes)</p>
+          <div className="apple-card p-3 flex items-center gap-2.5">
+            <Star className="w-4 h-4 text-apple-yellow shrink-0" />
+            <div className="min-w-0">
+              <p className="apple-text-headline text-apple-yellow leading-tight tabular-nums">{stats.vip}</p>
+              <p className="apple-text-caption2 apple-label-secondary truncate">VIP (3+)</p>
             </div>
           </div>
-          <div className="flex-1 bg-white/[0.03] border border-white/[0.06] rounded-2xl px-4 py-3 flex items-center gap-3">
-            <Plus className="w-4 h-4 text-emerald-400 shrink-0" />
-            <div>
-              <p className="text-lg font-black text-emerald-400 leading-none">{stats.newThisMonth}</p>
-              <p className="text-[10px] text-white/30 font-bold">Este mes</p>
+          <div className="apple-card p-3 flex items-center gap-2.5">
+            <Plus className="w-4 h-4 text-apple-green shrink-0" />
+            <div className="min-w-0">
+              <p className="apple-text-headline text-apple-green leading-tight tabular-nums">{stats.newThisMonth}</p>
+              <p className="apple-text-caption2 apple-label-secondary">Este mes</p>
             </div>
           </div>
         </div>
 
         {/* ── SEARCH ─────────────────────────────────────── */}
         <div className="relative mb-4">
-          <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-white/30" strokeWidth={2.5} />
+          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-[18px] h-[18px] apple-label-tertiary pointer-events-none" />
           <input
-            placeholder="Buscar por nombre, teléfono..."
+            placeholder="Buscar por nombre, teléfono"
             value={searchQuery}
             onChange={e => setSearchQuery(e.target.value)}
-            className="w-full h-11 pl-11 pr-4 bg-white/[0.04] border border-white/[0.08] rounded-2xl text-white text-sm placeholder-white/20 focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:bg-white/[0.07] transition-all font-medium"
+            className="apple-input pl-10"
           />
         </div>
 
         {/* ── CONTENT ────────────────────────────────────── */}
         {isLoading ? (
-          <div className="flex flex-col items-center justify-center py-20">
-            <div className="w-8 h-8 border-2 border-blue-500 border-t-transparent rounded-full animate-spin mb-3" />
-            <p className="text-white/30 text-xs font-bold uppercase tracking-widest">Cargando...</p>
+          <div className="flex flex-col items-center justify-center py-20 gap-3">
+            <div className="w-7 h-7 border-2 border-apple-blue border-t-transparent rounded-full animate-spin" />
+            <p className="apple-text-footnote apple-label-secondary">Cargando…</p>
           </div>
         ) : filteredCustomers.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-20">
-            <Users className="w-12 h-12 text-white/40 mb-4" />
-            <p className="text-white/30 text-sm font-bold mb-4">
+          <div className="flex flex-col items-center justify-center py-20 gap-3">
+            <div className="w-14 h-14 rounded-full bg-gray-sys6 dark:bg-gray-sys5 flex items-center justify-center">
+              <Users className="w-6 h-6 apple-label-tertiary" />
+            </div>
+            <p className="apple-text-callout apple-label-secondary">
               {searchQuery ? "Sin resultados" : "Sin clientes registrados"}
             </p>
             {!searchQuery && (
               <button
                 onClick={() => setShowCreateDialog(true)}
-                className="px-5 py-2.5 bg-blue-500/10 border border-blue-500/20 rounded-xl text-blue-400 text-sm font-bold transition-all active:scale-95"
+                className="apple-btn apple-btn-tinted"
               >
+                <Plus className="w-[18px] h-[18px]" />
                 Crear primer cliente
               </button>
             )}
@@ -268,51 +268,56 @@ export default function Customers() {
                     initial={{ opacity: 0, y: 8 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: i * 0.03 }}
-                    className="bg-[#1C1C1E]/60 backdrop-blur-xl border border-white/[0.07] rounded-[24px] overflow-hidden"
+                    className="apple-card overflow-hidden"
                   >
                     {/* Card tap area */}
                     <button
                       onClick={() => handleViewOrders(customer)}
-                      className="w-full p-4 text-left active:bg-white/[0.04] transition-colors"
+                      className="apple-press w-full p-4 text-left"
                     >
                       <div className="flex items-start gap-3 mb-3">
-                        {/* Avatar */}
-                        <div className={`w-12 h-12 rounded-[14px] bg-gradient-to-br ${avatarColor(customer.name)} flex items-center justify-center text-white font-black text-lg shrink-0 shadow-lg`}>
-                          {customer.name?.charAt(0).toUpperCase()}
+                        {/* Avatar — círculo apple-blue estilo iOS Contacts */}
+                        <div
+                          className="w-12 h-12 rounded-full flex items-center justify-center text-white shrink-0"
+                          style={{ backgroundColor: "rgb(var(--apple-blue))" }}
+                        >
+                          <span className="apple-text-title3 font-semibold">
+                            {customer.name?.charAt(0).toUpperCase()}
+                          </span>
                         </div>
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-2 flex-wrap">
-                            <h3 className="text-white font-black text-[15px] leading-tight truncate">{customer.name}</h3>
+                            <h3 className="apple-text-headline apple-label-primary leading-tight truncate">{customer.name}</h3>
                             {vip && (
-                              <span className="flex items-center gap-0.5 px-1.5 py-0.5 bg-yellow-500/15 border border-yellow-500/30 rounded-md">
-                                <Star className="w-2.5 h-2.5 text-yellow-400 fill-yellow-400" />
-                                <span className="text-[9px] font-black text-yellow-400 uppercase tracking-tight">VIP</span>
+                              <span className="inline-flex items-center gap-1 px-1.5 py-0.5 bg-apple-yellow/20 rounded-full">
+                                <Star className="w-2.5 h-2.5 text-apple-yellow fill-apple-yellow" />
+                                <span className="apple-text-caption2 font-semibold text-apple-yellow">VIP</span>
                               </span>
                             )}
                           </div>
                           <div className="flex items-center gap-2 mt-1 flex-wrap">
                             {totalOrders > 0 && (
-                              <span className="text-[10px] font-bold text-blue-400/80 bg-blue-500/10 px-2 py-0.5 rounded-full">
+                              <span className="apple-text-caption1 font-medium text-apple-blue bg-apple-blue/12 px-2 py-0.5 rounded-full tabular-nums">
                                 {totalOrders} {totalOrders === 1 ? "orden" : "órdenes"}
                               </span>
                             )}
                             {lastVisit && (
-                              <span className="text-[10px] text-white/25 font-bold">{lastVisit}</span>
+                              <span className="apple-text-caption1 apple-label-tertiary">{lastVisit}</span>
                             )}
                           </div>
                         </div>
-                        <ChevronRight className="w-4 h-4 text-white/15 shrink-0 mt-1" />
+                        <ChevronRight className="w-4 h-4 apple-label-tertiary shrink-0 mt-1" />
                       </div>
 
                       {/* Contact info */}
                       {customer.phone && (
-                        <div className="flex items-center gap-2 text-white/50 text-xs mb-1.5">
+                        <div className="flex items-center gap-2 apple-text-footnote apple-label-secondary mb-1">
                           <Phone className="w-3.5 h-3.5 shrink-0" />
-                          <span className="truncate font-medium">{customer.phone}</span>
+                          <span className="truncate tabular-nums">{customer.phone}</span>
                         </div>
                       )}
                       {customer.email && (
-                        <div className="flex items-center gap-2 text-white/30 text-xs">
+                        <div className="flex items-center gap-2 apple-text-footnote apple-label-tertiary">
                           <Mail className="w-3.5 h-3.5 shrink-0" />
                           <span className="truncate">{customer.email}</span>
                         </div>
@@ -320,15 +325,15 @@ export default function Customers() {
                     </button>
 
                     {/* Action bar */}
-                    <div className="flex border-t border-white/[0.05]">
+                    <div className="flex" style={{ borderTop: "0.5px solid rgb(var(--separator) / 0.29)" }}>
                       {customer.phone && (
                         <a
                           href={`tel:${customer.phone}`}
                           onClick={e => e.stopPropagation()}
-                          className="flex-1 flex items-center justify-center gap-1.5 py-2.5 text-white/50 hover:text-white/80 transition-colors active:bg-white/[0.04]"
+                          className="apple-press flex-1 flex items-center justify-center gap-1.5 py-3 text-apple-blue"
                         >
-                          <Phone className="w-4 h-4" />
-                          <span className="text-[10px] font-black uppercase tracking-tight">Llamar</span>
+                          <Phone className="w-[18px] h-[18px]" />
+                          <span className="apple-text-footnote font-medium">Llamar</span>
                         </a>
                       )}
                       {customer.phone && (
@@ -337,18 +342,20 @@ export default function Customers() {
                           target="_blank"
                           rel="noopener noreferrer"
                           onClick={e => e.stopPropagation()}
-                          className="flex-1 flex items-center justify-center gap-1.5 py-2.5 text-green-400/70 hover:text-green-400 transition-colors active:bg-white/[0.04] border-l border-white/[0.05]"
+                          className="apple-press flex-1 flex items-center justify-center gap-1.5 py-3 text-apple-green"
+                          style={{ borderLeft: "0.5px solid rgb(var(--separator) / 0.29)" }}
                         >
-                          <MessageCircle className="w-4 h-4" />
-                          <span className="text-[10px] font-black uppercase tracking-tight">WhatsApp</span>
+                          <MessageCircle className="w-[18px] h-[18px]" />
+                          <span className="apple-text-footnote font-medium">WhatsApp</span>
                         </a>
                       )}
                       <button
                         onClick={e => { e.stopPropagation(); handleEdit(customer); }}
-                        className="flex-1 flex items-center justify-center gap-1.5 py-2.5 text-white/40 hover:text-white/70 transition-colors active:bg-white/[0.04] border-l border-white/[0.05]"
+                        className="apple-press flex-1 flex items-center justify-center gap-1.5 py-3 apple-label-secondary"
+                        style={{ borderLeft: "0.5px solid rgb(var(--separator) / 0.29)" }}
                       >
-                        <Edit className="w-4 h-4" />
-                        <span className="text-[10px] font-black uppercase tracking-tight">Editar</span>
+                        <Edit className="w-[18px] h-[18px]" />
+                        <span className="apple-text-footnote font-medium">Editar</span>
                       </button>
                     </div>
                   </motion.div>
@@ -356,16 +363,16 @@ export default function Customers() {
               })}
             </div>
 
-            {/* Desktop table */}
-            <div className="hidden lg:block bg-[#1C1C1E]/60 backdrop-blur-xl border border-white/[0.07] rounded-[28px] overflow-hidden">
+            {/* Desktop table estilo Apple */}
+            <div className="hidden lg:block apple-card overflow-hidden p-0">
               <table className="w-full">
-                <thead className="border-b border-white/[0.06]">
+                <thead style={{ borderBottom: "0.5px solid rgb(var(--separator) / 0.29)" }}>
                   <tr>
-                    <th className="text-left px-5 py-3.5 text-white/30 font-black text-[10px] uppercase tracking-widest">Cliente</th>
-                    <th className="text-left px-5 py-3.5 text-white/30 font-black text-[10px] uppercase tracking-widest">Contacto</th>
-                    <th className="text-left px-5 py-3.5 text-white/30 font-black text-[10px] uppercase tracking-widest">Última actividad</th>
-                    <th className="text-center px-5 py-3.5 text-white/30 font-black text-[10px] uppercase tracking-widest">Órdenes</th>
-                    <th className="text-right px-5 py-3.5 text-white/30 font-black text-[10px] uppercase tracking-widest">Acciones</th>
+                    <th className="text-left px-5 py-3 apple-text-caption1 apple-label-secondary font-medium">Cliente</th>
+                    <th className="text-left px-5 py-3 apple-text-caption1 apple-label-secondary font-medium">Contacto</th>
+                    <th className="text-left px-5 py-3 apple-text-caption1 apple-label-secondary font-medium">Última actividad</th>
+                    <th className="text-center px-5 py-3 apple-text-caption1 apple-label-secondary font-medium">Órdenes</th>
+                    <th className="text-right px-5 py-3 apple-text-caption1 apple-label-secondary font-medium">Acciones</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -376,67 +383,72 @@ export default function Customers() {
                       <tr
                         key={customer.id}
                         onClick={() => handleViewOrders(customer)}
-                        className="border-b border-white/[0.04] hover:bg-white/[0.03] transition-colors cursor-pointer group"
+                        className="hover:bg-gray-sys6/50 dark:hover:bg-gray-sys5/50 transition-colors cursor-pointer group"
+                        style={{ borderBottom: "0.5px solid rgb(var(--separator) / 0.20)" }}
                       >
-                        <td className="px-5 py-3.5">
+                        <td className="px-5 py-3">
                           <div className="flex items-center gap-3">
-                            <div className={`w-9 h-9 rounded-xl bg-gradient-to-br ${avatarColor(customer.name)} flex items-center justify-center text-white font-black text-sm shrink-0`}>
-                              {customer.name?.charAt(0).toUpperCase()}
+                            <div
+                              className="w-9 h-9 rounded-full flex items-center justify-center text-white shrink-0"
+                              style={{ backgroundColor: "rgb(var(--apple-blue))" }}
+                            >
+                              <span className="apple-text-footnote font-semibold">{customer.name?.charAt(0).toUpperCase()}</span>
                             </div>
-                            <div>
-                              <div className="flex items-center gap-2">
-                                <span className="text-white font-black text-sm">{customer.name}</span>
-                                {vip && (
-                                  <span className="flex items-center gap-0.5 px-1.5 py-0.5 bg-yellow-500/15 border border-yellow-500/30 rounded-md">
-                                    <Star className="w-2.5 h-2.5 text-yellow-400 fill-yellow-400" />
-                                    <span className="text-[9px] font-black text-yellow-400 uppercase">VIP</span>
-                                  </span>
-                                )}
-                              </div>
+                            <div className="flex items-center gap-2">
+                              <span className="apple-text-body font-semibold apple-label-primary">{customer.name}</span>
+                              {vip && (
+                                <span className="inline-flex items-center gap-1 px-1.5 py-0.5 bg-apple-yellow/20 rounded-full">
+                                  <Star className="w-2.5 h-2.5 text-apple-yellow fill-apple-yellow" />
+                                  <span className="apple-text-caption2 font-semibold text-apple-yellow">VIP</span>
+                                </span>
+                              )}
                             </div>
                           </div>
                         </td>
-                        <td className="px-5 py-3.5">
+                        <td className="px-5 py-3">
                           <div className="space-y-1">
                             {customer.phone && (
                               <div className="flex items-center gap-2">
-                                <span className="text-white/60 text-xs font-medium">{customer.phone}</span>
-                                <a href={`tel:${customer.phone}`} onClick={e => e.stopPropagation()} className="text-white/50 hover:text-white/60 transition-colors">
+                                <span className="apple-text-footnote apple-label-primary tabular-nums">{customer.phone}</span>
+                                <a href={`tel:${customer.phone}`} onClick={e => e.stopPropagation()} className="text-apple-blue/70 hover:text-apple-blue transition-colors">
                                   <Phone className="w-3.5 h-3.5" />
                                 </a>
-                                <a href={getWhatsAppUrl(customer.phone)} target="_blank" rel="noopener noreferrer" onClick={e => e.stopPropagation()} className="text-green-400/30 hover:text-green-400/80 transition-colors">
+                                <a href={getWhatsAppUrl(customer.phone)} target="_blank" rel="noopener noreferrer" onClick={e => e.stopPropagation()} className="text-apple-green/70 hover:text-apple-green transition-colors">
                                   <MessageCircle className="w-3.5 h-3.5" />
                                 </a>
                               </div>
                             )}
                             {customer.email && (
-                              <p className="text-white/30 text-xs">{customer.email}</p>
+                              <p className="apple-text-caption1 apple-label-secondary">{customer.email}</p>
                             )}
                           </div>
                         </td>
-                        <td className="px-5 py-3.5">
-                          <span className="text-white/30 text-xs font-medium">{lastVisit || "—"}</span>
+                        <td className="px-5 py-3">
+                          <span className="apple-text-footnote apple-label-secondary">{lastVisit || "—"}</span>
                         </td>
-                        <td className="px-5 py-3.5 text-center">
-                          <span className={`inline-block px-2.5 py-1 rounded-lg text-xs font-black border ${
+                        <td className="px-5 py-3 text-center">
+                          <span className={cn(
+                            "inline-block px-2.5 py-0.5 rounded-full apple-text-caption1 font-medium tabular-nums",
                             (customer.total_orders || 0) > 0
-                              ? "bg-blue-500/10 text-blue-400 border-blue-500/20"
-                              : "bg-white/5 text-white/50 border-white/10"
-                          }`}>
+                              ? "bg-apple-blue/12 text-apple-blue"
+                              : "bg-gray-sys6 dark:bg-gray-sys5 apple-label-secondary"
+                          )}>
                             {customer.total_orders || 0}
                           </span>
                         </td>
-                        <td className="px-5 py-3.5">
+                        <td className="px-5 py-3">
                           <div className="flex items-center justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                             <button
                               onClick={e => { e.stopPropagation(); handleEdit(customer); }}
-                              className="w-8 h-8 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 flex items-center justify-center text-white/40 hover:text-white/80 transition-all active:scale-90"
+                              className="apple-press w-8 h-8 rounded-full bg-apple-blue/10 text-apple-blue flex items-center justify-center"
+                              aria-label="Editar"
                             >
                               <Edit className="w-3.5 h-3.5" />
                             </button>
                             <button
                               onClick={e => { e.stopPropagation(); handleDelete(customer.id); }}
-                              className="w-8 h-8 rounded-xl bg-red-500/5 hover:bg-red-500/15 border border-red-500/10 flex items-center justify-center text-red-400/40 hover:text-red-400 transition-all active:scale-90"
+                              className="apple-press w-8 h-8 rounded-full bg-apple-red/10 text-apple-red flex items-center justify-center"
+                              aria-label="Eliminar"
                             >
                               <Trash2 className="w-3.5 h-3.5" />
                             </button>
