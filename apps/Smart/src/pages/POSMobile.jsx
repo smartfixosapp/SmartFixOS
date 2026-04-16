@@ -760,6 +760,36 @@ export default function POSMobile() {
       if (createdTransactions.length) upsertLocalTransactions(createdTransactions);
 
       toast.success(`✅ Venta procesada - ${saleNumber}`);
+
+      // 📧 Enviar recibo por email al cliente (si tiene email registrado)
+      const _recipientEmail = selectedCustomer?.email || selectedOrder?.customer_email;
+      if (_recipientEmail) {
+        const _isDeposit = paymentMode === "deposit" || (selectedOrder && newBalance > 0.01);
+        const _eventType = selectedOrder ? (_isDeposit ? "deposit_received" : "payment_received") : "sale_completed";
+        const _deviceLine = selectedOrder
+          ? [selectedOrder.device_brand, selectedOrder.device_model].filter(Boolean).join(" ") || selectedOrder.device_type || "tu equipo"
+          : "";
+        const _paymentMethodLabel = paymentMethod === "cash" ? "Efectivo"
+          : paymentMethod === "card" ? "Tarjeta"
+          : paymentMethod === "ath_movil" ? "ATH Móvil"
+          : paymentMethod === "mixed" ? "Pago Mixto"
+          : paymentMethod || "";
+        sendTemplatedEmail({
+          event_type: _eventType,
+          order_data: {
+            order_number: selectedOrder?.order_number || "",
+            customer_name: selectedCustomer?.name || selectedOrder?.customer_name || "Cliente",
+            customer_email: _recipientEmail,
+            device_info: _deviceLine,
+            sale_number: saleNumber,
+            amount: effectiveTotal,
+            total_paid: amountPaid,
+            balance: selectedOrder ? newBalance : 0,
+            payment_method: _paymentMethodLabel,
+          }
+        }).catch(err => console.warn("[POS Mobile] email recibo falló:", err?.message || err));
+      }
+
       try {
         window.dispatchEvent(new CustomEvent("sale-completed", {
           detail: {
