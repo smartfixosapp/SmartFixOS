@@ -554,6 +554,17 @@ Máximo 30 palabras en total.`;
     setCart(cart.filter((_, i) => i !== index));
   };
 
+  // 📞 Auto-rellenar Teléfono y Nombre del pagador con datos del cliente cuando se abre el modal de cobro
+  useEffect(() => {
+    if (!showPaymentModal) return;
+    const custName = selectedCustomer?.name || selectedOrder?.customer_name || "";
+    const custPhone = selectedCustomer?.phone || selectedOrder?.customer_phone || "";
+    if (custName && !athMovilName) setAthMovilName(custName);
+    if (custPhone && !athMovilPhone) setAthMovilPhone(custPhone);
+    // Solo dispara cuando se abre el modal — no se retro-alimenta con ediciones del usuario
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [showPaymentModal, selectedCustomer?.id, selectedOrder?.id]);
+
   const clearCart = () => {
     setCart([]);
     setSelectedCustomer(null);
