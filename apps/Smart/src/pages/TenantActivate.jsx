@@ -619,8 +619,8 @@ export default function TenantActivate() {
         <div className="flex gap-3 mt-5">
           {step > 0 && (
             <button onClick={goBack}
-              className="flex items-center gap-2 px-5 py-3 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-gray-300 font-medium transition-all">
-              <ChevronLeft className="w-4 h-4" /> Atrás
+              className="flex-1 flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-gray-300 font-medium transition-all">
+              <ChevronLeft className="w-4 h-4" /> Atras
             </button>
           )}
           {step < TOTAL_STEPS - 1 && (
