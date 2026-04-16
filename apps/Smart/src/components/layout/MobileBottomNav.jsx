@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
+import { createPortal } from "react-dom";
 import { useNavigate, useLocation } from "react-router-dom";
 import {
   LayoutGrid,
@@ -132,44 +133,45 @@ export default function MobileBottomNav() {
     { id: "settings",  label: "Ajustes",  icon: Settings,      path: "/Settings" },
   ];
 
-  return (
-    <>
-      {/* Spacer — reserva el alto del tab bar + home indicator */}
-      <div
-        className={cn(
-          "md:hidden w-full flex-shrink-0 transition-all duration-300",
-          hasPanelsOpen ? "h-0" : ""
-        )}
-        style={!hasPanelsOpen ? { height: "calc(64px + env(safe-area-inset-bottom, 0px))" } : undefined}
-      />
+  // Spacer y tab bar se renderizan por separado:
+  // - El spacer se queda en su posición natural (dentro de Layout)
+  // - El <nav> se portea al <body> via createPortal para garantizar que
+  //   position:fixed sea relativo al viewport real, no a algún ancestro
+  //   que pueda estar creando un containing block inesperado en iOS.
+  const spacer = (
+    <div
+      className={cn(
+        "md:hidden w-full flex-shrink-0 transition-all duration-300",
+        hasPanelsOpen ? "h-0" : ""
+      )}
+      style={!hasPanelsOpen ? { height: "calc(64px + env(safe-area-inset-bottom, 0px))" } : undefined}
+    />
+  );
 
-      {/* Tab Bar estilo iOS — fondo sólido visible sobre la app oscura,
-       * con blur opcional cuando hay translucencia. Se extiende edge-to-edge
-       * incluyendo el área del home indicator.
-       */}
-      <nav
-        data-global-dock
-        className={cn(
-          "apple-type fixed bottom-0 left-0 right-0 z-[100] md:hidden transition-all duration-300",
-          hasPanelsOpen
-            ? "translate-y-full opacity-0 pointer-events-none"
-            : "translate-y-0 opacity-100"
-        )}
-        style={{
-          // Fondo SÓLIDO: sys-gray-6 (dark: #1C1C1E / light: #F2F2F7) —
-          // lo suficientemente distinto del fondo negro de la app para
-          // que se vea claramente dónde termina la barra. En light queda
-          // como el gris tab bar estilo iOS Settings.
-          backgroundColor: "rgb(var(--sys-gray-6))",
-          WebkitBackdropFilter: "blur(20px) saturate(180%)",
-          backdropFilter: "blur(20px) saturate(180%)",
-          borderTop: "0.5px solid rgb(var(--separator) / 0.50)",
-          // Extiende el fondo hasta el borde físico del teléfono
-          paddingBottom: "env(safe-area-inset-bottom, 0px)",
-        }}
-      >
-        {/* Tab items */}
-        <div className="relative flex items-stretch justify-around px-1 pt-1.5 pb-1.5 h-[58px]">
+  const tabBar = (
+    <nav
+      data-global-dock
+      className={cn(
+        "apple-type fixed left-0 right-0 z-[100] md:hidden transition-all duration-300",
+        hasPanelsOpen
+          ? "translate-y-full opacity-0 pointer-events-none"
+          : "translate-y-0 opacity-100"
+      )}
+      style={{
+        // Forzar posicionamiento relativo al VIEWPORT (no a ancestor)
+        position: "fixed",
+        bottom: 0,
+        // Fondo SÓLIDO: sys-gray-6 (dark: #1C1C1E / light: #F2F2F7)
+        backgroundColor: "rgb(var(--sys-gray-6))",
+        WebkitBackdropFilter: "blur(20px) saturate(180%)",
+        backdropFilter: "blur(20px) saturate(180%)",
+        borderTop: "0.5px solid rgb(var(--separator) / 0.50)",
+        // Extender el fondo hasta el borde físico del teléfono
+        paddingBottom: "env(safe-area-inset-bottom, 0px)",
+      }}
+    >
+      {/* Tab items */}
+      <div className="relative flex items-stretch justify-around px-1 pt-1.5 pb-1.5 h-[58px]">
           {tabs.map((tab) => {
             const isActive = activeTab === tab.id;
             const Icon     = tab.icon;
@@ -219,8 +221,16 @@ export default function MobileBottomNav() {
               </button>
             );
           })}
-        </div>
-      </nav>
+      </div>
+    </nav>
+  );
+
+  return (
+    <>
+      {spacer}
+      {/* Portal el tab bar al <body> → garantiza que fixed sea relativo
+       * al viewport, sin importar qué transforms/overflow tenga Layout. */}
+      {typeof document !== "undefined" ? createPortal(tabBar, document.body) : null}
     </>
   );
 }

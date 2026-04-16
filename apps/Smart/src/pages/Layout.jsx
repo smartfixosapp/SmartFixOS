@@ -425,12 +425,27 @@ export default function Layout({ children }) {
       {/* 🔍 Búsqueda global Cmd+K */}
       <GlobalSearchPalette open={searchOpen} onClose={() => setSearchOpen(false)} />
 
-      {/* ===== CSS PARA OCULTAR BARRA BLANCA DE NAVEGADOR EN iOS ===== */}
+      {/* ===== CSS iOS — asegurar que el layout cubra toda la pantalla =====
+       * ANTES: body tenía padding-bottom: env(safe-area-inset-bottom) que
+       * interfería con los position:fixed (nav bar quedaba flotando encima
+       * del home indicator dejando un gap negro visible).
+       * AHORA: html/body/#root llenan el 100% del viewport real (dvh en
+       * navegadores modernos, 100% en fallback). El safe-area-inset-bottom
+       * lo maneja CADA componente (nav bar, bottom bars) en su propio padding.
+       */}
       <style>{`
-        @supports (-webkit-touch-callout: none) {
-          body {
-            padding-bottom: env(safe-area-inset-bottom);
+        html, body {
+          padding-bottom: 0 !important;
+        }
+        @supports (height: 100dvh) {
+          html, body, #root {
+            height: 100dvh;
+            min-height: 100dvh;
           }
+        }
+        /* iOS standalone (PWA): quitar cualquier margen del agent */
+        @supports (-webkit-touch-callout: none) {
+          body { margin: 0; padding: 0; }
         }
       `}</style>
 
