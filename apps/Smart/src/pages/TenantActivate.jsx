@@ -511,32 +511,34 @@ export default function TenantActivate() {
                     rows={2}
                     className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:border-cyan-500 resize-none" />
                 </div>
-                {/* Schedule grid */}
+                {/* Schedule grid — responsive */}
                 <div>
-                  <label className="block text-sm text-gray-400 mb-3">Horario de atención</label>
-                  <div className="space-y-2">
+                  <label className="block text-sm text-gray-400 mb-3">Horario de atencion</label>
+                  <div className="space-y-2 overflow-x-auto">
                     {DAYS.map(day => (
-                      <div key={day} className="flex items-center gap-3">
-                        <span className="w-8 text-xs text-gray-400 font-medium">{day}</span>
-                        <label className="flex items-center gap-1.5 cursor-pointer">
-                          <input type="checkbox"
-                            checked={!schedule[day].closed}
-                            onChange={e => updateSchedule(day, 'closed', !e.target.checked)}
-                            className="w-4 h-4 rounded accent-cyan-500" />
-                          <span className="text-xs text-gray-400">Abierto</span>
-                        </label>
+                      <div key={day} className="flex flex-wrap items-center gap-2 min-w-0">
+                        <div className="flex items-center gap-2 shrink-0">
+                          <span className="w-8 text-xs text-gray-400 font-medium">{day}</span>
+                          <label className="flex items-center gap-1 cursor-pointer">
+                            <input type="checkbox"
+                              checked={!schedule[day].closed}
+                              onChange={e => updateSchedule(day, 'closed', !e.target.checked)}
+                              className="w-4 h-4 rounded accent-cyan-500" />
+                            <span className="text-[10px] text-gray-400">Abierto</span>
+                          </label>
+                        </div>
                         {!schedule[day].closed && (
-                          <div className="flex items-center gap-2 ml-2">
+                          <div className="flex items-center gap-1.5">
                             <input type="time" value={schedule[day].open}
                               onChange={e => updateSchedule(day, 'open', e.target.value)}
-                              className="bg-white/5 border border-white/10 rounded-lg px-2 py-1 text-white text-xs focus:outline-none focus:border-cyan-500" />
-                            <span className="text-gray-500 text-xs">–</span>
+                              className="bg-white/5 border border-white/10 rounded-lg px-1.5 py-1 text-white text-[11px] focus:outline-none focus:border-cyan-500 w-[90px]" />
+                            <span className="text-gray-500 text-xs">-</span>
                             <input type="time" value={schedule[day].close}
                               onChange={e => updateSchedule(day, 'close', e.target.value)}
-                              className="bg-white/5 border border-white/10 rounded-lg px-2 py-1 text-white text-xs focus:outline-none focus:border-cyan-500" />
+                              className="bg-white/5 border border-white/10 rounded-lg px-1.5 py-1 text-white text-[11px] focus:outline-none focus:border-cyan-500 w-[90px]" />
                           </div>
                         )}
-                        {schedule[day].closed && <span className="text-xs text-gray-600 ml-2">Cerrado</span>}
+                        {schedule[day].closed && <span className="text-[10px] text-gray-600">Cerrado</span>}
                       </div>
                     ))}
                   </div>
