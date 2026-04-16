@@ -471,8 +471,8 @@ export default function TenantActivate() {
               <div className="space-y-5">
                 <StepHeader icon={Phone} title="Información de contacto" subtitle="¿Cómo te contactan tus clientes?" />
                 <div className="grid grid-cols-2 gap-4">
-                  <Field label="Teléfono principal" value={phone} onChange={setPhone} placeholder="787-000-0000" />
-                  <Field label="WhatsApp (opcional)" value={whatsapp} onChange={setWhatsapp} placeholder="787-000-0000" />
+                  <Field label="Teléfono principal" value={phone} onChange={setPhone} placeholder="787-000-0000" maxLength={15} inputMode="tel" type="tel" />
+                  <Field label="WhatsApp (opcional)" value={whatsapp} onChange={setWhatsapp} placeholder="787-000-0000" maxLength={15} inputMode="tel" type="tel" />
                 </div>
                 <Field label="Dirección" value={address} onChange={setAddress} placeholder="Calle Principal #123" />
                 <div className="grid grid-cols-3 gap-4">
