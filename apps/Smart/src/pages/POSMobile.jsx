@@ -28,6 +28,7 @@ import {
 } from "@/components/cash/CashRegisterService";
 import UniversalPrintDialog from "../components/printing/UniversalPrintDialog";
 import POSSaleActionsModal, { POSSaleHistoryModal, saveSaleToHistory } from "../components/pos/POSSaleActionsModal";
+import { sendTemplatedEmail } from "@/api/functions";
 
 const RECENT_CREATED_PRODUCTS_KEY = "smartfix_recent_created_products";
 
