@@ -657,15 +657,17 @@ function StepHeader({ icon: Icon, title, subtitle }) {
   );
 }
 
-function Field({ label, value, onChange, placeholder, type = 'text' }) {
+function Field({ label, value, onChange, placeholder, type = 'text', maxLength, inputMode }) {
   return (
     <div>
       <label className="block text-sm text-gray-400 mb-1">{label}</label>
       <input
         type={type}
         value={value}
-        onChange={e => onChange(e.target.value)}
+        onChange={e => onChange(maxLength ? e.target.value.slice(0, maxLength) : e.target.value)}
         placeholder={placeholder}
+        maxLength={maxLength}
+        inputMode={inputMode}
         className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:border-cyan-500"
       />
     </div>
