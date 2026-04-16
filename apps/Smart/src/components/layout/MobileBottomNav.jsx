@@ -144,7 +144,7 @@ export default function MobileBottomNav() {
         "md:hidden w-full flex-shrink-0 transition-all duration-300",
         hasPanelsOpen ? "h-0" : ""
       )}
-      style={!hasPanelsOpen ? { height: "calc(64px + env(safe-area-inset-bottom, 0px))" } : undefined}
+      style={!hasPanelsOpen ? { height: "calc(64px + max(env(safe-area-inset-bottom, 0px), 34px))" } : undefined}
     />
   );
 
@@ -166,8 +166,10 @@ export default function MobileBottomNav() {
         WebkitBackdropFilter: "blur(20px) saturate(180%)",
         backdropFilter: "blur(20px) saturate(180%)",
         borderTop: "0.5px solid rgb(var(--separator) / 0.50)",
-        // Extender el fondo hasta el borde físico del teléfono
-        paddingBottom: "env(safe-area-inset-bottom, 0px)",
+        // Fuerza un mínimo de 34px para el área del home indicator iOS
+        // incluso si env(safe-area-inset-bottom) reporta 0 o valores bajos.
+        // Esto garantiza que la barra se extienda bajo el home indicator.
+        paddingBottom: "max(env(safe-area-inset-bottom, 0px), 34px)",
       }}
     >
       {/* Tab items */}
