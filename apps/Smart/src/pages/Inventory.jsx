@@ -1022,8 +1022,6 @@ export default function Inventory() {
   const moreMenuRef = useRef(null);
   const pageSize = 24;
   const recentCreatedRef = useRef([]);
-  const [pullStart, setPullStart] = useState(0);
-  const [pullDistance, setPullDistance] = useState(0);
   const [aiInventoryAnalysis, setAiInventoryAnalysis] = useState("");
   const [aiInventoryLoading, setAiInventoryLoading] = useState(false);
   const containerRef = useRef(null);
@@ -1032,45 +1030,8 @@ export default function Inventory() {
     loadInventory();
   }, []);
 
-  // Pull-to-refresh handlers
-  useEffect(() => {
-    const container = containerRef.current;
-    if (!container) return;
-
-    const handleTouchStart = (e) => {
-      if (container.scrollTop === 0) {
-        setPullStart(e.touches[0].clientY);
-      }
-    };
-
-    const handleTouchMove = (e) => {
-      if (pullStart > 0) {
-        const distance = e.touches[0].clientY - pullStart;
-        if (distance > 0 && distance < 100) {
-          setPullDistance(distance);
-        }
-      }
-    };
-
-    const handleTouchEnd = () => {
-      if (pullDistance > 60) {
-        window.dispatchEvent(new Event("force-refresh"));
-        loadInventory();
-      }
-      setPullStart(0);
-      setPullDistance(0);
-    };
-
-    container.addEventListener("touchstart", handleTouchStart);
-    container.addEventListener("touchmove", handleTouchMove);
-    container.addEventListener("touchend", handleTouchEnd);
-
-    return () => {
-      container.removeEventListener("touchstart", handleTouchStart);
-      container.removeEventListener("touchmove", handleTouchMove);
-      container.removeEventListener("touchend", handleTouchEnd);
-    };
-  }, [pullStart, pullDistance]);
+  // Pull-to-refresh DESHABILITADO por request del usuario.
+  // El refresh se hace solo por el botón en el header.
 
   // Cerrar menú ⋯ al hacer clic fuera
   useEffect(() => {
@@ -1606,13 +1567,7 @@ Maximo 150 palabras. Texto plano, sin markdown.`
 
   return (
     <div ref={containerRef} className="min-h-screen apple-surface apple-type overflow-y-auto apple-scroll pb-24" style={{ WebkitOverflowScrolling: 'touch' }}>
-      {/* Pull-to-refresh indicator */}
-      {pullDistance > 0 && (
-        <div className="absolute top-0 left-0 right-0 flex justify-center py-2 z-50"
-          style={{ transform: `translateY(${Math.min(pullDistance, 60)}px)` }}>
-          <Settings className={`w-6 h-6 text-apple-blue ${pullDistance > 60 ? 'animate-spin' : ''}`} />
-        </div>
-      )}
+      {/* Pull-to-refresh indicator ELIMINADO */}
 
       <div className="max-w-[1600px] mx-auto px-4 sm:px-6 py-4 sm:py-6" style={{ paddingTop: "calc(env(safe-area-inset-top, 0px) + 16px)" }}>
         {/* ── Header estilo iOS (large title + acciones) ─────────── */}

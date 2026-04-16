@@ -215,28 +215,23 @@ export default function PinAccess() {
   const [submitting, setSubmitting] = useState(false);
   const [isCheckingAuth, setIsCheckingAuth] = useState(true);
 
-  // ── Detección de sesión atascada ──────────────────────────────────────
-  // ⚠️ IMPORTANTE: solo activar tras un GRACE PERIOD de 3s. Si chequeáramos
-  // inmediatamente (como antes), después de un login exitoso el flujo era:
-  //   1. completeLogin() guarda sesión en storage
-  //   2. React re-renderiza PinAccess antes del navigate("/Dashboard")
-  //   3. hasProbableSession=true → renderiza StuckSessionRecovery
-  //   4. Recovery auto-clears + reloads → pierde la sesión recién creada
-  //   5. Loop infinito: el usuario nunca logra entrar al Dashboard
+  // ── StuckSessionRecovery DESHABILITADO ─────────────────────────────────
+  // Este bloque causaba un loop infinito: después de un login exitoso
+  // (completeLogin guarda session en storage), si React re-renderizaba
+  // PinAccess antes del navigate("/Dashboard"), el check detectaba la
+  // sesión como "atascada", auto-limpiaba, recargaba, y el usuario
+  // volvía a caer aquí → loop.
   //
-  // La solución: dejar que AuthGate tenga 3s para redirigir antes de
-  // considerar que la sesión está atascada.
-  const hasProbableSession = !!sessionStorage.getItem("911-session") && !!localStorage.getItem("employee_session");
-  const [gracePeriodExpired, setGracePeriodExpired] = useState(false);
-  useEffect(() => {
-    if (!hasProbableSession) return;
-    const t = setTimeout(() => setGracePeriodExpired(true), 3000);
-    return () => clearTimeout(t);
-  }, [hasProbableSession]);
-
-  if (hasProbableSession && gracePeriodExpired && step === "welcome" && !loading) {
-    return <StuckSessionRecovery />;
-  }
+  // Además, el early return condicional violaba Rules of Hooks cuando
+  // la condición cambiaba entre renders (diferente número de hooks).
+  //
+  // AuthGate ya maneja correctamente:
+  //   - Sesiones válidas → no redirige desde PinAccess, deja pasar
+  //   - Sesiones inválidas → redirige a /PinAccess desde rutas privadas
+  //   - Tokens muertos de Supabase → refreshAuth los limpia
+  //
+  // Si un usuario queda atascado con session storage corrupto, puede
+  // refrescar la página manualmente.
 
   const [showSignupPassword, setShowSignupPassword] = useState(false);
   const [biometricSupported, setBiometricSupported] = useState(false);

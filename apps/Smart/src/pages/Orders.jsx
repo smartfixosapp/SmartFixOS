@@ -228,9 +228,7 @@ export default function OrdersPage() {
   const [showStatusDropdown, setShowStatusDropdown] = useState(false);
   const [activeTab, setActiveTab] = useState("work-orders"); // work-orders, unlocks
   const [editingDeviceOrder, setEditingDeviceOrder] = useState(null);
-  const [pullDistance, setPullDistance] = useState(0);
-  const pullStartRef = useRef(0);
-  const isPullingRef = useRef(false);
+  // Pull-to-refresh state eliminado — refresh solo por botón
   const containerRef = useRef(null);
   const ordersLoadInFlightRef = useRef(false);
   const ordersErrorToastShownRef = useRef(false);
@@ -344,61 +342,10 @@ export default function OrdersPage() {
     };
   }, [refreshTick]);
 
-  // Pull-to-refresh handlers (stable — uses refs to avoid re-registering on every move)
-  useEffect(() => {
-    const container = containerRef.current;
-    if (!container) return;
-
-    const handleTouchStart = (e) => {
-      // Only activate if already at top AND it's a fresh touch (not finishing a scroll)
-      if (container.scrollTop === 0) {
-        pullStartRef.current = e.touches[0].clientY;
-        isPullingRef.current = false;
-      } else {
-        pullStartRef.current = 0;
-      }
-    };
-
-    const handleTouchMove = (e) => {
-      if (pullStartRef.current === 0) return;
-      const distance = e.touches[0].clientY - pullStartRef.current;
-      if (distance > 5) {
-        isPullingRef.current = true;
-        setPullDistance(Math.min(distance, 100));
-      } else {
-        // Scrolling up or sideways — cancel pull
-        pullStartRef.current = 0;
-        isPullingRef.current = false;
-        setPullDistance(0);
-      }
-    };
-
-    const handleTouchEnd = () => {
-      if (isPullingRef.current && pullStartRef.current > 0) {
-        setPullDistance(prev => {
-          if (prev > 60) {
-            window.dispatchEvent(new Event("force-refresh"));
-            loadOrders();
-          }
-          return 0;
-        });
-      } else {
-        setPullDistance(0);
-      }
-      pullStartRef.current = 0;
-      isPullingRef.current = false;
-    };
-
-    container.addEventListener("touchstart", handleTouchStart, { passive: true });
-    container.addEventListener("touchmove", handleTouchMove, { passive: true });
-    container.addEventListener("touchend", handleTouchEnd, { passive: true });
-
-    return () => {
-      container.removeEventListener("touchstart", handleTouchStart);
-      container.removeEventListener("touchmove", handleTouchMove);
-      container.removeEventListener("touchend", handleTouchEnd);
-    };
-  }, []); // stable — no deps needed, refs handle mutable values
+  // Pull-to-refresh DESHABILITADO por request del usuario.
+  // Razón: el gesto se disparaba accidentalmente al hacer scroll normal,
+  // causando recargas no deseadas. El usuario ahora refresca solo con
+  // el botón "↻" en el header.
 
   const loadOrders = async () => {
     if (ordersLoadInFlightRef.current) return;
@@ -579,15 +526,7 @@ export default function OrdersPage() {
         paddingTop: "calc(env(safe-area-inset-top, 0px) + 6px)"
       }}
     >
-      {/* Pull-to-refresh indicator */}
-      {pullDistance > 0 && (
-        <div
-          className="absolute top-0 left-0 right-0 flex justify-center py-2 z-50"
-          style={{ transform: `translateY(${Math.min(pullDistance, 60)}px)` }}
-        >
-          <RefreshCw className={`w-6 h-6 text-apple-blue ${pullDistance > 60 ? 'animate-spin' : ''}`} />
-        </div>
-      )}
+      {/* Pull-to-refresh indicator ELIMINADO */}
 
       {/* Contenido */}
       <div className="max-w-[1920px] mx-auto px-4 sm:px-6 py-3 sm:py-6">
