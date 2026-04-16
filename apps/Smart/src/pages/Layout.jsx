@@ -243,16 +243,24 @@ export default function Layout({ children }) {
           if (savedTheme === "light") {
             document.documentElement.classList.add("theme-light");
             document.documentElement.classList.remove("theme-dark");
+            document.documentElement.classList.remove("dark"); // Tailwind dark: prefix off
           } else {
             document.documentElement.classList.remove("theme-light");
             document.documentElement.classList.add("theme-dark");
+            document.documentElement.classList.add("dark"); // Tailwind dark: prefix on
           }
+        } else if (isMounted) {
+          // Sin config guardada → arrancar en dark (preferencia del usuario)
+          document.documentElement.classList.add("theme-dark");
+          document.documentElement.classList.add("dark");
         }
       } catch (error) {
         console.error("Error loading theme:", error);
         // Fallback to dark theme
         if (isMounted) {
           setTheme("dark");
+          document.documentElement.classList.add("theme-dark");
+          document.documentElement.classList.add("dark");
         }
       }
     })();

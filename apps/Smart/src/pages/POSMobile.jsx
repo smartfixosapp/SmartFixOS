@@ -986,10 +986,14 @@ export default function POSMobile() {
                     className={cn(
                       "apple-card apple-card-interactive relative overflow-hidden p-4 text-left",
                       cartQty > 0 && "ring-2 ring-apple-blue/70 ring-offset-0",
-                      isOutOfStock && "opacity-40 grayscale pointer-events-none"
+                      isOutOfStock && "pointer-events-none"
                     )}
                   >
-                    <div className="flex flex-col h-full justify-between gap-3 min-h-[112px]">
+                    {/* Contenido atenuado si está agotado, pero el badge NO */}
+                    <div className={cn(
+                      "flex flex-col h-full justify-between gap-3 min-h-[112px]",
+                      isOutOfStock && "opacity-40 grayscale"
+                    )}>
                       <div className="space-y-3">
                         <div className={cn(
                           "w-10 h-10 rounded-apple-sm flex items-center justify-center",
@@ -1016,7 +1020,7 @@ export default function POSMobile() {
                     </div>
 
                     {isOutOfStock && (
-                      <div className="absolute top-2 right-2 px-2 py-0.5 rounded-full bg-apple-red apple-text-caption2 font-semibold text-white tracking-wide">
+                      <div className="absolute top-2 right-2 px-2 py-0.5 rounded-full bg-apple-red apple-text-caption2 font-semibold text-white tracking-wide shadow-apple-sm">
                         AGOTADO
                       </div>
                     )}
