@@ -862,74 +862,87 @@ export default function Dashboard() {
       <div className="px-2 md:px-6 lg:px-8 xl:px-12 pt-[calc(env(safe-area-inset-top,0px)+6px)] md:pt-3 lg:pt-4 pb-[calc(80px+env(safe-area-inset-bottom,0px))] md:pb-3 flex-1 min-h-0 flex flex-col">
         <div className="max-w-[2560px] mx-auto w-full flex-1 min-h-0 flex flex-col">
           
-          {/* === DESKTOP: PULSO — layout horizontal (left panel | right feed) === */}
-          <div className="liquid-glass-floating hidden md:flex md:flex-row md:flex-1 md:min-h-0 rounded-[40px] relative overflow-hidden">
-            <div className="absolute inset-0 bg-gradient-to-br from-white/[0.04] to-transparent pointer-events-none" />
-            <div className="absolute inset-0 border border-white/10 rounded-[40px] pointer-events-none shadow-[inset_0_1px_1px_rgba(255,255,255,0.1)]" />
+          {/* === DESKTOP: PULSO — layout horizontal estilo Apple === */}
+          <div className="apple-card hidden md:flex md:flex-row md:flex-1 md:min-h-0 apple-type overflow-hidden !rounded-apple-2xl">
 
             {/* ── Panel izquierdo: usuario + KPIs + accesos rápidos ── */}
-            <div className="relative z-10 w-[260px] xl:w-[300px] shrink-0 flex flex-col gap-3 p-6 lg:p-7 border-r border-white/[0.07]">
+            <div className="relative z-10 w-[260px] xl:w-[300px] shrink-0 flex flex-col gap-3 p-6 lg:p-7" style={{ borderRight: "0.5px solid rgb(var(--separator) / 0.29)" }}>
 
               {/* Usuario */}
-              <div className="liquid-glass flex items-center gap-3 rounded-2xl pl-2 pr-4 py-2">
-                <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-sky-400 via-blue-500 to-indigo-600 flex items-center justify-center shadow-[0_4px_12px_rgba(14,165,233,0.3)] border border-white/20 shrink-0">
-                  <span className="text-sm font-black text-white uppercase tracking-tighter">{session?.userName?.substring(0,2) || 'US'}</span>
+              <div className="flex items-center gap-3 rounded-apple-md pl-2 pr-3 py-2 bg-gray-sys6 dark:bg-gray-sys5">
+                <div
+                  className="w-10 h-10 rounded-full flex items-center justify-center shrink-0"
+                  style={{ backgroundColor: "rgb(var(--apple-blue))" }}
+                >
+                  <span className="apple-text-footnote font-semibold text-white">{session?.userName?.substring(0,2)?.toUpperCase() || 'US'}</span>
                 </div>
                 <div className="min-w-0">
-                  <p className="text-sm font-black text-white leading-none tracking-tight truncate">{session?.userName || 'Usuario'}</p>
-                  <p className="text-[10px] text-white/40 leading-none mt-1 font-black tracking-widest uppercase truncate">{businessName || session?.storeName || "SmartFixOS"}</p>
+                  <p className="apple-text-headline apple-label-primary leading-tight truncate">{session?.userName || 'Usuario'}</p>
+                  <p className="apple-text-caption1 apple-label-secondary leading-tight mt-0.5 truncate">{businessName || session?.storeName || "SmartFixOS"}</p>
                 </div>
               </div>
 
               {/* Botones de acción */}
               <div className="flex items-center gap-2">
                 <PunchButton userId={session?.userId} userName={session?.userName} variant="apple" onPunchStatusChange={(status) => { if (status) showToast("👋 ¡Hola!", "Turno iniciado"); else showToast("👋 ¡Adiós!", "Turno finalizado"); }} />
-                <button onClick={handleCashButtonClick} className={cn("flex-1 h-10 rounded-xl border flex items-center justify-center transition-all active:scale-90", drawerOpen ? "bg-emerald-500/10 border-emerald-500/20 text-emerald-400 hover:bg-emerald-500/20" : "bg-red-500/10 border-red-500/20 text-red-400 hover:bg-red-500/20")} title={drawerOpen ? "Cerrar Caja" : "Abrir Caja"}>
-                  <Wallet className="w-4 h-4" strokeWidth={2.5} />
+                <button
+                  onClick={handleCashButtonClick}
+                  className={cn(
+                    "apple-press flex-1 h-10 rounded-apple-sm flex items-center justify-center transition-colors",
+                    drawerOpen
+                      ? "bg-apple-green/15 text-apple-green"
+                      : "bg-apple-red/15 text-apple-red"
+                  )}
+                  title={drawerOpen ? "Cerrar caja" : "Abrir caja"}
+                >
+                  <Wallet className="w-4 h-4" />
                 </button>
-                <button onClick={() => setShowLogoutModal(true)} className="flex-1 h-10 rounded-xl bg-white/5 hover:bg-rose-500/10 border border-white/10 hover:border-rose-500/20 flex items-center justify-center transition-all active:scale-90 group" title="Cerrar Sesión">
-                  <LogOut className="w-4 h-4 text-white/50 group-hover:text-rose-400 transition-all duration-500" />
+                <button
+                  onClick={() => setShowLogoutModal(true)}
+                  className="apple-press flex-1 h-10 rounded-apple-sm bg-gray-sys6 dark:bg-gray-sys5 apple-label-secondary hover:text-apple-red flex items-center justify-center transition-colors"
+                  title="Cerrar sesión"
+                >
+                  <LogOut className="w-4 h-4" />
                 </button>
               </div>
 
               {/* Divider */}
-              <div className="border-t border-white/[0.06]" />
+              <div style={{ height: "0.5px", backgroundColor: "rgb(var(--separator) / 0.29)" }} />
 
-              {/* KPIs */}
+              {/* KPI Ingresos hoy */}
               {(() => {
                 const fmt = (n) => `$${Number(n||0).toLocaleString("en-US",{maximumFractionDigits:0})}`;
-                const todayProfit = kpiIncome.today - kpiIncome.todayExpenses;
                 const goalPct = kpiDailyGoal > 0 ? Math.min(100, Math.round((kpiIncome.today / kpiDailyGoal) * 100)) : 0;
                 return (
-                  <>
-                    <div className="rounded-2xl border border-emerald-500/20 bg-emerald-500/10 px-4 py-3 flex items-center gap-3">
-                      <div className="w-9 h-9 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center shrink-0">
-                        <DollarSign className="w-4 h-4 text-emerald-400" />
-                      </div>
-                      <div className="min-w-0 flex-1">
-                        <p className="text-lg font-black text-emerald-400 leading-tight">{kpiIncome.loading ? "…" : fmt(kpiIncome.today)}</p>
-                        <p className="text-[10px] text-white/30 font-bold truncate">
-                          Ingresos hoy{kpiDailyGoal > 0 ? ` · ${goalPct}% meta` : ''}
-                        </p>
-                      </div>
+                  <button
+                    onClick={() => handleNavigate("Financial")}
+                    className="apple-press apple-card p-3.5 flex items-center gap-3 text-left"
+                  >
+                    <div className="w-10 h-10 rounded-apple-sm bg-apple-green/15 flex items-center justify-center shrink-0">
+                      <DollarSign className="w-[18px] h-[18px] text-apple-green" />
                     </div>
-
-                  </>
+                    <div className="min-w-0 flex-1">
+                      <p className="apple-text-title3 text-apple-green leading-tight tabular-nums">{kpiIncome.loading ? "…" : fmt(kpiIncome.today)}</p>
+                      <p className="apple-text-caption1 apple-label-secondary truncate">
+                        Ingresos hoy{kpiDailyGoal > 0 ? ` · ${goalPct}% meta` : ''}
+                      </p>
+                    </div>
+                  </button>
                 );
               })()}
 
               {/* Accesos rápidos */}
-              <button onClick={() => setShowWorkOrderWizard(true)} className="min-h-[44px] bg-blue-500/10 border border-blue-500/20 rounded-xl flex items-center gap-3 px-4 hover:bg-blue-500/15 active:scale-95 transition-all">
-                <ClipboardList className="w-4 h-4 text-blue-400 shrink-0" />
-                <span className="text-[11px] font-black text-blue-400/80 uppercase tracking-tight">Nueva Orden</span>
+              <button onClick={() => setShowWorkOrderWizard(true)} className="apple-press min-h-[44px] bg-apple-blue/12 rounded-apple-sm flex items-center gap-3 px-3.5">
+                <ClipboardList className="w-[18px] h-[18px] text-apple-blue shrink-0" />
+                <span className="apple-text-footnote font-medium text-apple-blue">Nueva orden</span>
               </button>
-              <button onClick={() => { setShowPriceList(true); setPriceListSearch(""); }} className="min-h-[44px] bg-violet-500/10 border border-violet-500/20 rounded-xl flex items-center gap-3 px-4 hover:bg-violet-500/15 active:scale-95 transition-all">
-                <Search className="w-4 h-4 text-violet-400 shrink-0" />
-                <span className="text-[11px] font-black text-violet-400/80 uppercase tracking-tight">Lista Precios</span>
+              <button onClick={() => { setShowPriceList(true); setPriceListSearch(""); }} className="apple-press min-h-[44px] bg-apple-purple/12 rounded-apple-sm flex items-center gap-3 px-3.5">
+                <Search className="w-[18px] h-[18px] text-apple-purple shrink-0" />
+                <span className="apple-text-footnote font-medium text-apple-purple">Lista precios</span>
               </button>
-              <button onClick={() => handleNavigate("Customers")} className="min-h-[44px] bg-purple-500/10 border border-purple-500/20 rounded-xl flex items-center gap-3 px-4 hover:bg-purple-500/15 active:scale-95 transition-all">
-                <Users className="w-4 h-4 text-purple-400 shrink-0" />
-                <span className="text-[11px] font-black text-purple-400/80 uppercase tracking-tight">Clientes</span>
+              <button onClick={() => handleNavigate("Customers")} className="apple-press min-h-[44px] bg-apple-indigo/12 rounded-apple-sm flex items-center gap-3 px-3.5">
+                <Users className="w-[18px] h-[18px] text-apple-indigo shrink-0" />
+                <span className="apple-text-footnote font-medium text-apple-indigo">Clientes</span>
               </button>
             </div>
 
@@ -938,75 +951,102 @@ export default function Dashboard() {
               {/* Header */}
               <div className="flex items-center justify-between mb-4 shrink-0">
                 <div className="flex items-center gap-2.5">
-                  <div className="w-7 h-7 rounded-xl border bg-indigo-500/10 border-indigo-500/20 flex items-center justify-center">
-                    <ClipboardList className="w-3.5 h-3.5 text-indigo-400" />
+                  <div className="w-7 h-7 rounded-apple-xs bg-apple-blue/15 flex items-center justify-center">
+                    <ClipboardList className="w-3.5 h-3.5 text-apple-blue" />
                   </div>
-                  <span className="text-white font-black text-sm uppercase tracking-tight">Tareas del turno</span>
+                  <span className="apple-text-headline apple-label-primary">Tareas del turno</span>
                 </div>
                 {pendingShiftTasks.length > 0 && (
-                  <span className="w-6 h-6 rounded-full flex items-center justify-center text-[11px] font-black text-white bg-indigo-500 shadow-[0_0_12px_rgba(99,102,241,0.4)]">
+                  <span className="min-w-6 h-6 px-2 rounded-full flex items-center justify-center apple-text-caption1 font-semibold text-white bg-apple-blue tabular-nums">
                     {pendingShiftTasks.length}
                   </span>
                 )}
               </div>
 
               {/* Lista de tareas */}
-              <div className="flex-1 bg-white/[0.02] border border-white/[0.06] rounded-[24px] overflow-hidden flex flex-col min-h-0">
-                <div className="flex-1 overflow-y-auto">
-                  {pendingShiftTasks.length === 0
-                    ? <div className="flex flex-col items-center justify-center py-14 h-full"><CheckCircle2 className="w-10 h-10 text-emerald-500/30 mb-3" /><p className="text-white/50 text-xs font-black uppercase tracking-widest">Tareas completadas</p></div>
-                    : pendingShiftTasks.map(task => (
-                        <div key={task.id} className="flex items-center gap-4 px-5 py-3.5 border-t border-white/[0.04] first:border-0">
-                          <div className="w-1 h-8 rounded-full shrink-0 bg-indigo-500" />
-                          <div className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 ${task.type === 'opening' ? 'bg-amber-500/10 border border-amber-500/20' : 'bg-indigo-500/10 border border-indigo-500/20'}`}>
-                            {task.type === 'opening' ? <Sunrise className="w-4 h-4 text-amber-400" /> : <Sunset className="w-4 h-4 text-indigo-400" />}
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <p className="text-sm font-black text-white truncate">{task.title}</p>
-                            {task.description && <p className="text-[11px] text-white/30 font-bold truncate">{task.description}</p>}
-                          </div>
-                          {task.priority === 'urgent' && <span className="text-[9px] font-black px-1.5 py-0.5 rounded-full bg-red-500/15 text-red-400 border border-red-500/20 shrink-0">Urgente</span>}
-                          <button onClick={() => handleCompleteTask(task)} disabled={completingTaskId === task.id}
-                            className={`w-8 h-8 rounded-full border flex items-center justify-center shrink-0 transition-all ${completingTaskId === task.id ? 'bg-emerald-500/20 border-emerald-500/30 animate-pulse' : 'bg-white/5 border-white/15 hover:bg-emerald-500/20 hover:border-emerald-500/40 hover:text-emerald-400'} text-white/30`}>
-                            <Check className="w-4 h-4" />
-                          </button>
+              <div className="flex-1 apple-card overflow-hidden flex flex-col min-h-0 !p-0">
+                <div className="flex-1 overflow-y-auto apple-scroll">
+                  {pendingShiftTasks.length === 0 ? (
+                    <div className="flex flex-col items-center justify-center py-14 h-full gap-3">
+                      <CheckCircle2 className="w-10 h-10 text-apple-green" />
+                      <p className="apple-text-callout apple-label-secondary">Todo al día</p>
+                    </div>
+                  ) : (
+                    pendingShiftTasks.map((task, idx) => (
+                      <div
+                        key={task.id}
+                        className="flex items-center gap-3 px-5 py-3.5"
+                        style={idx > 0 ? { borderTop: "0.5px solid rgb(var(--separator) / 0.29)" } : undefined}
+                      >
+                        <div className={`w-9 h-9 rounded-apple-sm flex items-center justify-center shrink-0 ${task.type === 'opening' ? 'bg-apple-orange/15 text-apple-orange' : 'bg-apple-indigo/15 text-apple-indigo'}`}>
+                          {task.type === 'opening' ? <Sunrise className="w-4 h-4" /> : <Sunset className="w-4 h-4" />}
                         </div>
-                      ))
-                  }
+                        <div className="flex-1 min-w-0">
+                          <p className="apple-text-body font-semibold apple-label-primary truncate">{task.title}</p>
+                          {task.description && <p className="apple-text-footnote apple-label-secondary truncate">{task.description}</p>}
+                        </div>
+                        {task.priority === 'urgent' && (
+                          <span className="apple-text-caption2 font-semibold px-1.5 py-0.5 rounded-full bg-apple-red/15 text-apple-red shrink-0">
+                            Urgente
+                          </span>
+                        )}
+                        <button
+                          onClick={() => handleCompleteTask(task)}
+                          disabled={completingTaskId === task.id}
+                          className={`apple-press w-8 h-8 rounded-full flex items-center justify-center shrink-0 transition-colors ${
+                            completingTaskId === task.id
+                              ? 'bg-apple-green/25 text-apple-green animate-pulse'
+                              : 'bg-apple-green/15 text-apple-green'
+                          }`}
+                        >
+                          <Check className="w-[18px] h-[18px]" />
+                        </button>
+                      </div>
+                    ))
+                  )}
                 </div>
               </div>
 
-              {/* Resumen rápido */}
+              {/* Resumen rápido (KPIs) */}
               <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 mt-4 shrink-0">
-                <button onClick={() => handleNavigate("Orders")}
-                  className={`flex items-center gap-2.5 px-3 py-2.5 rounded-2xl border transition-colors ${quickStats.listas > 0 ? "bg-emerald-500/[0.08] border-emerald-500/25 hover:bg-emerald-500/[0.14]" : "bg-white/[0.03] border-white/[0.06]"}`}>
-                  <CheckCircle2 className={`w-4 h-4 shrink-0 ${quickStats.listas > 0 ? "text-emerald-400" : "text-white/30"}`} />
-                  <div className="text-left">
-                    <p className={`text-base font-black leading-none ${quickStats.listas > 0 ? "text-emerald-300" : "text-white/20"}`}>{quickStats.listas}</p>
-                    <p className="text-[9px] text-white/30 font-bold mt-0.5">Listas</p>
+                <button
+                  onClick={() => handleNavigate("Orders")}
+                  className={cn(
+                    "apple-press apple-card p-3 flex items-center gap-2.5 transition-colors",
+                    quickStats.listas > 0 ? "" : ""
+                  )}
+                >
+                  <CheckCircle2 className={cn("w-4 h-4 shrink-0", quickStats.listas > 0 ? "text-apple-green" : "apple-label-tertiary")} />
+                  <div className="text-left min-w-0">
+                    <p className={cn("apple-text-headline leading-tight tabular-nums", quickStats.listas > 0 ? "text-apple-green" : "apple-label-tertiary")}>{quickStats.listas}</p>
+                    <p className="apple-text-caption2 apple-label-secondary">Listas</p>
                   </div>
                 </button>
-                <button onClick={() => handleNavigate("Orders")}
-                  className={`flex items-center gap-2.5 px-3 py-2.5 rounded-2xl border transition-colors ${quickStats.retrasadas > 0 ? "bg-orange-500/[0.08] border-orange-500/25 hover:bg-orange-500/[0.14]" : "bg-white/[0.03] border-white/[0.06]"}`}>
-                  <Clock className={`w-4 h-4 shrink-0 ${quickStats.retrasadas > 0 ? "text-orange-400" : "text-white/30"}`} />
-                  <div className="text-left">
-                    <p className={`text-base font-black leading-none ${quickStats.retrasadas > 0 ? "text-orange-300" : "text-white/20"}`}>{quickStats.retrasadas}</p>
-                    <p className="text-[9px] text-white/30 font-bold mt-0.5">Retrasadas</p>
+                <button
+                  onClick={() => handleNavigate("Orders")}
+                  className="apple-press apple-card p-3 flex items-center gap-2.5 transition-colors"
+                >
+                  <Clock className={cn("w-4 h-4 shrink-0", quickStats.retrasadas > 0 ? "text-apple-orange" : "apple-label-tertiary")} />
+                  <div className="text-left min-w-0">
+                    <p className={cn("apple-text-headline leading-tight tabular-nums", quickStats.retrasadas > 0 ? "text-apple-orange" : "apple-label-tertiary")}>{quickStats.retrasadas}</p>
+                    <p className="apple-text-caption2 apple-label-secondary">Retrasadas</p>
                   </div>
                 </button>
-                <button onClick={() => handleNavigate("Inventory")}
-                  className={`flex items-center gap-2.5 px-3 py-2.5 rounded-2xl border transition-colors ${quickStats.stockCrit > 0 ? "bg-red-500/[0.08] border-red-500/25 hover:bg-red-500/[0.14]" : "bg-white/[0.03] border-white/[0.06]"}`}>
-                  <AlertTriangle className={`w-4 h-4 shrink-0 ${quickStats.stockCrit > 0 ? "text-red-400" : "text-white/30"}`} />
-                  <div className="text-left">
-                    <p className={`text-base font-black leading-none ${quickStats.stockCrit > 0 ? "text-red-300" : "text-white/20"}`}>{quickStats.stockCrit}</p>
-                    <p className="text-[9px] text-white/30 font-bold mt-0.5">Stock critico</p>
+                <button
+                  onClick={() => handleNavigate("Inventory")}
+                  className="apple-press apple-card p-3 flex items-center gap-2.5 transition-colors"
+                >
+                  <AlertTriangle className={cn("w-4 h-4 shrink-0", quickStats.stockCrit > 0 ? "text-apple-red" : "apple-label-tertiary")} />
+                  <div className="text-left min-w-0">
+                    <p className={cn("apple-text-headline leading-tight tabular-nums", quickStats.stockCrit > 0 ? "text-apple-red" : "apple-label-tertiary")}>{quickStats.stockCrit}</p>
+                    <p className="apple-text-caption2 apple-label-secondary">Stock crítico</p>
                   </div>
                 </button>
-                <div className="flex items-center gap-2.5 px-3 py-2.5 rounded-2xl border bg-white/[0.03] border-white/[0.06]">
-                  <Package className="w-4 h-4 text-white/30 shrink-0" />
-                  <div className="text-left">
-                    <p className="text-base font-black leading-none text-white/50">{quickStats.avgDays}d</p>
-                    <p className="text-[9px] text-white/30 font-bold mt-0.5">Tiempo prom.</p>
+                <div className="apple-card p-3 flex items-center gap-2.5">
+                  <Package className="w-4 h-4 apple-label-tertiary shrink-0" />
+                  <div className="text-left min-w-0">
+                    <p className="apple-text-headline apple-label-secondary leading-tight tabular-nums">{quickStats.avgDays}d</p>
+                    <p className="apple-text-caption2 apple-label-secondary">Tiempo prom.</p>
                   </div>
                 </div>
               </div>

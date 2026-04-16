@@ -918,7 +918,7 @@ Máximo 30 palabras en total.`;
   }
 
   return (
-    <div className="h-full flex flex-col bg-black p-6 gap-3">
+    <div className="h-full flex flex-col apple-surface apple-type p-6 gap-3">
       {/* JENAI POS Insights */}
       <JENAIInsightBanner
         context="pos"
@@ -928,7 +928,7 @@ Máximo 30 palabras en total.`;
           topProduct: products[0]?.name || "N/A",
           readyToPay: 0,
         }}
-        accentColor="cyan"
+        accentColor="blue"
         autoLoad={false}
       />
 
@@ -937,23 +937,22 @@ Máximo 30 palabras en total.`;
       <div className="flex-1 flex flex-col">
         <div className="mb-6 space-y-4">
           <div className="flex items-center gap-3">
-          <div className="relative group/search flex-1">
-            <div className="absolute inset-y-0 left-0 pl-5 flex items-center pointer-events-none">
-              <Search className="h-5 w-5 text-white/50 group-focus-within/search:text-cyan-400 group-focus-within/search:scale-110 transition-all duration-500" />
-            </div>
+          <div className="relative flex-1">
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 apple-label-tertiary pointer-events-none" />
             <input
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Buscar producto o servicio..." 
-              className="bg-[#121215]/40 text-white pr-14 pl-14 py-5 text-base rounded-[24px] block w-full border border-white/10 placeholder-white/20 focus:outline-none focus:ring-4 focus:ring-cyan-500/10 focus:border-cyan-500/40 focus:bg-[#121215]/80 transition-all duration-500 backdrop-blur-2xl shadow-[inset_0_2px_10px_rgba(0,0,0,0.2)]" 
+              placeholder="Buscar producto o servicio"
+              className="apple-input pl-12 pr-12 !py-4 !min-h-14 text-base"
             />
 
             {searchQuery && (
               <button
                 onClick={() => setSearchQuery("")}
-                className="absolute right-4 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-white/5 hover:bg-white/10 text-white/40 hover:text-white flex items-center justify-center transition-all active:scale-95 border border-white/10"
+                className="apple-press absolute right-3 top-1/2 -translate-y-1/2 w-7 h-7 rounded-full bg-gray-sys4 text-white flex items-center justify-center"
+                aria-label="Limpiar"
               >
-                <X className="w-4 h-4" />
+                <X className="w-3.5 h-3.5" />
               </button>
             )}
           </div>
@@ -961,13 +960,13 @@ Máximo 30 palabras en total.`;
           <button
             onClick={() => setShowSaleHistory(true)}
             title="Historial de ventas"
-            className="w-14 h-14 rounded-[20px] bg-[#121215]/60 border border-white/10 flex items-center justify-center text-white/40 hover:text-cyan-400 hover:border-cyan-500/30 transition-all flex-shrink-0"
+            className="apple-press w-14 h-14 rounded-apple-md bg-gray-sys6 dark:bg-gray-sys5 apple-label-secondary flex items-center justify-center flex-shrink-0"
           >
             <History className="w-5 h-5" />
           </button>
           </div>
 
-          <div className="flex gap-2.5 overflow-x-auto no-scrollbar pb-1">
+          <div className="flex gap-2 overflow-x-auto no-scrollbar pb-1">
             {[
               { id: "all", label: "Todo", icon: LayoutGrid },
               { id: "accesorios", label: "Accesorios", icon: Zap },
@@ -980,10 +979,10 @@ Máximo 30 palabras en total.`;
                   key={cat.id}
                   onClick={() => setActiveCategory(cat.id)}
                   className={cn(
-                    "flex items-center gap-2 px-5 py-2.5 rounded-full text-sm font-black tracking-tight transition-all duration-500 whitespace-nowrap border",
+                    "apple-press flex items-center gap-2 px-4 h-10 rounded-full apple-text-footnote font-medium whitespace-nowrap transition-colors",
                     isActive
-                      ? "bg-gradient-to-r from-blue-600 to-cyan-500 text-white border-transparent shadow-[0_8px_20px_rgba(6,182,212,0.3)] scale-105"
-                      : "bg-[#121215]/40 text-white/40 border-white/5 hover:bg-[#121215]/60 hover:text-white/80"
+                      ? "bg-apple-blue text-white"
+                      : "bg-gray-sys6 dark:bg-gray-sys5 apple-label-secondary"
                   )}
                 >
                   {cat.label}
@@ -992,7 +991,7 @@ Máximo 30 palabras en total.`;
             })}
             <button
               onClick={() => setShowManualItem(true)}
-              className="flex items-center gap-2 px-5 py-2.5 rounded-full text-sm font-black tracking-tight transition-all duration-500 whitespace-nowrap border bg-[#121215]/40 text-amber-400/80 border-amber-500/20 hover:bg-amber-500/10 hover:text-amber-300 hover:border-amber-500/40"
+              className="apple-press flex items-center gap-1.5 px-4 h-10 rounded-full apple-text-footnote font-medium whitespace-nowrap bg-apple-orange/15 text-apple-orange"
             >
               <PenLine className="w-3.5 h-3.5" />
               Manual
@@ -1000,10 +999,10 @@ Máximo 30 palabras en total.`;
           </div>
         </div>
 
-        <div className="flex-1 overflow-y-auto scrollbar-thin scrollbar-thumb-cyan-600/30 scrollbar-track-white/5">
+        <div className="flex-1 overflow-y-auto apple-scroll">
            {loading ? (
             <div className="flex items-center justify-center h-full">
-              <Loader2 className="w-6 h-6 animate-spin text-cyan-400" />
+              <Loader2 className="w-6 h-6 animate-spin text-apple-blue" />
             </div>
           ) : filteredItems.length === 0 ? (
             <div className="flex flex-col items-center justify-center h-full text-gray-500">
@@ -1022,45 +1021,43 @@ Máximo 30 palabras en total.`;
                   <motion.button
                     key={item.id}
                     onClick={() => !isOutOfStock && addToCart(item, item._type)}
-                    whileTap={{ scale: 0.96 }}
+                    whileTap={{ scale: 0.97 }}
                     className={cn(
-                      "group relative overflow-hidden rounded-[28px] p-4 text-left transition-all duration-500 border",
-                      cartQty > 0 
-                        ? "bg-cyan-500/10 border-cyan-500/50 shadow-[0_15px_40px_rgba(6,182,212,0.15)]" 
-                        : "bg-[#0D0D0F]/45 backdrop-blur-xl border-white/[0.08] hover:border-white/20 hover:bg-[#121215]/60",
-                      isOutOfStock && "opacity-40 grayscale pointer-events-none"
+                      "apple-card apple-card-interactive relative overflow-hidden p-4 text-left",
+                      cartQty > 0 && "ring-2 ring-apple-blue/70",
+                      isOutOfStock && "pointer-events-none"
                     )}
                   >
-                    {/* Glossy Edge Reflection */}
-                    <div className="absolute inset-0 bg-gradient-to-br from-white/[0.05] via-transparent to-transparent opacity-0 transition-opacity duration-500 group-hover:opacity-100 pointer-events-none" />
-
-                    <div className="relative z-10 flex flex-col h-full justify-between gap-3">
+                    <div className={cn(
+                      "flex flex-col h-full justify-between gap-3 min-h-[120px]",
+                      isOutOfStock && "opacity-40 grayscale"
+                    )}>
                       <div>
                         <div className={cn(
-                          "w-10 h-10 rounded-2xl flex items-center justify-center mb-3 transition-transform duration-500 group-hover:scale-110",
-                          isService ? "bg-purple-500/20 text-purple-400" : "bg-blue-500/20 text-blue-400"
+                          "w-10 h-10 rounded-apple-sm flex items-center justify-center mb-3",
+                          isService ? "bg-apple-purple/15 text-apple-purple" : "bg-apple-blue/15 text-apple-blue"
                         )}>
-                           {isService ? <Search className="w-5 h-5" /> : <ShoppingCart className="w-5 h-5" />}
+                          {isService ? <Search className="w-5 h-5" /> : <ShoppingCart className="w-5 h-5" />}
                         </div>
-                        <h3 className="text-[13px] font-black text-white leading-tight line-clamp-2 uppercase tracking-tight opacity-90 group-hover:opacity-100">
+                        <h3 className="apple-text-footnote font-semibold apple-label-primary leading-snug line-clamp-2">
                           {item.name}
                         </h3>
                       </div>
 
-                      <div className="flex items-center justify-between mt-2">
+                      <div className="flex items-center justify-between">
                         <div className="flex flex-col">
-                          <span className="text-[14px] font-black text-white leading-none">
+                          <span className="apple-text-headline apple-label-primary tabular-nums">
                             ${finalPrice.toFixed(2)}
                           </span>
                           {!isService && (
-                             <span className={cn("text-[9px] font-bold mt-1", (item.stock || 0) < 5 ? "text-amber-400" : "text-white/50")}>
-                               {item.stock} en stock
-                             </span>
+                            <span className={cn("apple-text-caption2 mt-0.5 tabular-nums", (item.stock || 0) < 5 ? "text-apple-orange" : "apple-label-tertiary")}>
+                              {item.stock} en stock
+                            </span>
                           )}
                         </div>
 
                         {cartQty > 0 && (
-                          <div className="h-7 w-7 rounded-full bg-cyan-500 text-white flex items-center justify-center text-[11px] font-black shadow-lg shadow-cyan-500/30">
+                          <div className="h-6 min-w-6 px-1.5 rounded-full bg-apple-blue text-white flex items-center justify-center apple-text-caption2 font-semibold tabular-nums">
                             {cartQty}
                           </div>
                         )}
@@ -1068,8 +1065,8 @@ Máximo 30 palabras en total.`;
                     </div>
 
                     {isOutOfStock && (
-                      <div className="absolute inset-0 rounded-[28px] bg-black/40 backdrop-blur-[2px] flex items-center justify-center rotate-[-12deg]">
-                        <span className="text-[10px] font-black text-white bg-red-600 px-3 py-1 rounded-full shadow-lg">AGOTADO</span>
+                      <div className="absolute top-2 right-2 px-2 py-0.5 rounded-full bg-apple-red apple-text-caption2 font-semibold text-white tracking-wide shadow-apple-sm">
+                        AGOTADO
                       </div>
                     )}
                   </motion.button>
