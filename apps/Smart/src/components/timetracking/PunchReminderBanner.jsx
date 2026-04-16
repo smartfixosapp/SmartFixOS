@@ -236,56 +236,41 @@ export default function PunchReminderBanner() {
 
   if (!state.visible) return null;
 
+  // Colores semánticos Apple: warning=orange, danger=red, info=blue
   const colors = {
-    warning: {
-      bg: "bg-gradient-to-r from-yellow-500/15 to-amber-500/10",
-      border: "border-yellow-500/40",
-      icon: "text-yellow-300",
-      btn: "bg-yellow-500 hover:bg-yellow-400 text-black",
-    },
-    danger: {
-      bg: "bg-gradient-to-r from-red-500/20 to-rose-500/10",
-      border: "border-red-500/50",
-      icon: "text-red-300",
-      btn: "bg-red-500 hover:bg-red-400 text-white",
-    },
-    info: {
-      bg: "bg-gradient-to-r from-cyan-500/15 to-blue-500/10",
-      border: "border-cyan-500/40",
-      icon: "text-cyan-300",
-      btn: "bg-cyan-500 hover:bg-cyan-400 text-white",
-    },
+    warning: { iconBg: "bg-apple-orange/15", iconText: "text-apple-orange", btnClass: "apple-btn-primary", btnColor: "bg-apple-orange hover:bg-apple-orange/90" },
+    danger:  { iconBg: "bg-apple-red/15",    iconText: "text-apple-red",    btnClass: "apple-btn-destructive", btnColor: "" },
+    info:    { iconBg: "bg-apple-blue/15",   iconText: "text-apple-blue",   btnClass: "apple-btn-primary", btnColor: "" },
   }[state.severity || "warning"];
 
   return (
-    <div className={`mx-3 sm:mx-6 mt-3 rounded-2xl border ${colors.border} ${colors.bg} backdrop-blur-xl shadow-lg`}>
-      <div className="flex items-center gap-3 p-3 sm:p-4">
-        <div className={`w-10 h-10 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center shrink-0 ${colors.icon}`}>
-          {state.severity === "danger"
-            ? <AlertTriangle className="w-5 h-5" />
-            : <Clock className="w-5 h-5" />}
-        </div>
-        <div className="flex-1 min-w-0">
-          <p className="text-white font-black text-sm uppercase tracking-tight">
-            {state.mode === "in" ? "Recuerda Ponchar Entrada" : "Recuerda Ponchar Salida"}
-          </p>
-          <p className="text-white/70 text-xs mt-0.5 truncate">{state.message}</p>
-        </div>
-        <button
-          onClick={handlePunch}
-          disabled={busy}
-          className={`px-4 h-10 rounded-xl font-black text-xs uppercase tracking-wider shrink-0 transition-all active:scale-95 disabled:opacity-50 ${colors.btn}`}
-        >
-          {busy ? "..." : state.mode === "in" ? "Ponchar Entrada" : "Ponchar Salida"}
-        </button>
-        <button
-          onClick={handleDismiss}
-          className="w-8 h-8 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 flex items-center justify-center text-white/40 hover:text-white shrink-0"
-          title="Recordar mañana"
-        >
-          <X className="w-4 h-4" />
-        </button>
+    <div className="apple-type mx-3 sm:mx-6 mt-3 apple-card apple-surface-elevated px-3.5 py-3 flex items-center gap-3 animate-apple-slide-up">
+      <div className={`w-10 h-10 rounded-apple-sm flex items-center justify-center shrink-0 ${colors.iconBg} ${colors.iconText}`}>
+        {state.severity === "danger"
+          ? <AlertTriangle className="w-[18px] h-[18px]" />
+          : <Clock className="w-[18px] h-[18px]" />}
       </div>
+      <div className="flex-1 min-w-0">
+        <p className="apple-text-subheadline font-semibold apple-label-primary leading-tight">
+          {state.mode === "in" ? "Recuerda ponchar entrada" : "Recuerda ponchar salida"}
+        </p>
+        <p className="apple-text-caption1 apple-label-secondary leading-snug truncate mt-0.5">{state.message}</p>
+      </div>
+      <button
+        onClick={handlePunch}
+        disabled={busy}
+        className={`apple-btn ${colors.btnClass} ${colors.btnColor} text-[13px] min-h-9 px-3 shrink-0`}
+      >
+        {busy ? "…" : state.mode === "in" ? "Entrada" : "Salida"}
+      </button>
+      <button
+        onClick={handleDismiss}
+        className="apple-press w-8 h-8 rounded-full bg-gray-sys6 dark:bg-gray-sys5 apple-label-tertiary flex items-center justify-center shrink-0"
+        title="Recordar mañana"
+        aria-label="Cerrar"
+      >
+        <X className="w-4 h-4" />
+      </button>
     </div>
   );
 }

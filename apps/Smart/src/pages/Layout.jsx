@@ -320,18 +320,33 @@ export default function Layout({ children }) {
         richColors
       />
 
-      {/* 🔔 Push Notification Permission Banner */}
+      {/* 🔔 Push Notification Permission Banner — estilo iOS */}
       {showPushBanner && (
-        <div className="fixed top-4 left-1/2 -translate-x-1/2 z-[9998] w-[calc(100vw-2rem)] max-w-sm px-4 py-3 rounded-2xl bg-violet-950/95 backdrop-blur border border-violet-500/30 shadow-2xl flex items-center gap-3">
-          <span className="text-xl shrink-0">🔔</span>
-          <div className="flex-1 min-w-0">
-            <p className="text-sm font-bold text-white leading-none mb-0.5">Activar notificaciones</p>
-            <p className="text-[11px] text-white/45 leading-tight">Recibe alertas cuando cambie el estado de una orden</p>
+        <div
+          className="apple-type fixed left-1/2 -translate-x-1/2 z-[9998] w-[calc(100vw-1.5rem)] max-w-md flex items-center gap-3 px-4 py-3 liquid-glass-floating rounded-apple-lg animate-apple-slide-up"
+          style={{ top: "calc(env(safe-area-inset-top, 0px) + 0.75rem)" }}
+        >
+          <div className="w-10 h-10 rounded-full bg-apple-blue/20 flex items-center justify-center flex-shrink-0">
+            <svg className="w-5 h-5 text-apple-blue" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
+              <path d="M13.73 21a2 2 0 0 1-3.46 0" />
+            </svg>
           </div>
-          <div className="flex gap-1.5 shrink-0">
-            <button onClick={() => setShowPushBanner(false)} className="text-[11px] text-white/30 hover:text-white/60 px-2 py-1 transition-colors">Ahora no</button>
-            <button onClick={async () => { await requestPermission(); setShowPushBanner(false); }}
-              className="text-[11px] font-bold text-white bg-violet-600 hover:bg-violet-500 px-3 py-1.5 rounded-xl transition-colors">
+          <div className="flex-1 min-w-0">
+            <p className="apple-text-subheadline font-semibold apple-label-primary leading-tight">Activar notificaciones</p>
+            <p className="apple-text-caption1 apple-label-secondary leading-snug mt-0.5">Recibe alertas cuando cambie el estado de una orden</p>
+          </div>
+          <div className="flex items-center gap-1 flex-shrink-0">
+            <button
+              onClick={() => setShowPushBanner(false)}
+              className="apple-btn-plain text-[13px] px-2 min-h-8 apple-label-secondary"
+            >
+              Ahora no
+            </button>
+            <button
+              onClick={async () => { await requestPermission(); setShowPushBanner(false); }}
+              className="apple-btn apple-btn-primary text-[13px] min-h-8 px-3.5"
+            >
               Activar
             </button>
           </div>

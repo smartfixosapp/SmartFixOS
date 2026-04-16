@@ -128,226 +128,222 @@ export default function CustomerSelector({ open, onClose, selectedCustomer, onSe
 
   return (
     <>
-      {/* Main Customer Selector Dialog */}
+      {/* Main Customer Selector Dialog (Apple style) */}
       <Dialog open={open && !showCreateDialog && !showHistoryDialog} onOpenChange={onClose}>
-        <DialogContent className="max-w-2xl bg-gradient-to-br from-[#2B2B2B] to-black border-red-900/30">
-          <DialogHeader>
-            <DialogTitle className="text-xl font-bold text-white flex items-center justify-between">
-              <span>Seleccionar Cliente</span>
-              <Button
-                size="sm"
+        <DialogContent className="max-w-2xl apple-surface-elevated border-0 shadow-apple-2xl rounded-apple-xl apple-type p-0 overflow-hidden">
+          <DialogHeader className="px-5 pt-5 pb-3 border-b border-[rgb(var(--separator)/0.29)]">
+            <DialogTitle className="apple-text-title2 apple-label-primary flex items-center justify-between gap-3">
+              <span>Seleccionar cliente</span>
+              <button
                 onClick={() => setShowCreateDialog(true)}
-                className="bg-red-600 hover:bg-red-700"
+                className="apple-btn apple-btn-primary text-[15px] min-h-9 px-3.5"
               >
-                <Plus className="w-4 h-4 mr-1" />
-                Nuevo Cliente
-              </Button>
+                <Plus className="w-[18px] h-[18px]" />
+                <span>Nuevo</span>
+              </button>
             </DialogTitle>
           </DialogHeader>
 
-          <div className="space-y-4">
+          <div className="p-5 space-y-4">
             <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+              <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 apple-label-tertiary w-[18px] h-[18px] pointer-events-none" />
               <Input
-                placeholder="Buscar por nombre o teléfono..."
+                placeholder="Buscar por nombre o teléfono"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-9 bg-black border-gray-700 text-white"
+                className="apple-input pl-10 border-0"
               />
             </div>
 
-            <div className="max-h-[400px] overflow-y-auto space-y-2">
+            <div className="max-h-[420px] overflow-y-auto apple-scroll -mx-1 px-1">
               {filteredCustomers.length === 0 ? (
-                <div className="text-center py-8 text-gray-400">
-                  <User className="w-12 h-12 mx-auto mb-2 opacity-50" />
-                  <p>No se encontraron clientes</p>
-                  <Button
+                <div className="flex flex-col items-center text-center py-10 gap-3">
+                  <div className="w-14 h-14 rounded-full bg-gray-sys6 dark:bg-gray-sys5 flex items-center justify-center">
+                    <User className="w-7 h-7 apple-label-tertiary" />
+                  </div>
+                  <p className="apple-text-callout apple-label-secondary">No se encontraron clientes</p>
+                  <button
                     onClick={() => setShowCreateDialog(true)}
-                    className="mt-4 bg-red-600 hover:bg-red-700"
+                    className="apple-btn apple-btn-tinted"
                   >
-                    <Plus className="w-4 h-4 mr-2" />
-                    Crear Nuevo Cliente
-                  </Button>
+                    <Plus className="w-[18px] h-[18px]" />
+                    Crear nuevo cliente
+                  </button>
                 </div>
               ) : (
-                filteredCustomers.map((customer) => (
-                  <div key={customer.id} className="flex items-center gap-2 bg-black/40 border border-white/10 rounded-lg p-3 hover:border-red-600/50 transition-all">
-                    <Button
-                      variant="ghost"
-                      className="flex-1 justify-start text-left hover:bg-white/5 h-auto py-2"
-                      onClick={() => {
-                        onSelect(customer);
-                        onClose();
-                      }}
-                    >
-                      <div className="flex items-center gap-3 w-full">
-                        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-red-600 to-red-800 flex items-center justify-center flex-shrink-0">
-                          <User className="w-5 h-5 text-white" />
+                <div className="apple-list">
+                  {filteredCustomers.map((customer, idx) => (
+                    <div key={customer.id} className="flex items-center">
+                      <button
+                        className="apple-list-row flex-1 apple-focusable"
+                        onClick={() => {
+                          onSelect(customer);
+                          onClose();
+                        }}
+                      >
+                        <div className="apple-list-row-icon" style={{ backgroundColor: 'rgb(var(--apple-blue))' }}>
+                          <User className="w-4 h-4" />
                         </div>
-                        <div className="flex-1 min-w-0">
-                          <p className="font-semibold text-white truncate">{customer.name}</p>
-                          <p className="text-sm text-gray-400 truncate">{customer.phone}</p>
+                        <div className="flex-1 min-w-0 text-left">
+                          <p className="apple-text-headline apple-label-primary truncate">{customer.name}</p>
+                          <p className="apple-text-footnote apple-label-secondary truncate tabular-nums">{customer.phone}</p>
                           {customer.email && (
-                            <p className="text-xs text-gray-500 truncate">{customer.email}</p>
+                            <p className="apple-text-caption1 apple-label-tertiary truncate">{customer.email}</p>
                           )}
                         </div>
-                      </div>
-                    </Button>
-                    <Button
-                      size="icon"
-                      variant="outline"
-                      className="h-10 w-10 border-white/15 flex-shrink-0"
-                      onClick={() => loadCustomerHistory(customer.id)}
-                      title="Ver historial"
-                      aria-label={`Ver historial de ${customer.name}`}
-                    >
-                      <History className="w-4 h-4" />
-                    </Button>
-                  </div>
-                ))
+                      </button>
+                      <button
+                        onClick={() => loadCustomerHistory(customer.id)}
+                        title="Ver historial"
+                        aria-label={`Ver historial de ${customer.name}`}
+                        className="apple-press mr-3 w-10 h-10 rounded-full flex items-center justify-center text-apple-blue bg-apple-blue/10 flex-shrink-0"
+                      >
+                        <History className="w-[18px] h-[18px]" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
               )}
             </div>
           </div>
         </DialogContent>
       </Dialog>
 
-      {/* Create Customer Dialog */}
+      {/* Create Customer Dialog (Apple style) */}
       <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>
-        <DialogContent className="max-w-md bg-gradient-to-br from-[#2B2B2B] to-black border-red-900/30">
-          <DialogHeader>
-            <DialogTitle className="text-xl font-bold text-white">
-              Crear Cliente Rápido
+        <DialogContent className="max-w-md apple-surface-elevated border-0 shadow-apple-2xl rounded-apple-xl apple-type p-0 overflow-hidden">
+          <DialogHeader className="px-5 pt-5 pb-2">
+            <DialogTitle className="apple-text-title2 apple-label-primary">
+              Crear cliente
             </DialogTitle>
           </DialogHeader>
 
-          <div className="space-y-4">
-            <div className="space-y-2">
-              <Label className="text-gray-300">Nombre *</Label>
+          <div className="p-5 pt-3 space-y-4">
+            <div className="space-y-1.5">
+              <Label className="apple-text-subheadline apple-label-secondary px-1">Nombre</Label>
               <Input
                 value={newCustomer.name}
                 onChange={(e) => setNewCustomer({ ...newCustomer, name: e.target.value })}
-                className="bg-black border-gray-700 text-white"
+                className="apple-input border-0"
                 placeholder="Juan Pérez"
                 autoFocus
               />
             </div>
 
-            <div className="space-y-2">
-              <Label className="text-gray-300">Teléfono *</Label>
+            <div className="space-y-1.5">
+              <Label className="apple-text-subheadline apple-label-secondary px-1">Teléfono</Label>
               <Input
                 type="tel"
                 value={newCustomer.phone}
                 onChange={(e) => setNewCustomer({ ...newCustomer, phone: e.target.value })}
-                className="bg-black border-gray-700 text-white"
+                className="apple-input border-0"
                 placeholder="(787) 123-4567"
                 inputMode="tel"
               />
             </div>
 
-            <div className="space-y-2">
-              <Label className="text-gray-300">Email (opcional)</Label>
+            <div className="space-y-1.5">
+              <Label className="apple-text-subheadline apple-label-secondary px-1">Email <span className="apple-label-tertiary">(opcional)</span></Label>
               <Input
                 type="email"
                 value={newCustomer.email}
                 onChange={(e) => setNewCustomer({ ...newCustomer, email: e.target.value })}
-                className="bg-black border-gray-700 text-white"
+                className="apple-input border-0"
                 placeholder="juan@example.com"
                 inputMode="email"
               />
             </div>
 
-            <div className="flex gap-2">
-              <Button
-                variant="outline"
+            <div className="flex gap-2 pt-2">
+              <button
                 onClick={() => setShowCreateDialog(false)}
-                className="flex-1 border-gray-700 text-gray-300"
+                className="apple-btn apple-btn-secondary apple-btn-lg flex-1"
                 disabled={loading}
               >
                 Cancelar
-              </Button>
-              <Button
+              </button>
+              <button
                 onClick={handleCreateCustomer}
-                className="flex-1 bg-gradient-to-r from-red-600 to-red-800"
+                className="apple-btn apple-btn-primary apple-btn-lg flex-1"
                 disabled={loading || !newCustomer.name || !newCustomer.phone}
               >
-                {loading ? "Creando..." : "Crear Cliente"}
-              </Button>
+                {loading ? "Creando…" : "Crear cliente"}
+              </button>
             </div>
           </div>
         </DialogContent>
       </Dialog>
 
-      {/* Customer History Dialog */}
+      {/* Customer History Dialog (Apple style) */}
       <Dialog open={showHistoryDialog} onOpenChange={setShowHistoryDialog}>
-        <DialogContent className="max-w-2xl bg-gradient-to-br from-[#2B2B2B] to-black border-red-900/30 max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle className="text-xl font-bold text-white flex items-center gap-2">
-              <History className="w-5 h-5" />
-              Historial de Servicio
+        <DialogContent className="max-w-2xl apple-surface-elevated border-0 shadow-apple-2xl rounded-apple-xl apple-type p-0 max-h-[90vh] overflow-y-auto">
+          <DialogHeader className="px-5 pt-5 pb-3 border-b border-[rgb(var(--separator)/0.29)] sticky top-0 apple-surface-elevated z-10">
+            <DialogTitle className="apple-text-title2 apple-label-primary flex items-center gap-2.5">
+              <History className="w-5 h-5 apple-label-secondary" />
+              Historial de servicio
             </DialogTitle>
           </DialogHeader>
 
           {customerHistory && (
-            <div className="space-y-4">
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                <div className="bg-black/40 border border-white/10 rounded-lg p-3">
-                  <p className="text-xs text-gray-400 mb-1">Total órdenes</p>
-                  <p className="text-2xl font-bold text-white">{customerHistory.orderCount}</p>
+            <div className="p-5 space-y-5">
+              {/* Stats cards estilo Apple dashboard */}
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-2.5">
+                <div className="apple-card p-3.5">
+                  <p className="apple-text-caption1 apple-label-secondary mb-1">Total órdenes</p>
+                  <p className="apple-text-title2 apple-label-primary tabular-nums">{customerHistory.orderCount}</p>
                 </div>
-                <div className="bg-black/40 border border-white/10 rounded-lg p-3">
-                  <p className="text-xs text-gray-400 mb-1">Total gastado</p>
-                  <p className="text-2xl font-bold text-emerald-400">${customerHistory.totalSpent.toFixed(2)}</p>
+                <div className="apple-card p-3.5">
+                  <p className="apple-text-caption1 apple-label-secondary mb-1">Total gastado</p>
+                  <p className="apple-text-title2 text-apple-green tabular-nums">${customerHistory.totalSpent.toFixed(2)}</p>
                 </div>
-                <div className="bg-black/40 border border-white/10 rounded-lg p-3">
-                  <p className="text-xs text-gray-400 mb-1">Total pagado</p>
-                  <p className="text-2xl font-bold text-blue-400">${customerHistory.totalPaid.toFixed(2)}</p>
+                <div className="apple-card p-3.5">
+                  <p className="apple-text-caption1 apple-label-secondary mb-1">Total pagado</p>
+                  <p className="apple-text-title2 text-apple-blue tabular-nums">${customerHistory.totalPaid.toFixed(2)}</p>
                 </div>
-                <div className="bg-black/40 border border-white/10 rounded-lg p-3">
-                  <p className="text-xs text-gray-400 mb-1">Balance pendiente</p>
-                  <p className="text-2xl font-bold text-amber-400">${customerHistory.outstandingBalance.toFixed(2)}</p>
+                <div className="apple-card p-3.5">
+                  <p className="apple-text-caption1 apple-label-secondary mb-1">Balance pendiente</p>
+                  <p className="apple-text-title2 text-apple-orange tabular-nums">${customerHistory.outstandingBalance.toFixed(2)}</p>
                 </div>
               </div>
 
               <div className="space-y-2">
-                <h3 className="text-sm font-semibold text-gray-300 uppercase tracking-wide">Órdenes Recientes</h3>
+                <h3 className="apple-text-footnote apple-label-secondary px-1">Órdenes recientes</h3>
                 {customerHistory.orders.length === 0 ? (
-                  <div className="text-center py-8 text-gray-500">
-                    <p>No hay órdenes registradas</p>
+                  <div className="text-center py-8 apple-label-tertiary">
+                    <p className="apple-text-callout">No hay órdenes registradas</p>
                   </div>
                 ) : (
-                  <div className="space-y-2 max-h-96 overflow-y-auto">
+                  <div className="apple-list max-h-96 overflow-y-auto apple-scroll">
                     {customerHistory.orders.map((order) => {
                       const balance = Number(order.balance_due || 0);
                       const hasPending = balance > 0;
-                      
+
                       return (
-                        <div key={order.id} className="bg-black/40 border border-white/10 rounded-lg p-3">
-                          <div className="flex items-start justify-between gap-3">
-                            <div className="flex-1 min-w-0">
-                              <div className="flex items-center gap-2 mb-1">
-                                <p className="font-semibold text-white">{order.order_number}</p>
-                                <Badge className="text-[10px]">
-                                  {order.status || "—"}
+                        <div key={order.id} className="apple-list-row cursor-default">
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2 flex-wrap">
+                              <p className="apple-text-headline apple-label-primary">{order.order_number}</p>
+                              <Badge className="text-[10px] bg-gray-sys6 dark:bg-gray-sys5 apple-label-secondary border-0">
+                                {order.status || "—"}
+                              </Badge>
+                              {hasPending && (
+                                <Badge className="text-[10px] bg-apple-orange/20 text-apple-orange border-0">
+                                  Balance: ${balance.toFixed(2)}
                                 </Badge>
-                                {hasPending && (
-                                  <Badge className="text-[10px] bg-amber-600/20 text-amber-300 border-amber-600/30">
-                                    Balance: ${balance.toFixed(2)}
-                                  </Badge>
-                                )}
-                              </div>
-                              <p className="text-xs text-gray-400">
-                                {order.device_brand} {order.device_model}
-                              </p>
-                              <p className="text-xs text-gray-500 mt-1">
-                                {order.created_date ? new Date(order.created_date).toLocaleDateString() : "—"}
-                              </p>
+                              )}
                             </div>
-                            <div className="text-right">
-                              <p className="text-white font-semibold">${Number(order.total || 0).toFixed(2)}</p>
-                              <p className="text-xs text-emerald-400">
-                                Pagado: ${Number(order.total_paid || order.amount_paid || 0).toFixed(2)}
-                              </p>
-                            </div>
+                            <p className="apple-text-footnote apple-label-secondary mt-0.5">
+                              {order.device_brand} {order.device_model}
+                            </p>
+                            <p className="apple-text-caption1 apple-label-tertiary">
+                              {order.created_date ? new Date(order.created_date).toLocaleDateString() : "—"}
+                            </p>
+                          </div>
+                          <div className="text-right flex-shrink-0">
+                            <p className="apple-text-headline apple-label-primary tabular-nums">${Number(order.total || 0).toFixed(2)}</p>
+                            <p className="apple-text-caption1 text-apple-green tabular-nums">
+                              Pagado: ${Number(order.total_paid || order.amount_paid || 0).toFixed(2)}
+                            </p>
                           </div>
                         </div>
                       );
