@@ -831,25 +831,29 @@ export default function POSMobile() {
     }
   };
 
-  if (loadingDrawer) return <div className="h-screen flex items-center justify-center bg-black"><Loader2 className="w-8 h-8 animate-spin text-cyan-400" /></div>;
+  if (loadingDrawer) return (
+    <div className="h-screen flex items-center justify-center apple-surface">
+      <Loader2 className="w-7 h-7 animate-spin text-apple-blue" />
+    </div>
+  );
 
   if (!currentDrawer) {
     return (
-      <div className="h-full min-h-0 bg-black flex items-center justify-center p-4 overflow-hidden">
-        <div className="text-center space-y-6 max-w-sm">
-          <div className="w-16 h-16 bg-red-500/20 rounded-full flex items-center justify-center mx-auto">
-            <AlertCircle className="w-8 h-8 text-red-400" />
+      <div className="h-full min-h-0 apple-surface flex items-center justify-center p-6 overflow-hidden apple-type">
+        <div className="text-center space-y-8 max-w-sm w-full">
+          <div className="w-16 h-16 rounded-full bg-apple-red/15 flex items-center justify-center mx-auto">
+            <AlertCircle className="w-7 h-7 text-apple-red" />
           </div>
-          <div>
-            <h2 className="text-2xl font-bold text-white mb-2">🔒 Caja Cerrada</h2>
-            <p className="text-gray-400">Abre la caja para procesar pagos</p>
+          <div className="space-y-1.5">
+            <h2 className="apple-text-title2 apple-label-primary">Caja cerrada</h2>
+            <p className="apple-text-subheadline apple-label-secondary">Abre la caja para procesar pagos</p>
           </div>
-          <Button
+          <button
             onClick={() => setShowOpenDrawerModal(true)}
-            className="w-full h-12 bg-emerald-600 hover:bg-emerald-700"
+            className="apple-btn apple-btn-primary apple-btn-lg"
           >
-            Abrir Caja
-          </Button>
+            Abrir caja
+          </button>
         </div>
         {showOpenDrawerModal && <OpenDrawerDialog isOpen={true} onClose={() => setShowOpenDrawerModal(false)} onSuccess={() => { setShowOpenDrawerModal(false); checkCashDrawerStatus(); }} />}
       </div>
@@ -857,67 +861,71 @@ export default function POSMobile() {
   }
 
   return (
-    <div className="h-screen bg-[#090909] flex flex-col overflow-hidden">
+    <div className="h-screen apple-surface flex flex-col overflow-hidden apple-type">
+      {/* ── Header estilo iOS: large title + acciones ─── */}
       <div
-        className="flex-shrink-0 bg-[#0D0D0F] px-5 pb-5 border-b border-white/[0.08] z-20 relative"
-        style={{ paddingTop: "20px" }}
+        className="flex-shrink-0 apple-surface-secondary px-5 pb-4 z-20 relative"
+        style={{ paddingTop: "calc(env(safe-area-inset-top, 0px) + 12px)" }}
       >
-        <div className="flex items-center justify-between mb-6">
-          <div>
-            <div className="flex items-center gap-2 mb-1">
-              <div className="w-2 h-2 rounded-full bg-cyan-500 animate-pulse" />
-              <span className="text-[10px] font-black text-cyan-400 uppercase tracking-[0.2em]">Terminal Activa</span>
+        <div className="flex items-start justify-between gap-3 mb-4">
+          <div className="min-w-0 flex-1">
+            <div className="flex items-center gap-1.5 mb-1">
+              <span className="w-1.5 h-1.5 rounded-full bg-apple-green animate-pulse" />
+              <span className="apple-text-footnote apple-label-secondary">Terminal activa</span>
             </div>
-            <h1 className="text-4xl font-black text-white tracking-tighter uppercase leading-none">POS</h1>
+            <h1 className="apple-text-large-title apple-label-primary">POS</h1>
             {selectedOrder && (
-              <div className="inline-flex items-center px-2 py-0.5 bg-cyan-500/10 border border-cyan-500/30 rounded-full mt-2">
-                <span className="text-[10px] font-black text-cyan-400 uppercase tracking-widest">{selectedOrder.order_number}</span>
+              <div className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-apple-blue/15 rounded-full mt-1.5">
+                <span className="apple-text-caption1 font-medium text-apple-blue tabular-nums">#{selectedOrder.order_number}</span>
               </div>
             )}
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 pt-1">
             {(selectedCustomer || selectedOrder?.customer_name) && (
-              <div className="flex items-center gap-2 px-4 py-2.5 bg-blue-500/10 rounded-[18px] border border-blue-500/20 max-w-[150px] shadow-lg shadow-blue-500/5">
-                <User className="w-4 h-4 text-blue-400" />
-                <span className="text-[11px] font-black text-blue-400 truncate uppercase tracking-tight">{selectedCustomer?.name || selectedOrder?.customer_name}</span>
+              <div className="hidden xs:flex items-center gap-1.5 px-3 py-2 bg-apple-blue/12 rounded-apple-md max-w-[140px]">
+                <User className="w-3.5 h-3.5 text-apple-blue flex-shrink-0" />
+                <span className="apple-text-footnote font-medium text-apple-blue truncate">{selectedCustomer?.name || selectedOrder?.customer_name}</span>
               </div>
             )}
             <button
               onClick={() => setShowRechargeDialog(true)}
-              className="w-12 h-12 rounded-[20px] bg-cyan-500/10 border border-cyan-500/20 text-cyan-400 flex items-center justify-center active:scale-90 transition-all shadow-xl shadow-cyan-500/5"
+              className="apple-press w-11 h-11 rounded-apple-md bg-apple-blue/15 text-apple-blue flex items-center justify-center apple-focusable"
+              aria-label="Recarga"
             >
-              <Zap className="w-5 h-5" />
+              <Zap className="w-[18px] h-[18px]" />
             </button>
             <button
               onClick={() => setShowCustomerSelector(true)}
-              className="w-12 h-12 rounded-[20px] bg-white/5 border border-white/10 text-white/40 flex items-center justify-center active:scale-90 transition-all"
+              className="apple-press w-11 h-11 rounded-apple-md bg-gray-sys6 dark:bg-gray-sys5 apple-label-secondary flex items-center justify-center apple-focusable"
+              aria-label="Cliente"
             >
-              <User className="w-5 h-5" />
+              <User className="w-[18px] h-[18px]" />
             </button>
           </div>
         </div>
 
-        <div className="relative group/search mb-5">
-          <div className="absolute inset-y-0 left-0 pl-5 flex items-center pointer-events-none">
-            <Search className="h-5 w-5 text-white/50 group-focus-within/search:text-cyan-400 transition-all duration-300" />
-          </div>
+        {/* ── Search field estilo iOS ─── */}
+        <div className="relative mb-3.5">
+          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-[18px] w-[18px] apple-label-tertiary pointer-events-none" />
           <input
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Buscar productos o servicios..."
-            className="bg-black/40 text-white pr-12 pl-12 py-5 text-sm rounded-[22px] block w-full border border-white/10 placeholder-white/20 focus:outline-none focus:ring-4 focus:ring-cyan-500/10 focus:border-cyan-500/30 focus:bg-black/60 transition-all duration-300 shadow-[inset_0_2px_10px_rgba(0,0,0,0.3)]" 
+            placeholder="Buscar productos o servicios"
+            className="apple-input pl-10 pr-10"
           />
           {searchQuery && (
             <button
               onClick={() => setSearchQuery("")}
-              className="absolute right-4 top-1/2 -translate-y-1/2 w-7 h-7 rounded-full bg-white/10 text-white/60 flex items-center justify-center active:scale-95 transition-all"
+              className="apple-press absolute right-3 top-1/2 -translate-y-1/2 w-6 h-6 rounded-full bg-gray-sys4 text-white flex items-center justify-center"
+              aria-label="Limpiar búsqueda"
             >
-              <X className="w-4 h-4" />
+              <X className="w-3.5 h-3.5" />
             </button>
           )}
         </div>
 
-        <div className="flex gap-2.5 overflow-x-auto no-scrollbar scroll-smooth" style={{ touchAction: 'pan-x' }}>
+        {/* ── Category chips (segmented-style) ─── */}
+        <div className="flex gap-2 overflow-x-auto no-scrollbar apple-scroll-snap-x -mx-1 px-1" style={{ touchAction: 'pan-x' }}>
           {[
             { id: "all", label: "Todo" },
             { id: "accesorios", label: "Accesorios" },
@@ -930,10 +938,10 @@ export default function POSMobile() {
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
                 className={cn(
-                  "px-6 py-3 rounded-[18px] text-[11px] font-black uppercase tracking-[0.1em] transition-all duration-500 whitespace-nowrap border",
+                  "apple-press px-4 h-9 rounded-full whitespace-nowrap apple-text-footnote font-medium transition-colors duration-200",
                   isActive
-                    ? "bg-gradient-to-r from-blue-600 to-cyan-500 text-white border-transparent shadow-[0_10px_25px_rgba(6,182,212,0.3)] scale-105 z-10"
-                    : "bg-white/[0.03] text-white/30 border-white/5 hover:bg-white/[0.06]"
+                    ? "bg-apple-blue text-white shadow-apple-sm"
+                    : "bg-gray-sys6 dark:bg-gray-sys5 apple-label-secondary hover:bg-gray-sys5 dark:hover:bg-gray-sys4"
                 )}
               >
                 {tab.label}
@@ -942,7 +950,7 @@ export default function POSMobile() {
           })}
           <button
             onClick={() => setShowManualItem(true)}
-            className="px-6 py-3 rounded-[18px] text-[11px] font-black uppercase tracking-[0.1em] whitespace-nowrap border bg-amber-500/10 text-amber-400 border-amber-500/20 flex items-center gap-1.5"
+            className="apple-press px-4 h-9 rounded-full whitespace-nowrap apple-text-footnote font-medium bg-apple-orange/15 text-apple-orange flex items-center gap-1.5"
           >
             <PenLine className="w-3.5 h-3.5" />
             Manual
@@ -950,19 +958,20 @@ export default function POSMobile() {
         </div>
       </div>
 
-      <div className="flex-1 overflow-hidden flex flex-col">
-        <div className="flex-1 overflow-y-auto px-3 py-4">
+      {/* ── Lista de productos ─── */}
+      <div className="flex-1 overflow-hidden flex flex-col apple-surface">
+        <div className="flex-1 overflow-y-auto apple-scroll px-4 pt-4 pb-3">
           {loading ? (
             <div className="flex items-center justify-center h-full">
-              <Loader2 className="w-6 h-6 animate-spin text-cyan-400" />
+              <Loader2 className="w-6 h-6 animate-spin text-apple-blue" />
             </div>
           ) : filteredItems.length === 0 ? (
-            <div className="flex flex-col items-center justify-center h-full text-gray-500">
-              <Search className="w-12 h-12 mb-3 opacity-20" />
-              <p className="text-sm">No hay resultados</p>
+            <div className="flex flex-col items-center justify-center h-full gap-2">
+              <Search className="w-10 h-10 apple-label-quaternary" />
+              <p className="apple-text-callout apple-label-tertiary">No hay resultados</p>
             </div>
           ) : (
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-2 gap-3">
               {filteredItems.map((item) => {
                 const finalPrice = toCurrencyNumber(item._type === "product" ? calculateDiscountedPrice(item) : item.price);
                 const cartQty = safeCart.find(c => c.id === item.id)?.quantity || 0;
@@ -973,35 +982,33 @@ export default function POSMobile() {
                   <motion.button
                     key={item.id}
                     onClick={() => !isOutOfStock && addToCart(item, item._type)}
-                    whileTap={{ scale: 0.96 }}
+                    whileTap={{ scale: 0.97 }}
                     className={cn(
-                      "group relative overflow-hidden rounded-[28px] p-5 text-left transition-all duration-500 border",
-                      cartQty > 0 
-                        ? "bg-cyan-500/15 border-cyan-500/40 shadow-[0_15px_40px_rgba(6,182,212,0.15)]" 
-                        : "bg-[#121215]/60 border-white/10 hover:border-white/20 active:bg-white/[0.08]",
+                      "apple-card apple-card-interactive relative overflow-hidden p-4 text-left",
+                      cartQty > 0 && "ring-2 ring-apple-blue/70 ring-offset-0",
                       isOutOfStock && "opacity-40 grayscale pointer-events-none"
                     )}
                   >
-                    <div className="relative z-10 flex flex-col h-full justify-between gap-3">
-                      <div>
+                    <div className="flex flex-col h-full justify-between gap-3 min-h-[112px]">
+                      <div className="space-y-3">
                         <div className={cn(
-                          "w-11 h-11 rounded-[16px] flex items-center justify-center mb-4 shadow-inner",
-                          isService ? "bg-purple-500/20 text-purple-400 border border-purple-500/20" : "bg-blue-500/20 text-blue-400 border border-blue-500/20"
+                          "w-10 h-10 rounded-apple-sm flex items-center justify-center",
+                          isService ? "bg-apple-purple/15 text-apple-purple" : "bg-apple-blue/15 text-apple-blue"
                         )}>
-                           {isService ? <LayoutGrid className="w-5 h-5" /> : <ShoppingCart className="w-5 h-5" />}
+                          {isService ? <LayoutGrid className="w-4 h-4" /> : <ShoppingCart className="w-4 h-4" />}
                         </div>
-                        <h3 className="text-[13px] font-black text-white leading-tight line-clamp-2 uppercase tracking-tight">
+                        <h3 className="apple-text-footnote font-semibold apple-label-primary leading-snug line-clamp-2">
                           {item.name}
                         </h3>
                       </div>
 
-                      <div className="flex items-center justify-between mt-1">
-                        <span className="text-[14px] font-black text-white tracking-tighter">
+                      <div className="flex items-center justify-between">
+                        <span className="apple-text-headline apple-label-primary tabular-nums">
                           ${finalPrice.toFixed(2)}
                         </span>
 
                         {cartQty > 0 && (
-                          <div className="h-6 w-6 rounded-full bg-cyan-500 text-white flex items-center justify-center text-[10px] font-black">
+                          <div className="h-6 min-w-6 px-1.5 rounded-full bg-apple-blue text-white flex items-center justify-center apple-text-caption2 font-semibold tabular-nums">
                             {cartQty}
                           </div>
                         )}
@@ -1009,8 +1016,8 @@ export default function POSMobile() {
                     </div>
 
                     {isOutOfStock && (
-                      <div className="absolute inset-0 rounded-[24px] bg-black/40 backdrop-blur-[1px] flex items-center justify-center rotate-[-10deg]">
-                        <span className="text-[9px] font-black text-white bg-red-600 px-2 py-0.5 rounded-full">AGOTADO</span>
+                      <div className="absolute top-2 right-2 px-2 py-0.5 rounded-full bg-apple-red apple-text-caption2 font-semibold text-white tracking-wide">
+                        AGOTADO
                       </div>
                     )}
                   </motion.button>
@@ -1020,24 +1027,28 @@ export default function POSMobile() {
           )}
         </div>
 
-        <div className="flex-shrink-0 bg-[#0D0D0F] border-t border-white/[0.08] px-6 py-7 rounded-t-[40px] space-y-6 shadow-[0_-25px_50px_rgba(0,0,0,0.6)] relative z-30">
-          <div className="space-y-2">
-            <div className="flex justify-between items-center px-1">
-              <span className="text-[10px] font-black text-white/50 uppercase tracking-[0.2em]">Subtotal</span>
-              <span className="text-sm font-black text-white/60 tracking-tight">${subtotal.toFixed(2)}</span>
+        {/* ── Barra inferior: totales + CTA ─── */}
+        <div
+          className="flex-shrink-0 apple-surface-secondary border-t border-[rgb(var(--separator)/0.3)] px-5 pt-4 space-y-4 relative z-30"
+          style={{ paddingBottom: "calc(env(safe-area-inset-bottom, 0px) + 14px)" }}
+        >
+          <div className="space-y-1">
+            <div className="flex justify-between items-center">
+              <span className="apple-text-subheadline apple-label-secondary">Subtotal</span>
+              <span className="apple-text-subheadline apple-label-secondary tabular-nums">${subtotal.toFixed(2)}</span>
             </div>
-            <div className="flex justify-between items-center px-1">
-              <span className="text-[10px] font-black text-white/50 uppercase tracking-[0.2em]">IVU (11.5%)</span>
-              <span className="text-sm font-black text-white/60 tracking-tight">${tax.toFixed(2)}</span>
+            <div className="flex justify-between items-center">
+              <span className="apple-text-subheadline apple-label-secondary">IVU (11.5%)</span>
+              <span className="apple-text-subheadline apple-label-secondary tabular-nums">${tax.toFixed(2)}</span>
             </div>
-            <div className="flex justify-between items-end pt-4 mt-2 border-t border-white/[0.05]">
-              <span className="text-[12px] font-black text-cyan-400 uppercase tracking-[0.2em]">Total Final</span>
-              <span className="text-4xl font-black text-white tracking-tighter shadow-sm">${total.toFixed(2)}</span>
+            <div className="flex justify-between items-baseline pt-2.5">
+              <span className="apple-text-footnote apple-label-secondary">Total</span>
+              <span className="apple-text-large-title apple-label-primary tabular-nums">${total.toFixed(2)}</span>
             </div>
           </div>
 
-          <div className="flex flex-col gap-3">
-            <Button
+          <div className="flex flex-col gap-2">
+            <button
               onClick={() => {
                 if (safeCart.length === 0) {
                   toast.error("Agrega items al carrito");
@@ -1046,22 +1057,18 @@ export default function POSMobile() {
                 setShowPaymentModal(true);
               }}
               disabled={safeCart.length === 0}
-              className="w-full h-20 bg-gradient-to-r from-blue-600 to-cyan-500 hover:opacity-95 active:scale-[0.98] transition-all duration-300 shadow-[0_20px_40px_rgba(6,182,212,0.25)] disabled:opacity-30 disabled:grayscale rounded-[24px] border-t border-white/10"
+              className="apple-btn apple-btn-primary apple-btn-lg"
             >
-              <div className="flex items-center justify-center gap-4">
-                <div className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center">
-                  <ShoppingCart className="w-5 h-5 text-white" />
-                </div>
-                <span className="text-base font-black text-white uppercase tracking-[0.1em]">Finalizar Cobro</span>
-              </div>
-            </Button>
+              <ShoppingCart className="w-[18px] h-[18px]" />
+              <span>Finalizar cobro</span>
+            </button>
 
             {safeCart.length > 0 && (
               <button
                 onClick={clearCart}
-                className="w-full py-1 text-[9px] font-black text-red-400/40 hover:text-red-400 uppercase tracking-[0.3em] transition-all"
+                className="apple-btn apple-btn-plain text-apple-red mx-auto"
               >
-                Vaciar Carrito
+                Vaciar carrito
               </button>
             )}
           </div>
@@ -1182,32 +1189,45 @@ export default function POSMobile() {
         }}
       />
 
-      {/* Manual item sheet */}
+      {/* ── Bottom sheet estilo iOS: artículo manual ─── */}
       {showManualItem && (
-        <div className="fixed inset-0 z-[80] flex items-end justify-center bg-black/70 backdrop-blur-sm" onClick={() => setShowManualItem(false)}>
-          <div className="bg-[#0f0f12] border border-white/10 rounded-t-3xl w-full max-w-lg p-6 space-y-4" onClick={e => e.stopPropagation()}>
-            <h3 className="text-white font-black text-lg">Artículo Manual</h3>
+        <div
+          className="fixed inset-0 z-[80] flex items-end justify-center bg-black/40 backdrop-blur-sm animate-apple-fade-in apple-type"
+          onClick={() => setShowManualItem(false)}
+        >
+          <div
+            className="apple-surface-elevated w-full max-w-lg p-5 space-y-4 animate-apple-sheet-up"
+            style={{
+              borderTopLeftRadius: '1.75rem',
+              borderTopRightRadius: '1.75rem',
+              paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 20px)',
+            }}
+            onClick={e => e.stopPropagation()}
+          >
+            {/* drag handle iOS */}
+            <div className="mx-auto w-9 h-1.5 rounded-full bg-[rgb(var(--separator-opaque))] mb-1" />
+            <h3 className="apple-text-title3 apple-label-primary">Artículo manual</h3>
             <input
               autoFocus
               placeholder="Nombre del artículo"
               value={manualItem.name}
               onChange={e => setManualItem(p => ({ ...p, name: e.target.value }))}
-              className="w-full bg-white/5 border border-white/10 rounded-2xl px-4 py-3 text-white placeholder-white/30 text-sm focus:outline-none focus:border-cyan-500/50"
+              className="apple-input"
             />
-            <div className="flex gap-3">
+            <div className="flex gap-2.5">
               <input
                 type="number"
                 placeholder="Precio"
                 value={manualItem.price}
                 onChange={e => setManualItem(p => ({ ...p, price: e.target.value }))}
-                className="flex-1 bg-white/5 border border-white/10 rounded-2xl px-4 py-3 text-white placeholder-white/30 text-sm focus:outline-none focus:border-cyan-500/50"
+                className="apple-input flex-1"
               />
               <input
                 type="number"
-                placeholder="Qty"
+                placeholder="Cant."
                 value={manualItem.qty}
                 onChange={e => setManualItem(p => ({ ...p, qty: e.target.value }))}
-                className="w-24 bg-white/5 border border-white/10 rounded-2xl px-4 py-3 text-white placeholder-white/30 text-sm focus:outline-none focus:border-cyan-500/50"
+                className="apple-input w-24"
               />
             </div>
             <button
@@ -1226,11 +1246,11 @@ export default function POSMobile() {
                 }]);
                 setManualItem({ name: "", price: "", qty: "1" });
                 setShowManualItem(false);
-                toast.success(`✅ ${manualItem.name} añadido`);
+                toast.success(`${manualItem.name} añadido`);
               }}
-              className="w-full py-4 bg-gradient-to-r from-amber-500 to-orange-500 text-white font-black rounded-2xl"
+              className="apple-btn apple-btn-primary apple-btn-lg"
             >
-              Añadir al Carrito
+              Añadir al carrito
             </button>
           </div>
         </div>

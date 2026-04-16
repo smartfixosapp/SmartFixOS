@@ -158,7 +158,7 @@ button:focus-visible {
     --chart-3: 197 37% 24%;
     --chart-4: 43 74% 66%;
     --chart-5: 27 87% 67%;
-    --radius: 0.5rem;
+    --radius: 0.875rem; /* ⬆️ subido de 0.5 → 0.875 (14px) estilo Apple */
     --sidebar-background: 0 0% 98%;
     --sidebar-foreground: 240 5.3% 26.1%;
     --sidebar-primary: 240 5.9% 10%;
@@ -167,7 +167,53 @@ button:focus-visible {
     --sidebar-accent-foreground: 240 5.9% 10%;
     --sidebar-border: 220 13% 91%;
     --sidebar-ring: 217.2 91.2% 59.8%;
+
+    /* ──────────────────────────────────────────────────────────────────
+     * 🍎 Apple Design Tokens (Fase 1)
+     * Modo claro por defecto. .dark sobrescribe abajo.
+     * Los valores están en RGB triples para poder usar <alpha-value>.
+     * ────────────────────────────────────────────────────────────────── */
+
+    /* Accent + system colors (iOS light) */
+    --apple-blue:    10 132 255;    /* #0A84FF */
+    --apple-green:   52 199 89;     /* #34C759 */
+    --apple-indigo:  88 86 214;     /* #5856D6 */
+    --apple-orange:  255 149 0;     /* #FF9500 */
+    --apple-pink:    255 45 85;     /* #FF2D55 */
+    --apple-purple:  175 82 222;    /* #AF52DE */
+    --apple-red:     255 59 48;     /* #FF3B30 */
+    --apple-teal:    48 176 199;    /* #30B0C7 */
+    --apple-yellow:  255 204 0;     /* #FFCC00 */
+    --apple-mint:    0 199 190;     /* #00C7BE */
+    --apple-cyan:    50 173 230;    /* #32ADE6 */
+    --apple-brown:   162 132 94;    /* #A2845E */
+
+    /* systemGray 1..6 (iOS light) */
+    --sys-gray-1: 142 142 147;  /* #8E8E93 */
+    --sys-gray-2: 174 174 178;  /* #AEAEB2 */
+    --sys-gray-3: 199 199 204;  /* #C7C7CC */
+    --sys-gray-4: 209 209 214;  /* #D1D1D6 */
+    --sys-gray-5: 229 229 234;  /* #E5E5EA */
+    --sys-gray-6: 242 242 247;  /* #F2F2F7 */
+
+    /* Labels (jerarquía tipográfica iOS light) */
+    --label-primary:    0 0 0;              /* negro puro */
+    --label-secondary:  60 60 67;           /* #3C3C43 */
+    --label-tertiary:   60 60 67;           /* #3C3C43 @ 0.6 alpha */
+    --label-quaternary: 60 60 67;           /* #3C3C43 @ 0.3 */
+
+    /* Superficies */
+    --surface-primary:   255 255 255;       /* fondo base blanco */
+    --surface-secondary: 242 242 247;       /* gris muy claro */
+    --surface-tertiary:  255 255 255;       /* cards sobre grouped */
+    --surface-grouped:   242 242 247;       /* agrupado (Settings list) */
+    --surface-elevated:  255 255 255;       /* modales, sheets */
+
+    /* Separators */
+    --separator:         60 60 67;          /* usar @ 0.29 alpha */
+    --separator-opaque:  198 198 200;       /* linea dura no translúcida */
   }
+
   .dark {
     --background: 0 0% 3.9%;
     --foreground: 0 0% 98%;
@@ -201,6 +247,51 @@ button:focus-visible {
     --sidebar-accent-foreground: 240 4.8% 95.9%;
     --sidebar-border: 240 3.7% 15.9%;
     --sidebar-ring: 217.2 91.2% 59.8%;
+
+    /* 🍎 Apple — Dark mode (iOS dark) */
+    --apple-blue:    10 132 255;    /* #0A84FF */
+    --apple-green:   48 209 88;     /* #30D158 */
+    --apple-indigo:  94 92 230;     /* #5E5CE6 */
+    --apple-orange:  255 159 10;    /* #FF9F0A */
+    --apple-pink:    255 55 95;     /* #FF375F */
+    --apple-purple:  191 90 242;    /* #BF5AF2 */
+    --apple-red:     255 69 58;     /* #FF453A */
+    --apple-teal:    64 200 224;    /* #40C8E0 */
+    --apple-yellow:  255 214 10;    /* #FFD60A */
+    --apple-mint:    99 230 226;    /* #63E6E2 */
+    --apple-cyan:    100 210 255;   /* #64D2FF */
+    --apple-brown:   172 142 104;   /* #AC8E68 */
+
+    /* systemGray 1..6 (iOS dark) */
+    --sys-gray-1: 142 142 147;  /* #8E8E93 */
+    --sys-gray-2: 99 99 102;    /* #636366 */
+    --sys-gray-3: 72 72 74;     /* #48484A */
+    --sys-gray-4: 58 58 60;     /* #3A3A3C */
+    --sys-gray-5: 44 44 46;     /* #2C2C2E */
+    --sys-gray-6: 28 28 30;     /* #1C1C1E */
+
+    /* Labels dark */
+    --label-primary:    255 255 255;
+    --label-secondary:  235 235 245;     /* @ 0.6 */
+    --label-tertiary:   235 235 245;     /* @ 0.3 */
+    --label-quaternary: 235 235 245;     /* @ 0.18 */
+
+    /* Superficies dark */
+    --surface-primary:   0 0 0;          /* base puro */
+    --surface-secondary: 28 28 30;       /* #1C1C1E */
+    --surface-tertiary:  44 44 46;       /* #2C2C2E */
+    --surface-grouped:   0 0 0;
+    --surface-elevated:  28 28 30;
+
+    --separator:         84 84 88;       /* @ 0.6 */
+    --separator-opaque:  56 56 58;
+  }
+
+  /* Variante theme-light (compat con el wrapper existente) — usa los mismos
+     tokens claros que :root, pero asegurando que se apliquen aunque
+     .dark esté activo en un ancestro. */
+  html.theme-light {
+    color-scheme: light;
   }
 }
 
@@ -385,5 +476,384 @@ button:focus-visible {
   .liquid-glass-strong,
   .liquid-glass-floating {
     background-color: rgba(20, 20, 25, 0.88);
+  }
+}
+
+/* ══════════════════════════════════════════════════════════════════════════
+ * 🍎  APPLE DESIGN SYSTEM — UTILITIES (Fase 1)
+ * ══════════════════════════════════════════════════════════════════════════
+ *
+ *  Prefijo único: `.apple-*` — no colisiona con nada existente.
+ *  Filosofía: que cualquier pantalla del sistema pueda adoptar el look Apple
+ *  cambiando clases, sin tocar la lógica React.
+ *
+ *  Índice:
+ *    1. Tipografía HIG (.apple-text-*)
+ *    2. Superficies (.apple-surface-*)
+ *    3. List rows / groups (estilo iOS Settings)
+ *    4. Botones (.apple-btn-*)
+ *    5. Inputs (.apple-input)
+ *    6. Separators / dividers
+ *    7. Navigation bars / toolbars
+ *    8. Haptics helpers (press feedback)
+ *    9. Scroll & momentum
+ * ══════════════════════════════════════════════════════════════════════════ */
+
+/* ── Base tipográfica ─────────────────────────────────────────────────── */
+.apple-type {
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text",
+               "Inter var", Inter, system-ui, sans-serif;
+  font-feature-settings: "ss01", "cv11", "cv05";  /* variantes SF / Inter refinadas */
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+/* ── 1. Tipografía HIG (atajos) ──────────────────────────────────────── */
+.apple-text-hero          { font: 700 3rem/1.125 -apple-system, "SF Pro Display", Inter, system-ui, sans-serif; letter-spacing: -0.032em; }
+.apple-text-large-title   { font: 700 2.125rem/1.206 -apple-system, "SF Pro Display", Inter, system-ui, sans-serif; letter-spacing: -0.028em; }
+.apple-text-title1        { font: 700 1.75rem/1.214 -apple-system, "SF Pro Display", Inter, system-ui, sans-serif; letter-spacing: -0.025em; }
+.apple-text-title2        { font: 700 1.375rem/1.227 -apple-system, "SF Pro Display", Inter, system-ui, sans-serif; letter-spacing: -0.022em; }
+.apple-text-title3        { font: 600 1.25rem/1.250 -apple-system, "SF Pro Display", Inter, system-ui, sans-serif; letter-spacing: -0.019em; }
+.apple-text-headline      { font: 600 1.0625rem/1.294 -apple-system, "SF Pro Text", Inter, system-ui, sans-serif; letter-spacing: -0.016em; }
+.apple-text-body          { font: 400 1.0625rem/1.294 -apple-system, "SF Pro Text", Inter, system-ui, sans-serif; letter-spacing: -0.016em; }
+.apple-text-callout       { font: 400 1rem/1.313 -apple-system, "SF Pro Text", Inter, system-ui, sans-serif; letter-spacing: -0.013em; }
+.apple-text-subheadline   { font: 400 0.9375rem/1.333 -apple-system, "SF Pro Text", Inter, system-ui, sans-serif; letter-spacing: -0.010em; }
+.apple-text-footnote      { font: 400 0.8125rem/1.385 -apple-system, "SF Pro Text", Inter, system-ui, sans-serif; letter-spacing: -0.003em; }
+.apple-text-caption1      { font: 400 0.75rem/1.333 -apple-system, "SF Pro Text", Inter, system-ui, sans-serif; letter-spacing: 0; }
+.apple-text-caption2      { font: 400 0.6875rem/1.182 -apple-system, "SF Pro Text", Inter, system-ui, sans-serif; letter-spacing: 0.006em; }
+
+/* Label alpha variants (usar junto a text-label-*) */
+.apple-label-primary     { color: rgb(var(--label-primary)); }
+.apple-label-secondary   { color: rgb(var(--label-secondary) / 0.60); }
+.apple-label-tertiary    { color: rgb(var(--label-tertiary) / 0.30); }
+.apple-label-quaternary  { color: rgb(var(--label-quaternary) / 0.18); }
+
+/* ── 2. Superficies ──────────────────────────────────────────────────── */
+.apple-surface            { background-color: rgb(var(--surface-primary)); }
+.apple-surface-secondary  { background-color: rgb(var(--surface-secondary)); }
+.apple-surface-tertiary   { background-color: rgb(var(--surface-tertiary)); }
+.apple-surface-grouped    { background-color: rgb(var(--surface-grouped)); }
+.apple-surface-elevated   { background-color: rgb(var(--surface-elevated)); }
+
+/* Card estilo Apple (sombra + radius + rim) */
+.apple-card {
+  background-color: rgb(var(--surface-elevated));
+  border-radius: 1.25rem;
+  box-shadow:
+    0 1px 2px rgb(0 0 0 / 0.04),
+    0 8px 24px rgb(0 0 0 / 0.06);
+  border: 0.5px solid rgb(var(--separator) / 0.12);
+  transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1),
+              box-shadow 0.25s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+.dark .apple-card,
+.theme-dark .apple-card {
+  background-color: rgb(var(--surface-tertiary));
+  border-color: rgb(var(--separator) / 0.30);
+  box-shadow:
+    0 1px 2px rgb(0 0 0 / 0.40),
+    0 8px 24px rgb(0 0 0 / 0.30);
+}
+.apple-card-interactive:hover { transform: translateY(-1px); }
+.apple-card-interactive:active { transform: translateY(0) scale(0.995); }
+
+/* ── 3. List rows / groups (iOS Settings style) ──────────────────────── */
+.apple-list {
+  background-color: rgb(var(--surface-elevated));
+  border-radius: 1.25rem;
+  overflow: hidden;
+  box-shadow: 0 1px 2px rgb(0 0 0 / 0.04);
+  border: 0.5px solid rgb(var(--separator) / 0.12);
+}
+.dark .apple-list {
+  background-color: rgb(var(--surface-secondary));
+  border-color: rgb(var(--separator) / 0.30);
+}
+.apple-list-row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  min-height: 44px; /* HIG minimum tap target */
+  padding: 0.625rem 1rem;
+  background-color: transparent;
+  transition: background-color 0.15s ease;
+  cursor: pointer;
+  position: relative;
+}
+.apple-list-row + .apple-list-row::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 1rem;
+  right: 0;
+  height: 0.5px;
+  background-color: rgb(var(--separator) / 0.29);
+}
+.apple-list-row:hover  { background-color: rgb(var(--sys-gray-6) / 0.5); }
+.dark .apple-list-row:hover { background-color: rgb(var(--sys-gray-5) / 0.5); }
+.apple-list-row:active { background-color: rgb(var(--sys-gray-5)); }
+.dark .apple-list-row:active { background-color: rgb(var(--sys-gray-4)); }
+.apple-list-row-icon {
+  width: 28px; height: 28px;
+  display: grid; place-items: center;
+  border-radius: 6px;
+  background-color: rgb(var(--apple-blue));
+  color: white;
+  flex-shrink: 0;
+}
+.apple-list-row-title {
+  flex: 1; min-width: 0;
+  color: rgb(var(--label-primary));
+  font: 400 1.0625rem/1.294 -apple-system, "SF Pro Text", Inter, sans-serif;
+  letter-spacing: -0.016em;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.apple-list-row-value {
+  color: rgb(var(--label-secondary) / 0.60);
+  font: 400 1.0625rem/1.294 -apple-system, "SF Pro Text", Inter, sans-serif;
+  letter-spacing: -0.016em;
+}
+.apple-list-row-chevron {
+  width: 7px; height: 12px;
+  color: rgb(var(--label-tertiary) / 0.30);
+  flex-shrink: 0;
+}
+/* Grouped list header/footer (texto tipo Settings) */
+.apple-list-header {
+  padding: 0.875rem 1rem 0.375rem;
+  text-transform: uppercase;
+  color: rgb(var(--label-secondary) / 0.60);
+  font: 400 0.8125rem/1.385 -apple-system, "SF Pro Text", Inter, sans-serif;
+  letter-spacing: 0.015em;
+}
+.apple-list-footer {
+  padding: 0.5rem 1rem 1rem;
+  color: rgb(var(--label-secondary) / 0.60);
+  font: 400 0.8125rem/1.385 -apple-system, "SF Pro Text", Inter, sans-serif;
+}
+
+/* ── 4. Botones estilo Apple ─────────────────────────────────────────── */
+.apple-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.625rem 1.125rem;
+  min-height: 44px;
+  border-radius: 0.75rem;
+  font: 600 1.0625rem/1 -apple-system, "SF Pro Text", Inter, sans-serif;
+  letter-spacing: -0.016em;
+  transition: transform 0.15s cubic-bezier(0.34, 1.56, 0.64, 1),
+              background-color 0.2s ease,
+              box-shadow 0.2s ease,
+              opacity 0.2s ease;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+  cursor: pointer;
+}
+.apple-btn:active { transform: scale(0.97); }
+.apple-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+.apple-btn-primary {
+  background-color: rgb(var(--apple-blue));
+  color: white;
+  box-shadow: 0 1px 2px rgb(0 0 0 / 0.1);
+}
+.apple-btn-primary:hover  { background-color: rgb(var(--apple-blue) / 0.92); }
+.apple-btn-primary:active { background-color: rgb(var(--apple-blue) / 0.85); }
+
+.apple-btn-secondary {
+  background-color: rgb(var(--sys-gray-6));
+  color: rgb(var(--label-primary));
+}
+.dark .apple-btn-secondary { background-color: rgb(var(--sys-gray-5)); color: rgb(var(--label-primary)); }
+.apple-btn-secondary:hover  { background-color: rgb(var(--sys-gray-5)); }
+.dark .apple-btn-secondary:hover { background-color: rgb(var(--sys-gray-4)); }
+
+.apple-btn-tinted {
+  background-color: rgb(var(--apple-blue) / 0.15);
+  color: rgb(var(--apple-blue));
+}
+.apple-btn-tinted:hover { background-color: rgb(var(--apple-blue) / 0.22); }
+
+.apple-btn-plain {
+  background-color: transparent;
+  color: rgb(var(--apple-blue));
+  padding: 0.5rem 0.75rem;
+  min-height: 36px;
+}
+.apple-btn-plain:hover { background-color: rgb(var(--apple-blue) / 0.10); }
+
+.apple-btn-destructive {
+  background-color: rgb(var(--apple-red));
+  color: white;
+}
+.apple-btn-destructive:hover  { background-color: rgb(var(--apple-red) / 0.92); }
+
+.apple-btn-lg {
+  padding: 0.875rem 1.5rem;
+  min-height: 52px;
+  border-radius: 0.875rem;
+  font-size: 1.0625rem;
+  width: 100%;
+}
+
+/* ── 5. Inputs ──────────────────────────────────────────────────────── */
+.apple-input {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  min-height: 44px;
+  background-color: rgb(var(--sys-gray-6));
+  color: rgb(var(--label-primary));
+  border-radius: 0.75rem;
+  border: 0.5px solid transparent;
+  font: 400 1.0625rem/1.294 -apple-system, "SF Pro Text", Inter, sans-serif;
+  letter-spacing: -0.016em;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease, background-color 0.15s ease;
+}
+.dark .apple-input { background-color: rgb(var(--sys-gray-5)); }
+.apple-input::placeholder { color: rgb(var(--label-secondary) / 0.40); }
+.apple-input:focus {
+  outline: none;
+  border-color: rgb(var(--apple-blue));
+  box-shadow: 0 0 0 4px rgb(var(--apple-blue) / 0.20);
+  background-color: rgb(var(--surface-elevated));
+}
+
+/* ── 6. Separators ──────────────────────────────────────────────────── */
+.apple-separator {
+  height: 0.5px;
+  background-color: rgb(var(--separator) / 0.29);
+  border: none;
+  margin: 0;
+}
+.apple-separator-opaque {
+  height: 1px;
+  background-color: rgb(var(--separator-opaque));
+  border: none;
+}
+
+/* ── 7. Navigation bars / toolbars (translúcidos con blur) ──────────── */
+.apple-navbar {
+  position: sticky;
+  top: 0;
+  z-index: 40;
+  padding: 0.5rem 1rem;
+  padding-top: calc(0.5rem + env(safe-area-inset-top, 0px));
+  background-color: rgb(var(--surface-primary) / 0.72);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+          backdrop-filter: blur(20px) saturate(180%);
+  border-bottom: 0.5px solid rgb(var(--separator) / 0.29);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+.dark .apple-navbar {
+  background-color: rgb(var(--surface-primary) / 0.70);
+  border-bottom-color: rgb(var(--separator) / 0.60);
+}
+.apple-navbar-title {
+  flex: 1;
+  text-align: center;
+  color: rgb(var(--label-primary));
+  font: 600 1.0625rem/1.294 -apple-system, "SF Pro Text", Inter, sans-serif;
+  letter-spacing: -0.016em;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.apple-navbar-button {
+  color: rgb(var(--apple-blue));
+  background: transparent;
+  border: 0;
+  padding: 0.5rem;
+  font: 400 1.0625rem/1 -apple-system, "SF Pro Text", Inter, sans-serif;
+  letter-spacing: -0.016em;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Large title que colapsa al hacer scroll — usar dentro de un contenedor */
+.apple-large-title {
+  padding: 0.5rem 1rem 0.75rem;
+  color: rgb(var(--label-primary));
+  font: 700 2.125rem/1.206 -apple-system, "SF Pro Display", Inter, sans-serif;
+  letter-spacing: -0.028em;
+}
+
+/* Tab bar inferior (iOS floating) */
+.apple-tabbar {
+  position: fixed;
+  left: 50%;
+  transform: translateX(-50%);
+  bottom: calc(0.75rem + env(safe-area-inset-bottom, 0px));
+  z-index: 50;
+  padding: 0.5rem;
+  border-radius: 1.75rem;
+  background-color: rgb(var(--surface-elevated) / 0.75);
+  -webkit-backdrop-filter: blur(32px) saturate(200%);
+          backdrop-filter: blur(32px) saturate(200%);
+  border: 0.5px solid rgb(var(--separator) / 0.29);
+  box-shadow:
+    0 1px 2px rgb(0 0 0 / 0.08),
+    0 12px 32px rgb(0 0 0 / 0.18);
+  display: flex;
+  align-items: center;
+  gap: 0.125rem;
+}
+.dark .apple-tabbar {
+  background-color: rgb(var(--surface-tertiary) / 0.70);
+  border-color: rgb(255 255 255 / 0.08);
+  box-shadow:
+    0 1px 2px rgb(0 0 0 / 0.40),
+    0 12px 32px rgb(0 0 0 / 0.55);
+}
+
+/* ── 8. Haptics / press feedback ────────────────────────────────────── */
+.apple-press {
+  transition: transform 0.12s cubic-bezier(0.34, 1.56, 0.64, 1),
+              opacity 0.15s ease;
+  -webkit-tap-highlight-color: transparent;
+}
+.apple-press:active { transform: scale(0.96); opacity: 0.85; }
+
+/* ── 9. Scroll & momentum (listas iOS) ─────────────────────────────── */
+.apple-scroll {
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+  scroll-behavior: smooth;
+}
+.apple-scroll-snap-x {
+  scroll-snap-type: x mandatory;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+.apple-scroll-snap-x > * { scroll-snap-align: start; }
+
+/* ── Focus ring accesible ──────────────────────────────────────────── */
+.apple-focusable:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 4px rgb(var(--apple-blue) / 0.35);
+  border-radius: inherit;
+}
+
+/* ── Reducción de movimiento (accesibilidad HIG) ───────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  .apple-press,
+  .apple-card,
+  .apple-card-interactive,
+  .apple-btn,
+  .apple-list-row {
+    transition: none !important;
+    animation: none !important;
+  }
+  .apple-press:active,
+  .apple-btn:active,
+  .apple-card-interactive:active {
+    transform: none !important;
   }
 }
