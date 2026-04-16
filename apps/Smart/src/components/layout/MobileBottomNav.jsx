@@ -178,6 +178,26 @@ export default function MobileBottomNav() {
         paddingBottom: "clamp(20px, env(safe-area-inset-bottom, 34px), 40px)",
       }}
     >
+      {/*
+       * Extender: un div absoluto que se extiende 200px BAJO el nav con
+       * el mismo bg. Esto cubre cualquier area reservada por Safari iOS
+       * (tanto cuando su chrome está visible como oculto) que el env()
+       * no logra reportar correctamente. El nav sigue posicionado en
+       * bottom:0 del viewport pero su color se proyecta 200px hacia abajo.
+       */}
+      <div
+        aria-hidden
+        style={{
+          position: "absolute",
+          top: "100%",
+          left: 0,
+          right: 0,
+          height: "200px",
+          backgroundColor: "rgb(var(--sys-gray-6))",
+          pointerEvents: "none",
+        }}
+      />
+
       {/* Tab items */}
       <div className="relative flex items-stretch justify-around px-1 pt-1.5 pb-1.5 h-[58px]">
           {tabs.map((tab) => {
