@@ -35,7 +35,7 @@ import SecurityEditDialog from "./SecurityEditDialog";
 import AdminAuthGate from "../users/AdminAuthGate";
 import { dataClient } from "@/components/api/dataClient";
 import PatternDisplay from "@/components/security/PatternDisplay";
-import { ChevronRight, ChevronDown, Filter, Zap } from "lucide-react";
+import { ChevronRight, ChevronDown, ChevronLeft, Filter, Zap, AlertTriangle } from "lucide-react";
 import CountdownBadge from "@/components/orders/CountdownBadge";
 import { usePanelState } from "@/components/utils/panelContext";
 import IntakeStage from "./stages/IntakeStage";
@@ -2878,65 +2878,66 @@ export default function WorkOrderPanel({ orderId, onClose, onUpdate, onDelete, p
           }
         `}</style>
 
-        <div className="h-full flex flex-col bg-gradient-to-br from-[#0D0D0D] to-[#1A1A1A] theme-light:bg-gray-50 overflow-hidden">
-           {/* ✅ HEADER RESPONSIVE — hidden on mobile (MobileRepairDetail has its own header) */}
+        <div className="h-full flex flex-col apple-surface apple-type overflow-hidden">
+           {/* ✅ HEADER RESPONSIVE — estilo iOS Mail/Messages (desktop only) */}
            <div
-            className="flex-shrink-0 border-b border-white/[0.08] bg-[#0D0D0F] wo-header hidden lg:block"
-            style={{ paddingTop: "calc(env(safe-area-inset-top, 20px) + 14px)" }}
+            className="flex-shrink-0 apple-surface-secondary wo-header hidden lg:block"
+            style={{
+              paddingTop: "calc(env(safe-area-inset-top, 20px) + 14px)",
+              borderBottom: "0.5px solid rgb(var(--separator) / 0.29)",
+            }}
           >
             <div className="max-w-[1800px] mx-auto px-4 sm:px-8 py-4 sm:py-5 flex items-center justify-between gap-4">
-              <div className="flex items-center gap-3 sm:gap-6 min-w-0 flex-1">
-                <Button
-                  variant="ghost"
-                  size="sm"
+              <div className="flex items-center gap-3 sm:gap-5 min-w-0 flex-1">
+                <button
                   onClick={handleClose}
-                  className="group flex-shrink-0 h-10 w-10 sm:w-auto p-0 sm:px-4 rounded-full sm:rounded-2xl border border-white/10 bg-white/5 hover:bg-white/10 text-white/70 hover:text-white transition-all duration-300"
+                  className="apple-press flex-shrink-0 h-10 pl-1 pr-3 rounded-full flex items-center gap-1 text-apple-blue apple-focusable"
+                  aria-label="Cerrar"
                 >
-                  <X className="w-5 h-5 transition-transform duration-300 group-hover:rotate-90" />
-                  <span className="hidden sm:inline sm:ml-2 font-black uppercase text-[11px] tracking-wider">Cerrar</span>
-                </Button>
+                  <ChevronLeft className="w-[22px] h-[22px]" strokeWidth={2.4} />
+                  <span className="apple-text-body hidden sm:inline">Volver</span>
+                </button>
 
                 {order && (
-                  <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-4 min-w-0">
-                    <div className="flex items-center gap-3">
-                      <h1 className="text-xl sm:text-2xl font-black tracking-tighter text-white truncate wo-header-title">
-                        {order.order_number}
-                      </h1>
-                      <Badge className={cn(
-                        "rounded-full text-[10px] sm:text-xs font-black uppercase tracking-widest px-3 py-1 border backdrop-blur-md shadow-lg",
-                        getStatusConfig(order.status).colorClasses.replace('bg-opacity-10', 'bg-opacity-20')
-                      )}>
-                        {getStatusConfig(order.status).label}
-                      </Badge>
-                    </div>
+                  <div className="flex items-center gap-3 min-w-0 flex-wrap">
+                    <h1 className="apple-text-title2 apple-label-primary truncate wo-header-title tabular-nums">
+                      {order.order_number}
+                    </h1>
+                    <Badge className={cn(
+                      "rounded-full apple-text-caption1 font-medium px-2.5 py-0.5 border-0",
+                      getStatusConfig(order.status).colorClasses
+                    )}>
+                      {getStatusConfig(order.status).label}
+                    </Badge>
                     {order?.status_metadata?.quick_order === true && (
-                      <div className="hidden sm:flex items-center gap-1.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 px-3 py-1 shadow-sm">
+                      <span className="inline-flex items-center gap-1 rounded-full bg-apple-green/15 text-apple-green px-2 py-0.5 apple-text-caption2 font-medium">
                         <Zap className="w-3 h-3" />
-                        <span className="text-[10px] font-black uppercase tracking-tight">Rápida</span>
-                      </div>
+                        Rápida
+                      </span>
                     )}
                   </div>
                 )}
               </div>
 
-              <div className="flex items-center gap-2 sm:gap-3 flex-shrink-0">
+              <div className="flex items-center gap-2 flex-shrink-0">
                 {/* Botón compartir recibo */}
                 <div className="relative">
-                  <Button
-                    variant="outline"
-                    size="icon"
+                  <button
                     onClick={() => setShowShareMenu(v => !v)}
                     aria-label="Compartir recibo"
-                    className="w-10 h-10 rounded-full border border-violet-500/30 bg-white/5 text-violet-400 hover:bg-violet-500/10 hover:border-violet-500/50 transition-all duration-300"
                     title="Compartir recibo"
+                    className="apple-press w-10 h-10 rounded-full bg-apple-purple/12 text-apple-purple flex items-center justify-center apple-focusable"
                   >
-                    <Share2 className="w-4 h-4" />
-                  </Button>
+                    <Share2 className="w-[18px] h-[18px]" />
+                  </button>
                   {showShareMenu && (
                     <>
                       <div className="fixed inset-0 z-40" onClick={() => setShowShareMenu(false)} />
-                      <div className="absolute right-0 top-12 z-50 min-w-[200px] rounded-2xl bg-[#0e0e0e] border border-white/10 shadow-2xl shadow-black/60 overflow-hidden">
-                        <p className="text-[9px] font-black text-white/25 uppercase tracking-widest px-3 pt-2.5 pb-1">Compartir recibo</p>
+                      <div
+                        className="absolute right-0 top-12 z-50 min-w-[220px] rounded-apple-md apple-surface-elevated overflow-hidden animate-apple-scale-in shadow-apple-xl"
+                        style={{ border: "0.5px solid rgb(var(--separator) / 0.29)" }}
+                      >
+                        <p className="apple-text-caption1 apple-label-secondary uppercase tracking-wide px-4 pt-3 pb-1">Compartir recibo</p>
                         {/* WhatsApp */}
                         {order?.customer_phone && (() => {
                           const url  = `${window.location.origin}/Receipt?order_id=${order.id}`;
@@ -2947,7 +2948,7 @@ export default function WorkOrderPanel({ orderId, onClose, onUpdate, onDelete, p
                           return (
                             <a href={wa} target="_blank" rel="noopener noreferrer"
                               onClick={() => setShowShareMenu(false)}
-                              className="flex items-center gap-3 px-4 py-2.5 hover:bg-white/[0.06] transition-colors text-sm text-white/80">
+                              className="apple-press flex items-center gap-3 px-4 py-3 apple-text-body apple-label-primary">
                               <span className="text-base">💬</span> WhatsApp
                             </a>
                           );
@@ -2960,81 +2961,89 @@ export default function WorkOrderPanel({ orderId, onClose, onUpdate, onDelete, p
                           return (
                             <a href={`mailto:${order.customer_email}?subject=${subj}&body=${body}`}
                               onClick={() => setShowShareMenu(false)}
-                              className="flex items-center gap-3 px-4 py-2.5 hover:bg-white/[0.06] transition-colors text-sm text-white/80">
-                              <Mail className="w-4 h-4 text-blue-400" /> Email
+                              className="apple-press flex items-center gap-3 px-4 py-3 apple-text-body apple-label-primary">
+                              <Mail className="w-[18px] h-[18px] text-apple-blue" /> Email
                             </a>
                           );
                         })()}
                         {/* Imprimir */}
                         <button
                           onClick={() => { setShowShareMenu(false); window.open(`${window.location.origin}/Receipt?order_id=${order.id}&print=1`, "_blank"); }}
-                          className="w-full flex items-center gap-3 px-4 py-2.5 hover:bg-white/[0.06] transition-colors text-sm text-white/80">
-                          <Printer className="w-4 h-4 text-white/40" /> Imprimir recibo
+                          className="apple-press w-full flex items-center gap-3 px-4 py-3 apple-text-body apple-label-primary">
+                          <Printer className="w-[18px] h-[18px] apple-label-secondary" /> Imprimir recibo
                         </button>
                         {/* Ver recibo */}
                         <button
                           onClick={() => { setShowShareMenu(false); window.open(`${window.location.origin}/Receipt?order_id=${order.id}`, "_blank"); }}
-                          className="w-full flex items-center gap-3 px-4 py-2.5 hover:bg-white/[0.06] transition-colors text-sm text-white/80">
-                          <FileText className="w-4 h-4 text-white/40" /> Ver recibo
+                          className="apple-press w-full flex items-center gap-3 px-4 py-3 apple-text-body apple-label-primary">
+                          <FileText className="w-[18px] h-[18px] apple-label-secondary" /> Ver recibo
                         </button>
                         {/* Copiar link */}
                         <button
                           onClick={() => { navigator.clipboard.writeText(`${window.location.origin}/Receipt?order_id=${order.id}`); setShowShareMenu(false); }}
-                          className="w-full flex items-center gap-3 px-4 pb-3 pt-1 hover:bg-white/[0.06] transition-colors text-sm text-white/40 border-t border-white/[0.06] mt-1">
+                          className="apple-press w-full flex items-center gap-3 px-4 py-3 apple-text-footnote apple-label-secondary"
+                          style={{ borderTop: "0.5px solid rgb(var(--separator) / 0.29)" }}>
                           <span className="text-base">🔗</span> Copiar link
                         </button>
                       </div>
                     </>
                   )}
                 </div>
-                
-                <Button
-                  variant="outline"
-                  size="icon"
+
+                <button
                   onClick={handleRequestDelete}
                   disabled={deleting}
                   aria-label="Eliminar orden"
-                  className="w-10 h-10 rounded-full border border-white/10 bg-white/5 text-white/60 hover:text-red-400 hover:bg-red-500/10 hover:border-red-500/30 transition-all duration-300"
+                  className="apple-press w-10 h-10 rounded-full bg-apple-red/10 text-apple-red flex items-center justify-center disabled:opacity-40 apple-focusable"
                 >
-                  <Trash2 className="w-4 h-4" />
-                </Button>
+                  <Trash2 className="w-[18px] h-[18px]" />
+                </button>
               </div>
             </div>
           </div>
 
           {loading && !order ?
-          <div className="flex-1 flex items-center justify-center">
-              <div className="text-center">
-                <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-red-500 mx-auto mb-4"></div>
-                <p className="text-white text-lg theme-light:text-gray-900">Cargando orden...</p>
+          <div className="flex-1 flex items-center justify-center apple-type">
+              <div className="text-center space-y-3">
+                <div className="animate-spin rounded-full h-10 w-10 border-[3px] border-apple-blue border-t-transparent mx-auto"></div>
+                <p className="apple-text-callout apple-label-secondary">Cargando orden…</p>
               </div>
             </div> :
           loadError ?
-          <div className="flex-1 flex items-center justify-center p-4">
-              <div className="bg-[#0F0F12] rounded-lg p-6 sm:p-8 border border-white/10 max-w-md w-full theme-light:bg-white theme-light:border-gray-200">
-                <div className="text-center">
-                  <p className="text-red-400 text-base sm:text-lg mb-4 theme-light:text-red-600">{loadError}</p>
-                  <Button onClick={handleClose} className="bg-red-600 hover:bg-red-700">
+          <div className="flex-1 flex items-center justify-center p-4 apple-type">
+              <div className="apple-card p-6 max-w-md w-full">
+                <div className="text-center space-y-4">
+                  <div className="w-14 h-14 rounded-full bg-apple-red/15 flex items-center justify-center mx-auto">
+                    <AlertTriangle className="w-6 h-6 text-apple-red" />
+                  </div>
+                  <p className="apple-text-callout text-apple-red">{loadError}</p>
+                  <button onClick={handleClose} className="apple-btn apple-btn-secondary apple-btn-lg">
                     Cerrar
-                  </Button>
+                  </button>
                 </div>
               </div>
             </div> :
           !order ?
-          <div className="flex-1 flex items-center justify-center p-4">
-              <div className="bg-[#0F0F12] rounded-lg p-6 sm:p-8 border border-white/10 max-w-md w-full theme-light:bg-white theme-light:border-gray-200">
-                <div className="text-center">
-                  <p className="text-red-400 text-base sm:text-lg mb-4 theme-light:text-red-600">Orden no disponible o no encontrada.</p>
-                  <Button onClick={handleClose} className="bg-red-600 hover:bg-red-700">
+          <div className="flex-1 flex items-center justify-center p-4 apple-type">
+              <div className="apple-card p-6 max-w-md w-full">
+                <div className="text-center space-y-4">
+                  <div className="w-14 h-14 rounded-full bg-apple-red/15 flex items-center justify-center mx-auto">
+                    <AlertTriangle className="w-6 h-6 text-apple-red" />
+                  </div>
+                  <p className="apple-text-callout apple-label-primary">Orden no disponible o no encontrada.</p>
+                  <button onClick={handleClose} className="apple-btn apple-btn-secondary apple-btn-lg">
                     Cerrar
-                  </Button>
+                  </button>
                 </div>
               </div>
             </div> : <div className="flex-1 overflow-hidden">
             {/* DESKTOP: 2 columns */}
             <div className="hidden lg:grid lg:grid-cols-[200px_1fr] h-full">
               {/* LEFT: Action sidebar */}
-              <div className="overflow-y-auto border-r border-white/[0.06] p-3 bg-[#0D0D0F]">
+              <div
+                className="overflow-y-auto p-3 apple-surface-secondary"
+                style={{ borderRight: "0.5px solid rgb(var(--separator) / 0.29)" }}
+              >
                 <WOActionSidebar
                   order={o}
                   status={status}

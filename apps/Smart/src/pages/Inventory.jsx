@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
+import { cn } from "@/lib/utils";
 import {
   Search, Plus, Smartphone, Tablet, Laptop, AlertTriangle,
   FileText, Upload, Trash2, Edit, ChevronLeft, ChevronRight,
@@ -131,11 +132,11 @@ function InventoryCard({ item, onEdit, onDelete, onSelect, isSelected, onQuickAd
   let stockBadge = null;
   if (!isService) {
     if (stockNum <= 0) {
-      stockBadge = { label: "Agotado", sub: null, bg: "bg-red-500/15 border-red-500/30", text: "text-red-400" };
+      stockBadge = { label: "Agotado", sub: null, bg: "bg-apple-red/15", text: "text-apple-red" };
     } else if (minStockNum > 0 && stockNum <= minStockNum) {
-      stockBadge = { label: String(stockNum), sub: "Bajo", bg: "bg-amber-500/15 border-amber-500/30", text: "text-amber-400" };
+      stockBadge = { label: String(stockNum), sub: "Bajo", bg: "bg-apple-orange/15", text: "text-apple-orange" };
     } else {
-      stockBadge = { label: String(stockNum), sub: "ajustar ▾", bg: "bg-emerald-500/10 border-emerald-500/25", text: "text-emerald-400" };
+      stockBadge = { label: String(stockNum), sub: "ajustar ▾", bg: "bg-apple-green/12", text: "text-apple-green" };
     }
   }
 
@@ -149,36 +150,41 @@ function InventoryCard({ item, onEdit, onDelete, onSelect, isSelected, onQuickAd
 
   return (
     <div
-      className={`group relative bg-[#111114]/70 backdrop-blur-xl border rounded-[24px] p-4 flex flex-col gap-3 cursor-pointer transition-all duration-200 active:scale-[0.98] hover:bg-[#111114]/90 ${
-        isSelected ? 'border-cyan-500/60 ring-2 ring-cyan-500/20' : 'border-white/[0.07] hover:border-white/15'
-      }`}
+      className={cn(
+        "apple-card apple-card-interactive apple-type apple-press group relative p-4 flex flex-col gap-3 cursor-pointer",
+        isSelected && "ring-2 ring-apple-blue/70"
+      )}
       onClick={() => onSelect?.(item)}
     >
       {/* Selection dot */}
-      <div className={`absolute top-3.5 left-3.5 w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all ${
-        isSelected ? 'bg-cyan-500 border-cyan-500 scale-110' : 'border-white/15 group-hover:border-white/30'
-      }`}>
+      <div className={cn(
+        "absolute top-3.5 left-3.5 w-5 h-5 rounded-full flex items-center justify-center transition-all",
+        isSelected ? "bg-apple-blue" : "border-2 border-[rgb(var(--separator-opaque))]"
+      )}>
         {isSelected && <CheckSquare className="w-3 h-3 text-white" />}
       </div>
 
-      {/* Actions */}
+      {/* Actions (aparecen en hover) */}
       <div className="absolute top-3 right-3 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
         <button
           onClick={e => { e.stopPropagation(); onSelect?.(item, true); }}
-          className="w-7 h-7 rounded-xl bg-orange-500/15 border border-orange-500/20 flex items-center justify-center text-orange-400 hover:bg-orange-500/25 transition-all"
-          title="Configurar Oferta"
+          className="apple-press w-7 h-7 rounded-full bg-apple-orange/15 text-apple-orange flex items-center justify-center"
+          title="Configurar oferta"
+          aria-label="Oferta"
         >
           <Tag className="w-3.5 h-3.5" />
         </button>
         <button
           onClick={e => { e.stopPropagation(); onEdit(item); }}
-          className="w-7 h-7 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-white/50 hover:text-white hover:bg-white/10 transition-all"
+          className="apple-press w-7 h-7 rounded-full bg-apple-blue/15 text-apple-blue flex items-center justify-center"
+          aria-label="Editar"
         >
           <Edit className="w-3.5 h-3.5" />
         </button>
         <button
           onClick={e => { e.stopPropagation(); onDelete(item); }}
-          className="w-7 h-7 rounded-xl bg-red-500/10 border border-red-500/15 flex items-center justify-center text-red-400 hover:bg-red-500/20 transition-all"
+          className="apple-press w-7 h-7 rounded-full bg-apple-red/15 text-apple-red flex items-center justify-center"
+          aria-label="Eliminar"
         >
           <Trash2 className="w-3.5 h-3.5" />
         </button>
@@ -186,20 +192,20 @@ function InventoryCard({ item, onEdit, onDelete, onSelect, isSelected, onQuickAd
 
       {/* Name + badges */}
       <div className="pl-7 pr-16">
-        <p className="font-bold text-white text-[15px] leading-snug truncate">{item.name || "—"}</p>
+        <p className="apple-text-headline apple-label-primary truncate">{item.name || "—"}</p>
         <div className="flex items-center gap-1.5 mt-1.5 flex-wrap">
           {item.device_category && (
-            <span className="text-[10px] px-2 py-0.5 rounded-full bg-cyan-500/15 text-cyan-400 border border-cyan-500/20 font-bold">
+            <span className="apple-text-caption2 font-medium px-2 py-0.5 rounded-full bg-apple-blue/12 text-apple-blue">
               {item.device_category}
             </span>
           )}
           {item.part_type && item.part_type !== 'servicio' && (
-            <span className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/15 font-bold">
+            <span className="apple-text-caption2 font-medium px-2 py-0.5 rounded-full bg-apple-green/15 text-apple-green">
               {item.part_type}
             </span>
           )}
           {isService && (
-            <span className="text-[10px] px-2 py-0.5 rounded-full bg-orange-500/10 text-orange-400 border border-orange-500/15 font-bold">
+            <span className="apple-text-caption2 font-medium px-2 py-0.5 rounded-full bg-apple-orange/15 text-apple-orange">
               Servicio
             </span>
           )}
@@ -210,17 +216,20 @@ function InventoryCard({ item, onEdit, onDelete, onSelect, isSelected, onQuickAd
       <DiscountBadge product={item} />
 
       {/* Price + stock row */}
-      <div className="flex items-end justify-between gap-3 pt-2 border-t border-white/[0.05]">
+      <div
+        className="flex items-end justify-between gap-3 pt-2.5"
+        style={{ borderTop: "0.5px solid rgb(var(--separator) / 0.20)" }}
+      >
         <div>
           <div className="flex items-baseline gap-1.5">
-            <p className="text-xl font-black text-white">{money(price)}</p>
+            <p className="apple-text-title3 apple-label-primary tabular-nums">{money(price)}</p>
             {priceInfo.originalPrice != null && priceInfo.originalPrice !== price && (
-              <p className="text-xs text-white/30 line-through">{money(priceInfo.originalPrice)}</p>
+              <p className="apple-text-caption1 apple-label-tertiary line-through tabular-nums">{money(priceInfo.originalPrice)}</p>
             )}
           </div>
-          <p className="text-[11px] text-white/30 mt-0.5">
+          <p className="apple-text-caption1 apple-label-secondary mt-0.5 tabular-nums">
             Costo {money(cost)} ·{" "}
-            <span className={profit >= 0 ? 'text-emerald-400/70' : 'text-red-400/70'}>
+            <span className={profit >= 0 ? "text-apple-green" : "text-apple-red"}>
               {profit >= 0 ? "+" : ""}{margin}%
             </span>
           </p>
@@ -228,19 +237,22 @@ function InventoryCard({ item, onEdit, onDelete, onSelect, isSelected, onQuickAd
         {stockBadge && (
           <button
             onClick={e => { e.stopPropagation(); onQuickAdjust?.(item); }}
-            className={`px-3 py-1.5 rounded-2xl border text-center min-w-[56px] transition-all hover:scale-105 active:scale-95 ${stockBadge.bg}`}
+            className={cn(
+              "apple-press px-3 py-1.5 rounded-full text-center min-w-[56px]",
+              stockBadge.bg
+            )}
             title="Toca para ajustar stock rápido"
           >
-            <p className={`text-base font-black leading-none ${stockBadge.text}`}>{stockBadge.label}</p>
+            <p className={cn("apple-text-body font-semibold leading-tight tabular-nums", stockBadge.text)}>{stockBadge.label}</p>
             {stockBadge.sub && (
-              <p className="text-[9px] text-white/25 font-bold mt-0.5">{stockBadge.sub}</p>
+              <p className="apple-text-caption2 apple-label-tertiary mt-0.5">{stockBadge.sub}</p>
             )}
           </button>
         )}
       </div>
 
       {Array.isArray(item.compatibility_models) && item.compatibility_models.length > 0 && (
-        <p className="text-[10px] text-white/25 truncate">
+        <p className="apple-text-caption1 apple-label-tertiary truncate">
           Compatible: {item.compatibility_models.join(", ")}
         </p>
       )}
