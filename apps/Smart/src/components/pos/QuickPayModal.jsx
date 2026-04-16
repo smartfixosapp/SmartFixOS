@@ -45,6 +45,15 @@ export default function QuickPayModal({ order, paymentMode = "full", onClose, on
   const [athMovilPhone, setAthMovilPhone] = useState("");
   const [athMovilName, setAthMovilName] = useState("");
   const [depositAmount, setDepositAmount] = useState("");
+
+  // 📞 Auto-rellenar Teléfono y Nombre del pagador con datos del cliente de la orden
+  useEffect(() => {
+    const custName = order?.customer_name || "";
+    const custPhone = order?.customer_phone || order?.phone || "";
+    if (custName) setAthMovilName((prev) => prev || custName);
+    if (custPhone) setAthMovilPhone((prev) => prev || custPhone);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [order?.id, order?.customer_id]);
   const [processing, setProcessing] = useState(false);
   const [taxEnabled, setTaxEnabled] = useState(true);
   const [taxRate, setTaxRate] = useState(0.115);
