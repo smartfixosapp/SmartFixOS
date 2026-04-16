@@ -1566,6 +1566,23 @@ export default function WorkOrderPanel({ orderId, onClose, onUpdate, onDelete, p
 
     try {
       const deviceLine = `${order.device_brand || ""} ${order.device_family || ""} ${order.device_model || ""}`.trim();
+
+      // 💰 Cálculo financiero: total / pagado / balance (mismo método que el resumen de la orden)
+      const _amountTotal = Number(
+        order.total_amount != null
+          ? order.total_amount
+          : order.estimated_cost != null
+          ? order.estimated_cost
+          : order.total != null
+          ? order.total
+          : 0
+      );
+      const _totalPaid = Number(order.amount_paid ?? order.total_paid ?? order.deposit_amount ?? 0);
+      const _balance =
+        order.balance_due != null
+          ? Math.max(0, Number(order.balance_due || 0))
+          : Math.max(0, _amountTotal - _totalPaid);
+
       // [Email] log removed for perf
       const result = await sendTemplatedEmail({
         event_type: newStatusId,
@@ -1576,7 +1593,10 @@ export default function WorkOrderPanel({ orderId, onClose, onUpdate, onDelete, p
           device_info: deviceLine || order.device_type || "tu equipo",
           checklist_items: Array.isArray(order.checklist_items) ? order.checklist_items : [],
           photos_metadata: Array.isArray(order.photos_metadata) ? order.photos_metadata : [],
-          initial_problem: order.initial_problem || ""
+          initial_problem: order.initial_problem || "",
+          amount: _amountTotal,
+          total_paid: _totalPaid,
+          balance: _balance
         }
       });
       // log removed for perf
