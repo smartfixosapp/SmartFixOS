@@ -525,6 +525,16 @@ export default function POSMobile() {
     toast.info("Carrito vaciado");
   };
 
+  // 📞 Auto-rellenar Teléfono y Nombre del pagador con datos del cliente cuando se abre el modal de cobro
+  useEffect(() => {
+    if (!showPaymentModal) return;
+    const custName = selectedCustomer?.name || selectedOrder?.customer_name || "";
+    const custPhone = selectedCustomer?.phone || selectedOrder?.customer_phone || "";
+    if (custName && !athMovilName) setAthMovilName(custName);
+    if (custPhone && !athMovilPhone) setAthMovilPhone(custPhone);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [showPaymentModal, selectedCustomer?.id, selectedOrder?.id]);
+
   const safeCart = (Array.isArray(cart) ? cart : []).filter((item) => item && typeof item === "object");
   const subtotal = safeCart.reduce((sum, item) => sum + (Number(item.price || 0) * Number(item.quantity || 0)), 0);
   const taxableSubtotal = safeCart.reduce((sum, item) => sum + (item.taxable !== false ? Number(item.price || 0) * Number(item.quantity || 0) : 0), 0);
