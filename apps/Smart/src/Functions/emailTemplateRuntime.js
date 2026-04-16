@@ -367,6 +367,7 @@ export async function sendTemplatedEmailWithBase44(base44, { event_type, order_d
             ${variables.order_number ? `<div style="margin-bottom: 24px;"><p style="color: #6B7280; font-size: 12px; font-weight: 700; margin: 0 0 6px 0;">ORDEN</p><p style="color: #111827; font-size: 24px; font-weight: 800; margin: 0;">${variables.order_number}</p></div>` : ""}
             ${variables.device_info ? `<div><p style="color: #6B7280; font-size: 12px; font-weight: 700; margin: 0 0 6px 0;">EQUIPO</p><p style="color: #111827; font-size: 18px; font-weight: 600; margin: 0;">${variables.device_info}</p></div>` : ""}
           </div>
+          ${pickupAmountHTML}
           ${paymentSummaryHTML}
           ${nextStepsHTML}${hoursHTML}${checklistHTML}${photosHTML}${warrantyHTML}${reviewHTML}
           ${template.main_message ? `<p style="color: #374151; line-height: 1.8; font-size: 16px; margin: 20px 0;">${interpolate(template.main_message, variables)}</p>` : ""}
