@@ -13,16 +13,15 @@ export default defineConfig({
     VitePWA({
       registerType: 'autoUpdate',
       includeAssets: ['favicon.ico', 'icons/*.png'],
-      manifest: false, // usamos el manifest.json de /public
+      manifest: false,
       selfDestroying: false,
       workbox: {
-        cacheId: 'sfos-v4', // bump to bust stale SW caches
+        cacheId: 'sfos-v5',
         clientsClaim: true,
         skipWaiting: true,
-        // html excluded: index.html must always come from network (never SW cache)
         globPatterns: ['**/*.{js,css,ico,png,svg,woff2}'],
         cleanupOutdatedCaches: true,
-        navigateFallback: null, // don't intercept navigation requests
+        navigateFallback: null,
         maximumFileSizeToCacheInBytes: 5 * 1024 * 1024, // 5 MiB
         runtimeCaching: [
           // Supabase API — Network First (datos siempre frescos)
