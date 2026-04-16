@@ -3112,14 +3112,14 @@ Reglas:
           }}
         >
           <DialogPrimitive.Content
-            className={`pointer-events-auto p-0 border overflow-hidden flex flex-col relative outline-none bg-[#090909] shadow-[0_24px_100px_rgba(0,0,0,0.8)] ${
+            className={`apple-type pointer-events-auto p-0 overflow-hidden flex flex-col relative outline-none apple-surface shadow-apple-2xl ${
               quickOrderMode
-                ? "border-amber-400/30"
-                : "border-white/10"
+                ? "ring-1 ring-apple-orange/30"
+                : ""
             } ${
               isCompactDevice
                 ? "max-w-3xl w-[100vw] h-[100dvh] rounded-none"
-                : "max-w-none w-[min(96vw,1440px)] h-[min(94dvh,1100px)] rounded-[32px]"
+                : "max-w-none w-[min(96vw,1440px)] h-[min(94dvh,1100px)] rounded-apple-2xl"
             }`}
             onInteractOutside={(e) => e.preventDefault()}
             onPointerDownOutside={(e) => e.preventDefault()}
@@ -3131,76 +3131,83 @@ Reglas:
         {isCompactDevice && (
           <div style={{ height: "env(safe-area-inset-top, 0px)" }} />
         )}
-        {/* Fondos animados (Eliminados para evitar transparencias) */}
-        
-        <div className={`flex items-center justify-between border-b border-white/[0.08] relative z-10 ${
-          quickOrderMode
-            ? "bg-[#1A1608]"
-            : "bg-white/[0.03]"
-        } ${
-          isCompactDevice ? "px-4 py-3" : "px-8 py-5"
-        }`}>
-          <div className="flex items-center gap-3 sm:gap-6">
-            <div className={`${isCompactDevice ? "w-11 h-11 rounded-[16px]" : "w-14 h-14 rounded-[22px]"} ${
-              quickOrderMode
-                ? "bg-gradient-to-br from-amber-400 to-yellow-600"
-                : "bg-gradient-to-br from-cyan-400 to-blue-600"
-            } flex items-center justify-center shadow-lg`}>
-              <Wrench className={`${isCompactDevice ? "w-5 h-5" : "w-7 h-7"} text-white`} strokeWidth={2.5} />
+
+        {/* Header estilo iOS — large title + icono squircle + close */}
+        <div
+          className={`flex items-center justify-between relative z-10 ${
+            quickOrderMode ? "bg-apple-orange/[0.06]" : "apple-surface-secondary"
+          } ${
+            isCompactDevice ? "px-4 py-3" : "px-8 py-5"
+          }`}
+          style={{ borderBottom: "0.5px solid rgb(var(--separator) / 0.29)" }}
+        >
+          <div className="flex items-center gap-3 sm:gap-4">
+            <div
+              className={`${isCompactDevice ? "w-11 h-11" : "w-14 h-14"} rounded-apple-md flex items-center justify-center ${
+                quickOrderMode ? "bg-apple-orange" : "bg-apple-blue"
+              }`}
+            >
+              <Wrench className={`${isCompactDevice ? "w-5 h-5" : "w-7 h-7"} text-white`} strokeWidth={2} />
             </div>
             <div>
-              <h2 className={`${isCompactDevice ? "text-xl" : "text-2xl"} font-black text-white tracking-tighter uppercase`}>Nueva Orden</h2>
+              <h2 className={`${isCompactDevice ? "apple-text-title2" : "apple-text-title1"} apple-label-primary`}>Nueva orden</h2>
               {!isCompactDevice && (
-                <div className="flex items-center gap-2 mt-0.5">
-                  <div className="h-1.5 w-1.5 rounded-full bg-cyan-500" />
-                  <p className="text-[11px] font-black uppercase tracking-[0.2em] text-white/40">Portal de Ingreso</p>
+                <div className="flex items-center gap-1.5 mt-0.5">
+                  <div className="h-1.5 w-1.5 rounded-full bg-apple-green" />
+                  <p className="apple-text-footnote apple-label-secondary">
+                    {quickOrderMode ? "Portal rápido" : "Portal de ingreso"}
+                  </p>
                 </div>
               )}
             </div>
           </div>
           <button
             onClick={onClose}
-            className={`${isCompactDevice ? "w-9 h-9" : "w-11 h-11"} rounded-full bg-white/5 border border-white/10 transition-all hover:bg-white/10 active:scale-95 group flex items-center justify-center`}
+            className={`apple-press ${isCompactDevice ? "w-9 h-9" : "w-11 h-11"} rounded-full bg-gray-sys6 dark:bg-gray-sys5 flex items-center justify-center apple-label-secondary hover:apple-label-primary transition-colors`}
+            aria-label="Cerrar"
           >
-            <X className={`${isCompactDevice ? "w-4 h-4" : "w-5 h-5"} text-white/60 group-hover:text-white`} />
+            <X className={`${isCompactDevice ? "w-4 h-4" : "w-5 h-5"}`} />
           </button>
         </div>
 
         {!isCompactDevice && !jenaiMode && (
-        <div className={`relative z-10 border-b px-8 py-3 transition-all duration-500 ${
-          quickOrderMode
-            ? "border-amber-500/20 bg-amber-500/[0.04]"
-            : "border-white/[0.05] bg-white/[0.01]"
-        }`}>
-          {/* Orden Rapida toggle */}
+        <div
+          className="relative z-10 px-8 py-3 transition-all duration-500"
+          style={{
+            borderBottom: "0.5px solid rgb(var(--separator) / 0.29)",
+            backgroundColor: quickOrderMode ? "rgb(var(--apple-orange) / 0.05)" : "transparent",
+          }}
+        >
+          {/* Orden rápida toggle — estilo iOS list row */}
           <button
             type="button"
             onClick={() => { setQuickOrderMode(prev => !prev); }}
-            className={`w-full group rounded-[20px] border transition-all duration-500 ${
+            className={`w-full rounded-apple-md transition-colors duration-300 ${
               quickOrderMode
-                ? "border-amber-400/30 bg-gradient-to-r from-amber-500/15 to-yellow-500/10 shadow-[0_0_20px_rgba(245,158,11,0.08)]"
-                : "border-white/[0.05] bg-white/[0.02] hover:bg-white/[0.04]"
+                ? "bg-apple-orange/12"
+                : "bg-gray-sys6 dark:bg-gray-sys5"
             }`}
           >
             <div className="p-3 flex items-center gap-3">
-              <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl transition-all duration-500 ${
-                quickOrderMode ? "bg-gradient-to-br from-amber-400 to-yellow-500 text-white shadow-lg shadow-amber-500/25" : "bg-white/5 text-white/30"
+              <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-apple-sm transition-colors duration-300 ${
+                quickOrderMode ? "bg-apple-orange text-white" : "bg-gray-sys4 dark:bg-gray-sys3 apple-label-tertiary"
               }`}>
-                <Zap className="h-5 w-5" strokeWidth={2.5} />
+                <Zap className="h-5 w-5" strokeWidth={2} />
               </div>
               <div className="text-left flex-1">
-                <p className={`text-xs font-black uppercase tracking-wider transition-colors ${quickOrderMode ? "text-amber-200" : "text-white"}`}>
-                  {quickOrderMode ? "Modo: Orden Rapida" : "Modo: Orden Regular"}
+                <p className={`apple-text-headline font-semibold transition-colors ${quickOrderMode ? "text-apple-orange" : "apple-label-primary"}`}>
+                  {quickOrderMode ? "Orden rápida" : "Orden regular"}
                 </p>
-                <p className={`text-[10px] transition-colors ${quickOrderMode ? "text-amber-300/50" : "text-white/35"}`}>
-                  {quickOrderMode ? "Cambio directo · sin diagnostico" : "Diagnostico completo · click para cambiar"}
+                <p className="apple-text-footnote apple-label-secondary transition-colors">
+                  {quickOrderMode ? "Cambio directo · sin diagnóstico" : "Diagnóstico completo · toca para cambiar"}
                 </p>
               </div>
-              <div className={`w-11 h-6 rounded-full transition-all duration-300 flex items-center px-0.5 ${
-                quickOrderMode ? "bg-amber-500" : "bg-white/15"
+              {/* iOS switch 51×31 */}
+              <div className={`relative w-[51px] h-[31px] rounded-full transition-colors duration-200 flex-shrink-0 ${
+                quickOrderMode ? "bg-apple-orange" : "bg-gray-sys4 dark:bg-gray-sys4"
               }`}>
-                <div className={`w-5 h-5 rounded-full bg-white shadow-sm transition-all duration-300 ${
-                  quickOrderMode ? "translate-x-5" : "translate-x-0"
+                <div className={`absolute top-0.5 w-[27px] h-[27px] rounded-full bg-white shadow-apple-sm transition-transform duration-200 ${
+                  quickOrderMode ? "translate-x-[22px]" : "translate-x-0.5"
                 }`} />
               </div>
             </div>
