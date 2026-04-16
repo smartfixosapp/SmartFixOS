@@ -134,6 +134,49 @@ export async function sendTemplatedEmailWithBase44(base44, { event_type, order_d
   const alertColor = getAlertColorForStatus(event_type);
   const variables = buildVariables(order_data);
 
+  // 💰 Bloque de "Monto a Pagar al Recoger" — se muestra en ready_for_pickup cuando hay balance o monto
+  const pickupAmountHTML = (() => {
+    if (event_type !== 'ready_for_pickup') return '';
+    const amountNum = parseFloat(variables.amount || '0') || 0;
+    const paidNum = parseFloat(variables.total_paid || '0') || 0;
+    const balanceNum = variables.balance !== ''
+      ? (parseFloat(variables.balance) || 0)
+      : Math.max(0, amountNum - paidNum);
+    if (!amountNum && !balanceNum && !paidNum) return '';
+    const isPaid = balanceNum <= 0.01;
+    const rows = [];
+    if (amountNum > 0) rows.push({ label: 'Total de la reparación', value: `$${amountNum.toFixed(2)}` });
+    if (paidNum > 0) rows.push({ label: 'Ya pagado', value: `$${paidNum.toFixed(2)}`, color: '#059669' });
+    rows.push({
+      label: isPaid ? 'Estado' : 'Balance a pagar al recoger',
+      value: isPaid ? '✅ Totalmente pagado' : `$${balanceNum.toFixed(2)}`,
+      highlight: true,
+      color: isPaid ? '#059669' : '#DC2626'
+    });
+    const rowsHTML = rows.map((row, idx) => {
+      const isLast = idx === rows.length - 1;
+      const valueColor = row.color || (row.highlight ? '#111827' : '#374151');
+      const valueFontWeight = row.highlight ? '800' : '600';
+      const valueFontSize = row.highlight ? '22px' : '16px';
+      return `<div style="display:flex;justify-content:space-between;align-items:center;padding:16px 22px;${isLast ? '' : 'border-bottom:1px solid #F3F4F6;'}">
+        <span style="color:#6B7280;font-size:14px;font-weight:600;">${row.label}</span>
+        <span style="color:${valueColor};font-size:${valueFontSize};font-weight:${valueFontWeight};">${row.value}</span>
+      </div>`;
+    }).join('');
+    const headerTitle = isPaid ? '✅ Tu orden está saldada' : '💰 Monto a Pagar al Recoger';
+    const headerColor = isPaid ? '#065F46' : '#92400E';
+    const bgGradient = isPaid
+      ? 'linear-gradient(135deg,#F0FDF4 0%,#ECFDF5 100%)'
+      : 'linear-gradient(135deg,#FFFBEB 0%,#FEF3C7 100%)';
+    const borderColor = isPaid ? '#10B981' : '#F59E0B';
+    return `
+    <div style="background:${bgGradient};border-radius:16px;padding:28px;margin:30px 0;border:2px solid ${borderColor};">
+      <p style="font-size:20px;font-weight:800;color:${headerColor};margin:0 0 20px 0;text-align:center;">${headerTitle}</p>
+      <div style="background:white;border-radius:12px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,0.06);">${rowsHTML}</div>
+      ${!isPaid ? `<p style="color:#92400E;font-size:13px;text-align:center;margin:16px 0 0 0;font-style:italic;">Por favor trae este monto al momento de recoger tu equipo.</p>` : ''}
+    </div>`;
+  })();
+
   // Bloque de desglose financiero — solo para eventos de pago
   const PAYMENT_EVENT_TYPES = new Set(['deposit_received', 'payment_received', 'sale_completed', 'refund_processed']);
   const paymentSummaryHTML = PAYMENT_EVENT_TYPES.has(event_type) ? (() => {
