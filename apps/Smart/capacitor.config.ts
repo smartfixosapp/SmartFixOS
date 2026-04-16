@@ -17,7 +17,12 @@ const config: CapacitorConfig = {
     ],
   },
   ios: {
-    contentInset: 'automatic',
+    // 'never' → el WebView se extiende edge-to-edge incluyendo bajo el
+    // home indicator. El tab bar usa env(safe-area-inset-bottom) para
+    // dejar espacio respirable. (Antes: 'automatic' causaba un gap negro
+    // nativo bajo el tab bar porque el WebView terminaba arriba del
+    // home indicator).
+    contentInset: 'never',
     allowsLinkPreview: false,
   },
   plugins: {

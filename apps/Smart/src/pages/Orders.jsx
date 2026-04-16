@@ -128,36 +128,34 @@ const OrderCard = React.memo(function OrderCard({ order, onClick, onEditDevice }
       onClick={onClick}
       onKeyDown={(e) => e.key === 'Enter' && onClick()}
       className={cn(
-        "group relative w-full overflow-hidden rounded-[24px] border p-4 transition-all duration-300 cursor-pointer",
-        "bg-[#121215]/40 backdrop-blur-2xl border-white/[0.06] hover:border-white/20 hover:bg-[#16161a]/60",
-        "shadow-[0_4px_20px_rgba(0,0,0,0.3)] active:scale-[0.985]",
-        isB2B && "border-purple-500/20 hover:border-purple-500/40"
+        "apple-card apple-card-interactive apple-type apple-press w-full p-4 cursor-pointer",
+        isB2B && "ring-1 ring-apple-purple/30"
       )}
     >
-      <div className="relative z-10 flex flex-col gap-3">
+      <div className="flex flex-col gap-3">
         {/* Top row: icon + customer + status */}
         <div className="flex items-start gap-3">
           <div className={cn(
-            "flex h-11 w-11 shrink-0 items-center justify-center rounded-[16px] shadow-lg",
+            "flex h-11 w-11 shrink-0 items-center justify-center rounded-apple-sm",
             isB2B
-              ? "bg-gradient-to-br from-purple-500 to-indigo-600"
-              : "bg-gradient-to-br from-blue-500 to-cyan-600"
+              ? "bg-apple-purple/15 text-apple-purple"
+              : "bg-apple-blue/15 text-apple-blue"
           )}>
-            <DeviceIcon className="h-5 w-5 text-white" strokeWidth={2.5} />
+            <DeviceIcon className="h-5 w-5" strokeWidth={2} />
           </div>
 
           <div className="flex-1 min-w-0">
-            <h3 className="text-[15px] font-black text-white truncate leading-tight">
+            <h3 className="apple-text-headline apple-label-primary truncate leading-tight">
               {order.customer_name || "Cliente"}
-              {isB2B && <span className="ml-1 text-[11px]">🏢</span>}
+              {isB2B && <span className="ml-1 text-[13px]">🏢</span>}
             </h3>
-            <p className="text-[10px] text-white/30 font-medium truncate mt-0.5">
-              {deviceInfo || order.device_type || "Dispositivo"} · <span className="text-white/50">{order.order_number || "LOCAL"}</span>
+            <p className="apple-text-footnote apple-label-secondary truncate mt-0.5 tabular-nums">
+              {deviceInfo || order.device_type || "Dispositivo"} · <span className="apple-label-primary">{order.order_number || "LOCAL"}</span>
             </p>
           </div>
 
           <span className={cn(
-            "inline-flex items-center rounded-full px-2 py-0.5 text-[9px] font-black uppercase tracking-[0.08em] border shrink-0",
+            "inline-flex items-center rounded-full px-2 py-0.5 apple-text-caption2 font-semibold border-0 shrink-0",
             statusConfig.colorClasses
           )}>
             {statusConfig.label}
@@ -165,11 +163,11 @@ const OrderCard = React.memo(function OrderCard({ order, onClick, onEditDevice }
         </div>
 
         {/* Footer: age + tech + badges + phone */}
-        <div className="flex items-center justify-between gap-2 pt-2.5 border-t border-white/[0.05]">
+        <div className="flex items-center justify-between gap-2 pt-2.5" style={{ borderTop: "0.5px solid rgb(var(--separator) / 0.20)" }}>
           <div className="flex items-center gap-2 min-w-0 overflow-hidden">
-            <span className="text-[10px] font-bold text-white/25 shrink-0">{ageLabel}</span>
+            <span className="apple-text-caption1 apple-label-tertiary shrink-0">{ageLabel}</span>
             {assignedLabel && (
-              <span className="inline-flex items-center gap-1 rounded-lg border border-emerald-500/15 bg-emerald-500/5 px-2 py-0.5 text-emerald-400/80 text-[9px] font-black uppercase tracking-wide truncate max-w-[100px]">
+              <span className="inline-flex items-center gap-1 rounded-full bg-apple-green/15 px-2 py-0.5 text-apple-green apple-text-caption2 font-medium truncate max-w-[110px]">
                 <User className="h-2.5 w-2.5 shrink-0" />
                 <span className="truncate">{assignedLabel}</span>
               </span>
@@ -178,32 +176,32 @@ const OrderCard = React.memo(function OrderCard({ order, onClick, onEditDevice }
 
           <div className="flex items-center gap-2 shrink-0">
             {taskCount > 0 && (
-              <div className="flex items-center gap-0.5 text-emerald-400/50">
+              <div className="flex items-center gap-0.5 text-apple-green">
                 <CheckCircle2 className="w-3 h-3" />
-                <span className="text-[10px] font-black">{taskCount}</span>
+                <span className="apple-text-caption1 font-semibold tabular-nums">{taskCount}</span>
               </div>
             )}
             {photoCount > 0 && (
-              <div className="flex items-center gap-0.5 text-purple-400/50">
+              <div className="flex items-center gap-0.5 text-apple-purple">
                 <Camera className="w-3 h-3" />
-                <span className="text-[10px] font-black">{photoCount}</span>
+                <span className="apple-text-caption1 font-semibold tabular-nums">{photoCount}</span>
               </div>
             )}
             <CountdownBadge order={order} />
             {effectiveStatus === "warranty" && (
-              <div className="flex items-center gap-1 rounded-full bg-amber-500/20 text-amber-400 border border-amber-500/20 px-1.5 py-0.5">
+              <div className="flex items-center gap-1 rounded-full bg-apple-yellow/20 text-apple-yellow px-1.5 py-0.5">
                 <Shield className="w-3 h-3" />
-                <span className="text-[9px] font-black uppercase tracking-tight">Gtía</span>
+                <span className="apple-text-caption2 font-semibold">Gtía</span>
               </div>
             )}
             {phone && (
               <a
                 href={`tel:${phone}`}
                 onClick={e => e.stopPropagation()}
-                className="w-6 h-6 rounded-lg bg-white/[0.04] border border-white/10 flex items-center justify-center text-white/25 hover:text-white/70 hover:bg-white/10 transition-all active:scale-90"
+                className="apple-press w-7 h-7 rounded-full bg-apple-blue/10 flex items-center justify-center text-apple-blue"
                 title={phone}
               >
-                <Phone className="w-3 h-3" />
+                <Phone className="w-3.5 h-3.5" />
               </a>
             )}
           </div>
@@ -575,42 +573,47 @@ export default function OrdersPage() {
   return (
     <div
       ref={containerRef}
-      className="min-h-screen bg-[#0A0A0A] theme-light:bg-gray-50 pb-24 overflow-y-auto"
+      className="min-h-screen apple-surface apple-type pb-24 overflow-y-auto"
       style={{
         WebkitOverflowScrolling: "touch",
-        paddingTop: "6px"
+        paddingTop: "calc(env(safe-area-inset-top, 0px) + 6px)"
       }}
     >
       {/* Pull-to-refresh indicator */}
       {pullDistance > 0 && (
-        <div 
+        <div
           className="absolute top-0 left-0 right-0 flex justify-center py-2 z-50"
           style={{ transform: `translateY(${Math.min(pullDistance, 60)}px)` }}
         >
-          <RefreshCw className={`w-6 h-6 text-cyan-400 ${pullDistance > 60 ? 'animate-spin' : ''}`} />
+          <RefreshCw className={`w-6 h-6 text-apple-blue ${pullDistance > 60 ? 'animate-spin' : ''}`} />
         </div>
       )}
-      {/* Fondos animados flotantes */}
-      <div className="fixed -top-40 -right-40 w-96 h-96 bg-cyan-500/10 rounded-full blur-[120px] animate-pulse pointer-events-none" />
-      <div className="fixed -bottom-40 -left-40 w-96 h-96 bg-purple-500/10 rounded-full blur-[120px] animate-pulse delay-1000 pointer-events-none" />
-      
+
       {/* Contenido */}
-      <div className="max-w-[1920px] mx-auto px-3 sm:px-6 py-4 sm:py-6">
-        {/* Header Sequoia Style - Sticky on Mobile (tabs + actions combined) */}
-        <div className="relative sticky z-40 bg-[#0A0A0A]/80 backdrop-blur-2xl -mx-3 px-3 py-2 border-b border-white/[0.05] sm:relative sm:z-0 sm:bg-transparent sm:backdrop-blur-none sm:border-none sm:p-0 sm:mb-6"
-          style={{ top: "0px" }}>
-          {/* Row 1: Tabs */}
+      <div className="max-w-[1920px] mx-auto px-4 sm:px-6 py-3 sm:py-6">
+        {/* Header — tabs + acciones mobile, sticky con blur iOS */}
+        <div
+          className="relative sticky z-40 -mx-4 px-4 py-2 sm:relative sm:z-0 sm:p-0 sm:mb-6 sm:mx-0 sm:bg-transparent"
+          style={{
+            top: 0,
+            backgroundColor: "rgb(var(--surface-primary) / 0.78)",
+            WebkitBackdropFilter: "blur(24px) saturate(180%)",
+            backdropFilter: "blur(24px) saturate(180%)",
+            borderBottom: "0.5px solid rgb(var(--separator) / 0.29)",
+          }}
+        >
+          {/* Row 1: Segmented Control estilo iOS */}
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-            <TabsList className="bg-white/5 border border-white/10 p-1 rounded-2xl w-full grid grid-cols-2 gap-1 shadow-lg">
+            <TabsList className="bg-gray-sys6 dark:bg-gray-sys5 p-1 rounded-apple-md w-full grid grid-cols-2 gap-1 border-0">
               <TabsTrigger
                 value="work-orders"
-                className="rounded-xl text-[11px] sm:text-[13px] font-black tracking-tight data-[state=active]:bg-white data-[state=active]:text-black text-white/50 transition-all duration-300"
+                className="rounded-apple-sm apple-text-footnote font-semibold data-[state=active]:bg-[rgb(var(--surface-elevated))] data-[state=active]:text-apple-blue data-[state=active]:shadow-apple-sm apple-label-secondary transition-all duration-200"
               >
                 Órdenes
               </TabsTrigger>
               <TabsTrigger
                 value="unlocks"
-                className="rounded-xl text-[11px] sm:text-[13px] font-black tracking-tight data-[state=active]:bg-violet-500 data-[state=active]:text-white text-white/50 transition-all duration-300"
+                className="rounded-apple-sm apple-text-footnote font-semibold data-[state=active]:bg-[rgb(var(--surface-elevated))] data-[state=active]:text-apple-purple data-[state=active]:shadow-apple-sm apple-label-secondary transition-all duration-200"
               >
                 Desbloqueo
               </TabsTrigger>
@@ -621,17 +624,19 @@ export default function OrdersPage() {
           <div className="flex items-center gap-2 mt-2 sm:hidden">
             <button
               onClick={() => loadOrders()}
-              className="w-9 h-9 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-white/60 active:scale-95"
+              className="apple-press w-9 h-9 rounded-full bg-gray-sys6 dark:bg-gray-sys5 flex items-center justify-center apple-label-secondary"
+              aria-label="Refrescar"
             >
               <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
             </button>
             <button
               onClick={() => setShowStatusDropdown(!showStatusDropdown)}
-              className={`flex-1 h-9 px-3 rounded-full text-xs font-bold border flex items-center gap-2 ${
+              className={cn(
+                "apple-press flex-1 h-9 px-3 rounded-full apple-text-footnote font-medium flex items-center gap-2 transition-colors",
                 selectedStatus === "active" && !showB2BOnly
-                  ? "bg-gradient-to-r from-cyan-500/30 to-blue-500/30 border-cyan-400/50 text-cyan-200"
-                  : "bg-white/5 border-white/15 text-white/70"
-              }`}
+                  ? "bg-apple-blue/15 text-apple-blue"
+                  : "bg-gray-sys6 dark:bg-gray-sys5 apple-label-secondary"
+              )}
             >
               <Filter className="w-3.5 h-3.5 flex-shrink-0" />
               <span className="truncate">
@@ -641,13 +646,13 @@ export default function OrdersPage() {
                   ORDER_STATUSES.find((s) => s.id === selectedStatus)?.label || "Filtros"}
               </span>
             </button>
-            <Button
+            <button
               onClick={openQuickOrderModal}
-              className="h-9 px-3 rounded-full text-xs font-bold bg-gradient-to-r from-blue-600 to-cyan-500 text-white border border-cyan-300/40 whitespace-nowrap"
+              className="apple-btn apple-btn-primary text-[14px] min-h-9 px-3 whitespace-nowrap"
             >
-              <FilePlus className="w-4 h-4 mr-1" />
+              <FilePlus className="w-4 h-4" />
               Nueva
-            </Button>
+            </button>
           </div>
 
           {/* Mobile dropdown panel */}
