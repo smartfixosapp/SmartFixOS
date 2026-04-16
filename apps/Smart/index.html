@@ -33,6 +33,26 @@
   </head>
   <body>
     <div id="root"></div>
+    <script>
+      // Force clear stale SW caches on load — sfos-v5
+      (function(){
+        var CURRENT = 'sfos-v5';
+        if ('caches' in window) {
+          caches.keys().then(function(names) {
+            names.forEach(function(name) {
+              if (name.indexOf('sfos-') === 0 && name !== CURRENT + '-precache' && name.indexOf(CURRENT) === -1) {
+                caches.delete(name);
+              }
+            });
+          });
+        }
+        if ('serviceWorker' in navigator) {
+          navigator.serviceWorker.getRegistrations().then(function(regs) {
+            regs.forEach(function(reg) { reg.update(); });
+          });
+        }
+      })();
+    </script>
     <script type="module" src="/src/main.jsx"></script>
   </body>
 </html>
