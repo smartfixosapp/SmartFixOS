@@ -12,6 +12,7 @@ import {
 } from "@/components/cash/CashRegisterService";
 import OpenDrawerDialog from "@/components/cash/OpenDrawerDialog";
 import { toast } from "sonner";
+import { sendTemplatedEmail } from "@/api/functions";
 
 function toCurrencyNumber(v) {
   const n = Number(v);
