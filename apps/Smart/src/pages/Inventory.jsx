@@ -1605,33 +1605,31 @@ Maximo 150 palabras. Texto plano, sin markdown.`
   };
 
   return (
-    <div ref={containerRef} className="min-h-screen bg-[#0a0a0c] overflow-y-auto" style={{ WebkitOverflowScrolling: 'touch' }}>
+    <div ref={containerRef} className="min-h-screen apple-surface apple-type overflow-y-auto apple-scroll pb-24" style={{ WebkitOverflowScrolling: 'touch' }}>
       {/* Pull-to-refresh indicator */}
       {pullDistance > 0 && (
         <div className="absolute top-0 left-0 right-0 flex justify-center py-2 z-50"
           style={{ transform: `translateY(${Math.min(pullDistance, 60)}px)` }}>
-          <Settings className={`w-6 h-6 text-teal-400 ${pullDistance > 60 ? 'animate-spin' : ''}`} />
+          <Settings className={`w-6 h-6 text-apple-blue ${pullDistance > 60 ? 'animate-spin' : ''}`} />
         </div>
       )}
 
-      <div className="max-w-[1600px] mx-auto px-3 sm:px-6 py-4 sm:py-6">
-        {/* ── Header ────────────────────────────────────────────── */}
-        <div className="bg-[#111114]/80 backdrop-blur-3xl border border-white/[0.06] rounded-[28px] px-5 py-4 mb-5 flex items-center justify-between gap-3">
-          <div className="flex items-center gap-3 min-w-0">
-            <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-teal-500 to-cyan-600 flex items-center justify-center shadow-lg flex-shrink-0">
-              <Package className="w-5 h-5 text-white" strokeWidth={2.5} />
-            </div>
-            <div className="min-w-0">
-              <h1 className="text-xl font-black text-white tracking-tight leading-none">Inventario</h1>
-              <p className="text-white/30 text-[11px] font-medium mt-0.5 truncate">
-                {items.length} productos · <span className={items.filter(i => i.part_type !== 'servicio' && Number(i.stock||0) <= 0).length > 0 ? 'text-red-400/70' : 'text-white/50'}>{items.filter(i => i.part_type !== 'servicio' && Number(i.stock||0) <= 0).length} agotados</span>
-              </p>
-            </div>
+      <div className="max-w-[1600px] mx-auto px-4 sm:px-6 py-4 sm:py-6" style={{ paddingTop: "calc(env(safe-area-inset-top, 0px) + 16px)" }}>
+        {/* ── Header estilo iOS (large title + acciones) ─────────── */}
+        <div className="flex items-end justify-between gap-3 mb-5">
+          <div className="min-w-0 flex-1">
+            <h1 className="apple-text-large-title apple-label-primary">Inventario</h1>
+            <p className="apple-text-footnote apple-label-secondary mt-0.5 truncate tabular-nums">
+              {items.length} productos · <span className={items.filter(i => i.part_type !== 'servicio' && Number(i.stock||0) <= 0).length > 0 ? 'text-apple-red' : 'apple-label-tertiary'}>{items.filter(i => i.part_type !== 'servicio' && Number(i.stock||0) <= 0).length} agotados</span>
+            </p>
           </div>
 
           <div className="flex items-center gap-2 flex-shrink-0">
             {selectedProducts.length > 0 && (
-              <button onClick={() => setShowDiscountDialog(true)} className="flex items-center gap-1.5 h-9 px-3 rounded-xl bg-gradient-to-r from-orange-500 to-pink-500 text-white font-bold text-xs shadow-lg animate-pulse">
+              <button
+                onClick={() => setShowDiscountDialog(true)}
+                className="apple-btn text-[13px] min-h-9 px-3 bg-apple-orange/15 text-apple-orange flex items-center gap-1.5"
+              >
                 <Tag className="w-3.5 h-3.5" /> Oferta ({selectedProducts.length})
               </button>
             )}
@@ -1640,32 +1638,32 @@ Maximo 150 palabras. Texto plano, sin markdown.`
             <div className="relative" ref={moreMenuRef}>
               <button
                 onClick={() => setShowMoreMenu(p => !p)}
-                className={`w-9 h-9 rounded-xl border flex items-center justify-center transition-all ${
-                  showMoreMenu ? 'bg-white/10 border-white/20 text-white' : 'bg-white/5 border-white/[0.08] text-white/50 hover:bg-white/10 hover:text-white'
+                className={`apple-press w-9 h-9 rounded-full flex items-center justify-center transition-all ${
+                  showMoreMenu ? 'bg-apple-blue/15 text-apple-blue' : 'bg-gray-sys6 dark:bg-gray-sys5 apple-label-secondary'
                 }`}
+                aria-label="Más opciones"
               >
-                <MoreHorizontal className="w-4 h-4" />
+                <MoreHorizontal className="w-[18px] h-[18px]" />
               </button>
 
               {showMoreMenu && (
-                <div className="absolute right-0 top-11 z-[100] w-56 bg-[#111114] border border-white/10 rounded-2xl shadow-[0_16px_48px_rgba(0,0,0,0.6)] overflow-hidden">
+                <div className="absolute right-0 top-11 z-[100] w-60 apple-surface-elevated rounded-apple-md overflow-hidden shadow-apple-xl animate-apple-scale-in" style={{ border: "0.5px solid rgb(var(--separator) / 0.29)" }}>
                   {[
                     { label: 'Historial de movimientos', Icon: History, action: () => { setShowHistorial(true); setShowMoreMenu(false); } },
                     { label: 'Gestionar categorías', Icon: Settings, action: () => { setShowManageCategories(true); setShowMoreMenu(false); } },
                     { label: 'Proveedores', Icon: Globe, action: () => { setShowSuppliers(true); setShowMoreMenu(false); } },
-                    // "Órdenes de compra" se movió a Finanzas → Órdenes de compra
-                    null, // separador
-                    { label: 'Orden especial', Icon: Zap, action: () => { setShowQuickOrder(true); setShowMoreMenu(false); }, accent: 'text-violet-400' },
+                    null,
+                    { label: 'Orden especial', Icon: Zap, action: () => { setShowQuickOrder(true); setShowMoreMenu(false); }, accent: 'text-apple-purple' },
                   ].map((item, i) =>
                     item === null ? (
-                      <div key={i} className="h-px bg-white/[0.06] mx-3" />
+                      <div key={i} className="h-[0.5px] mx-3" style={{ backgroundColor: "rgb(var(--separator) / 0.29)" }} />
                     ) : (
                       <button
                         key={item.label}
                         onClick={item.action}
-                        className={`w-full flex items-center gap-3 px-4 py-2.5 text-sm font-semibold transition-all hover:bg-white/5 text-left ${item.accent || 'text-white/60 hover:text-white'}`}
+                        className={`apple-press w-full flex items-center gap-3 px-4 py-3 apple-text-body text-left ${item.accent || 'apple-label-primary'}`}
                       >
-                        <item.Icon className="w-4 h-4 flex-shrink-0" />
+                        <item.Icon className="w-[18px] h-[18px] flex-shrink-0" />
                         {item.label}
                       </button>
                     )
@@ -1685,35 +1683,33 @@ Maximo 150 palabras. Texto plano, sin markdown.`
                 setEditing(null);
                 setShowItemDialog(true);
               }}
-              className="flex items-center gap-2 h-9 px-4 rounded-xl bg-gradient-to-r from-teal-500 to-cyan-500 text-white font-bold text-xs shadow-[0_6px_16px_rgba(20,184,166,0.3)] hover:opacity-90 transition-all active:scale-95"
+              className="apple-btn apple-btn-primary text-[13px] min-h-9 px-3.5"
             >
-              <Plus className="w-4 h-4" /> Nuevo
+              <Plus className="w-[18px] h-[18px]" /> Nuevo
             </button>
           </div>
         </div>
 
-        {/* ── KPI Bar ───────────────────────────────────────────── */}
+        {/* ── KPI Bar (apple-cards) ─────────────────────────────── */}
         {(() => {
           const total = items.length;
           const outOfStock = items.filter(i => i.type !== 'service' && i.part_type !== 'servicio' && Number(i.stock || 0) <= 0).length;
           const lowStock = items.filter(i => i.type !== 'service' && i.part_type !== 'servicio' && Number(i.stock || 0) > 0 && Number(i.stock || 0) <= Number(i.min_stock || 0)).length;
           const totalValue = items.reduce((sum, i) => sum + Number(i.stock || 0) * Number(i.cost || 0), 0);
           const kpis = [
-            { label: 'Total', value: total, icon: Package, color: 'text-white/40', bg: 'bg-white/5', border: 'border-white/[0.06]', val: 'text-white' },
-            { label: 'Stock bajo', value: lowStock, icon: TrendingDown, color: lowStock > 0 ? 'text-amber-400' : 'text-white/30', bg: lowStock > 0 ? 'bg-amber-500/10' : 'bg-white/5', border: lowStock > 0 ? 'border-amber-500/25' : 'border-white/[0.06]', val: lowStock > 0 ? 'text-amber-400' : 'text-white/30' },
-            { label: 'Agotados', value: outOfStock, icon: AlertTriangle, color: outOfStock > 0 ? 'text-red-400' : 'text-white/30', bg: outOfStock > 0 ? 'bg-red-500/10' : 'bg-white/5', border: outOfStock > 0 ? 'border-red-500/25' : 'border-white/[0.06]', val: outOfStock > 0 ? 'text-red-400' : 'text-white/30' },
-            { label: 'Valor inventario', value: `$${totalValue.toLocaleString('en-US', { maximumFractionDigits: 0 })}`, icon: TrendingUp, color: 'text-teal-400', bg: 'bg-teal-500/10', border: 'border-teal-500/20', val: 'text-teal-400' },
+            { label: 'Total', value: total, icon: Package, color: 'apple-label-secondary', val: 'apple-label-primary' },
+            { label: 'Stock bajo', value: lowStock, icon: TrendingDown, color: lowStock > 0 ? 'text-apple-yellow' : 'apple-label-tertiary', val: lowStock > 0 ? 'text-apple-yellow' : 'apple-label-tertiary' },
+            { label: 'Agotados', value: outOfStock, icon: AlertTriangle, color: outOfStock > 0 ? 'text-apple-red' : 'apple-label-tertiary', val: outOfStock > 0 ? 'text-apple-red' : 'apple-label-tertiary' },
+            { label: 'Valor inv.', value: `$${totalValue.toLocaleString('en-US', { maximumFractionDigits: 0 })}`, icon: TrendingUp, color: 'text-apple-green', val: 'text-apple-green' },
           ];
           return (
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 mb-5">
-              {kpis.map(({ label, value, icon: Icon, color, bg, border, val }) => (
-                <div key={label} className={`bg-[#111114]/60 border ${border} rounded-[18px] px-3.5 py-3 flex items-center gap-3`}>
-                  <div className={`w-8 h-8 rounded-xl ${bg} flex items-center justify-center flex-shrink-0`}>
-                    <Icon className={`w-3.5 h-3.5 ${color}`} />
-                  </div>
+              {kpis.map(({ label, value, icon: Icon, color, val }) => (
+                <div key={label} className="apple-card p-3 flex items-center gap-2.5">
+                  <Icon className={`w-4 h-4 ${color} flex-shrink-0`} />
                   <div className="min-w-0">
-                    <p className="text-white/30 text-[9px] font-black uppercase tracking-widest leading-none truncate">{label}</p>
-                    <p className={`font-black text-lg leading-none mt-1 ${val}`}>{value}</p>
+                    <p className="apple-text-caption2 apple-label-secondary truncate">{label}</p>
+                    <p className={`apple-text-headline leading-tight tabular-nums ${val}`}>{value}</p>
                   </div>
                 </div>
               ))}

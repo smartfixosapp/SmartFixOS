@@ -143,7 +143,10 @@ export default function MobileBottomNav() {
         style={!hasPanelsOpen ? { height: "calc(64px + env(safe-area-inset-bottom, 0px))" } : undefined}
       />
 
-      {/* Tab Bar estilo iOS — translúcido con blur, se extiende hasta el fondo */}
+      {/* Tab Bar estilo iOS — fondo sólido visible sobre la app oscura,
+       * con blur opcional cuando hay translucencia. Se extiende edge-to-edge
+       * incluyendo el área del home indicator.
+       */}
       <nav
         data-global-dock
         className={cn(
@@ -153,12 +156,15 @@ export default function MobileBottomNav() {
             : "translate-y-0 opacity-100"
         )}
         style={{
-          // Fondo y blur directamente en el <nav> para que cubra todo
-          // incluyendo el safe-area-inset-bottom (home indicator del iPhone)
-          backgroundColor: "rgb(var(--surface-elevated) / 0.88)",
-          WebkitBackdropFilter: "blur(28px) saturate(190%)",
-          backdropFilter: "blur(28px) saturate(190%)",
-          borderTop: "0.5px solid rgb(var(--separator) / 0.29)",
+          // Fondo SÓLIDO: sys-gray-6 (dark: #1C1C1E / light: #F2F2F7) —
+          // lo suficientemente distinto del fondo negro de la app para
+          // que se vea claramente dónde termina la barra. En light queda
+          // como el gris tab bar estilo iOS Settings.
+          backgroundColor: "rgb(var(--sys-gray-6))",
+          WebkitBackdropFilter: "blur(20px) saturate(180%)",
+          backdropFilter: "blur(20px) saturate(180%)",
+          borderTop: "0.5px solid rgb(var(--separator) / 0.50)",
+          // Extiende el fondo hasta el borde físico del teléfono
           paddingBottom: "env(safe-area-inset-bottom, 0px)",
         }}
       >

@@ -926,35 +926,45 @@ export default function SettingsPage() {
     const section = sections.find(s => s.id === activeSection);
     const Icon = section?.icon || SettingsIcon;
 
+    // Color semantic map (mismo que la lista principal)
+    const sectionIconColor = (() => {
+      const c = section.color || "";
+      if (c.includes("orange") || c.includes("amber")) return "rgb(var(--apple-orange))";
+      if (c.includes("green") || c.includes("emerald") || c.includes("teal") || c.includes("lime")) return "rgb(var(--apple-green))";
+      if (c.includes("red") || c.includes("rose")) return "rgb(var(--apple-red))";
+      if (c.includes("yellow")) return "rgb(var(--apple-yellow))";
+      if (c.includes("purple") || c.includes("violet") || c.includes("pink") || c.includes("fuchsia")) return "rgb(var(--apple-purple))";
+      if (c.includes("indigo")) return "rgb(var(--apple-indigo))";
+      if (c.includes("cyan")) return "rgb(var(--apple-cyan))";
+      return "rgb(var(--apple-blue))";
+    })();
+
     return (
       <div
-        className="min-h-screen bg-black/90 backdrop-blur-3xl theme-light:bg-gray-50 p-4 sm:p-6 relative"
-        style={{ paddingTop: "10px" }}
+        className="min-h-screen apple-surface apple-type p-4 sm:p-6 relative"
+        style={{ paddingTop: "calc(env(safe-area-inset-top, 0px) + 10px)" }}
       >
-        {/* Fondos animados flotantes */}
-        <div className="fixed -top-40 -right-40 w-96 h-96 bg-gradient-to-br from-purple-500/10 to-pink-500/10 rounded-full blur-[120px] animate-pulse pointer-events-none" />
-        <div className="fixed -bottom-40 -left-40 w-96 h-96 bg-gradient-to-br from-blue-500/10 to-cyan-500/10 rounded-full blur-[120px] animate-pulse delay-1000 pointer-events-none" />
-        
         <div className="max-w-5xl mx-auto">
-          {/* Section Header Sequoia Style */}
+          {/* Section Header estilo iOS Settings detail */}
           <div className="mb-5">
             <button
               onClick={() => setActiveSection(null)}
-              className="flex items-center gap-3 text-white/60 hover:text-white transition-all duration-300 mb-6 text-sm font-bold group"
+              className="apple-press h-10 pl-1 pr-3 rounded-full flex items-center gap-1 text-apple-blue mb-4 -ml-2"
             >
-              <div className="w-10 h-10 rounded-full bg-gradient-to-br from-white/10 to-white/5 group-hover:from-white/15 group-hover:to-white/10 border border-white/10 flex items-center justify-center transition-all active:scale-95 shadow-lg">
-                <ChevronRight className="w-5 h-5 rotate-180" />
-              </div>
-              Volver
+              <ChevronRight className="w-[22px] h-[22px] rotate-180" strokeWidth={2.4} />
+              <span className="apple-text-body">Volver</span>
             </button>
-            
-            <div className="flex items-center gap-4 sm:gap-6">
-              <div className={`w-14 h-14 sm:w-20 sm:h-20 rounded-[20px] sm:rounded-[26px] bg-gradient-to-br ${section.color} flex items-center justify-center shadow-2xl transition-all duration-300 flex-shrink-0`}>
-                <Icon className="w-7 h-7 sm:w-10 sm:h-10 text-white" strokeWidth={2.5} />
+
+            <div className="flex items-start gap-3 sm:gap-4">
+              <div
+                className="w-11 h-11 sm:w-14 sm:h-14 rounded-apple-md flex items-center justify-center flex-shrink-0"
+                style={{ backgroundColor: sectionIconColor }}
+              >
+                <Icon className="w-5 h-5 sm:w-7 sm:h-7 text-white" strokeWidth={2} />
               </div>
-              <div>
-                <h1 className="text-2xl sm:text-4xl font-black text-white tracking-tighter mb-1">{section.title}</h1>
-                <p className="text-white/60 text-sm sm:text-lg font-bold">{section.description}</p>
+              <div className="flex-1 min-w-0">
+                <h1 className="apple-text-title1 apple-label-primary">{section.title}</h1>
+                <p className="apple-text-footnote apple-label-secondary mt-0.5">{section.description}</p>
               </div>
             </div>
           </div>
@@ -1590,44 +1600,46 @@ export default function SettingsPage() {
 
   return (
     <div
-      className="min-h-screen bg-black/90 backdrop-blur-3xl theme-light:bg-gray-50 p-4 sm:p-6 relative"
-      style={{ paddingTop: "10px" }}
+      className="min-h-screen apple-surface apple-type p-4 sm:p-6 relative"
+      style={{ paddingTop: "calc(env(safe-area-inset-top, 0px) + 10px)" }}
     >
-      {/* Fondos animados flotantes estilo macOS Sequoia */}
-      <div className="fixed -top-60 -right-60 w-[500px] h-[500px] bg-gradient-to-br from-purple-500/15 to-pink-500/10 rounded-full blur-[140px] animate-pulse pointer-events-none" />
-      <div className="fixed -bottom-60 -left-60 w-[500px] h-[500px] bg-gradient-to-br from-blue-500/15 to-cyan-500/10 rounded-full blur-[140px] animate-pulse delay-1000 pointer-events-none" />
-      
       <div className="max-w-7xl mx-auto">
-        {/* Hero Header iOS Style - Icon Focused */}
-        <div className="flex items-center justify-center sm:justify-start gap-4 sm:gap-6 mb-8">
-          <div className="w-20 h-20 sm:w-28 sm:h-28 rounded-[28px] bg-gradient-to-br from-cyan-500 to-blue-600 flex items-center justify-center shadow-2xl border border-white/20 backdrop-blur-md transform hover:scale-105 transition-transform duration-500">
-            <SettingsIcon className="w-10 h-10 sm:w-14 sm:h-14 text-white" strokeWidth={2.5} />
-          </div>
-          <div className="flex-1">
-            <h1 className="text-2xl sm:text-5xl font-black text-white tracking-tighter mb-1">
-              Configuración
-            </h1>
-            <p className="text-white/60 text-sm sm:text-xl font-semibold hidden sm:block">
-              Personaliza tu experiencia SmartFixOS
-            </p>
-          </div>
+        {/* ── Hero Header estilo iOS Settings ── */}
+        <div className="mb-6">
+          <h1 className="apple-text-large-title apple-label-primary">Configuración</h1>
+          <p className="apple-text-subheadline apple-label-secondary mt-1 hidden sm:block">
+            Personaliza tu experiencia SmartFixOS
+          </p>
         </div>
 
-        {/* Settings — grouped layout */}
+        {/* Settings — listas agrupadas estilo iOS Settings */}
         <div className="space-y-6">
           {sectionGroups.map(group => (
             <div key={group.groupId}>
-              {/* Group label */}
-              <p className="text-xs font-black text-white/30 uppercase tracking-[0.15em] mb-4 px-1">
+              {/* Group label estilo iOS */}
+              <p className="apple-text-footnote apple-label-secondary uppercase tracking-wide mb-2 px-4">
                 {group.groupLabel}
               </p>
-              {/* Cards row */}
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              {/* Lista agrupada (single card con rows separadas) */}
+              <div className="apple-list">
                 {group.sections.map(section => {
                   const Icon = section.icon;
                   const isOn = section.isToggle
                     ? (section.id === "jenai_toggle" ? jenaiEnabled : showPriceWidget)
                     : null;
+
+                  // Mapeo: gradient color-name → apple semantic color
+                  const iconBgColor = (() => {
+                    const c = section.color || "";
+                    if (c.includes("orange") || c.includes("amber")) return "rgb(var(--apple-orange))";
+                    if (c.includes("green") || c.includes("emerald") || c.includes("teal") || c.includes("lime")) return "rgb(var(--apple-green))";
+                    if (c.includes("red") || c.includes("rose")) return "rgb(var(--apple-red))";
+                    if (c.includes("yellow")) return "rgb(var(--apple-yellow))";
+                    if (c.includes("purple") || c.includes("violet") || c.includes("pink") || c.includes("fuchsia")) return "rgb(var(--apple-purple))";
+                    if (c.includes("indigo")) return "rgb(var(--apple-indigo))";
+                    if (c.includes("cyan")) return "rgb(var(--apple-cyan))";
+                    return "rgb(var(--apple-blue))";
+                  })();
 
                   return (
                     <button
@@ -1646,21 +1658,23 @@ export default function SettingsPage() {
                           setActiveSection(section.id);
                         }
                       }}
-                      className="group flex items-center gap-4 bg-white/[0.04] hover:bg-white/[0.07] border border-white/[0.07] hover:border-white/[0.15] rounded-2xl px-4 py-4 transition-all duration-200 active:scale-[0.98] text-left"
+                      className="apple-list-row w-full text-left apple-focusable"
                     >
-                      <div className={`w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0 bg-gradient-to-br ${section.color} shadow-lg`}>
-                        <Icon className="w-5 h-5 text-white" strokeWidth={2.5} />
+                      <div className="apple-list-row-icon" style={{ backgroundColor: iconBgColor }}>
+                        <Icon className="w-4 h-4" strokeWidth={2} />
                       </div>
                       <div className="flex-1 min-w-0">
-                        <p className="text-white font-bold text-sm leading-tight">{section.title}</p>
-                        <p className="text-white/40 text-xs mt-0.5 truncate">{section.description}</p>
+                        <p className="apple-list-row-title apple-label-primary">{section.title}</p>
+                        <p className="apple-text-caption1 apple-label-secondary truncate">{section.description}</p>
                       </div>
                       {section.isToggle ? (
-                        <div className={`relative w-11 h-6 rounded-full transition-colors duration-300 flex-shrink-0 ${isOn ? "bg-cyan-500" : "bg-white/10"}`}>
-                          <div className={`absolute top-0.5 w-5 h-5 rounded-full bg-white shadow transition-transform duration-300 ${isOn ? "translate-x-5" : "translate-x-0.5"}`} />
+                        <div className={`relative w-[51px] h-[31px] rounded-full transition-colors duration-200 flex-shrink-0 ${isOn ? "bg-apple-green" : "bg-gray-sys4 dark:bg-gray-sys4"}`}>
+                          <div className={`absolute top-0.5 w-[27px] h-[27px] rounded-full bg-white shadow-apple-sm transition-transform duration-200 ${isOn ? "translate-x-[22px]" : "translate-x-0.5"}`} />
                         </div>
                       ) : (
-                        <ChevronRight className="w-4 h-4 text-white/50 group-hover:text-white/50 flex-shrink-0 transition-colors" />
+                        <svg className="apple-list-row-chevron" viewBox="0 0 7 12" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                          <path d="M1 1l5 5-5 5"/>
+                        </svg>
                       )}
                     </button>
                   );
@@ -1670,20 +1684,20 @@ export default function SettingsPage() {
           ))}
         </div>
 
-        {/* Feedback banner */}
-        <div className="mt-8 bg-gradient-to-br from-purple-500/10 to-cyan-500/10 border border-purple-500/20 rounded-[24px] p-5 flex items-center gap-4">
-          <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-purple-500 to-cyan-600 flex items-center justify-center flex-shrink-0 shadow-lg">
-            <MessageSquarePlus className="w-6 h-6 text-white" />
+        {/* Feedback banner — apple-card */}
+        <div className="mt-6 apple-card p-4 flex items-center gap-3.5">
+          <div className="w-11 h-11 rounded-apple-sm bg-apple-purple/15 text-apple-purple flex items-center justify-center flex-shrink-0">
+            <MessageSquarePlus className="w-5 h-5" />
           </div>
           <div className="flex-1 min-w-0">
-            <p className="text-white font-bold text-sm">¿Tienes una sugerencia o problema?</p>
-            <p className="text-gray-500 text-xs mt-0.5">Cuéntanos — leemos cada mensaje</p>
+            <p className="apple-text-headline apple-label-primary">¿Sugerencia o problema?</p>
+            <p className="apple-text-footnote apple-label-secondary mt-0.5">Cuéntanos — leemos cada mensaje</p>
           </div>
           <button
             onClick={() => setShowFeedback(true)}
-            className="flex-shrink-0 px-4 py-2 rounded-xl bg-white/10 hover:bg-white/15 text-white text-sm font-semibold transition-all border border-white/10 hover:border-white/20"
+            className="apple-btn apple-btn-tinted text-[13px] min-h-9 px-3 flex-shrink-0"
           >
-            Enviar feedback
+            Enviar
           </button>
         </div>
       </div>
