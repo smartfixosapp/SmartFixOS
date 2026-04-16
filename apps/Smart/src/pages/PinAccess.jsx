@@ -18,44 +18,90 @@ import NovedadesPanel from "../components/pinaccess/NovedadesPanel";
 // ── Recovery component for stuck/corrupted sessions ───────────────────────
 // Si el usuario llega a PinAccess con tokens en storage pero el refresh
 // token de Supabase está muerto (escenario común al reanudar la app después
-// de días, o tras un wipe parcial), AuthGate no puede redirigir y la pantalla
-// queda en negro indefinidamente. Este componente:
+// de días, tras un wipe parcial, o en Safari con ITP bloqueando cookies),
+// AuthGate no puede redirigir y la pantalla queda atascada.
+//
+// Este componente:
 //   1. Muestra un spinner mientras AuthGate intenta redirigir.
-//   2. Si pasan 3s sin moverse, asume que la sesión está corrupta,
-//      la limpia y recarga la página → cae al landing público.
+//   2. Si pasan 2s, hace un RELOAD una vez (limpiando sesión).
+//   3. Si después del reload el componente vuelve a montarse (LOOP
+//      detectado via sessionStorage flag), evita otro reload infinito y
+//      fuerza hard-navigation a la raíz con todo el storage limpio.
 function StuckSessionRecovery() {
   const [showManual, setShowManual] = useState(false);
+  const LOOP_FLAG = "smartfix_recovery_attempted";
 
-  const clearAndReload = () => {
+  const hardClearAndRedirect = () => {
+    try {
+      // Limpieza agresiva de TODO el storage relacionado con auth
+      sessionStorage.removeItem("911-session");
+      sessionStorage.removeItem(LOOP_FLAG);
+      localStorage.removeItem("employee_session");
+      localStorage.removeItem("smartfix_saved_creds");
+      localStorage.removeItem("smartfix_saas_session");
+      localStorage.removeItem("smartfix_tenant_id");
+      // Supabase auth tokens en localStorage también
+      Object.keys(localStorage).forEach(k => {
+        if (k.startsWith("sb-") || k.includes("supabase")) {
+          localStorage.removeItem(k);
+        }
+      });
+    } catch {}
+    // Hard-navigate a la raíz (no reload) para evitar re-entrar al mismo loop
+    window.location.replace("/");
+  };
+
+  const softClearAndReload = () => {
     try {
       sessionStorage.removeItem("911-session");
       localStorage.removeItem("employee_session");
       localStorage.removeItem("smartfix_saved_creds");
+      sessionStorage.setItem(LOOP_FLAG, "1");
     } catch {}
     window.location.reload();
   };
 
   useEffect(() => {
-    // Auto-clear after 2 seconds
-    const t = setTimeout(clearAndReload, 2000);
-    // Show manual button after 1.5s in case auto fails
+    // ⚠️ Detección de loop: si el flag ya existe, hemos intentado esto antes
+    // y seguimos atascados → no hacer otro reload, ir directo a landing limpio
+    const alreadyAttempted = (() => {
+      try { return sessionStorage.getItem(LOOP_FLAG) === "1"; } catch { return false; }
+    })();
+
+    if (alreadyAttempted) {
+      // Usuario ya pasó por este recovery una vez y volvió aquí.
+      // Mostrar botón manual inmediatamente y NO auto-reload (loop protection).
+      setShowManual(true);
+      return;
+    }
+
+    // Primera vez: auto-clear + reload después de 2.5s
+    const t = setTimeout(softClearAndReload, 2500);
+    // Mostrar botón manual a los 1.5s por si el auto falla
     const t2 = setTimeout(() => setShowManual(true), 1500);
     return () => { clearTimeout(t); clearTimeout(t2); };
   }, []);
 
   return (
-    <div className="min-h-screen bg-black flex items-center justify-center">
-      <div className="text-center">
-        <div className="animate-spin rounded-full h-10 w-10 border-4 border-cyan-500 border-t-transparent mx-auto mb-3" />
-        <p className="text-white/60 text-sm">Restaurando sesion...</p>
-        <p className="text-white/30 text-[11px] mt-1">Espera un momento</p>
+    <div className="min-h-screen apple-surface apple-type flex items-center justify-center p-6">
+      <div className="text-center space-y-5 max-w-sm">
+        <div className="mx-auto animate-spin rounded-full h-10 w-10 border-[3px] border-apple-blue border-t-transparent" />
+        <div className="space-y-1">
+          <p className="apple-text-callout apple-label-primary font-medium">Restaurando sesión</p>
+          <p className="apple-text-footnote apple-label-secondary">Un momento por favor…</p>
+        </div>
         {showManual && (
-          <button
-            onClick={clearAndReload}
-            className="mt-4 px-4 py-2 rounded-xl bg-cyan-600 text-white text-xs font-bold active:scale-95"
-          >
-            Reiniciar manualmente
-          </button>
+          <div className="flex flex-col gap-2 pt-2">
+            <button
+              onClick={hardClearAndRedirect}
+              className="apple-btn apple-btn-primary apple-btn-lg"
+            >
+              Reiniciar sesión
+            </button>
+            <p className="apple-text-caption1 apple-label-tertiary">
+              Si el problema persiste, cierra y vuelve a abrir la pestaña.
+            </p>
+          </div>
         )}
       </div>
     </div>
