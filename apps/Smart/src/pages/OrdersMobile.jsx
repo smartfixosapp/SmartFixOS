@@ -187,186 +187,187 @@ export default function OrdersMobile() {
   const activeStatuses = ORDER_STATUSES.filter(s => s.isActive);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-950 to-slate-900 pb-20 overscroll-none" style={{ overscrollBehavior: "none" }}>
-      {/* Header */}
-      <div className="sticky top-0 z-20 bg-gradient-to-r from-slate-950 to-slate-900 border-b border-cyan-500/20 px-4 py-3">
-        <div className="flex items-center justify-between mb-3">
-          <h1 className="text-2xl font-bold text-white">Órdenes</h1>
+    <div className="min-h-screen apple-surface apple-type pb-20 overscroll-none" style={{ overscrollBehavior: "none" }}>
+      {/* ── Header estilo iOS: large title + acciones ───────────────── */}
+      <div
+        className="sticky top-0 z-20 apple-surface-secondary px-4 pt-2 pb-3 border-b border-[rgb(var(--separator)/0.29)]"
+        style={{ paddingTop: "calc(env(safe-area-inset-top, 0px) + 8px)" }}
+      >
+        <div className="flex items-center justify-between gap-3 mb-3">
+          <h1 className="apple-text-large-title apple-label-primary">Órdenes</h1>
           <div className="flex items-center gap-2">
             <button
               onClick={() => navigate(createPageUrl("Orders/new"))}
-              className="px-3 py-2 bg-gradient-to-r from-cyan-600 to-blue-600 rounded-xl text-white text-xs font-bold flex items-center gap-1"
+              className="apple-btn apple-btn-primary text-[15px] min-h-9 px-3.5"
             >
-              <span className="text-base leading-none">+</span> Nueva Orden
+              <span className="text-lg leading-none font-light">+</span>
+              <span>Nueva</span>
             </button>
             <button
               onClick={() => document.querySelector('.orders-chatbot-trigger')?.click()}
-              className="p-2 bg-slate-800 border border-slate-700 rounded-xl"
+              className="apple-press w-9 h-9 rounded-full bg-apple-blue/15 flex items-center justify-center text-apple-blue"
+              aria-label="Asistente"
             >
-              <Bot className="w-5 h-5 text-white" />
+              <Bot className="w-[18px] h-[18px]" />
             </button>
           </div>
         </div>
-        
-        {/* Búsqueda */}
+
+        {/* ── Búsqueda ─── */}
         <div className="relative mb-3">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-[18px] h-[18px] apple-label-tertiary pointer-events-none" />
           <Input
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            placeholder="Buscar por cliente o número..."
-            className="pl-10 bg-slate-900/60 border-slate-700 text-white placeholder:text-gray-500 rounded-xl h-11"
+            placeholder="Buscar por cliente o número"
+            className="apple-input pl-10 border-0"
           />
         </div>
 
-        {/* Filtros Rápidos */}
-        <div className="flex items-center gap-2 overflow-x-auto pb-2 no-scrollbar">
+        {/* ── Filtros Rápidos (segmented-style chips) ─── */}
+        <div className="flex items-center gap-2 overflow-x-auto pb-1 no-scrollbar apple-scroll-snap-x -mx-1 px-1">
           <button
             onClick={() => setShowFilters(!showFilters)}
-            className="flex-shrink-0 px-3 py-2 bg-slate-800 border border-slate-700 rounded-xl text-white text-xs font-medium flex items-center gap-1"
+            className={`apple-press flex-shrink-0 px-3.5 h-9 rounded-full apple-text-footnote font-medium flex items-center gap-1.5 transition-colors ${
+              showFilters
+                ? "bg-apple-blue text-white"
+                : "bg-gray-sys6 dark:bg-gray-sys5 apple-label-secondary"
+            }`}
           >
-            <SlidersHorizontal className="w-4 h-4" />
+            <SlidersHorizontal className="w-3.5 h-3.5" />
             Filtros
           </button>
-          
+
           {activeStatuses.map(status => {
             const count = orders.filter(o => getEffectiveOrderStatus(o) === status.id).length;
             const isSelected = selectedStatus === status.id;
-            
+
             return (
               <button
                 key={status.id}
                 onClick={() => setSelectedStatus(isSelected ? null : status.id)}
                 disabled={count === 0}
-                className={`flex-shrink-0 px-3 py-2 rounded-xl text-xs font-medium whitespace-nowrap transition-all disabled:opacity-30 ${
+                className={`apple-press flex-shrink-0 px-3.5 h-9 rounded-full apple-text-footnote font-medium whitespace-nowrap transition-colors disabled:opacity-30 ${
                   isSelected
-                    ? "bg-gradient-to-r from-cyan-600 to-emerald-600 text-white scale-105"
-                    : status.id === "pending_order"
-                    ? "bg-gradient-to-r from-red-600 to-red-800 text-white"
-                    : `${status.colorClasses} border`
+                    ? "bg-apple-blue text-white"
+                    : status.id === "pending_order" && count > 0
+                    ? "bg-apple-red/15 text-apple-red"
+                    : "bg-gray-sys6 dark:bg-gray-sys5 apple-label-secondary"
                 }`}
               >
-                {status.label} ({count})
+                {status.label} <span className="opacity-60 tabular-nums">({count})</span>
               </button>
             );
           })}
         </div>
 
-        {/* Panel de Filtros Expandible */}
+        {/* ── Panel de Filtros Expandible ─── */}
         {showFilters && (
-          <div className="mt-3 p-3 bg-slate-900/60 border border-slate-700 rounded-xl space-y-2">
+          <div className="mt-3 apple-card p-3 space-y-2 animate-apple-slide-up">
             <div className="grid grid-cols-2 gap-2">
-              <div>
-                <label className="text-xs text-gray-400 mb-1 block">Desde</label>
-                <div className="relative">
-                  <Input
-                    type="date"
-                    value={dateFrom}
-                    onChange={(e) => setDateFrom(e.target.value)}
-                    className="bg-slate-800 border-slate-700 text-white text-sm"
-                  />
-                </div>
+              <div className="space-y-1">
+                <label className="apple-text-caption1 apple-label-secondary px-1">Desde</label>
+                <Input
+                  type="date"
+                  value={dateFrom}
+                  onChange={(e) => setDateFrom(e.target.value)}
+                  className="apple-input border-0 py-2 text-sm"
+                />
               </div>
-              <div>
-                <label className="text-xs text-gray-400 mb-1 block">Hasta</label>
-                <div className="relative">
-                  <Input
-                    type="date"
-                    value={dateTo}
-                    onChange={(e) => setDateTo(e.target.value)}
-                    className="bg-slate-800 border-slate-700 text-white text-sm"
-                  />
-                </div>
+              <div className="space-y-1">
+                <label className="apple-text-caption1 apple-label-secondary px-1">Hasta</label>
+                <Input
+                  type="date"
+                  value={dateTo}
+                  onChange={(e) => setDateTo(e.target.value)}
+                  className="apple-input border-0 py-2 text-sm"
+                />
               </div>
             </div>
-            <Button
+            <button
               onClick={() => {
                 setDateFrom("");
                 setDateTo("");
                 setSelectedStatus(null);
                 setSearchTerm("");
               }}
-              variant="outline"
-              className="w-full h-8 text-xs border-slate-700"
+              className="apple-btn apple-btn-plain mx-auto"
             >
-              Limpiar Filtros
-            </Button>
+              Limpiar filtros
+            </button>
           </div>
         )}
       </div>
 
-      {/* Lista de Órdenes */}
-      <div className="px-4 py-4 space-y-4">
+      {/* ── Lista de Órdenes agrupadas por día ─────────────────────── */}
+      <div className="px-4 pt-4 space-y-5">
         {loading ? (
           <div className="flex items-center justify-center py-20">
-            <div className="animate-spin w-8 h-8 border-2 border-cyan-500 border-t-transparent rounded-full" />
+            <div className="animate-spin w-7 h-7 border-2 border-apple-blue border-t-transparent rounded-full" />
           </div>
         ) : Object.keys(groupedOrders).length === 0 ? (
-          <div className="text-center py-20">
-            <p className="text-gray-400">{t('noOrdersFound')}</p>
+          <div className="text-center py-20 space-y-2">
+            <div className="mx-auto w-14 h-14 rounded-full bg-gray-sys6 dark:bg-gray-sys5 flex items-center justify-center">
+              <Search className="w-6 h-6 apple-label-tertiary" />
+            </div>
+            <p className="apple-text-callout apple-label-secondary">{t('noOrdersFound')}</p>
           </div>
         ) : (
           Object.entries(groupedOrders).map(([dateKey, dateOrders]) => (
-            <div key={dateKey}>
-              <h3 className="text-sm text-gray-400 font-semibold mb-2 px-1">{dateKey}</h3>
-              <div className="space-y-2">
+            <div key={dateKey} className="space-y-2">
+              <h3 className="apple-text-footnote apple-label-secondary font-medium px-1 uppercase tracking-wide">{dateKey}</h3>
+              <div className="apple-list">
                 {dateOrders.map(order => {
                   const statusConfig = getStatusConfig(getEffectiveOrderStatus(order));
-                  
-	                  return (
-	                    <div
+                  const assignedLabel = String(order.assigned_to_name || order.assigned_to || "").trim();
+                  const isAssigned = Boolean(assignedLabel);
+
+                  return (
+                    <div
                       key={order.id}
                       onClick={() => handleOrderClick(order)}
-                      className="bg-slate-900/40 backdrop-blur-sm border border-slate-800 rounded-2xl p-4 active:scale-[0.98] transition-transform cursor-pointer"
+                      className="apple-list-row !min-h-0 !py-3.5 cursor-pointer apple-press"
                     >
-	                      <div className="flex items-start justify-between gap-3 mb-2">
-	                        <div className="flex-1 min-w-0">
-	                          <p className="text-white font-semibold text-base truncate">
-	                            {order.customer_name || "Sin nombre"}
-	                          </p>
-	                          <p className="text-gray-400 text-xs truncate">
-	                            {order.order_number}
-	                          </p>
-                              <div className="mt-1">
-                                {(() => {
-                                  const assignedLabel = String(order.assigned_to_name || order.assigned_to || "").trim();
-                                  const isAssigned = Boolean(assignedLabel);
-                                  return (
-                                    <span className={`inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[10px] font-semibold ${
-                                      isAssigned
-                                        ? "border-emerald-400/35 bg-emerald-500/12 text-emerald-200"
-                                        : "border-amber-400/35 bg-amber-500/12 text-amber-200"
-                                    }`}>
-                                      <User className="w-3 h-3" />
-                                      {isAssigned ? assignedLabel : "Sin asignar"}
-                                    </span>
-                                  );
-                                })()}
-                              </div>
-	                        </div>
-                        <div className="text-right flex-shrink-0">
-                          <p className="text-xs text-gray-400">
-                            {format(new Date(order.created_date), "h:mm a", { locale: es })}
-                          </p>
-                          <p className="text-xs font-semibold text-emerald-400 mt-0.5">
-                            ${(order.cost_estimate || 0).toFixed(2)}
-                          </p>
-                        </div>
+                      {/* Icono dispositivo */}
+                      <div className="w-10 h-10 rounded-apple-sm bg-apple-blue/15 text-apple-blue flex items-center justify-center flex-shrink-0">
+                        <span className="text-[18px]">📱</span>
                       </div>
 
-                      <div className="flex items-center justify-between gap-2">
-                        <div className="flex items-center gap-2 flex-1 min-w-0">
-                          <div className="w-8 h-8 rounded-lg bg-slate-800 flex items-center justify-center flex-shrink-0">
-                            <span className="text-lg">📱</span>
+                      {/* Contenido principal */}
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-start justify-between gap-3">
+                          <div className="min-w-0 flex-1">
+                            <p className="apple-text-headline apple-label-primary truncate">
+                              {order.customer_name || "Sin nombre"}
+                            </p>
+                            <p className="apple-text-footnote apple-label-secondary truncate tabular-nums">
+                              {order.order_number} · {order.device_model || order.device_brand || order.device_type || "Dispositivo"}
+                            </p>
                           </div>
-                          <p className="text-gray-300 text-sm truncate">
-                            {order.device_model || order.device_brand || order.device_type || "Dispositivo"}
-                          </p>
+                          <div className="text-right flex-shrink-0">
+                            <p className="apple-text-caption1 apple-label-tertiary tabular-nums">
+                              {format(new Date(order.created_date), "h:mm a", { locale: es })}
+                            </p>
+                            <p className="apple-text-footnote font-semibold text-apple-green tabular-nums mt-0.5">
+                              ${(order.cost_estimate || 0).toFixed(2)}
+                            </p>
+                          </div>
                         </div>
-                        
-                        <Badge className={`${statusConfig.colorClasses} text-[10px] px-2 py-1 whitespace-nowrap`}>
-                          {statusConfig.label}
-                        </Badge>
+
+                        {/* Badges de status + asignado */}
+                        <div className="flex items-center gap-1.5 mt-1.5 flex-wrap">
+                          <Badge className={`${statusConfig.colorClasses} text-[10px] px-2 py-0.5 border-0 rounded-full`}>
+                            {statusConfig.label}
+                          </Badge>
+                          <span className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-medium ${
+                            isAssigned
+                              ? "bg-apple-green/15 text-apple-green"
+                              : "bg-apple-orange/15 text-apple-orange"
+                          }`}>
+                            <User className="w-3 h-3" />
+                            {isAssigned ? assignedLabel : "Sin asignar"}
+                          </span>
+                        </div>
                       </div>
                     </div>
                   );

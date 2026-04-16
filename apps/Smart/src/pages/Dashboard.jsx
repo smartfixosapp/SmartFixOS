@@ -1013,87 +1013,113 @@ export default function Dashboard() {
             </div>
           </div>
 
-          {/* === MÓVIL: PULSO === */}
-          <div className="md:hidden flex flex-col flex-1 min-h-0 gap-2.5 overflow-y-auto" style={{ WebkitOverflowScrolling: "touch" }}>
+          {/* === MÓVIL: PULSO (Apple style) === */}
+          <div className="md:hidden apple-type flex flex-col flex-1 min-h-0 gap-3 overflow-y-auto apple-scroll" style={{ WebkitOverflowScrolling: "touch" }}>
             {/* ── Header: greeting + avatar ── */}
-            <div className="flex items-center justify-between px-3 pt-1 shrink-0">
-              <h2 className="text-2xl font-black text-white tracking-tighter">
-                {(() => { const h = new Date().getHours(); return h < 12 ? "Buenos dias" : h < 18 ? "Buenas tardes" : "Buenas noches"; })()}, <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-blue-400">{session?.userName?.split(' ')[0]}</span>
-              </h2>
-              <button onClick={() => setShowUserMenu(true)} className="w-10 h-10 rounded-xl bg-gradient-to-tr from-blue-500 to-indigo-600 flex items-center justify-center text-xs font-black text-white active:scale-90 transition-all">
-                {session?.userName?.substring(0,2) || 'US'}
+            <div className="flex items-center justify-between px-4 pt-1 shrink-0">
+              <div className="min-w-0 flex-1">
+                <p className="apple-text-footnote apple-label-secondary">
+                  {(() => { const h = new Date().getHours(); return h < 12 ? "Buenos días" : h < 18 ? "Buenas tardes" : "Buenas noches"; })()}
+                </p>
+                <h2 className="apple-text-title1 apple-label-primary truncate">
+                  {session?.userName?.split(' ')[0] || 'Usuario'}
+                </h2>
+              </div>
+              <button
+                onClick={() => setShowUserMenu(true)}
+                className="apple-press w-10 h-10 rounded-full bg-apple-blue flex items-center justify-center shrink-0"
+                aria-label="Menu de usuario"
+              >
+                <span className="apple-text-footnote font-semibold text-white">{session?.userName?.substring(0,2)?.toUpperCase() || 'US'}</span>
               </button>
             </div>
 
             {/* ── Quick Actions: Nueva Orden (prominente) + Precios ── */}
-            <div className="flex gap-2 px-3 shrink-0">
-              <button onClick={() => setShowWorkOrderWizard(true)} className="flex-1 h-12 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-2xl flex items-center justify-center gap-2 active:scale-95 transition-all shadow-lg shadow-blue-500/20">
-                <ClipboardList className="w-5 h-5 text-white" />
-                <span className="text-sm font-black text-white">Nueva Orden</span>
+            <div className="flex gap-2 px-4 shrink-0">
+              <button onClick={() => setShowWorkOrderWizard(true)} className="apple-btn apple-btn-primary apple-btn-lg flex-1">
+                <ClipboardList className="w-[18px] h-[18px]" />
+                <span>Nueva orden</span>
               </button>
-              <button onClick={() => { setShowPriceList(true); setPriceListSearch(""); }} className="h-12 px-4 bg-white/[0.05] border border-white/[0.08] rounded-2xl flex items-center justify-center gap-2 active:scale-95 transition-all">
-                <Search className="w-4 h-4 text-violet-400" />
-                <span className="text-xs font-bold text-white/60">Precios</span>
+              <button onClick={() => { setShowPriceList(true); setPriceListSearch(""); }} className="apple-btn apple-btn-secondary apple-btn-lg px-4" style={{ width: 'auto', flex: '0 0 auto' }}>
+                <Search className="w-[18px] h-[18px]" />
+                <span>Precios</span>
               </button>
             </div>
 
             {/* ── Status row: Caja + Punch ── */}
-            <div className="flex items-center gap-2 px-3 shrink-0">
-              <button onClick={handleCashButtonClick} className={cn("flex-1 h-10 rounded-xl border flex items-center justify-center gap-2 transition-all active:scale-95 text-xs font-bold", drawerOpen ? "bg-emerald-500/10 border-emerald-500/20 text-emerald-400" : "bg-red-500/10 border-red-500/20 text-red-400")}>
+            <div className="flex items-center gap-2 px-4 shrink-0">
+              <button
+                onClick={handleCashButtonClick}
+                className={cn(
+                  "apple-press flex-1 h-10 rounded-apple-sm flex items-center justify-center gap-2 apple-text-footnote font-medium transition-colors",
+                  drawerOpen
+                    ? "bg-apple-green/15 text-apple-green"
+                    : "bg-apple-red/15 text-apple-red"
+                )}
+              >
                 <Wallet className="w-4 h-4" />
-                {drawerOpen ? "Caja Abierta" : "Caja Cerrada"}
+                {drawerOpen ? "Caja abierta" : "Caja cerrada"}
               </button>
               <PunchButton userId={session?.userId} userName={session?.userName} variant="mobile-icon" onPunchStatusChange={(status) => { if (status) showToast("Turno iniciado"); else showToast("Turno finalizado"); }} />
             </div>
 
             {/* ── Ingresos hoy ── */}
-            <div className="px-3 shrink-0">
+            <div className="px-4 shrink-0">
               <button
                 onClick={() => handleNavigate("Financial")}
-                className="w-full rounded-xl border border-emerald-500/20 bg-emerald-500/10 py-2.5 flex flex-col items-center gap-0.5 transition-all active:scale-95"
+                className="apple-press w-full apple-card p-4 flex items-center gap-3 text-left"
               >
-                <p className="text-xl font-black text-emerald-400">
-                  {kpiIncome.loading ? "…" : `$${(kpiIncome.today||0).toLocaleString("en-US",{maximumFractionDigits:0})}`}
-                </p>
-                <p className="text-[8px] text-white/30 font-bold">Ingresos hoy</p>
+                <div className="w-11 h-11 rounded-apple-sm bg-apple-green/15 flex items-center justify-center shrink-0">
+                  <DollarSign className="w-5 h-5 text-apple-green" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="apple-text-caption1 apple-label-secondary">Ingresos hoy</p>
+                  <p className="apple-text-title2 apple-label-primary tabular-nums leading-tight">
+                    {kpiIncome.loading ? "…" : `$${(kpiIncome.today||0).toLocaleString("en-US",{maximumFractionDigits:0})}`}
+                  </p>
+                </div>
+                <svg className="w-3 h-4 apple-label-tertiary shrink-0" viewBox="0 0 6 10" fill="currentColor" aria-hidden><path d="M1 1l4 4-4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" fill="none"/></svg>
               </button>
             </div>
 
-            {/* ── Tareas del turno ── */}
+            {/* ── Tareas del turno (list estilo iOS) ── */}
             <div className={cn(
-              "bg-white/[0.02] border border-white/[0.06] rounded-2xl overflow-hidden mx-3 flex flex-col",
+              "mx-4 flex flex-col",
               pendingShiftTasks.length > 0 ? "flex-1 min-h-0" : ""
             )}>
-              <div className="flex items-center justify-between px-3 py-2.5 border-b border-white/[0.05]">
-                <div className="flex items-center gap-2">
-                  <ClipboardList className="w-3.5 h-3.5 text-indigo-400" />
-                  <span className="text-white font-bold text-xs">Tareas del turno</span>
-                </div>
+              <div className="flex items-center justify-between px-1 pb-2">
+                <h3 className="apple-text-footnote apple-label-secondary font-medium uppercase tracking-wide">Tareas del turno</h3>
                 {pendingShiftTasks.length > 0 && (
-                  <span className="min-w-[20px] h-5 rounded-full flex items-center justify-center text-[10px] font-black text-white bg-indigo-500 px-1.5">
+                  <span className="min-w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-semibold text-white bg-apple-blue px-1.5 tabular-nums">
                     {pendingShiftTasks.length}
                   </span>
                 )}
               </div>
               {pendingShiftTasks.length > 0 ? (
-                <div className="flex-1 overflow-y-auto">
+                <div className="apple-list flex-1 overflow-y-auto apple-scroll">
                   {pendingShiftTasks.map(task => (
-                    <div key={task.id} className="flex items-center gap-3 px-3 py-2 border-t border-white/[0.03] first:border-0">
-                      <div className="w-1 h-5 rounded-full shrink-0 bg-indigo-500" />
-                      <div className="flex-1 min-w-0">
-                        <p className="text-xs font-bold text-white truncate">{task.title}</p>
+                    <div key={task.id} className="apple-list-row !min-h-0 !py-3">
+                      <div className="w-8 h-8 rounded-apple-xs bg-apple-blue/15 flex items-center justify-center shrink-0">
+                        <ClipboardList className="w-4 h-4 text-apple-blue" />
                       </div>
-                      <button onClick={() => handleCompleteTask(task)} disabled={completingTaskId === task.id}
-                        className="w-6 h-6 rounded-full border border-white/15 bg-white/5 flex items-center justify-center shrink-0 text-white/30 active:bg-emerald-500/20">
-                        <Check className="w-3 h-3" />
+                      <div className="flex-1 min-w-0">
+                        <p className="apple-text-footnote font-semibold apple-label-primary truncate">{task.title}</p>
+                      </div>
+                      <button
+                        onClick={() => handleCompleteTask(task)}
+                        disabled={completingTaskId === task.id}
+                        className="apple-press w-7 h-7 rounded-full bg-apple-green/15 text-apple-green flex items-center justify-center shrink-0"
+                        aria-label="Completar tarea"
+                      >
+                        <Check className="w-[14px] h-[14px]" />
                       </button>
                     </div>
                   ))}
                 </div>
               ) : (
-                <div className="flex items-center justify-center gap-2 py-3">
-                  <CheckCircle2 className="w-4 h-4 text-emerald-500/40" />
-                  <p className="text-white/25 text-[10px] font-bold uppercase tracking-wider">Tareas completadas</p>
+                <div className="apple-card py-5 flex flex-col items-center gap-2">
+                  <CheckCircle2 className="w-6 h-6 text-apple-green" />
+                  <p className="apple-text-footnote apple-label-secondary">Todo al día</p>
                 </div>
               )}
             </div>
