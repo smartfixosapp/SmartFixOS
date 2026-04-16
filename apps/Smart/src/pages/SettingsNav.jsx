@@ -8,6 +8,7 @@ import {
   ChevronLeft, Save, LayoutGrid 
 } from "lucide-react";
 import { toast } from "sonner";
+import { cn } from "@/lib/utils";
 
 const AVAILABLE_ITEMS = [
   { id: "orders", label: "Órdenes", icon: ClipboardList, path: "/OrdersMobile" },
@@ -78,69 +79,87 @@ export default function SettingsNav() {
 
   return (
     <div
-      className="min-h-screen bg-black p-4 pb-24 text-white"
-      style={{ paddingTop: "10px" }}
+      className="min-h-screen apple-surface apple-type p-4 pb-28"
+      style={{ paddingTop: "calc(env(safe-area-inset-top, 0px) + 10px)" }}
     >
-      <div className="flex items-center gap-3 mb-8">
-        <Button
-          variant="ghost"
-          size="icon"
+      {/* Header estilo iOS */}
+      <div className="flex items-center gap-2 mb-6">
+        <button
           onClick={() => navigate("/SettingsMobile")}
           aria-label="Volver a configuración"
-          className="text-white/70 hover:text-white hover:bg-white/10"
+          className="apple-press h-10 pl-1 pr-2 rounded-full flex items-center gap-1 text-apple-blue"
         >
-          <ChevronLeft className="w-6 h-6" />
-        </Button>
-        <div>
-          <h1 className="text-2xl font-bold flex items-center gap-2">
-            <LayoutGrid className="w-6 h-6 text-cyan-500" />
-            Personalizar Menú
-          </h1>
-          <p className="text-gray-400 text-xs">Elige qué accesos mostrar en la barra inferior</p>
+          <ChevronLeft className="w-[22px] h-[22px]" strokeWidth={2.4} />
+          <span className="apple-text-body">Volver</span>
+        </button>
+      </div>
+      <div className="mb-6 flex items-start gap-3 px-1">
+        <div className="w-11 h-11 rounded-apple-sm bg-apple-blue/15 text-apple-blue flex items-center justify-center shrink-0">
+          <LayoutGrid className="w-5 h-5" />
+        </div>
+        <div className="flex-1">
+          <h1 className="apple-text-title1 apple-label-primary">Personalizar menú</h1>
+          <p className="apple-text-footnote apple-label-secondary mt-0.5">Elige qué accesos mostrar en la barra inferior</p>
         </div>
       </div>
 
-      <div className="space-y-4">
+      {/* Lista estilo iOS Settings */}
+      <div className="apple-list">
         {/* Home is always active */}
-        <div className="bg-white/5 border border-white/10 rounded-2xl p-4 flex items-center justify-between opacity-50 cursor-not-allowed">
-          <div className="flex items-center gap-4">
-            <div className="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center">
-              <Home className="w-5 h-5 text-white" />
-            </div>
-            <span className="font-semibold">Inicio</span>
+        <div className="apple-list-row opacity-60 cursor-not-allowed">
+          <div className="apple-list-row-icon" style={{ backgroundColor: "rgb(var(--sys-gray-1))" }}>
+            <Home className="w-4 h-4" />
           </div>
+          <span className="apple-list-row-title">Inicio</span>
+          <span className="apple-text-footnote apple-label-tertiary mr-3">Fijo</span>
           <Switch checked={true} disabled />
         </div>
 
         {AVAILABLE_ITEMS.map((item) => (
-          <div key={item.id} className="bg-white/5 border border-white/10 rounded-2xl p-4 flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${
-                config[item.id] ? "bg-cyan-500/20 text-cyan-400" : "bg-white/5 text-white/40"
-              }`}>
-                <item.icon className="w-5 h-5" />
-              </div>
-              <span className={`font-semibold ${config[item.id] ? "text-white" : "text-white/50"}`}>
-                {item.label}
-              </span>
+          <div key={item.id} className="apple-list-row cursor-default">
+            <div
+              className="apple-list-row-icon"
+              style={{
+                backgroundColor: config[item.id]
+                  ? "rgb(var(--apple-blue))"
+                  : "rgb(var(--sys-gray-3))"
+              }}
+            >
+              <item.icon className="w-4 h-4" />
             </div>
-            <Switch 
-              checked={config[item.id]} 
-              onCheckedChange={() => toggleItem(item.id)} 
-              className="data-[state=checked]:bg-cyan-600"
+            <span className={cn(
+              "apple-list-row-title",
+              !config[item.id] && "apple-label-secondary"
+            )}>
+              {item.label}
+            </span>
+            <Switch
+              checked={config[item.id]}
+              onCheckedChange={() => toggleItem(item.id)}
+              className="data-[state=checked]:bg-apple-green"
             />
           </div>
         ))}
       </div>
 
-      <div className="fixed bottom-0 left-0 right-0 p-4 bg-black/80 backdrop-blur-xl border-t border-white/10">
-        <Button 
-          onClick={handleSave} 
-          className="w-full h-12 bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-white font-bold rounded-xl shadow-lg"
+      {/* Botón guardar flotante estilo iOS */}
+      <div
+        className="fixed bottom-0 left-0 right-0 px-4 pt-3"
+        style={{
+          paddingBottom: "calc(env(safe-area-inset-bottom, 0px) + 12px)",
+          backgroundColor: "rgb(var(--surface-primary) / 0.85)",
+          WebkitBackdropFilter: "blur(24px) saturate(180%)",
+          backdropFilter: "blur(24px) saturate(180%)",
+          borderTop: "0.5px solid rgb(var(--separator) / 0.29)",
+        }}
+      >
+        <button
+          onClick={handleSave}
+          className="apple-btn apple-btn-primary apple-btn-lg"
         >
-          <Save className="w-5 h-5 mr-2" />
-          Guardar Cambios
-        </Button>
+          <Save className="w-[18px] h-[18px]" />
+          Guardar cambios
+        </button>
       </div>
     </div>
   );

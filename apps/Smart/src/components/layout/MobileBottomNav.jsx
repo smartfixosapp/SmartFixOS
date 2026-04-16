@@ -62,15 +62,15 @@ function useBadgeCounts() {
   return { pendingOrders };
 }
 
-// ── Badge component ───────────────────────────────────────────────────────
+// ── Badge component (iOS-style red pill) ─────────────────────────────────
 function Badge({ count }) {
   if (!count || count <= 0) return null;
   return (
     <span className={cn(
-      "absolute -top-0.5 -right-0.5 min-w-[16px] h-4 px-0.5 rounded-full",
-      "bg-red-500 text-white text-[9px] font-black flex items-center justify-center",
-      "shadow-[0_0_6px_rgba(239,68,68,0.6)] border border-black/30",
-      count > 99 ? "min-w-[22px] px-1" : ""
+      "absolute -top-1 -right-1.5 min-w-[18px] h-[18px] px-1 rounded-full",
+      "bg-apple-red text-white text-[11px] font-semibold tabular-nums flex items-center justify-center",
+      "shadow-apple-sm ring-2 ring-[rgb(var(--surface-primary))] dark:ring-[rgb(var(--surface-tertiary))]",
+      count > 99 ? "min-w-[24px]" : ""
     )}>
       {count > 99 ? "99+" : count}
     </span>
@@ -125,27 +125,11 @@ export default function MobileBottomNav() {
   };
 
   const tabs = [
-    {
-      id: "orders",    label: "Órdenes",  icon: ClipboardList, path: "/Orders",
-      gradient: "from-orange-500 to-amber-500",
-      badge: pendingOrders,
-    },
-    {
-      id: "pos",       label: "Caja",     icon: Wallet,        path: "/POS",
-      gradient: "from-emerald-500 to-teal-500",
-    },
-    {
-      id: "home",      label: "Inicio",   icon: LayoutGrid,    path: "/Dashboard",
-      gradient: "from-blue-500 to-indigo-500", isCenter: true,
-    },
-    {
-      id: "financial", label: "Finanzas", icon: TrendingUp,    path: "/Financial",
-      gradient: "from-emerald-500 to-green-500",
-    },
-    {
-      id: "settings",  label: "Ajustes",  icon: Settings,      path: "/Settings",
-      gradient: "from-slate-400 to-slate-500",
-    },
+    { id: "orders",    label: "Órdenes",  icon: ClipboardList, path: "/Orders",    badge: pendingOrders },
+    { id: "pos",       label: "Caja",     icon: Wallet,        path: "/POS" },
+    { id: "home",      label: "Inicio",   icon: LayoutGrid,    path: "/Dashboard" },
+    { id: "financial", label: "Finanzas", icon: TrendingUp,    path: "/Financial" },
+    { id: "settings",  label: "Ajustes",  icon: Settings,      path: "/Settings" },
   ];
 
   return (
@@ -156,24 +140,28 @@ export default function MobileBottomNav() {
         hasPanelsOpen ? "h-0" : "h-[72px]"
       )} />
 
-      {/* Premium Tab Bar */}
+      {/* Tab Bar estilo iOS — translúcido con blur, uniforme */}
       <nav
         data-global-dock
         className={cn(
-          "fixed bottom-0 left-0 right-0 z-[100] md:hidden transition-all duration-300",
+          "apple-type fixed bottom-0 left-0 right-0 z-[100] md:hidden transition-all duration-300",
           hasPanelsOpen
             ? "translate-y-full opacity-0 pointer-events-none"
             : "translate-y-0 opacity-100"
         )}
       >
-        {/* Liquid Glass Background */}
-        <div className="liquid-glass-strong absolute inset-0 border-t border-white/[0.06]" />
+        {/* Fondo translúcido Apple (vibrancy) */}
+        <div
+          className="absolute inset-0 border-t border-[rgb(var(--separator)/0.29)]"
+          style={{
+            backgroundColor: "rgb(var(--surface-elevated) / 0.72)",
+            WebkitBackdropFilter: "blur(28px) saturate(190%)",
+            backdropFilter: "blur(28px) saturate(190%)",
+          }}
+        />
 
-        {/* Subtle top glow line */}
-        <div className="absolute top-0 left-[15%] right-[15%] h-[1px] bg-gradient-to-r from-transparent via-white/10 to-transparent" />
-
-        {/* Tab Items */}
-        <div className="relative flex items-end justify-around px-1 pb-[max(env(safe-area-inset-bottom),8px)] pt-1.5">
+        {/* Tab items */}
+        <div className="relative flex items-stretch justify-around px-1 pb-[max(env(safe-area-inset-bottom),6px)] pt-1.5">
           {tabs.map((tab) => {
             const isActive = activeTab === tab.id;
             const Icon     = tab.icon;
@@ -184,70 +172,41 @@ export default function MobileBottomNav() {
                 key={tab.id}
                 onClick={() => handleTabClick(tab)}
                 className={cn(
-                  "relative flex flex-col items-center justify-center min-w-[56px] py-1",
-                  "active:scale-90 transition-transform duration-150",
-                  tab.isCenter ? "min-w-[64px]" : ""
+                  "apple-press relative flex flex-col items-center justify-center gap-0.5 min-w-[56px] py-1.5 px-1 rounded-apple-sm",
+                  "apple-focusable"
                 )}
+                aria-label={tab.label}
+                aria-current={isActive ? "page" : undefined}
               >
-                {/* Center (Dashboard) button */}
-                {tab.isCenter ? (
-                  <div className={cn(
-                    "relative w-[52px] h-[52px] rounded-2xl flex items-center justify-center transition-all duration-300",
-                    isActive
-                      ? "bg-gradient-to-br from-blue-500 to-indigo-600 shadow-[0_8px_24px_rgba(99,102,241,0.5)] scale-105"
-                      : "bg-white/[0.06] border border-white/[0.08]"
-                  )}>
-                    {isActive && (
-                      <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-blue-500/30 to-indigo-600/30 blur-lg animate-pulse" />
+                {/* Icon container with badge */}
+                <div className="relative">
+                  <Icon
+                    className={cn(
+                      "w-[26px] h-[26px] transition-colors duration-200",
+                      isActive ? "text-apple-blue" : "apple-label-tertiary"
                     )}
-                    <Icon
-                      className={cn(
-                        "w-6 h-6 relative z-10 transition-colors duration-300",
-                        isActive ? "text-white" : "text-white/40"
-                      )}
-                      strokeWidth={isActive ? 2.5 : 1.8}
-                    />
-                  </div>
-                ) : (
-                  <>
-                    {/* Active pill indicator */}
-                    {isActive && (
-                      <motion.div
-                        layoutId="mobile-tab-pill"
-                        className={cn(
-                          "absolute -top-0.5 w-5 h-[3px] rounded-full bg-gradient-to-r",
-                          tab.gradient
-                        )}
-                        transition={{ type: "spring", stiffness: 400, damping: 30 }}
-                      />
-                    )}
+                    strokeWidth={isActive ? 2.1 : 1.8}
+                  />
+                  <Badge count={badgeCount} />
+                </div>
 
-                    {/* Icon container with badge */}
-                    <div className="relative">
-                      <div className={cn(
-                        "w-10 h-10 rounded-xl flex items-center justify-center transition-all duration-300",
-                        isActive ? "bg-white/[0.06]" : ""
-                      )}>
-                        <Icon
-                          className={cn(
-                            "w-[22px] h-[22px] transition-all duration-300",
-                            isActive ? "text-white" : "text-white/30"
-                          )}
-                          strokeWidth={isActive ? 2.2 : 1.8}
-                        />
-                      </div>
-                      {/* Badge de notificación */}
-                      <Badge count={badgeCount} />
-                    </div>
+                {/* Label estilo iOS — caption2 (11px) */}
+                <span className={cn(
+                  "text-[11px] leading-[13px] transition-colors duration-200",
+                  isActive
+                    ? "text-apple-blue font-semibold"
+                    : "apple-label-tertiary font-medium"
+                )}>
+                  {tab.label}
+                </span>
 
-                    {/* Label */}
-                    <span className={cn(
-                      "text-[10px] font-semibold tracking-tight leading-none mt-0.5 transition-all duration-300",
-                      isActive ? "text-white/90" : "text-white/25"
-                    )}>
-                      {tab.label}
-                    </span>
-                  </>
+                {/* Animación subtle del active tab: leve pill superior */}
+                {isActive && (
+                  <motion.div
+                    layoutId="mobile-tab-active"
+                    className="absolute -top-1 w-6 h-[2.5px] rounded-full bg-apple-blue"
+                    transition={{ type: "spring", stiffness: 400, damping: 32 }}
+                  />
                 )}
               </button>
             );

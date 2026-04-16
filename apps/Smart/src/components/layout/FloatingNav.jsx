@@ -74,64 +74,94 @@ export default function FloatingNav() {
 
   return (
     <>
-      {/* Botón Flotante (Hamburger) */}
+      {/* Botón flotante (hamburger) estilo iOS */}
       <button
         onClick={() => setIsOpen(true)}
-        className="fixed top-4 left-4 z-[60] w-10 h-10 bg-black/60 backdrop-blur-md border border-white/10 text-white rounded-full flex items-center justify-center shadow-lg hover:bg-black/80 transition-all active:scale-95"
+        className="apple-press fixed top-4 left-4 z-[60] w-10 h-10 rounded-full flex items-center justify-center apple-focusable apple-type"
+        style={{
+          backgroundColor: "rgb(var(--surface-elevated) / 0.72)",
+          WebkitBackdropFilter: "blur(20px) saturate(180%)",
+          backdropFilter: "blur(20px) saturate(180%)",
+          boxShadow: "0 1px 2px rgb(0 0 0 / 0.1), 0 8px 24px rgb(0 0 0 / 0.12)",
+          top: "calc(env(safe-area-inset-top, 0px) + 1rem)",
+        }}
+        aria-label="Abrir menú"
       >
-        <Menu className="w-5 h-5" />
+        <Menu className="w-5 h-5 apple-label-primary" />
       </button>
 
       {/* Menú Overlay */}
       {isOpen && (
-        <div className="fixed inset-0 z-[70] bg-black/80 backdrop-blur-sm animate-in fade-in duration-200" onClick={() => setIsOpen(false)}>
+        <div className="apple-type fixed inset-0 z-[70] bg-black/40 backdrop-blur-sm animate-apple-fade-in" onClick={() => setIsOpen(false)}>
           {/* Sidebar */}
-          <div 
-            className="absolute top-0 left-0 bottom-0 w-64 bg-[#0F0F12] border-r border-white/10 shadow-2xl p-4 flex flex-col animate-in slide-in-from-left duration-300"
+          <div
+            className="absolute top-0 left-0 bottom-0 w-72 apple-surface-elevated p-4 flex flex-col animate-apple-slide-up"
             onClick={(e) => e.stopPropagation()}
+            style={{
+              borderRight: "0.5px solid rgb(var(--separator) / 0.29)",
+              boxShadow: "0 0 48px rgb(0 0 0 / 0.3)",
+              paddingTop: "calc(env(safe-area-inset-top, 0px) + 1rem)",
+              paddingBottom: "calc(env(safe-area-inset-bottom, 0px) + 1rem)",
+            }}
           >
-            <div className="flex items-center justify-between mb-8">
-              <h2 className="text-xl font-bold text-white">Menú</h2>
-              <button onClick={() => setIsOpen(false)} className="text-gray-400 hover:text-white">
-                <X className="w-6 h-6" />
+            <div className="flex items-center justify-between mb-5 px-1">
+              <h2 className="apple-text-title2 apple-label-primary">Menú</h2>
+              <button
+                onClick={() => setIsOpen(false)}
+                className="apple-press w-8 h-8 rounded-full bg-gray-sys6 dark:bg-gray-sys5 apple-label-secondary flex items-center justify-center"
+                aria-label="Cerrar"
+              >
+                <X className="w-4 h-4" />
               </button>
             </div>
 
-            <div className="flex-1 space-y-2">
-              {navItems.map((item) => (
-                <button
-                  key={item.path}
-                  onClick={() => handleNavigate(item.path)}
-                  className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-left transition-colors ${
-                    location.pathname.includes(item.path) || (item.path === "Dashboard" && location.pathname === "/") 
-                      ? "bg-cyan-600/20 text-cyan-400 border border-cyan-500/30" 
-                      : "text-gray-300 hover:bg-white/5 hover:text-white"
-                  }`}
-                >
-                  <item.icon className="w-5 h-5" />
-                  <span className="font-medium">{item.label}</span>
-                </button>
-              ))}
+            {/* Navigation items como apple-list estilo iOS Settings */}
+            <div className="apple-list flex-1 overflow-y-auto apple-scroll">
+              {navItems.map((item) => {
+                const isActive = location.pathname.includes(item.path) || (item.path === "Dashboard" && location.pathname === "/");
+                return (
+                  <button
+                    key={item.path}
+                    onClick={() => handleNavigate(item.path)}
+                    className="apple-list-row w-full text-left apple-focusable"
+                  >
+                    <div className={`apple-list-row-icon ${isActive ? "" : ""}`} style={{ backgroundColor: `rgb(var(--apple-blue))` }}>
+                      <item.icon className="w-4 h-4" />
+                    </div>
+                    <span className={`apple-list-row-title ${isActive ? "text-apple-blue font-semibold" : ""}`}>
+                      {item.label}
+                    </span>
+                    {isActive ? (
+                      <span className="text-apple-blue">
+                        <svg className="w-4 h-4" viewBox="0 0 16 16" fill="currentColor"><path d="M13.5 4.5l-7 7-3-3" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" fill="none"/></svg>
+                      </span>
+                    ) : (
+                      <svg className="apple-list-row-chevron" viewBox="0 0 7 12" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                        <path d="M1 1l5 5-5 5"/>
+                      </svg>
+                    )}
+                  </button>
+                );
+              })}
             </div>
 
-            <div className="pt-4 border-t border-white/10 space-y-3">
-              <Button
-                variant="outline"
+            {/* Acciones auxiliares */}
+            <div className="pt-4 mt-2 space-y-2">
+              <button
                 onClick={toggleFullscreen}
-                className="w-full justify-start gap-3 bg-white/5 border-white/10 text-white hover:bg-white/10 hover:text-white"
+                className="apple-btn apple-btn-secondary w-full justify-start"
               >
                 {isFullscreen ? <Minimize className="w-4 h-4" /> : <Maximize className="w-4 h-4" />}
-                {isFullscreen ? "Salir Pantalla Completa" : "Pantalla Completa"}
-              </Button>
-              
-              <Button
-                variant="ghost"
+                <span className="flex-1 text-left">{isFullscreen ? "Salir pantalla completa" : "Pantalla completa"}</span>
+              </button>
+
+              <button
                 onClick={() => handleNavigate("Dashboard")}
-                className="w-full justify-start gap-3 text-gray-400 hover:text-white"
+                className="apple-btn apple-btn-plain w-full justify-start"
               >
                 <ArrowLeft className="w-4 h-4" />
-                Volver al Inicio
-              </Button>
+                <span className="flex-1 text-left">Volver al inicio</span>
+              </button>
             </div>
           </div>
         </div>

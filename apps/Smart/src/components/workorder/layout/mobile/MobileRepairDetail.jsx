@@ -64,33 +64,42 @@ function MobileRepairDetail({
   }, []);
 
   return (
-    <div className="h-full flex flex-col bg-[#0D0D0F] overflow-hidden">
-      {/* ── HEADER ── */}
+    <div className="h-full flex flex-col apple-surface apple-type overflow-hidden">
+      {/* ── HEADER estilo iOS (nav bar translúcido) ── */}
       <div
-        className="flex-shrink-0 border-b border-white/[0.08] bg-[#0D0D0F]"
-        style={{ paddingTop: "calc(env(safe-area-inset-top, 20px) + 10px)" }}
+        className="flex-shrink-0 apple-surface-secondary relative"
+        style={{
+          paddingTop: "calc(env(safe-area-inset-top, 20px) + 8px)",
+          borderBottom: "0.5px solid rgb(var(--separator) / 0.29)",
+        }}
       >
-        <div className="flex items-center justify-between px-4 py-3">
+        <div className="flex items-center justify-between px-2 py-2">
           <button
             onClick={onClose}
-            className="w-10 h-10 rounded-full flex items-center justify-center active:bg-white/10 transition-colors"
+            className="apple-press h-10 pl-1 pr-3 rounded-full flex items-center gap-1 text-apple-blue"
+            aria-label="Volver"
           >
-            <ChevronLeft className="w-6 h-6 text-white" />
+            <ChevronLeft className="w-[22px] h-[22px]" strokeWidth={2.4} />
+            <span className="apple-text-body">Volver</span>
           </button>
           <div className="flex-1 text-center min-w-0">
-            <h1 className="text-lg font-black text-white tracking-tight">Detalles de reparacion</h1>
+            <h1 className="apple-text-headline apple-label-primary truncate">Detalles</h1>
           </div>
           <button
             onClick={onDelete}
-            className="w-10 h-10 rounded-full flex items-center justify-center active:bg-red-500/10 transition-colors"
+            className="apple-press w-10 h-10 rounded-full flex items-center justify-center text-apple-red"
+            aria-label="Eliminar"
           >
-            <Trash2 className="w-5 h-5 text-white/50" />
+            <Trash2 className="w-[19px] h-[19px]" />
           </button>
         </div>
       </div>
 
-      {/* ── TAB BAR ── */}
-      <div className="flex-shrink-0 border-b border-white/[0.08] bg-[#0D0D0F]">
+      {/* ── TAB BAR estilo iOS Segmented Control ── */}
+      <div
+        className="flex-shrink-0 apple-surface-secondary"
+        style={{ borderBottom: "0.5px solid rgb(var(--separator) / 0.29)" }}
+      >
         <div className="flex">
           {TABS.map((tab, i) => {
             const Icon = tab.icon;
@@ -100,14 +109,23 @@ function MobileRepairDetail({
                 key={tab.id}
                 onClick={() => switchTab(i)}
                 className={cn(
-                  "flex-1 py-2 flex flex-col items-center gap-0.5 relative",
-                  isActive ? "text-white" : "text-white/35"
+                  "apple-press flex-1 py-2 flex flex-col items-center gap-0.5 relative",
+                  isActive ? "text-apple-blue" : "apple-label-tertiary"
                 )}
+                aria-current={isActive ? "page" : undefined}
               >
-                <Icon className={cn("w-5 h-5", isActive ? "text-cyan-400" : "text-white/35")} />
-                <span className="text-[10px] font-semibold">{tab.label}</span>
+                <Icon
+                  className={cn("w-[22px] h-[22px] transition-colors", isActive ? "text-apple-blue" : "apple-label-tertiary")}
+                  strokeWidth={isActive ? 2.1 : 1.8}
+                />
+                <span className={cn(
+                  "apple-text-caption1 transition-colors",
+                  isActive ? "text-apple-blue font-semibold" : "apple-label-tertiary font-medium"
+                )}>
+                  {tab.label}
+                </span>
                 {isActive && (
-                  <div className="absolute bottom-0 left-4 right-4 h-0.5 bg-cyan-500 rounded-full" />
+                  <div className="absolute bottom-0 left-6 right-6 h-[2.5px] bg-apple-blue rounded-full" />
                 )}
               </button>
             );
@@ -116,7 +134,10 @@ function MobileRepairDetail({
       </div>
 
       {/* ── PROGRESS STEPPER ── */}
-      <div className="flex-shrink-0 border-b border-white/[0.06]">
+      <div
+        className="flex-shrink-0"
+        style={{ borderBottom: "0.5px solid rgb(var(--separator) / 0.20)" }}
+      >
         <MobileProgressStepper
           activeStatuses={activeStatuses}
           status={status}
@@ -131,10 +152,10 @@ function MobileRepairDetail({
           style={{ height: isRefreshing ? 40 : pullDistance * 0.5 }}
         >
           {isRefreshing ? (
-            <Loader2 className="w-5 h-5 text-cyan-400 animate-spin" />
+            <Loader2 className="w-5 h-5 text-apple-blue animate-spin" />
           ) : (
             <div
-              className="w-5 h-5 rounded-full border-2 border-cyan-400 border-t-transparent"
+              className="w-5 h-5 rounded-full border-2 border-apple-blue border-t-transparent"
               style={{ transform: `rotate(${pullDistance * 3}deg)`, opacity: Math.min(pullDistance / 80, 1) }}
             />
           )}
