@@ -13,7 +13,8 @@ import {
   DollarSign,
   Calendar,
   Smartphone,
-  User
+  User,
+  Sparkles
 } from "lucide-react";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
@@ -21,14 +22,14 @@ import { openWhatsApp, makeCall } from "@/components/utils/helpers";
 import { callJENAI } from "@/lib/jenaiEngine";
 
 const statusColors = {
-  intake: "bg-blue-500/20 text-blue-400 border-blue-500/30",
-  diagnosing: "bg-purple-500/20 text-purple-400 border-purple-500/30",
-  awaiting_approval: "bg-yellow-500/20 text-yellow-400 border-yellow-500/30",
-  waiting_parts: "bg-orange-500/20 text-orange-400 border-orange-500/30",
-  in_progress: "bg-cyan-500/20 text-cyan-400 border-cyan-500/30",
-  ready_for_pickup: "bg-green-500/20 text-green-400 border-green-500/30",
-  picked_up: "bg-emerald-500/20 text-emerald-400 border-emerald-500/30",
-  completed: "bg-gray-500/20 text-gray-400 border-gray-500/30"
+  intake: "bg-apple-blue/12 text-apple-blue",
+  diagnosing: "bg-apple-purple/12 text-apple-purple",
+  awaiting_approval: "bg-apple-yellow/15 text-apple-yellow",
+  waiting_parts: "bg-apple-orange/12 text-apple-orange",
+  in_progress: "bg-apple-indigo/12 text-apple-indigo",
+  ready_for_pickup: "bg-apple-green/12 text-apple-green",
+  picked_up: "bg-apple-green/12 text-apple-green",
+  completed: "bg-gray-sys6 dark:bg-gray-sys5 apple-label-secondary"
 };
 
 const statusLabels = {
@@ -87,7 +88,7 @@ Si preguntan por el estado, explica el estado actual de forma amigable.`;
     try {
       // Validate token (simple validation)
       const orders = await appClient.entities.Order.filter({ id: orderId });
-      
+
       if (orders.length === 0) {
         setError("Orden no encontrada");
         setLoading(false);
@@ -95,7 +96,7 @@ Si preguntan por el estado, explica el estado actual de forma amigable.`;
       }
 
       const order = orders[0];
-      
+
       // Validate token contains order info
       try {
         const decodedToken = atob(token);
@@ -121,10 +122,10 @@ Si preguntan por el estado, explica el estado actual de forma amigable.`;
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-[#0D0D0D] to-[#1A1A1A] flex items-center justify-center">
-        <div className="text-white text-center">
-          <div className="animate-spin w-16 h-16 border-4 border-[#FF0000] border-t-transparent rounded-full mx-auto mb-4"></div>
-          <p>Cargando información...</p>
+      <div className="min-h-screen apple-surface apple-type flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin w-12 h-12 border-[3px] border-apple-blue/20 border-t-apple-blue rounded-full mx-auto mb-4"></div>
+          <p className="apple-text-body apple-label-secondary">Cargando información...</p>
         </div>
       </div>
     );
@@ -132,14 +133,14 @@ Si preguntan por el estado, explica el estado actual de forma amigable.`;
 
   if (error || !order) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-[#0D0D0D] to-[#1A1A1A] flex items-center justify-center p-4">
-        <Card className="max-w-md w-full bg-gray-900 border-red-900/30">
-          <CardContent className="p-8 text-center">
-            <AlertCircle className="w-16 h-16 text-red-500 mx-auto mb-4" />
-            <h2 className="text-xl font-bold text-white mb-2">Error</h2>
-            <p className="text-gray-400">{error || "No se pudo cargar la orden"}</p>
-          </CardContent>
-        </Card>
+      <div className="min-h-screen apple-surface apple-type flex items-center justify-center p-4">
+        <div className="max-w-md w-full apple-card p-8 text-center">
+          <div className="w-14 h-14 rounded-apple-sm bg-apple-red/12 flex items-center justify-center mx-auto mb-4">
+            <AlertCircle className="w-8 h-8 text-apple-red" />
+          </div>
+          <h2 className="apple-text-title2 apple-label-primary mb-2">Error</h2>
+          <p className="apple-text-body apple-label-secondary">{error || "No se pudo cargar la orden"}</p>
+        </div>
       </div>
     );
   }
@@ -148,220 +149,221 @@ Si preguntan por el estado, explica el estado actual de forma amigable.`;
   const checklistFunctional = checklist.filter(i => i.status === "functional").length;
   const checklistTotal = checklist.length;
 
-  const visiblePhotos = (order.device_photos || []).filter(photo => 
+  const visiblePhotos = (order.device_photos || []).filter(photo =>
     typeof photo === 'string' || (photo.visible_to_customer !== false)
   );
 
-  const visibleComments = (order.comments || []).filter(comment => 
+  const visibleComments = (order.comments || []).filter(comment =>
     !comment.internal
   );
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#0D0D0D] to-[#1A1A1A] p-4 md:p-8">
+    <div className="min-h-screen apple-surface apple-type p-4 md:p-8">
       <div className="max-w-4xl mx-auto space-y-6">
         {/* Header with Branding */}
         <div className="text-center mb-8">
           <div className="inline-flex items-center gap-3 mb-4">
-            <img 
-              src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/68e824240b8444c78a101a65/daf775990_1000035043.jpg" 
+            <img
+              src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/68e824240b8444c78a101a65/daf775990_1000035043.jpg"
               alt="911 SmartFix"
               className="w-16 h-16 rounded-full"
             />
             <div className="text-left">
-              <h1 className="text-2xl font-bold text-white">911 SmartFix</h1>
-              <p className="text-gray-400 text-sm">Puerto Rico</p>
+              <h1 className="apple-text-title1 apple-label-primary">911 SmartFix</h1>
+              <p className="apple-text-footnote apple-label-secondary">Puerto Rico</p>
             </div>
           </div>
-          <p className="text-gray-400">Portal de Seguimiento de Orden</p>
+          <p className="apple-text-subheadline apple-label-secondary">Portal de Seguimiento de Orden</p>
         </div>
 
         {/* Order Header */}
-        <Card className="bg-gradient-to-br from-gray-900 to-black border-red-900/30">
-          <CardContent className="p-6">
-            <div className="flex items-start justify-between gap-4 mb-4">
-              <div>
-                <h2 className="text-2xl font-bold text-white mb-2">{order.order_number}</h2>
-                <div className="flex items-center gap-2 text-gray-300">
-                  <User className="w-4 h-4" />
-                  <span>{order.customer_name}</span>
-                </div>
-              </div>
-              <Badge className={`${statusColors[order.status]} text-base px-4 py-2`}>
-                {statusLabels[order.status] || order.status}
-              </Badge>
-            </div>
-
-            {/* Device Info */}
-            <div className="flex items-center gap-2 text-gray-400 mb-4">
-              <Smartphone className="w-4 h-4" />
-              <span>{order.device_brand} {order.device_model}</span>
-            </div>
-
-            {/* Progress Bar */}
-            <div className="space-y-2">
-              <div className="flex items-center justify-between text-sm">
-                <span className="text-gray-400">Progreso</span>
-                <span className="text-white font-medium">{order.progress_percentage || 0}%</span>
-              </div>
-              <div className="w-full bg-gray-800 rounded-full h-3">
-                <div 
-                  className="bg-gradient-to-r from-[#FF0000] to-red-700 h-full rounded-full transition-all"
-                  style={{ width: `${order.progress_percentage || 0}%` }}
-                />
+        <div className="apple-card p-6">
+          <div className="flex items-start justify-between gap-4 mb-4">
+            <div>
+              <h2 className="apple-text-title2 apple-label-primary mb-2 tabular-nums">{order.order_number}</h2>
+              <div className="flex items-center gap-2 apple-label-secondary">
+                <User className="w-4 h-4" />
+                <span className="apple-text-body">{order.customer_name}</span>
               </div>
             </div>
+            <span className={`${statusColors[order.status]} apple-text-subheadline px-3 py-1.5 rounded-apple-sm`}>
+              {statusLabels[order.status] || order.status}
+            </span>
+          </div>
 
-            {/* Contact Buttons */}
-            <div className="grid grid-cols-2 gap-3 mt-6">
-              <Button
-                onClick={() => openWhatsApp("17871234567", `Hola, consulto sobre mi orden ${order.order_number}`)}
-                className="bg-green-600 hover:bg-green-700"
-              >
-                <MessageCircle className="w-4 h-4 mr-2" />
-                WhatsApp
-              </Button>
-              <Button
-                onClick={() => makeCall("17871234567")}
-                variant="outline"
-                className="border-gray-700 text-gray-300"
-              >
-                <Phone className="w-4 h-4 mr-2" />
-                Llamar
-              </Button>
+          {/* Device Info */}
+          <div className="flex items-center gap-2 apple-label-tertiary mb-5">
+            <Smartphone className="w-4 h-4" />
+            <span className="apple-text-callout">{order.device_brand} {order.device_model}</span>
+          </div>
+
+          {/* Progress Bar */}
+          <div className="space-y-2">
+            <div className="flex items-center justify-between">
+              <span className="apple-text-footnote apple-label-secondary">Progreso</span>
+              <span className="apple-text-footnote apple-label-primary font-semibold tabular-nums">{order.progress_percentage || 0}%</span>
             </div>
-          </CardContent>
-        </Card>
+            <div className="w-full bg-gray-sys6 dark:bg-gray-sys5 rounded-apple-xs h-2 overflow-hidden">
+              <div
+                className="bg-apple-blue h-full rounded-apple-xs transition-all"
+                style={{ width: `${order.progress_percentage || 0}%` }}
+              />
+            </div>
+          </div>
+
+          {/* Contact Buttons */}
+          <div className="grid grid-cols-2 gap-3 mt-6">
+            <button
+              onClick={() => openWhatsApp("17871234567", `Hola, consulto sobre mi orden ${order.order_number}`)}
+              className="apple-btn apple-btn-primary apple-press"
+            >
+              <MessageCircle className="w-4 h-4 mr-2" />
+              WhatsApp
+            </button>
+            <button
+              onClick={() => makeCall("17871234567")}
+              className="apple-btn apple-btn-secondary apple-press"
+            >
+              <Phone className="w-4 h-4 mr-2" />
+              Llamar
+            </button>
+          </div>
+        </div>
 
         {/* Payment Summary */}
         {order.cost_estimate && (
-          <Card className="bg-gray-900 border-gray-800">
-            <CardHeader>
-              <CardTitle className="text-white flex items-center gap-2">
-                <DollarSign className="w-5 h-5 text-[#FF0000]" />
-                Resumen de Pago
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-2">
-              <div className="flex justify-between text-sm">
-                <span className="text-gray-400">Total Estimado:</span>
-                <span className="text-white font-medium">${order.cost_estimate.toFixed(2)}</span>
+          <div className="apple-card p-6">
+            <div className="flex items-center gap-2 mb-4">
+              <div className="w-8 h-8 rounded-apple-sm bg-apple-green/12 flex items-center justify-center">
+                <DollarSign className="w-4 h-4 text-apple-green" />
               </div>
-              <div className="flex justify-between text-sm">
-                <span className="text-gray-400">Pagado:</span>
-                <span className="text-green-400 font-medium">${(order.amount_paid || 0).toFixed(2)}</span>
+              <h3 className="apple-text-headline apple-label-primary">Resumen de Pago</h3>
+            </div>
+            <div className="space-y-2.5">
+              <div className="flex justify-between">
+                <span className="apple-text-subheadline apple-label-secondary">Total Estimado</span>
+                <span className="apple-text-subheadline apple-label-primary font-medium tabular-nums">${order.cost_estimate.toFixed(2)}</span>
               </div>
-              <div className="flex justify-between pt-2 border-t border-gray-800">
-                <span className="font-medium text-white">Balance:</span>
-                <span className="font-bold text-orange-400">
+              <div className="flex justify-between">
+                <span className="apple-text-subheadline apple-label-secondary">Pagado</span>
+                <span className="apple-text-subheadline text-apple-green font-medium tabular-nums">${(order.amount_paid || 0).toFixed(2)}</span>
+              </div>
+              <div
+                className="flex justify-between pt-2.5"
+                style={{ borderTop: "0.5px solid rgb(var(--separator) / 0.29)" }}
+              >
+                <span className="apple-text-body apple-label-primary font-semibold">Balance</span>
+                <span className="apple-text-body text-apple-orange font-semibold tabular-nums">
                   ${Math.max(0, order.cost_estimate - (order.amount_paid || 0)).toFixed(2)}
                 </span>
               </div>
-            </CardContent>
-          </Card>
+            </div>
+          </div>
         )}
 
         {/* Checklist Status */}
         {checklistTotal > 0 && (
-          <Card className="bg-gray-900 border-gray-800">
-            <CardHeader>
-              <CardTitle className="text-white flex items-center gap-2">
-                <CheckCircle2 className="w-5 h-5 text-[#FF0000]" />
-                Checklist de Recepción
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-3">
-                <div className="flex items-center justify-between">
-                  <span className="text-gray-400">Estado:</span>
-                  <Badge className={checklistFunctional === checklistTotal ? "bg-green-500/20 text-green-400" : "bg-yellow-500/20 text-yellow-400"}>
-                    {checklistFunctional}/{checklistTotal} verificados
-                  </Badge>
-                </div>
-                
-                <div className="space-y-2">
-                  {checklist.map((item, idx) => (
-                    <div key={idx} className="flex items-center gap-3 text-sm">
-                      <span className={`text-lg ${item.status === "functional" ? "text-green-400" : item.status === "not_functional" ? "text-red-400" : "text-gray-500"}`}>
-                        {item.status === "functional" ? "✅" : item.status === "not_functional" ? "❌" : "⚪"}
-                      </span>
-                      <span className="text-gray-300">{item.label}</span>
-                    </div>
-                  ))}
-                </div>
-
-                {order.checklist_notes && (
-                  <div className="mt-4 p-3 bg-yellow-500/10 border border-yellow-500/30 rounded-lg">
-                    <p className="text-sm text-yellow-400 font-medium mb-1">Observaciones:</p>
-                    <p className="text-sm text-gray-300">{order.checklist_notes}</p>
-                  </div>
-                )}
+          <div className="apple-card p-6">
+            <div className="flex items-center gap-2 mb-4">
+              <div className="w-8 h-8 rounded-apple-sm bg-apple-blue/12 flex items-center justify-center">
+                <CheckCircle2 className="w-4 h-4 text-apple-blue" />
               </div>
-            </CardContent>
-          </Card>
+              <h3 className="apple-text-headline apple-label-primary">Checklist de Recepción</h3>
+            </div>
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <span className="apple-text-subheadline apple-label-secondary">Estado</span>
+                <span className={`apple-text-footnote px-2.5 py-1 rounded-apple-xs tabular-nums ${checklistFunctional === checklistTotal ? "bg-apple-green/12 text-apple-green" : "bg-apple-yellow/15 text-apple-yellow"}`}>
+                  {checklistFunctional}/{checklistTotal} verificados
+                </span>
+              </div>
+
+              <div className="space-y-2">
+                {checklist.map((item, idx) => (
+                  <div key={idx} className="flex items-center gap-3 apple-text-subheadline">
+                    <span className={`text-base ${item.status === "functional" ? "text-apple-green" : item.status === "not_functional" ? "text-apple-red" : "apple-label-tertiary"}`}>
+                      {item.status === "functional" ? "✓" : item.status === "not_functional" ? "✕" : "○"}
+                    </span>
+                    <span className="apple-label-primary">{item.label}</span>
+                  </div>
+                ))}
+              </div>
+
+              {order.checklist_notes && (
+                <div className="mt-4 p-3 bg-apple-yellow/12 rounded-apple-sm">
+                  <p className="apple-text-footnote text-apple-yellow font-semibold mb-1">Observaciones</p>
+                  <p className="apple-text-subheadline apple-label-primary">{order.checklist_notes}</p>
+                </div>
+              )}
+            </div>
+          </div>
         )}
 
         {/* Photos */}
         {visiblePhotos.length > 0 && (
-          <Card className="bg-gray-900 border-gray-800">
-            <CardHeader>
-              <CardTitle className="text-white flex items-center gap-2">
-                <ImageIcon className="w-5 h-5 text-[#FF0000]" />
-                Fotos del Equipo
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-                {visiblePhotos.map((photo, idx) => {
-                  const photoUrl = typeof photo === 'string' ? photo : photo.url;
-                  return (
-                    <a
-                      key={idx}
-                      href={photoUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="aspect-square rounded-lg overflow-hidden bg-gray-800 hover:opacity-80 transition-opacity"
-                    >
-                      <img 
-                        src={photoUrl} 
-                        alt={`Foto ${idx + 1}`}
-                        className="w-full h-full object-cover"
-                      />
-                    </a>
-                  );
-                })}
+          <div className="apple-card p-6">
+            <div className="flex items-center gap-2 mb-4">
+              <div className="w-8 h-8 rounded-apple-sm bg-apple-purple/12 flex items-center justify-center">
+                <ImageIcon className="w-4 h-4 text-apple-purple" />
               </div>
-            </CardContent>
-          </Card>
+              <h3 className="apple-text-headline apple-label-primary">Fotos del Equipo</h3>
+            </div>
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+              {visiblePhotos.map((photo, idx) => {
+                const photoUrl = typeof photo === 'string' ? photo : photo.url;
+                return (
+                  <a
+                    key={idx}
+                    href={photoUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="aspect-square rounded-apple-md overflow-hidden bg-gray-sys6 dark:bg-gray-sys5 apple-press"
+                  >
+                    <img
+                      src={photoUrl}
+                      alt={`Foto ${idx + 1}`}
+                      className="w-full h-full object-cover"
+                    />
+                  </a>
+                );
+              })}
+            </div>
+          </div>
         )}
 
         {/* Comments */}
         {visibleComments.length > 0 && (
-          <Card className="bg-gray-900 border-gray-800">
-            <CardHeader>
-              <CardTitle className="text-white flex items-center gap-2">
-                <MessageCircle className="w-5 h-5 text-[#FF0000]" />
-                Actualizaciones
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-3">
+          <div className="apple-card p-6">
+            <div className="flex items-center gap-2 mb-4">
+              <div className="w-8 h-8 rounded-apple-sm bg-apple-indigo/12 flex items-center justify-center">
+                <MessageCircle className="w-4 h-4 text-apple-indigo" />
+              </div>
+              <h3 className="apple-text-headline apple-label-primary">Actualizaciones</h3>
+            </div>
+            <div className="space-y-3">
               {visibleComments.map((comment, idx) => (
-                <div key={idx} className="p-3 bg-black/50 rounded-lg">
-                  <p className="text-white mb-2">{comment.text}</p>
-                  <div className="flex items-center gap-2 text-xs text-gray-500">
+                <div key={idx} className="p-3 bg-apple-surface-secondary rounded-apple-sm">
+                  <p className="apple-text-body apple-label-primary mb-2">{comment.text}</p>
+                  <div className="flex items-center gap-2 apple-text-caption1 apple-label-tertiary">
                     <Calendar className="w-3 h-3" />
-                    <span>{format(new Date(comment.timestamp), "dd/MM/yyyy HH:mm", { locale: es })}</span>
+                    <span className="tabular-nums">{format(new Date(comment.timestamp), "dd/MM/yyyy HH:mm", { locale: es })}</span>
                     <span>·</span>
                     <span>{comment.author}</span>
                   </div>
                 </div>
               ))}
-            </CardContent>
-          </Card>
+            </div>
+          </div>
         )}
 
         {/* Pregunta al asistente */}
-        <div className="mt-4 border border-violet-500/20 rounded-2xl p-4 bg-white/[0.02]">
-          <p className="text-xs font-black text-white/40 uppercase tracking-widest mb-3">✨ Asistente IA</p>
+        <div className="apple-card p-5">
+          <div className="flex items-center gap-2 mb-3">
+            <div className="w-8 h-8 rounded-apple-sm bg-apple-purple/12 flex items-center justify-center">
+              <Sparkles className="w-4 h-4 text-apple-purple" />
+            </div>
+            <p className="apple-text-headline apple-label-primary">Asistente IA</p>
+          </div>
           <div className="flex gap-2">
             <input
               type="text"
@@ -369,25 +371,25 @@ Si preguntan por el estado, explica el estado actual de forma amigable.`;
               onChange={(e) => setCustomerMessage(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && fetchPortalAiResponse()}
               placeholder="¿Tienes alguna pregunta sobre tu reparación?"
-              className="flex-1 bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-sm text-white placeholder-white/20 focus:outline-none focus:border-violet-500/40"
+              className="apple-input flex-1"
             />
             <button
               onClick={fetchPortalAiResponse}
               disabled={aiPortalLoading || !customerMessage.trim()}
-              className="px-3 py-2 rounded-xl bg-violet-500/15 border border-violet-500/20 text-violet-300 text-xs font-black disabled:opacity-40 hover:bg-violet-500/25 transition-all"
+              className="apple-btn apple-btn-tinted apple-press disabled:opacity-40"
             >
               {aiPortalLoading ? "…" : "→"}
             </button>
           </div>
           {aiPortalResponse && (
-            <div className="mt-3 p-3 rounded-xl bg-violet-500/5 border border-violet-500/10">
-              <p className="text-sm text-white/80 leading-relaxed">{aiPortalResponse}</p>
+            <div className="mt-3 p-3 rounded-apple-sm bg-apple-purple/12">
+              <p className="apple-text-body apple-label-primary leading-relaxed">{aiPortalResponse}</p>
             </div>
           )}
         </div>
 
         {/* Footer */}
-        <div className="text-center text-gray-500 text-sm py-4">
+        <div className="text-center apple-label-tertiary apple-text-footnote py-4">
           <p>© 2025 911 SmartFix Puerto Rico</p>
           <p className="mt-1">Gracias por confiar en nosotros</p>
         </div>

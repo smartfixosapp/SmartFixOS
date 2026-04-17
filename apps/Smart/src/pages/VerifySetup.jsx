@@ -79,7 +79,7 @@ export default function VerifySetup() {
       });
 
       if (response.success) {
-        toast.success("✅ ¡Cuenta creada exitosamente!");
+        toast.success("¡Cuenta creada exitosamente!");
         setTimeout(() => {
           navigate("/PinAccess", { replace: true });
         }, 1500);
@@ -96,10 +96,10 @@ export default function VerifySetup() {
 
   if (verifying) {
     return (
-      <div className="setup-fullscreen-container">
+      <div className="setup-fullscreen-container apple-surface apple-type">
         <div className="text-center">
-          <div className="w-16 h-16 border-4 border-cyan-500/30 border-t-cyan-500 rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-white text-lg">Verificando...</p>
+          <div className="w-16 h-16 border-4 border-apple-blue/25 border-t-apple-blue rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="apple-text-body apple-label-primary">Verificando...</p>
         </div>
         <style>{`
           .setup-fullscreen-container {
@@ -110,7 +110,6 @@ export default function VerifySetup() {
             bottom: 0;
             width: 100vw;
             height: 100vh;
-            background: radial-gradient(circle at top, #0f172a 0%, #020617 45%, #000 90%);
             display: flex;
             align-items: center;
             justify-content: center;
@@ -122,18 +121,18 @@ export default function VerifySetup() {
 
   if (!tokenValid) {
     return (
-      <div className="setup-fullscreen-container">
+      <div className="setup-fullscreen-container apple-surface apple-type">
         <div className="text-center max-w-md p-8">
-          <div className="w-20 h-20 rounded-2xl bg-red-500/20 flex items-center justify-center mx-auto mb-6">
-            <AlertCircle className="w-10 h-10 text-red-400" />
+          <div className="w-20 h-20 rounded-apple-sm bg-apple-red/15 flex items-center justify-center mx-auto mb-6">
+            <AlertCircle className="w-10 h-10 text-apple-red" />
           </div>
-          <h2 className="text-2xl font-bold text-white mb-4">Token Inválido o Expirado</h2>
-          <p className="text-gray-400 mb-6">
+          <h2 className="apple-text-title2 apple-label-primary mb-4">Token inválido o expirado</h2>
+          <p className="apple-text-body apple-label-secondary mb-6">
             El enlace de verificación no es válido o ha expirado. Por favor, solicita un nuevo enlace.
           </p>
           <Button
             onClick={() => navigate("/InitialSetup", { replace: true })}
-            className="bg-gradient-to-r from-cyan-600 to-emerald-600"
+            className="apple-btn apple-btn-primary apple-btn-lg"
           >
             Volver al inicio
           </Button>
@@ -147,7 +146,6 @@ export default function VerifySetup() {
             bottom: 0;
             width: 100vw;
             height: 100vh;
-            background: radial-gradient(circle at top, #0f172a 0%, #020617 45%, #000 90%);
             display: flex;
             align-items: center;
             justify-content: center;
@@ -159,30 +157,26 @@ export default function VerifySetup() {
 
   return (
     <>
-      <div className="setup-fullscreen-container">
-        {/* Background effects */}
-        <div className="absolute inset-0 overflow-hidden pointer-events-none">
-          <div className="absolute top-0 left-1/4 w-96 h-96 bg-cyan-500/10 rounded-full blur-[120px] animate-pulse"></div>
-          <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-emerald-500/10 rounded-full blur-[120px] animate-pulse delay-1000"></div>
-        </div>
-
+      <div className="setup-fullscreen-container apple-surface apple-type">
         <div className="relative w-full h-full flex items-center justify-center p-4 sm:p-6 overflow-y-auto">
           <div className="w-full max-w-xl">
-            
+
             {/* Header */}
             <div className="text-center mb-8">
-              <div className="relative inline-block mb-6">
-                <div className="absolute inset-0 bg-gradient-to-r from-cyan-500/30 to-emerald-500/30 blur-2xl animate-pulse"></div>
-                <img 
+              <div className="inline-block mb-6">
+                <img
                   src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/68f767a3d5fce1486d4cf555/e9bc537e2_DynamicsmartfixosLogowithGearandDevice.png"
                   alt="SmartFixOS"
-                  className="relative h-24 w-auto object-contain mx-auto drop-shadow-[0_4px_16px_rgba(0,168,232,0.8)]"
+                  className="h-24 w-auto object-contain mx-auto"
                 />
               </div>
-              <h1 className="text-4xl font-black bg-gradient-to-r from-cyan-400 via-emerald-400 to-lime-400 bg-clip-text text-transparent mb-2">
-                Email Verificado ✓
-              </h1>
-              <p className="text-gray-400 text-lg">Completa tu configuración</p>
+              <div className="flex items-center justify-center gap-2 mb-2">
+                <CheckCircle className="w-7 h-7 text-apple-green" />
+                <h1 className="apple-text-large-title apple-label-primary">
+                  Email verificado
+                </h1>
+              </div>
+              <p className="apple-text-body apple-label-secondary">Completa tu configuración</p>
             </div>
 
             {/* Progress */}
@@ -190,29 +184,29 @@ export default function VerifySetup() {
               {[1, 2, 3].map((s) => (
                 <div
                   key={s}
-                  className={`h-2 rounded-full transition-all duration-500 ${
-                    s <= step ? "w-12 bg-gradient-to-r from-cyan-500 to-emerald-500" : "w-8 bg-slate-700"
+                  className={`h-2 rounded-apple-xs transition-all duration-500 ${
+                    s <= step ? "w-12 bg-apple-blue" : "w-8 bg-gray-sys6 dark:bg-gray-sys5"
                   }`}
                 />
               ))}
             </div>
 
             {/* Card */}
-            <div className="bg-gradient-to-br from-slate-800/60 to-slate-900/60 backdrop-blur-2xl border-2 border-cyan-500/30 rounded-3xl p-8 shadow-[0_0_60px_rgba(6,182,212,0.3)]">
-              
+            <div className="apple-card rounded-apple-xl p-8 shadow-apple-lg">
+
               {/* Step 1: PIN */}
               {step === 1 && (
                 <div className="space-y-6">
                   <div className="text-center mb-6">
-                    <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center mx-auto mb-4 shadow-[0_0_40px_rgba(168,85,247,0.6)]">
-                      <Lock className="w-8 h-8 text-white" />
+                    <div className="w-16 h-16 rounded-apple-sm bg-apple-purple/15 flex items-center justify-center mx-auto mb-4">
+                      <Lock className="w-8 h-8 text-apple-purple" />
                     </div>
-                    <h2 className="text-2xl font-bold text-white mb-2">Crea tu PIN de acceso</h2>
-                    <p className="text-gray-400">4 dígitos para entrar al sistema</p>
+                    <h2 className="apple-text-title2 apple-label-primary mb-2">Crea tu PIN de acceso</h2>
+                    <p className="apple-text-subheadline apple-label-secondary">4 dígitos para entrar al sistema</p>
                   </div>
                   <div className="space-y-4">
                     <div>
-                      <label className="text-xs text-gray-400 mb-2 block">PIN (4 dígitos)</label>
+                      <label className="apple-text-footnote apple-label-secondary mb-2 block">PIN (4 dígitos)</label>
                       <Input
                         type="password"
                         maxLength={4}
@@ -222,12 +216,12 @@ export default function VerifySetup() {
                           setFormData({ ...formData, pin: val });
                         }}
                         placeholder="••••"
-                        className="h-14 text-2xl tracking-widest text-center bg-black/40 border-purple-500/30 text-white"
+                        className="apple-input h-14 text-2xl text-center tabular-nums"
                         autoFocus
                       />
                     </div>
                     <div>
-                      <label className="text-xs text-gray-400 mb-2 block">Confirmar PIN</label>
+                      <label className="apple-text-footnote apple-label-secondary mb-2 block">Confirmar PIN</label>
                       <Input
                         type="password"
                         maxLength={4}
@@ -237,7 +231,7 @@ export default function VerifySetup() {
                           setFormData({ ...formData, pinConfirm: val });
                         }}
                         placeholder="••••"
-                        className="h-14 text-2xl tracking-widest text-center bg-black/40 border-purple-500/30 text-white"
+                        className="apple-input h-14 text-2xl text-center tabular-nums"
                       />
                     </div>
                   </div>
@@ -248,34 +242,34 @@ export default function VerifySetup() {
               {step === 2 && (
                 <div className="space-y-6">
                   <div className="text-center mb-6">
-                    <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-cyan-500 to-emerald-500 flex items-center justify-center mx-auto mb-4 shadow-[0_0_40px_rgba(6,182,212,0.6)]">
-                      <Building className="w-8 h-8 text-white" />
+                    <div className="w-16 h-16 rounded-apple-sm bg-apple-blue/15 flex items-center justify-center mx-auto mb-4">
+                      <Building className="w-8 h-8 text-apple-blue" />
                     </div>
-                    <h2 className="text-2xl font-bold text-white mb-2">Información del Negocio</h2>
-                    <p className="text-gray-400">Opcional - puedes configurarlo después</p>
+                    <h2 className="apple-text-title2 apple-label-primary mb-2">Información del negocio</h2>
+                    <p className="apple-text-subheadline apple-label-secondary">Opcional · puedes configurarlo después</p>
                   </div>
                   <div className="space-y-4">
                     <div>
-                      <label className="text-xs text-gray-400 mb-2 block">Nombre del Negocio</label>
+                      <label className="apple-text-footnote apple-label-secondary mb-2 block">Nombre del negocio</label>
                       <Input
                         value={formData.business_name}
                         onChange={(e) => setFormData({ ...formData, business_name: e.target.value })}
                         placeholder="Ej: TechRepair Solutions"
-                        className="h-14 text-lg bg-black/40 border-cyan-500/30 text-white"
+                        className="apple-input h-14 text-lg"
                         autoFocus
                       />
                     </div>
                     <div>
-                      <label className="text-xs text-gray-400 mb-2 block flex items-center gap-2">
+                      <label className="apple-text-footnote apple-label-secondary mb-2 block flex items-center gap-2">
                         <Phone className="w-4 h-4" />
-                        Teléfono del Negocio
+                        Teléfono del negocio
                       </label>
                       <Input
                         type="tel"
                         value={formData.business_phone}
                         onChange={(e) => setFormData({ ...formData, business_phone: e.target.value })}
                         placeholder="(787) 123-4567"
-                        className="h-14 text-lg bg-black/40 border-cyan-500/30 text-white"
+                        className="apple-input h-14 text-lg tabular-nums"
                       />
                     </div>
                   </div>
@@ -285,17 +279,17 @@ export default function VerifySetup() {
               {/* Step 3: Confirmation */}
               {step === 3 && (
                 <div className="text-center space-y-6">
-                  <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-emerald-500 to-green-500 flex items-center justify-center mx-auto mb-4 shadow-[0_0_40px_rgba(16,185,129,0.6)] animate-pulse">
-                    <CheckCircle className="w-10 h-10 text-white" />
+                  <div className="w-20 h-20 rounded-apple-sm bg-apple-green/15 flex items-center justify-center mx-auto mb-4">
+                    <CheckCircle className="w-10 h-10 text-apple-green" />
                   </div>
-                  <h2 className="text-2xl font-bold text-white mb-2">¡Todo Listo!</h2>
-                  <p className="text-gray-400 mb-6">
+                  <h2 className="apple-text-title2 apple-label-primary mb-2">¡Todo listo!</h2>
+                  <p className="apple-text-body apple-label-secondary mb-6">
                     Haz clic en finalizar para crear tu cuenta de administrador
                   </p>
                   {formData.business_name && (
-                    <div className="bg-black/40 border border-cyan-500/20 rounded-xl p-4">
-                      <p className="text-cyan-300 text-sm">
-                        🏢 {formData.business_name}
+                    <div className="bg-apple-blue/12 rounded-apple-md p-4">
+                      <p className="apple-text-footnote text-apple-blue">
+                        {formData.business_name}
                       </p>
                     </div>
                   )}
@@ -307,26 +301,25 @@ export default function VerifySetup() {
                 {step > 1 && step < 3 && (
                   <Button
                     onClick={() => setStep(step - 1)}
-                    variant="outline"
-                    className="flex-1 h-14 border-white/20 text-white hover:bg-white/5"
+                    className="apple-btn apple-btn-secondary apple-btn-lg flex-1"
                     disabled={loading}
                   >
                     Atrás
                   </Button>
                 )}
-                
+
                 {step < 3 ? (
                   <Button
                     onClick={handleNext}
-                    className="flex-1 h-14 bg-gradient-to-r from-cyan-600 to-emerald-600 hover:from-cyan-500 hover:to-emerald-500 text-white font-bold"
+                    className="apple-btn apple-btn-primary apple-btn-lg flex-1"
                   >
-                    {step === 2 ? 'Siguiente (Opcional) →' : 'Siguiente →'}
+                    {step === 2 ? 'Siguiente (opcional)' : 'Siguiente'}
                   </Button>
                 ) : (
                   <Button
                     onClick={handleFinish}
                     disabled={loading}
-                    className="flex-1 h-14 bg-gradient-to-r from-emerald-600 to-green-600 hover:from-emerald-500 hover:to-green-500 text-white font-bold"
+                    className="apple-btn apple-btn-primary apple-btn-lg flex-1"
                   >
                     {loading ? (
                       <>
@@ -345,7 +338,7 @@ export default function VerifySetup() {
 
               {/* Indicador de paso */}
               <div className="text-center mt-6">
-                <p className="text-gray-500 text-sm">
+                <p className="apple-text-footnote apple-label-tertiary tabular-nums">
                   Paso {step} de 3
                 </p>
               </div>
@@ -367,7 +360,6 @@ export default function VerifySetup() {
           margin: 0;
           padding: 0;
           overflow: hidden;
-          background: radial-gradient(circle at top, #0f172a 0%, #020617 45%, #000 90%);
           display: flex;
           align-items: center;
           justify-content: center;

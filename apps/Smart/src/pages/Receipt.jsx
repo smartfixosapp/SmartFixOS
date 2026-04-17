@@ -84,10 +84,10 @@ export default function Receipt() {
   }, [autoPrint, loading, order]);
 
   if (loading) return (
-    <div className="min-h-screen bg-black flex items-center justify-center">
+    <div className="min-h-screen apple-surface apple-type flex items-center justify-center">
       <div className="flex gap-1.5">
         {[0,1,2].map(i => (
-          <span key={i} className="w-2 h-2 rounded-full bg-violet-500 animate-bounce"
+          <span key={i} className="w-2 h-2 rounded-full bg-apple-blue animate-bounce"
             style={{ animationDelay: `${i*150}ms` }} />
         ))}
       </div>
@@ -95,11 +95,11 @@ export default function Receipt() {
   );
 
   if (error) return (
-    <div className="min-h-screen bg-black flex items-center justify-center px-6">
+    <div className="min-h-screen apple-surface apple-type flex items-center justify-center px-6">
       <div className="text-center space-y-3">
-        <p className="text-4xl">❌</p>
-        <p className="text-white font-bold text-lg">{error}</p>
-        <p className="text-white/40 text-sm">Verifica el link o contacta al taller.</p>
+        <p className="apple-text-large-title">❌</p>
+        <p className="apple-text-title3 apple-label-primary">{error}</p>
+        <p className="apple-text-subheadline apple-label-secondary">Verifica el link o contacta al taller.</p>
       </div>
     </div>
   );
@@ -112,57 +112,63 @@ export default function Receipt() {
   const PaymentReceipt = () => (
     <div className="space-y-5">
       {/* Header estado */}
-      <div className="flex items-center gap-2 px-4 py-3 rounded-2xl bg-emerald-500/10 border border-emerald-500/25">
-        <CheckCircle2 className="w-5 h-5 text-emerald-400 shrink-0" />
+      <div className="flex items-center gap-2 px-4 py-3 rounded-apple-md bg-apple-green/12 print:bg-white print:border print:border-gray-200">
+        <CheckCircle2 className="w-5 h-5 text-apple-green shrink-0" />
         <div>
-          <p className="text-sm font-black text-emerald-300">Pago Completado</p>
-          <p className="text-xs text-emerald-400/60">{STATUS_LABELS[order.status] || order.status}</p>
+          <p className="apple-text-subheadline text-apple-green font-semibold print:text-black">Pago Completado</p>
+          <p className="apple-text-caption1 text-apple-green/80 print:text-gray-500">{STATUS_LABELS[order.status] || order.status}</p>
         </div>
-        <span className="ml-auto text-lg font-black text-emerald-300">{currency(totalPaid || order.total_amount)}</span>
+        <span className="ml-auto apple-text-title3 text-apple-green font-semibold tabular-nums print:text-black">{currency(totalPaid || order.total_amount)}</span>
       </div>
 
       {/* Líneas de items */}
       {(order.order_items?.length > 0) ? (
         <div className="space-y-1.5">
-          <p className="text-[10px] text-white/30 font-bold uppercase tracking-widest mb-2">Desglose</p>
+          <p className="apple-text-caption1 apple-label-tertiary font-semibold mb-2 print:text-gray-500">Desglose</p>
           {order.order_items.map((item, i) => (
-            <div key={i} className="flex justify-between text-sm">
-              <span className="text-white/70">{item.name || item.description || "Servicio"}</span>
-              <span className="text-white/90 font-medium">{currency(item.price || item.amount || 0)}</span>
+            <div key={i} className="flex justify-between apple-text-subheadline">
+              <span className="apple-label-secondary print:text-black">{item.name || item.description || "Servicio"}</span>
+              <span className="apple-label-primary font-medium tabular-nums print:text-black">{currency(item.price || item.amount || 0)}</span>
             </div>
           ))}
-          <div className="h-px bg-white/8 my-2" />
+          <div
+            className="my-2"
+            style={{ borderTop: "0.5px solid rgb(var(--separator) / 0.29)" }}
+          />
         </div>
       ) : null}
 
       {/* Totales */}
-      <div className="rounded-2xl bg-white/[0.04] border border-white/[0.07] p-4 space-y-2">
+      <div className="apple-card p-4 space-y-2 print:border print:border-gray-200">
         {order.subtotal > 0 && (
-          <div className="flex justify-between text-sm text-white/50">
-            <span>Subtotal</span><span>{currency(order.subtotal)}</span>
+          <div className="flex justify-between apple-text-subheadline apple-label-secondary print:text-black">
+            <span>Subtotal</span><span className="tabular-nums">{currency(order.subtotal)}</span>
           </div>
         )}
         {order.tax_amount > 0 && (
-          <div className="flex justify-between text-sm text-white/50">
-            <span>IVU (11.5%)</span><span>{currency(order.tax_amount)}</span>
+          <div className="flex justify-between apple-text-subheadline apple-label-secondary print:text-black">
+            <span>IVU (11.5%)</span><span className="tabular-nums">{currency(order.tax_amount)}</span>
           </div>
         )}
-        <div className="flex justify-between text-base font-black text-white pt-1 border-t border-white/10">
+        <div
+          className="flex justify-between apple-text-body apple-label-primary font-semibold pt-1 print:text-black"
+          style={{ borderTop: "0.5px solid rgb(var(--separator) / 0.29)" }}
+        >
           <span>Total</span>
-          <span className="text-emerald-300">{currency(totalPaid || order.total_amount)}</span>
+          <span className="text-apple-green tabular-nums print:text-black">{currency(totalPaid || order.total_amount)}</span>
         </div>
       </div>
 
       {/* Método de pago */}
       {txs.length > 0 && (
         <div className="space-y-1.5">
-          <p className="text-[10px] text-white/30 font-bold uppercase tracking-widest">Pagos</p>
+          <p className="apple-text-caption1 apple-label-tertiary font-semibold print:text-gray-500">Pagos</p>
           {txs.map((t, i) => (
-            <div key={i} className="flex justify-between items-center px-3 py-2 rounded-xl bg-white/[0.03] border border-white/[0.06]">
-              <span className="text-sm text-white/60 capitalize">{t.payment_method?.replace("_", " ") || "Efectivo"}</span>
+            <div key={i} className="flex justify-between items-center px-3 py-2 rounded-apple-sm bg-apple-surface-secondary print:bg-white print:border print:border-gray-200">
+              <span className="apple-text-subheadline apple-label-secondary capitalize print:text-black">{t.payment_method?.replace("_", " ") || "Efectivo"}</span>
               <div className="text-right">
-                <p className="text-sm font-bold text-white">{currency(t.amount)}</p>
-                <p className="text-[10px] text-white/30">{fmt(t.created_date)}</p>
+                <p className="apple-text-subheadline apple-label-primary font-semibold tabular-nums print:text-black">{currency(t.amount)}</p>
+                <p className="apple-text-caption2 apple-label-tertiary tabular-nums print:text-gray-500">{fmt(t.created_date)}</p>
               </div>
             </div>
           ))}
@@ -175,25 +181,25 @@ export default function Receipt() {
   const IntakeReceipt = () => (
     <div className="space-y-4">
       {/* Estado actual */}
-      <div className="flex items-center gap-2 px-4 py-3 rounded-2xl bg-violet-500/10 border border-violet-500/25">
-        <Clock className="w-4 h-4 text-violet-400 shrink-0" />
+      <div className="flex items-center gap-2 px-4 py-3 rounded-apple-md bg-apple-purple/12 print:bg-white print:border print:border-gray-200">
+        <Clock className="w-4 h-4 text-apple-purple shrink-0" />
         <div>
-          <p className="text-sm font-bold text-violet-300">Equipo Recibido</p>
-          <p className="text-xs text-violet-400/60">{STATUS_LABELS[order.status] || order.status}</p>
+          <p className="apple-text-subheadline text-apple-purple font-semibold print:text-black">Equipo Recibido</p>
+          <p className="apple-text-caption1 text-apple-purple/80 print:text-gray-500">{STATUS_LABELS[order.status] || order.status}</p>
         </div>
       </div>
 
       {/* Problema */}
-      <div className="px-4 py-3 rounded-2xl bg-white/[0.04] border border-white/[0.06] space-y-1.5">
-        <p className="text-[10px] text-white/30 font-bold uppercase tracking-widest">Problema Reportado</p>
-        <p className="text-sm text-white/80 leading-relaxed whitespace-pre-wrap">
+      <div className="apple-card px-4 py-3 space-y-1.5 print:border print:border-gray-200">
+        <p className="apple-text-caption1 apple-label-tertiary font-semibold print:text-gray-500">Problema Reportado</p>
+        <p className="apple-text-subheadline apple-label-primary leading-relaxed whitespace-pre-wrap print:text-black">
           {order.initial_problem || "Sin descripción"}
         </p>
       </div>
 
       {/* Nota de taller */}
-      <div className="px-4 py-2.5 rounded-2xl bg-amber-500/[0.07] border border-amber-500/20">
-        <p className="text-xs text-amber-300/70 leading-relaxed">
+      <div className="px-4 py-2.5 rounded-apple-md bg-apple-yellow/12 print:bg-white print:border print:border-gray-200">
+        <p className="apple-text-caption1 text-apple-yellow leading-relaxed print:text-gray-700">
           Este documento confirma que {bizName} recibió tu equipo para diagnóstico y/o reparación.
           Te contactaremos cuando tengamos novedades.
         </p>
@@ -202,38 +208,42 @@ export default function Receipt() {
   );
 
   return (
-    <div className="min-h-screen bg-black text-white flex flex-col items-center px-4 py-8 print:bg-white print:text-black">
+    <div className="min-h-screen apple-surface apple-type flex flex-col items-center px-4 py-8 print:bg-white print:text-black">
       <div className="w-full max-w-sm space-y-6">
 
         {/* Logo / Biz name */}
         <div className="text-center space-y-1">
-          <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-violet-600 to-purple-700 flex items-center justify-center mx-auto mb-3 print:hidden">
-            <Wrench className="w-6 h-6 text-white" />
+          <div className="w-12 h-12 rounded-apple-sm bg-apple-purple/15 flex items-center justify-center mx-auto mb-3 print:hidden">
+            <Wrench className="w-6 h-6 text-apple-purple" />
           </div>
-          <h1 className="text-xl font-black text-white print:text-black">{bizName}</h1>
-          <p className="text-xs text-white/40 print:text-gray-500">
+          <h1 className="apple-text-title2 apple-label-primary font-semibold print:text-black">{bizName}</h1>
+          <p className="apple-text-caption1 apple-label-tertiary print:text-gray-500">
             {isPaid ? "Recibo de Pago" : "Recibo de Recepción"}
           </p>
         </div>
 
         {/* Número de orden */}
         <div className="text-center">
-          <span className="inline-block px-4 py-1.5 rounded-full bg-white/[0.06] border border-white/10 text-sm font-mono font-bold text-white/80 print:border-gray-300 print:text-gray-700">
+          <span className="inline-block px-4 py-1.5 rounded-apple-sm apple-surface-secondary apple-text-subheadline font-semibold apple-label-secondary tabular-nums print:border print:border-gray-300 print:bg-white print:text-gray-700">
             {receiptNum}
           </span>
         </div>
 
         {/* Datos del cliente y equipo */}
-        <div className="rounded-2xl bg-white/[0.04] border border-white/[0.07] divide-y divide-white/[0.06] print:border-gray-200 print:divide-gray-200">
+        <div className="apple-card overflow-hidden print:border print:border-gray-200">
           {[
             ["Cliente",  order.customer_name],
             ["Teléfono", order.customer_phone || "—"],
             ["Equipo",   `${order.device_brand || ""} ${order.device_model || ""}`.trim() || "—"],
             ["Fecha",    fmt(order.created_date)],
-          ].map(([label, val]) => (
-            <div key={label} className="flex justify-between items-center px-4 py-2.5">
-              <span className="text-xs text-white/35 print:text-gray-400">{label}</span>
-              <span className="text-sm text-white/85 font-medium print:text-black">{val}</span>
+          ].map(([label, val], idx) => (
+            <div
+              key={label}
+              className="flex justify-between items-center px-4 py-2.5"
+              style={idx > 0 ? { borderTop: "0.5px solid rgb(var(--separator) / 0.29)" } : undefined}
+            >
+              <span className="apple-text-caption1 apple-label-tertiary print:text-gray-400">{label}</span>
+              <span className="apple-text-subheadline apple-label-primary font-medium print:text-black">{val}</span>
             </div>
           ))}
         </div>
@@ -245,9 +255,9 @@ export default function Receipt() {
         <div className="flex gap-2 print:hidden">
           <button
             onClick={() => window.print()}
-            className="flex-1 flex items-center justify-center gap-2 py-3 rounded-2xl bg-white/[0.06] border border-white/10 text-sm font-bold text-white/70 hover:bg-white/10 transition-colors"
+            className="flex-1 apple-btn apple-btn-secondary apple-press"
           >
-            <Printer className="w-4 h-4" />
+            <Printer className="w-4 h-4 mr-2" />
             Imprimir
           </button>
           {order.customer_phone && (
@@ -257,16 +267,16 @@ export default function Receipt() {
               )}`}
               target="_blank"
               rel="noopener noreferrer"
-              className="flex-1 flex items-center justify-center gap-2 py-3 rounded-2xl bg-green-600 hover:bg-green-500 text-sm font-bold text-white transition-colors"
+              className="flex-1 apple-btn apple-btn-primary apple-press flex items-center justify-center gap-2"
             >
-              💬 WhatsApp
+              WhatsApp
             </a>
           )}
         </div>
 
         {/* Footer */}
-        <p className="text-center text-[10px] text-white/50 print:text-gray-400">
-          Powered by SmartFixOS · {new Date().getFullYear()}
+        <p className="text-center apple-text-caption2 apple-label-tertiary print:text-gray-400">
+          Powered by SmartFixOS · <span className="tabular-nums">{new Date().getFullYear()}</span>
         </p>
       </div>
 
@@ -278,7 +288,6 @@ export default function Receipt() {
           .print\\:bg-white { background: white !important; }
           .print\\:text-black { color: black !important; }
           .print\\:border-gray-200 { border-color: #e5e7eb !important; }
-          .print\\:divide-gray-200 > * { border-color: #e5e7eb !important; }
           .print\\:text-gray-400 { color: #9ca3af !important; }
           .print\\:text-gray-500 { color: #6b7280 !important; }
           .print\\:text-gray-700 { color: #374151 !important; }

@@ -211,10 +211,10 @@ export default function Activate() {
 
   if (loading) {
     return (
-      <div className="fixed inset-0 bg-[#0A0A0A] flex items-center justify-center">
+      <div className="fixed inset-0 apple-surface apple-type flex items-center justify-center">
         <div className="text-center">
-          <Loader2 className="w-16 h-16 text-cyan-500 animate-spin mx-auto mb-4" />
-          <p className="text-white text-lg">Validando token...</p>
+          <Loader2 className="w-16 h-16 text-apple-blue animate-spin mx-auto mb-4" />
+          <p className="apple-text-body apple-label-primary">Validando token...</p>
         </div>
       </div>
     );
@@ -222,18 +222,18 @@ export default function Activate() {
 
   if (error) {
     return (
-      <div className="fixed inset-0 bg-[#0A0A0A] flex items-center justify-center p-6">
-        <div className="max-w-md w-full bg-gradient-to-br from-slate-900 to-black border-2 border-red-500/50 rounded-2xl p-8 text-center">
-          <div className="w-20 h-20 rounded-full bg-red-500/20 flex items-center justify-center mx-auto mb-6">
-            <XCircle className="w-10 h-10 text-red-500" />
+      <div className="fixed inset-0 apple-surface apple-type flex items-center justify-center p-6">
+        <div className="max-w-md w-full apple-card rounded-apple-xl p-8 text-center shadow-apple-lg">
+          <div className="w-20 h-20 rounded-apple-sm bg-apple-red/15 flex items-center justify-center mx-auto mb-6">
+            <XCircle className="w-10 h-10 text-apple-red" />
           </div>
-          <h1 className="text-2xl font-bold text-white mb-4">Error de Activación</h1>
-          <p className="text-gray-300 mb-6">{error}</p>
+          <h1 className="apple-text-title2 apple-label-primary mb-4">Error de activación</h1>
+          <p className="apple-text-body apple-label-secondary mb-6">{error}</p>
           <Button
             onClick={() => navigate("/PinAccess")}
-            className="bg-gradient-to-r from-red-600 to-red-800 hover:from-red-500 hover:to-red-700"
+            className="apple-btn apple-btn-destructive apple-btn-lg"
           >
-            Volver al Inicio
+            Volver al inicio
           </Button>
         </div>
       </div>
@@ -242,40 +242,40 @@ export default function Activate() {
 
   if (success) {
     return (
-      <div className="fixed inset-0 bg-[#0A0A0A] flex items-center justify-center p-6">
-        <div className="max-w-md w-full bg-gradient-to-br from-slate-900 to-black border-2 border-emerald-500/50 rounded-2xl p-8 text-center">
-          <div className="w-20 h-20 rounded-full bg-emerald-500/20 flex items-center justify-center mx-auto mb-6 animate-bounce">
-            <CheckCircle className="w-10 h-10 text-emerald-500" />
+      <div className="fixed inset-0 apple-surface apple-type flex items-center justify-center p-6">
+        <div className="max-w-md w-full apple-card rounded-apple-xl p-8 text-center shadow-apple-lg">
+          <div className="w-20 h-20 rounded-apple-sm bg-apple-green/15 flex items-center justify-center mx-auto mb-6">
+            <CheckCircle className="w-10 h-10 text-apple-green" />
           </div>
-          <h1 className="text-3xl font-bold text-white mb-4">¡Cuenta Activada! 🎉</h1>
-          <p className="text-gray-300 mb-2">Tu cuenta ha sido activada exitosamente</p>
-          <p className="text-sm text-gray-500">Redirigiendo al inicio de sesión...</p>
+          <h1 className="apple-text-title1 apple-label-primary mb-4">¡Cuenta activada!</h1>
+          <p className="apple-text-body apple-label-secondary mb-2">Tu cuenta ha sido activada exitosamente</p>
+          <p className="apple-text-footnote apple-label-tertiary">Redirigiendo al inicio de sesión...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="fixed inset-0 bg-[#0A0A0A] flex items-center justify-center p-6">
+    <div className="fixed inset-0 apple-surface apple-type flex items-center justify-center p-6">
       <div className="max-w-md w-full">
         {/* Header */}
         <div className="text-center mb-8">
-          <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-cyan-500 to-emerald-500 flex items-center justify-center mx-auto mb-6 shadow-[0_0_60px_rgba(6,182,212,0.6)]">
-            <Shield className="w-10 h-10 text-white" />
+          <div className="w-20 h-20 rounded-apple-sm bg-apple-blue/15 flex items-center justify-center mx-auto mb-6">
+            <Shield className="w-10 h-10 text-apple-blue" />
           </div>
-          <h1 className="text-4xl font-black text-white mb-3">Activar Cuenta</h1>
-          <p className="text-gray-300 text-lg">
-            ¡Hola <span className="text-cyan-400 font-bold">{employee?.full_name}</span>!
+          <h1 className="apple-text-large-title apple-label-primary mb-3">Activar cuenta</h1>
+          <p className="apple-text-body apple-label-secondary">
+            ¡Hola <span className="text-apple-blue font-semibold">{employee?.full_name}</span>!
           </p>
-          <p className="text-gray-400 mt-2">Crea tu PIN de acceso</p>
+          <p className="apple-text-subheadline apple-label-secondary mt-2">Crea tu PIN de acceso</p>
         </div>
 
         {/* Formulario */}
-        <div className="bg-gradient-to-br from-slate-900/80 to-black/80 backdrop-blur-xl border-2 border-cyan-500/30 rounded-3xl p-8 space-y-6">
+        <div className="apple-card rounded-apple-xl p-8 space-y-6 shadow-apple-lg">
           <div>
-            <Label className="text-white flex items-center gap-2 mb-2">
+            <Label className="apple-text-footnote apple-label-secondary flex items-center gap-2 mb-2">
               <Lock className="w-4 h-4" />
-              PIN de 4 Dígitos
+              PIN de 4 dígitos
             </Label>
             <Input
               type="password"
@@ -283,12 +283,12 @@ export default function Activate() {
               value={pin}
               onChange={(e) => setPin(e.target.value.replace(/\D/g, ""))}
               placeholder="••••"
-              className="bg-slate-800/50 border-cyan-500/40 text-white text-center text-2xl tracking-widest h-16"
+              className="apple-input h-16 text-2xl text-center tabular-nums"
             />
           </div>
 
           <div>
-            <Label className="text-white flex items-center gap-2 mb-2">
+            <Label className="apple-text-footnote apple-label-secondary flex items-center gap-2 mb-2">
               <Lock className="w-4 h-4" />
               Confirmar PIN
             </Label>
@@ -298,12 +298,12 @@ export default function Activate() {
               value={confirmPin}
               onChange={(e) => setConfirmPin(e.target.value.replace(/\D/g, ""))}
               placeholder="••••"
-              className="bg-slate-800/50 border-cyan-500/40 text-white text-center text-2xl tracking-widest h-16"
+              className="apple-input h-16 text-2xl text-center tabular-nums"
             />
           </div>
 
-          <div className="bg-cyan-500/10 border border-cyan-500/30 rounded-xl p-4">
-            <p className="text-sm text-cyan-300 flex items-center gap-2">
+          <div className="bg-apple-blue/12 rounded-apple-md p-4">
+            <p className="apple-text-footnote text-apple-blue flex items-center gap-2">
               <Shield className="w-4 h-4" />
               Tu PIN será usado para acceder al sistema
             </p>
@@ -312,7 +312,7 @@ export default function Activate() {
           <Button
             onClick={handleActivate}
             disabled={activating || !pin || !confirmPin || pin.length !== 4}
-            className="w-full h-16 bg-gradient-to-r from-cyan-600 via-emerald-600 to-lime-600 hover:from-cyan-500 hover:via-emerald-500 hover:to-lime-500 text-xl font-bold shadow-[0_0_60px_rgba(6,182,212,0.5)]"
+            className="apple-btn apple-btn-primary apple-btn-lg w-full h-16"
           >
             {activating ? (
               <>
@@ -322,14 +322,14 @@ export default function Activate() {
             ) : (
               <>
                 <CheckCircle className="w-6 h-6 mr-3" />
-                Activar Cuenta
+                Activar cuenta
               </>
             )}
           </Button>
         </div>
 
         <div className="text-center mt-6">
-          <p className="text-gray-500 text-sm">
+          <p className="apple-text-footnote apple-label-tertiary">
             Al activar tu cuenta aceptas los términos de uso
           </p>
         </div>

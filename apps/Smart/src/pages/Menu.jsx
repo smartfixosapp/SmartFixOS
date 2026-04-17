@@ -1,12 +1,12 @@
 import React from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/components/utils/helpers";
-import { 
-  Home, 
-  ClipboardList, 
-  Wallet, 
-  Users, 
-  Settings, 
+import {
+  Home,
+  ClipboardList,
+  Wallet,
+  Users,
+  Settings,
   Zap,
   Package,
   DollarSign,
@@ -19,17 +19,17 @@ import {
 import { Button } from "@/components/ui/button";
 
 const allMenuItems = [
-  { 
-    page: "Dashboard", 
-    label: "Inicio", 
+  {
+    page: "Dashboard",
+    label: "Inicio",
     icon: Home,
-    gradient: "from-blue-500 to-cyan-500"
+    tint: "bg-apple-blue/12 text-apple-blue"
   },
-  { 
-    page: "SettingsMobile", 
-    label: "Ajustes", 
+  {
+    page: "SettingsMobile",
+    label: "Ajustes",
     icon: Settings,
-    gradient: "from-slate-600 to-slate-800"
+    tint: "bg-gray-sys6 dark:bg-gray-sys5 apple-label-secondary"
   }
 ];
 
@@ -38,41 +38,40 @@ export default function MenuPage() {
 
   return (
     // IMPORTANTE: h-full en lugar de min-h-screen para evitar desbordamiento que activa barras del navegador
-    <div className="h-full bg-[#1A1A1A] p-6 pb-20 animate-in fade-in duration-300 overflow-y-auto">
+    <div className="h-full apple-surface apple-type p-6 pb-20 animate-in fade-in duration-300 overflow-y-auto">
       {/* Header */}
       <div className="flex items-center justify-between mb-8">
         <div>
-          <h1 className="text-3xl font-bold text-white">Menú</h1>
-          <p className="text-sm text-gray-400">Navegación rápida</p>
+          <h1 className="apple-text-large-title apple-label-primary">Menú</h1>
+          <p className="apple-text-footnote apple-label-secondary">Navegación rápida</p>
         </div>
         <Button
           size="icon"
           variant="ghost"
           onClick={() => navigate(-1)}
           aria-label="Cerrar menú"
-          className="h-12 w-12 rounded-full bg-white/10 hover:bg-white/20 text-white"
+          className="h-12 w-12 rounded-full bg-gray-sys6 dark:bg-gray-sys5 apple-label-primary apple-press"
         >
           <X className="w-7 h-7" />
         </Button>
       </div>
-      
+
       {/* Grid of Apps */}
       <div className="grid grid-cols-3 sm:grid-cols-4 gap-4 sm:gap-6 pb-10">
-        {allMenuItems.map(({ page, label, icon: Icon, gradient }) => (
+        {allMenuItems.map(({ page, label, icon: Icon, tint }) => (
           <Link
             key={page}
             to={createPageUrl(page)}
-            className="flex flex-col items-center gap-3 p-2 group"
+            className="flex flex-col items-center gap-3 p-2 group apple-press"
           >
             <div className={`
-              w-20 h-20 sm:w-24 sm:h-24 rounded-[1.5rem] bg-gradient-to-br ${gradient} 
-              flex items-center justify-center text-white shadow-lg 
+              w-20 h-20 sm:w-24 sm:h-24 rounded-apple-lg ${tint}
+              flex items-center justify-center
               group-active:scale-95 transition-all duration-200
-              shadow-gray-200 dark:shadow-none
             `}>
               <Icon className="w-8 h-8" strokeWidth={2} />
             </div>
-            <span className="text-xs sm:text-sm font-medium text-center text-gray-300">
+            <span className="apple-text-caption1 sm:apple-text-footnote font-medium text-center apple-label-primary">
               {label}
             </span>
           </Link>

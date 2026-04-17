@@ -99,19 +99,21 @@ export default function CustomerApproval() {
 
   if (pageStatus === STATUS.loading) {
     return (
-      <div className="min-h-screen bg-[#0a0a0f] flex items-center justify-center">
-        <div className="w-6 h-6 border-2 border-white/20 border-t-white/60 rounded-full animate-spin" />
+      <div className="min-h-screen apple-surface apple-type flex items-center justify-center">
+        <div className="w-6 h-6 border-2 border-apple-blue/20 border-t-apple-blue rounded-full animate-spin" />
       </div>
     );
   }
 
   if (pageStatus === STATUS.notFound || pageStatus === STATUS.error) {
     return (
-      <div className="min-h-screen bg-[#0a0a0f] flex items-center justify-center px-4">
+      <div className="min-h-screen apple-surface apple-type flex items-center justify-center px-4">
         <div className="text-center">
-          <AlertTriangle className="w-12 h-12 text-amber-400 mx-auto mb-3" />
-          <p className="text-white font-bold text-lg">Enlace no válido</p>
-          <p className="text-white/40 text-sm mt-1">Este link de aprobación no existe o expiró.</p>
+          <div className="w-14 h-14 rounded-apple-sm bg-apple-orange/12 flex items-center justify-center mx-auto mb-4">
+            <AlertTriangle className="w-7 h-7 text-apple-orange" />
+          </div>
+          <p className="apple-text-title3 apple-label-primary">Enlace no válido</p>
+          <p className="apple-text-subheadline apple-label-secondary mt-1">Este link de aprobación no existe o expiró.</p>
         </div>
       </div>
     );
@@ -119,14 +121,14 @@ export default function CustomerApproval() {
 
   if (pageStatus === STATUS.approved) {
     return (
-      <div className="min-h-screen bg-[#0a0a0f] flex items-center justify-center px-4">
+      <div className="min-h-screen apple-surface apple-type flex items-center justify-center px-4">
         <div className="text-center">
-          <div className="w-16 h-16 rounded-full bg-emerald-500/15 flex items-center justify-center mx-auto mb-4">
-            <CheckCircle2 className="w-9 h-9 text-emerald-400" />
+          <div className="w-16 h-16 rounded-apple-sm bg-apple-green/12 flex items-center justify-center mx-auto mb-4">
+            <CheckCircle2 className="w-9 h-9 text-apple-green" />
           </div>
-          <p className="text-white font-black text-2xl">¡Aprobado!</p>
-          <p className="text-white/50 text-sm mt-2">Comenzaremos a trabajar en tu equipo enseguida.</p>
-          <p className="text-white/30 text-xs mt-4">{bizName}</p>
+          <p className="apple-text-title1 apple-label-primary">¡Aprobado!</p>
+          <p className="apple-text-subheadline apple-label-secondary mt-2">Comenzaremos a trabajar en tu equipo enseguida.</p>
+          <p className="apple-text-footnote apple-label-tertiary mt-4">{bizName}</p>
         </div>
       </div>
     );
@@ -134,14 +136,14 @@ export default function CustomerApproval() {
 
   if (pageStatus === STATUS.rejected) {
     return (
-      <div className="min-h-screen bg-[#0a0a0f] flex items-center justify-center px-4">
+      <div className="min-h-screen apple-surface apple-type flex items-center justify-center px-4">
         <div className="text-center">
-          <div className="w-16 h-16 rounded-full bg-red-500/15 flex items-center justify-center mx-auto mb-4">
-            <XCircle className="w-9 h-9 text-red-400" />
+          <div className="w-16 h-16 rounded-apple-sm bg-apple-red/12 flex items-center justify-center mx-auto mb-4">
+            <XCircle className="w-9 h-9 text-apple-red" />
           </div>
-          <p className="text-white font-black text-2xl">Reparación rechazada</p>
-          <p className="text-white/50 text-sm mt-2">Hemos registrado tu respuesta. Contactaremos al taller para coordinar la devolución.</p>
-          <p className="text-white/30 text-xs mt-4">{bizName}</p>
+          <p className="apple-text-title1 apple-label-primary">Reparación rechazada</p>
+          <p className="apple-text-subheadline apple-label-secondary mt-2">Hemos registrado tu respuesta. Contactaremos al taller para coordinar la devolución.</p>
+          <p className="apple-text-footnote apple-label-tertiary mt-4">{bizName}</p>
         </div>
       </div>
     );
@@ -150,18 +152,20 @@ export default function CustomerApproval() {
   if (pageStatus === STATUS.alreadyActed) {
     const acted = order?.customer_approval_status;
     return (
-      <div className="min-h-screen bg-[#0a0a0f] flex items-center justify-center px-4">
+      <div className="min-h-screen apple-surface apple-type flex items-center justify-center px-4">
         <div className="text-center">
-          {acted === "approved" ? (
-            <CheckCircle2 className="w-12 h-12 text-emerald-400 mx-auto mb-3" />
-          ) : (
-            <XCircle className="w-12 h-12 text-red-400 mx-auto mb-3" />
-          )}
-          <p className="text-white font-bold text-lg">Ya respondiste esta cotización</p>
-          <p className="text-white/40 text-sm mt-1">
+          <div className={`w-14 h-14 rounded-apple-sm ${acted === "approved" ? "bg-apple-green/12" : "bg-apple-red/12"} flex items-center justify-center mx-auto mb-4`}>
+            {acted === "approved" ? (
+              <CheckCircle2 className="w-7 h-7 text-apple-green" />
+            ) : (
+              <XCircle className="w-7 h-7 text-apple-red" />
+            )}
+          </div>
+          <p className="apple-text-title3 apple-label-primary">Ya respondiste esta cotización</p>
+          <p className="apple-text-subheadline apple-label-secondary mt-1">
             {acted === "approved" ? "Aprobaste" : "Rechazaste"} esta reparación.
           </p>
-          <p className="text-white/30 text-xs mt-4">{bizName}</p>
+          <p className="apple-text-footnote apple-label-tertiary mt-4">{bizName}</p>
         </div>
       </div>
     );
@@ -169,47 +173,47 @@ export default function CustomerApproval() {
 
   // STATUS.ready — show estimate
   return (
-    <div className="min-h-screen bg-[#0a0a0f] text-white">
+    <div className="min-h-screen apple-surface apple-type">
       <div className="max-w-lg mx-auto px-4 py-8 space-y-5">
 
         {/* Header */}
         <div className="text-center space-y-1">
-          <p className="text-xs font-black text-white/30 uppercase tracking-widest">{bizName}</p>
-          <h1 className="text-2xl font-black tracking-tight">Cotización de Reparación</h1>
-          <p className="text-white/40 text-sm">
-            {order?.order_number && <span>Orden {order.order_number} · </span>}
+          <p className="apple-text-footnote apple-label-tertiary">{bizName}</p>
+          <h1 className="apple-text-title1 apple-label-primary">Cotización de Reparación</h1>
+          <p className="apple-text-subheadline apple-label-secondary">
+            {order?.order_number && <span className="tabular-nums">Orden {order.order_number} · </span>}
             {order?.device_brand} {order?.device_model}
           </p>
         </div>
 
         {/* Customer name */}
         {order?.customer_name && (
-          <div className="p-4 rounded-2xl bg-white/[0.04] border border-white/[0.07] text-center">
-            <p className="text-white/40 text-xs mb-1">Preparada para</p>
-            <p className="font-black text-lg">{order.customer_name}</p>
+          <div className="apple-card p-4 text-center">
+            <p className="apple-text-footnote apple-label-secondary mb-1">Preparada para</p>
+            <p className="apple-text-title3 apple-label-primary">{order.customer_name}</p>
           </div>
         )}
 
         {/* Waiting indicator */}
-        <div className="flex items-center gap-2 p-3 rounded-2xl bg-amber-500/5 border border-amber-500/15">
-          <Clock className="w-4 h-4 text-amber-400 shrink-0" />
-          <p className="text-sm text-amber-300 font-semibold">Esperando tu aprobación para comenzar</p>
+        <div className="flex items-center gap-2 p-3 rounded-apple-md bg-apple-yellow/12">
+          <Clock className="w-4 h-4 text-apple-yellow shrink-0" />
+          <p className="apple-text-subheadline text-apple-yellow font-semibold">Esperando tu aprobación para comenzar</p>
         </div>
 
         {/* Items */}
         {items.length > 0 && (
-          <div className="rounded-2xl border border-white/[0.07] overflow-hidden">
+          <div className="apple-card overflow-hidden">
             <button
               onClick={() => setShowItems(v => !v)}
-              className="w-full flex items-center justify-between px-4 py-3 bg-white/[0.03] hover:bg-white/[0.05] transition-colors"
+              className="w-full flex items-center justify-between px-4 py-3 apple-press"
             >
-              <span className="text-xs font-black text-white/50 uppercase tracking-widest">
+              <span className="apple-text-subheadline apple-label-secondary font-semibold">
                 Detalle ({items.length} {items.length === 1 ? "item" : "items"})
               </span>
-              {showItems ? <ChevronUp className="w-4 h-4 text-white/30" /> : <ChevronDown className="w-4 h-4 text-white/30" />}
+              {showItems ? <ChevronUp className="w-4 h-4 apple-label-tertiary" /> : <ChevronDown className="w-4 h-4 apple-label-tertiary" />}
             </button>
             {showItems && (
-              <div className="divide-y divide-white/[0.05]">
+              <div>
                 {items.map((item, idx) => {
                   const qty = Number(item?.qty || item?.quantity || 1);
                   const price = Number(item?.price || 0);
@@ -217,40 +221,47 @@ export default function CustomerApproval() {
                   const lineTotal = price * qty * (1 - disc / 100);
                   const Icon = item?.type === "service" ? Wrench : Package;
                   return (
-                    <div key={idx} className="flex items-center gap-3 px-4 py-3">
-                      <div className="w-7 h-7 rounded-xl bg-white/5 flex items-center justify-center shrink-0">
-                        <Icon className="w-3.5 h-3.5 text-white/40" />
+                    <div
+                      key={idx}
+                      className="flex items-center gap-3 px-4 py-3"
+                      style={{ borderTop: "0.5px solid rgb(var(--separator) / 0.29)" }}
+                    >
+                      <div className="w-8 h-8 rounded-apple-sm bg-apple-blue/12 flex items-center justify-center shrink-0">
+                        <Icon className="w-4 h-4 text-apple-blue" />
                       </div>
                       <div className="flex-1 min-w-0">
-                        <p className="text-sm font-bold text-white truncate">{item?.name || "Item"}</p>
-                        <p className="text-[11px] text-white/30">
+                        <p className="apple-text-subheadline apple-label-primary font-semibold truncate">{item?.name || "Item"}</p>
+                        <p className="apple-text-caption1 apple-label-tertiary tabular-nums">
                           {currency(price)} × {qty}{disc > 0 ? ` · -${disc}%` : ""}
                         </p>
                       </div>
-                      <p className="text-sm font-black text-white shrink-0">{currency(lineTotal)}</p>
+                      <p className="apple-text-subheadline apple-label-primary font-semibold shrink-0 tabular-nums">{currency(lineTotal)}</p>
                     </div>
                   );
                 })}
               </div>
             )}
-            <div className="px-4 py-3 bg-white/[0.03] border-t border-white/[0.07] flex justify-between items-center">
-              <span className="text-xs font-black text-white/40 uppercase tracking-widest">Total estimado</span>
-              <span className="text-xl font-black text-white">{currency(total)}</span>
+            <div
+              className="px-4 py-3 flex justify-between items-center"
+              style={{ borderTop: "0.5px solid rgb(var(--separator) / 0.29)" }}
+            >
+              <span className="apple-text-subheadline apple-label-secondary font-semibold">Total estimado</span>
+              <span className="apple-text-title3 apple-label-primary font-semibold tabular-nums">{currency(total)}</span>
             </div>
           </div>
         )}
 
         {items.length === 0 && (
-          <div className="p-6 rounded-2xl border border-white/[0.07] text-center">
-            <p className="text-white/40 text-sm">El taller tiene tu cotización preparada. Usa los botones abajo para responder.</p>
+          <div className="apple-card p-6 text-center">
+            <p className="apple-text-subheadline apple-label-secondary">El taller tiene tu cotización preparada. Usa los botones abajo para responder.</p>
           </div>
         )}
 
         {/* Notes from order */}
         {order?.notes && (
-          <div className="p-4 rounded-2xl bg-white/[0.03] border border-white/[0.07]">
-            <p className="text-[10px] font-black text-white/30 uppercase tracking-widest mb-1">Notas del técnico</p>
-            <p className="text-sm text-white/70 leading-relaxed">{order.notes}</p>
+          <div className="apple-card p-4">
+            <p className="apple-text-caption1 apple-label-tertiary font-semibold mb-1">Notas del técnico</p>
+            <p className="apple-text-subheadline apple-label-primary leading-relaxed">{order.notes}</p>
           </div>
         )}
 
@@ -259,22 +270,22 @@ export default function CustomerApproval() {
           <button
             onClick={() => handleDecision("rejected")}
             disabled={submitting}
-            className="py-4 rounded-2xl border border-red-500/20 bg-red-500/5 text-red-400 font-black text-base hover:bg-red-500/10 active:scale-95 transition-all disabled:opacity-50"
+            className="py-4 rounded-apple-md bg-apple-red/12 text-apple-red apple-text-body font-semibold apple-press disabled:opacity-50 flex flex-col items-center justify-center gap-1"
           >
-            <XCircle className="w-5 h-5 mx-auto mb-1" />
+            <XCircle className="w-5 h-5" />
             Rechazar
           </button>
           <button
             onClick={() => handleDecision("approved")}
             disabled={submitting}
-            className="py-4 rounded-2xl border border-emerald-500/25 bg-emerald-500/10 text-emerald-300 font-black text-base hover:bg-emerald-500/20 active:scale-95 transition-all disabled:opacity-50"
+            className="py-4 rounded-apple-md bg-apple-green/15 text-apple-green apple-text-body font-semibold apple-press disabled:opacity-50 flex flex-col items-center justify-center gap-1"
           >
-            <CheckCircle2 className="w-5 h-5 mx-auto mb-1" />
+            <CheckCircle2 className="w-5 h-5" />
             Aprobar
           </button>
         </div>
 
-        <p className="text-center text-white/50 text-xs pb-4">
+        <p className="text-center apple-label-secondary apple-text-caption1 pb-4">
           Tu respuesta será notificada al taller inmediatamente.
         </p>
       </div>

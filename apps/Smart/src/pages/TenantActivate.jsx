@@ -107,7 +107,7 @@ export default function TenantActivate() {
     setPin('');
     setConfirmPin('');
     setPinError('');
-    toast.success('⚡ Datos de prueba cargados — ahora elige tu PIN');
+    toast.success('Datos de prueba cargados — ahora elige tu PIN');
   };
 
   // ── Validate token on mount ───────────────────────────────────────────────
@@ -279,7 +279,7 @@ export default function TenantActivate() {
       const data = await res.json();
       if (!data.success) throw new Error(data.error || 'Error al activar');
 
-      console.log('✅ Activación completada');
+      console.log('Activación completada');
       setStatus('done');
     } catch (e) {
       console.error('Activation error:', e);
@@ -296,10 +296,10 @@ export default function TenantActivate() {
   // ── Render states ─────────────────────────────────────────────────────────
   if (status === 'validating') {
     return (
-      <div className="min-h-screen bg-[#0a0a0a] flex items-center justify-center">
+      <div className="min-h-screen apple-surface apple-type flex items-center justify-center">
         <div className="text-center">
-          <Loader2 className="w-12 h-12 text-cyan-400 animate-spin mx-auto mb-4" />
-          <p className="text-gray-400">Validando tu enlace de activación…</p>
+          <Loader2 className="w-12 h-12 text-apple-blue animate-spin mx-auto mb-4" />
+          <p className="apple-text-body apple-label-secondary">Validando tu enlace de activación…</p>
         </div>
       </div>
     );
@@ -307,15 +307,17 @@ export default function TenantActivate() {
 
   if (status === 'invalid') {
     return (
-      <div className="min-h-screen bg-[#0a0a0a] flex items-center justify-center px-4">
+      <div className="min-h-screen apple-surface apple-type flex items-center justify-center px-4">
         <div className="max-w-md w-full text-center">
-          <div className="bg-red-500/10 border border-red-500/30 rounded-2xl p-10">
-            <XCircle className="w-16 h-16 text-red-400 mx-auto mb-4" />
-            <h2 className="text-2xl font-bold text-white mb-3">Enlace inválido o expirado</h2>
-            <p className="text-gray-400 mb-6">Este enlace de activación ya fue usado o expiró (válido 24 horas).</p>
-            <p className="text-gray-500 text-sm mb-6">¿Necesitas ayuda?</p>
+          <div className="apple-card rounded-apple-xl p-10 shadow-apple-lg">
+            <div className="w-20 h-20 rounded-apple-sm bg-apple-red/15 flex items-center justify-center mx-auto mb-4">
+              <XCircle className="w-12 h-12 text-apple-red" />
+            </div>
+            <h2 className="apple-text-title2 apple-label-primary mb-3">Enlace inválido o expirado</h2>
+            <p className="apple-text-body apple-label-secondary mb-6">Este enlace de activación ya fue usado o expiró (válido 24 horas).</p>
+            <p className="apple-text-footnote apple-label-tertiary mb-6">¿Necesitas ayuda?</p>
             <a href="mailto:smartfixosapp@gmail.com"
-              className="inline-block bg-cyan-600 hover:bg-cyan-500 text-white font-semibold px-6 py-3 rounded-xl transition-colors">
+              className="apple-btn apple-btn-primary apple-btn-lg inline-block">
               Contactar soporte
             </a>
           </div>
@@ -326,21 +328,23 @@ export default function TenantActivate() {
 
   if (status === 'done') {
     return (
-      <div className="min-h-screen bg-[#0a0a0a] flex items-center justify-center px-4">
+      <div className="min-h-screen apple-surface apple-type flex items-center justify-center px-4">
         <div className="max-w-md w-full text-center">
           <motion.div
             initial={{ scale: 0.8, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
-            className="bg-gradient-to-br from-[#0c1a2e] to-[#0a1520] border border-green-500/30 rounded-2xl p-10"
+            className="apple-card rounded-apple-xl p-10 shadow-apple-lg"
           >
-            <CheckCircle2 className="w-20 h-20 text-green-400 mx-auto mb-4" />
-            <h2 className="text-3xl font-extrabold text-white mb-3">¡Cuenta activada!</h2>
-            <p className="text-gray-300 mb-8">Tu taller está listo. Ingresa con tu email y el PIN que acabas de crear.</p>
+            <div className="w-24 h-24 rounded-apple-sm bg-apple-green/15 flex items-center justify-center mx-auto mb-4">
+              <CheckCircle2 className="w-14 h-14 text-apple-green" />
+            </div>
+            <h2 className="apple-text-title1 apple-label-primary mb-3">¡Cuenta activada!</h2>
+            <p className="apple-text-body apple-label-secondary mb-8">Tu taller está listo. Ingresa con tu email y el PIN que acabas de crear.</p>
             <button
               onClick={() => navigate('/PinAccess', { state: { activated: true } })}
-              className="w-full bg-gradient-to-r from-cyan-600 to-emerald-600 hover:from-cyan-500 hover:to-emerald-500 text-white font-bold py-4 rounded-2xl text-lg transition-all"
+              className="apple-btn apple-btn-primary apple-btn-lg w-full"
             >
-              Ingresar al sistema →
+              Ingresar al sistema
             </button>
           </motion.div>
         </div>
@@ -350,11 +354,11 @@ export default function TenantActivate() {
 
   if (status === 'saving') {
     return (
-      <div className="min-h-screen bg-[#0a0a0a] flex items-center justify-center">
+      <div className="min-h-screen apple-surface apple-type flex items-center justify-center">
         <div className="text-center">
-          <Loader2 className="w-12 h-12 text-cyan-400 animate-spin mx-auto mb-4" />
-          <p className="text-white font-semibold text-lg mb-1">Activando tu cuenta…</p>
-          <p className="text-gray-400 text-sm">Guardando tu configuración</p>
+          <Loader2 className="w-12 h-12 text-apple-blue animate-spin mx-auto mb-4" />
+          <p className="apple-text-headline apple-label-primary mb-1">Activando tu cuenta…</p>
+          <p className="apple-text-footnote apple-label-secondary">Guardando tu configuración</p>
         </div>
       </div>
     );
@@ -365,7 +369,7 @@ export default function TenantActivate() {
   const stepIcons  = [Building2, Phone, Clock, Lock];
 
   return (
-    <div className="min-h-screen bg-[#0a0a0a] flex flex-col items-center justify-start py-8 px-4">
+    <div className="min-h-screen apple-surface apple-type flex flex-col items-center justify-start py-8 px-4">
       {/* Header */}
       <div className="w-full max-w-2xl mb-6">
         <div className="text-center mb-6">
@@ -373,15 +377,15 @@ export default function TenantActivate() {
             src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/68f767a3d5fce1486d4cf555/e9bc537e2_DynamicsmartfixosLogowithGearandDevice.png"
             alt="SmartFixOS" className="h-10 mx-auto mb-4"
           />
-          <h1 className="text-2xl font-extrabold text-white">Configura tu taller</h1>
-          <p className="text-gray-400 text-sm mt-1">Paso {step + 1} de {TOTAL_STEPS}</p>
+          <h1 className="apple-text-title1 apple-label-primary">Configura tu taller</h1>
+          <p className="apple-text-footnote apple-label-secondary mt-1 tabular-nums">Paso {step + 1} de {TOTAL_STEPS}</p>
           {skipMode && (
             <button
               onClick={fillTestData}
-              className="mt-3 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-yellow-500/10 border border-yellow-500/30 text-yellow-400 text-xs font-semibold hover:bg-yellow-500/20 transition-colors"
+              className="apple-btn apple-btn-tinted mt-3 text-apple-yellow bg-apple-yellow/12"
               title="Solo visible en modo desarrollo o ?skip=1"
             >
-              ⚡ Saltar al PIN (modo prueba)
+              Saltar al PIN (modo prueba)
             </button>
           )}
         </div>
@@ -392,11 +396,11 @@ export default function TenantActivate() {
             const Icon = stepIcons[i];
             return (
               <div key={i} className="flex-1 flex flex-col items-center gap-1">
-                <div className={`h-1.5 w-full rounded-full transition-all duration-300 ${
-                  i <= step ? 'bg-cyan-500' : 'bg-white/10'
+                <div className={`h-1.5 w-full rounded-apple-xs transition-all duration-300 ${
+                  i <= step ? 'bg-apple-blue' : 'bg-gray-sys6 dark:bg-gray-sys5'
                 }`} />
-                <span className={`text-xs hidden sm:block transition-colors ${
-                  i === step ? 'text-cyan-400 font-semibold' : i < step ? 'text-gray-500' : 'text-gray-600'
+                <span className={`apple-text-caption2 hidden sm:block transition-colors ${
+                  i === step ? 'text-apple-blue font-semibold' : i < step ? 'apple-label-tertiary' : 'apple-label-tertiary'
                 }`}>{title}</span>
               </div>
             );
@@ -415,51 +419,51 @@ export default function TenantActivate() {
             animate="center"
             exit="exit"
             transition={{ duration: 0.25, ease: 'easeInOut' }}
-            className="bg-gradient-to-br from-[#0c1a2e] to-[#0a1520] border border-[#1e3a5f] rounded-2xl p-6 sm:p-8"
+            className="apple-card rounded-apple-xl p-6 sm:p-8 shadow-apple-md"
           >
             {/* ── Step 0: Identidad ── */}
             {step === 0 && (
               <div className="space-y-5">
                 <StepHeader icon={Building2} title="Identidad del negocio" subtitle="¿Cómo se llama tu taller?" />
                 <div>
-                  <label className="block text-sm text-gray-400 mb-1">Nombre del negocio *</label>
+                  <label className="apple-text-footnote apple-label-secondary block mb-1">Nombre del negocio *</label>
                   <input
                     value={businessName}
                     onChange={e => setBusinessName(e.target.value)}
                     placeholder="Ej: Reparaciones ProTech"
-                    className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:border-cyan-500"
+                    className="apple-input w-full"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm text-gray-400 mb-1">Slogan (opcional)</label>
+                  <label className="apple-text-footnote apple-label-secondary block mb-1">Slogan (opcional)</label>
                   <input
                     value={slogan}
                     onChange={e => setSlogan(e.target.value)}
                     placeholder="Ej: Reparamos lo que otros no pueden"
-                    className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:border-cyan-500"
+                    className="apple-input w-full"
                   />
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm text-gray-400 mb-1">Color principal</label>
+                    <label className="apple-text-footnote apple-label-secondary block mb-1">Color principal</label>
                     <div className="flex items-center gap-3">
                       <input type="color" value={primaryColor} onChange={e => setPrimaryColor(e.target.value)}
-                        className="w-12 h-12 rounded-lg border-0 cursor-pointer bg-transparent" />
-                      <span className="text-gray-400 text-sm font-mono">{primaryColor}</span>
+                        className="w-12 h-12 rounded-apple-sm border-0 cursor-pointer bg-transparent" />
+                      <span className="apple-text-footnote apple-label-secondary font-mono tabular-nums">{primaryColor}</span>
                     </div>
                   </div>
                   <div>
-                    <label className="block text-sm text-gray-400 mb-1">Logo</label>
-                    <label className="flex items-center gap-2 cursor-pointer bg-white/5 hover:bg-white/10 border border-white/10 border-dashed rounded-xl px-3 py-3 transition-colors">
+                    <label className="apple-text-footnote apple-label-secondary block mb-1">Logo</label>
+                    <label className="flex items-center gap-2 cursor-pointer apple-surface-secondary rounded-apple-md px-3 py-3 apple-press" style={{ border: '0.5px dashed rgb(var(--separator) / 0.29)' }}>
                       <input type="file" accept="image/*" onChange={handleLogoUpload} className="hidden" />
                       {logoUploading ? (
-                        <Loader2 className="w-4 h-4 text-cyan-400 animate-spin" />
+                        <Loader2 className="w-4 h-4 text-apple-blue animate-spin" />
                       ) : logoUrl ? (
-                        <img src={logoUrl} alt="logo" className="w-8 h-8 object-contain rounded" />
+                        <img src={logoUrl} alt="logo" className="w-8 h-8 object-contain rounded-apple-xs" />
                       ) : (
-                        <Upload className="w-4 h-4 text-gray-400" />
+                        <Upload className="w-4 h-4 apple-label-tertiary" />
                       )}
-                      <span className="text-xs text-gray-400">{logoUrl ? 'Cambiar' : 'Subir logo'}</span>
+                      <span className="apple-text-caption1 apple-label-secondary">{logoUrl ? 'Cambiar' : 'Subir logo'}</span>
                     </label>
                   </div>
                 </div>
@@ -471,14 +475,14 @@ export default function TenantActivate() {
               <div className="space-y-5">
                 <StepHeader icon={Phone} title="Información de contacto" subtitle="¿Cómo te contactan tus clientes?" />
                 <div className="grid grid-cols-2 gap-4">
-                  <Field label="Teléfono principal" value={phone} onChange={setPhone} placeholder="787-000-0000" maxLength={15} inputMode="tel" type="tel" />
-                  <Field label="WhatsApp (opcional)" value={whatsapp} onChange={setWhatsapp} placeholder="787-000-0000" maxLength={15} inputMode="tel" type="tel" />
+                  <Field label="Teléfono principal" value={phone} onChange={setPhone} placeholder="787-000-0000" maxLength={15} inputMode="tel" type="tel" tabularNums />
+                  <Field label="WhatsApp (opcional)" value={whatsapp} onChange={setWhatsapp} placeholder="787-000-0000" maxLength={15} inputMode="tel" type="tel" tabularNums />
                 </div>
                 <Field label="Dirección" value={address} onChange={setAddress} placeholder="Calle Principal #123" />
                 <div className="grid grid-cols-3 gap-4">
                   <Field label="Ciudad" value={city} onChange={setCity} placeholder="San Juan" />
                   <Field label="Estado/PR" value={state} onChange={setState} placeholder="PR" />
-                  <Field label="Zip" value={zip} onChange={setZip} placeholder="00901" />
+                  <Field label="Zip" value={zip} onChange={setZip} placeholder="00901" tabularNums />
                 </div>
                 <Field label="Sitio web (opcional)" value={website} onChange={setWebsite} placeholder="https://mitaller.com" />
               </div>
@@ -490,55 +494,55 @@ export default function TenantActivate() {
                 <StepHeader icon={Clock} title="Políticas y horario" subtitle="Define las reglas de tu taller" />
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm text-gray-400 mb-1">Días de garantía</label>
+                    <label className="apple-text-footnote apple-label-secondary block mb-1">Días de garantía</label>
                     <select value={warrantyDays} onChange={e => setWarrantyDays(Number(e.target.value))}
-                      className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-cyan-500">
+                      className="apple-input w-full">
                       {[30,60,90,180,365].map(d => <option key={d} value={d}>{d} días</option>)}
                     </select>
                   </div>
                   <div>
-                    <label className="block text-sm text-gray-400 mb-1">Días máx. retención</label>
+                    <label className="apple-text-footnote apple-label-secondary block mb-1">Días máx. retención</label>
                     <select value={retentionDays} onChange={e => setRetentionDays(Number(e.target.value))}
-                      className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-cyan-500">
+                      className="apple-input w-full">
                       {[15,30,45,60,90].map(d => <option key={d} value={d}>{d} días</option>)}
                     </select>
                   </div>
                 </div>
                 <div>
-                  <label className="block text-sm text-gray-400 mb-1">Nota en recibo / Términos</label>
+                  <label className="apple-text-footnote apple-label-secondary block mb-1">Nota en recibo / Términos</label>
                   <textarea value={receiptNote} onChange={e => setReceiptNote(e.target.value)}
                     placeholder="Ej: No nos hacemos responsables de equipos dejados por más de 30 días."
                     rows={2}
-                    className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:border-cyan-500 resize-none" />
+                    className="apple-input w-full resize-none" />
                 </div>
                 {/* Schedule grid — responsive */}
                 <div>
-                  <label className="block text-sm text-gray-400 mb-3">Horario de atencion</label>
+                  <label className="apple-text-footnote apple-label-secondary block mb-3">Horario de atención</label>
                   <div className="space-y-2 overflow-x-auto">
                     {DAYS.map(day => (
-                      <div key={day} className="flex flex-wrap items-center gap-2 min-w-0">
+                      <div key={day} className="flex flex-wrap items-center gap-2 min-w-0 py-1" style={{ borderBottom: '0.5px solid rgb(var(--separator) / 0.29)' }}>
                         <div className="flex items-center gap-2 shrink-0">
-                          <span className="w-8 text-xs text-gray-400 font-medium">{day}</span>
+                          <span className="w-8 apple-text-caption1 apple-label-secondary font-medium">{day}</span>
                           <label className="flex items-center gap-1 cursor-pointer">
                             <input type="checkbox"
                               checked={!schedule[day].closed}
                               onChange={e => updateSchedule(day, 'closed', !e.target.checked)}
-                              className="w-4 h-4 rounded accent-cyan-500" />
-                            <span className="text-[10px] text-gray-400">Abierto</span>
+                              className="w-4 h-4 rounded-apple-xs accent-apple-blue" />
+                            <span className="apple-text-caption2 apple-label-secondary">Abierto</span>
                           </label>
                         </div>
                         {!schedule[day].closed && (
                           <div className="flex items-center gap-1.5">
                             <input type="time" value={schedule[day].open}
                               onChange={e => updateSchedule(day, 'open', e.target.value)}
-                              className="bg-white/5 border border-white/10 rounded-lg px-1.5 py-1 text-white text-[11px] focus:outline-none focus:border-cyan-500 w-[90px]" />
-                            <span className="text-gray-500 text-xs">-</span>
+                              className="apple-input tabular-nums w-[90px]" style={{ padding: '4px 8px', fontSize: '11px' }} />
+                            <span className="apple-label-tertiary apple-text-caption1">-</span>
                             <input type="time" value={schedule[day].close}
                               onChange={e => updateSchedule(day, 'close', e.target.value)}
-                              className="bg-white/5 border border-white/10 rounded-lg px-1.5 py-1 text-white text-[11px] focus:outline-none focus:border-cyan-500 w-[90px]" />
+                              className="apple-input tabular-nums w-[90px]" style={{ padding: '4px 8px', fontSize: '11px' }} />
                           </div>
                         )}
-                        {schedule[day].closed && <span className="text-[10px] text-gray-600">Cerrado</span>}
+                        {schedule[day].closed && <span className="apple-text-caption2 apple-label-tertiary">Cerrado</span>}
                       </div>
                     ))}
                   </div>
@@ -562,16 +566,16 @@ export default function TenantActivate() {
                   {[0,1,2,3].map(i => (
                     <div key={i} className={`w-5 h-5 rounded-full border-2 transition-all ${
                       currentPin.length > i
-                        ? 'bg-cyan-400 border-cyan-400 scale-110'
-                        : 'border-gray-600'
+                        ? 'bg-apple-blue border-apple-blue scale-110'
+                        : 'border-gray-sys4 dark:border-gray-sys3'
                     }`} />
                   ))}
                 </div>
 
                 {pinError && (
-                  <div className="flex items-center gap-2 bg-red-500/10 border border-red-500/30 rounded-xl px-4 py-3">
-                    <AlertTriangle className="w-4 h-4 text-red-400 flex-shrink-0" />
-                    <p className="text-red-400 text-sm">{pinError}</p>
+                  <div className="flex items-center gap-2 bg-apple-red/12 rounded-apple-md px-4 py-3">
+                    <AlertTriangle className="w-4 h-4 text-apple-red flex-shrink-0" />
+                    <p className="apple-text-footnote text-apple-red">{pinError}</p>
                   </div>
                 )}
 
@@ -585,16 +589,16 @@ export default function TenantActivate() {
                           <button key="bs"
                             onClick={handlePinBackspace}
                             disabled={currentPin.length === 0}
-                            className="h-16 rounded-2xl bg-red-500/20 border border-red-500/30 hover:bg-red-500/30 flex items-center justify-center transition-all active:scale-95 disabled:opacity-30"
+                            className="h-16 rounded-apple-lg bg-apple-red/12 apple-press flex items-center justify-center transition-all disabled:opacity-30"
                           >
-                            <span className="text-red-300 text-xl">⌫</span>
+                            <span className="text-apple-red apple-text-title3">⌫</span>
                           </button>
                         );
                         return (
                           <button key={num}
                             onClick={() => handlePinNumber(num)}
                             disabled={currentPin.length >= 4}
-                            className="h-16 rounded-2xl bg-white/10 border border-white/10 hover:bg-cyan-500/20 hover:border-cyan-500/40 text-white text-2xl font-semibold transition-all active:scale-95 disabled:opacity-30"
+                            className="h-16 rounded-apple-lg apple-surface-secondary apple-press apple-label-primary apple-text-title2 font-semibold tabular-nums transition-all disabled:opacity-30"
                           >
                             {num}
                           </button>
@@ -607,9 +611,9 @@ export default function TenantActivate() {
                 {pinStep === 'confirm' && confirmPin.length === 4 && (
                   <button
                     onClick={handleActivate}
-                    className="w-full bg-gradient-to-r from-cyan-600 to-emerald-600 hover:from-cyan-500 hover:to-emerald-500 text-white font-bold py-4 rounded-2xl text-lg transition-all mt-2"
+                    className="apple-btn apple-btn-primary apple-btn-lg w-full mt-2"
                   >
-                    ¡Activar mi cuenta! 🚀
+                    ¡Activar mi cuenta!
                   </button>
                 )}
               </div>
@@ -621,20 +625,20 @@ export default function TenantActivate() {
         <div className="flex gap-3 mt-5">
           {step > 0 && (
             <button onClick={goBack}
-              className="flex-1 flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-gray-300 font-medium transition-all">
-              <ChevronLeft className="w-4 h-4" /> Atras
+              className="apple-btn apple-btn-secondary apple-btn-lg flex-1 flex items-center justify-center gap-2">
+              <ChevronLeft className="w-4 h-4" /> Atrás
             </button>
           )}
           {step < TOTAL_STEPS - 1 && (
             <button onClick={goNext}
               disabled={step === 0 && !businessName.trim()}
-              className="flex-1 flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-gradient-to-r from-cyan-600 to-cyan-500 hover:from-cyan-500 hover:to-cyan-400 text-white font-semibold transition-all disabled:opacity-40 disabled:cursor-not-allowed">
+              className="apple-btn apple-btn-primary apple-btn-lg flex-1 flex items-center justify-center gap-2 disabled:opacity-40 disabled:cursor-not-allowed">
               Continuar <ChevronRight className="w-4 h-4" />
             </button>
           )}
           {step === 3 && pinStep === 'set' && pin.length === 4 && (
             <button onClick={goNext}
-              className="flex-1 flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-gradient-to-r from-cyan-600 to-cyan-500 hover:from-cyan-500 hover:to-cyan-400 text-white font-semibold transition-all">
+              className="apple-btn apple-btn-primary apple-btn-lg flex-1 flex items-center justify-center gap-2">
               Confirmar PIN <ChevronRight className="w-4 h-4" />
             </button>
           )}
@@ -648,21 +652,21 @@ export default function TenantActivate() {
 function StepHeader({ icon: Icon, title, subtitle }) {
   return (
     <div className="flex items-start gap-3 mb-2">
-      <div className="p-2.5 rounded-xl bg-cyan-500/10 border border-cyan-500/20 mt-0.5">
-        <Icon className="w-5 h-5 text-cyan-400" />
+      <div className="p-2.5 rounded-apple-sm bg-apple-blue/15 mt-0.5">
+        <Icon className="w-5 h-5 text-apple-blue" />
       </div>
       <div>
-        <h2 className="text-xl font-bold text-white">{title}</h2>
-        {subtitle && <p className="text-gray-400 text-sm mt-0.5">{subtitle}</p>}
+        <h2 className="apple-text-title3 apple-label-primary">{title}</h2>
+        {subtitle && <p className="apple-text-footnote apple-label-secondary mt-0.5">{subtitle}</p>}
       </div>
     </div>
   );
 }
 
-function Field({ label, value, onChange, placeholder, type = 'text', maxLength, inputMode }) {
+function Field({ label, value, onChange, placeholder, type = 'text', maxLength, inputMode, tabularNums }) {
   return (
     <div>
-      <label className="block text-sm text-gray-400 mb-1">{label}</label>
+      <label className="apple-text-footnote apple-label-secondary block mb-1">{label}</label>
       <input
         type={type}
         value={value}
@@ -670,7 +674,7 @@ function Field({ label, value, onChange, placeholder, type = 'text', maxLength, 
         placeholder={placeholder}
         maxLength={maxLength}
         inputMode={inputMode}
-        className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:border-cyan-500"
+        className={`apple-input w-full ${tabularNums ? 'tabular-nums' : ''}`}
       />
     </div>
   );

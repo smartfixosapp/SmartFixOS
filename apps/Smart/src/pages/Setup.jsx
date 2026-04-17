@@ -70,8 +70,8 @@ export default function Setup() {
         throw new Error(response.data.error);
       }
 
-      toast.success("✅ ¡Administrador creado!");
-      
+      toast.success("¡Administrador creado!");
+
       setTimeout(() => {
         navigate("/PinAccess", { replace: true });
       }, 1500);
@@ -84,30 +84,23 @@ export default function Setup() {
 
   return (
     <>
-      <div className="setup-fullscreen-container">
-        {/* Background effects */}
-        <div className="absolute inset-0 overflow-hidden pointer-events-none">
-          <div className="absolute top-0 left-1/4 w-96 h-96 bg-cyan-500/10 rounded-full blur-[120px] animate-pulse"></div>
-          <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-emerald-500/10 rounded-full blur-[120px] animate-pulse delay-1000"></div>
-        </div>
-
+      <div className="setup-fullscreen-container apple-surface apple-type">
         <div className="relative w-full h-full flex items-center justify-center p-4 sm:p-6 overflow-y-auto">
           <div className="w-full max-w-xl">
-            
+
             {/* Header */}
             <div className="text-center mb-8">
-              <div className="relative inline-block mb-6">
-                <div className="absolute inset-0 bg-gradient-to-r from-cyan-500/30 to-emerald-500/30 blur-2xl animate-pulse"></div>
-                <img 
+              <div className="inline-block mb-6">
+                <img
                   src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/68f767a3d5fce1486d4cf555/e9bc537e2_DynamicsmartfixosLogowithGearandDevice.png"
                   alt="SmartFixOS"
-                  className="relative h-24 w-auto object-contain mx-auto drop-shadow-[0_4px_16px_rgba(0,168,232,0.8)]"
+                  className="h-24 w-auto object-contain mx-auto"
                 />
               </div>
-              <h1 className="text-4xl font-black bg-gradient-to-r from-cyan-400 via-emerald-400 to-lime-400 bg-clip-text text-transparent mb-2">
+              <h1 className="apple-text-large-title apple-label-primary mb-2">
                 Bienvenido a SmartFixOS
               </h1>
-              <p className="text-gray-400 text-lg">Configuración inicial • Primera vez</p>
+              <p className="apple-text-body apple-label-secondary">Configuración inicial · Primera vez</p>
             </div>
 
             {/* Progress */}
@@ -115,31 +108,31 @@ export default function Setup() {
               {[1, 2, 3, 4, 5].map((s) => (
                 <div
                   key={s}
-                  className={`h-2 rounded-full transition-all duration-500 ${
-                    s <= step ? "w-10 bg-gradient-to-r from-cyan-500 to-emerald-500" : "w-6 bg-slate-700"
+                  className={`h-2 rounded-apple-xs transition-all duration-500 ${
+                    s <= step ? "w-10 bg-apple-blue" : "w-6 bg-gray-sys6 dark:bg-gray-sys5"
                   }`}
                 />
               ))}
             </div>
 
             {/* Card */}
-            <div className="bg-gradient-to-br from-slate-800/60 to-slate-900/60 backdrop-blur-2xl border-2 border-cyan-500/30 rounded-3xl p-8 shadow-[0_0_60px_rgba(6,182,212,0.3)]">
-              
+            <div className="apple-card rounded-apple-xl p-8 shadow-apple-lg">
+
               {/* Step 1: Nombre */}
               {step === 1 && (
                 <div className="space-y-6">
                   <div className="text-center mb-6">
-                    <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-cyan-500 to-emerald-500 flex items-center justify-center mx-auto mb-4 shadow-[0_0_40px_rgba(6,182,212,0.6)]">
-                      <User className="w-8 h-8 text-white" />
+                    <div className="w-16 h-16 rounded-apple-sm bg-apple-blue/15 flex items-center justify-center mx-auto mb-4">
+                      <User className="w-8 h-8 text-apple-blue" />
                     </div>
-                    <h2 className="text-2xl font-bold text-white mb-2">¿Cómo te llamas?</h2>
-                    <p className="text-gray-400">Serás el administrador principal</p>
+                    <h2 className="apple-text-title2 apple-label-primary mb-2">¿Cómo te llamas?</h2>
+                    <p className="apple-text-subheadline apple-label-secondary">Serás el administrador principal</p>
                   </div>
                   <Input
                     value={formData.full_name}
                     onChange={(e) => setFormData({ ...formData, full_name: e.target.value })}
                     placeholder="Ej: Juan Pérez"
-                    className="h-14 text-lg bg-black/40 border-cyan-500/30 text-white"
+                    className="apple-input h-14 text-lg"
                     autoFocus
                   />
                 </div>
@@ -149,18 +142,18 @@ export default function Setup() {
               {step === 2 && (
                 <div className="space-y-6">
                   <div className="text-center mb-6">
-                    <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-emerald-500 to-cyan-500 flex items-center justify-center mx-auto mb-4 shadow-[0_0_40px_rgba(16,185,129,0.6)]">
-                      <Mail className="w-8 h-8 text-white" />
+                    <div className="w-16 h-16 rounded-apple-sm bg-apple-green/15 flex items-center justify-center mx-auto mb-4">
+                      <Mail className="w-8 h-8 text-apple-green" />
                     </div>
-                    <h2 className="text-2xl font-bold text-white mb-2">Tu correo electrónico</h2>
-                    <p className="text-gray-400">Para recuperación y notificaciones</p>
+                    <h2 className="apple-text-title2 apple-label-primary mb-2">Tu correo electrónico</h2>
+                    <p className="apple-text-subheadline apple-label-secondary">Para recuperación y notificaciones</p>
                   </div>
                   <Input
                     type="email"
                     value={formData.email}
                     onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                     placeholder="ejemplo@gmail.com"
-                    className="h-14 text-lg bg-black/40 border-emerald-500/30 text-white"
+                    className="apple-input h-14 text-lg tabular-nums"
                     autoFocus
                   />
                 </div>
@@ -170,47 +163,47 @@ export default function Setup() {
               {step === 3 && (
                 <div className="space-y-6">
                   <div className="text-center mb-6">
-                    <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-blue-500 to-cyan-500 flex items-center justify-center mx-auto mb-4 shadow-[0_0_40px_rgba(59,130,246,0.6)]">
-                      <KeyRound className="w-8 h-8 text-white" />
+                    <div className="w-16 h-16 rounded-apple-sm bg-apple-indigo/15 flex items-center justify-center mx-auto mb-4">
+                      <KeyRound className="w-8 h-8 text-apple-indigo" />
                     </div>
-                    <h2 className="text-2xl font-bold text-white mb-2">Contraseña de acceso</h2>
-                    <p className="text-gray-400">Para iniciar sesión en la cuenta (mín. 8 caracteres)</p>
+                    <h2 className="apple-text-title2 apple-label-primary mb-2">Contraseña de acceso</h2>
+                    <p className="apple-text-subheadline apple-label-secondary">Para iniciar sesión en la cuenta (mín. 8 caracteres)</p>
                   </div>
                   <div className="space-y-4">
                     <div>
-                      <label className="text-xs text-gray-400 mb-2 block">Contraseña</label>
+                      <label className="apple-text-footnote apple-label-secondary mb-2 block">Contraseña</label>
                       <div className="relative">
                         <Input
                           type={showPassword ? "text" : "password"}
                           value={formData.password}
                           onChange={(e) => setFormData({ ...formData, password: e.target.value })}
                           placeholder="Mínimo 8 caracteres"
-                          className="h-14 text-lg bg-black/40 border-blue-500/30 text-white pr-12"
+                          className="apple-input h-14 text-lg pr-12"
                           autoFocus
                         />
                         <button
                           type="button"
                           onClick={() => setShowPassword(!showPassword)}
-                          className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white"
+                          className="absolute right-3 top-1/2 -translate-y-1/2 apple-label-tertiary apple-press"
                         >
                           {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                         </button>
                       </div>
                     </div>
                     <div>
-                      <label className="text-xs text-gray-400 mb-2 block">Confirmar contraseña</label>
+                      <label className="apple-text-footnote apple-label-secondary mb-2 block">Confirmar contraseña</label>
                       <div className="relative">
                         <Input
                           type={showPasswordConfirm ? "text" : "password"}
                           value={passwordConfirm}
                           onChange={(e) => setPasswordConfirm(e.target.value)}
                           placeholder="Repite la contraseña"
-                          className="h-14 text-lg bg-black/40 border-blue-500/30 text-white pr-12"
+                          className="apple-input h-14 text-lg pr-12"
                         />
                         <button
                           type="button"
                           onClick={() => setShowPasswordConfirm(!showPasswordConfirm)}
-                          className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white"
+                          className="absolute right-3 top-1/2 -translate-y-1/2 apple-label-tertiary apple-press"
                         >
                           {showPasswordConfirm ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                         </button>
@@ -224,15 +217,15 @@ export default function Setup() {
               {step === 4 && (
                 <div className="space-y-6">
                   <div className="text-center mb-6">
-                    <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center mx-auto mb-4 shadow-[0_0_40px_rgba(168,85,247,0.6)]">
-                      <Lock className="w-8 h-8 text-white" />
+                    <div className="w-16 h-16 rounded-apple-sm bg-apple-purple/15 flex items-center justify-center mx-auto mb-4">
+                      <Lock className="w-8 h-8 text-apple-purple" />
                     </div>
-                    <h2 className="text-2xl font-bold text-white mb-2">Crea tu PIN de acceso</h2>
-                    <p className="text-gray-400">4 dígitos para cambios de turno de empleados</p>
+                    <h2 className="apple-text-title2 apple-label-primary mb-2">Crea tu PIN de acceso</h2>
+                    <p className="apple-text-subheadline apple-label-secondary">4 dígitos para cambios de turno de empleados</p>
                   </div>
                   <div className="space-y-4">
                     <div>
-                      <label className="text-xs text-gray-400 mb-2 block">PIN (4 dígitos)</label>
+                      <label className="apple-text-footnote apple-label-secondary mb-2 block">PIN (4 dígitos)</label>
                       <Input
                         type="password"
                         maxLength={4}
@@ -242,12 +235,12 @@ export default function Setup() {
                           setFormData({ ...formData, pin: val });
                         }}
                         placeholder="••••"
-                        className="h-14 text-2xl tracking-widest text-center bg-black/40 border-purple-500/30 text-white"
+                        className="apple-input h-14 text-2xl text-center tabular-nums"
                         autoFocus
                       />
                     </div>
                     <div>
-                      <label className="text-xs text-gray-400 mb-2 block">Confirmar PIN</label>
+                      <label className="apple-text-footnote apple-label-secondary mb-2 block">Confirmar PIN</label>
                       <Input
                         type="password"
                         maxLength={4}
@@ -257,7 +250,7 @@ export default function Setup() {
                           setPinConfirm(val);
                         }}
                         placeholder="••••"
-                        className="h-14 text-2xl tracking-widest text-center bg-black/40 border-purple-500/30 text-white"
+                        className="apple-input h-14 text-2xl text-center tabular-nums"
                       />
                     </div>
                   </div>
@@ -268,54 +261,54 @@ export default function Setup() {
               {step === 5 && (
                 <div className="space-y-6">
                   <div className="text-center mb-6">
-                    <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-emerald-500 to-green-500 flex items-center justify-center mx-auto mb-4 shadow-[0_0_40px_rgba(16,185,129,0.6)] animate-pulse">
-                      <Sparkles className="w-8 h-8 text-white" />
+                    <div className="w-16 h-16 rounded-apple-sm bg-apple-green/15 flex items-center justify-center mx-auto mb-4">
+                      <Sparkles className="w-8 h-8 text-apple-green" />
                     </div>
-                    <h2 className="text-2xl font-bold text-white mb-2">¡Todo listo!</h2>
-                    <p className="text-gray-400">Confirma y guarda tu PIN antes de continuar</p>
+                    <h2 className="apple-text-title2 apple-label-primary mb-2">¡Todo listo!</h2>
+                    <p className="apple-text-subheadline apple-label-secondary">Confirma y guarda tu PIN antes de continuar</p>
                   </div>
 
                   {/* PIN destacado — el más importante */}
-                  <div className="bg-gradient-to-br from-purple-500/20 to-pink-500/20 border-2 border-purple-500/50 rounded-2xl p-5 text-center">
-                    <p className="text-xs text-purple-300 mb-1 font-semibold uppercase tracking-wider">Tu PIN de acceso</p>
-                    <p className="text-5xl font-black tracking-[0.3em] text-white mb-2">{formData.pin}</p>
-                    <p className="text-xs text-purple-200/70">📱 Úsalo en la pantalla de empleados para entrar al sistema</p>
+                  <div className="bg-apple-purple/12 rounded-apple-lg p-5 text-center">
+                    <p className="apple-text-footnote text-apple-purple mb-1 font-semibold">Tu PIN de acceso</p>
+                    <p className="apple-text-large-title apple-label-primary tabular-nums mb-2" style={{ letterSpacing: '0.3em' }}>{formData.pin}</p>
+                    <p className="apple-text-caption1 apple-label-secondary">Úsalo en la pantalla de empleados para entrar al sistema</p>
                   </div>
 
-                  <div className="bg-black/40 border border-cyan-500/20 rounded-xl p-5 space-y-3">
+                  <div className="apple-list rounded-apple-lg p-5 space-y-3">
                     <div className="flex items-center gap-3">
-                      <User className="w-4 h-4 text-cyan-400 flex-shrink-0" />
+                      <User className="w-4 h-4 text-apple-blue flex-shrink-0" />
                       <div>
-                        <p className="text-xs text-gray-400">Nombre</p>
-                        <p className="text-white font-semibold">{formData.full_name}</p>
+                        <p className="apple-text-caption1 apple-label-secondary">Nombre</p>
+                        <p className="apple-text-body apple-label-primary font-semibold">{formData.full_name}</p>
                       </div>
                     </div>
                     <div className="flex items-center gap-3">
-                      <Mail className="w-4 h-4 text-emerald-400 flex-shrink-0" />
+                      <Mail className="w-4 h-4 text-apple-green flex-shrink-0" />
                       <div>
-                        <p className="text-xs text-gray-400">Email (login + empleado)</p>
-                        <p className="text-white font-semibold">{formData.email}</p>
+                        <p className="apple-text-caption1 apple-label-secondary">Email (login + empleado)</p>
+                        <p className="apple-text-body apple-label-primary font-semibold tabular-nums">{formData.email}</p>
                       </div>
                     </div>
                     <div className="flex items-center gap-3">
-                      <Shield className="w-4 h-4 text-purple-400 flex-shrink-0" />
+                      <Shield className="w-4 h-4 text-apple-purple flex-shrink-0" />
                       <div>
-                        <p className="text-xs text-gray-400">Rol</p>
-                        <p className="text-white font-semibold">Administrador</p>
+                        <p className="apple-text-caption1 apple-label-secondary">Rol</p>
+                        <p className="apple-text-body apple-label-primary font-semibold">Administrador</p>
                       </div>
                     </div>
                     <div className="flex items-center gap-3">
-                      <KeyRound className="w-4 h-4 text-blue-400 flex-shrink-0" />
+                      <KeyRound className="w-4 h-4 text-apple-indigo flex-shrink-0" />
                       <div>
-                        <p className="text-xs text-gray-400">Contraseña de cuenta</p>
-                        <p className="text-white font-semibold">••••••••</p>
+                        <p className="apple-text-caption1 apple-label-secondary">Contraseña de cuenta</p>
+                        <p className="apple-text-body apple-label-primary font-semibold">••••••••</p>
                       </div>
                     </div>
                   </div>
 
-                  <div className="bg-amber-500/10 border border-amber-500/30 rounded-xl p-4">
-                    <p className="text-amber-200 text-xs">
-                      ⚠️ <strong>Anota tu PIN ahora.</strong> Lo necesitas para seleccionar tu perfil de empleado cada vez que entres al sistema.
+                  <div className="bg-apple-orange/12 rounded-apple-md p-4">
+                    <p className="apple-text-footnote text-apple-orange">
+                      <strong>Anota tu PIN ahora.</strong> Lo necesitas para seleccionar tu perfil de empleado cada vez que entres al sistema.
                     </p>
                   </div>
                 </div>
@@ -326,8 +319,7 @@ export default function Setup() {
                 {step > 1 && step < TOTAL_STEPS && (
                   <Button
                     onClick={() => setStep(step - 1)}
-                    variant="outline"
-                    className="flex-1 h-14 border-white/20 text-white hover:bg-white/5"
+                    className="apple-btn apple-btn-secondary apple-btn-lg flex-1"
                     disabled={loading}
                   >
                     Atrás
@@ -337,15 +329,15 @@ export default function Setup() {
                 {step < TOTAL_STEPS ? (
                   <Button
                     onClick={handleNext}
-                    className="flex-1 h-14 bg-gradient-to-r from-cyan-600 to-emerald-600 hover:from-cyan-500 hover:to-emerald-500 text-white font-bold"
+                    className="apple-btn apple-btn-primary apple-btn-lg flex-1"
                   >
-                    Siguiente →
+                    Siguiente
                   </Button>
                 ) : (
                   <Button
                     onClick={handleFinish}
                     disabled={loading}
-                    className="flex-1 h-14 bg-gradient-to-r from-emerald-600 to-green-600 hover:from-emerald-500 hover:to-green-500 text-white font-bold"
+                    className="apple-btn apple-btn-primary apple-btn-lg flex-1"
                   >
                     {loading ? (
                       <>
@@ -364,7 +356,7 @@ export default function Setup() {
 
               {/* Indicador de paso */}
               <div className="text-center mt-6">
-                <p className="text-gray-500 text-sm">
+                <p className="apple-text-footnote apple-label-tertiary tabular-nums">
                   Paso {step} de {TOTAL_STEPS}
                 </p>
               </div>
@@ -386,7 +378,6 @@ export default function Setup() {
           margin: 0;
           padding: 0;
           overflow: hidden;
-          background: radial-gradient(circle at top, #0f172a 0%, #020617 45%, #000 90%);
           display: flex;
           align-items: center;
           justify-content: center;
