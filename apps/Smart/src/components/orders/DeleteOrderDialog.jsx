@@ -144,56 +144,56 @@ export default function DeleteOrderDialog({ open, onClose, order, onSuccess, use
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent className="max-w-md bg-gradient-to-br from-[#2B2B2B] to-black border-red-900/30">
-        <DialogHeader>
-          <DialogTitle className="text-xl font-bold text-white flex items-center gap-2">
-            <AlertTriangle className="w-6 h-6 text-red-500" />
+      <DialogContent className="apple-type max-w-md apple-surface-elevated rounded-apple-lg shadow-apple-xl border-0 p-0 overflow-hidden">
+        <DialogHeader className="p-6 pb-2">
+          <DialogTitle className="apple-text-title2 apple-label-primary flex items-center gap-2">
+            <AlertTriangle className="w-6 h-6 text-apple-red" />
             Gestionar Orden
           </DialogTitle>
         </DialogHeader>
 
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full px-6 pb-6">
             <TabsList className="grid w-full grid-cols-2">
                 <TabsTrigger value="cancel">Cancelar Orden</TabsTrigger>
                 <TabsTrigger value="delete" disabled={user?.role !== 'admin'}>Eliminar</TabsTrigger>
             </TabsList>
             <TabsContent value="cancel" className="mt-4">
                 <div className="space-y-4">
-                    <DialogDescription className="text-gray-400">
+                    <DialogDescription className="apple-label-secondary apple-text-subheadline">
                         Esta acción moverá la orden al estado "Cancelada" y la ocultará de las vistas activas. La orden permanecerá en el sistema para fines de auditoría.
                     </DialogDescription>
                     <div className="space-y-2">
-                        <Label className="text-gray-300">Motivo de cancelación (obligatorio)</Label>
-                        <Textarea value={reason} onChange={(e) => setReason(e.target.value)} placeholder="Ej: Cliente canceló, error en la creación..." className="bg-black border-gray-700 text-white" />
+                        <Label className="apple-label-secondary apple-text-footnote">Motivo de cancelación (obligatorio)</Label>
+                        <Textarea value={reason} onChange={(e) => setReason(e.target.value)} placeholder="Ej: Cliente canceló, error en la creación..." className="apple-input apple-text-body" />
                     </div>
                     <div className="space-y-2">
-                        <Label htmlFor="admin-pin-cancel" className="text-gray-300">PIN de confirmación:</Label>
-                        <Input id="admin-pin-cancel" type="password" value={adminPin} onChange={(e) => setAdminPin(e.target.value)} placeholder="****" className="bg-black border-gray-700 text-white" />
+                        <Label htmlFor="admin-pin-cancel" className="apple-label-secondary apple-text-footnote">PIN de confirmación:</Label>
+                        <Input id="admin-pin-cancel" type="password" value={adminPin} onChange={(e) => setAdminPin(e.target.value)} placeholder="****" className="apple-input apple-text-body tabular-nums" />
                     </div>
-                    {error && activeTab === 'cancel' && <p className="text-sm text-red-400">{error}</p>}
+                    {error && activeTab === 'cancel' && <p className="apple-text-subheadline text-apple-red">{error}</p>}
                     <div className="flex gap-3 pt-4">
-                        <Button onClick={handleClose} variant="outline" className="flex-1 border-gray-700" disabled={processing}>Cerrar</Button>
-                        <Button onClick={handleCancelOrder} disabled={processing || !reason.trim() || !adminPin} className="flex-1 bg-yellow-600 hover:bg-yellow-700"><ShieldAlert className="w-4 h-4 mr-2" />{processing ? "Procesando..." : "Confirmar Cancelación"}</Button>
+                        <Button onClick={handleClose} variant="outline" className="apple-btn apple-btn-secondary apple-press flex-1" disabled={processing}>Cerrar</Button>
+                        <Button onClick={handleCancelOrder} disabled={processing || !reason.trim() || !adminPin} className="apple-btn apple-press flex-1 bg-apple-orange text-white hover:opacity-90"><ShieldAlert className="w-4 h-4 mr-2" />{processing ? "Procesando..." : "Confirmar Cancelación"}</Button>
                     </div>
                 </div>
             </TabsContent>
             <TabsContent value="delete" className="mt-4">
                 <div className="space-y-4">
-                    <DialogDescription className="text-red-400 font-bold">
+                    <DialogDescription className="text-apple-red font-semibold apple-text-subheadline">
                         ¡ADVERTENCIA! Esta acción eliminará la orden y todos sus datos asociados de forma PERMANENTE. No se podrá deshacer.
                     </DialogDescription>
                     <div className="space-y-2">
-                        <Label htmlFor="confirm-text" className="text-gray-300">Para confirmar, escribe "ELIMINAR" en el campo:</Label>
-                        <Input id="confirm-text" value={confirmationText} onChange={(e) => setConfirmationText(e.target.value)} className="bg-black border-red-700 text-red-400 font-bold tracking-widest" />
+                        <Label htmlFor="confirm-text" className="apple-label-secondary apple-text-footnote">Para confirmar, escribe "ELIMINAR" en el campo:</Label>
+                        <Input id="confirm-text" value={confirmationText} onChange={(e) => setConfirmationText(e.target.value)} className="apple-input text-apple-red font-semibold" />
                     </div>
                     <div className="space-y-2">
-                        <Label htmlFor="admin-pin-delete" className="text-gray-300">PIN de Administrador:</Label>
-                        <Input id="admin-pin-delete" type="password" value={adminPin} onChange={(e) => setAdminPin(e.target.value)} placeholder="****" className="bg-black border-gray-700 text-white" />
+                        <Label htmlFor="admin-pin-delete" className="apple-label-secondary apple-text-footnote">PIN de Administrador:</Label>
+                        <Input id="admin-pin-delete" type="password" value={adminPin} onChange={(e) => setAdminPin(e.target.value)} placeholder="****" className="apple-input apple-text-body tabular-nums" />
                     </div>
-                    {error && activeTab === 'delete' && <p className="text-sm text-red-400">{error}</p>}
+                    {error && activeTab === 'delete' && <p className="apple-text-subheadline text-apple-red">{error}</p>}
                     <div className="flex gap-3 pt-4">
-                        <Button onClick={handleClose} variant="outline" className="flex-1 border-gray-700" disabled={processing}>Cerrar</Button>
-                        <Button onClick={handleDeletePermanently} disabled={processing || confirmationText !== 'ELIMINAR' || !adminPin} variant="destructive" className="flex-1"><Trash2 className="w-4 h-4 mr-2" />{processing ? "Eliminando..." : "Eliminar Permanentemente"}</Button>
+                        <Button onClick={handleClose} variant="outline" className="apple-btn apple-btn-secondary apple-press flex-1" disabled={processing}>Cerrar</Button>
+                        <Button onClick={handleDeletePermanently} disabled={processing || confirmationText !== 'ELIMINAR' || !adminPin} variant="destructive" className="apple-btn apple-btn-destructive apple-press flex-1"><Trash2 className="w-4 h-4 mr-2" />{processing ? "Eliminando..." : "Eliminar Permanentemente"}</Button>
                     </div>
                 </div>
             </TabsContent>

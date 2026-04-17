@@ -9,7 +9,7 @@ export default function PageContainer({ className = "", children }) {
   return (
     <div
       className={`
-        app-page
+        apple-type app-page
         px-3 sm:px-4 md:px-6
         max-w-7xl mx-auto w-full
         ${className}

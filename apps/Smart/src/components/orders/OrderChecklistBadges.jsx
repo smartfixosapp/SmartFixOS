@@ -15,11 +15,11 @@ const ICONS = {
 
 export default function OrderChecklistBadges({ items = [], notes }) {
   if (!items.length && !notes) {
-    return <div className="text-sm text-gray-500">Sin checklist.</div>;
+    return <div className="apple-type apple-text-subheadline apple-label-tertiary">Sin checklist.</div>;
   }
 
   return (
-    <div className="space-y-3">
+    <div className="apple-type space-y-3">
       {items.length > 0 && (
         <div className="flex flex-wrap gap-2">
           {items.map((it, idx) => {
@@ -29,10 +29,10 @@ export default function OrderChecklistBadges({ items = [], notes }) {
             return (
               <Badge
                 key={key + idx}
-                className={`text-[11px] px-2 py-[2px] border ${
+                className={`apple-text-caption1 px-2 py-[2px] rounded-apple-sm border-0 ${
                   checked
-                    ? "bg-emerald-600/20 text-emerald-300 border-emerald-600/30"
-                    : "bg-gray-600/20 text-gray-300 border-gray-600/30"
+                    ? "bg-apple-green/15 text-apple-green"
+                    : "bg-gray-sys6 dark:bg-gray-sys5 apple-label-secondary"
                 }`}
               >
                 <Icon className="w-3.5 h-3.5 mr-1" />
@@ -44,7 +44,7 @@ export default function OrderChecklistBadges({ items = [], notes }) {
       )}
 
       {notes && (
-        <div className="text-sm text-gray-300 whitespace-pre-wrap border border-white/10 rounded p-2 bg-black/30">
+        <div className="apple-text-subheadline apple-label-secondary whitespace-pre-wrap rounded-apple-md p-2 apple-surface">
           {notes}
         </div>
       )}

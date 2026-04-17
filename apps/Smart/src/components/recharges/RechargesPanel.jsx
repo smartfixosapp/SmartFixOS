@@ -65,11 +65,11 @@ export default function RechargesPanel() {
 
   const filteredRecharges = recharges.filter(r => {
     const search = searchTerm.toLowerCase();
-    const matchesSearch = !searchTerm || 
+    const matchesSearch = !searchTerm ||
       r.phone_number?.toLowerCase().includes(search) ||
       r.customer_name?.toLowerCase().includes(search) ||
       r.recharge_number?.toLowerCase().includes(search);
-    
+
     const matchesCarrier = filterCarrier === "all" || r.carrier === filterCarrier;
     const matchesStatus = filterStatus === "all" || r.status === filterStatus;
 
@@ -130,62 +130,61 @@ export default function RechargesPanel() {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="apple-type space-y-6">
 
       {/* Stats Cards */}
-      <div className="bg-[#1c1c1e] border border-white/10 rounded-[24px] p-6 shadow-xl relative overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-r from-amber-500/5 to-yellow-500/5 pointer-events-none" />
+      <div className="apple-card p-6 relative overflow-hidden">
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 relative z-10">
-          <div className="bg-black/20 border border-white/5 rounded-2xl p-5">
-            <div className="flex items-center gap-2 mb-2 text-gray-400 text-xs uppercase font-bold tracking-wider">
+          <div className="bg-apple-blue/12 rounded-apple-md p-5">
+            <div className="flex items-center gap-2 mb-2 apple-label-secondary apple-text-caption1 font-semibold">
               <BarChart3 className="w-4 h-4" />
               Total Recargas
             </div>
-            <p className="text-3xl font-bold text-white">{stats.count}</p>
+            <p className="apple-text-title1 font-bold apple-label-primary tabular-nums">{stats.count}</p>
           </div>
 
-          <div className="bg-black/20 border border-white/5 rounded-2xl p-5">
-            <div className="flex items-center gap-2 mb-2 text-gray-400 text-xs uppercase font-bold tracking-wider">
+          <div className="bg-apple-yellow/12 rounded-apple-md p-5">
+            <div className="flex items-center gap-2 mb-2 apple-label-secondary apple-text-caption1 font-semibold">
               <DollarSign className="w-4 h-4" />
               Total Vendido
             </div>
-            <p className="text-3xl font-bold text-white">{money(stats.total)}</p>
+            <p className="apple-text-title1 font-bold apple-label-primary tabular-nums">{money(stats.total)}</p>
           </div>
 
-          <div className="bg-black/20 border border-white/5 rounded-2xl p-5">
-            <div className="flex items-center gap-2 mb-2 text-green-400 text-xs uppercase font-bold tracking-wider">
+          <div className="bg-apple-green/12 rounded-apple-md p-5">
+            <div className="flex items-center gap-2 mb-2 text-apple-green apple-text-caption1 font-semibold">
               <TrendingUp className="w-4 h-4" />
               Ganancia
             </div>
-            <p className="text-3xl font-bold text-green-400">{money(stats.commission)}</p>
+            <p className="apple-text-title1 font-bold text-apple-green tabular-nums">{money(stats.commission)}</p>
           </div>
 
-          <div className="bg-black/20 border border-white/5 rounded-2xl p-5">
-            <div className="flex items-center gap-2 mb-2 text-red-400 text-xs uppercase font-bold tracking-wider">
+          <div className="bg-apple-red/12 rounded-apple-md p-5">
+            <div className="flex items-center gap-2 mb-2 text-apple-red apple-text-caption1 font-semibold">
               <XCircle className="w-4 h-4" />
               Reembolsos
             </div>
-            <p className="text-3xl font-bold text-white">{stats.refunded}</p>
+            <p className="apple-text-title1 font-bold apple-label-primary tabular-nums">{stats.refunded}</p>
           </div>
         </div>
       </div>
 
       {/* Filtros */}
-      <div className="bg-[#1c1c1e] border border-white/10 rounded-[24px] p-2 flex flex-wrap gap-2 shadow-lg">
+      <div className="apple-card p-2 flex flex-wrap gap-2">
           <div className="relative flex-1 min-w-[200px]">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500" />
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 apple-label-tertiary" />
             <input
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               placeholder="Buscar..."
-              className="w-full pl-12 bg-black/20 border-transparent text-white rounded-xl h-12 focus:outline-none focus:bg-black/40 transition-colors"
+              className="apple-input w-full pl-12 h-12"
             />
           </div>
 
           <select
             value={dateRange}
             onChange={(e) => setDateRange(e.target.value)}
-            className="h-12 px-4 rounded-xl bg-white/5 border-transparent text-white focus:bg-white/10 outline-none cursor-pointer"
+            className="apple-input h-12 px-4 cursor-pointer"
           >
             <option value="all">Todas las fechas</option>
             <option value="today">Hoy</option>
@@ -196,7 +195,7 @@ export default function RechargesPanel() {
           <select
             value={filterCarrier}
             onChange={(e) => setFilterCarrier(e.target.value)}
-            className="h-12 px-4 rounded-xl bg-white/5 border-transparent text-white focus:bg-white/10 outline-none cursor-pointer"
+            className="apple-input h-12 px-4 cursor-pointer"
           >
             <option value="all">Todas las compañías</option>
             {carriers.map(carrier => (
@@ -207,7 +206,7 @@ export default function RechargesPanel() {
           <select
             value={filterStatus}
             onChange={(e) => setFilterStatus(e.target.value)}
-            className="h-12 px-4 rounded-xl bg-white/5 border-transparent text-white focus:bg-white/10 outline-none cursor-pointer"
+            className="apple-input h-12 px-4 cursor-pointer"
           >
             <option value="all">Todos los estados</option>
             <option value="completed">Completadas</option>
@@ -216,10 +215,10 @@ export default function RechargesPanel() {
           </select>
 
           <div className="flex gap-2 ml-auto">
-            <Button onClick={loadRecharges} variant="ghost" size="icon" aria-label="Recargar lista" className="h-12 w-12 rounded-xl text-gray-400 hover:text-white hover:bg-white/10">
+            <Button onClick={loadRecharges} variant="ghost" size="icon" aria-label="Recargar lista" className="apple-press apple-btn apple-btn-plain h-12 w-12 rounded-apple-sm apple-label-secondary">
               <RefreshCw className="w-5 h-5" />
             </Button>
-            <Button onClick={exportToCSV} variant="ghost" size="icon" aria-label="Exportar a CSV" className="h-12 w-12 rounded-xl text-gray-400 hover:text-white hover:bg-white/10">
+            <Button onClick={exportToCSV} variant="ghost" size="icon" aria-label="Exportar a CSV" className="apple-press apple-btn apple-btn-plain h-12 w-12 rounded-apple-sm apple-label-secondary">
               <Download className="w-5 h-5" />
             </Button>
         </div>
@@ -228,78 +227,78 @@ export default function RechargesPanel() {
       {/* Lista de recargas */}
       {loading ? (
         <div className="text-center py-20">
-          <div className="animate-spin w-10 h-10 border-4 border-amber-500 border-t-transparent rounded-full mx-auto" />
+          <div className="animate-spin w-10 h-10 border-4 border-apple-yellow border-t-transparent rounded-full mx-auto" />
         </div>
       ) : filteredRecharges.length === 0 ? (
-        <div className="bg-[#1c1c1e] border border-white/10 rounded-[32px] p-20 text-center">
-          <Zap className="w-20 h-20 text-white/40 mx-auto mb-6" />
-          <h3 className="text-xl font-bold text-white mb-2">No hay recargas</h3>
-          <p className="text-gray-500">No se encontraron transacciones con los filtros actuales.</p>
+        <div className="apple-card p-20 text-center">
+          <Zap className="w-20 h-20 apple-label-tertiary mx-auto mb-6" />
+          <h3 className="apple-text-title3 apple-label-primary mb-2">No hay recargas</h3>
+          <p className="apple-label-secondary apple-text-subheadline">No se encontraron transacciones con los filtros actuales.</p>
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {filteredRecharges.map(recharge => {
               const statusConfig = {
-                completed: { color: "bg-green-500/20 text-green-400 border-green-500/30", icon: CheckCircle2, label: "Exitosa" },
-                failed: { color: "bg-red-500/20 text-red-400 border-red-500/30", icon: XCircle, label: "Fallida" },
-                refunded: { color: "bg-orange-500/20 text-orange-400 border-orange-500/30", icon: RefreshCw, label: "Reembolsada" }
-              }[recharge.status] || statusConfig.completed;
+                completed: { tint: "green", icon: CheckCircle2, label: "Exitosa" },
+                failed: { tint: "red", icon: XCircle, label: "Fallida" },
+                refunded: { tint: "orange", icon: RefreshCw, label: "Reembolsada" }
+              }[recharge.status] || { tint: "green", icon: CheckCircle2, label: "Exitosa" };
 
               const StatusIcon = statusConfig.icon;
 
               return (
                 <div
                   key={recharge.id}
-                  className="bg-[#1c1c1e] hover:bg-[#2c2c2e] border border-white/5 rounded-2xl p-5 transition-all group shadow-md"
+                  className="apple-list-row apple-card p-5 transition-all group"
                 >
                   {/* Header */}
                   <div className="flex items-start justify-between mb-4">
                     <div>
                       <div className="flex items-center gap-2 mb-1">
-                        <Badge className="bg-white/10 text-white/80 border-0 hover:bg-white/20 font-medium">
+                        <Badge className="bg-gray-sys6 dark:bg-gray-sys5 apple-label-primary border-0 font-medium">
                           {recharge.carrier === "Otra" ? recharge.carrier_custom : recharge.carrier}
                         </Badge>
                       </div>
                       <div className="flex items-center gap-2">
-                        <p className="text-white font-bold text-xl font-mono tracking-wide">
+                        <p className="apple-label-primary font-bold apple-text-title3 font-mono tabular-nums">
                           {recharge.phone_number}
                         </p>
                       </div>
                     </div>
-                    <div className={`w-8 h-8 rounded-full flex items-center justify-center ${statusConfig.color} border-0`}>
+                    <div className={`w-8 h-8 rounded-full flex items-center justify-center bg-apple-${statusConfig.tint}/15 text-apple-${statusConfig.tint}`}>
                       <StatusIcon className="w-4 h-4" />
                     </div>
                   </div>
 
                   {/* Info */}
                   <div className="space-y-3 mb-5">
-                    <div className="flex items-center justify-between text-sm">
-                      <div className="flex items-center gap-2 text-gray-400">
+                    <div className="flex items-center justify-between apple-text-subheadline">
+                      <div className="flex items-center gap-2 apple-label-secondary">
                         <Calendar className="w-4 h-4" />
                         <span>{format(new Date(recharge.created_date), "d MMM, HH:mm", { locale: es })}</span>
                       </div>
                     </div>
-                    
+
                     {recharge.customer_name && (
-                      <div className="flex items-center gap-2 text-sm text-gray-300">
-                        <User className="w-4 h-4 text-blue-400" />
+                      <div className="flex items-center gap-2 apple-text-subheadline apple-label-secondary">
+                        <User className="w-4 h-4 text-apple-blue" />
                         <span className="font-medium">{recharge.customer_name}</span>
                       </div>
                     )}
                   </div>
 
                   {/* Monto y comisión */}
-                  <div className="bg-black/30 rounded-xl p-4 flex items-center justify-between border border-white/5">
+                  <div className="bg-gray-sys6 dark:bg-gray-sys5 rounded-apple-sm p-4 flex items-center justify-between">
                     <div>
-                      <span className="text-gray-500 text-[10px] uppercase font-bold tracking-wider block mb-1">Monto</span>
-                      <p className="text-xl font-bold text-white">
+                      <span className="apple-label-tertiary apple-text-caption2 font-semibold block mb-1">Monto</span>
+                      <p className="apple-text-title3 font-bold apple-label-primary tabular-nums">
                         {money(recharge.amount)}
                       </p>
                     </div>
                     {recharge.commission > 0 && (
                       <div className="text-right">
-                        <span className="text-gray-500 text-[10px] uppercase font-bold tracking-wider block mb-1">Comisión</span>
-                        <p className="text-green-400 font-bold">
+                        <span className="apple-label-tertiary apple-text-caption2 font-semibold block mb-1">Comisión</span>
+                        <p className="text-apple-green font-bold tabular-nums">
                           +{money(recharge.commission)}
                         </p>
                       </div>
@@ -312,7 +311,7 @@ export default function RechargesPanel() {
                       size="sm"
                       variant="ghost"
                       onClick={() => handleRefund(recharge)}
-                      className="w-full mt-4 text-gray-500 hover:text-red-400 hover:bg-red-500/10 h-9 text-xs font-medium"
+                      className="apple-btn apple-btn-plain w-full mt-4 apple-label-tertiary h-9 apple-text-caption1 font-medium"
                     >
                       Reembolsar
                     </Button>

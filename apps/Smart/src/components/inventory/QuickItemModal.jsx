@@ -60,23 +60,23 @@ export default function QuickItemModal({ open, onClose, onItemCreated }) {
 
   return createPortal(
     <div
-      className="fixed inset-0 z-[9999999] bg-black/90 backdrop-blur-md flex items-center justify-center p-4"
+      className="apple-type fixed inset-0 z-[9999999] bg-black/50 backdrop-blur-sm flex items-center justify-center p-4"
       onClick={(e) => {
         if (e.target === e.currentTarget) onClose();
       }}>
 
       <div
-        className="bg-[#0A0A0A]/95 backdrop-blur-2xl border border-white/10 text-white shadow-2xl rounded-[32px] p-0 overflow-hidden max-w-md w-full"
+        className="apple-surface-elevated rounded-apple-lg shadow-apple-xl border-0 p-0 overflow-hidden max-w-md w-full"
         onClick={(e) => e.stopPropagation()}>
 
-        <div className="sticky top-0 z-20 bg-[#0A0A0A]/95 backdrop-blur-xl border-b border-white/5 p-6 pb-4">
-          <h2 className="text-2xl font-bold flex items-center gap-3">
-            <div className="p-2 bg-gradient-to-br from-cyan-500/20 to-emerald-500/20 rounded-2xl">
-              <Wrench className="w-6 h-6 text-cyan-400" />
+        <div className="sticky top-0 z-20 apple-surface-elevated p-6 pb-4" style={{ borderBottom: "0.5px solid rgb(var(--separator) / 0.29)" }}>
+          <h2 className="apple-text-title2 apple-label-primary flex items-center gap-3">
+            <div className="p-2 bg-apple-blue/15 rounded-apple-sm">
+              <Wrench className="w-6 h-6 text-apple-blue" />
             </div>
-            <span className="text-white tracking-tight">Item Manual</span>
+            <span>Item Manual</span>
           </h2>
-          <p className="text-white/50 text-sm font-medium pl-14 mt-1">
+          <p className="apple-label-secondary apple-text-subheadline pl-14 mt-1">
             Para trabajos que no están en inventario
           </p>
         </div>
@@ -84,7 +84,7 @@ export default function QuickItemModal({ open, onClose, onItemCreated }) {
         <div className="p-6 space-y-5">
           {/* Nombre */}
           <div className="space-y-2">
-            <Label className="text-white/70 text-sm flex items-center gap-2">
+            <Label className="apple-label-secondary apple-text-subheadline flex items-center gap-2">
               <FileText className="w-4 h-4" />
               Nombre del Trabajo *
             </Label>
@@ -94,13 +94,13 @@ export default function QuickItemModal({ open, onClose, onItemCreated }) {
               value={name}
               onChange={(e) => setName(e.target.value)}
               onKeyDown={handleEnterToSave}
-              className="bg-white/5 border-white/10 text-white placeholder:text-white/30 h-12 text-base" />
+              className="apple-input h-12 apple-text-body" />
 
           </div>
 
           {/* Descripción */}
           <div className="space-y-2">
-            <Label className="text-white/70 text-sm flex items-center gap-2">
+            <Label className="apple-label-secondary apple-text-subheadline flex items-center gap-2">
               <FileText className="w-4 h-4" />
               ¿Qué se hizo?
             </Label>
@@ -114,14 +114,14 @@ export default function QuickItemModal({ open, onClose, onItemCreated }) {
                   handleSave();
                 }
               }}
-              className="bg-white/5 border-white/10 text-white placeholder:text-white/30 min-h-[100px] text-base resize-none" />
+              className="apple-input min-h-[100px] apple-text-body resize-none" />
 
           </div>
 
           {/* Precio y Costo */}
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-2">
-              <Label className="text-white/70 text-sm flex items-center gap-2">
+              <Label className="apple-label-secondary apple-text-subheadline flex items-center gap-2">
                 <DollarSign className="w-4 h-4" />
                 Precio *
               </Label>
@@ -132,11 +132,11 @@ export default function QuickItemModal({ open, onClose, onItemCreated }) {
                 value={price}
                 onChange={(e) => setPrice(e.target.value)}
                 onKeyDown={handleEnterToSave}
-                className="bg-white/5 border-white/10 text-white placeholder:text-white/30 h-12 text-lg" />
+                className="apple-input h-12 apple-text-headline tabular-nums" />
             </div>
             <div className="space-y-2">
-              <Label className="text-white/70 text-sm flex items-center gap-2">
-                <DollarSign className="w-4 h-4 text-white/40" />
+              <Label className="apple-label-secondary apple-text-subheadline flex items-center gap-2">
+                <DollarSign className="w-4 h-4 apple-label-tertiary" />
                 Costo
               </Label>
               <Input
@@ -146,21 +146,21 @@ export default function QuickItemModal({ open, onClose, onItemCreated }) {
                 value={cost}
                 onChange={(e) => setCost(e.target.value)}
                 onKeyDown={handleEnterToSave}
-                className="bg-white/5 border-white/10 text-white placeholder:text-white/30 h-12 text-lg" />
+                className="apple-input h-12 apple-text-headline tabular-nums" />
             </div>
           </div>
 
           <div className="flex gap-3 pt-2">
             <Button
               variant="outline"
-              onClick={onClose} className="bg-background text-slate-900 px-4 py-2 text-sm font-semibold rounded-full inline-flex items-center justify-center gap-2 whitespace-nowrap transition-all duration-200 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 border shadow-sm hover:text-accent-foreground flex-1 border-white/20 hover:bg-white/10 h-12">
+              onClick={onClose} className="apple-btn apple-btn-secondary flex-1 h-12">
 
 
               Cancelar
             </Button>
             <Button
               onClick={handleSave}
-              className="flex-1 bg-gradient-to-r from-cyan-500 to-emerald-500 hover:from-cyan-600 hover:to-emerald-600 text-white font-semibold h-12">
+              className="apple-btn apple-btn-primary flex-1 h-12">
               Guardar
             </Button>
           </div>

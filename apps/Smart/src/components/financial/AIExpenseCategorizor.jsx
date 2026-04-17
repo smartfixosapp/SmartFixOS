@@ -42,7 +42,7 @@ Descripción: "${description}"
 Monto: $${amount || 0}
 
 HISTORIAL DE GASTOS PREVIOS:
-${expensePatterns.slice(0, 20).map(e => 
+${expensePatterns.slice(0, 20).map(e =>
   `"${e.description}" → ${e.category} ($${e.amount})`
 ).join('\n')}
 
@@ -73,7 +73,7 @@ Responde en JSON con:
       });
 
       setSuggestion(response);
-      
+
       if (onCategorySuggestion && response.confidence === 'high') {
         onCategorySuggestion(response.category);
       }
@@ -88,9 +88,9 @@ Responde en JSON con:
   if (!description || description.length < 3) return null;
 
   const confidenceColors = {
-    high: 'bg-green-600/20 text-green-300 border-green-500/30',
-    medium: 'bg-yellow-600/20 text-yellow-300 border-yellow-500/30',
-    low: 'bg-red-600/20 text-red-300 border-red-500/30'
+    high: 'bg-apple-green/15 text-apple-green border-0',
+    medium: 'bg-apple-yellow/15 text-apple-yellow border-0',
+    low: 'bg-apple-red/15 text-apple-red border-0'
   };
 
   const categoryLabels = {
@@ -102,37 +102,37 @@ Responde en JSON con:
   };
 
   return (
-    <div className="space-y-3">
+    <div className="apple-type space-y-3">
       {loading ? (
-        <div className="flex items-center gap-2 text-purple-400 text-sm">
+        <div className="flex items-center gap-2 text-apple-purple apple-text-footnote">
           <Loader2 className="w-4 h-4 animate-spin" />
           <span>Analizando gasto...</span>
         </div>
       ) : suggestion ? (
-        <div className="bg-purple-600/10 border border-purple-500/20 rounded-lg p-3 space-y-2">
+        <div className="apple-card bg-apple-purple/12 rounded-apple-md p-3 space-y-2">
           <div className="flex items-center gap-2">
-            <Sparkles className="w-4 h-4 text-purple-400" />
-            <span className="text-sm font-semibold text-purple-300">Sugerencia de IA</span>
+            <Sparkles className="w-4 h-4 text-apple-purple" />
+            <span className="apple-text-footnote font-semibold text-apple-purple">Sugerencia de IA</span>
             <Badge className={confidenceColors[suggestion.confidence]}>
-              {suggestion.confidence === 'high' ? '✓ Alta' : 
+              {suggestion.confidence === 'high' ? '✓ Alta' :
                suggestion.confidence === 'medium' ? '~ Media' : '? Baja'} confianza
             </Badge>
           </div>
-          
+
           <div className="flex items-center gap-2">
-            <span className="text-sm text-gray-400">Categoría sugerida:</span>
-            <Badge className="bg-cyan-600/20 text-cyan-300">
+            <span className="apple-text-footnote apple-label-secondary">Categoría sugerida:</span>
+            <Badge className="bg-apple-blue/15 text-apple-blue border-0">
               {categoryLabels[suggestion.category] || suggestion.category}
             </Badge>
           </div>
 
-          <p className="text-xs text-gray-400">{suggestion.reasoning}</p>
+          <p className="apple-text-caption1 apple-label-secondary">{suggestion.reasoning}</p>
 
           {suggestion.alternative_categories?.length > 0 && (
             <div className="flex flex-wrap gap-2 mt-2">
-              <span className="text-xs text-gray-500">Alternativas:</span>
+              <span className="apple-text-caption1 apple-label-tertiary">Alternativas:</span>
               {suggestion.alternative_categories.map((cat, idx) => (
-                <Badge key={idx} variant="outline" className="text-xs">
+                <Badge key={idx} variant="outline" className="apple-text-caption2 border-0 bg-gray-sys6 dark:bg-gray-sys5 apple-label-secondary">
                   {categoryLabels[cat] || cat}
                 </Badge>
               ))}

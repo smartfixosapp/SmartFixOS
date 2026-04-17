@@ -33,16 +33,16 @@ export default function CountdownBadge({ order }) {
 
   if (!countdown) return null;
 
-  // Estilos según urgencia y tipo
+  // Estilos según urgencia y tipo (Apple HIG tinted)
   let styles, icon;
-  
+
   if (countdown.type === 'warranty') {
     styles = countdown.urgent
-      ? "bg-red-500/20 border-red-500/40 text-red-400 animate-pulse"
+      ? "bg-apple-red/15 text-apple-red animate-pulse"
       : countdown.warning
-      ? "bg-orange-500/20 border-orange-500/40 text-orange-400"
-      : "bg-amber-500/20 border-amber-500/40 text-amber-400";
-    
+      ? "bg-apple-orange/15 text-apple-orange"
+      : "bg-apple-yellow/15 text-apple-yellow";
+
     icon = countdown.urgent ? (
       <AlertTriangle className="w-3.5 h-3.5" />
     ) : (
@@ -50,11 +50,11 @@ export default function CountdownBadge({ order }) {
     );
   } else {
     styles = countdown.urgent
-      ? "bg-red-500/20 border-red-500/40 text-red-400 animate-pulse"
+      ? "bg-apple-red/15 text-apple-red animate-pulse"
       : countdown.warning
-      ? "bg-orange-500/20 border-orange-500/40 text-orange-400"
-      : "bg-cyan-500/20 border-cyan-500/40 text-cyan-400";
-    
+      ? "bg-apple-orange/15 text-apple-orange"
+      : "bg-apple-blue/15 text-apple-blue";
+
     icon = countdown.urgent ? (
       <AlertTriangle className="w-3.5 h-3.5" />
     ) : (
@@ -64,10 +64,10 @@ export default function CountdownBadge({ order }) {
 
   return (
     <div
-      className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold border ${styles}`}
+      className={`apple-type inline-flex items-center gap-1.5 px-2.5 py-1 rounded-apple-sm apple-text-caption1 font-semibold tabular-nums ${styles}`}
     >
       {icon}
-      <span>{countdown.days}</span>
+      <span className="tabular-nums">{countdown.days}</span>
       {countdown.type === 'pickup' && <span className="hidden sm:inline">días</span>}
       {countdown.type === 'warranty' && countdown.expired && <span className="hidden sm:inline">✓</span>}
     </div>

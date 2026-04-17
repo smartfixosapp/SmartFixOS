@@ -118,11 +118,11 @@ export function useRealtimeNotifications({ enabled = true } = {}) {
 
   const showEmployeeLoginNotification = (log) => {
     toast.success(
-      <div className="flex items-center gap-3">
-        <UserCheck className="w-5 h-5 text-emerald-400" />
+      <div className="apple-type flex items-center gap-3">
+        <UserCheck className="w-5 h-5 text-apple-green" />
         <div>
-          <p className="font-semibold">Empleado conectado</p>
-          <p className="text-sm text-gray-400">{log.user_name} ha iniciado sesión</p>
+          <p className="apple-text-subheadline font-semibold apple-label-primary">Empleado conectado</p>
+          <p className="apple-text-footnote apple-label-secondary">{log.user_name} ha iniciado sesión</p>
         </div>
       </div>,
       {
@@ -137,31 +137,31 @@ export function useRealtimeNotifications({ enabled = true } = {}) {
 
   const showOrderCompletedNotification = (event) => {
     toast.success(
-      <div className="flex items-center gap-3">
-        <CheckCircle className="w-5 h-5 text-emerald-400" />
+      <div className="apple-type flex items-center gap-3">
+        <CheckCircle className="w-5 h-5 text-apple-green" />
         <div>
-          <p className="font-semibold">Orden completada</p>
-          <p className="text-sm text-gray-400">Orden #{event.order_number} entregada</p>
+          <p className="apple-text-subheadline font-semibold apple-label-primary">Orden completada</p>
+          <p className="apple-text-footnote apple-label-secondary tabular-nums">Orden #{event.order_number} entregada</p>
         </div>
       </div>,
       { duration: 6000, position: 'top-right' }
     );
-    notify({ title: "✅ Orden completada", body: `Orden #${event.order_number} entregada al cliente`, tag: `order-${event.order_id}`, url: "/Orders" });
+    notify({ title: "Orden completada", body: `Orden #${event.order_number} entregada al cliente`, tag: `order-${event.order_id}`, url: "/Orders" });
     playNotificationSound();
   };
 
   const showOrderReadyNotification = (event) => {
     toast.info(
-      <div className="flex items-center gap-3">
-        <Package className="w-5 h-5 text-cyan-400" />
+      <div className="apple-type flex items-center gap-3">
+        <Package className="w-5 h-5 text-apple-blue" />
         <div>
-          <p className="font-semibold">Orden lista para recoger</p>
-          <p className="text-sm text-gray-400">Orden #{event.order_number}</p>
+          <p className="apple-text-subheadline font-semibold apple-label-primary">Orden lista para recoger</p>
+          <p className="apple-text-footnote apple-label-secondary tabular-nums">Orden #{event.order_number}</p>
         </div>
       </div>,
       { duration: 8000, position: 'top-right' }
     );
-    notify({ title: "📦 Lista para recoger", body: `Orden #${event.order_number} está lista`, tag: `ready-${event.order_id}`, url: "/Orders" });
+    notify({ title: "Lista para recoger", body: `Orden #${event.order_number} está lista`, tag: `ready-${event.order_id}`, url: "/Orders" });
     playNotificationSound();
   };
 
@@ -238,11 +238,11 @@ export const triggerRealtimeNotification = async (type, data) => {
 
       case NOTIFICATION_TYPES.LOW_STOCK:
         toast.warning(
-          <div className="flex items-center gap-3">
-            <AlertTriangle className="w-5 h-5 text-yellow-400" />
+          <div className="apple-type flex items-center gap-3">
+            <AlertTriangle className="w-5 h-5 text-apple-yellow" />
             <div>
-              <p className="font-semibold">Inventario bajo</p>
-              <p className="text-sm text-gray-400">{data.productName}: {data.stock} unidades</p>
+              <p className="apple-text-subheadline font-semibold apple-label-primary">Inventario bajo</p>
+              <p className="apple-text-footnote apple-label-secondary tabular-nums">{data.productName}: {data.stock} unidades</p>
             </div>
           </div>,
           {

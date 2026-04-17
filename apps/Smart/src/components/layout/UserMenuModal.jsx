@@ -683,19 +683,19 @@ export default function UserMenuModal({ open, onClose, user }) {
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent className="bg-black/90 backdrop-blur-xl border-cyan-500/20 max-w-5xl max-h-[90vh] shadow-[0_24px_80px_rgba(0,168,232,0.7)] theme-light:bg-white theme-light:border-gray-200 theme-light:shadow-lg p-0 gap-0 flex flex-col">
+      <DialogContent className="apple-type apple-surface-elevated max-w-5xl max-h-[90vh] shadow-apple-xl p-0 gap-0 flex flex-col rounded-apple-xl">
         <div className="flex-1 overflow-y-auto p-6">
           <div className="space-y-3">
               {/* Info Usuario */}
-              <div className="bg-gradient-to-br from-purple-600/10 to-pink-600/10 border border-purple-500/20 rounded-xl p-4 theme-light:from-purple-50 theme-light:to-pink-50 theme-light:border-purple-300">
+              <div className="apple-card rounded-apple-lg p-4">
                 <div className="flex items-center gap-3 mb-3">
-                  <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-cyan-600 to-emerald-700 flex items-center justify-center shadow-lg">
-                    <UserCircle className="w-10 h-10 text-white" />
+                  <div className="w-16 h-16 rounded-apple-lg bg-apple-blue/15 flex items-center justify-center">
+                    <UserCircle className="w-10 h-10 text-apple-blue" />
                   </div>
                   <div className="flex-1">
-                    <p className="text-white font-bold text-lg theme-light:text-gray-900">{displayUser.full_name || displayUser.email}</p>
-                    <p className="text-gray-400 text-sm theme-light:text-gray-600">{displayUser.email}</p>
-                    <Badge className="bg-cyan-600/20 text-cyan-300 border-cyan-600/30 text-xs mt-1 theme-light:bg-cyan-100 theme-light:text-cyan-700">
+                    <p className="apple-label-primary apple-text-title3">{displayUser.full_name || displayUser.email}</p>
+                    <p className="apple-label-secondary apple-text-subheadline">{displayUser.email}</p>
+                    <Badge className="bg-apple-blue/15 text-apple-blue apple-text-caption1 mt-1 rounded-apple-sm border-0">
                       {displayUser.role || "user"}
                     </Badge>
                   </div>
@@ -703,22 +703,22 @@ export default function UserMenuModal({ open, onClose, user }) {
               </div>
 
               {/* Punch Status */}
-              <div className="bg-gradient-to-br from-cyan-600/10 to-emerald-600/10 border border-cyan-500/20 rounded-xl p-4 theme-light:bg-gradient-to-br theme-light:from-cyan-50 theme-light:to-emerald-50 theme-light:border-cyan-300">
+              <div className="apple-card rounded-apple-lg p-4">
             <div className="flex items-center justify-between mb-3">
               <div className="flex items-center gap-2">
-                <Clock className="w-5 h-5 text-cyan-400 theme-light:text-cyan-600" />
-                <span className="text-white font-medium theme-light:text-gray-900">Estado de Turno</span>
+                <Clock className="w-5 h-5 text-apple-blue" />
+                <span className="apple-label-primary apple-text-headline">Estado de Turno</span>
               </div>
-              <Badge className={punchStatus 
-                ? "bg-emerald-600/20 text-emerald-300 border-emerald-600/30 theme-light:bg-emerald-100 theme-light:text-emerald-700 theme-light:border-emerald-300"
-                : "bg-gray-600/20 text-gray-300 border-gray-600/30 theme-light:bg-gray-100 theme-light:text-gray-700 theme-light:border-gray-300"
+              <Badge className={punchStatus
+                ? "bg-apple-green/15 text-apple-green apple-text-caption1 rounded-apple-sm border-0"
+                : "bg-gray-sys6 dark:bg-gray-sys5 apple-label-secondary apple-text-caption1 rounded-apple-sm border-0"
               }>
                 {punchStatus ? "Activo" : "Inactivo"}
               </Badge>
             </div>
-            
+
             {punchStatus && (
-              <p className="text-xs text-gray-400 mb-3 theme-light:text-gray-600">
+              <p className="apple-text-footnote apple-label-secondary mb-3 tabular-nums">
                 Entrada: {formatPunchDateTime(punchStatus.clock_in)}
               </p>
             )}
@@ -726,11 +726,7 @@ export default function UserMenuModal({ open, onClose, user }) {
             <Button
               onClick={handlePunchToggle}
               disabled={loading}
-              className={`w-full ${
-                punchStatus
-                  ? "bg-gradient-to-r from-lime-600 to-lime-800 hover:from-lime-700 hover:to-lime-900"
-                  : "bg-gradient-to-r from-emerald-600 to-emerald-800 hover:from-emerald-700 hover:to-emerald-900"
-              }`}
+              className={`apple-btn w-full ${punchStatus ? "apple-btn-destructive" : "apple-btn-primary"}`}
             >
               {loading ? "..." : punchStatus ? "Cerrar Turno" : "Abrir Turno"}
             </Button>
@@ -740,7 +736,7 @@ export default function UserMenuModal({ open, onClose, user }) {
               <Button
                 onClick={handleLogout}
                 variant="outline"
-                className="w-full border-red-600/50 text-red-400 hover:bg-red-600/20 theme-light:border-red-300 theme-light:text-red-600 theme-light:hover:bg-red-50"
+                className="apple-btn apple-btn-destructive w-full"
               >
                 <LogOut className="w-4 h-4 mr-2" />
                 Cerrar Sesión

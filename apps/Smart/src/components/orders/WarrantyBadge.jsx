@@ -10,12 +10,12 @@ export default function WarrantyBadge({ passed_warranty }) {
   if (!passed_warranty) return null;
 
   return (
-    <Badge 
-      className="border-amber-400/35 bg-[linear-gradient(135deg,rgba(251,191,36,0.26),rgba(217,119,6,0.18))] text-amber-100 text-xs flex items-center gap-1.5 flex-shrink-0 shadow-[0_0_16px_rgba(251,191,36,0.18)]"
+    <Badge
+      className="apple-type rounded-apple-sm bg-apple-yellow/15 text-apple-yellow apple-text-caption1 font-semibold flex items-center gap-1.5 flex-shrink-0 border-0"
       variant="outline"
       title="Esta orden pasó por garantía"
     >
-      <Star className="w-3 h-3 fill-current text-amber-300" />
+      <Star className="w-3 h-3 fill-current text-apple-yellow" />
       Garantía
     </Badge>
   );

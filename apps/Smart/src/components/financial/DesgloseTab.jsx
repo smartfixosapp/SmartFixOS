@@ -31,58 +31,58 @@ export default React.memo(function DesgloseTab({ filteredSales, loading }) {
 
   if (loading) {
     return (
-      <div className="py-12 text-center">
-        <RefreshCw className="w-5 h-5 animate-spin mx-auto mb-2 text-white/50" />
-        <p className="text-xs text-white/50 font-bold">Cargando...</p>
+      <div className="apple-type py-12 text-center">
+        <RefreshCw className="w-5 h-5 animate-spin mx-auto mb-2 apple-label-secondary" />
+        <p className="apple-text-footnote apple-label-secondary">Cargando...</p>
       </div>
     );
   }
 
   if (desgloseRows.length === 0) {
     return (
-      <div className="py-12 text-center">
-        <p className="text-white/25 font-bold text-sm">Sin ventas en este periodo</p>
+      <div className="apple-type py-12 text-center">
+        <p className="apple-label-tertiary apple-text-subheadline">Sin ventas en este periodo</p>
       </div>
     );
   }
 
   return (
-    <div className="space-y-2">
+    <div className="apple-type space-y-2">
       {desgloseRows.map(r => {
         const netaPositive = r.neta >= 0;
         return (
-          <div key={r.id} className="p-4 rounded-2xl bg-white/[0.02] hover:bg-white/[0.04] border border-white/[0.06] transition-all space-y-3">
+          <div key={r.id} className="apple-card apple-press p-4 rounded-apple-md transition-all space-y-3">
             <div className="flex items-start justify-between gap-3">
               <div className="flex items-center gap-2.5 min-w-0">
-                <div className="w-7 h-7 rounded-xl bg-emerald-500/15 text-emerald-400 flex items-center justify-center shrink-0">
+                <div className="w-7 h-7 rounded-apple-sm bg-apple-green/15 text-apple-green flex items-center justify-center shrink-0">
                   <TrendingUp className="w-3 h-3" />
                 </div>
                 <div className="min-w-0">
-                  <p className="text-white/60 font-bold text-xs truncate leading-tight">{r.cliente}</p>
-                  <p className="text-[10px] text-white/25 truncate">
+                  <p className="apple-label-primary apple-text-footnote font-semibold truncate leading-tight">{r.cliente}</p>
+                  <p className="apple-text-caption2 apple-label-tertiary tabular-nums truncate">
                     {r.desc}{r.fecha ? ` \u00B7 ${format(new Date(r.fecha), "dd MMM, h:mm a", { locale: es })}` : ""}
                   </p>
                 </div>
               </div>
               <div className="text-right shrink-0">
-                <p className="text-[9px] font-black text-white/50 uppercase tracking-widest mb-0.5">Neta</p>
-                <p className={`text-xl font-black tabular-nums leading-none ${netaPositive ? "text-cyan-400" : "text-red-400"}`}>
+                <p className="apple-text-caption2 font-semibold apple-label-tertiary mb-0.5">Neta</p>
+                <p className={`apple-text-title2 tabular-nums leading-none ${netaPositive ? "text-apple-blue" : "text-apple-red"}`}>
                   {netaPositive ? "+" : "\u2212"}${Math.abs(r.neta).toFixed(2)}
                 </p>
               </div>
             </div>
             <div className="grid grid-cols-3 gap-2">
-              <div className="bg-emerald-500/[0.08] border border-emerald-500/15 rounded-xl px-3 py-2 text-center">
-                <p className="text-[9px] font-black text-white/25 uppercase tracking-widest">Cobrado</p>
-                <p className="text-sm font-black text-emerald-400 tabular-nums mt-0.5">${r.cobrado.toFixed(2)}</p>
+              <div className="bg-apple-green/12 rounded-apple-sm px-3 py-2 text-center">
+                <p className="apple-text-caption2 font-semibold apple-label-tertiary">Cobrado</p>
+                <p className="apple-text-subheadline font-semibold text-apple-green tabular-nums mt-0.5">${r.cobrado.toFixed(2)}</p>
               </div>
-              <div className="bg-orange-500/[0.08] border border-orange-500/15 rounded-xl px-3 py-2 text-center">
-                <p className="text-[9px] font-black text-white/25 uppercase tracking-widest">Piezas</p>
-                <p className="text-sm font-black text-orange-400 tabular-nums mt-0.5">${r.piezas.toFixed(2)}</p>
+              <div className="bg-apple-orange/12 rounded-apple-sm px-3 py-2 text-center">
+                <p className="apple-text-caption2 font-semibold apple-label-tertiary">Piezas</p>
+                <p className="apple-text-subheadline font-semibold text-apple-orange tabular-nums mt-0.5">${r.piezas.toFixed(2)}</p>
               </div>
-              <div className="bg-amber-500/[0.08] border border-amber-500/15 rounded-xl px-3 py-2 text-center">
-                <p className="text-[9px] font-black text-white/25 uppercase tracking-widest">IVU</p>
-                <p className="text-sm font-black text-amber-400 tabular-nums mt-0.5">${r.ivu.toFixed(2)}</p>
+              <div className="bg-apple-yellow/12 rounded-apple-sm px-3 py-2 text-center">
+                <p className="apple-text-caption2 font-semibold apple-label-tertiary">IVU</p>
+                <p className="apple-text-subheadline font-semibold text-apple-yellow tabular-nums mt-0.5">${r.ivu.toFixed(2)}</p>
               </div>
             </div>
           </div>
@@ -90,31 +90,31 @@ export default React.memo(function DesgloseTab({ filteredSales, loading }) {
       })}
 
       {/* Totals card */}
-      <div className={`p-4 rounded-2xl border-2 space-y-3 mt-1 ${totNeta >= 0 ? "bg-cyan-500/[0.06] border-cyan-500/25" : "bg-red-500/[0.06] border-red-500/25"}`}>
+      <div className={`apple-card p-4 rounded-apple-md space-y-3 mt-1 ${totNeta >= 0 ? "bg-apple-blue/12" : "bg-apple-red/12"}`}>
         <div className="flex items-center justify-between">
           <div>
-            <p className="text-white font-black text-sm">Total del periodo</p>
-            <p className="text-[10px] text-white/30">{desgloseRows.length} venta{desgloseRows.length !== 1 ? "s" : ""}</p>
+            <p className="apple-label-primary apple-text-headline">Total del periodo</p>
+            <p className="apple-text-caption2 apple-label-tertiary tabular-nums">{desgloseRows.length} venta{desgloseRows.length !== 1 ? "s" : ""}</p>
           </div>
           <div className="text-right">
-            <p className="text-[9px] font-black text-white/50 uppercase tracking-widest mb-0.5">Neta total</p>
-            <p className={`text-2xl font-black tabular-nums leading-none ${totNeta >= 0 ? "text-cyan-400" : "text-red-400"}`}>
+            <p className="apple-text-caption2 font-semibold apple-label-tertiary mb-0.5">Neta total</p>
+            <p className={`apple-text-title1 tabular-nums leading-none ${totNeta >= 0 ? "text-apple-blue" : "text-apple-red"}`}>
               {totNeta >= 0 ? "+" : "\u2212"}${Math.abs(totNeta).toFixed(2)}
             </p>
           </div>
         </div>
         <div className="grid grid-cols-3 gap-2">
-          <div className="bg-emerald-500/[0.08] border border-emerald-500/15 rounded-xl px-3 py-2 text-center">
-            <p className="text-[9px] font-black text-white/25 uppercase tracking-widest">Cobrado</p>
-            <p className="text-sm font-black text-emerald-400 tabular-nums mt-0.5">${totCobrado.toFixed(2)}</p>
+          <div className="bg-apple-green/12 rounded-apple-sm px-3 py-2 text-center">
+            <p className="apple-text-caption2 font-semibold apple-label-tertiary">Cobrado</p>
+            <p className="apple-text-subheadline font-semibold text-apple-green tabular-nums mt-0.5">${totCobrado.toFixed(2)}</p>
           </div>
-          <div className="bg-orange-500/[0.08] border border-orange-500/15 rounded-xl px-3 py-2 text-center">
-            <p className="text-[9px] font-black text-white/25 uppercase tracking-widest">Piezas</p>
-            <p className="text-sm font-black text-orange-400 tabular-nums mt-0.5">${totPiezas.toFixed(2)}</p>
+          <div className="bg-apple-orange/12 rounded-apple-sm px-3 py-2 text-center">
+            <p className="apple-text-caption2 font-semibold apple-label-tertiary">Piezas</p>
+            <p className="apple-text-subheadline font-semibold text-apple-orange tabular-nums mt-0.5">${totPiezas.toFixed(2)}</p>
           </div>
-          <div className="bg-amber-500/[0.08] border border-amber-500/15 rounded-xl px-3 py-2 text-center">
-            <p className="text-[9px] font-black text-white/25 uppercase tracking-widest">IVU</p>
-            <p className="text-sm font-black text-amber-400 tabular-nums mt-0.5">${totIVU.toFixed(2)}</p>
+          <div className="bg-apple-yellow/12 rounded-apple-sm px-3 py-2 text-center">
+            <p className="apple-text-caption2 font-semibold apple-label-tertiary">IVU</p>
+            <p className="apple-text-subheadline font-semibold text-apple-yellow tabular-nums mt-0.5">${totIVU.toFixed(2)}</p>
           </div>
         </div>
       </div>

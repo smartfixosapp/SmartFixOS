@@ -2,9 +2,9 @@ import React, { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { 
-  BarChart3, TrendingUp, TrendingDown, AlertTriangle, 
-  Package, DollarSign, ShoppingCart, Activity 
+import {
+  BarChart3, TrendingUp, TrendingDown, AlertTriangle,
+  Package, DollarSign, ShoppingCart, Activity
 } from "lucide-react";
 import { dataClient } from "@/components/api/dataClient";
 
@@ -36,20 +36,20 @@ export default function InventoryReports({ open, onClose, isEmbedded = false }) 
       // ✅ Filtrar productos: EXCLUIR SERVICIOS (solo dispositivos, piezas, accesorios)
       const activeProducts = (prods || []).filter(p => {
         // Excluir servicios de múltiples formas
-        const isService = p.tipo_principal === "servicios" || 
-                         p.type === 'service' || 
+        const isService = p.tipo_principal === "servicios" ||
+                         p.type === 'service' ||
                          p.part_type === "servicio" ||
                          p.subcategoria === "servicio";
         return p.active !== false && !isService;
       });
-      
+
       const totalItems = activeProducts.reduce((sum, p) => sum + (Number(p.stock) || 0), 0);
       const totalValue = activeProducts.reduce((sum, p) => {
         const stock = Number(p.stock) || 0;
         const price = Number(p.price) || 0;
         return sum + (stock * price);
       }, 0);
-      const totalCost = activeProducts.reduce((sum, p) => 
+      const totalCost = activeProducts.reduce((sum, p) =>
         sum + ((Number(p.stock) || 0) * (Number(p.cost) || 0)), 0
       );
       const potentialRevenue = totalValue - totalCost;
@@ -82,8 +82,8 @@ export default function InventoryReports({ open, onClose, isEmbedded = false }) 
   // ✅ Top 5 productos por valor (SIN SERVICIOS)
   const topByValue = [...products]
     .filter(p => {
-      const isService = p.tipo_principal === "servicios" || 
-                       p.type === 'service' || 
+      const isService = p.tipo_principal === "servicios" ||
+                       p.type === 'service' ||
                        p.part_type === "servicio" ||
                        p.subcategoria === "servicio";
       return p.active !== false && !isService;
@@ -98,8 +98,8 @@ export default function InventoryReports({ open, onClose, isEmbedded = false }) 
   // ✅ Productos con stock bajo (SIN SERVICIOS)
   const lowStockProducts = products
     .filter(p => {
-      const isService = p.tipo_principal === "servicios" || 
-                       p.type === 'service' || 
+      const isService = p.tipo_principal === "servicios" ||
+                       p.type === 'service' ||
                        p.part_type === "servicio" ||
                        p.subcategoria === "servicio";
       const stock = Number(p.stock) || 0;
@@ -111,8 +111,8 @@ export default function InventoryReports({ open, onClose, isEmbedded = false }) 
   // ✅ Productos agotados (SIN SERVICIOS)
   const outOfStockProducts = products
     .filter(p => {
-      const isService = p.tipo_principal === "servicios" || 
-                       p.type === 'service' || 
+      const isService = p.tipo_principal === "servicios" ||
+                       p.type === 'service' ||
                        p.part_type === "servicio" ||
                        p.subcategoria === "servicio";
       return p.active !== false && !isService && (Number(p.stock) || 0) === 0;
@@ -126,117 +126,117 @@ export default function InventoryReports({ open, onClose, isEmbedded = false }) 
   const content = (
     <>
       <HeaderWrapper className={isEmbedded ? "mb-6" : ""}>
-        <TitleWrapper className="text-2xl font-bold text-white flex items-center gap-3 theme-light:text-gray-900">
-          <BarChart3 className="w-7 h-7 text-cyan-400" />
+        <TitleWrapper className="apple-text-title2 apple-label-primary flex items-center gap-3">
+          <BarChart3 className="w-7 h-7 text-apple-blue" />
           Reportes de Inventario
         </TitleWrapper>
       </HeaderWrapper>
 
         {loading ? (
           <div className="py-12 text-center">
-            <Activity className="w-12 h-12 text-cyan-400 mx-auto mb-3 animate-spin" />
-            <p className="text-white/60 theme-light:text-gray-600">Generando reportes...</p>
+            <Activity className="w-12 h-12 text-apple-blue mx-auto mb-3 animate-spin" />
+            <p className="apple-label-secondary">Generando reportes...</p>
           </div>
         ) : (
           <div className="space-y-6">
             {/* Tarjetas de estadísticas */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-              <div className="bg-gradient-to-br from-cyan-600/10 to-cyan-700/10 border border-cyan-500/30 rounded-xl p-4 theme-light:bg-cyan-50 theme-light:border-cyan-300">
+              <div className="bg-apple-blue/12 rounded-apple-md p-4">
                 <div className="flex items-center justify-between mb-2">
-                  <Package className="w-5 h-5 text-cyan-400" />
-                  <Badge className="bg-cyan-600/20 text-cyan-300 border-cyan-600/30 theme-light:bg-cyan-100 theme-light:text-cyan-700">
+                  <Package className="w-5 h-5 text-apple-blue" />
+                  <Badge className="bg-apple-blue/15 text-apple-blue border-0">
                     Unidades
                   </Badge>
                 </div>
-                <p className="text-2xl font-bold text-white theme-light:text-gray-900">{stats.totalItems}</p>
-                <p className="text-xs text-white/50 theme-light:text-gray-600">Items en inventario</p>
+                <p className="apple-text-title2 font-bold apple-label-primary tabular-nums">{stats.totalItems}</p>
+                <p className="apple-text-caption1 apple-label-secondary">Items en inventario</p>
               </div>
 
-              <div className="bg-gradient-to-br from-emerald-600/10 to-emerald-700/10 border border-emerald-500/30 rounded-xl p-4 theme-light:bg-emerald-50 theme-light:border-emerald-300">
+              <div className="bg-apple-green/12 rounded-apple-md p-4">
                 <div className="flex items-center justify-between mb-2">
-                  <DollarSign className="w-5 h-5 text-emerald-400" />
-                  <Badge className="bg-emerald-600/20 text-emerald-300 border-emerald-600/30 theme-light:bg-emerald-100 theme-light:text-emerald-700">
+                  <DollarSign className="w-5 h-5 text-apple-green" />
+                  <Badge className="bg-apple-green/15 text-apple-green border-0">
                     Valor
                   </Badge>
                 </div>
-                <p className="text-2xl font-bold text-white theme-light:text-gray-900">{money(stats.totalValue)}</p>
-                <p className="text-xs text-white/50 theme-light:text-gray-600">Valor total (PVP)</p>
+                <p className="apple-text-title2 font-bold apple-label-primary tabular-nums">{money(stats.totalValue)}</p>
+                <p className="apple-text-caption1 apple-label-secondary">Valor total (PVP)</p>
               </div>
 
-              <div className="bg-gradient-to-br from-amber-600/10 to-amber-700/10 border border-amber-500/30 rounded-xl p-4 theme-light:bg-amber-50 theme-light:border-amber-300">
+              <div className="bg-apple-yellow/12 rounded-apple-md p-4">
                 <div className="flex items-center justify-between mb-2">
-                  <AlertTriangle className="w-5 h-5 text-amber-400" />
-                  <Badge className="bg-amber-600/20 text-amber-300 border-amber-600/30 theme-light:bg-amber-100 theme-light:text-amber-700">
+                  <AlertTriangle className="w-5 h-5 text-apple-yellow" />
+                  <Badge className="bg-apple-yellow/15 text-apple-yellow border-0">
                     Alertas
                   </Badge>
                 </div>
-                <p className="text-2xl font-bold text-white theme-light:text-gray-900">{stats.lowStockItems}</p>
-                <p className="text-xs text-white/50 theme-light:text-gray-600">Con stock bajo</p>
+                <p className="apple-text-title2 font-bold apple-label-primary tabular-nums">{stats.lowStockItems}</p>
+                <p className="apple-text-caption1 apple-label-secondary">Con stock bajo</p>
               </div>
 
-              <div className="bg-gradient-to-br from-red-600/10 to-red-700/10 border border-red-500/30 rounded-xl p-4 theme-light:bg-red-50 theme-light:border-red-300">
+              <div className="bg-apple-red/12 rounded-apple-md p-4">
                 <div className="flex items-center justify-between mb-2">
-                  <TrendingDown className="w-5 h-5 text-red-400" />
-                  <Badge className="bg-red-600/20 text-red-300 border-red-600/30 theme-light:bg-red-100 theme-light:text-red-700">
+                  <TrendingDown className="w-5 h-5 text-apple-red" />
+                  <Badge className="bg-apple-red/15 text-apple-red border-0">
                     Agotados
                   </Badge>
                 </div>
-                <p className="text-2xl font-bold text-white theme-light:text-gray-900">{stats.outOfStockItems}</p>
-                <p className="text-xs text-white/50 theme-light:text-gray-600">Sin stock</p>
+                <p className="apple-text-title2 font-bold apple-label-primary tabular-nums">{stats.outOfStockItems}</p>
+                <p className="apple-text-caption1 apple-label-secondary">Sin stock</p>
               </div>
             </div>
 
             {/* Margen de ganancia */}
-            <div className="bg-black/40 border border-white/10 rounded-xl p-5 theme-light:bg-gray-50 theme-light:border-gray-200">
+            <div className="apple-card p-5">
               <div className="flex items-center justify-between mb-4">
-                <h3 className="text-lg font-bold text-white flex items-center gap-2 theme-light:text-gray-900">
-                  <TrendingUp className="w-5 h-5 text-green-400" />
+                <h3 className="apple-text-headline apple-label-primary flex items-center gap-2">
+                  <TrendingUp className="w-5 h-5 text-apple-green" />
                   Análisis Financiero
                 </h3>
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 <div>
-                  <p className="text-xs text-white/50 mb-1 theme-light:text-gray-600">Costo Total</p>
-                  <p className="text-xl font-bold text-red-400">{money(stats.totalCost)}</p>
+                  <p className="apple-text-caption1 apple-label-secondary mb-1">Costo Total</p>
+                  <p className="apple-text-title3 font-bold text-apple-red tabular-nums">{money(stats.totalCost)}</p>
                 </div>
                 <div>
-                  <p className="text-xs text-white/50 mb-1 theme-light:text-gray-600">Ganancia Potencial</p>
-                  <p className="text-xl font-bold text-emerald-400">{money(stats.potentialRevenue)}</p>
+                  <p className="apple-text-caption1 apple-label-secondary mb-1">Ganancia Potencial</p>
+                  <p className="apple-text-title3 font-bold text-apple-green tabular-nums">{money(stats.potentialRevenue)}</p>
                 </div>
                 <div>
-                  <p className="text-xs text-white/50 mb-1 theme-light:text-gray-600">Margen Promedio</p>
-                  <p className="text-xl font-bold text-cyan-400">{stats.avgMargin.toFixed(1)}%</p>
+                  <p className="apple-text-caption1 apple-label-secondary mb-1">Margen Promedio</p>
+                  <p className="apple-text-title3 font-bold text-apple-blue tabular-nums">{stats.avgMargin.toFixed(1)}%</p>
                 </div>
               </div>
             </div>
 
             {/* Top 5 productos por valor */}
-            <div className="bg-black/40 border border-white/10 rounded-xl p-5 theme-light:bg-gray-50 theme-light:border-gray-200">
-              <h3 className="text-lg font-bold text-white mb-4 flex items-center gap-2 theme-light:text-gray-900">
-                <ShoppingCart className="w-5 h-5 text-purple-400" />
+            <div className="apple-card p-5">
+              <h3 className="apple-text-headline apple-label-primary mb-4 flex items-center gap-2">
+                <ShoppingCart className="w-5 h-5 text-apple-purple" />
                 Top 5 Productos (por valor en stock)
               </h3>
               <div className="space-y-2">
                 {topByValue.length === 0 ? (
-                  <p className="text-white/40 text-sm text-center py-4 theme-light:text-gray-600">
+                  <p className="apple-label-tertiary apple-text-subheadline text-center py-4">
                     No hay datos suficientes
                   </p>
                 ) : (
                   topByValue.map((item, idx) => (
-                    <div key={item.id} className="flex items-center justify-between p-3 bg-white/5 rounded-lg border border-white/10 theme-light:bg-white theme-light:border-gray-200">
+                    <div key={item.id} className="apple-list-row flex items-center justify-between p-3 bg-gray-sys6 dark:bg-gray-sys5 rounded-apple-sm">
                       <div className="flex items-center gap-3 flex-1 min-w-0">
-                        <div className="w-8 h-8 rounded-full bg-gradient-to-br from-purple-600 to-pink-600 flex items-center justify-center text-white font-bold text-sm flex-shrink-0">
+                        <div className="w-8 h-8 rounded-full bg-apple-purple flex items-center justify-center text-white font-bold apple-text-subheadline flex-shrink-0">
                           {idx + 1}
                         </div>
                         <div className="flex-1 min-w-0">
-                          <p className="text-white font-semibold truncate theme-light:text-gray-900">{item.name}</p>
-                          <p className="text-xs text-white/40 theme-light:text-gray-600">
+                          <p className="apple-label-primary apple-text-subheadline font-semibold truncate">{item.name}</p>
+                          <p className="apple-text-caption1 apple-label-tertiary tabular-nums">
                             {Number(item.stock)} unidades × {money(item.price)}
                           </p>
                         </div>
                       </div>
                       <div className="text-right">
-                        <p className="text-lg font-bold text-emerald-400">{money(item.totalValue)}</p>
+                        <p className="apple-text-headline font-bold text-apple-green tabular-nums">{money(item.totalValue)}</p>
                       </div>
                     </div>
                   ))
@@ -246,25 +246,25 @@ export default function InventoryReports({ open, onClose, isEmbedded = false }) 
 
             {/* Productos con stock bajo */}
             {lowStockProducts.length > 0 && (
-              <div className="bg-amber-600/10 border border-amber-500/30 rounded-xl p-5 theme-light:bg-amber-50 theme-light:border-amber-300">
-                <h3 className="text-lg font-bold text-amber-300 mb-4 flex items-center gap-2 theme-light:text-amber-700">
+              <div className="bg-apple-yellow/12 rounded-apple-md p-5">
+                <h3 className="apple-text-headline font-bold text-apple-yellow mb-4 flex items-center gap-2">
                   <AlertTriangle className="w-5 h-5" />
-                  ⚠️ Productos con Stock Bajo
+                  Productos con Stock Bajo
                 </h3>
                 <div className="space-y-2">
                   {lowStockProducts.slice(0, 10).map((item) => (
-                    <div key={item.id} className="flex items-center justify-between p-3 bg-black/20 rounded-lg border border-amber-500/30 theme-light:bg-white theme-light:border-amber-300">
+                    <div key={item.id} className="apple-list-row flex items-center justify-between p-3 apple-surface-elevated rounded-apple-sm">
                       <div>
-                        <p className="text-white font-semibold theme-light:text-gray-900">{item.name}</p>
-                        <p className="text-xs text-white/50 theme-light:text-gray-600">
+                        <p className="apple-label-primary apple-text-subheadline font-semibold">{item.name}</p>
+                        <p className="apple-text-caption1 apple-label-secondary">
                           {item.device_category} • {item.part_type}
                         </p>
                       </div>
                       <div className="text-right">
-                        <p className="text-amber-300 font-bold theme-light:text-amber-700">
+                        <p className="text-apple-yellow font-bold tabular-nums">
                           {Number(item.stock)} / {Number(item.min_stock) || 5}
                         </p>
-                        <p className="text-xs text-white/40 theme-light:text-gray-600">actual / mínimo</p>
+                        <p className="apple-text-caption1 apple-label-tertiary">actual / mínimo</p>
                       </div>
                     </div>
                   ))}
@@ -274,16 +274,16 @@ export default function InventoryReports({ open, onClose, isEmbedded = false }) 
 
             {/* Productos agotados */}
             {outOfStockProducts.length > 0 && (
-              <div className="bg-red-600/10 border border-red-500/30 rounded-xl p-5 theme-light:bg-red-50 theme-light:border-red-300">
-                <h3 className="text-lg font-bold text-red-300 mb-4 flex items-center gap-2 theme-light:text-red-700">
+              <div className="bg-apple-red/12 rounded-apple-md p-5">
+                <h3 className="apple-text-headline font-bold text-apple-red mb-4 flex items-center gap-2">
                   <TrendingDown className="w-5 h-5" />
-                  🚫 Productos Agotados
+                  Productos Agotados
                 </h3>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                   {outOfStockProducts.slice(0, 10).map((item) => (
-                    <div key={item.id} className="p-3 bg-black/20 rounded-lg border border-red-500/30 theme-light:bg-white theme-light:border-red-300">
-                      <p className="text-white font-semibold text-sm theme-light:text-gray-900">{item.name}</p>
-                      <p className="text-xs text-white/50 theme-light:text-gray-600">
+                    <div key={item.id} className="p-3 apple-surface-elevated rounded-apple-sm">
+                      <p className="apple-label-primary apple-text-subheadline font-semibold">{item.name}</p>
+                      <p className="apple-text-caption1 apple-label-secondary">
                         {item.device_category} • {item.part_type}
                       </p>
                     </div>
@@ -295,8 +295,8 @@ export default function InventoryReports({ open, onClose, isEmbedded = false }) 
         )}
 
       {!isEmbedded && (
-        <div className="border-t border-cyan-500/20 pt-4 theme-light:border-gray-200">
-          <Button onClick={onClose} className="w-full bg-gradient-to-r from-cyan-600 to-emerald-700">
+        <div className="pt-4" style={{ borderTop: "0.5px solid rgb(var(--separator) / 0.29)" }}>
+          <Button onClick={onClose} className="apple-btn apple-btn-primary w-full">
             Cerrar
           </Button>
         </div>
@@ -305,12 +305,12 @@ export default function InventoryReports({ open, onClose, isEmbedded = false }) 
   );
 
   if (isEmbedded) {
-    return <div className="text-white theme-light:text-gray-900">{content}</div>;
+    return <div className="apple-type apple-label-primary">{content}</div>;
   }
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent className="bg-[#0f0f10] border border-cyan-500/20 max-w-6xl max-h-[90vh] overflow-y-auto text-white theme-light:bg-white theme-light:border-gray-200">
+      <DialogContent className="apple-type apple-surface-elevated rounded-apple-lg shadow-apple-xl border-0 p-6 overflow-y-auto max-w-6xl max-h-[90vh]">
         {content}
       </DialogContent>
     </Dialog>

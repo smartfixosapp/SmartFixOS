@@ -13,7 +13,7 @@ export default function StockWarningBadge({ product, requestedQty = 1 }) {
   // Out of stock
   if (stock === 0) {
     return (
-      <Badge className="bg-red-600/20 text-red-300 border-red-600/30 text-xs flex items-center gap-1">
+      <Badge className="apple-type bg-apple-red/15 text-apple-red border-0 apple-text-caption1 flex items-center gap-1">
         <XCircle className="w-3 h-3" />
         Agotado
       </Badge>
@@ -23,7 +23,7 @@ export default function StockWarningBadge({ product, requestedQty = 1 }) {
   // Insufficient stock for request
   if (stock < requestedQty) {
     return (
-      <Badge className="bg-orange-600/20 text-orange-300 border-orange-600/30 text-xs flex items-center gap-1">
+      <Badge className="apple-type bg-apple-orange/15 text-apple-orange border-0 apple-text-caption1 flex items-center gap-1">
         <AlertTriangle className="w-3 h-3" />
         Solo {stock}
       </Badge>
@@ -33,7 +33,7 @@ export default function StockWarningBadge({ product, requestedQty = 1 }) {
   // Low stock warning
   if (stock <= minStock) {
     return (
-      <Badge className="bg-yellow-600/20 text-yellow-300 border-yellow-600/30 text-xs flex items-center gap-1">
+      <Badge className="apple-type bg-apple-yellow/15 text-apple-yellow border-0 apple-text-caption1 flex items-center gap-1">
         <AlertTriangle className="w-3 h-3" />
         Stock bajo ({stock})
       </Badge>
@@ -42,7 +42,7 @@ export default function StockWarningBadge({ product, requestedQty = 1 }) {
 
   // Good stock
   return (
-    <span className="text-xs text-gray-500">
+    <span className="apple-type apple-text-caption1 apple-label-tertiary tabular-nums">
       {stock} disponibles
     </span>
   );

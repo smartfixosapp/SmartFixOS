@@ -28,18 +28,18 @@ export default function WarrantyReasonDialog({ open, onClose, onConfirm }) {
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent className="max-w-md bg-gradient-to-br from-[#1c1c1e] to-black border-amber-500/30" hideCloseButton>
+      <DialogContent className="apple-type max-w-md apple-surface-elevated rounded-apple-lg shadow-apple-xl border-0 p-6 overflow-hidden" hideCloseButton>
         <DialogHeader>
-          <DialogTitle className="text-2xl font-bold text-white flex items-center gap-2">
-            <Shield className="w-6 h-6 text-amber-400" />
+          <DialogTitle className="apple-text-title2 apple-label-primary flex items-center gap-2">
+            <Shield className="w-6 h-6 text-apple-yellow" />
             Razón de Garantía
           </DialogTitle>
         </DialogHeader>
 
         <div className="space-y-4 mt-4">
-          <div className="p-3 bg-amber-500/10 border border-amber-500/20 rounded-xl flex items-start gap-3">
-            <AlertCircle className="w-5 h-5 text-amber-400 flex-shrink-0 mt-0.5" />
-            <p className="text-sm text-amber-200/90">
+          <div className="p-3 bg-apple-yellow/12 rounded-apple-md flex items-start gap-3">
+            <AlertCircle className="w-5 h-5 text-apple-yellow flex-shrink-0 mt-0.5" />
+            <p className="apple-text-subheadline text-apple-yellow">
               Describe brevemente por qué el equipo volvió a taller bajo garantía
             </p>
           </div>
@@ -48,7 +48,7 @@ export default function WarrantyReasonDialog({ open, onClose, onConfirm }) {
             value={reason}
             onChange={(e) => setReason(e.target.value)}
             placeholder="Ej: Cliente reporta que el problema persiste, pantalla sigue parpadeando..."
-            className="min-h-[120px] bg-black/40 border-amber-500/30 text-white placeholder-gray-500 focus:ring-amber-500/50 resize-none"
+            className="apple-input min-h-[120px] resize-none"
             autoFocus
           />
 
@@ -56,7 +56,7 @@ export default function WarrantyReasonDialog({ open, onClose, onConfirm }) {
             <Button
               variant="outline"
               onClick={onClose}
-              className="flex-1 border-white/20 text-white hover:bg-white/5"
+              className="apple-btn apple-btn-secondary apple-press flex-1"
               disabled={saving}
             >
               Cancelar
@@ -64,7 +64,7 @@ export default function WarrantyReasonDialog({ open, onClose, onConfirm }) {
             <Button
               onClick={handleSubmit}
               disabled={!reason.trim() || saving}
-              className="flex-1 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white font-bold shadow-lg shadow-amber-500/20"
+              className="apple-btn apple-press flex-1 bg-apple-yellow text-white font-semibold hover:opacity-90"
             >
               {saving ? "Guardando..." : "Confirmar"}
             </Button>

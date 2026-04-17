@@ -475,47 +475,56 @@ export default function EnhancedReports({ dateFilter, customStartDate, customEnd
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center py-10 gap-3">
-        <BarChart3 className="w-4 h-4 text-cyan-400 animate-pulse" />
-        <p className="text-xs text-white/30 font-bold">Cargando reporte…</p>
+      <div className="apple-type flex items-center justify-center py-10 gap-3">
+        <BarChart3 className="w-4 h-4 text-apple-blue animate-pulse" />
+        <p className="apple-text-footnote apple-label-tertiary font-semibold">Cargando reporte…</p>
       </div>
     );
   }
 
+  const kpiColorMap = {
+    green: "text-apple-green",
+    blue: "text-apple-blue",
+    indigo: "text-apple-indigo",
+    red: "text-apple-red",
+    orange: "text-apple-orange",
+    purple: "text-apple-purple",
+  };
+
   return (
-    <div className="space-y-3">
+    <div className="apple-type space-y-3">
 
       {/* Cabecera + exportar */}
       <div className="flex items-center justify-between gap-2">
-        <p className="text-[10px] font-black text-white/30 uppercase tracking-widest">Resumen del período</p>
+        <p className="apple-text-caption2 font-semibold apple-label-tertiary">Resumen del período</p>
         <div className="flex gap-1.5">
           <button onClick={exportToPDF}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white/[0.04] border border-white/[0.08] text-white/40 text-[11px] font-black hover:text-white transition-colors">
+            className="apple-press flex items-center gap-1.5 px-3 py-1.5 rounded-apple-sm bg-gray-sys6 dark:bg-gray-sys5 apple-label-secondary apple-text-caption1 font-semibold transition-colors">
             <FileText className="w-3 h-3" /> PDF
           </button>
           <button onClick={exportToExcel}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white/[0.04] border border-white/[0.08] text-white/40 text-[11px] font-black hover:text-white transition-colors">
+            className="apple-press flex items-center gap-1.5 px-3 py-1.5 rounded-apple-sm bg-gray-sys6 dark:bg-gray-sys5 apple-label-secondary apple-text-caption1 font-semibold transition-colors">
             <Download className="w-3 h-3" /> Excel
           </button>
         </div>
       </div>
 
       {/* Neto + transacciones */}
-      <div className={`flex items-center justify-between p-4 rounded-2xl border ${netProfit >= 0 ? 'bg-emerald-500/[0.06] border-emerald-500/20' : 'bg-red-500/[0.06] border-red-500/20'}`}>
+      <div className={`apple-card flex items-center justify-between p-4 rounded-apple-md ${netProfit >= 0 ? 'bg-apple-green/12' : 'bg-apple-red/12'}`}>
         <div>
-          <p className={`text-[10px] font-black uppercase tracking-widest mb-0.5 ${netProfit >= 0 ? 'text-emerald-400/50' : 'text-red-400/50'}`}>Utilidad neta</p>
-          <p className={`text-3xl font-black tracking-tighter leading-none ${netProfit >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
+          <p className={`apple-text-caption2 font-semibold mb-0.5 ${netProfit >= 0 ? 'text-apple-green' : 'text-apple-red'}`}>Utilidad neta</p>
+          <p className={`apple-text-large-title tabular-nums leading-none ${netProfit >= 0 ? 'text-apple-green' : 'text-apple-red'}`}>
             ${netProfit.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
           </p>
         </div>
         <div className="flex gap-4 text-right">
           <div>
-            <p className="text-[10px] text-white/25 font-black uppercase tracking-widest">Transacciones</p>
-            <p className="text-xl font-black text-white">{filteredSales.length + filteredRecharges.length}</p>
+            <p className="apple-text-caption2 apple-label-tertiary font-semibold">Transacciones</p>
+            <p className="apple-text-title2 tabular-nums apple-label-primary">{filteredSales.length + filteredRecharges.length}</p>
           </div>
           <div>
-            <p className="text-[10px] text-white/25 font-black uppercase tracking-widest">Efectividad</p>
-            <p className="text-xl font-black text-cyan-400">{totalNetRevenue > 0 ? Math.round((netProfit / totalNetRevenue) * 100) : 0}%</p>
+            <p className="apple-text-caption2 apple-label-tertiary font-semibold">Efectividad</p>
+            <p className="apple-text-title2 tabular-nums text-apple-blue">{totalNetRevenue > 0 ? Math.round((netProfit / totalNetRevenue) * 100) : 0}%</p>
           </div>
         </div>
       </div>
@@ -523,37 +532,29 @@ export default function EnhancedReports({ dateFilter, customStartDate, customEnd
       {/* KPIs grid 2×3 */}
       <div className="grid grid-cols-3 gap-1.5">
         {[
-          { label: 'Brutos', value: totalGrossRevenue, color: 'emerald', icon: DollarSign },
-          { label: 'Netos', value: totalNetRevenue, color: 'cyan', icon: TrendingUp },
-          { label: 'IVU', value: totalTaxCollected, color: 'blue', icon: Receipt },
+          { label: 'Brutos', value: totalGrossRevenue, color: 'green', icon: DollarSign },
+          { label: 'Netos', value: totalNetRevenue, color: 'blue', icon: TrendingUp },
+          { label: 'IVU', value: totalTaxCollected, color: 'indigo', icon: Receipt },
           { label: 'Gastos', value: totalExpenses, color: 'red', icon: TrendingDown },
-          { label: 'Ticket avg', value: filteredSales.length > 0 ? totalGrossRevenue / filteredSales.length : 0, color: 'amber', icon: Package },
+          { label: 'Ticket avg', value: filteredSales.length > 0 ? totalGrossRevenue / filteredSales.length : 0, color: 'orange', icon: Package },
           { label: '% Gastos', value: totalGrossRevenue > 0 ? (totalExpenses / totalGrossRevenue) * 100 : 0, color: 'purple', icon: Target, isPercent: true },
         ].map((item, idx) => (
-          <div key={idx} className="bg-white/[0.03] border border-white/[0.06] rounded-xl p-3">
-            <item.icon className={`w-3 h-3 mb-1.5 ${
-              item.color === 'emerald' ? 'text-emerald-400' : item.color === 'cyan' ? 'text-cyan-400' :
-              item.color === 'blue' ? 'text-blue-400' : item.color === 'red' ? 'text-red-400' :
-              item.color === 'amber' ? 'text-amber-400' : 'text-purple-400'
-            }`} />
-            <p className={`text-base font-black leading-none ${
-              item.color === 'emerald' ? 'text-emerald-400' : item.color === 'cyan' ? 'text-cyan-400' :
-              item.color === 'blue' ? 'text-blue-400' : item.color === 'red' ? 'text-red-400' :
-              item.color === 'amber' ? 'text-amber-400' : 'text-purple-400'
-            }`}>
+          <div key={idx} className="apple-card rounded-apple-sm p-3">
+            <item.icon className={`w-3 h-3 mb-1.5 ${kpiColorMap[item.color]}`} />
+            <p className={`apple-text-headline tabular-nums leading-none ${kpiColorMap[item.color]}`}>
               {item.isPercent ? '' : '$'}{item.value.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}{item.isPercent ? '%' : ''}
             </p>
-            <p className="text-[9px] text-white/25 font-black uppercase tracking-widest mt-1">{item.label}</p>
+            <p className="apple-text-caption2 apple-label-tertiary font-semibold mt-1">{item.label}</p>
           </div>
         ))}
       </div>
 
       {/* Fuentes de ingreso */}
       {Object.values(revenueByPaymentMethod).some(d => d.amount > 0) && (
-        <div className="bg-white/[0.03] border border-white/[0.06] rounded-2xl p-4">
+        <div className="apple-card rounded-apple-md p-4">
           <div className="flex items-center gap-2 mb-3">
-            <CreditCard className="w-3.5 h-3.5 text-emerald-400" />
-            <p className="text-[10px] font-black text-white/40 uppercase tracking-widest">Fuentes de ingreso</p>
+            <CreditCard className="w-3.5 h-3.5 text-apple-green" />
+            <p className="apple-text-caption2 font-semibold apple-label-tertiary">Fuentes de ingreso</p>
           </div>
           <div className="space-y-2">
             {Object.entries(revenueByPaymentMethod)
@@ -565,17 +566,17 @@ export default function EnhancedReports({ dateFilter, customStartDate, customEnd
                 const pct = totalGrossRevenue > 0 ? (data.amount / totalGrossRevenue) * 100 : 0;
                 return (
                   <div key={method} className="flex items-center gap-2.5">
-                    <Icon className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+                    <Icon className="w-3.5 h-3.5 text-apple-green shrink-0" />
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center justify-between mb-0.5">
-                        <span className="text-xs font-bold text-white/70">{labels[method]}</span>
-                        <span className="text-xs font-black text-emerald-400">${data.amount.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
+                        <span className="apple-text-caption1 font-semibold apple-label-primary">{labels[method]}</span>
+                        <span className="apple-text-caption1 font-semibold tabular-nums text-apple-green">${data.amount.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
                       </div>
-                      <div className="w-full bg-white/5 rounded-full h-1">
-                        <div className="h-full rounded-full bg-emerald-500/50" style={{ width: `${pct}%` }} />
+                      <div className="w-full bg-gray-sys6 dark:bg-gray-sys5 rounded-full h-1">
+                        <div className="h-full rounded-full bg-apple-green" style={{ width: `${pct}%` }} />
                       </div>
                     </div>
-                    <span className="text-[10px] text-white/25 font-bold w-7 text-right shrink-0">{pct.toFixed(0)}%</span>
+                    <span className="apple-text-caption2 apple-label-tertiary font-semibold tabular-nums w-7 text-right shrink-0">{pct.toFixed(0)}%</span>
                   </div>
                 );
               })}
@@ -585,10 +586,10 @@ export default function EnhancedReports({ dateFilter, customStartDate, customEnd
 
       {/* Egresos por categoría */}
       {totalExpenses > 0 && (
-        <div className="bg-white/[0.03] border border-white/[0.06] rounded-2xl p-4">
+        <div className="apple-card rounded-apple-md p-4">
           <div className="flex items-center gap-2 mb-3">
-            <TrendingDown className="w-3.5 h-3.5 text-red-400" />
-            <p className="text-[10px] font-black text-white/40 uppercase tracking-widest">Egresos por categoría</p>
+            <TrendingDown className="w-3.5 h-3.5 text-apple-red" />
+            <p className="apple-text-caption2 font-semibold apple-label-tertiary">Egresos por categoría</p>
           </div>
           <div className="space-y-2.5">
             {Object.entries(expensesByCategory)
@@ -600,14 +601,14 @@ export default function EnhancedReports({ dateFilter, customStartDate, customEnd
                     <span className="text-sm w-6 text-center shrink-0">{cat.icon}</span>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center justify-between mb-0.5">
-                        <span className="text-xs font-bold text-white/70 truncate">{cat.label}</span>
-                        <span className="text-xs font-black text-red-400 shrink-0 ml-2">${cat.total.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
+                        <span className="apple-text-caption1 font-semibold apple-label-primary truncate">{cat.label}</span>
+                        <span className="apple-text-caption1 font-semibold tabular-nums text-apple-red shrink-0 ml-2">${cat.total.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
                       </div>
-                      <div className="w-full bg-white/5 rounded-full h-1">
-                        <div className="h-full rounded-full bg-red-500/50" style={{ width: `${pct}%` }} />
+                      <div className="w-full bg-gray-sys6 dark:bg-gray-sys5 rounded-full h-1">
+                        <div className="h-full rounded-full bg-apple-red" style={{ width: `${pct}%` }} />
                       </div>
                     </div>
-                    <span className="text-[10px] text-white/25 font-bold w-7 text-right shrink-0">{pct.toFixed(0)}%</span>
+                    <span className="apple-text-caption2 apple-label-tertiary font-semibold tabular-nums w-7 text-right shrink-0">{pct.toFixed(0)}%</span>
                   </div>
                 );
               })}

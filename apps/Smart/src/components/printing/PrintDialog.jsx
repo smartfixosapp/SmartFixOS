@@ -259,10 +259,10 @@ Gracias por su compra
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent className="max-w-md bg-[#0F0F12] border-cyan-500/30 theme-light:bg-white theme-light:border-gray-200">
+      <DialogContent className="apple-type apple-surface-elevated rounded-apple-lg shadow-apple-xl border-0 p-6 overflow-hidden max-w-md">
         <DialogHeader>
-          <DialogTitle className="text-white flex items-center gap-2 theme-light:text-gray-900">
-            <MessageCircle className="w-6 h-6 text-cyan-500" />
+          <DialogTitle className="apple-label-primary apple-text-title2 flex items-center gap-2">
+            <MessageCircle className="w-6 h-6 text-apple-blue" />
             Enviar {type === "order" ? "Orden" : "Recibo"}
           </DialogTitle>
         </DialogHeader>
@@ -273,12 +273,12 @@ Gracias por su compra
             <Button
               onClick={handleSendEmail}
               disabled={sending || (!customerEmail && !manualEmail)}
-              className="w-full h-16 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 flex items-center gap-3 justify-start"
+              className="apple-btn apple-btn-primary w-full h-16 flex items-center gap-3 justify-start"
             >
               <Mail className="w-6 h-6" />
               <div className="text-left">
-                <div className="font-bold">Enviar por Email</div>
-                <div className="text-xs opacity-80">
+                <div className="font-semibold">Enviar por Email</div>
+                <div className="apple-text-caption1 opacity-80">
                   {customerEmail || manualEmail || 'Sin email registrado'}
                 </div>
               </div>
@@ -290,7 +290,7 @@ Gracias por su compra
                 value={manualEmail}
                 onChange={(e) => setManualEmail(e.target.value)}
                 placeholder="Ingresa email manualmente..."
-                className="bg-black/40 border-white/15 text-white theme-light:bg-white theme-light:border-gray-300 theme-light:text-gray-900"
+                className="apple-input"
               />
             )}
           </div>
@@ -300,12 +300,12 @@ Gracias por su compra
             <Button
               onClick={handleSendWhatsApp}
               disabled={!customerPhone && !manualPhone}
-              className="w-full h-16 bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 flex items-center gap-3 justify-start"
+              className="apple-btn apple-btn-primary bg-apple-green w-full h-16 flex items-center gap-3 justify-start"
             >
               <MessageCircle className="w-6 h-6" />
               <div className="text-left">
-                <div className="font-bold">Enviar por WhatsApp</div>
-                <div className="text-xs opacity-80">
+                <div className="font-semibold">Enviar por WhatsApp</div>
+                <div className="apple-text-caption1 opacity-80">
                   {customerPhone || manualPhone || 'Sin teléfono registrado'}
                 </div>
               </div>
@@ -317,7 +317,7 @@ Gracias por su compra
                 value={manualPhone}
                 onChange={(e) => setManualPhone(e.target.value)}
                 placeholder="Ingresa teléfono manualmente..."
-                className="bg-black/40 border-white/15 text-white theme-light:bg-white theme-light:border-gray-300 theme-light:text-gray-900"
+                className="apple-input"
               />
             )}
           </div>
@@ -325,7 +325,7 @@ Gracias por su compra
           <Button
             onClick={onClose}
             variant="outline"
-            className="w-full border-gray-700 hover:bg-gray-800 theme-light:border-gray-300 theme-light:hover:bg-gray-100"
+            className="apple-btn apple-btn-secondary w-full"
           >
             <X className="w-4 h-4 mr-2" />
             Cancelar

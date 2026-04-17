@@ -221,30 +221,30 @@ export default function ManageCategoriesDialog({ open, onClose, onUpdate }) {
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent className="bg-[#0f0f10] border border-cyan-500/20 max-w-4xl text-white max-h-[85vh] overflow-y-auto theme-light:bg-white theme-light:border-gray-200">
+      <DialogContent className="apple-type apple-surface-elevated rounded-apple-lg shadow-apple-xl border-0 p-6 overflow-y-auto max-w-4xl max-h-[85vh]">
         <DialogHeader>
-          <DialogTitle className="text-xl font-bold text-white flex items-center gap-2 theme-light:text-gray-900">
-            <Smartphone className="w-6 h-6 text-cyan-400" />
+          <DialogTitle className="apple-text-title2 apple-label-primary flex items-center gap-2">
+            <Smartphone className="w-6 h-6 text-apple-blue" />
             Gestionar Categorías y Tipos
           </DialogTitle>
         </DialogHeader>
 
         <Tabs defaultValue="devices" className="space-y-4">
           <div className="overflow-x-auto pb-1">
-            <TabsList className="bg-black/40 border border-cyan-500/20 w-full grid grid-cols-4 gap-1 p-1 theme-light:bg-gray-100 theme-light:border-gray-300">
-              <TabsTrigger value="devices" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-cyan-600 data-[state=active]:to-emerald-600 data-[state=active]:text-white text-xs sm:text-sm px-2 sm:px-3 whitespace-nowrap">
+            <TabsList className="apple-card w-full grid grid-cols-4 gap-1 p-1">
+              <TabsTrigger value="devices" className="data-[state=active]:bg-apple-blue data-[state=active]:text-white apple-text-subheadline px-2 sm:px-3 whitespace-nowrap">
                 <Smartphone className="w-4 h-4 sm:mr-1" />
                 <span className="hidden sm:inline">Dispositivos</span>
               </TabsTrigger>
-              <TabsTrigger value="parts" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-cyan-600 data-[state=active]:to-emerald-600 data-[state=active]:text-white text-xs sm:text-sm px-2 sm:px-3 whitespace-nowrap">
+              <TabsTrigger value="parts" className="data-[state=active]:bg-apple-green data-[state=active]:text-white apple-text-subheadline px-2 sm:px-3 whitespace-nowrap">
                 <Wrench className="w-4 h-4 sm:mr-1" />
                 <span className="hidden sm:inline">Piezas</span>
               </TabsTrigger>
-              <TabsTrigger value="accessories" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-600 data-[state=active]:to-pink-600 data-[state=active]:text-white text-xs sm:text-sm px-2 sm:px-3 whitespace-nowrap">
+              <TabsTrigger value="accessories" className="data-[state=active]:bg-apple-purple data-[state=active]:text-white apple-text-subheadline px-2 sm:px-3 whitespace-nowrap">
                 <Box className="w-4 h-4 sm:mr-1" />
                 <span className="hidden sm:inline">Accesorios</span>
               </TabsTrigger>
-              <TabsTrigger value="services" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-orange-600 data-[state=active]:to-red-600 data-[state=active]:text-white text-xs sm:text-sm px-2 sm:px-3 whitespace-nowrap">
+              <TabsTrigger value="services" className="data-[state=active]:bg-apple-orange data-[state=active]:text-white apple-text-subheadline px-2 sm:px-3 whitespace-nowrap">
                 <Wrench className="w-4 h-4 sm:mr-1" />
                 <span className="hidden sm:inline">Servicios</span>
               </TabsTrigger>
@@ -253,33 +253,33 @@ export default function ManageCategoriesDialog({ open, onClose, onUpdate }) {
 
           <TabsContent value="devices" className="space-y-6">
             {/* Información sobre subcategorías */}
-            <div className="bg-blue-600/10 border border-blue-500/30 rounded-xl p-4 theme-light:bg-blue-50 theme-light:border-blue-300">
-              <p className="text-blue-300 font-bold text-sm mb-2 theme-light:text-blue-700">ℹ️ Estructura de Dispositivos</p>
-              <div className="text-xs text-white/70 space-y-1 theme-light:text-gray-700">
+            <div className="bg-apple-blue/12 rounded-apple-md p-4">
+              <p className="text-apple-blue font-semibold apple-text-subheadline mb-2">Estructura de Dispositivos</p>
+              <div className="apple-text-caption1 apple-label-secondary space-y-1">
                 <p>• <strong>Dispositivo Completo:</strong> Para vender equipos completos (celular, tablet, laptop)</p>
                 <p>• <strong>Piezas/Servicios:</strong> Para vender partes y reparaciones</p>
-                <p className="mt-2 text-white/50 theme-light:text-gray-600">Las subcategorías se gestionan automáticamente al crear productos</p>
+                <p className="mt-2 apple-label-tertiary">Las subcategorías se gestionan automáticamente al crear productos</p>
               </div>
             </div>
 
             {/* Crear nueva categoría */}
-            <div className="bg-cyan-600/10 border border-cyan-500/30 rounded-xl p-4 space-y-3 theme-light:bg-cyan-50 theme-light:border-cyan-300">
-              <p className="text-cyan-300 font-bold text-sm theme-light:text-cyan-700">➕ Nueva Categoría de Dispositivo</p>
+            <div className="bg-apple-blue/12 rounded-apple-md p-4 space-y-3">
+              <p className="text-apple-blue font-semibold apple-text-subheadline">Nueva Categoría de Dispositivo</p>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                 <Input
                   value={newDeviceForm.name}
                   onChange={(e) => setNewDeviceForm((f) => ({ ...f, name: e.target.value }))}
                   placeholder="Nombre (ej: iPhone)"
-                  className="bg-black/40 border-cyan-500/20 theme-light:bg-white theme-light:border-gray-300" />
+                  className="apple-input" />
 
                 <Input
                   value={newDeviceForm.slug}
                   onChange={(e) => setNewDeviceForm((f) => ({ ...f, slug: e.target.value.toLowerCase().replace(/\s+/g, '_') }))}
                   placeholder="ID único (ej: iphone)"
-                  className="bg-black/40 border-cyan-500/20 theme-light:bg-white theme-light:border-gray-300" />
+                  className="apple-input" />
 
               </div>
-              <Button onClick={handleAddDeviceCategory} className="bg-gradient-to-r from-cyan-600 to-emerald-600 w-full">
+              <Button onClick={handleAddDeviceCategory} className="apple-btn apple-btn-primary w-full">
                 <Plus className="w-4 h-4 mr-2" />
                 Agregar Categoría de Dispositivo
               </Button>
@@ -288,17 +288,17 @@ export default function ManageCategoriesDialog({ open, onClose, onUpdate }) {
             {/* Lista de categorías */}
             <div className="space-y-2">
               {deviceCategories.map((cat) =>
-              <div key={cat.id} className="bg-black/40 border border-white/10 rounded-xl p-4 theme-light:bg-white theme-light:border-gray-200">
+              <div key={cat.id} className="apple-card p-4">
                   {editingDevice?.id === cat.id ?
                 <div className="space-y-3">
                       <Input
                     value={editingDevice.name}
                     onChange={(e) => setEditingDevice((d) => ({ ...d, name: e.target.value }))}
                     placeholder="Nombre de la categoría"
-                    className="bg-black/40 border-cyan-500/20 theme-light:bg-white theme-light:border-gray-300" />
+                    className="apple-input" />
 
                       <div className="flex gap-2">
-                        <Button size="sm" onClick={() => handleUpdateDevice(editingDevice)} className="bg-emerald-600">
+                        <Button size="sm" onClick={() => handleUpdateDevice(editingDevice)} className="apple-btn apple-btn-primary bg-apple-green">
                           <Save className="w-4 h-4 mr-1" />
                           Guardar
                         </Button>
@@ -311,14 +311,14 @@ export default function ManageCategoriesDialog({ open, onClose, onUpdate }) {
 
                 <div className="flex items-center justify-between">
                       <div>
-                        <p className="text-white font-semibold theme-light:text-gray-900">{cat.name}</p>
-                        <p className="text-xs text-white/40 theme-light:text-gray-600">ID: {cat.icon || cat.slug}</p>
+                        <p className="apple-label-primary apple-text-subheadline font-semibold">{cat.name}</p>
+                        <p className="apple-text-caption1 apple-label-tertiary">ID: {cat.icon || cat.slug}</p>
                       </div>
                       <div className="flex gap-2">
-                        <Button size="sm" variant="ghost" onClick={() => setEditingDevice(cat)} className="hover:bg-cyan-600/10">
+                        <Button size="sm" variant="ghost" onClick={() => setEditingDevice(cat)} className="apple-btn apple-btn-plain text-apple-blue">
                           <Edit2 className="w-4 h-4" />
                         </Button>
-                        <Button size="sm" variant="ghost" onClick={() => handleDeleteDevice(cat.id)} className="text-red-400 hover:bg-red-600/10">
+                        <Button size="sm" variant="ghost" onClick={() => handleDeleteDevice(cat.id)} className="apple-btn apple-btn-plain text-apple-red">
                           <Trash2 className="w-4 h-4" />
                         </Button>
                       </div>
@@ -331,9 +331,9 @@ export default function ManageCategoriesDialog({ open, onClose, onUpdate }) {
 
           <TabsContent value="parts" className="space-y-6">
             {/* Información sobre tipos de piezas */}
-            <div className="bg-purple-600/10 border border-purple-500/30 rounded-xl p-4 theme-light:bg-purple-50 theme-light:border-purple-300">
-              <p className="text-purple-300 font-bold text-sm mb-2 theme-light:text-purple-700">ℹ️ Tipos de Piezas/Servicios</p>
-              <div className="text-xs text-white/70 space-y-1 theme-light:text-gray-700">
+            <div className="bg-apple-purple/12 rounded-apple-md p-4">
+              <p className="text-apple-purple font-semibold apple-text-subheadline mb-2">Tipos de Piezas/Servicios</p>
+              <div className="apple-text-caption1 apple-label-secondary space-y-1">
                 <p>• <strong>Pantallas:</strong> Para pantallas de cualquier dispositivo</p>
                 <p>• <strong>Baterías:</strong> Para baterías de reemplazo</p>
                 <p>• <strong>Servicios:</strong> Para reparaciones y servicios</p>
@@ -342,23 +342,23 @@ export default function ManageCategoriesDialog({ open, onClose, onUpdate }) {
             </div>
 
             {/* Crear nuevo tipo */}
-            <div className="bg-emerald-600/10 border border-emerald-500/30 rounded-xl p-4 space-y-3 theme-light:bg-emerald-50 theme-light:border-emerald-300">
-              <p className="text-emerald-300 font-bold text-sm theme-light:text-emerald-700">➕ Nuevo Tipo de Pieza/Servicio</p>
+            <div className="bg-apple-green/12 rounded-apple-md p-4 space-y-3">
+              <p className="text-apple-green font-semibold apple-text-subheadline">Nuevo Tipo de Pieza/Servicio</p>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                 <Input
                   value={newPartForm.name}
                   onChange={(e) => setNewPartForm((f) => ({ ...f, name: e.target.value }))}
                   placeholder="Nombre (ej: Pantallas)"
-                  className="bg-black/40 border-cyan-500/20 theme-light:bg-white theme-light:border-gray-300" />
+                  className="apple-input" />
 
                 <Input
                   value={newPartForm.slug}
                   onChange={(e) => setNewPartForm((f) => ({ ...f, slug: e.target.value.toLowerCase().replace(/\s+/g, '_') }))}
                   placeholder="ID único (ej: pantalla)"
-                  className="bg-black/40 border-cyan-500/20 theme-light:bg-white theme-light:border-gray-300" />
+                  className="apple-input" />
 
               </div>
-              <Button onClick={handleAddPartType} className="bg-gradient-to-r from-emerald-600 to-green-600 w-full">
+              <Button onClick={handleAddPartType} className="apple-btn apple-btn-primary bg-apple-green w-full">
                 <Plus className="w-4 h-4 mr-2" />
                 Agregar Tipo de Pieza
               </Button>
@@ -367,17 +367,17 @@ export default function ManageCategoriesDialog({ open, onClose, onUpdate }) {
             {/* Lista de tipos */}
             <div className="space-y-2">
               {partTypes.map((pt) =>
-              <div key={pt.id} className="bg-black/40 border border-white/10 rounded-xl p-4 theme-light:bg-white theme-light:border-gray-200">
+              <div key={pt.id} className="apple-card p-4">
                   {editingPart?.id === pt.id ?
                 <div className="space-y-3">
                       <Input
                     value={editingPart.name}
                     onChange={(e) => setEditingPart((p) => ({ ...p, name: e.target.value }))}
                     placeholder="Nombre del tipo de pieza"
-                    className="bg-black/40 border-cyan-500/20 theme-light:bg-white theme-light:border-gray-300" />
+                    className="apple-input" />
 
                       <div className="flex gap-2">
-                        <Button size="sm" onClick={() => handleUpdatePart(editingPart)} className="bg-emerald-600">
+                        <Button size="sm" onClick={() => handleUpdatePart(editingPart)} className="apple-btn apple-btn-primary bg-apple-green">
                           <Save className="w-4 h-4 mr-1" />
                           Guardar
                         </Button>
@@ -390,14 +390,14 @@ export default function ManageCategoriesDialog({ open, onClose, onUpdate }) {
 
                 <div className="flex items-center justify-between">
                       <div>
-                        <p className="text-white font-semibold theme-light:text-gray-900">{pt.name}</p>
-                        <p className="text-xs text-white/40 theme-light:text-gray-600">ID: {pt.slug}</p>
+                        <p className="apple-label-primary apple-text-subheadline font-semibold">{pt.name}</p>
+                        <p className="apple-text-caption1 apple-label-tertiary">ID: {pt.slug}</p>
                       </div>
                       <div className="flex gap-2">
-                        <Button size="sm" variant="ghost" onClick={() => setEditingPart(pt)} className="hover:bg-emerald-600/10">
+                        <Button size="sm" variant="ghost" onClick={() => setEditingPart(pt)} className="apple-btn apple-btn-plain text-apple-green">
                           <Edit2 className="w-4 h-4" />
                         </Button>
-                        <Button size="sm" variant="ghost" onClick={() => handleDeletePart(pt.id)} className="text-red-400 hover:bg-red-600/10">
+                        <Button size="sm" variant="ghost" onClick={() => handleDeletePart(pt.id)} className="apple-btn apple-btn-plain text-apple-red">
                           <Trash2 className="w-4 h-4" />
                         </Button>
                       </div>
@@ -410,9 +410,9 @@ export default function ManageCategoriesDialog({ open, onClose, onUpdate }) {
 
           <TabsContent value="accessories" className="space-y-6">
             {/* Información sobre accesorios */}
-            <div className="bg-pink-600/10 border border-pink-500/30 rounded-xl p-4 theme-light:bg-pink-50 theme-light:border-pink-300">
-              <p className="text-pink-300 font-bold text-sm mb-2 theme-light:text-pink-700">ℹ️ Categorías de Accesorios</p>
-              <div className="text-xs text-white/70 space-y-1 theme-light:text-gray-700">
+            <div className="bg-apple-red/12 rounded-apple-md p-4">
+              <p className="text-apple-red font-semibold apple-text-subheadline mb-2">Categorías de Accesorios</p>
+              <div className="apple-text-caption1 apple-label-secondary space-y-1">
                 <p>• <strong>Cables:</strong> Para cables USB, Lightning, USB-C, etc.</p>
                 <p>• <strong>Covers/Fundas:</strong> Para fundas, cases, protectores de dispositivos</p>
                 <p>• <strong>Protectores:</strong> Para micas, vidrios templados, etc.</p>
@@ -421,23 +421,23 @@ export default function ManageCategoriesDialog({ open, onClose, onUpdate }) {
             </div>
 
             {/* Crear nueva categoría de accesorio */}
-            <div className="bg-purple-600/10 border border-purple-500/30 rounded-xl p-4 space-y-3 theme-light:bg-purple-50 theme-light:border-purple-300">
-              <p className="text-purple-300 font-bold text-sm theme-light:text-purple-700">➕ Nueva Categoría de Accesorio</p>
+            <div className="bg-apple-purple/12 rounded-apple-md p-4 space-y-3">
+              <p className="text-apple-purple font-semibold apple-text-subheadline">Nueva Categoría de Accesorio</p>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                 <Input
                   value={newAccessoryForm.name}
                   onChange={(e) => setNewAccessoryForm((f) => ({ ...f, name: e.target.value }))}
                   placeholder="Nombre (ej: Cables)"
-                  className="bg-black/40 border-cyan-500/20 theme-light:bg-white theme-light:border-gray-300" />
+                  className="apple-input" />
 
                 <Input
                   value={newAccessoryForm.slug}
                   onChange={(e) => setNewAccessoryForm((f) => ({ ...f, slug: e.target.value.toLowerCase().replace(/\s+/g, '_') }))}
                   placeholder="ID único (ej: cables)"
-                  className="bg-black/40 border-cyan-500/20 theme-light:bg-white theme-light:border-gray-300" />
+                  className="apple-input" />
 
               </div>
-              <Button onClick={handleAddAccessoryCategory} className="bg-gradient-to-r from-purple-600 to-pink-600 w-full">
+              <Button onClick={handleAddAccessoryCategory} className="apple-btn apple-btn-primary bg-apple-purple w-full">
                 <Plus className="w-4 h-4 mr-2" />
                 Agregar Categoría de Accesorio
               </Button>
@@ -446,17 +446,17 @@ export default function ManageCategoriesDialog({ open, onClose, onUpdate }) {
             {/* Lista de categorías de accesorios */}
             <div className="space-y-2">
               {accessoryCategories.map((acc) =>
-              <div key={acc.id} className="bg-black/40 border border-white/10 rounded-xl p-4 theme-light:bg-white theme-light:border-gray-200">
+              <div key={acc.id} className="apple-card p-4">
                   {editingAccessory?.id === acc.id ?
                 <div className="space-y-3">
                       <Input
                     value={editingAccessory.name}
                     onChange={(e) => setEditingAccessory((a) => ({ ...a, name: e.target.value }))}
                     placeholder="Nombre de la categoría"
-                    className="bg-black/40 border-cyan-500/20 theme-light:bg-white theme-light:border-gray-300" />
+                    className="apple-input" />
 
                       <div className="flex gap-2">
-                        <Button size="sm" onClick={() => handleUpdateAccessory(editingAccessory)} className="bg-purple-600">
+                        <Button size="sm" onClick={() => handleUpdateAccessory(editingAccessory)} className="apple-btn apple-btn-primary bg-apple-purple">
                           <Save className="w-4 h-4 mr-1" />
                           Guardar
                         </Button>
@@ -469,14 +469,14 @@ export default function ManageCategoriesDialog({ open, onClose, onUpdate }) {
 
                 <div className="flex items-center justify-between">
                       <div>
-                        <p className="text-white font-semibold theme-light:text-gray-900">{acc.name}</p>
-                        <p className="text-xs text-white/40 theme-light:text-gray-600">ID: {acc.slug}</p>
+                        <p className="apple-label-primary apple-text-subheadline font-semibold">{acc.name}</p>
+                        <p className="apple-text-caption1 apple-label-tertiary">ID: {acc.slug}</p>
                       </div>
                       <div className="flex gap-2">
-                        <Button size="sm" variant="ghost" onClick={() => setEditingAccessory(acc)} className="hover:bg-purple-600/10">
+                        <Button size="sm" variant="ghost" onClick={() => setEditingAccessory(acc)} className="apple-btn apple-btn-plain text-apple-purple">
                           <Edit2 className="w-4 h-4" />
                         </Button>
-                        <Button size="sm" variant="ghost" onClick={() => handleDeleteAccessory(acc.id)} className="text-red-400 hover:bg-red-600/10">
+                        <Button size="sm" variant="ghost" onClick={() => handleDeleteAccessory(acc.id)} className="apple-btn apple-btn-plain text-apple-red">
                           <Trash2 className="w-4 h-4" />
                         </Button>
                       </div>
@@ -489,32 +489,32 @@ export default function ManageCategoriesDialog({ open, onClose, onUpdate }) {
 
           <TabsContent value="services" className="space-y-6">
             {/* Información sobre servicios */}
-            <div className="bg-orange-600/10 border border-orange-500/30 rounded-xl p-4 theme-light:bg-orange-50 theme-light:border-orange-300">
-              <p className="text-orange-300 font-bold text-sm mb-2 theme-light:text-orange-700">ℹ️ Categorías Compartidas</p>
-              <div className="text-xs text-white/70 space-y-1 theme-light:text-gray-700">
+            <div className="bg-apple-orange/12 rounded-apple-md p-4">
+              <p className="text-apple-orange font-semibold apple-text-subheadline mb-2">Categorías Compartidas</p>
+              <div className="apple-text-caption1 apple-label-secondary space-y-1">
                 <p>Los Servicios comparten las mismas <strong>Categorías de Dispositivo</strong> que los Productos.</p>
                 <p>Aquí puedes gestionar las categorías de dispositivos (ej: Smartphone, Laptop) que se usarán tanto para inventario como para servicios.</p>
               </div>
             </div>
 
             {/* Reutilizar gestión de categorías de dispositivo */}
-            <div className="bg-cyan-600/10 border border-cyan-500/30 rounded-xl p-4 space-y-3 theme-light:bg-cyan-50 theme-light:border-cyan-300">
-              <p className="text-cyan-300 font-bold text-sm theme-light:text-cyan-700">➕ Nueva Categoría de Dispositivo</p>
+            <div className="bg-apple-blue/12 rounded-apple-md p-4 space-y-3">
+              <p className="text-apple-blue font-semibold apple-text-subheadline">Nueva Categoría de Dispositivo</p>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                 <Input
                   value={newDeviceForm.name}
                   onChange={(e) => setNewDeviceForm((f) => ({ ...f, name: e.target.value }))}
                   placeholder="Nombre (ej: Consola)"
-                  className="bg-black/40 border-cyan-500/20 theme-light:bg-white theme-light:border-gray-300" />
+                  className="apple-input" />
 
                 <Input
                   value={newDeviceForm.slug}
                   onChange={(e) => setNewDeviceForm((f) => ({ ...f, slug: e.target.value.toLowerCase().replace(/\s+/g, '_') }))}
                   placeholder="ID único (ej: consola)"
-                  className="bg-black/40 border-cyan-500/20 theme-light:bg-white theme-light:border-gray-300" />
+                  className="apple-input" />
 
               </div>
-              <Button onClick={handleAddDeviceCategory} className="bg-gradient-to-r from-cyan-600 to-emerald-600 w-full">
+              <Button onClick={handleAddDeviceCategory} className="apple-btn apple-btn-primary w-full">
                 <Plus className="w-4 h-4 mr-2" />
                 Agregar Categoría
               </Button>
@@ -523,17 +523,17 @@ export default function ManageCategoriesDialog({ open, onClose, onUpdate }) {
             {/* Lista de categorías (misma lista que en dispositivos) */}
             <div className="space-y-2">
               {deviceCategories.map((cat) =>
-              <div key={cat.id} className="bg-black/40 border border-white/10 rounded-xl p-4 theme-light:bg-white theme-light:border-gray-200">
+              <div key={cat.id} className="apple-card p-4">
                   {editingDevice?.id === cat.id ?
                 <div className="space-y-3">
                       <Input
                     value={editingDevice.name}
                     onChange={(e) => setEditingDevice((d) => ({ ...d, name: e.target.value }))}
                     placeholder="Nombre de la categoría"
-                    className="bg-black/40 border-cyan-500/20 theme-light:bg-white theme-light:border-gray-300" />
+                    className="apple-input" />
 
                       <div className="flex gap-2">
-                        <Button size="sm" onClick={() => handleUpdateDevice(editingDevice)} className="bg-emerald-600">
+                        <Button size="sm" onClick={() => handleUpdateDevice(editingDevice)} className="apple-btn apple-btn-primary bg-apple-green">
                           <Save className="w-4 h-4 mr-1" />
                           Guardar
                         </Button>
@@ -546,14 +546,14 @@ export default function ManageCategoriesDialog({ open, onClose, onUpdate }) {
 
                 <div className="flex items-center justify-between">
                       <div>
-                        <p className="text-white font-semibold theme-light:text-gray-900">{cat.name}</p>
-                        <p className="text-xs text-white/40 theme-light:text-gray-600">ID: {cat.icon || cat.slug}</p>
+                        <p className="apple-label-primary apple-text-subheadline font-semibold">{cat.name}</p>
+                        <p className="apple-text-caption1 apple-label-tertiary">ID: {cat.icon || cat.slug}</p>
                       </div>
                       <div className="flex gap-2">
-                        <Button size="sm" variant="ghost" onClick={() => setEditingDevice(cat)} className="hover:bg-cyan-600/10">
+                        <Button size="sm" variant="ghost" onClick={() => setEditingDevice(cat)} className="apple-btn apple-btn-plain text-apple-blue">
                           <Edit2 className="w-4 h-4" />
                         </Button>
-                        <Button size="sm" variant="ghost" onClick={() => handleDeleteDevice(cat.id)} className="text-red-400 hover:bg-red-600/10">
+                        <Button size="sm" variant="ghost" onClick={() => handleDeleteDevice(cat.id)} className="apple-btn apple-btn-plain text-apple-red">
                           <Trash2 className="w-4 h-4" />
                         </Button>
                       </div>

@@ -183,15 +183,15 @@ export default function OneTimeExpensesWidget() {
 
   return (
     <>
-      <div className="bg-white/[0.03] border border-white/[0.08] rounded-2xl p-4">
+      <div className="apple-type apple-card rounded-apple-md p-4">
         <div className="flex items-center justify-between mb-3">
           <div className="flex items-center gap-2">
-            <Target className="w-3.5 h-3.5 text-amber-400" />
-            <p className="text-[10px] font-black text-white/40 uppercase tracking-widest">Metas & Inversiones</p>
+            <Target className="w-3.5 h-3.5 text-apple-orange" />
+            <p className="apple-text-caption2 font-semibold apple-label-tertiary">Metas & Inversiones</p>
           </div>
           <button
             onClick={() => { resetForm(); setShowDialog(true); }}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-400 text-[11px] font-black hover:bg-amber-500/20 transition-colors active:scale-95"
+            className="apple-press flex items-center gap-1.5 px-3 py-1.5 rounded-apple-sm bg-apple-orange/15 text-apple-orange apple-text-caption1 font-semibold transition-colors"
           >
             <Plus className="w-3 h-3" /> Nueva meta
           </button>
@@ -199,12 +199,12 @@ export default function OneTimeExpensesWidget() {
 
         {loading ? (
           <div className="flex items-center justify-center py-8 gap-2">
-            <RefreshCw className="w-3.5 h-3.5 animate-spin text-amber-400/50" />
-            <p className="text-xs text-white/25 font-bold">Cargando…</p>
+            <RefreshCw className="w-3.5 h-3.5 animate-spin text-apple-orange" />
+            <p className="apple-text-footnote apple-label-tertiary">Cargando…</p>
           </div>
         ) : expenses.length === 0 ? (
-          <div className="py-8 text-center border border-white/[0.06] border-dashed rounded-xl">
-            <p className="text-sm font-black text-white/25">Sin metas activas</p>
+          <div className="py-8 text-center rounded-apple-sm" style={{ border: "0.5px dashed rgb(var(--separator) / 0.29)" }}>
+            <p className="apple-text-body apple-label-tertiary">Sin metas activas</p>
           </div>
         ) : (
           <div className="space-y-2">
@@ -212,32 +212,32 @@ export default function OneTimeExpensesWidget() {
               const progress = (expense.saved_amount / expense.target_amount) * 100;
               const remaining = expense.target_amount - expense.saved_amount;
               return (
-                <div key={expense.id} className="group flex items-center gap-3 p-3 rounded-xl bg-white/[0.02] hover:bg-white/[0.05] border border-white/[0.04] transition-all">
+                <div key={expense.id} className="apple-list-row apple-press group flex items-center gap-3 p-3 rounded-apple-sm bg-gray-sys6 dark:bg-gray-sys5 transition-all">
                   <span className="text-lg w-7 text-center shrink-0">{getCategoryIcon(expense.category)}</span>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center justify-between mb-1">
-                      <p className="text-sm font-black text-white truncate">{expense.name}</p>
-                      <span className="text-xs font-black text-amber-400 shrink-0 ml-2">${expense.target_amount.toFixed(2)}</span>
+                      <p className="apple-text-footnote font-semibold apple-label-primary truncate">{expense.name}</p>
+                      <span className="apple-text-caption1 font-semibold text-apple-orange tabular-nums shrink-0 ml-2">${expense.target_amount.toFixed(2)}</span>
                     </div>
-                    <div className="w-full bg-white/5 rounded-full h-1.5 mb-1">
-                      <div className="h-full rounded-full bg-gradient-to-r from-amber-500/70 to-emerald-500/70 transition-all"
+                    <div className="w-full bg-gray-sys6 dark:bg-gray-sys5 rounded-full h-1.5 mb-1">
+                      <div className="h-full rounded-full bg-apple-orange transition-all"
                         style={{ width: `${Math.min(100, progress)}%` }} />
                     </div>
                     <div className="flex items-center justify-between">
-                      <span className="text-[10px] text-white/25">{Math.round(progress)}% · Faltan ${remaining.toFixed(2)}</span>
+                      <span className="apple-text-caption2 apple-label-tertiary tabular-nums">{Math.round(progress)}% · Faltan ${remaining.toFixed(2)}</span>
                       {expense.target_date && (
-                        <span className="text-[10px] text-white/25">{format(new Date(expense.target_date), "dd MMM", { locale: es })}</span>
+                        <span className="apple-text-caption2 apple-label-tertiary tabular-nums">{format(new Date(expense.target_date), "dd MMM", { locale: es })}</span>
                       )}
                     </div>
                   </div>
                   <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity shrink-0">
-                    <button onClick={() => handleEdit(expense)} className="w-7 h-7 rounded-lg bg-white/5 hover:bg-cyan-500/20 text-white/30 hover:text-cyan-400 flex items-center justify-center transition-colors">
+                    <button onClick={() => handleEdit(expense)} className="apple-press w-7 h-7 rounded-apple-xs bg-apple-blue/12 text-apple-blue flex items-center justify-center transition-colors">
                       <Edit2 className="w-3 h-3" />
                     </button>
-                    <button onClick={() => handleMarkPurchased(expense.id)} className="w-7 h-7 rounded-lg bg-white/5 hover:bg-emerald-500/20 text-white/30 hover:text-emerald-400 flex items-center justify-center transition-colors">
+                    <button onClick={() => handleMarkPurchased(expense.id)} className="apple-press w-7 h-7 rounded-apple-xs bg-apple-green/12 text-apple-green flex items-center justify-center transition-colors">
                       <CheckCircle2 className="w-3 h-3" />
                     </button>
-                    <button onClick={() => handleDelete(expense.id)} className="w-7 h-7 rounded-lg bg-white/5 hover:bg-red-500/20 text-white/30 hover:text-red-400 flex items-center justify-center transition-colors">
+                    <button onClick={() => handleDelete(expense.id)} className="apple-press w-7 h-7 rounded-apple-xs bg-apple-red/12 text-apple-red flex items-center justify-center transition-colors">
                       <Trash2 className="w-3 h-3" />
                     </button>
                   </div>
@@ -249,15 +249,15 @@ export default function OneTimeExpensesWidget() {
       </div>
 
       <Dialog open={showDialog} onOpenChange={resetForm}>
-        <DialogContent className="max-w-[95vw] sm:max-w-lg bg-[#0A0A0A] border border-white/10 rounded-2xl overflow-hidden p-0">
-          <div className="absolute top-0 left-0 w-full h-0.5 bg-gradient-to-r from-amber-500 to-orange-500" />
+        <DialogContent className="apple-type max-w-[95vw] sm:max-w-lg apple-surface-elevated rounded-apple-lg shadow-apple-xl border-0 p-0 overflow-hidden">
+          <div className="absolute top-0 left-0 w-full h-0.5 bg-apple-orange" />
           <div className="p-5">
             <DialogHeader className="mb-4">
               <div className="flex items-center gap-3">
-                <div className="w-8 h-8 rounded-xl bg-amber-500/10 flex items-center justify-center border border-amber-500/20">
-                  <Target className="w-4 h-4 text-amber-400" />
+                <div className="w-8 h-8 rounded-apple-sm bg-apple-orange/15 flex items-center justify-center">
+                  <Target className="w-4 h-4 text-apple-orange" />
                 </div>
-                <DialogTitle className="text-2xl font-black text-white tracking-tight text-left">
+                <DialogTitle className="apple-text-title2 apple-label-primary text-left">
                   {editingExpense ? "Actualizar Meta" : "Forjar Nueva Meta"}
                 </DialogTitle>
               </div>
@@ -266,32 +266,32 @@ export default function OneTimeExpensesWidget() {
             <div className="space-y-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="space-y-2">
-                  <label className="text-[10px] font-black text-white/40 uppercase tracking-widest ml-1">Proyecto / Logro</label>
-                  <Input 
-                    value={formData.name} 
-                    onChange={(e) => setFormData({ ...formData, name: e.target.value })} 
-                    placeholder="Ej. Nueva Estación de Soldado" 
-                    className="bg-white/5 border-white/10 text-white h-12 rounded-2xl px-5 focus:border-amber-500/50 font-bold" 
+                  <label className="apple-text-caption2 font-semibold apple-label-tertiary ml-1">Proyecto / Logro</label>
+                  <Input
+                    value={formData.name}
+                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                    placeholder="Ej. Nueva Estación de Soldado"
+                    className="apple-input h-12 rounded-apple-md px-5 font-semibold"
                   />
                 </div>
                 <div className="space-y-2">
-                  <label className="text-[10px] font-black text-white/40 uppercase tracking-widest ml-1">Proveedor / Link</label>
-                  <Input 
-                    value={formData.vendor} 
-                    onChange={(e) => setFormData({ ...formData, vendor: e.target.value })} 
-                    placeholder="Ej. Amazon, Home Depot..." 
-                    className="bg-white/5 border-white/10 text-white h-12 rounded-2xl px-5 focus:border-amber-500/50 font-bold" 
+                  <label className="apple-text-caption2 font-semibold apple-label-tertiary ml-1">Proveedor / Link</label>
+                  <Input
+                    value={formData.vendor}
+                    onChange={(e) => setFormData({ ...formData, vendor: e.target.value })}
+                    placeholder="Ej. Amazon, Home Depot..."
+                    className="apple-input h-12 rounded-apple-md px-5 font-semibold"
                   />
                 </div>
               </div>
 
               <div className="space-y-2">
-                <label className="text-[10px] font-black text-white/40 uppercase tracking-widest ml-1">Misión y Propósito</label>
-                <Textarea 
-                  value={formData.description} 
-                  onChange={(e) => setFormData({ ...formData, description: e.target.value })} 
-                  placeholder="Describe por qué esta meta es importante para el taller..." 
-                  className="bg-white/5 border-white/10 text-white min-h-[100px] rounded-2xl p-5 focus:border-amber-500/50 font-medium resize-none" 
+                <label className="apple-text-caption2 font-semibold apple-label-tertiary ml-1">Misión y Propósito</label>
+                <Textarea
+                  value={formData.description}
+                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                  placeholder="Describe por qué esta meta es importante para el taller..."
+                  className="apple-input min-h-[100px] rounded-apple-md p-5 resize-none"
                 />
               </div>
 
@@ -304,13 +304,13 @@ export default function OneTimeExpensesWidget() {
                   investment: "💼 Inves.",
                   other: "📦 Otro"
                 }).map(([val, label]) => (
-                  <button 
-                    key={val} 
+                  <button
+                    key={val}
                     onClick={() => setFormData({ ...formData, category: val })}
-                    className={`py-3 rounded-2xl border transition-all text-[10px] font-black uppercase tracking-tight ${
-                      formData.category === val 
-                        ? "bg-amber-500/20 border-amber-500/40 text-amber-400" 
-                        : "bg-white/5 border-white/5 text-white/40 hover:border-white/20"
+                    className={`apple-press py-3 rounded-apple-md transition-all apple-text-caption2 font-semibold ${
+                      formData.category === val
+                        ? "bg-apple-orange/15 text-apple-orange"
+                        : "bg-gray-sys6 dark:bg-gray-sys5 apple-label-secondary"
                     }`}
                   >
                     {label}
@@ -320,47 +320,47 @@ export default function OneTimeExpensesWidget() {
 
               <div className="grid grid-cols-2 md:grid-cols-3 gap-6">
                 <div className="space-y-2">
-                  <label className="text-[10px] font-black text-white/40 uppercase tracking-widest ml-1">Presupuesto ($)</label>
-                  <Input 
-                    type="number" 
-                    value={formData.target_amount} 
-                    onChange={(e) => setFormData({ ...formData, target_amount: e.target.value })} 
-                    placeholder="0.00" 
-                    className="bg-white/5 border-white/10 text-white h-12 rounded-2xl px-5 focus:border-amber-500/50 font-bold" 
+                  <label className="apple-text-caption2 font-semibold apple-label-tertiary ml-1">Presupuesto ($)</label>
+                  <Input
+                    type="number"
+                    value={formData.target_amount}
+                    onChange={(e) => setFormData({ ...formData, target_amount: e.target.value })}
+                    placeholder="0.00"
+                    className="apple-input h-12 rounded-apple-md px-5 font-semibold tabular-nums"
                   />
                 </div>
                 <div className="space-y-2">
-                  <label className="text-[10px] font-black text-white/40 uppercase tracking-widest ml-1">Capital Actual ($)</label>
-                  <Input 
-                    type="number" 
-                    value={formData.saved_amount} 
-                    onChange={(e) => setFormData({ ...formData, saved_amount: e.target.value })} 
-                    placeholder="0.00" 
-                    className="bg-white/5 border-white/10 text-white h-12 rounded-2xl px-5 focus:border-emerald-500/50 font-bold" 
+                  <label className="apple-text-caption2 font-semibold apple-label-tertiary ml-1">Capital Actual ($)</label>
+                  <Input
+                    type="number"
+                    value={formData.saved_amount}
+                    onChange={(e) => setFormData({ ...formData, saved_amount: e.target.value })}
+                    placeholder="0.00"
+                    className="apple-input h-12 rounded-apple-md px-5 font-semibold tabular-nums"
                   />
                 </div>
                 <div className="space-y-2 md:col-span-1 col-span-2">
-                  <label className="text-[10px] font-black text-white/40 uppercase tracking-widest ml-1">Fecha Límite</label>
-                  <Input 
-                    type="date" 
-                    value={formData.target_date} 
-                    onChange={(e) => setFormData({ ...formData, target_date: e.target.value })} 
-                    className="bg-white/5 border-white/10 text-white h-12 rounded-2xl px-5 focus:border-cyan-500/50 font-bold" 
+                  <label className="apple-text-caption2 font-semibold apple-label-tertiary ml-1">Fecha Límite</label>
+                  <Input
+                    type="date"
+                    value={formData.target_date}
+                    onChange={(e) => setFormData({ ...formData, target_date: e.target.value })}
+                    className="apple-input h-12 rounded-apple-md px-5 font-semibold tabular-nums"
                   />
                 </div>
               </div>
             </div>
 
             <div className="flex gap-4 pt-8">
-              <Button 
-                onClick={resetForm} 
-                className="flex-1 bg-white/5 border border-white/10 hover:bg-white/10 text-white h-14 rounded-2xl font-black uppercase tracking-widest active:scale-95 transition-all"
+              <Button
+                onClick={resetForm}
+                className="apple-btn apple-btn-secondary apple-btn-lg flex-1"
               >
                 Suspender
               </Button>
-              <Button 
-                onClick={handleSave} 
-                className="flex-1 bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-500 hover:to-orange-500 text-white h-14 rounded-2xl font-black uppercase tracking-widest shadow-xl shadow-orange-900/20 active:scale-95 transition-all"
+              <Button
+                onClick={handleSave}
+                className="apple-btn apple-btn-lg flex-1 bg-apple-orange text-white hover:bg-apple-orange/90 apple-press"
               >
                 {editingExpense ? "Actualizar Plan" : "Iniciar Proyecto"}
               </Button>

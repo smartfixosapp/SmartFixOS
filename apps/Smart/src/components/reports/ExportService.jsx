@@ -60,91 +60,93 @@ class ExportService {
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body {
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Helvetica Neue', sans-serif;
       padding: 40px;
       background: white;
-      color: #1a1a1a;
+      color: #1C1C1E;
+      font-variant-numeric: tabular-nums;
     }
     .header {
       text-align: center;
       margin-bottom: 30px;
       padding-bottom: 20px;
-      border-bottom: 3px solid #FF0000;
+      border-bottom: 0.5px solid #3C3C434A;
     }
     .logo {
-      font-size: 28px;
-      font-weight: bold;
-      color: #FF0000;
+      font-size: 22px;
+      font-weight: 600;
+      color: #007AFF;
       margin-bottom: 10px;
+      letter-spacing: -0.41px;
     }
     .title {
-      font-size: 24px;
-      font-weight: bold;
-      color: #1a1a1a;
+      font-size: 28px;
+      font-weight: 600;
+      color: #1C1C1E;
       margin-bottom: 5px;
+      letter-spacing: -0.6px;
     }
     .subtitle {
-      font-size: 14px;
-      color: #666;
+      font-size: 15px;
+      color: #3C3C434D;
+      font-weight: 400;
     }
     .meta {
       display: flex;
       justify-content: space-between;
       margin-bottom: 20px;
       padding: 15px;
-      background: #f5f5f5;
-      border-radius: 5px;
+      background: #F2F2F7;
+      border-radius: 10px;
     }
     .meta-item {
-      font-size: 12px;
-      color: #666;
+      font-size: 13px;
+      color: #3C3C434D;
+      font-variant-numeric: tabular-nums;
     }
     .meta-item strong {
-      color: #1a1a1a;
+      color: #1C1C1E;
       display: block;
       margin-bottom: 3px;
+      font-weight: 600;
     }
     table {
       width: 100%;
       border-collapse: collapse;
       margin-bottom: 30px;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      border-radius: 10px;
+      overflow: hidden;
     }
     thead {
-      background: linear-gradient(135deg, #FF0000 0%, #CC0000 100%);
-      color: white;
+      background: #F2F2F7;
+      color: #1C1C1E;
     }
     th {
       padding: 12px;
       text-align: left;
       font-weight: 600;
       font-size: 13px;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
     }
     td {
       padding: 10px 12px;
-      border-bottom: 1px solid #e0e0e0;
+      border-bottom: 0.5px solid #3C3C434A;
       font-size: 13px;
+      font-variant-numeric: tabular-nums;
     }
     tbody tr:nth-child(even) {
-      background-color: #f9f9f9;
-    }
-    tbody tr:hover {
-      background-color: #f0f0f0;
+      background-color: #FAFAFC;
     }
     .summary {
       margin-top: 30px;
       padding: 20px;
-      background: linear-gradient(135deg, #f5f5f5 0%, #e8e8e8 100%);
-      border-left: 4px solid #FF0000;
-      border-radius: 5px;
+      background: #F2F2F7;
+      border-radius: 10px;
     }
     .summary-title {
-      font-size: 16px;
-      font-weight: bold;
+      font-size: 17px;
+      font-weight: 600;
       margin-bottom: 15px;
-      color: #1a1a1a;
+      color: #1C1C1E;
     }
     .summary-grid {
       display: grid;
@@ -154,35 +156,35 @@ class ExportService {
     .summary-item {
       background: white;
       padding: 12px;
-      border-radius: 5px;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+      border-radius: 10px;
     }
     .summary-label {
-      font-size: 11px;
-      color: #666;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
+      font-size: 12px;
+      color: #3C3C434D;
       margin-bottom: 5px;
+      font-weight: 600;
     }
     .summary-value {
-      font-size: 20px;
-      font-weight: bold;
-      color: #FF0000;
+      font-size: 22px;
+      font-weight: 600;
+      color: #007AFF;
+      font-variant-numeric: tabular-nums;
     }
     .footer {
       margin-top: 40px;
       padding-top: 20px;
-      border-top: 2px solid #e0e0e0;
+      border-top: 0.5px solid #3C3C434A;
       text-align: center;
-      font-size: 11px;
-      color: #999;
+      font-size: 12px;
+      color: #3C3C434D;
     }
     .numeric {
       text-align: right;
       font-weight: 500;
+      font-variant-numeric: tabular-nums;
     }
     .currency {
-      color: #008000;
+      color: #34C759;
     }
     @media print {
       body { padding: 20px; }
@@ -196,6 +198,7 @@ class ExportService {
     <div class="title">${title}</div>
     <div class="subtitle">${subtitle || ""}</div>
   </div>
+
 
   <div class="meta">
     <div class="meta-item">

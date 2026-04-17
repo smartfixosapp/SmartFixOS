@@ -338,45 +338,45 @@ export default function PaymentModal({ open, onClose, subtotal, items = [], work
 
   // Contenido compartido
   const summaryContent = (
-    <div className="space-y-2 p-4 bg-gray-50 rounded-lg border">
-      <div className="flex justify-between text-sm">
-        <span className="text-gray-600">Subtotal</span>
-        <span className="text-gray-900 font-medium">${subtotal.toFixed(2)}</span>
+    <div className="apple-type space-y-2 p-4 apple-card">
+      <div className="flex justify-between apple-text-subheadline tabular-nums">
+        <span className="apple-label-secondary">Subtotal</span>
+        <span className="apple-label-primary font-semibold">${subtotal.toFixed(2)}</span>
       </div>
       {discountAmount > 0 && (
-        <div className="flex justify-between text-sm">
-          <span className="text-red-600">Descuento</span>
-          <span className="text-red-600 font-medium">-${discountAmount.toFixed(2)}</span>
+        <div className="flex justify-between apple-text-subheadline tabular-nums">
+          <span className="text-apple-red">Descuento</span>
+          <span className="text-apple-red font-semibold">-${discountAmount.toFixed(2)}</span>
         </div>
       )}
-      <div className="flex justify-between text-sm items-center">
+      <div className="flex justify-between apple-text-subheadline items-center">
         <div className="flex items-center gap-2">
-          <span className="text-gray-600">IVU (11.5%)</span>
+          <span className="apple-label-secondary">IVU (11.5%)</span>
           <button
             onClick={() => setTaxEnabled(!taxEnabled)}
-            className={`text-xs px-2 py-0.5 rounded border transition-colors ${
-              taxEnabled 
-                ? "bg-red-50 text-red-600 border-red-200 hover:bg-red-100" 
-                : "bg-gray-100 text-gray-500 border-gray-200 hover:bg-gray-200"
+            className={`apple-press apple-text-caption1 px-2 py-0.5 rounded-apple-sm transition-colors ${
+              taxEnabled
+                ? "bg-apple-red/15 text-apple-red"
+                : "bg-gray-sys6 dark:bg-gray-sys5 apple-label-tertiary"
             }`}
           >
             {taxEnabled ? "Remover" : "Aplicar"}
           </button>
         </div>
-        <span className={`font-medium ${taxEnabled ? "text-gray-900" : "text-gray-400 line-through"}`}>
+        <span className={`font-semibold tabular-nums ${taxEnabled ? "apple-label-primary" : "apple-label-tertiary line-through"}`}>
           ${(taxEnabled ? tax : (taxableBase * taxRate)).toFixed(2)}
         </span>
       </div>
-      <div className="flex justify-between text-lg font-bold pt-2 border-t">
-        <span className="text-gray-900">Total</span>
-        <span className="text-red-600">${total.toFixed(2)}</span>
+      <div className="flex justify-between apple-text-headline font-bold pt-2 tabular-nums" style={{ borderTop: "0.5px solid rgb(var(--separator) / 0.29)" }}>
+        <span className="apple-label-primary">Total</span>
+        <span className="text-apple-red">${total.toFixed(2)}</span>
       </div>
     </div>
   );
 
   const paymentMethodsContent = (
     <div>
-      <Label className="text-gray-700 mb-2 block">Método de pago</Label>
+      <Label className="apple-label-secondary apple-text-subheadline mb-2 block">Método de pago</Label>
       <div className="grid grid-cols-2 gap-2">
         <Button
           variant={paymentMethod === "cash" ? "default" : "outline"}
@@ -384,7 +384,7 @@ export default function PaymentModal({ open, onClose, subtotal, items = [], work
             setPaymentMethod("cash");
             setShowCustomAmount(true);
           }}
-          className={paymentMethod === "cash" ? "bg-red-600 hover:bg-red-700" : ""}>
+          className={paymentMethod === "cash" ? "apple-btn apple-btn-primary bg-apple-red" : "apple-btn apple-btn-secondary"}>
           <DollarSign className="w-4 h-4 mr-2" />
           Efectivo
         </Button>
@@ -394,7 +394,7 @@ export default function PaymentModal({ open, onClose, subtotal, items = [], work
             setPaymentMethod("card");
             setShowCustomAmount(true);
           }}
-          className={paymentMethod === "card" ? "bg-red-600 hover:bg-red-700" : ""}>
+          className={paymentMethod === "card" ? "apple-btn apple-btn-primary bg-apple-red" : "apple-btn apple-btn-secondary"}>
           <CreditCard className="w-4 h-4 mr-2" />
           Tarjeta
         </Button>
@@ -405,7 +405,7 @@ export default function PaymentModal({ open, onClose, subtotal, items = [], work
             setShowCustomAmount(false);
             setEnteredAmount(String(total));
           }}
-          className={paymentMethod === "ath_movil" ? "bg-red-600 hover:bg-red-700" : ""}>
+          className={paymentMethod === "ath_movil" ? "apple-btn apple-btn-primary bg-apple-red" : "apple-btn apple-btn-secondary"}>
           <Smartphone className="w-4 h-4 mr-2" />
           ATH Móvil
         </Button>
@@ -416,7 +416,7 @@ export default function PaymentModal({ open, onClose, subtotal, items = [], work
             setShowCustomAmount(false);
             setEnteredAmount("");
           }}
-          className={paymentMethod === "transfer" ? "bg-red-600 hover:bg-red-700" : ""}>
+          className={paymentMethod === "transfer" ? "apple-btn apple-btn-primary bg-apple-red" : "apple-btn apple-btn-secondary"}>
           <Smartphone className="w-4 h-4 mr-2" />
           Depósito
         </Button>
@@ -426,7 +426,7 @@ export default function PaymentModal({ open, onClose, subtotal, items = [], work
             setPaymentMethod("mixed");
             setShowCustomAmount(true);
           }}
-          className={paymentMethod === "mixed" ? "bg-red-600 hover:bg-red-700 col-span-2" : "col-span-2"}>
+          className={paymentMethod === "mixed" ? "apple-btn apple-btn-primary bg-apple-red col-span-2" : "apple-btn apple-btn-secondary col-span-2"}>
           <MoreHorizontal className="w-4 h-4 mr-2" />
           Otro
         </Button>
@@ -440,10 +440,10 @@ export default function PaymentModal({ open, onClose, subtotal, items = [], work
       <Sheet open={open} onOpenChange={onClose}>
         <SheetContent 
           side="right" 
-          className="w-full sm:max-w-xl bg-white p-6 flex flex-col gap-4 overflow-hidden"
+          className="apple-type w-full sm:max-w-xl apple-surface-elevated p-6 flex flex-col gap-4 overflow-hidden"
         >
           <SheetHeader>
-            <SheetTitle className="text-2xl font-bold text-gray-900">Procesar Pago</SheetTitle>
+            <SheetTitle className="apple-text-title2 apple-label-primary">Procesar Pago</SheetTitle>
           </SheetHeader>
 
           <div className="space-y-4 flex-1 overflow-y-auto pr-2">
@@ -454,7 +454,7 @@ export default function PaymentModal({ open, onClose, subtotal, items = [], work
             {showCustomAmount && paymentMethod !== "ath_movil" && paymentMethod !== "transfer" && (
               <>
                 <div>
-                  <Label className="text-gray-700 mb-2 block">Montos rápidos</Label>
+                  <Label className="apple-label-secondary apple-text-subheadline mb-2 block">Montos rápidos</Label>
                   <div className="flex gap-2 flex-wrap">
                     {quickAmounts.map((amt) => (
                       <Button
@@ -462,7 +462,7 @@ export default function PaymentModal({ open, onClose, subtotal, items = [], work
                         size="sm"
                         variant="outline"
                         onClick={() => setEnteredAmount(String(amt))}
-                        className="border-red-600 text-red-600 hover:bg-red-50">
+                        className="apple-btn apple-btn-tinted bg-apple-red/12 text-apple-red">
                         ${amt.toFixed(2)}
                       </Button>
                     ))}
@@ -470,23 +470,23 @@ export default function PaymentModal({ open, onClose, subtotal, items = [], work
                 </div>
 
                 <div>
-                  <Label className="text-gray-700 mb-2 block">Monto recibido</Label>
+                  <Label className="apple-label-secondary apple-text-subheadline mb-2 block">Monto recibido</Label>
                   <Input
                     type="number"
                     step="0.01"
                     value={enteredAmount}
                     onChange={(e) => setEnteredAmount(e.target.value)}
                     placeholder="0.00"
-                    className="h-12 text-lg"
+                    className="apple-input h-12 apple-text-headline tabular-nums"
                     autoFocus
                   />
                 </div>
 
                 {change > 0 && (
-                  <div className="p-3 bg-green-50 border border-green-200 rounded-lg">
+                  <div className="p-3 bg-apple-green/12 rounded-apple-sm">
                     <div className="flex justify-between items-center">
-                      <span className="text-green-700 font-semibold">Cambio a devolver</span>
-                      <span className="text-green-700 font-bold text-xl">${change.toFixed(2)}</span>
+                      <span className="text-apple-green font-semibold apple-text-subheadline">Cambio a devolver</span>
+                      <span className="text-apple-green font-bold apple-text-title3 tabular-nums">${change.toFixed(2)}</span>
                     </div>
                   </div>
                 )}
@@ -495,8 +495,8 @@ export default function PaymentModal({ open, onClose, subtotal, items = [], work
 
             {/* ATH Móvil */}
             {paymentMethod === "ath_movil" && (
-              <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
-                <p className="text-sm text-blue-800">
+              <div className="p-4 bg-apple-blue/12 rounded-apple-sm">
+                <p className="apple-text-subheadline text-apple-blue tabular-nums">
                   Se procesará el pago de <strong>${total.toFixed(2)}</strong> por ATH Móvil
                 </p>
               </div>
@@ -506,7 +506,7 @@ export default function PaymentModal({ open, onClose, subtotal, items = [], work
             {paymentMethod === "transfer" && (
               <>
                 <div>
-                  <Label className="text-gray-700 mb-2 block">Montos rápidos</Label>
+                  <Label className="apple-label-secondary apple-text-subheadline mb-2 block">Montos rápidos</Label>
                   <div className="flex gap-2 flex-wrap">
                     {quickAmounts.map((amt) => (
                       <Button
@@ -514,7 +514,7 @@ export default function PaymentModal({ open, onClose, subtotal, items = [], work
                         size="sm"
                         variant="outline"
                         onClick={() => setEnteredAmount(String(amt))}
-                        className="border-red-600 text-red-600 hover:bg-red-50">
+                        className="apple-btn apple-btn-tinted bg-apple-red/12 text-apple-red">
                         ${amt.toFixed(2)}
                       </Button>
                     ))}
@@ -522,14 +522,14 @@ export default function PaymentModal({ open, onClose, subtotal, items = [], work
                 </div>
 
                 <div>
-                  <Label className="text-gray-700 mb-2 block">Monto del depósito</Label>
+                  <Label className="apple-label-secondary apple-text-subheadline mb-2 block">Monto del depósito</Label>
                   <Input
                     type="number"
                     step="0.01"
                     value={enteredAmount}
                     onChange={(e) => setEnteredAmount(e.target.value)}
                     placeholder="0.00"
-                    className="h-12 text-lg"
+                    className="apple-input h-12 apple-text-headline tabular-nums"
                     autoFocus
                   />
                 </div>
@@ -542,13 +542,13 @@ export default function PaymentModal({ open, onClose, subtotal, items = [], work
               variant="outline"
               onClick={onClose}
               disabled={processing}
-              className="flex-1">
+              className="apple-btn apple-btn-secondary flex-1">
               Cancelar
             </Button>
             <Button
               onClick={() => handleProcessPayment()}
               disabled={processing || (paymentMethod !== "ath_movil" && amountPaid <= 0)}
-              className="flex-1 bg-red-600 hover:bg-red-700">
+              className="apple-btn apple-btn-primary bg-apple-red flex-1">
               {processing ? "Procesando..." : "Confirmar Pago"}
             </Button>
           </div>
@@ -560,9 +560,9 @@ export default function PaymentModal({ open, onClose, subtotal, items = [], work
   // Mobile: Solo Dialog
   return (
     <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent className="max-w-[95vw] sm:max-w-md bg-white overflow-hidden flex flex-col max-h-[90vh]">
+      <DialogContent className="apple-type apple-surface-elevated rounded-apple-lg shadow-apple-xl border-0 p-6 overflow-hidden max-w-[95vw] sm:max-w-md flex flex-col max-h-[90vh]">
         <DialogHeader className="flex-shrink-0">
-          <DialogTitle className="text-xl font-bold text-gray-900">Procesar Pago</DialogTitle>
+          <DialogTitle className="apple-text-title2 apple-label-primary">Procesar Pago</DialogTitle>
         </DialogHeader>
 
         <div className="space-y-4 overflow-y-auto flex-1 px-1">
@@ -573,7 +573,7 @@ export default function PaymentModal({ open, onClose, subtotal, items = [], work
           {showCustomAmount && paymentMethod !== "ath_movil" && paymentMethod !== "transfer" && (
             <>
               <div>
-                <Label className="text-gray-700 mb-2 block">Montos rápidos</Label>
+                <Label className="apple-label-secondary apple-text-subheadline mb-2 block">Montos rápidos</Label>
                 <div className="flex gap-2 flex-wrap">
                   {quickAmounts.map((amt) => (
                     <Button
@@ -581,7 +581,7 @@ export default function PaymentModal({ open, onClose, subtotal, items = [], work
                       size="sm"
                       variant="outline"
                       onClick={() => setEnteredAmount(String(amt))}
-                      className="border-red-600 text-red-600 hover:bg-red-50">
+                      className="apple-btn apple-btn-tinted bg-apple-red/12 text-apple-red">
                       ${amt.toFixed(2)}
                     </Button>
                   ))}
@@ -589,23 +589,23 @@ export default function PaymentModal({ open, onClose, subtotal, items = [], work
               </div>
 
               <div>
-                <Label className="text-gray-700 mb-2 block">Monto recibido</Label>
+                <Label className="apple-label-secondary apple-text-subheadline mb-2 block">Monto recibido</Label>
                 <Input
                   type="number"
                   step="0.01"
                   value={enteredAmount}
                   onChange={(e) => setEnteredAmount(e.target.value)}
                   placeholder="0.00"
-                  className="h-12 text-lg"
+                  className="apple-input h-12 apple-text-headline tabular-nums"
                   autoFocus
                 />
               </div>
 
               {change > 0 && (
-                <div className="p-3 bg-green-50 border border-green-200 rounded-lg">
+                <div className="p-3 bg-apple-green/12 rounded-apple-sm">
                   <div className="flex justify-between items-center">
-                    <span className="text-green-700 font-semibold">Cambio a devolver</span>
-                    <span className="text-green-700 font-bold text-xl">${change.toFixed(2)}</span>
+                    <span className="text-apple-green font-semibold apple-text-subheadline">Cambio a devolver</span>
+                    <span className="text-apple-green font-bold apple-text-title3 tabular-nums">${change.toFixed(2)}</span>
                   </div>
                 </div>
               )}
@@ -614,8 +614,8 @@ export default function PaymentModal({ open, onClose, subtotal, items = [], work
 
           {/* ATH Móvil - Sin input de monto */}
           {paymentMethod === "ath_movil" && (
-            <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
-              <p className="text-sm text-blue-800">
+            <div className="p-4 bg-apple-blue/12 rounded-apple-sm">
+              <p className="apple-text-subheadline text-apple-blue tabular-nums">
                 Se procesará el pago de <strong>${total.toFixed(2)}</strong> por ATH Móvil
               </p>
             </div>
@@ -633,7 +633,7 @@ export default function PaymentModal({ open, onClose, subtotal, items = [], work
                       size="sm"
                       variant="outline"
                       onClick={() => setEnteredAmount(String(amt))}
-                      className="border-red-600 text-red-600 hover:bg-red-50">
+                      className="apple-btn apple-btn-tinted bg-apple-red/12 text-apple-red">
                       ${amt.toFixed(2)}
                     </Button>
                   ))}
@@ -641,7 +641,7 @@ export default function PaymentModal({ open, onClose, subtotal, items = [], work
               </div>
 
               <div>
-                <Label className="text-gray-700 mb-2 block">
+                <Label className="apple-label-secondary apple-text-subheadline mb-2 block">
                   Ingresa la cantidad a depositar (máximo: ${total.toFixed(2)})
                 </Label>
                 <Input
@@ -650,7 +650,7 @@ export default function PaymentModal({ open, onClose, subtotal, items = [], work
                   value={enteredAmount}
                   onChange={(e) => setEnteredAmount(e.target.value)}
                   placeholder="0.00"
-                  className="h-12 text-lg bg-white border-gray-300"
+                  className="apple-input h-12 apple-text-headline tabular-nums"
                   autoFocus
                   inputMode="decimal"
                 />
@@ -659,18 +659,18 @@ export default function PaymentModal({ open, onClose, subtotal, items = [], work
           )}
 
           {/* Botones de acción fijos al final */}
-          <div className="flex gap-2 pt-4 border-t flex-shrink-0 sticky bottom-0 bg-white pb-safe">
+          <div className="flex gap-2 pt-4 flex-shrink-0 sticky bottom-0 apple-surface-elevated pb-safe" style={{ borderTop: "0.5px solid rgb(var(--separator) / 0.29)" }}>
             <Button
               variant="outline"
               onClick={onClose}
               disabled={processing}
-              className="flex-1">
+              className="apple-btn apple-btn-secondary flex-1">
               Cancelar
             </Button>
             <Button
               onClick={() => handleProcessPayment()}
               disabled={processing || (paymentMethod !== "ath_movil" && amountPaid <= 0)}
-              className="flex-1 bg-red-600 hover:bg-red-700">
+              className="apple-btn apple-btn-primary bg-apple-red flex-1">
               {processing ? "Procesando..." : "Confirmar Pago"}
             </Button>
           </div>

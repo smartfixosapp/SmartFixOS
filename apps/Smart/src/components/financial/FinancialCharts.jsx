@@ -13,28 +13,29 @@ import {
 } from "recharts";
 
 const COLORS = {
-  income: "#10b981",
-  expense: "#ef4444",
-  cyan: "#06b6d4",
-  violet: "#8b5cf6",
-  emerald: "#10b981",
-  amber: "#f59e0b",
-  pink: "#ec4899",
-  blue: "#3b82f6",
-  red: "#ef4444",
-  teal: "#14b8a6",
+  income: "#34C759",   // apple-green
+  expense: "#FF3B30",  // apple-red
+  cyan: "#007AFF",     // apple-blue
+  violet: "#AF52DE",   // apple-purple
+  emerald: "#34C759",  // apple-green
+  amber: "#FF9500",    // apple-orange
+  pink: "#FF2D55",     // apple-pink -> use red
+  blue: "#007AFF",     // apple-blue
+  red: "#FF3B30",
+  teal: "#5856D6",     // apple-indigo
 };
 
 const chartTooltip = {
   contentStyle: {
-    background: "#111114",
-    border: "1px solid #ffffff20",
-    borderRadius: "8px",
-    fontSize: "11px",
+    background: "rgb(var(--bg-elevated))",
+    border: "0.5px solid rgb(var(--separator) / 0.29)",
+    borderRadius: "10px",
+    fontSize: "13px",
     padding: "8px 12px",
+    fontVariantNumeric: "tabular-nums",
   },
-  labelStyle: { color: "#ffffff80", marginBottom: "4px" },
-  itemStyle: { color: "#fff" },
+  labelStyle: { color: "rgb(var(--label-secondary))", marginBottom: "4px" },
+  itemStyle: { color: "rgb(var(--label-primary))" },
 };
 
 const dateKey = (d) => {
@@ -59,11 +60,11 @@ const labelWeek = (k) => {
 
 function ChartCard({ title, subtitle, children, height = 240 }) {
   return (
-    <div className="bg-white/[0.03] border border-white/[0.06] rounded-2xl p-4">
+    <div className="apple-type apple-card rounded-apple-md p-4">
       <div className="flex items-center justify-between mb-3">
         <div>
-          <p className="text-xs font-black text-white/70 uppercase tracking-wider">{title}</p>
-          {subtitle && <p className="text-[10px] text-white/30 mt-0.5">{subtitle}</p>}
+          <p className="apple-text-footnote font-semibold apple-label-primary">{title}</p>
+          {subtitle && <p className="apple-text-caption2 apple-label-tertiary mt-0.5 tabular-nums">{subtitle}</p>}
         </div>
       </div>
       <ResponsiveContainer width="100%" height={height}>
@@ -98,23 +99,13 @@ function IncomeVsExpenseChart({ sales = [], expenses = [], days = 30 }) {
   return (
     <ChartCard title="💰 Ingresos vs Gastos" subtitle={`Últimos ${days} días`}>
       <AreaChart data={data} margin={{ top: 5, right: 10, left: -20, bottom: 0 }}>
-        <defs>
-          <linearGradient id="gIncome" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="5%" stopColor={COLORS.income} stopOpacity={0.4} />
-            <stop offset="95%" stopColor={COLORS.income} stopOpacity={0} />
-          </linearGradient>
-          <linearGradient id="gExpense" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="5%" stopColor={COLORS.expense} stopOpacity={0.4} />
-            <stop offset="95%" stopColor={COLORS.expense} stopOpacity={0} />
-          </linearGradient>
-        </defs>
-        <CartesianGrid strokeDasharray="3 3" stroke="#ffffff08" />
-        <XAxis dataKey="day" tick={{ fill: "#ffffff60", fontSize: 9 }} interval="preserveStartEnd" />
-        <YAxis tick={{ fill: "#ffffff60", fontSize: 9 }} tickFormatter={(v) => `$${v}`} />
+        <CartesianGrid strokeDasharray="3 3" stroke="rgb(var(--separator) / 0.29)" />
+        <XAxis dataKey="day" tick={{ fill: "rgb(var(--label-secondary))", fontSize: 11 }} interval="preserveStartEnd" />
+        <YAxis tick={{ fill: "rgb(var(--label-secondary))", fontSize: 11 }} tickFormatter={(v) => `$${v}`} />
         <Tooltip {...chartTooltip} formatter={(v) => `$${Number(v).toFixed(2)}`} />
-        <Legend wrapperStyle={{ fontSize: "10px", color: "#ffffff80" }} />
-        <Area type="monotone" dataKey="income" name="Entró" stroke={COLORS.income} strokeWidth={2} fill="url(#gIncome)" fillOpacity={1} />
-        <Area type="monotone" dataKey="expense" name="Salió" stroke={COLORS.expense} strokeWidth={2} fill="url(#gExpense)" fillOpacity={1} />
+        <Legend wrapperStyle={{ fontSize: "12px", color: "rgb(var(--label-secondary))" }} />
+        <Area type="monotone" dataKey="income" name="Entró" stroke={COLORS.income} strokeWidth={2} fill={COLORS.income} fillOpacity={0.15} />
+        <Area type="monotone" dataKey="expense" name="Salió" stroke={COLORS.expense} strokeWidth={2} fill={COLORS.expense} fillOpacity={0.15} />
       </AreaChart>
     </ChartCard>
   );
@@ -145,9 +136,9 @@ function NetProfitChart({ sales = [], expenses = [], days = 30 }) {
   return (
     <ChartCard title="📈 Ganancia neta diaria" subtitle="Verde = ganancia · Rojo = pérdida">
       <BarChart data={data} margin={{ top: 5, right: 10, left: -20, bottom: 0 }}>
-        <CartesianGrid strokeDasharray="3 3" stroke="#ffffff08" />
-        <XAxis dataKey="day" tick={{ fill: "#ffffff60", fontSize: 9 }} interval="preserveStartEnd" />
-        <YAxis tick={{ fill: "#ffffff60", fontSize: 9 }} tickFormatter={(v) => `$${v}`} />
+        <CartesianGrid strokeDasharray="3 3" stroke="rgb(var(--separator) / 0.29)" />
+        <XAxis dataKey="day" tick={{ fill: "rgb(var(--label-secondary))", fontSize: 11 }} interval="preserveStartEnd" />
+        <YAxis tick={{ fill: "rgb(var(--label-secondary))", fontSize: 11 }} tickFormatter={(v) => `$${v}`} />
         <Tooltip {...chartTooltip} formatter={(v) => `$${Number(v).toFixed(2)}`} />
         <Bar dataKey="net" name="Neto" radius={[4, 4, 0, 0]}>
           {data.map((d, i) => (
@@ -194,7 +185,7 @@ function OrdersByStatusChart({ orders = [] }) {
   if (data.length === 0) {
     return (
       <ChartCard title="🔧 Órdenes por estado" subtitle="Distribución de OTs">
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "center", height: "100%", color: "#ffffff30", fontSize: "11px" }}>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "center", height: "100%", color: "rgb(var(--label-tertiary))", fontSize: "13px" }}>
           Sin órdenes registradas
         </div>
       </ChartCard>
@@ -204,9 +195,9 @@ function OrdersByStatusChart({ orders = [] }) {
   return (
     <ChartCard title="🔧 Órdenes por estado" subtitle="Total de OTs por etapa">
       <BarChart data={data} layout="vertical" margin={{ top: 5, right: 30, left: 50, bottom: 0 }}>
-        <CartesianGrid strokeDasharray="3 3" stroke="#ffffff08" horizontal={false} />
-        <XAxis type="number" tick={{ fill: "#ffffff60", fontSize: 9 }} />
-        <YAxis type="category" dataKey="status" width={110} tick={{ fill: "#ffffff80", fontSize: 10 }} />
+        <CartesianGrid strokeDasharray="3 3" stroke="rgb(var(--separator) / 0.29)" horizontal={false} />
+        <XAxis type="number" tick={{ fill: "rgb(var(--label-secondary))", fontSize: 11 }} />
+        <YAxis type="category" dataKey="status" width={110} tick={{ fill: "rgb(var(--label-primary))", fontSize: 12 }} />
         <Tooltip {...chartTooltip} formatter={(v) => [v, "Órdenes"]} />
         <Bar dataKey="count" radius={[0, 4, 4, 0]}>
           {data.map((d, i) => (
@@ -248,7 +239,7 @@ function StockByCategoryChart({ products = [] }) {
   if (data.length === 0) {
     return (
       <ChartCard title="📦 Stock por categoría" subtitle="Unidades en inventario">
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "center", height: "100%", color: "#ffffff30", fontSize: "11px" }}>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "center", height: "100%", color: "rgb(var(--label-tertiary))", fontSize: "13px" }}>
           Sin productos en stock
         </div>
       </ChartCard>
@@ -268,7 +259,7 @@ function StockByCategoryChart({ products = [] }) {
           dataKey="value"
           label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
           labelLine={false}
-          style={{ fontSize: 10, fill: "#ffffff90" }}
+          style={{ fontSize: 11, fill: "rgb(var(--label-primary))", fontVariantNumeric: "tabular-nums" }}
         >
           {data.map((_, i) => (
             <Cell key={i} fill={palette[i % palette.length]} />
@@ -301,9 +292,9 @@ function NewCustomersChart({ customers = [], weeks = 12 }) {
   return (
     <ChartCard title="👥 Nuevos clientes por semana" subtitle={`Últimas ${weeks} semanas`}>
       <LineChart data={data} margin={{ top: 5, right: 10, left: -25, bottom: 0 }}>
-        <CartesianGrid strokeDasharray="3 3" stroke="#ffffff08" />
-        <XAxis dataKey="week" tick={{ fill: "#ffffff60", fontSize: 9 }} interval={1} />
-        <YAxis tick={{ fill: "#ffffff60", fontSize: 9 }} allowDecimals={false} />
+        <CartesianGrid strokeDasharray="3 3" stroke="rgb(var(--separator) / 0.29)" />
+        <XAxis dataKey="week" tick={{ fill: "rgb(var(--label-secondary))", fontSize: 11 }} interval={1} />
+        <YAxis tick={{ fill: "rgb(var(--label-secondary))", fontSize: 11 }} allowDecimals={false} />
         <Tooltip {...chartTooltip} formatter={(v) => [v, "Clientes nuevos"]} />
         <Line
           type="monotone"
@@ -327,7 +318,7 @@ export default function FinancialCharts({
   customers = [],
 }) {
   return (
-    <div className="space-y-3">
+    <div className="apple-type space-y-3">
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
         <IncomeVsExpenseChart sales={sales} expenses={expenses} />
         <NetProfitChart sales={sales} expenses={expenses} />

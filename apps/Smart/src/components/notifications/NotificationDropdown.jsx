@@ -132,9 +132,9 @@ export default function NotificationDropdown({ user, onClose }) {
 
   const getPriorityColor = (priority) => {
     switch (priority) {
-      case "urgent": return "border-red-500/50 bg-red-600/10";
-      case "high": return "border-orange-500/50 bg-orange-600/10";
-      default: return "border-white/10 bg-black/20";
+      case "urgent": return "bg-apple-red/12";
+      case "high": return "bg-apple-orange/12";
+      default: return "apple-surface";
     }
   };
 
@@ -142,18 +142,18 @@ export default function NotificationDropdown({ user, onClose }) {
   // const unreadCount = notifications.filter(n => !n.is_read).length;
 
   return (
-    <Card className="bg-black/95 backdrop-blur-xl border-2 border-cyan-500/30 shadow-[0_24px_80px_rgba(0,168,232,0.4)] theme-light:bg-white theme-light:border-gray-300">
+    <Card className="apple-type apple-surface-elevated rounded-apple-lg shadow-apple-xl border-0 overflow-hidden">
       {/* Header */}
-      <div className="p-4 border-b border-cyan-500/20 theme-light:border-gray-200">
+      <div className="p-4" style={{ borderBottom: '0.5px solid rgb(var(--separator) / 0.29)' }}>
         <div className="flex items-center justify-between mb-3">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-cyan-500 to-emerald-500 flex items-center justify-center shadow-lg">
-              <Bell className="w-5 h-5 text-white" />
+            <div className="w-10 h-10 rounded-apple-sm bg-apple-blue/15 flex items-center justify-center">
+              <Bell className="w-5 h-5 text-apple-blue" />
             </div>
             <div>
-              <h3 className="text-white font-bold text-lg theme-light:text-gray-900">Notificaciones</h3>
+              <h3 className="apple-label-primary apple-text-headline">Notificaciones</h3>
               {notifications.length > 0 && (
-                <p className="text-cyan-300 text-xs theme-light:text-cyan-700">
+                <p className="text-apple-blue apple-text-caption1 tabular-nums">
                   {notifications.length} sin leer
                 </p>
               )}
@@ -164,7 +164,7 @@ export default function NotificationDropdown({ user, onClose }) {
             variant="ghost"
             onClick={onClose}
             aria-label="Cerrar notificaciones"
-            className="text-gray-400 hover:text-white theme-light:text-gray-600 theme-light:hover:text-gray-900"
+            className="apple-btn apple-btn-plain apple-label-secondary hover:apple-label-primary"
           >
             <X className="w-5 h-5" />
           </Button>
@@ -174,7 +174,7 @@ export default function NotificationDropdown({ user, onClose }) {
           <Button
             size="sm"
             onClick={handleMarkAllAsRead}
-            className="w-full bg-cyan-600/20 border border-cyan-500/30 text-cyan-300 hover:bg-cyan-600/30 theme-light:bg-cyan-100 theme-light:border-cyan-300 theme-light:text-cyan-700 theme-light:hover:bg-cyan-200"
+            className="apple-btn apple-btn-tinted apple-press w-full"
           >
             <CheckCircle2 className="w-4 h-4 mr-2" />
             Marcar todas como leídas
@@ -186,53 +186,53 @@ export default function NotificationDropdown({ user, onClose }) {
       <div className="max-h-[600px] overflow-y-auto">
         {loading ? (
           <div className="p-8 text-center">
-            <Loader2 className="w-8 h-8 text-cyan-500 animate-spin mx-auto mb-3" />
-            <p className="text-gray-400 text-sm theme-light:text-gray-600">Cargando notificaciones...</p>
+            <Loader2 className="w-8 h-8 text-apple-blue animate-spin mx-auto mb-3" />
+            <p className="apple-label-secondary apple-text-subheadline">Cargando notificaciones...</p>
           </div>
         ) : notifications.length === 0 ? (
           <div className="p-8 text-center">
-            <Bell className="w-16 h-16 text-gray-600 mx-auto mb-4 opacity-30" />
-            <p className="text-gray-400 text-sm theme-light:text-gray-600">No tienes notificaciones pendientes</p>
-            <p className="text-gray-500 text-xs mt-2 theme-light:text-gray-500">¡Todo al día! ✨</p>
+            <Bell className="w-16 h-16 apple-label-tertiary mx-auto mb-4 opacity-30" />
+            <p className="apple-label-secondary apple-text-subheadline">No tienes notificaciones pendientes</p>
+            <p className="apple-label-tertiary apple-text-caption1 mt-2">¡Todo al día!</p>
           </div>
         ) : (
-          <div className="divide-y divide-white/10 theme-light:divide-gray-200">
+          <div className="apple-list">
             {notifications.map((notification) => (
               <div
                 key={notification.id}
                 onClick={() => handleMarkAsRead(notification)}
-                // All notifications in this list are guaranteed to be unread, so apply unread styling directly
-                className={`p-4 transition-all cursor-pointer border-l-4 border-l-cyan-500 bg-cyan-600/5 hover:bg-cyan-600/10 theme-light:border-l-cyan-600 theme-light:bg-cyan-50 theme-light:hover:bg-cyan-100 ${getPriorityColor(notification.priority)}`}
+                className={`apple-list-row apple-press p-4 transition-all cursor-pointer ${getPriorityColor(notification.priority)}`}
+                style={{ borderBottom: '0.5px solid rgb(var(--separator) / 0.29)' }}
               >
                 <div className="flex gap-3">
-                  <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 bg-gradient-to-br from-cyan-500 to-emerald-500 text-white shadow-lg theme-light:bg-cyan-100 theme-light:text-cyan-700">
+                  <div className="w-10 h-10 rounded-apple-sm flex items-center justify-center flex-shrink-0 bg-apple-blue/15 text-apple-blue">
                     {getNotificationIcon(notification.type)}
                   </div>
 
                   <div className="flex-1 min-w-0">
                     <div className="flex items-start justify-between gap-2 mb-1">
-                      <h4 className="font-semibold text-sm text-white theme-light:text-gray-900">
+                      <h4 className="apple-text-subheadline font-semibold apple-label-primary">
                         {notification.title}
                       </h4>
                       {notification.priority === "urgent" && (
-                        <Badge className="bg-red-600/30 text-red-300 border-red-600/50 text-xs animate-pulse theme-light:bg-red-100 theme-light:text-red-700 theme-light:border-red-300">
+                        <Badge className="bg-apple-red/15 text-apple-red apple-text-caption1 animate-pulse rounded-apple-sm border-0">
                           Urgente
                         </Badge>
                       )}
                     </div>
 
-                    <p className="text-xs mb-2 line-clamp-2 text-gray-200 theme-light:text-gray-700">
+                    <p className="apple-text-caption1 mb-2 line-clamp-2 apple-label-secondary">
                       {notification.body}
                     </p>
 
                     <div className="flex items-center justify-between gap-2">
-                      <span className="text-xs text-gray-500 theme-light:text-gray-600">
+                      <span className="apple-text-caption1 apple-label-tertiary tabular-nums">
                         {format(new Date(notification.created_date), "dd MMM, HH:mm", { locale: es })}
                       </span>
 
                       <div className="flex items-center gap-2">
                         {notification.action_label && (
-                          <span className="text-xs text-cyan-400 flex items-center gap-1 theme-light:text-cyan-600">
+                          <span className="apple-text-caption1 text-apple-blue flex items-center gap-1">
                             {notification.action_label}
                             <ExternalLinkIcon className="w-3 h-3" />
                           </span>
@@ -242,7 +242,7 @@ export default function NotificationDropdown({ user, onClose }) {
                           variant="ghost"
                           onClick={(e) => handleDelete(notification.id, e)}
                           aria-label="Eliminar notificación"
-                          className="h-7 w-7 text-gray-500 hover:text-red-400 theme-light:hover:text-red-600"
+                          className="apple-btn apple-btn-plain h-7 w-7 apple-label-tertiary hover:text-apple-red"
                         >
                           <Trash2 className="w-3 h-3" />
                         </Button>
@@ -258,8 +258,8 @@ export default function NotificationDropdown({ user, onClose }) {
 
       {/* Footer */}
       {notifications.length > 0 && (
-        <div className="p-3 border-t border-cyan-500/20 bg-black/40 theme-light:border-gray-200 theme-light:bg-gray-50">
-          <p className="text-center text-xs text-gray-400 theme-light:text-gray-600">
+        <div className="p-3 apple-surface" style={{ borderTop: '0.5px solid rgb(var(--separator) / 0.29)' }}>
+          <p className="text-center apple-text-caption1 apple-label-secondary tabular-nums">
             {notifications.length} sin leer
           </p>
         </div>

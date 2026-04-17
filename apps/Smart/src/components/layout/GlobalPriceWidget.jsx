@@ -50,30 +50,33 @@ export default function GlobalPriceWidget() {
         data-global-widget
         type="button"
         onClick={() => setOpen((prev) => !prev)}
-        className="fixed z-[240] bottom-24 md:bottom-8 right-4 md:right-8 h-14 w-14 rounded-2xl border border-cyan-400/40 bg-gradient-to-br from-cyan-500/25 to-emerald-500/25 backdrop-blur-xl shadow-[0_12px_30px_rgba(6,182,212,0.28)] flex items-center justify-center hover:scale-105 transition-transform"
+        className="apple-press apple-type fixed z-[240] bottom-24 md:bottom-8 right-4 md:right-8 h-14 w-14 rounded-apple-lg bg-apple-blue/15 shadow-apple-md flex items-center justify-center"
         title={open ? "Cerrar calculadora" : "Calculadora de precios"}
       >
-        <Calculator className="w-6 h-6 text-cyan-300" />
+        <Calculator className="w-6 h-6 text-apple-blue" />
       </button>
 
       {open && (
         <div
           data-global-widget
-          className="fixed z-[230] right-4 md:right-8 w-[min(92vw,350px)] rounded-3xl bg-[#090a0d]/95 border border-white/10 text-white overflow-hidden shadow-2xl"
+          className="apple-type apple-card fixed z-[230] right-4 md:right-8 w-[min(92vw,350px)] rounded-apple-xl overflow-hidden shadow-apple-xl"
           style={{ bottom: "calc(env(safe-area-inset-bottom, 0px) + 96px)" }}
         >
-          <div className="px-4 py-3 border-b border-white/10 bg-black/35">
-            <h3 className="text-base font-bold flex items-center gap-2">
-              <span className="w-8 h-8 rounded-lg bg-cyan-500/20 border border-cyan-400/40 flex items-center justify-center">
-                <Calculator className="w-4 h-4 text-cyan-300" />
+          <div
+            className="px-4 py-3 apple-surface-secondary"
+            style={{ borderBottom: "0.5px solid rgb(var(--separator) / 0.29)" }}
+          >
+            <h3 className="apple-text-headline apple-label-primary flex items-center gap-2">
+              <span className="w-8 h-8 rounded-apple-sm bg-apple-blue/15 flex items-center justify-center">
+                <Calculator className="w-4 h-4 text-apple-blue" />
               </span>
-              Calculadora Rapida
+              Calculadora Rápida
             </h3>
           </div>
 
           <div className="p-4 space-y-3">
             <div className="space-y-2">
-              <Label className="text-white/70">Precio de piezas</Label>
+              <Label className="apple-text-subheadline apple-label-secondary">Precio de piezas</Label>
               <Input
                 type="number"
                 min="0"
@@ -81,12 +84,12 @@ export default function GlobalPriceWidget() {
                 value={partsPrice}
                 onChange={(e) => setPartsPrice(e.target.value)}
                 placeholder="0.00"
-                className="bg-white/5 border-white/10"
+                className="apple-input tabular-nums"
               />
             </div>
 
             <div className="space-y-2">
-              <Label className="text-white/70">Mano de obra</Label>
+              <Label className="apple-text-subheadline apple-label-secondary">Mano de obra</Label>
               <Input
                 type="number"
                 min="0"
@@ -94,53 +97,56 @@ export default function GlobalPriceWidget() {
                 value={laborPrice}
                 onChange={(e) => setLaborPrice(e.target.value)}
                 placeholder="0.00"
-                className="bg-white/5 border-white/10"
+                className="apple-input tabular-nums"
               />
             </div>
 
             <div className="space-y-2">
-              <Label className="text-white/70">IVU</Label>
+              <Label className="apple-text-subheadline apple-label-secondary">IVU</Label>
               <div className="flex items-center gap-2">
                 <Button
                   type="button"
                   onClick={() => setIncludeTax(false)}
-                  className={includeTax ? "flex-1 bg-white/5 border border-white/10 text-white/70" : "flex-1 bg-cyan-500 text-black font-bold"}
+                  className={includeTax ? "apple-btn apple-btn-tinted flex-1" : "apple-btn apple-btn-primary flex-1"}
                 >
                   Sin IVU
                 </Button>
                 <Button
                   type="button"
                   onClick={() => setIncludeTax(true)}
-                  className={includeTax ? "flex-1 bg-emerald-500 text-black font-bold" : "flex-1 bg-white/5 border border-white/10 text-white/70"}
+                  className={includeTax ? "apple-btn apple-btn-primary flex-1" : "apple-btn apple-btn-tinted flex-1"}
                 >
                   Con IVU
                 </Button>
               </div>
             </div>
 
-            <div className="rounded-2xl border border-emerald-400/30 bg-gradient-to-r from-emerald-500/15 to-cyan-500/10 p-4">
-              <div className="flex items-center justify-between text-sm text-white/80">
+            <div className="rounded-apple-lg bg-apple-green/12 p-4">
+              <div className="flex items-center justify-between apple-text-subheadline apple-label-secondary">
                 <span>Piezas</span>
-                <span>${totals.parts.toFixed(2)}</span>
+                <span className="tabular-nums">${totals.parts.toFixed(2)}</span>
               </div>
-              <div className="flex items-center justify-between text-sm text-white/80 mt-1">
+              <div className="flex items-center justify-between apple-text-subheadline apple-label-secondary mt-1">
                 <span>Mano de obra</span>
-                <span>${totals.labor.toFixed(2)}</span>
+                <span className="tabular-nums">${totals.labor.toFixed(2)}</span>
               </div>
-              <div className="flex items-center justify-between text-sm text-white/80 mt-1">
+              <div className="flex items-center justify-between apple-text-subheadline apple-label-secondary mt-1">
                 <span>Subtotal</span>
-                <span>${totals.subtotal.toFixed(2)}</span>
+                <span className="tabular-nums">${totals.subtotal.toFixed(2)}</span>
               </div>
               {includeTax && (
-                <div className="flex items-center justify-between text-sm text-white/80 mt-1">
+                <div className="flex items-center justify-between apple-text-subheadline apple-label-secondary mt-1">
                   <span>IVU (11.5%)</span>
-                  <span>${totals.tax.toFixed(2)}</span>
+                  <span className="tabular-nums">${totals.tax.toFixed(2)}</span>
                 </div>
               )}
-              <div className="h-px bg-white/20 my-2" />
+              <div
+                className="my-2"
+                style={{ borderBottom: "0.5px solid rgb(var(--separator) / 0.29)" }}
+              />
               <div className="flex items-center justify-between">
-                <span className="font-bold">Total</span>
-                <span className="text-2xl font-black text-emerald-300">${totals.total.toFixed(2)}</span>
+                <span className="apple-text-headline apple-label-primary">Total</span>
+                <span className="apple-text-title2 text-apple-green tabular-nums">${totals.total.toFixed(2)}</span>
               </div>
             </div>
           </div>

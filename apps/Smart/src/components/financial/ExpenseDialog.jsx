@@ -55,7 +55,7 @@ export default function ExpenseDialog({ open, onClose, onSuccess, drawer, defaul
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
     const amount = parseFloat(formData.amount);
     if (!amount || amount <= 0) {
       toast.error("Ingresa un monto válido");
@@ -149,7 +149,7 @@ export default function ExpenseDialog({ open, onClose, onSuccess, drawer, defaul
         payment_method: "cash",
         settles_on: "",
       });
-      
+
     } catch (error) {
       console.error("Error registrando gasto:", error);
       toast.error("Error al registrar gasto: " + (error.message || "Error desconocido"));
@@ -159,16 +159,16 @@ export default function ExpenseDialog({ open, onClose, onSuccess, drawer, defaul
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent className="max-w-md bg-[#0A0A0A] border border-white/10 rounded-2xl p-0 overflow-hidden">
-        <div className="absolute top-0 left-0 w-full h-0.5 bg-gradient-to-r from-orange-600 to-red-800" />
+      <DialogContent className="apple-type max-w-md apple-surface-elevated rounded-apple-lg shadow-apple-xl border-0 p-0 overflow-hidden">
+        <div className="absolute top-0 left-0 w-full h-0.5 bg-apple-orange" />
 
         <div className="p-5">
           <DialogHeader className="mb-4">
             <div className="flex items-center gap-3">
-              <div className="w-8 h-8 rounded-xl bg-orange-500/10 flex items-center justify-center border border-orange-500/20">
-                <TrendingDown className="w-4 h-4 text-orange-400" />
+              <div className="w-8 h-8 rounded-apple-sm bg-apple-orange/15 flex items-center justify-center">
+                <TrendingDown className="w-4 h-4 text-apple-orange" />
               </div>
-              <DialogTitle className="text-xl font-black text-white tracking-tight text-left">
+              <DialogTitle className="apple-text-title3 apple-label-primary text-left">
                 {defaultCategory === "payroll" ? "Pagar Nómina" : "Registrar Gasto"}
               </DialogTitle>
             </div>
@@ -176,16 +176,16 @@ export default function ExpenseDialog({ open, onClose, onSuccess, drawer, defaul
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
-              <label className="text-[10px] font-black text-white/40 uppercase tracking-widest ml-1">Monto ($)</label>
+              <label className="apple-text-caption2 font-semibold apple-label-tertiary ml-1">Monto ($)</label>
               <div className="relative">
-                <DollarSign className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-orange-500/50" />
+                <DollarSign className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-apple-orange" />
                 <Input
                   type="number"
                   step="0.01"
                   min="0"
                   value={formData.amount}
                   onChange={(e) => setFormData({ ...formData, amount: e.target.value })}
-                  className="bg-white/5 border-white/10 text-white text-2xl h-12 rounded-2xl pl-10 pr-5 focus:border-orange-500/50 font-black tracking-tighter"
+                  className="apple-input text-2xl h-12 rounded-apple-md pl-10 pr-5 font-semibold tabular-nums"
                   placeholder="0.00"
                   required
                 />
@@ -193,11 +193,11 @@ export default function ExpenseDialog({ open, onClose, onSuccess, drawer, defaul
             </div>
 
             <div className="space-y-2">
-              <label className="text-[10px] font-black text-white/40 uppercase tracking-widest ml-1">Descripción</label>
+              <label className="apple-text-caption2 font-semibold apple-label-tertiary ml-1">Descripción</label>
               <Textarea
                 value={formData.description}
                 onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                className="bg-white/5 border-white/10 text-white min-h-[80px] rounded-2xl p-4 focus:border-orange-500/50 font-medium resize-none"
+                className="apple-input min-h-[80px] rounded-apple-md p-4 resize-none"
                 placeholder="Ej: Pago de electricidad, repuestos de emergencia..."
                 required
               />
@@ -211,18 +211,18 @@ export default function ExpenseDialog({ open, onClose, onSuccess, drawer, defaul
 
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-2">
-                <label className="text-[10px] font-black text-white/40 uppercase tracking-widest ml-1">Categoría</label>
+                <label className="apple-text-caption2 font-semibold apple-label-tertiary ml-1">Categoría</label>
                 <Select
                   value={formData.category}
                   onValueChange={(value) => setFormData({ ...formData, category: value })}
                   disabled={!!defaultCategory}
                 >
-                  <SelectTrigger className="bg-white/5 border-white/10 text-white h-11 rounded-2xl px-4 focus:border-orange-500/50 font-bold disabled:opacity-50">
+                  <SelectTrigger className="apple-input h-11 rounded-apple-md px-4 font-semibold disabled:opacity-50">
                     <SelectValue />
                   </SelectTrigger>
-                  <SelectContent className="bg-[#111] border-white/10 text-white rounded-2xl">
+                  <SelectContent className="apple-surface-elevated rounded-apple-md border-0 shadow-apple-xl">
                     {categories.map(cat => (
-                      <SelectItem key={cat.value} value={cat.value} className="focus:bg-orange-500/20 focus:text-white rounded-xl mx-1 my-0.5">
+                      <SelectItem key={cat.value} value={cat.value} className="focus:bg-apple-orange/12 rounded-apple-sm mx-1 my-0.5">
                         {cat.label}
                       </SelectItem>
                     ))}
@@ -231,11 +231,11 @@ export default function ExpenseDialog({ open, onClose, onSuccess, drawer, defaul
               </div>
 
               <div className="space-y-2">
-                <label className="text-[10px] font-black text-white/40 uppercase tracking-widest ml-1">Referencia</label>
+                <label className="apple-text-caption2 font-semibold apple-label-tertiary ml-1">Referencia</label>
                 <Input
                   value={formData.reference}
                   onChange={(e) => setFormData({ ...formData, reference: e.target.value })}
-                  className="bg-white/5 border-white/10 text-white h-11 rounded-2xl px-4 focus:border-orange-500/50 font-bold"
+                  className="apple-input h-11 rounded-apple-md px-4 font-semibold"
                   placeholder="#Factura, ID..."
                 />
               </div>
@@ -243,7 +243,7 @@ export default function ExpenseDialog({ open, onClose, onSuccess, drawer, defaul
 
             {/* Método de pago + detección de pago diferido */}
             <div className="space-y-2">
-              <label className="text-[10px] font-black text-white/40 uppercase tracking-widest ml-1">
+              <label className="apple-text-caption2 font-semibold apple-label-tertiary ml-1">
                 Método de pago
               </label>
               <Select
@@ -258,36 +258,36 @@ export default function ExpenseDialog({ open, onClose, onSuccess, drawer, defaul
                   }))
                 }
               >
-                <SelectTrigger className="bg-white/5 border-white/10 text-white h-11 rounded-2xl px-4 focus:border-orange-500/50 font-bold">
+                <SelectTrigger className="apple-input h-11 rounded-apple-md px-4 font-semibold">
                   <SelectValue />
                 </SelectTrigger>
-                <SelectContent className="bg-[#111] border-white/10 text-white rounded-2xl">
-                  <SelectItem value="cash" className="focus:bg-orange-500/20 rounded-xl mx-1 my-0.5">
+                <SelectContent className="apple-surface-elevated rounded-apple-md border-0 shadow-apple-xl">
+                  <SelectItem value="cash" className="focus:bg-apple-orange/12 rounded-apple-sm mx-1 my-0.5">
                     {PAYMENT_METHOD_ICONS.cash} {PAYMENT_METHOD_LABELS.cash}
                   </SelectItem>
-                  <SelectItem value="card" className="focus:bg-orange-500/20 rounded-xl mx-1 my-0.5">
+                  <SelectItem value="card" className="focus:bg-apple-orange/12 rounded-apple-sm mx-1 my-0.5">
                     {PAYMENT_METHOD_ICONS.card} {PAYMENT_METHOD_LABELS.card}
                   </SelectItem>
-                  <SelectItem value="transfer" className="focus:bg-orange-500/20 rounded-xl mx-1 my-0.5">
+                  <SelectItem value="transfer" className="focus:bg-apple-orange/12 rounded-apple-sm mx-1 my-0.5">
                     {PAYMENT_METHOD_ICONS.transfer} {PAYMENT_METHOD_LABELS.transfer}
                   </SelectItem>
-                  <SelectItem value="ath_movil" className="focus:bg-orange-500/20 rounded-xl mx-1 my-0.5">
+                  <SelectItem value="ath_movil" className="focus:bg-apple-orange/12 rounded-apple-sm mx-1 my-0.5">
                     {PAYMENT_METHOD_ICONS.ath_movil} {PAYMENT_METHOD_LABELS.ath_movil}
                   </SelectItem>
-                  <div className="my-1 border-t border-white/10" />
-                  <div className="px-3 py-1 text-[9px] uppercase tracking-widest text-amber-400/60 font-black">
+                  <div className="my-1" style={{ borderTop: "0.5px solid rgb(var(--separator) / 0.29)" }} />
+                  <div className="px-3 py-1 apple-text-caption2 text-apple-yellow font-semibold">
                     ⏳ Sale del banco después
                   </div>
-                  <SelectItem value="credit_card" className="focus:bg-amber-500/20 rounded-xl mx-1 my-0.5">
+                  <SelectItem value="credit_card" className="focus:bg-apple-yellow/12 rounded-apple-sm mx-1 my-0.5">
                     {PAYMENT_METHOD_ICONS.credit_card} {PAYMENT_METHOD_LABELS.credit_card}
                   </SelectItem>
-                  <SelectItem value="klarna" className="focus:bg-amber-500/20 rounded-xl mx-1 my-0.5">
+                  <SelectItem value="klarna" className="focus:bg-apple-yellow/12 rounded-apple-sm mx-1 my-0.5">
                     {PAYMENT_METHOD_ICONS.klarna} {PAYMENT_METHOD_LABELS.klarna}
                   </SelectItem>
-                  <SelectItem value="check" className="focus:bg-amber-500/20 rounded-xl mx-1 my-0.5">
+                  <SelectItem value="check" className="focus:bg-apple-yellow/12 rounded-apple-sm mx-1 my-0.5">
                     {PAYMENT_METHOD_ICONS.check} {PAYMENT_METHOD_LABELS.check}
                   </SelectItem>
-                  <SelectItem value="paypal_credit" className="focus:bg-amber-500/20 rounded-xl mx-1 my-0.5">
+                  <SelectItem value="paypal_credit" className="focus:bg-apple-yellow/12 rounded-apple-sm mx-1 my-0.5">
                     {PAYMENT_METHOD_ICONS.paypal_credit} {PAYMENT_METHOD_LABELS.paypal_credit}
                   </SelectItem>
                 </SelectContent>
@@ -295,8 +295,8 @@ export default function ExpenseDialog({ open, onClose, onSuccess, drawer, defaul
             </div>
 
             {isDeferredMethod(formData.payment_method) && (
-              <div className="space-y-2 rounded-2xl bg-amber-500/[0.05] border border-amber-500/20 p-4">
-                <label className="text-[10px] font-black text-amber-300 uppercase tracking-widest flex items-center gap-2">
+              <div className="space-y-2 rounded-apple-md bg-apple-yellow/12 p-4">
+                <label className="apple-text-caption2 font-semibold text-apple-yellow flex items-center gap-2">
                   <Calendar className="w-3 h-3" />
                   ¿Cuándo saldrá del banco?
                 </label>
@@ -304,9 +304,9 @@ export default function ExpenseDialog({ open, onClose, onSuccess, drawer, defaul
                   type="date"
                   value={formData.settles_on}
                   onChange={(e) => setFormData({ ...formData, settles_on: e.target.value })}
-                  className="bg-white/5 border-amber-500/20 text-white h-11 rounded-xl px-4 focus:border-amber-500/50 font-bold"
+                  className="apple-input h-11 rounded-apple-sm px-4 font-semibold tabular-nums"
                 />
-                <p className="text-[10px] text-amber-300/60 leading-relaxed">
+                <p className="apple-text-caption2 apple-label-secondary leading-relaxed">
                   Este gasto NO se descontará del efectivo/banco hoy. Aparecerá en
                   "Pagos diferidos" hasta la fecha seleccionada, donde podrás
                   marcarlo como pagado cuando veas el cargo en tu estado de cuenta.
@@ -320,14 +320,14 @@ export default function ExpenseDialog({ open, onClose, onSuccess, drawer, defaul
                 variant="ghost"
                 onClick={onClose}
                 disabled={loading}
-                className="flex-1 bg-white/5 text-white/40 hover:text-white hover:bg-white/10 h-12 rounded-2xl font-black uppercase tracking-widest transition-all"
+                className="apple-btn apple-btn-secondary apple-btn-lg flex-1"
               >
                 Cancelar
               </Button>
               <Button
                 type="submit"
                 disabled={loading}
-                className="flex-1 bg-gradient-to-r from-orange-600 to-red-800 hover:from-orange-500 hover:to-red-700 text-white h-12 rounded-2xl font-black uppercase tracking-widest active:scale-95 transition-all"
+                className="apple-btn apple-btn-lg flex-1 bg-apple-orange text-white hover:bg-apple-orange/90 apple-press"
               >
                 {loading ? "Registrando..." : "Confirmar Gasto"}
               </Button>

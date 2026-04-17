@@ -13,11 +13,11 @@ const STATUS_LABELS = {
 };
 
 const STATUS_COLOR = {
-  completed: "text-emerald-400",
-  ready_for_pickup: "text-cyan-400",
-  in_progress: "text-amber-400",
-  pending: "text-white/40",
-  cancelled: "text-red-400",
+  completed: "text-apple-green",
+  ready_for_pickup: "text-apple-blue",
+  in_progress: "text-apple-orange",
+  pending: "apple-label-tertiary",
+  cancelled: "text-apple-red",
 };
 
 export default function TechnicianProductivityTab({ dateFilter, customStartDate, customEndDate }) {
@@ -100,39 +100,41 @@ export default function TechnicianProductivityTab({ dateFilter, customStartDate,
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center py-16">
-        <RefreshCw className="w-5 h-5 text-white/50 animate-spin" />
+      <div className="apple-type flex items-center justify-center py-16">
+        <RefreshCw className="w-5 h-5 apple-label-secondary animate-spin" />
       </div>
     );
   }
 
   if (techStats.length === 0) {
     return (
-      <div className="py-16 text-center">
-        <Users className="w-8 h-8 text-white/40 mx-auto mb-2" />
-        <p className="text-white/30 text-sm font-medium">Sin datos en el período seleccionado</p>
+      <div className="apple-type py-16 text-center">
+        <Users className="w-8 h-8 apple-label-tertiary mx-auto mb-2" />
+        <p className="apple-label-tertiary apple-text-footnote font-medium">Sin datos en el período seleccionado</p>
       </div>
     );
   }
 
+  const summaryStats = [
+    { label: "Técnicos activos", value: techStats.filter(t => t.id !== "__unassigned__").length, icon: Users, bg: "bg-apple-blue/12", text: "text-apple-blue" },
+    { label: "Órdenes totales", value: filteredOrders.length, icon: Wrench, bg: "bg-apple-blue/12", text: "text-apple-blue" },
+    { label: "Completadas", value: techStats.reduce((s, t) => s + t.completed, 0), icon: CheckCircle2, bg: "bg-apple-green/12", text: "text-apple-green" },
+    { label: "Ingresos generados", value: `$${techStats.reduce((s, t) => s + t.revenue, 0).toFixed(0)}`, icon: TrendingUp, bg: "bg-apple-purple/12", text: "text-apple-purple" },
+  ];
+
   return (
-    <div className="space-y-3">
+    <div className="apple-type space-y-3">
       {/* Summary row */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-        {[
-          { label: "Técnicos activos", value: techStats.filter(t => t.id !== "__unassigned__").length, icon: Users, color: "cyan" },
-          { label: "Órdenes totales", value: filteredOrders.length, icon: Wrench, color: "blue" },
-          { label: "Completadas", value: techStats.reduce((s, t) => s + t.completed, 0), icon: CheckCircle2, color: "emerald" },
-          { label: "Ingresos generados", value: `$${techStats.reduce((s, t) => s + t.revenue, 0).toFixed(0)}`, icon: TrendingUp, color: "violet" },
-        ].map(stat => {
+        {summaryStats.map(stat => {
           const Icon = stat.icon;
           return (
-            <div key={stat.label} className={`p-3 rounded-2xl bg-${stat.color}-500/5 border border-${stat.color}-500/10`}>
+            <div key={stat.label} className={`apple-card p-3 rounded-apple-md ${stat.bg}`}>
               <div className="flex items-center gap-2 mb-1">
-                <Icon className={`w-3.5 h-3.5 text-${stat.color}-400`} />
-                <span className="text-[10px] font-black text-white/30 uppercase tracking-widest">{stat.label}</span>
+                <Icon className={`w-3.5 h-3.5 ${stat.text}`} />
+                <span className="apple-text-caption2 font-semibold apple-label-tertiary">{stat.label}</span>
               </div>
-              <p className={`text-xl font-black text-${stat.color}-300`}>{stat.value}</p>
+              <p className={`apple-text-title2 tabular-nums ${stat.text}`}>{stat.value}</p>
             </div>
           );
         })}
@@ -148,94 +150,94 @@ export default function TechnicianProductivityTab({ dateFilter, customStartDate,
             <div key={tech.id}>
               <button
                 onClick={() => setSelectedTech(isSelected ? null : tech.id)}
-                className={`w-full text-left p-3 sm:p-4 rounded-2xl border transition-all ${
+                className={`apple-press w-full text-left p-3 sm:p-4 rounded-apple-md transition-all ${
                   isSelected
-                    ? "bg-white/[0.07] border-white/20"
-                    : "bg-white/[0.03] border-white/[0.06] hover:border-white/10"
+                    ? "apple-card bg-gray-sys6 dark:bg-gray-sys5"
+                    : "apple-card"
                 }`}
               >
                 <div className="flex items-center gap-3">
                   {/* Avatar */}
-                  <div className={`w-9 h-9 rounded-full flex items-center justify-center shrink-0 font-black text-sm ${
-                    tech.id === "__unassigned__" ? "bg-white/5 text-white/50" : "bg-gradient-to-br from-cyan-500/20 to-blue-500/20 text-cyan-300"
+                  <div className={`w-9 h-9 rounded-full flex items-center justify-center shrink-0 font-semibold apple-text-footnote ${
+                    tech.id === "__unassigned__" ? "bg-gray-sys6 dark:bg-gray-sys5 apple-label-secondary" : "bg-apple-blue/15 text-apple-blue"
                   }`}>
                     {tech.name[0].toUpperCase()}
                   </div>
 
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2">
-                      <p className="text-sm font-bold text-white truncate">{tech.name}</p>
+                      <p className="apple-text-footnote font-semibold apple-label-primary truncate">{tech.name}</p>
                       {isTop && (
-                        <span className="text-[9px] font-black bg-amber-500/15 text-amber-400 border border-amber-500/20 px-1.5 py-0.5 rounded-full">TOP</span>
+                        <span className="apple-text-caption2 font-semibold bg-apple-orange/15 text-apple-orange px-1.5 py-0.5 rounded-full">TOP</span>
                       )}
                     </div>
                     {/* Progress bar */}
                     <div className="flex items-center gap-2 mt-1">
-                      <div className="flex-1 h-1 bg-white/5 rounded-full overflow-hidden">
+                      <div className="flex-1 h-1 bg-gray-sys6 dark:bg-gray-sys5 rounded-full overflow-hidden">
                         <div
-                          className="h-full bg-gradient-to-r from-cyan-500 to-emerald-500 rounded-full transition-all"
+                          className="h-full bg-apple-green rounded-full transition-all"
                           style={{ width: `${completionRate}%` }}
                         />
                       </div>
-                      <span className="text-[10px] font-black text-white/30 shrink-0">{completionRate}%</span>
+                      <span className="apple-text-caption2 font-semibold apple-label-tertiary tabular-nums shrink-0">{completionRate}%</span>
                     </div>
                   </div>
 
                   {/* Stats */}
                   <div className="hidden sm:flex items-center gap-4 shrink-0">
                     <div className="text-center">
-                      <p className="text-xs font-black text-emerald-400">{tech.completed}</p>
-                      <p className="text-[9px] text-white/50">Completadas</p>
+                      <p className="apple-text-footnote font-semibold tabular-nums text-apple-green">{tech.completed}</p>
+                      <p className="apple-text-caption2 apple-label-tertiary">Completadas</p>
                     </div>
                     <div className="text-center">
-                      <p className="text-xs font-black text-amber-400">{tech.in_progress}</p>
-                      <p className="text-[9px] text-white/50">En progreso</p>
+                      <p className="apple-text-footnote font-semibold tabular-nums text-apple-orange">{tech.in_progress}</p>
+                      <p className="apple-text-caption2 apple-label-tertiary">En progreso</p>
                     </div>
                     <div className="text-center">
-                      <p className="text-xs font-black text-white/50">{tech.total}</p>
-                      <p className="text-[9px] text-white/50">Total</p>
+                      <p className="apple-text-footnote font-semibold tabular-nums apple-label-secondary">{tech.total}</p>
+                      <p className="apple-text-caption2 apple-label-tertiary">Total</p>
                     </div>
                     {tech.revenue > 0 && (
                       <div className="text-center">
-                        <p className="text-xs font-black text-violet-400">${tech.revenue.toFixed(0)}</p>
-                        <p className="text-[9px] text-white/50">Ingresos</p>
+                        <p className="apple-text-footnote font-semibold tabular-nums text-apple-purple">${tech.revenue.toFixed(0)}</p>
+                        <p className="apple-text-caption2 apple-label-tertiary">Ingresos</p>
                       </div>
                     )}
                   </div>
 
                   {/* Mobile stats */}
                   <div className="flex sm:hidden items-center gap-3 shrink-0">
-                    <span className="text-xs font-black text-emerald-400">{tech.completed} ✓</span>
-                    <span className="text-xs font-black text-white/30">{tech.total}</span>
+                    <span className="apple-text-footnote font-semibold tabular-nums text-apple-green">{tech.completed} ✓</span>
+                    <span className="apple-text-footnote font-semibold tabular-nums apple-label-tertiary">{tech.total}</span>
                   </div>
                 </div>
               </button>
 
               {/* Expanded order list */}
               {isSelected && (
-                <div className="mt-1 ml-3 p-3 rounded-2xl bg-white/[0.02] border border-white/[0.05] space-y-1.5">
-                  <p className="text-[10px] font-black text-white/50 uppercase tracking-widest mb-2">Órdenes del período</p>
+                <div className="mt-1 ml-3 p-3 rounded-apple-md apple-card space-y-1.5">
+                  <p className="apple-text-caption2 font-semibold apple-label-secondary mb-2">Órdenes del período</p>
                   {tech.orders.slice(0, 15).map(o => {
                     const s = o.status || o.current_status;
                     return (
-                      <div key={o.id} className="flex items-center gap-2 text-[11px]">
-                        <span className={`font-bold w-16 truncate ${STATUS_COLOR[s] || "text-white/40"}`}>
+                      <div key={o.id} className="flex items-center gap-2 apple-text-caption1">
+                        <span className={`font-semibold tabular-nums w-16 truncate ${STATUS_COLOR[s] || "apple-label-tertiary"}`}>
                           {o.order_number || o.id?.slice(0, 6)}
                         </span>
-                        <span className="text-white/50 flex-1 truncate">
+                        <span className="apple-label-secondary flex-1 truncate">
                           {[o.device_brand, o.device_model].filter(Boolean).join(" ") || o.device_type || "—"}
                         </span>
-                        <span className={`font-bold ${STATUS_COLOR[s] || "text-white/30"}`}>
+                        <span className={`font-semibold ${STATUS_COLOR[s] || "apple-label-tertiary"}`}>
                           {STATUS_LABELS[s] || s || "—"}
                         </span>
                         {o.total_price ? (
-                          <span className="text-violet-400 font-black">${Number(o.total_price).toFixed(0)}</span>
+                          <span className="text-apple-purple font-semibold tabular-nums">${Number(o.total_price).toFixed(0)}</span>
                         ) : null}
                       </div>
                     );
                   })}
                   {tech.orders.length > 15 && (
-                    <p className="text-[10px] text-white/50 pt-1">+{tech.orders.length - 15} más</p>
+                    <p className="apple-text-caption2 apple-label-tertiary tabular-nums pt-1">+{tech.orders.length - 15} más</p>
                   )}
                 </div>
               )}

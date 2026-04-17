@@ -4,12 +4,12 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Calculator } from "lucide-react";
 
-export default function EditAmountModal({ 
-  isOpen, 
-  onClose, 
-  title, 
-  currentValue, 
-  onSave 
+export default function EditAmountModal({
+  isOpen,
+  onClose,
+  title,
+  currentValue,
+  onSave
 }) {
   const [amount, setAmount] = useState("");
 
@@ -27,38 +27,38 @@ export default function EditAmountModal({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-xs bg-zinc-900 border-zinc-800 text-white z-[9999]">
-        <DialogHeader>
+      <DialogContent className="apple-type sm:max-w-xs apple-surface-elevated rounded-apple-lg shadow-apple-xl border-0 p-0 overflow-hidden z-[9999]">
+        <DialogHeader className="px-6 pt-6 pb-2">
           <DialogTitle className="text-center flex flex-col items-center gap-2">
-            <span className="text-xl font-medium">{title}</span>
-            <span className="text-zinc-400 text-sm font-normal">Editar Monto Total</span>
+            <span className="apple-text-title3 apple-label-primary">{title}</span>
+            <span className="apple-text-subheadline apple-label-secondary font-normal">Editar Monto Total</span>
           </DialogTitle>
         </DialogHeader>
 
-        <div className="flex flex-col items-center gap-6 py-4">
-          <div className="relative w-full px-4">
-            <div className="absolute left-8 top-1/2 -translate-y-1/2 text-zinc-500 font-bold text-3xl">$</div>
+        <div className="flex flex-col items-center gap-6 py-4 px-6">
+          <div className="relative w-full">
+            <div className="absolute left-4 top-1/2 -translate-y-1/2 apple-label-tertiary font-semibold text-3xl tabular-nums">$</div>
             <Input
               type="number"
               value={amount}
               onChange={(e) => setAmount(e.target.value)}
               placeholder="0.00"
-              className="h-20 pl-12 text-4xl text-center font-bold bg-zinc-950 border-zinc-800 focus:ring-emerald-500 rounded-2xl [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+              className="apple-input h-20 pl-12 text-4xl text-center font-semibold tabular-nums rounded-apple-md [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
               autoFocus
             />
           </div>
-          
+
           <div className="text-center space-y-1">
-             <p className="text-zinc-500 text-xs uppercase tracking-wider font-medium">Valor Actual</p>
-             <p className="text-xl font-bold text-emerald-400">
+             <p className="apple-text-caption2 apple-label-tertiary font-medium">Valor Actual</p>
+             <p className="apple-text-title1 tabular-nums text-apple-green">
                ${(parseFloat(amount) || 0).toFixed(2)}
              </p>
           </div>
         </div>
 
-        <DialogFooter className="sm:justify-center">
-          <Button 
-            className="w-full bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl h-12 text-lg font-medium" 
+        <DialogFooter className="sm:justify-center px-6 pb-6">
+          <Button
+            className="apple-btn apple-btn-primary apple-btn-lg w-full"
             onClick={handleSave}
           >
             Confirmar

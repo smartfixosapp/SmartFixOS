@@ -8,22 +8,22 @@ import { dataClient } from "@/components/api/dataClient";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/components/utils/helpers";
-import { 
-  Smartphone, DollarSign, Check, X, Zap, User, Settings, ExternalLink 
+import {
+  Smartphone, DollarSign, Check, X, Zap, User, Settings, ExternalLink
 } from "lucide-react";
 import CarriersConfigDialog from "./CarriersConfigDialog";
 
 const DEFAULT_CARRIERS = [
-  { name: "Claro", color: "from-red-600 to-red-800", icon: "📱", active: true },
-  { name: "T-Mobile", color: "from-pink-600 to-pink-800", icon: "📞", active: true },
-  { name: "AT&T", color: "from-blue-600 to-blue-800", icon: "📲", active: true },
-  { name: "Liberty", color: "from-orange-600 to-orange-800", icon: "📳", active: true },
-  { name: "Boost", color: "from-green-600 to-green-800", icon: "🚀", active: true },
-  { name: "Cricket", color: "from-lime-600 to-lime-800", icon: "🦗", active: true },
-  { name: "Metro", color: "from-purple-600 to-purple-800", icon: "🚇", active: true },
-  { name: "Simple Mobile", color: "from-cyan-600 to-cyan-800", icon: "📱", active: true },
-  { name: "Ultra Mobile", color: "from-indigo-600 to-indigo-800", icon: "💎", active: true },
-  { name: "H2O", color: "from-blue-500 to-blue-700", icon: "💧", active: true },
+  { name: "Claro", tint: "red", icon: "📱", active: true },
+  { name: "T-Mobile", tint: "red", icon: "📞", active: true },
+  { name: "AT&T", tint: "blue", icon: "📲", active: true },
+  { name: "Liberty", tint: "orange", icon: "📳", active: true },
+  { name: "Boost", tint: "green", icon: "🚀", active: true },
+  { name: "Cricket", tint: "green", icon: "🦗", active: true },
+  { name: "Metro", tint: "purple", icon: "🚇", active: true },
+  { name: "Simple Mobile", tint: "blue", icon: "📱", active: true },
+  { name: "Ultra Mobile", tint: "indigo", icon: "💎", active: true },
+  { name: "H2O", tint: "blue", icon: "💧", active: true },
 ];
 
 const QUICK_AMOUNTS = [5, 10, 15, 20, 25, 30, 40, 50, 75, 100];
@@ -105,23 +105,23 @@ export default function RechargeDialog({ open, onClose, onRechargeComplete }) {
     setProcessing(true);
     try {
       const user = await dataClient.auth.me();
-      
+
       const carrierName = formData.carrier === "Otra" ? formData.carrier_custom : formData.carrier;
-      
+
       // Validar que el amount existe
       if (!formData.amount || parseFloat(formData.amount) <= 0) {
         toast.error("Monto inválido");
         setProcessing(false);
         return;
       }
-      
+
       // Crear item de recarga con precio + IVU
       const subtotal = parseFloat(formData.amount);
       const tax = applyTax ? subtotal * 0.115 : 0;
       const total = subtotal + tax;
-      
+
       console.log("🔵 Procesando recarga:", { subtotal, tax, total, applyTax });
-      
+
       const rechargeData = {
         phone_number: formData.phone_number,
         carrier: formData.carrier,
@@ -138,7 +138,7 @@ export default function RechargeDialog({ open, onClose, onRechargeComplete }) {
       };
 
       console.log("✅ Recarga completada, enviando al POS");
-      
+
       // Enviar al callback parent (POS)
       onRechargeComplete?.(rechargeData);
       handleReset();
@@ -154,30 +154,30 @@ export default function RechargeDialog({ open, onClose, onRechargeComplete }) {
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent className="bg-[#020617] border border-cyan-500/30 max-w-2xl text-white theme-light:bg-white theme-light:border-gray-200 z-[200]">
-        <DialogHeader>
-          <DialogTitle className="text-2xl font-bold text-white flex items-center gap-3 theme-light:text-gray-900">
-            <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-cyan-600 to-emerald-600 flex items-center justify-center">
-              <Zap className="w-6 h-6 text-white" />
+      <DialogContent className="apple-type apple-surface-elevated rounded-apple-lg shadow-apple-xl border-0 p-0 overflow-hidden max-w-2xl z-[200]">
+        <DialogHeader className="p-6 pb-2">
+          <DialogTitle className="apple-text-title2 apple-label-primary flex items-center gap-3">
+            <div className="w-12 h-12 rounded-apple-md bg-apple-blue/15 flex items-center justify-center">
+              <Zap className="w-6 h-6 text-apple-blue" />
             </div>
             Recarga de Celular
           </DialogTitle>
         </DialogHeader>
 
-        <div className="space-y-6 py-4">
+        <div className="space-y-6 p-6 pt-4">
           {/* Indicador de pasos */}
           <div className="flex justify-between items-center">
             {[1, 2, 3].map((s) => (
               <div key={s} className="flex items-center flex-1">
-                <div className={`w-10 h-10 rounded-full flex items-center justify-center border-2 transition-all ${
-                  step >= s 
-                    ? 'bg-gradient-to-r from-cyan-600 to-emerald-600 border-transparent text-white' 
-                    : 'bg-black/30 border-white/20 text-gray-500'
+                <div className={`w-10 h-10 rounded-full flex items-center justify-center transition-all apple-text-subheadline font-semibold ${
+                  step >= s
+                    ? 'bg-apple-blue text-white'
+                    : 'bg-gray-sys6 dark:bg-gray-sys5 apple-label-tertiary'
                 }`}>
                   {step > s ? <Check className="w-5 h-5" /> : s}
                 </div>
                 {s < 3 && (
-                  <div className={`flex-1 h-1 mx-2 ${step > s ? 'bg-gradient-to-r from-cyan-600 to-emerald-600' : 'bg-white/10'}`} />
+                  <div className={`flex-1 h-1 mx-2 rounded-full ${step > s ? 'bg-apple-blue' : 'bg-gray-sys6 dark:bg-gray-sys5'}`} />
                 )}
               </div>
             ))}
@@ -187,8 +187,8 @@ export default function RechargeDialog({ open, onClose, onRechargeComplete }) {
           {step === 1 && (
             <div className="space-y-6">
               <div>
-                <label className="text-xs text-gray-400 mb-2 block theme-light:text-gray-600 flex items-center gap-2">
-                  <Smartphone className="w-4 h-4 text-cyan-400" />
+                <label className="apple-text-caption1 apple-label-secondary mb-2 flex items-center gap-2">
+                  <Smartphone className="w-4 h-4 text-apple-blue" />
                   Número a Recargar *
                 </label>
                 <Input
@@ -198,16 +198,16 @@ export default function RechargeDialog({ open, onClose, onRechargeComplete }) {
                     const value = e.target.value.replace(/\D/g, '').slice(0, 10);
                     setFormData({...formData, phone_number: value});
                   }}
-                  className="bg-black/30 border-cyan-500/20 text-white h-14 text-lg font-mono theme-light:bg-white theme-light:border-gray-300"
+                  className="apple-input h-14 apple-text-headline font-mono tabular-nums"
                   placeholder="7879233860 (10 dígitos)"
                   maxLength={10}
                   autoFocus
                 />
                 {formData.phone_number && formData.phone_number.length !== 10 && (
-                  <p className="text-xs text-red-400 mt-1">El número debe tener exactamente 10 dígitos</p>
+                  <p className="apple-text-caption1 text-apple-red mt-1">El número debe tener exactamente 10 dígitos</p>
                 )}
                 {formData.phone_number && formData.phone_number.length === 10 && (
-                  <p className="text-xs text-emerald-400 mt-1 flex items-center gap-1">
+                  <p className="apple-text-caption1 text-apple-green mt-1 flex items-center gap-1">
                     <Check className="w-3 h-3" /> Número válido
                   </p>
                 )}
@@ -215,10 +215,10 @@ export default function RechargeDialog({ open, onClose, onRechargeComplete }) {
 
               <div>
                 <div className="flex items-center justify-between mb-3">
-                  <label className="text-xs text-gray-400 theme-light:text-gray-600">Selecciona la Compañía *</label>
+                  <label className="apple-text-caption1 apple-label-secondary">Selecciona la Compañía *</label>
                   <button
                     onClick={() => setShowCarriersConfig(true)}
-                    className="text-xs text-cyan-400 hover:text-cyan-300 flex items-center gap-1"
+                    className="apple-text-caption1 text-apple-blue flex items-center gap-1"
                   >
                     <Settings className="w-3 h-3" />
                     Gestionar
@@ -226,25 +226,29 @@ export default function RechargeDialog({ open, onClose, onRechargeComplete }) {
                 </div>
                 {loadingCarriers ? (
                   <div className="flex items-center justify-center py-12">
-                    <div className="w-8 h-8 border-4 border-cyan-600 border-t-transparent rounded-full animate-spin" />
+                    <div className="w-8 h-8 border-4 border-apple-blue border-t-transparent rounded-full animate-spin" />
                   </div>
                 ) : (
                   <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-                    {carriers.map(carrier => (
+                    {carriers.map(carrier => {
+                      const tint = carrier.tint || "blue";
+                      const selected = formData.carrier === carrier.name;
+                      return (
                     <button
                       key={carrier.name}
                       type="button"
                       onClick={() => setFormData({...formData, carrier: carrier.name})}
-                      className={`flex flex-col items-center gap-2 p-4 rounded-xl border-2 transition-all ${
-                        formData.carrier === carrier.name
-                          ? `bg-gradient-to-br ${carrier.color} text-white border-transparent shadow-lg`
-                          : 'bg-white/5 border-white/10 text-white/60 hover:bg-white/10 theme-light:bg-gray-100 theme-light:border-gray-300'
+                      className={`apple-press flex flex-col items-center gap-2 p-4 rounded-apple-md transition-all ${
+                        selected
+                          ? `bg-apple-${tint}/15 ring-2 ring-apple-${tint}`
+                          : 'apple-card'
                       }`}
                     >
                       <span className="text-3xl">{carrier.icon}</span>
-                      <span className="text-sm font-bold">{carrier.name}</span>
+                      <span className={`apple-text-subheadline font-semibold ${selected ? `text-apple-${tint}` : 'apple-label-primary'}`}>{carrier.name}</span>
                     </button>
-                    ))}
+                      );
+                    })}
                   </div>
                 )}
 
@@ -252,21 +256,21 @@ export default function RechargeDialog({ open, onClose, onRechargeComplete }) {
                   <Input
                     value={formData.carrier_custom}
                     onChange={(e) => setFormData({...formData, carrier_custom: e.target.value})}
-                    className="mt-3 bg-black/30 border-cyan-500/20 text-white h-11 theme-light:bg-white theme-light:border-gray-300"
+                    className="apple-input mt-3 h-11"
                     placeholder="Nombre de la compañía..."
                   />
                 )}
               </div>
 
               <div>
-                <label className="text-xs text-gray-400 mb-2 block theme-light:text-gray-600 flex items-center gap-2">
-                  <User className="w-4 h-4 text-cyan-400" />
+                <label className="apple-text-caption1 apple-label-secondary mb-2 flex items-center gap-2">
+                  <User className="w-4 h-4 text-apple-blue" />
                   Nombre del Cliente (opcional)
                 </label>
                 <Input
                   value={formData.customer_name}
                   onChange={(e) => setFormData({...formData, customer_name: e.target.value})}
-                  className="bg-black/30 border-cyan-500/20 text-white h-11 theme-light:bg-white theme-light:border-gray-300"
+                  className="apple-input h-11"
                   placeholder="Dejar vacío si el cliente no desea dar su nombre"
                 />
               </div>
@@ -274,12 +278,12 @@ export default function RechargeDialog({ open, onClose, onRechargeComplete }) {
               <Button
                 onClick={() => setStep(2)}
                 disabled={
-                  !formData.phone_number || 
+                  !formData.phone_number ||
                   formData.phone_number.length !== 10 ||
-                  !formData.carrier || 
+                  !formData.carrier ||
                   (formData.carrier === "Otra" && !formData.carrier_custom?.trim())
                 }
-                className="w-full h-12 bg-gradient-to-r from-cyan-600 to-emerald-700 shadow-[0_4px_20px_rgba(0,168,232,0.4)]"
+                className="apple-btn apple-btn-primary w-full h-12"
               >
                 Continuar
                 <Check className="w-5 h-5 ml-2" />
@@ -292,24 +296,24 @@ export default function RechargeDialog({ open, onClose, onRechargeComplete }) {
             <div className="space-y-6">
               {/* Link Externo para procesar recarga */}
               {externalRechargeUrl && (
-                <div className="bg-cyan-600/10 border border-cyan-500/30 rounded-xl p-4">
-                  <p className="text-xs text-cyan-300 mb-3">💡 Procesar recarga externamente</p>
+                <div className="bg-apple-blue/12 rounded-apple-md p-4">
+                  <p className="apple-text-caption1 text-apple-blue mb-3">Procesar recarga externamente</p>
                   <button
                     onClick={() => {
                       const popup = window.open(externalRechargeUrl, 'recharge_popup', 'width=800,height=900,scrollbars=yes');
                       toast.success("Ventana de recarga abierta. Los datos se mantendrán aquí.");
                     }}
-                    className="w-full px-4 py-3 bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-white rounded-lg font-semibold flex items-center justify-center gap-2 transition-all"
+                    className="apple-btn apple-btn-primary w-full"
                   >
-                    <ExternalLink className="w-5 h-5" />
+                    <ExternalLink className="w-5 h-5 mr-2" />
                     Abrir {externalRechargeUrl.includes('pagatodo') ? 'PagaTodoPR.com' : 'Sistema de Recarga'}
                   </button>
                 </div>
               )}
 
               <div>
-                <label className="text-xs text-gray-400 mb-2 block theme-light:text-gray-600 flex items-center gap-2">
-                  <DollarSign className="w-4 h-4 text-emerald-400" />
+                <label className="apple-text-caption1 apple-label-secondary mb-2 flex items-center gap-2">
+                  <DollarSign className="w-4 h-4 text-apple-green" />
                   Monto de Recarga *
                 </label>
                 <div className="grid grid-cols-5 gap-2 mb-4">
@@ -318,10 +322,10 @@ export default function RechargeDialog({ open, onClose, onRechargeComplete }) {
                       key={amount}
                       type="button"
                       onClick={() => setFormData({...formData, amount: amount.toString()})}
-                      className={`py-3 rounded-lg border-2 font-bold transition-all ${
+                      className={`apple-press py-3 rounded-apple-sm font-semibold transition-all tabular-nums ${
                         formData.amount === amount.toString()
-                          ? 'bg-gradient-to-r from-emerald-600 to-green-600 text-white border-transparent shadow-lg'
-                          : 'bg-white/5 border-white/10 text-white/60 hover:bg-white/10 theme-light:bg-gray-100 theme-light:border-gray-300'
+                          ? 'bg-apple-green text-white'
+                          : 'apple-card apple-label-primary'
                       }`}
                     >
                       ${amount}
@@ -333,45 +337,45 @@ export default function RechargeDialog({ open, onClose, onRechargeComplete }) {
                   step="0.01"
                   value={formData.amount}
                   onChange={(e) => setFormData({...formData, amount: e.target.value})}
-                  className="bg-black/30 border-cyan-500/20 text-white h-14 text-2xl font-bold text-center theme-light:bg-white theme-light:border-gray-300"
+                  className="apple-input h-14 apple-text-title2 font-bold text-center tabular-nums"
                   placeholder="$0.00"
                 />
               </div>
 
               {formData.amount && (
-                <div className="bg-emerald-600/10 border border-emerald-500/30 rounded-xl p-4 space-y-3 theme-light:bg-emerald-50">
-                  <div className="flex items-center justify-between">
-                    <span className="text-gray-400 text-sm theme-light:text-gray-700">Subtotal</span>
-                    <span className="text-white font-bold theme-light:text-gray-900">
+                <div className="bg-apple-green/12 rounded-apple-md p-4 space-y-3">
+                  <div className="flex items-center justify-between tabular-nums">
+                    <span className="apple-label-secondary apple-text-subheadline">Subtotal</span>
+                    <span className="apple-label-primary font-semibold">
                       ${parseFloat(formData.amount).toFixed(2)}
                     </span>
                   </div>
-                  
+
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
                       <button
                         type="button"
                         onClick={() => setApplyTax(!applyTax)}
                         className={`w-12 h-6 rounded-full transition-all relative ${
-                          applyTax ? 'bg-emerald-500' : 'bg-gray-600'
+                          applyTax ? 'bg-apple-green' : 'bg-gray-sys5'
                         }`}
                       >
                         <div className={`absolute top-0.5 w-5 h-5 bg-white rounded-full transition-all ${
                           applyTax ? 'left-6' : 'left-0.5'
                         }`} />
                       </button>
-                      <span className="text-gray-400 text-sm theme-light:text-gray-700">IVU (11.5%)</span>
+                      <span className="apple-label-secondary apple-text-subheadline">IVU (11.5%)</span>
                     </div>
-                    <span className="text-white font-bold theme-light:text-gray-900">
+                    <span className="apple-label-primary font-semibold tabular-nums">
                       {applyTax ? `$${(parseFloat(formData.amount) * 0.115).toFixed(2)}` : '$0.00'}
                     </span>
                   </div>
 
-                  <div className="h-px bg-white/10" />
-                  
+                  <div style={{ borderTop: "0.5px solid rgb(var(--separator) / 0.29)" }} />
+
                   <div className="flex items-center justify-between">
-                    <span className="text-white font-bold text-lg theme-light:text-gray-900">Total a Cobrar</span>
-                    <span className="text-3xl text-emerald-400 font-bold theme-light:text-emerald-700">
+                    <span className="apple-label-primary apple-text-headline">Total a Cobrar</span>
+                    <span className="apple-text-title1 text-apple-green font-bold tabular-nums">
                       ${(parseFloat(formData.amount) * (applyTax ? 1.115 : 1)).toFixed(2)}
                     </span>
                   </div>
@@ -382,14 +386,14 @@ export default function RechargeDialog({ open, onClose, onRechargeComplete }) {
                 <Button
                   variant="outline"
                   onClick={() => setStep(1)}
-                  className="flex-1 border-white/15 h-12 theme-light:border-gray-300"
+                  className="apple-btn apple-btn-secondary flex-1 h-12"
                 >
                   Atrás
                 </Button>
                 <Button
                   onClick={() => setStep(3)}
                   disabled={!formData.amount || parseFloat(formData.amount) <= 0}
-                  className="flex-1 h-12 bg-gradient-to-r from-emerald-600 to-green-700"
+                  className="apple-btn apple-btn-primary bg-apple-green flex-1 h-12"
                 >
                   Continuar
                 </Button>
@@ -401,46 +405,46 @@ export default function RechargeDialog({ open, onClose, onRechargeComplete }) {
           {step === 3 && (
             <div className="space-y-6">
               {/* Resumen */}
-              <div className="bg-black/40 border border-cyan-500/20 rounded-xl p-5 theme-light:bg-gray-50 theme-light:border-gray-200">
-                <h3 className="text-white font-bold mb-4 flex items-center gap-2 theme-light:text-gray-900">
-                  <Zap className="w-5 h-5 text-cyan-400" />
+              <div className="apple-card p-5">
+                <h3 className="apple-label-primary apple-text-headline mb-4 flex items-center gap-2">
+                  <Zap className="w-5 h-5 text-apple-blue" />
                   Resumen de Recarga
                 </h3>
                 <div className="space-y-3">
                   <div className="flex items-center justify-between">
-                    <span className="text-gray-400 text-sm theme-light:text-gray-600">Número</span>
-                    <span className="text-white font-mono font-bold theme-light:text-gray-900">{formData.phone_number}</span>
+                    <span className="apple-label-secondary apple-text-subheadline">Número</span>
+                    <span className="apple-label-primary font-mono font-semibold tabular-nums">{formData.phone_number}</span>
                   </div>
                   <div className="flex items-center justify-between">
-                    <span className="text-gray-400 text-sm theme-light:text-gray-600">Compañía</span>
-                    <Badge className={`bg-gradient-to-r ${selectedCarrier?.color} text-white border-0`}>
+                    <span className="apple-label-secondary apple-text-subheadline">Compañía</span>
+                    <Badge className={`bg-apple-${selectedCarrier?.tint || "blue"}/15 text-apple-${selectedCarrier?.tint || "blue"} border-0`}>
                       {selectedCarrier?.icon} {formData.carrier === "Otra" ? formData.carrier_custom : formData.carrier}
                     </Badge>
                   </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-gray-400 text-sm theme-light:text-gray-600">Subtotal</span>
-                    <span className="text-white font-bold theme-light:text-gray-900">
+                  <div className="flex items-center justify-between tabular-nums">
+                    <span className="apple-label-secondary apple-text-subheadline">Subtotal</span>
+                    <span className="apple-label-primary font-semibold">
                       ${parseFloat(formData.amount).toFixed(2)}
                     </span>
                   </div>
                   {applyTax && (
-                    <div className="flex items-center justify-between">
-                      <span className="text-gray-400 text-sm theme-light:text-gray-600">IVU (11.5%)</span>
-                      <span className="text-white font-bold theme-light:text-gray-900">
+                    <div className="flex items-center justify-between tabular-nums">
+                      <span className="apple-label-secondary apple-text-subheadline">IVU (11.5%)</span>
+                      <span className="apple-label-primary font-semibold">
                         ${(parseFloat(formData.amount) * 0.115).toFixed(2)}
                       </span>
                     </div>
                   )}
-                  <div className="flex items-center justify-between pt-2 border-t border-white/10">
-                    <span className="text-white font-bold theme-light:text-gray-900">Total a Cobrar</span>
-                    <span className="text-2xl text-emerald-400 font-bold theme-light:text-emerald-700">
+                  <div className="flex items-center justify-between pt-2" style={{ borderTop: "0.5px solid rgb(var(--separator) / 0.29)" }}>
+                    <span className="apple-label-primary apple-text-headline">Total a Cobrar</span>
+                    <span className="apple-text-title2 text-apple-green font-bold tabular-nums">
                       ${(parseFloat(formData.amount) * (applyTax ? 1.115 : 1)).toFixed(2)}
                     </span>
                   </div>
                   {formData.customer_name && (
                     <div className="flex items-center justify-between">
-                      <span className="text-gray-400 text-sm theme-light:text-gray-600">Cliente</span>
-                      <span className="text-white theme-light:text-gray-900">{formData.customer_name}</span>
+                      <span className="apple-label-secondary apple-text-subheadline">Cliente</span>
+                      <span className="apple-label-primary apple-text-subheadline">{formData.customer_name}</span>
                     </div>
                   )}
                 </div>
@@ -448,22 +452,22 @@ export default function RechargeDialog({ open, onClose, onRechargeComplete }) {
 
               {/* Código de confirmación (opcional) */}
               <div>
-                <label className="text-xs text-gray-400 mb-1 block theme-light:text-gray-600">Código de Confirmación (opcional)</label>
+                <label className="apple-text-caption1 apple-label-secondary mb-1 block">Código de Confirmación (opcional)</label>
                 <Input
                   value={formData.confirmation_code}
                   onChange={(e) => setFormData({...formData, confirmation_code: e.target.value})}
-                  className="bg-black/30 border-cyan-500/20 text-white h-11 font-mono theme-light:bg-white theme-light:border-gray-300"
+                  className="apple-input h-11 font-mono"
                   placeholder="Se generará automáticamente si no lo ingresas"
                 />
               </div>
 
               {/* Notas */}
               <div>
-                <label className="text-xs text-gray-400 mb-1 block theme-light:text-gray-600">Notas (opcional)</label>
+                <label className="apple-text-caption1 apple-label-secondary mb-1 block">Notas (opcional)</label>
                 <Input
                   value={formData.notes}
                   onChange={(e) => setFormData({...formData, notes: e.target.value})}
-                  className="bg-black/30 border-cyan-500/20 text-white h-11 theme-light:bg-white theme-light:border-gray-300"
+                  className="apple-input h-11"
                   placeholder="Información adicional..."
                 />
               </div>
@@ -474,14 +478,14 @@ export default function RechargeDialog({ open, onClose, onRechargeComplete }) {
                   variant="outline"
                   onClick={() => setStep(2)}
                   disabled={processing}
-                  className="flex-1 border-white/15 h-12 theme-light:border-gray-300"
+                  className="apple-btn apple-btn-secondary flex-1 h-12"
                 >
                   Atrás
                 </Button>
                 <Button
                   onClick={handleProcessRecharge}
                   disabled={processing}
-                  className="flex-1 h-12 bg-gradient-to-r from-emerald-600 to-green-700 shadow-[0_4px_20px_rgba(16,185,129,0.4)]"
+                  className="apple-btn apple-btn-primary bg-apple-green flex-1 h-12"
                 >
                   {processing ? (
                     <>

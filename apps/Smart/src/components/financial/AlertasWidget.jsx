@@ -24,7 +24,7 @@ export default function AlertasWidget() {
   useEffect(() => {
     loadAlerts();
     loadSettings();
-    
+
     // Cada 10 min, solo si tab visible
     const interval = setInterval(() => {
       if (document.visibilityState === "visible") loadAlerts();
@@ -50,7 +50,7 @@ export default function AlertasWidget() {
   const saveSettings = async () => {
     try {
       const configs = await base44.entities.SystemConfig.filter({ key: "financial_alerts_config" });
-      
+
       if (configs?.length > 0) {
         await base44.entities.SystemConfig.update(configs[0].id, {
           value: JSON.stringify(thresholdConfig)
@@ -62,7 +62,7 @@ export default function AlertasWidget() {
           category: "financial"
         });
       }
-      
+
       toast.success("✅ Configuración guardada");
       setShowSettings(false);
       loadAlerts();
@@ -152,7 +152,7 @@ export default function AlertasWidget() {
 
       for (const alert of alertsList) {
         const notifKey = `${today}-${alert.id}`;
-        
+
         if (!notifiedToday.includes(notifKey)) {
           await NotificationService.createNotification({
             userId: user.id,
@@ -183,11 +183,6 @@ export default function AlertasWidget() {
     setAlerts(alerts.filter(a => a.id !== alertId));
   };
 
-  const getAlertColor = (severity) => {
-    if (severity === "urgent") return "from-red-600/20 to-red-800/20 border-red-500/40";
-    return "from-amber-600/20 to-amber-800/20 border-amber-500/40";
-  };
-
   const getAlertIcon = (severity) => {
     if (severity === "urgent") return "🚨";
     return "⚠️";
@@ -197,34 +192,36 @@ export default function AlertasWidget() {
   if (!loading && alerts.length === 0) {
     return (
       <>
-        <div className="flex items-center justify-between px-4 py-2.5 rounded-2xl bg-emerald-500/[0.07] border border-emerald-500/20">
+        <div className="apple-type flex items-center justify-between px-4 py-2.5 rounded-apple-md bg-apple-green/12">
           <div className="flex items-center gap-2.5">
             <span className="text-base">🛡️</span>
             <div>
-              <p className="text-xs font-black text-emerald-400 uppercase tracking-widest leading-none">Todo en orden</p>
-              <p className="text-[10px] text-white/25">Sin alertas financieras</p>
+              <p className="apple-text-caption1 font-semibold text-apple-green leading-none">Todo en orden</p>
+              <p className="apple-text-caption2 apple-label-tertiary">Sin alertas financieras</p>
             </div>
           </div>
-          <button onClick={() => setShowSettings(true)} className="w-7 h-7 rounded-lg bg-white/5 hover:bg-white/10 flex items-center justify-center text-white/30 hover:text-white transition-colors">
+          <button onClick={() => setShowSettings(true)} className="apple-press w-7 h-7 rounded-apple-sm bg-gray-sys6 dark:bg-gray-sys5 flex items-center justify-center apple-label-secondary transition-colors">
             <Settings className="w-3.5 h-3.5" />
           </button>
         </div>
         {showSettings && (
           <Dialog open={showSettings} onOpenChange={setShowSettings}>
-            <DialogContent className="bg-gradient-to-br from-[#2B2B2B] to-black border-cyan-500/30">
-              <DialogHeader><DialogTitle className="text-white flex items-center gap-2"><Settings className="w-5 h-5 text-cyan-500" />Configurar Alertas</DialogTitle></DialogHeader>
-              <div className="space-y-4 mt-4">
-                <div>
-                  <Label className="text-gray-300">Umbral mensual de gastos ($)</Label>
-                  <Input type="number" step="0.01" value={thresholdConfig.monthly_expense_threshold} onChange={(e) => setThresholdConfig({ ...thresholdConfig, monthly_expense_threshold: parseFloat(e.target.value) || 0 })} className="bg-black/40 border-cyan-500/20 text-white mt-1" />
-                </div>
-                <div>
-                  <Label className="text-gray-300">Días de anticipación para vencimientos</Label>
-                  <Input type="number" min="1" max="30" value={thresholdConfig.days_before_due} onChange={(e) => setThresholdConfig({ ...thresholdConfig, days_before_due: parseInt(e.target.value) || 7 })} className="bg-black/40 border-cyan-500/20 text-white mt-1" />
-                </div>
-                <div className="flex gap-3 pt-2">
-                  <Button variant="outline" onClick={() => setShowSettings(false)} className="flex-1 border-white/15">Cancelar</Button>
-                  <Button onClick={saveSettings} className="flex-1 bg-gradient-to-r from-cyan-600 to-emerald-700">Guardar</Button>
+            <DialogContent className="apple-type apple-surface-elevated rounded-apple-lg shadow-apple-xl border-0 p-0 overflow-hidden">
+              <div className="p-5">
+                <DialogHeader><DialogTitle className="apple-label-primary apple-text-title3 flex items-center gap-2"><Settings className="w-5 h-5 text-apple-blue" />Configurar Alertas</DialogTitle></DialogHeader>
+                <div className="space-y-4 mt-4">
+                  <div>
+                    <Label className="apple-label-secondary apple-text-footnote">Umbral mensual de gastos ($)</Label>
+                    <Input type="number" step="0.01" value={thresholdConfig.monthly_expense_threshold} onChange={(e) => setThresholdConfig({ ...thresholdConfig, monthly_expense_threshold: parseFloat(e.target.value) || 0 })} className="apple-input mt-1 tabular-nums" />
+                  </div>
+                  <div>
+                    <Label className="apple-label-secondary apple-text-footnote">Días de anticipación para vencimientos</Label>
+                    <Input type="number" min="1" max="30" value={thresholdConfig.days_before_due} onChange={(e) => setThresholdConfig({ ...thresholdConfig, days_before_due: parseInt(e.target.value) || 7 })} className="apple-input mt-1 tabular-nums" />
+                  </div>
+                  <div className="flex gap-3 pt-2">
+                    <Button variant="outline" onClick={() => setShowSettings(false)} className="apple-btn apple-btn-secondary flex-1">Cancelar</Button>
+                    <Button onClick={saveSettings} className="apple-btn apple-btn-primary flex-1">Guardar</Button>
+                  </div>
                 </div>
               </div>
             </DialogContent>
@@ -236,42 +233,42 @@ export default function AlertasWidget() {
 
   return (
     <>
-      <div className="bg-white/[0.03] border border-white/[0.08] rounded-2xl p-3 space-y-2">
+      <div className="apple-type apple-card rounded-apple-md p-3 space-y-2">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <Bell className="w-3.5 h-3.5 text-amber-400" />
-            <p className="text-[10px] font-black text-white/40 uppercase tracking-widest">Alertas</p>
-            <span className="flex h-4 w-4 items-center justify-center rounded-full bg-red-600/30 text-[8px] font-black text-red-300 border border-red-500/30 animate-pulse">
+            <Bell className="w-3.5 h-3.5 text-apple-yellow" />
+            <p className="apple-text-caption2 font-semibold apple-label-tertiary">Alertas</p>
+            <span className="flex h-4 w-4 items-center justify-center rounded-full bg-apple-red/15 apple-text-caption2 font-semibold text-apple-red tabular-nums animate-pulse">
               {alerts.length}
             </span>
           </div>
-          <button onClick={() => setShowSettings(true)} className="w-6 h-6 rounded-lg bg-white/5 hover:bg-white/10 flex items-center justify-center text-white/30 hover:text-white transition-colors">
+          <button onClick={() => setShowSettings(true)} className="apple-press w-6 h-6 rounded-apple-xs bg-gray-sys6 dark:bg-gray-sys5 flex items-center justify-center apple-label-secondary transition-colors">
             <Settings className="w-3 h-3" />
           </button>
         </div>
 
         {loading ? (
-          <div className="flex items-center gap-2 py-2 text-white/50">
+          <div className="flex items-center gap-2 py-2 apple-label-secondary">
             <RefreshCw className="w-3 h-3 animate-spin" />
-            <p className="text-[10px] font-bold">Escaneando…</p>
+            <p className="apple-text-caption2 font-semibold">Escaneando…</p>
           </div>
         ) : (
           <div className="space-y-1.5">
             {alerts.map(alert => (
-              <div key={alert.id} className={`flex items-start gap-2.5 p-2.5 rounded-xl border transition-all ${
-                alert.severity === 'urgent' ? 'bg-red-500/5 border-red-500/20' : 'bg-amber-500/5 border-amber-500/20'
+              <div key={alert.id} className={`flex items-start gap-2.5 p-2.5 rounded-apple-sm transition-all ${
+                alert.severity === 'urgent' ? 'bg-apple-red/12' : 'bg-apple-yellow/12'
               }`}>
                 <span className="text-sm shrink-0 mt-0.5">{getAlertIcon(alert.severity)}</span>
                 <div className="flex-1 min-w-0">
-                  <p className={`text-xs font-black truncate ${alert.severity === 'urgent' ? 'text-red-300' : 'text-amber-300'}`}>{alert.title}</p>
-                  <p className="text-[10px] text-white/40 leading-tight mt-0.5">{alert.message}</p>
+                  <p className={`apple-text-caption1 font-semibold truncate ${alert.severity === 'urgent' ? 'text-apple-red' : 'text-apple-yellow'}`}>{alert.title}</p>
+                  <p className="apple-text-caption2 apple-label-secondary tabular-nums leading-tight mt-0.5">{alert.message}</p>
                   {alert.amount && (
-                    <p className={`text-xs font-black mt-0.5 ${alert.severity === 'urgent' ? 'text-red-400' : 'text-amber-400'}`}>
+                    <p className={`apple-text-caption1 font-semibold tabular-nums mt-0.5 ${alert.severity === 'urgent' ? 'text-apple-red' : 'text-apple-yellow'}`}>
                       ${alert.amount.toLocaleString(undefined, { minimumFractionDigits: 2 })}
                     </p>
                   )}
                 </div>
-                <button onClick={() => dismissAlert(alert.id)} className="w-5 h-5 rounded-md bg-white/5 hover:bg-white/10 flex items-center justify-center text-white/50 hover:text-white transition-colors shrink-0">
+                <button onClick={() => dismissAlert(alert.id)} className="apple-press w-5 h-5 rounded-apple-xs bg-gray-sys6 dark:bg-gray-sys5 flex items-center justify-center apple-label-secondary transition-colors shrink-0">
                   <X className="w-2.5 h-2.5" />
                 </button>
               </div>
@@ -283,68 +280,70 @@ export default function AlertasWidget() {
 
       {/* Modal de Configuración */}
       <Dialog open={showSettings} onOpenChange={setShowSettings}>
-        <DialogContent className="bg-gradient-to-br from-[#2B2B2B] to-black border-cyan-500/30 theme-light:bg-white theme-light:border-gray-200">
-          <DialogHeader>
-            <DialogTitle className="text-white flex items-center gap-2 theme-light:text-gray-900">
-              <Settings className="w-5 h-5 text-cyan-500" />
-              Configurar Alertas
-            </DialogTitle>
-          </DialogHeader>
+        <DialogContent className="apple-type apple-surface-elevated rounded-apple-lg shadow-apple-xl border-0 p-0 overflow-hidden">
+          <div className="p-5">
+            <DialogHeader>
+              <DialogTitle className="apple-label-primary apple-text-title3 flex items-center gap-2">
+                <Settings className="w-5 h-5 text-apple-blue" />
+                Configurar Alertas
+              </DialogTitle>
+            </DialogHeader>
 
-          <div className="space-y-4 mt-4">
-            <div>
-              <Label className="text-gray-300 theme-light:text-gray-700">
-                Umbral mensual de gastos ($)
-              </Label>
-              <Input
-                type="number"
-                step="0.01"
-                value={thresholdConfig.monthly_expense_threshold}
-                onChange={(e) => setThresholdConfig({
-                  ...thresholdConfig,
-                  monthly_expense_threshold: parseFloat(e.target.value) || 0
-                })}
-                className="bg-black/40 border-cyan-500/20 text-white theme-light:bg-white theme-light:border-gray-300 theme-light:text-gray-900"
-              />
-              <p className="text-xs text-gray-500 mt-1 theme-light:text-gray-600">
-                Recibirás una alerta si los gastos mensuales superan este monto
-              </p>
-            </div>
+            <div className="space-y-4 mt-4">
+              <div>
+                <Label className="apple-label-secondary apple-text-footnote">
+                  Umbral mensual de gastos ($)
+                </Label>
+                <Input
+                  type="number"
+                  step="0.01"
+                  value={thresholdConfig.monthly_expense_threshold}
+                  onChange={(e) => setThresholdConfig({
+                    ...thresholdConfig,
+                    monthly_expense_threshold: parseFloat(e.target.value) || 0
+                  })}
+                  className="apple-input mt-1 tabular-nums"
+                />
+                <p className="apple-text-caption2 apple-label-tertiary mt-1">
+                  Recibirás una alerta si los gastos mensuales superan este monto
+                </p>
+              </div>
 
-            <div>
-              <Label className="text-gray-300 theme-light:text-gray-700">
-                Días de anticipación para vencimientos
-              </Label>
-              <Input
-                type="number"
-                min="1"
-                max="30"
-                value={thresholdConfig.days_before_due}
-                onChange={(e) => setThresholdConfig({
-                  ...thresholdConfig,
-                  days_before_due: parseInt(e.target.value) || 7
-                })}
-                className="bg-black/40 border-cyan-500/20 text-white theme-light:bg-white theme-light:border-gray-300 theme-light:text-gray-900"
-              />
-              <p className="text-xs text-gray-500 mt-1 theme-light:text-gray-600">
-                Te avisaremos con esta cantidad de días de anticipación
-              </p>
-            </div>
+              <div>
+                <Label className="apple-label-secondary apple-text-footnote">
+                  Días de anticipación para vencimientos
+                </Label>
+                <Input
+                  type="number"
+                  min="1"
+                  max="30"
+                  value={thresholdConfig.days_before_due}
+                  onChange={(e) => setThresholdConfig({
+                    ...thresholdConfig,
+                    days_before_due: parseInt(e.target.value) || 7
+                  })}
+                  className="apple-input mt-1 tabular-nums"
+                />
+                <p className="apple-text-caption2 apple-label-tertiary mt-1">
+                  Te avisaremos con esta cantidad de días de anticipación
+                </p>
+              </div>
 
-            <div className="flex gap-3 pt-4">
-              <Button
-                variant="outline"
-                onClick={() => setShowSettings(false)}
-                className="flex-1 border-white/15 theme-light:border-gray-300"
-              >
-                Cancelar
-              </Button>
-              <Button
-                onClick={saveSettings}
-                className="flex-1 bg-gradient-to-r from-cyan-600 to-emerald-700"
-              >
-                Guardar
-              </Button>
+              <div className="flex gap-3 pt-4">
+                <Button
+                  variant="outline"
+                  onClick={() => setShowSettings(false)}
+                  className="apple-btn apple-btn-secondary flex-1"
+                >
+                  Cancelar
+                </Button>
+                <Button
+                  onClick={saveSettings}
+                  className="apple-btn apple-btn-primary flex-1"
+                >
+                  Guardar
+                </Button>
+              </div>
             </div>
           </div>
         </DialogContent>

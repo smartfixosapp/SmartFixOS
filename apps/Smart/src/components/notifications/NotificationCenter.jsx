@@ -114,35 +114,35 @@ export default function NotificationCenter() {
 
   const getTypeIcon = (type) => {
     switch(type) {
-      case "success": return <CheckCircle2 className="w-5 h-5 text-emerald-400" />;
-      case "warning": return <AlertCircle className="w-5 h-5 text-amber-400" />;
-      case "error": return <AlertCircle className="w-5 h-5 text-red-400" />;
-      default: return <Info className="w-5 h-5 text-cyan-400" />;
+      case "success": return <CheckCircle2 className="w-5 h-5 text-apple-green" />;
+      case "warning": return <AlertCircle className="w-5 h-5 text-apple-orange" />;
+      case "error": return <AlertCircle className="w-5 h-5 text-apple-red" />;
+      default: return <Info className="w-5 h-5 text-apple-blue" />;
     }
   };
 
   const getTypeColor = (type) => {
     switch(type) {
-      case "success": return "bg-emerald-600/20 border-emerald-500/30 theme-light:bg-emerald-50";
-      case "warning": return "bg-amber-600/20 border-amber-500/30 theme-light:bg-amber-50";
-      case "error": return "bg-red-600/20 border-red-500/30 theme-light:bg-red-50";
-      default: return "bg-cyan-600/20 border-cyan-500/30 theme-light:bg-cyan-50";
+      case "success": return "bg-apple-green/12";
+      case "warning": return "bg-apple-orange/12";
+      case "error": return "bg-apple-red/12";
+      default: return "bg-apple-blue/12";
     }
   };
 
   const unreadCount = notifications.filter(n => !n.is_read).length;
 
   return (
-    <Card className="bg-gradient-to-br from-cyan-600/10 to-emerald-600/10 backdrop-blur-xl border border-cyan-500/20 theme-light:bg-white theme-light:border-gray-200">
+    <Card className="apple-type apple-card border-0">
       <CardHeader>
         <div className="flex items-center justify-between">
-          <CardTitle className="text-white flex items-center gap-3 theme-light:text-gray-900">
-            <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-cyan-500 to-emerald-600 flex items-center justify-center shadow-lg">
-              <Bell className="w-7 h-7 text-white" />
+          <CardTitle className="apple-label-primary flex items-center gap-3">
+            <div className="w-12 h-12 rounded-apple-sm bg-apple-blue/15 flex items-center justify-center">
+              <Bell className="w-7 h-7 text-apple-blue" />
             </div>
             <div>
-              <p className="text-2xl font-bold">Centro de Notificaciones</p>
-              <p className="text-sm text-cyan-200 font-normal theme-light:text-gray-600">
+              <p className="apple-text-title2">Centro de Notificaciones</p>
+              <p className="apple-text-subheadline apple-label-secondary tabular-nums">
                 {unreadCount} sin leer
               </p>
             </div>
@@ -152,7 +152,7 @@ export default function NotificationCenter() {
             <Button
               size="sm"
               onClick={handleMarkAllAsRead}
-              className="bg-gradient-to-r from-emerald-600 to-green-600"
+              className="apple-btn apple-btn-primary apple-press"
             >
               <CheckCheck className="w-4 h-4 mr-2" />
               Marcar todas
@@ -167,7 +167,7 @@ export default function NotificationCenter() {
             size="sm"
             variant={filter === "all" ? "default" : "outline"}
             onClick={() => setFilter("all")}
-            className={filter === "all" ? "bg-gradient-to-r from-cyan-600 to-emerald-600" : "border-white/15"}
+            className={filter === "all" ? "apple-btn apple-btn-primary" : "apple-btn apple-btn-secondary"}
           >
             Todas
           </Button>
@@ -175,7 +175,7 @@ export default function NotificationCenter() {
             size="sm"
             variant={filter === "unread" ? "default" : "outline"}
             onClick={() => setFilter("unread")}
-            className={filter === "unread" ? "bg-gradient-to-r from-cyan-600 to-emerald-600" : "border-white/15"}
+            className={filter === "unread" ? "apple-btn apple-btn-primary" : "apple-btn apple-btn-secondary"}
           >
             Sin leer ({unreadCount})
           </Button>
@@ -183,7 +183,7 @@ export default function NotificationCenter() {
             size="sm"
             variant={filter === "read" ? "default" : "outline"}
             onClick={() => setFilter("read")}
-            className={filter === "read" ? "bg-gradient-to-r from-cyan-600 to-emerald-600" : "border-white/15"}
+            className={filter === "read" ? "apple-btn apple-btn-primary" : "apple-btn apple-btn-secondary"}
           >
             Leídas
           </Button>
@@ -192,44 +192,44 @@ export default function NotificationCenter() {
         <div className="space-y-3 max-h-[600px] overflow-y-auto">
           {loading ? (
             <div className="text-center py-12">
-              <Clock className="w-12 h-12 text-gray-600 mx-auto mb-3 animate-spin" />
-              <p className="text-gray-400">Cargando...</p>
+              <Clock className="w-12 h-12 apple-label-tertiary mx-auto mb-3 animate-spin" />
+              <p className="apple-label-secondary apple-text-subheadline">Cargando...</p>
             </div>
           ) : notifications.length === 0 ? (
             <div className="text-center py-12">
-              <Bell className="w-16 h-16 text-gray-600 mx-auto mb-3 opacity-30" />
-              <p className="text-gray-400">No hay notificaciones</p>
+              <Bell className="w-16 h-16 apple-label-tertiary mx-auto mb-3 opacity-30" />
+              <p className="apple-label-secondary apple-text-subheadline">No hay notificaciones</p>
             </div>
           ) : (
             notifications.map((notification) => (
               <div
                 key={notification.id}
-                className={`border rounded-xl p-4 transition-all ${
+                className={`rounded-apple-md p-4 transition-all ${
                   notification.is_read
-                    ? "bg-black/20 border-white/10 opacity-60 theme-light:bg-gray-50 theme-light:border-gray-200"
-                    : `${getTypeColor(notification.type)} border`
+                    ? "apple-surface opacity-60"
+                    : `${getTypeColor(notification.type)}`
                 }`}
               >
                 <div className="flex items-start gap-3">
                   <div className="flex-shrink-0 mt-1">
                     {getTypeIcon(notification.type)}
                   </div>
-                  
+
                   <div className="flex-1 min-w-0">
-                    <p className="text-white font-semibold text-sm mb-1 theme-light:text-gray-900">
+                    <p className="apple-label-primary apple-text-subheadline font-semibold mb-1">
                       {notification.title}
                     </p>
-                    <p className="text-gray-400 text-xs mb-2 theme-light:text-gray-600">
+                    <p className="apple-label-secondary apple-text-caption1 mb-2">
                       {notification.message}
                     </p>
-                    
+
                     <div className="flex items-center gap-2 flex-wrap">
-                      <Badge className="bg-white/10 text-gray-300 text-[10px] theme-light:bg-gray-200 theme-light:text-gray-700">
+                      <Badge className="bg-gray-sys6 dark:bg-gray-sys5 apple-label-secondary apple-text-caption2 rounded-apple-sm border-0 tabular-nums">
                         {format(new Date(notification.created_date), "dd MMM, HH:mm", { locale: es })}
                       </Badge>
-                      
+
                       {notification.category && (
-                        <Badge className="bg-cyan-600/20 text-cyan-300 border-cyan-600/30 text-[10px] theme-light:bg-cyan-100 theme-light:text-cyan-700">
+                        <Badge className="bg-apple-blue/15 text-apple-blue apple-text-caption2 rounded-apple-sm border-0">
                           {notification.category}
                         </Badge>
                       )}
@@ -243,7 +243,7 @@ export default function NotificationCenter() {
                         variant="ghost"
                         onClick={() => handleMarkAsRead(notification.id)}
                         aria-label="Marcar como leído"
-                        className="h-8 w-8 text-emerald-400 hover:bg-emerald-600/20"
+                        className="apple-btn apple-btn-plain h-8 w-8 text-apple-green hover:bg-apple-green/12"
                       >
                         <CheckCircle2 className="w-4 h-4" />
                       </Button>
@@ -253,7 +253,7 @@ export default function NotificationCenter() {
                       variant="ghost"
                       onClick={() => handleDelete(notification.id)}
                       aria-label="Eliminar notificación"
-                      className="h-8 w-8 text-red-400 hover:bg-red-600/20"
+                      className="apple-btn apple-btn-plain h-8 w-8 text-apple-red hover:bg-apple-red/12"
                     >
                       <Trash2 className="w-4 h-4" />
                     </Button>

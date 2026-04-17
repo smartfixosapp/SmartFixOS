@@ -31,33 +31,33 @@ export default function UniversalPrintDialog({
   if (!open) return null;
 
   return (
-    <div className="fixed inset-0 z-[150] bg-black/90 backdrop-blur-md">
+    <div className="apple-type fixed inset-0 z-[150] bg-black/50 backdrop-blur-sm">
       <div className="h-full overflow-y-auto p-4">
         <div className="min-h-full flex items-center justify-center">
-          <div className="w-full max-w-sm bg-[#0F0F12] border border-white/10 rounded-3xl shadow-2xl">
+          <div className="w-full max-w-sm apple-surface-elevated rounded-apple-lg shadow-apple-xl border-0 p-0 overflow-hidden">
 
             {/* Header */}
-            <div className="flex items-center justify-between px-5 pt-5 pb-4 border-b border-white/[0.06]">
+            <div className="flex items-center justify-between px-5 pt-5 pb-4" style={{ borderBottom: "0.5px solid rgb(var(--separator) / 0.29)" }}>
               <div className="flex items-center gap-3">
-                <div className="w-9 h-9 rounded-2xl bg-gradient-to-br from-cyan-500 to-emerald-500 flex items-center justify-center">
-                  <Printer className="w-4 h-4 text-white" />
+                <div className="w-9 h-9 rounded-apple-sm bg-apple-blue/15 flex items-center justify-center">
+                  <Printer className="w-4 h-4 text-apple-blue" />
                 </div>
                 <div>
-                  <h2 className="text-white font-black text-sm">
+                  <h2 className="apple-label-primary apple-text-subheadline font-semibold">
                     {type === "sale" ? "Recibo de Venta" : "Recibo de Orden"}
                   </h2>
-                  <p className="text-white/40 text-[11px]">
+                  <p className="apple-label-secondary apple-text-caption1 tabular-nums">
                     #{type === "sale" ? data?.sale_number : data?.order_number}
                   </p>
                 </div>
               </div>
-              <button onClick={onClose} className="w-8 h-8 rounded-full bg-white/5 flex items-center justify-center text-white/40 hover:text-white hover:bg-white/10 transition-all">
+              <button onClick={onClose} className="apple-press w-8 h-8 rounded-full bg-gray-sys6 dark:bg-gray-sys5 flex items-center justify-center apple-label-secondary transition-all">
                 <X className="w-4 h-4" />
               </button>
             </div>
 
             {/* Receipt Preview */}
-            <div className="px-4 py-4 bg-gradient-to-b from-white/[0.02] to-transparent overflow-y-auto max-h-[60vh]">
+            <div className="px-4 py-4 apple-surface overflow-y-auto max-h-[60vh]">
               {type === "sale"
                 ? <ThermalSaleReceipt sale={data} customer={customer} />
                 : <ThermalOrderReceipt order={data} />
@@ -65,12 +65,12 @@ export default function UniversalPrintDialog({
             </div>
 
             {/* Actions */}
-            <div className="px-4 pb-5 pt-3 border-t border-white/[0.06]">
+            <div className="px-4 pb-5 pt-3" style={{ borderTop: "0.5px solid rgb(var(--separator) / 0.29)" }}>
               <button
                 onClick={handlePrint}
-                className="w-full h-12 flex items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-cyan-600 to-emerald-600 text-white font-black text-sm shadow-[0_4px_20px_rgba(6,182,212,0.3)] active:scale-[0.98] transition-all"
+                className="apple-btn apple-btn-primary w-full h-12"
               >
-                <Printer className="w-4 h-4" />
+                <Printer className="w-4 h-4 mr-2" />
                 Imprimir Recibo
               </button>
             </div>

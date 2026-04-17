@@ -16,12 +16,12 @@ import JeaniDiagnosticPanel from "@/components/workorder/JeaniDiagnosticPanel";
 import { createPageUrl } from "@/utils";
 
 const statusColors = {
-  pending: "bg-yellow-100 text-yellow-800 border-yellow-200",
-  in_progress: "bg-blue-100 text-blue-800 border-blue-200",
-  waiting_parts: "bg-orange-100 text-orange-800 border-orange-200",
-  ready: "bg-green-100 text-green-800 border-green-200",
-  completed: "bg-gray-100 text-gray-800 border-gray-200",
-  delivered: "bg-slate-100 text-slate-800 border-slate-200"
+  pending: "bg-apple-yellow/15 text-apple-yellow border-0",
+  in_progress: "bg-apple-blue/15 text-apple-blue border-0",
+  waiting_parts: "bg-apple-orange/15 text-apple-orange border-0",
+  ready: "bg-apple-green/15 text-apple-green border-0",
+  completed: "bg-gray-sys6 dark:bg-gray-sys5 apple-label-secondary border-0",
+  delivered: "bg-gray-sys6 dark:bg-gray-sys5 apple-label-secondary border-0"
 };
 
 export default function CustomerOrdersDialog({ customer, orders = [], open, onClose, onDelete }) {
@@ -80,24 +80,24 @@ Dime: tipo de cliente (frecuente/ocasional/nuevo), su valor para el negocio, y u
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent className="max-w-3xl max-h-[80vh] overflow-y-auto bg-[#121215] border border-white/10">
-        <DialogHeader>
+      <DialogContent className="apple-type max-w-3xl max-h-[80vh] overflow-y-auto apple-surface-elevated rounded-apple-lg shadow-apple-xl border-0 p-0 overflow-hidden">
+        <DialogHeader className="p-6 pb-0">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <DialogTitle className="text-xl sm:text-2xl font-black text-white">
+              <DialogTitle className="apple-text-title2 apple-label-primary">
                 {customer.name}
               </DialogTitle>
               {vip && (
-                <span className="flex items-center gap-1 px-2 py-1 bg-yellow-500/15 border border-yellow-500/30 rounded-lg">
-                  <Star className="w-3 h-3 text-yellow-400 fill-yellow-400" />
-                  <span className="text-[10px] font-black text-yellow-400 uppercase tracking-tight">VIP</span>
+                <span className="flex items-center gap-1 px-2 py-1 bg-apple-yellow/15 rounded-apple-sm">
+                  <Star className="w-3 h-3 text-apple-yellow fill-current" />
+                  <span className="apple-text-caption2 font-semibold text-apple-yellow">VIP</span>
                 </span>
               )}
             </div>
             {onDelete && (
               <button
                 onClick={() => onDelete(customer.id)}
-                className="flex items-center gap-1.5 px-3 py-1.5 text-red-400/60 hover:text-red-400 hover:bg-red-500/10 border border-transparent hover:border-red-500/20 rounded-xl text-xs font-bold transition-all"
+                className="apple-btn apple-btn-plain apple-press flex items-center gap-1.5 px-3 py-1.5 text-apple-red hover:bg-apple-red/12 rounded-apple-md apple-text-footnote font-semibold"
               >
                 <Trash2 className="w-3.5 h-3.5" />
                 Eliminar cliente
@@ -107,16 +107,16 @@ Dime: tipo de cliente (frecuente/ocasional/nuevo), su valor para el negocio, y u
         </DialogHeader>
 
         {/* IA — Resumen del cliente */}
-        <div className="mx-4 mb-3 border border-violet-500/20 rounded-2xl overflow-hidden bg-white/[0.02]">
+        <div className="mx-4 mb-3 rounded-apple-md overflow-hidden bg-apple-purple/12">
           <div className="flex items-center justify-between px-4 py-2.5">
             <div className="flex items-center gap-2">
-              <span className="text-violet-400 text-xs">✨</span>
-              <span className="text-[10px] font-black text-white/40 uppercase tracking-widest">Análisis IA del cliente</span>
+              <span className="text-apple-purple apple-text-caption1">✨</span>
+              <span className="apple-text-caption2 font-semibold apple-label-secondary">Análisis IA del cliente</span>
             </div>
             <button
               onClick={fetchClientSummary}
               disabled={aiClientLoading}
-              className="text-[10px] font-black text-violet-400/70 hover:text-violet-300 disabled:opacity-40 uppercase tracking-widest transition-colors"
+              className="apple-text-caption2 font-semibold text-apple-purple hover:opacity-80 disabled:opacity-40 transition-opacity"
             >
               {aiClientLoading ? "…" : "Analizar"}
             </button>
@@ -125,18 +125,18 @@ Dime: tipo de cliente (frecuente/ocasional/nuevo), su valor para el negocio, y u
             <div className="px-4 pb-3">
               {aiClientLoading ? (
                 <div className="flex gap-1">
-                  <span className="w-1.5 h-1.5 rounded-full bg-violet-400 animate-bounce" style={{animationDelay:"0ms"}} />
-                  <span className="w-1.5 h-1.5 rounded-full bg-violet-400 animate-bounce" style={{animationDelay:"150ms"}} />
-                  <span className="w-1.5 h-1.5 rounded-full bg-violet-400 animate-bounce" style={{animationDelay:"300ms"}} />
+                  <span className="w-1.5 h-1.5 rounded-full bg-apple-purple animate-bounce" style={{animationDelay:"0ms"}} />
+                  <span className="w-1.5 h-1.5 rounded-full bg-apple-purple animate-bounce" style={{animationDelay:"150ms"}} />
+                  <span className="w-1.5 h-1.5 rounded-full bg-apple-purple animate-bounce" style={{animationDelay:"300ms"}} />
                 </div>
               ) : (
-                <p className="text-xs text-white/70 leading-relaxed">{aiClientSummary}</p>
+                <p className="apple-text-footnote apple-label-secondary leading-relaxed">{aiClientSummary}</p>
               )}
             </div>
           )}
           {!aiClientSummary && !aiClientLoading && (
             <div className="px-4 pb-2">
-              <p className="text-[10px] text-white/50">Presiona "Analizar" para ver el perfil IA del cliente</p>
+              <p className="apple-text-caption2 apple-label-tertiary">Presiona "Analizar" para ver el perfil IA del cliente</p>
             </div>
           )}
         </div>
@@ -146,10 +146,10 @@ Dime: tipo de cliente (frecuente/ocasional/nuevo), su valor para el negocio, y u
           {!showDiagnostic ? (
             <button
               onClick={() => setShowDiagnostic(true)}
-              className="w-full flex items-center justify-center gap-2 py-3 rounded-xl bg-violet-500/[0.08] border border-violet-500/20 text-violet-300 text-xs font-black hover:bg-violet-500/15 transition-all active:scale-[0.98]"
+              className="apple-btn apple-btn-tinted apple-press w-full flex items-center justify-center gap-2 py-3 rounded-apple-md bg-apple-purple/12 text-apple-purple apple-text-footnote font-semibold"
             >
               <Brain className="w-4 h-4" />
-              🧠 Diagnóstico IA — Cliente regresa con problema
+              Diagnóstico IA — Cliente regresa con problema
             </button>
           ) : (
             <JeaniDiagnosticPanel
@@ -161,23 +161,23 @@ Dime: tipo de cliente (frecuente/ocasional/nuevo), su valor para el negocio, y u
 
         {ordersList.length === 0 ? (
           <div className="text-center py-12">
-            <Package className="w-12 h-12 sm:w-16 sm:h-16 mx-auto text-slate-500 mb-4" />
-            <p className="text-slate-400 text-base sm:text-lg">No hay órdenes registradas</p>
+            <Package className="w-12 h-12 sm:w-16 sm:h-16 mx-auto apple-label-tertiary mb-4" />
+            <p className="apple-label-secondary apple-text-body">No hay órdenes registradas</p>
           </div>
         ) : (
-          <div className="space-y-6">
+          <div className="space-y-6 p-4">
             {/* Órdenes Activas */}
             {activeOrders.length > 0 && (
               <div>
-                <h3 className="text-sm font-bold text-emerald-400 mb-3 flex items-center gap-2">
-                  <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                <h3 className="apple-text-subheadline font-semibold text-apple-green mb-3 flex items-center gap-2">
+                  <div className="w-2 h-2 rounded-full bg-apple-green animate-pulse" />
                   Órdenes Activas ({activeOrders.length})
                 </h3>
                 <div className="space-y-3">
                   {activeOrders.map((order) => (
-              <Card 
-                key={order.id} 
-                className="cursor-pointer hover:shadow-lg transition-all bg-[#121212] border-white/10 hover:border-red-600/40"
+              <Card
+                key={order.id}
+                className="apple-card apple-press cursor-pointer transition-all border-0"
                 onClick={() => handleOrderClick(order.id)}
               >
                 <CardContent className="p-3 sm:p-4">
@@ -185,49 +185,49 @@ Dime: tipo de cliente (frecuente/ocasional/nuevo), su valor para el negocio, y u
                     <div className="flex items-start justify-between gap-2">
                       <div className="space-y-1 min-w-0 flex-1">
                         <div className="flex items-center gap-2 flex-wrap">
-                          <h3 className="font-bold text-base sm:text-lg text-white">{order.order_number}</h3>
-                          <Badge className={`${statusColors[order.status] || 'bg-gray-100 text-gray-800'} text-xs`} variant="outline">
+                          <h3 className="apple-text-headline apple-label-primary tabular-nums">{order.order_number}</h3>
+                          <Badge className={`apple-text-caption1 rounded-apple-sm ${statusColors[order.status] || 'bg-gray-sys6 dark:bg-gray-sys5 apple-label-secondary'}`} variant="outline">
                             {order.status?.replace(/_/g, ' ')}
                           </Badge>
                           {order.priority !== "normal" && (
-                            <Badge variant="outline" className="bg-red-100 text-red-800 text-xs">
+                            <Badge variant="outline" className="bg-apple-red/15 text-apple-red apple-text-caption1 rounded-apple-sm border-0">
                               {order.priority}
                             </Badge>
                           )}
                         </div>
-                        <p className="text-xs sm:text-sm text-slate-400">
+                        <p className="apple-text-footnote apple-label-secondary tabular-nums">
                           {order.device_brand} {order.device_model} • Creado {order.created_date ? format(new Date(order.created_date), "dd MMM, yyyy") : "—"}
                         </p>
                       </div>
-                      <ArrowRight className="w-5 h-5 text-slate-500 flex-shrink-0" />
+                      <ArrowRight className="w-5 h-5 apple-label-tertiary flex-shrink-0" />
                     </div>
 
                     <div>
                       <div className="flex items-center justify-between mb-1">
-                        <span className="text-xs text-slate-500">Progreso</span>
-                        <span className="text-xs font-bold text-slate-300">{order.progress_percentage || 0}%</span>
+                        <span className="apple-text-caption1 apple-label-tertiary">Progreso</span>
+                        <span className="apple-text-caption1 font-semibold apple-label-secondary tabular-nums">{order.progress_percentage || 0}%</span>
                       </div>
-                      <div className="w-full bg-slate-800 rounded-full h-2 overflow-hidden">
-                        <div 
-                          className="h-full bg-gradient-to-r from-red-600 to-red-700 transition-all duration-300"
+                      <div className="w-full bg-gray-sys6 dark:bg-gray-sys5 rounded-full h-2 overflow-hidden">
+                        <div
+                          className="h-full bg-apple-red transition-all duration-300"
                           style={{ width: `${Math.max(0, Math.min(Number(order.progress_percentage || 0), 100))}%` }}
                         />
                       </div>
                     </div>
 
                     {order.repair_tasks && order.repair_tasks.length > 0 && (
-                      <div className="pt-2 border-t border-white/10">
-                        <p className="text-xs text-slate-500 mb-1">
+                      <div className="pt-2" style={{ borderTop: '0.5px solid rgb(var(--separator) / 0.29)' }}>
+                        <p className="apple-text-caption1 apple-label-tertiary mb-1 tabular-nums">
                           {order.repair_tasks.filter(t => t.status === "completed").length} / {order.repair_tasks.length} tareas completadas
                         </p>
                         <div className="flex flex-wrap gap-1">
                           {order.repair_tasks.slice(0, 3).map((task, idx) => (
-                            <Badge key={idx} variant="secondary" className="text-xs bg-slate-800 text-slate-300">
+                            <Badge key={idx} variant="secondary" className="apple-text-caption1 bg-gray-sys6 dark:bg-gray-sys5 apple-label-secondary rounded-apple-sm border-0">
                               {task.description}
                             </Badge>
                           ))}
                           {order.repair_tasks.length > 3 && (
-                            <Badge variant="secondary" className="text-xs bg-slate-800 text-slate-300">
+                            <Badge variant="secondary" className="apple-text-caption1 bg-gray-sys6 dark:bg-gray-sys5 apple-label-secondary rounded-apple-sm border-0">
                               +{order.repair_tasks.length - 3} más
                             </Badge>
                           )}
@@ -236,9 +236,9 @@ Dime: tipo de cliente (frecuente/ocasional/nuevo), su valor para el negocio, y u
                     )}
 
                     {order.cost_estimate && (
-                      <div className="flex justify-between items-center pt-2 border-t border-white/10">
-                        <span className="text-sm text-slate-400">Estimado (incl. IVU):</span>
-                        <span className="font-bold text-red-400">${(order.cost_estimate * 1.115).toFixed(2)}</span>
+                      <div className="flex justify-between items-center pt-2" style={{ borderTop: '0.5px solid rgb(var(--separator) / 0.29)' }}>
+                        <span className="apple-text-subheadline apple-label-secondary">Estimado (incl. IVU):</span>
+                        <span className="apple-text-headline font-semibold text-apple-red tabular-nums">${(order.cost_estimate * 1.115).toFixed(2)}</span>
                       </div>
                     )}
                   </div>
@@ -252,15 +252,15 @@ Dime: tipo de cliente (frecuente/ocasional/nuevo), su valor para el negocio, y u
             {/* Órdenes Completadas */}
             {completedOrders.length > 0 && (
               <div>
-                <h3 className="text-sm font-bold text-blue-400 mb-3 flex items-center gap-2">
-                  <div className="w-2 h-2 rounded-full bg-blue-500" />
+                <h3 className="apple-text-subheadline font-semibold text-apple-blue mb-3 flex items-center gap-2">
+                  <div className="w-2 h-2 rounded-full bg-apple-blue" />
                   Órdenes Completadas ({completedOrders.length})
                 </h3>
                 <div className="space-y-3">
                   {completedOrders.map((order) => (
-                    <Card 
-                      key={order.id} 
-                      className="cursor-pointer hover:shadow-lg transition-all bg-[#121212] border-white/10 hover:border-blue-600/40"
+                    <Card
+                      key={order.id}
+                      className="apple-card apple-press cursor-pointer transition-all border-0"
                       onClick={() => handleOrderClick(order.id)}
                     >
                       <CardContent className="p-3 sm:p-4">
@@ -268,16 +268,16 @@ Dime: tipo de cliente (frecuente/ocasional/nuevo), su valor para el negocio, y u
                           <div className="flex items-start justify-between gap-2">
                             <div className="space-y-1 min-w-0 flex-1">
                               <div className="flex items-center gap-2 flex-wrap">
-                                <h3 className="font-bold text-base sm:text-lg text-white">{order.order_number}</h3>
-                                <Badge className={`${statusColors[order.status] || 'bg-gray-100 text-gray-800'} text-xs`} variant="outline">
+                                <h3 className="apple-text-headline apple-label-primary tabular-nums">{order.order_number}</h3>
+                                <Badge className={`apple-text-caption1 rounded-apple-sm ${statusColors[order.status] || 'bg-gray-sys6 dark:bg-gray-sys5 apple-label-secondary'}`} variant="outline">
                                   {order.status?.replace(/_/g, ' ')}
                                 </Badge>
                               </div>
-                              <p className="text-xs sm:text-sm text-slate-400">
+                              <p className="apple-text-footnote apple-label-secondary tabular-nums">
                                 {order.device_brand} {order.device_model} • Creado {order.created_date ? format(new Date(order.created_date), "dd MMM, yyyy") : "—"}
                               </p>
                             </div>
-                            <ArrowRight className="w-5 h-5 text-slate-500 flex-shrink-0" />
+                            <ArrowRight className="w-5 h-5 apple-label-tertiary flex-shrink-0" />
                           </div>
                         </div>
                       </CardContent>
@@ -290,15 +290,15 @@ Dime: tipo de cliente (frecuente/ocasional/nuevo), su valor para el negocio, y u
             {/* Órdenes Eliminadas */}
             {deletedOrders.length > 0 && (
               <div>
-                <h3 className="text-sm font-bold text-red-400 mb-3 flex items-center gap-2">
-                  <div className="w-2 h-2 rounded-full bg-red-500" />
+                <h3 className="apple-text-subheadline font-semibold text-apple-red mb-3 flex items-center gap-2">
+                  <div className="w-2 h-2 rounded-full bg-apple-red" />
                   Órdenes Eliminadas ({deletedOrders.length})
                 </h3>
                 <div className="space-y-3">
                   {deletedOrders.map((order) => (
-                    <Card 
-                      key={order.id} 
-                      className="cursor-pointer hover:shadow-lg transition-all bg-[#121212] border-white/10 hover:border-red-600/40"
+                    <Card
+                      key={order.id}
+                      className="apple-card apple-press cursor-pointer transition-all border-0"
                       onClick={() => handleOrderClick(order.id)}
                     >
                       <CardContent className="p-3 sm:p-4">
@@ -306,21 +306,21 @@ Dime: tipo de cliente (frecuente/ocasional/nuevo), su valor para el negocio, y u
                           <div className="flex items-start justify-between gap-2">
                             <div className="space-y-1 min-w-0 flex-1">
                               <div className="flex items-center gap-2 flex-wrap">
-                                <h3 className="font-bold text-base sm:text-lg text-white line-through">{order.order_number}</h3>
-                                <Badge className="bg-red-500/20 text-red-300 border-red-500/40 text-xs" variant="outline">
+                                <h3 className="apple-text-headline apple-label-primary line-through tabular-nums">{order.order_number}</h3>
+                                <Badge className="bg-apple-red/15 text-apple-red apple-text-caption1 rounded-apple-sm border-0" variant="outline">
                                   Eliminada
                                 </Badge>
                               </div>
-                              <p className="text-xs sm:text-sm text-slate-500">
+                              <p className="apple-text-footnote apple-label-tertiary">
                                 {order.device_brand} {order.device_model}
                               </p>
                               {order.deleted_at && (
-                                <p className="text-xs text-red-400">
+                                <p className="apple-text-caption1 text-apple-red tabular-nums">
                                   Eliminada {format(new Date(order.deleted_at), "dd MMM, yyyy")}
                                 </p>
                               )}
                             </div>
-                            <ArrowRight className="w-5 h-5 text-slate-600 flex-shrink-0" />
+                            <ArrowRight className="w-5 h-5 apple-label-tertiary flex-shrink-0" />
                           </div>
                         </div>
                       </CardContent>

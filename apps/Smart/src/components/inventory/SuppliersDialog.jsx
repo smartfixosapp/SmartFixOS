@@ -219,9 +219,9 @@ export default function SuppliersDialog({ open, onClose }) {
   if (!canPlan('inventory_suppliers')) {
     return (
       <Dialog open={open} onOpenChange={onClose}>
-        <DialogContent className="max-w-md bg-[#0f0f10] border border-white/10 text-white">
+        <DialogContent className="apple-type apple-surface-elevated rounded-apple-lg shadow-apple-xl border-0 p-6 overflow-hidden max-w-md">
           <DialogHeader>
-            <DialogTitle className="text-lg font-bold">Proveedores</DialogTitle>
+            <DialogTitle className="apple-text-headline apple-label-primary">Proveedores</DialogTitle>
           </DialogHeader>
           <UpgradePrompt feature="inventory_suppliers" message="Gestión de proveedores disponible en el plan Pro" />
         </DialogContent>
@@ -231,10 +231,10 @@ export default function SuppliersDialog({ open, onClose }) {
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent className="max-w-5xl max-h-[90vh] bg-[#0f0f10] border border-cyan-500/20 text-white shadow-[0_24px_80px_rgba(0,168,232,0.7)] theme-light:bg-white theme-light:border-gray-200 theme-light:text-gray-900">
+      <DialogContent className="apple-type apple-surface-elevated rounded-apple-lg shadow-apple-xl border-0 p-6 overflow-hidden max-w-5xl max-h-[90vh]">
         <DialogHeader>
-          <DialogTitle className="text-2xl font-bold flex items-center gap-2 theme-light:text-gray-900">
-            <Globe className="w-6 h-6 text-cyan-500 theme-light:text-cyan-600" />
+          <DialogTitle className="apple-text-title2 apple-label-primary flex items-center gap-2">
+            <Globe className="w-6 h-6 text-apple-blue" />
             Gestión de Proveedores
           </DialogTitle>
         </DialogHeader>
@@ -244,18 +244,18 @@ export default function SuppliersDialog({ open, onClose }) {
             {/* Search and Actions */}
             <div className="flex gap-3">
               <div className="relative flex-1">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 theme-light:text-gray-500" />
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 apple-label-tertiary" />
                 <Input
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 placeholder="Buscar proveedor..."
-                className="pl-10 bg-black/20 border-white/10 theme-light:bg-white theme-light:border-gray-300" />
+                className="apple-input pl-10" />
 
               </div>
               <Button
               type="button"
               onClick={() => setShowForm(true)}
-              className="bg-gradient-to-r from-cyan-600 to-emerald-700 hover:from-cyan-700 hover:to-emerald-800 shadow-[0_4px_16px_rgba(0,168,232,0.4)]">
+              className="apple-btn apple-btn-primary">
 
                 <Plus className="w-4 h-4 mr-2" />
                 Nuevo Proveedor
@@ -266,32 +266,32 @@ export default function SuppliersDialog({ open, onClose }) {
             <div className="space-y-3 max-h-[60vh] overflow-y-auto">
               {loading ?
             <div className="flex items-center justify-center py-12">
-                  <Loader2 className="w-8 h-8 text-cyan-500 animate-spin" />
+                  <Loader2 className="w-8 h-8 text-apple-blue animate-spin" />
                 </div> :
             filteredSuppliers.length === 0 ?
-            <div className="text-center py-12 text-gray-400 theme-light:text-gray-600">
+            <div className="text-center py-12 apple-label-secondary apple-text-subheadline">
                   {searchTerm ? "No se encontraron proveedores" : "No hay proveedores registrados"}
                 </div> :
 
             filteredSuppliers.map((supplier) =>
             <div
               key={supplier.id}
-              className="bg-black/40 border border-white/10 rounded-lg p-4 hover:border-cyan-600/40 transition-all theme-light:bg-white theme-light:border-gray-200 theme-light:hover:border-cyan-500/50">
+              className="apple-list-row apple-card p-4 transition-all">
 
                     <div className="flex items-start justify-between gap-4">
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 mb-2">
-                          <h3 className="text-lg font-semibold text-white truncate theme-light:text-gray-900">
+                          <h3 className="apple-text-headline apple-label-primary truncate">
                             {supplier.name}
                           </h3>
                           {!supplier.active &&
-                    <Badge className="bg-gray-600/20 text-gray-400 border-gray-600/30 theme-light:bg-gray-100 theme-light:text-gray-600 theme-light:border-gray-300">
+                    <Badge className="bg-gray-sys6 dark:bg-gray-sys5 apple-label-tertiary border-0">
                               Inactivo
                             </Badge>
                     }
                         </div>
 
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm text-gray-400 theme-light:text-gray-600">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-2 apple-text-subheadline apple-label-secondary">
                           {supplier.contact_name &&
                     <div className="flex items-center gap-2">
                               <span className="font-medium">Contacto:</span> {supplier.contact_name}
@@ -314,7 +314,7 @@ export default function SuppliersDialog({ open, onClose }) {
                       href={supplier.website}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="flex items-center gap-2 text-cyan-400 hover:text-cyan-300 theme-light:text-cyan-600 theme-light:hover:text-cyan-700">
+                      className="flex items-center gap-2 text-apple-blue">
 
                               <Globe className="w-4 h-4" />
                               Website
@@ -331,7 +331,7 @@ export default function SuppliersDialog({ open, onClose }) {
                       href={link}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="text-xs px-2 py-1 bg-emerald-600/20 text-emerald-300 border border-emerald-600/30 rounded hover:bg-emerald-600/30 flex items-center gap-1 theme-light:bg-emerald-100 theme-light:text-emerald-700 theme-light:border-emerald-300">
+                      className="apple-text-caption1 px-2 py-1 bg-apple-green/15 text-apple-green border-0 rounded-apple-xs flex items-center gap-1">
 
                                 Link {idx + 1}
                                 <ExternalLink className="w-3 h-3" />
@@ -346,7 +346,7 @@ export default function SuppliersDialog({ open, onClose }) {
                     type="button"
                     size="icon"
                     variant="outline"
-                    onClick={() => handleEdit(supplier)} className="bg-background text-slate-900 text-sm font-medium rounded-md inline-flex items-center justify-center gap-2 whitespace-nowrap transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 border shadow-sm hover:text-accent-foreground h-9 w-9 border-white/15 hover:bg-white/5 theme-light:border-gray-300 theme-light:hover:bg-gray-100"
+                    onClick={() => handleEdit(supplier)} className="apple-btn apple-btn-secondary h-9 w-9"
                     disabled={supplier.is_virtual}
                     aria-label={`Editar proveedor ${supplier.name}`}
                     title={supplier.is_virtual ? "Proveedor detectado desde compras. Crea uno formal para editar." : "Editar proveedor"}>
@@ -359,7 +359,7 @@ export default function SuppliersDialog({ open, onClose }) {
                     size="icon"
                     variant="outline"
                     onClick={() => handleDelete(supplier)}
-                    className="border-cyan-600/30 text-cyan-400 hover:bg-cyan-600/20 theme-light:border-cyan-500 theme-light:text-cyan-600 theme-light:hover:bg-cyan-50"
+                    className="apple-btn apple-btn-destructive"
                     disabled={supplier.is_virtual}
                     aria-label={`Eliminar proveedor ${supplier.name}`}
                     title={supplier.is_virtual ? "Proveedor detectado desde compras. No se elimina desde aquí." : "Eliminar proveedor"}>
@@ -377,85 +377,85 @@ export default function SuppliersDialog({ open, onClose }) {
         <div className="space-y-4 max-h-[70vh] overflow-y-auto pr-2">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label className="text-sm text-gray-300 mb-1 block theme-light:text-gray-700">Nombre del Proveedor *</label>
+                <label className="apple-text-subheadline apple-label-secondary mb-1 block">Nombre del Proveedor *</label>
                 <Input
                 value={formData.name}
                 onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                 placeholder="Ej: MobilePartsPro"
-                className="bg-black/20 border-white/10 theme-light:bg-white theme-light:border-gray-300" />
+                className="apple-input" />
 
               </div>
 
               <div>
-                <label className="text-sm text-gray-300 mb-1 block theme-light:text-gray-700">Persona de Contacto</label>
+                <label className="apple-text-subheadline apple-label-secondary mb-1 block">Persona de Contacto</label>
                 <Input
                 value={formData.contact_name}
                 onChange={(e) => setFormData({ ...formData, contact_name: e.target.value })}
                 placeholder="Nombre del contacto"
-                className="bg-black/20 border-white/10 theme-light:bg-white theme-light:border-gray-300" />
+                className="apple-input" />
 
               </div>
 
               <div>
-                <label className="text-sm text-gray-300 mb-1 block theme-light:text-gray-700">Teléfono</label>
+                <label className="apple-text-subheadline apple-label-secondary mb-1 block">Teléfono</label>
                 <Input
                 value={formData.phone}
                 onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
                 placeholder="(787) 123-4567"
-                className="bg-black/20 border-white/10 theme-light:bg-white theme-light:border-gray-300" />
+                className="apple-input" />
 
               </div>
 
               <div>
-                <label className="text-sm text-gray-300 mb-1 block theme-light:text-gray-700">Email</label>
+                <label className="apple-text-subheadline apple-label-secondary mb-1 block">Email</label>
                 <Input
                 type="email"
                 value={formData.email}
                 onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                 placeholder="contacto@proveedor.com"
-                className="bg-black/20 border-white/10 theme-light:bg-white theme-light:border-gray-300" />
+                className="apple-input" />
 
               </div>
 
               <div className="md:col-span-2">
-                <label className="text-sm text-gray-300 mb-1 block theme-light:text-gray-700">Sitio Web</label>
+                <label className="apple-text-subheadline apple-label-secondary mb-1 block">Sitio Web</label>
                 <Input
                 value={formData.website}
                 onChange={(e) => setFormData({ ...formData, website: e.target.value })}
                 placeholder="https://www.proveedor.com"
-                className="bg-black/20 border-white/10 theme-light:bg-white theme-light:border-gray-300" />
+                className="apple-input" />
 
               </div>
 
               <div className="md:col-span-2">
-                <label className="text-sm text-gray-300 mb-1 block theme-light:text-gray-700">Dirección</label>
+                <label className="apple-text-subheadline apple-label-secondary mb-1 block">Dirección</label>
                 <Input
                 value={formData.address}
                 onChange={(e) => setFormData({ ...formData, address: e.target.value })}
                 placeholder="Calle, Ciudad, Estado, ZIP"
-                className="bg-black/20 border-white/10 theme-light:bg-white theme-light:border-gray-300" />
+                className="apple-input" />
 
               </div>
 
               <div className="md:col-span-2">
-                <label className="text-sm text-gray-300 mb-1 block theme-light:text-gray-700">Notas</label>
+                <label className="apple-text-subheadline apple-label-secondary mb-1 block">Notas</label>
                 <Textarea
                 value={formData.notes}
                 onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
                 placeholder="Notas adicionales..."
-                className="bg-black/20 border-white/10 theme-light:bg-white theme-light:border-gray-300"
+                className="apple-input"
                 rows={3} />
 
               </div>
 
               <div className="md:col-span-2">
                 <div className="flex items-center justify-between mb-2">
-                  <label className="text-sm text-gray-300 theme-light:text-gray-700">Enlaces Externos (Catálogos)</label>
+                  <label className="apple-text-subheadline apple-label-secondary">Enlaces Externos (Catálogos)</label>
                   <Button
                   type="button"
                   size="sm"
                   onClick={addExternalLink}
-                  className="bg-gradient-to-r from-emerald-600 to-lime-600 hover:from-emerald-700 hover:to-lime-700">
+                  className="apple-btn apple-btn-primary bg-apple-green">
 
                     <Plus className="w-3 h-3 mr-1" />
                     Añadir Link
@@ -468,7 +468,7 @@ export default function SuppliersDialog({ open, onClose }) {
                     value={link}
                     onChange={(e) => updateExternalLink(idx, e.target.value)}
                     placeholder="https://..."
-                    className="bg-black/20 border-white/10 flex-1 theme-light:bg-white theme-light:border-gray-300" />
+                    className="apple-input flex-1" />
 
                       <Button
                     type="button"
@@ -476,7 +476,7 @@ export default function SuppliersDialog({ open, onClose }) {
                     variant="outline"
                     onClick={() => removeExternalLink(idx)}
                     aria-label="Eliminar enlace externo"
-                    className="border-cyan-600/30 text-cyan-400 hover:bg-cyan-600/20 theme-light:border-cyan-500 theme-light:text-cyan-600 theme-light:hover:bg-cyan-50">
+                    className="apple-btn apple-btn-destructive">
 
                         <Trash2 className="w-4 h-4" />
                       </Button>
@@ -486,7 +486,7 @@ export default function SuppliersDialog({ open, onClose }) {
               </div>
 
               <div className="md:col-span-2">
-                <label className="flex items-center gap-2 text-gray-300 cursor-pointer theme-light:text-gray-700">
+                <label className="flex items-center gap-2 apple-label-secondary cursor-pointer">
                   <input
                   type="checkbox"
                   checked={formData.active}
@@ -498,11 +498,11 @@ export default function SuppliersDialog({ open, onClose }) {
               </div>
             </div>
 
-            <div className="flex gap-3 pt-4 border-t border-white/10 theme-light:border-gray-200">
+            <div className="flex gap-3 pt-4" style={{ borderTop: "0.5px solid rgb(var(--separator) / 0.29)" }}>
               <Button
               type="button"
               onClick={resetForm}
-              variant="outline" className="bg-background text-slate-900 px-4 py-2 text-sm font-semibold rounded-full inline-flex items-center justify-center gap-2 whitespace-nowrap transition-all duration-200 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 border shadow-sm hover:text-accent-foreground h-9 flex-1 border-white/15 hover:bg-white/5 theme-light:border-gray-300 theme-light:text-gray-700 theme-light:hover:bg-gray-100"
+              variant="outline" className="apple-btn apple-btn-secondary flex-1"
 
               disabled={loading}>
 
@@ -512,7 +512,7 @@ export default function SuppliersDialog({ open, onClose }) {
               type="button"
               onClick={handleSave}
               disabled={loading || !formData.name?.trim()}
-              className="flex-1 bg-gradient-to-r from-cyan-600 to-emerald-700 hover:from-cyan-700 hover:to-emerald-800 shadow-[0_4px_16px_rgba(0,168,232,0.4)]">
+              className="apple-btn apple-btn-primary flex-1">
 
                 {loading ?
               <>

@@ -51,35 +51,38 @@ export default function InstallPrompt() {
   if (!showPrompt) return null;
 
   return (
-    <div className="fixed bottom-4 left-4 right-4 z-[100] md:left-auto md:right-4 md:w-96 animate-in slide-in-from-bottom-4">
-      <div className="bg-black/90 backdrop-blur-xl border border-cyan-500/30 rounded-2xl p-4 shadow-2xl relative">
-        <button 
+    <div className="apple-type fixed bottom-4 left-4 right-4 z-[100] md:left-auto md:right-4 md:w-96 animate-in slide-in-from-bottom-4">
+      <div className="apple-card rounded-apple-lg p-4 shadow-apple-lg relative">
+        <button
           onClick={() => setShowPrompt(false)}
-          className="absolute top-2 right-2 text-gray-400 hover:text-white"
+          className="apple-press absolute top-2 right-2 apple-label-tertiary hover:apple-label-secondary"
         >
           <X className="w-5 h-5" />
         </button>
 
         <div className="flex items-start gap-4">
-          <div className="w-12 h-12 bg-gradient-to-br from-cyan-500 to-blue-600 rounded-xl flex items-center justify-center shadow-lg">
-            <Smartphone className="w-6 h-6 text-white" />
+          <div className="w-12 h-12 bg-apple-blue/15 rounded-apple-sm flex items-center justify-center">
+            <Smartphone className="w-6 h-6 text-apple-blue" />
           </div>
           <div className="flex-1">
-            <h3 className="font-bold text-white mb-1">Instalar SmartFixOS</h3>
-            <p className="text-sm text-gray-300 mb-3">
+            <h3 className="apple-text-headline apple-label-primary mb-1">Instalar SmartFixOS</h3>
+            <p className="apple-text-subheadline apple-label-secondary mb-3">
               Instala la aplicación para una mejor experiencia y acceso rápido.
             </p>
-            
+
             {isIOS ? (
-              <div className="text-xs text-gray-400 bg-white/5 p-2 rounded-lg border border-white/10">
+              <div
+                className="apple-text-footnote apple-label-secondary bg-apple-surface-secondary p-2 rounded-apple-sm"
+                style={{ borderBottom: "0.5px solid rgb(var(--separator) / 0.29)" }}
+              >
                 Para instalar en iOS:<br/>
                 1. Toca el botón <strong>Compartir</strong> <span className="inline-block align-middle">⎋</span><br/>
                 2. Selecciona <strong>"Agregar a Inicio"</strong> <span className="inline-block align-middle">➕</span>
               </div>
             ) : (
-              <Button 
+              <Button
                 onClick={handleInstallClick}
-                className="w-full bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-700 hover:to-blue-700 h-9 text-sm"
+                className="apple-btn apple-btn-primary w-full"
               >
                 <Download className="w-4 h-4 mr-2" />
                 Instalar Ahora

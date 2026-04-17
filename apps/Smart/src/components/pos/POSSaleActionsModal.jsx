@@ -236,33 +236,33 @@ export default function POSSaleActionsModal({ open, onClose, sale, customer, car
     toast.success("WhatsApp abierto");
   };
 
-  const ActionCard = ({ icon: Icon, label, sublabel, color, onClick, done }) => (
+  const ActionCard = ({ icon: Icon, label, sublabel, tint, onClick, done }) => (
     <button onClick={onClick}
-      className={cn("w-full flex items-center gap-4 p-4 rounded-2xl border transition-all text-left",
-        done ? "border-emerald-500/40 bg-emerald-500/10" : "border-white/10 bg-white/5 hover:bg-white/10 hover:border-white/20"
+      className={cn("apple-press apple-list-row w-full flex items-center gap-4 p-4 rounded-apple-md text-left transition-all",
+        done ? `bg-apple-green/12` : "apple-card"
       )}
     >
-      <div className={cn("w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0", color)}>
-        {done ? <Check className="w-5 h-5 text-white" /> : <Icon className="w-5 h-5 text-white" />}
+      <div className={cn("w-11 h-11 rounded-apple-sm flex items-center justify-center flex-shrink-0", done ? "bg-apple-green text-white" : `bg-apple-${tint}/15 text-apple-${tint}`)}>
+        {done ? <Check className="w-5 h-5" /> : <Icon className="w-5 h-5" />}
       </div>
       <div className="flex-1 min-w-0">
-        <p className="text-white font-bold text-sm">{label}</p>
-        <p className="text-white/40 text-xs mt-0.5 truncate">{sublabel}</p>
+        <p className="apple-label-primary apple-text-subheadline font-semibold">{label}</p>
+        <p className="apple-label-secondary apple-text-caption1 mt-0.5 truncate">{sublabel}</p>
       </div>
-      <ChevronRight className="w-4 h-4 text-white/50 flex-shrink-0" />
+      <ChevronRight className="w-4 h-4 apple-label-tertiary flex-shrink-0" />
     </button>
   );
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm">
-      <div className="bg-[#0f0f12] border border-white/10 rounded-3xl w-full max-w-sm shadow-2xl overflow-hidden">
+    <div className="apple-type fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+      <div className="apple-surface-elevated rounded-apple-lg shadow-apple-xl border-0 p-0 overflow-hidden w-full max-w-sm">
         <div className="flex items-center justify-between px-6 pt-6 pb-4">
           <div>
-            <h3 className="text-white font-black text-lg">✅ Venta completada</h3>
-            <p className="text-white/40 text-sm mt-0.5">¿Cómo enviamos el recibo?</p>
+            <h3 className="apple-label-primary apple-text-headline">Venta completada</h3>
+            <p className="apple-label-secondary apple-text-subheadline mt-0.5">¿Cómo enviamos el recibo?</p>
           </div>
-          <button onClick={onClose} className="w-8 h-8 rounded-full bg-white/5 flex items-center justify-center hover:bg-white/10">
-            <X className="w-4 h-4 text-white/50" />
+          <button onClick={onClose} className="apple-press w-8 h-8 rounded-full bg-gray-sys6 dark:bg-gray-sys5 flex items-center justify-center">
+            <X className="w-4 h-4 apple-label-secondary" />
           </button>
         </div>
 
@@ -271,36 +271,36 @@ export default function POSSaleActionsModal({ open, onClose, sale, customer, car
             {cfg.send_email !== false && (
               <ActionCard icon={Mail} label="Enviar por Email"
                 sublabel={emailAddr || "Sin email guardado — puedes escribirlo"}
-                color="bg-blue-600/80" done={sent.email} onClick={() => setTab("email")} />
+                tint="blue" done={sent.email} onClick={() => setTab("email")} />
             )}
             {cfg.send_whatsapp !== false && (
               <ActionCard icon={MessageCircle} label="Enviar por WhatsApp"
                 sublabel={waPhone || "Sin teléfono guardado — puedes escribirlo"}
-                color="bg-emerald-600/80" done={sent.wa} onClick={() => setTab("whatsapp")} />
+                tint="green" done={sent.wa} onClick={() => setTab("whatsapp")} />
             )}
             {cfg.send_print !== false && (
               <ActionCard icon={Printer} label="Imprimir Recibo"
                 sublabel="Impresora térmica o regular"
-                color="bg-slate-600/80" done={false}
+                tint="indigo" done={false}
                 onClick={() => { onPrint?.(); onClose(); }} />
             )}
             <button onClick={onClose}
-              className="w-full mt-1 py-3 text-white/30 text-sm hover:text-white/50 transition-colors">
+              className="apple-btn apple-btn-plain w-full mt-1 py-3 apple-label-tertiary apple-text-subheadline">
               Omitir
             </button>
           </>)}
 
           {tab === "email" && (
             <div className="space-y-3">
-              <button onClick={() => setTab(null)} className="text-white/40 text-sm hover:text-white/60">← Volver</button>
+              <button onClick={() => setTab(null)} className="apple-label-secondary apple-text-subheadline">← Volver</button>
               <input autoFocus type="email" placeholder="correo@ejemplo.com"
                 value={emailAddr} onChange={e => setEmailAddr(e.target.value)}
-                className="w-full bg-white/5 border border-white/10 rounded-2xl px-4 py-3 text-white placeholder-white/30 text-sm focus:outline-none focus:border-blue-500/50" />
+                className="apple-input w-full px-4 py-3 apple-text-subheadline" />
               <button onClick={handleSendEmail} disabled={sending || sent.email}
-                className={cn("w-full py-3 rounded-2xl font-black text-sm flex items-center justify-center gap-2 transition-all",
-                  sent.email ? "bg-emerald-600/80 text-white" : "bg-gradient-to-r from-blue-600 to-cyan-500 text-white shadow-lg"
+                className={cn("apple-btn w-full",
+                  sent.email ? "apple-btn-primary bg-apple-green" : "apple-btn-primary"
                 )}>
-                {sending ? <Loader2 className="w-4 h-4 animate-spin" /> : sent.email ? <Check className="w-4 h-4" /> : <Send className="w-4 h-4" />}
+                {sending ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : sent.email ? <Check className="w-4 h-4 mr-2" /> : <Send className="w-4 h-4 mr-2" />}
                 {sending ? "Enviando..." : sent.email ? "¡Enviado!" : "Enviar Email"}
               </button>
             </div>
@@ -308,14 +308,14 @@ export default function POSSaleActionsModal({ open, onClose, sale, customer, car
 
           {tab === "whatsapp" && (
             <div className="space-y-3">
-              <button onClick={() => setTab(null)} className="text-white/40 text-sm hover:text-white/60">← Volver</button>
-              <p className="text-white/40 text-xs">Teléfono del cliente (al que enviarás el recibo)</p>
+              <button onClick={() => setTab(null)} className="apple-label-secondary apple-text-subheadline">← Volver</button>
+              <p className="apple-label-secondary apple-text-caption1">Teléfono del cliente (al que enviarás el recibo)</p>
               <input autoFocus type="tel" placeholder="+1 787 000 0000"
                 value={waPhone} onChange={e => setWaPhone(e.target.value)}
-                className="w-full bg-white/5 border border-white/10 rounded-2xl px-4 py-3 text-white placeholder-white/30 text-sm focus:outline-none focus:border-emerald-500/50" />
+                className="apple-input w-full px-4 py-3 apple-text-subheadline" />
               <button onClick={handleSendWhatsApp}
-                className="w-full py-3 rounded-2xl font-black text-sm flex items-center justify-center gap-2 bg-gradient-to-r from-emerald-600 to-green-500 text-white shadow-lg">
-                <MessageCircle className="w-4 h-4" />
+                className="apple-btn apple-btn-primary bg-apple-green w-full">
+                <MessageCircle className="w-4 h-4 mr-2" />
                 Abrir WhatsApp
               </button>
             </div>
@@ -337,38 +337,38 @@ export function POSSaleHistoryModal({ open, onClose, onReopen }) {
   if (!open) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm">
-      <div className="bg-[#0f0f12] border border-white/10 rounded-3xl w-full max-w-sm shadow-2xl max-h-[80vh] flex flex-col">
+    <div className="apple-type fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+      <div className="apple-surface-elevated rounded-apple-lg shadow-apple-xl border-0 p-0 overflow-hidden w-full max-w-sm max-h-[80vh] flex flex-col">
         <div className="flex items-center justify-between px-6 pt-6 pb-4 flex-shrink-0">
           <div className="flex items-center gap-3">
-            <History className="w-5 h-5 text-cyan-400" />
-            <h3 className="text-white font-black text-lg">Historial de Ventas</h3>
+            <History className="w-5 h-5 text-apple-blue" />
+            <h3 className="apple-label-primary apple-text-headline">Historial de Ventas</h3>
           </div>
-          <button onClick={onClose} className="w-8 h-8 rounded-full bg-white/5 flex items-center justify-center hover:bg-white/10">
-            <X className="w-4 h-4 text-white/50" />
+          <button onClick={onClose} className="apple-press w-8 h-8 rounded-full bg-gray-sys6 dark:bg-gray-sys5 flex items-center justify-center">
+            <X className="w-4 h-4 apple-label-secondary" />
           </button>
         </div>
 
         <div className="overflow-y-auto flex-1 px-6 pb-6 space-y-2">
           {history.length === 0 && (
-            <p className="text-white/30 text-sm text-center py-8">No hay ventas recientes guardadas</p>
+            <p className="apple-label-tertiary apple-text-subheadline text-center py-8">No hay ventas recientes guardadas</p>
           )}
           {history.map(entry => (
             <button key={entry.saleId} onClick={() => { onReopen?.(entry); onClose(); }}
-              className="w-full flex items-center gap-4 p-4 rounded-2xl border border-white/10 bg-white/5 hover:bg-white/10 text-left transition-all">
-              <div className="w-10 h-10 rounded-xl bg-cyan-500/10 border border-cyan-500/20 flex items-center justify-center flex-shrink-0">
-                <Receipt className="w-4 h-4 text-cyan-400" />
+              className="apple-press apple-list-row w-full flex items-center gap-4 p-4 rounded-apple-md apple-card text-left transition-all">
+              <div className="w-10 h-10 rounded-apple-sm bg-apple-blue/15 flex items-center justify-center flex-shrink-0">
+                <Receipt className="w-4 h-4 text-apple-blue" />
               </div>
               <div className="flex-1 min-w-0">
-                <p className="text-white font-bold text-sm">#{entry.saleNumber}</p>
-                <p className="text-white/40 text-xs mt-0.5">
+                <p className="apple-label-primary apple-text-subheadline font-semibold tabular-nums">#{entry.saleNumber}</p>
+                <p className="apple-label-secondary apple-text-caption1 mt-0.5 tabular-nums">
                   {entry.customerName || "Sin cliente"} · ${Number(entry.total).toFixed(2)}
                 </p>
-                <p className="text-white/25 text-xs">
+                <p className="apple-label-tertiary apple-text-caption1 tabular-nums">
                   {new Date(entry.date).toLocaleString("es-PR", { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" })}
                 </p>
               </div>
-              <ChevronRight className="w-4 h-4 text-white/50 flex-shrink-0" />
+              <ChevronRight className="w-4 h-4 apple-label-tertiary flex-shrink-0" />
             </button>
           ))}
         </div>

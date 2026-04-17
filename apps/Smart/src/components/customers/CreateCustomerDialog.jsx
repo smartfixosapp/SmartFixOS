@@ -167,10 +167,10 @@ export default function CreateCustomerDialog({ open, onClose, onSuccess, custome
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent className="max-w-md bg-white/80 dark:bg-slate-900/80 backdrop-blur-2xl border-white/20 dark:border-white/10 rounded-[2rem] shadow-2xl p-0 overflow-hidden">
+      <DialogContent className="apple-type max-w-md apple-surface-elevated rounded-apple-lg shadow-apple-xl border-0 p-0 overflow-hidden">
         <div className="p-6 pb-0">
           <div className="flex items-center justify-between mb-6">
-            <DialogTitle className="text-2xl font-semibold tracking-tight text-slate-900 dark:text-white">
+            <DialogTitle className="apple-text-title2 apple-label-primary">
               {customer ? "Editar Cliente" : "Nuevo Cliente"}
             </DialogTitle>
           </div>
@@ -178,54 +178,54 @@ export default function CreateCustomerDialog({ open, onClose, onSuccess, custome
           <form onSubmit={handleSubmit} className="space-y-5">
             <div className="space-y-4">
               <div className="group">
-                <Label className="text-xs font-medium text-slate-500 dark:text-slate-400 ml-3 mb-1.5 block uppercase tracking-wider">
+                <Label className="apple-text-footnote apple-label-secondary ml-3 mb-1.5 block">
                   Nombre Completo
                 </Label>
                 <div className="relative">
-                  <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500">
+                  <div className="absolute left-4 top-1/2 -translate-y-1/2 apple-label-tertiary">
                     <User className="w-5 h-5" />
                   </div>
                   <Input
                     value={formData.name}
                     onChange={(e) => setFormData({...formData, name: e.target.value})}
                     placeholder="Ej. Juan Pérez"
-                    className="h-12 pl-12 rounded-2xl bg-slate-100 dark:bg-white/5 border-transparent focus:border-[#0071e3] focus:ring-2 focus:ring-[#0071e3]/20 transition-all font-medium text-base"
+                    className="apple-input h-12 pl-12 apple-text-body"
                     autoFocus
                   />
                 </div>
               </div>
 
               <div className="group">
-                <Label className="text-xs font-medium text-slate-500 dark:text-slate-400 ml-3 mb-1.5 block uppercase tracking-wider">
+                <Label className="apple-text-footnote apple-label-secondary ml-3 mb-1.5 block">
                   Teléfono
                 </Label>
                 <div className="relative">
-                  <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500">
+                  <div className="absolute left-4 top-1/2 -translate-y-1/2 apple-label-tertiary">
                     <Phone className="w-5 h-5" />
                   </div>
                   <Input
                     value={formData.phone}
                     onChange={(e) => setFormData({...formData, phone: e.target.value})}
                     placeholder="(000) 000-0000"
-                    className="h-12 pl-12 rounded-2xl bg-slate-100 dark:bg-white/5 border-transparent focus:border-[#0071e3] focus:ring-2 focus:ring-[#0071e3]/20 transition-all font-medium text-base"
+                    className="apple-input h-12 pl-12 apple-text-body tabular-nums"
                     type="tel"
                   />
                 </div>
               </div>
 
               <div className="group">
-                <Label className="text-xs font-medium text-slate-500 dark:text-slate-400 ml-3 mb-1.5 block uppercase tracking-wider">
+                <Label className="apple-text-footnote apple-label-secondary ml-3 mb-1.5 block">
                   Email (Opcional)
                 </Label>
                 <div className="relative">
-                  <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500">
+                  <div className="absolute left-4 top-1/2 -translate-y-1/2 apple-label-tertiary">
                     <Mail className="w-5 h-5" />
                   </div>
                   <Input
                     value={formData.email}
                     onChange={(e) => setFormData({...formData, email: e.target.value})}
                     placeholder="cliente@email.com"
-                    className="h-12 pl-12 rounded-2xl bg-slate-100 dark:bg-white/5 border-transparent focus:border-[#0071e3] focus:ring-2 focus:ring-[#0071e3]/20 transition-all font-medium text-base"
+                    className="apple-input h-12 pl-12 apple-text-body"
                     type="email"
                   />
                 </div>
@@ -233,7 +233,7 @@ export default function CreateCustomerDialog({ open, onClose, onSuccess, custome
 
               {/* Teléfonos Adicionales */}
               <div className="group">
-                <Label className="text-xs font-medium text-slate-500 dark:text-slate-400 ml-3 mb-1.5 block uppercase tracking-wider">
+                <Label className="apple-text-footnote apple-label-secondary ml-3 mb-1.5 block">
                   Teléfonos Adicionales
                 </Label>
                 <div className="space-y-2">
@@ -246,7 +246,7 @@ export default function CreateCustomerDialog({ open, onClose, onSuccess, custome
                           updated[idx] = e.target.value;
                           setFormData({...formData, additional_phones: updated});
                         }}
-                        className="h-10 rounded-xl bg-slate-100 dark:bg-white/5 border-transparent text-sm"
+                        className="apple-input h-10 apple-text-subheadline tabular-nums"
                       />
                       <Button
                         type="button"
@@ -257,7 +257,7 @@ export default function CreateCustomerDialog({ open, onClose, onSuccess, custome
                         size="icon"
                         variant="ghost"
                         aria-label="Eliminar teléfono adicional"
-                        className="h-10 w-10 text-red-500 hover:bg-red-500/10"
+                        className="apple-btn apple-btn-plain h-10 w-10 text-apple-red hover:bg-apple-red/12"
                       >
                         <X className="w-4 h-4" />
                       </Button>
@@ -268,7 +268,7 @@ export default function CreateCustomerDialog({ open, onClose, onSuccess, custome
                       value={newPhone}
                       onChange={(e) => setNewPhone(e.target.value)}
                       placeholder="Agregar teléfono..."
-                      className="h-10 rounded-xl bg-slate-100 dark:bg-white/5 border-transparent text-sm"
+                      className="apple-input h-10 apple-text-subheadline tabular-nums"
                     />
                     <Button
                       type="button"
@@ -279,7 +279,7 @@ export default function CreateCustomerDialog({ open, onClose, onSuccess, custome
                         }
                       }}
                       size="sm"
-                      className="h-10 px-4 bg-cyan-600 hover:bg-cyan-500 text-white rounded-xl"
+                      className="apple-btn apple-btn-tinted h-10 px-4"
                     >
                       Agregar
                     </Button>
@@ -289,7 +289,7 @@ export default function CreateCustomerDialog({ open, onClose, onSuccess, custome
 
               {/* Emails Adicionales */}
               <div className="group">
-                <Label className="text-xs font-medium text-slate-500 dark:text-slate-400 ml-3 mb-1.5 block uppercase tracking-wider">
+                <Label className="apple-text-footnote apple-label-secondary ml-3 mb-1.5 block">
                   Emails Adicionales
                 </Label>
                 <div className="space-y-2">
@@ -303,7 +303,7 @@ export default function CreateCustomerDialog({ open, onClose, onSuccess, custome
                           if (emailIdx !== -1) updated[emailIdx].value = e.target.value;
                           setFormData({...formData, additional_contact_info: updated});
                         }}
-                        className="h-10 rounded-xl bg-slate-100 dark:bg-white/5 border-transparent text-sm"
+                        className="apple-input h-10 apple-text-subheadline"
                       />
                       <Button
                         type="button"
@@ -316,7 +316,7 @@ export default function CreateCustomerDialog({ open, onClose, onSuccess, custome
                         size="icon"
                         variant="ghost"
                         aria-label="Eliminar email adicional"
-                        className="h-10 w-10 text-red-500 hover:bg-red-500/10"
+                        className="apple-btn apple-btn-plain h-10 w-10 text-apple-red hover:bg-apple-red/12"
                       >
                         <X className="w-4 h-4" />
                       </Button>
@@ -328,16 +328,16 @@ export default function CreateCustomerDialog({ open, onClose, onSuccess, custome
                       onChange={(e) => setNewEmail(e.target.value)}
                       placeholder="Agregar email..."
                       type="email"
-                      className="h-10 rounded-xl bg-slate-100 dark:bg-white/5 border-transparent text-sm"
+                      className="apple-input h-10 apple-text-subheadline"
                     />
                     <Button
                       type="button"
                       onClick={() => {
                         if (newEmail.trim()) {
                           setFormData({
-                            ...formData, 
+                            ...formData,
                             additional_contact_info: [
-                              ...formData.additional_contact_info, 
+                              ...formData.additional_contact_info,
                               { type: 'email', value: newEmail, label: 'Email adicional' }
                             ]
                           });
@@ -345,7 +345,7 @@ export default function CreateCustomerDialog({ open, onClose, onSuccess, custome
                         }
                       }}
                       size="sm"
-                      className="h-10 px-4 bg-cyan-600 hover:bg-cyan-500 text-white rounded-xl"
+                      className="apple-btn apple-btn-tinted h-10 px-4"
                     >
                       Agregar
                     </Button>
@@ -359,14 +359,14 @@ export default function CreateCustomerDialog({ open, onClose, onSuccess, custome
                 type="button"
                 variant="ghost"
                 onClick={onClose}
-                className="flex-1 h-12 rounded-xl text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-white/5 font-medium"
+                className="apple-btn apple-btn-plain apple-press flex-1 h-12"
                 disabled={loading}
               >
                 Cancelar
               </Button>
               <Button
                 type="submit"
-                className="flex-1 h-12 rounded-xl bg-[#0071e3] hover:bg-[#0077ED] text-white shadow-lg shadow-blue-500/30 font-semibold text-lg transition-all active:scale-[0.98]"
+                className="apple-btn apple-btn-primary apple-press flex-1 h-12 apple-text-headline"
                 disabled={loading || !formData.name || !formData.phone}
               >
                 {loading ? (

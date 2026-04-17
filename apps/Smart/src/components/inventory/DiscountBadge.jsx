@@ -16,13 +16,13 @@ export default function DiscountBadge({ product, showLabel = true }) {
   }
 
   return (
-    <div className="flex items-center gap-2">
-      <Badge className="bg-gradient-to-r from-red-600 to-orange-600 text-white border-red-500/30 animate-pulse">
+    <div className="apple-type flex items-center gap-2">
+      <Badge className="bg-apple-red/15 text-apple-red border-0 animate-pulse">
         <Zap className="w-3 h-3 mr-1" />
         -{product.discount_percentage}%
       </Badge>
       {showLabel && product.discount_label && (
-        <Badge variant="outline" className="text-xs text-orange-300 border-orange-500/30">
+        <Badge variant="outline" className="apple-text-caption1 bg-apple-orange/15 text-apple-orange border-0">
           <Tag className="w-3 h-3 mr-1" />
           {product.discount_label}
         </Badge>
@@ -49,8 +49,8 @@ export function calculateDiscountedPrice(product) {
 }
 
 export function formatPriceWithDiscount(product) {
-  const hasActiveDiscount = product.discount_active && 
-    product.discount_percentage > 0 && 
+  const hasActiveDiscount = product.discount_active &&
+    product.discount_percentage > 0 &&
     (!product.discount_end_date || new Date(product.discount_end_date) >= new Date());
 
   if (!hasActiveDiscount) {

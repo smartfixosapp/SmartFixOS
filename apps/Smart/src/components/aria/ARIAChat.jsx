@@ -1486,48 +1486,50 @@ pregunta inmediatamente al usuario por el primer campo que falta.
 
   // ── Render ───────────────────────────────────────────────────────────────────
   return (
-    <div className="fixed bottom-[104px] md:bottom-6 right-5 z-[9999] flex flex-col items-end gap-3 pointer-events-none">
+    <div className="apple-type fixed bottom-[104px] md:bottom-6 right-5 z-[9999] flex flex-col items-end gap-3 pointer-events-none">
 
       {/* Panel de chat */}
       {open && (
         <div
-          className="w-[calc(100vw-2.5rem)] sm:w-[380px] bg-[#0e0e0e]/98 backdrop-blur-3xl border border-blue-500/20 rounded-[28px] shadow-2xl overflow-hidden flex flex-col pointer-events-auto"
-          style={{ height: "min(480px, calc(100dvh - 220px))", boxShadow: "0 24px 80px rgba(59,130,246,0.20), 0 0 60px rgba(239,68,68,0.08), 0 0 80px rgba(234,179,8,0.06)" }}
+          className="apple-surface-elevated w-[calc(100vw-2.5rem)] sm:w-[380px] rounded-apple-xl shadow-apple-xl overflow-hidden flex flex-col pointer-events-auto"
+          style={{ height: "min(480px, calc(100dvh - 220px))" }}
         >
           {/* Header */}
-          <div className="flex items-center justify-between px-4 py-3 border-b border-white/[0.06] shrink-0">
+          <div
+            className="flex items-center justify-between px-4 py-3 shrink-0"
+            style={{ borderBottom: "0.5px solid rgb(var(--separator) / 0.29)" }}
+          >
             <div className="flex items-center gap-3">
-              <div className="w-8 h-8 rounded-xl flex items-center justify-center shadow-lg shadow-blue-900/50 overflow-hidden"
-                style={{ background: "conic-gradient(from 135deg, #ef4444 0deg, #ef4444 90deg, #f59e0b 90deg, #f59e0b 180deg, #22c55e 180deg, #22c55e 270deg, #3b82f6 270deg, #3b82f6 360deg)" }}>
+              <div className="w-8 h-8 rounded-apple-sm bg-apple-blue/15 flex items-center justify-center overflow-hidden">
                 <span className="text-sm">🧩</span>
               </div>
               <div>
-                <p className="text-sm font-black text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-cyan-400 to-teal-400 leading-none">JENAI</p>
-                <p className="text-[9px] text-blue-400/60 font-bold uppercase tracking-widest leading-none mt-0.5">
+                <p className="apple-text-headline text-apple-blue leading-none">JENAI</p>
+                <p className="apple-text-caption2 apple-label-tertiary leading-none mt-0.5">
                   SmartFixOS
                 </p>
               </div>
             </div>
             {/* Tabs */}
-            <div className="flex items-center gap-1 bg-white/[0.04] rounded-xl p-1 mx-2">
+            <div className="flex items-center gap-1 bg-apple-surface-secondary rounded-apple-md p-1 mx-2">
               <button
                 onClick={() => setTab("chat")}
-                className={`px-3 py-1 rounded-lg text-[11px] font-bold transition-all ${tab === "chat" ? "bg-blue-600 text-white shadow" : "text-white/30 hover:text-white/60"}`}
+                className={`apple-press px-3 py-1 rounded-apple-sm apple-text-caption1 ${tab === "chat" ? "bg-apple-blue text-white" : "apple-label-tertiary"}`}
               >💬</button>
               <button
                 onClick={() => setTab("calc")}
-                className={`px-3 py-1 rounded-lg text-[11px] font-bold transition-all ${tab === "calc" ? "bg-cyan-600 text-white shadow" : "text-white/30 hover:text-white/60"}`}
+                className={`apple-press px-3 py-1 rounded-apple-sm apple-text-caption1 ${tab === "calc" ? "bg-apple-blue text-white" : "apple-label-tertiary"}`}
               >🧮</button>
               <button
                 onClick={() => setTab("tour")}
-                className={`px-3 py-1 rounded-lg text-[11px] font-bold transition-all ${tab === "tour" ? "bg-emerald-600 text-white shadow" : "text-white/30 hover:text-white/60"}`}
+                className={`apple-press px-3 py-1 rounded-apple-sm apple-text-caption1 ${tab === "tour" ? "bg-apple-green text-white" : "apple-label-tertiary"}`}
               >🗺️</button>
             </div>
             <div className="flex items-center gap-1.5">
               {tab === "chat" && messages.length > 0 && (
                 <button
                   onClick={() => setMessages([])}
-                  className="text-[9px] text-white/50 hover:text-white/50 font-bold uppercase tracking-widest transition-colors"
+                  className="apple-press apple-text-caption2 text-apple-blue"
                 >
                   Limpiar
                 </button>
@@ -1535,7 +1537,7 @@ pregunta inmediatamente al usuario por el primer campo que falta.
               {tab === "calc" && (
                 <button
                   onClick={() => { setCalcParts(""); setCalcLabor(""); }}
-                  className="text-[9px] text-white/50 hover:text-white/50 font-bold uppercase tracking-widest transition-colors"
+                  className="apple-press apple-text-caption2 text-apple-blue"
                 >
                   Reset
                 </button>
@@ -1543,16 +1545,16 @@ pregunta inmediatamente al usuario por el primer campo que falta.
               {tab === "tour" && tourStep > 0 && (
                 <button
                   onClick={() => { setTourStep(0); setTourTips({}); tourLoadedTips.current.clear(); }}
-                  className="text-[9px] text-white/50 hover:text-white/50 font-bold uppercase tracking-widest transition-colors"
+                  className="apple-press apple-text-caption2 text-apple-blue"
                 >
                   Reiniciar
                 </button>
               )}
               <button
                 onClick={() => setOpen(false)}
-                className="w-7 h-7 rounded-full bg-white/5 hover:bg-white/10 flex items-center justify-center transition-colors"
+                className="apple-press w-7 h-7 rounded-full bg-apple-surface-secondary flex items-center justify-center"
               >
-                <X className="w-3.5 h-3.5 text-white/40" />
+                <X className="w-3.5 h-3.5 apple-label-secondary" />
               </button>
             </div>
           </div>
@@ -1561,54 +1563,57 @@ pregunta inmediatamente al usuario por el primer campo que falta.
           {tab === "calc" && (
             <div className="flex-1 overflow-y-auto px-4 py-4 space-y-3">
               <div className="space-y-1.5">
-                <label className="text-[11px] text-white/40 font-bold uppercase tracking-widest">Piezas / Partes</label>
+                <label className="apple-text-footnote apple-label-secondary">Piezas / Partes</label>
                 <div className="relative">
-                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-white/30 text-sm">$</span>
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 apple-label-tertiary apple-text-body">$</span>
                   <input
                     type="number" min="0" step="0.01" placeholder="0.00"
                     value={calcParts}
                     onChange={e => setCalcParts(e.target.value)}
-                    className="w-full pl-7 pr-3 py-2.5 rounded-xl bg-white/[0.06] border border-white/[0.08] text-white text-sm focus:outline-none focus:border-cyan-500/50"
+                    className="apple-input tabular-nums w-full pl-7"
                   />
                 </div>
               </div>
               <div className="space-y-1.5">
-                <label className="text-[11px] text-white/40 font-bold uppercase tracking-widest">Mano de obra</label>
+                <label className="apple-text-footnote apple-label-secondary">Mano de obra</label>
                 <div className="relative">
-                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-white/30 text-sm">$</span>
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 apple-label-tertiary apple-text-body">$</span>
                   <input
                     type="number" min="0" step="0.01" placeholder="0.00"
                     value={calcLabor}
                     onChange={e => setCalcLabor(e.target.value)}
-                    className="w-full pl-7 pr-3 py-2.5 rounded-xl bg-white/[0.06] border border-white/[0.08] text-white text-sm focus:outline-none focus:border-cyan-500/50"
+                    className="apple-input tabular-nums w-full pl-7"
                   />
                 </div>
               </div>
               <div className="flex gap-2">
                 <button
                   onClick={() => setCalcTax(false)}
-                  className={`flex-1 py-2 rounded-xl text-xs font-bold transition-all ${!calcTax ? "bg-cyan-600 text-white" : "bg-white/[0.04] text-white/30 border border-white/[0.08]"}`}
+                  className={`apple-btn flex-1 ${!calcTax ? "apple-btn-primary" : "apple-btn-tinted"}`}
                 >Sin IVU</button>
                 <button
                   onClick={() => setCalcTax(true)}
-                  className={`flex-1 py-2 rounded-xl text-xs font-bold transition-all ${calcTax ? "bg-emerald-600 text-white" : "bg-white/[0.04] text-white/30 border border-white/[0.08]"}`}
+                  className={`apple-btn flex-1 ${calcTax ? "apple-btn-primary" : "apple-btn-tinted"}`}
                 >Con IVU 11.5%</button>
               </div>
-              <div className="rounded-2xl border border-emerald-500/20 bg-gradient-to-br from-emerald-900/20 to-cyan-900/10 p-4 space-y-1.5">
+              <div className="rounded-apple-lg bg-apple-green/12 p-4 space-y-1.5">
                 {[
                   ["Piezas",      `$${calcTotals.parts.toFixed(2)}`],
                   ["Mano de obra", `$${calcTotals.labor.toFixed(2)}`],
                   ["Subtotal",    `$${calcTotals.subtotal.toFixed(2)}`],
                   ...(calcTax ? [["IVU (11.5%)", `$${calcTotals.tax.toFixed(2)}`]] : []),
                 ].map(([label, val]) => (
-                  <div key={label} className="flex justify-between text-sm text-white/60">
-                    <span>{label}</span><span>{val}</span>
+                  <div key={label} className="flex justify-between apple-text-subheadline apple-label-secondary">
+                    <span>{label}</span><span className="tabular-nums">{val}</span>
                   </div>
                 ))}
-                <div className="h-px bg-white/10 my-1" />
+                <div
+                  className="my-1"
+                  style={{ borderBottom: "0.5px solid rgb(var(--separator) / 0.29)" }}
+                />
                 <div className="flex justify-between items-center">
-                  <span className="text-sm font-bold text-white">Total</span>
-                  <span className="text-2xl font-black text-emerald-300">${calcTotals.total.toFixed(2)}</span>
+                  <span className="apple-text-headline apple-label-primary">Total</span>
+                  <span className="apple-text-title2 text-apple-green tabular-nums">${calcTotals.total.toFixed(2)}</span>
                 </div>
               </div>
               <button
@@ -1617,7 +1622,7 @@ pregunta inmediatamente al usuario por el primer campo que falta.
                   setTab("chat");
                   setTimeout(() => sendMessage(txt), 100);
                 }}
-                className="w-full py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold transition-colors"
+                className="apple-btn apple-btn-primary w-full"
               >
                 🧩 Enviar a JENAI para registrar cobro
               </button>
@@ -1633,12 +1638,12 @@ pregunta inmediatamente al usuario por el primer campo que falta.
             const progress = tourStep / (TOUR_STEPS.length - 1);
             return (
               <div className="flex-1 overflow-y-auto flex flex-col">
-                {/* Cabecera degradado del paso */}
-                <div className={`bg-gradient-to-r ${step.color} px-4 py-3 flex items-center gap-3 shrink-0`}>
+                {/* Cabecera del paso */}
+                <div className="bg-apple-blue/12 px-4 py-3 flex items-center gap-3 shrink-0">
                   <span className="text-2xl">{step.emoji}</span>
                   <div>
-                    <p className="text-white font-black text-sm leading-tight">{step.title}</p>
-                    <p className="text-white/70 text-[10px] font-semibold">{step.subtitle}</p>
+                    <p className="apple-text-headline apple-label-primary leading-tight">{step.title}</p>
+                    <p className="apple-text-caption2 apple-label-secondary">{step.subtitle}</p>
                   </div>
                 </div>
 
@@ -1650,7 +1655,7 @@ pregunta inmediatamente al usuario por el primer campo que falta.
                       exit={{ opacity: 0, x: -10 }} transition={{ duration: 0.18 }}
                       className="space-y-3"
                     >
-                      <p className="text-white/80 text-sm leading-relaxed">{step.content}</p>
+                      <p className="apple-text-subheadline apple-label-primary leading-relaxed">{step.content}</p>
 
                       {/* Tip IA */}
                       <AnimatePresence>
@@ -1658,19 +1663,19 @@ pregunta inmediatamente al usuario por el primer campo que falta.
                           <motion.div
                             initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }}
                             exit={{ opacity: 0, height: 0 }}
-                            className="rounded-xl bg-blue-500/10 border border-blue-500/20 p-3"
+                            className="rounded-apple-md bg-apple-blue/12 p-3"
                           >
                             <div className="flex items-start gap-2">
-                              <Sparkles className="w-3.5 h-3.5 text-blue-400 mt-0.5 shrink-0" />
+                              <Sparkles className="w-3.5 h-3.5 text-apple-blue mt-0.5 shrink-0" />
                               {tourTipLoading ? (
                                 <div className="flex gap-1 items-center">
                                   {[0,1,2].map(i => (
-                                    <span key={i} className={`w-1.5 h-1.5 rounded-full animate-bounce ${["bg-red-400","bg-yellow-400","bg-blue-400"][i]}`}
+                                    <span key={i} className="w-1.5 h-1.5 rounded-full animate-bounce bg-apple-blue"
                                       style={{ animationDelay: `${i*150}ms` }} />
                                   ))}
                                 </div>
                               ) : (
-                                <p className="text-blue-200/90 text-[11px] leading-relaxed">{tip}</p>
+                                <p className="apple-text-footnote text-apple-blue leading-relaxed">{tip}</p>
                               )}
                             </div>
                           </motion.div>
@@ -1680,8 +1685,8 @@ pregunta inmediatamente al usuario por el primer campo que falta.
                   </AnimatePresence>
 
                   {/* Barra de progreso */}
-                  <div className="h-1 rounded-full bg-white/10 overflow-hidden">
-                    <motion.div className="h-full rounded-full bg-gradient-to-r from-red-500 via-yellow-400 via-green-500 to-blue-600"
+                  <div className="h-1 rounded-full bg-apple-surface-secondary overflow-hidden">
+                    <motion.div className="h-full rounded-full bg-apple-blue"
                       animate={{ width: `${progress * 100}%` }}
                       transition={{ type: "spring", stiffness: 200, damping: 20 }}
                     />
@@ -1692,18 +1697,18 @@ pregunta inmediatamente al usuario por el primer campo que falta.
                     <div className="flex gap-1">
                       {TOUR_STEPS.map((_, i) => (
                         <button key={i} onClick={() => setTourStep(i)}
-                          className={`rounded-full transition-all ${i === tourStep ? "w-4 h-1.5 bg-gradient-to-r from-blue-400 to-cyan-400" : i < tourStep ? "w-1.5 h-1.5 bg-blue-400/50" : "w-1.5 h-1.5 bg-white/15"}`}
+                          className={`apple-press rounded-full transition-all ${i === tourStep ? "w-4 h-1.5 bg-apple-blue" : i < tourStep ? "w-1.5 h-1.5 bg-apple-blue/50" : "w-1.5 h-1.5 bg-gray-sys6 dark:bg-gray-sys5"}`}
                         />
                       ))}
                     </div>
-                    <span className="text-white/30 text-[10px]">{tourStep + 1} / {TOUR_STEPS.length}</span>
+                    <span className="apple-label-tertiary apple-text-caption2 tabular-nums">{tourStep + 1} / {TOUR_STEPS.length}</span>
                   </div>
 
                   {/* Botones navegación */}
                   <div className="flex gap-2 pt-1">
                     {!isFirst && (
                       <button onClick={() => setTourStep(s => s - 1)}
-                        className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-white/5 hover:bg-white/10 text-white/50 text-xs font-bold transition-colors"
+                        className="apple-btn apple-btn-tinted flex items-center gap-1.5"
                       >
                         <ChevronLeft className="w-3.5 h-3.5" /> Atrás
                       </button>
@@ -1719,10 +1724,8 @@ pregunta inmediatamente al usuario por el primer campo que falta.
                           setTourStep(s => s + 1);
                         }
                       }}
-                      className={`flex-1 flex items-center justify-center gap-2 py-2 rounded-xl text-sm font-black transition-all ${
-                        isLast
-                          ? "bg-gradient-to-r from-green-500 to-emerald-500 text-white shadow-lg shadow-green-500/25"
-                          : "bg-gradient-to-r from-blue-500 via-cyan-500 to-teal-400 text-white shadow-lg shadow-blue-500/25 hover:shadow-blue-500/40"
+                      className={`apple-btn flex-1 flex items-center justify-center gap-2 ${
+                        isLast ? "apple-btn-primary" : "apple-btn-primary"
                       }`}
                     >
                       {isLast ? "🎉 ¡Listo! Ir al chat" : isFirst ? <>Empezar <ChevronRight className="w-4 h-4" /></> : <>Siguiente <ChevronRight className="w-4 h-4" /></>}
@@ -1737,11 +1740,11 @@ pregunta inmediatamente al usuario por el primer campo que falta.
           {tab === "chat" && <div className="flex-1 overflow-y-auto px-4 py-3 space-y-3">
             {messages.length === 0 && (
               <div className="h-full flex flex-col items-center justify-center text-center px-4 gap-3">
-                <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-red-500/20 via-blue-500/20 to-violet-500/20 border border-blue-500/20 flex items-center justify-center">
+                <div className="w-12 h-12 rounded-apple-lg bg-apple-blue/15 flex items-center justify-center">
                   <span className="text-2xl">🧩</span>
                 </div>
-                <p className="text-sm font-black text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-cyan-400 to-teal-400">Hola, soy JENAI</p>
-                <p className="text-xs text-white/25 leading-relaxed">
+                <p className="apple-text-headline text-apple-blue">Hola, soy JENAI</p>
+                <p className="apple-text-footnote apple-label-tertiary leading-relaxed">
                   Tu asistente inteligente. Creo órdenes paso a paso, consulto precios, actualizo estados y más.
                 </p>
                 <div className="flex flex-col gap-1.5 w-full mt-2">
@@ -1756,7 +1759,7 @@ pregunta inmediatamente al usuario por el primer campo que falta.
                     <button
                       key={q}
                       onClick={() => sendMessage(q)}
-                      className="text-left px-3 py-2 rounded-xl bg-white/[0.03] border border-white/[0.06] hover:bg-blue-500/10 hover:border-blue-500/20 text-xs text-white/40 hover:text-white/70 transition-all"
+                      className="apple-press text-left px-3 py-2 rounded-apple-md apple-surface-secondary apple-text-footnote apple-label-secondary"
                     >
                       {q}
                     </button>
@@ -1770,91 +1773,94 @@ pregunta inmediatamente al usuario por el primer campo que falta.
               if (msg.type === "action") {
                 if (msg.action === "order_created") return (
                   <div key={i} className="flex justify-start">
-                    <div className="max-w-[95%] rounded-2xl rounded-bl-md overflow-hidden border border-emerald-500/30 bg-emerald-900/20">
-                      <div className="flex items-center gap-2 px-4 py-2 bg-emerald-500/10 border-b border-emerald-500/20">
-                        <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
-                        <span className="text-[10px] font-bold text-emerald-400 uppercase tracking-widest">Orden Creada</span>
-                        <span className="ml-auto text-xs text-emerald-300 font-mono font-bold">{msg.data.order_number}</span>
+                    <div className="max-w-[95%] rounded-apple-lg rounded-bl-md overflow-hidden bg-apple-green/12">
+                      <div
+                        className="flex items-center gap-2 px-4 py-2 bg-apple-green/15"
+                        style={{ borderBottom: "0.5px solid rgb(var(--separator) / 0.29)" }}
+                      >
+                        <CheckCircle2 className="w-3.5 h-3.5 text-apple-green shrink-0" />
+                        <span className="apple-text-footnote text-apple-green">Orden Creada</span>
+                        <span className="ml-auto apple-text-caption1 text-apple-green tabular-nums">{msg.data.order_number}</span>
                       </div>
                       <div className="px-4 py-3 space-y-0.5">
-                        <p className="text-sm text-white/90 font-semibold">{msg.data.customer}</p>
-                        <p className="text-xs text-white/50">{msg.data.device}</p>
-                        <p className="text-xs text-white/35 italic mt-1">"{msg.data.problem}"</p>
+                        <p className="apple-text-subheadline apple-label-primary">{msg.data.customer}</p>
+                        <p className="apple-text-footnote apple-label-secondary">{msg.data.device}</p>
+                        <p className="apple-text-footnote apple-label-tertiary italic mt-1">"{msg.data.problem}"</p>
                       </div>
                     </div>
                   </div>
                 );
                 if (msg.action === "orden_actualizada") return (
                   <div key={i} className="flex justify-start">
-                    <div className="px-4 py-2.5 rounded-2xl rounded-bl-md border border-blue-500/30 bg-blue-900/20 flex items-center gap-2">
-                      <CheckCircle2 className="w-3.5 h-3.5 text-blue-400 shrink-0" />
-                      <span className="text-sm text-blue-300 font-medium">Estado → <strong>{msg.data.estado}</strong></span>
+                    <div className="px-4 py-2.5 rounded-apple-lg rounded-bl-md bg-apple-blue/12 flex items-center gap-2">
+                      <CheckCircle2 className="w-3.5 h-3.5 text-apple-blue shrink-0" />
+                      <span className="apple-text-subheadline text-apple-blue">Estado → <strong>{msg.data.estado}</strong></span>
                     </div>
                   </div>
                 );
                 if (msg.action === "cobro_registrado") return (
                   <div key={i} className="flex justify-start">
-                    <div className="px-4 py-2.5 rounded-2xl rounded-bl-md border border-emerald-500/30 bg-emerald-900/20 flex items-center gap-2">
-                      <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+                    <div className="px-4 py-2.5 rounded-apple-lg rounded-bl-md bg-apple-green/12 flex items-center gap-2">
+                      <CheckCircle2 className="w-3.5 h-3.5 text-apple-green shrink-0" />
                       <div>
-                        <p className="text-sm text-emerald-300 font-bold">${msg.data.monto} · {msg.data.metodo}</p>
-                        <p className="text-[11px] text-white/40">{msg.data.cliente}</p>
+                        <p className="apple-text-subheadline text-apple-green tabular-nums">${msg.data.monto} · {msg.data.metodo}</p>
+                        <p className="apple-text-caption1 apple-label-tertiary">{msg.data.cliente}</p>
                       </div>
                     </div>
                   </div>
                 );
                 if (msg.action === "cliente_creado") return (
                   <div key={i} className="flex justify-start">
-                    <div className="px-4 py-2.5 rounded-2xl rounded-bl-md border border-blue-500/30 bg-blue-900/20 flex items-center gap-2">
-                      <CheckCircle2 className="w-3.5 h-3.5 text-blue-400 shrink-0" />
+                    <div className="px-4 py-2.5 rounded-apple-lg rounded-bl-md bg-apple-blue/12 flex items-center gap-2">
+                      <CheckCircle2 className="w-3.5 h-3.5 text-apple-blue shrink-0" />
                       <div>
-                        <p className="text-sm text-blue-300 font-semibold">{msg.data.nombre}</p>
-                        <p className="text-[11px] text-white/40">{msg.data.telefono}</p>
+                        <p className="apple-text-subheadline text-apple-blue">{msg.data.nombre}</p>
+                        <p className="apple-text-caption1 apple-label-tertiary tabular-nums">{msg.data.telefono}</p>
                       </div>
                     </div>
                   </div>
                 );
                 if (msg.action === "gasto_registrado") return (
                   <div key={i} className="flex justify-start">
-                    <div className="px-4 py-2.5 rounded-2xl rounded-bl-md border border-red-500/30 bg-red-900/20 flex items-center gap-2">
-                      <CheckCircle2 className="w-3.5 h-3.5 text-red-400 shrink-0" />
+                    <div className="px-4 py-2.5 rounded-apple-lg rounded-bl-md bg-apple-red/12 flex items-center gap-2">
+                      <CheckCircle2 className="w-3.5 h-3.5 text-apple-red shrink-0" />
                       <div>
-                        <p className="text-sm text-red-300 font-semibold">-${msg.data.monto} registrado</p>
-                        <p className="text-[11px] text-white/40">{msg.data.descripcion}</p>
+                        <p className="apple-text-subheadline text-apple-red tabular-nums">-${msg.data.monto} registrado</p>
+                        <p className="apple-text-caption1 apple-label-tertiary">{msg.data.descripcion}</p>
                       </div>
                     </div>
                   </div>
                 );
                 if (msg.action === "producto_creado") return (
                   <div key={i} className="flex justify-start">
-                    <div className="px-4 py-2.5 rounded-2xl rounded-bl-md border border-cyan-500/30 bg-cyan-900/20 flex items-center gap-2">
-                      <CheckCircle2 className="w-3.5 h-3.5 text-cyan-400 shrink-0" />
+                    <div className="px-4 py-2.5 rounded-apple-lg rounded-bl-md bg-apple-blue/12 flex items-center gap-2">
+                      <CheckCircle2 className="w-3.5 h-3.5 text-apple-blue shrink-0" />
                       <div>
-                        <p className="text-sm text-cyan-300 font-semibold">{msg.data.nombre}</p>
-                        <p className="text-[11px] text-white/40">${msg.data.precio} · Inventario actualizado</p>
+                        <p className="apple-text-subheadline text-apple-blue">{msg.data.nombre}</p>
+                        <p className="apple-text-caption1 apple-label-tertiary tabular-nums">${msg.data.precio} · Inventario actualizado</p>
                       </div>
                     </div>
                   </div>
                 );
                 if (msg.action === "recibo_enviado") return (
                   <div key={i} className="flex justify-start">
-                    <div className="px-4 py-3 rounded-2xl rounded-bl-md border border-blue-500/30 bg-blue-900/20 space-y-2 max-w-[95%]">
+                    <div className="px-4 py-3 rounded-apple-lg rounded-bl-md bg-apple-blue/12 space-y-2 max-w-[95%]">
                       <div className="flex items-center gap-2">
-                        <CheckCircle2 className="w-3.5 h-3.5 text-blue-400 shrink-0" />
+                        <CheckCircle2 className="w-3.5 h-3.5 text-apple-blue shrink-0" />
                         <div>
-                          <p className="text-sm text-blue-300 font-semibold">Recibo {msg.data.tipo === "pago" ? "de pago" : "de entrada"}</p>
-                          <p className="text-[10px] text-white/35">{msg.data.cliente}</p>
+                          <p className="apple-text-subheadline text-apple-blue">Recibo {msg.data.tipo === "pago" ? "de pago" : "de entrada"}</p>
+                          <p className="apple-text-caption2 apple-label-tertiary">{msg.data.cliente}</p>
                         </div>
                       </div>
                       <div className="flex gap-2">
                         {msg.data.waUrl && (
                           <a href={msg.data.waUrl} target="_blank" rel="noopener noreferrer"
-                            className="flex-1 flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-xl bg-green-600 hover:bg-green-500 text-white text-xs font-bold transition-colors">
+                            className="apple-btn apple-btn-primary flex-1 flex items-center justify-center gap-1.5">
                             💬 WhatsApp
                           </a>
                         )}
                         <a href={msg.data.reciboUrl} target="_blank" rel="noopener noreferrer"
-                          className="flex-1 flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-xl bg-white/10 hover:bg-white/15 text-white text-xs font-bold transition-colors">
+                          className="apple-btn apple-btn-tinted flex-1 flex items-center justify-center gap-1.5">
                           🧾 Ver recibo
                         </a>
                       </div>
@@ -1863,23 +1869,23 @@ pregunta inmediatamente al usuario por el primer campo que falta.
                 );
                 if (msg.action === "mensaje_enviado") return (
                   <div key={i} className="flex justify-start">
-                    <div className="px-4 py-3 rounded-2xl rounded-bl-md border border-emerald-500/30 bg-emerald-900/20 space-y-2 max-w-[95%]">
+                    <div className="px-4 py-3 rounded-apple-lg rounded-bl-md bg-apple-green/12 space-y-2 max-w-[95%]">
                       <div className="flex items-center gap-2">
-                        <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
-                        <p className="text-sm text-emerald-300 font-semibold">Mensaje a {msg.data.cliente}</p>
+                        <CheckCircle2 className="w-3.5 h-3.5 text-apple-green shrink-0" />
+                        <p className="apple-text-subheadline text-apple-green">Mensaje a {msg.data.cliente}</p>
                       </div>
                       {msg.data.waUrl && (
                         <a
                           href={msg.data.waUrl}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-green-600 hover:bg-green-500 text-white text-xs font-bold transition-colors w-fit"
+                          className="apple-btn apple-btn-primary flex items-center gap-1.5 w-fit"
                         >
                           💬 Abrir en WhatsApp
                         </a>
                       )}
                       {!msg.data.waUrl && (
-                        <p className="text-[11px] text-white/30">Sin teléfono — notificación interna guardada</p>
+                        <p className="apple-text-caption1 apple-label-tertiary">Sin teléfono — notificación interna guardada</p>
                       )}
                     </div>
                   </div>
@@ -1888,10 +1894,10 @@ pregunta inmediatamente al usuario por el primer campo que falta.
               // Mensajes normales
               return (
                 <div key={i} className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}>
-                  <div className={`max-w-[85%] px-4 py-2.5 rounded-2xl text-sm leading-relaxed whitespace-pre-wrap ${
+                  <div className={`max-w-[85%] px-4 py-2.5 rounded-apple-lg apple-text-subheadline leading-relaxed whitespace-pre-wrap ${
                     msg.role === "user"
-                      ? "bg-gradient-to-r from-blue-600 to-cyan-600 text-white rounded-br-md"
-                      : "bg-white/[0.06] border border-white/[0.08] text-white/85 rounded-bl-md"
+                      ? "bg-apple-blue text-white rounded-br-md"
+                      : "apple-surface-secondary apple-label-primary rounded-bl-md"
                   }`}>
                     {msg.content}
                   </div>
@@ -1902,11 +1908,11 @@ pregunta inmediatamente al usuario por el primer campo que falta.
             {/* Indicador de carga */}
             {loading && (
               <div className="flex justify-start">
-                <div className="bg-white/[0.06] border border-white/[0.08] px-4 py-3 rounded-2xl rounded-bl-md flex items-center gap-1.5">
-                  <span className="w-1.5 h-1.5 rounded-full bg-red-400 animate-bounce" style={{ animationDelay: "0ms" }} />
-                  <span className="w-1.5 h-1.5 rounded-full bg-yellow-400 animate-bounce" style={{ animationDelay: "150ms" }} />
-                  <span className="w-1.5 h-1.5 rounded-full bg-blue-400 animate-bounce" style={{ animationDelay: "300ms" }} />
-                  {status && <span className="text-[10px] text-blue-400/70 ml-1 font-medium">{status}</span>}
+                <div className="apple-surface-secondary px-4 py-3 rounded-apple-lg rounded-bl-md flex items-center gap-1.5">
+                  <span className="w-1.5 h-1.5 rounded-full bg-apple-blue animate-bounce" style={{ animationDelay: "0ms" }} />
+                  <span className="w-1.5 h-1.5 rounded-full bg-apple-blue animate-bounce" style={{ animationDelay: "150ms" }} />
+                  <span className="w-1.5 h-1.5 rounded-full bg-apple-blue animate-bounce" style={{ animationDelay: "300ms" }} />
+                  {status && <span className="apple-text-caption2 text-apple-blue ml-1">{status}</span>}
                 </div>
               </div>
             )}
@@ -1914,21 +1920,22 @@ pregunta inmediatamente al usuario por el primer campo que falta.
           </div>}
 
           {/* Input — solo en tab chat */}
-          {tab === "chat" && <div className="px-3 py-3 border-t border-white/[0.06] shrink-0">
-            <div className={`flex gap-2 items-center bg-white/[0.04] border rounded-2xl px-3 py-2 transition-colors ${
-              isListening
-                ? "border-red-500/50 bg-red-950/20"
-                : "border-white/[0.08] focus-within:border-blue-500/40"
+          {tab === "chat" && <div
+            className="px-3 py-3 shrink-0"
+            style={{ borderTop: "0.5px solid rgb(var(--separator) / 0.29)" }}
+          >
+            <div className={`flex gap-2 items-center rounded-apple-lg px-3 py-2 ${
+              isListening ? "bg-apple-red/12" : "apple-surface-secondary"
             }`}>
               <button
                 onClick={startDictation}
                 disabled={loading}
-                className={`w-6 h-6 rounded-lg flex items-center justify-center shrink-0 transition-all ${
-                  isListening ? "bg-red-500 animate-pulse" : "hover:bg-white/[0.08]"
+                className={`apple-press w-6 h-6 rounded-apple-sm flex items-center justify-center shrink-0 ${
+                  isListening ? "bg-apple-red animate-pulse" : ""
                 }`}
                 title={isListening ? "Detener dictado" : "Dictar por voz"}
               >
-                <Mic className={`w-3.5 h-3.5 ${isListening ? "text-white" : "text-white/30"}`} />
+                <Mic className={`w-3.5 h-3.5 ${isListening ? "text-white" : "apple-label-tertiary"}`} />
               </button>
               <input
                 type="text"
@@ -1936,13 +1943,13 @@ pregunta inmediatamente al usuario por el primer campo que falta.
                 onChange={e => setInput(e.target.value)}
                 onKeyDown={e => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); sendMessage(input); } }}
                 placeholder={isListening ? "Escuchando…" : "Escribe o dicta…"}
-                className="flex-1 bg-transparent text-sm text-white placeholder-white/20 focus:outline-none"
+                className="flex-1 bg-transparent apple-text-body apple-label-primary placeholder:apple-label-tertiary focus:outline-none"
                 disabled={loading || isListening}
               />
               <button
                 onClick={() => sendMessage(input)}
                 disabled={loading || !input.trim()}
-                className="w-7 h-7 rounded-xl bg-gradient-to-br from-blue-600 to-cyan-600 hover:from-blue-500 hover:to-cyan-500 disabled:opacity-30 flex items-center justify-center transition-all active:scale-90 shrink-0"
+                className="apple-press w-7 h-7 rounded-apple-sm bg-apple-blue disabled:opacity-30 flex items-center justify-center shrink-0"
               >
                 <ChevronRight className="w-4 h-4 text-white" />
               </button>
@@ -1956,64 +1963,15 @@ pregunta inmediatamente al usuario por el primer campo que falta.
       <div className="relative pointer-events-auto">
         {/* Badge de notificaciones */}
         {proactiveCount > 0 && !open && (
-          <span className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-red-500 border-2 border-black flex items-center justify-center z-10">
-            <span className="text-[9px] font-black text-white leading-none">{proactiveCount > 9 ? "9+" : proactiveCount}</span>
+          <span className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-apple-red flex items-center justify-center z-10">
+            <span className="apple-text-caption2 text-white leading-none tabular-nums">{proactiveCount > 9 ? "9+" : proactiveCount}</span>
           </span>
-        )}
-
-        {/* Anillo exterior pulsante (solo cuando está cerrado) */}
-        {!open && (
-          <motion.div
-            className="absolute inset-0 rounded-full pointer-events-none"
-            animate={{ scale: [1, 1.18, 1], opacity: [0.5, 0, 0.5] }}
-            transition={{ duration: 2.5, repeat: 2, ease: "easeInOut" }}
-            style={{
-              background: "conic-gradient(from 0deg, #ef4444, #f59e0b, #22c55e, #3b82f6, #ef4444)",
-              filter: "blur(4px)",
-            }}
-          />
         )}
 
         <button
           onClick={() => setOpen(p => !p)}
-          className="w-14 h-14 rounded-full flex items-center justify-center transition-all active:scale-90 hover:scale-105 relative overflow-hidden"
-          style={{
-            boxShadow: open
-              ? "0 8px 32px rgba(29,78,216,0.6)"
-              : "0 6px 24px rgba(59,130,246,0.5), 0 0 12px rgba(239,68,68,0.3), 0 0 18px rgba(34,197,94,0.2)",
-          }}
+          className="apple-press w-14 h-14 rounded-full flex items-center justify-center relative overflow-hidden shadow-apple-lg bg-apple-blue"
         >
-          {/* Fondo sólido oscuro */}
-          <div className="absolute inset-0 rounded-full bg-[#0a0a0f]" />
-
-          {/* Gradiente giratorio — los 4 colores del autismo fluyendo */}
-          {!open && (
-            <motion.div
-              className="absolute rounded-full pointer-events-none"
-              style={{
-                width: "200%",
-                height: "200%",
-                top: "-50%",
-                left: "-50%",
-                background: "conic-gradient(from 0deg, #ef4444, #f59e0b, #22c55e, #3b82f6, #8b5cf6, #ef4444)",
-                opacity: 0.85,
-              }}
-              animate={{ rotate: 360 }}
-              transition={{ duration: 3, repeat: 2, ease: "linear" }}
-            />
-          )}
-
-          {/* Fondo cuando está abierto */}
-          {open && <div className="absolute inset-0 rounded-full bg-blue-700" />}
-
-          {/* Círculo interior oscuro para efecto de anillo */}
-          {!open && (
-            <div
-              className="absolute rounded-full bg-[#0e0e16]"
-              style={{ inset: "3px" }}
-            />
-          )}
-
           {/* Icono centrado */}
           <span className="relative z-10 flex items-center justify-center">
             {loading ? (

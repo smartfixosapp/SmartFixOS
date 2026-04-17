@@ -107,37 +107,37 @@ Analiza retencion y sugiere acciones.`,
   }, [autoLoad, hasLoaded, fetchInsight]);
 
   const colors = {
-    purple: { border: "border-violet-500/20", bg: "from-violet-500/8 to-purple-500/5", text: "text-violet-300", icon: "text-violet-400", btn: "bg-violet-500/15 hover:bg-violet-500/25 text-violet-300" },
-    emerald: { border: "border-emerald-500/20", bg: "from-emerald-500/8 to-teal-500/5", text: "text-emerald-300", icon: "text-emerald-400", btn: "bg-emerald-500/15 hover:bg-emerald-500/25 text-emerald-300" },
-    cyan: { border: "border-cyan-500/20", bg: "from-cyan-500/8 to-blue-500/5", text: "text-cyan-300", icon: "text-cyan-400", btn: "bg-cyan-500/15 hover:bg-cyan-500/25 text-cyan-300" },
-    amber: { border: "border-amber-500/20", bg: "from-amber-500/8 to-yellow-500/5", text: "text-amber-300", icon: "text-amber-400", btn: "bg-amber-500/15 hover:bg-amber-500/25 text-amber-300" },
-    blue: { border: "border-blue-500/20", bg: "from-blue-500/8 to-indigo-500/5", text: "text-blue-300", icon: "text-blue-400", btn: "bg-blue-500/15 hover:bg-blue-500/25 text-blue-300" },
+    purple:  { bg: "bg-apple-purple/12",  text: "text-apple-purple",  icon: "text-apple-purple",  btn: "bg-apple-purple/15 text-apple-purple" },
+    emerald: { bg: "bg-apple-green/12",   text: "text-apple-green",   icon: "text-apple-green",   btn: "bg-apple-green/15 text-apple-green" },
+    cyan:    { bg: "bg-apple-blue/12",    text: "text-apple-blue",    icon: "text-apple-blue",    btn: "bg-apple-blue/15 text-apple-blue" },
+    amber:   { bg: "bg-apple-orange/12",  text: "text-apple-orange",  icon: "text-apple-orange",  btn: "bg-apple-orange/15 text-apple-orange" },
+    blue:    { bg: "bg-apple-indigo/12",  text: "text-apple-indigo",  icon: "text-apple-indigo",  btn: "bg-apple-indigo/15 text-apple-indigo" },
   };
   const c = colors[accentColor] || colors.purple;
 
   return (
-    <div className={`rounded-2xl border ${c.border} bg-gradient-to-r ${c.bg} overflow-hidden transition-all`}>
+    <div className={`apple-type rounded-apple-lg ${c.bg} overflow-hidden`}>
       {/* Header */}
       <button
         onClick={() => setOpen(v => !v)}
-        className="flex w-full items-center justify-between px-4 py-2.5"
+        className="apple-press flex w-full items-center justify-between px-4 py-2.5"
       >
         <div className="flex items-center gap-2">
           <Brain className={`w-4 h-4 ${c.icon}`} />
-          <span className={`text-[10px] font-black uppercase tracking-widest ${c.text}`}>JENAI Insights</span>
-          <span className="text-[8px] text-white/50">powered by SmartFixOS</span>
+          <span className={`apple-text-footnote ${c.text}`}>JENAI Insights</span>
+          <span className="apple-text-caption2 apple-label-tertiary">powered by SmartFixOS</span>
         </div>
         <div className="flex items-center gap-1.5">
           {hasLoaded && (
             <button
               onClick={(e) => { e.stopPropagation(); fetchInsight(); }}
               disabled={loading}
-              className={`p-1 rounded-lg ${c.btn} transition-all`}
+              className={`apple-press p-1 rounded-apple-sm ${c.btn}`}
             >
               <RefreshCw className={`w-3 h-3 ${loading ? "animate-spin" : ""}`} />
             </button>
           )}
-          {open ? <ChevronUp className="w-3.5 h-3.5 text-white/25" /> : <ChevronDown className="w-3.5 h-3.5 text-white/25" />}
+          {open ? <ChevronUp className="w-3.5 h-3.5 apple-label-tertiary" /> : <ChevronDown className="w-3.5 h-3.5 apple-label-tertiary" />}
         </div>
       </button>
 
@@ -147,17 +147,17 @@ Analiza retencion y sugiere acciones.`,
           {loading && !insight ? (
             <div className="flex items-center gap-2 py-2">
               <Loader2 className={`w-3.5 h-3.5 animate-spin ${c.icon}`} />
-              <span className="text-xs text-white/40">JENAI analizando...</span>
+              <span className="apple-text-footnote apple-label-tertiary">JENAI analizando...</span>
             </div>
           ) : insight ? (
-            <p className="text-xs text-white/65 leading-relaxed">{insight}</p>
+            <p className="apple-text-footnote apple-label-secondary leading-relaxed">{insight}</p>
           ) : (
             <button
               onClick={fetchInsight}
               disabled={loading}
-              className={`flex items-center gap-1.5 text-xs font-bold py-1.5 px-3 rounded-lg ${c.btn} transition-all`}
+              className={`apple-btn apple-btn-tinted apple-press flex items-center gap-1.5 apple-text-footnote py-1.5 px-3 rounded-apple-sm ${c.btn}`}
             >
-              <Sparkles className="w-3 h-3" /> Generar analisis
+              <Sparkles className="w-3 h-3" /> Generar análisis
             </button>
           )}
         </div>

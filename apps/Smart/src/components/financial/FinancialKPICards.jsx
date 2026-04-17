@@ -3,32 +3,32 @@ import { TrendingUp, TrendingDown, DollarSign, Clock, Wallet } from "lucide-reac
 
 const KPICard = React.memo(function KPICard({ label, sublabel, value, icon: Icon, scheme, onClick, active }) {
   const colors = {
-    emerald: { bg: "bg-emerald-500/[0.08]", border: "border-emerald-500/20", text: "text-emerald-400", iconBg: "bg-emerald-500/15" },
-    red:     { bg: "bg-red-500/[0.08]",     border: "border-red-500/20",     text: "text-red-400",     iconBg: "bg-red-500/15" },
-    cyan:    { bg: "bg-cyan-500/[0.08]",     border: "border-cyan-500/20",    text: "text-cyan-400",    iconBg: "bg-cyan-500/15" },
-    amber:   { bg: "bg-amber-500/[0.08]",    border: "border-amber-500/20",   text: "text-amber-400",   iconBg: "bg-amber-500/15" },
+    green:  { bg: "bg-apple-green/12",  text: "text-apple-green",  iconBg: "bg-apple-green/15" },
+    red:    { bg: "bg-apple-red/12",    text: "text-apple-red",    iconBg: "bg-apple-red/15" },
+    blue:   { bg: "bg-apple-blue/12",   text: "text-apple-blue",   iconBg: "bg-apple-blue/15" },
+    orange: { bg: "bg-apple-orange/12", text: "text-apple-orange", iconBg: "bg-apple-orange/15" },
   };
-  const c = colors[scheme] || colors.cyan;
+  const c = colors[scheme] || colors.blue;
 
   return (
     <button
       onClick={onClick}
-      className={`relative text-left p-4 rounded-2xl border transition-all hover:scale-[1.02] active:scale-[0.98] overflow-hidden ${
-        active ? `${c.bg} ${c.border} ring-1 ring-${scheme === "emerald" ? "emerald" : scheme === "red" ? "red" : scheme === "amber" ? "amber" : "cyan"}-500/30` : `bg-white/[0.03] border-white/[0.06] hover:bg-white/[0.05]`
+      className={`apple-press apple-card relative text-left p-4 rounded-apple-md transition-all overflow-hidden ${
+        active ? `${c.bg}` : ""
       }`}
     >
       <div className="flex items-start justify-between gap-2">
         <div className="min-w-0 flex-1">
-          <p className="text-[10px] font-black text-white/40 uppercase tracking-widest leading-none">{label}</p>
-          <p className={`text-2xl font-black tabular-nums mt-1.5 leading-none ${active ? c.text : "text-white"}`}>
+          <p className="apple-text-caption2 font-semibold apple-label-tertiary leading-none">{label}</p>
+          <p className={`apple-text-title2 tabular-nums mt-1.5 leading-none ${active ? c.text : "apple-label-primary"}`}>
             ${Math.abs(value).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
           </p>
           {sublabel && (
-            <p className="text-[10px] text-white/30 font-bold mt-1.5 leading-tight">{sublabel}</p>
+            <p className="apple-text-caption2 apple-label-tertiary tabular-nums mt-1.5 leading-tight">{sublabel}</p>
           )}
         </div>
-        <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${active ? c.iconBg : "bg-white/[0.06]"}`}>
-          <Icon className={`w-5 h-5 ${active ? c.text : "text-white/30"}`} />
+        <div className={`w-10 h-10 rounded-apple-sm flex items-center justify-center shrink-0 ${active ? c.iconBg : "bg-gray-sys6 dark:bg-gray-sys5"}`}>
+          <Icon className={`w-5 h-5 ${active ? c.text : "apple-label-secondary"}`} />
         </div>
       </div>
     </button>
@@ -43,13 +43,13 @@ export default React.memo(function FinancialKPICards({
   const periodLabel = dateFilter === "today" ? "hoy" : dateFilter === "week" ? "7 días" : dateFilter === "month" ? "este mes" : "total";
 
   return (
-    <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-3">
+    <div className="apple-type grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-3">
       <KPICard
         label="Ingresos"
         sublabel={dateFilter !== "today" ? `Hoy: $${todayRevenue.toFixed(2)}` : `${filteredSalesCount} venta${filteredSalesCount !== 1 ? "s" : ""}`}
         value={totalRevenue}
         icon={TrendingUp}
-        scheme="emerald"
+        scheme="green"
         active={activeTab === "movimientos"}
         onClick={() => onCardClick("movimientos", "income")}
       />
@@ -67,7 +67,7 @@ export default React.memo(function FinancialKPICards({
         sublabel="Cobrado - piezas - IVU - gastos"
         value={netProfit}
         icon={DollarSign}
-        scheme={netProfit >= 0 ? "cyan" : "red"}
+        scheme={netProfit >= 0 ? "blue" : "red"}
         active={activeTab === "desglose"}
         onClick={() => onCardClick("desglose")}
       />
@@ -76,7 +76,7 @@ export default React.memo(function FinancialKPICards({
         sublabel={unsettledTotal > 0 ? "Por salir del banco" : "Todo liquidado"}
         value={unsettledTotal}
         icon={Clock}
-        scheme={unsettledTotal > 0 ? "amber" : "cyan"}
+        scheme={unsettledTotal > 0 ? "orange" : "blue"}
         active={activeTab === "diferidos"}
         onClick={() => onCardClick("diferidos")}
       />

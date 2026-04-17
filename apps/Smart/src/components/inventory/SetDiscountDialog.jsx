@@ -89,9 +89,9 @@ export default function SetDiscountDialog({ open, onClose, products, onSuccess }
   if (!canPlan('pos_discounts')) {
     return (
       <Dialog open={open} onOpenChange={onClose}>
-        <DialogContent className="max-w-md bg-[#0a0a0c] border border-white/10 text-white">
+        <DialogContent className="apple-type apple-surface-elevated rounded-apple-lg shadow-apple-xl border-0 p-6 overflow-hidden max-w-md">
           <DialogHeader>
-            <DialogTitle className="text-lg font-bold">Descuentos</DialogTitle>
+            <DialogTitle className="apple-text-headline apple-label-primary">Descuentos</DialogTitle>
           </DialogHeader>
           <UpgradePrompt feature="pos_discounts" message="Descuentos y ofertas disponibles en el plan Pro" />
         </DialogContent>
@@ -101,23 +101,25 @@ export default function SetDiscountDialog({ open, onClose, products, onSuccess }
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent className="max-w-md bg-gradient-to-br from-black to-[#0D0D0D] border-orange-500/30 p-6">
+      <DialogContent className="apple-type apple-surface-elevated rounded-apple-lg shadow-apple-xl border-0 p-6 overflow-hidden max-w-md">
         <DialogHeader>
-          <DialogTitle className="text-2xl font-bold text-white flex items-center gap-3">
-            <Tag className="w-6 h-6 text-orange-500" />
+          <DialogTitle className="apple-text-title2 apple-label-primary flex items-center gap-3">
+            <div className="w-10 h-10 rounded-apple-sm bg-apple-orange/15 flex items-center justify-center">
+              <Tag className="w-5 h-5 text-apple-orange" />
+            </div>
             Configurar Oferta
           </DialogTitle>
         </DialogHeader>
 
         <div className="space-y-4">
           {products.length > 1 && (
-            <Badge className="bg-cyan-600/20 text-cyan-300">
+            <Badge className="bg-apple-blue/15 text-apple-blue border-0">
               {products.length} productos seleccionados
             </Badge>
           )}
 
           <div>
-            <Label className="text-gray-300 flex items-center gap-2 mb-2">
+            <Label className="apple-label-secondary apple-text-subheadline flex items-center gap-2 mb-2">
               <Percent className="w-4 h-4" />
               Descuento (%)
             </Label>
@@ -128,12 +130,12 @@ export default function SetDiscountDialog({ open, onClose, products, onSuccess }
               value={formData.discount_percentage}
               onChange={(e) => setFormData({ ...formData, discount_percentage: e.target.value })}
               placeholder="Ej: 20"
-              className="bg-black/60 border-orange-500/30 text-white text-lg"
+              className="apple-input apple-text-headline tabular-nums"
             />
           </div>
 
           <div>
-            <Label className="text-gray-300 flex items-center gap-2 mb-2">
+            <Label className="apple-label-secondary apple-text-subheadline flex items-center gap-2 mb-2">
               <Tag className="w-4 h-4" />
               Etiqueta (opcional)
             </Label>
@@ -141,12 +143,12 @@ export default function SetDiscountDialog({ open, onClose, products, onSuccess }
               value={formData.discount_label}
               onChange={(e) => setFormData({ ...formData, discount_label: e.target.value })}
               placeholder="Ej: Black Friday, Liquidación"
-              className="bg-black/60 border-orange-500/30 text-white"
+              className="apple-input"
             />
           </div>
 
           <div>
-            <Label className="text-gray-300 flex items-center gap-2 mb-2">
+            <Label className="apple-label-secondary apple-text-subheadline flex items-center gap-2 mb-2">
               <Calendar className="w-4 h-4" />
               Fecha de expiración (opcional)
             </Label>
@@ -154,26 +156,26 @@ export default function SetDiscountDialog({ open, onClose, products, onSuccess }
               type="date"
               value={formData.discount_end_date}
               onChange={(e) => setFormData({ ...formData, discount_end_date: e.target.value })}
-              className="bg-black/60 border-orange-500/30 text-white"
+              className="apple-input"
             />
-            <p className="text-xs text-gray-500 mt-1">Déjalo vacío para oferta sin límite</p>
+            <p className="apple-text-caption1 apple-label-tertiary mt-1">Déjalo vacío para oferta sin límite</p>
           </div>
 
           {products.length === 1 && (
-            <div className="bg-orange-600/10 border border-orange-500/30 rounded-lg p-3">
-              <p className="text-sm text-gray-400 mb-2">Vista previa:</p>
-              <div className="flex items-baseline gap-2">
-                <span className="text-2xl font-bold text-emerald-400">
+            <div className="bg-apple-orange/12 rounded-apple-md p-3">
+              <p className="apple-text-subheadline apple-label-secondary mb-2">Vista previa:</p>
+              <div className="flex items-baseline gap-2 tabular-nums">
+                <span className="apple-text-title2 font-bold text-apple-green">
                   ${((products[0].price * (100 - (parseFloat(formData.discount_percentage) || 0))) / 100).toFixed(2)}
                 </span>
                 {formData.discount_percentage && (
-                  <span className="text-lg text-gray-500 line-through">
+                  <span className="apple-text-headline apple-label-tertiary line-through">
                     ${products[0].price.toFixed(2)}
                   </span>
                 )}
               </div>
               {formData.discount_percentage && (
-                <p className="text-xs text-orange-300 mt-1">
+                <p className="apple-text-caption1 text-apple-orange mt-1 tabular-nums">
                   Ahorras ${(products[0].price * (parseFloat(formData.discount_percentage) || 0) / 100).toFixed(2)}
                 </p>
               )}
@@ -187,7 +189,7 @@ export default function SetDiscountDialog({ open, onClose, products, onSuccess }
               variant="outline"
               onClick={handleRemove}
               disabled={loading}
-              className="border-red-500/30 text-red-300 hover:bg-red-600/10"
+              className="apple-btn apple-btn-destructive"
             >
               <Trash2 className="w-4 h-4 mr-2" />
               Quitar Descuento
@@ -197,14 +199,14 @@ export default function SetDiscountDialog({ open, onClose, products, onSuccess }
             variant="outline"
             onClick={onClose}
             disabled={loading}
-            className="border-gray-700"
+            className="apple-btn apple-btn-secondary"
           >
             Cancelar
           </Button>
           <Button
             onClick={handleApply}
             disabled={loading}
-            className="bg-gradient-to-r from-orange-600 to-red-700"
+            className="apple-btn apple-btn-primary bg-apple-orange"
           >
             {loading ? 'Aplicando...' : 'Aplicar Descuento'}
           </Button>
