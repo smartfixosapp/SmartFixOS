@@ -180,16 +180,16 @@ export default function SecurityTab({ user }) {
           <ShieldCheck className="w-8 h-8 text-blue-400" />
         </div>
         <div className="text-center md:text-left">
-          <h3 className="text-xl font-black text-white tracking-tight">Estado de Seguridad Global</h3>
+          <h3 className="text-xl font-semibold text-white tracking-tight">Estado de Seguridad Global</h3>
           <p className="text-sm text-gray-400 mt-1 max-w-xl leading-relaxed">
             Configura los niveles de restricción y auditoría para proteger las operaciones críticas de tu sucursal. Los cambios afectan a todos los terminales POS y dispositivos móbiles de inmediato.
           </p>
         </div>
         <div className="md:ml-auto flex flex-col items-center gap-1 bg-black/40 px-6 py-3 rounded-2xl border border-white/5 shadow-inner">
-          <span className="text-[10px] uppercase font-black tracking-widest text-emerald-400">Salud del Sistema</span>
+          <span className="text-[10px] font-semibold text-emerald-400">Salud del Sistema</span>
           <div className="flex items-center gap-1">
             <Zap className="w-4 h-4 text-emerald-500 fill-emerald-500" />
-            <span className="text-lg font-black text-white">ÓPTIMA</span>
+            <span className="text-lg font-semibold text-white">ÓPTIMA</span>
           </div>
         </div>
       </div>
@@ -207,7 +207,7 @@ export default function SecurityTab({ user }) {
           <CardContent className="space-y-6 pt-6">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label className="text-[10px] font-black uppercase text-gray-400 tracking-widest">Longitud de PIN</Label>
+                <Label className="text-[10px] font-semibold text-gray-400">Longitud de PIN</Label>
                 <Input
                   type="number"
                   min="4"
@@ -219,7 +219,7 @@ export default function SecurityTab({ user }) {
               </div>
 
               <div className="space-y-2">
-                <Label className="text-[10px] font-black uppercase text-gray-400 tracking-widest">Intentos Máximos</Label>
+                <Label className="text-[10px] font-semibold text-gray-400">Intentos Máximos</Label>
                 <Input
                   type="number"
                   min="1"
@@ -232,7 +232,7 @@ export default function SecurityTab({ user }) {
             </div>
 
             <div className="space-y-2">
-              <Label className="text-[10px] font-black uppercase text-gray-400 tracking-widest flex items-center gap-2">
+              <Label className="text-[10px] font-semibold text-gray-400 flex items-center gap-2">
                 <Clock className="w-3.5 h-3.5 text-orange-400" />
                 Duración del bloqueo temporal
               </Label>
@@ -252,7 +252,7 @@ export default function SecurityTab({ user }) {
             </div>
 
             <div className="space-y-2 bg-amber-500/5 border border-amber-500/10 p-4 rounded-2xl">
-              <Label className="text-[10px] font-black uppercase text-amber-300 tracking-widest flex items-center gap-2">
+              <Label className="text-[10px] font-semibold text-amber-300 flex items-center gap-2">
                 <History className="w-3.5 h-3.5" />
                 Expiración de PIN (Histórico)
               </Label>
@@ -387,7 +387,7 @@ export default function SecurityTab({ user }) {
                   </div>
 
                   <div className="space-y-3">
-                    <Label className="text-[10px] font-black uppercase text-gray-400 tracking-widest pl-1">Retención de datos históricos</Label>
+                    <Label className="text-[10px] font-semibold text-gray-400 pl-1">Retención de datos históricos</Label>
                     <div className="relative">
                       <Input
                         type="number"
@@ -405,7 +405,7 @@ export default function SecurityTab({ user }) {
               <div className="bg-zinc-800/10 border-t md:border-t-0 md:border-l border-white/5 p-4 sm:p-6 flex flex-col justify-center items-center text-center space-y-4">
                 <AlertTriangle className="w-12 h-12 text-zinc-700" />
                 <div>
-                  <p className="text-xs font-black text-gray-500 uppercase tracking-widest mb-1">Nota Legal</p>
+                  <p className="text-xs font-semibold text-gray-500 mb-1">Nota Legal</p>
                   <p className="text-[11px] text-gray-500 leading-relaxed italic">
                     "La desactivación de logs de auditoría puede invalidar reportes de responsabilidad legal y fiscal según la normativa RT-30."
                   </p>

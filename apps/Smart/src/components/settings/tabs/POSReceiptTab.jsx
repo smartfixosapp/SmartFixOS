@@ -175,7 +175,7 @@ function Section({ icon: Icon, title, children }) {
         <div className="w-9 h-9 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center flex-shrink-0">
           <Icon className="w-4 h-4 text-white/60" />
         </div>
-        <h3 className="text-white font-black text-sm">{title}</h3>
+        <h3 className="text-white font-semibold text-sm">{title}</h3>
       </div>
       {children}
     </div>
@@ -202,7 +202,7 @@ function Toggle({ label, sublabel, checked, onChange }) {
 function FieldLabel({ label, hint }) {
   return (
     <div className="mb-1">
-      <p className="text-white/70 text-xs font-bold uppercase tracking-wide">{label}</p>
+      <p className="text-white/70 text-xs font-bold tracking-wide">{label}</p>
       {hint && <p className="text-white/30 text-xs mt-0.5">{hint}</p>}
     </div>
   );
@@ -353,7 +353,7 @@ export default function POSReceiptTab() {
       {/* Toolbar */}
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-white font-black text-base">Plantilla de Recibo POS</h2>
+          <h2 className="text-white font-semibold text-base">Plantilla de Recibo POS</h2>
           <p className="text-white/40 text-xs mt-0.5">Los cambios se reflejan en la vista previa al instante</p>
         </div>
         <div className="flex items-center gap-2">
@@ -367,7 +367,7 @@ export default function POSReceiptTab() {
           <button
             onClick={handleSave}
             disabled={saving}
-            className="flex items-center gap-2 px-4 py-2 rounded-xl bg-gradient-to-r from-cyan-600 to-blue-600 text-white font-black text-xs shadow-lg disabled:opacity-50"
+            className="flex items-center gap-2 px-4 py-2 rounded-xl bg-gradient-to-r from-cyan-600 to-blue-600 text-white font-semibold text-xs shadow-lg disabled:opacity-50"
           >
             {saving ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Save className="w-3.5 h-3.5" />}
             {saving ? "Guardando..." : "Guardar"}
@@ -467,7 +467,7 @@ export default function POSReceiptTab() {
           <button
             onClick={handleSave}
             disabled={saving}
-            className="flex items-center gap-2 px-6 py-3 rounded-2xl bg-gradient-to-r from-cyan-600 to-blue-600 text-white font-black text-sm shadow-lg disabled:opacity-50"
+            className="flex items-center gap-2 px-6 py-3 rounded-2xl bg-gradient-to-r from-cyan-600 to-blue-600 text-white font-semibold text-sm shadow-lg disabled:opacity-50"
           >
             {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
             {saving ? "Guardando..." : "Guardar Configuración"}

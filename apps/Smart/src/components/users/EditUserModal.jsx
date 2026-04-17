@@ -274,20 +274,15 @@ export default function EditUserModal({ user, onClose, onUpdate, onResendInvite,
 
   return (
     <Dialog open={true} onOpenChange={onClose}>
-      <DialogContent className="max-w-2xl bg-slate-950 border-cyan-500/30 text-white max-h-[90vh] overflow-y-auto theme-light:bg-white theme-light:border-gray-300">
+      <DialogContent className="apple-type apple-surface-elevated border-0 shadow-apple-xl rounded-apple-lg max-w-2xl max-h-[90vh] overflow-y-auto p-6">
         {/* Header */}
-        <div className="relative mb-6">
-          <div className="absolute inset-0 bg-gradient-to-r from-blue-500/10 to-purple-500/10 blur-2xl" />
-          <div className="relative flex items-center gap-4">
-            <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-blue-500 to-purple-500 flex items-center justify-center shadow-lg">
-              <Edit3 className="w-8 h-8 text-white" />
-            </div>
-            <div>
-              <h2 className="text-3xl font-black text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-400">
-                Editar Usuario
-              </h2>
-              <p className="text-cyan-300/60 text-sm theme-light:text-gray-600">{user?.employee_code}</p>
-            </div>
+        <div className="flex items-center gap-4 mb-6">
+          <div className="w-12 h-12 rounded-apple-sm bg-apple-blue/15 flex items-center justify-center flex-shrink-0">
+            <Edit3 className="w-6 h-6 text-apple-blue" />
+          </div>
+          <div className="min-w-0">
+            <h2 className="apple-text-title2 apple-label-primary">Editar usuario</h2>
+            <p className="apple-text-footnote apple-label-secondary tabular-nums">{user?.employee_code}</p>
           </div>
         </div>
 

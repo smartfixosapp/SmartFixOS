@@ -220,38 +220,47 @@ export default function EmployeeProfileDrawer({
   return (
     <>
       {/* Backdrop */}
-      <div className="fixed inset-0 z-[300] bg-black/60 backdrop-blur-sm" onClick={onClose} />
+      <div className="fixed inset-0 z-[300] bg-black/40 backdrop-blur-sm" onClick={onClose} />
 
       {/* Drawer */}
-      <div className="fixed right-0 top-0 bottom-0 z-[310] w-full max-w-[420px] bg-[#0c0d10] border-l border-white/[0.08] shadow-2xl flex flex-col overflow-hidden">
+      <div
+        className="apple-type fixed right-0 top-0 bottom-0 z-[310] w-full max-w-[420px] apple-surface-elevated shadow-apple-2xl flex flex-col overflow-hidden"
+        style={{ borderLeft: "0.5px solid rgb(var(--separator) / 0.29)" }}
+      >
 
         {/* Top bar */}
-        <div className="flex items-center justify-between px-5 py-4 border-b border-white/[0.07] flex-shrink-0">
-          <span className="text-white/40 text-xs font-black uppercase tracking-widest">Perfil de empleado</span>
+        <div
+          className="flex items-center justify-between px-5 py-4 flex-shrink-0"
+          style={{ borderBottom: "0.5px solid rgb(var(--separator) / 0.29)" }}
+        >
+          <span className="apple-text-footnote apple-label-secondary">Perfil de empleado</span>
           <button onClick={onClose}
-            className="w-8 h-8 rounded-full flex items-center justify-center text-white/40 hover:text-white hover:bg-white/10 transition-all">
+            className="apple-press w-8 h-8 rounded-full bg-gray-sys6 dark:bg-gray-sys5 flex items-center justify-center apple-label-secondary">
             <X className="w-4 h-4" />
           </button>
         </div>
 
         {/* Hero */}
-        <div className="px-6 py-5 border-b border-white/[0.06] flex-shrink-0">
+        <div
+          className="px-6 py-5 flex-shrink-0"
+          style={{ borderBottom: "0.5px solid rgb(var(--separator) / 0.29)" }}
+        >
           <div className="flex items-center gap-4 mb-5">
             <div className="relative flex-shrink-0">
-              <div className={`w-[72px] h-[72px] rounded-[20px] bg-gradient-to-br ${role.color} flex items-center justify-center shadow-2xl`}>
-                <span className="text-white font-black text-2xl">{initials}</span>
+              <div className="w-[72px] h-[72px] rounded-apple-md bg-apple-blue flex items-center justify-center shadow-apple-md">
+                <span className="text-white font-semibold apple-text-title1">{initials}</span>
               </div>
-              <div className={`absolute -bottom-1 -right-1 w-4 h-4 rounded-full border-2 border-[#0c0d10] ${isActive ? "bg-emerald-400" : "bg-slate-600"}`} />
+              <div className={`absolute -bottom-1 -right-1 w-4 h-4 rounded-full border-2 ${isActive ? "bg-apple-green" : "bg-gray-sys3"}`} style={{ borderColor: "rgb(var(--surface-elevated))" }} />
             </div>
             <div className="flex-1 min-w-0">
-              <h2 className="text-white font-black text-xl leading-tight truncate">{employee.full_name}</h2>
-              <div className="flex items-center gap-2 mt-2 flex-wrap">
-                <Badge className={`${role.badge} text-white border-0 text-xs`}>
+              <h2 className="apple-text-title2 apple-label-primary leading-tight truncate">{employee.full_name}</h2>
+              <div className="flex items-center gap-2 mt-1.5 flex-wrap">
+                <Badge className="bg-apple-blue/15 text-apple-blue border-0 apple-text-caption1 font-medium">
                   <RoleIcon className="w-3 h-3 mr-1" />
                   {role.label}
                 </Badge>
-                <span className={`text-xs font-bold flex items-center gap-1 ${isActive ? "text-emerald-400" : "text-slate-500"}`}>
-                  <span className={`w-1.5 h-1.5 rounded-full ${isActive ? "bg-emerald-400" : "bg-slate-500"}`} />
+                <span className={`apple-text-caption1 font-medium flex items-center gap-1 ${isActive ? "text-apple-green" : "apple-label-tertiary"}`}>
+                  <span className={`w-1.5 h-1.5 rounded-full ${isActive ? "bg-apple-green" : "bg-gray-sys3"}`} />
                   {isActive ? "Activo" : "Inactivo"}
                 </span>
               </div>
@@ -260,20 +269,20 @@ export default function EmployeeProfileDrawer({
 
           {/* Quick stats */}
           <div className="grid grid-cols-3 gap-2">
-            <div className="bg-white/[0.05] rounded-2xl p-3 text-center">
-              <p className="text-white font-black text-lg">{weekHours.toFixed(1)}</p>
-              <p className="text-white/35 text-[10px] font-bold uppercase tracking-wide">Hrs semana</p>
+            <div className="apple-card p-3 text-center !rounded-apple-md">
+              <p className="apple-text-title3 apple-label-primary tabular-nums">{weekHours.toFixed(1)}</p>
+              <p className="apple-text-caption2 apple-label-secondary">Hrs semana</p>
             </div>
-            <div className="bg-white/[0.05] rounded-2xl p-3 text-center">
-              <p className="text-white font-black text-lg">${hourlyRate.toFixed(0)}</p>
-              <p className="text-white/35 text-[10px] font-bold uppercase tracking-wide">Por hora</p>
+            <div className="apple-card p-3 text-center !rounded-apple-md">
+              <p className="apple-text-title3 apple-label-primary tabular-nums">${hourlyRate.toFixed(0)}</p>
+              <p className="apple-text-caption2 apple-label-secondary">Por hora</p>
             </div>
             <div
               className="bg-emerald-500/[0.1] border border-emerald-500/20 rounded-2xl p-3 text-center cursor-pointer hover:bg-emerald-500/[0.15] transition-all"
               onClick={() => setTab("pagar")}
             >
-              <p className="text-emerald-400 font-black text-lg">${weekEarnings.toFixed(0)}</p>
-              <p className="text-white/35 text-[10px] font-bold uppercase tracking-wide">Pagar →</p>
+              <p className="text-emerald-400 font-semibold text-lg">${weekEarnings.toFixed(0)}</p>
+              <p className="text-white/35 text-[10px] font-bold tracking-wide">Pagar →</p>
             </div>
           </div>
         </div>
@@ -319,7 +328,7 @@ export default function EmployeeProfileDrawer({
                     <Icon className={`w-4 h-4 ${color}`} />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-white/35 text-[10px] font-bold uppercase tracking-wider">{label}</p>
+                    <p className="text-white/35 text-[10px] font-bold">{label}</p>
                     <p className="text-white text-sm font-semibold truncate mt-0.5">{value}</p>
                   </div>
                 </div>
@@ -329,8 +338,8 @@ export default function EmployeeProfileDrawer({
                   <DollarSign className="w-4 h-4 text-emerald-400" />
                 </div>
                 <div className="flex-1">
-                  <p className="text-white/35 text-[10px] font-bold uppercase tracking-wider">Tarifa por hora</p>
-                  <p className="text-emerald-400 text-base font-black mt-0.5">${hourlyRate.toFixed(2)}/hr</p>
+                  <p className="text-white/35 text-[10px] font-bold">Tarifa por hora</p>
+                  <p className="text-emerald-400 text-base font-semibold mt-0.5">${hourlyRate.toFixed(2)}/hr</p>
                 </div>
                 <button onClick={() => setTab("pagar")}
                   className="flex items-center gap-1 text-emerald-400/60 hover:text-emerald-400 text-xs font-bold transition-all">
@@ -342,7 +351,7 @@ export default function EmployeeProfileDrawer({
                   <RoleIcon className="w-4 h-4 text-white" />
                 </div>
                 <div className="flex-1">
-                  <p className="text-white/35 text-[10px] font-bold uppercase tracking-wider">Rol</p>
+                  <p className="text-white/35 text-[10px] font-bold">Rol</p>
                   <p className="text-white text-sm font-semibold mt-0.5">{role.label}</p>
                 </div>
               </div>
@@ -355,16 +364,16 @@ export default function EmployeeProfileDrawer({
               {/* ── Horas esta semana ── */}
               <div className="grid grid-cols-3 gap-2">
                 <div className="bg-white/[0.05] rounded-2xl p-3 text-center">
-                  <p className="text-white font-black text-lg">{weekHours.toFixed(1)}h</p>
-                  <p className="text-white/30 text-[10px] font-bold uppercase">Esta semana</p>
+                  <p className="text-white font-semibold text-lg">{weekHours.toFixed(1)}h</p>
+                  <p className="text-white/30 text-[10px] font-bold">Esta semana</p>
                 </div>
                 <div className="bg-white/[0.05] rounded-2xl p-3 text-center">
-                  <p className="text-white font-black text-lg">${hourlyRate.toFixed(0)}</p>
-                  <p className="text-white/30 text-[10px] font-bold uppercase">Por hora</p>
+                  <p className="text-white font-semibold text-lg">${hourlyRate.toFixed(0)}</p>
+                  <p className="text-white/30 text-[10px] font-bold">Por hora</p>
                 </div>
                 <div className="bg-emerald-500/[0.08] border border-emerald-500/20 rounded-2xl p-3 text-center">
-                  <p className="text-emerald-400 font-black text-lg">${weekEarnings.toFixed(0)}</p>
-                  <p className="text-white/30 text-[10px] font-bold uppercase">Estimado</p>
+                  <p className="text-emerald-400 font-semibold text-lg">${weekEarnings.toFixed(0)}</p>
+                  <p className="text-white/30 text-[10px] font-bold">Estimado</p>
                 </div>
               </div>
 
@@ -377,7 +386,7 @@ export default function EmployeeProfileDrawer({
                 </div>
               ) : (
                 <div className="space-y-1.5">
-                  <p className="text-white/30 text-[10px] font-black uppercase tracking-widest px-1">Registros recientes</p>
+                  <p className="text-white/30 text-[10px] font-semibold px-1">Registros recientes</p>
                   {timeEntries.slice(0, 7).map(entry => {
                     const hours = entry.total_hours ? Number(entry.total_hours)
                       : (entry.clock_in && entry.clock_out)
@@ -398,7 +407,7 @@ export default function EmployeeProfileDrawer({
                         <div className="text-right flex-shrink-0">
                           {hours !== null
                             ? <><p className="text-white text-xs font-bold">{hours.toFixed(1)}h</p>{hourlyRate > 0 && <p className="text-white/25 text-[10px]">${(hours * hourlyRate).toFixed(0)}</p>}</>
-                            : <p className="text-cyan-400 text-[10px] font-black animate-pulse">En curso</p>}
+                            : <p className="text-cyan-400 text-[10px] font-semibold animate-pulse">En curso</p>}
                         </div>
                       </div>
                     );
@@ -409,7 +418,7 @@ export default function EmployeeProfileDrawer({
               {/* ── Divisor ── */}
               <div className="flex items-center gap-3 py-1">
                 <div className="flex-1 h-px bg-white/[0.07]" />
-                <p className="text-white/25 text-[10px] font-black uppercase tracking-widest flex-shrink-0">Registrar pago</p>
+                <p className="text-white/25 text-[10px] font-semibold flex-shrink-0">Registrar pago</p>
                 <div className="flex-1 h-px bg-white/[0.07]" />
               </div>
 
@@ -419,18 +428,18 @@ export default function EmployeeProfileDrawer({
                   <div className="w-16 h-16 rounded-full bg-emerald-500/20 border border-emerald-500/30 flex items-center justify-center">
                     <Check className="w-8 h-8 text-emerald-400" />
                   </div>
-                  <p className="text-white font-black text-lg">¡Pago registrado!</p>
+                  <p className="text-white font-semibold text-lg">¡Pago registrado!</p>
                   <p className="text-white/40 text-xs text-center">Añadido a gastos de nómina en Finanzas</p>
                 </div>
               ) : (
                 <>
                   {/* Amount */}
                   <div className="relative">
-                    <span className="absolute left-4 top-1/2 -translate-y-1/2 text-emerald-400 font-black text-lg">$</span>
+                    <span className="absolute left-4 top-1/2 -translate-y-1/2 text-emerald-400 font-semibold text-lg">$</span>
                     <input
                       type="number" step="0.01" min="0"
                       value={payAmount} onChange={e => setPayAmount(e.target.value)}
-                      className="w-full bg-emerald-500/[0.07] border border-emerald-500/25 rounded-2xl pl-8 pr-4 py-3 text-xl font-black text-emerald-400 outline-none focus:border-emerald-400 transition-colors"
+                      className="w-full bg-emerald-500/[0.07] border border-emerald-500/25 rounded-2xl pl-8 pr-4 py-3 text-xl font-semibold text-emerald-400 outline-none focus:border-emerald-400 transition-colors"
                       placeholder={weekEarnings.toFixed(2)}
                     />
                   </div>
@@ -455,7 +464,7 @@ export default function EmployeeProfileDrawer({
                     placeholder="Notas opcionales…"
                     className="w-full bg-white/[0.04] border border-white/[0.08] rounded-xl px-3 py-2.5 text-sm text-white outline-none focus:border-white/20 resize-none" />
                   <button onClick={handlePay} disabled={paying || !payAmount || parseFloat(payAmount) <= 0}
-                    className="w-full py-3.5 rounded-2xl bg-emerald-500 hover:bg-emerald-400 disabled:opacity-40 text-black font-black text-sm transition-all active:scale-[0.98]">
+                    className="w-full py-3.5 rounded-2xl bg-emerald-500 hover:bg-emerald-400 disabled:opacity-40 text-black font-semibold text-sm transition-all active:scale-[0.98]">
                     {paying
                       ? <span className="flex items-center justify-center gap-2"><Loader2 className="w-4 h-4 animate-spin" />Procesando…</span>
                       : `Pagar $${parseFloat(payAmount || 0).toFixed(2)} a ${employee.full_name.split(" ")[0]}`}
@@ -481,8 +490,8 @@ export default function EmployeeProfileDrawer({
             ) : (
               <>
                 <div className="bg-emerald-500/[0.08] border border-emerald-500/20 rounded-2xl p-4 text-center mb-2">
-                  <p className="text-white/50 text-xs font-bold uppercase tracking-wider mb-1">Total recibido</p>
-                  <p className="text-emerald-400 font-black text-3xl">${totalPaid.toFixed(2)}</p>
+                  <p className="text-white/50 text-xs font-bold mb-1">Total recibido</p>
+                  <p className="text-emerald-400 font-semibold text-3xl">${totalPaid.toFixed(2)}</p>
                   <p className="text-white/30 text-xs mt-1">{payments.length} pago{payments.length !== 1 ? "s" : ""}</p>
                 </div>
                 {payments.map(p => (
@@ -495,7 +504,7 @@ export default function EmployeeProfileDrawer({
                         {(() => { try { return format(new Date(p.created_date || p.created_at), "dd MMM yyyy", { locale: es }); } catch { return ""; } })()}
                       </p>
                     </div>
-                    <p className="text-emerald-400 font-black text-base flex-shrink-0">
+                    <p className="text-emerald-400 font-semibold text-base flex-shrink-0">
                       ${Number(p.amount || 0).toFixed(2)}
                     </p>
                   </div>
@@ -511,25 +520,25 @@ export default function EmployeeProfileDrawer({
                 <div className="w-20 h-20 rounded-full bg-emerald-500/20 border border-emerald-500/30 flex items-center justify-center">
                   <Check className="w-10 h-10 text-emerald-400" />
                 </div>
-                <p className="text-white font-black text-xl">¡Pago registrado!</p>
+                <p className="text-white font-semibold text-xl">¡Pago registrado!</p>
                 <p className="text-white/40 text-sm text-center">Fue añadido a gastos de nómina en Finanzas</p>
               </div>
             ) : (
               <div className="space-y-4">
                 {/* Week summary banner */}
                 <div className="bg-white/[0.04] border border-white/[0.07] rounded-2xl p-4">
-                  <p className="text-white/40 text-xs font-black uppercase tracking-wider mb-3">Resumen esta semana</p>
+                  <p className="text-white/40 text-xs font-semibold mb-3">Resumen esta semana</p>
                   <div className="grid grid-cols-3 gap-3 text-center">
                     <div>
-                      <p className="text-white font-black text-lg">{weekHours.toFixed(1)}</p>
+                      <p className="text-white font-semibold text-lg">{weekHours.toFixed(1)}</p>
                       <p className="text-white/30 text-[10px] font-bold">HORAS</p>
                     </div>
                     <div>
-                      <p className="text-white font-black text-lg">${hourlyRate.toFixed(0)}</p>
+                      <p className="text-white font-semibold text-lg">${hourlyRate.toFixed(0)}</p>
                       <p className="text-white/30 text-[10px] font-bold">POR HORA</p>
                     </div>
                     <div>
-                      <p className="text-emerald-400 font-black text-lg">${weekEarnings.toFixed(0)}</p>
+                      <p className="text-emerald-400 font-semibold text-lg">${weekEarnings.toFixed(0)}</p>
                       <p className="text-white/30 text-[10px] font-bold">ESTIMADO</p>
                     </div>
                   </div>
@@ -537,13 +546,13 @@ export default function EmployeeProfileDrawer({
 
                 {/* Amount */}
                 <div>
-                  <label className="text-[10px] text-white/40 font-black uppercase tracking-wider">Monto a pagar *</label>
+                  <label className="text-[10px] text-white/40 font-semibold">Monto a pagar *</label>
                   <div className="relative mt-2">
-                    <span className="absolute left-4 top-1/2 -translate-y-1/2 text-emerald-400 font-black text-lg">$</span>
+                    <span className="absolute left-4 top-1/2 -translate-y-1/2 text-emerald-400 font-semibold text-lg">$</span>
                     <input
                       type="number" step="0.01" min="0"
                       value={payAmount} onChange={e => setPayAmount(e.target.value)}
-                      className="w-full bg-emerald-500/[0.07] border border-emerald-500/25 rounded-2xl pl-8 pr-4 py-3.5 text-2xl font-black text-emerald-400 outline-none focus:border-emerald-400 transition-colors"
+                      className="w-full bg-emerald-500/[0.07] border border-emerald-500/25 rounded-2xl pl-8 pr-4 py-3.5 text-2xl font-semibold text-emerald-400 outline-none focus:border-emerald-400 transition-colors"
                       placeholder={weekEarnings.toFixed(2)}
                     />
                   </div>
@@ -551,7 +560,7 @@ export default function EmployeeProfileDrawer({
 
                 {/* Type pills */}
                 <div>
-                  <label className="text-[10px] text-white/40 font-black uppercase tracking-wider">Tipo de pago</label>
+                  <label className="text-[10px] text-white/40 font-semibold">Tipo de pago</label>
                   <div className="flex flex-wrap gap-2 mt-2">
                     {Object.entries(PAYMENT_TYPE_LABEL).map(([v, l]) => (
                       <button key={v} onClick={() => setPayType(v)}
@@ -568,7 +577,7 @@ export default function EmployeeProfileDrawer({
 
                 {/* Method pills */}
                 <div>
-                  <label className="text-[10px] text-white/40 font-black uppercase tracking-wider">Método de pago</label>
+                  <label className="text-[10px] text-white/40 font-semibold">Método de pago</label>
                   <div className="flex flex-wrap gap-2 mt-2">
                     {PAYMENT_METHODS.map(m => (
                       <button key={m.v} onClick={() => setPayMethod(m.v)}
@@ -586,7 +595,7 @@ export default function EmployeeProfileDrawer({
 
                 {/* Notes */}
                 <div>
-                  <label className="text-[10px] text-white/40 font-black uppercase tracking-wider">Notas (opcional)</label>
+                  <label className="text-[10px] text-white/40 font-semibold">Notas (opcional)</label>
                   <textarea
                     rows={2} value={payNotes} onChange={e => setPayNotes(e.target.value)}
                     placeholder="Período cubierto, bonos, etc."
@@ -603,7 +612,7 @@ export default function EmployeeProfileDrawer({
                 <button
                   onClick={handlePay}
                   disabled={paying || !payAmount || parseFloat(payAmount) <= 0}
-                  className="w-full h-13 py-4 rounded-2xl bg-emerald-500 hover:bg-emerald-400 disabled:opacity-40 text-black font-black text-base transition-all active:scale-[0.98]">
+                  className="w-full h-13 py-4 rounded-2xl bg-emerald-500 hover:bg-emerald-400 disabled:opacity-40 text-black font-semibold text-base transition-all active:scale-[0.98]">
                   {paying
                     ? <span className="flex items-center justify-center gap-2"><Loader2 className="w-4 h-4 animate-spin" /> Procesando…</span>
                     : `Pagar $${parseFloat(payAmount || 0).toFixed(2)} a ${employee.full_name.split(" ")[0]}`
