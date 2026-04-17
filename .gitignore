@@ -48,3 +48,7 @@ logs/
 /tmp/*.pid
 *.pid
 .vercel
+
+# Local backups
+*.original
+
