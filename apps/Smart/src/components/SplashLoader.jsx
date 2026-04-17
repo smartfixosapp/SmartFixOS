@@ -7,12 +7,12 @@ const SplashLoader = () => {
       initial={{ opacity: 1 }}
       exit={{ opacity: 0 }}
       transition={{ duration: 0.8, ease: "easeInOut" }}
-      className="fixed inset-0 z-[10000] flex flex-col items-center justify-center bg-[#0a0a0a]"
+      className="apple-type fixed inset-0 z-[10000] flex flex-col items-center justify-center apple-surface"
     >
       {/* Fondo con efecto de profundidad */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-blue-500/10 rounded-full blur-[120px]" />
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[300px] h-[300px] bg-purple-500/5 rounded-full blur-[80px]" />
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-apple-blue/12 rounded-full blur-[120px]" />
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[300px] h-[300px] bg-apple-purple/12 rounded-full blur-[80px]" />
       </div>
 
       <div className="relative z-10 flex flex-col items-center gap-8">
@@ -33,13 +33,13 @@ const SplashLoader = () => {
         {/* Texto de carga */}
         <div className="flex flex-col items-center gap-3">
           <div className="flex flex-col items-center gap-2 opacity-60">
-            <p className="text-white/60 text-xs font-bold tracking-[0.3em] uppercase">SmartFixOS</p>
-            <p className="text-white/30 text-[10px] font-medium tracking-[0.1em] uppercase">Iniciando sistema...</p>
+            <p className="apple-label-primary apple-text-footnote font-semibold">SmartFixOS</p>
+            <p className="apple-label-tertiary apple-text-caption2">Iniciando sistema...</p>
           </div>
 
           {/* Barra de progreso CSS pura (sin framer-motion infinity) */}
-          <div className="w-32 h-[2px] bg-white/5 rounded-full overflow-hidden relative">
-            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-blue-500 to-transparent splash-bar" />
+          <div className="w-32 h-[2px] bg-gray-sys6 dark:bg-gray-sys5 rounded-full overflow-hidden relative">
+            <div className="absolute inset-0 bg-apple-blue splash-bar" />
           </div>
           <style>{`
             @keyframes splashBar {
@@ -56,7 +56,7 @@ const SplashLoader = () => {
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ delay: 1, duration: 1 }}
-        className="absolute bottom-10 text-white/40 text-[10px] uppercase tracking-widest font-bold"
+        className="absolute bottom-10 apple-label-tertiary apple-text-caption2"
       >
         911 SmartFix © 2026
       </motion.div>

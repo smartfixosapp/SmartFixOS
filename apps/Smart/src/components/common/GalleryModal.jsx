@@ -244,11 +244,11 @@ export default function GalleryModal({ open, photos = [], initialIndex = 0, onCl
   const swipeOffset = swiping && touchEnd.x ? touchStart.x - touchEnd.x : 0;
 
   return createPortal(
-    <div className="fixed inset-0 z-[99999] bg-black flex flex-col">
+    <div className="apple-type fixed inset-0 z-[99999] bg-black flex flex-col">
       {/* Header fijo */}
       <div className="absolute top-0 left-0 right-0 z-[100] flex items-center justify-between p-4 bg-gradient-to-b from-black/90 to-transparent pointer-events-none">
         <div className="flex items-center gap-2 pointer-events-auto">
-          <span className="text-white font-bold text-base sm:text-lg px-3 py-1.5 rounded-full bg-black/60 backdrop-blur-sm">
+          <span className="text-white font-semibold apple-text-body px-3 py-1.5 rounded-full bg-black/60 backdrop-blur-sm tabular-nums">
             {currentIndex + 1} / {photos.length}
           </span>
         </div>
@@ -283,36 +283,38 @@ export default function GalleryModal({ open, photos = [], initialIndex = 0, onCl
 
           {/* Menú de compartir */}
           {showShareMenu && (
-            <div className="absolute top-14 right-0 bg-black/90 backdrop-blur-xl rounded-xl border border-white/20 shadow-2xl overflow-hidden min-w-[200px]">
+            <div className="absolute top-14 right-0 bg-black/90 backdrop-blur-xl rounded-apple-md shadow-apple-xl overflow-hidden min-w-[200px]">
               <button
                 onClick={(e) => {
                   e.stopPropagation();
                   handleInitiateShare('whatsapp');
                 }}
-                className="w-full flex items-center gap-3 px-4 py-3 hover:bg-white/10 active:bg-white/20 transition-all text-white"
+                className="apple-press w-full flex items-center gap-3 px-4 py-3 hover:bg-white/10 active:bg-white/20 transition-all text-white"
               >
-                <MessageCircle className="w-5 h-5 text-green-400" />
-                <span className="font-medium">WhatsApp</span>
+                <MessageCircle className="w-5 h-5 text-apple-green" />
+                <span className="font-medium apple-text-body">WhatsApp</span>
               </button>
               <button
                 onClick={(e) => {
                   e.stopPropagation();
                   handleInitiateShare('email');
                 }}
-                className="w-full flex items-center gap-3 px-4 py-3 hover:bg-white/10 active:bg-white/20 transition-all text-white border-t border-white/10"
+                className="apple-press w-full flex items-center gap-3 px-4 py-3 hover:bg-white/10 active:bg-white/20 transition-all text-white"
+                style={{ borderTop: '0.5px solid rgb(var(--separator) / 0.29)' }}
               >
-                <Mail className="w-5 h-5 text-blue-400" />
-                <span className="font-medium">Email</span>
+                <Mail className="w-5 h-5 text-apple-blue" />
+                <span className="font-medium apple-text-body">Email</span>
               </button>
               <button
                 onClick={(e) => {
                   e.stopPropagation();
                   handleInitiateShare('sms');
                 }}
-                className="w-full flex items-center gap-3 px-4 py-3 hover:bg-white/10 active:bg-white/20 transition-all text-white border-t border-white/10"
+                className="apple-press w-full flex items-center gap-3 px-4 py-3 hover:bg-white/10 active:bg-white/20 transition-all text-white"
+                style={{ borderTop: '0.5px solid rgb(var(--separator) / 0.29)' }}
               >
-                <MessageSquare className="w-5 h-5 text-purple-400" />
-                <span className="font-medium">SMS</span>
+                <MessageSquare className="w-5 h-5 text-apple-purple" />
+                <span className="font-medium apple-text-body">SMS</span>
               </button>
             </div>
           )}
@@ -367,14 +369,14 @@ export default function GalleryModal({ open, photos = [], initialIndex = 0, onCl
                   setSelectionMode(false);
                   setSelectedPhotos([]);
                 }}
-                className="px-4 py-2 bg-gray-600 hover:bg-gray-700 rounded-full text-white font-medium transition-all"
+                className="apple-press px-4 py-2 bg-gray-sys3 hover:bg-gray-sys2 rounded-full text-white font-medium transition-all apple-text-footnote"
               >
                 Cancelar
               </button>
               <button
                 onClick={handleShareViaWhatsApp}
                 disabled={selectedPhotos.length === 0}
-                className="px-4 py-2 bg-green-600 hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed rounded-full text-white font-medium transition-all"
+                className="apple-press px-4 py-2 bg-apple-green hover:bg-apple-green disabled:opacity-50 disabled:cursor-not-allowed rounded-full text-white font-medium transition-all apple-text-footnote tabular-nums"
               >
                 Enviar {selectedPhotos.length} foto{selectedPhotos.length !== 1 ? 's' : ''}
               </button>
@@ -397,12 +399,12 @@ export default function GalleryModal({ open, photos = [], initialIndex = 0, onCl
                       setCurrentIndex(idx);
                     }
                   }}
-                  className={`relative flex-shrink-0 w-14 h-14 sm:w-16 sm:h-16 rounded-xl overflow-hidden border-2 transition-all active:scale-90 touch-manipulation ${
+                  className={`apple-press relative flex-shrink-0 w-14 h-14 sm:w-16 sm:h-16 rounded-apple-sm overflow-hidden transition-all active:scale-90 touch-manipulation ${
                     selectionMode && isSelected
-                      ? "border-green-400 ring-2 ring-green-400/60 scale-105 shadow-lg shadow-green-500/50"
+                      ? "ring-2 ring-apple-green scale-105"
                       : idx === currentIndex
-                      ? "border-cyan-400 ring-2 ring-cyan-400/60 scale-105 shadow-lg shadow-cyan-500/50"
-                      : "border-white/30 hover:border-white/50"
+                      ? "ring-2 ring-apple-blue scale-105"
+                      : "ring-1 ring-white/30"
                   }`}
                 >
                   {isCurrentVideo ? (
@@ -411,8 +413,8 @@ export default function GalleryModal({ open, photos = [], initialIndex = 0, onCl
                     <img src={thumbSrc} alt="" loading="lazy" decoding="async" className="w-full h-full object-cover pointer-events-none" />
                   )}
                   {selectionMode && isSelected && (
-                    <div className="absolute inset-0 bg-green-500/30 flex items-center justify-center">
-                      <div className="w-6 h-6 rounded-full bg-green-500 text-white flex items-center justify-center text-xs font-bold">
+                    <div className="absolute inset-0 bg-apple-green/40 flex items-center justify-center">
+                      <div className="w-6 h-6 rounded-full bg-apple-green text-white flex items-center justify-center apple-text-caption1 font-semibold">
                         ✓
                       </div>
                     </div>

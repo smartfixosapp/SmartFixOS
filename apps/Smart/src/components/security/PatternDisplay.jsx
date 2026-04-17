@@ -64,11 +64,11 @@ export default function PatternDisplay({ patternVector, size = 200 }) {
   if (!patternVector) return null;
 
   return (
-    <div className="inline-block">
+    <div className="apple-type inline-block">
       <canvas
         ref={canvasRef}
-        className="rounded-lg bg-black border border-gray-800"
-        style={{ width: size, height: size }}
+        className="rounded-apple-md bg-gray-sys6 dark:bg-gray-sys5"
+        style={{ width: size, height: size, border: '0.5px solid rgb(var(--separator) / 0.29)' }}
       />
     </div>
   );

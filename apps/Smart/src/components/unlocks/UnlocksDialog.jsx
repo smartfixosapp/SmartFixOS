@@ -68,8 +68,6 @@ export default function UnlocksDialog({ open, onClose, onSuccess, initialTab = "
     let sum = 0;
     for (let i = 0; i < 14; i++) {
       let d = digits[i];
-      // For 15-digit IMEI, indices 1, 3, 5, 7, 9, 11, 13 (0-based) are doubled
-      // Sequence: 1 2 1 2 1 2 1 2 1 2 1 2 1 2 (Check)
       if (i % 2 !== 0) {
         d *= 2;
         if (d > 9) d -= 9;
@@ -81,10 +79,7 @@ export default function UnlocksDialog({ open, onClose, onSuccess, initialTab = "
   };
 
   const handleImeiChange = (val) => {
-    // Solo números
     const numeric = val.replace(/[^0-9]/g, '');
-    
-    // Si tiene 14 dígitos, calcular el 15
     if (numeric.length === 14) {
       const checkDigit = calculateLuhnCheckDigit(numeric);
       if (checkDigit !== null) {
@@ -92,8 +87,6 @@ export default function UnlocksDialog({ open, onClose, onSuccess, initialTab = "
         return;
       }
     }
-    
-    // Limitar a 15 dígitos
     if (numeric.length <= 15) {
       setFormData(prev => ({ ...prev, device_serial: numeric }));
     }
@@ -261,7 +254,6 @@ export default function UnlocksDialog({ open, onClose, onSuccess, initialTab = "
     const paid = Number(paymentModalOrder.amount_paid || paymentModalOrder.total_paid || 0);
     const balance = Math.max(0, total - paid);
 
-    // Verificar si ya está pagado
     if (balance <= 0.01 && option !== "skip") {
       toast.info("✅ Este desbloqueo ya está completamente pagado", {
         description: `Total: $${total.toFixed(2)} | Pagado: $${paid.toFixed(2)}`
@@ -301,8 +293,8 @@ export default function UnlocksDialog({ open, onClose, onSuccess, initialTab = "
     } else if (option === "deposit") {
       setPaymentModalOrder(null);
       onClose();
-      navigate(createPageUrl(`POS?workOrderId=${paymentModalOrder.id}&balance=${balance}&mode=deposit`), { 
-        state: { ...state, paymentMode: "deposit" } 
+      navigate(createPageUrl(`POS?workOrderId=${paymentModalOrder.id}&balance=${balance}&mode=deposit`), {
+        state: { ...state, paymentMode: "deposit" }
       });
     } else if (option === "skip") {
       await completeUnlock(paymentModalOrder.id);
@@ -342,7 +334,7 @@ export default function UnlocksDialog({ open, onClose, onSuccess, initialTab = "
     }
   };
 
-  const filteredCustomers = customers.filter(c => 
+  const filteredCustomers = customers.filter(c =>
     c.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
     c.phone?.includes(searchTerm) ||
     c.email?.toLowerCase().includes(searchTerm.toLowerCase())
@@ -350,29 +342,29 @@ export default function UnlocksDialog({ open, onClose, onSuccess, initialTab = "
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent className="bg-[#1c1c1e] border border-white/10 max-w-4xl text-white rounded-[32px] p-0 overflow-hidden shadow-2xl">
-        <DialogHeader className="p-6 pb-4 border-b border-white/5 bg-[#1c1c1e]">
-          <DialogTitle className="text-2xl font-bold flex items-center gap-3">
-            <div className="w-12 h-12 rounded-2xl bg-purple-500 flex items-center justify-center shadow-lg shadow-purple-500/20">
+      <DialogContent className="apple-type apple-surface-elevated max-w-4xl apple-label-primary rounded-apple-lg shadow-apple-xl border-0 p-0 overflow-hidden">
+        <DialogHeader className="p-6 pb-4 apple-surface-elevated" style={{ borderBottom: '0.5px solid rgb(var(--separator) / 0.29)' }}>
+          <DialogTitle className="apple-text-title2 apple-label-primary flex items-center gap-3">
+            <div className="w-12 h-12 rounded-apple-sm bg-apple-purple flex items-center justify-center shadow-apple-md">
               <Code2 className="w-6 h-6 text-white" />
             </div>
             Gestión de Desbloqueos
           </DialogTitle>
         </DialogHeader>
 
-        <div className="p-6 bg-[#1c1c1e] min-h-[500px]">
+        <div className="p-6 apple-surface-elevated min-h-[500px]">
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-            <TabsList className="w-full bg-[#2c2c2e] p-1 rounded-2xl border border-white/5 h-auto">
-              <TabsTrigger 
-                value="new" 
-                className="flex-1 rounded-xl h-10 data-[state=active]:bg-purple-600 data-[state=active]:text-white transition-all text-sm font-semibold"
+            <TabsList className="w-full bg-gray-sys6 dark:bg-gray-sys5 p-1 rounded-apple-md h-auto">
+              <TabsTrigger
+                value="new"
+                className="apple-press flex-1 rounded-apple-sm h-10 data-[state=active]:bg-apple-purple data-[state=active]:text-white transition-all apple-text-footnote font-semibold"
               >
                 <Zap className="w-4 h-4 mr-2" />
                 Nuevo Desbloqueo
               </TabsTrigger>
-              <TabsTrigger 
-                value="continue" 
-                className="flex-1 rounded-xl h-10 data-[state=active]:bg-purple-600 data-[state=active]:text-white transition-all text-sm font-semibold"
+              <TabsTrigger
+                value="continue"
+                className="apple-press flex-1 rounded-apple-sm h-10 data-[state=active]:bg-apple-purple data-[state=active]:text-white transition-all apple-text-footnote font-semibold"
               >
                 <Clock className="w-4 h-4 mr-2" />
                 Continuar ({pendingUnlocks.length})
@@ -385,28 +377,28 @@ export default function UnlocksDialog({ open, onClose, onSuccess, initialTab = "
                 {!selectedCustomer && !showNewCustomer ? (
                   <div className="space-y-3">
                     <div className="relative">
-                      <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-white/40" />
+                      <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 apple-label-tertiary" />
                       <input
                         placeholder="Buscar cliente..."
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
-                        className="w-full pl-12 bg-[#2c2c2e] border-transparent text-white h-12 rounded-2xl focus:outline-none focus:ring-2 focus:ring-purple-500/50"
+                        className="apple-input w-full pl-12 h-12"
                       />
                     </div>
-                    
+
                     {searchTerm && filteredCustomers.length > 0 && (
-                      <div className="bg-[#2c2c2e] rounded-2xl p-2 max-h-48 overflow-y-auto custom-scrollbar">
+                      <div className="apple-card border-0 rounded-apple-md p-2 max-h-48 overflow-y-auto custom-scrollbar">
                         {filteredCustomers.map(customer => (
                           <button
                             key={customer.id}
                             onClick={() => handleSelectCustomer(customer)}
-                            className="w-full text-left p-3 rounded-xl hover:bg-white/10 transition-all group flex items-center justify-between"
+                            className="apple-press w-full text-left p-3 rounded-apple-sm hover:bg-gray-sys6 dark:hover:bg-gray-sys5 transition-all group flex items-center justify-between"
                           >
                             <div>
-                              <p className="font-semibold text-white">{customer.name}</p>
-                              <p className="text-xs text-white/40">{customer.phone}</p>
+                              <p className="apple-text-subheadline font-semibold apple-label-primary">{customer.name}</p>
+                              <p className="apple-text-caption1 apple-label-tertiary tabular-nums">{customer.phone}</p>
                             </div>
-                            <User className="w-4 h-4 text-white/50 group-hover:text-white transition-colors" />
+                            <User className="w-4 h-4 apple-label-tertiary" />
                           </button>
                         ))}
                       </div>
@@ -414,23 +406,23 @@ export default function UnlocksDialog({ open, onClose, onSuccess, initialTab = "
 
                     <Button
                       onClick={() => setShowNewCustomer(true)}
-                      className="w-full h-12 rounded-2xl bg-white/5 border border-white/5 hover:bg-white/10 text-white font-medium"
+                      className="apple-btn apple-btn-secondary w-full h-12 rounded-apple-md font-medium"
                     >
                       <Plus className="w-4 h-4 mr-2" />
                       Crear Nuevo Cliente
                     </Button>
                   </div>
                 ) : (
-                  <div className="bg-purple-500/10 border border-purple-500/20 rounded-2xl p-4 flex items-center justify-between">
+                  <div className="bg-apple-purple/12 rounded-apple-md p-4 flex items-center justify-between">
                     <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-full bg-purple-500/20 flex items-center justify-center text-purple-400">
+                      <div className="w-10 h-10 rounded-full bg-apple-purple/15 flex items-center justify-center text-apple-purple">
                         <User className="w-5 h-5" />
                       </div>
                       <div>
-                        <p className="font-bold text-white text-lg">
+                        <p className="apple-text-headline font-semibold apple-label-primary">
                           {selectedCustomer ? selectedCustomer.name : "Nuevo Cliente"}
                         </p>
-                        <p className="text-xs text-purple-300 font-medium uppercase tracking-wide">Cliente Seleccionado</p>
+                        <p className="apple-text-caption2 text-apple-purple font-medium">Cliente Seleccionado</p>
                       </div>
                     </div>
                     <Button
@@ -442,7 +434,7 @@ export default function UnlocksDialog({ open, onClose, onSuccess, initialTab = "
                       size="icon"
                       variant="ghost"
                       aria-label="Cerrar selección de cliente"
-                      className="text-white/40 hover:text-white rounded-full hover:bg-white/10"
+                      className="apple-label-tertiary hover:apple-label-primary rounded-full hover:bg-gray-sys6 dark:hover:bg-gray-sys5"
                     >
                       <X className="w-5 h-5" />
                     </Button>
@@ -452,20 +444,20 @@ export default function UnlocksDialog({ open, onClose, onSuccess, initialTab = "
                 {(showNewCustomer || selectedCustomer) && (
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
                     <div className="space-y-1.5">
-                      <Label className="text-white/40 text-xs font-bold uppercase ml-3">Nombre</Label>
+                      <Label className="apple-label-tertiary apple-text-caption1 font-semibold ml-3">Nombre</Label>
                       <Input
                         value={formData.customer_name}
                         onChange={(e) => setFormData({ ...formData, customer_name: e.target.value })}
-                        className="bg-[#2c2c2e] border-transparent text-white h-12 rounded-2xl focus:bg-[#3a3a3c]"
+                        className="apple-input h-12"
                         disabled={!!selectedCustomer}
                       />
                     </div>
                     <div className="space-y-1.5">
-                      <Label className="text-white/40 text-xs font-bold uppercase ml-3">Teléfono</Label>
+                      <Label className="apple-label-tertiary apple-text-caption1 font-semibold ml-3">Teléfono</Label>
                       <Input
                         value={formData.customer_phone}
                         onChange={(e) => setFormData({ ...formData, customer_phone: e.target.value })}
-                        className="bg-[#2c2c2e] border-transparent text-white h-12 rounded-2xl focus:bg-[#3a3a3c]"
+                        className="apple-input h-12"
                         disabled={!!selectedCustomer}
                       />
                     </div>
@@ -474,39 +466,39 @@ export default function UnlocksDialog({ open, onClose, onSuccess, initialTab = "
               </div>
 
               {/* EQUIPO */}
-              <div className="space-y-4 pt-4 border-t border-white/5">
+              <div className="space-y-4 pt-4" style={{ borderTop: '0.5px solid rgb(var(--separator) / 0.29)' }}>
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-1.5">
-                    <Label className="text-white/40 text-xs font-bold uppercase ml-3">Marca</Label>
+                    <Label className="apple-label-tertiary apple-text-caption1 font-semibold ml-3">Marca</Label>
                     <Input
                       value={formData.device_brand}
                       onChange={(e) => setFormData({ ...formData, device_brand: e.target.value })}
                       placeholder="Ej: Apple"
-                      className="bg-[#2c2c2e] border-transparent text-white h-12 rounded-2xl focus:bg-[#3a3a3c]"
+                      className="apple-input h-12"
                     />
                   </div>
                   <div className="space-y-1.5">
-                    <Label className="text-white/40 text-xs font-bold uppercase ml-3">Modelo</Label>
+                    <Label className="apple-label-tertiary apple-text-caption1 font-semibold ml-3">Modelo</Label>
                     <Input
                       value={formData.device_model}
                       onChange={(e) => setFormData({ ...formData, device_model: e.target.value })}
                       placeholder="Ej: iPhone 14 Pro"
-                      className="bg-[#2c2c2e] border-transparent text-white h-12 rounded-2xl focus:bg-[#3a3a3c]"
+                      className="apple-input h-12"
                     />
                   </div>
                 </div>
                 <div className="space-y-1.5">
-                  <Label className="text-white/40 text-xs font-bold uppercase ml-3">IMEI / Serial (Números)</Label>
+                  <Label className="apple-label-tertiary apple-text-caption1 font-semibold ml-3">IMEI / Serial (Números)</Label>
                   <Input
                     value={formData.device_serial}
                     onChange={(e) => handleImeiChange(e.target.value)}
                     placeholder="Ej: 3548..."
                     maxLength={15}
-                    className="bg-[#2c2c2e] border-transparent text-white h-12 rounded-2xl focus:bg-[#3a3a3c] font-mono tracking-wide"
+                    className="apple-input h-12 font-mono tabular-nums"
                   />
                   {formData.device_serial.length === 15 && (
-                    <p className="text-[10px] text-green-400 mt-1 flex items-center gap-1">
-                      <CheckCircle2 className="w-3 h-3" /> 
+                    <p className="apple-text-caption2 text-apple-green mt-1 flex items-center gap-1">
+                      <CheckCircle2 className="w-3 h-3" />
                       IMEI completo (15 dígitos)
                     </p>
                   )}
@@ -514,43 +506,43 @@ export default function UnlocksDialog({ open, onClose, onSuccess, initialTab = "
               </div>
 
               {/* SERVICIO */}
-              <div className="space-y-4 pt-4 border-t border-white/5">
+              <div className="space-y-4 pt-4" style={{ borderTop: '0.5px solid rgb(var(--separator) / 0.29)' }}>
                 <div className="space-y-1.5">
-                  <Label className="text-white/40 text-xs font-bold uppercase ml-3">Servicio</Label>
+                  <Label className="apple-label-tertiary apple-text-caption1 font-semibold ml-3">Servicio</Label>
                   <Select value={formData.service_type} onValueChange={(value) => setFormData({ ...formData, service_type: value })}>
-                    <SelectTrigger className="bg-[#2c2c2e] border-transparent text-white h-12 rounded-2xl focus:bg-[#3a3a3c]">
+                    <SelectTrigger className="apple-input h-12">
                       <SelectValue placeholder="Selecciona el servicio..." />
                     </SelectTrigger>
-                    <SelectContent className="bg-[#2c2c2e] border-white/10 text-white">
+                    <SelectContent className="apple-surface-elevated border-0 apple-label-primary">
                       {SOFTWARE_SERVICES.map(s => (
-                        <SelectItem key={s.value} value={s.value} className="focus:bg-white/10">{s.label}</SelectItem>
+                        <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
                 </div>
-                
+
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-1.5">
-                    <Label className="text-white/40 text-xs font-bold uppercase ml-3">Precio</Label>
+                    <Label className="apple-label-tertiary apple-text-caption1 font-semibold ml-3">Precio</Label>
                     <div className="relative">
-                      <span className="absolute left-4 top-1/2 -translate-y-1/2 text-white/40 font-bold">$</span>
+                      <span className="absolute left-4 top-1/2 -translate-y-1/2 apple-label-tertiary font-semibold">$</span>
                       <Input
                         type="number"
                         step="0.01"
                         value={formData.price}
                         onChange={(e) => setFormData({ ...formData, price: e.target.value })}
                         placeholder="0.00"
-                        className="bg-[#2c2c2e] border-transparent text-white h-12 rounded-2xl pl-8 focus:bg-[#3a3a3c] font-bold text-lg"
+                        className="apple-input h-12 pl-8 font-semibold apple-text-headline tabular-nums"
                       />
                     </div>
                   </div>
                   <div className="space-y-1.5">
-                    <Label className="text-white/40 text-xs font-bold uppercase ml-3">Notas</Label>
+                    <Label className="apple-label-tertiary apple-text-caption1 font-semibold ml-3">Notas</Label>
                     <Input
                       value={formData.notes}
                       onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
                       placeholder="Opcional"
-                      className="bg-[#2c2c2e] border-transparent text-white h-12 rounded-2xl focus:bg-[#3a3a3c]"
+                      className="apple-input h-12"
                     />
                   </div>
                 </div>
@@ -561,14 +553,14 @@ export default function UnlocksDialog({ open, onClose, onSuccess, initialTab = "
                   variant="ghost"
                   onClick={onClose}
                   disabled={loading}
-                  className="flex-1 text-white/40 hover:text-white h-14 rounded-2xl font-medium"
+                  className="apple-btn apple-btn-plain flex-1 h-14 rounded-apple-md font-medium"
                 >
                   Cancelar
                 </Button>
                 <Button
                   onClick={handleSubmit}
                   disabled={loading}
-                  className="flex-1 bg-purple-600 hover:bg-purple-500 text-white font-bold h-14 rounded-2xl shadow-lg shadow-purple-600/20 text-lg transition-all active:scale-95"
+                  className="apple-btn apple-btn-lg flex-1 bg-apple-purple hover:bg-apple-purple text-white font-semibold h-14 rounded-apple-md shadow-apple-md apple-text-headline transition-all active:scale-95"
                 >
                   {loading ? (
                     <>
@@ -584,64 +576,64 @@ export default function UnlocksDialog({ open, onClose, onSuccess, initialTab = "
 
             <TabsContent value="continue" className="space-y-4 mt-6">
               {pendingUnlocks.length === 0 ? (
-                <div className="text-center py-20 bg-[#2c2c2e]/30 rounded-[32px] border border-white/5 border-dashed">
-                  <div className="w-16 h-16 bg-white/5 rounded-full flex items-center justify-center mx-auto mb-4">
-                    <CheckCircle2 className="w-8 h-8 text-white/50" />
+                <div className="text-center py-20 apple-card border-0 rounded-apple-lg">
+                  <div className="w-16 h-16 bg-gray-sys6 dark:bg-gray-sys5 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <CheckCircle2 className="w-8 h-8 apple-label-tertiary" />
                   </div>
-                  <p className="text-white/40 font-medium">Todo al día</p>
-                  <p className="text-white/50 text-sm">No hay desbloqueos en progreso</p>
+                  <p className="apple-label-secondary font-medium apple-text-body">Todo al día</p>
+                  <p className="apple-label-tertiary apple-text-footnote">No hay desbloqueos en progreso</p>
                 </div>
               ) : (
                 <div className="space-y-3 max-h-[500px] overflow-y-auto pr-2 custom-scrollbar">
                   {pendingUnlocks.map(order => {
-                    const serviceType = SOFTWARE_SERVICES.find(s => 
+                    const serviceType = SOFTWARE_SERVICES.find(s =>
                       order.initial_problem?.toLowerCase().includes(s.label.toLowerCase())
                     );
 
                     return (
                       <div
                         key={order.id}
-                        className="bg-[#2c2c2e] border border-white/5 rounded-2xl p-5 hover:bg-[#3a3a3c] transition-all group shadow-sm"
+                        className="apple-card border-0 rounded-apple-md p-5 hover:bg-gray-sys6 dark:hover:bg-gray-sys5 transition-all group"
                       >
                         <div className="flex justify-between items-start mb-4">
                           <div>
                             <div className="flex items-center gap-2 mb-1">
-                              <Badge className="bg-purple-500/20 text-purple-300 border-0 text-[10px] px-2 py-0.5 rounded-md font-bold">
+                              <Badge className="bg-apple-purple/15 text-apple-purple border-0 apple-text-caption2 px-2 py-0.5 rounded-apple-xs font-semibold">
                                 {order.order_number}
                               </Badge>
-                              <span className="text-xs text-white/40 font-mono">
+                              <span className="apple-text-caption1 apple-label-tertiary font-mono tabular-nums">
                                 {format(new Date(order.created_date), "dd MMM")}
                               </span>
                             </div>
-                            <h4 className="font-bold text-white text-lg">{order.customer_name}</h4>
-                            <p className="text-sm text-white/60">
+                            <h4 className="apple-text-headline apple-label-primary font-semibold">{order.customer_name}</h4>
+                            <p className="apple-text-footnote apple-label-secondary">
                               {order.device_brand} {order.device_model}
                             </p>
                           </div>
                           <div className="text-right">
-                            <span className="text-[10px] text-white/40 font-bold uppercase tracking-wider block mb-1">Precio</span>
-                            <span className="text-xl font-bold text-green-400">
+                            <span className="apple-text-caption2 apple-label-tertiary font-semibold block mb-1">Precio</span>
+                            <span className="apple-text-title2 font-semibold text-apple-green tabular-nums">
                               ${(order.cost_estimate || 0).toFixed(2)}
                             </span>
                           </div>
                         </div>
-                        
-                        <div className="bg-black/20 rounded-xl p-3 mb-4 flex items-center gap-3">
-                          <div className="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center text-white/40">
+
+                        <div className="bg-gray-sys6 dark:bg-gray-sys5 rounded-apple-sm p-3 mb-4 flex items-center gap-3">
+                          <div className="w-8 h-8 rounded-apple-xs bg-apple-purple/15 flex items-center justify-center text-apple-purple">
                             <Code2 className="w-4 h-4" />
                           </div>
                           <div>
-                            <p className="text-xs text-white/40 font-bold uppercase tracking-wide">Servicio</p>
-                            <p className="text-sm text-white font-medium">
+                            <p className="apple-text-caption2 apple-label-tertiary font-semibold">Servicio</p>
+                            <p className="apple-text-footnote apple-label-primary font-medium">
                               {serviceType?.label || order.initial_problem?.split('\n')[0] || "Software"}
                             </p>
                           </div>
                         </div>
-                        
+
                         <div className="flex gap-2">
                           <Button
                             onClick={() => handleContinueUnlock(order)}
-                            className="flex-1 bg-purple-600 hover:bg-purple-500 h-10 rounded-xl text-sm font-bold shadow-lg shadow-purple-600/10"
+                            className="apple-btn flex-1 bg-apple-purple hover:bg-apple-purple text-white h-10 rounded-apple-sm apple-text-footnote font-semibold shadow-apple-sm"
                           >
                             Gestionar
                           </Button>
@@ -653,7 +645,7 @@ export default function UnlocksDialog({ open, onClose, onSuccess, initialTab = "
                               setShowPinPrompt(true);
                             }}
                             aria-label="Eliminar desbloqueo"
-                            className="h-10 w-10 text-white/50 hover:text-red-400 hover:bg-red-500/10 rounded-xl"
+                            className="h-10 w-10 apple-label-tertiary hover:text-apple-red hover:bg-apple-red/12 rounded-apple-sm"
                           >
                             <Trash2 className="w-5 h-5" />
                           </Button>
@@ -667,12 +659,11 @@ export default function UnlocksDialog({ open, onClose, onSuccess, initialTab = "
           </Tabs>
         </div>
 
-        {/* ✅ MODAL DE OPCIONES DE PAGO - FIXED Z-INDEX */}
         {paymentModalOrder && (
           <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4">
-            <div className="absolute inset-0 bg-black/90 backdrop-blur-xl" onClick={() => setPaymentModalOrder(null)} />
-            
-            <div className="relative z-[10000] bg-[#1c1c1e] border border-white/10 rounded-[40px] p-8 max-w-md w-full shadow-2xl">
+            <div className="absolute inset-0 bg-black/50 backdrop-blur-xl" onClick={() => setPaymentModalOrder(null)} />
+
+            <div className="relative z-[10000] apple-surface-elevated rounded-apple-lg shadow-apple-xl border-0 p-8 max-w-md w-full">
               <div className="text-center mb-8">
                 {(() => {
                   const total = Number(paymentModalOrder.cost_estimate || paymentModalOrder.total || 0);
@@ -682,10 +673,10 @@ export default function UnlocksDialog({ open, onClose, onSuccess, initialTab = "
 
                   return (
                     <>
-                      <div className={`w-24 h-24 rounded-full mx-auto mb-6 flex items-center justify-center shadow-2xl animate-in zoom-in duration-300 ${
-                        isPaid 
-                          ? 'bg-gradient-to-br from-emerald-400 to-green-600 shadow-emerald-500/30' 
-                          : 'bg-gradient-to-br from-green-400 to-emerald-600 shadow-green-500/30'
+                      <div className={`w-24 h-24 rounded-full mx-auto mb-6 flex items-center justify-center shadow-apple-lg animate-in zoom-in duration-300 ${
+                        isPaid
+                          ? 'bg-apple-green'
+                          : 'bg-apple-green'
                       }`}>
                         {isPaid ? (
                           <CheckCircle2 className="w-12 h-12 text-white" strokeWidth={3} />
@@ -693,21 +684,21 @@ export default function UnlocksDialog({ open, onClose, onSuccess, initialTab = "
                           <DollarSign className="w-12 h-12 text-white" strokeWidth={3} />
                         )}
                       </div>
-                      
-                      <h2 className="text-3xl font-bold text-white mb-2 tracking-tight">
+
+                      <h2 className="apple-text-title1 apple-label-primary mb-2">
                         {isPaid ? 'Desbloqueo Pagado' : 'Desbloqueo Completado'}
                       </h2>
-                      <p className="text-white/60 text-lg font-medium">{paymentModalOrder.customer_name}</p>
-                      
-                      <div className={`mt-8 border border-white/5 rounded-3xl p-6 relative overflow-hidden ${
-                        isPaid ? 'bg-emerald-500/10' : 'bg-[#2c2c2e]'
+                      <p className="apple-label-secondary apple-text-headline font-medium">{paymentModalOrder.customer_name}</p>
+
+                      <div className={`mt-8 rounded-apple-lg p-6 relative overflow-hidden ${
+                        isPaid ? 'bg-apple-green/12' : 'apple-card border-0'
                       }`}>
                         <div className={`absolute top-0 left-0 w-full h-1 ${
-                          isPaid ? 'bg-gradient-to-r from-emerald-500 to-green-500' : 'bg-gradient-to-r from-yellow-500 to-orange-500'
+                          isPaid ? 'bg-apple-green' : 'bg-apple-orange'
                         }`} />
-                        <p className="text-xs text-white/40 uppercase font-bold tracking-widest mb-2">Balance Pendiente</p>
-                        <p className={`text-5xl font-black tracking-tighter ${
-                          isPaid ? 'text-emerald-400' : 'text-white'
+                        <p className="apple-text-caption1 apple-label-tertiary font-semibold mb-2">Balance Pendiente</p>
+                        <p className={`apple-text-large-title font-bold tabular-nums ${
+                          isPaid ? 'text-apple-green' : 'apple-label-primary'
                         }`}>
                           ${balance.toFixed(2)}
                         </p>
@@ -720,7 +711,7 @@ export default function UnlocksDialog({ open, onClose, onSuccess, initialTab = "
               <div className="space-y-3">
                 <Button
                   onClick={() => handlePaymentOption("pay")}
-                  className="w-full bg-green-500 hover:bg-green-400 text-white h-14 rounded-2xl text-lg font-bold shadow-xl shadow-green-500/20 transition-all active:scale-95"
+                  className="apple-btn apple-btn-lg w-full bg-apple-green hover:bg-apple-green text-white h-14 rounded-apple-md apple-text-headline font-semibold shadow-apple-md transition-all active:scale-95"
                 >
                   <DollarSign className="w-6 h-6 mr-2" strokeWidth={3} />
                   Cobrar Ahora
@@ -728,7 +719,7 @@ export default function UnlocksDialog({ open, onClose, onSuccess, initialTab = "
 
                 <Button
                   onClick={() => handlePaymentOption("deposit")}
-                  className="w-full bg-blue-500 hover:bg-blue-400 text-white h-14 rounded-2xl text-lg font-bold shadow-xl shadow-blue-500/20 transition-all active:scale-95"
+                  className="apple-btn apple-btn-lg w-full bg-apple-blue hover:bg-apple-blue text-white h-14 rounded-apple-md apple-text-headline font-semibold shadow-apple-md transition-all active:scale-95"
                 >
                   <CreditCard className="w-6 h-6 mr-2" strokeWidth={3} />
                   Recibir Depósito
@@ -736,15 +727,15 @@ export default function UnlocksDialog({ open, onClose, onSuccess, initialTab = "
 
                 <Button
                   onClick={() => handlePaymentOption("skip")}
-                  className="w-full bg-[#2c2c2e] hover:bg-[#3a3a3c] text-white h-14 rounded-2xl text-base font-semibold border border-white/5 transition-all active:scale-95"
+                  className="apple-btn apple-btn-secondary w-full h-14 rounded-apple-md apple-text-body font-semibold transition-all active:scale-95"
                 >
-                  <CheckCircle2 className="w-5 h-5 mr-2 text-green-400" />
+                  <CheckCircle2 className="w-5 h-5 mr-2 text-apple-green" />
                   Marcar Listo (Sin cobrar)
                 </Button>
-                
-                <button 
+
+                <button
                   onClick={() => setPaymentModalOrder(null)}
-                  className="w-full text-center text-white/40 text-sm font-medium hover:text-white mt-4 transition-colors"
+                  className="w-full text-center apple-label-tertiary apple-text-footnote font-medium hover:apple-label-primary mt-4 transition-colors"
                 >
                   Cancelar
                 </button>
@@ -753,7 +744,6 @@ export default function UnlocksDialog({ open, onClose, onSuccess, initialTab = "
           </div>
         )}
 
-        {/* ✅ PIN PROMPT */}
         {showPinPrompt && (
           <div className="fixed inset-0 z-[10000]">
             <AdminAuthGate
@@ -770,19 +760,18 @@ export default function UnlocksDialog({ open, onClose, onSuccess, initialTab = "
           </div>
         )}
 
-        {/* ✅ CONFIRM DELETE */}
         {deleteConfirmOrder && (
           <div className="fixed inset-0 z-[10000] flex items-center justify-center p-4">
-            <div className="absolute inset-0 bg-black/90 backdrop-blur-xl" onClick={() => setDeleteConfirmOrder(null)} />
-            <div className="relative z-[10001] bg-[#1c1c1e] border border-white/10 rounded-[32px] p-8 max-w-sm w-full text-center shadow-2xl">
-              <div className="w-20 h-20 rounded-full bg-red-500/20 flex items-center justify-center mx-auto mb-6">
-                <Trash2 className="w-10 h-10 text-red-500" />
+            <div className="absolute inset-0 bg-black/50 backdrop-blur-xl" onClick={() => setDeleteConfirmOrder(null)} />
+            <div className="relative z-[10001] apple-surface-elevated rounded-apple-lg shadow-apple-xl border-0 p-8 max-w-sm w-full text-center">
+              <div className="w-20 h-20 rounded-full bg-apple-red/15 flex items-center justify-center mx-auto mb-6">
+                <Trash2 className="w-10 h-10 text-apple-red" />
               </div>
-              <h3 className="text-2xl font-bold text-white mb-2">¿Eliminar?</h3>
-              <p className="text-white/60 mb-8 text-lg">Esta acción es irreversible.</p>
+              <h3 className="apple-text-title2 apple-label-primary mb-2">¿Eliminar?</h3>
+              <p className="apple-label-secondary mb-8 apple-text-body">Esta acción es irreversible.</p>
               <div className="flex gap-3">
-                <Button onClick={() => setDeleteConfirmOrder(null)} className="flex-1 bg-[#2c2c2e] hover:bg-[#3a3a3c] text-white h-12 rounded-xl font-bold">Cancelar</Button>
-                <Button onClick={() => handleDeleteUnlock(deleteConfirmOrder.id)} className="flex-1 bg-red-500 hover:bg-red-600 text-white h-12 rounded-xl font-bold">Eliminar</Button>
+                <Button onClick={() => setDeleteConfirmOrder(null)} className="apple-btn apple-btn-secondary flex-1 h-12 rounded-apple-sm font-semibold">Cancelar</Button>
+                <Button onClick={() => handleDeleteUnlock(deleteConfirmOrder.id)} className="apple-btn apple-btn-destructive flex-1 h-12 rounded-apple-sm font-semibold">Eliminar</Button>
               </div>
             </div>
           </div>

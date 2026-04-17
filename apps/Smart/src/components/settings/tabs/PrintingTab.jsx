@@ -6,15 +6,15 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 
 export default function PrintingTab({ settings, onChange }) {
   return (
-    <div className="space-y-6">
-      <Card className="bg-zinc-900/50 border-white/10">
+    <div className="apple-type space-y-6">
+      <Card className="apple-card border-0">
         <CardHeader>
-          <CardTitle>Configuración de Impresión</CardTitle>
-          <CardDescription>Plantillas y opciones de impresión</CardDescription>
+          <CardTitle className="apple-text-title3 apple-label-primary">Configuración de Impresión</CardTitle>
+          <CardDescription className="apple-text-subheadline apple-label-secondary">Plantillas y opciones de impresión</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="space-y-2">
-            <Label>Plantilla de ticket</Label>
+            <Label className="apple-text-footnote apple-label-secondary">Plantilla de ticket</Label>
             <Select
               value={settings.templates?.workorder_ticket}
               onValueChange={(v) => onChange({
@@ -22,7 +22,7 @@ export default function PrintingTab({ settings, onChange }) {
                 templates: { ...settings.templates, workorder_ticket: v }
               })}
             >
-              <SelectTrigger className="bg-black border-white/15">
+              <SelectTrigger className="apple-input">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -34,12 +34,12 @@ export default function PrintingTab({ settings, onChange }) {
           </div>
 
           <div className="space-y-2">
-            <Label>Tamaño de etiqueta</Label>
+            <Label className="apple-text-footnote apple-label-secondary">Tamaño de etiqueta</Label>
             <Select
               value={settings.label_size}
               onValueChange={(v) => onChange({ ...settings, label_size: v })}
             >
-              <SelectTrigger className="bg-black border-white/15">
+              <SelectTrigger className="apple-input">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -51,15 +51,15 @@ export default function PrintingTab({ settings, onChange }) {
           </div>
 
           <div className="space-y-3">
-            <Label className="text-base font-semibold">Opciones de impresión</Label>
+            <Label className="apple-text-headline apple-label-primary">Opciones de impresión</Label>
             {[
               { key: 'show_logo', label: 'Mostrar logo' },
               { key: 'show_qr', label: 'Mostrar código QR' },
               { key: 'show_barcode', label: 'Mostrar código de barras' },
               { key: 'show_photos', label: 'Incluir fotos' },
             ].map(({ key, label }) => (
-              <div key={key} className="flex items-center justify-between p-3 bg-black/30 rounded-lg">
-                <Label>{label}</Label>
+              <div key={key} className="flex items-center justify-between p-3 bg-gray-sys6 dark:bg-gray-sys5 rounded-apple-md">
+                <Label className="apple-text-body apple-label-primary">{label}</Label>
                 <Switch
                   checked={settings.options?.[key]}
                   onCheckedChange={(v) => onChange({

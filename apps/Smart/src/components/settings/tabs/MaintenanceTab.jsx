@@ -61,17 +61,17 @@ export default function MaintenanceTab({ user }) {
   };
 
   return (
-    <div className="space-y-6">
-      <Card className="bg-zinc-900/50 border-white/10">
+    <div className="apple-type space-y-6">
+      <Card className="apple-card border-0">
         <CardHeader>
-          <CardTitle className="text-white">Respaldo y Restauración</CardTitle>
+          <CardTitle className="apple-text-title3 apple-label-primary">Respaldo y Restauración</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="flex gap-3">
             <Button
               onClick={handleExportSettings}
               disabled={exporting}
-              className="bg-gradient-to-r from-blue-600 to-blue-800"
+              className="apple-btn apple-btn-primary apple-press"
             >
               <Download className="w-4 h-4 mr-2" />
               {exporting ? "Exportando..." : "Exportar Configuración"}
@@ -88,7 +88,7 @@ export default function MaintenanceTab({ user }) {
               <Button
                 onClick={() => document.getElementById("import-settings").click()}
                 variant="outline"
-                className="border-gray-700"
+                className="apple-btn apple-btn-secondary apple-press"
               >
                 <Upload className="w-4 h-4 mr-2" />
                 Importar Configuración
@@ -96,11 +96,11 @@ export default function MaintenanceTab({ user }) {
             </div>
           </div>
 
-          <div className="p-4 bg-amber-500/10 border border-amber-500/30 rounded-lg">
+          <div className="p-4 bg-apple-orange/12 rounded-apple-md">
             <div className="flex gap-3">
-              <AlertTriangle className="w-5 h-5 text-amber-500 flex-shrink-0" />
-              <div className="text-sm text-amber-200">
-                <p className="font-semibold mb-1">Importante</p>
+              <AlertTriangle className="w-5 h-5 text-apple-orange flex-shrink-0" />
+              <div className="apple-text-subheadline text-apple-orange">
+                <p className="apple-text-headline mb-1">Importante</p>
                 <p>La importación sobrescribirá toda la configuración actual. Asegúrate de tener un respaldo antes de proceder.</p>
               </div>
             </div>
@@ -108,20 +108,20 @@ export default function MaintenanceTab({ user }) {
         </CardContent>
       </Card>
 
-      <Card className="bg-zinc-900/50 border-white/10">
+      <Card className="apple-card border-0">
         <CardHeader>
-          <CardTitle className="text-white text-red-500">Zona de Peligro</CardTitle>
+          <CardTitle className="apple-text-title3 text-apple-red">Zona de Peligro</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="p-4 bg-red-500/10 border border-red-500/30 rounded-lg">
+          <div className="p-4 bg-apple-red/12 rounded-apple-md">
             <div className="flex items-center justify-between">
               <div>
-                <p className="font-semibold text-white">Restablecer configuración</p>
-                <p className="text-sm text-gray-400">Volver a valores por defecto (requiere PIN de admin)</p>
+                <p className="apple-text-headline apple-label-primary">Restablecer configuración</p>
+                <p className="apple-text-subheadline apple-label-tertiary">Volver a valores por defecto (requiere PIN de admin)</p>
               </div>
               <Button
                 variant="outline"
-                className="border-red-700 text-red-400 hover:bg-red-900/30"
+                className="apple-btn apple-btn-destructive apple-press"
                 onClick={() => alert("Función protegida - requiere implementación de validación de PIN")}
               >
                 <Database className="w-4 h-4 mr-2" />

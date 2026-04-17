@@ -35,15 +35,15 @@ const STATUS_LABELS = {
   completed: "Completado",
 };
 const STATUS_HEX = {
-  intake: "#3B82F6",
-  diagnosing: "#8B5CF6",
-  pending_order: "#DC2626",
-  waiting_parts: "#F97316",
-  part_arrived_waiting_device: "#FACC15",
-  reparacion_externa: "#EC4899",
-  in_progress: "#06B6D4",
-  ready_for_pickup: "#10B981",
-  ready: "#10B981",
+  intake: "#007AFF",
+  diagnosing: "#AF52DE",
+  pending_order: "#FF3B30",
+  waiting_parts: "#FF9500",
+  part_arrived_waiting_device: "#FFCC00",
+  reparacion_externa: "#AF52DE",
+  in_progress: "#007AFF",
+  ready_for_pickup: "#34C759",
+  ready: "#34C759",
 };
 const CLOSED = ["completed", "cancelled", "delivered", "picked_up"];
 
@@ -182,28 +182,34 @@ function ExecutiveDashboardImpl() {
   };
 
   if (loading) return (
-    <div className="rounded-3xl bg-white/[0.03] border border-white/[0.06] p-5 space-y-3 animate-pulse">
-      {[1, 2, 3, 4].map(i => <div key={i} className="h-20 rounded-xl bg-white/[0.04]" />)}
+    <div className="apple-type rounded-apple-lg apple-card p-5 space-y-3 animate-pulse">
+      {[1, 2, 3, 4].map(i => <div key={i} className="h-20 rounded-apple-md apple-surface" />)}
     </div>
   );
   if (!data) return null;
 
   const totalDonut = data.donut.reduce((s, d) => s + d.value, 0) || 1;
 
+  const KPI_STYLES = {
+    today: "bg-apple-green/12 text-apple-green",
+    week: "bg-apple-blue/12 text-apple-blue",
+    month: "bg-apple-purple/12 text-apple-purple",
+  };
+
   return (
-    <div className="space-y-4">
+    <div className="apple-type space-y-4">
       {/* Header */}
       <div className="flex items-center justify-between">
-        <h2 className="text-sm font-black text-white/60 uppercase tracking-widest">
+        <h2 className="apple-text-subheadline font-semibold apple-label-secondary">
           Dashboard Ejecutivo
         </h2>
         <div className="flex items-center gap-3">
           <button onClick={() => navigate("/Appointments")}
-            className="text-[10px] text-violet-400 hover:text-violet-300 font-bold uppercase tracking-widest transition-colors">
+            className="apple-text-caption1 text-apple-purple font-semibold transition-colors">
             📅 Citas
           </button>
           <button onClick={load}
-            className="text-[10px] text-white/25 hover:text-white/50 font-bold uppercase tracking-widest transition-colors">
+            className="apple-text-caption1 apple-label-tertiary font-semibold transition-colors">
             ↻ Actualizar
           </button>
         </div>
@@ -212,16 +218,16 @@ function ExecutiveDashboardImpl() {
       {/* KPIs ingresos */}
       <div className="grid grid-cols-3 gap-2">
         {[
-          { label: "Hoy", val: data.incToday, color: "emerald" },
-          { label: "7 días", val: data.incWeek, color: "cyan" },
-          { label: "Mes", val: data.incMonth, color: "violet" },
-        ].map(({ label, val, color }) => (
+          { label: "Hoy", val: data.incToday, key: "today" },
+          { label: "7 días", val: data.incWeek, key: "week" },
+          { label: "Mes", val: data.incMonth, key: "month" },
+        ].map(({ label, val, key }) => (
           <div key={label} onClick={() => navigate("/Financial")}
-            className={`rounded-2xl bg-${color}-500/[0.08] border border-${color}-500/20 p-3 cursor-pointer hover:bg-${color}-500/[0.14] transition-colors`}>
-            <p className={`text-lg font-black text-${color}-300 leading-none`}>
+            className={`apple-press rounded-apple-md ${KPI_STYLES[key]} p-3 cursor-pointer transition-colors`}>
+            <p className="apple-text-headline font-semibold leading-none tabular-nums">
               {currency(val)}
             </p>
-            <p className="text-[10px] text-white/30 font-bold uppercase tracking-widest mt-1">
+            <p className="apple-text-caption2 apple-label-tertiary font-semibold mt-1">
               {label}
             </p>
           </div>
@@ -229,14 +235,14 @@ function ExecutiveDashboardImpl() {
       </div>
 
       {/* Neto del mes */}
-      <div className="flex items-center justify-between px-4 py-3 rounded-2xl bg-white/[0.03] border border-white/[0.06]">
+      <div className="flex items-center justify-between px-4 py-3 rounded-apple-md apple-card">
         <div className="flex items-center gap-2">
           {data.netoMes >= 0
-            ? <TrendingUp className="w-4 h-4 text-emerald-400" />
-            : <TrendingDown className="w-4 h-4 text-red-400" />}
-          <span className="text-sm text-white/60">Neto del mes</span>
+            ? <TrendingUp className="w-4 h-4 text-apple-green" />
+            : <TrendingDown className="w-4 h-4 text-apple-red" />}
+          <span className="apple-text-subheadline apple-label-secondary">Neto del mes</span>
         </div>
-        <span className={`text-base font-black ${data.netoMes >= 0 ? "text-emerald-300" : "text-red-400"}`}>
+        <span className={`apple-text-headline font-semibold tabular-nums ${data.netoMes >= 0 ? "text-apple-green" : "text-apple-red"}`}>
           {currency(data.netoMes)}
         </span>
       </div>
@@ -244,12 +250,12 @@ function ExecutiveDashboardImpl() {
       {/* === GRÁFICOS === */}
 
       {/* Línea de ingresos 14 días */}
-      <div className="rounded-2xl bg-white/[0.03] border border-white/[0.06] p-4">
+      <div className="rounded-apple-md apple-card p-4">
         <div className="flex items-center justify-between mb-3">
-          <span className="text-xs font-black text-white/40 uppercase tracking-widest">
+          <span className="apple-text-caption1 font-semibold apple-label-tertiary">
             Ingresos · 14 días
           </span>
-          <DollarSign className="w-3.5 h-3.5 text-white/30" />
+          <DollarSign className="w-3.5 h-3.5 apple-label-tertiary" />
         </div>
         <div style={{ width: "100%", height: 180 }}>
           <ResponsiveContainer>
@@ -272,10 +278,10 @@ function ExecutiveDashboardImpl() {
               <Line
                 type="monotone"
                 dataKey="ingresos"
-                stroke="#10B981"
+                stroke="#34C759"
                 strokeWidth={2.5}
                 dot={false}
-                activeDot={{ r: 5, fill: "#10B981" }}
+                activeDot={{ r: 5, fill: "#34C759" }}
               />
             </LineChart>
           </ResponsiveContainer>
@@ -285,13 +291,13 @@ function ExecutiveDashboardImpl() {
       {/* Donut estados + Bar top técnicos */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
         {/* Donut estados */}
-        <div className="rounded-2xl bg-white/[0.03] border border-white/[0.06] p-4">
+        <div className="rounded-apple-md apple-card p-4">
           <div className="flex items-center justify-between mb-3">
-            <span className="text-xs font-black text-white/40 uppercase tracking-widest">
+            <span className="apple-text-caption1 font-semibold apple-label-tertiary">
               Órdenes por estado
             </span>
             <button onClick={() => navigate("/Orders")}
-              className="flex items-center gap-1 text-[11px] text-violet-400 hover:text-violet-300 font-bold transition-colors">
+              className="flex items-center gap-1 apple-text-caption1 text-apple-purple font-semibold transition-colors tabular-nums">
               {data.activas} <ChevronRight className="w-3 h-3" />
             </button>
           </div>
@@ -326,29 +332,29 @@ function ExecutiveDashboardImpl() {
               </ResponsiveContainer>
             </div>
           ) : (
-            <div className="h-[180px] flex items-center justify-center text-white/30 text-xs">
+            <div className="h-[180px] flex items-center justify-center apple-label-tertiary apple-text-caption1">
               Sin órdenes activas
             </div>
           )}
           {/* leyenda compacta */}
           <div className="grid grid-cols-2 gap-x-3 gap-y-1 mt-2">
             {data.donut.slice(0, 6).map((d) => (
-              <div key={d.name} className="flex items-center gap-1.5 text-[10px]">
+              <div key={d.name} className="flex items-center gap-1.5 apple-text-caption2">
                 <span className="w-2 h-2 rounded-full" style={{ background: d.color }} />
-                <span className="text-white/50 truncate">{d.name}</span>
-                <span className="text-white/70 font-bold ml-auto">{d.value}</span>
+                <span className="apple-label-secondary truncate">{d.name}</span>
+                <span className="apple-label-primary font-semibold ml-auto tabular-nums">{d.value}</span>
               </div>
             ))}
           </div>
         </div>
 
         {/* Bar top técnicos */}
-        <div className="rounded-2xl bg-white/[0.03] border border-white/[0.06] p-4">
+        <div className="rounded-apple-md apple-card p-4">
           <div className="flex items-center justify-between mb-3">
-            <span className="text-xs font-black text-white/40 uppercase tracking-widest">
+            <span className="apple-text-caption1 font-semibold apple-label-tertiary">
               Top técnicos · mes
             </span>
-            <Wrench className="w-3.5 h-3.5 text-white/30" />
+            <Wrench className="w-3.5 h-3.5 apple-label-tertiary" />
           </div>
           {data.topTechs.length > 0 ? (
             <div style={{ width: "100%", height: 180 }}>
@@ -374,12 +380,12 @@ function ExecutiveDashboardImpl() {
                     cursor={{ fill: "rgba(255,255,255,0.04)" }}
                     formatter={(v) => [v, "Órdenes"]}
                   />
-                  <Bar dataKey="ordenes" fill="#8B5CF6" radius={[0, 6, 6, 0]} />
+                  <Bar dataKey="ordenes" fill="#AF52DE" radius={[0, 6, 6, 0]} />
                 </BarChart>
               </ResponsiveContainer>
             </div>
           ) : (
-            <div className="h-[180px] flex items-center justify-center text-white/30 text-xs">
+            <div className="h-[180px] flex items-center justify-center apple-label-tertiary apple-text-caption1">
               Sin completadas este mes
             </div>
           )}
@@ -389,42 +395,42 @@ function ExecutiveDashboardImpl() {
       {/* Alertas rápidas */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-2">
         <button onClick={() => navigate("/Orders")}
-          className={`flex items-center gap-2 px-3 py-2.5 rounded-2xl border transition-colors ${data.listas > 0 ? "bg-emerald-500/[0.08] border-emerald-500/25 hover:bg-emerald-500/[0.14]" : "bg-white/[0.03] border-white/[0.06]"}`}>
-          <CheckCircle2 className={`w-4 h-4 shrink-0 ${data.listas > 0 ? "text-emerald-400" : "text-white/50"}`} />
+          className={`apple-press flex items-center gap-2 px-3 py-2.5 rounded-apple-md transition-colors ${data.listas > 0 ? "bg-apple-green/12" : "apple-card"}`}>
+          <CheckCircle2 className={`w-4 h-4 shrink-0 ${data.listas > 0 ? "text-apple-green" : "apple-label-tertiary"}`} />
           <div className="text-left">
-            <p className={`text-base font-black leading-none ${data.listas > 0 ? "text-emerald-300" : "text-white/30"}`}>
+            <p className={`apple-text-headline font-semibold leading-none tabular-nums ${data.listas > 0 ? "text-apple-green" : "apple-label-tertiary"}`}>
               {data.listas}
             </p>
-            <p className="text-[10px] text-white/30">Listas</p>
+            <p className="apple-text-caption2 apple-label-tertiary">Listas</p>
           </div>
         </button>
         <button onClick={() => navigate("/Orders")}
-          className={`flex items-center gap-2 px-3 py-2.5 rounded-2xl border transition-colors ${data.retrasadas > 0 ? "bg-orange-500/[0.08] border-orange-500/25 hover:bg-orange-500/[0.14]" : "bg-white/[0.03] border-white/[0.06]"}`}>
-          <Clock className={`w-4 h-4 shrink-0 ${data.retrasadas > 0 ? "text-orange-400" : "text-white/50"}`} />
+          className={`apple-press flex items-center gap-2 px-3 py-2.5 rounded-apple-md transition-colors ${data.retrasadas > 0 ? "bg-apple-orange/12" : "apple-card"}`}>
+          <Clock className={`w-4 h-4 shrink-0 ${data.retrasadas > 0 ? "text-apple-orange" : "apple-label-tertiary"}`} />
           <div className="text-left">
-            <p className={`text-base font-black leading-none ${data.retrasadas > 0 ? "text-orange-300" : "text-white/30"}`}>
+            <p className={`apple-text-headline font-semibold leading-none tabular-nums ${data.retrasadas > 0 ? "text-apple-orange" : "apple-label-tertiary"}`}>
               {data.retrasadas}
             </p>
-            <p className="text-[10px] text-white/30">Retrasadas</p>
+            <p className="apple-text-caption2 apple-label-tertiary">Retrasadas</p>
           </div>
         </button>
         <button onClick={() => navigate("/Inventory")}
-          className={`flex items-center gap-2 px-3 py-2.5 rounded-2xl border transition-colors ${data.stockCrit > 0 ? "bg-red-500/[0.08] border-red-500/25 hover:bg-red-500/[0.14]" : "bg-white/[0.03] border-white/[0.06]"}`}>
-          <AlertTriangle className={`w-4 h-4 shrink-0 ${data.stockCrit > 0 ? "text-red-400" : "text-white/50"}`} />
+          className={`apple-press flex items-center gap-2 px-3 py-2.5 rounded-apple-md transition-colors ${data.stockCrit > 0 ? "bg-apple-red/12" : "apple-card"}`}>
+          <AlertTriangle className={`w-4 h-4 shrink-0 ${data.stockCrit > 0 ? "text-apple-red" : "apple-label-tertiary"}`} />
           <div className="text-left">
-            <p className={`text-base font-black leading-none ${data.stockCrit > 0 ? "text-red-300" : "text-white/30"}`}>
+            <p className={`apple-text-headline font-semibold leading-none tabular-nums ${data.stockCrit > 0 ? "text-apple-red" : "apple-label-tertiary"}`}>
               {data.stockCrit}
             </p>
-            <p className="text-[10px] text-white/30">Stock crítico</p>
+            <p className="apple-text-caption2 apple-label-tertiary">Stock crítico</p>
           </div>
         </button>
-        <div className="flex items-center gap-2 px-3 py-2.5 rounded-2xl border bg-white/[0.03] border-white/[0.06]">
-          <Package className="w-4 h-4 text-white/50 shrink-0" />
+        <div className="flex items-center gap-2 px-3 py-2.5 rounded-apple-md apple-card">
+          <Package className="w-4 h-4 apple-label-tertiary shrink-0" />
           <div className="text-left">
-            <p className="text-base font-black leading-none text-white/70">
+            <p className="apple-text-headline font-semibold leading-none apple-label-secondary tabular-nums">
               {data.avgRepairDays.toFixed(1)}d
             </p>
-            <p className="text-[10px] text-white/30">Tiempo prom.</p>
+            <p className="apple-text-caption2 apple-label-tertiary">Tiempo prom.</p>
           </div>
         </div>
       </div>

@@ -145,65 +145,68 @@ export default function PatternLock({ open, onClose, onSave }) {
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent 
+      <DialogContent
         style={{ zIndex: 100000 }}
-        className="bg-gradient-to-br from-[#2B2B2B] to-black border-red-900/30 max-w-md"
+        className="apple-type apple-surface-elevated rounded-apple-lg shadow-apple-xl border-0 p-0 overflow-hidden max-w-md"
         onPointerDownOutside={(e) => e.preventDefault()}
         onInteractOutside={(e) => e.preventDefault()}
       >
-        <DialogHeader>
-          <DialogTitle className="text-white">Definir patrón de desbloqueo</DialogTitle>
-        </DialogHeader>
+        <div className="p-6">
+          <DialogHeader>
+            <DialogTitle className="apple-text-title2 apple-label-primary">Definir patrón de desbloqueo</DialogTitle>
+          </DialogHeader>
 
-        <div className="flex flex-col items-center gap-4">
-          <div className="w-full aspect-square" style={{ touchAction: 'none' }}>
-            <canvas
-              ref={canvasRef}
-              onMouseDown={() => setDrawing(true)}
-              onMouseUp={() => setDrawing(false)}
-              onMouseMove={(e) => drawing && handleCanvasInteraction(e)}
-              onTouchStart={() => setDrawing(true)}
-              onTouchEnd={() => setDrawing(false)}
-              onTouchMove={(e) => drawing && handleCanvasInteraction(e)}
-              className="border-2 border-gray-700 rounded-lg bg-black cursor-crosshair w-full"
-              style={{ 
-                touchAction: 'none',
-                width: '100%',
-                height: '100%'
-              }}
-            />
-          </div>
+          <div className="flex flex-col items-center gap-4 mt-4">
+            <div className="w-full aspect-square" style={{ touchAction: 'none' }}>
+              <canvas
+                ref={canvasRef}
+                onMouseDown={() => setDrawing(true)}
+                onMouseUp={() => setDrawing(false)}
+                onMouseMove={(e) => drawing && handleCanvasInteraction(e)}
+                onTouchStart={() => setDrawing(true)}
+                onTouchEnd={() => setDrawing(false)}
+                onTouchMove={(e) => drawing && handleCanvasInteraction(e)}
+                className="rounded-apple-md bg-gray-sys6 dark:bg-gray-sys5 cursor-crosshair w-full"
+                style={{
+                  touchAction: 'none',
+                  width: '100%',
+                  height: '100%',
+                  border: '0.5px solid rgb(var(--separator) / 0.29)'
+                }}
+              />
+            </div>
 
-          <div className="text-sm text-gray-400 text-center">
-            {pattern.length === 0 && "Dibuja un patrón conectando al menos 4 puntos"}
-            {pattern.length > 0 && pattern.length < 4 && `${pattern.length} puntos seleccionados (mínimo 4)`}
-            {pattern.length >= 4 && `✓ Patrón válido (${pattern.length} puntos)`}
-          </div>
+            <div className="apple-text-footnote apple-label-secondary text-center">
+              {pattern.length === 0 && "Dibuja un patrón conectando al menos 4 puntos"}
+              {pattern.length > 0 && pattern.length < 4 && `${pattern.length} puntos seleccionados (mínimo 4)`}
+              {pattern.length >= 4 && `✓ Patrón válido (${pattern.length} puntos)`}
+            </div>
 
-          <div className="flex gap-2 w-full">
-            <Button
-              variant="outline"
-              onClick={initCanvas}
-              className="flex-1 border-gray-700"
-            >
-              <Trash2 className="w-4 h-4 mr-2" />
-              Limpiar
-            </Button>
-            <Button
-              variant="outline"
-              onClick={onClose}
-              className="flex-1 border-gray-700"
-            >
-              Cancelar
-            </Button>
-            <Button
-              onClick={handleConfirm}
-              disabled={pattern.length < 4}
-              className="flex-1 bg-gradient-to-r from-red-600 to-red-800 hover:from-red-500 hover:to-red-700"
-            >
-              <Check className="w-4 h-4 mr-2" />
-              Confirmar
-            </Button>
+            <div className="flex gap-2 w-full">
+              <Button
+                variant="outline"
+                onClick={initCanvas}
+                className="apple-btn apple-btn-secondary flex-1"
+              >
+                <Trash2 className="w-4 h-4 mr-2" />
+                Limpiar
+              </Button>
+              <Button
+                variant="outline"
+                onClick={onClose}
+                className="apple-btn apple-btn-secondary flex-1"
+              >
+                Cancelar
+              </Button>
+              <Button
+                onClick={handleConfirm}
+                disabled={pattern.length < 4}
+                className="apple-btn apple-btn-primary flex-1"
+              >
+                <Check className="w-4 h-4 mr-2" />
+                Confirmar
+              </Button>
+            </div>
           </div>
         </div>
       </DialogContent>

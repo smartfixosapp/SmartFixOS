@@ -24,25 +24,22 @@ export default function SystemAuditPanel() {
       // 1. AUDITAR ÓRDENES
       const orders = await dataClient.entities.Order.list("-created_date", 500);
       results.orders.total = orders.length;
-      
+
       const orderNumbers = new Set();
       const deletedOrders = [];
       const incompleteteOrders = [];
       const duplicateNumbers = [];
 
       orders.forEach(order => {
-        // Revisar duplicados
         if (orderNumbers.has(order.order_number)) {
           duplicateNumbers.push(order.order_number);
         }
         orderNumbers.add(order.order_number);
 
-        // Revisar datos incompletos
         if (!order.customer_id || !order.customer_name || !order.device_type) {
           incompleteteOrders.push(`${order.order_number}: Missing ${!order.customer_id ? 'customer_id' : !order.customer_name ? 'customer_name' : 'device_type'}`);
         }
 
-        // Revisar órdenes eliminadas
         if (order.is_deleted) {
           deletedOrders.push(order.order_number);
         }
@@ -174,7 +171,7 @@ export default function SystemAuditPanel() {
       };
 
       setAuditResults(results);
-      toast.success(`✅ Auditoría completada: ${totalIssues} problemas, ${totalWarnings} advertencias`);
+      toast.success(`Auditoría completada: ${totalIssues} problemas, ${totalWarnings} advertencias`);
     } catch (error) {
       console.error("Error en auditoría:", error);
       toast.error("Error al ejecutar auditoría: " + error.message);
@@ -196,21 +193,21 @@ export default function SystemAuditPanel() {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="apple-type space-y-6">
       {/* HEADER */}
-      <div className="bg-gradient-to-r from-blue-600/20 to-cyan-600/20 border border-blue-500/30 rounded-2xl p-6">
+      <div className="bg-apple-blue/12 rounded-apple-lg p-6">
         <div className="flex items-start gap-3">
-          <BarChart3 className="w-6 h-6 text-blue-400 flex-shrink-0 mt-1" />
+          <BarChart3 className="w-6 h-6 text-apple-blue flex-shrink-0 mt-1" />
           <div className="flex-1">
-            <h2 className="text-2xl font-bold text-white">Auditoría Completa del Sistema</h2>
-            <p className="text-sm text-white/70 mt-1">
+            <h2 className="apple-text-title2 apple-label-primary">Auditoría Completa del Sistema</h2>
+            <p className="apple-text-subheadline apple-label-secondary mt-1">
               Analiza integridad de datos, duplicados, inconsistencias y validaciones
             </p>
           </div>
           <Button
             onClick={runFullAudit}
             disabled={loading}
-            className="bg-blue-600 hover:bg-blue-700"
+            className="apple-btn apple-btn-primary apple-press"
           >
             {loading ? "Ejecutando..." : "Iniciar Auditoría"}
           </Button>
@@ -221,44 +218,44 @@ export default function SystemAuditPanel() {
       {auditResults && (
         <div className="space-y-4">
           {/* RESUMEN */}
-          <div className={`border rounded-xl p-6 ${
-            auditResults.summary.criticalStatus === 'OK' 
-              ? 'bg-green-500/10 border-green-500/30' 
+          <div className={`rounded-apple-md p-6 ${
+            auditResults.summary.criticalStatus === 'OK'
+              ? 'bg-apple-green/12'
               : auditResults.summary.criticalStatus === 'ADVERTENCIAS'
-              ? 'bg-yellow-500/10 border-yellow-500/30'
-              : 'bg-red-500/10 border-red-500/30'
+              ? 'bg-apple-yellow/12'
+              : 'bg-apple-red/12'
           }`}>
             <div className="flex items-start gap-4">
               <div>
                 {auditResults.summary.criticalStatus === 'OK' ? (
-                  <CheckCircle2 className="w-8 h-8 text-green-400" />
+                  <CheckCircle2 className="w-8 h-8 text-apple-green" />
                 ) : (
-                  <AlertTriangle className="w-8 h-8 text-orange-400" />
+                  <AlertTriangle className="w-8 h-8 text-apple-orange" />
                 )}
               </div>
               <div className="flex-1">
-                <h3 className="text-xl font-bold text-white mb-2">
+                <h3 className="apple-text-title3 apple-label-primary mb-2">
                   Estado: {auditResults.summary.criticalStatus}
                 </h3>
-                <div className="grid grid-cols-3 gap-4 text-sm">
+                <div className="grid grid-cols-3 gap-4 apple-text-subheadline">
                   <div>
-                    <p className="text-white/60">Problemas Críticos</p>
-                    <p className="text-2xl font-bold text-red-400">{auditResults.summary.totalIssues}</p>
+                    <p className="apple-label-tertiary">Problemas Críticos</p>
+                    <p className="apple-text-title2 text-apple-red tabular-nums">{auditResults.summary.totalIssues}</p>
                   </div>
                   <div>
-                    <p className="text-white/60">Advertencias</p>
-                    <p className="text-2xl font-bold text-yellow-400">{auditResults.summary.totalWarnings}</p>
+                    <p className="apple-label-tertiary">Advertencias</p>
+                    <p className="apple-text-title2 text-apple-yellow tabular-nums">{auditResults.summary.totalWarnings}</p>
                   </div>
                   <div>
-                    <p className="text-white/60">Auditoría</p>
-                    <p className="text-sm text-white">{auditResults.summary.auditDate}</p>
+                    <p className="apple-label-tertiary">Auditoría</p>
+                    <p className="apple-text-subheadline apple-label-primary tabular-nums">{auditResults.summary.auditDate}</p>
                   </div>
                 </div>
               </div>
               <Button
                 onClick={downloadReport}
                 variant="outline"
-                className="border-white/20"
+                className="apple-btn apple-btn-secondary apple-press"
               >
                 <Download className="w-4 h-4 mr-2" />
                 Descargar
@@ -271,31 +268,31 @@ export default function SystemAuditPanel() {
             {Object.entries(auditResults).map(([key, data]) => {
               if (key === 'timestamp' || key === 'summary') return null;
               const hasIssues = data.issues?.length > 0 || data.warnings?.length > 0;
-              
+
               return (
-                <div key={key} className="border border-white/10 rounded-xl p-4 bg-white/5">
+                <div key={key} className="rounded-apple-md p-4 apple-surface-elevated">
                   <div className="flex items-center justify-between mb-3">
-                    <h4 className="font-bold text-white capitalize">{key}</h4>
-                    <span className="text-lg font-bold text-cyan-400">{data.total}</span>
+                    <h4 className="apple-label-primary apple-text-headline capitalize">{key}</h4>
+                    <span className="apple-text-title3 text-apple-blue tabular-nums">{data.total}</span>
                   </div>
-                  
+
                   {hasIssues ? (
                     <div className="space-y-2">
                       {data.issues?.map((issue, i) => (
-                        <div key={i} className="flex gap-2 text-sm">
-                          <AlertCircle className="w-4 h-4 text-red-400 flex-shrink-0 mt-0.5" />
-                          <span className="text-red-300">{issue}</span>
+                        <div key={i} className="flex gap-2 apple-text-subheadline">
+                          <AlertCircle className="w-4 h-4 text-apple-red flex-shrink-0 mt-0.5" />
+                          <span className="text-apple-red">{issue}</span>
                         </div>
                       ))}
                       {data.warnings?.map((warning, i) => (
-                        <div key={i} className="flex gap-2 text-sm">
-                          <AlertTriangle className="w-4 h-4 text-yellow-400 flex-shrink-0 mt-0.5" />
-                          <span className="text-yellow-300">{warning}</span>
+                        <div key={i} className="flex gap-2 apple-text-subheadline">
+                          <AlertTriangle className="w-4 h-4 text-apple-yellow flex-shrink-0 mt-0.5" />
+                          <span className="text-apple-yellow">{warning}</span>
                         </div>
                       ))}
                     </div>
                   ) : (
-                    <div className="flex gap-2 text-sm text-green-400">
+                    <div className="flex gap-2 apple-text-subheadline text-apple-green">
                       <CheckCircle2 className="w-4 h-4 flex-shrink-0" />
                       <span>Sin problemas detectados</span>
                     </div>

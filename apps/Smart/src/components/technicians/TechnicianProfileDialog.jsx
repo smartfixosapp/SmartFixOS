@@ -226,16 +226,17 @@ export default function TechnicianProfileDialog({ open, onClose, technician, use
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto bg-gradient-to-br from-[#2B2B2B] to-black border-red-900/30">
-        <DialogHeader>
-          <DialogTitle className="text-2xl text-white flex items-center gap-2">
-            <User className="w-6 h-6 text-red-600" />
+      <DialogContent className="apple-type max-w-4xl max-h-[90vh] overflow-y-auto apple-surface-elevated rounded-apple-lg shadow-apple-xl border-0 p-0 overflow-hidden">
+        <DialogHeader className="p-6">
+          <DialogTitle className="apple-text-title2 apple-label-primary flex items-center gap-2">
+            <User className="w-6 h-6 text-apple-red" />
             {isEdit ? "Editar Técnico" : "Nuevo Técnico"}
           </DialogTitle>
         </DialogHeader>
 
+        <div className="px-6 pb-6">
         <Tabs defaultValue="basic" className="w-full">
-          <TabsList className="grid grid-cols-4 w-full bg-black/40">
+          <TabsList className="grid grid-cols-4 w-full bg-gray-sys6 dark:bg-gray-sys5">
             <TabsTrigger value="basic">Básico</TabsTrigger>
             <TabsTrigger value="skills">Habilidades</TabsTrigger>
             <TabsTrigger value="schedule">Horario</TabsTrigger>
@@ -246,11 +247,11 @@ export default function TechnicianProfileDialog({ open, onClose, technician, use
           <TabsContent value="basic" className="space-y-4">
             {!isEdit && (
               <div>
-                <Label className="text-gray-300">Usuario *</Label>
+                <Label className="apple-label-secondary apple-text-subheadline">Usuario *</Label>
                 <select
                   value={formData.user_id}
                   onChange={(e) => handleUserSelect(e.target.value)}
-                  className="w-full mt-1 px-4 py-2 rounded-lg bg-black/40 border border-white/15 text-white"
+                  className="apple-input w-full mt-1"
                 >
                   <option value="">Selecciona un usuario...</option>
                   {users.filter(u => u.role === "technician" || u.role === "admin").map(u => (
@@ -264,35 +265,35 @@ export default function TechnicianProfileDialog({ open, onClose, technician, use
 
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <Label className="text-gray-300">Nombre Completo *</Label>
+                <Label className="apple-label-secondary apple-text-subheadline">Nombre Completo *</Label>
                 <Input
                   value={formData.full_name}
                   onChange={(e) => setFormData({ ...formData, full_name: e.target.value })}
-                  className="mt-1 bg-black/40 border-white/15 text-white"
+                  className="apple-input mt-1"
                 />
               </div>
 
               <div>
-                <Label className="text-gray-300">Email *</Label>
+                <Label className="apple-label-secondary apple-text-subheadline">Email *</Label>
                 <Input
                   type="email"
                   value={formData.email}
                   onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                  className="mt-1 bg-black/40 border-white/15 text-white"
+                  className="apple-input mt-1"
                 />
               </div>
 
               <div>
-                <Label className="text-gray-300">Teléfono</Label>
+                <Label className="apple-label-secondary apple-text-subheadline">Teléfono</Label>
                 <Input
                   value={formData.phone}
                   onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                  className="mt-1 bg-black/40 border-white/15 text-white"
+                  className="apple-input mt-1"
                 />
               </div>
 
               <div>
-                <Label className="text-gray-300">Capacidad Máxima</Label>
+                <Label className="apple-label-secondary apple-text-subheadline">Capacidad Máxima</Label>
                 <Input
                   type="number"
                   min="1"
@@ -302,22 +303,22 @@ export default function TechnicianProfileDialog({ open, onClose, technician, use
                     ...formData,
                     availability: { ...formData.availability, max_capacity: parseInt(e.target.value) || 5 }
                   })}
-                  className="mt-1 bg-black/40 border-white/15 text-white"
+                  className="apple-input mt-1 tabular-nums"
                 />
               </div>
             </div>
 
             <div>
-              <Label className="text-gray-300 mb-2 block">Especializaciones</Label>
+              <Label className="apple-label-secondary apple-text-subheadline mb-2 block">Especializaciones</Label>
               <div className="flex flex-wrap gap-2">
                 {SPECIALIZATIONS.map((spec) => (
                   <Badge
                     key={spec}
                     onClick={() => toggleSpecialization(spec)}
-                    className={`cursor-pointer transition-all ${
+                    className={`apple-press cursor-pointer transition-all border-0 ${
                       (formData.specializations || []).includes(spec)
-                        ? "bg-red-600 text-white border-red-500"
-                        : "bg-black/40 text-gray-400 border-white/15 hover:bg-white/10"
+                        ? "bg-apple-red text-white"
+                        : "bg-gray-sys6 dark:bg-gray-sys5 apple-label-secondary"
                     }`}
                   >
                     {spec}
@@ -327,14 +328,14 @@ export default function TechnicianProfileDialog({ open, onClose, technician, use
             </div>
 
             <div>
-              <Label className="text-gray-300">Estado</Label>
+              <Label className="apple-label-secondary apple-text-subheadline">Estado</Label>
               <select
                 value={formData.availability?.status || "available"}
                 onChange={(e) => setFormData({
                   ...formData,
                   availability: { ...formData.availability, status: e.target.value }
                 })}
-                className="w-full mt-1 px-4 py-2 rounded-lg bg-black/40 border border-white/15 text-white"
+                className="apple-input w-full mt-1"
               >
                 <option value="available">Disponible</option>
                 <option value="busy">Ocupado</option>
@@ -347,17 +348,17 @@ export default function TechnicianProfileDialog({ open, onClose, technician, use
           {/* Tab: Habilidades y Certificaciones */}
           <TabsContent value="skills" className="space-y-4">
             <div>
-              <Label className="text-gray-300 mb-2 block">Habilidades</Label>
+              <Label className="apple-label-secondary apple-text-subheadline mb-2 block">Habilidades</Label>
               <div className="space-y-2">
                 {(formData.skills || []).map((skill, idx) => (
-                  <div key={idx} className="flex items-center gap-2 p-3 bg-black/40 rounded-lg border border-white/10">
-                    <Award className="w-4 h-4 text-yellow-400" />
-                    <span className="flex-1 text-white">{skill.skill_name}</span>
-                    <Badge variant="outline" className="border-white/20">
+                  <div key={idx} className="flex items-center gap-2 p-3 apple-card border-0 rounded-apple-md">
+                    <Award className="w-4 h-4 text-apple-yellow" />
+                    <span className="flex-1 apple-label-primary apple-text-body">{skill.skill_name}</span>
+                    <Badge variant="outline" className="border-0 bg-gray-sys6 dark:bg-gray-sys5 apple-label-secondary">
                       {SKILL_LEVELS.find(l => l.value === skill.level)?.label}
                     </Badge>
                     {skill.certified && (
-                      <Badge className="bg-green-600/20 text-green-300 border-green-600/30">
+                      <Badge className="bg-apple-green/15 text-apple-green border-0">
                         Certificado
                       </Badge>
                     )}
@@ -374,24 +375,24 @@ export default function TechnicianProfileDialog({ open, onClose, technician, use
                 ))}
               </div>
 
-              <div className="mt-3 p-3 bg-black/40 rounded-lg border border-white/10 space-y-2">
+              <div className="mt-3 p-3 apple-card border-0 rounded-apple-md space-y-2">
                 <Input
                   placeholder="Nombre de la habilidad"
                   value={newSkill.skill_name}
                   onChange={(e) => setNewSkill({ ...newSkill, skill_name: e.target.value })}
-                  className="bg-black/40 border-white/15 text-white"
+                  className="apple-input"
                 />
                 <div className="flex gap-2">
                   <select
                     value={newSkill.level}
                     onChange={(e) => setNewSkill({ ...newSkill, level: e.target.value })}
-                    className="flex-1 px-4 py-2 rounded-lg bg-black/40 border border-white/15 text-white"
+                    className="apple-input flex-1"
                   >
                     {SKILL_LEVELS.map(l => (
                       <option key={l.value} value={l.value}>{l.label}</option>
                     ))}
                   </select>
-                  <label className="flex items-center gap-2 px-4 py-2 rounded-lg bg-black/40 border border-white/15 text-white cursor-pointer">
+                  <label className="flex items-center gap-2 px-4 py-2 rounded-apple-sm bg-gray-sys6 dark:bg-gray-sys5 apple-label-primary cursor-pointer apple-text-footnote">
                     <input
                       type="checkbox"
                       checked={newSkill.certified}
@@ -399,7 +400,7 @@ export default function TechnicianProfileDialog({ open, onClose, technician, use
                     />
                     Certificado
                   </label>
-                  <Button onClick={addSkill} className="bg-red-600 hover:bg-red-700">
+                  <Button onClick={addSkill} className="apple-btn apple-btn-primary">
                     <Plus className="w-4 h-4 mr-2" />
                     Agregar
                   </Button>
@@ -408,14 +409,14 @@ export default function TechnicianProfileDialog({ open, onClose, technician, use
             </div>
 
             <div>
-              <Label className="text-gray-300 mb-2 block">Certificaciones</Label>
+              <Label className="apple-label-secondary apple-text-subheadline mb-2 block">Certificaciones</Label>
               <div className="space-y-2">
                 {(formData.certifications || []).map((cert, idx) => (
-                  <div key={idx} className="flex items-center gap-2 p-3 bg-black/40 rounded-lg border border-white/10">
-                    <Award className="w-4 h-4 text-blue-400" />
+                  <div key={idx} className="flex items-center gap-2 p-3 apple-card border-0 rounded-apple-md">
+                    <Award className="w-4 h-4 text-apple-blue" />
                     <div className="flex-1">
-                      <p className="text-white font-medium">{cert.name}</p>
-                      <p className="text-xs text-gray-400">{cert.issuer}</p>
+                      <p className="apple-label-primary apple-text-subheadline font-medium">{cert.name}</p>
+                      <p className="apple-text-caption1 apple-label-tertiary">{cert.issuer}</p>
                     </div>
                     <Button
                       size="icon"
@@ -430,40 +431,40 @@ export default function TechnicianProfileDialog({ open, onClose, technician, use
                 ))}
               </div>
 
-              <div className="mt-3 p-3 bg-black/40 rounded-lg border border-white/10 space-y-2">
+              <div className="mt-3 p-3 apple-card border-0 rounded-apple-md space-y-2">
                 <Input
                   placeholder="Nombre de la certificación"
                   value={newCert.name}
                   onChange={(e) => setNewCert({ ...newCert, name: e.target.value })}
-                  className="bg-black/40 border-white/15 text-white"
+                  className="apple-input"
                 />
                 <Input
                   placeholder="Emisor"
                   value={newCert.issuer}
                   onChange={(e) => setNewCert({ ...newCert, issuer: e.target.value })}
-                  className="bg-black/40 border-white/15 text-white"
+                  className="apple-input"
                 />
                 <div className="grid grid-cols-2 gap-2">
                   <div>
-                    <Label className="text-xs text-gray-400">Fecha emisión</Label>
+                    <Label className="apple-text-caption1 apple-label-tertiary">Fecha emisión</Label>
                     <Input
                       type="date"
                       value={newCert.issued_date}
                       onChange={(e) => setNewCert({ ...newCert, issued_date: e.target.value })}
-                      className="bg-black/40 border-white/15 text-white"
+                      className="apple-input"
                     />
                   </div>
                   <div>
-                    <Label className="text-xs text-gray-400">Fecha expiración</Label>
+                    <Label className="apple-text-caption1 apple-label-tertiary">Fecha expiración</Label>
                     <Input
                       type="date"
                       value={newCert.expiry_date}
                       onChange={(e) => setNewCert({ ...newCert, expiry_date: e.target.value })}
-                      className="bg-black/40 border-white/15 text-white"
+                      className="apple-input"
                     />
                   </div>
                 </div>
-                <Button onClick={addCertification} className="w-full bg-red-600 hover:bg-red-700">
+                <Button onClick={addCertification} className="apple-btn apple-btn-primary w-full">
                   <Plus className="w-4 h-4 mr-2" />
                   Agregar Certificación
                 </Button>
@@ -473,11 +474,11 @@ export default function TechnicianProfileDialog({ open, onClose, technician, use
 
           {/* Tab: Horario */}
           <TabsContent value="schedule" className="space-y-4">
-            <Label className="text-gray-300 mb-2 block">Horario Semanal</Label>
+            <Label className="apple-label-secondary apple-text-subheadline mb-2 block">Horario Semanal</Label>
             {days.map(({ key, label }) => {
               const schedule = formData.availability?.weekly_schedule?.[key] || DEFAULT_SCHEDULE[key];
               return (
-                <div key={key} className="flex items-center gap-3 p-3 bg-black/40 rounded-lg border border-white/10">
+                <div key={key} className="flex items-center gap-3 p-3 apple-card border-0 rounded-apple-md">
                   <label className="flex items-center gap-2 w-32">
                     <input
                       type="checkbox"
@@ -485,25 +486,25 @@ export default function TechnicianProfileDialog({ open, onClose, technician, use
                       onChange={(e) => updateSchedule(key, "enabled", e.target.checked)}
                       className="w-4 h-4"
                     />
-                    <span className="text-white">{label}</span>
+                    <span className="apple-label-primary apple-text-body">{label}</span>
                   </label>
                   {schedule.enabled && (
                     <>
                       <div className="flex items-center gap-2">
-                        <Clock className="w-4 h-4 text-gray-400" />
+                        <Clock className="w-4 h-4 apple-label-tertiary" />
                         <Input
                           type="time"
                           value={schedule.start}
                           onChange={(e) => updateSchedule(key, "start", e.target.value)}
-                          className="w-32 bg-black/40 border-white/15 text-white"
+                          className="apple-input w-32 tabular-nums"
                         />
                       </div>
-                      <span className="text-gray-400">—</span>
+                      <span className="apple-label-tertiary">—</span>
                       <Input
                         type="time"
                         value={schedule.end}
                         onChange={(e) => updateSchedule(key, "end", e.target.value)}
-                        className="w-32 bg-black/40 border-white/15 text-white"
+                        className="apple-input w-32 tabular-nums"
                       />
                     </>
                   )}
@@ -514,7 +515,7 @@ export default function TechnicianProfileDialog({ open, onClose, technician, use
 
           {/* Tab: Notificaciones */}
           <TabsContent value="notifications" className="space-y-4">
-            <Label className="text-gray-300 mb-2 block">Preferencias de Notificaciones</Label>
+            <Label className="apple-label-secondary apple-text-subheadline mb-2 block">Preferencias de Notificaciones</Label>
             <div className="space-y-3">
               {[
                 { key: "push_enabled", label: "Notificaciones Push" },
@@ -524,7 +525,7 @@ export default function TechnicianProfileDialog({ open, onClose, technician, use
                 { key: "notify_on_urgent", label: "Notificar en casos urgentes" },
                 { key: "notify_on_message", label: "Notificar nuevos mensajes" }
               ].map(({ key, label }) => (
-                <label key={key} className="flex items-center gap-3 p-3 bg-black/40 rounded-lg border border-white/10 cursor-pointer hover:bg-black/60">
+                <label key={key} className="apple-press flex items-center gap-3 p-3 apple-card border-0 rounded-apple-md cursor-pointer hover:bg-gray-sys6 dark:hover:bg-gray-sys5">
                   <input
                     type="checkbox"
                     checked={formData.notification_preferences?.[key]}
@@ -537,20 +538,21 @@ export default function TechnicianProfileDialog({ open, onClose, technician, use
                     })}
                     className="w-4 h-4"
                   />
-                  <span className="text-white">{label}</span>
+                  <span className="apple-label-primary apple-text-body">{label}</span>
                 </label>
               ))}
             </div>
           </TabsContent>
         </Tabs>
 
-        <div className="flex justify-end gap-3 mt-6 pt-4 border-t border-white/10">
-          <Button variant="outline" onClick={onClose} className="border-white/15">
+        <div className="flex justify-end gap-3 mt-6 pt-4" style={{ borderTop: '0.5px solid rgb(var(--separator) / 0.29)' }}>
+          <Button variant="outline" onClick={onClose} className="apple-btn apple-btn-secondary">
             Cancelar
           </Button>
-          <Button onClick={handleSave} disabled={saving} className="bg-red-600 hover:bg-red-700">
+          <Button onClick={handleSave} disabled={saving} className="apple-btn apple-btn-primary">
             {saving ? "Guardando..." : "Guardar"}
           </Button>
+        </div>
         </div>
       </DialogContent>
     </Dialog>

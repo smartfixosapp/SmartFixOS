@@ -22,15 +22,15 @@ import { generateUnlockNumber } from "@/components/utils/sequenceHelpers";
 import { generateCustomerNumber } from "@/components/utils/sequenceHelpers";
 
 const SOFTWARE_SERVICES = [
-  { value: "unlock",          label: "Desbloqueo de Operadora",  emoji: "🔓", color: "from-violet-600 to-purple-600",   badge: "bg-violet-500/20 text-violet-300 border-violet-500/30" },
-  { value: "blacklist",       label: "Remover Lista Negra",       emoji: "📵", color: "from-red-600 to-rose-600",        badge: "bg-red-500/20 text-red-300 border-red-500/30" },
-  { value: "imei_change",     label: "Cambio de IMEI",            emoji: "🔢", color: "from-blue-600 to-cyan-600",       badge: "bg-blue-500/20 text-blue-300 border-blue-500/30" },
-  { value: "icloud_bypass",   label: "Bypass iCloud",             emoji: "☁️", color: "from-sky-600 to-blue-600",        badge: "bg-sky-500/20 text-sky-300 border-sky-500/30" },
-  { value: "frp_bypass",      label: "Bypass FRP (Google)",       emoji: "🔐", color: "from-orange-600 to-amber-600",    badge: "bg-orange-500/20 text-orange-300 border-orange-500/30" },
-  { value: "software_repair", label: "Reparación de Software",    emoji: "⚙️", color: "from-emerald-600 to-teal-600",   badge: "bg-emerald-500/20 text-emerald-300 border-emerald-500/30" },
-  { value: "data_recovery",   label: "Recuperación de Datos",     emoji: "💾", color: "from-indigo-600 to-violet-600",  badge: "bg-indigo-500/20 text-indigo-300 border-indigo-500/30" },
-  { value: "jailbreak",       label: "Jailbreak / Root",          emoji: "🔓", color: "from-pink-600 to-rose-600",      badge: "bg-pink-500/20 text-pink-300 border-pink-500/30" },
-  { value: "other",           label: "Otro Servicio",             emoji: "📱", color: "from-slate-600 to-gray-600",     badge: "bg-slate-500/20 text-slate-300 border-slate-500/30" },
+  { value: "unlock",          label: "Desbloqueo de Operadora",  emoji: "🔓", color: "bg-apple-purple",   badge: "bg-apple-purple/15 text-apple-purple" },
+  { value: "blacklist",       label: "Remover Lista Negra",       emoji: "📵", color: "bg-apple-red",      badge: "bg-apple-red/15 text-apple-red" },
+  { value: "imei_change",     label: "Cambio de IMEI",            emoji: "🔢", color: "bg-apple-blue",     badge: "bg-apple-blue/15 text-apple-blue" },
+  { value: "icloud_bypass",   label: "Bypass iCloud",             emoji: "☁️", color: "bg-apple-blue",     badge: "bg-apple-blue/15 text-apple-blue" },
+  { value: "frp_bypass",      label: "Bypass FRP (Google)",       emoji: "🔐", color: "bg-apple-orange",   badge: "bg-apple-orange/15 text-apple-orange" },
+  { value: "software_repair", label: "Reparación de Software",    emoji: "⚙️", color: "bg-apple-green",    badge: "bg-apple-green/15 text-apple-green" },
+  { value: "data_recovery",   label: "Recuperación de Datos",     emoji: "💾", color: "bg-apple-indigo",   badge: "bg-apple-indigo/15 text-apple-indigo" },
+  { value: "jailbreak",       label: "Jailbreak / Root",          emoji: "🔓", color: "bg-apple-red",      badge: "bg-apple-red/15 text-apple-red" },
+  { value: "other",           label: "Otro Servicio",             emoji: "📱", color: "bg-gray-sys3",      badge: "bg-gray-sys6 dark:bg-gray-sys5 apple-label-secondary" },
 ];
 
 function getServiceMeta(unlock) {
@@ -80,8 +80,8 @@ function EmptyState() {
         <div className="absolute top-1 right-4 w-2 h-2 rounded-full bg-violet-400 animate-ping opacity-70" />
         <div className="absolute bottom-4 left-2 w-1.5 h-1.5 rounded-full bg-indigo-400 animate-ping opacity-50" style={{ animationDelay: "0.4s" }} />
       </div>
-      <h3 className="text-2xl font-black text-white mb-2 tracking-tight">Todo libre por ahora</h3>
-      <p className="text-white/40 text-sm max-w-xs leading-relaxed">
+      <h3 className="apple-text-title2 apple-label-primary mb-2">Todo libre por ahora</h3>
+      <p className="apple-label-tertiary apple-text-footnote max-w-xs leading-relaxed">
         Los desbloqueos activos aparecerán aquí. Crea una nueva solicitud para comenzar.
       </p>
     </div>
@@ -385,34 +385,31 @@ export default function UnlocksPanel() {
   const imeiValid = formData.device_serial.length === 15;
 
   return (
-    <div className="space-y-5">
+    <div className="apple-type space-y-5">
 
       {/* ── HEADER HERO ── */}
-      <div className="relative overflow-hidden rounded-[28px] p-6 bg-[#0d0d12] border border-violet-500/10"
-           style={{ background: "radial-gradient(ellipse at 30% 0%, rgba(109,40,217,0.18) 0%, rgba(13,13,18,1) 65%)" }}>
+      <div className="relative overflow-hidden rounded-apple-lg p-6 apple-card border-0">
         <div className="flex items-center gap-4">
-          {/* Icono animado con glow */}
           <div className="relative flex-shrink-0">
-            <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-violet-600 to-purple-700 flex items-center justify-center shadow-[0_0_30px_rgba(139,92,246,0.5)]">
+            <div className="w-16 h-16 rounded-apple-md bg-apple-purple flex items-center justify-center shadow-apple-lg">
               <Unlock className="w-8 h-8 text-white drop-shadow-lg" strokeWidth={2.5} />
             </div>
-            {/* Pulso */}
-            <div className="absolute inset-0 rounded-2xl bg-violet-500/30 animate-ping" style={{ animationDuration: "2.5s" }} />
+            <div className="absolute inset-0 rounded-apple-md bg-apple-purple/30 animate-ping" style={{ animationDuration: "2.5s" }} />
           </div>
           <div className="flex-1 min-w-0">
-            <h1 className="text-3xl font-black text-white tracking-tight leading-none mb-1">
+            <h1 className="apple-text-title1 apple-label-primary leading-none mb-1">
               Desbloqueos
             </h1>
             <div className="flex items-center gap-2">
               {loading ? (
-                <span className="text-white/30 text-sm">Cargando...</span>
+                <span className="apple-label-tertiary apple-text-footnote">Cargando...</span>
               ) : (
                 <>
-                  <span className="inline-flex items-center gap-1.5 bg-violet-500/15 border border-violet-500/25 text-violet-300 text-xs font-bold px-3 py-1 rounded-full">
-                    <span className="w-1.5 h-1.5 rounded-full bg-violet-400 animate-pulse inline-block" />
+                  <span className="inline-flex items-center gap-1.5 bg-apple-purple/15 text-apple-purple apple-text-caption1 font-semibold px-3 py-1 rounded-full tabular-nums">
+                    <span className="w-1.5 h-1.5 rounded-full bg-apple-purple animate-pulse inline-block" />
                     {unlocks.length} {unlocks.length === 1 ? "activo" : "activos"}
                   </span>
-                  <span className="text-white/25 text-xs">en progreso</span>
+                  <span className="apple-label-tertiary apple-text-caption1">en progreso</span>
                 </>
               )}
             </div>
@@ -423,95 +420,83 @@ export default function UnlocksPanel() {
       {/* ── CTA NUEVA SOLICITUD ── */}
       <button
         onClick={() => { setShowNewForm(!showNewForm); if (showNewForm) resetForm(); }}
-        className={`
-          group relative w-full overflow-hidden rounded-[24px] p-5 transition-all duration-300
-          ${showNewForm
-            ? "bg-white/5 border border-white/10 hover:bg-white/8"
-            : "bg-gradient-to-r from-violet-600 via-violet-600 to-purple-600 hover:from-violet-500 hover:to-purple-500 shadow-[0_0_40px_rgba(139,92,246,0.35)] hover:shadow-[0_0_55px_rgba(139,92,246,0.5)] hover:scale-[1.02] active:scale-[0.98]"
-          }
-        `}
+        className={`apple-press group relative w-full overflow-hidden rounded-apple-lg p-5 transition-all duration-300 ${
+          showNewForm
+            ? "apple-card border-0"
+            : "bg-apple-purple hover:bg-apple-purple shadow-apple-lg hover:scale-[1.02] active:scale-[0.98]"
+        }`}
       >
-        {/* Brillo superior */}
-        {!showNewForm && (
-          <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/40 to-transparent" />
-        )}
         <div className="flex items-center gap-4">
-          <div className={`w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0 transition-all duration-300 ${
+          <div className={`w-12 h-12 rounded-apple-sm flex items-center justify-center flex-shrink-0 transition-all duration-300 ${
             showNewForm
-              ? "bg-white/10"
+              ? "bg-gray-sys6 dark:bg-gray-sys5"
               : "bg-white/20 group-hover:bg-white/25 group-hover:scale-110"
           }`}>
             {showNewForm
-              ? <X className="w-6 h-6 text-white/60" />
+              ? <X className="w-6 h-6 apple-label-secondary" />
               : <Plus className="w-6 h-6 text-white" strokeWidth={3} />
             }
           </div>
           <div className="text-left">
-            <p className={`font-black text-lg leading-tight ${showNewForm ? "text-white/50" : "text-white"}`}>
+            <p className={`apple-text-headline font-semibold leading-tight ${showNewForm ? "apple-label-secondary" : "text-white"}`}>
               {showNewForm ? "Cancelar" : "Nueva Solicitud de Desbloqueo"}
             </p>
             {!showNewForm && (
-              <p className="text-white/60 text-xs mt-0.5">Registra un equipo para procesar</p>
+              <p className="text-white/70 apple-text-caption1 mt-0.5">Registra un equipo para procesar</p>
             )}
           </div>
           {!showNewForm && (
-            <ChevronRight className="w-5 h-5 text-white/50 ml-auto group-hover:translate-x-1 transition-transform" />
+            <ChevronRight className="w-5 h-5 text-white/70 ml-auto group-hover:translate-x-1 transition-transform" />
           )}
         </div>
       </button>
 
       {/* ── FORMULARIO ── */}
       {showNewForm && (
-        <div className="relative rounded-[28px] overflow-hidden border border-violet-500/15 shadow-2xl"
-             style={{ background: "linear-gradient(160deg, #12121a 0%, #0e0e16 100%)" }}>
-
-          {/* Borde superior decorativo */}
-          <div className="h-px bg-gradient-to-r from-transparent via-violet-500/60 to-transparent" />
+        <div className="relative rounded-apple-lg overflow-hidden apple-card border-0 shadow-apple-md">
 
           <div className="p-6 space-y-7">
 
             {/* ── SECCIÓN CLIENTE ── */}
             <div className="space-y-4">
               <div className="flex items-center gap-3 mb-1">
-                <div className="w-7 h-7 rounded-lg bg-violet-500/20 flex items-center justify-center">
-                  <User className="w-4 h-4 text-violet-400" />
+                <div className="w-7 h-7 rounded-apple-sm bg-apple-purple/15 flex items-center justify-center">
+                  <User className="w-4 h-4 text-apple-purple" />
                 </div>
-                <span className="text-xs font-black text-white/50 uppercase tracking-widest">Cliente</span>
+                <span className="apple-text-caption1 font-semibold apple-label-secondary">Cliente</span>
               </div>
 
               {!selectedCustomer && !showNewCustomer ? (
                 <div className="space-y-3">
-                  {/* Buscador */}
                   <div className="relative">
-                    <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-white/30 pointer-events-none" />
+                    <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 apple-label-tertiary pointer-events-none" />
                     <input
                       placeholder="Buscar cliente por nombre, teléfono o email..."
                       value={searchTerm}
                       onChange={(e) => setSearchTerm(e.target.value)}
-                      className="w-full pl-11 pr-4 h-12 bg-white/[0.05] border border-white/[0.08] text-white text-sm rounded-2xl focus:outline-none focus:ring-2 focus:ring-violet-500/40 focus:border-violet-500/40 placeholder:text-white/25 transition-all"
+                      className="apple-input w-full pl-11 pr-4 h-12 apple-text-footnote"
                     />
                   </div>
 
-                  {/* Resultados */}
                   {searchTerm && filteredCustomers.length > 0 && (
-                    <div className="bg-white/[0.03] border border-white/[0.07] rounded-2xl overflow-hidden max-h-52 overflow-y-auto">
+                    <div className="apple-surface-elevated rounded-apple-md overflow-hidden max-h-52 overflow-y-auto">
                       {filteredCustomers.map((customer, i) => {
                         const initials = customer.name?.split(" ").map(w => w[0]).join("").slice(0, 2).toUpperCase() || "?";
                         return (
                           <button
                             key={customer.id}
                             onClick={() => handleSelectCustomer(customer)}
-                            className={`w-full text-left px-4 py-3 hover:bg-violet-500/10 transition-all flex items-center gap-3 group ${i !== 0 ? "border-t border-white/[0.05]" : ""}`}
+                            className="apple-press w-full text-left px-4 py-3 hover:bg-gray-sys6 dark:hover:bg-gray-sys5 transition-all flex items-center gap-3 group"
+                            style={i !== 0 ? { borderTop: '0.5px solid rgb(var(--separator) / 0.29)' } : {}}
                           >
-                            {/* Avatar */}
-                            <div className="w-9 h-9 rounded-full bg-gradient-to-br from-violet-600/40 to-purple-600/40 flex items-center justify-center flex-shrink-0 text-violet-300 font-bold text-xs border border-violet-500/20">
+                            <div className="w-9 h-9 rounded-full bg-apple-purple/15 flex items-center justify-center flex-shrink-0 text-apple-purple font-semibold apple-text-caption1">
                               {initials}
                             </div>
                             <div className="flex-1 min-w-0">
-                              <p className="font-semibold text-white text-sm truncate">{customer.name}</p>
-                              <p className="text-xs text-white/35 truncate">{customer.phone || customer.email || "Sin contacto"}</p>
+                              <p className="font-semibold apple-label-primary apple-text-footnote truncate">{customer.name}</p>
+                              <p className="apple-text-caption1 apple-label-tertiary truncate tabular-nums">{customer.phone || customer.email || "Sin contacto"}</p>
                             </div>
-                            <ChevronRight className="w-4 h-4 text-white/50 group-hover:text-violet-400 group-hover:translate-x-0.5 transition-all" />
+                            <ChevronRight className="w-4 h-4 apple-label-tertiary group-hover:text-apple-purple transition-all" />
                           </button>
                         );
                       })}
@@ -519,132 +504,127 @@ export default function UnlocksPanel() {
                   )}
 
                   {searchTerm && filteredCustomers.length === 0 && (
-                    <div className="text-center py-3 text-white/30 text-sm">
+                    <div className="text-center py-3 apple-label-tertiary apple-text-footnote">
                       Sin resultados para "{searchTerm}"
                     </div>
                   )}
 
-                  {/* Botón nuevo cliente */}
                   <button
                     onClick={() => setShowNewCustomer(true)}
-                    className="w-full h-11 rounded-2xl border border-dashed border-white/15 hover:border-violet-500/40 hover:bg-violet-500/5 text-white/40 hover:text-violet-300 text-sm font-semibold flex items-center justify-center gap-2 transition-all"
+                    className="apple-press w-full h-11 rounded-apple-sm bg-gray-sys6 dark:bg-gray-sys5 hover:bg-apple-purple/12 apple-label-secondary hover:text-apple-purple apple-text-footnote font-semibold flex items-center justify-center gap-2 transition-all"
                   >
                     <Plus className="w-4 h-4" />
                     Crear nuevo cliente
                   </button>
                 </div>
               ) : (
-                /* Cliente seleccionado */
-                <div className="bg-violet-500/10 border border-violet-500/20 rounded-2xl p-4 flex items-center gap-3">
-                  <div className="w-11 h-11 rounded-full bg-gradient-to-br from-violet-600 to-purple-700 flex items-center justify-center flex-shrink-0 text-white font-black text-sm shadow-lg">
+                <div className="bg-apple-purple/12 rounded-apple-md p-4 flex items-center gap-3">
+                  <div className="w-11 h-11 rounded-full bg-apple-purple flex items-center justify-center flex-shrink-0 text-white font-semibold apple-text-footnote shadow-apple-sm">
                     {selectedCustomer
                       ? selectedCustomer.name?.split(" ").map(w => w[0]).join("").slice(0, 2).toUpperCase()
                       : <User className="w-5 h-5" />
                     }
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="font-bold text-white truncate">
+                    <p className="font-semibold apple-label-primary truncate apple-text-body">
                       {selectedCustomer ? selectedCustomer.name : "Nuevo Cliente"}
                     </p>
-                    <p className="text-xs text-violet-400 font-semibold uppercase tracking-wide">
+                    <p className="apple-text-caption1 text-apple-purple font-semibold">
                       {selectedCustomer ? "Cliente seleccionado" : "Ingresa los datos"}
                     </p>
                   </div>
                   <button
                     onClick={() => { setSelectedCustomer(null); setShowNewCustomer(false); setSearchTerm(""); }}
-                    className="w-8 h-8 rounded-full flex items-center justify-center text-white/30 hover:text-white hover:bg-white/10 transition-all"
+                    className="apple-press w-8 h-8 rounded-full flex items-center justify-center apple-label-tertiary hover:apple-label-primary hover:bg-gray-sys6 dark:hover:bg-gray-sys5 transition-all"
                   >
                     <X className="w-4 h-4" />
                   </button>
                 </div>
               )}
 
-              {/* Campos adicionales del cliente */}
               {(showNewCustomer || selectedCustomer) && (
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
                   <div className="space-y-1.5">
-                    <label className="text-[10px] font-black text-white/35 uppercase tracking-widest ml-1">Nombre *</label>
+                    <label className="apple-text-caption2 font-semibold apple-label-tertiary ml-1">Nombre *</label>
                     <input
                       value={formData.customer_name}
                       onChange={(e) => setFormData({ ...formData, customer_name: e.target.value })}
                       disabled={!!selectedCustomer}
-                      className="w-full h-11 px-4 bg-white/[0.05] border border-white/[0.08] text-white text-sm rounded-xl focus:outline-none focus:ring-2 focus:ring-violet-500/40 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                      className="apple-input w-full h-11 px-4 apple-text-footnote disabled:opacity-50 disabled:cursor-not-allowed"
                     />
                   </div>
                   <div className="space-y-1.5">
-                    <label className="text-[10px] font-black text-white/35 uppercase tracking-widest ml-1">Teléfono</label>
+                    <label className="apple-text-caption2 font-semibold apple-label-tertiary ml-1">Teléfono</label>
                     <input
                       value={formData.customer_phone}
                       onChange={(e) => setFormData({ ...formData, customer_phone: e.target.value })}
                       disabled={!!selectedCustomer}
-                      className="w-full h-11 px-4 bg-white/[0.05] border border-white/[0.08] text-white text-sm rounded-xl focus:outline-none focus:ring-2 focus:ring-violet-500/40 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                      className="apple-input w-full h-11 px-4 apple-text-footnote disabled:opacity-50 disabled:cursor-not-allowed tabular-nums"
                     />
                   </div>
                 </div>
               )}
             </div>
 
-            {/* ── DIVISOR ── */}
             <div className="flex items-center gap-3">
-              <div className="flex-1 h-px bg-white/[0.06]" />
-              <div className="w-7 h-7 rounded-lg bg-white/[0.04] border border-white/[0.07] flex items-center justify-center">
-                <Smartphone className="w-3.5 h-3.5 text-white/30" />
+              <div className="flex-1" style={{ borderTop: '0.5px solid rgb(var(--separator) / 0.29)' }} />
+              <div className="w-7 h-7 rounded-apple-sm bg-gray-sys6 dark:bg-gray-sys5 flex items-center justify-center">
+                <Smartphone className="w-3.5 h-3.5 apple-label-tertiary" />
               </div>
-              <div className="flex-1 h-px bg-white/[0.06]" />
+              <div className="flex-1" style={{ borderTop: '0.5px solid rgb(var(--separator) / 0.29)' }} />
             </div>
 
             {/* ── SECCIÓN EQUIPO ── */}
             <div className="space-y-4">
               <div className="flex items-center gap-3 mb-1">
-                <div className="w-7 h-7 rounded-lg bg-sky-500/20 flex items-center justify-center">
-                  <Smartphone className="w-4 h-4 text-sky-400" />
+                <div className="w-7 h-7 rounded-apple-sm bg-apple-blue/15 flex items-center justify-center">
+                  <Smartphone className="w-4 h-4 text-apple-blue" />
                 </div>
-                <span className="text-xs font-black text-white/50 uppercase tracking-widest">Equipo</span>
+                <span className="apple-text-caption1 font-semibold apple-label-secondary">Equipo</span>
               </div>
 
               <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-1.5">
-                  <label className="text-[10px] font-black text-white/35 uppercase tracking-widest ml-1">Marca *</label>
+                  <label className="apple-text-caption2 font-semibold apple-label-tertiary ml-1">Marca *</label>
                   <input
                     value={formData.device_brand}
                     onChange={(e) => setFormData({ ...formData, device_brand: e.target.value })}
                     placeholder="Apple, Samsung…"
-                    className="w-full h-11 px-4 bg-white/[0.05] border border-white/[0.08] text-white text-sm rounded-xl focus:outline-none focus:ring-2 focus:ring-violet-500/40 placeholder:text-white/50 transition-all"
+                    className="apple-input w-full h-11 px-4 apple-text-footnote"
                   />
                 </div>
                 <div className="space-y-1.5">
-                  <label className="text-[10px] font-black text-white/35 uppercase tracking-widest ml-1">Modelo *</label>
+                  <label className="apple-text-caption2 font-semibold apple-label-tertiary ml-1">Modelo *</label>
                   <input
                     value={formData.device_model}
                     onChange={(e) => setFormData({ ...formData, device_model: e.target.value })}
                     placeholder="iPhone 15 Pro…"
-                    className="w-full h-11 px-4 bg-white/[0.05] border border-white/[0.08] text-white text-sm rounded-xl focus:outline-none focus:ring-2 focus:ring-violet-500/40 placeholder:text-white/50 transition-all"
+                    className="apple-input w-full h-11 px-4 apple-text-footnote"
                   />
                 </div>
               </div>
 
-              {/* IMEI con validación visual */}
               <div className="space-y-1.5">
-                <label className="text-[10px] font-black text-white/35 uppercase tracking-widest ml-1">IMEI / Serial *</label>
+                <label className="apple-text-caption2 font-semibold apple-label-tertiary ml-1">IMEI / Serial *</label>
                 <div className="relative">
                   <input
                     value={formData.device_serial}
                     onChange={(e) => handleImeiChange(e.target.value)}
                     placeholder="354800000000000"
                     maxLength={15}
-                    className={`w-full h-11 px-4 pr-32 bg-white/[0.05] border text-white text-sm rounded-xl font-mono focus:outline-none focus:ring-2 focus:ring-violet-500/40 placeholder:text-white/50 transition-all ${
-                      imeiValid ? "border-emerald-500/40" : "border-white/[0.08]"
+                    className={`apple-input w-full h-11 px-4 pr-32 apple-text-footnote font-mono tabular-nums ${
+                      imeiValid ? "ring-1 ring-apple-green" : ""
                     }`}
                   />
                   <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-2">
                     {imeiValid && (
-                      <span className="inline-flex items-center gap-1 bg-emerald-500/15 border border-emerald-500/30 text-emerald-400 text-[10px] font-bold px-2 py-0.5 rounded-full">
+                      <span className="inline-flex items-center gap-1 bg-apple-green/15 text-apple-green apple-text-caption2 font-semibold px-2 py-0.5 rounded-full">
                         <CheckCircle2 className="w-3 h-3" />
                         Válido
                       </span>
                     )}
-                    <span className={`text-[10px] font-mono font-bold tabular-nums ${
-                      formData.device_serial.length === 15 ? "text-emerald-400" : "text-white/25"
+                    <span className={`apple-text-caption2 font-mono font-semibold tabular-nums ${
+                      formData.device_serial.length === 15 ? "text-apple-green" : "apple-label-tertiary"
                     }`}>
                       {formData.device_serial.length}/15
                     </span>
@@ -653,25 +633,23 @@ export default function UnlocksPanel() {
               </div>
             </div>
 
-            {/* ── DIVISOR ── */}
             <div className="flex items-center gap-3">
-              <div className="flex-1 h-px bg-white/[0.06]" />
-              <div className="w-7 h-7 rounded-lg bg-white/[0.04] border border-white/[0.07] flex items-center justify-center">
-                <Zap className="w-3.5 h-3.5 text-white/30" />
+              <div className="flex-1" style={{ borderTop: '0.5px solid rgb(var(--separator) / 0.29)' }} />
+              <div className="w-7 h-7 rounded-apple-sm bg-gray-sys6 dark:bg-gray-sys5 flex items-center justify-center">
+                <Zap className="w-3.5 h-3.5 apple-label-tertiary" />
               </div>
-              <div className="flex-1 h-px bg-white/[0.06]" />
+              <div className="flex-1" style={{ borderTop: '0.5px solid rgb(var(--separator) / 0.29)' }} />
             </div>
 
             {/* ── SECCIÓN SERVICIO ── */}
             <div className="space-y-4">
               <div className="flex items-center gap-3 mb-1">
-                <div className="w-7 h-7 rounded-lg bg-amber-500/20 flex items-center justify-center">
-                  <Zap className="w-4 h-4 text-amber-400" />
+                <div className="w-7 h-7 rounded-apple-sm bg-apple-orange/15 flex items-center justify-center">
+                  <Zap className="w-4 h-4 text-apple-orange" />
                 </div>
-                <span className="text-xs font-black text-white/50 uppercase tracking-widest">Servicio</span>
+                <span className="apple-text-caption1 font-semibold apple-label-secondary">Servicio</span>
               </div>
 
-              {/* Grid de servicios — tarjetas con emoji */}
               <div className="grid grid-cols-3 gap-2">
                 {SOFTWARE_SERVICES.map((svc) => {
                   const isSelected = formData.service_type === svc.value;
@@ -680,21 +658,19 @@ export default function UnlocksPanel() {
                       key={svc.value}
                       type="button"
                       onClick={() => setFormData({ ...formData, service_type: svc.value })}
-                      className={`
-                        relative flex flex-col items-center justify-center gap-1.5 p-3 rounded-2xl border transition-all duration-200 text-center
-                        ${isSelected
-                          ? "bg-violet-600/20 border-violet-500/60 shadow-[0_0_16px_rgba(139,92,246,0.25)] scale-[1.03]"
-                          : "bg-white/[0.03] border-white/[0.07] hover:bg-white/[0.07] hover:border-white/15 active:scale-95"
-                        }
-                      `}
+                      className={`apple-press relative flex flex-col items-center justify-center gap-1.5 p-3 rounded-apple-md transition-all duration-200 text-center ${
+                        isSelected
+                          ? "bg-apple-purple/15 scale-[1.03]"
+                          : "apple-card border-0 hover:bg-gray-sys6 dark:hover:bg-gray-sys5 active:scale-95"
+                      }`}
                     >
                       {isSelected && (
-                        <div className="absolute top-1.5 right-1.5 w-3 h-3 rounded-full bg-violet-500 flex items-center justify-center">
+                        <div className="absolute top-1.5 right-1.5 w-3 h-3 rounded-full bg-apple-purple flex items-center justify-center">
                           <div className="w-1.5 h-1.5 rounded-full bg-white" />
                         </div>
                       )}
                       <span className="text-xl leading-none">{svc.emoji}</span>
-                      <span className={`text-[10px] font-bold leading-tight ${isSelected ? "text-violet-200" : "text-white/45"}`}>
+                      <span className={`apple-text-caption2 font-semibold leading-tight ${isSelected ? "text-apple-purple" : "apple-label-secondary"}`}>
                         {svc.label}
                       </span>
                     </button>
@@ -702,12 +678,11 @@ export default function UnlocksPanel() {
                 })}
               </div>
 
-              {/* Precio y notas */}
               <div className="grid grid-cols-2 gap-3 pt-1">
                 <div className="space-y-1.5">
-                  <label className="text-[10px] font-black text-white/35 uppercase tracking-widest ml-1">Precio</label>
+                  <label className="apple-text-caption2 font-semibold apple-label-tertiary ml-1">Precio</label>
                   <div className="relative">
-                    <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-white/40 font-black text-base pointer-events-none">$</span>
+                    <span className="absolute left-3.5 top-1/2 -translate-y-1/2 apple-label-tertiary font-semibold text-base pointer-events-none">$</span>
                     <input
                       type="number"
                       step="0.01"
@@ -715,27 +690,26 @@ export default function UnlocksPanel() {
                       value={formData.price}
                       onChange={(e) => setFormData({ ...formData, price: e.target.value })}
                       placeholder="0.00"
-                      className="w-full h-11 pl-8 pr-4 bg-white/[0.05] border border-white/[0.08] text-white text-sm rounded-xl font-bold focus:outline-none focus:ring-2 focus:ring-violet-500/40 placeholder:text-white/50 transition-all"
+                      className="apple-input w-full h-11 pl-8 pr-4 apple-text-footnote font-semibold tabular-nums"
                     />
                   </div>
                 </div>
                 <div className="space-y-1.5">
-                  <label className="text-[10px] font-black text-white/35 uppercase tracking-widest ml-1">Notas</label>
+                  <label className="apple-text-caption2 font-semibold apple-label-tertiary ml-1">Notas</label>
                   <input
                     value={formData.notes}
                     onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
                     placeholder="Opcional…"
-                    className="w-full h-11 px-4 bg-white/[0.05] border border-white/[0.08] text-white text-sm rounded-xl focus:outline-none focus:ring-2 focus:ring-violet-500/40 placeholder:text-white/50 transition-all"
+                    className="apple-input w-full h-11 px-4 apple-text-footnote"
                   />
                 </div>
               </div>
             </div>
 
-            {/* ── BOTÓN SUBMIT ── */}
             <button
               onClick={handleSubmit}
               disabled={submitting}
-              className="w-full h-14 rounded-2xl bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-500 hover:to-purple-500 disabled:opacity-50 disabled:cursor-not-allowed text-white font-black text-base shadow-[0_0_30px_rgba(139,92,246,0.35)] hover:shadow-[0_0_45px_rgba(139,92,246,0.5)] transition-all duration-300 hover:scale-[1.01] active:scale-[0.99] flex items-center justify-center gap-2.5"
+              className="apple-btn apple-btn-lg w-full h-14 rounded-apple-md bg-apple-purple hover:bg-apple-purple disabled:opacity-50 disabled:cursor-not-allowed text-white font-semibold apple-text-body shadow-apple-lg transition-all duration-300 hover:scale-[1.01] active:scale-[0.99] flex items-center justify-center gap-2.5"
             >
               {submitting ? (
                 <>
@@ -751,31 +725,27 @@ export default function UnlocksPanel() {
             </button>
           </div>
 
-          {/* Borde inferior decorativo */}
-          <div className="h-px bg-gradient-to-r from-transparent via-violet-500/30 to-transparent" />
         </div>
       )}
 
       {/* ── LISTA DE DESBLOQUEOS ── */}
       {loading ? (
         <div className="flex flex-col items-center justify-center py-20 gap-4">
-          <div className="w-12 h-12 rounded-2xl bg-violet-500/20 flex items-center justify-center">
-            <div className="w-6 h-6 border-2 border-violet-500 border-t-transparent rounded-full animate-spin" />
+          <div className="w-12 h-12 rounded-apple-md bg-apple-purple/15 flex items-center justify-center">
+            <div className="w-6 h-6 border-2 border-apple-purple border-t-transparent rounded-full animate-spin" />
           </div>
-          <span className="text-white/30 text-sm font-medium">Cargando desbloqueos…</span>
+          <span className="apple-label-tertiary apple-text-footnote font-medium">Cargando desbloqueos…</span>
         </div>
       ) : unlocks.length === 0 ? (
-        <div className="rounded-[28px] border border-white/[0.06] overflow-hidden"
-             style={{ background: "linear-gradient(160deg, #0f0f16 0%, #0b0b11 100%)" }}>
+        <div className="rounded-apple-lg apple-card border-0 overflow-hidden">
           <EmptyState />
         </div>
       ) : (
         <>
-          {/* Contador sutil */}
           <div className="flex items-center gap-2 px-1">
-            <div className="flex-1 h-px bg-white/[0.05]" />
-            <span className="text-[11px] text-white/25 font-bold uppercase tracking-widest">{unlocks.length} en proceso</span>
-            <div className="flex-1 h-px bg-white/[0.05]" />
+            <div className="flex-1" style={{ borderTop: '0.5px solid rgb(var(--separator) / 0.29)' }} />
+            <span className="apple-text-caption2 apple-label-tertiary font-semibold tabular-nums">{unlocks.length} en proceso</span>
+            <div className="flex-1" style={{ borderTop: '0.5px solid rgb(var(--separator) / 0.29)' }} />
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
@@ -788,78 +758,65 @@ export default function UnlocksPanel() {
               return (
                 <div
                   key={unlock.id}
-                  className="group relative overflow-hidden rounded-[24px] border transition-all duration-300 hover:border-violet-500/20 hover:shadow-[0_0_30px_rgba(139,92,246,0.08)]"
-                  style={{
-                    background: "linear-gradient(145deg, rgba(255,255,255,0.04) 0%, rgba(255,255,255,0.02) 100%)",
-                    borderColor: "rgba(139,92,246,0.10)",
-                    backdropFilter: "blur(8px)"
-                  }}
+                  className="group relative overflow-hidden rounded-apple-lg apple-card border-0 transition-all duration-300 hover:shadow-apple-md"
                 >
-                  {/* Brillo hover en la esquina */}
-                  <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-violet-400/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
-
                   <div className="p-5 space-y-4">
-                    {/* Fila superior — badge + fecha */}
                     <div className="flex items-start justify-between gap-2">
                       <div className="flex items-center gap-2 flex-wrap">
-                        <span className="inline-flex items-center bg-gradient-to-r from-violet-600/30 to-purple-600/30 border border-violet-500/30 text-violet-200 text-[10px] font-black px-2.5 py-1 rounded-lg tracking-wide">
+                        <span className="inline-flex items-center bg-apple-purple/15 text-apple-purple apple-text-caption2 font-semibold px-2.5 py-1 rounded-apple-xs tabular-nums">
                           {unlock.order_number}
                         </span>
-                        <span className={`inline-flex items-center gap-1 ${svc.badge} border text-[10px] font-bold px-2 py-1 rounded-lg`}>
+                        <span className={`inline-flex items-center gap-1 ${svc.badge} apple-text-caption2 font-semibold px-2 py-1 rounded-apple-xs`}>
                           <span>{svc.emoji}</span>
                         </span>
                       </div>
-                      <span className="text-[10px] text-white/30 font-mono flex-shrink-0 pt-0.5">
+                      <span className="apple-text-caption2 apple-label-tertiary font-mono flex-shrink-0 pt-0.5 tabular-nums">
                         {format(new Date(unlock.created_date), "dd MMM", { locale: es })}
                       </span>
                     </div>
 
-                    {/* Cliente */}
                     <div>
-                      <h4 className="font-black text-white text-lg leading-tight tracking-tight truncate">
+                      <h4 className="apple-text-headline font-semibold apple-label-primary leading-tight truncate">
                         {unlock.customer_name}
                       </h4>
                       <div className="flex items-center gap-1.5 mt-1">
-                        <Smartphone className="w-3.5 h-3.5 text-white/25 flex-shrink-0" />
-                        <span className="text-sm text-white/45 truncate">
+                        <Smartphone className="w-3.5 h-3.5 apple-label-tertiary flex-shrink-0" />
+                        <span className="apple-text-footnote apple-label-secondary truncate">
                           {unlock.device_brand} {unlock.device_model}
                         </span>
                       </div>
                     </div>
 
-                    {/* Servicio + IMEI en pill */}
                     <div className="flex items-center gap-2 flex-wrap">
-                      <span className={`inline-flex items-center gap-1.5 ${svc.badge} border text-[11px] font-semibold px-2.5 py-1 rounded-full`}>
+                      <span className={`inline-flex items-center gap-1.5 ${svc.badge} apple-text-caption1 font-semibold px-2.5 py-1 rounded-full`}>
                         <span>{svc.emoji}</span>
                         {svc.label}
                       </span>
                       {imeiShort && (
-                        <span className="font-mono text-[10px] text-white/25 bg-white/[0.04] px-2 py-1 rounded-md border border-white/[0.06]">
+                        <span className="font-mono apple-text-caption2 apple-label-tertiary bg-gray-sys6 dark:bg-gray-sys5 px-2 py-1 rounded-apple-xs tabular-nums">
                           {imeiShort}
                         </span>
                       )}
                     </div>
 
-                    {/* Precio */}
                     <div className="flex items-baseline gap-1">
-                      <span className="text-sm text-white/30 font-bold">$</span>
-                      <span className="text-2xl font-black text-emerald-400 leading-none tabular-nums">
+                      <span className="apple-text-footnote apple-label-tertiary font-semibold">$</span>
+                      <span className="apple-text-title2 font-semibold text-apple-green leading-none tabular-nums">
                         {(unlock.cost_estimate || 0).toFixed(2)}
                       </span>
                     </div>
 
-                    {/* Acciones */}
                     <div className="flex gap-2 pt-1">
                       <button
                         onClick={() => handleManageUnlock(unlock)}
-                        className="flex-1 h-10 rounded-xl bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-500 hover:to-purple-500 text-white text-sm font-bold shadow-[0_0_16px_rgba(139,92,246,0.25)] hover:shadow-[0_0_24px_rgba(139,92,246,0.4)] transition-all duration-200 active:scale-95 flex items-center justify-center gap-1.5"
+                        className="apple-btn apple-press flex-1 h-10 rounded-apple-sm bg-apple-purple hover:bg-apple-purple text-white apple-text-footnote font-semibold shadow-apple-sm transition-all duration-200 active:scale-95 flex items-center justify-center gap-1.5"
                       >
                         <Zap className="w-4 h-4" />
                         Gestionar
                       </button>
                       <button
                         onClick={() => { setOrderToDelete(unlock); setShowPinPrompt(true); }}
-                        className="w-10 h-10 rounded-xl border border-white/[0.07] text-white/25 hover:text-red-400 hover:bg-red-500/10 hover:border-red-500/20 transition-all duration-200 active:scale-95 flex items-center justify-center"
+                        className="apple-press w-10 h-10 rounded-apple-sm bg-gray-sys6 dark:bg-gray-sys5 apple-label-tertiary hover:text-apple-red hover:bg-apple-red/12 transition-all duration-200 active:scale-95 flex items-center justify-center"
                       >
                         <Trash2 className="w-4 h-4" />
                       </button>
@@ -903,38 +860,34 @@ export default function UnlocksPanel() {
       {deleteConfirmOrder && (
         <div className="fixed inset-0 z-[10000] flex items-center justify-center p-4">
           <div
-            className="absolute inset-0 bg-black/80 backdrop-blur-xl"
+            className="absolute inset-0 bg-black/50 backdrop-blur-xl"
             onClick={() => setDeleteConfirmOrder(null)}
           />
-          <div className="relative z-[10001] w-full max-w-sm text-center rounded-[32px] border border-white/[0.08] shadow-2xl overflow-hidden"
-               style={{ background: "linear-gradient(160deg, #1a0a0a 0%, #120808 100%)" }}>
-            {/* Borde superior rojo */}
-            <div className="h-px bg-gradient-to-r from-transparent via-red-500/50 to-transparent" />
+          <div className="relative z-[10001] w-full max-w-sm text-center apple-surface-elevated rounded-apple-lg shadow-apple-xl border-0 overflow-hidden">
             <div className="p-8">
-              <div className="w-20 h-20 rounded-2xl bg-red-500/15 border border-red-500/20 flex items-center justify-center mx-auto mb-6 shadow-[0_0_30px_rgba(239,68,68,0.2)]">
-                <Trash2 className="w-10 h-10 text-red-500" />
+              <div className="w-20 h-20 rounded-apple-md bg-apple-red/15 flex items-center justify-center mx-auto mb-6">
+                <Trash2 className="w-10 h-10 text-apple-red" />
               </div>
-              <h3 className="text-2xl font-black text-white mb-2">¿Eliminar desbloqueo?</h3>
-              <p className="text-white/40 mb-2 text-sm">
-                <span className="text-white/70 font-semibold">{deleteConfirmOrder.order_number}</span> — {deleteConfirmOrder.customer_name}
+              <h3 className="apple-text-title2 apple-label-primary mb-2">¿Eliminar desbloqueo?</h3>
+              <p className="apple-label-tertiary mb-2 apple-text-footnote">
+                <span className="apple-label-primary font-semibold">{deleteConfirmOrder.order_number}</span> — {deleteConfirmOrder.customer_name}
               </p>
-              <p className="text-white/30 text-xs mb-8">Esta acción es irreversible y no se puede deshacer.</p>
+              <p className="apple-label-tertiary apple-text-caption1 mb-8">Esta acción es irreversible y no se puede deshacer.</p>
               <div className="flex gap-3">
                 <button
                   onClick={() => setDeleteConfirmOrder(null)}
-                  className="flex-1 h-12 rounded-xl bg-white/[0.05] hover:bg-white/[0.08] border border-white/[0.08] text-white text-sm font-bold transition-all"
+                  className="apple-btn apple-btn-secondary flex-1 h-12 rounded-apple-sm apple-text-footnote font-semibold transition-all"
                 >
                   Cancelar
                 </button>
                 <button
                   onClick={() => handleDeleteUnlock(deleteConfirmOrder.id)}
-                  className="flex-1 h-12 rounded-xl bg-gradient-to-r from-red-600 to-red-500 hover:from-red-500 hover:to-red-400 text-white text-sm font-black shadow-[0_0_20px_rgba(239,68,68,0.3)] transition-all"
+                  className="apple-btn apple-btn-destructive flex-1 h-12 rounded-apple-sm apple-text-footnote font-semibold transition-all"
                 >
                   Eliminar
                 </button>
               </div>
             </div>
-            <div className="h-px bg-gradient-to-r from-transparent via-red-500/20 to-transparent" />
           </div>
         </div>
       )}

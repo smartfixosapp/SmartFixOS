@@ -34,10 +34,10 @@ export default function ReportsConfigTab({ user }) {
   useEffect(() => {
     const onSave = () => saveData();
     const onRevert = () => setData(originalData);
-    
+
     window.addEventListener("settings-save", onSave);
     window.addEventListener("settings-revert", onRevert);
-    
+
     return () => {
       window.removeEventListener("settings-save", onSave);
       window.removeEventListener("settings-revert", onRevert);
@@ -73,7 +73,7 @@ export default function ReportsConfigTab({ user }) {
   const saveData = async () => {
     try {
       const rows = await base44.entities.SystemConfig.filter({ key: "settings.reports" });
-      
+
       const payload = {
         key: "settings.reports",
         value: JSON.stringify(data),
@@ -100,7 +100,7 @@ export default function ReportsConfigTab({ user }) {
       setOriginalData(data);
       window.dispatchEvent(new Event("settings-clean"));
       window.dispatchEvent(new Event("force-refresh"));
-      
+
       alert("Configuración guardada");
     } catch (e) {
       alert("Error al guardar: " + e.message);
@@ -126,23 +126,23 @@ export default function ReportsConfigTab({ user }) {
     });
   };
 
-  if (loading) return <div className="text-gray-400">Cargando...</div>;
+  if (loading) return <div className="apple-type apple-label-tertiary apple-text-body">Cargando...</div>;
 
   return (
-    <div className="space-y-6">
-      <Card className="bg-zinc-900/50 border-white/10">
+    <div className="apple-type space-y-6">
+      <Card className="apple-card border-0">
         <CardHeader>
-          <CardTitle className="text-white flex items-center gap-2">
-            <TrendingUp className="w-5 h-5 text-red-500" />
+          <CardTitle className="apple-text-title3 apple-label-primary flex items-center gap-2">
+            <TrendingUp className="w-5 h-5 text-apple-red" />
             Reportes Automáticos
           </CardTitle>
-          <CardDescription>Envío automático de reportes por email</CardDescription>
+          <CardDescription className="apple-text-subheadline apple-label-secondary">Envío automático de reportes por email</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="flex items-center justify-between p-3 bg-black/30 rounded-lg">
+          <div className="flex items-center justify-between p-3 bg-gray-sys6 dark:bg-gray-sys5 rounded-apple-md">
             <div>
-              <Label className="text-gray-300">Reporte diario</Label>
-              <p className="text-xs text-gray-400">Enviar resumen diario de ventas</p>
+              <Label className="apple-label-primary apple-text-body">Reporte diario</Label>
+              <p className="apple-text-caption1 apple-label-tertiary">Enviar resumen diario de ventas</p>
             </div>
             <Switch
               checked={data.auto_daily_report}
@@ -150,10 +150,10 @@ export default function ReportsConfigTab({ user }) {
             />
           </div>
 
-          <div className="flex items-center justify-between p-3 bg-black/30 rounded-lg">
+          <div className="flex items-center justify-between p-3 bg-gray-sys6 dark:bg-gray-sys5 rounded-apple-md">
             <div>
-              <Label className="text-gray-300">Reporte semanal</Label>
-              <p className="text-xs text-gray-400">Resumen semanal todos los lunes</p>
+              <Label className="apple-label-primary apple-text-body">Reporte semanal</Label>
+              <p className="apple-text-caption1 apple-label-tertiary">Resumen semanal todos los lunes</p>
             </div>
             <Switch
               checked={data.auto_weekly_report}
@@ -161,10 +161,10 @@ export default function ReportsConfigTab({ user }) {
             />
           </div>
 
-          <div className="flex items-center justify-between p-3 bg-black/30 rounded-lg">
+          <div className="flex items-center justify-between p-3 bg-gray-sys6 dark:bg-gray-sys5 rounded-apple-md">
             <div>
-              <Label className="text-gray-300">Reporte mensual</Label>
-              <p className="text-xs text-gray-400">Resumen mensual el primer día del mes</p>
+              <Label className="apple-label-primary apple-text-body">Reporte mensual</Label>
+              <p className="apple-text-caption1 apple-label-tertiary">Resumen mensual el primer día del mes</p>
             </div>
             <Switch
               checked={data.auto_monthly_report}
@@ -173,29 +173,29 @@ export default function ReportsConfigTab({ user }) {
           </div>
 
           <div className="space-y-2">
-            <Label className="text-gray-300">Destinatarios de reportes</Label>
+            <Label className="apple-label-secondary apple-text-footnote">Destinatarios de reportes</Label>
             <div className="flex gap-2">
               <Input
                 type="email"
                 placeholder="email@ejemplo.com"
                 value={newRecipient}
                 onChange={(e) => setNewRecipient(e.target.value)}
-                className="bg-black border-gray-700 text-white flex-1"
+                className="apple-input flex-1"
                 onKeyPress={(e) => e.key === "Enter" && addRecipient()}
               />
-              <Button onClick={addRecipient} className="bg-red-600 hover:bg-red-700">
+              <Button onClick={addRecipient} className="apple-btn apple-btn-primary apple-press">
                 Agregar
               </Button>
             </div>
             <div className="space-y-1 mt-2">
               {(data.report_recipients || []).map((email) => (
-                <div key={email} className="flex items-center justify-between bg-black/30 p-2 rounded">
-                  <span className="text-sm text-gray-300">{email}</span>
-                  <Button 
-                    size="sm" 
-                    variant="ghost" 
+                <div key={email} className="flex items-center justify-between bg-gray-sys6 dark:bg-gray-sys5 p-2 rounded-apple-sm">
+                  <span className="apple-text-subheadline apple-label-primary">{email}</span>
+                  <Button
+                    size="sm"
+                    variant="ghost"
                     onClick={() => removeRecipient(email)}
-                    className="text-red-400 hover:text-red-300"
+                    className="apple-btn apple-btn-plain text-apple-red apple-press"
                   >
                     Eliminar
                   </Button>
@@ -206,32 +206,32 @@ export default function ReportsConfigTab({ user }) {
         </CardContent>
       </Card>
 
-      <Card className="bg-zinc-900/50 border-white/10">
+      <Card className="apple-card border-0">
         <CardHeader>
-          <CardTitle className="text-white flex items-center gap-2">
-            <Package className="w-5 h-5 text-red-500" />
+          <CardTitle className="apple-text-title3 apple-label-primary flex items-center gap-2">
+            <Package className="w-5 h-5 text-apple-red" />
             Contenido de Reportes
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="flex items-center justify-between p-3 bg-black/30 rounded-lg">
-            <Label className="text-gray-300">Incluir gráficas</Label>
+          <div className="flex items-center justify-between p-3 bg-gray-sys6 dark:bg-gray-sys5 rounded-apple-md">
+            <Label className="apple-label-primary apple-text-body">Incluir gráficas</Label>
             <Switch
               checked={data.include_charts}
               onCheckedChange={(v) => setData({ ...data, include_charts: v })}
             />
           </div>
 
-          <div className="flex items-center justify-between p-3 bg-black/30 rounded-lg">
-            <Label className="text-gray-300">Incluir estado de inventario</Label>
+          <div className="flex items-center justify-between p-3 bg-gray-sys6 dark:bg-gray-sys5 rounded-apple-md">
+            <Label className="apple-label-primary apple-text-body">Incluir estado de inventario</Label>
             <Switch
               checked={data.include_inventory}
               onCheckedChange={(v) => setData({ ...data, include_inventory: v })}
             />
           </div>
 
-          <div className="flex items-center justify-between p-3 bg-black/30 rounded-lg">
-            <Label className="text-gray-300">Incluir datos de empleados</Label>
+          <div className="flex items-center justify-between p-3 bg-gray-sys6 dark:bg-gray-sys5 rounded-apple-md">
+            <Label className="apple-label-primary apple-text-body">Incluir datos de empleados</Label>
             <Switch
               checked={data.include_employees}
               onCheckedChange={(v) => setData({ ...data, include_employees: v })}
@@ -239,12 +239,12 @@ export default function ReportsConfigTab({ user }) {
           </div>
 
           <div className="space-y-2">
-            <Label className="text-gray-300">Nivel de detalle (POS)</Label>
+            <Label className="apple-label-secondary apple-text-footnote">Nivel de detalle (POS)</Label>
             <Select
               value={data.pos_report_detail_level}
               onValueChange={(value) => setData({ ...data, pos_report_detail_level: value })}
             >
-              <SelectTrigger className="bg-black border-gray-700 text-white">
+              <SelectTrigger className="apple-input">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -257,16 +257,16 @@ export default function ReportsConfigTab({ user }) {
         </CardContent>
       </Card>
 
-      <Card className="bg-zinc-900/50 border-white/10">
+      <Card className="apple-card border-0">
         <CardHeader>
-          <CardTitle className="text-white flex items-center gap-2">
-            <Download className="w-5 h-5 text-red-500" />
+          <CardTitle className="apple-text-title3 apple-label-primary flex items-center gap-2">
+            <Download className="w-5 h-5 text-apple-red" />
             Formatos de Exportación
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="flex items-center justify-between p-3 bg-black/30 rounded-lg">
-            <Label className="text-gray-300">PDF</Label>
+          <div className="flex items-center justify-between p-3 bg-gray-sys6 dark:bg-gray-sys5 rounded-apple-md">
+            <Label className="apple-label-primary apple-text-body">PDF</Label>
             <Switch
               checked={data.export_formats?.includes("pdf")}
               onCheckedChange={(v) => {
@@ -279,8 +279,8 @@ export default function ReportsConfigTab({ user }) {
             />
           </div>
 
-          <div className="flex items-center justify-between p-3 bg-black/30 rounded-lg">
-            <Label className="text-gray-300">Excel (XLSX)</Label>
+          <div className="flex items-center justify-between p-3 bg-gray-sys6 dark:bg-gray-sys5 rounded-apple-md">
+            <Label className="apple-label-primary apple-text-body">Excel (XLSX)</Label>
             <Switch
               checked={data.export_formats?.includes("excel")}
               onCheckedChange={(v) => {
@@ -293,8 +293,8 @@ export default function ReportsConfigTab({ user }) {
             />
           </div>
 
-          <div className="flex items-center justify-between p-3 bg-black/30 rounded-lg">
-            <Label className="text-gray-300">CSV</Label>
+          <div className="flex items-center justify-between p-3 bg-gray-sys6 dark:bg-gray-sys5 rounded-apple-md">
+            <Label className="apple-label-primary apple-text-body">CSV</Label>
             <Switch
               checked={data.export_formats?.includes("csv")}
               onCheckedChange={(v) => {

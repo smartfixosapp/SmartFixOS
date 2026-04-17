@@ -34,10 +34,10 @@ export default function BrandingTab({ user }) {
   useEffect(() => {
     const onSave = () => saveData();
     const onRevert = () => setData(originalData);
-    
+
     window.addEventListener("settings-save", onSave);
     window.addEventListener("settings-revert", onRevert);
-    
+
     return () => {
       window.removeEventListener("settings-save", onSave);
       window.removeEventListener("settings-revert", onRevert);
@@ -94,7 +94,6 @@ export default function BrandingTab({ user }) {
           base44.entities.AppSettings.filter({ slug: "app-main-settings" })
         ]);
 
-        // business-branding: logo used by email header/footer
         if (brandingRows?.length) {
           await base44.entities.AppSettings.update(brandingRows[0].id, {
             payload: { ...(brandingRows[0].payload || {}), logo_url: data.logo_url || "" }
@@ -106,7 +105,6 @@ export default function BrandingTab({ user }) {
           });
         }
 
-        // app-main-settings: business name, phone, address, email used in email footer
         const mainUpdate = {
           business_name:    data.business_name || "",
           business_phone:   data.phone         || "",
@@ -124,7 +122,6 @@ export default function BrandingTab({ user }) {
         console.warn("Could not sync branding to AppSettings (non-fatal):", syncErr);
       }
 
-      // Auditoría
       await base44.entities.AuditLog.create({
         action: "settings_update",
         entity_type: "config",
@@ -152,7 +149,6 @@ export default function BrandingTab({ user }) {
 
     setUploading(true);
     try {
-      // Use SDK UploadFile — goes directly to Supabase Storage (no Deno auth needed)
       const result = await base44.integrations.Core.UploadFile({ file });
       if (!result?.file_url) throw new Error("No se recibió URL del archivo");
       setData((prev) => ({ ...prev, logo_url: result.file_url }));
@@ -164,50 +160,50 @@ export default function BrandingTab({ user }) {
     }
   };
 
-  if (loading) return <div className="text-gray-400">Cargando...</div>;
+  if (loading) return <div className="apple-type apple-label-tertiary apple-text-body">Cargando...</div>;
 
   return (
-    <div className="space-y-6">
-      <Card className="bg-black/30 border-white/10">
+    <div className="apple-type space-y-6">
+      <Card className="apple-card border-0">
         <CardHeader>
-          <CardTitle className="text-white">Información del Negocio</CardTitle>
+          <CardTitle className="apple-text-title3 apple-label-primary">Información del Negocio</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <Label className="text-gray-300">Nombre del Negocio *</Label>
+              <Label className="apple-label-secondary apple-text-footnote">Nombre del Negocio *</Label>
               <Input
                 value={data.business_name}
                 onChange={(e) => setData({ ...data, business_name: e.target.value })}
-                className="bg-black border-gray-700 text-white"
+                className="apple-input"
                 placeholder="911 SmartFix"
               />
             </div>
             <div>
-              <Label className="text-gray-300">Teléfono</Label>
+              <Label className="apple-label-secondary apple-text-footnote">Teléfono</Label>
               <Input
                 value={data.phone}
                 onChange={(e) => setData({ ...data, phone: e.target.value })}
-                className="bg-black border-gray-700 text-white"
+                className="apple-input tabular-nums"
                 placeholder="+1 (787) 123-4567"
               />
             </div>
             <div>
-              <Label className="text-gray-300">Email</Label>
+              <Label className="apple-label-secondary apple-text-footnote">Email</Label>
               <Input
                 type="email"
                 value={data.email}
                 onChange={(e) => setData({ ...data, email: e.target.value })}
-                className="bg-black border-gray-700 text-white"
+                className="apple-input"
                 placeholder="info@negocio.com"
               />
             </div>
             <div>
-              <Label className="text-gray-300">Zona Horaria</Label>
+              <Label className="apple-label-secondary apple-text-footnote">Zona Horaria</Label>
               <select
                 value={data.timezone}
                 onChange={(e) => setData({ ...data, timezone: e.target.value })}
-                className="w-full h-10 px-3 rounded-md bg-black border border-gray-700 text-white"
+                className="apple-input w-full h-10"
               >
                 <option value="America/Puerto_Rico">America/Puerto_Rico (AST)</option>
                 <option value="America/New_York">America/New_York (EST)</option>
@@ -218,21 +214,21 @@ export default function BrandingTab({ user }) {
           </div>
 
           <div>
-            <Label className="text-gray-300">Dirección</Label>
+            <Label className="apple-label-secondary apple-text-footnote">Dirección</Label>
             <Textarea
               value={data.address}
               onChange={(e) => setData({ ...data, address: e.target.value })}
-              className="bg-black border-gray-700 text-white"
+              className="apple-input"
               placeholder="Calle Principal #123, San Juan, PR 00901"
               rows={3}
             />
           </div>
 
           <div>
-            <Label className="text-gray-300">Logo</Label>
+            <Label className="apple-label-secondary apple-text-footnote">Logo</Label>
             <div className="flex items-center gap-4">
               {data.logo_url && (
-                <img src={data.logo_url} alt="Logo" className="w-20 h-20 object-contain bg-white/10 rounded-lg p-2" />
+                <img src={data.logo_url} alt="Logo" className="w-20 h-20 object-contain bg-gray-sys6 dark:bg-gray-sys5 rounded-apple-sm p-2" />
               )}
               <div>
                 <input
@@ -246,7 +242,7 @@ export default function BrandingTab({ user }) {
                   variant="outline"
                   onClick={() => document.getElementById("logo-upload").click()}
                   disabled={uploading}
-                  className="border-gray-700"
+                  className="apple-btn apple-btn-secondary apple-press"
                 >
                   <Upload className="w-4 h-4 mr-2" />
                   {uploading ? "Subiendo..." : "Subir Logo"}
@@ -257,29 +253,29 @@ export default function BrandingTab({ user }) {
         </CardContent>
       </Card>
 
-      <Card className="bg-black/30 border-white/10">
+      <Card className="apple-card border-0">
         <CardHeader>
-          <CardTitle className="text-white">Configuración Financiera</CardTitle>
+          <CardTitle className="apple-text-title3 apple-label-primary">Configuración Financiera</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div>
-              <Label className="text-gray-300">Impuesto por Defecto (%)</Label>
+              <Label className="apple-label-secondary apple-text-footnote">Impuesto por Defecto (%)</Label>
               <Input
                 type="number"
                 step="0.001"
                 value={data.tax_rate * 100}
                 onChange={(e) => setData({ ...data, tax_rate: Number(e.target.value) / 100 })}
-                className="bg-black border-gray-700 text-white"
+                className="apple-input tabular-nums"
               />
-              <p className="text-xs text-gray-500 mt-1">Ejemplo: 11.5 para 11.5%</p>
+              <p className="apple-text-caption1 apple-label-tertiary mt-1">Ejemplo: 11.5 para 11.5%</p>
             </div>
             <div>
-              <Label className="text-gray-300">Moneda</Label>
+              <Label className="apple-label-secondary apple-text-footnote">Moneda</Label>
               <select
                 value={data.currency}
                 onChange={(e) => setData({ ...data, currency: e.target.value })}
-                className="w-full h-10 px-3 rounded-md bg-black border border-gray-700 text-white"
+                className="apple-input w-full h-10"
               >
                 <option value="USD">USD ($)</option>
                 <option value="EUR">EUR (€)</option>
@@ -287,11 +283,11 @@ export default function BrandingTab({ user }) {
               </select>
             </div>
             <div>
-              <Label className="text-gray-300">Formato de Fecha</Label>
+              <Label className="apple-label-secondary apple-text-footnote">Formato de Fecha</Label>
               <select
                 value={data.date_format}
                 onChange={(e) => setData({ ...data, date_format: e.target.value })}
-                className="w-full h-10 px-3 rounded-md bg-black border border-gray-700 text-white"
+                className="apple-input w-full h-10"
               >
                 <option value="MM/dd/yyyy">MM/dd/yyyy (US)</option>
                 <option value="dd/MM/yyyy">dd/MM/yyyy (EU)</option>
@@ -302,42 +298,42 @@ export default function BrandingTab({ user }) {
         </CardContent>
       </Card>
 
-      <Card className="bg-black/30 border-white/10">
+      <Card className="apple-card border-0">
         <CardHeader>
-          <CardTitle className="text-white">Colores de Marca</CardTitle>
+          <CardTitle className="apple-text-title3 apple-label-primary">Colores de Marca</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <Label className="text-gray-300">Color Primario</Label>
+              <Label className="apple-label-secondary apple-text-footnote">Color Primario</Label>
               <div className="flex gap-2">
                 <Input
                   type="color"
                   value={data.primary_color}
                   onChange={(e) => setData({ ...data, primary_color: e.target.value })}
-                  className="w-20 h-10 p-1 bg-black border-gray-700"
+                  className="apple-input w-20 h-10 p-1"
                 />
                 <Input
                   value={data.primary_color}
                   onChange={(e) => setData({ ...data, primary_color: e.target.value })}
-                  className="flex-1 bg-black border-gray-700 text-white"
+                  className="apple-input flex-1 tabular-nums"
                   placeholder="#FF0000"
                 />
               </div>
             </div>
             <div>
-              <Label className="text-gray-300">Color Secundario</Label>
+              <Label className="apple-label-secondary apple-text-footnote">Color Secundario</Label>
               <div className="flex gap-2">
                 <Input
                   type="color"
                   value={data.secondary_color}
                   onChange={(e) => setData({ ...data, secondary_color: e.target.value })}
-                  className="w-20 h-10 p-1 bg-black border-gray-700"
+                  className="apple-input w-20 h-10 p-1"
                 />
                 <Input
                   value={data.secondary_color}
                   onChange={(e) => setData({ ...data, secondary_color: e.target.value })}
-                  className="flex-1 bg-black border-gray-700 text-white"
+                  className="apple-input flex-1 tabular-nums"
                   placeholder="#000000"
                 />
               </div>

@@ -6,40 +6,40 @@ import { Input } from "@/components/ui/input";
 
 export default function PerformanceTab({ settings, onChange }) {
   return (
-    <div className="space-y-6">
-      <Card className="bg-zinc-900/50 border-white/10">
+    <div className="apple-type space-y-6">
+      <Card className="apple-card border-0">
         <CardHeader>
-          <CardTitle>Rendimiento</CardTitle>
-          <CardDescription>Optimización y caché</CardDescription>
+          <CardTitle className="apple-text-title3 apple-label-primary">Rendimiento</CardTitle>
+          <CardDescription className="apple-text-subheadline apple-label-secondary">Optimización y caché</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="space-y-2">
-            <Label>Intervalo de polling (ms)</Label>
+            <Label className="apple-text-footnote apple-label-secondary">Intervalo de polling (ms)</Label>
             <Input
               type="number"
               min="1000"
               step="1000"
               value={settings.poll_interval_ms}
               onChange={(e) => onChange({ ...settings, poll_interval_ms: Number(e.target.value) })}
-              className="bg-black border-white/15"
+              className="apple-input tabular-nums"
             />
           </div>
 
           <div className="space-y-2">
-            <Label>TTL de caché (segundos)</Label>
+            <Label className="apple-text-footnote apple-label-secondary">TTL de caché (segundos)</Label>
             <Input
               type="number"
               min="0"
               value={settings.cache_ttl_seconds}
               onChange={(e) => onChange({ ...settings, cache_ttl_seconds: Number(e.target.value) })}
-              className="bg-black border-white/15"
+              className="apple-input tabular-nums"
             />
           </div>
 
-          <div className="flex items-center justify-between p-3 bg-black/30 rounded-lg">
+          <div className="flex items-center justify-between p-3 bg-gray-sys6 dark:bg-gray-sys5 rounded-apple-md">
             <div>
-              <Label>Lazy load en listas</Label>
-              <p className="text-xs text-gray-400">Cargar items bajo demanda</p>
+              <Label className="apple-text-body apple-label-primary">Lazy load en listas</Label>
+              <p className="apple-text-caption1 apple-label-tertiary">Cargar items bajo demanda</p>
             </div>
             <Switch
               checked={settings.lazy_load_lists}
@@ -48,13 +48,13 @@ export default function PerformanceTab({ settings, onChange }) {
           </div>
 
           <div className="space-y-2">
-            <Label>Umbral de virtual scroll</Label>
+            <Label className="apple-text-footnote apple-label-secondary">Umbral de virtual scroll</Label>
             <Input
               type="number"
               min="10"
               value={settings.virtual_scroll_threshold}
               onChange={(e) => onChange({ ...settings, virtual_scroll_threshold: Number(e.target.value) })}
-              className="bg-black border-white/15"
+              className="apple-input tabular-nums"
             />
           </div>
         </CardContent>

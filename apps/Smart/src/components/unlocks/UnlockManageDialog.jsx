@@ -2,18 +2,18 @@ import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { 
-  DollarSign, CreditCard, CheckCircle2, X, Edit2, 
-  Save, AlertCircle, Wallet, Clock, User, Smartphone, ExternalLink, Link as LinkIcon 
+import {
+  DollarSign, CreditCard, CheckCircle2, X, Edit2,
+  Save, AlertCircle, Wallet, Clock, User, Smartphone, ExternalLink, Link as LinkIcon
 } from "lucide-react";
 import { toast } from "sonner";
 
 const UNLOCK_STATUSES = [
-  { value: "received", label: "Recibido", color: "from-blue-500 to-cyan-500", icon: "📥" },
-  { value: "in_progress", label: "En Progreso", color: "from-yellow-500 to-orange-500", icon: "⚙️" },
-  { value: "completed", label: "Terminado", color: "from-green-500 to-emerald-500", icon: "✅" },
-  { value: "ready_to_deliver", label: "Listo p/ Entregar", color: "from-purple-500 to-pink-500", icon: "📦" },
-  { value: "delivered", label: "Entregado", color: "from-gray-600 to-gray-800", icon: "🎉" },
+  { value: "received", label: "Recibido", color: "bg-apple-blue", icon: "📥" },
+  { value: "in_progress", label: "En Progreso", color: "bg-apple-yellow", icon: "⚙️" },
+  { value: "completed", label: "Terminado", color: "bg-apple-green", icon: "✅" },
+  { value: "ready_to_deliver", label: "Listo p/ Entregar", color: "bg-apple-purple", icon: "📦" },
+  { value: "delivered", label: "Entregado", color: "bg-gray-sys3", icon: "🎉" },
 ];
 
 export default function UnlockManageDialog({ unlock, onClose, onPaymentOption, onUpdateUnlock }) {
@@ -22,7 +22,7 @@ export default function UnlockManageDialog({ unlock, onClose, onPaymentOption, o
   const [showDepositInput, setShowDepositInput] = useState(false);
   const [showStatusEdit, setShowStatusEdit] = useState(false);
   const [trackingUrl, setTrackingUrl] = useState(unlock.tracking_url || "");
-  
+
   // Estados editables
   const [editData, setEditData] = useState({
     service_type: unlock.initial_problem?.split('\n')[0] || "",
@@ -78,18 +78,18 @@ export default function UnlockManageDialog({ unlock, onClose, onPaymentOption, o
   };
 
   return (
-    <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4">
-      <div className="absolute inset-0 bg-black/90 backdrop-blur-xl" onClick={onClose} />
-      
-      <div className="relative z-[10000] bg-[#1c1c1e] border border-white/10 rounded-[40px] p-8 max-w-2xl w-full shadow-2xl max-h-[90vh] overflow-y-auto">
-        
+    <div className="apple-type fixed inset-0 z-[9999] flex items-center justify-center p-4">
+      <div className="absolute inset-0 bg-black/50 backdrop-blur-xl" onClick={onClose} />
+
+      <div className="relative z-[10000] apple-surface-elevated rounded-apple-lg shadow-apple-xl border-0 p-8 max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+
         {/* Header */}
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center gap-4">
-            <div className={`w-16 h-16 rounded-full flex items-center justify-center shadow-2xl ${
-              isPaid 
-                ? 'bg-gradient-to-br from-emerald-400 to-green-600' 
-                : 'bg-gradient-to-br from-blue-500 to-cyan-500'
+            <div className={`w-16 h-16 rounded-full flex items-center justify-center shadow-apple-lg ${
+              isPaid
+                ? 'bg-apple-green'
+                : 'bg-apple-blue'
             }`}>
               {isPaid ? (
                 <CheckCircle2 className="w-8 h-8 text-white" strokeWidth={3} />
@@ -98,11 +98,11 @@ export default function UnlockManageDialog({ unlock, onClose, onPaymentOption, o
               )}
             </div>
             <div>
-              <h2 className="text-2xl font-bold text-white">{unlock.customer_name}</h2>
+              <h2 className="apple-text-title2 apple-label-primary">{unlock.customer_name}</h2>
               <div className="flex items-center gap-2 mt-1">
-                <p className="text-white/60 text-sm">#{unlock.order_number}</p>
+                <p className="apple-label-secondary apple-text-subheadline tabular-nums">#{unlock.order_number}</p>
                 {currentStatus && (
-                  <Badge className={`bg-gradient-to-r ${currentStatus.color} text-white text-xs`}>
+                  <Badge className={`${currentStatus.color} text-white apple-text-caption1 border-0`}>
                     {currentStatus.icon} {currentStatus.label}
                   </Badge>
                 )}
@@ -116,7 +116,7 @@ export default function UnlockManageDialog({ unlock, onClose, onPaymentOption, o
                 size="icon"
                 variant="ghost"
                 aria-label="Ver estado del desbloqueo en sitio externo"
-                className="text-blue-400 hover:text-blue-300 hover:bg-blue-600/10"
+                className="text-apple-blue hover:bg-apple-blue/12"
                 title="Ver estado del desbloqueo"
               >
                 <ExternalLink className="w-5 h-5" />
@@ -127,7 +127,7 @@ export default function UnlockManageDialog({ unlock, onClose, onPaymentOption, o
               size="icon"
               variant="ghost"
               aria-label={editMode ? "Cancelar edición" : "Editar desbloqueo"}
-              className="text-cyan-400 hover:text-cyan-300 hover:bg-cyan-600/10"
+              className="text-apple-blue hover:bg-apple-blue/12"
             >
               {editMode ? <X className="w-5 h-5" /> : <Edit2 className="w-5 h-5" />}
             </Button>
@@ -136,7 +136,7 @@ export default function UnlockManageDialog({ unlock, onClose, onPaymentOption, o
               size="icon"
               variant="ghost"
               aria-label="Cerrar diálogo de desbloqueo"
-              className="text-white/40 hover:text-white hover:bg-white/10"
+              className="apple-label-tertiary hover:apple-label-primary"
             >
               <X className="w-5 h-5" />
             </Button>
@@ -145,62 +145,62 @@ export default function UnlockManageDialog({ unlock, onClose, onPaymentOption, o
 
         {/* Información del Desbloqueo */}
         {editMode ? (
-          <div className="space-y-4 mb-6 bg-[#2c2c2e] rounded-2xl p-6 border border-white/10">
-            <h3 className="text-white font-bold mb-4">Editar Información</h3>
-            
+          <div className="space-y-4 mb-6 apple-card border-0 rounded-apple-md p-6">
+            <h3 className="apple-label-primary apple-text-headline mb-4">Editar Información</h3>
+
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="text-xs text-white/60 mb-2 block">Marca</label>
+                <label className="apple-text-caption1 apple-label-tertiary mb-2 block">Marca</label>
                 <Input
                   value={editData.device_brand}
                   onChange={(e) => setEditData({...editData, device_brand: e.target.value})}
-                  className="bg-black/30 border-white/10 text-white h-11"
+                  className="apple-input h-11"
                 />
               </div>
               <div>
-                <label className="text-xs text-white/60 mb-2 block">Modelo</label>
+                <label className="apple-text-caption1 apple-label-tertiary mb-2 block">Modelo</label>
                 <Input
                   value={editData.device_model}
                   onChange={(e) => setEditData({...editData, device_model: e.target.value})}
-                  className="bg-black/30 border-white/10 text-white h-11"
+                  className="apple-input h-11"
                 />
               </div>
             </div>
 
             <div>
-              <label className="text-xs text-white/60 mb-2 block">IMEI / Serial</label>
+              <label className="apple-text-caption1 apple-label-tertiary mb-2 block">IMEI / Serial</label>
               <Input
                 value={editData.device_serial}
                 onChange={(e) => setEditData({...editData, device_serial: e.target.value})}
-                className="bg-black/30 border-white/10 text-white h-11 font-mono"
+                className="apple-input h-11 font-mono"
               />
             </div>
 
             <div>
-              <label className="text-xs text-white/60 mb-2 block">Precio Total</label>
+              <label className="apple-text-caption1 apple-label-tertiary mb-2 block">Precio Total</label>
               <div className="relative">
-                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-white/60">$</span>
+                <span className="absolute left-4 top-1/2 -translate-y-1/2 apple-label-tertiary">$</span>
                 <Input
                   type="number"
                   step="0.01"
                   value={editData.cost_estimate}
                   onChange={(e) => setEditData({...editData, cost_estimate: e.target.value})}
-                  className="bg-black/30 border-white/10 text-white h-11 pl-8 font-bold"
+                  className="apple-input h-11 pl-8 font-semibold tabular-nums"
                 />
               </div>
             </div>
 
             <div>
-              <label className="text-xs text-white/60 mb-2 block">Estado del Desbloqueo</label>
+              <label className="apple-text-caption1 apple-label-tertiary mb-2 block">Estado del Desbloqueo</label>
               <div className="grid grid-cols-2 gap-2">
                 {UNLOCK_STATUSES.map(status => (
                   <button
                     key={status.value}
                     onClick={() => setEditData({...editData, unlock_status: status.value})}
-                    className={`px-3 py-2 rounded-lg border text-xs font-bold transition-all ${
+                    className={`apple-press px-3 py-2 rounded-apple-sm apple-text-caption1 font-semibold transition-all ${
                       editData.unlock_status === status.value
-                        ? `bg-gradient-to-r ${status.color} text-white border-transparent`
-                        : 'bg-black/30 border-white/10 text-white/60 hover:bg-white/5'
+                        ? `${status.color} text-white`
+                        : 'bg-gray-sys6 dark:bg-gray-sys5 apple-label-secondary'
                     }`}
                   >
                     {status.icon} {status.label}
@@ -210,29 +210,29 @@ export default function UnlockManageDialog({ unlock, onClose, onPaymentOption, o
             </div>
 
             <div>
-              <label className="text-xs text-white/60 mb-2 block">URL de Seguimiento (opcional)</label>
+              <label className="apple-text-caption1 apple-label-tertiary mb-2 block">URL de Seguimiento (opcional)</label>
               <Input
                 value={editData.tracking_url}
                 onChange={(e) => setEditData({...editData, tracking_url: e.target.value})}
-                className="bg-black/30 border-white/10 text-white h-11 text-sm"
+                className="apple-input h-11 apple-text-footnote"
                 placeholder="https://gsmunlock.com/order/..."
               />
-              <p className="text-xs text-white/40 mt-1">Link para verificar estado en el proveedor</p>
+              <p className="apple-text-caption2 apple-label-tertiary mt-1">Link para verificar estado en el proveedor</p>
             </div>
 
             <div>
-              <label className="text-xs text-white/60 mb-2 block">Notas</label>
+              <label className="apple-text-caption1 apple-label-tertiary mb-2 block">Notas</label>
               <Input
                 value={editData.notes}
                 onChange={(e) => setEditData({...editData, notes: e.target.value})}
-                className="bg-black/30 border-white/10 text-white h-11"
+                className="apple-input h-11"
                 placeholder="Notas adicionales..."
               />
             </div>
 
             <Button
               onClick={handleSaveEdits}
-              className="w-full bg-gradient-to-r from-cyan-600 to-blue-600 h-12 font-bold"
+              className="apple-btn apple-btn-primary apple-btn-lg w-full"
             >
               <Save className="w-5 h-5 mr-2" />
               Guardar Cambios
@@ -241,45 +241,45 @@ export default function UnlockManageDialog({ unlock, onClose, onPaymentOption, o
         ) : (
           <div className="space-y-4 mb-6">
             {/* Info del dispositivo */}
-            <div className="bg-[#2c2c2e] rounded-2xl p-5 border border-white/10">
-              <h3 className="text-white/60 text-xs font-bold uppercase mb-3">Dispositivo</h3>
+            <div className="apple-card border-0 rounded-apple-md p-5">
+              <h3 className="apple-label-tertiary apple-text-caption1 font-semibold mb-3">Dispositivo</h3>
               <div className="space-y-2">
                 <div className="flex justify-between">
-                  <span className="text-white/60 text-sm">Equipo</span>
-                  <span className="text-white font-semibold">{unlock.device_brand} {unlock.device_model}</span>
+                  <span className="apple-label-secondary apple-text-subheadline">Equipo</span>
+                  <span className="apple-label-primary font-semibold apple-text-subheadline">{unlock.device_brand} {unlock.device_model}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-white/60 text-sm">IMEI/Serial</span>
-                  <span className="text-white font-mono text-sm">{unlock.device_serial || "—"}</span>
+                  <span className="apple-label-secondary apple-text-subheadline">IMEI/Serial</span>
+                  <span className="apple-label-primary font-mono apple-text-footnote">{unlock.device_serial || "—"}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-white/60 text-sm">Servicio</span>
-                  <span className="text-white text-sm">{unlock.initial_problem?.split('\n')[0] || "Desbloqueo"}</span>
+                  <span className="apple-label-secondary apple-text-subheadline">Servicio</span>
+                  <span className="apple-label-primary apple-text-footnote">{unlock.initial_problem?.split('\n')[0] || "Desbloqueo"}</span>
                 </div>
               </div>
             </div>
 
             {/* Info financiera */}
-            <div className={`rounded-2xl p-6 border ${
-              isPaid 
-                ? 'bg-emerald-500/10 border-emerald-500/30' 
-                : 'bg-[#2c2c2e] border-white/10'
+            <div className={`rounded-apple-md p-6 ${
+              isPaid
+                ? 'bg-apple-green/12'
+                : 'apple-card border-0'
             }`}>
               <div className="space-y-3">
                 <div className="flex justify-between items-center">
-                  <span className="text-white/60 text-sm">Precio Total</span>
-                  <span className="text-white font-bold text-lg">${total.toFixed(2)}</span>
+                  <span className="apple-label-secondary apple-text-subheadline">Precio Total</span>
+                  <span className="apple-label-primary font-semibold apple-text-headline tabular-nums">${total.toFixed(2)}</span>
                 </div>
                 {paid > 0 && (
                   <div className="flex justify-between items-center">
-                    <span className="text-emerald-400/80 text-sm">Pagado</span>
-                    <span className="text-emerald-400 font-bold">-${paid.toFixed(2)}</span>
+                    <span className="text-apple-green apple-text-subheadline">Pagado</span>
+                    <span className="text-apple-green font-semibold tabular-nums">-${paid.toFixed(2)}</span>
                   </div>
                 )}
-                <div className="h-px bg-white/10" />
+                <div style={{ borderTop: '0.5px solid rgb(var(--separator) / 0.29)' }} />
                 <div className="flex justify-between items-center">
-                  <span className="text-white font-bold">Balance Pendiente</span>
-                  <span className={`text-3xl font-black ${isPaid ? 'text-emerald-400' : 'text-white'}`}>
+                  <span className="apple-label-primary font-semibold apple-text-body">Balance Pendiente</span>
+                  <span className={`apple-text-title1 font-bold tabular-nums ${isPaid ? 'text-apple-green' : 'apple-label-primary'}`}>
                     ${balance.toFixed(2)}
                   </span>
                 </div>
@@ -287,27 +287,27 @@ export default function UnlockManageDialog({ unlock, onClose, onPaymentOption, o
             </div>
 
             {/* Estado y Tracking */}
-            <div className="bg-[#2c2c2e] rounded-2xl p-5 border border-white/10">
-              <h3 className="text-white/60 text-xs font-bold uppercase mb-3">Estado</h3>
+            <div className="apple-card border-0 rounded-apple-md p-5">
+              <h3 className="apple-label-tertiary apple-text-caption1 font-semibold mb-3">Estado</h3>
               <div className="space-y-3">
                 <button
                   onClick={() => setShowStatusEdit(!showStatusEdit)}
-                  className={`w-full px-4 py-3 rounded-xl border-2 transition-all text-left ${
+                  className={`apple-press w-full px-4 py-3 rounded-apple-sm transition-all text-left ${
                     showStatusEdit
-                      ? 'bg-cyan-600/20 border-cyan-500/50'
-                      : 'bg-black/30 border-white/10 hover:bg-white/5'
+                      ? 'bg-apple-blue/12'
+                      : 'bg-gray-sys6 dark:bg-gray-sys5'
                   }`}
                 >
                   <div className="flex items-center justify-between">
-                    <span className={`text-sm font-bold bg-gradient-to-r ${currentStatus.color} bg-clip-text text-transparent`}>
+                    <span className={`apple-text-subheadline font-semibold text-white ${currentStatus.color} px-3 py-1 rounded-apple-xs`}>
                       {currentStatus.icon} {currentStatus.label}
                     </span>
-                    <Edit2 className="w-4 h-4 text-white/40" />
+                    <Edit2 className="w-4 h-4 apple-label-tertiary" />
                   </div>
                 </button>
 
                 {showStatusEdit && (
-                  <div className="grid grid-cols-2 gap-2 p-3 bg-black/40 rounded-xl border border-white/5">
+                  <div className="grid grid-cols-2 gap-2 p-3 bg-gray-sys6 dark:bg-gray-sys5 rounded-apple-md">
                     {UNLOCK_STATUSES.map(status => (
                       <button
                         key={status.value}
@@ -320,10 +320,10 @@ export default function UnlockManageDialog({ unlock, onClose, onPaymentOption, o
                             toast.error("Error actualizando estado");
                           }
                         }}
-                        className={`px-3 py-2 rounded-lg border text-xs font-bold transition-all ${
+                        className={`apple-press px-3 py-2 rounded-apple-sm apple-text-caption1 font-semibold transition-all ${
                           unlock.unlock_status === status.value
-                            ? `bg-gradient-to-r ${status.color} text-white border-transparent`
-                            : 'bg-black/30 border-white/10 text-white/60 hover:bg-white/5'
+                            ? `${status.color} text-white`
+                            : 'bg-white dark:bg-gray-sys6 apple-label-secondary'
                         }`}
                       >
                         {status.icon} {status.label}
@@ -335,7 +335,7 @@ export default function UnlockManageDialog({ unlock, onClose, onPaymentOption, o
                 {unlock.tracking_url && (
                   <button
                     onClick={() => window.open(unlock.tracking_url, '_blank')}
-                    className="w-full px-4 py-2 bg-blue-600/10 hover:bg-blue-600/20 border border-blue-500/30 rounded-lg text-blue-400 font-semibold flex items-center justify-center gap-2 transition-all text-sm"
+                    className="apple-press w-full px-4 py-2 bg-apple-blue/12 rounded-apple-sm text-apple-blue font-semibold flex items-center justify-center gap-2 transition-all apple-text-footnote"
                   >
                     <ExternalLink className="w-4 h-4" />
                     Ver Estado en Proveedor
@@ -345,17 +345,17 @@ export default function UnlockManageDialog({ unlock, onClose, onPaymentOption, o
             </div>
 
             {/* Contacto del cliente */}
-            <div className="bg-[#2c2c2e] rounded-2xl p-5 border border-white/10">
-              <h3 className="text-white/60 text-xs font-bold uppercase mb-3">Cliente</h3>
+            <div className="apple-card border-0 rounded-apple-md p-5">
+              <h3 className="apple-label-tertiary apple-text-caption1 font-semibold mb-3">Cliente</h3>
               <div className="space-y-2">
                 <div className="flex items-center gap-2">
-                  <User className="w-4 h-4 text-white/40" />
-                  <span className="text-white">{unlock.customer_name}</span>
+                  <User className="w-4 h-4 apple-label-tertiary" />
+                  <span className="apple-label-primary apple-text-body">{unlock.customer_name}</span>
                 </div>
                 {unlock.customer_phone && (
                   <div className="flex items-center gap-2">
-                    <Smartphone className="w-4 h-4 text-white/40" />
-                    <span className="text-white/70 text-sm">{unlock.customer_phone}</span>
+                    <Smartphone className="w-4 h-4 apple-label-tertiary" />
+                    <span className="apple-label-secondary apple-text-footnote tabular-nums">{unlock.customer_phone}</span>
                   </div>
                 )}
               </div>
@@ -368,7 +368,7 @@ export default function UnlockManageDialog({ unlock, onClose, onPaymentOption, o
           <div className="space-y-3">
             <Button
               onClick={() => onPaymentOption("pay")}
-              className="w-full bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-400 hover:to-emerald-400 text-white h-14 rounded-2xl text-lg font-bold shadow-lg"
+              className="apple-btn apple-btn-lg w-full bg-apple-green hover:bg-apple-green text-white h-14 rounded-apple-md apple-text-headline font-semibold shadow-apple-md"
             >
               <DollarSign className="w-6 h-6 mr-2" strokeWidth={3} />
               Cobrar Total (${balance.toFixed(2)})
@@ -383,32 +383,32 @@ export default function UnlockManageDialog({ unlock, onClose, onPaymentOption, o
                       key={amt}
                       onClick={() => setCustomDepositAmount(amt.toString())}
                       disabled={amt > balance}
-                      className={`flex-1 py-2 rounded-xl text-sm font-bold transition-all ${
+                      className={`apple-press flex-1 py-2 rounded-apple-sm apple-text-footnote font-semibold transition-all tabular-nums ${
                         customDepositAmount === amt.toString()
-                          ? 'bg-blue-500 text-white'
-                          : 'bg-white/10 text-white/70 hover:bg-white/20'
+                          ? 'bg-apple-blue text-white'
+                          : 'bg-gray-sys6 dark:bg-gray-sys5 apple-label-secondary'
                       } disabled:opacity-30 disabled:cursor-not-allowed`}
                     >
                       ${amt}
                     </button>
                   ))}
                 </div>
-                
+
                 <div className="relative">
-                  <span className="absolute left-4 top-1/2 -translate-y-1/2 text-xl font-bold text-white/60">$</span>
+                  <span className="absolute left-4 top-1/2 -translate-y-1/2 apple-text-headline font-semibold apple-label-tertiary">$</span>
                   <Input
                     type="number"
                     step="0.01"
                     value={customDepositAmount}
                     onChange={(e) => setCustomDepositAmount(e.target.value)}
                     placeholder="Monto del depósito"
-                    className="pl-10 h-14 bg-[#2c2c2e] border-blue-500/30 text-white text-2xl font-bold text-center"
+                    className="apple-input pl-10 h-14 apple-text-title2 font-semibold text-center tabular-nums"
                     autoFocus
                   />
                 </div>
 
                 {customDepositAmount && parseFloat(customDepositAmount) > balance && (
-                  <div className="flex items-center gap-2 text-red-400 text-sm">
+                  <div className="flex items-center gap-2 text-apple-red apple-text-footnote">
                     <AlertCircle className="w-4 h-4" />
                     <span>El depósito no puede exceder el balance (${balance.toFixed(2)})</span>
                   </div>
@@ -421,14 +421,14 @@ export default function UnlockManageDialog({ unlock, onClose, onPaymentOption, o
                       setCustomDepositAmount("");
                     }}
                     variant="outline"
-                    className="flex-1 border-white/20 h-12"
+                    className="apple-btn apple-btn-secondary flex-1 h-12"
                   >
                     Cancelar
                   </Button>
                   <Button
                     onClick={handleDepositClick}
                     disabled={!customDepositAmount || parseFloat(customDepositAmount) <= 0 || parseFloat(customDepositAmount) > balance}
-                    className="flex-1 bg-blue-500 hover:bg-blue-400 h-12 font-bold"
+                    className="apple-btn apple-btn-primary flex-1 h-12 font-semibold"
                   >
                     <Wallet className="w-5 h-5 mr-2" />
                     Confirmar Depósito
@@ -438,7 +438,7 @@ export default function UnlockManageDialog({ unlock, onClose, onPaymentOption, o
             ) : (
               <Button
                 onClick={() => setShowDepositInput(true)}
-                className="w-full bg-gradient-to-r from-blue-500 to-indigo-500 hover:from-blue-400 hover:to-indigo-400 text-white h-14 rounded-2xl text-lg font-bold"
+                className="apple-btn apple-btn-lg w-full bg-apple-blue hover:bg-apple-blue text-white h-14 rounded-apple-md apple-text-headline font-semibold"
               >
                 <Wallet className="w-6 h-6 mr-2" strokeWidth={2.5} />
                 Recibir Depósito
@@ -448,15 +448,15 @@ export default function UnlockManageDialog({ unlock, onClose, onPaymentOption, o
             <Button
               onClick={() => onPaymentOption("skip")}
               variant="outline"
-              className="w-full bg-[#2c2c2e] hover:bg-[#3a3a3c] text-white h-12 rounded-2xl font-semibold border border-white/10"
+              className="apple-btn apple-btn-secondary w-full h-12 rounded-apple-md font-semibold"
             >
-              <CheckCircle2 className="w-5 h-5 mr-2 text-green-400" />
+              <CheckCircle2 className="w-5 h-5 mr-2 text-apple-green" />
               Marcar Listo (Sin cobrar)
             </Button>
-            
-            <button 
+
+            <button
               onClick={onClose}
-              className="w-full text-center text-white/40 text-sm font-medium hover:text-white mt-4 transition-colors"
+              className="w-full text-center apple-label-tertiary apple-text-footnote font-medium hover:apple-label-primary mt-4 transition-colors"
             >
               Cerrar
             </button>

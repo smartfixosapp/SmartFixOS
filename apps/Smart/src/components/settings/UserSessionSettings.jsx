@@ -62,29 +62,29 @@ export default function UserSessionSettings() {
       updateSessionTimeout?.(selected);
 
       const opt = TIMEOUT_OPTIONS.find((o) => o.ms === selected);
-      toast.success(`✅ Sesión configurada: ${opt?.label ?? "Personalizado"}`);
+      toast.success(`Sesión configurada: ${opt?.label ?? "Personalizado"}`);
     } finally {
       setSaving(false);
     }
   };
 
   return (
-    <div className="space-y-6 max-w-xl">
+    <div className="apple-type space-y-6 max-w-xl">
       {/* Header */}
       <div className="flex items-center gap-3 mb-2">
-        <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-violet-600 to-purple-600 flex items-center justify-center shadow-lg">
-          <Clock className="w-5 h-5 text-white" />
+        <div className="w-10 h-10 rounded-apple-sm bg-apple-purple/15 flex items-center justify-center">
+          <Clock className="w-5 h-5 text-apple-purple" />
         </div>
         <div>
-          <h2 className="text-lg font-bold text-white">Tiempo de Sesión</h2>
-          <p className="text-white/50 text-sm">
+          <h2 className="apple-text-title3 apple-label-primary">Tiempo de Sesión</h2>
+          <p className="apple-label-tertiary apple-text-subheadline">
             El sistema pedirá tu PIN tras este periodo de inactividad
           </p>
         </div>
       </div>
 
       {/* Opciones */}
-      <div className="bg-white/5 border border-white/10 rounded-3xl overflow-hidden">
+      <div className="apple-list overflow-hidden rounded-apple-lg">
         {TIMEOUT_OPTIONS.map((opt, idx) => {
           const isSelected = opt.ms === selected;
           const isFirst = idx === 0;
@@ -93,32 +93,28 @@ export default function UserSessionSettings() {
             <button
               key={String(opt.ms)}
               onClick={() => setSelected(opt.ms)}
-              className={`w-full flex items-center justify-between px-5 py-4 transition-all text-left
-                ${isSelected
-                  ? "bg-violet-500/20 border-l-2 border-violet-400"
-                  : "hover:bg-white/5 border-l-2 border-transparent"}
-                ${!isFirst ? "border-t border-white/8" : ""}
-                ${isFirst ? "rounded-t-3xl" : ""}
-                ${isLast ? "rounded-b-3xl" : ""}
+              className={`apple-list-row w-full flex items-center justify-between px-5 py-4 transition-all text-left apple-press
+                ${isSelected ? "bg-apple-purple/12" : ""}
               `}
+              style={!isFirst ? { borderTop: '0.5px solid rgb(var(--separator) / 0.29)' } : undefined}
             >
               <div className="flex items-center gap-3">
                 <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all
-                  ${isSelected ? "border-violet-400 bg-violet-400" : "border-white/30"}`}>
+                  ${isSelected ? "border-apple-purple bg-apple-purple" : "border-apple-label-tertiary/40"}`}>
                   {isSelected && <div className="w-2 h-2 rounded-full bg-white" />}
                 </div>
                 <div>
-                  <span className={`font-semibold text-sm ${isSelected ? "text-violet-300" : "text-white"}`}>
+                  <span className={`apple-text-subheadline ${isSelected ? "text-apple-purple" : "apple-label-primary"}`}>
                     {opt.label}
                   </span>
                   {opt.hint && (
-                    <span className="ml-2 text-xs px-2 py-0.5 rounded-full bg-white/10 text-white/50">
+                    <span className="ml-2 apple-text-caption1 px-2 py-0.5 rounded-apple-xs bg-gray-sys6 dark:bg-gray-sys5 apple-label-tertiary">
                       {opt.hint}
                     </span>
                   )}
                 </div>
               </div>
-              {isSelected && <CheckCircle2 className="w-4 h-4 text-violet-400 flex-shrink-0" />}
+              {isSelected && <CheckCircle2 className="w-4 h-4 text-apple-purple flex-shrink-0" />}
             </button>
           );
         })}
@@ -126,9 +122,9 @@ export default function UserSessionSettings() {
 
       {/* Info para "Nunca" */}
       {selected === null && (
-        <div className="flex items-start gap-3 p-4 rounded-2xl bg-amber-500/10 border border-amber-500/30">
-          <Shield className="w-5 h-5 text-amber-400 flex-shrink-0 mt-0.5" />
-          <p className="text-amber-300 text-sm">
+        <div className="flex items-start gap-3 p-4 rounded-apple-md bg-apple-orange/12">
+          <Shield className="w-5 h-5 text-apple-orange flex-shrink-0 mt-0.5" />
+          <p className="text-apple-orange apple-text-subheadline">
             <strong>Sin bloqueo automático.</strong> La sesión solo se cerrará cuando
             cierres la ventana o hagas logout manual. Úsalo solo en dispositivos de confianza.
           </p>
@@ -139,9 +135,7 @@ export default function UserSessionSettings() {
       <button
         onClick={handleSave}
         disabled={saving}
-        className="w-full py-4 rounded-2xl bg-gradient-to-r from-violet-600 to-purple-600 text-white font-bold text-sm
-          hover:from-violet-500 hover:to-purple-500 transition-all active:scale-95 disabled:opacity-60
-          flex items-center justify-center gap-2 shadow-lg shadow-violet-500/20"
+        className="apple-btn apple-btn-primary apple-btn-lg apple-press w-full flex items-center justify-center gap-2"
       >
         {saving ? (
           <>
@@ -156,8 +150,8 @@ export default function UserSessionSettings() {
         )}
       </button>
 
-      <p className="text-white/30 text-xs text-center">
-        Esta configuración es <strong className="text-white/40">local a este dispositivo</strong> — no afecta otros equipos ni teléfonos.
+      <p className="apple-label-tertiary apple-text-caption1 text-center">
+        Esta configuración es <strong className="apple-label-secondary">local a este dispositivo</strong> — no afecta otros equipos ni teléfonos.
         Cada dispositivo puede tener su propio tiempo de sesión.
       </p>
     </div>

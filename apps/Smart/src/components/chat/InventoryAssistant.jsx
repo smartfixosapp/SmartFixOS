@@ -64,29 +64,29 @@ export default function InventoryAssistant() {
       let analyticsData = null;
 
       if (lowerInput.includes('stock bajo') || lowerInput.includes('low stock')) {
-        analyticsData = await base44.functions.invoke('aiAnalytics', { 
+        analyticsData = await base44.functions.invoke('aiAnalytics', {
           action: 'lowStock',
           limit: 5
         });
       } else if (lowerInput.includes('productos') && (lowerInput.includes('venta') || lowerInput.includes('vendidos'))) {
-        analyticsData = await base44.functions.invoke('aiAnalytics', { 
+        analyticsData = await base44.functions.invoke('aiAnalytics', {
           action: 'topProducts',
           limit: 5
         });
       } else if (lowerInput.includes('rentabilidad') || lowerInput.includes('margen')) {
-        analyticsData = await base44.functions.invoke('aiAnalytics', { 
+        analyticsData = await base44.functions.invoke('aiAnalytics', {
           action: 'profitability',
           limit: 5
         });
       } else if (lowerInput.includes('inactivos') || lowerInput.includes('clientes inactivos')) {
-        analyticsData = await base44.functions.invoke('aiAnalytics', { 
+        analyticsData = await base44.functions.invoke('aiAnalytics', {
           action: 'inactiveCustomers',
           limit: 5
         });
       }
 
       const conv = await base44.agents.getConversation(conversationId);
-      const messageContent = analyticsData 
+      const messageContent = analyticsData
         ? `${userMessage}\n\n[Datos adjuntos: ${JSON.stringify(analyticsData, null, 2)}]`
         : userMessage;
 
@@ -107,7 +107,7 @@ export default function InventoryAssistant() {
         whileHover={{ scale: 1.1 }}
         whileTap={{ scale: 0.95 }}
         onClick={() => setIsOpen(true)}
-        className="fixed bottom-6 right-6 z-40 bg-gradient-to-br from-cyan-500 to-emerald-500 hover:from-cyan-600 hover:to-emerald-600 text-white rounded-full p-4 shadow-lg flex items-center justify-center"
+        className="apple-type apple-press fixed bottom-6 right-6 z-40 bg-apple-blue text-white rounded-full p-4 shadow-apple-lg flex items-center justify-center"
       >
         <MessageCircle className="w-6 h-6" />
       </motion.button>
@@ -120,14 +120,14 @@ export default function InventoryAssistant() {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         exit={{ opacity: 0, y: 20 }}
-        className="fixed bottom-6 right-6 z-40 w-96 max-h-96 bg-black/90 backdrop-blur-xl border border-white/10 rounded-2xl shadow-2xl flex flex-col overflow-hidden"
+        className="apple-type fixed bottom-6 right-6 z-40 w-96 max-h-96 apple-surface-elevated rounded-apple-lg shadow-apple-xl border-0 flex flex-col overflow-hidden"
       >
         {/* Header */}
-        <div className="px-4 py-3 bg-gradient-to-r from-cyan-500/20 to-emerald-500/20 border-b border-white/10 flex justify-between items-center">
-          <h3 className="text-sm font-semibold text-white">Asistente de Inventario</h3>
+        <div className="px-4 py-3 bg-apple-blue/12 flex justify-between items-center" style={{ borderBottom: '0.5px solid rgb(var(--separator) / 0.29)' }}>
+          <h3 className="apple-text-subheadline font-semibold apple-label-primary">Asistente de Inventario</h3>
           <button
             onClick={() => setIsOpen(false)}
-            className="text-slate-400 hover:text-white text-xl"
+            className="apple-label-secondary hover:apple-label-primary text-xl"
           >
             ✕
           </button>
@@ -136,50 +136,50 @@ export default function InventoryAssistant() {
         {/* Messages */}
         <div className="flex-1 overflow-y-auto px-4 py-4 space-y-3 no-scrollbar">
           {messages.length === 0 && (
-            <div className="text-center text-slate-400 text-sm py-8">
+            <div className="text-center apple-label-tertiary apple-text-footnote py-8">
               <p>👋 Pregúntame sobre productos, stock o búsquedas.</p>
             </div>
           )}
-          
+
           {messages.map((msg, idx) => (
             <div
               key={idx}
               className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}
             >
               <div
-                className={`max-w-xs px-4 py-2 rounded-lg ${
+                className={`max-w-xs px-4 py-2 rounded-apple-md ${
                   msg.role === "user"
-                    ? "bg-cyan-600/50 text-white"
-                    : "bg-white/10 text-slate-100"
+                    ? "bg-apple-blue text-white"
+                    : "bg-gray-sys6 dark:bg-gray-sys5 apple-label-primary"
                 }`}
               >
                 {msg.role === "assistant" ? (
-                  <ReactMarkdown className="text-sm prose prose-invert prose-sm max-w-none">
+                  <ReactMarkdown className="apple-text-footnote prose prose-invert prose-sm max-w-none">
                     {msg.content}
                   </ReactMarkdown>
                 ) : (
-                  <p className="text-sm">{msg.content}</p>
+                  <p className="apple-text-footnote">{msg.content}</p>
                 )}
               </div>
             </div>
           ))}
-          
+
           {loading && (
             <div className="flex justify-start">
-              <div className="bg-white/10 px-4 py-2 rounded-lg flex items-center gap-2">
-                <Loader2 className="w-4 h-4 animate-spin text-cyan-400" />
-                <span className="text-sm text-slate-400">Procesando...</span>
+              <div className="bg-gray-sys6 dark:bg-gray-sys5 px-4 py-2 rounded-apple-md flex items-center gap-2">
+                <Loader2 className="w-4 h-4 animate-spin text-apple-blue" />
+                <span className="apple-text-footnote apple-label-secondary">Procesando...</span>
               </div>
             </div>
           )}
-          
+
           <div ref={scrollRef} />
         </div>
 
         {/* Quick Actions */}
         {messages.length === 0 && (
-          <div className="px-3 py-2 border-t border-white/10 space-y-1">
-            <p className="text-xs text-slate-400 mb-2">Acciones rápidas:</p>
+          <div className="px-3 py-2 space-y-1" style={{ borderTop: '0.5px solid rgb(var(--separator) / 0.29)' }}>
+            <p className="apple-text-caption1 apple-label-tertiary mb-2">Acciones rápidas:</p>
             <div className="grid grid-cols-2 gap-1">
               {[
                 { icon: AlertTriangle, text: 'Stock bajo', cmd: 'stock bajo' },
@@ -190,7 +190,7 @@ export default function InventoryAssistant() {
                 <button
                   key={action.text}
                   onClick={() => setInput(action.cmd)}
-                  className="text-xs bg-white/5 hover:bg-white/10 px-2 py-1 rounded border border-white/10 text-slate-300 transition-all flex items-center gap-1"
+                  className="apple-press apple-text-caption1 bg-gray-sys6 dark:bg-gray-sys5 hover:bg-gray-sys5 dark:hover:bg-gray-sys4 px-2 py-1 rounded-apple-sm apple-label-secondary transition-all flex items-center gap-1"
                 >
                   <action.icon className="w-3 h-3" />
                   {action.text}
@@ -201,18 +201,18 @@ export default function InventoryAssistant() {
         )}
 
         {/* Input */}
-        <form onSubmit={handleSendMessage} className="px-4 py-3 border-t border-white/10 flex gap-2">
+        <form onSubmit={handleSendMessage} className="px-4 py-3 flex gap-2" style={{ borderTop: '0.5px solid rgb(var(--separator) / 0.29)' }}>
           <Input
             value={input}
             onChange={(e) => setInput(e.target.value)}
             placeholder="Buscar producto, análisis, crear orden..."
-            className="bg-white/5 border-white/10 text-white placeholder:text-slate-500 text-sm"
+            className="apple-input apple-text-footnote"
             disabled={loading}
           />
           <Button
             type="submit"
             disabled={loading || !input.trim()}
-            className="bg-gradient-to-r from-cyan-500 to-emerald-500 hover:from-cyan-600 hover:to-emerald-600 text-white"
+            className="apple-btn apple-btn-primary"
             size="icon"
             aria-label="Enviar mensaje al asistente"
           >

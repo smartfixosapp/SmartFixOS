@@ -35,13 +35,13 @@ const DEFAULT_SCHEDULE = {
 // Solo 2 planes: Starter ($14.99) y Pro ($39.99)
 // Legacy keys (basic/business/enterprise) mapean a starter o pro
 const PLAN_INFO = {
-  starter:    { label: "Starter",    color: "cyan",    max_users: 999, price: "$14.99/mes" },
-  pro:        { label: "Pro",        color: "emerald", max_users: 999, price: "$39.99/mes" },
+  starter:    { label: "Starter",    color: "blue",    max_users: 999, price: "$14.99/mes" },
+  pro:        { label: "Pro",        color: "green",   max_users: 999, price: "$39.99/mes" },
   // Legacy aliases — mismas configuraciones, solo distintos keys
-  basic:      { label: "Starter",    color: "cyan",    max_users: 999, price: "$14.99/mes" },
-  smartfixos: { label: "Starter",    color: "cyan",    max_users: 999, price: "$14.99/mes" },
-  business:   { label: "Pro",        color: "emerald", max_users: 999, price: "$39.99/mes" },
-  enterprise: { label: "Pro",        color: "emerald", max_users: 999, price: "$39.99/mes" },
+  basic:      { label: "Starter",    color: "blue",    max_users: 999, price: "$14.99/mes" },
+  smartfixos: { label: "Starter",    color: "blue",    max_users: 999, price: "$14.99/mes" },
+  business:   { label: "Pro",        color: "green",   max_users: 999, price: "$39.99/mes" },
+  enterprise: { label: "Pro",        color: "green",   max_users: 999, price: "$39.99/mes" },
 };
 
 const STEPS = [
@@ -250,13 +250,13 @@ export default function FirstTimeSetupWizard({ onComplete }) {
   const setDayTime = (key, field, val) => set("schedule", { ...form.schedule, [key]: { ...form.schedule[key], [field]: val } });
 
   // ── Render section ────────────────────────────────────────────────────────
-  const SectionCard = ({ icon: Icon, title, color = "cyan", children }) => (
-    <div className="bg-white/[0.03] border border-white/10 rounded-2xl p-4 mb-3">
+  const SectionCard = ({ icon: Icon, title, color = "blue", children }) => (
+    <div className="apple-card border-0 rounded-apple-md p-4 mb-3">
       <div className="flex items-center gap-2 mb-3">
-        <div className={`w-7 h-7 rounded-lg flex items-center justify-center bg-${color}-500/20`}>
-          <Icon className={`w-4 h-4 text-${color}-400`} />
+        <div className={`w-7 h-7 rounded-apple-sm flex items-center justify-center bg-apple-${color}/15`}>
+          <Icon className={`w-4 h-4 text-apple-${color}`} />
         </div>
-        <span className="text-white/80 text-sm font-semibold">{title}</span>
+        <span className="apple-label-primary apple-text-subheadline font-semibold">{title}</span>
       </div>
       {children}
     </div>
@@ -264,29 +264,29 @@ export default function FirstTimeSetupWizard({ onComplete }) {
 
   const Field = ({ label, children, half }) => (
     <div className={half ? "" : "col-span-2"}>
-      {label && <label className="text-white/50 text-xs mb-1 block">{label}</label>}
+      {label && <label className="apple-label-tertiary apple-text-caption1 mb-1 block">{label}</label>}
       {children}
     </div>
   );
 
-  const inputCls = "w-full bg-black/30 border border-white/10 text-white text-sm rounded-xl px-3 h-10 focus:outline-none focus:border-cyan-500/50 placeholder:text-white/50";
+  const inputCls = "apple-input w-full h-10 apple-text-footnote";
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 backdrop-blur-sm p-4 overflow-y-auto">
+    <div className="apple-type fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4 overflow-y-auto">
       <motion.div
         initial={{ opacity: 0, scale: 0.96, y: 20 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
-        className="w-full max-w-2xl bg-[#070d14] border border-white/10 rounded-3xl shadow-2xl overflow-hidden my-4"
+        className="w-full max-w-2xl apple-surface-elevated rounded-apple-lg shadow-apple-xl border-0 overflow-hidden my-4"
       >
         {/* ── Header ── */}
-        <div className="bg-gradient-to-r from-[#0d2035] via-[#0a1929] to-[#0d2035] border-b border-white/10 px-6 py-5">
+        <div className="apple-surface px-6 py-5" style={{ borderBottom: '0.5px solid rgb(var(--separator) / 0.29)' }}>
           <div className="flex items-center gap-4">
-            <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-cyan-500 to-blue-600 flex items-center justify-center shadow-lg shadow-cyan-500/30 flex-shrink-0">
+            <div className="w-12 h-12 rounded-apple-md bg-apple-blue flex items-center justify-center shadow-apple-md flex-shrink-0">
               <Wrench className="w-6 h-6 text-white" />
             </div>
             <div>
-              <h2 className="text-lg font-black text-white">Configura tu Taller</h2>
-              <p className="text-xs text-white/40">Completa la información para comenzar · Puedes editarla después</p>
+              <h2 className="apple-text-headline apple-label-primary">Configura tu Taller</h2>
+              <p className="apple-text-caption1 apple-label-tertiary">Completa la información para comenzar · Puedes editarla después</p>
             </div>
           </div>
 
@@ -300,15 +300,15 @@ export default function FirstTimeSetupWizard({ onComplete }) {
                 <React.Fragment key={s.id}>
                   <button
                     onClick={() => done && setStep(s.id)}
-                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold transition-all ${
-                      active ? "bg-cyan-500/20 text-cyan-300 border border-cyan-500/40" :
-                      done   ? "bg-white/10 text-white/60 cursor-pointer hover:bg-white/15" :
-                               "bg-white/5 text-white/25 cursor-not-allowed"}`}
+                    className={`apple-press flex items-center gap-1.5 px-3 py-1.5 rounded-full apple-text-caption1 font-semibold transition-all ${
+                      active ? "bg-apple-blue/15 text-apple-blue" :
+                      done   ? "bg-gray-sys6 dark:bg-gray-sys5 apple-label-secondary cursor-pointer" :
+                               "bg-gray-sys6 dark:bg-gray-sys5 apple-label-tertiary cursor-not-allowed"}`}
                   >
-                    {done ? <CheckCircle2 className="w-3 h-3 text-emerald-400" /> : <Icon className="w-3 h-3" />}
+                    {done ? <CheckCircle2 className="w-3 h-3 text-apple-green" /> : <Icon className="w-3 h-3" />}
                     {s.label}
                   </button>
-                  {i < STEPS.length - 1 && <div className={`flex-1 h-px ${step > s.id ? "bg-cyan-500/40" : "bg-white/10"}`} />}
+                  {i < STEPS.length - 1 && <div className="flex-1" style={{ borderTop: `0.5px solid ${step > s.id ? 'rgb(var(--apple-blue))' : 'rgb(var(--separator) / 0.29)'}` }} />}
                 </React.Fragment>
               );
             })}
@@ -348,26 +348,26 @@ export default function FirstTimeSetupWizard({ onComplete }) {
                     <div className="flex items-center gap-4">
                       <div
                         onClick={() => logoInputRef.current?.click()}
-                        className="w-24 h-24 rounded-2xl border-2 border-dashed border-white/20 hover:border-cyan-500/50 flex flex-col items-center justify-center cursor-pointer transition-all bg-black/20 overflow-hidden flex-shrink-0 group"
+                        className="apple-press w-24 h-24 rounded-apple-md bg-gray-sys6 dark:bg-gray-sys5 hover:bg-apple-blue/12 flex flex-col items-center justify-center cursor-pointer transition-all overflow-hidden flex-shrink-0 group"
                       >
                         {logoPreview ? (
                           <img src={logoPreview} alt="Logo" className="w-full h-full object-contain" />
                         ) : (
                           <>
-                            <Upload className="w-6 h-6 text-white/30 group-hover:text-cyan-400 mb-1 transition-colors" />
-                            <span className="text-[10px] text-white/30 group-hover:text-cyan-400 transition-colors">Subir logo</span>
+                            <Upload className="w-6 h-6 apple-label-tertiary group-hover:text-apple-blue mb-1 transition-colors" />
+                            <span className="apple-text-caption2 apple-label-tertiary group-hover:text-apple-blue transition-colors">Subir logo</span>
                           </>
                         )}
                       </div>
                       <input ref={logoInputRef} type="file" accept="image/*" className="hidden" onChange={handleLogoChange} />
                       <div className="flex-1">
-                        <p className="text-white/60 text-sm mb-1">Este logo aparecerá en:</p>
-                        <ul className="text-white/40 text-xs space-y-0.5">
+                        <p className="apple-label-secondary apple-text-footnote mb-1">Este logo aparecerá en:</p>
+                        <ul className="apple-label-tertiary apple-text-caption1 space-y-0.5">
                           <li>• Emails de bienvenida y notificaciones</li>
                           <li>• Órdenes de trabajo e invoices</li>
                           <li>• Portal del cliente</li>
                         </ul>
-                        <p className="text-white/25 text-[10px] mt-2">PNG o JPG · Máx 2MB · Recomendado 200×200px</p>
+                        <p className="apple-label-tertiary apple-text-caption2 mt-2">PNG o JPG · Máx 2MB · Recomendado 200×200px</p>
                       </div>
                     </div>
                   </SectionCard>
@@ -376,12 +376,12 @@ export default function FirstTimeSetupWizard({ onComplete }) {
                     <div className="flex items-center gap-3">
                       <input type="color" value={form.primary_color}
                         onChange={e => set("primary_color", e.target.value)}
-                        className="w-12 h-10 rounded-xl border border-white/10 cursor-pointer bg-transparent" />
+                        className="w-12 h-10 rounded-apple-sm cursor-pointer bg-transparent" />
                       <div>
-                        <p className="text-white/60 text-sm">Color de tu marca</p>
-                        <p className="text-white/30 text-xs">Se usa en botones y encabezados de documentos</p>
+                        <p className="apple-label-secondary apple-text-footnote">Color de tu marca</p>
+                        <p className="apple-label-tertiary apple-text-caption1">Se usa en botones y encabezados de documentos</p>
                       </div>
-                      <span className="ml-auto text-white/40 text-xs font-mono">{form.primary_color}</span>
+                      <span className="ml-auto apple-label-tertiary apple-text-caption1 font-mono">{form.primary_color}</span>
                     </div>
                   </SectionCard>
                 </div>
@@ -466,18 +466,18 @@ export default function FirstTimeSetupWizard({ onComplete }) {
                             <button
                               type="button"
                               onClick={() => toggleDay(key)}
-                              className={`w-12 text-center text-xs font-bold py-1.5 rounded-lg transition-all ${day.open ? "bg-cyan-500/20 text-cyan-300 border border-cyan-500/30" : "bg-white/5 text-white/30 border border-white/10"}`}
+                              className={`apple-press w-12 text-center apple-text-caption1 font-semibold py-1.5 rounded-apple-sm transition-all ${day.open ? "bg-apple-blue/15 text-apple-blue" : "bg-gray-sys6 dark:bg-gray-sys5 apple-label-tertiary"}`}
                             >{label}</button>
                             {day.open ? (
                               <div className="flex items-center gap-2 flex-1">
                                 <input type="time" value={day.from} onChange={e => setDayTime(key,"from",e.target.value)}
-                                  className="bg-black/30 border border-white/10 text-white text-xs rounded-lg px-2 h-8 focus:outline-none focus:border-cyan-500/40 flex-1" />
-                                <span className="text-white/30 text-xs">—</span>
+                                  className="apple-input apple-text-caption1 h-8 tabular-nums flex-1" />
+                                <span className="apple-label-tertiary apple-text-caption1">—</span>
                                 <input type="time" value={day.to} onChange={e => setDayTime(key,"to",e.target.value)}
-                                  className="bg-black/30 border border-white/10 text-white text-xs rounded-lg px-2 h-8 focus:outline-none focus:border-cyan-500/40 flex-1" />
+                                  className="apple-input apple-text-caption1 h-8 tabular-nums flex-1" />
                               </div>
                             ) : (
-                              <span className="text-white/25 text-xs italic flex-1">Cerrado</span>
+                              <span className="apple-label-tertiary apple-text-caption1 italic flex-1">Cerrado</span>
                             )}
                           </div>
                         );
@@ -515,9 +515,9 @@ export default function FirstTimeSetupWizard({ onComplete }) {
                       </div>
                     </div>
                     <div>
-                      <label className="text-white/50 text-xs mb-1 block">Nota en recibos y órdenes de trabajo</label>
+                      <label className="apple-label-tertiary apple-text-caption1 mb-1 block">Nota en recibos y órdenes de trabajo</label>
                       <textarea
-                        className="w-full bg-black/30 border border-white/10 text-white text-xs rounded-xl px-3 py-2.5 focus:outline-none focus:border-cyan-500/50 placeholder:text-white/50 resize-none"
+                        className="apple-input w-full apple-text-caption1 resize-none"
                         rows={3} value={form.receipt_note}
                         onChange={e => set("receipt_note", e.target.value)}
                         placeholder="Términos y condiciones que aparecerán en tus recibos..." />
@@ -529,8 +529,8 @@ export default function FirstTimeSetupWizard({ onComplete }) {
               {/* ── PASO 4: Dashboard Widgets ── */}
               {step === 4 && (
                 <div>
-                  <SectionCard icon={LayoutDashboard} title="¿Qué quieres ver en tu Dashboard?" color="cyan">
-                    <p className="text-white/40 text-xs mb-4">Activa los indicadores que quieres ver al entrar al sistema. Puedes cambiarlos después.</p>
+                  <SectionCard icon={LayoutDashboard} title="¿Qué quieres ver en tu Dashboard?" color="blue">
+                    <p className="apple-label-tertiary apple-text-caption1 mb-4">Activa los indicadores que quieres ver al entrar al sistema. Puedes cambiarlos después.</p>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                       {DASHBOARD_WIDGETS.map(w => {
                         const Icon = w.icon;
@@ -539,21 +539,21 @@ export default function FirstTimeSetupWizard({ onComplete }) {
                           <button key={w.key}
                             type="button"
                             onClick={() => setDashWidgets(prev => ({ ...prev, [w.key]: !prev[w.key] }))}
-                            className={`flex items-center gap-3 p-3 rounded-xl border transition-all text-left ${
+                            className={`apple-press flex items-center gap-3 p-3 rounded-apple-sm transition-all text-left ${
                               enabled
-                                ? 'bg-cyan-500/10 border-cyan-500/30 text-white'
-                                : 'bg-white/[0.02] border-white/10 text-white/40 hover:bg-white/5'
+                                ? 'bg-apple-blue/12 apple-label-primary'
+                                : 'bg-gray-sys6 dark:bg-gray-sys5 apple-label-tertiary hover:bg-gray-sys5'
                             }`}
                           >
-                            <div className={`p-1.5 rounded-lg flex-shrink-0 ${enabled ? 'bg-cyan-500/20' : 'bg-white/5'}`}>
-                              <Icon className={`w-3.5 h-3.5 ${enabled ? 'text-cyan-400' : 'text-white/30'}`} />
+                            <div className={`p-1.5 rounded-apple-xs flex-shrink-0 ${enabled ? 'bg-apple-blue/20' : 'bg-gray-sys5 dark:bg-gray-sys4'}`}>
+                              <Icon className={`w-3.5 h-3.5 ${enabled ? 'text-apple-blue' : 'apple-label-tertiary'}`} />
                             </div>
                             <div className="flex-1 min-w-0">
-                              <p className="text-xs font-semibold leading-tight truncate">{w.label}</p>
-                              <p className="text-[10px] text-white/30 mt-0.5">{w.desc}</p>
+                              <p className="apple-text-caption1 font-semibold leading-tight truncate">{w.label}</p>
+                              <p className="apple-text-caption2 apple-label-tertiary mt-0.5">{w.desc}</p>
                             </div>
-                            <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center flex-shrink-0 ${
-                              enabled ? 'bg-cyan-500 border-cyan-500' : 'border-white/20'
+                            <div className={`w-4 h-4 rounded-full flex items-center justify-center flex-shrink-0 ${
+                              enabled ? 'bg-apple-blue' : 'bg-gray-sys5 dark:bg-gray-sys4'
                             }`}>
                               {enabled && <Check className="w-2.5 h-2.5 text-white" />}
                             </div>
@@ -570,45 +570,44 @@ export default function FirstTimeSetupWizard({ onComplete }) {
                 <div>
                   {/* Plan actual */}
                   <SectionCard icon={Zap} title="Tu plan actual" color={planData.color}>
-                    <div className="flex items-center justify-between bg-black/30 rounded-xl p-4 mb-3">
+                    <div className="flex items-center justify-between bg-gray-sys6 dark:bg-gray-sys5 rounded-apple-sm p-4 mb-3">
                       <div>
                         <div className="flex items-center gap-2 mb-1">
-                          <span className={`text-lg font-black text-${planData.color}-400`}>{planData.label}</span>
-                          <span className={`text-xs px-2 py-0.5 rounded-full bg-${planData.color}-500/20 text-${planData.color}-300 border border-${planData.color}-500/30`}>Activo</span>
+                          <span className={`apple-text-headline font-semibold text-apple-${planData.color}`}>{planData.label}</span>
+                          <span className={`apple-text-caption1 px-2 py-0.5 rounded-full bg-apple-${planData.color}/15 text-apple-${planData.color}`}>Activo</span>
                         </div>
-                        <p className={`text-${planData.color}-300/70 text-sm font-semibold`}>{planData.price}</p>
+                        <p className={`text-apple-${planData.color} apple-text-footnote font-semibold`}>{planData.price}</p>
                       </div>
                       {trialDaysLeft !== null && trialDaysLeft > 0 && (
                         <div className="text-right">
-                          <p className="text-yellow-400 text-sm font-bold">{trialDaysLeft} días</p>
-                          <p className="text-white/40 text-xs">de prueba restantes</p>
+                          <p className="text-apple-yellow apple-text-footnote font-semibold tabular-nums">{trialDaysLeft} días</p>
+                          <p className="apple-label-tertiary apple-text-caption1">de prueba restantes</p>
                         </div>
                       )}
                     </div>
 
-                    {/* Slots de usuarios */}
-                    <div className="flex items-center gap-3 bg-black/20 rounded-xl p-3">
-                      <Users className="w-5 h-5 text-white/40 flex-shrink-0" />
+                    <div className="flex items-center gap-3 bg-gray-sys6 dark:bg-gray-sys5 rounded-apple-sm p-3">
+                      <Users className="w-5 h-5 apple-label-tertiary flex-shrink-0" />
                       <div className="flex-1">
                         <div className="flex items-center justify-between mb-1">
-                          <span className="text-white/60 text-xs">Usuarios ocupados</span>
-                          <span className="text-white text-xs font-bold">
+                          <span className="apple-label-secondary apple-text-caption1">Usuarios ocupados</span>
+                          <span className="apple-label-primary apple-text-caption1 font-semibold tabular-nums">
                             {usedSlots} / {maxUsers === 9999 ? "∞" : maxUsers}
                           </span>
                         </div>
-                        <div className="h-1.5 bg-white/10 rounded-full overflow-hidden">
+                        <div className="h-1.5 bg-gray-sys5 dark:bg-gray-sys4 rounded-full overflow-hidden">
                           <div
-                            className={`h-full rounded-full transition-all ${usedSlots >= maxUsers ? "bg-red-500" : "bg-cyan-500"}`}
+                            className={`h-full rounded-full transition-all ${usedSlots >= maxUsers ? "bg-apple-red" : "bg-apple-blue"}`}
                             style={{ width: `${Math.min(100, (usedSlots / (maxUsers || 1)) * 100)}%` }}
                           />
                         </div>
                       </div>
                       {usedSlots >= maxUsers && maxUsers !== 9999 && (
-                        <span className="text-xs text-orange-400 font-semibold">¡Límite!</span>
+                        <span className="apple-text-caption1 text-apple-orange font-semibold">¡Límite!</span>
                       )}
                     </div>
                     {usedSlots >= maxUsers && maxUsers !== 9999 && (
-                      <p className="text-orange-400/80 text-xs mt-2 text-center">
+                      <p className="text-apple-orange apple-text-caption1 mt-2 text-center">
                         Actualiza tu plan para agregar más técnicos/empleados
                       </p>
                     )}
@@ -616,47 +615,46 @@ export default function FirstTimeSetupWizard({ onComplete }) {
 
                   {/* Cambio de PIN */}
                   <SectionCard icon={KeyRound} title="Cambia tu PIN de acceso (opcional)" color="purple">
-                    <p className="text-white/40 text-xs mb-3">Tu PIN actual es el que recibiste en el email. Cámbialo por uno que recuerdes fácil.</p>
+                    <p className="apple-label-tertiary apple-text-caption1 mb-3">Tu PIN actual es el que recibiste en el email. Cámbialo por uno que recuerdes fácil.</p>
                     <div className="grid grid-cols-2 gap-3">
                       <div>
-                        <label className="text-white/50 text-xs mb-1 block">Nuevo PIN (4 dígitos)</label>
+                        <label className="apple-label-tertiary apple-text-caption1 mb-1 block">Nuevo PIN (4 dígitos)</label>
                         <div className="relative">
                           <input
                             type={showPin ? "text" : "password"}
                             inputMode="numeric" maxLength={4}
                             placeholder="••••" value={form.new_pin}
                             onChange={e => set("new_pin", e.target.value.replace(/\D/g,"").slice(0,4))}
-                            className={`${inputCls} pr-10 tracking-widest font-mono text-center text-lg`}
+                            className={`${inputCls} pr-10 font-mono text-center apple-text-headline tabular-nums`}
                           />
                           <button type="button" onClick={() => setShowPin(v => !v)}
-                            className="absolute right-3 top-1/2 -translate-y-1/2 text-white/30 hover:text-white/70">
+                            className="absolute right-3 top-1/2 -translate-y-1/2 apple-label-tertiary hover:apple-label-secondary">
                             {showPin ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                           </button>
                         </div>
                       </div>
                       <div>
-                        <label className="text-white/50 text-xs mb-1 block">Confirmar PIN</label>
+                        <label className="apple-label-tertiary apple-text-caption1 mb-1 block">Confirmar PIN</label>
                         <input
                           type={showPin ? "text" : "password"}
                           inputMode="numeric" maxLength={4}
                           placeholder="••••" value={form.confirm_pin}
                           onChange={e => set("confirm_pin", e.target.value.replace(/\D/g,"").slice(0,4))}
-                          className={`${inputCls} tracking-widest font-mono text-center text-lg ${
-                            form.confirm_pin && form.new_pin !== form.confirm_pin ? "border-red-500/50" :
-                            form.confirm_pin && form.new_pin === form.confirm_pin   ? "border-emerald-500/50" : ""
+                          className={`${inputCls} font-mono text-center apple-text-headline tabular-nums ${
+                            form.confirm_pin && form.new_pin !== form.confirm_pin ? "ring-1 ring-apple-red" :
+                            form.confirm_pin && form.new_pin === form.confirm_pin   ? "ring-1 ring-apple-green" : ""
                           }`}
                         />
                       </div>
                     </div>
                   </SectionCard>
 
-                  {/* Resumen */}
                   {form.business_name && (
-                    <div className="bg-emerald-500/10 border border-emerald-500/30 rounded-2xl p-4 flex items-center gap-3">
-                      <CheckCircle2 className="w-5 h-5 text-emerald-400 flex-shrink-0" />
+                    <div className="bg-apple-green/12 rounded-apple-md p-4 flex items-center gap-3">
+                      <CheckCircle2 className="w-5 h-5 text-apple-green flex-shrink-0" />
                       <div>
-                        <p className="text-white text-sm font-bold">{form.business_name}</p>
-                        <p className="text-white/40 text-xs">Todo listo — click en "¡Comenzar!" para guardar</p>
+                        <p className="apple-label-primary apple-text-footnote font-semibold">{form.business_name}</p>
+                        <p className="apple-label-tertiary apple-text-caption1">Todo listo — click en "¡Comenzar!" para guardar</p>
                       </div>
                     </div>
                   )}
@@ -668,15 +666,15 @@ export default function FirstTimeSetupWizard({ onComplete }) {
         </div>
 
         {/* ── Footer ── */}
-        <div className="px-6 py-4 border-t border-white/10 flex items-center justify-between bg-black/20">
-          <button onClick={handleSkip} className="text-white/30 hover:text-white/60 text-sm transition-colors">
+        <div className="px-6 py-4 flex items-center justify-between bg-gray-sys6 dark:bg-gray-sys5" style={{ borderTop: '0.5px solid rgb(var(--separator) / 0.29)' }}>
+          <button onClick={handleSkip} className="apple-label-tertiary hover:apple-label-secondary apple-text-footnote transition-colors">
             Completar luego
           </button>
           <div className="flex gap-3">
             {step > 1 && (
               <button
                 onClick={() => setStep(s => s - 1)}
-                className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-white/5 hover:bg-white/10 text-white/60 text-sm font-semibold transition-all"
+                className="apple-btn apple-btn-secondary flex items-center gap-1.5 px-4 py-2 rounded-apple-sm apple-text-footnote font-semibold transition-all"
               >
                 <ChevronLeft className="w-4 h-4" /> Anterior
               </button>
@@ -690,7 +688,7 @@ export default function FirstTimeSetupWizard({ onComplete }) {
                   }
                   setStep(s => s + 1);
                 }}
-                className="flex items-center gap-1.5 px-5 py-2 rounded-xl bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-white text-sm font-bold transition-all shadow-lg shadow-cyan-500/20"
+                className="apple-btn apple-btn-primary flex items-center gap-1.5 px-5 py-2 rounded-apple-sm apple-text-footnote font-semibold transition-all"
               >
                 Siguiente <ChevronRight className="w-4 h-4" />
               </button>
@@ -698,7 +696,7 @@ export default function FirstTimeSetupWizard({ onComplete }) {
               <button
                 onClick={handleSave}
                 disabled={loading || !form.business_name.trim()}
-                className="flex items-center gap-2 px-6 py-2 rounded-xl bg-gradient-to-r from-emerald-600 to-cyan-600 hover:from-emerald-500 hover:to-cyan-500 disabled:opacity-40 text-white text-sm font-black transition-all shadow-lg shadow-emerald-500/20"
+                className="apple-btn apple-btn-lg flex items-center gap-2 px-6 py-2 rounded-apple-sm bg-apple-green hover:bg-apple-green disabled:opacity-40 text-white apple-text-footnote font-semibold transition-all shadow-apple-md"
               >
                 {loading ? (
                   <><span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> Guardando...</>

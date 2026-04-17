@@ -26,10 +26,10 @@ export default function IntegrationsTab({ user }) {
   useEffect(() => {
     const onSave = () => saveData();
     const onRevert = () => setData(originalData);
-    
+
     window.addEventListener("settings-save", onSave);
     window.addEventListener("settings-revert", onRevert);
-    
+
     return () => {
       window.removeEventListener("settings-save", onSave);
       window.removeEventListener("settings-revert", onRevert);
@@ -65,7 +65,7 @@ export default function IntegrationsTab({ user }) {
   const saveData = async () => {
     try {
       const rows = await base44.entities.SystemConfig.filter({ key: "settings.integrations" });
-      
+
       const payload = {
         key: "settings.integrations",
         value: JSON.stringify(data),
@@ -92,7 +92,7 @@ export default function IntegrationsTab({ user }) {
       setOriginalData(data);
       window.dispatchEvent(new Event("settings-clean"));
       window.dispatchEvent(new Event("force-refresh"));
-      
+
       alert("Configuración guardada");
     } catch (e) {
       alert("Error al guardar: " + e.message);
@@ -103,71 +103,71 @@ export default function IntegrationsTab({ user }) {
     alert("Probando webhook... (implementar ping)");
   };
 
-  if (loading) return <div className="text-gray-400">Cargando...</div>;
+  if (loading) return <div className="apple-type apple-label-tertiary apple-text-body">Cargando...</div>;
 
   return (
-    <div className="space-y-6">
-      <Card className="bg-zinc-900/50 border-white/10">
+    <div className="apple-type space-y-6">
+      <Card className="apple-card border-0">
         <CardHeader>
-          <CardTitle className="text-white">SMTP / Email</CardTitle>
+          <CardTitle className="apple-text-title3 apple-label-primary">SMTP / Email</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label className="text-gray-300">Host SMTP</Label>
+              <Label className="apple-label-secondary apple-text-footnote">Host SMTP</Label>
               <Input
                 value={data.smtp_host}
                 onChange={(e) => setData({ ...data, smtp_host: e.target.value })}
-                className="bg-black border-gray-700 text-white"
+                className="apple-input"
                 placeholder="smtp.gmail.com"
               />
             </div>
             <div className="space-y-2">
-              <Label className="text-gray-300">Puerto</Label>
+              <Label className="apple-label-secondary apple-text-footnote">Puerto</Label>
               <Input
                 type="number"
                 value={data.smtp_port}
                 onChange={(e) => setData({ ...data, smtp_port: e.target.value })}
-                className="bg-black border-gray-700 text-white"
+                className="apple-input tabular-nums"
                 placeholder="587"
               />
             </div>
             <div className="space-y-2">
-              <Label className="text-gray-300">Usuario</Label>
+              <Label className="apple-label-secondary apple-text-footnote">Usuario</Label>
               <Input
                 value={data.smtp_user}
                 onChange={(e) => setData({ ...data, smtp_user: e.target.value })}
-                className="bg-black border-gray-700 text-white"
+                className="apple-input"
               />
             </div>
             <div className="space-y-2">
-              <Label className="text-gray-300">Contraseña</Label>
+              <Label className="apple-label-secondary apple-text-footnote">Contraseña</Label>
               <Input
                 type="password"
                 value={data.smtp_password}
                 onChange={(e) => setData({ ...data, smtp_password: e.target.value })}
-                className="bg-black border-gray-700 text-white"
+                className="apple-input"
               />
             </div>
           </div>
         </CardContent>
       </Card>
 
-      <Card className="bg-zinc-900/50 border-white/10">
+      <Card className="apple-card border-0">
         <CardHeader>
-          <CardTitle className="text-white">Webhooks</CardTitle>
+          <CardTitle className="apple-text-title3 apple-label-primary">Webhooks</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="space-y-2">
-            <Label className="text-gray-300">URL del webhook</Label>
+            <Label className="apple-label-secondary apple-text-footnote">URL del webhook</Label>
             <div className="flex gap-2">
               <Input
                 value={data.webhook_url}
                 onChange={(e) => setData({ ...data, webhook_url: e.target.value })}
-                className="bg-black border-gray-700 text-white flex-1"
+                className="apple-input flex-1"
                 placeholder="https://api.ejemplo.com/webhook"
               />
-              <Button onClick={testWebhook} variant="outline" className="border-gray-700">
+              <Button onClick={testWebhook} variant="outline" className="apple-btn apple-btn-secondary apple-press">
                 <TestTube className="w-4 h-4 mr-2" />
                 Probar
               </Button>

@@ -66,31 +66,31 @@ export default function PaymentActivationScreen({
   };
 
   return (
-    <div className="fixed inset-0 bg-black/95 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+    <div className="apple-type fixed inset-0 apple-surface backdrop-blur-sm flex items-center justify-center p-4 z-50">
       <div className="w-full max-w-md">
         {/* Header */}
         <div className="text-center mb-8">
-          <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-cyan-600 to-emerald-600 flex items-center justify-center mx-auto mb-6 shadow-[0_0_60px_rgba(6,182,212,0.3)]">
-            <CreditCard className="w-10 h-10 text-white" />
+          <div className="w-20 h-20 rounded-apple-lg bg-apple-blue/15 flex items-center justify-center mx-auto mb-6">
+            <CreditCard className="w-10 h-10 text-apple-blue" />
           </div>
-          <h1 className="text-3xl font-black text-white mb-2">Activa tu plan {planInfo.label}</h1>
-          <p className="text-gray-400 text-sm">Pago seguro procesado por Stripe</p>
+          <h1 className="apple-text-title1 apple-label-primary mb-2">Activa tu plan {planInfo.label}</h1>
+          <p className="apple-label-tertiary apple-text-subheadline">Pago seguro procesado por Stripe</p>
         </div>
 
         {/* Resumen del plan */}
-        <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-3xl p-8 mb-6">
-          <div className="space-y-4 mb-6 pb-6 border-b border-white/10">
+        <div className="apple-card rounded-apple-lg p-8 mb-6">
+          <div className="space-y-4 mb-6 pb-6" style={{ borderBottom: '0.5px solid rgb(var(--separator) / 0.29)' }}>
             <div className="flex justify-between items-center">
-              <span className="text-gray-400">Plan</span>
-              <span className="text-white font-semibold">{planInfo.label}</span>
+              <span className="apple-label-secondary apple-text-body">Plan</span>
+              <span className="apple-label-primary apple-text-body font-semibold">{planInfo.label}</span>
             </div>
             <div className="flex justify-between items-center">
-              <span className="text-gray-400">Tienda</span>
-              <span className="text-white font-semibold">{tenantName}</span>
+              <span className="apple-label-secondary apple-text-body">Tienda</span>
+              <span className="apple-label-primary apple-text-body font-semibold">{tenantName}</span>
             </div>
             <div className="flex justify-between items-center">
-              <span className="text-gray-400">Precio mensual</span>
-              <span className="text-xl font-black text-emerald-400">${planInfo.price} USD</span>
+              <span className="apple-label-secondary apple-text-body">Precio mensual</span>
+              <span className="apple-text-title3 font-semibold text-apple-green tabular-nums">${planInfo.price} USD</span>
             </div>
           </div>
 
@@ -105,26 +105,26 @@ export default function PaymentActivationScreen({
               "Soporte por email"
             ].map((benefit) => (
               <div key={benefit} className="flex items-center gap-2">
-                <CheckCircle className="w-4 h-4 text-emerald-400 flex-shrink-0" />
-                <span className="text-gray-300 text-sm">{benefit}</span>
+                <CheckCircle className="w-4 h-4 text-apple-green flex-shrink-0" />
+                <span className="apple-label-secondary apple-text-subheadline">{benefit}</span>
               </div>
             ))}
           </div>
 
           {error && (
-            <div className="mt-4 bg-red-500/10 border border-red-500/30 rounded-xl p-3">
-              <p className="text-red-300 text-sm">{error}</p>
+            <div className="mt-4 bg-apple-red/12 rounded-apple-md p-3">
+              <p className="text-apple-red apple-text-subheadline">{error}</p>
             </div>
           )}
         </div>
 
         {/* Seguridad */}
-        <div className="bg-cyan-500/10 border border-cyan-500/20 rounded-2xl p-4 mb-6">
+        <div className="bg-apple-blue/12 rounded-apple-md p-4 mb-6">
           <div className="flex items-start gap-3">
-            <ShieldCheck className="w-5 h-5 text-cyan-400 flex-shrink-0 mt-0.5" />
+            <ShieldCheck className="w-5 h-5 text-apple-blue flex-shrink-0 mt-0.5" />
             <div>
-              <p className="text-cyan-300 text-sm font-semibold">Pago 100% seguro con Stripe</p>
-              <p className="text-cyan-400/70 text-xs mt-0.5">
+              <p className="text-apple-blue apple-text-subheadline font-semibold">Pago 100% seguro con Stripe</p>
+              <p className="text-apple-blue apple-text-caption1 mt-0.5 opacity-80">
                 Serás redirigido a la página de Stripe para ingresar tus datos de pago de forma segura. Nunca almacenamos tu información de tarjeta.
               </p>
             </div>
@@ -136,7 +136,7 @@ export default function PaymentActivationScreen({
           <Button
             onClick={handleCheckout}
             disabled={loading}
-            className="w-full h-14 bg-gradient-to-r from-cyan-600 to-emerald-600 hover:from-cyan-500 hover:to-emerald-500 text-white font-bold text-lg shadow-[0_0_60px_rgba(6,182,212,0.3)]"
+            className="apple-btn apple-btn-primary apple-btn-lg w-full"
           >
             {loading ? (
               <>
@@ -154,13 +154,13 @@ export default function PaymentActivationScreen({
             onClick={onCancel}
             variant="outline"
             disabled={loading}
-            className="w-full h-12 border-white/20 text-white hover:bg-white/5"
+            className="apple-btn apple-btn-secondary w-full"
           >
             Cancelar
           </Button>
         </div>
 
-        <p className="text-center text-xs text-gray-500 mt-6">
+        <p className="text-center apple-text-caption1 apple-label-tertiary mt-6 tabular-nums">
           Se cobrará $49.00 USD/mes. Puedes cancelar en cualquier momento.
         </p>
       </div>

@@ -369,10 +369,10 @@ export default function PunchButton({ userId, userName, variant = "default", onP
           onClick={handlePunchClick}
           disabled={loading}
           className={cn(
-            "w-12 h-12 rounded-2xl border flex items-center justify-center transition-all active:scale-90 relative overflow-hidden shadow-lg",
+            "apple-type apple-press w-12 h-12 rounded-apple-md flex items-center justify-center transition-all relative overflow-hidden",
             punchStatus
-              ? "bg-lime-500/10 border-lime-500/20 text-lime-400"
-              : "bg-emerald-500/10 border-emerald-500/20 text-emerald-400"
+              ? "bg-apple-green/15 text-apple-green"
+              : "bg-apple-green/15 text-apple-green"
           )}
         >
           {loading ? (
@@ -382,16 +382,16 @@ export default function PunchButton({ userId, userName, variant = "default", onP
               {punchStatus ? <LogOut className="w-5 h-5" /> : <Clock className="w-5 h-5" />}
               <span className={cn(
                 "absolute top-2 right-2 w-2 h-2 rounded-full",
-                punchStatus ? "bg-lime-500 animate-pulse shadow-[0_0_8px_rgba(132,204,22,0.8)]" : "bg-emerald-500"
+                punchStatus ? "bg-apple-green animate-pulse" : "bg-apple-green"
               )} />
             </>
           )}
         </button>
 
         {/* Re-use existing dialog logic */}
-        <PunchDialog 
-          confirmOpen={confirmOpen} 
-          setConfirmOpen={setConfirmOpen} 
+        <PunchDialog
+          confirmOpen={confirmOpen}
+          setConfirmOpen={setConfirmOpen}
           isClockingOut={isClockingOut}
           pendingTime={pendingTime}
           handlePunchToggle={handlePunchToggle}
@@ -406,14 +406,13 @@ export default function PunchButton({ userId, userName, variant = "default", onP
         onClick={handlePunchClick}
         disabled={loading}
         className={cn(
-          "relative overflow-hidden h-12 px-4 rounded-full border shadow-[0_10px_22px_rgba(0,0,0,0.14)] active:scale-95 transition-all flex items-center gap-2 backdrop-blur-xl",
+          "apple-type apple-press relative overflow-hidden h-12 px-4 rounded-apple-md transition-all flex items-center gap-2",
           punchStatus
-            ? "bg-[linear-gradient(180deg,rgba(132,204,22,0.82),rgba(77,124,15,0.78))] border-lime-300/18 hover:border-lime-300/26"
-            : "bg-[linear-gradient(180deg,rgba(16,185,129,0.82),rgba(5,150,105,0.78))] border-emerald-300/18 hover:border-emerald-300/26",
-          variant === "apple" ? "h-11 px-5 rounded-2xl bg-white/5 border-white/10 hover:bg-white/10" : ""
+            ? "bg-apple-green text-white"
+            : "bg-apple-green text-white",
+          variant === "apple" ? "h-11 px-5 rounded-apple-md apple-surface apple-label-primary" : ""
         )}
       >
-        <div className="bg-gradient-to-t rounded-full absolute inset-0 from-white/0 to-white/10" />
         {loading ? (
           <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin relative z-10" />
         ) : (
@@ -422,15 +421,15 @@ export default function PunchButton({ userId, userName, variant = "default", onP
               <>
                 <LogOut className="w-5 h-5 relative z-10" />
                 <div className="relative z-10 flex flex-col items-start">
-                  <span className="text-sm font-bold leading-tight">Cerrar</span>
-                  <span className="text-[9px] opacity-80">Turno activo</span>
+                  <span className="apple-text-subheadline font-semibold leading-tight">Cerrar</span>
+                  <span className="apple-text-caption2 opacity-80">Turno activo</span>
                 </div>
                 <div className="w-2 h-2 rounded-full bg-white animate-pulse absolute top-2 right-2 z-10" />
               </>
             ) : (
               <>
                 <Clock className="w-5 h-5 relative z-10" />
-                <span className="text-sm font-bold relative z-10">Ponche</span>
+                <span className="apple-text-subheadline font-semibold relative z-10">Ponche</span>
               </>
             )}
           </>
@@ -438,9 +437,9 @@ export default function PunchButton({ userId, userName, variant = "default", onP
       </Button>
 
       {/* Re-use existing dialog logic */}
-      <PunchDialog 
-        confirmOpen={confirmOpen} 
-        setConfirmOpen={setConfirmOpen} 
+      <PunchDialog
+        confirmOpen={confirmOpen}
+        setConfirmOpen={setConfirmOpen}
         isClockingOut={isClockingOut}
         pendingTime={pendingTime}
         handlePunchToggle={handlePunchToggle}
@@ -454,47 +453,48 @@ function PunchDialog({ confirmOpen, setConfirmOpen, isClockingOut, pendingTime, 
   return (
     <Dialog open={confirmOpen} onOpenChange={(v) => { if (!v) setConfirmOpen(false); }}>
       <DialogContent
-        style={{ background: '#0f1117' }}
-        className="max-w-xs border border-white/10 rounded-2xl p-6"
+        className="apple-type apple-surface-elevated rounded-apple-lg shadow-apple-xl border-0 p-0 overflow-hidden max-w-xs"
         onKeyDown={(e) => e.stopPropagation()}
       >
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-2 text-white text-base">
-            <Clock className="w-4 h-4 text-emerald-400" />
-            {isClockingOut ? "Registrar salida" : "Registrar entrada"}
-          </DialogTitle>
-        </DialogHeader>
+        <div className="p-6">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 apple-label-primary apple-text-headline">
+              <Clock className="w-4 h-4 text-apple-green" />
+              {isClockingOut ? "Registrar salida" : "Registrar entrada"}
+            </DialogTitle>
+          </DialogHeader>
 
-        <div className="mt-4 space-y-3">
-          <label className="block text-xs font-semibold uppercase tracking-widest text-white/40">
-            Hora registrada
-          </label>
-          <div className="w-full h-12 px-4 rounded-xl bg-black/20 border border-white/10 text-white text-lg font-bold flex items-center justify-center select-none">
-            {formatTime12h(pendingTime)}
+          <div className="mt-4 space-y-3">
+            <label className="block apple-text-caption1 font-semibold apple-label-tertiary">
+              Hora registrada
+            </label>
+            <div className="w-full h-12 px-4 rounded-apple-md apple-surface apple-label-primary apple-text-title3 font-semibold flex items-center justify-center select-none tabular-nums">
+              {formatTime12h(pendingTime)}
+            </div>
           </div>
-        </div>
 
-        <div className="mt-5 flex gap-2">
-          <Button
-            variant="ghost"
-            className="flex-1 h-10 rounded-xl text-white/60 hover:text-white hover:bg-white/5"
-            onClick={() => setConfirmOpen(false)}
-          >
-            Cancelar
-          </Button>
-          <Button
-            className={`flex-1 h-10 rounded-xl font-bold ${
-              isClockingOut
-                ? "bg-amber-500 hover:bg-amber-400 text-black"
-                : "bg-emerald-500 hover:bg-emerald-400 text-black"
-            }`}
-            onClick={() => {
-              setConfirmOpen(false);
-              handlePunchToggle(timeHHMMtoISO(pendingTime));
-            }}
-          >
-            {isClockingOut ? "Registrar salida" : "Registrar entrada"}
-          </Button>
+          <div className="mt-5 flex gap-2">
+            <Button
+              variant="ghost"
+              className="apple-btn apple-btn-secondary flex-1 h-10"
+              onClick={() => setConfirmOpen(false)}
+            >
+              Cancelar
+            </Button>
+            <Button
+              className={`apple-btn apple-btn-primary flex-1 h-10 ${
+                isClockingOut
+                  ? "bg-apple-orange"
+                  : "bg-apple-green"
+              } text-white`}
+              onClick={() => {
+                setConfirmOpen(false);
+                handlePunchToggle(timeHHMMtoISO(pendingTime));
+              }}
+            >
+              {isClockingOut ? "Registrar salida" : "Registrar entrada"}
+            </Button>
+          </div>
         </div>
       </DialogContent>
     </Dialog>

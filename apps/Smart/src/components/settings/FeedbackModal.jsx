@@ -4,10 +4,10 @@ import { supabase } from "../../../../../lib/supabase-client.js";
 import { toast } from "sonner";
 
 const TYPES = [
-  { id: "suggestion", label: "Sugerencia",  icon: Lightbulb,          color: "text-amber-400  border-amber-400/30  bg-amber-400/10"  },
-  { id: "bug",        label: "Problema",    icon: Bug,                 color: "text-red-400    border-red-400/30    bg-red-400/10"    },
-  { id: "question",   label: "Pregunta",    icon: HelpCircle,          color: "text-cyan-400   border-cyan-400/30   bg-cyan-400/10"   },
-  { id: "other",      label: "Otro",        icon: MessageSquarePlus,   color: "text-purple-400 border-purple-400/30 bg-purple-400/10" },
+  { id: "suggestion", label: "Sugerencia",  icon: Lightbulb,          color: "text-apple-yellow border-apple-yellow/30 bg-apple-yellow/12"  },
+  { id: "bug",        label: "Problema",    icon: Bug,                 color: "text-apple-red    border-apple-red/30    bg-apple-red/12"    },
+  { id: "question",   label: "Pregunta",    icon: HelpCircle,          color: "text-apple-blue   border-apple-blue/30   bg-apple-blue/12"   },
+  { id: "other",      label: "Otro",        icon: MessageSquarePlus,   color: "text-apple-purple border-apple-purple/30 bg-apple-purple/12" },
 ];
 
 const ADMIN_EMAIL    = "smartfixosapp@gmail.com";
@@ -50,23 +50,23 @@ export default function FeedbackModal({ onClose }) {
       const html = `
         <div style="font-family:sans-serif;max-width:600px;margin:0 auto;color:#111">
           <div style="background:#0f0f18;border-radius:16px;padding:32px;color:#fff">
-            <h2 style="margin:0 0 8px;font-size:22px">📬 Nuevo Feedback — SmartFixOS</h2>
+            <h2 style="margin:0 0 8px;font-size:22px">Nuevo Feedback — SmartFixOS</h2>
             <p style="color:#888;margin:0 0 24px;font-size:13px">${new Date().toLocaleString("es", { timeZone: "America/Puerto_Rico" })}</p>
             <div style="background:#ffffff10;border-radius:12px;padding:20px;margin-bottom:20px">
-              <p style="margin:0 0 6px;font-size:12px;text-transform:uppercase;letter-spacing:.08em;color:#888">Tienda</p>
-              <p style="margin:0;font-size:16px;font-weight:700">${tenantName}</p>
+              <p style="margin:0 0 6px;font-size:12px;color:#888">Tienda</p>
+              <p style="margin:0;font-size:16px;font-weight:600">${tenantName}</p>
               ${tenantEmail ? `<p style="margin:4px 0 0;font-size:13px;color:#aaa">${tenantEmail}</p>` : ""}
             </div>
             <div style="background:#ffffff10;border-radius:12px;padding:20px;margin-bottom:20px">
-              <p style="margin:0 0 6px;font-size:12px;text-transform:uppercase;letter-spacing:.08em;color:#888">Tipo</p>
+              <p style="margin:0 0 6px;font-size:12px;color:#888">Tipo</p>
               <p style="margin:0;font-size:15px;font-weight:600">${typeLabel}</p>
             </div>
             <div style="background:#ffffff10;border-radius:12px;padding:20px;margin-bottom:20px">
-              <p style="margin:0 0 6px;font-size:12px;text-transform:uppercase;letter-spacing:.08em;color:#888">Título</p>
-              <p style="margin:0;font-size:18px;font-weight:800">${title.trim()}</p>
+              <p style="margin:0 0 6px;font-size:12px;color:#888">Título</p>
+              <p style="margin:0;font-size:18px;font-weight:700">${title.trim()}</p>
             </div>
             <div style="background:#ffffff10;border-radius:12px;padding:20px">
-              <p style="margin:0 0 6px;font-size:12px;text-transform:uppercase;letter-spacing:.08em;color:#888">Mensaje</p>
+              <p style="margin:0 0 6px;font-size:12px;color:#888">Mensaje</p>
               <p style="margin:0;font-size:15px;line-height:1.6;white-space:pre-wrap">${message.trim()}</p>
             </div>
           </div>
@@ -93,19 +93,19 @@ export default function FeedbackModal({ onClose }) {
   };
 
   return (
-    <div className="fixed inset-0 z-[200] flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/70 backdrop-blur-sm">
-      <div className="w-full sm:max-w-lg bg-[#0f0f18] border border-white/10 rounded-t-3xl sm:rounded-3xl shadow-2xl overflow-hidden">
+    <div className="apple-type fixed inset-0 z-[200] flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/50 backdrop-blur-sm">
+      <div className="w-full sm:max-w-lg apple-surface-elevated rounded-t-apple-lg sm:rounded-apple-lg shadow-apple-xl border-0 overflow-hidden">
 
         {/* Header */}
-        <div className="flex items-center gap-3 px-6 py-5 border-b border-white/[0.07]">
-          <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-cyan-500 to-purple-600 flex items-center justify-center flex-shrink-0">
-            <MessageSquarePlus className="w-5 h-5 text-white" />
+        <div className="flex items-center gap-3 px-6 py-5" style={{ borderBottom: '0.5px solid rgb(var(--separator) / 0.29)' }}>
+          <div className="w-10 h-10 rounded-apple-sm bg-apple-blue/15 flex items-center justify-center flex-shrink-0">
+            <MessageSquarePlus className="w-5 h-5 text-apple-blue" />
           </div>
           <div className="flex-1">
-            <h2 className="text-white font-black text-base">Enviar Feedback</h2>
-            <p className="text-gray-500 text-xs">Tu opinión nos ayuda a mejorar</p>
+            <h2 className="apple-label-primary apple-text-headline">Enviar Feedback</h2>
+            <p className="apple-label-tertiary apple-text-caption1">Tu opinión nos ayuda a mejorar</p>
           </div>
-          <button onClick={onClose} className="text-gray-600 hover:text-white transition-colors p-1">
+          <button onClick={onClose} className="apple-label-tertiary hover:apple-label-primary transition-colors p-1 apple-press">
             <X className="w-5 h-5" />
           </button>
         </div>
@@ -113,16 +113,16 @@ export default function FeedbackModal({ onClose }) {
         {success ? (
           /* ── Success state ── */
           <div className="px-6 py-12 text-center">
-            <div className="w-20 h-20 rounded-full bg-emerald-500/15 border border-emerald-500/30 flex items-center justify-center mx-auto mb-5">
-              <CheckCircle className="w-10 h-10 text-emerald-400" />
+            <div className="w-20 h-20 rounded-full bg-apple-green/15 flex items-center justify-center mx-auto mb-5">
+              <CheckCircle className="w-10 h-10 text-apple-green" />
             </div>
-            <h3 className="text-white font-black text-xl mb-2">¡Gracias por tu feedback!</h3>
-            <p className="text-gray-400 text-sm max-w-xs mx-auto mb-6">
+            <h3 className="apple-label-primary apple-text-title2 mb-2">¡Gracias por tu feedback!</h3>
+            <p className="apple-label-tertiary apple-text-subheadline max-w-xs mx-auto mb-6">
               Recibimos tu mensaje. Lo revisaremos y tomaremos en cuenta para mejorar SmartFixOS.
             </p>
             <button
               onClick={onClose}
-              className="px-8 py-3 rounded-2xl bg-white/10 hover:bg-white/15 text-white font-semibold text-sm transition-all"
+              className="apple-btn apple-btn-secondary apple-press"
             >
               Cerrar
             </button>
@@ -133,7 +133,7 @@ export default function FeedbackModal({ onClose }) {
 
             {/* Type selector */}
             <div>
-              <p className="text-xs text-gray-500 font-semibold uppercase tracking-wider mb-3">Tipo</p>
+              <p className="apple-text-footnote apple-label-secondary mb-3">Tipo</p>
               <div className="grid grid-cols-4 gap-2">
                 {TYPES.map(t => {
                   const Icon = t.icon;
@@ -143,14 +143,14 @@ export default function FeedbackModal({ onClose }) {
                       key={t.id}
                       type="button"
                       onClick={() => setType(t.id)}
-                      className={`flex flex-col items-center gap-1.5 py-3 px-2 rounded-2xl border text-center transition-all ${
+                      className={`flex flex-col items-center gap-1.5 py-3 px-2 rounded-apple-md text-center transition-all apple-press ${
                         active
                           ? t.color
-                          : "border-white/10 bg-white/[0.03] text-gray-500 hover:border-white/20"
+                          : "bg-gray-sys6 dark:bg-gray-sys5 apple-label-tertiary"
                       }`}
                     >
                       <Icon className="w-4 h-4" />
-                      <span className="text-[11px] font-semibold leading-tight">{t.label}</span>
+                      <span className="apple-text-caption2">{t.label}</span>
                     </button>
                   );
                 })}
@@ -159,7 +159,7 @@ export default function FeedbackModal({ onClose }) {
 
             {/* Title */}
             <div>
-              <label className="text-xs text-gray-500 font-semibold uppercase tracking-wider block mb-2">
+              <label className="apple-text-footnote apple-label-secondary block mb-2">
                 Título *
               </label>
               <input
@@ -168,13 +168,13 @@ export default function FeedbackModal({ onClose }) {
                 placeholder="Resumen breve..."
                 maxLength={120}
                 required
-                className="w-full bg-white/[0.04] border border-white/10 rounded-2xl px-4 py-3 text-white text-sm placeholder:text-gray-600 focus:outline-none focus:border-cyan-500/50 focus:ring-1 focus:ring-cyan-500/20 transition-all"
+                className="apple-input w-full"
               />
             </div>
 
             {/* Message */}
             <div>
-              <label className="text-xs text-gray-500 font-semibold uppercase tracking-wider block mb-2">
+              <label className="apple-text-footnote apple-label-secondary block mb-2">
                 Descripción *
               </label>
               <textarea
@@ -184,16 +184,16 @@ export default function FeedbackModal({ onClose }) {
                 maxLength={1000}
                 required
                 rows={4}
-                className="w-full bg-white/[0.04] border border-white/10 rounded-2xl px-4 py-3 text-white text-sm placeholder:text-gray-600 focus:outline-none focus:border-cyan-500/50 focus:ring-1 focus:ring-cyan-500/20 transition-all resize-none"
+                className="apple-input w-full resize-none"
               />
-              <p className="text-right text-[11px] text-gray-600 mt-1">{message.length}/1000</p>
+              <p className="text-right apple-text-caption2 apple-label-tertiary mt-1 tabular-nums">{message.length}/1000</p>
             </div>
 
             {/* Submit */}
             <button
               type="submit"
               disabled={loading || !title.trim() || !message.trim()}
-              className="w-full h-12 rounded-2xl bg-gradient-to-r from-cyan-600 to-purple-600 hover:from-cyan-500 hover:to-purple-500 disabled:opacity-30 text-white font-bold text-sm transition-all flex items-center justify-center gap-2 shadow-[0_4px_20px_rgba(6,182,212,0.25)]"
+              className="apple-btn apple-btn-primary apple-btn-lg apple-press w-full flex items-center justify-center gap-2"
             >
               {loading
                 ? <><Loader2 className="w-4 h-4 animate-spin" /> Enviando...</>

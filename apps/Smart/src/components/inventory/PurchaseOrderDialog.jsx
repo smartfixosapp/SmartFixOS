@@ -369,15 +369,15 @@ export default function PurchaseOrderDialog({
 
   const woStatusInfo = (status) => {
     const map = {
-      waiting_parts:     { label: 'Esp. piezas',   color: 'text-amber-400 bg-amber-500/10 border-amber-500/20' },
-      waiting_order:     { label: 'Esp. orden',    color: 'text-amber-400 bg-amber-500/10 border-amber-500/20' },
+      waiting_parts:     { label: 'Esp. piezas',   color: 'text-apple-orange bg-apple-orange/15 border-amber-500/20' },
+      waiting_order:     { label: 'Esp. orden',    color: 'text-apple-orange bg-apple-orange/15 border-amber-500/20' },
       pending_order:     { label: 'Pedido pend.',  color: 'text-orange-400 bg-orange-500/10 border-orange-500/20' },
-      in_progress:       { label: 'En progreso',   color: 'text-blue-400 bg-blue-500/10 border-blue-500/20' },
+      in_progress:       { label: 'En progreso',   color: 'text-apple-blue bg-apple-blue/15' },
       diagnosing:        { label: 'Diagnóstico',   color: 'text-purple-400 bg-purple-500/10 border-purple-500/20' },
-      awaiting_approval: { label: 'Esp. aprobación', color: 'text-cyan-400 bg-cyan-500/10 border-cyan-500/20' },
-      intake:            { label: 'Recibido',      color: 'text-white/40 bg-white/5 border-white/10' },
+      awaiting_approval: { label: 'Esp. aprobación', color: 'text-apple-blue bg-apple-blue/15' },
+      intake:            { label: 'Recibido',      color: 'apple-label-tertiary bg-gray-sys6 dark:bg-gray-sys5 border-0' },
     };
-    return map[status] || { label: status || '—', color: 'text-white/40 bg-white/5 border-white/10' };
+    return map[status] || { label: status || '—', color: 'apple-label-tertiary bg-gray-sys6 dark:bg-gray-sys5 border-0' };
   };
 
   // Órdenes que están esperando piezas — candidatas a sugerir
@@ -408,12 +408,12 @@ export default function PurchaseOrderDialog({
                 type="button"
                 onClick={() => done && setStep(s.id)}
                 className={[
-                  "flex-1 flex items-center justify-center gap-1.5 py-2 px-1 rounded-xl border text-xs font-bold transition-all",
+                  "flex-1 flex items-center justify-center gap-1.5 py-2 px-1 rounded-apple-sm border text-xs font-bold transition-all",
                   active
                     ? "bg-white text-gray-900 border-transparent shadow-lg"
                     : done
-                    ? "bg-teal-500/10 border-teal-500/30 text-teal-400 cursor-pointer hover:bg-teal-500/20"
-                    : "bg-[#111114] border border-white/[0.08] text-white/40"
+                    ? "bg-apple-green/15 text-apple-green cursor-pointer hover:bg-apple-green/20"
+                    : "apple-card border-0 apple-label-tertiary"
                 ].join(" ")}
               >
                 <Icon className="w-3.5 h-3.5 shrink-0" />
@@ -422,9 +422,9 @@ export default function PurchaseOrderDialog({
             );
           })}
         </div>
-        <div className="w-full h-1 bg-white/5 rounded-full overflow-hidden">
+        <div className="w-full h-1 bg-gray-sys6 dark:bg-gray-sys5 rounded-full overflow-hidden">
           <div
-            className="h-full bg-gradient-to-r from-teal-500 to-cyan-500 transition-all duration-500"
+            className="h-full apple-btn apple-btn-primary bg-apple-green transition-all duration-500"
             style={{ width: `${(step - 1) * 25}%` }}
           />
         </div>
@@ -436,16 +436,16 @@ export default function PurchaseOrderDialog({
   const Step1Supplier = () => (
     <div className="space-y-4">
       <div className="flex items-center justify-between mb-1">
-        <p className="text-[10px] font-black text-white/30 uppercase tracking-widest">Selecciona el suplidor</p>
+        <p className="apple-text-caption2 font-semibold apple-label-tertiary">Selecciona el suplidor</p>
         {poNumber && (
-          <span className="text-[11px] text-white/30 font-mono">
-            <span className="text-white/50 mr-1">PO:</span>{poNumber}
+          <span className="text-[11px] apple-label-tertiary font-mono">
+            <span className="apple-label-tertiary mr-1">PO:</span>{poNumber}
           </span>
         )}
       </div>
       <div className="grid sm:grid-cols-2 gap-2 max-h-52 overflow-y-auto">
         {suppliers.length === 0 && (
-          <p className="text-xs text-white/30">No hay suplidores. Crea uno primero.</p>
+          <p className="text-xs apple-label-tertiary">No hay suplidores. Crea uno primero.</p>
         )}
         {suppliers
           .filter((s) => s.active !== false)
@@ -458,33 +458,33 @@ export default function PurchaseOrderDialog({
                 setSupplierName(s.name || "");
               }}
               className={[
-                "flex items-center gap-3 p-4 rounded-2xl border text-left transition-all",
+                "flex items-center gap-3 p-4 rounded-apple-md border text-left transition-all",
                 supplierId === s.id
-                  ? "bg-gradient-to-r from-teal-500/20 to-cyan-500/20 border-teal-500/40 shadow-[0_0_16px_rgba(20,184,166,0.15)]"
-                  : "bg-[#111114]/60 border border-white/[0.07] hover:bg-white/5"
+                  ? "bg-apple-green/12"
+                  : "apple-card border-0 hover:bg-gray-sys6 dark:bg-gray-sys5"
               ].join(" ")}
             >
-              <div className="w-8 h-8 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center shrink-0">
-                <Truck className="w-4 h-4 text-teal-400" />
+              <div className="w-8 h-8 rounded-apple-sm bg-gray-sys6 dark:bg-gray-sys5 flex items-center justify-center shrink-0">
+                <Truck className="w-4 h-4 text-apple-green" />
               </div>
               <div className="flex-1 min-w-0">
-                <p className={`font-bold text-sm truncate ${supplierId === s.id ? "text-white" : "text-white/70"}`}>{s.name}</p>
-                {s.website && <p className="text-[10px] text-white/30 truncate">{s.website}</p>}
+                <p className={`font-bold text-sm truncate ${supplierId === s.id ? "text-white" : "apple-label-secondary"}`}>{s.name}</p>
+                {s.website && <p className="text-[10px] apple-label-tertiary truncate">{s.website}</p>}
               </div>
-              {supplierId === s.id && <div className="w-2 h-2 rounded-full bg-teal-400 shrink-0" />}
+              {supplierId === s.id && <div className="w-2 h-2 rounded-full bg-apple-green shrink-0" />}
             </button>
           ))}
       </div>
 
       <div>
-        <label className="text-[10px] font-black text-white/30 uppercase tracking-widest block mb-1.5">Nombre manual (opcional)</label>
+        <label className="apple-text-caption2 font-semibold apple-label-tertiary block mb-1.5">Nombre manual (opcional)</label>
         <input
           value={supplierName}
           onChange={(e) => setSupplierName(e.target.value)}
           placeholder="Ej: Proveedor nuevo sin registrar"
-          className="w-full bg-[#111114]/60 border border-white/[0.08] rounded-xl px-4 py-3 text-white text-sm placeholder:text-white/50 focus:outline-none focus:border-teal-500/50 focus:ring-2 focus:ring-teal-500/10"
+          className="w-full apple-input rounded-apple-sm px-4 py-3 text-white text-sm placeholder:apple-label-tertiary focus:outline-none focus:ring-apple-green "
         />
-        <p className="text-[11px] text-white/50 mt-1">
+        <p className="text-[11px] apple-label-tertiary mt-1">
           Si seleccionas un suplidor de la lista, este nombre se rellenará automáticamente.
         </p>
       </div>
@@ -498,33 +498,33 @@ export default function PurchaseOrderDialog({
         value={searchProduct}
         onChange={(e) => setSearchProduct(e.target.value)}
         placeholder="Buscar producto por nombre, modelo compatible..."
-        className="w-full bg-[#111114]/60 border border-white/[0.08] rounded-xl px-4 py-3 text-white text-sm placeholder:text-white/50 focus:outline-none focus:border-teal-500/50"
+        className="w-full apple-input rounded-apple-sm px-4 py-3 text-white text-sm placeholder:apple-label-tertiary focus:outline-none focus:ring-apple-green"
       />
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div className="bg-[#111114]/60 border border-white/[0.07] rounded-2xl p-3 max-h-60 overflow-y-auto">
-          <p className="text-[10px] font-black text-white/30 uppercase tracking-widest mb-2">
+        <div className="apple-card border-0 rounded-apple-md p-3 max-h-60 overflow-y-auto">
+          <p className="apple-text-caption2 font-semibold apple-label-tertiary mb-2">
             Disponibles ({filteredProducts.length})
           </p>
           {filteredProducts.length === 0 ? (
-            <p className="text-xs text-white/30 py-4 text-center">No se encontraron productos.</p>
+            <p className="text-xs apple-label-tertiary py-4 text-center">No se encontraron productos.</p>
           ) : (
             <ul className="space-y-1">
               {filteredProducts.map((p) => (
                 <li
                   key={p.id}
-                  className="flex items-center justify-between gap-2 text-xs bg-white/[0.03] hover:bg-white/[0.06] rounded-xl px-3 py-2 transition-all"
+                  className="flex items-center justify-between gap-2 text-xs bg-gray-sys6 dark:bg-gray-sys5 hover:bg-gray-sys5 dark:bg-gray-sys4 rounded-apple-sm px-3 py-2 transition-all"
                 >
                   <div className="flex-1 min-w-0">
-                    <p className="font-bold text-white/80 truncate">{p.name}</p>
-                    <p className="text-[10px] text-white/30 truncate">
+                    <p className="font-bold apple-label-primary truncate">{p.name}</p>
+                    <p className="text-[10px] apple-label-tertiary truncate">
                       Costo: {money(p.cost || 0)} · Stock: {p.stock ?? 0}
                     </p>
                   </div>
                   <button
                     type="button"
                     onClick={() => handleAddProduct(p)}
-                    className="w-7 h-7 rounded-lg bg-teal-500/15 border border-teal-500/30 flex items-center justify-center text-teal-400 hover:bg-teal-500/25 transition-all font-bold text-base"
+                    className="w-7 h-7 rounded-lg bg-apple-green/15 flex items-center justify-center text-apple-green hover:bg-apple-green/20 transition-all font-bold text-base"
                   >
                     +
                   </button>
@@ -534,15 +534,15 @@ export default function PurchaseOrderDialog({
           )}
         </div>
 
-        <div className="bg-[#111114]/60 border border-white/[0.07] rounded-2xl p-3 max-h-60 overflow-y-auto">
-          <p className="text-[10px] font-black text-white/30 uppercase tracking-widest mb-2">
+        <div className="apple-card border-0 rounded-apple-md p-3 max-h-60 overflow-y-auto">
+          <p className="apple-text-caption2 font-semibold apple-label-tertiary mb-2">
             En la orden ({items.length})
           </p>
           {items.length === 0 ? (
-            <p className="text-xs text-white/30 py-4 text-center">Aún no has añadido productos.</p>
+            <p className="text-xs apple-label-tertiary py-4 text-center">Aún no has añadido productos.</p>
           ) : (
             <table className="w-full text-[11px]">
-              <thead className="text-white/30">
+              <thead className="apple-label-tertiary">
                 <tr>
                   <th className="text-left pb-1">Producto</th>
                   <th className="text-right pb-1">Cant.</th>
@@ -551,9 +551,9 @@ export default function PurchaseOrderDialog({
                   <th className="text-right pb-1"></th>
                 </tr>
               </thead>
-              <tbody className="text-white/70">
+              <tbody className="apple-label-secondary">
                 {items.map((it) => (
-                  <tr key={it.product_id} className="border-t border-white/[0.04]">
+                  <tr key={it.product_id} className="border-t border-gray-sys5 dark:border-gray-sys4">
                     <td className="py-1.5 pr-2 max-w-[120px] truncate font-bold">{it.product_name}</td>
                     <td className="py-1.5 text-right">
                       <input
@@ -561,7 +561,7 @@ export default function PurchaseOrderDialog({
                         min={1}
                         value={it.quantity}
                         onChange={(e) => handleChangeItemQty(it.product_id, e.target.value)}
-                        className="h-7 w-14 text-right bg-white/5 border border-white/10 rounded-lg text-white text-xs focus:outline-none focus:border-teal-500/50 px-1"
+                        className="h-7 w-14 text-right bg-gray-sys6 dark:bg-gray-sys5 rounded-lg text-white text-xs focus:outline-none focus:ring-apple-green px-1"
                       />
                     </td>
                     <td className="py-1.5 text-right">
@@ -571,17 +571,17 @@ export default function PurchaseOrderDialog({
                         min={0}
                         value={it.unit_cost}
                         onChange={(e) => handleChangeItemCost(it.product_id, e.target.value)}
-                        className="h-7 w-20 text-right bg-white/5 border border-white/10 rounded-lg text-white text-xs focus:outline-none focus:border-teal-500/50 px-1"
+                        className="h-7 w-20 text-right bg-gray-sys6 dark:bg-gray-sys5 rounded-lg text-white text-xs focus:outline-none focus:ring-apple-green px-1"
                       />
                     </td>
-                    <td className="py-1.5 text-right text-white/60">
+                    <td className="py-1.5 text-right apple-label-secondary">
                       {money((it.unit_cost || 0) * (it.quantity || 0))}
                     </td>
                     <td className="py-1.5 text-right">
                       <button
                         type="button"
                         onClick={() => handleRemoveItem(it.product_id)}
-                        className="w-6 h-6 rounded-lg bg-red-500/10 border border-red-500/20 flex items-center justify-center text-red-400 hover:bg-red-500/20 transition-all text-xs ml-auto"
+                        className="w-6 h-6 rounded-lg bg-apple-red/15 flex items-center justify-center text-apple-red hover:bg-apple-red/20 transition-all text-xs ml-auto"
                       >
                         ×
                       </button>
@@ -591,8 +591,8 @@ export default function PurchaseOrderDialog({
               </tbody>
               <tfoot>
                 <tr>
-                  <td colSpan={3} className="pt-2 text-right text-white/30 font-bold">Subtotal:</td>
-                  <td className="pt-2 text-right font-bold text-white/70">
+                  <td colSpan={3} className="pt-2 text-right apple-label-tertiary font-bold">Subtotal:</td>
+                  <td className="pt-2 text-right font-bold apple-label-secondary">
                     {money(subtotalAmount)}
                   </td>
                   <td />
@@ -610,40 +610,40 @@ export default function PurchaseOrderDialog({
     <div className="space-y-4">
       <div className="grid sm:grid-cols-2 gap-4">
         <div>
-          <label className="text-[10px] font-black text-white/30 uppercase tracking-widest block mb-1.5">Fecha de orden *</label>
+          <label className="apple-text-caption2 font-semibold apple-label-tertiary block mb-1.5">Fecha de orden *</label>
           <input
             type="date"
             value={orderDate}
             onChange={(e) => setOrderDate(e.target.value)}
-            className="w-full bg-[#111114]/60 border border-white/[0.08] rounded-xl px-4 py-3 text-white text-sm focus:outline-none focus:border-teal-500/50"
+            className="w-full apple-input rounded-apple-sm px-4 py-3 text-white text-sm focus:outline-none focus:ring-apple-green"
           />
         </div>
         <div>
-          <label className="text-[10px] font-black text-white/30 uppercase tracking-widest block mb-1.5">Fecha estimada de entrega</label>
+          <label className="apple-text-caption2 font-semibold apple-label-tertiary block mb-1.5">Fecha estimada de entrega</label>
           <input
             type="date"
             value={expectedDate}
             onChange={(e) => setExpectedDate(e.target.value)}
-            className="w-full bg-[#111114]/60 border border-white/[0.08] rounded-xl px-4 py-3 text-white text-sm focus:outline-none focus:border-teal-500/50"
+            className="w-full apple-input rounded-apple-sm px-4 py-3 text-white text-sm focus:outline-none focus:ring-apple-green"
           />
         </div>
       </div>
 
       <div>
-        <label className="text-[10px] font-black text-white/30 uppercase tracking-widest block mb-2">Estado</label>
+        <label className="apple-text-caption2 font-semibold apple-label-tertiary block mb-2">Estado</label>
         <div className="flex flex-wrap gap-2">
           {[
-            { value: "draft", label: "Borrador", active: "bg-slate-600 text-white border-slate-500", inactive: "bg-[#111114]/60 border-white/[0.08] text-white/40" },
-            { value: "ordered", label: "Ordenado", active: "bg-blue-600 text-white border-blue-500", inactive: "bg-[#111114]/60 border-white/[0.08] text-white/40" },
-            { value: "received", label: "Recibido", active: "bg-emerald-600 text-white border-emerald-500", inactive: "bg-[#111114]/60 border-white/[0.08] text-white/40" },
-            { value: "cancelled", label: "Cancelado", active: "bg-red-600 text-white border-red-500", inactive: "bg-[#111114]/60 border-white/[0.08] text-white/40" }
+            { value: "draft", label: "Borrador", active: "bg-gray-sys3 text-white", inactive: "apple-card border-0 apple-label-tertiary" },
+            { value: "ordered", label: "Ordenado", active: "bg-apple-blue text-white", inactive: "apple-card border-0 apple-label-tertiary" },
+            { value: "received", label: "Recibido", active: "bg-apple-green text-white", inactive: "apple-card border-0 apple-label-tertiary" },
+            { value: "cancelled", label: "Cancelado", active: "bg-apple-red text-white", inactive: "apple-card border-0 apple-label-tertiary" }
           ].map((opt) => (
             <button
               key={opt.value}
               type="button"
               onClick={() => setStatus(opt.value)}
               className={[
-                "px-4 py-2 rounded-xl text-sm font-bold border transition-all",
+                "px-4 py-2 rounded-apple-sm text-sm font-bold border transition-all",
                 status === opt.value ? opt.active : opt.inactive
               ].join(" ")}
             >
@@ -654,7 +654,7 @@ export default function PurchaseOrderDialog({
       </div>
 
       <div>
-        <label className="text-[10px] font-black text-white/30 uppercase tracking-widest block mb-1.5">Costo de envío (opcional)</label>
+        <label className="apple-text-caption2 font-semibold apple-label-tertiary block mb-1.5">Costo de envío (opcional)</label>
         <input
           type="number"
           step="0.01"
@@ -662,19 +662,19 @@ export default function PurchaseOrderDialog({
           value={shippingCost}
           onChange={(e) => setShippingCost(Number(e.target.value) || 0)}
           placeholder="0.00"
-          className="w-full bg-[#111114]/60 border border-white/[0.08] rounded-xl px-4 py-3 text-white text-sm placeholder:text-white/50 focus:outline-none focus:border-teal-500/50"
+          className="w-full apple-input rounded-apple-sm px-4 py-3 text-white text-sm placeholder:apple-label-tertiary focus:outline-none focus:ring-apple-green"
         />
-        <p className="text-[11px] text-white/50 mt-1">Se sumará al total de la orden</p>
+        <p className="text-[11px] apple-label-tertiary mt-1">Se sumará al total de la orden</p>
       </div>
 
       <div>
-        <label className="text-[10px] font-black text-white/30 uppercase tracking-widest block mb-1.5">Notas</label>
+        <label className="apple-text-caption2 font-semibold apple-label-tertiary block mb-1.5">Notas</label>
         <textarea
           value={notes}
           onChange={(e) => setNotes(e.target.value)}
           rows={3}
           placeholder="Comentarios adicionales sobre la orden (opcional)"
-          className="w-full bg-[#111114]/60 border border-white/[0.08] rounded-xl px-4 py-3 text-white text-sm placeholder:text-white/50 focus:outline-none focus:border-teal-500/50 resize-none"
+          className="w-full apple-input rounded-apple-sm px-4 py-3 text-white text-sm placeholder:apple-label-tertiary focus:outline-none focus:ring-apple-green resize-none"
         />
       </div>
     </div>
@@ -688,8 +688,8 @@ export default function PurchaseOrderDialog({
       {suggestedWorkOrders.length > 0 && (
         <div>
           <div className="flex items-center gap-2 mb-2">
-            <Zap className="w-3.5 h-3.5 text-amber-400" />
-            <p className="text-[10px] font-black text-amber-400/80 uppercase tracking-widest">
+            <Zap className="w-3.5 h-3.5 text-apple-orange" />
+            <p className="apple-text-caption2 font-semibold text-apple-orange">
               Órdenes esperando piezas ({suggestedWorkOrders.length})
             </p>
           </div>
@@ -703,54 +703,54 @@ export default function PurchaseOrderDialog({
                   key={wo.id}
                   type="button"
                   onClick={() => applyDefaultWorkOrderToItems(isLinkedToAny ? "" : wo.id)}
-                  className={`flex items-start gap-3 p-3 rounded-2xl border text-left transition-all ${
+                  className={`flex items-start gap-3 p-3 rounded-apple-md border text-left transition-all ${
                     isLinkedToAny
-                      ? 'bg-indigo-500/15 border-indigo-500/35 ring-1 ring-indigo-500/20'
-                      : 'bg-[#111114]/60 border-amber-500/20 hover:bg-amber-500/5 hover:border-amber-500/35'
+                      ? 'bg-apple-indigo/12'
+                      : 'apple-card hover:bg-apple-orange/12'
                   }`}
                 >
-                  <div className={`w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0 ${isLinkedToAny ? 'bg-indigo-500/20' : 'bg-amber-500/10'}`}>
+                  <div className={`w-8 h-8 rounded-apple-sm flex items-center justify-center flex-shrink-0 ${isLinkedToAny ? 'bg-apple-indigo/15' : 'bg-apple-orange/15'}`}>
                     {isLinkedToAny
-                      ? <Link2 className="w-3.5 h-3.5 text-indigo-400" />
-                      : <AlertCircle className="w-3.5 h-3.5 text-amber-400" />
+                      ? <Link2 className="w-3.5 h-3.5 text-apple-indigo" />
+                      : <AlertCircle className="w-3.5 h-3.5 text-apple-orange" />
                     }
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-1.5 flex-wrap">
-                      <span className="text-xs font-black text-white">{num}</span>
+                      <span className="text-xs font-semibold text-white">{num}</span>
                       <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded-full border ${sColor}`}>{sLabel}</span>
-                      {isLinkedToAny && <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-full border text-indigo-300 bg-indigo-500/10 border-indigo-500/20">Enlazada ✓</span>}
+                      {isLinkedToAny && <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-full border text-apple-indigo bg-apple-indigo/15">Enlazada ✓</span>}
                     </div>
-                    <p className="text-[11px] text-white/60 font-semibold truncate mt-0.5">{wo.customer_name || '—'}</p>
-                    {device && <p className="text-[10px] text-white/30 truncate">{device}</p>}
+                    <p className="text-[11px] apple-label-secondary font-semibold truncate mt-0.5">{wo.customer_name || '—'}</p>
+                    {device && <p className="text-[10px] apple-label-tertiary truncate">{device}</p>}
                   </div>
                 </button>
               );
             })}
           </div>
-          <p className="text-[10px] text-white/50 mt-1.5">Toca una tarjeta para enlazar/desenlazar todos los productos a esa orden.</p>
+          <p className="text-[10px] apple-label-tertiary mt-1.5">Toca una tarjeta para enlazar/desenlazar todos los productos a esa orden.</p>
         </div>
       )}
 
       {suggestedWorkOrders.length === 0 && (
-        <div className="flex items-center gap-3 p-3 bg-white/[0.02] border border-white/[0.05] rounded-2xl">
-          <Wrench className="w-4 h-4 text-white/50 flex-shrink-0" />
-          <p className="text-xs text-white/30">No hay órdenes de trabajo esperando piezas en este momento.</p>
+        <div className="flex items-center gap-3 p-3 apple-card border-0 rounded-apple-md">
+          <Wrench className="w-4 h-4 apple-label-tertiary flex-shrink-0" />
+          <p className="text-xs apple-label-tertiary">No hay órdenes de trabajo esperando piezas en este momento.</p>
         </div>
       )}
 
       {/* ─ Aplicar a todos ─────────────────────────────────────────── */}
-      <div className="flex items-center gap-3 p-3 bg-[#111114]/60 border border-white/[0.07] rounded-2xl">
-        <Link2 className="w-4 h-4 text-white/30 flex-shrink-0" />
+      <div className="flex items-center gap-3 p-3 apple-card border-0 rounded-apple-md">
+        <Link2 className="w-4 h-4 apple-label-tertiary flex-shrink-0" />
         <div className="flex-1 min-w-0">
-          <p className="text-[10px] font-black text-white/40 uppercase tracking-wider mb-1">Aplicar a todos los productos</p>
+          <p className="apple-text-caption2 font-semibold apple-label-tertiary mb-1">Aplicar a todos los productos</p>
           <select
             value={defaultWorkOrderId}
             onChange={(e) => {
               setDefaultWorkOrderId(e.target.value);
               applyDefaultWorkOrderToItems(e.target.value);
             }}
-            className="w-full h-8 rounded-xl bg-black/30 border border-white/[0.08] text-white text-xs px-2 focus:outline-none focus:border-teal-500/50"
+            className="w-full h-8 rounded-apple-sm apple-input text-xs px-2 focus:outline-none focus:ring-apple-green"
           >
             <option value="">Sin enlace global</option>
             {workOrders.map((wo) => {
@@ -769,17 +769,17 @@ export default function PurchaseOrderDialog({
       {/* ─ Por producto ────────────────────────────────────────────── */}
       {items.length > 0 && (
         <div>
-          <p className="text-[10px] font-black text-white/30 uppercase tracking-widest mb-2">Enlace individual por producto</p>
+          <p className="apple-text-caption2 font-semibold apple-label-tertiary mb-2">Enlace individual por producto</p>
           <div className="space-y-2 max-h-52 overflow-y-auto">
             {items.map((it) => {
               const linkedWO = workOrders.find(wo => wo.id === it.work_order_id);
               const { num: linkedNum } = linkedWO ? woLabel(linkedWO) : {};
               const { color: linkedColor } = linkedWO ? woStatusInfo(linkedWO.status) : {};
               return (
-                <div key={it.product_id} className="flex items-center gap-3 p-3 bg-[#111114]/60 border border-white/[0.06] rounded-2xl">
+                <div key={it.product_id} className="flex items-center gap-3 p-3 apple-card border-0 rounded-apple-md">
                   <div className="flex-1 min-w-0">
                     <p className="text-xs font-bold text-white truncate">{it.product_name}</p>
-                    <p className="text-[10px] text-white/30">Cant: {it.quantity}</p>
+                    <p className="text-[10px] apple-label-tertiary">Cant: {it.quantity}</p>
                   </div>
                   {it.work_order_id && linkedWO ? (
                     <span className={`text-[9px] font-bold px-2 py-0.5 rounded-full border flex-shrink-0 ${linkedColor}`}>
@@ -789,7 +789,7 @@ export default function PurchaseOrderDialog({
                   <select
                     value={it.work_order_id || ""}
                     onChange={(e) => handleChangeItemWO(it.product_id, e.target.value)}
-                    className="h-8 rounded-xl bg-black/30 border border-white/[0.08] text-white text-[11px] px-2 focus:outline-none focus:border-teal-500/50 flex-shrink-0 max-w-[180px]"
+                    className="h-8 rounded-apple-sm apple-input apple-text-caption1 px-2 focus:outline-none focus:ring-apple-green flex-shrink-0 max-w-[180px]"
                   >
                     <option value="">Sin enlace</option>
                     {workOrders.map((wo) => {
@@ -813,36 +813,36 @@ export default function PurchaseOrderDialog({
   // ── Step 5: Summary ────────────────────────────────────────────────────────
   const Step5Summary = () => (
     <div className="space-y-3">
-      <div className="bg-[#111114]/60 border border-white/[0.07] rounded-2xl p-4">
-        <p className="text-[10px] font-black text-white/30 uppercase tracking-widest mb-1.5">Número de PO</p>
+      <div className="apple-card border-0 rounded-apple-md p-4">
+        <p className="apple-text-caption2 font-semibold apple-label-tertiary mb-1.5">Número de PO</p>
         <p className="text-sm text-white font-mono">{poNumber || "Se generará automáticamente"}</p>
       </div>
 
-      <div className="bg-[#111114]/60 border border-white/[0.07] rounded-2xl p-4">
-        <p className="text-[10px] font-black text-white/30 uppercase tracking-widest mb-1.5">Suplidor</p>
+      <div className="apple-card border-0 rounded-apple-md p-4">
+        <p className="apple-text-caption2 font-semibold apple-label-tertiary mb-1.5">Suplidor</p>
         <p className="text-sm text-white font-bold">{selectedSupplier?.name || supplierName || "Sin suplidor definido"}</p>
       </div>
 
-      <div className="bg-[#111114]/60 border border-white/[0.07] rounded-2xl p-4">
-        <p className="text-[10px] font-black text-white/30 uppercase tracking-widest mb-2">Productos ({items.length})</p>
+      <div className="apple-card border-0 rounded-apple-md p-4">
+        <p className="apple-text-caption2 font-semibold apple-label-tertiary mb-2">Productos ({items.length})</p>
         {items.length === 0 ? (
-          <p className="text-xs text-white/30">No hay productos.</p>
+          <p className="text-xs apple-label-tertiary">No hay productos.</p>
         ) : (
-          <ul className="space-y-1 text-xs text-white/70 max-h-40 overflow-y-auto">
+          <ul className="space-y-1 text-xs apple-label-secondary max-h-40 overflow-y-auto">
             {items.map((it) => (
               <li
                 key={it.product_id}
-                className="flex items-center justify-between gap-2 border-b border-white/[0.04] pb-1.5"
+                className="flex items-center justify-between gap-2 border-b border-gray-sys5 dark:border-gray-sys4 pb-1.5"
               >
                 <div className="flex-1 min-w-0">
-                  <p className="truncate font-bold text-white/80">{it.product_name}</p>
-                  <p className="text-[10px] text-white/30">
+                  <p className="truncate font-bold apple-label-primary">{it.product_name}</p>
+                  <p className="text-[10px] apple-label-tertiary">
                     Cant: {it.quantity} · Costo: {money(it.unit_cost)} · Total:{" "}
                     {money((it.unit_cost || 0) * (it.quantity || 0))}
                   </p>
                 </div>
                 {it.work_order_id && (
-                  <span className="text-[10px] px-2 py-0.5 rounded-full bg-indigo-500/15 text-indigo-300 border border-indigo-500/20 font-bold shrink-0">
+                  <span className="text-[10px] px-2 py-0.5 rounded-full bg-apple-indigo/15 text-apple-indigo font-bold shrink-0">
                     OT #{it.work_order_id}
                   </span>
                 )}
@@ -850,45 +850,45 @@ export default function PurchaseOrderDialog({
             ))}
           </ul>
         )}
-        <div className="space-y-1 mt-3 text-sm border-t border-white/[0.05] pt-3">
+        <div className="space-y-1 mt-3 text-sm border-t border-gray-sys5 dark:border-gray-sys4 pt-3">
           <div className="flex items-center justify-between">
-            <span className="text-white/30 font-bold">Subtotal:</span>
-            <span className="text-white/70">{money(subtotalAmount)}</span>
+            <span className="apple-label-tertiary font-bold">Subtotal:</span>
+            <span className="apple-label-secondary">{money(subtotalAmount)}</span>
           </div>
           {shippingCost > 0 && (
             <div className="flex items-center justify-between">
-              <span className="text-white/30 font-bold">Envío:</span>
-              <span className="text-white/70">{money(shippingCost)}</span>
+              <span className="apple-label-tertiary font-bold">Envío:</span>
+              <span className="apple-label-secondary">{money(shippingCost)}</span>
             </div>
           )}
           <div className="flex items-center justify-between font-bold">
-            <span className="text-white/50">Total:</span>
-            <span className="text-emerald-400 text-lg">{money(totalAmount)}</span>
+            <span className="apple-label-tertiary">Total:</span>
+            <span className="text-apple-green text-lg">{money(totalAmount)}</span>
           </div>
         </div>
       </div>
 
       <div className="grid sm:grid-cols-2 gap-3">
-        <div className="bg-[#111114]/60 border border-white/[0.07] rounded-2xl p-4">
-          <p className="text-[10px] font-black text-white/30 uppercase tracking-widest mb-1.5">Fechas</p>
-          <p className="text-[11px] text-white/70">Orden: {orderDate || "—"}</p>
-          <p className="text-[11px] text-white/70">Estimada: {expectedDate || "—"}</p>
+        <div className="apple-card border-0 rounded-apple-md p-4">
+          <p className="apple-text-caption2 font-semibold apple-label-tertiary mb-1.5">Fechas</p>
+          <p className="text-[11px] apple-label-secondary">Orden: {orderDate || "—"}</p>
+          <p className="text-[11px] apple-label-secondary">Estimada: {expectedDate || "—"}</p>
         </div>
-        <div className="bg-[#111114]/60 border border-white/[0.07] rounded-2xl p-4">
-          <p className="text-[10px] font-black text-white/30 uppercase tracking-widest mb-1.5">Estado</p>
-          <p className="text-[11px] text-white/70 capitalize">
+        <div className="apple-card border-0 rounded-apple-md p-4">
+          <p className="apple-text-caption2 font-semibold apple-label-tertiary mb-1.5">Estado</p>
+          <p className="text-[11px] apple-label-secondary capitalize">
             {status === "draft" ? "Borrador" : status === "ordered" ? "Ordenado" : status === "received" ? "Recibido" : status === "cancelled" ? "Cancelado" : status}
           </p>
           {defaultWorkOrderId && (
-            <p className="text-[11px] text-white/40 mt-1">OT general: #{defaultWorkOrderId}</p>
+            <p className="text-[11px] apple-label-tertiary mt-1">OT general: #{defaultWorkOrderId}</p>
           )}
         </div>
       </div>
 
       {notes && (
-        <div className="bg-[#111114]/60 border border-white/[0.07] rounded-2xl p-4">
-          <p className="text-[10px] font-black text-white/30 uppercase tracking-widest mb-1.5">Notas</p>
-          <p className="text-[11px] text-white/60 whitespace-pre-wrap">{notes}</p>
+        <div className="apple-card border-0 rounded-apple-md p-4">
+          <p className="apple-text-caption2 font-semibold apple-label-tertiary mb-1.5">Notas</p>
+          <p className="text-[11px] apple-label-secondary whitespace-pre-wrap">{notes}</p>
         </div>
       )}
     </div>
@@ -897,7 +897,7 @@ export default function PurchaseOrderDialog({
   if (!canPlan('inventory_purchase_orders')) {
     return (
       <Dialog open={open} onOpenChange={(v) => !v && onClose?.(false)}>
-        <DialogContent className="max-w-md bg-[#0a0a0c] border border-white/10 text-white">
+        <DialogContent className="apple-type max-w-md apple-surface-elevated rounded-apple-lg shadow-apple-xl border-0 p-0 overflow-hidden apple-label-primary">
           <DialogHeader>
             <DialogTitle className="text-lg font-bold">Órdenes de Compra</DialogTitle>
           </DialogHeader>
@@ -909,19 +909,19 @@ export default function PurchaseOrderDialog({
 
   return (
     <Dialog open={open} onOpenChange={(v) => !v && onClose?.(false)}>
-      <DialogContent className="bg-[#0a0a0c] border border-white/[0.06] max-w-4xl text-white p-0 overflow-hidden">
+      <DialogContent className="apple-surface-elevated border-0 max-w-4xl text-white p-0 overflow-hidden">
         <div className="p-6 pb-0">
           <DialogHeader className="mb-4">
-            <DialogTitle className="text-lg font-black flex items-center gap-2 text-white">
-              <div className="w-8 h-8 rounded-xl bg-teal-500/15 border border-teal-500/25 flex items-center justify-center">
-                <FileText className="w-4 h-4 text-teal-400" />
+            <DialogTitle className="apple-text-headline font-semibold flex items-center gap-2 apple-label-primary">
+              <div className="w-8 h-8 rounded-apple-sm bg-apple-green/15 flex items-center justify-center">
+                <FileText className="w-4 h-4 text-apple-green" />
               </div>
               {isEditing ? "Editar Orden de Compra" : "Nueva Orden de Compra"}
             </DialogTitle>
           </DialogHeader>
 
           {loadingPO ? (
-            <div className="py-10 text-center text-sm text-white/30">
+            <div className="py-10 text-center text-sm apple-label-tertiary">
               Cargando orden de compra...
             </div>
           ) : (
@@ -939,12 +939,12 @@ export default function PurchaseOrderDialog({
           )}
         </div>
 
-        <DialogFooter className="px-6 py-4 border-t border-white/[0.05] bg-[#0a0a0c] flex flex-col sm:flex-row items-center justify-between gap-3">
-          <div className="flex items-center gap-2 text-xs text-white/30">
+        <DialogFooter className="px-6 py-4 apple-surface-elevated flex flex-col sm:flex-row items-center justify-between gap-3" style={{ borderTop: '0.5px solid rgb(var(--separator) / 0.29)' }}>
+          <div className="flex items-center gap-2 text-xs apple-label-tertiary">
             <ClipboardList className="w-3 h-3" />
             <span>
               Paso {step} de 5 · Productos:{" "}
-              <span className="text-teal-400 font-bold">{items.length}</span>
+              <span className="text-apple-green font-bold">{items.length}</span>
             </span>
           </div>
 
@@ -952,7 +952,7 @@ export default function PurchaseOrderDialog({
             <button
               type="button"
               onClick={() => onClose?.(false)}
-              className="px-4 py-2 rounded-xl bg-white/5 border border-white/10 text-white/50 text-sm font-bold hover:bg-white/10 transition-all"
+              className="px-4 py-2 rounded-apple-sm bg-gray-sys6 dark:bg-gray-sys5 apple-label-tertiary text-sm font-bold hover:bg-white/10 transition-all"
             >
               Cancelar
             </button>
@@ -961,7 +961,7 @@ export default function PurchaseOrderDialog({
               <button
                 type="button"
                 onClick={handlePrev}
-                className="px-4 py-2 rounded-xl bg-white/5 border border-white/10 text-white/70 text-sm font-bold hover:bg-white/10 transition-all flex items-center gap-1"
+                className="px-4 py-2 rounded-apple-sm bg-gray-sys6 dark:bg-gray-sys5 apple-label-secondary text-sm font-bold hover:bg-white/10 transition-all flex items-center gap-1"
               >
                 <ChevronLeft className="w-4 h-4" />
                 Atrás
@@ -972,7 +972,7 @@ export default function PurchaseOrderDialog({
               <button
                 type="button"
                 onClick={handleNext}
-                className="px-4 py-2 rounded-xl bg-gradient-to-r from-teal-500 to-cyan-500 text-white text-sm font-bold hover:opacity-90 transition-all active:scale-95 flex items-center gap-1"
+                className="px-4 py-2 rounded-apple-sm apple-btn apple-btn-primary bg-apple-green text-white text-sm font-bold hover:opacity-90 transition-all active:scale-95 flex items-center gap-1"
               >
                 Siguiente
                 <ChevronRight className="w-4 h-4" />
@@ -983,7 +983,7 @@ export default function PurchaseOrderDialog({
               <button
                 type="button"
                 onClick={handleSave}
-                className="px-4 py-2 rounded-xl bg-gradient-to-r from-teal-500 to-cyan-500 text-white text-sm font-bold hover:opacity-90 transition-all active:scale-95"
+                className="px-4 py-2 rounded-apple-sm apple-btn apple-btn-primary bg-apple-green text-white text-sm font-bold hover:opacity-90 transition-all active:scale-95"
               >
                 Guardar Orden
               </button>

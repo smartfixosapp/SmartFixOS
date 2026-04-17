@@ -32,10 +32,10 @@ export default function ThemesTab({ user }) {
   useEffect(() => {
     const onSave = () => saveData();
     const onRevert = () => setData(originalData);
-    
+
     window.addEventListener("settings-save", onSave);
     window.addEventListener("settings-revert", onRevert);
-    
+
     return () => {
       window.removeEventListener("settings-save", onSave);
       window.removeEventListener("settings-revert", onRevert);
@@ -71,7 +71,7 @@ export default function ThemesTab({ user }) {
   const saveData = async () => {
     try {
       const rows = await base44.entities.SystemConfig.filter({ key: "settings.theme" });
-      
+
       const payload = {
         key: "settings.theme",
         value: JSON.stringify(data),
@@ -98,7 +98,7 @@ export default function ThemesTab({ user }) {
       setOriginalData(data);
       window.dispatchEvent(new Event("settings-clean"));
       window.dispatchEvent(new Event("force-refresh"));
-      
+
       alert("Tema guardado. Recarga la página para ver cambios.");
     } catch (e) {
       alert("Error al guardar: " + e.message);
@@ -110,23 +110,23 @@ export default function ThemesTab({ user }) {
     setData(DEFAULT_THEME);
   };
 
-  if (loading) return <div className="text-gray-400">Cargando...</div>;
+  if (loading) return <div className="apple-type apple-label-tertiary apple-text-body">Cargando...</div>;
 
   return (
-    <div className="space-y-6">
-      <Card className="bg-zinc-900/50 border-white/10">
+    <div className="apple-type space-y-6">
+      <Card className="apple-card border-0">
         <CardHeader>
-          <CardTitle className="text-white flex items-center gap-2">
-            <Palette className="w-5 h-5 text-red-500" />
+          <CardTitle className="apple-text-title3 apple-label-primary flex items-center gap-2">
+            <Palette className="w-5 h-5 text-apple-red" />
             Colores del Sistema
           </CardTitle>
-          <CardDescription>Personaliza la apariencia visual</CardDescription>
+          <CardDescription className="apple-text-subheadline apple-label-secondary">Personaliza la apariencia visual</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {Object.entries(data).filter(([key]) => key.includes("color") || key.includes("background")).map(([key, value]) => (
               <div key={key} className="space-y-2">
-                <Label className="text-gray-300 capitalize">
+                <Label className="apple-label-secondary apple-text-footnote capitalize">
                   {key.replace(/_/g, " ")}
                 </Label>
                 <div className="flex gap-2">
@@ -134,12 +134,12 @@ export default function ThemesTab({ user }) {
                     type="color"
                     value={value}
                     onChange={(e) => setData({ ...data, [key]: e.target.value })}
-                    className="w-20 h-10 p-1 bg-black border-gray-700"
+                    className="apple-input w-20 h-10 p-1"
                   />
                   <Input
                     value={value}
                     onChange={(e) => setData({ ...data, [key]: e.target.value })}
-                    className="flex-1 bg-black border-gray-700 text-white"
+                    className="apple-input flex-1 tabular-nums"
                     placeholder="#000000"
                   />
                 </div>
@@ -148,13 +148,13 @@ export default function ThemesTab({ user }) {
           </div>
 
           <div className="mt-6 flex gap-3">
-            <Button onClick={resetToDefault} variant="outline" className="border-gray-700">
+            <Button onClick={resetToDefault} variant="outline" className="apple-btn apple-btn-secondary apple-press">
               Restaurar por defecto
             </Button>
-            <Button 
-              onClick={() => window.location.reload()} 
-              variant="outline" 
-              className="border-gray-700"
+            <Button
+              onClick={() => window.location.reload()}
+              variant="outline"
+              className="apple-btn apple-btn-secondary apple-press"
             >
               <Eye className="w-4 h-4 mr-2" />
               Vista previa (recargar)

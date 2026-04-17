@@ -104,39 +104,39 @@ export default function CreateCampaign() {
   };
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 h-[calc(100vh-200px)]">
+    <div className="apple-type grid grid-cols-1 lg:grid-cols-3 gap-6 h-[calc(100vh-200px)]">
       {/* Left Column: Customer Selection */}
-      <div className="lg:col-span-1 bg-black/40 border border-white/10 rounded-xl flex flex-col overflow-hidden">
-        <div className="p-4 border-b border-white/10 space-y-4">
+      <div className="lg:col-span-1 apple-card rounded-apple-lg flex flex-col overflow-hidden">
+        <div className="p-4 space-y-4" style={{ borderBottom: '0.5px solid rgb(var(--separator) / 0.29)' }}>
           <div className="flex items-center justify-between">
-            <h3 className="font-medium text-white flex items-center gap-2">
-              <Users className="w-4 h-4 text-cyan-500" />
+            <h3 className="apple-text-headline apple-label-primary flex items-center gap-2">
+              <Users className="w-4 h-4 text-apple-blue" />
               Clientes ({filteredCustomers.length})
             </h3>
-            <Badge variant="secondary" className="bg-cyan-500/10 text-cyan-400">
+            <Badge variant="secondary" className="bg-apple-blue/15 text-apple-blue border-0 tabular-nums">
               {selectedIds.size} seleccionados
             </Badge>
           </div>
-          
+
           <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
-            <Input 
-              placeholder="Buscar por nombre, email..." 
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 apple-label-tertiary" />
+            <Input
+              placeholder="Buscar por nombre, email..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="pl-9 bg-black/20 border-white/10"
+              className="apple-input pl-9"
             />
           </div>
 
           <div className="flex items-center space-x-2">
-            <Checkbox 
-              id="select-all" 
+            <Checkbox
+              id="select-all"
               checked={filteredCustomers.length > 0 && selectedIds.size === filteredCustomers.length}
               onCheckedChange={handleSelectAll}
             />
             <label
               htmlFor="select-all"
-              className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 text-gray-400"
+              className="apple-text-subheadline font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 apple-label-secondary"
             >
               Seleccionar todos
             </label>
@@ -146,33 +146,33 @@ export default function CreateCampaign() {
         <ScrollArea className="flex-1 p-2">
           {loading ? (
             <div className="flex justify-center p-8">
-              <Loader2 className="w-6 h-6 animate-spin text-cyan-500" />
+              <Loader2 className="w-6 h-6 animate-spin text-apple-blue" />
             </div>
           ) : filteredCustomers.length === 0 ? (
-            <div className="text-center p-8 text-gray-500">
+            <div className="text-center p-8 apple-label-tertiary apple-text-subheadline">
               No se encontraron clientes
             </div>
           ) : (
             <div className="space-y-1">
               {filteredCustomers.map(customer => (
-                <div 
-                  key={customer.id} 
-                  className={`flex items-center space-x-3 p-3 rounded-lg border transition-colors cursor-pointer ${
-                    selectedIds.has(customer.id) 
-                      ? "bg-cyan-500/10 border-cyan-500/30" 
-                      : "border-transparent hover:bg-white/5"
+                <div
+                  key={customer.id}
+                  className={`apple-press flex items-center space-x-3 p-3 rounded-apple-md transition-colors cursor-pointer ${
+                    selectedIds.has(customer.id)
+                      ? "bg-apple-blue/12"
+                      : ""
                   }`}
                   onClick={() => toggleSelection(customer.id)}
                 >
-                  <Checkbox 
+                  <Checkbox
                     checked={selectedIds.has(customer.id)}
                     onCheckedChange={() => toggleSelection(customer.id)}
                   />
                   <div className="flex-1 min-w-0">
-                    <p className={`text-sm font-medium truncate ${selectedIds.has(customer.id) ? "text-cyan-400" : "text-gray-200"}`}>
+                    <p className={`apple-text-subheadline font-medium truncate ${selectedIds.has(customer.id) ? "text-apple-blue" : "apple-label-primary"}`}>
                       {customer.name}
                     </p>
-                    <p className="text-xs text-gray-500 truncate">
+                    <p className="apple-text-caption1 apple-label-tertiary truncate">
                       {customer.email || customer.phone || "Sin contacto"}
                     </p>
                   </div>
@@ -184,63 +184,63 @@ export default function CreateCampaign() {
       </div>
 
       {/* Right Column: Message Composition */}
-      <div className="lg:col-span-2 bg-black/40 border border-white/10 rounded-xl flex flex-col p-6">
-        <h3 className="text-xl font-bold text-white mb-6">Componer Mensaje</h3>
+      <div className="lg:col-span-2 apple-card rounded-apple-lg flex flex-col p-6">
+        <h3 className="apple-text-title2 apple-label-primary mb-6">Componer Mensaje</h3>
 
         <div className="space-y-6 flex-1">
           {/* Channel Selection */}
           <div className="grid grid-cols-2 gap-4">
             <button
               onClick={() => setChannel("email")}
-              className={`p-4 rounded-xl border flex flex-col items-center gap-2 transition-all ${
+              className={`apple-press p-4 rounded-apple-md flex flex-col items-center gap-2 transition-all ${
                 channel === "email"
-                  ? "bg-purple-500/20 border-purple-500 text-purple-400"
-                  : "bg-black/20 border-white/10 text-gray-400 hover:bg-white/5"
+                  ? "bg-apple-purple/15 text-apple-purple"
+                  : "apple-surface apple-label-secondary"
               }`}
             >
               <Mail className="w-6 h-6" />
-              <span className="font-medium">Email Marketing</span>
+              <span className="apple-text-subheadline font-medium">Email Marketing</span>
             </button>
             <button
               onClick={() => setChannel("sms")}
-              className={`p-4 rounded-xl border flex flex-col items-center gap-2 transition-all ${
+              className={`apple-press p-4 rounded-apple-md flex flex-col items-center gap-2 transition-all ${
                 channel === "sms"
-                  ? "bg-emerald-500/20 border-emerald-500 text-emerald-400"
-                  : "bg-black/20 border-white/10 text-gray-400 hover:bg-white/5"
+                  ? "bg-apple-green/15 text-apple-green"
+                  : "apple-surface apple-label-secondary"
               }`}
             >
               <MessageSquare className="w-6 h-6" />
-              <span className="font-medium">Mensaje SMS</span>
+              <span className="apple-text-subheadline font-medium">Mensaje SMS</span>
             </button>
           </div>
 
           {/* Message Fields */}
-          <div className="space-y-4 bg-black/20 p-6 rounded-xl border border-white/5">
+          <div className="space-y-4 apple-surface p-6 rounded-apple-md">
             {channel === "email" && (
               <div>
-                <label className="text-sm text-gray-400 mb-1.5 block">Asunto</label>
+                <label className="apple-text-subheadline apple-label-secondary mb-1.5 block">Asunto</label>
                 <Input
                   placeholder="Ej: ¡Oferta Especial de Verano!"
                   value={message.subject}
                   onChange={(e) => setMessage({ ...message, subject: e.target.value })}
-                  className="bg-black/40 border-white/10"
+                  className="apple-input"
                 />
               </div>
             )}
 
             <div>
-              <label className="text-sm text-gray-400 mb-1.5 block">
+              <label className="apple-text-subheadline apple-label-secondary mb-1.5 block">
                 {channel === "email" ? "Cuerpo del Correo" : "Mensaje de Texto"}
               </label>
               <Textarea
                 placeholder={channel === "email" ? "Escribe tu mensaje aquí..." : "Escribe tu SMS (max 160 caracteres)..."}
                 value={message.body}
                 onChange={(e) => setMessage({ ...message, body: e.target.value })}
-                className="bg-black/40 border-white/10 min-h-[200px]"
+                className="apple-input min-h-[200px]"
                 maxLength={channel === "sms" ? 160 : undefined}
               />
               {channel === "sms" && (
-                <p className="text-xs text-right text-gray-500 mt-1">
+                <p className="apple-text-caption1 text-right apple-label-tertiary mt-1 tabular-nums">
                   {message.body.length}/160 caracteres
                 </p>
               )}
@@ -249,17 +249,15 @@ export default function CreateCampaign() {
         </div>
 
         {/* Action Buttons */}
-        <div className="mt-6 flex justify-end items-center gap-4 pt-4 border-t border-white/10">
-          <div className="text-sm text-gray-400">
-            Se enviará a <span className="text-white font-bold">{selectedIds.size}</span> destinatarios
+        <div className="mt-6 flex justify-end items-center gap-4 pt-4" style={{ borderTop: '0.5px solid rgb(var(--separator) / 0.29)' }}>
+          <div className="apple-text-subheadline apple-label-secondary">
+            Se enviará a <span className="apple-label-primary font-semibold tabular-nums">{selectedIds.size}</span> destinatarios
           </div>
-          <Button 
-            onClick={handleSend} 
+          <Button
+            onClick={handleSend}
             disabled={sending || selectedIds.size === 0}
-            className={`min-w-[150px] ${
-              channel === "email" 
-                ? "bg-purple-600 hover:bg-purple-700" 
-                : "bg-emerald-600 hover:bg-emerald-700"
+            className={`apple-btn apple-btn-primary min-w-[150px] ${
+              channel === "sms" ? "" : ""
             }`}
           >
             {sending ? (

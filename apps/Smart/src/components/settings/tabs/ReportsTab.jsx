@@ -5,17 +5,17 @@ import { Switch } from "@/components/ui/switch";
 
 export default function ReportsTab({ settings, onChange }) {
   return (
-    <div className="space-y-6">
-      <Card className="bg-zinc-900/50 border-white/10">
+    <div className="apple-type space-y-6">
+      <Card className="apple-card border-0">
         <CardHeader>
-          <CardTitle>Configuración de Reportes</CardTitle>
-          <CardDescription>Formatos y opciones de exportación</CardDescription>
+          <CardTitle className="apple-text-title3 apple-label-primary">Configuración de Reportes</CardTitle>
+          <CardDescription className="apple-text-subheadline apple-label-secondary">Formatos y opciones de exportación</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="flex items-center justify-between p-3 bg-black/30 rounded-lg">
+          <div className="flex items-center justify-between p-3 bg-gray-sys6 dark:bg-gray-sys5 rounded-apple-md">
             <div>
-              <Label>Reportes habilitados</Label>
-              <p className="text-xs text-gray-400">Activar módulo de reportes</p>
+              <Label className="apple-text-body apple-label-primary">Reportes habilitados</Label>
+              <p className="apple-text-caption1 apple-label-tertiary">Activar módulo de reportes</p>
             </div>
             <Switch
               checked={settings.enabled}
@@ -23,10 +23,10 @@ export default function ReportsTab({ settings, onChange }) {
             />
           </div>
 
-          <div className="flex items-center justify-between p-3 bg-black/30 rounded-lg">
+          <div className="flex items-center justify-between p-3 bg-gray-sys6 dark:bg-gray-sys5 rounded-apple-md">
             <div>
-              <Label>Email diario automático</Label>
-              <p className="text-xs text-gray-400">Enviar resumen cada día</p>
+              <Label className="apple-text-body apple-label-primary">Email diario automático</Label>
+              <p className="apple-text-caption1 apple-label-tertiary">Enviar resumen cada día</p>
             </div>
             <Switch
               checked={settings.auto_email_daily}
@@ -35,10 +35,10 @@ export default function ReportsTab({ settings, onChange }) {
           </div>
 
           <div className="space-y-2">
-            <Label className="text-base font-semibold">Formatos de exportación</Label>
+            <Label className="apple-text-headline apple-label-primary">Formatos de exportación</Label>
             {['csv', 'xlsx', 'pdf'].map((format) => (
-              <div key={format} className="flex items-center justify-between p-3 bg-black/30 rounded-lg">
-                <Label className="uppercase">{format}</Label>
+              <div key={format} className="flex items-center justify-between p-3 bg-gray-sys6 dark:bg-gray-sys5 rounded-apple-md">
+                <Label className="apple-text-body apple-label-primary">{format}</Label>
                 <Switch
                   checked={settings.export_formats?.includes(format)}
                   onCheckedChange={(v) => {

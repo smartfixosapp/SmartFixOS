@@ -16,7 +16,7 @@ const STEPS = [
   {
     id: "welcome",
     icon: Sparkles,
-    color: "from-violet-500 to-purple-600",
+    color: "bg-apple-purple",
     title: "¡Hola! Soy tu asistente ✨",
     subtitle: "Tour guiado • 7 pasos • ~2 min",
     content: "Te voy a mostrar cómo funciona SmartFixOS. Vamos a recorrer las funciones principales de tu taller digital.",
@@ -27,7 +27,7 @@ const STEPS = [
   {
     id: "dashboard",
     icon: LayoutDashboard,
-    color: "from-cyan-500 to-blue-600",
+    color: "bg-apple-blue",
     title: "Dashboard — El centro de mando",
     subtitle: "Vista principal",
     content: "Aquí ves todo de un vistazo: órdenes activas, caja, alertas, y el estado general de tu taller.",
@@ -39,7 +39,7 @@ const STEPS = [
   {
     id: "orders",
     icon: ClipboardList,
-    color: "from-emerald-500 to-green-600",
+    color: "bg-apple-green",
     title: "Órdenes de Trabajo",
     subtitle: "El corazón del taller",
     content: "Crea órdenes de trabajo en segundos. El wizard te guía paso a paso: cliente, dispositivo, problema, técnico, seguridad y evidencia.",
@@ -50,7 +50,7 @@ const STEPS = [
   {
     id: "pos",
     icon: ShoppingCart,
-    color: "from-amber-500 to-orange-600",
+    color: "bg-apple-orange",
     title: "POS — Punto de Venta",
     subtitle: "Caja y ventas",
     content: "Abre la caja, busca productos, agrega al carrito y cobra. Acepta efectivo, tarjeta o ambos. El ticket sale automático.",
@@ -61,7 +61,7 @@ const STEPS = [
   {
     id: "customers",
     icon: Users,
-    color: "from-pink-500 to-rose-600",
+    color: "bg-apple-red",
     title: "Clientes",
     subtitle: "Tu base de datos",
     content: "Todos tus clientes en un lugar. Historial completo de reparaciones, balances pendientes, y portal de seguimiento.",
@@ -72,7 +72,7 @@ const STEPS = [
   {
     id: "inventory",
     icon: Package,
-    color: "from-teal-500 to-cyan-600",
+    color: "bg-apple-blue",
     title: "Inventario",
     subtitle: "Control de piezas y productos",
     content: "Controla tu stock de piezas, accesorios y productos. Alertas de stock bajo, órdenes de compra, y movimientos automáticos al completar reparaciones.",
@@ -83,7 +83,7 @@ const STEPS = [
   {
     id: "financial",
     icon: BarChart3,
-    color: "from-indigo-500 to-violet-600",
+    color: "bg-apple-indigo",
     title: "Finanzas",
     subtitle: "Reportes y flujo de caja",
     content: "Visualiza ingresos, gastos, neto diario y mensual. Reportes por período, compromisos de pago y análisis de rentabilidad.",
@@ -94,7 +94,7 @@ const STEPS = [
   {
     id: "done",
     icon: CheckCircle2,
-    color: "from-green-500 to-emerald-600",
+    color: "bg-apple-green",
     title: "¡Ya eres un experto! 🎉",
     subtitle: "Tour completado",
     content: "Eso es todo lo básico. Recuerda que puedes volver a este tour cuando quieras desde el botón de ayuda. ¡Mucho éxito con tu taller!",
@@ -296,27 +296,27 @@ Empieza directamente con el tip, sin saludos. En español. Máximo 30 palabras.`
             exit={{ opacity: 0, y: 40, scale: 0.95 }}
             transition={{ type: "spring", stiffness: 400, damping: 30 }}
           >
-            <div className="rounded-2xl border border-white/10 bg-zinc-900/95 backdrop-blur-xl shadow-2xl overflow-hidden">
+            <div className="apple-type apple-surface-elevated rounded-apple-lg shadow-apple-xl border-0 overflow-hidden">
 
-              {/* Header con gradiente */}
-              <div className={cn("bg-gradient-to-r p-4", currentStep.color)}>
+              {/* Header tinted */}
+              <div className={cn("p-4", currentStep.color)}>
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
-                    <div className="w-9 h-9 rounded-xl bg-white/20 flex items-center justify-center">
+                    <div className="w-9 h-9 rounded-apple-sm bg-white/20 flex items-center justify-center">
                       <StepIcon className="w-5 h-5 text-white" />
                     </div>
                     <div>
-                      <p className="text-white font-bold text-sm leading-tight">
+                      <p className="text-white apple-text-subheadline font-semibold leading-tight">
                         {currentStep.title}
                       </p>
-                      <p className="text-white/70 text-[10px] font-medium">
+                      <p className="text-white/70 apple-text-caption2 font-medium">
                         {currentStep.subtitle}
                       </p>
                     </div>
                   </div>
                   <button
                     onClick={onClose}
-                    className="w-7 h-7 rounded-full bg-white/20 hover:bg-white/30 flex items-center justify-center transition-colors"
+                    className="apple-press w-7 h-7 rounded-full bg-white/20 hover:bg-white/30 flex items-center justify-center transition-colors"
                   >
                     <X className="w-3.5 h-3.5 text-white" />
                   </button>
@@ -333,7 +333,7 @@ Empieza directamente con el tip, sin saludos. En español. Máximo 30 palabras.`
                     exit={{ opacity: 0, x: -10 }}
                     transition={{ duration: 0.2 }}
                   >
-                    <p className="text-white/80 text-sm leading-relaxed">
+                    <p className="apple-label-secondary apple-text-footnote leading-relaxed">
                       {currentStep.content}
                     </p>
 
@@ -344,23 +344,23 @@ Empieza directamente con el tip, sin saludos. En español. Máximo 30 palabras.`
                           initial={{ opacity: 0, height: 0 }}
                           animate={{ opacity: 1, height: "auto" }}
                           exit={{ opacity: 0, height: 0 }}
-                          className="mt-3 rounded-xl bg-violet-500/10 border border-violet-500/20 p-3"
+                          className="mt-3 rounded-apple-md bg-apple-purple/12 p-3"
                         >
                           <div className="flex items-start gap-2">
-                            <Zap className="w-3.5 h-3.5 text-violet-400 mt-0.5 shrink-0" />
+                            <Zap className="w-3.5 h-3.5 text-apple-purple mt-0.5 shrink-0" />
                             {loadingTip ? (
                               <div className="flex gap-1 items-center">
                                 {[0, 1, 2].map(i => (
                                   <motion.div
                                     key={i}
-                                    className="w-1.5 h-1.5 rounded-full bg-violet-400"
+                                    className="w-1.5 h-1.5 rounded-full bg-apple-purple"
                                     animate={{ opacity: [0.3, 1, 0.3] }}
                                     transition={{ duration: 1, repeat: Infinity, delay: i * 0.2 }}
                                   />
                                 ))}
                               </div>
                             ) : (
-                              <p className="text-violet-200/90 text-[11px] leading-relaxed">
+                              <p className="text-apple-purple apple-text-caption1 leading-relaxed">
                                 {aiTip}
                               </p>
                             )}
@@ -372,9 +372,9 @@ Empieza directamente con el tip, sin saludos. En español. Máximo 30 palabras.`
                 </AnimatePresence>
 
                 {/* Barra de progreso */}
-                <div className="h-1 rounded-full bg-white/10 overflow-hidden">
+                <div className="h-1 rounded-full bg-gray-sys6 dark:bg-gray-sys5 overflow-hidden">
                   <motion.div
-                    className="h-full rounded-full bg-gradient-to-r from-violet-500 to-purple-500"
+                    className="h-full rounded-full bg-apple-purple"
                     animate={{ width: `${progress * 100}%` }}
                     transition={{ type: "spring", stiffness: 200, damping: 20 }}
                   />
@@ -390,15 +390,15 @@ Empieza directamente con el tip, sin saludos. En español. Máximo 30 palabras.`
                         className={cn(
                           "rounded-full transition-all",
                           i === step
-                            ? "w-4 h-1.5 bg-violet-400"
+                            ? "w-4 h-1.5 bg-apple-purple"
                             : i < step
-                            ? "w-1.5 h-1.5 bg-white/40"
-                            : "w-1.5 h-1.5 bg-white/15"
+                            ? "w-1.5 h-1.5 bg-gray-sys4"
+                            : "w-1.5 h-1.5 bg-gray-sys5"
                         )}
                       />
                     ))}
                   </div>
-                  <span className="text-white/30 text-[10px]">
+                  <span className="apple-label-tertiary apple-text-caption2 tabular-nums">
                     {step + 1} / {STEPS.length}
                   </span>
                 </div>
@@ -408,7 +408,7 @@ Empieza directamente con el tip, sin saludos. En español. Máximo 30 palabras.`
                   {!isFirst && (
                     <button
                       onClick={handlePrev}
-                      className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-white/5 hover:bg-white/10 text-white/60 text-xs font-medium transition-colors"
+                      className="apple-press flex items-center gap-1.5 px-3 py-2 rounded-apple-sm bg-gray-sys6 dark:bg-gray-sys5 apple-label-secondary apple-text-caption1 font-medium transition-colors"
                     >
                       <ChevronLeft className="w-3.5 h-3.5" />
                       Atrás
@@ -417,10 +417,10 @@ Empieza directamente con el tip, sin saludos. En español. Máximo 30 palabras.`
                   <button
                     onClick={handleNext}
                     className={cn(
-                      "flex-1 flex items-center justify-center gap-2 py-2 rounded-xl text-sm font-bold transition-all",
+                      "apple-press flex-1 flex items-center justify-center gap-2 py-2 rounded-apple-sm apple-text-subheadline font-semibold transition-all",
                       isLast
-                        ? "bg-gradient-to-r from-green-500 to-emerald-500 text-white shadow-lg shadow-green-500/25"
-                        : "bg-gradient-to-r from-violet-500 to-purple-600 text-white shadow-lg shadow-violet-500/25 hover:shadow-violet-500/40"
+                        ? "bg-apple-green text-white"
+                        : "bg-apple-purple text-white"
                     )}
                   >
                     {isLast ? (

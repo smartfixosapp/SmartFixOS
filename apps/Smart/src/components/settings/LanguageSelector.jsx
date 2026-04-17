@@ -7,24 +7,24 @@ export default function LanguageSelector() {
   const { language, changeLanguage } = useTranslation();
 
   return (
-    <div className="flex items-center gap-2">
-      <Globe className="w-4 h-4 text-gray-400" />
+    <div className="apple-type flex items-center gap-2">
+      <Globe className="w-4 h-4 apple-label-tertiary" />
       <div className="flex gap-1">
         <Button
           size="sm"
           variant={language === 'es' ? 'default' : 'outline'}
           onClick={() => changeLanguage('es')}
-          className={language === 'es' ? 'bg-gradient-to-r from-cyan-600 to-emerald-600' : ''}
+          className={language === 'es' ? 'apple-btn apple-btn-primary apple-press' : 'apple-btn apple-btn-secondary apple-press'}
         >
-          🇪🇸 ES
+          ES
         </Button>
         <Button
           size="sm"
           variant={language === 'en' ? 'default' : 'outline'}
           onClick={() => changeLanguage('en')}
-          className={language === 'en' ? 'bg-gradient-to-r from-cyan-600 to-emerald-600' : ''}
+          className={language === 'en' ? 'apple-btn apple-btn-primary apple-press' : 'apple-btn apple-btn-secondary apple-press'}
         >
-          🇺🇸 EN
+          EN
         </Button>
       </div>
     </div>

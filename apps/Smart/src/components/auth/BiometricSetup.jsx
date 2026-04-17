@@ -181,112 +181,115 @@ export default function BiometricSetup({ open, onClose, user }) {
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent className="max-w-md bg-gradient-to-br from-[#2B2B2B] to-black border-red-600/30">
-        <DialogHeader>
-          <DialogTitle className="text-xl font-bold text-white flex items-center gap-2">
-            <Fingerprint className="w-6 h-6 text-red-500" />
-            Autenticación Biométrica
-          </DialogTitle>
-        </DialogHeader>
+      <DialogContent className="apple-type max-w-md apple-surface-elevated rounded-apple-lg shadow-apple-xl border-0 p-0 overflow-hidden">
+        <div className="p-6">
+          <DialogHeader>
+            <DialogTitle className="apple-text-title2 apple-label-primary flex items-center gap-2">
+              <Fingerprint className="w-6 h-6 text-apple-red" />
+              Autenticación Biométrica
+            </DialogTitle>
+          </DialogHeader>
 
-        <div className="space-y-4 pt-4">
-          {checking ? (
-            <div className="flex flex-col items-center justify-center py-8">
-              <Loader2 className="w-8 h-8 text-red-500 animate-spin mb-2" />
-              <p className="text-gray-400 text-sm">Verificando compatibilidad...</p>
-            </div>
-          ) : !supported ? (
-            <div className="bg-yellow-600/10 border border-yellow-500/30 rounded-lg p-4">
-              <div className="flex items-start gap-3">
-                <AlertCircle className="w-5 h-5 text-yellow-500 mt-0.5" />
-                <div>
-                  <p className="text-yellow-300 font-semibold text-sm mb-1">
-                    Biométricos no disponibles
-                  </p>
-                  <p className="text-gray-400 text-xs">
-                    Este dispositivo no soporta autenticación biométrica o no tiene un sensor configurado.
-                  </p>
+          <div className="space-y-4 pt-4">
+            {checking ? (
+              <div className="flex flex-col items-center justify-center py-8">
+                <Loader2 className="w-8 h-8 text-apple-red animate-spin mb-2" />
+                <p className="apple-label-secondary apple-text-subheadline">Verificando compatibilidad...</p>
+              </div>
+            ) : !supported ? (
+              <div className="bg-apple-yellow/12 rounded-apple-md p-4">
+                <div className="flex items-start gap-3">
+                  <AlertCircle className="w-5 h-5 text-apple-yellow mt-0.5" />
+                  <div>
+                    <p className="text-apple-yellow font-semibold apple-text-subheadline mb-1">
+                      Biométricos no disponibles
+                    </p>
+                    <p className="apple-label-secondary apple-text-caption1">
+                      Este dispositivo no soporta autenticación biométrica o no tiene un sensor configurado.
+                    </p>
+                  </div>
                 </div>
               </div>
-            </div>
-          ) : (
-            <>
-              <div className="bg-white/5 border border-white/10 rounded-lg p-4">
-                <div className="flex items-center gap-3 mb-3">
-                  <div className="w-12 h-12 rounded-full bg-gradient-to-br from-red-600 to-red-800 flex items-center justify-center">
-                    <Fingerprint className="w-6 h-6 text-white" />
+            ) : (
+              <>
+                <div className="apple-card rounded-apple-md p-4">
+                  <div className="flex items-center gap-3 mb-3">
+                    <div className="w-12 h-12 rounded-apple-sm bg-apple-red/15 flex items-center justify-center">
+                      <Fingerprint className="w-6 h-6 text-apple-red" />
+                    </div>
+                    <div className="flex-1">
+                      <h3 className="apple-label-primary apple-text-headline">Login Rápido</h3>
+                      <p className="apple-text-caption1 apple-label-tertiary">FaceID / TouchID / Huella</p>
+                    </div>
+                    {hasExisting && (
+                      <Check className="w-5 h-5 text-apple-green" />
+                    )}
                   </div>
-                  <div className="flex-1">
-                    <h3 className="text-white font-semibold">Login Rápido</h3>
-                    <p className="text-xs text-gray-400">FaceID / TouchID / Huella</p>
+
+                  <p className="apple-label-secondary apple-text-subheadline mb-4">
+                    {hasExisting
+                      ? "La autenticación biométrica ya está habilitada en este dispositivo."
+                      : "Habilita la autenticación biométrica para iniciar sesión de forma rápida y segura usando tu rostro o huella digital."}
+                  </p>
+
+                  <div className="bg-apple-blue/12 rounded-apple-md p-3 mb-4">
+                    <p className="text-apple-blue apple-text-caption1">
+                      <strong>Seguridad:</strong> Tus datos biométricos nunca salen de tu dispositivo.
+                      Solo se guarda una clave segura que confirma tu identidad.
+                    </p>
                   </div>
-                  {hasExisting && (
-                    <Check className="w-5 h-5 text-green-500" />
+
+                  {hasExisting ? (
+                    <Button
+                      onClick={handleDisableBiometric}
+                      disabled={loading}
+                      variant="outline"
+                      className="apple-btn apple-btn-tinted w-full"
+                      style={{ backgroundColor: 'rgb(var(--apple-red) / 0.12)', color: 'rgb(var(--apple-red))' }}
+                    >
+                      {loading ? (
+                        <>
+                          <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                          Deshabilitando...
+                        </>
+                      ) : (
+                        "Deshabilitar Biométricos"
+                      )}
+                    </Button>
+                  ) : (
+                    <Button
+                      onClick={handleEnableBiometric}
+                      disabled={loading}
+                      className="apple-btn apple-btn-destructive w-full"
+                    >
+                      {loading ? (
+                        <>
+                          <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                          Configurando...
+                        </>
+                      ) : (
+                        <>
+                          <Fingerprint className="w-4 h-4 mr-2" />
+                          Habilitar Biométricos
+                        </>
+                      )}
+                    </Button>
                   )}
                 </div>
 
-                <p className="text-gray-300 text-sm mb-4">
-                  {hasExisting 
-                    ? "La autenticación biométrica ya está habilitada en este dispositivo."
-                    : "Habilita la autenticación biométrica para iniciar sesión de forma rápida y segura usando tu rostro o huella digital."}
-                </p>
-
-                <div className="bg-blue-600/10 border border-blue-500/30 rounded-lg p-3 mb-4">
-                  <p className="text-blue-300 text-xs">
-                    <strong>Seguridad:</strong> Tus datos biométricos nunca salen de tu dispositivo. 
-                    Solo se guarda una clave segura que confirma tu identidad.
-                  </p>
+                <div className="text-center">
+                  <Button
+                    onClick={onClose}
+                    variant="ghost"
+                    className="apple-btn apple-btn-plain apple-label-secondary"
+                    disabled={loading}
+                  >
+                    Cerrar
+                  </Button>
                 </div>
-
-                {hasExisting ? (
-                  <Button
-                    onClick={handleDisableBiometric}
-                    disabled={loading}
-                    variant="outline"
-                    className="w-full border-red-600/30 text-red-400 hover:bg-red-600/20"
-                  >
-                    {loading ? (
-                      <>
-                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                        Deshabilitando...
-                      </>
-                    ) : (
-                      "Deshabilitar Biométricos"
-                    )}
-                  </Button>
-                ) : (
-                  <Button
-                    onClick={handleEnableBiometric}
-                    disabled={loading}
-                    className="w-full bg-gradient-to-r from-red-600 to-red-800 hover:from-red-700 hover:to-red-900"
-                  >
-                    {loading ? (
-                      <>
-                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                        Configurando...
-                      </>
-                    ) : (
-                      <>
-                        <Fingerprint className="w-4 h-4 mr-2" />
-                        Habilitar Biométricos
-                      </>
-                    )}
-                  </Button>
-                )}
-              </div>
-
-              <div className="text-center">
-                <Button
-                  onClick={onClose}
-                  variant="ghost"
-                  className="text-gray-400 hover:text-white"
-                  disabled={loading}
-                >
-                  Cerrar
-                </Button>
-              </div>
-            </>
-          )}
+              </>
+            )}
+          </div>
         </div>
       </DialogContent>
     </Dialog>

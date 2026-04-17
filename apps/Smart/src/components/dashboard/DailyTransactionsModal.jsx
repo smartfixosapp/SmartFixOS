@@ -73,28 +73,28 @@ export default function DailyTransactionsModal({ open, onClose, currentDrawer })
   if (!open) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4" onClick={onClose}>
-      <div 
-        className="w-full max-w-2xl max-h-[85vh] overflow-y-auto rounded-3xl bg-gradient-to-br from-cyan-950/40 via-blue-950/30 to-slate-950/40 backdrop-blur-2xl border border-cyan-400/40 shadow-2xl relative"
+    <div className="apple-type fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4" onClick={onClose}>
+      <div
+        className="w-full max-w-2xl max-h-[85vh] overflow-y-auto apple-surface-elevated rounded-apple-lg shadow-apple-xl border-0 p-0 overflow-hidden relative"
         onClick={(e) => e.stopPropagation()}
       >
         {/* HEADER CON X */}
-        <div className="sticky top-0 z-10 bg-gradient-to-b from-cyan-500/15 to-transparent px-6 py-5 border-b border-cyan-400/30 backdrop-blur-xl">
+        <div className="sticky top-0 z-10 apple-surface-elevated px-6 py-5" style={{ borderBottom: '0.5px solid rgb(var(--separator) / 0.29)' }}>
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-full bg-gradient-to-br from-cyan-400 to-emerald-400 flex items-center justify-center shadow-lg">
-                <DollarSign className="w-5 h-5 text-white" strokeWidth={3} />
+              <div className="w-10 h-10 rounded-apple-sm bg-apple-blue/15 flex items-center justify-center">
+                <DollarSign className="w-5 h-5 text-apple-blue" strokeWidth={3} />
               </div>
               <div>
-                <h2 className="text-xl font-black text-white tracking-tight">Transacciones</h2>
-                <p className="text-xs text-white/60 font-medium">{format(new Date(), "d MMMM yyyy", { locale: es })}</p>
+                <h2 className="apple-text-title3 apple-label-primary">Transacciones</h2>
+                <p className="apple-text-caption1 apple-label-tertiary font-medium">{format(new Date(), "d MMMM yyyy", { locale: es })}</p>
               </div>
             </div>
             <button
               onClick={onClose}
-              className="w-8 h-8 rounded-full bg-cyan-400/20 hover:bg-cyan-400/30 flex items-center justify-center transition-all active:scale-95 group"
+              className="apple-press w-8 h-8 rounded-full bg-gray-sys6 dark:bg-gray-sys5 flex items-center justify-center transition-all group"
             >
-              <X className="w-4 h-4 text-white/70 group-hover:text-white" strokeWidth={3} />
+              <X className="w-4 h-4 apple-label-secondary group-hover:apple-label-primary" strokeWidth={3} />
             </button>
           </div>
         </div>
@@ -106,33 +106,33 @@ export default function DailyTransactionsModal({ open, onClose, currentDrawer })
             {/* VENTAS DIRECTAS */}
             {sales.filter(s => !s.order_id).length > 0 && (
               <div className="space-y-3">
-                <h3 className="text-sm font-bold text-white/90 uppercase tracking-wider flex items-center gap-2">
+                <h3 className="apple-text-subheadline font-semibold apple-label-primary flex items-center gap-2">
                   🛒 Ventas Directas
-                  <span className="ml-auto bg-white/10 px-2 py-0.5 rounded-full text-xs text-white/70">{sales.filter(s => !s.order_id).length}</span>
+                  <span className="ml-auto bg-gray-sys6 dark:bg-gray-sys5 px-2 py-0.5 rounded-full apple-text-caption1 apple-label-secondary tabular-nums">{sales.filter(s => !s.order_id).length}</span>
                 </h3>
                 <div className="space-y-2">
                   {sales.filter(s => !s.order_id).map((sale, idx) => (
                     <div
                       key={`direct-sale-${idx}`}
-                      className="flex justify-between items-start p-3 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl transition-all"
+                      className="apple-press flex justify-between items-start p-3 apple-surface rounded-apple-md transition-all"
                     >
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 flex-wrap">
-                          <p className="text-white font-semibold text-sm">
+                          <p className="apple-label-primary font-semibold apple-text-subheadline">
                             {sale.sale_number || `Venta ${idx + 1}`}
                           </p>
-                          <Badge className="text-[10px] bg-blue-600/30 text-blue-300 border-0">
+                          <Badge className="apple-text-caption2 bg-apple-blue/15 text-apple-blue border-0">
                             Venta
                           </Badge>
                           {sale.customer_name && (
-                            <p className="text-white/60 text-xs">• {sale.customer_name}</p>
+                            <p className="apple-label-secondary apple-text-caption1">• {sale.customer_name}</p>
                           )}
                         </div>
-                        <p className="text-white/40 text-xs mt-1">
+                        <p className="apple-label-tertiary apple-text-caption1 mt-1 tabular-nums">
                           {format(new Date(sale.created_date), "p", { locale: es })} • {paymentMethods[sale.payment_method] || sale.payment_method}
                         </p>
                       </div>
-                      <p className="text-emerald-400 font-bold ml-2 whitespace-nowrap">
+                      <p className="text-apple-green font-semibold ml-2 whitespace-nowrap tabular-nums">
                         +${(sale.amount_paid || 0).toFixed(2)}
                       </p>
                     </div>
@@ -144,33 +144,33 @@ export default function DailyTransactionsModal({ open, onClose, currentDrawer })
             {/* PAGOS DE ORDEN */}
             {sales.filter(s => s.order_id).length > 0 && (
               <div className="space-y-3">
-                <h3 className="text-sm font-bold text-white/90 uppercase tracking-wider flex items-center gap-2">
+                <h3 className="apple-text-subheadline font-semibold apple-label-primary flex items-center gap-2">
                   💳 Pagos de Orden
-                  <span className="ml-auto bg-white/10 px-2 py-0.5 rounded-full text-xs text-white/70">{sales.filter(s => s.order_id).length}</span>
+                  <span className="ml-auto bg-gray-sys6 dark:bg-gray-sys5 px-2 py-0.5 rounded-full apple-text-caption1 apple-label-secondary tabular-nums">{sales.filter(s => s.order_id).length}</span>
                 </h3>
                 <div className="space-y-2">
                   {sales.filter(s => s.order_id).map((sale, idx) => (
                     <div
                       key={`order-payment-${idx}`}
-                      className="flex justify-between items-start p-3 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl transition-all"
+                      className="apple-press flex justify-between items-start p-3 apple-surface rounded-apple-md transition-all"
                     >
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 flex-wrap">
-                          <p className="text-white font-semibold text-sm">
+                          <p className="apple-label-primary font-semibold apple-text-subheadline">
                             {sale.order_number || sale.sale_number}
                           </p>
-                          <Badge className="text-[10px] bg-orange-600/30 text-orange-300 border-0">
+                          <Badge className="apple-text-caption2 bg-apple-orange/15 text-apple-orange border-0">
                             Pago de orden
                           </Badge>
                           {sale.customer_name && (
-                            <p className="text-white/60 text-xs">• {sale.customer_name}</p>
+                            <p className="apple-label-secondary apple-text-caption1">• {sale.customer_name}</p>
                           )}
                         </div>
-                        <p className="text-white/40 text-xs mt-1">
+                        <p className="apple-label-tertiary apple-text-caption1 mt-1 tabular-nums">
                           {format(new Date(sale.created_date), "p", { locale: es })} • {paymentMethods[sale.payment_method] || sale.payment_method}
                         </p>
                       </div>
-                      <p className="text-emerald-400 font-bold ml-2 whitespace-nowrap">
+                      <p className="text-apple-green font-semibold ml-2 whitespace-nowrap tabular-nums">
                         +${(sale.amount_paid || 0).toFixed(2)}
                       </p>
                     </div>
@@ -182,30 +182,30 @@ export default function DailyTransactionsModal({ open, onClose, currentDrawer })
             {/* OTROS GASTOS/TRANSACCIONES */}
             {transactions.filter(t => t.type === "expense").length > 0 && (
               <div className="space-y-3">
-                <h3 className="text-sm font-bold text-white/90 uppercase tracking-wider flex items-center gap-2">
+                <h3 className="apple-text-subheadline font-semibold apple-label-primary flex items-center gap-2">
                   ⚠️ Otros Gastos
-                  <span className="ml-auto bg-white/10 px-2 py-0.5 rounded-full text-xs text-white/70">{transactions.filter(t => t.type === "expense").length}</span>
+                  <span className="ml-auto bg-gray-sys6 dark:bg-gray-sys5 px-2 py-0.5 rounded-full apple-text-caption1 apple-label-secondary tabular-nums">{transactions.filter(t => t.type === "expense").length}</span>
                 </h3>
                 <div className="space-y-2">
                   {transactions.filter(t => t.type === "expense").map((trans, idx) => (
                     <div
                       key={`expense-${idx}`}
-                      className="flex justify-between items-start p-3 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl transition-all"
+                      className="apple-press flex justify-between items-start p-3 apple-surface rounded-apple-md transition-all"
                     >
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 flex-wrap">
-                          <p className="text-white font-semibold text-sm">
+                          <p className="apple-label-primary font-semibold apple-text-subheadline">
                             {trans.description}
                           </p>
-                          <Badge className="text-[10px] bg-red-600/30 text-red-300 border-0">
+                          <Badge className="apple-text-caption2 bg-apple-red/15 text-apple-red border-0">
                             Gasto
                           </Badge>
                         </div>
-                        <p className="text-white/40 text-xs mt-1">
+                        <p className="apple-label-tertiary apple-text-caption1 mt-1 tabular-nums">
                           {format(new Date(trans.created_date), "p", { locale: es })} • {trans.category}
                         </p>
                       </div>
-                      <p className="text-red-400 font-bold ml-2 whitespace-nowrap">
+                      <p className="text-apple-red font-semibold ml-2 whitespace-nowrap tabular-nums">
                         -${(trans.amount || 0).toFixed(2)}
                       </p>
                     </div>
@@ -215,8 +215,8 @@ export default function DailyTransactionsModal({ open, onClose, currentDrawer })
             )}
 
             {sales.length === 0 && transactions.length === 0 && !loading && (
-              <div className="text-center py-12 text-white/40">
-                <p className="text-sm font-medium">Sin transacciones hoy</p>
+              <div className="text-center py-12 apple-label-tertiary">
+                <p className="apple-text-subheadline font-medium">Sin transacciones hoy</p>
               </div>
             )}
             </div>

@@ -25,10 +25,10 @@ export default function OrdersTab({ user }) {
   useEffect(() => {
     const onSave = () => saveData();
     const onRevert = () => setData(originalData);
-    
+
     window.addEventListener("settings-save", onSave);
     window.addEventListener("settings-revert", onRevert);
-    
+
     return () => {
       window.removeEventListener("settings-save", onSave);
       window.removeEventListener("settings-revert", onRevert);
@@ -64,7 +64,7 @@ export default function OrdersTab({ user }) {
   const saveData = async () => {
     try {
       const rows = await base44.entities.SystemConfig.filter({ key: "settings.orders" });
-      
+
       const payload = {
         key: "settings.orders",
         value: JSON.stringify(data),
@@ -91,27 +91,27 @@ export default function OrdersTab({ user }) {
       setOriginalData(data);
       window.dispatchEvent(new Event("settings-clean"));
       window.dispatchEvent(new Event("force-refresh"));
-      
+
       alert("Configuración guardada");
     } catch (e) {
       alert("Error al guardar: " + e.message);
     }
   };
 
-  if (loading) return <div className="text-gray-400">Cargando...</div>;
+  if (loading) return <div className="apple-type apple-label-tertiary apple-text-body">Cargando...</div>;
 
   return (
-    <div className="space-y-6">
-      <Card className="bg-zinc-900/50 border-white/10">
+    <div className="apple-type space-y-6">
+      <Card className="apple-card border-0">
         <CardHeader>
-          <CardTitle>Work Order Wizard</CardTitle>
-          <CardDescription>Configuración del asistente de creación de órdenes</CardDescription>
+          <CardTitle className="apple-text-title3 apple-label-primary">Work Order Wizard</CardTitle>
+          <CardDescription className="apple-text-subheadline apple-label-secondary">Configuración del asistente de creación de órdenes</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="flex items-center justify-between p-3 bg-black/30 rounded-lg">
+          <div className="flex items-center justify-between p-3 bg-gray-sys6 dark:bg-gray-sys5 rounded-apple-md">
             <div>
-              <Label>Usar catálogo de dispositivos</Label>
-              <p className="text-xs text-gray-400">Selección rápida de modelos desde catálogo</p>
+              <Label className="apple-text-body apple-label-primary">Usar catálogo de dispositivos</Label>
+              <p className="apple-text-caption1 apple-label-tertiary">Selección rápida de modelos desde catálogo</p>
             </div>
             <Switch
               checked={data.device_catalog_wizard}
@@ -119,10 +119,10 @@ export default function OrdersTab({ user }) {
             />
           </div>
 
-          <div className="flex items-center justify-between p-3 bg-black/30 rounded-lg">
+          <div className="flex items-center justify-between p-3 bg-gray-sys6 dark:bg-gray-sys5 rounded-apple-md">
             <div>
-              <Label>Flujo Brand → Familia → Modelo</Label>
-              <p className="text-xs text-gray-400">Organización jerárquica (Apple → iPhone → 14 Pro)</p>
+              <Label className="apple-text-body apple-label-primary">Flujo Brand → Familia → Modelo</Label>
+              <p className="apple-text-caption1 apple-label-tertiary">Organización jerárquica (Apple → iPhone → 14 Pro)</p>
             </div>
             <Switch
               checked={data.brand_family_flow}
@@ -130,10 +130,10 @@ export default function OrdersTab({ user }) {
             />
           </div>
 
-          <div className="flex items-center justify-between p-3 bg-black/30 rounded-lg">
+          <div className="flex items-center justify-between p-3 bg-gray-sys6 dark:bg-gray-sys5 rounded-apple-md">
             <div>
-              <Label>Firma de alta precisión</Label>
-              <p className="text-xs text-gray-400">Bloqueo de pantalla y canvas de alta resolución</p>
+              <Label className="apple-text-body apple-label-primary">Firma de alta precisión</Label>
+              <p className="apple-text-caption1 apple-label-tertiary">Bloqueo de pantalla y canvas de alta resolución</p>
             </div>
             <Switch
               checked={data.signature_precision_lock}
@@ -141,10 +141,10 @@ export default function OrdersTab({ user }) {
             />
           </div>
 
-          <div className="flex items-center justify-between p-3 bg-black/30 rounded-lg">
+          <div className="flex items-center justify-between p-3 bg-gray-sys6 dark:bg-gray-sys5 rounded-apple-md">
             <div>
-              <Label>Patrón siempre visible</Label>
-              <p className="text-xs text-gray-400">Mostrar patrón Android por defecto</p>
+              <Label className="apple-text-body apple-label-primary">Patrón siempre visible</Label>
+              <p className="apple-text-caption1 apple-label-tertiary">Mostrar patrón Android por defecto</p>
             </div>
             <Switch
               checked={data.always_show_pattern}
@@ -152,10 +152,10 @@ export default function OrdersTab({ user }) {
             />
           </div>
 
-          <div className="flex items-center justify-between p-3 bg-black/30 rounded-lg">
+          <div className="flex items-center justify-between p-3 bg-gray-sys6 dark:bg-gray-sys5 rounded-apple-md">
             <div>
-              <Label>Sugerencias de piezas en resumen</Label>
-              <p className="text-xs text-gray-400">Mostrar piezas compatibles según modelo</p>
+              <Label className="apple-text-body apple-label-primary">Sugerencias de piezas en resumen</Label>
+              <p className="apple-text-caption1 apple-label-tertiary">Mostrar piezas compatibles según modelo</p>
             </div>
             <Switch
               checked={data.order_summary_part_suggestions}
@@ -163,10 +163,10 @@ export default function OrdersTab({ user }) {
             />
           </div>
 
-          <div className="flex items-center justify-between p-3 bg-black/30 rounded-lg">
+          <div className="flex items-center justify-between p-3 bg-gray-sys6 dark:bg-gray-sys5 rounded-apple-md">
             <div>
-              <Label>Resumen de solo lectura</Label>
-              <p className="text-xs text-gray-400">Deshabilitar edición en paso final</p>
+              <Label className="apple-text-body apple-label-primary">Resumen de solo lectura</Label>
+              <p className="apple-text-caption1 apple-label-tertiary">Deshabilitar edición en paso final</p>
             </div>
             <Switch
               checked={data.wizard_summary_readonly}

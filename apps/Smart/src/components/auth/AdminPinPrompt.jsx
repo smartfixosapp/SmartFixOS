@@ -154,7 +154,7 @@ export default function AdminPinPrompt({ onSuccess, onCancel }) {
   };
 
   return (
-    <div className="fixed inset-0 z-[1000] bg-black/95 backdrop-blur-sm grid place-items-center px-4">
+    <div className="apple-type fixed inset-0 z-[1000] apple-surface backdrop-blur-sm grid place-items-center px-4">
       <div
         className={`w-full max-w-sm transition-all duration-700 ${
           mounted ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"
@@ -162,24 +162,24 @@ export default function AdminPinPrompt({ onSuccess, onCancel }) {
       >
         {/* Icon */}
         <div className="flex justify-center mb-6">
-          <div className="w-20 h-20 rounded-full bg-gradient-to-br from-red-600 to-red-900 flex items-center justify-center shadow-[0_0_50px_rgba(220,38,38,0.5)]">
-            <Shield className="w-10 h-10 text-white" />
+          <div className="w-20 h-20 rounded-apple-lg bg-apple-red/15 flex items-center justify-center">
+            <Shield className="w-10 h-10 text-apple-red" />
           </div>
         </div>
 
         {/* Title */}
         <div className="text-center mb-8">
-          <h1 className="text-2xl font-bold text-white">Acceso Administrativo</h1>
-          <p className="text-slate-400 mt-1 text-sm">Panel de administración de usuarios</p>
+          <h1 className="apple-text-title2 apple-label-primary">Acceso Administrativo</h1>
+          <p className="apple-text-subheadline apple-label-secondary mt-1">Panel de administración de usuarios</p>
         </div>
 
         {/* Lockout banner */}
         {lockout.locked && (
-          <div className="mb-4 px-4 py-3 rounded-xl bg-red-500/10 border border-red-500/30 text-center">
-            <p className="text-red-400 text-sm font-medium">
+          <div className="mb-4 px-4 py-3 rounded-apple-md bg-apple-red/12 text-center">
+            <p className="text-apple-red apple-text-subheadline font-medium">
               🔒 Bloqueado por intentos fallidos
             </p>
-            <p className="text-red-300/70 text-xs mt-1">
+            <p className="text-apple-red apple-text-caption1 mt-1 opacity-80 tabular-nums">
               Intenta de nuevo en {lockout.remaining} minuto{lockout.remaining !== 1 ? "s" : ""}
             </p>
           </div>
@@ -188,7 +188,7 @@ export default function AdminPinPrompt({ onSuccess, onCancel }) {
         {/* Form */}
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="relative">
-            <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500">
+            <div className="absolute left-4 top-1/2 -translate-y-1/2 apple-label-tertiary">
               <Lock className="w-4 h-4" />
             </div>
             <input
@@ -199,12 +199,12 @@ export default function AdminPinPrompt({ onSuccess, onCancel }) {
               placeholder="Contraseña maestra"
               disabled={loading || lockout.locked}
               autoComplete="current-password"
-              className="w-full bg-[#1A1A24] border border-white/10 rounded-xl pl-11 pr-12 py-4 text-white placeholder:text-slate-600 focus:outline-none focus:border-red-500/50 focus:ring-1 focus:ring-red-500/20 transition disabled:opacity-40 text-base"
+              className="apple-input w-full pl-11 pr-12 py-4 disabled:opacity-40"
             />
             <button
               type="button"
               onClick={() => setShowPwd((v) => !v)}
-              className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-300 transition"
+              className="absolute right-4 top-1/2 -translate-y-1/2 apple-label-tertiary hover:apple-label-secondary transition"
               tabIndex={-1}
             >
               {showPwd ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
@@ -213,7 +213,7 @@ export default function AdminPinPrompt({ onSuccess, onCancel }) {
 
           {/* Error */}
           {err && (
-            <p className="text-red-400 text-sm text-center font-medium animate-[fadeIn_0.3s_ease]">
+            <p className="text-apple-red apple-text-subheadline text-center font-medium animate-[fadeIn_0.3s_ease]">
               {err}
             </p>
           )}
@@ -222,7 +222,7 @@ export default function AdminPinPrompt({ onSuccess, onCancel }) {
           <button
             type="submit"
             disabled={!password.trim() || loading || lockout.locked}
-            className="w-full py-4 rounded-xl bg-red-600 hover:bg-red-700 disabled:opacity-30 text-white font-semibold text-base transition flex items-center justify-center gap-2 shadow-[0_4px_20px_rgba(220,38,38,0.35)]"
+            className="apple-btn apple-btn-destructive apple-btn-lg w-full disabled:opacity-30"
           >
             {loading ? (
               <><Loader2 className="w-5 h-5 animate-spin" /> Verificando…</>
@@ -238,7 +238,7 @@ export default function AdminPinPrompt({ onSuccess, onCancel }) {
             <Button
               onClick={onCancel}
               variant="ghost"
-              className="text-slate-500 hover:text-slate-300 hover:bg-white/5"
+              className="apple-btn apple-btn-plain apple-label-tertiary"
               disabled={loading}
             >
               Cancelar

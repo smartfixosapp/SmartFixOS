@@ -149,26 +149,26 @@ export default function WizardConfigPanel() {
 
   if (loadingData) {
     return (
-      <div className="flex items-center justify-center py-16">
-        <Loader2 className="w-8 h-8 animate-spin text-cyan-400" />
+      <div className="apple-type flex items-center justify-center py-16">
+        <Loader2 className="w-8 h-8 animate-spin text-apple-blue" />
       </div>
     );
   }
 
   return (
-    <div className="space-y-6">
+    <div className="apple-type space-y-6">
       {/* CATÁLOGO DE DISPOSITIVOS */}
       <DeviceCatalogManager />
 
       {/* Info */}
-      <div className="bg-gradient-to-r from-blue-600/10 to-purple-600/10 border border-blue-500/20 rounded-xl p-4">
+      <div className="bg-apple-blue/12 rounded-apple-md p-4">
         <div className="flex items-start gap-3">
-          <AlertCircle className="w-5 h-5 text-blue-400 flex-shrink-0 mt-0.5" />
+          <AlertCircle className="w-5 h-5 text-apple-blue flex-shrink-0 mt-0.5" />
           <div>
-            <h4 className="text-white font-bold text-sm mb-1">
+            <h4 className="apple-label-primary apple-text-headline mb-1">
               Configuración en Tiempo Real
             </h4>
-            <p className="text-blue-200/80 text-xs">
+            <p className="text-apple-blue apple-text-caption1">
               Los cambios se aplicarán inmediatamente en el wizard de creación de órdenes.
               Puedes personalizar cada aspecto del proceso de recepción.
             </p>

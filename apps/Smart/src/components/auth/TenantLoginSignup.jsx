@@ -125,31 +125,31 @@ export default function TenantLoginSignup() {
   };
 
   return (
-    <div className="min-h-screen bg-black flex items-center justify-center p-4">
+    <div className="apple-type min-h-screen apple-surface flex items-center justify-center p-4">
       <div className="w-full max-w-md">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="bg-gradient-to-br from-slate-900 to-black border border-cyan-500/20 rounded-3xl p-8"
+          className="apple-surface-elevated rounded-apple-lg shadow-apple-xl p-8"
         >
           {/* Toggle */}
-          <div className="flex gap-2 mb-8 bg-white/5 rounded-xl p-1">
+          <div className="flex gap-2 mb-8 bg-gray-sys6 dark:bg-gray-sys5 rounded-apple-md p-1">
             <button
               onClick={() => setMode("login")}
-              className={`flex-1 py-2 rounded-lg font-semibold transition-all ${
+              className={`apple-press flex-1 py-2 rounded-apple-sm apple-text-subheadline font-semibold transition-all ${
                 mode === "login"
-                  ? "bg-gradient-to-r from-cyan-500 to-emerald-500 text-white"
-                  : "text-gray-400 hover:text-white"
+                  ? "bg-apple-blue text-white"
+                  : "apple-label-secondary"
               }`}
             >
               Iniciar Sesión
             </button>
             <button
               onClick={() => setMode("signup")}
-              className={`flex-1 py-2 rounded-lg font-semibold transition-all ${
+              className={`apple-press flex-1 py-2 rounded-apple-sm apple-text-subheadline font-semibold transition-all ${
                 mode === "signup"
-                  ? "bg-gradient-to-r from-cyan-500 to-emerald-500 text-white"
-                  : "text-gray-400 hover:text-white"
+                  ? "bg-apple-blue text-white"
+                  : "apple-label-secondary"
               }`}
             >
               Registrarse
@@ -160,8 +160,8 @@ export default function TenantLoginSignup() {
           {mode === "login" && (
             <form onSubmit={handleLogin} className="space-y-4">
               <div>
-                <label className="text-white text-sm font-semibold flex items-center gap-2 mb-2">
-                  <Mail className="w-4 h-4 text-cyan-400" />
+                <label className="apple-label-primary apple-text-subheadline font-semibold flex items-center gap-2 mb-2">
+                  <Mail className="w-4 h-4 text-apple-blue" />
                   Email
                 </label>
                 <Input
@@ -169,13 +169,13 @@ export default function TenantLoginSignup() {
                   placeholder="tu@email.com"
                   value={loginData.email}
                   onChange={(e) => setLoginData({ ...loginData, email: e.target.value })}
-                  className="bg-white/5 border-cyan-500/30 text-white h-11"
+                  className="apple-input"
                 />
               </div>
 
               <div>
-                <label className="text-white text-sm font-semibold flex items-center gap-2 mb-2">
-                  <Lock className="w-4 h-4 text-cyan-400" />
+                <label className="apple-label-primary apple-text-subheadline font-semibold flex items-center gap-2 mb-2">
+                  <Lock className="w-4 h-4 text-apple-blue" />
                   Contraseña
                 </label>
                 <Input
@@ -183,14 +183,14 @@ export default function TenantLoginSignup() {
                   placeholder="••••••••"
                   value={loginData.password}
                   onChange={(e) => setLoginData({ ...loginData, password: e.target.value })}
-                  className="bg-white/5 border-cyan-500/30 text-white h-11"
+                  className="apple-input"
                 />
               </div>
 
               <Button
                 type="submit"
                 disabled={loading}
-                className="w-full bg-gradient-to-r from-cyan-600 to-emerald-600 hover:from-cyan-500 hover:to-emerald-500 h-11 font-semibold"
+                className="apple-btn apple-btn-primary w-full"
               >
                 {loading ? (
                   <>
@@ -211,21 +211,21 @@ export default function TenantLoginSignup() {
           {mode === "signup" && (
             <form onSubmit={handleSignup} className="space-y-4">
               <div>
-                <label className="text-white text-sm font-semibold flex items-center gap-2 mb-2">
-                  <Building2 className="w-4 h-4 text-cyan-400" />
+                <label className="apple-label-primary apple-text-subheadline font-semibold flex items-center gap-2 mb-2">
+                  <Building2 className="w-4 h-4 text-apple-blue" />
                   Nombre del Negocio
                 </label>
                 <Input
                   placeholder="Mi Taller"
                   value={signupData.name}
                   onChange={(e) => setSignupData({ ...signupData, name: e.target.value })}
-                  className="bg-white/5 border-cyan-500/30 text-white h-11"
+                  className="apple-input"
                 />
               </div>
 
               <div>
-                <label className="text-white text-sm font-semibold flex items-center gap-2 mb-2">
-                  <Mail className="w-4 h-4 text-cyan-400" />
+                <label className="apple-label-primary apple-text-subheadline font-semibold flex items-center gap-2 mb-2">
+                  <Mail className="w-4 h-4 text-apple-blue" />
                   Email
                 </label>
                 <Input
@@ -233,13 +233,13 @@ export default function TenantLoginSignup() {
                   placeholder="tu@email.com"
                   value={signupData.email}
                   onChange={(e) => setSignupData({ ...signupData, email: e.target.value })}
-                  className="bg-white/5 border-cyan-500/30 text-white h-11"
+                  className="apple-input"
                 />
               </div>
 
               <div>
-                <label className="text-white text-sm font-semibold flex items-center gap-2 mb-2">
-                  <Lock className="w-4 h-4 text-cyan-400" />
+                <label className="apple-label-primary apple-text-subheadline font-semibold flex items-center gap-2 mb-2">
+                  <Lock className="w-4 h-4 text-apple-blue" />
                   Contraseña
                 </label>
                 <Input
@@ -247,20 +247,20 @@ export default function TenantLoginSignup() {
                   placeholder="••••••••"
                   value={signupData.password}
                   onChange={(e) => setSignupData({ ...signupData, password: e.target.value })}
-                  className="bg-white/5 border-cyan-500/30 text-white h-11"
+                  className="apple-input"
                 />
               </div>
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="text-white text-sm font-semibold flex items-center gap-2 mb-2">
-                    <Globe className="w-4 h-4 text-cyan-400" />
+                  <label className="apple-label-primary apple-text-subheadline font-semibold flex items-center gap-2 mb-2">
+                    <Globe className="w-4 h-4 text-apple-blue" />
                     País
                   </label>
                   <select
                     value={signupData.country}
                     onChange={(e) => setSignupData({ ...signupData, country: e.target.value })}
-                    className="w-full bg-white/5 border border-cyan-500/30 text-white h-11 rounded-lg px-3"
+                    className="apple-input w-full h-11 rounded-apple-md px-3"
                   >
                     <option value="Puerto Rico">Puerto Rico</option>
                     <option value="USA">USA</option>
@@ -271,14 +271,14 @@ export default function TenantLoginSignup() {
                 </div>
 
                 <div>
-                  <label className="text-white text-sm font-semibold flex items-center gap-2 mb-2">
-                    <DollarSign className="w-4 h-4 text-cyan-400" />
+                  <label className="apple-label-primary apple-text-subheadline font-semibold flex items-center gap-2 mb-2">
+                    <DollarSign className="w-4 h-4 text-apple-blue" />
                     Moneda
                   </label>
                   <select
                     value={signupData.currency}
                     onChange={(e) => setSignupData({ ...signupData, currency: e.target.value })}
-                    className="w-full bg-white/5 border border-cyan-500/30 text-white h-11 rounded-lg px-3"
+                    className="apple-input w-full h-11 rounded-apple-md px-3"
                   >
                     <option value="USD">USD</option>
                     <option value="MXN">MXN</option>
@@ -288,17 +288,17 @@ export default function TenantLoginSignup() {
                 </div>
               </div>
 
-              <div className="bg-cyan-500/10 border border-cyan-500/30 rounded-xl p-3">
-                <p className="text-sm text-cyan-300 flex items-start gap-2">
+              <div className="bg-apple-blue/12 rounded-apple-md p-3">
+                <p className="apple-text-subheadline text-apple-blue flex items-start gap-2">
                   <CheckCircle className="w-4 h-4 mt-0.5 flex-shrink-0" />
-                  <span>$65 USD/mes • Acceso completo • Sin contratos</span>
+                  <span className="tabular-nums">$65 USD/mes • Acceso completo • Sin contratos</span>
                 </p>
               </div>
 
               <Button
                 type="submit"
                 disabled={loading}
-                className="w-full bg-gradient-to-r from-cyan-600 to-emerald-600 hover:from-cyan-500 hover:to-emerald-500 h-11 font-semibold"
+                className="apple-btn apple-btn-primary w-full"
               >
                 {loading ? (
                   <>

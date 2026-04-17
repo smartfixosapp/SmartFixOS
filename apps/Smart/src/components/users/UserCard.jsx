@@ -8,7 +8,7 @@ export default function UserCard({ user, roles, onEdit, onDelete, onToggleActive
 
   const userRole = user.position || user.role;
   const role = roles.find(r => r.value === userRole) || {
-    label: "Empleado", color: "from-slate-500 to-slate-700", badge: "bg-slate-500", icon: () => null
+    label: "Empleado", color: "bg-apple-gray", badge: "bg-apple-gray", icon: () => null
   };
   const RoleIcon = role.icon;
 
@@ -29,52 +29,52 @@ export default function UserCard({ user, roles, onEdit, onDelete, onToggleActive
   };
 
   return (
-    <div className="relative">
+    <div className="apple-type relative">
       {/* Main card — clickable to open profile */}
       <button
         onClick={onClick}
-        className={`group w-full text-left rounded-[22px] p-5 transition-all duration-200 active:scale-[0.98] block border ${
+        className={`group w-full text-left rounded-apple-lg p-5 transition-all duration-200 apple-press block ${
           isActive
-            ? "bg-white/[0.04] hover:bg-white/[0.08] border-white/[0.08] hover:border-white/[0.18]"
-            : "bg-white/[0.02] border-white/[0.04] opacity-60 hover:opacity-80"
+            ? "apple-surface-elevated"
+            : "apple-surface-elevated opacity-60 hover:opacity-80"
         }`}
       >
         <div className="flex items-center gap-4">
           {/* Avatar */}
           <div className="relative flex-shrink-0">
-            <div className={`w-[52px] h-[52px] rounded-[16px] bg-gradient-to-br ${role.color} flex items-center justify-center shadow-lg`}>
-              <span className="text-white font-black text-lg">{initials}</span>
+            <div className={`w-[52px] h-[52px] rounded-apple-md ${role.badge} flex items-center justify-center shadow-apple-sm`}>
+              <span className="text-white apple-text-title3">{initials}</span>
             </div>
-            <div className={`absolute -bottom-1 -right-1 w-3.5 h-3.5 rounded-full border-2 border-[#090a0d] ${
-              isActive ? "bg-emerald-400" : "bg-slate-600"
+            <div className={`absolute -bottom-1 -right-1 w-3.5 h-3.5 rounded-full border-2 border-apple-surface ${
+              isActive ? "bg-apple-green" : "bg-apple-gray"
             }`} />
           </div>
 
           {/* Info */}
           <div className="flex-1 min-w-0">
-            <p className="text-white font-bold text-[15px] leading-tight truncate">{user.full_name}</p>
+            <p className="apple-label-primary apple-text-headline truncate">{user.full_name}</p>
             <div className="flex items-center gap-2 mt-1.5 flex-wrap">
-              <Badge className={`${role.badge} text-white border-0 text-[10px] px-2 py-0 h-5`}>
+              <Badge className={`${role.badge} text-white border-0 apple-text-caption2 px-2 py-0 h-5`}>
                 <RoleIcon className="w-2.5 h-2.5 mr-1" />
                 {role.label}
               </Badge>
               {isPending && (
-                <span className={`text-[9px] font-black uppercase px-1.5 py-0.5 rounded-full ${
-                  isExpired ? "bg-red-500/20 text-red-400" : "bg-amber-500/20 text-amber-400"
+                <span className={`apple-text-caption2 px-1.5 py-0.5 rounded-apple-xs ${
+                  isExpired ? "bg-apple-red/15 text-apple-red" : "bg-apple-orange/15 text-apple-orange"
                 }`}>
-                  {isExpired ? "EXPIRADO" : "PENDIENTE"}
+                  {isExpired ? "Expirado" : "Pendiente"}
                 </span>
               )}
             </div>
             {user.email && (
-              <p className="text-white/30 text-[11px] mt-1 truncate">{user.email}</p>
+              <p className="apple-label-tertiary apple-text-caption1 mt-1 truncate">{user.email}</p>
             )}
           </div>
 
           {/* ⋯ menu button */}
           <button
             onClick={(e) => { e.stopPropagation(); setMenuOpen(v => !v); }}
-            className="w-8 h-8 flex items-center justify-center rounded-full text-white/25 hover:text-white/60 hover:bg-white/10 transition-all flex-shrink-0"
+            className="w-8 h-8 flex items-center justify-center rounded-full apple-label-tertiary hover:bg-gray-sys6 dark:hover:bg-gray-sys5 transition-all flex-shrink-0 apple-press"
           >
             <MoreVertical className="w-4 h-4" />
           </button>
@@ -82,11 +82,11 @@ export default function UserCard({ user, roles, onEdit, onDelete, onToggleActive
 
         {/* Pending alert strip */}
         {isPending && (
-          <div className={`mt-3 flex items-center gap-2 rounded-xl px-3 py-2 ${
-            isExpired ? "bg-red-500/10 text-red-400" : "bg-amber-500/10 text-amber-400"
+          <div className={`mt-3 flex items-center gap-2 rounded-apple-md px-3 py-2 ${
+            isExpired ? "bg-apple-red/12 text-apple-red" : "bg-apple-orange/12 text-apple-orange"
           }`}>
             <Clock className="w-3 h-3 flex-shrink-0" />
-            <p className="text-[11px] font-semibold">
+            <p className="apple-text-caption1">
               {isExpired ? "Enlace expirado — reenvía la invitación" : "Esperando activación de cuenta"}
             </p>
           </div>
@@ -97,16 +97,16 @@ export default function UserCard({ user, roles, onEdit, onDelete, onToggleActive
       {menuOpen && (
         <>
           <div className="fixed inset-0 z-40" onClick={() => setMenuOpen(false)} />
-          <div className="absolute right-4 top-14 z-50 bg-[#16171c] border border-white/10 rounded-2xl shadow-2xl overflow-hidden min-w-[190px]">
+          <div className="absolute right-4 top-14 z-50 apple-surface-elevated rounded-apple-lg shadow-apple-xl overflow-hidden min-w-[190px] border-0">
             <button
               onClick={(e) => { e.stopPropagation(); setMenuOpen(false); onEdit(); }}
-              className="flex items-center gap-3 w-full px-4 py-3 text-white/80 hover:bg-white/10 text-sm transition-colors"
+              className="flex items-center gap-3 w-full px-4 py-3 apple-label-primary hover:bg-gray-sys6 dark:hover:bg-gray-sys5 apple-text-body transition-colors apple-press"
             >
               <Edit className="w-4 h-4" /> Editar empleado
             </button>
             <button
               onClick={handleResend}
-              className="flex items-center gap-3 w-full px-4 py-3 text-white/80 hover:bg-white/10 text-sm transition-colors"
+              className="flex items-center gap-3 w-full px-4 py-3 apple-label-primary hover:bg-gray-sys6 dark:hover:bg-gray-sys5 apple-text-body transition-colors apple-press"
             >
               {resending
                 ? <div className="w-4 h-4 border border-current/30 border-t-current rounded-full animate-spin" />
@@ -116,15 +116,15 @@ export default function UserCard({ user, roles, onEdit, onDelete, onToggleActive
             </button>
             <button
               onClick={(e) => { e.stopPropagation(); setMenuOpen(false); onToggleActive(); }}
-              className="flex items-center gap-3 w-full px-4 py-3 text-white/80 hover:bg-white/10 text-sm transition-colors"
+              className="flex items-center gap-3 w-full px-4 py-3 apple-label-primary hover:bg-gray-sys6 dark:hover:bg-gray-sys5 apple-text-body transition-colors apple-press"
             >
               {isActive ? <Lock className="w-4 h-4" /> : <Unlock className="w-4 h-4" />}
               {isActive ? "Desactivar" : "Activar"}
             </button>
-            <div className="h-px bg-white/10" />
+            <div style={{ borderBottom: '0.5px solid rgb(var(--separator) / 0.29)' }} />
             <button
               onClick={(e) => { e.stopPropagation(); setMenuOpen(false); onDelete(); }}
-              className="flex items-center gap-3 w-full px-4 py-3 text-red-400 hover:bg-red-500/10 text-sm transition-colors"
+              className="flex items-center gap-3 w-full px-4 py-3 text-apple-red hover:bg-apple-red/12 apple-text-body transition-colors apple-press"
             >
               <Trash2 className="w-4 h-4" /> Eliminar
             </button>

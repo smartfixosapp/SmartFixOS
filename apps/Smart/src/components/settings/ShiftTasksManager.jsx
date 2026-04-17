@@ -167,15 +167,15 @@ export default function ShiftTasksManager() {
   const filteredTasks = tasks.filter(t => t.type === activeTab);
 
   return (
-    <div className="space-y-5">
+    <div className="apple-type space-y-5">
       {/* Header con historial */}
       <div className="flex items-center justify-between">
-        <p className="text-xs text-white/30">
+        <p className="apple-text-caption1 apple-label-tertiary">
           Crea tareas que aparecerán automáticamente en el panel de cada empleado al iniciar o cerrar turno.
         </p>
         <button
           onClick={showHistory ? () => setShowHistory(false) : loadHistory}
-          className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold border border-white/10 bg-white/5 text-white/40 hover:text-white hover:bg-white/10 transition-all flex-shrink-0"
+          className="apple-btn apple-btn-secondary apple-press flex items-center gap-1.5 flex-shrink-0"
         >
           <History className="w-3.5 h-3.5" />
           Historial hoy
@@ -184,23 +184,23 @@ export default function ShiftTasksManager() {
 
       {/* Historial de hoy */}
       {showHistory && (
-        <div className="bg-[#111114]/80 border border-white/[0.07] rounded-2xl overflow-hidden">
-          <div className="px-4 py-3 border-b border-white/[0.05] flex items-center gap-2">
-            <History className="w-3.5 h-3.5 text-teal-400" />
-            <p className="text-xs font-black text-white/60 uppercase tracking-widest">Completadas hoy</p>
+        <div className="apple-surface-elevated rounded-apple-md overflow-hidden">
+          <div className="px-4 py-3 flex items-center gap-2" style={{ borderBottom: '0.5px solid rgb(var(--separator) / 0.29)' }}>
+            <History className="w-3.5 h-3.5 text-apple-blue" />
+            <p className="apple-text-caption1 apple-label-secondary">Completadas hoy</p>
           </div>
           {recentLogs.length === 0 ? (
-            <p className="text-xs text-white/30 text-center py-6">Sin completaciones registradas hoy.</p>
+            <p className="apple-text-caption1 apple-label-tertiary text-center py-6">Sin completaciones registradas hoy.</p>
           ) : (
-            <div className="divide-y divide-white/[0.04] max-h-52 overflow-y-auto">
-              {recentLogs.map(log => (
-                <div key={log.id} className="flex items-center gap-3 px-4 py-3">
-                  <CheckCircle2 className="w-4 h-4 text-emerald-400 flex-shrink-0" />
+            <div className="max-h-52 overflow-y-auto">
+              {recentLogs.map((log, idx) => (
+                <div key={log.id} className="flex items-center gap-3 px-4 py-3" style={idx > 0 ? { borderTop: '0.5px solid rgb(var(--separator) / 0.29)' } : undefined}>
+                  <CheckCircle2 className="w-4 h-4 text-apple-green flex-shrink-0" />
                   <div className="flex-1 min-w-0">
-                    <p className="text-xs font-bold text-white truncate">{log.task_title || "Tarea"}</p>
-                    <p className="text-[10px] text-white/40">{log.employee_name || log.employee_id}</p>
+                    <p className="apple-text-caption1 apple-label-primary truncate">{log.task_title || "Tarea"}</p>
+                    <p className="apple-text-caption2 apple-label-tertiary">{log.employee_name || log.employee_id}</p>
                   </div>
-                  <span className="text-[10px] text-white/30 flex-shrink-0">
+                  <span className="apple-text-caption2 apple-label-tertiary flex-shrink-0 tabular-nums">
                     {log.completed_at
                       ? format(new Date(log.completed_at), "HH:mm", { locale: es })
                       : "—"}
@@ -215,25 +215,25 @@ export default function ShiftTasksManager() {
       {/* Tabs apertura / cierre */}
       <div className="flex gap-2">
         {[
-          { id: "opening", label: "Apertura", icon: Sunrise, color: "text-amber-400" },
-          { id: "closing", label: "Cierre", icon: Sunset, color: "text-indigo-400" },
+          { id: "opening", label: "Apertura", icon: Sunrise, color: "text-apple-orange" },
+          { id: "closing", label: "Cierre", icon: Sunset, color: "text-apple-indigo" },
         ].map(({ id, label, icon: Icon, color }) => {
           const count = tasks.filter(t => t.type === id && t.active).length;
           return (
             <button
               key={id}
               onClick={() => { setActiveTab(id); setShowForm(false); }}
-              className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold border transition-all ${
+              className={`flex items-center gap-2 px-4 py-2 rounded-apple-sm apple-text-subheadline transition-all apple-press ${
                 activeTab === id
-                  ? "bg-white text-gray-900 border-transparent"
-                  : "bg-white/5 border-white/10 text-white/50 hover:bg-white/10"
+                  ? "apple-btn apple-btn-primary"
+                  : "bg-gray-sys6 dark:bg-gray-sys5 apple-label-secondary"
               }`}
             >
-              <Icon className={`w-4 h-4 ${activeTab === id ? "text-gray-600" : color}`} />
+              <Icon className={`w-4 h-4 ${activeTab === id ? "" : color}`} />
               {label}
               {count > 0 && (
-                <span className={`text-[10px] font-black px-1.5 py-0.5 rounded-full ${
-                  activeTab === id ? "bg-gray-200 text-gray-700" : "bg-white/10 text-white/40"
+                <span className={`apple-text-caption2 px-1.5 py-0.5 rounded-full tabular-nums ${
+                  activeTab === id ? "bg-white/20" : "bg-gray-sys6 dark:bg-gray-sys5 apple-label-tertiary"
                 }`}>{count}</span>
               )}
             </button>
@@ -244,58 +244,58 @@ export default function ShiftTasksManager() {
       {/* Lista de tareas */}
       <div className="space-y-2">
         {filteredTasks.length === 0 && !showForm && (
-          <div className="text-center py-8 text-white/25 text-sm">
+          <div className="text-center py-8 apple-label-tertiary apple-text-subheadline">
             No hay tareas de {activeTab === "opening" ? "apertura" : "cierre"} configuradas.
           </div>
         )}
         {filteredTasks.map(task => (
           <div
             key={task.id}
-            className={`flex items-center gap-3 p-4 rounded-2xl border transition-all ${
+            className={`flex items-center gap-3 p-4 rounded-apple-md transition-all ${
               task.active
-                ? "bg-white/[0.03] border-white/[0.07] hover:bg-white/[0.05]"
-                : "bg-black/20 border-white/[0.04] opacity-50"
+                ? "apple-surface-elevated"
+                : "apple-surface-elevated opacity-50"
             }`}
           >
-            <GripVertical className="w-4 h-4 text-white/15 flex-shrink-0" />
+            <GripVertical className="w-4 h-4 apple-label-tertiary flex-shrink-0" />
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2 flex-wrap">
-                <p className="text-sm font-bold text-white truncate">{task.title}</p>
+                <p className="apple-text-subheadline apple-label-primary truncate">{task.title}</p>
                 {task.priority === "urgent" && (
-                  <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-red-500/15 border border-red-500/25 text-red-400 flex items-center gap-1">
+                  <span className="apple-text-caption2 px-2 py-0.5 rounded-full bg-apple-red/15 text-apple-red flex items-center gap-1">
                     <AlertCircle className="w-2.5 h-2.5" /> Urgente
                   </span>
                 )}
               </div>
               {task.description && (
-                <p className="text-xs text-white/35 mt-0.5 truncate">{task.description}</p>
+                <p className="apple-text-caption1 apple-label-tertiary mt-0.5 truncate">{task.description}</p>
               )}
               <div className="flex items-center gap-1 mt-1">
-                <Users className="w-2.5 h-2.5 text-white/50" />
-                <p className="text-[10px] text-white/30">{getAssignedLabel(task)}</p>
+                <Users className="w-2.5 h-2.5 apple-label-tertiary" />
+                <p className="apple-text-caption2 apple-label-tertiary">{getAssignedLabel(task)}</p>
               </div>
             </div>
             <div className="flex items-center gap-2 flex-shrink-0">
               {/* Toggle activa */}
               <button
                 onClick={() => handleToggleActive(task)}
-                className={`w-10 h-5 rounded-full transition-all border relative ${
-                  task.active ? "bg-emerald-500/20 border-emerald-500/30" : "bg-white/5 border-white/10"
+                className={`w-10 h-5 rounded-full transition-all relative apple-press ${
+                  task.active ? "bg-apple-green/15" : "bg-gray-sys6 dark:bg-gray-sys5"
                 }`}
               >
                 <div className={`absolute top-0.5 w-4 h-4 rounded-full transition-all ${
-                  task.active ? "left-5 bg-emerald-400" : "left-0.5 bg-white/20"
+                  task.active ? "left-5 bg-apple-green" : "left-0.5 bg-white/20"
                 }`} />
               </button>
               <button
                 onClick={() => openEdit(task)}
-                className="w-8 h-8 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-white/40 hover:text-white hover:bg-white/10 transition-all"
+                className="w-8 h-8 rounded-apple-sm bg-gray-sys6 dark:bg-gray-sys5 flex items-center justify-center apple-label-tertiary transition-all apple-press"
               >
                 <Edit2 className="w-3.5 h-3.5" />
               </button>
               <button
                 onClick={() => handleDelete(task)}
-                className="w-8 h-8 rounded-xl bg-red-500/5 border border-red-500/10 flex items-center justify-center text-red-400/40 hover:text-red-400 hover:bg-red-500/10 transition-all"
+                className="w-8 h-8 rounded-apple-sm bg-apple-red/12 flex items-center justify-center text-apple-red transition-all apple-press"
               >
                 <Trash2 className="w-3.5 h-3.5" />
               </button>
@@ -308,7 +308,7 @@ export default function ShiftTasksManager() {
       {!showForm && (
         <button
           onClick={() => openNew(activeTab)}
-          className="w-full flex items-center justify-center gap-2 py-3 rounded-2xl border border-dashed border-white/15 text-white/35 text-sm font-bold hover:border-teal-500/40 hover:text-teal-400 hover:bg-teal-500/5 transition-all"
+          className="w-full flex items-center justify-center gap-2 py-3 rounded-apple-md apple-surface-elevated apple-label-secondary apple-text-subheadline hover:bg-apple-blue/12 transition-all apple-press"
         >
           <Plus className="w-4 h-4" />
           Nueva tarea de {activeTab === "opening" ? "apertura" : "cierre"}
@@ -317,66 +317,66 @@ export default function ShiftTasksManager() {
 
       {/* Formulario */}
       {showForm && (
-        <div className="bg-[#111114]/80 border border-white/10 rounded-2xl p-5 space-y-4">
+        <div className="apple-surface-elevated rounded-apple-md p-5 space-y-4">
           <div className="flex items-center justify-between">
-            <p className="text-sm font-black text-white">{editing ? "Editar tarea" : "Nueva tarea"}</p>
-            <button onClick={() => { setShowForm(false); setEditing(null); }} className="text-white/30 hover:text-white transition-colors">
+            <p className="apple-text-subheadline apple-label-primary">{editing ? "Editar tarea" : "Nueva tarea"}</p>
+            <button onClick={() => { setShowForm(false); setEditing(null); }} className="apple-label-tertiary hover:apple-label-primary transition-colors apple-press">
               <X className="w-4 h-4" />
             </button>
           </div>
 
           <div>
-            <label className="text-[10px] font-black text-white/30 uppercase tracking-widest block mb-1.5">Nombre *</label>
+            <label className="apple-text-caption2 apple-label-tertiary block mb-1.5">Nombre *</label>
             <input
               value={form.title}
               onChange={e => setForm(p => ({ ...p, title: e.target.value }))}
               placeholder="Ej: Verificar emails del día"
-              className="w-full bg-black/30 border border-white/[0.08] rounded-xl px-4 py-3 text-white text-sm placeholder:text-white/50 focus:outline-none focus:border-teal-500/50"
+              className="apple-input w-full"
             />
           </div>
 
           <div>
-            <label className="text-[10px] font-black text-white/30 uppercase tracking-widest block mb-1.5">Descripción (opcional)</label>
+            <label className="apple-text-caption2 apple-label-tertiary block mb-1.5">Descripción (opcional)</label>
             <textarea
               value={form.description}
               onChange={e => setForm(p => ({ ...p, description: e.target.value }))}
               rows={2}
               placeholder="Instrucciones adicionales para el empleado..."
-              className="w-full bg-black/30 border border-white/[0.08] rounded-xl px-4 py-3 text-white text-sm placeholder:text-white/50 focus:outline-none focus:border-teal-500/50 resize-none"
+              className="apple-input w-full resize-none"
             />
           </div>
 
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="text-[10px] font-black text-white/30 uppercase tracking-widest block mb-1.5">Tipo</label>
+              <label className="apple-text-caption2 apple-label-tertiary block mb-1.5">Tipo</label>
               <select
                 value={form.type}
                 onChange={e => setForm(p => ({ ...p, type: e.target.value }))}
-                className="w-full h-10 bg-black/30 border border-white/[0.08] rounded-xl px-3 text-white text-sm focus:outline-none focus:border-teal-500/50"
+                className="apple-input w-full h-10"
               >
                 <option value="opening">Apertura</option>
                 <option value="closing">Cierre</option>
               </select>
             </div>
             <div>
-              <label className="text-[10px] font-black text-white/30 uppercase tracking-widest block mb-1.5">Prioridad</label>
+              <label className="apple-text-caption2 apple-label-tertiary block mb-1.5">Prioridad</label>
               <select
                 value={form.priority}
                 onChange={e => setForm(p => ({ ...p, priority: e.target.value }))}
-                className="w-full h-10 bg-black/30 border border-white/[0.08] rounded-xl px-3 text-white text-sm focus:outline-none focus:border-teal-500/50"
+                className="apple-input w-full h-10"
               >
                 <option value="normal">Normal</option>
-                <option value="urgent">Urgente 🔴</option>
+                <option value="urgent">Urgente</option>
               </select>
             </div>
           </div>
 
           <div>
-            <label className="text-[10px] font-black text-white/30 uppercase tracking-widest block mb-1.5">Asignar a</label>
+            <label className="apple-text-caption2 apple-label-tertiary block mb-1.5">Asignar a</label>
             <select
               value={getAssignValue()}
               onChange={e => handleAssignChange(e.target.value)}
-              className="w-full h-10 bg-black/30 border border-white/[0.08] rounded-xl px-3 text-white text-sm focus:outline-none focus:border-teal-500/50"
+              className="apple-input w-full h-10"
             >
               <option value="all">Todos los empleados</option>
               <optgroup label="— Por rol —">
@@ -398,14 +398,14 @@ export default function ShiftTasksManager() {
           <div className="flex gap-2 pt-1">
             <button
               onClick={() => { setShowForm(false); setEditing(null); }}
-              className="flex-1 py-2.5 rounded-xl bg-white/5 border border-white/10 text-white/50 text-sm font-bold hover:bg-white/10 transition-all"
+              className="apple-btn apple-btn-secondary apple-press flex-1"
             >
               Cancelar
             </button>
             <button
               onClick={handleSave}
               disabled={saving}
-              className="flex-1 py-2.5 rounded-xl bg-gradient-to-r from-teal-500 to-cyan-500 text-white text-sm font-bold hover:opacity-90 transition-all disabled:opacity-60"
+              className="apple-btn apple-btn-primary apple-press flex-1 disabled:opacity-60"
             >
               {saving ? "Guardando..." : editing ? "Actualizar" : "Crear tarea"}
             </button>

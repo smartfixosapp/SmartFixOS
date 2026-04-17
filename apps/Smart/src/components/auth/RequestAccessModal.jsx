@@ -179,26 +179,27 @@ export default function RequestAccessModal({ open, onClose }) {
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent className="max-w-md bg-gradient-to-br from-slate-900 to-black border-2 border-cyan-500/30">
+      <DialogContent className="apple-type max-w-md apple-surface-elevated rounded-apple-lg shadow-apple-xl border-0 p-0 overflow-hidden">
+        <div className="p-6">
         {success ? (
           <div className="text-center py-8">
-            <div className="w-20 h-20 rounded-full bg-gradient-to-br from-green-500 to-emerald-600 flex items-center justify-center mx-auto mb-6 animate-bounce">
-              <CheckCircle className="w-10 h-10 text-white" />
+            <div className="w-20 h-20 rounded-apple-lg bg-apple-green/15 flex items-center justify-center mx-auto mb-6 animate-bounce">
+              <CheckCircle className="w-10 h-10 text-apple-green" />
             </div>
-            <h3 className="text-2xl font-bold text-white mb-3">¡Solicitud Enviada!</h3>
-            <p className="text-gray-300 mb-2">Un administrador revisará tu solicitud</p>
-            <p className="text-sm text-gray-500">Recibirás un email cuando sea aprobada</p>
+            <h3 className="apple-text-title2 apple-label-primary mb-3">¡Solicitud Enviada!</h3>
+            <p className="apple-label-secondary apple-text-body mb-2">Un administrador revisará tu solicitud</p>
+            <p className="apple-text-subheadline apple-label-tertiary">Recibirás un email cuando sea aprobada</p>
           </div>
         ) : (
           <>
             <DialogHeader>
               <div className="flex items-center gap-3 mb-2">
-                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-cyan-500 to-emerald-500 flex items-center justify-center">
-                  <UserPlus className="w-6 h-6 text-white" />
+                <div className="w-12 h-12 rounded-apple-sm bg-apple-blue/15 flex items-center justify-center">
+                  <UserPlus className="w-6 h-6 text-apple-blue" />
                 </div>
                 <div>
-                  <DialogTitle className="text-2xl text-white">Solicitar Acceso</DialogTitle>
-                  <DialogDescription className="text-gray-400">
+                  <DialogTitle className="apple-text-title2 apple-label-primary">Solicitar Acceso</DialogTitle>
+                  <DialogDescription className="apple-label-tertiary apple-text-subheadline">
                     Completa el formulario para crear tu cuenta
                   </DialogDescription>
                 </div>
@@ -207,17 +208,17 @@ export default function RequestAccessModal({ open, onClose }) {
 
             <div className="space-y-4 mt-4">
               <div>
-                <Label className="text-white">Nombre Completo *</Label>
+                <Label className="apple-label-primary apple-text-subheadline">Nombre Completo *</Label>
                 <Input
                   value={formData.full_name}
                   onChange={(e) => handleChange("full_name", e.target.value)}
                   placeholder="Juan Pérez"
-                  className="bg-slate-800/50 border-cyan-500/30 text-white"
+                  className="apple-input"
                 />
               </div>
 
               <div>
-                <Label className="text-white flex items-center gap-2">
+                <Label className="apple-label-primary apple-text-subheadline flex items-center gap-2">
                   <Mail className="w-4 h-4" />
                   Email *
                 </Label>
@@ -226,12 +227,12 @@ export default function RequestAccessModal({ open, onClose }) {
                   value={formData.email}
                   onChange={(e) => handleChange("email", e.target.value)}
                   placeholder="juan@ejemplo.com"
-                  className="bg-slate-800/50 border-cyan-500/30 text-white"
+                  className="apple-input"
                 />
               </div>
 
               <div>
-                <Label className="text-white flex items-center gap-2">
+                <Label className="apple-label-primary apple-text-subheadline flex items-center gap-2">
                   <Phone className="w-4 h-4" />
                   Teléfono *
                 </Label>
@@ -239,12 +240,12 @@ export default function RequestAccessModal({ open, onClose }) {
                   value={formData.phone}
                   onChange={(e) => handleChange("phone", e.target.value)}
                   placeholder="787-123-4567"
-                  className="bg-slate-800/50 border-cyan-500/30 text-white"
+                  className="apple-input tabular-nums"
                 />
               </div>
 
               <div>
-                <Label className="text-white flex items-center gap-2">
+                <Label className="apple-label-primary apple-text-subheadline flex items-center gap-2">
                   <Building2 className="w-4 h-4" />
                   Sucursal / Tienda
                 </Label>
@@ -252,17 +253,17 @@ export default function RequestAccessModal({ open, onClose }) {
                   value={formData.store_branch}
                   onChange={(e) => handleChange("store_branch", e.target.value)}
                   placeholder="Tienda principal"
-                  className="bg-slate-800/50 border-cyan-500/30 text-white"
+                  className="apple-input"
                 />
               </div>
 
               <div>
-                <Label className="text-white">Teléfono de la Tienda</Label>
+                <Label className="apple-label-primary apple-text-subheadline">Teléfono de la Tienda</Label>
                 <Input
                   value={formData.store_phone}
                   onChange={(e) => handleChange("store_phone", e.target.value)}
                   placeholder="787-000-0000"
-                  className="bg-slate-800/50 border-cyan-500/30 text-white"
+                  className="apple-input tabular-nums"
                 />
               </div>
             </div>
@@ -271,7 +272,7 @@ export default function RequestAccessModal({ open, onClose }) {
               <Button
                 variant="outline"
                 onClick={onClose}
-                className="flex-1 border-gray-600 text-gray-300 hover:bg-gray-700/50"
+                className="apple-btn apple-btn-secondary flex-1"
                 disabled={loading}
               >
                 Cancelar
@@ -279,7 +280,7 @@ export default function RequestAccessModal({ open, onClose }) {
               <Button
                 onClick={handleSubmit}
                 disabled={loading}
-                className="flex-1 bg-gradient-to-r from-cyan-600 to-emerald-600 hover:from-cyan-500 hover:to-emerald-500"
+                className="apple-btn apple-btn-primary flex-1"
               >
                 {loading ? (
                   <>
@@ -296,6 +297,7 @@ export default function RequestAccessModal({ open, onClose }) {
             </div>
           </>
         )}
+        </div>
       </DialogContent>
     </Dialog>
   );

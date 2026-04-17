@@ -28,10 +28,10 @@ export default function DashboardTab({ user }) {
   useEffect(() => {
     const onSave = () => saveData();
     const onRevert = () => setData(originalData);
-    
+
     window.addEventListener("settings-save", onSave);
     window.addEventListener("settings-revert", onRevert);
-    
+
     return () => {
       window.removeEventListener("settings-save", onSave);
       window.removeEventListener("settings-revert", onRevert);
@@ -67,7 +67,7 @@ export default function DashboardTab({ user }) {
   const saveData = async () => {
     try {
       const rows = await base44.entities.SystemConfig.filter({ key: "settings.dashboard" });
-      
+
       const payload = {
         key: "settings.dashboard",
         value: JSON.stringify(data),
@@ -94,26 +94,26 @@ export default function DashboardTab({ user }) {
       setOriginalData(data);
       window.dispatchEvent(new Event("settings-clean"));
       window.dispatchEvent(new Event("force-refresh"));
-      
+
       alert("Configuración guardada");
     } catch (e) {
       alert("Error al guardar: " + e.message);
     }
   };
 
-  if (loading) return <div className="text-gray-400">Cargando...</div>;
+  if (loading) return <div className="apple-type apple-label-tertiary apple-text-body">Cargando...</div>;
 
   return (
-    <div className="space-y-6">
-      <Card className="bg-black/30 border-white/10">
+    <div className="apple-type space-y-6">
+      <Card className="apple-card border-0">
         <CardHeader>
-          <CardTitle className="text-white">Nota/Oferta de la Semana</CardTitle>
+          <CardTitle className="apple-text-title3 apple-label-primary">Nota/Oferta de la Semana</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="flex items-center justify-between">
             <div>
-              <Label className="text-gray-300">Habilitar nota del dashboard</Label>
-              <p className="text-xs text-gray-500">Permitir que admins/managers publiquen notas</p>
+              <Label className="apple-label-primary apple-text-body">Habilitar nota del dashboard</Label>
+              <p className="apple-text-caption1 apple-label-tertiary">Permitir que admins/managers publiquen notas</p>
             </div>
             <Switch
               checked={data.enabled}
@@ -123,8 +123,8 @@ export default function DashboardTab({ user }) {
 
           <div className="flex items-center justify-between">
             <div>
-              <Label className="text-gray-300">Permitir envío a todos</Label>
-              <p className="text-xs text-gray-500">Permitir enviar notificaciones a todos los usuarios</p>
+              <Label className="apple-label-primary apple-text-body">Permitir envío a todos</Label>
+              <p className="apple-text-caption1 apple-label-tertiary">Permitir enviar notificaciones a todos los usuarios</p>
             </div>
             <Switch
               checked={data.allow_send_all}
@@ -134,8 +134,8 @@ export default function DashboardTab({ user }) {
 
           <div className="flex items-center justify-between">
             <div>
-              <Label className="text-gray-300">Permitir envío a usuarios específicos</Label>
-              <p className="text-xs text-gray-500">Permitir seleccionar destinatarios individuales</p>
+              <Label className="apple-label-primary apple-text-body">Permitir envío a usuarios específicos</Label>
+              <p className="apple-text-caption1 apple-label-tertiary">Permitir seleccionar destinatarios individuales</p>
             </div>
             <Switch
               checked={data.allow_send_specific}
@@ -144,12 +144,12 @@ export default function DashboardTab({ user }) {
           </div>
 
           <div>
-            <Label className="text-gray-300">Audiencia por defecto</Label>
+            <Label className="apple-label-secondary apple-text-footnote">Audiencia por defecto</Label>
             <Select
               value={data.default_audience}
               onValueChange={(value) => setData({ ...data, default_audience: value })}
             >
-              <SelectTrigger className="bg-black border-gray-700 text-white">
+              <SelectTrigger className="apple-input">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -160,12 +160,12 @@ export default function DashboardTab({ user }) {
           </div>
 
           <div>
-            <Label className="text-gray-300">Posición de la nota</Label>
+            <Label className="apple-label-secondary apple-text-footnote">Posición de la nota</Label>
             <Select
               value={data.note_position}
               onValueChange={(value) => setData({ ...data, note_position: value })}
             >
-              <SelectTrigger className="bg-black border-gray-700 text-white">
+              <SelectTrigger className="apple-input">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -177,13 +177,13 @@ export default function DashboardTab({ user }) {
         </CardContent>
       </Card>
 
-      <Card className="bg-black/30 border-white/10">
+      <Card className="apple-card border-0">
         <CardHeader>
-          <CardTitle className="text-white">Componentes del Dashboard</CardTitle>
+          <CardTitle className="apple-text-title3 apple-label-primary">Componentes del Dashboard</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="flex items-center justify-between">
-            <Label className="text-gray-300">Mostrar KPIs (ventas, órdenes, etc.)</Label>
+            <Label className="apple-label-primary apple-text-body">Mostrar KPIs (ventas, órdenes, etc.)</Label>
             <Switch
               checked={data.show_kpis}
               onCheckedChange={(checked) => setData({ ...data, show_kpis: checked })}
@@ -191,7 +191,7 @@ export default function DashboardTab({ user }) {
           </div>
 
           <div className="flex items-center justify-between">
-            <Label className="text-gray-300">Mostrar órdenes recientes</Label>
+            <Label className="apple-label-primary apple-text-body">Mostrar órdenes recientes</Label>
             <Switch
               checked={data.show_recent_orders}
               onCheckedChange={(checked) => setData({ ...data, show_recent_orders: checked })}
@@ -199,7 +199,7 @@ export default function DashboardTab({ user }) {
           </div>
 
           <div className="flex items-center justify-between">
-            <Label className="text-gray-300">Mostrar lista de precios</Label>
+            <Label className="apple-label-primary apple-text-body">Mostrar lista de precios</Label>
             <Switch
               checked={data.show_price_list}
               onCheckedChange={(checked) => setData({ ...data, show_price_list: checked })}

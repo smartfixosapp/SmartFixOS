@@ -76,36 +76,36 @@ export default function CommunicationHistory({ customerId }) {
 
   const getTypeColor = (type) => {
     const colors = {
-      call: "text-blue-400",
-      email: "text-cyan-400",
-      sms: "text-green-400",
-      whatsapp: "text-emerald-400",
-      note: "text-yellow-400"
+      call: "text-apple-blue",
+      email: "text-apple-blue",
+      sms: "text-apple-green",
+      whatsapp: "text-apple-green",
+      note: "text-apple-yellow"
     };
-    return colors[type] || "text-gray-400";
+    return colors[type] || "apple-label-secondary";
   };
 
-  const filtered = filterType === "all" 
-    ? communications 
+  const filtered = filterType === "all"
+    ? communications
     : communications.filter(c => c.type === filterType);
 
-  const sortedComm = [...filtered].sort((a, b) => 
+  const sortedComm = [...filtered].sort((a, b) =>
     new Date(b.created_date) - new Date(a.created_date)
   );
 
   if (loading) {
-    return <div className="flex justify-center p-8"><Loader2 className="w-8 h-8 animate-spin text-cyan-400" /></div>;
+    return <div className="apple-type flex justify-center p-8"><Loader2 className="w-8 h-8 animate-spin text-apple-blue" /></div>;
   }
 
   return (
     <>
-      <Card className="bg-white/5 border-white/10">
+      <Card className="apple-type apple-card border-0 rounded-apple-lg">
         <CardHeader className="flex flex-row items-center justify-between">
-          <CardTitle className="flex items-center gap-2">
-            <MessageSquare className="w-5 h-5 text-cyan-400" />
+          <CardTitle className="apple-text-headline apple-label-primary flex items-center gap-2">
+            <MessageSquare className="w-5 h-5 text-apple-blue" />
             Historial de Comunicaciones
           </CardTitle>
-          <Button onClick={() => setShowDialog(true)} className="gap-2 bg-cyan-600/80 hover:bg-cyan-600 h-8 px-3 text-sm">
+          <Button onClick={() => setShowDialog(true)} className="apple-btn apple-btn-primary gap-2 h-8 px-3">
             <Plus className="w-4 h-4" />
             Registrar
           </Button>
@@ -118,7 +118,7 @@ export default function CommunicationHistory({ customerId }) {
                 onClick={() => setFilterType(type)}
                 size="sm"
                 variant={filterType === type ? "default" : "outline"}
-                className={filterType === type ? "bg-cyan-600/80" : ""}
+                className={filterType === type ? "apple-btn apple-btn-primary" : "apple-btn apple-btn-secondary"}
               >
                 {type === "all" ? "Todos" : type.charAt(0).toUpperCase() + type.slice(1)}
               </Button>
@@ -127,29 +127,29 @@ export default function CommunicationHistory({ customerId }) {
 
           <div className="space-y-3 max-h-[500px] overflow-y-auto">
             {sortedComm.length === 0 ? (
-              <p className="text-white/50 text-sm py-8 text-center">Sin comunicaciones registradas</p>
+              <p className="apple-label-tertiary apple-text-subheadline py-8 text-center">Sin comunicaciones registradas</p>
             ) : (
               sortedComm.map(comm => (
-                <div key={comm.id} className="bg-white/5 border border-white/10 rounded-lg p-4 hover:bg-white/10 transition">
+                <div key={comm.id} className="apple-press apple-surface rounded-apple-md p-4 transition">
                   <div className="flex items-start gap-3">
-                    <div className={`p-2 bg-white/10 rounded-lg ${getTypeColor(comm.type)}`}>
+                    <div className={`p-2 rounded-apple-sm bg-apple-blue/15 ${getTypeColor(comm.type)}`}>
                       {getIcon(comm.type)}
                     </div>
                     <div className="flex-1">
                       <div className="flex items-center justify-between mb-1">
-                        <h4 className="font-semibold text-white text-sm">{comm.subject}</h4>
-                        <span className="text-xs text-white/40">{comm.type.toUpperCase()}</span>
+                        <h4 className="apple-text-subheadline font-semibold apple-label-primary">{comm.subject}</h4>
+                        <span className="apple-text-caption2 apple-label-tertiary font-semibold">{comm.type}</span>
                       </div>
                       {comm.content && (
-                        <p className="text-white/60 text-xs mb-2 line-clamp-2">{comm.content}</p>
+                        <p className="apple-label-secondary apple-text-caption1 mb-2 line-clamp-2">{comm.content}</p>
                       )}
-                      <div className="flex items-center gap-3 text-xs text-white/40">
-                        <span className="flex items-center gap-1">
+                      <div className="flex items-center gap-3 apple-text-caption2 apple-label-tertiary">
+                        <span className="flex items-center gap-1 tabular-nums">
                           <Clock className="w-3 h-3" />
                           {format(new Date(comm.created_date), "dd MMM yyyy HH:mm", { locale: es })}
                         </span>
                         {comm.status && (
-                          <span className="px-2 py-0.5 bg-white/10 rounded text-cyan-400 capitalize">
+                          <span className="px-2 py-0.5 bg-apple-blue/15 rounded text-apple-blue capitalize">
                             {comm.status}
                           </span>
                         )}
@@ -164,48 +164,50 @@ export default function CommunicationHistory({ customerId }) {
       </Card>
 
       <Dialog open={showDialog} onOpenChange={setShowDialog}>
-        <DialogContent className="bg-[#0A0A0A] border-white/10">
-          <DialogHeader>
-            <DialogTitle>Registrar Comunicación</DialogTitle>
-          </DialogHeader>
-          <div className="space-y-4">
-            <div>
-              <label className="text-white/70 text-sm mb-2 block">Tipo</label>
-              <select
-                value={formData.type}
-                onChange={(e) => setFormData({...formData, type: e.target.value})}
-                className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-white text-sm"
-              >
-                <option value="call">Llamada</option>
-                <option value="email">Email</option>
-                <option value="sms">SMS</option>
-                <option value="whatsapp">WhatsApp</option>
-                <option value="note">Nota</option>
-              </select>
-            </div>
-            <div>
-              <label className="text-white/70 text-sm mb-2 block">Asunto *</label>
-              <Input
-                value={formData.subject}
-                onChange={(e) => setFormData({...formData, subject: e.target.value})}
-                placeholder="ej: Seguimiento de orden"
-                className="bg-white/5 border-white/10"
-              />
-            </div>
-            <div>
-              <label className="text-white/70 text-sm mb-2 block">Detalles</label>
-              <textarea
-                value={formData.content}
-                onChange={(e) => setFormData({...formData, content: e.target.value})}
-                placeholder="Notas de la comunicación..."
-                className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-white text-sm resize-none h-24"
-              />
-            </div>
-            <div className="flex gap-2 justify-end">
-              <Button onClick={() => setShowDialog(false)} variant="outline">Cancelar</Button>
-              <Button onClick={handleAddCommunication} className="bg-cyan-600/80 hover:bg-cyan-600">
-                Registrar
-              </Button>
+        <DialogContent className="apple-type apple-surface-elevated rounded-apple-lg shadow-apple-xl border-0 p-0 overflow-hidden">
+          <div className="p-6">
+            <DialogHeader>
+              <DialogTitle className="apple-text-title2 apple-label-primary">Registrar Comunicación</DialogTitle>
+            </DialogHeader>
+            <div className="space-y-4 mt-4">
+              <div>
+                <label className="apple-label-secondary apple-text-subheadline mb-2 block">Tipo</label>
+                <select
+                  value={formData.type}
+                  onChange={(e) => setFormData({...formData, type: e.target.value})}
+                  className="apple-input w-full rounded-apple-md px-3 py-2"
+                >
+                  <option value="call">Llamada</option>
+                  <option value="email">Email</option>
+                  <option value="sms">SMS</option>
+                  <option value="whatsapp">WhatsApp</option>
+                  <option value="note">Nota</option>
+                </select>
+              </div>
+              <div>
+                <label className="apple-label-secondary apple-text-subheadline mb-2 block">Asunto *</label>
+                <Input
+                  value={formData.subject}
+                  onChange={(e) => setFormData({...formData, subject: e.target.value})}
+                  placeholder="ej: Seguimiento de orden"
+                  className="apple-input"
+                />
+              </div>
+              <div>
+                <label className="apple-label-secondary apple-text-subheadline mb-2 block">Detalles</label>
+                <textarea
+                  value={formData.content}
+                  onChange={(e) => setFormData({...formData, content: e.target.value})}
+                  placeholder="Notas de la comunicación..."
+                  className="apple-input w-full rounded-apple-md px-3 py-2 resize-none h-24"
+                />
+              </div>
+              <div className="flex gap-2 justify-end">
+                <Button onClick={() => setShowDialog(false)} variant="outline" className="apple-btn apple-btn-secondary">Cancelar</Button>
+                <Button onClick={handleAddCommunication} className="apple-btn apple-btn-primary">
+                  Registrar
+                </Button>
+              </div>
             </div>
           </div>
         </DialogContent>

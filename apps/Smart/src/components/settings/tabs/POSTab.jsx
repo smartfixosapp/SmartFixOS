@@ -25,10 +25,10 @@ export default function POSTab({ user }) {
   useEffect(() => {
     const onSave = () => saveData();
     const onRevert = () => setData(originalData);
-    
+
     window.addEventListener("settings-save", onSave);
     window.addEventListener("settings-revert", onRevert);
-    
+
     return () => {
       window.removeEventListener("settings-save", onSave);
       window.removeEventListener("settings-revert", onRevert);
@@ -64,7 +64,7 @@ export default function POSTab({ user }) {
   const saveData = async () => {
     try {
       const rows = await base44.entities.SystemConfig.filter({ key: "settings.pos" });
-      
+
       const payload = {
         key: "settings.pos",
         value: JSON.stringify(data),
@@ -91,27 +91,27 @@ export default function POSTab({ user }) {
       setOriginalData(data);
       window.dispatchEvent(new Event("settings-clean"));
       window.dispatchEvent(new Event("force-refresh"));
-      
+
       alert("Configuración guardada");
     } catch (e) {
       alert("Error al guardar: " + e.message);
     }
   };
 
-  if (loading) return <div className="text-gray-400">Cargando...</div>;
+  if (loading) return <div className="apple-type apple-label-tertiary apple-text-body">Cargando...</div>;
 
   return (
-    <div className="space-y-6">
-      <Card className="bg-zinc-900/50 border-white/10">
+    <div className="apple-type space-y-6">
+      <Card className="apple-card border-0">
         <CardHeader>
-          <CardTitle>Configuración de Caja</CardTitle>
-          <CardDescription>Reglas de apertura y cierre</CardDescription>
+          <CardTitle className="apple-text-title3 apple-label-primary">Configuración de Caja</CardTitle>
+          <CardDescription className="apple-text-subheadline apple-label-secondary">Reglas de apertura y cierre</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="flex items-center justify-between p-3 bg-black/30 rounded-lg">
+          <div className="flex items-center justify-between p-3 bg-gray-sys6 dark:bg-gray-sys5 rounded-apple-md">
             <div>
-              <Label>Requerir fondo inicial</Label>
-              <p className="text-xs text-gray-400">Obligar conteo al abrir caja</p>
+              <Label className="apple-text-body apple-label-primary">Requerir fondo inicial</Label>
+              <p className="apple-text-caption1 apple-label-tertiary">Obligar conteo al abrir caja</p>
             </div>
             <Switch
               checked={data.require_opening_balance}
@@ -119,10 +119,10 @@ export default function POSTab({ user }) {
             />
           </div>
 
-          <div className="flex items-center justify-between p-3 bg-black/30 rounded-lg">
+          <div className="flex items-center justify-between p-3 bg-gray-sys6 dark:bg-gray-sys5 rounded-apple-md">
             <div>
-              <Label>Advertir discrepancias</Label>
-              <p className="text-xs text-gray-400">Alertar si el conteo no coincide con el esperado</p>
+              <Label className="apple-text-body apple-label-primary">Advertir discrepancias</Label>
+              <p className="apple-text-caption1 apple-label-tertiary">Alertar si el conteo no coincide con el esperado</p>
             </div>
             <Switch
               checked={data.warn_discrepancies}
@@ -132,18 +132,18 @@ export default function POSTab({ user }) {
         </CardContent>
       </Card>
 
-      <Card className="bg-zinc-900/50 border-white/10">
+      <Card className="apple-card border-0">
         <CardHeader>
-          <CardTitle>Recibos</CardTitle>
-          <CardDescription>Configuración de impresión</CardDescription>
+          <CardTitle className="apple-text-title3 apple-label-primary">Recibos</CardTitle>
+          <CardDescription className="apple-text-subheadline apple-label-secondary">Configuración de impresión</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="space-y-2">
-            <Label>Pie de recibo</Label>
+            <Label className="apple-text-footnote apple-label-secondary">Pie de recibo</Label>
             <Textarea
               value={data.receipt_footer}
               onChange={(e) => setData({ ...data, receipt_footer: e.target.value })}
-              className="bg-black border-white/15"
+              className="apple-input"
               placeholder="Gracias por su compra. Visítenos en 911smartfix.com"
               rows={3}
             />
@@ -151,21 +151,21 @@ export default function POSTab({ user }) {
         </CardContent>
       </Card>
 
-      <Card className="bg-zinc-900/50 border-white/10">
+      <Card className="apple-card border-0">
         <CardHeader>
-          <CardTitle>Recarga Externa</CardTitle>
-          <CardDescription>Link para recargas desde proveedor externo</CardDescription>
+          <CardTitle className="apple-text-title3 apple-label-primary">Recarga Externa</CardTitle>
+          <CardDescription className="apple-text-subheadline apple-label-secondary">Link para recargas desde proveedor externo</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="space-y-2">
-            <Label>URL de Recarga Externa</Label>
+            <Label className="apple-text-footnote apple-label-secondary">URL de Recarga Externa</Label>
             <Input
               value={data.external_recharge_url || ""}
               onChange={(e) => setData({ ...data, external_recharge_url: e.target.value })}
-              className="bg-black border-white/15 text-white h-11"
+              className="apple-input h-11"
               placeholder="https://ejemplo.com/recargas"
             />
-            <p className="text-xs text-gray-400 mt-1">
+            <p className="apple-text-caption1 apple-label-tertiary mt-1">
               Este botón aparecerá en el POS para acceder rápidamente a tu sistema de recargas
             </p>
           </div>

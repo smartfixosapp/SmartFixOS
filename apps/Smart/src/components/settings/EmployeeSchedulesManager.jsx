@@ -90,7 +90,7 @@ export default function EmployeeSchedulesManager() {
         if (created?.id) setSettingsRowId(created.id);
       }
       window.dispatchEvent(new Event("employee-schedules-updated"));
-      toast.success("✅ Horarios guardados");
+      toast.success("Horarios guardados");
     } catch (err) {
       console.error("[EmployeeSchedules] save error:", err);
       toast.error("No se pudo guardar: " + (err?.message || "error"));
@@ -107,28 +107,28 @@ export default function EmployeeSchedulesManager() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center py-20 text-white/60">
+      <div className="apple-type flex items-center justify-center py-20 apple-label-tertiary">
         <Loader2 className="w-6 h-6 animate-spin mr-2" /> Cargando empleados...
       </div>
     );
   }
 
   return (
-    <div className="space-y-4">
-      <div className="bg-gradient-to-br from-emerald-500/10 to-teal-500/5 border border-emerald-500/20 rounded-2xl p-4 sm:p-5">
+    <div className="apple-type space-y-4">
+      <div className="bg-apple-green/12 rounded-apple-md p-4 sm:p-5">
         <div className="flex items-center gap-3 mb-1">
-          <div className="w-11 h-11 rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center shadow-lg">
-            <Clock className="w-5 h-5 text-white" />
+          <div className="w-11 h-11 rounded-apple-sm bg-apple-green/15 flex items-center justify-center">
+            <Clock className="w-5 h-5 text-apple-green" />
           </div>
           <div className="flex-1">
-            <p className="text-white font-black text-base">Horarios semanales</p>
-            <p className="text-white/50 text-xs">Define entrada y salida por día. Los empleados verán recordatorios automáticos.</p>
+            <p className="apple-label-primary apple-text-headline">Horarios semanales</p>
+            <p className="apple-label-tertiary apple-text-caption1">Define entrada y salida por día. Los empleados verán recordatorios automáticos.</p>
           </div>
         </div>
       </div>
 
       {employees.length === 0 ? (
-        <div className="text-center py-12 text-white/40 text-sm">
+        <div className="text-center py-12 apple-label-tertiary apple-text-subheadline">
           No hay empleados activos para configurar.
         </div>
       ) : (
@@ -139,45 +139,46 @@ export default function EmployeeSchedulesManager() {
             return (
               <div
                 key={emp.id}
-                className="bg-white/[0.04] border border-white/10 rounded-2xl overflow-hidden"
+                className="apple-surface-elevated rounded-apple-md overflow-hidden"
               >
                 <button
                   onClick={() => setExpanded(isOpen ? null : emp.id)}
-                  className="w-full flex items-center gap-3 px-4 py-4 hover:bg-white/[0.06] transition-all text-left"
+                  className="w-full flex items-center gap-3 px-4 py-4 hover:bg-gray-sys6 dark:hover:bg-gray-sys5 transition-all text-left apple-press"
                 >
-                  <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-cyan-500/30 to-blue-500/20 border border-cyan-500/20 flex items-center justify-center">
-                    <User className="w-5 h-5 text-cyan-300" />
+                  <div className="w-10 h-10 rounded-apple-sm bg-apple-blue/15 flex items-center justify-center">
+                    <User className="w-5 h-5 text-apple-blue" />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-white font-bold text-sm truncate">{emp.full_name}</p>
-                    <p className="text-white/40 text-xs truncate">
-                      {emp.position || emp.role || "Empleado"} · {summary(week)}
+                    <p className="apple-label-primary apple-text-subheadline truncate">{emp.full_name}</p>
+                    <p className="apple-label-tertiary apple-text-caption1 truncate">
+                      {emp.position || emp.role || "Empleado"} · <span className="tabular-nums">{summary(week)}</span>
                     </p>
                   </div>
                   {isOpen ? (
-                    <ChevronDown className="w-5 h-5 text-white/40" />
+                    <ChevronDown className="w-5 h-5 apple-label-tertiary" />
                   ) : (
-                    <ChevronRight className="w-5 h-5 text-white/40" />
+                    <ChevronRight className="w-5 h-5 apple-label-tertiary" />
                   )}
                 </button>
 
                 {isOpen && (
-                  <div className="border-t border-white/10 px-4 py-4 space-y-2 bg-black/20">
+                  <div className="px-4 py-4 space-y-2 bg-gray-sys6 dark:bg-gray-sys5" style={{ borderTop: '0.5px solid rgb(var(--separator) / 0.29)' }}>
                     {DAYS.map(({ key, label }) => {
                       const day = week[key] || DEFAULT_DAY;
                       return (
                         <div
                           key={key}
-                          className="flex items-center gap-3 py-2 border-b border-white/5 last:border-0"
+                          className="flex items-center gap-3 py-2 last:border-0"
+                          style={{ borderBottom: '0.5px solid rgb(var(--separator) / 0.29)' }}
                         >
-                          <span className="w-24 text-white/80 text-sm font-semibold">{label}</span>
+                          <span className="w-24 apple-label-primary apple-text-subheadline">{label}</span>
 
-                          <label className="flex items-center gap-2 text-white/60 text-xs">
+                          <label className="flex items-center gap-2 apple-label-tertiary apple-text-caption1">
                             <input
                               type="checkbox"
                               checked={!!day.off}
                               onChange={(e) => updateDay(emp.id, key, { off: e.target.checked })}
-                              className="w-4 h-4 accent-emerald-500"
+                              className="w-4 h-4 accent-apple-green"
                             />
                             Descansa
                           </label>
@@ -187,15 +188,15 @@ export default function EmployeeSchedulesManager() {
                             value={day.start}
                             disabled={day.off}
                             onChange={(e) => updateDay(emp.id, key, { start: e.target.value })}
-                            className="flex-1 bg-white/5 border border-white/10 rounded-lg px-3 py-1.5 text-white text-sm disabled:opacity-30"
+                            className="apple-input flex-1 px-3 py-1.5 tabular-nums disabled:opacity-30"
                           />
-                          <span className="text-white/30 text-xs">→</span>
+                          <span className="apple-label-tertiary apple-text-caption2">→</span>
                           <input
                             type="time"
                             value={day.end}
                             disabled={day.off}
                             onChange={(e) => updateDay(emp.id, key, { end: e.target.value })}
-                            className="flex-1 bg-white/5 border border-white/10 rounded-lg px-3 py-1.5 text-white text-sm disabled:opacity-30"
+                            className="apple-input flex-1 px-3 py-1.5 tabular-nums disabled:opacity-30"
                           />
                         </div>
                       );
@@ -211,7 +212,7 @@ export default function EmployeeSchedulesManager() {
       <Button
         onClick={handleSave}
         disabled={saving}
-        className="w-full bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white rounded-[20px] h-14 text-lg font-black shadow-[0_0_30px_rgba(16,185,129,0.4)] active:scale-95 transition-all"
+        className="apple-btn apple-btn-primary apple-btn-lg apple-press w-full"
       >
         {saving ? <Loader2 className="w-5 h-5 mr-2 animate-spin" /> : <Save className="w-5 h-5 mr-2" />}
         Guardar Horarios

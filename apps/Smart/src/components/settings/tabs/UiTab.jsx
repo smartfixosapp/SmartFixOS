@@ -7,17 +7,17 @@ import { Input } from "@/components/ui/input";
 
 export default function UiTab({ settings, onChange }) {
   return (
-    <div className="space-y-6">
-      <Card className="bg-zinc-900/50 border-white/10">
+    <div className="apple-type space-y-6">
+      <Card className="apple-card border-0">
         <CardHeader>
-          <CardTitle className="text-slate-50 text-2xl font-semibold tracking-tight leading-none">Tema y Apariencia</CardTitle>
-          <CardDescription>Personaliza la apariencia de la interfaz</CardDescription>
+          <CardTitle className="apple-text-title2 apple-label-primary">Tema y Apariencia</CardTitle>
+          <CardDescription className="apple-text-subheadline apple-label-secondary">Personaliza la apariencia de la interfaz</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="space-y-2">
-            <Label>Tema</Label>
+            <Label className="apple-text-footnote apple-label-secondary">Tema</Label>
             <Select value={settings.theme} onValueChange={(v) => onChange({ ...settings, theme: v })}>
-              <SelectTrigger className="bg-black text-slate-50 px-3 py-2 text-sm rounded-md flex h-10 w-full items-center justify-between border ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring disabled:cursor-not-allowed disabled:opacity-50 [&>span]:line-clamp-1 border-white/15">
+              <SelectTrigger className="apple-input">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -29,19 +29,19 @@ export default function UiTab({ settings, onChange }) {
           </div>
 
           <div className="space-y-2">
-            <Label>Color de acento</Label>
+            <Label className="apple-text-footnote apple-label-secondary">Color de acento</Label>
             <Input
               type="color"
               value={settings.accent_color}
               onChange={(e) => onChange({ ...settings, accent_color: e.target.value })}
-              className="h-10" />
+              className="apple-input h-10" />
 
           </div>
 
           <div className="space-y-2">
-            <Label>Densidad</Label>
+            <Label className="apple-text-footnote apple-label-secondary">Densidad</Label>
             <Select value={settings.density} onValueChange={(v) => onChange({ ...settings, density: v })}>
-              <SelectTrigger className="bg-black text-slate-50 px-3 py-2 text-sm rounded-md flex h-10 w-full items-center justify-between border ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring disabled:cursor-not-allowed disabled:opacity-50 [&>span]:line-clamp-1 border-white/15">
+              <SelectTrigger className="apple-input">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -52,10 +52,10 @@ export default function UiTab({ settings, onChange }) {
             </Select>
           </div>
 
-          <div className="flex items-center justify-between p-3 bg-black/30 rounded-lg">
+          <div className="flex items-center justify-between p-3 bg-gray-sys6 dark:bg-gray-sys5 rounded-apple-md">
             <div>
-              <Label className="text-slate-50 text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">Animaciones</Label>
-              <p className="text-xs text-gray-400">Habilitar transiciones y efectos</p>
+              <Label className="apple-text-body apple-label-primary">Animaciones</Label>
+              <p className="apple-text-caption1 apple-label-tertiary">Habilitar transiciones y efectos</p>
             </div>
             <Switch
               checked={settings.animations?.enabled}

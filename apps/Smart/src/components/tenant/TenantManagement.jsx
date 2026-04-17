@@ -25,10 +25,9 @@ export default function TenantManagement() {
     name: "", slug: "", owner_email: "", plan: "trial", status: "trial"
   });
 
-  // Acciones
-  const [actionLoading, setActionLoading] = useState(null); // tenantId en proceso
+  const [actionLoading, setActionLoading] = useState(null);
   const [openMenuId, setOpenMenuId] = useState(null);
-  const [deleteDialog, setDeleteDialog] = useState(null); // tenant a eliminar
+  const [deleteDialog, setDeleteDialog] = useState(null);
   const [deleteReason, setDeleteReason] = useState("");
   const menuRef = useRef(null);
 
@@ -36,7 +35,6 @@ export default function TenantManagement() {
     if (isSuperAdmin) loadTenants();
   }, [isSuperAdmin]);
 
-  // Cerrar dropdown al hacer click fuera
   useEffect(() => {
     const handler = (e) => {
       if (menuRef.current && !menuRef.current.contains(e.target)) {
@@ -92,7 +90,7 @@ export default function TenantManagement() {
     setLoading(true);
     try {
       await base44.entities.Tenant.create(newTenant);
-      toast.success("✅ Tenant creado exitosamente");
+      toast.success("Tenant creado exitosamente");
       setShowCreateModal(false);
       setNewTenant({ name: "", slug: "", owner_email: "", plan: "trial", status: "trial" });
       await loadTenants();
@@ -105,22 +103,22 @@ export default function TenantManagement() {
 
   const getStatusColor = (status) => {
     switch (status) {
-      case "active":    return "bg-green-500/20 text-green-300 border-green-500/30";
-      case "suspended": return "bg-red-500/20 text-red-300 border-red-500/30";
-      case "cancelled": return "bg-gray-500/20 text-gray-400 border-gray-500/30";
+      case "active":    return "bg-apple-green/15 text-apple-green border-0";
+      case "suspended": return "bg-apple-red/15 text-apple-red border-0";
+      case "cancelled": return "bg-gray-sys6 dark:bg-gray-sys5 apple-label-tertiary border-0";
       case "trial":
-      default:          return "bg-yellow-500/20 text-yellow-300 border-yellow-500/30";
+      default:          return "bg-apple-yellow/15 text-apple-yellow border-0";
     }
   };
 
   const getSubscriptionColor = (status) => {
     switch (status) {
-      case "active":   return "text-green-400";
-      case "trial":    return "text-yellow-400";
-      case "past_due": return "text-orange-400";
+      case "active":   return "text-apple-green";
+      case "trial":    return "text-apple-yellow";
+      case "past_due": return "text-apple-orange";
       case "paused":
-      case "cancelled":return "text-red-400";
-      default:         return "text-gray-400";
+      case "cancelled":return "text-apple-red";
+      default:         return "apple-label-tertiary";
     }
   };
 
@@ -132,34 +130,34 @@ export default function TenantManagement() {
 
   if (!isSuperAdmin) {
     return (
-      <div className="p-8 text-center">
-        <Shield className="w-16 h-16 text-red-400 mx-auto mb-4" />
-        <h2 className="text-xl font-bold text-white mb-2">Acceso Denegado</h2>
-        <p className="text-gray-400">Solo los Super Admins pueden acceder a esta sección</p>
+      <div className="apple-type p-8 text-center">
+        <Shield className="w-16 h-16 text-apple-red mx-auto mb-4" />
+        <h2 className="apple-text-title2 apple-label-primary mb-2">Acceso Denegado</h2>
+        <p className="apple-label-tertiary apple-text-subheadline">Solo los Super Admins pueden acceder a esta sección</p>
       </div>
     );
   }
 
   if (loading && tenants.length === 0) {
     return (
-      <div className="flex items-center justify-center h-64">
-        <div className="animate-spin w-8 h-8 border-4 border-cyan-500 border-t-transparent rounded-full" />
+      <div className="apple-type flex items-center justify-center h-64">
+        <div className="animate-spin w-8 h-8 border-4 border-apple-blue border-t-transparent rounded-full" />
       </div>
     );
   }
 
   return (
-    <div className="p-4 sm:p-6 max-w-7xl mx-auto">
+    <div className="apple-type p-4 sm:p-6 max-w-7xl mx-auto">
       {/* Header */}
-      <div className="bg-gradient-to-br from-purple-600/10 to-pink-600/10 border border-purple-500/20 rounded-2xl p-6 mb-6">
+      <div className="bg-apple-purple/12 rounded-apple-lg p-6 mb-6">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-4">
-            <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-purple-600 to-pink-600 flex items-center justify-center">
-              <Building2 className="w-7 h-7 text-white" />
+            <div className="w-14 h-14 rounded-apple-md bg-apple-purple/15 flex items-center justify-center">
+              <Building2 className="w-7 h-7 text-apple-purple" />
             </div>
             <div>
-              <h1 className="text-2xl font-bold text-white">Gestión de Tenants</h1>
-              <p className="text-purple-200/80 text-sm">Panel de Super Admin</p>
+              <h1 className="apple-text-title2 apple-label-primary">Gestión de Tenants</h1>
+              <p className="text-apple-purple apple-text-subheadline">Panel de Super Admin</p>
             </div>
           </div>
           <div className="flex gap-2">
@@ -167,14 +165,14 @@ export default function TenantManagement() {
               onClick={loadTenants}
               variant="outline"
               size="sm"
-              className="border-white/20 text-gray-300"
+              className="apple-btn apple-btn-secondary apple-press"
               disabled={loading}
             >
               <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
             </Button>
             <Button
               onClick={() => setShowCreateModal(true)}
-              className="bg-gradient-to-r from-purple-600 to-pink-600"
+              className="apple-btn apple-btn-primary apple-press"
             >
               <Plus className="w-4 h-4 mr-2" />
               Nuevo Tenant
@@ -185,32 +183,32 @@ export default function TenantManagement() {
 
       {/* Stats */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6">
-        <Card className="bg-black/40 border-cyan-500/20 p-4">
-          <p className="text-gray-400 text-sm">Total</p>
-          <p className="text-2xl font-bold text-white">{tenants.length}</p>
+        <Card className="apple-card border-0 p-4">
+          <p className="apple-label-tertiary apple-text-subheadline">Total</p>
+          <p className="apple-text-title2 apple-label-primary tabular-nums">{tenants.length}</p>
         </Card>
-        <Card className="bg-black/40 border-green-500/20 p-4">
-          <p className="text-gray-400 text-sm">Activos</p>
-          <p className="text-2xl font-bold text-white">{tenants.filter(t => t.status === "active").length}</p>
+        <Card className="apple-card border-0 p-4">
+          <p className="apple-label-tertiary apple-text-subheadline">Activos</p>
+          <p className="apple-text-title2 apple-label-primary tabular-nums">{tenants.filter(t => t.status === "active").length}</p>
         </Card>
-        <Card className="bg-black/40 border-yellow-500/20 p-4">
-          <p className="text-gray-400 text-sm">En Trial</p>
-          <p className="text-2xl font-bold text-white">{tenants.filter(t => t.subscription_status === "trial").length}</p>
+        <Card className="apple-card border-0 p-4">
+          <p className="apple-label-tertiary apple-text-subheadline">En Trial</p>
+          <p className="apple-text-title2 apple-label-primary tabular-nums">{tenants.filter(t => t.subscription_status === "trial").length}</p>
         </Card>
-        <Card className="bg-black/40 border-red-500/20 p-4">
-          <p className="text-gray-400 text-sm">Suspendidos</p>
-          <p className="text-2xl font-bold text-white">{tenants.filter(t => t.status === "suspended").length}</p>
+        <Card className="apple-card border-0 p-4">
+          <p className="apple-label-tertiary apple-text-subheadline">Suspendidos</p>
+          <p className="apple-text-title2 apple-label-primary tabular-nums">{tenants.filter(t => t.status === "suspended").length}</p>
         </Card>
       </div>
 
       {/* Search */}
       <div className="mb-4 relative">
-        <Search className="w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
+        <Search className="w-4 h-4 apple-label-tertiary absolute left-3 top-1/2 -translate-y-1/2" />
         <Input
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
           placeholder="Buscar por nombre, email o slug..."
-          className="pl-10 bg-black/40 border-white/10 text-white"
+          className="apple-input pl-10"
         />
       </div>
 
@@ -219,44 +217,41 @@ export default function TenantManagement() {
         {filteredTenants.map(tenant => (
           <Card
             key={tenant.id}
-            className={`bg-black/40 border-white/10 p-4 transition-all relative ${
-              tenant.status === 'suspended' ? 'opacity-60' : 'hover:border-purple-500/30'
+            className={`apple-card border-0 p-4 transition-all relative ${
+              tenant.status === 'suspended' ? 'opacity-60' : ''
             }`}
           >
-            {/* Spinner si está procesando */}
             {actionLoading === tenant.id && (
-              <div className="absolute inset-0 bg-black/60 rounded-xl flex items-center justify-center z-10">
-                <Loader2 className="w-8 h-8 text-cyan-400 animate-spin" />
+              <div className="absolute inset-0 bg-black/60 rounded-apple-md flex items-center justify-center z-10">
+                <Loader2 className="w-8 h-8 text-apple-blue animate-spin" />
               </div>
             )}
 
-            {/* Header de la card */}
             <div className="flex items-start justify-between mb-3">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-cyan-600 to-blue-600 flex items-center justify-center shrink-0">
-                  <Building2 className="w-5 h-5 text-white" />
+                <div className="w-10 h-10 rounded-apple-sm bg-apple-blue/15 flex items-center justify-center shrink-0">
+                  <Building2 className="w-5 h-5 text-apple-blue" />
                 </div>
                 <div className="min-w-0">
-                  <h3 className="text-white font-bold truncate">{tenant.name}</h3>
-                  <p className="text-xs text-gray-500">/{tenant.slug}</p>
+                  <h3 className="apple-label-primary apple-text-subheadline truncate">{tenant.name}</h3>
+                  <p className="apple-text-caption1 apple-label-tertiary tabular-nums">/{tenant.slug}</p>
                 </div>
               </div>
 
-              {/* Dropdown Menu */}
               <div className="relative">
                 <button
                   onClick={() => setOpenMenuId(openMenuId === tenant.id ? null : tenant.id)}
-                  className="text-gray-400 hover:text-white p-1 rounded-lg hover:bg-white/10 transition-colors"
+                  className="apple-label-tertiary hover:apple-label-primary p-1 rounded-apple-sm transition-colors apple-press"
                 >
                   <MoreVertical className="w-4 h-4" />
                 </button>
 
                 {openMenuId === tenant.id && (
-                  <div className="absolute right-0 top-7 w-44 bg-slate-900 border border-white/10 rounded-xl shadow-2xl z-50 overflow-hidden">
+                  <div className="absolute right-0 top-7 w-44 apple-surface-elevated rounded-apple-md shadow-apple-xl z-50 overflow-hidden border-0">
                     {tenant.status !== 'suspended' ? (
                       <button
                         onClick={() => handleAction(tenant.id, 'suspend')}
-                        className="w-full flex items-center gap-2 px-4 py-2.5 text-sm text-orange-300 hover:bg-orange-500/10 transition-colors"
+                        className="w-full flex items-center gap-2 px-4 py-2.5 apple-text-subheadline text-apple-orange hover:bg-apple-orange/12 transition-colors apple-press"
                       >
                         <PauseCircle className="w-4 h-4" />
                         Suspender
@@ -264,16 +259,16 @@ export default function TenantManagement() {
                     ) : (
                       <button
                         onClick={() => handleAction(tenant.id, 'reactivate')}
-                        className="w-full flex items-center gap-2 px-4 py-2.5 text-sm text-green-300 hover:bg-green-500/10 transition-colors"
+                        className="w-full flex items-center gap-2 px-4 py-2.5 apple-text-subheadline text-apple-green hover:bg-apple-green/12 transition-colors apple-press"
                       >
                         <PlayCircle className="w-4 h-4" />
                         Reactivar
                       </button>
                     )}
-                    <div className="border-t border-white/10" />
+                    <div style={{ borderTop: '0.5px solid rgb(var(--separator) / 0.29)' }} />
                     <button
                       onClick={() => { setDeleteDialog(tenant); setOpenMenuId(null); }}
-                      className="w-full flex items-center gap-2 px-4 py-2.5 text-sm text-red-400 hover:bg-red-500/10 transition-colors"
+                      className="w-full flex items-center gap-2 px-4 py-2.5 apple-text-subheadline text-apple-red hover:bg-apple-red/12 transition-colors apple-press"
                     >
                       <Trash2 className="w-4 h-4" />
                       Eliminar cuenta
@@ -283,27 +278,25 @@ export default function TenantManagement() {
               </div>
             </div>
 
-            {/* Info */}
-            <div className="space-y-1.5 mb-3 text-sm">
-              <div className="flex items-center gap-2 text-gray-400">
+            <div className="space-y-1.5 mb-3 apple-text-subheadline">
+              <div className="flex items-center gap-2 apple-label-tertiary">
                 <Mail className="w-3 h-3 shrink-0" />
                 <span className="truncate">{tenant.email}</span>
               </div>
               {tenant.admin_phone && (
-                <div className="flex items-center gap-2 text-gray-400">
+                <div className="flex items-center gap-2 apple-label-tertiary">
                   <Phone className="w-3 h-3 shrink-0" />
-                  <span>{tenant.admin_phone}</span>
+                  <span className="tabular-nums">{tenant.admin_phone}</span>
                 </div>
               )}
               {tenant.trial_end_date && (
-                <div className="flex items-center gap-2 text-gray-400">
+                <div className="flex items-center gap-2 apple-label-tertiary">
                   <Calendar className="w-3 h-3 shrink-0" />
-                  <span>Trial hasta {new Date(tenant.trial_end_date).toLocaleDateString('es')}</span>
+                  <span className="tabular-nums">Trial hasta {new Date(tenant.trial_end_date).toLocaleDateString('es')}</span>
                 </div>
               )}
             </div>
 
-            {/* Badges */}
             <div className="flex gap-2 flex-wrap">
               <Badge className={getStatusColor(tenant.status)}>
                 {tenant.status === 'active' ? 'Activo' :
@@ -311,7 +304,7 @@ export default function TenantManagement() {
                  tenant.status === 'cancelled' ? 'Cancelado' : 'Trial'}
               </Badge>
               {tenant.subscription_status && (
-                <span className={`text-xs font-semibold ${getSubscriptionColor(tenant.subscription_status)}`}>
+                <span className={`apple-text-caption1 ${getSubscriptionColor(tenant.subscription_status)}`}>
                   {tenant.subscription_status}
                 </span>
               )}
@@ -322,131 +315,135 @@ export default function TenantManagement() {
 
       {filteredTenants.length === 0 && !loading && (
         <div className="text-center py-12">
-          <Building2 className="w-16 h-16 text-gray-600 mx-auto mb-4" />
-          <p className="text-gray-400">No se encontraron tenants</p>
+          <Building2 className="w-16 h-16 apple-label-tertiary mx-auto mb-4" />
+          <p className="apple-label-tertiary apple-text-subheadline">No se encontraron tenants</p>
         </div>
       )}
 
-      {/* ── Dialog Confirmar Eliminación ── */}
+      {/* Dialog Confirmar Eliminación */}
       <Dialog open={!!deleteDialog} onOpenChange={(open) => { if (!open) { setDeleteDialog(null); setDeleteReason(""); } }}>
-        <DialogContent className="bg-slate-900 border-red-500/30 text-white max-w-md z-[9999]">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-3 text-red-400">
-              <div className="w-10 h-10 rounded-xl bg-red-500/20 flex items-center justify-center">
-                <AlertTriangle className="w-5 h-5 text-red-400" />
+        <DialogContent className="apple-surface-elevated rounded-apple-lg shadow-apple-xl border-0 p-0 overflow-hidden max-w-md z-[9999]">
+          <div className="p-6">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-3 text-apple-red">
+                <div className="w-10 h-10 rounded-apple-sm bg-apple-red/15 flex items-center justify-center">
+                  <AlertTriangle className="w-5 h-5 text-apple-red" />
+                </div>
+                <span className="apple-text-title3">Eliminar cuenta</span>
+              </DialogTitle>
+            </DialogHeader>
+
+            <div className="mt-2 space-y-4">
+              <div className="bg-apple-red/12 rounded-apple-md p-4">
+                <p className="apple-label-primary apple-text-headline mb-1">{deleteDialog?.name}</p>
+                <p className="apple-label-tertiary apple-text-subheadline">{deleteDialog?.email}</p>
               </div>
-              Eliminar cuenta
-            </DialogTitle>
-          </DialogHeader>
 
-          <div className="mt-2 space-y-4">
-            <div className="bg-red-500/10 border border-red-500/30 rounded-xl p-4">
-              <p className="text-white font-bold mb-1">{deleteDialog?.name}</p>
-              <p className="text-gray-400 text-sm">{deleteDialog?.email}</p>
-            </div>
+              <p className="apple-label-secondary apple-text-subheadline">
+                Esta acción es <strong className="text-apple-red">permanente e irreversible</strong>. Se eliminarán:
+              </p>
+              <ul className="apple-label-tertiary apple-text-subheadline space-y-1 list-disc list-inside">
+                <li>El tenant y toda su configuración</li>
+                <li>Todos los empleados/usuarios del tenant</li>
+                <li>La suscripción de Stripe (si existe)</li>
+              </ul>
 
-            <p className="text-gray-300 text-sm">
-              Esta acción es <strong className="text-red-400">permanente e irreversible</strong>. Se eliminarán:
-            </p>
-            <ul className="text-gray-400 text-sm space-y-1 list-disc list-inside">
-              <li>El tenant y toda su configuración</li>
-              <li>Todos los empleados/usuarios del tenant</li>
-              <li>La suscripción de Stripe (si existe)</li>
-            </ul>
+              <div>
+                <label className="apple-label-secondary apple-text-footnote mb-2 block">Motivo (opcional)</label>
+                <Input
+                  value={deleteReason}
+                  onChange={(e) => setDeleteReason(e.target.value)}
+                  placeholder="Ej: Cuenta de prueba sin actividad"
+                  className="apple-input"
+                />
+              </div>
 
-            <div>
-              <label className="text-gray-400 text-sm mb-2 block">Motivo (opcional)</label>
-              <Input
-                value={deleteReason}
-                onChange={(e) => setDeleteReason(e.target.value)}
-                placeholder="Ej: Cuenta de prueba sin actividad"
-                className="bg-black/40 border-white/10 text-white"
-              />
-            </div>
-
-            <div className="flex gap-3 pt-2">
-              <Button
-                variant="outline"
-                className="flex-1 border-white/20 text-gray-300"
-                onClick={() => { setDeleteDialog(null); setDeleteReason(""); }}
-              >
-                Cancelar
-              </Button>
-              <Button
-                onClick={handleDelete}
-                disabled={!!actionLoading}
-                className="flex-1 bg-red-600 hover:bg-red-500 text-white font-bold"
-              >
-                {actionLoading ? (
-                  <Loader2 className="w-4 h-4 animate-spin" />
-                ) : (
-                  <>
-                    <Trash2 className="w-4 h-4 mr-2" />
-                    Eliminar
-                  </>
-                )}
-              </Button>
+              <div className="flex gap-3 pt-2">
+                <Button
+                  variant="outline"
+                  className="flex-1 apple-btn apple-btn-secondary apple-press"
+                  onClick={() => { setDeleteDialog(null); setDeleteReason(""); }}
+                >
+                  Cancelar
+                </Button>
+                <Button
+                  onClick={handleDelete}
+                  disabled={!!actionLoading}
+                  className="flex-1 apple-btn apple-btn-destructive apple-press"
+                >
+                  {actionLoading ? (
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                  ) : (
+                    <>
+                      <Trash2 className="w-4 h-4 mr-2" />
+                      Eliminar
+                    </>
+                  )}
+                </Button>
+              </div>
             </div>
           </div>
         </DialogContent>
       </Dialog>
 
-      {/* ── Modal Crear Tenant ── */}
+      {/* Modal Crear Tenant */}
       <Dialog open={showCreateModal} onOpenChange={setShowCreateModal}>
-        <DialogContent className="bg-slate-900 border-purple-500/30 text-white max-w-2xl z-[9999]">
-          <DialogHeader>
-            <DialogTitle className="text-2xl font-bold flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-purple-600 to-pink-600 flex items-center justify-center">
-                <Building2 className="w-5 h-5 text-white" />
-              </div>
-              Crear Nuevo Tenant
-            </DialogTitle>
-          </DialogHeader>
+        <DialogContent className="apple-surface-elevated rounded-apple-lg shadow-apple-xl border-0 p-0 overflow-hidden max-w-2xl z-[9999]">
+          <div className="p-6">
+            <DialogHeader>
+              <DialogTitle className="apple-text-title2 apple-label-primary flex items-center gap-3">
+                <div className="w-10 h-10 rounded-apple-sm bg-apple-purple/15 flex items-center justify-center">
+                  <Building2 className="w-5 h-5 text-apple-purple" />
+                </div>
+                Crear Nuevo Tenant
+              </DialogTitle>
+            </DialogHeader>
 
-          <div className="space-y-4 mt-4">
-            <div>
-              <label className="text-gray-300 text-sm mb-2 block">Nombre del Tenant *</label>
-              <Input
-                value={newTenant.name}
-                onChange={(e) => setNewTenant({...newTenant, name: e.target.value})}
-                placeholder="Mi Empresa"
-                className="bg-black/40 border-white/10 text-white"
-              />
-            </div>
-            <div>
-              <label className="text-gray-300 text-sm mb-2 block">Slug (URL-friendly) *</label>
-              <Input
-                value={newTenant.slug}
-                onChange={(e) => setNewTenant({...newTenant, slug: e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, '')})}
-                placeholder="mi-empresa"
-                className="bg-black/40 border-white/10 text-white"
-              />
-            </div>
-            <div>
-              <label className="text-gray-300 text-sm mb-2 block">Email del Propietario *</label>
-              <Input
-                value={newTenant.owner_email}
-                onChange={(e) => setNewTenant({...newTenant, owner_email: e.target.value})}
-                placeholder="propietario@example.com"
-                type="email"
-                className="bg-black/40 border-white/10 text-white"
-              />
-            </div>
-            <div className="flex gap-3 pt-4">
-              <Button
-                onClick={() => setShowCreateModal(false)}
-                variant="outline"
-                className="flex-1 border-white/10 text-gray-300"
-              >
-                Cancelar
-              </Button>
-              <Button
-                onClick={handleCreateTenant}
-                disabled={loading}
-                className="flex-1 bg-gradient-to-r from-purple-600 to-pink-600"
-              >
-                {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <><Plus className="w-4 h-4 mr-2" />Crear Tenant</>}
-              </Button>
+            <div className="space-y-4 mt-4">
+              <div>
+                <label className="apple-label-secondary apple-text-footnote mb-2 block">Nombre del Tenant *</label>
+                <Input
+                  value={newTenant.name}
+                  onChange={(e) => setNewTenant({...newTenant, name: e.target.value})}
+                  placeholder="Mi Empresa"
+                  className="apple-input"
+                />
+              </div>
+              <div>
+                <label className="apple-label-secondary apple-text-footnote mb-2 block">Slug (URL-friendly) *</label>
+                <Input
+                  value={newTenant.slug}
+                  onChange={(e) => setNewTenant({...newTenant, slug: e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, '')})}
+                  placeholder="mi-empresa"
+                  className="apple-input tabular-nums"
+                />
+              </div>
+              <div>
+                <label className="apple-label-secondary apple-text-footnote mb-2 block">Email del Propietario *</label>
+                <Input
+                  value={newTenant.owner_email}
+                  onChange={(e) => setNewTenant({...newTenant, owner_email: e.target.value})}
+                  placeholder="propietario@example.com"
+                  type="email"
+                  className="apple-input"
+                />
+              </div>
+              <div className="flex gap-3 pt-4">
+                <Button
+                  onClick={() => setShowCreateModal(false)}
+                  variant="outline"
+                  className="flex-1 apple-btn apple-btn-secondary apple-press"
+                >
+                  Cancelar
+                </Button>
+                <Button
+                  onClick={handleCreateTenant}
+                  disabled={loading}
+                  className="flex-1 apple-btn apple-btn-primary apple-press"
+                >
+                  {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <><Plus className="w-4 h-4 mr-2" />Crear Tenant</>}
+                </Button>
+              </div>
             </div>
           </div>
         </DialogContent>

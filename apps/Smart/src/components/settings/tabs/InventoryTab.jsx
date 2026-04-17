@@ -24,10 +24,10 @@ export default function InventoryTab({ user }) {
   useEffect(() => {
     const onSave = () => saveData();
     const onRevert = () => setData(originalData);
-    
+
     window.addEventListener("settings-save", onSave);
     window.addEventListener("settings-revert", onRevert);
-    
+
     return () => {
       window.removeEventListener("settings-save", onSave);
       window.removeEventListener("settings-revert", onRevert);
@@ -63,7 +63,7 @@ export default function InventoryTab({ user }) {
   const saveData = async () => {
     try {
       const rows = await base44.entities.SystemConfig.filter({ key: "settings.inventory" });
-      
+
       const payload = {
         key: "settings.inventory",
         value: JSON.stringify(data),
@@ -90,38 +90,38 @@ export default function InventoryTab({ user }) {
       setOriginalData(data);
       window.dispatchEvent(new Event("settings-clean"));
       window.dispatchEvent(new Event("force-refresh"));
-      
+
       alert("Configuración guardada");
     } catch (e) {
       alert("Error al guardar: " + e.message);
     }
   };
 
-  if (loading) return <div className="text-gray-400">Cargando...</div>;
+  if (loading) return <div className="apple-type apple-label-tertiary apple-text-body">Cargando...</div>;
 
   return (
-    <div className="space-y-6">
-      <Card className="bg-zinc-900/50 border-white/10">
+    <div className="apple-type space-y-6">
+      <Card className="apple-card border-0">
         <CardHeader>
-          <CardTitle>Configuración de Inventario</CardTitle>
-          <CardDescription>Gestión de stock y productos</CardDescription>
+          <CardTitle className="apple-text-title3 apple-label-primary">Configuración de Inventario</CardTitle>
+          <CardDescription className="apple-text-subheadline apple-label-secondary">Gestión de stock y productos</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="space-y-2">
-            <Label>Umbral de stock bajo</Label>
+            <Label className="apple-text-footnote apple-label-secondary">Umbral de stock bajo</Label>
             <Input
               type="number"
               min="0"
               value={data.low_stock_threshold}
               onChange={(e) => setData({ ...data, low_stock_threshold: Number(e.target.value) })}
-              className="bg-black border-white/15"
+              className="apple-input tabular-nums"
             />
           </div>
 
-          <div className="flex items-center justify-between p-3 bg-black/30 rounded-lg">
+          <div className="flex items-center justify-between p-3 bg-gray-sys6 dark:bg-gray-sys5 rounded-apple-md">
             <div>
-              <Label>Permitir stock negativo</Label>
-              <p className="text-xs text-gray-400">Vender sin inventario disponible</p>
+              <Label className="apple-text-body apple-label-primary">Permitir stock negativo</Label>
+              <p className="apple-text-caption1 apple-label-tertiary">Vender sin inventario disponible</p>
             </div>
             <Switch
               checked={data.allow_negative_stock}
@@ -129,10 +129,10 @@ export default function InventoryTab({ user }) {
             />
           </div>
 
-          <div className="flex items-center justify-between p-3 bg-black/30 rounded-lg">
+          <div className="flex items-center justify-between p-3 bg-gray-sys6 dark:bg-gray-sys5 rounded-apple-md">
             <div>
-              <Label>Alertas de stock bajo</Label>
-              <p className="text-xs text-gray-400">Notificar cuando hay poco stock</p>
+              <Label className="apple-text-body apple-label-primary">Alertas de stock bajo</Label>
+              <p className="apple-text-caption1 apple-label-tertiary">Notificar cuando hay poco stock</p>
             </div>
             <Switch
               checked={data.stock_alerts?.enabled}
@@ -143,10 +143,10 @@ export default function InventoryTab({ user }) {
             />
           </div>
 
-          <div className="flex items-center justify-between p-3 bg-black/30 rounded-lg">
+          <div className="flex items-center justify-between p-3 bg-gray-sys6 dark:bg-gray-sys5 rounded-apple-md">
             <div>
-              <Label>Rastrear seriales</Label>
-              <p className="text-xs text-gray-400">Llevar control de números de serie</p>
+              <Label className="apple-text-body apple-label-primary">Rastrear seriales</Label>
+              <p className="apple-text-caption1 apple-label-tertiary">Llevar control de números de serie</p>
             </div>
             <Switch
               checked={data.track_serials}

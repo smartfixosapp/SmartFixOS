@@ -427,8 +427,8 @@ export default function AuthGate({ children }) {
   // ─────────────────────────────────────────────────────────────────────
   // Splash mientras se verifica auth — evita pantalla negra al abrir desde acceso directo
   if (isCheckingAuth) return (
-    <div style={{ position: "fixed", inset: 0, background: "#000", display: "flex", alignItems: "center", justifyContent: "center" }}>
-      <div className="w-8 h-8 rounded-full border-[3px] border-white/10 border-t-cyan-400 animate-spin" />
+    <div className="apple-type apple-surface" style={{ position: "fixed", inset: 0, display: "flex", alignItems: "center", justifyContent: "center" }}>
+      <div className="w-8 h-8 rounded-full border-[3px] border-gray-sys5/30 border-t-apple-blue animate-spin" />
     </div>
   );
 

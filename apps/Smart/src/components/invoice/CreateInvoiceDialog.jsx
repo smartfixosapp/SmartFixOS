@@ -368,10 +368,10 @@ export default function CreateInvoiceDialog({ open, onClose }) {
 
   return (
     <Dialog open={open} onOpenChange={(v) => !v && onClose(false)}>
-      <DialogContent className="bg-[#0f0f10] border border-purple-500/20 text-white max-w-4xl max-h-[90vh] overflow-hidden flex flex-col">
-        <DialogHeader className="border-b border-purple-500/20 pb-4">
-          <DialogTitle className="text-white flex items-center gap-2">
-            <FileText className="w-5 h-5 text-purple-400" />
+      <DialogContent className="apple-type apple-surface-elevated rounded-apple-lg shadow-apple-xl border-0 p-0 overflow-hidden apple-label-primary max-w-4xl max-h-[90vh] flex flex-col">
+        <DialogHeader className="pb-4 p-6" style={{ borderBottom: '0.5px solid rgb(var(--separator) / 0.29)' }}>
+          <DialogTitle className="apple-label-primary flex items-center gap-2 apple-text-headline">
+            <FileText className="w-5 h-5 text-apple-purple" />
             Crear Factura {step === 0 ? "" : `- Paso ${step} de 3`}
           </DialogTitle>
         </DialogHeader>
@@ -380,24 +380,24 @@ export default function CreateInvoiceDialog({ open, onClose }) {
           {/* PASO 1: BUSCAR EMPRESA */}
           {step === 1 && invoiceType === 'b2b' &&
           <div className="space-y-4">
-              <div className="bg-gradient-to-br from-purple-600/10 to-pink-600/10 border border-purple-500/20 rounded-lg p-4">
-                <h3 className="text-white font-semibold mb-3 flex items-center gap-2">
-                  <Building2 className="w-5 h-5 text-purple-400" />
+              <div className="bg-apple-purple/12 rounded-apple-md p-4">
+                <h3 className="apple-label-primary font-semibold mb-3 flex items-center gap-2">
+                  <Building2 className="w-5 h-5 text-apple-purple" />
                   Buscar Empresa Cliente
                 </h3>
                 <div className="relative">
-                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 apple-label-tertiary" />
                   <Input
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   placeholder="Buscar por nombre de empresa, RUT/Tax ID..."
-                  className="pl-10 bg-black/40 border-purple-500/30 text-white h-12" />
+                  className="pl-10 apple-input h-12" />
                 </div>
               </div>
 
               {searching &&
             <div className="text-center py-8">
-                  <Loader2 className="w-8 h-8 animate-spin text-purple-400 mx-auto" />
+                  <Loader2 className="w-8 h-8 animate-spin text-apple-purple mx-auto" />
                 </div>
             }
 
@@ -407,22 +407,22 @@ export default function CreateInvoiceDialog({ open, onClose }) {
               <Card
                 key={company.id}
                 onClick={() => selectCompany(company)}
-                className="cursor-pointer bg-black/40 border-white/10 hover:border-purple-500/40 transition p-4">
+                className="cursor-pointer apple-card border-0 hover:bg-gray-sys6 dark:hover:bg-gray-sys5 transition p-4">
                       <div className="flex items-start justify-between gap-3">
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-2 mb-1">
-                            <Building2 className="w-4 h-4 text-purple-400" />
-                            <p className="text-white font-bold truncate">{company.company_name}</p>
+                            <Building2 className="w-4 h-4 text-apple-purple" />
+                            <p className="apple-label-primary font-semibold truncate">{company.company_name}</p>
                           </div>
                           {company.company_tax_id &&
-                    <p className="text-xs text-gray-400">RUT/Tax ID: {company.company_tax_id}</p>
+                    <p className="text-xs apple-label-tertiary">RUT/Tax ID: {company.company_tax_id}</p>
                     }
-                          <p className="text-xs text-gray-400 mt-1">
+                          <p className="text-xs apple-label-tertiary mt-1">
                             Contacto: {company.billing_contact_person || company.name}
                           </p>
-                          <p className="text-xs text-gray-500">{company.email}</p>
+                          <p className="text-xs apple-label-tertiary">{company.email}</p>
                         </div>
-                        <Badge className="bg-purple-600/20 text-purple-300 border-purple-500/30">
+                        <Badge className="bg-apple-purple/15 text-apple-purple border-0">
                           B2B
                         </Badge>
                       </div>
@@ -432,13 +432,13 @@ export default function CreateInvoiceDialog({ open, onClose }) {
             }
 
               {searchQuery.length >= 2 && filteredCompanies.length === 0 && !searching &&
-            <div className="text-center py-8 text-gray-400">
+            <div className="text-center py-8 apple-label-tertiary">
                   No se encontraron empresas para "{searchQuery}"
                 </div>
             }
 
               {!searching && searchQuery.length < 2 && companies.length === 0 &&
-            <div className="text-center py-8 text-gray-400">
+            <div className="text-center py-8 apple-label-tertiary">
                   Cargando empresas...
                 </div>
             }
@@ -448,21 +448,21 @@ export default function CreateInvoiceDialog({ open, onClose }) {
           {/* PASO 2: SELECCIONAR ÓRDENES */}
           {step === 2 &&
           <div className="space-y-4">
-              <div className="bg-gradient-to-br from-purple-600/10 to-pink-600/10 border border-purple-500/20 rounded-lg p-4">
-                <h3 className="text-white font-semibold mb-2">
+              <div className="bg-apple-purple/12 rounded-apple-md p-4">
+                <h3 className="apple-label-primary font-semibold mb-2">
                   Órdenes de {selectedCompany?.company_name}
                 </h3>
-                <p className="text-xs text-gray-400">
+                <p className="text-xs apple-label-tertiary">
                   Selecciona las órdenes a incluir en la factura
                 </p>
               </div>
 
               {loading ?
             <div className="text-center py-8">
-                  <Loader2 className="w-8 h-8 animate-spin text-purple-400 mx-auto" />
+                  <Loader2 className="w-8 h-8 animate-spin text-apple-purple mx-auto" />
                 </div> :
             availableOrders.length === 0 ?
-            <div className="text-center py-8 text-gray-400">
+            <div className="text-center py-8 apple-label-tertiary">
                   No hay órdenes disponibles para facturar
                 </div> :
 
@@ -475,38 +475,38 @@ export default function CreateInvoiceDialog({ open, onClose }) {
                     onClick={() => toggleOrderSelection(order)}
                     className={`cursor-pointer p-4 transition ${
                     isSelected ?
-                    'bg-purple-600/20 border-purple-500/60 ring-2 ring-purple-500/40' :
-                    'bg-black/40 border-white/10 hover:border-purple-500/40'}`
+                    'bg-apple-purple/12' :
+                    'apple-card border-0 hover:bg-gray-sys6 dark:hover:bg-gray-sys5'}`
                     }>
                         <div className="flex items-start gap-3">
                           <div className={`w-5 h-5 rounded border-2 flex items-center justify-center flex-shrink-0 ${
-                      isSelected ? 'bg-purple-500 border-purple-500' : 'border-purple-500/40'}`
+                      isSelected ? 'bg-apple-purple' : 'bg-gray-sys5'}`
                       }>
                             {isSelected && <CheckSquare className="w-4 h-4 text-white" />}
                           </div>
                           <div className="flex-1 min-w-0">
                             <div className="flex items-center gap-2 mb-1">
-                              <p className="text-white font-semibold">#{order.order_number}</p>
-                              <Badge className="bg-cyan-600/20 text-cyan-300 border-cyan-500/30 text-xs">
+                              <p className="apple-label-primary font-semibold">#{order.order_number}</p>
+                              <Badge className="bg-apple-blue/15 text-apple-blue border-0 text-xs">
                                 {order.status}
                               </Badge>
                             </div>
-                            <p className="text-sm text-gray-300">
+                            <p className="text-sm apple-label-secondary">
                               {order.device_brand} {order.device_model}
                             </p>
                             {order.device_serial &&
-                        <p className="text-xs text-gray-500 font-mono mt-1">{order.device_serial}</p>
+                        <p className="text-xs apple-label-tertiary font-mono mt-1">{order.device_serial}</p>
                         }
-                            <p className="text-xs text-gray-400 mt-2">
+                            <p className="text-xs apple-label-tertiary mt-2">
                               Creada: {format(new Date(order.created_date), "dd MMM yyyy", { locale: es })}
                             </p>
                           </div>
                           <div className="text-right">
-                            <p className="text-white font-bold text-lg">
+                            <p className="apple-label-primary font-semibold text-lg">
                               ${Number(order.cost_estimate || order.total || 0).toFixed(2)}
                             </p>
                             {Number(order.balance_due || 0) > 0 &&
-                        <Badge className="bg-amber-600/20 text-amber-300 border-amber-500/30 text-xs mt-1">
+                        <Badge className="bg-apple-orange/15 text-apple-orange border-0 text-xs mt-1">
                                 Saldo: ${Number(order.balance_due).toFixed(2)}
                               </Badge>
                         }
@@ -523,18 +523,18 @@ export default function CreateInvoiceDialog({ open, onClose }) {
           {/* PASO 3: SELECCIONAR PRODUCTOS */}
           {step === 3 && (
             <div className="space-y-4">
-              <div className="bg-gradient-to-br from-purple-600/10 to-pink-600/10 border border-purple-500/20 rounded-lg p-4">
-                <h3 className="text-white font-semibold mb-2">
+              <div className="bg-apple-purple/12 rounded-apple-md p-4">
+                <h3 className="apple-label-primary font-semibold mb-2">
                   Dispositivos en Venta
                 </h3>
-                <p className="text-xs text-gray-400 mb-3">
+                <p className="text-xs apple-label-tertiary mb-3">
                   Selecciona dispositivos para incluir en la factura (opcional)
                 </p>
                 <Input
                   value={productSearch}
                   onChange={(e) => setProductSearch(e.target.value)}
                   placeholder="Buscar dispositivo..."
-                  className="bg-black/40 border-purple-500/30 text-white"
+                  className="apple-input"
                 />
               </div>
 
@@ -554,8 +554,8 @@ export default function CreateInvoiceDialog({ open, onClose }) {
                         key={product.id}
                         className={`p-4 transition ${
                           isSelected 
-                            ? 'bg-purple-600/20 border-purple-500/60 ring-2 ring-purple-500/40'
-                            : 'bg-black/40 border-white/10 hover:border-purple-500/40'
+                            ? 'bg-apple-purple/12'
+                            : 'apple-card border-0 hover:bg-gray-sys6 dark:hover:bg-gray-sys5'
                         }`}
                       >
                         <div className="flex items-start gap-3">
@@ -572,44 +572,44 @@ export default function CreateInvoiceDialog({ open, onClose }) {
                             className="w-5 h-5 mt-1 rounded"
                           />
                           <div className="flex-1">
-                            <p className="text-white font-semibold mb-1">{product.name}</p>
+                            <p className="apple-label-primary font-semibold mb-1">{product.name}</p>
                             
-                            <div className="grid grid-cols-2 gap-2 text-xs text-gray-400 mt-2">
+                            <div className="grid grid-cols-2 gap-2 text-xs apple-label-tertiary mt-2">
                               {product.device_imei && (
                                 <div>
-                                  <span className="text-gray-500">IMEI:</span> {product.device_imei}
+                                  <span className="apple-label-tertiary">IMEI:</span> {product.device_imei}
                                 </div>
                               )}
                               {product.device_condition && (
                                 <div>
-                                  <span className="text-gray-500">Condición:</span> {product.device_condition}
+                                  <span className="apple-label-tertiary">Condición:</span> {product.device_condition}
                                 </div>
                               )}
                               {product.device_storage && (
                                 <div>
-                                  <span className="text-gray-500">Almacenamiento:</span> {product.device_storage}
+                                  <span className="apple-label-tertiary">Almacenamiento:</span> {product.device_storage}
                                 </div>
                               )}
                               {product.device_color && (
                                 <div>
-                                  <span className="text-gray-500">Color:</span> {product.device_color}
+                                  <span className="apple-label-tertiary">Color:</span> {product.device_color}
                                 </div>
                               )}
                               {product.device_carrier && (
                                 <div>
-                                  <span className="text-gray-500">Carrier:</span> {product.device_carrier}
+                                  <span className="apple-label-tertiary">Carrier:</span> {product.device_carrier}
                                 </div>
                               )}
                               {product.device_battery_health && (
                                 <div>
-                                  <span className="text-gray-500">Batería:</span> {product.device_battery_health}%
+                                  <span className="apple-label-tertiary">Batería:</span> {product.device_battery_health}%
                                 </div>
                               )}
                             </div>
                             
                             {isSelected && (
                               <div className="mt-3 flex items-center gap-2">
-                                <label className="text-xs text-gray-400">Cantidad:</label>
+                                <label className="text-xs apple-label-tertiary">Cantidad:</label>
                                 <Input
                                   type="number"
                                   min="1"
@@ -620,17 +620,17 @@ export default function CreateInvoiceDialog({ open, onClose }) {
                                       p.id === product.id ? { ...p, selectedQty: qty } : p
                                     ));
                                   }}
-                                  className="w-20 h-8 bg-black/40 border-purple-500/30 text-white text-sm"
+                                  className="w-20 h-8 apple-input text-sm"
                                 />
                               </div>
                             )}
                           </div>
                           <div className="text-right">
-                            <p className="text-white font-bold text-lg">
+                            <p className="apple-label-primary font-semibold text-lg">
                               ${Number(product.price || 0).toFixed(2)}
                             </p>
                             {isSelected && selectedProduct?.selectedQty > 1 && (
-                              <p className="text-xs text-gray-400 mt-1">
+                              <p className="text-xs apple-label-tertiary mt-1">
                                 Total: ${(Number(product.price || 0) * selectedProduct.selectedQty).toFixed(2)}
                               </p>
                             )}
@@ -646,30 +646,30 @@ export default function CreateInvoiceDialog({ open, onClose }) {
           {/* PASO 4: RESUMEN */}
           {step === 4 &&
           <div className="space-y-4">
-              <div className="bg-gradient-to-br from-purple-600/10 to-pink-600/10 border border-purple-500/20 rounded-lg p-4">
-                <h3 className="text-white font-semibold mb-2">
+              <div className="bg-apple-purple/12 rounded-apple-md p-4">
+                <h3 className="apple-label-primary font-semibold mb-2">
                   Resumen de Factura
                 </h3>
-                <p className="text-xs text-gray-400">
+                <p className="text-xs apple-label-tertiary">
                   {selectedCompany?.company_name} - {selectedOrders.length} órdenes, {selectedProducts.length} dispositivos
                 </p>
               </div>
 
               {selectedOrders.length > 0 && (
-                <div className="bg-black/40 border border-white/10 rounded-lg p-4">
+                <div className="apple-card border-0 rounded-apple-md p-4">
                   <h4 className="text-sm font-semibold text-white mb-3">
                     Órdenes Incluidas ({selectedOrders.length})
                   </h4>
                   <div className="space-y-2 max-h-48 overflow-y-auto">
                     {selectedOrders.map((order) => (
-                      <div key={order.id} className="flex items-center justify-between bg-black/60 border border-white/5 rounded-lg p-2">
+                      <div key={order.id} className="flex items-center justify-between bg-gray-sys6 dark:bg-gray-sys5 rounded-apple-sm p-2">
                         <div className="flex-1 min-w-0">
                           <p className="text-white text-xs font-medium">#{order.order_number}</p>
-                          <p className="text-xs text-gray-500 truncate">
+                          <p className="text-xs apple-label-tertiary truncate">
                             {order.device_brand} {order.device_model}
                           </p>
                         </div>
-                        <p className="text-white font-bold text-sm">${Number(order.cost_estimate || order.total || 0).toFixed(2)}</p>
+                        <p className="apple-label-primary font-semibold text-sm">${Number(order.cost_estimate || order.total || 0).toFixed(2)}</p>
                       </div>
                     ))}
                   </div>
@@ -677,20 +677,20 @@ export default function CreateInvoiceDialog({ open, onClose }) {
               )}
 
               {selectedProducts.length > 0 && (
-                <div className="bg-black/40 border border-emerald-500/20 rounded-lg p-4">
+                <div className="apple-card border-0 rounded-apple-md p-4">
                   <h4 className="text-sm font-semibold text-white mb-3">
                     Dispositivos Incluidos ({selectedProducts.length})
                   </h4>
                   <div className="space-y-2 max-h-48 overflow-y-auto">
                     {selectedProducts.map((product) => (
-                      <div key={product.id} className="bg-black/60 border border-white/5 rounded-lg p-2">
+                      <div key={product.id} className="bg-gray-sys6 dark:bg-gray-sys5 rounded-apple-sm p-2">
                         <div className="flex items-center justify-between mb-1">
                           <p className="text-white text-xs font-medium">{product.name}</p>
-                          <p className="text-white font-bold text-sm">
+                          <p className="apple-label-primary font-semibold text-sm">
                             ${(Number(product.price || 0) * (product.selectedQty || 1)).toFixed(2)}
                           </p>
                         </div>
-                        <div className="text-xs text-gray-500 space-y-0.5">
+                        <div className="text-xs apple-label-tertiary space-y-0.5">
                           {product.device_imei && <div>IMEI: {product.device_imei}</div>}
                           <div className="flex gap-2 flex-wrap">
                             {product.device_condition && <span>• {product.device_condition}</span>}
@@ -706,42 +706,42 @@ export default function CreateInvoiceDialog({ open, onClose }) {
               )}
 
               <div>
-                <label className="text-xs text-gray-300 mb-1.5 block">Notas / Términos Especiales (opcional)</label>
+                <label className="text-xs apple-label-secondary mb-1.5 block">Notas / Términos Especiales (opcional)</label>
                 <Textarea
                 value={notes}
                 onChange={(e) => setNotes(e.target.value)}
                 placeholder="Descuentos aplicados, términos especiales..."
-                className="bg-black/40 border-purple-500/30 text-white min-h-[80px]" />
+                className="apple-input min-h-[80px]" />
               </div>
 
               {selectedCompany?.email &&
-            <div className="flex items-center gap-2 bg-black/40 border border-emerald-500/30 rounded-lg p-3">
+            <div className="flex items-center gap-2 bg-apple-green/12 rounded-apple-sm p-3">
                   <input
                 type="checkbox"
                 checked={sendEmail}
                 onChange={(e) => setSendEmail(e.target.checked)}
                 className="w-4 h-4 rounded" />
-                  <label className="text-sm text-gray-300 flex-1">
-                    <Mail className="w-4 h-4 inline mr-2 text-emerald-400" />
+                  <label className="text-sm apple-label-secondary flex-1">
+                    <Mail className="w-4 h-4 inline mr-2 text-apple-green" />
                     Enviar factura por email a {selectedCompany.email}
                   </label>
                 </div>
             }
 
-              <div className="bg-gradient-to-br from-purple-600/10 to-pink-600/10 border border-purple-500/20 rounded-lg p-4">
+              <div className="bg-apple-purple/12 rounded-apple-md p-4">
                 <h4 className="text-sm font-semibold text-white mb-3">Totales</h4>
                 <div className="space-y-2 text-sm">
                   <div className="flex justify-between">
-                    <span className="text-gray-300">Subtotal:</span>
-                    <span className="text-white font-semibold">${subtotal.toFixed(2)}</span>
+                    <span className="apple-label-secondary">Subtotal:</span>
+                    <span className="apple-label-primary font-semibold">${subtotal.toFixed(2)}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-gray-300">IVU (11.5%):</span>
-                    <span className="text-white font-semibold">${taxAmount.toFixed(2)}</span>
+                    <span className="apple-label-secondary">IVU (11.5%):</span>
+                    <span className="apple-label-primary font-semibold">${taxAmount.toFixed(2)}</span>
                   </div>
                   <div className="flex justify-between pt-2 border-t border-purple-500/20">
-                    <span className="text-white font-bold">Total:</span>
-                    <span className="text-white font-bold text-lg">${total.toFixed(2)}</span>
+                    <span className="apple-label-primary font-semibold">Total:</span>
+                    <span className="apple-label-primary font-semibold text-lg">${total.toFixed(2)}</span>
                   </div>
                 </div>
               </div>
@@ -749,7 +749,7 @@ export default function CreateInvoiceDialog({ open, onClose }) {
           }
         </div>
 
-        <DialogFooter className="flex gap-2 border-t border-purple-500/20 pt-4 px-6 pb-4">
+        <DialogFooter className="flex gap-2 pt-4 px-6 pb-4" style={{ borderTop: '0.5px solid rgb(var(--separator) / 0.29)' }}>
           {step > 0 &&
           <Button
             variant="outline"
@@ -778,14 +778,14 @@ export default function CreateInvoiceDialog({ open, onClose }) {
               setStep(step + 1);
             }}
             disabled={step === 1 && !selectedCompany}
-            className="bg-gradient-to-r from-purple-600 to-pink-600">
+            className="apple-btn apple-btn-primary bg-apple-purple">
               Siguiente →
             </Button> :
 
           <Button
             onClick={handleCreate}
             disabled={loading}
-            className="bg-gradient-to-r from-purple-600 to-pink-600">
+            className="apple-btn apple-btn-primary bg-apple-purple">
               {loading ?
             <>
                   <Loader2 className="w-4 h-4 mr-2 animate-spin" />

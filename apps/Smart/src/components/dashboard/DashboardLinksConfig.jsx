@@ -21,9 +21,9 @@ const AVAILABLE_WIDGETS = [
     label: "Nueva Orden",
     description: "Abre el asistente para crear una nueva orden de trabajo",
     icon: ClipboardList,
-    color: "text-sky-400",
-    bg: "bg-sky-500/10",
-    border: "border-sky-500/20",
+    color: "text-apple-blue",
+    bg: "bg-apple-blue/15",
+    border: "",
     defaultOn: true
   },
   {
@@ -32,9 +32,9 @@ const AVAILABLE_WIDGETS = [
     label: "Órdenes",
     description: "Navega al historial y gestión de órdenes",
     icon: ClipboardList,
-    color: "text-purple-400",
-    bg: "bg-purple-500/10",
-    border: "border-purple-500/20",
+    color: "text-apple-purple",
+    bg: "bg-apple-purple/15",
+    border: "",
     defaultOn: true
   },
   {
@@ -43,9 +43,9 @@ const AVAILABLE_WIDGETS = [
     label: "Inventario",
     description: "Gestiona stock, productos y servicios",
     icon: Package,
-    color: "text-teal-400",
-    bg: "bg-teal-500/10",
-    border: "border-teal-500/20",
+    color: "text-apple-green",
+    bg: "bg-apple-green/15",
+    border: "",
     defaultOn: true
   },
   {
@@ -54,9 +54,9 @@ const AVAILABLE_WIDGETS = [
     label: "Finanzas",
     description: "Resumen financiero, caja y transacciones",
     icon: Wallet,
-    color: "text-emerald-400",
-    bg: "bg-emerald-500/10",
-    border: "border-emerald-500/20",
+    color: "text-apple-green",
+    bg: "bg-apple-green/15",
+    border: "",
     defaultOn: true
   },
   {
@@ -65,9 +65,9 @@ const AVAILABLE_WIDGETS = [
     label: "Reportes",
     description: "Reportes P&L, análisis y estadísticas",
     icon: BarChart3,
-    color: "text-indigo-400",
-    bg: "bg-indigo-500/10",
-    border: "border-indigo-500/20",
+    color: "text-apple-indigo",
+    bg: "bg-apple-indigo/15",
+    border: "",
     defaultOn: false
   },
   // ── KPI widgets ──────────────────────────────────────────────────────────
@@ -77,9 +77,9 @@ const AVAILABLE_WIDGETS = [
     label: "Ingresos de hoy",
     description: "Ventas y ganancia del día actual",
     icon: DollarSign,
-    color: "text-emerald-400",
-    bg: "bg-emerald-500/10",
-    border: "border-emerald-500/20",
+    color: "text-apple-green",
+    bg: "bg-apple-green/15",
+    border: "",
     defaultOn: true
   },
   {
@@ -88,9 +88,9 @@ const AVAILABLE_WIDGETS = [
     label: "Meta diaria",
     description: "Porcentaje de avance hacia tu meta de ventas diaria",
     icon: TrendingUp,
-    color: "text-blue-400",
-    bg: "bg-blue-500/10",
-    border: "border-blue-500/20",
+    color: "text-apple-blue",
+    bg: "bg-apple-blue/15",
+    border: "",
     defaultOn: true
   },
   {
@@ -99,9 +99,9 @@ const AVAILABLE_WIDGETS = [
     label: "Órdenes activas",
     description: "Total de órdenes en progreso y listas para recoger",
     icon: Wrench,
-    color: "text-indigo-400",
-    bg: "bg-indigo-500/10",
-    border: "border-indigo-500/20",
+    color: "text-apple-indigo",
+    bg: "bg-apple-indigo/15",
+    border: "",
     defaultOn: true
   },
   {
@@ -110,9 +110,9 @@ const AVAILABLE_WIDGETS = [
     label: "Entregadas hoy",
     description: "Reparaciones completadas y entregadas hoy",
     icon: PackageCheck,
-    color: "text-purple-400",
-    bg: "bg-purple-500/10",
-    border: "border-purple-500/20",
+    color: "text-apple-purple",
+    bg: "bg-apple-purple/15",
+    border: "",
     defaultOn: true
   },
   {
@@ -121,9 +121,9 @@ const AVAILABLE_WIDGETS = [
     label: "Sin movimiento",
     description: "Órdenes sin actualizar por más de 7 días",
     icon: Timer,
-    color: "text-red-400",
-    bg: "bg-red-500/10",
-    border: "border-red-500/20",
+    color: "text-apple-red",
+    bg: "bg-apple-red/15",
+    border: "",
     defaultOn: true
   },
   {
@@ -132,9 +132,9 @@ const AVAILABLE_WIDGETS = [
     label: "Gestión de Órdenes",
     description: "Filtros de estado, búsqueda y lista de órdenes activas",
     icon: ClipboardList,
-    color: "text-blue-400",
-    bg: "bg-blue-500/10",
-    border: "border-blue-500/20",
+    color: "text-apple-blue",
+    bg: "bg-apple-blue/15",
+    border: "",
     defaultOn: false
   },
   {
@@ -143,9 +143,9 @@ const AVAILABLE_WIDGETS = [
     label: "Lista de Precios",
     description: "Busca precios de productos y servicios al instante",
     icon: DollarSign,
-    color: "text-emerald-400",
-    bg: "bg-emerald-500/10",
-    border: "border-emerald-500/20",
+    color: "text-apple-green",
+    bg: "bg-apple-green/15",
+    border: "",
     defaultOn: false
   },
   {
@@ -154,9 +154,9 @@ const AVAILABLE_WIDGETS = [
     label: "Órdenes urgentes",
     description: "Órdenes activas sin actualizar por más de 5 días",
     icon: AlertCircle,
-    color: "text-red-400",
-    bg: "bg-red-500/10",
-    border: "border-red-500/20",
+    color: "text-apple-red",
+    bg: "bg-apple-red/15",
+    border: "",
     defaultOn: false
   },
   {
@@ -165,9 +165,9 @@ const AVAILABLE_WIDGETS = [
     label: "Listos para recoger",
     description: "Reparaciones terminadas esperando al cliente",
     icon: PackageCheck,
-    color: "text-emerald-400",
-    bg: "bg-emerald-500/10",
-    border: "border-emerald-500/20",
+    color: "text-apple-green",
+    bg: "bg-apple-green/15",
+    border: "",
     defaultOn: false
   },
   {
@@ -176,9 +176,9 @@ const AVAILABLE_WIDGETS = [
     label: "Transacciones hoy",
     description: "Cantidad de movimientos financieros registrados hoy",
     icon: ShoppingCart,
-    color: "text-cyan-400",
-    bg: "bg-cyan-500/10",
-    border: "border-cyan-500/20",
+    color: "text-apple-blue",
+    bg: "bg-apple-blue/15",
+    border: "",
     defaultOn: false
   },
   {
@@ -187,9 +187,9 @@ const AVAILABLE_WIDGETS = [
     label: "Stock crítico",
     description: "Productos con inventario bajo el mínimo configurado",
     icon: Package,
-    color: "text-orange-400",
-    bg: "bg-orange-500/10",
-    border: "border-orange-500/20",
+    color: "text-apple-orange",
+    bg: "bg-apple-orange/15",
+    border: "",
     defaultOn: false
   },
   {
@@ -198,9 +198,9 @@ const AVAILABLE_WIDGETS = [
     label: "Clientes nuevos",
     description: "Clientes registrados en los últimos 7 días",
     icon: Users,
-    color: "text-violet-400",
-    bg: "bg-violet-500/10",
-    border: "border-violet-500/20",
+    color: "text-apple-purple",
+    bg: "bg-apple-purple/15",
+    border: "",
     defaultOn: false
   },
   {
@@ -209,9 +209,9 @@ const AVAILABLE_WIDGETS = [
     label: "Estado de caja",
     description: "Si la caja está abierta e ingresos del día",
     icon: Wallet,
-    color: "text-emerald-400",
-    bg: "bg-emerald-500/10",
-    border: "border-emerald-500/20",
+    color: "text-apple-green",
+    bg: "bg-apple-green/15",
+    border: "",
     defaultOn: false
   },
   {
@@ -220,9 +220,9 @@ const AVAILABLE_WIDGETS = [
     label: "Tiempo promedio",
     description: "Días promedio desde ingreso hasta entrega",
     icon: Clock,
-    color: "text-sky-400",
-    bg: "bg-sky-500/10",
-    border: "border-sky-500/20",
+    color: "text-apple-blue",
+    bg: "bg-apple-blue/15",
+    border: "",
     defaultOn: false
   },
   {
@@ -231,9 +231,9 @@ const AVAILABLE_WIDGETS = [
     label: "Carga por técnico",
     description: "Órdenes activas asignadas a cada técnico",
     icon: Wrench,
-    color: "text-amber-400",
-    bg: "bg-amber-500/10",
-    border: "border-amber-500/20",
+    color: "text-apple-yellow",
+    bg: "bg-apple-yellow/15",
+    border: "",
     defaultOn: false
   },
 ];
@@ -348,30 +348,29 @@ export default function DashboardLinksConfig({ open, onClose }) {
   if (!open) return null;
 
   return (
-    <div className="fixed inset-0 z-[9999] bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
-      <div className="bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 rounded-3xl border border-cyan-500/30 max-w-3xl w-full max-h-[90vh] overflow-hidden shadow-[0_0_100px_rgba(6,182,212,0.3)]">
+    <div className="apple-type fixed inset-0 z-[9999] bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
+      <div className="apple-surface-elevated rounded-apple-lg shadow-apple-xl border-0 max-w-3xl w-full max-h-[90vh] overflow-hidden">
         {/* Header */}
-        <div className="relative overflow-hidden bg-gradient-to-r from-cyan-600/20 to-emerald-600/20 border-b border-cyan-500/30 p-6">
-          <div className="absolute inset-0 bg-gradient-to-r from-cyan-500/5 to-emerald-500/5" />
+        <div className="relative overflow-hidden apple-surface p-6" style={{ borderBottom: '0.5px solid rgb(var(--separator) / 0.29)' }}>
           <div className="relative flex items-center justify-between">
             <div className="flex items-center gap-4">
-              <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-cyan-500 to-emerald-500 flex items-center justify-center shadow-lg">
-                <LayoutGrid className="w-8 h-8 text-white" />
+              <div className="w-16 h-16 rounded-apple-md bg-apple-blue/15 flex items-center justify-center">
+                <LayoutGrid className="w-8 h-8 text-apple-blue" />
               </div>
               <div>
-                <h2 className="text-2xl font-black text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-emerald-400">
+                <h2 className="apple-text-title2 apple-label-primary">
                   Personalizar Dashboard
                 </h2>
-                <p className="text-cyan-300/70 text-sm mt-1">
+                <p className="apple-text-subheadline apple-label-secondary mt-1">
                   Activa o desactiva accesos y widgets
                 </p>
               </div>
             </div>
             <button
               onClick={onClose}
-              className="w-10 h-10 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 flex items-center justify-center transition-all"
+              className="apple-press w-10 h-10 rounded-apple-sm bg-gray-sys6 dark:bg-gray-sys5 flex items-center justify-center transition-all"
             >
-              <X className="w-5 h-5 text-white" />
+              <X className="w-5 h-5 apple-label-primary" />
             </button>
           </div>
         </div>
@@ -380,14 +379,14 @@ export default function DashboardLinksConfig({ open, onClose }) {
         <div className="p-6 overflow-y-auto max-h-[calc(90vh-200px)]">
           {loading ? (
             <div className="text-center py-12">
-              <div className="w-12 h-12 border-4 border-cyan-500/30 border-t-cyan-500 rounded-full animate-spin mx-auto mb-4" />
-              <p className="text-cyan-300/70">Cargando configuración...</p>
+              <div className="w-12 h-12 border-4 border-apple-blue/30 border-t-apple-blue rounded-full animate-spin mx-auto mb-4" />
+              <p className="apple-label-secondary apple-text-subheadline">Cargando configuración...</p>
             </div>
           ) : (
             <div className="space-y-6">
               {/* ── Widgets — Lista unificada con drag ── */}
               <div>
-                <p className="text-[10px] font-black text-white/30 uppercase tracking-widest mb-3 flex items-center gap-2">
+                <p className="apple-text-caption1 font-semibold apple-label-tertiary mb-3 flex items-center gap-2">
                   <Layers className="w-3.5 h-3.5" />
                   Widgets · arrastra para reorganizar
                 </p>
@@ -411,37 +410,37 @@ export default function DashboardLinksConfig({ open, onClose }) {
                                   <div
                                     ref={provided.innerRef}
                                     {...provided.draggableProps}
-                                    className={`rounded-2xl border transition-all p-3 flex items-center gap-3 ${
-                                      snapshot.isDragging ? "opacity-80 scale-[1.02] shadow-2xl" : ""
+                                    className={`rounded-apple-md transition-all p-3 flex items-center gap-3 ${
+                                      snapshot.isDragging ? "opacity-80 scale-[1.02] shadow-apple-xl" : ""
                                     } ${
                                       enabled
-                                        ? `${widget.border} ${widget.bg}`
-                                        : "border-slate-700/30 bg-slate-900/40 opacity-60"
+                                        ? widget.bg
+                                        : "apple-surface opacity-60"
                                     }`}
                                   >
                                     {/* Drag handle */}
                                     <div
                                       {...provided.dragHandleProps}
-                                      className="text-white/50 hover:text-white/50 transition-colors cursor-grab active:cursor-grabbing flex-shrink-0"
+                                      className="apple-label-tertiary transition-colors cursor-grab active:cursor-grabbing flex-shrink-0"
                                     >
                                       <GripVertical className="w-4 h-4" />
                                     </div>
                                     {/* Icon */}
-                                    <div className={`w-9 h-9 rounded-xl ${widget.bg} border ${widget.border} flex items-center justify-center flex-shrink-0`}>
+                                    <div className={`w-9 h-9 rounded-apple-sm ${widget.bg} flex items-center justify-center flex-shrink-0`}>
                                       <IconComp className={`w-5 h-5 ${widget.color}`} />
                                     </div>
                                     {/* Label */}
                                     <div className="flex-1 min-w-0">
-                                      <p className="text-white font-bold text-sm truncate">{widget.label}</p>
-                                      <p className="text-slate-400 text-[11px] mt-0.5 truncate">{widget.description}</p>
+                                      <p className="apple-label-primary apple-text-subheadline font-semibold truncate">{widget.label}</p>
+                                      <p className="apple-label-secondary apple-text-caption1 mt-0.5 truncate">{widget.description}</p>
                                     </div>
                                     {/* Toggle */}
                                     <button
                                       onClick={() => setWidgetConfig(prev => ({ ...prev, [widget.id]: !prev[widget.id] }))}
-                                      className={`px-3 py-1.5 rounded-xl font-semibold text-xs transition-all flex items-center gap-1.5 flex-shrink-0 ${
+                                      className={`apple-press px-3 py-1.5 rounded-apple-sm font-semibold apple-text-caption1 transition-all flex items-center gap-1.5 flex-shrink-0 ${
                                         enabled
-                                          ? "bg-gradient-to-r from-emerald-500 to-green-600 text-white shadow-md"
-                                          : "bg-slate-700/50 text-slate-400 border border-slate-600"
+                                          ? "bg-apple-green text-white"
+                                          : "bg-gray-sys6 dark:bg-gray-sys5 apple-label-secondary"
                                       }`}
                                     >
                                       {enabled ? (
@@ -463,30 +462,30 @@ export default function DashboardLinksConfig({ open, onClose }) {
               </div>
 
               {/* Meta diaria config */}
-              <div className="pt-4 border-t border-white/[0.06]">
-                <p className="text-[10px] font-black text-white/30 uppercase tracking-widest mb-3">Configurar Meta Diaria</p>
-                <div className="flex items-center gap-3 bg-white/[0.04] border border-white/[0.08] rounded-2xl px-4 py-3">
-                  <TrendingUp className="w-4 h-4 text-blue-400 shrink-0" />
-                  <span className="text-xs text-white/50 font-bold whitespace-nowrap">Meta $</span>
+              <div className="pt-4" style={{ borderTop: '0.5px solid rgb(var(--separator) / 0.29)' }}>
+                <p className="apple-text-caption1 font-semibold apple-label-tertiary mb-3">Configurar Meta Diaria</p>
+                <div className="flex items-center gap-3 apple-surface rounded-apple-md px-4 py-3">
+                  <TrendingUp className="w-4 h-4 text-apple-blue shrink-0" />
+                  <span className="apple-text-caption1 apple-label-secondary font-semibold whitespace-nowrap">Meta $</span>
                   <input
                     type="number"
                     min="0"
                     value={dailyGoal}
                     onChange={(e) => setDailyGoal(e.target.value)}
                     placeholder="1000"
-                    className="flex-1 bg-transparent text-white text-sm font-black outline-none placeholder-white/20 min-w-0"
+                    className="flex-1 bg-transparent apple-label-primary apple-text-subheadline font-semibold outline-none placeholder:opacity-40 min-w-0 tabular-nums"
                   />
-                  <span className="text-[10px] text-white/50 font-bold">USD/día</span>
+                  <span className="apple-text-caption2 apple-label-secondary font-semibold">USD/día</span>
                 </div>
               </div>
 
               {/* ── Widgets Personalizados ───────────────────────────────────────────── */}
-              <div className="mt-6 pt-6 border-t border-white/[0.06]">
+              <div className="mt-6 pt-6" style={{ borderTop: '0.5px solid rgb(var(--separator) / 0.29)' }}>
                 <div className="flex items-center justify-between mb-4">
-                  <p className="text-[10px] font-black text-white/30 uppercase tracking-widest">Widgets Personalizados</p>
+                  <p className="apple-text-caption1 font-semibold apple-label-tertiary">Widgets Personalizados</p>
                   <button
                     onClick={() => setShowAddCustom(!showAddCustom)}
-                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-cyan-500/10 border border-cyan-500/20 text-cyan-400 text-xs font-black hover:bg-cyan-500/20 transition-all"
+                    className="apple-press flex items-center gap-1.5 px-3 py-1.5 rounded-apple-sm bg-apple-blue/15 text-apple-blue apple-text-caption1 font-semibold transition-all"
                   >
                     <Plus className="w-3.5 h-3.5" />
                     Agregar
@@ -494,37 +493,37 @@ export default function DashboardLinksConfig({ open, onClose }) {
                 </div>
 
                 {showAddCustom && (
-                  <div className="mb-4 bg-white/[0.03] border border-white/[0.08] rounded-2xl p-4 space-y-3">
+                  <div className="mb-4 apple-surface rounded-apple-md p-4 space-y-3">
                     <div>
-                      <label className="text-[10px] font-black text-white/30 uppercase tracking-widest block mb-1.5">Nombre</label>
+                      <label className="apple-text-caption1 font-semibold apple-label-tertiary block mb-1.5">Nombre</label>
                       <input
                         type="text"
                         value={newCustom.name}
                         onChange={e => setNewCustom(prev => ({ ...prev, name: e.target.value }))}
                         placeholder="Ej: Suplidor ABC"
-                        className="w-full bg-white/[0.06] border border-white/[0.1] rounded-xl px-3 py-2.5 text-sm text-white placeholder-white/20 focus:outline-none focus:ring-2 focus:ring-cyan-500/40"
+                        className="apple-input w-full px-3 py-2.5"
                       />
                     </div>
                     <div>
-                      <label className="text-[10px] font-black text-white/30 uppercase tracking-widest block mb-1.5">URL</label>
+                      <label className="apple-text-caption1 font-semibold apple-label-tertiary block mb-1.5">URL</label>
                       <input
                         type="url"
                         value={newCustom.url}
                         onChange={e => setNewCustom(prev => ({ ...prev, url: e.target.value }))}
                         placeholder="https://ejemplo.com"
-                        className="w-full bg-white/[0.06] border border-white/[0.1] rounded-xl px-3 py-2.5 text-sm text-white placeholder-white/20 focus:outline-none focus:ring-2 focus:ring-cyan-500/40"
+                        className="apple-input w-full px-3 py-2.5"
                       />
                     </div>
                     <div className="flex gap-2">
                       <button
                         onClick={() => { setShowAddCustom(false); setNewCustom({ name: "", url: "" }); }}
-                        className="flex-1 py-2 rounded-xl bg-white/5 border border-white/10 text-white/40 text-xs font-black hover:bg-white/10 transition-all"
+                        className="apple-btn apple-btn-secondary flex-1 py-2 apple-text-caption1 font-semibold"
                       >
                         Cancelar
                       </button>
                       <button
                         onClick={handleAddCustomWidget}
-                        className="flex-1 py-2 rounded-xl bg-gradient-to-r from-cyan-500 to-emerald-600 text-white text-xs font-black hover:opacity-90 transition-all"
+                        className="apple-btn apple-btn-primary flex-1 py-2 apple-text-caption1 font-semibold"
                       >
                         Crear Widget
                       </button>
@@ -533,26 +532,26 @@ export default function DashboardLinksConfig({ open, onClose }) {
                 )}
 
                 {customWidgets.length === 0 && !showAddCustom && (
-                  <div className="text-center py-6 bg-white/[0.02] border border-dashed border-white/[0.08] rounded-2xl">
-                    <ExternalLink className="w-6 h-6 text-white/15 mx-auto mb-2" />
-                    <p className="text-white/50 text-xs font-bold">Sin widgets personalizados</p>
-                    <p className="text-white/40 text-[10px] mt-0.5">Agrega links externos como accesos rápidos</p>
+                  <div className="text-center py-6 apple-surface rounded-apple-md">
+                    <ExternalLink className="w-6 h-6 apple-label-tertiary mx-auto mb-2" />
+                    <p className="apple-label-secondary apple-text-caption1 font-semibold">Sin widgets personalizados</p>
+                    <p className="apple-label-tertiary apple-text-caption2 mt-0.5">Agrega links externos como accesos rápidos</p>
                   </div>
                 )}
 
                 <div className="space-y-2">
                   {customWidgets.map(widget => (
-                    <div key={widget.id} className="flex items-center gap-3 p-3 bg-white/[0.03] border border-white/[0.07] rounded-xl">
-                      <div className="w-9 h-9 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center flex-shrink-0">
-                        <Link className="w-4 h-4 text-white/40" />
+                    <div key={widget.id} className="flex items-center gap-3 p-3 apple-surface rounded-apple-md">
+                      <div className="w-9 h-9 rounded-apple-sm bg-apple-blue/15 flex items-center justify-center flex-shrink-0">
+                        <Link className="w-4 h-4 text-apple-blue" />
                       </div>
                       <div className="flex-1 min-w-0">
-                        <p className="text-white text-sm font-bold truncate">{widget.name}</p>
-                        <p className="text-white/30 text-[10px] truncate">{widget.url}</p>
+                        <p className="apple-label-primary apple-text-subheadline font-semibold truncate">{widget.name}</p>
+                        <p className="apple-label-tertiary apple-text-caption2 truncate">{widget.url}</p>
                       </div>
                       <button
                         onClick={() => handleDeleteCustomWidget(widget.id)}
-                        className="w-8 h-8 rounded-xl bg-red-500/10 border border-red-500/20 flex items-center justify-center text-red-400 hover:bg-red-500/20 transition-all flex-shrink-0"
+                        className="apple-press w-8 h-8 rounded-apple-sm bg-apple-red/15 flex items-center justify-center text-apple-red transition-all flex-shrink-0"
                       >
                         <Trash2 className="w-3.5 h-3.5" />
                       </button>
@@ -565,15 +564,15 @@ export default function DashboardLinksConfig({ open, onClose }) {
         </div>
 
         {/* Footer */}
-        <div className="border-t border-cyan-500/30 bg-slate-900/60 backdrop-blur-xl p-6 flex items-center justify-between gap-4">
-          <p className="text-slate-400 text-sm">
+        <div className="apple-surface p-6 flex items-center justify-between gap-4" style={{ borderTop: '0.5px solid rgb(var(--separator) / 0.29)' }}>
+          <p className="apple-label-secondary apple-text-subheadline">
             Los cambios se aplicarán inmediatamente
           </p>
           <div className="flex gap-3">
             <Button
               onClick={onClose}
               variant="outline"
-              className="border-slate-600 text-slate-300 hover:bg-slate-800"
+              className="apple-btn apple-btn-secondary"
               disabled={saving}
             >
               Cancelar
@@ -581,7 +580,7 @@ export default function DashboardLinksConfig({ open, onClose }) {
             <Button
               onClick={handleSave}
               disabled={saving || loading}
-              className="bg-gradient-to-r from-cyan-500 to-emerald-600 hover:from-cyan-600 hover:to-emerald-700 text-white shadow-lg"
+              className="apple-btn apple-btn-primary"
             >
               {saving ? (
                 <>

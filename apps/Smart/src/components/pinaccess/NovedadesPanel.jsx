@@ -7,34 +7,30 @@ const TYPE_CONFIG = {
   feature:     {
     label: "Nuevo",
     icon: Zap,
-    bg: "bg-cyan-500/15",
-    border: "border-cyan-500/30",
-    text: "text-cyan-300",
-    dot: "bg-cyan-400",
+    bg: "bg-apple-blue/15",
+    text: "text-apple-blue",
+    dot: "bg-apple-blue",
   },
   improvement: {
     label: "Mejora",
     icon: TrendingUp,
-    bg: "bg-emerald-500/15",
-    border: "border-emerald-500/30",
-    text: "text-emerald-300",
-    dot: "bg-emerald-400",
+    bg: "bg-apple-green/15",
+    text: "text-apple-green",
+    dot: "bg-apple-green",
   },
   fix:         {
     label: "Fix",
     icon: Wrench,
-    bg: "bg-amber-500/15",
-    border: "border-amber-500/30",
-    text: "text-amber-300",
-    dot: "bg-amber-400",
+    bg: "bg-apple-yellow/15",
+    text: "text-apple-yellow",
+    dot: "bg-apple-yellow",
   },
   breaking:    {
     label: "Importante",
     icon: AlertTriangle,
-    bg: "bg-red-500/15",
-    border: "border-red-500/30",
-    text: "text-red-300",
-    dot: "bg-red-400",
+    bg: "bg-apple-red/15",
+    text: "text-apple-red",
+    dot: "bg-apple-red",
   },
 };
 
@@ -42,7 +38,7 @@ function TypeBadge({ type }) {
   const cfg = TYPE_CONFIG[type] || TYPE_CONFIG.feature;
   const Icon = cfg.icon;
   return (
-    <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold border ${cfg.bg} ${cfg.border} ${cfg.text}`}>
+    <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full apple-text-caption2 font-semibold ${cfg.bg} ${cfg.text}`}>
       <Icon className="w-2.5 h-2.5" />
       {cfg.label}
     </span>
@@ -88,11 +84,11 @@ export default function NovedadesPanel() {
   if (loading || updates.length === 0) return null;
 
   return (
-    <div className="w-full max-w-sm mx-auto mt-6">
+    <div className="apple-type w-full max-w-sm mx-auto mt-6">
       {/* Título */}
       <div className="flex items-center gap-2 mb-3 px-1">
-        <Sparkles className="w-4 h-4 text-amber-400" />
-        <span className="text-xs font-bold text-white/60 uppercase tracking-widest">
+        <Sparkles className="w-4 h-4 text-apple-yellow" />
+        <span className="apple-text-caption1 font-semibold apple-label-tertiary">
           Novedades
         </span>
       </div>
@@ -104,8 +100,7 @@ export default function NovedadesPanel() {
           return (
             <div
               key={item.id}
-              className={`flex items-start gap-3 p-3 rounded-2xl border backdrop-blur-sm transition-all
-                ${cfg.bg} ${cfg.border}`}
+              className={`flex items-start gap-3 p-3 rounded-apple-md transition-all ${cfg.bg}`}
               style={{ animationDelay: `${idx * 60}ms` }}
             >
               {/* Dot */}
@@ -116,17 +111,17 @@ export default function NovedadesPanel() {
                 <div className="flex items-center gap-2 flex-wrap">
                   <TypeBadge type={item.type} />
                   {item.version && (
-                    <span className="text-[10px] text-white/30 font-mono">v{item.version}</span>
+                    <span className="apple-text-caption2 apple-label-tertiary font-mono tabular-nums">v{item.version}</span>
                   )}
                   {item.published_at && (
-                    <span className="text-[10px] text-white/25 ml-auto">
+                    <span className="apple-text-caption2 apple-label-tertiary ml-auto tabular-nums">
                       {formatDate(item.published_at)}
                     </span>
                   )}
                 </div>
-                <p className={`text-xs font-semibold mt-1 ${cfg.text}`}>{item.title}</p>
+                <p className={`apple-text-caption1 font-semibold mt-1 ${cfg.text}`}>{item.title}</p>
                 {item.description && (
-                  <p className="text-[11px] text-white/40 mt-0.5 line-clamp-2">{item.description}</p>
+                  <p className="apple-text-caption2 apple-label-tertiary mt-0.5 line-clamp-2">{item.description}</p>
                 )}
               </div>
             </div>
