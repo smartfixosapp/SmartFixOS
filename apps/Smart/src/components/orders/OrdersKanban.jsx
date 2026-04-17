@@ -47,7 +47,7 @@ function KanbanCard({ order, index, onClick }) {
         >
           {/* Header: # orden + días */}
           <div className="flex items-center justify-between mb-1.5">
-            <span className="text-[10px] font-black text-white/40 uppercase tracking-widest">
+            <span className="text-[10px] font-semibold text-white/40">
               {order.order_number || `#${String(order.id).slice(0, 6)}`}
             </span>
             <div className="flex items-center gap-1 text-[10px] text-white/40">
@@ -105,11 +105,11 @@ function KanbanColumn({ status, orders, onCardClick }) {
             className="w-2 h-2 rounded-full"
             style={{ background: statusConfig.color }}
           />
-          <h3 className="text-xs font-black text-white/85 uppercase tracking-wider">
+          <h3 className="text-xs font-semibold text-white/85">
             {statusConfig.label}
           </h3>
         </div>
-        <span className="text-[11px] font-black text-white/60 bg-white/10 rounded-full px-2 py-0.5">
+        <span className="text-[11px] font-semibold text-white/60 bg-white/10 rounded-full px-2 py-0.5">
           {orders.length}
         </span>
       </div>
@@ -129,7 +129,7 @@ function KanbanColumn({ status, orders, onCardClick }) {
             )}
           >
             {orders.length === 0 && !snapshot.isDraggingOver && (
-              <div className="text-center py-8 text-white/20 text-[10px] uppercase tracking-widest font-black">
+              <div className="text-center py-8 text-white/20 text-[10px] font-semibold">
                 Vacío
               </div>
             )}

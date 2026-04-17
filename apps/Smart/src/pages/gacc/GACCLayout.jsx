@@ -256,8 +256,8 @@ export default function GACCLayout({ activeSection, onSectionChange, onOpenPalet
           </div>
           {!collapsed && (
             <div className="leading-none overflow-hidden">
-              <p className="text-sm font-black text-white tracking-tight">SmartFixOS</p>
-              <p className="text-[9px] font-bold text-purple-400 uppercase tracking-[0.2em]">Control Center</p>
+              <p className="text-sm font-semibold text-white tracking-tight">SmartFixOS</p>
+              <p className="text-[9px] font-bold text-purple-400 tracking-[0.2em]">Control Center</p>
             </div>
           )}
         </div>
@@ -376,8 +376,8 @@ export default function GACCLayout({ activeSection, onSectionChange, onOpenPalet
                     <Shield className="w-4 h-4 text-white" />
                   </div>
                   <div className="leading-none">
-                    <p className="text-sm font-black text-white">SmartFixOS</p>
-                    <p className="text-[9px] font-bold text-purple-400 uppercase tracking-[0.2em]">Control Center</p>
+                    <p className="text-sm font-semibold text-white">SmartFixOS</p>
+                    <p className="text-[9px] font-bold text-purple-400 tracking-[0.2em]">Control Center</p>
                   </div>
                 </div>
                 <button onClick={() => setMobileMenuOpen(false)} className="p-1.5 rounded-lg text-gray-500">

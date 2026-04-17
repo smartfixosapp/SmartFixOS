@@ -70,8 +70,8 @@ function OverviewTab({ tenant }) {
           { label: "Estado pago", value: tenant.last_payment_date ? "Al dia" : "Sin pagos", sub: tenant.last_payment_date ? `$${tenant.last_payment_amount || 0}` : "Trial activo" },
         ].map(k => (
           <div key={k.label} className="rounded-xl border border-white/[0.06] bg-white/[0.02] p-3">
-            <p className="text-[10px] text-gray-600 uppercase tracking-wide font-bold">{k.label}</p>
-            <p className="text-lg font-black text-white mt-1">{k.value}</p>
+            <p className="text-[10px] text-gray-600 tracking-wide font-bold">{k.label}</p>
+            <p className="text-lg font-semibold text-white mt-1">{k.value}</p>
             {k.sub && <p className="text-[10px] text-gray-600">{k.sub}</p>}
           </div>
         ))}
@@ -79,7 +79,7 @@ function OverviewTab({ tenant }) {
 
       {/* Usage limits — orders monthly + SKUs */}
       <div className="rounded-xl border border-white/[0.06] bg-white/[0.02] p-4 space-y-4">
-        <p className="text-[12px] font-bold text-gray-400 uppercase tracking-wide">Uso del Plan</p>
+        <p className="text-[12px] font-bold text-gray-400 tracking-wide">Uso del Plan</p>
 
         {/* Monthly orders */}
         <div>
@@ -146,7 +146,7 @@ function OverviewTab({ tenant }) {
 
       {/* Contact info */}
       <div className="rounded-xl border border-white/[0.06] bg-white/[0.02] p-4 space-y-3">
-        <p className="text-[12px] font-bold text-gray-400 uppercase tracking-wide">Informacion de Contacto</p>
+        <p className="text-[12px] font-bold text-gray-400 tracking-wide">Informacion de Contacto</p>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           {[
             { icon: Mail, label: "Email", value: tenant.email },
@@ -169,7 +169,7 @@ function OverviewTab({ tenant }) {
 
       {/* Config / Metadata */}
       <div className="rounded-xl border border-white/[0.06] bg-white/[0.02] p-4 space-y-3">
-        <p className="text-[12px] font-bold text-gray-400 uppercase tracking-wide">Configuracion</p>
+        <p className="text-[12px] font-bold text-gray-400 tracking-wide">Configuracion</p>
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-[11px]">
           <div>
             <p className="text-gray-600">Slug</p>
@@ -211,7 +211,7 @@ function SubscriptionTab({ tenant }) {
     <div className="space-y-4">
       {/* Current subscription */}
       <div className="rounded-xl border border-white/[0.06] bg-white/[0.02] p-4 space-y-3">
-        <p className="text-[12px] font-bold text-gray-400 uppercase tracking-wide">Suscripcion Actual</p>
+        <p className="text-[12px] font-bold text-gray-400 tracking-wide">Suscripcion Actual</p>
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
           <div>
             <p className="text-[10px] text-gray-600">Plan</p>
@@ -241,7 +241,7 @@ function SubscriptionTab({ tenant }) {
 
       {/* Subscription history */}
       <div className="rounded-xl border border-white/[0.06] bg-white/[0.02] p-4 space-y-3">
-        <p className="text-[12px] font-bold text-gray-400 uppercase tracking-wide">Historial de Suscripciones</p>
+        <p className="text-[12px] font-bold text-gray-400 tracking-wide">Historial de Suscripciones</p>
         {tenantSubs.length === 0 ? (
           <p className="text-xs text-gray-600 text-center py-4">Sin registros</p>
         ) : (
@@ -310,7 +310,7 @@ function EmployeesTab({ tenant }) {
   return (
     <div className="space-y-3">
       <div className="flex items-center justify-between">
-        <p className="text-[12px] font-bold text-gray-400 uppercase tracking-wide">
+        <p className="text-[12px] font-bold text-gray-400 tracking-wide">
           Empleados ({employees.length})
         </p>
       </div>
@@ -400,14 +400,14 @@ function ActivityTab({ tenant }) {
           { label: "Revenue (30d)", value: `$${stats.revenue30d.toLocaleString()}`, color: "text-pink-400" },
         ].map(s => (
           <div key={s.label} className="rounded-xl border border-white/[0.06] bg-white/[0.02] p-3">
-            <p className="text-[10px] text-gray-600 uppercase tracking-wide font-bold">{s.label}</p>
-            <p className={`text-xl font-black mt-1 ${s.color}`}>{s.value}</p>
+            <p className="text-[10px] text-gray-600 tracking-wide font-bold">{s.label}</p>
+            <p className={`text-xl font-semibold mt-1 ${s.color}`}>{s.value}</p>
           </div>
         ))}
       </div>
 
       <div className="rounded-xl border border-white/[0.06] bg-white/[0.02] p-4">
-        <p className="text-[12px] font-bold text-gray-400 uppercase tracking-wide mb-3">Timeline</p>
+        <p className="text-[12px] font-bold text-gray-400 tracking-wide mb-3">Timeline</p>
         <div className="space-y-2 text-[11px]">
           {tenant.activated_date && (
             <div className="flex items-center gap-3">
@@ -459,7 +459,7 @@ function NotesTab({ tenant }) {
   return (
     <div className="space-y-4">
       <div className="rounded-xl border border-white/[0.06] bg-white/[0.02] p-4 space-y-3">
-        <p className="text-[12px] font-bold text-gray-400 uppercase tracking-wide">Notas Internas</p>
+        <p className="text-[12px] font-bold text-gray-400 tracking-wide">Notas Internas</p>
         <textarea
           value={notes}
           onChange={e => setNotes(e.target.value)}
@@ -511,7 +511,7 @@ function AuditTab({ tenant }) {
 
   return (
     <div className="space-y-3">
-      <p className="text-[12px] font-bold text-gray-400 uppercase tracking-wide">
+      <p className="text-[12px] font-bold text-gray-400 tracking-wide">
         Audit Trail ({logs.length})
       </p>
       {logs.length === 0 ? (
@@ -650,7 +650,7 @@ function ChangePlanModal({ tenant, open, onClose }) {
           <div className="px-5 py-4 space-y-5">
             {/* Plan selector */}
             <div>
-              <p className="text-[11px] text-gray-500 uppercase tracking-wide font-bold mb-2">Plan</p>
+              <p className="text-[11px] text-gray-500 tracking-wide font-bold mb-2">Plan</p>
               <div className="space-y-2">
                 {PLAN_OPTIONS.map(plan => (
                   <button
@@ -681,7 +681,7 @@ function ChangePlanModal({ tenant, open, onClose }) {
 
             {/* Monthly cost override */}
             <div>
-              <p className="text-[11px] text-gray-500 uppercase tracking-wide font-bold mb-2">Costo Mensual (USD)</p>
+              <p className="text-[11px] text-gray-500 tracking-wide font-bold mb-2">Costo Mensual (USD)</p>
               <input
                 type="number"
                 value={monthlyCost}
@@ -694,18 +694,18 @@ function ChangePlanModal({ tenant, open, onClose }) {
 
             {/* Plan Limits Info */}
             <div className="rounded-xl bg-white/[0.03] border border-white/[0.06] px-4 py-3">
-              <p className="text-[10px] text-gray-600 uppercase tracking-wide font-bold mb-2">Limites del plan {getPlanConfig(selectedPlan).label}</p>
+              <p className="text-[10px] text-gray-600 tracking-wide font-bold mb-2">Limites del plan {getPlanConfig(selectedPlan).label}</p>
               <div className="grid grid-cols-2 gap-3">
                 <div className="rounded-lg bg-white/[0.02] border border-white/[0.04] px-3 py-2">
                   <p className="text-[10px] text-gray-600">Ordenes / mes</p>
-                  <p className="text-[14px] font-black text-white">
+                  <p className="text-[14px] font-semibold text-white">
                     {getPlanConfig(selectedPlan).maxOrdersMonthly === -1 ? "Ilimitado" : getPlanConfig(selectedPlan).maxOrdersMonthly}
                   </p>
                   <p className="text-[9px] text-gray-700">Renueva cada mes</p>
                 </div>
                 <div className="rounded-lg bg-white/[0.02] border border-white/[0.04] px-3 py-2">
                   <p className="text-[10px] text-gray-600">SKUs en inventario</p>
-                  <p className="text-[14px] font-black text-white">
+                  <p className="text-[14px] font-semibold text-white">
                     {getPlanConfig(selectedPlan).maxSkus === -1 ? "Ilimitado" : getPlanConfig(selectedPlan).maxSkus}
                   </p>
                   <p className="text-[9px] text-gray-700">Total acumulado</p>
@@ -718,7 +718,7 @@ function ChangePlanModal({ tenant, open, onClose }) {
 
             {/* Summary */}
             <div className="rounded-xl bg-white/[0.03] border border-white/[0.06] px-4 py-3">
-              <p className="text-[10px] text-gray-600 uppercase tracking-wide font-bold mb-2">Resumen del cambio</p>
+              <p className="text-[10px] text-gray-600 tracking-wide font-bold mb-2">Resumen del cambio</p>
               <div className="grid grid-cols-2 gap-3 text-center">
                 <div>
                   <p className="text-[10px] text-gray-600">Plan</p>
@@ -823,7 +823,7 @@ function EditStoreModal({ tenant, open, onClose }) {
           <div className="px-5 py-4 space-y-3 max-h-[60vh] overflow-y-auto">
             {fields.map(f => (
               <div key={f.key}>
-                <p className="text-[10px] text-gray-500 uppercase tracking-wide font-bold mb-1">
+                <p className="text-[10px] text-gray-500 tracking-wide font-bold mb-1">
                   {f.label} {f.required && <span className="text-red-400">*</span>}
                 </p>
                 <input
@@ -836,7 +836,7 @@ function EditStoreModal({ tenant, open, onClose }) {
               </div>
             ))}
             <div>
-              <p className="text-[10px] text-gray-500 uppercase tracking-wide font-bold mb-1">Moneda</p>
+              <p className="text-[10px] text-gray-500 tracking-wide font-bold mb-1">Moneda</p>
               <select
                 value={form.currency}
                 onChange={e => update("currency", e.target.value)}
@@ -959,7 +959,7 @@ export default function StoreDetail({ tenant, onBack }) {
             )}
             <div>
               <div className="flex items-center gap-2">
-                <h2 className="text-xl font-black text-white">{tenant.name || "--"}</h2>
+                <h2 className="text-xl font-semibold text-white">{tenant.name || "--"}</h2>
                 {presence && (
                   <span className={`text-[10px] px-1.5 py-0.5 rounded-md border font-bold ${presence.badge}`}>
                     {presence.label}

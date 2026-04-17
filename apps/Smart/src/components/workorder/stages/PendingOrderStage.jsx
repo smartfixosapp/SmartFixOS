@@ -45,7 +45,7 @@ export default function PendingOrderStage({ order, onUpdate, user, onOrderItemsU
         <div className="relative z-10 grid gap-5 xl:grid-cols-[1.2fr_0.8fr] xl:items-start">
           <div className="space-y-4">
             <div className="flex flex-wrap items-center gap-2">
-              <Badge className="rounded-full border border-yellow-400/30 bg-yellow-500/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.25em] text-yellow-200">
+              <Badge className="rounded-full border border-yellow-400/30 bg-yellow-500/10 px-3 py-1 text-[11px] font-semibold tracking-[0.25em] text-yellow-200">
                 Pendiente de piezas
               </Badge>
               <Badge variant="outline" className="rounded-full border-white/10 bg-white/5 px-3 py-1 text-xs text-white/65">
@@ -54,9 +54,9 @@ export default function PendingOrderStage({ order, onUpdate, user, onOrderItemsU
             </div>
 
             <div className="space-y-2">
-              <p className="text-[11px] font-semibold uppercase tracking-[0.32em] text-white/35">Etapa activa</p>
+              <p className="text-[11px] font-semibold tracking-[0.32em] text-white/35">Etapa activa</p>
               <div className="flex flex-wrap items-end gap-x-4 gap-y-2">
-                <h2 className="text-3xl font-black tracking-tight text-white sm:text-4xl">Gestión de Piezas</h2>
+                <h2 className="text-3xl font-semibold tracking-tight text-white sm:text-4xl">Gestión de Piezas</h2>
                 <div className="inline-flex items-center rounded-full border border-yellow-400/20 bg-yellow-500/10 px-3 py-1 text-sm font-semibold text-yellow-200">
                   {order?.device_brand} {order?.device_model}
                 </div>
@@ -68,17 +68,17 @@ export default function PendingOrderStage({ order, onUpdate, user, onOrderItemsU
 
             <div className="grid gap-3 md:grid-cols-3">
               <div className="rounded-[22px] border border-white/10 bg-black/25 p-4 backdrop-blur-md">
-                <p className="mb-1 text-[11px] font-semibold uppercase tracking-[0.24em] text-white/35">Cliente</p>
+                <p className="mb-1 text-[11px] font-semibold tracking-[0.24em] text-white/35">Cliente</p>
                 <p className="truncate text-lg font-bold text-yellow-200">{order?.customer_name || "No registrado"}</p>
               </div>
               <div className="rounded-[22px] border border-white/10 bg-black/25 p-4 backdrop-blur-md">
-                <p className="mb-1 text-[11px] font-semibold uppercase tracking-[0.24em] text-white/35">Equipo</p>
+                <p className="mb-1 text-[11px] font-semibold tracking-[0.24em] text-white/35">Equipo</p>
                 <p className="truncate text-sm font-semibold text-white/75">{order?.device_brand} {order?.device_model || "Sin modelo"}</p>
               </div>
               <div className="rounded-[22px] border border-white/10 bg-black/25 p-4 backdrop-blur-md">
                 <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                   <div className="min-w-0 flex-1">
-                    <p className="mb-1 text-[11px] font-semibold uppercase tracking-[0.24em] text-white/35">Links Guardados</p>
+                    <p className="mb-1 text-[11px] font-semibold tracking-[0.24em] text-white/35">Links Guardados</p>
                     <p className="truncate text-sm font-semibold text-white/75">
                       {links.length > 0 ? `${links.length} link${links.length === 1 ? "" : "s"} registrado${links.length === 1 ? "" : "s"}` : "Sin links todavía"}
                     </p>
@@ -101,8 +101,8 @@ export default function PendingOrderStage({ order, onUpdate, user, onOrderItemsU
                 <Package className="h-5 w-5 text-yellow-300" />
               </div>
               <div className="min-w-0 flex-1">
-                <p className="text-[11px] font-semibold uppercase tracking-[0.28em] text-white/35">Accion rápida</p>
-                <h3 className="mt-1 text-xl font-black tracking-tight text-white">Cotizar y ordenar</h3>
+                <p className="text-[11px] font-semibold tracking-[0.28em] text-white/35">Accion rápida</p>
+                <h3 className="mt-1 text-xl font-semibold tracking-tight text-white">Cotizar y ordenar</h3>
                 <p className="mt-2 text-sm leading-relaxed text-white/55">
                   Añade las piezas o servicios que van a formar parte de la orden final y mantén el costo visible.
                 </p>
@@ -125,18 +125,18 @@ export default function PendingOrderStage({ order, onUpdate, user, onOrderItemsU
           return (
             <div className="relative z-10 mt-4 grid grid-cols-1 gap-3 sm:grid-cols-3">
               {digits && (
-                <a href={`tel:+${intl}`} className="flex items-center justify-center gap-3 h-14 rounded-2xl border border-white/15 bg-white/5 text-white hover:bg-white/10 font-bold text-sm uppercase tracking-wide transition-all active:scale-95">
+                <a href={`tel:+${intl}`} className="flex items-center justify-center gap-3 h-14 rounded-2xl border border-white/15 bg-white/5 text-white hover:bg-white/10 font-bold text-sm tracking-wide transition-all active:scale-95">
                   <PhoneCall className="w-5 h-5 text-white/60" />{phone}
                 </a>
               )}
               {digits && (
                 <a href={`https://wa.me/${intl}`} target="_blank" rel="noreferrer"
-                  className="flex items-center justify-center gap-3 h-14 rounded-2xl border border-emerald-500/30 bg-emerald-500/12 text-emerald-300 hover:bg-emerald-500/20 font-bold text-sm uppercase tracking-wide transition-all active:scale-95">
+                  className="flex items-center justify-center gap-3 h-14 rounded-2xl border border-emerald-500/30 bg-emerald-500/12 text-emerald-300 hover:bg-emerald-500/20 font-bold text-sm tracking-wide transition-all active:scale-95">
                   <MessageCircle className="w-5 h-5" />WhatsApp
                 </a>
               )}
               {email && (
-                <a href={`mailto:${email}`} className="flex items-center justify-center gap-3 h-14 rounded-2xl border border-blue-500/30 bg-blue-500/12 text-blue-300 hover:bg-blue-500/20 font-bold text-sm uppercase tracking-wide transition-all active:scale-95">
+                <a href={`mailto:${email}`} className="flex items-center justify-center gap-3 h-14 rounded-2xl border border-blue-500/30 bg-blue-500/12 text-blue-300 hover:bg-blue-500/20 font-bold text-sm tracking-wide transition-all active:scale-95">
                   <Mail className="w-5 h-5" /><span className="truncate">{email}</span>
                 </a>
               )}

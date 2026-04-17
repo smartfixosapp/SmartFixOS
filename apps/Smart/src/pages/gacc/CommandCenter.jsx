@@ -28,7 +28,7 @@ function MetricCard({ label, value, icon: Icon, gradient, subtitle, alert, delay
       <div className={`w-9 h-9 rounded-xl bg-gradient-to-br ${gradient} flex items-center justify-center`}>
         <Icon className="w-4.5 h-4.5 text-white" />
       </div>
-      <p className="text-2xl font-black tabular-nums">{value}</p>
+      <p className="text-2xl font-semibold tabular-nums">{value}</p>
       <p className="text-[11px] text-gray-500 font-medium">{label}</p>
       {subtitle && <p className="text-[10px] text-gray-600">{subtitle}</p>}
       {alert && (
@@ -238,7 +238,7 @@ export default function CommandCenter() {
       {/* Refresh indicator */}
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-lg font-black text-white">Command Center</h2>
+          <h2 className="text-lg font-semibold text-white">Command Center</h2>
           <p className="text-[11px] text-gray-600">
             Vista global del sistema en tiempo real
             {lastRefresh && <> &middot; Actualizado {timeAgo(lastRefresh.toISOString())}</>}
@@ -350,7 +350,7 @@ export default function CommandCenter() {
               <React.Fragment key={step.label}>
                 <div className="flex-1 text-center">
                   <div className={`h-2 rounded-full bg-gradient-to-r ${step.color} mb-2`} style={{ width: `${Math.max(step.pct, 10)}%`, marginLeft: "auto", marginRight: "auto" }} />
-                  <p className="text-xl font-black text-white">{step.value}</p>
+                  <p className="text-xl font-semibold text-white">{step.value}</p>
                   <p className="text-[10px] text-gray-600">{step.label}</p>
                   <p className="text-[10px] text-gray-700">{step.pct}%</p>
                 </div>
@@ -372,7 +372,7 @@ export default function CommandCenter() {
           <div key={s.label} className="flex items-center gap-3 px-4 py-3 rounded-2xl border border-white/[0.06] bg-white/[0.02]">
             <span className={`w-2.5 h-2.5 rounded-full ${s.dot}`} />
             <div>
-              <p className={`text-lg font-black ${s.color}`}>{s.value}</p>
+              <p className={`text-lg font-semibold ${s.color}`}>{s.value}</p>
               <p className="text-[10px] text-gray-600">{s.label}</p>
             </div>
           </div>

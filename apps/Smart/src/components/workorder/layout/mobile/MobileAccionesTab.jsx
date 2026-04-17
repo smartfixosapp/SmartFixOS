@@ -234,7 +234,7 @@ export default function MobileAccionesTab({
       {/* Stage Actions (contextual al estado actual) */}
       {stageActions.length > 0 && (
         <>
-          <h3 className="text-[10px] font-black uppercase tracking-widest text-purple-300/60 px-1">
+          <h3 className="text-[10px] font-semibold text-purple-300/60 px-1">
             Acciones de {getStatusConfig(status).label}
           </h3>
           <div className="space-y-1">
@@ -256,7 +256,7 @@ export default function MobileAccionesTab({
       )}
 
       {/* Quick Actions heading */}
-      <h3 className="text-[10px] font-black uppercase tracking-widest text-white/30 px-1">Acciones rapidas</h3>
+      <h3 className="text-[10px] font-semibold text-white/30 px-1">Acciones rapidas</h3>
 
       {/* Quick Actions List */}
       <div className="space-y-1">

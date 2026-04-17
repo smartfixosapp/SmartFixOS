@@ -155,7 +155,7 @@ export default function WarrantyStage({
       <section className="relative overflow-hidden rounded-[28px] border border-amber-500/15 bg-[radial-gradient(circle_at_top_left,rgba(245,158,11,0.14),transparent_28%),linear-gradient(135deg,rgba(28,18,8,0.98),rgba(18,14,10,0.96))] p-5 shadow-[0_22px_70px_rgba(0,0,0,0.35)]">
         {/* badges */}
         <div className="flex flex-wrap items-center gap-2 mb-4">
-          <Badge className="rounded-full border border-amber-400/30 bg-amber-500/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.25em] text-amber-100">
+          <Badge className="rounded-full border border-amber-400/30 bg-amber-500/10 px-3 py-1 text-[11px] font-semibold tracking-[0.25em] text-amber-100">
             Garantía
           </Badge>
           <Badge variant="outline" className={`rounded-full px-3 py-1 text-xs flex items-center gap-1 ${warrantyTone.badge}`}>
@@ -166,7 +166,7 @@ export default function WarrantyStage({
 
         {/* dispositivo + cliente */}
         <div className="flex flex-wrap items-end gap-x-4 gap-y-1 mb-5">
-          <h2 className="text-2xl sm:text-3xl font-black tracking-tight text-white">
+          <h2 className="text-2xl sm:text-3xl font-semibold tracking-tight text-white">
             {o.device_brand} {o.device_model}
           </h2>
           <p className="text-sm font-bold text-white/50">{o.customer_name}</p>
@@ -214,7 +214,7 @@ export default function WarrantyStage({
       {/* ── COMPARACIÓN: reclamo actual vs problema original ─────────────── */}
       <div className="grid gap-3 sm:grid-cols-2">
         <div className="rounded-[22px] border border-amber-500/20 bg-black/30 p-4 space-y-2">
-          <p className="text-[10px] font-black uppercase tracking-[0.28em] text-amber-400/70">
+          <p className="text-[10px] font-semibold tracking-[0.28em] text-amber-400/70">
             Cliente reclama ahora
           </p>
           {claimReason
@@ -223,7 +223,7 @@ export default function WarrantyStage({
           }
         </div>
         <div className="rounded-[22px] border border-white/10 bg-black/30 p-4 space-y-2">
-          <p className="text-[10px] font-black uppercase tracking-[0.28em] text-white/30">
+          <p className="text-[10px] font-semibold tracking-[0.28em] text-white/30">
             Problema original
           </p>
           {originalProblem
@@ -238,14 +238,14 @@ export default function WarrantyStage({
         {/* header */}
         <div className="flex flex-wrap items-center gap-2">
           <Shield className="w-4 h-4 text-amber-400 flex-shrink-0" />
-          <p className="text-[11px] font-black uppercase tracking-[0.28em] text-white/40">
+          <p className="text-[11px] font-semibold tracking-[0.28em] text-white/40">
             Veredicto de garantía
           </p>
           {verdict
-            ? <span className="ml-auto text-[10px] font-black uppercase tracking-wider text-emerald-400 bg-emerald-400/10 border border-emerald-400/25 px-2 py-0.5 rounded-full">
+            ? <span className="ml-auto text-[10px] font-semibold text-emerald-400 bg-emerald-400/10 border border-emerald-400/25 px-2 py-0.5 rounded-full">
                 Listo para avanzar
               </span>
-            : <span className="ml-auto text-[10px] font-black uppercase tracking-wider text-amber-400 bg-amber-400/10 border border-amber-400/25 px-2 py-0.5 rounded-full">
+            : <span className="ml-auto text-[10px] font-semibold text-amber-400 bg-amber-400/10 border border-amber-400/25 px-2 py-0.5 rounded-full">
                 🔒 Requerido para avanzar
               </span>
           }
@@ -263,7 +263,7 @@ export default function WarrantyStage({
               }`}
             >
               <Icon className="w-6 h-6" />
-              <span className="font-black text-sm">{label}</span>
+              <span className="font-semibold text-sm">{label}</span>
               <span className="text-[10px] opacity-70 text-center leading-tight">{sublabel}</span>
             </button>
           ))}

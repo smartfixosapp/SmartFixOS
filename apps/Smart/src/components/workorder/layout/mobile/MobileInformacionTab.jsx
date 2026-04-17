@@ -106,7 +106,7 @@ export default function MobileInformacionTab({
       {/* Photos */}
       {photos.length > 0 && (
         <div className="space-y-2">
-          <h4 className="text-[10px] font-black uppercase tracking-widest text-white/30 px-1">
+          <h4 className="text-[10px] font-semibold text-white/30 px-1">
             Fotos ({photos.length})
           </h4>
           <MobilePhotosCarousel photos={photos} />
@@ -133,7 +133,7 @@ export default function MobileInformacionTab({
 
       {/* Financial Summary */}
       <div className="rounded-2xl border border-white/[0.08] bg-white/[0.03] p-4">
-        <h4 className="text-[10px] font-black uppercase tracking-widest text-white/30 mb-3">Resumen financiero</h4>
+        <h4 className="text-[10px] font-semibold text-white/30 mb-3">Resumen financiero</h4>
         {items.length > 0 && (
           <div className="space-y-1.5 mb-3">
             {items.map((item, i) => (
@@ -164,7 +164,7 @@ export default function MobileInformacionTab({
       {hasAnySecurity && (
         <div className="rounded-2xl border border-white/[0.08] bg-white/[0.03] p-4">
           <div className="flex items-center justify-between mb-3">
-            <h4 className="text-[10px] font-black uppercase tracking-widest text-white/30">Seguridad del dispositivo</h4>
+            <h4 className="text-[10px] font-semibold text-white/30">Seguridad del dispositivo</h4>
             <button onClick={onSecurityEdit} className="text-xs text-purple-400 font-semibold">Editar</button>
           </div>
           {hasPin && (

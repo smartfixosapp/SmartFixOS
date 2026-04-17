@@ -64,7 +64,7 @@ export default function WOTabPanel({ order, onUpdate }) {
     <div className="h-full flex flex-col">
       {/* ── Quick Comment Input (at top, always visible) ── */}
       <div className="border-b border-white/[0.08] pb-3 mb-3">
-        <p className="text-[10px] font-bold uppercase tracking-widest text-white/30 mb-2">Nota rápida</p>
+        <p className="text-[10px] font-bold text-white/30 mb-2">Nota rápida</p>
         <div className="flex gap-1.5">
           <textarea
             value={comment}

@@ -3218,7 +3218,7 @@ Reglas:
         {/* Mobile step progress strip — hidden on step 0 (type selector) */}
         {isCompactDevice && mobileStep > 0 && (
           <div className="flex items-center gap-3 px-6 py-3 border-b border-white/[0.05] bg-white/[0.01] shrink-0">
-            <span className="text-[10px] font-black uppercase tracking-[0.18em] text-white/50 shrink-0 min-w-[70px]">
+            <span className="text-[10px] font-semibold tracking-[0.18em] text-white/50 shrink-0 min-w-[70px]">
               {mobileStepLabels[mobileStep]}
             </span>
             <div className="flex-1 flex gap-1">
@@ -3254,7 +3254,7 @@ Reglas:
           {/* 🚀 PASO 0 — Selector de tipo (solo móvil) */}
           {isCompactDevice && mobileStep === 0 && (
             <>
-              <p className="text-center text-white/40 text-[10px] font-black uppercase tracking-[0.2em] shrink-0 py-2">¿Qué tipo de orden vas a crear?</p>
+              <p className="text-center text-white/40 text-[10px] font-semibold tracking-[0.2em] shrink-0 py-2">¿Qué tipo de orden vas a crear?</p>
               {/* Orden Regular */}
               <button
                 onClick={() => { setQuickOrderMode(false); setJenaiMode(false); setMobileStep(1); }}
@@ -3264,7 +3264,7 @@ Reglas:
                   <Wrench className="w-7 h-7 text-white" strokeWidth={2.5} />
                 </div>
                 <div className="text-center">
-                  <p className="text-xl font-black text-white uppercase tracking-tight">Orden Regular</p>
+                  <p className="text-xl font-semibold text-white tracking-tight">Orden Regular</p>
                   <p className="text-xs text-white/40 mt-1">Diagnóstico completo · 7 pasos</p>
                 </div>
                 <div className="flex gap-1.5 flex-wrap justify-center">
@@ -3283,7 +3283,7 @@ Reglas:
                   <Zap className="w-7 h-7 text-white" strokeWidth={2.5} />
                 </div>
                 <div className="text-center">
-                  <p className="text-xl font-black text-white uppercase tracking-tight">Orden Rápida</p>
+                  <p className="text-xl font-semibold text-white tracking-tight">Orden Rápida</p>
                   <p className="text-xs text-white/40 mt-1">Cambio rápido · 3 pasos</p>
                 </div>
                 <div className="flex gap-1.5 flex-wrap justify-center">
@@ -3306,7 +3306,7 @@ Reglas:
                   <Sparkles className="w-5 h-5 text-white" />
                 </div>
                 <div>
-                  <h3 className="text-white font-black text-lg uppercase tracking-tight">Crear con JENAI</h3>
+                  <h3 className="text-white font-semibold text-lg tracking-tight">Crear con JENAI</h3>
                   <p className="text-[10px] text-white/30">powered by SmartFixOS</p>
                 </div>
               </div>
@@ -3408,7 +3408,7 @@ Reglas:
                   <button
                     onClick={parseWithJenai}
                     disabled={(!jenaiInput.trim() && jenaiPhotos.length === 0) || jenaiProcessing}
-                    className="w-full h-14 rounded-2xl bg-gradient-to-r from-violet-500 to-purple-600 text-white font-black text-base flex items-center justify-center gap-2 shadow-[0_8px_24px_rgba(139,92,246,0.3)] hover:from-violet-400 hover:to-purple-500 active:scale-[0.98] transition-all disabled:opacity-40 disabled:cursor-not-allowed"
+                    className="w-full h-14 rounded-2xl bg-gradient-to-r from-violet-500 to-purple-600 text-white font-semibold text-base flex items-center justify-center gap-2 shadow-[0_8px_24px_rgba(139,92,246,0.3)] hover:from-violet-400 hover:to-purple-500 active:scale-[0.98] transition-all disabled:opacity-40 disabled:cursor-not-allowed"
                   >
                     {jenaiProcessing ? (
                       <><Loader2 className="w-5 h-5 animate-spin" /> Creando orden...</>
@@ -3427,7 +3427,7 @@ Reglas:
                       <Check className="w-4 h-4 text-emerald-400" />
                       <p className="text-sm font-bold text-emerald-300">Confirma los datos:</p>
                     </div>
-                    <span className={`text-[9px] font-black uppercase tracking-widest px-2.5 py-1 rounded-full ${
+                    <span className={`text-[9px] font-semibold px-2.5 py-1 rounded-full ${
                       jenaiConfirm.is_quick_order
                         ? "bg-amber-500/20 text-amber-300 border border-amber-500/25"
                         : "bg-cyan-500/20 text-cyan-300 border border-cyan-500/25"
@@ -3440,7 +3440,7 @@ Reglas:
                   <div className="grid gap-2">
                     {/* Cliente */}
                     <div className="rounded-xl border border-white/10 bg-white/[0.04] p-3">
-                      <p className="text-[10px] font-bold uppercase tracking-widest text-white/30 mb-1">Cliente</p>
+                      <p className="text-[10px] font-bold text-white/30 mb-1">Cliente</p>
                       <p className="text-sm text-white font-semibold">
                         {[jenaiConfirm.customer_name, jenaiConfirm.customer_last_name].filter(Boolean).join(" ") || "No detectado"}
                       </p>
@@ -3450,7 +3450,7 @@ Reglas:
 
                     {/* Dispositivo */}
                     <div className="rounded-xl border border-violet-500/20 bg-violet-500/[0.06] p-3">
-                      <p className="text-[10px] font-bold uppercase tracking-widest text-violet-400/60 mb-1">Dispositivo</p>
+                      <p className="text-[10px] font-bold text-violet-400/60 mb-1">Dispositivo</p>
                       <p className="text-sm text-white font-semibold">
                         {[jenaiConfirm.device_brand, jenaiConfirm.device_model].filter(Boolean).join(" ") || "No detectado"}
                       </p>
@@ -3470,7 +3470,7 @@ Reglas:
 
                     {/* Problema */}
                     <div className="rounded-xl border border-white/10 bg-white/[0.04] p-3">
-                      <p className="text-[10px] font-bold uppercase tracking-widest text-white/30 mb-1">Problema</p>
+                      <p className="text-[10px] font-bold text-white/30 mb-1">Problema</p>
                       <p className="text-xs text-white/70 leading-relaxed">{jenaiConfirm.problem || "No detectado"}</p>
                       {jenaiConfirm.photo_analysis && (
                         <p className="text-xs text-amber-300/70 mt-1.5 leading-relaxed">
@@ -3482,7 +3482,7 @@ Reglas:
                     {/* Diagnostico preliminar */}
                     {jenaiConfirm.suggested_diagnosis && (
                       <div className="rounded-xl border border-cyan-500/20 bg-cyan-500/[0.06] p-3">
-                        <p className="text-[10px] font-bold uppercase tracking-widest text-cyan-400/60 mb-1">Diagnostico preliminar</p>
+                        <p className="text-[10px] font-bold text-cyan-400/60 mb-1">Diagnostico preliminar</p>
                         <p className="text-xs text-white/65 leading-relaxed">{jenaiConfirm.suggested_diagnosis}</p>
                       </div>
                     )}
@@ -3490,7 +3490,7 @@ Reglas:
                     {/* Piezas sugeridas */}
                     {jenaiConfirm.suggested_parts?.length > 0 && (
                       <div className="rounded-xl border border-lime-500/20 bg-lime-500/[0.06] p-3">
-                        <p className="text-[10px] font-bold uppercase tracking-widest text-lime-400/60 mb-1.5">Piezas que puede necesitar</p>
+                        <p className="text-[10px] font-bold text-lime-400/60 mb-1.5">Piezas que puede necesitar</p>
                         <div className="flex flex-wrap gap-1.5">
                           {jenaiConfirm.suggested_parts.map((part, i) => (
                             <span key={i} className="text-[10px] font-semibold bg-lime-500/10 border border-lime-500/20 text-lime-300 rounded-full px-2.5 py-0.5">
@@ -3504,7 +3504,7 @@ Reglas:
                     {/* Checklist sugerido */}
                     {jenaiConfirm.suggested_checklist?.length > 0 && (
                       <div className="rounded-xl border border-white/10 bg-white/[0.04] p-3">
-                        <p className="text-[10px] font-bold uppercase tracking-widest text-white/30 mb-1.5">Checklist sugerido</p>
+                        <p className="text-[10px] font-bold text-white/30 mb-1.5">Checklist sugerido</p>
                         <div className="flex flex-wrap gap-1.5">
                           {jenaiConfirm.suggested_checklist.map((item, i) => (
                             <span key={i} className="text-[10px] font-semibold bg-emerald-500/10 border border-emerald-500/20 text-emerald-300 rounded-full px-2.5 py-0.5">
@@ -3518,7 +3518,7 @@ Reglas:
                     {/* Seguridad */}
                     {(jenaiConfirm.device_pin || jenaiConfirm.device_password) && (
                       <div className="rounded-xl border border-amber-500/20 bg-amber-500/[0.06] p-3">
-                        <p className="text-[10px] font-bold uppercase tracking-widest text-amber-400/60 mb-1">Seguridad</p>
+                        <p className="text-[10px] font-bold text-amber-400/60 mb-1">Seguridad</p>
                         {jenaiConfirm.device_pin && <p className="text-xs text-white/60">PIN: ****</p>}
                         {jenaiConfirm.device_password && <p className="text-xs text-white/60">Password: ****</p>}
                       </div>
@@ -3535,7 +3535,7 @@ Reglas:
                     </button>
                     <button
                       onClick={() => applyJenaiData(jenaiConfirm)}
-                      className="flex-1 h-12 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-600 text-white font-black text-sm flex items-center justify-center gap-2 shadow-lg active:scale-95 transition-all"
+                      className="flex-1 h-12 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-600 text-white font-semibold text-sm flex items-center justify-center gap-2 shadow-lg active:scale-95 transition-all"
                     >
                       <Check className="w-4 h-4" /> Confirmar
                     </button>
@@ -3549,7 +3549,7 @@ Reglas:
           {(!isCompactDevice || mobileStep === 1) && !inJenaiInput && (
           <div className="bg-white/[0.03] border border-white/[0.08] rounded-[28px] p-6 space-y-5 backdrop-blur-3xl shadow-[0_8px_32px_rgba(0,0,0,0.2)] relative overflow-hidden lg:col-span-4 transition-all hover:bg-white/[0.05] group">
             <div className="absolute -right-20 -top-20 w-40 h-40 bg-cyan-500/5 rounded-full blur-[80px] group-hover:bg-cyan-500/10 transition-colors duration-700" />
-            <h3 className="text-white font-black text-lg flex items-center gap-3 relative z-10 uppercase tracking-tight">
+            <h3 className="text-white font-semibold text-lg flex items-center gap-3 relative z-10 tracking-tight">
               <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-cyan-400 to-blue-600 flex items-center justify-center shadow-lg">
                 <User className="w-5 h-5 text-white" strokeWidth={2.5} />
               </div>
@@ -3762,7 +3762,7 @@ Reglas:
           {!quickOrderMode && !inJenaiInput && (!isCompactDevice || mobileStep === 2) && (
           <div className="bg-white/[0.03] border border-white/[0.08] rounded-[28px] p-4 sm:p-6 space-y-3 sm:space-y-5 backdrop-blur-3xl shadow-[0_8px_32px_rgba(0,0,0,0.2)] relative overflow-hidden lg:col-span-3 transition-all hover:bg-white/[0.05] group">
             <div className="absolute -right-20 -bottom-20 w-40 h-40 bg-emerald-500/5 rounded-full blur-[80px] group-hover:bg-emerald-500/10 transition-colors duration-700" />
-            <h3 className="text-white font-black text-base sm:text-lg flex items-center gap-3 relative z-10 uppercase tracking-tight">
+            <h3 className="text-white font-semibold text-base sm:text-lg flex items-center gap-3 relative z-10 tracking-tight">
               <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-gradient-to-br from-emerald-400 to-green-600 flex items-center justify-center shadow-lg">
                 <Users className="w-4 h-4 sm:w-5 sm:h-5 text-white" strokeWidth={2.5} />
               </div>
@@ -3783,7 +3783,7 @@ Reglas:
 
               <div className="space-y-1.5">
                 <div className="flex items-center justify-between">
-                  <p className="text-[10px] uppercase tracking-[0.2em] text-emerald-300/80">Técnicos</p>
+                  <p className="text-[10px] tracking-[0.2em] text-emerald-300/80">Técnicos</p>
                   <span className="text-[10px] text-white/45">{technicians.length}</span>
                 </div>
                 <div className="grid grid-cols-1 gap-1.5">
@@ -3824,7 +3824,7 @@ Reglas:
           <div className="bg-white/[0.03] border border-white/[0.08] rounded-[28px] p-6 space-y-5 backdrop-blur-2xl shadow-[0_8px_32px_rgba(0,0,0,0.2)] relative overflow-hidden lg:col-span-5 transition-all hover:bg-white/[0.05] group">
             <div className="absolute -right-20 -top-20 w-40 h-40 bg-purple-500/5 rounded-full blur-[80px] group-hover:bg-purple-500/10 transition-colors duration-700" />
             <div className="flex items-center justify-between relative z-10">
-              <h3 className="text-white font-black text-lg flex items-center gap-3 relative z-10 uppercase tracking-tight">
+              <h3 className="text-white font-semibold text-lg flex items-center gap-3 relative z-10 tracking-tight">
                 <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-purple-400 to-pink-500 flex items-center justify-center shadow-lg">
                   <Smartphone className="w-5 h-5 text-white" strokeWidth={2.5} />
                 </div>
@@ -3871,7 +3871,7 @@ Reglas:
                 >
                   <div className="rounded-2xl border border-cyan-400/20 bg-gradient-to-br from-cyan-500/10 to-transparent p-4">
                     <div className="mb-3">
-                      <p className="text-xs font-semibold uppercase tracking-[0.18em] text-cyan-200/70">Uso temporal</p>
+                      <p className="text-xs font-semibold tracking-[0.18em] text-cyan-200/70">Uso temporal</p>
                       <p className="mt-1 text-sm text-white/55">Para equipos que no vale la pena registrar en el catálogo.</p>
                     </div>
                     <div className="flex flex-col sm:flex-row gap-2">
@@ -4042,7 +4042,7 @@ Reglas:
           {!inJenaiInput && (!isCompactDevice || (quickOrderMode ? mobileStep === 3 : mobileStep === 4)) && (
           <div className="bg-white/[0.03] border border-white/[0.08] rounded-[28px] p-6 space-y-5 backdrop-blur-xl shadow-[0_8px_32px_rgba(0,0,0,0.2)] relative overflow-hidden lg:col-span-4 transition-all hover:bg-white/[0.05] group">
             <div className="absolute -right-20 -top-20 w-40 h-40 bg-orange-500/5 rounded-full blur-[80px] group-hover:bg-orange-500/10 transition-colors duration-700" />
-            <h3 className="text-white font-black text-lg flex items-center gap-3 relative z-10 uppercase tracking-tight">
+            <h3 className="text-white font-semibold text-lg flex items-center gap-3 relative z-10 tracking-tight">
               <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-orange-400 to-amber-500 flex items-center justify-center shadow-lg">
                 <Wrench className="w-5 h-5 text-white" strokeWidth={2.5} />
               </div>
@@ -4063,7 +4063,7 @@ Reglas:
                     type="button"
                     onClick={fetchAiDiagnosis}
                     disabled={aiDiagnosisLoading}
-                    className="flex items-center gap-2 px-4 py-2 rounded-xl bg-gradient-to-r from-purple-500/15 to-indigo-500/15 border border-purple-500/25 text-purple-300 text-xs font-black hover:from-purple-500/25 hover:to-indigo-500/25 transition-all active:scale-95 disabled:opacity-50"
+                    className="flex items-center gap-2 px-4 py-2 rounded-xl bg-gradient-to-r from-purple-500/15 to-indigo-500/15 border border-purple-500/25 text-purple-300 text-xs font-semibold hover:from-purple-500/25 hover:to-indigo-500/25 transition-all active:scale-95 disabled:opacity-50"
                   >
                     {aiDiagnosisLoading ? (
                       <><span className="animate-spin">⟳</span> JENAI reescribiendo…</>
@@ -4082,7 +4082,7 @@ Reglas:
                     >
                       <div className="flex items-center gap-1.5 mb-2">
                         <svg className="w-3 h-3 text-purple-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"/></svg>
-                        <span className="text-[10px] font-black uppercase tracking-widest text-purple-400">Versión Profesional</span>
+                        <span className="text-[10px] font-semibold text-purple-400">Versión Profesional</span>
                         <span className="text-[9px] text-purple-300 ml-auto opacity-60 group-hover:opacity-100">Tap para aplicar ↓</span>
                       </div>
                       <p className="text-xs text-white/85 leading-relaxed whitespace-pre-line">{aiDiagnosis}</p>
@@ -4098,7 +4098,7 @@ Reglas:
           <div className="bg-white/[0.03] border border-white/[0.08] rounded-[28px] p-6 space-y-5 backdrop-blur-2xl shadow-[0_8px_32px_rgba(0,0,0,0.2)] relative overflow-hidden lg:col-span-8 transition-all hover:bg-white/[0.05] group">
             <div className="absolute -left-20 -bottom-20 w-40 h-40 bg-lime-500/5 rounded-full blur-[80px] group-hover:bg-lime-500/10 transition-colors duration-700" />
             <div className="flex items-center justify-between relative z-10">
-              <h3 className="text-white font-black text-lg flex items-center gap-3 relative z-10 uppercase tracking-tight">
+              <h3 className="text-white font-semibold text-lg flex items-center gap-3 relative z-10 tracking-tight">
                 <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-lime-400 to-emerald-500 flex items-center justify-center shadow-lg">
                   <Wrench className="w-5 h-5 text-white" strokeWidth={2.5} />
                 </div>
@@ -4126,7 +4126,7 @@ Reglas:
             {/* Sugerencias de piezas */}
             {(deviceType || deviceModel) && suggestedProducts.length > 0 && (
               <div className="space-y-2">
-                <p className="text-xs text-gray-400 uppercase">
+                <p className="text-xs text-gray-400">
                   💡 Sugerencias {deviceModel ? `para ${deviceModel}` : `para ${deviceType}`}
                 </p>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
@@ -4163,7 +4163,7 @@ Reglas:
             {/* Items añadidos */}
             {orderItems.length > 0 && (
               <div className="space-y-2 bg-lime-600/5 border border-lime-500/20 rounded-lg p-3">
-                <p className="text-xs text-lime-300 uppercase font-bold">Items en la orden ({orderItems.length})</p>
+                <p className="text-xs text-lime-300 font-bold">Items en la orden ({orderItems.length})</p>
                 {orderItems.map((item, idx) => (
                   <div key={idx} className="flex items-center justify-between gap-2 bg-black/40 border border-white/10 rounded-lg p-2">
                     <div className="flex-1 min-w-0">
@@ -4202,7 +4202,7 @@ Reglas:
           {!quickOrderMode && !inJenaiInput && (!isCompactDevice || mobileStep === 5) && (
           <div className="bg-white/[0.03] border border-white/[0.08] rounded-[28px] p-4 sm:p-6 space-y-3 sm:space-y-5 backdrop-blur-xl shadow-[0_8px_32px_rgba(0,0,0,0.2)] relative overflow-hidden lg:col-span-4 transition-all hover:bg-white/[0.05] group">
             <div className="absolute -right-20 -top-20 w-40 h-40 bg-blue-500/5 rounded-full blur-[80px] group-hover:bg-blue-500/10 transition-colors duration-700" />
-            <h3 className="text-white font-black text-base sm:text-lg flex items-center gap-3 relative z-10 uppercase tracking-tight">
+            <h3 className="text-white font-semibold text-base sm:text-lg flex items-center gap-3 relative z-10 tracking-tight">
               <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-gradient-to-br from-blue-400 to-indigo-600 flex items-center justify-center shadow-lg">
                 <Shield className="w-4 h-4 sm:w-5 sm:h-5 text-white" strokeWidth={2.5} />
               </div>
@@ -4211,7 +4211,7 @@ Reglas:
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div className="relative">
-                <label className="text-[10px] font-bold text-white/40 uppercase tracking-wider mb-1 block">PIN numerico</label>
+                <label className="text-[10px] font-bold text-white/40 mb-1 block">PIN numerico</label>
                 <input
                   value={devicePin}
                   onChange={(e) => setDevicePin(e.target.value.replace(/\D/g, '').slice(0, 6))}
@@ -4221,7 +4221,7 @@ Reglas:
                   autoComplete="off"
                   maxLength={6}
                   placeholder="123456"
-                  className="w-full bg-black/30 border border-white/10 rounded-xl px-3 py-3 pr-10 text-white text-lg font-bold tracking-widest"
+                  className="w-full bg-black/30 border border-white/10 rounded-xl px-3 py-3 pr-10 text-white text-lg font-bold"
                 />
                 <button
                   type="button"
@@ -4233,7 +4233,7 @@ Reglas:
               </div>
 
               <div className="relative">
-                <label className="text-[10px] font-bold text-white/40 uppercase tracking-wider mb-1 block">Contrasena</label>
+                <label className="text-[10px] font-bold text-white/40 mb-1 block">Contrasena</label>
                 <input
                   value={devicePassword}
                   onChange={(e) => setDevicePassword(e.target.value)}
@@ -4270,7 +4270,7 @@ Reglas:
           <div className="bg-white/[0.03] border border-white/[0.08] rounded-[28px] p-4 sm:p-6 space-y-3 sm:space-y-5 backdrop-blur-xl shadow-[0_8px_32px_rgba(0,0,0,0.2)] relative overflow-hidden lg:col-span-4 transition-all hover:bg-white/[0.05] group">
             <div className="absolute -left-20 -top-20 w-40 h-40 bg-green-500/5 rounded-full blur-[80px] group-hover:bg-green-500/10 transition-colors duration-700" />
             <div className="flex items-center justify-between">
-              <h3 className="text-white font-black text-base sm:text-lg flex items-center gap-3 relative z-10 uppercase tracking-tight">
+              <h3 className="text-white font-semibold text-base sm:text-lg flex items-center gap-3 relative z-10 tracking-tight">
                 <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-gradient-to-br from-green-400 to-emerald-600 flex items-center justify-center shadow-lg">
                   <CheckSquare className="w-4 h-4 sm:w-5 sm:h-5 text-white" strokeWidth={2.5} />
                 </div>
@@ -4347,7 +4347,7 @@ Reglas:
           <div className="bg-white/[0.03] border border-white/[0.08] rounded-[28px] p-4 sm:p-6 space-y-3 sm:space-y-5 backdrop-blur-xl shadow-[0_8px_32px_rgba(0,0,0,0.2)] relative overflow-hidden lg:col-span-4 transition-all hover:bg-white/[0.05] group">
             <div className="absolute -right-20 -bottom-20 w-40 h-40 bg-pink-500/5 rounded-full blur-[80px] group-hover:bg-pink-500/10 transition-colors duration-700" />
             <div className="flex items-center justify-between">
-              <h3 className="text-white font-black text-base sm:text-lg flex items-center gap-3 relative z-10 uppercase tracking-tight">
+              <h3 className="text-white font-semibold text-base sm:text-lg flex items-center gap-3 relative z-10 tracking-tight">
                 <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-gradient-to-br from-pink-400 to-rose-600 flex items-center justify-center shadow-lg">
                   <Camera className="w-4 h-4 sm:w-5 sm:h-5 text-white" strokeWidth={2.5} />
                 </div>
@@ -4442,7 +4442,7 @@ Reglas:
                 <Button
                   onClick={onClose}
                   variant="outline"
-                  className="flex-1 border-red-500/30 bg-red-500/10 text-red-400 hover:bg-red-500/20 h-11 rounded-[16px] font-black uppercase text-[11px] tracking-widest active:scale-95 transition-all"
+                  className="flex-1 border-red-500/30 bg-red-500/10 text-red-400 hover:bg-red-500/20 h-11 rounded-[16px] font-semibold text-[11px] active:scale-95 transition-all"
                   disabled={loading}
                 >
                   Cancelar
@@ -4456,7 +4456,7 @@ Reglas:
                       setMobileStep(s => Math.max(0, s - 1));
                     }}
                     variant="outline"
-                    className="flex-1 border-white/15 bg-white/[0.07] text-white/80 hover:bg-white/[0.12] h-11 rounded-[16px] font-black uppercase text-[11px] tracking-widest active:scale-95 transition-all"
+                    className="flex-1 border-white/15 bg-white/[0.07] text-white/80 hover:bg-white/[0.12] h-11 rounded-[16px] font-semibold text-[11px] active:scale-95 transition-all"
                     disabled={loading}
                   >
                     <ChevronLeft className="w-4 h-4 mr-1" />
@@ -4468,7 +4468,7 @@ Reglas:
               {mobileStep === 0 ? null : inJenaiInput && mobileStep === 1 && jenaiConfirm ? (
                 <Button
                   onClick={() => applyJenaiData(jenaiConfirm)}
-                  className="w-full h-14 rounded-[20px] font-black uppercase text-sm tracking-widest active:scale-95 transition-all bg-gradient-to-r from-emerald-500 to-teal-600 text-white shadow-[0_0_30px_rgba(16,185,129,0.25)]"
+                  className="w-full h-14 rounded-[20px] font-semibold text-sm active:scale-95 transition-all bg-gradient-to-r from-emerald-500 to-teal-600 text-white shadow-[0_0_30px_rgba(16,185,129,0.25)]"
                 >
                   <Check className="w-5 h-5 mr-3" /> Confirmar datos
                 </Button>
@@ -4476,7 +4476,7 @@ Reglas:
                 <Button
                   onClick={parseWithJenai}
                   disabled={jenaiProcessing || (!jenaiInput.trim() && jenaiPhotos.length === 0)}
-                  className="w-full h-14 rounded-[20px] font-black uppercase text-sm tracking-widest active:scale-95 transition-all bg-gradient-to-r from-violet-500 to-purple-600 text-white shadow-[0_0_30px_rgba(139,92,246,0.25)]"
+                  className="w-full h-14 rounded-[20px] font-semibold text-sm active:scale-95 transition-all bg-gradient-to-r from-violet-500 to-purple-600 text-white shadow-[0_0_30px_rgba(139,92,246,0.25)]"
                 >
                   {jenaiProcessing ? (
                     <><Loader2 className="w-5 h-5 mr-3 animate-spin" /> Creando orden...</>
@@ -4488,7 +4488,7 @@ Reglas:
                 <Button
                   onClick={handleSubmit}
                   disabled={loading}
-                  className={`w-full text-white h-14 rounded-[20px] font-black uppercase text-sm tracking-widest active:scale-95 transition-all duration-300 shadow-[0_8px_32px_rgba(0,0,0,0.5)] ${
+                  className={`w-full text-white h-14 rounded-[20px] font-semibold text-sm active:scale-95 transition-all duration-300 shadow-[0_8px_32px_rgba(0,0,0,0.5)] ${
                     quickOrderMode
                       ? "bg-gradient-to-r from-amber-500 to-yellow-600 hover:from-amber-600 hover:to-yellow-700 shadow-[0_0_30px_rgba(245,158,11,0.25)] text-black"
                       : "bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-600 hover:to-blue-700 shadow-[0_0_30px_rgba(6,182,212,0.3)]"
@@ -4518,7 +4518,7 @@ Reglas:
                     setMobileStep(s => Math.min(mobileStepsTotal - 1, s + 1));
                   }}
                   disabled={loading}
-                  className={`w-full h-14 rounded-[20px] font-black uppercase text-sm tracking-widest active:scale-95 transition-all duration-300 ${
+                  className={`w-full h-14 rounded-[20px] font-semibold text-sm active:scale-95 transition-all duration-300 ${
                     !canAdvanceMobileStep
                       ? "bg-white/10 text-white/30 cursor-not-allowed"
                       : quickOrderMode
@@ -4537,7 +4537,7 @@ Reglas:
               <Button
                 onClick={onClose}
                 variant="outline"
-                className="border-white/10 bg-white/5 text-white/70 hover:bg-white/10 h-14 rounded-[20px] font-black uppercase text-xs tracking-widest active:scale-95 transition-all"
+                className="border-white/10 bg-white/5 text-white/70 hover:bg-white/10 h-14 rounded-[20px] font-semibold text-xs active:scale-95 transition-all"
                 disabled={loading}
               >
                 Cancelar
@@ -4547,7 +4547,7 @@ Reglas:
                   onClick={handleAddAnother}
                   disabled={loading}
                   variant="outline"
-                  className="border-cyan-500/30 bg-cyan-500/5 text-cyan-400 hover:bg-cyan-500/10 h-14 rounded-[20px] font-black uppercase text-xs tracking-widest active:scale-95 transition-all"
+                  className="border-cyan-500/30 bg-cyan-500/5 text-cyan-400 hover:bg-cyan-500/10 h-14 rounded-[20px] font-semibold text-xs active:scale-95 transition-all"
                 >
                   <Plus className="w-5 h-5 mr-2" />
                   Añadir otro equipo
@@ -4556,7 +4556,7 @@ Reglas:
               <Button
                 onClick={handleSubmit}
                 disabled={loading}
-                className={`w-full sm:flex-1 text-white h-14 rounded-[20px] font-black uppercase text-sm tracking-widest active:scale-95 transition-all duration-300 shadow-[0_8px_32px_rgba(0,0,0,0.5)] ${
+                className={`w-full sm:flex-1 text-white h-14 rounded-[20px] font-semibold text-sm active:scale-95 transition-all duration-300 shadow-[0_8px_32px_rgba(0,0,0,0.5)] ${
                   quickOrderMode
                     ? "bg-gradient-to-r from-amber-500 to-yellow-600 hover:from-amber-600 hover:to-yellow-700 shadow-[0_0_30px_rgba(245,158,11,0.25)] text-black"
                     : "bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-600 hover:to-blue-700 shadow-[0_0_30px_rgba(6,182,212,0.3)]"
@@ -4620,7 +4620,7 @@ Reglas:
                   <Plus className="w-5 h-5 text-white" />
                 </div>
                 <div>
-                  <h3 className="text-lg font-black">Nuevo dispositivo</h3>
+                  <h3 className="text-lg font-semibold">Nuevo dispositivo</h3>
                   <p className="text-xs text-white/55">Crea categoría, marca, línea y modelo en un solo paso</p>
                 </div>
               </div>
@@ -4941,7 +4941,7 @@ Reglas:
                 )}
                 <div className="mt-3 rounded-2xl border border-white/10 bg-white/5 p-3">
                   <div className="flex items-center justify-between gap-2 mb-2">
-                    <p className="text-xs font-semibold uppercase tracking-[0.2em] text-white/45">
+                    <p className="text-xs font-semibold tracking-[0.2em] text-white/45">
                       Modelos existentes
                     </p>
                     <span className="text-[11px] text-white/40">{deviceCatalogModels.length}</span>
@@ -5195,7 +5195,7 @@ function PatternModal({ onClose, onSave }) {
   return createPortal(
     <div className="fixed inset-0 z-[999999] bg-black/90 backdrop-blur-xl flex items-center justify-center p-4">
       <div className="bg-gradient-to-br from-[#1C1C1E] to-black border border-white/20 backdrop-blur-3xl text-white max-w-md w-full rounded-[32px] overflow-hidden shadow-[0_30px_100px_rgba(6,182,212,0.3)] relative p-8">
-        <h4 className="text-xl font-black uppercase tracking-tight text-white mb-6">Seguridad Android</h4>
+        <h4 className="text-xl font-semibold tracking-tight text-white mb-6">Seguridad Android</h4>
         
         <div className="flex flex-col items-center gap-4">
           <div className="w-full aspect-square bg-black rounded-xl border border-cyan-500/20 p-4" style={{ touchAction: 'none' }}>

@@ -121,7 +121,7 @@ function ChatMessage({ msg }) {
         {msg.role === "assistant" && (
           <div className="flex items-center gap-1.5 mb-1.5">
             <Brain className="h-3.5 w-3.5 text-purple-400" />
-            <span className="text-[10px] font-bold uppercase tracking-widest text-purple-400">JENAI</span>
+            <span className="text-[10px] font-bold text-purple-400">JENAI</span>
           </div>
         )}
         <div className="whitespace-pre-wrap">{msg.content}</div>
@@ -230,10 +230,10 @@ export default function DiagnosticAI({ order, checklist = [], deviceCategory = "
           </div>
           <div className="text-left">
             <div className="flex items-center gap-2">
-              <h3 className="text-base font-black tracking-tight text-white sm:text-lg">
+              <h3 className="text-base font-semibold tracking-tight text-white sm:text-lg">
                 {mode === "repair" ? "Asistente de Reparacion" : "Asistente de Diagnostico"}
               </h3>
-              <Badge className="rounded-full border-0 bg-gradient-to-r from-purple-500/20 to-indigo-500/20 px-2 py-0.5 text-[9px] font-bold uppercase tracking-widest text-purple-300">
+              <Badge className="rounded-full border-0 bg-gradient-to-r from-purple-500/20 to-indigo-500/20 px-2 py-0.5 text-[9px] font-bold text-purple-300">
                 <Sparkles className="mr-1 h-2.5 w-2.5" />IA
               </Badge>
             </div>

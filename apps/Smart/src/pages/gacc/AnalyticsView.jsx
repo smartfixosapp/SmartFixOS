@@ -64,17 +64,17 @@ function ChurnPredictor({ tenants }) {
 
       <div className="grid grid-cols-3 gap-3 mb-4">
         <div className="rounded-xl border border-red-500/20 bg-red-500/[0.03] p-3 text-center">
-          <p className="text-2xl font-black text-red-400">{critical.length}</p>
+          <p className="text-2xl font-semibold text-red-400">{critical.length}</p>
           <p className="text-[10px] text-gray-500">Riesgo Critico</p>
           <p className="text-[9px] text-gray-700">Score ≥60</p>
         </div>
         <div className="rounded-xl border border-amber-500/20 bg-amber-500/[0.03] p-3 text-center">
-          <p className="text-2xl font-black text-amber-400">{high.length}</p>
+          <p className="text-2xl font-semibold text-amber-400">{high.length}</p>
           <p className="text-[10px] text-gray-500">Riesgo Alto</p>
           <p className="text-[9px] text-gray-700">Score 30-59</p>
         </div>
         <div className="rounded-xl border border-emerald-500/20 bg-emerald-500/[0.03] p-3 text-center">
-          <p className="text-2xl font-black text-emerald-400">{low.length}</p>
+          <p className="text-2xl font-semibold text-emerald-400">{low.length}</p>
           <p className="text-[10px] text-gray-500">Saludables</p>
           <p className="text-[9px] text-gray-700">Score &lt;30</p>
         </div>
@@ -82,7 +82,7 @@ function ChurnPredictor({ tenants }) {
 
       {critical.length > 0 && (
         <div className="space-y-1">
-          <p className="text-[10px] text-gray-600 uppercase tracking-wide font-bold mb-1">Top riesgo</p>
+          <p className="text-[10px] text-gray-600 tracking-wide font-bold mb-1">Top riesgo</p>
           {critical.slice(0, 5).map(t => (
             <div key={t.id} className="flex items-center justify-between px-3 py-2 rounded-xl bg-white/[0.02] border border-white/[0.04]">
               <div className="min-w-0">
@@ -157,8 +157,8 @@ function RevenueForecast({ tenants }) {
           <div key={f.label} className={`rounded-xl border p-3 text-center ${
             f.highlight ? "border-purple-500/30 bg-purple-500/[0.05]" : "border-white/[0.06] bg-white/[0.02]"
           }`}>
-            <p className="text-[10px] text-gray-600 uppercase tracking-wide font-bold">{f.label}</p>
-            <p className={`text-xl font-black mt-1 ${f.highlight ? "text-purple-300" : "text-white"}`}>
+            <p className="text-[10px] text-gray-600 tracking-wide font-bold">{f.label}</p>
+            <p className={`text-xl font-semibold mt-1 ${f.highlight ? "text-purple-300" : "text-white"}`}>
               ${Math.round(f.value).toLocaleString()}
             </p>
           </div>
@@ -215,7 +215,7 @@ function CohortAnalysis({ tenants }) {
         <p className="text-xs text-gray-600 text-center py-4">Sin datos de cohortes</p>
       ) : (
         <div className="space-y-2">
-          <div className="grid grid-cols-5 gap-2 px-2 text-[10px] text-gray-600 uppercase tracking-wide font-bold border-b border-white/[0.05] pb-2">
+          <div className="grid grid-cols-5 gap-2 px-2 text-[10px] text-gray-600 tracking-wide font-bold border-b border-white/[0.05] pb-2">
             <div>Cohorte</div>
             <div className="text-right">Total</div>
             <div className="text-right">Activas</div>
@@ -311,7 +311,7 @@ function UsageHeatmap({ tenants }) {
         <div className="flex justify-center py-8"><RefreshCw className="w-5 h-5 animate-spin text-gray-600" /></div>
       ) : (
         <div className="space-y-2">
-          <div className="grid grid-cols-5 gap-2 px-2 text-[10px] text-gray-600 uppercase tracking-wide font-bold border-b border-white/[0.05] pb-2">
+          <div className="grid grid-cols-5 gap-2 px-2 text-[10px] text-gray-600 tracking-wide font-bold border-b border-white/[0.05] pb-2">
             <div>Tienda</div>
             <div className="text-center">Ordenes</div>
             <div className="text-center">Ventas</div>
@@ -386,7 +386,7 @@ function LTVByPlan({ tenants }) {
               </div>
               <div className="text-right">
                 <p className="text-[10px] text-gray-600">LTV</p>
-                <p className="text-[14px] font-black text-emerald-400">${Math.round(plan.ltv).toLocaleString()}</p>
+                <p className="text-[14px] font-semibold text-emerald-400">${Math.round(plan.ltv).toLocaleString()}</p>
               </div>
             </div>
           </div>
@@ -456,7 +456,7 @@ export default function AnalyticsView() {
     <div className="max-w-7xl mx-auto px-4 sm:px-6 py-6 space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-lg font-black text-white">Analytics</h2>
+          <h2 className="text-lg font-semibold text-white">Analytics</h2>
           <p className="text-[11px] text-gray-600">Inteligencia de negocio, forecast y predicciones</p>
         </div>
         <button onClick={refresh} disabled={loading} className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[11px] text-gray-500 hover:text-white border border-white/[0.07] hover:border-white/[0.15] bg-white/[0.02] transition-all">

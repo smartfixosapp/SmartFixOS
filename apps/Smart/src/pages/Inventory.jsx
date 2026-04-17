@@ -292,7 +292,7 @@ function QuickStockAdjust({ item, onClose, onSave }) {
       <div className="relative w-full sm:w-96 bg-[#111114] border border-teal-500/30 rounded-[28px] rounded-b-none sm:rounded-[28px] p-5 shadow-[0_-8px_40px_rgba(0,0,0,0.5)] sm:shadow-[0_24px_60px_rgba(0,0,0,0.5)]">
         <div className="flex items-center justify-between mb-4">
           <div>
-            <p className="text-white font-black text-sm truncate max-w-[220px]">{item.name}</p>
+            <p className="text-white font-semibold text-sm truncate max-w-[220px]">{item.name}</p>
             <p className="text-white/40 text-xs mt-0.5">Stock actual: <span className="text-white font-bold">{currentStock}</span></p>
           </div>
           <button onClick={onClose} className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center text-white/50 hover:text-white">✕</button>
@@ -302,7 +302,7 @@ function QuickStockAdjust({ item, onClose, onSave }) {
         <div className="grid grid-cols-3 gap-1.5 mb-4 bg-black/30 p-1 rounded-2xl">
           {[{k:"add",label:"+ Agregar",color:"text-emerald-400"},{k:"remove",label:"− Quitar",color:"text-red-400"},{k:"set",label:"= Fijar",color:"text-cyan-400"}].map(({k,label,color}) => (
             <button key={k} onClick={() => { setMode(k); setQty(""); }}
-              className={`py-2 px-2 rounded-xl text-[11px] font-black transition-all ${
+              className={`py-2 px-2 rounded-xl text-[11px] font-semibold transition-all ${
                 mode === k ? `bg-white/10 ${color}` : "text-white/30 hover:text-white/60"
               }`}>{label}</button>
           ))}
@@ -317,7 +317,7 @@ function QuickStockAdjust({ item, onClose, onSave }) {
             onKeyDown={e => e.key === "Enter" && handleSave()}
             autoFocus
             placeholder={mode === "set" ? "Nuevo stock" : "Cantidad"}
-            className="flex-1 h-12 px-4 rounded-2xl bg-black/30 border border-white/10 text-white text-lg font-black text-center focus:border-teal-500/50 focus:outline-none focus:ring-2 focus:ring-teal-500/20 transition-all"
+            className="flex-1 h-12 px-4 rounded-2xl bg-black/30 border border-white/10 text-white text-lg font-semibold text-center focus:border-teal-500/50 focus:outline-none focus:ring-2 focus:ring-teal-500/20 transition-all"
           />
           {qty !== "" && (
             <div className={`px-4 py-3 rounded-2xl border text-center min-w-[80px] ${
@@ -327,7 +327,7 @@ function QuickStockAdjust({ item, onClose, onSave }) {
               "bg-emerald-500/10 border-emerald-500/20"
             }`}>
               <p className="text-xs text-white/40 font-bold">→ quedará</p>
-              <p className={`text-xl font-black ${
+              <p className={`text-xl font-semibold ${
                 newStock <= 0 ? "text-red-400" :
                 newStock <= (item.min_stock || 0) ? "text-amber-400" : "text-emerald-400"
               }`}>{Math.max(0, newStock)}</p>
@@ -345,7 +345,7 @@ function QuickStockAdjust({ item, onClose, onSave }) {
         <button
           onClick={handleSave}
           disabled={saving}
-          className="w-full h-12 rounded-2xl bg-gradient-to-r from-teal-500 to-cyan-500 text-white font-black text-sm shadow-lg hover:opacity-90 active:scale-[0.98] transition-all disabled:opacity-50"
+          className="w-full h-12 rounded-2xl bg-gradient-to-r from-teal-500 to-cyan-500 text-white font-semibold text-sm shadow-lg hover:opacity-90 active:scale-[0.98] transition-all disabled:opacity-50"
         >
           {saving ? "Guardando..." : "Guardar Ajuste"}
         </button>
@@ -392,7 +392,7 @@ function HistorialMovimientosDialog({ open, onClose }) {
     <Dialog open={open} onOpenChange={onClose}>
       <DialogContent className="bg-[#0f0f10] border border-cyan-500/20 max-w-2xl max-h-[85vh] p-0 gap-0 flex flex-col">
         <DialogHeader className="px-5 pt-5 pb-3 border-b border-white/[0.07] flex-shrink-0">
-          <DialogTitle className="text-white font-black flex items-center gap-2">
+          <DialogTitle className="text-white font-semibold flex items-center gap-2">
             <History className="w-5 h-5 text-cyan-400" />
             Historial de Movimientos
           </DialogTitle>
@@ -417,7 +417,7 @@ function HistorialMovimientosDialog({ open, onClose }) {
             </div>
           ) : filtered.map((m, idx) => (
             <div key={m.id || idx} className="flex items-center gap-3 p-3 bg-white/[0.03] border border-white/[0.05] rounded-2xl">
-              <div className={`w-9 h-9 rounded-xl border flex items-center justify-center flex-shrink-0 text-xs font-black ${typeColor(m.movement_type)}`}>
+              <div className={`w-9 h-9 rounded-xl border flex items-center justify-center flex-shrink-0 text-xs font-semibold ${typeColor(m.movement_type)}`}>
                 {Number(m.quantity) > 0 ? "+" : ""}{m.quantity}
               </div>
               <div className="flex-1 min-w-0">
@@ -1706,12 +1706,12 @@ Maximo 150 palabras. Texto plano, sin markdown.`
           <div className="flex items-center justify-between px-4 py-3">
             <div className="flex items-center gap-2">
               <span className="text-violet-400">✨</span>
-              <span className="text-xs font-black text-white/50 uppercase tracking-widest">Análisis IA del inventario</span>
+              <span className="text-xs font-semibold text-white/50">Análisis IA del inventario</span>
             </div>
             <button
               onClick={fetchInventoryAnalysis}
               disabled={aiInventoryLoading}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-violet-500/10 border border-violet-500/20 text-violet-300 text-xs font-black hover:bg-violet-500/20 transition-all active:scale-95 disabled:opacity-50"
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-violet-500/10 border border-violet-500/20 text-violet-300 text-xs font-semibold hover:bg-violet-500/20 transition-all active:scale-95 disabled:opacity-50"
             >
               {aiInventoryLoading ? "Analizando…" : "✨ Analizar stock"}
             </button>
@@ -1745,7 +1745,7 @@ Maximo 150 palabras. Texto plano, sin markdown.`
               <button
                 key={key}
                 onClick={() => { setMainCategory(key); setDeviceCategory(null); setPartTypeFilter("all"); setPage(1); }}
-                className={`flex items-center gap-2 px-4 py-2.5 rounded-2xl text-sm font-black whitespace-nowrap transition-all active:scale-95 flex-shrink-0 ${
+                className={`flex items-center gap-2 px-4 py-2.5 rounded-2xl text-sm font-semibold whitespace-nowrap transition-all active:scale-95 flex-shrink-0 ${
                   active ? 'bg-white text-gray-900 shadow-lg' : 'bg-[#111114]/60 border border-white/[0.07] text-white/50 hover:text-white hover:bg-white/10'
                 }`}
               >

@@ -2025,7 +2025,7 @@ export default function PinAccess() {
 
           {/* OTP Input */}
           <div className="bg-white/5 border border-white/10 rounded-2xl p-6 mb-5">
-            <label className="text-xs text-white/50 uppercase tracking-widest mb-3 block">Código de verificación</label>
+            <label className="text-xs text-white/50 mb-3 block">Código de verificación</label>
             <input
               type="text"
               inputMode="numeric"
@@ -2041,7 +2041,7 @@ export default function PinAccess() {
 
           {/* PIN secreto de administrador */}
           <div className="bg-white/5 border border-white/10 rounded-2xl p-5 mb-4">
-            <label className="text-xs text-white/50 uppercase tracking-widest mb-3 block">
+            <label className="text-xs text-white/50 mb-3 block">
               PIN secreto de administrador
             </label>
             <div className="relative">
@@ -2173,7 +2173,7 @@ export default function PinAccess() {
             <div className="w-20 h-20 rounded-full bg-gradient-to-br from-emerald-500 to-cyan-500 flex items-center justify-center mx-auto mb-6 shadow-[0_0_50px_rgba(16,185,129,0.4)]">
               <CheckCircle className="w-10 h-10 text-white" />
             </div>
-            <h2 className="text-2xl font-black text-white mb-2">¡Cuenta creada!</h2>
+            <h2 className="text-2xl font-semibold text-white mb-2">¡Cuenta creada!</h2>
             <p className="text-gray-400 text-sm mb-6">
               Tu taller <span className="text-white font-semibold">{googleRegisterSuccess.tenantName}</span> fue registrado
             </p>
@@ -2553,7 +2553,7 @@ export default function PinAccess() {
                 <div className="absolute inset-0 overflow-y-auto">
                   <div className="min-h-full flex flex-col items-center justify-center p-4 sm:p-8">
                     <div className="w-full max-w-lg">
-                      <h2 className="text-2xl sm:text-3xl font-black text-white mb-1 text-center font-sans tracking-tight">¿Quién eres?</h2>
+                      <h2 className="text-2xl sm:text-3xl font-semibold text-white mb-1 text-center font-sans tracking-tight">¿Quién eres?</h2>
                       
                       {/* Botón rápido biométrico si ya hay perfil registrado */}
                       {hasCancelledBiometric && biometricSupported && biometricProfile?.session && (
@@ -2581,14 +2581,14 @@ export default function PinAccess() {
                             className="group relative flex flex-col items-center p-4 rounded-3xl bg-white/[0.03] border border-white/5 hover:bg-white/[0.08] hover:border-cyan-500/30 transition-all active:scale-95"
                           >
                             <div className="w-16 h-16 rounded-full bg-gradient-to-br from-cyan-600/20 to-blue-600/20 border border-white/10 flex items-center justify-center mb-3 flex-shrink-0">
-                              <span className="text-xl font-black text-white/40 group-hover:text-cyan-300 transition-colors leading-none select-none">
+                              <span className="text-xl font-semibold text-white/40 group-hover:text-cyan-300 transition-colors leading-none select-none">
                                 {(u.full_name || u.userName || u.email || "?")[0].toUpperCase()}
                               </span>
                             </div>
                             <span className="text-sm font-bold text-white/80 group-hover:text-white truncate w-full text-center">
                               {u.full_name || u.userName || u.email}
                             </span>
-                            <span className="text-[10px] text-gray-500 uppercase tracking-widest font-black mt-1">
+                            <span className="text-[10px] text-gray-500 font-semibold mt-1">
                               {u.position || u.role || "staff"}
                             </span>
                           </button>
@@ -2608,14 +2608,14 @@ export default function PinAccess() {
                         <button onClick={() => setStep("user")} className="mb-4 group">
                           <div className="w-20 h-20 rounded-full bg-gradient-to-br from-cyan-500 to-blue-600 p-0.5 shadow-[0_0_20px_rgba(6,182,212,0.3)] group-active:scale-95 transition-transform">
                             <div className="w-full h-full rounded-full bg-black flex items-center justify-center">
-                              <span className="text-2xl font-black text-cyan-400 leading-none select-none">
+                              <span className="text-2xl font-semibold text-cyan-400 leading-none select-none">
                                 {(selectedUser?.full_name || selectedUser?.userName || "?")[0].toUpperCase()}
                               </span>
                             </div>
                           </div>
                         </button>
-                        <h2 className="text-2xl font-black text-white">{selectedUser?.full_name || selectedUser?.userName}</h2>
-                        <p className="text-gray-500 text-xs uppercase tracking-[0.2em] mt-1 font-bold">Ingresa tu PIN</p>
+                        <h2 className="text-2xl font-semibold text-white">{selectedUser?.full_name || selectedUser?.userName}</h2>
+                        <p className="text-gray-500 text-xs tracking-[0.2em] mt-1 font-bold">Ingresa tu PIN</p>
                       </div>
 
                       {/* Bubbles de PIN */}
@@ -2630,11 +2630,11 @@ export default function PinAccess() {
                       {/* Teclado Numérico ajustado para asegurar visibilidad en pantallas pequeñas iOS */}
                       <div className="grid grid-cols-3 gap-3 w-full max-w-[270px] mx-auto">
                         {[1, 2, 3, 4, 5, 6, 7, 8, 9].map((n) => (
-                          <button key={n} onClick={() => handleNumberClick(String(n))} className="w-full h-[55px] rounded-2xl bg-white/5 text-xl font-black text-white active:bg-white/15 active:scale-95 transition-all">{n}</button>
+                          <button key={n} onClick={() => handleNumberClick(String(n))} className="w-full h-[55px] rounded-2xl bg-white/5 text-xl font-semibold text-white active:bg-white/15 active:scale-95 transition-all">{n}</button>
                         ))}
                         <button onClick={() => setStep("user")} className="h-[55px] w-full flex items-center justify-center text-xs font-bold text-gray-500 active:text-white transition-colors">ESC</button>
-                        <button onClick={() => handleNumberClick("0")} className="w-full h-[55px] rounded-2xl bg-white/5 text-xl font-black text-white active:bg-white/15 active:scale-95 transition-all">0</button>
-                        <button onClick={handleBackspace} className="w-full h-[55px] rounded-2xl bg-red-500/10 text-xl font-black text-white active:bg-red-500/20 active:scale-95 transition-all">⌫</button>
+                        <button onClick={() => handleNumberClick("0")} className="w-full h-[55px] rounded-2xl bg-white/5 text-xl font-semibold text-white active:bg-white/15 active:scale-95 transition-all">0</button>
+                        <button onClick={handleBackspace} className="w-full h-[55px] rounded-2xl bg-red-500/10 text-xl font-semibold text-white active:bg-red-500/20 active:scale-95 transition-all">⌫</button>
                       </div>
 
                       {/* Opción Biométrica proactiva: botón visible siempre para activar o usar */}
@@ -2679,7 +2679,7 @@ export default function PinAccess() {
                 <div className="w-20 h-20 rounded-full bg-cyan-500 flex items-center justify-center mx-auto mb-4 shadow-[0_0_40px_rgba(6,182,212,0.6)]">
                   <Check className="w-10 h-10 text-white" />
                 </div>
-                <p className="text-white text-xl font-black">¡Listo!</p>
+                <p className="text-white text-xl font-semibold">¡Listo!</p>
              </div>
           </div>
         )}
@@ -2811,7 +2811,7 @@ export default function PinAccess() {
             <motion.h1
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              className="text-5xl sm:text-7xl font-bold tracking-tighter bg-gradient-to-br from-white via-gray-200 to-gray-500 bg-clip-text text-transparent">
+              className="text-5xl sm:text-7xl font-bold bg-gradient-to-br from-white via-gray-200 to-gray-500 bg-clip-text text-transparent">
 
               Potencia tu Taller.
             </motion.h1>
@@ -2857,7 +2857,7 @@ export default function PinAccess() {
                   <span className="text-cyan-300 text-sm font-bold">Historia del Creador</span>
                 </div>
 
-                <h2 className="text-3xl sm:text-4xl font-black text-white leading-tight">
+                <h2 className="text-3xl sm:text-4xl font-semibold text-white leading-tight">
                   Creado por un técnico,<br />
                   <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-emerald-400">
                     para técnicos
@@ -2998,12 +2998,12 @@ export default function PinAccess() {
           <div className="mt-20 mb-12">
             {/* Hook emocional */}
             <div className="text-center mb-3">
-              <span className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-cyan-500/10 border border-cyan-500/20 text-cyan-300 text-xs font-black uppercase tracking-widest">
+              <span className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-cyan-500/10 border border-cyan-500/20 text-cyan-300 text-xs font-semibold">
                 <Sparkles className="w-3.5 h-3.5" />
                 Sin contratos · 14 días gratis
               </span>
             </div>
-            <h2 className="text-4xl sm:text-5xl font-black text-white text-center mb-3 tracking-tight">
+            <h2 className="text-4xl sm:text-5xl font-semibold text-white text-center mb-3 tracking-tight">
               Deja la libreta.
               <br />
               <span className="bg-gradient-to-r from-cyan-400 via-blue-400 to-emerald-400 bg-clip-text text-transparent">
@@ -3023,14 +3023,14 @@ export default function PinAccess() {
                   <div className="w-9 h-9 rounded-xl bg-white/10 border border-white/15 flex items-center justify-center">
                     <Wrench className="w-4 h-4 text-white/70" />
                   </div>
-                  <p className="text-sm font-black text-white uppercase tracking-wider">Starter</p>
+                  <p className="text-sm font-semibold text-white">Starter</p>
                 </div>
 
                 {/* Price */}
                 <div className="mb-2">
                   <div className="flex items-baseline gap-1">
-                    <span className="text-6xl font-black text-white tracking-tight">$14</span>
-                    <span className="text-2xl font-black text-white/50">.99</span>
+                    <span className="text-6xl font-semibold text-white tracking-tight">$14</span>
+                    <span className="text-2xl font-semibold text-white/50">.99</span>
                     <span className="text-gray-500 text-base ml-1">/mes</span>
                   </div>
                   <p className="text-xs text-cyan-400/80 font-bold mt-1">≈ 50¢ por día · Menos que un café</p>
@@ -3061,7 +3061,7 @@ export default function PinAccess() {
 
                 <button
                   onClick={() => setShowSignup(true)}
-                  className="mt-7 w-full py-3.5 rounded-2xl border-2 border-white/20 text-white text-sm font-black hover:bg-white/10 hover:border-white/40 transition-all group-hover:border-cyan-500/40"
+                  className="mt-7 w-full py-3.5 rounded-2xl border-2 border-white/20 text-white text-sm font-semibold hover:bg-white/10 hover:border-white/40 transition-all group-hover:border-cyan-500/40"
                 >
                   Empezar gratis →
                 </button>
@@ -3075,7 +3075,7 @@ export default function PinAccess() {
 
                 {/* Badge */}
                 <div className="absolute -top-4 left-1/2 -translate-x-1/2 z-10">
-                  <div className="bg-gradient-to-r from-cyan-400 via-blue-400 to-emerald-400 text-black text-[11px] font-black px-4 py-1.5 rounded-full uppercase tracking-widest shadow-[0_4px_20px_rgba(6,182,212,0.6)] flex items-center gap-1.5">
+                  <div className="bg-gradient-to-r from-cyan-400 via-blue-400 to-emerald-400 text-black text-[11px] font-semibold px-4 py-1.5 rounded-full shadow-[0_4px_20px_rgba(6,182,212,0.6)] flex items-center gap-1.5">
                     <Sparkles className="w-3 h-3" />
                     El elegido por talleres
                   </div>
@@ -3086,14 +3086,14 @@ export default function PinAccess() {
                   <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-cyan-400 to-blue-500 flex items-center justify-center shadow-lg shadow-cyan-500/30">
                     <Zap className="w-4 h-4 text-white" />
                   </div>
-                  <p className="text-sm font-black text-cyan-300 uppercase tracking-wider">Pro</p>
+                  <p className="text-sm font-semibold text-cyan-300">Pro</p>
                 </div>
 
                 {/* Price */}
                 <div className="mb-2 relative">
                   <div className="flex items-baseline gap-1">
-                    <span className="text-6xl font-black text-white tracking-tight">$39</span>
-                    <span className="text-2xl font-black text-white/60">.99</span>
+                    <span className="text-6xl font-semibold text-white tracking-tight">$39</span>
+                    <span className="text-2xl font-semibold text-white/60">.99</span>
                     <span className="text-gray-300 text-base ml-1">/mes</span>
                   </div>
                   <p className="text-xs text-emerald-300/90 font-bold mt-1">≈ Una pantalla de iPhone al mes</p>
@@ -3126,7 +3126,7 @@ export default function PinAccess() {
 
                 <button
                   onClick={() => setShowSignup(true)}
-                  className="mt-7 w-full py-3.5 rounded-2xl bg-gradient-to-r from-cyan-400 via-blue-500 to-emerald-500 text-white text-sm font-black hover:scale-[1.02] active:scale-95 transition-all shadow-[0_8px_30px_rgba(6,182,212,0.4)] hover:shadow-[0_12px_40px_rgba(6,182,212,0.6)] relative"
+                  className="mt-7 w-full py-3.5 rounded-2xl bg-gradient-to-r from-cyan-400 via-blue-500 to-emerald-500 text-white text-sm font-semibold hover:scale-[1.02] active:scale-95 transition-all shadow-[0_8px_30px_rgba(6,182,212,0.4)] hover:shadow-[0_12px_40px_rgba(6,182,212,0.6)] relative"
                 >
                   Métele mano ahora →
                 </button>
@@ -3211,7 +3211,7 @@ export default function PinAccess() {
                     <div className="w-20 h-20 rounded-full bg-gradient-to-br from-emerald-500 to-cyan-500 flex items-center justify-center mx-auto mb-6 shadow-[0_0_50px_rgba(16,185,129,0.4)]">
                       <CheckCircle className="w-10 h-10 text-white" />
                     </div>
-                    <h2 className="text-2xl font-black text-white mb-2">¡Registro exitoso!</h2>
+                    <h2 className="text-2xl font-semibold text-white mb-2">¡Registro exitoso!</h2>
                     <p className="text-gray-400 text-sm mb-6">
                       Tu negocio <span className="text-white font-semibold">{signupResult?.tenantName}</span> fue creado
                     </p>
@@ -3260,7 +3260,7 @@ export default function PinAccess() {
                       <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-cyan-500 to-emerald-500 flex items-center justify-center mx-auto mb-4 shadow-[0_0_40px_rgba(6,182,212,0.5)]">
                         <UserPlus className="w-8 h-8 text-white" />
                       </div>
-                      <h2 className="text-2xl font-black text-white mb-1">Crea tu cuenta gratis</h2>
+                      <h2 className="text-2xl font-semibold text-white mb-1">Crea tu cuenta gratis</h2>
                       <p className="text-gray-400 text-sm">15 días de prueba · Sin tarjeta de crédito</p>
                     </div>
 
@@ -3290,7 +3290,7 @@ export default function PinAccess() {
                         <svg width="17" height="20" viewBox="0 0 814 1000" fill="currentColor" className="opacity-30">
                           <path d="M788.1 340.9c-5.8 4.5-108.2 62.2-108.2 190.5 0 148.4 130.3 200.9 134.2 202.2-.6 3.2-20.7 71.9-68.7 141.9-42.8 61.6-87.5 123.1-155.5 123.1s-85.5-39.5-164-39.5c-76 0-103.7 40.8-165.9 40.8s-105-57.8-155.5-127.4C46 790.7 0 663 0 541.8c0-207.8 113.4-317.7 224.5-317.7 100.4 0 163.4 60.2 220.8 60.2 54.7 0 127.9-62.5 240.3-62.5zm-284.4-154.8c22.6-26.8 39.3-65.4 39.3-104.5 0-5.5-.5-11.1-1.6-15.4C450 73.9 385.5 111 345.4 155.1c-20.3 22.6-40.9 61-40.9 101.1 0 6 1 12 1.5 14.2 2.6.5 6.8.9 10.8.9 36.4 0 97.2-35.5 127-85.2z"/>
                         </svg>
-                        <span className="text-[10px] font-bold text-white/30 uppercase tracking-wide">Pronto</span>
+                        <span className="text-[10px] font-bold text-white/30 tracking-wide">Pronto</span>
                       </button>
                     </div>
 
@@ -3389,7 +3389,7 @@ export default function PinAccess() {
                 <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-gradient-to-br from-cyan-500 via-emerald-500 to-lime-500 flex items-center justify-center shadow-[0_0_40px_rgba(6,182,212,0.6)] animate-pulse-fast">
                   <Lock className="w-6 h-6 sm:w-7 sm:h-7 text-white drop-shadow-lg" />
                 </div>
-                <h1 className="text-3xl sm:text-4xl font-black bg-gradient-to-r from-cyan-400 via-emerald-400 to-lime-400 bg-clip-text text-transparent animate-gradient-x">
+                <h1 className="text-3xl sm:text-4xl font-semibold bg-gradient-to-r from-cyan-400 via-emerald-400 to-lime-400 bg-clip-text text-transparent animate-gradient-x">
                   Acceso Seguro
                 </h1>
               </div>
@@ -3429,7 +3429,7 @@ export default function PinAccess() {
                       <div className="text-center">
                         {hasProfile ? (
                           <>
-                            <p className="text-white font-black text-lg">Toca para entrar</p>
+                            <p className="text-white font-semibold text-lg">Toca para entrar</p>
                             <p className="text-emerald-300/80 text-sm font-medium truncate max-w-[200px]">
                               {biometricProfile.session?.userName || biometricProfile.session?.full_name || "Usuario guardado"}
                             </p>
@@ -3455,7 +3455,7 @@ export default function PinAccess() {
             >
               <div className="flex items-center gap-2 mb-3">
                 <KeyRound className="w-5 h-5 text-cyan-400" />
-                <h2 className="text-xl font-black text-white">Iniciar Sesión</h2>
+                <h2 className="text-xl font-semibold text-white">Iniciar Sesión</h2>
               </div>
 
               {/* ── OAuth logos ── */}
@@ -3483,7 +3483,7 @@ export default function PinAccess() {
                   <svg width="17" height="20" viewBox="0 0 814 1000" fill="currentColor" className="opacity-30">
                     <path d="M788.1 340.9c-5.8 4.5-108.2 62.2-108.2 190.5 0 148.4 130.3 200.9 134.2 202.2-.6 3.2-20.7 71.9-68.7 141.9-42.8 61.6-87.5 123.1-155.5 123.1s-85.5-39.5-164-39.5c-76 0-103.7 40.8-165.9 40.8s-105-57.8-155.5-127.4C46 790.7 0 663 0 541.8c0-207.8 113.4-317.7 224.5-317.7 100.4 0 163.4 60.2 220.8 60.2 54.7 0 127.9-62.5 240.3-62.5zm-284.4-154.8c22.6-26.8 39.3-65.4 39.3-104.5 0-5.5-.5-11.1-1.6-15.4C450 73.9 385.5 111 345.4 155.1c-20.3 22.6-40.9 61-40.9 101.1 0 6 1 12 1.5 14.2 2.6.5 6.8.9 10.8.9 36.4 0 97.2-35.5 127-85.2z"/>
                   </svg>
-                  <span className="text-[10px] font-bold text-white/30 uppercase tracking-wide">Pronto</span>
+                  <span className="text-[10px] font-bold text-white/30 tracking-wide">Pronto</span>
                 </button>
               </div>
 
@@ -3499,7 +3499,7 @@ export default function PinAccess() {
                   transition={{ duration: 0.25 }}
                   className="bg-black/35 border border-white/15 rounded-3xl p-5 sm:p-6 backdrop-blur-xl"
                 >
-                  <h2 className="text-xl font-black text-white mb-2">2. Selecciona usuario</h2>
+                  <h2 className="text-xl font-semibold text-white mb-2">2. Selecciona usuario</h2>
                   <p className="text-gray-300 text-sm mb-4">Elige tu perfil para continuar al pinpad.</p>
                   <motion.div
                     className="grid grid-cols-2 sm:grid-cols-3 gap-4"
@@ -3551,7 +3551,7 @@ export default function PinAccess() {
                   className="bg-black/30 border border-white/15 rounded-3xl p-5 sm:p-6 backdrop-blur-xl"
                 >
                   <div className="text-center mb-6">
-                    <h2 className="text-xl sm:text-2xl font-black text-white">3. PIN del usuario</h2>
+                    <h2 className="text-xl sm:text-2xl font-semibold text-white">3. PIN del usuario</h2>
                     <p className="text-cyan-300 text-sm mt-1">{selectedUser.full_name || selectedUser.email}</p>
                   </div>
 

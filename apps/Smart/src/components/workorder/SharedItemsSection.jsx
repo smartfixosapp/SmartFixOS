@@ -148,10 +148,10 @@ export default function SharedItemsSection({
               <ShoppingCart className={`h-5 w-5 ${accent.iconColor}`} />
             </div>
             <div>
-              <p className="text-[11px] font-semibold uppercase tracking-[0.28em] text-white/35">
+              <p className="text-[11px] font-semibold tracking-[0.28em] text-white/35">
                 Compra y costo
               </p>
-              <h3 className="mt-1 text-2xl font-black tracking-tight text-white">
+              <h3 className="mt-1 text-2xl font-semibold tracking-tight text-white">
                 Piezas y Servicios
               </h3>
               <p className="mt-2 max-w-2xl text-sm leading-relaxed text-white/55">{subtitle}</p>
@@ -230,7 +230,7 @@ export default function SharedItemsSection({
                       <div className="inline-flex items-center rounded-full border border-white/10 bg-white/5 px-2.5 py-0.5 text-xs font-semibold text-white/60">
                         x{qty}
                       </div>
-                      <p className={`mt-1.5 text-xl font-black tracking-tight ${accent.itemColor}`}>
+                      <p className={`mt-1.5 text-xl font-semibold tracking-tight ${accent.itemColor}`}>
                         ${lineTotal.toFixed(2)}
                       </p>
                     </div>
@@ -246,13 +246,13 @@ export default function SharedItemsSection({
                 <div className="rounded-[18px] border border-white/8 bg-black/20 px-5 py-3">
                   <div className="flex items-center justify-between text-sm">
                     <span className="font-medium text-gray-400">Subtotal</span>
-                    <span className="text-lg font-black text-white">${totals.subtotal.toFixed(2)}</span>
+                    <span className="text-lg font-semibold text-white">${totals.subtotal.toFixed(2)}</span>
                   </div>
                 </div>
                 <div className="rounded-[18px] border border-white/8 bg-black/20 px-5 py-3">
                   <div className="flex items-center justify-between text-sm">
                     <span className="font-medium text-gray-400">IVU (11.5%)</span>
-                    <span className="text-lg font-black text-white">${totals.tax.toFixed(2)}</span>
+                    <span className="text-lg font-semibold text-white">${totals.tax.toFixed(2)}</span>
                   </div>
                 </div>
                 {totals.paid > 0 && (
@@ -262,14 +262,14 @@ export default function SharedItemsSection({
                         <Wallet className="h-3.5 w-3.5" />
                         Pagado&nbsp;/&nbsp;Depósito
                       </span>
-                      <span className="text-lg font-black text-blue-300">-${totals.paid.toFixed(2)}</span>
+                      <span className="text-lg font-semibold text-blue-300">-${totals.paid.toFixed(2)}</span>
                     </div>
                   </div>
                 )}
                 <div className="rounded-[18px] border border-emerald-500/15 bg-emerald-500/10 px-5 py-4">
                   <div className="flex items-center justify-between">
                     <span className="text-base font-bold text-white">Total Estimado</span>
-                    <span className={`text-2xl font-black tracking-tight ${accent.itemColor}`}>
+                    <span className={`text-2xl font-semibold tracking-tight ${accent.itemColor}`}>
                       ${totals.total.toFixed(2)}
                     </span>
                   </div>
@@ -279,10 +279,10 @@ export default function SharedItemsSection({
               {/* Payment buttons column */}
               <div className="rounded-[22px] border border-white/10 bg-black/20 p-4 flex flex-col justify-between gap-3">
                 <div>
-                  <p className="text-[11px] font-semibold uppercase tracking-[0.28em] text-white/35">
+                  <p className="text-[11px] font-semibold tracking-[0.28em] text-white/35">
                     Cobro
                   </p>
-                  <h4 className="mt-1.5 text-xl font-black tracking-tight text-white">
+                  <h4 className="mt-1.5 text-xl font-semibold tracking-tight text-white">
                     {totals.isPaid ? "Sin balance pendiente" : `Balance: $${totals.balance.toFixed(2)}`}
                   </h4>
                 </div>

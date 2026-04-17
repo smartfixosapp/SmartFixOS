@@ -222,7 +222,7 @@ export default function DeviceConditionMap({
     <div className="rounded-[24px] border border-white/10 bg-black/20 p-4 md:p-5">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
-          <h4 className="flex items-center gap-2 text-base font-black text-white">
+          <h4 className="flex items-center gap-2 text-base font-semibold text-white">
             <ShieldAlert className="h-4 w-4 text-cyan-300" />
             {title}
           </h4>
@@ -275,7 +275,7 @@ export default function DeviceConditionMap({
                 }}
               >
                 <div className="mb-2 flex items-center justify-between gap-2">
-                  <p className="truncate text-xs font-bold uppercase tracking-[0.12em] text-cyan-200/80">{activeHotspot.label}</p>
+                  <p className="truncate text-xs font-bold tracking-[0.12em] text-cyan-200/80">{activeHotspot.label}</p>
                   <button type="button" className="text-white/50 hover:text-white" onClick={() => setActiveHotspotId(null)}>
                     <X className="h-3.5 w-3.5" />
                   </button>

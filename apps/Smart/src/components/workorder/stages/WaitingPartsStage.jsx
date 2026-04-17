@@ -140,7 +140,7 @@ export default function WaitingPartsStage({ order, onUpdate, onOrderItemsUpdate,
         <div className="relative z-10 space-y-4">
 
           <div className="flex flex-wrap items-center gap-2">
-            <Badge className="rounded-full border border-orange-400/30 bg-orange-500/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.25em] text-orange-200">
+            <Badge className="rounded-full border border-orange-400/30 bg-orange-500/10 px-3 py-1 text-[11px] font-semibold tracking-[0.25em] text-orange-200">
               Esperando piezas
             </Badge>
             <Badge variant="outline" className="rounded-full border-white/10 bg-white/5 px-2 py-1 text-[11px] text-white/65">
@@ -149,9 +149,9 @@ export default function WaitingPartsStage({ order, onUpdate, onOrderItemsUpdate,
           </div>
 
           <div className="space-y-1">
-            <p className="text-[11px] font-semibold uppercase tracking-[0.32em] text-white/35">Etapa activa</p>
+            <p className="text-[11px] font-semibold tracking-[0.32em] text-white/35">Etapa activa</p>
             <div className="flex flex-wrap items-end gap-x-3 gap-y-2">
-              <h2 className="text-2xl font-black tracking-tight text-white sm:text-4xl">Esperando Repuestos</h2>
+              <h2 className="text-2xl font-semibold tracking-tight text-white sm:text-4xl">Esperando Repuestos</h2>
               {(o.device_brand || o.device_model) && (
                 <span className="inline-flex items-center rounded-full border border-orange-400/20 bg-orange-500/10 px-3 py-1 text-sm font-semibold text-orange-200">
                   {o.device_brand} {o.device_model}
@@ -163,12 +163,12 @@ export default function WaitingPartsStage({ order, onUpdate, onOrderItemsUpdate,
           <div className="grid gap-3 sm:grid-cols-3">
             {/* Cliente */}
             <div className="rounded-[18px] border border-white/10 bg-black/25 p-4">
-              <p className="mb-1 text-[11px] font-semibold uppercase tracking-[0.24em] text-white/35">Cliente</p>
+              <p className="mb-1 text-[11px] font-semibold tracking-[0.24em] text-white/35">Cliente</p>
               <p className="truncate text-base font-bold text-orange-200">{o.customer_name || "No registrado"}</p>
             </div>
             {/* Ubicación */}
             <div className="rounded-[18px] border border-white/10 bg-black/25 p-4">
-              <p className="mb-1 text-[11px] font-semibold uppercase tracking-[0.24em] text-white/35">Ubicación del equipo</p>
+              <p className="mb-1 text-[11px] font-semibold tracking-[0.24em] text-white/35">Ubicación del equipo</p>
               <p className="text-sm font-semibold text-white/75">{location === "taller" ? "🏢 En Taller" : "👤 Con Cliente"}</p>
               <p className="mt-1 text-xs text-white/45 leading-snug">{location === "taller" ? "Listo para montar la pieza." : "Pendiente a que el cliente entregue el equipo."}</p>
             </div>
@@ -176,7 +176,7 @@ export default function WaitingPartsStage({ order, onUpdate, onOrderItemsUpdate,
             <div className="rounded-[18px] border border-white/10 bg-black/25 p-4">
               <div className="flex items-start justify-between gap-2">
                 <div className="min-w-0 flex-1">
-                  <p className="mb-1 text-[11px] font-semibold uppercase tracking-[0.24em] text-white/35">Detalles del pedido</p>
+                  <p className="mb-1 text-[11px] font-semibold tracking-[0.24em] text-white/35">Detalles del pedido</p>
                   <p className="truncate text-sm font-semibold text-white/75">{displayPartName}</p>
                   <p className="mt-1 text-xs text-white/45 truncate">{displaySupplier} · {displayCarrier}</p>
                   {links.length > 0 && (
@@ -211,18 +211,18 @@ export default function WaitingPartsStage({ order, onUpdate, onOrderItemsUpdate,
           return (
             <div className="relative z-10 mt-4 grid grid-cols-1 gap-3 sm:grid-cols-3">
               {digits && (
-                <a href={`tel:+${intl}`} className="flex items-center justify-center gap-3 h-14 rounded-2xl border border-white/15 bg-white/5 text-white hover:bg-white/10 font-bold text-sm uppercase tracking-wide transition-all active:scale-95">
+                <a href={`tel:+${intl}`} className="flex items-center justify-center gap-3 h-14 rounded-2xl border border-white/15 bg-white/5 text-white hover:bg-white/10 font-bold text-sm tracking-wide transition-all active:scale-95">
                   <PhoneCall className="w-5 h-5 text-white/60" />{phone}
                 </a>
               )}
               {digits && (
                 <a href={`https://wa.me/${intl}`} target="_blank" rel="noreferrer"
-                  className="flex items-center justify-center gap-3 h-14 rounded-2xl border border-emerald-500/30 bg-emerald-500/12 text-emerald-300 hover:bg-emerald-500/20 font-bold text-sm uppercase tracking-wide transition-all active:scale-95">
+                  className="flex items-center justify-center gap-3 h-14 rounded-2xl border border-emerald-500/30 bg-emerald-500/12 text-emerald-300 hover:bg-emerald-500/20 font-bold text-sm tracking-wide transition-all active:scale-95">
                   <MessageCircle className="w-5 h-5" />WhatsApp
                 </a>
               )}
               {email && (
-                <a href={`mailto:${email}`} className="flex items-center justify-center gap-3 h-14 rounded-2xl border border-blue-500/30 bg-blue-500/12 text-blue-300 hover:bg-blue-500/20 font-bold text-sm uppercase tracking-wide transition-all active:scale-95">
+                <a href={`mailto:${email}`} className="flex items-center justify-center gap-3 h-14 rounded-2xl border border-blue-500/30 bg-blue-500/12 text-blue-300 hover:bg-blue-500/20 font-bold text-sm tracking-wide transition-all active:scale-95">
                   <Mail className="w-5 h-5" /><span className="truncate">{email}</span>
                 </a>
               )}
@@ -236,7 +236,7 @@ export default function WaitingPartsStage({ order, onUpdate, onOrderItemsUpdate,
       {compact && (
         <div className="rounded-[22px] border border-orange-500/15 bg-black/25 p-4 space-y-3">
           <div className="flex items-center justify-between gap-2">
-            <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-white/35">Detalles del pedido</p>
+            <p className="text-[11px] font-semibold tracking-[0.24em] text-white/35">Detalles del pedido</p>
             <Button variant="ghost" size="icon"
               className="h-7 w-7 rounded-lg text-white/55 hover:bg-white/10 hover:text-white"
               onClick={() => setEditingDetails(!editingDetails)}
@@ -272,20 +272,20 @@ export default function WaitingPartsStage({ order, onUpdate, onOrderItemsUpdate,
       {editingDetails && (
         <div className="overflow-hidden rounded-[28px] border border-cyan-500/15 bg-[linear-gradient(180deg,rgba(255,255,255,0.05),rgba(255,255,255,0.02))] shadow-[0_18px_50px_rgba(0,0,0,0.28)]">
           <div className="border-b border-white/10 bg-gradient-to-r from-cyan-500/10 to-transparent p-5">
-            <h3 className="text-white font-bold text-sm uppercase tracking-wider flex items-center gap-2">
+            <h3 className="text-white font-bold text-sm flex items-center gap-2">
               <Truck className="w-4 h-4 text-cyan-300" />Detalles del Pedido
             </h3>
           </div>
           <div className="p-6 space-y-5">
             <div>
-              <p className="text-xs text-gray-400 uppercase font-bold tracking-wider mb-2">Pieza Solicitada</p>
+              <p className="text-xs text-gray-400 font-bold mb-2">Pieza Solicitada</p>
               <Input value={editForm.partName} onChange={e => setEditForm(p => ({ ...p, partName: e.target.value }))}
                 placeholder="Nombre de la pieza..." className="bg-black/40 border-white/15 text-white h-10" autoComplete="off" />
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               <div>
                 <div className="flex items-center justify-between mb-2">
-                  <p className="text-xs text-gray-400 uppercase font-bold tracking-wider">Suplidor</p>
+                  <p className="text-xs text-gray-400 font-bold">Suplidor</p>
                   <button
                     type="button"
                     onClick={() => setEditForm(p => ({ ...p, supplier: "", _manualSupplier: !p._manualSupplier }))}
@@ -319,7 +319,7 @@ export default function WaitingPartsStage({ order, onUpdate, onOrderItemsUpdate,
               </div>
               <div>
                 <div className="flex items-center justify-between mb-2">
-                  <p className="text-xs text-gray-400 uppercase font-bold tracking-wider">Carrier</p>
+                  <p className="text-xs text-gray-400 font-bold">Carrier</p>
                   <button
                     type="button"
                     onClick={() => setEditForm(p => ({ ...p, carrier: "", _manualCarrier: !p._manualCarrier }))}
@@ -345,7 +345,7 @@ export default function WaitingPartsStage({ order, onUpdate, onOrderItemsUpdate,
                 )}
               </div>
               <div>
-                <p className="text-xs text-gray-400 uppercase font-bold tracking-wider mb-2">Tracking #</p>
+                <p className="text-xs text-gray-400 font-bold mb-2">Tracking #</p>
                 <div className="relative">
                   <Input
                     value={editForm.tracking}
@@ -392,7 +392,7 @@ export default function WaitingPartsStage({ order, onUpdate, onOrderItemsUpdate,
           <div className="flex items-center gap-3 min-w-0">
             <MapPin className="w-5 h-5 text-orange-400 flex-shrink-0" />
             <div className="min-w-0">
-              <p className="text-[10px] font-semibold uppercase tracking-widest text-orange-300/60 mb-0.5">Número de Tracking</p>
+              <p className="text-[10px] font-semibold text-orange-300/60 mb-0.5">Número de Tracking</p>
               <p className="font-mono text-sm font-bold text-white truncate">{displayTracking}</p>
             </div>
           </div>

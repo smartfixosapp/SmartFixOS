@@ -106,7 +106,7 @@ export default function FinalizedStage({ order, onUpdate, onPaymentClick, compac
         <div className="relative z-10 grid gap-5 xl:grid-cols-[1.12fr_0.88fr] xl:items-start">
           <div className="space-y-4">
             <div className="flex flex-wrap items-center gap-2">
-              <Badge className="rounded-full border border-emerald-400/30 bg-emerald-500/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.25em] text-emerald-200">
+              <Badge className="rounded-full border border-emerald-400/30 bg-emerald-500/10 px-3 py-1 text-[11px] font-semibold tracking-[0.25em] text-emerald-200">
                 {headerCopy.badge}
               </Badge>
               <Badge variant="outline" className="rounded-full border-white/10 bg-white/5 px-3 py-1 text-xs text-white/65">
@@ -115,9 +115,9 @@ export default function FinalizedStage({ order, onUpdate, onPaymentClick, compac
             </div>
 
             <div className="space-y-2">
-              <p className="text-[11px] font-semibold uppercase tracking-[0.32em] text-white/35">Estado final</p>
+              <p className="text-[11px] font-semibold tracking-[0.32em] text-white/35">Estado final</p>
               <div className="flex flex-wrap items-end gap-x-4 gap-y-2">
-                <h2 className="text-3xl font-black tracking-tight text-white sm:text-4xl">{headerCopy.title}</h2>
+                <h2 className="text-3xl font-semibold tracking-tight text-white sm:text-4xl">{headerCopy.title}</h2>
                 <div className="inline-flex items-center rounded-full border border-emerald-400/20 bg-emerald-500/10 px-3 py-1 text-sm font-semibold text-emerald-200">
                   {o.device_brand} {o.device_model}
                 </div>
@@ -127,21 +127,21 @@ export default function FinalizedStage({ order, onUpdate, onPaymentClick, compac
 
             <div className="grid gap-3 md:grid-cols-4">
               <div className="rounded-[22px] border border-white/10 bg-black/25 p-4 backdrop-blur-md">
-                <p className="mb-1 text-[11px] font-semibold uppercase tracking-[0.24em] text-white/35">Cliente</p>
+                <p className="mb-1 text-[11px] font-semibold tracking-[0.24em] text-white/35">Cliente</p>
                 <p className="truncate text-lg font-bold text-emerald-200">{o.customer_name || "No registrado"}</p>
               </div>
               <div className="rounded-[22px] border border-white/10 bg-black/25 p-4 backdrop-blur-md">
-                <p className="mb-1 text-[11px] font-semibold uppercase tracking-[0.24em] text-white/35">Total cobrado</p>
+                <p className="mb-1 text-[11px] font-semibold tracking-[0.24em] text-white/35">Total cobrado</p>
                 <p className="truncate text-lg font-bold text-white">${totals.paid.toFixed(2)}</p>
               </div>
               <div className="rounded-[22px] border border-white/10 bg-black/25 p-4 backdrop-blur-md">
-                <p className="mb-1 text-[11px] font-semibold uppercase tracking-[0.24em] text-white/35">Balance</p>
+                <p className="mb-1 text-[11px] font-semibold tracking-[0.24em] text-white/35">Balance</p>
                 <p className={`truncate text-lg font-bold ${totals.balance <= 0.01 ? "text-emerald-300" : "text-amber-300"}`}>
                   ${totals.balance.toFixed(2)}
                 </p>
               </div>
               <div className="rounded-[22px] border border-white/10 bg-black/25 p-4 backdrop-blur-md">
-                <p className="mb-1 text-[11px] font-semibold uppercase tracking-[0.24em] text-white/35">Última actualización</p>
+                <p className="mb-1 text-[11px] font-semibold tracking-[0.24em] text-white/35">Última actualización</p>
                 <p className="truncate text-sm font-semibold text-white/80">
                   {o.updated_date ? new Date(o.updated_date).toLocaleDateString() : "No registrada"}
                 </p>
@@ -160,8 +160,8 @@ export default function FinalizedStage({ order, onUpdate, onPaymentClick, compac
                   )}
                 </div>
                 <div className="min-w-0">
-                  <p className="text-[11px] font-semibold uppercase tracking-[0.28em] text-white/35">Resultado</p>
-                  <h3 className="mt-1 text-xl font-black tracking-tight text-white">
+                  <p className="text-[11px] font-semibold tracking-[0.28em] text-white/35">Resultado</p>
+                  <h3 className="mt-1 text-xl font-semibold tracking-tight text-white">
                     {totals.balance <= 0.01 ? "Orden saldada y entregada" : "Entrega registrada con balance visible"}
                   </h3>
                   <p className="mt-2 text-sm leading-relaxed text-white/55">
@@ -176,7 +176,7 @@ export default function FinalizedStage({ order, onUpdate, onPaymentClick, compac
                 <div className="rounded-[20px] border border-white/10 bg-black/25 p-4">
                   <div className="flex items-center gap-2">
                     <Smartphone className="h-4 w-4 text-cyan-300" />
-                    <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-white/35">Equipo</p>
+                    <p className="text-[11px] font-semibold tracking-[0.24em] text-white/35">Equipo</p>
                   </div>
                   <p className="mt-2 text-sm font-semibold text-white/80">
                     {o.device_brand || ""} {o.device_model || "Equipo no definido"}
@@ -187,7 +187,7 @@ export default function FinalizedStage({ order, onUpdate, onPaymentClick, compac
                 <div className="rounded-[20px] border border-white/10 bg-black/25 p-4">
                   <div className="flex items-center gap-2">
                     <Shield className="h-4 w-4 text-emerald-300" />
-                    <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-white/35">Garantía posterior</p>
+                    <p className="text-[11px] font-semibold tracking-[0.24em] text-white/35">Garantía posterior</p>
                   </div>
                   <p className="mt-2 text-sm font-semibold text-white/80">
                     {warrantyActive ? `${warrantyDays} días restantes` : "Sin garantía activa visible"}
@@ -208,18 +208,18 @@ export default function FinalizedStage({ order, onUpdate, onPaymentClick, compac
           return (
             <div className="relative z-10 mt-4 grid grid-cols-1 gap-3 sm:grid-cols-3">
               {digits && (
-                <a href={`tel:+${intl}`} className="flex items-center justify-center gap-3 h-14 rounded-2xl border border-white/15 bg-white/5 text-white hover:bg-white/10 font-bold text-sm uppercase tracking-wide transition-all active:scale-95">
+                <a href={`tel:+${intl}`} className="flex items-center justify-center gap-3 h-14 rounded-2xl border border-white/15 bg-white/5 text-white hover:bg-white/10 font-bold text-sm tracking-wide transition-all active:scale-95">
                   <PhoneCall className="w-5 h-5 text-white/60" />{phone}
                 </a>
               )}
               {digits && (
                 <a href={`https://wa.me/${intl}`} target="_blank" rel="noreferrer"
-                  className="flex items-center justify-center gap-3 h-14 rounded-2xl border border-emerald-500/30 bg-emerald-500/12 text-emerald-300 hover:bg-emerald-500/20 font-bold text-sm uppercase tracking-wide transition-all active:scale-95">
+                  className="flex items-center justify-center gap-3 h-14 rounded-2xl border border-emerald-500/30 bg-emerald-500/12 text-emerald-300 hover:bg-emerald-500/20 font-bold text-sm tracking-wide transition-all active:scale-95">
                   <MessageCircle className="w-5 h-5" />WhatsApp
                 </a>
               )}
               {email && (
-                <a href={`mailto:${email}`} className="flex items-center justify-center gap-3 h-14 rounded-2xl border border-blue-500/30 bg-blue-500/12 text-blue-300 hover:bg-blue-500/20 font-bold text-sm uppercase tracking-wide transition-all active:scale-95">
+                <a href={`mailto:${email}`} className="flex items-center justify-center gap-3 h-14 rounded-2xl border border-blue-500/30 bg-blue-500/12 text-blue-300 hover:bg-blue-500/20 font-bold text-sm tracking-wide transition-all active:scale-95">
                   <Mail className="w-5 h-5" /><span className="truncate">{email}</span>
                 </a>
               )}
@@ -240,7 +240,7 @@ export default function FinalizedStage({ order, onUpdate, onPaymentClick, compac
               }
             </div>
             <div>
-              <Badge className="rounded-full border border-emerald-400/30 bg-emerald-500/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.25em] text-emerald-200">
+              <Badge className="rounded-full border border-emerald-400/30 bg-emerald-500/10 px-3 py-1 text-[11px] font-semibold tracking-[0.25em] text-emerald-200">
                 {isCompleted ? "Completado" : "Entregado"}
               </Badge>
               {o.updated_date && (
@@ -272,8 +272,8 @@ export default function FinalizedStage({ order, onUpdate, onPaymentClick, compac
                 <BadgeCheck className="h-5 w-5" />
               </div>
               <div>
-                <p className="text-[11px] font-semibold uppercase tracking-[0.28em] text-white/35">Resumen de salida</p>
-                <h3 className="text-xl font-black tracking-tight text-white">Información final del cliente</h3>
+                <p className="text-[11px] font-semibold tracking-[0.28em] text-white/35">Resumen de salida</p>
+                <h3 className="text-xl font-semibold tracking-tight text-white">Información final del cliente</h3>
               </div>
             </div>
           </div>
@@ -349,8 +349,8 @@ export default function FinalizedStage({ order, onUpdate, onPaymentClick, compac
                 <ShoppingCart className="h-5 w-5 text-emerald-300" />
               </div>
               <div>
-                <p className="text-[11px] font-semibold uppercase tracking-[0.28em] text-white/35">Cierre económico</p>
-                <h3 className="mt-1 text-2xl font-black tracking-tight text-white">Piezas y Servicios</h3>
+                <p className="text-[11px] font-semibold tracking-[0.28em] text-white/35">Cierre económico</p>
+                <h3 className="mt-1 text-2xl font-semibold tracking-tight text-white">Piezas y Servicios</h3>
                 <p className="mt-2 max-w-2xl text-sm leading-relaxed text-white/55">
                   Mantén visible el detalle final de piezas, servicios y balance sin importar si la orden ya fue entregada o completada.
                 </p>
@@ -420,7 +420,7 @@ export default function FinalizedStage({ order, onUpdate, onPaymentClick, compac
                           <div className="inline-flex items-center rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs font-semibold text-white/70">
                             x{qty}
                           </div>
-                          <p className="mt-3 text-3xl font-black tracking-tight text-emerald-300">${lineTotal.toFixed(2)}</p>
+                          <p className="mt-3 text-3xl font-semibold tracking-tight text-emerald-300">${lineTotal.toFixed(2)}</p>
                         </div>
                       </div>
                     </div>
@@ -433,7 +433,7 @@ export default function FinalizedStage({ order, onUpdate, onPaymentClick, compac
                   <div className="rounded-[20px] border border-white/8 bg-black/20 px-5 py-4">
                     <div className="flex items-center justify-between text-sm">
                       <span className="font-medium text-gray-400">Subtotal</span>
-                      <span className="text-xl font-black tracking-tight text-white">${(totals.total - (items.filter((item) => item?.taxable !== false).reduce((sum, item) => {
+                      <span className="text-xl font-semibold tracking-tight text-white">${(totals.total - (items.filter((item) => item?.taxable !== false).reduce((sum, item) => {
                         const qty = Number(item?.qty || item?.quantity || 1);
                         const price = Number(item?.price || 0);
                         const discount = Number(item?.discount_percentage || 0);
@@ -445,20 +445,20 @@ export default function FinalizedStage({ order, onUpdate, onPaymentClick, compac
                   <div className="rounded-[20px] border border-white/8 bg-black/20 px-5 py-4">
                     <div className="flex items-center justify-between text-sm">
                       <span className="font-medium text-gray-400">Total</span>
-                      <span className="text-xl font-black tracking-tight text-white">${totals.total.toFixed(2)}</span>
+                      <span className="text-xl font-semibold tracking-tight text-white">${totals.total.toFixed(2)}</span>
                     </div>
                   </div>
                   <div className="rounded-[20px] border border-emerald-500/15 bg-emerald-500/10 px-5 py-4">
                     <div className="flex items-center justify-between">
                       <span className="text-base font-bold text-white">Balance</span>
-                      <span className="text-3xl font-black tracking-tight text-white">${totals.balance.toFixed(2)}</span>
+                      <span className="text-3xl font-semibold tracking-tight text-white">${totals.balance.toFixed(2)}</span>
                     </div>
                   </div>
                 </div>
 
                 <div className="rounded-[24px] border border-emerald-500/15 bg-[linear-gradient(180deg,rgba(16,185,129,0.08),rgba(0,0,0,0.18))] p-5">
-                  <p className="text-[11px] font-semibold uppercase tracking-[0.28em] text-white/35">Acciones de cobro</p>
-                  <h4 className="mt-2 text-2xl font-black tracking-tight text-white">
+                  <p className="text-[11px] font-semibold tracking-[0.28em] text-white/35">Acciones de cobro</p>
+                  <h4 className="mt-2 text-2xl font-semibold tracking-tight text-white">
                     {totals.balance > 0.01 ? "Cierra el balance de la orden" : "Orden saldada"}
                   </h4>
                   <p className="mt-2 text-sm leading-relaxed text-white/55">

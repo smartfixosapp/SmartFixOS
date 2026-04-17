@@ -102,7 +102,7 @@ export default function WOActionSidebar({
       {/* ── Progress Stepper ── */}
       <div className="rounded-xl border border-white/[0.06] bg-white/[0.02] p-3 space-y-2">
         <div className="flex items-center justify-between">
-          <span className="text-[10px] font-bold uppercase tracking-widest text-white/30">Progreso</span>
+          <span className="text-[10px] font-bold text-white/30">Progreso</span>
           <span className="text-[10px] font-bold text-white/50">{currentIdx + 1}/{activeStatuses.length}</span>
         </div>
         {/* Progress bar */}

@@ -266,7 +266,7 @@ export default function WorkOrderPanel({ order, onUpdate, onClose, onDelete, onP
           </div>
           <div className="flex items-center gap-2">
             {/* Status Pill Style Apple */}
-            <div className={`px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wide border ${getStatusConfig(order?.status).colorClasses} bg-opacity-10 border-opacity-20`}>
+            <div className={`px-3 py-1 rounded-full text-[10px] font-bold tracking-wide border ${getStatusConfig(order?.status).colorClasses} bg-opacity-10 border-opacity-20`}>
               {getStatusConfig(order?.status).label}
             </div>
 

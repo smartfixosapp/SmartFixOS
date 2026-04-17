@@ -216,7 +216,7 @@ Genera el reporte técnico profesional siguiendo el formato de 3 secciones indic
               <Sparkles className="w-5 h-5 text-white" />
             </div>
             <div>
-              <h3 className="text-white font-black text-lg">Diagnóstico IA</h3>
+              <h3 className="text-white font-semibold text-lg">Diagnóstico IA</h3>
               <p className="text-xs text-purple-300/70">{stageLabel} · {o.device_brand} {o.device_model}</p>
             </div>
           </div>
@@ -230,7 +230,7 @@ Genera el reporte técnico profesional siguiendo el formato de 3 secciones indic
           {!report && (
             <>
               <div className="rounded-2xl border border-white/10 bg-white/[0.02] p-4 space-y-3">
-                <p className="text-[10px] font-black uppercase tracking-widest text-white/40">Datos a analizar</p>
+                <p className="text-[10px] font-semibold text-white/40">Datos a analizar</p>
 
                 <div className="flex items-center gap-3 text-sm">
                   <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
@@ -253,7 +253,7 @@ Genera el reporte técnico profesional siguiendo el formato de 3 secciones indic
                 </div>
 
                 <div className="flex items-start gap-3 text-sm pt-2 border-t border-white/[0.06]">
-                  <span className="text-[10px] font-black uppercase tracking-widest text-white/40 mt-0.5">Cliente:</span>
+                  <span className="text-[10px] font-semibold text-white/40 mt-0.5">Cliente:</span>
                   <span className="text-white/80 italic flex-1">"{o.initial_problem || "Sin problema reportado"}"</span>
                 </div>
               </div>
@@ -265,7 +265,7 @@ Genera el reporte técnico profesional siguiendo el formato de 3 secciones indic
               <button
                 onClick={analyze}
                 disabled={generating}
-                className="w-full h-14 rounded-2xl bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-black uppercase tracking-wider text-sm flex items-center justify-center gap-3 transition-all active:scale-[0.98] disabled:opacity-50 shadow-lg shadow-purple-900/40"
+                className="w-full h-14 rounded-2xl bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-semibold text-sm flex items-center justify-center gap-3 transition-all active:scale-[0.98] disabled:opacity-50 shadow-lg shadow-purple-900/40"
               >
                 {generating ? (
                   <><Loader2 className="w-5 h-5 animate-spin" /> Analizando y generando...</>
@@ -285,7 +285,7 @@ Genera el reporte técnico profesional siguiendo el formato de 3 secciones indic
               <div className="rounded-2xl border border-purple-500/25 bg-purple-500/5 p-5">
                 <div className="flex items-center gap-2 mb-3">
                   <Sparkles className="w-4 h-4 text-purple-400" />
-                  <p className="text-[10px] font-black uppercase tracking-widest text-purple-300">Reporte generado</p>
+                  <p className="text-[10px] font-semibold text-purple-300">Reporte generado</p>
                 </div>
                 <div className="text-sm text-white/85 leading-relaxed whitespace-pre-wrap">{report}</div>
               </div>

@@ -199,7 +199,7 @@ export default function RepairStage({ order, onUpdate, onOrderItemsUpdate, onRem
         <div className="relative z-10 space-y-4">
 
           <div className="flex flex-wrap items-center gap-2">
-            <Badge className="rounded-full border border-emerald-400/30 bg-emerald-500/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.25em] text-emerald-200">
+            <Badge className="rounded-full border border-emerald-400/30 bg-emerald-500/10 px-3 py-1 text-[11px] font-semibold tracking-[0.25em] text-emerald-200">
               Reparación
             </Badge>
             <Badge variant="outline" className="rounded-full border-white/10 bg-white/5 px-2 py-1 text-[11px] text-white/65">
@@ -213,7 +213,7 @@ export default function RepairStage({ order, onUpdate, onOrderItemsUpdate, onRem
           </div>
 
           <div className="flex flex-wrap items-end gap-x-3 gap-y-2">
-            <h2 className="text-2xl font-black tracking-tight text-white sm:text-4xl">En Reparación</h2>
+            <h2 className="text-2xl font-semibold tracking-tight text-white sm:text-4xl">En Reparación</h2>
             {(o.device_brand || o.device_model) && (
               <span className="inline-flex items-center rounded-full border border-emerald-400/20 bg-emerald-500/10 px-3 py-1 text-sm font-semibold text-emerald-200">
                 {o.device_brand} {o.device_model}
@@ -223,12 +223,12 @@ export default function RepairStage({ order, onUpdate, onOrderItemsUpdate, onRem
 
           <div className="grid gap-3 sm:grid-cols-2">
             <div className="rounded-[18px] border border-white/10 bg-black/25 p-4">
-              <p className="mb-1 text-[11px] font-semibold uppercase tracking-[0.24em] text-white/35">Cliente</p>
+              <p className="mb-1 text-[11px] font-semibold tracking-[0.24em] text-white/35">Cliente</p>
               <p className="truncate text-base font-bold text-emerald-200">{o.customer_name || "No registrado"}</p>
               {o.customer_phone && <p className="mt-0.5 text-xs text-white/45 truncate">{o.customer_phone}</p>}
             </div>
             <div className="rounded-[18px] border border-white/10 bg-black/25 p-4">
-              <p className="mb-1 text-[11px] font-semibold uppercase tracking-[0.24em] text-white/35">Problema reportado</p>
+              <p className="mb-1 text-[11px] font-semibold tracking-[0.24em] text-white/35">Problema reportado</p>
               <p className="line-clamp-2 text-sm font-semibold text-white/80">{o.initial_problem || "Sin descripción"}</p>
             </div>
           </div>
@@ -241,18 +241,18 @@ export default function RepairStage({ order, onUpdate, onOrderItemsUpdate, onRem
             return (
               <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
                 {digits && (
-                  <a href={`tel:+${intl}`} className="flex items-center justify-center gap-3 h-12 rounded-2xl border border-white/15 bg-white/5 text-white hover:bg-white/10 font-bold text-sm uppercase tracking-wide transition-all active:scale-95">
+                  <a href={`tel:+${intl}`} className="flex items-center justify-center gap-3 h-12 rounded-2xl border border-white/15 bg-white/5 text-white hover:bg-white/10 font-bold text-sm tracking-wide transition-all active:scale-95">
                     <PhoneCall className="w-4 h-4 text-white/60" />{phone}
                   </a>
                 )}
                 {digits && (
                   <a href={`https://wa.me/${intl}`} target="_blank" rel="noreferrer"
-                    className="flex items-center justify-center gap-3 h-12 rounded-2xl border border-emerald-500/30 bg-emerald-500/12 text-emerald-300 hover:bg-emerald-500/20 font-bold text-sm uppercase tracking-wide transition-all active:scale-95">
+                    className="flex items-center justify-center gap-3 h-12 rounded-2xl border border-emerald-500/30 bg-emerald-500/12 text-emerald-300 hover:bg-emerald-500/20 font-bold text-sm tracking-wide transition-all active:scale-95">
                     <MessageCircle className="w-4 h-4" />WhatsApp
                   </a>
                 )}
                 {email && (
-                  <a href={`mailto:${email}`} className="flex items-center justify-center gap-3 h-12 rounded-2xl border border-blue-500/30 bg-blue-500/12 text-blue-300 hover:bg-blue-500/20 font-bold text-sm uppercase tracking-wide transition-all active:scale-95">
+                  <a href={`mailto:${email}`} className="flex items-center justify-center gap-3 h-12 rounded-2xl border border-blue-500/30 bg-blue-500/12 text-blue-300 hover:bg-blue-500/20 font-bold text-sm tracking-wide transition-all active:scale-95">
                     <Mail className="w-4 h-4" /><span className="truncate">{email}</span>
                   </a>
                 )}
@@ -295,7 +295,7 @@ export default function RepairStage({ order, onUpdate, onOrderItemsUpdate, onRem
             <div className="flex items-center gap-3">
               <ClipboardList className="w-4 h-4 text-emerald-400" />
               <div>
-                <h3 className="text-white font-bold text-sm uppercase tracking-wider">Checklist de Cierre</h3>
+                <h3 className="text-white font-bold text-sm">Checklist de Cierre</h3>
                 <p className="text-[11px] text-white/35 mt-0.5">{checked.length}/{CLOSE_CHECKLIST.length} completados</p>
               </div>
             </div>

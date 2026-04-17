@@ -109,7 +109,7 @@ export default function DeliveryStage({
 
         {/* badges */}
         <div className="flex flex-wrap items-center gap-2 mb-4">
-          <Badge className="rounded-full border border-emerald-400/30 bg-emerald-500/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.25em] text-emerald-200">
+          <Badge className="rounded-full border border-emerald-400/30 bg-emerald-500/10 px-3 py-1 text-[11px] font-semibold tracking-[0.25em] text-emerald-200">
             Entrega
           </Badge>
           <Badge
@@ -130,7 +130,7 @@ export default function DeliveryStage({
 
         {/* dispositivo + cliente */}
         <div className="flex flex-wrap items-end gap-x-4 gap-y-1 mb-5">
-          <h2 className="text-2xl sm:text-3xl font-black tracking-tight text-white">
+          <h2 className="text-2xl sm:text-3xl font-semibold tracking-tight text-white">
             {o.device_brand} {o.device_model}
           </h2>
           <p className="text-sm font-bold text-white/50">{o.customer_name}</p>
@@ -178,7 +178,7 @@ export default function DeliveryStage({
           <div className="mt-4 flex items-center gap-3 rounded-2xl border border-emerald-500/25 bg-emerald-500/10 px-4 py-3">
             <CheckCircle2 className="w-5 h-5 text-emerald-400 flex-shrink-0" />
             <div>
-              <p className="text-sm font-black text-emerald-200">Orden saldada</p>
+              <p className="text-sm font-semibold text-emerald-200">Orden saldada</p>
               <p className="text-xs text-emerald-300/60">Lista para entregar al cliente</p>
             </div>
           </div>

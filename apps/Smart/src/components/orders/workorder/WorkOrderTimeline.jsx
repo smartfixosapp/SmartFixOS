@@ -282,12 +282,12 @@ export default function WorkOrderTimeline({ order, onUpdate, hideComposer = fals
   return (
     <Card className="overflow-hidden rounded-[28px] border border-cyan-500/15 bg-[radial-gradient(circle_at_top_left,rgba(34,211,238,0.10),transparent_24%),radial-gradient(circle_at_bottom_right,rgba(8,145,178,0.08),transparent_28%),linear-gradient(180deg,rgba(28,28,30,0.98),rgba(10,10,12,0.98))] shadow-[0_18px_50px_rgba(0,0,0,0.28)]">
       <CardHeader className="border-b border-white/10 bg-gradient-to-r from-cyan-500/10 to-transparent px-6 py-5">
-        <CardTitle className="flex items-center gap-3 text-2xl font-black tracking-tight text-white">
+        <CardTitle className="flex items-center gap-3 text-2xl font-semibold tracking-tight text-white">
           <div className="flex h-12 w-12 items-center justify-center rounded-2xl border border-cyan-400/20 bg-cyan-500/15 shadow-[0_10px_30px_rgba(34,211,238,0.12)]">
             <Sparkles className="h-5 w-5 text-cyan-300" />
           </div>
           <div>
-            <p className="text-[11px] font-semibold uppercase tracking-[0.28em] text-white/35">Linea de tiempo</p>
+            <p className="text-[11px] font-semibold tracking-[0.28em] text-white/35">Linea de tiempo</p>
             <span>Historial & Comentarios</span>
           </div>
         </CardTitle>
@@ -306,7 +306,7 @@ export default function WorkOrderTimeline({ order, onUpdate, hideComposer = fals
         {!hideProblem && (order?.initial_problem || order?.comments) && (
           <div className="rounded-[22px] border border-orange-500/20 bg-[linear-gradient(135deg,rgba(249,115,22,0.10),rgba(255,255,255,0.02))] p-5 shadow-[inset_0_1px_0_rgba(255,255,255,0.02)]">
             <div className="mb-2 flex items-center justify-between gap-3">
-              <p className="text-xs font-bold uppercase tracking-[0.24em] text-orange-200/70">Problema reportado</p>
+              <p className="text-xs font-bold tracking-[0.24em] text-orange-200/70">Problema reportado</p>
               <Badge className="rounded-full border-white/10 bg-white/5 px-3 py-1 text-white/70">Recepción</Badge>
             </div>
             <p className="whitespace-pre-wrap text-sm leading-relaxed text-white/80">
@@ -319,10 +319,10 @@ export default function WorkOrderTimeline({ order, onUpdate, hideComposer = fals
         {!hideComposer && <div className="rounded-[24px] border border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.03),rgba(255,255,255,0.01))] p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.03)]">
           <div className="mb-3 flex items-center justify-between gap-3">
             <div>
-              <p className="text-[11px] font-semibold uppercase tracking-[0.28em] text-white/35">Nuevo comentario</p>
+              <p className="text-[11px] font-semibold tracking-[0.28em] text-white/35">Nuevo comentario</p>
               <p className="mt-1 text-sm text-white/50">Registra acuerdos, hallazgos y contexto importante sin salir de la orden.</p>
             </div>
-            <div className="hidden rounded-full border border-white/10 bg-white/5 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.24em] text-white/45 sm:block">
+            <div className="hidden rounded-full border border-white/10 bg-white/5 px-3 py-1 text-[11px] font-semibold tracking-[0.24em] text-white/45 sm:block">
               Enter para enviar
             </div>
           </div>
@@ -388,7 +388,7 @@ export default function WorkOrderTimeline({ order, onUpdate, hideComposer = fals
               <div className="rounded-[22px] border border-cyan-500/20 bg-cyan-500/5 p-4">
                 <div className="mb-3 flex items-center justify-between gap-3">
                   <div>
-                    <p className="text-xs font-bold uppercase tracking-[0.24em] text-cyan-200/65">Recepción inicial</p>
+                    <p className="text-xs font-bold tracking-[0.24em] text-cyan-200/65">Recepción inicial</p>
                     <p className="mt-1 text-sm text-white/70">Condiciones visibles y checklist documentados al recibir el equipo.</p>
                   </div>
                   <Badge className="rounded-full border-white/10 bg-white/5 text-white">

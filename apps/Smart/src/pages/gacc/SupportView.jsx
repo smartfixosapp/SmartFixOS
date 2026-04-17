@@ -309,7 +309,7 @@ function EmailComposer({ tenants }) {
       {/* Recipient */}
       {mode === "individual" && (
         <div>
-          <p className="text-[10px] text-gray-600 uppercase tracking-wide font-bold mb-1.5">Destinatario</p>
+          <p className="text-[10px] text-gray-600 tracking-wide font-bold mb-1.5">Destinatario</p>
           {selectedTenant ? (
             <div className="flex items-center justify-between px-3 py-2 rounded-xl bg-white/[0.03] border border-white/[0.07]">
               <div>
@@ -349,7 +349,7 @@ function EmailComposer({ tenants }) {
 
       {/* Templates */}
       <div>
-        <p className="text-[10px] text-gray-600 uppercase tracking-wide font-bold mb-1.5">Templates</p>
+        <p className="text-[10px] text-gray-600 tracking-wide font-bold mb-1.5">Templates</p>
         <div className="flex flex-wrap gap-1.5">
           {TEMPLATES.map(tpl => (
             <button
@@ -401,7 +401,7 @@ export default function SupportView() {
     <div className="max-w-7xl mx-auto px-4 sm:px-6 py-6 space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-lg font-black text-white">Support</h2>
+          <h2 className="text-lg font-semibold text-white">Support</h2>
           <p className="text-[11px] text-gray-600">Notas internas, comunicaciones y soporte</p>
         </div>
         <div className="flex items-center gap-2">

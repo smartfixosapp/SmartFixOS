@@ -738,7 +738,7 @@ function WaitingPartsModal({ open, onClose, onSave, initialData, order }) {
                   {/* Chips del carrito */}
                   {Array.isArray(order?.order_items) && order.order_items.length > 0 && (
                     <div>
-                      <p className="text-[10px] text-white/40 mb-1.5 font-bold uppercase tracking-wide">Piezas del carrito:</p>
+                      <p className="text-[10px] text-white/40 mb-1.5 font-bold tracking-wide">Piezas del carrito:</p>
                       <div className="flex flex-wrap gap-1.5">
                         {[...new Map(order.order_items.map(i => [i.name, i])).values()].map((item) => {
                           const sel = selectedParts.has(item.name);
@@ -765,7 +765,7 @@ function WaitingPartsModal({ open, onClose, onSave, initialData, order }) {
                   {/* Chips de links */}
                   {linkNames.length > 0 && (
                     <div>
-                      <p className="text-[10px] text-white/40 mb-1.5 font-bold uppercase tracking-wide">Detectado desde links:</p>
+                      <p className="text-[10px] text-white/40 mb-1.5 font-bold tracking-wide">Detectado desde links:</p>
                       <div className="flex flex-wrap gap-1.5">
                         {linkNames.map((name) => {
                           const sel = selectedParts.has(name);
@@ -792,7 +792,7 @@ function WaitingPartsModal({ open, onClose, onSave, initialData, order }) {
                   {/* Preview de lo que se guardará */}
                   {selectedParts.size > 0 && (
                     <div className="rounded-lg bg-emerald-500/10 border border-emerald-500/20 px-3 py-2">
-                      <p className="text-[10px] text-emerald-400/70 font-bold uppercase tracking-wide mb-0.5">Se guardará como:</p>
+                      <p className="text-[10px] text-emerald-400/70 font-bold tracking-wide mb-0.5">Se guardará como:</p>
                       <p className="text-xs text-emerald-200 font-medium">
                         {[...selectedParts, ...(formData.partName.trim() ? [formData.partName.trim()] : [])].join(", ")}
                       </p>
@@ -2651,7 +2651,7 @@ export default function WorkOrderPanel({ orderId, onClose, onUpdate, onDelete, p
   <div className="min-w-0">
       <div className="text-[11px] text-gray-400 theme-light:text-gray-600">{label}</div>
       <div className="flex items-center gap-2">
-        <span className="text-[13px] text-white font-mono tracking-widest theme-light:text-gray-900">
+        <span className="text-[13px] text-white font-mono theme-light:text-gray-900">
           {masked ? "••••••" : visibleValue || "—"}
         </span>
         <button className="text-gray-300 hover:text-white theme-light:text-gray-600 theme-light:hover:text-gray-900" onClick={onToggle} title="Mostrar/Ocultar">
@@ -2937,7 +2937,7 @@ export default function WorkOrderPanel({ orderId, onClose, onUpdate, onDelete, p
                         className="absolute right-0 top-12 z-50 min-w-[220px] rounded-apple-md apple-surface-elevated overflow-hidden animate-apple-scale-in shadow-apple-xl"
                         style={{ border: "0.5px solid rgb(var(--separator) / 0.29)" }}
                       >
-                        <p className="apple-text-caption1 apple-label-secondary uppercase tracking-wide px-4 pt-3 pb-1">Compartir recibo</p>
+                        <p className="apple-text-caption1 apple-label-secondary tracking-wide px-4 pt-3 pb-1">Compartir recibo</p>
                         {/* WhatsApp */}
                         {order?.customer_phone && (() => {
                           const url  = `${window.location.origin}/Receipt?order_id=${order.id}`;

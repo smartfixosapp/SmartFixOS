@@ -1657,7 +1657,7 @@ export default function UsersManagement() {
                     className="bg-white/[0.04] border border-white/[0.07] rounded-2xl p-4 flex items-center gap-4"
                   >
                     <div className={`w-11 h-11 rounded-[14px] bg-gradient-to-br ${roleInfo?.color || "from-slate-500 to-slate-700"} flex items-center justify-center flex-shrink-0`}>
-                      <span className="text-white font-black text-sm">{initials}</span>
+                      <span className="text-white font-semibold text-sm">{initials}</span>
                     </div>
                     <div className="flex-1 min-w-0">
                       <p className="text-white font-bold text-sm truncate">{user.full_name}</p>
@@ -1667,7 +1667,7 @@ export default function UsersManagement() {
                       </p>
                     </div>
                     <div className="text-right flex-shrink-0">
-                      <p className={`font-black text-base ${amount > 0 ? "text-emerald-400" : "text-white/30"}`}>
+                      <p className={`font-semibold text-base ${amount > 0 ? "text-emerald-400" : "text-white/30"}`}>
                         ${amount.toFixed(2)}
                       </p>
                       <p className="text-white/50 text-[10px]">esta semana</p>
@@ -1734,7 +1734,7 @@ export default function UsersManagement() {
                     {/* Avatar with live dot */}
                     <div className="relative flex-shrink-0">
                       <div className={`w-12 h-12 rounded-[16px] bg-gradient-to-br ${roleInfo?.color || "from-slate-500 to-slate-700"} flex items-center justify-center`}>
-                        <span className="text-white font-black text-base">{initials}</span>
+                        <span className="text-white font-semibold text-base">{initials}</span>
                       </div>
                       <div className={`absolute -bottom-1 -right-1 w-3.5 h-3.5 rounded-full border-2 border-[#090a0d] ${
                         isClockedIn ? "bg-emerald-400 animate-pulse" : "bg-slate-600"

@@ -53,7 +53,7 @@ function MRRBreakdown({ tenants, subscriptions }) {
             <div className={`w-9 h-9 rounded-xl bg-gradient-to-br ${m.grad} flex items-center justify-center mb-2`}>
               <m.icon className="w-4 h-4 text-white" />
             </div>
-            <p className="text-2xl font-black tabular-nums">{m.value}</p>
+            <p className="text-2xl font-semibold tabular-nums">{m.value}</p>
             <p className="text-[11px] text-gray-500 font-medium">{m.label}</p>
           </motion.div>
         ))}
@@ -232,7 +232,7 @@ function SubscriptionsTable({ subscriptions, tenants }) {
       </div>
 
       {/* Header */}
-      <div className="hidden sm:grid grid-cols-12 gap-2 px-3 py-2 text-[10px] text-gray-600 uppercase tracking-wide font-bold border-b border-white/[0.05]">
+      <div className="hidden sm:grid grid-cols-12 gap-2 px-3 py-2 text-[10px] text-gray-600 tracking-wide font-bold border-b border-white/[0.05]">
         <div className="col-span-3">Tienda</div>
         <div className="col-span-2">Plan</div>
         <div className="col-span-2">Estado</div>
@@ -415,7 +415,7 @@ export default function RevenueView() {
     <div className="max-w-7xl mx-auto px-4 sm:px-6 py-6 space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-lg font-black text-white">Revenue & Billing</h2>
+          <h2 className="text-lg font-semibold text-white">Revenue & Billing</h2>
           <p className="text-[11px] text-gray-600">Ingresos, suscripciones y cobros</p>
         </div>
         <button onClick={refresh} disabled={loading} className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[11px] text-gray-500 hover:text-white border border-white/[0.07] hover:border-white/[0.15] bg-white/[0.02] transition-all">

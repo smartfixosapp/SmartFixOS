@@ -1485,7 +1485,7 @@ Maximo 150 palabras. Texto plano, sin markdown.`
             {/* Métodos de pago — solo si hay datos */}
             {paymentMethodBreakdown.length > 0 && (
               <div className="bg-white/[0.03] border border-white/10 rounded-2xl p-4 mt-2">
-                <p className="text-xs font-black text-white/50 uppercase tracking-widest mb-3">¿Cómo te pagaron?</p>
+                <p className="text-xs font-semibold text-white/50 mb-3">¿Cómo te pagaron?</p>
                 <div className="w-full h-2.5 rounded-full overflow-hidden flex mb-4">
                   {paymentMethodBreakdown.map((m) => (
                     <div key={m.key} className={`h-full ${m.colorBar}`} style={{ width: `${m.pct}%` }} />
@@ -1498,7 +1498,7 @@ Maximo 150 palabras. Texto plano, sin markdown.`
                       <div className="flex-1">
                         <div className="flex items-center justify-between mb-0.5">
                           <span className="text-xs font-bold text-white">{m.label}</span>
-                          <span className={`text-xs font-black ${m.colorText}`}>${m.total.toFixed(2)}</span>
+                          <span className={`text-xs font-semibold ${m.colorText}`}>${m.total.toFixed(2)}</span>
                         </div>
                         <div className="w-full bg-white/5 rounded-full h-1">
                           <div className={`h-full rounded-full ${m.colorBar}`} style={{ width: `${m.pct}%` }} />
@@ -1758,7 +1758,7 @@ Maximo 150 palabras. Texto plano, sin markdown.`
               {/* Bulk actions bar */}
               {selectedPOIds.size > 0 && (
                 <div className="flex items-center gap-2 p-2 rounded-xl bg-cyan-500/[0.08] border border-cyan-500/25 flex-wrap">
-                  <span className="text-xs font-black text-cyan-300">
+                  <span className="text-xs font-semibold text-cyan-300">
                     {selectedPOIds.size} seleccionada{selectedPOIds.size === 1 ? "" : "s"}
                   </span>
                   <button
@@ -1780,7 +1780,7 @@ Maximo 150 palabras. Texto plano, sin markdown.`
                       loadData();
                     }}
                     disabled={bulkActionLoading}
-                    className="flex items-center gap-1 px-3 py-1.5 rounded-lg bg-emerald-500/15 border border-emerald-500/25 text-emerald-300 text-[11px] font-black hover:bg-emerald-500/25 disabled:opacity-40"
+                    className="flex items-center gap-1 px-3 py-1.5 rounded-lg bg-emerald-500/15 border border-emerald-500/25 text-emerald-300 text-[11px] font-semibold hover:bg-emerald-500/25 disabled:opacity-40"
                   >
                     {bulkActionLoading ? <RefreshCw className="w-3 h-3 animate-spin" /> : "✅"}
                     Marcar recibidas
@@ -1811,7 +1811,7 @@ Maximo 150 palabras. Texto plano, sin markdown.`
                       }}
                       disabled={bulkActionLoading}
                       title="Borrar (solo admin)"
-                      className="flex items-center gap-1 px-3 py-1.5 rounded-lg bg-red-500/10 border border-red-500/25 text-red-300 text-[11px] font-black hover:bg-red-500/20 disabled:opacity-40"
+                      className="flex items-center gap-1 px-3 py-1.5 rounded-lg bg-red-500/10 border border-red-500/25 text-red-300 text-[11px] font-semibold hover:bg-red-500/20 disabled:opacity-40"
                     >
                       <Trash2 className="w-3 h-3" />
                       Borrar
@@ -1986,13 +1986,13 @@ Maximo 150 palabras. Texto plano, sin markdown.`
                           {/* Supplier header */}
                           <div className="flex items-center justify-between gap-2 px-4 py-3 bg-white/[0.03] border-b border-white/[0.06]">
                             <div className="flex-1 min-w-0">
-                              <p className="text-sm font-black text-white truncate">📦 {supplierName}</p>
+                              <p className="text-sm font-semibold text-white truncate">📦 {supplierName}</p>
                               <p className="text-[10px] text-white/40">
                                 {supplierPOs.length} orden{supplierPOs.length === 1 ? "" : "es"}
                                 {pending.length > 0 && ` · ${pending.length} pendiente${pending.length === 1 ? "" : "s"}`}
                               </p>
                             </div>
-                            <p className="text-base font-black text-white tabular-nums shrink-0">${supplierTotal.toFixed(2)}</p>
+                            <p className="text-base font-semibold text-white tabular-nums shrink-0">${supplierTotal.toFixed(2)}</p>
                           </div>
 
                           {/* Month sub-groups */}
@@ -2011,12 +2011,12 @@ Maximo 150 palabras. Texto plano, sin markdown.`
                                   {/* Month header */}
                                   <div className="flex items-center justify-between gap-2 py-1.5 mb-1">
                                     <div className="flex items-center gap-2">
-                                      <span className="text-[10px] text-cyan-400/70 font-black uppercase tracking-widest">📅 {monthLabel}</span>
+                                      <span className="text-[10px] text-cyan-400/70 font-semibold">📅 {monthLabel}</span>
                                       <span className="text-[10px] text-white/25 font-bold">
                                         {monthPOs.length} orden{monthPOs.length === 1 ? "" : "es"}
                                       </span>
                                     </div>
-                                    <span className="text-xs font-black text-cyan-400/80 tabular-nums">${monthTotal.toFixed(2)}</span>
+                                    <span className="text-xs font-semibold text-cyan-400/80 tabular-nums">${monthTotal.toFixed(2)}</span>
                                   </div>
 
                                   {/* Orders list */}
@@ -2031,7 +2031,7 @@ Maximo 150 palabras. Texto plano, sin markdown.`
                                           onClick={() => setViewingPO(po)}
                                           className="w-full flex items-center gap-2 py-2 px-2.5 rounded-xl hover:bg-white/[0.04] transition-colors text-left group"
                                         >
-                                          <span className={`px-1.5 py-0.5 rounded text-[9px] font-black border shrink-0 ${statusColor(st)}`}>
+                                          <span className={`px-1.5 py-0.5 rounded text-[9px] font-semibold border shrink-0 ${statusColor(st)}`}>
                                             {statusLabel(st)}
                                           </span>
                                           <span className="flex-1 min-w-0 text-xs text-white/70 truncate">
@@ -2041,9 +2041,9 @@ Maximo 150 palabras. Texto plano, sin markdown.`
                                             <span className="text-[10px] text-white/25 font-bold shrink-0">{dayLabel}</span>
                                           )}
                                           {isOverdue(po) && (
-                                            <span className="text-[9px] text-red-400 font-black shrink-0">⚠ Vencida</span>
+                                            <span className="text-[9px] text-red-400 font-semibold shrink-0">⚠ Vencida</span>
                                           )}
-                                          <span className="text-xs font-black text-white tabular-nums shrink-0">${Number(po.total_amount || 0).toFixed(2)}</span>
+                                          <span className="text-xs font-semibold text-white tabular-nums shrink-0">${Number(po.total_amount || 0).toFixed(2)}</span>
                                           <Eye className="w-3.5 h-3.5 text-white/20 group-hover:text-white/50 shrink-0 transition-colors" />
                                         </button>
                                       );
@@ -2099,14 +2099,14 @@ Maximo 150 palabras. Texto plano, sin markdown.`
                           </div>
                           <div className="flex-1 min-w-0">
                             <div className="flex items-center gap-2 flex-wrap">
-                              <p className="text-white font-black text-sm truncate">
+                              <p className="text-white font-semibold text-sm truncate">
                                 {po.po_number || `OC-${String(po.id || "").slice(-6)}`}
                               </p>
-                              <span className={`px-2 py-0.5 rounded-md text-[10px] font-black border ${statusColor(status)}`}>
+                              <span className={`px-2 py-0.5 rounded-md text-[10px] font-semibold border ${statusColor(status)}`}>
                                 {statusLabel(status)}
                               </span>
                               {isOverdue(po) && (
-                                <span className="px-2 py-0.5 rounded-md text-[10px] font-black bg-red-500/20 text-red-300 border border-red-500/30">
+                                <span className="px-2 py-0.5 rounded-md text-[10px] font-semibold bg-red-500/20 text-red-300 border border-red-500/30">
                                   ⚠ Vencida {Math.abs(daysUntilExpected(po))}d
                                 </span>
                               )}
@@ -2114,7 +2114,7 @@ Maximo 150 palabras. Texto plano, sin markdown.`
                                 const d = daysUntilExpected(po);
                                 if (d == null) return null;
                                 return (
-                                  <span className="px-2 py-0.5 rounded-md text-[10px] font-black bg-cyan-500/10 text-cyan-300 border border-cyan-500/20">
+                                  <span className="px-2 py-0.5 rounded-md text-[10px] font-semibold bg-cyan-500/10 text-cyan-300 border border-cyan-500/20">
                                     Llega en {d === 0 ? "hoy" : `${d}d`}
                                   </span>
                                 );
@@ -2126,14 +2126,14 @@ Maximo 150 palabras. Texto plano, sin markdown.`
                             </p>
                           </div>
                           <div className="flex flex-col items-end gap-0.5 shrink-0">
-                            <p className="text-sm font-black text-white tabular-nums">
+                            <p className="text-sm font-semibold text-white tabular-nums">
                               ${Number(po.total_amount || 0).toFixed(2)}
                             </p>
                             {(() => {
                               const m = estimatedMargin(po);
                               if (m.margin <= 0) return null;
                               return (
-                                <p className="text-[10px] font-black text-emerald-400 tabular-nums" title={`Ingreso estimado: $${m.revenue.toFixed(2)}`}>
+                                <p className="text-[10px] font-semibold text-emerald-400 tabular-nums" title={`Ingreso estimado: $${m.revenue.toFixed(2)}`}>
                                   +${m.margin.toFixed(0)} ({m.pct.toFixed(0)}%)
                                 </p>
                               );
@@ -2205,7 +2205,7 @@ Maximo 150 palabras. Texto plano, sin markdown.`
                 return (
                   <div className="mt-4 p-4 rounded-2xl bg-white/[0.02] border border-white/[0.06]">
                     <div className="flex items-center justify-between mb-3">
-                      <p className="text-xs font-black text-white/60 uppercase tracking-wider">
+                      <p className="text-xs font-semibold text-white/60">
                         💰 Gasto por proveedor (histórico)
                       </p>
                       <p className="text-[10px] text-white/30">Top {chartData.length}</p>
@@ -2234,7 +2234,7 @@ Maximo 150 palabras. Texto plano, sin markdown.`
                       return (
                         <p className="text-[11px] text-white/50 mt-2">
                           💡 <span className="text-white/80 font-bold">{top.name}</span> representa el{" "}
-                          <span className="text-cyan-300 font-black">{pctTop.toFixed(0)}%</span>{" "}
+                          <span className="text-cyan-300 font-semibold">{pctTop.toFixed(0)}%</span>{" "}
                           de tus compras (${top.total.toFixed(0)} de ${totalAll.toFixed(0)} total)
                         </p>
                       );
@@ -2253,22 +2253,22 @@ Maximo 150 palabras. Texto plano, sin markdown.`
             <div className="flex gap-2">
               <PlanGate feature="reports_export_csv" fallback={<UpgradePrompt feature="reports_export_csv" inline />}>
               <button onClick={exportToCSV}
-                className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-indigo-500/15 border border-indigo-500/20 text-indigo-300 text-xs font-black hover:bg-indigo-500/25 transition-all active:scale-95">
+                className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-indigo-500/15 border border-indigo-500/20 text-indigo-300 text-xs font-semibold hover:bg-indigo-500/25 transition-all active:scale-95">
                 <Download className="w-3.5 h-3.5" /> Exportar CSV
               </button>
               </PlanGate>
               <PlanGate feature="reports_export_csv" fallback={<UpgradePrompt feature="reports_export_csv" inline />}>
               <button onClick={exportAccountingCSV}
-                className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-emerald-500/10 border border-emerald-500/15 text-emerald-300 text-xs font-black hover:bg-emerald-500/20 transition-all active:scale-95">
+                className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-emerald-500/10 border border-emerald-500/15 text-emerald-300 text-xs font-semibold hover:bg-emerald-500/20 transition-all active:scale-95">
                 <Download className="w-3.5 h-3.5" /> Contabilidad CSV
               </button>
               </PlanGate>
               <button onClick={() => setShowMonthlyReport(true)}
-                className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white/[0.04] border border-white/[0.08] text-white/50 text-xs font-black hover:text-white transition-all active:scale-95">
+                className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white/[0.04] border border-white/[0.08] text-white/50 text-xs font-semibold hover:text-white transition-all active:scale-95">
                 <PieChart className="w-3.5 h-3.5" /> Reporte Mensual
               </button>
               <button onClick={fetchAiSummary} disabled={aiLoading}
-                className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-violet-500/15 border border-violet-500/20 text-violet-300 text-xs font-black hover:bg-violet-500/25 transition-all active:scale-95 disabled:opacity-50 ml-auto">
+                className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-violet-500/15 border border-violet-500/20 text-violet-300 text-xs font-semibold hover:bg-violet-500/25 transition-all active:scale-95 disabled:opacity-50 ml-auto">
                 {aiLoading ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : <Sparkles className="w-3.5 h-3.5" />}
                 {aiLoading ? "Analizando…" : "Analizar IA"}
               </button>
@@ -2385,8 +2385,8 @@ Maximo 150 palabras. Texto plano, sin markdown.`
                         </div>
                         {/* Ganancia neta — número prominente */}
                         <div className="text-right shrink-0">
-                          <p className="text-[9px] font-black text-white/50 uppercase tracking-widest mb-0.5">Neta</p>
-                          <p className={`text-xl font-black tabular-nums leading-none ${netaPositive ? "text-cyan-400" : "text-red-400"}`}>
+                          <p className="text-[9px] font-semibold text-white/50 mb-0.5">Neta</p>
+                          <p className={`text-xl font-semibold tabular-nums leading-none ${netaPositive ? "text-cyan-400" : "text-red-400"}`}>
                             {netaPositive ? "+" : "−"}${Math.abs(r.neta).toFixed(2)}
                           </p>
                         </div>
@@ -2395,18 +2395,18 @@ Maximo 150 palabras. Texto plano, sin markdown.`
                       {/* Fila inferior: 3 chips de desglose */}
                       <div className="grid grid-cols-3 gap-2">
                         <div className="bg-emerald-500/[0.08] border border-emerald-500/15 rounded-xl px-3 py-2 text-center">
-                          <p className="text-[9px] font-black text-white/25 uppercase tracking-widest">Cobrado</p>
-                          <p className="text-sm font-black text-emerald-400 tabular-nums mt-0.5">${r.cobrado.toFixed(2)}</p>
+                          <p className="text-[9px] font-semibold text-white/25">Cobrado</p>
+                          <p className="text-sm font-semibold text-emerald-400 tabular-nums mt-0.5">${r.cobrado.toFixed(2)}</p>
                         </div>
                         <div className="bg-orange-500/[0.08] border border-orange-500/15 rounded-xl px-3 py-2 text-center">
-                          <p className="text-[9px] font-black text-white/25 uppercase tracking-widest">Piezas</p>
-                          <p className="text-sm font-black text-orange-400 tabular-nums mt-0.5">
+                          <p className="text-[9px] font-semibold text-white/25">Piezas</p>
+                          <p className="text-sm font-semibold text-orange-400 tabular-nums mt-0.5">
                             {r.piezas > 0 ? `$${r.piezas.toFixed(2)}` : "$0.00"}
                           </p>
                         </div>
                         <div className="bg-amber-500/[0.08] border border-amber-500/15 rounded-xl px-3 py-2 text-center">
-                          <p className="text-[9px] font-black text-white/25 uppercase tracking-widest">IVU</p>
-                          <p className="text-sm font-black text-amber-400 tabular-nums mt-0.5">
+                          <p className="text-[9px] font-semibold text-white/25">IVU</p>
+                          <p className="text-sm font-semibold text-amber-400 tabular-nums mt-0.5">
                             {r.ivu > 0 ? `$${r.ivu.toFixed(2)}` : "$0.00"}
                           </p>
                         </div>
@@ -2421,28 +2421,28 @@ Maximo 150 palabras. Texto plano, sin markdown.`
                 <div className={`p-4 rounded-2xl border-2 space-y-3 mt-1 ${totNeta >= 0 ? "bg-cyan-500/[0.06] border-cyan-500/25" : "bg-red-500/[0.06] border-red-500/25"}`}>
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-white font-black text-sm">Total del período</p>
+                      <p className="text-white font-semibold text-sm">Total del período</p>
                       <p className="text-[10px] text-white/30">{desgloseRows.length} venta{desgloseRows.length !== 1 ? "s" : ""}</p>
                     </div>
                     <div className="text-right">
-                      <p className="text-[9px] font-black text-white/50 uppercase tracking-widest mb-0.5">Neta total</p>
-                      <p className={`text-2xl font-black tabular-nums leading-none ${totNeta >= 0 ? "text-cyan-400" : "text-red-400"}`}>
+                      <p className="text-[9px] font-semibold text-white/50 mb-0.5">Neta total</p>
+                      <p className={`text-2xl font-semibold tabular-nums leading-none ${totNeta >= 0 ? "text-cyan-400" : "text-red-400"}`}>
                         {totNeta >= 0 ? "+" : "−"}${Math.abs(totNeta).toFixed(2)}
                       </p>
                     </div>
                   </div>
                   <div className="grid grid-cols-3 gap-2">
                     <div className="bg-emerald-500/[0.08] border border-emerald-500/15 rounded-xl px-3 py-2 text-center">
-                      <p className="text-[9px] font-black text-white/25 uppercase tracking-widest">Cobrado</p>
-                      <p className="text-sm font-black text-emerald-400 tabular-nums mt-0.5">${totCobrado.toFixed(2)}</p>
+                      <p className="text-[9px] font-semibold text-white/25">Cobrado</p>
+                      <p className="text-sm font-semibold text-emerald-400 tabular-nums mt-0.5">${totCobrado.toFixed(2)}</p>
                     </div>
                     <div className="bg-orange-500/[0.08] border border-orange-500/15 rounded-xl px-3 py-2 text-center">
-                      <p className="text-[9px] font-black text-white/25 uppercase tracking-widest">Piezas</p>
-                      <p className="text-sm font-black text-orange-400 tabular-nums mt-0.5">${totPiezas.toFixed(2)}</p>
+                      <p className="text-[9px] font-semibold text-white/25">Piezas</p>
+                      <p className="text-sm font-semibold text-orange-400 tabular-nums mt-0.5">${totPiezas.toFixed(2)}</p>
                     </div>
                     <div className="bg-amber-500/[0.08] border border-amber-500/15 rounded-xl px-3 py-2 text-center">
-                      <p className="text-[9px] font-black text-white/25 uppercase tracking-widest">IVU</p>
-                      <p className="text-sm font-black text-amber-400 tabular-nums mt-0.5">${totIVU.toFixed(2)}</p>
+                      <p className="text-[9px] font-semibold text-white/25">IVU</p>
+                      <p className="text-sm font-semibold text-amber-400 tabular-nums mt-0.5">${totIVU.toFixed(2)}</p>
                     </div>
                   </div>
                 </div>
@@ -2627,7 +2627,7 @@ Maximo 150 palabras. Texto plano, sin markdown.`
                     }
                   }}
                   disabled={aiSuggestLoading}
-                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-violet-500/15 border border-violet-500/25 text-violet-300 text-[11px] font-black hover:bg-violet-500/25 disabled:opacity-40"
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-violet-500/15 border border-violet-500/25 text-violet-300 text-[11px] font-semibold hover:bg-violet-500/25 disabled:opacity-40"
                 >
                   {aiSuggestLoading ? <RefreshCw className="w-3 h-3 animate-spin" /> : <Sparkles className="w-3 h-3" />}
                   {aiSuggestLoading ? "Analizando…" : "Pedir consejo a Jeani"}
@@ -2635,7 +2635,7 @@ Maximo 150 palabras. Texto plano, sin markdown.`
               </div>
               {aiSuggestText && (
                 <div className="p-3 rounded-xl bg-violet-500/[0.08] border border-violet-500/20">
-                  <p className="text-[10px] text-violet-400/80 font-black uppercase mb-1">💡 Consejo de Jeani</p>
+                  <p className="text-[10px] text-violet-400/80 font-semibold mb-1">💡 Consejo de Jeani</p>
                   <p className="text-xs text-white/80 leading-relaxed">{aiSuggestText}</p>
                 </div>
               )}
@@ -2651,7 +2651,7 @@ Maximo 150 palabras. Texto plano, sin markdown.`
                     <div key={supId} className="p-3 rounded-xl bg-white/[0.03] border border-white/[0.08]">
                       <div className="flex items-center justify-between gap-3 mb-2">
                         <div className="flex-1 min-w-0">
-                          <p className="text-sm font-black text-white truncate">{name}</p>
+                          <p className="text-sm font-semibold text-white truncate">{name}</p>
                           <p className="text-[11px] text-white/40">
                             {items.length} producto{items.length === 1 ? "" : "s"} · Total estimado ${totalCost.toFixed(2)}
                           </p>
@@ -2659,7 +2659,7 @@ Maximo 150 palabras. Texto plano, sin markdown.`
                         <button
                           onClick={() => createReorderPO(supId, items)}
                           disabled={creatingReorderPO === supId}
-                          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-cyan-500/20 border border-cyan-500/30 text-cyan-200 text-xs font-black hover:bg-cyan-500/30 disabled:opacity-40"
+                          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-cyan-500/20 border border-cyan-500/30 text-cyan-200 text-xs font-semibold hover:bg-cyan-500/30 disabled:opacity-40"
                         >
                           {creatingReorderPO === supId ? <RefreshCw className="w-3 h-3 animate-spin" /> : <Plus className="w-3 h-3" />}
                           Crear OC
@@ -2678,7 +2678,7 @@ Maximo 150 palabras. Texto plano, sin markdown.`
                                 )}
                               </div>
                               <span className="text-red-400 font-bold tabular-nums">Stock: {p.stock || 0}/{p.min_stock}</span>
-                              <span className="text-emerald-400 font-black tabular-nums w-16 text-right" title="Sugerido por velocidad de venta">
+                              <span className="text-emerald-400 font-semibold tabular-nums w-16 text-right" title="Sugerido por velocidad de venta">
                                 Pedir: {needed}
                               </span>
                             </div>
@@ -2788,7 +2788,7 @@ function FixedExpenseDialog({ open, onClose, onSave, expense }) {
               <div className="w-8 h-8 rounded-xl bg-cyan-500/10 flex items-center justify-center border border-cyan-500/20">
                 <Target className="w-4 h-4 text-cyan-400" />
               </div>
-              <DialogTitle className="text-xl font-black text-white tracking-tight text-left">
+              <DialogTitle className="text-xl font-semibold text-white tracking-tight text-left">
                 {expense ? "Configurar Distribución" : "Nueva Distribución"}
               </DialogTitle>
             </div>
@@ -2796,7 +2796,7 @@ function FixedExpenseDialog({ open, onClose, onSave, expense }) {
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
-              <label className="text-[10px] font-black text-white/40 uppercase tracking-widest ml-1">Nombre del Gasto</label>
+              <label className="text-[10px] font-semibold text-white/40 ml-1">Nombre del Gasto</label>
               <Input
                 value={formData.name}
                 onChange={(e) => setFormData({ ...formData, name: e.target.value })}
@@ -2807,14 +2807,14 @@ function FixedExpenseDialog({ open, onClose, onSave, expense }) {
             </div>
 
             <div className="space-y-2">
-              <label className="text-[10px] font-black text-white/40 uppercase tracking-widest ml-1">Categoría</label>
+              <label className="text-[10px] font-semibold text-white/40 ml-1">Categoría</label>
               <div className="grid grid-cols-3 sm:grid-cols-5 gap-1.5">
                 {categories.map(cat => (
                   <button
                     key={cat.value}
                     type="button"
                     onClick={() => setFormData({ ...formData, category: cat.value, icon: cat.icon })}
-                    className={`flex flex-col items-center justify-center py-2.5 rounded-xl border transition-all text-[9px] sm:text-[8px] font-black uppercase tracking-tight ${
+                    className={`flex flex-col items-center justify-center py-2.5 rounded-xl border transition-all text-[9px] sm:text-[8px] font-semibold tracking-tight ${
                       formData.category === cat.value
                         ? "bg-cyan-500/20 border-cyan-500/40 text-cyan-400"
                         : "bg-white/5 border-white/5 text-white/40 hover:border-white/20"
@@ -2829,18 +2829,18 @@ function FixedExpenseDialog({ open, onClose, onSave, expense }) {
 
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-2">
-                <label className="text-[10px] font-black text-white/40 uppercase tracking-widest ml-1">Aporte Fijo ($)</label>
+                <label className="text-[10px] font-semibold text-white/40 ml-1">Aporte Fijo ($)</label>
                 <Input type="number" step="0.01" value={formData.fixed_amount} onChange={(e) => setFormData({ ...formData, fixed_amount: e.target.value })} placeholder="0.00" className="bg-white/5 border-white/10 text-white h-11 rounded-2xl px-4 focus:border-cyan-500/50 font-bold" />
               </div>
               <div className="space-y-2">
-                <label className="text-[10px] font-black text-white/40 uppercase tracking-widest ml-1">Utilidad (%)</label>
+                <label className="text-[10px] font-semibold text-white/40 ml-1">Utilidad (%)</label>
                 <Input type="number" step="0.1" value={formData.percentage} onChange={(e) => setFormData({ ...formData, percentage: e.target.value })} placeholder="0" className="bg-white/5 border-white/10 text-white h-11 rounded-2xl px-4 focus:border-cyan-500/50 font-bold" />
               </div>
             </div>
 
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-2">
-                <label className="text-[10px] font-black text-white/40 uppercase tracking-widest ml-1">Frecuencia</label>
+                <label className="text-[10px] font-semibold text-white/40 ml-1">Frecuencia</label>
                 <select value={formData.frequency} onChange={(e) => setFormData({ ...formData, frequency: e.target.value })} className="w-full bg-white/5 border border-white/10 text-white rounded-2xl h-11 px-4 font-bold focus:outline-none focus:border-cyan-500/50 appearance-none cursor-pointer">
                   <option value="daily">Diario</option>
                   <option value="weekly">Semanal</option>
@@ -2851,16 +2851,16 @@ function FixedExpenseDialog({ open, onClose, onSave, expense }) {
                 </select>
               </div>
               <div className="space-y-2">
-                <label className="text-[10px] font-black text-white/40 uppercase tracking-widest ml-1">Día de Cobro (1-31)</label>
+                <label className="text-[10px] font-semibold text-white/40 ml-1">Día de Cobro (1-31)</label>
                 <Input type="number" value={formData.due_day} onChange={(e) => setFormData({ ...formData, due_day: e.target.value })} placeholder="Ej. 5" className="bg-white/5 border-white/10 text-white h-11 rounded-2xl px-4 focus:border-cyan-500/50 font-bold" />
               </div>
             </div>
 
             <div className="flex gap-3 pt-2">
-              <Button type="button" onClick={onClose} className="flex-1 bg-white/5 border border-white/10 hover:bg-white/10 text-white h-12 rounded-2xl font-black uppercase tracking-widest active:scale-95 transition-all">
+              <Button type="button" onClick={onClose} className="flex-1 bg-white/5 border border-white/10 hover:bg-white/10 text-white h-12 rounded-2xl font-semibold active:scale-95 transition-all">
                 Cancelar
               </Button>
-              <Button type="submit" className="flex-1 bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-white h-12 rounded-2xl font-black uppercase tracking-widest active:scale-95 transition-all">
+              <Button type="submit" className="flex-1 bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-white h-12 rounded-2xl font-semibold active:scale-95 transition-all">
                 {expense ? "Actualizar" : "Confirmar"}
               </Button>
             </div>
@@ -2930,7 +2930,7 @@ function EditExpenseDialog({ open, onClose, onSave, expense }) {
               <div className="w-8 h-8 rounded-xl bg-red-500/10 flex items-center justify-center border border-red-500/20">
                 <Receipt className="w-4 h-4 text-red-400" />
               </div>
-              <DialogTitle className="text-xl font-black text-white tracking-tight text-left">
+              <DialogTitle className="text-xl font-semibold text-white tracking-tight text-left">
                 Editar Movimiento
               </DialogTitle>
             </div>
@@ -2938,22 +2938,22 @@ function EditExpenseDialog({ open, onClose, onSave, expense }) {
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
-              <label className="text-[10px] font-black text-white/40 uppercase tracking-widest ml-1">Monto ($)</label>
+              <label className="text-[10px] font-semibold text-white/40 ml-1">Monto ($)</label>
               <Input type="number" step="0.01" min="0" value={formData.amount} onChange={(e) => setFormData({ ...formData, amount: e.target.value })} className="bg-white/5 border-white/10 text-white h-11 rounded-2xl px-4 focus:border-red-500/50 font-bold" required />
             </div>
             <div className="space-y-2">
-              <label className="text-[10px] font-black text-white/40 uppercase tracking-widest ml-1">Descripción</label>
+              <label className="text-[10px] font-semibold text-white/40 ml-1">Descripción</label>
               <Input value={formData.description} onChange={(e) => setFormData({ ...formData, description: e.target.value })} className="bg-white/5 border-white/10 text-white h-11 rounded-2xl px-4 focus:border-red-500/50 font-bold" required />
             </div>
             <div className="space-y-2">
-              <label className="text-[10px] font-black text-white/40 uppercase tracking-widest ml-1">Categoría</label>
+              <label className="text-[10px] font-semibold text-white/40 ml-1">Categoría</label>
               <select value={formData.category} onChange={(e) => setFormData({ ...formData, category: e.target.value })} className="w-full bg-white/5 border border-white/10 text-white rounded-2xl h-11 px-4 font-bold focus:outline-none focus:border-red-500/50 appearance-none cursor-pointer">
                 {categories.map((cat) => (<option key={cat.value} value={cat.value}>{cat.label}</option>))}
               </select>
             </div>
             <div className="flex gap-3 pt-2">
-              <Button type="button" onClick={onClose} className="flex-1 bg-white/5 border border-white/10 text-white h-12 rounded-2xl font-black uppercase tracking-widest hover:bg-white/10 transition-all">Cancelar</Button>
-              <Button type="submit" className="flex-1 bg-gradient-to-r from-red-600 to-orange-600 text-white h-12 rounded-2xl font-black uppercase tracking-widest active:scale-95 transition-all">Guardar</Button>
+              <Button type="button" onClick={onClose} className="flex-1 bg-white/5 border border-white/10 text-white h-12 rounded-2xl font-semibold hover:bg-white/10 transition-all">Cancelar</Button>
+              <Button type="submit" className="flex-1 bg-gradient-to-r from-red-600 to-orange-600 text-white h-12 rounded-2xl font-semibold active:scale-95 transition-all">Guardar</Button>
             </div>
           </form>
         </div>

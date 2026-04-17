@@ -197,7 +197,7 @@ export default function BulkOfferModal({ open, onClose, customers = [] }) {
                 <Megaphone className="w-5 h-5 text-white" />
               </div>
               <div>
-                <h2 className="text-white font-black text-base">Enviar Oferta Masiva</h2>
+                <h2 className="text-white font-semibold text-base">Enviar Oferta Masiva</h2>
                 <p className="text-white/30 text-[11px]">
                   {totalRecipients} destinatario{totalRecipients !== 1 ? "s" : ""} · {emailList.length} emails · {waAll.length} WhatsApp
                 </p>
@@ -213,7 +213,7 @@ export default function BulkOfferModal({ open, onClose, customers = [] }) {
 
             {/* ── Selector de filtro ── */}
             <div>
-              <p className="text-white/40 text-[11px] font-bold uppercase tracking-widest mb-2">Destinatarios</p>
+              <p className="text-white/40 text-[11px] font-bold mb-2">Destinatarios</p>
               <div className="grid grid-cols-2 gap-1.5">
                 {FILTERS.map(f => {
                   const Icon = f.icon;
@@ -233,7 +233,7 @@ export default function BulkOfferModal({ open, onClose, customers = [] }) {
                     >
                       <Icon className={`w-4 h-4 shrink-0 ${isActive ? c.icon : "text-white/25"}`} />
                       <span className={`flex-1 text-xs font-bold leading-tight ${isActive ? "text-white" : "text-white/40"}`}>{f.label}</span>
-                      <span className={`text-[10px] font-black px-1.5 py-0.5 rounded-full shrink-0 ${isActive ? c.badge : "bg-white/5 text-white/25"}`}>{count}</span>
+                      <span className={`text-[10px] font-semibold px-1.5 py-0.5 rounded-full shrink-0 ${isActive ? c.badge : "bg-white/5 text-white/25"}`}>{count}</span>
                     </button>
                   );
                 })}
@@ -310,7 +310,7 @@ export default function BulkOfferModal({ open, onClose, customers = [] }) {
 
             {/* ── Asunto ── */}
             <div>
-              <p className="text-white/40 text-[11px] font-bold uppercase tracking-widest mb-2">Asunto del email</p>
+              <p className="text-white/40 text-[11px] font-bold mb-2">Asunto del email</p>
               <input
                 value={subject}
                 onChange={e => setSubject(e.target.value)}
@@ -322,7 +322,7 @@ export default function BulkOfferModal({ open, onClose, customers = [] }) {
             {/* ── Mensaje ── */}
             <div>
               <div className="flex items-center justify-between mb-2">
-                <p className="text-white/40 text-[11px] font-bold uppercase tracking-widest">Mensaje</p>
+                <p className="text-white/40 text-[11px] font-bold">Mensaje</p>
                 <div className="flex gap-1.5">
                   {["{{nombre}}", "{{taller}}", "{{telefono}}"].map(v => (
                     <button key={v} onClick={() => insertVar(v)}
@@ -351,7 +351,7 @@ export default function BulkOfferModal({ open, onClose, customers = [] }) {
                   { id: "whatsapp",  label: "WhatsApp",  Icon: MessageCircle, count: waAll.length,     cls: "bg-green-600" },
                 ].map(t => (
                   <button key={t.id} onClick={() => setTab(t.id)}
-                    className={`flex-1 flex items-center justify-center gap-2 py-2 rounded-xl text-xs font-black transition-all ${
+                    className={`flex-1 flex items-center justify-center gap-2 py-2 rounded-xl text-xs font-semibold transition-all ${
                       tab === t.id ? `${t.cls} text-white shadow` : "text-white/30 hover:text-white/60"
                     }`}>
                     <t.Icon className="w-3.5 h-3.5" />
@@ -395,7 +395,7 @@ export default function BulkOfferModal({ open, onClose, customers = [] }) {
                       <div className="max-h-36 overflow-y-auto space-y-1 pr-1">
                         {emailList.map(c => (
                           <div key={c.id} className="flex items-center gap-3 px-3 py-2 rounded-xl bg-white/[0.03]">
-                            <div className="w-7 h-7 rounded-full bg-blue-500/20 flex items-center justify-center text-blue-300 text-xs font-black shrink-0">
+                            <div className="w-7 h-7 rounded-full bg-blue-500/20 flex items-center justify-center text-blue-300 text-xs font-semibold shrink-0">
                               {(c.name || "?")[0].toUpperCase()}
                             </div>
                             <div className="flex-1 min-w-0">
@@ -452,7 +452,7 @@ export default function BulkOfferModal({ open, onClose, customers = [] }) {
                       <div className="max-h-48 overflow-y-auto space-y-1.5 pr-1">
                         {waAll.map(c => (
                           <div key={c.id} className="flex items-center gap-3 px-3 py-2.5 rounded-xl bg-white/[0.03] border border-white/[0.05]">
-                            <div className="w-7 h-7 rounded-full bg-green-500/20 flex items-center justify-center text-green-300 text-xs font-black shrink-0">
+                            <div className="w-7 h-7 rounded-full bg-green-500/20 flex items-center justify-center text-green-300 text-xs font-semibold shrink-0">
                               {(c.name || "?")[0].toUpperCase()}
                             </div>
                             <div className="flex-1 min-w-0">
@@ -462,7 +462,7 @@ export default function BulkOfferModal({ open, onClose, customers = [] }) {
                             <a
                               href={getWhatsAppUrl(c.phone, applyVars(body, c, tallerName))}
                               target="_blank" rel="noopener noreferrer"
-                              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-green-600 hover:bg-green-500 text-white text-[11px] font-black transition-colors shrink-0"
+                              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-green-600 hover:bg-green-500 text-white text-[11px] font-semibold transition-colors shrink-0"
                             >
                               <ExternalLink className="w-3 h-3" />
                               Enviar
@@ -483,7 +483,7 @@ export default function BulkOfferModal({ open, onClose, customers = [] }) {
               <button
                 onClick={handleSendEmails}
                 disabled={sending || emailList.length === 0}
-                className="w-full py-3.5 rounded-2xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-black text-sm transition-all active:scale-[0.98] disabled:opacity-40 flex items-center justify-center gap-2 shadow-lg shadow-blue-900/30"
+                className="w-full py-3.5 rounded-2xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-semibold text-sm transition-all active:scale-[0.98] disabled:opacity-40 flex items-center justify-center gap-2 shadow-lg shadow-blue-900/30"
               >
                 {sending
                   ? <><Loader2 className="w-4 h-4 animate-spin" /> Enviando {sentCount}/{emailList.length}...</>

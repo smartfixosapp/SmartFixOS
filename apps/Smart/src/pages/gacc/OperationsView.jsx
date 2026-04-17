@@ -260,7 +260,7 @@ export default function OperationsView() {
     <div className="max-w-7xl mx-auto px-4 sm:px-6 py-6 space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-lg font-black text-white">Operations</h2>
+          <h2 className="text-lg font-semibold text-white">Operations</h2>
           <p className="text-[11px] text-gray-600">Monitoreo del sistema y actividad global</p>
         </div>
         <button onClick={refresh} disabled={loading} className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[11px] text-gray-500 hover:text-white border border-white/[0.07] hover:border-white/[0.15] bg-white/[0.02] transition-all">

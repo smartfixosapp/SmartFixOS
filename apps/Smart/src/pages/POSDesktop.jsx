@@ -1081,10 +1081,10 @@ Máximo 30 palabras en total.`;
       <div className="liquid-glass-strong w-full md:w-[340px] lg:w-[380px] xl:w-[420px] flex-shrink-0 rounded-[32px] flex flex-col overflow-hidden">
         <div className="p-8 border-b border-white/[0.05]">
           <div className="flex items-center justify-between mb-6">
-            <h2 className="text-2xl font-black text-white tracking-tighter uppercase">Carrito</h2>
+            <h2 className="text-2xl font-semibold text-white">Carrito</h2>
             {selectedOrder && (
               <div className="px-3 py-1 bg-cyan-500/10 border border-cyan-500/30 rounded-full">
-                 <span className="text-[10px] font-black text-cyan-400 uppercase tracking-widest">{selectedOrder.order_number}</span>
+                 <span className="text-[10px] font-semibold text-cyan-400">{selectedOrder.order_number}</span>
               </div>
             )}
           </div>
@@ -1095,8 +1095,8 @@ Máximo 30 palabras en total.`;
                 <User className="w-5 h-5" />
               </div>
               <div className="flex-1 min-w-0">
-                <p className="text-[10px] font-black text-white/30 uppercase tracking-widest mb-0.5">Cliente</p>
-                <p className="text-white text-sm font-black truncate">{selectedCustomer?.name || selectedOrder?.customer_name}</p>
+                <p className="text-[10px] font-semibold text-white/30 mb-0.5">Cliente</p>
+                <p className="text-white text-sm font-semibold truncate">{selectedCustomer?.name || selectedOrder?.customer_name}</p>
               </div>
               <button
                 onClick={() => setSelectedCustomer(null)}
@@ -1112,7 +1112,7 @@ Máximo 30 palabras en total.`;
               className="w-full h-14 rounded-2xl border-2 border-dashed border-white/10 flex items-center justify-center gap-2 text-white/30 hover:text-white/60 hover:border-white/20 hover:bg-white/5 transition-all group"
             >
               <Plus className="w-5 h-5 group-hover:rotate-90 transition-transform duration-500" />
-              <span className="text-xs font-black uppercase tracking-widest">Asignar Cliente</span>
+              <span className="text-xs font-semibold">Asignar Cliente</span>
             </button>
           )}
         </div>
@@ -1123,7 +1123,7 @@ Máximo 30 palabras en total.`;
               <div className="w-20 h-20 rounded-full bg-white/[0.02] border border-white/[0.05] flex items-center justify-center mb-6">
                 <ShoppingCart className="w-8 h-8 opacity-20" />
               </div>
-              <p className="text-sm font-black uppercase tracking-widest">Carrito vacío</p>
+              <p className="text-sm font-semibold">Carrito vacío</p>
             </div>
           ) : (
             safeCart.map((item, idx) => (
@@ -1136,7 +1136,7 @@ Máximo 30 palabras en total.`;
               >
                 <div className="flex items-start justify-between mb-3">
                   <div className="flex-1">
-                    <p className="text-white text-[13px] font-black uppercase tracking-tight leading-tight group-hover:text-cyan-400 transition-colors">{item.name}</p>
+                    <p className="text-white text-[13px] font-semibold tracking-tight leading-tight group-hover:text-cyan-400 transition-colors">{item.name}</p>
                     <p className="text-white/30 text-[11px] font-bold mt-1">${toCurrencyNumber(item.price).toFixed(2)} c/u</p>
                   </div>
                   <button
@@ -1156,7 +1156,7 @@ Máximo 30 palabras en total.`;
                     >
                       <Minus className="w-4 h-4" />
                     </button>
-                    <span className="w-10 text-center text-white text-sm font-black">{item.quantity}</span>
+                    <span className="w-10 text-center text-white text-sm font-semibold">{item.quantity}</span>
                     <button
                       onClick={() => updateQuantity(idx, 1)}
                       aria-label={`Aumentar cantidad de ${item.name}`}
@@ -1165,7 +1165,7 @@ Máximo 30 palabras en total.`;
                       <Plus className="w-4 h-4" />
                     </button>
                   </div>
-                  <span className="text-white font-black text-base tracking-tighter">${(toCurrencyNumber(item.price) * toCurrencyNumber(item.quantity)).toFixed(2)}</span>
+                  <span className="text-white font-semibold text-base">${(toCurrencyNumber(item.price) * toCurrencyNumber(item.quantity)).toFixed(2)}</span>
                 </div>
               </motion.div>
             ))
@@ -1175,18 +1175,18 @@ Máximo 30 palabras en total.`;
         <div className="p-8 border-t border-white/[0.05] bg-white/[0.02] space-y-6">
           <div className="space-y-3">
             <div className="flex justify-between items-center group/sub">
-              <span className="text-[11px] font-black text-white/30 uppercase tracking-widest group-hover/sub:text-white/50 transition-colors">Subtotal</span>
-              <span className="text-sm font-black text-white/80 tracking-tight">${subtotal.toFixed(2)}</span>
+              <span className="text-[11px] font-semibold text-white/30 group-hover/sub:text-white/50 transition-colors">Subtotal</span>
+              <span className="text-sm font-semibold text-white/80 tracking-tight">${subtotal.toFixed(2)}</span>
             </div>
             <div className="flex justify-between items-center group/tax">
-              <span className="text-[11px] font-black text-white/30 uppercase tracking-widest group-hover/tax:text-white/50 transition-colors">IVU (11.5%)</span>
-              <span className="text-sm font-black text-white/80 tracking-tight">${tax.toFixed(2)}</span>
+              <span className="text-[11px] font-semibold text-white/30 group-hover/tax:text-white/50 transition-colors">IVU (11.5%)</span>
+              <span className="text-sm font-semibold text-white/80 tracking-tight">${tax.toFixed(2)}</span>
             </div>
             <div className="pt-4 mt-2 border-t border-white/[0.05]">
               <div className="flex justify-between items-end">
-                <span className="text-[12px] font-black text-cyan-400 uppercase tracking-[0.2em]">Total</span>
+                <span className="text-[12px] font-semibold text-cyan-400 tracking-[0.2em]">Total</span>
                 <div className="flex flex-col items-end">
-                  <span className="text-4xl font-black text-white tracking-tighter leading-none">
+                  <span className="text-4xl font-semibold text-white leading-none">
                     ${total.toFixed(2)}
                   </span>
                 </div>
@@ -1210,7 +1210,7 @@ Máximo 30 palabras en total.`;
                 <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center group-hover:rotate-[-12deg] transition-transform duration-500">
                   <ShoppingCart className="w-5 h-5 text-white" />
                 </div>
-                <span className="text-base font-black text-white uppercase tracking-widest">
+                <span className="text-base font-semibold text-white">
                   Cobrar {selectedOrder ? 'Cualquier Depósito' : 'Total'}
                 </span>
               </div>
@@ -1219,7 +1219,7 @@ Máximo 30 palabras en total.`;
             {safeCart.length > 0 && (
               <button
                 onClick={clearCart}
-                className="w-full py-2 text-[10px] font-black text-red-400/50 hover:text-red-400 uppercase tracking-widest transition-all hover:letter-spacing-[0.1em]"
+                className="w-full py-2 text-[10px] font-semibold text-red-400/50 hover:text-red-400 transition-all hover:letter-spacing-[0.1em]"
               >
                 Vaciar Carrito
               </button>
@@ -1308,7 +1308,7 @@ Máximo 30 palabras en total.`;
       {showManualItem && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
           <div className="bg-[#111114] border border-white/10 rounded-3xl p-6 w-full max-w-sm shadow-2xl">
-            <h3 className="text-white font-black text-lg mb-5 flex items-center gap-2">
+            <h3 className="text-white font-semibold text-lg mb-5 flex items-center gap-2">
               <PenLine className="w-5 h-5 text-amber-400" />
               Ítem Manual
             </h3>
@@ -1326,7 +1326,7 @@ Máximo 30 palabras en total.`;
                     type="button"
                     onClick={() => fetchPriceSuggestion(manualItem.name)}
                     disabled={aiPriceLoading || manualItem.name.trim().length < 3}
-                    className="px-3 py-2 rounded-2xl bg-violet-500/15 border border-violet-500/20 text-violet-300 text-xs font-black disabled:opacity-40 hover:bg-violet-500/25 transition-all whitespace-nowrap"
+                    className="px-3 py-2 rounded-2xl bg-violet-500/15 border border-violet-500/20 text-violet-300 text-xs font-semibold disabled:opacity-40 hover:bg-violet-500/25 transition-all whitespace-nowrap"
                     title="Sugerir precio con IA"
                   >
                     {aiPriceLoading ? "…" : "✨ IA"}
@@ -1382,7 +1382,7 @@ Máximo 30 palabras en total.`;
                   setManualItem({ name: "", price: "", qty: "1" });
                   setAiPriceSuggestion("");
                 }}
-                className="flex-1 py-3 rounded-2xl bg-gradient-to-r from-amber-500 to-orange-500 text-white text-sm font-black shadow-lg"
+                className="flex-1 py-3 rounded-2xl bg-gradient-to-r from-amber-500 to-orange-500 text-white text-sm font-semibold shadow-lg"
               >
                 Agregar al carrito
               </button>

@@ -39,7 +39,7 @@ export default function IntakeStage({ order, onUpdate, onOrderItemsUpdate, onRem
         <div className="relative z-10">
           <div className="space-y-4">
             <div className="flex flex-wrap items-center gap-2">
-              <Badge className="rounded-full border border-cyan-400/30 bg-cyan-500/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.25em] text-cyan-200">
+              <Badge className="rounded-full border border-cyan-400/30 bg-cyan-500/10 px-3 py-1 text-[11px] font-semibold tracking-[0.25em] text-cyan-200">
                 Recepcion
               </Badge>
               <Badge variant="outline" className="rounded-full border-white/10 bg-white/5 px-3 py-1 text-xs text-white/65">
@@ -48,9 +48,9 @@ export default function IntakeStage({ order, onUpdate, onOrderItemsUpdate, onRem
             </div>
 
             <div className="space-y-2">
-              <p className="text-[11px] font-semibold uppercase tracking-[0.32em] text-white/35">Resumen rapido</p>
+              <p className="text-[11px] font-semibold tracking-[0.32em] text-white/35">Resumen rapido</p>
               <div className="flex flex-wrap items-end gap-x-4 gap-y-2">
-                <h2 className="text-3xl font-black tracking-tight text-white sm:text-4xl">
+                <h2 className="text-3xl font-semibold tracking-tight text-white sm:text-4xl">
                   {o.customer_name || "Cliente sin nombre"}
                 </h2>
                 <div className="inline-flex items-center rounded-full border border-fuchsia-400/20 bg-fuchsia-500/10 px-3 py-1 text-sm font-semibold text-fuchsia-200">
@@ -64,7 +64,7 @@ export default function IntakeStage({ order, onUpdate, onOrderItemsUpdate, onRem
 
             <div className="grid gap-3 md:grid-cols-2">
               <div className="rounded-[22px] border border-white/10 bg-black/25 p-4 backdrop-blur-md">
-                <p className="mb-1 flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.24em] text-white/35">
+                <p className="mb-1 flex items-center gap-2 text-[11px] font-semibold tracking-[0.24em] text-white/35">
                   <ClipboardCheck className="h-3.5 w-3.5" /> Recepción
                 </p>
                 <p className="mb-1 truncate text-lg font-bold text-cyan-300">
@@ -75,7 +75,7 @@ export default function IntakeStage({ order, onUpdate, onOrderItemsUpdate, onRem
                 </p>
               </div>
               <div className="rounded-[22px] border border-white/10 bg-black/25 p-4 backdrop-blur-md">
-                <p className="mb-1 flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.24em] text-white/35">
+                <p className="mb-1 flex items-center gap-2 text-[11px] font-semibold tracking-[0.24em] text-white/35">
                   <Palette className="h-3.5 w-3.5" /> Fotos
                 </p>
                 {photos.length > 0 ? (
@@ -119,18 +119,18 @@ export default function IntakeStage({ order, onUpdate, onOrderItemsUpdate, onRem
           return (
             <div className="relative z-10 mt-4 grid grid-cols-1 gap-3 sm:grid-cols-3">
               {digits && (
-                <a href={`tel:+${intl}`} className="flex items-center justify-center gap-3 h-14 rounded-2xl border border-white/15 bg-white/5 text-white hover:bg-white/10 font-bold text-sm uppercase tracking-wide transition-all active:scale-95">
+                <a href={`tel:+${intl}`} className="flex items-center justify-center gap-3 h-14 rounded-2xl border border-white/15 bg-white/5 text-white hover:bg-white/10 font-bold text-sm tracking-wide transition-all active:scale-95">
                   <PhoneCall className="w-5 h-5 text-white/60" />{phone}
                 </a>
               )}
               {digits && (
                 <a href={`https://wa.me/${intl}`} target="_blank" rel="noreferrer"
-                  className="flex items-center justify-center gap-3 h-14 rounded-2xl border border-emerald-500/30 bg-emerald-500/12 text-emerald-300 hover:bg-emerald-500/20 font-bold text-sm uppercase tracking-wide transition-all active:scale-95">
+                  className="flex items-center justify-center gap-3 h-14 rounded-2xl border border-emerald-500/30 bg-emerald-500/12 text-emerald-300 hover:bg-emerald-500/20 font-bold text-sm tracking-wide transition-all active:scale-95">
                   <MessageCircle className="w-5 h-5" />WhatsApp
                 </a>
               )}
               {email && (
-                <a href={`mailto:${email}`} className="flex items-center justify-center gap-3 h-14 rounded-2xl border border-blue-500/30 bg-blue-500/12 text-blue-300 hover:bg-blue-500/20 font-bold text-sm uppercase tracking-wide transition-all active:scale-95">
+                <a href={`mailto:${email}`} className="flex items-center justify-center gap-3 h-14 rounded-2xl border border-blue-500/30 bg-blue-500/12 text-blue-300 hover:bg-blue-500/20 font-bold text-sm tracking-wide transition-all active:scale-95">
                   <Mail className="w-5 h-5" /><span className="truncate">{email}</span>
                 </a>
               )}

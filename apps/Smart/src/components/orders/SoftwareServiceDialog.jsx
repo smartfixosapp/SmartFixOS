@@ -247,7 +247,7 @@ export default function SoftwareServiceDialog({ open, onClose, onSuccess }) {
         <div className="space-y-6 mt-4">
           {/* Selección de Cliente */}
           <div className="space-y-3">
-            <h3 className="text-sm font-semibold text-cyan-400 uppercase tracking-wide theme-light:text-cyan-700">
+            <h3 className="text-sm font-semibold text-cyan-400 tracking-wide theme-light:text-cyan-700">
               👤 Cliente
             </h3>
             
@@ -345,7 +345,7 @@ export default function SoftwareServiceDialog({ open, onClose, onSuccess }) {
 
           {/* Información del Equipo */}
           <div className="space-y-3">
-            <h3 className="text-sm font-semibold text-emerald-400 uppercase tracking-wide theme-light:text-emerald-700">
+            <h3 className="text-sm font-semibold text-emerald-400 tracking-wide theme-light:text-emerald-700">
               📱 Equipo
             </h3>
             <div className="grid grid-cols-2 gap-3">
@@ -381,7 +381,7 @@ export default function SoftwareServiceDialog({ open, onClose, onSuccess }) {
 
           {/* Servicio */}
           <div className="space-y-3">
-            <h3 className="text-sm font-semibold text-purple-400 uppercase tracking-wide theme-light:text-purple-700">
+            <h3 className="text-sm font-semibold text-purple-400 tracking-wide theme-light:text-purple-700">
               ⚙️ Servicio
             </h3>
             <div>

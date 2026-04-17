@@ -128,7 +128,7 @@ function AuditLogViewer() {
       </div>
 
       {/* Table header */}
-      <div className="hidden sm:grid grid-cols-12 gap-2 px-4 py-2 text-[10px] text-gray-600 uppercase tracking-wide font-bold border-b border-white/[0.06]">
+      <div className="hidden sm:grid grid-cols-12 gap-2 px-4 py-2 text-[10px] text-gray-600 tracking-wide font-bold border-b border-white/[0.06]">
         <div className="col-span-1">Sev.</div>
         <div className="col-span-2">Accion</div>
         <div className="col-span-2">Entidad</div>
@@ -248,7 +248,7 @@ export default function SecurityView() {
     <div className="max-w-7xl mx-auto px-4 sm:px-6 py-6 space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-lg font-black text-white">Security & Audit</h2>
+          <h2 className="text-lg font-semibold text-white">Security & Audit</h2>
           <p className="text-[11px] text-gray-600">Auditoria, accesos y sesiones</p>
         </div>
         <div className="flex items-center gap-1 bg-white/[0.03] rounded-xl p-1 border border-white/[0.05]">

@@ -544,7 +544,7 @@ export default function DiagnosingStage({ order, onUpdate, user, onOrderItemsUpd
         <div className="relative z-10 grid gap-5 xl:grid-cols-[1.2fr_0.8fr] xl:items-start">
           <div className="space-y-4">
             <div className="flex flex-wrap items-center gap-2">
-              <Badge className="rounded-full border border-purple-400/30 bg-purple-500/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.25em] text-purple-200">
+              <Badge className="rounded-full border border-purple-400/30 bg-purple-500/10 px-3 py-1 text-[11px] font-semibold tracking-[0.25em] text-purple-200">
                 Diagnostico
               </Badge>
               <Badge variant="outline" className="rounded-full border-white/10 bg-white/5 px-3 py-1 text-xs text-white/65">
@@ -553,9 +553,9 @@ export default function DiagnosingStage({ order, onUpdate, user, onOrderItemsUpd
             </div>
 
             <div className="space-y-2">
-              <p className="text-[11px] font-semibold uppercase tracking-[0.32em] text-white/35">Etapa activa</p>
+              <p className="text-[11px] font-semibold tracking-[0.32em] text-white/35">Etapa activa</p>
               <div className="flex flex-wrap items-end gap-x-4 gap-y-2">
-                <h2 className="text-3xl font-black tracking-tight text-white sm:text-4xl">Etapa de Diagnóstico</h2>
+                <h2 className="text-3xl font-semibold tracking-tight text-white sm:text-4xl">Etapa de Diagnóstico</h2>
                 <div className="inline-flex items-center rounded-full border border-purple-400/20 bg-purple-500/10 px-3 py-1 text-sm font-semibold text-purple-200">
                   {o.device_brand} {o.device_model}
                 </div>
@@ -569,16 +569,16 @@ export default function DiagnosingStage({ order, onUpdate, user, onOrderItemsUpd
             <div className="grid gap-3 md:grid-cols-3">
               {/* Cliente */}
               <div className="rounded-[22px] border border-white/10 bg-black/25 p-4 backdrop-blur-md">
-                <p className="mb-1 text-[11px] font-semibold uppercase tracking-[0.24em] text-white/35">Cliente</p>
+                <p className="mb-1 text-[11px] font-semibold tracking-[0.24em] text-white/35">Cliente</p>
                 <p className="truncate text-lg font-bold text-purple-200">{o.customer_name || "No registrado"}</p>
               </div>
 
               {/* Checklist status */}
               <div className="rounded-[22px] border border-white/10 bg-black/25 p-4 backdrop-blur-md">
-                <p className="mb-1 text-[11px] font-semibold uppercase tracking-[0.24em] text-white/35">Checklist</p>
+                <p className="mb-1 text-[11px] font-semibold tracking-[0.24em] text-white/35">Checklist</p>
                 <p className="mb-2 truncate text-[11px] font-semibold text-purple-300">{DEVICE_TYPE_LABELS[deviceCategory]}</p>
                 <div className="mb-3 flex flex-wrap items-center gap-2">
-                  <span className="text-xl font-black text-white">{checkedCount}</span>
+                  <span className="text-xl font-semibold text-white">{checkedCount}</span>
                   <span className="text-xs text-white/40">/ {checklist.length}</span>
                   {issueCount > 0 && (
                     <Badge className="rounded-full border-red-500/30 bg-red-500/10 text-[11px] text-red-300">
@@ -607,7 +607,7 @@ export default function DiagnosingStage({ order, onUpdate, user, onOrderItemsUpd
 
               {/* Links y Cotización */}
               <div className="rounded-[22px] border border-white/10 bg-black/25 p-4 backdrop-blur-md">
-                <p className="mb-2 text-[11px] font-semibold uppercase tracking-[0.24em] text-white/35">Links y Cotización</p>
+                <p className="mb-2 text-[11px] font-semibold tracking-[0.24em] text-white/35">Links y Cotización</p>
                 <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap">
                   <Button
                     onClick={() => setActiveModal(activeModal === "links" ? null : "links")}
@@ -641,19 +641,19 @@ export default function DiagnosingStage({ order, onUpdate, user, onOrderItemsUpd
           return (
             <div className="relative z-10 mt-4 grid grid-cols-1 gap-3 sm:grid-cols-3">
               {digits && (
-                <a href={`tel:+${intl}`} className="flex h-14 items-center justify-center gap-3 rounded-2xl border border-white/15 bg-white/5 font-bold text-sm uppercase tracking-wide text-white transition-all hover:bg-white/10 active:scale-95">
+                <a href={`tel:+${intl}`} className="flex h-14 items-center justify-center gap-3 rounded-2xl border border-white/15 bg-white/5 font-bold text-sm tracking-wide text-white transition-all hover:bg-white/10 active:scale-95">
                   <PhoneCall className="h-5 w-5 text-white/60" />{phone}
                 </a>
               )}
               {digits && (
                 <a href={`https://wa.me/${intl}`} target="_blank" rel="noreferrer"
-                  className="flex h-14 items-center justify-center gap-3 rounded-2xl border border-emerald-500/30 bg-emerald-500/12 font-bold text-sm uppercase tracking-wide text-emerald-300 transition-all hover:bg-emerald-500/20 active:scale-95">
+                  className="flex h-14 items-center justify-center gap-3 rounded-2xl border border-emerald-500/30 bg-emerald-500/12 font-bold text-sm tracking-wide text-emerald-300 transition-all hover:bg-emerald-500/20 active:scale-95">
                   <MessageCircle className="h-5 w-5" />WhatsApp
                 </a>
               )}
               {email && (
                 <a href={`mailto:${email}`}
-                  className="flex h-14 items-center justify-center gap-3 rounded-2xl border border-blue-500/30 bg-blue-500/12 font-bold text-sm uppercase tracking-wide text-blue-300 transition-all hover:bg-blue-500/20 active:scale-95">
+                  className="flex h-14 items-center justify-center gap-3 rounded-2xl border border-blue-500/30 bg-blue-500/12 font-bold text-sm tracking-wide text-blue-300 transition-all hover:bg-blue-500/20 active:scale-95">
                   <Mail className="h-5 w-5" /><span className="truncate">{email}</span>
                 </a>
               )}
@@ -686,8 +686,8 @@ export default function DiagnosingStage({ order, onUpdate, user, onOrderItemsUpd
                   <ClipboardCheck className="h-5 w-5" />
                 </div>
                 <div>
-                  <p className="text-[11px] font-semibold uppercase tracking-[0.28em] text-white/35">Diagnóstico técnico · {DEVICE_TYPE_LABELS[deviceCategory]}</p>
-                  <h3 className="text-lg font-black tracking-tight text-white sm:text-xl">Checklist del Dispositivo</h3>
+                  <p className="text-[11px] font-semibold tracking-[0.28em] text-white/35">Diagnóstico técnico · {DEVICE_TYPE_LABELS[deviceCategory]}</p>
+                  <h3 className="text-lg font-semibold tracking-tight text-white sm:text-xl">Checklist del Dispositivo</h3>
                 </div>
               </div>
               <p className="text-xs text-white/35">Toca para cambiar estado</p>
@@ -743,7 +743,7 @@ export default function DiagnosingStage({ order, onUpdate, user, onOrderItemsUpd
             {/* Diagnosis templates */}
             {(DIAG_TEMPLATES[deviceCategory] || DIAG_TEMPLATES.generic).length > 0 && (
               <div>
-                <p className="flex items-center gap-1.5 text-[10px] font-black text-white/25 uppercase tracking-widest mb-2">
+                <p className="flex items-center gap-1.5 text-[10px] font-semibold text-white/25 mb-2">
                   <FileText className="w-3 h-3" /> Plantillas rápidas
                 </p>
                 <div className="flex flex-wrap gap-1.5">

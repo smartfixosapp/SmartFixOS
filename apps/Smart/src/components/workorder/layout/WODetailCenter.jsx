@@ -254,7 +254,7 @@ export default function WODetailCenter({
       {/* ── Customer & Device ── */}
       <div className="grid gap-3 sm:grid-cols-2">
         <div className="rounded-xl border border-white/[0.08] bg-[#121215] p-4 space-y-2">
-          <h4 className="text-[10px] font-black uppercase tracking-widest text-white/30">Cliente</h4>
+          <h4 className="text-[10px] font-semibold text-white/30">Cliente</h4>
           <EditableField orderId={o.id} field="customer_name" value={o.customer_name} onUpdate={onUpdate} className="text-sm font-bold text-white" />
           {phone && (
             <div className="flex items-center gap-2 text-xs text-white/50">
@@ -274,7 +274,7 @@ export default function WODetailCenter({
         </div>
 
         <div className="rounded-xl border border-white/[0.08] bg-[#121215] p-4 space-y-2">
-          <h4 className="text-[10px] font-black uppercase tracking-widest text-white/30">Dispositivo</h4>
+          <h4 className="text-[10px] font-semibold text-white/30">Dispositivo</h4>
           <div className="flex items-center gap-2">
             <DeviceIcon type={o.device_type} />
             <p className="text-sm font-bold text-white">
@@ -291,7 +291,7 @@ export default function WODetailCenter({
       {/* ── Problem ── */}
       {o.initial_problem && (
         <div className="rounded-xl border border-white/[0.08] bg-[#121215] p-4">
-          <h4 className="text-[10px] font-black uppercase tracking-widest text-white/30 mb-1.5">Problema reportado</h4>
+          <h4 className="text-[10px] font-semibold text-white/30 mb-1.5">Problema reportado</h4>
           <EditableField orderId={o.id} field="initial_problem" value={o.initial_problem} onUpdate={onUpdate} className="text-sm text-white/80 leading-relaxed" multiline />
         </div>
       )}
@@ -300,7 +300,7 @@ export default function WODetailCenter({
       {!showDiagnostic ? (
         <button
           onClick={() => setShowDiagnostic(true)}
-          className="w-full flex items-center justify-center gap-2 py-3 rounded-xl bg-violet-500/[0.08] border border-violet-500/20 text-violet-300 text-xs font-black hover:bg-violet-500/15 transition-all active:scale-[0.98]"
+          className="w-full flex items-center justify-center gap-2 py-3 rounded-xl bg-violet-500/[0.08] border border-violet-500/20 text-violet-300 text-xs font-semibold hover:bg-violet-500/15 transition-all active:scale-[0.98]"
         >
           <Brain className="w-4 h-4" />
           🧠 Diagnóstico IA — Analizar historial del cliente
@@ -328,7 +328,7 @@ export default function WODetailCenter({
         if (validAttachments.length === 0) return null;
         return (
           <div className="rounded-xl border border-white/[0.08] bg-[#121215] p-4">
-            <h4 className="text-[10px] font-black uppercase tracking-widest text-white/30 mb-2">
+            <h4 className="text-[10px] font-semibold text-white/30 mb-2">
               Archivos ({validAttachments.length})
               {uploading && <span className="ml-2 text-cyan-400 animate-pulse">subiendo...</span>}
             </h4>
@@ -387,7 +387,7 @@ export default function WODetailCenter({
                   >
                     {/* Badge de stage en esquina inferior */}
                     {stageLabel && (
-                      <div className={`absolute bottom-0 left-0 right-0 text-[7px] font-black uppercase tracking-wider text-center py-0.5 border-t ${stageBadgeClass}`}>
+                      <div className={`absolute bottom-0 left-0 right-0 text-[7px] font-semibold text-center py-0.5 border-t ${stageBadgeClass}`}>
                         {stageLabel.slice(0, 5)}
                       </div>
                     )}
@@ -429,7 +429,7 @@ export default function WODetailCenter({
 
       {/* ── Financial Summary ── */}
       <div className="rounded-xl border border-white/[0.08] bg-[#121215] p-4">
-        <h4 className="text-[10px] font-black uppercase tracking-widest text-white/30 mb-3">Resumen financiero</h4>
+        <h4 className="text-[10px] font-semibold text-white/30 mb-3">Resumen financiero</h4>
 
         {/* Items list */}
         {items.length > 0 ? (
@@ -464,7 +464,7 @@ export default function WODetailCenter({
           <div className="flex justify-between text-cyan-400/80">
             <span>IVU (11.5%)</span><span className="font-semibold">+${financial.tax.toFixed(2)}</span>
           </div>
-          <div className="flex justify-between text-white font-black text-base pt-2 border-t border-white/[0.06]">
+          <div className="flex justify-between text-white font-semibold text-base pt-2 border-t border-white/[0.06]">
             <span>TOTAL</span><span>${financial.total.toFixed(2)}</span>
           </div>
           {financial.paid > 0 && (
@@ -473,13 +473,13 @@ export default function WODetailCenter({
             </div>
           )}
           {financial.balance > 0.01 && (
-            <div className="flex justify-between text-red-400 font-black text-sm pt-1">
+            <div className="flex justify-between text-red-400 font-semibold text-sm pt-1">
               <span>BALANCE</span><span>${financial.balance.toFixed(2)}</span>
             </div>
           )}
           {financial.balance <= 0.01 && financial.total > 0 && (
             <div className="flex justify-center pt-1">
-              <span className="text-[10px] font-black uppercase tracking-widest text-emerald-400 bg-emerald-500/10 border border-emerald-500/30 rounded-full px-3 py-0.5">Saldado</span>
+              <span className="text-[10px] font-semibold text-emerald-400 bg-emerald-500/10 border border-emerald-500/30 rounded-full px-3 py-0.5">Saldado</span>
             </div>
           )}
         </div>

@@ -84,7 +84,7 @@ function StagingBanner() {
   return (
     <div
       style={{ position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 99998, pointerEvents: 'none' }}
-      className="flex items-center justify-center gap-2 py-1 bg-amber-500/90 backdrop-blur-sm text-black text-[10px] font-black tracking-widest uppercase"
+      className="flex items-center justify-center gap-2 py-1 bg-amber-500/90 backdrop-blur-sm text-black text-[10px] font-semibold"
     >
       ⚠ STAGING — ambiente de pruebas, no usar datos reales ⚠
     </div>

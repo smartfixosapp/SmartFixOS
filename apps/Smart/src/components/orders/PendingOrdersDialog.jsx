@@ -116,7 +116,7 @@ export default function PendingOrdersDialog({ open, onClose }) {
                           initial={{ y: 10, opacity: 0 }}
                           animate={{ y: 0, opacity: 1 }}
                           transition={{ delay: 0.1 }}
-                          className="inline-flex items-center gap-2 mb-2 px-3 py-1 rounded-full bg-red-500/20 text-red-300 text-xs font-bold uppercase tracking-wider border border-red-500/20"
+                          className="inline-flex items-center gap-2 mb-2 px-3 py-1 rounded-full bg-red-500/20 text-red-300 text-xs font-bold border border-red-500/20"
                       >
                           <DollarSign className="w-3 h-3" /> Por Cobrar
                       </motion.div>
@@ -125,7 +125,7 @@ export default function PendingOrdersDialog({ open, onClose }) {
                           initial={{ scale: 0.8, opacity: 0 }}
                           animate={{ scale: 1, opacity: 1 }}
                           transition={{ type: "spring", stiffness: 200, delay: 0.2 }}
-                          className="text-4xl sm:text-6xl md:text-7xl font-bold text-white tracking-tighter my-3 sm:my-4"
+                          className="text-4xl sm:text-6xl md:text-7xl font-bold text-white my-3 sm:my-4"
                       >
                         ${stats.totalDebt.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                       </motion.h3>
@@ -152,7 +152,7 @@ export default function PendingOrdersDialog({ open, onClose }) {
                         <div className="relative z-10">
                           <div className="flex items-center justify-center gap-2 mb-2">
                             <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-                            <span className="text-xs font-bold text-emerald-300 uppercase tracking-wider">Listas para Recoger</span>
+                            <span className="text-xs font-bold text-emerald-300">Listas para Recoger</span>
                           </div>
                           <div className="text-4xl sm:text-5xl font-bold text-emerald-400">{stats.readyForPickup}</div>
                           <div className="text-xs text-emerald-300/70 mt-1">Equipos terminados esperando cobro</div>
@@ -216,7 +216,7 @@ export default function PendingOrdersDialog({ open, onClose }) {
                             <div className="flex items-center gap-1.5 sm:gap-2 mb-1 flex-wrap">
                               <span className="font-bold text-white text-base sm:text-lg tracking-tight">{order.order_number}</span>
                               {isLate && (
-                                  <span className="text-[10px] px-1.5 sm:px-2 py-0.5 rounded-full font-bold uppercase tracking-wide border border-orange-500/30 text-orange-400 bg-orange-500/10">
+                                  <span className="text-[10px] px-1.5 sm:px-2 py-0.5 rounded-full font-bold tracking-wide border border-orange-500/30 text-orange-400 bg-orange-500/10">
                                       {order.daysOld}d
                                   </span>
                               )}
@@ -231,7 +231,7 @@ export default function PendingOrdersDialog({ open, onClose }) {
                         <div className="text-right flex-shrink-0 ml-2">
                           {order.balance > 0 && (
                               <>
-                                  <p className="text-[9px] sm:text-[10px] text-red-400/70 uppercase tracking-wide font-bold mb-0.5">Por Cobrar</p>
+                                  <p className="text-[9px] sm:text-[10px] text-red-400/70 tracking-wide font-bold mb-0.5">Por Cobrar</p>
                                   <p className="text-base sm:text-xl font-bold tracking-tight text-red-400">${order.balance.toFixed(2)}</p>
                               </>
                           )}

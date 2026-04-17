@@ -81,7 +81,7 @@ function showGlobalGateToast(message) {
         } max-w-[92vw] sm:max-w-md rounded-2xl border border-white/20 bg-white/10 backdrop-blur-2xl shadow-[0_18px_60px_rgba(0,0,0,0.45)] p-3`}
       >
         <div className="rounded-xl border border-cyan-300/25 bg-gradient-to-r from-cyan-500/20 via-blue-500/15 to-white/10 p-3">
-          <p className="text-[11px] uppercase tracking-[0.22em] text-cyan-100/80 font-semibold">Regla Global</p>
+          <p className="text-[11px] tracking-[0.22em] text-cyan-100/80 font-semibold">Regla Global</p>
           <p className="mt-1 text-sm font-semibold text-white">{message}</p>
         </div>
       </div>
@@ -612,7 +612,7 @@ export default function OrdersPage() {
                     <Plus className="w-4 h-4" /> Nueva Orden
                   </button>
                   <div className="h-px bg-white/10 my-2" />
-                  <p className="text-[10px] font-black text-white/30 uppercase tracking-wider px-3 pb-1">Estado</p>
+                  <p className="text-[10px] font-semibold text-white/30 px-3 pb-1">Estado</p>
                   {[{ id: "active", label: "Todos (Activos)" }, ...ORDER_STATUSES.filter(s => s.isActive && !["picked_up","completed","cancelled","delivered","warranty"].includes(s.id)), { id: "closed", label: "Cerrados / Historial" }].map(s => (
                     <button
                       key={s.id}
@@ -666,7 +666,7 @@ export default function OrdersPage() {
                     selectedStatus === "closed" ? "Cerrados" :
                     ORDER_STATUSES.find((s) => s.id === selectedStatus)?.label || "Filtros"}
                   </span>
-                  <span className="px-2 py-1 rounded-full text-xs font-black bg-white/20">
+                  <span className="px-2 py-1 rounded-full text-xs font-semibold bg-white/20">
                     {displayOrders.length}
                   </span>
                   <ChevronRight className={`w-4 h-4 transition-transform duration-300 ${showStatusDropdown ? 'rotate-90' : ''}`} />
@@ -685,7 +685,7 @@ export default function OrdersPage() {
                       <div className="p-3 space-y-1 max-h-[520px] overflow-y-auto scrollbar-thin">
                         {/* Acciones Rápidas */}
                         <div className="mb-3">
-                          <p className="text-xs font-bold text-white/40 uppercase tracking-wider px-4 mb-2">Acciones</p>
+                          <p className="text-xs font-bold text-white/40 px-4 mb-2">Acciones</p>
                           
                           <button
                           onClick={(e) => {
@@ -716,7 +716,7 @@ export default function OrdersPage() {
                         <div className="h-px bg-white/10 my-2" />
 
                         {/* Filtros */}
-                        <p className="text-xs font-bold text-white/40 uppercase tracking-wider px-4 mb-2 mt-3">Filtros</p>
+                        <p className="text-xs font-bold text-white/40 px-4 mb-2 mt-3">Filtros</p>
 
                         {/* Toggle B2B */}
                         <button
@@ -753,7 +753,7 @@ export default function OrdersPage() {
                          }>
 
                            <span>Todos (Activos)</span>
-                           <span className={`px-2 py-1 rounded-full text-xs font-black ${selectedStatus === "active" ? 'bg-cyan-400/20 text-cyan-300' : 'bg-white/10 text-white/50'}`}>
+                           <span className={`px-2 py-1 rounded-full text-xs font-semibold ${selectedStatus === "active" ? 'bg-cyan-400/20 text-cyan-300' : 'bg-white/10 text-white/50'}`}>
                              {statusCounts["active"] || 0}
                            </span>
                          </button>
@@ -774,7 +774,7 @@ export default function OrdersPage() {
                              <Shield className="w-4 h-4" />
                              <span>Garantías</span>
                            </div>
-                           <span className={`px-2 py-1 rounded-full text-xs font-black ${selectedStatus === "warranty" ? 'bg-amber-400/20 text-amber-300' : 'bg-white/10 text-white/50'}`}>
+                           <span className={`px-2 py-1 rounded-full text-xs font-semibold ${selectedStatus === "warranty" ? 'bg-amber-400/20 text-amber-300' : 'bg-white/10 text-white/50'}`}>
                              {statusCounts["warranty"] || 0}
                            </span>
                          </button>
@@ -817,7 +817,7 @@ export default function OrdersPage() {
 
                               <span>{status.label}</span>
                               {count > 0 &&
-                            <span className={`px-2 py-1 rounded-full text-xs font-black ${selectedStatus === status.id ? 'bg-blue-400/20 text-blue-300' : 'bg-white/10 text-white/50'}`}>
+                            <span className={`px-2 py-1 rounded-full text-xs font-semibold ${selectedStatus === status.id ? 'bg-blue-400/20 text-blue-300' : 'bg-white/10 text-white/50'}`}>
                                   {count}
                                 </span>
                             }
@@ -840,7 +840,7 @@ export default function OrdersPage() {
                         }>
 
                           <span>Cerrados / Historial</span>
-                          <span className={`px-2 py-1 rounded-full text-xs font-black ${selectedStatus === "closed" ? 'bg-purple-400/20 text-purple-300' : 'bg-white/10 text-white/50'}`}>
+                          <span className={`px-2 py-1 rounded-full text-xs font-semibold ${selectedStatus === "closed" ? 'bg-purple-400/20 text-purple-300' : 'bg-white/10 text-white/50'}`}>
                             {statusCounts["closed"] || 0}
                           </span>
                         </button>

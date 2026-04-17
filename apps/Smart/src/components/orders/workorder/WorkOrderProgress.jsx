@@ -218,7 +218,7 @@ export default function WorkOrderProgress({ order, onUpdate, user, changeStatus,
         
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 relative z-10">
           <div>
-            <p className="text-white/40 text-xs font-semibold uppercase tracking-wider mb-1">Estado Actual</p>
+            <p className="text-white/40 text-xs font-semibold mb-1">Estado Actual</p>
             <div className="flex items-center gap-3">
               <h2 className="text-3xl font-bold text-white tracking-tight">{st.label}</h2>
             </div>
@@ -260,7 +260,7 @@ export default function WorkOrderProgress({ order, onUpdate, user, changeStatus,
                         <ArrowRight className="w-6 h-6 text-white" />
                     </div>
                     <div className="text-left flex-1 py-3">
-                        <p className="text-blue-300 text-[10px] font-bold uppercase tracking-wider">Siguiente Paso Sugerido</p>
+                        <p className="text-blue-300 text-[10px] font-bold">Siguiente Paso Sugerido</p>
                         <p className="text-white font-bold text-lg">{STATUS[nextStep]?.label}</p>
                     </div>
                     <div className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all -translate-x-2 group-hover:translate-x-0">
@@ -273,7 +273,7 @@ export default function WorkOrderProgress({ order, onUpdate, user, changeStatus,
 
       {/* Grid de Estados */}
       <div className="space-y-3">
-        <p className="text-white/40 text-xs font-semibold uppercase tracking-wider pl-1">Flujo de Trabajo</p>
+        <p className="text-white/40 text-xs font-semibold pl-1">Flujo de Trabajo</p>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
           {STATUS_LIST.map((key, index) => {
             const s = STATUS[key];
@@ -319,7 +319,7 @@ export default function WorkOrderProgress({ order, onUpdate, user, changeStatus,
 
         {/* Estados Finales */}
         <div className="pt-2">
-          <p className="text-white/40 text-xs font-semibold uppercase tracking-wider pl-1 mb-3">Estados Finales</p>
+          <p className="text-white/40 text-xs font-semibold pl-1 mb-3">Estados Finales</p>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <button
               onClick={() => handleStatusChange("completed")}

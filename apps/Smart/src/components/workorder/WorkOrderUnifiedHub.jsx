@@ -94,9 +94,9 @@ export default function WorkOrderUnifiedHub({
             <Sparkles className="h-5 w-5" />
           </div>
           <div className="flex-1">
-            <p className="text-[11px] font-semibold uppercase tracking-[0.28em] text-white/35">Módulo unificado</p>
+            <p className="text-[11px] font-semibold tracking-[0.28em] text-white/35">Módulo unificado</p>
             <div className="mt-1 flex flex-wrap items-center gap-3">
-              <h3 className="text-xl font-black tracking-tight text-white">{title}</h3>
+              <h3 className="text-xl font-semibold tracking-tight text-white">{title}</h3>
               {hasPhotos && <Badge className="rounded-full border-white/10 bg-white/5 px-3 py-1 text-white/70">{photoCount} fotos</Badge>}
               <Badge className="rounded-full border-white/10 bg-white/5 px-3 py-1 text-white/70">{securityCount} claves</Badge>
             </div>
@@ -119,7 +119,7 @@ export default function WorkOrderUnifiedHub({
             <div className="flex items-center gap-3">
               <Activity className="h-4 w-4 text-cyan-300" />
               <div>
-                <p className="text-sm font-black text-white">Historial</p>
+                <p className="text-sm font-semibold text-white">Historial</p>
                 <p className="text-xs text-white/45">Notas, checklist y actividad</p>
               </div>
             </div>
@@ -139,7 +139,7 @@ export default function WorkOrderUnifiedHub({
             <div className="flex items-center gap-3">
               <Camera className="h-4 w-4 text-blue-300" />
               <div>
-                <p className="text-sm font-black text-white">Fotos</p>
+                <p className="text-sm font-semibold text-white">Fotos</p>
                 <p className="text-xs text-white/45">{photoCount} cargada{photoCount === 1 ? "" : "s"}</p>
               </div>
             </div>
@@ -159,7 +159,7 @@ export default function WorkOrderUnifiedHub({
             <div className="flex items-center gap-3">
               <LockKeyhole className="h-4 w-4 text-emerald-300" />
               <div>
-                <p className="text-sm font-black text-white">Seguridad</p>
+                <p className="text-sm font-semibold text-white">Seguridad</p>
                 <p className="text-xs text-white/45">{securityCount} clave{securityCount === 1 ? "" : "s"} registrada{securityCount === 1 ? "" : "s"}</p>
               </div>
             </div>

@@ -107,7 +107,7 @@ export default function PartArrivedStage({ order, onUpdate }) {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div className="bg-white/5 backdrop-blur-xl border border-purple-500/30 rounded-[24px] overflow-hidden shadow-lg">
           <div className="p-5 border-b bg-white/5 border-purple-500/20">
-            <h3 className="text-white font-bold text-sm uppercase tracking-wider flex items-center gap-2">
+            <h3 className="text-white font-bold text-sm flex items-center gap-2">
               <MapPin className="w-4 h-4 text-purple-400" />
               Ubicación del Equipo
             </h3>
@@ -132,7 +132,7 @@ export default function PartArrivedStage({ order, onUpdate }) {
         <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-[24px] overflow-hidden shadow-lg">
           <div className="p-5 border-b border-white/10 bg-white/5">
             <div className="flex items-center justify-between">
-              <h3 className="text-white font-bold text-sm uppercase tracking-wider flex items-center gap-2">
+              <h3 className="text-white font-bold text-sm flex items-center gap-2">
                 <Truck className="w-4 h-4 text-gray-400" />
                 Detalles del Pedido
               </h3>
@@ -150,12 +150,12 @@ export default function PartArrivedStage({ order, onUpdate }) {
           </div>
           <div className="p-6 space-y-5">
             <div>
-              <p className="text-xs text-gray-500 uppercase font-bold tracking-wider mb-1">Pieza Solicitada</p>
+              <p className="text-xs text-gray-500 font-bold mb-1">Pieza Solicitada</p>
               <p className="text-white font-bold text-lg truncate" title={displayPartName}>{displayPartName}</p>
             </div>
             <div className="grid grid-cols-3 gap-6">
               <div>
-                <p className="text-xs text-gray-500 uppercase font-bold tracking-wider mb-1">Suplidor</p>
+                <p className="text-xs text-gray-500 font-bold mb-1">Suplidor</p>
                 {fallbackUrl ? (
                   <a 
                     href={fallbackUrl} 
@@ -170,11 +170,11 @@ export default function PartArrivedStage({ order, onUpdate }) {
                 )}
               </div>
               <div>
-                <p className="text-xs text-gray-500 uppercase font-bold tracking-wider mb-1">Envío</p>
+                <p className="text-xs text-gray-500 font-bold mb-1">Envío</p>
                 <p className="text-white font-medium truncate">{displayCarrier}</p>
               </div>
               <div>
-                <p className="text-xs text-gray-500 uppercase font-bold tracking-wider mb-1">Tracking</p>
+                <p className="text-xs text-gray-500 font-bold mb-1">Tracking</p>
                 {trackingUrl ? (
                   <a 
                     href={trackingUrl} 

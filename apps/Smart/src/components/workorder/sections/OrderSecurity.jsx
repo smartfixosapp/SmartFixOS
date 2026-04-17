@@ -17,7 +17,7 @@ const SecurityItem = ({ label, masked, onToggle, visibleValue }) => (
   <div className="bg-black/30 border border-white/10 rounded-lg p-3 flex justify-between items-center">
     <div>
       <div className="text-[11px] text-gray-400">{label}</div>
-      <div className="text-[13px] text-white font-mono tracking-widest mt-1">
+      <div className="text-[13px] text-white font-mono mt-1">
         {masked ? "••••••" : visibleValue || "—"}
       </div>
     </div>

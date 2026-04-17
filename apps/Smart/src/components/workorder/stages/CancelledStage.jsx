@@ -45,7 +45,7 @@ export default function CancelledStage({ order, onUpdate, compact }) {
         <div className="relative z-10 grid gap-5 xl:grid-cols-[1.2fr_0.8fr] xl:items-start">
           <div className="space-y-4">
             <div className="flex flex-wrap items-center gap-2">
-              <Badge className="rounded-full border border-red-400/30 bg-red-500/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.25em] text-red-200">
+              <Badge className="rounded-full border border-red-400/30 bg-red-500/10 px-3 py-1 text-[11px] font-semibold tracking-[0.25em] text-red-200">
                 Cancelado
               </Badge>
               <Badge variant="outline" className="rounded-full border-white/10 bg-white/5 px-3 py-1 text-xs text-white/65">
@@ -53,9 +53,9 @@ export default function CancelledStage({ order, onUpdate, compact }) {
               </Badge>
             </div>
             <div className="space-y-2">
-              <p className="text-[11px] font-semibold uppercase tracking-[0.32em] text-white/35">Estado</p>
+              <p className="text-[11px] font-semibold tracking-[0.32em] text-white/35">Estado</p>
               <div className="flex flex-wrap items-end gap-x-4 gap-y-2">
-                <h2 className="text-3xl font-black tracking-tight text-white sm:text-4xl">Orden Cancelada</h2>
+                <h2 className="text-3xl font-semibold tracking-tight text-white sm:text-4xl">Orden Cancelada</h2>
                 <div className="inline-flex items-center rounded-full border border-red-400/20 bg-red-500/10 px-3 py-1 text-sm font-semibold text-red-200">
                   {o.device_brand} {o.device_model}
                 </div>
@@ -67,14 +67,14 @@ export default function CancelledStage({ order, onUpdate, compact }) {
 
             <div className="grid gap-3 md:grid-cols-2">
               <div className="rounded-[22px] border border-white/10 bg-black/25 p-4 backdrop-blur-md">
-                <p className="mb-1 text-[11px] font-semibold uppercase tracking-[0.24em] text-white/35">Cliente</p>
+                <p className="mb-1 text-[11px] font-semibold tracking-[0.24em] text-white/35">Cliente</p>
                 <p className="truncate text-lg font-bold text-red-200">{o.customer_name || "No registrado"}</p>
               </div>
               <div className="rounded-[22px] border border-red-500/20 bg-red-500/5 p-4 backdrop-blur-md">
                 <div className="flex items-start gap-2">
                   <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-red-400" />
                   <div>
-                    <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-white/35">Motivo</p>
+                    <p className="text-[11px] font-semibold tracking-[0.24em] text-white/35">Motivo</p>
                     <p className="mt-1 text-sm font-semibold text-red-200 leading-relaxed">{cancelReason}</p>
                   </div>
                 </div>
@@ -88,8 +88,8 @@ export default function CancelledStage({ order, onUpdate, compact }) {
                 <XCircle className="h-5 w-5 text-red-300" />
               </div>
               <div className="min-w-0">
-                <p className="text-[11px] font-semibold uppercase tracking-[0.28em] text-white/35">Impacto</p>
-                <h3 className="mt-1 text-xl font-black tracking-tight text-white">
+                <p className="text-[11px] font-semibold tracking-[0.28em] text-white/35">Impacto</p>
+                <h3 className="mt-1 text-xl font-semibold tracking-tight text-white">
                   {items.length > 0 ? `${items.length} item${items.length > 1 ? "s" : ""} en la orden` : "Sin items registrados"}
                 </h3>
                 <p className="mt-2 text-sm leading-relaxed text-white/55">
@@ -107,18 +107,18 @@ export default function CancelledStage({ order, onUpdate, compact }) {
           return (
             <div className="relative z-10 mt-4 grid grid-cols-1 gap-3 sm:grid-cols-3">
               {digits && (
-                <a href={`tel:+${intl}`} className="flex items-center justify-center gap-3 h-14 rounded-2xl border border-white/15 bg-white/5 text-white hover:bg-white/10 font-bold text-sm uppercase tracking-wide transition-all active:scale-95">
+                <a href={`tel:+${intl}`} className="flex items-center justify-center gap-3 h-14 rounded-2xl border border-white/15 bg-white/5 text-white hover:bg-white/10 font-bold text-sm tracking-wide transition-all active:scale-95">
                   <PhoneCall className="w-5 h-5 text-white/60" />{phone}
                 </a>
               )}
               {digits && (
                 <a href={`https://wa.me/${intl}`} target="_blank" rel="noreferrer"
-                  className="flex items-center justify-center gap-3 h-14 rounded-2xl border border-emerald-500/30 bg-emerald-500/12 text-emerald-300 hover:bg-emerald-500/20 font-bold text-sm uppercase tracking-wide transition-all active:scale-95">
+                  className="flex items-center justify-center gap-3 h-14 rounded-2xl border border-emerald-500/30 bg-emerald-500/12 text-emerald-300 hover:bg-emerald-500/20 font-bold text-sm tracking-wide transition-all active:scale-95">
                   <MessageCircle className="w-5 h-5" />WhatsApp
                 </a>
               )}
               {email && (
-                <a href={`mailto:${email}`} className="flex items-center justify-center gap-3 h-14 rounded-2xl border border-blue-500/30 bg-blue-500/12 text-blue-300 hover:bg-blue-500/20 font-bold text-sm uppercase tracking-wide transition-all active:scale-95">
+                <a href={`mailto:${email}`} className="flex items-center justify-center gap-3 h-14 rounded-2xl border border-blue-500/30 bg-blue-500/12 text-blue-300 hover:bg-blue-500/20 font-bold text-sm tracking-wide transition-all active:scale-95">
                   <Mail className="w-5 h-5" /><span className="truncate">{email}</span>
                 </a>
               )}
@@ -134,7 +134,7 @@ export default function CancelledStage({ order, onUpdate, compact }) {
           <div className="flex items-start gap-2">
             <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-red-400" />
             <div>
-              <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-white/35">Motivo de cancelación</p>
+              <p className="text-[11px] font-semibold tracking-[0.24em] text-white/35">Motivo de cancelación</p>
               <p className="mt-1 text-sm font-semibold text-red-200 leading-relaxed">{cancelReason}</p>
             </div>
           </div>
@@ -151,8 +151,8 @@ export default function CancelledStage({ order, onUpdate, compact }) {
                 <ShoppingCart className="h-5 w-5 text-red-300" />
               </div>
               <div>
-                <p className="text-[11px] font-semibold uppercase tracking-[0.28em] text-white/35">Cotización operativa</p>
-                <h3 className="mt-1 text-2xl font-black tracking-tight text-white">Piezas y Servicios</h3>
+                <p className="text-[11px] font-semibold tracking-[0.28em] text-white/35">Cotización operativa</p>
+                <h3 className="mt-1 text-2xl font-semibold tracking-tight text-white">Piezas y Servicios</h3>
                 <p className="mt-2 max-w-2xl text-sm leading-relaxed text-white/55">
                   Conserva aquí la lista de piezas y servicios asociados a esta orden aunque esté cancelada.
                 </p>
@@ -193,15 +193,15 @@ export default function CancelledStage({ order, onUpdate, compact }) {
                       </div>
                       <div className="shrink-0 text-right">
                         <p className="text-xs text-white/40">x{qty}</p>
-                        <p className="text-sm font-black text-red-300">${lineTotal.toFixed(2)}</p>
+                        <p className="text-sm font-semibold text-red-300">${lineTotal.toFixed(2)}</p>
                       </div>
                     </div>
                   );
                 })}
               </div>
               <div className="border-t border-white/10 bg-black/35 px-5 py-3 flex justify-between items-center">
-                <span className="text-xs text-white/50 font-semibold uppercase tracking-[0.16em]">Total estimado</span>
-                <span className="text-lg font-black text-red-300">${totals.total.toFixed(2)}</span>
+                <span className="text-xs text-white/50 font-semibold tracking-[0.16em]">Total estimado</span>
+                <span className="text-lg font-semibold text-red-300">${totals.total.toFixed(2)}</span>
               </div>
             </div>
           )}

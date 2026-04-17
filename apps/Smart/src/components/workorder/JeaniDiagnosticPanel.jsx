@@ -389,7 +389,7 @@ export default function JeaniDiagnosticPanel({
             <Brain className="w-5 h-5 text-violet-400" />
           </div>
           <div>
-            <h3 className="text-white font-black text-sm">
+            <h3 className="text-white font-semibold text-sm">
               Diagnóstico IA · JEANI
             </h3>
             <p className="text-[10px] text-white/40">
@@ -411,7 +411,7 @@ export default function JeaniDiagnosticPanel({
         {/* Contexto del equipo actual */}
         {order && (
           <div className="p-3 rounded-xl bg-white/[0.03] border border-white/[0.06]">
-            <p className="text-[9px] text-white/30 font-black uppercase tracking-widest mb-1">
+            <p className="text-[9px] text-white/30 font-semibold mb-1">
               Equipo en cuestión
             </p>
             <p className="text-sm text-white font-bold">
@@ -427,7 +427,7 @@ export default function JeaniDiagnosticPanel({
 
         {/* Input de pregunta */}
         <div>
-          <label className="text-[9px] text-white/30 font-black uppercase tracking-widest mb-1 block">
+          <label className="text-[9px] text-white/30 font-semibold mb-1 block">
             ¿Qué problema reporta el cliente?
           </label>
           <textarea
@@ -443,7 +443,7 @@ export default function JeaniDiagnosticPanel({
         <button
           onClick={runDiagnosis}
           disabled={loading}
-          className="w-full py-3.5 rounded-xl bg-gradient-to-r from-violet-600 to-cyan-600 text-white font-black text-sm flex items-center justify-center gap-2 hover:opacity-90 active:scale-[0.98] transition-all disabled:opacity-50"
+          className="w-full py-3.5 rounded-xl bg-gradient-to-r from-violet-600 to-cyan-600 text-white font-semibold text-sm flex items-center justify-center gap-2 hover:opacity-90 active:scale-[0.98] transition-all disabled:opacity-50"
         >
           {loading ? (
             <>
@@ -476,7 +476,7 @@ export default function JeaniDiagnosticPanel({
               <div className="flex items-center justify-between mb-3">
                 <div className="flex items-center gap-2">
                   <CheckCircle2 className="w-4 h-4 text-violet-400" />
-                  <p className="text-xs text-violet-300 font-black uppercase tracking-widest">
+                  <p className="text-xs text-violet-300 font-semibold">
                     Resultado del diagnóstico
                   </p>
                 </div>
@@ -500,7 +500,7 @@ export default function JeaniDiagnosticPanel({
                   <button
                     onClick={handleAddNoteToWO}
                     disabled={addingNote}
-                    className="flex items-center gap-2 px-4 py-2 rounded-xl bg-emerald-500/15 border border-emerald-500/25 text-emerald-300 text-xs font-black hover:bg-emerald-500/25 transition-all disabled:opacity-40"
+                    className="flex items-center gap-2 px-4 py-2 rounded-xl bg-emerald-500/15 border border-emerald-500/25 text-emerald-300 text-xs font-semibold hover:bg-emerald-500/25 transition-all disabled:opacity-40"
                   >
                     <StickyNote className="w-3.5 h-3.5" />
                     {addingNote ? "Guardando..." : "📝 Añadir nota a la WO"}
@@ -542,7 +542,7 @@ export default function JeaniDiagnosticPanel({
                         {[o.device_brand, o.device_model].filter(Boolean).join(" ")}
                         {o.initial_problem ? ` · ${o.initial_problem.slice(0, 60)}` : ""}
                       </p>
-                      <span className={`inline-block mt-1 px-1.5 py-0.5 rounded text-[9px] font-black ${
+                      <span className={`inline-block mt-1 px-1.5 py-0.5 rounded text-[9px] font-semibold ${
                         o.status === "delivered" || o.status === "picked_up" || o.status === "completed"
                           ? "bg-emerald-500/15 text-emerald-300"
                           : o.status === "cancelled"

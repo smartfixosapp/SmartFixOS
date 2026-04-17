@@ -85,7 +85,7 @@ function DataExplorer() {
             <thead className="sticky top-0 bg-[#0d0d0f] z-10">
               <tr className="border-b border-white/[0.06]">
                 {columns.map(col => (
-                  <th key={col} className="text-left px-3 py-2 text-[10px] text-gray-600 uppercase tracking-wide font-bold whitespace-nowrap">
+                  <th key={col} className="text-left px-3 py-2 text-[10px] text-gray-600 tracking-wide font-bold whitespace-nowrap">
                     {col}
                   </th>
                 ))}
@@ -483,7 +483,7 @@ function ImpersonationTool() {
               { label: "Ventas", value: tenantData.sales.length, color: "text-green-400" },
             ].map(s => (
               <div key={s.label} className="rounded-xl border border-white/[0.06] bg-white/[0.02] p-3 text-center">
-                <p className={`text-xl font-black ${s.color}`}>{s.value}</p>
+                <p className={`text-xl font-semibold ${s.color}`}>{s.value}</p>
                 <p className="text-[10px] text-gray-600">{s.label}</p>
               </div>
             ))}
@@ -723,7 +723,7 @@ export default function ToolsView() {
     <div className="max-w-7xl mx-auto px-4 sm:px-6 py-6 space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-lg font-black text-white">Internal Tools</h2>
+          <h2 className="text-lg font-semibold text-white">Internal Tools</h2>
           <p className="text-[11px] text-gray-600">Herramientas de administracion y diagnostico</p>
         </div>
       </div>

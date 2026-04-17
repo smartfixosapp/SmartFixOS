@@ -149,23 +149,23 @@ function NPSTracking({ tenants }) {
       <div className="grid grid-cols-4 gap-3 mb-4">
         <div className="rounded-xl border border-white/[0.06] bg-white/[0.02] p-3 text-center">
           <p className="text-[10px] text-gray-600">NPS Score</p>
-          <p className={`text-2xl font-black ${scores.nps >= 50 ? "text-emerald-400" : scores.nps >= 0 ? "text-amber-400" : "text-red-400"}`}>
+          <p className={`text-2xl font-semibold ${scores.nps >= 50 ? "text-emerald-400" : scores.nps >= 0 ? "text-amber-400" : "text-red-400"}`}>
             {scores.total > 0 ? scores.nps : "--"}
           </p>
         </div>
         <div className="rounded-xl border border-emerald-500/20 bg-emerald-500/[0.03] p-3 text-center">
           <p className="text-[10px] text-gray-600">Promoters</p>
-          <p className="text-2xl font-black text-emerald-400">{scores.promoters}</p>
+          <p className="text-2xl font-semibold text-emerald-400">{scores.promoters}</p>
           <p className="text-[9px] text-gray-700">9-10</p>
         </div>
         <div className="rounded-xl border border-amber-500/20 bg-amber-500/[0.03] p-3 text-center">
           <p className="text-[10px] text-gray-600">Passives</p>
-          <p className="text-2xl font-black text-amber-400">{scores.passives}</p>
+          <p className="text-2xl font-semibold text-amber-400">{scores.passives}</p>
           <p className="text-[9px] text-gray-700">7-8</p>
         </div>
         <div className="rounded-xl border border-red-500/20 bg-red-500/[0.03] p-3 text-center">
           <p className="text-[10px] text-gray-600">Detractors</p>
-          <p className="text-2xl font-black text-red-400">{scores.detractors}</p>
+          <p className="text-2xl font-semibold text-red-400">{scores.detractors}</p>
           <p className="text-[9px] text-gray-700">0-6</p>
         </div>
       </div>
@@ -224,7 +224,7 @@ function SlackWebhook() {
       </div>
 
       <div>
-        <p className="text-[10px] text-gray-600 uppercase tracking-wide font-bold mb-1">Webhook URL</p>
+        <p className="text-[10px] text-gray-600 tracking-wide font-bold mb-1">Webhook URL</p>
         <input
           type="password"
           value={webhookUrl}
@@ -235,7 +235,7 @@ function SlackWebhook() {
       </div>
 
       <div>
-        <p className="text-[10px] text-gray-600 uppercase tracking-wide font-bold mb-2">Eventos a notificar</p>
+        <p className="text-[10px] text-gray-600 tracking-wide font-bold mb-2">Eventos a notificar</p>
         <div className="grid grid-cols-2 gap-2">
           {[
             { key: "new_tenant", label: "Nueva tienda registrada" },
@@ -270,7 +270,7 @@ export default function GrowthView() {
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 py-6 space-y-6">
       <div>
-        <h2 className="text-lg font-black text-white">Growth</h2>
+        <h2 className="text-lg font-semibold text-white">Growth</h2>
         <p className="text-[11px] text-gray-600">Comunicacion, engagement y herramientas de crecimiento</p>
       </div>
 

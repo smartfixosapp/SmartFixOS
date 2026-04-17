@@ -1128,7 +1128,7 @@ export default function Dashboard() {
               pendingShiftTasks.length > 0 ? "flex-1 min-h-0" : ""
             )}>
               <div className="flex items-center justify-between px-1 pb-2">
-                <h3 className="apple-text-footnote apple-label-secondary font-medium uppercase tracking-wide">Tareas del turno</h3>
+                <h3 className="apple-text-footnote apple-label-secondary font-medium tracking-wide">Tareas del turno</h3>
                 {pendingShiftTasks.length > 0 && (
                   <span className="min-w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-semibold text-white bg-apple-blue px-1.5 tabular-nums">
                     {pendingShiftTasks.length}
@@ -1373,8 +1373,8 @@ export default function Dashboard() {
                 <Search className="w-5 h-5 text-violet-400" />
               </div>
               <div className="flex-1">
-                <h3 className="text-base font-black text-white">Lista de Precios</h3>
-                <p className="text-[10px] text-white/30 font-bold uppercase tracking-widest">{priceListItems.length} productos</p>
+                <h3 className="text-base font-semibold text-white">Lista de Precios</h3>
+                <p className="text-[10px] text-white/30 font-bold">{priceListItems.length} productos</p>
               </div>
               <button onClick={() => setShowPriceList(false)} className="w-8 h-8 rounded-xl bg-white/5 flex items-center justify-center text-white/30 hover:text-white transition-colors">
                 <X className="w-4 h-4" />
@@ -1406,7 +1406,7 @@ export default function Dashboard() {
                       {item.sku && <p className="text-[10px] text-white/25 font-medium">SKU: {item.sku}</p>}
                     </div>
                     <div className="text-right shrink-0">
-                      <p className="text-sm font-black text-emerald-400">${(item.price || 0).toFixed(2)}</p>
+                      <p className="text-sm font-semibold text-emerald-400">${(item.price || 0).toFixed(2)}</p>
                       {typeof item.stock === 'number' && (
                         <p className={`text-[10px] font-bold ${item.stock <= 0 ? 'text-red-400' : 'text-white/25'}`}>
                           {item.stock <= 0 ? 'Agotado' : `Stock: ${item.stock}`}

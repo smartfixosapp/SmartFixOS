@@ -252,7 +252,7 @@ export default function OrderMultimedia({ order, onUpdate }) {
               <div key={group.id} className="rounded-2xl border border-white/10 bg-black/20 p-4">
                 <div className="mb-3 flex items-center justify-between">
                   <div>
-                    <p className="text-sm font-black uppercase tracking-[0.22em] text-cyan-300">{group.label}</p>
+                    <p className="text-sm font-semibold tracking-[0.22em] text-cyan-300">{group.label}</p>
                     <p className="text-xs text-white/45">{group.items.length} evidencia{group.items.length === 1 ? "" : "s"}</p>
                   </div>
                 </div>

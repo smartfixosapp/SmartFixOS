@@ -36,7 +36,7 @@ function showGlobalGateToast(message) {
         } max-w-[92vw] rounded-2xl border border-white/20 bg-white/10 backdrop-blur-2xl shadow-[0_18px_60px_rgba(0,0,0,0.45)] p-3`}
       >
         <div className="rounded-xl border border-cyan-300/25 bg-gradient-to-r from-cyan-500/20 via-blue-500/15 to-white/10 p-3">
-          <p className="text-[11px] uppercase tracking-[0.22em] text-cyan-100/80 font-semibold">Regla Global</p>
+          <p className="text-[11px] tracking-[0.22em] text-cyan-100/80 font-semibold">Regla Global</p>
           <p className="mt-1 text-sm font-semibold text-white">{message}</p>
         </div>
       </div>
@@ -315,7 +315,7 @@ export default function OrdersMobile() {
         ) : (
           Object.entries(groupedOrders).map(([dateKey, dateOrders]) => (
             <div key={dateKey} className="space-y-2">
-              <h3 className="apple-text-footnote apple-label-secondary font-medium px-1 uppercase tracking-wide">{dateKey}</h3>
+              <h3 className="apple-text-footnote apple-label-secondary font-medium px-1 tracking-wide">{dateKey}</h3>
               <div className="apple-list">
                 {dateOrders.map(order => {
                   const statusConfig = getStatusConfig(getEffectiveOrderStatus(order));

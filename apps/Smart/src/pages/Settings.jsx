@@ -981,7 +981,7 @@ export default function SettingsPage() {
                     <Globe className="w-5 h-5 text-blue-300" />
                   </div>
                   <div>
-                    <p className="text-white font-black text-base">Idioma del Sistema</p>
+                    <p className="text-white font-semibold text-base">Idioma del Sistema</p>
                     <p className="text-white/40 text-xs">Cambia el idioma de toda la interfaz</p>
                   </div>
                 </div>
@@ -1002,7 +1002,7 @@ export default function SettingsPage() {
                     >
                       <span className="text-3xl leading-none">{lang.flag}</span>
                       <div className="flex-1">
-                        <p className={`font-black text-base ${appConfig.language === lang.value ? "text-blue-300" : "text-white"}`}>{lang.label}</p>
+                        <p className={`font-semibold text-base ${appConfig.language === lang.value ? "text-blue-300" : "text-white"}`}>{lang.label}</p>
                         <p className="text-white/40 text-xs mt-0.5">{lang.sublabel}</p>
                       </div>
                       {appConfig.language === lang.value && (
@@ -1027,7 +1027,7 @@ export default function SettingsPage() {
                     <Clock className="w-5 h-5 text-indigo-300" />
                   </div>
                   <div>
-                    <p className="text-white font-black text-base">Zona Horaria</p>
+                    <p className="text-white font-semibold text-base">Zona Horaria</p>
                     <p className="text-white/40 text-xs">Afecta fechas, horas y reportes del sistema</p>
                   </div>
                 </div>
@@ -1068,7 +1068,7 @@ export default function SettingsPage() {
               <Button
                 onClick={saveAppConfig}
                 disabled={loading}
-                className="w-full bg-gradient-to-r from-blue-500 to-indigo-500 hover:from-blue-600 hover:to-indigo-600 text-white rounded-[20px] h-14 text-lg font-black shadow-[0_0_30px_rgba(59,130,246,0.4)] active:scale-95 transition-all duration-300"
+                className="w-full bg-gradient-to-r from-blue-500 to-indigo-500 hover:from-blue-600 hover:to-indigo-600 text-white rounded-[20px] h-14 text-lg font-semibold shadow-[0_0_30px_rgba(59,130,246,0.4)] active:scale-95 transition-all duration-300"
               >
                 {loading ? <Loader2 className="w-5 h-5 mr-2 animate-spin" /> : <><Check className="w-5 h-5 mr-2" />Guardar Idioma y Región</>}
               </Button>
@@ -1089,7 +1089,7 @@ export default function SettingsPage() {
                     <Camera className="w-5 h-5 text-orange-300" />
                   </div>
                   <div>
-                    <p className="text-white font-black text-base">Identidad Visual</p>
+                    <p className="text-white font-semibold text-base">Identidad Visual</p>
                     <p className="text-white/40 text-xs">Logo, nombre y slogan — aparecen en recibos, emails y el sistema</p>
                   </div>
                 </div>
@@ -1159,7 +1159,7 @@ export default function SettingsPage() {
                     <Smartphone className="w-5 h-5 text-blue-300" />
                   </div>
                   <div>
-                    <p className="text-white font-black text-base">Información de Contacto</p>
+                    <p className="text-white font-semibold text-base">Información de Contacto</p>
                     <p className="text-white/40 text-xs">Teléfono, email y dirección que aparecen en recibos y comunicaciones</p>
                   </div>
                 </div>
@@ -1193,7 +1193,7 @@ export default function SettingsPage() {
                     <Clock className="w-5 h-5 text-emerald-300" />
                   </div>
                   <div>
-                    <p className="text-white font-black text-base">Horarios de Atención</p>
+                    <p className="text-white font-semibold text-base">Horarios de Atención</p>
                     <p className="text-white/40 text-xs">Se muestran en recibos y comunicaciones con clientes</p>
                   </div>
                 </div>
@@ -1231,7 +1231,7 @@ export default function SettingsPage() {
                     <ExternalLink className="w-5 h-5 text-purple-300" />
                   </div>
                   <div>
-                    <p className="text-white font-black text-base">Redes Sociales & Links</p>
+                    <p className="text-white font-semibold text-base">Redes Sociales & Links</p>
                     <p className="text-white/40 text-xs">Se usan como botones en plantillas de email y recibos</p>
                   </div>
                 </div>
@@ -1267,7 +1267,7 @@ export default function SettingsPage() {
                     <DollarSign className="w-5 h-5 text-emerald-300" />
                   </div>
                   <div>
-                    <p className="text-white font-black text-base">Fiscal</p>
+                    <p className="text-white font-semibold text-base">Fiscal</p>
                     <p className="text-white/40 text-xs">Moneda e impuestos aplicados en órdenes y recibos</p>
                   </div>
                 </div>
@@ -1308,7 +1308,7 @@ export default function SettingsPage() {
               <Button
                 onClick={async () => { await saveBusinessBranding(); await saveAppConfig(); }}
                 disabled={loading}
-                className="w-full bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white rounded-[20px] h-14 text-lg font-black shadow-[0_0_30px_rgba(249,115,22,0.4)] active:scale-95 transition-all duration-300"
+                className="w-full bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white rounded-[20px] h-14 text-lg font-semibold shadow-[0_0_30px_rgba(249,115,22,0.4)] active:scale-95 transition-all duration-300"
               >
                 {loading ? <Loader2 className="w-5 h-5 mr-2 animate-spin" /> : <><Check className="w-5 h-5 mr-2" />Guardar Info del Negocio</>}
               </Button>
@@ -1348,7 +1348,7 @@ export default function SettingsPage() {
                     <ShieldCheck className="w-5 h-5 text-indigo-300" />
                   </div>
                   <div>
-                    <p className="text-white font-black text-base">Garantía de Reparaciones</p>
+                    <p className="text-white font-semibold text-base">Garantía de Reparaciones</p>
                     <p className="text-white/40 text-xs">Aparece en emails de entrega/recogida y en recibos de servicio</p>
                   </div>
                 </div>
@@ -1369,7 +1369,7 @@ export default function SettingsPage() {
                     <ShieldCheck className="w-5 h-5 text-emerald-300" />
                   </div>
                   <div>
-                    <p className="text-white font-black text-base">Garantía de Ventas</p>
+                    <p className="text-white font-semibold text-base">Garantía de Ventas</p>
                     <p className="text-white/40 text-xs">Aplica a productos vendidos — aparece en recibos de POS y emails de pago</p>
                   </div>
                 </div>
@@ -1390,7 +1390,7 @@ export default function SettingsPage() {
                     <FileText className="w-5 h-5 text-amber-300" />
                   </div>
                   <div>
-                    <p className="text-white font-black text-base">Condiciones de Venta</p>
+                    <p className="text-white font-semibold text-base">Condiciones de Venta</p>
                     <p className="text-white/40 text-xs">Política de devoluciones y términos generales — aparece en todos los recibos</p>
                   </div>
                 </div>
@@ -1414,7 +1414,7 @@ export default function SettingsPage() {
               <Button
                 onClick={savePolicies}
                 disabled={loading}
-                className="w-full bg-gradient-to-r from-indigo-500 to-violet-500 hover:from-indigo-600 hover:to-violet-600 text-white rounded-[20px] h-14 text-lg font-black shadow-[0_0_30px_rgba(99,102,241,0.4)] active:scale-95 transition-all duration-300"
+                className="w-full bg-gradient-to-r from-indigo-500 to-violet-500 hover:from-indigo-600 hover:to-violet-600 text-white rounded-[20px] h-14 text-lg font-semibold shadow-[0_0_30px_rgba(99,102,241,0.4)] active:scale-95 transition-all duration-300"
               >
                 {loading ? <Loader2 className="w-5 h-5 mr-2 animate-spin" /> : <><Check className="w-5 h-5 mr-2" />Guardar Políticas del Negocio</>}
               </Button>
@@ -1447,7 +1447,7 @@ export default function SettingsPage() {
                       <Fingerprint className="w-5 h-5 text-indigo-300" />
                     </div>
                     <div>
-                      <p className="text-white font-black text-base">Acceso Biométrico</p>
+                      <p className="text-white font-semibold text-base">Acceso Biométrico</p>
                       <p className="text-white/40 text-xs">Face ID, Touch ID o huella digital</p>
                     </div>
                   </div>
@@ -1524,7 +1524,7 @@ export default function SettingsPage() {
                     <CreditCard className="w-6 h-6 text-green-300" />
                   </div>
                   <div>
-                    <p className="text-white font-black text-lg">Métodos habilitados</p>
+                    <p className="text-white font-semibold text-lg">Métodos habilitados</p>
                     <p className="text-white/40 text-sm">Activa los que acepta tu negocio</p>
                   </div>
                 </div>
@@ -1550,7 +1550,7 @@ export default function SettingsPage() {
                 {/* Métodos personalizados */}
                 {customPaymentMethods.length > 0 && (
                   <div className="pt-2 space-y-2">
-                    <p className="text-white/40 text-xs font-bold uppercase tracking-wider">Personalizados</p>
+                    <p className="text-white/40 text-xs font-bold">Personalizados</p>
                     {customPaymentMethods.map((method, i) => (
                       <div key={i} className="flex items-center justify-between py-2">
                         <span className="text-white font-semibold flex items-center gap-2"><Sparkles className="w-4 h-4 text-amber-400" /> {method}</span>
@@ -1583,7 +1583,7 @@ export default function SettingsPage() {
               <Button
                 onClick={savePaymentMethods}
                 disabled={loading}
-                className="w-full bg-gradient-to-r from-green-500 to-teal-500 hover:from-green-600 hover:to-teal-600 text-white rounded-[20px] h-14 text-lg font-black shadow-[0_0_30px_rgba(16,185,129,0.4)] active:scale-95 transition-all duration-300"
+                className="w-full bg-gradient-to-r from-green-500 to-teal-500 hover:from-green-600 hover:to-teal-600 text-white rounded-[20px] h-14 text-lg font-semibold shadow-[0_0_30px_rgba(16,185,129,0.4)] active:scale-95 transition-all duration-300"
               >
                 {loading ? <Loader2 className="w-5 h-5 mr-2 animate-spin" /> : "Guardar Métodos de Pago"}
               </Button>
@@ -1617,7 +1617,7 @@ export default function SettingsPage() {
           {sectionGroups.map(group => (
             <div key={group.groupId}>
               {/* Group label estilo iOS */}
-              <p className="apple-text-footnote apple-label-secondary uppercase tracking-wide mb-2 px-4">
+              <p className="apple-text-footnote apple-label-secondary tracking-wide mb-2 px-4">
                 {group.groupLabel}
               </p>
               {/* Lista agrupada (single card con rows separadas) */}

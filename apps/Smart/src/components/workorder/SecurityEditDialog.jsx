@@ -102,8 +102,8 @@ export default function SecurityEditDialog({ open, onClose, order, onUpdate }) {
                 <Lock className="h-7 w-7" />
               </div>
               <div>
-                <p className="text-[11px] font-semibold uppercase tracking-[0.34em] text-cyan-200/55">Acceso del equipo</p>
-                <h2 className="mt-1 text-[30px] font-black tracking-[-0.03em]">Seguridad del Dispositivo</h2>
+                <p className="text-[11px] font-semibold tracking-[0.34em] text-cyan-200/55">Acceso del equipo</p>
+                <h2 className="mt-1 text-[30px] font-semibold tracking-[-0.03em]">Seguridad del Dispositivo</h2>
                 <p className="mt-1 text-sm font-medium text-white/45">
                   Registra PIN, contrasena, patron y notas sin salir del flujo de recepcion.
                 </p>
@@ -120,7 +120,7 @@ export default function SecurityEditDialog({ open, onClose, order, onUpdate }) {
                 </div>
                 <div className="flex flex-col">
                   <span>PIN Numerico</span>
-                  <span className="text-[11px] font-semibold uppercase tracking-[0.22em] text-white/30">Acceso rapido</span>
+                  <span className="text-[11px] font-semibold tracking-[0.22em] text-white/30">Acceso rapido</span>
                 </div>
               </Label>
               <Input
@@ -131,9 +131,9 @@ export default function SecurityEditDialog({ open, onClose, order, onUpdate }) {
                 value={pin}
                 onChange={(e) => setPin(e.target.value.replace(/\D/g, '').slice(0, 6))}
                 placeholder="Ingresa PIN..."
-                className="h-14 rounded-[18px] border-white/10 bg-black/35 px-5 text-2xl font-black tracking-[0.22em] text-white placeholder:text-white/18 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] focus:border-cyan-400/35 focus:ring-cyan-500/20"
+                className="h-14 rounded-[18px] border-white/10 bg-black/35 px-5 text-2xl font-semibold tracking-[0.22em] text-white placeholder:text-white/18 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] focus:border-cyan-400/35 focus:ring-cyan-500/20"
               />
-              <p className="text-xs font-medium uppercase tracking-[0.24em] text-white/35">4-6 digitos numericos</p>
+              <p className="text-xs font-medium tracking-[0.24em] text-white/35">4-6 digitos numericos</p>
             </div>
 
             {/* PASSWORD */}
@@ -144,7 +144,7 @@ export default function SecurityEditDialog({ open, onClose, order, onUpdate }) {
                 </div>
                 <div className="flex flex-col">
                   <span>Contrasena</span>
-                  <span className="text-[11px] font-semibold uppercase tracking-[0.22em] text-white/30">Clave adicional</span>
+                  <span className="text-[11px] font-semibold tracking-[0.22em] text-white/30">Clave adicional</span>
                 </div>
               </Label>
               <Input
@@ -166,7 +166,7 @@ export default function SecurityEditDialog({ open, onClose, order, onUpdate }) {
                 </div>
                 <div className="flex flex-col">
                   <span>Patron de Bloqueo</span>
-                  <span className="text-[11px] font-semibold uppercase tracking-[0.22em] text-white/30">Android</span>
+                  <span className="text-[11px] font-semibold tracking-[0.22em] text-white/30">Android</span>
                 </div>
               </Label>
 
@@ -226,14 +226,14 @@ export default function SecurityEditDialog({ open, onClose, order, onUpdate }) {
                 variant="outline"
                 onClick={onClose}
                 disabled={saving}
-                className="h-14 rounded-[20px] border border-white/15 bg-white text-lg font-black text-slate-950 shadow-[0_12px_30px_rgba(255,255,255,0.08)] hover:bg-white/90"
+                className="h-14 rounded-[20px] border border-white/15 bg-white text-lg font-semibold text-slate-950 shadow-[0_12px_30px_rgba(255,255,255,0.08)] hover:bg-white/90"
               >
                 Cancelar
               </Button>
               <Button
                 onClick={handleSave}
                 disabled={saving}
-                className="h-14 rounded-[20px] bg-[linear-gradient(90deg,#06b6d4,#7c3aed,#db2777)] text-lg font-black text-white shadow-[0_20px_45px_rgba(124,58,237,0.32)] hover:brightness-110"
+                className="h-14 rounded-[20px] bg-[linear-gradient(90deg,#06b6d4,#7c3aed,#db2777)] text-lg font-semibold text-white shadow-[0_20px_45px_rgba(124,58,237,0.32)] hover:brightness-110"
               >
                 {saving ? "Guardando..." : "Guardar"}
               </Button>

@@ -276,22 +276,22 @@ function InviteStoreModal({ open, onClose }) {
             <>
               <div className="px-5 py-4 space-y-3">
                 <div>
-                  <p className="text-[10px] text-gray-500 uppercase tracking-wide font-bold mb-1">Nombre del Negocio <span className="text-red-400">*</span></p>
+                  <p className="text-[10px] text-gray-500 tracking-wide font-bold mb-1">Nombre del Negocio <span className="text-red-400">*</span></p>
                   <input value={form.businessName} onChange={e => update("businessName", e.target.value)} placeholder="Mi Taller de Reparacion"
                     className="w-full px-3 py-2.5 rounded-xl bg-white/[0.03] border border-white/[0.07] text-[13px] text-white placeholder:text-gray-700 focus:outline-none focus:border-purple-500/40" />
                 </div>
                 <div>
-                  <p className="text-[10px] text-gray-500 uppercase tracking-wide font-bold mb-1">Email <span className="text-red-400">*</span></p>
+                  <p className="text-[10px] text-gray-500 tracking-wide font-bold mb-1">Email <span className="text-red-400">*</span></p>
                   <input type="email" value={form.email} onChange={e => update("email", e.target.value)} placeholder="dueño@taller.com"
                     className="w-full px-3 py-2.5 rounded-xl bg-white/[0.03] border border-white/[0.07] text-[13px] text-white placeholder:text-gray-700 focus:outline-none focus:border-purple-500/40" />
                 </div>
                 <div>
-                  <p className="text-[10px] text-gray-500 uppercase tracking-wide font-bold mb-1">Nombre del Contacto</p>
+                  <p className="text-[10px] text-gray-500 tracking-wide font-bold mb-1">Nombre del Contacto</p>
                   <input value={form.ownerName} onChange={e => update("ownerName", e.target.value)} placeholder="Juan Perez"
                     className="w-full px-3 py-2.5 rounded-xl bg-white/[0.03] border border-white/[0.07] text-[13px] text-white placeholder:text-gray-700 focus:outline-none focus:border-purple-500/40" />
                 </div>
                 <div>
-                  <p className="text-[10px] text-gray-500 uppercase tracking-wide font-bold mb-1">Plan</p>
+                  <p className="text-[10px] text-gray-500 tracking-wide font-bold mb-1">Plan</p>
                   <div className="flex gap-2">
                     {PLAN_OPTIONS.map(p => (
                       <button key={p.key} onClick={() => update("plan", p.key)}
@@ -502,7 +502,7 @@ export default function StoresDirectory({ onSelectTenant }) {
       {/* Header */}
       <div className="flex items-center justify-between gap-4">
         <div>
-          <h2 className="text-lg font-black text-white">Stores</h2>
+          <h2 className="text-lg font-semibold text-white">Stores</h2>
           <p className="text-[11px] text-gray-600">{filtered.length} de {tenants.length} tiendas</p>
         </div>
         <div className="flex items-center gap-2">
@@ -590,7 +590,7 @@ export default function StoresDirectory({ onSelectTenant }) {
         <div className="flex items-center gap-1.5 flex-wrap">
           {savedViews.length > 0 && (
             <>
-              <span className="text-[10px] text-gray-600 uppercase tracking-wide font-bold">Vistas:</span>
+              <span className="text-[10px] text-gray-600 tracking-wide font-bold">Vistas:</span>
               {savedViews.map(v => (
                 <div key={v.id} className="group flex items-center gap-1 px-2 py-1 rounded-lg bg-white/[0.03] border border-white/[0.06] hover:bg-white/[0.06]">
                   <button onClick={() => loadView(v)} className="text-[10px] text-gray-400 hover:text-white font-semibold">
@@ -640,7 +640,7 @@ export default function StoresDirectory({ onSelectTenant }) {
       </div>
 
       {/* Table header */}
-      <div className="hidden sm:flex items-center gap-3 px-4 py-2 text-[10px] text-gray-600 uppercase tracking-wide font-bold border-b border-white/[0.06]">
+      <div className="hidden sm:flex items-center gap-3 px-4 py-2 text-[10px] text-gray-600 tracking-wide font-bold border-b border-white/[0.06]">
         <input
           type="checkbox"
           checked={selectedIds.size > 0 && selectedIds.size === filtered.length}

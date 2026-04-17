@@ -769,10 +769,10 @@ export default function AddItemModal({
               <ShoppingCart className="h-6 w-6 sm:h-7 sm:w-7 text-white" />
             </div>
             <div>
-              <h3 className="text-xl sm:text-2xl font-black tracking-tighter uppercase text-white leading-none">Items</h3>
+              <h3 className="text-xl sm:text-2xl font-semibold text-white leading-none">Items</h3>
               <div className="flex items-center gap-2 mt-1">
                 <div className="h-1.5 w-1.5 rounded-full bg-cyan-500 animate-pulse" />
-                <p className="text-[9px] sm:text-[11px] font-black uppercase tracking-[0.2em] text-white/40">Inventario & Servicios</p>
+                <p className="text-[9px] sm:text-[11px] font-semibold tracking-[0.2em] text-white/40">Inventario & Servicios</p>
               </div>
             </div>
           </div>
@@ -808,7 +808,7 @@ export default function AddItemModal({
             >
               <ShoppingCart className="w-3.5 h-3.5" />
               Orden
-              <span className="flex h-5 w-5 items-center justify-center rounded-full bg-emerald-500 text-[10px] font-black text-white">
+              <span className="flex h-5 w-5 items-center justify-center rounded-full bg-emerald-500 text-[10px] font-semibold text-white">
                 {countInCart}
               </span>
             </button>
@@ -826,7 +826,7 @@ export default function AddItemModal({
         <div className="flex-1 min-h-0 flex flex-col sm:grid sm:grid-cols-[240px_minmax(0,1fr)]">
           {/* Sidebar - Solo Desktop */}
           <div className="hidden sm:block border-r border-white/8 bg-black/20 p-4 space-y-2 overflow-y-auto">
-            <p className="mb-3 text-[10px] font-black uppercase tracking-[0.28em] text-white/35">Categorías</p>
+            <p className="mb-3 text-[10px] font-semibold tracking-[0.28em] text-white/35">Categorías</p>
             {[
               ...(hasDeviceInfo ? [{ key: "suggestions", label: "Sugerencias", icon: Sparkles, count: categoryCounts.suggestions, color: "pink" }] : []),
               { key: "all",         label: "Todas",      icon: Package,  count: categoryCounts.all,         color: "cyan" },
@@ -891,7 +891,7 @@ export default function AddItemModal({
                       key={cat.key}
                       onClick={() => setActiveCategory(cat.key)}
                       className={cn(
-                        "flex items-center gap-1.5 px-3 py-2 rounded-[14px] text-[10px] font-black uppercase tracking-wide border whitespace-nowrap transition-all",
+                        "flex items-center gap-1.5 px-3 py-2 rounded-[14px] text-[10px] font-semibold tracking-wide border whitespace-nowrap transition-all",
                         isActive ? colorMap : "text-white/30 border-white/5 bg-white/[0.02]"
                       )}
                     >
@@ -921,7 +921,7 @@ export default function AddItemModal({
                 <div className="mb-4 flex items-center gap-2 rounded-2xl border border-violet-500/20 bg-violet-500/8 px-4 py-2.5">
                   <Sparkles className="w-3.5 h-3.5 text-violet-400 shrink-0" />
                   <div>
-                    <p className="text-[11px] font-black uppercase tracking-wider text-violet-300">
+                    <p className="text-[11px] font-semibold text-violet-300">
                       Piezas para {[effectiveDeviceBrand, effectiveDeviceModel].filter(Boolean).join(" ") || effectiveDeviceType}
                     </p>
                     <p className="text-[9px] text-white/25 mt-0.5">JENAI ordena por relevancia · powered by SmartFixOS</p>
@@ -932,13 +932,13 @@ export default function AddItemModal({
                 <div className="h-52 grid place-items-center">
                   <div className="text-center space-y-4">
                     <div className="w-10 h-10 mx-auto rounded-full border-[3px] border-cyan-500/20 border-t-cyan-400 animate-spin shadow-lg shadow-cyan-500/5" />
-                    <p className="text-[10px] font-black uppercase tracking-[0.2em] text-cyan-400/40">Cargando catálogo...</p>
+                    <p className="text-[10px] font-semibold tracking-[0.2em] text-cyan-400/40">Cargando catálogo...</p>
                   </div>
                 </div>
               ) : filteredItems.length === 0 ? (
                 <div className="h-64 flex flex-col items-center justify-center opacity-30 text-center px-8">
                   <ShoppingCart className="w-12 h-12 mb-4 text-white/50" />
-                  <p className="text-[10px] font-black uppercase tracking-[0.15em] text-white">No se encontraron items para esta búsqueda</p>
+                  <p className="text-[10px] font-semibold tracking-[0.15em] text-white">No se encontraron items para esta búsqueda</p>
                 </div>
               ) : viewMode === "grid" ? (
                 <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
@@ -958,22 +958,22 @@ export default function AddItemModal({
                       >
                         <div className="absolute -right-12 -top-12 w-32 h-32 bg-cyan-500/[0.03] rounded-full blur-3xl group-hover:bg-cyan-500/[0.08] transition-colors" />
                         <div className="flex items-start justify-between gap-3 mb-2">
-                          <p className="font-black text-white leading-tight text-[13px] sm:text-sm line-clamp-2 uppercase tracking-tight">{item.name}</p>
-                          <span className={`shrink-0 rounded-full border px-2.5 py-1 text-[9px] font-black uppercase tracking-[0.1em] ${typeCls} shadow-sm`}>
+                          <p className="font-semibold text-white leading-tight text-[13px] sm:text-sm line-clamp-2 tracking-tight">{item.name}</p>
+                          <span className={`shrink-0 rounded-full border px-2.5 py-1 text-[9px] font-semibold tracking-[0.1em] ${typeCls} shadow-sm`}>
                             {typeLabel}
                           </span>
                         </div>
-                        <p className="text-[10px] font-black uppercase tracking-wider text-white/50 mb-1">{item.sku || "Sin código"}</p>
+                        <p className="text-[10px] font-semibold text-white/50 mb-1">{item.sku || "Sin código"}</p>
                         {item.stock > 0 && (
-                          <p className={`text-[10px] font-black uppercase tracking-widest ${item.stock <= 2 ? "text-red-400/70" : "text-amber-500/40"}`}>
+                          <p className={`text-[10px] font-semibold ${item.stock <= 2 ? "text-red-400/70" : "text-amber-500/40"}`}>
                             {item.stock <= 2 ? `⚠️ Stock bajo: ${item.stock}` : `Stock: ${item.stock}`}
                           </p>
                         )}
                         {item.stock === 0 && !isService(item) && (
-                          <p className="text-[10px] font-black uppercase tracking-widest text-red-400/70">Sin stock</p>
+                          <p className="text-[10px] font-semibold text-red-400/70">Sin stock</p>
                         )}
                         <div className="mt-5 flex items-center justify-between pt-4 border-t border-white/[0.04]">
-                          <p className="text-2xl font-black text-white tracking-tighter">${toNum(item.price).toFixed(2)}</p>
+                          <p className="text-2xl font-semibold text-white">${toNum(item.price).toFixed(2)}</p>
                           <button
                             onClick={() => addToCart(item)}
                             className="flex h-11 w-11 items-center justify-center rounded-[18px] border border-cyan-500/30 bg-cyan-500/10 text-cyan-400 hover:bg-cyan-500/25 hover:border-cyan-400/50 hover:shadow-[0_8px_20px_rgba(34,211,238,0.2)] transition-all active:scale-90"
@@ -997,7 +997,7 @@ export default function AddItemModal({
                         <p className="text-sm font-semibold text-white truncate">{item.name}</p>
                         <p className="text-xs text-white/35">{item.sku || "Sin código"}</p>
                       </div>
-                      <p className="shrink-0 text-sm font-black text-emerald-300">${toNum(item.price).toFixed(2)}</p>
+                      <p className="shrink-0 text-sm font-semibold text-emerald-300">${toNum(item.price).toFixed(2)}</p>
                     </button>
                   ))}
                 </div>
@@ -1014,13 +1014,13 @@ export default function AddItemModal({
               {/* Cart header */}
               <div className="flex items-center justify-between px-6 pt-5 pb-3 lg:px-8 lg:pt-6 lg:pb-4 lg:border-b lg:border-white/[0.06] lg:shrink-0">
                 <div>
-                  <p className="text-[10px] font-black uppercase tracking-[0.25em] text-white/40 lg:text-xs">
+                  <p className="text-[10px] font-semibold tracking-[0.25em] text-white/40 lg:text-xs">
                     Items en Orden <span className="text-emerald-400 ml-1">({countInCart})</span>
                   </p>
                   <p className="hidden lg:block text-[10px] text-white/30 mt-1">Ajusta cantidades, descuentos e IVU antes de aplicar</p>
                 </div>
                 <div className="flex items-center gap-4 lg:gap-6">
-                  <p className="text-2xl font-black text-emerald-400 tracking-tighter shadow-sm lg:text-4xl">${totals.total.toFixed(2)}</p>
+                  <p className="text-2xl font-semibold text-emerald-400 shadow-sm lg:text-4xl">${totals.total.toFixed(2)}</p>
                   <button
                     onClick={() => setShowCart(false)}
                     className="flex h-6 w-6 lg:h-9 lg:w-9 items-center justify-center rounded-lg bg-white/8 hover:bg-white/15 text-white/60 hover:text-white transition"
@@ -1110,14 +1110,14 @@ export default function AddItemModal({
 
                   {/* Totals & Save */}
                   <div className="px-6 py-5 bg-white/[0.02] border-t border-white/[0.05] space-y-4 mt-2 lg:px-8 lg:py-6 lg:mt-0 lg:shrink-0">
-                    <div className="flex justify-between items-center text-[10px] font-black uppercase tracking-widest text-white/30 lg:text-sm">
+                    <div className="flex justify-between items-center text-[10px] font-semibold text-white/30 lg:text-sm">
                       <span>Total Parcial (IVU Inc.)</span>
                       <span className="lg:text-2xl lg:text-emerald-400 lg:normal-case lg:tracking-normal">${totals.total.toFixed(2)}</span>
                     </div>
                     <Button
                       onClick={saveToOrder}
                       disabled={saving}
-                      className="w-full h-12 sm:h-16 rounded-[20px] bg-emerald-600 hover:bg-emerald-500 shadow-xl shadow-emerald-600/15 text-white font-black uppercase tracking-widest text-[11px] transition-all active:scale-[0.98] border-t border-white/10"
+                      className="w-full h-12 sm:h-16 rounded-[20px] bg-emerald-600 hover:bg-emerald-500 shadow-xl shadow-emerald-600/15 text-white font-semibold text-[11px] transition-all active:scale-[0.98] border-t border-white/10"
                     >
                       {saving ? <Loader2 className="w-5 h-5 animate-spin mr-2" /> : <ShoppingCart className="w-5 h-5 mr-2" />}
                       <span className="hidden sm:inline">Aplicar a la Orden</span>
@@ -1127,14 +1127,14 @@ export default function AddItemModal({
                       <div className="grid grid-cols-2 gap-2">
                         <button
                           onClick={() => { onClose?.(); onPaymentClick("deposit"); }}
-                          className="h-11 rounded-2xl border border-white/15 bg-white/5 text-white/80 hover:bg-white/10 font-black text-sm uppercase tracking-wide transition-all active:scale-95 flex items-center justify-center gap-2"
+                          className="h-11 rounded-2xl border border-white/15 bg-white/5 text-white/80 hover:bg-white/10 font-semibold text-sm tracking-wide transition-all active:scale-95 flex items-center justify-center gap-2"
                         >
                           <Wallet className="w-4 h-4 flex-shrink-0" />
                           Depósito
                         </button>
                         <button
                           onClick={() => { onClose?.(); onPaymentClick("full"); }}
-                          className="h-11 rounded-2xl border border-emerald-500/30 bg-emerald-500/12 text-emerald-300 hover:bg-emerald-500/20 font-black text-sm uppercase tracking-wide transition-all active:scale-95 flex items-center justify-center gap-2"
+                          className="h-11 rounded-2xl border border-emerald-500/30 bg-emerald-500/12 text-emerald-300 hover:bg-emerald-500/20 font-semibold text-sm tracking-wide transition-all active:scale-95 flex items-center justify-center gap-2"
                         >
                           <DollarSign className="w-4 h-4 flex-shrink-0" />
                           Cobrar

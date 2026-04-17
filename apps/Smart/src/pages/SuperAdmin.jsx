@@ -1746,7 +1746,7 @@ export default function SuperAdmin() {
                     Se envió el email de activación a <span className="text-white font-medium">{inviteForm.email}</span>
                   </p>
                   <div className="bg-white/[0.04] border border-white/[0.07] rounded-xl p-4 text-left space-y-2">
-                    <p className="text-xs text-gray-500 font-medium uppercase tracking-wide">Resumen</p>
+                    <p className="text-xs text-gray-500 font-medium tracking-wide">Resumen</p>
                     <p className="text-sm text-white"><span className="text-gray-500">Negocio:</span> {inviteResult.tenantName}</p>
                     <p className="text-sm text-white"><span className="text-gray-500">Trial hasta:</span> {inviteResult.trialEndDate}</p>
                   </div>
@@ -1869,7 +1869,7 @@ export default function SuperAdmin() {
                   <Zap className="w-5 h-5 text-red-400" />
                 </div>
                 <div>
-                  <h2 className="text-base font-black text-white">☢️ Borrar TODO</h2>
+                  <h2 className="text-base font-semibold text-white">☢️ Borrar TODO</h2>
                   <p className="text-xs text-red-300/80">Auth + usuarios + tenant + órdenes + datos completos</p>
                 </div>
                 <button onClick={() => setNuclearModal(false)} disabled={nuclearLoading} className="ml-auto text-gray-600 hover:text-white transition-colors disabled:opacity-40">
@@ -1913,7 +1913,7 @@ export default function SuperAdmin() {
                 <button
                   onClick={doNuclearDelete}
                   disabled={nuclearLoading || !nuclearEmail.trim()}
-                  className="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl bg-red-600 hover:bg-red-500 text-white text-sm font-black transition-all disabled:opacity-40 shadow-lg shadow-red-900/30"
+                  className="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl bg-red-600 hover:bg-red-500 text-white text-sm font-semibold transition-all disabled:opacity-40 shadow-lg shadow-red-900/30"
                 >
                   {nuclearLoading
                     ? <><RefreshCw className="w-4 h-4 animate-spin" /> Eliminando todo…</>
@@ -1955,7 +1955,7 @@ export default function SuperAdmin() {
                   <Database className="w-4 h-4 text-cyan-400" />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <h2 className="text-sm font-black text-white truncate">{dataModal.name || "Sin nombre"}</h2>
+                  <h2 className="text-sm font-semibold text-white truncate">{dataModal.name || "Sin nombre"}</h2>
                   <p className="text-xs text-cyan-400/70">Panel de soporte — ver y gestionar datos</p>
                 </div>
                 <button
@@ -1987,8 +1987,8 @@ export default function SuperAdmin() {
                       { label: "Empleados",  value: tenantData.employees.length,    color: "text-purple-400" },
                     ].map((m, i) => (
                       <div key={m.label} className={`p-3 text-center ${i < 3 ? "border-r border-white/[0.06]" : ""}`}>
-                        <p className="text-[10px] text-gray-600 uppercase tracking-wider">{m.label}</p>
-                        <p className={`text-xl font-black ${m.color}`}>{m.value}</p>
+                        <p className="text-[10px] text-gray-600">{m.label}</p>
+                        <p className={`text-xl font-semibold ${m.color}`}>{m.value}</p>
                       </div>
                     ))}
                   </div>
@@ -2080,7 +2080,7 @@ export default function SuperAdmin() {
                           ? <p className="text-xs text-gray-600 py-4 text-center">Sin transacciones registradas</p>
                           : tenantData.transactions.map(tx => (
                             <div key={tx.id} className="flex items-center gap-3 bg-white/[0.025] hover:bg-white/[0.04] rounded-xl px-3 py-2.5 text-xs transition-colors">
-                              <span className={`flex-shrink-0 w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-black ${tx.type === "revenue" ? "bg-emerald-500/20 text-emerald-400" : "bg-red-500/20 text-red-400"}`}>
+                              <span className={`flex-shrink-0 w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-semibold ${tx.type === "revenue" ? "bg-emerald-500/20 text-emerald-400" : "bg-red-500/20 text-red-400"}`}>
                                 {tx.type === "revenue" ? "+" : "-"}
                               </span>
                               <div className="flex-1 min-w-0">
@@ -2402,7 +2402,7 @@ export default function SuperAdmin() {
                                         <s.icon className={`w-3.5 h-3.5 ${s.color} flex-shrink-0`} />
                                         <div>
                                           <p className="text-[10px] text-gray-500">{s.label}</p>
-                                          <p className={`text-base font-black ${s.color}`}>{s.value}</p>
+                                          <p className={`text-base font-semibold ${s.color}`}>{s.value}</p>
                                         </div>
                                       </div>
                                     ))}
@@ -2545,7 +2545,7 @@ export default function SuperAdmin() {
                                   }}
                                   disabled={!!busy}
                                   title="Borrar TODO: Auth + tenant + todos los datos"
-                                  className="flex items-center gap-1.5 text-xs px-3 py-2 rounded-xl bg-red-500/10 border border-red-500/40 text-red-300 hover:bg-red-500/20 font-black transition-all disabled:opacity-50"
+                                  className="flex items-center gap-1.5 text-xs px-3 py-2 rounded-xl bg-red-500/10 border border-red-500/40 text-red-300 hover:bg-red-500/20 font-semibold transition-all disabled:opacity-50"
                                 >
                                   <Zap className="w-3.5 h-3.5" /> ☢️ Borrar TODO
                                 </button>
@@ -2555,7 +2555,7 @@ export default function SuperAdmin() {
 
                               {/* Plan selector */}
                               <div>
-                                <p className="text-[11px] text-gray-500 font-semibold uppercase tracking-widest mb-2">Cambiar Plan</p>
+                                <p className="text-[11px] text-gray-500 font-semibold mb-2">Cambiar Plan</p>
                                 <div className="flex flex-wrap gap-2">
                                   {[
                                     ...PLAN_OPTIONS,
@@ -2584,7 +2584,7 @@ export default function SuperAdmin() {
 
                               {/* Users list */}
                               <div>
-                                <p className="text-[11px] text-gray-500 font-semibold uppercase tracking-widest mb-2 flex items-center gap-1.5">
+                                <p className="text-[11px] text-gray-500 font-semibold mb-2 flex items-center gap-1.5">
                                   <Users className="w-3.5 h-3.5" /> Usuarios de esta tienda
                                   {Array.isArray(tenantUsers[tenant.id]) && (
                                     <span className="text-[10px] text-gray-600 normal-case tracking-normal">
@@ -2718,11 +2718,11 @@ export default function SuperAdmin() {
               </h3>
               <div className="space-y-4">
                 <div>
-                  <p className="text-4xl font-black text-white">${metrics.mrr}</p>
+                  <p className="text-4xl font-semibold text-white">${metrics.mrr}</p>
                   <p className="text-xs text-gray-500 mt-1">MRR real ({metrics.paying} tiendas pagando)</p>
                 </div>
                 <div>
-                  <p className="text-2xl font-black text-emerald-400">${metrics.mrr * 12}</p>
+                  <p className="text-2xl font-semibold text-emerald-400">${metrics.mrr * 12}</p>
                   <p className="text-xs text-gray-500 mt-1">ARR estimado</p>
                 </div>
               </div>
@@ -2847,9 +2847,9 @@ export default function SuperAdmin() {
                   <div key={k.label} className={`rounded-2xl border ${k.border} ${k.bg} p-4`}>
                     <div className="flex items-center gap-2 mb-2">
                       <span className={`w-2 h-2 rounded-full flex-shrink-0 ${k.dot}`} />
-                      <span className={`text-[11px] font-bold uppercase tracking-wide ${k.color}`}>{k.label}</span>
+                      <span className={`text-[11px] font-bold tracking-wide ${k.color}`}>{k.label}</span>
                     </div>
-                    <p className="text-3xl font-black text-white">{k.value}</p>
+                    <p className="text-3xl font-semibold text-white">{k.value}</p>
                     <p className="text-xs text-gray-600 mt-1">tiendas</p>
                   </div>
                 ))}
@@ -3012,7 +3012,7 @@ export default function SuperAdmin() {
           <div className="max-w-4xl mx-auto px-4 sm:px-6 py-6">
             <div className="flex items-center justify-between mb-5">
               <div>
-                <h2 className="text-white font-black text-lg">Feedback de tiendas</h2>
+                <h2 className="text-white font-semibold text-lg">Feedback de tiendas</h2>
                 <p className="text-gray-500 text-xs mt-0.5">{feedbackList.length} entradas</p>
               </div>
               <button
@@ -3101,7 +3101,7 @@ export default function SuperAdmin() {
             {/* Header */}
             <div className="flex items-center justify-between mb-5">
               <div>
-                <h2 className="text-white font-black text-lg flex items-center gap-2">
+                <h2 className="text-white font-semibold text-lg flex items-center gap-2">
                   <HardDrive className="w-5 h-5 text-cyan-400" />
                   Storage por Tienda
                 </h2>
@@ -3185,7 +3185,7 @@ export default function SuperAdmin() {
                     {/* Archivos sin tenant (raíz del bucket - legacy) */}
                     {Object.keys(storageStats).filter(k => !tenants.some(t => t.id === k)).length > 0 && (
                       <div className="col-span-full mt-2">
-                        <p className="text-xs text-gray-600 mb-2 font-semibold uppercase tracking-wider">
+                        <p className="text-xs text-gray-600 mb-2 font-semibold">
                           Carpetas no asociadas a tienda (archivos legacy)
                         </p>
                         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
@@ -3230,7 +3230,7 @@ export default function SuperAdmin() {
                     {/* Sub-carpetas (categorías) */}
                     {storageFolders.length > 0 && (
                       <div className="mb-4">
-                        <p className="text-xs text-gray-600 uppercase tracking-wider font-semibold mb-2">Carpetas</p>
+                        <p className="text-xs text-gray-600 font-semibold mb-2">Carpetas</p>
                         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
                           {storageFolders.map(folder => (
                             <button
@@ -3254,7 +3254,7 @@ export default function SuperAdmin() {
                       </div>
                     ) : storageFiles.length > 0 ? (
                       <>
-                        <p className="text-xs text-gray-600 uppercase tracking-wider font-semibold mb-2">
+                        <p className="text-xs text-gray-600 font-semibold mb-2">
                           Archivos ({storageFiles.length})
                         </p>
                         <div className="space-y-1.5">
@@ -3341,7 +3341,7 @@ export default function SuperAdmin() {
             {/* Header */}
             <div className="flex items-center justify-between">
               <div>
-                <h2 className="text-white font-black text-lg flex items-center gap-2">
+                <h2 className="text-white font-semibold text-lg flex items-center gap-2">
                   <CreditCard className="w-5 h-5 text-emerald-400" />
                   Métodos de Pago
                 </h2>
