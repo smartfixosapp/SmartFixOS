@@ -1500,18 +1500,18 @@ export default function UsersManagement() {
   }
 
   return (
-    <div className="min-h-screen bg-black/95 py-4 sm:py-6 lg:py-8 pb-24">
+    <div className="min-h-screen apple-surface apple-type py-4 sm:py-6 lg:py-8 pb-24">
       <div className="app-container space-y-6">
-        
+
         {/* Header Apple Style */}
-        <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-[32px] p-6 shadow-2xl flex justify-between items-center mb-8">
+        <div className="apple-card rounded-apple-xl p-6 flex justify-between items-center mb-8">
           <div className="flex items-center gap-4">
-            <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center shadow-lg shadow-blue-500/20">
-              <Users className="w-7 h-7 text-white" />
+            <div className="w-14 h-14 rounded-apple-md bg-apple-blue/15 flex items-center justify-center">
+              <Users className="w-7 h-7 text-apple-blue" />
             </div>
             <div>
-              <h1 className="text-3xl font-bold text-white tracking-tight">Gestión de Usuarios</h1>
-              <p className="text-base text-gray-400 font-medium">Administra el equipo y sus roles</p>
+              <h1 className="apple-text-large-title apple-label-primary">Gestión de Usuarios</h1>
+              <p className="apple-text-subheadline apple-label-secondary">Administra el equipo y sus roles</p>
             </div>
           </div>
           <Button
@@ -1519,14 +1519,14 @@ export default function UsersManagement() {
             size="icon"
             variant="ghost"
             aria-label="Volver a la página anterior"
-            className="w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 text-white"
+            className="apple-btn apple-btn-plain w-10 h-10 rounded-full"
           >
             <X className="w-5 h-5" />
           </Button>
         </div>
 
         {/* ── Tab navigation ── */}
-        <div className="flex gap-1 bg-white/[0.04] border border-white/[0.07] rounded-2xl p-1 mb-6">
+        <div className="flex gap-1 bg-gray-sys6 dark:bg-gray-sys5 rounded-apple-lg p-1 mb-6">
           {[
             { id: "equipo", label: "Equipo", icon: Users },
             { id: "nomina", label: "Nómina", icon: DollarSign },
@@ -1535,10 +1535,10 @@ export default function UsersManagement() {
             <button
               key={t.id}
               onClick={() => setMainTab(t.id)}
-              className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-bold transition-all ${
+              className={`apple-press flex-1 flex items-center justify-center gap-2 py-2.5 rounded-apple-md apple-text-subheadline transition-all ${
                 mainTab === t.id
-                  ? "bg-white/[0.1] text-white shadow-sm"
-                  : "text-white/35 hover:text-white/60"
+                  ? "apple-surface-elevated apple-label-primary shadow-sm"
+                  : "apple-label-tertiary hover:apple-label-secondary"
               }`}
             >
               <t.icon className="w-4 h-4" />
@@ -1553,17 +1553,17 @@ export default function UsersManagement() {
             {/* Barra de búsqueda y acciones */}
             <div className="flex flex-col sm:flex-row gap-4 items-center justify-between mb-6">
               <div className="relative flex-1 w-full">
-                <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 apple-label-tertiary" />
                 <Input
                   placeholder="Buscar por nombre, email, código..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-12 h-12 bg-white/5 border-white/10 text-white"
+                  className="apple-input pl-12 h-12"
                 />
               </div>
               <Button
                 onClick={() => setShowCreateModal(true)}
-                className="w-full sm:w-auto h-12 bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-700 hover:to-blue-700 shadow-lg"
+                className="apple-btn apple-btn-primary apple-btn-lg w-full sm:w-auto"
               >
                 <UserPlus className="w-5 h-5 mr-2" />
                 Crear Empleado
@@ -1616,21 +1616,21 @@ export default function UsersManagement() {
           <div className="space-y-4">
             {/* KPI cards */}
             <div className="grid grid-cols-3 gap-3 mb-2">
-              <div className="bg-white/[0.04] border border-white/[0.07] rounded-2xl p-4 text-center">
-                <p className="text-white font-black text-2xl">{users.length}</p>
-                <p className="text-white/35 text-[11px] font-bold uppercase tracking-wide mt-0.5">Empleados</p>
+              <div className="apple-card rounded-apple-lg p-4 text-center">
+                <p className="apple-text-title2 apple-label-primary tabular-nums">{users.length}</p>
+                <p className="apple-text-caption1 apple-label-tertiary mt-0.5">Empleados</p>
               </div>
-              <div className="bg-white/[0.04] border border-white/[0.07] rounded-2xl p-4 text-center">
-                <p className="text-white font-black text-2xl">{totalWeekHours.toFixed(1)}</p>
-                <p className="text-white/35 text-[11px] font-bold uppercase tracking-wide mt-0.5">Hrs semana</p>
+              <div className="apple-card rounded-apple-lg p-4 text-center">
+                <p className="apple-text-title2 apple-label-primary tabular-nums">{totalWeekHours.toFixed(1)}</p>
+                <p className="apple-text-caption1 apple-label-tertiary mt-0.5">Hrs semana</p>
               </div>
-              <div className="bg-emerald-500/[0.08] border border-emerald-500/20 rounded-2xl p-4 text-center">
-                <p className="text-emerald-400 font-black text-2xl">${totalWeekPay.toFixed(0)}</p>
-                <p className="text-white/35 text-[11px] font-bold uppercase tracking-wide mt-0.5">A pagar</p>
+              <div className="bg-apple-green/12 rounded-apple-lg p-4 text-center">
+                <p className="apple-text-title2 text-apple-green tabular-nums">${totalWeekPay.toFixed(0)}</p>
+                <p className="apple-text-caption1 apple-label-tertiary mt-0.5">A pagar</p>
               </div>
             </div>
 
-            <p className="text-white/25 text-xs font-bold uppercase tracking-widest px-1">
+            <p className="apple-text-caption1 apple-label-tertiary px-1">
               Horas completadas — últimos 7 días
             </p>
 
@@ -1684,12 +1684,12 @@ export default function UsersManagement() {
           <div className="space-y-3">
             {/* Date header */}
             <div className="text-center mb-4">
-              <p className="text-white/25 text-xs font-black uppercase tracking-widest">
+              <p className="apple-text-footnote apple-label-tertiary tabular-nums">
                 {new Date().toLocaleDateString("es-PR", {
                   weekday: "long", day: "numeric", month: "long"
-                }).toUpperCase()}
+                })}
               </p>
-              <p className="text-white/50 text-sm font-bold mt-1">
+              <p className="apple-text-subheadline apple-label-secondary mt-1">
                 Registro de entrada y salida
               </p>
             </div>

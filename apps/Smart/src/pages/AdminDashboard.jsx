@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { TrendingUp, Users, Building2, CreditCard, AlertCircle, Activity, Clock, Wifi, WifiOff, ArrowUpDown } from "lucide-react";
 
-const COLORS = ["#00A8E8", "#10B981", "#A8D700"];
+const COLORS = ["#007AFF", "#34C759", "#AF52DE"];
 
 function timeAgo(dateStr) {
   if (!dateStr) return null;
@@ -25,13 +25,13 @@ function timeAgo(dateStr) {
 }
 
 function activityColor(dateStr) {
-  if (!dateStr) return { dot: "bg-gray-600", badge: "bg-gray-500/20 text-gray-400", label: "Nunca" };
+  if (!dateStr) return { dot: "bg-gray-400 dark:bg-gray-500", badge: "bg-apple-gray/15 apple-label-secondary", label: "Nunca" };
   const days = (Date.now() - new Date(dateStr).getTime()) / 86400000;
-  if (days < 1)  return { dot: "bg-emerald-400 animate-pulse", badge: "bg-emerald-400/20 text-emerald-300", label: "Hoy" };
-  if (days < 3)  return { dot: "bg-lime-400",   badge: "bg-lime-400/20 text-lime-300",   label: "Reciente" };
-  if (days < 7)  return { dot: "bg-amber-400",  badge: "bg-amber-400/20 text-amber-300", label: "Esta semana" };
-  if (days < 30) return { dot: "bg-orange-400", badge: "bg-orange-400/20 text-orange-300",label: "Este mes" };
-  return { dot: "bg-red-500", badge: "bg-red-500/20 text-red-400", label: "Inactivo" };
+  if (days < 1)  return { dot: "bg-apple-green animate-pulse", badge: "bg-apple-green/15 text-apple-green", label: "Hoy" };
+  if (days < 3)  return { dot: "bg-apple-green",   badge: "bg-apple-green/12 text-apple-green",   label: "Reciente" };
+  if (days < 7)  return { dot: "bg-apple-yellow",  badge: "bg-apple-yellow/15 text-apple-yellow", label: "Esta semana" };
+  if (days < 30) return { dot: "bg-apple-orange", badge: "bg-apple-orange/15 text-apple-orange",label: "Este mes" };
+  return { dot: "bg-apple-red", badge: "bg-apple-red/15 text-apple-red", label: "Inactivo" };
 }
 
 export default function AdminDashboard() {
@@ -136,65 +136,73 @@ export default function AdminDashboard() {
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-black py-6">
+    <div className="min-h-screen apple-surface apple-type py-6">
       <div className="app-container">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-4xl font-bold text-white mb-2">Panel Administrativo</h1>
-          <p className="text-slate-400">Resumen de métricas clave del sistema SaaS</p>
+          <h1 className="apple-text-large-title apple-label-primary mb-2">Panel Administrativo</h1>
+          <p className="apple-text-subheadline apple-label-secondary">Resumen de métricas clave del sistema SaaS</p>
         </div>
 
         {/* KPI Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          <Card className="bg-slate-800/50 border-slate-700">
+          <Card className="apple-card border-0">
             <CardHeader className="pb-3">
-              <CardTitle className="text-sm text-slate-300 flex items-center gap-2">
-                <Building2 className="w-4 h-4 text-cyan-400" />
+              <CardTitle className="apple-text-subheadline apple-label-secondary flex items-center gap-2">
+                <span className="w-7 h-7 rounded-apple-sm bg-apple-blue/15 flex items-center justify-center">
+                  <Building2 className="w-4 h-4 text-apple-blue" />
+                </span>
                 Tiendas Activas
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-3xl font-bold text-white">{metrics.activeTenants}</div>
-              <p className="text-xs text-slate-400 mt-2">De {metrics.totalUsers} totales</p>
+              <div className="apple-text-title1 apple-label-primary tabular-nums">{metrics.activeTenants}</div>
+              <p className="apple-text-caption1 apple-label-tertiary mt-2">De <span className="tabular-nums">{metrics.totalUsers}</span> totales</p>
             </CardContent>
           </Card>
 
-          <Card className="bg-slate-800/50 border-slate-700">
+          <Card className="apple-card border-0">
             <CardHeader className="pb-3">
-              <CardTitle className="text-sm text-slate-300 flex items-center gap-2">
-                <AlertCircle className="w-4 h-4 text-amber-400" />
+              <CardTitle className="apple-text-subheadline apple-label-secondary flex items-center gap-2">
+                <span className="w-7 h-7 rounded-apple-sm bg-apple-orange/15 flex items-center justify-center">
+                  <AlertCircle className="w-4 h-4 text-apple-orange" />
+                </span>
                 En Trial
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-3xl font-bold text-white">{metrics.trialTenants}</div>
-              <p className="text-xs text-slate-400 mt-2">Primeros 15 días</p>
+              <div className="apple-text-title1 apple-label-primary tabular-nums">{metrics.trialTenants}</div>
+              <p className="apple-text-caption1 apple-label-tertiary mt-2">Primeros 15 días</p>
             </CardContent>
           </Card>
 
-          <Card className="bg-slate-800/50 border-slate-700">
+          <Card className="apple-card border-0">
             <CardHeader className="pb-3">
-              <CardTitle className="text-sm text-slate-300 flex items-center gap-2">
-                <CreditCard className="w-4 h-4 text-emerald-400" />
+              <CardTitle className="apple-text-subheadline apple-label-secondary flex items-center gap-2">
+                <span className="w-7 h-7 rounded-apple-sm bg-apple-green/15 flex items-center justify-center">
+                  <CreditCard className="w-4 h-4 text-apple-green" />
+                </span>
                 MRR
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-3xl font-bold text-white">${metrics.monthlyRecurring.toFixed(0)}</div>
-              <p className="text-xs text-slate-400 mt-2">Ingresos recurrentes mensuales</p>
+              <div className="apple-text-title1 apple-label-primary tabular-nums">${metrics.monthlyRecurring.toFixed(0)}</div>
+              <p className="apple-text-caption1 apple-label-tertiary mt-2">Ingresos recurrentes mensuales</p>
             </CardContent>
           </Card>
 
-          <Card className="bg-slate-800/50 border-slate-700">
+          <Card className="apple-card border-0">
             <CardHeader className="pb-3">
-              <CardTitle className="text-sm text-slate-300 flex items-center gap-2">
-                <TrendingUp className="w-4 h-4 text-lime-400" />
+              <CardTitle className="apple-text-subheadline apple-label-secondary flex items-center gap-2">
+                <span className="w-7 h-7 rounded-apple-sm bg-apple-purple/15 flex items-center justify-center">
+                  <TrendingUp className="w-4 h-4 text-apple-purple" />
+                </span>
                 Total Ingresos
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-3xl font-bold text-white">${metrics.totalRevenue.toFixed(0)}</div>
-              <p className="text-xs text-slate-400 mt-2">Histórico</p>
+              <div className="apple-text-title1 apple-label-primary tabular-nums">${metrics.totalRevenue.toFixed(0)}</div>
+              <p className="apple-text-caption1 apple-label-tertiary mt-2">Histórico</p>
             </CardContent>
           </Card>
         </div>
@@ -202,9 +210,9 @@ export default function AdminDashboard() {
         {/* Charts */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
           {/* Revenue Chart */}
-          <Card className="bg-slate-800/50 border-slate-700">
+          <Card className="apple-card border-0">
             <CardHeader>
-              <CardTitle className="text-white">Tendencia de Ingresos</CardTitle>
+              <CardTitle className="apple-text-headline apple-label-primary">Tendencia de Ingresos</CardTitle>
             </CardHeader>
             <CardContent>
               <ResponsiveContainer width="100%" height={300}>
@@ -214,16 +222,16 @@ export default function AdminDashboard() {
                   <YAxis stroke="#9CA3AF" />
                   <Tooltip contentStyle={{ backgroundColor: "#1F2937", border: "1px solid #374151" }} />
                   <Legend />
-                  <Line type="monotone" dataKey="revenue" stroke="#00A8E8" strokeWidth={2} dot={{ fill: "#00A8E8" }} />
+                  <Line type="monotone" dataKey="revenue" stroke="#007AFF" strokeWidth={2} dot={{ fill: "#007AFF" }} />
                 </LineChart>
               </ResponsiveContainer>
             </CardContent>
           </Card>
 
           {/* Subscription Status */}
-          <Card className="bg-slate-800/50 border-slate-700">
+          <Card className="apple-card border-0">
             <CardHeader>
-              <CardTitle className="text-white">Estado de Suscripciones</CardTitle>
+              <CardTitle className="apple-text-headline apple-label-primary">Estado de Suscripciones</CardTitle>
             </CardHeader>
             <CardContent>
               <ResponsiveContainer width="100%" height={300}>
@@ -252,40 +260,40 @@ export default function AdminDashboard() {
         {/* Detailed Tables */}
         {/* Activity KPI mini-cards */}
         <div className="grid grid-cols-3 gap-4 mb-6">
-          <Card className="bg-emerald-900/30 border-emerald-700/40">
+          <Card className="bg-apple-green/12 border-0">
             <CardContent className="pt-4 pb-3">
               <div className="flex items-center gap-2 mb-1">
-                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-                <span className="text-xs text-emerald-300 font-semibold uppercase tracking-wide">Últimas 24h</span>
+                <span className="w-2 h-2 rounded-full bg-apple-green animate-pulse" />
+                <span className="apple-text-footnote text-apple-green">Últimas 24h</span>
               </div>
-              <div className="text-3xl font-bold text-white">{activityStats.active24h}</div>
-              <p className="text-xs text-slate-400 mt-1">tiendas conectadas hoy</p>
+              <div className="apple-text-title1 apple-label-primary tabular-nums">{activityStats.active24h}</div>
+              <p className="apple-text-caption1 apple-label-tertiary mt-1">tiendas conectadas hoy</p>
             </CardContent>
           </Card>
-          <Card className="bg-amber-900/30 border-amber-700/40">
+          <Card className="bg-apple-yellow/12 border-0">
             <CardContent className="pt-4 pb-3">
               <div className="flex items-center gap-2 mb-1">
-                <Wifi className="w-3 h-3 text-amber-400" />
-                <span className="text-xs text-amber-300 font-semibold uppercase tracking-wide">Últimos 7 días</span>
+                <Wifi className="w-3 h-3 text-apple-yellow" />
+                <span className="apple-text-footnote text-apple-yellow">Últimos 7 días</span>
               </div>
-              <div className="text-3xl font-bold text-white">{activityStats.active7d}</div>
-              <p className="text-xs text-slate-400 mt-1">tiendas activas esta semana</p>
+              <div className="apple-text-title1 apple-label-primary tabular-nums">{activityStats.active7d}</div>
+              <p className="apple-text-caption1 apple-label-tertiary mt-1">tiendas activas esta semana</p>
             </CardContent>
           </Card>
-          <Card className="bg-red-900/30 border-red-700/40">
+          <Card className="bg-apple-red/12 border-0">
             <CardContent className="pt-4 pb-3">
               <div className="flex items-center gap-2 mb-1">
-                <WifiOff className="w-3 h-3 text-red-400" />
-                <span className="text-xs text-red-300 font-semibold uppercase tracking-wide">Sin actividad</span>
+                <WifiOff className="w-3 h-3 text-apple-red" />
+                <span className="apple-text-footnote text-apple-red">Sin actividad</span>
               </div>
-              <div className="text-3xl font-bold text-white">{activityStats.never}</div>
-              <p className="text-xs text-slate-400 mt-1">nunca se conectaron</p>
+              <div className="apple-text-title1 apple-label-primary tabular-nums">{activityStats.never}</div>
+              <p className="apple-text-caption1 apple-label-tertiary mt-1">nunca se conectaron</p>
             </CardContent>
           </Card>
         </div>
 
-        <Tabs defaultValue="activity" className="bg-slate-800/50 border border-slate-700 rounded-lg p-6">
-          <TabsList className="bg-slate-900/50">
+        <Tabs defaultValue="activity" className="apple-card rounded-apple-lg p-6">
+          <TabsList className="bg-gray-sys6 dark:bg-gray-sys5">
             <TabsTrigger value="activity">
               <Activity className="w-3.5 h-3.5 mr-1.5" />
               Actividad
@@ -297,7 +305,7 @@ export default function AdminDashboard() {
           {/* ── ACTIVIDAD TAB ── */}
           <TabsContent value="activity" className="mt-6">
             <div className="flex items-center justify-between mb-4">
-              <p className="text-sm text-slate-400">Última vez que cada tienda inició sesión en el sistema</p>
+              <p className="apple-text-subheadline apple-label-secondary">Última vez que cada tienda inició sesión en el sistema</p>
               <div className="flex gap-2">
                 {[
                   { key: "recent", label: "Más recientes" },
@@ -307,10 +315,10 @@ export default function AdminDashboard() {
                   <button
                     key={opt.key}
                     onClick={() => setActivitySort(opt.key)}
-                    className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all flex items-center gap-1 ${
+                    className={`apple-press px-3 py-1.5 rounded-apple-sm apple-text-footnote transition-all flex items-center gap-1 ${
                       activitySort === opt.key
-                        ? "bg-cyan-500/20 text-cyan-300 border border-cyan-500/40"
-                        : "bg-slate-700/50 text-slate-400 border border-slate-600/40 hover:border-slate-500"
+                        ? "bg-apple-blue/15 text-apple-blue"
+                        : "bg-gray-sys6 dark:bg-gray-sys5 apple-label-secondary"
                     }`}
                   >
                     <ArrowUpDown className="w-3 h-3" />
@@ -320,14 +328,14 @@ export default function AdminDashboard() {
               </div>
             </div>
             <div className="overflow-x-auto">
-              <table className="w-full text-sm">
+              <table className="w-full apple-text-subheadline">
                 <thead>
-                  <tr className="border-b border-slate-700">
-                    <th className="text-left py-3 px-4 text-slate-300 font-semibold">Tienda</th>
-                    <th className="text-left py-3 px-4 text-slate-300 font-semibold">Estado</th>
-                    <th className="text-left py-3 px-4 text-slate-300 font-semibold">Último acceso</th>
-                    <th className="text-left py-3 px-4 text-slate-300 font-semibold">Actividad</th>
-                    <th className="text-left py-3 px-4 text-slate-300 font-semibold">Fecha exacta</th>
+                  <tr style={{ borderBottom: "0.5px solid rgba(60,60,67,0.29)" }}>
+                    <th className="text-left py-3 px-4 apple-label-secondary apple-text-footnote">Tienda</th>
+                    <th className="text-left py-3 px-4 apple-label-secondary apple-text-footnote">Estado</th>
+                    <th className="text-left py-3 px-4 apple-label-secondary apple-text-footnote">Último acceso</th>
+                    <th className="text-left py-3 px-4 apple-label-secondary apple-text-footnote">Actividad</th>
+                    <th className="text-left py-3 px-4 apple-label-secondary apple-text-footnote">Fecha exacta</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -335,33 +343,33 @@ export default function AdminDashboard() {
                     const ac = activityColor(tenant.last_login);
                     const ago = timeAgo(tenant.last_login);
                     return (
-                      <tr key={tenant.id} className="border-b border-slate-700/50 hover:bg-slate-700/20 transition-colors">
+                      <tr key={tenant.id} style={{ borderBottom: "0.5px solid rgba(60,60,67,0.2)" }} className="hover:bg-gray-sys6 dark:hover:bg-gray-sys5 transition-colors">
                         <td className="py-3 px-4">
                           <div className="flex items-center gap-2">
                             <span className={`w-2 h-2 rounded-full flex-shrink-0 ${ac.dot}`} />
-                            <span className="text-white font-medium">{tenant.name}</span>
+                            <span className="apple-label-primary apple-text-subheadline">{tenant.name}</span>
                           </div>
-                          <p className="text-xs text-slate-500 ml-4">{tenant.email}</p>
+                          <p className="apple-text-caption1 apple-label-tertiary ml-4">{tenant.email}</p>
                         </td>
                         <td className="py-3 px-4">
-                          <span className={`px-2 py-0.5 rounded text-xs font-medium ${
-                            tenant.status === "active" ? "bg-emerald-400/15 text-emerald-300" : "bg-gray-500/15 text-gray-400"
+                          <span className={`px-2 py-0.5 rounded-apple-xs apple-text-caption1 ${
+                            tenant.status === "active" ? "bg-apple-green/15 text-apple-green" : "bg-apple-gray/15 apple-label-secondary"
                           }`}>
                             {tenant.status === "active" ? "Activo" : tenant.status || "—"}
                           </span>
                         </td>
                         <td className="py-3 px-4">
-                          <span className="text-white">{ago || "—"}</span>
+                          <span className="apple-label-primary tabular-nums">{ago || "—"}</span>
                         </td>
                         <td className="py-3 px-4">
-                          <span className={`px-2 py-1 rounded text-xs font-semibold ${ac.badge}`}>
+                          <span className={`px-2 py-1 rounded-apple-xs apple-text-caption1 ${ac.badge}`}>
                             {ac.label}
                           </span>
                         </td>
-                        <td className="py-3 px-4 text-slate-400 text-xs">
+                        <td className="py-3 px-4 apple-label-tertiary apple-text-caption1 tabular-nums">
                           {tenant.last_login
                             ? new Date(tenant.last_login).toLocaleString("es-PR", { dateStyle: "short", timeStyle: "short" })
-                            : <span className="text-slate-600">Sin registro</span>}
+                            : <span className="apple-label-tertiary">Sin registro</span>}
                         </td>
                       </tr>
                     );
@@ -373,14 +381,14 @@ export default function AdminDashboard() {
 
           <TabsContent value="subscriptions" className="mt-6">
             <div className="overflow-x-auto">
-              <table className="w-full text-sm">
+              <table className="w-full apple-text-subheadline">
                 <thead>
-                  <tr className="border-b border-slate-700">
-                    <th className="text-left py-3 px-4 text-slate-300 font-semibold">Tienda</th>
-                    <th className="text-left py-3 px-4 text-slate-300 font-semibold">Plan</th>
-                    <th className="text-left py-3 px-4 text-slate-300 font-semibold">Estado</th>
-                    <th className="text-left py-3 px-4 text-slate-300 font-semibold">Próximo Pago</th>
-                    <th className="text-left py-3 px-4 text-slate-300 font-semibold">Monto Mensual</th>
+                  <tr style={{ borderBottom: "0.5px solid rgba(60,60,67,0.29)" }}>
+                    <th className="text-left py-3 px-4 apple-label-secondary apple-text-footnote">Tienda</th>
+                    <th className="text-left py-3 px-4 apple-label-secondary apple-text-footnote">Plan</th>
+                    <th className="text-left py-3 px-4 apple-label-secondary apple-text-footnote">Estado</th>
+                    <th className="text-left py-3 px-4 apple-label-secondary apple-text-footnote">Próximo Pago</th>
+                    <th className="text-left py-3 px-4 apple-label-secondary apple-text-footnote">Monto Mensual</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -388,16 +396,16 @@ export default function AdminDashboard() {
                     .filter(t => t.subscription_status === "active")
                     .slice(0, 10)
                     .map(tenant => (
-                      <tr key={tenant.id} className="border-b border-slate-700 hover:bg-slate-700/30">
-                        <td className="py-3 px-4 text-white">{tenant.name}</td>
-                        <td className="py-3 px-4 text-slate-300">{tenant.plan || "smartfixos"}</td>
+                      <tr key={tenant.id} style={{ borderBottom: "0.5px solid rgba(60,60,67,0.2)" }} className="hover:bg-gray-sys6 dark:hover:bg-gray-sys5">
+                        <td className="py-3 px-4 apple-label-primary">{tenant.name}</td>
+                        <td className="py-3 px-4 apple-label-secondary">{tenant.plan || "smartfixos"}</td>
                         <td className="py-3 px-4">
-                          <span className="px-2 py-1 rounded text-xs bg-emerald-400/20 text-emerald-300">
+                          <span className="px-2 py-1 rounded-apple-xs apple-text-caption1 bg-apple-green/15 text-apple-green">
                             Activa
                           </span>
                         </td>
-                        <td className="py-3 px-4 text-slate-400">{tenant.next_billing_date || "N/A"}</td>
-                        <td className="py-3 px-4 text-white font-semibold">${tenant.monthly_cost || 49}</td>
+                        <td className="py-3 px-4 apple-label-tertiary tabular-nums">{tenant.next_billing_date || "N/A"}</td>
+                        <td className="py-3 px-4 apple-label-primary tabular-nums">${tenant.monthly_cost || 49}</td>
                       </tr>
                     ))}
                 </tbody>
@@ -407,13 +415,13 @@ export default function AdminDashboard() {
 
           <TabsContent value="trials" className="mt-6">
             <div className="overflow-x-auto">
-              <table className="w-full text-sm">
+              <table className="w-full apple-text-subheadline">
                 <thead>
-                  <tr className="border-b border-slate-700">
-                    <th className="text-left py-3 px-4 text-slate-300 font-semibold">Tienda</th>
-                    <th className="text-left py-3 px-4 text-slate-300 font-semibold">Email</th>
-                    <th className="text-left py-3 px-4 text-slate-300 font-semibold">Días Restantes</th>
-                    <th className="text-left py-3 px-4 text-slate-300 font-semibold">Fecha Expiración</th>
+                  <tr style={{ borderBottom: "0.5px solid rgba(60,60,67,0.29)" }}>
+                    <th className="text-left py-3 px-4 apple-label-secondary apple-text-footnote">Tienda</th>
+                    <th className="text-left py-3 px-4 apple-label-secondary apple-text-footnote">Email</th>
+                    <th className="text-left py-3 px-4 apple-label-secondary apple-text-footnote">Días Restantes</th>
+                    <th className="text-left py-3 px-4 apple-label-secondary apple-text-footnote">Fecha Expiración</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -427,17 +435,17 @@ export default function AdminDashboard() {
                         (new Date(tenant.trial_end_date) - new Date()) / (1000 * 60 * 60 * 24)
                       );
                       return (
-                        <tr key={tenant.id} className="border-b border-slate-700 hover:bg-slate-700/30">
-                          <td className="py-3 px-4 text-white">{tenant.name}</td>
-                          <td className="py-3 px-4 text-slate-400">{tenant.email}</td>
+                        <tr key={tenant.id} style={{ borderBottom: "0.5px solid rgba(60,60,67,0.2)" }} className="hover:bg-gray-sys6 dark:hover:bg-gray-sys5">
+                          <td className="py-3 px-4 apple-label-primary">{tenant.name}</td>
+                          <td className="py-3 px-4 apple-label-tertiary">{tenant.email}</td>
                           <td className="py-3 px-4">
-                            <span className={`px-2 py-1 rounded text-xs font-semibold ${
-                              daysLeft <= 3 ? "bg-red-400/20 text-red-300" : "bg-amber-400/20 text-amber-300"
+                            <span className={`px-2 py-1 rounded-apple-xs apple-text-caption1 tabular-nums ${
+                              daysLeft <= 3 ? "bg-apple-red/15 text-apple-red" : "bg-apple-orange/15 text-apple-orange"
                             }`}>
                               {daysLeft} días
                             </span>
                           </td>
-                          <td className="py-3 px-4 text-slate-400">{tenant.trial_end_date}</td>
+                          <td className="py-3 px-4 apple-label-tertiary tabular-nums">{tenant.trial_end_date}</td>
                         </tr>
                       );
                     })}

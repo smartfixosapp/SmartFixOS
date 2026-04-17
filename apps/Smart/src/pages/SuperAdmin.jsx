@@ -1294,7 +1294,7 @@ export default function SuperAdmin() {
 
   // ── Render ────────────────────────────────────────────────────────────────
   return (
-    <div className="min-h-screen bg-[#030303] text-white font-sans">
+    <div className="min-h-screen apple-surface apple-type">
 
       {/* ── Note Modal ── */}
       <AnimatePresence>
@@ -2188,20 +2188,20 @@ export default function SuperAdmin() {
       </AnimatePresence>
 
       {/* ── Top bar ── */}
-      <header className="sticky top-0 z-30 border-b border-white/[0.06] bg-black/70 backdrop-blur-2xl">
+      <header className="sticky top-0 z-30 apple-surface-elevated backdrop-blur-2xl" style={{ borderBottom: "0.5px solid rgba(60,60,67,0.29)" }}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 h-14 flex items-center justify-between gap-4">
           <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-purple-500 to-cyan-500 flex items-center justify-center shadow-[0_0_20px_rgba(168,85,247,0.4)]">
-              <Shield className="w-4 h-4 text-white" />
+            <div className="w-8 h-8 rounded-apple-sm bg-apple-purple/15 flex items-center justify-center">
+              <Shield className="w-4 h-4 text-apple-purple" />
             </div>
             <div className="leading-none">
-              <p className="text-sm font-black text-white tracking-tight">SmartFixOS</p>
-              <p className="text-[10px] font-bold text-purple-400 uppercase tracking-widest">Control Panel</p>
+              <p className="apple-text-subheadline apple-label-primary">SmartFixOS</p>
+              <p className="apple-text-caption2 text-apple-purple">Control Panel</p>
             </div>
           </div>
 
           {/* Tabs — desktop */}
-          <div className="hidden sm:flex items-center gap-1 bg-white/5 rounded-xl p-1">
+          <div className="hidden sm:flex items-center gap-1 bg-gray-sys6 dark:bg-gray-sys5 rounded-apple-md p-1">
             {[
               { key: "tenants",  label: "Tiendas",   icon: Building2       },
               { key: "metrics",  label: "Métricas",  icon: BarChart3        },
@@ -2213,10 +2213,10 @@ export default function SuperAdmin() {
               <button
                 key={t.key}
                 onClick={() => { setTab(t.key); if (t.key === "feedback") loadFeedback(); if (t.key === "storage") loadStorageStats(); if (t.key === "activity") loadActivityStats(tenants); if (t.key === "payments") loadPaymentMethods(); }}
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+                className={`apple-press flex items-center gap-1.5 px-3 py-1.5 rounded-apple-sm apple-text-footnote transition-all ${
                   tab === t.key
-                    ? "bg-white/10 text-white shadow"
-                    : "text-gray-500 hover:text-gray-300"
+                    ? "apple-surface-elevated apple-label-primary shadow-sm"
+                    : "apple-label-secondary hover:apple-label-primary"
                 }`}
               >
                 <t.icon className="w-3.5 h-3.5" />
@@ -2227,7 +2227,7 @@ export default function SuperAdmin() {
 
           {/* Tabs — móvil (select) */}
           <select
-            className="sm:hidden text-xs bg-white/10 border border-white/20 text-white rounded-lg px-2 py-1.5 outline-none"
+            className="sm:hidden apple-input h-8"
             value={tab}
             onChange={e => { const v = e.target.value; setTab(v); if (v === "feedback") loadFeedback(); if (v === "storage") loadStorageStats(); if (v === "activity") loadActivityStats(tenants); if (v === "payments") loadPaymentMethods(); }}
           >
@@ -2242,20 +2242,20 @@ export default function SuperAdmin() {
           <button
             onClick={() => { setNuclearModal(true); setNuclearResult(null); setNuclearEmail(""); }}
             title="Borrar TODO por email: Auth + tenant + datos completos"
-            className="flex items-center gap-1.5 text-xs text-red-400 hover:text-red-300 transition-colors px-3 py-1.5 rounded-full border border-red-500/30 hover:border-red-400/50 hover:bg-red-500/10"
+            className="apple-btn apple-btn-destructive apple-text-footnote"
           >
-            <Zap className="w-3.5 h-3.5" /> ☢️ Borrar TODO
+            <Zap className="w-3.5 h-3.5" /> Borrar TODO
           </button>
 
           {/* Session timer */}
-          <div className="hidden sm:flex items-center gap-1.5 text-[11px] text-gray-600 px-2">
+          <div className="hidden sm:flex items-center gap-1.5 apple-text-caption2 apple-label-tertiary px-2 tabular-nums">
             <Timer className="w-3 h-3" />
             <span>Sesión: 2h</span>
           </div>
 
           <button
             onClick={handleLogout}
-            className="flex items-center gap-1.5 text-xs text-gray-500 hover:text-red-400 transition-colors px-3 py-1.5 rounded-full border border-white/10 hover:border-red-500/30"
+            className="apple-btn apple-btn-plain apple-text-footnote"
           >
             <LogOut className="w-3.5 h-3.5" /> Salir
           </button>
@@ -2267,25 +2267,25 @@ export default function SuperAdmin() {
         {/* ── Metric cards ── */}
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
           {[
-            { label: "Total",      value: metrics.total,     icon: Building2,   grad: "from-blue-500 to-cyan-500"    },
-            { label: "Sin activar",value: metrics.pending,   icon: Timer,       grad: "from-purple-500 to-violet-500"},
-            { label: "Activas",    value: metrics.active,    icon: CheckCircle, grad: "from-green-500 to-emerald-500"},
-            { label: "Trial",      value: metrics.trial,     icon: Clock,       grad: "from-yellow-500 to-amber-500" },
-            { label: "Pagando",    value: metrics.paying,    icon: DollarSign,  grad: "from-pink-500 to-rose-500"    },
-            { label: "MRR",        value: `$${metrics.mrr}`, icon: TrendingUp,  grad: "from-cyan-500 to-blue-500"    },
+            { label: "Total",      value: metrics.total,     icon: Building2,   tint: "blue"    },
+            { label: "Sin activar",value: metrics.pending,   icon: Timer,       tint: "purple"  },
+            { label: "Activas",    value: metrics.active,    icon: CheckCircle, tint: "green"   },
+            { label: "Trial",      value: metrics.trial,     icon: Clock,       tint: "yellow"  },
+            { label: "Pagando",    value: metrics.paying,    icon: DollarSign,  tint: "pink"    },
+            { label: "MRR",        value: `$${metrics.mrr}`, icon: TrendingUp,  tint: "indigo"  },
           ].map((m, i) => (
             <motion.div
               key={m.label}
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: i * 0.04 }}
-              className="bg-white/[0.03] border border-white/[0.07] rounded-2xl p-4 space-y-2"
+              className="apple-card rounded-apple-lg p-4 space-y-2"
             >
-              <div className={`w-8 h-8 rounded-xl bg-gradient-to-br ${m.grad} flex items-center justify-center`}>
-                <m.icon className="w-4 h-4 text-white" />
+              <div className={`w-8 h-8 rounded-apple-sm bg-apple-${m.tint}/15 flex items-center justify-center`}>
+                <m.icon className={`w-4 h-4 text-apple-${m.tint}`} />
               </div>
-              <p className="text-2xl font-black">{m.value}</p>
-              <p className="text-[11px] text-gray-500 font-medium">{m.label}</p>
+              <p className="apple-text-title2 apple-label-primary tabular-nums">{m.value}</p>
+              <p className="apple-text-caption1 apple-label-tertiary">{m.label}</p>
             </motion.div>
           ))}
         </div>
@@ -2295,24 +2295,24 @@ export default function SuperAdmin() {
             {/* ── Search bar ── */}
             <div className="flex items-center gap-3">
               <div className="relative flex-1 max-w-sm">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-600" />
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 apple-label-tertiary" />
                 <input
                   value={search}
                   onChange={e => setSearch(e.target.value)}
                   placeholder="Buscar tienda, email o slug..."
-                  className="w-full bg-white/[0.04] border border-white/[0.08] text-white text-sm rounded-xl pl-9 pr-4 h-10 focus:outline-none focus:ring-2 focus:ring-purple-500/40 placeholder-gray-600"
+                  className="apple-input w-full pl-9 h-10"
                 />
               </div>
               <button
                 onClick={loadTenants}
                 disabled={loading}
-                className="h-10 w-10 rounded-xl border border-white/[0.08] bg-white/[0.04] hover:bg-white/[0.08] flex items-center justify-center transition-all disabled:opacity-40"
+                className="apple-btn apple-btn-secondary h-10 w-10 p-0 flex items-center justify-center disabled:opacity-40"
               >
-                <RefreshCw className={`w-4 h-4 text-gray-400 ${loading ? "animate-spin" : ""}`} />
+                <RefreshCw className={`w-4 h-4 apple-label-secondary ${loading ? "animate-spin" : ""}`} />
               </button>
               <button
                 onClick={() => { setInviteModal(true); setInviteResult(null); setInviteForm({ ownerName: "", email: "", businessName: "", plan: "smartfixos" }); }}
-                className="h-10 flex items-center gap-2 px-4 rounded-xl border border-purple-500/40 bg-purple-500/10 hover:bg-purple-500/20 text-purple-300 text-sm font-semibold transition-all"
+                className="apple-btn apple-btn-tinted"
               >
                 <UserPlus className="w-4 h-4" /> Invitar tienda
               </button>
@@ -2339,19 +2339,19 @@ export default function SuperAdmin() {
                       initial={{ opacity: 0, y: 6 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: Math.min(i * 0.025, 0.3) }}
-                      className="bg-white/[0.025] border border-white/[0.07] rounded-2xl overflow-hidden hover:bg-white/[0.045] transition-all"
+                      className="apple-card rounded-apple-lg overflow-hidden apple-press transition-all"
                     >
                       {/* Row */}
                       <div className="flex items-center gap-3 p-4">
                         {/* Avatar */}
-                        <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-purple-500/20 to-cyan-500/20 border border-purple-500/20 flex items-center justify-center font-black text-purple-300 text-sm flex-shrink-0">
+                        <div className="w-10 h-10 rounded-apple-sm bg-apple-purple/15 flex items-center justify-center apple-text-headline text-apple-purple flex-shrink-0">
                           {(tenant.name || "?")[0].toUpperCase()}
                         </div>
 
                         {/* Info */}
                         <div className="flex-1 min-w-0">
-                          <p className="font-bold text-white text-sm truncate">{tenant.name || "Sin nombre"}</p>
-                          <p className="text-xs text-gray-500 truncate">{tenant.email || "—"}</p>
+                          <p className="apple-text-subheadline apple-label-primary truncate">{tenant.name || "Sin nombre"}</p>
+                          <p className="apple-text-caption1 apple-label-tertiary truncate">{tenant.email || "—"}</p>
                         </div>
 
                         {/* Status badge */}

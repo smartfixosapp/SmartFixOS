@@ -1196,25 +1196,25 @@ Maximo 150 palabras. Texto plano, sin markdown.`
   };
 
   return (
-    <div className="min-h-screen bg-black/95 flex flex-col">
+    <div className="min-h-screen apple-surface apple-type flex flex-col">
 
       {/* ── Header ── */}
-      <div className="sticky top-0 z-40 bg-black border-b border-white/[0.06] py-3">
+      <div className="sticky top-0 z-40 apple-surface py-3" style={{ borderBottom: '0.5px solid rgb(var(--separator) / 0.29)' }}>
         <div className="app-container flex items-center justify-between gap-2">
           <div className="flex items-center gap-2 min-w-0">
-            <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-2xl bg-gradient-to-br from-cyan-500 to-blue-600 flex items-center justify-center shadow-lg shadow-cyan-500/20 shrink-0">
-              <DollarSign className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-white" />
+            <div className="w-9 h-9 rounded-apple-sm bg-apple-blue/15 flex items-center justify-center shrink-0">
+              <DollarSign className="w-4 h-4 text-apple-blue" />
             </div>
             <div className="min-w-0">
-              <h1 className="text-sm sm:text-base font-black text-white tracking-tight leading-none">Finanzas</h1>
-              <p className="text-[10px] text-white/30 font-bold uppercase tracking-widest leading-none mt-0.5 truncate">
+              <h1 className="apple-text-title2 apple-label-primary leading-tight">Finanzas</h1>
+              <p className="apple-text-footnote apple-label-tertiary leading-none mt-0.5 truncate tabular-nums">
                 {loading ? "Cargando…" : `${filteredSales.length + filteredExpenses.length} movimientos`}
               </p>
             </div>
           </div>
           <div className="flex items-center gap-1 shrink-0">
-            {/* Filtro de período — etiquetas cortas en móvil */}
-            <div className="flex items-center gap-0.5 p-0.5 sm:p-1 bg-white/5 rounded-2xl border border-white/10">
+            {/* Filtro de período — segmented pills */}
+            <div className="flex items-center gap-0.5 p-1 bg-gray-sys6 dark:bg-gray-sys5 rounded-apple-md">
               {[
                 { id: "today", label: "Hoy",  labelSm: "Hoy" },
                 { id: "week",  label: "7d",   labelSm: "7d"  },
@@ -1223,31 +1223,31 @@ Maximo 150 palabras. Texto plano, sin markdown.`
                 { id: "custom",label: "📅",   labelSm: "📅"  },
               ].map((p) => (
                 <button key={p.id} onClick={() => setDateFilter(p.id)}
-                  className={`px-1.5 sm:px-2.5 py-1 sm:py-1.5 rounded-xl text-[10px] sm:text-[11px] font-black transition-all ${
+                  className={`apple-press px-2.5 py-1.5 rounded-apple-sm apple-text-footnote font-semibold transition-all ${
                     dateFilter === p.id
-                      ? "bg-gradient-to-r from-cyan-600 to-blue-600 text-white shadow"
-                      : "text-white/30 hover:text-white/60"
+                      ? "apple-surface-elevated apple-label-primary shadow-sm"
+                      : "apple-label-secondary"
                   }`}
                 >{p.label}</button>
               ))}
             </div>
             <button onClick={handleManualRefresh} disabled={loading}
-              className="w-7 h-7 sm:w-8 sm:h-8 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-white/40 hover:text-white transition-colors shrink-0">
-              <RefreshCw className={`w-3 h-3 sm:w-3.5 sm:h-3.5 ${loading ? "animate-spin" : ""}`} />
+              className="apple-press w-8 h-8 rounded-apple-sm bg-gray-sys6 dark:bg-gray-sys5 flex items-center justify-center apple-label-secondary shrink-0">
+              <RefreshCw className={`w-3.5 h-3.5 ${loading ? "animate-spin" : ""}`} />
             </button>
             <button onClick={() => navigate(-1)}
-              className="w-7 h-7 sm:w-8 sm:h-8 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-white/40 hover:text-white transition-colors shrink-0">
-              <X className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
+              className="apple-press w-8 h-8 rounded-apple-sm bg-gray-sys6 dark:bg-gray-sys5 flex items-center justify-center apple-label-secondary shrink-0">
+              <X className="w-3.5 h-3.5" />
             </button>
           </div>
         </div>
         {dateFilter === "custom" && (
-          <div className="app-container flex gap-2 mt-2 pt-2 border-t border-white/5">
+          <div className="app-container flex gap-2 mt-2 pt-2" style={{ borderTop: '0.5px solid rgb(var(--separator) / 0.29)' }}>
             <input type="date" value={customStartDate} onChange={e => setCustomStartDate(e.target.value)}
-              className="flex-1 bg-black/40 border border-white/10 text-white text-xs h-9 rounded-xl px-3 focus:border-cyan-500/50 outline-none" />
-            <span className="text-white/50 self-center text-xs">→</span>
+              className="apple-input flex-1 h-9" />
+            <span className="apple-label-secondary self-center apple-text-footnote">→</span>
             <input type="date" value={customEndDate} onChange={e => setCustomEndDate(e.target.value)}
-              className="flex-1 bg-black/40 border border-white/10 text-white text-xs h-9 rounded-xl px-3 focus:border-cyan-500/50 outline-none" />
+              className="apple-input flex-1 h-9" />
           </div>
         )}
       </div>
@@ -1257,12 +1257,12 @@ Maximo 150 palabras. Texto plano, sin markdown.`
 
         {/* ── Error banner ── */}
         {loadError && (
-          <div className="flex items-center justify-between gap-3 p-3 bg-red-950/40 border border-red-500/30 rounded-2xl">
-            <div className="flex items-center gap-2 text-red-300 text-xs">
+          <div className="flex items-center justify-between gap-3 p-3 bg-apple-red/12 rounded-apple-md">
+            <div className="flex items-center gap-2 text-apple-red apple-text-footnote">
               <AlertTriangle className="w-4 h-4 shrink-0" />
               <span>{loadError}</span>
             </div>
-            <button onClick={handleManualRefresh} className="text-xs font-black text-red-300 hover:text-red-100 uppercase tracking-widest">Reintentar</button>
+            <button onClick={handleManualRefresh} className="apple-text-footnote font-semibold text-apple-red">Reintentar</button>
           </div>
         )}
 
@@ -1285,83 +1285,61 @@ Maximo 150 palabras. Texto plano, sin markdown.`
         <div className="grid grid-cols-3 gap-3">
           {/* Entradas */}
           <button onClick={() => { setActiveTab("movimientos"); setMovFilter("income"); }}
-            className={`text-left p-4 sm:p-5 rounded-2xl border transition-all active:scale-[0.98] ${
+            className={`apple-press text-left p-4 sm:p-5 rounded-apple-lg transition-all ${
               activeTab === "movimientos" && movFilter === "income"
-                ? "bg-emerald-600 border-emerald-500/50 shadow-lg shadow-emerald-500/10"
-                : "bg-white/[0.03] border-white/[0.06] hover:bg-white/[0.05]"
+                ? "bg-apple-green/15"
+                : "apple-card"
             }`}>
             <div className="flex items-center gap-2 mb-2">
-              <div className={`w-7 h-7 rounded-lg flex items-center justify-center ${
-                activeTab === "movimientos" && movFilter === "income" ? "bg-white/20" : "bg-emerald-500/15"
-              }`}>
-                <TrendingUp className={`w-3.5 h-3.5 ${activeTab === "movimientos" && movFilter === "income" ? "text-white" : "text-emerald-400"}`} />
+              <div className="w-7 h-7 rounded-apple-sm bg-apple-green/15 flex items-center justify-center">
+                <TrendingUp className="w-3.5 h-3.5 text-apple-green" />
               </div>
-              <span className={`text-[10px] font-black uppercase tracking-widest ${
-                activeTab === "movimientos" && movFilter === "income" ? "text-white/60" : "text-white/30"
-              }`}>Entradas</span>
+              <span className="apple-text-footnote font-semibold apple-label-secondary">Entradas</span>
             </div>
-            <p className={`text-xl sm:text-2xl font-black tabular-nums leading-none ${
-              activeTab === "movimientos" && movFilter === "income" ? "text-white" : "text-emerald-400"
-            }`}>${totalRevenue.toFixed(2)}</p>
-            <p className={`text-[10px] font-bold mt-1.5 ${
-              activeTab === "movimientos" && movFilter === "income" ? "text-white/50" : "text-white/25"
-            }`}>Hoy: ${todayRevenue.toFixed(2)}</p>
+            <p className="apple-text-title1 tabular-nums text-apple-green">${totalRevenue.toFixed(2)}</p>
+            <p className="apple-text-caption1 apple-label-tertiary mt-1.5 tabular-nums">Hoy: ${todayRevenue.toFixed(2)}</p>
           </button>
 
           {/* Salidas */}
           <button onClick={() => { setActiveTab("movimientos"); setMovFilter("expense"); }}
-            className={`text-left p-4 sm:p-5 rounded-2xl border transition-all active:scale-[0.98] ${
+            className={`apple-press text-left p-4 sm:p-5 rounded-apple-lg transition-all ${
               activeTab === "movimientos" && movFilter === "expense"
-                ? "bg-red-600 border-red-500/50 shadow-lg shadow-red-500/10"
-                : "bg-white/[0.03] border-white/[0.06] hover:bg-white/[0.05]"
+                ? "bg-apple-red/15"
+                : "apple-card"
             }`}>
             <div className="flex items-center gap-2 mb-2">
-              <div className={`w-7 h-7 rounded-lg flex items-center justify-center ${
-                activeTab === "movimientos" && movFilter === "expense" ? "bg-white/20" : "bg-red-500/15"
-              }`}>
-                <TrendingDown className={`w-3.5 h-3.5 ${activeTab === "movimientos" && movFilter === "expense" ? "text-white" : "text-red-400"}`} />
+              <div className="w-7 h-7 rounded-apple-sm bg-apple-red/15 flex items-center justify-center">
+                <TrendingDown className="w-3.5 h-3.5 text-apple-red" />
               </div>
-              <span className={`text-[10px] font-black uppercase tracking-widest ${
-                activeTab === "movimientos" && movFilter === "expense" ? "text-white/60" : "text-white/30"
-              }`}>Salidas</span>
+              <span className="apple-text-footnote font-semibold apple-label-secondary">Salidas</span>
             </div>
-            <p className={`text-xl sm:text-2xl font-black tabular-nums leading-none ${
-              activeTab === "movimientos" && movFilter === "expense" ? "text-white" : "text-red-400"
-            }`}>${totalExpenses.toFixed(2)}</p>
-            <p className={`text-[10px] font-bold mt-1.5 ${
-              activeTab === "movimientos" && movFilter === "expense" ? "text-white/50" : "text-white/25"
-            }`}>Hoy: ${todayExpenses.toFixed(2)}</p>
+            <p className="apple-text-title1 tabular-nums text-apple-red">${totalExpenses.toFixed(2)}</p>
+            <p className="apple-text-caption1 apple-label-tertiary mt-1.5 tabular-nums">Hoy: ${todayExpenses.toFixed(2)}</p>
           </button>
 
           {/* Ganancia Neta */}
           <button onClick={() => setActiveTab("desglose")}
-            className={`text-left p-4 sm:p-5 rounded-2xl border transition-all active:scale-[0.98] ${
+            className={`apple-press text-left p-4 sm:p-5 rounded-apple-lg transition-all ${
               activeTab === "desglose"
-                ? (netProfit >= 0 ? "bg-cyan-600 border-cyan-500/50 shadow-lg shadow-cyan-500/10" : "bg-red-600 border-red-500/50")
-                : "bg-white/[0.03] border-white/[0.06] hover:bg-white/[0.05]"
+                ? (netProfit >= 0 ? "bg-apple-blue/15" : "bg-apple-red/15")
+                : "apple-card"
             }`}>
             <div className="flex items-center gap-2 mb-2">
-              <div className={`w-7 h-7 rounded-lg flex items-center justify-center ${
-                activeTab === "desglose" ? "bg-white/20" : (netProfit >= 0 ? "bg-cyan-500/15" : "bg-red-500/15")
+              <div className={`w-7 h-7 rounded-apple-sm flex items-center justify-center ${
+                netProfit >= 0 ? "bg-apple-blue/15" : "bg-apple-red/15"
               }`}>
-                <DollarSign className={`w-3.5 h-3.5 ${activeTab === "desglose" ? "text-white" : (netProfit >= 0 ? "text-cyan-400" : "text-red-400")}`} />
+                <DollarSign className={`w-3.5 h-3.5 ${netProfit >= 0 ? "text-apple-blue" : "text-apple-red"}`} />
               </div>
-              <span className={`text-[10px] font-black uppercase tracking-widest ${
-                activeTab === "desglose" ? "text-white/60" : "text-white/30"
-              }`}>{netProfit >= 0 ? "Ganancia" : "Deficit"}</span>
+              <span className="apple-text-footnote font-semibold apple-label-secondary">{netProfit >= 0 ? "Ganancia" : "Deficit"}</span>
             </div>
-            <p className={`text-xl sm:text-2xl font-black tabular-nums leading-none ${
-              activeTab === "desglose" ? "text-white" : (netProfit >= 0 ? "text-cyan-400" : "text-red-400")
-            }`}>${Math.abs(netProfit).toFixed(2)}</p>
-            <p className={`text-[10px] font-bold mt-1.5 ${
-              activeTab === "desglose" ? "text-white/50" : "text-white/25"
-            }`}>{filteredSales.length} venta{filteredSales.length !== 1 ? "s" : ""}</p>
+            <p className={`apple-text-title1 tabular-nums ${netProfit >= 0 ? "text-apple-blue" : "text-apple-red"}`}>${Math.abs(netProfit).toFixed(2)}</p>
+            <p className="apple-text-caption1 apple-label-tertiary mt-1.5 tabular-nums">{filteredSales.length} venta{filteredSales.length !== 1 ? "s" : ""}</p>
           </button>
         </div>
 
-        {/* ── Tab navigation — horizontal pills, sticky below header ── */}
-        <div className="flex items-center gap-2 overflow-x-auto no-scrollbar sticky top-[52px] z-30 bg-black py-2 -mx-3 px-3 sm:-mx-4 sm:px-4 md:-mx-6 md:px-6">
-          <div className="flex items-center gap-1 p-1 bg-white/[0.03] rounded-2xl border border-white/[0.06] shrink-0">
+        {/* ── Tab navigation — Apple segmented pills ── */}
+        <div className="flex items-center gap-2 overflow-x-auto no-scrollbar sticky top-[52px] z-30 apple-surface py-2 -mx-3 px-3 sm:-mx-4 sm:px-4 md:-mx-6 md:px-6">
+          <div className="flex items-center gap-1 p-1 bg-gray-sys6 dark:bg-gray-sys5 rounded-apple-md shrink-0">
             {[
               { id: "resumen",     tab: "resumen",     filter: null,   label: "Resumen",     icon: BarChart3 },
               { id: "movimientos", tab: "movimientos", filter: "all",  label: "Movimientos", icon: Receipt },
@@ -1375,16 +1353,16 @@ Maximo 150 palabras. Texto plano, sin markdown.`
               return (
                 <button key={k.id}
                   onClick={() => { setActiveTab(k.tab); if (k.filter !== null) setMovFilter(k.filter); }}
-                  className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold transition-all whitespace-nowrap ${
+                  className={`apple-press flex items-center gap-1.5 px-3 py-2 rounded-apple-sm apple-text-footnote font-semibold transition-all whitespace-nowrap ${
                     isActive
-                      ? "bg-white/[0.12] text-white shadow-sm"
-                      : "text-white/40 hover:text-white/60"
+                      ? "apple-surface-elevated apple-label-primary shadow-sm"
+                      : "apple-label-secondary"
                   }`}
                 >
                   <k.icon className="w-3.5 h-3.5" />
                   {k.label}
                   {k.badge != null && (
-                    <span className="text-[9px] font-black text-amber-400 tabular-nums ml-0.5">${k.badge.toFixed(0)}</span>
+                    <span className="apple-text-caption2 font-semibold text-apple-orange tabular-nums ml-0.5">${k.badge.toFixed(0)}</span>
                   )}
                 </button>
               );
@@ -1400,15 +1378,13 @@ Maximo 150 palabras. Texto plano, sin markdown.`
                 }
                 drawerOpen ? setShowCloseDrawer(true) : setShowOpenDrawer(true);
               }}
-              className={`flex items-center gap-1.5 px-3 py-2 rounded-xl border text-xs font-bold transition-all active:scale-95 ${
-                drawerOpen ? "bg-emerald-500/10 border-emerald-500/30 text-emerald-400" : "bg-white/[0.03] border-white/[0.06] text-white/40"
-              }`}
+              className={`apple-btn ${drawerOpen ? "apple-btn-tinted text-apple-green" : "apple-btn-secondary"}`}
             >
               <Wallet className="w-3.5 h-3.5" />
               <span className="hidden sm:inline">{drawerOpen ? "Caja abierta" : "Caja"}</span>
             </button>
             <button onClick={() => { setExpenseDefaultCategory(null); setShowExpenseDialog(true); }}
-              className="flex items-center gap-1.5 px-3 py-2 rounded-xl border border-orange-500/20 bg-orange-500/[0.06] text-orange-400 text-xs font-bold transition-all active:scale-95">
+              className="apple-btn apple-btn-primary">
               <Plus className="w-3.5 h-3.5" />
               <span className="hidden sm:inline">Gasto</span>
             </button>
@@ -1432,19 +1408,17 @@ Maximo 150 palabras. Texto plano, sin markdown.`
         {activeTab === "movimientos" && (
           <div className="space-y-4">
             {/* Filter pills */}
-            <div className="flex gap-1.5">
+            <div className="flex gap-1.5 p-1 bg-gray-sys6 dark:bg-gray-sys5 rounded-apple-md w-fit">
               {[
                 { id: "all", label: "Todos" },
                 { id: "income", label: "Entradas" },
                 { id: "expense", label: "Salidas" },
               ].map(f => (
                 <button key={f.id} onClick={() => setMovFilter(f.id)}
-                  className={`px-3 py-1.5 rounded-xl text-[11px] font-black transition-all border ${
+                  className={`apple-press px-3 py-1.5 rounded-apple-sm apple-text-footnote font-semibold transition-all ${
                     movFilter === f.id
-                      ? f.id === "income" ? "bg-emerald-600 border-emerald-600 text-white"
-                        : f.id === "expense" ? "bg-red-600 border-red-600 text-white"
-                        : "bg-white/[0.12] border-white/[0.12] text-white"
-                      : "bg-white/[0.03] border-white/[0.06] text-white/30 hover:text-white/60"
+                      ? "apple-surface-elevated apple-label-primary shadow-sm"
+                      : "apple-label-secondary"
                   }`}
                 >{f.label}</button>
               ))}
@@ -1453,25 +1427,25 @@ Maximo 150 palabras. Texto plano, sin markdown.`
             {/* Lista */}
             {loading ? (
               <div className="py-12 text-center">
-                <RefreshCw className="w-5 h-5 animate-spin mx-auto mb-2 text-white/50" />
-                <p className="text-xs text-white/50 font-bold">Cargando…</p>
+                <RefreshCw className="w-5 h-5 animate-spin mx-auto mb-2 apple-label-secondary" />
+                <p className="apple-text-footnote apple-label-secondary">Cargando…</p>
               </div>
             ) : combinedMovements.filter(m => movFilter === "all" || m.kind === movFilter).length === 0 ? (
               <div className="py-12 text-center">
-                <p className="text-white/25 font-bold text-sm">Sin movimientos en este período</p>
+                <p className="apple-label-tertiary apple-text-callout">Sin movimientos en este período</p>
               </div>
             ) : (
-              <div className="space-y-1.5">
+              <div className="apple-list">
                 {combinedMovements.filter(m => movFilter === "all" || m.kind === movFilter).map((m) => (
-                  <div key={m.id} className="group flex items-center gap-3 p-3.5 rounded-2xl bg-white/[0.02] hover:bg-white/[0.05] border border-white/[0.04] transition-all">
-                    <div className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 ${
-                      m.kind === "income" ? "bg-emerald-500/15 text-emerald-400" : "bg-red-500/15 text-red-400"
+                  <div key={m.id} className="apple-list-row group">
+                    <div className={`apple-list-row-icon rounded-apple-sm flex items-center justify-center shrink-0 ${
+                      m.kind === "income" ? "bg-apple-green/15 text-apple-green" : "bg-apple-red/15 text-apple-red"
                     }`}>
-                      {m.kind === "income" ? <TrendingUp className="w-3.5 h-3.5" /> : <TrendingDown className="w-3.5 h-3.5" />}
+                      {m.kind === "income" ? <TrendingUp className="w-4 h-4" /> : <TrendingDown className="w-4 h-4" />}
                     </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-white font-bold text-sm truncate leading-tight">{m.title}</p>
-                      <p className="text-[11px] text-white/30 truncate">
+                    <div className="apple-list-row-title flex-1 min-w-0">
+                      <p className="apple-label-primary apple-text-body font-medium truncate">{m.title}</p>
+                      <p className="apple-text-footnote apple-label-tertiary truncate">
                         {m.subtitle}
                         {m.date ? ` · ${format(new Date(m.date), "dd MMM HH:mm", { locale: es })}` : ""}
                         {m.linkedPO && (
@@ -1479,7 +1453,7 @@ Maximo 150 palabras. Texto plano, sin markdown.`
                             {" · "}
                             <button
                               onClick={() => { setActiveTab("compras"); setViewingPO(m.linkedPO); }}
-                              className="text-cyan-400 hover:text-cyan-300 font-black underline decoration-dotted"
+                              className="text-apple-blue font-semibold"
                               title="Ver orden de compra"
                             >
                               🛒 {m.linkedPO.po_number}
@@ -1488,16 +1462,16 @@ Maximo 150 palabras. Texto plano, sin markdown.`
                         )}
                       </p>
                     </div>
-                    <div className="flex items-center gap-1.5 shrink-0">
-                      <p className={`text-sm font-black ${m.kind === "income" ? "text-emerald-400" : "text-red-400"}`}>
+                    <div className="apple-list-row-value flex items-center gap-1.5 shrink-0">
+                      <p className={`apple-text-body font-semibold tabular-nums ${m.kind === "income" ? "text-apple-green" : "text-apple-red"}`}>
                         {m.kind === "income" ? "+" : "-"}${m.amount.toFixed(2)}
                       </p>
                       {m.canEdit && (
                         <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                          <button onClick={() => handleEditExpense(m.raw)} className="w-6 h-6 rounded-lg bg-white/5 hover:bg-cyan-500/20 text-white/30 hover:text-cyan-400 flex items-center justify-center transition-colors">
+                          <button onClick={() => handleEditExpense(m.raw)} className="apple-press w-7 h-7 rounded-apple-sm bg-gray-sys6 dark:bg-gray-sys5 apple-label-secondary flex items-center justify-center">
                             <Edit2 className="w-3 h-3" />
                           </button>
-                          <button onClick={() => handleDeleteExpense(m.origId)} className="w-6 h-6 rounded-lg bg-white/5 hover:bg-red-500/20 text-white/30 hover:text-red-400 flex items-center justify-center transition-colors">
+                          <button onClick={() => handleDeleteExpense(m.origId)} className="apple-press w-7 h-7 rounded-apple-sm bg-apple-red/12 text-apple-red flex items-center justify-center">
                             <Trash2 className="w-3 h-3" />
                           </button>
                         </div>
@@ -1676,27 +1650,27 @@ Maximo 150 palabras. Texto plano, sin markdown.`
             <div className="space-y-5 mt-1">
               {/* Stats bar */}
               <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                <div className="p-4 rounded-2xl bg-white/[0.03] border border-white/[0.08]">
-                  <p className="text-[10px] text-white/40 uppercase font-black tracking-wider">Este mes</p>
-                  <p className="text-white text-xl font-black tabular-nums mt-1.5">${monthTotal.toFixed(2)}</p>
-                  <p className="text-[10px] text-white/30 font-bold mt-1">{monthPOs.length} orden{monthPOs.length === 1 ? "" : "es"}</p>
+                <div className="apple-card p-4 rounded-apple-lg">
+                  <p className="apple-text-footnote apple-label-tertiary font-semibold">Este mes</p>
+                  <p className="apple-text-title1 tabular-nums mt-1.5 apple-label-primary">${monthTotal.toFixed(2)}</p>
+                  <p className="apple-text-caption1 apple-label-tertiary mt-1 tabular-nums">{monthPOs.length} orden{monthPOs.length === 1 ? "" : "es"}</p>
                 </div>
-                <div className="p-4 rounded-2xl bg-amber-500/[0.05] border border-amber-500/20">
-                  <p className="text-[10px] text-amber-400/70 uppercase font-black tracking-wider">Pendiente</p>
-                  <p className="text-amber-300 text-xl font-black tabular-nums mt-1.5">${pendingTotal.toFixed(2)}</p>
-                  <p className="text-[10px] text-amber-400/50 font-bold mt-1">{pendingPOs.length} sin recibir</p>
+                <div className="p-4 rounded-apple-lg bg-apple-orange/12">
+                  <p className="apple-text-footnote text-apple-orange font-semibold">Pendiente</p>
+                  <p className="apple-text-title1 tabular-nums mt-1.5 text-apple-orange">${pendingTotal.toFixed(2)}</p>
+                  <p className="apple-text-caption1 text-apple-orange/80 mt-1 tabular-nums">{pendingPOs.length} sin recibir</p>
                 </div>
-                <div className={`p-4 rounded-2xl border ${overduePOs.length > 0 ? "bg-red-500/[0.05] border-red-500/25" : "bg-white/[0.03] border-white/[0.08]"}`}>
-                  <p className={`text-[10px] uppercase font-black tracking-wider ${overduePOs.length > 0 ? "text-red-400/70" : "text-white/40"}`}>Vencidas</p>
-                  <p className={`text-xl font-black tabular-nums mt-1.5 ${overduePOs.length > 0 ? "text-red-300" : "text-white/40"}`}>{overduePOs.length}</p>
-                  <p className={`text-[10px] font-bold mt-1 ${overduePOs.length > 0 ? "text-red-400/50" : "text-white/30"}`}>
+                <div className={`p-4 rounded-apple-lg ${overduePOs.length > 0 ? "bg-apple-red/12" : "apple-card"}`}>
+                  <p className={`apple-text-footnote font-semibold ${overduePOs.length > 0 ? "text-apple-red" : "apple-label-tertiary"}`}>Vencidas</p>
+                  <p className={`apple-text-title1 tabular-nums mt-1.5 ${overduePOs.length > 0 ? "text-apple-red" : "apple-label-secondary"}`}>{overduePOs.length}</p>
+                  <p className={`apple-text-caption1 mt-1 ${overduePOs.length > 0 ? "text-apple-red/80" : "apple-label-tertiary"}`}>
                     {overduePOs.length > 0 ? "requieren atención" : "todo al día"}
                   </p>
                 </div>
-                <div className="p-4 rounded-2xl bg-white/[0.03] border border-white/[0.08]">
-                  <p className="text-[10px] text-white/40 uppercase font-black tracking-wider">Total OCs</p>
-                  <p className="text-white text-xl font-black tabular-nums mt-1.5">{allPOs.length}</p>
-                  <p className="text-[10px] text-white/30 font-bold mt-1">registradas</p>
+                <div className="apple-card p-4 rounded-apple-lg">
+                  <p className="apple-text-footnote apple-label-tertiary font-semibold">Total OCs</p>
+                  <p className="apple-text-title1 tabular-nums mt-1.5 apple-label-primary">{allPOs.length}</p>
+                  <p className="apple-text-caption1 apple-label-tertiary mt-1">registradas</p>
                 </div>
               </div>
 
@@ -1704,13 +1678,13 @@ Maximo 150 palabras. Texto plano, sin markdown.`
               <div className="flex flex-wrap items-center gap-2 pt-1">
                 <button
                   onClick={() => { setEditingPO(null); setShowPODialog(true); }}
-                  className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-cyan-500/15 border border-cyan-500/20 text-cyan-300 text-xs font-black hover:bg-cyan-500/25 transition-all active:scale-95"
+                  className="apple-btn apple-btn-primary"
                 >
                   <Plus className="w-3.5 h-3.5" /> Nueva orden de compra
                 </button>
                 <button
                   onClick={() => setShowImportPO(true)}
-                  className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-violet-500/15 border border-violet-500/20 text-violet-300 text-xs font-black hover:bg-violet-500/25 transition-all active:scale-95"
+                  className="apple-btn apple-btn-tinted text-apple-purple"
                   title="Sube una foto, PDF o CSV y Jeani la convierte en orden de compra"
                 >
                   <Sparkles className="w-3.5 h-3.5" /> Importar con Jeani
@@ -1725,7 +1699,7 @@ Maximo 150 palabras. Texto plano, sin markdown.`
                   return (
                     <button
                       onClick={() => setShowReorderModal(true)}
-                      className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-amber-500/15 border border-amber-500/20 text-amber-300 text-xs font-black hover:bg-amber-500/25 transition-all active:scale-95"
+                      className="apple-btn apple-btn-tinted text-apple-orange"
                       title="Productos con stock bajo del mínimo"
                     >
                       <AlertTriangle className="w-3.5 h-3.5" /> Reordenar ({lowStock.length})
@@ -1769,15 +1743,15 @@ Maximo 150 palabras. Texto plano, sin markdown.`
                       URL.revokeObjectURL(url);
                       toast.success(`Exportadas ${displayPOs.length} órdenes a CSV`);
                     }}
-                    className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white/[0.04] border border-white/[0.08] text-white/60 text-xs font-black hover:text-white transition-all active:scale-95"
+                    className="apple-btn apple-btn-secondary"
                     title="Descargar las OCs filtradas como CSV"
                   >
                     <Download className="w-3.5 h-3.5" /> Exportar CSV
                   </button>
                 )}
-                <div className="ml-auto flex items-center gap-2 text-xs">
-                  <span className="text-white/40 font-bold">Filtradas:</span>
-                  <span className="text-amber-300 font-black tabular-nums">${totalPending.toFixed(2)}</span>
+                <div className="ml-auto flex items-center gap-2 apple-text-footnote">
+                  <span className="apple-label-secondary">Filtradas:</span>
+                  <span className="text-apple-orange font-semibold tabular-nums">${totalPending.toFixed(2)}</span>
                 </div>
               </div>
 
@@ -1864,14 +1838,14 @@ Maximo 150 palabras. Texto plano, sin markdown.`
                   <button
                     key={f.id}
                     onClick={() => setPoQuickFilter(f.id)}
-                    className={`px-3 py-1.5 rounded-xl text-[11px] font-black border transition-all ${
+                    className={`apple-press px-3 py-1.5 rounded-apple-sm apple-text-footnote font-semibold transition-all ${
                       poQuickFilter === f.id
-                        ? f.id === "overdue" ? "bg-red-600 border-red-600 text-white"
-                          : "bg-cyan-600 border-cyan-600 text-white"
-                        : "bg-white/[0.04] border-white/[0.08] text-white/50 hover:text-white/80"
+                        ? f.id === "overdue" ? "bg-apple-red/15 text-apple-red"
+                          : "bg-apple-blue/15 text-apple-blue"
+                        : "apple-card apple-label-secondary"
                     }`}
                   >
-                    {f.label} {f.count > 0 && <span className="opacity-70">({f.count})</span>}
+                    {f.label} {f.count > 0 && <span className="opacity-70 tabular-nums">({f.count})</span>}
                   </button>
                 ))}
               </div>
@@ -1882,32 +1856,32 @@ Maximo 150 palabras. Texto plano, sin markdown.`
                   value={poSearch}
                   onChange={(e) => setPoSearch(e.target.value)}
                   placeholder="Buscar por número, proveedor o nota…"
-                  className="max-w-xs bg-white/[0.04] border-white/10 text-white text-xs"
+                  className="apple-input max-w-xs"
                 />
                 <div className="flex gap-1 items-center ml-auto flex-wrap">
-                  <div className="flex gap-0.5 bg-white/[0.04] border border-white/10 rounded-lg p-0.5">
+                  <div className="flex gap-0.5 bg-gray-sys6 dark:bg-gray-sys5 rounded-apple-sm p-0.5">
                     <button
                       onClick={() => setPoViewMode("list")}
-                      className={`px-2 py-1 rounded text-[10px] font-black transition-all ${
-                        poViewMode === "list" ? "bg-white/15 text-white" : "text-white/40 hover:text-white/70"
+                      className={`apple-press px-2.5 py-1 rounded-apple-xs apple-text-caption1 font-semibold transition-all ${
+                        poViewMode === "list" ? "apple-surface-elevated apple-label-primary shadow-sm" : "apple-label-secondary"
                       }`}
                     >
                       Lista
                     </button>
                     <button
                       onClick={() => setPoViewMode("grouped")}
-                      className={`px-2 py-1 rounded text-[10px] font-black transition-all ${
-                        poViewMode === "grouped" ? "bg-white/15 text-white" : "text-white/40 hover:text-white/70"
+                      className={`apple-press px-2.5 py-1 rounded-apple-xs apple-text-caption1 font-semibold transition-all ${
+                        poViewMode === "grouped" ? "apple-surface-elevated apple-label-primary shadow-sm" : "apple-label-secondary"
                       }`}
                     >
                       Por proveedor
                     </button>
                   </div>
-                  <span className="text-[10px] text-white/40 font-black uppercase ml-2">Ordenar:</span>
+                  <span className="apple-text-caption1 apple-label-tertiary font-semibold ml-2">Ordenar:</span>
                   <select
                     value={poSortBy}
                     onChange={(e) => setPoSortBy(e.target.value)}
-                    className="bg-white/[0.04] border border-white/10 rounded-lg px-2 py-1 text-[11px] text-white font-bold"
+                    className="apple-input px-2 py-1 apple-text-footnote"
                   >
                     <option value="date">Fecha</option>
                     <option value="total">Total</option>
@@ -1915,7 +1889,7 @@ Maximo 150 palabras. Texto plano, sin markdown.`
                   </select>
                   <button
                     onClick={() => setPoSortDir((d) => (d === "asc" ? "desc" : "asc"))}
-                    className="px-2 py-1 rounded-lg bg-white/[0.04] border border-white/10 text-white/60 text-[11px] font-bold hover:text-white"
+                    className="apple-press px-2 py-1 rounded-apple-sm bg-gray-sys6 dark:bg-gray-sys5 apple-label-secondary apple-text-footnote font-semibold"
                     title={poSortDir === "asc" ? "Ascendente" : "Descendente"}
                   >
                     {poSortDir === "asc" ? "↑" : "↓"}
@@ -1924,33 +1898,33 @@ Maximo 150 palabras. Texto plano, sin markdown.`
               </div>
 
               {/* Separador visual */}
-              <div className="border-t border-white/[0.06]" />
+              <div style={{ borderTop: '0.5px solid rgb(var(--separator) / 0.29)' }} />
 
               {/* Lista */}
               {loading ? (
                 <div className="py-12 text-center">
-                  <RefreshCw className="w-5 h-5 animate-spin mx-auto mb-2 text-white/50" />
-                  <p className="text-xs text-white/50 font-bold">Cargando órdenes…</p>
+                  <RefreshCw className="w-5 h-5 animate-spin mx-auto mb-2 apple-label-secondary" />
+                  <p className="apple-text-footnote apple-label-secondary">Cargando órdenes…</p>
                 </div>
               ) : displayPOs.length === 0 ? (
-                <div className="py-16 text-center bg-white/[0.02] border border-dashed border-white/10 rounded-2xl">
-                  <ShoppingCart className="w-10 h-10 mx-auto mb-3 text-white/50" />
+                <div className="py-16 text-center apple-card rounded-apple-lg">
+                  <ShoppingCart className="w-10 h-10 mx-auto mb-3 apple-label-tertiary" />
                   {allPOs.length === 0 ? (
                     <>
-                      <p className="text-white font-black text-base">Aún no hay órdenes de compra</p>
-                      <p className="text-white/40 text-xs mt-1 mb-4">
+                      <p className="apple-label-primary apple-text-headline">Aún no hay órdenes de compra</p>
+                      <p className="apple-label-secondary apple-text-footnote mt-1 mb-4">
                         Crea una manualmente o importa una foto/PDF con Jeani
                       </p>
                       <div className="flex items-center justify-center gap-2">
                         <button
                           onClick={() => { setEditingPO(null); setShowPODialog(true); }}
-                          className="flex items-center gap-2 px-4 py-2 rounded-xl bg-cyan-500/15 border border-cyan-500/25 text-cyan-300 text-xs font-black hover:bg-cyan-500/25"
+                          className="apple-btn apple-btn-primary"
                         >
                           <Plus className="w-3.5 h-3.5" /> Crear manual
                         </button>
                         <button
                           onClick={() => setShowImportPO(true)}
-                          className="flex items-center gap-2 px-4 py-2 rounded-xl bg-violet-500/20 border border-violet-500/30 text-violet-200 text-xs font-black hover:bg-violet-500/30"
+                          className="apple-btn apple-btn-tinted text-apple-purple"
                         >
                           <Sparkles className="w-3.5 h-3.5" /> Importar con Jeani
                         </button>
@@ -1958,13 +1932,13 @@ Maximo 150 palabras. Texto plano, sin markdown.`
                     </>
                   ) : (
                     <>
-                      <p className="text-white/60 font-black text-sm">Sin resultados</p>
-                      <p className="text-white/30 text-[11px] mt-1">
+                      <p className="apple-label-primary apple-text-headline">Sin resultados</p>
+                      <p className="apple-label-tertiary apple-text-footnote mt-1">
                         Ajusta los filtros o busca con otros términos
                       </p>
                       <button
                         onClick={() => { setPoQuickFilter("all"); setPoSearch(""); setPoStatusFilter("all"); }}
-                        className="mt-3 px-3 py-1.5 rounded-lg bg-white/[0.04] border border-white/10 text-white/60 text-[11px] font-bold hover:text-white"
+                        className="apple-btn apple-btn-secondary mt-3"
                       >
                         Limpiar filtros
                       </button>

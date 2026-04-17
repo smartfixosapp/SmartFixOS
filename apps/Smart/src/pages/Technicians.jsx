@@ -178,15 +178,15 @@ export default function Technicians() {
   const getStatusColor = (status) => {
     switch (status) {
       case "available":
-        return "bg-green-600/20 text-green-300 border-green-600/30";
+        return "bg-apple-green/15 text-apple-green";
       case "busy":
-        return "bg-yellow-600/20 text-yellow-300 border-yellow-600/30";
+        return "bg-apple-yellow/15 text-apple-yellow";
       case "offline":
-        return "bg-gray-600/20 text-gray-300 border-gray-600/30";
+        return "bg-gray-sys6 dark:bg-gray-sys5 apple-label-secondary";
       case "on_break":
-        return "bg-blue-600/20 text-blue-300 border-blue-600/30";
+        return "bg-apple-blue/15 text-apple-blue";
       default:
-        return "bg-gray-600/20 text-gray-300 border-gray-600/30";
+        return "bg-gray-sys6 dark:bg-gray-sys5 apple-label-secondary";
     }
   };
 
@@ -210,28 +210,30 @@ export default function Technicians() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-[radial-gradient(circle_at_top,#0f172a_0%,#020617_45%,#000_90%)] p-4 sm:p-6 flex items-center justify-center">
-        <div className="animate-spin w-12 h-12 border-4 border-red-600 border-t-transparent rounded-full" />
+      <div className="min-h-screen apple-surface apple-type p-4 sm:p-6 flex items-center justify-center">
+        <div className="animate-spin w-12 h-12 border-4 border-apple-red border-t-transparent rounded-full" />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-[radial-gradient(circle_at_top,#0f172a_0%,#020617_45%,#000_90%)] py-4 sm:py-6">
+    <div className="min-h-screen apple-surface apple-type py-4 sm:py-6">
       <div className="app-container space-y-6">
-        {/* Header Glass */}
-        <div className="bg-black/40 backdrop-blur-xl border border-white/10 rounded-2xl p-6 shadow-[0_8px_32px_rgba(0,0,0,0.3)]">
+        {/* Header */}
+        <div className="apple-card p-6">
           <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
-            <div>
-              <h1 className="text-3xl font-bold text-white flex items-center gap-3">
-                <Wrench className="w-8 h-8 text-red-500" />
-                Técnicos
-              </h1>
-              <p className="text-gray-400 mt-2">Gestiona tu equipo técnico</p>
+            <div className="flex items-center gap-3">
+              <div className="w-11 h-11 rounded-apple-sm bg-apple-red/15 flex items-center justify-center shrink-0">
+                <Wrench className="w-6 h-6 text-apple-red" />
+              </div>
+              <div>
+                <h1 className="apple-text-large-title apple-label-primary">Técnicos</h1>
+                <p className="apple-text-subheadline apple-label-secondary mt-1">Gestiona tu equipo técnico</p>
+              </div>
             </div>
             <Button
               onClick={handleCreateProfile}
-              className="bg-gradient-to-r from-red-600 to-red-800 hover:from-red-700 hover:to-red-900"
+              className="apple-btn apple-btn-primary apple-press"
             >
               <Plus className="w-4 h-4 mr-2" />
               Nuevo Técnico
@@ -241,73 +243,73 @@ export default function Technicians() {
 
         {/* KPIs del Equipo */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          <Card className="bg-gradient-to-br from-[#2B2B2B] to-black border-red-900/30">
+          <Card className="apple-card">
             <CardContent className="pt-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-gray-400">Total Técnicos</p>
-                  <p className="text-3xl font-bold text-white mt-1">{technicians.length}</p>
-                  <p className="text-xs text-green-400 mt-1">
+                  <p className="apple-text-footnote apple-label-secondary">Total Técnicos</p>
+                  <p className="apple-text-title1 apple-label-primary mt-1 tabular-nums">{technicians.length}</p>
+                  <p className="apple-text-caption1 text-apple-green mt-1 tabular-nums">
                     {availableTechs} disponibles
                   </p>
                 </div>
-                <div className="p-3 rounded-full bg-blue-600/20">
-                  <Users className="w-6 h-6 text-blue-400" />
+                <div className="w-11 h-11 rounded-apple-sm bg-apple-blue/15 flex items-center justify-center">
+                  <Users className="w-6 h-6 text-apple-blue" />
                 </div>
               </div>
             </CardContent>
           </Card>
 
-          <Card className="bg-gradient-to-br from-[#2B2B2B] to-black border-red-900/30">
+          <Card className="apple-card">
             <CardContent className="pt-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-gray-400">Trabajos Completados</p>
-                  <p className="text-3xl font-bold text-white mt-1">{totalCompletedJobs}</p>
-                  <p className="text-xs text-gray-500 mt-1">Este mes</p>
+                  <p className="apple-text-footnote apple-label-secondary">Trabajos Completados</p>
+                  <p className="apple-text-title1 apple-label-primary mt-1 tabular-nums">{totalCompletedJobs}</p>
+                  <p className="apple-text-caption1 apple-label-tertiary mt-1">Este mes</p>
                 </div>
-                <div className="p-3 rounded-full bg-green-600/20">
-                  <CheckCircle className="w-6 h-6 text-green-400" />
+                <div className="w-11 h-11 rounded-apple-sm bg-apple-green/15 flex items-center justify-center">
+                  <CheckCircle className="w-6 h-6 text-apple-green" />
                 </div>
               </div>
             </CardContent>
           </Card>
 
-          <Card className="bg-gradient-to-br from-[#2B2B2B] to-black border-red-900/30">
+          <Card className="apple-card">
             <CardContent className="pt-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-gray-400">Rating Promedio</p>
-                  <p className="text-3xl font-bold text-white mt-1 flex items-center gap-2">
+                  <p className="apple-text-footnote apple-label-secondary">Rating Promedio</p>
+                  <p className="apple-text-title1 apple-label-primary mt-1 flex items-center gap-2 tabular-nums">
                     {avgTeamRating.toFixed(1)}
-                    <Star className="w-5 h-5 text-yellow-400 fill-yellow-400" />
+                    <Star className="w-5 h-5 text-apple-yellow fill-current" />
                   </p>
-                  <p className="text-xs text-gray-500 mt-1">Del equipo</p>
+                  <p className="apple-text-caption1 apple-label-tertiary mt-1">Del equipo</p>
                 </div>
-                <div className="p-3 rounded-full bg-yellow-600/20">
-                  <Award className="w-6 h-6 text-yellow-400" />
+                <div className="w-11 h-11 rounded-apple-sm bg-apple-yellow/15 flex items-center justify-center">
+                  <Award className="w-6 h-6 text-apple-yellow" />
                 </div>
               </div>
             </CardContent>
           </Card>
 
-          <Card className="bg-gradient-to-br from-[#2B2B2B] to-black border-red-900/30">
+          <Card className="apple-card">
             <CardContent className="pt-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-gray-400">Eficiencia</p>
-                  <p className="text-3xl font-bold text-white mt-1">
+                  <p className="apple-text-footnote apple-label-secondary">Eficiencia</p>
+                  <p className="apple-text-title1 apple-label-primary mt-1 tabular-nums">
                     {technicians.length > 0
                       ? ((technicians.reduce((s, t) => s + (t.metrics?.success_rate || 0), 0) / technicians.length) || 0).toFixed(0)
                       : 0}%
                   </p>
-                  <p className="text-xs text-green-400 mt-1 flex items-center gap-1">
+                  <p className="apple-text-caption1 text-apple-green mt-1 flex items-center gap-1">
                     <TrendingUp className="w-3 h-3" />
                     Tasa de éxito
                   </p>
                 </div>
-                <div className="p-3 rounded-full bg-purple-600/20">
-                  <Target className="w-6 h-6 text-purple-400" />
+                <div className="w-11 h-11 rounded-apple-sm bg-apple-purple/15 flex items-center justify-center">
+                  <Target className="w-6 h-6 text-apple-purple" />
                 </div>
               </div>
             </CardContent>
@@ -315,29 +317,28 @@ export default function Technicians() {
         </div>
 
         {/* Filtros y Búsqueda */}
-        <Card className="bg-gradient-to-br from-[#2B2B2B] to-black border-red-900/30">
+        <Card className="apple-card">
           <CardContent className="pt-6">
             <div className="flex flex-col md:flex-row gap-4">
               <div className="flex-1 relative">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500" />
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 apple-label-tertiary" />
                 <Input
                   placeholder="Buscar técnico por nombre, email o especialización..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-10 bg-black/40 border-white/15 text-white"
+                  className="apple-input pl-10"
                 />
               </div>
 
-              <div className="flex gap-2">
+              <div className="flex gap-2 flex-wrap">
                 {["all", "available", "busy", "offline"].map((status) => (
                   <Button
                     key={status}
                     onClick={() => setFilterStatus(status)}
-                    variant={filterStatus === status ? "default" : "outline"}
                     className={
                       filterStatus === status
-                        ? "bg-red-600 hover:bg-red-700"
-                        : "border-white/15"
+                        ? "apple-btn apple-btn-primary apple-press"
+                        : "apple-btn apple-btn-secondary apple-press"
                     }
                   >
                     {status === "all" ? "Todos" : getStatusLabel(status)}
@@ -348,7 +349,7 @@ export default function Technicians() {
               <select
                 value={sortBy}
                 onChange={(e) => setSortBy(e.target.value)}
-                className="px-4 py-2 rounded-lg bg-black/40 border border-white/15 text-white"
+                className="apple-input px-4 py-2"
               >
                 <option value="performance">Por Desempeño</option>
                 <option value="jobs">Por Trabajos</option>
@@ -362,20 +363,23 @@ export default function Technicians() {
         {/* Lista de Técnicos */}
         <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
           {sortedTechnicians.map((tech) => (
-            <Card key={tech.id} className="bg-gradient-to-br from-[#2B2B2B] to-black border-red-900/30 hover:border-red-600/50 transition-all">
+            <Card key={tech.id} className="apple-card apple-press transition-all">
               <CardContent className="pt-6">
                 {/* Header del Técnico */}
-                <div className="flex items-start justify-between mb-4">
+                <div
+                  className="flex items-start justify-between pb-4 mb-4"
+                  style={{ borderBottom: "0.5px solid rgb(var(--separator) / 0.29)" }}
+                >
                   <div className="flex items-center gap-3">
-                    <div className="w-12 h-12 rounded-full bg-gradient-to-br from-red-600 to-red-800 flex items-center justify-center text-white font-bold text-xl">
+                    <div className="w-12 h-12 rounded-apple-sm bg-apple-red/15 flex items-center justify-center text-apple-red apple-text-headline">
                       {tech.full_name?.[0]?.toUpperCase() || "?"}
                     </div>
                     <div>
-                      <h3 className="font-semibold text-white">{tech.full_name}</h3>
-                      <p className="text-xs text-gray-400">{tech.email}</p>
+                      <h3 className="apple-text-headline apple-label-primary">{tech.full_name}</h3>
+                      <p className="apple-text-caption1 apple-label-secondary">{tech.email}</p>
                     </div>
                   </div>
-                  <Badge className={getStatusColor(tech.availability?.status || "offline")}>
+                  <Badge className={`${getStatusColor(tech.availability?.status || "offline")} apple-text-caption2 rounded-apple-xs px-2 py-0.5 border-0`}>
                     {getStatusLabel(tech.availability?.status || "offline")}
                   </Badge>
                 </div>
@@ -385,12 +389,12 @@ export default function Technicians() {
                   <div className="mb-4">
                     <div className="flex flex-wrap gap-2">
                       {tech.specializations.slice(0, 3).map((spec, idx) => (
-                        <Badge key={idx} variant="outline" className="text-xs border-white/20">
+                        <Badge key={idx} className="apple-text-caption2 bg-gray-sys6 dark:bg-gray-sys5 apple-label-secondary rounded-apple-xs px-2 py-0.5 border-0">
                           {spec}
                         </Badge>
                       ))}
                       {tech.specializations.length > 3 && (
-                        <Badge variant="outline" className="text-xs border-white/20">
+                        <Badge className="apple-text-caption2 bg-gray-sys6 dark:bg-gray-sys5 apple-label-secondary rounded-apple-xs px-2 py-0.5 border-0">
                           +{tech.specializations.length - 3}
                         </Badge>
                       )}
@@ -400,34 +404,34 @@ export default function Technicians() {
 
                 {/* Métricas */}
                 <div className="grid grid-cols-2 gap-3 mb-4">
-                  <div className="bg-black/40 p-3 rounded-lg">
-                    <p className="text-xs text-gray-400 mb-1">Trabajos</p>
-                    <p className="text-lg font-bold text-white">
+                  <div className="apple-surface-secondary rounded-apple-sm p-3">
+                    <p className="apple-text-caption2 apple-label-secondary mb-1">Trabajos</p>
+                    <p className="apple-text-title3 apple-label-primary tabular-nums">
                       {tech.metrics?.completed_jobs || 0}
-                      <span className="text-xs text-gray-500">/{tech.metrics?.total_jobs || 0}</span>
+                      <span className="apple-text-caption1 apple-label-tertiary">/{tech.metrics?.total_jobs || 0}</span>
                     </p>
                   </div>
 
-                  <div className="bg-black/40 p-3 rounded-lg">
-                    <p className="text-xs text-gray-400 mb-1">Rating</p>
-                    <p className="text-lg font-bold text-white flex items-center gap-1">
+                  <div className="apple-surface-secondary rounded-apple-sm p-3">
+                    <p className="apple-text-caption2 apple-label-secondary mb-1">Rating</p>
+                    <p className="apple-text-title3 apple-label-primary flex items-center gap-1 tabular-nums">
                       {(tech.performance_metrics?.avg_customer_rating || 0).toFixed(1)}
-                      <Star className="w-4 h-4 text-yellow-400 fill-yellow-400" />
+                      <Star className="w-4 h-4 text-apple-yellow fill-current" />
                     </p>
                   </div>
 
-                  <div className="bg-black/40 p-3 rounded-lg">
-                    <p className="text-xs text-gray-400 mb-1">Éxito</p>
-                    <p className="text-lg font-bold text-green-400">
+                  <div className="apple-surface-secondary rounded-apple-sm p-3">
+                    <p className="apple-text-caption2 apple-label-secondary mb-1">Éxito</p>
+                    <p className="apple-text-title3 text-apple-green tabular-nums">
                       {(tech.metrics?.success_rate || 0).toFixed(0)}%
                     </p>
                   </div>
 
-                  <div className="bg-black/40 p-3 rounded-lg">
-                    <p className="text-xs text-gray-400 mb-1">Activos</p>
-                    <p className="text-lg font-bold text-blue-400">
+                  <div className="apple-surface-secondary rounded-apple-sm p-3">
+                    <p className="apple-text-caption2 apple-label-secondary mb-1">Activos</p>
+                    <p className="apple-text-title3 text-apple-blue tabular-nums">
                       {tech.metrics?.active_jobs || 0}
-                      <span className="text-xs text-gray-500">/{tech.availability?.max_capacity || 5}</span>
+                      <span className="apple-text-caption1 apple-label-tertiary">/{tech.availability?.max_capacity || 5}</span>
                     </p>
                   </div>
                 </div>
@@ -436,8 +440,7 @@ export default function Technicians() {
                 <div className="flex gap-2">
                   <Button
                     size="sm"
-                    variant="outline"
-                    className="flex-1 border-white/15"
+                    className="apple-btn apple-btn-secondary apple-press flex-1"
                     onClick={() => handleViewPerformance(tech)}
                   >
                     <BarChart3 className="w-4 h-4 mr-2" />
@@ -445,8 +448,7 @@ export default function Technicians() {
                   </Button>
                   <Button
                     size="sm"
-                    variant="outline"
-                    className="flex-1 border-white/15"
+                    className="apple-btn apple-btn-secondary apple-press flex-1"
                     onClick={() => handleEditProfile(tech)}
                   >
                     <Edit className="w-4 h-4 mr-2" />
@@ -454,8 +456,7 @@ export default function Technicians() {
                   </Button>
                   <Button
                     size="sm"
-                    variant="outline"
-                    className="border-white/15"
+                    className="apple-btn apple-btn-secondary apple-press"
                     onClick={() => handleSendNotification(tech, "Tienes una nueva asignación urgente")}
                   >
                     <Bell className="w-4 h-4" />
@@ -467,13 +468,13 @@ export default function Technicians() {
         </div>
 
         {sortedTechnicians.length === 0 && (
-          <Card className="bg-gradient-to-br from-[#2B2B2B] to-black border-red-900/30">
+          <Card className="apple-card">
             <CardContent className="py-12 text-center">
-              <Users className="w-16 h-16 text-gray-600 mx-auto mb-4" />
-              <p className="text-gray-400">No se encontraron técnicos</p>
+              <Users className="w-16 h-16 apple-label-tertiary mx-auto mb-4" />
+              <p className="apple-text-body apple-label-secondary">No se encontraron técnicos</p>
               <Button
                 onClick={handleCreateProfile}
-                className="mt-4 bg-red-600 hover:bg-red-700"
+                className="mt-4 apple-btn apple-btn-primary apple-press"
               >
                 <Plus className="w-4 h-4 mr-2" />
                 Crear Primer Técnico
