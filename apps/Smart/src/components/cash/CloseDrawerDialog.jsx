@@ -13,16 +13,16 @@ import { createCashRegisterClosingEmail, getBusinessInfo } from "../utils/emailT
 
 // Definición de denominaciones
 const DENOMINATIONS = [
-    { id: 'bills_100', label: '$100', value: 100, color: 'bg-indigo-600', textColor: 'text-white' },
-    { id: 'bills_50', label: '$50', value: 50, color: 'bg-blue-500', textColor: 'text-white' },
-    { id: 'bills_20', label: '$20', value: 20, color: 'bg-emerald-500', textColor: 'text-white' },
-    { id: 'bills_10', label: '$10', value: 10, color: 'bg-yellow-500', textColor: 'text-black' },
-    { id: 'bills_5', label: '$5', value: 5, color: 'bg-orange-500', textColor: 'text-white' },
-    { id: 'bills_1', label: '$1', value: 1, color: 'bg-pink-500', textColor: 'text-white' },
-    { id: 'coins_025', label: '$0.25', value: 0.25, type: 'coin', color: 'bg-slate-600', textColor: 'text-white' },
-    { id: 'coins_010', label: '$0.10', value: 0.10, type: 'coin', color: 'bg-slate-600', textColor: 'text-white' },
-    { id: 'coins_005', label: '$0.05', value: 0.05, type: 'coin', color: 'bg-slate-600', textColor: 'text-white' },
-    { id: 'coins_001', label: '$0.01', value: 0.01, type: 'coin', color: 'bg-slate-600', textColor: 'text-white' },
+    { id: 'bills_100', label: '$100', value: 100, color: 'bg-apple-purple/15', textColor: 'text-apple-purple' },
+    { id: 'bills_50', label: '$50', value: 50, color: 'bg-apple-blue/15', textColor: 'text-apple-blue' },
+    { id: 'bills_20', label: '$20', value: 20, color: 'bg-apple-green/15', textColor: 'text-apple-green' },
+    { id: 'bills_10', label: '$10', value: 10, color: 'bg-apple-yellow/15', textColor: 'text-apple-yellow' },
+    { id: 'bills_5', label: '$5', value: 5, color: 'bg-apple-orange/15', textColor: 'text-apple-orange' },
+    { id: 'bills_1', label: '$1', value: 1, color: 'bg-apple-red/15', textColor: 'text-apple-red' },
+    { id: 'coins_025', label: '$0.25', value: 0.25, type: 'coin', color: 'bg-gray-sys6 dark:bg-gray-sys5', textColor: 'apple-label-secondary' },
+    { id: 'coins_010', label: '$0.10', value: 0.10, type: 'coin', color: 'bg-gray-sys6 dark:bg-gray-sys5', textColor: 'apple-label-secondary' },
+    { id: 'coins_005', label: '$0.05', value: 0.05, type: 'coin', color: 'bg-gray-sys6 dark:bg-gray-sys5', textColor: 'apple-label-secondary' },
+    { id: 'coins_001', label: '$0.01', value: 0.01, type: 'coin', color: 'bg-gray-sys6 dark:bg-gray-sys5', textColor: 'apple-label-secondary' },
 ];
 
 function sumPaymentMethodsFromSale(sale) {
@@ -425,33 +425,35 @@ export default function CloseDrawerDialog({ isOpen, onClose, drawer, onSuccess }
   return (
     <>
       <Dialog open={isOpen} onOpenChange={onClose}>
-        <DialogContent className="max-w-4xl w-[95vw] bg-zinc-950/95 backdrop-blur-xl border border-white/10 shadow-2xl p-0 gap-0 overflow-hidden rounded-3xl h-[90vh] sm:h-[85vh] flex flex-col [&>button]:hidden z-[9999]">
-          {/* Header Apple Style - Responsive */}
-          <div className="bg-zinc-900/50 border-b border-white/5 p-3 sm:p-6 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 sm:gap-4 shrink-0">
-              <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-600 flex items-center justify-center shadow-lg shadow-indigo-500/20 shrink-0">
-                      <Lock className="w-6 h-6 text-white" />
+        <DialogContent className="max-w-4xl w-[95vw] apple-surface-elevated border-0 shadow-apple-xl rounded-apple-lg apple-type p-0 gap-0 overflow-hidden h-[90vh] sm:h-[85vh] flex flex-col [&>button]:hidden z-[9999]">
+          {/* Header */}
+          <div
+              className="px-5 pt-5 pb-3 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 sm:gap-4 shrink-0"
+              style={{ borderBottom: "0.5px solid rgb(var(--separator) / 0.29)" }}>
+              <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-apple-sm bg-apple-purple/15 flex items-center justify-center shrink-0">
+                      <Lock className="w-5 h-5 text-apple-purple" />
                   </div>
                   <div>
-                      <DialogTitle className="text-xl font-bold text-white tracking-tight">Cierre de Caja Profesional</DialogTitle>
+                      <DialogTitle className="apple-text-title2 apple-label-primary">Cierre de Caja</DialogTitle>
                       <div className="flex items-center gap-2 mt-1">
-                        <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-                        <p className="text-zinc-400 text-xs font-medium uppercase tracking-widest">
+                        <span className="w-1.5 h-1.5 rounded-full bg-apple-green animate-pulse" />
+                        <p className="apple-text-footnote apple-label-secondary">
                           {new Date().toLocaleDateString('es-PR', { weekday: 'long', day: 'numeric', month: 'long' })}
                         </p>
                       </div>
                   </div>
               </div>
-              <div className="flex gap-3 sm:gap-8 text-right w-full sm:w-auto justify-between sm:justify-end">
+              <div className="flex gap-4 sm:gap-6 text-right w-full sm:w-auto justify-between sm:justify-end">
                   <div>
-                      <p className="text-[9px] sm:text-xs font-medium text-zinc-500 uppercase tracking-wider mb-0.5">Esperado</p>
-                      <div className="text-base sm:text-2xl font-bold text-zinc-400 font-mono tracking-tight">
+                      <p className="apple-text-caption2 apple-label-tertiary">Esperado</p>
+                      <div className="apple-text-title3 apple-label-secondary tabular-nums">
                           ${summary.expectedCash.toFixed(2)}
                       </div>
                   </div>
                   <div>
-                      <p className="text-[9px] sm:text-xs font-medium text-zinc-500 uppercase tracking-wider mb-0.5">Contado</p>
-                      <div className={cn("text-lg sm:text-3xl font-bold font-mono tracking-tight", isBalanced ? "text-emerald-400" : "text-white")}>
+                      <p className="apple-text-caption2 apple-label-tertiary">Contado</p>
+                      <div className={cn("apple-text-title2 tabular-nums", isBalanced ? "text-apple-green" : "apple-label-primary")}>
                           ${total.toFixed(2)}
                       </div>
                   </div>
@@ -459,15 +461,17 @@ export default function CloseDrawerDialog({ isOpen, onClose, drawer, onSuccess }
           </div>
 
           {/* Contenido con scroll - Botones al final */}
-          <div className="flex-1 overflow-y-auto bg-black/40 flex flex-col">
+          <div className="flex-1 overflow-y-auto apple-surface flex flex-col">
            <div className="sm:flex sm:flex-row sm:h-full sm:overflow-hidden sm:flex-1">
               {/* Columna única en móvil, Left en desktop */}
-              <div className="sm:flex-1 p-3 sm:p-6 sm:overflow-y-auto sm:border-r border-white/5 select-none">
-                  <p className="text-xs font-medium text-zinc-500 uppercase tracking-wider mb-3 sm:mb-4">💵 Conteo de Efectivo</p>
-                  
+              <div
+                  className="sm:flex-1 p-5 sm:overflow-y-auto select-none"
+                  style={{ borderRight: "0.5px solid rgb(var(--separator) / 0.29)" }}>
+                  <p className="apple-text-footnote apple-label-secondary mb-3 sm:mb-4">Conteo de Efectivo</p>
+
                   <div className="grid grid-cols-3 sm:grid-cols-2 md:grid-cols-3 gap-2 sm:gap-3 mb-6 sm:mb-0">
                       {DENOMINATIONS.map((d) => (
-                          <div 
+                          <div
                               key={d.id}
                               onClick={(e) => handleClick(d, e)}
                               onTouchStart={(e) => handleStart(d, e)}
@@ -475,83 +479,78 @@ export default function CloseDrawerDialog({ isOpen, onClose, drawer, onSuccess }
                               onTouchCancel={handleCancel}
                               onContextMenu={(e) => { e.preventDefault(); }}
                               className={cn(
-                                  "relative aspect-square sm:aspect-[1.5/1] rounded-xl p-3 cursor-pointer transition-all duration-200 select-none group active:scale-[0.96]",
-                                  d.color,
-                                  "shadow-lg hover:shadow-xl ring-1 ring-white/10"
+                                  "relative aspect-square sm:aspect-[1.5/1] rounded-apple-md p-3 cursor-pointer transition-all duration-200 select-none apple-press shadow-apple-sm",
+                                  d.color
                               )}
                           >
-                              <div className="absolute inset-0 opacity-10 bg-[radial-gradient(circle_at_top_right,_var(--tw-gradient-stops))] from-white to-transparent" />
-                              
                               <div className="relative h-full flex flex-col justify-between">
-                                  <span className={cn("text-sm sm:text-lg font-bold tracking-tight", d.textColor)}>
+                                  <span className={cn("apple-text-headline", d.textColor)}>
                                       {d.label}
                                   </span>
 
                                   <div className="self-end">
-                                      <span className={cn("text-2xl font-bold tracking-tighter tabular-nums", d.textColor)}>
+                                      <span className={cn("apple-text-title2 tabular-nums", d.textColor)}>
                                           {denominations[d.id] || 0}
                                       </span>
-                                  </div>
-
-                                  <div className={cn("hidden sm:block absolute bottom-2 right-0 left-0 text-center opacity-60 text-[9px] font-medium tracking-wide", d.textColor)}>
-                                      Click +1 • Hold Edit
                                   </div>
                               </div>
                           </div>
                       ))}
                   </div>
-                  
-                  <div className="mt-3 mb-6 sm:mb-0 sm:mt-4 flex items-center justify-center gap-2 text-zinc-500 text-xs">
+
+                  <div className="mt-3 mb-6 sm:mb-0 sm:mt-4 flex items-center justify-center gap-2 apple-label-tertiary apple-text-footnote">
                     <Calculator className="w-3.5 h-3.5" />
                     <span>Mantén presionado para editar</span>
                   </div>
 
                   {/* Resumen en móvil (abajo del conteo) */}
-                  <div className="sm:hidden border-t border-white/10 pt-6 mt-6">
-                      <p className="text-xs font-medium text-zinc-500 uppercase tracking-wider mb-3">📊 Resumen del Turno</p>
-                      
-                      <div className="space-y-2 mb-6">
-                          <div 
+                  <div
+                      className="sm:hidden pt-6 mt-6"
+                      style={{ borderTop: "0.5px solid rgb(var(--separator) / 0.29)" }}>
+                      <p className="apple-text-footnote apple-label-secondary mb-3">Resumen del Turno</p>
+
+                      <div className="space-y-2 mb-6 apple-list">
+                          <div
                             onClick={() => setEditingSummaryField({ field: 'totalCash', label: 'Ventas Efectivo', value: summary.totalCash })}
-                            className="bg-white/5 rounded-xl p-3 flex items-center justify-between hover:bg-white/10 cursor-pointer transition-colors active:scale-[0.98]"
+                            className="apple-list-row rounded-apple-md bg-gray-sys6 dark:bg-gray-sys5 p-3 flex items-center justify-between cursor-pointer apple-press"
                           >
                               <div className="flex items-center gap-2">
-                                  <Banknote className="w-4 h-4 text-emerald-400 shrink-0" />
-                                  <span className="text-sm text-zinc-300">Efectivo</span>
+                                  <Banknote className="w-4 h-4 text-apple-green shrink-0" />
+                                  <span className="apple-text-subheadline apple-label-primary">Efectivo</span>
                               </div>
-                              <div className="flex items-center gap-1">
-                                  <span className="text-zinc-500 font-semibold text-sm">$</span>
-                                  <span className="text-white font-semibold text-sm">
+                              <div className="flex items-center gap-1 tabular-nums">
+                                  <span className="apple-text-subheadline apple-label-tertiary">$</span>
+                                  <span className="apple-text-subheadline apple-label-primary">
                                     {(parseFloat(summary.totalCash) || 0).toFixed(2)}
                                   </span>
                               </div>
                           </div>
-                          <div 
+                          <div
                             onClick={() => setEditingSummaryField({ field: 'totalCard', label: 'Tarjetas', value: summary.totalCard })}
-                            className="bg-white/5 rounded-xl p-3 flex items-center justify-between hover:bg-white/10 cursor-pointer transition-colors active:scale-[0.98]"
+                            className="apple-list-row rounded-apple-md bg-gray-sys6 dark:bg-gray-sys5 p-3 flex items-center justify-between cursor-pointer apple-press"
                           >
                               <div className="flex items-center gap-2">
-                                  <CreditCard className="w-4 h-4 text-blue-400 shrink-0" />
-                                  <span className="text-sm text-zinc-300">Tarjetas</span>
+                                  <CreditCard className="w-4 h-4 text-apple-blue shrink-0" />
+                                  <span className="apple-text-subheadline apple-label-primary">Tarjetas</span>
                               </div>
-                              <div className="flex items-center gap-1">
-                                  <span className="text-zinc-500 font-semibold text-sm">$</span>
-                                  <span className="text-white font-semibold text-sm">
+                              <div className="flex items-center gap-1 tabular-nums">
+                                  <span className="apple-text-subheadline apple-label-tertiary">$</span>
+                                  <span className="apple-text-subheadline apple-label-primary">
                                     {(parseFloat(summary.totalCard) || 0).toFixed(2)}
                                   </span>
                               </div>
                           </div>
-                          <div 
+                          <div
                             onClick={() => setShowATHModal(true)}
-                            className="bg-white/5 rounded-xl p-3 flex items-center justify-between hover:bg-white/10 cursor-pointer transition-colors active:scale-[0.98]"
+                            className="apple-list-row rounded-apple-md bg-gray-sys6 dark:bg-gray-sys5 p-3 flex items-center justify-between cursor-pointer apple-press"
                           >
                               <div className="flex items-center gap-2">
-                                  <ArrowUpCircle className="w-4 h-4 text-orange-400 shrink-0" />
-                                  <span className="text-sm text-zinc-300">ATH Móvil</span>
+                                  <ArrowUpCircle className="w-4 h-4 text-apple-orange shrink-0" />
+                                  <span className="apple-text-subheadline apple-label-primary">ATH Móvil</span>
                               </div>
-                              <div className="flex items-center gap-1">
-                                  <span className="text-zinc-500 font-semibold text-sm">$</span>
-                                  <span className="text-white font-semibold text-sm">
+                              <div className="flex items-center gap-1 tabular-nums">
+                                  <span className="apple-text-subheadline apple-label-tertiary">$</span>
+                                  <span className="apple-text-subheadline apple-label-primary">
                                     {(parseFloat(summary.totalATH) || 0).toFixed(2)}
                                   </span>
                               </div>
@@ -559,29 +558,29 @@ export default function CloseDrawerDialog({ isOpen, onClose, drawer, onSuccess }
                       </div>
 
                       <div className={cn(
-                          "rounded-2xl p-4 border transition-colors duration-300",
-                          isBalanced 
-                              ? "bg-emerald-500/10 border-emerald-500/30" 
-                              : "bg-red-500/10 border-red-500/30"
+                          "rounded-apple-md p-4 transition-colors duration-300",
+                          isBalanced
+                              ? "bg-apple-green/12"
+                              : "bg-apple-red/12"
                       )}>
                           <div className="flex items-center gap-2 mb-2">
-                              {isBalanced 
-                                  ? <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-                                  : <div className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
+                              {isBalanced
+                                  ? <div className="w-1.5 h-1.5 rounded-full bg-apple-green animate-pulse" />
+                                  : <div className="w-1.5 h-1.5 rounded-full bg-apple-red animate-pulse" />
                               }
-                              <span className={cn("text-sm font-semibold", isBalanced ? "text-emerald-400" : "text-red-400")}>
-                                  {isBalanced ? "✓ Cuadre Perfecto" : "⚠ Descuadre Detectado"}
+                              <span className={cn("apple-text-subheadline", isBalanced ? "text-apple-green" : "text-apple-red")}>
+                                  {isBalanced ? "Cuadre Perfecto" : "Descuadre Detectado"}
                               </span>
                           </div>
                           <div className="flex justify-between items-end">
-                              <span className="text-xs text-zinc-400">Diferencia</span>
-                              <span className={cn("text-2xl font-bold font-mono", isBalanced ? "text-emerald-400" : "text-red-400")}>
+                              <span className="apple-text-footnote apple-label-secondary">Diferencia</span>
+                              <span className={cn("apple-text-title2 tabular-nums", isBalanced ? "text-apple-green" : "text-apple-red")}>
                                   {difference > 0 ? "+" : ""}{difference.toFixed(2)}
                               </span>
                           </div>
                       </div>
                       {!isBalanced && (
-                          <p className="text-xs text-zinc-500 mt-2 text-center">
+                          <p className="apple-text-footnote apple-label-tertiary mt-2 text-center">
                               Verifica billetes grandes
                           </p>
                       )}
@@ -589,52 +588,52 @@ export default function CloseDrawerDialog({ isOpen, onClose, drawer, onSuccess }
               </div>
 
               {/* Right: Summary Panel - Solo visible en desktop */}
-              <div className="hidden sm:flex w-[280px] md:w-[320px] bg-zinc-900/30 p-6 overflow-y-auto flex-col gap-6">
+              <div className="hidden sm:flex w-[280px] md:w-[320px] apple-surface-elevated p-5 overflow-y-auto flex-col gap-5">
                   <div>
-                      <p className="text-xs font-medium text-zinc-500 uppercase tracking-wider mb-4">📊 Resumen del Turno</p>
-                      
+                      <p className="apple-text-footnote apple-label-secondary mb-3">Resumen del Turno</p>
+
                       <div className="space-y-2">
-                          <div 
+                          <div
                             onClick={() => setEditingSummaryField({ field: 'totalCash', label: 'Ventas Efectivo', value: summary.totalCash })}
-                            className="bg-white/5 rounded-xl p-3 flex items-center justify-between group hover:bg-white/10 cursor-pointer transition-colors"
+                            className="bg-gray-sys6 dark:bg-gray-sys5 rounded-apple-md p-3 flex items-center justify-between cursor-pointer apple-press"
                           >
                               <div className="flex items-center gap-2">
-                                  <Banknote className="w-4 h-4 text-emerald-400 shrink-0" />
-                                  <span className="text-sm text-zinc-300">Ventas Efectivo</span>
+                                  <Banknote className="w-4 h-4 text-apple-green shrink-0" />
+                                  <span className="apple-text-subheadline apple-label-primary">Ventas Efectivo</span>
                               </div>
-                              <div className="flex items-center gap-1">
-                                  <span className="text-zinc-500 font-semibold text-sm">$</span>
-                                  <span className="text-white font-semibold text-sm min-w-[3rem] text-right">
+                              <div className="flex items-center gap-1 tabular-nums">
+                                  <span className="apple-text-subheadline apple-label-tertiary">$</span>
+                                  <span className="apple-text-subheadline apple-label-primary min-w-[3rem] text-right">
                                     {(parseFloat(summary.totalCash) || 0).toFixed(2)}
                                   </span>
                               </div>
                           </div>
-                          <div 
+                          <div
                             onClick={() => setEditingSummaryField({ field: 'totalCard', label: 'Tarjetas', value: summary.totalCard })}
-                            className="bg-white/5 rounded-xl p-3 flex items-center justify-between group hover:bg-white/10 cursor-pointer transition-colors"
+                            className="bg-gray-sys6 dark:bg-gray-sys5 rounded-apple-md p-3 flex items-center justify-between cursor-pointer apple-press"
                           >
                               <div className="flex items-center gap-2">
-                                  <CreditCard className="w-4 h-4 text-blue-400 shrink-0" />
-                                  <span className="text-sm text-zinc-300">Tarjetas</span>
+                                  <CreditCard className="w-4 h-4 text-apple-blue shrink-0" />
+                                  <span className="apple-text-subheadline apple-label-primary">Tarjetas</span>
                               </div>
-                              <div className="flex items-center gap-1">
-                                  <span className="text-zinc-500 font-semibold text-sm">$</span>
-                                  <span className="text-white font-semibold text-sm min-w-[3rem] text-right">
+                              <div className="flex items-center gap-1 tabular-nums">
+                                  <span className="apple-text-subheadline apple-label-tertiary">$</span>
+                                  <span className="apple-text-subheadline apple-label-primary min-w-[3rem] text-right">
                                     {(parseFloat(summary.totalCard) || 0).toFixed(2)}
                                   </span>
                               </div>
                           </div>
-                          <div 
+                          <div
                             onClick={() => setShowATHModal(true)}
-                            className="bg-white/5 rounded-xl p-3 flex items-center justify-between group hover:bg-white/10 cursor-pointer transition-colors"
+                            className="bg-gray-sys6 dark:bg-gray-sys5 rounded-apple-md p-3 flex items-center justify-between cursor-pointer apple-press"
                           >
                               <div className="flex items-center gap-2">
-                                  <ArrowUpCircle className="w-4 h-4 text-orange-400 shrink-0" />
-                                  <span className="text-sm text-zinc-300">ATH Móvil</span>
+                                  <ArrowUpCircle className="w-4 h-4 text-apple-orange shrink-0" />
+                                  <span className="apple-text-subheadline apple-label-primary">ATH Móvil</span>
                               </div>
-                              <div className="flex items-center gap-1">
-                                  <span className="text-zinc-500 font-semibold text-sm">$</span>
-                                  <span className="text-white font-semibold text-sm min-w-[3rem] text-right">
+                              <div className="flex items-center gap-1 tabular-nums">
+                                  <span className="apple-text-subheadline apple-label-tertiary">$</span>
+                                  <span className="apple-text-subheadline apple-label-primary min-w-[3rem] text-right">
                                     {(parseFloat(summary.totalATH) || 0).toFixed(2)}
                                   </span>
                               </div>
@@ -644,19 +643,21 @@ export default function CloseDrawerDialog({ isOpen, onClose, drawer, onSuccess }
 
                   {/* Productividad del turno */}
                   {shiftOrderStats && (
-                    <div className="border-t border-white/5 pt-4 mt-4">
-                      <p className="text-xs font-medium text-zinc-500 uppercase tracking-wider mb-3 flex items-center gap-1.5">
-                        <Receipt className="w-3.5 h-3.5 text-cyan-400" /> Productividad del Turno
+                    <div
+                        className="pt-4 mt-4"
+                        style={{ borderTop: "0.5px solid rgb(var(--separator) / 0.29)" }}>
+                      <p className="apple-text-footnote apple-label-secondary mb-3 flex items-center gap-1.5">
+                        <Receipt className="w-3.5 h-3.5 text-apple-blue" /> Productividad del Turno
                       </p>
                       <div className="grid grid-cols-3 gap-2">
                         {[
-                          { label: "Órdenes activas", value: shiftOrderStats.total, color: "text-white" },
-                          { label: "Completadas", value: shiftOrderStats.completed, color: "text-emerald-400" },
-                          { label: "Nuevas", value: shiftOrderStats.newOrders, color: "text-cyan-400" },
+                          { label: "Órdenes activas", value: shiftOrderStats.total, color: "apple-label-primary" },
+                          { label: "Completadas", value: shiftOrderStats.completed, color: "text-apple-green" },
+                          { label: "Nuevas", value: shiftOrderStats.newOrders, color: "text-apple-blue" },
                         ].map(stat => (
-                          <div key={stat.label} className="bg-white/[0.03] border border-white/[0.07] rounded-xl p-2.5 text-center">
-                            <p className={`text-xl font-black ${stat.color}`}>{stat.value}</p>
-                            <p className="text-[10px] text-zinc-500 font-medium leading-tight mt-0.5">{stat.label}</p>
+                          <div key={stat.label} className="bg-gray-sys6 dark:bg-gray-sys5 rounded-apple-sm p-2.5 text-center">
+                            <p className={`apple-text-title3 tabular-nums ${stat.color}`}>{stat.value}</p>
+                            <p className="apple-text-caption2 apple-label-tertiary leading-tight mt-0.5">{stat.label}</p>
                           </div>
                         ))}
                       </div>
@@ -665,63 +666,69 @@ export default function CloseDrawerDialog({ isOpen, onClose, drawer, onSuccess }
 
                   {/* Gastos del turno */}
                   {dailyExpenses.length > 0 && (
-                    <div className="border-t border-white/5 pt-4">
-                      <p className="text-xs font-medium text-zinc-500 uppercase tracking-wider mb-3 flex items-center gap-1.5">
-                        <TrendingDown className="w-3.5 h-3.5 text-red-400" /> Gastos del Turno
+                    <div
+                        className="pt-4"
+                        style={{ borderTop: "0.5px solid rgb(var(--separator) / 0.29)" }}>
+                      <p className="apple-text-footnote apple-label-secondary mb-3 flex items-center gap-1.5">
+                        <TrendingDown className="w-3.5 h-3.5 text-apple-red" /> Gastos del Turno
                       </p>
                       <div className="space-y-1.5 max-h-[140px] overflow-y-auto pr-1">
                         {dailyExpenses.map((e, i) => (
-                          <div key={i} className="flex items-center justify-between bg-red-500/5 border border-red-500/10 rounded-xl px-3 py-2">
-                            <span className="text-xs text-zinc-400 truncate max-w-[140px]" title={e.description}>{e.description || e.category || 'Gasto'}</span>
-                            <span className="text-xs font-bold text-red-400 shrink-0 ml-2">-${Number(e.amount||0).toFixed(2)}</span>
+                          <div key={i} className="flex items-center justify-between bg-apple-red/12 rounded-apple-sm px-3 py-2">
+                            <span className="apple-text-caption1 apple-label-secondary truncate max-w-[140px]" title={e.description}>{e.description || e.category || 'Gasto'}</span>
+                            <span className="apple-text-caption1 text-apple-red shrink-0 ml-2 tabular-nums">-${Number(e.amount||0).toFixed(2)}</span>
                           </div>
                         ))}
                       </div>
                       <div className="flex justify-between items-center mt-2 px-1">
-                        <span className="text-xs text-zinc-500">Total gastos</span>
-                        <span className="text-sm font-black text-red-400">-${totalExpenses.toFixed(2)}</span>
+                        <span className="apple-text-caption1 apple-label-tertiary">Total gastos</span>
+                        <span className="apple-text-subheadline text-apple-red tabular-nums">-${totalExpenses.toFixed(2)}</span>
                       </div>
-                      <div className="flex justify-between items-center mt-1 px-1 border-t border-white/5 pt-2">
-                        <span className="text-xs text-zinc-400 font-medium">Ganancia neta</span>
-                        <span className={cn("text-sm font-black", netProfit >= 0 ? "text-emerald-400" : "text-red-400")}>
+                      <div
+                          className="flex justify-between items-center mt-1 px-1 pt-2"
+                          style={{ borderTop: "0.5px solid rgb(var(--separator) / 0.29)" }}>
+                        <span className="apple-text-caption1 apple-label-secondary">Ganancia neta</span>
+                        <span className={cn("apple-text-subheadline tabular-nums", netProfit >= 0 ? "text-apple-green" : "text-apple-red")}>
                           ${netProfit.toFixed(2)}
                         </span>
                       </div>
                     </div>
                   )}
 
-                  <div className="border-t border-white/5 pt-6 mt-auto">
+                  <div
+                      className="pt-5 mt-auto"
+                      style={{ borderTop: "0.5px solid rgb(var(--separator) / 0.29)" }}>
                       <div className={cn(
-                          "rounded-2xl p-4 border transition-colors duration-300",
+                          "rounded-apple-md p-4 transition-colors duration-300",
                           isBalanced
-                              ? "bg-emerald-500/10 border-emerald-500/30"
-                              : "bg-red-500/10 border-red-500/30"
+                              ? "bg-apple-green/12"
+                              : "bg-apple-red/12"
                       )}>
                           <div className="flex items-center gap-2 mb-2">
                               {isBalanced
-                                  ? <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-                                  : <div className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
+                                  ? <div className="w-1.5 h-1.5 rounded-full bg-apple-green animate-pulse" />
+                                  : <div className="w-1.5 h-1.5 rounded-full bg-apple-red animate-pulse" />
                               }
-                              <span className={cn("text-sm font-semibold", isBalanced ? "text-emerald-400" : "text-red-400")}>
+                              <span className={cn("apple-text-subheadline", isBalanced ? "text-apple-green" : "text-apple-red")}>
                                   {isBalanced ? "Cuadre Perfecto" : "Descuadre Detectado"}
                               </span>
                           </div>
                           <div className="flex justify-between items-end">
-                              <span className="text-xs text-zinc-400">Diferencia</span>
-                              <span className={cn("text-2xl font-bold font-mono", isBalanced ? "text-emerald-400" : "text-red-400")}>
+                              <span className="apple-text-footnote apple-label-secondary">Diferencia</span>
+                              <span className={cn("apple-text-title2 tabular-nums", isBalanced ? "text-apple-green" : "text-apple-red")}>
                                   {difference > 0 ? "+" : ""}{difference.toFixed(2)}
                               </span>
                           </div>
                       </div>
                       {!isBalanced && (
-                          <p className="text-xs text-zinc-500 mt-2 text-center">
+                          <p className="apple-text-footnote apple-label-tertiary mt-2 text-center">
                               Falta dinero en caja. Verifica los billetes grandes.
                           </p>
                       )}
                       {/* Exportar PDF */}
                       <button
                         onClick={handleExportPDF}
-                        className="mt-3 w-full flex items-center justify-center gap-2 h-10 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-zinc-400 hover:text-white transition-all text-sm font-medium"
+                        className="apple-btn apple-btn-tinted mt-3 w-full flex items-center justify-center gap-2"
                       >
                         <FileDown className="w-4 h-4" />
                         Exportar PDF del turno
@@ -731,25 +738,25 @@ export default function CloseDrawerDialog({ isOpen, onClose, drawer, onSuccess }
               </div>
 
               {/* Footer Actions - Dentro del scroll */}
-              <div className="p-3 sm:p-6 bg-zinc-900/50 border-t border-white/5 flex flex-row justify-between gap-2 sm:gap-4">
-                  <Button 
-                      variant="ghost" 
+              <div
+                  className="px-5 py-4 flex flex-row justify-between gap-3"
+                  style={{ borderTop: "0.5px solid rgb(var(--separator) / 0.29)" }}>
+                  <Button
+                      variant="ghost"
                       onClick={onClose}
-                      className="flex-1 h-11 sm:h-14 text-zinc-400 hover:text-white hover:bg-white/5 rounded-xl sm:rounded-2xl text-sm sm:text-lg"
+                      className="apple-btn apple-btn-secondary apple-btn-lg flex-1"
                   >
                       Cancelar
                   </Button>
-                  <Button 
-                      onClick={handleClose} 
+                  <Button
+                      onClick={handleClose}
                       disabled={loading}
                       className={cn(
-                          "flex-[2] h-11 sm:h-14 text-white rounded-xl sm:rounded-2xl text-sm sm:text-lg font-semibold shadow-lg transition-all",
-                          isBalanced 
-                              ? "bg-emerald-600 hover:bg-emerald-500 shadow-emerald-900/20" 
-                              : "bg-red-600 hover:bg-red-500 shadow-red-900/20"
+                          "apple-btn apple-btn-lg flex-[2]",
+                          isBalanced ? "apple-btn-primary" : "apple-btn-destructive"
                       )}
                   >
-                      {loading ? <Loader2 className="mr-2 h-4 w-4 sm:h-5 sm:w-5 animate-spin" /> : null}
+                      {loading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
                       <span className="sm:hidden">Cerrar</span>
                       <span className="hidden sm:inline">Confirmar Cierre</span>
                   </Button>
@@ -778,50 +785,54 @@ export default function CloseDrawerDialog({ isOpen, onClose, drawer, onSuccess }
 
       {/* ── ATH Móvil Transactions Modal ─────────────────────────── */}
       {showATHModal && (
-        <div className="fixed inset-0 z-[9999] bg-black/70 backdrop-blur-sm flex items-center justify-center p-4" onClick={() => setShowATHModal(false)}>
-          <div className="bg-zinc-900 border border-orange-500/30 rounded-3xl max-w-md w-full max-h-[80vh] overflow-hidden shadow-2xl" onClick={e => e.stopPropagation()}>
-            <div className="bg-gradient-to-r from-orange-500/20 to-amber-500/20 border-b border-orange-500/20 p-5 flex items-center justify-between">
+        <div className="fixed inset-0 z-[9999] bg-black/40 backdrop-blur-sm flex items-center justify-center p-4" onClick={() => setShowATHModal(false)}>
+          <div className="apple-surface-elevated rounded-apple-lg shadow-apple-xl apple-type max-w-md w-full max-h-[80vh] overflow-hidden" onClick={e => e.stopPropagation()}>
+            <div
+                className="px-5 pt-5 pb-3 flex items-center justify-between"
+                style={{ borderBottom: "0.5px solid rgb(var(--separator) / 0.29)" }}>
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-2xl bg-orange-500/20 border border-orange-500/30 flex items-center justify-center">
-                  <ArrowUpCircle className="w-5 h-5 text-orange-400" />
+                <div className="w-9 h-9 rounded-apple-sm bg-apple-orange/15 flex items-center justify-center">
+                  <ArrowUpCircle className="w-5 h-5 text-apple-orange" />
                 </div>
                 <div>
-                  <p className="text-white font-black text-lg">ATH Móvil</p>
-                  <p className="text-orange-300/70 text-xs">{athTransactions.length} transacciones · ${(summary?.totalATH || 0).toFixed(2)}</p>
+                  <p className="apple-text-title2 apple-label-primary">ATH Móvil</p>
+                  <p className="apple-text-footnote apple-label-secondary tabular-nums">{athTransactions.length} transacciones · ${(summary?.totalATH || 0).toFixed(2)}</p>
                 </div>
               </div>
-              <button onClick={() => setShowATHModal(false)} className="w-8 h-8 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 flex items-center justify-center text-white/50 hover:text-white transition-all">
-                <span className="text-lg leading-none">×</span>
+              <button onClick={() => setShowATHModal(false)} className="w-8 h-8 rounded-apple-sm bg-gray-sys6 dark:bg-gray-sys5 flex items-center justify-center apple-label-secondary apple-press">
+                <span className="apple-text-headline leading-none">×</span>
               </button>
             </div>
-            <div className="p-4 overflow-y-auto max-h-[calc(80vh-120px)]">
+            <div className="p-5 overflow-y-auto max-h-[calc(80vh-120px)]">
               {athTransactions.length === 0 ? (
                 <div className="text-center py-8">
-                  <ArrowUpCircle className="w-10 h-10 text-white/40 mx-auto mb-3" />
-                  <p className="text-white/30 font-bold">Sin transacciones ATH Móvil</p>
-                  <p className="text-white/15 text-xs mt-1">en este turno</p>
+                  <ArrowUpCircle className="w-10 h-10 apple-label-tertiary mx-auto mb-3" />
+                  <p className="apple-text-headline apple-label-secondary">Sin transacciones ATH Móvil</p>
+                  <p className="apple-text-footnote apple-label-tertiary mt-1">en este turno</p>
                 </div>
               ) : (
                 <div className="space-y-2">
                   {athTransactions.map((tx, i) => (
-                    <div key={tx.id || i} className="bg-white/5 border border-orange-500/15 rounded-2xl p-4 flex items-center justify-between gap-3">
+                    <div key={tx.id || i} className="bg-gray-sys6 dark:bg-gray-sys5 rounded-apple-md p-4 flex items-center justify-between gap-3">
                       <div className="flex-1 min-w-0">
-                        <p className="text-white font-bold text-sm truncate">{tx.customerName}</p>
+                        <p className="apple-text-subheadline apple-label-primary truncate">{tx.customerName}</p>
                         {tx.customerPhone && (
-                          <p className="text-white/40 text-xs mt-0.5">{tx.customerPhone}</p>
+                          <p className="apple-text-caption1 apple-label-tertiary mt-0.5">{tx.customerPhone}</p>
                         )}
                         {tx.reference && (
-                          <p className="text-orange-400/60 text-[10px] font-bold mt-0.5">#{tx.reference}</p>
+                          <p className="apple-text-caption2 text-apple-orange mt-0.5">#{tx.reference}</p>
                         )}
                       </div>
                       <div className="text-right flex-shrink-0">
-                        <p className="text-orange-400 font-black text-lg">${tx.amount.toFixed(2)}</p>
+                        <p className="text-apple-orange apple-text-headline tabular-nums">${tx.amount.toFixed(2)}</p>
                       </div>
                     </div>
                   ))}
-                  <div className="mt-3 pt-3 border-t border-white/5 flex justify-between items-center">
-                    <span className="text-white/40 text-xs font-bold">TOTAL ATH MÓVIL</span>
-                    <span className="text-orange-400 font-black text-xl">${(summary?.totalATH || 0).toFixed(2)}</span>
+                  <div
+                      className="mt-3 pt-3 flex justify-between items-center"
+                      style={{ borderTop: "0.5px solid rgb(var(--separator) / 0.29)" }}>
+                    <span className="apple-text-footnote apple-label-secondary">Total ATH Móvil</span>
+                    <span className="text-apple-orange apple-text-title3 tabular-nums">${(summary?.totalATH || 0).toFixed(2)}</span>
                   </div>
                 </div>
               )}

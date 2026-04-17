@@ -50,7 +50,7 @@ export default function DepositDialog({ open, onClose, order, onSuccess, isCreat
   const orderTotal = useMemo(() => {
     if (!order) return 0;
     if (order.total) return Number(order.total);
-    
+
     // Calculate based on parts if available to respect taxability
     const parts = order.parts_needed || [];
     if (parts.length > 0) {
@@ -70,7 +70,7 @@ export default function DepositDialog({ open, onClose, order, onSuccess, isCreat
 
   // Cálculos del depósito actual
   const depositAmount = parseFloat(amount) || 0;
-  
+
   // Cambio (si paga en efectivo más del balance, aunque en depósito suele ser exacto)
   // En lógica de depósito: Si ingresa más del balance, ¿es cambio o sobrepago?
   // Asumiremos que el monto ingresado es lo que DESEA depositar.
@@ -96,7 +96,7 @@ export default function DepositDialog({ open, onClose, order, onSuccess, isCreat
         timestamp: new Date().toISOString(),
         recorded_by: user?.full_name || user?.email
       };
-      
+
       onDepositData?.(depositData);
       onClose();
       return;
@@ -107,7 +107,7 @@ export default function DepositDialog({ open, onClose, order, onSuccess, isCreat
     try {
       const newTotalPaid = amountPaid + depositAmount;
       const newBalance = Math.max(0, orderTotal - newTotalPaid);
-      
+
       const saleNumber = `DEP-${Date.now().toString().slice(-6)}`;
       const tenantId = resolveActiveTenantId();
       const { sale: createdSale, transactions: createdTransactions, order: updatedOrder } = await recordSaleAndTransactions({
@@ -259,10 +259,10 @@ export default function DepositDialog({ open, onClose, order, onSuccess, isCreat
   };
 
   const paymentMethods = [
-    { id: "cash", label: "Efectivo", icon: DollarSign, color: "text-green-400", bg: "bg-green-400/10 border-green-400/20" },
-    { id: "card", label: "Tarjeta", icon: CreditCard, color: "text-blue-400", bg: "bg-blue-400/10 border-blue-400/20" },
-    { id: "ath_movil", label: "ATH Móvil", icon: Smartphone, color: "text-orange-400", bg: "bg-orange-400/10 border-orange-400/20" },
-    { id: "mixed", label: "Otro", icon: MoreHorizontal, color: "text-gray-400", bg: "bg-gray-400/10 border-gray-400/20" }
+    { id: "cash", label: "Efectivo", icon: DollarSign, color: "text-apple-green", bg: "bg-apple-green/15" },
+    { id: "card", label: "Tarjeta", icon: CreditCard, color: "text-apple-blue", bg: "bg-apple-blue/15" },
+    { id: "ath_movil", label: "ATH Móvil", icon: Smartphone, color: "text-apple-orange", bg: "bg-apple-orange/15" },
+    { id: "mixed", label: "Otro", icon: MoreHorizontal, color: "apple-label-secondary", bg: "apple-surface-secondary" }
   ];
 
   const quickAmounts = [20, 50, 100];
@@ -270,27 +270,27 @@ export default function DepositDialog({ open, onClose, order, onSuccess, isCreat
   // Contenido compartido entre Dialog y Sheet
   const contentBody = (
     <div className="overflow-y-auto flex-1 min-h-0 px-4 py-4 space-y-4">
-          
+
           {/* Resumen de la Orden */}
-          <div className="bg-gray-900/50 rounded-xl p-3 border border-gray-800 space-y-1.5">
-            <div className="flex justify-between text-sm text-gray-400">
+          <div className="apple-surface-secondary rounded-apple-md p-3 space-y-1.5">
+            <div className="flex justify-between apple-text-subheadline apple-label-secondary">
               <span>Total Orden</span>
-              <span>${orderTotal.toFixed(2)}</span>
+              <span className="tabular-nums">${orderTotal.toFixed(2)}</span>
             </div>
-            <div className="flex justify-between text-sm text-green-400/80">
+            <div className="flex justify-between apple-text-subheadline text-apple-green">
               <span>Pagado</span>
-              <span>- ${amountPaid.toFixed(2)}</span>
+              <span className="tabular-nums">- ${amountPaid.toFixed(2)}</span>
             </div>
-            <div className="h-px bg-gray-800 my-1" />
-            <div className="flex justify-between text-base font-bold">
-              <span className="text-white">Balance Pendiente</span>
-              <span className="text-emerald-400">${balanceDue.toFixed(2)}</span>
+            <div className="my-1" style={{ borderTop: "0.5px solid rgb(var(--separator) / 0.29)" }} />
+            <div className="flex justify-between apple-text-body font-semibold">
+              <span className="apple-label-primary">Balance Pendiente</span>
+              <span className="text-apple-green tabular-nums">${balanceDue.toFixed(2)}</span>
             </div>
           </div>
 
           {/* Selección de Método de Pago */}
           <div className="space-y-3">
-            <Label className="text-gray-400 text-xs uppercase tracking-wider">Método de Pago</Label>
+            <Label className="apple-text-footnote apple-label-secondary font-semibold">Método de Pago</Label>
             <div className="grid grid-cols-2 gap-2">
               {paymentMethods.map((method) => {
                 const isSelected = paymentMethod === method.id;
@@ -300,19 +300,19 @@ export default function DepositDialog({ open, onClose, order, onSuccess, isCreat
                     key={method.id}
                     onClick={() => setPaymentMethod(method.id)}
                     className={`
-                      relative p-3 rounded-xl border transition-all duration-200 flex flex-col items-center justify-center gap-2 h-20
-                      ${isSelected 
-                        ? `${method.bg} ring-1 ring-offset-0 ring-white/20` 
-                        : "bg-gray-900/40 border-gray-800 hover:bg-gray-800"
+                      apple-press relative p-3 rounded-apple-md transition-all duration-200 flex flex-col items-center justify-center gap-2 h-20
+                      ${isSelected
+                        ? `${method.bg} ring-2 ring-apple-blue`
+                        : "apple-card"
                       }
                     `}
                   >
                     <Icon className={`w-6 h-6 ${method.color}`} />
-                    <span className={`text-xs font-medium ${isSelected ? "text-white" : "text-gray-400"}`}>
+                    <span className={`apple-text-caption1 font-medium ${isSelected ? "apple-label-primary" : "apple-label-secondary"}`}>
                       {method.label}
                     </span>
                     {isSelected && (
-                      <div className="absolute top-2 right-2 w-2 h-2 rounded-full bg-white shadow-[0_0_8px_rgba(255,255,255,0.8)]" />
+                      <div className="absolute top-2 right-2 w-2 h-2 rounded-full bg-apple-blue" />
                     )}
                   </button>
                 );
@@ -322,23 +322,23 @@ export default function DepositDialog({ open, onClose, order, onSuccess, isCreat
 
           {/* Entrada de Monto */}
           <div className="space-y-3">
-            <Label className="text-gray-400 text-xs uppercase tracking-wider">Monto a Depositar</Label>
-            
+            <Label className="apple-text-footnote apple-label-secondary font-semibold">Monto a Depositar</Label>
+
             {/* Botones Rápidos */}
             <div className="flex gap-2 mb-2">
               {quickAmounts.map(amt => (
                 <button
                   key={amt}
                   onClick={() => setAmount(String(amt))}
-                  className="flex-1 py-1.5 rounded-lg bg-gray-800 hover:bg-gray-700 border border-gray-700 text-sm font-medium text-gray-300 transition-colors"
-                  disabled={amt > balanceDue + 1} // Deshabilitar si excede por mucho
+                  className="apple-press flex-1 py-1.5 rounded-apple-sm apple-surface-secondary apple-text-subheadline font-medium apple-label-secondary tabular-nums transition-colors"
+                  disabled={amt > balanceDue + 1}
                 >
                   ${amt}
                 </button>
               ))}
               <button
                 onClick={() => setAmount(String(balanceDue.toFixed(2)))}
-                className="flex-1 py-1.5 rounded-lg bg-emerald-900/30 hover:bg-emerald-900/50 border border-emerald-800 text-sm font-medium text-emerald-400 transition-colors"
+                className="apple-press flex-1 py-1.5 rounded-apple-sm bg-apple-green/15 apple-text-subheadline font-medium text-apple-green transition-colors"
               >
                 Saldar
               </button>
@@ -346,34 +346,34 @@ export default function DepositDialog({ open, onClose, order, onSuccess, isCreat
 
             {/* Input Numérico */}
             <div className="relative">
-              <span className="absolute left-4 top-1/2 -translate-y-1/2 text-xl font-bold text-gray-500">$</span>
+              <span className="absolute left-4 top-1/2 -translate-y-1/2 apple-text-title2 font-semibold apple-label-tertiary">$</span>
               <Input
                 type="number"
                 value={amount}
                 onChange={(e) => setAmount(e.target.value)}
                 placeholder="0.00"
-                className="pl-8 h-14 text-2xl font-bold bg-black border-gray-800 focus:border-emerald-500/50 transition-all rounded-xl text-white"
+                className="apple-input pl-8 h-14 apple-text-title1 font-semibold rounded-apple-md tabular-nums"
                 autoFocus
               />
             </div>
-            
+
             {/* Cambio (Solo visual) */}
             {paymentMethod === "cash" && depositAmount > balanceDue && (
-              <div className="flex items-center justify-between px-3 py-2 bg-yellow-900/20 rounded-lg border border-yellow-700/30 text-yellow-500 text-sm">
+              <div className="flex items-center justify-between px-3 py-2 bg-apple-yellow/12 rounded-apple-sm text-apple-yellow apple-text-subheadline">
                  <span>Cambio estimado:</span>
-                 <span className="font-bold">${(depositAmount - balanceDue).toFixed(2)}</span>
+                 <span className="font-semibold tabular-nums">${(depositAmount - balanceDue).toFixed(2)}</span>
               </div>
             )}
           </div>
 
           {/* Notas */}
           <div className="space-y-2">
-            <Label className="text-gray-400 text-xs uppercase tracking-wider">Notas (Opcional)</Label>
+            <Label className="apple-text-footnote apple-label-secondary font-semibold">Notas (Opcional)</Label>
             <Textarea
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
               placeholder="Referencia, número de cheque..."
-              className="bg-black/50 border-gray-800 text-sm min-h-[60px] resize-none focus:border-gray-700"
+              className="apple-input min-h-[60px] resize-none"
             />
           </div>
 
@@ -382,18 +382,21 @@ export default function DepositDialog({ open, onClose, order, onSuccess, isCreat
 
   // Footer compartido
   const footer = (
-    <div className="p-4 border-t border-gray-800 bg-gray-900/30 flex gap-3 shrink-0">
-      <Button 
-        variant="ghost" 
+    <div
+      className="p-4 flex gap-3 shrink-0 apple-surface-secondary"
+      style={{ borderTop: "0.5px solid rgb(var(--separator) / 0.29)" }}
+    >
+      <Button
+        variant="ghost"
         onClick={onClose}
-        className="flex-1 h-12 text-gray-400 hover:text-white hover:bg-gray-800"
+        className="apple-btn apple-btn-secondary flex-1 h-12"
       >
         Cancelar
       </Button>
-      <Button 
+      <Button
         onClick={handleSubmit}
         disabled={loading || !isValidAmount}
-        className="flex-1 h-12 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-base shadow-lg shadow-emerald-900/20"
+        className="apple-btn apple-btn-primary flex-1 h-12"
       >
         {loading ? (
           <div className="flex items-center gap-2">
@@ -414,17 +417,25 @@ export default function DepositDialog({ open, onClose, order, onSuccess, isCreat
   if (isDesktop) {
     return (
       <Dialog open={open} onOpenChange={onClose}>
-        <DialogContent className="max-w-3xl w-[90vw] bg-gradient-to-br from-[#1a1a1a] to-black border-gray-800 text-white p-0 gap-0 max-h-[90vh] flex flex-col overflow-hidden">
-          <DialogHeader className="p-6 pb-4 border-b border-gray-800 shrink-0">
-            <DialogTitle className="text-xl font-bold flex items-center gap-3">
-              <Wallet className="w-6 h-6 text-emerald-500" />
+        <DialogContent className="apple-surface-elevated rounded-apple-lg shadow-apple-xl border-0 p-0 overflow-hidden max-w-3xl w-[90vw] max-h-[90vh] flex flex-col apple-type">
+          <DialogHeader
+            className="p-6 pb-4 shrink-0"
+            style={{ borderBottom: "0.5px solid rgb(var(--separator) / 0.29)" }}
+          >
+            <DialogTitle className="apple-text-title2 font-semibold apple-label-primary flex items-center gap-3">
+              <div className="w-10 h-10 rounded-apple-sm bg-apple-green/15 flex items-center justify-center">
+                <Wallet className="w-6 h-6 text-apple-green" />
+              </div>
               Registrar Depósito
             </DialogTitle>
           </DialogHeader>
           <div className="overflow-y-auto flex-1 px-6 py-5 space-y-5">
             {contentBody.props.children}
           </div>
-          <div className="p-6 pt-4 border-t border-gray-800 bg-gray-900/30 flex gap-3 shrink-0">
+          <div
+            className="p-6 pt-4 flex gap-3 shrink-0 apple-surface-secondary"
+            style={{ borderTop: "0.5px solid rgb(var(--separator) / 0.29)" }}
+          >
             {footer.props.children}
           </div>
         </DialogContent>
@@ -435,10 +446,15 @@ export default function DepositDialog({ open, onClose, order, onSuccess, isCreat
   // Mobile/Tablet: Dialog con contenido simple que redirige al POS
   return (
     <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent className="max-w-[95vw] sm:max-w-md bg-gradient-to-br from-[#1a1a1a] to-black border-gray-800 text-white p-0 gap-0 max-h-[92vh] flex flex-col overflow-hidden">
-        <DialogHeader className="p-4 border-b border-gray-800 shrink-0">
-          <DialogTitle className="text-lg font-bold flex items-center gap-2">
-            <Wallet className="w-5 h-5 text-emerald-500" />
+      <DialogContent className="apple-surface-elevated rounded-apple-lg shadow-apple-xl border-0 p-0 overflow-hidden max-w-[95vw] sm:max-w-md max-h-[92vh] flex flex-col apple-type">
+        <DialogHeader
+          className="p-4 shrink-0"
+          style={{ borderBottom: "0.5px solid rgb(var(--separator) / 0.29)" }}
+        >
+          <DialogTitle className="apple-text-headline font-semibold apple-label-primary flex items-center gap-2">
+            <div className="w-8 h-8 rounded-apple-sm bg-apple-green/15 flex items-center justify-center">
+              <Wallet className="w-5 h-5 text-apple-green" />
+            </div>
             Registrar Depósito
           </DialogTitle>
         </DialogHeader>

@@ -6,41 +6,44 @@ export default function LogoutModal({ open, onClose, onConfirm }) {
   if (!open) return null;
 
   return (
-    <div className="fixed inset-0 z-[99999] bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
-      <div className="w-full max-w-md bg-gradient-to-br from-slate-900 to-black border-2 border-red-500/50 rounded-2xl text-white shadow-[0_0_80px_rgba(239,68,68,0.4)] overflow-hidden">
+    <div className="fixed inset-0 z-[99999] bg-black/40 backdrop-blur-sm flex items-center justify-center p-4">
+      <div className="w-full max-w-md apple-surface-elevated rounded-apple-lg shadow-apple-xl apple-type overflow-hidden">
         {/* Header */}
-        <div className="px-6 py-4 border-b border-red-500/30 flex items-center justify-between bg-red-500/10">
+        <div
+          className="px-5 pt-5 pb-3 flex items-center justify-between"
+          style={{ borderBottom: "0.5px solid rgb(var(--separator) / 0.29)" }}>
           <div className="flex items-center gap-3">
-            <div className="w-12 h-12 rounded-full bg-gradient-to-br from-red-500 to-red-700 flex items-center justify-center shadow-lg">
-              <LogOut className="w-6 h-6 text-white" />
+            <div className="w-10 h-10 rounded-apple-sm bg-apple-red/15 flex items-center justify-center">
+              <LogOut className="w-5 h-5 text-apple-red" />
             </div>
-            <h3 className="font-bold text-xl">Cerrar Sesión</h3>
+            <h3 className="apple-text-title2 apple-label-primary">Cerrar Sesión</h3>
           </div>
           <button
             onClick={onClose}
-            className="text-gray-400 hover:text-white transition-colors">
+            className="apple-label-tertiary hover:apple-label-primary transition-colors apple-press">
 
-            <X className="w-6 h-6" />
+            <X className="w-5 h-5" />
           </button>
         </div>
 
         {/* Content */}
-        <div className="p-6">
-          <p className="text-gray-300 text-lg mb-6">
+        <div className="p-5 space-y-2">
+          <p className="apple-text-body apple-label-primary">
             ¿Estás seguro que deseas cerrar sesión?
           </p>
-          <p className="text-gray-400 text-sm">
+          <p className="apple-text-footnote apple-label-secondary">
             Tendrás que ingresar tu PIN nuevamente para volver a acceder al sistema.
           </p>
         </div>
 
         {/* Actions */}
-        <div className="px-6 py-4 border-t border-red-500/30 flex gap-3 bg-black/20">
+        <div
+          className="px-5 py-4 flex gap-3"
+          style={{ borderTop: "0.5px solid rgb(var(--separator) / 0.29)" }}>
           <Button
             onClick={onClose}
-            variant="outline" className="bg-slate-950 text-slate-50 px-4 py-2 text-sm font-medium rounded-xl inline-flex items-center justify-center gap-2 whitespace-nowrap transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 border shadow-sm hover:text-accent-foreground flex-1 border-gray-600 hover:bg-gray-700/50 h-12">
-
-
+            variant="outline"
+            className="apple-btn apple-btn-secondary apple-btn-lg flex-1">
             Cancelar
           </Button>
           <Button
@@ -49,9 +52,9 @@ export default function LogoutModal({ open, onClose, onConfirm }) {
               sessionStorage.removeItem("911-session");
               window.location.href = "/PinAccess";
             }}
-            className="flex-1 bg-gradient-to-r from-red-600 to-red-800 hover:from-red-700 hover:to-red-900 h-12 rounded-xl shadow-lg">
+            className="apple-btn apple-btn-destructive apple-btn-lg flex-1">
 
-            <LogOut className="w-5 h-5 mr-2" />
+            <LogOut className="w-4 h-4 mr-2" />
             Cerrar Sesión
           </Button>
         </div>

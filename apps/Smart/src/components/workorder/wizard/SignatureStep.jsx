@@ -24,7 +24,7 @@ export default function SignatureStep({ formData, updateFormData }) {
 
     const rect = canvas.getBoundingClientRect();
     const dpr = window.devicePixelRatio || 1;
-    
+
     canvas.width = rect.width * dpr;
     canvas.height = rect.height * dpr;
     canvas.style.width = `${rect.width}px`;
@@ -49,7 +49,7 @@ export default function SignatureStep({ formData, updateFormData }) {
   const getPointerPos = (evt) => {
     const canvas = canvasRef.current;
     if (!canvas) return { x: 0, y: 0 };
-    
+
     const rect = canvas.getBoundingClientRect();
     const clientX = evt.clientX || evt.touches?.[0]?.clientX || 0;
     const clientY = evt.clientY || evt.touches?.[0]?.clientY || 0;
@@ -64,7 +64,7 @@ export default function SignatureStep({ formData, updateFormData }) {
     evt.preventDefault();
     const canvas = canvasRef.current;
     if (!canvas) return;
-    
+
     const pos = getPointerPos(evt);
     const ctx = canvas.getContext("2d");
     ctx.beginPath();
@@ -76,10 +76,10 @@ export default function SignatureStep({ formData, updateFormData }) {
   const handlePointerMove = (evt) => {
     if (!isDrawing) return;
     evt.preventDefault();
-    
+
     const canvas = canvasRef.current;
     if (!canvas) return;
-    
+
     const pos = getPointerPos(evt);
     const ctx = canvas.getContext("2d");
     ctx.lineTo(pos.x, pos.y);
@@ -94,7 +94,7 @@ export default function SignatureStep({ formData, updateFormData }) {
   const clearCanvas = () => {
     const canvas = canvasRef.current;
     if (!canvas) return;
-    
+
     const rect = canvas.getBoundingClientRect();
     const ctx = canvas.getContext("2d");
     ctx.fillStyle = "#fff";
@@ -105,23 +105,23 @@ export default function SignatureStep({ formData, updateFormData }) {
   const saveSignature = () => {
     const canvas = canvasRef.current;
     if (!canvas || !hasContent) return;
-    
+
     const dataURL = canvas.toDataURL("image/png");
     updateFormData("signature", dataURL);
     closeDialog();
   };
 
   return (
-    <div className="space-y-6">
+    <div className="apple-surface apple-type space-y-6">
       <div className="flex items-center justify-between">
-        <h3 className="text-xl font-semibold text-white">Firma del Cliente</h3>
+        <h3 className="apple-text-title2 apple-label-primary">Firma del Cliente</h3>
         {formData.signature && (
           <Button
             type="button"
             variant="outline"
             size="sm"
             onClick={() => updateFormData("signature", null)}
-            className="border-red-600 text-red-400 hover:bg-red-900/20"
+            className="apple-btn apple-btn-tinted text-apple-red bg-apple-red/12"
           >
             <Trash2 className="w-4 h-4 mr-1" /> Limpiar
           </Button>
@@ -132,33 +132,33 @@ export default function SignatureStep({ formData, updateFormData }) {
         <Button
           type="button"
           onClick={openSignaturePad}
-          className="w-full h-14 bg-gradient-to-r from-blue-600 to-blue-800 hover:from-blue-500 hover:to-blue-700 text-lg"
+          className="apple-btn apple-btn-primary apple-btn-lg w-full"
         >
           <Pen className="w-5 h-5 mr-2" />
           Capturar Firma
         </Button>
       ) : (
-        <div className="rounded-lg border border-white/20 p-4 bg-white">
+        <div className="rounded-apple-md apple-card p-4 bg-white">
           <img src={formData.signature} alt="Firma del cliente" className="max-w-full h-auto mx-auto" />
           <Button
             type="button"
             variant="outline"
             onClick={openSignaturePad}
-            className="mt-3 w-full border-gray-300"
+            className="apple-btn apple-btn-secondary mt-3 w-full"
           >
             Editar Firma
           </Button>
         </div>
       )}
 
-      <div className="bg-amber-900/20 border border-amber-500/30 rounded-lg p-4">
+      <div className="bg-apple-orange/12 rounded-apple-md p-4">
         <label className="flex items-start gap-3 cursor-pointer">
           <Checkbox
             checked={formData.terms_accepted || false}
             onCheckedChange={(checked) => updateFormData("terms_accepted", checked)}
             className="mt-0.5"
           />
-          <span className="text-sm text-amber-200 leading-relaxed">
+          <span className="apple-text-subheadline text-apple-orange leading-relaxed">
             Acepto los términos y condiciones del servicio. Entiendo que este presupuesto puede variar según el diagnóstico final.
           </span>
         </label>
@@ -166,28 +166,31 @@ export default function SignatureStep({ formData, updateFormData }) {
 
       {/* Modal FULLSCREEN con canvas centrado */}
       <Dialog open={showDialog} onOpenChange={() => {}}>
-        <DialogContent 
-          className="fixed inset-0 w-screen h-screen max-w-none m-0 bg-gradient-to-br from-[#2B2B2B] to-black border-0 flex flex-col"
+        <DialogContent
+          className="fixed inset-0 w-screen h-screen max-w-none m-0 apple-surface border-0 flex flex-col"
           style={{ zIndex: 99999 }}
           onPointerDownOutside={(e) => e.preventDefault()}
           onEscapeKeyDown={(e) => e.preventDefault()}
         >
-          <DialogHeader className="px-6 pt-6 pb-4 border-b border-gray-800 flex-shrink-0">
-            <DialogTitle className="text-white text-2xl">Firma del Cliente</DialogTitle>
-            <p className="text-sm text-gray-400 mt-2">
+          <DialogHeader
+            className="px-6 pt-6 pb-4 flex-shrink-0"
+            style={{ borderBottom: "0.5px solid rgb(var(--separator) / 0.29)" }}
+          >
+            <DialogTitle className="apple-text-title2 apple-label-primary">Firma del Cliente</DialogTitle>
+            <p className="apple-text-subheadline apple-label-secondary mt-2">
               Dibuja la firma con el dedo o stylus. Presiona "Guardar" cuando termines.
             </p>
           </DialogHeader>
 
-          {/* ✅ Canvas centrado con flex */}
+          {/* Canvas centrado con flex */}
           <div className="flex-1 flex items-center justify-center p-6">
-            <div 
-              className="w-full max-w-4xl bg-white rounded-lg overflow-hidden shadow-2xl"
-              style={{ 
+            <div
+              className="w-full max-w-4xl bg-white rounded-apple-md overflow-hidden shadow-apple-xl"
+              style={{
                 aspectRatio: "3/2",
                 maxHeight: "calc(100vh - 250px)",
-                touchAction: "none", 
-                userSelect: "none" 
+                touchAction: "none",
+                userSelect: "none"
               }}
             >
               <canvas
@@ -201,7 +204,7 @@ export default function SignatureStep({ formData, updateFormData }) {
                 onTouchEnd={handlePointerUp}
                 onTouchCancel={handlePointerUp}
                 className="w-full h-full"
-                style={{ 
+                style={{
                   display: "block",
                   touchAction: "none",
                   pointerEvents: "auto",
@@ -211,12 +214,15 @@ export default function SignatureStep({ formData, updateFormData }) {
             </div>
           </div>
 
-          <div className="px-6 pb-6 flex gap-3 justify-end flex-shrink-0">
+          <div
+            className="px-6 pb-6 pt-4 flex gap-3 justify-end flex-shrink-0"
+            style={{ borderTop: "0.5px solid rgb(var(--separator) / 0.29)" }}
+          >
             <Button
               type="button"
               variant="outline"
               onClick={clearCanvas}
-              className="border-gray-600 h-12 px-6"
+              className="apple-btn apple-btn-secondary apple-btn-lg"
             >
               <Trash2 className="w-4 h-4 mr-2" />
               Limpiar
@@ -225,7 +231,7 @@ export default function SignatureStep({ formData, updateFormData }) {
               type="button"
               variant="outline"
               onClick={closeDialog}
-              className="border-gray-600 h-12 px-6"
+              className="apple-btn apple-btn-secondary apple-btn-lg"
             >
               Cancelar
             </Button>
@@ -233,7 +239,7 @@ export default function SignatureStep({ formData, updateFormData }) {
               type="button"
               onClick={saveSignature}
               disabled={!hasContent}
-              className="bg-gradient-to-r from-green-600 to-emerald-800 hover:from-green-500 hover:to-emerald-700 h-12 px-6"
+              className="apple-btn apple-btn-primary apple-btn-lg"
             >
               <Check className="w-4 h-4 mr-2" />
               Guardar Firma

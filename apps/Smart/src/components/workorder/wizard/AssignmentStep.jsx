@@ -36,15 +36,15 @@ export default function AssignmentStep({ formData, updateFormData, currentUser }
         if (role === "superadmin" || role === "super admin" || name.includes("super admin") || email.includes("superadmin")) return false;
         return role === "technician" || role === "técnico" || role === "admin" || role === "administrador" || role === "administrator" || role === "manager";
       });
-      
+
       setTechnicians(techs);
-      
+
       // Auto-asignar si hay solo uno
       if (techs.length === 1 && !formData.assigned_to) {
         updateFormData("assigned_to", techs[0].id);
         updateFormData("assigned_to_name", techs[0].full_name || techs[0].email);
       }
-      
+
       // Auto-asignar al usuario actual si es técnico y no hay asignación
       if (!formData.assigned_to && currentUser) {
         const currentRole = (currentUser.role || "").toLowerCase();
@@ -53,10 +53,10 @@ export default function AssignmentStep({ formData, updateFormData, currentUser }
           updateFormData("assigned_to_name", currentUser.full_name || currentUser.email);
         }
       }
-      
+
     } catch (error) {
       console.error("Error loading technicians:", error);
-      
+
       // Fallback: si falla, al menos asignar al usuario actual si es técnico
       if (currentUser) {
         const role = (currentUser.role || "").toLowerCase();
@@ -85,24 +85,24 @@ export default function AssignmentStep({ formData, updateFormData, currentUser }
 
   if (loading) {
     return (
-      <div className="space-y-4">
-        <Label className="text-white">Asignar técnico</Label>
-        <div className="text-gray-400 text-sm">Cargando técnicos...</div>
+      <div className="apple-surface apple-type space-y-4">
+        <Label className="apple-text-headline apple-label-primary">Asignar técnico</Label>
+        <div className="apple-text-subheadline apple-label-tertiary">Cargando técnicos...</div>
       </div>
     );
   }
 
   return (
-    <div className="space-y-4">
+    <div className="apple-surface apple-type space-y-4">
       <div className="flex items-center justify-between">
-        <Label className="text-white text-lg">Asignar Técnico</Label>
+        <Label className="apple-text-title3 apple-label-primary">Asignar Técnico</Label>
         {formData.assigned_to && (
           <Button
             type="button"
             variant="ghost"
             size="sm"
             onClick={handleUnassign}
-            className="text-red-400 hover:text-red-300 hover:bg-red-900/20"
+            className="apple-btn apple-btn-plain text-apple-red"
           >
             Desasignar
           </Button>
@@ -110,8 +110,8 @@ export default function AssignmentStep({ formData, updateFormData, currentUser }
       </div>
 
       {technicians.length === 0 ? (
-        <div className="bg-yellow-900/20 border border-yellow-500/30 rounded-lg p-4">
-          <p className="text-yellow-300 text-sm">
+        <div className="bg-apple-yellow/12 rounded-apple-md p-4">
+          <p className="apple-text-subheadline text-apple-yellow">
             No hay técnicos disponibles. La orden se creará sin asignar.
           </p>
         </div>
@@ -120,37 +120,35 @@ export default function AssignmentStep({ formData, updateFormData, currentUser }
           {technicians.map((tech) => {
             const isSelected = formData.assigned_to === tech.id;
             const isCurrent = currentUser?.id === tech.id;
-            
+
             return (
               <button
                 key={tech.id}
                 type="button"
                 onClick={() => handleAssign(tech)}
-                className={`
-                  p-4 rounded-lg border-2 transition-all text-left
-                  ${isSelected 
-                    ? 'border-red-500 bg-red-900/20' 
-                    : 'border-gray-700 bg-gray-800/50 hover:border-gray-600'
-                  }
-                `}
+                className={`apple-press p-4 rounded-apple-md text-left transition-all ${
+                  isSelected
+                    ? 'apple-card ring-2 ring-apple-red bg-apple-red/12'
+                    : 'apple-card hover:apple-surface-elevated'
+                }`}
               >
                 <div className="flex items-center gap-3">
                   <div className={`
-                    w-10 h-10 rounded-full flex items-center justify-center font-bold
-                    ${isSelected ? 'bg-red-600' : 'bg-gray-700'}
+                    w-10 h-10 rounded-apple-sm flex items-center justify-center font-semibold apple-text-headline
+                    ${isSelected ? 'bg-apple-red text-white' : 'bg-apple-blue/15 text-apple-blue'}
                   `}>
                     {(tech.full_name || tech.email || "T").charAt(0).toUpperCase()}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="font-semibold text-white truncate">
+                    <p className="apple-text-headline apple-label-primary truncate">
                       {tech.full_name || tech.email}
-                      {isCurrent && <span className="text-xs text-gray-400 ml-2">(Tú)</span>}
+                      {isCurrent && <span className="apple-text-caption1 apple-label-tertiary ml-2">(Tú)</span>}
                     </p>
-                    <p className="text-xs text-gray-400 capitalize">
+                    <p className="apple-text-footnote apple-label-secondary capitalize">
                       {tech.role || "Técnico"}
                     </p>
                   </div>
-                  {isSelected && <UserCheck className="w-5 h-5 text-red-400" />}
+                  {isSelected && <UserCheck className="w-5 h-5 text-apple-red" />}
                 </div>
               </button>
             );
@@ -158,11 +156,11 @@ export default function AssignmentStep({ formData, updateFormData, currentUser }
         </div>
       )}
 
-      <div className="bg-blue-900/20 border border-blue-500/30 rounded-lg p-3 mt-4">
-        <p className="text-blue-300 text-sm flex items-start gap-2">
+      <div className="bg-apple-blue/12 rounded-apple-md p-3 mt-4">
+        <p className="apple-text-subheadline text-apple-blue flex items-start gap-2">
           <Users className="w-4 h-4 mt-0.5 flex-shrink-0" />
           <span>
-            {formData.assigned_to 
+            {formData.assigned_to
               ? "Orden será asignada a este técnico automáticamente"
               : "Puedes asignar un técnico ahora o dejarlo para después"
             }

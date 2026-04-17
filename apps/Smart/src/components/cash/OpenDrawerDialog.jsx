@@ -10,15 +10,15 @@ import { dataClient as base44 } from "@/components/api/dataClient";
 
 // Definición de denominaciones
 const DENOMINATIONS = [
-    { id: 'bills_50', label: '$50', value: 50, color: 'bg-blue-500', textColor: 'text-white' },
-    { id: 'bills_20', label: '$20', value: 20, color: 'bg-emerald-500', textColor: 'text-white' },
-    { id: 'bills_10', label: '$10', value: 10, color: 'bg-yellow-500', textColor: 'text-black' },
-    { id: 'bills_5', label: '$5', value: 5, color: 'bg-orange-500', textColor: 'text-white' },
-    { id: 'bills_1', label: '$1', value: 1, color: 'bg-slate-500', textColor: 'text-white' },
-    { id: 'coins_025', label: '$0.25', value: 0.25, type: 'coin', color: 'bg-slate-600', textColor: 'text-white' },
-    { id: 'coins_010', label: '$0.10', value: 0.10, type: 'coin', color: 'bg-slate-600', textColor: 'text-white' },
-    { id: 'coins_005', label: '$0.05', value: 0.05, type: 'coin', color: 'bg-slate-600', textColor: 'text-white' },
-    { id: 'coins_001', label: '$0.01', value: 0.01, type: 'coin', color: 'bg-slate-600', textColor: 'text-white' },
+    { id: 'bills_50', label: '$50', value: 50, color: 'bg-apple-blue/15', textColor: 'text-apple-blue' },
+    { id: 'bills_20', label: '$20', value: 20, color: 'bg-apple-green/15', textColor: 'text-apple-green' },
+    { id: 'bills_10', label: '$10', value: 10, color: 'bg-apple-yellow/15', textColor: 'text-apple-yellow' },
+    { id: 'bills_5', label: '$5', value: 5, color: 'bg-apple-orange/15', textColor: 'text-apple-orange' },
+    { id: 'bills_1', label: '$1', value: 1, color: 'bg-gray-sys6 dark:bg-gray-sys5', textColor: 'apple-label-primary' },
+    { id: 'coins_025', label: '$0.25', value: 0.25, type: 'coin', color: 'bg-gray-sys6 dark:bg-gray-sys5', textColor: 'apple-label-secondary' },
+    { id: 'coins_010', label: '$0.10', value: 0.10, type: 'coin', color: 'bg-gray-sys6 dark:bg-gray-sys5', textColor: 'apple-label-secondary' },
+    { id: 'coins_005', label: '$0.05', value: 0.05, type: 'coin', color: 'bg-gray-sys6 dark:bg-gray-sys5', textColor: 'apple-label-secondary' },
+    { id: 'coins_001', label: '$0.01', value: 0.01, type: 'coin', color: 'bg-gray-sys6 dark:bg-gray-sys5', textColor: 'apple-label-secondary' },
 ];
 
 export default function OpenDrawerDialog({ isOpen, onClose, onSuccess }) {
@@ -153,31 +153,33 @@ export default function OpenDrawerDialog({ isOpen, onClose, onSuccess }) {
   return (
     <>
       <Dialog open={isOpen} onOpenChange={onClose}>
-        <DialogContent className="max-w-3xl bg-zinc-950/95 backdrop-blur-xl border border-white/10 shadow-2xl p-0 gap-0 overflow-hidden rounded-3xl [&>button]:hidden max-h-[75vh] flex flex-col">
-          {/* Header Apple Style - Compacto */}
-          <div className="bg-zinc-900/50 border-b border-white/5 p-4 flex justify-between items-center flex-shrink-0">
-              <div className="flex items-center gap-2">
-                  <div className="w-8 h-8 rounded-full bg-emerald-500/20 flex items-center justify-center">
-                      <DollarSign className="w-4 h-4 text-emerald-400" />
+        <DialogContent className="max-w-3xl apple-surface-elevated border-0 shadow-apple-xl rounded-apple-lg apple-type p-0 gap-0 overflow-hidden [&>button]:hidden max-h-[75vh] flex flex-col">
+          {/* Header */}
+          <div
+              className="px-5 pt-5 pb-3 flex justify-between items-center flex-shrink-0"
+              style={{ borderBottom: "0.5px solid rgb(var(--separator) / 0.29)" }}>
+              <div className="flex items-center gap-3">
+                  <div className="w-9 h-9 rounded-apple-sm bg-apple-green/15 flex items-center justify-center">
+                      <DollarSign className="w-5 h-5 text-apple-green" />
                   </div>
                   <div>
-                      <DialogTitle className="text-lg font-bold text-white">Abrir Caja</DialogTitle>
-                      <p className="text-zinc-400 text-xs">Efectivo inicial</p>
+                      <DialogTitle className="apple-text-title2 apple-label-primary">Abrir Caja</DialogTitle>
+                      <p className="apple-text-footnote apple-label-secondary">Efectivo inicial</p>
                   </div>
               </div>
               <div className="text-right">
-                  <p className="text-[10px] font-medium text-zinc-500 uppercase tracking-wider">Total</p>
-                  <div className="text-2xl font-bold text-white font-mono tracking-tight">
+                  <p className="apple-text-caption2 apple-label-tertiary">Total</p>
+                  <div className="apple-text-title2 apple-label-primary tabular-nums">
                       ${total.toFixed(2)}
                   </div>
               </div>
           </div>
 
           {/* Content Grid - Scrollable */}
-          <div className="p-4 bg-black/40 overflow-y-auto flex-1 select-none">
+          <div className="p-5 apple-surface overflow-y-auto flex-1 select-none">
               <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
                   {DENOMINATIONS.map((d) => (
-                      <div 
+                      <div
                           key={d.id}
                           onMouseDown={() => handleMouseDown(d)}
                           onMouseUp={() => handleMouseUp(d)}
@@ -187,22 +189,17 @@ export default function OpenDrawerDialog({ isOpen, onClose, onSuccess }) {
                           onTouchCancel={handleCancel}
                           onContextMenu={(e) => { e.preventDefault(); }}
                           className={cn(
-                              "relative aspect-[1.6/1] rounded-[20px] p-4 cursor-pointer transition-all duration-300 select-none group active:scale-[0.94]",
-                              d.color,
-                              "shadow-[0_4px_16px_rgba(0,0,0,0.25)] hover:shadow-[0_8px_24px_rgba(0,0,0,0.35)] border border-white/10"
+                              "relative aspect-[1.6/1] rounded-apple-md p-4 cursor-pointer transition-all duration-200 select-none apple-press shadow-apple-sm",
+                              d.color
                           )}
                       >
-                          {/* Apple-style glossy overlay */}
-                          <div className="absolute inset-0 rounded-[20px] bg-gradient-to-b from-white/15 via-transparent to-transparent opacity-80" />
-                          <div className="absolute inset-0 rounded-[20px] bg-gradient-to-t from-black/10 via-transparent to-transparent" />
-                          
                           <div className="relative h-full flex flex-col justify-between z-10">
-                              <span className={cn("text-xl font-semibold tracking-tight", d.textColor)}>
+                              <span className={cn("apple-text-headline", d.textColor)}>
                                   {d.label}
                               </span>
 
                               <div className="self-end">
-                                  <span className={cn("text-3xl font-bold tracking-tight tabular-nums", d.textColor)}>
+                                  <span className={cn("apple-text-title2 tabular-nums", d.textColor)}>
                                       {denominations[d.id] || 0}
                                   </span>
                               </div>
@@ -210,33 +207,35 @@ export default function OpenDrawerDialog({ isOpen, onClose, onSuccess }) {
 
                           {/* Type indicator (Coin/Bill) */}
                           {d.type === 'coin' && (
-                              <div className="absolute top-4 right-4 w-6 h-6 rounded-full bg-white/25 backdrop-blur-sm flex items-center justify-center shadow-sm">
-                                  <span className="text-[11px] font-bold text-white/90">M</span>
+                              <div className="absolute top-3 right-3 w-5 h-5 rounded-full bg-gray-sys5 dark:bg-gray-sys4 flex items-center justify-center">
+                                  <span className="apple-text-caption2 apple-label-secondary">M</span>
                               </div>
                           )}
                       </div>
                   ))}
               </div>
 
-              <div className="mt-4 flex items-center justify-center gap-2 text-zinc-500 text-xs">
-                  <Calculator className="w-3 h-3" />
+              <div className="mt-4 flex items-center justify-center gap-2 apple-label-tertiary apple-text-footnote">
+                  <Calculator className="w-3.5 h-3.5" />
                   <span>Mantén presionado para editar cantidad</span>
               </div>
           </div>
 
-          {/* Footer Actions - Compacto */}
-          <div className="p-4 bg-zinc-900 border-t border-white/5 flex justify-between gap-3 flex-shrink-0">
-              <Button 
-                  variant="ghost" 
+          {/* Footer Actions */}
+          <div
+              className="px-5 py-4 flex justify-between gap-3 flex-shrink-0"
+              style={{ borderTop: "0.5px solid rgb(var(--separator) / 0.29)" }}>
+              <Button
+                  variant="ghost"
                   onClick={onClose}
-                  className="flex-1 h-12 text-zinc-400 hover:text-white hover:bg-white/5 rounded-xl text-base"
+                  className="apple-btn apple-btn-secondary apple-btn-lg flex-1"
               >
                   Cancelar
               </Button>
-              <Button 
-                  onClick={handleOpen} 
+              <Button
+                  onClick={handleOpen}
                   disabled={loading}
-                  className="flex-[2] h-12 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-base font-semibold shadow-lg shadow-emerald-900/20"
+                  className="apple-btn apple-btn-primary apple-btn-lg flex-[2]"
               >
                   {loading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
                   Confirmar Apertura

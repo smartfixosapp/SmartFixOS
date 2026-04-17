@@ -314,59 +314,61 @@ export default function QuickRepairPanel({ open, onClose, onSuccess }) {
 
   return (
     <Dialog open={open} onOpenChange={(v) => !v && handleClose()}>
-      <DialogContent className="bg-[#1c1c1e] border border-white/10 max-w-3xl w-full text-white rounded-[32px] p-0 overflow-hidden shadow-2xl">
-        
+      <DialogContent className="apple-surface-elevated border-0 max-w-3xl w-full apple-type rounded-apple-lg p-0 overflow-hidden shadow-apple-xl">
+
         {/* Header */}
-        <div className="bg-[#2c2c2e]/50 border-b border-white/5 p-6 flex justify-between items-center">
+        <div
+            className="px-5 pt-5 pb-3 flex justify-between items-center"
+            style={{ borderBottom: "0.5px solid rgb(var(--separator) / 0.29)" }}>
           <div>
-            <DialogTitle className="text-xl font-bold flex items-center gap-3">
-              <div className="w-10 h-10 rounded-full bg-orange-500 flex items-center justify-center shadow-lg shadow-orange-500/20">
-                <Wrench className="w-5 h-5 text-white" fill="currentColor" />
+            <DialogTitle className="apple-text-title2 apple-label-primary flex items-center gap-3">
+              <div className="w-10 h-10 rounded-apple-sm bg-apple-orange/15 flex items-center justify-center">
+                <Wrench className="w-5 h-5 text-apple-orange" />
               </div>
-              <span className="text-white">Órdenes Rápidas</span>
+              <span>Órdenes Rápidas</span>
             </DialogTitle>
-            <p className="text-white/40 text-sm mt-1 ml-14">Crea una orden en segundos</p>
+            <p className="apple-text-footnote apple-label-secondary mt-1 ml-[52px]">Crea una orden en segundos</p>
           </div>
-          
+
           {/* Steps */}
-          <div className="flex gap-1.5 bg-black/20 p-1.5 rounded-full">
+          <div className="flex gap-1.5 bg-gray-sys6 dark:bg-gray-sys5 p-1.5 rounded-full">
             {[1, 2, 3, 4].map((s) => (
               <div
                 key={s}
                 className={`w-8 h-1.5 rounded-full transition-all duration-500 ${
-                  step >= s ? "bg-orange-500" : "bg-white/10"
+                  step >= s ? "bg-apple-orange" : "bg-gray-sys4 dark:bg-gray-sys3"
                 }`}
               />
             ))}
           </div>
         </div>
 
-        <div className="p-6 min-h-[400px] flex flex-col">
+        <div className="p-5 min-h-[400px] flex flex-col">
           <div className="flex-1">
             {step === 1 && (
-              <div className="space-y-6">
+              <div className="space-y-4">
                 {!showNewCustomer ? (
                   <>
                     <div className="relative">
-                      <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-white/40" />
+                      <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 apple-label-tertiary" />
                       <input
                         value={searchCustomer}
                         onChange={(e) => setSearchCustomer(e.target.value)}
                         placeholder="Buscar cliente por nombre o teléfono..."
-                        className="w-full pl-12 pr-4 bg-[#2c2c2e] border-transparent text-white h-14 rounded-2xl text-lg placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-orange-500/50"
+                        className="apple-input w-full pl-12 pr-4"
                         autoFocus
                       />
                     </div>
 
                     {selectedCustomer ? (
-                      <div className="bg-orange-500/10 border border-orange-500/20 rounded-2xl p-5 flex items-center justify-between group cursor-default">
-                        <div className="flex items-center gap-4">
-                          <div className="w-12 h-12 rounded-full bg-orange-500/20 flex items-center justify-center text-orange-500">
-                            <User className="w-6 h-6" />
+                      <div className="bg-apple-orange/12 rounded-apple-md p-4 flex items-center justify-between cursor-default">
+                        <div className="flex items-center gap-3">
+                          <div className="w-10 h-10 rounded-apple-sm bg-apple-orange/15 flex items-center justify-center text-apple-orange">
+                            <User className="w-5 h-5" />
                           </div>
                           <div>
-                            <p className="font-bold text-white text-lg">{selectedCustomer.name}</p>
-                            <p className="text-orange-300/80 font-medium">{selectedCustomer.phone}</p>
+                            <p className="apple-text-headline apple-label-primary">{selectedCustomer.name}</p>
+                            <p className="apple-text-subheadline text-apple-orange">{selectedCustomer.phone}</p>
                           </div>
                         </div>
                         <Button
@@ -374,41 +376,41 @@ export default function QuickRepairPanel({ open, onClose, onSuccess }) {
                           size="icon"
                           onClick={() => setSelectedCustomer(null)}
                           aria-label="Quitar cliente seleccionado"
-                          className="text-white/40 hover:text-white hover:bg-white/10 rounded-full h-10 w-10"
+                          className="apple-label-tertiary hover:apple-label-primary rounded-full h-9 w-9 apple-press"
                         >
                           <X className="w-5 h-5" />
                         </Button>
                       </div>
                     ) : (
-                      <div className="space-y-2 max-h-[300px] overflow-y-auto pr-2 custom-scrollbar">
+                      <div className="space-y-2 max-h-[300px] overflow-y-auto pr-1 apple-list">
                         {filteredCustomers.length > 0 ? (
                           filteredCustomers.map(c => (
                             <button
                               key={c.id}
                               onClick={() => setSelectedCustomer(c)}
-                              className="w-full text-left p-4 bg-[#2c2c2e] hover:bg-[#3a3a3c] rounded-2xl transition-all group border border-transparent hover:border-white/5"
+                              className="apple-list-row w-full text-left p-3 bg-gray-sys6 dark:bg-gray-sys5 rounded-apple-md apple-press"
                             >
                               <div className="flex justify-between items-center">
                                 <div className="flex items-center gap-3">
-                                  <div className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center text-white/40 group-hover:text-white group-hover:bg-white/10 transition-colors">
-                                    <User className="w-5 h-5" />
+                                  <div className="w-9 h-9 rounded-apple-sm bg-gray-sys5 dark:bg-gray-sys4 flex items-center justify-center apple-label-secondary">
+                                    <User className="w-4 h-4" />
                                   </div>
                                   <div>
-                                    <p className="font-bold text-white text-base">{c.name}</p>
-                                    <p className="text-white/40 text-sm">{c.phone}</p>
+                                    <p className="apple-text-subheadline apple-label-primary">{c.name}</p>
+                                    <p className="apple-text-footnote apple-label-secondary">{c.phone}</p>
                                   </div>
                                 </div>
-                                <ChevronRight className="w-5 h-5 text-white/50 group-hover:text-white transition-colors" />
+                                <ChevronRight className="w-5 h-5 apple-label-tertiary" />
                               </div>
                             </button>
                           ))
                         ) : (
                           <div className="text-center py-12 flex flex-col items-center">
-                            <div className="w-16 h-16 bg-white/5 rounded-full flex items-center justify-center mb-4">
-                              <User className="w-8 h-8 text-white/50" />
+                            <div className="w-14 h-14 bg-gray-sys6 dark:bg-gray-sys5 rounded-apple-md flex items-center justify-center mb-4">
+                              <User className="w-7 h-7 apple-label-tertiary" />
                             </div>
-                            <p className="text-white/40 text-base font-medium mb-1">No se encontraron clientes</p>
-                            <p className="text-white/50 text-sm">Prueba buscar con otro término</p>
+                            <p className="apple-text-headline apple-label-secondary mb-1">No se encontraron clientes</p>
+                            <p className="apple-text-footnote apple-label-tertiary">Prueba buscar con otro término</p>
                           </div>
                         )}
                       </div>
@@ -417,7 +419,7 @@ export default function QuickRepairPanel({ open, onClose, onSuccess }) {
                     <div className="pt-2">
                       <Button
                         onClick={() => setShowNewCustomer(true)}
-                        className="w-full h-14 rounded-2xl bg-white/5 text-white font-semibold hover:bg-white/10 transition-all border border-white/5 hover:border-white/10 text-base"
+                        className="apple-btn apple-btn-tinted apple-btn-lg w-full"
                       >
                         <UserPlus className="w-5 h-5 mr-2" />
                         Crear Nuevo Cliente
@@ -425,38 +427,38 @@ export default function QuickRepairPanel({ open, onClose, onSuccess }) {
                     </div>
                   </>
                 ) : (
-                  <div className="space-y-5 bg-[#2c2c2e] p-6 rounded-3xl border border-white/5">
-                    <div className="flex justify-between items-center mb-2">
-                      <h3 className="font-bold text-white text-lg">Nuevo Cliente</h3>
-                      <button onClick={() => setShowNewCustomer(false)} className="text-white/40 hover:text-white">
+                  <div className="space-y-4 bg-gray-sys6 dark:bg-gray-sys5 p-5 rounded-apple-md">
+                    <div className="flex justify-between items-center mb-1">
+                      <h3 className="apple-text-title3 apple-label-primary">Nuevo Cliente</h3>
+                      <button onClick={() => setShowNewCustomer(false)} className="apple-label-tertiary hover:apple-label-primary apple-press">
                         <X className="w-5 h-5" />
                       </button>
                     </div>
                     <div className="space-y-4">
                       <div>
-                        <label className="text-white/40 text-xs font-bold uppercase ml-3 mb-1 block">Nombre Completo</label>
+                        <label className="apple-text-footnote apple-label-secondary ml-1 mb-1.5 block">Nombre Completo</label>
                         <Input
                           value={newCustomerName}
                           onChange={(e) => setNewCustomerName(e.target.value)}
-                          className="bg-black/20 border-transparent h-12 rounded-xl text-white focus:bg-black/40"
+                          className="apple-input"
                           placeholder="Ej: Juan Pérez"
                         />
                       </div>
                       <div>
-                        <label className="text-white/40 text-xs font-bold uppercase ml-3 mb-1 block">Teléfono</label>
+                        <label className="apple-text-footnote apple-label-secondary ml-1 mb-1.5 block">Teléfono</label>
                         <Input
                           value={newCustomerPhone}
                           onChange={(e) => setNewCustomerPhone(e.target.value)}
-                          className="bg-black/20 border-transparent h-12 rounded-xl text-white focus:bg-black/40"
+                          className="apple-input"
                           placeholder="Ej: 787-123-4567"
                         />
                       </div>
                       <div>
-                        <label className="text-white/40 text-xs font-bold uppercase ml-3 mb-1 block">Email (Opcional)</label>
+                        <label className="apple-text-footnote apple-label-secondary ml-1 mb-1.5 block">Email (Opcional)</label>
                         <Input
                           value={newCustomerEmail}
                           onChange={(e) => setNewCustomerEmail(e.target.value)}
-                          className="bg-black/20 border-transparent h-12 rounded-xl text-white focus:bg-black/40"
+                          className="apple-input"
                           placeholder="Ej: juan@email.com"
                         />
                       </div>
@@ -464,7 +466,7 @@ export default function QuickRepairPanel({ open, onClose, onSuccess }) {
                     <div className="pt-2">
                       <Button
                         onClick={handleCreateCustomer}
-                        className="w-full bg-white text-black hover:bg-white/90 h-12 rounded-xl font-bold text-base shadow-lg"
+                        className="apple-btn apple-btn-primary apple-btn-lg w-full"
                       >
                         Guardar Cliente
                       </Button>
@@ -475,10 +477,10 @@ export default function QuickRepairPanel({ open, onClose, onSuccess }) {
             )}
 
             {step === 2 && (
-              <div className="space-y-6">
+              <div className="space-y-5">
                 <div className="grid grid-cols-2 gap-4">
-                  <div className="col-span-2 space-y-3">
-                    <label className="text-xs text-white/40 uppercase font-bold ml-1 block">Tipo de Dispositivo</label>
+                  <div className="col-span-2 space-y-2">
+                    <label className="apple-text-footnote apple-label-secondary ml-1 block">Tipo de Dispositivo</label>
                     <div className="flex flex-wrap gap-2">
                       {categories.map(cat => (
                         <button
@@ -488,10 +490,10 @@ export default function QuickRepairPanel({ open, onClose, onSuccess }) {
                             setSelectedBrand(null);
                             setSelectedModel(null);
                           }}
-                          className={`px-4 py-3 rounded-xl text-sm font-semibold transition-all border ${
+                          className={`px-4 py-2.5 rounded-apple-md apple-text-subheadline transition-all apple-press ${
                             selectedCategory?.id === cat.id
-                              ? "bg-white text-black border-white shadow-lg"
-                              : "bg-[#2c2c2e] text-white/60 border-transparent hover:bg-[#3a3a3c] hover:text-white"
+                              ? "bg-apple-blue text-white"
+                              : "bg-gray-sys6 dark:bg-gray-sys5 apple-label-primary"
                           }`}
                         >
                           {cat.name}
@@ -501,8 +503,8 @@ export default function QuickRepairPanel({ open, onClose, onSuccess }) {
                   </div>
 
                   {selectedCategory && (
-                    <div className="col-span-2 space-y-3 animate-in fade-in slide-in-from-bottom-2">
-                      <label className="text-xs text-white/40 uppercase font-bold ml-1 block">Marca</label>
+                    <div className="col-span-2 space-y-2 animate-in fade-in slide-in-from-bottom-2">
+                      <label className="apple-text-footnote apple-label-secondary ml-1 block">Marca</label>
                       <div className="flex flex-wrap gap-2">
                         {brands
                           .filter(b => b.category_id === selectedCategory.id)
@@ -513,10 +515,10 @@ export default function QuickRepairPanel({ open, onClose, onSuccess }) {
                                 setSelectedBrand(brand);
                                 setSelectedModel(null);
                               }}
-                              className={`px-4 py-3 rounded-xl text-sm font-semibold transition-all border ${
+                              className={`px-4 py-2.5 rounded-apple-md apple-text-subheadline transition-all apple-press ${
                                 selectedBrand?.id === brand.id
-                                  ? "bg-white text-black border-white shadow-lg"
-                                  : "bg-[#2c2c2e] text-white/60 border-transparent hover:bg-[#3a3a3c] hover:text-white"
+                                  ? "bg-apple-blue text-white"
+                                  : "bg-gray-sys6 dark:bg-gray-sys5 apple-label-primary"
                               }`}
                             >
                               {brand.name}
@@ -527,8 +529,8 @@ export default function QuickRepairPanel({ open, onClose, onSuccess }) {
                   )}
 
                   {selectedBrand && (
-                    <div className="col-span-2 space-y-3 animate-in fade-in slide-in-from-bottom-2">
-                      <label className="text-xs text-white/40 uppercase font-bold ml-1 block">Modelo</label>
+                    <div className="col-span-2 space-y-2 animate-in fade-in slide-in-from-bottom-2">
+                      <label className="apple-text-footnote apple-label-secondary ml-1 block">Modelo</label>
                       <div className="flex flex-wrap gap-2 max-h-[200px] overflow-y-auto p-1">
                         {models
                           .filter(m => m.brand_id === selectedBrand.id)
@@ -536,10 +538,10 @@ export default function QuickRepairPanel({ open, onClose, onSuccess }) {
                             <button
                               key={model.id}
                               onClick={() => setSelectedModel(model)}
-                              className={`px-4 py-2 rounded-full border text-sm font-medium transition-all ${
+                              className={`px-4 py-2 rounded-full apple-text-subheadline transition-all apple-press ${
                                 selectedModel?.id === model.id
-                                  ? "bg-orange-500 text-white border-orange-500 shadow-md"
-                                  : "bg-[#2c2c2e] text-white/60 border-transparent hover:bg-[#3a3a3c] hover:text-white"
+                                  ? "bg-apple-orange text-white"
+                                  : "bg-gray-sys6 dark:bg-gray-sys5 apple-label-primary"
                               }`}
                             >
                               {model.name}
@@ -555,37 +557,37 @@ export default function QuickRepairPanel({ open, onClose, onSuccess }) {
             {step === 3 && (
               <div className="space-y-4">
                 <div className="relative">
-                  <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-white/40" />
+                  <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 apple-label-tertiary" />
                   <Input
                     value={searchProduct}
                     onChange={(e) => setSearchProduct(e.target.value)}
                     placeholder="Buscar servicios o repuestos..."
-                    className="pl-12 bg-[#2c2c2e] border-transparent text-white h-12 rounded-xl focus:bg-[#3a3a3c]"
+                    className="apple-input pl-12"
                     autoFocus
                   />
                 </div>
 
-                <div className="grid grid-cols-1 gap-2 max-h-[280px] overflow-y-auto pr-2 custom-scrollbar">
+                <div className="grid grid-cols-1 gap-2 max-h-[280px] overflow-y-auto pr-1 apple-list">
                   {filteredItems.map(item => (
                     <button
                       key={item.id}
                       onClick={() => handleAddItem(item)}
-                      className="flex items-center justify-between p-3 rounded-xl bg-[#2c2c2e] hover:bg-[#3a3a3c] transition-colors border border-transparent text-left group"
+                      className="apple-list-row flex items-center justify-between p-3 rounded-apple-md bg-gray-sys6 dark:bg-gray-sys5 apple-press text-left"
                     >
                       <div className="flex-1 min-w-0 pr-3">
-                        <p className="font-semibold text-white truncate">{item.name}</p>
+                        <p className="apple-text-subheadline apple-label-primary truncate">{item.name}</p>
                         <div className="flex items-center gap-2 mt-1">
-                          <Badge className={item.type === "service" ? "bg-blue-500/20 text-blue-300" : "bg-green-500/20 text-green-300"}>
+                          <Badge className={item.type === "service" ? "bg-apple-blue/15 text-apple-blue" : "bg-apple-green/15 text-apple-green"}>
                             {item.type === "service" ? "Servicio" : "Producto"}
                           </Badge>
                           {item.type === "product" && (
-                            <span className="text-xs text-white/40">Stock: {item.stock || 0}</span>
+                            <span className="apple-text-caption1 apple-label-tertiary">Stock: {item.stock || 0}</span>
                           )}
                         </div>
                       </div>
                       <div className="flex items-center gap-3">
-                        <span className="font-bold text-white text-lg">{money(item.price)}</span>
-                        <div className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center text-white group-hover:bg-white/20 transition-colors">
+                        <span className="apple-text-headline apple-label-primary tabular-nums">{money(item.price)}</span>
+                        <div className="w-8 h-8 rounded-full bg-apple-blue/15 flex items-center justify-center text-apple-blue">
                           <Plus className="w-5 h-5" />
                         </div>
                       </div>
@@ -594,31 +596,33 @@ export default function QuickRepairPanel({ open, onClose, onSuccess }) {
                 </div>
 
                 {selectedItems.length > 0 && (
-                  <div className="bg-[#2c2c2e] rounded-2xl p-4 mt-2">
-                    <div className="flex items-center gap-2 mb-3 text-white/40 text-xs font-bold uppercase tracking-wider">
+                  <div className="bg-gray-sys6 dark:bg-gray-sys5 rounded-apple-md p-4 mt-2">
+                    <div className="flex items-center gap-2 mb-3 apple-label-secondary apple-text-footnote">
                       <ShoppingCart className="w-4 h-4" />
                       Carrito ({selectedItems.length})
                     </div>
                     <div className="space-y-2">
                       {selectedItems.map(item => (
-                        <div key={item.id} className="flex justify-between items-center bg-black/20 p-2.5 rounded-xl">
+                        <div key={item.id} className="flex justify-between items-center apple-surface-elevated p-2.5 rounded-apple-sm">
                           <div className="flex items-center gap-3 flex-1 min-w-0">
-                            <div className="w-6 h-6 rounded-md bg-white/5 flex items-center justify-center text-xs font-bold text-white">
+                            <div className="w-6 h-6 rounded-apple-xs bg-gray-sys5 dark:bg-gray-sys4 flex items-center justify-center apple-text-caption1 apple-label-primary tabular-nums">
                               {item.quantity}x
                             </div>
-                            <span className="text-sm text-white font-medium truncate">{item.name}</span>
+                            <span className="apple-text-subheadline apple-label-primary truncate">{item.name}</span>
                           </div>
                           <div className="flex items-center gap-3">
-                            <span className="text-sm font-bold text-white">{money(item.price * item.quantity)}</span>
-                            <button onClick={() => handleRemoveItem(item.id)} className="text-white/50 hover:text-red-400 transition-colors">
+                            <span className="apple-text-subheadline apple-label-primary tabular-nums">{money(item.price * item.quantity)}</span>
+                            <button onClick={() => handleRemoveItem(item.id)} className="apple-label-tertiary hover:text-apple-red apple-press">
                               <X className="w-4 h-4" />
                             </button>
                           </div>
                         </div>
                       ))}
-                      <div className="flex justify-between items-center pt-3 mt-2 border-t border-white/5">
-                        <span className="font-bold text-white">Total Estimado</span>
-                        <span className="font-bold text-orange-400 text-xl">{money(grandTotal)}</span>
+                      <div
+                          className="flex justify-between items-center pt-3 mt-2"
+                          style={{ borderTop: "0.5px solid rgb(var(--separator) / 0.29)" }}>
+                        <span className="apple-text-headline apple-label-primary">Total Estimado</span>
+                        <span className="apple-text-title2 text-apple-orange tabular-nums">{money(grandTotal)}</span>
                       </div>
                     </div>
                   </div>
@@ -627,26 +631,28 @@ export default function QuickRepairPanel({ open, onClose, onSuccess }) {
             )}
 
             {step === 4 && (
-              <div className="space-y-6">
-                <div className="bg-[#2c2c2e] rounded-[32px] p-6 text-center">
-                  <div className="w-20 h-20 bg-green-500 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg shadow-green-500/20">
-                    <CheckCircle2 className="w-10 h-10 text-white" />
+              <div className="space-y-4">
+                <div className="bg-gray-sys6 dark:bg-gray-sys5 rounded-apple-lg p-6 text-center">
+                  <div className="w-16 h-16 bg-apple-green/15 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <CheckCircle2 className="w-8 h-8 text-apple-green" />
                   </div>
-                  <h3 className="text-2xl font-bold text-white mb-1">¡Todo Listo!</h3>
-                  <p className="text-white/60 text-sm mb-6">Revisa los detalles antes de crear la orden</p>
+                  <h3 className="apple-text-title2 apple-label-primary mb-1">¡Todo Listo!</h3>
+                  <p className="apple-text-footnote apple-label-secondary mb-6">Revisa los detalles antes de crear la orden</p>
 
-                  <div className="bg-black/20 rounded-2xl p-4 text-left space-y-3">
+                  <div className="apple-surface-elevated rounded-apple-md p-4 text-left space-y-3">
                     <div className="flex justify-between">
-                      <span className="text-white/40 text-sm">Cliente</span>
-                      <span className="font-medium text-white">{selectedCustomer?.name}</span>
+                      <span className="apple-text-footnote apple-label-secondary">Cliente</span>
+                      <span className="apple-text-subheadline apple-label-primary">{selectedCustomer?.name}</span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-white/40 text-sm">Dispositivo</span>
-                      <span className="font-medium text-white">{selectedBrand?.name} {selectedModel?.name}</span>
+                      <span className="apple-text-footnote apple-label-secondary">Dispositivo</span>
+                      <span className="apple-text-subheadline apple-label-primary">{selectedBrand?.name} {selectedModel?.name}</span>
                     </div>
-                    <div className="border-t border-white/5 pt-3 flex justify-between items-center">
-                      <span className="text-white/40 text-sm">Total a Pagar</span>
-                      <span className="font-bold text-xl text-green-400">{money(grandTotal)}</span>
+                    <div
+                        className="pt-3 flex justify-between items-center"
+                        style={{ borderTop: "0.5px solid rgb(var(--separator) / 0.29)" }}>
+                      <span className="apple-text-footnote apple-label-secondary">Total a Pagar</span>
+                      <span className="apple-text-title2 text-apple-green tabular-nums">{money(grandTotal)}</span>
                     </div>
                   </div>
                 </div>
@@ -655,21 +661,23 @@ export default function QuickRepairPanel({ open, onClose, onSuccess }) {
           </div>
         </div>
 
-        <div className="p-6 bg-[#2c2c2e]/30 border-t border-white/5 flex justify-between items-center">
+        <div
+            className="px-5 py-4 flex justify-between items-center"
+            style={{ borderTop: "0.5px solid rgb(var(--separator) / 0.29)" }}>
           {step > 1 ? (
-            <Button variant="ghost" onClick={() => setStep(s => s - 1)} className="text-white/40 hover:text-white hover:bg-white/5 rounded-xl">
+            <Button variant="ghost" onClick={() => setStep(s => s - 1)} className="apple-btn apple-btn-plain">
               Atrás
             </Button>
           ) : (
-            <Button variant="ghost" onClick={handleClose} className="text-white/40 hover:text-white hover:bg-white/5 rounded-xl">
+            <Button variant="ghost" onClick={handleClose} className="apple-btn apple-btn-plain">
               Cancelar
             </Button>
           )}
-          
+
           <Button
             onClick={step === 4 ? handleSubmit : handleNext}
             disabled={!canProceed() || loading}
-            className="bg-orange-500 hover:bg-orange-600 text-white px-8 h-12 rounded-xl font-bold shadow-lg shadow-orange-500/20 transition-all active:scale-95"
+            className="apple-btn apple-btn-primary apple-btn-lg px-8"
           >
             {step === 4 ? (loading ? "Creando..." : "Confirmar Orden") : "Continuar"}
           </Button>
