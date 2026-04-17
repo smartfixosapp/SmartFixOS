@@ -86,6 +86,47 @@ export default function MobileBottomNav() {
   const lastPathRef               = useRef(location.pathname);
   const { pendingOrders }         = useBadgeCounts();
 
+  // ── Visual Viewport API: medir el viewport REAL del dispositivo ───────
+  // En Safari iOS, `env(safe-area-inset-bottom)` a veces reporta valores
+  // fantasma que incluyen espacio del chrome de Safari (aunque esté oculto).
+  // Esta función usa visualViewport API para obtener la altura REAL de la
+  // pantalla visible, y aplica una variable CSS --nav-bottom-offset que el
+  // nav usa como `bottom` (en vez de depender solo de env()).
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    const updateViewport = () => {
+      const realH = window.innerHeight;
+      const vv = window.visualViewport;
+      const visualH = vv ? vv.height : realH;
+      const visualOffsetTop = vv ? vv.offsetTop : 0;
+
+      // Si el viewport visual es más chico que window.innerHeight, hay
+      // chrome o teclado reservando espacio. Usamos el visual como real.
+      const trueBottom = Math.round(visualH + visualOffsetTop);
+      const diff = Math.max(0, window.innerHeight - trueBottom);
+
+      document.documentElement.style.setProperty("--nav-real-vh", `${trueBottom}px`);
+      document.documentElement.style.setProperty("--nav-gap-fix", `${diff}px`);
+    };
+
+    updateViewport();
+    window.addEventListener("resize", updateViewport, { passive: true });
+    window.addEventListener("orientationchange", updateViewport, { passive: true });
+    if (window.visualViewport) {
+      window.visualViewport.addEventListener("resize", updateViewport, { passive: true });
+      window.visualViewport.addEventListener("scroll", updateViewport, { passive: true });
+    }
+    return () => {
+      window.removeEventListener("resize", updateViewport);
+      window.removeEventListener("orientationchange", updateViewport);
+      if (window.visualViewport) {
+        window.visualViewport.removeEventListener("resize", updateViewport);
+        window.visualViewport.removeEventListener("scroll", updateViewport);
+      }
+    };
+  }, []);
+
   useEffect(() => {
     const p = location.pathname;
     let currentTab = "home";
@@ -158,46 +199,22 @@ export default function MobileBottomNav() {
           : "translate-y-0 opacity-100"
       )}
       style={{
-        // Forzar posicionamiento relativo al VIEWPORT (no a ancestor)
+        // Posicionamiento DINÁMICO: usa --nav-gap-fix (medido por JS con
+        // visualViewport API) para compensar cualquier gap fantasma que
+        // Safari iOS añada cuando su toolbar oculto sigue reservando
+        // espacio. El nav se sube `--nav-gap-fix`px para que su borde
+        // inferior quede justo al borde del viewport REAL visible.
         position: "fixed",
-        bottom: 0,
+        bottom: "var(--nav-gap-fix, 0px)",
         // Fondo SÓLIDO: sys-gray-6 (dark: #1C1C1E / light: #F2F2F7)
         backgroundColor: "rgb(var(--sys-gray-6))",
         WebkitBackdropFilter: "blur(20px) saturate(180%)",
         backdropFilter: "blur(20px) saturate(180%)",
         borderTop: "0.5px solid rgb(var(--separator) / 0.50)",
-        // clamp(min, preferred, max) — iOS Safari en modo browser a veces
-        // reporta env(safe-area-inset-bottom) con valores INFLADOS que
-        // incluyen espacio fantasma para su toolbar (incluso cuando está
-        // oculto). Resultado: gap negro debajo del tab bar.
-        //
-        // clamp asegura que SIEMPRE estemos entre 20px y 40px:
-        //   - Si env reporta 0 (PWA sin notch): usamos 20px mínimo
-        //   - Si env reporta 34 (home indicator iPhone): usamos 34 real
-        //   - Si env reporta 80+ (Safari chrome fantasma): capamos a 40
+        // Padding-bottom: min 20px para PWA, max 40px para cap Safari
         paddingBottom: "clamp(20px, env(safe-area-inset-bottom, 34px), 40px)",
       }}
     >
-      {/*
-       * Extender: un div absoluto que se extiende 200px BAJO el nav con
-       * el mismo bg. Esto cubre cualquier area reservada por Safari iOS
-       * (tanto cuando su chrome está visible como oculto) que el env()
-       * no logra reportar correctamente. El nav sigue posicionado en
-       * bottom:0 del viewport pero su color se proyecta 200px hacia abajo.
-       */}
-      <div
-        aria-hidden
-        style={{
-          position: "absolute",
-          top: "100%",
-          left: 0,
-          right: 0,
-          height: "200px",
-          backgroundColor: "rgb(var(--sys-gray-6))",
-          pointerEvents: "none",
-        }}
-      />
-
       {/* Tab items */}
       <div className="relative flex items-stretch justify-around px-1 pt-1.5 pb-1.5 h-[58px]">
           {tabs.map((tab) => {
