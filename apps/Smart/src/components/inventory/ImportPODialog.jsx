@@ -1182,12 +1182,12 @@ export default function ImportPODialog({ open, onClose, suppliers = [], products
             <Sparkles className="w-5 h-5 text-violet-400" />
             Importar orden de compra con Jeani
             {fileQueue.length > 0 && (
-              <span className="ml-2 px-2 py-0.5 rounded-md bg-violet-500/15 text-violet-300 border border-violet-500/25 text-[11px] font-black">
+              <span className="ml-2 px-2 py-0.5 rounded-md bg-violet-500/15 text-violet-300 border border-violet-500/25 text-[11px] font-semibold">
                 📚 {fileQueue.length} en cola
               </span>
             )}
             {batchProgress && (
-              <span className="ml-2 px-2 py-0.5 rounded-md bg-cyan-500/15 text-cyan-300 border border-cyan-500/25 text-[11px] font-black">
+              <span className="ml-2 px-2 py-0.5 rounded-md bg-cyan-500/15 text-cyan-300 border border-cyan-500/25 text-[11px] font-semibold">
                 Archivo {batchProgress.current}/{batchProgress.total}
               </span>
             )}
@@ -1216,7 +1216,7 @@ export default function ImportPODialog({ open, onClose, suppliers = [], products
                 className="hidden"
               />
               <Upload className={`w-10 h-10 mx-auto mb-2 transition-colors ${dragOver ? "text-violet-300" : "text-white/30"}`} />
-              <p className={`font-black text-sm transition-colors ${dragOver ? "text-violet-200" : "text-white/80"}`}>
+              <p className={`font-semibold text-sm transition-colors ${dragOver ? "text-violet-200" : "text-white/80"}`}>
                 {dragOver
                   ? "Suelta el archivo aquí"
                   : file
@@ -1234,7 +1234,7 @@ export default function ImportPODialog({ open, onClose, suppliers = [], products
             </label>
 
             {/* Cámara — funciona nativo en iOS/Android y en Capacitor WebView */}
-            <label className="flex items-center justify-center gap-2 px-4 py-2 rounded-xl bg-cyan-500/10 border border-cyan-500/20 text-cyan-300 text-xs font-black hover:bg-cyan-500/20 cursor-pointer transition-all active:scale-95">
+            <label className="flex items-center justify-center gap-2 px-4 py-2 rounded-xl bg-cyan-500/10 border border-cyan-500/20 text-cyan-300 text-xs font-semibold hover:bg-cyan-500/20 cursor-pointer transition-all active:scale-95">
               <input
                 type="file"
                 accept="image/*"
@@ -1249,7 +1249,7 @@ export default function ImportPODialog({ open, onClose, suppliers = [], products
             {templates.length > 0 && (
               <div className="border-t border-white/[0.06] pt-3">
                 <div className="flex items-center justify-between mb-2">
-                  <p className="text-[10px] text-white/40 font-black uppercase">📋 Templates guardados</p>
+                  <p className="text-[10px] text-white/40 font-semibold">📋 Templates guardados</p>
                   <button
                     onClick={() => setShowTemplates((v) => !v)}
                     className="text-[10px] text-white/50 hover:text-white font-bold"
@@ -1306,7 +1306,7 @@ export default function ImportPODialog({ open, onClose, suppliers = [], products
               <button
                 onClick={runExtraction}
                 disabled={!file || extracting || uploading || isExcel}
-                className="flex items-center gap-2 px-4 py-2 rounded-xl bg-violet-500/20 border border-violet-500/30 text-violet-200 text-xs font-black hover:bg-violet-500/30 disabled:opacity-40 disabled:cursor-not-allowed"
+                className="flex items-center gap-2 px-4 py-2 rounded-xl bg-violet-500/20 border border-violet-500/30 text-violet-200 text-xs font-semibold hover:bg-violet-500/30 disabled:opacity-40 disabled:cursor-not-allowed"
               >
                 {uploading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> :
                  extracting ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> :
@@ -1323,7 +1323,7 @@ export default function ImportPODialog({ open, onClose, suppliers = [], products
             {/* Resumen del archivo leído */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
               <div className="p-3 rounded-xl bg-white/[0.03] border border-white/[0.08] col-span-2 md:col-span-1">
-                <p className="text-[10px] text-white/40 uppercase font-black tracking-wider">Proveedor</p>
+                <p className="text-[10px] text-white/40 font-semibold">Proveedor</p>
                 <select
                   value={supplierId}
                   onChange={(e) => setSupplierId(e.target.value)}
@@ -1340,7 +1340,7 @@ export default function ImportPODialog({ open, onClose, suppliers = [], products
                 </select>
               </div>
               <div className="p-3 rounded-xl bg-white/[0.03] border border-white/[0.08]">
-                <p className="text-[10px] text-white/40 uppercase font-black tracking-wider">Fecha orden</p>
+                <p className="text-[10px] text-white/40 font-semibold">Fecha orden</p>
                 <Input
                   type="date"
                   value={orderDate}
@@ -1349,7 +1349,7 @@ export default function ImportPODialog({ open, onClose, suppliers = [], products
                 />
               </div>
               <div className="p-3 rounded-xl bg-white/[0.03] border border-white/[0.08]">
-                <p className="text-[10px] text-white/40 uppercase font-black tracking-wider">Llega el (opcional)</p>
+                <p className="text-[10px] text-white/40 font-semibold">Llega el (opcional)</p>
                 <Input
                   type="date"
                   value={expectedDate}
@@ -1358,19 +1358,19 @@ export default function ImportPODialog({ open, onClose, suppliers = [], products
                 />
               </div>
               <div className="p-3 rounded-xl bg-white/[0.03] border border-white/[0.08]">
-                <p className="text-[10px] text-white/40 uppercase font-black tracking-wider">Total estimado</p>
-                <p className="text-white text-lg font-black tabular-nums mt-1">{money(subtotal)}</p>
+                <p className="text-[10px] text-white/40 font-semibold">Total estimado</p>
+                <p className="text-white text-lg font-semibold tabular-nums mt-1">{money(subtotal)}</p>
               </div>
             </div>
 
             {/* Stats matching */}
             <div className="flex items-center gap-2 text-[11px] flex-wrap">
-              <span className="px-2 py-1 rounded-md bg-emerald-500/10 text-emerald-300 border border-emerald-500/20 font-black">
+              <span className="px-2 py-1 rounded-md bg-emerald-500/10 text-emerald-300 border border-emerald-500/20 font-semibold">
                 <CheckCircle2 className="w-3 h-3 inline mr-1" />
                 {matchedCount} matcheados
               </span>
               {unmatchedCount > 0 && (
-                <span className="px-2 py-1 rounded-md bg-amber-500/10 text-amber-300 border border-amber-500/20 font-black">
+                <span className="px-2 py-1 rounded-md bg-amber-500/10 text-amber-300 border border-amber-500/20 font-semibold">
                   <AlertCircle className="w-3 h-3 inline mr-1" />
                   {unmatchedCount} sin match
                 </span>
@@ -1379,7 +1379,7 @@ export default function ImportPODialog({ open, onClose, suppliers = [], products
                 onClick={runAIMatching}
                 disabled={aiMatching || reviewRows.length === 0}
                 title="Usa IA para entender jerga, abreviaturas y nombres en otro idioma"
-                className="px-2 py-1 rounded-md bg-violet-500/15 text-violet-300 border border-violet-500/25 font-black hover:bg-violet-500/25 disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-1"
+                className="px-2 py-1 rounded-md bg-violet-500/15 text-violet-300 border border-violet-500/25 font-semibold hover:bg-violet-500/25 disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-1"
               >
                 {aiMatching ? <Loader2 className="w-3 h-3 animate-spin" /> : <Sparkles className="w-3 h-3" />}
                 {aiMatching ? "Matcheando…" : "Mejorar matches con Jeani"}
@@ -1387,7 +1387,7 @@ export default function ImportPODialog({ open, onClose, suppliers = [], products
               <button
                 onClick={saveCurrentAsTemplate}
                 disabled={savingTemplate || reviewRows.length === 0}
-                className="px-2 py-1 rounded-md bg-white/[0.04] text-white/50 border border-white/[0.08] font-black hover:text-white hover:bg-white/[0.08] disabled:opacity-40 flex items-center gap-1"
+                className="px-2 py-1 rounded-md bg-white/[0.04] text-white/50 border border-white/[0.08] font-semibold hover:text-white hover:bg-white/[0.08] disabled:opacity-40 flex items-center gap-1"
                 title="Guardar este combo como template para reutilizar"
               >
                 💾 Guardar template
@@ -1404,7 +1404,7 @@ export default function ImportPODialog({ open, onClose, suppliers = [], products
             {unmatchedCount > 0 && (
               <div className="p-3 rounded-xl bg-emerald-500/[0.05] border border-emerald-500/20 flex items-center gap-3 flex-wrap">
                 <div className="flex-1 min-w-0">
-                  <p className="text-xs font-black text-white">
+                  <p className="text-xs font-semibold text-white">
                     Crear los {unmatchedCount} sin match como productos nuevos
                   </p>
                   <p className="text-[10px] text-white/40 mt-0.5">
@@ -1412,7 +1412,7 @@ export default function ImportPODialog({ open, onClose, suppliers = [], products
                   </p>
                 </div>
                 <div className="flex items-center gap-2">
-                  <span className="text-[10px] text-white/50 font-black uppercase">Margen:</span>
+                  <span className="text-[10px] text-white/50 font-semibold">Margen:</span>
                   <input
                     type="range"
                     min="10"
@@ -1422,12 +1422,12 @@ export default function ImportPODialog({ open, onClose, suppliers = [], products
                     onChange={(e) => setBulkMarginPct(Number(e.target.value))}
                     className="w-24 accent-emerald-500"
                   />
-                  <span className="text-sm font-black text-emerald-300 tabular-nums w-10">{bulkMarginPct}%</span>
+                  <span className="text-sm font-semibold text-emerald-300 tabular-nums w-10">{bulkMarginPct}%</span>
                 </div>
                 <button
                   onClick={bulkCreateNewProducts}
                   disabled={bulkCreating}
-                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-500/20 border border-emerald-500/30 text-emerald-200 text-xs font-black hover:bg-emerald-500/30 disabled:opacity-40"
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-500/20 border border-emerald-500/30 text-emerald-200 text-xs font-semibold hover:bg-emerald-500/30 disabled:opacity-40"
                 >
                   {bulkCreating ? <Loader2 className="w-3 h-3 animate-spin" /> : <Plus className="w-3 h-3" />}
                   Crear todos
@@ -1445,7 +1445,7 @@ export default function ImportPODialog({ open, onClose, suppliers = [], products
                   <div key={idx} className="p-3 rounded-xl bg-white/[0.02] border border-white/[0.06]">
                     <div className="flex items-start gap-2">
                       <div className="flex-1 min-w-0">
-                        <p className="text-[10px] text-white/30 font-black uppercase">Extraído</p>
+                        <p className="text-[10px] text-white/30 font-semibold">Extraído</p>
                         <p className="text-xs text-white/60 truncate">{row.raw_name || "—"}</p>
                       </div>
                       <button
@@ -1457,7 +1457,7 @@ export default function ImportPODialog({ open, onClose, suppliers = [], products
                     </div>
                     <div className="grid grid-cols-12 gap-2 mt-2">
                       <div className="col-span-12 md:col-span-6">
-                        <p className="text-[10px] text-white/30 font-black uppercase mb-0.5">Producto en inventario</p>
+                        <p className="text-[10px] text-white/30 font-semibold mb-0.5">Producto en inventario</p>
                         <div className="flex gap-1">
                           <select
                             value={row.product_id}
@@ -1477,7 +1477,7 @@ export default function ImportPODialog({ open, onClose, suppliers = [], products
                               onClick={() => openCreateProductModal(idx)}
                               disabled={creatingProductIdx === idx || !row.raw_name}
                               title="Crear este item como producto nuevo en inventario (te pide el precio de venta primero)"
-                              className="shrink-0 px-2 rounded-lg bg-emerald-500/15 border border-emerald-500/25 text-emerald-300 text-[10px] font-black hover:bg-emerald-500/25 disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-1"
+                              className="shrink-0 px-2 rounded-lg bg-emerald-500/15 border border-emerald-500/25 text-emerald-300 text-[10px] font-semibold hover:bg-emerald-500/25 disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-1"
                             >
                               {creatingProductIdx === idx ? (
                                 <Loader2 className="w-3 h-3 animate-spin" />
@@ -1489,14 +1489,14 @@ export default function ImportPODialog({ open, onClose, suppliers = [], products
                           )}
                         </div>
                         {row.matchScore > 0 && (
-                          <p className={`text-[10px] mt-0.5 font-black ${scoreColor}`}>
+                          <p className={`text-[10px] mt-0.5 font-semibold ${scoreColor}`}>
                             {row.product_id ? `Confianza: ${(row.matchScore * 100).toFixed(0)}%` : ""}
                           </p>
                         )}
                         {/* Enlazar a una orden de trabajo (opcional) */}
                         {workOrders.length > 0 && (
                           <div className="mt-1">
-                            <p className="text-[9px] text-white/30 font-black uppercase mb-0.5">
+                            <p className="text-[9px] text-white/30 font-semibold mb-0.5">
                               Enlazar a orden de trabajo (opcional)
                             </p>
                             <select
@@ -1516,7 +1516,7 @@ export default function ImportPODialog({ open, onClose, suppliers = [], products
                         )}
                       </div>
                       <div className="col-span-3 md:col-span-1">
-                        <p className="text-[10px] text-white/30 font-black uppercase mb-0.5">Cant.</p>
+                        <p className="text-[10px] text-white/30 font-semibold mb-0.5">Cant.</p>
                         <Input
                           type="number"
                           min="0"
@@ -1527,7 +1527,7 @@ export default function ImportPODialog({ open, onClose, suppliers = [], products
                         />
                       </div>
                       <div className="col-span-3 md:col-span-2">
-                        <p className="text-[10px] text-white/30 font-black uppercase mb-0.5">Costo u.</p>
+                        <p className="text-[10px] text-white/30 font-semibold mb-0.5">Costo u.</p>
                         <Input
                           type="number"
                           min="0"
@@ -1544,7 +1544,7 @@ export default function ImportPODialog({ open, onClose, suppliers = [], products
                           const pct = lastCost > 0 ? (diff / lastCost) * 100 : 0;
                           const color = diff > 0.01 ? "text-red-400" : diff < -0.01 ? "text-emerald-400" : "text-white/40";
                           return (
-                            <p className={`text-[9px] mt-0.5 font-black ${color}`} title="Último costo registrado en este producto">
+                            <p className={`text-[9px] mt-0.5 font-semibold ${color}`} title="Último costo registrado en este producto">
                               Antes: ${lastCost.toFixed(2)}
                               {Math.abs(pct) >= 1 && ` (${pct > 0 ? "+" : ""}${pct.toFixed(0)}%)`}
                             </p>
@@ -1552,14 +1552,14 @@ export default function ImportPODialog({ open, onClose, suppliers = [], products
                         })()}
                       </div>
                       <div className="col-span-3 md:col-span-2">
-                        <p className="text-[10px] text-emerald-400/80 font-black uppercase mb-0.5">Precio venta ⭐</p>
+                        <p className="text-[10px] text-emerald-400/80 font-semibold mb-0.5">Precio venta ⭐</p>
                         <Input
                           type="number"
                           min="0"
                           step="0.01"
                           value={row.unit_price}
                           onChange={(e) => updateRow(idx, { unit_price: Number(e.target.value || 0) })}
-                          className="bg-emerald-500/[0.05] border-emerald-500/25 text-white text-xs h-8 font-black"
+                          className="bg-emerald-500/[0.05] border-emerald-500/25 text-white text-xs h-8 font-semibold"
                           title="Precio al cliente. Es el que se factura cuando enlazas con una orden de trabajo."
                         />
                         {Number(row.unit_cost || 0) > 0 && Number(row.unit_price || 0) > 0 && (() => {
@@ -1567,15 +1567,15 @@ export default function ImportPODialog({ open, onClose, suppliers = [], products
                           const pct = (margin / Number(row.unit_cost)) * 100;
                           const color = margin > 0 ? "text-emerald-400" : "text-red-400";
                           return (
-                            <p className={`text-[9px] mt-0.5 font-black ${color}`} title={`Ganancia por unidad: $${margin.toFixed(2)}`}>
+                            <p className={`text-[9px] mt-0.5 font-semibold ${color}`} title={`Ganancia por unidad: $${margin.toFixed(2)}`}>
                               {pct >= 0 ? "+" : ""}{pct.toFixed(0)}% margen
                             </p>
                           );
                         })()}
                       </div>
                       <div className="col-span-3 md:col-span-1 flex flex-col items-end">
-                        <p className="text-[10px] text-white/30 font-black uppercase mb-0.5">Total</p>
-                        <p className="text-sm font-black text-white tabular-nums leading-8">
+                        <p className="text-[10px] text-white/30 font-semibold mb-0.5">Total</p>
+                        <p className="text-sm font-semibold text-white tabular-nums leading-8">
                           {money(Number(row.quantity || 0) * Number(row.unit_cost || 0))}
                         </p>
                       </div>
@@ -1601,7 +1601,7 @@ export default function ImportPODialog({ open, onClose, suppliers = [], products
                   className="mt-0.5 w-4 h-4 accent-emerald-500"
                 />
                 <div className="flex-1 min-w-0">
-                  <p className="text-xs font-black text-white">
+                  <p className="text-xs font-semibold text-white">
                     Ya pagué esta orden — registrar gasto en Finanzas
                   </p>
                   <p className="text-[10px] text-white/40 mt-0.5">
@@ -1613,7 +1613,7 @@ export default function ImportPODialog({ open, onClose, suppliers = [], products
               {paidAtOrder && (
                 <div className="mt-2 ml-6 space-y-2">
                   <div className="flex items-center gap-2">
-                    <span className="text-[10px] text-white/40 font-black uppercase">Pagué con:</span>
+                    <span className="text-[10px] text-white/40 font-semibold">Pagué con:</span>
                     <select
                       value={paymentMethod}
                       onChange={(e) => {
@@ -1644,7 +1644,7 @@ export default function ImportPODialog({ open, onClose, suppliers = [], products
                   </div>
                   {(isDeferredMethod(paymentMethod) || paymentMethod === "paypal" || paymentMethod === "check") && (
                     <div className="rounded-xl bg-amber-500/[0.05] border border-amber-500/20 p-3 space-y-1.5">
-                      <label className="text-[9px] font-black text-amber-300 uppercase tracking-widest flex items-center gap-1.5">
+                      <label className="text-[9px] font-semibold text-amber-300 flex items-center gap-1.5">
                         📅 ¿Cuándo saldrá del banco?
                       </label>
                       <input
@@ -1664,7 +1664,7 @@ export default function ImportPODialog({ open, onClose, suppliers = [], products
 
             {/* Notas */}
             <div>
-              <p className="text-[10px] text-white/30 font-black uppercase mb-1">Notas</p>
+              <p className="text-[10px] text-white/30 font-semibold mb-1">Notas</p>
               <Input
                 value={notes}
                 onChange={(e) => setNotes(e.target.value)}
@@ -1684,7 +1684,7 @@ export default function ImportPODialog({ open, onClose, suppliers = [], products
               <button
                 onClick={handleCreate}
                 disabled={saving || reviewRows.length === 0}
-                className="flex items-center gap-2 px-4 py-2 rounded-xl bg-cyan-500/20 border border-cyan-500/30 text-cyan-200 text-xs font-black hover:bg-cyan-500/30 disabled:opacity-40 disabled:cursor-not-allowed"
+                className="flex items-center gap-2 px-4 py-2 rounded-xl bg-cyan-500/20 border border-cyan-500/30 text-cyan-200 text-xs font-semibold hover:bg-cyan-500/30 disabled:opacity-40 disabled:cursor-not-allowed"
               >
                 {saving ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <CheckCircle2 className="w-3.5 h-3.5" />}
                 {saving ? "Creando…" : `Crear orden (${reviewRows.length} items)`}
@@ -1706,7 +1706,7 @@ export default function ImportPODialog({ open, onClose, suppliers = [], products
           {newProductForRow && (
             <div className="space-y-3">
               <div>
-                <p className="text-[10px] text-white/40 font-black uppercase mb-1">Nombre</p>
+                <p className="text-[10px] text-white/40 font-semibold mb-1">Nombre</p>
                 <Input
                   value={newProductForRow.name}
                   onChange={(e) => setNewProductForRow((d) => ({ ...d, name: e.target.value }))}
@@ -1715,7 +1715,7 @@ export default function ImportPODialog({ open, onClose, suppliers = [], products
               </div>
               <div className="grid grid-cols-2 gap-2">
                 <div>
-                  <p className="text-[10px] text-white/40 font-black uppercase mb-1">Costo (lo que pagas)</p>
+                  <p className="text-[10px] text-white/40 font-semibold mb-1">Costo (lo que pagas)</p>
                   <Input
                     type="number"
                     min="0"
@@ -1726,7 +1726,7 @@ export default function ImportPODialog({ open, onClose, suppliers = [], products
                   />
                 </div>
                 <div>
-                  <p className="text-[10px] text-emerald-400 font-black uppercase mb-1">Precio venta *</p>
+                  <p className="text-[10px] text-emerald-400 font-semibold mb-1">Precio venta *</p>
                   <Input
                     type="number"
                     min="0"
@@ -1734,24 +1734,24 @@ export default function ImportPODialog({ open, onClose, suppliers = [], products
                     placeholder="$0.00"
                     value={newProductForRow.price}
                     onChange={(e) => setNewProductForRow((d) => ({ ...d, price: e.target.value }))}
-                    className="bg-emerald-500/[0.05] border-emerald-500/30 text-white text-sm font-black"
+                    className="bg-emerald-500/[0.05] border-emerald-500/30 text-white text-sm font-semibold"
                   />
                 </div>
               </div>
               {Number(newProductForRow.cost) > 0 && Number(newProductForRow.price) > 0 && (
                 <p className="text-[11px] text-white/50">
-                  Margen: <span className="font-black text-emerald-300">
+                  Margen: <span className="font-semibold text-emerald-300">
                     {(((Number(newProductForRow.price) - Number(newProductForRow.cost)) / Number(newProductForRow.cost)) * 100).toFixed(0)}%
                   </span>
                   {" · "}
-                  Ganancia por unidad: <span className="font-black text-emerald-300">
+                  Ganancia por unidad: <span className="font-semibold text-emerald-300">
                     ${(Number(newProductForRow.price) - Number(newProductForRow.cost)).toFixed(2)}
                   </span>
                 </p>
               )}
               <div className="grid grid-cols-2 gap-2">
                 <div>
-                  <p className="text-[10px] text-white/40 font-black uppercase mb-1">Categoría</p>
+                  <p className="text-[10px] text-white/40 font-semibold mb-1">Categoría</p>
                   <select
                     value={newProductForRow.category}
                     onChange={(e) => setNewProductForRow((d) => ({ ...d, category: e.target.value }))}
@@ -1767,7 +1767,7 @@ export default function ImportPODialog({ open, onClose, suppliers = [], products
                   </select>
                 </div>
                 <div>
-                  <p className="text-[10px] text-white/40 font-black uppercase mb-1">Tipo</p>
+                  <p className="text-[10px] text-white/40 font-semibold mb-1">Tipo</p>
                   <select
                     value={newProductForRow.tipo_principal}
                     onChange={(e) => setNewProductForRow((d) => ({ ...d, tipo_principal: e.target.value }))}
@@ -1790,7 +1790,7 @@ export default function ImportPODialog({ open, onClose, suppliers = [], products
             <button
               onClick={confirmCreateProduct}
               disabled={creatingProductIdx !== null || !newProductForRow?.price}
-              className="flex items-center gap-2 px-4 py-2 rounded-xl bg-emerald-500/20 border border-emerald-500/30 text-emerald-200 text-xs font-black hover:bg-emerald-500/30 disabled:opacity-40"
+              className="flex items-center gap-2 px-4 py-2 rounded-xl bg-emerald-500/20 border border-emerald-500/30 text-emerald-200 text-xs font-semibold hover:bg-emerald-500/30 disabled:opacity-40"
             >
               {creatingProductIdx !== null ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Plus className="w-3.5 h-3.5" />}
               Crear producto

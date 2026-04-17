@@ -733,7 +733,7 @@ function EmployeeDetailModal({ open, onClose, employee, entries, formatHM, forma
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
               {/* Avatar */}
-              <div className={`relative w-12 h-12 rounded-2xl flex items-center justify-center font-black text-lg ${
+              <div className={`relative w-12 h-12 rounded-2xl flex items-center justify-center font-semibold text-lg ${
                 isActive ? "bg-emerald-500/20 border border-emerald-400/30" : "bg-white/5 border border-white/10"
               }`}>
                 {employee.name?.charAt(0)?.toUpperCase() || "?"}
@@ -742,7 +742,7 @@ function EmployeeDetailModal({ open, onClose, employee, entries, formatHM, forma
                 )}
               </div>
               <div>
-                <h3 className="font-black text-lg tracking-tight leading-none">{employee.name}</h3>
+                <h3 className="font-semibold text-lg tracking-tight leading-none">{employee.name}</h3>
                 <p className={`text-xs font-bold mt-0.5 ${isActive ? "text-emerald-400" : "text-white/30"}`}>
                   {isActive ? `Activo · ${formatHMS(liveMs)}` : "Sin turno activo"}
                 </p>
@@ -758,11 +758,11 @@ function EmployeeDetailModal({ open, onClose, employee, entries, formatHM, forma
 
           {/* ── Period Selector ── */}
           <div className="space-y-2">
-            <p className="text-[9px] font-black uppercase tracking-widest text-white/30">Periodo de cálculo</p>
+            <p className="text-[9px] font-semibold text-white/30">Periodo de cálculo</p>
             <div className="flex gap-2">
               {[["Hoy", setToday], ["Semana", setThisWeek], ["Mes", setThisMonth]].map(([label, fn]) => (
                 <button key={label} onClick={fn}
-                  className="flex-1 py-2 rounded-xl bg-white/5 hover:bg-white/10 border border-white/[0.08] text-xs font-black text-white/60 hover:text-white transition-all active:scale-95">
+                  className="flex-1 py-2 rounded-xl bg-white/5 hover:bg-white/10 border border-white/[0.08] text-xs font-semibold text-white/60 hover:text-white transition-all active:scale-95">
                   {label}
                 </button>
               ))}
@@ -782,18 +782,18 @@ function EmployeeDetailModal({ open, onClose, employee, entries, formatHM, forma
           <div className="rounded-[24px] bg-gradient-to-br from-emerald-950/50 to-[#0d1117] border border-emerald-500/20 p-5">
             <div className="grid grid-cols-3 gap-3 mb-4">
               <div className="text-center">
-                <p className="text-[9px] font-black uppercase tracking-widest text-white/30 mb-1">Horas</p>
-                <p className="text-2xl font-black text-white tracking-tight">{totalHours.toFixed(2)}</p>
+                <p className="text-[9px] font-semibold text-white/30 mb-1">Horas</p>
+                <p className="text-2xl font-semibold text-white tracking-tight">{totalHours.toFixed(2)}</p>
                 <p className="text-[9px] text-white/50">h trabajadas</p>
               </div>
               <div className="text-center border-x border-white/[0.06]">
-                <p className="text-[9px] font-black uppercase tracking-widest text-white/30 mb-1">Tarifa</p>
-                <p className="text-2xl font-black text-white tracking-tight">${hourlyRate.toFixed(0)}</p>
+                <p className="text-[9px] font-semibold text-white/30 mb-1">Tarifa</p>
+                <p className="text-2xl font-semibold text-white tracking-tight">${hourlyRate.toFixed(0)}</p>
                 <p className="text-[9px] text-white/50">por hora</p>
               </div>
               <div className="text-center">
-                <p className="text-[9px] font-black uppercase tracking-widest text-emerald-400/60 mb-1">Total</p>
-                <p className="text-2xl font-black text-emerald-400 tracking-tight">${calculatedPayment.toFixed(2)}</p>
+                <p className="text-[9px] font-semibold text-emerald-400/60 mb-1">Total</p>
+                <p className="text-2xl font-semibold text-emerald-400 tracking-tight">${calculatedPayment.toFixed(2)}</p>
                 <p className="text-[9px] text-emerald-400/40">a pagar</p>
               </div>
             </div>
@@ -814,7 +814,7 @@ function EmployeeDetailModal({ open, onClose, employee, entries, formatHM, forma
               <TrendingUp className="w-4 h-4 text-emerald-400/60" />
               <span className="text-sm font-bold text-white/60">Ver historial</span>
               {paymentHistory.length > 0 && (
-                <span className="text-[9px] font-black bg-emerald-500/20 text-emerald-400 px-2 py-0.5 rounded-full">
+                <span className="text-[9px] font-semibold bg-emerald-500/20 text-emerald-400 px-2 py-0.5 rounded-full">
                   {paymentHistory.length} pagos
                 </span>
               )}
@@ -830,14 +830,14 @@ function EmployeeDetailModal({ open, onClose, employee, entries, formatHM, forma
             <div className="space-y-4 pb-2">
               {/* Calendar / date range picker */}
               <div className="bg-white/[0.02] border border-white/[0.06] rounded-2xl p-4 space-y-3">
-                <p className="text-[9px] font-black uppercase tracking-widest text-white/30">Filtrar por fechas</p>
+                <p className="text-[9px] font-semibold text-white/30">Filtrar por fechas</p>
                 <div className="flex gap-2">
                   {[["Hoy", () => { const d=new Date(); const s=new Date(d); s.setHours(0,0,0,0); const e=new Date(d); e.setHours(23,59,59,999); setFrom(s); setTo(e); setTimeout(loadEntries, 100); }],
                     ["Semana", () => { const d=new Date(); const s=new Date(d); s.setDate(d.getDate()-d.getDay()); s.setHours(0,0,0,0); const e=new Date(s); e.setDate(s.getDate()+6); e.setHours(23,59,59,999); setFrom(s); setTo(e); setTimeout(loadEntries, 100); }],
                     ["Mes", () => { const d=new Date(); const s=new Date(d.getFullYear(),d.getMonth(),1); const e=new Date(d.getFullYear(),d.getMonth()+1,0,23,59,59,999); setFrom(s); setTo(e); setTimeout(loadEntries, 100); }]
                   ].map(([label, fn]) => (
                     <button key={label} onClick={fn}
-                      className="flex-1 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/[0.08] text-[10px] font-black text-white/50 hover:text-white transition-all">
+                      className="flex-1 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/[0.08] text-[10px] font-semibold text-white/50 hover:text-white transition-all">
                       {label}
                     </button>
                   ))}
@@ -860,7 +860,7 @@ function EmployeeDetailModal({ open, onClose, employee, entries, formatHM, forma
 
               {/* ── Week-Grouped Shifts (inside historial) ── */}
               <div>
-                <p className="text-[9px] font-black uppercase tracking-widest text-white/30 mb-3">Jornadas por semana</p>
+                <p className="text-[9px] font-semibold text-white/30 mb-3">Jornadas por semana</p>
                 {weekGroups.length === 0 ? (
                   <div className="text-center py-6 text-white/50">
                     <Clock className="w-7 h-7 mx-auto mb-2 opacity-30" />
@@ -881,11 +881,11 @@ function EmployeeDetailModal({ open, onClose, employee, entries, formatHM, forma
                           >
                             {hasActive && <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse flex-shrink-0" />}
                             <div className="flex-1 text-left min-w-0">
-                              <p className="text-xs font-black text-white/70 truncate">{fmtWeekRange(week.monday, week.sunday)}</p>
+                              <p className="text-xs font-semibold text-white/70 truncate">{fmtWeekRange(week.monday, week.sunday)}</p>
                               <p className="text-[10px] text-white/30">{week.entries.length} jornada{week.entries.length !== 1 ? "s" : ""}</p>
                             </div>
                             <div className="text-right flex-shrink-0 mr-2">
-                              <p className="text-sm font-black text-white/80">{formatHM(weekMs)}</p>
+                              <p className="text-sm font-semibold text-white/80">{formatHM(weekMs)}</p>
                               {weekPay > 0 && <p className="text-[9px] text-emerald-400/60">${weekPay.toFixed(2)}</p>}
                             </div>
                             <ChevronDown className={`w-4 h-4 text-white/25 transition-transform duration-200 flex-shrink-0 ${isExpanded ? "rotate-180" : ""}`} />
@@ -911,7 +911,7 @@ function EmployeeDetailModal({ open, onClose, employee, entries, formatHM, forma
                                       </p>
                                     </div>
                                     <div className="text-right flex-shrink-0">
-                                      <p className={`text-xs font-black ${isOpen ? "text-emerald-400" : "text-white/50"}`}>{formatHM(ms)}</p>
+                                      <p className={`text-xs font-semibold ${isOpen ? "text-emerald-400" : "text-white/50"}`}>{formatHM(ms)}</p>
                                       {hourlyRate > 0 && !isOpen && (
                                         <p className="text-[9px] text-white/50">${((ms / 3600000) * hourlyRate).toFixed(2)}</p>
                                       )}
@@ -929,7 +929,7 @@ function EmployeeDetailModal({ open, onClose, employee, entries, formatHM, forma
 
               {/* Payment history */}
               <div>
-                <p className="text-[9px] font-black uppercase tracking-widest text-white/30 mb-2">Pagos procesados</p>
+                <p className="text-[9px] font-semibold text-white/30 mb-2">Pagos procesados</p>
                 {loadingHistory ? (
                   <div className="flex items-center justify-center py-6 gap-2 text-white/30">
                     <RefreshCcw className="w-4 h-4 animate-spin" />
@@ -949,7 +949,7 @@ function EmployeeDetailModal({ open, onClose, employee, entries, formatHM, forma
                           <DollarSign className="w-3.5 h-3.5 text-emerald-400" />
                         </div>
                         <div className="flex-1 min-w-0">
-                          <p className="text-sm font-black text-white">${parseFloat(pmt.amount || 0).toFixed(2)}</p>
+                          <p className="text-sm font-semibold text-white">${parseFloat(pmt.amount || 0).toFixed(2)}</p>
                           <p className="text-[10px] text-white/30 truncate">
                             {pmt.period_start && pmt.period_end
                               ? `${new Date(pmt.period_start).toLocaleDateString("es-PR")} – ${new Date(pmt.period_end).toLocaleDateString("es-PR")}`
@@ -957,7 +957,7 @@ function EmployeeDetailModal({ open, onClose, employee, entries, formatHM, forma
                           </p>
                           {pmt.notes && <p className="text-[10px] text-white/50 truncate mt-0.5">{pmt.notes}</p>}
                         </div>
-                        <span className="text-[9px] font-black px-2 py-1 rounded-full bg-emerald-500/10 text-emerald-400/80 border border-emerald-500/10 flex-shrink-0">
+                        <span className="text-[9px] font-semibold px-2 py-1 rounded-full bg-emerald-500/10 text-emerald-400/80 border border-emerald-500/10 flex-shrink-0">
                           {pmtTypeLabel[pmt.payment_type] || pmt.payment_type || "Salario"}
                         </span>
                       </div>
@@ -1565,7 +1565,7 @@ export default function TimeTrackingModal({ open, onClose, session }) {
               <Clock className="h-6 w-6 text-cyan-300" />
             </div>
             <div>
-              <h2 className="text-2xl font-black tracking-tight">Control de Tiempo</h2>
+              <h2 className="text-2xl font-semibold tracking-tight">Control de Tiempo</h2>
               <p className="text-sm text-slate-400">Horas, turnos y pago del periodo</p>
             </div>
           </div>
@@ -1577,28 +1577,28 @@ export default function TimeTrackingModal({ open, onClose, session }) {
         <div className="p-6 space-y-6">
           <div className="rounded-[26px] border border-white/8 bg-white/[0.03] p-5">
               <div>
-                <p className="text-[11px] font-bold uppercase tracking-[0.28em] text-cyan-300/75">Periodo</p>
-                <h3 className="mt-2 text-2xl font-black tracking-tight text-white">{rangeLabel}</h3>
+                <p className="text-[11px] font-bold tracking-[0.28em] text-cyan-300/75">Periodo</p>
+                <h3 className="mt-2 text-2xl font-semibold tracking-tight text-white">{rangeLabel}</h3>
                 <p className="mt-1 text-sm text-slate-400">Vista operativa conectada al flujo real de ponches y al cálculo de nómina.</p>
               </div>
             </div>
 
             <div className="mt-5 grid grid-cols-2 gap-3 lg:grid-cols-4">
               <div className="rounded-2xl border border-white/8 bg-black/25 px-4 py-3">
-                <p className="text-[11px] uppercase tracking-[0.2em] text-slate-500">Empleados</p>
-                <p className="mt-2 text-2xl font-black text-white">{employeeDirectory.length}</p>
+                <p className="text-[11px] tracking-[0.2em] text-slate-500">Empleados</p>
+                <p className="mt-2 text-2xl font-semibold text-white">{employeeDirectory.length}</p>
               </div>
               <div className="rounded-2xl border border-white/8 bg-black/25 px-4 py-3">
-                <p className="text-[11px] uppercase tracking-[0.2em] text-slate-500">Horas</p>
-                <p className="mt-2 text-2xl font-black text-fuchsia-300">{formatHM(filteredTotalMillis)}</p>
+                <p className="text-[11px] tracking-[0.2em] text-slate-500">Horas</p>
+                <p className="mt-2 text-2xl font-semibold text-fuchsia-300">{formatHM(filteredTotalMillis)}</p>
               </div>
               <div className="rounded-2xl border border-white/8 bg-black/25 px-4 py-3">
-                <p className="text-[11px] uppercase tracking-[0.2em] text-slate-500">Abiertos</p>
-                <p className="mt-2 text-2xl font-black text-emerald-300">{openEntriesCount}</p>
+                <p className="text-[11px] tracking-[0.2em] text-slate-500">Abiertos</p>
+                <p className="mt-2 text-2xl font-semibold text-emerald-300">{openEntriesCount}</p>
               </div>
               <div className="rounded-2xl border border-white/8 bg-black/25 px-4 py-3">
-                <p className="text-[11px] uppercase tracking-[0.2em] text-slate-500">Nómina</p>
-                <p className="mt-2 text-2xl font-black text-amber-300">${payrollProjection.toFixed(2)}</p>
+                <p className="text-[11px] tracking-[0.2em] text-slate-500">Nómina</p>
+                <p className="mt-2 text-2xl font-semibold text-amber-300">${payrollProjection.toFixed(2)}</p>
               </div>
             </div>
           </div>
@@ -1607,7 +1607,7 @@ export default function TimeTrackingModal({ open, onClose, session }) {
             <div className="rounded-[24px] border border-emerald-500/20 bg-emerald-500/[0.06] p-4">
               <div className="flex items-center gap-2">
                 <TrendingUp className="h-5 w-5 text-emerald-300" />
-                <h4 className="text-sm font-bold uppercase tracking-[0.18em] text-emerald-200">En turno ahora</h4>
+                <h4 className="text-sm font-bold tracking-[0.18em] text-emerald-200">En turno ahora</h4>
               </div>
               <div className="mt-3 flex flex-wrap gap-2">
                 {activeUsers.map((entry) => (
@@ -1676,7 +1676,7 @@ export default function TimeTrackingModal({ open, onClose, session }) {
                 {/* Inputs grid */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
-                    <label className="text-xs text-slate-400 font-semibold uppercase tracking-[0.14em]">Monto ($)</label>
+                    <label className="text-xs text-slate-400 font-semibold tracking-[0.14em]">Monto ($)</label>
                     <input
                       type="number"
                       min="0"
@@ -1688,7 +1688,7 @@ export default function TimeTrackingModal({ open, onClose, session }) {
                     />
                   </div>
                   <div>
-                    <label className="text-xs text-slate-400 font-semibold uppercase tracking-[0.14em]">Método de Pago</label>
+                    <label className="text-xs text-slate-400 font-semibold tracking-[0.14em]">Método de Pago</label>
                     <select
                       value={qfMethod}
                       onChange={(e) => setQfMethod(e.target.value)}
@@ -1703,7 +1703,7 @@ export default function TimeTrackingModal({ open, onClose, session }) {
                   </div>
                   {qfMode === "expense" && (
                     <div>
-                      <label className="text-xs text-slate-400 font-semibold uppercase tracking-[0.14em]">Categoría</label>
+                      <label className="text-xs text-slate-400 font-semibold tracking-[0.14em]">Categoría</label>
                       <select
                         value={qfCategory}
                         onChange={(e) => setQfCategory(e.target.value)}
@@ -1719,7 +1719,7 @@ export default function TimeTrackingModal({ open, onClose, session }) {
                     </div>
                   )}
                   <div className={qfMode === "expense" ? "" : "sm:col-span-2"}>
-                    <label className="text-xs text-slate-400 font-semibold uppercase tracking-[0.14em]">Descripción</label>
+                    <label className="text-xs text-slate-400 font-semibold tracking-[0.14em]">Descripción</label>
                     <input
                       type="text"
                       value={qfDesc}
@@ -1734,7 +1734,7 @@ export default function TimeTrackingModal({ open, onClose, session }) {
                 <button
                   onClick={submitQuickFinance}
                   disabled={qfSaving}
-                  className={`w-full flex items-center justify-center gap-2 rounded-2xl py-3 text-sm font-black uppercase tracking-[0.14em] transition active:scale-95 ${
+                  className={`w-full flex items-center justify-center gap-2 rounded-2xl py-3 text-sm font-semibold tracking-[0.14em] transition active:scale-95 ${
                     qfMode === "expense"
                       ? "bg-gradient-to-r from-red-600 to-red-700 hover:from-red-500 hover:to-red-600 text-white shadow-lg shadow-red-900/20"
                       : "bg-gradient-to-r from-emerald-600 to-emerald-700 hover:from-emerald-500 hover:to-emerald-600 text-white shadow-lg shadow-emerald-900/20"
@@ -1776,7 +1776,7 @@ export default function TimeTrackingModal({ open, onClose, session }) {
                             <span className={`h-2.5 w-2.5 rounded-full ${emp.activeEntry ? "bg-emerald-400 animate-pulse" : "bg-slate-500"}`} />
                             <p className="truncate font-semibold text-white">{emp.name}</p>
                           </div>
-                          <p className="mt-1 text-xs uppercase tracking-[0.16em] text-slate-500">{emp.role || "empleado"}</p>
+                          <p className="mt-1 text-xs tracking-[0.16em] text-slate-500">{emp.role || "empleado"}</p>
                         </div>
                         <div className="text-right">
                           <p className="text-sm font-bold text-amber-300">${emp.projectedPay.toFixed(2)}</p>
@@ -1801,45 +1801,45 @@ export default function TimeTrackingModal({ open, onClose, session }) {
                     <div>
                       <div className="flex items-center gap-2">
                         <span className={`h-3 w-3 rounded-full ${focusedEmployee.activeEntry ? "bg-emerald-400 animate-pulse" : "bg-slate-500"}`} />
-                        <h4 className="text-2xl font-black tracking-tight text-white">{focusedEmployee.name}</h4>
+                        <h4 className="text-2xl font-semibold tracking-tight text-white">{focusedEmployee.name}</h4>
                       </div>
-                      <p className="mt-1 text-sm uppercase tracking-[0.18em] text-slate-500">{focusedEmployee.role || "empleado"}</p>
+                      <p className="mt-1 text-sm tracking-[0.18em] text-slate-500">{focusedEmployee.role || "empleado"}</p>
                     </div>
 
                     <div className="flex flex-wrap gap-2">
                       {focusedEmployee.isPaid ? (
-                        <span className="rounded-full border border-emerald-400/25 bg-emerald-500/10 px-3 py-2 text-xs font-bold uppercase tracking-[0.18em] text-emerald-300">Pagado</span>
+                        <span className="rounded-full border border-emerald-400/25 bg-emerald-500/10 px-3 py-2 text-xs font-bold tracking-[0.18em] text-emerald-300">Pagado</span>
                       ) : (
-                        <span className="rounded-full border border-amber-400/25 bg-amber-500/10 px-3 py-2 text-xs font-bold uppercase tracking-[0.18em] text-amber-300">Por pagar</span>
+                        <span className="rounded-full border border-amber-400/25 bg-amber-500/10 px-3 py-2 text-xs font-bold tracking-[0.18em] text-amber-300">Por pagar</span>
                       )}
                       {focusedEmployee.activeEntry && (
-                        <span className="rounded-full border border-emerald-400/25 bg-emerald-500/10 px-3 py-2 text-xs font-bold uppercase tracking-[0.18em] text-emerald-300">En turno</span>
+                        <span className="rounded-full border border-emerald-400/25 bg-emerald-500/10 px-3 py-2 text-xs font-bold tracking-[0.18em] text-emerald-300">En turno</span>
                       )}
                     </div>
                   </div>
 
                   <div className="mt-5 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
                     <div className="rounded-2xl border border-white/8 bg-black/20 p-4">
-                      <p className="text-[11px] uppercase tracking-[0.18em] text-slate-500">Horas</p>
-                      <p className="mt-2 text-2xl font-black text-fuchsia-300">{formatHM(focusedEmployee.millis)}</p>
+                      <p className="text-[11px] tracking-[0.18em] text-slate-500">Horas</p>
+                      <p className="mt-2 text-2xl font-semibold text-fuchsia-300">{formatHM(focusedEmployee.millis)}</p>
                     </div>
                     <div className="rounded-2xl border border-white/8 bg-black/20 p-4">
-                      <p className="text-[11px] uppercase tracking-[0.18em] text-slate-500">Jornadas</p>
-                      <p className="mt-2 text-2xl font-black text-white">{focusedEmployee.shifts}</p>
+                      <p className="text-[11px] tracking-[0.18em] text-slate-500">Jornadas</p>
+                      <p className="mt-2 text-2xl font-semibold text-white">{focusedEmployee.shifts}</p>
                     </div>
                     <div className="rounded-2xl border border-white/8 bg-black/20 p-4">
-                      <p className="text-[11px] uppercase tracking-[0.18em] text-slate-500">Tarifa</p>
-                      <p className="mt-2 text-2xl font-black text-emerald-300">{focusedEmployee.rate > 0 ? `$${focusedEmployee.rate.toFixed(2)}` : "--"}</p>
+                      <p className="text-[11px] tracking-[0.18em] text-slate-500">Tarifa</p>
+                      <p className="mt-2 text-2xl font-semibold text-emerald-300">{focusedEmployee.rate > 0 ? `$${focusedEmployee.rate.toFixed(2)}` : "--"}</p>
                     </div>
                     <div className="rounded-2xl border border-white/8 bg-black/20 p-4">
-                      <p className="text-[11px] uppercase tracking-[0.18em] text-slate-500">Pago</p>
-                      <p className="mt-2 text-2xl font-black text-amber-300">${focusedEmployee.projectedPay.toFixed(2)}</p>
+                      <p className="text-[11px] tracking-[0.18em] text-slate-500">Pago</p>
+                      <p className="mt-2 text-2xl font-semibold text-amber-300">${focusedEmployee.projectedPay.toFixed(2)}</p>
                     </div>
                   </div>
 
                   <div className="mt-5 grid gap-4 lg:grid-cols-[minmax(0,1fr)_240px]">
                     <div className="rounded-2xl border border-white/8 bg-black/20 p-4">
-                      <h5 className="text-sm font-bold uppercase tracking-[0.18em] text-slate-400">Actividad del Periodo</h5>
+                      <h5 className="text-sm font-bold tracking-[0.18em] text-slate-400">Actividad del Periodo</h5>
                       <div className="mt-4 space-y-3">
                         <div className="flex items-center justify-between rounded-2xl border border-white/8 bg-white/[0.03] px-4 py-3">
                           <span className="text-slate-400">Última entrada</span>
@@ -1859,7 +1859,7 @@ export default function TimeTrackingModal({ open, onClose, session }) {
                     </div>
 
                     <div className="rounded-2xl border border-white/8 bg-black/20 p-4">
-                      <h5 className="text-sm font-bold uppercase tracking-[0.18em] text-slate-400">Acciones</h5>
+                      <h5 className="text-sm font-bold tracking-[0.18em] text-slate-400">Acciones</h5>
                       <div className="mt-4 space-y-2">
                         {focusedEmployee.isPaid ? (
                           <div className="w-full rounded-lg border border-emerald-400/20 bg-emerald-500/10 px-4 py-3 text-center text-sm font-bold text-emerald-300">
@@ -1889,10 +1889,10 @@ export default function TimeTrackingModal({ open, onClose, session }) {
                   </div>
 
                   <div className="mt-5">
-                    <h5 className="text-sm font-bold uppercase tracking-[0.18em] text-slate-400">Últimas jornadas</h5>
+                    <h5 className="text-sm font-bold tracking-[0.18em] text-slate-400">Últimas jornadas</h5>
                     <div className="mt-3 overflow-hidden rounded-2xl border border-white/8">
                       <table className="w-full text-sm">
-                        <thead className="bg-white/[0.03] text-left text-[11px] uppercase tracking-[0.18em] text-slate-500">
+                        <thead className="bg-white/[0.03] text-left text-[11px] tracking-[0.18em] text-slate-500">
                           <tr>
                             <th className="px-4 py-3">Entrada</th>
                             <th className="px-4 py-3">Salida</th>
@@ -1907,7 +1907,7 @@ export default function TimeTrackingModal({ open, onClose, session }) {
                               <td className="px-4 py-3 text-white">{entry.clock_out ? fmt(entry.clock_out) : "--"}</td>
                               <td className="px-4 py-3 font-semibold text-fuchsia-300">{formatHM(getWorkedMillis(entry))}</td>
                               <td className="px-4 py-3">
-                                <span className={`inline-flex rounded-full border px-2.5 py-1 text-[11px] font-bold uppercase tracking-[0.18em] ${
+                                <span className={`inline-flex rounded-full border px-2.5 py-1 text-[11px] font-bold tracking-[0.18em] ${
                                   entry.clock_out
                                     ? "border-slate-400/20 bg-slate-500/10 text-slate-300"
                                     : "border-emerald-400/20 bg-emerald-500/10 text-emerald-300"

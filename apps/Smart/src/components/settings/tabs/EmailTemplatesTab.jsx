@@ -844,7 +844,7 @@ export default function EmailTemplatesTab() {
               Cancelar
             </Button>
             <div>
-              <h2 className="text-2xl font-black text-white">
+              <h2 className="text-2xl font-semibold text-white">
                 {editingTemplate?.id ? "Editar Plantilla" : "Nueva Plantilla"}
               </h2>
               <p className="text-white/60 text-sm">
@@ -1365,7 +1365,7 @@ export default function EmailTemplatesTab() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-black text-white">Plantillas de Email</h2>
+          <h2 className="text-2xl font-semibold text-white">Plantillas de Email</h2>
           <p className="text-white/60 text-sm mt-1">
             Configura las plantillas base que el sistema usa para notificar al cliente
           </p>

@@ -658,12 +658,12 @@ export default function PurchaseOrderDetailDialog({
                 <FileText className="w-4 h-4 text-teal-400" />
               </div>
               <div>
-                <h2 className="text-white font-black text-lg leading-tight">
+                <h2 className="text-white font-semibold text-lg leading-tight">
                   Orden {form.po_number || "—"}
                 </h2>
                 <div className="flex items-center gap-2 mt-0.5">
                   {form.status && (
-                    <span className={`text-[10px] font-black px-2 py-0.5 rounded-full border ${(statusConfig[form.status] || statusConfig.draft).cls}`}>
+                    <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full border ${(statusConfig[form.status] || statusConfig.draft).cls}`}>
                       {(statusConfig[form.status] || statusConfig.draft).label}
                     </span>
                   )}
@@ -706,7 +706,7 @@ export default function PurchaseOrderDetailDialog({
             <div className="bg-[#111114]/80 border border-white/[0.06] rounded-[24px] p-5">
               <div className="flex items-center gap-2 mb-3">
                 <Truck className="w-4 h-4 text-teal-400" />
-                <p className="text-[10px] font-black text-white/30 uppercase tracking-widest">Proveedor</p>
+                <p className="text-[10px] font-semibold text-white/30">Proveedor</p>
               </div>
               {editing ? (
                 <div className="space-y-2">
@@ -744,7 +744,7 @@ export default function PurchaseOrderDetailDialog({
               <div className="bg-[#111114]/80 border border-white/[0.06] rounded-[24px] p-5">
                 <div className="flex items-center gap-2 mb-3">
                   <Calendar className="w-4 h-4 text-teal-400" />
-                  <p className="text-[10px] font-black text-white/30 uppercase tracking-widest">Fechas</p>
+                  <p className="text-[10px] font-semibold text-white/30">Fechas</p>
                 </div>
                 {editing ? (
                   <div className="space-y-2">
@@ -778,7 +778,7 @@ export default function PurchaseOrderDetailDialog({
               <div className="bg-[#111114]/80 border border-white/[0.06] rounded-[24px] p-5">
                 <div className="flex items-center gap-2 mb-3">
                   <Truck className="w-4 h-4 text-teal-400" />
-                  <p className="text-[10px] font-black text-white/30 uppercase tracking-widest">Estado</p>
+                  <p className="text-[10px] font-semibold text-white/30">Estado</p>
                 </div>
                 {editing ? (
                   <div className="flex flex-wrap gap-2">
@@ -812,7 +812,7 @@ export default function PurchaseOrderDetailDialog({
             {/* Timeline visual del estado */}
             {!editing && (
               <div className="bg-[#111114]/80 border border-white/[0.06] rounded-[24px] p-5">
-                <p className="text-[10px] font-black text-white/30 uppercase tracking-widest mb-4">
+                <p className="text-[10px] font-semibold text-white/30 mb-4">
                   Progreso
                 </p>
                 {(() => {
@@ -844,7 +844,7 @@ export default function PurchaseOrderDetailDialog({
                               }`}>
                                 {step.icon}
                               </div>
-                              <p className={`text-[10px] font-black mt-1.5 text-center ${
+                              <p className={`text-[10px] font-semibold mt-1.5 text-center ${
                                 isCurrent ? "text-cyan-300" : isActive ? "text-emerald-400" : "text-white/30"
                               }`}>
                                 {step.label}
@@ -865,7 +865,7 @@ export default function PurchaseOrderDetailDialog({
                           <div className="w-10 h-10 rounded-full flex items-center justify-center text-lg border-2 bg-red-500/20 border-red-500/50">
                             ❌
                           </div>
-                          <p className="text-[10px] font-black mt-1.5 text-red-400">Cancelada</p>
+                          <p className="text-[10px] font-semibold mt-1.5 text-red-400">Cancelada</p>
                         </div>
                       )}
                     </div>
@@ -898,7 +898,7 @@ export default function PurchaseOrderDetailDialog({
             <div className="bg-[#111114]/80 border border-white/[0.06] rounded-[24px] p-5">
               <div className="flex items-center gap-2 mb-4">
                 <PackageSearch className="w-4 h-4 text-emerald-400" />
-                <p className="text-[10px] font-black text-white/30 uppercase tracking-widest">
+                <p className="text-[10px] font-semibold text-white/30">
                   Productos ({form.items.length})
                 </p>
               </div>
@@ -916,12 +916,12 @@ export default function PurchaseOrderDetailDialog({
                               <span className="ml-2 text-cyan-300/80">· Venta {money(it.unit_price)}/u</span>
                             )}
                             {it.received_quantity != null && it.received_quantity < it.quantity && (
-                              <span className="ml-2 px-1.5 py-0.5 rounded bg-amber-500/15 text-amber-300 font-black">
+                              <span className="ml-2 px-1.5 py-0.5 rounded bg-amber-500/15 text-amber-300 font-semibold">
                                 Recibidas: {it.received_quantity}/{it.quantity}
                               </span>
                             )}
                             {it.is_tool && (
-                              <span className="ml-2 px-1.5 py-0.5 rounded bg-amber-500/15 text-amber-300 font-black">
+                              <span className="ml-2 px-1.5 py-0.5 rounded bg-amber-500/15 text-amber-300 font-semibold">
                                 🛠 Herramienta
                               </span>
                             )}
@@ -954,14 +954,14 @@ export default function PurchaseOrderDetailDialog({
                               onChange={(e) => handleToggleItemTool(idx, e.target.checked)}
                               className="w-3.5 h-3.5 rounded border-white/20 bg-white/5 accent-amber-500"
                             />
-                            <span className="text-[10px] font-black uppercase text-amber-300/80">
+                            <span className="text-[10px] font-semibold text-amber-300/80">
                               🛠 Herramienta (no entra a inventario, solo gasto)
                             </span>
                           </label>
                           {!it.is_tool && (
                             <>
                               <div>
-                                <p className="text-[9px] text-white/30 font-black uppercase mb-0.5">
+                                <p className="text-[9px] text-white/30 font-semibold mb-0.5">
                                   📦 Categoría
                                 </p>
                                 <select
@@ -979,7 +979,7 @@ export default function PurchaseOrderDetailDialog({
                                 </select>
                               </div>
                               <div>
-                                <p className="text-[9px] text-white/30 font-black uppercase mb-0.5">
+                                <p className="text-[9px] text-white/30 font-semibold mb-0.5">
                                   🔗 Enlazar a orden de trabajo
                                 </p>
                                 <select
@@ -1058,7 +1058,7 @@ export default function PurchaseOrderDetailDialog({
                     )}
                     {!editing && (
                       <div className="text-right shrink-0">
-                        <p className="text-white font-black text-sm">{money((it.unit_cost || 0) * (it.quantity || 0))}</p>
+                        <p className="text-white font-semibold text-sm">{money((it.unit_cost || 0) * (it.quantity || 0))}</p>
                       </div>
                     )}
                   </div>
@@ -1087,8 +1087,8 @@ export default function PurchaseOrderDetailDialog({
                   )}
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="text-white/50 font-black text-sm">Total</span>
-                  <span className="text-emerald-400 font-black text-xl">{money(total)}</span>
+                  <span className="text-white/50 font-semibold text-sm">Total</span>
+                  <span className="text-emerald-400 font-semibold text-xl">{money(total)}</span>
                 </div>
               </div>
             </div>
@@ -1096,7 +1096,7 @@ export default function PurchaseOrderDetailDialog({
             {/* Tracking del envío */}
             <div className="bg-[#111114]/80 border border-white/[0.06] rounded-[24px] p-5">
               <div className="flex items-center justify-between mb-3">
-                <p className="text-[10px] font-black text-white/30 uppercase tracking-widest">
+                <p className="text-[10px] font-semibold text-white/30">
                   📦 Tracking del envío
                 </p>
                 {!editing && !trackingEditing && (
@@ -1105,7 +1105,7 @@ export default function PurchaseOrderDetailDialog({
                       setTrackingDraft(form.tracking_number || "");
                       setTrackingEditing(true);
                     }}
-                    className="text-[10px] font-black text-cyan-300 hover:text-cyan-200 uppercase tracking-wider"
+                    className="text-[10px] font-semibold text-cyan-300 hover:text-cyan-200"
                   >
                     {form.tracking_number ? "✏️ Editar" : "+ Añadir"}
                   </button>
@@ -1137,14 +1137,14 @@ export default function PurchaseOrderDetailDialog({
                     <button
                       onClick={handleSaveTrackingInline}
                       disabled={trackingSaving}
-                      className="px-3 py-1.5 rounded-lg bg-emerald-500/15 border border-emerald-500/25 text-emerald-300 text-[11px] font-black hover:bg-emerald-500/25 disabled:opacity-50"
+                      className="px-3 py-1.5 rounded-lg bg-emerald-500/15 border border-emerald-500/25 text-emerald-300 text-[11px] font-semibold hover:bg-emerald-500/25 disabled:opacity-50"
                     >
                       {trackingSaving ? "Guardando…" : "💾 Guardar"}
                     </button>
                     <button
                       onClick={() => { setTrackingEditing(false); setTrackingDraft(""); }}
                       disabled={trackingSaving}
-                      className="px-3 py-1.5 rounded-lg bg-white/5 border border-white/10 text-white/60 text-[11px] font-black hover:bg-white/10"
+                      className="px-3 py-1.5 rounded-lg bg-white/5 border border-white/10 text-white/60 text-[11px] font-semibold hover:bg-white/10"
                     >
                       Cancelar
                     </button>
@@ -1182,7 +1182,7 @@ export default function PurchaseOrderDetailDialog({
                       href={carrier.url}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="px-3 py-2 rounded-lg bg-cyan-500/15 border border-cyan-500/25 text-cyan-300 text-xs font-black hover:bg-cyan-500/25 flex items-center gap-1.5"
+                      className="px-3 py-2 rounded-lg bg-cyan-500/15 border border-cyan-500/25 text-cyan-300 text-xs font-semibold hover:bg-cyan-500/25 flex items-center gap-1.5"
                     >
                       🔍 Rastrear
                     </a>
@@ -1201,7 +1201,7 @@ export default function PurchaseOrderDetailDialog({
               const isImage = /\.(jpg|jpeg|png|webp|gif|heic)(\?|$)/i.test(url);
               return (
                 <div className="bg-[#111114]/80 border border-white/[0.06] rounded-[24px] p-5">
-                  <p className="text-[10px] font-black text-white/30 uppercase tracking-widest mb-3">
+                  <p className="text-[10px] font-semibold text-white/30 mb-3">
                     📎 Archivo original
                   </p>
                   {isImage ? (
@@ -1222,7 +1222,7 @@ export default function PurchaseOrderDetailDialog({
                       href={url}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="flex items-center gap-2 px-4 py-3 rounded-xl bg-cyan-500/10 border border-cyan-500/20 text-cyan-300 text-sm font-black hover:bg-cyan-500/20"
+                      className="flex items-center gap-2 px-4 py-3 rounded-xl bg-cyan-500/10 border border-cyan-500/20 text-cyan-300 text-sm font-semibold hover:bg-cyan-500/20"
                     >
                       <FileText className="w-4 h-4" />
                       Abrir archivo original
@@ -1234,7 +1234,7 @@ export default function PurchaseOrderDetailDialog({
 
             {/* Notes — limpiamos los marcadores internos para la vista */}
             <div className="bg-[#111114]/80 border border-white/[0.06] rounded-[24px] p-5">
-              <p className="text-[10px] font-black text-white/30 uppercase tracking-widest mb-3">Notas</p>
+              <p className="text-[10px] font-semibold text-white/30 mb-3">Notas</p>
               {editing ? (
                 <textarea
                   value={form.notes}
@@ -1562,7 +1562,7 @@ export default function PurchaseOrderDetailDialog({
                     <PackageSearch className="w-5 h-5 text-emerald-400" />
                   </div>
                   <div>
-                    <p className="text-white font-black text-lg">Recibir Orden</p>
+                    <p className="text-white font-semibold text-lg">Recibir Orden</p>
                     <p className="text-emerald-300/70 text-xs">Confirma las cantidades recibidas</p>
                   </div>
                 </div>
@@ -1582,7 +1582,7 @@ export default function PurchaseOrderDetailDialog({
                         onClick={() => setReceiveItems(prev => prev.map((r, i) => i === idx ? { ...r, received_qty: Math.max(0, r.received_qty - 1) } : r))}
                         className="w-8 h-8 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-white/60 hover:text-white hover:bg-white/10 transition-all font-bold text-lg"
                       >−</button>
-                      <span className="text-white font-black text-lg w-8 text-center">{item.received_qty}</span>
+                      <span className="text-white font-semibold text-lg w-8 text-center">{item.received_qty}</span>
                       <button
                         onClick={() => setReceiveItems(prev => prev.map((r, i) => i === idx ? { ...r, received_qty: r.received_qty + 1 } : r))}
                         className="w-8 h-8 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-white/60 hover:text-white hover:bg-white/10 transition-all font-bold text-lg"
@@ -1594,7 +1594,7 @@ export default function PurchaseOrderDetailDialog({
               <div className="p-5 border-t border-white/[0.05]">
                 <div className="flex items-center justify-between mb-4 text-sm">
                   <span className="text-white/40 font-bold">Total a registrar como gasto</span>
-                  <span className="text-emerald-400 font-black text-xl">
+                  <span className="text-emerald-400 font-semibold text-xl">
                     {money(receiveItems.reduce((s, i) => s + i.received_qty * i.unit_cost, 0) + Number(form.shipping_cost || poData?.shipping_cost || 0))}
                   </span>
                 </div>
@@ -1605,7 +1605,7 @@ export default function PurchaseOrderDetailDialog({
                   <button
                     onClick={handleConfirmReceive}
                     disabled={receiving}
-                    className="flex-1 py-3 rounded-2xl bg-gradient-to-r from-emerald-500 to-teal-500 text-white text-sm font-black hover:opacity-90 transition-all disabled:opacity-50"
+                    className="flex-1 py-3 rounded-2xl bg-gradient-to-r from-emerald-500 to-teal-500 text-white text-sm font-semibold hover:opacity-90 transition-all disabled:opacity-50"
                   >
                     {receiving ? "Procesando..." : "Confirmar Recepción"}
                   </button>
@@ -1629,16 +1629,16 @@ export default function PurchaseOrderDetailDialog({
             return (
               <div className="space-y-3">
                 <div className="p-3 rounded-xl bg-white/[0.03] border border-white/[0.08]">
-                  <p className="text-[10px] text-white/40 font-black uppercase">OC</p>
+                  <p className="text-[10px] text-white/40 font-semibold">OC</p>
                   <p className="text-sm text-white font-bold">{form.po_number}</p>
                   <p className="text-[11px] text-white/50">{form.supplier_name || "Sin proveedor"}</p>
                 </div>
                 <div className="p-3 rounded-xl bg-emerald-500/[0.05] border border-emerald-500/20">
-                  <p className="text-[10px] text-emerald-400/80 font-black uppercase">Monto a registrar</p>
-                  <p className="text-2xl text-emerald-300 font-black tabular-nums">${total.toFixed(2)}</p>
+                  <p className="text-[10px] text-emerald-400/80 font-semibold">Monto a registrar</p>
+                  <p className="text-2xl text-emerald-300 font-semibold tabular-nums">${total.toFixed(2)}</p>
                 </div>
                 <div>
-                  <p className="text-[10px] text-white/40 font-black uppercase mb-1">Pagué con</p>
+                  <p className="text-[10px] text-white/40 font-semibold mb-1">Pagué con</p>
                   <select
                     value={payMethod}
                     onChange={(e) => {
@@ -1670,7 +1670,7 @@ export default function PurchaseOrderDetailDialog({
                 </div>
                 {(isDeferredMethod(payMethod) || payMethod === "paypal") && (
                   <div className="rounded-xl bg-amber-500/[0.05] border border-amber-500/20 p-3 space-y-1.5">
-                    <label className="text-[10px] font-black text-amber-300 uppercase tracking-widest flex items-center gap-1.5">
+                    <label className="text-[10px] font-semibold text-amber-300 flex items-center gap-1.5">
                       📅 ¿Cuándo saldrá del banco?
                     </label>
                     <input
@@ -1757,7 +1757,7 @@ export default function PurchaseOrderDetailDialog({
                 }
               }}
               disabled={processingPay}
-              className="px-4 py-2 rounded-xl bg-emerald-500/20 border border-emerald-500/30 text-emerald-200 text-xs font-black hover:bg-emerald-500/30 disabled:opacity-40"
+              className="px-4 py-2 rounded-xl bg-emerald-500/20 border border-emerald-500/30 text-emerald-200 text-xs font-semibold hover:bg-emerald-500/30 disabled:opacity-40"
             >
               {processingPay ? "Procesando..." : "Confirmar pago"}
             </button>
@@ -1796,7 +1796,7 @@ export default function PurchaseOrderDetailDialog({
             ))}
           </div>
           <div>
-            <p className="text-[10px] text-white/40 font-black uppercase mb-1">Razón</p>
+            <p className="text-[10px] text-white/40 font-semibold mb-1">Razón</p>
             <input
               type="text"
               value={returnReason}
@@ -1866,7 +1866,7 @@ export default function PurchaseOrderDetailDialog({
                 toast.success(`Devolución registrada · ${ok} producto${ok === 1 ? "" : "s"} ajustado${ok === 1 ? "" : "s"}`);
               }}
               disabled={processingReturn}
-              className="px-4 py-2 rounded-xl bg-amber-500/20 border border-amber-500/30 text-amber-200 text-xs font-black hover:bg-amber-500/30 disabled:opacity-40"
+              className="px-4 py-2 rounded-xl bg-amber-500/20 border border-amber-500/30 text-amber-200 text-xs font-semibold hover:bg-amber-500/30 disabled:opacity-40"
             >
               {processingReturn ? "Procesando..." : "Confirmar devolución"}
             </button>

@@ -1468,7 +1468,7 @@ export default function DeviceCatalogManager() {
                 <Smartphone className="h-7 w-7 text-white" />
               </div>
               <div>
-                <h3 className="text-2xl font-black text-white">Catálogo conectado</h3>
+                <h3 className="text-2xl font-semibold text-white">Catálogo conectado</h3>
                 <p className="text-sm text-white/50">
                   El mismo catálogo del módulo principal, pero con edición avanzada.
                 </p>
@@ -1503,7 +1503,7 @@ export default function DeviceCatalogManager() {
             <Plus className="h-5 w-5" />
           </div>
           <div>
-            <h3 className="text-xl font-black text-white">{creatorTitle}</h3>
+            <h3 className="text-xl font-semibold text-white">{creatorTitle}</h3>
             <p className="text-sm text-white/45">Crea contenido en el nivel que tienes abierto.</p>
           </div>
         </div>
@@ -1526,7 +1526,7 @@ export default function DeviceCatalogManager() {
       <div className="rounded-[28px] border border-white/10 bg-gradient-to-br from-[#141625] to-black p-6 shadow-[0_24px_80px_rgba(0,0,0,0.35)]">
         <div className="mb-4 flex items-start justify-between gap-4">
           <div>
-            <h3 className="text-xl font-black text-white">{sectionTitle}</h3>
+            <h3 className="text-xl font-semibold text-white">{sectionTitle}</h3>
             <p className="mt-1 text-sm text-white/45">{sectionDescription}</p>
           </div>
           <Badge className="border border-cyan-500/20 bg-cyan-500/10 text-cyan-200">
@@ -1629,7 +1629,7 @@ export default function DeviceCatalogManager() {
                               </div>
                               <div className="flex items-start justify-between gap-4">
                                 <div>
-                                  <p className="text-lg font-black text-white">{item.name}</p>
+                                  <p className="text-lg font-semibold text-white">{item.name}</p>
                                   <p className="mt-2 text-sm text-white/55">
                                     {isLeaf
                                       ? "Modelo disponible en el módulo principal"
