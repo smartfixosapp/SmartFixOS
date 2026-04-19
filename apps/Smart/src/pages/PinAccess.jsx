@@ -1001,6 +1001,28 @@ export default function PinAccess() {
       const session = biometricProfile.session;
       if (!session?.id) throw new Error("Sesión expirada");
 
+      // ── Verificar / renovar token de Supabase antes de entrar al Dashboard ──
+      // La sesión biométrica guarda los datos del empleado, pero el JWT de Supabase
+      // puede haber caducado. Si no lo renovamos aquí, las queries del Dashboard
+      // fallan y AuthGate patea al usuario de vuelta al login.
+      try {
+        let sbResult = await supabase.auth.getSession();
+        if (!sbResult?.data?.session) {
+          const refreshed = await supabase.auth.refreshSession();
+          sbResult = refreshed;
+        }
+        if (!sbResult?.data?.session) {
+          // Refresh token también expiró → requiere re-login con Google
+          // NO borramos el perfil biométrico: el usuario puede volver a usar Face ID
+          // después de autenticarse con Google una sola vez.
+          toast.error("Tu sesión caducó. Inicia con Google y Face ID quedará listo para la próxima.", { duration: 5000 });
+          setBiometricLoading(false);
+          return;
+        }
+      } catch (refreshErr) {
+        console.warn("[Biometric] No se pudo refrescar el token de Supabase:", refreshErr);
+      }
+
       saveBiometricProfile({ ...biometricProfile, updatedAt: new Date().toISOString() });
       await completeLogin(session, true);
     } catch (error) {

@@ -90,8 +90,14 @@ function showGlobalGateToast(message) {
   );
 }
 
+// Cuántas órdenes traemos en la carga inicial. Antes eran 600 lo cual hacía
+// la página lentísima al abrir. 150 cubre la mayoría de usos (cola + grid
+// visible + búsqueda reciente) y baja el tiempo de carga dramáticamente.
+// Si el usuario necesita ver más, el botón ↻ trae lo más reciente de nuevo.
+const ORDERS_FETCH_LIMIT = 150;
+
 async function fetchTenantOrders() {
-  const list = await dataClient.entities.Order.list("-created_date", 600);
+  const list = await dataClient.entities.Order.list("-created_date", ORDERS_FETCH_LIMIT);
   return Array.isArray(list) ? list : [];
 }
 
@@ -106,8 +112,17 @@ const OrderCard = React.memo(function OrderCard({ order, onClick, onEditDevice }
 
   const deviceInfo = [order.device_brand, order.device_family, order.device_model].filter(Boolean).join(" ");
   const taskCount = Array.isArray(order.checklist_items) ? order.checklist_items.length : 0;
-  const photoCount = Array.isArray(order.photos_metadata) ? order.photos_metadata.length :
-    Array.isArray(order.device_photos) ? order.device_photos.length : 0;
+  const photoItems = Array.isArray(order.photos_metadata) && order.photos_metadata.length > 0
+    ? order.photos_metadata
+    : Array.isArray(order.device_photos) ? order.device_photos : [];
+  const photoCount = photoItems.length;
+  // Extraer URLs de fotos para mostrar miniaturas en la card.
+  // photos_metadata: array de {publicUrl, thumbUrl, filename, ...}
+  // device_photos (legacy): array de strings con URLs directas.
+  const photoUrls = photoItems
+    .map(p => typeof p === 'string' ? p : (p?.thumbUrl || p?.publicUrl || null))
+    .filter(Boolean)
+    .slice(0, 4);
   const assignedLabel = String(order.assigned_to_name || order.assigned_to || "").trim();
   const phone = order.customer_phone || order.phone || "";
 
@@ -161,6 +176,40 @@ const OrderCard = React.memo(function OrderCard({ order, onClick, onEditDevice }
             {statusConfig.label}
           </span>
         </div>
+
+        {/* Miniaturas de fotos del dispositivo — aprovechan el espacio en blanco
+            de la card en pantallas grandes. Hasta 4 thumbnails, con contador si
+            hay más. `loading="lazy"` evita pedirlas hasta que entren en viewport. */}
+        {photoUrls.length > 0 && (
+          <div className="flex gap-2 overflow-hidden">
+            {photoUrls.map((url, i) => {
+              const isLast = i === photoUrls.length - 1;
+              const extraCount = isLast && photoCount > photoUrls.length
+                ? photoCount - photoUrls.length
+                : 0;
+              return (
+                <div
+                  key={`${url}-${i}`}
+                  className="relative flex-1 aspect-square rounded-apple-sm overflow-hidden bg-white/5 border border-white/10"
+                >
+                  <img
+                    src={url}
+                    alt=""
+                    loading="lazy"
+                    decoding="async"
+                    className="w-full h-full object-cover"
+                    onError={(e) => { e.currentTarget.style.display = 'none'; }}
+                  />
+                  {extraCount > 0 && (
+                    <div className="absolute inset-0 bg-black/60 flex items-center justify-center">
+                      <span className="text-white apple-text-footnote font-semibold">+{extraCount}</span>
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        )}
 
         {/* Footer: age + tech + badges + phone */}
         <div className="flex items-center justify-between gap-2 pt-2.5" style={{ borderTop: "0.5px solid rgb(var(--separator) / 0.20)" }}>

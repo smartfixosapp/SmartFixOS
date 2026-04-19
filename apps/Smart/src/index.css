@@ -28,6 +28,95 @@ html {
   overflow: hidden;
   overscroll-behavior: none;
   background-color: #1C1C1E; /* sys-gray-6 dark (coincide con tab bar) */
+  font-size: 16px; /* base estándar */
+}
+
+/* ── Escala UI moderada + boost específico de texto chico ───────────────
+ * Enfoque mixto: zoom moderado agranda iconos/cards sin que queden huecos,
+ * y overrides específicos suben las clases text-xs/text-sm/text-base para
+ * que los textos chicos (que son los que cuestan leer) crezcan más.
+ */
+
+/* Zoom moderado: solo iPad y desktop, y conservador */
+@media (min-width: 768px) {
+  body { zoom: 1.08; }
+}
+
+@media (min-width: 1024px) {
+  body { zoom: 1.12; }
+}
+
+@media (min-width: 1440px) {
+  body { zoom: 1.16; }
+}
+
+/* ── Boost de texto chico en desktop/tablet ─────────────────────────────
+ * Tailwind por defecto: text-xs=12px, text-sm=14px, text-base=16px. Esos
+ * valores son demasiado pequeños en pantallas grandes. Los aumentamos
+ * solo en >= 768px para que iPhone siga con el tamaño original.
+ */
+@media (min-width: 768px) {
+  .text-xs, [class*=" text-xs"] {
+    font-size: 0.95rem !important;    /* 12px → 15.2px */
+    line-height: 1.35 !important;
+  }
+  .text-sm, [class*=" text-sm"] {
+    font-size: 1.0625rem !important;  /* 14px → 17px */
+    line-height: 1.45 !important;
+  }
+  .text-base, [class*=" text-base"] {
+    font-size: 1.1875rem !important;  /* 16px → 19px */
+    line-height: 1.5 !important;
+  }
+  .text-lg, [class*=" text-lg"] {
+    font-size: 1.3125rem !important;  /* 18px → 21px */
+  }
+}
+
+/* ── Mac SOLO (no iPad) ─────────────────────────────────────────────────
+ * `pointer: fine` = dispositivo con mouse = Mac / desktop. iPad tiene
+ * pointer: coarse aunque su viewport sea igual de ancho que un Mac.
+ * Combinado con min-width 1024 para excluir ventanas chicas.
+ */
+@media (min-width: 1024px) and (pointer: fine) {
+  .text-xs, [class*=" text-xs"] {
+    font-size: 1.15rem !important;    /* 18.4px */
+    line-height: 1.4 !important;
+  }
+  .text-sm, [class*=" text-sm"] {
+    font-size: 1.25rem !important;    /* 20px */
+    line-height: 1.45 !important;
+  }
+  .text-base, [class*=" text-base"] {
+    font-size: 1.375rem !important;   /* 22px */
+    line-height: 1.5 !important;
+  }
+  .text-lg, [class*=" text-lg"] {
+    font-size: 1.5rem !important;     /* 24px */
+  }
+  .text-xl, [class*=" text-xl"] {
+    font-size: 1.625rem !important;   /* 26px */
+  }
+  .text-2xl, [class*=" text-2xl"] {
+    font-size: 1.875rem !important;   /* 30px */
+  }
+  /* Apple text variants también */
+  .apple-text-footnote { font-size: 1.0625rem !important; }
+  .apple-text-caption1 { font-size: 1rem !important; }
+  .apple-text-caption2 { font-size: 0.9375rem !important; }
+}
+
+/* Mac grande (monitor externo) — aún más grande */
+@media (min-width: 1600px) and (pointer: fine) {
+  .text-xs, [class*=" text-xs"] {
+    font-size: 1.25rem !important;    /* 20px */
+  }
+  .text-sm, [class*=" text-sm"] {
+    font-size: 1.375rem !important;   /* 22px */
+  }
+  .text-base, [class*=" text-base"] {
+    font-size: 1.5rem !important;     /* 24px */
+  }
 }
 
 body {
