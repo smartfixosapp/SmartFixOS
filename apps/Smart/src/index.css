@@ -40,10 +40,16 @@ body {
 
 #root {
   height: 100%;
+  min-height: 100dvh; /* iOS Safari portrait fix */
   overflow-y: auto;
   overscroll-behavior-y: none;
   -webkit-overflow-scrolling: touch;
   background-color: #0a0a0c;
+}
+
+/* iOS Safari: forzar recalculo de viewport en portrait inicial */
+@supports (height: 100dvh) {
+  html, body { height: 100dvh; min-height: 100dvh; }
 }
 
 html.theme-light {
