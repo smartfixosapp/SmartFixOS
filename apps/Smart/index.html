@@ -51,6 +51,20 @@
             regs.forEach(function(reg) { reg.update(); });
           });
         }
+
+        // iOS Safari portrait viewport fix — recalculo forzado tras carga
+        function fixViewport() {
+          document.documentElement.style.setProperty('--vh', window.innerHeight * 0.01 + 'px');
+        }
+        fixViewport();
+        window.addEventListener('resize', fixViewport);
+        window.addEventListener('orientationchange', fixViewport);
+        // Trigger layout recalc after initial paint (fixes iOS Safari portrait bug)
+        if ('requestAnimationFrame' in window) {
+          requestAnimationFrame(function() {
+            requestAnimationFrame(fixViewport);
+          });
+        }
       })();
     </script>
     <script type="module" src="/src/main.jsx"></script>
