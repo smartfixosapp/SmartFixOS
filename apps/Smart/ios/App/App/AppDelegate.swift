@@ -8,12 +8,18 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     var window: UIWindow?
 
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
-        // Clear WKWebView cache to ensure latest bundle is loaded
+        // Clear only HTTP caches so new JS bundles load after updates,
+        // but PRESERVE localStorage / cookies / IndexedDB so the Supabase
+        // session survives app kills from multitasking.
         let dataStore = WKWebsiteDataStore.default()
-        let dataTypes = WKWebsiteDataStore.allWebsiteDataTypes()
+        let dataTypes: Set<String> = [
+            WKWebsiteDataTypeDiskCache,
+            WKWebsiteDataTypeMemoryCache,
+            WKWebsiteDataTypeOfflineWebApplicationCache,
+        ]
         let date = Date(timeIntervalSince1970: 0)
         dataStore.removeData(ofTypes: dataTypes, modifiedSince: date) {
-            print("WebView cache cleared")
+            print("WebView HTTP cache cleared (session preserved)")
         }
         return true
     }

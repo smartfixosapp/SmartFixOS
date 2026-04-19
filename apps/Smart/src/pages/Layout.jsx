@@ -417,10 +417,13 @@ export default function Layout({ children }) {
 
       {/* Widget global de cotizacion — desactivado, integrado en ARIA tab 🧮 */}
 
-      {/* ✨ ARIA — Asistente IA global (visible en todas las páginas autenticadas) */}
+      {/* ✨ ARIA / JENAI — desactivado temporalmente (no se está usando) */}
+      {/* Para reactivar, descomenta el bloque de abajo */}
+      {/*
       {!shouldShowTrialExpired && !showPaymentScreen && (
         <ARIAChat />
       )}
+      */}
 
       {/* 🔍 Búsqueda global Cmd+K */}
       <GlobalSearchPalette open={searchOpen} onClose={() => setSearchOpen(false)} />

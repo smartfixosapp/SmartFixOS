@@ -389,7 +389,11 @@ export default function Dashboard() {
 
       const [allOrders, recharges, products, services] = await Promise.all([
         // Usar .list() igual que Orders.jsx — más confiable que .filter() con $nin
-        dataClient.entities.Order.list("-updated_date", 300).catch(err => {
+        // Reducido de 300 → 120 para acelerar la carga del Dashboard. Las órdenes
+        // cerradas se filtran localmente después, así que 120 recientes por updated_date
+        // suele cubrir todas las activas (típicamente < 50). Si hay más, el usuario
+        // puede refrescar o ir a /Orders que trae su propia lista.
+        dataClient.entities.Order.list("-updated_date", 120).catch(err => {
           console.error("Error loading orders:", err);
           return [];
         }),
