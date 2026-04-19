@@ -147,12 +147,29 @@ function NetworkStatusBanner() {
   );
 }
 
+// ── Duración del splash animado ────────────────────────────────────────
+// 1800ms = suficiente para que se aprecien las animaciones del fondo
+// (orbes flotando, glow del logo) antes de fundirse al app. Solo aparece
+// en cold-start — usamos sessionStorage para evitar que se muestre de nuevo
+// en navegación dentro de la misma sesión.
+const SPLASH_DURATION_MS = 1800;
+const SPLASH_SESSION_KEY = "smartfix_splash_shown";
+
 function App() {
-  const [appLoading, setAppLoading] = useState(true);
+  // Solo mostrar splash si es la primera carga de esta sesión del app.
+  // En navegación entre páginas ya no re-monta, pero en hot-reload de dev
+  // sessionStorage se preserva → no parpadea el splash al guardar código.
+  const [showSplash, setShowSplash] = useState(() => {
+    try {
+      return sessionStorage.getItem(SPLASH_SESSION_KEY) !== "1";
+    } catch {
+      return true;
+    }
+  });
 
   useEffect(() => {
-    // 1. Ocultar el splash nativo de iOS lo antes posible
-    // para mostrar nuestra animación personalizada de React
+    // 1. Ocultar el splash nativo de iOS lo antes posible para que nuestro
+    //    splash de React (animado) tome el relevo visualmente sin parpadeo.
     const hideNativeSplash = async () => {
       try {
         await SplashScreen.hide();
@@ -160,12 +177,16 @@ function App() {
         console.warn("Could not hide native splash:", err);
       }
     };
-    
     hideNativeSplash();
 
-    // 2. Saltar animación de carga forzada para máxima velocidad
-    setAppLoading(false);
-  }, []);
+    // 2. Auto-dismiss del splash animado después de SPLASH_DURATION_MS.
+    if (!showSplash) return;
+    const timer = setTimeout(() => {
+      try { sessionStorage.setItem(SPLASH_SESSION_KEY, "1"); } catch {}
+      setShowSplash(false);
+    }, SPLASH_DURATION_MS);
+    return () => clearTimeout(timer);
+  }, [showSplash]);
 
   return (
     <AppErrorBoundary>
@@ -175,6 +196,10 @@ function App() {
         <NetworkStatusBanner />
         <Pages />
         <Toaster />
+        {/* Splash animado sobre todo el contenido — se monta/desmonta con fade */}
+        <AnimatePresence>
+          {showSplash && <SplashLoader key="splash" />}
+        </AnimatePresence>
       </QueryClientProvider>
     </AppErrorBoundary>
   )
