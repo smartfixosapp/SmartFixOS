@@ -193,7 +193,7 @@ export default function MobileBottomNav() {
     <nav
       data-global-dock
       className={cn(
-        "apple-type fixed left-0 right-0 z-[100] md:hidden transition-all duration-300",
+        "apple-type liquid-glass-strong fixed left-0 right-0 z-[100] md:hidden transition-all duration-300",
         hasPanelsOpen
           ? "translate-y-full opacity-0 pointer-events-none"
           : "translate-y-0 opacity-100"
@@ -206,13 +206,16 @@ export default function MobileBottomNav() {
         // inferior quede justo al borde del viewport REAL visible.
         position: "fixed",
         bottom: "var(--nav-gap-fix, 0px)",
-        // Fondo SÓLIDO: sys-gray-6 (dark: #1C1C1E / light: #F2F2F7)
-        backgroundColor: "rgb(var(--sys-gray-6))",
-        WebkitBackdropFilter: "blur(20px) saturate(180%)",
-        backdropFilter: "blur(20px) saturate(180%)",
-        borderTop: "0.5px solid rgb(var(--separator) / 0.50)",
+        // NOTA: background, backdrop-filter y rim shadows vienen de la clase
+        // `liquid-glass-strong` (ver index.css). Antes se usaba un fondo
+        // sólido rgb(var(--sys-gray-6)) con blur manual — ahora es glass real.
         // Padding-bottom: min 20px para PWA, max 40px para cap Safari
         paddingBottom: "clamp(20px, env(safe-area-inset-bottom, 34px), 40px)",
+        // Quitar los border-radius que liquid-glass no aplica a todo el nav
+        borderRadius: 0,
+        borderLeft: "none",
+        borderRight: "none",
+        borderBottom: "none",
       }}
     >
       {/* Tab items */}

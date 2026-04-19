@@ -73,7 +73,8 @@ export default function ModernTopNav() {
 
   return (
     <div className="apple-type px-4 py-3 sm:py-4">
-      <div className="apple-card shadow-apple-md relative rounded-full h-15 flex items-center justify-between px-2 sm:px-4 max-w-sm sm:max-w-md lg:max-w-2xl mx-auto">
+      {/* Liquid glass pill — translúcido + blur + rim highlights (iOS 26 style) */}
+      <div className="liquid-glass relative rounded-full h-15 flex items-center justify-between px-2 sm:px-4 max-w-sm sm:max-w-md lg:max-w-2xl mx-auto">
 
         {navItems.map((item) => {
           const isActive = activeTab === item.id;

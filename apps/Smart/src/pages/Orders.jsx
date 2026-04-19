@@ -590,9 +590,9 @@ export default function OrdersPage() {
             borderBottom: "0.5px solid rgb(var(--separator) / 0.29)",
           }}
         >
-          {/* Row 1: Segmented Control estilo iOS */}
+          {/* Row 1: Segmented Control estilo iOS — liquid glass */}
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-            <TabsList className="bg-gray-sys6 dark:bg-gray-sys5 p-1 rounded-apple-md w-full grid grid-cols-2 gap-1 border-0">
+            <TabsList className="liquid-glass-subtle p-1 rounded-apple-md w-full grid grid-cols-2 gap-1 border-0">
               <TabsTrigger
                 value="work-orders"
                 className="rounded-apple-sm apple-text-footnote font-semibold data-[state=active]:bg-[rgb(var(--surface-elevated))] data-[state=active]:text-apple-blue data-[state=active]:shadow-apple-sm apple-label-secondary transition-all duration-200"
@@ -651,7 +651,16 @@ export default function OrdersPage() {
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -8 }}
                 transition={{ duration: 0.15 }}
-                className="sm:hidden absolute top-full left-0 right-0 bg-[#0A0A0A]/97 backdrop-blur-2xl border-x border-b border-white/10 rounded-b-[20px] shadow-[0_20px_60px_rgba(0,0,0,0.6)] z-50 max-h-[65vh] overflow-y-auto"
+                className="sm:hidden absolute top-full left-0 right-0 border-x border-b border-white/10 rounded-b-[20px] shadow-[0_20px_60px_rgba(0,0,0,0.6)] z-50 max-h-[65vh] overflow-y-auto"
+                style={{
+                  // Fondo SÓLIDO (no translúcido) para legibilidad — el dropdown
+                  // se superpone sobre cards, fotos y texto; usar glass aquí hace
+                  // que se mezcle todo. Background-color puro + backdrop-blur
+                  // sutil para el borde edge-softening.
+                  backgroundColor: "#0A0A0A",
+                  WebkitBackdropFilter: "blur(12px)",
+                  backdropFilter: "blur(12px)",
+                }}
               >
                 <div className="p-3 space-y-1">
                   <button
