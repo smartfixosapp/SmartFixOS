@@ -2627,45 +2627,67 @@ export default function PinAccess() {
 
                       {error && <p className="text-red-500 text-xs text-center mb-6 font-bold">{error}</p>}
 
-                      {/* Teclado Numérico ajustado para asegurar visibilidad en pantallas pequeñas iOS */}
-                      <div className="grid grid-cols-3 gap-3 w-full max-w-[270px] mx-auto">
+                      {/* Teclado Numérico circular estilo iOS */}
+                      <div className="grid grid-cols-3 gap-5 w-full max-w-[280px] mx-auto place-items-center">
                         {[1, 2, 3, 4, 5, 6, 7, 8, 9].map((n) => (
-                          <button key={n} onClick={() => handleNumberClick(String(n))} className="w-full h-[55px] rounded-2xl bg-white/5 text-xl font-semibold text-white active:bg-white/15 active:scale-95 transition-all">{n}</button>
+                          <button
+                            key={n}
+                            onClick={() => handleNumberClick(String(n))}
+                            className="w-[72px] h-[72px] rounded-full bg-white/5 text-2xl font-light text-white active:bg-white/20 active:scale-90 transition-all flex items-center justify-center"
+                          >
+                            {n}
+                          </button>
                         ))}
-                        <button onClick={() => setStep("user")} className="h-[55px] w-full flex items-center justify-center text-xs font-bold text-gray-500 active:text-white transition-colors">ESC</button>
-                        <button onClick={() => handleNumberClick("0")} className="w-full h-[55px] rounded-2xl bg-white/5 text-xl font-semibold text-white active:bg-white/15 active:scale-95 transition-all">0</button>
-                        <button onClick={handleBackspace} className="w-full h-[55px] rounded-2xl bg-red-500/10 text-xl font-semibold text-white active:bg-red-500/20 active:scale-95 transition-all">⌫</button>
-                      </div>
 
-                      {/* Opción Biométrica proactiva: botón visible siempre para activar o usar */}
-                      {biometricSupported && (
+                        {/* Esquina inferior-izquierda: Face ID / Biométrico */}
+                        {biometricSupported ? (
+                          <button
+                            onClick={() => {
+                              if (isBiometricAvailableForSelectedUser) {
+                                handleReattemptBiometric();
+                              } else {
+                                toast.info("Ingresa tu PIN primero para activar " + getBiometricType().label);
+                              }
+                            }}
+                            disabled={loading || biometricLoading}
+                            aria-label={getBiometricType().label}
+                            className={`w-[72px] h-[72px] rounded-full flex items-center justify-center transition-all active:scale-90 disabled:opacity-40 ${
+                              isBiometricAvailableForSelectedUser
+                                ? "text-cyan-300 active:bg-cyan-500/20"
+                                : "text-white/40 active:bg-white/10"
+                            }`}
+                          >
+                            {biometricLoading ? (
+                              <div className="w-6 h-6 border-2 border-cyan-400/50 border-t-cyan-400 rounded-full animate-spin" />
+                            ) : (
+                              <BiometricIcon type={getBiometricType().type} size="md" />
+                            )}
+                          </button>
+                        ) : (
+                          <button
+                            onClick={() => setStep("user")}
+                            className="w-[72px] h-[72px] rounded-full flex items-center justify-center text-xs font-bold text-gray-500 active:text-white active:bg-white/10 transition-colors"
+                          >
+                            ESC
+                          </button>
+                        )}
+
                         <button
-                          onClick={() => {
-                            if (isBiometricAvailableForSelectedUser) {
-                              handleReattemptBiometric();
-                            } else {
-                              toast.info("Ingresa tu PIN primero para activar " + getBiometricType().label);
-                            }
-                          }}
-                          disabled={loading || biometricLoading}
-                          className={`w-full max-w-[270px] mx-auto mt-6 py-3.5 rounded-3xl border transition-all active:scale-95 disabled:opacity-40 flex flex-col items-center gap-1 ${
-                            isBiometricAvailableForSelectedUser 
-                              ? "border-cyan-500/30 bg-cyan-500/10 hover:bg-cyan-500/20" 
-                              : "border-white/10 bg-white/5 hover:bg-white/10"
-                          }`}
+                          onClick={() => handleNumberClick("0")}
+                          className="w-[72px] h-[72px] rounded-full bg-white/5 text-2xl font-light text-white active:bg-white/20 active:scale-90 transition-all flex items-center justify-center"
                         >
-                          {biometricLoading ? (
-                             <div className="w-6 h-6 border-2 border-cyan-400/50 border-t-cyan-400 rounded-full animate-spin" />
-                          ) : (
-                            <>
-                              <BiometricIcon type={getBiometricType().type} size="md" className={isBiometricAvailableForSelectedUser ? "text-cyan-300" : "text-white/40"} />
-                              <span className={`text-[11px] font-bold ${isBiometricAvailableForSelectedUser ? "text-cyan-300" : "text-white/50"}`}>
-                                {isBiometricAvailableForSelectedUser ? `Usar ${getBiometricType().label}` : `Activar ${getBiometricType().label}`}
-                              </span>
-                            </>
-                          )}
+                          0
                         </button>
-                      )}
+
+                        {/* Esquina inferior-derecha: Backspace */}
+                        <button
+                          onClick={handleBackspace}
+                          aria-label="Borrar"
+                          className="w-[72px] h-[72px] rounded-full flex items-center justify-center text-xl text-white/70 active:text-white active:bg-white/10 transition-all active:scale-90"
+                        >
+                          ⌫
+                        </button>
+                      </div>
                     </div>
                   </div>
                 </div>
