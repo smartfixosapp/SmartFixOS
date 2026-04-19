@@ -239,18 +239,39 @@ function mergeUsers(remoteUsers = [], localUsers = []) {
 async function fetchTenantUsers() {
   let tenantId = getCurrentTenantId();
 
+  // 🛡️ FAIL-SAFE: si no hay tenant_id, NO consultar sin filtro.
+  // Antes, la query corría sin `.eq("tenant_id", ...)` y traía TODOS los
+  // empleados de TODOS los tenants — data leak cross-tenant. Ahora:
+  //   1. Intentar resolver desde la sesión de Supabase
+  //   2. Si sigue sin resolverse → retornar vacío (no fuga)
+  if (!tenantId) {
+    console.warn("[fetchTenantUsers] No tenant_id en storage — intentando resolver desde Supabase");
+    const resolvedTenantId = await resolveTenantIdFromSession().catch(() => null);
+    if (resolvedTenantId) {
+      localStorage.setItem("smartfix_tenant_id", resolvedTenantId);
+      localStorage.setItem("current_tenant_id", resolvedTenantId);
+      tenantId = resolvedTenantId;
+    } else {
+      console.error("[fetchTenantUsers] No se pudo resolver tenant_id — retornando lista vacía");
+      return [];
+    }
+  }
+
   const runQueries = async (currentTenantId) => {
-    let usersQuery = supabase
+    // Ambas queries SIEMPRE filtran por tenant_id — no hay caso donde
+    // se omita el filtro. Si el tenant_id está presente, se usa; si no,
+    // nunca llegamos aquí (retornamos [] arriba).
+    const usersQuery = supabase
       .from("users")
       .select("id, email, full_name, role, position, employee_code, pin, phone, hourly_rate, active, permissions, tenant_id, auth_id, created_at, updated_at")
-      .eq("active", true);
-    if (currentTenantId) usersQuery = usersQuery.eq("tenant_id", currentTenantId);
+      .eq("active", true)
+      .eq("tenant_id", currentTenantId);
 
-    let employeesQuery = supabase
+    const employeesQuery = supabase
       .from("app_employee")
       .select("id, email, full_name, role, position, employee_code, pin, phone, hourly_rate, active, permissions, tenant_id, created_at, updated_at")
-      .eq("active", true);
-    if (currentTenantId) employeesQuery = employeesQuery.eq("tenant_id", currentTenantId);
+      .eq("active", true)
+      .eq("tenant_id", currentTenantId);
 
     const [{ data: userRows, error: usersError }, { data: employeeRows, error: employeesError }] = await Promise.all([
       usersQuery,
