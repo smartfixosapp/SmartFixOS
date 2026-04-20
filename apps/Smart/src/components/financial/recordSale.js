@@ -38,7 +38,7 @@ export async function recordSaleAndTransactions({ sale, transactions = [], order
         }
       : null;
 
-  const response = await fetch("/api/cash-register", {
+  const response = await fetch(apiUrl("/api/cash-register"), {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
