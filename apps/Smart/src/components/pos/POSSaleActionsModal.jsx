@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { toast } from "sonner";
 import { sendEmail } from "@/api/functions";
+import { apiUrl } from "@/lib/apiUrl";
 import {
   Mail, MessageCircle, Printer, X, Send, Check,
   Loader2, ChevronRight, History, Clock, Receipt
