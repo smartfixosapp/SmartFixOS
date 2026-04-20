@@ -401,14 +401,19 @@ export default function Dashboard() {
           console.error("Error loading recharges:", err);
           return [];
         }),
-        catalogCache.get('active_products') || dataClient.entities.Product.filter({ active: true }, "-created_date", 50).then(p => {
+        // Productos / servicios para la Lista de Precios.
+        // Límite elevado a 500/300 para cubrir todo el inventario de la tienda.
+        // Antes eran 50/50 lo cual dejaba la Lista de Precios incompleta si
+        // el taller tenía más piezas (típico: iPhones + Androids + accesorios).
+        // Las 5 min de cache evitan repetir esta query costosa en cada render.
+        catalogCache.get('active_products') || dataClient.entities.Product.filter({ active: true }, "-created_date", 500).then(p => {
           catalogCache.set('active_products', p, 300000); // 5 min cache
           return p;
         }).catch(err => {
           console.error("Error loading products:", err);
           return catalogCache.get('active_products') || [];
         }),
-        catalogCache.get('active_services') || dataClient.entities.Service.filter({ active: true }, "-created_date", 50).then(s => {
+        catalogCache.get('active_services') || dataClient.entities.Service.filter({ active: true }, "-created_date", 300).then(s => {
           catalogCache.set('active_services', s, 300000); // 5 min cache
           return s;
         }).catch(err => {
