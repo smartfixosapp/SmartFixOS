@@ -74,7 +74,7 @@ export default function FeedbackModal({ onClose }) {
         </div>
       `;
 
-      await fetch(SEND_EMAIL_URL, {
+      await fetch(apiUrl(SEND_EMAIL_URL), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
