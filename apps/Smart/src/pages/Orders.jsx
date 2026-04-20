@@ -116,13 +116,13 @@ const OrderCard = React.memo(function OrderCard({ order, onClick, onEditDevice }
     ? order.photos_metadata
     : Array.isArray(order.device_photos) ? order.device_photos : [];
   const photoCount = photoItems.length;
-  // Extraer URLs de fotos para mostrar miniaturas en la card.
+  // Mostramos UNA sola foto grande en la card (primera disponible).
+  // Si hay más fotos, el contador en el footer (📷 N) ya lo indica.
   // photos_metadata: array de {publicUrl, thumbUrl, filename, ...}
   // device_photos (legacy): array de strings con URLs directas.
-  const photoUrls = photoItems
-    .map(p => typeof p === 'string' ? p : (p?.thumbUrl || p?.publicUrl || null))
-    .filter(Boolean)
-    .slice(0, 4);
+  const firstPhotoUrl = photoItems
+    .map(p => typeof p === 'string' ? p : (p?.publicUrl || p?.thumbUrl || null))
+    .find(Boolean) || null;
   const assignedLabel = String(order.assigned_to_name || order.assigned_to || "").trim();
   const phone = order.customer_phone || order.phone || "";
 
@@ -177,37 +177,19 @@ const OrderCard = React.memo(function OrderCard({ order, onClick, onEditDevice }
           </span>
         </div>
 
-        {/* Miniaturas de fotos del dispositivo — aprovechan el espacio en blanco
-            de la card en pantallas grandes. Hasta 4 thumbnails, con contador si
-            hay más. `loading="lazy"` evita pedirlas hasta que entren en viewport. */}
-        {photoUrls.length > 0 && (
-          <div className="flex gap-2 overflow-hidden">
-            {photoUrls.map((url, i) => {
-              const isLast = i === photoUrls.length - 1;
-              const extraCount = isLast && photoCount > photoUrls.length
-                ? photoCount - photoUrls.length
-                : 0;
-              return (
-                <div
-                  key={`${url}-${i}`}
-                  className="relative flex-1 aspect-square rounded-apple-sm overflow-hidden bg-white/5 border border-white/10"
-                >
-                  <img
-                    src={url}
-                    alt=""
-                    loading="lazy"
-                    decoding="async"
-                    className="w-full h-full object-cover"
-                    onError={(e) => { e.currentTarget.style.display = 'none'; }}
-                  />
-                  {extraCount > 0 && (
-                    <div className="absolute inset-0 bg-black/60 flex items-center justify-center">
-                      <span className="text-white apple-text-footnote font-semibold">+{extraCount}</span>
-                    </div>
-                  )}
-                </div>
-              );
-            })}
+        {/* Foto principal del dispositivo — una sola, grande.
+            Si hay más de una, el contador del footer (📷 N) ya lo indica.
+            `loading="lazy"` evita pedirla hasta que entre en viewport. */}
+        {firstPhotoUrl && (
+          <div className="relative w-full aspect-[16/10] rounded-apple-md overflow-hidden bg-white/5 border border-white/10">
+            <img
+              src={firstPhotoUrl}
+              alt=""
+              loading="lazy"
+              decoding="async"
+              className="w-full h-full object-cover"
+              onError={(e) => { e.currentTarget.parentElement.style.display = 'none'; }}
+            />
           </div>
         )}
 
