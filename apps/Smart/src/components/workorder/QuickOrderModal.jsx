@@ -127,7 +127,7 @@ async function sendAdminNewOrderEmail({ recipients, orderNumber, customerName, d
     </div>
   `;
 
-  const response = await fetch("/api/send-raw-email", {
+  const response = await fetch(apiUrl("/api/send-raw-email"), {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
