@@ -1,6 +1,7 @@
 // Unified Functions Server
 // Routes all function calls through a single server with different paths
 import { extractFileHandler } from './extractFile.js';
+import { aiExtractExpenseHandler } from './aiExtractExpense.js';
 import { generateImageHandler } from './generateImage.js';
 import { invokeLLMHandler } from './invokeLLM.js';
 import { aiChatHandler } from './aiChat.js';
