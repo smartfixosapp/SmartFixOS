@@ -1319,12 +1319,8 @@ Maximo 150 palabras. Texto plano, sin markdown.`
           </button>
 
           {/* Ganancia Neta */}
-          <button onClick={() => setActiveTab("desglose")}
-            className={`apple-press text-left p-4 sm:p-5 rounded-apple-lg transition-all ${
-              activeTab === "desglose"
-                ? (netProfit >= 0 ? "bg-apple-blue/15" : "bg-apple-red/15")
-                : "apple-card"
-            }`}>
+          <button onClick={() => { setActiveTab("movimientos"); setMovFilter("all"); }}
+            className="apple-press text-left p-4 sm:p-5 rounded-apple-lg transition-all apple-card">
             <div className="flex items-center gap-2 mb-2">
               <div className={`w-7 h-7 rounded-apple-sm flex items-center justify-center ${
                 netProfit >= 0 ? "bg-apple-blue/15" : "bg-apple-red/15"
