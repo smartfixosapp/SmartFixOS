@@ -1377,10 +1377,16 @@ Maximo 150 palabras. Texto plano, sin markdown.`
               <Wallet className="w-3.5 h-3.5" />
               <span className="hidden sm:inline">{drawerOpen ? "Caja abierta" : "Caja"}</span>
             </button>
+            <button onClick={() => setShowJenaiCapture(true)}
+              className="apple-btn apple-btn-primary bg-gradient-to-r from-violet-500 to-purple-600 hover:from-violet-600 hover:to-purple-700 border-0 text-white shadow-lg shadow-violet-500/20">
+              <Sparkles className="w-3.5 h-3.5" />
+              <span className="hidden sm:inline">Subir con Jeani</span>
+              <span className="sm:hidden">Jeani</span>
+            </button>
             <button onClick={() => { setExpenseDefaultCategory(null); setShowExpenseDialog(true); }}
-              className="apple-btn apple-btn-primary">
+              className="apple-btn apple-btn-secondary"
+              title="Registrar gasto manualmente">
               <Plus className="w-3.5 h-3.5" />
-              <span className="hidden sm:inline">Gasto</span>
             </button>
           </div>
         </div>
