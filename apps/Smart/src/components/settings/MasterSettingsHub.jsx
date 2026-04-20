@@ -23,6 +23,7 @@ import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 
 import { loadMasterSettings, saveMasterSettings, exportSettings, importSettings, DEFAULT_MASTER_SETTINGS } from "@/components/services/masterSettings";
+import { apiUrl } from "@/lib/apiUrl";
 
 // Assume base44 is globally available or provided by a context.
 // For a standalone file, a mock or actual import/declaration might be needed.
