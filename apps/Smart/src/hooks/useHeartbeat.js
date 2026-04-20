@@ -11,7 +11,7 @@
 import { useEffect, useRef, useCallback } from "react";
 import { supabase } from "../../../../lib/supabase-client.js";
 
-const HEARTBEAT_INTERVAL = 2 * 60 * 1000; // 2 minutos
+const HEARTBEAT_INTERVAL = 5 * 60 * 1000; // 5 minutos — suficiente para indicador "online" en admin, ahorra bateria iOS
 
 export function useHeartbeat() {
   const intervalRef  = useRef(null);
