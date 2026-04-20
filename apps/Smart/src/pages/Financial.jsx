@@ -165,7 +165,8 @@ export default function Financial() {
   const [showEditExpenseDialog, setShowEditExpenseDialog] = useState(false);
   const [reportsView, setReportsView] = useState("enhanced");
   const [movFilter, setMovFilter] = useState("all"); // "all" | "income" | "expense"
-  const [activeTab, setActiveTab] = useState("resumen");
+  const [activeTab, setActiveTab] = useState("movimientos");
+  const [showJenaiCapture, setShowJenaiCapture] = useState(false);
   const [aiSummary, setAiSummary] = useState("");
   const [aiLoading, setAiLoading] = useState(false);
 
