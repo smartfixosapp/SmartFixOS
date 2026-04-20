@@ -8,6 +8,7 @@ import { Clock, LogIn, LogOut } from "lucide-react";
 import { toast } from "sonner";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
+import { apiUrl } from "@/lib/apiUrl";
 
 const LOCAL_TIME_ENTRIES_KEY = "local_time_entries";
 
