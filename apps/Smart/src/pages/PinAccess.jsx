@@ -1394,8 +1394,13 @@ export default function PinAccess() {
       localStorage.setItem("current_tenant_id", tenantIdFromSession);
     }
 
+    // Admin bootstrap corre en background — NO bloquear navegación al Dashboard.
+    // En móvil con red lenta las queries de AppSettings pueden colgarse y dejaban
+    // al usuario trabado después de que Face ID confirmaba.
     if (session.role === "admin") {
-      await ensureAdminBootstrap(dataClient);
+      Promise.resolve()
+        .then(() => ensureAdminBootstrap(dataClient))
+        .catch((err) => console.warn("[PinAccess] admin bootstrap (bg):", err?.message || err));
     }
 
     // Track last_login + last_seen per tenant (fire and forget, directo a Supabase para evitar RLS issues)
@@ -1417,16 +1422,17 @@ export default function PinAccess() {
       navigator.vibrate([50, 100, 50]);
     }
 
-    try {
-      await triggerRealtimeNotification(NOTIFICATION_TYPES.EMPLOYEE_LOGIN, {
+    // AuditLog del login en background — no bloquea navegación si la red está lenta.
+    Promise.resolve()
+      .then(() => triggerRealtimeNotification(NOTIFICATION_TYPES.EMPLOYEE_LOGIN, {
         userId: session.id,
         userName: session.full_name,
         userRole: session.role,
         ipAddress: 'local'
+      }))
+      .catch((notifyError) => {
+        console.warn("PIN login: notificación no disponible (continuando login).", notifyError);
       });
-    } catch (notifyError) {
-      console.warn("PIN login: notificación no disponible (continuando login).", notifyError);
-    }
 
     toast.success(`¡Bienvenido, ${session.userName}!`, { duration: 2000 });
 
