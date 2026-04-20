@@ -1,4 +1,5 @@
 import { dataClient } from "@/components/api/dataClient";
+import { apiUrl } from "@/lib/apiUrl";
 
 const LOCAL_DRAWER_KEY = "smartfix_local_open_drawer";
 
