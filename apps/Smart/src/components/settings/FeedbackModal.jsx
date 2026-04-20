@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { X, MessageSquarePlus, Lightbulb, Bug, HelpCircle, Send, CheckCircle, Loader2 } from "lucide-react";
 import { supabase } from "../../../../../lib/supabase-client.js";
 import { toast } from "sonner";
+import { apiUrl } from "@/lib/apiUrl";
 
 const TYPES = [
   { id: "suggestion", label: "Sugerencia",  icon: Lightbulb,          color: "text-apple-yellow border-apple-yellow/30 bg-apple-yellow/12"  },
