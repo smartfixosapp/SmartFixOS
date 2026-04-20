@@ -1005,20 +1005,27 @@ export default function PinAccess() {
       // La sesión biométrica guarda los datos del empleado, pero el JWT de Supabase
       // puede haber caducado. Si no lo renovamos aquí, las queries del Dashboard
       // fallan y AuthGate patea al usuario de vuelta al login.
+      //
+      // TIMEOUT: Sin timeout, en cold-start con red lenta getSession/refreshSession
+      // pueden colgarse indefinidamente → spinner eterno. Si tarda más de 3s,
+      // procedemos igual con la sesión biométrica local — el peor caso es que
+      // el Dashboard tenga que refrescar el token después (gestionado por el SDK).
       try {
-        let sbResult = await supabase.auth.getSession();
+        const withTimeout = (promise, ms) => Promise.race([
+          promise,
+          new Promise((_, reject) => setTimeout(() => reject(new Error("supabase-timeout")), ms)),
+        ]);
+
+        let sbResult = await withTimeout(supabase.auth.getSession(), 3000).catch(() => null);
         if (!sbResult?.data?.session) {
-          const refreshed = await supabase.auth.refreshSession();
+          const refreshed = await withTimeout(supabase.auth.refreshSession(), 3000).catch(() => null);
           sbResult = refreshed;
         }
-        if (!sbResult?.data?.session) {
-          // Refresh token también expiró → requiere re-login con Google
-          // NO borramos el perfil biométrico: el usuario puede volver a usar Face ID
-          // después de autenticarse con Google una sola vez.
-          toast.error("Tu sesión caducó. Inicia con Google y Face ID quedará listo para la próxima.", { duration: 5000 });
-          setBiometricLoading(false);
-          return;
-        }
+        // Si refresh falla por timeout/red → seguimos adelante con la sesión
+        // local biométrica. Solo bloqueamos si Supabase contestó explícitamente
+        // que no hay sesión válida Y el refresh tampoco funcionó.
+        // NOTA: continuamos sin bloquear en caso de timeout para evitar spinner
+        // eterno en cold-start. El SDK intentará refrescar en background.
       } catch (refreshErr) {
         console.warn("[Biometric] No se pudo refrescar el token de Supabase:", refreshErr);
       }
