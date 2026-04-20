@@ -84,6 +84,7 @@ const unwrappedRoutes = new Set([
 // Route handlers
 const routes = {
 '/extract_file': extractFileHandler,
+'/ai/extract-expense': aiExtractExpenseHandler,
 '/ai/invoke': invokeLLMHandler,
 '/ai/chat': aiChatHandler,
 '/ai/generate-image': generateImageHandler,
