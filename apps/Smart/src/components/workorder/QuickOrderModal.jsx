@@ -16,6 +16,7 @@ import ServiceSelectorModal from "@/components/common/ServiceSelectorModal";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { generateOrderNumber } from "@/components/utils/sequenceHelpers";
 import { upsertLocalOrder } from "@/components/utils/localOrderCache";
+import { apiUrl } from "@/lib/apiUrl";
 
 const LOCAL_CUSTOMERS_KEY = "smartfix_local_customers";
 
