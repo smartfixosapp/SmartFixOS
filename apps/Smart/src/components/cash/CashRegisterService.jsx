@@ -173,7 +173,7 @@ export async function openCashRegister(denominations, user) {
   let drawer = null;
   try {
     const tenantId = localStorage.getItem("smartfix_tenant_id") || null;
-    const response = await fetch("/api/cash-register", {
+    const response = await fetch(apiUrl("/api/cash-register"), {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ action: "open", denominations, user, tenantId }),
@@ -309,7 +309,7 @@ export async function closeCashRegister(drawer, denominations, user, summaryOver
     }
 
     const tenantId = localStorage.getItem("smartfix_tenant_id") || null;
-    const response = await fetch("/api/cash-register", {
+    const response = await fetch(apiUrl("/api/cash-register"), {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
