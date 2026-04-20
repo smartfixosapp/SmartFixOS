@@ -165,10 +165,13 @@ export default function QuickPayModal({ order, paymentMode = "full", onClose, on
   const mixedTotal = mixedCash + mixedAth;
   const change = paymentMethod === "cash" && cashReceived ? Math.max(0, parseFloat(cashReceived) - effectiveTotal) : 0;
 
+  // Comparar en centavos (enteros) evita bugs de precision flotante
+  // Ej: 44.60 === 44.60 puede fallar con floats. Con Math.round(x*100) comparamos enteros.
+  const toCents = (n) => Math.round((Number(n) || 0) * 100);
   const isPaymentValid = paymentMode === "deposit"
     ? (parseFloat(depositAmount) > 0 && parseFloat(depositAmount) <= orderBalance && !!paymentMethod)
-    : paymentMethod === "cash" ? parseFloat(cashReceived) >= effectiveTotal
-    : paymentMethod === "mixed" ? mixedTotal >= effectiveTotal
+    : paymentMethod === "cash" ? toCents(cashReceived) >= toCents(effectiveTotal)
+    : paymentMethod === "mixed" ? toCents(mixedTotal) >= toCents(effectiveTotal)
     : !!paymentMethod;
 
   // ── Pagar ─────────────────────────────────────────────────────────────────
