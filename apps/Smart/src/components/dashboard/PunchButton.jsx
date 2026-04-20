@@ -22,7 +22,7 @@ function sendPunchNotification({ punch_type, employee_name, employee_role, times
       tenant_id = s?.tenant_id || s?.user?.tenant_id || null;
     }
     if (!tenant_id) return; // no tenant context — skip silently
-    fetch('/api/send-punch-notification', {
+    fetch(apiUrl('/api/send-punch-notification'), {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ tenant_id, punch_type, employee_name, employee_role, timestamp, clock_in_time }),
