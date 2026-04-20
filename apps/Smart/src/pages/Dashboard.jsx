@@ -581,9 +581,11 @@ export default function Dashboard() {
   }, []);
 
   useEffect(() => {
+    // 3 min — los eventos notification-created/notification-read ya refrescan inmediatamente
+    // cuando algo cambia, el polling solo captura cambios externos (otro dispositivo)
     const interval = setInterval(() => {
       if (document.visibilityState === "visible") loadUnreadNotifications();
-    }, 60000);
+    }, 180000);
     window.addEventListener('notification-created', loadUnreadNotifications);
     window.addEventListener('notification-read', loadUnreadNotifications);
     
