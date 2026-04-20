@@ -96,18 +96,17 @@ export default function OrdersQueueSidebar({ orders = [], selectedOrderId, onSel
               key={order.id}
               onClick={() => onSelectOrder?.(order)}
               className={cn(
-                "apple-press w-full text-left rounded-apple-md px-2.5 py-2 transition-all relative",
+                "apple-press w-full text-left rounded-apple-md px-2.5 py-2 transition-all",
                 isSelected
                   ? "bg-apple-blue/15"
                   : "apple-surface-elevated hover:bg-gray-sys6 dark:hover:bg-gray-sys5"
               )}
             >
-              {/* Position indicator */}
-              <div className="absolute -left-1 top-2 flex items-center justify-center">
-                <span className="apple-text-caption2 font-semibold apple-label-tertiary tabular-nums">{position}</span>
-              </div>
-
-              <div className="flex items-start gap-2 pl-2">
+              <div className="flex items-start gap-2">
+                {/* Position indicator — inline, NO absolute para no salirse de la card */}
+                <span className="apple-text-caption2 font-semibold apple-label-tertiary tabular-nums w-5 text-center shrink-0 mt-0.5">
+                  {position}
+                </span>
                 <div className="flex-1 min-w-0">
                   {/* Header: order # + status dot + time */}
                   <div className="flex items-center gap-1.5 mb-0.5">
