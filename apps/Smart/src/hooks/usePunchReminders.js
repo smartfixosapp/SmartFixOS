@@ -15,7 +15,7 @@ const DAY_KEYS = [
   "saturday",
 ];
 
-const TICK_MS = 60_000; // 1 min
+const TICK_MS = 5 * 60_000; // 5 min — las ventanas de aviso son de ±10 min, no necesitamos tick por segundo
 
 function readSession() {
   try {
