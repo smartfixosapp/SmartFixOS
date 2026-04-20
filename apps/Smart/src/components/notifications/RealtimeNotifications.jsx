@@ -63,31 +63,19 @@ export function useRealtimeNotifications({ enabled = true } = {}) {
       });
       */
 
-      // 2. Verificar órdenes completadas recientemente
-      const recentCompletions = await dataClient.entities.WorkOrderEvent.filter({
+      // Una sola query para status_change — antes eran 2 consecutivas con el mismo filtro.
+      const statusEvents = await dataClient.entities.WorkOrderEvent.filter({
         event_type: 'status_change',
       }, '-created_date', 10);
 
-      recentCompletions?.forEach(event => {
+      statusEvents?.forEach(event => {
         const eventTime = new Date(event.created_date).getTime();
-        if (eventTime > lastCheck && 
-            event.new_value === 'picked_up' && 
-            !processedIds.current.has(event.id)) {
+        if (eventTime <= lastCheck) return;
+
+        if (event.new_value === 'picked_up' && !processedIds.current.has(event.id)) {
           showOrderCompletedNotification(event);
           processedIds.current.add(event.id);
-        }
-      });
-
-      // 3. Verificar órdenes listas para recoger
-      const readyOrders = await dataClient.entities.WorkOrderEvent.filter({
-        event_type: 'status_change',
-      }, '-created_date', 10);
-
-      readyOrders?.forEach(event => {
-        const eventTime = new Date(event.created_date).getTime();
-        if (eventTime > lastCheck && 
-            event.new_value === 'ready_for_pickup' && 
-            !processedIds.current.has(event.id + '_ready')) {
+        } else if (event.new_value === 'ready_for_pickup' && !processedIds.current.has(event.id + '_ready')) {
           showOrderReadyNotification(event);
           processedIds.current.add(event.id + '_ready');
         }
