@@ -1437,49 +1437,96 @@ Maximo 150 palabras. Texto plano, sin markdown.`
               </div>
             ) : (
               <div className="apple-list">
-                {combinedMovements.filter(m => movFilter === "all" || m.kind === movFilter).map((m) => (
-                  <div key={m.id} className="apple-list-row group">
-                    <div className={`apple-list-row-icon rounded-apple-sm flex items-center justify-center shrink-0 ${
-                      m.kind === "income" ? "bg-apple-green/15 text-apple-green" : "bg-apple-red/15 text-apple-red"
-                    }`}>
-                      {m.kind === "income" ? <TrendingUp className="w-4 h-4" /> : <TrendingDown className="w-4 h-4" />}
-                    </div>
-                    <div className="apple-list-row-title flex-1 min-w-0">
-                      <p className="apple-label-primary apple-text-body font-medium truncate">{m.title}</p>
-                      <p className="apple-text-footnote apple-label-tertiary truncate">
-                        {m.subtitle}
-                        {m.date ? ` · ${format(new Date(m.date), "dd MMM HH:mm", { locale: es })}` : ""}
-                        {m.linkedPO && (
-                          <>
-                            {" · "}
-                            <button
-                              onClick={() => { setActiveTab("compras"); setViewingPO(m.linkedPO); }}
-                              className="text-apple-blue font-semibold"
-                              title="Ver orden de compra"
-                            >
-                              🛒 {m.linkedPO.po_number}
-                            </button>
-                          </>
-                        )}
-                      </p>
-                    </div>
-                    <div className="apple-list-row-value flex items-center gap-1.5 shrink-0">
-                      <p className={`apple-text-body font-semibold tabular-nums ${m.kind === "income" ? "text-apple-green" : "text-apple-red"}`}>
-                        {m.kind === "income" ? "+" : "-"}${m.amount.toFixed(2)}
-                      </p>
-                      {m.canEdit && (
-                        <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                          <button onClick={() => handleEditExpense(m.raw)} className="apple-press w-7 h-7 rounded-apple-sm bg-gray-sys6 dark:bg-gray-sys5 apple-label-secondary flex items-center justify-center">
-                            <Edit2 className="w-3 h-3" />
-                          </button>
-                          <button onClick={() => handleDeleteExpense(m.origId)} className="apple-press w-7 h-7 rounded-apple-sm bg-apple-red/12 text-apple-red flex items-center justify-center">
-                            <Trash2 className="w-3 h-3" />
-                          </button>
+                {combinedMovements.filter(m => movFilter === "all" || m.kind === movFilter).map((m) => {
+                  const isExpanded = expandedMovementId === m.id;
+                  const isIncome = m.kind === "income";
+                  // Compute breakdown for income (sales only)
+                  let breakdown = null;
+                  if (isIncome && m.raw) {
+                    const items = Array.isArray(m.raw?.items) ? m.raw.items : [];
+                    const piezas = items.reduce((s, it) => {
+                      const qty = Number(it?.quantity || 0);
+                      return s + Number(it?.line_cost || (Number(it?.cost || 0) * qty));
+                    }, 0);
+                    const ivu = Number(m.raw.tax_amount || 0);
+                    const cobrado = Number(m.raw.total || 0);
+                    const neta = cobrado - ivu - piezas;
+                    breakdown = { cobrado, piezas, ivu, neta };
+                  }
+
+                  return (
+                    <div key={m.id}>
+                      <button
+                        onClick={() => setExpandedMovementId(isExpanded ? null : m.id)}
+                        className="apple-list-row group w-full text-left"
+                      >
+                        <div className={`apple-list-row-icon rounded-apple-sm flex items-center justify-center shrink-0 ${
+                          isIncome ? "bg-apple-green/15 text-apple-green" : "bg-apple-red/15 text-apple-red"
+                        }`}>
+                          {isIncome ? <TrendingUp className="w-4 h-4" /> : <TrendingDown className="w-4 h-4" />}
+                        </div>
+                        <div className="apple-list-row-title flex-1 min-w-0">
+                          <p className="apple-label-primary apple-text-body font-medium truncate">{m.title}</p>
+                          <p className="apple-text-footnote apple-label-tertiary truncate">
+                            {m.subtitle}
+                            {m.date ? ` · ${format(new Date(m.date), "dd MMM HH:mm", { locale: es })}` : ""}
+                            {m.linkedPO && (
+                              <>
+                                {" · "}
+                                <span
+                                  onClick={(e) => { e.stopPropagation(); setActiveTab("compras"); setViewingPO(m.linkedPO); }}
+                                  className="text-apple-blue font-semibold cursor-pointer"
+                                >
+                                  🛒 {m.linkedPO.po_number}
+                                </span>
+                              </>
+                            )}
+                          </p>
+                        </div>
+                        <div className="apple-list-row-value flex items-center gap-1.5 shrink-0">
+                          <p className={`apple-text-body font-semibold tabular-nums ${isIncome ? "text-apple-green" : "text-apple-red"}`}>
+                            {isIncome ? "+" : "-"}${m.amount.toFixed(2)}
+                          </p>
+                          {m.canEdit && (
+                            <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                              <button onClick={(e) => { e.stopPropagation(); handleEditExpense(m.raw); }} className="apple-press w-7 h-7 rounded-apple-sm bg-gray-sys6 dark:bg-gray-sys5 apple-label-secondary flex items-center justify-center">
+                                <Edit2 className="w-3 h-3" />
+                              </button>
+                              <button onClick={(e) => { e.stopPropagation(); handleDeleteExpense(m.origId); }} className="apple-press w-7 h-7 rounded-apple-sm bg-apple-red/12 text-apple-red flex items-center justify-center">
+                                <Trash2 className="w-3 h-3" />
+                              </button>
+                            </div>
+                          )}
+                        </div>
+                      </button>
+                      {/* Expanded breakdown */}
+                      {isExpanded && breakdown && (
+                        <div className="px-4 pb-3 pt-1 bg-white/[0.02]">
+                          <div className="grid grid-cols-4 gap-2">
+                            <div className="bg-apple-green/12 rounded-apple-sm px-3 py-2 text-center">
+                              <p className="apple-text-caption2 font-semibold apple-label-tertiary">Cobrado</p>
+                              <p className="apple-text-subheadline font-semibold text-apple-green tabular-nums mt-0.5">${breakdown.cobrado.toFixed(2)}</p>
+                            </div>
+                            <div className="bg-apple-orange/12 rounded-apple-sm px-3 py-2 text-center">
+                              <p className="apple-text-caption2 font-semibold apple-label-tertiary">Piezas</p>
+                              <p className="apple-text-subheadline font-semibold text-apple-orange tabular-nums mt-0.5">${breakdown.piezas.toFixed(2)}</p>
+                            </div>
+                            <div className="bg-apple-yellow/12 rounded-apple-sm px-3 py-2 text-center">
+                              <p className="apple-text-caption2 font-semibold apple-label-tertiary">IVU</p>
+                              <p className="apple-text-subheadline font-semibold text-apple-yellow tabular-nums mt-0.5">${breakdown.ivu.toFixed(2)}</p>
+                            </div>
+                            <div className={`rounded-apple-sm px-3 py-2 text-center ${breakdown.neta >= 0 ? "bg-apple-blue/12" : "bg-apple-red/12"}`}>
+                              <p className="apple-text-caption2 font-semibold apple-label-tertiary">Neta</p>
+                              <p className={`apple-text-subheadline font-semibold tabular-nums mt-0.5 ${breakdown.neta >= 0 ? "text-apple-blue" : "text-apple-red"}`}>
+                                {breakdown.neta >= 0 ? "+" : "−"}${Math.abs(breakdown.neta).toFixed(2)}
+                              </p>
+                            </div>
+                          </div>
                         </div>
                       )}
                     </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             )}
 
