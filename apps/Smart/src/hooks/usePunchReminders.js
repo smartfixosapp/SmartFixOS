@@ -82,6 +82,8 @@ export function usePunchReminders() {
     };
 
     const tick = async () => {
+      // Pausar cuando la app no está visible — iOS mantiene WebViews corriendo en background
+      if (typeof document !== "undefined" && document.visibilityState === "hidden") return;
       const session = readSession();
       const empId =
         session?.employee_id ||
