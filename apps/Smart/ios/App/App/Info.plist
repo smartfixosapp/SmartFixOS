@@ -79,6 +79,14 @@
 	</array>
 	<key>NSFaceIDUsageDescription</key>
 	<string>Se requiere FaceID para autenticar de forma segura tu acceso a SmartFixOS.</string>
+	<key>NSCameraUsageDescription</key>
+	<string>SmartFixOS necesita acceso a la cámara para tomar fotos de los equipos, piezas y evidencia de las órdenes de reparación.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>SmartFixOS necesita acceso a tus fotos para adjuntar imágenes a las órdenes de reparación.</string>
+	<key>NSPhotoLibraryAddUsageDescription</key>
+	<string>SmartFixOS necesita permiso para guardar fotos relacionadas con las órdenes de reparación.</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>SmartFixOS necesita acceso al micrófono al grabar videos de diagnóstico de los equipos.</string>
 	<key>NSAppTransportSecurity</key>
 	<dict>
 		<key>NSAllowsArbitraryLoadsInWebContent</key>
