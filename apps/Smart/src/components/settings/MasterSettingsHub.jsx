@@ -63,7 +63,7 @@ const base44 = window.base44 || {
    ============================================================ */
 async function upsertConfig(cfg) {
   try {
-    const res = await fetch("/api/system-config", {
+    const res = await fetch(apiUrl("/api/system-config"), {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(cfg),
@@ -75,7 +75,7 @@ async function upsertConfig(cfg) {
 }
 async function getConfig(key) {
   try {
-    const res = await fetch(`/api/system-config?key=${encodeURIComponent(key)}`);
+    const res = await fetch(apiUrl(`/api/system-config?key=${encodeURIComponent(key)}`));
     if (res.ok) {
       const data = await res.json();
       if (data && data.key) return data;
@@ -149,7 +149,7 @@ function UsersSettingsTab({ toastRef }) {
   const load = useCallback(async () => {
     setLoading(true);
     try {
-      const res = await fetch("/api/users");
+      const res = await fetch(apiUrl("/api/users"));
       if (res.ok) {
         const j = await res.json();
         setRows(Array.isArray(j) ? j : []);
@@ -188,10 +188,10 @@ function UsersSettingsTab({ toastRef }) {
     try {
       const u = { ...editing };
       if (u.id) {
-        const res = await fetch(`/api/users/${u.id}`, { method:"PUT", headers:{ "Content-Type":"application/json" }, body: JSON.stringify(u) });
+        const res = await fetch(apiUrl(`/api/users/${u.id}`), { method:"PUT", headers:{ "Content-Type":"application/json" }, body: JSON.stringify(u) });
         if (!res.ok) throw new Error("No se pudo actualizar");
       } else {
-        const res = await fetch(`/api/users`, { method:"POST", headers:{ "Content-Type":"application/json" }, body: JSON.stringify(u) });
+        const res = await fetch(apiUrl(`/api/users`), { method:"POST", headers:{ "Content-Type":"application/json" }, body: JSON.stringify(u) });
         if (!res.ok) throw new Error("No se pudo crear");
       }
       if (toastRef?.current) toastRef.current.show("Usuario guardado");
@@ -214,7 +214,7 @@ function UsersSettingsTab({ toastRef }) {
   }
   async function toggleActive(u) {
     try {
-      const res = await fetch(`/api/users/${u.id}/active`, { method:"POST", headers:{ "Content-Type":"application/json" }, body: JSON.stringify({ active: !(u.active!==false) }) });
+      const res = await fetch(apiUrl(`/api/users/${u.id}/active`), { method:"POST", headers:{ "Content-Type":"application/json" }, body: JSON.stringify({ active: !(u.active!==false) }) });
       if (!res.ok) throw 0;
       await load();
     } catch {
@@ -227,7 +227,7 @@ function UsersSettingsTab({ toastRef }) {
   }
   async function resetPassword(u) {
     try {
-      const res = await fetch(`/api/users/${u.id}/reset-password`, { method:"POST" });
+      const res = await fetch(apiUrl(`/api/users/${u.id}/reset-password`), { method:"POST" });
       if (!res.ok) throw 0;
       toastRef?.current?.show("Se envió enlace de restablecimiento");
     } catch {
@@ -236,7 +236,7 @@ function UsersSettingsTab({ toastRef }) {
   }
   async function forceMFA(u, flag) {
     try {
-      const res = await fetch(`/api/users/${u.id}/mfa`, { method:"POST", headers:{ "Content-Type":"application/json" }, body: JSON.stringify({ mfa: flag }) });
+      const res = await fetch(apiUrl(`/api/users/${u.id}/mfa`), { method:"POST", headers:{ "Content-Type":"application/json" }, body: JSON.stringify({ mfa: flag }) });
       if (!res.ok) throw 0;
       await load();
     } catch {
@@ -370,7 +370,7 @@ function BranchesSettingsTab({ toastRef }) {
   const load = useCallback(async ()=>{
     setLoading(true);
     try {
-      const res = await fetch("/api/branches");
+      const res = await fetch(apiUrl("/api/branches"));
       if (res.ok) {
         const j = await res.json();
         setRows(Array.isArray(j)?j:[]);
@@ -397,10 +397,10 @@ function BranchesSettingsTab({ toastRef }) {
   async function saveBranch() {
     try {
       if (editing.id) {
-        const res = await fetch(`/api/branches/${editing.id}`, { method:"PUT", headers:{ "Content-Type":"application/json" }, body: JSON.stringify(editing) });
+        const res = await fetch(apiUrl(`/api/branches/${editing.id}`), { method:"PUT", headers:{ "Content-Type":"application/json" }, body: JSON.stringify(editing) });
         if (!res.ok) throw 0;
       } else {
-        const res = await fetch(`/api/branches`, { method:"POST", headers:{ "Content-Type":"application/json" }, body: JSON.stringify(editing) });
+        const res = await fetch(apiUrl(`/api/branches`), { method:"POST", headers:{ "Content-Type":"application/json" }, body: JSON.stringify(editing) });
         if (!res.ok) throw 0;
       }
       setShowForm(false);
@@ -504,7 +504,7 @@ function TestsCard({ smtpHost, smtpUser, smtpFrom, webhookUrl, smsSender, toastR
   const testEmail = async () => {
     setTesting(true);
     try {
-      const res = await fetch("/api/test/email", { method:"POST", headers:{ "Content-Type":"application/json" }, body: JSON.stringify({ to: emailTo }) });
+      const res = await fetch(apiUrl("/api/test/email"), { method:"POST", headers:{ "Content-Type":"application/json" }, body: JSON.stringify({ to: emailTo }) });
       if (!res.ok) throw 0;
       toastRef?.current?.show("Email de prueba enviado");
     } catch {
