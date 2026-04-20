@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "sonner";
+import { apiUrl } from "@/lib/apiUrl";
 import {
   Building2, Phone, Clock, Lock,
   ChevronRight, ChevronLeft, Check, Upload,
@@ -118,7 +119,7 @@ export default function TenantActivate() {
 
   const validateToken = async () => {
     try {
-      const res = await fetch(`/api/validate-token?token=${encodeURIComponent(token)}`);
+      const res = await fetch(apiUrl(`/api/validate-token?token=${encodeURIComponent(token)}`));
       const data = await res.json();
 
       if (data.alreadyActive) { setStatus('done'); return; }
@@ -234,7 +235,7 @@ export default function TenantActivate() {
         reader.readAsDataURL(file);
       });
       const ext = file.name.split('.').pop() || 'png';
-      const res = await fetch('/api/upload-logo', {
+      const res = await fetch(apiUrl('/api/upload-logo'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ base64, tenantId: tenantId || 'unknown', ext, mimeType: file.type }),
@@ -256,7 +257,7 @@ export default function TenantActivate() {
 
     setStatus('saving');
     try {
-      const res = await fetch('/api/activate-complete', {
+      const res = await fetch(apiUrl('/api/activate-complete'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

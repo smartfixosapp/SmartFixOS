@@ -13,6 +13,7 @@ import { ensureAdminBootstrap, ensureTenantAdminUser } from "@/components/utils/
 import { getUserPermissions } from "@/components/utils/rolePermissions";
 import RequestAccessModal from "../components/auth/RequestAccessModal";
 import NovedadesPanel from "../components/pinaccess/NovedadesPanel";
+import { apiUrl } from "@/lib/apiUrl";
 // registerTenant now handled by /api/register (Vercel serverless)
 
 // ── Recovery component for stuck/corrupted sessions ───────────────────────
@@ -536,7 +537,7 @@ export default function PinAccess() {
 
         // Dispositivo no confiable → generar y enviar OTP desde el servidor
         try {
-          const otpRes = await fetch(`/api/admin-otp`, {
+          const otpRes = await fetch(apiUrl(`/api/admin-otp`), {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
@@ -682,7 +683,7 @@ export default function PinAccess() {
         return;
       }
       // Pedir al servidor que genere y envíe el OTP (Vercel endpoint)
-      const res = await fetch(`/api/admin-otp`, {
+      const res = await fetch(apiUrl(`/api/admin-otp`), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ action: "send", email: SUPER_ADMIN_EMAIL }),
@@ -834,7 +835,7 @@ export default function PinAccess() {
     setGoogleRegisterSubmitting(true);
     try {
       const randomPwd = window.crypto.randomUUID().replace(/-/g, '') + "Aa1!";
-      const res = await fetch('/api/register', {
+      const res = await fetch(apiUrl('/api/register'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -1102,7 +1103,7 @@ export default function PinAccess() {
 
     setFirstUserSaving(true);
     try {
-      const res = await fetch('/api/manage-tenant', {
+      const res = await fetch(apiUrl('/api/manage-tenant'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -1858,7 +1859,7 @@ export default function PinAccess() {
     }
     setOtpLoading(true);
     try {
-      const res = await fetch(`/api/admin-otp`, {
+      const res = await fetch(apiUrl(`/api/admin-otp`), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -2735,7 +2736,7 @@ export default function PinAccess() {
     setSubmitting(true);
     try {
       const fullName = `${formData.first_name} ${formData.last_name}`.trim();
-      const res = await fetch('/api/register', {
+      const res = await fetch(apiUrl('/api/register'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

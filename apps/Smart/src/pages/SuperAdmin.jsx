@@ -5,6 +5,7 @@ import { supabase } from "../../../../lib/supabase-client.js";
 import { createClient } from "@supabase/supabase-js";
 import { toast } from "sonner";
 import { motion, AnimatePresence } from "framer-motion";
+import { apiUrl } from "@/lib/apiUrl";
 import {
   Shield, Building2, CheckCircle, XCircle, Clock, DollarSign,
   Search, RefreshCw, LogOut, AlertTriangle, TrendingUp,
@@ -606,7 +607,7 @@ export default function SuperAdmin() {
   const doAction = async (tenantId, action, extra = {}) => {
     setActionId(tenantId + action);
     try {
-      const res = await fetch('/api/manage-tenant', {
+      const res = await fetch(apiUrl('/api/manage-tenant'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ tenantId, action, ...extra }),
@@ -634,7 +635,7 @@ export default function SuperAdmin() {
     try {
       // Nuclear delete by email: limpia Auth user + todas las tablas por email Y tenant_id
       const body = email ? { email } : { tenantId };
-      const res = await fetch('/api/delete-tenant', {
+      const res = await fetch(apiUrl('/api/delete-tenant'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(body),
@@ -680,7 +681,7 @@ export default function SuperAdmin() {
     if (!editTenant) return;
     setActionId(editTenant.id + "edit");
     try {
-      const res = await fetch('/api/manage-tenant', {
+      const res = await fetch(apiUrl('/api/manage-tenant'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ tenantId: editTenant.id, action: 'edit', ...editForm }),
@@ -772,7 +773,7 @@ export default function SuperAdmin() {
   const doSeedTemplates = async (tenantId) => {
     setActionId(tenantId + "seed");
     try {
-      const res = await fetch('/api/seed-email-templates', {
+      const res = await fetch(apiUrl('/api/seed-email-templates'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ tenantId }),
@@ -791,7 +792,7 @@ export default function SuperAdmin() {
     if (!email) return toast.error("No hay email para este tenant");
     setActionId("reset" + email);
     try {
-      const res = await fetch('/api/manage-tenant', {
+      const res = await fetch(apiUrl('/api/manage-tenant'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ tenantId: editTenant?.id || "na", action: 'reset_password', email }),
@@ -814,7 +815,7 @@ export default function SuperAdmin() {
     setNuclearLoading(true);
     setNuclearResult(null);
     try {
-      const res = await fetch('/api/delete-tenant', {
+      const res = await fetch(apiUrl('/api/delete-tenant'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email: nuclearEmail.trim() }),
