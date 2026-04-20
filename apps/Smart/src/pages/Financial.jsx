@@ -1341,13 +1341,9 @@ Maximo 150 palabras. Texto plano, sin markdown.`
         <div className="flex items-center gap-2 overflow-x-auto no-scrollbar sticky top-[52px] z-30 apple-surface py-2 -mx-3 px-3 sm:-mx-4 sm:px-4 md:-mx-6 md:px-6">
           <div className="flex items-center gap-1 p-1 bg-gray-sys6 dark:bg-gray-sys5 rounded-apple-md shrink-0">
             {[
-              { id: "resumen",     tab: "resumen",     filter: null,   label: "Resumen",     icon: BarChart3 },
               { id: "movimientos", tab: "movimientos", filter: "all",  label: "Movimientos", icon: Receipt },
-              { id: "compromisos", tab: "compromisos", filter: null,   label: "Compromisos", icon: Target },
               { id: "compras",     tab: "compras",     filter: null,   label: "Compras",     icon: ShoppingCart },
-              { id: "diferidos",   tab: "diferidos",   filter: null,   label: "Diferidos",   icon: Clock, badge: unsettledTotal > 0 ? unsettledTotal : null },
               { id: "reportes",    tab: "reportes",    filter: null,   label: "Reportes",    icon: PieChart },
-              { id: "tecnicos",    tab: "tecnicos",    filter: null,   label: "Equipo",      icon: TrendingUp },
             ].map(k => {
               const isActive = k.tab === activeTab;
               return (
