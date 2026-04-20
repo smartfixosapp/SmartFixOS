@@ -207,7 +207,7 @@ export default function POSSaleActionsModal({ open, onClose, sale, customer, car
     try {
       // Llama directamente a la Vercel serverless function /api/send-raw-email
       // (RESEND_API_KEY está en process.env de Vercel, no en el frontend)
-      const res = await fetch('/api/send-raw-email', {
+      const res = await fetch(apiUrl('/api/send-raw-email'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
