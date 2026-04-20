@@ -168,6 +168,7 @@ export default function Financial() {
   const [movFilter, setMovFilter] = useState("all"); // "all" | "income" | "expense"
   const [activeTab, setActiveTab] = useState("movimientos");
   const [showJenaiCapture, setShowJenaiCapture] = useState(false);
+  const [expandedMovementId, setExpandedMovementId] = useState(null);
   const [aiSummary, setAiSummary] = useState("");
   const [aiLoading, setAiLoading] = useState(false);
 
