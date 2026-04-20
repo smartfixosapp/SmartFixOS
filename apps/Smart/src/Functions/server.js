@@ -68,6 +68,7 @@ const corsHeaders = {
 // Routes that should return unwrapped responses (to match Python backend API)
 const unwrappedRoutes = new Set([
   '/extract_file',
+  '/ai/extract-expense',
   '/ai/invoke',
   '/ai/chat',
   '/ai/gemini-summary',
