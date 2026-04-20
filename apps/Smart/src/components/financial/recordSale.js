@@ -1,4 +1,5 @@
 import { dataClient } from "@/components/api/dataClient";
+import { apiUrl } from "@/lib/apiUrl";
 
 export function resolveActiveTenantId() {
   try {
