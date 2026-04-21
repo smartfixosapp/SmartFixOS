@@ -560,7 +560,7 @@ export default function OrdersPage() {
       {/* Pull-to-refresh indicator ELIMINADO */}
 
       {/* Contenido */}
-      <div className="max-w-[1920px] mx-auto px-4 sm:px-6 py-3 sm:py-6">
+      <div className="app-container py-3 sm:py-6">
         {/* Header — tabs + acciones mobile, sticky con blur iOS */}
         <div
           className="relative sticky z-40 -mx-4 px-4 py-2 sm:relative sm:z-0 sm:p-0 sm:mb-6 sm:mx-0 sm:bg-transparent"
