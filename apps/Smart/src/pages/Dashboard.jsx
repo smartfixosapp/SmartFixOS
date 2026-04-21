@@ -1019,7 +1019,7 @@ export default function Dashboard() {
               </div>
 
               {/* Resumen rápido (KPIs) */}
-              <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 mt-4 shrink-0">
+              <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mt-4 shrink-0">
                 <button
                   onClick={() => handleNavigate("Orders")}
                   className={cn(
