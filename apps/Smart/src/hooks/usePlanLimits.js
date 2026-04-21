@@ -16,7 +16,22 @@ import { normalizePlanId, getPlan, checkPlanLimit, getUpgradePlan } from "@/lib/
 export function usePlanLimits() {
   const { currentTenant } = useTenant();
 
-  const planId = useMemo(() => normalizePlanId(currentTenant?.plan), [currentTenant?.plan]);
+  const planId = useMemo(() => {
+    // Try plan field first, then metadata fallbacks
+    const raw = currentTenant?.plan
+      || currentTenant?.metadata?.plan
+      || currentTenant?.metadata?.plan_label
+      || currentTenant?.subscription_plan;
+    const id = normalizePlanId(raw);
+    // Debug: log plan resolution to catch mismatches
+    if (currentTenant?.id && id === 'starter' && raw) {
+      console.debug(`[PlanLimits] Tenant ${currentTenant.id} plan="${raw}" → resolved="${id}"`);
+    }
+    if (currentTenant?.id && !raw) {
+      console.warn(`[PlanLimits] Tenant ${currentTenant.id} has NO plan field — defaulting to starter. Set tenant.plan in the admin panel.`);
+    }
+    return id;
+  }, [currentTenant?.plan, currentTenant?.metadata, currentTenant?.subscription_plan, currentTenant?.id]);
   const planConfig = useMemo(() => getPlan(planId), [planId]);
 
   /** Quantity limit check */
