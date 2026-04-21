@@ -1581,7 +1581,7 @@ Maximo 150 palabras. Texto plano, sin markdown.`
     <div ref={containerRef} className="min-h-screen apple-surface apple-type overflow-y-auto apple-scroll pb-24" style={{ WebkitOverflowScrolling: 'touch' }}>
       {/* Pull-to-refresh indicator ELIMINADO */}
 
-      <div className="max-w-[1600px] mx-auto px-4 sm:px-6 py-4 sm:py-6" style={{ paddingTop: "calc(env(safe-area-inset-top, 0px) + 16px)" }}>
+      <div className="app-container py-4 sm:py-6" style={{ paddingTop: "calc(env(safe-area-inset-top, 0px) + 16px)" }}>
         {/* ── Header estilo iOS (large title + acciones) ─────────── */}
         <div className="flex items-end justify-between gap-3 mb-5">
           <div className="min-w-0 flex-1">
