@@ -16,7 +16,7 @@ export default defineConfig({
       manifest: false,
       selfDestroying: false,
       workbox: {
-        cacheId: 'sfos-v6', // bumped to force SW cache invalidation after plan limits fix
+        cacheId: 'sfos-v7', // v7: removed client-side order creation blocker
         clientsClaim: true,
         skipWaiting: true,
         globPatterns: ['**/*.{js,css,ico,png,svg,woff2}'],
