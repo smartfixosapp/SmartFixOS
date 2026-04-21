@@ -113,18 +113,18 @@ function Toast({ toast, onClose }) {
   return (
     <div className="fixed top-4 right-4 z-[9999]">
       <div
-        className={`min-w-[260px] max-w-sm rounded-lg border px-4 py-3 shadow-lg backdrop-blur-md ${
+        className={`liquid-glass-strong min-w-[260px] max-w-sm rounded-2xl px-4 py-3 text-white ${
           toast.variant === "error"
-            ? "bg-gradient-to-r from-red-600/90 to-red-800/90 border-red-400 text-white"
-            : "bg-gradient-to-r from-emerald-600/90 to-emerald-800/90 border-emerald-400 text-white"
+            ? "!border-red-500/40"
+            : "!border-emerald-500/40"
         }`}
       >
         <div className="font-semibold">{toast.title}</div>
         {toast.message && (
-          <div className="text-sm opacity-90">{toast.message}</div>
+          <div className="text-sm text-white/80">{toast.message}</div>
         )}
         <button
-          className="mt-2 text-xs underline opacity-90 hover:opacity-100"
+          className="mt-2 text-xs underline text-white/70 hover:text-white"
           onClick={onClose}
         >
           Cerrar
