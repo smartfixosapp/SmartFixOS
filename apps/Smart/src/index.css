@@ -417,6 +417,32 @@ button:focus-visible {
 }
 
 /* ──────────────────────────────────────────────────────────────────────────
+ * Z-index layer system — consistent stacking order across the app
+ *
+ * Instead of ad-hoc z-[9999], z-50, z-[300], use these semantic layers.
+ * Each layer has a clear role and known relationship to others.
+ *
+ * Order (low → high):
+ *   content  (1)   → page content, cards, relative elements
+ *   sticky   (10)  → sticky headers, sidebars
+ *   dropdown (20)  → dropdown menus, popovers, tooltips
+ *   nav      (30)  → top nav, bottom tab bar
+ *   modal    (50)  → modals, dialogs, sheets
+ *   toast    (60)  → toasts, notifications, banners
+ *   overlay  (70)  → fullscreen overlays (work order panel, etc.)
+ * ────────────────────────────────────────────────────────────────────────── */
+
+:root {
+  --z-content:  1;
+  --z-sticky:   10;
+  --z-dropdown: 20;
+  --z-nav:      30;
+  --z-modal:    50;
+  --z-toast:    60;
+  --z-overlay:  70;
+}
+
+/* ──────────────────────────────────────────────────────────────────────────
  * Fluid container — adapts to ANY screen size without dead space
  *
  * Strategy: edge-to-edge with breathing padding.
