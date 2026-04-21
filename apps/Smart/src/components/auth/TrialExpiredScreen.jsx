@@ -72,15 +72,16 @@ export default function TrialExpiredScreen({ tenantName, onActivatePlan, onConta
         {/* Botones */}
         <div className="space-y-3 mb-6">
           <Button
-            onClick={onActivatePlan}
-            className="apple-btn apple-btn-primary apple-btn-lg w-full"
+            onClick={() => navigate("/Pricing")}
+            className="w-full h-14 rounded-2xl bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-600 hover:to-blue-600 text-white font-bold text-base shadow-lg shadow-cyan-500/25 transition-all active:scale-[0.98]"
           >
-            Activar plan y continuar
+            Ver planes y activar
+            <ArrowRight className="w-4 h-4 ml-2" />
           </Button>
           <Button
             onClick={onContactSupport}
-            variant="outline"
-            className="apple-btn apple-btn-secondary w-full"
+            variant="ghost"
+            className="w-full h-12 rounded-xl text-white/60 hover:text-white hover:bg-white/10 text-sm"
           >
             Contactar por email
           </Button>
