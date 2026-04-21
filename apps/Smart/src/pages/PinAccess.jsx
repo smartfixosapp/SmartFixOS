@@ -2757,8 +2757,13 @@ export default function PinAccess() {
       });
       const data = await res.json();
       if (data?.success) {
-        setSignupResult(data);
-        setSignupStep("success");
+        // Redirigir a la página de verificación de email
+        const verifyParams = new URLSearchParams({
+          email: formData.email,
+          name: data.tenantName || formData.store_name || formData.first_name,
+          ...(data.trialEndDate ? { trial: data.trialEndDate } : {}),
+        });
+        navigate(`/VerifyEmail?${verifyParams.toString()}`);
       } else {
         const msg = data?.error || "Error al crear la cuenta";
         toast.error(msg);
