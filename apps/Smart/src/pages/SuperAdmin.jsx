@@ -2190,7 +2190,7 @@ export default function SuperAdmin() {
 
       {/* ── Top bar ── */}
       <header className="sticky top-0 z-30 apple-surface-elevated backdrop-blur-2xl" style={{ borderBottom: "0.5px solid rgba(60,60,67,0.29)" }}>
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 h-14 flex items-center justify-between gap-4">
+        <div className="app-container h-14 flex items-center justify-between gap-4">
           <div className="flex items-center gap-3">
             <div className="w-8 h-8 rounded-apple-sm bg-apple-purple/15 flex items-center justify-center">
               <Shield className="w-4 h-4 text-apple-purple" />
@@ -2263,7 +2263,7 @@ export default function SuperAdmin() {
         </div>
       </header>
 
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 py-6 space-y-6">
+      <main className="app-container py-6 space-y-6">
 
         {/* ── Metric cards ── */}
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">

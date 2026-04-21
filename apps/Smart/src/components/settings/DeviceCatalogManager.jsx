@@ -1478,7 +1478,7 @@ export default function DeviceCatalogManager() {
             <div className="flex flex-wrap items-center gap-2 text-sm">
               {breadcrumbItems.map((item, index) => (
                 <React.Fragment key={item.key}>
-                  {index > 0 && <ChevronDown className="h-4 w-4 rotate-[-90deg] text-white/30" />}
+                  {index > 0 && <ChevronDown className="h-4 w-4 rotate-[-90deg] text-white/50" />}
                   <button
                     type="button"
                     onClick={item.onClick}

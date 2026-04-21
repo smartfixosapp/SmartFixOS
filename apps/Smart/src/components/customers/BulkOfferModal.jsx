@@ -198,7 +198,7 @@ export default function BulkOfferModal({ open, onClose, customers = [] }) {
               </div>
               <div>
                 <h2 className="text-white font-semibold text-base">Enviar Oferta Masiva</h2>
-                <p className="text-white/30 text-[11px]">
+                <p className="text-white/50 text-[11px]">
                   {totalRecipients} destinatario{totalRecipients !== 1 ? "s" : ""} · {emailList.length} emails · {waAll.length} WhatsApp
                 </p>
               </div>
@@ -231,9 +231,9 @@ export default function BulkOfferModal({ open, onClose, customers = [] }) {
                         isActive ? c.active : "border-white/[0.06] bg-white/[0.02] hover:bg-white/[0.05]"
                       }`}
                     >
-                      <Icon className={`w-4 h-4 shrink-0 ${isActive ? c.icon : "text-white/25"}`} />
+                      <Icon className={`w-4 h-4 shrink-0 ${isActive ? c.icon : "text-white/50"}`} />
                       <span className={`flex-1 text-xs font-bold leading-tight ${isActive ? "text-white" : "text-white/40"}`}>{f.label}</span>
-                      <span className={`text-[10px] font-semibold px-1.5 py-0.5 rounded-full shrink-0 ${isActive ? c.badge : "bg-white/5 text-white/25"}`}>{count}</span>
+                      <span className={`text-[10px] font-semibold px-1.5 py-0.5 rounded-full shrink-0 ${isActive ? c.badge : "bg-white/5 text-white/50"}`}>{count}</span>
                     </button>
                   );
                 })}
@@ -265,7 +265,7 @@ export default function BulkOfferModal({ open, onClose, customers = [] }) {
                       {selectedIds.size > 0 && (
                         <>
                           <span className="text-white/40">·</span>
-                          <button onClick={clearAll} className="text-[10px] text-white/30 hover:text-white/60 font-bold transition-colors">
+                          <button onClick={clearAll} className="text-[10px] text-white/50 hover:text-white/60 font-bold transition-colors">
                             Limpiar
                           </button>
                         </>
@@ -294,7 +294,7 @@ export default function BulkOfferModal({ open, onClose, customers = [] }) {
                         }
                         <div className="flex-1 min-w-0">
                           <p className="text-white text-xs font-bold truncate">{c.name || "Sin nombre"}</p>
-                          <p className="text-white/25 text-[10px] truncate">
+                          <p className="text-white/50 text-[10px] truncate">
                             {[c.email, c.phone].filter(Boolean).join(" · ") || "Sin contacto"}
                           </p>
                         </div>
@@ -352,7 +352,7 @@ export default function BulkOfferModal({ open, onClose, customers = [] }) {
                 ].map(t => (
                   <button key={t.id} onClick={() => setTab(t.id)}
                     className={`flex-1 flex items-center justify-center gap-2 py-2 rounded-xl text-xs font-semibold transition-all ${
-                      tab === t.id ? `${t.cls} text-white shadow` : "text-white/30 hover:text-white/60"
+                      tab === t.id ? `${t.cls} text-white shadow` : "text-white/50 hover:text-white/60"
                     }`}>
                     <t.Icon className="w-3.5 h-3.5" />
                     {t.label}
@@ -400,7 +400,7 @@ export default function BulkOfferModal({ open, onClose, customers = [] }) {
                             </div>
                             <div className="flex-1 min-w-0">
                               <p className="text-white text-xs font-bold truncate">{c.name || "Sin nombre"}</p>
-                              <p className="text-white/30 text-[10px] truncate">{c.email}</p>
+                              <p className="text-white/50 text-[10px] truncate">{c.email}</p>
                             </div>
                           </div>
                         ))}
@@ -457,7 +457,7 @@ export default function BulkOfferModal({ open, onClose, customers = [] }) {
                             </div>
                             <div className="flex-1 min-w-0">
                               <p className="text-white text-xs font-bold truncate">{c.name || "Sin nombre"}</p>
-                              <p className="text-white/30 text-[10px]">{c.phone}</p>
+                              <p className="text-white/50 text-[10px]">{c.phone}</p>
                             </div>
                             <a
                               href={getWhatsAppUrl(c.phone, applyVars(body, c, tallerName))}
@@ -491,7 +491,7 @@ export default function BulkOfferModal({ open, onClose, customers = [] }) {
                 }
               </button>
             ) : (
-              <p className="text-center text-white/30 text-xs">
+              <p className="text-center text-white/50 text-xs">
                 Toca <strong className="text-white/50">Enviar</strong> en cada contacto para abrir WhatsApp con el mensaje listo
               </p>
             )}

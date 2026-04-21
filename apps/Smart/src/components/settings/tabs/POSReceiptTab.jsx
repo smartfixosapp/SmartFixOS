@@ -203,7 +203,7 @@ function FieldLabel({ label, hint }) {
   return (
     <div className="mb-1">
       <p className="text-white/70 text-xs font-bold tracking-wide">{label}</p>
-      {hint && <p className="text-white/30 text-xs mt-0.5">{hint}</p>}
+      {hint && <p className="text-white/50 text-xs mt-0.5">{hint}</p>}
     </div>
   );
 }
@@ -509,14 +509,14 @@ export default function POSReceiptTab() {
                   <div className="bg-[#1a1a1f] border border-white/10 rounded-[20px] p-4 overflow-auto max-h-[80vh]">
                     <ReceiptPreview config={config} bizInfo={bizInfo} />
                   </div>
-                  <p className="text-white/25 text-[10px] text-center mt-2">Datos de ejemplo — el recibo real usará la venta actual</p>
+                  <p className="text-white/50 text-[10px] text-center mt-2">Datos de ejemplo — el recibo real usará la venta actual</p>
                 </>
               ) : (
                 <>
                   <div className="bg-[#0F0F12] border border-white/10 rounded-[20px] overflow-hidden">
                     <EmailPreview config={config} bizInfo={bizInfo} />
                   </div>
-                  <p className="text-white/25 text-[10px] text-center mt-2">Vista previa del email — datos de ejemplo</p>
+                  <p className="text-white/50 text-[10px] text-center mt-2">Vista previa del email — datos de ejemplo</p>
                 </>
               )}
             </div>

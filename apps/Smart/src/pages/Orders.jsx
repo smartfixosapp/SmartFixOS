@@ -652,7 +652,7 @@ export default function OrdersPage() {
                     <Plus className="w-4 h-4" /> Nueva Orden
                   </button>
                   <div className="h-px bg-white/10 my-2" />
-                  <p className="text-[10px] font-semibold text-white/30 px-3 pb-1">Estado</p>
+                  <p className="text-[10px] font-semibold text-white/50 px-3 pb-1">Estado</p>
                   {[{ id: "active", label: "Todos (Activos)" }, ...ORDER_STATUSES.filter(s => s.isActive && !["picked_up","completed","cancelled","delivered","warranty"].includes(s.id)), { id: "closed", label: "Cerrados / Historial" }].map(s => (
                     <button
                       key={s.id}
@@ -851,7 +851,7 @@ export default function OrdersPage() {
                             selectedStatus === status.id ?
                             "bg-gradient-to-r from-blue-500/20 to-purple-500/20 border border-blue-400/30 text-white" :
                             count === 0 ?
-                            "text-white/30 cursor-not-allowed" :
+                            "text-white/50 cursor-not-allowed" :
                             "text-white/70 hover:bg-white/5 hover:text-white"}`
                             }>
 

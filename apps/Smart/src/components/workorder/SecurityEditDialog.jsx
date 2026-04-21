@@ -120,7 +120,7 @@ export default function SecurityEditDialog({ open, onClose, order, onUpdate }) {
                 </div>
                 <div className="flex flex-col">
                   <span>PIN Numerico</span>
-                  <span className="text-[11px] font-semibold tracking-[0.22em] text-white/30">Acceso rapido</span>
+                  <span className="text-[11px] font-semibold tracking-[0.22em] text-white/50">Acceso rapido</span>
                 </div>
               </Label>
               <Input
@@ -144,7 +144,7 @@ export default function SecurityEditDialog({ open, onClose, order, onUpdate }) {
                 </div>
                 <div className="flex flex-col">
                   <span>Contrasena</span>
-                  <span className="text-[11px] font-semibold tracking-[0.22em] text-white/30">Clave adicional</span>
+                  <span className="text-[11px] font-semibold tracking-[0.22em] text-white/50">Clave adicional</span>
                 </div>
               </Label>
               <Input
@@ -166,7 +166,7 @@ export default function SecurityEditDialog({ open, onClose, order, onUpdate }) {
                 </div>
                 <div className="flex flex-col">
                   <span>Patron de Bloqueo</span>
-                  <span className="text-[11px] font-semibold tracking-[0.22em] text-white/30">Android</span>
+                  <span className="text-[11px] font-semibold tracking-[0.22em] text-white/50">Android</span>
                 </div>
               </Label>
 

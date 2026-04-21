@@ -1552,7 +1552,7 @@ Maximo 150 palabras. Texto plano, sin markdown.`
                           <div className={`h-full rounded-full ${m.colorBar}`} style={{ width: `${m.pct}%` }} />
                         </div>
                       </div>
-                      <span className="text-[10px] text-white/30 font-bold w-8 text-right">{m.pct.toFixed(0)}%</span>
+                      <span className="text-[10px] text-white/50 font-bold w-8 text-right">{m.pct.toFixed(0)}%</span>
                     </div>
                   ))}
                 </div>
@@ -2060,7 +2060,7 @@ Maximo 150 palabras. Texto plano, sin markdown.`
                                   <div className="flex items-center justify-between gap-2 py-1.5 mb-1">
                                     <div className="flex items-center gap-2">
                                       <span className="text-[10px] text-cyan-400/70 font-semibold">📅 {monthLabel}</span>
-                                      <span className="text-[10px] text-white/25 font-bold">
+                                      <span className="text-[10px] text-white/50 font-bold">
                                         {monthPOs.length} orden{monthPOs.length === 1 ? "" : "es"}
                                       </span>
                                     </div>
@@ -2086,7 +2086,7 @@ Maximo 150 palabras. Texto plano, sin markdown.`
                                             {po.po_number || `OC-${String(po.id || "").slice(-6)}`}
                                           </span>
                                           {dayLabel && (
-                                            <span className="text-[10px] text-white/25 font-bold shrink-0">{dayLabel}</span>
+                                            <span className="text-[10px] text-white/50 font-bold shrink-0">{dayLabel}</span>
                                           )}
                                           {isOverdue(po) && (
                                             <span className="text-[9px] text-red-400 font-semibold shrink-0">⚠ Vencida</span>
@@ -2187,7 +2187,7 @@ Maximo 150 palabras. Texto plano, sin markdown.`
                               );
                             })()}
                           </div>
-                          <Eye className="w-4 h-4 text-white/30 shrink-0" />
+                          <Eye className="w-4 h-4 text-white/50 shrink-0" />
                         </button>
                         {canDeletePO && (
                           <button
@@ -2221,7 +2221,7 @@ Maximo 150 palabras. Texto plano, sin markdown.`
                             }}
                             disabled={isDeletingThis}
                             title="Borrar orden de compra (solo admin)"
-                            className="shrink-0 w-8 h-8 rounded-lg bg-white/[0.04] hover:bg-red-500/20 text-white/30 hover:text-red-400 flex items-center justify-center transition-colors opacity-0 group-hover:opacity-100 disabled:opacity-40"
+                            className="shrink-0 w-8 h-8 rounded-lg bg-white/[0.04] hover:bg-red-500/20 text-white/50 hover:text-red-400 flex items-center justify-center transition-colors opacity-0 group-hover:opacity-100 disabled:opacity-40"
                           >
                             {isDeletingThis ? (
                               <RefreshCw className="w-3.5 h-3.5 animate-spin" />
@@ -2256,7 +2256,7 @@ Maximo 150 palabras. Texto plano, sin markdown.`
                       <p className="text-xs font-semibold text-white/60">
                         💰 Gasto por proveedor (histórico)
                       </p>
-                      <p className="text-[10px] text-white/30">Top {chartData.length}</p>
+                      <p className="text-[10px] text-white/50">Top {chartData.length}</p>
                     </div>
                     <ResponsiveContainer width="100%" height={240}>
                       <BarChart data={chartData} layout="vertical" margin={{ top: 5, right: 30, left: 10, bottom: 5 }}>
@@ -2411,7 +2411,7 @@ Maximo 150 palabras. Texto plano, sin markdown.`
                 </div>
               ) : desgloseRows.length === 0 ? (
                 <div className="py-12 text-center">
-                  <p className="text-white/25 font-bold text-sm">Sin ventas en este período</p>
+                  <p className="text-white/50 font-bold text-sm">Sin ventas en este período</p>
                 </div>
               ) : (
                 desgloseRows.map(r => {
@@ -2426,7 +2426,7 @@ Maximo 150 palabras. Texto plano, sin markdown.`
                           </div>
                           <div className="min-w-0">
                             <p className="text-white/60 font-bold text-xs truncate leading-tight">{r.cliente}</p>
-                            <p className="text-[10px] text-white/25 truncate">
+                            <p className="text-[10px] text-white/50 truncate">
                               {r.desc}{r.fecha ? ` · ${format(new Date(r.fecha), "dd MMM, h:mm a", { locale: es })}` : ""}
                             </p>
                           </div>
@@ -2443,17 +2443,17 @@ Maximo 150 palabras. Texto plano, sin markdown.`
                       {/* Fila inferior: 3 chips de desglose */}
                       <div className="grid grid-cols-3 gap-2">
                         <div className="bg-emerald-500/[0.08] border border-emerald-500/15 rounded-xl px-3 py-2 text-center">
-                          <p className="text-[9px] font-semibold text-white/25">Cobrado</p>
+                          <p className="text-[9px] font-semibold text-white/50">Cobrado</p>
                           <p className="text-sm font-semibold text-emerald-400 tabular-nums mt-0.5">${r.cobrado.toFixed(2)}</p>
                         </div>
                         <div className="bg-orange-500/[0.08] border border-orange-500/15 rounded-xl px-3 py-2 text-center">
-                          <p className="text-[9px] font-semibold text-white/25">Piezas</p>
+                          <p className="text-[9px] font-semibold text-white/50">Piezas</p>
                           <p className="text-sm font-semibold text-orange-400 tabular-nums mt-0.5">
                             {r.piezas > 0 ? `$${r.piezas.toFixed(2)}` : "$0.00"}
                           </p>
                         </div>
                         <div className="bg-amber-500/[0.08] border border-amber-500/15 rounded-xl px-3 py-2 text-center">
-                          <p className="text-[9px] font-semibold text-white/25">IVU</p>
+                          <p className="text-[9px] font-semibold text-white/50">IVU</p>
                           <p className="text-sm font-semibold text-amber-400 tabular-nums mt-0.5">
                             {r.ivu > 0 ? `$${r.ivu.toFixed(2)}` : "$0.00"}
                           </p>
@@ -2470,7 +2470,7 @@ Maximo 150 palabras. Texto plano, sin markdown.`
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="text-white font-semibold text-sm">Total del período</p>
-                      <p className="text-[10px] text-white/30">{desgloseRows.length} venta{desgloseRows.length !== 1 ? "s" : ""}</p>
+                      <p className="text-[10px] text-white/50">{desgloseRows.length} venta{desgloseRows.length !== 1 ? "s" : ""}</p>
                     </div>
                     <div className="text-right">
                       <p className="text-[9px] font-semibold text-white/50 mb-0.5">Neta total</p>
@@ -2481,15 +2481,15 @@ Maximo 150 palabras. Texto plano, sin markdown.`
                   </div>
                   <div className="grid grid-cols-3 gap-2">
                     <div className="bg-emerald-500/[0.08] border border-emerald-500/15 rounded-xl px-3 py-2 text-center">
-                      <p className="text-[9px] font-semibold text-white/25">Cobrado</p>
+                      <p className="text-[9px] font-semibold text-white/50">Cobrado</p>
                       <p className="text-sm font-semibold text-emerald-400 tabular-nums mt-0.5">${totCobrado.toFixed(2)}</p>
                     </div>
                     <div className="bg-orange-500/[0.08] border border-orange-500/15 rounded-xl px-3 py-2 text-center">
-                      <p className="text-[9px] font-semibold text-white/25">Piezas</p>
+                      <p className="text-[9px] font-semibold text-white/50">Piezas</p>
                       <p className="text-sm font-semibold text-orange-400 tabular-nums mt-0.5">${totPiezas.toFixed(2)}</p>
                     </div>
                     <div className="bg-amber-500/[0.08] border border-amber-500/15 rounded-xl px-3 py-2 text-center">
-                      <p className="text-[9px] font-semibold text-white/25">IVU</p>
+                      <p className="text-[9px] font-semibold text-white/50">IVU</p>
                       <p className="text-sm font-semibold text-amber-400 tabular-nums mt-0.5">${totIVU.toFixed(2)}</p>
                     </div>
                   </div>

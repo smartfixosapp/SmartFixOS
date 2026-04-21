@@ -69,7 +69,7 @@ function MobileProgressStepper({ activeStatuses, status, order }) {
         <div className="flex items-center gap-2">
           <div className="w-2 h-2 rounded-full" style={{ backgroundColor: currentConfig.color || "#6B7280" }} />
           <span className="text-xs font-bold text-white/70">{currentConfig.label}</span>
-          <span className="text-[10px] text-white/30">{currentIdx + 1}/{activeStatuses.length}</span>
+          <span className="text-[10px] text-white/50">{currentIdx + 1}/{activeStatuses.length}</span>
         </div>
         <div className="flex items-center gap-2">
           {timeInStatus && (

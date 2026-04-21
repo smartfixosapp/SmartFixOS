@@ -254,7 +254,7 @@ export default function WODetailCenter({
       {/* ── Customer & Device ── */}
       <div className="grid gap-3 sm:grid-cols-2">
         <div className="rounded-xl border border-white/[0.08] bg-[#121215] p-4 space-y-2">
-          <h4 className="text-[10px] font-semibold text-white/30">Cliente</h4>
+          <h4 className="text-[10px] font-semibold text-white/50">Cliente</h4>
           <EditableField orderId={o.id} field="customer_name" value={o.customer_name} onUpdate={onUpdate} className="text-sm font-bold text-white" />
           {phone && (
             <div className="flex items-center gap-2 text-xs text-white/50">
@@ -274,7 +274,7 @@ export default function WODetailCenter({
         </div>
 
         <div className="rounded-xl border border-white/[0.08] bg-[#121215] p-4 space-y-2">
-          <h4 className="text-[10px] font-semibold text-white/30">Dispositivo</h4>
+          <h4 className="text-[10px] font-semibold text-white/50">Dispositivo</h4>
           <div className="flex items-center gap-2">
             <DeviceIcon type={o.device_type} />
             <p className="text-sm font-bold text-white">
@@ -291,7 +291,7 @@ export default function WODetailCenter({
       {/* ── Problem ── */}
       {o.initial_problem && (
         <div className="rounded-xl border border-white/[0.08] bg-[#121215] p-4">
-          <h4 className="text-[10px] font-semibold text-white/30 mb-1.5">Problema reportado</h4>
+          <h4 className="text-[10px] font-semibold text-white/50 mb-1.5">Problema reportado</h4>
           <EditableField orderId={o.id} field="initial_problem" value={o.initial_problem} onUpdate={onUpdate} className="text-sm text-white/80 leading-relaxed" multiline />
         </div>
       )}
@@ -328,7 +328,7 @@ export default function WODetailCenter({
         if (validAttachments.length === 0) return null;
         return (
           <div className="rounded-xl border border-white/[0.08] bg-[#121215] p-4">
-            <h4 className="text-[10px] font-semibold text-white/30 mb-2">
+            <h4 className="text-[10px] font-semibold text-white/50 mb-2">
               Archivos ({validAttachments.length})
               {uploading && <span className="ml-2 text-cyan-400 animate-pulse">subiendo...</span>}
             </h4>
@@ -429,7 +429,7 @@ export default function WODetailCenter({
 
       {/* ── Financial Summary ── */}
       <div className="rounded-xl border border-white/[0.08] bg-[#121215] p-4">
-        <h4 className="text-[10px] font-semibold text-white/30 mb-3">Resumen financiero</h4>
+        <h4 className="text-[10px] font-semibold text-white/50 mb-3">Resumen financiero</h4>
 
         {/* Items list */}
         {items.length > 0 ? (
@@ -443,7 +443,7 @@ export default function WODetailCenter({
                 <div key={item.id || i} className="flex items-center justify-between text-xs">
                   <span className="text-white/70 truncate flex-1">
                     {item.name || item.product_name || item.service_name || "Item"}
-                    {qty > 1 && <span className="text-white/30 ml-1">×{qty}</span>}
+                    {qty > 1 && <span className="text-white/50 ml-1">×{qty}</span>}
                     {disc > 0 && <span className="text-amber-400 ml-1">-{disc}%</span>}
                     {item.taxable === false && <span className="text-cyan-400/60 ml-1">sin IVU</span>}
                   </span>
@@ -453,7 +453,7 @@ export default function WODetailCenter({
             })}
           </div>
         ) : (
-          <p className="text-xs text-white/30 mb-3">Sin items registrados</p>
+          <p className="text-xs text-white/50 mb-3">Sin items registrados</p>
         )}
 
         {/* Totals */}
@@ -493,7 +493,7 @@ export default function WODetailCenter({
           value={comment}
           onChange={e => setComment(e.target.value)}
           placeholder="Agregar nota..."
-          className="flex-1 bg-white/[0.05] border border-white/[0.08] rounded-lg px-3 py-2 text-xs text-white placeholder:text-white/30 outline-none focus:border-cyan-500/50"
+          className="flex-1 bg-white/[0.05] border border-white/[0.08] rounded-lg px-3 py-2 text-xs text-white placeholder:text-white/50 outline-none focus:border-cyan-500/50"
           onKeyDown={e => { if (e.key === "Enter") postComment(); }}
         />
         <button
@@ -582,7 +582,7 @@ function EditableField({ orderId, field, value, onUpdate, className, multiline }
 function InfoField({ label, value }) {
   return (
     <div>
-      <span className="text-white/30">{label}: </span>
+      <span className="text-white/50">{label}: </span>
       <span className="text-white/70">{value}</span>
     </div>
   );

@@ -275,7 +275,7 @@ function getChecklistForOrder(order) {
 const STATUS_CYCLE = { not_tested: "ok", ok: "issue", issue: "warning", warning: "not_tested" };
 
 const STATUS_CFG = {
-  not_tested: { Icon: MinusCircle,  color: "text-white/25",   ring: "border-white/10 bg-white/[0.04]",         label: "" },
+  not_tested: { Icon: MinusCircle,  color: "text-white/50",   ring: "border-white/10 bg-white/[0.04]",         label: "" },
   ok:         { Icon: CheckCircle2, color: "text-emerald-400", ring: "border-emerald-500/25 bg-emerald-500/10", label: "OK" },
   issue:      { Icon: XCircle,      color: "text-red-400",     ring: "border-red-500/25 bg-red-500/10",         label: "Problema" },
   warning:    { Icon: AlertCircle,  color: "text-amber-400",   ring: "border-amber-500/25 bg-amber-500/10",     label: "Revisar" },
@@ -743,7 +743,7 @@ export default function DiagnosingStage({ order, onUpdate, user, onOrderItemsUpd
             {/* Diagnosis templates */}
             {(DIAG_TEMPLATES[deviceCategory] || DIAG_TEMPLATES.generic).length > 0 && (
               <div>
-                <p className="flex items-center gap-1.5 text-[10px] font-semibold text-white/25 mb-2">
+                <p className="flex items-center gap-1.5 text-[10px] font-semibold text-white/50 mb-2">
                   <FileText className="w-3 h-3" /> Plantillas rápidas
                 </p>
                 <div className="flex flex-wrap gap-1.5">

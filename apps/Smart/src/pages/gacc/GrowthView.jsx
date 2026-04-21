@@ -268,7 +268,7 @@ export default function GrowthView() {
   const { tenants } = useGACC();
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 py-6 space-y-6">
+    <div className="app-container py-6 space-y-6">
       <div>
         <h2 className="text-lg font-semibold text-white">Growth</h2>
         <p className="text-[11px] text-gray-600">Comunicacion, engagement y herramientas de crecimiento</p>

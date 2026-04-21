@@ -135,7 +135,7 @@ export default function MobileHistorialTab({ order, onUpdate }) {
             finalTranscriptRef.current = e.target.value;
           }}
           placeholder={listening ? "Escuchando..." : "Escribe o dicta una nota..."}
-          className="flex-1 bg-white/[0.05] border border-white/10 rounded-xl px-3 py-2.5 text-sm text-white placeholder:text-white/30 outline-none focus:border-cyan-500/50"
+          className="flex-1 bg-white/[0.05] border border-white/10 rounded-xl px-3 py-2.5 text-sm text-white placeholder:text-white/50 outline-none focus:border-cyan-500/50"
           onKeyDown={e => { if (e.key === "Enter") postComment(); }}
         />
         {comment.trim() && !listening ? (

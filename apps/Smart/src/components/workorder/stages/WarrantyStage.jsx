@@ -219,16 +219,16 @@ export default function WarrantyStage({
           </p>
           {claimReason
             ? <p className="text-sm leading-relaxed text-white/80">{claimReason}</p>
-            : <p className="text-sm text-white/25 italic">Sin motivo registrado</p>
+            : <p className="text-sm text-white/50 italic">Sin motivo registrado</p>
           }
         </div>
         <div className="rounded-[22px] border border-white/10 bg-black/30 p-4 space-y-2">
-          <p className="text-[10px] font-semibold tracking-[0.28em] text-white/30">
+          <p className="text-[10px] font-semibold tracking-[0.28em] text-white/50">
             Problema original
           </p>
           {originalProblem
             ? <p className="text-sm leading-relaxed text-white/80">{originalProblem}</p>
-            : <p className="text-sm text-white/25 italic">Sin descripción inicial</p>
+            : <p className="text-sm text-white/50 italic">Sin descripción inicial</p>
           }
         </div>
       </div>

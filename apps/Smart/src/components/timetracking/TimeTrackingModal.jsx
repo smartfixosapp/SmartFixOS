@@ -743,7 +743,7 @@ function EmployeeDetailModal({ open, onClose, employee, entries, formatHM, forma
               </div>
               <div>
                 <h3 className="font-semibold text-lg tracking-tight leading-none">{employee.name}</h3>
-                <p className={`text-xs font-bold mt-0.5 ${isActive ? "text-emerald-400" : "text-white/30"}`}>
+                <p className={`text-xs font-bold mt-0.5 ${isActive ? "text-emerald-400" : "text-white/50"}`}>
                   {isActive ? `Activo · ${formatHMS(liveMs)}` : "Sin turno activo"}
                 </p>
               </div>
@@ -758,7 +758,7 @@ function EmployeeDetailModal({ open, onClose, employee, entries, formatHM, forma
 
           {/* ── Period Selector ── */}
           <div className="space-y-2">
-            <p className="text-[9px] font-semibold text-white/30">Periodo de cálculo</p>
+            <p className="text-[9px] font-semibold text-white/50">Periodo de cálculo</p>
             <div className="flex gap-2">
               {[["Hoy", setToday], ["Semana", setThisWeek], ["Mes", setThisMonth]].map(([label, fn]) => (
                 <button key={label} onClick={fn}
@@ -782,12 +782,12 @@ function EmployeeDetailModal({ open, onClose, employee, entries, formatHM, forma
           <div className="rounded-[24px] bg-gradient-to-br from-emerald-950/50 to-[#0d1117] border border-emerald-500/20 p-5">
             <div className="grid grid-cols-3 gap-3 mb-4">
               <div className="text-center">
-                <p className="text-[9px] font-semibold text-white/30 mb-1">Horas</p>
+                <p className="text-[9px] font-semibold text-white/50 mb-1">Horas</p>
                 <p className="text-2xl font-semibold text-white tracking-tight">{totalHours.toFixed(2)}</p>
                 <p className="text-[9px] text-white/50">h trabajadas</p>
               </div>
               <div className="text-center border-x border-white/[0.06]">
-                <p className="text-[9px] font-semibold text-white/30 mb-1">Tarifa</p>
+                <p className="text-[9px] font-semibold text-white/50 mb-1">Tarifa</p>
                 <p className="text-2xl font-semibold text-white tracking-tight">${hourlyRate.toFixed(0)}</p>
                 <p className="text-[9px] text-white/50">por hora</p>
               </div>
@@ -819,7 +819,7 @@ function EmployeeDetailModal({ open, onClose, employee, entries, formatHM, forma
                 </span>
               )}
             </div>
-            <ChevronDown className={`w-4 h-4 text-white/30 transition-transform duration-300 ${historyOpen ? "rotate-180" : ""}`} />
+            <ChevronDown className={`w-4 h-4 text-white/50 transition-transform duration-300 ${historyOpen ? "rotate-180" : ""}`} />
           </button>
 
           {/* ── History Panel: custom date range + payment log ── */}
@@ -830,7 +830,7 @@ function EmployeeDetailModal({ open, onClose, employee, entries, formatHM, forma
             <div className="space-y-4 pb-2">
               {/* Calendar / date range picker */}
               <div className="bg-white/[0.02] border border-white/[0.06] rounded-2xl p-4 space-y-3">
-                <p className="text-[9px] font-semibold text-white/30">Filtrar por fechas</p>
+                <p className="text-[9px] font-semibold text-white/50">Filtrar por fechas</p>
                 <div className="flex gap-2">
                   {[["Hoy", () => { const d=new Date(); const s=new Date(d); s.setHours(0,0,0,0); const e=new Date(d); e.setHours(23,59,59,999); setFrom(s); setTo(e); setTimeout(loadEntries, 100); }],
                     ["Semana", () => { const d=new Date(); const s=new Date(d); s.setDate(d.getDate()-d.getDay()); s.setHours(0,0,0,0); const e=new Date(s); e.setDate(s.getDate()+6); e.setHours(23,59,59,999); setFrom(s); setTo(e); setTimeout(loadEntries, 100); }],
@@ -852,7 +852,7 @@ function EmployeeDetailModal({ open, onClose, employee, entries, formatHM, forma
                     className="flex-1 bg-white/[0.03] border border-white/[0.08] text-white/60 text-xs rounded-xl px-3 py-2 outline-none focus:border-cyan-500/40" />
                 </div>
                 {/* Summary of current filter */}
-                <div className="flex items-center justify-between text-[10px] text-white/30 px-1">
+                <div className="flex items-center justify-between text-[10px] text-white/50 px-1">
                   <span>{allEntries.length} jornadas · {formatHM(filteredTotalMillis)}</span>
                   {hourlyRate > 0 && <span className="text-emerald-400/60">${(filteredTotalMillis / 3600000 * hourlyRate).toFixed(2)}</span>}
                 </div>
@@ -860,7 +860,7 @@ function EmployeeDetailModal({ open, onClose, employee, entries, formatHM, forma
 
               {/* ── Week-Grouped Shifts (inside historial) ── */}
               <div>
-                <p className="text-[9px] font-semibold text-white/30 mb-3">Jornadas por semana</p>
+                <p className="text-[9px] font-semibold text-white/50 mb-3">Jornadas por semana</p>
                 {weekGroups.length === 0 ? (
                   <div className="text-center py-6 text-white/50">
                     <Clock className="w-7 h-7 mx-auto mb-2 opacity-30" />
@@ -882,13 +882,13 @@ function EmployeeDetailModal({ open, onClose, employee, entries, formatHM, forma
                             {hasActive && <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse flex-shrink-0" />}
                             <div className="flex-1 text-left min-w-0">
                               <p className="text-xs font-semibold text-white/70 truncate">{fmtWeekRange(week.monday, week.sunday)}</p>
-                              <p className="text-[10px] text-white/30">{week.entries.length} jornada{week.entries.length !== 1 ? "s" : ""}</p>
+                              <p className="text-[10px] text-white/50">{week.entries.length} jornada{week.entries.length !== 1 ? "s" : ""}</p>
                             </div>
                             <div className="text-right flex-shrink-0 mr-2">
                               <p className="text-sm font-semibold text-white/80">{formatHM(weekMs)}</p>
                               {weekPay > 0 && <p className="text-[9px] text-emerald-400/60">${weekPay.toFixed(2)}</p>}
                             </div>
-                            <ChevronDown className={`w-4 h-4 text-white/25 transition-transform duration-200 flex-shrink-0 ${isExpanded ? "rotate-180" : ""}`} />
+                            <ChevronDown className={`w-4 h-4 text-white/50 transition-transform duration-200 flex-shrink-0 ${isExpanded ? "rotate-180" : ""}`} />
                           </button>
                           <div
                             className="overflow-hidden transition-all duration-250 ease-in-out"
@@ -906,7 +906,7 @@ function EmployeeDetailModal({ open, onClose, employee, entries, formatHM, forma
                                     <div className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${isOpen ? "bg-emerald-400 animate-pulse" : "bg-white/15"}`} />
                                     <div className="flex-1 min-w-0">
                                       <p className="text-xs font-bold text-white/60 capitalize truncate">{dayName}</p>
-                                      <p className="text-[10px] text-white/25">
+                                      <p className="text-[10px] text-white/50">
                                         {fmtTime(entry.clock_in)} → {isOpen ? "Activo" : fmtTime(entry.clock_out)}
                                       </p>
                                     </div>
@@ -929,9 +929,9 @@ function EmployeeDetailModal({ open, onClose, employee, entries, formatHM, forma
 
               {/* Payment history */}
               <div>
-                <p className="text-[9px] font-semibold text-white/30 mb-2">Pagos procesados</p>
+                <p className="text-[9px] font-semibold text-white/50 mb-2">Pagos procesados</p>
                 {loadingHistory ? (
-                  <div className="flex items-center justify-center py-6 gap-2 text-white/30">
+                  <div className="flex items-center justify-center py-6 gap-2 text-white/50">
                     <RefreshCcw className="w-4 h-4 animate-spin" />
                     <span className="text-xs">Cargando...</span>
                   </div>
@@ -950,7 +950,7 @@ function EmployeeDetailModal({ open, onClose, employee, entries, formatHM, forma
                         </div>
                         <div className="flex-1 min-w-0">
                           <p className="text-sm font-semibold text-white">${parseFloat(pmt.amount || 0).toFixed(2)}</p>
-                          <p className="text-[10px] text-white/30 truncate">
+                          <p className="text-[10px] text-white/50 truncate">
                             {pmt.period_start && pmt.period_end
                               ? `${new Date(pmt.period_start).toLocaleDateString("es-PR")} – ${new Date(pmt.period_end).toLocaleDateString("es-PR")}`
                               : pmt.created_date ? new Date(pmt.created_date).toLocaleDateString("es-PR", { year:"numeric", month:"short", day:"numeric" }) : "—"}

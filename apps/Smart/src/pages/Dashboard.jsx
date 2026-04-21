@@ -871,7 +871,7 @@ export default function Dashboard() {
       )}
 
       <div className="px-2 md:px-6 lg:px-8 xl:px-12 pt-[calc(env(safe-area-inset-top,0px)+6px)] md:pt-3 lg:pt-4 pb-[calc(80px+env(safe-area-inset-bottom,0px))] md:pb-3 flex-1 min-h-0 flex flex-col">
-        <div className="max-w-[2560px] mx-auto w-full flex-1 min-h-0 flex flex-col">
+        <div className="app-container-wide flex-1 min-h-0 flex flex-col">
           
           {/* === DESKTOP: PULSO — layout horizontal estilo Apple === */}
           <div className="apple-card hidden md:flex md:flex-row md:flex-1 md:min-h-0 apple-type overflow-hidden !rounded-apple-2xl">
@@ -1385,9 +1385,9 @@ export default function Dashboard() {
               </div>
               <div className="flex-1">
                 <h3 className="text-base font-semibold text-white">Lista de Precios</h3>
-                <p className="text-[10px] text-white/30 font-bold">{priceListItems.length} productos</p>
+                <p className="text-[10px] text-white/50 font-bold">{priceListItems.length} productos</p>
               </div>
-              <button onClick={() => setShowPriceList(false)} className="w-8 h-8 rounded-xl bg-white/5 flex items-center justify-center text-white/30 hover:text-white transition-colors">
+              <button onClick={() => setShowPriceList(false)} className="w-8 h-8 rounded-xl bg-white/5 flex items-center justify-center text-white/50 hover:text-white transition-colors">
                 <X className="w-4 h-4" />
               </button>
             </div>
@@ -1414,12 +1414,12 @@ export default function Dashboard() {
                     </div>
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-bold text-white truncate">{item.name}</p>
-                      {item.sku && <p className="text-[10px] text-white/25 font-medium">SKU: {item.sku}</p>}
+                      {item.sku && <p className="text-[10px] text-white/50 font-medium">SKU: {item.sku}</p>}
                     </div>
                     <div className="text-right shrink-0">
                       <p className="text-sm font-semibold text-emerald-400">${(item.price || 0).toFixed(2)}</p>
                       {typeof item.stock === 'number' && (
-                        <p className={`text-[10px] font-bold ${item.stock <= 0 ? 'text-red-400' : 'text-white/25'}`}>
+                        <p className={`text-[10px] font-bold ${item.stock <= 0 ? 'text-red-400' : 'text-white/50'}`}>
                           {item.stock <= 0 ? 'Agotado' : `Stock: ${item.stock}`}
                         </p>
                       )}

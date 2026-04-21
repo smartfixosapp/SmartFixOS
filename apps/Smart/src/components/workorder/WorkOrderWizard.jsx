@@ -3236,7 +3236,7 @@ Reglas:
                 />
               ))}
             </div>
-            <span className="text-[10px] font-bold text-white/25 shrink-0">{mobileStep + 1}/{mobileStepsTotal}</span>
+            <span className="text-[10px] font-bold text-white/50 shrink-0">{mobileStep + 1}/{mobileStepsTotal}</span>
           </div>
         )}
 
@@ -3308,7 +3308,7 @@ Reglas:
                 </div>
                 <div>
                   <h3 className="text-white font-semibold text-lg tracking-tight">Crear con JENAI</h3>
-                  <p className="text-[10px] text-white/30">powered by SmartFixOS</p>
+                  <p className="text-[10px] text-white/50">powered by SmartFixOS</p>
                 </div>
               </div>
 
@@ -3349,7 +3349,7 @@ Reglas:
                       </p>
                     )}
                     {!jenaiListening && (
-                      <p className="text-[10px] text-white/25 mt-1.5">
+                      <p className="text-[10px] text-white/50 mt-1.5">
                         Incluye: nombre, telefono, email, marca, modelo, problema, password/pin si aplica
                       </p>
                     )}
@@ -3441,7 +3441,7 @@ Reglas:
                   <div className="grid gap-2">
                     {/* Cliente */}
                     <div className="rounded-xl border border-white/10 bg-white/[0.04] p-3">
-                      <p className="text-[10px] font-bold text-white/30 mb-1">Cliente</p>
+                      <p className="text-[10px] font-bold text-white/50 mb-1">Cliente</p>
                       <p className="text-sm text-white font-semibold">
                         {[jenaiConfirm.customer_name, jenaiConfirm.customer_last_name].filter(Boolean).join(" ") || "No detectado"}
                       </p>
@@ -3471,7 +3471,7 @@ Reglas:
 
                     {/* Problema */}
                     <div className="rounded-xl border border-white/10 bg-white/[0.04] p-3">
-                      <p className="text-[10px] font-bold text-white/30 mb-1">Problema</p>
+                      <p className="text-[10px] font-bold text-white/50 mb-1">Problema</p>
                       <p className="text-xs text-white/70 leading-relaxed">{jenaiConfirm.problem || "No detectado"}</p>
                       {jenaiConfirm.photo_analysis && (
                         <p className="text-xs text-amber-300/70 mt-1.5 leading-relaxed">
@@ -3505,7 +3505,7 @@ Reglas:
                     {/* Checklist sugerido */}
                     {jenaiConfirm.suggested_checklist?.length > 0 && (
                       <div className="rounded-xl border border-white/10 bg-white/[0.04] p-3">
-                        <p className="text-[10px] font-bold text-white/30 mb-1.5">Checklist sugerido</p>
+                        <p className="text-[10px] font-bold text-white/50 mb-1.5">Checklist sugerido</p>
                         <div className="flex flex-wrap gap-1.5">
                           {jenaiConfirm.suggested_checklist.map((item, i) => (
                             <span key={i} className="text-[10px] font-semibold bg-emerald-500/10 border border-emerald-500/20 text-emerald-300 rounded-full px-2.5 py-0.5">
@@ -4521,7 +4521,7 @@ Reglas:
                   disabled={loading}
                   className={`w-full h-14 rounded-[20px] font-semibold text-sm active:scale-95 transition-all duration-300 ${
                     !canAdvanceMobileStep
-                      ? "bg-white/10 text-white/30 cursor-not-allowed"
+                      ? "bg-white/10 text-white/50 cursor-not-allowed"
                       : quickOrderMode
                         ? "bg-gradient-to-r from-amber-500/80 to-yellow-600/80 text-black"
                         : "bg-gradient-to-r from-cyan-500/80 to-blue-600/80 text-white"

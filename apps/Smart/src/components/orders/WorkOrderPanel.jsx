@@ -423,7 +423,7 @@ export default function WorkOrderPanelV2({ orderId, onClose, onUpdate, user }) {
                 <>
                   <div className="fixed inset-0 z-40" onClick={() => setShowShareMenu(false)} />
                   <div className="absolute right-0 top-10 z-50 min-w-[190px] rounded-2xl bg-[#0e0e0e] border border-white/10 shadow-2xl overflow-hidden">
-                    <p className="text-[9px] font-semibold text-white/25 px-3 pt-2.5 pb-1">Compartir recibo</p>
+                    <p className="text-[9px] font-semibold text-white/50 px-3 pt-2.5 pb-1">Compartir recibo</p>
                     {/* WhatsApp */}
                     {order?.customer_phone && (() => {
                       const url  = `${window.location.origin}/Receipt?order_id=${order.id}`;

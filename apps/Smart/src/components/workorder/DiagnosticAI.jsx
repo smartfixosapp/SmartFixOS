@@ -250,7 +250,7 @@ export default function DiagnosticAI({ order, checklist = [], deviceCategory = "
               {messages.length} msg
             </Badge>
           )}
-          {open ? <ChevronUp className="h-5 w-5 text-white/30" /> : <ChevronDown className="h-5 w-5 text-white/30" />}
+          {open ? <ChevronUp className="h-5 w-5 text-white/50" /> : <ChevronDown className="h-5 w-5 text-white/50" />}
         </div>
       </button>
 
@@ -288,7 +288,7 @@ export default function DiagnosticAI({ order, checklist = [], deviceCategory = "
                 </div>
                 <div className="text-center">
                   <p className="text-sm font-bold text-white/50">Hola, soy JENAI</p>
-                  <p className="mt-1 max-w-xs text-xs text-white/30">
+                  <p className="mt-1 max-w-xs text-xs text-white/50">
                     Preguntame cualquier cosa sobre el diagnostico de este dispositivo. Tengo acceso al checklist y los datos de la orden.
                   </p>
                 </div>
@@ -349,7 +349,7 @@ export default function DiagnosticAI({ order, checklist = [], deviceCategory = "
                   onKeyDown={handleKeyDown}
                   placeholder="Describe el problema o pregunta algo..."
                   rows={1}
-                  className="w-full resize-none rounded-2xl border border-white/10 bg-black/30 px-4 py-3 pr-10 text-sm text-white placeholder:text-white/25 focus:border-purple-400/30 focus:outline-none focus:ring-1 focus:ring-purple-500/20"
+                  className="w-full resize-none rounded-2xl border border-white/10 bg-black/30 px-4 py-3 pr-10 text-sm text-white placeholder:text-white/50 focus:border-purple-400/30 focus:outline-none focus:ring-1 focus:ring-purple-500/20"
                   style={{ minHeight: "44px", maxHeight: "120px" }}
                   onInput={(e) => {
                     e.target.style.height = "44px";

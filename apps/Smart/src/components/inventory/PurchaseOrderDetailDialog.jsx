@@ -668,7 +668,7 @@ export default function PurchaseOrderDetailDialog({
                     </span>
                   )}
                   {(form.supplier_name || selectedSupplier?.name) && (
-                    <span className="text-[11px] text-white/30 font-medium">
+                    <span className="text-[11px] text-white/50 font-medium">
                       {selectedSupplier?.name || form.supplier_name}
                     </span>
                   )}
@@ -699,14 +699,14 @@ export default function PurchaseOrderDetailDialog({
         </div>
 
         {loading ? (
-          <div className="py-12 text-center text-white/30">Cargando...</div>
+          <div className="py-12 text-center text-white/50">Cargando...</div>
         ) : (
           <div className="overflow-y-auto flex-1 space-y-4 px-6 py-4">
             {/* Supplier */}
             <div className="bg-[#111114]/80 border border-white/[0.06] rounded-[24px] p-5">
               <div className="flex items-center gap-2 mb-3">
                 <Truck className="w-4 h-4 text-teal-400" />
-                <p className="text-[10px] font-semibold text-white/30">Proveedor</p>
+                <p className="text-[10px] font-semibold text-white/50">Proveedor</p>
               </div>
               {editing ? (
                 <div className="space-y-2">
@@ -744,12 +744,12 @@ export default function PurchaseOrderDetailDialog({
               <div className="bg-[#111114]/80 border border-white/[0.06] rounded-[24px] p-5">
                 <div className="flex items-center gap-2 mb-3">
                   <Calendar className="w-4 h-4 text-teal-400" />
-                  <p className="text-[10px] font-semibold text-white/30">Fechas</p>
+                  <p className="text-[10px] font-semibold text-white/50">Fechas</p>
                 </div>
                 {editing ? (
                   <div className="space-y-2">
                     <div>
-                      <label className="text-[10px] text-white/30 font-bold block mb-1">Fecha orden</label>
+                      <label className="text-[10px] text-white/50 font-bold block mb-1">Fecha orden</label>
                       <input
                         type="date"
                         value={form.order_date}
@@ -758,7 +758,7 @@ export default function PurchaseOrderDetailDialog({
                       />
                     </div>
                     <div>
-                      <label className="text-[10px] text-white/30 font-bold block mb-1">Fecha estimada</label>
+                      <label className="text-[10px] text-white/50 font-bold block mb-1">Fecha estimada</label>
                       <input
                         type="date"
                         value={form.expected_date}
@@ -778,7 +778,7 @@ export default function PurchaseOrderDetailDialog({
               <div className="bg-[#111114]/80 border border-white/[0.06] rounded-[24px] p-5">
                 <div className="flex items-center gap-2 mb-3">
                   <Truck className="w-4 h-4 text-teal-400" />
-                  <p className="text-[10px] font-semibold text-white/30">Estado</p>
+                  <p className="text-[10px] font-semibold text-white/50">Estado</p>
                 </div>
                 {editing ? (
                   <div className="flex flex-wrap gap-2">
@@ -812,7 +812,7 @@ export default function PurchaseOrderDetailDialog({
             {/* Timeline visual del estado */}
             {!editing && (
               <div className="bg-[#111114]/80 border border-white/[0.06] rounded-[24px] p-5">
-                <p className="text-[10px] font-semibold text-white/30 mb-4">
+                <p className="text-[10px] font-semibold text-white/50 mb-4">
                   Progreso
                 </p>
                 {(() => {
@@ -845,7 +845,7 @@ export default function PurchaseOrderDetailDialog({
                                 {step.icon}
                               </div>
                               <p className={`text-[10px] font-semibold mt-1.5 text-center ${
-                                isCurrent ? "text-cyan-300" : isActive ? "text-emerald-400" : "text-white/30"
+                                isCurrent ? "text-cyan-300" : isActive ? "text-emerald-400" : "text-white/50"
                               }`}>
                                 {step.label}
                               </p>
@@ -872,14 +872,14 @@ export default function PurchaseOrderDetailDialog({
                   );
                 })()}
                 {poData?.order_date && (
-                  <p className="text-[10px] text-white/30 mt-3 text-center">
+                  <p className="text-[10px] text-white/50 mt-3 text-center">
                     Ordenada el {new Date(poData.order_date).toLocaleDateString("es-ES", { day: "2-digit", month: "short", year: "numeric" })}
                     {poData.expected_date && ` · Esperada el ${new Date(poData.expected_date).toLocaleDateString("es-ES", { day: "2-digit", month: "short" })}`}
                   </p>
                 )}
                 {/* Audit log */}
                 {(poData?.created_by_name || poData?.received_by_name || poData?.created_date) && (
-                  <div className="mt-3 pt-3 border-t border-white/[0.05] flex flex-wrap gap-3 justify-center text-[10px] text-white/30">
+                  <div className="mt-3 pt-3 border-t border-white/[0.05] flex flex-wrap gap-3 justify-center text-[10px] text-white/50">
                     {poData?.created_by_name && (
                       <span>📝 Creada por <span className="text-white/60 font-bold">{poData.created_by_name}</span></span>
                     )}
@@ -898,7 +898,7 @@ export default function PurchaseOrderDetailDialog({
             <div className="bg-[#111114]/80 border border-white/[0.06] rounded-[24px] p-5">
               <div className="flex items-center gap-2 mb-4">
                 <PackageSearch className="w-4 h-4 text-emerald-400" />
-                <p className="text-[10px] font-semibold text-white/30">
+                <p className="text-[10px] font-semibold text-white/50">
                   Productos ({form.items.length})
                 </p>
               </div>
@@ -910,7 +910,7 @@ export default function PurchaseOrderDetailDialog({
                       <p className="text-white font-bold text-sm truncate">{it.product_name}</p>
                       {!editing && (
                         <>
-                          <p className="text-white/30 text-xs mt-0.5">
+                          <p className="text-white/50 text-xs mt-0.5">
                             {it.quantity} × {money(it.unit_cost)} = {money((it.unit_cost || 0) * (it.quantity || 0))}
                             {Number(it.unit_price) > 0 && (
                               <span className="ml-2 text-cyan-300/80">· Venta {money(it.unit_price)}/u</span>
@@ -961,7 +961,7 @@ export default function PurchaseOrderDetailDialog({
                           {!it.is_tool && (
                             <>
                               <div>
-                                <p className="text-[9px] text-white/30 font-semibold mb-0.5">
+                                <p className="text-[9px] text-white/50 font-semibold mb-0.5">
                                   📦 Categoría
                                 </p>
                                 <select
@@ -979,7 +979,7 @@ export default function PurchaseOrderDetailDialog({
                                 </select>
                               </div>
                               <div>
-                                <p className="text-[9px] text-white/30 font-semibold mb-0.5">
+                                <p className="text-[9px] text-white/50 font-semibold mb-0.5">
                                   🔗 Enlazar a orden de trabajo
                                 </p>
                                 <select
@@ -1004,7 +1004,7 @@ export default function PurchaseOrderDetailDialog({
                     {editing && (
                       <div className="flex items-center gap-2 shrink-0">
                         <div className="flex flex-col items-end gap-1">
-                          <label className="text-[9px] text-white/30 font-bold">Cant</label>
+                          <label className="text-[9px] text-white/50 font-bold">Cant</label>
                           <input
                             type="number"
                             min={1}
@@ -1026,7 +1026,7 @@ export default function PurchaseOrderDetailDialog({
                           />
                         </div>
                         <div className="flex flex-col items-end gap-1">
-                          <label className="text-[9px] text-white/30 font-bold">Costo</label>
+                          <label className="text-[9px] text-white/50 font-bold">Costo</label>
                           <input
                             type="number"
                             step="0.01"
@@ -1068,11 +1068,11 @@ export default function PurchaseOrderDetailDialog({
               {/* Totals */}
               <div className="mt-4 pt-4 border-t border-white/[0.05] space-y-2">
                 <div className="flex items-center justify-between text-sm">
-                  <span className="text-white/30 font-bold">Subtotal</span>
+                  <span className="text-white/50 font-bold">Subtotal</span>
                   <span className="text-white/70">{money(subtotal)}</span>
                 </div>
                 <div className="flex items-center justify-between text-sm">
-                  <span className="text-white/30 font-bold">Envío</span>
+                  <span className="text-white/50 font-bold">Envío</span>
                   {editing ? (
                     <input
                       type="number"
@@ -1096,7 +1096,7 @@ export default function PurchaseOrderDetailDialog({
             {/* Tracking del envío */}
             <div className="bg-[#111114]/80 border border-white/[0.06] rounded-[24px] p-5">
               <div className="flex items-center justify-between mb-3">
-                <p className="text-[10px] font-semibold text-white/30">
+                <p className="text-[10px] font-semibold text-white/50">
                   📦 Tracking del envío
                 </p>
                 {!editing && !trackingEditing && (
@@ -1148,7 +1148,7 @@ export default function PurchaseOrderDetailDialog({
                     >
                       Cancelar
                     </button>
-                    <p className="text-[10px] text-white/30 ml-auto">
+                    <p className="text-[10px] text-white/50 ml-auto">
                       Enter para guardar · Esc cancelar
                     </p>
                   </div>
@@ -1189,7 +1189,7 @@ export default function PurchaseOrderDetailDialog({
                   </div>
                 );
               })() : (
-                <p className="text-white/30 text-xs">Sin tracking registrado · Edita para añadir</p>
+                <p className="text-white/50 text-xs">Sin tracking registrado · Edita para añadir</p>
               )}
             </div>
 
@@ -1201,7 +1201,7 @@ export default function PurchaseOrderDetailDialog({
               const isImage = /\.(jpg|jpeg|png|webp|gif|heic)(\?|$)/i.test(url);
               return (
                 <div className="bg-[#111114]/80 border border-white/[0.06] rounded-[24px] p-5">
-                  <p className="text-[10px] font-semibold text-white/30 mb-3">
+                  <p className="text-[10px] font-semibold text-white/50 mb-3">
                     📎 Archivo original
                   </p>
                   {isImage ? (
@@ -1234,7 +1234,7 @@ export default function PurchaseOrderDetailDialog({
 
             {/* Notes — limpiamos los marcadores internos para la vista */}
             <div className="bg-[#111114]/80 border border-white/[0.06] rounded-[24px] p-5">
-              <p className="text-[10px] font-semibold text-white/30 mb-3">Notas</p>
+              <p className="text-[10px] font-semibold text-white/50 mb-3">Notas</p>
               {editing ? (
                 <textarea
                   value={form.notes}
@@ -1575,7 +1575,7 @@ export default function PurchaseOrderDetailDialog({
                   <div key={idx} className="bg-white/[0.04] border border-white/[0.07] rounded-2xl p-4 flex items-center justify-between gap-4">
                     <div className="flex-1 min-w-0">
                       <p className="text-white font-bold text-sm truncate">{item.product_name}</p>
-                      <p className="text-white/30 text-xs">Ordenado: {item.ordered_qty} · Costo: {money(item.unit_cost)}/u</p>
+                      <p className="text-white/50 text-xs">Ordenado: {item.ordered_qty} · Costo: {money(item.unit_cost)}/u</p>
                     </div>
                     <div className="flex items-center gap-2 flex-shrink-0">
                       <button

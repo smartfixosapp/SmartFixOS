@@ -127,7 +127,7 @@ function PinPadSection({ currentPin, onPinChange }) {
           : isConfirming ? "Confirma el nuevo PIN"
           : "Escribe el nuevo PIN (4 dígitos)"}
         </p>
-        <button type="button" onClick={cancel} className="text-white/30 hover:text-white/60 transition-colors">
+        <button type="button" onClick={cancel} className="text-white/50 hover:text-white/60 transition-colors">
           <X className="w-4 h-4" />
         </button>
       </div>

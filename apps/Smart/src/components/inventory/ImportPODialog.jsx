@@ -1215,7 +1215,7 @@ export default function ImportPODialog({ open, onClose, suppliers = [], products
                 onChange={handleFilePick}
                 className="hidden"
               />
-              <Upload className={`w-10 h-10 mx-auto mb-2 transition-colors ${dragOver ? "text-violet-300" : "text-white/30"}`} />
+              <Upload className={`w-10 h-10 mx-auto mb-2 transition-colors ${dragOver ? "text-violet-300" : "text-white/50"}`} />
               <p className={`font-semibold text-sm transition-colors ${dragOver ? "text-violet-200" : "text-white/80"}`}>
                 {dragOver
                   ? "Suelta el archivo aquí"
@@ -1272,7 +1272,7 @@ export default function ImportPODialog({ open, onClose, suppliers = [], products
                         </button>
                         <button
                           onClick={() => deleteTemplate(tpl.id)}
-                          className="w-7 h-7 rounded-lg bg-white/[0.04] hover:bg-red-500/20 text-white/30 hover:text-red-400 flex items-center justify-center"
+                          className="w-7 h-7 rounded-lg bg-white/[0.04] hover:bg-red-500/20 text-white/50 hover:text-red-400 flex items-center justify-center"
                         >
                           <Trash2 className="w-3 h-3" />
                         </button>
@@ -1445,19 +1445,19 @@ export default function ImportPODialog({ open, onClose, suppliers = [], products
                   <div key={idx} className="p-3 rounded-xl bg-white/[0.02] border border-white/[0.06]">
                     <div className="flex items-start gap-2">
                       <div className="flex-1 min-w-0">
-                        <p className="text-[10px] text-white/30 font-semibold">Extraído</p>
+                        <p className="text-[10px] text-white/50 font-semibold">Extraído</p>
                         <p className="text-xs text-white/60 truncate">{row.raw_name || "—"}</p>
                       </div>
                       <button
                         onClick={() => removeRow(idx)}
-                        className="w-7 h-7 rounded-lg bg-white/5 hover:bg-red-500/20 text-white/30 hover:text-red-400 flex items-center justify-center"
+                        className="w-7 h-7 rounded-lg bg-white/5 hover:bg-red-500/20 text-white/50 hover:text-red-400 flex items-center justify-center"
                       >
                         <Trash2 className="w-3.5 h-3.5" />
                       </button>
                     </div>
                     <div className="grid grid-cols-12 gap-2 mt-2">
                       <div className="col-span-12 md:col-span-6">
-                        <p className="text-[10px] text-white/30 font-semibold mb-0.5">Producto en inventario</p>
+                        <p className="text-[10px] text-white/50 font-semibold mb-0.5">Producto en inventario</p>
                         <div className="flex gap-1">
                           <select
                             value={row.product_id}
@@ -1496,7 +1496,7 @@ export default function ImportPODialog({ open, onClose, suppliers = [], products
                         {/* Enlazar a una orden de trabajo (opcional) */}
                         {workOrders.length > 0 && (
                           <div className="mt-1">
-                            <p className="text-[9px] text-white/30 font-semibold mb-0.5">
+                            <p className="text-[9px] text-white/50 font-semibold mb-0.5">
                               Enlazar a orden de trabajo (opcional)
                             </p>
                             <select
@@ -1516,7 +1516,7 @@ export default function ImportPODialog({ open, onClose, suppliers = [], products
                         )}
                       </div>
                       <div className="col-span-3 md:col-span-1">
-                        <p className="text-[10px] text-white/30 font-semibold mb-0.5">Cant.</p>
+                        <p className="text-[10px] text-white/50 font-semibold mb-0.5">Cant.</p>
                         <Input
                           type="number"
                           min="0"
@@ -1527,7 +1527,7 @@ export default function ImportPODialog({ open, onClose, suppliers = [], products
                         />
                       </div>
                       <div className="col-span-3 md:col-span-2">
-                        <p className="text-[10px] text-white/30 font-semibold mb-0.5">Costo u.</p>
+                        <p className="text-[10px] text-white/50 font-semibold mb-0.5">Costo u.</p>
                         <Input
                           type="number"
                           min="0"
@@ -1574,7 +1574,7 @@ export default function ImportPODialog({ open, onClose, suppliers = [], products
                         })()}
                       </div>
                       <div className="col-span-3 md:col-span-1 flex flex-col items-end">
-                        <p className="text-[10px] text-white/30 font-semibold mb-0.5">Total</p>
+                        <p className="text-[10px] text-white/50 font-semibold mb-0.5">Total</p>
                         <p className="text-sm font-semibold text-white tabular-nums leading-8">
                           {money(Number(row.quantity || 0) * Number(row.unit_cost || 0))}
                         </p>
@@ -1664,7 +1664,7 @@ export default function ImportPODialog({ open, onClose, suppliers = [], products
 
             {/* Notas */}
             <div>
-              <p className="text-[10px] text-white/30 font-semibold mb-1">Notas</p>
+              <p className="text-[10px] text-white/50 font-semibold mb-1">Notas</p>
               <Input
                 value={notes}
                 onChange={(e) => setNotes(e.target.value)}

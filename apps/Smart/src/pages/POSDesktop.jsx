@@ -1095,7 +1095,7 @@ Máximo 30 palabras en total.`;
                 <User className="w-5 h-5" />
               </div>
               <div className="flex-1 min-w-0">
-                <p className="text-[10px] font-semibold text-white/30 mb-0.5">Cliente</p>
+                <p className="text-[10px] font-semibold text-white/50 mb-0.5">Cliente</p>
                 <p className="text-white text-sm font-semibold truncate">{selectedCustomer?.name || selectedOrder?.customer_name}</p>
               </div>
               <button
@@ -1109,7 +1109,7 @@ Máximo 30 palabras en total.`;
           ) : (
             <button 
               onClick={() => setShowCustomerSelector(true)}
-              className="w-full h-14 rounded-2xl border-2 border-dashed border-white/10 flex items-center justify-center gap-2 text-white/30 hover:text-white/60 hover:border-white/20 hover:bg-white/5 transition-all group"
+              className="w-full h-14 rounded-2xl border-2 border-dashed border-white/10 flex items-center justify-center gap-2 text-white/50 hover:text-white/60 hover:border-white/20 hover:bg-white/5 transition-all group"
             >
               <Plus className="w-5 h-5 group-hover:rotate-90 transition-transform duration-500" />
               <span className="text-xs font-semibold">Asignar Cliente</span>
@@ -1137,7 +1137,7 @@ Máximo 30 palabras en total.`;
                 <div className="flex items-start justify-between mb-3">
                   <div className="flex-1">
                     <p className="text-white text-[13px] font-semibold tracking-tight leading-tight group-hover:text-cyan-400 transition-colors">{item.name}</p>
-                    <p className="text-white/30 text-[11px] font-bold mt-1">${toCurrencyNumber(item.price).toFixed(2)} c/u</p>
+                    <p className="text-white/50 text-[11px] font-bold mt-1">${toCurrencyNumber(item.price).toFixed(2)} c/u</p>
                   </div>
                   <button
                     onClick={() => removeItem(idx)}
@@ -1175,11 +1175,11 @@ Máximo 30 palabras en total.`;
         <div className="p-8 border-t border-white/[0.05] bg-white/[0.02] space-y-6">
           <div className="space-y-3">
             <div className="flex justify-between items-center group/sub">
-              <span className="text-[11px] font-semibold text-white/30 group-hover/sub:text-white/50 transition-colors">Subtotal</span>
+              <span className="text-[11px] font-semibold text-white/50 group-hover/sub:text-white/50 transition-colors">Subtotal</span>
               <span className="text-sm font-semibold text-white/80 tracking-tight">${subtotal.toFixed(2)}</span>
             </div>
             <div className="flex justify-between items-center group/tax">
-              <span className="text-[11px] font-semibold text-white/30 group-hover/tax:text-white/50 transition-colors">IVU (11.5%)</span>
+              <span className="text-[11px] font-semibold text-white/50 group-hover/tax:text-white/50 transition-colors">IVU (11.5%)</span>
               <span className="text-sm font-semibold text-white/80 tracking-tight">${tax.toFixed(2)}</span>
             </div>
             <div className="pt-4 mt-2 border-t border-white/[0.05]">

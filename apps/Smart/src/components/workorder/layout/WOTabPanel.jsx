@@ -64,14 +64,14 @@ export default function WOTabPanel({ order, onUpdate }) {
     <div className="h-full flex flex-col">
       {/* ── Quick Comment Input (at top, always visible) ── */}
       <div className="border-b border-white/[0.08] pb-3 mb-3">
-        <p className="text-[10px] font-bold text-white/30 mb-2">Nota rápida</p>
+        <p className="text-[10px] font-bold text-white/50 mb-2">Nota rápida</p>
         <div className="flex gap-1.5">
           <textarea
             value={comment}
             onChange={e => setComment(e.target.value)}
             placeholder="Escribe un comentario..."
             rows={2}
-            className="flex-1 bg-white/[0.05] border border-white/10 rounded-lg px-3 py-2 text-xs text-white placeholder:text-white/30 outline-none focus:border-cyan-500/50 resize-none"
+            className="flex-1 bg-white/[0.05] border border-white/10 rounded-lg px-3 py-2 text-xs text-white placeholder:text-white/50 outline-none focus:border-cyan-500/50 resize-none"
             onKeyDown={e => {
               if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); postComment(); }
             }}

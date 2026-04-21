@@ -102,7 +102,7 @@ export default function WOActionSidebar({
       {/* ── Progress Stepper ── */}
       <div className="rounded-xl border border-white/[0.06] bg-white/[0.02] p-3 space-y-2">
         <div className="flex items-center justify-between">
-          <span className="text-[10px] font-bold text-white/30">Progreso</span>
+          <span className="text-[10px] font-bold text-white/50">Progreso</span>
           <span className="text-[10px] font-bold text-white/50">{currentIdx + 1}/{activeStatuses.length}</span>
         </div>
         {/* Progress bar */}
@@ -181,7 +181,7 @@ export default function WOActionSidebar({
               >
                 <div className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: s.color || "#6B7280" }} />
                 <span className="truncate">{s.label}</span>
-                {isCurrent && <span className="ml-auto text-[10px] text-white/30">actual</span>}
+                {isCurrent && <span className="ml-auto text-[10px] text-white/50">actual</span>}
               </button>
             );
           })}

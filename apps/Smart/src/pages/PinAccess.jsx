@@ -2097,7 +2097,7 @@ export default function PinAccess() {
                 {showAdminPin ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
               </button>
             </div>
-            <p className="text-xs text-white/30 mt-2">Este PIN lo configuraste en los ajustes del servidor (ADMIN_SECRET_PIN)</p>
+            <p className="text-xs text-white/50 mt-2">Este PIN lo configuraste en los ajustes del servidor (ADMIN_SECRET_PIN)</p>
           </div>
 
           {/* Trust device */}
@@ -2184,12 +2184,12 @@ export default function PinAccess() {
           <p className="text-white/40 text-sm mb-2">
             Verificando como <span className="text-white/70 font-medium">{bioUser.full_name || bioUser.userName || bioUser.email}</span>
           </p>
-          <p className="text-white/25 text-xs mb-10">{bioHint}</p>
+          <p className="text-white/50 text-xs mb-10">{bioHint}</p>
 
           {/* Botón fallback */}
           <button
             onClick={() => setBiometricLoading(false)}
-            className="text-white/30 hover:text-white/60 text-sm transition-colors"
+            className="text-white/50 hover:text-white/60 text-sm transition-colors"
           >
             Usar PIN en su lugar →
           </button>
@@ -3326,7 +3326,7 @@ export default function PinAccess() {
                         <svg width="17" height="20" viewBox="0 0 814 1000" fill="currentColor" className="opacity-30">
                           <path d="M788.1 340.9c-5.8 4.5-108.2 62.2-108.2 190.5 0 148.4 130.3 200.9 134.2 202.2-.6 3.2-20.7 71.9-68.7 141.9-42.8 61.6-87.5 123.1-155.5 123.1s-85.5-39.5-164-39.5c-76 0-103.7 40.8-165.9 40.8s-105-57.8-155.5-127.4C46 790.7 0 663 0 541.8c0-207.8 113.4-317.7 224.5-317.7 100.4 0 163.4 60.2 220.8 60.2 54.7 0 127.9-62.5 240.3-62.5zm-284.4-154.8c22.6-26.8 39.3-65.4 39.3-104.5 0-5.5-.5-11.1-1.6-15.4C450 73.9 385.5 111 345.4 155.1c-20.3 22.6-40.9 61-40.9 101.1 0 6 1 12 1.5 14.2 2.6.5 6.8.9 10.8.9 36.4 0 97.2-35.5 127-85.2z"/>
                         </svg>
-                        <span className="text-[10px] font-bold text-white/30 tracking-wide">Pronto</span>
+                        <span className="text-[10px] font-bold text-white/50 tracking-wide">Pronto</span>
                       </button>
                     </div>
 
@@ -3473,10 +3473,10 @@ export default function PinAccess() {
                         ) : (
                           <>
                             <p className="text-white/50 font-bold text-sm">{label} disponible</p>
-                            <p className="text-white/30 text-xs">Inicia sesión abajo para activar {label}</p>
+                            <p className="text-white/50 text-xs">Inicia sesión abajo para activar {label}</p>
                           </>
                         )}
-                        <p className="text-white/30 text-xs mt-1">{label}</p>
+                        <p className="text-white/50 text-xs mt-1">{label}</p>
                       </div>
                     </button>
                   );
@@ -3519,7 +3519,7 @@ export default function PinAccess() {
                   <svg width="17" height="20" viewBox="0 0 814 1000" fill="currentColor" className="opacity-30">
                     <path d="M788.1 340.9c-5.8 4.5-108.2 62.2-108.2 190.5 0 148.4 130.3 200.9 134.2 202.2-.6 3.2-20.7 71.9-68.7 141.9-42.8 61.6-87.5 123.1-155.5 123.1s-85.5-39.5-164-39.5c-76 0-103.7 40.8-165.9 40.8s-105-57.8-155.5-127.4C46 790.7 0 663 0 541.8c0-207.8 113.4-317.7 224.5-317.7 100.4 0 163.4 60.2 220.8 60.2 54.7 0 127.9-62.5 240.3-62.5zm-284.4-154.8c22.6-26.8 39.3-65.4 39.3-104.5 0-5.5-.5-11.1-1.6-15.4C450 73.9 385.5 111 345.4 155.1c-20.3 22.6-40.9 61-40.9 101.1 0 6 1 12 1.5 14.2 2.6.5 6.8.9 10.8.9 36.4 0 97.2-35.5 127-85.2z"/>
                   </svg>
-                  <span className="text-[10px] font-bold text-white/30 tracking-wide">Pronto</span>
+                  <span className="text-[10px] font-bold text-white/50 tracking-wide">Pronto</span>
                 </button>
               </div>
 
@@ -3654,7 +3654,7 @@ export default function PinAccess() {
                     const { label, type } = getBiometricType();
                     return (
                       <div className="mt-3 flex items-center gap-2 bg-white/[0.04] border border-white/10 rounded-2xl px-4 py-3">
-                        <BiometricIcon type={type} size="sm" className="text-white/30 flex-shrink-0" />
+                        <BiometricIcon type={type} size="sm" className="text-white/50 flex-shrink-0" />
                         <p className="text-xs text-white/40 leading-tight">
                           Ingresa tu PIN para activar {label} en este dispositivo
                         </p>

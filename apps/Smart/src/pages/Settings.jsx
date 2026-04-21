@@ -1120,7 +1120,7 @@ export default function SettingsPage() {
                           </Button>
                         )}
                       </div>
-                      <p className="text-white/25 text-xs">PNG, JPG · 500×200 px recomendado</p>
+                      <p className="text-white/50 text-xs">PNG, JPG · 500×200 px recomendado</p>
                     </div>
                   </div>
                   <input id="logo-upload-input" type="file" accept="image/png,image/jpeg,image/jpg" onChange={(e) => handleLogoUpload(e.target.files[0])} className="hidden" />
@@ -1135,7 +1135,7 @@ export default function SettingsPage() {
                         placeholder="Ej: 911 SmartFix"
                         className="bg-white/5 border-white/10 text-white rounded-xl h-12 focus:bg-white/10"
                       />
-                      <p className="text-white/25 text-xs ml-1">Aparece en recibos, emails y el dashboard</p>
+                      <p className="text-white/50 text-xs ml-1">Aparece en recibos, emails y el dashboard</p>
                     </div>
                     <div className="space-y-2">
                       <label className="text-white/60 text-xs font-semibold ml-1">Slogan / Tagline</label>
@@ -1145,7 +1145,7 @@ export default function SettingsPage() {
                         placeholder="Tu taller de confianza"
                         className="bg-white/5 border-white/10 text-white rounded-xl h-12 focus:bg-white/10"
                       />
-                      <p className="text-white/25 text-xs ml-1">Subtítulo que acompaña el nombre</p>
+                      <p className="text-white/50 text-xs ml-1">Subtítulo que acompaña el nombre</p>
                     </div>
                   </div>
                 </div>
@@ -1208,7 +1208,7 @@ export default function SettingsPage() {
                         {!hours.closed ? (
                           <div className="flex items-center gap-2 flex-1">
                             <input type="time" value={hours.open} onChange={(e) => setAppConfig({ ...appConfig, business_hours: {...appConfig.business_hours, [day]: {...hours, open: e.target.value}} })} className="bg-white/5 border border-white/10 text-white rounded-xl px-3 py-2 text-sm flex-1 min-w-0 focus:outline-none focus:ring-1 focus:ring-emerald-500/50" />
-                            <span className="text-white/30 font-bold">—</span>
+                            <span className="text-white/50 font-bold">—</span>
                             <input type="time" value={hours.close} onChange={(e) => setAppConfig({ ...appConfig, business_hours: {...appConfig.business_hours, [day]: {...hours, close: e.target.value}} })} className="bg-white/5 border border-white/10 text-white rounded-xl px-3 py-2 text-sm flex-1 min-w-0 focus:outline-none focus:ring-1 focus:ring-emerald-500/50" />
                           </div>
                         ) : (
@@ -1250,7 +1250,7 @@ export default function SettingsPage() {
                   <div className="space-y-1.5">
                     <label className="text-white/60 text-xs font-semibold ml-1 flex items-center gap-1.5"><Star className="w-3.5 h-3.5" /> Google Reviews</label>
                     <Input value={appConfig.google_review_link || ""} onChange={(e) => setAppConfig({ ...appConfig, google_review_link: e.target.value })} placeholder="https://g.page/r/..." className="bg-white/5 border-white/10 text-white rounded-xl h-11 focus:bg-white/10" />
-                    <p className="text-white/25 text-xs ml-1">Los clientes pueden dejar una reseña desde su recibo</p>
+                    <p className="text-white/50 text-xs ml-1">Los clientes pueden dejar una reseña desde su recibo</p>
                   </div>
                   <div className="space-y-1.5">
                     <label className="text-white/60 text-xs font-semibold ml-1 flex items-center gap-1.5"><Globe className="w-3.5 h-3.5" /> Sitio Web / Otro Link</label>
@@ -1300,7 +1300,7 @@ export default function SettingsPage() {
                       placeholder="11.5"
                       className="bg-white/5 border-white/10 text-white rounded-xl h-11 focus:bg-white/10"
                     />
-                    <p className="text-white/25 text-xs ml-1">Puerto Rico: 11.5% · Introduce 0 si no aplica impuesto</p>
+                    <p className="text-white/50 text-xs ml-1">Puerto Rico: 11.5% · Introduce 0 si no aplica impuesto</p>
                   </div>
                 </div>
               </div>
@@ -1456,11 +1456,11 @@ export default function SettingsPage() {
                   <div className="flex items-center gap-4">
                     <div className={`w-16 h-16 rounded-2xl flex items-center justify-center ${biometricProfile ? "bg-emerald-500/20 border border-emerald-500/30" : "bg-white/5 border border-white/10"}`}>
                       {/iphone|ipad/i.test(navigator.userAgent) ? (
-                        <svg viewBox="0 0 24 24" className={`w-8 h-8 ${biometricProfile ? "text-emerald-400" : "text-white/30"}`} fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round">
+                        <svg viewBox="0 0 24 24" className={`w-8 h-8 ${biometricProfile ? "text-emerald-400" : "text-white/50"}`} fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round">
                           <path d="M9 3H5a2 2 0 00-2 2v4M9 3h6M15 3h4a2 2 0 012 2v4M3 15v4a2 2 0 002 2h4m6 0h4a2 2 0 002-2v-4M9 9h.01M15 9h.01M9 14.5s1 1.5 3 1.5 3-1.5 3-1.5" />
                         </svg>
                       ) : (
-                        <Fingerprint className={`w-8 h-8 ${biometricProfile ? "text-emerald-400" : "text-white/30"}`} />
+                        <Fingerprint className={`w-8 h-8 ${biometricProfile ? "text-emerald-400" : "text-white/50"}`} />
                       )}
                     </div>
                     <div>
@@ -1603,7 +1603,7 @@ export default function SettingsPage() {
       className="min-h-screen apple-surface apple-type p-4 sm:p-6 relative"
       style={{ paddingTop: "calc(env(safe-area-inset-top, 0px) + 10px)" }}
     >
-      <div className="max-w-7xl mx-auto">
+      <div className="app-container">
         {/* ── Hero Header estilo iOS Settings ── */}
         <div className="mb-6">
           <h1 className="apple-text-large-title apple-label-primary">Configuración</h1>

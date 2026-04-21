@@ -167,13 +167,13 @@ export default function OrderLinksDialog({
                   value={partName}
                   onChange={(e) => setPartName(e.target.value)}
                   placeholder="Nombre de la pieza"
-                  className={`h-11 rounded-2xl border-white/10 bg-black/30 text-sm text-white placeholder:text-white/25 ${styles.ring}`}
+                  className={`h-11 rounded-2xl border-white/10 bg-black/30 text-sm text-white placeholder:text-white/50 ${styles.ring}`}
                 />
                 <Input
                   value={url}
                   onChange={(e) => setUrl(e.target.value)}
                   placeholder="https://..."
-                  className={`h-11 rounded-2xl border-white/10 bg-black/30 text-sm text-white placeholder:text-white/25 ${styles.ring}`}
+                  className={`h-11 rounded-2xl border-white/10 bg-black/30 text-sm text-white placeholder:text-white/50 ${styles.ring}`}
                 />
                 <Input
                   type="number"
@@ -182,7 +182,7 @@ export default function OrderLinksDialog({
                   value={price}
                   onChange={(e) => setPrice(e.target.value)}
                   placeholder="Precio"
-                  className={`h-11 rounded-2xl border-white/10 bg-black/30 text-sm text-white placeholder:text-white/25 ${styles.ring}`}
+                  className={`h-11 rounded-2xl border-white/10 bg-black/30 text-sm text-white placeholder:text-white/50 ${styles.ring}`}
                 />
               </div>
 

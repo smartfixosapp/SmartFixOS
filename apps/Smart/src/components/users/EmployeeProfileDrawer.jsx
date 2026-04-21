@@ -365,15 +365,15 @@ export default function EmployeeProfileDrawer({
               <div className="grid grid-cols-3 gap-2">
                 <div className="bg-white/[0.05] rounded-2xl p-3 text-center">
                   <p className="text-white font-semibold text-lg">{weekHours.toFixed(1)}h</p>
-                  <p className="text-white/30 text-[10px] font-bold">Esta semana</p>
+                  <p className="text-white/50 text-[10px] font-bold">Esta semana</p>
                 </div>
                 <div className="bg-white/[0.05] rounded-2xl p-3 text-center">
                   <p className="text-white font-semibold text-lg">${hourlyRate.toFixed(0)}</p>
-                  <p className="text-white/30 text-[10px] font-bold">Por hora</p>
+                  <p className="text-white/50 text-[10px] font-bold">Por hora</p>
                 </div>
                 <div className="bg-emerald-500/[0.08] border border-emerald-500/20 rounded-2xl p-3 text-center">
                   <p className="text-emerald-400 font-semibold text-lg">${weekEarnings.toFixed(0)}</p>
-                  <p className="text-white/30 text-[10px] font-bold">Estimado</p>
+                  <p className="text-white/50 text-[10px] font-bold">Estimado</p>
                 </div>
               </div>
 
@@ -382,11 +382,11 @@ export default function EmployeeProfileDrawer({
                 <div className="flex justify-center py-6"><Loader2 className="w-5 h-5 animate-spin text-white/50" /></div>
               ) : timeEntries.length === 0 ? (
                 <div className="bg-white/[0.03] rounded-2xl px-4 py-6 text-center">
-                  <p className="text-white/25 text-sm">Sin horas registradas (últimos 14 días)</p>
+                  <p className="text-white/50 text-sm">Sin horas registradas (últimos 14 días)</p>
                 </div>
               ) : (
                 <div className="space-y-1.5">
-                  <p className="text-white/30 text-[10px] font-semibold px-1">Registros recientes</p>
+                  <p className="text-white/50 text-[10px] font-semibold px-1">Registros recientes</p>
                   {timeEntries.slice(0, 7).map(entry => {
                     const hours = entry.total_hours ? Number(entry.total_hours)
                       : (entry.clock_in && entry.clock_out)
@@ -399,14 +399,14 @@ export default function EmployeeProfileDrawer({
                           <p className="text-white text-xs font-semibold capitalize truncate">
                             {(() => { try { return format(new Date(entry.clock_in), "EEE d MMM", { locale: es }); } catch { return "—"; } })()}
                           </p>
-                          <p className="text-white/30 text-[10px] mt-0.5">
+                          <p className="text-white/50 text-[10px] mt-0.5">
                             {(() => { try { return new Date(entry.clock_in).toLocaleTimeString("es-PR",{hour:"2-digit",minute:"2-digit"}); } catch { return ""; } })()}
                             {entry.clock_out ? ` → ${(() => { try { return new Date(entry.clock_out).toLocaleTimeString("es-PR",{hour:"2-digit",minute:"2-digit"}); } catch { return ""; } })()}` : isOpen ? " → en curso" : ""}
                           </p>
                         </div>
                         <div className="text-right flex-shrink-0">
                           {hours !== null
-                            ? <><p className="text-white text-xs font-bold">{hours.toFixed(1)}h</p>{hourlyRate > 0 && <p className="text-white/25 text-[10px]">${(hours * hourlyRate).toFixed(0)}</p>}</>
+                            ? <><p className="text-white text-xs font-bold">{hours.toFixed(1)}h</p>{hourlyRate > 0 && <p className="text-white/50 text-[10px]">${(hours * hourlyRate).toFixed(0)}</p>}</>
                             : <p className="text-cyan-400 text-[10px] font-semibold animate-pulse">En curso</p>}
                         </div>
                       </div>
@@ -418,7 +418,7 @@ export default function EmployeeProfileDrawer({
               {/* ── Divisor ── */}
               <div className="flex items-center gap-3 py-1">
                 <div className="flex-1 h-px bg-white/[0.07]" />
-                <p className="text-white/25 text-[10px] font-semibold flex-shrink-0">Registrar pago</p>
+                <p className="text-white/50 text-[10px] font-semibold flex-shrink-0">Registrar pago</p>
                 <div className="flex-1 h-px bg-white/[0.07]" />
               </div>
 
@@ -481,7 +481,7 @@ export default function EmployeeProfileDrawer({
             ) : payments.length === 0 ? (
               <div className="text-center py-16">
                 <DollarSign className="w-10 h-10 text-white/40 mx-auto mb-3" />
-                <p className="text-white/30 text-sm font-semibold">Sin pagos registrados</p>
+                <p className="text-white/50 text-sm font-semibold">Sin pagos registrados</p>
                 <button onClick={() => setTab("pagar")}
                   className="mt-4 px-4 py-2 rounded-xl bg-emerald-500/15 border border-emerald-500/25 text-emerald-400 text-sm font-bold hover:bg-emerald-500/25 transition-all">
                   + Registrar primer pago
@@ -492,7 +492,7 @@ export default function EmployeeProfileDrawer({
                 <div className="bg-emerald-500/[0.08] border border-emerald-500/20 rounded-2xl p-4 text-center mb-2">
                   <p className="text-white/50 text-xs font-bold mb-1">Total recibido</p>
                   <p className="text-emerald-400 font-semibold text-3xl">${totalPaid.toFixed(2)}</p>
-                  <p className="text-white/30 text-xs mt-1">{payments.length} pago{payments.length !== 1 ? "s" : ""}</p>
+                  <p className="text-white/50 text-xs mt-1">{payments.length} pago{payments.length !== 1 ? "s" : ""}</p>
                 </div>
                 {payments.map(p => (
                   <div key={p.id} className="bg-white/[0.04] rounded-2xl px-4 py-3.5 flex items-center gap-3">
@@ -500,7 +500,7 @@ export default function EmployeeProfileDrawer({
                     <div className="flex-1 min-w-0">
                       <p className="text-white text-sm font-bold">{PAYMENT_TYPE_LABEL[p.payment_type] || p.payment_type}</p>
                       {p.notes && <p className="text-white/35 text-xs truncate mt-0.5">{p.notes}</p>}
-                      <p className="text-white/25 text-[10px] mt-1">
+                      <p className="text-white/50 text-[10px] mt-1">
                         {(() => { try { return format(new Date(p.created_date || p.created_at), "dd MMM yyyy", { locale: es }); } catch { return ""; } })()}
                       </p>
                     </div>
@@ -531,15 +531,15 @@ export default function EmployeeProfileDrawer({
                   <div className="grid grid-cols-3 gap-3 text-center">
                     <div>
                       <p className="text-white font-semibold text-lg">{weekHours.toFixed(1)}</p>
-                      <p className="text-white/30 text-[10px] font-bold">HORAS</p>
+                      <p className="text-white/50 text-[10px] font-bold">HORAS</p>
                     </div>
                     <div>
                       <p className="text-white font-semibold text-lg">${hourlyRate.toFixed(0)}</p>
-                      <p className="text-white/30 text-[10px] font-bold">POR HORA</p>
+                      <p className="text-white/50 text-[10px] font-bold">POR HORA</p>
                     </div>
                     <div>
                       <p className="text-emerald-400 font-semibold text-lg">${weekEarnings.toFixed(0)}</p>
-                      <p className="text-white/30 text-[10px] font-bold">ESTIMADO</p>
+                      <p className="text-white/50 text-[10px] font-bold">ESTIMADO</p>
                     </div>
                   </div>
                 </div>
@@ -604,7 +604,7 @@ export default function EmployeeProfileDrawer({
                 </div>
 
                 {/* Notice */}
-                <p className="text-white/25 text-xs text-center">
+                <p className="text-white/50 text-xs text-center">
                   Este pago se registrará como <span className="text-white/40 font-bold">gasto de nómina</span> en el módulo de Finanzas
                 </p>
 

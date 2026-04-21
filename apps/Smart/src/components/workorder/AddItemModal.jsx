@@ -892,7 +892,7 @@ export default function AddItemModal({
                       onClick={() => setActiveCategory(cat.key)}
                       className={cn(
                         "flex items-center gap-1.5 px-3 py-2 rounded-[14px] text-[10px] font-semibold tracking-wide border whitespace-nowrap transition-all",
-                        isActive ? colorMap : "text-white/30 border-white/5 bg-white/[0.02]"
+                        isActive ? colorMap : "text-white/50 border-white/5 bg-white/[0.02]"
                       )}
                     >
                       <cat.icon className="w-3 h-3 shrink-0" />
@@ -924,7 +924,7 @@ export default function AddItemModal({
                     <p className="text-[11px] font-semibold text-violet-300">
                       Piezas para {[effectiveDeviceBrand, effectiveDeviceModel].filter(Boolean).join(" ") || effectiveDeviceType}
                     </p>
-                    <p className="text-[9px] text-white/25 mt-0.5">JENAI ordena por relevancia · powered by SmartFixOS</p>
+                    <p className="text-[9px] text-white/50 mt-0.5">JENAI ordena por relevancia · powered by SmartFixOS</p>
                   </div>
                 </div>
               )}
@@ -1017,7 +1017,7 @@ export default function AddItemModal({
                   <p className="text-[10px] font-semibold tracking-[0.25em] text-white/40 lg:text-xs">
                     Items en Orden <span className="text-emerald-400 ml-1">({countInCart})</span>
                   </p>
-                  <p className="hidden lg:block text-[10px] text-white/30 mt-1">Ajusta cantidades, descuentos e IVU antes de aplicar</p>
+                  <p className="hidden lg:block text-[10px] text-white/50 mt-1">Ajusta cantidades, descuentos e IVU antes de aplicar</p>
                 </div>
                 <div className="flex items-center gap-4 lg:gap-6">
                   <p className="text-2xl font-semibold text-emerald-400 shadow-sm lg:text-4xl">${totals.total.toFixed(2)}</p>
@@ -1074,7 +1074,7 @@ export default function AddItemModal({
                         {/* Discount + IVU controls */}
                         <div className="flex items-center gap-2 pt-1 border-t border-white/[0.05] lg:pt-3 lg:gap-4">
                           <div className="flex items-center gap-1 flex-1 lg:gap-2">
-                            <span className="text-[10px] text-white/30 lg:text-xs lg:font-bold lg:uppercase lg:tracking-wider">Desc:</span>
+                            <span className="text-[10px] text-white/50 lg:text-xs lg:font-bold lg:uppercase lg:tracking-wider">Desc:</span>
                             <input
                               type="number"
                               min="0"
@@ -1087,7 +1087,7 @@ export default function AddItemModal({
                               }}
                               className="w-12 lg:w-16 bg-white/5 border border-white/10 rounded px-1.5 py-0.5 lg:px-2 lg:py-1.5 text-[11px] lg:text-sm text-white text-center outline-none focus:border-amber-500/50"
                             />
-                            <span className="text-[10px] text-white/30 lg:text-xs">%</span>
+                            <span className="text-[10px] text-white/50 lg:text-xs">%</span>
                           </div>
                           <button
                             onClick={() => {
@@ -1110,7 +1110,7 @@ export default function AddItemModal({
 
                   {/* Totals & Save */}
                   <div className="px-6 py-5 bg-white/[0.02] border-t border-white/[0.05] space-y-4 mt-2 lg:px-8 lg:py-6 lg:mt-0 lg:shrink-0">
-                    <div className="flex justify-between items-center text-[10px] font-semibold text-white/30 lg:text-sm">
+                    <div className="flex justify-between items-center text-[10px] font-semibold text-white/50 lg:text-sm">
                       <span>Total Parcial (IVU Inc.)</span>
                       <span className="lg:text-2xl lg:text-emerald-400 lg:normal-case lg:tracking-normal">${totals.total.toFixed(2)}</span>
                     </div>

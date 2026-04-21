@@ -415,7 +415,7 @@ export default function WaitingPartsStage({ order, onUpdate, onOrderItemsUpdate,
           <MapPin className="w-8 h-8 text-white/50 flex-shrink-0" />
           <div>
             <p className="text-sm font-semibold text-white/50">Sin número de tracking aún</p>
-            <p className="text-xs text-white/30">Edita los detalles del pedido y agrega el número de tracking.</p>
+            <p className="text-xs text-white/50">Edita los detalles del pedido y agrega el número de tracking.</p>
           </div>
           <Button variant="ghost" size="sm" onClick={() => setEditingDetails(true)}
             className="ml-auto flex-shrink-0 rounded-xl border border-white/15 text-white/60 hover:bg-white/8 text-xs">

@@ -1609,7 +1609,7 @@ export default function UsersManagement() {
             ) : filteredUsers.length === 0 ? (
               <div className="bg-white/[0.02] border border-white/[0.06] rounded-3xl p-16 text-center">
                 <AlertCircle className="w-10 h-10 text-white/15 mx-auto mb-4" />
-                <p className="text-white/30 text-base font-semibold">
+                <p className="text-white/50 text-base font-semibold">
                   {searchTerm ? "No se encontraron empleados" : "No hay empleados creados"}
                 </p>
               </div>
@@ -1658,7 +1658,7 @@ export default function UsersManagement() {
             {users.length === 0 ? (
               <div className="text-center py-12">
                 <DollarSign className="w-10 h-10 text-white/40 mx-auto mb-3" />
-                <p className="text-white/30 text-sm font-semibold">Sin empleados registrados</p>
+                <p className="text-white/50 text-sm font-semibold">Sin empleados registrados</p>
               </div>
             ) : (
               users.map(user => {
@@ -1688,7 +1688,7 @@ export default function UsersManagement() {
                       </p>
                     </div>
                     <div className="text-right flex-shrink-0">
-                      <p className={`font-semibold text-base ${amount > 0 ? "text-emerald-400" : "text-white/30"}`}>
+                      <p className={`font-semibold text-base ${amount > 0 ? "text-emerald-400" : "text-white/50"}`}>
                         ${amount.toFixed(2)}
                       </p>
                       <p className="text-white/50 text-[10px]">esta semana</p>
@@ -1718,7 +1718,7 @@ export default function UsersManagement() {
             <div className="flex justify-end mb-2">
               <button
                 onClick={loadClockEntries}
-                className="flex items-center gap-2 text-white/30 hover:text-white/60 text-xs font-bold transition-colors"
+                className="flex items-center gap-2 text-white/50 hover:text-white/60 text-xs font-bold transition-colors"
               >
                 <Zap className="w-3 h-3" />
                 Actualizar
@@ -1728,7 +1728,7 @@ export default function UsersManagement() {
             {users.length === 0 ? (
               <div className="text-center py-12">
                 <Clock className="w-10 h-10 text-white/40 mx-auto mb-3" />
-                <p className="text-white/30 text-sm font-semibold">Sin empleados</p>
+                <p className="text-white/50 text-sm font-semibold">Sin empleados</p>
               </div>
             ) : (
               users.map(user => {
@@ -1774,7 +1774,7 @@ export default function UsersManagement() {
                           })()}
                         </p>
                       ) : (
-                        <p className="text-white/30 text-xs mt-0.5">Sin entrada hoy</p>
+                        <p className="text-white/50 text-xs mt-0.5">Sin entrada hoy</p>
                       )}
                     </div>
 

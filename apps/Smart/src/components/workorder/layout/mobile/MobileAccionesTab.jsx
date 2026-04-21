@@ -256,7 +256,7 @@ export default function MobileAccionesTab({
       )}
 
       {/* Quick Actions heading */}
-      <h3 className="text-[10px] font-semibold text-white/30 px-1">Acciones rapidas</h3>
+      <h3 className="text-[10px] font-semibold text-white/50 px-1">Acciones rapidas</h3>
 
       {/* Quick Actions List */}
       <div className="space-y-1">
@@ -349,7 +349,7 @@ export default function MobileAccionesTab({
                   </button>
                 )}
                 {!phone && !o.customer_email && (
-                  <p className="text-xs text-white/30 px-4 py-3">Sin datos de contacto</p>
+                  <p className="text-xs text-white/50 px-4 py-3">Sin datos de contacto</p>
                 )}
               </div>
             )}
@@ -396,7 +396,7 @@ export default function MobileAccionesTab({
                 >
                   <div className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: s.color || "#6B7280" }} />
                   <span className="truncate flex-1">{s.label}</span>
-                  {isCurrent && <span className="text-[10px] text-white/30">actual</span>}
+                  {isCurrent && <span className="text-[10px] text-white/50">actual</span>}
                 </button>
               );
             })}

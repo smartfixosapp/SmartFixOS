@@ -13,8 +13,8 @@ export default function MobilePhotosCarousel({ photos = [], onAddPhoto }) {
         onClick={onAddPhoto}
         className="w-full h-32 rounded-2xl border-2 border-dashed border-white/10 flex flex-col items-center justify-center gap-2 active:scale-95 transition-transform"
       >
-        <Camera className="w-6 h-6 text-white/30" />
-        <span className="text-xs text-white/30 font-medium">Agregar foto</span>
+        <Camera className="w-6 h-6 text-white/50" />
+        <span className="text-xs text-white/50 font-medium">Agregar foto</span>
       </button>
     );
   }

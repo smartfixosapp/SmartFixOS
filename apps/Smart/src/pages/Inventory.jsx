@@ -303,7 +303,7 @@ function QuickStockAdjust({ item, onClose, onSave }) {
           {[{k:"add",label:"+ Agregar",color:"text-emerald-400"},{k:"remove",label:"− Quitar",color:"text-red-400"},{k:"set",label:"= Fijar",color:"text-cyan-400"}].map(({k,label,color}) => (
             <button key={k} onClick={() => { setMode(k); setQty(""); }}
               className={`py-2 px-2 rounded-xl text-[11px] font-semibold transition-all ${
-                mode === k ? `bg-white/10 ${color}` : "text-white/30 hover:text-white/60"
+                mode === k ? `bg-white/10 ${color}` : "text-white/50 hover:text-white/60"
               }`}>{label}</button>
           ))}
         </div>
@@ -402,18 +402,18 @@ function HistorialMovimientosDialog({ open, onClose }) {
           {TYPES.map(t => (
             <button key={t.k} onClick={() => setFilterType(t.k)}
               className={`px-3 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all ${
-                filterType === t.k ? "bg-white/15 text-white" : "text-white/30 hover:text-white"
+                filterType === t.k ? "bg-white/15 text-white" : "text-white/50 hover:text-white"
               }`}>{t.label}</button>
           ))}
         </div>
 
         <div className="flex-1 overflow-y-auto px-5 py-4 space-y-2">
           {loading ? (
-            <div className="py-12 text-center text-white/30 text-sm">Cargando historial...</div>
+            <div className="py-12 text-center text-white/50 text-sm">Cargando historial...</div>
           ) : filtered.length === 0 ? (
             <div className="py-12 text-center">
               <History className="w-10 h-10 text-white/40 mx-auto mb-3" />
-              <p className="text-white/30 text-sm">No hay movimientos registrados aún</p>
+              <p className="text-white/50 text-sm">No hay movimientos registrados aún</p>
             </div>
           ) : filtered.map((m, idx) => (
             <div key={m.id || idx} className="flex items-center gap-3 p-3 bg-white/[0.03] border border-white/[0.05] rounded-2xl">
@@ -422,7 +422,7 @@ function HistorialMovimientosDialog({ open, onClose }) {
               </div>
               <div className="flex-1 min-w-0">
                 <p className="text-white text-sm font-semibold truncate">{m.product_name || "Producto"}</p>
-                <p className="text-white/30 text-xs">
+                <p className="text-white/50 text-xs">
                   {m.previous_stock ?? "—"} → {m.new_stock ?? "—"} unids
                   {m.notes ? ` · ${m.notes}` : ""}
                   {m.performed_by ? ` · ${m.performed_by}` : ""}
@@ -1751,7 +1751,7 @@ Maximo 150 palabras. Texto plano, sin markdown.`
               >
                 <Icon className={`w-4 h-4 ${active ? 'text-gray-700' : color}`} />
                 {label}
-                <span className={`text-xs font-bold ${active ? 'text-gray-500' : 'text-white/25'}`}>{count}</span>
+                <span className={`text-xs font-bold ${active ? 'text-gray-500' : 'text-white/50'}`}>{count}</span>
               </button>
             );
           })}
@@ -1854,7 +1854,7 @@ Maximo 150 palabras. Texto plano, sin markdown.`
                 key={key}
                 onClick={() => { setViewTab(key); setPage(1); }}
                 className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition-all active:scale-95 ${
-                  viewTab === key ? 'bg-white/15 text-white' : 'text-white/30 hover:text-white'
+                  viewTab === key ? 'bg-white/15 text-white' : 'text-white/50 hover:text-white'
                 }`}
               >
                 <Icon className="w-3.5 h-3.5" />
@@ -1866,7 +1866,7 @@ Maximo 150 palabras. Texto plano, sin markdown.`
 
         {/* ── Search ────────────────────────────────────────────── */}
         <div className="relative mb-5 group">
-          <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-white/25 group-focus-within:text-teal-400 transition-colors" />
+          <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-white/50 group-focus-within:text-teal-400 transition-colors" />
           <Input
             value={q}
             onChange={e => { setQ(e.target.value); setPage(1); }}
@@ -1880,7 +1880,7 @@ Maximo 150 palabras. Texto plano, sin markdown.`
           {pageItems.length === 0 ? (
             <div className="text-center py-20">
               <Box className="w-14 h-14 text-white/40 mx-auto mb-4" />
-              <p className="text-white/30 font-bold text-sm sm:text-base text-center px-4">
+              <p className="text-white/50 font-bold text-sm sm:text-base text-center px-4">
                 {q ? `Sin resultados para "${q}"` : "No hay productos en esta categoría"}
               </p>
               <button
@@ -1910,7 +1910,7 @@ Maximo 150 palabras. Texto plano, sin markdown.`
         {/* ── Pagination ────────────────────────────────────────── */}
         {filtered.length > 0 && (
           <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mt-8 px-1">
-            <p className="text-sm text-white/30 font-medium">
+            <p className="text-sm text-white/50 font-medium">
               Mostrando <span className="text-white font-bold">{pageItems.length}</span> de <span className="text-white font-bold">{filtered.length}</span> productos
             </p>
             <div className="flex items-center gap-3">
@@ -1921,7 +1921,7 @@ Maximo 150 palabras. Texto plano, sin markdown.`
               </Button>
               <div className="px-4 py-2 bg-white/5 rounded-full border border-white/10">
                 <span className="text-white font-bold text-sm">{page}</span>
-                <span className="text-white/30 mx-1.5">/</span>
+                <span className="text-white/50 mx-1.5">/</span>
                 <span className="text-white/50 font-semibold text-sm">{pageCount}</span>
               </div>
               <Button size="icon" variant="ghost" disabled={page >= pageCount} onClick={() => setPage(p => Math.min(pageCount, p + 1))}

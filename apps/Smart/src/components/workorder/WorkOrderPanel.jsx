@@ -716,7 +716,7 @@ function WaitingPartsModal({ open, onClose, onSave, initialData, order }) {
             {/* Nombre de pieza */}
             <div>
               <label className="text-xs text-gray-300 mb-2 block font-medium theme-light:text-gray-700">
-                Pieza(s) adicionales <span className="text-white/30 font-normal">(o escribe si no aparece arriba)</span>
+                Pieza(s) adicionales <span className="text-white/50 font-normal">(o escribe si no aparece arriba)</span>
               </label>
               <input
                 type="text"

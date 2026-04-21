@@ -411,7 +411,7 @@ export default function JeaniDiagnosticPanel({
         {/* Contexto del equipo actual */}
         {order && (
           <div className="p-3 rounded-xl bg-white/[0.03] border border-white/[0.06]">
-            <p className="text-[9px] text-white/30 font-semibold mb-1">
+            <p className="text-[9px] text-white/50 font-semibold mb-1">
               Equipo en cuestión
             </p>
             <p className="text-sm text-white font-bold">
@@ -427,7 +427,7 @@ export default function JeaniDiagnosticPanel({
 
         {/* Input de pregunta */}
         <div>
-          <label className="text-[9px] text-white/30 font-semibold mb-1 block">
+          <label className="text-[9px] text-white/50 font-semibold mb-1 block">
             ¿Qué problema reporta el cliente?
           </label>
           <textarea
@@ -435,7 +435,7 @@ export default function JeaniDiagnosticPanel({
             onChange={(e) => setQuestion(e.target.value)}
             placeholder="Ej: El cliente dice que la batería se descarga rápido después de que se la cambiamos hace 5 días..."
             rows={3}
-            className="w-full bg-white/[0.04] border border-white/10 rounded-xl px-4 py-3 text-sm text-white placeholder:text-white/30 focus:outline-none focus:border-violet-500/50 resize-none"
+            className="w-full bg-white/[0.04] border border-white/10 rounded-xl px-4 py-3 text-sm text-white placeholder:text-white/50 focus:outline-none focus:border-violet-500/50 resize-none"
           />
         </div>
 
@@ -505,7 +505,7 @@ export default function JeaniDiagnosticPanel({
                     <StickyNote className="w-3.5 h-3.5" />
                     {addingNote ? "Guardando..." : "📝 Añadir nota a la WO"}
                   </button>
-                  <p className="text-[10px] text-white/30 self-center">
+                  <p className="text-[10px] text-white/50 self-center">
                     Guarda el diagnóstico como comentario en la orden de trabajo
                   </p>
                 </div>

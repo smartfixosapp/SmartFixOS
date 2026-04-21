@@ -31,7 +31,7 @@ function MobileVisualTimeline({ events = [], emptyMessage = "Sin eventos" }) {
   if (events.length === 0) {
     return (
       <div className="flex items-center justify-center py-12">
-        <p className="text-sm text-white/30">{emptyMessage}</p>
+        <p className="text-sm text-white/50">{emptyMessage}</p>
       </div>
     );
   }
@@ -64,7 +64,7 @@ function MobileVisualTimeline({ events = [], emptyMessage = "Sin eventos" }) {
                   {event.user_name || "Sistema"}
                 </span>
                 {date && (
-                  <span className="text-[10px] text-white/30 flex-shrink-0">
+                  <span className="text-[10px] text-white/50 flex-shrink-0">
                     {format(new Date(date), "d MMM, h:mm a", { locale: es })}
                   </span>
                 )}

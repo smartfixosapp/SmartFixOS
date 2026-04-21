@@ -83,7 +83,7 @@ const SplashLoader = () => {
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ delay: 1.1, duration: 0.8 }}
-        className="absolute bottom-10 text-white/30 text-[10px] tracking-wider"
+        className="absolute bottom-10 text-white/50 text-[10px] tracking-wider"
         style={{ paddingBottom: "env(safe-area-inset-bottom, 0px)" }}
       >
         911 SmartFix · © 2026

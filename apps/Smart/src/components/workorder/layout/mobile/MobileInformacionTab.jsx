@@ -97,7 +97,7 @@ export default function MobileInformacionTab({
 
         {/* Last updated */}
         {o.updated_date && (
-          <p className="mt-2 text-[10px] text-white/30 text-center">
+          <p className="mt-2 text-[10px] text-white/50 text-center">
             Ultima actualizacion: {format(new Date(o.updated_date), "d MMM yyyy, h:mm a", { locale: es })}
           </p>
         )}
@@ -106,7 +106,7 @@ export default function MobileInformacionTab({
       {/* Photos */}
       {photos.length > 0 && (
         <div className="space-y-2">
-          <h4 className="text-[10px] font-semibold text-white/30 px-1">
+          <h4 className="text-[10px] font-semibold text-white/50 px-1">
             Fotos ({photos.length})
           </h4>
           <MobilePhotosCarousel photos={photos} />
@@ -133,14 +133,14 @@ export default function MobileInformacionTab({
 
       {/* Financial Summary */}
       <div className="rounded-2xl border border-white/[0.08] bg-white/[0.03] p-4">
-        <h4 className="text-[10px] font-semibold text-white/30 mb-3">Resumen financiero</h4>
+        <h4 className="text-[10px] font-semibold text-white/50 mb-3">Resumen financiero</h4>
         {items.length > 0 && (
           <div className="space-y-1.5 mb-3">
             {items.map((item, i) => (
               <div key={item.id || i} className="flex items-center justify-between text-xs">
                 <span className="text-white/60 truncate flex-1">
                   {item.name || item.product_name || item.service_name || "Item"}
-                  {Number(item.quantity || 1) > 1 && <span className="text-white/30 ml-1">x{item.quantity}</span>}
+                  {Number(item.quantity || 1) > 1 && <span className="text-white/50 ml-1">x{item.quantity}</span>}
                 </span>
                 <span className="text-white/80 font-semibold ml-3">${(Number(item.price || 0) * Number(item.quantity || 1)).toFixed(2)}</span>
               </div>
@@ -164,7 +164,7 @@ export default function MobileInformacionTab({
       {hasAnySecurity && (
         <div className="rounded-2xl border border-white/[0.08] bg-white/[0.03] p-4">
           <div className="flex items-center justify-between mb-3">
-            <h4 className="text-[10px] font-semibold text-white/30">Seguridad del dispositivo</h4>
+            <h4 className="text-[10px] font-semibold text-white/50">Seguridad del dispositivo</h4>
             <button onClick={onSecurityEdit} className="text-xs text-purple-400 font-semibold">Editar</button>
           </div>
           {hasPin && (
@@ -172,7 +172,7 @@ export default function MobileInformacionTab({
               <span className="text-xs text-white/50">PIN</span>
               <div className="flex items-center gap-2">
                 <span className="text-xs text-white/80 font-mono">{showPinVal ? sec.device_pin : "****"}</span>
-                <button onClick={() => setShowPinVal(v => !v)} className="text-white/30">
+                <button onClick={() => setShowPinVal(v => !v)} className="text-white/50">
                   {showPinVal ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
                 </button>
               </div>
@@ -183,7 +183,7 @@ export default function MobileInformacionTab({
               <span className="text-xs text-white/50">Password</span>
               <div className="flex items-center gap-2">
                 <span className="text-xs text-white/80 font-mono">{showPass ? sec.device_password : "********"}</span>
-                <button onClick={() => setShowPass(v => !v)} className="text-white/30">
+                <button onClick={() => setShowPass(v => !v)} className="text-white/50">
                   {showPass ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
                 </button>
               </div>
@@ -200,7 +200,7 @@ export default function MobileInformacionTab({
 
       {/* Terms link */}
       <div className="text-center py-2">
-        <span className="text-xs text-white/30">Ver </span>
+        <span className="text-xs text-white/50">Ver </span>
         <button className="text-xs text-cyan-400 font-semibold">Terminos y Condiciones</button>
       </div>
     </div>
@@ -233,7 +233,7 @@ function InfoRow({ label, value, orderId, field, onUpdate, placeholder, isPhone,
   if (editing) {
     return (
       <div className="px-4 py-3">
-        <label className="text-[10px] text-white/30 block mb-1">{label}</label>
+        <label className="text-[10px] text-white/50 block mb-1">{label}</label>
         <div className="flex items-center gap-2">
           <input
             value={editValue}
@@ -262,8 +262,8 @@ function InfoRow({ label, value, orderId, field, onUpdate, placeholder, isPhone,
       }}
     >
       <div className="min-w-0 flex-1">
-        <p className="text-[10px] text-white/30 mb-0.5">{label}</p>
-        <p className={cn("text-sm font-semibold truncate", value ? "text-white" : "text-white/30")}>
+        <p className="text-[10px] text-white/50 mb-0.5">{label}</p>
+        <p className={cn("text-sm font-semibold truncate", value ? "text-white" : "text-white/50")}>
           {displayValue}
         </p>
       </div>
