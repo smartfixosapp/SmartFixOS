@@ -57,6 +57,8 @@ import { verifyAdminOtpHandler } from './verifyAdminOtp.js';
 import { trackParcelHandler } from './trackParcel.js';
 import { geminiSummaryHandler } from './geminiSummary.js';
 import { setRequestAuthToken, clearRequestAuthToken } from '../../../../lib/unified-custom-sdk-supabase.js';
+import { checkRateLimit } from './_rateLimit.js';
+import { sanitizeRequest } from './_sanitize.js';
 
 // CORS headers
 const corsHeaders = {
