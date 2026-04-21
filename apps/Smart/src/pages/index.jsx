@@ -222,6 +222,7 @@ function PagesContent() {
                     <Route path="/returnlogin" element={<ReturnLogin />} />
                     <Route path="/Receipt" element={<Receipt />} />
                     <Route path="/CustomerApproval" element={<CustomerApproval />} />
+                    <Route path="/Pricing" element={<Pricing />} />
                     <Route path="/*" element={<ProtectedRoutes />} />
                 </Routes>
             </Suspense>
