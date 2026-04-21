@@ -60,6 +60,7 @@ const Appointments          = lazyWithRetry(() => import("./Appointments"));
 const OrdersMobile          = lazyWithRetry(() => import("./OrdersMobile"));
 const Menu                  = lazyWithRetry(() => import("./Menu"));
 const Pricing               = lazyWithRetry(() => import("./Pricing"));
+const VerifyEmail           = lazyWithRetry(() => import("./VerifyEmail"));
 
 // Minimal spinner shown while a lazy chunk loads.
 // Uses full-screen dark bg so any brief Suspense gap blends with the
