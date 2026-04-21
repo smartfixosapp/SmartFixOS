@@ -605,6 +605,16 @@ button:focus-visible {
   }
 }
 
+/* ── Theme-light automatic text contrast fix ─────────────────────────────
+ * Many components use text-white/40..60 for muted text. In dark mode
+ * this works (light text on dark bg). In light mode it's invisible
+ * (white text on white bg). Instead of adding theme-light: to every element,
+ * we override the white color to a dark gray in light mode globally. */
+.theme-light [class*="text-white/"] {
+  --tw-text-opacity: 1;
+  color: rgb(71 85 105 / var(--tw-text-opacity)); /* slate-600 base */
+}
+
 /* Older browsers without backdrop-filter support get a solid fallback */
 @supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
   .liquid-glass,
