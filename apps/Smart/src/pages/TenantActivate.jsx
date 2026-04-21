@@ -372,7 +372,7 @@ export default function TenantActivate() {
   return (
     <div className="min-h-screen apple-surface apple-type flex flex-col items-center justify-start py-8 px-4">
       {/* Header */}
-      <div className="w-full max-w-2xl mb-6">
+      <div className="w-full max-w-2xl mx-auto mb-6">
         <div className="text-center mb-6">
           <img
             src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/68f767a3d5fce1486d4cf555/e9bc537e2_DynamicsmartfixosLogowithGearandDevice.png"
