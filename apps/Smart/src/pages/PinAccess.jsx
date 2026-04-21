@@ -850,12 +850,13 @@ export default function PinAccess() {
       });
       const data = await res.json();
       if (data.success) {
-        // Mostrar éxito en el mismo paso — NO redirigir, NO signOut todavía
-        setGoogleRegisterSuccess({
-          tenantName: data.tenantName || googleRegisterData.store_name,
-          trialEndDate: data.trialEndDate,
+        // Redirigir a la página de verificación de email
+        const verifyParams = new URLSearchParams({
           email: googleRegisterData.email,
+          name: data.tenantName || googleRegisterData.store_name,
+          ...(data.trialEndDate ? { trial: data.trialEndDate } : {}),
         });
+        navigate(`/VerifyEmail?${verifyParams.toString()}`);
       } else {
         toast.error(data.error || "Error al crear la cuenta");
       }
