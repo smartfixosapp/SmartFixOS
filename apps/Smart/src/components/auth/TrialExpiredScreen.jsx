@@ -1,8 +1,11 @@
 import React from "react";
+import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { AlertCircle, Lock, CheckCircle } from "lucide-react";
+import { AlertCircle, Lock, CheckCircle, ArrowRight } from "lucide-react";
+import { PLANS } from "@/lib/plans";
 
 export default function TrialExpiredScreen({ tenantName, onActivatePlan, onContactSupport }) {
+  const navigate = useNavigate();
   return (
     <div className="apple-type fixed inset-0 apple-surface backdrop-blur-sm flex items-center justify-center p-4 z-50">
       <div className="w-full max-w-md">
