@@ -52,16 +52,19 @@ export default function TrialExpiredScreen({ tenantName, onActivatePlan, onConta
             </p>
           </div>
 
-          {/* Precio */}
-          <div className="bg-apple-blue/12 rounded-apple-md p-6 text-center">
-            <p className="apple-text-footnote apple-label-tertiary mb-2">Plan SmartFixOS</p>
-            <p className="apple-text-large-title text-apple-blue tabular-nums">
-              $65 / mes
-            </p>
-            <p className="apple-text-caption1 apple-label-tertiary mt-3">por tienda</p>
-            <div className="mt-4 space-y-1 apple-text-footnote apple-label-tertiary">
-              <p>✓ Sin contratos largos</p>
-              <p>✓ Sin cargos ocultos</p>
+          {/* Planes */}
+          <div className="grid grid-cols-2 gap-3">
+            <div className="liquid-glass rounded-2xl p-5 text-center">
+              <p className="apple-text-footnote apple-label-tertiary mb-1">{PLANS.starter.label}</p>
+              <p className="text-2xl font-black text-white tabular-nums">${PLANS.starter.price}</p>
+              <p className="apple-text-caption2 apple-label-tertiary mt-1">/ mes</p>
+              <p className="apple-text-caption2 apple-label-secondary mt-2">{PLANS.starter.tagline}</p>
+            </div>
+            <div className="liquid-glass-strong rounded-2xl p-5 text-center ring-1 ring-cyan-500/30">
+              <p className="apple-text-footnote text-cyan-400 mb-1">{PLANS.pro.label}</p>
+              <p className="text-2xl font-black text-white tabular-nums">${PLANS.pro.price}</p>
+              <p className="apple-text-caption2 apple-label-tertiary mt-1">/ mes</p>
+              <p className="apple-text-caption2 text-cyan-400/70 mt-2">{PLANS.pro.tagline}</p>
             </div>
           </div>
         </div>
