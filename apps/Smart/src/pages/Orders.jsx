@@ -276,9 +276,10 @@ export default function OrdersPage() {
     }).length;
     const { allowed, current, max } = checkLimit('max_orders_monthly', monthlyCount);
     if (!allowed) {
+      // Show as info toast (not blocker) — real enforcement is server-side.
+      // Client-side blocking caused false positives when tenant.plan didn't load correctly.
       const next = upgradeTo?.label || 'Pro';
-      toast.error(`Límite mensual alcanzado: ${current}/${max} órdenes este mes. Upgrade a ${next} ($${upgradeTo?.price || '39.99'}/mes) para órdenes ilimitadas.`, { duration: 7000 });
-      return;
+      toast.info(`${current}/${max} órdenes este mes. Considera upgrade a ${next} para órdenes ilimitadas.`, { duration: 5000 });
     }
     setShowQuickModal(true);
     setShowStatusDropdown(false);
