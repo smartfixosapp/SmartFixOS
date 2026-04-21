@@ -17,21 +17,28 @@ export function usePlanLimits() {
   const { currentTenant } = useTenant();
 
   const planId = useMemo(() => {
-    // Try plan field first, then metadata fallbacks
+    // Try plan field first, then metadata fallbacks, then price-based detection
     const raw = currentTenant?.plan
       || currentTenant?.metadata?.plan
       || currentTenant?.metadata?.plan_label
       || currentTenant?.subscription_plan;
-    const id = normalizePlanId(raw);
-    // Debug: log plan resolution to catch mismatches
-    if (currentTenant?.id && id === 'starter' && raw) {
-      console.debug(`[PlanLimits] Tenant ${currentTenant.id} plan="${raw}" → resolved="${id}"`);
+
+    let id = normalizePlanId(raw);
+
+    // Safety net: if plan resolved to starter but monthly_cost matches Pro,
+    // the tenant likely has Pro but the plan field is stale/missing.
+    // This prevents false "limit reached" toasts for paying Pro customers.
+    if (id === 'starter' && currentTenant?.monthly_cost >= 39) {
+      console.info(`[PlanLimits] Plan field="${raw}" resolved to starter but monthly_cost=$${currentTenant.monthly_cost} → overriding to pro`);
+      id = 'pro';
     }
-    if (currentTenant?.id && !raw) {
-      console.warn(`[PlanLimits] Tenant ${currentTenant.id} has NO plan field — defaulting to starter. Set tenant.plan in the admin panel.`);
+
+    if (currentTenant?.id && !raw && !currentTenant?.monthly_cost) {
+      console.warn(`[PlanLimits] Tenant ${currentTenant.id} has NO plan field — defaulting to starter.`);
     }
+
     return id;
-  }, [currentTenant?.plan, currentTenant?.metadata, currentTenant?.subscription_plan, currentTenant?.id]);
+  }, [currentTenant?.plan, currentTenant?.metadata, currentTenant?.subscription_plan, currentTenant?.monthly_cost, currentTenant?.id]);
   const planConfig = useMemo(() => getPlan(planId), [planId]);
 
   /** Quantity limit check */
