@@ -158,6 +158,24 @@ const isDev = Deno.env.get("DENO_ENV") !== "production";
     return new Response(null, { status: 200, headers: corsHeaders });
   }
 
+  // Rate limit (5/15min on auth routes, looser defaults elsewhere)
+  const rl = checkRateLimit(path, req);
+  if (!rl.allowed) {
+    return new Response(
+      JSON.stringify({ data: { error: 'Too many requests. Intenta de nuevo más tarde.' } }),
+      {
+        status: 429,
+        headers: {
+          ...corsHeaders,
+          'Content-Type': 'application/json',
+          'Retry-After': String(rl.retryAfter),
+          'X-RateLimit-Limit': String(rl.max),
+          'X-RateLimit-Remaining': '0',
+        },
+      }
+    );
+  }
+
   // Extract auth token from Authorization header for unified auth
   const authHeader = req.headers.get('Authorization');
   if (authHeader && authHeader.startsWith('Bearer ')) {
@@ -168,7 +186,8 @@ const isDev = Deno.env.get("DENO_ENV") !== "production";
   const handler = routes[path];
   if (handler) {
     try {
-      const response = await handler(req);
+      const sanitizedReq = await sanitizeRequest(req);
+      const response = await handler(sanitizedReq);
       
       // Add CORS headers to the response
       const headers = new Headers(response.headers);
