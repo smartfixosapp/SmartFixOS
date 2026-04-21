@@ -41,10 +41,15 @@ export function usePlanLimits() {
   }, [currentTenant?.plan, currentTenant?.metadata, currentTenant?.subscription_plan, currentTenant?.monthly_cost, currentTenant?.id]);
   const planConfig = useMemo(() => getPlan(planId), [planId]);
 
-  /** Quantity limit check */
+  /** Quantity limit check — returns allowed:true if tenant hasn't loaded yet
+   *  to prevent false "limit reached" errors during async tenant fetch */
   const checkLimitFn = useCallback((limitKey, currentCount) => {
+    if (!currentTenant?.id) {
+      // Tenant not loaded yet — don't block the user
+      return { allowed: true, current: currentCount, max: Infinity, upgradeNeeded: false };
+    }
     return checkPlanLimit(planId, limitKey, currentCount);
-  }, [planId]);
+  }, [planId, currentTenant?.id]);
 
   /** Read a limit value (-1 / Infinity = unlimited) */
   const limitOf = useCallback((limitKey) => {
