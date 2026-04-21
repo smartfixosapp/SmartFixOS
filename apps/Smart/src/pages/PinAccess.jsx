@@ -2834,7 +2834,7 @@ export default function PinAccess() {
           
           <div className="text-center mb-12 flex flex-col items-center gap-4">
             <Button
-              onClick={() => handleGoogleSignIn("register")}
+              onClick={() => navigate("/Pricing")}
               variant="outline"
               className="border-cyan-500/40 bg-transparent text-cyan-300 hover:bg-cyan-500/10 rounded-full px-5 font-medium text-sm h-9">
 
