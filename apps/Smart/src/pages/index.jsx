@@ -201,7 +201,7 @@ function ProtectedRoutes() {
 function LayoutWrapper({ children, currentPageName }) {
     const location = useLocation();
 
-    if (location.pathname === '/returnlogin' || location.pathname === '/SuperAdmin' || location.pathname === '/GACC' || location.pathname === '/Receipt' || location.pathname === '/CustomerApproval' || location.pathname === '/Pricing') {
+    if (location.pathname === '/returnlogin' || location.pathname === '/SuperAdmin' || location.pathname === '/GACC' || location.pathname === '/Receipt' || location.pathname === '/CustomerApproval' || location.pathname === '/Pricing' || location.pathname === '/VerifyEmail') {
         return <>{children}</>;
     }
 
