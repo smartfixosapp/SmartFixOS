@@ -198,7 +198,9 @@ export default function Activate() {
       toast.success("¡Cuenta activada exitosamente!");
 
       setTimeout(() => {
-        navigate("/PinAccess");
+        navigate("/PinAccess", {
+          state: { activated: true, email: employee.email },
+        });
       }, 2000);
 
     } catch (error) {
