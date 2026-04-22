@@ -1331,7 +1331,7 @@ Maximo 150 palabras. Texto plano, sin markdown.`
               </div>
               <span className="apple-text-footnote font-semibold apple-label-secondary">{netProfit >= 0 ? "Ganancia" : "Deficit"}</span>
             </div>
-            <p className={`apple-text-title1 tabular-nums ${netProfit >= 0 ? "text-apple-blue" : "text-apple-red"}`}>${Math.abs(netProfit).toFixed(2)}</p>
+            <p className={`text-lg sm:apple-text-title1 font-bold tabular-nums truncate ${netProfit >= 0 ? "text-apple-blue" : "text-apple-red"}`}>${Math.abs(netProfit).toFixed(2)}</p>
             <p className="apple-text-caption1 apple-label-tertiary mt-1.5 tabular-nums">{filteredSales.length} venta{filteredSales.length !== 1 ? "s" : ""}</p>
           </button>
         </div>
