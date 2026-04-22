@@ -911,7 +911,7 @@ export default function Dashboard() {
                 <p className="apple-text-footnote apple-label-secondary">
                   {(() => { const h = new Date().getHours(); return h < 12 ? "Buenos días" : h < 18 ? "Buenas tardes" : "Buenas noches"; })()}
                 </p>
-                <h2 className="apple-text-title1 apple-label-primary truncate">
+                <h2 className="text-xl sm:apple-text-title1 font-bold apple-label-primary truncate">
                   {session?.userName?.split(' ')[0] || 'Usuario'}
                 </h2>
               </div>
