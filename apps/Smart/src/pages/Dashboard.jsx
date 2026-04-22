@@ -964,7 +964,7 @@ export default function Dashboard() {
                 </div>
                 <div className="flex-1 min-w-0">
                   <p className="apple-text-caption1 apple-label-secondary">Ingresos hoy</p>
-                  <p className="apple-text-title2 apple-label-primary tabular-nums leading-tight">
+                  <p className="text-base sm:apple-text-title2 font-bold apple-label-primary tabular-nums leading-tight truncate">
                     {kpiIncome.loading ? "…" : `$${(kpiIncome.today||0).toLocaleString("en-US",{maximumFractionDigits:0})}`}
                   </p>
                 </div>
