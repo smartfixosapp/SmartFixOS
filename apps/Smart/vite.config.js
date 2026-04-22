@@ -16,7 +16,7 @@ export default defineConfig({
       manifest: false,
       selfDestroying: false,
       workbox: {
-        cacheId: 'sfos-v7', // v7: removed client-side order creation blocker
+        cacheId: 'sfos-v8', // v8: Financial mobile layout fixes (header stack, KPI font-size)
         clientsClaim: true,
         skipWaiting: true,
         globPatterns: ['**/*.{js,css,ico,png,svg,woff2}'],
