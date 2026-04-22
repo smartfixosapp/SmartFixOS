@@ -16,7 +16,7 @@ export default defineConfig({
       manifest: false,
       selfDestroying: false,
       workbox: {
-        cacheId: 'sfos-v8', // v8: Financial mobile layout fixes (header stack, KPI font-size)
+        cacheId: 'sfos-v9', // v9: Dashboard mobile text sizing fixes
         clientsClaim: true,
         skipWaiting: true,
         globPatterns: ['**/*.{js,css,ico,png,svg,woff2}'],
