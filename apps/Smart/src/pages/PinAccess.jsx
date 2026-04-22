@@ -1642,7 +1642,17 @@ export default function PinAccess() {
       // 0a. Mostrar toast si viene de activación exitosa
       if (location.state?.activated) {
         toast.success("¡Cuenta activada! Ingresa con tu email y el PIN que creaste", { duration: 5000 });
+        // Ir directo al formulario de login (no a la landing de marketing)
+        // y pre-llenar el email del empleado recién activado.
+        if (location.state.email) {
+          setStoreEmail(location.state.email);
+          try { localStorage.setItem(STORE_EMAIL_KEY, location.state.email); } catch {}
+        }
+        setStep("store");
         navigate(location.pathname, { replace: true, state: {} });
+        setCheckingUsers(false);
+        setIsReady(true);
+        return;
       }
 
       // 0b. Mostrar mensaje si fue expulsado por suspensión
