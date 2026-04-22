@@ -1288,7 +1288,7 @@ Maximo 150 palabras. Texto plano, sin markdown.`
         <div className="grid grid-cols-3 gap-3">
           {/* Entradas */}
           <button onClick={() => { setActiveTab("movimientos"); setMovFilter("income"); }}
-            className={`apple-press text-left p-4 sm:p-5 rounded-apple-lg transition-all ${
+            className={`apple-press text-left p-3 sm:p-5 rounded-apple-lg transition-all overflow-hidden ${
               activeTab === "movimientos" && movFilter === "income"
                 ? "bg-apple-green/15"
                 : "apple-card"
@@ -1305,7 +1305,7 @@ Maximo 150 palabras. Texto plano, sin markdown.`
 
           {/* Salidas */}
           <button onClick={() => { setActiveTab("movimientos"); setMovFilter("expense"); }}
-            className={`apple-press text-left p-4 sm:p-5 rounded-apple-lg transition-all ${
+            className={`apple-press text-left p-3 sm:p-5 rounded-apple-lg transition-all overflow-hidden ${
               activeTab === "movimientos" && movFilter === "expense"
                 ? "bg-apple-red/15"
                 : "apple-card"
