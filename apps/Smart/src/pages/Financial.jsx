@@ -1316,7 +1316,7 @@ Maximo 150 palabras. Texto plano, sin markdown.`
               </div>
               <span className="apple-text-footnote font-semibold apple-label-secondary">Salidas</span>
             </div>
-            <p className="apple-text-title1 tabular-nums text-apple-red">${totalExpenses.toFixed(2)}</p>
+            <p className="text-lg sm:apple-text-title1 font-bold tabular-nums text-apple-red truncate">${totalExpenses.toFixed(2)}</p>
             <p className="apple-text-caption1 apple-label-tertiary mt-1.5 tabular-nums">Hoy: ${todayExpenses.toFixed(2)}</p>
           </button>
 
