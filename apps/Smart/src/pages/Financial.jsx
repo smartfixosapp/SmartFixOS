@@ -1203,19 +1203,19 @@ Maximo 150 palabras. Texto plano, sin markdown.`
 
       {/* ── Header ── */}
       <div className="sticky top-0 z-40 apple-surface py-3" style={{ borderBottom: '0.5px solid rgb(var(--separator) / 0.29)' }}>
-        <div className="app-container flex items-center justify-between gap-2">
+        <div className="app-container flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
           <div className="flex items-center gap-2 min-w-0">
             <div className="w-9 h-9 rounded-apple-sm bg-apple-blue/15 flex items-center justify-center shrink-0">
               <DollarSign className="w-4 h-4 text-apple-blue" />
             </div>
-            <div className="min-w-0">
+            <div className="min-w-0 flex-1">
               <h1 className="apple-text-title2 apple-label-primary leading-tight">Finanzas</h1>
               <p className="apple-text-footnote apple-label-tertiary leading-none mt-0.5 truncate tabular-nums">
                 {loading ? "Cargando…" : `${filteredSales.length + filteredExpenses.length} movimientos`}
               </p>
             </div>
           </div>
-          <div className="flex items-center gap-1 shrink-0">
+          <div className="flex items-center gap-1 shrink-0 overflow-x-auto no-scrollbar">
             {/* Filtro de período — segmented pills */}
             <div className="flex items-center gap-0.5 p-1 bg-gray-sys6 dark:bg-gray-sys5 rounded-apple-md">
               {[
