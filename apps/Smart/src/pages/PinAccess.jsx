@@ -889,32 +889,28 @@ export default function PinAccess() {
     setPin("");
     localStorage.removeItem("smartfix_tenant_id");
     try {
-      // ── ¿Existe ya un tenant para este email? ──
-      const { data: tenantRows } = await supabase
-        .from("tenant").select("id").eq("email", email).limit(1);
-      const tenantExists = tenantRows && tenantRows.length > 0;
-
-      // Intento de REGISTRO con Google — y aún no tiene cuenta → mostrar form de tienda
-      if (intent === "register" && !tenantExists) {
-        setGoogleRegisterData({ full_name: googleName, email, store_name: '', phone: '', plan: 'starter' });
-        setStep("google_register");
-        setUsersLoading(false);
-        return;
-      }
-
-      // Si intenta registrarse pero YA tiene cuenta → tratarlo como login
+      // ── Buscar primero si este email ya pertenece a un taller ──
+      // IMPORTANTE: chequear users/app_employee ANTES de decidir register-vs-login,
+      // y usar ilike para evitar mismatches por mayúsculas/minúsculas.
+      // Si el empleado fue creado por un admin, existe en app_employee con tenant_id;
+      // no debe verse la pantalla de "Crea tu taller" aunque haya clickeado "Registrar".
       let resolvedTenantId = null;
       const { data: userRows } = await supabase
-        .from("users").select("tenant_id").eq("email", email).not("tenant_id", "is", null).limit(1);
+        .from("users").select("tenant_id").ilike("email", email).not("tenant_id", "is", null).limit(1);
       resolvedTenantId = userRows?.[0]?.tenant_id || null;
       if (!resolvedTenantId) {
         const { data: empRows } = await supabase
-          .from("app_employee").select("tenant_id").eq("email", email).limit(1);
+          .from("app_employee").select("tenant_id").ilike("email", email).not("tenant_id", "is", null).limit(1);
         resolvedTenantId = empRows?.[0]?.tenant_id || null;
       }
 
-      // 🔒 Si este email no tiene tenant registrado → siempre ir a registro
-      // (Evita que nuevos usuarios vean datos de otros tenants)
+      // ¿Existe un tenant cuyo email owner es este? (caso: dueño del taller)
+      const { data: tenantRows } = await supabase
+        .from("tenant").select("id").ilike("email", email).limit(1);
+      const tenantExists = tenantRows && tenantRows.length > 0;
+
+      // Solo ir a google_register si REALMENTE no tiene ninguna asociación
+      // (ni como dueño, ni como usuario, ni como empleado de algún taller).
       if (!resolvedTenantId && !tenantExists) {
         console.log("🆕 Email sin cuenta registrada — mostrando formulario de registro:", email);
         setGoogleRegisterData({ full_name: googleName, email, store_name: '', phone: '', plan: 'starter' });
