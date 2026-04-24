@@ -12,7 +12,12 @@ import { normalizePlanId, getPlan, checkPlanLimit, getUpgradePlan } from "@/lib/
  *   const { checkLimit, plan, upgradeTo } = usePlanLimits();
  *   const { allowed, current, max } = checkLimit('max_active_orders', orders.length);
  *   if (!allowed) toast.error(`Límite ${current}/${max} — upgrade a ${upgradeTo.label}`);
+ *
+ * NOTE: When VITE_BILLING_ENABLED !== 'true', all limits are bypassed.
+ *       Set VITE_BILLING_ENABLED=true only when Stripe billing (Fase 6) is live.
  */
+
+const BILLING_ENABLED = import.meta.env.VITE_BILLING_ENABLED === 'true';
 export function usePlanLimits() {
   const { currentTenant } = useTenant();
 
