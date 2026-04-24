@@ -1154,9 +1154,44 @@ Máximo 30 palabras en total.`;
                 className="group bg-white/[0.03] rounded-2xl p-4 border border-white/[0.05] hover:border-white/10 hover:bg-white/[0.05] transition-all"
               >
                 <div className="flex items-start justify-between mb-3">
-                  <div className="flex-1">
-                    <p className="text-white text-[13px] font-semibold tracking-tight leading-tight group-hover:text-cyan-400 transition-colors">{item.name}</p>
-                    <p className="text-white/50 text-[11px] font-bold mt-1">${toCurrencyNumber(item.price).toFixed(2)} c/u</p>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-white text-[13px] font-semibold tracking-tight leading-tight group-hover:text-cyan-400 transition-colors truncate pr-2">{item.name}</p>
+                    {/* Precio editable — tap para modificar */}
+                    {editingPriceIdx === idx ? (
+                      <div className="flex items-center gap-1 mt-1">
+                        <span className="text-white/50 text-[11px] font-bold">$</span>
+                        <input
+                          type="number"
+                          inputMode="decimal"
+                          min="0"
+                          step="0.01"
+                          autoFocus
+                          value={editingPriceVal}
+                          onChange={e => setEditingPriceVal(e.target.value)}
+                          onBlur={() => commitEditPrice(idx)}
+                          onKeyDown={e => {
+                            if (e.key === "Enter") { e.target.blur(); }
+                            if (e.key === "Escape") { setEditingPriceIdx(null); setEditingPriceVal(""); }
+                          }}
+                          className="w-24 bg-white/10 border border-cyan-400/60 rounded-lg px-2 py-0.5 text-white text-[12px] font-bold outline-none focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400/30"
+                        />
+                        <span className="text-white/30 text-[10px]">c/u · Enter ✓</span>
+                      </div>
+                    ) : (
+                      <button
+                        onClick={() => startEditPrice(idx)}
+                        title="Toca para editar el precio"
+                        className="flex items-center gap-1 mt-1 group/price"
+                      >
+                        <span className="text-white/50 text-[11px] font-bold group-hover/price:text-cyan-400 transition-colors">
+                          ${toCurrencyNumber(item.price).toFixed(2)} c/u
+                        </span>
+                        <svg className="w-2.5 h-2.5 text-white/20 group-hover/price:text-cyan-400 transition-colors" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                          <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+                          <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+                        </svg>
+                      </button>
+                    )}
                   </div>
                   <button
                     onClick={() => removeItem(idx)}
