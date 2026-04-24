@@ -550,30 +550,7 @@ export default function POSSaleActionsModal({ open, onClose, sale, customer, car
             </div>
           )}
 
-          {/* ── WhatsApp texto tab ── */}
-          {tab === "whatsapp_text" && (
-            <div className="px-5 py-4 space-y-3">
-              <button onClick={() => setTab(null)} className="apple-text-subheadline apple-label-secondary flex items-center gap-1">
-                <ChevronRight className="w-4 h-4 rotate-180" /> Volver
-              </button>
-              <p className="apple-text-subheadline font-semibold apple-label-primary">Teléfono del cliente</p>
-              <input
-                autoFocus type="tel" placeholder="+1 787 000 0000"
-                value={waPhone} onChange={e => setWaPhone(e.target.value)}
-                className="apple-input w-full px-4 py-3 apple-text-subheadline"
-              />
-              <button onClick={handleWhatsAppText}
-                className="apple-btn apple-btn-primary w-full"
-                style={{ background: "#25D366" }}
-              >
-                <MessageCircle className="w-4 h-4 mr-2" />
-                Abrir WhatsApp
-              </button>
-              <p className="apple-text-caption1 apple-label-tertiary text-center">
-                Esto envía el recibo como mensaje de texto
-              </p>
-            </div>
-          )}
+          {/* WhatsApp texto tab eliminado — se usa PDF ahora */}
 
           {/* ── Mini historial reciente ── */}
           {tab === null && recentSales.length > 0 && (
