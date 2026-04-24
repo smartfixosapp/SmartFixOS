@@ -72,8 +72,14 @@ export function getPlan(planId) {
 /**
  * Check if a limit is exceeded.
  * Returns { allowed: bool, current, max, upgradeNeeded }
+ *
+ * Returns allowed:true unconditionally when VITE_BILLING_ENABLED !== 'true'.
  */
 export function checkPlanLimit(planId, limitKey, currentCount) {
+  // Billing not yet active — bypass all limits
+  if (import.meta.env.VITE_BILLING_ENABLED !== 'true') {
+    return { allowed: true, current: currentCount, max: Infinity, upgradeNeeded: false };
+  }
   const id = normalizePlanId(planId);
   const limits = PLAN_LIMITS[id];
   if (!limits) return { allowed: true, current: currentCount, max: Infinity, upgradeNeeded: false };
