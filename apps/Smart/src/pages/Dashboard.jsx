@@ -92,6 +92,7 @@ import RechargesPanel from "@/components/recharges/RechargesPanel";
 import DashboardLinksConfig from "@/components/dashboard/DashboardLinksConfig";
 import DashboardSidebar from "@/components/dashboard/DashboardSidebar";
 import DashboardShiftTasks from "@/components/dashboard/DashboardShiftTasks";
+import ExecutiveDashboard from "@/components/dashboard/ExecutiveDashboard";
 import DailyTransactionsModal from "@/components/dashboard/DailyTransactionsModal";
 import MonthlyReportModal, { shouldShowMonthlyReport } from "@/components/financial/MonthlyReportModal";
 const DASHBOARD_WIDGETS_KEY = "smartfix_dashboard_widgets_v2";
