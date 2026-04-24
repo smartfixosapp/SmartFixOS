@@ -308,43 +308,62 @@ export default function POSSaleActionsModal({ open, onClose, sale, customer, car
   const saleNum = sale?.sale_number || sale?.id?.slice(-6) || "—";
 
   // ── PDF Share ──────────────────────────────────────────────────────────
-  const handleSharePDF = useCallback(async () => {
+  const handleSharePDF = useCallback(async (openWhatsApp = false) => {
     setSendingPDF(true);
+    let blobUrl = null;
     try {
       const blob = await generateReceiptPDF(sale, customer, cartItems, businessInfo);
       const filename = `Recibo-${saleNum}.pdf`;
       const file = new File([blob], filename, { type: "application/pdf" });
 
-      // Web Share API — funciona en iOS Safari, Android Chrome, abre sheet nativo
-      if (navigator.canShare && navigator.canShare({ files: [file] })) {
-        await navigator.share({
-          files: [file],
-          title: `Recibo ${saleNum} — ${bizName}`,
-          text: `Aquí está tu recibo de compra`,
-        });
-        setSent(p => ({ ...p, pdf: true }));
-        toast.success("✅ Recibo compartido");
+      // ── Intento 1: Web Share API con archivos (iOS/Android nativo) ──
+      const canNativeShare = typeof navigator.canShare === "function" && navigator.canShare({ files: [file] });
+
+      if (canNativeShare) {
+        try {
+          await navigator.share({
+            files: [file],
+            title: `Recibo ${saleNum} — ${bizName}`,
+            text: "Tu recibo de compra",
+          });
+          setSent(p => ({ ...p, pdf: true }));
+          toast.success("✅ Recibo compartido");
+          return; // éxito — salimos
+        } catch (shareErr) {
+          if (shareErr?.name === "AbortError") return; // usuario canceló
+          // Si falla, caemos al fallback
+        }
+      }
+
+      // ── Fallback: descarga el PDF ──
+      blobUrl = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = blobUrl;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      setSent(p => ({ ...p, pdf: true }));
+
+      if (openWhatsApp) {
+        // Abre WhatsApp con mensaje indicando adjuntar el PDF
+        const cleaned = (waPhone || "").replace(/\D/g, "");
+        const msg = encodeURIComponent(`Hola, aquí está tu recibo #${saleNum} por $${toCurrencyNumber(sale?.total_amount || sale?.total).toFixed(2)}. Adjunto el PDF que descargué.`);
+        const url = cleaned ? `https://wa.me/${cleaned}?text=${msg}` : `https://wa.me/?text=${msg}`;
+        setTimeout(() => window.open(url, "_blank"), 600);
+        toast.success("✅ PDF descargado — abriendo WhatsApp…", { duration: 5000 });
       } else {
-        // Fallback: descarga directa
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement("a");
-        a.href = url;
-        a.download = filename;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        URL.revokeObjectURL(url);
-        setSent(p => ({ ...p, pdf: true }));
-        toast.success("✅ PDF descargado");
+        toast.success("✅ PDF descargado en tu equipo");
       }
+
     } catch (err) {
-      if (err?.name !== "AbortError") {
-        toast.error(`Error generando PDF: ${err.message}`);
-      }
+      console.error("[PDF] Error:", err);
+      toast.error(`Error al generar el PDF: ${err?.message || err}`);
     } finally {
       setSendingPDF(false);
+      if (blobUrl) setTimeout(() => URL.revokeObjectURL(blobUrl), 3000);
     }
-  }, [sale, customer, cartItems, businessInfo, saleNum, bizName]);
+  }, [sale, customer, cartItems, businessInfo, saleNum, bizName, waPhone]);
 
   // ── Email ──────────────────────────────────────────────────────────────
   const handleSendEmail = async () => {
