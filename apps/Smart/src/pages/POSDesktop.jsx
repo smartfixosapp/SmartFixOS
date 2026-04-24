@@ -145,6 +145,9 @@ export default function POSDesktop() {
   const [printData, setPrintData] = useState(null);
   const [showManualItem, setShowManualItem] = useState(false);
   const [manualItem, setManualItem] = useState({ name: "", price: "", qty: "1" });
+  // Price editing in cart
+  const [editingPriceIdx, setEditingPriceIdx] = useState(null);
+  const [editingPriceVal, setEditingPriceVal] = useState("");
   const [showSaleActions, setShowSaleActions] = useState(false);
   const [completedSale, setCompletedSale] = useState(null);
   const [completedOrderId, setCompletedOrderId] = useState(null);
