@@ -1019,6 +1019,11 @@ export default function Dashboard() {
                 </div>
               )}
             </div>
+
+            {/* ── Dashboard ejecutivo (mobile) ── */}
+            <div className="px-4 pb-4 shrink-0">
+              <ExecutiveDashboard />
+            </div>
           </div>
 
         </div>
