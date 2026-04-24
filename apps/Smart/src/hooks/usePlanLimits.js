@@ -46,9 +46,14 @@ export function usePlanLimits() {
   }, [currentTenant?.plan, currentTenant?.metadata, currentTenant?.subscription_plan, currentTenant?.monthly_cost, currentTenant?.id]);
   const planConfig = useMemo(() => getPlan(planId), [planId]);
 
-  /** Quantity limit check — returns allowed:true if tenant hasn't loaded yet
-   *  to prevent false "limit reached" errors during async tenant fetch */
+  /** Quantity limit check — returns allowed:true if:
+   *  - billing is disabled (VITE_BILLING_ENABLED !== 'true'), OR
+   *  - tenant hasn't loaded yet (prevents false "limit reached" during async fetch) */
   const checkLimitFn = useCallback((limitKey, currentCount) => {
+    if (!BILLING_ENABLED) {
+      // Billing not active yet (Fase 6 pending) — never block the user
+      return { allowed: true, current: currentCount, max: Infinity, upgradeNeeded: false };
+    }
     if (!currentTenant?.id) {
       // Tenant not loaded yet — don't block the user
       return { allowed: true, current: currentCount, max: Infinity, upgradeNeeded: false };
