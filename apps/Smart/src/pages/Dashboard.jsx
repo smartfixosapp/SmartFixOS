@@ -894,14 +894,19 @@ export default function Dashboard() {
               onPriceList={() => { setShowPriceList(true); setPriceListSearch(""); }}
             />
 
-            {/* ── Panel derecho: Tareas del turno + KPIs ── */}
-            <DashboardShiftTasks
-              pendingShiftTasks={pendingShiftTasks}
-              completingTaskId={completingTaskId}
-              quickStats={quickStats}
-              onCompleteTask={handleCompleteTask}
-              onNavigate={handleNavigate}
-            />
+            {/* ── Panel derecho: Tareas del turno + Dashboard ejecutivo ── */}
+            <div className="flex-1 overflow-y-auto apple-scroll min-h-0">
+              <DashboardShiftTasks
+                pendingShiftTasks={pendingShiftTasks}
+                completingTaskId={completingTaskId}
+                quickStats={quickStats}
+                onCompleteTask={handleCompleteTask}
+                onNavigate={handleNavigate}
+              />
+              <div className="px-6 lg:px-7 pb-6 -mt-2">
+                <ExecutiveDashboard />
+              </div>
+            </div>
           </div>
 
           {/* === MÓVIL: PULSO (Apple style) === */}
