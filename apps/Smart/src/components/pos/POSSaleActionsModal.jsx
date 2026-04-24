@@ -3,10 +3,11 @@ import { toast } from "sonner";
 import { apiUrl } from "@/lib/apiUrl";
 import {
   Mail, MessageCircle, Printer, X, Send, Check,
-  Loader2, ChevronRight, History, Clock, Receipt,
+  Loader2, ChevronRight, History, Receipt,
   FileDown, Share2, CheckCircle2
 } from "lucide-react";
 import { dataClient } from "@/components/api/dataClient";
+import { jsPDF } from "jspdf";
 
 const cn = (...classes) => classes.filter(Boolean).join(" ");
 
