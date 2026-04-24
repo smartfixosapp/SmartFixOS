@@ -147,6 +147,7 @@ export default function POSMobile() {
   // Price editing in cart
   const [editingPriceIdx, setEditingPriceIdx] = useState(null);
   const [editingPriceVal, setEditingPriceVal] = useState("");
+  const [showCartSheet, setShowCartSheet] = useState(false);
   const [completedSale, setCompletedSale] = useState(null);
   const [completedOrderId, setCompletedOrderId] = useState(null);
   const [showSaleHistory, setShowSaleHistory] = useState(false);
