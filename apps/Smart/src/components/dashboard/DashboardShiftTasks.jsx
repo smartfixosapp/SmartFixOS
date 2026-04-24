@@ -39,8 +39,8 @@ export default function DashboardShiftTasks({
       </div>
 
       {/* Lista de tareas */}
-      <div className="flex-1 apple-card overflow-hidden flex flex-col min-h-0 !p-0">
-        <div className="flex-1 overflow-y-auto apple-scroll">
+      <div className="apple-card overflow-hidden flex flex-col !p-0" style={{ maxHeight: 260 }}>
+        <div className="overflow-y-auto apple-scroll">
           {pendingShiftTasks.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-14 h-full gap-3">
               <CheckCircle2 className="w-10 h-10 text-apple-green" />
