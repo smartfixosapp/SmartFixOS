@@ -39,7 +39,7 @@ function toCurrencyNumber(v) {
 // ── PDF Receipt generator (jsPDF text-based, no html2canvas) ──────────────
 async function generateReceiptPDF(sale, customer, items, biz) {
   const config = getConfig();
-  const { jsPDF } = await import("jspdf");
+  // jsPDF imported statically at top of file
 
   const pw = 80;       // 80mm wide (thermal paper)
   const margin = 5;
