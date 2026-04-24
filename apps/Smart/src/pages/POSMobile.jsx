@@ -514,6 +514,22 @@ export default function POSMobile() {
     setCart(cart.filter((_, i) => i !== index));
   };
 
+  const startEditPrice = (idx) => {
+    setEditingPriceIdx(idx);
+    setEditingPriceVal(toCurrencyNumber(cart[idx].price).toFixed(2));
+  };
+
+  const commitEditPrice = (idx) => {
+    const parsed = parseFloat(String(editingPriceVal).replace(/[^0-9.]/g, ""));
+    if (!isNaN(parsed) && parsed >= 0) {
+      const updated = [...cart];
+      updated[idx] = { ...updated[idx], price: parsed };
+      setCart(updated);
+    }
+    setEditingPriceIdx(null);
+    setEditingPriceVal("");
+  };
+
   const clearCart = () => {
     setCart([]);
     setSelectedCustomer(null);
