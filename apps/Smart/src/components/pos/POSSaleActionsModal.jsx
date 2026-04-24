@@ -438,37 +438,62 @@ export default function POSSaleActionsModal({ open, onClose, sale, customer, car
             <div className="px-5 py-4 space-y-2.5">
               <p className="apple-text-caption1 apple-label-tertiary font-semibold tracking-wider uppercase px-1 mb-1">Compartir recibo</p>
 
-              {/* PDF Share — primary action */}
+              {/* ── WhatsApp + PDF (opción estrella) ── */}
+              {cfg.send_whatsapp !== false && (
+                <button
+                  onClick={() => handleSharePDF(true)}
+                  disabled={sendingPDF}
+                  className="w-full flex items-center gap-3.5 p-4 rounded-2xl text-left active:scale-[0.98] transition-all"
+                  style={{ background: "rgba(37,211,102,0.12)", border: "1px solid rgba(37,211,102,0.25)" }}
+                >
+                  <div className="w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0 shadow-sm"
+                    style={{ background: sendingPDF ? "#888" : sent.pdf ? "#22c55e" : "#25D366" }}>
+                    {sendingPDF
+                      ? <Loader2 className="w-5 h-5 text-white animate-spin" />
+                      : sent.pdf
+                      ? <Check className="w-5 h-5 text-white" />
+                      : <MessageCircle className="w-5 h-5 text-white" />}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="apple-text-subheadline font-semibold" style={{ color: "#25D366" }}>
+                      {sendingPDF ? "Generando PDF…" : sent.pdf ? "¡PDF listo!" : "Enviar por WhatsApp (PDF)"}
+                    </p>
+                    <p className="apple-text-caption1 apple-label-secondary mt-0.5">
+                      {waPhone ? `📱 ${waPhone}` : "Descarga el PDF y lo abre en WhatsApp"}
+                    </p>
+                  </div>
+                  {!sendingPDF && <ChevronRight className="w-4 h-4 apple-label-tertiary flex-shrink-0" />}
+                </button>
+              )}
+
+              {/* ── Compartir PDF (share sheet nativo / descarga) ── */}
               <button
-                onClick={handleSharePDF}
+                onClick={() => handleSharePDF(false)}
                 disabled={sendingPDF}
-                className="w-full flex items-center gap-3.5 p-4 rounded-2xl bg-apple-blue/10 border border-apple-blue/20 hover:bg-apple-blue/15 active:scale-[0.98] transition-all text-left"
+                className="w-full flex items-center gap-3.5 p-4 rounded-2xl bg-apple-blue/10 border border-apple-blue/20 active:scale-[0.98] transition-all text-left"
               >
                 <div className="w-11 h-11 rounded-xl bg-apple-blue flex items-center justify-center flex-shrink-0 shadow-sm">
                   {sendingPDF
                     ? <Loader2 className="w-5 h-5 text-white animate-spin" />
-                    : sent.pdf
-                    ? <Check className="w-5 h-5 text-white" />
                     : <Share2 className="w-5 h-5 text-white" />}
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="apple-text-subheadline font-semibold text-apple-blue">
-                    {sendingPDF ? "Generando PDF…" : sent.pdf ? "¡Compartido!" : "Compartir como PDF"}
-                  </p>
+                  <p className="apple-text-subheadline font-semibold text-apple-blue">Compartir / Descargar PDF</p>
                   <p className="apple-text-caption1 apple-label-secondary mt-0.5">
-                    WhatsApp · iMessage · Mail · AirDrop…
+                    iMessage · AirDrop · Mail · Guardar…
                   </p>
                 </div>
-                {!sendingPDF && <ChevronRight className="w-4 h-4 apple-label-tertiary flex-shrink-0" />}
+                <ChevronRight className="w-4 h-4 apple-label-tertiary flex-shrink-0" />
               </button>
 
-              {/* Email */}
+              {/* ── Email ── */}
               {cfg.send_email !== false && (
                 <button
                   onClick={() => setTab("email")}
-                  className="w-full flex items-center gap-3.5 p-4 rounded-2xl apple-card hover:apple-card active:scale-[0.98] transition-all text-left"
+                  className="w-full flex items-center gap-3.5 p-4 rounded-2xl apple-card active:scale-[0.98] transition-all text-left"
                 >
-                  <div className={cn("w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0", sent.email ? "bg-emerald-500" : "bg-[rgb(var(--fill-secondary))]")}>
+                  <div className={cn("w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0",
+                    sent.email ? "bg-emerald-500" : "bg-[rgb(var(--fill-secondary))]")}>
                     {sent.email ? <Check className="w-5 h-5 text-white" /> : <Mail className="w-5 h-5 apple-label-primary" />}
                   </div>
                   <div className="flex-1 min-w-0">
@@ -479,11 +504,11 @@ export default function POSSaleActionsModal({ open, onClose, sale, customer, car
                 </button>
               )}
 
-              {/* Print */}
+              {/* ── Imprimir ── */}
               {cfg.send_print !== false && (
                 <button
                   onClick={() => { onPrint?.(); onClose(); }}
-                  className="w-full flex items-center gap-3.5 p-4 rounded-2xl apple-card hover:apple-card active:scale-[0.98] transition-all text-left"
+                  className="w-full flex items-center gap-3.5 p-4 rounded-2xl apple-card active:scale-[0.98] transition-all text-left"
                 >
                   <div className="w-11 h-11 rounded-xl bg-[rgb(var(--fill-secondary))] flex items-center justify-center flex-shrink-0">
                     <Printer className="w-5 h-5 apple-label-primary" />
@@ -496,23 +521,9 @@ export default function POSSaleActionsModal({ open, onClose, sale, customer, car
                 </button>
               )}
 
-              {/* WhatsApp texto (secondary/plain) */}
-              {cfg.send_whatsapp !== false && (
-                <button
-                  onClick={() => setTab("whatsapp_text")}
-                  className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-left"
-                >
-                  <MessageCircle className="w-4 h-4 apple-label-tertiary flex-shrink-0" />
-                  <span className="apple-text-footnote apple-label-tertiary">Compartir como texto (WhatsApp)</span>
-                  <ChevronRight className="w-3 h-3 apple-label-quaternary ml-auto flex-shrink-0" />
-                </button>
-              )}
-
-              {/* Skip */}
-              <button
-                onClick={onClose}
-                className="w-full py-3 apple-text-subheadline apple-label-tertiary font-medium text-center"
-              >
+              {/* ── Omitir ── */}
+              <button onClick={onClose}
+                className="w-full py-3 apple-text-subheadline apple-label-tertiary font-medium text-center">
                 Omitir
               </button>
             </div>
