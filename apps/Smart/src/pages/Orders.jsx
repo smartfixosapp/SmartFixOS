@@ -132,6 +132,9 @@ const OrderCard = React.memo(function OrderCard({ order, onClick, onEditDevice }
     ageLabel = formatDistanceToNow(d, { addSuffix: true, locale: es });
   } catch {}
 
+  // Status accent color
+  const accentColor = statusConfig.color || "#3B82F6";
+
   return (
     <motion.div
       role="button"
@@ -143,19 +146,26 @@ const OrderCard = React.memo(function OrderCard({ order, onClick, onEditDevice }
       onClick={onClick}
       onKeyDown={(e) => e.key === 'Enter' && onClick()}
       className={cn(
-        "apple-card apple-card-interactive apple-type apple-press w-full p-4 cursor-pointer",
+        "relative overflow-hidden apple-card apple-card-interactive apple-type apple-press w-full p-4 cursor-pointer",
         isB2B && "ring-1 ring-apple-purple/30"
       )}
     >
-      <div className="flex flex-col gap-3">
+      {/* ── Status accent stripe (top) ── */}
+      <div
+        className="absolute top-0 left-0 right-0 h-[2.5px]"
+        style={{ background: accentColor, opacity: 0.75 }}
+      />
+
+      <div className="flex flex-col gap-3 pt-0.5">
         {/* Top row: icon + customer + status */}
         <div className="flex items-start gap-3">
-          <div className={cn(
-            "flex h-11 w-11 shrink-0 items-center justify-center rounded-apple-sm",
-            isB2B
-              ? "bg-apple-purple/15 text-apple-purple"
-              : "bg-apple-blue/15 text-apple-blue"
-          )}>
+          <div
+            className="flex h-11 w-11 shrink-0 items-center justify-center rounded-apple-sm"
+            style={{
+              background: `${accentColor}1a`,
+              color: accentColor,
+            }}
+          >
             <DeviceIcon className="h-5 w-5" strokeWidth={2} />
           </div>
 
@@ -169,17 +179,19 @@ const OrderCard = React.memo(function OrderCard({ order, onClick, onEditDevice }
             </p>
           </div>
 
-          <span className={cn(
-            "inline-flex items-center rounded-full px-2 py-0.5 apple-text-caption2 font-semibold border-0 shrink-0",
-            statusConfig.colorClasses
-          )}>
+          <span
+            className="inline-flex items-center rounded-full px-2.5 py-1 text-[11px] font-bold shrink-0"
+            style={{
+              background: `${accentColor}22`,
+              color: accentColor,
+              border: `1px solid ${accentColor}44`,
+            }}
+          >
             {statusConfig.label}
           </span>
         </div>
 
-        {/* Foto principal del dispositivo — una sola, grande.
-            Si hay más de una, el contador del footer (📷 N) ya lo indica.
-            `loading="lazy"` evita pedirla hasta que entre en viewport. */}
+        {/* Foto principal */}
         {firstPhotoUrl && (
           <div className="relative w-full aspect-[16/10] rounded-apple-md overflow-hidden bg-white/5 border border-white/10">
             <img
@@ -191,6 +203,16 @@ const OrderCard = React.memo(function OrderCard({ order, onClick, onEditDevice }
               onError={(e) => { e.currentTarget.parentElement.style.display = 'none'; }}
             />
           </div>
+        )}
+
+        {/* Sin foto: mostrar descripción del problema si existe */}
+        {!firstPhotoUrl && (order.issue_description || order.notes || order.service_description) && (
+          <p
+            className="text-[12px] leading-relaxed line-clamp-2 px-0.5"
+            style={{ color: "rgba(255,255,255,0.38)" }}
+          >
+            {order.issue_description || order.notes || order.service_description}
+          </p>
         )}
 
         {/* Footer: age + tech + badges + phone */}
