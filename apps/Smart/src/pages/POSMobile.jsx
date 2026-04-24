@@ -1052,23 +1052,153 @@ export default function POSMobile() {
         </div>
 
         {/* ── Barra inferior: totales + CTA ─── */}
+        {/* ── Cart Bottom Sheet (mobile) ── */}
+        {showCartSheet && safeCart.length > 0 && (
+          <div className="fixed inset-0 z-50 flex flex-col justify-end">
+            {/* Backdrop */}
+            <div
+              className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+              onClick={() => { setShowCartSheet(false); setEditingPriceIdx(null); }}
+            />
+            {/* Sheet */}
+            <div className="relative apple-surface-primary rounded-t-3xl shadow-2xl max-h-[75vh] flex flex-col overflow-hidden">
+              {/* Handle */}
+              <div className="flex justify-center pt-3 pb-1">
+                <div className="w-9 h-1 rounded-full bg-[rgb(var(--separator)/0.5)]" />
+              </div>
+              {/* Header */}
+              <div className="flex items-center justify-between px-5 py-3 border-b border-[rgb(var(--separator)/0.2)]">
+                <span className="apple-text-headline font-semibold apple-label-primary">Carrito ({safeCart.length})</span>
+                <button
+                  onClick={() => { setShowCartSheet(false); setEditingPriceIdx(null); }}
+                  className="w-8 h-8 rounded-full bg-[rgb(var(--fill-tertiary))] flex items-center justify-center apple-label-secondary"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+              {/* Items */}
+              <div className="flex-1 overflow-y-auto px-5 py-3 space-y-3">
+                {safeCart.map((item, idx) => (
+                  <div key={idx} className="apple-surface-secondary rounded-2xl p-4 space-y-3">
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="flex-1 min-w-0">
+                        <p className="apple-text-subheadline font-semibold apple-label-primary truncate">{item.name}</p>
+                        {/* Precio editable */}
+                        {editingPriceIdx === idx ? (
+                          <div className="flex items-center gap-1 mt-1">
+                            <span className="apple-text-caption1 apple-label-secondary">$</span>
+                            <input
+                              type="number"
+                              inputMode="decimal"
+                              min="0"
+                              step="0.01"
+                              autoFocus
+                              value={editingPriceVal}
+                              onChange={e => setEditingPriceVal(e.target.value)}
+                              onBlur={() => commitEditPrice(idx)}
+                              onKeyDown={e => {
+                                if (e.key === "Enter") e.target.blur();
+                                if (e.key === "Escape") { setEditingPriceIdx(null); setEditingPriceVal(""); }
+                              }}
+                              className="w-28 bg-white/10 border border-apple-blue/60 rounded-lg px-2 py-1 apple-text-subheadline font-bold apple-label-primary outline-none focus:border-apple-blue"
+                            />
+                            <span className="apple-text-caption2 apple-label-tertiary">c/u</span>
+                          </div>
+                        ) : (
+                          <button
+                            onClick={() => startEditPrice(idx)}
+                            className="flex items-center gap-1 mt-1"
+                          >
+                            <span className="apple-text-caption1 font-semibold apple-label-secondary">
+                              ${toCurrencyNumber(item.price).toFixed(2)} c/u
+                            </span>
+                            <svg className="w-3 h-3 text-apple-blue" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                              <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+                              <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+                            </svg>
+                          </button>
+                        )}
+                      </div>
+                      <button
+                        onClick={() => removeItem(idx)}
+                        className="w-8 h-8 rounded-full bg-apple-red/10 text-apple-red flex items-center justify-center flex-shrink-0"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                    {/* Qty + line total */}
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2 bg-black/20 rounded-xl p-1">
+                        <button
+                          onClick={() => { const u=[...cart]; u[idx].quantity=Math.max(1,u[idx].quantity-1); if(u[idx].quantity<1){removeItem(idx);}else{setCart(u);} }}
+                          className="w-8 h-8 rounded-lg bg-white/10 flex items-center justify-center apple-label-primary"
+                        >
+                          <Minus className="w-3.5 h-3.5" />
+                        </button>
+                        <span className="w-8 text-center apple-text-subheadline font-semibold apple-label-primary">{item.quantity}</span>
+                        <button
+                          onClick={() => { const u=[...cart]; u[idx].quantity=u[idx].quantity+1; setCart(u); }}
+                          className="w-8 h-8 rounded-lg bg-white/10 flex items-center justify-center apple-label-primary"
+                        >
+                          <Plus className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                      <span className="apple-text-callout font-semibold apple-label-primary tabular-nums">
+                        ${(toCurrencyNumber(item.price) * toCurrencyNumber(item.quantity)).toFixed(2)}
+                      </span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+              {/* Footer */}
+              <div
+                className="px-5 pt-3 pb-safe space-y-2 border-t border-[rgb(var(--separator)/0.2)]"
+                style={{ paddingBottom: "calc(env(safe-area-inset-bottom, 0px) + 16px)" }}
+              >
+                <div className="flex justify-between apple-text-subheadline apple-label-secondary">
+                  <span>Subtotal</span><span tabular-nums>${subtotal.toFixed(2)}</span>
+                </div>
+                <div className="flex justify-between apple-text-subheadline apple-label-secondary">
+                  <span>IVU (11.5%)</span><span>${tax.toFixed(2)}</span>
+                </div>
+                <div className="flex justify-between apple-text-headline font-semibold apple-label-primary pt-1">
+                  <span>Total</span><span>${total.toFixed(2)}</span>
+                </div>
+                <button
+                  onClick={() => { setShowCartSheet(false); setShowPaymentModal(true); }}
+                  className="apple-btn apple-btn-primary apple-btn-lg w-full mt-2"
+                >
+                  <ShoppingCart className="w-[18px] h-[18px]" />
+                  <span>Cobrar ${total.toFixed(2)}</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
         <div
           className="flex-shrink-0 apple-surface-secondary border-t border-[rgb(var(--separator)/0.3)] px-5 pt-4 space-y-4 relative z-30"
           style={{ paddingBottom: "calc(env(safe-area-inset-bottom, 0px) + 14px)" }}
         >
           <div className="space-y-1">
-            <div className="flex justify-between items-center">
-              <span className="apple-text-subheadline apple-label-secondary">Subtotal</span>
-              <span className="apple-text-subheadline apple-label-secondary tabular-nums">${subtotal.toFixed(2)}</span>
-            </div>
-            <div className="flex justify-between items-center">
-              <span className="apple-text-subheadline apple-label-secondary">IVU (11.5%)</span>
-              <span className="apple-text-subheadline apple-label-secondary tabular-nums">${tax.toFixed(2)}</span>
-            </div>
-            <div className="flex justify-between items-baseline pt-2.5">
-              <span className="apple-text-footnote apple-label-secondary">Total</span>
-              <span className="apple-text-large-title apple-label-primary tabular-nums">${total.toFixed(2)}</span>
-            </div>
+            <button
+              onClick={() => safeCart.length > 0 && setShowCartSheet(true)}
+              className="w-full text-left space-y-1"
+              title="Ver y editar carrito"
+            >
+              <div className="flex justify-between items-center">
+                <span className="apple-text-subheadline apple-label-secondary">Subtotal</span>
+                <span className="apple-text-subheadline apple-label-secondary tabular-nums">${subtotal.toFixed(2)}</span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="apple-text-subheadline apple-label-secondary">IVU (11.5%)</span>
+                <span className="apple-text-subheadline apple-label-secondary tabular-nums">${tax.toFixed(2)}</span>
+              </div>
+              <div className="flex justify-between items-baseline pt-2.5">
+                <span className="apple-text-footnote apple-label-secondary">Total</span>
+                <span className="apple-text-large-title apple-label-primary tabular-nums">${total.toFixed(2)}</span>
+              </div>
+            </button>
           </div>
 
           <div className="flex flex-col gap-2">
