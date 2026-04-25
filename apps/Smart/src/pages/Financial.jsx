@@ -1338,21 +1338,6 @@ Maximo 150 palabras. Texto plano, sin markdown.`
           </div>
         )}
 
-        {/* ── JENAI Insights ── */}
-        <JENAIInsightBanner
-          context="financial"
-          data={{
-            todayIncome: todayRevenue || 0,
-            monthIncome: totalRevenue || 0,
-            monthExpenses: totalExpenses || 0,
-            netProfit: (totalRevenue || 0) - (totalExpenses || 0),
-            margin: totalRevenue > 0 ? Math.round(((totalRevenue - totalExpenses) / totalRevenue) * 100) : 0,
-            txCount: transactions?.length || 0,
-          }}
-          accentColor="emerald"
-          autoLoad={false}
-        />
-
         {/* ── KPI Cards — diseño mejorado ── */}
         <div className="grid grid-cols-3 gap-2.5">
           {/* Entradas */}
