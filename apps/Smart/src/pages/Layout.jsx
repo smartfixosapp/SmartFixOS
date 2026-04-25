@@ -397,7 +397,7 @@ export default function Layout({ children }) {
           keep 8px so the page wrappers don't kiss the screen edges. */}
       <main
         ref={mainRef}
-        className={'flex-1 overflow-y-auto overflow-x-hidden px-2 sm:px-2 md:px-0 pt-[calc(env(safe-area-inset-top,0px)+8px)] md:pt-4 pb-[calc(88px+env(safe-area-inset-bottom,0px))] md:pb-4 relative'}
+        className={'flex-1 overflow-y-auto [overflow-x:clip] px-2 sm:px-2 md:px-0 pt-[calc(env(safe-area-inset-top,0px)+8px)] md:pt-4 pb-[calc(88px+env(safe-area-inset-bottom,0px))] md:pb-4 relative'}
         data-pointer-overlay="off"
         style={{ WebkitOverflowScrolling: 'touch', scrollBehavior: 'smooth' }}
       >
