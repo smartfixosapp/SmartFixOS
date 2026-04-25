@@ -16,7 +16,7 @@ export default defineConfig({
       manifest: false,
       selfDestroying: false,
       workbox: {
-        cacheId: 'sfos-v9', // v9: Dashboard mobile text sizing fixes
+        cacheId: 'sfos-v10', // v10: Financial sticky header + remove Jenai banner
         clientsClaim: true,
         skipWaiting: true,
         globPatterns: ['**/*.{js,css,ico,png,svg,woff2}'],
