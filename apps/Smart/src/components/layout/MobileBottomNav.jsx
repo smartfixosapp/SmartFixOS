@@ -10,11 +10,10 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { usePanelState } from "@/components/utils/panelContext";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { triggerHaptic } from "@/lib/capacitor";
 import { supabase } from "../../../../../lib/supabase-client.js";
 
-// Tab navigation history
 const tabHistory = {
   home:      ["/Dashboard"],
   orders:    ["/Orders"],
@@ -23,8 +22,7 @@ const tabHistory = {
   settings:  ["/Settings"],
 };
 
-// ── Badge counts hook ─────────────────────────────────────────────────────
-// Carga en segundo plano las órdenes pendientes para mostrar badge en el tab
+// ── Badge counts hook ──────────────────────────────────────────────────────
 function useBadgeCounts() {
   const [pendingOrders, setPendingOrders] = useState(0);
   const timerRef = useRef(null);
@@ -44,18 +42,14 @@ function useBadgeCounts() {
 
   useEffect(() => {
     load();
-    // Refrescar cada 5 min, solo si visible
     timerRef.current = setInterval(() => {
       if (document.visibilityState === "visible") load();
     }, 5 * 60 * 1000);
     return () => clearInterval(timerRef.current);
   }, []);
 
-  // Actualizar al volver al frente
   useEffect(() => {
-    const handler = () => {
-      if (document.visibilityState === "visible") load();
-    };
+    const handler = () => { if (document.visibilityState === "visible") load(); };
     document.addEventListener("visibilitychange", handler);
     return () => document.removeEventListener("visibilitychange", handler);
   }, []);
@@ -63,18 +57,24 @@ function useBadgeCounts() {
   return { pendingOrders };
 }
 
-// ── Badge component (iOS-style red pill) ─────────────────────────────────
+// ── Badge (iOS red pill) ────────────────────────────────────────────────────
 function Badge({ count }) {
   if (!count || count <= 0) return null;
   return (
-    <span className={cn(
-      "absolute -top-1 -right-1.5 min-w-[18px] h-[18px] px-1 rounded-full",
-      "bg-apple-red text-white text-[11px] font-semibold tabular-nums flex items-center justify-center",
-      "shadow-apple-sm ring-2 ring-[rgb(var(--surface-primary))] dark:ring-[rgb(var(--surface-tertiary))]",
-      count > 99 ? "min-w-[24px]" : ""
-    )}>
+    <motion.span
+      initial={{ scale: 0 }}
+      animate={{ scale: 1 }}
+      exit={{ scale: 0 }}
+      transition={{ type: "spring", stiffness: 500, damping: 28 }}
+      className={cn(
+        "absolute -top-1 -right-1.5 min-w-[18px] h-[18px] px-1 rounded-full",
+        "bg-red-500 text-white text-[10px] font-bold tabular-nums flex items-center justify-center",
+        "shadow-sm ring-[1.5px] ring-black/30",
+        count > 99 ? "min-w-[24px]" : ""
+      )}
+    >
       {count > 99 ? "99+" : count}
-    </span>
+    </motion.span>
   );
 }
 
@@ -86,30 +86,19 @@ export default function MobileBottomNav() {
   const lastPathRef               = useRef(location.pathname);
   const { pendingOrders }         = useBadgeCounts();
 
-  // ── Visual Viewport API: medir el viewport REAL del dispositivo ───────
-  // En Safari iOS, `env(safe-area-inset-bottom)` a veces reporta valores
-  // fantasma que incluyen espacio del chrome de Safari (aunque esté oculto).
-  // Esta función usa visualViewport API para obtener la altura REAL de la
-  // pantalla visible, y aplica una variable CSS --nav-bottom-offset que el
-  // nav usa como `bottom` (en vez de depender solo de env()).
+  // ── Visual Viewport API ─────────────────────────────────────────────────
   useEffect(() => {
     if (typeof window === "undefined") return;
-
     const updateViewport = () => {
-      const realH = window.innerHeight;
       const vv = window.visualViewport;
+      const realH = window.innerHeight;
       const visualH = vv ? vv.height : realH;
       const visualOffsetTop = vv ? vv.offsetTop : 0;
-
-      // Si el viewport visual es más chico que window.innerHeight, hay
-      // chrome o teclado reservando espacio. Usamos el visual como real.
       const trueBottom = Math.round(visualH + visualOffsetTop);
       const diff = Math.max(0, window.innerHeight - trueBottom);
-
       document.documentElement.style.setProperty("--nav-real-vh", `${trueBottom}px`);
       document.documentElement.style.setProperty("--nav-gap-fix", `${diff}px`);
     };
-
     updateViewport();
     window.addEventListener("resize", updateViewport, { passive: true });
     window.addEventListener("orientationchange", updateViewport, { passive: true });
@@ -127,65 +116,51 @@ export default function MobileBottomNav() {
     };
   }, []);
 
+  // ── Sync active tab con location ────────────────────────────────────────
   useEffect(() => {
     const p = location.pathname;
-    let currentTab = "home";
-    if (p === "/" || p === "/Dashboard") currentTab = "home";
-    else if (p.includes("POS"))       currentTab = "pos";
-    else if (p.includes("Orders"))    currentTab = "orders";
-    else if (p.includes("Financial")) currentTab = "financial";
-    else if (p.includes("Settings"))  currentTab = "settings";
-
-    setActiveTab(currentTab);
-
+    let tab = "home";
+    if (p === "/" || p === "/Dashboard") tab = "home";
+    else if (p.includes("POS"))         tab = "pos";
+    else if (p.includes("Orders"))      tab = "orders";
+    else if (p.includes("Financial"))   tab = "financial";
+    else if (p.includes("Settings"))    tab = "settings";
+    setActiveTab(tab);
     if (p !== lastPathRef.current) {
-      const history = tabHistory[currentTab];
-      if (history && !history.includes(p)) {
-        history[history.length - 1] = p;
-      }
+      const history = tabHistory[tab];
+      if (history && !history.includes(p)) history[history.length - 1] = p;
       lastPathRef.current = p;
     }
   }, [location.pathname]);
 
   const handleTabClick = (tab) => {
-    // Haptic feedback al cambiar de tab
-    triggerHaptic(tab.isCenter ? 'medium' : 'light');
-
-    if (location.pathname === tab.path) {
+    triggerHaptic(tab.isCenter ? "medium" : "light");
+    if (tab.id === activeTab || location.pathname === tab.path) {
       navigate(tab.path);
       tabHistory[tab.id] = [tab.path];
       return;
     }
-
-    if (tab.id === activeTab) {
-      navigate(tab.path);
-      tabHistory[tab.id] = [tab.path];
-    } else {
-      const lastRoute = tabHistory[tab.id][tabHistory[tab.id].length - 1] || tab.path;
-      navigate(lastRoute);
-    }
+    const lastRoute = tabHistory[tab.id]?.[tabHistory[tab.id].length - 1] || tab.path;
+    navigate(lastRoute);
   };
 
   const tabs = [
     { id: "orders",    label: "Órdenes",  icon: ClipboardList, path: "/Orders",    badge: pendingOrders },
     { id: "pos",       label: "Caja",     icon: Wallet,        path: "/POS" },
-    { id: "home",      label: "Inicio",   icon: LayoutGrid,    path: "/Dashboard" },
+    { id: "home",      label: "Inicio",   icon: LayoutGrid,    path: "/Dashboard",  isCenter: true },
     { id: "financial", label: "Finanzas", icon: TrendingUp,    path: "/Financial" },
     { id: "settings",  label: "Ajustes",  icon: Settings,      path: "/Settings" },
   ];
 
-  // Spacer y tab bar se renderizan por separado:
-  // - El spacer se queda en su posición natural (dentro de Layout)
-  // - El <nav> se portea al <body> via createPortal para garantizar que
-  //   position:fixed sea relativo al viewport real, no a algún ancestro
-  //   que pueda estar creando un containing block inesperado en iOS.
   const spacer = (
     <div
       className={cn(
         "md:hidden w-full flex-shrink-0 transition-all duration-300",
         hasPanelsOpen ? "h-0" : ""
       )}
-      style={!hasPanelsOpen ? { height: "calc(64px + clamp(20px, env(safe-area-inset-bottom, 34px), 40px))" } : undefined}
+      style={!hasPanelsOpen ? {
+        height: "calc(72px + clamp(16px, env(safe-area-inset-bottom, 28px), 44px))"
+      } : undefined}
     />
   );
 
@@ -193,82 +168,102 @@ export default function MobileBottomNav() {
     <nav
       data-global-dock
       className={cn(
-        "apple-type liquid-glass-strong fixed left-0 right-0 z-[100] md:hidden transition-all duration-300",
+        "apple-type fixed left-0 right-0 z-[100] md:hidden",
+        "transition-[transform,opacity] duration-300 ease-[cubic-bezier(0.32,0.72,0,1)]",
         hasPanelsOpen
           ? "translate-y-full opacity-0 pointer-events-none"
           : "translate-y-0 opacity-100"
       )}
       style={{
-        // Posicionamiento DINÁMICO: usa --nav-gap-fix (medido por JS con
-        // visualViewport API) para compensar cualquier gap fantasma que
-        // Safari iOS añada cuando su toolbar oculto sigue reservando
-        // espacio. El nav se sube `--nav-gap-fix`px para que su borde
-        // inferior quede justo al borde del viewport REAL visible.
         position: "fixed",
         bottom: "var(--nav-gap-fix, 0px)",
-        // NOTA: background, backdrop-filter y rim shadows vienen de la clase
-        // `liquid-glass-strong` (ver index.css). Antes se usaba un fondo
-        // sólido rgb(var(--sys-gray-6)) con blur manual — ahora es glass real.
-        // Padding-bottom: min 20px para PWA, max 40px para cap Safari
-        paddingBottom: "clamp(20px, env(safe-area-inset-bottom, 34px), 40px)",
-        // Quitar los border-radius que liquid-glass no aplica a todo el nav
-        borderRadius: 0,
-        borderLeft: "none",
-        borderRight: "none",
-        borderBottom: "none",
+        paddingBottom: "clamp(16px, env(safe-area-inset-bottom, 28px), 44px)",
+        paddingLeft: "12px",
+        paddingRight: "12px",
+        paddingTop: "8px",
+        background: "transparent",
+        border: "none",
+        boxShadow: "none",
       }}
     >
-      {/* Tab items */}
-      <div className="relative flex items-stretch justify-around px-1 pt-1.5 pb-1.5 h-[58px]">
-          {tabs.map((tab) => {
-            const isActive = activeTab === tab.id;
-            const Icon     = tab.icon;
-            const badgeCount = tab.badge || 0;
+      {/* The floating pill container */}
+      <div
+        className="liquid-glass-floating relative flex items-center justify-around px-2 h-[60px] w-full"
+        style={{
+          borderRadius: "28px",
+        }}
+      >
+        {/* Sliding background bubble for active tab */}
+        {tabs.map((tab) => {
+          const isActive = activeTab === tab.id;
+          if (!isActive) return null;
+          return (
+            <motion.div
+              key="bubble"
+              layoutId="nav-bubble"
+              className="absolute inset-y-[7px] rounded-[18px] pointer-events-none"
+              style={{
+                left: `calc(${tabs.findIndex(t => t.id === tab.id)} * 20% + 6px)`,
+                width: "calc(20% - 8px)",
+                background: tab.isCenter
+                  ? "linear-gradient(135deg, rgba(255,149,0,0.28) 0%, rgba(255,149,0,0.16) 100%)"
+                  : "rgba(255,149,0,0.18)",
+                boxShadow: "0 0 0 1px rgba(255,149,0,0.22)",
+              }}
+              transition={{ type: "spring", stiffness: 380, damping: 34, mass: 0.9 }}
+            />
+          );
+        })}
 
-            return (
-              <button
-                key={tab.id}
-                onClick={() => handleTabClick(tab)}
-                className={cn(
-                  "apple-press relative flex flex-col items-center justify-center gap-0.5 min-w-[56px] py-1.5 px-1 rounded-apple-sm",
-                  "apple-focusable"
-                )}
-                aria-label={tab.label}
-                aria-current={isActive ? "page" : undefined}
-              >
-                {/* Icon container with badge */}
-                <div className="relative">
+        {tabs.map((tab) => {
+          const isActive = activeTab === tab.id;
+          const Icon     = tab.icon;
+          const badgeCount = tab.badge || 0;
+
+          return (
+            <button
+              key={tab.id}
+              onClick={() => handleTabClick(tab)}
+              className="relative z-10 flex flex-col items-center justify-center gap-[3px] flex-1 h-full py-1 rounded-[18px] focus:outline-none active:scale-[0.93] transition-transform duration-[80ms]"
+              aria-label={tab.label}
+              aria-current={isActive ? "page" : undefined}
+              style={{ WebkitTapHighlightColor: "transparent" }}
+            >
+              {/* Icon */}
+              <div className="relative">
+                <motion.div
+                  animate={isActive
+                    ? { scale: 1.18, y: -1 }
+                    : { scale: 1,    y: 0  }
+                  }
+                  transition={{ type: "spring", stiffness: 420, damping: 28 }}
+                >
                   <Icon
-                    className={cn(
-                      "w-[26px] h-[26px] transition-colors duration-200",
-                      isActive ? "text-apple-blue" : "apple-label-tertiary"
-                    )}
-                    strokeWidth={isActive ? 2.1 : 1.8}
+                    className="w-[23px] h-[23px] transition-colors duration-150"
+                    style={{ color: isActive ? "rgb(var(--apple-orange))" : "rgb(var(--label-tertiary) / 0.55)" }}
+                    strokeWidth={isActive ? 2.2 : 1.7}
                   />
-                  <Badge count={badgeCount} />
-                </div>
+                </motion.div>
+                <AnimatePresence>
+                  {badgeCount > 0 && <Badge count={badgeCount} />}
+                </AnimatePresence>
+              </div>
 
-                {/* Label estilo iOS — caption2 (11px) */}
-                <span className={cn(
-                  "text-[11px] leading-[13px] transition-colors duration-200",
-                  isActive
-                    ? "text-apple-blue font-semibold"
-                    : "apple-label-tertiary font-medium"
-                )}>
-                  {tab.label}
-                </span>
-
-                {/* Animación subtle del active tab: leve pill superior */}
-                {isActive && (
-                  <motion.div
-                    layoutId="mobile-tab-active"
-                    className="absolute -top-1 w-6 h-[2.5px] rounded-full bg-apple-blue"
-                    transition={{ type: "spring", stiffness: 400, damping: 32 }}
-                  />
-                )}
-              </button>
-            );
-          })}
+              {/* Label */}
+              <motion.span
+                animate={isActive
+                  ? { opacity: 1, scale: 1,    y: 0 }
+                  : { opacity: 0.45, scale: 0.92, y: 0 }
+                }
+                transition={{ type: "spring", stiffness: 400, damping: 30 }}
+                className="text-[10px] leading-none font-medium transition-none"
+                style={{ color: isActive ? "rgb(var(--apple-orange))" : "rgb(var(--label-tertiary) / 0.55)" }}
+              >
+                {tab.label}
+              </motion.span>
+            </button>
+          );
+        })}
       </div>
     </nav>
   );
@@ -276,8 +271,6 @@ export default function MobileBottomNav() {
   return (
     <>
       {spacer}
-      {/* Portal el tab bar al <body> → garantiza que fixed sea relativo
-       * al viewport, sin importar qué transforms/overflow tenga Layout. */}
       {typeof document !== "undefined" ? createPortal(tabBar, document.body) : null}
     </>
   );
