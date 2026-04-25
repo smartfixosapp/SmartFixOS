@@ -777,7 +777,9 @@ export default function OrdersPage() {
                 </span>
               </button>
             )}
-          </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
 
         </div>
 
