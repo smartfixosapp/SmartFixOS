@@ -624,75 +624,13 @@ export default function OrdersPage() {
               <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
             </button>
             <button
-              onClick={() => setShowStatusDropdown(!showStatusDropdown)}
-              className={cn(
-                "apple-press flex-1 h-9 px-3 rounded-full apple-text-footnote font-medium flex items-center gap-2 transition-colors",
-                selectedStatus === "active" && !showB2BOnly
-                  ? "bg-apple-blue/15 text-apple-blue"
-                  : "bg-gray-sys6 dark:bg-gray-sys5 apple-label-secondary"
-              )}
-            >
-              <Filter className="w-3.5 h-3.5 flex-shrink-0" />
-              <span className="truncate">
-                {showB2BOnly ? "B2B" :
-                  selectedStatus === "active" ? `Todos (${displayOrders.length})` :
-                  selectedStatus === "closed" ? "Cerrados" :
-                  ORDER_STATUSES.find((s) => s.id === selectedStatus)?.label || "Filtros"}
-              </span>
-            </button>
-            <button
               onClick={openQuickOrderModal}
-              className="apple-btn apple-btn-primary text-[14px] min-h-9 px-3 whitespace-nowrap"
+              className="apple-btn apple-btn-primary text-[14px] min-h-9 px-3 whitespace-nowrap flex-1"
             >
               <FilePlus className="w-4 h-4" />
-              Nueva
+              Nueva Orden
             </button>
           </div>
-
-          {/* Mobile dropdown panel */}
-          <AnimatePresence>
-            {showStatusDropdown && (
-              <motion.div
-                initial={{ opacity: 0, y: -8 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -8 }}
-                transition={{ duration: 0.15 }}
-                className="sm:hidden absolute top-full left-0 right-0 border-x border-b border-white/10 rounded-b-[20px] shadow-[0_20px_60px_rgba(0,0,0,0.6)] z-50 max-h-[65vh] overflow-y-auto"
-                style={{
-                  // Fondo SÓLIDO (no translúcido) para legibilidad — el dropdown
-                  // se superpone sobre cards, fotos y texto; usar glass aquí hace
-                  // que se mezcle todo. Background-color puro + backdrop-blur
-                  // sutil para el borde edge-softening.
-                  backgroundColor: "#0A0A0A",
-                  WebkitBackdropFilter: "blur(12px)",
-                  backdropFilter: "blur(12px)",
-                }}
-              >
-                <div className="p-3 space-y-1">
-                  <button
-                    onClick={() => { setShowStatusDropdown(false); openQuickOrderModal(); }}
-                    className="w-full px-4 py-3 rounded-[14px] text-left text-sm font-bold flex items-center gap-3 bg-gradient-to-r from-blue-500/20 to-cyan-500/20 border border-blue-400/30 text-white"
-                  >
-                    <Plus className="w-4 h-4" /> Nueva Orden
-                  </button>
-                  <div className="h-px bg-white/10 my-2" />
-                  <p className="text-[10px] font-semibold text-white/50 px-3 pb-1">Estado</p>
-                  {[{ id: "active", label: "Todos (Activos)" }, ...ORDER_STATUSES.filter(s => s.isActive && !["picked_up","completed","cancelled","delivered","warranty"].includes(s.id)), { id: "closed", label: "Cerrados / Historial" }].map(s => (
-                    <button
-                      key={s.id}
-                      onClick={() => { setSelectedStatus(s.id); setShowStatusDropdown(false); }}
-                      className={`w-full px-4 py-2.5 rounded-[14px] text-left text-sm font-bold flex items-center justify-between transition-all ${
-                        selectedStatus === s.id ? "bg-white/10 text-white border border-white/20" : "text-white/60 hover:bg-white/5 hover:text-white"
-                      }`}
-                    >
-                      <span>{s.label}</span>
-                      <span className="text-xs bg-white/10 px-2 py-0.5 rounded-full">{statusCounts[s.id] || 0}</span>
-                    </button>
-                  ))}
-                </div>
-              </motion.div>
-            )}
-          </AnimatePresence>
         </div>
 
         {/* Search & Actions Bar - Desktop only full version */}
