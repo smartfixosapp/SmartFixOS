@@ -205,18 +205,18 @@ export default function MobileBottomNav() {
               aria-current={isActive ? "page" : undefined}
               style={{ WebkitTapHighlightColor: "transparent" }}
             >
-              {/* Icon chip — naranja cuando activo, desliza con spring */}
-              <div className="relative flex items-center justify-center">
-                <motion.div
-                  layoutId="nav-chip"
-                  className="absolute rounded-[14px]"
-                  animate={isActive
-                    ? { width: 46, height: 30, opacity: 1 }
-                    : { width: 0,  height: 30, opacity: 0 }
-                  }
-                  style={{ background: "rgba(255,149,0,0.22)" }}
-                  transition={{ type: "spring", stiffness: 400, damping: 36, mass: 0.8 }}
+              {/* Icon + chip (solo fade, sin layoutId) */}
+              <div className="relative flex items-center justify-center w-[48px] h-[30px]">
+                {/* Chip naranja detrás del ícono */}
+                <div
+                  className="absolute inset-0 rounded-[14px] transition-all duration-200"
+                  style={{
+                    background: "rgba(255,149,0,0.26)",
+                    opacity: isActive ? 1 : 0,
+                    transform: isActive ? "scale(1)" : "scale(0.7)",
+                  }}
                 />
+                {/* Icon encima */}
                 <div className="relative z-10">
                   <Icon
                     className="w-[22px] h-[22px]"
@@ -232,7 +232,7 @@ export default function MobileBottomNav() {
                 </div>
               </div>
 
-              {/* Label — siempre visible, solo cambia color/peso */}
+              {/* Label */}
               <span
                 className="text-[10.5px] leading-none transition-all duration-200"
                 style={{
