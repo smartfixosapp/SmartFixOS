@@ -392,35 +392,22 @@ export default function Layout({ children }) {
       )}
 
       {/* === Contenido ===
-          Layout: flex-col sin overflow propio.
-          - PunchReminderBanner vive FUERA del área scrolleable → no desplaza
-            el punto de anclaje de los headers sticky (top-0 = tope del scroll).
-          - El div interior es el verdadero scroll container; las páginas usan
-            sticky top-0 y se anclan exactamente a su tope. */}
-      {/* === Contenido ===
-          flex-col en main + min-h-0 en el scroll div es el patrón correcto:
-          - Sin min-h-0 el flex item tiene min-height:auto → se expande al
-            tamaño de su contenido → overflow-y:auto nunca activa el scroll.
-          - [overflow:clip] en main evita desbordamiento horizontal sin romper
-            el scroll vertical del hijo. */}
+          <main> es el único scroll container (overflow-y-auto).
+          El root div tiene [overflow:clip] (NO overflow:hidden) lo que evita
+          que sea un "scroll container" para CSS sticky — así los headers con
+          sticky top-0 dentro de <main> se anclan correctamente a <main>
+          y no al root div. */}
       <main
         ref={mainRef}
-        className={'flex-1 flex flex-col [overflow-x:clip] pt-[calc(env(safe-area-inset-top,0px)+8px)] md:pt-4 relative'}
+        className={'flex-1 overflow-y-auto [overflow-x:clip] px-2 sm:px-2 md:px-0 pt-[calc(env(safe-area-inset-top,0px)+8px)] md:pt-4 pb-[calc(88px+env(safe-area-inset-bottom,0px))] md:pb-4 relative'}
         data-pointer-overlay="off"
+        style={{ WebkitOverflowScrolling: 'touch', scrollBehavior: 'smooth' }}
       >
-        {/* Banner persistente — encima del scroll, no afecta sticky */}
+        {/* Banner de ponche — dentro del scroll, aparece solo cuando aplica */}
         {!isPinAccess && !isWelcome && !isSetupPage && !shouldShowTrialExpired && !showPaymentScreen && (
           <PunchReminderBanner />
         )}
-
-        {/* Área scrolleable — único scroll container de la app.
-            min-h-0 es esencial: permite que el flex item se contraiga y que
-            overflow-y:auto active el scroll cuando el contenido es más alto. */}
-        <div
-          className={'flex-1 min-h-0 overflow-y-auto [overflow-x:clip] px-2 sm:px-2 md:px-0 pb-[calc(88px+env(safe-area-inset-bottom,0px))] md:pb-4'}
-          data-pointer-target="on"
-          style={{ WebkitOverflowScrolling: 'touch', scrollBehavior: 'smooth' }}
-        >
+        <div data-pointer-target="on">
           {children}
         </div>
       </main>
