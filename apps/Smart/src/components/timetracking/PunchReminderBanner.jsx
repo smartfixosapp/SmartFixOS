@@ -200,17 +200,21 @@ export default function PunchReminderBanner() {
     setBusy(true);
     try {
       if (state.mode === "in") {
-        await dataClient.entities.TimeEntry.create({
+        const newEntry = await dataClient.entities.TimeEntry.create({
           employee_id: state.employeeId,
           employee_name: state.employeeName,
           clock_in: new Date().toISOString(),
           clock_out: null,
         });
+        // Almacenar ID para que evaluate() lo detecte y no vuelva a mostrar el banner
+        if (newEntry?.id) sessionStorage.setItem("timeEntryId", newEntry.id);
         toast.success(`✅ Entrada ponchada — ${nowHHMM()}`);
       } else if (state.mode === "out" && state.openEntryId) {
         await dataClient.entities.TimeEntry.update(state.openEntryId, {
           clock_out: new Date().toISOString(),
         });
+        // Limpiar caché de ponche activo
+        sessionStorage.removeItem("timeEntryId");
         toast.success(`✅ Salida ponchada — ${nowHHMM()}`);
       }
       window.dispatchEvent(new Event("punch-status-changed"));
