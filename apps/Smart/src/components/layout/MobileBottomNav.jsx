@@ -188,29 +188,28 @@ export default function MobileBottomNav() {
     >
       {/* The floating pill container */}
       <div
-        className="liquid-glass-floating relative flex items-center justify-around px-2 h-[60px] w-full"
-        style={{
-          borderRadius: "28px",
-        }}
+        className="liquid-glass-floating relative flex items-center justify-around px-1 h-[62px] w-full"
+        style={{ borderRadius: "28px" }}
       >
-        {/* Sliding background bubble for active tab */}
+        {/* Sliding top-dot indicator — spring entre tabs */}
         {tabs.map((tab) => {
           const isActive = activeTab === tab.id;
           if (!isActive) return null;
+          const idx = tabs.findIndex(t => t.id === tab.id);
           return (
             <motion.div
-              key="bubble"
-              layoutId="nav-bubble"
-              className="absolute inset-y-[7px] rounded-[18px] pointer-events-none"
+              key="indicator"
+              layoutId="nav-indicator"
+              className="absolute top-[8px] pointer-events-none"
               style={{
-                left: `calc(${tabs.findIndex(t => t.id === tab.id)} * 20% + 6px)`,
-                width: "calc(20% - 8px)",
-                background: tab.isCenter
-                  ? "linear-gradient(135deg, rgba(255,149,0,0.28) 0%, rgba(255,149,0,0.16) 100%)"
-                  : "rgba(255,149,0,0.18)",
-                boxShadow: "0 0 0 1px rgba(255,149,0,0.22)",
+                left: `calc(${idx} * 20% + 50% / 5 - 14px)`,
+                width: "28px",
+                height: "3px",
+                borderRadius: "99px",
+                background: "rgb(var(--apple-orange))",
+                boxShadow: "0 0 8px rgba(255,149,0,0.7)",
               }}
-              transition={{ type: "spring", stiffness: 380, damping: 34, mass: 0.9 }}
+              transition={{ type: "spring", stiffness: 420, damping: 36, mass: 0.8 }}
             />
           );
         })}
@@ -224,7 +223,7 @@ export default function MobileBottomNav() {
             <button
               key={tab.id}
               onClick={() => handleTabClick(tab)}
-              className="relative z-10 flex flex-col items-center justify-center gap-[3px] flex-1 h-full py-1 rounded-[18px] focus:outline-none active:scale-[0.93] transition-transform duration-[80ms]"
+              className="relative z-10 flex flex-col items-center justify-center gap-[4px] flex-1 h-full focus:outline-none active:scale-[0.90] transition-transform duration-[70ms]"
               aria-label={tab.label}
               aria-current={isActive ? "page" : undefined}
               style={{ WebkitTapHighlightColor: "transparent" }}
@@ -233,15 +232,20 @@ export default function MobileBottomNav() {
               <div className="relative">
                 <motion.div
                   animate={isActive
-                    ? { scale: 1.18, y: -1 }
+                    ? { scale: 1.15, y: -1 }
                     : { scale: 1,    y: 0  }
                   }
-                  transition={{ type: "spring", stiffness: 420, damping: 28 }}
+                  transition={{ type: "spring", stiffness: 480, damping: 30 }}
                 >
                   <Icon
-                    className="w-[23px] h-[23px] transition-colors duration-150"
-                    style={{ color: isActive ? "rgb(var(--apple-orange))" : "rgb(var(--label-tertiary) / 0.55)" }}
-                    strokeWidth={isActive ? 2.2 : 1.7}
+                    className="w-[24px] h-[24px]"
+                    style={{
+                      color: isActive
+                        ? "rgb(var(--apple-orange))"
+                        : "rgba(160,160,175,0.7)",
+                      transition: "color 180ms ease",
+                    }}
+                    strokeWidth={isActive ? 2.2 : 1.6}
                   />
                 </motion.div>
                 <AnimatePresence>
@@ -252,12 +256,14 @@ export default function MobileBottomNav() {
               {/* Label */}
               <motion.span
                 animate={isActive
-                  ? { opacity: 1, scale: 1,    y: 0 }
-                  : { opacity: 0.45, scale: 0.92, y: 0 }
+                  ? { opacity: 1,    y: 0,  scale: 1    }
+                  : { opacity: 0.50, y: 0,  scale: 0.94 }
                 }
-                transition={{ type: "spring", stiffness: 400, damping: 30 }}
-                className="text-[10px] leading-none font-medium transition-none"
-                style={{ color: isActive ? "rgb(var(--apple-orange))" : "rgb(var(--label-tertiary) / 0.55)" }}
+                transition={{ type: "spring", stiffness: 440, damping: 32 }}
+                className="text-[10.5px] leading-none font-medium"
+                style={{
+                  color: isActive ? "rgb(var(--apple-orange))" : "rgba(160,160,175,0.7)",
+                }}
               >
                 {tab.label}
               </motion.span>
