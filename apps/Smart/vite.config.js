@@ -16,7 +16,7 @@ export default defineConfig({
       manifest: false,
       selfDestroying: false,
       workbox: {
-        cacheId: 'sfos-v12', // v12: min-h-0 fix — scroll reactivado en inner flex container
+        cacheId: 'sfos-v13', // v13: revert to main-scroll + [overflow:clip] on root for sticky
         clientsClaim: true,
         skipWaiting: true,
         globPatterns: ['**/*.{js,css,ico,png,svg,woff2}'],
