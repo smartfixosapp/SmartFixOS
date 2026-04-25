@@ -144,6 +144,9 @@ export default function Financial() {
   const [transactions, setTransactions] = useState([]);
   const [expenses, setExpenses] = useState([]);
   const [loading, setLoading] = useState(true);
+  // Header fijo: ref para medir altura y empujar contenido
+  const headerRef = useRef(null);
+  const [headerHeight, setHeaderHeight] = useState(96);
   const [drawerOpen, setDrawerOpen] = useState(() => getCachedStatus().isOpen);
   const [currentDrawer, setCurrentDrawer] = useState(() => getCachedStatus().drawer);
   const [showOpenDrawer, setShowOpenDrawer] = useState(false);
