@@ -277,7 +277,7 @@ export default function Layout({ children }) {
         <PanelProvider>
         <PWAMetaTags />
         <div
-        className={`flex h-[100dvh] flex-col relative overflow-hidden ${theme === "light" ? "text-gray-900" : "text-slate-100"}`}
+        className={`flex h-[100dvh] flex-col relative [overflow:clip] ${theme === "light" ? "text-gray-900" : "text-slate-100"}`}
         style={{
           backgroundColor: '#000000',
           background: isPinAccess
