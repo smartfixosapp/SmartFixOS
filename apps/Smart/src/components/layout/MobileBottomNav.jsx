@@ -186,34 +186,11 @@ export default function MobileBottomNav() {
         boxShadow: "none",
       }}
     >
-      {/* The floating pill container */}
+      {/* Floating pill */}
       <div
-        className="liquid-glass-floating relative flex items-center justify-around px-1 h-[62px] w-full"
+        className="liquid-glass-floating relative flex items-center justify-around px-1 h-[64px] w-full"
         style={{ borderRadius: "28px" }}
       >
-        {/* Sliding top-dot indicator — spring entre tabs */}
-        {tabs.map((tab) => {
-          const isActive = activeTab === tab.id;
-          if (!isActive) return null;
-          const idx = tabs.findIndex(t => t.id === tab.id);
-          return (
-            <motion.div
-              key="indicator"
-              layoutId="nav-indicator"
-              className="absolute top-[8px] pointer-events-none"
-              style={{
-                left: `calc(${idx} * 20% + 50% / 5 - 14px)`,
-                width: "28px",
-                height: "3px",
-                borderRadius: "99px",
-                background: "rgb(var(--apple-orange))",
-                boxShadow: "0 0 8px rgba(255,149,0,0.7)",
-              }}
-              transition={{ type: "spring", stiffness: 420, damping: 36, mass: 0.8 }}
-            />
-          );
-        })}
-
         {tabs.map((tab) => {
           const isActive = activeTab === tab.id;
           const Icon     = tab.icon;
@@ -223,50 +200,48 @@ export default function MobileBottomNav() {
             <button
               key={tab.id}
               onClick={() => handleTabClick(tab)}
-              className="relative z-10 flex flex-col items-center justify-center gap-[4px] flex-1 h-full focus:outline-none active:scale-[0.90] transition-transform duration-[70ms]"
+              className="relative z-10 flex flex-col items-center justify-center gap-[5px] flex-1 h-full focus:outline-none active:scale-[0.92] transition-transform duration-[80ms]"
               aria-label={tab.label}
               aria-current={isActive ? "page" : undefined}
               style={{ WebkitTapHighlightColor: "transparent" }}
             >
-              {/* Icon */}
-              <div className="relative">
+              {/* Icon chip — naranja cuando activo, desliza con spring */}
+              <div className="relative flex items-center justify-center">
                 <motion.div
+                  layoutId="nav-chip"
+                  className="absolute rounded-[14px]"
                   animate={isActive
-                    ? { scale: 1.15, y: -1 }
-                    : { scale: 1,    y: 0  }
+                    ? { width: 46, height: 30, opacity: 1 }
+                    : { width: 0,  height: 30, opacity: 0 }
                   }
-                  transition={{ type: "spring", stiffness: 480, damping: 30 }}
-                >
+                  style={{ background: "rgba(255,149,0,0.22)" }}
+                  transition={{ type: "spring", stiffness: 400, damping: 36, mass: 0.8 }}
+                />
+                <div className="relative z-10">
                   <Icon
-                    className="w-[24px] h-[24px]"
+                    className="w-[22px] h-[22px]"
                     style={{
-                      color: isActive
-                        ? "rgb(var(--apple-orange))"
-                        : "rgba(160,160,175,0.7)",
-                      transition: "color 180ms ease",
+                      color: isActive ? "rgb(var(--apple-orange))" : "rgba(150,150,165,0.75)",
+                      transition: "color 200ms ease",
                     }}
-                    strokeWidth={isActive ? 2.2 : 1.6}
+                    strokeWidth={isActive ? 2.1 : 1.6}
                   />
-                </motion.div>
-                <AnimatePresence>
-                  {badgeCount > 0 && <Badge count={badgeCount} />}
-                </AnimatePresence>
+                  <AnimatePresence>
+                    {badgeCount > 0 && <Badge count={badgeCount} />}
+                  </AnimatePresence>
+                </div>
               </div>
 
-              {/* Label */}
-              <motion.span
-                animate={isActive
-                  ? { opacity: 1,    y: 0,  scale: 1    }
-                  : { opacity: 0.50, y: 0,  scale: 0.94 }
-                }
-                transition={{ type: "spring", stiffness: 440, damping: 32 }}
-                className="text-[10.5px] leading-none font-medium"
+              {/* Label — siempre visible, solo cambia color/peso */}
+              <span
+                className="text-[10.5px] leading-none transition-all duration-200"
                 style={{
-                  color: isActive ? "rgb(var(--apple-orange))" : "rgba(160,160,175,0.7)",
+                  color: isActive ? "rgb(var(--apple-orange))" : "rgba(150,150,165,0.75)",
+                  fontWeight: isActive ? 600 : 400,
                 }}
               >
                 {tab.label}
-              </motion.span>
+              </span>
             </button>
           );
         })}
