@@ -34,7 +34,7 @@ export default function CustomerSelector({ open, onClose, selectedCustomer, onSe
 
   const loadCustomers = async () => {
     // 👈 MIGRACIÓN: Usar dataClient
-    const data = await dataClient.entities.Customer.list("-created_date", 100);
+    const data = await dataClient.entities.Customer.list("-created_at", 100);
     setCustomers(data);
   };
 
