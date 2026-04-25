@@ -1750,18 +1750,20 @@ Maximo 150 palabras. Texto plano, sin markdown.`
 
               {/* Header acciones */}
               <div className="flex flex-wrap items-center gap-2 pt-1">
-                <button
-                  onClick={() => { setEditingPO(null); setShowPODialog(true); }}
-                  className="apple-btn apple-btn-primary"
-                >
-                  <Plus className="w-3.5 h-3.5" /> Nueva orden de compra
-                </button>
+                {/* Nueva orden → abre Jeani por defecto (sube foto/PDF del documento) */}
                 <button
                   onClick={() => setShowImportPO(true)}
-                  className="apple-btn apple-btn-tinted text-apple-purple"
-                  title="Sube una foto, PDF o CSV y Jeani la convierte en orden de compra"
+                  className="apple-btn apple-btn-primary"
                 >
-                  <Sparkles className="w-3.5 h-3.5" /> Importar con Jeani
+                  <Sparkles className="w-3.5 h-3.5" /> Nueva orden de compra
+                </button>
+                {/* Entrada manual — opción secundaria */}
+                <button
+                  onClick={() => { setEditingPO(null); setShowPODialog(true); }}
+                  className="apple-btn apple-btn-secondary"
+                  title="Crear orden manualmente sin subir documento"
+                >
+                  <Plus className="w-3.5 h-3.5" /> Manual
                 </button>
                 {(() => {
                   const lowStock = (poProducts || []).filter((p) => {
