@@ -191,6 +191,17 @@ export default function MobileBottomNav() {
         className="liquid-glass-floating relative flex items-center justify-around px-1 h-[64px] w-full"
         style={{ borderRadius: "28px" }}
       >
+        {/* Sliding indicator bar — spring animado, solo 1 instancia */}
+        <motion.div
+          layoutId="nav-bar"
+          className="absolute bottom-[10px] h-[3px] rounded-full pointer-events-none"
+          style={{ background: "rgb(var(--apple-orange))", width: "28px" }}
+          animate={{
+            x: `calc(${tabs.findIndex(t => t.id === activeTab)} * ${100 / tabs.length}vw - 50% + ${(100 / tabs.length / 2)}vw - 14px + 4px)`,
+          }}
+          transition={{ type: "spring", stiffness: 440, damping: 38, mass: 0.7 }}
+        />
+
         {tabs.map((tab) => {
           const isActive = activeTab === tab.id;
           const Icon     = tab.icon;
@@ -205,38 +216,26 @@ export default function MobileBottomNav() {
               aria-current={isActive ? "page" : undefined}
               style={{ WebkitTapHighlightColor: "transparent" }}
             >
-              {/* Icon + chip (solo fade, sin layoutId) */}
-              <div className="relative flex items-center justify-center w-[48px] h-[30px]">
-                {/* Chip naranja detrás del ícono */}
-                <div
-                  className="absolute inset-0 rounded-[14px] transition-all duration-200"
+              {/* Icon — sin ningún fondo, solo color */}
+              <div className="relative">
+                <Icon
+                  className="w-[23px] h-[23px]"
                   style={{
-                    background: "rgba(255,149,0,0.26)",
-                    opacity: isActive ? 1 : 0,
-                    transform: isActive ? "scale(1)" : "scale(0.7)",
+                    color: isActive ? "rgb(var(--apple-orange))" : "rgba(150,150,165,0.7)",
+                    transition: "color 180ms ease",
                   }}
+                  strokeWidth={isActive ? 2.2 : 1.6}
                 />
-                {/* Icon encima */}
-                <div className="relative z-10">
-                  <Icon
-                    className="w-[22px] h-[22px]"
-                    style={{
-                      color: isActive ? "rgb(var(--apple-orange))" : "rgba(150,150,165,0.75)",
-                      transition: "color 200ms ease",
-                    }}
-                    strokeWidth={isActive ? 2.1 : 1.6}
-                  />
-                  <AnimatePresence>
-                    {badgeCount > 0 && <Badge count={badgeCount} />}
-                  </AnimatePresence>
-                </div>
+                <AnimatePresence>
+                  {badgeCount > 0 && <Badge count={badgeCount} />}
+                </AnimatePresence>
               </div>
 
               {/* Label */}
               <span
                 className="text-[10.5px] leading-none transition-all duration-200"
                 style={{
-                  color: isActive ? "rgb(var(--apple-orange))" : "rgba(150,150,165,0.75)",
+                  color: isActive ? "rgb(var(--apple-orange))" : "rgba(150,150,165,0.7)",
                   fontWeight: isActive ? 600 : 400,
                 }}
               >
