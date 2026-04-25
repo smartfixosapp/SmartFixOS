@@ -1199,64 +1199,139 @@ Maximo 150 palabras. Texto plano, sin markdown.`
   };
 
   return (
-    <div className="min-h-screen apple-surface apple-type flex flex-col">
+    <div className="apple-surface apple-type">
 
-      {/* ── Header ── */}
-      <div className="sticky top-0 z-40 apple-surface py-3" style={{ borderBottom: '0.5px solid rgb(var(--separator) / 0.29)' }}>
-        <div className="app-container flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
-          <div className="flex items-center gap-2 min-w-0">
-            <div className="w-9 h-9 rounded-apple-sm bg-apple-blue/15 flex items-center justify-center shrink-0">
-              <DollarSign className="w-4 h-4 text-apple-blue" />
+      {/* ══════════════════════════════════════════════════════════════════
+          BARRA SUPERIOR UNIFICADA — sticky corregido (overflow-x:clip en
+          Layout.jsx garantiza que sticky funcione en iOS Safari)
+          Fila 1: título + acciones rápidas
+          Fila 2: filtros de período | tabs de sección
+      ══════════════════════════════════════════════════════════════════ */}
+      <div
+        className="sticky top-0 z-40 apple-surface"
+        style={{ borderBottom: '0.5px solid rgb(var(--separator) / 0.20)' }}
+      >
+        {/* ── Fila 1: Título + Acciones rápidas ── */}
+        <div className="app-container flex items-center gap-2 py-2.5">
+          {/* Icono + Título */}
+          <div className="flex items-center gap-2 min-w-0 flex-1">
+            <div className="w-8 h-8 rounded-xl bg-emerald-500/15 flex items-center justify-center shrink-0">
+              <TrendingUp className="w-4 h-4 text-emerald-400" />
             </div>
-            <div className="min-w-0 flex-1">
-              <h1 className="apple-text-title2 apple-label-primary leading-tight">Finanzas</h1>
-              <p className="apple-text-footnote apple-label-tertiary leading-none mt-0.5 truncate tabular-nums">
+            <div className="min-w-0">
+              <h1 className="apple-text-headline apple-label-primary leading-tight font-semibold">Finanzas</h1>
+              <p className="text-[11px] leading-none mt-0.5 tabular-nums" style={{ color: 'rgba(150,150,165,0.8)' }}>
                 {loading ? "Cargando…" : `${filteredSales.length + filteredExpenses.length} movimientos`}
               </p>
             </div>
           </div>
-          <div className="flex items-center gap-1 shrink-0 overflow-x-auto no-scrollbar">
-            {/* Filtro de período — segmented pills */}
-            <div className="flex items-center gap-0.5 p-1 bg-gray-sys6 dark:bg-gray-sys5 rounded-apple-md">
-              {[
-                { id: "today", label: "Hoy",  labelSm: "Hoy" },
-                { id: "week",  label: "7d",   labelSm: "7d"  },
-                { id: "month", label: "Mes",  labelSm: "Mes" },
-                { id: "all",   label: "Todo", labelSm: "Todo"},
-                { id: "custom",label: "📅",   labelSm: "📅"  },
-              ].map((p) => (
-                <button key={p.id} onClick={() => setDateFilter(p.id)}
-                  className={`apple-press px-2.5 py-1.5 rounded-apple-sm apple-text-footnote font-semibold transition-all ${
-                    dateFilter === p.id
-                      ? "apple-surface-elevated apple-label-primary shadow-sm"
-                      : "apple-label-secondary"
-                  }`}
-                >{p.label}</button>
-              ))}
-            </div>
-            <button onClick={handleManualRefresh} disabled={loading}
-              className="apple-press w-8 h-8 rounded-apple-sm bg-gray-sys6 dark:bg-gray-sys5 flex items-center justify-center apple-label-secondary shrink-0">
-              <RefreshCw className={`w-3.5 h-3.5 ${loading ? "animate-spin" : ""}`} />
+
+          {/* Acciones */}
+          <div className="flex items-center gap-1.5 shrink-0">
+            <button
+              onClick={() => {
+                if (!canPlan('pos_cash_open_close')) {
+                  toast.error("Abrir/cerrar caja disponible en el plan Pro", { duration: 5000 });
+                  return;
+                }
+                drawerOpen ? setShowCloseDrawer(true) : setShowOpenDrawer(true);
+              }}
+              className={`apple-btn ${drawerOpen ? "apple-btn-tinted text-apple-green" : "apple-btn-secondary"}`}
+            >
+              <Wallet className="w-3.5 h-3.5" />
+              <span className="hidden sm:inline">{drawerOpen ? "Caja abierta" : "Caja"}</span>
             </button>
-            <button onClick={() => navigate(-1)}
-              className="apple-press w-8 h-8 rounded-apple-sm bg-gray-sys6 dark:bg-gray-sys5 flex items-center justify-center apple-label-secondary shrink-0">
-              <X className="w-3.5 h-3.5" />
+            <button
+              onClick={() => setShowJenaiCapture(true)}
+              className="apple-btn apple-btn-primary bg-gradient-to-r from-violet-500 to-purple-600 border-0 text-white shadow-lg shadow-violet-500/20"
+            >
+              <Sparkles className="w-3.5 h-3.5" />
+              <span className="hidden sm:inline">Jeani</span>
+            </button>
+            <button
+              onClick={() => { setExpenseDefaultCategory(null); setShowExpenseDialog(true); }}
+              className="apple-btn apple-btn-secondary"
+              title="Registrar gasto"
+            >
+              <Plus className="w-3.5 h-3.5" />
+            </button>
+            <button
+              onClick={handleManualRefresh}
+              disabled={loading}
+              className="apple-press w-8 h-8 rounded-xl flex items-center justify-center apple-label-secondary"
+              style={{ background: 'rgba(255,255,255,0.06)' }}
+            >
+              <RefreshCw className={`w-3.5 h-3.5 ${loading ? "animate-spin" : ""}`} />
             </button>
           </div>
         </div>
+
+        {/* ── Fila 2: Período | Secciones — una sola fila horizontal ── */}
+        <div className="app-container flex items-center gap-2 pb-2 overflow-x-auto no-scrollbar">
+          {/* Filtros de período */}
+          <div className="flex items-center gap-0.5 p-1 rounded-xl shrink-0" style={{ background: 'rgba(255,255,255,0.06)' }}>
+            {[
+              { id: "today", label: "Hoy" },
+              { id: "week",  label: "7d"  },
+              { id: "month", label: "Mes" },
+              { id: "all",   label: "Todo"},
+              { id: "custom",label: "📅"  },
+            ].map((p) => (
+              <button
+                key={p.id}
+                onClick={() => setDateFilter(p.id)}
+                className="apple-press px-2.5 py-1 rounded-lg apple-text-footnote font-semibold transition-all"
+                style={{
+                  background: dateFilter === p.id ? 'rgba(255,255,255,0.12)' : 'transparent',
+                  color: dateFilter === p.id ? 'rgb(var(--label-primary))' : 'rgba(150,150,165,0.8)',
+                }}
+              >{p.label}</button>
+            ))}
+          </div>
+
+          {/* Separador */}
+          <div className="w-px h-5 shrink-0" style={{ background: 'rgba(255,255,255,0.12)' }} />
+
+          {/* Tabs de sección */}
+          <div className="flex items-center gap-0.5 p-1 rounded-xl shrink-0" style={{ background: 'rgba(255,255,255,0.06)' }}>
+            {[
+              { id: "movimientos", label: "Movimientos", icon: Receipt },
+              { id: "compras",     label: "Compras",     icon: ShoppingCart },
+              { id: "reportes",    label: "Reportes",    icon: PieChart },
+            ].map(k => {
+              const isActive = k.tab === activeTab || k.id === activeTab;
+              return (
+                <button
+                  key={k.id}
+                  onClick={() => { setActiveTab(k.id); if (k.id === "movimientos") setMovFilter("all"); }}
+                  className="apple-press flex items-center gap-1.5 px-2.5 py-1 rounded-lg apple-text-footnote font-semibold transition-all whitespace-nowrap"
+                  style={{
+                    background: isActive ? 'rgba(255,255,255,0.12)' : 'transparent',
+                    color: isActive ? 'rgb(var(--label-primary))' : 'rgba(150,150,165,0.8)',
+                  }}
+                >
+                  <k.icon className="w-3.5 h-3.5" />
+                  {k.label}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Fecha personalizada */}
         {dateFilter === "custom" && (
-          <div className="app-container flex gap-2 mt-2 pt-2" style={{ borderTop: '0.5px solid rgb(var(--separator) / 0.29)' }}>
+          <div className="app-container flex gap-2 pb-2.5 pt-1" style={{ borderTop: '0.5px solid rgb(var(--separator) / 0.20)' }}>
             <input type="date" value={customStartDate} onChange={e => setCustomStartDate(e.target.value)}
-              className="apple-input flex-1 h-9" />
+              className="apple-input flex-1 h-9 text-sm" />
             <span className="apple-label-secondary self-center apple-text-footnote">→</span>
             <input type="date" value={customEndDate} onChange={e => setCustomEndDate(e.target.value)}
-              className="apple-input flex-1 h-9" />
+              className="apple-input flex-1 h-9 text-sm" />
           </div>
         )}
       </div>
 
-      {/* ── Layout principal — full width, no sidebar ── */}
-      <div className="app-container pt-4 pb-28 flex-1 space-y-5">
+      {/* ── Layout principal ── */}
+      <div className="app-container pt-4 pb-28 space-y-4">
 
         {/* ── Error banner ── */}
         {loadError && (
@@ -1269,7 +1344,7 @@ Maximo 150 palabras. Texto plano, sin markdown.`
           </div>
         )}
 
-        {/* ── JENAI Insights — collapsible ── */}
+        {/* ── JENAI Insights ── */}
         <JENAIInsightBanner
           context="financial"
           data={{
@@ -1284,112 +1359,63 @@ Maximo 150 palabras. Texto plano, sin markdown.`
           autoLoad={false}
         />
 
-        {/* ── KPI Cards — 3 cards en fila ── */}
-        <div className="grid grid-cols-3 gap-3">
+        {/* ── KPI Cards — diseño mejorado ── */}
+        <div className="grid grid-cols-3 gap-2.5">
           {/* Entradas */}
-          <button onClick={() => { setActiveTab("movimientos"); setMovFilter("income"); }}
-            className={`apple-press text-left p-3 sm:p-5 rounded-apple-lg transition-all overflow-hidden ${
-              activeTab === "movimientos" && movFilter === "income"
-                ? "bg-apple-green/15"
-                : "apple-card"
-            }`}>
-            <div className="flex items-center gap-2 mb-2">
-              <div className="w-7 h-7 rounded-apple-sm bg-apple-green/15 flex items-center justify-center">
-                <TrendingUp className="w-3.5 h-3.5 text-apple-green" />
-              </div>
-              <span className="apple-text-footnote font-semibold apple-label-secondary">Entradas</span>
+          <button
+            onClick={() => { setActiveTab("movimientos"); setMovFilter("income"); }}
+            className="apple-press text-left rounded-2xl overflow-hidden transition-all"
+            style={{
+              background: activeTab === "movimientos" && movFilter === "income"
+                ? 'rgba(52,199,89,0.15)' : 'rgba(255,255,255,0.05)',
+              border: '0.5px solid rgba(52,199,89,0.25)',
+              padding: '12px',
+            }}
+          >
+            <div className="w-7 h-7 rounded-xl bg-emerald-500/15 flex items-center justify-center mb-2.5">
+              <TrendingUp className="w-3.5 h-3.5 text-emerald-400" />
             </div>
-            <p className="text-lg sm:apple-text-title1 font-bold tabular-nums text-apple-green truncate">${totalRevenue.toFixed(2)}</p>
-            <p className="apple-text-caption1 apple-label-tertiary mt-1.5 tabular-nums">Hoy: ${todayRevenue.toFixed(2)}</p>
+            <p className="text-[11px] font-medium mb-1" style={{ color: 'rgba(150,150,165,0.8)' }}>Entradas</p>
+            <p className="text-base font-bold tabular-nums truncate text-emerald-400">${totalRevenue.toFixed(2)}</p>
+            <p className="text-[10px] tabular-nums mt-1" style={{ color: 'rgba(150,150,165,0.6)' }}>Hoy ${todayRevenue.toFixed(2)}</p>
           </button>
 
           {/* Salidas */}
-          <button onClick={() => { setActiveTab("movimientos"); setMovFilter("expense"); }}
-            className={`apple-press text-left p-3 sm:p-5 rounded-apple-lg transition-all overflow-hidden ${
-              activeTab === "movimientos" && movFilter === "expense"
-                ? "bg-apple-red/15"
-                : "apple-card"
-            }`}>
-            <div className="flex items-center gap-2 mb-2">
-              <div className="w-7 h-7 rounded-apple-sm bg-apple-red/15 flex items-center justify-center">
-                <TrendingDown className="w-3.5 h-3.5 text-apple-red" />
-              </div>
-              <span className="apple-text-footnote font-semibold apple-label-secondary">Salidas</span>
+          <button
+            onClick={() => { setActiveTab("movimientos"); setMovFilter("expense"); }}
+            className="apple-press text-left rounded-2xl overflow-hidden transition-all"
+            style={{
+              background: activeTab === "movimientos" && movFilter === "expense"
+                ? 'rgba(255,69,58,0.15)' : 'rgba(255,255,255,0.05)',
+              border: '0.5px solid rgba(255,69,58,0.25)',
+              padding: '12px',
+            }}
+          >
+            <div className="w-7 h-7 rounded-xl bg-red-500/15 flex items-center justify-center mb-2.5">
+              <TrendingDown className="w-3.5 h-3.5 text-red-400" />
             </div>
-            <p className="text-lg sm:apple-text-title1 font-bold tabular-nums text-apple-red truncate">${totalExpenses.toFixed(2)}</p>
-            <p className="apple-text-caption1 apple-label-tertiary mt-1.5 tabular-nums">Hoy: ${todayExpenses.toFixed(2)}</p>
+            <p className="text-[11px] font-medium mb-1" style={{ color: 'rgba(150,150,165,0.8)' }}>Salidas</p>
+            <p className="text-base font-bold tabular-nums truncate text-red-400">${totalExpenses.toFixed(2)}</p>
+            <p className="text-[10px] tabular-nums mt-1" style={{ color: 'rgba(150,150,165,0.6)' }}>Hoy ${todayExpenses.toFixed(2)}</p>
           </button>
 
-          {/* Ganancia Neta */}
-          <button onClick={() => { setActiveTab("movimientos"); setMovFilter("all"); }}
-            className="apple-press text-left p-4 sm:p-5 rounded-apple-lg transition-all apple-card">
-            <div className="flex items-center gap-2 mb-2">
-              <div className={`w-7 h-7 rounded-apple-sm flex items-center justify-center ${
-                netProfit >= 0 ? "bg-apple-blue/15" : "bg-apple-red/15"
-              }`}>
-                <DollarSign className={`w-3.5 h-3.5 ${netProfit >= 0 ? "text-apple-blue" : "text-apple-red"}`} />
-              </div>
-              <span className="apple-text-footnote font-semibold apple-label-secondary">{netProfit >= 0 ? "Ganancia" : "Deficit"}</span>
+          {/* Neto */}
+          <button
+            onClick={() => { setActiveTab("movimientos"); setMovFilter("all"); }}
+            className="apple-press text-left rounded-2xl overflow-hidden transition-all"
+            style={{
+              background: 'rgba(255,255,255,0.05)',
+              border: `0.5px solid ${netProfit >= 0 ? 'rgba(10,132,255,0.25)' : 'rgba(255,69,58,0.25)'}`,
+              padding: '12px',
+            }}
+          >
+            <div className={`w-7 h-7 rounded-xl flex items-center justify-center mb-2.5 ${netProfit >= 0 ? 'bg-blue-500/15' : 'bg-red-500/15'}`}>
+              <DollarSign className={`w-3.5 h-3.5 ${netProfit >= 0 ? 'text-blue-400' : 'text-red-400'}`} />
             </div>
-            <p className={`text-lg sm:apple-text-title1 font-bold tabular-nums truncate ${netProfit >= 0 ? "text-apple-blue" : "text-apple-red"}`}>${Math.abs(netProfit).toFixed(2)}</p>
-            <p className="apple-text-caption1 apple-label-tertiary mt-1.5 tabular-nums">{filteredSales.length} venta{filteredSales.length !== 1 ? "s" : ""}</p>
+            <p className="text-[11px] font-medium mb-1" style={{ color: 'rgba(150,150,165,0.8)' }}>{netProfit >= 0 ? "Neto" : "Déficit"}</p>
+            <p className={`text-base font-bold tabular-nums truncate ${netProfit >= 0 ? 'text-blue-400' : 'text-red-400'}`}>${Math.abs(netProfit).toFixed(2)}</p>
+            <p className="text-[10px] tabular-nums mt-1" style={{ color: 'rgba(150,150,165,0.6)' }}>{filteredSales.length} venta{filteredSales.length !== 1 ? "s" : ""}</p>
           </button>
-        </div>
-
-        {/* ── Tab navigation — Apple segmented pills ── */}
-        <div className="flex items-center gap-2 overflow-x-auto no-scrollbar sticky top-[52px] z-30 apple-surface py-2 -mx-3 px-3 sm:-mx-4 sm:px-4 md:-mx-6 md:px-6">
-          <div className="flex items-center gap-1 p-1 bg-gray-sys6 dark:bg-gray-sys5 rounded-apple-md shrink-0">
-            {[
-              { id: "movimientos", tab: "movimientos", filter: "all",  label: "Movimientos", icon: Receipt },
-              { id: "compras",     tab: "compras",     filter: null,   label: "Compras",     icon: ShoppingCart },
-              { id: "reportes",    tab: "reportes",    filter: null,   label: "Reportes",    icon: PieChart },
-            ].map(k => {
-              const isActive = k.tab === activeTab;
-              return (
-                <button key={k.id}
-                  onClick={() => { setActiveTab(k.tab); if (k.filter !== null) setMovFilter(k.filter); }}
-                  className={`apple-press flex items-center gap-1.5 px-3 py-2 rounded-apple-sm apple-text-footnote font-semibold transition-all whitespace-nowrap ${
-                    isActive
-                      ? "apple-surface-elevated apple-label-primary shadow-sm"
-                      : "apple-label-secondary"
-                  }`}
-                >
-                  <k.icon className="w-3.5 h-3.5" />
-                  {k.label}
-                  {k.badge != null && (
-                    <span className="apple-text-caption2 font-semibold text-apple-orange tabular-nums ml-0.5">${k.badge.toFixed(0)}</span>
-                  )}
-                </button>
-              );
-            })}
-          </div>
-
-          {/* Quick actions */}
-          <div className="flex items-center gap-1.5 ml-auto shrink-0">
-            <button onClick={() => {
-                if (!canPlan('pos_cash_open_close')) {
-                  toast.error("Abrir/cerrar caja disponible en el plan Pro", { duration: 5000 });
-                  return;
-                }
-                drawerOpen ? setShowCloseDrawer(true) : setShowOpenDrawer(true);
-              }}
-              className={`apple-btn ${drawerOpen ? "apple-btn-tinted text-apple-green" : "apple-btn-secondary"}`}
-            >
-              <Wallet className="w-3.5 h-3.5" />
-              <span className="hidden sm:inline">{drawerOpen ? "Caja abierta" : "Caja"}</span>
-            </button>
-            <button onClick={() => setShowJenaiCapture(true)}
-              className="apple-btn apple-btn-primary bg-gradient-to-r from-violet-500 to-purple-600 hover:from-violet-600 hover:to-purple-700 border-0 text-white shadow-lg shadow-violet-500/20">
-              <Sparkles className="w-3.5 h-3.5" />
-              <span className="hidden sm:inline">Subir con Jeani</span>
-              <span className="sm:hidden">Jeani</span>
-            </button>
-            <button onClick={() => { setExpenseDefaultCategory(null); setShowExpenseDialog(true); }}
-              className="apple-btn apple-btn-secondary"
-              title="Registrar gasto manualmente">
-              <Plus className="w-3.5 h-3.5" />
-            </button>
-          </div>
         </div>
 
         {/* ── Alertas context — solo si hay algo urgente ── */}
