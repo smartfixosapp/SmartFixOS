@@ -633,263 +633,111 @@ export default function OrdersPage() {
           </div>
         </div>
 
-        {/* Search & Actions Bar - Desktop only full version */}
-        <div className="flex flex-col gap-4 mb-8">
-          {/* Título y acciones */}
-          <div className="hidden sm:flex items-center justify-between gap-3">
-            <div className="flex items-center gap-3">
-              <h1 className="text-3xl font-bold text-white tracking-tight">
-                Órdenes
-              </h1>
+        {/* ── Header + Pills/Search ── */}
+        <div className="flex flex-col gap-3 mb-6">
 
-              <button
-                onClick={() => loadOrders()}
-                className="w-10 h-10 sm:w-11 sm:h-11 rounded-full bg-gradient-to-br from-white/10 to-white/5 hover:from-white/15 hover:to-white/10 border border-white/10 flex items-center justify-center text-white/70 hover:text-white transition-all duration-300 active:scale-95 shadow-lg">
+          {/* Desktop title row */}
+          <div className="hidden sm:flex items-center gap-3">
+            <h1 className="text-3xl font-bold text-white tracking-tight">Órdenes</h1>
+            <button
+              onClick={() => loadOrders()}
+              className="w-10 h-10 rounded-full bg-white/8 hover:bg-white/12 border border-white/10 flex items-center justify-center text-white/60 hover:text-white transition-all active:scale-95"
+            >
+              <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
+            </button>
+            <Button
+              onClick={openQuickOrderModal}
+              className="ml-auto h-10 px-5 rounded-full text-sm font-bold bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-500 hover:to-cyan-400 border border-cyan-300/40 text-white shadow-[0_0_18px_rgba(34,211,238,0.3)]"
+            >
+              <FilePlus className="w-4 h-4 mr-2" />
+              Nueva Orden
+            </Button>
+          </div>
 
-                <RefreshCw className={`w-4 h-4 sm:w-5 sm:h-5 ${loading ? 'animate-spin' : ''}`} />
-              </button>
-
-              {/* Dropdown de Filtros Centralizado (Todos los filtros en uno) */}
-              <div className="relative">
+          {/* ── Pills row OR inline search ── */}
+          <AnimatePresence mode="wait">
+            {showSearch ? (
+              /* Search mode — full-width compact input */
+              <motion.div
+                key="search-input"
+                initial={{ opacity: 0, y: -4 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -4 }}
+                transition={{ duration: 0.15 }}
+                className="flex items-center gap-2"
+              >
+                <div className="relative flex-1">
+                  <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 pointer-events-none" style={{ color: "rgba(255,255,255,0.4)" }} />
+                  <input
+                    autoFocus
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    onKeyDown={(e) => e.key === 'Escape' && (setShowSearch(false), setSearchQuery(""))}
+                    placeholder="Cliente, #orden, teléfono, dispositivo..."
+                    className="w-full pl-10 pr-10 py-2.5 rounded-full text-sm text-white placeholder-white/25 focus:outline-none transition-all"
+                    style={{
+                      background: "rgba(255,255,255,0.07)",
+                      border: "1px solid rgba(255,255,255,0.14)",
+                    }}
+                  />
+                  {searchQuery && (
+                    <button
+                      onClick={() => setSearchQuery("")}
+                      className="absolute right-3.5 top-1/2 -translate-y-1/2"
+                    >
+                      <X className="w-3.5 h-3.5" style={{ color: "rgba(255,255,255,0.4)" }} />
+                    </button>
+                  )}
+                </div>
                 <button
-                  onClick={() => setShowStatusDropdown(!showStatusDropdown)}
-                  className={`h-10 sm:h-11 px-4 sm:px-5 rounded-full text-sm font-bold whitespace-nowrap transition-all duration-300 border flex items-center gap-2 ${
-                  showB2BOnly ?
-                  "bg-gradient-to-r from-purple-500 to-pink-500 text-white border-purple-400 shadow-[0_0_25px_rgba(168,85,247,0.5)]" :
-                  selectedStatus !== "active" ?
-                  "bg-gradient-to-r from-purple-500 to-pink-500 text-white border-purple-400 shadow-[0_0_20px_rgba(168,85,247,0.4)]" :
-                  "bg-white/[0.06] text-white/60 border-white/10 hover:bg-white/10 hover:text-white/80"}`
-                  }>
-
-                  <Filter className="w-4 h-4" />
-                  <span className="hidden xs:inline">
-                    {showB2BOnly ? "B2B" :
-                    selectedStatus === "active" ? "Todos" :
-                    selectedStatus === "closed" ? "Cerrados" :
-                    ORDER_STATUSES.find((s) => s.id === selectedStatus)?.label || "Filtros"}
-                  </span>
-                  <span className="px-2 py-1 rounded-full text-xs font-semibold bg-white/20">
-                    {displayOrders.length}
-                  </span>
-                  <ChevronRight className={`w-4 h-4 transition-transform duration-300 ${showStatusDropdown ? 'rotate-90' : ''}`} />
+                  onClick={() => { setShowSearch(false); setSearchQuery(""); }}
+                  className="shrink-0 text-xs font-semibold px-3 py-2 rounded-full transition-all"
+                  style={{ color: "rgba(255,255,255,0.5)", background: "rgba(255,255,255,0.06)" }}
+                >
+                  Cancelar
+                </button>
+              </motion.div>
+            ) : (
+              /* Pills mode */
+              <motion.div
+                key="pills"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.12 }}
+                className="flex gap-2 overflow-x-auto pb-0.5 no-scrollbar items-center"
+              >
+                {/* 🔍 Search icon */}
+                <button
+                  onClick={() => setShowSearch(true)}
+                  className="shrink-0 w-8 h-8 rounded-full flex items-center justify-center transition-all active:scale-90"
+                  style={{ background: "rgba(255,255,255,0.07)", border: "1px solid rgba(255,255,255,0.1)" }}
+                  title="Buscar"
+                >
+                  <Search className="w-3.5 h-3.5" style={{ color: "rgba(255,255,255,0.5)" }} />
                 </button>
 
-                {/* Dropdown Panel - Con opción B2B integrada */}
-                <AnimatePresence>
-                  {showStatusDropdown &&
-                  <motion.div
-                    initial={{ opacity: 0, y: -10, scale: 0.95 }}
-                    animate={{ opacity: 1, y: 0, scale: 1 }}
-                    exit={{ opacity: 0, y: -10, scale: 0.95 }}
-                    transition={{ duration: 0.2 }}
-                    className="absolute top-full right-0 sm:left-0 mt-2 w-[calc(100vw-2rem)] sm:w-80 max-w-sm bg-[#0A0A0A]/95 backdrop-blur-2xl border border-white/10 rounded-[24px] shadow-[0_20px_60px_rgba(0,0,0,0.5)] overflow-hidden z-50">
+                {/* Divider */}
+                <div className="shrink-0 w-px h-5 rounded-full" style={{ background: "rgba(255,255,255,0.1)" }} />
 
-                      <div className="p-3 space-y-1 max-h-[520px] overflow-y-auto scrollbar-thin">
-                        {/* Acciones Rápidas */}
-                        <div className="mb-3">
-                          <p className="text-xs font-bold text-white/40 px-4 mb-2">Acciones</p>
-                          
-                          <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setShowStatusDropdown(false);
-                            setShowQuickModal(true);
-                          }}
-                          className="w-full px-4 py-3 rounded-[16px] text-left text-sm font-bold transition-all duration-200 flex items-center gap-3 bg-gradient-to-r from-blue-500/20 to-cyan-500/20 border border-blue-400/30 text-white hover:from-blue-500/30 hover:to-cyan-500/30">
+                {/* Todos */}
+                <button
+                  onClick={() => setSelectedStatus("active")}
+                  className="shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold transition-all"
+                  style={{
+                    background: selectedStatus === "active" ? "rgba(96,165,250,0.18)" : "rgba(255,255,255,0.05)",
+                    color: selectedStatus === "active" ? "#60a5fa" : "rgba(255,255,255,0.38)",
+                    border: selectedStatus === "active" ? "1px solid rgba(96,165,250,0.35)" : "1px solid rgba(255,255,255,0.08)",
+                  }}
+                >
+                  Todos
+                  <span className="px-1.5 py-0.5 rounded-full text-[10px]" style={{ background: "rgba(255,255,255,0.1)" }}>
+                    {statusCounts["active"] || 0}
+                  </span>
+                </button>
 
-                            <Plus className="w-4 h-4" />
-                            <span>Nueva Orden</span>
-                          </button>
-
-                          <button
-                          onClick={() => {
-                            setShowCreateInvoice(true);
-                            setShowStatusDropdown(false);
-                          }}
-                          className="w-full px-4 py-3 rounded-[16px] text-left text-sm font-bold transition-all duration-200 flex items-center gap-3 text-white/70 hover:bg-white/5 hover:text-white">
-
-                            <FileText className="w-4 h-4" />
-                            <span>Crear Factura</span>
-                          </button>
-
-
-                        </div>
-
-                        <div className="h-px bg-white/10 my-2" />
-
-                        {/* Filtros */}
-                        <p className="text-xs font-bold text-white/40 px-4 mb-2 mt-3">Filtros</p>
-
-                        {/* Toggle B2B */}
-                        <button
-                        onClick={() => {
-                          setShowB2BOnly(!showB2BOnly);
-                        }}
-                        className={`w-full px-4 py-3 rounded-[16px] text-left text-sm font-bold transition-all duration-200 flex items-center justify-between ${
-                        showB2BOnly ?
-                        "bg-gradient-to-r from-purple-500/20 to-pink-500/20 border border-purple-400/30 text-white" :
-                        "text-white/70 hover:bg-white/5 hover:text-white"}`
-                        }>
-
-                          <div className="flex items-center gap-2">
-                            <Building2 className="w-4 h-4" />
-                            <span>Solo B2B</span>
-                          </div>
-                          <div className={`w-5 h-5 rounded-full flex items-center justify-center ${showB2BOnly ? 'bg-purple-400/30' : 'bg-white/10'}`}>
-                            {showB2BOnly && <div className="w-2 h-2 rounded-full bg-purple-400" />}
-                          </div>
-                        </button>
-
-                        <div className="h-px bg-white/10 my-2" />
-
-                        {/* Todos (Activos) */}
-                         <button
-                         onClick={() => {
-                           setSelectedStatus("active");
-                           setShowStatusDropdown(false);
-                         }}
-                         className={`w-full px-4 py-3 rounded-[16px] text-left text-sm font-bold transition-all duration-200 flex items-center justify-between ${
-                         selectedStatus === "active" ?
-                         "bg-gradient-to-r from-cyan-500/20 to-blue-500/20 border border-cyan-400/30 text-white" :
-                         "text-white/70 hover:bg-white/5 hover:text-white"}`
-                         }>
-
-                           <span>Todos (Activos)</span>
-                           <span className={`px-2 py-1 rounded-full text-xs font-semibold ${selectedStatus === "active" ? 'bg-cyan-400/20 text-cyan-300' : 'bg-white/10 text-white/50'}`}>
-                             {statusCounts["active"] || 0}
-                           </span>
-                         </button>
-
-                         {/* Garantías */}
-                         <button
-                         onClick={() => {
-                           setSelectedStatus("warranty");
-                           setShowStatusDropdown(false);
-                         }}
-                         className={`w-full px-4 py-3 rounded-[16px] text-left text-sm font-bold transition-all duration-200 flex items-center justify-between ${
-                         selectedStatus === "warranty" ?
-                         "bg-gradient-to-r from-amber-500/20 to-orange-500/20 border border-amber-400/30 text-white" :
-                         "text-white/70 hover:bg-white/5 hover:text-white"}`
-                         }>
-
-                           <div className="flex items-center gap-2">
-                             <Shield className="w-4 h-4" />
-                             <span>Garantías</span>
-                           </div>
-                           <span className={`px-2 py-1 rounded-full text-xs font-semibold ${selectedStatus === "warranty" ? 'bg-amber-400/20 text-amber-300' : 'bg-white/10 text-white/50'}`}>
-                             {statusCounts["warranty"] || 0}
-                           </span>
-                         </button>
-
-                        {/* Ver Alertas Prioritarias */}
-                        <button
-                        onClick={() => {
-                          setShowPendingAlerts(true);
-                          setShowStatusDropdown(false);
-                        }}
-                        className="w-full px-4 py-3 rounded-[16px] text-left text-sm font-bold transition-all duration-200 flex items-center gap-3 text-white/70 hover:bg-white/5 hover:text-white">
-
-                          <AlertCircle className="w-4 h-4" />
-                          <span>Ver Alertas Prioritarias</span>
-                        </button>
-
-                        <div className="h-px bg-white/10 my-2" />
-
-                        {/* Estados individuales */}
-                        {ORDER_STATUSES.filter((s) => s.isActive).map((status) => {
-                        const count = statusCounts[status.id] || 0;
-                        const isClosedStatus = ["picked_up", "completed", "cancelled", "delivered", "warranty"].includes(status.id);
-                        if (isClosedStatus) return null;
-
-                        return (
-                          <button
-                            key={status.id}
-                            onClick={() => {
-                              setSelectedStatus(status.id);
-                              setShowStatusDropdown(false);
-                            }}
-                            disabled={count === 0}
-                            className={`w-full px-4 py-3 rounded-[16px] text-left text-sm font-bold transition-all duration-200 flex items-center justify-between ${
-                            selectedStatus === status.id ?
-                            "bg-gradient-to-r from-blue-500/20 to-purple-500/20 border border-blue-400/30 text-white" :
-                            count === 0 ?
-                            "text-white/50 cursor-not-allowed" :
-                            "text-white/70 hover:bg-white/5 hover:text-white"}`
-                            }>
-
-                              <span>{status.label}</span>
-                              {count > 0 &&
-                            <span className={`px-2 py-1 rounded-full text-xs font-semibold ${selectedStatus === status.id ? 'bg-blue-400/20 text-blue-300' : 'bg-white/10 text-white/50'}`}>
-                                  {count}
-                                </span>
-                            }
-                            </button>);
-
-                      })}
-
-                        <div className="h-px bg-white/10 my-2" />
-
-                        {/* Cerrados / Historial */}
-                        <button
-                        onClick={() => {
-                          setSelectedStatus("closed");
-                          setShowStatusDropdown(false);
-                        }}
-                        className={`w-full px-4 py-3 rounded-[16px] text-left text-sm font-bold transition-all duration-200 flex items-center justify-between ${
-                        selectedStatus === "closed" ?
-                        "bg-gradient-to-r from-purple-500/20 to-pink-500/20 border border-purple-400/30 text-white" :
-                        "text-white/70 hover:bg-white/5 hover:text-white"}`
-                        }>
-
-                          <span>Cerrados / Historial</span>
-                          <span className={`px-2 py-1 rounded-full text-xs font-semibold ${selectedStatus === "closed" ? 'bg-purple-400/20 text-purple-300' : 'bg-white/10 text-white/50'}`}>
-                            {statusCounts["closed"] || 0}
-                          </span>
-                        </button>
-                      </div>
-                    </motion.div>
-                  }
-                </AnimatePresence>
-              </div>
-
-              <Button
-                onClick={openQuickOrderModal}
-                className="h-10 sm:h-11 px-3 sm:px-5 rounded-full text-sm font-bold whitespace-nowrap bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-500 hover:to-cyan-400 border border-cyan-300/40 text-white shadow-[0_0_18px_rgba(34,211,238,0.35)]"
-              >
-                <FilePlus className="w-5 h-5 sm:mr-2" />
-                <span className="hidden sm:inline">Nueva Orden</span>
-              </Button>
-
-
-
-            </div>
-          </div>
-
-
-          {/* Búsqueda estilo Sequoia */}
-          <div className="relative group/search">
-            <div className="absolute inset-y-0 left-0 pl-5 flex items-center pointer-events-none">
-              <Search className="h-5 w-5 text-white/50 group-focus-within/search:text-cyan-400 group-focus-within/search:scale-110 transition-all duration-500" />
-            </div>
-            <input
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Buscar por cliente, #orden, teléfono..." 
-              className="bg-[#121215]/40 text-white pr-14 pl-14 py-5 text-base rounded-[24px] block w-full border border-white/10 placeholder-white/20 focus:outline-none focus:ring-4 focus:ring-cyan-500/10 focus:border-cyan-500/40 focus:bg-[#121215]/80 transition-all duration-500 backdrop-blur-2xl shadow-[inset_0_2px_10px_rgba(0,0,0,0.2)]" 
-            />
-
-            {searchQuery && (
-              <button
-                onClick={() => setSearchQuery("")}
-                className="absolute right-4 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-white/5 hover:bg-white/10 text-white/40 hover:text-white flex items-center justify-center transition-all active:scale-95 border border-white/10"
-              >
-                <X className="w-4 h-4" />
-              </button>
-            )}
-          </div>
-
-          {/* ── Status quick-filter pills ── */}
-          <div className="flex gap-2 overflow-x-auto pb-0.5 no-scrollbar -mt-1">
+          {/* ── Status quick-filter pills (below the former code, now merged) ── */}
+          <div className="contents">
             {/* Todos activos */}
             <button
               onClick={() => setSelectedStatus("active")}
