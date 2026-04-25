@@ -736,26 +736,8 @@ export default function OrdersPage() {
                   </span>
                 </button>
 
-          {/* ── Status quick-filter pills (below the former code, now merged) ── */}
-          <div className="contents">
-            {/* Todos activos */}
-            <button
-              onClick={() => setSelectedStatus("active")}
-              className="shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold transition-all"
-              style={{
-                background: selectedStatus === "active" ? "rgba(96,165,250,0.18)" : "rgba(255,255,255,0.05)",
-                color: selectedStatus === "active" ? "#60a5fa" : "rgba(255,255,255,0.38)",
-                border: selectedStatus === "active" ? "1px solid rgba(96,165,250,0.35)" : "1px solid rgba(255,255,255,0.08)",
-              }}
-            >
-              Todos
-              <span className="px-1.5 py-0.5 rounded-full text-[10px]" style={{ background: "rgba(255,255,255,0.1)" }}>
-                {statusCounts["active"] || 0}
-              </span>
-            </button>
-
-            {/* Estados activos con órdenes */}
-            {ORDER_STATUSES
+                {/* Estados activos con órdenes */}
+                {ORDER_STATUSES
               .filter(s => s.isActive && !["picked_up","completed","cancelled","delivered","warranty"].includes(s.id) && (statusCounts[s.id] || 0) > 0)
               .sort((a, b) => (b.order || 0) - (a.order || 0))
               .map(s => (
