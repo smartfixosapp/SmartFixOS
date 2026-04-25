@@ -1202,19 +1202,37 @@ Maximo 150 palabras. Texto plano, sin markdown.`
     }
   };
 
-  return (
-    <div className="apple-surface apple-type">
+  // Medir altura del header cada vez que cambia su contenido (fecha custom toggle)
+  useEffect(() => {
+    if (!headerRef.current) return;
+    const ro = new ResizeObserver(([entry]) => {
+      setHeaderHeight(entry.contentRect.height);
+    });
+    ro.observe(headerRef.current);
+    return () => ro.disconnect();
+  }, []);
 
-      {/* ══════════════════════════════════════════════════════════════════
-          BARRA SUPERIOR UNIFICADA — sticky corregido (overflow-x:clip en
-          Layout.jsx garantiza que sticky funcione en iOS Safari)
-          Fila 1: título + acciones rápidas
-          Fila 2: filtros de período | tabs de sección
-      ══════════════════════════════════════════════════════════════════ */}
-      <div
-        className="sticky top-0 z-40 apple-surface"
-        style={{ borderBottom: '0.5px solid rgb(var(--separator) / 0.20)' }}
-      >
+  // ── El header se renderiza en el <body> via portal (fuera de <main
+  //    overflow-y-auto>) para que position:fixed sea siempre relativo
+  //    al viewport real — solución idéntica a MobileBottomNav.
+  const headerPortal = typeof document !== "undefined" && createPortal(
+    <div
+      ref={headerRef}
+      className="apple-surface apple-type"
+      style={{
+        position: "fixed",
+        top: 0,
+        left: 0,
+        right: 0,
+        zIndex: 50,
+        borderBottom: "0.5px solid rgb(var(--separator) / 0.20)",
+        // En desktop el ModernTopNav ocupa ~48px; en mobile empieza en top-0
+        // Las páginas de desktop usan md:pt-4 en main, así que ahí el sticky
+        // original funciona bien — solo forzamos fixed en mobile via JS
+        // (el portal se aplica siempre; en desktop se superpone correctamente
+        //  porque ModernTopNav ya está fuera del scroll container también)
+      }}
+    >
         {/* ── Fila 1: Título + Acciones rápidas ── */}
         <div className="app-container flex items-center gap-2 py-2.5">
           {/* Icono + Título */}
