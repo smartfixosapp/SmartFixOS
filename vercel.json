@@ -1,7 +1,7 @@
 {
   "buildCommand": "pnpm -C apps/Smart build",
   "outputDirectory": "apps/Smart/dist",
-  "installCommand": "pnpm install",
+  "installCommand": "pnpm install --no-frozen-lockfile",
   "framework": null,
   "rewrites": [
     { "source": "/api/(.*)", "destination": "/api/$1" },
