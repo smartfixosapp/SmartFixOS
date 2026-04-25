@@ -191,15 +191,15 @@ export default function MobileBottomNav() {
         className="liquid-glass-floating relative flex items-center justify-around px-1 h-[64px] w-full"
         style={{ borderRadius: "28px" }}
       >
-        {/* Sliding indicator bar — spring animado, solo 1 instancia */}
-        <motion.div
-          layoutId="nav-bar"
+        {/* Sliding indicator bar — CSS transition con % del pill */}
+        <div
           className="absolute bottom-[10px] h-[3px] rounded-full pointer-events-none"
-          style={{ background: "rgb(var(--apple-orange))", width: "28px" }}
-          animate={{
-            x: `calc(${tabs.findIndex(t => t.id === activeTab)} * ${100 / tabs.length}vw - 50% + ${(100 / tabs.length / 2)}vw - 14px + 4px)`,
+          style={{
+            background: "rgb(var(--apple-orange))",
+            width: "28px",
+            left: `calc(${tabs.findIndex(t => t.id === activeTab)} * 20% + 10% - 14px)`,
+            transition: "left 280ms cubic-bezier(0.34,1.56,0.64,1)",
           }}
-          transition={{ type: "spring", stiffness: 440, damping: 38, mass: 0.7 }}
         />
 
         {tabs.map((tab) => {
