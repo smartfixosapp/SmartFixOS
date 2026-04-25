@@ -596,23 +596,31 @@ export default function OrdersPage() {
             borderBottom: "0.5px solid rgb(var(--separator) / 0.29)",
           }}
         >
-          {/* Row 1: Segmented Control estilo iOS — liquid glass */}
-          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-            <TabsList className="liquid-glass-subtle p-1 rounded-apple-md w-full grid grid-cols-2 gap-1 border-0">
-              <TabsTrigger
-                value="work-orders"
-                className="rounded-apple-sm apple-text-footnote font-semibold data-[state=active]:bg-[rgb(var(--surface-elevated))] data-[state=active]:text-apple-blue data-[state=active]:shadow-apple-sm apple-label-secondary transition-all duration-200"
+          {/* Row 1: Segmented control — custom (no shadcn TabsTrigger alignment issues) */}
+          <div
+            className="flex w-full rounded-[14px] p-1 gap-1"
+            style={{ background: "rgba(255,255,255,0.06)" }}
+          >
+            {[
+              { id: "work-orders", label: "Órdenes",    activeColor: "#60a5fa" },
+              { id: "unlocks",     label: "Desbloqueo", activeColor: "#a78bfa" },
+            ].map(({ id, label, activeColor }) => (
+              <button
+                key={id}
+                onClick={() => setActiveTab(id)}
+                className="flex-1 py-2 rounded-[10px] text-[13px] font-semibold text-center transition-all duration-200 active:scale-95"
+                style={activeTab === id ? {
+                  background: "rgba(255,255,255,0.10)",
+                  color: activeColor,
+                  boxShadow: "0 1px 4px rgba(0,0,0,0.3)",
+                } : {
+                  color: "rgba(255,255,255,0.38)",
+                }}
               >
-                Órdenes
-              </TabsTrigger>
-              <TabsTrigger
-                value="unlocks"
-                className="rounded-apple-sm apple-text-footnote font-semibold data-[state=active]:bg-[rgb(var(--surface-elevated))] data-[state=active]:text-apple-purple data-[state=active]:shadow-apple-sm apple-label-secondary transition-all duration-200"
-              >
-                Desbloqueo
-              </TabsTrigger>
-            </TabsList>
-          </Tabs>
+                {label}
+              </button>
+            ))}
+          </div>
 
           {/* Row 2: Mobile-only compact action row */}
           <div className="flex items-center gap-2 mt-2 sm:hidden">
