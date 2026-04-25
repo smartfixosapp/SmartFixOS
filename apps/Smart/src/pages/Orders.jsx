@@ -279,6 +279,7 @@ export default function OrdersPage() {
   const [showCreateInvoice, setShowCreateInvoice] = useState(false);
   const [showPendingAlerts, setShowPendingAlerts] = useState(false);
   const [showStatusDropdown, setShowStatusDropdown] = useState(false);
+  const [showSearch, setShowSearch] = useState(false);
   const [activeTab, setActiveTab] = useState("work-orders"); // work-orders, unlocks
   const [editingDeviceOrder, setEditingDeviceOrder] = useState(null);
   // Pull-to-refresh state eliminado — refresh solo por botón
