@@ -705,78 +705,78 @@ export default function OrdersPage() {
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
                 transition={{ duration: 0.12 }}
-                className="flex gap-2 overflow-x-auto pb-0.5 no-scrollbar items-center"
+                className="flex gap-1.5 overflow-x-auto pb-0.5 no-scrollbar items-center"
               >
-                {/* 🔍 Search icon */}
+                {/* 🔍 Search icon — small, subtle */}
                 <button
                   onClick={() => setShowSearch(true)}
-                  className="shrink-0 w-8 h-8 rounded-full flex items-center justify-center transition-all active:scale-90"
-                  style={{ background: "rgba(255,255,255,0.07)", border: "1px solid rgba(255,255,255,0.1)" }}
+                  className="shrink-0 w-7 h-7 rounded-full flex items-center justify-center transition-all active:scale-90"
+                  style={{ color: "rgba(255,255,255,0.35)" }}
                   title="Buscar"
                 >
-                  <Search className="w-3.5 h-3.5" style={{ color: "rgba(255,255,255,0.5)" }} />
+                  <Search className="w-3.5 h-3.5" />
                 </button>
 
                 {/* Divider */}
-                <div className="shrink-0 w-px h-5 rounded-full" style={{ background: "rgba(255,255,255,0.1)" }} />
+                <div className="shrink-0 w-px h-4" style={{ background: "rgba(255,255,255,0.1)" }} />
 
                 {/* Todos */}
                 <button
                   onClick={() => setSelectedStatus("active")}
-                  className="shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold transition-all"
-                  style={{
-                    background: selectedStatus === "active" ? "rgba(96,165,250,0.18)" : "rgba(255,255,255,0.05)",
-                    color: selectedStatus === "active" ? "#60a5fa" : "rgba(255,255,255,0.38)",
-                    border: selectedStatus === "active" ? "1px solid rgba(96,165,250,0.35)" : "1px solid rgba(255,255,255,0.08)",
+                  className="shrink-0 flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-semibold transition-all"
+                  style={selectedStatus === "active" ? {
+                    background: "rgba(96,165,250,0.15)",
+                    color: "#60a5fa",
+                    border: "1px solid rgba(96,165,250,0.3)",
+                  } : {
+                    color: "rgba(255,255,255,0.45)",
                   }}
                 >
                   Todos
-                  <span className="px-1.5 py-0.5 rounded-full text-[10px]" style={{ background: "rgba(255,255,255,0.1)" }}>
-                    {statusCounts["active"] || 0}
-                  </span>
+                  <span className="text-[10px] font-medium opacity-70">{statusCounts["active"] || 0}</span>
                 </button>
 
                 {/* Estados activos con órdenes */}
                 {ORDER_STATUSES
-              .filter(s => s.isActive && !["picked_up","completed","cancelled","delivered","warranty"].includes(s.id) && (statusCounts[s.id] || 0) > 0)
-              .sort((a, b) => (b.order || 0) - (a.order || 0))
-              .map(s => (
-                <button
-                  key={s.id}
-                  onClick={() => setSelectedStatus(selectedStatus === s.id ? "active" : s.id)}
-                  className="shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold transition-all"
-                  style={{
-                    background: selectedStatus === s.id ? `${s.color}22` : "rgba(255,255,255,0.05)",
-                    color: selectedStatus === s.id ? s.color : "rgba(255,255,255,0.38)",
-                    border: selectedStatus === s.id ? `1px solid ${s.color}40` : "1px solid rgba(255,255,255,0.08)",
-                  }}
-                >
-                  <span className="w-1.5 h-1.5 rounded-full shrink-0" style={{ background: s.color }} />
-                  {s.label}
-                  <span className="px-1.5 py-0.5 rounded-full text-[10px]" style={{ background: "rgba(255,255,255,0.1)" }}>
-                    {statusCounts[s.id]}
-                  </span>
-                </button>
-              ))
-            }
+                  .filter(s => s.isActive && !["picked_up","completed","cancelled","delivered","warranty"].includes(s.id) && (statusCounts[s.id] || 0) > 0)
+                  .sort((a, b) => (b.order || 0) - (a.order || 0))
+                  .map(s => (
+                    <button
+                      key={s.id}
+                      onClick={() => setSelectedStatus(selectedStatus === s.id ? "active" : s.id)}
+                      className="shrink-0 flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-semibold transition-all"
+                      style={selectedStatus === s.id ? {
+                        background: `${s.color}20`,
+                        color: s.color,
+                        border: `1px solid ${s.color}35`,
+                      } : {
+                        color: "rgba(255,255,255,0.4)",
+                      }}
+                    >
+                      <span className="w-1.5 h-1.5 rounded-full shrink-0" style={{ background: s.color, opacity: selectedStatus === s.id ? 1 : 0.6 }} />
+                      {s.label}
+                      <span className="text-[10px] font-medium opacity-70">{statusCounts[s.id]}</span>
+                    </button>
+                  ))
+                }
 
-            {/* Cerrados */}
-            {(statusCounts["closed"] || 0) > 0 && (
-              <button
-                onClick={() => setSelectedStatus(selectedStatus === "closed" ? "active" : "closed")}
-                className="shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold transition-all"
-                style={{
-                  background: selectedStatus === "closed" ? "rgba(255,255,255,0.12)" : "rgba(255,255,255,0.05)",
-                  color: selectedStatus === "closed" ? "rgba(255,255,255,0.85)" : "rgba(255,255,255,0.35)",
-                  border: selectedStatus === "closed" ? "1px solid rgba(255,255,255,0.25)" : "1px solid rgba(255,255,255,0.08)",
-                }}
-              >
-                Cerrados
-                <span className="px-1.5 py-0.5 rounded-full text-[10px]" style={{ background: "rgba(255,255,255,0.1)" }}>
-                  {statusCounts["closed"]}
-                </span>
-              </button>
-            )}
+                {/* Cerrados */}
+                {(statusCounts["closed"] || 0) > 0 && (
+                  <button
+                    onClick={() => setSelectedStatus(selectedStatus === "closed" ? "active" : "closed")}
+                    className="shrink-0 flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-semibold transition-all"
+                    style={selectedStatus === "closed" ? {
+                      background: "rgba(255,255,255,0.1)",
+                      color: "rgba(255,255,255,0.8)",
+                      border: "1px solid rgba(255,255,255,0.2)",
+                    } : {
+                      color: "rgba(255,255,255,0.35)",
+                    }}
+                  >
+                    Cerrados
+                    <span className="text-[10px] font-medium opacity-70">{statusCounts["closed"]}</span>
+                  </button>
+                )}
               </motion.div>
             )}
           </AnimatePresence>
