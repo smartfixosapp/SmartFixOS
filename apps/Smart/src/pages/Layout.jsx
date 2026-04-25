@@ -392,23 +392,29 @@ export default function Layout({ children }) {
       )}
 
       {/* === Contenido ===
-          Note: no horizontal padding on md+ — pages use .app-container which
-          handles its own fluid padding (clamp 1rem → 3.5rem). On mobile we
-          keep 8px so the page wrappers don't kiss the screen edges. */}
+          Layout: flex-col sin overflow propio.
+          - PunchReminderBanner vive FUERA del área scrolleable → no desplaza
+            el punto de anclaje de los headers sticky (top-0 = tope del scroll).
+          - El div interior es el verdadero scroll container; las páginas usan
+            sticky top-0 y se anclan exactamente a su tope. */}
       <main
         ref={mainRef}
-        className={'flex-1 overflow-y-auto [overflow-x:clip] px-2 sm:px-2 md:px-0 pt-[calc(env(safe-area-inset-top,0px)+8px)] md:pt-4 pb-[calc(88px+env(safe-area-inset-bottom,0px))] md:pb-4 relative'}
+        className={'flex-1 flex flex-col [overflow:clip] pt-[calc(env(safe-area-inset-top,0px)+8px)] md:pt-4 relative'}
         data-pointer-overlay="off"
-        style={{ WebkitOverflowScrolling: 'touch', scrollBehavior: 'smooth' }}
       >
-        {/* Banner persistente de recordatorio de ponche (entrada/salida) */}
+        {/* Banner persistente — encima del scroll, no afecta sticky */}
         {!isPinAccess && !isWelcome && !isSetupPage && !shouldShowTrialExpired && !showPaymentScreen && (
           <PunchReminderBanner />
         )}
-        <div data-pointer-target="on">
-          <div className="h-full">
-            {children}
-          </div>
+
+        {/* Área scrolleable — único scroll container de la app */}
+        <div
+          ref={mainRef}
+          className={'flex-1 overflow-y-auto [overflow-x:clip] px-2 sm:px-2 md:px-0 pb-[calc(88px+env(safe-area-inset-bottom,0px))] md:pb-4'}
+          data-pointer-target="on"
+          style={{ WebkitOverflowScrolling: 'touch', scrollBehavior: 'smooth' }}
+        >
+          {children}
         </div>
       </main>
 
