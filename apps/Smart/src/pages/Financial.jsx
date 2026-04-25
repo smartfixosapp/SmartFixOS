@@ -1,5 +1,4 @@
-import React, { useState, useEffect, useRef, useMemo, useCallback } from "react";
-import { createPortal } from "react-dom";
+import React, { useState, useEffect, useRef, useMemo } from "react";
 import JENAIInsightBanner from "@/components/jenai/JENAIInsightBanner";
 import { callJENAI } from "@/lib/jenaiEngine";
 import { dataClient } from "@/components/api/dataClient";
