@@ -16,7 +16,7 @@ export default defineConfig({
       manifest: false,
       selfDestroying: false,
       workbox: {
-        cacheId: 'sfos-v10', // v10: Financial sticky header + remove Jenai banner
+        cacheId: 'sfos-v11', // v11: inner-scroll sticky fix + PunchReminderBanner race fix
         clientsClaim: true,
         skipWaiting: true,
         globPatterns: ['**/*.{js,css,ico,png,svg,woff2}'],
