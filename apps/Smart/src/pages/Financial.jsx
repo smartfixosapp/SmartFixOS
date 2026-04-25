@@ -1323,13 +1323,6 @@ Maximo 150 palabras. Texto plano, sin markdown.`
           </div>
         )}
       </div>
-  , document.body);
-
-  return (
-    <div className="apple-surface apple-type">
-      {headerPortal}
-      {/* Espaciador mobile: empuja el contenido por debajo del header fijo */}
-      <div className="block md:hidden" style={{ height: headerHeight }} />
 
       {/* ── Layout principal ── */}
       <div className="app-container pt-4 pb-28 space-y-4">
