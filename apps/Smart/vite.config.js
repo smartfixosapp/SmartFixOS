@@ -16,7 +16,7 @@ export default defineConfig({
       manifest: false,
       selfDestroying: false,
       workbox: {
-        cacheId: 'sfos-v11', // v11: inner-scroll sticky fix + PunchReminderBanner race fix
+        cacheId: 'sfos-v12', // v12: min-h-0 fix — scroll reactivado en inner flex container
         clientsClaim: true,
         skipWaiting: true,
         globPatterns: ['**/*.{js,css,ico,png,svg,woff2}'],
