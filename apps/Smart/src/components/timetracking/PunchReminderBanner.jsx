@@ -179,11 +179,10 @@ export default function PunchReminderBanner() {
   useEffect(() => {
     evaluate();
     const onUpdate = () => {
-      // Ocultar inmediatamente en entrada — el evento llega al instante del ponche
-      if (sessionStorage.getItem("timeEntryId")) {
-        setState({ visible: false });
-      }
-      evaluate();
+      // Ocultar de inmediato; re-evaluar con delay para evitar race condition
+      // con la escritura recién hecha en Supabase (replica lag ~500ms).
+      setState({ visible: false });
+      setTimeout(() => evaluate(), 2500);
     };
     window.addEventListener("employee-schedules-updated", onUpdate);
     window.addEventListener("punch-status-changed", onUpdate);
