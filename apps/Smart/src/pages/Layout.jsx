@@ -409,7 +409,6 @@ export default function Layout({ children }) {
 
         {/* Área scrolleable — único scroll container de la app */}
         <div
-          ref={mainRef}
           className={'flex-1 overflow-y-auto [overflow-x:clip] px-2 sm:px-2 md:px-0 pb-[calc(88px+env(safe-area-inset-bottom,0px))] md:pb-4'}
           data-pointer-target="on"
           style={{ WebkitOverflowScrolling: 'touch', scrollBehavior: 'smooth' }}
