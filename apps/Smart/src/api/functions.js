@@ -20,7 +20,6 @@ const functionPaths = {
   "manageTenant": "/manageTenant",
   "checkPlanLimits": "/checkPlanLimits",
   "notifyCashRegister": "/notifyCashRegister",
-  "populateInventory": "/populateInventory",
   "handleOrderStatusChange": "/handleOrderStatusChange",
   "notifyPickupReminder": "/notifyPickupReminder",
   "notifyWarrantyCheck": "/notifyWarrantyCheck",
