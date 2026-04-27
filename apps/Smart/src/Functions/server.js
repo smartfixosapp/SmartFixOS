@@ -262,11 +262,6 @@ console.log(`   🔧 /getExpensesByCategory: http://localhost:$${port}/getExpens
 console.log(`   🔧 /getKPIs: http://localhost:$${port}/getKPIs` );
 console.log(`   🔧 /notifyNewOrder: http://localhost:$${port}/notifyNewOrder` );
 console.log(`   🔧 /maintenanceJobs: http://localhost:$${port}/maintenanceJobs` );
-console.log(`   🔧 /salesList: http://localhost:$${port}/salesList` );
-console.log(`   🔧 /transactionsList: http://localhost:$${port}/transactionsList` );
-console.log(`   🔧 /cashRegisters: http://localhost:$${port}/cashRegisters` );
-console.log(`   🔧 /cashMovements: http://localhost:$${port}/cashMovements` );
-console.log(`   🔧 /getNeonSchema: http://localhost:$${port}/getNeonSchema` );
 console.log(`   🔧 /sendVerificationEmail: http://localhost:$${port}/sendVerificationEmail` );
 console.log(`   🔧 /verifyAndCreateAdmin: http://localhost:$${port}/verifyAndCreateAdmin` );
 console.log(`   🔧 /webmanifest: http://localhost:$${port}/webmanifest` );
