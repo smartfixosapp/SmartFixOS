@@ -13,7 +13,6 @@ const functionPaths = {
   "maintenanceJobs": "/maintenanceJobs",
   "sendVerificationEmail": "/sendVerificationEmail",
   "verifyAndCreateAdmin": "/verifyAndCreateAdmin",
-  "webmanifest": "/webmanifest",
   "createFirstAdmin": "/createFirstAdmin",
   "createStripeCheckout": "/createStripeCheckout",
   "createStripeSubscription": "/createStripeSubscription",
