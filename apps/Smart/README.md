@@ -1,60 +1,51 @@
-# App Template
+# SmartFixOS — App principal
 
-This template is used to generate new apps. When an app is generated, all files from this template are copied to the app directory.
+ERP/POS para talleres de reparación de electrónicos.
 
-## Files Included
+## Stack
 
-- **start.sh** - Unified script to start all services locally (Frontend, Functions, Backend)
-- **Dockerfile** - Single Dockerfile to run all services in a container
-- **run-migrations.sh** - Database migration script (uses .env from app directory)
-- **start-functions-server.sh** - Functions server startup script
-- **stop-functions-server.sh** - Functions server stop script
+- **Frontend**: React 18 + Vite 6 + TailwindCSS + shadcn/ui + React Query + React Router v7
+- **Backend funciones**: Deno (servidor unificado en `src/Functions/server.js`)
+- **Base de datos**: Supabase Cloud (PostgreSQL + Auth + Storage)
+- **Móvil**: Capacitor (iOS/Android)
+- **Hosting**: Vercel (frontend) + Render (Deno functions)
 
-## Usage
+## Servicios locales
 
-### Local Development
+| Servicio | Puerto | Cómo arrancar |
+|----------|--------|---------------|
+| Frontend (Vite) | 5173 | `pnpm dev` (desde `apps/Smart/`) |
+| Functions (Deno) | 8686 | `bash start-functions-server.sh` |
 
-```bash
-cd apps/your-app-name
-./start.sh
+`start.sh` arranca ambos en paralelo. Para abrir el navegador automáticamente, usar `SmartFixOS.command` desde la raíz del repo.
+
+## Variables de entorno
+
+Tomadas de `.env` en la raíz del monorepo. Las clave principales:
+
+- `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY` — cliente Supabase
+- `SUPABASE_SERVICE_ROLE_KEY` — solo para Deno functions (nunca al bundle)
+- `FUNCTIONS_PORT=8686`
+- `VITE_PORT=5173` (dev) / `6504` (prod)
+- `RESEND_API_KEY`, `FROM_EMAIL` — envío de correos
+
+## Estructura
+
+```
+apps/Smart/src/
+  pages/        # Vistas (Dashboard, POS, Orders, etc.)
+  components/   # UI components (shadcn/ui base + custom)
+  Entities/     # Schemas JSON de las 67 entidades (Customer, Order, …)
+  Functions/    # Funciones Deno (server.js es el entry point)
+  api/          # base44Client, entities.js, functions.js (capa SDK)
+  hooks/, lib/, utils/
+db/seeds/       # Migraciones SQL (001 → 009)
 ```
 
-This will:
-- Load environment from `.env` file
-- Run database migrations on first start
-- Start Python Backend (port 9080)
-- Start Functions Server (port 8686)
-- Start Frontend (port 5173)
-
-### Docker
-
-Build from repo root:
-```bash
-docker build -f apps/your-app-name/Dockerfile --build-arg APP_NAME=your-app-name -t your-app-name .
-```
-
-Run:
-```bash
-docker run -it --rm \
-  -p 5173:5173 \
-  -p 8686:8686 \
-  -p 9080:9080 \
-  --env-file apps/your-app-name/.env \
-  your-app-name
-```
-
-### Manual Migrations
+## Móvil (Capacitor)
 
 ```bash
-cd apps/your-app-name
-./run-migrations.sh
+pnpm ios       # build + sync + open Xcode
+pnpm android   # build + sync + open Android Studio
+pnpm mobile    # build + sync sin abrir
 ```
-
-## Environment Variables
-
-All scripts automatically use the `.env` file in the app directory. Required variables:
-
-- `FUNCTIONS_PORT` - Functions server port (default: 8686)
-- `VITE_PORT` - Frontend dev server port (default: 5173)
-- `BACKEND_PORT` - Backend API port (default: 9080)
-- `DATABASE_URL` or Supabase connection variables for migrations
