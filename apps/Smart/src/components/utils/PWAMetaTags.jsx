@@ -65,49 +65,14 @@ export default function PWAMetaTags() {
     }
     mobileOptimized.content = 'yes';
 
-    // Link to Manifest
+    // Link to static /manifest.json (served from public/)
     let manifestLink = document.querySelector('link[rel="manifest"]');
     if (!manifestLink) {
       manifestLink = document.createElement('link');
       manifestLink.rel = 'manifest';
       document.head.appendChild(manifestLink);
     }
-    // We use the function endpoint to serve the manifest
-    manifestLink.href = '/api/functions/webmanifest'; // Adjust based on how functions are called in your environment if needed
-    // Typically functions are at /api/functions/functionName or similar. 
-    // If running via SDK, we can't link directly easily unless there's a URL.
-    // For PWA manifest, it needs a URL.
-    // Assuming standard Base44 function URL structure or direct import isn't possible for <link>.
-    // Fallback: Data URI if function URL is not standard static.
-    
-    // Better approach: Use a data URI for instant loading without external request dependency issues in layout
-    const manifest = {
-      name: "SmartFixOS",
-      short_name: "SmartFixOS",
-      description: "Sistema de gestión para taller de reparaciones",
-      start_url: "/",
-      scope: "/",
-      display: "standalone",
-      background_color: "#000000",
-      theme_color: "#000000",
-      orientation: "portrait",
-      icons: [
-        {
-          src: "https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/68f767a3d5fce1486d4cf555/572f84138_IMG_0296.png",
-          sizes: "192x192",
-          type: "image/png"
-        },
-        {
-          src: "https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/68f767a3d5fce1486d4cf555/572f84138_IMG_0296.png",
-          sizes: "512x512",
-          type: "image/png"
-        }
-      ]
-    };
-    const stringManifest = JSON.stringify(manifest);
-    const blob = new Blob([stringManifest], {type: 'application/json'});
-    const manifestURL = URL.createObjectURL(blob);
-    manifestLink.href = manifestURL;
+    manifestLink.href = '/manifest.json';
 
   }, []);
 
