@@ -1,41 +1,11 @@
 const FUNCTIONS_BASE_URL = Deno.env.get('VITE_FUNCTION_URL') || 'http://localhost:8585';
-const DB_BACKEND = Deno.env.get('DB_BACKEND') || 'supabase';
 
 function tableNameToEntityName(tableName) {
   if (!tableName || typeof tableName !== 'string') return '';
   return tableName.split('_').map((s) => s.charAt(0).toUpperCase() + s.slice(1).toLowerCase()).join('');
 }
 
-function appwriteDocToData(doc) {
-  if (!doc) return null;
-  const out = { ...doc };
-  if (out.$id !== undefined) { out.id = out.$id; delete out.$id; }
-  if (out.$createdAt !== undefined) { out.created_at = out.$createdAt; delete out.$createdAt; }
-  if (out.$updatedAt !== undefined) { out.updated_at = out.$updatedAt; delete out.$updatedAt; }
-  if (out.$collectionId !== undefined) delete out.$collectionId;
-  if (out.$databaseId !== undefined) delete out.$databaseId;
-  if (out.$permissions !== undefined) delete out.$permissions;
-  return out;
-}
-
-function normalizeAppwritePayload(body, headers) {
-  const eventsHeader = headers?.get?.('X-Appwrite-Webhook-Events') || headers?.['X-Appwrite-Webhook-Events'];
-  if (!eventsHeader || !body || typeof body !== 'object') return null;
-  const eventStr = (typeof eventsHeader === 'string' ? eventsHeader : '').split(',')[0].trim();
-  const match = eventStr.match(/\.documents\.(create|update|delete)$/i);
-  if (!match) return null;
-  const eventType = match[1].toLowerCase();
-  const collectionId = body.$collectionId || (eventStr.match(/\.collections\.([^.]+)\.documents\./) || [])[1];
-  if (!collectionId) return null;
-  return {
-    entityName: tableNameToEntityName(collectionId),
-    eventType,
-    data: appwriteDocToData(body),
-    oldData: body.$old ? appwriteDocToData(body.$old) : null,
-  };
-}
-
-function normalizeSupabaseOrGenericPayload(body) {
+function normalizePayload(body) {
   if (body.entity_name && body.event_type) {
     return { entityName: body.entity_name, eventType: body.event_type, data: body.data ?? body.record, oldData: body.old_data ?? body.old_record };
   }
@@ -51,14 +21,8 @@ function normalizeSupabaseOrGenericPayload(body) {
   return null;
 }
 
-function normalizePayload(body, headers = {}) {
-  const appwrite = normalizeAppwritePayload(body, headers);
-  if (appwrite) return appwrite;
-  return normalizeSupabaseOrGenericPayload(body);
-}
-
 /**
- * POST /onEntityFnTrigger - Webhook for Supabase/Appwrite DB events or SDK hook.
+ * POST /onEntityFnTrigger - Webhook for Supabase DB events or SDK hook.
  */
 export async function onEntityFnTriggerHandler(req) {
   if (req.method !== 'POST') {
@@ -72,15 +36,14 @@ export async function onEntityFnTriggerHandler(req) {
     return Response.json({ error: 'Invalid JSON body' }, { status: 400 });
   }
 
-  const norm = normalizePayload(body, req.headers);
+  const norm = normalizePayload(body);
   if (!norm || !norm.entityName || !norm.eventType) {
-    return Response.json({ error: 'Missing entity_name/event_type, table/type, or Appwrite webhook payload' }, { status: 400 });
+    return Response.json({ error: 'Missing entity_name/event_type or table/type' }, { status: 400 });
   }
 
   const entitiesPath = new URL('../Entities', import.meta.url).pathname;
-  const base44 = DB_BACKEND === 'appwrite'
-    ? (await import('../../../../lib/unified-custom-sdk-appwrite.js')).createClientFromRequest(req, { functionsBaseUrl: FUNCTIONS_BASE_URL, entitiesPath })
-    : (await import('../../../../lib/unified-custom-sdk-supabase.js')).createClientFromRequest(req, { functionsBaseUrl: FUNCTIONS_BASE_URL, entitiesPath });
+  const { createClientFromRequest } = await import('../../../../lib/unified-custom-sdk-supabase.js');
+  const base44 = createClientFromRequest(req, { functionsBaseUrl: FUNCTIONS_BASE_URL, entitiesPath });
 
   let rules;
   try {
