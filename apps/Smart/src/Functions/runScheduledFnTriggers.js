@@ -1,6 +1,5 @@
 const FUNCTIONS_BASE_URL = Deno.env.get('VITE_FUNCTION_URL') || 'http://localhost:8585';
 const CRON_SECRET = Deno.env.get('CRON_SECRET');
-const DB_BACKEND = Deno.env.get('DB_BACKEND') || 'supabase';
 
 function isCronAuthorized(req) {
   if (!CRON_SECRET) return true;
