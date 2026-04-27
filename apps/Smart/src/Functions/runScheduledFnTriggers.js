@@ -55,9 +55,8 @@ export async function runScheduledFnTriggersHandler(req) {
   }
 
   const entitiesPath = new URL('../Entities', import.meta.url).pathname;
-  const base44 = DB_BACKEND === 'appwrite'
-    ? (await import('../../../../lib/unified-custom-sdk-appwrite.js')).createClientFromRequest(req, { functionsBaseUrl: FUNCTIONS_BASE_URL, entitiesPath })
-    : (await import('../../../../lib/unified-custom-sdk-supabase.js')).createClientFromRequest(req, { functionsBaseUrl: FUNCTIONS_BASE_URL, entitiesPath });
+  const { createClientFromRequest } = await import('../../../../lib/unified-custom-sdk-supabase.js');
+  const base44 = createClientFromRequest(req, { functionsBaseUrl: FUNCTIONS_BASE_URL, entitiesPath });
 
   const now = new Date();
   let rules;
