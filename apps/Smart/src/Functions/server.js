@@ -264,7 +264,6 @@ console.log(`   🔧 /notifyNewOrder: http://localhost:$${port}/notifyNewOrder` 
 console.log(`   🔧 /maintenanceJobs: http://localhost:$${port}/maintenanceJobs` );
 console.log(`   🔧 /sendVerificationEmail: http://localhost:$${port}/sendVerificationEmail` );
 console.log(`   🔧 /verifyAndCreateAdmin: http://localhost:$${port}/verifyAndCreateAdmin` );
-console.log(`   🔧 /webmanifest: http://localhost:$${port}/webmanifest` );
 console.log(`   🔧 /createFirstAdmin: http://localhost:$${port}/createFirstAdmin` );
 console.log(`   🔧 /createStripeCheckout: http://localhost:$${port}/createStripeCheckout` );
 console.log(`   🔧 /createStripeSubscription: http://localhost:$${port}/createStripeSubscription` );
