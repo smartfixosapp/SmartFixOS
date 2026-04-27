@@ -270,7 +270,6 @@ console.log(`   🔧 /createStripeSubscription: http://localhost:$${port}/create
 console.log(`   🔧 /stripeWebhook: http://localhost:$${port}/stripeWebhook` );
 console.log(`   🔧 /registerTenant: http://localhost:$${port}/registerTenant` );
 console.log(`   🔧 /notifyCashRegister: http://localhost:$${port}/notifyCashRegister` );
-console.log(`   🔧 /populateInventory: http://localhost:$${port}/populateInventory` );
 console.log(`   🔧 /handleOrderStatusChange: http://localhost:$${port}/handleOrderStatusChange` );
 console.log(`   🔧 /notifyPickupReminder: http://localhost:$${port}/notifyPickupReminder` );
 console.log(`   🔧 /notifyWarrantyCheck: http://localhost:$${port}/notifyWarrantyCheck` );
