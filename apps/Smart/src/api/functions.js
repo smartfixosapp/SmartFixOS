@@ -66,7 +66,6 @@ export const registerTenant = functionsClient.functions.registerTenant;
 export const manageTenant = functionsClient.functions.manageTenant;
 export const checkPlanLimits = functionsClient.functions.checkPlanLimits;
 export const notifyCashRegister = functionsClient.functions.notifyCashRegister;
-export const populateInventory = functionsClient.functions.populateInventory;
 export const handleOrderStatusChange = functionsClient.functions.handleOrderStatusChange;
 export const notifyPickupReminder = functionsClient.functions.notifyPickupReminder;
 export const notifyWarrantyCheck = functionsClient.functions.notifyWarrantyCheck;
