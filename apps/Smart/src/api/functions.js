@@ -60,7 +60,6 @@ export const notifyNewOrder = functionsClient.functions.notifyNewOrder;
 export const maintenanceJobs = functionsClient.functions.maintenanceJobs;
 export const sendVerificationEmail = functionsClient.functions.sendVerificationEmail;
 export const verifyAndCreateAdmin = functionsClient.functions.verifyAndCreateAdmin;
-export const webmanifest = functionsClient.functions.webmanifest;
 export const createFirstAdmin = functionsClient.functions.createFirstAdmin;
 export const createStripeCheckout = functionsClient.functions.createStripeCheckout;
 export const createStripeSubscription = functionsClient.functions.createStripeSubscription;
